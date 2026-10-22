@@ -30,7 +30,8 @@ import { installBossEncounter, type Boss } from '../Boss';
 import { ProjectedState, ReturnProgram } from '../population/returnProgram';
 import { wildEnv } from '../population/pageGroups';
 import { setEliteDamage } from '../quest/elitePage';
-import { ArenaField, arenaBlockedAt, installArenaBoundary, type ArenaBoundary } from './arenaField';
+import { CellField } from '../systems/cellField';
+import { arenaBlockedAt, installArenaBoundary, type ArenaBoundary } from './arenaField';
 import { ArenaFireView, ArenaWhirlsView } from './arenaFire';
 import { ArenaSceneView, CloudBody, type PatrolEncounterView } from './encounterView';
 import type { GroundTell } from '../Elite';
@@ -79,7 +80,7 @@ export class ArenaScriptFight implements BossScript {
   private get domeBroken(): boolean { return this.life.value('broke')===1; }
   private set domeBroken(on: boolean) { this.life.event('support',{ hp: this.hp,broke: Number(on) }); }
   // phase III
-  private readonly field: ArenaField;
+  private readonly field: CellField;
   private fireOn = false;
   private readonly fire: ArenaFireView;
   private readonly chains: Chain[];
@@ -117,7 +118,7 @@ export class ArenaScriptFight implements BossScript {
     this.trail=new ProjectedState(clocks.volley.trail,this.author);
     this.spearLaw=this.clock('spear');this.chainLaw=this.clock('chain');
     const fireLaw = ReturnProgram.page(this.data.programs.fire, ctx.game.levelScope);
-    this.field = new ArenaField(this.data.field, fireLaw, app.rng.stream('ai'));
+    this.field = new CellField(this.data.field, fireLaw, app.rng.stream('ai'));
     this.boundary = { field: this.field,boundary: data.boundary,mask: 0 };
     const windLaw = ReturnProgram.page(this.data.programs.wind, ctx.game.levelScope);
     this.rules = ReturnProgram.page(this.data.programs.rules, ctx.game.levelScope);
@@ -261,7 +262,7 @@ export class ArenaScriptFight implements BossScript {
     for (const l of this.arena.tells('lane')) l.hide();
     this.clearRiders();
     // the rain puts the fire out: every burning cell goes to black
-    for (const cell of this.field.extinguish()) this.addScorch(cell);
+    for (const cell of this.field.deactivate()) this.addScorch(cell);
     this.fireOn = false;
     this.fire.out();
     this.whirls.arm(0);
@@ -371,7 +372,7 @@ export class ArenaScriptFight implements BossScript {
 
   /** A burning cell is observed by the mounted refusal and HUD. */
   burningAt(x: number, z: number): boolean { return this.field.activeAt(x, z); }
-  private ignite(x: number, z: number): void { this.field.ignite(x, z); }
+  private ignite(x: number, z: number): void { this.field.activate(x, z); }
   private addScorch(c: number): void {
     this.fire.scorchCell(this.field, c);
     wildEnv.trample(this.field.x(c), this.field.z(c), this.data.tuning.cell * 0.6, 1, 0, 0);   // the grass burnt flat

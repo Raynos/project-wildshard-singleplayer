@@ -1,7 +1,8 @@
 import { expect, test } from 'vitest';
 import { parse } from 'valibot';
-import { ArenaFieldSchema } from '../src/format/encounterRows';
-import { ArenaField,installArenaBoundary,arenaBoundaryBlocked } from '../src/game/boss/arenaField';
+import { CellFieldSchema } from '../src/format/cellField';
+import { CellField } from '../src/game/systems/cellField';
+import { installArenaBoundary,arenaBoundaryBlocked } from '../src/game/boss/arenaField';
 import { Scope } from '../src/engine/app/scope';
 import { ProjectedState,ReturnProgram } from '../src/game/population/returnProgram';
 import { Rng } from '../src/engine/core/rng';
@@ -11,10 +12,10 @@ import { TITAN_CLOCKS, TITAN_FIRE_FIELD } from '../src/shards/nalati-grasslands/
 
 test('mounted refusal borrows only its entered scope and releases on disposal', () => {
   const owner = new Scope('orchard-arena'),other = new Scope('outside');
-  const field = new ArenaField(TITAN_FIRE_FIELD,ReturnProgram.page(program.fire),new Rng(714));
+  const field = new CellField(TITAN_FIRE_FIELD,ReturnProgram.page(program.fire),new Rng(714));
   const at = fight.TITAN_ARENA.center,row = { field,boundary: { x: at.x,z: at.z,radius: 20 },mask: 0 };
   try {
-    installArenaBoundary(owner,row); field.ignite(at.x,at.z);
+    installArenaBoundary(owner,row); field.activate(at.x,at.z);
     expect(arenaBoundaryBlocked(owner,at.x,at.z)).toBe(false);
     row.mask = 2; expect(arenaBoundaryBlocked(owner,at.x,at.z)).toBe(true);
     expect(arenaBoundaryBlocked(other,at.x,at.z)).toBe(false);
@@ -26,38 +27,39 @@ test('mounted refusal borrows only its entered scope and releases on disposal', 
 });
 
 test('the arena field obeys ignition bounds and cannot rekindle spent cells', () => {
-  const field = new ArenaField(parse(ArenaFieldSchema, fight.TITAN_FIRE_FIELD), ReturnProgram.page(program.fire), new Rng(513));
+  const field = new CellField(parse(CellFieldSchema, fight.TITAN_FIRE_FIELD), ReturnProgram.page(program.fire), new Rng(513));
   const { x, z } = fight.TITAN_ARENA.center;
-  field.ignite(x, z);
+  field.activate(x, z);
   const cell = field.cellAt(x, z), lifetime = field.remaining(cell);
   expect(field.activeAt(x, z)).toBe(true);
-  field.ignite(x, z); expect(field.remaining(cell)).toBe(lifetime);
-  field.ignite(field.rows.x, field.rows.z); expect(field.mode(0)).toBe(0);
+  field.activate(x, z); expect(field.remaining(cell)).toBe(lifetime);
+  field.activate(field.rows.x, field.rows.z); expect(field.state(0)).toBe(0);
   field.update(.05, { wx: 0, wz: 0 }); expect(field.remaining(cell)).toBe(lifetime);
   field.update(.05, { wx: 0, wz: 0 }); expect(field.remaining(cell)).toBeCloseTo(lifetime - .1, 5);
-  expect(field.extinguish()).toContain(cell);
-  field.ignite(x, z); expect(field.activeAt(x, z)).toBe(false);
-  field.clear(); field.ignite(x, z); expect(field.activeAt(x, z)).toBe(true);
+  expect(field.deactivate()).toContain(cell);
+  field.activate(x, z); expect(field.activeAt(x, z)).toBe(false);
+  field.clear(); field.activate(x, z); expect(field.activeAt(x, z)).toBe(true);
 });
 
 test('an unrelated orchard encounter uses a rectangular four-neighbour frost field', () => {
-  const field = new ArenaField({ x: 10, z: 20, width: 3, depth: 2, cell: 2,
+  const field = new CellField({ x: 10, z: 20, width: 3, depth: 2, cell: 2,
     observations: { cx: 13, cz: 22, radius: 50, burn: .2 },
     neighbours: [[0,-1],[-1,0],[1,0],[0,1]],
-    signals: { ignite: 'fieldIgnite', step: 'fire', clock: 'fieldClock' },
+    states: { idle: 0,active: 1,spent: 2 },channels: { state: 'mode',lifetime: 'burn',clock: 't',pulse: 'spread',neighbours: 'mask' },
+    signals: { activate: 'fieldIgnite', step: 'fire', clock: 'fieldClock' },
   }, ReturnProgram.page(program.fire), new Rng(714));
   expect(field.cellAt(9, 20)).toBe(-1); expect(field.cellAt(16, 20)).toBe(-1);
-  field.ignite(11, 21); field.ignite(15, 23);
+  field.activate(11, 21); field.activate(15, 23);
   expect(field.x(5)).toBe(15); expect(field.z(5)).toBe(23);
   const changed = field.update(.4, { wx: 1, wz: 0 });
-  expect(changed).toEqual([0, 5]); expect(field.mode(0)).toBe(2); expect(field.mode(5)).toBe(2);
-  expect(field.extinguish()).toEqual([]);
+  expect(changed).toEqual([0, 5]); expect(field.state(0)).toBe(2); expect(field.state(5)).toBe(2);
+  expect(field.deactivate()).toEqual([]);
 });
 
 test('field contact owns its footprint, cooldown and checkpoint reset', () => {
-  const field = new ArenaField(TITAN_FIRE_FIELD, ReturnProgram.page(program.fire), new Rng(513));
+  const field = new CellField(TITAN_FIRE_FIELD, ReturnProgram.page(program.fire), new Rng(513));
   const { x, z } = fight.TITAN_ARENA.center;
-  field.ignite(x, z);
+  field.activate(x, z);
   expect(field.sense(.05, { x, z }, { mounted: 1 })).toEqual({});
   const hit = field.sense(.05, { x, z }, { mounted: 1 });
   expect(hit['hurt']).toBe(4);
@@ -66,17 +68,18 @@ test('field contact owns its footprint, cooldown and checkpoint reset', () => {
   expect(field.activeAt(nearby.x, nearby.z)).toBe(false);
   expect(field.sense(.1, nearby, { mounted: 1 })['speed']).toBe(-1);
   expect(field.sense(.1, nearby, { mounted: 0 })['speed']).toBe(0);
-  field.clear(); field.ignite(x, z);
+  field.clear(); field.activate(x, z);
   expect(field.sense(.1, { x, z }, { mounted: 0 })['hurt']).toBe(4);
 });
 
 test('the orchard field binds a different contact footprint and damage', () => {
-  const field = new ArenaField({ x: 10, z: 20, width: 3, depth: 2, cell: 2,
+  const field = new CellField({ x: 10, z: 20, width: 3, depth: 2, cell: 2,
     observations: { cx: 13, cz: 22, radius: 50, burn: 2 }, neighbours: [[0,1]],
-    signals: { ignite: 'fieldIgnite', step: 'fire', clock: 'fieldClock' },
+    states: { idle: 0,active: 1,spent: 2 },channels: { state: 'mode',lifetime: 'burn',clock: 't',pulse: 'spread',neighbours: 'mask' },
+    signals: { activate: 'fieldIgnite', step: 'fire', clock: 'fieldClock' },
     contact: { law: { signal: 'fieldContact', initial: { cd: 0 }, parameters: { amount: 12 }, retain: { cd: 'cd' } }, samples: [{ x: 2, z: 0 }] },
   }, ReturnProgram.page(program.fire), new Rng(714));
-  field.ignite(13, 21);
+  field.activate(13, 21);
   expect(field.sense(.1, { x: 11, z: 21 }, { mounted: 1 })['speed']).toBe(-1);
   expect(field.sense(.1, { x: 13, z: 21 }, { mounted: 0 })['hurt']).toBe(6);
 });

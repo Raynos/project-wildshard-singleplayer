@@ -101,7 +101,9 @@ export const TITAN_FIRE_FIELD = {
   width: TITAN_ARENA.grid, depth: TITAN_ARENA.grid, cell: TITAN_TUNING.cell,
   observations: { cx: TITAN_ARENA.center.x, cz: TITAN_ARENA.center.z, radius: TITAN_PLACE.arenaRadius, burn: TITAN_TUNING.burnSeconds },
   contact: { law: TITAN_SCHEDULES.contact, samples: TITAN_FIRE_SENSE },
-  neighbours: FIRE_NEIGHBOURS, signals: { ignite: 'fieldIgnite', step: 'fire', clock: 'fieldClock' },
+  states: { idle: 0,active: 1,spent: 2 },
+  channels: { state: 'mode',lifetime: 'burn',clock: 't',pulse: 'spread',neighbours: 'mask' },
+  neighbours: FIRE_NEIGHBOURS, signals: { activate: 'fieldIgnite', step: 'fire', clock: 'fieldClock' },
 };
 
 export const TITAN_BOUNDARY = { x: TITAN_ARENA.center.x, z: TITAN_ARENA.center.z, radius: TITAN_PLACE.arenaRadius - 3 };

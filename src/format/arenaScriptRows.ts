@@ -1,8 +1,9 @@
 import * as v from 'valibot';
 import { BossEncounterDefinitionSchema,BossEncounterPresentationSchema } from './bossEncounter';
+import { CellFieldSchema } from './cellField';
 import { ReturnProgramSchema } from './namedJsonContracts';
 import { CreatureStrikeSchema } from './creatures';
-import { ArenaEncounterSchema,ArenaFieldSchema,CoupledEncounterRowsSchema,ArenaWhirlsSchema,ArenaFireSchema,CloudBodySchema,ArenaSceneSchema } from './encounterRows';
+import { ArenaEncounterSchema,CoupledEncounterRowsSchema,ArenaWhirlsSchema,ArenaFireSchema,CloudBodySchema,ArenaSceneSchema } from './encounterRows';
 
 /** Build-only validation; runtime readers import the inferred types only. */
 const arenaNumber=v.pipe(v.number(),v.finite(),v.minValue(-1e6),v.maxValue(1e6));
@@ -29,7 +30,7 @@ const lines = v.strictObject({ kneels: label,grassFire: label,immuneDome: label,
 /** Declared resources and effect bindings for an AS arena script. Named-file
  * admission checks bounded field, support and clock rows before allocation. */
 export const ArenaScriptRowsSchema = v.strictObject({
-  script: ArenaScriptBossProfileSchema,clocks: ArenaEncounterSchema,field: ArenaFieldSchema,support: CoupledEncounterRowsSchema,whirls: ArenaWhirlsSchema,arenaFire: ArenaFireSchema,
+  script: ArenaScriptBossProfileSchema,clocks: ArenaEncounterSchema,field: CellFieldSchema,support: CoupledEncounterRowsSchema,whirls: ArenaWhirlsSchema,arenaFire: ArenaFireSchema,
   programs: v.strictObject({ attack: ReturnProgramSchema,fire: ReturnProgramSchema,wind: ReturnProgramSchema,rules: ReturnProgramSchema }),
   supportSites: v.pipe(v.array(v.strictObject({ x: finite,z: finite,theta: finite })),v.maxLength(8)),
   arena: v.strictObject({ center: point,body: point,anchor: point,ground: point }),place: v.strictObject({ arenaRadius: finite,heartHp: finite }),

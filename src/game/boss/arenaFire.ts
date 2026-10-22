@@ -5,7 +5,7 @@ import { TIER } from '@wildshard/engine/core/tier';
 import { terrainHeight as heightAt, terrainNormal as normalAt } from '@wildshard/engine/world/terrainHeight';
 import { lentLook, setLentParam } from '../shardfile/lentLooks';
 import { ProjectedState, type ReturnProgram } from '../population/returnProgram';
-import type { ArenaField } from './arenaField';
+import type { CellField } from '../systems/cellField';
 import type { ArenaWhirlsRows,ArenaFireRows } from '@wildshard/format/encounterRows';
 
 interface SmokeP { x: number; y: number; z: number; vx: number; vy: number; vz: number; age: number; life: number; r0: number; r1: number; glow: number; seed: number; on: boolean }
@@ -52,22 +52,22 @@ export class ArenaFireView {
 
   /** Draw `field`'s burning cells this frame: each rises, roars and sinks to embers, the downwind front tallest, smoke
    *  rolling off. */
-  drawField(field: ArenaField, dt: number, windX: number, windZ: number): void {
+  drawField(field: CellField, dt: number, windX: number, windZ: number): void {
     const rows = this.rows.cells; if (rows === undefined) throw new Error('Arena fire has no cell rows');
     const smoke = TIER === 'phone' ? rows.smoke[0] : rows.smoke[1], step = field.rows.cell;
     this.begin();
     for (let c = 0; c < field.length; c++) {
-      if (field.mode(c) !== 1) continue;
+      if (field.state(c) !== field.rows.states.active) continue;
       const left = field.remaining(c), x = field.x(c), z = field.z(c), y = heightAt(x, z) - rows.sink;
       const heat = Math.min(1, (rows.burn - left) / 0.9) * Math.min(1, left / 2.2), next = field.cellAt(x + windX * step, z + windZ * step);
-      this.flame(x + Math.sin(c * 3.1) * rows.scatter, y, z + Math.cos(c * 2.3) * rows.scatter, c, heat, next >= 0 && field.mode(next) === 0 ? 1 : 0, rows.size);
+      this.flame(x + Math.sin(c * 3.1) * rows.scatter, y, z + Math.cos(c * 2.3) * rows.scatter, c, heat, next >= 0 && field.state(next) === field.rows.states.idle ? 1 : 0, rows.size);
       if (app.rng.stream('cosmetic').next() < dt * smoke * (0.4 + heat)) this.puff(x, y, z, heat);
     }
     this.end();
   }
 
   /** A burnt-out cell's scorch, lying on the slope and turned at random. */
-  scorchCell(field: ArenaField, cell: number): void {
+  scorchCell(field: CellField, cell: number): void {
     const rows = this.rows.cells, mesh = this.scorch;
     if (rows === undefined || mesh === null || this.scorched >= mesh.instanceMatrix.count) return;
     const random = (): number => app.rng.stream('cosmetic').next(), { jitter, lift, scale } = rows.scorch;

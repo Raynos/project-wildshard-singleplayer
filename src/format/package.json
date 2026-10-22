@@ -9,6 +9,7 @@
     "./worldAssembly": "./worldAssembly.ts",
     "./worldUpdates": "./worldUpdates.ts",
     "./encounterRows": "./encounterRows.ts",
+    "./cellField": "./cellField.ts",
     "./speciesBookRows": "./speciesBookRows.ts",
     "./bakedTiles": "./bakedTiles.ts",
     "./findsCatalogue": "./findsCatalogue.ts",

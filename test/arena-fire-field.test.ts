@@ -7,7 +7,7 @@ import { ArenaSceneView } from '../src/game/boss/encounterView';
 import { Scope } from '../src/engine/app/scope';
 import { Rng } from '../src/engine/core/rng';
 import { overrideTerrain } from './fake/terrain';
-import { ArenaField } from '../src/game/boss/arenaField';
+import { CellField } from '../src/game/systems/cellField';
 import { ArenaFireView, ArenaWhirlsView } from '../src/game/boss/arenaFire';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
@@ -18,7 +18,8 @@ const reeds = { flameLook: 'reed-flame', smokeLook: 'reed-smoke', flameCount: 8,
   front: [0.5, 0.5], heat: [0.5, 0.5], flameWidth: 1, life: [0.5, 0], rise: [1, 0], radius: [0.5, 0], expansion: [1, 0],
   cells: { burn: 1, scatter: 0, sink: 0.25, size: 2, smoke: [1000, 1000], scorch: { jitter: 0, lift: 0.1, scale: [1, 0] } } };
 const marsh = { x: 10, z: 20, width: 3, depth: 2, cell: 2, observations: { cx: 13, cz: 22, radius: 50, burn: 1 },
-  neighbours: [[-1, 0], [1, 0]] as [number, number][], signals: { ignite: 'fieldIgnite', step: 'fire', clock: 'fieldClock' } };
+  neighbours: [[-1, 0], [1, 0]] as [number, number][], states: { idle: 0,active: 1,spent: 2 },channels: { state: 'mode',lifetime: 'burn',clock: 't',pulse: 'spread',neighbours: 'mask' },
+    signals: { activate: 'fieldIgnite', step: 'fire', clock: 'fieldClock' } };
 
 let restore = (): void => undefined;
 afterEach(() => { restore(); });
@@ -29,7 +30,7 @@ function burning() {
   lendLooks(scope, { materials: new Map(['reed-flame', 'reed-smoke'].map(id => [id, new MeshBasicMaterial()])),
     setParam: () => undefined, setTexture: () => undefined, bindMeshMap: () => { throw new Error('Unused'); } });
   const fire = new ArenaFireView(scene, parse(ArenaFireSchema,reeds), new BufferGeometry().copy(new BoxGeometry()).toJSON());
-  const field = new ArenaField(marsh, ReturnProgram.page(program.fire), new Rng(7)), scorch = new InstancedMesh(new BoxGeometry(), new MeshBasicMaterial(), 2);
+  const field = new CellField(marsh, ReturnProgram.page(program.fire), new Rng(7)), scorch = new InstancedMesh(new BoxGeometry(), new MeshBasicMaterial(), 2);
   fire.attachScorch(scorch);
   return { fire, field, scorch, scope };
 }
@@ -37,7 +38,7 @@ function burning() {
 test('a second shard\'s burning cells draw as flames on its bank with smoke rolling off', () => {
   const { fire, field, scope } = burning();
   try {
-    field.ignite(11, 21); field.ignite(15, 21);
+    field.activate(11, 21); field.activate(15, 21);
     fire.drawField(field, 0.1, 1, 0);
     expect(fire.flames.count).toBe(2); expect(fire.smoke.count).toBe(0);
     const at = new Vector3().setFromMatrixPosition(new Matrix4().fromArray(fire.flames.instanceMatrix.array, 0));

@@ -11794,3 +11794,32 @@ selection and lineOfSight retain their original laws. QueryRingV2 saves stable
 ids, batches afterBodies and delivers at the next eligible entry with fresh
 observed handles. No contact/urgent reach owner, simulation clock, body or RNG
 is created or replaced; roster codes are stable admitted declarations.
+
+
+CellField (game/systems/cellField) owns a bounded numeric grid, ordered delayed
+generations and ten-Hz update/contact sampling. CellFieldSchema declares the
+origin/cell size, dimensions, neighbour offsets, state codes, scalar channel
+bindings and AS signals. The admitted ReturnProgram decides activation,
+propagation, lifetime and contact effects; the host contains no fire law.
+Constructor admission rejects accessors, executable rows and ambiguous state /
+channel bindings before allocation. Parsed rows are detached and frozen.
+activate(x,z) is the same concrete operation borrowed by H4 ignite commands;
+deactivate returns active cells in original order. Native arena/riding refusal
+stays in its existing owner, independently of this storage host.
+
+captureNativeV2Observations(host,rows,navigation) in
+engine/script/liveObservationsV2 reads standard pose/health and explicitly
+requested ground, point sight and walkable samples from that native host.
+All actor identities preflight before queries; detached poses are sampled at
+the original decision slot. Later slots see earlier effects. Native contact
+still uses its original reach/contact authority, never delayed point sight.
+
+InputInboxV2 in engine/script/inputInboxV2 records authoritative 60 Hz edge
+and event stamps. Authenticated remote claimed ticks may lag receipt by at
+most six ticks. capture returns detached edges/events and an accept closure;
+accept only after the complete candidate validates, alongside query/state
+acceptance. Traps/retries do not drain input. Later receipts and sleeping
+binding events remain pending. The existing authority includes snapshot()
+in its own save; restore validates the stable-id continuation without Wasm
+or event replay and remaps transient handles on delivery. Fixed-memory
+capacities bound the queue. No scheduler, native body or RNG is installed.
