@@ -1,22 +1,8 @@
 name: admin-deploy
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'admin/**'
-      - 'scripts/admin-data*'
-      - 'scripts/admin-data/**'
-      - 'scripts/memory-report*.mjs'
-      - 'progress/memory/**'
-      - 'progress/loading/sf67/**'
-      - 'art/playtest/round-*/**'
-      - 'docs/plans/SHARD-PLATFORM.md'
-      - 'docs/plans/shard-platform/rows.md'
-      - 'docs/plans/shard-platform/decisions.md'
-      # the plan page's ruler card (G458): the committed ruler file and chart, refreshed hourly
-      - 'progress/shard-platform/ruler/**'
-      - '.github/workflows/admin-deploy.yml'
+  schedule:
+    - cron: '47 * * * *'
   workflow_dispatch:
 
 concurrency:
@@ -27,7 +13,48 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      changed: ${{ steps.inputs.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare inputs with the live admin revision
+        id: inputs
+        run: |
+          curl --fail --silent --show-error --max-time 30 \
+            -H 'Cache-Control: no-cache' \
+            https://wildshard-admin.vercel.app/version.json > "$RUNNER_TEMP/admin-version.json"
+          live="$(python3 - "$RUNNER_TEMP/admin-version.json" <<'PY'
+          import json, re, sys
+          with open(sys.argv[1]) as source:
+              revision = json.load(source)['revision']
+          if not isinstance(revision, str) or re.fullmatch('[0-9a-f]{40}', revision) is None:
+              raise SystemExit('Live admin has no valid committed revision')
+          print(revision)
+          PY
+          )"
+          git fetch --no-tags --depth=1 origin "$live"
+          # Compare shipped inputs, not HEAD: unrelated game commits need no admin upload.
+          if git diff --quiet "$live" "$GITHUB_SHA" -- \
+            admin 'scripts/admin-data*' scripts/admin-data \
+            'scripts/memory-report*.mjs' scripts/shard-net-lines.mjs \
+            progress/memory progress/loading/sf67 art/playtest \
+            docs/plans/SHARD-PLATFORM.md docs/plans/shard-platform/rows.md \
+            docs/plans/shard-platform/decisions.md progress/shard-platform/ruler \
+            package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json \
+            .github/workflows/admin-deploy.yml; then
+            echo 'changed=false' >> "$GITHUB_OUTPUT"
+            echo 'Admin inputs match production; skipping build and Vercel upload.'
+          else
+            result=$?
+            test "$result" -eq 1 || exit "$result"
+            echo 'changed=true' >> "$GITHUB_OUTPUT"
+          fi
   deploy:
+    needs: changes
+    if: needs.changes.outputs.changed == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
