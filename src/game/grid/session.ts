@@ -272,8 +272,13 @@ export class GridSession {
   private readonly frame: GridFrame | null;
   private readonly walls: ReadinessWalls;
   private live: LiveGridSession | null = null;
-  private readonly road: RoadLookState;
-  private readonly seams: SeamLookState;
+  /** the road system's readouts: empty until its install (`create` runs it beside the next loading steps) lands */
+  private road: RoadLookState = { segments: 0, junctions: 0, roundabouts: 0, signs: 0, lights: 0, draws: 0 };
+  private seams: SeamLookState = { triangles: 0, draws: 0, buckets: {} };
+  private roadRoots: readonly Object3D[] = [];
+  /** whether the road install has landed (or failed: the reveal never waits on a road that cannot come) */
+  private roadSettled = false;
+  private roadLanding: Promise<void> = Promise.resolve();
   private readonly roadPlans = new Map<Mesh, CullPlan>();
   private readonly roadBudget: { readonly view: () => RoadViewCost | null; readonly resident: () => RoadResident };
   private readonly life: NeighbourLife;
@@ -332,26 +337,27 @@ export class GridSession {
     const strips = await platformStrips(assembly, edges, (platform, edge) => generatePlatformSliced(platform, edge, async () => {
       progress?.detail(`Terrain seams · ${++batches} batches`); await construction.check();
     }, 12, seamPlans));
-    batches = 0; progress?.set(2, 3, `Road geometry · 0 batches · ${strips.length} seams`);
+    progress?.set(2, 3, `Road geometry · ${strips.length} seams`);
     const instance = pageGridInstance();
     if (instance === null) throw new Error('A grid session needs a grid page');
     const home = assembly.cell(instance), roadScope = host.scope.child('grid-road-construction');
     const admission = new PlatformRenderResidency(allocator, roadScope), plans = new Map<Mesh, CullPlan>();
+    // The road system (~1.8 s of geometry at 4x CPU on the phone tier, after the seams) builds beside the next loading
+    // steps instead of before them; the session takes it when it lands and the entry reveal waits for it (`ringsReady`)
+    const road = installPlatformRoadSliced({ strips, home, pitch: assembly.pitch,
+      layout: roadLayout(assembly, slug => findShard(slug)?.name ?? slug), scene: host.scene, scope: roadScope,
+      camera: () => host.frame?.camera, plans, admission }, async () => { await construction.check(); });
+    road.catch(() => { roadScope.dispose(); });
     try {
-      const road = await installPlatformRoadSliced({ strips, home, pitch: assembly.pitch,
-        layout: roadLayout(assembly, slug => findShard(slug)?.name ?? slug), scene: host.scene, scope: roadScope,
-        camera: () => host.frame?.camera, plans, admission }, async () => {
-          progress?.detail(`Road geometry · ${++batches} batches · ${strips.length} seams`); await construction.check();
-        });
       await construction.yield();
       const session = new GridSession(host, edges, allocator, strips, { road, plans });
-      progress?.set(3, 3, `${assembly.cells.length} cells · ${strips.length} seams · road ready`);
+      progress?.set(3, 3, `${assembly.cells.length} cells · ${strips.length} seams`);
       await construction.yield();
       return session;
     } catch (error) { roadScope.dispose(); throw error; }
   }
 
-  constructor(host: GridSessionHost, edges?: readonly PlatformCell[], allocator?: ResidencyAllocator, prebuilt?: readonly GeneratedStrip[], preparedRoad?: { readonly road: PlatformRoad; readonly plans: Map<Mesh, CullPlan> }) {
+  constructor(host: GridSessionHost, edges?: readonly PlatformCell[], allocator?: ResidencyAllocator, prebuilt?: readonly GeneratedStrip[], preparedRoad?: { readonly road: PlatformRoad | Promise<PlatformRoad>; readonly plans: Map<Mesh, CullPlan> }) {
     this.host = host;
     this.mapImages = new CellMinimaps(host.scope, async slug => {
       const pending = gridShardfileProduct(slug, { allocator: this.allocator, scope: host.scope });
@@ -390,21 +396,35 @@ export class GridSession {
     const layout = roadLayout(this.assembly, (slug) => findShard(slug)?.name ?? slug);
     // G112: every grid admits exact CPU/GPU byte plans on its early home/region/ring allocator.
     const admission = new PlatformRenderResidency(this.allocator, host.scope);
-    if (preparedRoad !== undefined) for (const [mesh, plan] of preparedRoad.plans) this.roadPlans.set(mesh, plan);
-    const platformRoad = preparedRoad?.road ?? installPlatformRoad({ strips, home, pitch: this.assembly.pitch, layout,
-      scene: host.scene, scope: host.scope, camera: () => host.frame?.camera, plans: this.roadPlans,
-      admission });
+    // the road system: `create`'s install as it lands (its frame hooks keep their latest values for it), else built now
+    let platformRoad: PlatformRoad | null = null, horizon: number | undefined, weight: number | undefined;
+    const take = (road: PlatformRoad): void => {
+      if (preparedRoad !== undefined) for (const [mesh, plan] of preparedRoad.plans) this.roadPlans.set(mesh, plan);
+      platformRoad = road; this.road = road.road; this.seams = road.seams; this.roadRoots = road.roots; this.roadSettled = true;
+      if (horizon !== undefined) road.horizon(horizon);
+      if (weight !== undefined) road.overlayLight(weight);
+    };
+    const given = preparedRoad?.road;
+    if (given instanceof Promise) {
+      const landing = async (): Promise<void> => {
+        try { const road = await given; if (!host.scope.disposed) take(road); }
+        catch (error: unknown) {
+          this.roadSettled = true; this.issues.set('road', error instanceof Error ? error.message : String(error));
+          console.warn('[grid] the road system did not install:', error);
+        }
+      };
+      this.roadLanding = landing();
+    } else take(given ?? installPlatformRoad({ strips, home, pitch: this.assembly.pitch, layout,
+      scene: host.scene, scope: host.scope, camera: () => host.frame?.camera, plans: this.roadPlans, admission }));
     this.strips = collisionStrips(strips);
-    this.road = platformRoad.road; this.seams = platformRoad.seams;
     // G321: inside a cell whose shard draws its own sky, its backdrop owns the horizon: the road's void floor fades by it
-    if (frame !== null) host.scope.onDispose(frame.horizon(platformRoad.horizon));
+    if (frame !== null) host.scope.onDispose(frame.horizon(owned => { horizon = owned; platformRoad?.horizon(owned); }));
     // G103: the asphalt forced 15 m into each cell keeps the road's light under that cell's own (the road's frame weight)
-    if (frame !== null) host.scope.onDispose(frame.stack(null, { weight: platformRoad.overlayLight }));
+    if (frame !== null) host.scope.onDispose(frame.stack(null, { weight: roadWeight => { weight = roadWeight; platformRoad?.overlayLight(roadWeight); } }));
     // G588: what stands outside that cell (the road's far reaches, the neighbours' near and far views, haze bands and ring
     // tiles) stays drawn from inside it: the neighbours are the grid's horizon (G321 part 4's fade beyond the cell is gone)
     // SF17b's per-view road budget (§3.2, G101): what the view camera draws of the road system, and what stays resident
-    const roadRoots = platformRoad.roots;
-    this.roadBudget = { view: () => { const camera = host.frame?.camera; return camera === undefined ? null : roadViewCost(roadRoots, camera, this.roadPlans); }, resident: () => roadResident(roadRoots, this.roadPlans) };
+    this.roadBudget = { view: () => { const camera = host.frame?.camera; return camera === undefined ? null : roadViewCost(this.roadRoots, camera, this.roadPlans); }, resident: () => roadResident(this.roadRoots, this.roadPlans) };
     // G85: a closed neighbour edge shows as a cyan hex shimmer
     this.softWalls = installSoftWallLook({ scene: host.scene, scope: host.scope, time: () => app.clock.now,
       edges: this.neighbours.flatMap((cell) => neighbourEdges(cell, home).map((edge) => ({ instance: cell.instance, x: edge.x, z: edge.z, axis: edge.axis, halfLength: edge.halfLength }))),
@@ -705,7 +725,9 @@ export class GridSession {
   }
 
   /** every visible neighbour is drawn now (the entry reveal's readiness, G98) */
-  ringsReady(): boolean { return this.rings.ready(); }
+  ringsReady(): boolean { return this.roadSettled && this.rings.ready(); }
+  /** Settles once the road system has landed (or failed): the entry's shader warm-up waits for it, so its programs are warmed. */
+  roadLanded(): Promise<void> { return this.roadLanding; }
 
   /** Hold the loading screen until every visible neighbour is drawn (or the time limit: the soft walls hold anyway). */
   async ready(limitMs = 20_000): Promise<boolean> {

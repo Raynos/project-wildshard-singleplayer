@@ -49,6 +49,8 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   }
 
   await macrotask();
+  // the grid's road system builds beside the loading steps (GridSession.create): in the scene before its shaders warm
+  await ctx.grid?.roadLanded();
   game.buildComposer();
   // The first live late/render phases would otherwise publish the home PMREM and install its grade only after
   // shaders/firstFrame, invalidating every warmed world key. Settle the same presentation owners without a tick.
