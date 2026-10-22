@@ -12,6 +12,8 @@ import { HeldClaims, HeldClaimGuard } from '../src/game/loadout/claims';
 import * as compiler from '../src/game/shardfile/runtimeProduct';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import type { ShardContext } from '../src/game/plugin/context';
+import type { ShardRuntime } from '../src/game/shard/runtime';
+import { legacyDouble } from './fake/FakeGame';
 import { emptyShardfile } from '../src/sdk/author';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { HELD_ARMS } from '../src/shards/driftwood-isle/generators/heldArms';
@@ -45,7 +47,9 @@ test('a second shard drives held claim geometry, materials and cards entirely fr
     } });
   const materials = new Map(Object.values(rows.look.materials).map(id => [id, new MeshBasicMaterial()]));
   vi.spyOn(compiler, 'runtimeLookMaterials').mockResolvedValue(looks(materials));
-  const scope = new Scope('harbour-claims'), context = { scope, product } as ShardContext;
+  const scope = new Scope('harbour-claims'), runtime = legacyDouble<ShardRuntime>({ world: null });
+  const context = legacyDouble<ShardContext>({ scope, product,
+    game: legacyDouble<ShardContext['game']>({ runtime }) });
   const host = await HeldClaims.prepare(context), first = host.display('sabre'), second = host.display('sabre');
   expect(claim.scene).toEqual(parsePrivateScene(recipe)); expect(first.children).toHaveLength(2);
   for (const [i, child] of first.children.entries()) {

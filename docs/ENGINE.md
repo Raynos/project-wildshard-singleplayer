@@ -2160,6 +2160,10 @@ values are data. `HeldClaims.prepare(context)` loads verified geometry through
 engine `createOwnedGeometry`, preserving every attribute and the authored
 indexed or triangle-soup draw. It resolves its own graph materials and native
 rig; `install()` binds the existing melee and EquipmentService owners internally.
+Preparation pins its original scope, product/source, game, runtime and world.
+Each asynchronous read/load completion rechecks those identities before further
+intake or publication. Retirement or replacement refuses late publication;
+cleanup stays on the original scope.
 No shard-created factory, guard or material loan crosses the public API.
 `claim(id).bindGuardFlags(flags)` accepts plain save facts; the host reads live
 native actors when the prompt is queried. Ownership and take/save behaviour

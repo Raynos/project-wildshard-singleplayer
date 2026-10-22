@@ -135,17 +135,28 @@ export class HeldClaims {
   /** Prepare explicitly during kit installation; publication and retirement follow the context scope. */
   static async prepare(context: ShardContext): Promise<HeldClaims> {
     if (context.scope.disposed || context.scope.disposing) throw new Error('Held preparation scope has ended');
+    const scope = context.scope, product = context.product, sourceOwner = product.shardfile;
+    const game = context.game, runtime = game.runtime, world = runtime?.world;
+    const check = (): void => {
+      if (context.scope !== scope || context.product !== product || product.shardfile !== sourceOwner
+        || context.game !== game || game.runtime !== runtime || runtime?.world !== world) throw new Error('Held owner replaced during preparation');
+      requireHeldOwner(context, 'Held claim entry owner ended during preparation');
+    };
     const host = new HeldClaims(context);
     if ('kind' in host.rows) {
-      host.portraitFov = v.parse(PrimaryPresentationSchema, await context.product.json(host.rows.primary.file)).portraitFov;
+      const presentation = await product.json(host.rows.primary.file);check();
+      host.portraitFov = v.parse(PrimaryPresentationSchema, presentation).portraitFov;
     } else {
       if (host.arms === null) throw new Error('Held claims require their original arms');
-      await Promise.all([host.arms.prepare(context), Promise.all([...host.geometries.values()].map(async ({ file, source }) => { await source.load(await context.product.file(file)); }))]);
+      await Promise.all([host.arms.prepare(context).then(check), Promise.all([...host.geometries.values()].map(async ({ file, source }) => {
+        const bytes = await product.file(file);check();
+        await source.load(bytes);check();
+      }))]);
     }
-    requireHeldOwner(context, 'Held claim entry owner ended during preparation');
-    catalogues.set(context.product.slug, host);
-    context.scope.onDispose(() => {
-      if (catalogues.get(context.product.slug) === host) catalogues.delete(context.product.slug);
+    check();
+    catalogues.set(product.slug, host);
+    scope.onDispose(() => {
+      if (catalogues.get(product.slug) === host) catalogues.delete(product.slug);
       host.drops.clear(); for (const { source } of host.geometries.values()) source.take().dispose();
     });
     return host;
