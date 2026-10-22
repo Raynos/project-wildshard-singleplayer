@@ -1315,8 +1315,9 @@
                   "$ref": [
                     "constants",
                     "pageElites",
-                    "keepers",
+                    "profiles",
                     0,
+                    "value",
                     "spec"
                   ]
                 },
@@ -1324,8 +1325,9 @@
                   "$ref": [
                     "constants",
                     "pageElites",
-                    "keepers",
+                    "profiles",
                     1,
+                    "value",
                     "spec"
                   ]
                 },
