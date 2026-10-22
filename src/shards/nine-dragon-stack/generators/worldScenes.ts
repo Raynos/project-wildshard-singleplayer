@@ -170,10 +170,17 @@ export const SET_PLACEMENTS = worldRows.rows.sets.map(({ name, frames }) => {
 });
 const projection = bakedLayoutProjection();
 /** a layout placement's own file (world/build.ts reads the lanterns' poses from theirs) */
-export const layoutPlacementFile = (id: string): string => `world/placements/${id}.json`;
+export const layoutPlacementFile = (id: string): string => `world/placements/${id.replaceAll('@', '.')}.json`; // a blob name has no '@'
 const frame = (offset: number): number[] => Array.from({ length: 16 }, (_, k) => record(offset + k));
 // plain JSON numbers: a signed zero (three's matrix maths) is written as 0
-const posed = (words: readonly number[]) => { const matrix = words.map(value => value + 0); return { x: matrix[12] ?? 0, y: matrix[13] ?? 0, z: matrix[14] ?? 0, matrix }; };
+const posed = (words: readonly number[], color?: readonly number[]) => { const matrix = words.map(value => value + 0);
+  return { x: matrix[12] ?? 0, y: matrix[13] ?? 0, z: matrix[14] ?? 0, matrix, ...(color === undefined ? {} : { color: [color[0] ?? 0, color[1] ?? 0, color[2] ?? 0].map(value => value + 0) }) }; };
+/** the wall kit's catalogue model per piece (a copy key is `<piece>@<region>`) */
+const WALL_KIT: Readonly<Record<string, string>> = { plant: 'galleryPlant' };
+const catalogueName = new Map(parseWorldSceneModels(explorer.catalogue).models.map(row => [row.key, row.name]));
+/** a drawn facade row's copies: 16 matrix words then 3 colour words each (world-f64 records) */
+const facadePoses = (offset: number, count: number) => Array.from({ length: count }, (_, index) => {
+  const at = offset + index * 19; return posed(frame(at), [record(at + 16), record(at + 17), record(at + 18)]); });
 /** a paper lantern hangs its drop below its hanger, upright, at the hanger's scale (the layout's hangers, the capped decks'
  *  own when played alone, then each portal's) */
 const hungLanterns = (capped: boolean) => [...projection.lanterns, ...capped ? projection.fixed.lanterns : [], ...worldRows.rows.portalLanterns.map(frame)].map(words => {
@@ -184,9 +191,21 @@ const hungLanterns = (capped: boolean) => [...projection.lanterns, ...capped ? p
 /** the layout's air conditioners and paper lanterns (world/build.ts places them by id; lanterns per deck ending), each its own
  *  placement file (the section's plain-JSON node budget) */
 export const LAYOUT_PLACEMENTS = [
-  { id: 'nds-inst-ac', model: 'airConBox', draw: 'instanced' as const, cull: { bounds: 'sphere' as const }, piece: { id: 'nds-inst-ac' }, poses: projection.acs.map(posed) },
+  { id: 'nds-inst-ac', model: 'airConBox', draw: 'instanced' as const, cull: { bounds: 'sphere' as const }, piece: { id: 'nds-inst-ac' }, poses: projection.acs.map(words => posed(words)) },
   ...(['open', 'capped'] as const).map(ending => ({ id: `nds-lanterns-${ending}`, model: 'paperLantern', draw: 'instanced' as const, cull: { bounds: 'sphere' as const },
     piece: { id: 'nds-lanterns' }, poses: hungLanterns(ending === 'capped') })),
+  // the wall kit: one instanced placement per piece and region, its copies in their own colours
+  ...projection.inst.map(([key, copies]) => {
+    const piece = key.slice(0, key.indexOf('@')), model = WALL_KIT[piece]; if (model === undefined) throw new Error(`Nine wall kit has no model for ${piece}`);
+    return { id: `nds-inst-${key}`, model, draw: 'instanced' as const, cull: { bounds: 'sphere' as const }, piece: { id: `nds-inst-${key}` },
+      poses: copies.map(copy => posed(copy.matrix, copy.color)) };
+  }),
+  // the facade's drawn pieces (the baked shell's are drawn into it): one instanced placement each, small ones within 85 m
+  ...worldRows.rows.facade.drawn.map(row => {
+    const model = `facade:${row.id}`, name = catalogueName.get(model); if (name === undefined) throw new Error(`Nine facade ${row.id} has no catalogue model`);
+    return { id: `nds-facade-${row.id}`, model, draw: 'instanced' as const, cull: { bounds: 'sphere' as const, ...(row.small ? { far: 85 } : {}) },
+      piece: { id: `nds-facade-${row.id}`, name }, poses: facadePoses(row.poses, row.count) };
+  }),
 ];
 export const NINE_WORLD_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', lent, welds: [CAST_WELD], placements: [...SET_PLACEMENTS, ...LAYOUT_PLACEMENTS.map(row => ({ id: row.id, file: layoutPlacementFile(row.id) }))], libraries: [...SIGN_POOL_LIBRARIES, ...CAST_LIBRARIES, ...portalLook.scenes.libraries, library('native'), library('native-explorer'), { id: 'shapes', kind: 'owned', models: shapes.map(([id]) => ({ id, file: `world/geometry/${id}.glb` })) }],
   materials: [...CAST_MATERIALS, ...portalLook.scenes.materials, look('kit', 'nine-architecture'), look('facade', 'nine-facade'), look('small', 'nine-facade-small'), look('windows', 'nine-windows'), look('lantern', 'nine-lantern'),

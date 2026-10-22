@@ -1,8 +1,6 @@
-import type { BufferGeometry, Color, Matrix4, Vector3 } from 'three';
+import type { BufferGeometry, Vector3 } from 'three';
 import type { DrawnCopy } from '../runtime/kit/drawnInto';
 
-export type Piece = 'balcony' | 'cage' | 'plant' | 'awning' | 'laundry' | 'shack' | 'tank' | 'lightbox' | 'pipe' | 'shutter';
-export interface Instance { m: Matrix4; c: Color }
 export type InKit = DrawnCopy<string>;
 /** Hydrated layout buffers and placements owned by one build, with no authoring methods. */
 export interface Ctx {
@@ -14,5 +12,4 @@ export interface Ctx {
   readonly inKit: InKit[];
   /** the facade's merged shell, until build.ts takes it */
   shell: BufferGeometry | null;
-  readonly inst: Map<string, Instance[]>;
 }

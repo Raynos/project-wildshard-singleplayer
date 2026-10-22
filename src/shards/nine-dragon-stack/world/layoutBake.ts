@@ -3,7 +3,7 @@
  * placement owners. The admitted product carries small validated row JSON;
  * world scenes own the standard GLB source geometries.
  */
-import { Box3, Color, Matrix4, Sphere, Vector3 } from 'three';
+import { Box3, Sphere, Vector3 } from 'three';
 import type { LayoutProjection } from '../runtime/productSections.generated';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
@@ -26,18 +26,17 @@ export async function loadLayoutBake(): Promise<LayoutProjection> {
   return JSON.parse(new TextDecoder().decode(bytes), layoutReviver) as LayoutProjection;
 }
 
-/** The layout the page still builds from: its kits, their draw distances and drawn-in copies, the wall kit, the grapple
- *  hooks and the facade shell. The lanterns and air conditioners are world-scene placements; the rest of the bake's
+/** The layout the page still builds from: its kits, their draw distances and drawn-in copies, the grapple hooks and the
+ *  facade shell. The lanterns, air conditioners and wall kit are world-scene placements; the rest of the bake's
  *  records are generators' inputs. */
 export function restoreLayout(r: LayoutProjection, scenes: SceneHandles): Ctx {
-  const ctx: Ctx = { kits: new Map(), alphaKits: new Map(), farOf: new Map(), hooks: [], hookMounts: [], inKit: [], inst: new Map(), shell: null };
+  const ctx: Ctx = { kits: new Map(), alphaKits: new Map(), farOf: new Map(), hooks: [], hookMounts: [], inKit: [], shell: null };
   const geometry = (id: number) => scenes.geometry(`layout.${id}`);
   for (const [name, geo] of r.kits) ctx.kits.set(name, geo === null ? null : geometry(geo));
   for (const [name, geo] of r.alphaKits) ctx.alphaKits.set(name, geometry(geo));
   for (const [name, distance] of r.farOf) ctx.farOf.set(name, distance);
   ctx.hooks.push(...r.hooks.map(row => new Vector3(...row)));
   ctx.hookMounts.push(...r.hookMounts.map(row => ({ ring: new Vector3(...row.ring), out: new Vector3(...row.out) })));
-  for (const [key, copies] of r.inst) ctx.inst.set(key, copies.map(row => ({ m: new Matrix4().fromArray(row.matrix), c: new Color(...row.color) })));
   if (r.shell !== null) ctx.shell = geometry(r.shell);
   for (const k of r.inKit) {
     const b = k.box;

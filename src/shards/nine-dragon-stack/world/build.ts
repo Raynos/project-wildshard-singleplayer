@@ -14,7 +14,6 @@ import { bindLowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 import {
   Box3, type BufferGeometry, Data3DTexture, LinearFilter, Color, Group, Matrix4, Mesh, type Object3D, type PerspectiveCamera, Vector3,
 } from 'three';
-import type { Piece } from './ctx';
 import { registerSigns } from '../models/signs';
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { defineWorldSceneCatalogue } from '@wildshard/game/models/worldSceneCatalogue';
@@ -51,9 +50,6 @@ const STATIC_GEOMETRY = 'Nine Dragon static geometry (only the positions stay in
 const cast = (key: string) => (ctx: ModelContext): readonly ModelPart[] => [{ geometry: need(ndLook(ctx).geo.get(key), `the cast ${key}`), material: lentLook('nine-architecture') }];
 const guardianLion = defineModel({ id: 'nine-dragon-stack/guardian-lion', name: 'Guardian lion', category: 'props', pipeline: 'trellis', file: 'src/shards/nine-dragon-stack/world/build.ts',
   defaults: {}, build: cast('lion'), lods: [{ from: 10, build: cast('lion:mid10') }, { from: 30, build: cast('lion:mid30') }] });
-
-/** the wall kit's catalogue model per piece (ctx.put's pieces that are placed) */
-const WALL_KIT: Readonly<Partial<Record<Piece, string>>> = { plant: 'galleryPlant' };
 
 const isMesh = (value: unknown): value is Mesh => value instanceof Mesh;
 /** a placement from a copy's matrix (its translation is where it stands) */
@@ -218,10 +214,8 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
     }
     gpuOnlyAttributes(shell.geometry, STATIC_GEOMETRY);
   }
-  for (const row of worldRows.facade.drawn) {
-    const model = models.model(`facade:${row.id}`);
-    nameDraws(await placeSliced(model, poses(row.poses, row.count), { ctx: models.ctx, draw: 'instanced', cull: { bounds: 'sphere', ...(row.small ? { far: 85 } : {}) }, parent: facade, piece: { id: `nds-facade-${row.id}`, name: model.name } }, slice.due), `facade-${row.id}`);
-  }
+  // the facade's drawn pieces: world-scene placements (generators/worldScenes.ts LAYOUT_PLACEMENTS)
+  for (const row of worldRows.facade.drawn) { const placed = await opts.scenes.place(`nds-facade-${row.id}`); facade.add(placed.object); nameDraws(placed, `facade-${row.id}`); }
   facade.add(...metadata.windowBindings[entryCaps ? 'capped' : 'open'].map(id => opts.scenes.object(id)));
   root.add(facade);
   await slice();
@@ -237,10 +231,8 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
 
   // the wall kit: one InstancedMesh per piece and region (models/wallKit.ts)
   const wellKit: Placed[] = [];
-  for (const [key, list] of ctx.inst) {
-    const piece = key.slice(0, key.indexOf('@')) as Piece;
-    const model = models.model(need(WALL_KIT[piece], `the wall kit's '${piece}'`));
-    const placed = await placeSliced(model, list.map((it) => at<Record<string, unknown>>(it.m, it.c)), { ctx: models.ctx, draw: 'instanced', cull: { bounds: 'sphere' }, parent: root, piece: { id: `nds-inst-${key}` } }, slice.due);
+  for (const [key] of layout.inst) {
+    const placed = await opts.scenes.place(`nds-inst-${key}`); root.add(placed.object);
     nameDraws(placed, `inst:${key}`);
     if (!key.endsWith('@town')) wellKit.push(placed);
   }

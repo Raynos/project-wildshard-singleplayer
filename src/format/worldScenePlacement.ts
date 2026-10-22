@@ -3,7 +3,8 @@ import { isJsonData } from './json';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
 const finite = v.pipe(v.number(), v.finite(), v.minValue(-1e6), v.maxValue(1e6));
-const at = { x: finite, y: finite, z: finite, variant: v.exactOptional(id),
+/** `color`: the copy's own colour (an instanced copy's instance colour), as linear RGB components */
+const at = { x: finite, y: finite, z: finite, variant: v.exactOptional(id), color: v.exactOptional(v.tuple([finite, finite, finite])),
   params: v.exactOptional(v.pipe(v.record(id, v.unknown()), v.check(value => isJsonData(value), 'Placement params require plain JSON'))) };
 const pose = v.union([v.strictObject({ ...at, matrix: v.pipe(v.array(finite), v.length(16)) }),
   v.strictObject({ ...at, yxz: v.strictObject({ yaw: finite, yawAtan2: v.exactOptional(v.tuple([finite, finite])), scale: finite, pitch: v.exactOptional(finite), roll: v.exactOptional(finite) }) })]);

@@ -1,4 +1,4 @@
-import { Matrix4, type Material } from 'three';
+import { Matrix4, type Material, Color } from 'three';
 import { floorAtRects } from '@wildshard/engine/physics/box';
 import { modelPoseMatrix } from '@wildshard/engine/models/placementBatch';
 import { withOwner } from '@wildshard/engine/app/ownership';
@@ -55,10 +55,11 @@ export class WorldScenePlacement {
       .map((shape, i) => { const ordered = {}; return Object.assign(ordered, row.colliders?.[i], shape); });
     const placed = withOwner(this.owner, () => place(preplaced === undefined ? definition : { ...definition, colliders: () => [] },
       row.poses.map(authored => {
-        if ('matrix' in authored) return { ...authored, matrix: new Matrix4().fromArray(authored.matrix) };
-        const { yxz, ...pose } = authored; const { yawAtan2, ...rotation } = yxz;
+        const tint = authored.color === undefined ? {} : { color: new Color(authored.color[0], authored.color[1], authored.color[2]) };
+        if ('matrix' in authored) { const { color: _tint, ...pose } = authored; return { ...pose, ...tint, matrix: new Matrix4().fromArray(authored.matrix) }; }
+        const { yxz, color: _tint, ...pose } = authored; const { yawAtan2, ...rotation } = yxz;
         const yaw = yawAtan2 === undefined ? rotation.yaw : Math.atan2(yawAtan2[0], yawAtan2[1]);
-        return { ...pose, matrix: modelPoseMatrix({ ...pose, ...rotation, yaw }) };
+        return { ...pose, ...tint, matrix: modelPoseMatrix({ ...pose, ...rotation, yaw }) };
       }),
       // E271 / E272: no multi-draw anywhere; a 'batched' row draws instanced (a graph look on a multi-draw batch did not compile)
       { ctx: sharedModelContext(world.sky, world.game), registry: world.registry, draw: row.draw === 'batched' ? 'instanced' : row.draw,
