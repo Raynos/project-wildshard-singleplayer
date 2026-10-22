@@ -39,11 +39,11 @@ it('also excludes sole declarations inside shared build modules, retaining runti
  }finally{rmSync(root,{recursive:true,force:true});}
 });
 
-it('reports the AS tenth without adding its excess to custom TS or enforcing it',()=>{
+it.each([0,1])('reports AS excess without enforcing it while checking %i custom TS lines',(custom)=>{
  const root=mkdtempSync(join(tmpdir(),'platform-as-budget-'));
  const put=(path:string,source:string):void=>{const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,source);};
  try{
-  platformOutput(root,'pine-hollow',{'runtime/index.ts':'export const LIVE=1;'});
+  platformOutput(root,'pine-hollow',{'runtime/index.ts':custom===0?'':'export const LIVE=1;'});
   put('src/shards/pine-hollow/behaviour/brain.as','export function step(): i32 {\n return 1;\n}');
   put('src/shards/pine-hollow-legacy/manifest.ts','export default {};');
   put('src/shards/pine-hollow-legacy/plugin.ts',Array.from({length:9},(_,i)=>`export const V${i}=${i};`).join('\n'));
@@ -51,9 +51,10 @@ it('reports the AS tenth without adding its excess to custom TS or enforcing it'
   legacyLineBasis(root,'pine-hollow',{'manifest.ts':'export default {};','plugin.ts':Array.from({length:9},(_,i)=>`export const V${i}=${i};`).join('\n')});
   const row=shardLines(root)['pine-hollow'];
   if(row===undefined)throw new Error('Missing fixture measure');
-  expect(row.conversion.customRuntimeLines).toBe(1);
+  expect(row.conversion.customRuntimeLines).toBe(custom);
   expect(row.assemblyScriptBudget).toEqual({ceiling:1,share:.3,passed:false,enforcement:'report-only'});
-  expect(checkShares({baseline:{'pine-hollow':10},enforced:{'pine-hollow':2}},{'pine-hollow':row})).toEqual([]);
+  expect(checkShares({baseline:{'pine-hollow':10},enforced:{'pine-hollow':2}},{'pine-hollow':row}))
+   .toEqual(custom===0?[]:['pine-hollow: custom runtime is not zero (G604)']);
   platformOutput(root,'pastel-plain',{'runtime/index.ts':'export const LIVE=1;'});
   expect(shardLines(root)['pastel-plain']?.assemblyScriptBudget).toEqual({ceiling:null,share:null,passed:null,enforcement:'report-only'});
  }finally{rmSync(root,{recursive:true,force:true});}
