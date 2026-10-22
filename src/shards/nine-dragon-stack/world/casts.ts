@@ -45,22 +45,3 @@ export async function loadSignAtlas(tier: 'phone' | 'desktop', scenes: SceneHand
     geometry: name => { const geometry = scenes.geometry(`signs.${name}`); return name === 'world' ? geometry : geometry.clone(); },
   };
 }
-
-/** Load exact prepared levels; middle levels retain the full cast's shared attribute buffers. */
-export function loadCastLods(target: Map<string, BufferGeometry>, key: string, base: BufferGeometry, levels: readonly (number | 'far')[], scenes: SceneHandles): void {
-  for (const level of levels) {
-    const suffix = level === 'far' ? 'far' : `mid${level}`;
-    target.set(`${key}:${suffix}`, castLod(base, scenes.geometry(`casts.${key}-${suffix}`), level !== 'far'));
-  }
-}
-
-/** Prepared indices share the native full-detail attributes; compact far levels own their packed attributes. */
-export function castLod(base: BufferGeometry, prepared: BufferGeometry, middle: boolean): BufferGeometry {
-  if (middle) {
-    for (const [name, values] of Object.entries(base.attributes)) prepared.setAttribute(name, values);
-    if (prepared.index === null) throw new Error('Prepared middle LOD has no index');
-    prepared.setIndex(prepared.index.clone());
-    prepared.boundingBox = null;
-  }
-  return prepared;
-}

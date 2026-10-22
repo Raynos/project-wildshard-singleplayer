@@ -8,7 +8,8 @@ import { ownSceneResource } from '@wildshard/engine/app/sceneOwnership';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import { buildTier, TIER_CONFIG } from '@wildshard/engine/core/tier';
-import { parseWorldSceneWeld, type WorldSceneWeld, type WorldSceneWeldNode, type WorldSceneDistanceSchema, type WorldSceneWeldSourceSchema } from '@wildshard/format/worldSceneWeld';
+import { parseWorldSceneWeld, type WorldSceneWeld, type WorldSceneWeldNode, type WorldSceneDistanceSchema, type WorldSceneWeldMaterialSchema, type WorldSceneWeldSourceSchema } from '@wildshard/format/worldSceneWeld';
+import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import type { InferOutput } from 'valibot';
 import type { PlumbingData } from '@wildshard/format/plumbing';
 import { worldSceneModelGraphs, type WorldSceneModels } from '@wildshard/format/worldSceneModels';
@@ -18,6 +19,27 @@ import { createBuildingCloud } from './buildingCloud';
 import type { SceneHandles } from './sceneHandles';
 
 type Distance = InferOutput<typeof WorldSceneDistanceSchema>;
+type WeldMaterial = Omit<InferOutput<typeof WorldSceneWeldMaterialSchema>, 'id'>;
+
+/** A weld material row (or a world-scenes `mapped` row, the same grammar): a fresh material from native defaults, its
+ *  properties, and only the declared maps of its source (borrowed, never owned or disposed with it). */
+export function weldSceneMaterial(entry: WeldMaterial, source: (id: string) => Material, sky: () => Pick<SkyRig, 'setupMaterial'>): MeshStandardMaterial | MeshBasicMaterial {
+  const made = entry.kind === 'standard' ? new MeshStandardMaterial() : new MeshBasicMaterial();
+  const { color, emissive, normalScale, ...properties } = entry.properties;
+  Object.assign(made, properties);
+  if (color !== undefined) { if (typeof color === 'number') made.color.set(color); else made.color.setRGB(...color); }
+  if (emissive !== undefined) { if (!(made instanceof MeshStandardMaterial)) throw new Error('Basic material cannot emit'); if (typeof emissive === 'number') made.emissive.set(emissive); else made.emissive.setRGB(...emissive); }
+  if (normalScale !== undefined) { if (!(made instanceof MeshStandardMaterial)) throw new Error('Basic material has no normal scale'); made.normalScale.set(...normalScale); }
+  if (entry.source !== undefined) for (const name of entry.source.maps) {
+    const texture: unknown = Reflect.get(source(entry.source.material), name);
+    if (texture !== null && !(texture instanceof Texture)) throw new Error('Frozen material map differs');
+    Object.assign(made, { [name]: texture });
+  }
+  if (entry.blending !== undefined) made.blending = entry.blending;
+  if (entry.fog !== undefined) made.fog = entry.fog;
+  if (entry.sky) sky().setupMaterial(made);
+  return made;
+}
 export interface FrozenSceneSources {
   readonly geometry: ReadonlyMap<string, BufferGeometry>;
   readonly materials: ReadonlyMap<string, Material>;
@@ -117,20 +139,7 @@ export function hydrateWorldSceneWeld(input: unknown, handles: SceneHandles, sou
   const lifetime = owner.child(`frozen/${row.id}`), geometries = new Map<string, BufferGeometry>();
   try {
     for (const entry of row.materials) {
-      const made = entry.kind === 'standard' ? new MeshStandardMaterial() : new MeshBasicMaterial();
-      const { color, emissive, normalScale, ...properties } = entry.properties;
-      Object.assign(made, properties);
-      if (color !== undefined) { if (typeof color === 'number') made.color.set(color); else made.color.setRGB(...color); }
-      if (emissive !== undefined) { if (!(made instanceof MeshStandardMaterial)) throw new Error('Basic material cannot emit'); if (typeof emissive === 'number') made.emissive.set(emissive); else made.emissive.setRGB(...emissive); }
-      if (normalScale !== undefined) { if (!(made instanceof MeshStandardMaterial)) throw new Error('Basic material has no normal scale'); made.normalScale.set(...normalScale); }
-      if (entry.source !== undefined) for (const name of entry.source.maps) {
-        const texture: unknown = Reflect.get(material(entry.source.material), name);
-        if (texture !== null && !(texture instanceof Texture)) throw new Error('Frozen material map differs');
-        Object.assign(made, { [name]: texture });
-      }
-      if (entry.blending !== undefined) made.blending = entry.blending;
-      if (entry.fog !== undefined) made.fog = entry.fog;
-      if (entry.sky) handles.sky.setupMaterial(made);
+      const made = weldSceneMaterial(entry, material, () => handles.sky);
       handles.publish(entry.id, made); ownSceneResource(made, lifetime);
       lifetime.onDispose(() => { handles.release(entry.id, made); });
     }

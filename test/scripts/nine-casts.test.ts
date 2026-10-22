@@ -3,10 +3,11 @@ import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- The offline proof reads retained GLBs and published layout inputs.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
-import { BufferAttribute, Float32BufferAttribute, Mesh, Box3, Sphere, Vector3, type Object3D, type BufferGeometry } from 'three';
+import { BufferAttribute, Float32BufferAttribute, Mesh, MeshBasicMaterial, Box3, Object3D, Sphere, Vector3, type BufferGeometry } from 'three';
 import { CAST_BLOBS } from '../../src/shards/nine-dragon-stack/generators/castSources';
 import { createOwnedGeometry } from '../../src/engine/models/ownedGeometry';
 import metadata from '../../src/shards/nine-dragon-stack/boot/metadata.generated.json' with { type: 'json' };
+import hookBounds from '../../src/shards/nine-dragon-stack/data/hookBounds.json' with { type: 'json' };
 import { createModelLibrary } from '../../src/game/plugin/geometry';
 import { readSourceModel } from '../../src/sdk/bake/skinned';
 import type { PreparedGeometry } from '../../src/shards/nine-dragon-stack/data/casts';
@@ -17,7 +18,11 @@ import { layoutProjection, restoreLayoutZeros } from '../../src/shards/nine-drag
 import { layoutReviver } from '../../src/shards/nine-dragon-stack/world/layoutBake';
 import { LayoutRowsSchema, GeometryBootSchema } from '../../src/shards/nine-dragon-stack/generators/sections';
 import * as v from 'valibot';
-import { castLod } from '../../src/shards/nine-dragon-stack/world/casts';
+import { Scope } from '../../src/engine/app/scope';
+import { modelContext } from '../../src/engine/models/model';
+import { Rng } from '../../src/engine/core/rng';
+import { bindWorldSceneModelSources, defineWorldSceneCatalogue } from '../../src/game/models/worldSceneCatalogue';
+import { parseWorldSceneModels } from '../../src/format/worldSceneModels';
 import { floorAtRects } from '../../src/engine/physics/box';
 import deckFloors from '../../src/shards/nine-dragon-stack/data/deckFloors.generated.json' with { type: 'json' };
 import lodBasis from '../fixtures/nine-lods.json' with { type: 'json' };
@@ -26,6 +31,21 @@ import baseline from '../fixtures/nine-casts.json' with { type: 'json' };
 const { CAST_CHANNELS } = castRows;
 const names = v.parse(v.array(v.picklist(['walker-dark', 'walker-light', 'sitter-dark', 'sitter-light', 'lion', 'guard', 'entries-open', 'entries-capped', 'facade-signs'])), [...castRows.CASTS, ...castRows.FIXED_KITS]);
 
+
+/** a middle level as the world-scenes catalogue draws it: its prepared index over the full cast's attributes (the borrow
+ *  itself: test/world-scene-shared-lods.test.ts); its sources owner stays live for the suite */
+function drawnLevel(name: string, path: string, base: BufferGeometry, prepared: BufferGeometry): BufferGeometry {
+  const draw = { id: 'main', library: 'casts', material: 'kit' };
+  const rows = { product: 'fixture-casts', models: [{ key: 'cast', id: 'fixture-casts/cast', name: 'Cast', category: 'props', pipeline: 'trellis', file: 'casts.json', defaults: {}, assembly: 'parts',
+    choices: [{ id: 'only', params: {}, size: [1, 1, 1], colliders: [], draws: [{ ...draw, model: name }], lods: [{ from: 1, draws: [{ ...draw, model: path, attributes: { library: 'casts', model: name } }] }] }] }] };
+  const ctx = modelContext(null);
+  bindWorldSceneModelSources(ctx, 'fixture-casts', { catalogue: parseWorldSceneModels(rows), materials: new Map([['kit', new MeshBasicMaterial()]]),
+    geometries: new Map([[JSON.stringify(['casts', name]), base], [JSON.stringify(['casts', path]), prepared]]) }, new Scope(`cast-${path}`));
+  const parts = defineWorldSceneCatalogue(rows).model('cast').lods?.[0]?.build(ctx, {}, new Rng(1));
+  const geometry = parts === undefined || parts instanceof Object3D ? undefined : parts[0]?.geometry;
+  if (geometry === undefined) throw new Error(`Missing drawn LOD ${path}`);
+  return geometry;
+}
 
 let packs: Map<PreparedGeometry, Uint8Array>;
 let fixed: ReturnType<typeof bakeFixedKits>;
@@ -130,6 +150,8 @@ beforeAll(async () => {
   const nativeHook = bakedHook.take(), bounds = metadata.specimens.hook.bounds;
   nativeHook.boundingBox = new Box3(new Vector3().fromArray(bounds.box.min), new Vector3().fromArray(bounds.box.max));
   nativeHook.boundingSphere = new Sphere(new Vector3().fromArray(bounds.sphere.center), bounds.sphere.radius);
+  // the catalogue row's sphere (data/hookBounds.json) is the source cast's own
+  expect(hookBounds.sphere).toEqual([...bounds.sphere.center, bounds.sphere.radius]);
   expect(channels(nativeHook)).toEqual(channels(hook));
   for (const key of Object.keys(lodBasis)) {
     const [name, suffix] = key.split(':'), base = lodBases.get(name ?? '');
@@ -141,15 +163,18 @@ beforeAll(async () => {
     await library.preload();
     const prepared = library.geometry(path, { borrow: true });
     if (prepared === null) throw new Error(`Missing packed LOD ${key}`);
-    lodGeometries.set(key, castLod(base, prepared, suffix !== 'far'));
+    lodGeometries.set(key, suffix === 'far' ? prepared : drawnLevel(name ?? '', path, base, prepared));
   }
 }, 30_000);
 
 test.each(Object.entries(lodBasis))('%s retains native bytes, bounds and buffer sharing', (key, expected) => {
   const geometry = lodGeometries.get(key), base = lodBases.get(key.split(':')[0] ?? '');
   if (geometry === undefined || base === undefined) throw new Error(`Missing prepared LOD ${key}`);
-  expect(channels(geometry)).toEqual(expected);
-  if (key.includes(':mid')) for (const [name, values] of Object.entries(base.attributes)) expect(geometry.getAttribute(name)).toBe(values);
+  if (!key.includes(':mid')) { expect(channels(geometry)).toEqual(expected); return; }
+  // a middle level draws its own index over the full cast's attributes, so it carries the full cast's bounds
+  const { box: _box, sphere: _sphere, ...bytes } = expected, donor = channels(base);
+  expect(channels(geometry)).toEqual({ ...bytes, box: v.parse(v.object({ box: v.unknown() }), donor).box, sphere: v.parse(v.object({ sphere: v.unknown() }), donor).sphere });
+  for (const [name, values] of Object.entries(base.attributes)) expect(geometry.getAttribute(name)).toBe(values);
 });
 
 test('all entry floors preserve inclusive native deck boundaries', () => {

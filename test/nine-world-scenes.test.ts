@@ -19,10 +19,13 @@ test('every Nine catalogue draw names a declared whole-library model on its own 
   const explorer = new Set(world.libraries.explorer);
   expect([...libraries.keys()]).toEqual(['native', 'native-explorer']);
   for (const tile of libraries.get('native')?.models.flatMap(model => model.files) ?? []) expect(explorer.has(tile)).toBe(false);
-  // a draw reads a whole-library model on its baked tiles, or a cast in its pool file (the lion's and the crowd's)
+  // a draw reads a whole-library model on its baked tiles, a cast in its pool file (the lion's, the crowd's, the hook's
+  // levels) or an owned file (the hook's full cast)
   const pools = new Map(NINE_WORLD_SCENES.libraries.flatMap(row => row.kind === 'pool' ? [[row.id, row] as const] : []));
+  const owned = new Map(NINE_WORLD_SCENES.libraries.flatMap(row => row.kind === 'owned' ? [[row.id, row] as const] : []));
   for (const model of catalogue.models) for (const choice of model.choices) for (const draw of [...choice.draws, ...choice.lods.flatMap(level => level.draws)]) {
-    expect(libraries.get(draw.library)?.models.some(row => row.id === draw.model) === true || pools.get(draw.library)?.files.some(file => file.parts.includes(draw.model)) === true, draw.model).toBe(true);
+    expect(libraries.get(draw.library)?.models.some(row => row.id === draw.model) === true || pools.get(draw.library)?.files.some(file => file.parts.includes(draw.model)) === true
+      || owned.get(draw.library)?.models.some(row => row.id === draw.model) === true, draw.model).toBe(true);
     expect(NINE_WORLD_SCENES.materials.some(row => row.id === draw.material)).toBe(true);
   }
   // the lion's TRELLIS cast is a catalogue row over its pool, its middle levels on the full cast's attributes; every

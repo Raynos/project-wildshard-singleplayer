@@ -26,7 +26,10 @@ export const CAST_LIBRARIES = [...CAST_SOURCES,
   { id: 'cast-hook', kind: 'owned', models: [{ id: 'dragon-hook', file: 'geometry/dragon-hook.glb' }] },
 ];
 export const CAST_WELD = { id: 'casts', file: 'world/casts.json' };
-export const CAST_MATERIALS = [{ id: 'hook-source', kind: 'source', url: '/assets/nine-dragon/lab/grapple/dragon-hook.glb', anisotropyMaps: [] }];
+// the sculpt's file material (its decoded maps, two 1024² bitmaps of 4 MB each, on the GPU only after the first draw, E264)
+// and the hook's brass over its colour and normal maps
+export const CAST_MATERIALS = [{ id: 'hook-source', kind: 'source', url: '/assets/nine-dragon/lab/grapple/dragon-hook.glb', anisotropyMaps: [], gpuOnlyMaps: true },
+  { id: 'casts.hook-brass', kind: 'mapped', material: { kind: 'standard', source: { material: 'hook-source', maps: ['map', 'normalMap'] }, properties: hook.material } }];
 const hookBytes = Uint8Array.from(atob(hook.glb), value => value.codePointAt(0) ?? 0);
 const bytes = new Map(hook.casts.map(row => [row.name, row.glb]));
 const geometryBlobs = [...names.map(name => {
@@ -34,14 +37,12 @@ const geometryBlobs = [...names.map(name => {
   if (glb === undefined) throw new Error(`Missing prepared Nine cast ${name}`);
   return nameBlob(`geometry/casts/${name}.glb`, 'glb', compressGlb(Uint8Array.from(atob(glb), value => value.codePointAt(0) ?? 0)));
 }), nameBlob('geometry/dragon-hook.glb', 'glb', hookBytes)];
-/** a cast the world-scenes catalogue draws (the guardian lion, the crowd), with its prepared levels */
-const migrated = (name: string): boolean => name === 'lion' || name.startsWith('lion-') || crowd.some(key => name === key || name.startsWith(`${key}-`));
+/** a cast the world-scenes catalogue draws (the guardian lion, the crowd, the Fei Zhua hook), with its prepared levels */
+const migrated = (name: string): boolean => name === 'lion' || name.startsWith('lion-') || name.startsWith('dragon-hook-') || crowd.some(key => name === key || name.startsWith(`${key}-`));
 /** Cast and layout resources share one existing admitted scene file. */
 export function castBlobs(extraResources: WorldSceneWeld['resources'] = []): NamedBlob[] {
   return [...geometryBlobs, nameBlob('world/casts.json', 'json', json(parseWorldSceneWeld({ id: 'casts', root: 'dressing.root', nodes: [],
-    materials: [{ id: 'casts.hook-brass', kind: 'standard', source: { material: 'hook-source', maps: ['map', 'normalMap'] }, properties: hook.material }],
-    // the lion's and the crowd's casts are world-scenes catalogue sources (generators/worldScenes.ts), not weld handles
-    resources: [...names.filter(name => !migrated(name)).map(name => ({ id: `casts.${name}`, kind: 'geometry', source: { library: libraries.get(name), model: name } })),
-      { id: 'casts.dragon-hook', kind: 'geometry', source: { library: 'cast-hook', model: 'dragon-hook' } }, ...extraResources] })))];
+    // the lion's, the crowd's and the hook's casts are world-scenes catalogue sources (generators/worldScenes.ts), not weld handles
+    resources: [...names.filter(name => !migrated(name)).map(name => ({ id: `casts.${name}`, kind: 'geometry', source: { library: libraries.get(name), model: name } })), ...extraResources] })))];
 }
 export const CAST_BLOBS = castBlobs();

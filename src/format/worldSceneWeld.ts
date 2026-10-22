@@ -39,8 +39,9 @@ export const WorldSceneWeldNodeSchema = v.variant('kind', [
   v.strictObject({ ...common, kind: v.literal('light'), color: v.pipe(word, v.maxValue(0xffffff)), intensity: nonnegative, distance: nonnegative, decay: nonnegative }),
 ]);
 const hosted = v.strictObject({ meshes: list(id, 128), lists: list(v.strictObject({ unit: integer, matrixWords: list(word, 131072) }), 128) });
-/** Fresh specimen materials copy only declared maps, retaining native constructor defaults. */
-const material = v.strictObject({ id, kind: v.picklist(['standard', 'basic']),
+/** Fresh specimen materials copy only declared maps, retaining native constructor defaults (a world-scenes section's
+ *  `mapped` material row is the same grammar). */
+export const WorldSceneWeldMaterialSchema = v.strictObject({ id, kind: v.picklist(['standard', 'basic']),
   source: v.exactOptional(v.strictObject({ material: id, maps: list(v.picklist(['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap']), 5) })),
   properties: WorldSceneSurfaceSchema.entries.properties, sky: v.optional(v.boolean(), false),
   blending: v.exactOptional(v.picklist([0, 1, 2, 3, 4, 5])), fog: v.exactOptional(v.boolean()) });
@@ -50,7 +51,7 @@ const setRow = v.strictObject({ id, name: id, file: id, place: v.exactOptional(i
 const resource = v.variant('kind', [v.strictObject({ id, kind: v.literal('geometry'), source: geometry }),
   v.strictObject({ id, kind: v.literal('seeds'), words: v.pipe(list(word, 131072), v.check(values => values.length % 4 === 0 && finiteWords(values, false))) })]);
 export const WorldSceneWeldSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Frozen scenes require plain JSON'),
-  v.strictObject({ id, root: id, result: v.exactOptional(id), nodes: list(WorldSceneWeldNodeSchema, 4096), materials: v.optional(list(material, 128), []), culls: v.optional(list(cull, 32), []),
+  v.strictObject({ id, root: id, result: v.exactOptional(id), nodes: list(WorldSceneWeldNodeSchema, 4096), materials: v.optional(list(WorldSceneWeldMaterialSchema, 128), []), culls: v.optional(list(cull, 32), []),
     placements: v.optional(list(id, 128), []), sets: v.optional(list(setRow, 32), []), resources: v.optional(list(resource, 512), []) }),
   v.check(row => new Set(row.nodes.map(node => node.id)).size === row.nodes.length && new Set(row.materials.map(entry => entry.id)).size === row.materials.length
     && new Set(row.placements).size === row.placements.length && new Set(row.sets.map(entry => entry.id)).size === row.sets.length

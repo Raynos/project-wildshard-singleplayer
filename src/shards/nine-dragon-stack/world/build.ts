@@ -29,13 +29,12 @@ import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct'
 import { lentLook, setLentParam, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import type { Tier as NdTier } from '@wildshard/engine/core/tier';
 import { gpuOnlyAttributes, gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
-import { type Placed, copiesAt, place, placeSliced } from '@wildshard/engine/models/place';
+import { type Placed, copiesAt, place } from '@wildshard/engine/models/place';
 import { slicer } from '@wildshard/engine/boot/plan';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { ndModelContext, need } from './modelLook';
 import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
-import { feiZhuaAt, feiZhuaHook, loadFeiZhuaHook } from '../models/feiZhuaHook';
 import { loadLayoutBake, prepareLayout, restoreLayout } from './layoutBake';
 import { loadSignAtlas, loadSpill } from './casts';
 
@@ -255,16 +254,10 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   setLentTexture('nine-sky', 'silk', shared.u.uSilk.value);
   progress(0.75, 'crowd models');
 
-  // The lab's 18k-triangle cast-brass dragon has a production placement at three close Well hooks (models/feiZhuaHook.ts).
-  // One instanced draw keeps it within the phone budget; the underlying procedural brackets and collision-free ring
-  // anchors stay.
-  await loadFeiZhuaHook(nd.look, opts.scenes);
-  if (nd.look.hookMat !== null) {
-    const mounts = ctx.hookMounts.filter((m) => m.ring.y > Y0 - 23 && m.ring.y < Y0 + 14)
-      .sort((a, b) => a.ring.distanceToSquared(new Vector3(-16, Y0 - 2, -24)) - b.ring.distanceToSquared(new Vector3(-16, Y0 - 2, -24)))
-      .slice(0, 3);
-    if (mounts.length > 0) nameDraws(await placeSliced(feiZhuaHook, mounts.map(({ ring, out }) => at(feiZhuaAt(ring, out))), { ctx: nd.ctx, draw: 'instanced', cull: { bounds: 'sphere' }, parent: root, piece: { id: 'nds-fei-zhua-hooks' } }, slice.due), 'glb:dragon-hook');
-  }
+  // the lab's cast-brass dragon hung at three close Well hooks: a world-scene placement of its catalogue model (one
+  // instanced draw; the procedural brackets and collision-free ring anchors stay)
+  const hooks = await opts.scenes.place('nds-fei-zhua-hooks'); root.add(hooks.object);
+  nameDraws(hooks, 'glb:dragon-hook');
   // Crowd LODs are declared on the models; placement owns their frustum and range.
   // the TRELLIS crowd in its colourways: world-scene placements of its catalogue models (generators/worldScenes.ts)
   for (const group of ['walkers', 'sitters'] as const) {

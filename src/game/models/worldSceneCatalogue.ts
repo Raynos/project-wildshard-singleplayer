@@ -18,7 +18,7 @@ import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { isJsonData } from '@wildshard/format/json';
 import { parseWorldSceneModels, worldSceneModelGraphs, worldSceneModelResources, type WorldSceneModels } from '@wildshard/format/worldSceneModels';
-import { hydrateWorldSceneWeld, admitWorldSceneModelGraphs } from '../shardfile/worldSceneWeld';
+import { hydrateWorldSceneWeld, admitWorldSceneModelGraphs, weldSceneMaterial } from '../shardfile/worldSceneWeld';
 import type { WorldSceneWeld } from '@wildshard/format/worldSceneWeld';
 import { SceneHandles } from '../shardfile/sceneHandles';
 import { hasLentLook, lendLooks, lentLook } from '../shardfile/lentLooks';
@@ -142,7 +142,10 @@ async function load(ctx: ModelContext, product: string, catalogue: WorldSceneMod
     const geometries = new Map(current.value?.geometries);
     const scenes = current.value?.scenes ?? await admitWorldSceneModelGraphs(admitted, catalogue);
     const declared = selectedResources(catalogue, selection, { scenes, plumbing: admitted.shardfile.plumbing });
-    const slots = new Set(declared.materials), declaredMaterials = rows.materials.filter(row => slots.has(row.id));
+    const slots = new Set(declared.materials);
+    // a mapped material's source row comes with it (the section declares the source first)
+    for (const row of rows.materials) if (slots.has(row.id) && row.kind === 'mapped' && row.material.source !== undefined) slots.add(row.material.source.material);
+    const declaredMaterials = rows.materials.filter(row => slots.has(row.id));
     if (declaredMaterials.length !== slots.size) throw new Error('Missing scene model material slot');
     const materialRows = declaredMaterials.filter(row => !current.value?.materials.has(row.id));
     for (const row of materialRows) if (row.kind === 'surface') await admitWorldSceneSurface(row, admitted);
@@ -192,10 +195,11 @@ async function load(ctx: ModelContext, product: string, catalogue: WorldSceneMod
       else if (row.kind === 'look') { if (row.over !== undefined) throw new Error('Cold scene models require direct graph slots'); material = lentLook(row.look); }
       else if (row.kind === 'basic') material = new MeshBasicMaterial(row.properties);
       else if (row.kind === 'standard') material = new MeshStandardMaterial(row.properties);
+      else if (row.kind === 'mapped') material = weldSceneMaterial(row.material, id => { const source = materials.get(id); if (source === undefined) throw new Error('Missing mapped scene material source'); return source; }, () => ctx.sky);
       else material = lowPolyLookMaterial(ctx.sky, row.variant, value => { Object.assign(value, row.properties); });
       if (row.kind === 'standard' && row.sky === true) ctx.sky.setupMaterial(material);
       materials.set(row.id, material);
-      if (row.kind === 'basic' || row.kind === 'standard') owner.onDispose(() => { material.dispose(); });
+      if (row.kind === 'basic' || row.kind === 'standard' || row.kind === 'mapped') owner.onDispose(() => { material.dispose(); });
     }
     requireLive(owner);
     // A late world publication wins over a newly prepared copy, preserving the

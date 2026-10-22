@@ -5,7 +5,7 @@ import { isJsonData } from './json';
 import { WorldSceneBindingsSchema } from './clientChannels';
 import { WorldScenePlacementSchema } from './worldScenePlacement';
 import { WorldSceneBatchSchema } from './worldSceneBatch';
-import { WorldSceneWeldSourceSchema } from './worldSceneWeld';
+import { WorldSceneWeldMaterialSchema, WorldSceneWeldSourceSchema } from './worldSceneWeld';
 import { SceneDrawsSchema } from './sceneDraws';
 import { SpecimenCatalogueSchema } from './specimenCatalogue';
 
@@ -38,7 +38,11 @@ const poolParts = (files: readonly { readonly tier?: 'phone' | 'desktop'; readon
   .every(tier => { const parts = files.flatMap(file => file.tier === undefined || file.tier === tier ? file.parts : []); return new Set(parts).size === parts.length; });
 const material = v.variant('kind', [WorldSceneSurfaceSchema,
   v.strictObject({ id, kind: v.literal('source'), load: v.optional(v.picklist(['resident', 'placement']), 'resident'), url: id, publishObject: v.exactOptional(id), aliases: v.optional(v.record(id, id), {}), part: v.optional(v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(127)), 0),
-    anisotropy: v.optional(v.pipe(finite, v.minValue(1), v.maxValue(16)), 1), anisotropyMaps: v.optional(bounded(v.picklist(['map', 'normalMap', 'roughnessMap', 'aoMap']), 4), ['map', 'normalMap']), envMapIntensity: v.optional(finite, 1) }),
+    anisotropy: v.optional(v.pipe(finite, v.minValue(1), v.maxValue(16)), 1), anisotropyMaps: v.optional(bounded(v.picklist(['map', 'normalMap', 'roughnessMap', 'aoMap']), 4), ['map', 'normalMap']), envMapIntensity: v.optional(finite, 1),
+    // the source's own PBR maps leave the CPU once uploaded
+    gpuOnlyMaps: v.exactOptional(v.literal(true)) }),
+  // a fresh material over an earlier section source's declared maps, in the weld's material grammar
+  v.strictObject({ id, kind: v.literal('mapped'), material: v.omit(WorldSceneWeldMaterialSchema, ['id']) }),
   v.strictObject({ id, kind: v.literal('lowpoly'), variant: id, properties: v.optional(v.strictObject({ flatShading: v.exactOptional(v.boolean()), roughness: v.exactOptional(finite) }), {}) }),
   v.strictObject({ id, kind: v.literal('basic'), properties: v.strictObject({ vertexColors: v.exactOptional(v.boolean()), color: v.exactOptional(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(0xffffff))), side: v.exactOptional(v.picklist([0, 1, 2])), transparent: v.exactOptional(v.boolean()), opacity: v.exactOptional(finite), depthWrite: v.exactOptional(v.boolean()), blending: v.exactOptional(v.picklist([0, 1, 2, 3, 4, 5])) }) }),
   v.strictObject({ id, kind: v.literal('look'), look: id, over: v.exactOptional(reference) }),
@@ -103,7 +107,10 @@ export const WorldScenesSchema = v.pipe(v.unknown(), v.check(isJsonData, 'World 
   v.check(row => unique(row.libraries) && unique(row.materials) && unique(row.steps) && unique(row.batches) && unique(row.welds) && unique(row.placements) && (row.placements.length === 0 || row.catalogue !== undefined)
     && row.libraries.every(entry => entry.kind === 'models' || entry.kind === 'baked' || (entry.kind === 'owned' || entry.kind === 'whole' ? unique(entry.models) : poolParts(entry.files) && unique(entry.painted) && entry.painted.every(model => entry.files.some(file => file.parts.includes(model.geometry)))))
     && row.steps.every(entry => entry.registry.every(piece => piece.active === undefined || piece.mode === undefined) && (entry.scene === undefined) !== (entry.variants === undefined) && (entry.repeat === undefined || unique(entry.repeat))
-      && (entry.lights === undefined || unique(entry.lights)) && (entry.collectMaterials === undefined || new Set(entry.collectMaterials).size === entry.collectMaterials.length)), 'Unique scene identities and exactly one recipe source'));
+      && (entry.lights === undefined || unique(entry.lights)) && (entry.collectMaterials === undefined || new Set(entry.collectMaterials).size === entry.collectMaterials.length)), 'Unique scene identities and exactly one recipe source'),
+  // a mapped material's maps come from a resident source row before it
+  v.check(row => row.materials.every((entry, index) => entry.kind !== 'mapped' || entry.material.source === undefined
+    || row.materials.slice(0, index).some(earlier => earlier.kind === 'source' && earlier.load === 'resident' && earlier.id === entry.material.source?.material)), 'Mapped scene materials map an earlier resident source'));
 type ParsedWorldScenes = v.InferOutput<typeof WorldScenesSchema>;
 export type WorldScenesSection = Omit<ParsedWorldScenes, 'placements' | 'batches' | 'welds' | 'lent'> & { readonly placements?: ParsedWorldScenes['placements']; readonly batches?: ParsedWorldScenes['batches']; readonly welds?: ParsedWorldScenes['welds']; readonly lent?: ParsedWorldScenes['lent'] };
 export type WorldSceneLentTexture = ParsedWorldScenes['lent'][number];

@@ -14,7 +14,7 @@ import { WorldScenePlacement } from './worldScenePlacement';
 import { readWholeLibrary } from './wholeLibrary';
 import { lendWorldSceneTextures } from './worldSceneTextures';
 import { WorldSceneBatch } from './worldSceneBatch';
-import { WorldSceneWeldAssembly, worldSceneWeldFile, worldSceneWeldFiles, admitWorldSceneModelGraphs } from './worldSceneWeld';
+import { WorldSceneWeldAssembly, worldSceneWeldFile, worldSceneWeldFiles, admitWorldSceneModelGraphs, weldSceneMaterial } from './worldSceneWeld';
 import { parseWorldSceneWeld, type WorldSceneWeld } from '@wildshard/format/worldSceneWeld';
 import { parseWorldScenePlacement, type WorldScenePlacementRow } from '@wildshard/format/worldScenePlacement';
 import { poseOf, placeCollider, readColliderRows } from '@wildshard/engine/models/colliders';
@@ -302,6 +302,8 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
         material = await worldSceneSourceMaterial(row, sky, owner, handles);
       } else if (row.kind === 'standard') material = new MeshStandardMaterial(row.properties);
       else if (row.kind === 'basic') material = new MeshBasicMaterial(row.properties);
+      else if (row.kind === 'mapped') material = weldSceneMaterial(row.material, id => { const source = materials.get(id); if (source === undefined) throw new Error('Missing mapped scene material source'); return source; }, () => {
+        const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Sky-aware scene materials need a world sky'); return sky; });
       else if (row.kind === 'lowpoly') {
         const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Scene family material needs a world sky');
         material = lowPolyLookMaterial(sky, row.variant, value => { Object.assign(value, row.properties); });
@@ -311,7 +313,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
         sky.setupMaterial(material);
       }
       materials.set(row.id, material); handles.publish(`materials.${row.id}`, material);
-      if (row.kind === 'standard' || row.kind === 'basic') owner.onDispose(() => { material.dispose(); });
+      if (row.kind === 'standard' || row.kind === 'basic' || row.kind === 'mapped') owner.onDispose(() => { material.dispose(); });
       materialProgress(materialIndex + 1, row.id);
       await buildYield(owner);
     }

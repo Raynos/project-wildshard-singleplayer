@@ -9,11 +9,10 @@ import { readSourceModel } from '../src/sdk/bake/skinned';
 import { parseWorldSceneWeld } from '../src/format/worldSceneWeld';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
-import { NINE_SCENE_BLOBS } from '../src/shards/nine-dragon-stack/generators/worldScenes';
+import { NINE_SCENE_BLOBS, NINE_WORLD_SCENES } from '../src/shards/nine-dragon-stack/generators/worldScenes';
 import { parseWorldSceneModels } from '../src/format/worldSceneModels';
-import { BufferGeometry, Color, Group, Mesh, MeshStandardMaterial, Texture, type Object3D } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { hydrateWorldSceneWeld } from '../src/game/shardfile/worldSceneWeld';
+import { BufferGeometry, Color, Mesh, MeshStandardMaterial, Texture, type Object3D } from 'three';
+import { weldSceneMaterial } from '../src/game/shardfile/worldSceneWeld';
 import hookRows from '../src/shards/nine-dragon-stack/data/hookSpecimen.json' with { type: 'json' };
 
 const isGeometry = (value: unknown): value is BufferGeometry => value instanceof BufferGeometry;
@@ -53,13 +52,13 @@ test('cast resource rows publish exact channels and preserve middle-LOD sharing 
   const handles = new SceneHandles();
   for (const row of rows.resources) {
     if (row.kind !== 'geometry') throw new Error('Casts require geometry resources');
-    const geometry = row.source.library === 'cast-hook' ? hook.take() : libraries.get(row.source.library)?.geometry(row.source.model);
+    const geometry = libraries.get(row.source.library)?.geometry(row.source.model);
     if (geometry === null || geometry === undefined) throw new Error(`Missing declared cast ${row.source.model}`);
     handles.publish(row.id, geometry);
   }
-  // the fixed kits and the hook stay weld handles; the lion's and the crowd's casts are catalogue sources only (one decode)
-  expect(rows.resources).toHaveLength(6);
-  expect(rows.resources.filter(row => /^casts\.(lion|walker|sitter)/u.test(row.id))).toEqual([]);
+  // the fixed kits stay weld handles; the lion's, the crowd's and the hook's casts are catalogue sources only (one decode)
+  expect(rows.resources).toHaveLength(3);
+  expect(rows.resources.filter(row => /^casts\.(lion|walker|sitter|dragon-hook)/u.test(row.id))).toEqual([]);
   // the crowd's middle levels draw their simplified index over the full cast's attributes (world-scenes catalogue rows;
   // the sharing itself: test/world-scene-shared-lods.test.ts), the far copy its own, nothing past the far cutoff
   const blob = NINE_SCENE_BLOBS.find(row => row.file.name === 'models/world-scenes.json');
@@ -75,7 +74,13 @@ test('cast resource rows publish exact channels and preserve middle-LOD sharing 
       [[`${key}-mid12`, key]], [[`${key}-mid22`, key]], [[`${key}-far`, null]], []]);
     for (const name of [key, `${key}-mid12`, `${key}-mid22`, `${key}-far`]) expect(declared.has(name), name).toBe(true);
   }
-  expect(handles.geometry('casts.dragon-hook').getAttribute('uv').array).toBeInstanceOf(Uint16Array);
+  // the hook's middle levels share the owned cast's attributes; its owned cast keeps its quantized uv
+  const hookLods = catalogue.models.find(row => row.key === 'feiZhuaHook')?.choices[0]?.lods.map(level => level.draws.map(row => [row.model, row.attributes?.model ?? null]));
+  expect(hookLods).toEqual([[['dragon-hook-mid15', 'dragon-hook']], [['dragon-hook-mid40', 'dragon-hook']]]);
+  for (const name of ['dragon-hook-mid15', 'dragon-hook-mid40']) expect(declared.has(name), name).toBe(true);
+  const hookCast = hook.take();
+  expect(hookCast.getAttribute('uv').array).toBeInstanceOf(Uint16Array);
+  hookCast.dispose();
   for (const row of rows.resources) handles.geometry(row.id).dispose();
 }, 30_000);
 
@@ -89,15 +94,13 @@ test('hook material rows retain native properties and borrow the original maps',
   source.map = new Texture(); source.normalMap = new Texture();
   const expected = source.clone(); expected.color.multiply(new Color(hookRows.material.tint));
   expected.roughness = hookRows.material.roughness; expected.metalness = hookRows.material.metalness;
-  const blob = CAST_BLOBS.find(entry => entry.file.name === 'world/casts.json');
-  if (blob === undefined) throw new Error('Missing hook material rows');
-  const owner = new Scope('hook-material-rows'), handles = new SceneHandles();
-  handles.publish('dressing.root', new Group());
-  hydrateWorldSceneWeld(JSON.parse(new TextDecoder().decode(blob.bytes)), handles,
-    { geometry: new Map(), materials: new Map([['hook-source', source]]) }, owner);
-  const actual = handles.standard('casts.hook-brass');
+  // the brass is one section material over the source's maps, in the weld's material grammar
+  const row = NINE_WORLD_SCENES.materials.find(entry => entry.id === 'casts.hook-brass');
+  if (row?.kind !== 'mapped') throw new Error('Missing hook material row');
+  const actual = weldSceneMaterial(row.material, id => { if (id !== 'hook-source') throw new Error(`Unexpected hook map source ${id}`); return source; }, () => { throw new Error('The brass is not sky-aware'); });
+  if (!(actual instanceof MeshStandardMaterial)) throw new Error('The hook brass is a standard material');
   for (const key of ['side', 'roughness', 'metalness', 'envMapIntensity', 'emissiveIntensity', 'transparent', 'opacity', 'depthWrite', 'vertexColors'] as const) expect(actual[key]).toBe(expected[key]);
   expect(actual.color).toEqual(expected.color); expect(actual.emissive).toEqual(expected.emissive); expect(actual.normalScale).toEqual(expected.normalScale);
   expect(actual.map).toBe(source.map); expect(actual.normalMap).toBe(source.normalMap);
-  owner.dispose(); expected.dispose(); source.dispose(); source.map.dispose(); source.normalMap.dispose();
+  actual.dispose(); expected.dispose(); source.dispose(); source.map.dispose(); source.normalMap.dispose();
 });

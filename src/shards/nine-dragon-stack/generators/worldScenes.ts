@@ -5,6 +5,8 @@ import signTextures from '../data/signTextureSources.json' with { type: 'json' }
 import { CAST_LIBRARIES, CAST_WELD, castBlobs, CAST_MATERIALS, castLibrary } from './castSources';
 import crowdRows from '../data/crowdModels.json' with { type: 'json' };
 import lodRows from '../data/lod.json' with { type: 'json' };
+import hookRows from '../data/hookSpecimen.json' with { type: 'json' };
+import hookBounds from '../data/hookBounds.json' with { type: 'json' };
 import { parseWorldSceneWeld } from '@wildshard/format/worldSceneWeld';
 import { LayoutRowsSchema } from './sections';
 import { portalLookRows } from './portalLook';
@@ -109,6 +111,13 @@ const cast = (name: string) => ({ id: 'main', library: castLibrary(name), model:
 const sharing = (name: string, full: string) => ({ ...cast(name), attributes: { library: castLibrary(full), model: full } });
 models.push({ ...one('guardianLion', 'guardian-lion', 'Guardian lion', 'props', [cast('lion')]), pipeline: 'trellis',
   choices: [choice('0', [cast('lion')], {}, [], [10, 30].map(from => ({ from, draws: [sharing(`lion-mid${String(from)}`, 'lion')] })))] });
+// the Fei Zhua dragon hook (E306 / E315 M4): the lab's cast-brass TRELLIS.2 sculpt (~18 k triangles) in its own space with its
+// source's bounds, meshoptimizer copies from 15 m and 40 m over its attributes; its back is the flat wall plate, so the
+// Model Explorer turns it round to face the first view (E289)
+const hook = hookRows, [hookX = 0, hookY = 0, hookZ = 0, hookR = 0] = hookBounds.sphere, hookDraw = { id: 'main', library: 'cast-hook', model: 'dragon-hook', material: 'casts.hook-brass', castShadow: false, receiveShadow: false, renderOrder: 0 };
+models.push({ key: 'feiZhuaHook', id: hook.model.id, name: hook.model.name, category: 'props', pipeline: 'trellis', file: FILE, defaults: {}, variants: [], assembly: 'parts', specimenYaw: hook.specimenYaw,
+  choices: [choice('0', [{ ...hookDraw, sphere: [hookX, hookY, hookZ, hookR] as [number, number, number, number] }], {}, [], hook.lods.map(from => {
+    const level = `dragon-hook-mid${String(from)}`; return { from, draws: [{ ...hookDraw, library: castLibrary(level), model: level, attributes: { library: 'cast-hook', model: 'dragon-hook' } }] }; }))] });
 for (const [key, row] of Object.entries(crowdRows)) {
   const name = key === 'walker' ? 'umbrellaWalker' : 'mahjongSitter';
   models.push({ key: name, id: row.id, name: row.name, category: 'people', pipeline: 'trellis', file: FILE, defaults: row.defaults, variants: row.variants, assembly: 'parts',
@@ -203,6 +212,16 @@ const hungLanterns = (capped: boolean) => [...projection.lanterns, ...capped ? p
   hanger.decompose(p, q, s); const k = s.x;
   return posed(new Matrix4().makeScale(k, k, k).setPosition(p.x, p.y - projection.fixed.drop * k, p.z).elements);
 });
+/** the three Well hook mounts nearest the square, each carrying the cast at its ring */
+function hungHooks() {
+  const square = new Vector3(-16, plan.Y0 - 2, -24), mounts = projection.hookMounts.map(row => ({ ring: new Vector3(...row.ring), out: new Vector3(...row.out) }))
+    .filter(mount => mount.ring.y > plan.Y0 - 23 && mount.ring.y < plan.Y0 + 14)
+    .sort((a, b) => a.ring.distanceToSquared(square) - b.ring.distanceToSquared(square)).slice(0, 3);
+  return mounts.map(({ ring, out }) => posed(new Matrix4().makeTranslation(ring.x, ring.y, ring.z)
+    .multiply(new Matrix4().makeRotationY(Math.atan2(out.x, out.z)))
+    .multiply(new Matrix4().makeScale(hook.scale, hook.scale, hook.scale))
+    .multiply(new Matrix4().makeTranslation(-hook.ring.x, -hook.ring.y, -hook.ring.z)).elements));
+}
 /** the layout's air conditioners and paper lanterns (world/build.ts places them by id; lanterns per deck ending), each its own
  *  placement file (the section's plain-JSON node budget) */
 export const LAYOUT_PLACEMENTS = [
@@ -218,6 +237,9 @@ export const LAYOUT_PLACEMENTS = [
   // the guardian lions at their frames, and the crowd: walkers and mahjong sitters in their colourways, culled from the
   // origin by the far cutoff
   { id: 'nds-lions', model: 'guardianLion', draw: 'instanced' as const, cull: { bounds: 'sphere' as const }, piece: { id: 'nds-lions' }, poses: worldRows.rows.lions.map(at => posed(frame(at))) },
+  // the hook hung on the three Well hooks nearest the square: its ring on the mount's ring, turned out from the wall (the
+  // brackets and collision-free ring anchors stay the world's; the grapple aims at the ring)
+  { id: 'nds-fei-zhua-hooks', model: 'feiZhuaHook', draw: 'instanced' as const, cull: { bounds: 'sphere' as const }, piece: { id: 'nds-fei-zhua-hooks' }, poses: hungHooks() },
   ...([['walkers', 'umbrellaWalker'], ['sitters', 'mahjongSitter']] as const).map(([group, model]) => ({ id: `nds-crowd-${group}`, model, draw: 'instanced' as const,
     cull: { bounds: 'sphere' as const, from: 'origin' as const, far: lodRows.LOD_FAR }, piece: { id: `nds-crowd-${group}` },
     poses: worldRows.rows.crowd[group].map(row => ({ ...posed(frame(row.matrix)), variant: row.variant })) })),
