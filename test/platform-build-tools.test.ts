@@ -95,17 +95,17 @@ it('keeps a sole runtime user charged until a second runtime reaches the generat
 });
 
 
-it('registers Blender discovery as generated without excluding its authored data',()=>{
+it.each(['blender-template','nine-dragon-stack'])('registers %s discovery as generated without excluding its authored data',(slug)=>{
  const root=mkdtempSync(join('tmp/','platform-blender-discovery-'));
  const put=(path:string,source:string):void=>{const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,source);};
  try{
-  platformOutput(root,'blender-template');
-  put('src/shards/blender-template/discovery.generated.ts','export const generated=1;');
-  put('src/shards/blender-template/data/authored.ts','export const authored=1;');
-  expect(sourceProgressInventory(root)['blender-template']?.conversion.customRuntimeLines).toBe(2);
+  platformOutput(root,slug);
+  put(`src/shards/${slug}/discovery.generated.ts`,'export const generated=1;');
+  put(`src/shards/${slug}/data/authored.ts`,'export const authored=1;');
+  expect(sourceProgressInventory(root)[slug]?.conversion.customRuntimeLines).toBe(2);
   put('scripts/source-generation-outputs.json',JSON.stringify(generatedSources));
-  const row=sourceProgressInventory(root)['blender-template'];
+  const row=sourceProgressInventory(root)[slug];
   expect(row?.conversion.customRuntimeLines).toBe(1);
-  expect(row?.customSources?.map(source=>source.path)).toEqual(['src/shards/blender-template/data/authored.ts']);
+  expect(row?.customSources?.map(source=>source.path)).toEqual([`src/shards/${slug}/data/authored.ts`]);
  }finally{rmSync(root,{recursive:true,force:true});}
 });
