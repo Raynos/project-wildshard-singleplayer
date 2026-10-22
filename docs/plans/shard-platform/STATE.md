@@ -17,8 +17,8 @@ sp-x1 tools + D9 commit.sh (BS21); sp-x6 ZH hull numeric input + DW entry migrat
 adapter; sp-x7 release owner (checks CI/smoke/live every 15 min). sp-o1, sp-o3 closed.
 
 **Tooling (G582/G585):** only the push loop + lane watchdog, in herdr pane sp-tools (scripts/sp-tools.sh; no
-launchd); CI/smoke watchers being deleted (sp-x1). main CI: one running + newest pending (G582). Commit path:
-scripts/commit.sh replaces the lock/index scripts (D9, landing via sp-x1). No receipts, proof docs or new scripts.
+launchd); CI/smoke watchers deleted (sp-x1, 013a31e5c2). main CI: one running + newest pending (G582). Commit path:
+scripts/commit.sh "msg" -- <files> (D9 landed 013a31e5c2); lock/index/sweep scripts deleted. No receipts, proof docs or new scripts.
 
 **Rules:** G492 no mid-task re-briefs; G569 watchdog nudges idle lanes (sp-x7/o1/o3 exempt); never herdr
 wildshard-v; no net-0 moves or relabels (G571); legacy copies stay (G573); G561 stays until each shard is done.
