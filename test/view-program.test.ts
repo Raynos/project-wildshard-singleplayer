@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { BoxGeometry, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera, ShaderMaterial, Vector3 } from 'three';
 import { parse } from 'valibot';
 import { Scope } from '../src/engine/app/scope';
-import { viewProgram } from '../src/engine/script/viewProgram';
+import { viewProgram, type ViewSlotActor } from '../src/engine/script/viewProgram';
 import { ViewProgramSchema } from '../src/format/viewProgram';
 import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
 
@@ -37,7 +37,7 @@ test('a view program lands its matrices on lent objects, its bank on the camera 
   const scope = new Scope('marsh'), camera = new PerspectiveCamera(), lantern = new Object3D(), looks: [string, string, number][] = [];
   lantern.position.set(5, 1, 0);
   const player = { position: new Vector3(3, 0, 0), velocity: new Vector3() };
-  const ports = (pieces: Record<string, number>) => ({ scope, player, camera, object: (id: string) => { if (id !== 'lantern') throw new Error(id); return lantern; },
+  const ports = (pieces: Record<string, number>) => ({ scope, player, camera, slots: () => null, object: (id: string) => { if (id !== 'lantern') throw new Error(id); return lantern; },
     floor: (piece: string) => { const height = pieces[piece]; return height === undefined ? null : () => height; },
     look: (look: string, param: string, value: number) => { looks.push([look, param, value]); } });
   try {
@@ -66,7 +66,7 @@ test('instanced copies, bones, visibility, opacity, uniforms and per-copy attrib
       { kind: 'attribute', object: 'herd', attribute: 'aFade', index: 1, component: 0 }],
     transforms: [{ kind: 'instance', object: 'herd', index: 1 }, { kind: 'bone', object: 'rider', bone: 'arm' }] });
   const program = viewProgram(module, marsh, { scope, player: { position: new Vector3(4, 0, 0), velocity: new Vector3() }, camera: new PerspectiveCamera(),
-    floor: () => null, look: () => undefined, object: id => { const found = objects[id]; if (found === undefined) throw new Error(id); return found; } });
+    floor: () => null, slots: () => null, look: () => undefined, object: id => { const found = objects[id]; if (found === undefined) throw new Error(id); return found; } });
   if (program === null) throw new Error('Missing program');
   try {
     program.frame(1 / 60);
@@ -78,4 +78,34 @@ test('instanced copies, bones, visibility, opacity, uniforms and per-copy attrib
   const copy = new Matrix4(); herd.getMatrixAt(1, copy);
   expect(copy.equals(new Matrix4())).toBe(true); expect(arm.position.x).toBe(0); expect(ghost.visible).toBe(false);
   expect(ghost.material.opacity).toBe(1); expect(ghost.material.uniforms['uFade']?.value).toBe(0); expect(fades.getX(1)).toBeCloseTo(.2);
+});
+
+test('pool slots sample their actors and address each actor\'s object, re-claimed when a slot\'s identity changes', async () => {
+  const module = await compileScriptV2(LANTERN, { lane: 'view', ioBytes: 4096 });
+  const scope = new Scope('marsh.watch'), drawn = (): Mesh<BoxGeometry, MeshBasicMaterial> => new Mesh(new BoxGeometry(), new MeshBasicMaterial({ transparent: true }));
+  const lifts: Record<string, number> = {};
+  const actor = (identity: string, x: number): ViewSlotActor => ({ identity, object: drawn(), x, y: 0, z: 0, yaw: 0, alive: true, ground: 2, field: () => .5,
+    set: (name, value) => { lifts[`${identity}.${name}`] = value; } });
+  const first = actor('a', .3), second = actor('b', 0), slots: (ViewSlotActor | null)[] = [first, second];
+  const watch = parse(ViewProgramSchema, { ...rows, pools: [{ id: 'watch', group: 'marsh.watch', count: 2, fields: ['fade'] }], samples: [{ kind: 'pool', pool: 'watch' }],
+    channels: [{ kind: 'opacity', object: { pool: 'watch', slot: 0 } }, { kind: 'color', object: { pool: 'watch', slot: 0 }, color: [1, .5, 0] }, { kind: 'field', pool: 'watch', slot: 0, field: 'lift' }], transforms: [{ kind: 'object', object: { pool: 'watch', slot: 1 } }] });
+  const ports = (lent: boolean) => ({ scope, player: { position: new Vector3(), velocity: new Vector3() }, camera: new PerspectiveCamera(), floor: () => null,
+    slots: (group: string) => lent && group === 'marsh.watch' ? { actor: (slot: number) => slots[slot] ?? null } : null,
+    look: () => undefined, object: (id: string): Object3D => { throw new Error(id); } });
+  expect(viewProgram(module, watch, ports(false))).toBeNull();
+  const program = viewProgram(module, watch, ports(true));
+  if (program === null) throw new Error('Missing program');
+  const third = actor('c', .6);
+  const opacity = (slot: ViewSlotActor): number => { const mesh = slot.object; if (!(mesh instanceof Mesh) || !(mesh.material instanceof MeshBasicMaterial)) throw new Error('Missing mesh'); return mesh.material.opacity; };
+  try {
+    program.frame(1 / 60);
+    expect(opacity(first)).toBeCloseTo(.3); expect(second.object.position.x).toBeCloseTo(1); expect(lifts['a.lift']).toBe(0);
+    const tint = (slot: ViewSlotActor): number => { const mesh = slot.object; if (!(mesh instanceof Mesh) || !(mesh.material instanceof MeshBasicMaterial)) throw new Error('Missing mesh'); return mesh.material.color.getHex(); };
+    expect(tint(first)).toBe(0); // the bank's second value is slot 0's y (0): base colour × 0
+    slots[0] = third; slots[1] = null;
+    program.frame(1 / 60);
+    expect(opacity(first)).toBe(1); expect(tint(first)).toBe(0xffffff); expect(opacity(third)).toBeCloseTo(.6); expect(second.object.position.x).toBe(0); expect(second.object.matrixAutoUpdate).toBe(true);
+  } finally { scope.dispose(); }
+  expect(opacity(third)).toBe(1);
+  expect(() => parse(ViewProgramSchema, { ...watch, transforms: [{ kind: 'object', object: { pool: 'watch', slot: 2 } }] })).toThrow();
 });

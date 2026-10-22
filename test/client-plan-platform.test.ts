@@ -429,7 +429,7 @@ test('mover owner rows admit only finite fixed-pose mooring and typed targets', 
 
 test.each(['live', 'retiring'] as const)('declared view program installs only for a %s owner after its module read', async state => {
   const f = context(), row = { kind: 'view.program', id: 'deck', module: 'view.wasm', rows: { system: 'deck.view', before: ['camera'],
-    budget: { pages: 1, ioBytes: 4096, fuel: 1000, targetMs: .5 }, samples: [{ kind: 'floor', piece: 'deck', field: 'present' }, { kind: 'constant', value: 1 }],
+    budget: { pages: 1, ioBytes: 4096, fuel: 1000, targetMs: .5 }, pools: [], samples: [{ kind: 'floor', piece: 'deck', field: 'present' }, { kind: 'constant', value: 1 }],
     channels: [{ kind: 'camera', field: 'roll' }], transforms: [], bounds: { translation: 0, scale: [1, 1], shear: 0 } } };
   f.sections.set('view/modules', []);
   f.files.set('view.wasm', { hash: 'view', url: 'https://example.invalid/view.wasm' });
