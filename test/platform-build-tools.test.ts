@@ -2,12 +2,13 @@ import {expect,it} from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Isolated attribution fixture sources.
 import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- All paths stay within the fixture root.
-import {dirname,join} from 'node:path';
+import {dirname,join,resolve} from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Small disposable fixture, never a repository export.
 import {tmpdir} from 'node:os';
-import {checkShares,shardLines,sourceProgressInventory} from '../scripts/shard-platform.mjs';
+import {checkShares,shardLines,sourceProgressInventory,codeLines} from '../scripts/shard-platform.mjs';
 import {platformOutput} from './fixtures/platformOutputs';
 import {legacyLineBasis} from './fixtures/legacyLineBasis';
+import {authoredManifestSource} from '../scripts/authored-manifest.mjs';
 import generatedSources from '../scripts/source-generation-outputs.json' with {type:'json'};
 
 it('excludes only the G456 build-tool paths from whole-module charges',()=>{
@@ -95,14 +96,15 @@ it('keeps a sole runtime user charged until a second runtime reaches the generat
 });
 
 
-it.each(['blender-template','nine-dragon-stack'])('registers %s discovery as generated without excluding its authored data',(slug)=>{
+it.each(['blender-template','nine-dragon-stack','ink-cel-valley'])('registers %s discovery as generated without excluding its authored data',(slug)=>{
  const root=mkdtempSync(join('tmp/','platform-blender-discovery-'));
  const put=(path:string,source:string):void=>{const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,source);};
  try{
   platformOutput(root,slug);
-  put(`src/shards/${slug}/discovery.generated.ts`,'export const generated=1;');
+  const discovery=slug==='ink-cel-valley'?authoredManifestSource(resolve('.'),slug):'export const generated=1;';
+  put(`src/shards/${slug}/discovery.generated.ts`,discovery);
   put(`src/shards/${slug}/data/authored.ts`,'export const authored=1;');
-  expect(sourceProgressInventory(root)[slug]?.conversion.customRuntimeLines).toBe(2);
+  expect(sourceProgressInventory(root)[slug]?.conversion.customRuntimeLines).toBe(1+codeLines(discovery));
   put('scripts/source-generation-outputs.json',JSON.stringify(generatedSources));
   const row=sourceProgressInventory(root)[slug];
   expect(row?.conversion.customRuntimeLines).toBe(1);

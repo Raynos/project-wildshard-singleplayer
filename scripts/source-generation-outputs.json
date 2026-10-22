@@ -37,6 +37,7 @@
       "src/shards/pine-hollow/discovery.generated.ts",
       "src/shards/driftwood-isle/discovery.generated.ts",
       "src/shards/pastel-plain/discovery.generated.ts",
+      "src/shards/ink-cel-valley/discovery.generated.ts",
       "src/shards/open-plots/discovery.open-plot-alien-plain.generated.ts",
       "src/shards/open-plots/discovery.open-plot-clockwork-canyon.generated.ts",
       "src/shards/open-plots/discovery.open-plot-coral-drift.generated.ts",
