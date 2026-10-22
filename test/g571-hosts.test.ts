@@ -1,4 +1,4 @@
-import { afterEach, expect, test } from 'vitest';
+import { afterEach, expect, test, vi } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Isolated ruler approval fixtures.
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep all fixture writes under repository scratch.
@@ -56,12 +56,24 @@ test('named approvals in a shared module preserve every unrelated sole-user decl
   expect(names).toContain('helper'); expect(names).toContain('law'); expect(names).not.toContain('approved');
 });
 
-test('ordinary prose and other decisions grant no approval; stale or overlapping selectors refuse', () => {
+test('a listed missing host warns without granting credit or blocking measurement', () => {
+  const root = fixture(), before = row(root);
+  put(root, 'docs/HOST-BAR.md', '- G571 pending: `game/missing#install`.\n- G571 approved: `game/approved#approved`.');
+  const warning = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+  try {
+    const approvals = g571HostApprovals(root), after = row(root);
+    expect(approvals.has('src/game/missing.ts')).toBe(false);
+    expect(approvals.get('src/game/approved.ts')).toEqual(new Set(['approved']));
+    expect(warning).toHaveBeenCalledWith('Missing G571 host: src/game/missing.ts; approval skipped');
+    expect(after.conversion.customRuntimeLines).toBe(before.conversion.customRuntimeLines - 1);
+    expect(after.conversion.gameSystemAttribution.modules).toEqual([{ path: 'src/game/unnamed.ts', lines: 1 }]);
+  } finally { warning.mockRestore(); }
+});
+
+test('ordinary prose and other decisions grant no approval; overlapping or missing bindings refuse', () => {
   const root = fixture();
   put(root, 'docs/HOST-BAR.md', '`game/approved` is discussed.\n- G475 another feature: `game/approved`.');
   expect(g571HostApprovals(root).size).toBe(0);
-  put(root, 'docs/HOST-BAR.md', '- G571 missing: `game/missing`.');
-  expect(() => g571HostApprovals(root)).toThrow('Missing G571');
   put(root, 'docs/HOST-BAR.md', '- G571 overlap: `game/approved` and `game/approved#approved`.');
   expect(() => g571HostApprovals(root)).toThrow('Overlapping');
   put(root, 'docs/HOST-BAR.md', '- G571 typo: `game/approved#missing`.');

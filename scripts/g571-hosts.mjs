@@ -19,7 +19,7 @@ export function g571HostApprovals(root) {
       if (module === undefined) throw new Error('Invalid G571 host selector');
       if (module.split('/').some(part => part === '.' || part === '..' || part === '') || module.endsWith('.ts')) throw new Error(`Invalid G571 host selector: ${module}`);
       const path = `src/${module}.ts`;
-      if (!existsSync(resolve(root, path))) throw new Error(`Missing G571 host: ${path}`);
+      if (!existsSync(resolve(root, path))) { console.warn(`Missing G571 host: ${path}; approval skipped`); continue; }
       if (name === undefined) {
         if (result.has(path)) throw new Error(`Overlapping G571 host: ${path}`);
         result.set(path, null);
