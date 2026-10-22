@@ -56,7 +56,7 @@ const serveOwner = process.env.SERVE_OWNER ?? 'sp-x2-g332';
 const FOOTPRINT_PY = String.raw`
 import ctypes, json, sys
 class R(ctypes.Structure):
-    _fields_ = [('uuid', ctypes.c_ubyte * 16)] + [(n, ctypes.c_uint64) for n in ('user_time','system_time','pkg_idle_wkups','interrupt_wkups','pageins','wired_size','resident_size','phys_footprint')]
+    _fields_ = [('uuid', ctypes.c_ubyte * 16)] + [(n, ctypes.c_uint64) for n in ('user_time','system_time','pkg_idle_wkups','interrupt_wkups','pageins','wired_size','resident_size','phys_footprint','proc_start_abstime','proc_exit_abstime')]
 lib = ctypes.CDLL('/usr/lib/libproc.dylib'); out = {}
 for p in sys.argv[1:]:
     u = R()
