@@ -18,7 +18,6 @@ function channel(name: keyof typeof rows.channels): (x: number, z: number) => nu
 export const SEED = rows.seed;
 export const SPAWN = rows.spawn;
 export const wetMask = channel('wet'), forestMask = channel('forest');
-const valley = channel('valley'), bowl = channel('bowl'), snow = channel('snow');
 const red = channel('red'), green = channel('green'), blue = channel('blue');
 const gravel = channel('gravel'), rock = channel('rock'), ice = channel('ice');
 /** Shared live trail SDF; every height, floor and edge read waits for the admitted native lattice. */
@@ -27,7 +26,6 @@ export const TERRAIN: ChunkTerrain = createBakedTerrainField({ key: 'nalati-gras
     layout.SKY_ROAD, layout.CAMP_SPUR, ...layout.BOWL_TRACKS, layout.EAGLE_TRAIL, layout.CAVE_TRAIL, layout.ARGYMAQ_TRAIL],
   mask: { res: rows.res, size: rows.size, values: values('pond') },
 });
-export function zoneAt(x: number, z: number): [number, number, number] { return [valley(x, z), bowl(x, z), snow(x, z)]; }
 /** The pigment and surface masks are baked; the trail's per-pixel paint remains live. */
 export function groundColor(x: number, z: number, _h: number, _slope: number, _terrain: ChunkTerrain, out: RGB): RGB {
   out[0] = red(x, z); out[1] = green(x, z); out[2] = blue(x, z); return out;

@@ -9,6 +9,7 @@ import { ClientChannels } from '../src/sdk/clientChannels';
 import { installChannelPrograms } from '../src/game/plugin/channelPrograms';
 import { compactChannels } from '../src/shards/nalati-grasslands/generators/channelRows';
 import { isJsonData } from '../src/format/json';
+import geography from '../src/shards/nalati-grasslands/boot/geography.generated.json' with { type: 'json' };
 import grass from '../src/shards/nalati-grasslands/boot/grass.generated.json' with { type: 'json' };
 import layout from '../src/shards/nalati-grasslands/boot/layout.generated.json' with { type: 'json' };
 import places from '../src/shards/nalati-grasslands/boot/poiLayout.generated.json' with { type: 'json' };
@@ -21,7 +22,7 @@ import { TERRAIN, snowValleyX, snowValleyHalf, snowValleyFloor, inPoiClearing, i
 import { parseBakedTerrain } from '../src/format/bakedTerrainBytes';
 import { bakedSamplers } from '../src/format/bakedTerrainSampling';
 import { installDeclaredBakedTerrain } from '../src/engine/world/bakedTerrainField';
-import { TERRAIN as bound, zoneAt, forestMask, wetMask } from '../src/shards/nalati-grasslands/world/geography';
+import { TERRAIN as bound, forestMask, wetMask } from '../src/shards/nalati-grasslands/world/geography';
 
 test('baked layout owns every derived anchor and clearing', () => {
   const data = (source: object): object => Object.fromEntries(Object.entries(source).filter(([, value]) => typeof value !== 'function'));
@@ -60,8 +61,13 @@ test('all native terrain heights, including every edge, retain their bake', () =
 });
 
 test('baked geography keeps bounded masks and complementary zones', () => {
+  const zones = (['valley', 'bowl', 'snow'] as const).map(id => {
+    const bytes = unzlibSync(Uint8Array.from(atob(geography.channels[id]), value => value.codePointAt(0) ?? 0));
+    return bakedSamplers({ res: geography.res, size: geography.size, seed: geography.seed, landscapeHash: 0,
+      heights: new Float32Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 4), splat: new Uint8Array(0), undergrowth: null }).heightAt;
+  });
   for (let z = -250; z <= 250; z += 10) for (let x = -250; x <= 250; x += 10) {
-    expect(zoneAt(x, z).reduce((sum, value) => sum + value, 0)).toBeCloseTo(1, 6);
+    expect(zones.reduce((sum, sample) => sum + sample(x, z), 0)).toBeCloseTo(1, 6);
     for (const mask of [forestMask(x, z), wetMask(x, z), bound.pondMask(x, z)]) {
       expect(mask).toBeGreaterThanOrEqual(0); expect(mask).toBeLessThanOrEqual(1);
     }
