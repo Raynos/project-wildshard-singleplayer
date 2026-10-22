@@ -1,7 +1,8 @@
 import type { MountedArsenal } from '../loadout/mounted';
 /** Client-only concrete loans between compiled entry capabilities. No shard
  * callbacks, reflected paths, clocks or continuation state live in this book. */
-import type { Object3D } from 'three';
+import type { Object3D, Vector3 } from 'three';
+import type { ArenaScriptEncounter } from '../boss/arenaScript';
 import type { ModelSiteLayout, Placed } from '@wildshard/engine/models/place';
 import type { ForestWeatherRig } from '../weather/forest';
 import type { FixedDraws } from '../models/fixedDraws';
@@ -26,6 +27,8 @@ import type { LivingBuildings } from './livingBuildings';
 export interface EntryOwnerTypes {
   scenes: SceneHandles;
   'world-weather': ForestWeatherRig;
+  'world-point': Vector3 | null;
+  'arena-script': ArenaScriptEncounter;
   buildings: LivingBuildings;
   forest: ForestPage;
   cave: CaveInterior;
@@ -59,7 +62,7 @@ function check(scope: Scope, id: string): void {
 function book(scope: Scope): Owners {
   let value = books.get(scope);
   if (value === undefined) {
-    value = { scenes: new Map(), 'world-weather': new Map(), buildings: new Map(), forest: new Map(), cave: new Map(), quest: new Map(), 'quest-reference': new Map(),
+    value = { scenes: new Map(), 'world-weather': new Map(), 'world-point': new Map(), 'arena-script': new Map(), buildings: new Map(), forest: new Map(), cave: new Map(), quest: new Map(), 'quest-reference': new Map(),
       object: new Map(), placed: new Map(), site: new Map(), floor: new Map(), 'fixed-draws': new Map(), chain: new Map(), 'rope-deck': new Map(), ambient: new Map(), 'ambient-draw': new Map(), collection: new Map(), claims: new Map(), 'mounted-arsenal': new Map(),
       animals: new Map(), sounds: new Map(), 'quest-spawns': new Map() };
     books.set(scope, value);

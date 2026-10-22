@@ -297,3 +297,12 @@ test('ordered weather dispatch retains its actual Nalati-only C9 owner', () => {
   expect(bindings.get(`${path}\0${name}`)).toEqual(new Set(['nalati-grasslands']));
   expect(bindings.get(`${path}\0WorldAssembly`)).toEqual(both);
 });
+
+test('ordered arena script construction retains its actual Nalati-only C9 owner', () => {
+  const path = 'src/game/shardfile/worldAssembly.ts', name = 'installAssemblyArenaScript', both = new Set(['nalati-grasslands', 'driftwood-isle']);
+  const modules = new Map([[path, both]]), bindings = new Map([[`${path}\0${name}`, both], [`${path}\0WorldAssembly`, both]]);
+  chargePlatformUsers(modules, bindings);
+  expect(platformChargeback(path, name)).toBe('C9');
+  expect(bindings.get(`${path}\0${name}`)).toEqual(new Set(['nalati-grasslands']));
+  expect(bindings.get(`${path}\0WorldAssembly`)).toEqual(both);
+});

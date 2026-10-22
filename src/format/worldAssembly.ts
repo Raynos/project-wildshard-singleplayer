@@ -28,6 +28,7 @@ const label = v.pipe(v.string(), v.minLength(1), v.maxLength(96));
 export const WorldAssemblyStageSchema = v.variant('kind', [
   /** The weather occupies its exact ordered boundary without an extra progress slice. */
   v.strictObject({ kind: v.literal('weather'), id, file: id }),
+  v.strictObject({ kind: v.literal('arena-script'), id, files: v.strictObject({ fight: id, geometry: id }), weather: id, anchor: id }),
   v.strictObject({ kind: v.literal('place'), id, label }),
   v.strictObject({ kind: v.literal('streamed-cover'), id, label, rows: StreamedCoverSchema, file: v.pipe(id, v.regex(/\.json$/)), placement: id,
     draws: v.pipe(v.record(id, id), v.maxEntries(64)), object: id, system: id }),
