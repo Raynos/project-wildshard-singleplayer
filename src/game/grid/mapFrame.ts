@@ -8,6 +8,7 @@
  */
 import type { FullMap, MapPoi, MapZone } from '@wildshard/engine/ui/Map';
 import type { MapMark } from '@wildshard/engine/ui/Minimap';
+import type { Scope } from '@wildshard/engine/app/scope';
 
 type Method = (...args: unknown[]) => unknown;
 /** `service` with `overrides` in place of its own methods; every other member reads through, its methods bound to `service` */
@@ -38,6 +39,34 @@ export function shiftedFullMap(map: FullMap, dx: number, dz: number): FullMap {
   const addPois: FullMap['addPois'] = (source) => map.addPois(() => source().map(poi));
   const setZones: FullMap['setZones'] = (zones) => { map.setZones(zones.map(zone)); };
   return overlay(map, { setPois, addPois, setZones });
+}
+
+/**
+ * G580 T1: the page's full map for one of several live residents. Its single slots (places, quest card, zone names) are
+ * the entered resident's: what a resident sets is held and applied when it is entered (`enter`: its entered-service
+ * installer), and cleared when it leaves, so a warm neighbour never replaces the entered cell's map. Layers (`addPois`,
+ * `addQuest`) and everything else pass through.
+ */
+export function enteredFullMap(map: FullMap, enter: (install: (scope: Scope) => void) => void): FullMap {
+  let pois: Parameters<FullMap['setPois']> | null = null, quest: Parameters<FullMap['setQuest']>[0] | null = null, zones: readonly MapZone[] | null = null;
+  let entered = false;
+  enter((scope) => {
+    entered = true;
+    if (pois !== null) map.setPois(...pois);
+    if (quest !== null) map.setQuest(quest);
+    if (zones !== null) map.setZones(zones);
+    scope.onDispose(() => {
+      entered = false;
+      if (pois !== null) map.setPois(() => []);
+      if (quest !== null) map.setQuest(() => null);
+      if (zones !== null) map.setZones([]);
+    });
+  });
+  return overlay(map, {
+    setPois: (...args) => { pois = args; if (entered) map.setPois(...args); },
+    setQuest: (source) => { quest = source; if (entered) map.setQuest(source); },
+    setZones: (value) => { zones = value; if (entered) map.setZones(value); },
+  });
 }
 
 /** what a resident's play host reaches of the minimap (ShardPlayHost.minimap) */

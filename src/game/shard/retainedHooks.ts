@@ -91,11 +91,14 @@ export class RetainedRuntimeHooks {
   private generation = 0;
   private preparing: boolean;
   private installing = 0;
+  private readonly ownedInputs = new Set<string>();
+  private readonly pushes = new Map<string, Scope>();
+  private readonly inputService: ShardContext['app']['input'];
 
   /** Defer entered services while a budget-admitted resident constructs its world on the road.
    * Construction may queue registrations until activation or cancellation; it never runs those installers. */
   constructor(base: ShardContext, preparation: { deferActivation?: boolean } = {}) {
-    this.resident = base.scope;
+    this.resident = base.scope; this.inputService = base.app.input;
     this.preparing = preparation.deferActivation === true;
     const generation = this.generation;
     const register = (install: (scope: Scope) => void): void => {
@@ -112,14 +115,50 @@ export class RetainedRuntimeHooks {
       // A replayed service owns its nested registrations; replaying them separately would duplicate callbacks.
       if (!nested) this.installers.push(install);
     };
+    // G580 T1: an input context id is page-global, and two live copies of one product share every id, so a retained
+    // definition exists only in the entered scope (one runtime is entered at a time). A push of one of its ids made while
+    // parked (native construction pushes at once) waits for entry, and every push it remembers is replayed on each entry
+    // while its owner lives; a pop forgets it.
     const input = (definition: InputDefinition, install: (definition: InputDefinition, scope: Scope) => void): void => {
-      if (this.installing > 0) { register(scope => { install(definition, scope); }); return; }
-      if (base.scope.disposed || (!this.preparing && (this.entered === undefined || (generation !== this.generation
-        && !ownerBelongsTo(currentOwner(), this.entered))))) throw new Error('Trusted callback registration left its cell');
-      // Native construction may push immediately, but prepared and parked definitions have no keys, blocks or touch UI.
-      install({ ...definition, enabled: () => this.entered !== undefined && definition.enabled?.() !== false }, base.scope);
+      this.ownedInputs.add(definition.id);
+      register(scope => { install({ ...definition, enabled: () => this.entered !== undefined && definition.enabled?.() !== false }, scope); });
     };
-    this.context = { ...base, get progress() { return base.progress; },
+    const inputs = base.app.input;
+    const push = (id: string, scope: Scope): void => {
+      if (this.ownedInputs.has(id)) { this.pushes.delete(id); this.pushes.set(id, scope); if (this.entered === undefined) return; }
+      inputs.push(id, scope);
+    };
+    const pop = (id: string): void => { this.pushes.delete(id); inputs.pop(id); };
+    const through = <T extends object>(target: T, own: (key: PropertyKey) => unknown): T => new Proxy(target, {
+      get: (object, key) => { const mine = own(key); if (mine !== undefined) return mine; const value: unknown = Reflect.get(object, key, object);
+        return typeof value === 'function' ? (value as (...args: unknown[]) => unknown).bind(object) : value; },
+      set: (object, key, value: unknown) => Reflect.set(object, key, value, object),
+    });
+    const input$ = through(inputs, key => key === 'push' ? push : key === 'pop' ? pop : undefined);
+    const app = through(base.app, key => key === 'input' ? input$ : undefined);
+    // HUD elements are page-global: a retained runtime's widgets and discs stand in the HUD only while it is entered.
+    // Parked, an element leaves a comment anchor in its slot; entered, it returns to that slot. One not yet mounted is left.
+    const anchors = new WeakMap<Element, Comment>();
+    const park = (el: HTMLElement): void => {
+      const away = (): void => {
+        if (el.parentNode === null || anchors.has(el)) return;
+        const anchor = el.ownerDocument.createComment('runtime.parked'); el.before(anchor); el.remove(); anchors.set(el, anchor);
+      };
+      if (this.entered === undefined && this.installing === 0) away();
+      register((scope) => {
+        const anchor = anchors.get(el);
+        if (anchor !== undefined) { if (anchor.parentNode !== null) anchor.replaceWith(el); anchors.delete(el); }
+        scope.onDispose(away);
+      });
+      base.scope.onDispose(() => { anchors.get(el)?.remove(); anchors.delete(el); });
+    };
+    this.context = { ...base, app, get progress() { return base.progress; },
+      hud: {
+        relabel: (spot, label, icon, appearance) => base.hud.relabel(spot, label, icon, appearance), verb: (slot, opts) => { base.hud.verb(slot, opts); },
+        widget: (band, el, order) => { base.hud.widget(band, el, order); park(el); },
+        disc: (opts) => { const button = base.hud.disc(opts); park(button); return button; },
+        pin: (at, el) => { base.hud.pin(() => this.entered === undefined ? null : typeof at === 'function' ? at() : at, el); },
+      },
       system: (spec) => { register((scope) => { base.app.addSystem(spec, scope); }); },
       on: (name, fn, options) => { register((scope) => { base.app.events.on(name, fn, scope, options); }); },
       answer: (name, fn, options) => { register((scope) => { base.app.events.answer(name, fn, scope, options); }); },
@@ -150,6 +189,8 @@ export class RetainedRuntimeHooks {
     this.entered = scope;
     try {
       for (const install of this.installers) this.install(install, scope);
+      // the pushes its runtime made while parked or on an earlier entry, onto the definitions this entry made
+      for (const [id, owner] of this.pushes) { if (owner.disposed) this.pushes.delete(id); else this.inputService.push(id, owner); }
       this.context.app.input.refresh(false); this.context.app.input.repaint();
     } catch (error) {
       this.entered = undefined; scope.dispose();

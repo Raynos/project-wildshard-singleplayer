@@ -34,7 +34,7 @@ import { installLoot,enteredLootPresentation } from '../loot/runtime';
 import { installDeclaredTargets } from '../shard/declaredTargets';
 import { mountDeclaredUi } from '../shard/declaredUi';
 import { createQuestScriptPorts } from '../quest/declared';
-import { installQuestPresentation, ClientScriptViews, driveClientScriptViews, type ClientScriptViewTarget } from "../plugin/ui";
+import { installEnteredQuestPresentation, installQuestPresentation, ClientScriptViews, driveClientScriptViews, type ClientScriptViewTarget } from "../plugin/ui";
 import { instanceSave } from '../instanceSaves';
 import { Ledger, installLedgerEmitter, type LedgerCatalogueItem, type LedgerEmitter } from '../ledger';
 import { EmptyEquipment } from './emptyEquipment';
@@ -505,7 +505,9 @@ export class ShardfileClient {
     installDeclaredTargets(source.targets, { panels: tiles.props?.panels ?? new Map(), colliders: sim.colliders, read, scene, interactables: runtime.interactables, scope: ctx.scope, system: ctx.system });
     for (const quest of sim.quest.quests) {
       const declaration = source.quests.quests.find((row) => row.id === quest.def.id);
-      installQuestPresentation(ctx, quest, declaration?.track === false ? { chip: () => ({ label: '', count: '' }) } : {});
+      const options = declaration?.track === false ? { chip: () => ({ label: '', count: '' }) } : {};
+      // a retained (grid) runtime's chip, pins and card are its entered cell's only
+      if (retainsRuntimeServices(ctx)) installEnteredQuestPresentation(ctx, quest, options); else installQuestPresentation(ctx, quest, options);
     }
     if (ctx.product.has('ui/completion') && ctx.product.section('ui/completion').trigger === 'quest') installCompletion(ctx, sim.host.flags, play.progress);
     runtime.hooks.questFlags = () => sim.host.flags.all; runtime.hooks.adventureFlags = () => sim.host.flags.all;

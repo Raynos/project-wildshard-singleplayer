@@ -23,7 +23,7 @@ import type { HybridResident } from '../shardfile/hybrid';
 import type { AdmittedProduct } from '../shardfile/product';
 import { shardProductFromAdmission } from '../shardfile/runtimeProduct';
 import type { GridCell } from './assembly';
-import { shiftedFullMap, shiftedMinimap } from './mapFrame';
+import { enteredFullMap, shiftedFullMap, shiftedMinimap } from './mapFrame';
 import type { ResidencyAllocator, ResidencyLease } from './allocator';
 import type { LiveGridRegion } from './live';
 import type { GridLoadout } from './wallet';
@@ -319,7 +319,8 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
                 const residentOwned = <S>(service: S): S => (typeof service === 'object' && service !== null ? ownedFacade(owner, service) : service);
                 // playtest round 3: what it registers in its own cell's metres moves into the maps' home frame
                 const dx = request.cell.origin.x - ports.home.x, dz = request.cell.origin.z - ports.home.z;
-                localPlay = { ...page, fullMap: residentOwned(shiftedFullMap(page.fullMap, dx, dz)),
+                // G580 T1: the map's single slots are the entered resident's (enteredFullMap)
+                localPlay = { ...page, fullMap: residentOwned(enteredFullMap(shiftedFullMap(page.fullMap, dx, dz), (install) => { installEnteredRuntimeService(entered, install); })),
                   ...(page.minimap === undefined ? {} : { minimap: page.minimap === null ? null : residentOwned(shiftedMinimap(page.minimap, dx, dz)) }),
                   animals: regional.animals, weapons, primary: kit.primary,
                   rifle: kit.rifle, secondary: kit.secondary, progress, inventory, owned, skins,
