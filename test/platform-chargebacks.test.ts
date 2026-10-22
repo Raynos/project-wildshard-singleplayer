@@ -38,7 +38,7 @@ test('a non-shard sole user maps to its reviewed owner or reports its excluded l
 test('Nine pool spans charge actual source lines while instance packets remain shared', () => {
   const reports: string[] = [], selected: string[] = [];
   const charges = new Map<string, { path: string; name: string; lines: number }[]>([['nine-dragon-stack', []]]);
-  for (const path of ['src/game/shardfile/worldScenes.ts', 'src/format/worldScenes.ts']) {
+  for (const path of ['src/game/shardfile/worldScenes.ts', 'src/game/shardfile/scenePools.ts', 'src/format/worldScenes.ts']) {
     const source = readFileSync(path, 'utf8'), lines = source.split('\n');
     for (const span of inlinePlatformSpans(path, source, line => { reports.push(line); })) {
       expect(platformChargeback(path, span.name)).toBe('C1');
@@ -54,7 +54,7 @@ test('Nine pool spans charge actual source lines while instance packets remain s
 test('reviewed Pine and Driftwood branches charge their actual owners', () => {
   const reports: string[] = [];
   const charges = new Map<string, {path: string; name: string; lines: number}[]>([['pine-hollow', []], ['driftwood-isle', []]]);
-  for (const path of inlinePlatformPaths().filter(file => !file.endsWith('/worldScenes.ts'))) {
+  for (const path of inlinePlatformPaths().filter(file => !file.endsWith('/worldScenes.ts') && file !== 'src/game/shardfile/scenePools.ts')) {
     const source = readFileSync(path, 'utf8');
     for (const span of inlinePlatformSpans(path, source, line => { reports.push(line); })) {
       expect(span.lines.length).toBeGreaterThan(0);

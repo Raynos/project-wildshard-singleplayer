@@ -36,7 +36,8 @@ const declarations = new Map([
   ['src/game/looks/painterlyLook.ts', new Map([
     'PainterlyWorldSchema', 'PainterlyFrame', 'PainterlyCapture', 'PainterlyWorld',
   ].map(name => [name, 'C2']))],
-  ['src/game/shardfile/worldScenes.ts', new Map([['WorldSceneTierPools', 'C1'], ['WorldScenePoolPublications', 'C1']])],
+  ['src/game/shardfile/worldScenes.ts', new Map([['WorldScenePoolPublications', 'C1']])],
+  ['src/game/shardfile/scenePools.ts', new Map([['WorldSceneTierPools', 'C1']])],
   ['src/format/worldScenes.ts', new Map([['WorldSceneTierPools', 'C1'], ['WorldScenePoolPublications', 'C1']])],
   ['src/format/populationEnvironment.ts', new Map(['Stream', 'streamProjection', 'streamProfile', 'streamSurface', 'LiveStreamLevels'].map(name => [name, 'C1']))],
   ['src/engine/models/geometrySources.ts', new Map(['registerPackedGeometrySource', 'PackedGeometryImports'].map(name => [name, 'C1']))],
@@ -72,11 +73,12 @@ const inline = new Map([
   ['src/format/lootEconomy.ts',new Map([['LootBagProjection',[
     ['export const LootPresentationSchema=',5],['presentation:v.exactOptional(LootPresentationSchema)',1],
   ]]])],
+  // the tier-selected pool decoder the resident scenes and the catalogue's cold intake share
+  ['src/game/shardfile/scenePools.ts', new Map([['WorldSceneTierPools', [
+    ['geometryPools: files.map(file => ({ url: product.url(tierFile(file.file))', 1],
+    ['const file = [...files.map(entry => tierFile(entry.file))', 1],
+  ]]])],
   ['src/game/shardfile/worldScenes.ts', new Map([
-    ['WorldSceneTierPools', [
-      ['geometryPools: row.files.map(file =>', 1],
-      ['async url => { const file = [...row.files.map(entry => tierFile(entry.file))', 1],
-    ]],
     ['WorldScenePoolPublications', [
       ["for (const row of section.libraries) if (row.kind === 'pool' && row.publish !== undefined)", 3],
       ['if (row.publish !== undefined) for (const part of row.files.flatMap', 4],
@@ -113,7 +115,7 @@ const inline = new Map([
 /** @param {string} path @param {string} [name] */
 function reviewedOwner(path, name) {
   if(path === 'src/game/practice/course.ts' && ['HookCourseController','hookCoursePad','yawToward','HookCourseCourse','HookCourseRow','HookCoursePad'].includes(name ?? '')) return 'nine-dragon-stack';
-  if (path.endsWith('/worldScenes.ts')) return 'nine-dragon-stack';
+  if (path.endsWith('/worldScenes.ts') || path === 'src/game/shardfile/scenePools.ts') return 'nine-dragon-stack';
   if (['src/format/populationEnvironment.ts',
     'src/engine/models/geometrySources.ts',
     'src/game/models/explorerCatalogue.ts', 'src/format/explorerCatalogue.ts'].includes(path)) return 'pine-hollow';
