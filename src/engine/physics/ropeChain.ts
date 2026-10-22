@@ -15,6 +15,7 @@
  *   game.onUpdate(() => { bridge.setPoses(chain, game.alpha); });  // interpolated
  */
 import type { RigidBody } from '@dimforge/rapier3d-simd';
+import { Vector3, type Object3D } from 'three';
 import type { Physics } from './Physics';
 import { GROUP } from './groups';
 import { tagCollider } from './surface';
@@ -122,5 +123,48 @@ export class RopeChain {
   dispose(): void {
     for (const b of [...this.bodies, ...this.anchors]) this.physics.world.removeRigidBody(b);
     this.bodies.length = 0; this.anchors.length = 0;
+  }
+}
+
+/** what poses a deck's segments: a RopeChain (or anything with its `pose`) */
+export interface RopeDeckPoses { pose: (i: number, alpha: number, p: Vec3, q: Quat) => void }
+const _p = { x: 0, y: 0, z: 0 }, _q = { x: 0, y: 0, z: 0, w: 1 }, _top = new Vector3();
+
+/**
+ * A rope deck as drawn: one holder (a bone) per segment, posed in the deck's own space (world minus `origin`) from a
+ * chain interpolated at `alpha`, or at rest without one; and the deck's live top-centre height at each joint (segment
+ * k's start edge, the last segment's end edge), world space, for the deck's floor read.
+ */
+export class RopeDeckView {
+  private readonly live: Float32Array;
+  private readonly rest: RopeChainSpec['segments'];
+  private readonly halfY: number;
+  private readonly origin: Vec3;
+  private readonly holders: readonly Object3D[];
+  constructor(rest: RopeChainSpec['segments'], halfY: number, origin: Vec3, holders: readonly Object3D[]) {
+    if (holders.length < rest.length) throw new Error('Rope deck needs a holder per segment');
+    this.rest = rest; this.halfY = halfY; this.origin = origin; this.holders = holders; this.live = new Float32Array(rest.length + 1);
+  }
+
+  pose(chain: RopeDeckPoses | null, alpha: number): void {
+    const n = this.rest.length, o = this.origin;
+    for (let i = 0; i < n; i++) {
+      const sg = this.rest[i], h = this.holders[i];
+      if (sg === undefined || h === undefined) continue;
+      if (chain) chain.pose(i, alpha, _p, _q);
+      else { _p.x = sg.x; _p.y = sg.y; _p.z = sg.z; _q.x = sg.rot.x; _q.y = sg.rot.y; _q.z = sg.rot.z; _q.w = sg.rot.w; }
+      h.position.set(_p.x - o.x, _p.y - o.y, _p.z - o.z); h.quaternion.set(_q.x, _q.y, _q.z, _q.w); h.updateMatrix();
+      h.matrixWorldNeedsUpdate = true;
+    }
+    for (let k = 0; k <= n; k++) {
+      const i = Math.min(k, n - 1), sg = this.rest[i], h = this.holders[i];
+      if (sg && h) this.live[k] = _top.set(0, this.halfY, k < n ? -sg.hz : sg.hz).applyMatrix4(h.matrix).y + o.y;
+    }
+  }
+
+  /** the live deck height a fraction `t` (0 → 1) along the span, between the two joints either side */
+  heightAt(t: number): number {
+    const n = this.rest.length, k = Math.min(1, Math.max(0, t)) * n, i = Math.min(n - 1, Math.floor(k)), f = k - i;
+    return (this.live[i] ?? 0) * (1 - f) + (this.live[i + 1] ?? 0) * f;
   }
 }

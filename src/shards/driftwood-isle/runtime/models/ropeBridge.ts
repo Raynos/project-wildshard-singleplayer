@@ -23,13 +23,11 @@ import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { defineModel } from '@wildshard/engine/models/model';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import { RopeDeckView, type RopeDeckPoses as DeckPoses } from '@wildshard/engine/physics/ropeChain';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
 export interface RopeBridgeSpec { a: [number, number]; b: [number, number]; /** metres the middle hangs below the straight line */ sag?: number; width?: number }
-
-/** what poses the deck's segments: a RopeChain (src/engine/physics/ropeChain.ts) */
-export interface DeckPoses { pose: (i: number, alpha: number, p: { x: number; y: number; z: number }, q: { x: number; y: number; z: number; w: number }) => void }
 
 /** one deck segment at rest: centre, rotation (local +z along the span, +y up), half length */
 export interface DeckSegment { x: number; y: number; z: number; rot: { x: number; y: number; z: number; w: number }; hz: number }
@@ -42,7 +40,6 @@ const MAX_SEGS = 64;
 const MAX_DESCS = 64;
 
 
-const _p = new THREE.Vector3(), _q = new THREE.Quaternion(), _a = new THREE.Vector3();
 
 class RopeBridgeBuilder {
   /** the skinned deck and its bones: one holder per deck segment (posed by `setPoses`), then the posts' still anchor */
@@ -51,8 +48,8 @@ class RopeBridgeBuilder {
   private segs: DeckSegment[] = [];
   /** per segment: a bone at its pose (a bolt stuck in the deck rides it) */
   private holders: THREE.Bone[] = [];
-  /** the deck's live top-centre height at each joint (n + 1), for `floorHeightAt` */
-  private live = new Float32Array(0);
+  /** the holders' poses and the live joint heights (engine/physics/ropeChain RopeDeckView) */
+  private deck: RopeDeckView | null = null;
 
   /** the site's origin (own space = world − origin): end a on the ground */
   readonly o: { x: number; y: number; z: number };
@@ -76,7 +73,7 @@ class RopeBridgeBuilder {
     // ── the deck at rest: one segment per chord of the sag, its top face on the catenary; a bone per segment and the anchor ──
     this.segs=structuredClone(facts.segments);
     this.holders=Array.from({length:Math.min(this.segs.length,MAX_SEGS)+1},()=>{const h=new THREE.Bone();h.matrixAutoUpdate=false;this.mesh.add(h);return h;});
-    this.live = new Float32Array(this.segs.length + 1);
+    this.deck = new RopeDeckView(this.segs, SEG_HY, this.o, this.holders);
     this.setPoses(null, 1);
     // the posts, planks and ropes: one draw in a copy of the kit's still material, skinned to the bones as they stand at rest
     const geometry = fixedDraw(facts.key === bridgeKey(BRIDGE_SPANS.specimen) ? 'bridgeSpecimenDeck' : 'bridgeDeck').copy();
@@ -94,22 +91,7 @@ class RopeBridgeBuilder {
   }
 
   /** Pose the deck's bones: from `deck` (a RopeChain, interpolated by `alpha`), or at rest when null. */
-  setPoses(deck: DeckPoses | null, alpha: number): void {
-    const n = this.segs.length;
-    this.segs.forEach((sg, i) => {
-      if (deck) deck.pose(i, alpha, _p, _q); else { _p.set(sg.x, sg.y, sg.z); _q.set(sg.rot.x, sg.rot.y, sg.rot.z, sg.rot.w); }
-      _p.x -= this.o.x; _p.y -= this.o.y; _p.z -= this.o.z; // the group stands at the origin: the holders are posed in its own space
-      const h = this.holders[i];
-      if (!h) return;
-      h.position.copy(_p); h.quaternion.copy(_q); h.updateMatrix();
-      h.matrixWorldNeedsUpdate = true;
-    });
-    // the deck's top centre at each joint: segment k's start edge (the last segment's end edge for k = n)
-    for (let k = 0; k <= Math.min(n, MAX_SEGS); k++) {
-      const i = Math.min(k, n - 1), sg = this.segs[i], h = this.holders[i];
-      if (sg && h) this.live[k] = _a.set(0, SEG_HY, k < n ? -sg.hz : sg.hz).applyMatrix4(h.matrix).y;
-    }
-  }
+  setPoses(deck: DeckPoses | null, alpha: number): void { this.deck?.pose(deck, alpha); }
 
   /** the plank height under world (x, z) when over the span (the live deck while a chain poses it), else undefined */
   floorHeightAt(x: number, z: number): number | undefined {
@@ -117,8 +99,7 @@ class RopeBridgeBuilder {
     const dx = x - a[0], dz = z - a[1];
     const along = dx * this.dir.x + dz * this.dir.y, across = -dx * this.dir.y + dz * this.dir.x;
     if (along < -0.3 || along > this.len + 0.3 || Math.abs(across) > this.width / 2 + 0.15) return undefined;
-    const n = this.segs.length, k = Math.min(1, Math.max(0, along / this.len)) * n, i = Math.min(n - 1, Math.floor(k)), f = k - i;
-    return (this.live[i] ?? 0) * (1 - f) + (this.live[i + 1] ?? 0) * f + this.o.y; // the live joints are own space
+    return this.deck?.heightAt(along / this.len);
   }
 
 }
