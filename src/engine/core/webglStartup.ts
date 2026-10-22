@@ -20,6 +20,13 @@ export async function readyWebGLContext(
   const allowRestore = (event: Event): void => { event.preventDefault(); };
   const scope = new Scope('webgl-startup');
   scope.listen(canvas, 'webglcontextlost', allowRestore);
+  let creationError = '';
+  scope.listen(canvas, 'webglcontextcreationerror', (event) => {
+    if (!('statusMessage' in event) || typeof event.statusMessage !== 'string') return;
+    // Keep only the latest useful browser reason, bounded across all startup retries.
+    const reason = event.statusMessage.trim().slice(0, 1024);
+    if (reason !== '') creationError = reason;
+  });
   const start = performance.now();
   let attempt = 0;
   try {
@@ -35,7 +42,7 @@ export async function readyWebGLContext(
       if (gl !== null && precisionReady && !gl.isContextLost()) return gl;
       const state = { attempt: ++attempt, elapsedMs: Math.round(performance.now() - start), contextLost, precisionReady, contextCreated: gl !== null };
       waiting(state);
-      if (state.elapsedMs >= 10_000) throw new Error(`Graphics context did not recover during startup (${contextLost ? 'context lost' : gl === null ? 'context unavailable' : 'shader capabilities unavailable'})`);
+      if (state.elapsedMs >= 10_000) throw new Error(`Graphics context did not recover during startup (${contextLost ? 'context lost' : gl === null ? 'context unavailable' : 'shader capabilities unavailable'})${creationError === '' ? '' : `: ${creationError}`}`);
       // Yield for GPU-process restart / webglcontextrestored instead of reloading the document.
       await new Promise<void>((resolve) => { scope.timeout(250, resolve); });
     }
