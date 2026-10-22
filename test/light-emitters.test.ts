@@ -15,7 +15,8 @@ import { EmitterPresentation } from '../src/game/shardfile/lightEmitters';
 import { sceneVectors } from '../src/game/shardfile/sceneInputs';
 import { SIGNAL_EMITTERS } from '../src/shards/sunscar-dunes/generators/lightEmitters';
 import POOL from '../src/shards/nine-dragon-stack/data/lightPools.json' with { type: 'json' };
-import { restoreWeave } from '../src/shards/nine-dragon-stack/look/style';
+import { parseWorldScenes } from '../src/format/worldScenes';
+import { lendWorldSceneTextures } from '../src/game/shardfile/worldSceneTextures';
 import { plainWeaveBytes, silkWeaveBytes } from '../src/shards/nine-dragon-stack/generators/silkWeave';
 import { canopyGraphs } from '../src/shards/nine-dragon-stack/generators/canopyGraphs';
 import NINE_GRAPHS from '../src/shards/nine-dragon-stack/data/lookGraphs.json' with { type: 'json' };
@@ -120,15 +121,20 @@ test('Nine uses the engine LUT with the sealed bytes and sampler', async () => {
 });
 
 
-test('Nine weave bakes retain every texel and the sealed samplers', () => {
-  for (const [original, restored] of [[SEALED.silkWeave, restoreWeave(silkWeaveBytes())], [SEALED.plainWeave, restoreWeave(plainWeaveBytes())]] as const) {
-    if (!(restored.image.data instanceof Uint8Array)) throw new Error('Missing weave bytes');
-    try {
+test('Nine weave bakes retain every texel and the sealed samplers as lent rasters', async () => {
+  const owner = new Scope('nine-weaves'), handles = new SceneHandles();
+  const raster = (name: string, size: readonly [number, number] = [256, 256]) => parseWorldScenes({ version: 1, libraries: [], materials: [], steps: [],
+    lent: [{ kind: 'raster', file: `${name}.r8`, size, format: 'r8', wrap: 'repeat', magnify: 'nearest', mipmaps: true, label: name, publish: name }] }).lent;
+  try {
+    for (const [name, original, bytes] of [['silk', SEALED.silkWeave, silkWeaveBytes()], ['plain', SEALED.plainWeave, plainWeaveBytes()]] as const) {
+      await lendWorldSceneTextures(raster(name), owner, { file: () => Promise.resolve(bytes), url: file => file }, handles, undefined, 'standalone');
+      const restored = handles.texture(name);
+      if (!(restored instanceof DataTexture) || !(restored.image.data instanceof Uint8Array)) throw new Error('Missing weave bytes');
       expect(hashImmutableBytes(restored.image.data)).toBe(original.hash);
       for (const key of ['format', 'type', 'colorSpace', 'wrapS', 'wrapT', 'minFilter', 'magFilter', 'generateMipmaps'] as const) expect(restored[key]).toBe(original[key]);
-    } finally { restored.dispose(); }
-  }
-  expect(() => restoreWeave(new Uint8Array(1))).toThrow('256 × 256');
+    }
+    await expect(lendWorldSceneTextures(raster('short'), owner, { file: () => Promise.resolve(new Uint8Array(1)), url: file => file }, handles, undefined, 'standalone')).rejects.toThrow('size differs');
+  } finally { owner.dispose(); }
 });
 
 test('Nine canopy graphs retain vertex fog and fit both catalogue caps', () => {

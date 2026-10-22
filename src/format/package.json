@@ -225,6 +225,7 @@
     "./heldFinishes": "./heldFinishes.ts",
     "./heldGear": "./heldGear.ts",
     "./worldScenes": "./worldScenes.ts",
+    "./uniformRows": "./uniformRows.ts",
     "./buildings": "./buildings.ts",
     "./limbRig": "./limbRig.ts",
     "./limbCollision": "./limbCollision.ts",

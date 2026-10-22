@@ -13,6 +13,7 @@ import { worldSceneSourceMaterial } from './worldSceneMaterials';
 import { WorldScenePlacement } from './worldScenePlacement';
 import { readWholeLibrary } from './wholeLibrary';
 import { lendWorldSceneTextures } from './worldSceneTextures';
+import { lendWorldSceneUniforms } from './worldSceneUniforms';
 import { WorldSceneBatch } from './worldSceneBatch';
 import { WorldSceneWeldAssembly, worldSceneWeldFile, worldSceneWeldFiles, admitWorldSceneModelGraphs, weldSceneMaterial } from './worldSceneWeld';
 import { parseWorldSceneWeld, type WorldSceneWeld } from '@wildshard/format/worldSceneWeld';
@@ -303,6 +304,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
     if (missing.length > 0) lendLooks(owner, await runtimeLookMaterials({ scope: owner, game: ctx.game }, product.shardfile, true, [...new Set(missing)]));
     await lendWorldSceneTextures(section.lent ?? [], owner, product, handles, section.lent?.some(row => row.kind === 'product') === true ? ctx.game.runtime?.world?.game.renderer : undefined,
       ctx.cube === null ? 'standalone' : 'cell');
+    lendWorldSceneUniforms(section.uniforms ?? [], owner, handles);
     const surfaces = section.materials.filter(row => row.kind === 'surface');
     if (surfaces.length > 0) {
       const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Scene surface needs world sky');

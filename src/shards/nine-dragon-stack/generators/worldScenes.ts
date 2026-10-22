@@ -21,6 +21,7 @@ import * as v from 'valibot';
 import { parseWorldScene } from '@wildshard/format/clientChannels';
 import { parseWorldSceneModels, type WorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
+import { NINE_SHARED } from './sharedRows';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { compressGlb } from '@wildshard/sdk/bake/glbCompression';
@@ -209,7 +210,11 @@ const volumeOf = (caps: 'capped' | 'open', tier: 'phone' | 'desktop', index: num
 const VOLUMES = (['A', 'B'] as const).map((suffix, index) => ({ kind: 'volume', looks: lit, label: 'Nine Dragon light volumes (GPU only)', publish: `light.${suffix}`,
   params: { texture: `uLpVol${suffix}`, min: `uLpMin${suffix}`, inv: `uLpInv${suffix}`, maximum: 'uLpMax' },
   files: { standalone: { phone: volumeOf('capped', 'phone', index), desktop: volumeOf('capped', 'desktop', index) }, cell: { phone: volumeOf('open', 'phone', index), desktop: volumeOf('open', 'desktop', index) } } }));
-const lent = [...signTextures, ...VOLUMES, { kind: 'layers', looks: painted, param: 'uPaint', base: '/assets/nine-dragon/paint', label: 'Nine Dragon paint array (GPU only)', size: paint.sizes, anisotropy: 8, layers: paint.layers.map(({ name, alpha }) => ({ name, alpha })) },
+// the silk weave (looks/silk-weave.r8, 256 x 256 r8): lent to the looks that weave it (and as the painted sky's silk) and
+// published for the shared set
+const woven = Object.entries(architectureGraphs()).flatMap(([id, graph]) => graph.params !== undefined && 'uSilk' in graph.params ? [id] : []);
+const SILK = { kind: 'raster', file: 'looks/silk-weave.r8', size: [256, 256], format: 'r8', wrap: 'repeat', magnify: 'nearest', mipmaps: true, label: 'Nine Dragon silk weave' } as const;
+const lent = [...signTextures, ...VOLUMES, { ...SILK, looks: woven, param: 'uSilk', publish: 'nine.silk' }, { ...SILK, looks: ['nine-sky'], param: 'silk' }, { kind: 'layers', looks: painted, param: 'uPaint', base: '/assets/nine-dragon/paint', label: 'Nine Dragon paint array (GPU only)', size: paint.sizes, anisotropy: 8, layers: paint.layers.map(({ name, alpha }) => ({ name, alpha })) },
   { kind: 'image', looks: ['nine-canopy-cards'], param: 'atlas', sizeParam: 'atlasSize', ...canopy.atlas },
   { kind: 'image', looks: ['nine-scroll'], param: 'scroll', url: '/assets/nine-dragon/lab/organic/scroll.webp', srgb: true, wrapT: 1001, anisotropy: 4 }];
 // G4: the night market's and the square's balustrade sets as placements of their catalogue models at their baked frames
@@ -366,7 +371,7 @@ const FIXED_RECIPE = parseWorldScene({ imports: [], scene: { version: 1, root: '
   materials: [{ kind: 'port', id: 'kit', source: 'kit' }] } });
 const FIXED_STEPS = (['open', 'capped'] as const).map(caps => ({ id: `fixed-${caps}`, cube: caps === 'open' ? 'cell' : 'standalone', scene: 'world/scenes/fixed.json',
   geometry: { entries: { library: castLibrary(`entries-${caps}`), model: `entries-${caps}` }, signs: { library: castLibrary('facade-signs'), model: 'facade-signs' } }, materials: { kit: 'kit' } }));
-export const NINE_WORLD_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', lent, welds: [CAST_WELD, { id: 'fabric', file: 'world/fabric.json' }], placements: [...SET_PLACEMENTS, ...LAYOUT_PLACEMENTS.map(row => ({ id: row.id, file: layoutPlacementFile(row.id) }))], libraries: [...SIGN_POOL_LIBRARIES, ...CAST_LIBRARIES, ...portalLook.scenes.libraries, library('native'), library('native-explorer'), { id: 'shapes', kind: 'owned', models: shapes.map(([id]) => ({ id, file: `world/geometry/${id}.glb` })) }],
+export const NINE_WORLD_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', lent, uniforms: [NINE_SHARED], welds: [CAST_WELD, { id: 'fabric', file: 'world/fabric.json' }], placements: [...SET_PLACEMENTS, ...LAYOUT_PLACEMENTS.map(row => ({ id: row.id, file: layoutPlacementFile(row.id) }))], libraries: [...SIGN_POOL_LIBRARIES, ...CAST_LIBRARIES, ...portalLook.scenes.libraries, library('native'), library('native-explorer'), { id: 'shapes', kind: 'owned', models: shapes.map(([id]) => ({ id, file: `world/geometry/${id}.glb` })) }],
   materials: [...CAST_MATERIALS, ...portalLook.scenes.materials, look('kit', 'nine-architecture'), look('kit-cut', 'nine-architecture-cut'), look('facade', 'nine-facade'), look('small', 'nine-facade-small'), look('windows', 'nine-windows'), look('lantern', 'nine-lantern'),
     look('canopy-core', 'nine-canopy-inner'), look('canopy-cards', 'nine-canopy-cards'), look('canopy-depth', 'nine-canopy-depth'), look('mist-sheet', 'nine-mist-sheet'), look('steam', 'nine-steam'), look('sky', 'nine-sky'), look('scroll', 'nine-scroll'), look('streaks', 'nine-streaks'), look('halo', 'nine-halo'),
     look('neon', 'nine-neon'), look('neon-board', 'nine-neon-board'), look('neon-tube', 'nine-neon-tube')],

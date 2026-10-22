@@ -1,4 +1,4 @@
-import { Data3DTexture, DataArrayTexture, LinearFilter, Vector3, LinearMipmapLinearFilter, LinearSRGBColorSpace, NoColorSpace, RepeatWrapping, RGBAFormat, SRGBColorSpace, UnsignedByteType, type Texture } from 'three';
+import { ClampToEdgeWrapping, Data3DTexture, DataArrayTexture, DataTexture, LinearFilter, Vector3, LinearMipmapLinearFilter, LinearSRGBColorSpace, NearestFilter, NoColorSpace, RedFormat, RepeatWrapping, RGBAFormat, SRGBColorSpace, UnsignedByteType, type Texture } from 'three';
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
 import { BASIS_PATH, detectKtx2Support } from '@wildshard/engine/core/ktx2';
 import type { Renderer } from '@wildshard/engine/render/renderer';
@@ -25,6 +25,12 @@ export async function lendWorldSceneTextures(rows: readonly WorldSceneLentTextur
   try {
     await Promise.all(rows.map(async row => {
       if (row.kind === 'volume') { await lendVolume(row, row.files[cube][TIER], owner, product, handles); return; }
+      if (row.kind === 'raster') {
+        const texture = owner.own(await loadRaster(row, product));
+        if (row.param !== undefined) for (const look of row.looks) setLentTexture(look, row.param, texture);
+        if (row.publish !== undefined) handles.publish(row.publish, texture);
+        return;
+      }
       const texture = owner.own(row.kind === 'image' ? await loadTextureRow(row) : row.kind === 'layers' ? await loadLayers(row) : await loadProduct(row, product, loader));
       if (owner.disposed) throw new Error('World scene textures unloaded while loading');
       if (row.kind === 'product') {
@@ -56,6 +62,17 @@ async function lendVolume(row: Extract<WorldSceneLentTexture, { kind: 'volume' }
     setLentParam(look, row.params.min, min.toArray()); setLentParam(look, row.params.inv, inv.toArray()); setLentParam(look, row.params.maximum, volume.maximum);
   }
   handles.publish(row.publish, texture); handles.publish(`${row.publish}.min`, min); handles.publish(`${row.publish}.inv`, inv); handles.publish(`${row.publish}.maximum`, volume.maximum);
+}
+
+/** A product's raw r8 texels as a data texture (its wrap and magnification; trilinear with mipmaps, else linear). */
+async function loadRaster(row: Extract<WorldSceneLentTexture, { kind: 'raster' }>, product: Pick<ShardProduct, 'file'>): Promise<Texture> {
+  const bytes = Uint8Array.from(await product.file(row.file)), [width, height] = row.size;
+  if (bytes.length !== width * height) throw new Error(`Lent raster ${row.label} size differs`);
+  const texture = new DataTexture(bytes, width, height, RedFormat, UnsignedByteType);
+  texture.wrapS = texture.wrapT = row.wrap === 'repeat' ? RepeatWrapping : ClampToEdgeWrapping;
+  texture.minFilter = row.mipmaps ? LinearMipmapLinearFilter : LinearFilter; texture.magFilter = row.magnify === 'nearest' ? NearestFilter : LinearFilter;
+  texture.generateMipmaps = row.mipmaps; texture.name = row.label; texture.needsUpdate = true;
+  return texture;
 }
 
 /** A product's own KTX2 blob for the tier (its encoded orientation, flipY false), sampled by its row; GPU-only once uploaded. */

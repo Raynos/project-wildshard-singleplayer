@@ -21,7 +21,7 @@ import { architectureGraphs } from '../src/shards/nine-dragon-stack/generators/a
 import fog from '../src/shards/nine-dragon-stack/data/lookGraphs.json' with { type: 'json' };
 
 import { lendUniforms as lendGrade } from '../src/game/shardfile/lentLooks';
-import { NINE_FRAME_CHANNELS, NINE_FRAME_GROUP, NINE_LOOK_TEXTURES } from '../src/shards/nine-dragon-stack/generators/frameChannels';
+import { NINE_FRAME_CHANNELS, NINE_FRAME_GROUP } from '../src/shards/nine-dragon-stack/generators/frameChannels';
 import { installChannelPrograms } from '../src/game/plugin/channelPrograms';
 import { graphParamRoots } from '../src/game/looks/graphDaySky';
 import sharedRows from '../src/shards/nine-dragon-stack/data/sharedUniforms.json' with { type: 'json' };
@@ -241,6 +241,4 @@ test('the look channel rows give each lent look its shared params every frame, t
   expect([...writes.keys()]).toContain('nine-silk-fog:fogBaseCol');
   expect([...writes.keys()]).not.toContain('nine-streaks:fogBaseCol');
   expect(writes.has('nine-architecture:uLpMax')).toBe(false);
-  expect(NINE_LOOK_TEXTURES).toContainEqual({ look: 'nine-architecture', param: 'uSilk', uniform: 'uSilk' });
-  expect(NINE_LOOK_TEXTURES).not.toContainEqual({ look: 'nine-windows', param: 'uLpVolB', uniform: 'uLpVolB' });
 });

@@ -1,24 +1,19 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
-import { bindLowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 // The Nine Dragon Stack fragment's world (P0-5c), built for the engine: Lantern Square at +125 m, the Well's rim and its
 // upper galleries, the stair-street stub and the towers round them — what the clean room built in its page
 // (the dev labs (deleted in E357 F7)), without its camera, player, HUD, viewmodel or post. Everything is added under one
-// Group; `update(t, camera)` drives the shared uniforms (time, the eye for the materials' baked silk fog) and the
-// movers. The look (materials, signs, neon, streaks, light) is look/'s; this file only assembles it.
+// Group; `update(t)` drives the movers. The look (materials, signs, neon, streaks, light, the shared uniform set) is the
+// world scenes' and the post look's rows; this file only assembles it.
 // (E306 / E315 M4) Every reusable thing in it is a model (../models/: the facade's pieces, the square's lions and sets,
 // the crowd, the paper lanterns, the Fei Zhua hook, the wall kit, the movers), placed through `place` under the root;
 // Model placement owns per-copy culling and distance LODs. The kits — the square, the towers, the Well's bands — are the fragment's built fabric (world).
-import {
-  Data3DTexture, Group, Mesh,
-} from 'three';
+import { Group, Mesh } from 'three';
 import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { defineWorldSceneCatalogue } from '@wildshard/game/models/worldSceneCatalogue';
 import { sharedModelContext } from '@wildshard/engine/models/model';
 import { WorldEntry } from '@wildshard/game/shardfile/worldEntry';
-import { Shared, restoreWeave } from '../look/style';
 import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct';
-import { lentLook, setLentTexture } from '@wildshard/sdk/looks/lentLooks';
 import type { Tier as NdTier } from '@wildshard/engine/core/tier';
 import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
 import { slicer } from '@wildshard/engine/boot/plan';
@@ -33,8 +28,6 @@ const isMesh = (value: unknown): value is Mesh => value instanceof Mesh;
 export interface NineDragonWorld {
   /** everything the fragment draws (add it to the engine's scene) */
   readonly root: Group;
-  /** the look's shared uniforms (time, the eye, the silk fog, the paint, the light pools) */
-  readonly shared: Shared;
   /** per frame: the movers on the page clock (s) */
   update: (t: number) => void;
   /** G200: whether the decks' open ends are closed by their standalone balustrades (world/entries.ts; the colliders follow) */
@@ -45,7 +38,6 @@ export interface NineDragonWorld {
  *  paced `worldBuildYield`, op-hitch45: in play it waits for a drawn frame when one is due, else it is a timer task) */
 export async function buildNineDragonWorld(renderer: Renderer, progress: (f: number, detail?: string) => void, tier: NdTier, opts: { scope: Scope; sky: SkyRig; scenes: SceneHandles; caps?: boolean; pause: () => Promise<void> }): Promise<NineDragonWorld> {
   const product = await loadFirstPartyProduct('nine-dragon-stack', opts.scope);
-  const shared = new Shared(restoreWeave(await product.file('looks/silk-weave.r8')), (await product.json<{ readonly look: { readonly shared: ConstructorParameters<typeof Shared>[1] } }>('weapons/jian-row.json')).look.shared);
   const root = new Group();
   root.name = 'nine-dragon-stack';
   const entry = WorldEntry.admit(product.section('world/scenes').entry, { scenes: opts.scenes, root, tier, variant: opts.caps === true ? 'capped' : 'open' });
@@ -71,7 +63,6 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   progress(0.4, 'geometry conversion');
 
   // ── the kits into meshes: one merged geometry per kit, the neon spill baked into their vertices ──
-  bindLowPolyMaterial(opts.sky, 'nine-architecture', lentLook('nine-architecture'), opts.scope);
   await opts.pause(); // let the loading panel paint and GC run (in play: a drawn frame)
   progress(0.52, 'canopy');
   // the world's banyan crown and the Well's mist: the catalogue's `dressing` step (the kits' and the crown's neon spill
@@ -118,8 +109,6 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const running = [...models.project('nds-train', models.ctx, root), ...models.project('nds-gondola', models.ctx, root), ...drones];
   await slice();
 
-  // the painted sky is the dressing step's (generators/worldScenes.ts); its silk is the shared weave
-  setLentTexture('nine-sky', 'silk', shared.u.uSilk.value);
   progress(0.75, 'crowd models');
 
   // the lab's cast-brass dragon hung at three close Well hooks: a world-scene placement of its catalogue model (one
@@ -129,22 +118,11 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   await entry.run('figures');
   await slice();
 
-  // the light pools (lab P6): baked from every emitter + lit window into the shared uniforms. The window glow and the
-  // LUT belong to the clean room's post, so they get stand-in uniforms here (the engine's composer draws the frame)
-  progress(0.9, 'light volume');
-  // the two baked volumes are the world scenes' lent volumes (generators/worldScenes.ts VOLUMES); the haze pass reads them here
-  for (const suffix of ['A', 'B'] as const) {
-    const at = `light.${suffix}`;
-    const volume = opts.scenes.texture(at); if (!(volume instanceof Data3DTexture)) throw new Error(`Nine light volume ${at} is no 3D texture`);
-    shared.u[`uLpVol${suffix}`].value = volume;
-    shared.u[`uLpMin${suffix}`].value.copy(opts.scenes.vector(`${at}.min`)); shared.u[`uLpInv${suffix}`].value.copy(opts.scenes.vector(`${at}.inv`));
-    shared.u.uLpMax.value = opts.scenes.number(`${at}.maximum`);
-  }
   progress(0.95, 'culling');
 
   progress(1, 'world ready');
 
   // the movers on the page clock (the clock, the eye and the fog's band window are the look's channel group)
   const update = (t: number): void => { for (const m of running) m.advance(t); };
-  return { root, shared, update, entryCaps };
+  return { root, update, entryCaps };
 }

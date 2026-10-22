@@ -6,7 +6,6 @@ import { ShardPlugin, worldBuildYield } from '@wildshard/game/shard/plugin';
 import { type NineDragonWorld, buildNineDragonWorld } from './world/build';
 import { WorldEntry } from '@wildshard/game/shardfile/worldEntry';
 import { TIER } from '@wildshard/engine/core/tier';
-import { lendNineShared } from './runtime/state';
 import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
 import { lendLooks } from '@wildshard/sdk/looks/lentLooks';
 import { installWorldScenes } from '@wildshard/game/shardfile/worldScenes';
@@ -48,7 +47,6 @@ export class NdPlugin extends ShardPlugin {
     const scope = ctx.scope;
     const { world } = await this.build(ctx, ctx.cube === null, () => worldBuildYield(ctx));
     if (scope.disposed) throw new Error('Nine Dragon was unloaded during its world build');
-    lendNineShared(scope, world);
     // the square's floors piece (world/scenes entry, G3): its colliders and floors over the world root, this ending's
     await WorldEntry.admit(ctx.product.section('world/scenes').entry, { scope, root: world.root, tier: TIER, variant: world.entryCaps === true ? 'capped' : 'open', piece: (piece) => { ctx.piece(piece); } }).run('pieces');
     ctx.system({ id: 'shard.nd.world', phase: 'update', after: ['engine.player.update'], run: (_dt, t) => { world.update(t); } });

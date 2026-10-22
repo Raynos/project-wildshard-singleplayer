@@ -23,7 +23,7 @@ import scrollGraph from '../data/scrollGraph.json' with { type: 'json' };
 // G599 N3: and every lent graph look's param that reads the shared uniform of its own name (`uWash`) or of `u` + its name
 // (`fogBase` ← `uFogBase`), each frame, so an event's held write reaches the looks: the shared rows the looks declare,
 // the facade's two constant washes, the square's datum, and the frame's own numbers from the same expressions (no frame
-// late). The silk weave and the light volume's two textures are lent texture rows.
+// late). The silk weave and the light volumes are the world scenes' lent textures (generators/worldScenes.ts).
 type Expr = NumericChannelOutput['expr'];
 const AXES = ['x', 'y', 'z', 'w'] as const, RGB = ['r', 'g', 'b'] as const;
 const bands = sharedUniforms.uBands.v4s.map(([x = 0, y = 0]) => ({ lower: x - 3 * y, upper: x + 3 * y }));
@@ -65,8 +65,6 @@ const CONSTANT: Readonly<Record<string, readonly number[]>> = {
   ...Object.fromEntries(Object.entries(bindings.facade).map(([name, hex]) => [name, new Color(hex).toArray()])),
   datum: [layout.Y0],
 };
-/** the textures lent to the looks that declare them, from the shared uniform of the same name (the light volumes are lent volume rows) */
-const LENT_TEXTURES = new Set(['uSilk']);
 
 function admitted(rows: Readonly<Record<string, unknown>>): Record<string, GraphIr> {
   return Object.fromEntries(Object.entries(rows).map(([id, row]) => {
@@ -78,14 +76,14 @@ function admitted(rows: Readonly<Record<string, unknown>>): Record<string, Graph
 const GRAPHS: Readonly<Record<string, GraphIr>> = { ...admitted(lookGraphs), ...admitted(scrollGraph), ...architectureGraphs(), 'nine-streaks': streakGraph(), 'nine-halo': haloGraph() };
 const SIZE = { float: 1, vec2: 2, vec3: 3, vec4: 4, colour: 3 } as const;
 
-function lookBindings(): { outputs: NumericChannelOutput[]; textures: { look: string; param: string; uniform: string }[] } {
-  const outputs: NumericChannelOutput[] = [], textures: { look: string; param: string; uniform: string }[] = [];
+function lookBindings(): NumericChannelOutput[] {
+  const outputs: NumericChannelOutput[] = [];
   for (const id of bindings.graphs) {
     const graph = GRAPHS[id];
     if (graph === undefined) throw new Error(`Nine look binding: no graph ${id}`);
     for (const [param, row] of Object.entries(graph.params ?? {})) {
       const source = /^u[A-Z]/.test(param) ? param : `u${param.charAt(0).toUpperCase()}${param.slice(1)}`;
-      if (row.type === 'texture') { if (LENT_TEXTURES.has(source)) textures.push({ look: id, param, uniform: source }); continue; }
+      if (row.type === 'texture') continue;
       const size = SIZE[row.type];
       const frame = FRAME[param] ?? FRAME[source], fixed = CONSTANT[param] ?? CONSTANT[source], shared = SHARED.get(source);
       const from: ((at: number) => Expr) | null = frame !== undefined ? at => frame[at] ?? (b => b.constant(0))
@@ -100,7 +98,7 @@ function lookBindings(): { outputs: NumericChannelOutput[]; textures: { look: st
       for (let at = 0; at < size; at++) outputs.push({ target: id, path: port(param, at, size), expr: from(at) });
     }
   }
-  return { outputs, textures };
+  return outputs;
 }
 
 const looks = lookBindings();
@@ -111,7 +109,5 @@ export const NINE_FRAME_CHANNELS = numericChannelPrograms(NINE_FRAME_GROUP, NINE
   { target: 'nine-streaks', path: ['projection', 'y'], expr: (_b, read) => read('view', ['p11']) },
   // the painted sky (the 'nine-sky' look's sphere round the eye) stands on the eye in the root's frame
   ...EYE.map((expr, at) => ({ target: 'nine-sky', path: port('uCam', at, EYE.length), expr })),
-  ...looks.outputs,
+  ...looks,
 ]);
-/** the lent texture rows (format/postGraphLook `textures`) */
-export const NINE_LOOK_TEXTURES = looks.textures;

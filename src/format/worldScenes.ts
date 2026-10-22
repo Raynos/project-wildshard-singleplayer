@@ -8,6 +8,7 @@ import { WorldSceneBatchSchema } from './worldSceneBatch';
 import { WorldSceneWeldMaterialSchema, WorldSceneWeldSourceSchema } from './worldSceneWeld';
 import { SceneDrawsSchema } from './sceneDraws';
 import { SpecimenCatalogueSchema } from './specimenCatalogue';
+import { UniformRowsSchema } from './uniformRows';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
 const finite = v.pipe(v.number(), v.finite(), v.minValue(-1e6), v.maxValue(1e6));
@@ -85,6 +86,7 @@ const wrap = v.exactOptional(v.picklist([1000, 1001, 1002]));
 const sampler = v.strictObject({ wrap: v.exactOptional(v.picklist(['repeat', 'clamp', 'mirror'])), anisotropy: v.exactOptional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(16))),
   filter: v.exactOptional(v.picklist(['linear', 'nearest'])), mips: v.exactOptional(v.picklist(['file', 'gpu'])) });
 const voxels = v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(512));
+const texels = v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(4096));
 const volume = v.strictObject({ file: id, size: v.tuple([voxels, voxels, voxels]), min: triple, inv: triple, maximum: finite });
 const tierVolumes = v.strictObject({ phone: volume, desktop: volume });
 const lentTexture = v.variant('kind', [
@@ -95,6 +97,10 @@ const lentTexture = v.variant('kind', [
     anisotropy: v.pipe(finite, v.minValue(1), v.maxValue(16)), layers: v.pipe(bounded(v.strictObject({ name: id, alpha: v.boolean() }), 64), v.minLength(1)) }),
   v.strictObject({ kind: v.literal('product'), looks: v.optional(bounded(id, 32), []), param: v.exactOptional(id), file: v.strictObject({ phone: id, desktop: id }), label: id,
     colour: v.exactOptional(v.picklist(['srgb', 'linear'])), sampler, publish: v.exactOptional(id) }),
+  // a product's raw texels (one byte each, r8) as a data texture: its wrap and mipmaps, lent to its looks' param, published
+  v.strictObject({ kind: v.literal('raster'), looks: v.optional(bounded(id, 32), []), param: v.exactOptional(id), file: id, size: v.tuple([texels, texels]),
+    format: v.literal('r8'), wrap: v.picklist(['repeat', 'clamp']), magnify: v.picklist(['nearest', 'linear']), mipmaps: v.boolean(), label: id,
+    publish: v.exactOptional(id) }),
   v.strictObject({ kind: v.literal('volume'), looks: v.pipe(bounded(id, 32), v.minLength(1)), label: id, publish: id,
     params: v.strictObject({ texture: id, min: id, inv: id, maximum: id }), files: v.strictObject({ standalone: tierVolumes, cell: tierVolumes }) }),
 ]);
@@ -109,6 +115,10 @@ export const WorldScenesSchema = v.pipe(v.unknown(), v.check(isJsonData, 'World 
     dressing: v.exactOptional(v.strictObject({phone:id,desktop:id})),
     cosmeticDraws: v.exactOptional(v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(1000000))),
     batches: v.optional(bounded(WorldSceneBatchSchema, 32), []), lent: v.optional(bounded(lentTexture, 32), []),
+    // live uniform sets lent by id (game/shardfile/lentLooks `lendUniforms`): their rows, and textures, vectors and numbers
+    // bound to the scene handles the lent textures publish
+    uniforms: v.optional(bounded(v.strictObject({ id, rows: UniformRowsSchema, textures: v.optional(strings, {}), vectors: v.optional(strings, {}),
+      numbers: v.optional(strings, {}) }), 4), []),
     welds: v.optional(bounded(WorldSceneWeldSourceSchema, 32), []),
     placements: v.optional(bounded(v.union([WorldScenePlacementSchema, v.strictObject({ id, file: id, tier: v.exactOptional(v.picklist(['phone', 'desktop'])) })]), 128), []) }),
   v.check(row => unique(row.libraries) && unique(row.materials) && unique(row.steps) && unique(row.batches) && unique(row.welds) && unique(row.placements) && (row.placements.length === 0 || row.catalogue !== undefined)
@@ -119,8 +129,9 @@ export const WorldScenesSchema = v.pipe(v.unknown(), v.check(isJsonData, 'World 
   v.check(row => row.materials.every((entry, index) => entry.kind !== 'mapped' || entry.material.source === undefined
     || row.materials.slice(0, index).some(earlier => earlier.kind === 'source' && earlier.load === 'resident' && earlier.id === entry.material.source?.material)), 'Mapped scene materials map an earlier resident source'));
 type ParsedWorldScenes = v.InferOutput<typeof WorldScenesSchema>;
-export type WorldScenesSection = Omit<ParsedWorldScenes, 'placements' | 'batches' | 'welds' | 'lent'> & { readonly placements?: ParsedWorldScenes['placements']; readonly batches?: ParsedWorldScenes['batches']; readonly welds?: ParsedWorldScenes['welds']; readonly lent?: ParsedWorldScenes['lent'] };
+export type WorldScenesSection = Omit<ParsedWorldScenes, 'placements' | 'batches' | 'welds' | 'lent' | 'uniforms'> & { readonly placements?: ParsedWorldScenes['placements']; readonly batches?: ParsedWorldScenes['batches']; readonly welds?: ParsedWorldScenes['welds']; readonly lent?: ParsedWorldScenes['lent']; readonly uniforms?: ParsedWorldScenes['uniforms'] };
 export type WorldSceneLentTexture = ParsedWorldScenes['lent'][number];
+export type WorldSceneUniformSet = ParsedWorldScenes['uniforms'][number];
 /** Reject executable values, duplicate identities and unknown fields before allocating visuals. */
 export function parseWorldScenes(input: unknown): ParsedWorldScenes { return v.parse(WorldScenesSchema, input); }
 
