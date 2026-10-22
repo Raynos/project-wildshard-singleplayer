@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// G291: authored runtime TS / the frozen legacy TS size is the primary 80/20 measure.
+// G291: authored runtime TS / the frozen legacy TS size; G604: a shard passes only at zero.
 // G417: one measure only; platform-native shards have no frozen denominator.
 import { representativeProduct } from './shard-outputs.mjs';
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
@@ -995,7 +995,7 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
       metric: pair === undefined ? 'native' : 'runtime-vs-legacy', customRuntimeLines, shardRuntimeLines, rawGlslLines, additionalGlslLines,
       legacyLines, legacyFolder: pair?.[0] ?? null, legacyRevision: pair?.[1].source ?? null,
       runtimeShare: legacyLines === null ? null : customRuntimeLines / legacyLines,
-      passed: legacyLines === null ? null : customRuntimeLines <= legacyLines * 0.2,
+      passed: legacyLines === null ? null : customRuntimeLines === 0, // G604: every shard's target is zero
       gameSystemAttribution: { status: 'import-graph', review: 'G294-primary-reach', lines: attributedLines, modules, exports, pendingSecondUser:pending },
     };
     if (collectSources) {
@@ -1062,7 +1062,7 @@ export function checkShares(recorded, lines) {
   const failures = [];
   for (const slug of Object.keys(lines)) if (!Object.hasOwn(recorded.baseline, slug)) failures.push(`${slug}: unknown shard (no baseline in ${LIST})`);
   for (const [slug, row] of Object.entries(lines)) {
-    if (Object.hasOwn(recorded.enforced, slug) && row.conversion.passed === false) failures.push(`${slug}: custom runtime exceeds 20 % of frozen legacy`);
+    if (Object.hasOwn(recorded.enforced, slug) && row.conversion.passed === false) failures.push(`${slug}: custom runtime is not zero (G604)`);
   }
   return failures;
 }
