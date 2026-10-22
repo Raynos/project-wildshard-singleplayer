@@ -7,6 +7,7 @@ import { genStarterArmClips } from './gen-starter-arm-clips.mjs';
 import { genStarterWeapons } from './gen-starter-weapons.mjs';
 import { genStarterBag } from './gen-starter-bag.mjs';
 import { genStarterEffects } from './gen-starter-effects.mjs';
+import { genDecisionPolicies } from './gen-decision-policy.mjs';
 import { writeGeneratorInventory } from './generator-inventory.mjs';
 import { execFileSync } from 'node:child_process';
 import { quietCli } from './quiet-cli.mjs';
@@ -32,6 +33,9 @@ await step('arm-clips', () => genStarterArmClips());
 await step('starter-weapons', () => genStarterWeapons());
 await step('starter-bag', () => genStarterBag());
 await step('starter-effects', () => genStarterEffects());
+// Policies are real producer inputs under shard roots. Creating them after
+// the phase invalidates its negative inventories in the next CI job.
+await step('decision-policies', () => genDecisionPolicies(`${import.meta.dirname}/..`));
 // G292 admitted outputs are ready before asset sizes, versions and shard packing read them.
 await step('generation', () => prepareGeneration(`${import.meta.dirname}/..`, { concurrency: buildInputs || proof || process.argv.includes('--parallel') ? 4 : 1 }));
 await import('./bake-loader.mjs');

@@ -8,6 +8,7 @@ import {generateShardJob,generationInputs,prepareGeneration,verifiedPreparedGene
 import {linkNodeModules} from '../scripts/link-node-modules.mjs';
 import {createDataMapPreparation} from '../scripts/bake-data-maps.mjs';
 import {generationSnapshotIdentity,publishGenerationSnapshot,verifiedGenerationSnapshot} from '../scripts/generation-snapshot.mjs';
+import {genDecisionPolicies} from '../scripts/gen-decision-policy.mjs';
 
 const owned:string[]=[];
 afterEach(()=>{vi.restoreAllMocks();vi.unstubAllEnvs();for(const root of owned.splice(0))rmSync(root,{recursive:true,force:true});});
@@ -43,6 +44,29 @@ it('refuses to publish changed source bytes or an unverified local output',()=>{
   expect(()=>publishGenerationSnapshot(receipt,identity,memo,{'source/output.txt':output})).toThrow('Generation input changed');
   const fresh=new InputHashMemo(root);fresh.enableSnapshot(()=>false);
   expect(()=>publishGenerationSnapshot(receipt,identity,fresh,{'source/output.txt':'0'.repeat(64)})).toThrow('Generation input changed');
+});
+it('keeps policy inputs current across the generation and product map fences',async()=>{
+  const {root}=fixture(),entry='src/shards/alpha/generators/bake-fixture.mjs',output='source/output.txt';
+  mkdirSync(resolve(root,'scripts'));mkdirSync(resolve(root,'lint'));mkdirSync(resolve(root,'src/shards/alpha/generators'),{recursive:true});
+  mkdirSync(resolve(root,'src/shards/alpha/look'));
+  writeFileSync(resolve(root,'src/shards/alpha/shard.config.ts'),'export default {};');
+  writeFileSync(resolve(root,'src/shards/alpha/look/map.json'),JSON.stringify({painter:{version:1,job:'fixture-policy'}}));
+  writeFileSync(resolve(root,entry),`import fs from 'node:fs';fs.writeFileSync('${output}',fs.readFileSync('source/input.txt'));`);
+  writeFileSync(resolve(root,'scripts/generation-jobs.json'),JSON.stringify({schema:'generation-jobs/1',notice:'DO NOT EDIT fixture',jobs:[{id:'fixture-policy',shard:'alpha',entry,command:[entry],inputRoots:['source','src/shards/alpha'],outputs:[output],buildTimeOutputs:[output],platform:'portable'}]}));
+  writeFileSync(resolve(root,'lint/legacy-shards.json'),JSON.stringify({version:1,sealed:true,shards:{'alpha-legacy':{primary:'alpha',source:'1'.repeat(40),files:{'manifest.ts':'2'.repeat(64),'plugin.ts':'3'.repeat(64)}}}}));
+  writeFileSync(resolve(root,'lint/legacy-line-basis.json'),JSON.stringify({schema:'legacy-line-basis/1',revision:'4'.repeat(40),shards:{alpha:{source:'1'.repeat(40),excluded:[],files:{'plugin.ts':42}}}}));
+  const cacheDir=resolve(root,'cache');
+  await prepareGeneration(root,{cacheDir});expect(verifiedPreparedGeneration(root)).toBe(true);
+  genDecisionPolicies(root);expect(verifiedPreparedGeneration(root)).toBe(false);
+  // The policy now precedes the phase, as it does in pnpm gen. A later
+  // genShards policy pass must leave a reusable, fully checked snapshot.
+  await prepareGeneration(root,{cacheDir});genDecisionPolicies(root);
+  expect(verifiedPreparedGeneration(root)).toBe(true);
+  rmSync(cacheDir,{recursive:true});vi.stubEnv('WILDSHARD_GENERATE_CACHE',cacheDir);
+  const generate=vi.spyOn(await import('../scripts/generate.mjs'),'generateShardJob');
+  await createDataMapPreparation(root)(['alpha']);expect(generate).not.toHaveBeenCalled();
+  writeFileSync(resolve(root,'src/shards/alpha/.wildshard/build-policy.json'),'{"version":1,"decisionLegacyLines":99}\n');
+  expect(verifiedPreparedGeneration(root)).toBe(false);
 });
 it('uses independently verified local outputs after cache eviction and regenerates altered outputs',async()=>{
   const {root}=fixture(),entry='src/shards/alpha/generators/bake-fixture.mjs',output='source/output.txt';
