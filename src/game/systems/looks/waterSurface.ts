@@ -18,6 +18,7 @@ import type { GraphLiteral } from '@wildshard/format/materialGraph';
 import { parseWaterSurface, type WaterSurfaceRow } from '@wildshard/format/water';
 import { CHUNK_HALF, CHUNK_SIZE } from '@wildshard/engine/core/config';
 import { waveClock, waterExtent } from '@wildshard/engine/world/waves';
+import { smoothstep } from '@wildshard/engine/core/noise';
 
 /** a surface's compiled graph: its material and, for a row that feeds params or a floor, its writers */
 export interface WaterSurfaceLook {
@@ -54,6 +55,9 @@ export class WaterSurface {
   level = 0;
   private drawn: THREE.Mesh | null = null;
   private time = 0;
+  /** a transition's normalized travel (0 full, 1 lowered) and the level it heads for */
+  private travel = 0;
+  private lowered = false;
   private lent: Readonly<Record<string, { readonly value: number }>> = {};
   private floorData: Uint16Array | null = null;
   private floorTex: THREE.DataTexture | null = null;
@@ -86,6 +90,8 @@ export class WaterSurface {
     mesh.name = row.name; mesh.position.y = this.level; mesh.receiveShadow = true; mesh.castShadow = false;
     mesh.frustumCulled = row.culled; mesh.renderOrder = row.renderOrder;
     this.group.add(mesh);
+    // a transition's level follows the drawn mesh: its look stands the vertices at it in model space (the mesh stays at 0)
+    this.applyLevel();
     return this;
   }
 
@@ -115,7 +121,26 @@ export class WaterSurface {
   }
 
   /** the bound params: the clock (and the engine's wave clock, `waves`), the open water's half-extent, the lent uniforms */
+  /** the transition's companion reveal (0 → 1 across its travel band; 0 without a transition) */
+  get reveal(): number { const band = this.row.transition?.reveal; return band === undefined ? 0 : smoothstep(band[0], band[1], this.travel); }
+  /** Head for the lowered or the full level; `instant` settles a saved state without the ease. */
+  setLowered(lowered: boolean, instant = false): void {
+    if (this.row.transition === undefined) throw new Error(`Water surface ${this.row.name} has no level transition`);
+    this.lowered = lowered;
+    if (instant) { this.travel = lowered ? 1 : 0; this.applyLevel(); }
+  }
+  /** the eased level between full and lowered (the surface's look stands its vertices at it) */
+  private applyLevel(): void {
+    const t = this.row.transition;
+    if (t !== undefined) this.level = t.full + (t.lowered - t.full) * (1 - (1 - this.travel) ** t.exponent);
+  }
+
   update(dt: number): void {
+    const t = this.row.transition, goal = this.lowered ? 1 : 0;
+    if (t !== undefined && this.travel !== goal) {
+      this.travel = goal > this.travel ? Math.min(1, this.travel + dt / t.seconds) : Math.max(0, this.travel - dt / t.seconds);
+      this.applyLevel();
+    }
     this.time += dt;
     if (this.row.waves) waveClock.t = this.time;
     this.step();

@@ -8,7 +8,7 @@ import { loadFirstPartyProduct } from '@wildshard/game/shardfile/runtimeProduct'
  *   const lm = await installPineLandmarks({ sky, registry });   // registers the cave, keeps it updated
  */
 import * as THREE from 'three';
-import { PineQuestViews } from '../../quest/views';
+import { installPineQuestViews } from '../../quest/views';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -23,7 +23,6 @@ import type { RangedPageRows } from '@wildshard/format/rangedPage';
 
 export class PineLandmarks {
   readonly group = new THREE.Group();
-  private chapter: PineQuestViews | null = null;
   /** PH-B2: the Ridge's granite and the bear cave (null: the kit is not in this build) */
   crags: { readonly cave: CaveInterior } | null = null;
 
@@ -44,7 +43,7 @@ export class PineLandmarks {
     const runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play;
     if (runtime === undefined || world === undefined || world === null || play === undefined || play === null) throw new Error('Missing landmark play services');
     const page = rangedPage(ctx.scope, input.id);
-    this.chapter = await PineQuestViews.install(ctx, this);
+    await installPineQuestViews(ctx); // the quest views chain their own world update after this runtime's
     const ambience = page.ambience;
     const spots = this.crags?.cave.spots() ?? [];
     for (let i = 0; i < Math.min(spots.length, 256); i++) { const spot = spots[i]; if (spot !== undefined) ambience.addSpot({ zone: 'cave', ...spot, fade: 3 }); }
@@ -53,7 +52,7 @@ export class PineLandmarks {
     Object.assign(runtime.objects, { pineLife: life });
   }
 
-  update(dt: number, t: number): void { this.chapter?.present(dt, t); this.crags?.cave.presentFrame(t, this.sky); }
+  update(dt: number, t: number): void { void dt; this.crags?.cave.presentFrame(t, this.sky); }
 }
 
 /**

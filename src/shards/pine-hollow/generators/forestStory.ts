@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import water from '../data/waterLook.json' with { type: 'json' };
 import { contractCatalogue } from './contractRows';
 import { WEAPON_FINISHES } from './weaponFinishes';
 import { nameBlob } from '@wildshard/sdk/blobs';
@@ -49,7 +50,14 @@ export const FOREST_STORY = {
   cable: { id: 'pine.zipline', scene: 'quest-rides.root', trolley: 'quest-rides.trolley', prompt: triple([zip.launch[0], zip.launch[1] + 1.1, zip.launch[2]]),
     radius: 2.3, label: 'Ride the zipline', top: zip.top, launch: zip.launch, landing: zip.landing, arrival: 'Down the line and into the Hollow', audio: 'ambience', shot: 'zipline' },
   mover: { id: 'pine.canoe', mesh: 'quest-rides.canoe', binding: { systemId: 'pine.movers', bindings: [{ id: 'pine.canoe', target: 'canoe', group: 'group', visibility: 'enabled', order: 'XYZ' }] }, rest: 'heroes.canoe.root' },
-  secret: { ...scenes.sites.hollow, mid: triple(scenes.sites.hollow.mid), mouths: scenes.sites.hollow.mouths.map(triple), scene: 'quests.hollow-log' },
+  secret: { ...scenes.sites.hollow, mid: triple(scenes.sites.hollow.mid), mouths: scenes.sites.hollow.mouths.map(triple), scene: 'quests.hollow-log', projection: 'secret' },
+  // the views' rows (game/quest/questPageViews): the journal-complete achievement; the dam sluice's flag lowers the pool
+  journal: { event: 'journal' },
+  // the beaver pool: the dam sluice's flag lowers it (its look stands the surface over the bed, the declared creek's pool
+  // stretch follows its level, generators/bake-geography.mjs POOL_LEVEL), the dam's trickle fades in across the travel
+  pool: { name: 'beaver-pool', flag: 'open:dam-sluice', water: 'pine-hollow.beaver-pool',
+    still: { scene: 'pool.still', surface: water.surfaces.pool }, trickle: { scene: 'pool.trickle', surface: water.surfaces.trickle },
+    level: { look: water.looks.pool, param: 'level' }, fade: { look: water.looks.trickle, param: 'fade' } },
   map: { pois: layout.PINE_HOLLOW_POIS, zones: layout.PINE_HOLLOW_ZONES.filter(zone => !placeNames.has(zone.label)) }, jumps,
 };
 export const FOREST_STORY_BLOB = nameBlob('quests/forest-story.json', 'json', new TextEncoder().encode(JSON.stringify(FOREST_STORY)), { jsonSchema: namedJsonSchema(v.object({

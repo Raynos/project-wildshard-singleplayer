@@ -1,7 +1,6 @@
 import { expect, test } from 'vitest';
 import { DataTexture, DataUtils, MeshStandardMaterial, PlaneGeometry, type Texture } from 'three';
 import { WaterSurface } from '../src/game/systems/looks/waterSurface';
-import { PineWaterSurface } from '../src/shards/pine-hollow/world/poolSurface';
 import type { GraphIr, GraphLiteral, GraphRef } from '../src/format/materialGraph';
 import { WATER_GRAPHS } from '../src/shards/pine-hollow/generators/waterGraphs';
 import { OCEAN_SURFACE } from '../src/shards/driftwood-isle/generators/oceanLook';
@@ -48,7 +47,7 @@ test('a lowered basin keeps its reversible travel, eased level and instant saved
   const geometry = new PlaneGeometry(2, 2), material = new MeshStandardMaterial();
   const row = { look: 'quarry-water', name: 'quarry-basin', renderOrder: 3,
     transition: { full: 2, lowered: 0, seconds: 4, exponent: 2, depth: 'depth', film: -.3, lift: .1, bank: -.5, reveal: [.25, .75] } };
-  const surface = new PineWaterSurface(row, { material });
+  const surface = new WaterSurface(row, { material });
   try {
     surface.draw(geometry);
     surface.setLowered(true); surface.update(2);

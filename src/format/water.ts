@@ -46,6 +46,7 @@ const literal = v.union([v.number(), v.pipe(v.array(v.number()), v.minLength(2),
  * how it draws, the graph params the host feeds (`bind`: the wave clock, the open water's half-extent, the chunk's half), its static params, an optional baked floor texture (R = floor height; G = the foam
  * proximity the host stamps round standing colliders) and its dry rectangles' sockets. Data only (G454).
  */
+const finite = v.pipe(v.number(), v.finite());
 export const WaterSurfaceSchema = v.strictObject({
   look: v.pipe(v.string(), v.minLength(1), v.maxLength(128)),
   name: v.pipe(v.string(), v.maxLength(64)),
@@ -57,6 +58,12 @@ export const WaterSurfaceSchema = v.strictObject({
   params: v.optional(v.record(param, literal), {}),
   floor: v.optional(v.strictObject({ texture: param, res: v.pipe(v.number(), v.integer(), v.minValue(16), v.maxValue(2048)), foamReach: v.pipe(v.number(), v.minValue(0.1), v.maxValue(32)), foamBand: v.pipe(v.number(), v.minValue(0), v.maxValue(8)) })),
   dry: v.optional(v.strictObject({ prefix: param, slots: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(8)), none: v.tuple([v.number(), v.number(), v.number(), v.number()]) })),
+  /** a reversible level transition (a pool the story lowers): the full and lowered levels, the ease's seconds and
+   *  exponent, the bed's depth channel, film, lift and bank its look graph reads, and the normalized travel band over
+   *  which a companion surface (the dam's trickle) is revealed */
+  transition: v.exactOptional(v.pipe(v.strictObject({ full: finite, lowered: finite, seconds: v.pipe(finite, v.minValue(Number.MIN_VALUE)),
+    exponent: v.pipe(finite, v.minValue(Number.MIN_VALUE)), depth: v.pipe(v.string(), v.minLength(1), v.maxLength(64)), film: finite, lift: finite, bank: finite,
+    reveal: v.tuple([finite, finite]) }), v.check(row => row.reveal[0] < row.reveal[1], 'Ordered water reveal band required'))),
 });
 /** A validated water-surface row. */
 export type WaterSurfaceRow = v.InferOutput<typeof WaterSurfaceSchema>;

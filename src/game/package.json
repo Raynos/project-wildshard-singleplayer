@@ -40,6 +40,7 @@
     "./population/wildlife": "./population/wildlife.ts",
     "./quest/pageResources": "./quest/pageResources.ts",
     "./quest/pageComposition": "./quest/pageComposition.ts",
+    "./quest/questPageViews": "./quest/questPageViews.ts",
     "./loadout/mounted": "./loadout/mounted.ts",
     "./shardfile/clientPopulationProjection": "./shardfile/clientPopulationProjection.ts",
     "./population/mixedRoster": "./population/mixedRoster.ts",
