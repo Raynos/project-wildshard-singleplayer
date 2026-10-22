@@ -36,8 +36,8 @@ export function driftwoodWorldEntry(): WorldEntryRows {
     // the lagoon shelf's coral, kelp and starfish (its fish school is page life, generators/fishDraw.ts)
     seabed: [{ kind: 'attach', id: 'reef.mesh', as: 'mesh' }],
     smallRocks: [{ kind: 'place', id: 'rocks.small.copies' }, { kind: 'attach', id: 'rocks.small', as: 'mesh', nameAfter: 'rocks.small.copies' }],
-    // Wreck Cove as one world piece (G3): its rock walls and treads, its walkable floors (authored order), its root group;
-    // then its reef rocks
-    cove: [{ kind: 'piece', ...composition.piece, colliders: cove.native.descs, floors: cove.floors, floorPolicy: 'first', object: composition.root }, { kind: 'place', id: 'cove.reef' }],
+    // Wreck Cove: its cascade and plunge pool under its root group, then the cove as one world piece (G3: its rock walls and
+    // treads, its walkable floors in authored order, its root group), then its reef rocks
+    cove: [{ kind: 'attach', id: composition.cascade, as: 'group', parent: composition.root }, { kind: 'piece', ...composition.piece, colliders: cove.native.descs, floors: cove.floors, floorPolicy: 'first', object: composition.root }, { kind: 'place', id: 'cove.reef' }],
   } });
 }

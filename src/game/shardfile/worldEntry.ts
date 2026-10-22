@@ -87,6 +87,6 @@ export class WorldEntry {
     if (row.nameAfter !== undefined) object.name = this.placed(row.nameAfter).model;
     if (row.castShadow !== undefined) object.castShadow = row.castShadow;
     if (row.userData !== undefined) Object.assign(object.userData, row.userData);
-    root.add(object);
+    (row.parent === undefined ? root : scenes().group(row.parent)).add(object);
   }
 }

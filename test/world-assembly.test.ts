@@ -169,3 +169,14 @@ test('an entry stage with a piece row and no piece authority refuses before its 
     entry: { root: new Group(), tier: 'phone' }, slice: () => Promise.resolve() });
   await expect(assembly.next('cove')).rejects.toThrow('piece registration'); expect(place).not.toHaveBeenCalled(); scope.dispose();
 });
+test('an entry attach row with a parent puts its part under that scene group, not the world root', async () => {
+  const scope = new Scope('construction'), root = new Group(), cove = new Group(), cascade = new Group();
+  const scenes = legacyDouble<SceneHandles>({ group: (id: string) => { if (id === 'cove.root') return cove; if (id === 'cascade.root') return cascade; throw new Error(id); } });
+  const rows = { stages: [{ kind: 'entry', id: 'cove', label: 'Cove', object: { as: 'group', part: 'cove.root' }, rows: [{ kind: 'attach', id: 'cascade.root', as: 'group', parent: 'cove.root' }] }] };
+  const assembly = WorldAssembly.admit(rows, { scope, scenes, context: legacyDouble<ModelContext>({}), registry: null, entry: { root, tier: 'phone' }, slice: () => Promise.resolve() });
+  try {
+    await assembly.next('cove');
+    expect(cascade.parent).toBe(cove); expect(root.children).toHaveLength(0); expect(entryOwner(scope, 'object', 'cove')).toBe(cove);
+    expect(entryOwner(scope, 'placed', 'cove')).toEqual([]);
+  } finally { scope.dispose(); }
+});

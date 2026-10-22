@@ -140,11 +140,9 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   // E315 M1: the cove is world (piece `cove`); its reef rocks are the reef-rock model
   const coveRows = driftwoodRows('custom/fixedLayouts').cove, coveView = coveRows.composition;
   const coveSpec = structuredClone(coveRows.spec);
-  const cove = { group: scenes.group(coveView.root), placed: [] as readonly Placed[], crabSites: coveSpec.crabSites,
+  await stages.next('cove'); // its cascade, its piece (rock walls, treads and floors) and its reef rocks (generators/worldEntry.ts)
+  const cove = { group: entryOwner(scope, 'object', 'cove'), placed: entryOwner(scope, 'placed', 'cove'), crabSites: coveSpec.crabSites,
     anchors: structuredClone(coveRows.native.anchors), update: followToonLook(driftwoodProduct(), coveView.look) };
-  cove.group.add(scenes.group(coveView.cascade));
-  await stages.next('cove'); // its piece (generators/worldEntry.ts): rock walls, treads and floors, then its reef rocks
-  cove.placed = entryOwner(scope, 'placed', 'cove');
   cutTerrain(world.physics, structuredClone(coveRows.native.cuts)); // the drawn terrain pokes up through the sea cave: the physics ground doesn't
   await stages.next('palms'); // The registry borrows the compacted batch and its native boxes.
   const palms = { placed: only('palms'), mesh: entryOwner(scope, 'object', 'palms'), update: updateWind };

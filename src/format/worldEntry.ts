@@ -3,7 +3,8 @@ import * as v from 'valibot';
 /**
  * A shard's declared world entry (G532 phase C): ordered rows the game runs over its admitted world scenes, in named
  * blocks the world build reaches in order. Each row names scene handles and lent looks by id; nothing here is code.
- *   attach  put a published group / mesh / object under the world root (optionally renamed, shadow and user flags)
+ *   attach  put a published group / mesh / object under the world root, or under an admitted scene group (`parent`),
+ *           optionally renamed, with shadow and user flags
  *   place   load a named scene placement (its models, draws, colliders and piece)
  *   look    set a lent look's material state (blend factors, depth and coverage flags, transparency)
  *   piece   register a world piece: colliders, floor rects and the scene object it stands for (G3)
@@ -23,7 +24,7 @@ const MaterialStateSchema = v.strictObject({
 });
 /** `nameAfter`: name the object after the model an earlier `place` row of this entry placed (its placement id) */
 const AttachSchema = v.strictObject({ kind: v.literal('attach'), when: v.exactOptional(when), id, as: v.picklist(['group', 'mesh', 'object']),
-  name: v.exactOptional(id), nameAfter: v.exactOptional(id), castShadow: v.exactOptional(v.boolean()), userData: v.exactOptional(v.record(id, v.union([v.boolean(), finite, id]))) });
+  parent: v.exactOptional(id), name: v.exactOptional(id), nameAfter: v.exactOptional(id), castShadow: v.exactOptional(v.boolean()), userData: v.exactOptional(v.record(id, v.union([v.boolean(), finite, id]))) });
 const PlaceSchema = v.strictObject({ kind: v.literal('place'), when: v.exactOptional(when), id });
 const LookSchema = v.strictObject({ kind: v.literal('look'), when: v.exactOptional(when), look: id, state: MaterialStateSchema });
 const surface = v.picklist(['sand', 'wetSand', 'grass', 'rock', 'planks', 'stone', 'water', 'wood', 'metal', 'flesh', 'shell', 'ground', 'edge', 'felt', 'earth']);
