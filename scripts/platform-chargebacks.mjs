@@ -37,7 +37,6 @@ const declarations = new Map([
   ['src/format/worldScenes.ts', new Map([['WorldSceneTierPools', 'C1'], ['WorldScenePoolPublications', 'C1']])],
   ['src/format/populationEnvironment.ts', new Map(['Stream', 'streamProjection', 'streamProfile', 'streamSurface', 'LiveStreamLevels'].map(name => [name, 'C1']))],
   ['src/engine/models/geometrySources.ts', new Map(['registerPackedGeometrySource', 'PackedGeometryImports'].map(name => [name, 'C1']))],
-  ['src/game/looks/posedInstances.ts', new Map(['PosedLibrary', 'ProductPosedLibrary'].map(name => [name, 'C1']))],
   ['src/game/shardfile/clientCatalogue.ts', new Map([['CatalogueEconomy', 'C6']])],
   ['src/game/shardfile/clientPlan.ts', new Map([['CatalogueEconomy', 'C6']])],
   ['src/game/models/explorerCatalogue.ts', new Map([['ProductExplorerDispatch', 'C9']])],
@@ -82,11 +81,6 @@ const inline = new Map([
   ['src/engine/models/geometrySources.ts', new Map([['PackedGeometryImports', [
     ["import { GeometryPack }", 1], ["import type { PackedGeometryRows }", 1],
   ]]])],
-  ['src/game/looks/posedInstances.ts', new Map([['ProductPosedLibrary', [
-    ["import { PosedLibrarySchema }", 1], ["import * as v from", 1], ["import { TIER }", 7],
-    ["import type { ShardProduct }", 1], ['  private static readonly libraries =', 1],
-    ['  static library(product:', 41],
-  ]]])],
   ['src/game/shardfile/clientPlan.ts', new Map([['CatalogueEconomy', [['const required = row.kind', 4]]]])],
   ['src/game/models/explorerCatalogue.ts', new Map([['ProductExplorerDispatch', [
     ["import { ProductFigureCatalogue }", 7], ["} else if (row.kind === 'figure')", 11],
@@ -105,7 +99,7 @@ function reviewedOwner(path, name) {
   if(path === 'src/game/practice/course.ts' && ['HookCourseController','hookCoursePad','yawToward','HookCourseCourse','HookCourseRow','HookCoursePad'].includes(name ?? '')) return 'nine-dragon-stack';
   if (path.endsWith('/worldScenes.ts')) return 'nine-dragon-stack';
   if (['src/format/populationEnvironment.ts',
-    'src/engine/models/geometrySources.ts', 'src/game/looks/posedInstances.ts',
+    'src/engine/models/geometrySources.ts',
     'src/game/models/explorerCatalogue.ts', 'src/format/explorerCatalogue.ts'].includes(path)) return 'pine-hollow';
   if (['src/game/loot/runtime.ts','src/format/lootEconomy.ts', 'src/game/shardfile/clientCatalogue.ts', 'src/game/shardfile/clientPlan.ts',
     'src/game/quest/pageComposition.ts', 'src/format/questPageComposition.ts'].includes(path)) return 'driftwood-isle';

@@ -88,7 +88,7 @@ test('reviewed Pine and Driftwood branches charge their actual owners', () => {
   expect(platformChargeback('src/engine/models/geometryPack.ts', 'GeometryPack')).toBeNull();
 });
 
-test('packed and product posed loaders charge Pine without charging shared draws', () => {
+test('the packed geometry loader charges Pine; the product posed loader has a real second user', () => {
   const geometry = 'src/engine/models/geometrySources.ts', posed = 'src/game/looks/posedInstances.ts';
   const both = new Set(['pine-hollow', 'nalati-grasslands']);
   const bindings = new Map([
@@ -97,25 +97,17 @@ test('packed and product posed loaders charge Pine without charging shared draws
   ]);
   const modules = new Map([[geometry, both], [posed, both]]);
   chargePlatformUsers(modules, bindings);
-  for (const [path, name] of [[geometry, 'registerPackedGeometrySource'], [posed, 'PosedLibrary']] as const) {
-    expect([...bindings.get(`${path}\0${name}`) ?? []]).toEqual(['pine-hollow']);
-    expect(platformChargeback(path, name)).toBe('C1');
-  }
-  for (const [path, name] of [[geometry, 'readGeometrySource'], [posed, 'PosedDraw'], [posed, 'PosedInstances']] as const) {
-    expect(bindings.get(`${path}\0${name}`)).toEqual(both);
+  expect([...bindings.get(`${geometry}\0registerPackedGeometrySource`) ?? []]).toEqual(['pine-hollow']);
+  expect(platformChargeback(geometry, 'registerPackedGeometrySource')).toBe('C1');
+  // G520 re-score (625514ff80): Driftwood's Explorer gull card is a product posed library row read by the same loader
+  for (const [path, name] of [[geometry, 'readGeometrySource'], [posed, 'PosedLibrary'], [posed, 'ProductPosedLibrary'], [posed, 'PosedDraw'], [posed, 'PosedInstances']] as const) {
+    if (bindings.has(`${path}\0${name}`)) expect(bindings.get(`${path}\0${name}`)).toEqual(both);
     expect(platformChargeback(path, name)).toBeNull();
   }
   expect(modules.get(geometry)).toEqual(both); expect(modules.get(posed)).toEqual(both);
-  const source = readFileSync(posed, 'utf8'), lines = source.split('\n'), reports: string[] = [];
-  const spans = inlinePlatformSpans(posed, source, line => { reports.push(line); });
-  const selected = spans.flatMap(span => span.lines.map(line => lines[line] ?? '')).join('\n');
-  expect(reports).toEqual([]);
-  expect(selected).toContain('static library(product:');
-  expect(selected).toContain('return { name: row.name, preload, draw, models, look: () => ({ name: row.name, geometry: ready().geometry, material: lentLook(row.name)');
-  expect(selected).not.toMatch(/class PosedInstances|constructor\(|begin\(\):|commit\(\):/u);
-  const charges = new Map<string, {path: string; name: string; lines: number}[]>([['pine-hollow', []]]);
-  for (const span of spans) expect(recordPrivateCharge(charges, 'fixture', {path: posed, name: span.name, lines: span.lines.length})).toBe(true);
-  expect(charges.get('pine-hollow')?.map(row => row.name)).toEqual(['ProductPosedLibrary']);
+  expect(inlinePlatformPaths()).not.toContain(posed);
+  const driftwood = readFileSync('src/shards/driftwood-isle/generators/explorerCatalogue.ts', 'utf8');
+  expect(driftwood).toMatch(/kind:'posed',file:'[^']+',source:'product'/u);
 });
 
 test('day-one feature credit cannot erase a G520 chargeback', () => {
