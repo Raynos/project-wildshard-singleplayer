@@ -5,8 +5,8 @@ import inventory from '../../src/shards/driftwood-isle/data/fixedGeometry.json' 
 import { encodeCanonicalJson, hashImmutableBytes } from '../../src/sdk/immutable';
 import { createShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { emptyShardfile } from '../../src/sdk/author';
-import { DRIFTWOOD_CLIENT_SECTIONS } from '../../src/shards/driftwood-isle/generators/clientSections';
-import { admitDriftwoodRows } from '../../src/shards/driftwood-isle/runtime/boot/rows';
+import { DRIFTWOOD_CLIENT_SECTIONS } from './driftwoodLegacyLayouts';
+import { admitDriftwoodRows } from './driftwoodLegacyRows';
 import { NPC_FOCUS_PROGRAMS } from '../../src/shards/driftwood-isle/generators/npcFocusPrograms';
 
 /** Node fixture (W2b): admit Driftwood's client row sections from the same definitions the build emits, as plain

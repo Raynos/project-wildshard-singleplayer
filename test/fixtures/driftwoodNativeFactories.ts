@@ -2,11 +2,11 @@
 import { FigureRows } from '@wildshard/game/systems/npc/figureRows';
 import { KitFigure } from '@wildshard/game/systems/npc/kitFigure';
 import { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
-import { driftwoodRows, driftwoodProduct } from '../../src/shards/driftwood-isle/runtime/boot/rows';
+import { driftwoodRows, driftwoodProduct } from './driftwoodLegacyRows';
 import type * as THREE from 'three';
 import { type ModelDef, type ModelPart } from '@wildshard/engine/models/model';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import { loadFixedGeometry, fixedDraw, fixedGeometryGroups, FIGURES } from '../../src/shards/driftwood-isle/runtime/boot/blobAssets';
+import { loadFixedGeometry, fixedDraw, fixedGeometryGroups, FIGURES } from './driftwoodLegacyAssets';
 
 const originalModel = <P extends object>(row: ModelDef<P>): ModelDef<P> => row;
 

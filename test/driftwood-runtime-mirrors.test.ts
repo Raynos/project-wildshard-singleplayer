@@ -1,22 +1,22 @@
 import { expect, test } from 'vitest';
 import { NATIVE_VIEW } from '../src/shards/driftwood-isle/generators/nativeView';
 import { ISLAND_KNOBS } from '../src/shards/driftwood-isle/generators/tiers';
-import { driftwoodRows } from '../src/shards/driftwood-isle/runtime/boot/rows';
+import { DRIFTWOOD_CLIENT_SECTIONS } from '../src/shards/driftwood-isle/generators/clientSections';
+import { WORLD_STAGES } from '../src/shards/driftwood-isle/generators/worldAssembly';
 import { driftwoodWorldEntry } from '../src/shards/driftwood-isle/generators/worldEntry';
-import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 import { FIXED_MODEL_FILES } from '../src/shards/driftwood-isle/generators/modelFiles';
 import { DRIFTWOOD_ASSET_NAMES, DRIFTWOOD_OUTPUT, DRIFTWOOD_FIXED_SOURCES as NAMED_MODELS } from '../src/shards/driftwood-isle/generators/assets';
-import { namedModelProduct } from './fixtures/namedModelProduct';
 import { prepareToonLook } from '../src/game/looks/toonLook';
 import { TOON_LOOK } from '../src/shards/driftwood-isle/generators/toonPresentation';
-import { SECTIONS } from '../src/shards/driftwood-isle/generators/sections';
 import { authoredRockGeometry } from '../src/shards/driftwood-isle/generators/rocks';
 import { Rng } from '../src/engine/core/rng';
 import { SHORE_ROCK } from '../src/shards/driftwood-isle/generators/rockProfiles';
 
-test('native view rows are admitted from canonical authored data', () => {
-  admitDriftwoodFixtureRows();
-  expect(driftwoodRows('custom/fixedLayouts').nativeView).toEqual(NATIVE_VIEW);
+test('only the resolved book ships; native view facts stay in their defining producers', () => {
+  const root=DRIFTWOOD_CLIENT_SECTIONS.find(row=>row.name==='custom/fixedLayouts')?.value;
+  expect(root).toMatchObject({id:'driftwood.island',figures:'people/catalogue.json'});
+  expect(root).not.toHaveProperty('nativeView');
+  expect(WORLD_STAGES.construction.looks?.bound).toContain(NATIVE_VIEW.SMOKE_LOOK);
 });
 
 test('render setup retains the live uniforms used by parked views', () => {
@@ -27,7 +27,7 @@ test('render setup retains the live uniforms used by parked views', () => {
 });
 
 test('canonical palette key order retains authored rock geometry', () => {
-  const wire = namedModelProduct(new Map(), false).section('custom/fixedLayouts', SECTIONS).nativeView.SHORE_ROCK;
+  const wire = NATIVE_VIEW.SHORE_ROCK;
   // Parsing may restore declaration order; explicitly exercise a different order too.
   const reversed = {
     wet: wire.wet, mossDark: wire.mossDark, mossLight: wire.mossLight, moss: wire.moss,
@@ -51,10 +51,8 @@ test('canonical palette key order retains authored rock geometry', () => {
 });
 
 test('admitted shadow tiers retain both original view choices', () => {
-  admitDriftwoodFixtureRows();
-  const rows = driftwoodRows('custom/fixedLayouts').shadowTiers, bushes = driftwoodWorldEntry().blocks['bushes'] ?? [];
+  const bushes = driftwoodWorldEntry().blocks['bushes'] ?? [];
   for (const tier of ['phone','desktop'] as const) {
-    expect(rows[tier]).toEqual({bush:ISLAND_KNOBS[tier].bushShadows,boulder:ISLAND_KNOBS[tier].boulderShadows});
     // the world entry's hibiscus draw casts its shadow as the tier's knob says
     const draw = bushes.find(row => row.kind === 'attach' && row.when?.tier === tier);
     expect(draw?.kind === 'attach' ? draw.castShadow : undefined).toBe(ISLAND_KNOBS[tier].bushShadows);

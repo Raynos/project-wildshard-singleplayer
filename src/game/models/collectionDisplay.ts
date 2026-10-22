@@ -7,6 +7,7 @@ import { SlotGeometry } from '@wildshard/engine/models/slots';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { OwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { parseCollectionCard, CollectionDisplaysSchema, type CollectionModelRow } from '@wildshard/format/collectionDisplay';
+import type { ShardProduct } from '../shardfile/shardProduct';
 import { loadFirstPartyProduct } from '../shardfile/runtimeProduct';
 
 /** Collection model parameters stay data, including future shards' count and trophy names. */
@@ -93,7 +94,8 @@ export class CollectionCatalogue {
   private rows: Readonly<Record<string, CollectionModelRow>> | undefined;
   private pending: Promise<void> | undefined;
   private readonly ports: CollectionModelPorts;
-  constructor(private readonly slug: string, private readonly geometry: ReadonlyMap<string, OwnedGeometry>) {
+  constructor(private readonly slug: string, private readonly geometry: ReadonlyMap<string, OwnedGeometry>, private readonly pinnedProduct?: ShardProduct) {
+    if (pinnedProduct !== undefined && !Object.is(pinnedProduct.slug, slug)) throw new Error('Collection product identity differs');
     this.ports = { prepare: () => this.prepare(), geometry: key => {
       const handle = this.geometry.get(key); if (handle === undefined) throw new Error(`Missing collection geometry: ${key}`); return handle.copy();
     }, material: (ctx, still) => lowPolyLookMaterial(ctx.sky, still ? 'still' : 'default') };
@@ -101,18 +103,23 @@ export class CollectionCatalogue {
   private row(key: string): CollectionModelRow {
     const row = this.rows?.[key]; if (row === undefined) throw new Error(`Collection is not prepared: ${key}`); return row;
   }
-  /** Prepares the same shared handles as the world, then reads their admitted collection rows. */
+  /** Prepare the shared handles and admitted rows. A resolved book pins its
+   * original product; only the compatible legacy path opens a first-party one. */
   prepare(): Promise<void> {
-    const owner = resourceScope();
+    const owner = resourceScope(), pinned = this.pinnedProduct;
+    const check = (): void => { if (pinned !== undefined && (owner.disposed || owner.disposing)) throw new Error('Collection owner left during preparation'); };
+    check();
     this.pending ??= (async () => {
       try {
         await Promise.all([...this.geometry.values()].map(handle => handle.load()));
-        const product = await loadFirstPartyProduct(this.slug, owner);
-        this.rows = product.section('custom/collections', { 'custom/collections': CollectionDisplaysSchema }).models;
-        this.entries = Object.fromEntries(Object.entries(this.rows).map(([key, row]) => {
+        check();
+        const product = pinned ?? await loadFirstPartyProduct(this.slug, owner); check();
+        const rows = product.section('custom/collections', { 'custom/collections': CollectionDisplaysSchema }).models;
+        const entries = Object.fromEntries(Object.entries(rows).map(([key, row]) => {
           const { id, name, file, surface, defaults, variants } = row;
           return [key, collectionModel({ id, name, file, surface, defaults, variants }, () => this.row(key), this.ports)];
         }));
+        check(); this.rows = rows; this.entries = entries;
       } catch (error: unknown) { this.pending = undefined; throw error; }
     })();
     return this.pending;

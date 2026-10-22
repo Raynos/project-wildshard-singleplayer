@@ -4,8 +4,8 @@ import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import { FigureRows } from '@wildshard/game/systems/npc/figureRows';
 import { KitFigure } from '@wildshard/game/systems/npc/kitFigure';
 import { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
-import { loadFixedGeometry, fixedDraw, fixedGeometryGroups, FIGURES } from '../../src/shards/driftwood-isle/runtime/boot/blobAssets';
-import { driftwoodProduct } from '../../src/shards/driftwood-isle/runtime/boot/rows';
+import { loadFixedGeometry, fixedDraw, fixedGeometryGroups, FIGURES } from './driftwoodLegacyAssets';
+import { driftwoodProduct } from './driftwoodLegacyRows';
 
 const byGroup = new WeakMap<THREE.Object3D, KitFigure>();
 

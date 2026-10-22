@@ -3,7 +3,7 @@ import { yawLocal } from '../src/engine/world/yawFrame';
 import { beforeAll, expect, it } from 'vitest';
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 import { readColliderRows } from '../src/engine/models/colliders';
-import { driftwoodRows } from '../src/shards/driftwood-isle/runtime/boot/rows';
+import { driftwoodRows } from './fixtures/driftwoodLegacyRows';
 import { coveFloorAt, islandCoveSpec, coveHalfWidth, STEPS } from '../src/shards/driftwood-isle/generators/coveLayout';
 
 beforeAll(admitDriftwoodFixtureRows);

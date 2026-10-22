@@ -96,7 +96,7 @@ export class WorldAssembly {
       if (!stages.some(stage => stage.id === check.stage) || checkpoints.has(key)) throw new Error('Unknown or repeated world checkpoint');
       checkpoints.set(key, check);
     }
-    const [, cells] = await Promise.all([library.load(undefined, game.registrationScope), product.file(rows.cells[TIER])]);
+    const [, cells] = await Promise.all([library.load(undefined, game.registrationScope, scope), product.file(rows.cells[TIER])]);
     live();
     const draws = library.loaded(), slice = slicer(rows.progress.budgetMs, ports.progress), total = rows.progress.total;
     let completed = 0;

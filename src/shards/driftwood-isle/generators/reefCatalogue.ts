@@ -12,7 +12,7 @@ export function reefCatalogue(): WorldSceneModels['models'] {
       .filter(choice => { const key = JSON.stringify(Object.entries(choice.params).sort(([a], [b]) => a.localeCompare(b))); if (seen.has(key)) return false; seen.add(key); return true; })
       .map(choice => ({ id: choice.id, params: choice.params, size: [...row.size] as [number, number, number],
         draws: [{ id: 'mesh', library: 'reef-specimens', model: `${kind}-${choice.id}`, material: 'reef', castShadow: false, receiveShadow: true, renderOrder: 0 }], colliders: [], lods: [] }));
-    return { key: card.id, id: `driftwood-isle/${card.id}`, name: card.name, file: 'src/shards/driftwood-isle/models/catalogue.ts',
+    return { key: card.id, id: `driftwood-isle/${card.id}`, name: card.name, file: 'src/shards/driftwood-isle/generators/reefCatalogue.ts',
       category: 'nature', pipeline: 'code', defaults: row.defaults, variants: [...row.variants], assembly: 'objects', choices };
   });
 }

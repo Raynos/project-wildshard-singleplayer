@@ -2,7 +2,7 @@
   "chime": {
     "id": "driftwood-isle/sea-glass-chime",
     "name": "Sea glass wind chime",
-    "file": "src/shards/driftwood-isle/roster.ts",
+    "file": "src/shards/driftwood-isle/data/collectionCards.json",
     "surface": "wood",
     "defaults": {
       "count": 15
@@ -41,7 +41,7 @@
   "plaques": {
     "id": "driftwood-isle/trophy-plaques",
     "name": "Trophy plaques",
-    "file": "src/shards/driftwood-isle/roster.ts",
+    "file": "src/shards/driftwood-isle/data/collectionCards.json",
     "surface": "wood",
     "defaults": {
       "bear": true,

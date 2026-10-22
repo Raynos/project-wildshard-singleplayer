@@ -1,4 +1,3 @@
-import { WIRE_SCHEMAS } from '../src/shards/driftwood-isle/generators/sectionSchemas.generated';
 import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
 import { validateDefinedSection } from '../src/sdk/sections';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
@@ -172,7 +171,7 @@ test('production site data retains original firefly offsets and order without an
 
 test('site-life custom sections convert with their suffix and defining checks intact', () => {
   expect(() => formatJsonSchema(WorldAssemblySchema, 'draft-07')).not.toThrow();
-  const schema = WIRE_SCHEMAS['custom/worldStages'];
+  const schema = formatJsonSchema(WorldAssemblySchema, 'draft-07');
   if (schema === undefined) throw new Error('Missing generated stage schema');
   const encoded = new TextEncoder().encode(encodeCanonicalJson(schema));
   expect(validateDefinedSection(encoded, stages)).toEqual(stages);

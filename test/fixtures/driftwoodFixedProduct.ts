@@ -6,12 +6,13 @@ import { resolve } from 'node:path';
 import { createShardProduct } from '../../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../../src/sdk/author';
 import { DRIFTWOOD_OUTPUT } from '../../src/shards/driftwood-isle/generators/assets';
+import { DRIFTWOOD_CLIENT_SECTIONS as LEGACY_SECTIONS } from './driftwoodLegacyLayouts';
 import { DRIFTWOOD_CLIENT_SECTIONS } from '../../src/shards/driftwood-isle/generators/clientSections';
 import { FIGURE_CATALOGUE } from '../../src/shards/driftwood-isle/generators/figureCatalogue';
 import { NPC_FOCUS_PROGRAMS } from '../../src/shards/driftwood-isle/generators/npcFocusPrograms';
 
 /** Real published GLB source bytes with the same admitted asset and layout rows as the product writer. */
-export async function driftwoodFixedProduct(): Promise<ReturnType<typeof createShardProduct>> {
+export async function driftwoodFixedProduct(legacy = false): Promise<ReturnType<typeof createShardProduct>> {
   const blobs = await Promise.all(DRIFTWOOD_OUTPUT.blobs.map(async row => {
     const bytes = new Uint8Array(await readFile(resolve('src/shards/driftwood-isle', row.source)));
     return {name: row.name, source: row.source, bytes, hash: createHash('sha256').update(bytes).digest('hex')};
@@ -23,7 +24,7 @@ export async function driftwoodFixedProduct(): Promise<ReturnType<typeof createS
   const assets = new Map(blobs.map(row => [row.hash, row.bytes]));
   return createShardProduct({slug: 'driftwood-isle', revision: 1,
     shardfile: { ...emptyShardfile({slug: 'driftwood-isle', name: 'Test', author: 'Test', revision: 1, seed: 1}), clientChannels: NPC_FOCUS_PROGRAMS },
-    sections: new Map<string, unknown>(DRIFTWOOD_CLIENT_SECTIONS.map(row => [row.name, row.value] as const)),
+    sections: new Map<string, unknown>((legacy ? LEGACY_SECTIONS : DRIFTWOOD_CLIENT_SECTIONS).map(row => [row.name, row.value] as const)),
     files: new Map(blobs.map(row => [row.name, {hash: row.hash, url: `/${row.source}`} ])),
     read: hash => { const bytes = assets.get(hash); return bytes === undefined ? Promise.reject(new Error('Missing fixed bytes')) : Promise.resolve(bytes); }, check: true});
 }

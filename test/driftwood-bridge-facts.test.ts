@@ -5,7 +5,7 @@ import { driftwoodRopeDeckSite } from '../src/shards/driftwood-isle/generators/r
 
 import type { RopeDeckSpan as RopeBridgeSpec } from '../src/format/ropeDeckSite';
 import { fakeWorld } from './fake/world';
-import { fixedDraw, ISLAND } from '../src/shards/driftwood-isle/runtime/boot/blobAssets';
+import { fixedDraw, ISLAND } from './fixtures/driftwoodLegacyAssets';
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 import { bridgeDeck, bridgeUnitGeometries } from '../src/shards/driftwood-isle/generators/ropeBridge';
 

@@ -13,8 +13,8 @@ import { createBuildingCloud } from '@wildshard/game/shardfile/buildingCloud';
 import { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { KitFigure } from '@wildshard/game/systems/npc/kitFigure';
 import { hasLentLook, lentLook } from '@wildshard/sdk/looks/lentLooks';
-import { driftwoodRows, driftwoodProduct } from '../../src/shards/driftwood-isle/runtime/boot/rows';
-import { fixedDraw, fixedGeometryGroups, fixedGeometryReady, FIGURES } from '../../src/shards/driftwood-isle/runtime/boot/blobAssets';
+import { driftwoodRows, driftwoodProduct } from './driftwoodLegacyRows';
+import { fixedDraw, fixedGeometryGroups, fixedGeometryReady, FIGURES } from './driftwoodLegacyAssets';
 
 export interface Pos { x: number; y: number; z: number; yaw?: number }
 

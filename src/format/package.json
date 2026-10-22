@@ -263,7 +263,9 @@
     "./questContinuation": "./questContinuation.ts",
     "./questWorld": "./questWorld.ts",
     "./ropeDeckSite": "./ropeDeckSite.ts",
-    "./socketRigCreature": "./socketRigCreature.ts"
+    "./socketRigCreature": "./socketRigCreature.ts",
+    "./fixedDraws": "./fixedDraws.ts",
+    "./islandLibrary": "./islandLibrary.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

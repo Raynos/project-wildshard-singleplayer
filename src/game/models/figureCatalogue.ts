@@ -25,13 +25,14 @@ export class FigureCatalogue {
   private sharedMat: THREE.MeshStandardMaterial | undefined;
   private sharedGlow: THREE.MeshBasicMaterial | undefined;
   /** Admit atomically; a failed load leaves the last complete catalogue intact. */
-  async admit(input: unknown, geometry: SceneHandles): Promise<void> {
+  async admit(input: unknown, geometry: SceneHandles, owner?: Scope): Promise<void> {
     const data = v.parse(FigureCatalogueSchema, input);
     for (const row of Object.values(data.figures)) {
       if (row.body !== undefined) geometry.geometry(String(row.body));
       if (row.glass !== undefined && row.glass !== null) geometry.geometry(String(row.glass));
     }
     await FigureRows.prepareSkins(Object.values(data.figures).flatMap(row => row[TIER].skin ?? []));
+    if (owner?.disposed === true || owner?.disposing === true) throw new Error('Figure catalogue owner left');
     this.data = data; this.geometry = geometry;
   }
   /** Shared vertex-colour material for figures and row-compatible props. */
@@ -85,7 +86,7 @@ export class FigureCatalogue {
   kit(id: string): unknown { const kit = this.row(id).row.kit; if (kit === undefined) throw new Error(`Figure ${id} has no kit`); return kit; }
 }
 
-const admitted = new WeakMap<ShardProduct, Map<string, ProductFigureCatalogue>>();
+const admitted = new WeakMap<ShardProduct, Map<string, { readonly catalogue: ProductFigureCatalogue; readonly owner: Scope }>>();
 
 /** Admit existing product packs into the shared figure model owner.
  * Public callers supply product/file ids and resident scene handles only.
@@ -94,20 +95,23 @@ export class ProductFigureCatalogue {
   /** Share the admitted catalogue; source `owner` is captured before reads and
    * retires its cache and geometry. Omitted owners use the construction scope. */
   static async fromProduct(product: ShardProduct, file: string, owner: Scope = resourceScope()): Promise<ProductFigureCatalogue> {
-    const ready = admitted.get(product)?.get(file); if (ready !== undefined) return ready;
+    if (owner.disposed || owner.disposing) throw new Error('Figure catalogue owner left');
+    const ready = admitted.get(product)?.get(file); if (ready !== undefined && !ready.owner.disposed && !ready.owner.disposing) return ready.catalogue;
     const catalogue = new ProductFigureCatalogue(product.slug, file); await catalogue.admit(product, owner); return catalogue;
   }
   private readonly figures = new FigureCatalogue();
   private pending: Promise<void> | undefined;
   constructor(private readonly productId: string, private readonly file: string) {}
-  async admit(product: ShardProduct, owner: Scope = resourceScope()): Promise<void> {
+  async admit(product: ShardProduct, owner: Scope = resourceScope(), allowPacked = true): Promise<void> {
     const check = (): void => { if (owner.disposed || owner.disposing) throw new Error('Figure catalogue owner left'); };
     check();
     const data = v.parse(FigureCatalogueSchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file(this.file))));
     check();
+    if (!allowPacked && data.pack !== undefined) throw new Error('Resolved island figures require unpacked catalogue rows');
     const resources = new SceneHandles();
     if (data.pack !== undefined) {
-      const pack = new GeometryPack(await fetchDeflated(data.pack.url), data.pack.rows, this.file);
+      const bytes = await fetchDeflated(data.pack.url); check();
+      const pack = new GeometryPack(bytes, data.pack.rows, this.file);
       check();
       const indices = new Set(Object.values(data.figures).flatMap(row => [row.body, row.glass]).filter(index => index !== undefined && index !== null));
       for (const index of indices) {
@@ -115,10 +119,11 @@ export class ProductFigureCatalogue {
         owner.onDispose(() => { geometry.dispose(); });
       }
     }
-    await owner.run(() => this.figures.admit(data, resources)); check();
-    const book = admitted.get(product) ?? new Map<string, ProductFigureCatalogue>();
-    book.set(this.file, this); admitted.set(product, book);
-    owner.onDispose(() => { if (book.get(this.file) === this) book.delete(this.file); });
+    await owner.run(() => this.figures.admit(data, resources, owner)); check();
+    const book = admitted.get(product) ?? new Map<string, { readonly catalogue: ProductFigureCatalogue; readonly owner: Scope }>();
+    const admission = { catalogue: this, owner };
+    book.set(this.file, admission); admitted.set(product, book);
+    owner.onDispose(() => { if (book.get(this.file) === admission) book.delete(this.file); });
   }
   prepare(): Promise<void> {
     this.pending ??= (async () => {

@@ -3,9 +3,9 @@ import type { SceneHandles } from '@wildshard/game/shardfile/sceneHandles';
 import { WorldAssembly } from '@wildshard/game/shardfile/worldAssembly';
 import { entryOwner } from '@wildshard/game/shardfile/entryOwners';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { driftwoodRows, driftwoodProduct } from '../../src/shards/driftwood-isle/runtime/boot/rows';
+import { driftwoodRows, driftwoodProduct } from './driftwoodLegacyRows';
 import { TIER } from '@wildshard/engine/core/tier';
-import { loadFixedGeometry, fixedDrawLibrary } from '../../src/shards/driftwood-isle/runtime/boot/blobAssets';
+import { loadFixedGeometry, fixedDrawLibrary } from './driftwoodLegacyAssets';
 /**
  * Driftwood Isle's world build (E357 S4.1, 08 §4 `level.world`, §6.1 step 2): the ~15 builders `main.ts`'s `edge` step
  * ran behind `isOcean ?`, in the same order with the same arguments and a `slice()` between them (the 30 ms task
@@ -13,7 +13,7 @@ import { loadFixedGeometry, fixedDrawLibrary } from '../../src/shards/driftwood-
  * one. The plugin (../plugin.ts) runs it in the level's world stage.
  */
 import type * as THREE from 'three';
-import { sites } from '../../src/shards/driftwood-isle/models/catalogue';
+import { sites } from './driftwoodLegacyCatalogue';
 import { macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 import type { World } from '@wildshard/engine/core/bootstrap';
 import manifest from '../../src/shards/driftwood-isle/discovery.generated';

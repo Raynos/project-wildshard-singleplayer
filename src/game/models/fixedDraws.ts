@@ -1,14 +1,10 @@
+import { FixedDrawRowsSchema } from '@wildshard/format/fixedDraws';
 import * as v from 'valibot';
 import type { BufferGeometry } from 'three';
 import { createOwnedGeometry, type OwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import type { ShardProduct } from '../shardfile/shardProduct';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { readWholeGeometry } from '../plugin/geometry';
-
-const text = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
-/** A shard's named fixed draws: each slot a product GLB file, its channels renamed as declared (source, name). */
-export const FixedDrawRowsSchema = v.pipe(v.array(v.strictObject({ slot: text, file: text, channels: v.pipe(v.array(v.tuple([text, text])), v.maxLength(16)) })),
-  v.minLength(1), v.maxLength(128));
 
 /** One loaded library of fixed draws (see fixedDraws). */
 export interface FixedDraws {

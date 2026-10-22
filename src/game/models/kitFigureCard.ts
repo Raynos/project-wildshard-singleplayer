@@ -9,6 +9,7 @@ import { KitFigureCardsSchema, type KitFigureCardsRows } from '@wildshard/format
 import type { ShardProduct } from '../shardfile/shardProduct';
 import { SceneHandles } from '../shardfile/sceneHandles';
 import { ProductFigureCatalogue } from './figureCatalogue';
+import { ResolvedIslandLibrarySchema } from '@wildshard/format/islandLibrary';
 import { coldFixedDraws } from './fixedDraws';
 import { questFigure } from '../quest/figures';
 
@@ -19,7 +20,7 @@ export function kitFigureCard(product: ShardProduct, input: KitFigureCardsRows, 
   const custom = (name: string): name is `custom/${string}` => name.startsWith('custom/');
   if (card === undefined || !custom(book.draws) || !product.has(book.draws) || !product.hasFile(book.catalogue)) throw new Error('Kit card requires its declared figure, draws and catalogue');
   if (new Set(Object.values(book.cards).map(row => row.model.id)).size !== Object.keys(book.cards).length) throw new Error('Repeated kit card model identity');
-  const source = product.section<{ readonly fixedDraws: unknown }>(book.draws), sourceOwner = resourceScope();
+  const source = v.parse(ResolvedIslandLibrarySchema, product.section(book.draws)), sourceOwner = resourceScope();
   const row = card.figure, slots = [...new Set([...Object.values(row.parts), ...row.objects.map(object => object.draw), ...row.publish.map(publication => publication.draw)])];
   const { surface, ...metadata } = card.model;
   return defineModel<Record<string, never>>({ ...metadata, ...(surface === undefined ? {} : { surface }), specimenLifetime: 'view', build: ctx => {
@@ -31,7 +32,7 @@ export function kitFigureCard(product: ShardProduct, input: KitFigureCardsRows, 
     check();
     return loadingSpecimen(card.model.id, [1, 1, 1], async () => {
       const catalogue = await ProductFigureCatalogue.fromProduct(product, book.catalogue, sourceOwner); check();
-      const draws = await coldFixedDraws(product, source.fixedDraws, owner, slots); check();
+      const draws = await coldFixedDraws(product, source.draws, owner, slots); check();
       const resources = new SceneHandles(ctx.sky);
       const figure = owner.run(() => questFigure(row, { sky: ctx.sky, scope: owner, resources, catalogue,
         draws: { get ready() { return draws.ready; }, handle: slot => ({ copy: () => {

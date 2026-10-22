@@ -1,5 +1,5 @@
 import { IslandLibrary } from '@wildshard/game/models/islandLibrary';
-import type { FixedGeometryGroups } from '../productSections.generated.d.ts';
+import type { FixedGeometryGroups } from '../../src/shards/driftwood-isle/runtime/productSections.generated.d.ts';
 
 /** G586: Driftwood's Blender island library, declared as data on the game's island library host: its 90 fixed draws
  *  (custom/fixedLayouts), their groups, the figure catalogue and the collection cards, loaded once. */

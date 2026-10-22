@@ -8,8 +8,8 @@ import { modelContext, specimenReady, seedOf, type ModelDef, type ModelPart } fr
 import * as lowPolyKit from '@wildshard/engine/world/lowpolyKit';
 import { driftwoodFixedProduct } from './fixtures/driftwoodFixedProduct';
 import * as runtimeProduct from '../src/game/shardfile/runtimeProduct';
-import { loadFixedGeometry, fixedGeometryReady, fixedDraw, fixedGeometryGroups, COLLECTIONS } from '../src/shards/driftwood-isle/runtime/boot/blobAssets';
-import { sites, captainHat, sailclothCape, tradeCounter, trader as traderCard } from '../src/shards/driftwood-isle/models/catalogue';
+import { loadFixedGeometry, fixedGeometryReady, fixedDraw, fixedGeometryGroups, COLLECTIONS } from './fixtures/driftwoodLegacyAssets';
+import { sites, captainHat, sailclothCape, tradeCounter, trader as traderCard } from './fixtures/driftwoodLegacyCatalogue';
 import { bindWorldSceneModelSources } from '../src/game/models/worldSceneCatalogue';
 import { parseWorldSceneModels } from '../src/format/worldSceneModels';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
@@ -65,7 +65,7 @@ it('matches the original warm cards for every authored geometry and variant', as
   const product = await driftwoodFixedProduct(), material = new MeshStandardMaterial();
   const castaway = kitFigureCard(product, driftwoodKitFigureCards(), 'castaway');
   const borrowed = vi.spyOn(lowPolyKit, 'lowPolyLookMaterial').mockReturnValue(material);
-  const mocked = vi.spyOn(runtimeProduct, 'loadFirstPartyProduct').mockResolvedValue(product);
+  const mocked = vi.spyOn(runtimeProduct, 'loadFirstPartyProduct').mockResolvedValue(await driftwoodFixedProduct(true));
   const signatures: Record<string, unknown> = {}, ctx = modelContext(SkyRig.prototype);
   const owner = new Scope('cargo-card-proof'), geometries = new Map<string, BufferGeometry>();
   for (const [library, rows] of [['cargo', cargo.library.models], ['native-specimens', native.library.models]] as const) for (const row of rows) {

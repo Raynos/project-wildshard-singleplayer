@@ -11572,3 +11572,22 @@ existing behavior for that policy; its literal entry CSS is prepared before
 entered features. retainHomeRuntime and stagesOwner remain the authored
 ownership choices. Compiled products carry no executable runtime files, and
 the project writer verifies this even when runtime copying was not requested.
+
+
+The finite world.assembly capability names a declared island library, a named
+scene catalogue and inline WorldAssembly rows. Its fixed entered-world rank 70
+follows ordinary world features and precedes world-bindings and kit. Whole-plan
+admission preflights the strict library root, matching id, catalogue and
+required construction looks/publication ids before effects. Bound construction
+keeps its original resident cache and scope; unbound construction keeps its
+original entered owner. Both lend the same completed draws and collection.
+Explorer collection and scene-model rows select named models from that same
+admitted product/library book. No source module, field path, second library
+intake or native roster fallback is accepted.
+
+FixedDrawRowsSchema lives in format/fixedDraws; ResolvedIslandLibrarySchema
+lives in format/islandLibrary. Resolved books pin their admitted product and
+deduplicate geometry-template intake only. Each construction admits figure
+rows on its own concrete scope; cold readers borrow a live construction
+admission. Resolved figures must be unpacked rows. Legacy catalogue admission
+keeps packed geometry support and its original source lifetime.

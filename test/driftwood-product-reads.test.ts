@@ -1,3 +1,5 @@
+import { parseWorldSceneModels } from '../src/format/worldSceneModels';
+import nativePhysics from '../src/shards/driftwood-isle/data/physics.generated.json' with {type:'json'};
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { readProjectAssets } from '../src/sdk/project';
@@ -24,13 +26,22 @@ test('Driftwood client reads resolve against the emitted output', async () => {
   };
   expect(value('custom/cumulusPuffs').length).toBeGreaterThan(0);
   const layouts = value('custom/fixedLayouts');
+  expect(layouts.id).toBe('driftwood.island');
+  const named=(name:string):unknown=>{
+    const file=loaded.output.namedFiles?.find(row=>row.name===name),bytes=file===undefined?undefined:loaded.assets.get(file.hash);
+    if(bytes===undefined)throw new Error(`Missing product data ${name}`);
+    const decoded:unknown=JSON.parse(new TextDecoder().decode(bytes));return decoded;
+  };
+  const catalogue=parseWorldSceneModels(named('models/world-scenes.json'));
+  const anchors=(model:string,choice:string)=>catalogue.models.find(row=>row.key===model)?.choices.find(row=>row.id===choice)?.site?.anchors??{};
+  const native=v.parse(v.object({constants:v.object({physics:v.object({solids:v.array(v.unknown())})})}),named('sim/headless-assembly.json'));
+  expect(native.constants.physics.solids).toEqual(nativePhysics.solids);
   const collections = value('custom/collections');
   expect(collections.models['chime']?.ranges.length).toBe(CHIME_PIECES + 1);
-  expect(layouts.cove.native.descs.some(row => row.kind === 'treads')).toBe(true);
-  for (const kind of ['world', 'specimen'] as const) expect(layouts.shrine[kind].anchors['altar'], kind).toBeDefined();
+  for (const kind of ['world', 'specimen'] as const) expect(anchors('shrine',kind)['altar'], kind).toBeDefined();
   expect(Object.keys(collections.models['plaques']?.trophies?.full ?? {})).toHaveLength(2);
-  for (const key of ['npc', 'hutChest', 'door', 'porch']) expect(layouts.hut.anchors[key], key).toBeDefined();
-  for (const key of ['zipTop', 'beacon', 'shard', 'stairFoot']) expect(layouts.lookout.anchors[key], key).toBeDefined();
+  for (const key of ['npc', 'hutChest', 'door', 'porch']) expect(anchors('hut','world')[key], key).toBeDefined();
+  for (const key of ['zipTop', 'beacon', 'shard', 'stairFoot']) expect(anchors('lookout','world')[key], key).toBeDefined();
   // the trail's posts, signs and steps are world scene placements now (G3)
   expect(custom.sections.some(row => row.name === 'custom/trailside')).toBe(false);
   expect(loaded.shard.items.catalogue).toEqual(DRIFTWOOD_ITEMS);

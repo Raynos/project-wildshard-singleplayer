@@ -24,8 +24,8 @@ const blobs = [], libraries = [], placements = {}, facts = {}, models = [];
 const plain = rows => rows.map(row => ({ ...row, ...('points' in row ? { points: [...row.points] } : {}) }));
 const matrix = pose => [...poseOf(pose).matrix.elements];
 const specModels = [
-  { key: 'palm', author: palm, name: 'Coconut palm', file: 'src/shards/driftwood-isle/models/catalogue.ts', material: 'palm', surface: 'wood', size: p => [p.h,p.h,p.h], colliders: palmColliders },
-  { key: 'hibiscus', author: hibiscusBush, name: 'Hibiscus bush', file: 'src/shards/driftwood-isle/models/catalogue.ts', material: 'kit', size: p => [p.r*2,p.r*2,p.r*2], colliders: () => [] },
+  { key: 'palm', author: palm, name: 'Coconut palm', file: 'src/shards/driftwood-isle/generators/bake-foliage-scenes.mjs', material: 'palm', surface: 'wood', size: p => [p.h,p.h,p.h], colliders: palmColliders },
+  { key: 'hibiscus', author: hibiscusBush, name: 'Hibiscus bush', file: 'src/shards/driftwood-isle/generators/bake-foliage-scenes.mjs', material: 'kit', size: p => [p.r*2,p.r*2,p.r*2], colliders: () => [] },
 ];
 try {
   for (const spec of specModels) {
@@ -64,7 +64,7 @@ try {
   const logDefaults = DRIFT_SPECIMENS.long, logVariants = [
     { id: 'long', label: 'Long', params: {} }, { id: 'short', label: 'Short', params: DRIFT_SPECIMENS.short }, { id: 'pale', label: 'Pale', params: { tone: DRIFT_SPECIMENS.pale.tone } },
   ];
-  models.push({ key: 'driftLog', id: 'driftwood-isle/drift-log', name: 'Drift log', category: 'nature', pipeline: 'code', surface: 'wood', file: 'src/shards/driftwood-isle/models/catalogue.ts', defaults: logDefaults, variants: logVariants, assembly: 'parts', choices: logVariants.map(variant => ({ id: variant.id, params: { ...logDefaults, ...variant.params }, size: [4, 1, 1], colliders: [], draws: [{ id: 'log', library: 'cascade', model: inventory.groups.driftLogs[variant.id], material: 'still', castShadow: true, receiveShadow: true }] })) });
+  models.push({ key: 'driftLog', id: 'driftwood-isle/drift-log', name: 'Drift log', category: 'nature', pipeline: 'code', surface: 'wood', file: 'src/shards/driftwood-isle/generators/bake-foliage-scenes.mjs', defaults: logDefaults, variants: logVariants, assembly: 'parts', choices: logVariants.map(variant => ({ id: variant.id, params: { ...logDefaults, ...variant.params }, size: [4, 1, 1], colliders: [], draws: [{ id: 'log', library: 'cascade', model: inventory.groups.driftLogs[variant.id], material: 'still', castShadow: true, receiveShadow: true }] })) });
   const logPlacement = { id: 'foliage.logs', model: 'driftLog', draw: 'merged', poses: logs.placements.map(pose => ({ x: pose.x, y: pose.y, z: pose.z, params: pose.params, matrix: matrix(pose) })), drawnInto: { part: 'logs.mesh', boxes: logs.boxes }, colliders: [], piece: { id: 'cover-drift-logs' } };
   const wreckLogPlacement = { ...logPlacement, id: 'wreck.logs', poses: wreckLogs.placements.map(pose => ({ x: pose.x, y: pose.y, z: pose.z, params: pose.params, matrix: matrix(pose) })), drawnInto: { part: 'wreck.root', boxes: wreckLogs.boxes }, piece: { id: 'wreck-drift-logs' } };
   writer.put(fileURLToPath(new URL('data/foliageScenes.generated.json', project)), jsonBytes({ blobs, libraries, models, placements, facts, logPlacement, wreckLogPlacement }));

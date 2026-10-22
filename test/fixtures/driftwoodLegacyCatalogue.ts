@@ -1,5 +1,5 @@
 import { defineWorldSceneCatalogue } from '@wildshard/game/models/worldSceneCatalogue';
-import data from '../boot/modelCatalogue.generated.json' with { type: 'json' };
+import data from '../../src/shards/driftwood-isle/boot/modelCatalogue.generated.json' with { type: 'json' };
 
 export const sites = defineWorldSceneCatalogue(data.siteCatalogue);
 export const captainHat = sites.model('captainHat');

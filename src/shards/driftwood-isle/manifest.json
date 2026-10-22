@@ -313,7 +313,6 @@
       "r": 12
     }
   ],
-  "runtimeEntry": "runtime/hybrid.ts",
   "bindings": {
     "accent": "marigold",
     "budgets": {
@@ -337,11 +336,6 @@
     },
     "render": {
       "platform": "toon"
-    },
-    "roster": {
-      "module": "./roster",
-      "export": "roster",
-      "call": true
     },
     "boot": {
       "files": {
@@ -372,7 +366,7 @@
       "export": "default"
     },
     "entry": {
-      "legacy": "./runtime/hybrid",
+      "platform": "client-plan",
       "retainHomeRuntime": false,
       "stagesOwner": "declared"
     }

@@ -43,6 +43,9 @@ export const WorldAssemblyStageSchema = v.variant('kind', [
 /** Native checkpoints around one walk of the already-admitted stages. No row
  * names a callback, module, phase, object path or another run schedule. */
 export const WorldConstructionSchema = v.strictObject({
+  /** Optional for direct native construction; mandatory for the finite entry capability. */
+  looks: v.exactOptional(v.strictObject({ unbound: v.pipe(v.array(id), v.maxLength(256)), bound: v.pipe(v.array(id), v.maxLength(256)) })),
+  publish: v.exactOptional(v.strictObject({ draws: id, collection: id })),
   cells: v.strictObject({ phone: id, desktop: id }), seed: v.pipe(v.number(), v.integer(), v.minValue(0)),
   progress: v.strictObject({ total: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(2048)),
     start: label, finish: label, budgetMs: v.pipe(finite, v.minValue(0), v.maxValue(100)) }),

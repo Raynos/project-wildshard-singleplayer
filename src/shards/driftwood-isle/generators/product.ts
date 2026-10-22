@@ -61,7 +61,7 @@ export default parseShardfile({
   // W2c: every graph arrives as build-time JSON (generators/lookMaterials.ts → data/lookMaterials.generated.json)
   look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries(lookGraphs).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) },
     samplers: { [coat.hash]: { wrap: 'repeat' } } },
-  runtime: { entry: 'runtime/hybrid.ts', cost: DRIFTWOOD_RUNTIME_COST, binds: ['state', 'quests', 'ledger', 'items', 'spawns', 'modes', 'props', 'terrain', 'movers', 'loot', 'clientChannels'], spawns: DRIFTWOOD_SPAWNS },
+  runtime: { kind: 'client-plan', cost: DRIFTWOOD_RUNTIME_COST, binds: ['state', 'quests', 'ledger', 'items', 'spawns', 'modes', 'props', 'terrain', 'movers', 'loot', 'clientChannels'], spawns: DRIFTWOOD_SPAWNS },
   clientChannels: [...skyChannels.clientChannels, ...NPC_FOCUS_PROGRAMS],
   quests: { ...questRows.quests, achievements: DRIFTWOOD_FEATS }, questHost: questRows.host, questNpcs: questRows.npcs, ledger: DRIFTWOOD_LEDGER, items: DRIFTWOOD_SWORDS,
   edge: { north: row(DRIFTWOOD_EDGE_HEIGHTS.north), east: row(DRIFTWOOD_EDGE_HEIGHTS.east), south: row(DRIFTWOOD_EDGE_HEIGHTS.south), west: row(DRIFTWOOD_EDGE_HEIGHTS.west) },

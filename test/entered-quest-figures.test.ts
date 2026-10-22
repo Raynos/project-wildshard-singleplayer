@@ -20,7 +20,7 @@ import * as runtimeProduct from '../src/game/shardfile/runtimeProduct';
 import { driftwoodQuestFigures } from '../src/shards/driftwood-isle/generators/questFigures';
 import { castawayFigure } from './fixtures/driftwoodCastawayOracle';
 import { enteredTrader, traderOf } from './fixtures/driftwoodTraderOracle';
-import { loadFixedGeometry } from '../src/shards/driftwood-isle/runtime/boot/blobAssets';
+import { loadFixedGeometry } from './fixtures/driftwoodLegacyAssets';
 import { driftwoodFixedProduct } from './fixtures/driftwoodFixedProduct';
 import { legacyDouble } from './fake/FakeGame';
 
@@ -48,7 +48,7 @@ function drawState(root: Object3D, bytes = false): unknown {
 
 test.each([false, true])('entered figures preserve real cold/hot meshes, poses and borrowed smoke (hot: %s)', async hot => {
   const product = await driftwoodFixedProduct(), material = new MeshStandardMaterial(), smokeMaterial = new MeshBasicMaterial();
-  const mocked = vi.spyOn(runtimeProduct, 'loadFirstPartyProduct').mockResolvedValue(product);
+  const mocked = vi.spyOn(runtimeProduct, 'loadFirstPartyProduct').mockResolvedValue(await driftwoodFixedProduct(true));
   const borrowed = vi.spyOn(lowPolyKit, 'lowPolyLookMaterial').mockReturnValue(material);
   const resident = new Scope('figure-resident'), oldScope = resident.child('old-figures'), scope = resident.child('declared-figures');
   let smokeDisposed = 0; smokeMaterial.addEventListener('dispose', () => { smokeDisposed++; });
@@ -66,7 +66,7 @@ test.each([false, true])('entered figures preserve real cold/hot meshes, poses a
   const ctx = legacyDouble<ShardContext>({ scope, product, game: legacyDouble<ShardContext['game']>({ runtime: legacyDouble<Runtime>({ world: legacyDouble<World>({ sky, registry, player: legacyDouble<World['player']>(player) }) }) }), system: (row: Parameters<ShardContext['system']>[0]) => { systems.push(row); } });
   try {
     await loadFixedGeometry();
-    const draws = fixedDraws(product, product.section<{ fixedDraws: unknown }>('custom/fixedLayouts').fixedDraws); await draws.load();
+    const draws = fixedDraws(product, product.section<{ draws: unknown }>('custom/fixedLayouts').draws); await draws.load();
     const catalogue = await ProductFigureCatalogue.fromProduct(product, 'people/catalogue.json');
     const resources = new SceneHandles(sky), oldResources = new SceneHandles(sky);
     const npc = oldScope.run(() => castawayFigure(sky, place(castaway.feet), place(fire), oldResources, oldScope));

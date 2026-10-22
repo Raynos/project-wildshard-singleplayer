@@ -1,10 +1,18 @@
+import { NATIVE_VIEW } from './nativeView';
 import type { WorldConstructionRows } from '@wildshard/format/worldAssembly';
 import foliage from '../data/foliagePlacements.generated.json' with { type: 'json' };
+
+// The old custom-section wire canonically sorted record keys before entry.
+const wireValues = (rows: Readonly<Record<string, string>>): string[] => Object.keys(rows).sort().map(key => { const value=rows[key];if(value===undefined)throw new Error('Missing authored look');return value; });
 
 /** Exact native boot checkpoints; the assembly itself owns the stage order. */
 export function driftwoodWorldConstruction(piers: readonly {id:string}[]): WorldConstructionRows {
   const first=piers[0];if(first===undefined)throw new Error('Missing entry pier');
-  return {
+  return { looks: { unbound: ['driftwood-kit-moor'], bound: [
+    ...wireValues(NATIVE_VIEW.CASCADE_LOOKS), NATIVE_VIEW.SMOKE_LOOK,
+    NATIVE_VIEW.FIREFLY_LOOK, NATIVE_VIEW.REEF_LOOK, NATIVE_VIEW.POOL_LOOK, NATIVE_VIEW.SHRINE_POOL_LOOK, NATIVE_VIEW.OCEAN_LOOK,
+    NATIVE_VIEW.GULL_GRAPH_LOOK, ...NATIVE_VIEW.COVER_LOOKS, ...wireValues(NATIVE_VIEW.CREATURE_LOOKS), 'driftwood-kit-moor',
+  ] }, publish: {draws:'driftwood.fixed-draws',collection:'driftwood.collections'},
     cells:{phone:'world/cover/cells/phone.bin',desktop:'world/cover/cells/desktop.bin'}, seed:foliage.seed,
     progress:{total:18+piers.length,start:'Preparing world builders',finish:'Baked island',budgetMs:30},
     checkpoints:[

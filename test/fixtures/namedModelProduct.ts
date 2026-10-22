@@ -1,6 +1,6 @@
 import { TOON_LOOK } from '../../src/shards/driftwood-isle/generators/toonPresentation';
 import { HELD_ARMS } from '../../src/shards/driftwood-isle/generators/heldArms';
-import { DRIFTWOOD_CLIENT_SECTIONS } from '../../src/shards/driftwood-isle/generators/clientSections';
+import { DRIFTWOOD_CLIENT_SECTIONS } from './driftwoodLegacyLayouts';
 import { encodeCanonicalJson } from '../../src/sdk/immutable';
 import { createShardProduct } from '../../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../../src/sdk/author';

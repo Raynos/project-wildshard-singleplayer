@@ -30,6 +30,8 @@
     "./models/socketRigCreature": "./models/socketRigCreature.ts",
     "./models/ropeDeckSite": "./models/ropeDeckSite.ts",
     "./shardfile/worldAssembly": "./shardfile/worldAssembly.ts",
+    "./shardfile/islandBook": "./shardfile/islandBook.ts",
+    "./shardfile/clientWorldAssembly": "./shardfile/clientWorldAssembly.ts",
     "./shardfile/worldUpdates": "./shardfile/worldUpdates.ts",
     "./looks/riggedHulls": "./looks/riggedHulls.ts",
     "./audio/forestPage": "./audio/forestPage.ts",

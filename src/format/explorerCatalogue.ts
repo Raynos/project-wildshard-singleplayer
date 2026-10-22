@@ -24,6 +24,8 @@ export const ExplorerCatalogueSchema = v.pipe(v.unknown(), v.check(isJsonData, '
     v.strictObject({ ...meta, kind: v.literal('npc'), npc: text }),
     v.strictObject({ ...meta, kind: v.literal('scene'), part: text }),
     v.strictObject({ ...meta, kind: v.literal('library'), library: text, model: text }),
+    v.strictObject({ ...meta, kind: v.literal('collection'), library: text, model: text }),
+    v.strictObject({ ...meta, kind: v.literal('scene-model'), library: text, model: text }),
     v.strictObject({ ...meta, kind: v.literal('posed'), file: text, source: v.exactOptional(v.literal('product')) }),
     v.strictObject({ ...meta, kind: v.literal('figure'), file: text, figure: text }),
     v.strictObject({ ...meta, kind: v.literal('kit-figure'), file: text, figure: text }),

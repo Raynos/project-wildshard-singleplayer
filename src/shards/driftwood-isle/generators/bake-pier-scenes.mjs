@@ -16,7 +16,7 @@ const rows = read('piers.generated'), authored = JSON.parse(readFileSync(new URL
 const plain = descriptors => descriptors.map(shape => ({ ...shape, ...('points' in shape ? { points: [...shape.points] } : {}) }));
 const placements = [], facts = [], slots = new Set();
 const model = { key: 'pier', id: 'driftwood-isle/pier', name: 'Pier', category: 'buildings', pipeline: 'code', surface: 'planks',
-  file: 'src/shards/driftwood-isle/models/catalogue.ts', defaults: authored.PIER_DEFAULTS, variants: authored.PIER_VARIANTS, choices: [] };
+  file: 'src/shards/driftwood-isle/generators/bake-pier-scenes.mjs', defaults: authored.PIER_DEFAULTS, variants: authored.PIER_VARIANTS, choices: [] };
 for (const row of rows) {
   const p = row.params, draws = fixed.groups.piers[row.id];
   if (draws === undefined) throw new Error(`Missing pier draws: ${row.id}`);
@@ -35,7 +35,7 @@ for (const row of rows) {
     colliders: plain(pierColliders(p).map(shape => placeCollider(shape, poseOf(pose)))) });
   facts.push({ id, ...w });
 }
-const boat = { key: 'boat', id: 'driftwood-isle/boat', name: 'Sailboat', category: 'buildings', pipeline: 'code', surface: 'planks', file: 'src/shards/driftwood-isle/models/catalogue.ts', defaults: {}, choices: [{ id: 'default', params: {}, size: [BOAT_LAYOUT.beam, 5.6, BOAT_LAYOUT.length], colliders: plain(STATIC_BOAT.colliders), draws: [
+const boat = { key: 'boat', id: 'driftwood-isle/boat', name: 'Sailboat', category: 'buildings', pipeline: 'code', surface: 'planks', file: 'src/shards/driftwood-isle/generators/bake-pier-scenes.mjs', defaults: {}, choices: [{ id: 'default', params: {}, size: [BOAT_LAYOUT.beam, 5.6, BOAT_LAYOUT.length], colliders: plain(STATIC_BOAT.colliders), draws: [
  { id: 'hull', library: 'cascade', model: 'boatHull', material: 'solid', castShadow: true, receiveShadow: true },
  { id: 'sail', library: 'cascade', model: 'boatSail', material: 'kit', castShadow: true },
  { id: 'gear', library: 'cascade', model: 'boatGear', material: 'still', receiveShadow: true },
@@ -50,7 +50,7 @@ carriage.rotation.y = lay.park(at); carriage.position.copy(at); zipGroup.add(new
 const box = new Box3().setFromObject(zipGroup), zipFloors = [{ x: d.x, z: d.z, hw: d.hw, hd: d.hd, y: d.y, rot: d.yaw }];
 placements.push({ id: 'harbour.zipline', model: 'zipline', draw: 'merged', poses: [{ x: zipSpec.top.x, y: zipSpec.top.y, z: zipSpec.top.z, params: { top: zipSpec.top, bottom: zipSpec.bottom }, matrix: [...poseOf(zipSpec.top).matrix.elements] }], drawnInto: { part: 'zipline.root', boxes: [...box.min, ...box.max] }, colliders, piece: { id: 'zipline', floors: zipFloors, solidFloor: true } });
 zipGeometry.rig.dispose(); zipGeometry.trolley.dispose(); zipMaterial.dispose();
-const zipline = { key: 'zipline', id: 'driftwood-isle/zipline', name: 'Zipline', category: 'buildings', pipeline: 'code', surface: 'planks', file: 'src/shards/driftwood-isle/models/catalogue.ts', defaults: zipRows.specimenLayout, choices: [{ id: 'specimen', params: zipRows.specimenLayout, size: [16, 7, 7], colliders: [], assembly: 'objects', draws: [
+const zipline = { key: 'zipline', id: 'driftwood-isle/zipline', name: 'Zipline', category: 'buildings', pipeline: 'code', surface: 'planks', file: 'src/shards/driftwood-isle/generators/bake-pier-scenes.mjs', defaults: zipRows.specimenLayout, choices: [{ id: 'specimen', params: zipRows.specimenLayout, size: [16, 7, 7], colliders: [], assembly: 'objects', draws: [
  { id: 'rig', library: 'cascade', model: 'zipline-specimen', material: 'still', castShadow: true, receiveShadow: true },
  { id: 'trolley', library: 'cascade', model: 'zipline-parked', material: 'still', castShadow: true },
 ] }] };

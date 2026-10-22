@@ -15,7 +15,7 @@ test('Driftwood fixed draws and island cover files name admitted product blobs (
   const value: unknown = JSON.parse(new TextDecoder().decode(bytes));
   validateDefinedSection(schema, value);
   const layouts = v.parse(SECTIONS['custom/fixedLayouts'], value), names = new Set(loaded.output.namedFiles?.map(file => file.name));
-  for (const name of [...layouts.fixedDraws.map(draw => draw.file), BAKED_COVE.wear?.files.phone.file, BAKED_COVE.wear?.files.desktop.file]) expect(names.has(name), name).toBe(true);
+  for (const name of [...layouts.draws.map(draw => draw.file), BAKED_COVE.wear?.files.phone.file, BAKED_COVE.wear?.files.desktop.file]) expect(names.has(name), name).toBe(true);
   const files = loaded.output.namedFiles ?? [];
   expect(new Set(files.map(file => file.hash)).size).toBe(files.length);
 }, 30000);

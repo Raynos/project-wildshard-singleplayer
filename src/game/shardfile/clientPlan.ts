@@ -1,3 +1,4 @@
+import { preflightIslandBook } from './islandBook';
 import { installClientAdventurePersistence } from '../quest/persistence';
 import { timeClientPreparation } from './preparationTiming';
 import { installPracticeCourse } from '../practice/registration';
@@ -63,6 +64,11 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     // Item/quest/journal envelopes are root data; finishes are streamed separately.
     sections: ['held/finishes'], install: installClientCatalogue },
   'state.adventure': { phase: 'world', rank: 5, lifetime: 'entered', sections: [], install: installClientAdventurePersistence },
+  'world.assembly': { phase: 'world', rank: 70, lifetime: 'entered', sections: ['world/scenes'], install: async (ctx, row) => {
+    if (row.kind !== 'world.assembly') throw new Error('Invalid world assembly feature');
+    const { installClientWorldAssembly } = await import('./clientWorldAssembly');
+    await installClientWorldAssembly(ctx, row);
+  } },
   'world.meadow': { phase: 'world', rank: 46, lifetime: 'entered', sections: [], install: installClientMeadow },
   // Construction and entered lending finish before these fixed owner bindings.
   // Rows cannot choose this boundary or move it after the shell captures hooks.
@@ -262,6 +268,7 @@ export interface AdmittedClientPlan { readonly features: readonly ClientFeatureR
 export function admitClientPlan(input: unknown, product: ShardProduct): AdmittedClientPlan {
   try {
     const plan = parseClientPlan(input);
+    for (const row of plan.features) if (row.kind === 'world.assembly') preflightIslandBook(product, row);
     if (plan.features.some(row => row.kind === 'population.hull-book')) {
       if (plan.features.some(row => row.kind === 'population.product-creatures')) throw new Error('Hull book kit cannot duplicate product creatures');
       // These existing admitted services retain their wire during entry migration.

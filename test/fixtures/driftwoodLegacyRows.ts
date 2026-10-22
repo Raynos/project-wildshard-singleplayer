@@ -1,6 +1,8 @@
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
-import type { CustomSections } from '../productSections.generated.d.ts';
-import { ISLAND } from './blobAssets';
+import type * as v from 'valibot';
+import { SECTIONS } from './driftwoodLegacySections';
+type CustomSections = { [K in keyof typeof SECTIONS]: v.InferOutput<(typeof SECTIONS)[K]> };
+import { ISLAND } from './driftwoodLegacyAssets';
 
 type RowSection = keyof CustomSections;
 
