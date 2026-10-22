@@ -114,6 +114,23 @@ export function fixedDraws(product: Pick<ShardProduct, 'file' | 'slug'>, input: 
 
 /** A library whose rows read no product file (lane bakes and inline blocks only: a shard's prepared shapes); a file row
  *  refuses. */
+const productDraws = new WeakMap<object, Map<string, Promise<FixedDraws>>>();
+/** A product's baked fixed draws from its named JSON file of rows (`bakedFixedDraws`): one library (one promise, its
+ *  failure included) per exact product and file, so every world built from that product shares its loaded geometry. The
+ *  product's reader must not change while the file is read. */
+export function productFixedDraws(product: { readonly json: (name: string) => Promise<unknown> }, file: string): Promise<FixedDraws> {
+  let files = productDraws.get(product);
+  if (files === undefined) { files = new Map(); productDraws.set(product, files); }
+  const known = files.get(file);
+  if (known !== undefined) return known;
+  const read = product.json, made = read(file).then(rows => {
+    if (product.json !== read) throw new Error(`Fixed draw product reader changed: ${file}`);
+    return bakedFixedDraws(rows);
+  });
+  files.set(file, made);
+  return made;
+}
+
 export function bakedFixedDraws(input: unknown): FixedDraws {
   const rows = v.parse(FixedDrawRowsSchema, input);
   if (rows.some(row => 'file' in row)) throw new Error('Baked fixed draws read no product file');

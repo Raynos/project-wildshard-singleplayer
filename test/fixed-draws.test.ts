@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry } from 'three';
 import { zlibSync } from 'fflate';
-import { bakedFixedDraws, coldFixedDraws, fixedDraws, inlineFixedDraw } from '../src/game/models/fixedDraws';
+import { bakedFixedDraws, coldFixedDraws, fixedDraws, inlineFixedDraw, productFixedDraws } from '../src/game/models/fixedDraws';
 import { Scope } from '../src/engine/app/scope';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 
@@ -190,4 +190,19 @@ test('fixed-draw named admission keeps exact channel-pair arity', () => {
   const row = { slot: 'inline', inline: base64(zlibSync(block(5))), channels: [['aTone', 'tone']], baked };
   expect(() => validateNamedJsonSchema(schema, new TextEncoder().encode(JSON.stringify([row])))).not.toThrow();
   expect(() => validateNamedJsonSchema(schema, new TextEncoder().encode(JSON.stringify([{ ...row, channels: [['aTone', 'tone', 'extra']] }])))).toThrow();
+});
+
+test('a product file of baked rows is one library per product and file; a failure stays; a changed reader refuses', async () => {
+  const row = { slot: 'inline', inline: base64(zlibSync(block(5))), channels: [], baked };
+  let reads = 0;
+  const book = { json: (name: string) => { reads++; return name === 'models/book.json' ? Promise.resolve([row]) : Promise.reject(new Error(`unread ${name}`)); } };
+  const first = await productFixedDraws(book, 'models/book.json');
+  expect(await productFixedDraws(book, 'models/book.json')).toBe(first); expect(reads).toBe(1);
+  await first.load(); expect(first.handle('inline').copy().getAttribute('position').getX(0)).toBe(5);
+  const other = { json: book.json };
+  expect(await productFixedDraws(other, 'models/book.json')).not.toBe(first);
+  await expect(productFixedDraws(book, 'models/absent.json')).rejects.toThrow('unread');
+  await expect(productFixedDraws(book, 'models/absent.json')).rejects.toThrow('unread'); expect(reads).toBe(3);
+  const swapped: { json: (name: string) => Promise<unknown> } = { json: () => { swapped.json = () => Promise.resolve([row]); return Promise.resolve([row]); } };
+  await expect(productFixedDraws(swapped, 'models/book.json')).rejects.toThrow('reader changed');
 });

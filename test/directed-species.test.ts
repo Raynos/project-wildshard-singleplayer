@@ -6,7 +6,7 @@ import { DirectedSpecies } from '../src/game/population/directedSpecies';
 import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type: 'json' };
 import { legacyDouble } from './fake/FakeGame';
 import { riderGeometry } from '../src/shards/nalati-grasslands/generators/ghostFigure';
-import { SHAPES } from '../src/shards/nalati-grasslands/models/shapes';
+import { SHAPES } from './fixtures/nalatiShapes';
 
 test('a marsh courier projects its own target memory, cadence and hit rules through the existing guest', () => {
   const row = { signal: 'steer', clock: 'courier.clock', every: .1, target: ['guide.x', 'guide.z'], motion: ['guide.speed', 'guide.turn'],

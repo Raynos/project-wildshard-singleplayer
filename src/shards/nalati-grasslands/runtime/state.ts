@@ -18,7 +18,7 @@ import { wind } from '@wildshard/engine/world/steppeWind';
 
 import { SceneDressing } from '@wildshard/game/shardfile/sceneDressing';
 import { arenaRoomGeometryIds, buildArenaRoomEncounter } from '@wildshard/game/boss/arenaRoom';
-import { SHAPES } from '../models/shapes';
+import { productFixedDraws } from '@wildshard/game/models/fixedDraws';
 import { DeclaredEliteEntry } from '@wildshard/engine/ai/view/eliteEntry';
 import type { ExternalElitePage } from '@wildshard/game/quest/elitePage';
 import { parseEliteEntryPageRows } from '@wildshard/format/eliteEntryRows';
@@ -46,6 +46,9 @@ export type NalatiWeather = Nalati['weather'];
 
 async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin: ShardContext, progress?: StepProgress) {
   const { admission } = v.parse(v.object({ admission: v.unknown() }), await plugin.product.json('sim/headless-boot.json'));
+  // the shape book (carvings, trophies, arena parts, ghost riders, painted places): the world's original fixed draws
+  const product = plugin.product, shapes = await productFixedDraws(product, 'models/shape-book.json');
+  if (plugin.scope.disposed || plugin.product !== product) throw new Error('Nalati world owners changed while its shape book loaded');
   const eliteProgram = ReturnProgram.page(admission, plugin.scope);
   const { game, sky } = ctx;
   const slice = slicer(0, progress);
@@ -55,7 +58,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   const updates: ((dt: number, t: number) => void)[] = [];
   const runtime = plugin.game.runtime;
   if (runtime === undefined || runtime.world !== ctx) throw new Error('Missing original world construction owner');
-  const groups = await WorldAssembly.construct(prefix, { runtime, native: plugin, product: plugin.product, scope: plugin.scope, draws: SHAPES, baked: new Map(), ...(progress === undefined ? {} : { progress }) });
+  const groups = await WorldAssembly.construct(prefix, { runtime, native: plugin, product: plugin.product, scope: plugin.scope, draws: shapes, baked: new Map(), ...(progress === undefined ? {} : { progress }) });
   const dressing = SceneDressing.current(plugin);
   const anchors = (place: string, name: string) => dressing.pieces.get(place)?.anchors[name] ?? [];
   updates.push(() => undefined); // The dressing owns this frame slot.
@@ -81,7 +84,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   const { constants: { pageElites: eliteInput } } = await plugin.product.json<{ constants: { pageElites: unknown } }>('sim/headless-assembly.json');
   const eliteRows = parseEliteEntryPageRows(eliteInput);
   const dropMaterial = painterlyMaterial(sky, { rim: .6 });
-  const drops = new Map(eliteRows.entry.entries.map(row => { const model = new Group(); model.add(new Mesh(SHAPES.handle(`trophy:${row.id}`).copy(), dropMaterial)); return [row.id, model] as const; }));
+  const drops = new Map(eliteRows.entry.entries.map(row => { const model = new Group(); model.add(new Mesh(shapes.handle(`trophy:${row.id}`).copy(), dropMaterial)); return [row.id, model] as const; }));
   const eliteLedges = anchors('crags', 'ledges');
   const elites = new DeclaredEliteEntry<ExternalElitePage>(eliteRows.entry, game.levelScope);
   updates.push((dt, t) => {
@@ -97,7 +100,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
 
   // ── the great kurgan + the Golden King (boss agent, B13): the dungeon interior, the doors, the boss fight — src/shards/nalati-grasslands/kurganBoss.ts ──
   const kingRows = v.parse(v.object({ king: v.record(v.string(),v.unknown()), arenaRoom: v.unknown(), programs: v.object({ rules: v.unknown() }) }), await plugin.product.json('combat/titan-fight.json'));
-  const boss = await buildArenaRoomEncounter(plugin,kingRows.arenaRoom,{ ...kingRows.king,definition: kingRows.king['encounter'],program: kingRows.programs.rules },arenaRoomGeometryIds(kingRows.arenaRoom).map(id => [id, SHAPES.handle(id).copy()] as const),anchors('kurgans', 'entrance')[0] ?? null);
+  const boss = await buildArenaRoomEncounter(plugin,kingRows.arenaRoom,{ ...kingRows.king,definition: kingRows.king['encounter'],program: kingRows.programs.rules },arenaRoomGeometryIds(kingRows.arenaRoom).map(id => [id, shapes.handle(id).copy()] as const),anchors('kurgans', 'entrance')[0] ?? null);
   groups['kurgan'] = boss.dungeon.group;
   updates.push((dt, t) => boss.update(dt, t));
   plugin.answer('weather.indoors', inside => Math.max(inside, Number(boss.inside))); // weather agent (B10): no lightning / rain in the dungeon, and no storm starts during the fight
@@ -113,7 +116,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
 
   // B9, wired below; the crouch also works on the meadow while you approach a stallion to tame (E287: the quest asks for it)
   let stealth: Stealth | null = null;
-  const riderFigure = game.levelScope.own(SHAPES.handle('ghost-rider').copy()), captainFigure = game.levelScope.own(SHAPES.handle('ghost-captain').copy());
+  const riderFigure = game.levelScope.own(shapes.handle('ghost-rider').copy()), captainFigure = game.levelScope.own(shapes.handle('ghost-captain').copy());
   const night = await TimedEncounters.install(plugin, { game, sky, player: ctx.player, forest: ctx.forest, sites: dressing.sites.get('balbals')?.sites ?? null, clock: weather.clock },
     'combat/timed-encounters.json', { rider: riderFigure, captain: captainFigure, storm: riderFigure }, creatureGuest().program());
   function eliteFrame() { return { patrolAvailable: true, herdAvailable: wildlife !== null, kills: night.riders.killsTonight,

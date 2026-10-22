@@ -2,7 +2,7 @@ import { specimenMaterial } from '@wildshard/game/models/specimenCatalogue';
 import specimenData from '../../src/shards/nalati-grasslands/data/specimens.generated.json' with { type: 'json' };
 // Frozen shipping round before the AS projection (2026-10-18).
 import * as THREE from 'three';
-import { SHAPES } from '../../src/shards/nalati-grasslands/models/shapes';
+import { SHAPES } from './nalatiShapes';
 import layoutRows from '../../src/shards/nalati-grasslands/boot/layout.generated.json' with { type: 'json' };
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';

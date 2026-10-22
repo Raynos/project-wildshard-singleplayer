@@ -12,7 +12,7 @@ import { WorldRegistry } from '../src/engine/world/registry';
 import marsh from './fixtures/boss-owner/marsh-room.json' with { type: 'json' };
 import view from '../src/shards/nalati-grasslands/data/kurganView.json' with { type: 'json' };
 import { bossArena } from './fake/bossArena';
-import { SHAPES } from '../src/shards/nalati-grasslands/models/shapes';
+import { SHAPES } from './fixtures/nalatiShapes';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import titan from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type: 'json' };
 import king from '../src/shards/nalati-grasslands/data/goldenKing.generated.json' with { type: 'json' };

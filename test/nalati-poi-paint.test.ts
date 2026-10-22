@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- compare the pre-conversion runtime's exact attribute bytes
 import { createHash } from 'node:crypto';
 import { describe, expect, it, vi } from 'vitest';
-import { SHAPES } from '../src/shards/nalati-grasslands/models/shapes';
+import { SHAPES } from './fixtures/nalatiShapes';
 import { letteringMaterial } from '../src/game/looks/lettering';
 import atlases from '../src/shards/nalati-grasslands/data/signAtlases.json' with { type: 'json' };
 import { seatedFigureView } from '../src/game/riding/seatedFigure';
