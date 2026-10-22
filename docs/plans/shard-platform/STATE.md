@@ -4,7 +4,7 @@
 
 **Live:** 616ea317b (G578 in-world loading not yet live): QA+QB, X5, G566, Pastel 0. Sim sweep 6f78ae7dc2: standalone + plots 60 fps (worst 53 ms); grid corner worst 191 ms (sp-o2); p95 36-51 ms Pine/Nine drive (G561).
 
-**Tooling:** BUILD-SPEED; push loop LIVE (53e0880f4f green, 44 s). G567: goal 0 %; plan = 60 % M3 + 40 % M2: 78.6 % (M3 90.92 %, M2 6/10).
+**Tooling:** BUILD-SPEED; tools (push 60 s, CI/smoke 300 s, lane watchdog, 15-min sp-x7 wake) run in herdr pane sp-tools (scripts/sp-tools.sh start|stop; G582, no launchd). G567: goal 0 %; plan = 60 % M3 + 40 % M2: 78.6 % (M3 90.92 %, M2 6/10).
 
 **Rules:** lanes/common.md; G569 watchdog nudges idle Opus + Codex lanes (48894c561c; delivery to Claude panes verified 16:38; restarts reset the 3 min clock; sp-x7 exempt 6f78ae7dc2); G551 rows above Z; G570 rows ZA-ZG; G571 every DW/Pine line to data/AS, one-user hosts OK (areas 23d821c360); G572: TRAMPLE_GLSL is LIVE (forestPage.ts:22 via Pine hybrid.ts:29), not legacy-only; its 30 stay charged; WASM-HOST: sp-x9 (H0b done, H1-H6), sp-o4 (H0, H9). G574: Opus = sp-o4, sp-o5, sp-o2; sp-o1/sp-o3 stop after their task.
 
