@@ -1,7 +1,7 @@
 import { resolve } from 'node:path';
 import { zlibSync } from 'fflate';
 import { Rng } from '@wildshard/engine/core/rng';
-import { NALATI_GRASS_LAYOUT } from './grassFieldLayout.ts';
+import NALATI_GRASS_LAYOUT from '../data/grassFieldLayout.json' with { type: 'json' };
 import { SEED, TERRAIN, RIVER, SPAWN, groundColor, surfaceAt, zoneAt, riverMask, brookMask, loneSpruceMask, inSpruceClearing, edgeBermAt } from './terrainRecipe.ts';
 import { edgeSpruceMask } from './edgeRecipe.ts';
 import { nalatiWetAt } from './wetRecipe.ts';

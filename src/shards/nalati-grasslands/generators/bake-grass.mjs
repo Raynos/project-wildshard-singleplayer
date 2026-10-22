@@ -6,7 +6,7 @@ import { DataUtils } from 'three';
 import { smoothstep } from '@wildshard/engine/core/noise';
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { GrassField } from '@wildshard/game/systems/looks/grassField';
-import { NALATI_GRASS_LAYOUT } from './grassFieldLayout.ts';
+import NALATI_GRASS_LAYOUT from '../data/grassFieldLayout.json' with { type: 'json' };
 import { TERRAIN, SEED, RIVER, groundColor } from './terrainRecipe.ts';
 import { grassRows } from './grassRows.ts';
 import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';

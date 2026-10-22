@@ -164,7 +164,7 @@
         "src/game",
         "src/sdk",
         "src/format",
-        "src/shards/nalati-grasslands/generators/grassFieldLayout.ts"
+        "src/shards/nalati-grasslands/data/grassFieldLayout.json"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/boot/geography.generated.json",
@@ -18954,7 +18954,7 @@
         "src/shards/nalati-grasslands/generators/poiLayout.ts",
         "src/shards/nalati-grasslands/generators/bake-grass.mjs",
         "src/shards/nalati-grasslands/generators/grassRows.ts",
-        "src/shards/nalati-grasslands/generators/grassFieldLayout.ts",
+        "src/shards/nalati-grasslands/data/grassFieldLayout.json",
         "public/assets/baked/nalati-grasslands/terrain.bin",
         "src/game/systems/looks/grassField.ts",
         "src/sdk/looks/tileField.ts",

@@ -17,7 +17,7 @@ async function bakeNalatiDressing(dressingRecipe) {
     const { NALATI_GRASSLANDS } = await import('../../src/shards/nalati-grasslands/manifest.ts');
     await prepareNativeTerrain(NALATI_GRASSLANDS, { root, bytes: readFileSync(resolve(root, 'public/assets/baked/nalati-grasslands/terrain.bin')) });
     const { configureGrassField } = await import('@wildshard/game/systems/looks/grassField');
-    const { NALATI_GRASS_LAYOUT } = await import('../../src/shards/nalati-grasslands/generators/grassFieldLayout.ts');
+    const { default: NALATI_GRASS_LAYOUT } = await import('../../src/shards/nalati-grasslands/data/grassFieldLayout.json', { with: { type: 'json' } });
     const { pageScope } = await import('@wildshard/engine/app/resources');
     const { RIVER } = await import('../../src/shards/nalati-grasslands/generators/terrainRecipe.ts');
     configureGrassField({ ...NALATI_GRASS_LAYOUT, riverZ: RIVER.z, riverHalf: RIVER.half }, pageScope);
