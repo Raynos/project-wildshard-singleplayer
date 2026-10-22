@@ -1995,37 +1995,6 @@
       "platform": "portable"
     },
     {
-      "id": "driftwood-isle-audio",
-      "shard": "driftwood-isle",
-      "entry": "src/shards/driftwood-isle/generators/bake-audio.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/driftwood-isle/generators/bake-audio.mjs"
-      ],
-      "inputRoots": [
-        "src/shards/driftwood-isle/generators/bake-audio.mjs",
-        "scripts/bake-output.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/format",
-        "src/sdk/immutable.ts",
-        "src/shards/driftwood-isle/data/audioSource.json",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/sdk/package.json",
-        "src/shards/driftwood-isle/data/coveComposition.json"
-      ],
-      "outputs": [
-        "src/shards/driftwood-isle/data/audio.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/driftwood-isle/data/audio.generated.json"
-      ],
-      "platform": "portable"
-    },
-    {
       "id": "driftwood-zipline",
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/bake-zipline.mjs",
@@ -17468,6 +17437,41 @@
       ],
       "seedOutputs": [],
       "platform": "native"
+    },
+    {
+      "id": "driftwood-isle-audio",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/bake-audio.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/driftwood-isle/generators/bake-audio.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/driftwood-isle/generators/bake-audio.mjs",
+        "scripts/bake-output.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/format",
+        "src/sdk/immutable.ts",
+        "src/shards/driftwood-isle/data/audioSource.json",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/sdk/package.json",
+        "src/shards/driftwood-isle/data/coveComposition.json",
+        "src/shards/driftwood-isle/generators/gameplayAudioEnvironment.ts",
+        "src/shards/driftwood-isle/data/wreckBake.json",
+        "src/shards/driftwood-isle/data/islandFacts.generated.json",
+        "src/shards/driftwood-isle/data/foliagePlacements.generated.json"
+      ],
+      "outputs": [
+        "src/shards/driftwood-isle/data/audio.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/driftwood-isle/data/audio.generated.json"
+      ],
+      "platform": "portable"
     },
     {
       "id": "driftwood-shore-boulders",

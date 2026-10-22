@@ -56,6 +56,8 @@ export class DriftwoodPlugin extends ShardPlugin {
       entryOwner(resident, 'chain', 'bridge.deck');
       for (const id of ['bridge', 'cover']) entryOwner(resident, 'placed', id);
       for (const id of ['bridge', 'cover']) lendEntryOwner(ctx.scope, resident, 'placed', id);
+      lendEntryOwner(ctx.scope, resident, 'floor', 'bridge');
+      lendEntryOwner(ctx.scope, resident, 'buildings', 'shrine');
       lendEntryOwner(ctx.scope, resident, 'chain', 'bridge.deck');
       lendEntryOwner(ctx.scope, resident, 'object', 'driftwood.gulls');
       lendEntryOwner(ctx.scope, resident, 'object', 'driftwood.cover');

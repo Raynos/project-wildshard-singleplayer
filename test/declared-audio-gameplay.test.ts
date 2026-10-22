@@ -28,7 +28,9 @@ import { parseAudioData } from '@wildshard/format/audio';
 import pineSource from '../src/shards/pine-hollow/data/audioSource.json' with {type:'json'};
 import islandSource from '../src/shards/driftwood-isle/data/audioSource.json' with {type:'json'};
 
-const pine=parseAudioData(pineSource.audio),island=parseAudioData(islandSource.audio);
+// Retain the original environment only as the legacy parity oracle.
+const originalEnvironment={"objects":{"wreck":{"owner":"world","path":["wreck"]},"cove":{"owner":"cove","path":[]}},"near":{"palms":{"owner":"world","path":["palmSpecs"]}},"floors":{"decks":[{"owner":"world","path":["pier"]},{"owner":"world","path":["jetties"]},{"owner":"world","path":["boat"]},{"owner":"world","path":["hut"]},{"owner":"world","path":["lookout"]},{"owner":"world","path":["bridge"]},{"owner":"world","path":["wreck"]}],"stone":[{"owner":"world","path":["shrine"]}]},"dusk":{"owner":"world","path":["shrine"]},"emitter":{"id":"hum","profile":"shrine","point":{"owner":"world","path":["shrine","group","position"]},"height":2.5},"publish":{"id":"driftwood.audio","values":{"shrineHum":{"owner":"emitters","path":["hum"]},"islandSfx":{"owner":"bank","path":[]},"surfaces":{"owner":"surfaces","path":[]},"ambience":{"owner":"ambience","path":[]}}}};
+const pine=parseAudioData(pineSource.audio),island=parseAudioData({...islandSource.audio,gameplay:{...islandSource.audio.gameplay,environment:originalEnvironment}});
 it('hears native door data only during its entered audio scope',()=>{
   class Feed extends EventTarget implements DoorMotionEvents {
     current:DoorMotionEvents['current']=null;

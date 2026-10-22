@@ -103,6 +103,7 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
       seeds: false, name: 'shrine-fireflies', at: { point: 'shrine.root', offset: [0, baseY, 0] }, parent: 'shrine.root', center: [0, terrace - baseY, 0], radius: 18, order: 4, visible: lit }));
     const data = v.parse(v.strictObject({ look: BuildingLifeLookSchema, life: BuildingLifeRowsSchema, initialDusk: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(1)) }), JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await driftwoodProduct().file('world/building-life.json'))));
     const life = new LivingBuildings(resources, data.look); life.add(data.life); life.setDusk(data.initialDusk); life.update(0);
+    publishEntryOwner(scope, 'buildings', 'shrine', life);
     return { ...placed, update: life.update.bind(life), setDusk: life.setDusk.bind(life) };
   })();
   // the three jetties: three more placements of the pier model, pieces `jetty-0..2`
@@ -170,6 +171,7 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   publishEntryOwner(scope, 'object', 'driftwood.gulls', gulls.group);
   publishEntryOwner(scope, 'ambient-draw', 'driftwood.gulls', gulls);
   publishEntryOwner(scope, 'object', 'driftwood.cover', cover.group);
+  publishEntryOwner(scope, 'floor', 'bridge', bridge.floorHeightAt);
   publishEntryOwner(scope, 'chain', 'bridge.deck', bridgeDeck);
   publishEntryOwner(scope, 'placed', 'bridge', [bridge.placed]);
   publishEntryOwner(scope, 'placed', 'cover', cover.placed);

@@ -1,4 +1,7 @@
-import { runtimeAudio, installRuntimeAudioEntry, installRuntimeGameplayAudio } from '../plugin/audio';
+import { entryOwner } from '../shardfile/entryOwners';
+import { boundResidentWorldScope } from '../shardfile/hybridPresentation';
+import type { Tier } from '@wildshard/engine/core/tier';
+import { runtimeAudio, installRuntimeAudioEntry, installRuntimeGameplayAudio, type RuntimeGameplayAudioEnvironment } from '../plugin/audio';
 import type { ShardProduct } from '../shardfile/shardProduct';
 import { Vector3 } from 'three';
 import { parse } from 'valibot';
@@ -128,6 +131,18 @@ export function installClientAudioScene(ctx:ShardContext):void{
 export function clientAudioScene(ctx:ShardContext):AudioSceneDirector{
  const scene=enteredScenes.get(ctx.scope)?.get(ctx.product);if(scene===undefined||ctx.scope.disposed)throw new Error('Audio scene is not installed');return scene;
 }
+/** Resolve only finite, typed loans before the existing audio phase effects.
+ * Numeric bounds and near points came from the admitted build-time rows; null
+ * floors remain gaps rather than resurrecting retired world-object fields. */
+function gameplayAudioEnvironment(ctx:ShardContext,row:NonNullable<NonNullable<AudioData['gameplay']>['entryEnvironment']>,tier:Tier):RuntimeGameplayAudioEnvironment {
+ const scope=boundResidentWorldScope(ctx.scope)??ctx.scope;
+ if(scope.disposed||scope.disposing||ctx.scope.disposed||ctx.scope.disposing||!ctx.scope.belongsTo(scope))throw new Error('Gameplay audio construction has ended');
+ const floors=Object.fromEntries(Object.entries(row.floors).map(([id,loans])=>[id,loans.map(loan=>loan===null?null:entryOwner(ctx.scope,'floor',loan))]));
+ const dusk=entryOwner(ctx.scope,'buildings',row.dusk),point=entryOwner(ctx.scope,'object',row.emitter.point);
+ return {scope,floors,dusk,emitter:{...row.emitter,point},publish:row.publish,
+   bounds:Object.fromEntries(Object.entries(row.bounds).map(([id,bounds])=>[id,bounds??undefined])),
+   near:Object.fromEntries(Object.entries(row.near).map(([id,points])=>[id,points[tier]]))};
+}
 /** Bind the admitted director to the actual page's native audio and cue owners.
  * Re-entry restores the same subscriptions without any content callback ports. */
 export async function enterClientAudioScene(ctx:ShardContext):Promise<void>{
@@ -137,8 +152,9 @@ export async function enterClientAudioScene(ctx:ShardContext):Promise<void>{
   const runtime=ctx.game.runtime;if(runtime?.world===undefined||runtime.world===null||runtime.play===null)throw new Error('Audio scene requires its native world');
   const {audio,music}=runtime.play,{game,sky,player}=runtime.world;
   const constants:Record<string,object>={};for(const [key,value]of Object.entries(data.gameplay.constants??{})){if(typeof value!=='object'||value===null)throw new Error('Invalid audio constant owner');constants[key]=value;}
+  const environment=data.gameplay.entryEnvironment===undefined?undefined:gameplayAudioEnvironment(ctx,data.gameplay.entryEnvironment,game.tier);
   installRuntimeAudioEntry(ctx,'play',{audio,music});
-  await installRuntimeGameplayAudio(ctx,{audio,music,camera:game.camera,listener:player,objects:runtime.objects,owners:{...constants,sky,world:runtime.objects,wind:windUniforms}});return;
+  await installRuntimeGameplayAudio(ctx,{audio,music,camera:game.camera,listener:player,objects:runtime.objects,owners:{...constants,sky,world:runtime.objects,wind:windUniforms}},environment);return;
  }
  const scene=clientAudioScene(ctx),play=ctx.game.runtime?.play;
  if(play===undefined||play===null)throw new Error('Audio scene requires its actual play owner');

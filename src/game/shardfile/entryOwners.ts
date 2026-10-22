@@ -17,10 +17,12 @@ import type { QuestPageReference } from '../quest/pageReference';
 import type { CaveInterior } from './caveInterior';
 import type { ForestPage } from './forestPage';
 import type { SceneHandles } from './sceneHandles';
+import type { LivingBuildings } from './livingBuildings';
 
 /** A kind names a concrete platform owner, never an arbitrary shard result. */
 export interface EntryOwnerTypes {
   scenes: SceneHandles;
+  buildings: LivingBuildings;
   forest: ForestPage;
   cave: CaveInterior;
   quest: QuestPageComposition;
@@ -51,7 +53,7 @@ function check(scope: Scope, id: string): void {
 function book(scope: Scope): Owners {
   let value = books.get(scope);
   if (value === undefined) {
-    value = { scenes: new Map(), forest: new Map(), cave: new Map(), quest: new Map(), 'quest-reference': new Map(),
+    value = { scenes: new Map(), buildings: new Map(), forest: new Map(), cave: new Map(), quest: new Map(), 'quest-reference': new Map(),
       object: new Map(), placed: new Map(), site: new Map(), floor: new Map(), 'fixed-draws': new Map(), chain: new Map(), ambient: new Map(), 'ambient-draw': new Map(), collection: new Map(), claims: new Map(),
       animals: new Map(), sounds: new Map(), 'quest-spawns': new Map() };
     books.set(scope, value);

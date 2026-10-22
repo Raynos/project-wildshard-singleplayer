@@ -177,6 +177,7 @@ export async function installRuntimeGameplayAudio(context:ShardContext,borrowed:
   const rows=runtimeAudio(context,context.product.shardfile.audio),policy=rows.gameplay;
   if(policy===undefined)throw new Error('Missing audio gameplay bindings');
   const environment=policy.environment;
+  if(policy.entryEnvironment!==undefined&&native===undefined)throw new Error('Missing concrete gameplay audio loans');
   if(native!==undefined&&environment!==undefined)throw new Error('Conflicting gameplay audio environments');
   if((native!==undefined||environment!==undefined)&&borrowed.objects===undefined)throw new Error('Missing gameplay object registry');
   if(native!==undefined){
