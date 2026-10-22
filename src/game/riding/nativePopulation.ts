@@ -185,7 +185,7 @@ export function installNativePopulation(host: SimHost, hunt: StalkerBrain<HuntBo
   const manager = new NativeManager(host, hunt, rng, { limit: POP_BODY_MAX, sightSlots: bodies.length, initialSight: false });
   const speed = manager.noise, seen = manager.sight;
   const driver = new NativePopulationDriver(host, manager, hunt, rng, bodies, packOf, herdOf, ports.elites, flocks, wolves,
-    { ...cfg.driver, tokens: cfg.tokens, program: ports.boot.admission, packKind: cfg.packKind, dogKind: cfg.dogKind, eliteKinds: cfg.eliteKinds });
+    { ...cfg.driver, tokens: cfg.tokens, program: ports.boot.admission, packKind: cfg.packKind, dogKind: cfg.dogKind, eliteKinds: cfg.eliteKinds }, groups);
   const placement = new Rng(0); placement.restore(ports.wildStream);
   const raids: v.InferOutput<typeof PopulationPack>[] = [], elitePacks: v.InferOutput<typeof PopulationPack>[] = [];
   const deferredSpec = (kind: string, variant: string) => v.parse(nativeBodySchema('axis'), ports.boot.recipes.find(row => row.kind === kind && row.variant === variant));

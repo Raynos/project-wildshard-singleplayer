@@ -1,4 +1,4 @@
-import { admitNativeManagerTokens, NativeWildEnvironment } from '../population/nativeManager';
+import { NativeWildEnvironment } from '../population/nativeManager';
 import { ReturnProgram } from '../population/returnProgram';
 import { bakedSamplers, type BakedGrid } from '@wildshard/engine/world/BakedTerrain';
 import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
@@ -157,15 +157,19 @@ export class NativeGroupCollection {
   constructor(private readonly host: SimHost, readonly packs: PackBrain<AnimalSim>[], readonly herds: HerdBrain<AnimalSim>[],
     private readonly actors: Map<string, AnimalSim>, private readonly prey: Map<string, PackPrey>, private readonly ids: WeakMap<PackPrey, string>,
     private readonly wolves: AnimalSim[], private readonly packOf: WeakMap<AnimalSim, PackBrain<AnimalSim>>,
-    rows: { id: string; firstRaid: number; environment?: NativeWildEnvironment; herds?: string }) {
+    rows: { id: string; firstRaid: number; environment?: NativeWildEnvironment; herds?: string },
+    readonly tokens?: { id: string; owners: WeakMap<AnimalSim, Parameters<PackPorts<AnimalSim>['register']>[1]> }) {
     const map = collections.get(host) ?? new Map<string, NativeGroupCollection>();
     if (rows.environment !== undefined && !(rows.environment instanceof NativeWildEnvironment)) throw new Error('Invalid native group world');
     if (map.has(rows.id) || packs.length === 0 || packs.length > 8 || herds.length > 8 || packs.some(pack => !(pack instanceof PackBrain))
       || herds.some(herd => !(herd instanceof HerdBrain)) || [...actors.values()].some(actor => host.entities.get(actor.entityId) !== actor)) throw new Error('Invalid native group owners');
     if (rows.herds !== undefined && [...map.values()].some(owner => owner.herdService === rows.herds)) throw new Error('Invalid native herd collection');
+    if (tokens !== undefined && [...map.values()].some(owner => owner.tokens?.id === tokens.id)) throw new Error('Duplicate native manager token owners');
     map.set(rows.id, this); collections.set(host, map); host.scope.onDispose(() => { map.delete(rows.id); }); this.firstRaid = rows.firstRaid; this.environment = rows.environment;
     this.herdService = rows.herds; this.wind = rows.environment?.wind ?? { x: 0, z: 0, strength: 0 };
   }
+  /** Membership and lifetime check over the concrete group, without importing its class value. */
+  owns(host: SimHost): boolean { return this.host === host && !host.scope.disposed && !host.scope.disposing && [...collections.get(host)?.values() ?? []].includes(this); }
   readonly firstRaid: number;
   addPack(members: AnimalSim[], x: number, z: number): PackBrain<AnimalSim> {
     const source = this.packs[0]; if (source === undefined || this.packs.length >= 8 || members.length > 64 || members.some(actor => this.host.entities.get(actor.entityId) !== actor)) throw new Error('Invalid deferred native pack');
@@ -247,6 +251,6 @@ export function installNativeGroupRows(host: SimHost, input: unknown, grid: Bake
       if (step.adopt !== null) herd.adoptStallion(actor(step.adopt)); herds.push(herd);
     }
   }
-  const collection = new NativeGroupCollection(host,packs,herds,actors,prey,ids,wolves,packOf,{ id: rows.id,firstRaid,environment,herds: rows.herds });
-  admitNativeManagerTokens(host,rows.tokens,tokens); return collection;
+  const collection = new NativeGroupCollection(host,packs,herds,actors,prey,ids,wolves,packOf,{ id: rows.id,firstRaid,environment,herds: rows.herds },{ id: rows.tokens,owners: tokens });
+  return collection;
 }

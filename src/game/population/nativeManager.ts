@@ -1,3 +1,4 @@
+import type { NativeGroupCollection } from '../shardfile/groupRuntime';
 import * as v from 'valibot';
 import { ForagerPopulation } from '@wildshard/engine/ai/ambientForager';
 import { GrassField } from '../systems/looks/grassField';
@@ -95,13 +96,6 @@ export class NativeManager {
   }
 }
 
-const directors = new WeakMap<SimHost, Map<string, WeakMap<AnimalSim, AggressionDirector<AnimalSim>>>>();
-/** Register actual built-in token owners, never shard claim or attack callbacks. */
-export function admitNativeManagerTokens(host: SimHost, id: string, owners: WeakMap<AnimalSim, AggressionDirector<AnimalSim>>): void {
-  const map = directors.get(host) ?? new Map<string, WeakMap<AnimalSim, AggressionDirector<AnimalSim>>>();
-  if (map.has(id)) throw new Error('Duplicate native manager token owners');
-  map.set(id, owners); directors.set(host, map); host.scope.onDispose(() => { map.delete(id); });
-}
 /** The single shard supplies dispatch roles and guest ids; clocks and concrete
  * actor, group, hunt, token and elite owners belong to the game. */
 export interface NativeDriverRows {
@@ -120,8 +114,8 @@ export class NativePopulationDriver {
   constructor(private readonly host: SimHost, private readonly manager: NativeManager, private readonly hunt: StalkerBrain<HuntBody>, private readonly rng: Rng,
     private readonly bodies: HuntBody[], private readonly packs: ReadonlyMap<AnimalSim, PackBrain<AnimalSim>>,
     private readonly herds: ReadonlyMap<AnimalSim, HerdBrain<AnimalSim>>, private readonly elites: EliteBindings,
-    private readonly flocks: readonly FlockBrain[], private readonly wolves: readonly FlockThreat[], private readonly rows: NativeDriverRows) {
-    const tokens = directors.get(host)?.get(rows.tokens); if (tokens === undefined) throw new Error('Missing native manager tokens'); this.tokens = tokens;
+    private readonly flocks: readonly FlockBrain[], private readonly wolves: readonly FlockThreat[], private readonly rows: NativeDriverRows, groups: NativeGroupCollection) {
+    const tokens = groups.tokens; if (!groups.owns(host) || tokens === undefined || tokens.id !== rows.tokens || !(tokens.owners instanceof WeakMap)) throw new Error('Missing native manager tokens'); this.tokens = tokens.owners;
     if (bodies.length > 64 || flocks.length > 4) throw new Error('Native population driver capacity exceeded');
     this.author = ReturnProgram.native(host, rows.program);
     for (const actor of bodies) this.admit(actor);

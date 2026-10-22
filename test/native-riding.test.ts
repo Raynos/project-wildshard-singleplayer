@@ -23,7 +23,7 @@ const rows = { step: 'orchard.saddle', herds: 'orchard.herds', kinds: ['boar'], 
   world: { res: 2, size: 32, water: -100, wet: zero, pond: zero }, thrownDamage: 7, thrownLabel: 'Thrown', program: programs.riding };
 // These riding-only fixtures need a dormant, real group owner, without adding
 // host entities, random streams or a step participant to the original test.
-function herdService(host: SimHost, id: string, group = `fixture:${id}`): FixtureNativeGroups {
+function herdService(host: SimHost, id: string, group = `fixture:${id}`, tokens?: ConstructorParameters<typeof FixtureNativeGroups>[9]): FixtureNativeGroups {
   const spec = fixtureBrain({ ...fixtureBrains.pack, id: 'fixture.pack', home: [0, 0], members: ['fixture.actor'] });
   if (spec.kind !== 'pack') throw new Error('Missing dormant fixture pack');
   const sample = SIM_LEVEL.entities[0]; if (sample === undefined) throw new Error('Missing dormant group member');
@@ -33,7 +33,7 @@ function herdService(host: SimHost, id: string, group = `fixture:${id}`): Fixtur
     visibility: () => 1, hearing: () => 10, downwind: () => false, inBounds: () => true, normalY: () => 1, register: () => undefined, bite: () => undefined,
   });
   return new FixtureNativeGroups(host, [pack], [], new Map<string, AnimalSim>(), new Map<string, PackPrey>(), new WeakMap<PackPrey, string>(), [],
-    new WeakMap<AnimalSim, FixturePack<AnimalSim>>(), { id: group, herds: id, firstRaid: 0 });
+    new WeakMap<AnimalSim, FixturePack<AnimalSim>>(), { id: group, herds: id, firstRaid: 0 }, tokens);
 }
 function install(host: SimHost) { herdService(host, rows.herds); return installMountedPlayer(host, rows); }
 
@@ -97,7 +97,7 @@ test('G478 orchard fixture owns companion allocation, retirement and native tami
 test('orchard native manager drives the admitted roster at ten Hz across body frames', async () => {
   const { fixtureNativeRoster } = await import('./fixtures/native-roster');
   const { Rng } = await import('@wildshard/engine/core/rng');
-  const { NativeManager, NativePopulationDriver, admitNativeManagerTokens } = await import('@wildshard/game/population/nativeManager');
+  const { NativeManager, NativePopulationDriver } = await import('@wildshard/game/population/nativeManager');
   const { createNativeCreatureRoster } = await import('@wildshard/game/shardfile/homeKeeper');
   const { eliteBindings } = await import('@wildshard/game/shardfile/eliteEncounters');
   const { default: admission } = await import('../src/shards/nalati-grasslands/behaviour/admission.generated.json');
@@ -109,9 +109,14 @@ test('orchard native manager drives the admitted roster at ten Hz across body fr
   const slot = intake.body('orchard.boar', sample.spec.kind, sample.spec.variant, -1, { x: 2, z: 3 }, 0, [1, 1]);
   const actor = intake.arrive(slot); intake.remember(slot);
   const manager = new NativeManager(host, hunt, random, { limit: 64, sightSlots: 1, initialSight: false });
-  admitNativeManagerTokens(host, 'orchard.tokens', new WeakMap());
-  const driver = new NativePopulationDriver(host, manager, hunt, random, [actor], new Map(), new Map(), eliteBindings(), [], [],
-    { tokens: 'orchard.tokens', program: admission, packKind: 'boar', dogKind: 'collie', eliteKinds: [], dispatch: 'dispatch', dogDecision: 'dog', stragglerDistance: 12 });
+  const groups = herdService(host, 'unused.herds', 'fixture.driver', { id: 'orchard.tokens', owners: new WeakMap() });
+  const makeDriver = (id = 'orchard.tokens', ownerHost = host): InstanceType<typeof NativePopulationDriver> => new NativePopulationDriver(ownerHost, manager, hunt, random, [actor], new Map(), new Map(), eliteBindings(), [], [],
+    { tokens: id, program: admission, packKind: 'boar', dogKind: 'collie', eliteKinds: [], dispatch: 'dispatch', dogDecision: 'dog', stragglerDistance: 12 }, groups);
+  expect(() => makeDriver('foreign.tokens')).toThrow('Missing native manager tokens');
+  const foreign = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier });
+  try { expect(groups.owns(foreign)).toBe(false); expect(() => makeDriver('orchard.tokens', foreign)).toThrow('Missing native manager tokens'); }
+  finally { foreign.dispose(); }
+  const driver = makeDriver();
   host.onStep('orchard.population', dt => { driver.update(dt); });
   try {
     actor.setMotion(1, 3, 1);
@@ -230,7 +235,7 @@ test('orchard fixture installs the complete native population through data rows'
   const { PackBrain } = await import('@wildshard/engine/ai/pack');
   const { nativeGroupBrain } = await import('@wildshard/format/groupBrains');
   const { NativeGroupCollection } = await import('@wildshard/game/shardfile/groupRuntime');
-  const { NativeWildEnvironment, admitNativeManagerTokens } = await import('@wildshard/game/population/nativeManager');
+  const { NativeWildEnvironment } = await import('@wildshard/game/population/nativeManager');
   const { installNativePopulation, nativePopulationOf } = await import('@wildshard/game/riding/nativePopulation');
   const { eliteBindings } = await import('@wildshard/game/shardfile/eliteEncounters');
   const { GrassField } = await import('@wildshard/game/systems/looks/grassField');
@@ -256,8 +261,8 @@ test('orchard fixture installs the complete native population through data rows'
   const field = new GrassField({ seed: 9, half: 16, heightAt: () => 0, normalAt: () => [0, 1, 0], splatAt: () => [1, 0, 0, 0], trailDistance: () => Infinity,
     cabinMask: () => 0, pondMask: () => 0, waterLevel: () => -100, paint: () => false, layout: null });
   const environment = new NativeWildEnvironment(field, new TrampleField(), { wind: { x: 1, z: 0, strength: .3 }, flatten: .5 }, ReturnProgram.native(host,admission));
-  new NativeGroupCollection(host, [pack], [], new Map([[actor.entityId, actor]]), prey, ids, [actor], new WeakMap(), { id: 'orchard.groups', firstRaid: 14, environment });
-  admitNativeManagerTokens(host, 'orchard.tokens', new WeakMap()); herdService(host, 'orchard.herds');
+  new NativeGroupCollection(host, [pack], [], new Map([[actor.entityId, actor]]), prey, ids, [actor], new WeakMap(), { id: 'orchard.groups', firstRaid: 14, environment }, { id: 'orchard.tokens', owners: new WeakMap() });
+  herdService(host, 'orchard.herds');
   const foragers = new ForagerPopulation(v.parse(ForagerPopulationSchema, { ...foragerRow, id: 'orchard.foragers', count: 4, place: { ...foragerRow.place, size: [2, 2] } }), 41); foragers.colonies([{ x: 5, z: 5 }]);
   const checkpoint = random.snapshot(); random.next(); random.next(); random.next(); const stream = random.snapshot(); random.restore(checkpoint);
   const owner = installNativePopulation(host, hunt, random, { boot: { admission, pasture, streamSeed: 71, species: { boar: { kind: BOAR.kind, variants: BOAR.variants } }, recipes: [sample.spec] },
@@ -282,7 +287,10 @@ test('native herd service keeps both id namespaces and retires with its real gro
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   const host = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier });
   try {
-    const before = host.rng.snapshot(), owner = herdService(host, 'orchard.same', 'orchard.same');
+    const before = host.rng.snapshot(), tokens: NonNullable<ConstructorParameters<typeof FixtureNativeGroups>[9]> = { id: 'orchard.same', owners: new WeakMap() }, owner = herdService(host, 'orchard.same', 'orchard.same', tokens);
+    expect(owner.owns(host)).toBe(true); expect(owner.tokens?.owners).toBe(tokens.owners);
+    expect(() => herdService(host, 'other.herds', 'other.group', tokens)).toThrow('Duplicate native manager token owners');
+    expect(() => fixtureGroup(host, 'other.group')).toThrow('Missing native group collection');
     expect(fixtureGroup(host, 'orchard.same')).toBe(owner);
     expect(nativeHerdCollection(host, 'orchard.same')).toBe(owner);
     expect(nativeHerdCollection(host, 'orchard.same').herds).toBe(owner.herds);

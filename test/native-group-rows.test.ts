@@ -41,7 +41,7 @@ test('orchard rows bind native senses, prey, adopted herd and deferred pack iden
     expect(() => installNativeGroupRows(host,{ ...rows, owned: ['orchard.missing'] },grid,env)).toThrow('Missing group actor');
     expect(host.rng.snapshot()).toEqual(before); expect(host.entities.get('orchard.buck')?.mem['owned']).toBeUndefined();
     const owner = installNativeGroupRows(host,rows,grid,env), kid = host.entities.get('orchard.kid'), buck = host.entities.get('orchard.buck');
-    expect(nativeGroupCollection(host,rows.id)).toBe(owner);
+    expect(nativeGroupCollection(host,rows.id)).toBe(owner); expect(owner.owns(host)).toBe(true); expect(owner.tokens?.id).toBe(rows.tokens);
     const admitted = nativeHerdCollection(host,rows.herds);
     expect(admitted).toBe(owner); expect(nativeHerdCollection(host,rows.herds)).toBe(admitted);
     expect(admitted.herds).toBe(owner.herds); expect(admitted.wind).toBe(env.wind);
