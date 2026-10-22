@@ -18,16 +18,9 @@ import { HeldDecision } from './heldDecision';
 
 export interface MountedSwordMount { speed: number; yaw: number }
 
+type MountedPassRows = NonNullable<schema.InferOutput<typeof MeleeWeaponProfileSchema>['mounted']>;
 export interface MountedSwordProfile extends MeleeProfile {
-  readonly mounted: {
-    
-    readonly reach: number; readonly cooldown: number; readonly sense: number;
-    readonly chainWindow: number; readonly chainStep: number; readonly chainMax: number;
-    
-    readonly speedDivisor: number;
-    
-    readonly behind: number;
-  };
+  readonly mounted: Readonly<MountedPassRows>;
 }
 
 export interface MountedSwordPasses { readonly left: Move; readonly right: Move }
