@@ -29,7 +29,6 @@ import { lampPostStone, laundryLine as lowerLine, laundryPole, lotusPost } from 
 import { landingPlanter } from './landingPlanter';
 import { PIECES } from './dressing';
 import { droneKit, gondolaCabin, trainKit } from './moverKits';
-import { geometryWriter } from './bakeWrite';
 import { PIECES as FACADE_PIECES, PIECE_FAR } from './facadePieces';
 import { PIECE_IDS } from './facadeIds';
 import type { SpecimenProfile } from '../data/specimenTypes';
@@ -148,22 +147,3 @@ export function specimenRecipes(lumps: readonly CanopyLump[]): [string, () => Bu
 
 /** what the page itself builds at load (world/specimens.ts `boot`); everything else only an Explorer specimen draws */
 export const bootSpecimen = (key: string): boolean => /^(?:inkit:|mover:|canopy:|facade:|lantern:|mist:)/u.test(key) || key === 'kit:plant' || key === 'kit:ac' || key === 'panel:far';
-
-/** the specimens, built and written as the two bakes' binaries (inflated): the page's own and the Explorer's */
-export function bakeNineSpecimens(lumps: readonly CanopyLump[]): { boot: Uint8Array; explorer: Uint8Array } {
-  const recipes = specimenRecipes(lumps);
-  return { boot: write(recipes.filter(([key]) => bootSpecimen(key))), explorer: write(recipes.filter(([key]) => !bootSpecimen(key))) };
-}
-
-function write(recipes: readonly (readonly [string, () => BufferGeometry])[]): Uint8Array {
-  const writer = geometryWriter('bake-nine-specimens');
-  const entries = recipes.map(([key, build]) => ({ key, geo: writer.add(build()) }));
-  const json = new TextEncoder().encode(JSON.stringify({ version: 1, entries }));
-  const head = Math.ceil((4 + json.length) / 4) * 4;
-  const out = new Uint8Array(head + writer.blocks.reduce((n, b) => n + b.length, 0));
-  new DataView(out.buffer).setUint32(0, json.length, true);
-  out.set(json, 4);
-  let at = head;
-  for (const b of writer.blocks) { out.set(b, at); at += b.length; }
-  return out;
-}

@@ -51,22 +51,6 @@ function collide(pts: readonly Pt[], caps: readonly ClothCapsule[], pad: number)
   }
 }
 
-/** How deep any point sits inside any capsule (m; 0 = clear). */
-export function clothPenetration(pts: readonly Vector3[], caps: readonly ClothCapsule[]): number {
-  let worst = 0;
-  const d = new Vector3(), q = new Vector3();
-  for (const p of pts) {
-    for (const c of caps) {
-      d.subVectors(c.b, c.a);
-      const L2 = d.lengthSq();
-      const h = L2 > 1e-12 ? Math.max(0, Math.min(1, q.subVectors(p, c.a).dot(d) / L2)) : 0;
-      q.copy(c.a).addScaledVector(d, h);
-      worst = Math.max(worst, c.r - p.distanceTo(q));
-    }
-  }
-  return worst;
-}
-
 /** A stable per-index hash in [0, 1). */
 export function clothHash(n: number): number { const s = Math.sin(n * 127.1) * 43758.5453; return s - Math.floor(s); }
 function vnoise(x: number): number { const i = Math.floor(x), f = x - i, u = f * f * (3 - 2 * f); return clothHash(i) * (1 - u) + clothHash(i + 1) * u; }

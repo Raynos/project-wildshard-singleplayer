@@ -7,8 +7,6 @@ export const SONG = '"Noto Serif TC", "Songti TC", "STSong", "PMingLiU", serif';
 /** the neon calligraphy's glyph font (a brush regular script) */
 export const KAI_STACK = '"LXGW WenKai TC", "Kaiti TC", "STKaiti", "BiauKai", "Songti TC", "PingFang TC", serif';
 
-export const SIGN_STYLE_IDS: readonly SignStyle[] = ['tube', 'box', 'plaque', 'paper', 'talisman', 'etch', 'banner'];
-
 const COLOR = { spec: 'color' } as const;
 
 /** the talisman's five brush waves across the strip */

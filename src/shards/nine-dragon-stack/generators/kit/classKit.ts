@@ -13,7 +13,6 @@
 //           `normal` (or a normal map) for glints, rims and ink. A sculpt brings a smoothed one; everything else repeats
 //           its normal
 import { BufferGeometry, Float32BufferAttribute, Uint32BufferAttribute, Vector3 } from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 /** how a class-kit piece looks: its material class (the caller's table), emission, line weight, edges and painted maps */
 export interface ClassLook {
@@ -26,32 +25,8 @@ export interface ClassLook {
   maps?: (t: number, a: number) => readonly [number, number, number];
 }
 
-/** edge mask bits of the face rule */
-export const CLASS_EDGE = { none: 0, u0: 1, u1: 2, v0: 4, v1: 8, all: 15 } as const;
-
 /** a new Vector3 */
 export const v3 = (x: number, y: number, z: number): Vector3 => new Vector3(x, y, z);
-
-/** Catmull-Rom through the points, `per` samples per span */
-export function classCurve(pts: readonly Vector3[], per: number): Vector3[] {
-  const out: Vector3[] = [];
-  const n = pts.length;
-  const at = (i: number): Vector3 => pts[Math.max(0, Math.min(n - 1, i))] ?? v3(0, 0, 0);
-  for (let i = 0; i < n - 1; i++) {
-    const p0 = at(i - 1), p1 = at(i), p2 = at(i + 1), p3 = at(i + 2);
-    for (let s = 0; s < per; s++) {
-      const u = s / per, u2 = u * u, u3 = u2 * u;
-      const b0 = -0.5 * u3 + u2 - 0.5 * u, b1 = 1.5 * u3 - 2.5 * u2 + 1, b2 = -1.5 * u3 + 2 * u2 + 0.5 * u, b3 = 0.5 * u3 - 0.5 * u2;
-      out.push(v3(
-        p0.x * b0 + p1.x * b1 + p2.x * b2 + p3.x * b3,
-        p0.y * b0 + p1.y * b1 + p2.y * b2 + p3.y * b3,
-        p0.z * b0 + p1.z * b1 + p2.z * b2 + p3.z * b3,
-      ));
-    }
-  }
-  out.push(at(n - 1).clone());
-  return out;
-}
 
 /** how a class-kit sweep shapes its section */
 export interface ClassSweepOpt {
@@ -275,10 +250,5 @@ export class ClassKit {
     g.setIndex(new Uint32BufferAttribute(this.idx, 1));
     return g;
   }
-}
-
-/** merge class-kit geometries (same attribute set) into one */
-export function mergeClassKits(gs: readonly BufferGeometry[]): BufferGeometry {
-  return mergeGeometries([...gs], false);
 }
 

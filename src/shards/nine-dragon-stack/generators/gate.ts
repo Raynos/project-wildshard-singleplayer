@@ -49,7 +49,6 @@ const TILE = 0x163234;
 const ROLL = 0x2c5250;
 const RIDGE: Look = { wash: 0x1a3434, line: 1, accent: true };
 const RIDGE_HI = 0x1e3238;
-const LION: XLook = { wash: 0x6a6460, line: 0, wet: 0.2, surf: SURF.concrete };
 const X = new Vector3(1, 0, 0), Y = new Vector3(0, 1, 0), Z = new Vector3(0, 0, 1);
 
 /** a closed ring (a torus) round `c` in the plane of (a, b), radius `r`, tube radius `t` */
@@ -382,56 +381,6 @@ export function lionPedestal(k: Kit, x: KitX, cx: number, y: number, cz: number,
   k.box(cx, y + 0.14 * s, cz, 1.05 * s, 0.7 * s, 1.35 * s, STONE_PANEL);
   k.box(cx, y + 0.84 * s, cz, 1.2 * s, 0.12 * s, 1.5 * s, STONE);
   for (const nx of [-1, 1]) relief(x, new Vector3(cx + nx * 0.525 * s, y + 0.49 * s, cz), new Vector3(0, 0, -nx), Y.clone(), new Vector3(nx, 0, 0), 1.1 * s, 0.5 * s, 700 + nx);
-}
-
-export function stoneLion(k: Kit, x: KitX, cx: number, y: number, cz: number, face: number, male: boolean, s: number): void {
-  lionPedestal(k, x, cx, y, cz, s);
-  const b = y + 0.96 * s;
-  const F = (lx: number, ly: number, lz: number): Vector3 => new Vector3(cx + lx * s * face, b + ly * s, cz + lz * s * face);
-  const RX = X.clone().multiplyScalar(face), FZ = Z.clone().multiplyScalar(face);
-  const el = (c: Vector3, rx: number, ry: number, rz: number, bump: (d: Vector3) => number = () => 1, lat = 6, lon = 10): void => {
-    x.ellipsoid(c, RX, Y, FZ, rx * s, ry * s, rz * s, LION, bump, lat, lon);
-  };
-  // the base slab the lion sits on
-  k.box(cx, b, cz, 0.9 * s, 0.08 * s, 1.2 * s, { wash: 0x6e6d70, line: 1 });
-  const b2 = 0.08;
-  // haunches, belly, chest
-  el(F(0, b2 + 0.36, -0.2), 0.36, 0.34, 0.42);
-  for (const sx of [-1, 1]) el(F(sx * 0.24, b2 + 0.24, -0.22), 0.16, 0.24, 0.3);
-  el(F(0, b2 + 0.72, 0.08), 0.3, 0.36, 0.28);
-  // forelegs, straight and braced, with big paws
-  for (const sx of [-1, 1]) {
-    x.sweep(curve([F(sx * 0.17, b2 + 0.72, 0.2), F(sx * 0.19, b2 + 0.4, 0.3), F(sx * 0.2, b2 + 0.06, 0.34)], 3), (t) => (0.1 - t * 0.02) * s, 7, LION, { capStart: true });
-    el(F(sx * 0.2, b2 + 0.07, 0.4), 0.1, 0.07, 0.13, (d) => 1 + 0.12 * Math.abs(Math.sin(d.x * 9)), 4, 8);
-  }
-  // the head: a big skull, a curled mane of knots, a broad snout, bulging eyes, an open mouth
-  const hc = F(0, b2 + 1.18, 0.22);
-  el(F(0, b2 + 1.1, 0.06), 0.4, 0.42, 0.28, (d) => 1 + 0.16 * Math.abs(Math.sin(d.x * 7) * Math.sin(d.y * 7)) + 0.06 * Math.sin(d.z * 11), 8, 14);
-  x.ellipsoid(hc, RX, Y, FZ, 0.28 * s, 0.27 * s, 0.25 * s, LION, (d) => 1 + (d.z > 0.4 ? 0.08 : 0), 6, 10);
-  for (let i = 0; i < 9; i++) {
-    const a = (i / 8) * Math.PI - Math.PI / 2 + Math.PI / 2;
-    const cr = F(Math.cos(a) * 0.3, b2 + 1.1 + Math.sin(a) * 0.3, 0.14);
-    x.ellipsoid(cr, RX, Y, FZ, 0.08 * s, 0.08 * s, 0.06 * s, LION, (d) => 1 + 0.2 * Math.sin(Math.atan2(d.y, d.x) * 3), 4, 8);
-  }
-  el(F(0, b2 + 1.1, 0.42), 0.17, 0.12, 0.12);
-  for (const sx of [-1, 1]) {
-    x.ellipsoid(F(sx * 0.1, b2 + 1.26, 0.43), RX, Y, FZ, 0.055 * s, 0.05 * s, 0.04 * s, { wash: 0x87857f, line: 0 }, () => 1, 4, 6);
-    x.ellipsoid(F(sx * 0.1, b2 + 1.26, 0.465), RX, Y, FZ, 0.022 * s, 0.022 * s, 0.01 * s, { wash: 0x2a2a2c, line: 0 }, () => 1, 3, 5);
-    el(F(sx * 0.2, b2 + 1.38, 0.2), 0.07, 0.05, 0.06);
-  }
-  x.ellipsoid(F(0, b2 + 1.0, 0.44), RX, Y, FZ, 0.11 * s, 0.035 * s, 0.05 * s, { wash: 0x3a3032, line: 0 }, () => 1, 3, 8);
-  // a tail curling up the back
-  x.sweep(curve([F(0, b2 + 0.3, -0.58), F(0, b2 + 0.62, -0.62), F(0, b2 + 0.86, -0.5), F(0, b2 + 0.92, -0.36)], 3), (t) => (0.07 + 0.05 * t) * s, 6, LION, { capEnd: true });
-  // the ball (male) or the cub (female) under the outer paw
-  const sx = male ? 1 : -1;
-  if (male) {
-    const bc = F(sx * 0.36, b2 + 0.17, 0.36);
-    el(bc, 0.17, 0.17, 0.17, (d) => 1 + 0.06 * Math.sin(d.x * 12) * Math.sin(d.y * 12) * Math.sin(d.z * 12));
-    x.sweep(curve([F(sx * 0.2, b2 + 0.4, 0.3), F(sx * 0.3, b2 + 0.36, 0.34), F(sx * 0.36, b2 + 0.33, 0.36)], 3), () => 0.07 * s, 6, LION, { capEnd: true });
-  } else {
-    el(F(sx * 0.36, b2 + 0.14, 0.32), 0.13, 0.12, 0.16);
-    el(F(sx * 0.36, b2 + 0.28, 0.42), 0.09, 0.09, 0.09);
-  }
 }
 
 /** the gate itself; lantern(x, y, z, scale) hangs one lantern from its top */

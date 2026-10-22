@@ -37,9 +37,6 @@ export function wellFloor(x: number, z: number): number | undefined {
 export const CROSSING_COLLIDERS: ColliderDesc[] = [];
 /** the crossings' collision (deck slabs following each deck, rail walls, the far run's walls; the gate bridges' paifang posts are the paifang model's, E346); filled by the layout's `buildWell` (../generators/well.ts) */
 export function crossingColliders(): readonly ColliderDesc[] { return CROSSING_COLLIDERS; }
-/** the crossings' collision as the layout bake recorded it (world/layoutBake.ts), in place of `buildWell`'s */
-export function restoreCrossingColliders(list: readonly ColliderDesc[]): void { CROSSING_COLLIDERS.length = 0; CROSSING_COLLIDERS.push(...list); }
-
 /** the fog sheets' heights (build.ts draws them across the shaft; each one twice, the second 5 m lower). None: the
  *  sheets read as an opaque pale floor down the shaft; the render lane's layered shaft mist does the depth fade */
 export const wellSheets: { y: number; band: number; a: number }[] = [];

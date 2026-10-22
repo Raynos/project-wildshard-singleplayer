@@ -64,8 +64,6 @@ export function carvedPanel(far = false): BufferGeometry {
   return merge([k.build(), x.build()]);
 }
 
-export function carvedPanelFar(): BufferGeometry { return carvedPanel(true); }
-
 /**
  * The Well's balustrade over the square and the street (E346: the model nine-dragon-stack/well-balustrade,
  * models/wellBalustrade.ts): the square's run and the street's, each along z at x = `at` from `a0` down to `a1`, its lions

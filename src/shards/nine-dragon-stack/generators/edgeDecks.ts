@@ -49,9 +49,6 @@ export function deckParts(f: EdgeFrame, s: DeckSizes): { slab: FrameBox; rails: 
   };
 }
 
-/** a frame box as a stone box collider */
-export const frameCollider = (b: FrameBox): ColliderDesc => ({ kind: 'box', x: b.x, y: (b.y0 + b.y1) / 2, z: b.z, hx: b.sx / 2, hy: (b.y1 - b.y0) / 2, hz: b.sz / 2, surface: 'stone' });
-
 /** a box collider from its extents (min / max corners) */
 export function spanCollider(x0: number, y0: number, z0: number, x1: number, y1: number, z1: number, surface: 'stone' | 'wood' | 'metal' = 'stone'): ColliderDesc {
   return { kind: 'box', x: (x0 + x1) / 2, y: (y0 + y1) / 2, z: (z0 + z1) / 2, hx: Math.abs(x1 - x0) / 2, hy: Math.abs(y1 - y0) / 2, hz: Math.abs(z1 - z0) / 2, surface };

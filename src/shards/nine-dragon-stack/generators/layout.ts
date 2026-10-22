@@ -168,5 +168,3 @@ export function nineLayoutSource(): { bin: Uint8Array; rows: LayoutRows; records
   return { bin: out, rows, records: f64, geometries: built };
 }
 
-/** Byte proof of the former layout product; the scene baker emits no private binary. */
-export const bakeNineLayout = (): Uint8Array => nineLayoutSource().bin;

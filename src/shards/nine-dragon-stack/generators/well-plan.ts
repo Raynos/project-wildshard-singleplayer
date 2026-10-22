@@ -202,8 +202,3 @@ export class WellPlan {
   }
 }
 
-/** kit buckets by altitude, so the deep ones cull when you look across */
-export function bandKits(ctx: Ctx, region: string): BandKits {
-  const band = (y: number): string => (y >= Y0 - 1 ? 'hi' : y >= Y0 - 25 ? 'b0' : y >= Y0 - 49 ? 'b1' : y >= Y0 - 76 ? 'b2' : 'deep');
-  return { kit: (y) => ctx.kit(`well-${region}-${band(y)}`), alpha: () => ctx.alpha(`well-${region}-a`) };
-}

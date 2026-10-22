@@ -111,9 +111,3 @@ export function lionShares(): { readonly plaza: number[]; readonly street: numbe
   return { plaza: span(0, plaza), street: span(plaza, street), rim: span(plaza + street, rim) };
 }
 
-/** the sets queued so far, by name, in the order they were first placed (built geometry + placements), emptying the queue */
-export function takeSets(): [string, { geo: BufferGeometry; at: Matrix4[] }][] {
-  const out = [...sets];
-  sets.clear();
-  return out;
-}

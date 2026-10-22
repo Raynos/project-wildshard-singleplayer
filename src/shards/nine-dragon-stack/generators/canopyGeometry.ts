@@ -7,32 +7,6 @@ import { Rng } from '@wildshard/sdk/random';
 /** one lump of foliage: centre, radii (x, y, z; axis-aligned), how high it sits on its shelf, a seed */
 export interface Lump { c: Vector3; r: Vector3; up: number; seed: number; wash: number }
 
-const GREENS = [0x2f6a48, 0x3a7a52, 0x285c40, 0x4a8a5c, 0x23553b, 0x3f7550] as const;
-const LIGHT = [0x4f8a5c, 0x5a9160, 0x467f55] as const, DARK = [0x23513a, 0x2a5a42, 0x1f4a36] as const;
-
-/**
- * The hero banyan's canopy plan, call-for-call the same random draws as `buildBanyan`'s canopy loop (so the tree, its
- * aerial roots and its ribbons stay where they were): a cloud-shelf of 7–9 flattened lumps on every limb / twig tip.
- */
-export function planLumps(tips: readonly Vector3[], rng: Rng): Lump[] {
-  const out: Lump[] = [];
-  for (const tip of tips) {
-    const n = rng.int(7, 9);
-    const shelfR = rng.range(1.0, 1.7);
-    for (let j = 0; j < n; j++) {
-      const a = rng.range(0, Math.PI * 2);
-      const rr = rng.range(0.2, 1) * shelfR;
-      const up = rng.range(-0.25, 0.45);
-      const c = tip.clone().add(new Vector3(Math.cos(a) * rr, up + 0.35, Math.sin(a) * rr));
-      const s0 = rng.range(0.5, 0.9);
-      const sd = rng.range(0, 10);
-      const wash = up > 0.1 ? rng.pick(LIGHT) : up < -0.05 ? rng.pick(DARK) : rng.pick(GREENS);
-      out.push({ c, r: new Vector3(s0 * 1.25, s0 * 0.48, s0 * 1.15), up, seed: sd, wash });
-    }
-  }
-  return out;
-}
-
 /** the canopy's bounding ellipsoid: "how deep inside the crown" darkens the leaves (the core is in shade) */
 export interface Crown { c: Vector3; r: Vector3 }
 export function crownOf(lumps: readonly Lump[]): Crown {
@@ -159,47 +133,9 @@ export function cardGeometry(lumps: readonly Lump[], rng: Rng, o: CardOpt = CARD
 export interface LeafOpt { perM2: number; len: [number, number]; lift: [number, number]; bias: number; droop: number }
 export const LEAVES: LeafOpt = { perM2: 45, len: [0.16, 0.26], lift: [0.85, 1.12], bias: 0.3, droop: 0.45 };
 
-/** real leaves: a 7-vertex fan each (rim distance in aUv.z draws its outline), opaque */
-export function leafGeometry(lumps: readonly Lump[], rng: Rng, o: LeafOpt = LEAVES): BufferGeometry {
-  const w = new Writer();
-  const crown = crownOf(lumps);
-  // the leaf outline in (across, along): base, left, left-upper, tip, right-upper, right
-  const rim: [number, number][] = [[0, 0], [-0.8, 0.28], [-0.6, 0.7], [0, 1], [0.6, 0.7], [0.8, 0.28]];
-  for (const l of lumps) {
-    w.on = l;
-    const n = Math.max(6, Math.round(ellArea(l.r) * o.perM2));
-    for (let i = 0; i < n; i++) {
-      const d = sphereDir(rng, o.bias);
-      const p = l.c.clone().add(d.clone().multiply(l.r).multiplyScalar(rng.range(o.lift[0], o.lift[1])));
-      const ln = lumpNormal(l, p);
-      const nrm = ln.clone().add(new Vector3(rng.range(-1, 1), rng.range(-1, 1), rng.range(-1, 1)).multiplyScalar(0.6)).normalize();
-      // the leaf points out of the lump and droops
-      let ax = ln.clone().add(new Vector3(0, -o.droop, 0)).add(new Vector3(rng.range(-1, 1), rng.range(-0.5, 0.5), rng.range(-1, 1)).multiplyScalar(0.7));
-      ax.sub(nrm.clone().multiplyScalar(ax.dot(nrm)));
-      if (ax.lengthSq() < 1e-4) ax = new Vector3(1, 0, 0);
-      ax.normalize();
-      const side = new Vector3().crossVectors(nrm, ax).normalize();
-      const L = rng.range(o.len[0], o.len[1]), W = L * 0.4;
-      const tone = rng.next(), inner = innerAt(p, crown);
-      const base = w.n;
-      // the centre, raised a little (a cupped leaf reads in the wash), then the rim
-      const cc = p.clone().addScaledVector(ax, L * 0.42).addScaledVector(nrm, L * 0.06);
-      w.v(cc, lumpNormal(l, cc), 0, 0.42, 1, tone, inner);
-      for (const [s, t] of rim) {
-        const q = p.clone().addScaledVector(ax, t * L).addScaledVector(side, s * W).addScaledVector(nrm, -Math.abs(s) * L * 0.08);
-        w.v(q, lumpNormal(l, q), s, t, 0, tone, inner);
-      }
-      for (let k = 0; k < 6; k++) w.idx.push(base, base + 1 + k, base + 1 + ((k + 1) % 6));
-    }
-  }
-  return w.build();
-}
-
 export interface ShellOpt { lat: number; lon: number; bumps: number; amp: number; shrink: number }
 /** the lumps as the canopy core (shrink < 1, no bumps) or as scalloped cloud-shelves (bumps > 0) */
 export const CORE: ShellOpt = { lat: 5, lon: 9, bumps: 0, amp: 0, shrink: 0.86 };
-export const SHELLS: ShellOpt = { lat: 12, lon: 20, bumps: 11, amp: 0.3, shrink: 1 };
-
 export function shellGeometry(lumps: readonly Lump[], rng: Rng, o: ShellOpt): BufferGeometry {
   const w = new Writer();
   const crown = crownOf(lumps);

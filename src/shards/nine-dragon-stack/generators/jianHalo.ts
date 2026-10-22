@@ -17,8 +17,6 @@ export const JIAN = {
   /** the neon's emission (HDR; the bloom threshold is 1) */
   emit: 1.5,
 } as const;
-export const TIP_Y = JIAN.root + JIAN.len;
-
 function halfWidth(y: number): number {
   const { root, len, hw0, hw1, tip } = JIAN;
   const yT = root + len - tip;

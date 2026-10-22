@@ -107,24 +107,6 @@ export function scooter(k: Kit, x: number, y: number, z: number, r: number, wash
   k.box(x + hx, y + 1.1, z + hz, 0.62, 0.05, 0.05, { wash: 0x1d1e22, line: 0.8 }, { rotY: r });
 }
 
-/** the instanced paper lantern: ribbed red body (emissive), gold caps, a tassel; hangs from its top at y = 0 */
-export function lanternKit(): Kit {
-  const k = new Kit();
-  const prof: [number, number][] = [];
-  for (let i = 0; i <= 8; i++) {
-    const t = i / 8;
-    const y = -0.62 + t * 0.52;
-    prof.push([0.06 + Math.sin(t * Math.PI) * 0.26, y]);
-  }
-  k.lathe(0, 0, 0, prof, 10, { wash: 0xff5236, emit: 1.35, line: 0.7, accent: true }, true, 0);
-  const cap: Look = { wash: METAL.gold, line: 0.8, accent: true };
-  k.cyl(0, -0.1, 0, 0.1, 0.1, 0.06, 8, cap);
-  k.cyl(0, -0.68, 0, 0.1, 0.1, 0.06, 8, cap);
-  k.box(0, -0.98, 0, 0.05, 0.3, 0.05, { wash: 0xc2301f, line: 0.5, accent: true });
-  k.box(0, -0.04, 0, 0.012, 0.08, 0.012, { wash: 0x222222, line: 0.3 });
-  return k;
-}
-
 /** the instanced air-con box, backed against a wall facing +z */
 export function acKit(): Kit {
   const k = new Kit();

@@ -10,26 +10,8 @@
 import { createHash } from 'node:crypto';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { bakeNineLayout } from './layout.ts';
-import { bakeNineSpecimens } from './specimens.ts';
-import { banyanOut } from './banyanPlan.ts';
 
 const root = resolve(import.meta.dirname, '../../../..');
-
-const stampOf = (bin) => ({ version: 1, bin: createHash('sha256').update(bin).digest('hex'), bytes: bin.length });
-
-/** the bake's inflated binary and its stamp */
-export function nineLayoutBake() {
-  const bin = bakeNineLayout();
-  return { bin, stamp: stampOf(bin) };
-}
-
-/** the specimens bake (generators/specimens.ts) over the layout's banyan plan (run the layout first) */
-export function nineSpecimensBake() {
-  const bins = bakeNineSpecimens(banyanOut.plan?.lumps ?? []);
-  const { version: _b, ...boot } = stampOf(bins.boot), { version: _e, ...explorer } = stampOf(bins.explorer);
-  return { bins, stamp: { version: 1, boot, explorer } };
-}
 
 /** Nine's entire static scene as regenerated shardfile tiles and standard library GLBs. */
 export async function writeNineScene() {
