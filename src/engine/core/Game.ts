@@ -122,6 +122,15 @@ function skipRaysOffscreen(rays: GodRaysEffect, camera: THREE.Camera, disc: THRE
 /** one engine colour chain, built (Game.buildComposer): its effects, in order, and by name */
 interface BuiltChain { clean: boolean; order: Effect[]; fx: Omit<EngineEffects, 'order'> }
 
+/** An entered frame's preparation trace (`Game.entryPreparation`): its destination root, owner, running phase, measured
+ *  work counts and scalar timings. A named type, so consumers of the emitted declarations see it (a private field's type
+ *  is not emitted). */
+export interface EntryPreparation {
+  root: string; owner: string; completed: boolean; phase: string;
+  progress: { done: number; total: number; detail: string } | null;
+  stages: { phase: string; elapsedMs: number; units: number; endAt: number }[];
+}
+
 export class Game {
   readonly app = app;
   renderer: Renderer;
@@ -790,12 +799,10 @@ export class Game {
     return work;
   }
 
-  private _entryPreparation: { root: string; owner: string; completed: boolean; phase: string;
-    progress: { done: number; total: number; detail: string } | null;
-    stages: { phase: string; elapsedMs: number; units: number; endAt: number }[] } | null = null;
+  private _entryPreparation: EntryPreparation | null = null;
   /** Last entered-frame preparation's running phase, measured work counts and scalar timings. Painted waits are
    * included; no content resources are retained. The root identifies the exact destination. */
-  get entryPreparation(): Readonly<NonNullable<Game['_entryPreparation']>> | null { return this._entryPreparation; }
+  get entryPreparation(): Readonly<EntryPreparation> | null { return this._entryPreparation; }
   /** The node (graph material) programs built so far and the recent build log (`EngineNodesHandler.buildLog`); null
    *  before any graph material loaded the back-end. A diagnostic: the frame floor counts builds after an entry's warm-up. */
   get nodeBuilds(): { readonly builds: number; readonly buildMs: number; readonly log: readonly { at: number; material: string; object: string }[] } | null {
@@ -812,7 +819,7 @@ export class Game {
   async warmEnteredFrame(owner: Scope, futureRoot?: THREE.Object3D, before?: () => Promise<void> | void): Promise<void> {
     const composer = this._composer;
     if (composer === null) { await before?.(); return; }
-    const trace: NonNullable<Game['_entryPreparation']> = { root: (futureRoot ?? this.scene).uuid, owner: owner.name,
+    const trace: EntryPreparation = { root: (futureRoot ?? this.scene).uuid, owner: owner.name,
       completed: false, phase: before === undefined ? 'post-preparation' : 'before-warm', progress: null, stages: [] };
     this._entryPreparation = trace;
     // OP: every wait below is bounded in presented time; a stall rejects naming its stage (an admission issue), never a
@@ -836,7 +843,7 @@ export class Game {
     });
   }
 
-  private async warmEnteredStages(owner: Scope, composer: EffectComposer, trace: NonNullable<Game['_entryPreparation']>,
+  private async warmEnteredStages(owner: Scope, composer: EffectComposer, trace: EntryPreparation,
     current: () => boolean, futureRoot: THREE.Object3D | undefined, enter: (phase: string) => void): Promise<void> {
     const linkDraws = setting('buildPacing') === 'links';
     if (linkDraws) cullPlaced(this.camera);
