@@ -9351,6 +9351,21 @@ order, emitter/ambience disposal and identity-checked published handle removal.
 Voice-bank `shots` is the admitted one-shot identity list; `acceptsShot` checks
 membership independently of sample readiness. Pine no longer ships a TS copy.
 
+`installRuntimeGameplayAudio(ctx, ports, native?)` also accepts a concrete
+`RuntimeGameplayAudioEnvironment`. It borrows original floor queries,
+LivingBuildings and the emitter's Object3D from a live construction ancestor;
+probe bounds and near points are detached numeric facts. Floor gaps retain
+their ordered null/undefined entries. Native and legacy environments cannot
+be supplied together. Both sides of the existing awaited read check entered
+and construction retirement before allocating audio resources.
+
+AudioSurfacePorts accepts an original AudioFloorQuery directly or the legacy
+floor owner. AmbienceMixPorts.bounds supplies numeric AudioProbeBounds by
+probe id; when supplied it replaces the reflected object-bound source for
+those probes. Borrowing these inputs does not own or dispose their world
+resources. Existing cue order, phase registration and teardown stay in the
+original gameplay audio host.
+
 The retained native-method crossings stay visible to the G454 inventory and
 within their original per-file ceilings; no cast or guard increase hides them.
 
