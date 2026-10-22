@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Tiny isolated source trees exercise the actual guard.
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture paths only.
 import { dirname, join } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Small disposable fixtures.
@@ -76,4 +76,18 @@ test('Nine rejects regrowth in all nine zero components after G614', () => {
       expect.stringContaining(`CLOSED ${id}`),
     ]);
   }
+});
+
+
+test('CI enforces the complete closed-component guard after products and before publication', () => {
+  const workflow = readFileSync(new URL('../.github/workflows/deploy.yml', import.meta.url), 'utf8');
+  const products = workflow.slice(workflow.indexOf('\n  products:\n'), workflow.indexOf('\n  behaviour:\n'));
+  const build = products.indexOf('node scripts/build-shardfiles.mjs --reuse');
+  const guard = products.indexOf('run: node scripts/check-closed-components.mjs\n');
+  const publish = products.indexOf('python3 scripts/ci-products.py pack\n');
+  expect(build).toBeGreaterThanOrEqual(0);
+  expect(guard).toBeGreaterThan(build);
+  expect(publish).toBeGreaterThan(guard);
+  expect(products.match(/node scripts\/check-closed-components\.mjs/gu)).toHaveLength(1);
+  expect(products).not.toContain('check-closed-components.mjs --source-only');
 });

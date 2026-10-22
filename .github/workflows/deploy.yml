@@ -385,6 +385,8 @@ jobs:
           zstd -d --rm generated-inputs.tar.zst
           python3 scripts/ci-products.py unpack-generated
       - run: node scripts/build-shardfiles.mjs --reuse
+      - name: Enforce closed component source and host locks
+        run: node scripts/check-closed-components.mjs
       # A runner is isolated: save current reusable products rather than six
       # historical payload generations. Keep every input receipt for validation.
       - run: node scripts/ci-product-cache.mjs
