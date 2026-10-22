@@ -3118,8 +3118,6 @@ the new closed shard remains at zero.
 Trusted transition code in `runtime/` keeps legacy public engine/game/kit access; build-time generators never ship.
 The SDK cannot import shard content. Each module owns its exports; there is no barrel.
 
-`@wildshard/sdk/assets.assetBytes(base64)` decodes a JSON-safe authored payload without fetching or installing a service. The resulting bytes still pass through `assetCost(kind, bytes)` and normal library admission; decoding alone makes no residency claim.
-
 `src/engine/models/ownedGeometry.ts` defines `createOwnedGeometry(url, channels?)`:
 an explicit owned-template intake for a single identity-space offline GLB.
 `load(bytes?)` deduplicates fetch/parse, or clones an explicitly supplied
