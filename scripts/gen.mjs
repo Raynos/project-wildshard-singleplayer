@@ -17,6 +17,8 @@ const buildInputs = process.argv.includes('--build-inputs');
 // --proof (fast proofs: serve-build.sh, `pnpm build:proof`): the game's build inputs only, with the pre-commit's parallel
 // generation; the derived docs (API docs, WebGPU inventory, scripts/README.md, generator inventory) are skipped.
 const proof = process.argv.includes('--proof');
+// CI keeps all derived outputs while using the existing four-producer scheduler.
+// --parallel changes concurrency only; --proof/--build-inputs still select output sets.
 async function step(name, run) {
   const started = performance.now();
   try { return await run(); }
@@ -31,7 +33,7 @@ await step('starter-weapons', () => genStarterWeapons());
 await step('starter-bag', () => genStarterBag());
 await step('starter-effects', () => genStarterEffects());
 // G292 admitted outputs are ready before asset sizes, versions and shard packing read them.
-await step('generation', () => prepareGeneration(`${import.meta.dirname}/..`, { concurrency: buildInputs || proof ? 4 : 1 }));
+await step('generation', () => prepareGeneration(`${import.meta.dirname}/..`, { concurrency: buildInputs || proof || process.argv.includes('--parallel') ? 4 : 1 }));
 await import('./bake-loader.mjs');
 // DS1.1: structural wire schemas are small deterministic authoring outputs, never committed.
 const { writeFormatJsonSchemas } = await import('./gen-format-schema.mjs');

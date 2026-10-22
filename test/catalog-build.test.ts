@@ -13,6 +13,7 @@ import { manifestImages, packManifestImages } from '@wildshard/sdk/projectManife
 import { parseShardCatalog, runtimeInventoryBytes } from '@wildshard/format/shardCatalog';
 import { parseManifestMetadata } from '@wildshard/format/minimap';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
+import { parseOutputIndex } from '@wildshard/format/outputIndex';
 import { buildShardfiles } from '../scripts/build-shardfiles.mjs';
 import { mapPixelHash, mapTilesHash } from '../scripts/map-hash.mjs';
 import * as dataMaps from '../scripts/bake-data-maps.mjs';
@@ -42,7 +43,7 @@ async function fixture(): Promise<string> {
 function builder(calls: string[][], fail?: string): (args: string[]) => Promise<void> {
   return async args => {
     calls.push([...args]); const [command, project, destination] = args;
-    if (command === 'catalog') { await runCli(args); return; }
+    if (command === 'catalog' || command === 'validate') { await runCli(args); return; }
     if (command !== 'build' || project === undefined || destination === undefined) throw new Error('Unexpected fixture build');
     const slug = args.find(arg=>arg.startsWith('--output='))?.slice('--output='.length) ?? basename(project); if (slug === fail) throw new Error('Fixture build refused');
     const authored = parseManifestMetadata({ ...metadata, slug, name: slug, order: slug === 'alpha' ? 1 : 2 }, slug);
@@ -172,4 +173,33 @@ it('reports exact changed map inputs while still refusing publication', async ()
       'world/changed.ts': hashImmutableBytes(new TextEncoder().encode('export const placement = 2;\n')),
     } })}`);
   } finally { error.mockRestore(); }
+});
+
+
+it('reuses exact inputs in strict CI while validating every cached product and rejecting damaged cache bytes',async()=>{
+ const root=await fixture(),calls:string[][]=[],options={strict:true,reuse:true,build:builder(calls)};
+ vi.stubEnv('WILDSHARD_SHARDFILE_CACHE',resolve(root,'tmp/cache'));
+ expect(await buildShardfiles(root,options)).toBe(2);expect(productCalls(calls)).toHaveLength(2);
+ calls.length=0;
+ expect(await buildShardfiles(root,options)).toBe(2);expect(productCalls(calls)).toHaveLength(0);
+ expect(calls.filter(call=>call[0]==='validate')).toHaveLength(2);
+ put(root,'src/game/shared-input.ts','export const changed=1;');calls.length=0;
+ expect(await buildShardfiles(root,options)).toBe(2);expect(productCalls(calls)).toHaveLength(2);
+ const index=parseOutputIndex(JSON.parse(readFileSync(resolve(root,'out/alpha/shard.json'),'utf8')));
+ const entry=index.sections[0];if(entry===undefined)throw new Error('Missing fixture section');
+ // A damaged restored cache is rejected by the ordinary strict validator.
+ const cache=resolve(root,'tmp/cache/alpha'),key=readdirSync(cache).find(entryName=>/^[a-f0-9]{64}$/u.test(entryName));
+ if(key===undefined)throw new Error('Missing cached product');
+ for(const savedKey of readdirSync(cache).filter(entryName=>/^[a-f0-9]{64}$/u.test(entryName)))put(cache,`${savedKey}/${entry.path}`,'{}');
+ rmSync(resolve(root,'out/alpha'),{recursive:true,force:true});calls.length=0;
+ await expect(buildShardfiles(root,options)).rejects.toThrow();
+ expect(calls.some(call=>call[0]==='validate')).toBe(true);
+});
+
+it('strict cache reuse still refuses changed world/map inputs',async()=>{
+ const root=await fixture(),calls:string[][]=[],options={strict:true,reuse:true,build:builder(calls)};
+ vi.stubEnv('WILDSHARD_SHARDFILE_CACHE',resolve(root,'tmp/cache'));
+ await buildShardfiles(root,options);
+ put(root,'src/shards/alpha/world/changed.ts','export const placement=2;');
+ await expect(buildShardfiles(root,options)).rejects.toThrow('does not match its world');
 });

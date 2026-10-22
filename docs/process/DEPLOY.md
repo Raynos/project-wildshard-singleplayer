@@ -120,3 +120,12 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
 - **A frozen public URL per version:** `scripts/release-url.sh vX.Y.Z` deploys a clean export of the tag once to its own
   Vercel project (the main project's aliases sit behind deployment protection). Tag first and bump package.json.
 - **A branch preview** deploys to its own Vercel project, never the main `wildshard-singleplayer` one.
+
+
+G609: the products job restores generation and shardfile content-addressed caches
+through actions/cache, keyed by the exact checked-out source tree with a prior
+snapshot fallback. Generation still verifies inputs and complete output hashes.
+Strict product reuse checks captured input receipts and reruns current full
+byte/schema/budget/script admission on every hit; a cache is not a test verdict.
+The job still builds all 24 products and publishes a new SHA/run/checksum-bound
+artifact. Parallel generation retains the complete normal output set.

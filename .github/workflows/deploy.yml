@@ -289,7 +289,20 @@ jobs:
       - uses: actions/setup-node@v4
         with: {node-version: 24, cache: pnpm}
       - run: pnpm install --frozen-lockfile
-      - run: pnpm gen && node scripts/build-shardfiles.mjs
+      - name: Bind cache snapshot to source inputs
+        id: inputs
+        run: echo "tree=$(git rev-parse 'HEAD^{tree}')" >> "$GITHUB_OUTPUT"
+      # Snapshots contain content-addressed entries, not CI proof artifacts.
+      # Every restored entry rechecks its input hashes; strict product hits run
+      # current byte/schema/budget/script admission before this run publishes proof.
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/wildshard/generate
+            ~/.cache/wildshard/shardfiles
+          key: preparation-v1-${{ runner.os }}-node24-${{ steps.inputs.outputs.tree }}
+          restore-keys: preparation-v1-${{ runner.os }}-node24-
+      - run: node scripts/gen.mjs --parallel && node scripts/build-shardfiles.mjs --reuse
       - name: Pack exact-run generated inputs and products
         run: python3 scripts/ci-products.py pack
       - uses: actions/upload-artifact@v4

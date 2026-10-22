@@ -23,7 +23,7 @@ import { runShardBuild, runShardBuildPool } from './shard-build-pool.mjs';
 
 // --reuse (fast proofs: serve-build.sh, `pnpm build:proof`): a shard whose inputs are unchanged keeps its product, from
 // the slot or the shared content-keyed cache (scripts/shardfile-cache.mjs). The plain `pnpm build` (the push gate)
-// rebuilds every shard into a fresh folder and publishes it to that cache; CI and Vercel build in place, no cache.
+// rebuilds every shard into a fresh folder. CI may explicitly reuse exact input receipts, then fully validates each hit.
 // --catalog requires a complete pass with strict copies for closed runtimes and atomically publishes out/catalog.json.
 // --shard=<slug>[,<slug>] builds only those shards: another shard's product stays only while its key still matches,
 // else it is removed, so a one-shard preview never serves a stale product of a changed shard.
@@ -81,7 +81,7 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
   }
   for (const slug of only ?? []) if (!built.includes(slug)) throw new Error(`wildshard build: --shard=${slug} is not a first-party shardfile project (${built.join(', ')})`);
   if(onFailure===undefined)for (const folder of new Set((only ?? built).map(slug => products.find(row => row.name === slug)?.folder ?? slug))) checkHeadlessAssembly(root, folder);
-  if ((reuse || only !== undefined) && strict) console.warn('wildshard build: --reuse / --shard ignored in CI; building every shard');
+  if (only !== undefined && strict) console.warn('wildshard build: --shard ignored in CI; building every shard');
   const recorded = build === runWildshard;
   const files = recorded ? undefined : treeHashes(root);
   const inputHashes = new InputHashMemo(root,resolve(root,'.cache/shardfile-input-hashes.json'));
@@ -133,7 +133,7 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
       else console.info(`wildshard build: ${name} skipped (--shard)${here === key ? ', product current' : ''}`);
       return;
     }
-    const how = await reuseOrBuild({ slug: name, key:key ?? randomBytes(32).toString('hex'), destination, fresh:strict || !reuse && only === undefined, build: async out => {
+    const how = await reuseOrBuild({ slug: name, key:key ?? randomBytes(32).toString('hex'), destination, fresh:!reuse && (strict || only === undefined), build: async out => {
       const receipt=resolve(shardfileCacheRoot(),'.input-traces',`${process.pid}-${randomBytes(8).toString('hex')}.json`);
       try {
       await buildOne(['build',project,out,'--product-only','--no-placeholders','--format=2',...flags,...(recorded?[`--input-receipt=${receipt}`]:[])]);
@@ -144,6 +144,9 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
       return next;
       } finally { if(recorded)rmSync(receipt,{force:true}); }
     } });
+    // Cache transport never substitutes for current strict admission, including
+    // file hashes, schemas, budgets and executing the admitted script bytes.
+    if (strict && how !== 'built') await buildOne(['validate',destination]);
     console.info(`wildshard build: ${name} ${how === 'built' ? 'built' : `reused (${how})`} in ${((performance.now() - started) / 1000).toFixed(1)}s`);
     count++;
     } catch(error) {
