@@ -75,6 +75,21 @@ def outputs(repo, tree, records, deadline, assets=()):
                     break
 
 
+def missing_generated(tree):
+    """A verified cache can still omit post-generation discovery/type tables."""
+    imports = re.compile(r"""(?:from\s+|import\s*\(\s*|import\s+|require\s*\(\s*)["'](\.[^"'\n]*\.generated[^"'\n]*)["']""")
+    missing = set()
+    for path in (tree / 'src').rglob('*'):
+        if path.suffix not in {'.ts', '.tsx', '.mts', '.js', '.mjs'}:
+            continue
+        for name in imports.findall(path.read_text()):
+            target = path.parent / name
+            candidates = [target, *(Path(str(target) + suffix) for suffix in ('.ts', '.tsx', '.mts', '.d.ts', '.js', '.mjs'))]
+            if not any(candidate.is_file() for candidate in candidates):
+                missing.add(os.path.relpath(target, tree))
+    return sorted(missing)
+
+
 @contextlib.contextmanager
 def committed_source(repo, revision, tooling_revision, deadline):
     folder = repo / 'tmp'
@@ -121,6 +136,7 @@ def committed_source(repo, revision, tooling_revision, deadline):
         outputs(repo, tree, records, deadline, assets)
         cache = runpy.run_path(str(Path(__file__).with_name('push_input_cache.py')))
         available = cache['restore'](repo, tree, records, deadline)
+        available = available and not missing_generated(tree)
         (tree / '.push-types.json').write_text(json.dumps({'available': available}))
         tools = tree / '.push-tools'
         tools.mkdir()

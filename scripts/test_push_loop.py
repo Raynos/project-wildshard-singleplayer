@@ -216,6 +216,13 @@ class PushLoop(unittest.TestCase):
         self.assertIn('full CI owns: src/good.ts', result['output'])
         self.assertEqual(calls, [])
 
+    def test_missing_discovery_prevents_a_partial_cache_from_enabling_types(self):
+        self.put('src/shards/fixture/world/build.ts', "import manifest from '../discovery.generated';\nexport const seed = manifest.seed;\n")
+        missing = PUSH['SOURCE']['missing_generated'](self.root)
+        self.assertEqual(missing, ['src/shards/fixture/discovery.generated'])
+        self.put('src/shards/fixture/discovery.generated.ts', 'export default {seed: 42};\n')
+        self.assertEqual(PUSH['SOURCE']['missing_generated'](self.root), [])
+
     def test_generation_phase_cache_rejects_changed_inputs_and_corrupt_outputs(self):
         tip = self.git('rev-parse', 'HEAD')
         records = [row for row in subprocess.check_output(['git', 'ls-tree', '-rz', tip], cwd=self.root).split(b'\0') if row]
@@ -228,17 +235,23 @@ class PushLoop(unittest.TestCase):
         saved = {'schema': 'generation-phase/1', 'root': str(generated), 'identity': '0' * 64,
                  'inputs': {'src/base.ts': hashlib.sha256(source.encode()).hexdigest()},
                  'trees': {'src': ['src/base.ts']}, 'outputs': {'src/value.generated.json': digest}}
+        discovery = b'export default {seed:42};\n'
+        saved['inputs']['src/shards/fixture/discovery.generated.ts'] = hashlib.sha256(discovery).hexdigest()
         phase = generated / '.cache/generation-phase.json'
         phase.parent.mkdir()
         encoded = json.dumps(saved, ensure_ascii=False, separators=(',', ':'))
         phase.write_text(json.dumps({**saved, 'seal': hashlib.sha256(encoded.encode()).hexdigest()}))
         (generated / 'src').mkdir()
         (generated / 'src/value.generated.json').write_bytes(output)
-        self.assertEqual(CACHE['publish'](self.root, tip, generated), 1)
+        discovery_path = generated / 'src/shards/fixture/discovery.generated.ts'
+        discovery_path.parent.mkdir(parents=True)
+        discovery_path.write_bytes(discovery)
+        self.assertEqual(CACHE['publish'](self.root, tip, generated), 2)
         target = self.root / 'checked'
         target.mkdir()
         self.assertTrue(CACHE['restore'](self.root, target, records, time.monotonic() + 5))
         self.assertEqual((target / 'src/value.generated.json').read_bytes(), output)
+        self.assertEqual((target / 'src/shards/fixture/discovery.generated.ts').read_bytes(), discovery)
         self.assertFalse(CACHE['restore'](self.root, target, [*records, b'100644 blob new\tsrc/new.ts'], time.monotonic() + 5))
         (self.root / 'tmp/push-input-cache/blobs' / digest).write_text('corrupt')
         clean = self.root / 'another-check'

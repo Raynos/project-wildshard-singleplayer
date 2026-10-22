@@ -48,6 +48,7 @@ def phase_outputs(repo, revision, generated, records, deadline=None):
         at = end + size + 2
         if hashlib.sha256(data).hexdigest() != saved['inputs'][name]:
             raise ValueError('Generation phase source differs from commit: ' + name)
+    tables = {}
     for name, digest in saved['inputs'].items():
         if name in tracked and name not in saved['outputs']:
             continue
@@ -58,9 +59,11 @@ def phase_outputs(repo, revision, generated, records, deadline=None):
             raise ValueError('Undeclared generation phase input: ' + name)
         if hashlib.sha256((generated / name).read_bytes()).hexdigest() != digest:
             raise ValueError('Generation phase input changed: ' + name)
+        if post_table:
+            tables[name] = digest
     if (generated.parent / 'HEAD').read_text().split()[0] != revision:
         raise ValueError('Generation phase moved while reading')
-    return saved['outputs']
+    return {**saved['outputs'], **tables}
 
 
 def phase_roots(generated):
@@ -98,7 +101,7 @@ def publish(repo, revision, generated, deadline=None):
     # Re-read the marker after all input/output reads; a moving phase refuses.
     if (generated.parent / 'HEAD').read_text().split()[0] != revision or phase.read_bytes() != phase_bytes:
         raise ValueError('Generation phase moved while publishing')
-    saved = {'schema': 'push-type-inputs/2', 'revision': revision, 'roots': roots,
+    saved = {'schema': 'push-type-inputs/3', 'revision': revision, 'roots': roots,
              'key': source_key(records, roots), 'files': files}
     temporary = cache / ('entries.' + str(os.getpid()) + '.tmp')
     temporary.write_text(json.dumps(saved))
@@ -112,7 +115,7 @@ def restore(repo, tree, records, deadline):
     deadline = min(deadline, time.monotonic() + 8)
     def matches(saved):
         try:
-            return isinstance(saved, dict) and saved.get('schema') == 'push-type-inputs/2' and source_key(records, saved['roots']) == saved['key']
+            return isinstance(saved, dict) and saved.get('schema') == 'push-type-inputs/3' and source_key(records, saved['roots']) == saved['key']
         except (KeyError, TypeError):
             return False
     try:
