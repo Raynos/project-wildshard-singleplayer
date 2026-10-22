@@ -43,14 +43,12 @@ import { bindClientPlaceSets } from '@wildshard/game/shardfile/clientPlaceSets';
 import type { RayTargets } from '@wildshard/engine/combat/targets';
 
 
-type Wildlife = PageWildlife<Flock>;
 
 /** The defining builders keep the published state and its consumers on one contract. */
 export type Nalati = Awaited<ReturnType<typeof buildNalatiState>>;
 export type NalatiWeather = Nalati['weather'];
-export type NalatiCtx = NonNullable<ShardRuntime['world']>;
 
-async function buildNalatiState(ctx: NalatiCtx, plugin: ShardContext, progress?: StepProgress) {
+async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin: ShardContext, progress?: StepProgress) {
   const { admission } = v.parse(v.object({ admission: v.unknown() }), await plugin.product.json('sim/headless-boot.json'));
   const eliteProgram = ReturnProgram.page(admission, plugin.scope);
   const { game, sky } = ctx;
@@ -147,7 +145,7 @@ async function buildNalatiState(ctx: NalatiCtx, plugin: ShardContext, progress?:
   // ── creatures (creatures agent, B4): Wildlife over main's AnimalManager, fed the grass, the wind, the water, the player ──
   const player = ctx.player;
   const stealthRows=plugin.product.section('player/stealth');
-  let wildlife: Wildlife | null = null;
+  let wildlife: PageWildlife<Flock> | null = null;
   let playKit: NalatiLoadout | null = null;
   let ride: Ride | null = null;
   // the shepherd's rider (./looks/rider.ts): listed view code on the raid's horse and cues
