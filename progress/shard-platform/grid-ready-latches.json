@@ -99,6 +99,25 @@
       }
     },
     {
+      "shard": "driftwood-isle",
+      "criterion": "memory",
+      "source": "1e20cd8fa40572bc5c69a5a6d8a1f509048bcdde",
+      "measurement": {
+        "when": "2026-10-22T14:53:08.647Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 855,
+          "playingPeakBytes": 300898629,
+          "loadingPeakBytes": 309230229,
+          "browserProcessPeakBytes": 1356762112,
+          "rendererProcessPeakBytes": 2858444800,
+          "gpuProcessPeakBytes": 1016547328
+        }
+      },
+      "latchedAt": "2026-10-22T14:57:05.041Z",
+      "quiet": false
+    },
+    {
       "shard": "far-reach",
       "criterion": "memory",
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
