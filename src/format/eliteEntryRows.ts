@@ -88,9 +88,6 @@ export const EliteEntryPageRowsSchema = v.strictObject({
   fallbackStrike: CreatureStrikeSchema,
   debug: v.exactOptional(handle),
   prewarm: v.pipe(v.array(v.strictObject({ kind: handle, variant: handle })), v.maxLength(64)),
-  /** each entry's drop model: the world's fixed draw it shows in one painterly material (`rim`); absent, no drop models */
-  drop: v.exactOptional(v.strictObject({ rim: v.pipe(finite, v.minValue(0), v.maxValue(1)),
-    draws: v.pipe(v.array(v.strictObject({ id: handle, draw: v.pipe(v.string(), v.minLength(1), v.maxLength(256)) })), v.maxLength(64)) })),
 });
 export type EliteEntryPageRows = v.InferOutput<typeof EliteEntryPageRowsSchema>;
 export function parseEliteEntryPageRows(input: unknown): EliteEntryPageRows {
@@ -104,9 +101,5 @@ export function parseEliteEntryPageRows(input: unknown): EliteEntryPageRows {
     || new Set(rows.profiles.map(row => row.id)).size !== rows.profiles.length
     || new Set(rows.observations.map(row => row.id)).size !== rows.observations.length
     || new Set(rows.strikes.map(row => row.amount)).size !== rows.strikes.length) throw new Error('Duplicate elite page selection');
-  const drops = rows.drop?.draws;
-  if (drops !== undefined && (drops.length !== rows.entry.entries.length || drops.some((row, index) => rows.entry.entries[index]?.id !== row.id))) {
-    throw new Error('Elite drop rows must name every entry once, in entry order');
-  }
   return rows;
 }

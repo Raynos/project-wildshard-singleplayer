@@ -21,9 +21,6 @@ import { DomePuffs } from '@wildshard/engine/fx/groundFx';
 import { SpawnScript } from '../population/spawnScript';
 import { EliteDecisions } from './eliteDecisions';
 import { parseEliteFeature, parseExternalElite, type ExternalEliteData } from '@wildshard/format/eliteFeature';
-import type { EliteEntryPageRows } from '@wildshard/format/eliteEntryRows';
-import { painterlyMaterial } from '@wildshard/engine/world/painterly';
-import type { FixedDraws } from '../models/fixedDraws';
 
 
 /** Client-only presentation over the same v1 owner as native encounters. Every authority is an existing concrete service;
@@ -239,15 +236,4 @@ export class ExternalElitePage implements EliteScript {
     } else this.tell.hide();
   }
   drainEffects(): ExternalEliteEffect[] { return this.events.splice(0); }
-}
-
-/** Each declared elite's drop model by its entry id (the page rows' `drop`): a group holding a copy of the entry's draw from
- *  the world's loaded fixed draws, all in one painterly material. Every draw is found before any copy is made; rows without
- *  a drop declare no drop models. */
-export function eliteDropModels(rows: EliteEntryPageRows, draws: Pick<FixedDraws, 'ready' | 'handle'>, sky: SkyRig): ReadonlyMap<string, THREE.Object3D> {
-  const drop = rows.drop;
-  if (drop === undefined) return new Map();
-  if (!draws.ready) throw new Error('Elite drops require loaded fixed draws');
-  const handles = drop.draws.map(row => [row.id, draws.handle(row.draw)] as const), material = painterlyMaterial(sky, { rim: drop.rim });
-  return new Map(handles.map(([id, handle]) => { const model = new THREE.Group(); model.add(new THREE.Mesh(handle.copy(), material)); return [id, model] as const; }));
 }
