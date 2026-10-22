@@ -1,7 +1,6 @@
 import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
 import { PracticeSceneSchema } from '@wildshard/format/practiceCourseRows';
 import * as v from 'valibot';
-import { LightVolumeRowSchema } from '@wildshard/format/lightVolume';
 
 const finite = v.number();
 const SURFACES = ['wood', 'metal', 'flesh', 'felt', 'stone', 'rock', 'sand', 'water', 'grass', 'wetSand', 'planks', 'shell', 'ground', 'edge', 'earth'] as const;
@@ -98,8 +97,9 @@ export const WorldRowsSchema = v.strictObject({
 });
 export type WorldRows = v.InferOutput<typeof WorldRowsSchema>;
 
+const VolumeRow = v.strictObject({ file: text, size: v.tuple([Offset, Offset, Offset]), min: v.array(finite), inv: v.array(finite), maximum: finite });
 export const GeometryBootSchema = v.strictObject({ rows: LayoutRowsSchema, library: GeometryLibrarySchema,
-  negativeZeros: v.array(v.array(text)), world: WorldRowsSchema, volumes: v.record(text, LightVolumeRowSchema) });
+  negativeZeros: v.array(v.array(text)), world: WorldRowsSchema, volumes: v.record(text, VolumeRow) });
 
 const Course = v.strictObject({
   id: v.string(), title: v.string(), chip: v.string(),

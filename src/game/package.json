@@ -25,7 +25,6 @@
     "./shardfile/clientMeadow": "./shardfile/clientMeadow.ts",
     "./looks/speciesBook": "./looks/speciesBook.ts",
     "./looks/vertexWear": "./looks/vertexWear.ts",
-    "./looks/lightVolume": "./looks/lightVolume.ts",
     "./models/fixedDraws": "./models/fixedDraws.ts",
     "./models/islandLibrary": "./models/islandLibrary.ts",
     "./models/socketRigCreature": "./models/socketRigCreature.ts",
