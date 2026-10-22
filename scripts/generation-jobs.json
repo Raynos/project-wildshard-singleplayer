@@ -13267,6 +13267,42 @@
       "catalogueDependencies": []
     },
     {
+      "id": "template-boss-decision",
+      "shard": "_template",
+      "entry": "src/shards/_template/generators/bake-boss.mjs",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/_template/generators/bake-boss.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/format",
+        "src/sdk",
+        "src/shards/_template/data/bossDecision.json",
+        "src/shards/_template/data/moves.json",
+        "src/shards/_template/data/creatures.json",
+        "src/shards/_template/data/rows.json",
+        "src/shards/_template/behaviour",
+        "src/shards/_template/generators/buildOptions.ts",
+        "src/shards/_template/generators/bake-boss.mjs",
+        "src/sdk/decisionScriptBindings.ts",
+        "src/format/scriptAbiV1.ts",
+        "src/format/decisionScripts.ts"
+      ],
+      "outputs": [
+        "src/shards/_template/behaviour/boss.json",
+        "src/shards/_template/assets/bf52a5e1751ebc1a668451fcb1bde2445d5caea4a4685def699531f8eab13a06"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "src/shards/_template/behaviour/boss.json",
+        "src/shards/_template/assets/bf52a5e1751ebc1a668451fcb1bde2445d5caea4a4685def699531f8eab13a06"
+      ]
+    },
+    {
       "id": "template-product",
       "shard": "_template",
       "entry": "src/shards/_template/generators/build-product.mjs",
@@ -18274,42 +18310,6 @@
         "src/shards/pine-hollow/assets/rig-blobs/f5e7344105cacbec5ed298229c26d89726a26584ecc318eb647dc08c10d7b01d",
         "src/shards/pine-hollow/assets/rig-blobs/f6d262a3bf6761c70b85e10c90367610a33734c867090e4b8fd604900170f780",
         "src/shards/pine-hollow/data/rigBlobs.generated.json"
-      ]
-    },
-    {
-      "id": "template-boss-decision",
-      "shard": "_template",
-      "entry": "src/shards/_template/generators/bake-boss.mjs",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/_template/generators/bake-boss.mjs"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/format",
-        "src/sdk",
-        "src/shards/_template/data/bossDecision.json",
-        "src/shards/_template/data/moves.json",
-        "src/shards/_template/data/creatures.json",
-        "src/shards/_template/data/rows.json",
-        "src/shards/_template/behaviour",
-        "src/shards/_template/generators/buildOptions.ts",
-        "src/shards/_template/generators/bake-boss.mjs",
-        "src/sdk/decisionScriptBindings.ts",
-        "src/format/scriptAbiV1.ts",
-        "src/format/decisionScripts.ts"
-      ],
-      "outputs": [
-        "src/shards/_template/behaviour/boss.json",
-        "src/shards/_template/assets/bf52a5e1751ebc1a668451fcb1bde2445d5caea4a4685def699531f8eab13a06"
-      ],
-      "platform": "portable",
-      "buildTimeOutputs": [
-        "src/shards/_template/behaviour/boss.json",
-        "src/shards/_template/assets/bf52a5e1751ebc1a668451fcb1bde2445d5caea4a4685def699531f8eab13a06"
       ]
     },
     {
