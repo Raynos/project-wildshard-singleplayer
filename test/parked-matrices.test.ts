@@ -20,3 +20,12 @@ test('a frozen parked root updates once, skips while hidden, updates when shown 
   child.position.x = 9; scene.updateMatrixWorld();
   expect(child.matrixWorld.elements[12]).toBe(9); // thawed: three's own update again
 });
+
+test('a warm-up that only needs pipelines skips its shown draws too, and the thaw still refreshes', () => {
+  const scene = new Group(), root = new Group(), child = new Object3D();
+  root.visible = false; root.add(child); scene.add(root); child.position.set(1, 0, 0);
+  const thaw = freezeParkedMatrices(root, { shown: 'skip' });
+  child.position.x = 4; root.visible = true; scene.updateMatrixWorld();
+  expect(child.matrixWorld.elements[12]).toBe(1);
+  thaw(); expect(child.matrixWorld.elements[12]).toBe(4);
+});

@@ -704,13 +704,14 @@ export function parkedMatricesFrozen(): boolean { return parkedFrozen; }
 /**
  * G580 T2: three recomputes every matrix under an invisible root each frame (`updateMatrixWorld` ignores visibility): a
  * parked destination world cost Pine's warm-up 8 s of its 27 s. Bring `root`'s subtree up to date once, then skip it while
- * the root stays invisible (a warm-up draw that shows it updates it as usual). The returned thaw restores the root's own
- * update and refreshes the subtree.
+ * the root stays invisible (a warm-up draw that shows it updates it as usual; `shown: 'skip'` skips those too, for a
+ * warm-up whose draws only need its pipelines). The returned thaw restores the root's own update and refreshes the
+ * subtree.
  */
-export function freezeParkedMatrices(root: THREE.Object3D): () => void {
-  const update = root.updateMatrixWorld.bind(root);
+export function freezeParkedMatrices(root: THREE.Object3D, options: { shown?: 'update' | 'skip' } = {}): () => void {
+  const update = root.updateMatrixWorld.bind(root), skipShown = options.shown === 'skip';
   update(true);
-  const frozen = (force?: boolean): void => { if (root.visible) update(force); };
+  const frozen = (force?: boolean): void => { if (root.visible && !skipShown) update(force); };
   root.updateMatrixWorld = frozen;
   return () => {
     if (root.updateMatrixWorld === frozen) Reflect.deleteProperty(root, 'updateMatrixWorld');

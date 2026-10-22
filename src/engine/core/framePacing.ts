@@ -40,6 +40,8 @@ let held = false;
 export function setBuildHeld(on: boolean): void { held = on; }
 /** A build stretch's budget: `budgetMs`, or HELD_BUILD_MS while the traveller is held. */
 export function heldBudget(budgetMs: number): number { return held ? Math.max(budgetMs, HELD_BUILD_MS) : budgetMs; }
+/** Whether the traveller is held at a grid cell's wall (`setBuildHeld`). */
+export function buildHeld(): boolean { return held; }
 
 /** Report completion and, when available, its rAF timestamp and active fps cap (0 = uncapped).
  * Build deadlines start at the vsync, not after the frame's work; missed vsyncs never relax an uncapped deadline.

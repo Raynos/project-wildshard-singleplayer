@@ -39,7 +39,7 @@ import { WorldRenderPass } from './worldDepth';
 import { makeSystem, setLoopState, systemFault, type GameSystem } from './faults';
 import { frameCost } from './frameCost';
 import { diagnosticNow } from './clock';
-import { noteFrameDrawn, setFramePacing } from './framePacing';
+import { buildHeld, noteFrameDrawn, setFramePacing } from './framePacing';
 import { buildYield } from './workSlice';
 import { boundEntryWarmup } from '../render/entryWarmupBound';
 import { onSettingChange, setting } from '../ui/Settings';
@@ -860,7 +860,7 @@ export class Game {
     const { precompileLevel, warmComposerFrame, waitForDrawnFrame, entryFrameExclusions, LIVE_UPLOAD_BUDGET, SLICED_UPLOAD_BUDGET, LIVE_PRECOMPILE_SLICE_MS,
       parkedMatricesFrozen, freezeParkedMatrices } = await import('../render/precompile');
     // G580 T2 (Developer): the parked destination's static matrices are not recomputed every frame while it waits hidden
-    const thaw = futureRoot !== undefined && futureRoot !== this.rootScene && !futureRoot.visible && parkedMatricesFrozen() ? freezeParkedMatrices(futureRoot) : undefined;
+    const thaw = futureRoot !== undefined && futureRoot !== this.rootScene && !futureRoot.visible && parkedMatricesFrozen() ? freezeParkedMatrices(futureRoot, { shown: 'skip' }) : undefined;
     try {
     const pause = (isolateImageUploads || setting('buildPacing') === 'entry') && this.frameCount > 0
       ? () => waitForDrawnFrame(owner, () => this.frameCount, current) : undefined;
@@ -885,8 +885,9 @@ export class Game {
     onStage('shaders-and-composer', diagnosticNow() - shaderStart, 1);
     const nodesAfter = nodeStats();
     if (nodesAfter !== null) onStage('node-builds', nodesAfter.buildMs - (nodesBefore?.buildMs ?? 0), nodesAfter.builds - (nodesBefore?.builds ?? 0));
-    const { warmParkedDraws, warmOffscreenPasses } = await import('../render/parkedDraws');
-    const drawBudget = linkDraws ? { budget: { drawables: 1, newMaterials: 1, bufferBytes: 1024 * 1024 } } : {};
+    const { warmParkedDraws, warmOffscreenPasses, HELD_PARKED_BUDGET } = await import('../render/parkedDraws');
+    // G580 T5 (Developer): a held traveller's parked draws take bigger slices; each slice costs a drawn frame
+    const drawBudget = linkDraws ? { budget: { drawables: 1, newMaterials: 1, bufferBytes: 1024 * 1024 } } : buildHeld() ? { budget: HELD_PARKED_BUDGET } : {};
     const drawnPause = this.frameCount > 0 ? () => waitForDrawnFrame(owner, () => this.frameCount, current) : (): Promise<void> => new Promise(resolve => { this.engineScope.raf(() => { this.engineScope.timeout(0, resolve); }); });
     // Camera models live outside the parked world. Compilation linked them, but
     // their staged group and equipment roots still hide their first buffer draws.
