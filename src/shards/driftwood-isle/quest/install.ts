@@ -3,7 +3,6 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import { driftwoodWorld } from '../world/build';
 import { bindClientPlaceSets } from '@wildshard/game/shardfile/clientPlaceSets';
 import { prepareQuestPageComposition, installQuestPageComposition, type QuestPageComposition as Adventure } from '@wildshard/game/quest/pageComposition';
-import { registerQuestPageWorld } from '@wildshard/game/quest/pageResources';
 import type { QuestPageCompositionRows } from '@wildshard/format/questPageComposition';
 import { installWorldScenes } from '@wildshard/game/shardfile/worldScenes';
 import { residentWorldScope } from '@wildshard/game/shardfile/hybridPresentation';
@@ -22,8 +21,6 @@ export async function installDriftwoodAdventure(ctx: ShardContext): Promise<Adve
   if (ctx.scope.disposed) throw new Error('Driftwood Isle was unloaded during the creature mesh load');
   const d = driftwoodWorld(shell);
   const rows = await ctx.product.json<QuestPageCompositionRows>('quests/page-composition.json');
-  registerQuestPageWorld(ctx.scope, rows.world, { pois: { hut: { anchors: entryOwner(ctx.scope, 'site', 'hut') }, lookout: { anchors: entryOwner(ctx.scope, 'site', 'lookout') },
-    wreck: { anchors: d.wreck.anchors }, shrine: { anchors: d.shrine.anchors }, cave: { anchors: d.cove.anchors } }, flock: d.gulls.flock });
   const placement = await prepareQuestPageComposition(ctx, rows);
   const scenes = await installWorldScenes(ctx, ctx.product.section('world/scenes'), residentWorldScope(ctx));
   installQuestFigures(ctx, await ctx.product.json('quests/figures.json'), { placement, resources: scenes, draws: fixedDrawLibrary(), catalogue: FIGURES, models: sites });
