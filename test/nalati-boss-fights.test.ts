@@ -84,7 +84,7 @@ test('Golden King runs all phases, clears the real adds and reaches its single r
 test.each([false,true])('arena script runs mounted phases, exposes its heart and wins (orchard fixture %s)', orchard => {
   mockCanvas();
   const restore = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 }), scope = new Scope('titan-headless');
-  const f = manager(), figure = new BoxGeometry(.2,.5,.3), materials = new Map(['nalati-titan-cloud','nalati-titan-flame','nalati-titan-smoke'].map(id => [id, new MeshBasicMaterial()]));
+  const f = manager(), figure = new BoxGeometry(.2,.5,.3), materials = new Map(['nalati-titan-cloud','nalati-titan-flame','nalati-titan-smoke','nalati-spray-debris','nalati-spray-mist'].map(id => [id, new MeshBasicMaterial()]));
   Object.assign(f.player,{ velocity: new Vector3(),setBodyEnabled: () => undefined });
   lendLooks(scope, { materials, setParam: () => undefined, setTexture: () => undefined, bindMeshMap: () => { throw new Error('No mapped materials in this fight'); } });
   const weather = legacyDouble<NalatiWeather>({ weather: legacyDouble<NalatiWeather['weather']>({ flash: 0, raise: () => undefined,stormActive: true }),air: legacyDouble<NalatiWeather['air']>({}) });

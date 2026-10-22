@@ -6,7 +6,7 @@ import { parse } from 'valibot';
 import { TimedEncountersSchema } from '@wildshard/format/encounterRows';
 import { CueDirector } from '../src/game/audio/cueDirector';
 import { expect, test, vi } from 'vitest';
-import { BoxGeometry, PerspectiveCamera, Scene, Vector3, type Vector2 } from 'three';
+import { BoxGeometry, MeshBasicMaterial, PerspectiveCamera, Scene, Vector3, type Vector2 } from 'three';
 import { app } from '../src/engine/app/runtime';
 import { Scope } from '../src/engine/app/scope';
 import type { Game } from '../src/engine/core/Game';
@@ -15,12 +15,20 @@ import type { DayCycleClock } from '../src/engine/world/dayCycle';
 import { TimedEncounters } from '../src/game/boss/timedEncounters';
 import { setTerrainHeight, setTerrainPlacement } from '../src/engine/world/terrainHeight';
 import { legacyDouble } from './fake/FakeGame';
+import { lendLooks } from '../src/game/shardfile/lentLooks';
 import night from '../src/shards/nalati-grasslands/data/night.generated.json' with { type: 'json' };
 import strikes from '../src/shards/nalati-grasslands/data/strikeProfiles.generated.json' with { type: 'json' };
+
+/** The night's two spray looks (data/lookGraphs.json), lent as the runtime lends every look before the world builds. */
+function lendSprays(scope: Scope): void {
+  lendLooks(scope, { materials: new Map(['nalati-spray-debris', 'nalati-spray-mist'].map(id => [id, new MeshBasicMaterial()])), setParam: () => undefined,
+    setTexture: () => undefined, bindMeshMap: () => { throw new Error('No mapped looks in the night'); } });
+}
 
 test('the listed night binding preserves phases, native identities, figures and contact rows', () => {
   setTerrainHeight(() => 0); setTerrainPlacement(() => [0, 1, 0], () => -1000);
   const scope = new Scope('marsh.watch'), figure = new BoxGeometry(.2, .5, .3);
+  lendSprays(scope);
   const game = legacyDouble<Game>({ app, levelScope: scope, scene: new Scene(), camera: new PerspectiveCamera(),
     renderer: legacyDouble<Game['renderer']>({ getDrawingBufferSize: (out: Vector2) => out.set(400, 800) }) });
   const rows = { ...night, presentation: 'marsh', phases: { slots: ['golden'], patrol: [] }, lightFloor: .7,
@@ -40,6 +48,7 @@ test('the listed night binding preserves phases, native identities, figures and 
 
 test('night contacts preserve origin, strike range and cover before native player damage',()=>{
   const scope=new Scope('night.contacts'),figure=new BoxGeometry(.2,.5,.3),position=new Vector3(1,0,2);
+  lendSprays(scope);
   const game=legacyDouble<Game>({app,levelScope:scope,scene:new Scene(),camera:new PerspectiveCamera(),
     renderer:legacyDouble<Game['renderer']>({getDrawingBufferSize:(out:Vector2)=>out.set(400,800)})});
   const target=legacyDouble<PlayerHealth>({}),actor=legacyDouble<Animal>({kind:'ghost-rider',label:'Rider',position:new Vector3(1,0,2),scale:1,yaw:0});
