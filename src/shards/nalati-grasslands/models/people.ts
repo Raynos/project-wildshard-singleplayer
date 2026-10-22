@@ -4,6 +4,7 @@ import { atlasFigureSkin } from '@wildshard/game/systems/npc/figureSkins';
 import { resourceScope } from '@wildshard/engine/app/resources';
 import { TIER } from '@wildshard/engine/core/tier';
 import population from '../boot/peopleFrames.generated.json' with { type: 'json' };
+import PEOPLE from '../boot/peopleVariants.generated.json' with { type: 'json' };
 import { defineMountedSpecimen } from '@wildshard/game/models/mountedSpecimen';
 import mountedSpecimen from '../boot/mountedSpecimen.json' with { type: 'json' };
 
@@ -13,14 +14,6 @@ export interface CampPersonParams { readonly person: PersonId }
 
 const ID = 'nalati-grasslands/camp-people';
 
-/** who the variant row offers, in the camp's order (src/shards/nalati-grasslands/quest.ts CAMP_PEOPLE) */
-const PEOPLE: readonly { readonly id: PersonId; readonly label: string }[] = [
-  { id: 'elder', label: 'Baqyt Ata, the elder' },
-  { id: 'herderGate', label: 'Dauren, herder (corral gate)' },
-  { id: 'herderRail', label: 'Erlan, herder (hitching rail)' },
-  { id: 'child', label: 'Ayan, the child' },
-  { id: 'cook', label: 'Gulnar Apa, the cook' },
-];
 
 export const campPeople: ModelDef<CampPersonParams> = defineModel<CampPersonParams>({
   id: 'nalati-grasslands/camp-people', name: 'Camp people', category: 'people', pipeline: ['hunyuan', 'code'],

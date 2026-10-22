@@ -1,0 +1,22 @@
+[
+  {
+    "id": "elder",
+    "label": "Baqyt Ata, the elder"
+  },
+  {
+    "id": "herderGate",
+    "label": "Dauren, herder (corral gate)"
+  },
+  {
+    "id": "herderRail",
+    "label": "Erlan, herder (hitching rail)"
+  },
+  {
+    "id": "child",
+    "label": "Ayan, the child"
+  },
+  {
+    "id": "cook",
+    "label": "Gulnar Apa, the cook"
+  }
+]
