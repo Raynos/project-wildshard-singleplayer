@@ -59,7 +59,7 @@ test('bakes every native solid/swept draw in order with exact channels, bounds a
     const copy = restored.alphaKits.get(name); if (copy === undefined) throw new Error(`Missing alpha kit ${name}`);
     exactGeometry(copy, kit.build());
   }
-  expect(restored.inKit.map(({ model, kit, at, box }) => ({ model, kit, at, box: box === undefined ? null : [...box.min, ...box.max] })))
+  expect(restored.inKit.map(({ model, kit, at, box }) => ({ model, kit, at, box: [...box.min, ...box.max] })))
     .toEqual(source.rows.inKit);
   expect(restored.hooks.map(point => point.toArray())).toEqual(author.hooks.map(point => point.toArray()));
   for (const geometry of [...actual.values(), ...expected.values(), ...restored.alphaKits.values()]) geometry.dispose();
