@@ -1,3 +1,4 @@
+import { readScalarChannel } from '@wildshard/engine/world/scalarChannel';
 // G508: complete map rest assembly, exclusively from shipping source data.
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -65,12 +66,14 @@ export async function pineMapAssembly() {
   }
   assembly.add('pond', new BufferGeometry().setAttribute('position', new Float32BufferAttribute(points, 3)).setIndex(indices));
 
-  const manifest = read('manifest.json'), geography = read('data/geography.generated.json'), candidates = new Map(geography.forest.map(row => [`${row.x},${row.z}`, row]));
+  const manifest = read('manifest.json'), geography = read('data/geography.generated.json'), density = readScalarChannel(geography.density);
+  if (density.length !== geography.forest.length) throw new Error('Map forest density differs');
+  const candidates = new Map(geography.forest.map((row,index) => [`${row.x},${row.z}`,{ row,index }]));
   const at = (x, z) => { const row = candidates.get(`${x},${z}`); if (row === undefined) throw new Error('Map forest candidate differs'); return row; };
   const trails = [layout.S_ROAD, layout.N_ROAD, layout.W_ROAD, layout.E_ROAD, ...Object.values(layout.SPURS)];
   const field = { ...buildTerrainMetadata(manifest.seed, { trails, cabinSites: layout.CABIN_SITES, pond }, () => pond.level), ...native };
   const trees = mapForest({ slug: manifest.slug, label: 'map', seed: manifest.seed, treeCount: manifest.treeCount }, field,
-    { ...manifest.forest, density: (x, z) => at(x, z).density, scale: (x, z) => at(x, z).scale, species: (x, z) => at(x, z).species },
+    { ...manifest.forest, density: (x, z) => density[at(x, z).index], scale: (x, z) => at(x, z).row.scale, species: (x, z) => at(x, z).row.species },
     manifest.trees.setVariants.map(row => ({ trunkRadius: row.trunk, height: row.height, species: row.species, collider: row.collider })));
   const lilies = mapLilies(manifest.seed, pond, native.heightAt, manifest.pondLilyExclusions ?? []);
   if (lilies !== null) assembly.add('pond-lilies', lilies);

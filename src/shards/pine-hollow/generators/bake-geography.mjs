@@ -1,4 +1,7 @@
 import { fileURLToPath } from 'node:url';
+import { zlibSync } from 'fflate';
+import * as v from 'valibot';
+import { ScalarChannelSchema } from '@wildshard/format/scalarChannel';
 import { readFileSync } from 'node:fs';
 import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
 import { PineSeedStream } from './seedStream.ts';
@@ -127,7 +130,7 @@ export function pineGround(geography = pineGeography()) {
 
 if (import.meta.main) {
   const writer = byteWriter(process.argv.includes('--check'), 'pine-geography'), geography = pineGeography();
-  writer.put(fileURLToPath(new URL('../data/geography.generated.json', import.meta.url)), jsonBytes(geography, 0));
+  writer.put(fileURLToPath(new URL('../data/geography.generated.json', import.meta.url)), jsonBytes({ ...geography,forest: geography.forest.map(({ density: _density,...row }) => row),density: v.parse(ScalarChannelSchema,{ type: 'f64',count: geography.forest.length,data: Buffer.from(zlibSync(new Uint8Array(Float64Array.from(geography.forest,row => row.density).buffer))).toString('base64') }) }, 0));
   writer.put(fileURLToPath(new URL('../data/ground.generated.json', import.meta.url)), jsonBytes(pineGround(geography), 0));
   writer.put(fileURLToPath(new URL('../data/pondClip.generated.json', import.meta.url)), jsonBytes(pondClip(), 0));
   writer.finish();

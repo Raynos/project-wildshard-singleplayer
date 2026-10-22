@@ -1,3 +1,4 @@
+import { ScalarChannelSchema } from '@wildshard/format/scalarChannel';
 import { RuntimeBoundsSchema } from '@wildshard/format/clientPlan';
 import { WorldUpdatesSchema } from '@wildshard/format/worldUpdates';
 import { StreamedCoverSchema } from '@wildshard/format/streamedCover';
@@ -74,7 +75,7 @@ import { ScriptBindingsSchema } from '@wildshard/format/scripts';
 import { ActorMovesSchema } from '@wildshard/format/actorMoves';
 import { DecisionScriptsSchema } from '@wildshard/format/decisionScripts';
 import { HooksSchema } from '@wildshard/format/hooks';
-import { TerrainSchema } from '@wildshard/format/terrain';
+import { TerrainSchema,ForestRowsSchema } from '@wildshard/format/terrain';
 import { WaterSchema } from '@wildshard/format/water';
 import { AccentSchema, ACCENT_IDS } from '@wildshard/format/accent';
 import { ItemsSchema, ItemFamilyNameSchema } from '@wildshard/format/items';
@@ -161,6 +162,8 @@ const finiteNumbers = new Set<object>([
 
 // Only the exact retained defining roots grant action bridges. A caller's new check or transform never joins.
 const wireRoots: Readonly<Record<string, GenericSchema>> = {
+  'scalarChannel.ScalarChannel': ScalarChannelSchema,
+  'terrain.ForestRows': ForestRowsSchema,
   'clientPlan.RuntimeBounds': RuntimeBoundsSchema,
   'worldUpdates.WorldUpdates': WorldUpdatesSchema,
   'streamedCover.StreamedCover': StreamedCoverSchema,

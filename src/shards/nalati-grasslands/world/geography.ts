@@ -1,4 +1,4 @@
-import { unzlibSync } from 'fflate';
+import { readScalarChannel } from '@wildshard/engine/world/scalarChannel';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import { createBakedTerrainField } from '@wildshard/engine/world/bakedTerrainField';
 import { mapPalette } from '@wildshard/format/minimap';
@@ -7,10 +7,7 @@ import rows from '../boot/geography.generated.json' with { type: 'json' };
 import layout from '../boot/layout.generated.json' with { type: 'json' };
 
 /** Offline geography channels share the native terrain's clamped bilinear law. */
-function values(name: keyof typeof rows.channels): Float32Array {
-  const bytes = unzlibSync(Uint8Array.from(atob(rows.channels[name]), value => value.codePointAt(0) ?? 0));
-  return new Float32Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 4);
-}
+const values = (name: keyof typeof rows.channels): Float32Array => readScalarChannel({ type: 'f32',count: rows.res*rows.res,data: rows.channels[name] });
 function channel(name: keyof typeof rows.channels): (x: number, z: number) => number {
   return bakedSamplers({ res: rows.res, size: rows.size, seed: rows.seed, landscapeHash: 0,
     heights: values(name), splat: new Uint8Array(0), undergrowth: null }).heightAt;

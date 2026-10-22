@@ -1,3 +1,4 @@
+import { readScalarChannel } from '@wildshard/engine/world/scalarChannel';
 import type { TrustedRuntimeEntry, ShardPlugin } from "../plugin/context";
 import type { Ktx2Table } from '@wildshard/engine/boot/gpuFiles';
 import type { SwordArms, SwordFraming, SwordMoveSet, SwordRig } from '@wildshard/engine/combat/view/melee';
@@ -706,13 +707,16 @@ export function declaredForestQueries(input: v.InferOutput<typeof FixedForestQue
 export function declaredForestQueries(input: unknown): Pick<ChunkForest, 'density' | 'scale' | 'species'>;
 export function declaredForestQueries(input: unknown): Pick<ChunkForest, 'density' | 'scale' | 'species'> {
   if (v.is(FixedForestQueriesSchema, input)) { const { density } = input; return { density: () => density }; }
-  const at = new Map(v.parse(ForestRowsSchema, input).forest.map(row => [`${String(row.x)},${String(row.z)}`, row]));
+  const rows = v.parse(ForestRowsSchema,input), density = rows.density === undefined ? null : readScalarChannel(rows.density);
+  const at = new Map(rows.forest.map((row,index) => [`${String(row.x)},${String(row.z)}`,{ row,index }]));
   const row = (x: number, z: number) => {
     const found = at.get(`${String(x)},${String(z)}`);
     if (found === undefined) throw new Error('Forest candidate differs from its declared rows');
     return found;
   };
-  return { density: (x, z) => row(x, z).density, scale: (x, z) => row(x, z).scale, species: (x, z) => row(x, z).species };
+  return { density: (x,z) => { const found = row(x,z), value = density === null && 'density' in found.row ? found.row.density : density?.[found.index];
+    if (value === undefined) throw new Error('Missing forest density');return value; },
+    scale: (x,z) => row(x,z).row.scale,species: (x,z) => row(x,z).row.species };
 }
 
 /** A declared clip (`PondClipSchema`, G4): whether the pond grid cell holding (x, z) is one of the rows' listed cells. */

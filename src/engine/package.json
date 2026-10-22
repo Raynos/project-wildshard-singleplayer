@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./world/scalarChannel": "./world/scalarChannel.ts",
     "./boot/waits": "./boot/waits.ts",
     "./boot/download": "./boot/download.ts",
     "./render/lightmaps": "./render/lightmaps.ts",

@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import { CELL_ABOVE, CELL_BELOW } from './contentBounds';
 import { WaterSchema } from './water';
+import { ScalarChannelSchema } from './scalarChannel';
 
 const ref = v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u));
 const address = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(7));
@@ -62,8 +63,13 @@ export type GroundRows = v.InferOutput<typeof GroundRowsSchema>;
 const finite = v.pipe(v.number(), v.finite());
 /** A declared forest's exact candidate answers (the manifest's `forestQueries`, G4): every jittered sample's density, scale
  *  and species mix, read from a generated geography file's `forest` rows (its other rows are not read). */
-export const ForestRowsSchema = v.object({ forest: v.pipe(v.array(v.strictObject({ x: finite, z: finite, density: finite,
-  scale: finite, species: v.record(v.pipe(v.string(), v.minLength(1), v.maxLength(64)), finite) })), v.maxLength(65536)) });
+const forestCandidate = v.strictObject({ x: finite,z: finite,density: finite,
+  scale: finite,species: v.record(v.pipe(v.string(),v.minLength(1),v.maxLength(64)),finite) });
+export const ForestRowsSchema = v.union([
+  v.object({ forest: v.pipe(v.array(forestCandidate),v.maxLength(65536)),density: v.exactOptional(v.never()) }),
+  v.pipe(v.object({ forest: v.pipe(v.array(v.omit(forestCandidate,['density'])),v.maxLength(65536)),density: ScalarChannelSchema }),
+    v.check(rows => rows.density.type === 'f64' && rows.density.count === rows.forest.length,'Forest density requires one f64 per candidate')),
+]);
 /** A declared clip (the manifest's `pondClip`, G4): the pond surface's grid (`segs` cells a side of `cell` m from its corner
  *  `x0`, `z0`) and the row-major indices of the cells another water body draws instead. */
 export const PondClipSchema = v.strictObject({ x0: finite, z0: finite, cell: v.pipe(finite, v.minValue(Number.MIN_VALUE)),

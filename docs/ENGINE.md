@@ -11823,3 +11823,10 @@ binding events remain pending. The existing authority includes snapshot()
 in its own save; restore validates the stable-id continuation without Wasm
 or event replay and remaps transient handles on delivery. Fixed-memory
 capacities bound the queue. No scheduler, native body or RNG is installed.
+
+Scalar channels are strict little-endian f32/f64 zlib rows with an explicit
+count. readScalarChannel performs one bounded inflate and returns the original
+typed storage, refusing length mismatch and non-finite values. It introduces
+no sampler, cache or owner. Nalati continues to use bakedSamplers; declared
+forest queries retain exact coordinate lookup and candidate order, with f64
+density rows preserving every original double and the legacy inline form.

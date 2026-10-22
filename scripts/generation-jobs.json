@@ -1113,7 +1113,8 @@
         "scripts/bake-output.mjs",
         "src/sdk/bake/source-loader.mjs",
         "src/shards/pine-hollow/data/terrainBindings.json",
-        "src/format/populationEnvironment.ts"
+        "src/format/populationEnvironment.ts",
+        "src/format/scalarChannel.ts"
       ],
       "outputs": [
         "src/shards/pine-hollow/data/geography.generated.json",

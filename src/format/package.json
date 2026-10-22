@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./scalarChannel": "./scalarChannel.ts",
     "./arenaScriptRows": "./arenaScriptRows.ts",
     "./vertexWear": "./vertexWear.ts",
     "./worldAssembly": "./worldAssembly.ts",
