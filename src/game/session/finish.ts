@@ -17,6 +17,7 @@ import { precompileLevel } from '@wildshard/engine/render/precompile';
 import { textureBytes } from '@wildshard/engine/render/textureBytes';
 import { setPoseProvider } from '@wildshard/engine/ui/ReloadPrompt';
 import { registerBeforeReload } from '@wildshard/engine/boot/lastEnd';
+import { gridPrefetchOrder, startGridPrefetch } from '../grid/prefetch';
 
 export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): Promise<BuiltWorld> {
   const { manifest, boot, slug, loading, audioProfile, files, bootSteps, plan, step, audioLoad, deferredAudio, world, game, sky, player, chunk, fragileBoot, failGpuBoot, onBootContextLost, edgeDressing, boundary, water, interactables, props, disableBootGpuGuard, level, animals, arena, crossbow, weapons, lockSys, hud, perf, audio, music, playerHealth, exploring, hands, windupWarn, resuming, arrival, menuFirst, enter, getPlayground, leakPhysics } = ctx;
@@ -113,6 +114,9 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   if (level === undefined) app.events.emit('level.loaded', { id: slug });
   app.setState(hud.entered ? 'play' : 'title');
   game.start(); // keep the full render loop out of the loader's 100% fade and its transient boot-memory peak
+  // G554: the grid's whole known set into the disk cache, this cell and its neighbours first, in the background once play
+  // starts (round 39: during the loading screen its ~4,000 cache checks queued ahead of the home region's own reads)
+  if (ctx.grid !== null) startGridPrefetch(gridPrefetchOrder(ctx.grid.assembly, player.position));
   if (arrival?.mode === 'enter' || arrival?.mode === 'arena') enter();
   else if (arrival?.mode === 'explore') hud.startExplore(); // import the viewer only after shader compilation and the loader's peak
   if (arrival?.mode === 'arena') hud.enterArenaNow();
