@@ -7,7 +7,8 @@ import { poseRidingEnvelopes } from '../riding/presentation';
 import { wildEnv } from '../population/pageGroups';
 import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
 import * as v from 'valibot';
-import { packedCreatureBodies,type BakedGeometryRow } from '../plugin/geometry';
+import { packedCreatureBodies,readBakedGeometry,type BakedGeometryRow } from '../plugin/geometry';
+import { Color, MeshBasicMaterial, SkinnedMesh, type BufferGeometry } from 'three';
 import { productRiggedHulls } from './riggedHulls';
 import { HullLookBookSchema, PackedCreatureLooksSchema, type CompactSpeciesBodiesRows } from '@wildshard/format/speciesLooks';
 import type { NativeSpeciesLookBookRows } from '@wildshard/format/speciesBookRows';
@@ -24,7 +25,8 @@ export class HullLookBook {
   private readonly book;
   private readonly hulls;
   private readonly bodies;
-  constructor(input: unknown) {
+  /** `files` reads the book's product files (the packed looks' attachments); absent, a look with attachments refuses */
+  constructor(input: unknown, private readonly files: { readonly file: (name: string) => Promise<Uint8Array> } | null = null) {
     this.book = v.parse(HullLookBookSchema, input);
     if (new Set(this.book.rows.map(row => row.kind)).size !== this.book.rows.length
       || new Set(this.book.rows.map(row => row.id)).size !== this.book.rows.length
@@ -78,7 +80,9 @@ export class HullLookBook {
   get looks(): readonly SpeciesLook[] { return this.book.rows.map(row => this.look(row.kind)); }
   /** G600 L8 / G602: the packed bodies' looks (`PackedCreatureLooksSchema` rows) with each row's optional coat tints and
    *  traits, painterly material, rigged hull skins (the book's slug), alive / dead post-pose programmes (riding envelopes
-   *  on the alive one), stance and gait. `pose` runs one of the rows' programmes over a borrowed rig. Rows only. */
+   *  on the alive one), stance, gait, and its own frame: an animate programme wearing the row's attachments (each a baked
+   *  geometry of the book's product, read once as the look preloads or on its first frame, one self-lit skinned mesh per
+   *  animal, put on once read). `pose` runs one of the rows' programmes over a borrowed rig. Rows only. */
   packedLooks(input: unknown): { readonly all: readonly SpeciesLook[]; get: (kind: string) => SpeciesLook; pose: (id: string, context: AnimalRigContext) => void } {
     const book = v.parse(PackedCreatureLooksSchema, input), packed = this.packed, base = packed.looks(book);
     const programmes = new Map(Object.entries(book.poses).map(([id, row]) => [id, numericCreaturePose(row)] as const));
@@ -93,9 +97,13 @@ export class HullLookBook {
     const all = book.rows.map((row): SpeciesLook => {
       const look = base.get(row.kind), kind = row.kind, post = row.postPose, material = row.material;
       if (post !== undefined && (!programmes.has(post.alive) || post.dead !== undefined && !programmes.has(post.dead))) throw new Error('Missing species pose programme');
+      const frame = row.animate, worn = row.attachments ?? [], files = this.files;
+      if (frame !== undefined && !programmes.has(frame)) throw new Error('Missing species pose programme');
+      if (worn.length > 0 && frame === undefined) throw new Error('Packed look attachments need an animate programme');
+      if (worn.length > 0 && files === null) throw new Error('Packed look attachments need the product files');
       const coats = Object.entries(row.variants ?? {}).flatMap(([id, source]) => typeof source === 'string' ? [] : [[id, {
         ...(source.tint === undefined ? {} : { tint: source.tint }), ...(source.traits === undefined ? {} : { traits: source.traits }) }] as const]);
-      return Object.assign<SpeciesLook, Partial<SpeciesLook>>(look, {
+      const dressed = Object.assign<SpeciesLook, Partial<SpeciesLook>>(look, {
         ...(coats.length === 0 ? {} : { variants: Object.fromEntries(coats) }),
         ...(material === undefined ? {} : { material: (sky, glow, intensity = 1) => {
           const made = painterlyMaterial(sky, { rim: material.rim, bands: material.bands });
@@ -111,6 +119,33 @@ export class HullLookBook {
         ...(post === undefined ? {} : { postPose: (context: AnimalRigContext) => { pose(context.alive ? post.alive : post.dead ?? post.alive, context); } }),
         ...(row.stance === undefined ? {} : { pose: row.stance }), ...(row.gait === undefined ? {} : { gait: row.gait }),
       });
+      if (frame === undefined) return dressed;
+      // the attachments' geometries are read once and shared by every animal's own mesh
+      let parts: readonly { readonly name: string; readonly colour: readonly [number, number, number]; readonly geometry: BufferGeometry }[] | null = worn.length === 0 ? [] : null;
+      let reading: Promise<void> | null = null, failure: unknown = null;
+      const read = (): Promise<void> => {
+        reading ??= Promise.all(worn.map(async part => ({ name: part.name, colour: part.colour,
+          geometry: readBakedGeometry(Uint8Array.from(await (files?.file(part.file) ?? Promise.reject(new Error('Missing product files')))), 0, part.geometry) })))
+          .then(rows => { parts = rows; return undefined; }, (cause: unknown) => { failure = cause; throw cause; });
+        return reading;
+      };
+      const wearing = new WeakSet(), preload = dressed.preload;
+      if (worn.length > 0) dressed.preload = async (): Promise<void> => { await preload?.(); await read(); };
+      dressed.animate = (context): void => {
+        if (failure !== null) throw new Error('Packed look attachments failed to load', { cause: failure });
+        const animal = context.animal;
+        if (parts === null) void read().catch(() => undefined);
+        else if (!wearing.has(animal)) {
+          for (const part of parts) {
+            const paint = new MeshBasicMaterial({ color: new Color(...part.colour), toneMapped: false }); paint.name = part.name;
+            const mesh = new SkinnedMesh(part.geometry, paint); mesh.name = part.name; mesh.frustumCulled = false; mesh.castShadow = false; mesh.receiveShadow = false;
+            animal.mesh.add(mesh); mesh.bind(animal.mesh.skeleton, animal.mesh.bindMatrix);
+          }
+          wearing.add(animal);
+        }
+        pose(frame, context);
+      };
+      return dressed;
     });
     return { all, pose, get: kind => { const look = all.find(row => row.kind === kind); if (look === undefined) throw new Error('Unknown packed creature look'); return look; } };
   }
@@ -128,10 +163,10 @@ function registeredLook(def: SpeciesDef): Pick<SpeciesLook, 'rigContract' | 'fur
 const productBooks = new Map<string, HullLookBook>();
 /** A product's declared hull look book (`look/hull-book`), admitted once per book slug: every entry, installer
  * and cold specimen of that product shares one book and one packed body owner. */
-export function productHullBook(product: { readonly section: (name: 'look/hull-book') => { readonly slug: string } }): HullLookBook {
+export function productHullBook(product: { readonly section: (name: 'look/hull-book') => { readonly slug: string }; readonly file: (name: string) => Promise<Uint8Array> }): HullLookBook {
   const row = product.section('look/hull-book'), cached = productBooks.get(row.slug);
   if (cached !== undefined) return cached;
-  const book = new HullLookBook(row); productBooks.set(row.slug, book); return book;
+  const book = new HullLookBook(row, product); productBooks.set(row.slug, book); return book;
 }
 
 /** Expand compact byte addressing only; the native packed owner admits every

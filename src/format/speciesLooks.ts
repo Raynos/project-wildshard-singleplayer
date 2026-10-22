@@ -70,6 +70,12 @@ export const PackedCreatureLooksSchema = v.pipe(v.unknown(), v.check(isJsonData)
     facetJitter: v.exactOptional(v.pipe(number, v.minValue(0))),
     // a hard front: a blow that lands within `arc` degrees of the heading deals `scale` of its damage (flank it)
     hitArc: v.exactOptional(v.strictObject({ arc: v.pipe(number, v.minValue(0), v.maxValue(180)), scale: v.pipe(number, v.minValue(0)) })),
+    // the look's own frame: a `poses` programme run as its animate, wearing its attachments (skinned meshes on its body,
+    // each a baked geometry of its product in a self-lit colour, named for the views that address it)
+    animate: v.exactOptional(text),
+    attachments: v.exactOptional(v.pipe(v.array(v.strictObject({ name: text, file: text, colour: rgb, geometry: v.strictObject({
+      attrs: v.pipe(v.array(v.tuple([text, v.picklist(['f32', 'u16']), v.pipe(number, v.integer(), v.minValue(1), v.maxValue(4)), v.boolean()])), v.minLength(1), v.maxLength(8)),
+      count: v.pipe(number, v.integer(), v.minValue(1)), index: v.literal('u32'), indexCount: v.pipe(number, v.integer(), v.minValue(3)), box: v.boolean() }) })), v.minLength(1), v.maxLength(4))),
   })), v.maxLength(256)),
 }));
 /** A product's creature install (G571): the perch body's poses file, the practice spawn its respawn needs, the packed

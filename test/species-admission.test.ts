@@ -33,7 +33,6 @@ test('species named-file admission precedes native catalogue allocation',async()
   for(const species of [
     {...view,packedBodies:{...view.packedBodies,attrs:[['position','f64',3,false]]}},
     {...view,lookBook:{...view.lookBook,rows:Array.from({length:257},()=>first)}},
-    {...view,cracks:{...view.cracks,index:'u16'}},
     {...view,lookBook:{...view.lookBook,rows:[{...first,material:{rim:'bright',bands:.8}}]}},
   ]){
     expect(()=>nameBlob('actors/sheep.json','json',encode({...file,species}),{jsonSchema:schema})).toThrow();

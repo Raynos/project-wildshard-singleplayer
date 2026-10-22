@@ -90,7 +90,7 @@ const crackBytes=new Uint8Array(crackSize);let crackAt=0;for(const bytes of crac
 const crackRow={attrs:crackAttrs,count:cracks.getAttribute('position').count,index:'u32',indexCount:crackIndex.count,box:false};
 const program=wireProgram({script,bytes:Buffer.from(blob.bytes).toString('base64')});
 const guest=v.parse(CreatureGuestSchema,{...speciesRows.balbalGuest,program,strike:strikes.balbal});
-const presentation={packedBodies:compactBodies,poses:poseConfigs,cracks:crackRow,guest,lookBook:{slug:'nalati-grasslands',rows:SPECIES_LOOK_ROWS,program:wireProgram(admission)}};
+const presentation={packedBodies:compactBodies,poses:poseConfigs,guest,lookBook:{slug:'nalati-grasslands',rows:SPECIES_LOOK_ROWS,program:wireProgram(admission)}};
 const writer=byteWriter(process.argv.includes('--check'),'nalati-species');
 writer.put(fileURLToPath(new URL(`../../../../public${file}`,import.meta.url)),compressed);
 // G600 L8: the looks are the hull book's packed looks (game/looks/speciesBook HullLookBook.packedLooks): the compact bodies
@@ -107,6 +107,10 @@ const lookRow=row=>{
   if(row.rig!==undefined)look.rig=row.rig;if(row.pose!==undefined)look.stance=row.pose;if(row.gait!==undefined)look.gait=row.gait;
   if(row.eyeGlow!==undefined)look.eyeGlow=row.eyeGlow;if(row.eyeGlowIntensity!==undefined)look.eyeGlowIntensity=row.eyeGlowIntensity;
   if(row.postPose!==undefined)look.postPose=row.postPose;
+  // G600 L8: the balbal's and the eagle's frames are their pose programmes; the balbal wears its glowing cracks (the
+  // creature view module colours the 'balbal-cracks' part)
+  if(row.metadata.kind==='balbal'||row.metadata.kind==='eagle')look.animate=row.metadata.kind;
+  if(row.metadata.kind==='balbal')look.attachments=[{name:'balbal-cracks',file:'actors/balbal-cracks.bin',colour:[1,.46,.1],geometry:crackRow}];
   return look;
 };
 const looks={poses:SPECIES_POSES,rows:SPECIES_LOOK_ROWS.map(lookRow)};

@@ -41,9 +41,8 @@ export const SpeciesLookBookSchema=v.pipe(v.unknown(),v.check(isJsonData),book);
 export const NativeSpeciesLookBookSchema=v.pipe(v.unknown(),v.check(isJsonData),v.object({...book.entries,body:CompactSpeciesBodiesSchema}));
 export type NativeSpeciesLookBookRows=v.InferOutput<typeof NativeSpeciesLookBookSchema>;
 const poseConfig=v.object({prefix:v.string(),group:v.string(),scalars:v.array(v.unknown()),look:v.exactOptional(v.unknown()),alive:v.exactOptional(v.boolean())});
-const cracks=v.object({attrs:v.array(v.tuple([v.string(),v.picklist(['f32','u16']),v.number(),v.boolean()])),count:v.number(),index:v.literal('u32'),indexCount:v.number(),box:v.boolean()});
-/** The existing named actors file retains its exact body, pose and crack payload. */
-export const SpeciesPresentationSchema=v.object({poses:v.record(v.string(),poseConfig),packedBodies:CompactSpeciesBodiesSchema,guest:CreatureGuestSchema,lookBook:v.pick(book,['slug','rows','program']),cracks});
+/** The existing named actors file retains its exact body and pose payload. */
+export const SpeciesPresentationSchema=v.object({poses:v.record(v.string(),poseConfig),packedBodies:CompactSpeciesBodiesSchema,guest:CreatureGuestSchema,lookBook:v.pick(book,['slug','rows','program'])});
 const bodyWhole=v.pipe(number,v.integer(),v.minValue(0));
 export const SpeciesActorsFileSchema=v.strictObject({species:SpeciesPresentationSchema,
   page:v.strictObject({world:v.unknown(),specimen:v.unknown()}),

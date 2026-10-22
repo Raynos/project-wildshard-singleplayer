@@ -1,6 +1,6 @@
-import * as THREE from 'three';
+import type * as THREE from 'three';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import type { SpeciesDef,RigAnimCtx,ThinkCtx } from '@wildshard/engine/entities/species/registry';
+import type { SpeciesDef,ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import * as v from 'valibot';
 import { app } from '@wildshard/engine/app/runtime';
 import { ANIMAL_STATES } from '@wildshard/engine/entities/AnimalSim';
@@ -10,10 +10,9 @@ import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import type { CreatureGuestRows } from '@wildshard/format/speciesBookRows';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import speciesRows from '../boot/speciesRows.generated.json' with { type:'json' };
-import { poseNalatiCreature,balbalCrackGeometry,speciesGuestRows } from './presentation';
+import { speciesGuestRows } from './presentation';
 
 export const BALBAL = speciesRows.balbal.kind;
-const cracks = new WeakSet<Animal>();
 let admitted:CreatureGuestRows|null=null;
 let strike:ReturnType<typeof strikeFromData>|null=null;
 const contacts=new StrikeRunner();
@@ -64,20 +63,9 @@ function damage(actor:Animal,point:THREE.Vector3,_direction:THREE.Vector3,reques
 const nativeGuest={weakPoint,program,binding:{think,damageMul:damage}};
 /** Borrow the actual balbal's numeric guest observations and contact binding. */
 export function creatureGuest():typeof nativeGuest{guestRows();nativeStrike();return nativeGuest;}
-/** The crack mesh (named for the creature view module's colour channel: its glow and the balbal's height are
- *  behaviour/creatureViews.as) and the shared pose. */
-function animateBalbal(c: RigAnimCtx): void {
-  const a = c.animal;
-  if (!cracks.has(a)) {
-    const material = new THREE.MeshBasicMaterial({ color: new THREE.Color(1, .46, .1), toneMapped: false }); material.name = 'balbal-cracks';
-    const mesh = new THREE.SkinnedMesh(balbalCrackGeometry(), material); mesh.name = 'balbal-cracks'; mesh.frustumCulled = false; mesh.castShadow = false; mesh.receiveShadow = false;
-    a.mesh.add(mesh); mesh.bind(a.mesh.skeleton, a.mesh.bindMatrix); cracks.add(a);
-  }
-  poseNalatiCreature('balbal', c);
-}
-/** The balbals' page controls; their body, rig and look are the look book's rows. */
-export const BALBAL_SPECIES: Pick<SpeciesDef, 'kind' | 'animate' | 'think' | 'damageMul'> = {
-  kind: BALBAL, animate: animateBalbal,
+/** The balbals' page controls; their body, rig, look, cracks and frame are the look book's rows. */
+export const BALBAL_SPECIES: Pick<SpeciesDef, 'kind' | 'think' | 'damageMul'> = {
+  kind: BALBAL,
   think,
   damageMul: damage,
 };

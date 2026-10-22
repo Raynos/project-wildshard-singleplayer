@@ -38,7 +38,7 @@ export class NalatiPlugin extends ShardPlugin {
     await step('cabins', () => undefined);
     if (ctx.product.shardfile.clientChannels === undefined) throw new Error('Missing Golden King pose rows');
     const actorRows = await ctx.product.json<SpeciesActorsFileRows>('actors/sheep.json');
-    await prepareNalatiSpecies(actorRows.species, productHullBook(ctx.product), await ctx.product.json('actors/species-looks.json'), await ctx.product.file('actors/balbal-cracks.bin'));
+    prepareNalatiSpecies(actorRows.species, productHullBook(ctx.product), await ctx.product.json('actors/species-looks.json'));
     prepareGoldenKing(ctx.product.shardfile.clientChannels.filter(row => row.id.startsWith('king.')));
     this.rt = await step('props', (progress) => buildNalatiWorld(world, ctx, progress));
     await arsenal.blade.prepare(ctx.product);

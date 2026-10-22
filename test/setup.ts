@@ -73,7 +73,8 @@ const { installNalatiSpeciesForTests } = await import('../src/shards/nalati-gras
 prepareGoldenKing((await import('../src/shards/nalati-grasslands/data/goldenKingPose.generated.json')).default.programs);
 const speciesPresentation = (await import('../src/shards/nalati-grasslands/data/species.generated.json')).default;
 const { HullLookBook: NalatiHullBook } = await import('../src/game/looks/speciesBook');
-await prepareNalatiSpecies(parseSpeciesAdmission(SpeciesPresentationSchema,speciesPresentation.presentation), new NalatiHullBook(speciesPresentation.hullBook), speciesPresentation.looks, Uint8Array.from(speciesPresentation.crackBytes));
+prepareNalatiSpecies(parseSpeciesAdmission(SpeciesPresentationSchema,speciesPresentation.presentation), new NalatiHullBook(speciesPresentation.hullBook,
+  { file: name => name === 'actors/balbal-cracks.bin' ? Promise.resolve(Uint8Array.from(speciesPresentation.crackBytes)) : Promise.reject(new Error(`Unexpected product file ${name}`)) }), speciesPresentation.looks);
 installNalatiSpeciesForTests();
 // Production uses the packed-body host; preload its exact binary through its normal fetch port.
 const { preloadNalatiBodies } = await import('../src/shards/nalati-grasslands/species/presentation');
