@@ -1,4 +1,4 @@
-import { InstancedBufferGeometry, type BufferGeometry, type InstancedBufferAttribute } from 'three';
+import { InstancedBufferGeometry, type Box3, type BufferGeometry, type InstancedBufferAttribute, type InstancedMesh } from 'three';
 
 /**
  * `quad` (its index, position and uv shared, never copied) drawn once per instance: each named per-instance attribute set
@@ -16,3 +16,13 @@ export function instancedQuad(quad: BufferGeometry, attributes: Readonly<Record<
   g.instanceCount = Math.max(count, 0);
   return g;
 }
+
+const envelopes = new WeakMap<object, Box3>();
+/**
+ * Declare `mesh`'s envelope: a local box over every copy it may ever draw, where a culler fills its copies per view (a
+ * culled level starts empty). Draw containment (the grid's cell clip) decides by it once, before the first fill and
+ * whichever copies are drawn, so a clipped program is prepared with its cell instead of built at its first draw.
+ */
+export function setInstanceEnvelope(mesh: InstancedMesh, box: Box3): void { envelopes.set(mesh, box); }
+/** `mesh`'s declared envelope (`setInstanceEnvelope`), if any */
+export function instanceEnvelope(mesh: object): Box3 | undefined { return envelopes.get(mesh); }

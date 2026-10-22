@@ -1,8 +1,9 @@
 import { expect, test, vi } from 'vitest';
-import { BatchedMesh, Bone, BoxGeometry, PerspectiveCamera, Object3D, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial, Scene, ShaderLib, Skeleton, SkinnedMesh, Sprite, SpriteMaterial, Uint16BufferAttribute, WebGLRenderer, type Material, type WebGLProgramParametersWithUniforms } from 'three';
+import { BatchedMesh, Bone, Box3, BoxGeometry, PerspectiveCamera, Object3D, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial, Scene, ShaderLib, Skeleton, SkinnedMesh, Sprite, SpriteMaterial, Uint16BufferAttribute, Vector3, WebGLRenderer, type Material, type WebGLProgramParametersWithUniforms } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { GridAssembly } from '../src/game/grid/assembly';
 import { cellClip } from '../src/game/grid/cellClip';
+import { setInstanceEnvelope } from '../src/engine/render/instancedGeometry';
 import { inspectGridDraw } from './helpers/gridDrawAudit';
 import { installShadowMaterialOwnership } from '../src/engine/render/shadowMaterialOwnership';
 import { AssetService } from '../src/engine/app/assets';
@@ -51,6 +52,21 @@ test('aggregate instance bounds cross the edge even when the source geometry fit
     root.add(mesh); const guard = cellClip(root, 250, scope); guard.sweep();
     expect(guard.state().meshes).toBe(1); expect(mesh.material).not.toBe(material);
     expect(compiled(material).fragmentShader).not.toContain('wsCellClip');
+  } finally { scope.dispose(); material.dispose(); geometry.dispose(); }
+});
+
+test('an empty culled level is clipped by its declared envelope at admission, whichever copies it draws later', () => {
+  const scope = new Scope('envelope'), root = new Group(), material = new MeshStandardMaterial(), geometry = new BoxGeometry(2, 2, 2);
+  try {
+    const level = new InstancedMesh(geometry, material, 2), inside = new InstancedMesh(geometry, material, 2);
+    level.count = 0; inside.count = 0;
+    setInstanceEnvelope(level, new Box3(new Vector3(-1, -1, -1), new Vector3(256, 1, 1)));
+    setInstanceEnvelope(inside, new Box3(new Vector3(-1, -1, -1), new Vector3(1, 1, 1)));
+    root.add(level, inside); const guard = cellClip(root, 250, scope); guard.sweep();
+    expect(level.material).not.toBe(material); expect(inside.material).toBe(material);
+    const clipped = level.material;
+    level.count = 1; level.instanceMatrix.needsUpdate = true; guard.update();
+    expect(level.material).toBe(clipped);
   } finally { scope.dispose(); material.dispose(); geometry.dispose(); }
 });
 

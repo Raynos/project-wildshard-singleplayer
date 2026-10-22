@@ -282,6 +282,8 @@ function standIn(mesh: MeshLike): MeshLike {
     copy.instanceMatrix = mesh.instanceMatrix; copy.instanceColor = mesh.instanceColor;
     copy.morphTexture = mesh.morphTexture; copy.count = mesh.count;
   }
+  // compile() walks visible objects only: a culled level (an LOD step hidden until its first draw) still needs its program
+  copy.visible = true;
   linkStandIn(copy, mesh); // its uploads belong to the mesh's owner (SF57 upload-owner)
   return copy;
 }

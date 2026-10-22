@@ -311,6 +311,17 @@ function nodeObjectKey(object: unknown): string {
 
 const PROGRAM_KEY = 'engine-nodes';
 
+/**
+ * A graph depth variant's stock key (`shadowDepthOf`): its node hash and receive flag, without the scene context's lights,
+ * environment and fog, which it never reads. Three draws a cast with no scene while the context is the frame's, so a
+ * warm-up compiling it under its scene would otherwise build a program the shadow pass never asks for, and the cast
+ * builds its own in the frame (Pine's forest LODs at activation).
+ */
+function depthStockKey(material: THREE.Material, receive: boolean): string {
+  if (!(material instanceof NodeMaterial)) throw new Error('A graph depth variant is a node material');
+  return `${NodeMaterial.prototype.customProgramCacheKey.call(material)}|depth|${String(receive)}`;
+}
+
 /** a node material's whole program key: the stock key, the engine's output transform, the object shape, its fog and layer */
 function wholeKey(stock: string, toneMapped: boolean, rawOutput: boolean, objectKey: string, fog: { readonly id: string } | null, layer: { readonly whole: boolean } | null): string {
   return `${stock}|${PROGRAM_KEY}|${toneMapped ? 'tm' : 'raw'}${rawOutput ? '|out:raw' : ''}|${objectKey}${fog === null ? '' : `|fog:${fog.id}`}${layer === null ? '' : `|layer:${layer.whole ? 'whole' : 'alpha'}`}`;
@@ -460,7 +471,8 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       const receive = object instanceof THREE.Object3D && object.receiveShadow;
       const stamp = keyContext();
       const rawOutput = this.userData['graphRawOutput'] === true, objectKey = nodeObjectKey(object);
-      if (stamp < 0) return shaderPatchProgramKey(this, wholeKey(stockKey.call(this), this.toneMapped, rawOutput, objectKey, fog, layer));
+      const depth = this.userData['graphDepthVariant'] === true;
+      if (stamp < 0) return shaderPatchProgramKey(this, wholeKey(depth ? depthStockKey(this, receive) : stockKey.call(this), this.toneMapped, rawOutput, objectKey, fog, layer));
       let memos = stockKeys.get(this);
       if (memos === undefined || memos[0]?.version !== this.version) { memos = []; stockKeys.set(this, memos); }
       let memo = memos.find(m => m.stamp === stamp);
@@ -478,7 +490,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       const slot = receive ? 1 : 0, kept = shape[slot];
       if (kept !== undefined) return shaderPatchProgramKey(this, kept);
       let stock = receive ? memo.receive : memo.plain;
-      if (stock === undefined) { stock = stockKey.call(this); if (receive) memo.receive = stock; else memo.plain = stock; }
+      if (stock === undefined) { stock = depth ? depthStockKey(this, receive) : stockKey.call(this); if (receive) memo.receive = stock; else memo.plain = stock; }
       const key = wholeKey(stock, this.toneMapped, rawOutput, objectKey, fog, layer); shape[slot] = key;
       return shaderPatchProgramKey(this, key);
     };

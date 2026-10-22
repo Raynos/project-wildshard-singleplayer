@@ -21,6 +21,17 @@ test('preparation retains both shadow-receiver variants of a shared material', (
   geometry.dispose(); material.dispose();
 });
 
+test('preparation compiles a hidden level and its shadow depth: compile walks visible objects only', () => {
+  const scene = new Scene(), geometry = new BoxGeometry(), material = new MeshStandardMaterial();
+  const level = new InstancedMesh(geometry, material, 4);
+  level.count = 0; level.visible = false; level.castShadow = true;
+  scene.add(level);
+  const copies = [...sceneJobs(scene, null).jobs, ...shadowJobs(scene, null)].flatMap(job => job.root.children);
+  expect(copies.filter(copy => copy instanceof InstancedMesh).map(copy => copy.visible)).toEqual([true, true]);
+  expect(level.visible).toBe(false);
+  level.dispose(); geometry.dispose(); material.dispose();
+});
+
 test('preparation covers distinct skin array lengths without splitting instance counts', () => {
   const scene = new Scene(), geometry = new BoxGeometry(), material = new MeshStandardMaterial();
   const first = new SkinnedMesh(geometry, material), second = new SkinnedMesh(geometry, material);

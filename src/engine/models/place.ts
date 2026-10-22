@@ -25,6 +25,7 @@ import { graphLook } from './instancedBatch';
 import { frameBudgetSpent, paceYield, presenting } from '../core/framePacing';
 import { WORK_SLICE_MS, yieldTask } from '../core/workSlice';
 import * as THREE from 'three';
+import { setInstanceEnvelope } from '../render/instancedGeometry';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Rng } from '../core/rng';
 import { currentOwner, enteredOwner, withOwner } from '../app/ownership';
@@ -592,6 +593,14 @@ function drawInstanced<P extends object>(def: ModelDef<P>, pls: readonly Placeme
   return runSteps(drawInstancedSteps(def, pls, poses, params, o));
 }
 
+/** The local box over the copies `indices` (their boxes, `writeBox`): a culled level's envelope (`setInstanceEnvelope`). */
+const _envelopeMin = new THREE.Vector3(), _envelopeMax = new THREE.Vector3(), _envelopeCopy = new THREE.Box3();
+function envelopeOf(boxes: Float32Array, indices: Iterable<number>): THREE.Box3 {
+  const box = new THREE.Box3();
+  for (const i of indices) box.union(_envelopeCopy.set(_envelopeMin.fromArray(boxes, i * 6), _envelopeMax.fromArray(boxes, i * 6 + 3)));
+  return box;
+}
+
 /** The instanced draw, pausing (`yield`) after every variant level built and every copy's colliders (op-hitch29: `placeSliced`). */
 function* drawInstancedSteps<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: BuildOptions<P>,
   prebuilt?: (readonly ModelPart[])[][]): Generator<void, Drawn> {
@@ -655,7 +664,12 @@ function* drawInstancedSteps<P extends object>(def: ModelDef<P>, pls: readonly P
             c++;
           }
           for (const im of meshes) { im.count = c; im.computeBoundingSphere(); }
-        } else for (const im of meshes) { im.count = 0; im.visible = false; im.frustumCulled = false; }
+        } else {
+          const copies: number[] = [];
+          of.forEach((x, i) => { if (x === v) copies.push(i); });
+          const envelope = envelopeOf(boxes, copies);
+          for (const im of meshes) { im.count = 0; im.visible = false; im.frustumCulled = false; setInstanceEnvelope(im, envelope); }
+        }
         objects.push(...meshes);
         group.push({ matrix, color, meshes, ...(until === undefined ? {} : { until }) });
         yield;
@@ -704,7 +718,7 @@ function* drawHandedSteps<P extends object>(def: ModelDef<P>, pls: readonly Plac
   for (const [v, lvls] of built.entries()) {
     const mine: number[] = [];
     for (let i = 0; i < n; i++) if (of[i] === v) mine.push(i);
-    const at = mine.map((i) => poses[i]?.matrix ?? new THREE.Matrix4());
+    const at = mine.map((i) => poses[i]?.matrix ?? new THREE.Matrix4()), envelope = envelopeOf(boxes, mine);
     for (let k = 0; k < (lvls[0] ?? []).length; k++) {
       const levels = lvls.map((parts, l) => {
         const part = parts[k];
@@ -714,6 +728,7 @@ function* drawHandedSteps<P extends object>(def: ModelDef<P>, pls: readonly Plac
         if (part.customDepthMaterial) im.customDepthMaterial = part.customDepthMaterial;
         if (part.renderOrder !== undefined) im.renderOrder = part.renderOrder;
         im.name = `${def.id}:${keys[v] ?? 'base'}:${l}`;
+        setInstanceEnvelope(im, envelope);
         if (l === 0) {
           at.forEach((m, j) => { im.setMatrixAt(j, m); });
           if (tinted) mine.forEach((i, j) => { im.setColorAt(j, tint.set(pls[i]?.color ?? 0xffffff)); });

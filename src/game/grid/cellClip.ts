@@ -7,6 +7,7 @@ import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
 import { onCellField, onCellMethods } from './cellChanges';
 import { skinEnvelope, uploadedSkinBounds } from './skinEnvelope';
 import { guardObjectDraw, type DrawGuard } from '@wildshard/engine/render/drawGuards';
+import { instanceEnvelope } from '@wildshard/engine/render/instancedGeometry';
 
 export interface CellClipState { readonly meshes: number; readonly materials: number; readonly unclipped: number; readonly checked: number; readonly refused: number }
 export interface CellClip {
@@ -163,6 +164,8 @@ export function cellClip(root: Object3D, half: number, scope: Scope): CellClip {
       if (Array.isArray(current) ? current.some(material => !held.has(material)) : !held.has(current)) unclip(node);
     }
     if (!node.geometry.hasAttribute('position') || node.geometry.getAttribute('position').count === 0) return;
+    const declared = node instanceof InstancedMesh && !node.castShadow ? instanceEnvelope(node) : undefined;
+    const copiesBox = declared === undefined || declared.isEmpty() ? undefined : declared;
     if (node instanceof Sprite) {
       const scale = node.getWorldScale(new Vector3());
       const radius = Math.hypot(Math.max(Math.abs(node.center.x), Math.abs(1 - node.center.x)) * scale.x,
@@ -184,6 +187,10 @@ export function cellClip(root: Object3D, half: number, scope: Scope): CellClip {
         projectBounds(local, submittedWorld, box);
         box.union(projectBounds(local, node.matrixWorld, alternate));
       }
+    } else if (copiesBox !== undefined) {
+      // a culled draw's declared envelope over every copy it may show: one decision whichever copies are drawn (none yet
+      // at entry), so its clipped program is prepared with the cell. A caster keeps its copies' test: crossing, it is refused.
+      projectBounds(copiesBox, node.matrixWorld, box);
     } else if (node instanceof InstancedMesh && node.count === 0) {
       return;
     } else if (node instanceof InstancedMesh || node instanceof BatchedMesh) {

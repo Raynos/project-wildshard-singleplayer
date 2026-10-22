@@ -116,6 +116,38 @@ test('the program-key memo keeps a key per bound target across alternating rende
 });
 
 
+// Pine's forest casts rebuilt their depth programs in the entered frame: three draws a cast with no scene while the node
+// context is the frame's, so its key must not carry the scene's lights, environment or fog, which a depth variant never reads.
+test('a graph depth variant keys the same program under any scene lights, environment and fog', () => {
+  const renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);
+  if (!(renderer instanceof THREE.WebGLRenderer)) throw new Error('Missing renderer');
+  const fields: Record<string, unknown> = {
+    extensions: { has: () => false, get: () => null }, getContext: () => ({}), getRenderTarget: () => null,
+    toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1, outputColorSpace: THREE.SRGBColorSpace,
+    coordinateSystem: THREE.WebGLCoordinateSystem, info: { render: { frame: 0 } },
+    debug: { checkShaderErrors: true, diagnostics: { keywords: false } }, properties: { get: () => ({}), has: () => false },
+  };
+  for (const [key, value] of Object.entries(fields)) Reflect.set(renderer, key, value);
+  const handler = new EngineNodesHandler(); handler.setRenderer(renderer);
+  const material = compileGraph({ version: 1, kind: 'material', model: 'unlit', nodes: {}, stages: { surface: { colour: [1, 0, 0] } }, effectState: { fog: false } }).material;
+  material.userData['graphShadowDepth'] = true;
+  const stock = new THREE.MeshDepthMaterial(), depth = handler.shadowDepthOf(material, stock);
+  if (depth === null) throw new Error('Missing graph depth variant');
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(), material), scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(), sun = new THREE.DirectionalLight();
+  mesh.receiveShadow = true; scene.add(mesh);
+  const key = (drawn: THREE.Material, lights: THREE.Light[]): string => {
+    handler.renderStart(scene, camera); handler.updateLights(lights); handler.setObject(mesh, drawn);
+    const program = drawn.customProgramCacheKey(); handler.renderEnd(); return program;
+  };
+  const bare = key(depth, []), source = key(material, []);
+  scene.fog = new THREE.Fog(0xffffff, 1, 10);
+  expect(key(depth, [sun])).toBe(bare);
+  expect(key(material, [sun])).not.toBe(source);
+  mesh.receiveShadow = false;
+  expect(key(depth, [sun])).not.toBe(bare);
+  stock.dispose(); material.dispose();
+});
+
 test('node binding retains a registered clip key and releases it with its owner', () => {
   const renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);
   if (!(renderer instanceof THREE.WebGLRenderer)) throw new Error('Missing renderer');
