@@ -11751,3 +11751,9 @@ enteredLootPresentation accepts only this explicit display input for rich Bag
 views; its basic path never discovers row.economy. It preflights JSON, native
 OwnedIds, bound flags, health and audio before constructing presentation, while
 purse, grants, keepsakes, flag order, marks, chime and saves retain their owners.
+
+WorldEntry piece rows may declare active:'grapple-closed'. They require the
+concrete entered scope in WorldEntryPorts before any registration and use
+that scope's original GrappleGuard, with an identity transform follower.
+Scope retirement fences every row; the guard closes as its owner retires.
+Tier, variant and authored piece order remain unchanged.

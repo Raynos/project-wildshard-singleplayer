@@ -23,7 +23,7 @@ export function nineWorldEntry(): WorldEntryRows {
       floors: [...worldRows.rows.floors, ...deckFloors], floorPolicy: 'first', solidFloor: true };
   };
   // the ending's other stone pieces (the decks, the square, the fronts) with no scene object; the grapple guard follows its
-  // gate's live state, so the plugin registers it
+  // gate's live state, declared separately as the final piece
   const stone = (variant: 'capped' | 'open', rows: readonly NinePhysicsPlacement[]) => rows.filter(row => row.id !== 'nds-floors' && row.id !== 'nds-grapple-guard')
     .map(row => {
       const piece: Record<string, unknown> = { kind: 'piece', when: { variant }, id: row.id, name: row.name, file: row.file, category: 'buildings', surface: 'stone',
@@ -31,6 +31,11 @@ export function nineWorldEntry(): WorldEntryRows {
       if (row.colliderOwner !== undefined) piece['colliderOwner'] = row.colliderOwner;
       return piece;
     });
+  const guard = (variant: 'capped' | 'open', rows: readonly NinePhysicsPlacement[]) => {
+    const row = rows.find(entry => entry.id === 'nds-grapple-guard'); if (row === undefined) throw new Error('Missing Nine grapple guard');
+    return { kind: 'piece', when: { variant }, id: row.id, name: row.name, file: row.file, category: 'buildings', surface: 'stone',
+      colliders: row.colliders, floors: [], floorPolicy: 'first', solidFloor: false, object: null, active: 'grapple-closed' };
+  };
   // the Well's crossings (both endings): stone, timber and metal walkways
   const crossings = { kind: 'piece', ...install.crossings, category: 'buildings', surface: 'stone', surfaces: ['stone', 'wood', 'metal'], colliders: worldRows.rows.crossings,
     floors: [], floorPolicy: 'first', solidFloor: false, object: null };
@@ -41,7 +46,7 @@ export function nineWorldEntry(): WorldEntryRows {
   };
   const wall = LAYOUT_PLACEMENTS.filter(row => row.id.startsWith('nds-inst-') && row.id !== 'nds-inst-ac');
   return parseWorldEntry({ blocks: {
-    pieces: [floors('capped', install.standalone), floors('open', install.cell), ...stone('capped', install.standalone), ...stone('open', install.cell), crossings],
+    pieces: [floors('capped', install.standalone), floors('open', install.cell), ...stone('capped', install.standalone), ...stone('open', install.cell), crossings, guard('capped', install.standalone), guard('open', install.cell)],
     portals: [{ kind: 'attach', id: 'portals.root', as: 'group' }],
     canopy: canopy.draws.map(draw => ({ kind: 'look', look: draw.look, state: draw.state })),
     dressing: [{ kind: 'attach', id: 'dressing.root', as: 'group' }],

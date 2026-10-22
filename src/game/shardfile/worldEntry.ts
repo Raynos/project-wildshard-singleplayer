@@ -1,4 +1,6 @@
-import type { Object3D } from 'three';
+import { Group, type Object3D } from 'three';
+import type { Scope } from '@wildshard/engine/app/scope';
+import { grappleGuard } from '../grapple/tool';
 import type { Placed } from '@wildshard/engine/models/place';
 import type { Piece } from '@wildshard/engine/world/registry';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
@@ -14,6 +16,8 @@ export interface WorldEntryPorts {
   /** the admitted scene handles (absent: an entry that runs only `piece` rows on its root, after the world is built) */
   readonly scenes?: SceneHandles;
   readonly root: Object3D;
+  /** The concrete entered owner; required for live grapple-closed pieces. */
+  readonly scope?: Scope;
   readonly tier: 'phone' | 'desktop';
   /** the world variant this build is (a deck ending, a standalone or grid entry); rows with another `when.variant` skip */
   readonly variant?: string;
@@ -36,7 +40,14 @@ export class WorldEntry {
   private constructor(private readonly rows: WorldEntryRows, private readonly ports: WorldEntryPorts) {}
 
   /** Admit `input` (the shard's world entry blob) for one build. */
-  static admit(input: unknown, ports: WorldEntryPorts): WorldEntry { return new WorldEntry(parseWorldEntry(input), ports); }
+  static admit(input: unknown, ports: WorldEntryPorts): WorldEntry {
+    const entry = new WorldEntry(parseWorldEntry(input), ports);
+    entry.live();
+    if (ports.scope === undefined && Object.values(entry.rows.blocks).some(rows => rows.some(row => entry.applies(row) && row.kind === 'piece' && row.active !== undefined))) {
+      throw new Error('World entry active piece needs its entered scope');
+    }
+    return entry;
+  }
 
   /** Run one block's rows in order; each block runs once per build. */
   async run(block: string): Promise<void> {
@@ -44,7 +55,7 @@ export class WorldEntry {
     if (rows === undefined) throw new Error(`Missing world entry block: ${block}`);
     if (this.ran.has(block)) throw new Error(`World entry block ran twice: ${block}`);
     this.ran.add(block);
-    for (const row of rows) if (this.applies(row)) { this.ports.fence?.(); await this.step(row); this.ports.fence?.(); }
+    for (const row of rows) if (this.applies(row)) { this.live(); await this.step(row); this.live(); }
   }
 
   /** The placement a `place` row loaded. */
@@ -58,6 +69,11 @@ export class WorldEntry {
   placedIn(block: string): Placed[] {
     if (!this.ran.has(block)) throw new Error(`World entry block has not run: ${block}`);
     return (this.rows.blocks[block] ?? []).flatMap(row => row.kind === 'place' && this.applies(row) ? [this.placed(row.id)] : []);
+  }
+
+  private live(): void {
+    if (this.ports.scope?.disposed === true || this.ports.scope?.disposing === true) throw new Error('World entry owner ended');
+    this.ports.fence?.();
   }
 
   private applies(row: WorldEntryStep): boolean {
@@ -85,7 +101,11 @@ export class WorldEntry {
     if (row.kind === 'piece') {
       const register = this.ports.piece; if (register === undefined) throw new Error(`World entry piece ${row.id} needs its registration port`);
       const floors = row.floors, policy = row.floorPolicy;
+      const scope = this.ports.scope;
+      if (row.active !== undefined && scope === undefined) throw new Error('World entry active piece needs its entered scope');
+      const guard = row.active === undefined || scope === undefined ? undefined : grappleGuard(scope);
       register({ id: row.id, name: row.name, file: row.file, category: row.category, surface: row.surface, solidFloor: row.solidFloor,
+        ...(guard === undefined ? {} : { follows: new Group(), active: () => !guard.open() }),
         ...(row.colliderOwner === undefined ? {} : { colliderOwner: row.colliderOwner }),
         ...(row.object === null ? {} : { object: row.object === undefined ? root : scenes().object(row.object) }),
         colliders: readColliderRows(row.colliders, { kinds: ['box', 'treads'], surfaces: row.surfaces ?? [row.surface], requireSurface: true }),

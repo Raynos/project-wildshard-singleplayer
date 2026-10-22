@@ -1,12 +1,9 @@
 import { HybridResidentWorld } from '@wildshard/game/shardfile/hybrid';
 import { declaredRuntimeEntry } from '@wildshard/game/shard/declaredEntry';
-import { Group, type PerspectiveCamera } from 'three';
-import { grappleGuard } from '@wildshard/game/grapple/tool';
+import type { PerspectiveCamera } from 'three';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin, worldBuildYield } from '@wildshard/game/shard/plugin';
 import { type NineDragonWorld, buildNineDragonWorld } from './world/build';
-import worldInstall from './world/install.generated.json' with { type: 'json' };
-import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { WorldEntry } from '@wildshard/game/shardfile/worldEntry';
 import { TIER } from '@wildshard/engine/core/tier';
 import { NdRuntime, ownNdRuntime } from './runtime/state';
@@ -56,13 +53,7 @@ export class NdPlugin extends ShardPlugin {
     const rt = new NdRuntime(world, camera);
     ownNdRuntime(scope, rt);
     // the square's floors piece (world/scenes entry, G3): its colliders and floors over the world root, this ending's
-    await WorldEntry.admit(ctx.product.section('world/scenes').entry, { root: world.root, tier: TIER, variant: world.entryCaps === true ? 'capped' : 'open', piece: (piece) => { ctx.piece(piece); } }).run('pieces');
-    // the grapple guard: its gate's live state decides when it collides (the ending's other pieces are the entry's)
-    const guard = grappleGuard(ctx.scope);
-    for (const { id, name, file, colliders } of (world.entryCaps === true ? worldInstall.standalone : worldInstall.cell).filter(row => row.id === 'nds-grapple-guard')) {
-      ctx.piece({ id, name, file, category: 'buildings', surface: 'stone', colliders: readColliderRows(colliders, { kinds: ['box', 'treads'], surfaces: ['stone'], requireSurface: true }),
-        follows: new Group(), active: () => !guard.open() });
-    }
+    await WorldEntry.admit(ctx.product.section('world/scenes').entry, { scope, root: world.root, tier: TIER, variant: world.entryCaps === true ? 'capped' : 'open', piece: (piece) => { ctx.piece(piece); } }).run('pieces');
     ctx.system({ id: 'shard.nd.world', phase: 'update', after: ['engine.player.update'], run: (_dt, t) => { rt.world.update(t, rt.camera); } });
     installSpecimenLight(ctx.app.events, scope, (on, key) => { rt.specimenLight(on, key); });
   }

@@ -39,7 +39,7 @@ const FloorRectSchema = v.strictObject({ x: finite, z: finite, hw: v.pipe(finite
 const PieceSchema = v.strictObject({ kind: v.literal('piece'), when: v.exactOptional(when), id, name: id, file: id,
   category: v.picklist(['ground', 'nature', 'buildings', 'props']), surface, colliders: v.pipe(v.array(v.unknown()), v.maxLength(2048)),
   floors: v.pipe(v.array(FloorRectSchema), v.maxLength(4096)), floorPolicy: v.picklist(['first', 'highest']), solidFloor: v.boolean(), object: v.exactOptional(v.nullable(id)),
-  colliderOwner: v.exactOptional(id), surfaces: v.exactOptional(v.pipe(v.array(surface), v.minLength(1), v.maxLength(16))) });
+  active: v.exactOptional(v.literal('grapple-closed')), colliderOwner: v.exactOptional(id), surfaces: v.exactOptional(v.pipe(v.array(surface), v.minLength(1), v.maxLength(16))) });
 const CutSchema = v.strictObject({ kind: v.literal('cut'), when: v.exactOptional(when), cuts: v.pipe(v.array(v.strictObject({ x: finite, z: finite,
   hw: v.pipe(finite, v.minValue(0)), hd: v.pipe(finite, v.minValue(0)), yaw: finite, below: finite })), v.minLength(1), v.maxLength(64)) });
 export const WorldEntryStepSchema = v.variant('kind', [AttachSchema, PlaceSchema, LookSchema, PieceSchema, CutSchema]);
