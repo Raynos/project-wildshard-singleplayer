@@ -166,7 +166,7 @@ async function poll() {
       if (parsed.success) panes.set(parsed.output.sha, parsed.output.pane);
     } catch { /* Partial concurrent ledger append supplies no attribution. */ }
   }
-  const EXEMPT = new Set(['sp-x7', 'sp-o1', 'sp-o2', 'sp-o3', 'sp-o4', 'sp-o5']); // Opus off until the Sun 12:00 weekly reset (95 %)
+  const EXEMPT = new Set(['sp-x1', 'sp-x6', 'sp-x7', 'sp-x8', 'sp-x9', 'sp-o1', 'sp-o2', 'sp-o3', 'sp-o4', 'sp-o5']); // Claude + Codex at 95 % weekly: no nudges until the resets (Sun 12:00 / Tue 27th 01:30)
   const now = Date.now(), live = new Set();
   if (releaseCheckDue(now, releaseCheckedAt) && agents.some(agent => agent.name === 'sp-x7')) {
     try {
