@@ -102,6 +102,8 @@
       "shard": "driftwood-isle",
       "criterion": "memory",
       "source": "1e20cd8fa40572bc5c69a5a6d8a1f509048bcdde",
+      "latchedAt": "2026-10-22T14:57:05.041Z",
+      "quiet": false,
       "measurement": {
         "when": "2026-10-22T14:53:08.647Z",
         "surface": "chromium",
@@ -113,14 +115,14 @@
           "rendererProcessPeakBytes": 2858444800,
           "gpuProcessPeakBytes": 1016547328
         }
-      },
-      "latchedAt": "2026-10-22T14:57:05.041Z",
-      "quiet": false
+      }
     },
     {
       "shard": "driftwood-isle",
       "criterion": "oneFrameLooks",
       "source": "a46857779571b2d05fbc117a13213fbbed961bc5",
+      "latchedAt": "2026-10-22T18:13:10.250Z",
+      "quiet": false,
       "measurement": {
         "when": "2026-10-22T18:08:29.082Z",
         "surface": "chromium",
@@ -141,9 +143,7 @@
           "grid-driftwood-isle-road-entry-travel.medianFps": 30.030030030027405,
           "grid-driftwood-isle-road-entry-travel.skipped": 0
         }
-      },
-      "latchedAt": "2026-10-22T18:13:10.250Z",
-      "quiet": false
+      }
     },
     {
       "shard": "far-reach",
@@ -244,6 +244,25 @@
           "grid-ink-cel-valley-road-entry.skipped": 0
         }
       }
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "criterion": "memory",
+      "source": "87d5978c0b43378f16a6c73a57b18f7f7becf8fe",
+      "measurement": {
+        "when": "2026-10-22T21:56:09.095Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 292,
+          "playingPeakBytes": 651489535,
+          "loadingPeakBytes": 651489535,
+          "browserProcessPeakBytes": 1268026368,
+          "rendererProcessPeakBytes": 2459557888,
+          "gpuProcessPeakBytes": 1513506816
+        }
+      },
+      "latchedAt": "2026-10-22T21:58:05.053Z",
+      "quiet": false
     },
     {
       "shard": "open-plot-alien-plain",
