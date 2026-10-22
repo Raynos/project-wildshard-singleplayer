@@ -17,7 +17,6 @@ import { wind } from '@wildshard/engine/world/steppeWind';
 
 import { SceneDressing } from '@wildshard/game/shardfile/sceneDressing';
 import { buildArenaRoomEncounter } from '@wildshard/game/boss/arenaRoom';
-import { productFixedDraws } from '@wildshard/game/models/fixedDraws';
 import { DeclaredEliteEntry } from '@wildshard/engine/ai/view/eliteEntry';
 import { eliteDropModels, type ExternalElitePage } from '@wildshard/game/quest/elitePage';
 import { parseEliteEntryPageRows } from '@wildshard/format/eliteEntryRows';
@@ -43,9 +42,7 @@ export type NalatiWeather = Nalati['weather'];
 
 async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin: ShardContext, progress?: StepProgress) {
   const { admission, worldUpdates } = v.parse(v.object({ admission: v.unknown(), worldUpdates: v.unknown() }), await plugin.product.json('sim/headless-boot.json'));
-  // the shape book (carvings, trophies, arena parts, ghost riders, painted places): the world's original fixed draws
-  const product = plugin.product, shapes = await productFixedDraws(product, 'models/shape-book.json');
-  if (plugin.scope.disposed || plugin.product !== product) throw new Error('Nalati world owners changed while its shape book loaded');
+  const shapes = await WorldAssembly.prepareNative(prefix, plugin);
   const eliteProgram = ReturnProgram.page(admission, plugin.scope);
   const { game, sky } = ctx;
   const slice = slicer(0, progress);

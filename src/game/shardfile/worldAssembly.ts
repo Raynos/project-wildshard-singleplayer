@@ -28,7 +28,7 @@ import { RopeDeckSite } from '../models/ropeDeckSite';
 import { RopeChain } from '@wildshard/engine/physics/ropeChain';
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import type { Game } from '@wildshard/engine/core/Game';
-import type { FixedDraws } from '../models/fixedDraws';
+import { productFixedDraws, type FixedDraws } from '../models/fixedDraws';
 import * as v from 'valibot';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { sharedModelContext, type ModelContext } from '@wildshard/engine/models/model';
@@ -129,6 +129,25 @@ async function installAssemblyArenaScript(ports: WorldAssemblyPorts, stage: Extr
 
 /** G571: an admitted world assembly (format/worldAssembly), run stage by stage in its declared order. Client-only. */
 export class WorldAssembly {
+  /** Resolve the declared native metadata prelude before the caller creates programs or reports progress.
+   * Geometry loading and loan publication stay at their declared fixed-draw stage. */
+  static async prepareNative(input: unknown, ctx: ShardContext): Promise<FixedDraws> {
+    const row = v.parse(WorldAssemblySchema, input).construction?.prelude;
+    if (row === undefined) throw new Error('World native prelude needs its declared draws');
+    const { scope, product, game } = ctx, runtime = game.runtime, world = runtime?.world;
+    if (runtime === undefined || world === undefined || world === null) throw new Error('World native prelude needs its original world');
+    const owner = world.game.levelScope, nativeGame = world.game, read = product.json;
+    const live = (): void => {
+      if (scope.disposed || scope.disposing || owner.disposed || owner.disposing || ctx.scope !== scope || ctx.product !== product
+        || ctx.game !== game || game.runtime !== runtime || runtime.world !== world || world.game !== nativeGame
+        || nativeGame.levelScope !== owner || product.json !== read) throw new Error('World native prelude owner left or changed');
+    };
+    live();
+    const draws = await productFixedDraws(product, row.draws);
+    live();
+    return draws;
+  }
+
   /** One walk of the declared stages, retaining native checkpoint and progress
    * boundaries. The caller keeps its original resident cache and lending. */
   static async construct(input: unknown, ports: WorldConstructionPorts): Promise<Record<string, Object3D>> {
@@ -160,6 +179,11 @@ export class WorldAssembly {
       if (publication !== undefined && entryOwner(scope, 'object', publication.id) !== publication.root) throw new Error('World construction root changed');
     };
     live();
+    if (rows.prelude !== undefined) {
+      if (native === undefined || originalDraws === undefined) throw new Error('World construction needs its native prelude draws');
+      const prepared = await WorldAssembly.prepareNative(parsed, native); live();
+      if (prepared !== originalDraws) throw new Error('World construction replaced its native prelude draws');
+    }
     const explicit = rows.progress.kind === 'checkpoints';
     if (stages.some(stage => ['water-surface','dressing-piece','dressing-anchor','dressing','fixed-draws','painted-reseed'].includes(stage.kind)) && !explicit) throw new Error('World borrowed stages need explicit checkpoints');
     if (stages.some(stage => stage.kind === 'fixed-draws') && ports.draws === undefined) throw new Error('World construction needs its original fixed draws');

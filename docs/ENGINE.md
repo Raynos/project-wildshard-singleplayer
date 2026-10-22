@@ -11763,6 +11763,14 @@ The helper remains charged to its sole user.
 
 ### Native world construction checkpoints
 
+`WorldAssembly.prepareNative(input, ctx)` resolves the strict optional
+`construction.prelude.draws` JSON book before native programs and progress
+start. It returns the same product/file-memoized fixed draws and fences the
+original construction and native scopes, product reader and runtime world
+across the read. `construct` requires that exact library when a prelude is
+declared. Geometry loading and concrete loan publication remain at the
+existing fixed-draw stage; the prelude adds no clock, yield or publication.
+
 WorldAssemblySchema may declare construction checkpoints around its existing
 ordered stages. WorldAssembly.construct(input, WorldConstructionPorts) walks
 those stages once, preserving the caller's concrete IslandLibrary, scene and

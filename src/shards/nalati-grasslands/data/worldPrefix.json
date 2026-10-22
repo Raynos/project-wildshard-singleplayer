@@ -1,5 +1,6 @@
 {
   "construction": {
+    "prelude": { "draws": "models/shape-book.json" },
     "seed": 18970,
     "progress": {
       "kind": "checkpoints",

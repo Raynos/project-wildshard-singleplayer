@@ -57,6 +57,8 @@ export const WorldAssemblyStageSchema = v.variant('kind', [
 /** Native checkpoints around one walk of the already-admitted stages. No row
  * names a callback, module, phase, object path or another run schedule. */
 export const WorldConstructionSchema = v.strictObject({
+  /** Native metadata preparation runs before native programs and progress, without loading geometry. */
+  prelude: v.exactOptional(v.strictObject({ draws: v.pipe(id, v.regex(/\.json$/)) })),
   /** Optional for direct native construction; mandatory for the finite entry capability. */
   looks: v.exactOptional(v.strictObject({ unbound: v.pipe(v.array(id), v.maxLength(256)), bound: v.pipe(v.array(id), v.maxLength(256)) })),
   publish: v.exactOptional(v.strictObject({ draws: id, collection: id })),
