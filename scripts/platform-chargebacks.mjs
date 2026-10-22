@@ -13,8 +13,6 @@ const modules = new Map([
 /** @type {Map<string,Map<string,import('./shard-components.mjs').Component>>} */
 const declarations = new Map([
   ['src/game/systems/npc/figureRows.ts', new Map(['FigureGroupMember', 'FigureGroup', 'memberPose', 'enterFigureGroup'].map(name => [name, 'C9']))],
-  ['src/game/loot/runtime.ts',new Map([['LootBagProjection','C6']])],
-  ['src/format/lootEconomy.ts',new Map([['LootBagProjection','C6']])],
   ['src/game/looks/speciesBook.ts',new Map(['SpeciesLookBook','packedRows'].map(name=>[name,'C1']))],
   ['src/game/practice/course.ts', new Map(['MountedCourseController', 'HookCourseController', 'hookCoursePad', 'yawToward', 'HookCourseCourse', 'HookCourseRow', 'HookCoursePad'].map(name => [name, 'C6']))],
   ['src/game/boss/encounterView.ts', new Map(['SlotEncounterView','SlotViewActor','SlotSiteChange','Awake','PatrolEncounterView','PatrolViewActor','PatrolHit','Rider','PatrolActor','PatrolActorRoster'].map(name=>[name,'C4']))],
@@ -60,13 +58,6 @@ const chapterViewNativeOwners = new Map([
 // code lines, never fixed credits; packet/instance-matrix handling stays shared.
 /** @type {Map<string,Map<string,[string,number][]>>} */
 const inline = new Map([
-  ['src/game/loot/runtime.ts',new Map([['LootBagProjection',[
-    ["import { declaredLootEconomy,declaredLootPresentation }",1],["import { createFindsCatalogue }",1],["import { boundQuestState }",1],["import { InteractSfx }",1],
-    ['if(row.economy?.presentation===undefined)',1],['const economy=declaredLootEconomy([row])',12],
-  ]]])],
-  ['src/format/lootEconomy.ts',new Map([['LootBagProjection',[
-    ['export const LootPresentationSchema=',5],['presentation:v.exactOptional(LootPresentationSchema)',1],
-  ]]])],
   // the tier-selected pool decoder the resident scenes and the catalogue's cold intake share
   ['src/game/shardfile/scenePools.ts', new Map([['WorldSceneTierPools', [
     ['geometryPools: files.map(file => ({ url: product.url(tierFile(file.file))', 1],
@@ -96,7 +87,6 @@ function reviewedOwner(path, name) {
   if(path === 'src/game/practice/course.ts' && ['HookCourseController','hookCoursePad','yawToward','HookCourseCourse','HookCourseRow','HookCoursePad'].includes(name ?? '')) return 'nine-dragon-stack';
   if (path.endsWith('/worldScenes.ts') || path === 'src/game/shardfile/scenePools.ts') return 'nine-dragon-stack';
   if (path === 'src/engine/models/geometrySources.ts') return 'pine-hollow';
-  if (['src/game/loot/runtime.ts','src/format/lootEconomy.ts'].includes(path)) return 'driftwood-isle';
   return 'nalati-grasslands';
 }
 

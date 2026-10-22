@@ -244,3 +244,5 @@ the rest of this document; filenames or a client-only label alone are insufficie
   quest presentation keep their independent charges.
 
 - G571 entered hint and flag binding: `game/quest/hints#installQuestHints`, `game/quest/hints#installQuestHintFile` and `game/quest/chapterBindings#publishChapterFlags` borrow concrete entered hint, population, player, UI and bound chapter owners. Test 1 waived; tests 2–6 cover plain finite rows, original scheduler/control order and sorted flags, missing/retired/replaced owner refusal, original map publication and scoped hook restoration. No authored ports, new state, probe registry, clock or cache.
+
+- G571 explicit entered Bag projection: `game/loot/runtime#enteredLootPresentation`, `format/lootBag#LootPresentationSchema`, `format/lootBag#LootProgressionSchema`, `format/lootBag#LootFindsSchema`, `format/lootBag#LootMarksSchema`, `format/lootBag#lootBagRules` and `format/lootBag#LootBagSchema`. Test 1 waived; tests 2–6 cover finite defining rows, original native ownership and live projection order, reference/OwnedId/JSON/retirement refusal and unchanged native grants/saves. The basic path never selects a rich economy.

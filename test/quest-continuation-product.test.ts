@@ -1,12 +1,13 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import rows from '../src/shards/driftwood-isle/data/questContinuation.json' with { type: 'json' };
+import { driftwoodQuestContinuation } from '../src/shards/driftwood-isle/generators/lootBag';
 import { output } from '../src/shards/driftwood-isle/generators/output';
 import { driftwoodJsonBlob } from '../src/shards/driftwood-isle/generators/namedSchemas';
 import { QuestContinuationSchema, parseQuestContinuationDocument } from '../src/format/questContinuation';
 import { QuestPageSchema } from '../src/format/questPageComposition';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 
+const rows = driftwoodQuestContinuation();
 const encode = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));
 
 test('the real product emits the admitted continuation with exact owner and cosmetic identities', () => {

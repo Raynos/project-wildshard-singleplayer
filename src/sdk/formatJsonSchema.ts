@@ -9,6 +9,7 @@ import { PopulationProjectionSchema } from '@wildshard/format/populationProjecti
 import { SceneDressingSchema } from '@wildshard/format/sceneDressing';
 import { CueDirectorWireSchema } from '@wildshard/format/cueDirector';
 import { ExchangeSchema } from '@wildshard/format/exchange';
+import { LootBagSchema } from '@wildshard/format/lootBag';
 import { CatalogueEconomySchema } from '@wildshard/format/catalogueEconomy';
 import { ContractCatalogueSchema } from '@wildshard/format/contracts';
 import { AchievementCounterDataSchema } from '@wildshard/format/achievementCounters';
@@ -185,6 +186,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'questSteps.QuestServiceActions': QuestServiceActionsSchema,
   'exchange.Exchange': ExchangeSchema,
   'catalogueEconomy.CatalogueEconomy': CatalogueEconomySchema,
+  'lootBag.LootBag': LootBagSchema,
   'contracts.ContractCatalogue': ContractCatalogueSchema,
   'achievementCounters.AchievementCounterData': AchievementCounterDataSchema,
   'herdShelter.PopulationShelter': PopulationShelterSchema,

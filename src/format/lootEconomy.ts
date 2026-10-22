@@ -2,15 +2,13 @@ import { CatalogueEconomyRegistrationSchema, catalogueEconomyRules, EconomyEffec
 import { ExchangeSchema } from './exchange';
 import * as v from 'valibot';
 import { isJsonData } from './json';
-import { CurveSchema } from './materials';
+import { LootPresentationSchema, LootProgressionSchema, LootFindsSchema, LootMarksSchema, lootBagRules } from './lootBag';
 
 const key = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9.:-]*$/u), v.maxLength(128));
 const text = v.pipe(v.string(), v.maxLength(4096));
 const finite = v.pipe(v.number(), v.finite(), v.minValue(-10000000), v.maxValue(10000000));
 const count = v.pipe(finite, v.integer(), v.minValue(0));
 const positive = v.pipe(count, v.minValue(1));
-const flags = v.pipe(v.array(key), v.maxLength(256));
-const colour = v.pipe(v.string(), v.regex(/^#[a-fA-F0-9]{6}$/u));
 /** Claimed drops keep their original model/grant owners; only matching, launch and retirement are authored. */
 export const ClaimedPickupSchema = v.strictObject({
   options: v.strictObject({ tier: v.exactOptional(v.picklist(['common', 'rare', 'legendary'])), prompt: v.exactOptional(text),
@@ -23,7 +21,6 @@ export const ClaimedPickupSchema = v.strictObject({
 });
 const grantSchema = v.strictObject({ id: effectId, key, unless: v.exactOptional(v.pipe(v.array(key), v.maxLength(32))), stacks: v.exactOptional(v.pipe(positive, v.maxValue(1024))) });
 const grants = v.pipe(v.array(grantSchema), v.maxLength(128));
-const sticker = { label: text, icon: v.picklist(['talon', 'tusk', 'hat', 'necklace']), prize: v.exactOptional(v.pipe(v.array(text), v.maxLength(16))) };
 /** Bounded data selectors lower to the existing weighted-table predicate and count laws. */
 export const LootTablesSchema = v.pipe(v.array(v.strictObject({ id: key, domain: v.picklist(['coins', 'trophies']),
   table: v.strictObject({ mode: v.picklist(['weighted', 'each']), rows: v.pipe(v.array(v.strictObject({
@@ -44,41 +41,26 @@ export function parseLootTables(input: unknown): v.InferOutput<typeof LootTables
   if (lootTableRules(rows).length > 0) throw new TypeError('Invalid loot table references or ranges');
   return rows;
 }
-/** Native Bag projection metadata; current health, flags and ownership remain live. */
-export const LootPresentationSchema=v.strictObject({
-  quest:key,chart:key,lateKinds:flags,
-  chime:v.strictObject({sound:v.picklist(['chest','locked','lever','plate','door','grate','chime','glyph','ignite']),gain:v.pipe(finite,v.minValue(0),v.maxValue(8))}),
-  cosmetics:v.pipe(v.array(v.strictObject({id:key,icon:v.picklist(['hat','cape']),how:text})),v.maxLength(64)),
-});
 /** Inert economy content; ownership, transactions, attributes and menu lifetimes stay with their existing services. */
 export const LootEconomySchema = v.strictObject({
   presentation:v.exactOptional(LootPresentationSchema),
   exchange: v.exactOptional(ExchangeSchema),
   pickups: v.exactOptional(v.pipe(v.record(key, ClaimedPickupSchema), v.maxEntries(128))),
   tables: v.exactOptional(LootTablesSchema),
-  progression: v.exactOptional(v.strictObject({ flags,
-    states: v.pipe(v.array(v.strictObject({ earned: v.pipe(v.array(v.strictObject({ id: key, text })), v.maxLength(128)), displayCount: count, next: v.nullable(count) })), v.minLength(1), v.maxLength(257)),
-    glow: v.strictObject({ owned: key, curve: CurveSchema }) })),
+  progression: v.exactOptional(LootProgressionSchema),
   effects: CatalogueEconomyRegistrationSchema.entries.effects, goods: CatalogueEconomyRegistrationSchema.entries.goods,
   grants: v.strictObject({ player: grants, worn: grants, weapons: grants }),
-  finds: v.strictObject({ counters: v.pipe(v.array(v.strictObject({ label: text, flags })), v.maxLength(32)),
-    sections: v.pipe(v.array(v.strictObject({ title: text, dense: v.exactOptional(v.boolean()), wide: v.exactOptional(v.boolean()),
-      items: v.pipe(v.array(v.union([v.strictObject({ ...sticker, flag: key }), v.strictObject({ ...sticker, owned: key })])), v.maxLength(256)) })), v.maxLength(32)),
-    glass: v.exactOptional(v.strictObject({ flags, colors: v.pipe(v.array(colour), v.minLength(1), v.maxLength(256)), fallback: colour })),
-    next: v.exactOptional(v.strictObject({ counter: v.pipe(count, v.maxValue(31)), every: positive, max: count, text })) }),
-  marks: v.pipe(v.array(v.strictObject({ flag: key, x: finite, z: finite, color: colour })), v.maxLength(256)),
+  finds: LootFindsSchema,
+  marks: LootMarksSchema,
 });
 export type LootEconomy = v.InferOutput<typeof LootEconomySchema>;
 /** Cross-row references are also part of the defining RowsSchema admission. */
 export function lootEconomyRules(row: LootEconomy): string[] {
   const errors: string[] = [], effects = new Set(row.effects.map(effect => effect.id));
   if (row.tables !== undefined) errors.push(...lootTableRules(row.tables));
-  const progression = row.progression;
-  if (progression !== undefined && (new Set(progression.flags).size !== progression.flags.length || progression.states.length !== progression.flags.length + 1
-    || progression.states.some(state => new Set(state.earned.map(reward => reward.id)).size !== state.earned.length))) errors.push('complete unique economy progression');
+  errors.push(...lootBagRules(row));
   errors.push(...catalogueEconomyRules(row));
   if ([...row.grants.player, ...row.grants.worn, ...row.grants.weapons].some(grant => !effects.has(grant.id)) && !errors.includes('economy effect reference')) errors.push('economy effect reference');
-  if (row.finds.next !== undefined && row.finds.counters[row.finds.next.counter] === undefined) errors.push('economy finds counter');
   return errors;
 }
 /** Re-admit a detached payload before reading live ownership, so malformed data cannot partly install effects. */

@@ -23,5 +23,5 @@ export function fixtureLootPresentation(o:{scope:Scope;economy:ReturnType<typeof
  const product=createShardProduct({slug:'driftwood-isle',revision:1,shardfile:{...emptyShardfile({slug:'driftwood-isle',name:'Driftwood Isle',author:'Fixture',revision:1,seed:1}),rows},sections:new Map([['economy/loot',{rows:{loot:rows.loot}}]]),files:new Map(),read:()=>Promise.reject(new Error('Unexpected loot file read')),check:true});
  const health=legacyDouble<NonNullable<ShardContext['app']['player']>>({attributes:legacyDouble<NonNullable<ShardContext['app']['player']>['attributes']>(o.health.attributes)});
  const ctx=legacyDouble<ShardContext>({scope:o.scope,product,app:legacyDouble<ShardContext['app']>({player:health}),game:legacyDouble<ShardContext['game']>({runtime:legacyDouble<ShardRuntime>({play})})});
- return Promise.resolve(enteredLootPresentation(ctx,LOOT.id));
+ return Promise.resolve(enteredLootPresentation(ctx,LOOT.id,{presentation:view,progression:o.economy.progression,finds:o.economy.finds,marks:o.economy.marks}));
 }

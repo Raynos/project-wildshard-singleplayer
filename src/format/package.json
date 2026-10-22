@@ -266,7 +266,8 @@
     "./socketRigCreature": "./socketRigCreature.ts",
     "./fixedDraws": "./fixedDraws.ts",
     "./islandLibrary": "./islandLibrary.ts",
-    "./catalogueEconomy": "./catalogueEconomy.ts"
+    "./catalogueEconomy": "./catalogueEconomy.ts",
+    "./lootBag": "./lootBag.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

@@ -37,7 +37,7 @@ export async function installQuestContinuation(ctx: ShardContext, input: unknown
   if (ended(ctx)) return;
   const shop = await ctx.product.json(row.loot.shop);
   if (ended(ctx)) return;
-  const presentation = enteredLootPresentation(ctx, row.loot.id);
+  const presentation = enteredLootPresentation(ctx, row.loot.id, row.loot.bag);
   installRuntimeLoot(ctx, presentation, { shop, minimap: row.loot.minimap, before: row.loot.before });
 }
 

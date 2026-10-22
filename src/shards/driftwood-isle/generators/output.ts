@@ -7,7 +7,7 @@ import { FISH_DRAW } from './fishDraw';
 import nativeQuestSpots from '../data/spots.generated.json' with { type: 'json' };
 import { QuestPageCompositionSchema } from '@wildshard/format/questPageComposition';
 import pageComposition from '../data/questPageComposition.json' with { type: 'json' };
-import questContinuation from '../data/questContinuation.json' with { type: 'json' };
+import { driftwoodQuestContinuation } from './lootBag';
 import { driftwoodQuestWorld } from './questWorld';
 import questFrames from '../data/questFrames.json' with { type: 'json' };
 import questEvents from '../data/questEvents.json' with { type: 'json' };
@@ -117,7 +117,7 @@ const sceneBytes = (value: unknown): Uint8Array => new TextEncoder().encode(enco
 const BRIDGE_SWAY_WASM = nameBinaryBlob('views/bridge-sway.wasm', 'wasm', Uint8Array.from(atob(bridgeSwayModule.bytes), character => character.codePointAt(0) ?? 0),
     { critical: true, script: { abi: 2, lane: 'view', pages: 1, ioBytes: 4096,
       compilerRevision: SCRIPT_V2_REVISIONS.compiler, admissionRevision: SCRIPT_V2_REVISIONS.admission } });
-const placements = emitNamedBlobs([nameBlob('quests/page-composition.json', 'json', new TextEncoder().encode(encodeCanonicalJson(v.parse(QuestPageCompositionSchema, { ...pageComposition, frames: questFrames, events: questEvents, deaths: questDeaths.page, entryResources: { world: driftwoodQuestWorld(), figures: driftwoodQuestFigures(), continuation: questContinuation } })))), nameBlob('actors/projection.json', 'json', new TextEncoder().encode(encodeCanonicalJson(populationProjectionRows()))), nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_LIFE))),
+const placements = emitNamedBlobs([nameBlob('quests/page-composition.json', 'json', new TextEncoder().encode(encodeCanonicalJson(v.parse(QuestPageCompositionSchema, { ...pageComposition, frames: questFrames, events: questEvents, deaths: questDeaths.page, entryResources: { world: driftwoodQuestWorld(), figures: driftwoodQuestFigures(), continuation: driftwoodQuestContinuation() } })))), nameBlob('actors/projection.json', 'json', new TextEncoder().encode(encodeCanonicalJson(populationProjectionRows()))), nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_LIFE))),
 
   nameBlob('world/cover-composition.json', 'json', new TextEncoder().encode(JSON.stringify(parse(CoverCompositionSchema, coverComposition)))),
 

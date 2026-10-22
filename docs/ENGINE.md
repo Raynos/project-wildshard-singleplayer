@@ -11642,3 +11642,11 @@ sorted flags through a scoped runtime reader. files.hints retains its original
 completion-time read; concrete hint/population/player/UI owners are rechecked
 after it by installQuestHintFile. installQuestHints resolves these entered owners directly, with no
 authored callback map or additional scheduler/save owner.
+
+Quest continuation loot.bag optionally carries the finite presentation,
+progression, finds and marks projection. LootBagSchema defines the same leaf
+grammar and reference laws consumed by full native LootEconomy admission.
+enteredLootPresentation accepts only this explicit display input for rich Bag
+views; its basic path never discovers row.economy. It preflights JSON, native
+OwnedIds, bound flags, health and audio before constructing presentation, while
+purse, grants, keepsakes, flag order, marks, chime and saves retain their owners.
