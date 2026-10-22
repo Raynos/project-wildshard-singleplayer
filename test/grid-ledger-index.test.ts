@@ -99,3 +99,67 @@ test.each([false, true])('indexed coverage, holds, ordering and refusal match th
   reserve('parent2', { ...base, id: 'parent', category: 'sim', bytes: 400, needed: true });
   run((_ledger, i) => { for (const lease of leases[i]?.values() ?? []) lease?.release(); });
 });
+
+
+test.each([false, true])('pressure projection preserves covered bytes when the parent is selected first: %s', parentFirst => {
+  const playing = CONTENT_CAPS.engineBase + CONTENT_CAPS.overlap + 1000;
+  const ledgers = pair(playing, false), events = ledgers.map(() => [] as string[]);
+  for (const [i, ledger] of ledgers.entries()) {
+    const prepare = (id: string) => () => ({ commit: () => { events[i]?.push(id); }, abort: () => undefined });
+    const parent = ledger.reserve({ id: 'parent', owner: 'test', category: 'sim', bytes: 400, needed: true,
+      distance: parentFirst ? 40 : 10, prepareEvict: prepare('parent') });
+    if (parent === null) throw new Error('Missing parent fixture');
+    ledger.markMeasuredPage('parent');
+    ledger.reserve({ id: 'child', owner: 'test', category: 'commons', bytes: 200, needed: false,
+      distance: 30, coveredBy: 'parent', prepareEvict: prepare('child') });
+    const page = ledger.reservePageComponent('page', 100, 50, 'parent');
+    page?.update({ needed: false, distance: 20 });
+    // Keep the page component after the parent: its calibration and charge become independent.
+    parent.update({ needed: false });
+    ledger.reserve({ id: 'pressure', owner: 'test', category: 'far', bytes: 600, needed: true, distance: 0 });
+  }
+  same(ledgers); expect(events[1]).toEqual(events[0]);
+});
+
+test('thousands of idle cache claims abort without changing real accounting when pressure cannot fit', () => {
+  const ledger = new ResidencyAllocator({ memory: new MemoryAdmission(() => true) });
+  let prepares = 0, aborts = 0, commits = 0;
+  const leases: LedgerLease[] = [];
+  for (let index = 0; index < 4000; index++) {
+    const lease = ledger.reserve({ id: `cache:${String(index)}`, owner: 'cache', category: 'commons', bytes: 1, needed: true, distance: index,
+      prepareEvict: () => { prepares++; return { commit: () => { commits++; }, abort: () => { aborts++; } }; } });
+    if (lease === null) throw new Error('Missing cache fixture');
+    leases.push(lease);
+  }
+  for (const lease of leases) lease.update({ needed: false });
+  const before = ledger.entries(), cost = ledger.cost();
+  const pressure = ledger.reserve({ id: 'pressure', owner: 'other', category: 'sim', bytes: CONTENT_CAPS.playing, needed: true, distance: 0 });
+  expect(pressure).not.toBeNull(); expect(prepares).toBe(4000); expect(aborts).toBe(4000); expect(commits).toBe(0);
+  pressure?.release(); expect(ledger.entries()).toEqual(before); expect(ledger.cost()).toEqual(cost);
+});
+
+test('pressure planning rebases when an eviction preparation changes a live allocation', () => {
+  const ledgers = pair(CONTENT_CAPS.engineBase + CONTENT_CAPS.overlap + 1000, false);
+  const events = ledgers.map(() => [] as string[]);
+  for (const [i, ledger] of ledgers.entries()) {
+    const peer = ledger.reserve({ id: 'peer', owner: 'test', category: 'far', bytes: 200, needed: true, distance: 0 });
+    ledger.reserve({ id: 'first', owner: 'test', category: 'far', bytes: 200, needed: false, distance: 2,
+      prepareEvict: () => { peer?.release(); return { commit: () => { events[i]?.push('first'); }, abort: () => { events[i]?.push('abort'); } }; } });
+    ledger.reserve({ id: 'pressure', owner: 'test', category: 'sim', bytes: 600, needed: true, distance: 0 });
+  }
+  same(ledgers); expect(events[1]).toEqual(events[0]);
+});
+
+
+test('evicting a parent also exposes the pending covered allocation', () => {
+  const ledgers = pair(CONTENT_CAPS.engineBase + CONTENT_CAPS.overlap + Math.ceil(800 * CONTENT_CAPS.residentFactor));
+  const events = ledgers.map(() => [] as string[]);
+  for (const [i, ledger] of ledgers.entries()) {
+    const parent = ledger.reserve({ id: 'parent', owner: 'parent', category: 'sim', bytes: 400, needed: true, distance: 1,
+      prepareEvict: () => ({ commit: () => { events[i]?.push('commit'); }, abort: () => { events[i]?.push('abort'); } }) });
+    ledger.reserve({ id: 'anchor', owner: 'other', category: 'far', bytes: 600, needed: true, distance: 0 });
+    parent?.update({ needed: false });
+    ledger.reserve({ id: 'pending', owner: 'parent', category: 'commons', bytes: 300, needed: true, distance: 0, coveredBy: 'parent' });
+  }
+  same(ledgers); expect(events[1]).toEqual(['abort']); expect(events[1]).toEqual(events[0]);
+});

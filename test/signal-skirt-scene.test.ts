@@ -9,6 +9,7 @@ import { SIGNAL_WORLD_SCENES } from '../src/shards/sunscar-dunes/generators/worl
 import { parseWorldScenes } from '../src/format/worldScenes';
 import { parseWorldScene } from '../src/format/clientChannels';
 import { Scope } from '../src/engine/app/scope';
+import { AssetService } from '../src/engine/app/assets';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { emptyShardfile } from '../src/sdk/author';
 import { parseShardfile } from '../src/format/shardSchema';
@@ -56,11 +57,11 @@ test('both skirt cuts retain every original vertex channel and index', async () 
 });
 
 test.each([false, true])('scene borrows the live sand instance and refuses a missing cut: cell=%s', async cell => {
-  const scope = new Scope('skirt-fixture'), material = new MeshStandardMaterial();
+  const scope = new Scope('skirt-fixture'), material = new MeshStandardMaterial(), assets = new AssetService();
   const files = new Map(SIGNAL_SKIRT_BLOBS.map(row => [row.file.name, row.bytes]));
   const base = emptyShardfile({ slug: 'fixture-sand', name: 'Sand', author: 'Fixture', revision: 1, seed: 1 });
   const source = parseShardfile({ ...base, look: { ...base.look, materials: { pbr: { family: 'pbr' } } } });
-  const ctx = { scope, root: new Group(), app: { registry: new WorldRegistry() }, game: {}, cube: cell ? { half: 250 } : null,
+  const ctx = { scope, root: new Group(), app: { registry: new WorldRegistry(), assets }, game: {}, cube: cell ? { half: 250 } : null,
     product: { slug: source.identity.slug, shardfile: source, hasFile: (name: string) => files.has(name), url: (name: string) => name,
       file: (name: string) => { const value = files.get(name); return value === undefined ? Promise.reject(new Error('Missing original cut')) : Promise.resolve(value); } },
   } as ShardContext;
@@ -82,7 +83,7 @@ test.each([false, true])('scene borrows the live sand instance and refuses a mis
     const missing = new Scope('missing-skirt');
     try { await expect(installWorldScenes({ ...ctx, scope: missing }, rows)).rejects.toThrow(); }
     finally { missing.dispose(); }
-  } finally { scope.dispose(); material.dispose(); }
+  } finally { scope.dispose(); for (const row of assets.retained()) assets.evictCached(row.key); material.dispose(); }
 });
 
 test('Z2 selects the cube cut and the terrain material without a skirt host', () => {

@@ -78,6 +78,7 @@ export class ResidencyAllocator {
   private readonly measured = new Set<string>();
   private readonly totals: Record<ResidencyCategory, number> = { l0: 0, l1: 0, far: 0, near: 0, library: 0, sim: 0, commons: 0, product: 0, page: 0 };
   private credit = 0;
+  private accountingRevision = 0;
   private nearCount = 0;
   private readonly coverage = new Map<string, Coverage>();
   private readonly evictable = new Set<Entry>();
@@ -225,6 +226,7 @@ export class ResidencyAllocator {
     this.totals.commons += sign * group.commons; this.totals.page += sign * group.page; this.credit += sign * group.credit;
   }
   private track(entry: Entry, sign: 1 | -1): void {
+    this.accountingRevision++;
     if (!this.covered(entry)) {
       this.totals[entry.category] += sign * entry.bytes;
       if (entry.category === 'page') this.credit += sign * entry.baseCredit;
@@ -276,6 +278,25 @@ export class ResidencyAllocator {
     if (page > 0) { input.page = page; input.engineBase = CONTENT_CAPS.engineBase - credit; }
     return input;
   }
+  /** Advance the speculative ledger once per selected claim. Re-scanning every earlier omission here made
+   * thousands of idle geometry allocations quadratic for each over-target registration. */
+  private omit(input: ContentCostInput, entry: Entry, omitted: Set<string>, extra: ResidencyClaim & { baseCredit: number }): void {
+    if (this.entries_.get(entry.id) !== entry) return;
+    let page = input.page ?? 0, credit = CONTENT_CAPS.engineBase - (input.engineBase ?? CONTENT_CAPS.engineBase);
+    const adjust = (row: Pick<Entry, 'category' | 'bytes' | 'baseCredit'>, sign: number): void => {
+      if (row.category === 'page') { page += sign * row.bytes; credit += sign * row.baseCredit; }
+      else { const key = field[row.category]; input[key] = (input[key] ?? 0) + sign * row.bytes; }
+    };
+    if (!this.covered(entry, omitted)) adjust(entry, -1);
+    omitted.add(entry.id);
+    // Only sim parents cover allocations; each surviving child is exposed once when its parent is omitted.
+    const group = this.coverage.get(entry.id);
+    if (group !== undefined) for (const child of group.children) if (!omitted.has(child.id)) adjust(child, 1);
+    if (extra.coveredBy === entry.id) adjust(extra, 1);
+    if (credit > CONTENT_CAPS.engineBase) throw new Error('Page calibration exceeds the engine baseline');
+    if (page > 0) { input.page = page; input.engineBase = CONTENT_CAPS.engineBase - credit; }
+    else { delete input.page; delete input.engineBase; }
+  }
   private fits(extra: ResidencyClaim & { baseCredit: number }): boolean { return contentCost(this.input(extra)).playing <= this.playing; }
   /**
    * Prepare unneeded, unheld claims farthest-first until the prepared bytes make room; commit them all, or abort them all
@@ -284,10 +305,13 @@ export class ResidencyAllocator {
   private evictFor(extra: ResidencyClaim & { baseCredit: number }): boolean {
     const candidates = this.evictionOrder ??= [...this.evictable].sort((a, b) => b.distance - a.distance || a.id.localeCompare(b.id));
     const prepared: { entry: Entry; eviction: ResidencyEviction }[] = []; const omitted = new Set<string>(); let enough = false;
+    let input = this.input(extra), revision = this.accountingRevision;
     for (const entry of candidates) {
       const eviction = entry.prepare?.() ?? null; if (eviction === null) continue;
-      prepared.push({ entry, eviction }); omitted.add(entry.id);
-      if (contentCost(this.input(extra, omitted)).playing <= this.playing) { enough = true; break; }
+      // A durability owner may release or resize a claim while preparing. Rebase only on an actual ledger change.
+      if (revision !== this.accountingRevision) { input = this.input(extra, omitted); revision = this.accountingRevision; }
+      prepared.push({ entry, eviction }); this.omit(input, entry, omitted, extra);
+      if (contentCost(input).playing <= this.playing) { enough = true; break; }
     }
     if (!enough) { for (const { eviction } of prepared.reverse()) eviction.abort(); return false; }
     for (let index = 0; index < prepared.length; index++) {
