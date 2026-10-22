@@ -7,6 +7,7 @@ import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { closedComponents, closedComponentSources, closedComponentFailures, compareClosedComponents } from '../scripts/check-closed-components.mjs';
 import { componentInventory } from '../scripts/shard-components.mjs';
+import ratchetPolicy from '../lint/ratchet.json' with { type: 'json' };
 
 test('a line in each closed component fails; other components remain available', () => {
   const root = mkdtempSync(join(tmpdir(), 'closed-components-'));
@@ -58,4 +59,21 @@ test('closing counts shrink, require the lock to follow cuts, and close at zero'
   expect(closedComponentFailures(row(0), {}, { 'nalati-grasslands': { C7: 0 } })).toEqual([]);
   expect(compareClosedComponents({}, {}, policy, { 'nalati-grasslands': { C7: 92 } })).toEqual([]);
   expect(compareClosedComponents({}, {}, policy, { 'nalati-grasslands': { C7: 94 } })).toEqual([expect.stringContaining('raised or removed')]);
+});
+
+
+test('Nine rejects regrowth in every zero component while retaining its charged bounds', () => {
+  const locked = ratchetPolicy.closedComponents['nine-dragon-stack'];
+  expect(locked).toEqual(['C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8']);
+  const inventory = (counts: Record<string, number>) => ({ 'nine-dragon-stack': { components: {
+    ...componentInventory('', 'nine-dragon-stack', [], 0), counts,
+  } } });
+  const counts = { C1: 0, C2: 0, C3: 0, C4: 0, C5: 0, C6: 0, C7: 0, C8: 0, C9: 18 };
+  const nine = { 'nine-dragon-stack': locked };
+  expect(closedComponentFailures(inventory(counts), nine)).toEqual([]);
+  for (const id of locked) {
+    expect(closedComponentFailures(inventory({ ...counts, [id]: 1 }), nine)).toEqual([
+      expect.stringContaining(`CLOSED ${id}`),
+    ]);
+  }
 });
