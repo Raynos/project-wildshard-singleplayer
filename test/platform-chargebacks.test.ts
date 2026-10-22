@@ -378,3 +378,10 @@ test('CORE fixed draws credit only their picked defining bindings', () => {
   expect(approvedG571Host(approvals, path, 'unreviewedBinding')).toBe(false);
   expect(approvals.get(path)).not.toBeNull();
 });
+
+test('the approved riding specimen module contains its factory boundary and retains its actual owner', () => {
+  const approvals = g571HostApprovals('.'), path = 'src/game/models/mountedSpecimen.ts';
+  expect(approvedG571Host(approvals, path)).toBe(true);
+  expect(platformChargeback(path)).toBe('C1');
+  expect(approvedG571Host(approvals, 'src/game/models/unreviewedSpecimen.ts')).toBe(false);
+});
