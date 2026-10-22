@@ -246,18 +246,22 @@ test('draw knob references retain normal tiers and declared level overrides', ()
   } finally { owner.dispose(); shape.dispose(); material.dispose(); initializeTier(savedTier); Object.assign(TIER_CONFIG, saved); }
 });
 
-test('scene capture disposes a reserved batch once under same or different ambient owners', () => {
+test('scene capture disposes a finished batch once under same or different ambient owners', () => {
   for (const relation of ['same', 'nested', 'independent'] as const) {
     const owner = new Scope(`batch-${relation}`), ambient = relation === 'same' ? owner : new Scope('ambient', relation === 'nested' ? owner : undefined);
-    const material = new MeshStandardMaterial(), parent = new Group();
-    const batch = new WorldSceneBatch(v.parse(WorldSceneBatchSchema, { id: 'quay', material: 'iron',
-      capacity: { instances: 2, vertices: 6, indices: 6 } }), material, [], owner);
-    const mesh = withOwner(ambient, () => batch.reserve()), dispose = vi.spyOn(mesh, 'dispose'); parent.add(mesh);
+    const material = new MeshStandardMaterial(), parent = new Group(), shape = new BufferGeometry();
+    shape.setAttribute('position', new BufferAttribute(Float32Array.of(0, 0, 0, 1, 0, 0, 0, 1, 0), 3));
+    const batch = new WorldSceneBatch(v.parse(WorldSceneBatchSchema, { id: 'quay', material: 'iron', capacity: { instances: 2, vertices: 6, indices: 6 },
+      geometry: [{ library: 'quay', model: 'post' }], fixed: [{ lod0: 0, lod1: 0, near: 0, far: 10, sphere: [0, 0, 0, 1], matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] }] }),
+    material, [shape], owner, new WorldRegistry());
+    const group = withOwner(ambient, () => batch.finish()), mesh = group.children[0];
+    if (!(mesh instanceof Mesh)) throw new Error('Missing instanced slot');
+    const dispose = vi.spyOn(mesh, 'dispose'); parent.add(group);
     ownSceneTree(parent, ambient, { isAcquired: () => false });
     expect(sceneResourceOwner(mesh)).toBe(owner);
     if (ambient !== owner) { ambient.dispose(); expect(dispose).not.toHaveBeenCalled(); }
     expect(() => owner.dispose()).not.toThrow(); expect(dispose).toHaveBeenCalledOnce();
-    expect(mesh.parent).toBeNull(); ambient.dispose(); material.dispose();
+    expect(group.parent).toBeNull(); ambient.dispose(); material.dispose(); shape.dispose();
   }
 });
 

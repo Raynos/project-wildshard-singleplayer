@@ -21,6 +21,7 @@ import type { BoxSpec } from '../physics/box';
  * allocate nothing per frame (./cull.ts).
  */
 import { app } from '../app/runtime';
+import { graphLook } from './instancedBatch';
 import { frameBudgetSpent, paceYield, presenting } from '../core/framePacing';
 import { WORK_SLICE_MS, yieldTask } from '../core/workSlice';
 import * as THREE from 'three';
@@ -592,7 +593,8 @@ function drawInstanced<P extends object>(def: ModelDef<P>, pls: readonly Placeme
 }
 
 /** The instanced draw, pausing (`yield`) after every variant level built and every copy's colliders (op-hitch29: `placeSliced`). */
-function* drawInstancedSteps<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: BuildOptions<P>): Generator<void, Drawn> {
+function* drawInstancedSteps<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: BuildOptions<P>,
+  prebuilt?: (readonly ModelPart[])[][]): Generator<void, Drawn> {
   const { keys, of } = variantKeys(pls);
   const levels = levelsOf(def).length, n = pls.length;
   // 'set': every copy written once per level, the levels shown / hidden whole (SetCull); else per copy when anything culls
@@ -605,7 +607,7 @@ function* drawInstancedSteps<P extends object>(def: ModelDef<P>, pls: readonly P
   const colors = tinted ? new Float32Array(n * 3) : null;
   const tint = new THREE.Color();
   // every variant's parts, built once (instanced copies share their variant's shape)
-  const built = yield* variantPartsSteps(def, o, pls, keys);
+  const built = prebuilt ?? (yield* variantPartsSteps(def, o, pls, keys));
   const perVariant = keys.map((_, v) => of.reduce((c, x) => c + (x === v ? 1 : 0), 0));
   for (const [i, pl] of pls.entries()) {
     const pose = poses[i], p = params[i], parts = built[of[i] ?? 0]?.[0] ?? [];
@@ -738,6 +740,11 @@ function drawBatched<P extends object>(def: ModelDef<P>, pls: readonly Placement
   const { keys, of } = variantKeys(pls);
   const levels = levelsOf(def).length, n = pls.length;
   const built = keys.map((k) => levelParts(def, o, paramsOf(def, k, undefined), new Rng(seedOf(def)), o.visitBuild === undefined ? pls : pls.filter((pl) => pl.variant === k)));
+  // A graph (node) look never draws on a multi-draw batch: it draws instanced (E271 / E272; on the grid its batched
+  // shader did not even compile). The parts just built are reused, never built twice.
+  if (o.batch === undefined && built.some((variant) => variant.some((parts) => parts.some((part) => graphLook(part.material))))) {
+    return runSteps(drawInstancedSteps(def, pls, poses, params, o, built));
+  }
   // one batch per material: every (variant, level) part with that material is one of its geometries
   const byMat = new Map<THREE.Material, { part: ModelPart; geos: { v: number; l: number; g: THREE.BufferGeometry; until: number | undefined }[] }>();
   built.forEach((lvls, v) => { lvls.forEach((parts, l) => { for (const part of parts) {

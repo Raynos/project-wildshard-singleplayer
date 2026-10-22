@@ -314,7 +314,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
       materialProgress(materialIndex + 1, row.id);
       await buildYield(owner);
     }
-    const sky = ctx.game.runtime?.world?.sky, game = ctx.game.runtime?.world?.game, preparedBatches = new Map<string, WorldSceneBatch>();
+    const sky = ctx.game.runtime?.world?.sky, game = ctx.game.runtime?.world?.game;
     for (const row of welds) {
       for (const resource of row.resources) {
         const shape = resource.kind === 'seeds' ? new BufferGeometry().setAttribute('seed', new BufferAttribute(new Float32Array(Uint32Array.from(resource.words).buffer), 4))
@@ -341,8 +341,8 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
         if (geometry === undefined || geometry === null) throw new Error('Missing admitted scene batch geometry');
         owner.onDispose(() => { geometry.dispose(); }); return geometry;
       });
-      const batch = new WorldSceneBatch(row, material, preparedGeometry, owner);
-      preparedBatches.set(row.id, batch); handles.publish(row.id, batch);
+      const batch = new WorldSceneBatch(row, material, preparedGeometry, owner, registry());
+      handles.publish(row.id, batch);
       if (sky !== undefined && game !== undefined) withOwner(owner, () => { game.onUpdate(() => { batch.update(sky.viewCamera); }); });
       await buildYield(owner);
     }
@@ -363,7 +363,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
         const model = catalogue.models.find(entry => entry.key === row.model);
         const needed = new Set(model?.choices.flatMap(choice => choice.draws.concat(choice.lods.flatMap(level => level.draws)).map(draw => draw.material)));
         const sources = section.materials.filter((source): source is Extract<typeof source, { kind: 'source' }> => source.kind === 'source' && source.load === 'placement' && needed.has(source.id));
-        handles.publish(row.id, new WorldScenePlacement(ctx, row, definitions, owner, materials, sources, handles, row.batch === undefined ? undefined : preparedBatches.get(row.batch)));
+        handles.publish(row.id, new WorldScenePlacement(ctx, row, definitions, owner, materials, sources, handles));
       }
     }
     const sceneProgress = loadingUnits('Home scenes', activeSteps.reduce((sum, step) => sum + (step.repeat?.length ?? 1), 0));

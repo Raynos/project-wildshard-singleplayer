@@ -37,6 +37,7 @@ import { test, bindInteractionState, type Flags } from './flags';
 import { bindInteractPlacements, autoFlag, interactProps, pickupLook, type Interactable, type InteractDef, type InteractTable, type Place } from './types';
 import { modelContext, type ModelDef, type Placement } from '../../models/model';
 import { place, type Placed } from '../../models/place';
+import { graphLook, InstancedBatch } from '../../models/instancedBatch';
 import { walkInPickup } from './pickup';
 import { pickPrompt, promptVisible, setPromptSight, PROMPT_SIGHT_SLACK } from './prompts';
 
@@ -151,7 +152,7 @@ export class Interactables {
   /** its rows' models as placed (the named places' sets read them) */
   readonly placed: Placed[] = [];
   private byId = new Map<string, Live>();
-  private batches!: Record<BatchId, THREE.BatchedMesh>;
+  private batches!: Record<BatchId, THREE.BatchedMesh | InstancedBatch>;
   private geoIds = new Map<string, { batch: BatchId; id: number }>();
   private pending: { key: string; batch: BatchId; geo: THREE.BufferGeometry }[] = [];
   private instCount: Record<BatchId, number> = { lit: 0, glow: 0 };
@@ -178,16 +179,18 @@ export class Interactables {
     const litMat = lowPolyLookMaterial(this.host.sky);
     const glowMat = new THREE.MeshBasicMaterial({ vertexColors: true, fog: true, toneMapped: true });
     glowMat.name = 'interact-glow';
-    this.batches = {
-      lit: new THREE.BatchedMesh(Math.max(1, this.instCount.lit), Math.max(3, size('lit')), Math.max(3, size('lit')), litMat),
-      glow: new THREE.BatchedMesh(Math.max(1, this.instCount.glow), Math.max(3, size('glow')), Math.max(3, size('glow')), glowMat),
-    };
-    for (const [b, bm] of Object.entries(this.batches) as [BatchId, THREE.BatchedMesh][]) {
+    // A lent graph look never draws on a multi-draw batch (E271 / E272; on the grid its shader did not compile): instanced
+    const batch = (b: BatchId, material: THREE.Material): THREE.BatchedMesh | InstancedBatch => {
+      if (graphLook(material)) return new InstancedBatch(material, { name: `interact-${b}`, castShadow: b === 'lit', receiveShadow: b === 'lit', ownsGeometry: true });
+      const bm = new THREE.BatchedMesh(Math.max(1, this.instCount[b]), Math.max(3, size(b)), Math.max(3, size(b)), material);
       bm.name = `interact-${b}`; bm.sortObjects = false; bm.perObjectFrustumCulled = true; bm.frustumCulled = false; // the batch's own sphere is stale (instances move); three culls each instance instead
       bm.castShadow = b === 'lit'; bm.receiveShadow = b === 'lit';
-    }
+      return bm;
+    };
+    this.batches = { lit: batch('lit', litMat), glow: batch('glow', glowMat) };
     for (const p of this.pending) this.geoIds.set(p.key, { batch: p.batch, id: this.batches[p.batch].addGeometry(p.geo) });
-    for (const p of this.pending) p.geo.dispose();
+    // a BatchedMesh copies its shapes; an instanced batch draws (and frees) them itself
+    for (const p of this.pending) if (this.batches[p.batch] instanceof THREE.BatchedMesh) p.geo.dispose();
     this.pending = [];
     for (const lv of this.lives) for (const part of lv.parts) {
       const key = (part as Part & { geoKey: string }).geoKey;

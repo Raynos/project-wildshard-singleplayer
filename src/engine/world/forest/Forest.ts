@@ -6,6 +6,7 @@ import { type TreeFactory, forestFade } from '../TreeFactory';
 import { updateWind } from '../wind';
 import type { SkyRig as Sky } from '../skyRig';
 import { TIER_CONFIG } from '../../core/tier';
+import { graphLook } from '../../models/instancedBatch';
 
 
 /**
@@ -91,7 +92,8 @@ export class Forest {
   constructor(factory: TreeFactory, sky: Sky) {
     this.factory = factory;
     this.sky = sky;
-     this.path = factory.multiDraw ? 'batched' : 'instanced'; }
+     // a graph tree look never draws on a multi-draw batch (E271 / E272)
+     this.path = factory.multiDraw && !graphLook(factory.barkMaterial) && !graphLook(factory.needleMaterial) ? 'batched' : 'instanced'; }
 
   /** Soft canopy-density texture (for terrain darkening under trees, and grass thinning). */
   canopyMap!: THREE.DataTexture;

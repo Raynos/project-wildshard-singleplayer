@@ -14,7 +14,6 @@ import { worldSceneSourceMaterial } from './worldSceneMaterials';
 import type { WorldScenePlacementRow } from '@wildshard/format/worldScenePlacement';
 import type { ShardContext } from '../plugin/context';
 import type { defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
-import type { WorldSceneBatch } from './worldSceneBatch';
 import type { SceneHandles } from './sceneHandles';
 
 function requireLive(owner: Scope): void { if (owner.disposed) throw new Error('Scene placement owner is disposed'); }
@@ -25,7 +24,7 @@ export class WorldScenePlacement {
   private pending: Promise<Placed> | undefined;
   constructor(private readonly ctx: ShardContext, private readonly row: WorldScenePlacementRow,
     private readonly catalogue: Pick<ReturnType<typeof defineWorldSceneCatalogue>, 'model'>, private readonly owner: Scope,
-    private readonly materials: Map<string, Material>, private readonly sources: readonly Extract<WorldScenesSection['materials'][number], { kind: 'source' }>[], private readonly handles?: Pick<SceneHandles, 'object'>, private readonly batch?: WorldSceneBatch) {}
+    private readonly materials: Map<string, Material>, private readonly sources: readonly Extract<WorldScenesSection['materials'][number], { kind: 'source' }>[], private readonly handles?: Pick<SceneHandles, 'object'>) {}
 
   load(): Promise<Placed> {
     if (this.owner.disposed) return Promise.reject(new Error('Scene placement owner is disposed'));
@@ -61,9 +60,9 @@ export class WorldScenePlacement {
         const yaw = yawAtan2 === undefined ? rotation.yaw : Math.atan2(yawAtan2[0], yawAtan2[1]);
         return { ...pose, matrix: modelPoseMatrix({ ...pose, ...rotation, yaw }) };
       }),
-      { ctx: sharedModelContext(world.sky, world.game), registry: world.registry, draw: row.draw,
+      // E271 / E272: no multi-draw anywhere; a 'batched' row draws instanced (a graph look on a multi-draw batch did not compile)
+      { ctx: sharedModelContext(world.sky, world.game), registry: world.registry, draw: row.draw === 'batched' ? 'instanced' : row.draw,
         ...(row.drawnInto === undefined || borrowed === undefined ? {} : { drawnInto: { object: borrowed, boxes: Float32Array.from(row.drawnInto.boxes) } }),
-        ...(this.batch === undefined ? {} : { batch: this.batch.reserve() }),
         ...(row.cull === undefined ? {} : { cull }), ...(row.sortObjects === undefined ? {} : { sortObjects: row.sortObjects }),
         ...(row.piece === undefined && preplaced === undefined ? {} : { piece: { ...(row.piece === undefined ? {} : { id: row.piece.id }), ...(row.piece?.name === undefined ? {} : { name: row.piece.name }),
           ...(preplaced === undefined ? {} : { colliders: preplaced }),

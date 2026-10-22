@@ -191,6 +191,7 @@
     "./models/gear": "./models/gear.ts",
     "./models/glb": "./models/glb.ts",
     "./models/hull": "./models/hull.ts",
+    "./models/instancedBatch": "./models/instancedBatch.ts",
     "./models/interact": "./models/interact.ts",
     "./models/live": "./models/live.ts",
     "./models/model": "./models/model.ts",

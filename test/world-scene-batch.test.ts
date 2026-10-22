@@ -1,12 +1,12 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import * as v from 'valibot';
-import { BufferAttribute, BufferGeometry, Matrix4, MeshBasicMaterial, PerspectiveCamera, BatchedMesh } from 'three';
-import { modelPoseMatrix } from '../src/engine/models/placementBatch';
+import { BufferAttribute, BufferGeometry, Matrix4, MeshBasicMaterial, PerspectiveCamera, BatchedMesh, InstancedMesh, type Object3D } from 'three';
 import { parseWorldScenePlacement } from '../src/format/worldScenePlacement';
 import { Scope } from '../src/engine/app/scope';
 import { WorldSceneBatchSchema } from '../src/format/worldSceneBatch';
 import { WorldSceneBatch } from '../src/game/shardfile/worldSceneBatch';
+import { WorldRegistry } from '../src/engine/world/registry';
 import type { ShardContext } from '../src/game/plugin/context';
 
 const triangle = () => {
@@ -21,38 +21,44 @@ const batchRows = () => v.parse(WorldSceneBatchSchema, { id: 'harbour', material
   fixed: [{ lod0: 0, lod1: 1, near: 2, far: 10, sphere: [0, 0, -5, 1], matrix: new Matrix4().makeTranslation(0, 0, -5).elements }],
 });
 
-test('a second setting shares one draw and appends its fixed instances after model calls', () => {
+const drawn = (root: Object3D) => { const meshes: (InstancedMesh | BatchedMesh)[] = []; root.traverse(o => { if (o instanceof InstancedMesh || o instanceof BatchedMesh) meshes.push(o); }); return meshes; };
+const counts = (root: Object3D) => drawn(root).map(mesh => mesh instanceof InstancedMesh ? mesh.count : -1);
+
+test('fixed instances draw instanced, one InstancedMesh per geometry slot, never a BatchedMesh (E271 / E272)', () => {
   const owner = new Scope('harbour'), material = new MeshBasicMaterial(), geometry = triangle();
-  const batch = new WorldSceneBatch(batchRows(), material, [geometry, geometry], owner), mesh = batch.mesh();
-  const modelGeometry = mesh.addGeometry(geometry), modelInstance = mesh.addInstance(modelGeometry);
-  expect(modelGeometry).toBe(0); expect(modelInstance).toBe(0);
-  expect(batch.finish()).toBe(mesh); expect(batch.finish()).toBe(mesh);
-  expect(mesh.instanceCount).toBe(2); expect(mesh.getGeometryIdAt(1)).toBe(1);
-  const matrix = new Matrix4(); mesh.getMatrixAt(1, matrix);
-  expect(matrix.elements).toEqual(new Matrix4().makeTranslation(0, 0, -5).elements);
-  expect(() => batch.reserve()).toThrow('finalized');
+  const batch = new WorldSceneBatch(batchRows(), material, [geometry, geometry], owner, new WorldRegistry()), group = batch.finish();
+  expect(batch.finish()).toBe(group); expect(batch.object()).toBe(group);
+  const meshes = drawn(group);
+  expect(meshes).toHaveLength(2); expect(meshes.every(mesh => mesh instanceof InstancedMesh)).toBe(true);
+  expect(counts(group)).toEqual([0, 0]); // nothing drawn before the first view chooses
   owner.dispose(); material.dispose(); geometry.dispose();
 });
 
-test('fixed instances keep authored range and LOD boundaries', () => {
+test('fixed instances keep authored range and LOD boundaries, moving between their geometry meshes', () => {
   const owner = new Scope('harbour'), material = new MeshBasicMaterial(), geometry = triangle();
-  const batch = new WorldSceneBatch(batchRows(), material, [geometry, geometry], owner), mesh = batch.finish();
+  const batch = new WorldSceneBatch(batchRows(), material, [geometry, geometry], owner, new WorldRegistry()), group = batch.finish();
   const camera = new PerspectiveCamera(); camera.updateMatrixWorld(true); batch.update(camera);
-  expect(mesh.getGeometryIdAt(0)).toBe(1); expect(mesh.getVisibleAt(0)).toBe(true);
+  expect(counts(group)).toEqual([0, 1]);
+  const [near, far] = drawn(group), matrix = new Matrix4();
+  if (!(far instanceof InstancedMesh) || !(near instanceof InstancedMesh)) throw new Error('Missing instanced slots');
+  far.getMatrixAt(0, matrix); expect(matrix.elements).toEqual(new Matrix4().makeTranslation(0, 0, -5).elements);
   camera.position.z = -4; camera.updateMatrixWorld(true); batch.update(camera);
-  expect(mesh.getGeometryIdAt(0)).toBe(0); expect(mesh.getVisibleAt(0)).toBe(true);
+  expect(counts(group)).toEqual([1, 0]);
+  near.getMatrixAt(0, matrix); expect(matrix.elements).toEqual(new Matrix4().makeTranslation(0, 0, -5).elements);
   camera.position.z = -30; camera.updateMatrixWorld(true); batch.update(camera);
-  expect(mesh.getVisibleAt(0)).toBe(false);
+  expect(counts(group)).toEqual([0, 0]);
   owner.dispose(); material.dispose(); geometry.dispose();
 });
 
-test('a batch owns only its allocation and refuses use after its lifetime ends', () => {
+test('a batch owns only its instance buffers and refuses use after its lifetime ends', () => {
   const owner = new Scope('harbour'), material = new MeshBasicMaterial(), geometry = triangle();
   const materialDispose = vi.spyOn(material, 'dispose'), geometryDispose = vi.spyOn(geometry, 'dispose');
-  const batch = new WorldSceneBatch(batchRows(), material, [geometry, geometry], owner), mesh = batch.finish(), dispose = vi.spyOn(mesh, 'dispose');
+  const batch = new WorldSceneBatch(batchRows(), material, [geometry, geometry], owner, new WorldRegistry()), group = batch.finish();
+  const disposals = drawn(group).map(mesh => vi.spyOn(mesh, 'dispose'));
   owner.dispose(); owner.dispose();
-  expect(dispose).toHaveBeenCalledTimes(1); expect(materialDispose).not.toHaveBeenCalled(); expect(geometryDispose).not.toHaveBeenCalled();
-  expect(() => batch.mesh()).toThrow('disposed');
+  for (const dispose of disposals) expect(dispose).toHaveBeenCalledTimes(1);
+  expect(materialDispose).not.toHaveBeenCalled(); expect(geometryDispose).not.toHaveBeenCalled();
+  expect(group.parent).toBe(null); expect(() => batch.object()).toThrow('disposed');
   material.dispose(); geometry.dispose();
 });
 
@@ -69,9 +75,9 @@ test('batch rows reject executable values, missing fixed geometry and unbounded 
 });
 
 test('resident rows share one native batch across a named model and fixed tail', async () => {
-  const [{ installWorldScenes }, { parseWorldScenes }, { emptyShardfile }, { staticGlb }, { WorldRegistry }, { SkyRig }] = await Promise.all([
+  const [{ installWorldScenes }, { parseWorldScenes }, { emptyShardfile }, { staticGlb }, { SkyRig }] = await Promise.all([
     import('../src/game/shardfile/worldScenes'), import('../src/format/worldScenes'), import('../src/sdk/author'),
-    import('../src/sdk/bake/glb'), import('../src/engine/world/registry'), import('../src/engine/world/skyRig'),
+    import('../src/sdk/bake/glb'), import('../src/engine/world/skyRig'),
   ]);
   const owner = new Scope('harbour-resident'), registry = new WorldRegistry(), geometry = triangle(), material = new MeshBasicMaterial();
   const sky: unknown = Object.create(SkyRig.prototype);
@@ -106,13 +112,11 @@ test('resident rows share one native batch across a named model and fixed tail',
     const [{ defineWorldSceneCatalogue }, { TIER }] = await Promise.all([import('../src/game/models/worldSceneCatalogue'), import('../src/engine/core/tier')]);
     expect(defineWorldSceneCatalogue(catalogue).model('marker').lods?.[0]?.from).toBe(TIER === 'phone' ? 2 : 4);
     const placed = await handles.place('marker'), batch = handles.object('shared');
-    expect(batch).toBe(placed.object); expect(handles.mesh('shared')).toBe(batch);
     expect(await handles.place('marker')).toBe(placed);
-    expect(batch).toHaveProperty('instanceCount', 2);
-    if (!(batch instanceof BatchedMesh)) throw new Error('Missing native batch');
-    const transform = new Matrix4(); batch.getMatrixAt(0, transform);
-    const native = Float32Array.from(modelPoseMatrix({ x: 0, y: 0, z: 0, yaw: 1.2, scale: 0.8, pitch: 0.2, roll: -0.1 }).elements);
-    expect(transform.elements).toEqual(Array.from(native));
+    // a 'batched' row draws instanced on its own; the batch holds only its fixed tail (E271 / E272: no multi-draw)
+    expect(batch).not.toBe(placed.object); expect(() => handles.mesh('shared')).toThrow('Expected scene mesh');
+    expect([...drawn(placed.object), ...drawn(batch)].some(mesh => mesh instanceof BatchedMesh)).toBe(false);
+    expect(drawn(placed.object).length).toBeGreaterThan(0); expect(drawn(batch)).toHaveLength(1);
     expect(() => parseWorldScenePlacement({ id: 'bad', model: 'marker', draw: 'batched',
       poses: [{ x: 0, y: 0, z: 0, matrix: new Matrix4().elements, yxz: { yaw: 0, scale: 1 } }] })).toThrow();
     expect(game.onUpdate).toHaveBeenCalledOnce();

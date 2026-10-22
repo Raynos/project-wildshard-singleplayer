@@ -426,9 +426,16 @@ export class CelledCopiesCull {
   }
 }
 
-/** a copy's instance in one BatchedMesh, and the geometry id each of its levels draws (-1: none at that level) */
+/** What a batched culler drives per instance: which geometry it draws and whether it draws (a BatchedMesh, or an
+ *  instanced set packing each geometry's copies into its own InstancedMesh). */
+export interface BatchSink {
+  readonly setGeometryIdAt: (instance: number, geometry: number) => unknown;
+  readonly setVisibleAt: (instance: number, visible: boolean) => unknown;
+}
+
+/** a copy's instance in one batch, and the geometry id each of its levels draws (-1: none at that level) */
 export interface BatchedSlot {
-  readonly mesh: THREE.BatchedMesh;
+  readonly mesh: BatchSink;
   readonly instance: number;
   /** per level: the geometry id, -1 when this material draws nothing at that level */
   readonly geometry: Int32Array;
