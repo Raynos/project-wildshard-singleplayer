@@ -5,7 +5,7 @@ import { createLevelInstallation } from '../src/engine/level/installation';
 import { shardContext, type ShardContext } from '../src/game/plugin/context';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import source from '../src/shards/nine-dragon-stack/shard.config';
-import manifest from '../src/shards/nine-dragon-stack/manifest';
+import manifest from '../src/shards/nine-dragon-stack/discovery.generated';
 import { NdPlugin } from '../src/shards/nine-dragon-stack/plugin';
 import { entryOwner } from '../src/game/shardfile/entryOwners';
 import { toLevelSpec } from '../src/game/shard/spec';

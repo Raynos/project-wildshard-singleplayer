@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import nalati from '../src/shards/nalati-grasslands/manifest';
-import nine from '../src/shards/nine-dragon-stack/manifest';
+import nine from '../src/shards/nine-dragon-stack/discovery.generated';
 import expected from './fixtures/manifest-declarations.json' with { type: 'json' };
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 

@@ -77,4 +77,8 @@ writer.put(resolve(root, 'src/shards/nine-dragon-stack/boot/declaration.generate
   audio: { ...fixed.audio, bed: samples.bed, samples: { omitLoops: samples.omitLoops, omitShots: samples.omitShots, loopGains: samples.loopGains } },
   boot: { ...fixed.boot, files: manifest.BOOT_FILES, sources, explore: { art: [...Object.values(explore.art), ...explore.compare.flatMap(({ live, image }) => [live, image]), ...extraArt] } },
 }, ['load', 'ground', 'slug']));
+writer.put(resolve(root, 'src/shards/nine-dragon-stack/boot/files.generated.json'), jsonBytes(manifest.BOOT_FILES));
+writer.put(resolve(root, 'src/shards/nine-dragon-stack/boot/sources.generated.json'), jsonBytes(sources));
+writer.put(resolve(root, 'src/shards/nine-dragon-stack/boot/explore.generated.json'), jsonBytes({ art: [...Object.values(explore.art), ...explore.compare.flatMap(({ live, image }) => [live, image]), ...extraArt] }));
+writer.put(resolve(root, 'src/shards/nine-dragon-stack/boot/poses.generated.json'), jsonBytes(MOCKUP_CAMERAS));
 writer.finish();

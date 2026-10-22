@@ -35,7 +35,7 @@ export function authoredManifestSource(root, slug, { generation = false, metadat
     else if (value && typeof value === 'object') Object.values(value).forEach(visit);
   };
   for (const value of [data.card, data.sky, data.minimap, data.explore, data.horizonStrips]) visit(value);
-  const paths = [...images], imports = [], bound = new Map();
+  const imports = [], bound = new Map();
   const modulePath = value => {
     if (typeof value !== 'string' || !/^\.\/[a-zA-Z0-9_./-]+$/u.test(value) || value.split('/').includes('..')) throw new Error(`${file}: invalid binding module`);
     const candidates = [value, `${value}.ts`, `${value}.js`, `${value}/index.ts`];
@@ -61,6 +61,17 @@ export function authoredManifestSource(root, slug, { generation = false, metadat
   };
   const b = data.bindings;
   if (!b || typeof b.accent !== 'string') throw new Error(`${file}: missing binding declarations`);
+  if (b.boot?.explore) {
+    const ref = b.boot.explore, path = modulePath(ref.module);
+    if (!path.endsWith('.json') || ref.export !== 'default') throw new Error(`${file}: boot explore requires default JSON rows`);
+    const absolute = resolve(root, `src/shards/${folder}`, path);
+    if (!metadataOnly || existsSync(absolute)) {
+      const rows = JSON.parse(readFileSync(absolute, 'utf8'));
+      if (rows === null || typeof rows !== 'object' || Object.keys(rows).length !== 1 || !Array.isArray(rows.art) || rows.art.length > 256 || rows.art.some(image => typeof image !== 'string' || !/^(?:\/src\/|\/assets\/|data:image\/)/u.test(image))) throw new Error(`${file}: invalid boot explore art`);
+      visit(rows.art);
+    }
+  }
+  const paths = [...images];
   // Build-only budget bindings become checked literals. Generated runtime discovery
   // never imports data/. Remove this bridge with catalog activation (P3).
   const budgetPath = modulePath(b.budgets?.module);
@@ -74,9 +85,10 @@ export function authoredManifestSource(root, slug, { generation = false, metadat
   const rows = [`accent: ${JSON.stringify(b.accent)}`, `budgets: ${budget}`];
   // G4: declared rows are built by the game from the shard's generated file, with no shard module
   const DECLARED = { ground: 'declaredGround', forestQueries: 'declaredForestQueries', pondClip: 'declaredPondClip' };
-  const declared = Object.keys(DECLARED).filter(key => b[key]?.platform === 'declared');
+  const declared = Object.keys(DECLARED).filter(key => b[key]?.platform === 'declared' || (key === 'forestQueries' && b[key]?.platform === 'fixed'));
   const built = (key) => `${DECLARED[key]}(${value(b[key].rows)})`;
   for (const key of ['runtimeCost', 'mapPalette', 'poses', 'forestQueries', 'pondClip']) if (b[key]) {
+    if (key === 'forestQueries' && b[key].platform === 'fixed') { rows.push(`forestQueries: declaredForestQueries(${JSON.stringify(b[key])})`); continue; }
     if (declared.includes(key)) { rows.push(`${key}: ${built(key)}`); continue; }
     // Fixed palette JSON becomes a contextually checked literal, preserving tuple
     // arity without importing an executable coordinate recipe into discovery.
@@ -93,17 +105,19 @@ export function authoredManifestSource(root, slug, { generation = false, metadat
   }
   if (b.navigation) { const id = value(b.navigation);rows.push(`navigation: { row: ${id}.navigation, url: ${id}.url }`); }
   if (b.audioCues || b.audioPreload) rows.push(`audioBindings: { ${[...(b.audioCues ? [`cues: ${value(b.audioCues)}`] : []), ...(b.audioPreload ? [`preload: async () => ${lazy(b.audioPreload, true)}`] : [])].join(', ')} }`);
-  if (b.sword?.rows) {
+  if (b.sword?.platform === 'graph') {
+    rows.push(`sword: async () => (await import('@wildshard/game/systems/viewmodel/graphArms')).graphSword(${JSON.stringify(slug)}, ${JSON.stringify(b.sword.file)})`);
+  } else if (b.sword?.rows) {
     const heldRows = value({ module: b.sword.rows, export: 'default' });
     rows.push(`sword: async () => (await import('@wildshard/game/systems/viewmodel/toonArms')).ToonArms.admit(${heldRows}.look).load()`);
   } else if (b.sword) rows.push(`sword: async () => ${lazy(b.sword, true)}`);
   if (b.boot?.platform === 'page-mode') {
     imports.push("import { pageModeBoot } from '@wildshard/game/shard/pageBoot';");
     rows.push(`bootBindings: pageModeBoot(${value(b.boot.rows)})`);
-  } else if (b.boot) rows.push(`bootBindings: { ${['files', 'sources', 'lateReads', 'bakedUnread', 'audio'].filter(key => b.boot[key]).map(key => key === 'audio' ? `audio: async () => ${lazy(b.boot[key], true)}` : `${key}: ${value(b.boot[key])}`).join(', ')} }`);
+  } else if (b.boot) rows.push(`bootBindings: { ${['files', 'sources', 'lateReads', 'bakedUnread', 'audio', 'explore'].filter(key => b.boot[key]).map(key => key === 'audio' ? `audio: async () => ${lazy(b.boot[key], true)}` : `${key}: ${value(b.boot[key])}`).join(', ')} }`);
   const native = [];
   if (b.render?.platform === 'toon') native.push("render: async (product) => (await import('@wildshard/game/looks/toonLook')).toonLook(product)");
-  if (declared.includes('ground')) native.push(`ground: ${built('ground')}`);
+  if (declared.includes('ground')) native.push(`ground: { ...${built('ground')}, ...${JSON.stringify(data.ground ?? {})} }`);
   else if (b.ground) native.push(`ground: ${value(b.ground)}`);
   if (b.render?.platform === 'painted') native.push("render: async (product) => (await import('@wildshard/game/looks/paintedLook')).productPaintedLook(product)");
   if (b.render?.platform === 'keyed') native.push(`render: async (product) => (await import('@wildshard/game/looks/keyedSky')).keyedSkyRender(product, { channels: ${JSON.stringify(b.render.channels)}, looks: ${value(b.render.looks)}, trim: ${value(b.render.trim)}[${JSON.stringify(b.render.trimRow)}] })`);
@@ -115,7 +129,7 @@ export function authoredManifestSource(root, slug, { generation = false, metadat
   if (b.entry) {
     if (b.load) throw new Error(`${file}: entry and load are mutually exclusive`);
     const compiled = b.entry.platform === 'client-plan';
-    if (compiled && (data.runtimeEntry !== undefined || b.entry.legacy !== undefined)) throw new Error(`${file}: client-plan entry names no runtime module`);
+    if (compiled && (data.runtimeEntry !== undefined || b.entry.legacy !== undefined || b.entry.native !== undefined || b.entry.nativePlan !== undefined)) throw new Error(`${file}: client-plan entry names no runtime module`);
     if (!compiled && !['runtime/index.ts', 'runtime/hybrid.ts'].includes(data.runtimeEntry)) throw new Error(`${file}: missing declared runtime entry`);
     if (typeof b.entry.retainHomeRuntime !== 'boolean' || !['declared', 'runtime'].includes(b.entry.stagesOwner)) throw new Error(`${file}: invalid entry ownership`);
     const styles = b.entry.styles ?? [];
@@ -128,10 +142,13 @@ export function authoredManifestSource(root, slug, { generation = false, metadat
       const policy = JSON.stringify({ retainHomeRuntime: b.entry.retainHomeRuntime, stagesOwner: b.entry.stagesOwner });
       native.push(`load: async () => { ${prepareStyles}return (await import('@wildshard/game/shard/declaredEntry')).declaredClientPlanEntry(${policy}); }`);
     } else {
-      const entry = data.runtimeEntry, runtime = modulePath(`./${entry.slice(0, -3)}`), legacy = modulePath(b.entry.legacy);
-      if (!legacy.startsWith('./runtime/')) throw new Error(`${file}: legacy constructor must belong to runtime/`);
-      const policy = JSON.stringify({ entry, retainHomeRuntime: b.entry.retainHomeRuntime, stagesOwner: b.entry.stagesOwner });
-      native.push(`load: async () => { ${prepareStyles}const runtimeModule = await import(${JSON.stringify(runtime)}); const nativeModule = await import(${JSON.stringify(legacy)}); const entryModule = await import('@wildshard/game/shard/declaredEntry'); return entryModule.declaredRuntimeEntry(runtimeModule.default, nativeModule.default, ${policy}); }`);
+      const entry = data.runtimeEntry, runtime = modulePath(`./${entry.slice(0, -3)}`), legacy = modulePath(b.entry.native?.module ?? b.entry.legacy);
+      if (b.entry.native === undefined && !legacy.startsWith('./runtime/')) throw new Error(`${file}: legacy constructor must belong to runtime/`);
+      const name = b.entry.native?.export ?? 'default';
+      if (!/^[a-zA-Z_$][a-zA-Z0-9_$]*$/u.test(name)) throw new Error(`${file}: invalid native constructor export`);
+      const policy = JSON.stringify({ entry, retainHomeRuntime: b.entry.retainHomeRuntime, stagesOwner: b.entry.stagesOwner,
+        ...(b.entry.nativePlan === undefined ? {} : { nativePlan: b.entry.nativePlan }) });
+      native.push(`load: async () => { ${prepareStyles}const runtimeModule = await import(${JSON.stringify(runtime)}); const nativeModule = await import(${JSON.stringify(legacy)}); const entryModule = await import('@wildshard/game/shard/declaredEntry'); return entryModule.declaredRuntimeEntry(runtimeModule.default, ${b.entry.native === undefined ? 'nativeModule.default' : `nativeModule[${JSON.stringify(name)}]`}, ${policy}); }`);
     }
   }
   for (const key of ['load', 'ktx2']) if (b[key]) {

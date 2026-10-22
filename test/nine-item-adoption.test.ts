@@ -15,7 +15,7 @@ import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { bindRuntimeEquipment } from '../src/game/plugin/headless';
 import { ItemCatalogue } from '../src/game/plugin/nativeItems';
 import source from '../src/shards/nine-dragon-stack/shard.config';
-import manifest from '../src/shards/nine-dragon-stack/manifest';
+import manifest from '../src/shards/nine-dragon-stack/discovery.generated';
 import items from '../src/shards/nine-dragon-stack/data/items.json' with { type: 'json' };
 import { GrappleTool } from '../src/game/grapple/tool';
 import * as v from 'valibot';

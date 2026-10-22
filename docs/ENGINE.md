@@ -11605,3 +11605,27 @@ deduplicate geometry-template intake only. Each construction admits figure
 rows on its own concrete scope; cold readers borrow a live construction
 admission. Resolved figures must be unpacked rows. Legacy catalogue admission
 keeps packed geometry support and its original source lifetime.
+
+Authored manifest bindings can retain an existing native transition with
+`entry.native: {module, export}` and the literal `runtimeEntry`,
+`retainHomeRuntime` and `stagesOwner` policy. Discovery emits imports for those
+exact constructors. The optional `nativePlan: {phases}` selects unique world,
+world-bindings, kit, prepare-play or play phases on the native route; the
+admitted route keeps its existing phase sequence. The built-in client-plan
+entry does not accept a native constructor or native-plan selection.
+
+The strict sword binding `{platform: 'graph', file}` uses graphSword with the
+manifest's own slug. The fixed forest binding `{platform: 'fixed', density}`
+uses declaredForestQueries to supply only that finite density query; it adds
+no scale or species defaults. Generated boot files and per-tier texture-mode
+sources keep their original arrays, order and duplicates. The optional fixed
+boot `explore` binding names a default JSON export containing `{art}`; its
+source-image paths join discovery's literal imports, and the full art list
+retains its order and duplicates. Existing barrier, phone deferExtras,
+fragile, trace and cullBeforeFirstDraw policies remain strict boolean rows.
+
+Metadata audio samples may retain omitLoops and omitShots alongside loopGains.
+Declared ground retains the admitted structures and paths flags. Only the
+authored `fight.attackers: 'unbounded'` sentinel becomes Infinity when
+defineAuthoredShard builds the native manifest; other fields remain finite
+JSON and do not accept that sentinel.

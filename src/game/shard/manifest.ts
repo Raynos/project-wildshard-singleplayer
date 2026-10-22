@@ -11,7 +11,7 @@ import type { LookReplaceContext, LookStrategy } from '@wildshard/engine/render/
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { HudBand } from '@wildshard/engine/ui/hudSlots';
 import type { MinimapPalette } from '@wildshard/engine/ui/Minimap';
-import { mapPalette, parseManifestMetadata, parseCapturePoses, type ManifestMetadata, type MapPaletteRow } from '@wildshard/format/minimap';
+import { mapPalette, parseManifestMetadata, parseCapturePoses, FixedForestQueriesSchema, type ManifestMetadata, type MapPaletteRow } from '@wildshard/format/minimap';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SpeciesWeights, TreeSpeciesTraits, TreeSetVariant } from '@wildshard/engine/world/forest/treeSpecies';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
@@ -701,7 +701,11 @@ export function declaredGround(input: unknown): ShardManifest['ground'] {
 }
 
 /** A declared forest's queries (`ForestRowsSchema`, G4): each exact jittered candidate answers from its generated row. */
-export function declaredForestQueries(input: unknown): Required<Pick<ChunkForest, 'density' | 'scale' | 'species'>> {
+export function declaredForestQueries(input: { readonly forest: unknown }): Required<Pick<ChunkForest, 'density' | 'scale' | 'species'>>;
+export function declaredForestQueries(input: v.InferOutput<typeof FixedForestQueriesSchema>): Required<Pick<ChunkForest, 'density'>>;
+export function declaredForestQueries(input: unknown): Pick<ChunkForest, 'density' | 'scale' | 'species'>;
+export function declaredForestQueries(input: unknown): Pick<ChunkForest, 'density' | 'scale' | 'species'> {
+  if (v.is(FixedForestQueriesSchema, input)) { const { density } = input; return { density: () => density }; }
   const at = new Map(v.parse(ForestRowsSchema, input).forest.map(row => [`${String(row.x)},${String(row.z)}`, row]));
   const row = (x: number, z: number) => {
     const found = at.get(`${String(x)},${String(z)}`);
@@ -729,14 +733,14 @@ export type AuthoredShardBindings = Omit<ShardManifestRows, keyof ManifestMetada
   readonly poses?: unknown;
   readonly mapPalette?: MapPaletteRow;
   readonly audioBindings?: Pick<NonNullable<ShardManifest['audio']>, 'cues' | 'preload'>;
-  readonly bootBindings?: Pick<BootSpec, 'files' | 'sources' | 'lateReads' | 'bakedUnread' | 'audio'>;
+  readonly bootBindings?: Pick<BootSpec, 'files' | 'sources' | 'lateReads' | 'bakedUnread' | 'audio' | 'explore'>;
   readonly forestQueries?: Pick<ChunkForest, 'density' | 'scale' | 'species'>;
 };
 /** Validate authored metadata, resolve literal bundled image imports and compose
  * the unchanged native boot owners. Missing source images refuse admission. */
 export function defineAuthoredShard(input: unknown, slug: ShardSlug, rows: AuthoredShardBindings,
   native: Parameters<typeof defineShard>[1], images: Readonly<Record<string, string>>): ShardManifest {
-  const {bindings: _declaredBindings, boot: bootData, ...data} = parseManifestMetadata(input, slug);
+  const {bindings: _declaredBindings, boot: bootData, fight: authoredFight, ...data} = parseManifestMetadata(input, slug);
   const image = (path: string): string => {
     if (!path.startsWith('/src/')) return path;
     const url = images[path];
@@ -744,10 +748,11 @@ export function defineAuthoredShard(input: unknown, slug: ShardSlug, rows: Autho
     return url;
   };
   const { mapPalette: palette, audioBindings, bootBindings, forestQueries, poses, ...bindings } = rows;
-  const preload=audioBindings?.preload??(data.audio.catalogue===true?async()=>{
+  const { catalogue, ...audio } = data.audio;
+  const preload=audioBindings?.preload??(catalogue===true?async()=>{
     const {productAudioCatalogue}=await import('../shardfile/audioCatalogue');return productAudioCatalogue(slug);
   }:undefined);
-  const audioFiles=bootBindings?.audio??(data.audio.catalogue===true?async()=>{
+  const audioFiles=bootBindings?.audio??(catalogue===true?async()=>{
     const {productAudioFiles}=await import('../shardfile/audioCatalogue');return productAudioFiles(slug);
   }:undefined);
   const compare = data.explore.compare?.map(row => ({...row, live: image(row.live), image: image(row.image)}));
@@ -770,13 +775,17 @@ export function defineAuthoredShard(input: unknown, slug: ShardSlug, rows: Autho
       get desktop() { return currentPageMode() === 'grid' ? {...desktop, ...grid.desktop} : desktop; } };
   })();
   if (bootData !== undefined && bootBindings === undefined) throw new Error('Manifest boot inventory has no native binding');
+  const { attackers, ...fightRows } = authoredFight ?? {};
+  const fight = authoredFight === undefined ? undefined : { ...fightRows,
+    ...(attackers === undefined ? {} : { attackers: attackers === 'unbounded' ? Infinity : attackers }) };
   return defineShard({ ...bindings, ...data, slug, trees, spawns,
+    ...(fight === undefined ? {} : { fight }),
     ...(_declaredBindings.entry !== undefined && 'platform' in _declaredBindings.entry ? { clientPlanRuntime: true } : {}),
     ...(poses === undefined ? {} : { poses: parseCapturePoses(poses) }),
     ...(data.forest === undefined ? {} : {forest: {...data.forest, ...forestQueries}}),
     ...(tiers === undefined ? {} : {tiers}),
-    audio: {...data.audio, ...audioBindings, ...(preload===undefined?{}:{preload})},
-    ...(bootBindings === undefined ? {} : { boot: { ...bootData, ...bootBindings, ...(audioFiles===undefined?{}:{audio:audioFiles}), explore: { art: [...Object.values(data.explore.art).map(image), ...(compare?.flatMap(({live, image: target}) => [live, target]) ?? [])] } } }),
+    audio: {...audio, ...audioBindings, ...(preload===undefined?{}:{preload})},
+    ...(bootBindings === undefined ? {} : { boot: { ...bootData, ...bootBindings, ...(audioFiles===undefined?{}:{audio:audioFiles}), explore: { art: bootBindings.explore === undefined ? [...Object.values(data.explore.art).map(image), ...(compare?.flatMap(({live, image: target}) => [live, target]) ?? [])] : bootBindings.explore.art.map(image) } } }),
     card: { thumb: image(data.card.thumb), portrait: image(data.card.portrait), landscape: image(data.card.landscape) },
     sky: { ...data.sky, ...(data.sky.hdri === undefined ? {} : { hdri: image(data.sky.hdri) }) },
     minimap: { ...data.minimap, image: image(data.minimap.image), ...(palette === undefined ? {} : { palette }) },
