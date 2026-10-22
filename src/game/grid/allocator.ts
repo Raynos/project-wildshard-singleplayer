@@ -6,8 +6,9 @@
  *
  * Admission is synchronous. A claim that does not fit evicts unneeded, unheld claims farthest-first (ties by id, so the
  * same drive evicts the same things) in two phases: each candidate's owner prepares its eviction (the fallible part, such
- * as a sim's durable checkpoint) until the prepared bytes cover the shortfall; then every prepared eviction commits (which
- * cannot fail). If they never cover it, every prepared eviction aborts and nothing is evicted. G556: the envelope is only
+ * as a sim's durable checkpoint) until the prepared bytes cover the shortfall; then every prepared eviction commits before
+ * its claim is removed. A failed disposal keeps its charge and aborts the remaining preparations. If they never cover it,
+ * every prepared eviction aborts and nothing is evicted. G556: the envelope is only
  * the eviction target; the limits are per shard, so the claim is then judged by its owner alone ({@link shardCost}) and
  * refused only when that owner is over them (the caller keeps what it has: a coarse tile, a soft wall). `needed` claims are never even prepared. An id already held is
  * shared (refcount), so a dependency used by several shards is charged once. Node-safe: no rendering, no timers.
@@ -33,13 +34,13 @@ export interface ResidencyClaim {
   readonly coveredBy?: string;
   /**
    * Two-phase eviction for claims with durability (sims): prepare does the fallible part and returns null when the claim
-   * cannot go now; `commit` disposes it and must not fail; `abort` undoes the prepare and keeps it resident.
+   * cannot go now; `commit` disposes it before its charge is removed; `abort` undoes the prepare and keeps it resident.
    */
   readonly prepareEvict?: () => ResidencyEviction | null;
   /** One-phase eviction, allowed only for claims with no durability (render tiles, proxies): disposes, never fails. */
   readonly evictSync?: () => void;
 }
-/** A prepared eviction: commit disposes the claim (infallible), abort keeps it. */
+/** A prepared eviction: commit disposes before uncharging; a throw preserves the claim. Abort keeps it. */
 export interface ResidencyEviction { commit: () => void; abort: () => void }
 /** A holder's handle on a claim. The last release frees the bytes. */
 export interface ResidencyLease {
@@ -278,7 +279,7 @@ export class ResidencyAllocator {
   private fits(extra: ResidencyClaim & { baseCredit: number }): boolean { return contentCost(this.input(extra)).playing <= this.playing; }
   /**
    * Prepare unneeded, unheld claims farthest-first until the prepared bytes make room; commit them all, or abort them all
-   * and evict nothing. Returns whether the claim now fits.
+   * and evict nothing. A failed commit retains its charge and aborts uncommitted preparations. Returns whether the claim now fits.
    */
   private evictFor(extra: ResidencyClaim & { baseCredit: number }): boolean {
     const candidates = this.evictionOrder ??= [...this.evictable].sort((a, b) => b.distance - a.distance || a.id.localeCompare(b.id));
@@ -289,7 +290,20 @@ export class ResidencyAllocator {
       if (contentCost(this.input(extra, omitted)).playing <= this.playing) { enough = true; break; }
     }
     if (!enough) { for (const { eviction } of prepared.reverse()) eviction.abort(); return false; }
-    for (const { entry, eviction } of prepared) { this.drop(entry); eviction.commit(); }
+    for (let index = 0; index < prepared.length; index++) {
+      const current = prepared[index];
+      if (current === undefined) throw new Error('Missing prepared eviction');
+      try { current.eviction.commit(); }
+      catch (error) {
+        const errors = [error];
+        for (const { eviction } of prepared.slice(index).reverse()) {
+          try { eviction.abort(); } catch (failure) { errors.push(failure); }
+        }
+        if (errors.length > 1) throw new AggregateError(errors, 'Residency eviction failed', { cause: error });
+        throw error;
+      }
+      this.drop(current.entry);
+    }
     return this.fits(extra);
   }
   private drop(entry: Entry): void {

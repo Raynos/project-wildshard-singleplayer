@@ -1,12 +1,12 @@
 import type { App } from '@wildshard/engine/app/app';
 import type { Disposable3, Scope } from '@wildshard/engine/app/scope';
-import type { ResidencyAllocator, ResidencyLease } from './allocator';
+import type { ResidencyAllocator, ResidencyLease, ResidencyEviction } from './allocator';
 
 type AssetPort = Parameters<App['assets']['bindResidency']>[0];
 /** Renderer composition supplies concrete allocation identities; Node residency imports no rendering module. */
 export type AssetAllocationReader = (resource: Disposable3) => readonly { identity: object; bytes: number; kind: 'cpu' | 'gpu' }[];
-interface CacheConsumer { readonly users: Set<Scope>; readonly evict: (() => boolean) | undefined; retired: boolean }
-interface Allocation { readonly identity: object; lease: ResidencyLease; readonly bytes: number; readonly kind: 'cpu' | 'gpu'; refs: number; covering: string | undefined }
+interface CacheConsumer { readonly users: Set<Scope>; readonly evict: (() => boolean) | undefined; readonly reusable: boolean; active: boolean; lastUse: number; retired: boolean }
+interface Allocation { readonly identity: object; lease: ResidencyLease; readonly bytes: number; readonly kind: 'cpu' | 'gpu'; readonly consumers: Set<CacheConsumer>; refs: number; covering: string | undefined }
 const bridges = new WeakMap<ResidencyAllocator, AssetResidencyBridge>();
 
 /** One page's retained allocation bridge: CPU backing stores, GPU attributes and texture source/sampler pairs are
@@ -16,6 +16,7 @@ export class AssetResidencyBridge implements AssetPort {
   private readonly consumers = new Set<CacheConsumer>();
   private readonly owners = new Map<Scope, string>();
   private sequence = 0;
+  private uses = 0;
   private readonly allocator: ResidencyAllocator;
   private readonly readAllocations: AssetAllocationReader;
   private readonly readOwner: () => Scope | null;
@@ -63,31 +64,49 @@ export class AssetResidencyBridge implements AssetPort {
     const remaining = this.allocator.coverageRemaining(preferred, id);
     return remaining !== null && bytes <= remaining ? preferred : undefined;
   }
-  private reserve(bytes: number, kind: 'cpu' | 'gpu', covering: string | undefined): ResidencyLease {
+  private reserve(bytes: number, kind: 'cpu' | 'gpu', covering: string | undefined, identity: object): ResidencyLease {
     const lease = this.allocator.reserve({ id: `commons:retained:${String(++this.sequence)}:${kind}`, category: 'commons', owner: 'platform',
-      bytes, distance: 0, needed: true, ...(covering === undefined ? {} : { coveredBy: covering }) });
+      bytes, distance: 0, needed: true, prepareEvict: () => this.prepareEviction(identity), ...(covering === undefined ? {} : { coveredBy: covering }) });
     if (lease === null) throw new Error('Retained cache admission deferred by the shared budget');
     return lease;
   }
   private evictUnused(consumer: CacheConsumer): void {
     for (const user of consumer.users) if (user.disposed) consumer.users.delete(user);
-    if (consumer.retired && consumer.users.size === 0) consumer.evict?.();
+    if (!consumer.reusable && consumer.retired && consumer.users.size === 0) consumer.evict?.();
+  }
+  private prepareEviction(identity: object): ResidencyEviction | null {
+    const entry = this.allocations.get(identity), consumers = entry === undefined ? [] : [...entry.consumers];
+    if (consumers.length === 0 || consumers.some(consumer => !consumer.reusable || consumer.active || consumer.evict === undefined)) return null;
+    return { commit: () => {
+      for (const consumer of consumers) if (consumer.evict?.() !== true) throw new Error('Retained cache eviction refused');
+    }, abort: () => undefined };
+  }
+  /** The allocator keeps the same real charges; only idle reusable allocations become eviction candidates. */
+  private refresh(held: readonly Allocation[]): void {
+    for (const entry of held) {
+      const consumers = [...entry.consumers];
+      const needed = consumers.some(consumer => !consumer.reusable || consumer.active);
+      const newest = Math.max(0, ...consumers.map(consumer => consumer.lastUse));
+      entry.lease.update({ needed, distance: 1 / (newest + 1) });
+    }
   }
   /** AssetService calls this before adopting a cache; refusal releases every partially prepared allocation. */
-  register(_key: string, resource: Disposable3, owner: Scope | null, evict?: () => boolean): ReturnType<AssetPort['register']> {
+  register(_key: string, resource: Disposable3, owner: Scope | null, evict?: () => boolean, reusable = false): ReturnType<AssetPort['register']> {
     const held: Allocation[] = [], covering = this.covering(owner ?? this.readOwner());
+    const unhold: (() => void)[] = [];
     try {
       for (const row of this.readAllocations(resource)) {
         let entry = this.allocations.get(row.identity);
         if (entry === undefined) {
-          const actualCoverage = this.coverage(row.bytes, covering), lease = this.reserve(row.bytes, row.kind, actualCoverage);
-          entry = { identity: row.identity, lease, bytes: row.bytes, kind: row.kind, refs: 0, covering: actualCoverage }; this.allocations.set(row.identity, entry);
+          const actualCoverage = this.coverage(row.bytes, covering), lease = this.reserve(row.bytes, row.kind, actualCoverage, row.identity);
+          entry = { identity: row.identity, lease, bytes: row.bytes, kind: row.kind, consumers: new Set(), refs: 0, covering: actualCoverage }; this.allocations.set(row.identity, entry);
         }
-        entry.refs++; held.push(entry);
+        entry.refs++; held.push(entry); unhold.push(entry.lease.hold());
       }
-    } catch (error) { this.release(held); throw error; }
+    } catch (error) { this.release(held); for (const release of unhold) release(); throw error; }
     let live = true;
-    const consumer: CacheConsumer = { users: new Set(), evict, retired: false };
+    const consumer: CacheConsumer = { users: new Set(), evict, reusable, active: false, lastUse: ++this.uses, retired: false };
+    for (const entry of held) entry.consumers.add(consumer);
     const initialOwner = this.runtimeOwner(owner ?? this.readOwner());
     this.consumers.add(consumer);
     const observe = (scope: Scope | null): void => {
@@ -103,20 +122,28 @@ export class AssetResidencyBridge implements AssetPort {
         if (entry.covering === actualCoverage) continue;
         if (actualCoverage === undefined && entry.covering !== undefined && this.allocator.has(entry.covering)) {
           // Admit the new charge before releasing the old covered reference: a refusal leaves it intact.
-          const replacement = this.reserve(entry.bytes, entry.kind, undefined);
+          const replacement = this.reserve(entry.bytes, entry.kind, undefined, entry.identity);
           entry.lease.release(); entry.lease = replacement;
         } else entry.lease.update({ coveredBy: actualCoverage ?? null });
         entry.covering = actualCoverage;
       }
       if (user !== undefined) consumer.users.add(user);
     };
-    try { observe(initialOwner ?? null); }
-    catch (error) { live = false; this.consumers.delete(consumer); this.release(held); throw error; }
-    return { observe, unused: () => { if (live) this.evictUnused(consumer); }, release: () => { if (live) { live = false; this.consumers.delete(consumer); this.release(held); } } };
+    try { observe(initialOwner ?? null); this.refresh(held); }
+    catch (error) { live = false; this.consumers.delete(consumer); this.release(held, consumer); throw error; }
+    finally { for (const release of unhold) release(); }
+    return { observe, active: value => {
+      if (!live) return;
+      consumer.active = value; consumer.lastUse = ++this.uses; this.refresh(held);
+    }, unused: () => { if (live) this.evictUnused(consumer); }, release: () => { if (live) { live = false; this.consumers.delete(consumer); this.release(held, consumer); } } };
   }
-  private release(held: readonly Allocation[]): void {
+  private release(held: readonly Allocation[], consumer?: CacheConsumer): void {
     // O20: each entry keeps its identity, so a region's retirement deletes in O(1) instead of scanning every allocation
-    for (const entry of held) if (--entry.refs === 0) { entry.lease.release(); this.allocations.delete(entry.identity); }
+    for (const entry of held) {
+      if (consumer !== undefined) entry.consumers.delete(consumer);
+      if (--entry.refs === 0) { entry.lease.release(); this.allocations.delete(entry.identity); }
+      else this.refresh([entry]);
+    }
   }
   /** Detach only with the actual renderer owner; unloading a level alone must not uncharge still-live cached GPU data. */
   dispose(): void {

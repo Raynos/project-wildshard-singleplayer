@@ -440,6 +440,12 @@ through those after an `await` ends with the resident. Anything else that reads 
 **Owned vs acquired.** `own` only what your level creates. A shared engine or kit asset comes through
 `app.assets.acquire(key)` and is released, never disposed (`AssetService`, `AssetCensus`, `AssetRecord`).
 `retainCachedResources` marks engine caches that survive a level.
+Fixed builds may register with `{ retain: true, cache: true, reusable: true }`.
+Their live acquisitions prevent eviction; after the last release their original
+CPU/GPU claims remain charged and ordinary allocator pressure can evict them in
+least-recently-used order. Resident caches retain their existing retirement rule.
+Every reusable memo invalidates on resource disposal with `cacheUntilDisposed`
+or `memoUntilDisposed`; it never reuses retired buffers or adds a page pin.
 
 **The leak test.** The gate loads your shard, unloads it and checks the census is back to its title-screen value
 (geometries, textures, materials, bodies, listeners, audio nodes, timers). Code-built trees use their explicit scope:

@@ -4,10 +4,10 @@ import { enteredOwner } from './ownership';
 export interface AssetRecord { key: string; refs: number; retained: boolean }
 export type AssetCensus = readonly AssetRecord[];
 /** Injected accounting follows a retained cache without coupling resource ownership to a cost model. */
-export interface AssetResidencyHandle { observe: (owner: Scope | null) => void; release: () => void; unused?: () => void }
+export interface AssetResidencyHandle { observe: (owner: Scope | null) => void; release: () => void; unused?: () => void; active?: (value: boolean) => void }
 /** The composition root supplies the budget. Register may refuse before this service adopts the resource. */
-export interface AssetResidencyPort<T> { register: (key: string, resource: T, owner: Scope | null, evict?: () => boolean) => AssetResidencyHandle }
-interface Entry<T> { key: string; resource: T; refs: number; retained: boolean; cached: boolean; residency: AssetResidencyHandle | undefined }
+export interface AssetResidencyPort<T> { register: (key: string, resource: T, owner: Scope | null, evict?: () => boolean, reusable?: boolean) => AssetResidencyHandle }
+interface Entry<T> { key: string; resource: T; refs: number; retained: boolean; cached: boolean; reusable: boolean; residency: AssetResidencyHandle | undefined }
 
 /** Shared resources are released by consumers; only this service disposes them. */
 export class AssetService<T extends Disposable3 = Disposable3> {
@@ -16,13 +16,17 @@ export class AssetService<T extends Disposable3 = Disposable3> {
   private readonly byResource = new WeakMap<object, Entry<T>>();
   private residency: AssetResidencyPort<T> | undefined;
 
-  register(key: string, resource: T, opts?: { retain?: boolean; cache?: boolean }): T {
+  /** Reusable fixed builds survive resident retirement while idle, charged and pressure-evictable.
+   * Consumers must acquire them; cache memos must invalidate on resource disposal. */
+  register(key: string, resource: T, opts?: { retain?: boolean; cache?: boolean; reusable?: boolean }): T {
     if (this.entries.has(key)) throw new Error(`Asset already registered: ${key}`);
     const cached = opts?.cache === true;
+    const reusable = opts?.reusable === true;
+    if (reusable && (!cached || opts.retain !== true)) throw new Error('Reusable assets require retained cache ownership');
     // SF57: a module cache's resource is attributed to an enclosing `withOwner` section's scope; outside one (after an
     // `await`) the residency port falls back to its own reader, as it did for the ambient owner, without an owner read
-    const residency = cached ? this.residency?.register(key, resource, enteredOwner(), () => this.evictCached(key)) : undefined;
-    const entry = { key, resource, refs: 0, retained: opts?.retain ?? false, cached, residency };
+    const residency = cached ? this.residency?.register(key, resource, enteredOwner(), () => this.evictCached(key), reusable) : undefined;
+    const entry = { key, resource, refs: 0, retained: opts?.retain ?? false, cached, reusable, residency };
     this.entries.set(key, entry); this.byResource.set(resource, entry);
     this.managed.add(resource);
     return resource;
@@ -30,6 +34,7 @@ export class AssetService<T extends Disposable3 = Disposable3> {
   acquire(key: string): T {
     const entry = this.entries.get(key);
     if (!entry) throw new Error(`Unknown asset: ${key}`);
+    if (entry.refs === 0) entry.residency?.active?.(true);
     entry.refs++;
     return entry.resource;
   }
@@ -45,6 +50,7 @@ export class AssetService<T extends Disposable3 = Disposable3> {
     const entry = this.entries.get(key);
     if (!entry || entry.refs === 0) throw new Error(`Asset has no reference to release: ${key}`);
     entry.refs--;
+    if (entry.refs === 0) entry.residency?.active?.(false);
     if (entry.refs === 0) entry.residency?.unused?.();
     if (!this.entries.has(key)) return; // Retirement may evict the now-unused cache.
     if (entry.refs === 0 && !entry.retained) {
@@ -81,7 +87,10 @@ export class AssetService<T extends Disposable3 = Disposable3> {
   bindResidency(port: AssetResidencyPort<T>): () => void {
     if (this.residency !== undefined) throw new Error('Asset residency already bound');
     const prepared = new Map<Entry<T>, AssetResidencyHandle>();
-    try { for (const [key, entry] of this.entries) if (entry.cached) prepared.set(entry, port.register(key, entry.resource, null, () => this.evictCached(key))); }
+    try { for (const [key, entry] of this.entries) if (entry.cached) {
+      const handle = port.register(key, entry.resource, null, () => this.evictCached(key), entry.reusable);
+      prepared.set(entry, handle); handle.active?.(entry.refs > 0);
+    } }
     catch (error) { for (const handle of prepared.values()) handle.release(); throw error; }
     for (const [entry, handle] of prepared) entry.residency = handle;
     this.residency = port;
