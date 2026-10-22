@@ -2,12 +2,18 @@
 import { readFileSync } from 'node:fs';
 import { expect,test,vi } from 'vitest';
 import { Group,MeshBasicMaterial,Vector3 } from 'three';
+import { App } from '../src/engine/app/app';
+import { createLevelInstallation } from '../src/engine/level/installation';
 import { Scope } from '../src/engine/app/scope';
 import type { World } from '../src/engine/core/bootstrap';
 import { Physics } from '../src/engine/physics/Physics';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { RopeChain } from '../src/engine/physics/ropeChain';
-import type { ShardContext } from '../src/game/plugin/context';
+import { shardContext, ShardPlugin, type ShardContext } from '../src/game/plugin/context';
+import { declaredRuntimeEntry } from '../src/game/shard/declaredEntry';
+import { hybridInstallation } from '../src/game/shardfile/hybrid';
+import { bindResidentWorldScope, boundResidentWorldScope } from '../src/game/shardfile/hybridPresentation';
+import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 import * as movers from '../src/game/plugin/mover';
 import { installClientMoverOwners } from '../src/game/shardfile/clientMoverOwners';
 import { publishEntryOwner } from '../src/game/shardfile/entryOwners';
@@ -22,16 +28,18 @@ import { legacyDouble } from './fake/FakeGame';
 const admitted=parseMovers(island),boat=admitted.find(row=>row.kind==='platform');
 if(boat===undefined)throw new Error('Missing admitted platform fixture');
 const platform=boat;
+type FixtureWorld=NonNullable<NonNullable<ShardContext['game']['runtime']>['world']>;
 async function fixtureRuntime(scope:Scope):Promise<movers.MoverRuntime>{
   const host=await movers.createMoverHost([platform],new Map(),()=>[]);
   return new movers.MoverRuntime([platform],{scope,host,physics:legacyDouble<Physics>({}),adopt:()=>({pose:()=>undefined})});
 }
-function fixture(rows=admitted){
+function fixture(rows=admitted,bound=true){
   const scope=new Scope('mover-owners'),source=emptyShardfile({slug:'mover-owners',name:'Mover owners',author:'Fixture',revision:1,seed:9});
+  if(bound){const construction=new Scope('mover-construction');bindResidentWorldScope(scope,construction);scope.onDispose(()=>{construction.dispose();});}
   // Root movers differ deliberately: this host reads only the admitted section.
-  const product=createShardProduct({slug:source.identity.slug,revision:1,shardfile:source,sections:new Map([['world/movers',{movers:rows}]]),files:new Map(),read:()=>Promise.reject(new Error('No guest bytes expected'))});
-  const world=legacyDouble<NonNullable<NonNullable<ShardContext['game']['runtime']>['world']>>({});
-  const ctx=legacyDouble<ShardContext>({scope,product,game:legacyDouble<ShardContext['game']>({runtime:legacyDouble<NonNullable<ShardContext['game']['runtime']>>({world})})});
+  const product=createShardProduct({slug:source.identity.slug,revision:1,shardfile:source,sections:new Map<string,unknown>([['world/movers',{movers:rows}],['client/plan',{version:1,features:[]}]]),files:new Map(),read:()=>Promise.reject(new Error('No guest bytes expected'))});
+  const world=legacyDouble<FixtureWorld>({game:legacyDouble<FixtureWorld['game']>({})});
+  const ctx=legacyDouble<ShardContext>({scope,product,system:vi.fn<ShardContext['system']>(),game:legacyDouble<ShardContext['game']>({runtime:legacyDouble<NonNullable<ShardContext['game']['runtime']>>({world})})});
   return {ctx,scope,source};
 }
 
@@ -127,6 +135,7 @@ test('mooring follows original fixed-pose order, one reusable lift buffer, rest 
   },setTexture:()=>undefined,bindMeshMap:()=>material});
   try{
     const runtime=await installClientMoverOwners(ctx,{system:'original.movers',bindings:[{id:platform.id,kind:'object',owner:'boat',moor}]});
+    if(runtime===undefined)throw new Error('Bound entry did not install its mover view');
     expect(write).not.toHaveBeenCalled(); // admission must not add a rest/initial update
     runtime.showRest();expect(write).toHaveBeenCalledTimes(1);const buffer=write.mock.calls[0]?.[2];
     for(let tick=1;tick<=180;tick++){
@@ -163,4 +172,56 @@ test('a replaced mooring look across native admission refuses completion',async(
     lend(replacement);if(resume===undefined)throw new Error('Missing installer resolver');resume(result);
     await expect(running).rejects.toThrow('look owner changed');
   }finally{install.mockRestore();replacement.dispose();scope.dispose();material.dispose();}
+});
+
+test('standalone hybridInstallation owns exactly one entered client drive',async()=>{
+  const {ctx,scope}=fixture([platform],false),app=new App(),runtime=ctx.game.runtime;
+  if(runtime===undefined)throw new Error('Missing standalone runtime');
+  const level=createLevelInstallation(app,scope,{},()=>({set:()=>undefined,detail:()=>undefined}));
+  const base=shardContext(level.context,TEMPLATE,{shard:TEMPLATE,runtime,rows:new Map(),bag:{tab:()=>()=>undefined,fragment:()=>()=>undefined}},ctx.product);
+  const entered=scope.child('standalone-entered'),installation=hybridInstallation(base,entered,runtime),group=new Group(),result=await fixtureRuntime(entered);
+  publishEntryOwner(entered,'object','boat',group);
+  const install=vi.spyOn(movers,'installDeclaredMovers').mockResolvedValue(result);
+  try{
+    expect(boundResidentWorldScope(installation.context.scope)).toBe(scope);
+    expect(await installClientMoverOwners(installation.context,{system:'original.movers',bindings:[{id:platform.id,kind:'object',owner:'boat'}]})).toBe(result);
+    expect(install).toHaveBeenCalledTimes(1);expect(install.mock.calls[0]?.[2].systemId).toBe('original.movers');
+    expect(group.position).toEqual(new Vector3()); // admission adds no rest/pose write
+    await expect(installClientMoverOwners(installation.context,{system:'original.movers',bindings:[{id:platform.id,kind:'object',owner:'boat'}]})).rejects.toThrow('already installed');
+  }finally{install.mockRestore();scope.dispose();}
+});
+
+test('a direct NativeEntry leaves the original rest and native handles without a client drive',async()=>{
+  const {ctx,scope}=fixture([platform],false),group=new Group();
+  const R=await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm'))),physics=new Physics(R),host=await movers.createMoverHost([platform],new Map(),()=>[]);
+  const result=new movers.MoverRuntime([platform],{scope,host,physics}),saved=result.snapshotBodies();
+  expect(saved).toHaveLength(1);
+  group.position.set(platform.at.x,platform.at.y,platform.at.z);const rest=group.position.clone();
+  publishEntryOwner(scope,'object','boat',group);let completed=false;
+  class Native extends ShardPlugin{
+    override async world(context:ShardContext):Promise<void>{
+      expect(await installClientMoverOwners(context,{system:'original.movers',bindings:[{id:platform.id,kind:'object',owner:'boat'}]})).toBeUndefined();completed=true;
+    }
+  }
+  const entry=declaredRuntimeEntry(Native,Native,{entry:'fixture.ts',retainHomeRuntime:false,stagesOwner:'declared'});
+  const NativeEntry=entry.default,native=new NativeEntry(undefined,()=>Promise.reject(new Error('Native must not admit a second hybrid')),()=>false);
+  const install=vi.spyOn(movers,'installDeclaredMovers'),system=vi.spyOn(ctx,'system');
+  try{
+    await native.world(ctx);expect(completed).toBe(true);expect(boundResidentWorldScope(scope)).toBeUndefined();
+    expect(install).not.toHaveBeenCalled();expect(system).not.toHaveBeenCalled();expect(group.position).toEqual(rest);
+    expect(group.userData['declaredMotion']).toBeUndefined();expect(result.snapshotBodies()).toEqual(saved);
+  }finally{install.mockRestore();system.mockRestore();scope.dispose();physics.dispose();}
+});
+
+test.each(['retired','replaced'] as const)('a %s construction across mover admission refuses completion',async mode=>{
+  const {ctx,scope}=fixture([platform]),construction=boundResidentWorldScope(scope),replacement=new Scope('replacement-construction'),group=new Group(),result=await fixtureRuntime(scope);
+  if(construction===undefined)throw new Error('Missing original construction');publishEntryOwner(scope,'object','boat',group);
+  let resume:((runtime:movers.MoverRuntime)=>void)|undefined;
+  const install=vi.spyOn(movers,'installDeclaredMovers').mockReturnValue(new Promise(resolve=>{resume=resolve;}));
+  try{
+    const running=installClientMoverOwners(ctx,{system:'movers',bindings:[{id:platform.id,kind:'object',owner:'boat'}]});
+    if(mode==='retired')construction.dispose();else bindResidentWorldScope(scope,replacement);
+    if(resume===undefined)throw new Error('Missing installer resolver');resume(result);
+    await expect(running).rejects.toThrow('construction owner has ended or changed');
+  }finally{install.mockRestore();scope.dispose();replacement.dispose();}
 });

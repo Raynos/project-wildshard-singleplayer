@@ -3,6 +3,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { ShardContext } from '../plugin/context';
 import { installDeclaredMovers, type MoverRuntime, type MoverView } from '../plugin/mover';
 import { entryOwner } from './entryOwners';
+import { boundResidentWorldScope } from './hybridPresentation';
 import { outputDescriptor } from './outputDescriptor';
 import { hasLentLook, lentLooksOf, setLentParam, type LentLooks } from './lentLooks';
 
@@ -19,10 +20,18 @@ const installed=new WeakSet<Scope>();
  * Declared mooring cleats update their vec2 look immediately after each native
  * pose, at the original fixed-step cadence; no display-rate view lane or
  * callback adapter changes that order. */
-export async function installClientMoverOwners(ctx:ShardContext,rows:MoverOwnerRows):Promise<MoverRuntime>{
-  const world=ctx.game.runtime?.world,scope=ctx.scope;
-  const live=():void=>{if(scope.disposed||scope.disposing)throw new Error('Mover entry owner has ended');};
-  live();if(world===undefined||world===null)throw new Error('Mover entry requires its world');
+export async function installClientMoverOwners(ctx:ShardContext,rows:MoverOwnerRows):Promise<MoverRuntime|undefined>{
+  const scope=ctx.scope,construction=boundResidentWorldScope(scope);
+  const live=():void=>{
+    if(scope.disposed||scope.disposing)throw new Error('Mover entry owner has ended');
+    if(construction!==undefined&&(construction.disposed||construction.disposing||boundResidentWorldScope(scope)!==construction))throw new Error('Mover construction owner has ended or changed');
+  };
+  live();
+  // A direct native entry kept the authored rest and never owned a client drive.
+  // Standalone shardfile entries use hybridInstallation and bind a resident too.
+  if(construction===undefined)return undefined;
+  const world=ctx.game.runtime?.world;
+  if(world===undefined||world===null)throw new Error('Mover entry requires its world');
   if(installed.has(scope))throw new Error('Mover entry is already installed');
   const data=ctx.product.section('world/movers').movers,ids=new Set(rows.bindings.map(row=>row.id));
   if(ids.size!==rows.bindings.length||ids.size!==data.length||data.some(row=>!ids.has(row.id)))throw new Error('Mover owners require the exact admitted id set');
