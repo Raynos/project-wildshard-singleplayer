@@ -415,15 +415,18 @@ export class AnimalManager {
     }
     // Each resumed herd reads its retained level/terrain/services, never the intervening page frame.
     // Keep the ambient binding synchronous: another region may enter while pause() is pending.
+    // The hidden group joins its region first, so the region's draw watch takes each herd as it spawns, between the
+    // pauses, instead of the whole population in one task when it finishes (Pine's ~180 ms afterKit task at 4x CPU).
+    frame.run(app, () => { this.group.visible = false; this.scene.add(this.group); });
     const herds = this.spawnHerds();
     while (!frame.run(app, () => herds.next()).done) await pause();
     await frame.run(app, () => this.factory.settled());
-    return frame.run(app, () => this.finish());
+    return frame.run(app, () => { this.finish(); this.group.visible = true; return this; });
   }
 
   private finish(): this {
     this.group.add(this.farHerd.group, this.shadowHerd.group);
-    this.scene.add(this.group);
+    if (this.group.parent !== this.scene) this.scene.add(this.group);
     return this;
   }
 

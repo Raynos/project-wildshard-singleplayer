@@ -38,6 +38,7 @@ export class ObjectiveLine {
   private last = '';
   private lastNav = '';
   private placeT = -Infinity;
+  private placing: ResizeObserver | null = null;
 
   constructor() {
     this.root.prepend(el('i', 'ws-quest-obj-dia'));
@@ -74,13 +75,23 @@ export class ObjectiveLine {
     this.arrow.style.transform = `rotate(${(rel * 180) / Math.PI}deg)`;
   }
 
-  /** keep it under the minimap, right-aligned to its right edge (called every frame, re-measured ~once a second: the
-   *  minimap's size and top differ per layout and the home-screen mode); the toasts stack under it (A1, HUD.toast) */
+  /** keep it under the minimap, right-aligned to its right edge (the minimap's size and top differ per layout and the
+   *  home-screen mode); the toasts stack under it (A1, HUD.toast). Called every frame: it looks for the minimap ~once a
+   *  second, then places the chip from the minimap's and the HUD's size reports, read right after a layout (a read here,
+   *  on the frame the HUD was built, forced a whole-page layout). */
   update(t: number): void {
-    if (t - this.placeT < 1) return;
+    if (this.placing !== null || t - this.placeT < 1) return;
     this.placeT = t;
-    const r = document.querySelector('.ws-minimap')?.getBoundingClientRect();
-    if (!r || r.bottom <= 0) return;
+    const mini = document.querySelector('.ws-minimap'), parent = this.root.parentElement;
+    if (!(mini instanceof HTMLElement)) return;
+    const placing = this.placing = new ResizeObserver(() => { this.place(mini); });
+    placing.observe(mini); if (parent !== null) placing.observe(parent);
+    this.scope.onDispose(() => { placing.disconnect(); });
+  }
+
+  private place(mini: HTMLElement): void {
+    const r = mini.getBoundingClientRect();
+    if (r.bottom <= 0) return;
     const host = this.root.offsetParent?.getBoundingClientRect() ?? { top: 0, right: window.innerWidth };
     this.root.style.top = `${Math.round(r.bottom - host.top + 12)}px`;   // clear of the rim's ticks (they poke 6–8 px out)
     this.root.style.right = `${Math.round(host.right - r.right)}px`;

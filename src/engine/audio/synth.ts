@@ -152,6 +152,7 @@ export abstract class Synth {
 export interface SynthBank {
   readonly buffer: (name: string) => AudioBuffer | undefined;
   readonly prewarm:(names:readonly string[])=>void;
+  readonly rendering:(name:string)=>boolean;
 }
 
 /** Where the beds are built: the audio context (read only when building, so nothing creates it before the first gesture)
@@ -197,8 +198,10 @@ export class SynthBeds {
     return {nodes,gains,filters,panners};
   }
 
-  /** Lazy unnormalised room return with the original missing-bank warming policy. */
+  /** Lazy unnormalised room return with the original missing-bank warming policy: such a room waits for its IR's idle
+   *  prewarm (its mix asks again next frame) rather than rendering seconds of impulse on a frame. */
   reverb(name:string,input:AudioNode|undefined,out:()=>AudioNode,prewarmMissing=false):GainNode|undefined {
+    if(prewarmMissing&&this.host.voices.rendering(name)){this.host.voices.prewarm([name]);return undefined;}
     const ir=this.host.voices.buffer(name);if(!ir||input===undefined){if(prewarmMissing)this.host.voices.prewarm([name]);return undefined;}
     const gain=this.ctx.createGain();gain.gain.value=0;const conv=this.ctx.createConvolver();conv.normalize=false;conv.buffer=ir;input.connect(gain).connect(conv).connect(out());return gain;
   }

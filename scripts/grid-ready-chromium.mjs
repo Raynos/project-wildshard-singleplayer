@@ -101,8 +101,9 @@ try {
    await dump('before-entry');
    await profileStart();
    await page.evaluate(()=>window.__gridReadyProbe.start('loading'));
-   const entered=await page.evaluate(`(${driveFloorGrid.toString()})(${JSON.stringify(entry)},${JSON.stringify(identity)})`);
-   const entryRow=await page.evaluate(()=>window.__gridReadyProbe.stop());
+   // The probe stops in the page before Playwright serializes the drive witness: that copy is the harness's work, not a frame.
+   const entered=await page.evaluate(`(${measuredDrive.toString()})(${driveFloorGrid.toString()},${JSON.stringify(entry)},${JSON.stringify(identity)})`);
+   const entryRow=await page.evaluate(()=>window.__gridReadyRow);
    await profileEnd('entry');
    scene.rows.push({name:`grid-${entry.name}-drive`,...entryRow});
    errors.push(...gridFloorWitnessFailures(entered));
@@ -137,8 +138,8 @@ try {
     waypoints:[road],requiredResidents:[],finishOnArrival:false});
    await profileStart();
    await page.evaluate(()=>window.__gridReadyProbe.start('playing'));
-   const left=await page.evaluate(`(${driveFloorGrid.toString()})(${JSON.stringify(leave)},${JSON.stringify(identity)})`);
-   scene.rows.push({name:`grid-${entry.name}-travel`,...await page.evaluate(()=>window.__gridReadyProbe.stop())});
+   const left=await page.evaluate(`(${measuredDrive.toString()})(${driveFloorGrid.toString()},${JSON.stringify(leave)},${JSON.stringify(identity)})`);
+   scene.rows.push({name:`grid-${entry.name}-travel`,...await page.evaluate(()=>window.__gridReadyRow)});
    await profileEnd('leave');
    errors.push(...gridFloorWitnessFailures(left));scene.leave=left;
    const owned=await page.evaluate(()=>window.__gridReadyProbe.finish());
@@ -160,6 +161,13 @@ try {
 if(failed)throw new Error('Grid readiness finding; see per-shard receipts');
 
 /** Serialized browser observer: sparse residency snapshots and live drawn-frame intervals, no GL hooks. */
+/** Drive, then stop the readiness probe in the same page task, before the witness is serialized for the harness. */
+async function measuredDrive(drive,plan,identity) {
+ const witness=await drive(plan,identity);
+ window.__gridReadyRow=window.__gridReadyProbe.stop();
+ return witness;
+}
+
 function installReadinessProbe(instance,slug,sumOwned) {
  window.__gridReadyProbe?.finish();
  const api=window.__wildshard,game=api.world.game,context=game.renderer.getContext(),samples=[],intervals=[],longFrames=[];

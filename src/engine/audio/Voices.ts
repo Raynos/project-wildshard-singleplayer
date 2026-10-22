@@ -181,7 +181,7 @@ export class VoicePool {
   /** render these families' variants in the background, one per idle slice, in the order given */
   prewarm(names: readonly string[]): void {
     if (!this.host.ready) return;
-    for (const n of names) { const f = this.family(n); if (f) for (let v = 0; v < f.n; v++) for (let c = 0; c < f.ch; c++) this.warm.push([n, v * 2 + c]); }
+    for (const n of names) { const f = this.family(n); if (f && !this.warm.some(job => job[0] === n)) for (let v = 0; v < f.n; v++) for (let c = 0; c < f.ch; c++) this.warm.push([n, v * 2 + c]); }
     if (!this.warming) { this.warming = true; this.slice(); }
   }
   private slice(): void {
@@ -210,6 +210,9 @@ export class VoicePool {
 
   /** every channel of every variant of `name` is rendered (a caller can build on it without a synchronous render) */
   has(name: FamilyName): boolean { const f = this.family(name); if (!f) return false; for (let v = 0; v < f.n; v++) for (let c = 0; c < f.ch; c++) if (!this.done.has(`${name}/${v}/${c}`)) return false; return true; }
+
+  /** a procedural family not yet wholly rendered (a caller that must not render on this frame waits for its prewarm) */
+  rendering(name: FamilyName): boolean { return this.family(name) !== undefined && !this.has(name); }
 
   /** a family's first variant (the IRs, the bubble bed), rendered now if it is not yet */
   buffer(name: FamilyName): AudioBuffer | undefined {
