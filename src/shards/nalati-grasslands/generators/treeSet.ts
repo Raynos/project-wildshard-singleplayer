@@ -1,7 +1,5 @@
 import * as v from 'valibot';
 import { TreeSetSchema } from '@wildshard/format/treeSetRows';
-import { nameBlob } from '@wildshard/sdk/blobs';
-import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import rest from '../data/spruceRest.generated.json' with { type: 'json' };
 
 // Spruce is stiff: ~0.35 m of sway at the top of an 18 m tree (painterly's sway is metres per metre² of height), the bark
@@ -17,4 +15,3 @@ export const TREE_SET = v.parse(TreeSetSchema, {
   model: { id: 'nalati-grasslands/spruce', name: 'Spruce', file: 'src/shards/nalati-grasslands/generators/spruceGeometry.ts' },
   variants: rest.variants.map((row, i) => ({ name: `spruce-${String(i)}`, label: `Spruce ${String(i + 1)}`, species: 'spruce', height: row.height, trunk: row.trunk, collider: 1 })),
 });
-export const TREE_SET_BLOB = nameBlob('world/tree-set.json', 'json', new TextEncoder().encode(encodeCanonicalJson(TREE_SET)));

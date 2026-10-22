@@ -13,7 +13,7 @@ import looks from '../data/lookMaterials.generated.json' with { type: 'json' };
 export const FOREST_PAGE = v.parse(ForestPageSchema, {
   treeLooks: [{ look: FOREST_LOOKS.bark, band: 'trunk' }, { look: FOREST_LOOKS.needles, band: 'cards' }, { look: FOREST_LOOKS.twigs, band: 'twigs' }, { look: FOREST_LOOKS.far, band: 'far' }].map(row => ({ look: row.look, band: row.band, fade: 'fade', viewer: 'viewer' })),
   water: { object: 'pond', look: water.looks.pond, looks: Object.values(water.looks), ripples: 'ripples', skyline: 'skyline', centre: 'skyC', probe: 'waterSkyline' },
-  id: 'pine.forest', trees: 'world/tree-set.json', sliceMs: 30, graphs: looks.runtime, wildlife: 'look/wildlife-draw.json',
+  id: 'pine.forest', sliceMs: 30, graphs: looks.runtime, wildlife: 'look/wildlife-draw.json',
   streams: { group: 'streams.root', water: 'streams.water', spray: 'streams.spray' },
   ground: { appearance: 'look/cover-appearance.json', layout: 'world/floor.json', sources: timbers.shardfile.files.filter(file => file.kind === 'glb').map(file => file.hash),
     kinds: ([['ferns', 'fern', 'Fern'], ['shrubs', 'bilberry-shrub', 'Bilberry shrub'], ['litter', 'needle-litter', 'Needle litter'], ['stones', 'pebbles', 'Pebbles'],

@@ -407,7 +407,7 @@
     "bark": "pine_bark",
     "twigAtlas": "pine_tree_01",
     "set": "pine-hollow-trees",
-    "treeSet": "world/tree-set.json",
+    "treeSet": "world/trees",
     "setVariants": [
       {
         "name": "pine-a",

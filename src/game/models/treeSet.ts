@@ -1,6 +1,5 @@
 /** Client-only forest presentation of a baked tree set declared as rows (format/treeSetRows). */
 import * as THREE from 'three';
-import * as v from 'valibot';
 import { resourceScope } from '@wildshard/engine/app/resources';
 import { loadTexture, loadPBRArray } from '@wildshard/engine/core/assets';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
@@ -11,15 +10,15 @@ import { BARK_LAYERS, treeSetUrls } from '@wildshard/engine/world/forest/treeSet
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { TreeFactory, isTreeMaterial, type TreeMaterial } from '@wildshard/engine/world/TreeFactory';
-import { TreeSetSchema, type TreeSetRows } from '@wildshard/format/treeSetRows';
+import type { TreeSetRows } from '@wildshard/format/treeSetRows';
 import { createModelLibrary } from '../plugin/geometry';
 import { lookGraphMaterials } from '../plugin/shaderFamily';
 import { lendLooks } from '../shardfile/lentLooks';
 import { firstPartyDescriptor, loadFirstPartyProduct } from '../shardfile/runtimeProduct';
 
-/** Read a first-party product's tree set rows (`file`, a named JSON blob). */
-export async function productTreeSet(slug: string, file: string): Promise<TreeSetRows> {
-  return v.parse(TreeSetSchema, await (await loadFirstPartyProduct(slug)).json(file));
+/** A first-party product's tree set rows (its `world/trees` section). */
+export async function productTreeSet(slug: string): Promise<TreeSetRows> {
+  return (await loadFirstPartyProduct(slug)).section('world/trees');
 }
 
 /**

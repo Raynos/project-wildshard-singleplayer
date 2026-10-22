@@ -10,6 +10,7 @@ import type { SpawnScriptRows } from './spawnScripts';
 import type { ClientPlan } from './clientPlan';
 import type { ViewModuleRow } from './scriptContract';
 import type { WorldScenesSection } from './worldScenes';
+import type { TreeSetRows } from './treeSetRows';
 import type { HeldArmsRows } from './heldArms';
 import type { HeldGearRows } from './heldGear';
 import type { HeldFinishesRows } from './heldFinishes';
@@ -76,6 +77,8 @@ export interface PlatformSections {
   /** new (KA6): immutable strike targets and named movement/perch points. */
   'world/targets': WorldTargets;
   'world/scenes': WorldScenesSection;
+  /** Client-only baked forest tree set (game models/treeSet): a manifest's `trees.treeSet` and a forest page draw it. */
+  'world/trees': TreeSetRows;
   'world/days': { readonly rows: Pick<Rows, 'days'> };
   'world/weather': { readonly rows: Pick<Rows, 'weather'> };
   'look/look': Pick<Shardfile, 'look' | 'presentation'>;

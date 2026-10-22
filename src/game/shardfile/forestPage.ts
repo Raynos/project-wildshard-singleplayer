@@ -12,7 +12,6 @@ import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { floorAtRects } from '@wildshard/engine/physics/box';
 import { defineModel, sharedModelContext, type ModelDef, type Placement } from '@wildshard/engine/models/model';
 import { placeSliced } from '@wildshard/engine/models/place';
-import { TreeSetSchema } from '@wildshard/format/treeSetRows';
 import { treeSetModel, type TreeSetParams } from '../models/treeSet';
 import { ForestPageSchema, LivingPageInputSchema, LivingPageSitesSchema, type ForestPageRows } from '@wildshard/format/forestPage';
 import { ForestGround } from '../looks/forestGround';
@@ -152,7 +151,7 @@ function groundModel(kind: ForestPageRows['ground']['kinds'][number], under: For
  *  whose factory is not the declared set (a build without its files) draws itself and collides as its own capsules. */
 export async function placeForestPageModels(ctx: ShardContext, id: string): Promise<void> {
   const page = forestPage(ctx.scope, id), due = slicer(page.rows.sliceMs).due, h = forestFieldModels(ctx, id), { forest, registry } = h, under = page.under;
-  const models = sharedModelContext(h.sky, h), trees = treeSetModel(v.parse(TreeSetSchema, await ctx.product.json(page.rows.trees)));
+  const models = sharedModelContext(h.sky, h), trees = treeSetModel(ctx.product.section('world/trees'));
   const variants = trees.model.variants; if (variants === undefined) throw new Error('Forest model requires its variants');
   if (forest !== null && forest.trees.length > 0) {
     if (forest.drawer !== 'model' || forest.factory.variants.length !== variants.length) {

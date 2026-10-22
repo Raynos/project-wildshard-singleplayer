@@ -272,7 +272,7 @@ export const ManifestMetadataSchema = v.strictObject({
   style: text, kitLook: v.picklist(['toon', 'painterly', 'pbr']), hands: v.exactOptional(v.picklist(['toon', 'pbr'])),
   camera: v.exactOptional(v.strictObject({ portraitFov: v.pipe(v.number(), v.finite(), v.minValue(1), v.maxValue(179)) })),
   weapon: v.picklist(['crossbow', 'sword', 'custom']), treeCount: v.pipe(number, v.integer(), v.minValue(0)),
-  trees: v.strictObject({ factory: v.exactOptional(v.literal('none')), noun: text, bark: v.exactOptional(text), twigAtlas: v.exactOptional(text), set: v.exactOptional(text), treeSet: v.exactOptional(text), drawnBy: v.exactOptional(v.literal('model')),
+  trees: v.strictObject({ factory: v.exactOptional(v.literal('none')), noun: text, bark: v.exactOptional(text), twigAtlas: v.exactOptional(text), set: v.exactOptional(text), treeSet: v.exactOptional(v.literal('world/trees')), drawnBy: v.exactOptional(v.literal('model')),
     setVariants: v.exactOptional(v.array(v.strictObject({name: text, species: text, height: number, trunk: number, collider: number}))) }),
   assetGlobs: v.pipe(v.array(text), v.maxLength(128)),
   spawn: v.strictObject({ x: number, y: v.exactOptional(number), z: number, yaw: number }),

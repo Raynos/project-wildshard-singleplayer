@@ -13,7 +13,7 @@ export const ForestPageSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Forest 
   water: PageWaterBindingSchema, treeLooks: v.pipe(v.array(v.strictObject({ look: id, band: v.picklist(['trunk', 'cards', 'twigs', 'far']), fade: id, viewer: id })), v.maxLength(4)),
   id, graphs: v.array(id), wildlife: id,
   streams: v.strictObject({ group: id, water: id, spray: id }),
-  trees: id, sliceMs: v.pipe(n, v.minValue(1), v.maxValue(100)), ground: v.strictObject({ appearance: id, layout: id, sources: v.array(id), kinds: v.pipe(v.array(v.strictObject({ id, geometry: id, model: id, name: id })), v.maxLength(6)),
+  sliceMs: v.pipe(n, v.minValue(1), v.maxValue(100)), ground: v.strictObject({ appearance: id, layout: id, sources: v.array(id), kinds: v.pipe(v.array(v.strictObject({ id, geometry: id, model: id, name: id })), v.maxLength(6)),
     far: id, shadow: id, cells: v.strictObject({ size: n, pad: n, extraFar: n }) }),
   buildings: v.strictObject({ id, root: id, shells: id, life: BuildingLifeLookSchema,
     shared: id, shadow: id, sites: id,

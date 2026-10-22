@@ -178,11 +178,11 @@ export interface ChunkAssets {
   boreal?: { normalK: [number, number, number, number]; trailDust: [number, number, number, number]; grassTint: RGB };
 }
 
-/** A declared tree set's factory: its product's rows `file` built on the game's tree set factory (models/treeSet). */
-export function declaredTreeSet(slug: string, file: string): ChunkTrees['factory'] {
+/** A declared tree set's factory: its product's `world/trees` rows built on the game's tree set factory (models/treeSet). */
+export function declaredTreeSet(slug: string): ChunkTrees['factory'] {
   return async () => {
     const { productTreeSet, TreeSetFactory } = await import('../models/treeSet');
-    return async (renderer, sky) => new TreeSetFactory(renderer, await productTreeSet(slug, file), sky).build();
+    return async (renderer, sky) => new TreeSetFactory(renderer, await productTreeSet(slug), sky).build();
   };
 }
 
@@ -776,8 +776,7 @@ export function defineAuthoredShard(input: unknown, slug: ShardSlug, rows: Autho
   }:undefined);
   const compare = data.explore.compare?.map(row => ({...row, live: image(row.live), image: image(row.image)}));
   // a declared tree set (its product's rows file) builds on the game's tree set factory
-  const set = data.trees.treeSet;
-  const factory: ChunkTrees['factory'] | undefined = set === undefined ? data.trees.factory : declaredTreeSet(slug, set);
+  const factory: ChunkTrees['factory'] | undefined = data.trees.treeSet === undefined ? data.trees.factory : declaredTreeSet(slug);
   if (factory === undefined) throw new Error('Manifest trees have no declared factory');
   const trees: ChunkTrees = {...data.trees, factory};
   const spawns = data.spawns ?? bindings.spawns;

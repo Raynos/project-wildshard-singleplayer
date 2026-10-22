@@ -1,7 +1,6 @@
 import type { TreeSetVariant, TreeSpeciesTraits } from '@wildshard/engine/world/forest/treeSpecies';
 import * as v from 'valibot';
 import { TreeSetSchema } from '@wildshard/format/treeSetRows';
-import { nameBlob } from '@wildshard/sdk/blobs';
 import treeRest from '../data/treeRest.generated.json' with { type: 'json' };
 import FOREST_LOOKS from '../data/forestLook.json' with { type: 'json' };
 
@@ -60,4 +59,3 @@ export const TREE_SET = v.parse(TreeSetSchema, {
   model: { id: 'pine-hollow/forest-tree', name: 'Forest tree', file: 'src/shards/pine-hollow/generators/treeSet.ts' },
   variants: PINE_TREE_SET.map(s => ({ name: s.name, label: LABEL[s.name] ?? s.name, species: s.species, height: s.height, trunk: s.trunk, collider: s.collider })),
 });
-export const TREE_SET_BLOB = nameBlob('world/tree-set.json', 'json', new TextEncoder().encode(JSON.stringify(TREE_SET)));

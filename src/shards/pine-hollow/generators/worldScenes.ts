@@ -8,7 +8,6 @@ import { CRAG_LOOK, CAVE_LOOK } from './cragLook';
 import layout from '../data/layout.generated.json' with { type: 'json' };
 import { MODEL_SCENES, MODEL_BLOBS, SCENE_MODELS, SCENE_PLACEMENTS } from './sceneModelRows';
 import { CABIN_JSON_BLOBS } from './cabinSceneContribution';
-import { TREE_SET_BLOB } from './treeSet';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import type { WorldScenesSection } from '@wildshard/format/worldScenes';
 import spray from '../data/sprayPuffs.json' with { type: 'json' };
@@ -41,7 +40,7 @@ const CAVE_INTERIOR = v.parse(CaveInteriorSchema, { product: 'pine-hollow', file
   frame: { x: layout.BEAR_CAVE.x, z: layout.BEAR_CAVE.z, yaw: layout.BEAR_CAVE.rot }, rock: { look: CRAG_LOOK, fill: 'caveFill', pbr: 'mossy_rock', grit: 'rock_ground' } });
 export const SCENE_BLOBS = [nameBlob('world/crag-cave.json', 'json', encode(CRAG_CAVE_ROWS)), nameBlob('world/cave-interior.json', 'json', encode(CAVE_INTERIOR)), nameBlob('scenes/streams.json', 'json', encode(recipe)), nameBlob('scenes/pool.json', 'json', encode(poolRecipe)),
   nameBlob(SPRAY, 'bin', new Uint8Array(Float32Array.from([...matrices, ...spray.seed, ...spray.size]).buffer)),
-  ...CABIN_JSON_BLOBS, TREE_SET_BLOB, ...QUEST_RIDE_BLOBS,
+  ...CABIN_JSON_BLOBS, ...QUEST_RIDE_BLOBS,
   nameBlob('models/world-scenes.json', 'json', encode(SCENE_MODELS)),
   ...SCENE_PLACEMENTS.map(row => nameBlob(`scenes/placements/${row.id}.json`, 'json', encode(row)))];
 export const SCENE_MODEL_BLOBS = [

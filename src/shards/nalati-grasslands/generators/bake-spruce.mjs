@@ -1,4 +1,4 @@
-// The spruce's crown and trunk buffers as one rest-geometry pool GLB, read by the game's tree set (world/tree-set.json).
+// The spruce's crown and trunk buffers as one rest-geometry pool GLB, read by the game's tree set (the world/trees section).
 import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import * as THREE from 'three';

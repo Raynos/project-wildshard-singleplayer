@@ -10742,10 +10742,12 @@ only; the figure catalogue carries the rows (`FigureCatalogue.kit(id)`). Driftwo
 users; an unrelated harbour mender fixture drives the same rows in `test/kit-figure.test.ts`.
 
 `game/models/treeSet` (G483 world scene assembly over admitted geometry and material rows; client-only) draws a baked tree
-set from `format/treeSetRows` rows: `TreeSetFactory` builds the forest's `TreeFactory` from the rows' geometry pool, the set's
-card, impostor and bark textures and its four look.materials graphs (`productTreeSet(slug, file)` reads the rows), and
-`treeSetModel(rows)` is the one model the forest places, its LODs the forest's bands and each trunk the forest's capsule.
-Pine Hollow's species set is the first user; an orchard fixture declares its own set in `test/tree-set.test.ts`.
+set from `format/treeSetRows` rows, a product's `world/trees` section: `TreeSetFactory` builds the forest's `TreeFactory`
+from the rows' geometry pool and four materials, either look.materials graphs lent the set's card, impostor and bark
+textures or painterly vertex-coloured surfaces on the page sky (G601 C5), `productTreeSet(slug)` reads the section, a
+manifest's `trees.treeSet: 'world/trees'` binds it (`declaredTreeSet`), and `treeSetModel(rows)` is the one model a forest
+page places, its LODs the forest's bands and each trunk the forest's capsule. Pine Hollow's photoreal species set and
+Nalati's painterly spruce are its users; an orchard fixture declares its own set in `test/tree-set.test.ts`.
 
 `game/shardfile/caveInterior.CaveInterior` (G483 world scene assembly; client-only) loads a baked cave interior from
 `format/caveInterior` rows: the product's cave file (`CaveFileSchema`: holes, cuts, reverb spots, footprint, floor, shaft,

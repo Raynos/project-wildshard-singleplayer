@@ -27,6 +27,7 @@ import { WorldTargetsSchema, type WorldTargets } from './worldTargets';
 import { WorldMoversSchema } from './movers';
 import { ViewModulesSchema, type ViewModuleRow } from './scriptContract';
 import { NativeRuntimePlanSchema, type NativeRuntimePlanData } from './nativeRuntimePlan';
+import { TreeSetSchema, type TreeSetRows } from './treeSetRows';
 
 /** New plain-value sections supplement the unchanged v1 model assembled from the older section envelopes. */
 export interface PlatformDataSections {
@@ -58,6 +59,7 @@ export interface PlatformDataSections {
   'world/physics': WorldPhysics;
   'world/targets': WorldTargets;
   'world/scenes': WorldScenesSection;
+  'world/trees': TreeSetRows;
 }
 
 /** Defining parsers for the first independently authored platform sections. */
@@ -90,6 +92,7 @@ export const PLATFORM_DATA_SECTIONS: Readonly<{ [Name in keyof PlatformDataSecti
   'world/physics': { schema: WorldPhysicsSchema },
   'world/targets': { schema: WorldTargetsSchema },
   'world/scenes': { schema: WorldScenesSchema },
+  'world/trees': { schema: TreeSetSchema },
 } as const;
 
 /** Client feature inputs that remain legacy root envelopes. These defining
@@ -125,6 +128,7 @@ export function parsePlatformDataSection(name: 'ui/completion', value: unknown):
 export function parsePlatformDataSection(name: 'ui/strings', value: unknown): UiStrings;
 export function parsePlatformDataSection(name: 'world/physics', value: unknown): WorldPhysics;
 export function parsePlatformDataSection(name: 'world/scenes', value: unknown): WorldScenesSection;
+export function parsePlatformDataSection(name: 'world/trees', value: unknown): TreeSetRows;
 export function parsePlatformDataSection(name: 'world/targets', value: unknown): WorldTargets;
 export function parsePlatformDataSection(name: 'sim/runtime-plan', value: unknown): NativeRuntimePlanData;
 export function parsePlatformDataSection(name: PlatformDataSectionName, value: unknown): PlatformDataSections[PlatformDataSectionName];
