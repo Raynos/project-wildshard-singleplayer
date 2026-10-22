@@ -59,3 +59,5 @@ export function gridFloorWitnessFailures(result: FloorGridWitness): string[];
 
 /** Select an explicit diagnostic cohort while preserving route order and all witnesses. */
 export function selectFloorGridPlans(plans: FloorGridPlan[], names?: readonly string[]): FloorGridPlan[];
+/** Preserve outward setup while selecting the leg that actually enters the requested instance. */
+export function floorGridEntryRoute(plans: readonly FloorGridPlan[], instance: string): { setup: FloorGridPlan[]; entry: FloorGridPlan };

@@ -1,5 +1,28 @@
 import { expect, test, vi } from 'vitest';
-import { floorGridPortalPlan, gridFloorWitnessFailures, readFloorGridEntryways, type FloorGridPlan, type FloorGridWitness } from '../scripts/frame-floor-grid.mjs';
+import { floorGridPortalPlan, gridFloorWitnessFailures, readFloorGridEntryways, gridFloorPlans, floorGridEntryRoute, type FloorGridPlan, type FloorGridWitness } from '../scripts/frame-floor-grid.mjs';
+
+test('cold home entry selects its return after the outward retirement leg', () => {
+  const state = { home: 'home', cells: [
+    { instance: 'home', slug: 'driftwood-isle', cell: [0, 0] as const },
+    { instance: 'template-2', slug: '_template', cell: [-1, -1] as const },
+  ] };
+  const plans = gridFloorPlans(state, 'cell', { cell: 'home', roadApproach: true });
+  const route = floorGridEntryRoute(plans, 'home');
+  expect(route.setup).toHaveLength(1);
+  expect(route.setup[0]).toMatchObject({ from: 'home', to: 'template-2', retiredResidents: ['home'] });
+  expect(route.entry).toMatchObject({ name: 'driftwood-isle-road-entry', from: 'template-2', to: 'home', requiredResidents: ['home'] });
+  expect(floorGridEntryRoute(plans, 'template-2')).toEqual({ setup: [], entry: plans[0] });
+  expect(() => floorGridEntryRoute(plans, 'missing')).toThrow('Missing grid entry');
+});
+
+test('ordinary cell entry keeps its original single road approach', () => {
+  const state = { home: 'home', cells: [
+    { instance: 'home', slug: 'driftwood-isle', cell: [0, 0] as const },
+    { instance: 'pine', slug: 'pine-hollow', cell: [0, 1] as const },
+  ] };
+  const plans = gridFloorPlans(state, 'cell', { cell: 'pine', roadApproach: true });
+  expect(floorGridEntryRoute(plans, 'pine')).toEqual({ setup: [], entry: plans[0] });
+});
 
 test('surface-water entry requires actual water locomotion and an above-water eye', () => {
   const cells = [{ instance: 'island', slug: 'island', cell: [0, 0] as const }];

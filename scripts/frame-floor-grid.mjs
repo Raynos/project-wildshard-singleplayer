@@ -254,6 +254,13 @@ export function selectFloorGridPlans(plans, names = []) {
   return plans.filter(plan => requested.has(plan.name));
 }
 
+/** A home-cell cold entry has an outward setup leg before its measured return. */
+export function floorGridEntryRoute(plans, instance) {
+  const index = plans.findIndex(plan => plan.to === instance);
+  if (index === -1) throw new Error(`Missing grid entry for ${instance}`);
+  return { setup: plans.slice(0, index), entry: plans[index] };
+}
+
 /** A lost travel document is a measured runtime failure, even when its earlier cadence rows passed. */
 export function gridFloorRuntimeFailure(last, diagnostic) {
   if (!last || !diagnostic || diagnostic.documentOrigin === last.documentOrigin || !Number.isFinite(diagnostic.documentOrigin)) return null;

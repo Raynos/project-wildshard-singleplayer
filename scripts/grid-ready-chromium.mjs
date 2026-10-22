@@ -6,7 +6,7 @@ import {resolve as resolvePath} from 'node:path';
 import {chromium,devices} from 'playwright';
 import {saveFixture,harnessPins} from './debug-settings.mjs';
 import {frameFloorSettingsCode} from './frame-floor-settings.mjs';
-import {gridFloorPlans,gridFloorDeclaredPlan,gridFloorDocumentIdentity,stageFloorGrid,driveFloorGrid,gridFloorWitnessFailures} from './frame-floor-grid.mjs';
+import {gridFloorPlans,gridFloorDeclaredPlan,gridFloorDocumentIdentity,stageFloorGrid,driveFloorGrid,gridFloorWitnessFailures,floorGridEntryRoute} from './frame-floor-grid.mjs';
 import {chromiumProcessPeaks,ownedResidencyBytes} from './grid-ready-memory.mjs';
 
 const arg=(key,fallback)=>process.argv.find(value=>value.startsWith(`--${key}=`))?.slice(key.length+3)??fallback;
@@ -20,7 +20,7 @@ mkdirSync(out,{recursive:true});
 const browser=await chromium.launch({headless:true,args:['--mute-audio','--use-angle=metal','--ignore-gpu-blocklist']});
 const {defaultBrowserType:_engine,...phone}=devices['iPhone 16 Pro'];
 const profiling=arg('profile','0')==='1';
-const receipt={schema:1,source:pin,protocol:{profiler:profiling,glObserver:'off',...(profiling?{quiet:false}:arg('quiet','0')==='1'?{quiet:true}:{}),
+const receipt={schema:1,source:pin,protocol:{profiler:profiling,glObserver:'off',quiet:!profiling&&arg('quiet','0')==='1',
   memory:'Residency sampled every 250 ms; CDP detailed private-footprint dumps outside timed windows, no forced GC. Page process totals informational.',
   timing:'Live clock, drawn-frame cadence, real held-input road entry and leave; one declared road seed per independent case. No layout or cap changes.'},runs:[]};
 let failed=false;
@@ -87,7 +87,16 @@ try {
    const identity=await page.evaluate(gridFloorDocumentIdentity);
    await page.evaluate(`(${installReadinessProbe.toString()})(${JSON.stringify(cell.instance)},${JSON.stringify(slug)},(${ownedResidencyBytes.toString()}))`);
    const plans=gridFloorPlans(state,'cell',{cell:cell.instance,roadApproach:true});
-   const entry=await gridFloorDeclaredPlan(page,state,plans[0]);
+   const route=floorGridEntryRoute(plans,cell.instance);
+   for(const plan of route.setup) {
+    const current=await page.evaluate(()=>window.__wildshard.shard.grid.state());
+    const setup=await gridFloorDeclaredPlan(page,current,plan);
+    await page.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify(setup)},${JSON.stringify(identity)},(${driveFloorGrid.toString()}))`);
+    const witness=await page.evaluate(`(${driveFloorGrid.toString()})(${JSON.stringify(setup)},${JSON.stringify(identity)})`);
+    const failures=gridFloorWitnessFailures(witness);
+    if(failures.length>0)throw new Error(`Grid entry setup failed: ${failures.join('; ')}`);
+   }
+   const entry=await gridFloorDeclaredPlan(page,state,route.entry);
    await page.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify(entry)},${JSON.stringify(identity)},(${driveFloorGrid.toString()}))`);
    await dump('before-entry');
    await profileStart();
@@ -117,7 +126,13 @@ try {
     document.body.append(caption);
    },`${pin.slice(0,7)} · ${slug} entered · iPhone 16 Pro · CPU 4x`);
    await page.screenshot({path:resolvePath(out,`${caseName}.jpg`),type:'jpeg',quality:70,scale:'css'});
-   const road=entry.waypoints[0];
+   let road=entry.waypoints[0];
+   if(route.setup.length>0) {
+    const last=entry.waypoints.at(-1),x=cell.cell[0]*555,z=cell.cell[1]*555;
+    if(last===undefined)throw new Error('Home entry lacks its final waypoint');
+    const dx=last.x-x,dz=last.z-z;
+    road=Math.abs(dz)>=Math.abs(dx)?{x:last.x,z:z+Math.sign(dz)*277.5}:{x:x+Math.sign(dx)*277.5,z:last.z};
+   }
    const leave=await gridFloorDeclaredPlan(page,entered.after,{name:`${slug}-leave`,from:cell.instance,to:null,movement:'road-hover',
     waypoints:[road],requiredResidents:[],finishOnArrival:false});
    await profileStart();
@@ -136,7 +151,7 @@ try {
   }catch(error){errors.push(String(error));failed=true;}
   finally {
    writeFileSync(resolvePath(out,`${caseName}.json`),JSON.stringify(run,null,2));
-   writeFileSync(resolvePath(out,'receipt.json'),JSON.stringify(receipt,null,2));
+   writeFileSync(resolvePath(out,'receipt.json'),JSON.stringify(receipt));
    const memorySummary=run.memory===undefined?undefined:Object.fromEntries(Object.entries(run.memory).filter(([key])=>!['observations','peakClaims'].includes(key)));
    console.info(JSON.stringify({slug,instance,complete:run.complete,errors,memory:memorySummary,rows:scene.rows}));
   }
