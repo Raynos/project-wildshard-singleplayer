@@ -3,6 +3,7 @@
  *  publishes, and its pose system; a trader figure adds its counter model and live owners. Numbers and ids only. */
 import * as v from 'valibot';
 import { isJsonData } from './json';
+import { SpecimenModelMetadataSchema } from './specimenCatalogue';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128)), n = v.pipe(v.number(), v.finite()), triple = v.tuple([n, n, n]);
 const place = v.strictObject({ poi: id, x: n, z: n, y: v.exactOptional(n), dy: v.exactOptional(n), yaw: v.exactOptional(n), anchor: v.exactOptional(id) });
@@ -35,3 +36,15 @@ export const QuestFiguresSchema = v.pipe(v.unknown(), v.check(isJsonData, 'plain
     v.check(rows => new Set(rows.map(row => row.kit)).size === rows.length && new Set(rows.map(row => row.id)).size === rows.length, 'one figure per kit, unique ids')) }));
 export type QuestFigureRows = v.InferOutput<typeof QuestFigureSchema>;
 export type QuestFiguresRows = v.InferOutput<typeof QuestFiguresSchema>;
+
+
+/** Cold Explorer kit cards reuse the live figure rows; their model has no
+ * ignored params or variants and their source selects one fixed field only. */
+export const KitFigureCardsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Kit figure cards require plain JSON'), v.strictObject({
+  catalogue: id, draws: v.pipe(v.string(), v.regex(/^custom\/[A-Za-z][A-Za-z0-9_.-]*$/u)),
+  cards: v.pipe(v.record(id, v.strictObject({
+    model: v.strictObject({ ...v.pick(SpecimenModelMetadataSchema, ['id', 'name', 'file', 'category', 'pipeline', 'surface']).entries, defaults: v.strictObject({}) }),
+    figure: QuestFigureSchema,
+  })), v.minEntries(1), v.maxEntries(64)),
+}));
+export type KitFigureCardsRows = v.InferOutput<typeof KitFigureCardsSchema>;

@@ -11127,3 +11127,13 @@ Views borrow `quest-spawns` through the owner registry and keep their existing
 update and puff-consumption phase. Completion effects still precede cues;
 commands retain the native next-tick commit. No new clock, continuation,
 callback row, export lookup or property selector is introduced.
+
+### Kit figure card admission (G571)
+
+`format/questFigures.KitFigureCardsSchema` admits a named JSON book
+`{catalogue, draws, cards}`. Each card contains standard model metadata
+and the existing numeric `QuestFigureSchema` row. Model defaults are empty;
+variants and other unused controls refuse. `draws` names one admitted
+custom section's fixedDraws field, never a field path or executable builder.
+The book is a defining named-JSON wire root. It introduces no loader,
+owner, clock, view update or geometry representation by itself.

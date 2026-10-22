@@ -79,7 +79,7 @@ import { QuestGraphSchema } from '@wildshard/format/questGraph';
 import { InteractionRowsSchema, QuestPageInteractionsSchema } from '@wildshard/format/questInteractions';
 import { QuestPageSchema } from '@wildshard/format/questPageComposition';
 import { QuestContinuationSchema } from '@wildshard/format/questContinuation';
-import { QuestFiguresSchema } from '@wildshard/format/questFigures';
+import { QuestFiguresSchema, KitFigureCardsSchema } from '@wildshard/format/questFigures';
 import { QuestHostSchema } from '@wildshard/format/questHost';
 
 import { RowsSchema } from '@wildshard/format/rows';
@@ -171,6 +171,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'questPageComposition.QuestPage': QuestPageSchema,
   'questContinuation.QuestContinuation': QuestContinuationSchema,
   'questFigures.QuestFigures': QuestFiguresSchema,
+  'questFigures.KitFigureCards': KitFigureCardsSchema,
   'cueDirector.CueDirectorWire': CueDirectorWireSchema,
   'questSteps.QuestHintRows': QuestHintRowsSchema,
   'questSteps.QuestKillRows': QuestKillRowsSchema,
