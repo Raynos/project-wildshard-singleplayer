@@ -31,7 +31,9 @@ test('Nalati compiles its chapters, camp dialogues, placements and discovery int
   const chapterBytes = chapterFile === undefined ? undefined : loaded.assets.get(chapterFile.hash);
   if (chapterBytes === undefined) throw new Error('Missing compiled chapter presentation');
   const { decision, ...display } = parseChapterStoryPresentation(JSON.parse(new TextDecoder().decode(chapterBytes)));
-  expect(display).toEqual(chapters);
+  const { decision: authoredDecision, ...authoredDisplay } = chapters;
+  expect(display).toEqual(authoredDisplay);
+  expect(decision).toEqual(authoredDecision);
   const readings = Object.values(decision?.actions ?? {}).flat().filter(effect => effect.kind === 'reading');
   expect(readings.map(reading => reading.lines)).toEqual(content.carvings);
   const eliteReads = Object.values(decision?.observations ?? {}).filter(row => 'saved' in row.source && row.source.saved.record === 'elites').map(row => 'saved' in row.source ? row.source.saved.id : '');
