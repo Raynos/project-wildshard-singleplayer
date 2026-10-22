@@ -23,7 +23,7 @@ import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { defineModel } from '@wildshard/engine/models/model';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { RopeDeckView, type RopeDeckPoses as DeckPoses } from '@wildshard/engine/physics/ropeChain';
+import { RopeDeck, type RopeDeckPoses as DeckPoses } from '@wildshard/engine/physics/ropeChain';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
@@ -42,15 +42,8 @@ const MAX_DESCS = 64;
 
 
 class RopeBridgeBuilder {
-  /** the skinned deck and its bones: one holder per deck segment (posed by `setPoses`), then the posts' still anchor */
-  mesh!: THREE.Group;
-  private len = 0; private dir = new THREE.Vector2(); private width = 1.4;
-  private segs: DeckSegment[] = [];
-  /** per segment: a bone at its pose (a bolt stuck in the deck rides it) */
-  private holders: THREE.Bone[] = [];
-  /** the holders' poses and the live joint heights (engine/physics/ropeChain RopeDeckView) */
-  private deck: RopeDeckView | null = null;
-
+  /** the drawn deck (engine/world/ropeDeck): its group, chain spec, posing and floor */
+  private deck: RopeDeck | null = null;
   /** the site's origin (own space = world − origin): end a on the ground */
   readonly o: { x: number; y: number; z: number };
   /** own-space colliders (the legacy boxes and the static floors), handed to the model */
@@ -64,44 +57,20 @@ class RopeBridgeBuilder {
   }
 
   build(): this {
-    const facts=this.facts;
-    this.width=facts.width;this.len=facts.len;
-    this.dir.set(facts.direction.x,facts.direction.z);
-    this.mesh = new THREE.Group();
-    this.mesh.name = 'rope-bridge';
-
-    // ── the deck at rest: one segment per chord of the sag, its top face on the catenary; a bone per segment and the anchor ──
-    this.segs=structuredClone(facts.segments);
-    this.holders=Array.from({length:Math.min(this.segs.length,MAX_SEGS)+1},()=>{const h=new THREE.Bone();h.matrixAutoUpdate=false;this.mesh.add(h);return h;});
-    this.deck = new RopeDeckView(this.segs, SEG_HY, this.o, this.holders);
-    this.setPoses(null, 1);
+    const facts = this.facts;
     // the posts, planks and ropes: one draw in a copy of the kit's still material, skinned to the bones as they stand at rest
     const geometry = fixedDraw(facts.key === bridgeKey(BRIDGE_SPANS.specimen) ? 'bridgeSpecimenDeck' : 'bridgeDeck').copy();
     geometry.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(geometry.getAttribute('skinIndex').array, 4)); // the graph skins integer joints
-    const deck = new THREE.SkinnedMesh(geometry, lowPolyLookMaterial(this.sky, 'still').clone()); // its own copy: a graph's skinning binds one skeleton
-    deck.castShadow = true; deck.receiveShadow = true; deck.frustumCulled = false; // it moves, and it spans the gully
-    deck.bind(new THREE.Skeleton(this.holders, this.holders.map(h => h.matrix.clone().invert())), new THREE.Matrix4());
-    this.mesh.add(deck);
+    this.deck = new RopeDeck('rope-bridge', { origin: this.o, segments: structuredClone(facts.segments), start: this.spec.a, direction: facts.direction, len: facts.len, width: facts.width },
+      { geometry, material: lowPolyLookMaterial(this.sky, 'still').clone() }, { halfY: SEG_HY, mass: SEG_KG, maxSegments: MAX_SEGS, owner: { id: 'bridge', name: 'Rope bridge' }, margin: 0.15 });
     return this;
   }
-
-  /** the deck for src/engine/physics/ropeChain.ts: the segments at rest, their size and weight, their holders as owners */
-  chainSpec(): { segments: DeckSegment[]; hx: number; hy: number; mass: number; owners: { id: string; name: string; follows: THREE.Object3D }[] } {
-    return { segments: this.segs, hx: this.width / 2 + 0.15, hy: SEG_HY, mass: SEG_KG, owners: this.holders.slice(0, this.segs.length).map((follows) => ({ id: 'bridge', name: 'Rope bridge', follows })) };
-  }
-
-  /** Pose the deck's bones: from `deck` (a RopeChain, interpolated by `alpha`), or at rest when null. */
-  setPoses(deck: DeckPoses | null, alpha: number): void { this.deck?.pose(deck, alpha); }
-
-  /** the plank height under world (x, z) when over the span (the live deck while a chain poses it), else undefined */
-  floorHeightAt(x: number, z: number): number | undefined {
-    const { a } = this.spec;
-    const dx = x - a[0], dz = z - a[1];
-    const along = dx * this.dir.x + dz * this.dir.y, across = -dx * this.dir.y + dz * this.dir.x;
-    if (along < -0.3 || along > this.len + 0.3 || Math.abs(across) > this.width / 2 + 0.15) return undefined;
-    return this.deck?.heightAt(along / this.len);
-  }
-
+  private get built(): RopeDeck { if (this.deck === null) throw new Error('Rope bridge is not built'); return this.deck; }
+  /** the skinned deck and its bones: one holder per deck segment, then the posts' still anchor */
+  get mesh(): THREE.Group { return this.built.group; }
+  chainSpec(): ReturnType<RopeDeck['chainSpec']> { return this.built.chainSpec(); }
+  setPoses(deck: DeckPoses | null, alpha: number): void { this.deck?.setPoses(deck, alpha); }
+  floorHeightAt(x: number, z: number): number | undefined { return this.deck?.floorHeightAt(x, z); }
 }
 
 export type RopeBridgeLayout = Pick<RopeBridgeBuilder, 'o' | 'descs' | 'chainSpec' | 'setPoses' | 'floorHeightAt' | 'mesh'>;
