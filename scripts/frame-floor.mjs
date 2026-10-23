@@ -522,6 +522,7 @@ async function measureShard(driver, shard, deadline) {
         const builds = nodeBuildsByHook(await driver.evaluate('(window.__wildshard.world.game.nodeBuilds?.log ?? []).filter(row => row.at >= window.__frameFloorBuildsFrom)'), hookTimes);
         const driveRow = { pose: { name: `grid-${plan.name}-drive` }, window: 'whole-drive', ...wholeValue, longFrameHooks: longFrameHooks(whole.value.longFrames.at, hookTimes), nodeBuilds: builds,
           over35Hooks: longFrameHooks(whole.value.slowFrames, hookTimes).map((row) => ({ hook: row.hook, frames: row.frames, maxMs: row.maxMs, totalMs: row.totalMs })),
+          hookTimes: hookTimes.map((t) => ({ hook: `${t.instance}:${t.hook}`, start: Math.round(t.start), end: Math.round(t.end) })),
           ...(glFrames === undefined ? {} : { glByHook: glByHook(glFrames, hookTimes) }), ...(cpuProfile === null ? {} : { cpuProfile }), ...(scriptProfile === undefined ? {} : { scriptProfile }),
           ...(glTime && frameTimeline && glFrames !== undefined ? { glFrames } : {}),
           ...(timeline === undefined ? (timelineFailure === undefined ? {} : { webkitTimeline: timelineFailure }) : { webkitTimeline: timelineLongFrames(timeline, whole.value.longFrames.at) }),
