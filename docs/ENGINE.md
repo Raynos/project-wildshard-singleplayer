@@ -12157,6 +12157,16 @@ assembly weather stage or alternate dispatcher. Late arena, painted-world,
 encounter and elite readers consume these loans after publication; panorama
 and static capture still construct before boot shader warmup.
 
+WorldUpdates also binds finite `arena-room`, `timed-encounters` and
+`elite-entry` rows to their original typed entry loans. Arena rows may link
+the original patrol or register their indoor-weather answer; timed rows
+may pause in the practice room. Elite rows retain the original arena and
+practice exclusions, fresh riding/population observations and head-bar
+writes. The complete bank resolves before rider linkage, answers or frame
+registration. Audio and cosmetic rows may resolve actual entry-owner ids
+when no explicit native loan map is supplied. Only toon rows require the
+`look/toon` section; other worlds keep their native material preparation.
+
 ### Native world construction checkpoints
 
 `WorldAssembly.prepareNative(input, ctx)` resolves the strict optional

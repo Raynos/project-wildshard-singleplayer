@@ -1,5 +1,18 @@
 [
   {
+    "kind": "arena-room",
+    "system": "shard.nalati.titan",
+    "owner": "nalati.titan",
+    "riders": "nalati.night",
+    "after": [
+      "main.world",
+      "shard.nalati.weather"
+    ],
+    "before": [
+      "engine.creatures.update"
+    ]
+  },
+  {
     "kind": "painted-world",
     "system": "shard.nalati.look",
     "before": [
@@ -40,7 +53,7 @@
     "before": [
       "engine.creatures.update"
     ],
-    "elite": "elites",
+    "elite": "nalati.elites",
     "every": 1
   },
   {
@@ -95,7 +108,7 @@
         "name": "inside",
         "source": {
           "kind": "arena",
-          "owner": "arena",
+          "owner": "nalati.king",
           "field": "inside"
         }
       },
@@ -103,10 +116,49 @@
         "name": "engaged",
         "source": {
           "kind": "arena",
-          "owner": "fight",
+          "owner": "nalati.titan",
           "field": "engaged"
         }
       }
+    ]
+  },
+  {
+    "kind": "elite-entry",
+    "system": "shard.nalati.elites",
+    "owner": "nalati.elites",
+    "arena": "nalati.titan",
+    "night": "nalati.night",
+    "riding": "nalati.riding",
+    "hideHeadBars": true,
+    "after": [
+      "shard.nalati.look"
+    ],
+    "before": [
+      "engine.creatures.update"
+    ]
+  },
+  {
+    "kind": "arena-room",
+    "system": "shard.nalati.boss",
+    "owner": "nalati.king",
+    "indoors": true,
+    "after": [
+      "shard.nalati.elites"
+    ],
+    "before": [
+      "engine.creatures.update"
+    ]
+  },
+  {
+    "kind": "timed-encounters",
+    "system": "shard.nalati.night",
+    "owner": "nalati.night",
+    "pauseInPractice": true,
+    "after": [
+      "shard.nalati.stealth"
+    ],
+    "before": [
+      "engine.creatures.update"
     ]
   }
 ]

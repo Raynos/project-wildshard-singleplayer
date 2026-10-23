@@ -10,7 +10,6 @@ import * as v from 'valibot';
 
 
 import { SceneDressing } from '@wildshard/game/shardfile/sceneDressing';
-import { installWorldUpdates } from '@wildshard/game/shardfile/worldUpdates';
 
 
 import { clientCosmeticFinishes } from '@wildshard/game/shardfile/clientCosmeticFinishes';
@@ -23,9 +22,7 @@ export type Nalati = Awaited<ReturnType<typeof buildNalatiState>>;
 
 async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin: ShardContext) {
   if (plugin.game.runtime?.world !== ctx) throw new Error('Missing original world construction owner');
-  const { worldUpdates, combatTargets: targetRows } = v.parse(v.object({ worldUpdates: v.unknown(), combatTargets: v.unknown() }), await plugin.product.json('sim/headless-boot.json'));
-  const { practiceRoom } = await import('@wildshard/engine/core/practiceRoom');
-  const updates: ((dt: number, t: number) => void)[] = [];
+  const { combatTargets: targetRows } = v.parse(v.object({ combatTargets: v.unknown() }), await plugin.product.json('sim/headless-boot.json'));
   const groups = entryOwner(plugin.scope, 'world-groups', 'nalati.world');
   const dressing = SceneDressing.current(plugin);
   const weatherLoan = lateEntryOwner(plugin.scope, 'world-weather', 'nalati.weather');
@@ -40,18 +37,12 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   // ── Jel Ata the Storm Titan (B14; src/shards/nalati-grasslands/stormTitan.ts): the Wind Cairn's threshold (mounted, in a natural storm), the
   //    Titan beyond the south rim, the arena's wall / whirlwinds / riders / fire; the heart joins the Targets chain below ──
   const titan = entryOwner(plugin.scope, 'arena-room', 'nalati.titan');
-  updates.push((dt, t) => { titan.update(dt, t); });
 
   // ── named elites (elites agent, B12): the five lairs, their spawn rules on the clock / the storm — src/shards/nalati-grasslands/elites.ts ──
   const eliteOwner = entryOwner(plugin.scope, 'elite-entry', 'nalati.elites');
   const { entry: elites, rows: eliteRows, models: drops, fight: charge, ledges: eliteLedges } = eliteOwner;
   const eliteProgram = eliteOwner.program.value;
-  updates.push((dt, t) => {
-    if (titan.engaged) { elites.bar?.hide(); return; }   // one boss bar at a time: the elites stand down while the Titan fights
-    if (practiceRoom.open) { elites.bar?.hide(); return; }   // a practice room over the steppe: no banner, no bar, no lair found from 3 km up (E321)
-    elites.update(dt, t, eliteFrame());
-    for (const s of elites.scripts) if (s.animal !== null) s.animal.mem['noHeadBar'] = 1;   // the elite's own bar, not the combat one
-  });
+
 
   // ── creatures (creatures agent, B4): Wildlife over main's AnimalManager — `attachAnimals` below (main.ts calls it after its animals step) ──
 
@@ -59,8 +50,6 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
 
   // ── the great kurgan + the Golden King (boss agent, B13): the dungeon interior, the doors, the boss fight — src/shards/nalati-grasslands/kurganBoss.ts ──
   const boss = entryOwner(plugin.scope, 'arena-room', 'nalati.king');
-  updates.push((dt, t) => boss.update(dt, t));
-  plugin.answer('weather.indoors', inside => Math.max(inside, Number(boss.inside))); // weather agent (B10): no lightning / rain in the dungeon, and no storm starts during the fight
 
   // ── creatures (creatures agent, B4): Wildlife over main's AnimalManager, fed the grass, the wind, the water, the player ──
   const night = entryOwner(plugin.scope, 'timed-encounters', 'nalati.night');
@@ -79,16 +68,6 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   // ── dusk + night enemies (bow agent, B11): the balbal warriors wake at dusk, the ghost riders ride the ridges at night —
   //    src/shards/nalati-grasslands/nightEnemies.ts (balbalWarriors.ts, ghostRiders.ts); chained into attachAnimals / bindPlay / the Targets ray ──
 
-  titan.riders = night.riders;    // B14: the Titan's storm riders ride the same rig
-  updates.push((dt, t) => { if (!practiceRoom.open) night.update(dt, t); });   // no night riders shooting up at a practice room (E321)
-  // the frames in their original order: the weather host, the declared look (world-update rows) and the declared
-  // population register their own frames (shard.nalati.weather / look / wildlife) between these
-  const ids = ['titan', 'elites', 'boss', 'night'], after = [['main.world', 'shard.nalati.weather'], ['shard.nalati.look'], ['shard.nalati.elites'], ['shard.nalati.stealth']];
-  if (updates.length !== ids.length) throw new Error('Nalati update registration lacks an id');
-  updates.forEach((run, index) => {
-    plugin.system({ id: `shard.nalati.${ids[index] ?? ''}`, phase: 'update', after: after[index] ?? [], before: ['engine.creatures.update'], run });
-    if (index === 0) installWorldUpdates(plugin, worldUpdates, {arenas:new Map([['arena',boss],['fight',titan]]),elites:new Map([['elites',elites]])});
-  });
   installCombatTargets(plugin, targetRows, new Map<string, CombatTargetOwner>([['night', night], ['titan', titan]]), clientWildlifeState(plugin));
   plugin.debug.expose('nalati', nalati);
   plugin.debug.expose('nalati.ghosts', night.riders);

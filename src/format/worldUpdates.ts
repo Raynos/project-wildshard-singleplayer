@@ -11,6 +11,9 @@ const audioInput=v.strictObject({name:id,source:v.variant('kind',[
 /** Native owner/registration glue only. Rows never contain a clock, math law or callback. */
 export const WorldUpdatesSchema = v.pipe(v.unknown(), v.check(isJsonData, 'World updates require plain JSON data'), v.array(v.variant('kind', [
   v.strictObject({ kind: v.literal('entered-owner'), ...order, owner: id, phase: v.picklist(['update', 'late']) }),
+  v.strictObject({ kind: v.literal('arena-room'), ...order, owner: id, riders: v.exactOptional(id), indoors: v.exactOptional(v.literal(true)) }),
+  v.strictObject({ kind: v.literal('timed-encounters'), ...order, owner: id, pauseInPractice: v.boolean() }),
+  v.strictObject({ kind: v.literal('elite-entry'), ...order, owner: id, arena: id, night: id, riding: id, hideHeadBars: v.boolean() }),
   v.strictObject({ kind: v.literal('wind'), ...order }),
   v.strictObject({ kind: v.literal('painted-world'), ...order, world: id, weather: id }),
   v.strictObject({ kind: v.literal('rope-deck'), ...order, deck: id, chain: id }),
