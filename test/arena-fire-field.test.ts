@@ -9,6 +9,7 @@ import { overrideTerrain } from './fake/terrain';
 import { ArenaFireView, ArenaWhirlsView } from '../src/game/boss/arenaFire';
 import { arenaFireView, arenaWhirlsView } from './fake/arenaViews';
 import { fireViewRows } from '../src/shards/nalati-grasslands/generators/titanFireView';
+import {titanWhirlGate,titanWhirlView} from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
 import program from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type: 'json' };
@@ -73,13 +74,13 @@ test('a fire without cell rows refuses to draw a field', () => {
 // A made-up quarry's two dust devils (the whirlwinds' fixture second user) on their own laws, funnels and debris.
 const devil = (x: number) => ({ signal: 'whirl', initial: { x, z: 0, vx: 0, vz: 0, cd: 0 }, parameters: { cx: 0, cz: 0, radius: 40, flank: 2 },
   retain: { x: 'x', z: 'z', vx: 'vx', vz: 'vz', cd: 'cd' } });
-const devils = { laws: [devil(-8), devil(8)], ease: 4, spin: 2, sink: 0.2, breathe: [0.1, 1],
+const devils = {view:titanWhirlView(2), gate:titanWhirlGate(2), laws: [devil(-8), devil(8)], ease: 4, spin: 2, sink: 0.2, breathe: [0.1, 1],
   debris: { count: 3, climb: 0.5, turn: 1, step: 2, radius: [0.5, 2], height: 6, axis: [0, 1, 0], roll: 1, scale: [0.5, 0.25, 2] } };
 
 test('a second shard\'s dust devils ease in only while armed and live, spin their funnels and climb their debris', () => {
   restore = overrideTerrain({ heightAt: () => 3, normalAt: () => [0, 1, 0] });
   const funnels = [new Group(), new Group()], debris = new InstancedMesh(new BoxGeometry(), new MeshBasicMaterial(), 6), scope = new Scope('quarry');
-  const rows = parse(ArenaWhirlsSchema, devils), view = new ArenaWhirlsView(rows, ReturnProgram.page(program.wind), funnels, debris);
+  const rows = parse(ArenaWhirlsSchema, devils), view = new ArenaWhirlsView(rows, ReturnProgram.page(program.wind), funnels, debris,ReturnProgram.page(program.attack),scope);
   // R6: the funnels' and the debris' drawing is the whirl view module (behaviour/titanWhirlsView), at the fight's slot
   const draw = arenaWhirlsView(scope, rows, funnels, debris, view.drawn);
   try {
@@ -95,7 +96,7 @@ test('a second shard\'s dust devils ease in only while armed and live, spin thei
     for (let i = 0; i < 40; i++) { view.update(0.1, 1 + i * 0.1, false, 0, { wx: 1, wz: 0, px: 0, pz: 30 }); draw.frame(0.1, 1 + i * 0.1); }
     expect(funnels[1]?.visible).toBe(false); expect(debris.count).toBe(0);
     view.reset(); expect(debris.count).toBe(0);
-    expect(() => new ArenaWhirlsView(rows, ReturnProgram.page(program.wind), [new Group()], debris)).toThrow('funnel');
+    expect(() => new ArenaWhirlsView(rows, ReturnProgram.page(program.wind), [new Group()], debris,ReturnProgram.page(program.attack),scope)).toThrow('funnel');
   } finally { scope.dispose(); }
 });
 

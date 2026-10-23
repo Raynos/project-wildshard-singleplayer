@@ -1,3 +1,5 @@
+import {ARENA_VIEW,arenaFunnel} from '@wildshard/format/arenaView';
+import type {ArenaWhirlsRows} from '@wildshard/format/encounterRows';
 import { strike } from '@wildshard/sdk/species';
 import strikeRows from '../data/strikeProfiles.generated.json' with { type: 'json' };
 import { CAIRN } from './layout';
@@ -115,7 +117,18 @@ const trailInitial={count:0,elapsed:0,...Object.fromEntries(Array.from({length:1
 export const TITAN_TRAIL = { initial:trailInitial,parameters:{capacity:12,every:.1},retain:Object.fromEntries(Object.keys(trailInitial).map(key=>[key,key] as const)),
   signals:{step:'arenaTrail',pick:'arenaTrailPick'} };
 /** the three whirlwinds (game/boss/arenaFire ArenaWhirlsView): their wander laws, the funnels' ease and spin, the debris spiral */
-export const TITAN_WHIRLS = { laws: [0,1,2].map(i => ({ signal: 'whirl',
+export function titanWhirlGate(count:number):ArenaWhirlsRows['gate']{
+  const slots=Array.from({length:count},(_,i)=>({weight:`zzzzWhirl${i}K`,armed:`zzzzWhirl${i}On`,shown:`zzzzWhirl${i}Shown`}));
+  const keys=slots.flatMap(slot=>Object.values(slot));
+  return {law:{signal:'zzzzWhirlGate',initial:Object.fromEntries(keys.map(key=>[key,0])),parameters:{count},retain:Object.fromEntries(keys.map(key=>[key,key]))},
+    arm:'zzzzWhirlArm',slots,inputs:{delta:'dt',live:'open',ease:'amount',mask:'zzMask',index:'index',count:'count'}};
+}
+export function titanWhirlView(count:number):ArenaWhirlsRows['view']{
+  const view=ARENA_VIEW.whirls;
+  return {source:view.values,slot:view.slot,draw:view.draws.debris,
+    slots:Array.from({length:count},(_,i)=>({object:arenaFunnel(i),fields:{k:`k${i}`,shown:`shown${i}`,x:`x${i}`,y:`y${i}`,z:`z${i}`}}))};
+}
+export const TITAN_WHIRLS = { view:titanWhirlView(3),gate:titanWhirlGate(3), laws: [0,1,2].map(i => ({ signal: 'whirl',
   initial: { x: TITAN_ARENA.center.x + Math.cos(i*2.1)*30, z: TITAN_ARENA.center.z + Math.sin(i*2.1)*30, vx: 0, vz: 0, cd: 0 },
   parameters: { cx: TITAN_ARENA.center.x, cz: TITAN_ARENA.center.z, radius: TITAN_PLACE.arenaRadius, flank: TITAN_TUNING.whirlRadius },
   retain: { x: 'x', z: 'z', vx: 'vx', vz: 'vz', cd: 'cd' },

@@ -10124,6 +10124,12 @@ own requirements. Admission checks event aliases and channels before allocating
 a program. Nalati's actual arena clocks and Nine's actual grapple course share
 this renderer-free owner. Bodies, field grids and presentation remain external.
 
+ArenaWhirlsView takes an admitted gate schedule and its concrete ReturnProgram.
+One retained gate bank projects the current member at each original slot before its existing
+law and ground reads. Rows bind the numeric inputs and retained weight/visibility
+slots; reset disarms and hides without clearing the easing weight. Gate admission
+checks input/event/channel references before the arena allocates its resources.
+
 RespawnQueue can select this concrete policy owner; place retains entry
 identity when a guest defers it. ReturnGate keeps native corpse/fade clocks in
 the existing save object, or observes the page body's real hidden state.
@@ -12954,3 +12960,9 @@ Duplicate active keys, replaced scopes, repeated publication and retired
 owners refuse. A late completion cannot retire a replacement for its key.
 The shardfile ring adapter uses this lifecycle without changing its asset
 lease/read, decoder or detached group publication order.
+
+ArenaWhirlsView.bindView lends its own records, objects and draw under the
+entered Scope. View rows name each field alias/object id and the values/draw/frame
+loans; admission checks the complete inventory before publication. The frame
+runs after the original ordered law/ground loop and before returned contacts,
+without registering a system. Ending the entered scope removes only its loans.

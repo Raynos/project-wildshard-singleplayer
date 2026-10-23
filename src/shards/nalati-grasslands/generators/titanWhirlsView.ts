@@ -1,4 +1,4 @@
-import { ARENA_VIEW, arenaFunnel } from '@wildshard/format/arenaView';
+import type {ArenaWhirlsRows} from '@wildshard/format/encounterRows';
 import type { ViewProgramRows } from '@wildshard/format/viewProgram';
 import { TITAN_WHIRLS } from './stormTitanFight';
 
@@ -12,17 +12,17 @@ import { TITAN_WHIRLS } from './stormTitanFight';
 export function nalatiTitanWhirlsView(): ViewProgramRows { return whirlsViewRows(TITAN_WHIRLS); }
 
 /** Any whirlwinds' view rows (the Titan's above; a test's made-up dust devils too). */
-export function whirlsViewRows(rows: { readonly laws: readonly unknown[]; readonly sink: number; readonly spin: number; readonly breathe: readonly number[];
+export function whirlsViewRows(rows: {readonly view:ArenaWhirlsRows['view']; readonly laws: readonly unknown[]; readonly sink: number; readonly spin: number; readonly breathe: readonly number[];
   readonly debris: { readonly count: number; readonly climb: number; readonly turn: number; readonly step: number; readonly radius: readonly number[]; readonly height: number;
     readonly axis: readonly number[]; readonly roll: number; readonly scale: readonly number[] } }): ViewProgramRows {
-  const whirls = ARENA_VIEW.whirls, d = rows.debris, [ax = 0, ay = 0, az = 0] = d.axis, unit = Math.hypot(ax, ay, az);
+  const whirls = rows.view, d = rows.debris, [ax = 0, ay = 0, az = 0] = d.axis, unit = Math.hypot(ax, ay, az);
   const constant = (n: number) => ({ kind: 'constant' as const, value: n });
   return { slot: whirls.slot, before: [], budget: { pages: 1, ioBytes: 16384, fuel: 500_000, targetMs: .5 },
     pools: [],
     samples: [{ kind: 'clock' }, ...[rows.sink, rows.spin, ...rows.breathe, d.count, d.climb, d.turn, d.step, ...d.radius, d.height,
         ax / unit, ay / unit, az / unit, d.roll, ...d.scale, rows.laws.length].map(constant),
-      ...rows.laws.flatMap((_, i) => whirls.fields.map(field => ({ kind: 'value' as const, source: whirls.values, field: field + String(i) })))],
-    channels: [], transforms: rows.laws.map((_, i) => ({ kind: 'object' as const, object: arenaFunnel(i) })),
-    batches: [{ draw: whirls.draws.debris, capacity: rows.laws.length * d.count }],
+      ...whirls.slots.flatMap(slot => (['k','shown','x','y','z'] as const).map(field => ({ kind: 'value' as const, source: whirls.source, field: slot.fields[field] })))],
+    channels: [], transforms: whirls.slots.map(slot => ({ kind: 'object' as const, object: slot.object })),
+    batches: [{ draw: whirls.draw, capacity: rows.laws.length * d.count }],
     bounds: { translation: 4000, scale: [0, 40], shear: .02 } };
 }

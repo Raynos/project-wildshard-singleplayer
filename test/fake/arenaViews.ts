@@ -1,7 +1,7 @@
 import { PerspectiveCamera, Vector3, type InstancedMesh, type Object3D } from 'three';
 import type { Scope } from '../../src/engine/app/scope';
 import { viewProgram, type ViewProgram } from '../../src/engine/script/viewProgram';
-import { ARENA_BURNT_PER_FRAME, ARENA_VIEW, arenaFunnel } from '../../src/format/arenaView';
+import { ARENA_BURNT_PER_FRAME, ARENA_VIEW } from '../../src/format/arenaView';
 import { fireViewRows } from '../../src/shards/nalati-grasslands/generators/titanFireView';
 import { whirlsViewRows } from '../../src/shards/nalati-grasslands/generators/titanWhirlsView';
 import fireModule from '../../src/shards/nalati-grasslands/behaviour/titanFireView.generated.json' with { type: 'json' };
@@ -34,12 +34,12 @@ export function arenaFireView(scope: Scope, field: Parameters<typeof fireViewRow
 /** The arena whirl view module (R6) over any whirlwinds: their drawn state (ease, shown, x, ground, z) and its program. */
 export function arenaWhirlsView(scope: Scope, rows: Parameters<typeof whirlsViewRows>[0], funnels: readonly Object3D[], debris: InstancedMesh,
   drawn: readonly { readonly k: number; readonly shown: number; readonly x: number; readonly y: number; readonly z: number }[]): ViewProgram {
-  const whirls = ARENA_VIEW.whirls, fields = new Map<string, () => number>();
-  for (const [i, row] of drawn.entries()) for (const key of ['k', 'shown', 'x', 'y', 'z'] as const) fields.set(`${key}${String(i)}`, () => row[key]);
+  const whirls = rows.view, fields = new Map<string, () => number>();
+  for (const [i, row] of drawn.entries()){const slot=whirls.slots[i];if(slot===undefined)throw new Error('Missing whirl view slot');for (const key of ['k', 'shown', 'x', 'y', 'z'] as const) fields.set(slot.fields[key], () => row[key]);}
   const program = viewProgram(bytesOf(whirlsModule), whirlsViewRows(rows), { scope, player, camera: new PerspectiveCamera(),
-    values: id => id === whirls.values ? name => fields.get(name)?.() ?? Number.NaN : null, floor: () => null, slots: () => null, look: () => undefined,
-    object: id => { const funnel = funnels.find((_, i) => arenaFunnel(i) === id); if (funnel === undefined) throw new Error(`No funnel ${id}`); return funnel; },
-    draw: id => { if (id !== whirls.draws.debris) throw new Error(`No draw ${id}`); return debris; } });
+    values: id => id === whirls.source ? name => fields.get(name)?.() ?? Number.NaN : null, floor: () => null, slots: () => null, look: () => undefined,
+    object: id => { const funnel = funnels.find((_, i) => whirls.slots[i]?.object === id); if (funnel === undefined) throw new Error(`No funnel ${id}`); return funnel; },
+    draw: id => { if (id !== whirls.draw) throw new Error(`No draw ${id}`); return debris; } });
   if (program === null) throw new Error('Missing arena whirl view');
   return program;
 }

@@ -4,6 +4,7 @@
  * name (entry-owner `object` loans) and the lent looks its channels write, and runs it in its rows' update system, or
  * inline in its owner's update where the owner calls the frame slot it lends (rows `slot`).
  */
+import {isJsonData} from '@wildshard/format/json';
 import type { InstancedMesh } from 'three';
 import { admitScriptV2 } from '@wildshard/format/scriptAdmissionV2';
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
@@ -27,6 +28,16 @@ function lend<T>(books: WeakMap<Scope, Map<string, T>>, scope: Scope, id: string
   if (book.has(id) || scope.disposed || scope.disposing) throw new Error(`View ${what} cannot be lent: ${id}`);
   const held = book; held.set(id, value); scope.onDispose(() => { held.delete(id); });
 }
+/** Check an owner's complete values/draw/frame inventory before lending any
+ * resources. This neither allocates a program nor reserves a loan. */
+export function preflightViewLends(scope:Scope,rows:{readonly values?:readonly string[];readonly draws?:readonly string[];readonly frames?:readonly string[]}):void{
+  if(!isJsonData(rows)||Object.keys(rows).some(key=>key!=='values'&&key!=='draws'&&key!=='frames'))throw new Error('View inventory requires plain JSON rows');
+  if(scope.disposed||scope.disposing)throw new Error('View lender scope has ended');
+  for(const [kind,book]of [['values',lentValues],['draws',lentDraws],['frames',lentFrames]] as const){
+    const ids=rows[kind]??[];
+    if(new Set(ids).size!==ids.length||ids.some(id=>!/^[A-Za-z][A-Za-z0-9_.:-]{0,255}$/u.test(id)||book.get(scope)?.has(id)===true))throw new Error(`Conflicting view ${kind} loans`);
+  }
+}
 /** An owner lends a native group's ordered actor slots to its scope's view programs (pools name the group). */
 export function lendViewSlots(scope: Scope, group: string, slots: ViewSlots): void { lend(lentSlots, scope, group, slots, 'slots'); }
 /** An owner lends a numeric snapshot (named finite fields, read once a frame and never written back) to its scope's view programs. */
@@ -37,7 +48,7 @@ export function lendViewValues(scope: Scope, source: string, read: (field: strin
 export function lendViewFrame(scope: Scope, id: string): { frame: (dt: number, time: number) => boolean } {
   const slot: FrameSlot = { build: installedFrames.get(scope)?.get(id) ?? null, program: null };
   lend(lentFrames, scope, id, slot, 'frame'); slot.program = slot.build?.() ?? null;
-  return { frame: (dt, time) => slot.program?.frame(dt, time) ?? false };
+  return { frame: (dt, time) => scope.disposed||scope.disposing?false:slot.program?.frame(dt, time) ?? false };
 }
 /** An owner lends a numeric array its scope's view programs read whole once a frame (`arrays` rows), never written back. */
 export function lendViewArray(scope: Scope, id: string, read: () => ArrayLike<number>): void { lend(lentArrays, scope, id, read, 'array'); }

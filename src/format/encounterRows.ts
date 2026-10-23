@@ -50,7 +50,13 @@ export const ArenaEncounterSchema = v.strictObject({
   count:v.string(),left:v.string(),spear:v.string(),clear:numbers,
   landings:v.pipe(v.array(v.strictObject({on:v.string(),t:v.string(),x:v.string(),z:v.string(),strike:v.string(),hurt:v.string()})),v.minLength(1),v.maxLength(8)),
 });
+const gateKey=v.pipe(v.string(),v.minLength(1),v.maxLength(512));
 export const ArenaWhirlsSchema = v.strictObject({
+ view:v.strictObject({source:gateKey,slot:gateKey,draw:gateKey,
+  slots:v.pipe(v.array(v.strictObject({object:gateKey,fields:v.strictObject({k:gateKey,shown:gateKey,x:gateKey,y:gateKey,z:gateKey})})),v.minLength(1),v.maxLength(8))}),
+ gate:v.strictObject({law:EncounterScheduleSchema,arm:gateKey,
+  slots:v.pipe(v.array(v.strictObject({weight:gateKey,armed:gateKey,shown:gateKey})),v.minLength(1),v.maxLength(8)),
+  inputs:v.strictObject({delta:gateKey,live:gateKey,ease:gateKey,mask:gateKey,index:gateKey,count:gateKey})}),
  laws: v.pipe(v.array(EncounterScheduleSchema), v.minLength(1), v.maxLength(8)), ease: finite, spin: finite, sink: finite, breathe: pair,
  debris: v.strictObject({ count: v.pipe(count, v.maxValue(64)), climb: finite, turn: finite, step: finite, radius: pair, height: finite,
   axis: v.tuple([finite, finite, finite]), roll: finite, scale: v.tuple([finite, finite, v.pipe(count, v.maxValue(16))]) }),

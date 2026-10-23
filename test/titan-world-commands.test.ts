@@ -13,7 +13,7 @@ function binding(kind:'cell-field'|'mount'):ReadonlyMap<number,V2ActionBinding>{
 
 test('selected-only command names append without renumbering any original binding',()=>{
   const {script,v2}=programs.attack;
-  expect(v2.additional).toStrictEqual({fields:['zzzzIntroT'],signals:['zzzzDismount','zzzzIgnite','zzzzIntroClock'],channels:['zzzzIntroT','zzzzIntroTick']});
+  expect(v2.additional).toStrictEqual({fields:['zzzzIntroT',...Array.from({length:8},(_,i)=>['K','On','Shown'].map(key=>`zzzzWhirl${i}${key}`)).flat()],signals:['zzzzDismount','zzzzIgnite','zzzzIntroClock','zzzzWhirlArm','zzzzWhirlGate'],channels:['zzzzIntroT','zzzzIntroTick',...Array.from({length:8},(_,i)=>['K','On','Shown'].map(key=>`zzzzWhirl${i}${key}`)).flat()]});
   for(const kind of ['fields','signals','channels'] as const){
     const original=Object.values(script[kind]).sort();expect(v2[kind].slice(0,original.length)).toStrictEqual(original);
   }

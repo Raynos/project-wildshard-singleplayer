@@ -136,12 +136,15 @@ test.each([false,true])('arena script runs mounted phases, exposes its heart and
   }
   const invalidSnapshot=structuredClone(data);invalidSnapshot.script.fight.retainEvents.tell.bend='missing';
   expect(()=>new ArenaRoomEncounter({kind:'open',world:{game,player:f.player,weather:weather.weather,air:weather.air,tieSpot:null},rows:invalidSnapshot})).toThrow('Missing projection state slot');
-  for(const bad of ['intro-clock-channel','clock-event','support-slot','member-slot','support-actors','support-commit','support-commit-finite','support-memory','whirl-slot','field-channel','field-signal']){
+  for(const bad of ['intro-clock-channel','clock-event','support-slot','member-slot','gate-slot','gate-input','gate-event','support-actors','support-commit','support-commit-finite','support-memory','whirl-slot','field-channel','field-signal']){
     const invalid=structuredClone(data);
     if(bad==='intro-clock-channel')invalid.script.fight.retainEvents.introClock.zzzzIntroTick='missing';
     if(bad==='clock-event')invalid.clocks.frame.signals.step='missingEvent';
     if(bad==='support-slot')invalid.support.initial['missing']=0;
     if(bad==='member-slot')invalid.support.member['missing']=0;
+    if(bad==='gate-slot'&&invalid.whirls.gate.slots[0]!==undefined)invalid.whirls.gate.slots[0].weight='missing';
+    if(bad==='gate-input')invalid.whirls.gate.inputs.delta='missing';
+    if(bad==='gate-event')invalid.whirls.gate.arm='missing';
     if(bad==='support-actors')delete invalid.support.actors;
     if(bad==='support-commit')invalid.support.commit['x']=1;
     if(bad==='support-commit-finite')invalid.support.commit['mode']=Number.NaN;

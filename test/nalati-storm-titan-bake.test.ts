@@ -18,7 +18,10 @@ function fingerprint(g: BufferGeometry): string {
 }
 
 it('retains every encounter, phase, reward and attack number', () => {
-  expect(fight).toEqual({ ...authored });
+  const {titanWhirlGate,titanWhirlView,...rows}=authored;
+  expect(fight).toEqual(rows);
+  expect(fight.TITAN_WHIRLS.gate).toStrictEqual(titanWhirlGate(fight.TITAN_WHIRLS.laws.length));
+  expect(fight.TITAN_WHIRLS.view).toStrictEqual(titanWhirlView(fight.TITAN_WHIRLS.laws.length));
   expect(fight.TITAN_ENCOUNTER.id).toBe('storm-titan');
   expect(fight.TITAN_PHASES.map(row => row.at)).toEqual([1, 0.6, 0.3]);
 });

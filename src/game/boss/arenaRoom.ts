@@ -55,8 +55,8 @@ import { setEliteDamage } from '@wildshard/engine/entities/eliteBrain';
 import { CellField } from '../systems/cellField';
 import { ArenaFireView, ArenaWhirlsView } from './arenaFire';
 import { ArenaSceneView, CloudBody, type PatrolEncounterView } from './encounterView';
-import { ARENA_BURNT_PER_FRAME, ARENA_VIEW, arenaChainTell, arenaFunnel } from '@wildshard/format/arenaView';
-import {entryOwner,publishEntryOwner} from '../shardfile/entryOwners';
+import { ARENA_BURNT_PER_FRAME, ARENA_VIEW, arenaChainTell } from '@wildshard/format/arenaView';
+import {entryOwner} from '../shardfile/entryOwners';
 import { lendViewArray, lendViewCell, lendViewDraw, lendViewFrame, lendViewTell, lendViewValues } from '../shardfile/clientViewProgram';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { GroundTell } from '../Elite';
@@ -658,8 +658,6 @@ class OpenArenaProjection implements BossScript {
   private readonly burnt = new Float32Array(1 + ARENA_BURNT_PER_FRAME);
   private fireClear = false;
   private fireFrame: ((dt: number, time: number) => boolean) | null = null;
-  /** the whirl view's slot (R6: behaviour/titanWhirlsView draws the funnels and their debris) */
-  private whirlFrame: ((dt: number, time: number) => boolean) | null = null;
   private readonly chains: Chain[];
   private get chainLeft(): number { return this.clocks.value(this.data.clocks.left); }
   readonly clocks:ProjectedState;
@@ -698,6 +696,7 @@ class OpenArenaProjection implements BossScript {
     ProjectedState.preflight(data.script.fight,bindings);
     ProjectedState.preflight(clocks.frame,bindings);ProjectedState.preflight({...data.support,signal:'couple',outputs:['index','hp','mask','broke']},bindings);
     ProjectedState.preflight({initial:{...data.support.member,theta:0},parameters:data.support.parameters,signals:data.support.signals,signal:'member',outputsEvents:{member:this.memberOutputs,damage:['alpha']}},bindings);
+    ArenaWhirlsView.preflight(data.whirls,bindings);
     const windBindings=ReturnProgram.projectionBindings(data.programs.wind);
     for(const law of data.whirls.laws)ProjectedState.preflight(law,windBindings);
     if(data.field.contact!==undefined)ProjectedState.preflight(data.field.contact.law,windBindings);
@@ -716,7 +715,7 @@ class OpenArenaProjection implements BossScript {
     ]));
     const arena = this.arena = new ArenaSceneView(scene, this.data.geometry.arena);
     this.chains=clocks.landings.map((row,i)=>({tell:arena.tell('chain',i),row}));
-    this.whirls = new ArenaWhirlsView(this.data.whirls, windLaw, [arena.mesh('funnel0'), arena.mesh('funnel1'), arena.mesh('funnel2')], arena.instances('debris'));
+    this.whirls = new ArenaWhirlsView(this.data.whirls, windLaw, [arena.mesh('funnel0'), arena.mesh('funnel1'), arena.mesh('funnel2')], arena.instances('debris'),this.author,this.scope);
     this.fire = new ArenaFireView(scene, this.data.arenaFire, (TIER === 'phone' ? this.data.geometry.phone : this.data.geometry.desktop).flames);
     this.scorch = arena.instances('scorch'); this.scorch.count = 0;
     const target = data.view.target;
@@ -751,15 +750,7 @@ class OpenArenaProjection implements BossScript {
     lendViewDraw(scope, fire.draws.flames, this.fire.flames); lendViewDraw(scope, fire.draws.smoke, this.fire.smoke); lendViewDraw(scope, fire.draws.scorch, this.scorch);
     const fireFrame = lendViewFrame(scope, fire.slot).frame;
     this.fireFrame = fireFrame; scope.onDispose(() => { if (this.fireFrame === fireFrame) this.fireFrame = null; });
-    // the whirlwinds: each one's ease, visibility and stand after its law (the ease and the gate stay here: they decide which
-    // laws step), its funnel and their debris, at the whirl slot
-    const whirls = ARENA_VIEW.whirls, fields = new Map<string, () => number>();
-    for (const [i, row] of this.whirls.drawn.entries()) for (const key of ['k', 'shown', 'x', 'y', 'z'] as const) fields.set(`${key}${String(i)}`, () => row[key]);
-    lendViewValues(scope, whirls.values, name => fields.get(name)?.() ?? Number.NaN);
-    for (const [i, funnel] of this.whirls.funnels.entries()) publishEntryOwner(scope, 'object', arenaFunnel(i), funnel);
-    lendViewDraw(scope, whirls.draws.debris, this.whirls.debris);
-    const whirlFrame = lendViewFrame(scope, whirls.slot).frame;
-    this.whirlFrame = whirlFrame; scope.onDispose(() => { if (this.whirlFrame === whirlFrame) this.whirlFrame = null; });
+    this.whirls.bindView(scope);
     this.view = view; scope.onDispose(() => { if (this.view === view) this.view = null; });
   }
 
@@ -1035,8 +1026,6 @@ class OpenArenaProjection implements BossScript {
   private updateWhirls(dt: number, t: number, live: boolean, thinkDt: number): void {
     const p = this.host.player.position;
     const hits = this.whirls.update(dt, t, live, thinkDt, { wx: wind.dirX, wz: wind.dirZ, px: p.x, pz: p.z });
-    // the whirl slot: the view module draws the funnels and their debris where their laws put them
-    this.whirlFrame?.(dt, t);
     for (const at of hits) if (this.host.contact('whirl', at, this.data.tuning.whirlDamage, this.data.lines.whirl)) this.host.throwRider();
   }
 
