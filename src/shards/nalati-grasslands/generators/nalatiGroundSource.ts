@@ -85,6 +85,44 @@ export async function bakeNalatiGroundLod(source: NativeLatticeSource, policy: {
   return bakePreparedGround(source, staticTiles, lod1);
 }
 
+/** N1b: a pair of the 16 L1 squares (`x` 0..1 the pair along x, `z` 0..3 the row), as one GLB with one mesh: the two
+ * squares' simplified triangles in one primitive (the client splits them back by triangle centroid; each square is clipped
+ * at its seams). Pairs, not quads: a quad of four squares is over the repo's 1 MB blob limit. */
+export interface NalatiGroundQuad { x: number; z: number; bytes: Uint8Array; geometricError: number }
+
+/** The L1 ground as eight pair GLBs (named product files, not tile rows, so they spend no envelope node budget). */
+export async function bakeNalatiGroundQuads(source: NativeLatticeSource, policy: { targetRatio: number; maxErrorMetres: number }): Promise<NalatiGroundQuad[]> {
+  const lod1: NativeLatticeLod[] = [];
+  for (const tile of sliceNativeLattice(source, 1)) lod1.push(await simplifyNativeLatticeTile(tile, policy.targetRatio, policy.maxErrorMetres));
+  const material = new MeshStandardMaterial({ color: 0xffffff, metalness: 0, roughness: 1 });
+  material.name = 'nalati.ground';
+  try {
+    return [0, 1, 2, 3].flatMap(z => [0, 1].map(x => {
+      const members = lod1.filter(({ tile }) => Math.floor(tile.x / 2) === x && tile.z === z);
+      const first = members[0]; if (members.length !== 2 || first === undefined) throw new Error('Nalati L1 pair needs its two squares');
+      const names = Object.keys(first.tile.attributes), vertices = members.reduce((n, { tile }) => n + tile.positions.length / 3, 0);
+      const positions = new Float32Array(vertices * 3), channels = new Map(names.map(name => [name, new Float32Array(vertices * (first.tile.attributes[name]?.itemSize ?? 0))]));
+      const indices = new Uint32Array(members.reduce((n, { tile }) => n + tile.indices.length, 0));
+      let vertex = 0, index = 0;
+      for (const { tile } of members) {
+        positions.set(tile.positions, vertex * 3);
+        for (const name of names) { const channel = tile.attributes[name], out = channels.get(name); if (channel === undefined || out === undefined) throw new Error(`Nalati L1 pair lost channel ${name}`); out.set(channel.values, vertex * channel.itemSize); }
+        for (let i = 0; i < tile.indices.length; i++) indices[index + i] = (tile.indices[i] ?? 0) + vertex;
+        vertex += tile.positions.length / 3; index += tile.indices.length;
+      }
+      const geometry = new BufferGeometry();
+      let bytes: Uint8Array;
+      try {
+        geometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
+        for (const name of names) { const out = channels.get(name); if (out !== undefined) geometry.setAttribute(name, new Float32BufferAttribute(out, first.tile.attributes[name]?.itemSize ?? 1)); }
+        geometry.setIndex(new BufferAttribute(indices, 1));
+        bytes = staticGlb([{ geometry, material, castShadow: false, customAttributes: CUSTOM }], `nalati.ground.l1.${String(x)}.${String(z)}`);
+      } finally { geometry.dispose(); }
+      return { x, z, bytes, geometricError: Math.max(...members.map(member => member.errorMetres)) };
+    }));
+  } finally { material.dispose(); }
+}
+
 function bakePreparedGround(source: NativeLatticeSource, staticTiles: readonly NalatiStaticTile[], lod1?: readonly NativeLatticeLod[]): NalatiGroundTile[] {
   const props = new Map<string, readonly GlbPrimitive[]>();
   for (const entry of staticTiles) {

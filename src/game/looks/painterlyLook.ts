@@ -1,6 +1,6 @@
 /** The painterly look host's world pieces (G478 point 3, with game/looks/paintedLook): a level that paints its own world
  * (Nalati's panorama painterly) declares them as rows; renderer construction and lifetime hooks stay here. */
-import { BufferGeometry, ClampToEdgeWrapping, Color, Material, Vector3, Mesh, MeshLambertMaterial, SphereGeometry, type IUniform, type Scene, type Texture } from 'three';
+import { BufferAttribute, BufferGeometry, ClampToEdgeWrapping, Color, Material, Vector3, Mesh, MeshLambertMaterial, SphereGeometry, type IUniform, type Scene, type Texture } from 'three';
 import * as v from 'valibot';
 import type { TerrainPainter } from '@wildshard/engine/render/look';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -70,12 +70,11 @@ export function paintedGroundPainter(slug: string, input: unknown, tiles: unknow
     const ground = scene.parts.get(rows.mesh);
     if (!isGroundMesh(ground) || !rows.shapes.every(id => isGroundMesh(scene.parts.get(id)))) throw new Error('Missing named ground mesh');
     terrain.material = material; terrain.mesh = ground;
-    const tileRows = rows.tiles === true ? product.shardfile.props?.tiles ?? [] : [];
-    const groundTiles = tileRows.filter(row => row.lod === 0), coarseTiles = tileRows.filter(row => row.lod === 1);
+    const groundTiles = rows.tiles === true ? (product.shardfile.props?.tiles ?? []).filter(row => row.lod === 0) : [];
     if (groundTiles.length > 0) {
       // tile streaming N1a: the tiles draw as one merged mesh (the terrain's mesh, its flags kept) and only the player's
-      // 5 x 5 of them stays loaded, followed from the merged mesh's own draws; N1b: the 16 L1 tiles stay loaded beyond it,
-      // each leaving out the quadrants its drawn L0 tiles cover
+      // 5 x 5 of them stays loaded, followed from the merged mesh's own draws; N1b: the 16 L1 squares (named pair GLBs,
+      // world/terrain/ground-l1-<x>-<z>.glb) stay loaded beyond it, each leaving out the quadrants its drawn L0 tiles cover
       const assets = runtimeProduct(product.shardfile).assets, parent = ground.parent === scene.root ? terrain.group : ground.parent;
       if (parent === null) throw new Error('Painted ground mesh has no parent');
       const radius = TILE_RING, loaded = new Map<number, Scope>(), at = new Vector3();
@@ -95,7 +94,7 @@ export function paintedGroundPainter(slug: string, input: unknown, tiles: unknow
         }
       };
       const read = async (row: (typeof groundTiles)[number], owner: Scope): Promise<Mesh | null> => {
-        const owned = createOwnedGeometry(`${slug} ground l${String(row.lod)} ${String(row.x)}.${String(row.z)}`);
+        const owned = createOwnedGeometry(`${slug} ground ${String(row.x)}.${String(row.z)}`);
         await owned.load(await assets.read(row.file));
         const geometry = owned.take(); geometry.computeBoundingSphere();
         if (owner.disposed) { geometry.dispose(); return null; }
@@ -121,9 +120,19 @@ export function paintedGroundPainter(slug: string, input: unknown, tiles: unknow
         for (const row of groundTiles) if (keys.has(tileKey({ i: row.x, j: row.z }))) void loadLater(row);
       };
       for (const row of groundTiles) await load(row);
-      for (const row of coarseTiles) {
-        const owner = scope.child(`painted.ground.l1.${String(row.x)}.${String(row.z)}`), mesh = await read(row, owner);
-        if (mesh !== null) coarse.push({ x: row.x, z: row.z, hide: merge.add(mesh, owner, { x: row.x, z: row.z }) });
+      for (let z = 0; z < 4; z++) for (let x = 0; x < 2; x++) {
+        const name = `world/terrain/ground-l1-${String(x)}-${String(z)}.glb`; if (!product.hasFile(name) || scope.disposed) continue;
+        const owned = createOwnedGeometry(`${slug} ${name}`);
+        await owned.load(await product.file(name));
+        const pair = owned.take();
+        try {
+          // the pair's two squares, split back by triangle centroid (each square was clipped at its seams)
+          for (const [square, geometry] of splitSquares(pair, 2 * x)) {
+            const owner = scope.child(`painted.ground.l1.${String(square)}.${String(z)}`);
+            owner.onDispose(() => { geometry.dispose(); });
+            coarse.push({ x: square, z, hide: merge.add(new Mesh(geometry, material), owner, { x: square, z }) });
+          }
+        } finally { pair.dispose(); }
       }
       cover();
       ground.removeFromParent(); ground.geometry.dispose();
@@ -133,6 +142,33 @@ export function paintedGroundPainter(slug: string, input: unknown, tiles: unknow
     gpuOnlyTrees([scene.root], 'painted.ground');
     terrain.group.add(...scene.root.children);
   } };
+}
+
+/** N1b: a pair GLB's ground split back into its two L1 squares (`first`, `first + 1` along x) by triangle centroid, each
+ *  compacted to the vertices it uses (the bake clipped every square at its seams, so a triangle lies in one square). */
+function splitSquares(pair: BufferGeometry, first: number): [number, BufferGeometry][] {
+  const position = pair.getAttribute('position'), index = pair.getIndex(), count = index === null ? position.count : index.count;
+  const at = (k: number): number => index === null ? k : index.getX(k), boundary = -250 + 125 * (first + 1);
+  const squares: [number[], number[]] = [[], []];
+  for (let t = 0; t + 2 < count; t += 3) {
+    const a = at(t), b = at(t + 1), c = at(t + 2);
+    squares[(position.getX(a) + position.getX(b) + position.getX(c)) / 3 >= boundary ? 1 : 0].push(a, b, c);
+  }
+  return squares.map((triangles, i): [number, BufferGeometry] => [first + i, compactTriangles(pair, triangles)]);
+}
+function compactTriangles(source: BufferGeometry, triangles: readonly number[]): BufferGeometry {
+  const remap = new Map<number, number>(), used: number[] = [];
+  const index = triangles.map(vertex => { let at = remap.get(vertex); if (at === undefined) { at = used.length; remap.set(vertex, at); used.push(vertex); } return at; });
+  const geometry = new BufferGeometry();
+  for (const [name, attribute] of Object.entries(source.attributes)) {
+    if (attribute.normalized) throw new Error(`Painted ground pair has a normalized ${name}`);
+    const size = attribute.itemSize, values = new Float32Array(used.length * size);
+    used.forEach((vertex, i) => { for (let c = 0; c < size; c++) values[i * size + c] = attribute.getComponent(vertex, c); });
+    geometry.setAttribute(name, new BufferAttribute(values, size));
+  }
+  geometry.setIndex(new BufferAttribute(used.length > 65535 ? Uint32Array.from(index) : Uint16Array.from(index), 1));
+  geometry.computeBoundingSphere();
+  return geometry;
 }
 
 const tiers = <T extends v.GenericSchema>(schema: T) => v.strictObject({ phone: schema, desktop: schema });

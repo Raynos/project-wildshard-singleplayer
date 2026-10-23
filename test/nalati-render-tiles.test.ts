@@ -108,11 +108,12 @@ test('moves the water draw out of private JSON without changing its GPU channels
   } finally { original.dispose(); }
 });
 
-test('the product ships the ground as its 64 L0 and 16 L1 tiles, each file present and content-addressed', () => {
+test('the product ships the ground as its 64 L0 tiles and the far ground as 8 L1 pair files, each present', () => {
   const rows = v.parse(v.object({ tiles: v.array(v.object({ lod: v.number(), files: v.array(v.string()) })), files: v.array(v.object({ hash: v.string() })),
     props: v.object({ family: v.string(), tiles: v.array(v.object({ lod: v.number(), file: v.string() })) }) }), JSON.parse(readFileSync('src/shards/nalati-grasslands/data/renderTiles.json', 'utf8')));
-  expect(rows.tiles.filter(tile => tile.lod === 0)).toHaveLength(64); expect(rows.tiles.filter(tile => tile.lod === 1)).toHaveLength(16);   // N1b: L1 beyond the 5 x 5
-  expect(rows.tiles).toHaveLength(80);
+  expect(rows.tiles).toHaveLength(64); expect(rows.tiles.every(tile => tile.lod === 0)).toBe(true);
+  // N1b: the 16 L1 squares beyond the 5 x 5 ship two to a named GLB (generators/output.ts), each under the 1 MB blob limit
+  for (let z = 0; z < 4; z++) for (let x = 0; x < 2; x++) expect(readFileSync(`src/shards/nalati-grasslands/assets/world-terrain/ground-l1-${String(x)}-${String(z)}.generated.glb`).byteLength).toBeLessThan(1_000_000);
   expect(rows.props.family).toBe('painterly'); expect(rows.props.tiles.map(tile => tile.file).sort()).toEqual(rows.files.map(file => file.hash).sort());
   for (const file of rows.files) expect(hashImmutableBytes(new Uint8Array(readFileSync(`src/shards/nalati-grasslands/assets/${file.hash}`)))).toBe(file.hash);
 });
