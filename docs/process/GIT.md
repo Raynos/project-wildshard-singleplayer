@@ -30,10 +30,11 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   equal the parent advances to the committed bytes under that lock; local edits stay untouched and are
   reported. Foreign shared stages stay untouched; a stage still equal to the parent advances under the
   index lock, avoiding a staged revert of the patch. Stale patches refuse. Patched source differing from the working copy is checked at pre-push.
-  Pre-commit runs storage policy and one native oxlint invocation for TypeScript diagnostics and typed lint on
-  changed source, with a soft five-second budget. Timeout warns and hands those exact staged blobs' typed checks
-  to pre-push; actual errors still refuse. Missing verified generated inputs defer typed checks to full CI
-  explicitly. No mirror, generator, build or test runs at commit.
+  Pre-commit runs storage policy, fast lint and staged guards in parallel under a soft five-second budget.
+  The optional type-aware lint attempt stays within that cap (G636), without oxlint's `--type-check` (G657);
+  `tsc` owns TypeScript diagnostics. Timeout warns and hands those exact staged blobs' typed lint to pre-push;
+  actual errors still refuse. Missing verified generated inputs defer typed lint to full CI explicitly.
+  No mirror, generator, build or full suite runs at commit.
   Fix a refusal and retry. Message conventions and the existing lock/legacy policies remain.
 - **Commits are pushed by the scheduled loop (G568, Jake, 2026-10-21).** `scripts/push-loop.py` runs every
   60 seconds. Lanes commit their green source; `scripts/push-main.sh` requests one scheduled tick when needed.

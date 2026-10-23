@@ -186,7 +186,7 @@ def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_a
             if lint and deadline - time.monotonic() > 1:
                 for start in range(0, len(lint), 16):
                     remainder = lint[start:]
-                    rc, output = runner(['pnpm', 'exec', 'oxlint', '--type-check', '--type-aware',
+                    rc, output = runner(['pnpm', 'exec', 'oxlint', '--type-aware',
                                          '-c', '.oxlintrc.json', *remainder[:16]], root, deadline, env)
                     if refused(rc, output):
                         result.update(phase='typed-check', output=output,

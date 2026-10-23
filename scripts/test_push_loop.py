@@ -438,7 +438,7 @@ readFileSync('../public/assets/native/untracked.bin');
         self.assertEqual(result['phase'], 'typed-check')
         self.assertIn('scripts/vitest-push-guards.config.ts', calls[0])
         self.assertEqual(next(command for command in calls if 'oxlint' in command),
-                         ['pnpm', 'exec', 'oxlint', '--type-check', '--type-aware',
+                         ['pnpm', 'exec', 'oxlint', '--type-aware',
                           '-c', '.oxlintrc.json', 'src/good.ts'])
 
     def test_deferred_types_with_missing_generated_inputs_stay_with_ci(self):

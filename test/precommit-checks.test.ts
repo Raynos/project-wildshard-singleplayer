@@ -95,5 +95,6 @@ test('generated glob ignores never start staged fast or typed work',async()=>{
   await precommitInputs(root,checker);
   const output=readFileSync(calls,'utf8');
   expect(output).toContain('src/owner.ts');expect(output).not.toContain('src/owner.generated.ts');
+  expect(output).toContain('--type-aware');expect(output).not.toContain('--type-check');
  }finally{rmSync(root,{recursive:true,force:true});}
 });

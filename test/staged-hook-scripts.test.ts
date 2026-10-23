@@ -14,7 +14,7 @@ test('the wrapper preserves foreign stages, serializes messages and refuses a la
     .toContain('"storageRefusal": "passed"');
 });
 
-test('the cheap checker actually refuses types and lint without a mirror or generation', async () => {
+test('tsc owns diagnostics while the cheap checker retains typed and ordinary lint', async () => {
   mkdirSync('tmp', { recursive: true });
   const root = mkdtempSync(resolve('tmp/cheap-hook-'));
   const env = Object.fromEntries(Object.entries(processEnv).filter(([key]) => !key.startsWith('GIT_')));
@@ -23,13 +23,16 @@ test('the cheap checker actually refuses types and lint without a mirror or gene
   try {
     git('init', '-q'); git('config', 'user.email', 'fixture@example.invalid'); git('config', 'user.name', 'fixture');
     git('config', 'core.hooksPath', '/dev/null');
-    writeFileSync(resolve(root, '.oxlintrc.json'), JSON.stringify({ rules: { 'no-eval': 'error' } }));
-    writeFileSync(resolve(root, 'tsconfig.json'), JSON.stringify({ compilerOptions: { strict: true, target: 'esnext' }, include: ['*.ts'] }));
+    writeFileSync(resolve(root, '.oxlintrc.json'), JSON.stringify({ plugins:['typescript'],rules: { 'no-eval': 'error','typescript/no-floating-promises':'error' } }));
+    writeFileSync(resolve(root, 'tsconfig.json'), JSON.stringify({ compilerOptions: { strict: true, target: 'esnext', types:[] }, include: ['*.ts'] }));
     writeFileSync(file, 'export const value: number = 1;\n');
     git('add', '--', 'unit.ts', '.oxlintrc.json', 'tsconfig.json'); git('commit', '-qm', 'base');
     const executable = resolve('node_modules/.bin/oxlint');
     writeFileSync(file, 'export const value: number = "wrong";\n'); git('add', '--', 'unit.ts');
-    await expect(precommitInputs(root, executable)).rejects.toThrow();
+    expect(()=>execFileSync(resolve('node_modules/.bin/tsc'),['--noEmit','--project',resolve(root,'tsconfig.json')],{cwd:root,env,stdio:'pipe'})).toThrow();
+    await expect(precommitInputs(root, executable)).resolves.toBeUndefined();
+    writeFileSync(file,'Promise.resolve(1);\n');git('add','--','unit.ts');
+    await expect(precommitInputs(root,executable)).rejects.toThrow();
     writeFileSync(file, "eval('1');\n"); git('add', '--', 'unit.ts');
     await expect(precommitInputs(root, executable)).rejects.toThrow();
     writeFileSync(file, 'export const value: number = 2;\n'); git('add', '--', 'unit.ts');

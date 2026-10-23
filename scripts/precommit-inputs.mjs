@@ -45,7 +45,7 @@ export async function precommitInputs(root = resolve(import.meta.dirname, '..'),
   /** @type {import('./precommit-jobs.mjs').CommitJob[]} */
   const early = [];
   if (existsSync(resolve(root, 'scripts/repo-size.mjs'))) early.push({ name: 'storage', command: [process.execPath, 'scripts/repo-size.mjs', '--index'] });
-  if (same) early.push({ name: 'typed lint', command: [executable, '--type-check', '--type-aware', '-c', '.oxlintrc.json', ...files] });
+  if (same) early.push({ name: 'typed lint', command: [executable, '--type-aware', '-c', '.oxlintrc.json', ...files] });
   else if (files.length > 0) { defer(); console.warn('pre-commit: staged patch differs from working files; exact typed checks deferred to push'); }
   const running = runCommitJobs(root, early, deadline);
   let tree;
