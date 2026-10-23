@@ -1,6 +1,6 @@
 # Plan: TOOLING-PERF — CI, tooling, build, TypeScript, lint and test mega performance
 
-**State:** `draft` 2026-10-23 — named by Jake (*"the CI and tooling and build TypeScript lint test mega performance
+**State:** `draft` 2026-10-23 — the mega audit (G651) is queued for the next free plan-agent subagent slot; named by Jake (*"the CI and tooling and build TypeScript lint test mega performance
 plan"*); rows drafted 10-23 by a plan-agent subagent from the CI runs, the push log and the mini plans below. Nothing is
 worked under this plan until Jake says go; the SHARD-PLATFORM rows already decided (G609, G610/G612, G620, G627, G628,
 G634, G636) keep landing there meanwhile and move here when this plan starts. Decisions stay in
@@ -19,9 +19,27 @@ future."*
 - `pnpm gen` speed — benchmark running; becomes `tooling-perf/gen-mini-plan.md` (pending).
 - CI / push gate / pre-commit — decided (G609, G610/G612, G620, G627, G628, G636); building under SHARD-PLATFORM.
 
-TOOLING-PERF holds only what those plans do not: the CI critical path, caches by input hash, the test-suite shape, the
-push gate's inputs, machine slots, the build and the release path. TypeScript, oxlint, gen and generator rows live in
-their own plans and are linked, never copied.
+**TOOLING-PERF is the mega audit (G651).** The mini plans are zoomed-in fixes for the obvious pain points; this plan
+covers **everything else, including what nobody knows about yet**: every lint rule, every custom check script, every
+test suite, every GitHub Actions workflow and job, every hook, the push gate, gen, the build, the release, the machine.
+Jake, 2026-10-23: *"It's supposed to be an audit review mega plan … the mini plans are just zoomed in focuses on really
+obvious pain points. And the tooling perf is everything else … All the lints, all the GitHub actions, all the CI, all the
+things that we should be running in pre-commit if they were fast, all the things that we should be running in pre-push if
+they were fast."*
+
+## The audit (G651, to be filled by a plan-agent subagent)
+
+1. **Inventory every check:** oxlint built-in rules and each custom `wildshard/*` rule, every `scripts/check-*` / `test-*` /
+   guard script, every vitest suite (unit, product, producer, behaviour, Playwright / e2e, Simulator), every workflow and job
+   in `.github/workflows/`, every hook (pre-commit, commit-msg, pre-push), the push gate, the ruler, repo-size, ratchets,
+   the deploy backstop.
+2. **For each:** what it guards, wall time and memory, where it runs today (pre-commit / push gate / CI / nightly /
+   nowhere), how often it failed in the last week and whether those were real bugs or flakes, duplicates.
+3. **The ladder:** where each check *should* run if it were fast enough: pre-commit (≤ 5 s, staged files), push gate
+   (≤ 45 s), CI (≤ 10 min), nightly; and what it would take to move it one rung earlier.
+4. **Missing checks:** live reds and CI reds of the last two weeks that no check caught early; what would have.
+5. **Dead weight:** checks that never fail, never run, or guard deleted code; delete them.
+6. Rows per workstream (below) and decisions for Jake.
 
 ## What we know (2026-10-23, ~01:00 Cancun)
 
