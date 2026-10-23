@@ -568,3 +568,16 @@ test.each(['quests/content.json', 'quests/chapters.json'])('chapter view require
   try { expect(() => admitClientPlan(f.ctx.product.section('client/plan'), f.ctx.product)).toThrow('Chapter view requires'); }
   finally { f.ctx.scope.dispose(); }
 });
+
+test('compiled arena phase binds open before room independent of author row order',async()=>{
+ const room={kind:'arena-room.entry',owner:'reed.room',claims:'reed.kit',reward:'reedBow',publish:'reed.vault'};
+ const open={...room,owner:'reed.open',reward:'reedBlade',publish:'reed.fight',equipment:'held-finishes'};
+ const seen:string[]=[],install=vi.spyOn(clientPhases.CLIENT_FEATURES['arena-room.entry'],'install').mockImplementation((_ctx,row)=>{
+  if(row.kind!=='arena-room.entry')throw new Error('Unexpected arena row');seen.push(row.owner);
+ });
+ try{for(const features of [[room,open],[open,room]]){
+  const f=context();try{seen.length=0;const plan=admitClientPlan({version:1,features},f.ctx.product);
+   await installClientPhase(f.ctx,plan,'play',f.ctx.scope);expect(seen).toEqual(['reed.open','reed.room']);
+  }finally{f.ctx.scope.dispose();}
+ }}finally{install.mockRestore();}
+});

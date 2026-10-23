@@ -99,7 +99,7 @@ export const ClientFeatureSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('weather.forest'), file: label }),
   v.strictObject({ kind: v.literal('page.life'), file: label, ranged: label, object: v.exactOptional(id) }),
   v.strictObject({ kind: v.literal('held.ranged-page'), file: label, shadowBatch: v.exactOptional(v.strictObject({ shard: v.boolean(), grid: v.boolean() })) }),
-  v.strictObject({ kind: v.literal('arena-room.entry'), owner: id, claims: id, reward: id, publish: id }),
+  v.strictObject({ kind: v.literal('arena-room.entry'), owner: id, claims: id, reward: id, publish: id, equipment: v.exactOptional(v.literal('held-finishes')) }),
   v.strictObject({ kind: v.literal('taming.entry'), riding: id, publish: id, object: v.exactOptional(id) }),
   v.strictObject({ kind: v.literal('elite.entry'), owner: id, adventure: id, body: id, rock: v.strictObject({ x: finite, z: finite, top: finite }), taming: v.exactOptional(id) }),
   v.strictObject({ kind: v.literal('quest.chapter-view'), chapterView: label, story: label, arena: id, fight: id, taming: v.exactOptional(id) }),
@@ -124,7 +124,8 @@ export const ClientFeatureSchema = v.variant('kind', [
 ]);
 /** Rows are unordered. Phase, rank and lifetime belong exclusively to the compiled registry. */
 export const ClientPlanSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Client plan requires plain JSON'), v.strictObject({ version: v.literal(1), features: v.pipe(v.array(ClientFeatureSchema), v.maxLength(64)) }),
-  v.check(plan => new Set(plan.features.map(row => row.kind === 'debug.expose' ? `${row.kind}:${row.name}` : row.kind === 'view.program' ? `${row.kind}:${row.id}` : row.kind)).size === plan.features.length, 'Duplicate client feature'));
+  v.check(plan => new Set(plan.features.map(row => row.kind === 'debug.expose' ? `${row.kind}:${row.name}` : row.kind === 'view.program' ? `${row.kind}:${row.id}` : row.kind === 'arena-room.entry' ? `${row.kind}:${row.owner}` : row.kind)).size === plan.features.length, 'Duplicate client feature'),
+  v.check(plan => { const entries=plan.features.filter(row=>row.kind==='arena-room.entry');return new Set(entries.map(row=>row.publish)).size===entries.length; },'Duplicate arena entry publication'));
 export type ClientPlan = v.InferOutput<typeof ClientPlanSchema>;
 export type ClientFeatureRow = ClientPlan['features'][number];
 export type ClientFeatureKind = ClientFeatureRow['kind'];

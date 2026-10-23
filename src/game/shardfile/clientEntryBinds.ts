@@ -1,17 +1,19 @@
 /** Finite entry bindings over existing room and riding owners. */
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import type { ShardContext } from '../plugin/context';
+import { clientCosmeticFinishes } from './clientCosmeticFinishes';
 import { entryOwner, presentEntryOwner, publishEntryOwner } from './entryOwners';
 
-/** Keep the original room, kit and reward model. An open arena still requires
- * its distinct equipment contract and refuses this room-only bind. */
+/** Keep the original room/open encounter, kit and reward model. The finite
+ * equipment option lends the installed finish locker and the same claims. */
 export function installArenaRoomEntry(ctx: ShardContext, row: Extract<ClientFeatureRow, { kind: 'arena-room.entry' }>): void {
   if (ctx.scope.disposed || ctx.scope.disposing) throw new Error('Arena entry owner has ended');
   const arena = entryOwner(ctx.scope, 'arena-room', row.owner), claims = entryOwner(ctx.scope, 'claims', row.claims);
   const kit = claims.pageKit(ctx);
   if (kit === null || presentEntryOwner(ctx.scope, 'arena-room', row.publish) !== null) throw new Error('Arena entry requires its unbound original kit and owner');
+  const equipment = row.equipment === undefined ? undefined : { arsenal: claims, locker: clientCosmeticFinishes(ctx).locker };
   const reward = claims.model(row.reward);
-  ctx.scope.run(() => { arena.bind(ctx, kit, reward); });
+  ctx.scope.run(() => { if (equipment === undefined) arena.bind(ctx, kit, reward); else arena.bind(ctx, kit, reward, equipment); });
   publishEntryOwner(ctx.scope, 'arena-room', row.publish, arena);
 }
 

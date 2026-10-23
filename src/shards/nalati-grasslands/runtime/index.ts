@@ -62,9 +62,6 @@ export class NalatiPlugin extends ShardPlugin {
     Object.assign(shell.objects, { wildlife });
     ctx.on('weather.changed', (state) => { hud.setWeather(state); });
     await part();
-    ctx.scope.run(() => rt.titan.bind(ctx,kit,mounted.model('naizagai'),{arsenal:mounted,locker:rt.skins}));
-    publishEntryOwner(ctx.scope, 'arena-room', 'fight', rt.titan);
-    await part();
   }
 }
 

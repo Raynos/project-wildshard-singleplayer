@@ -1,3 +1,4 @@
+import { parseClientPlan } from '../src/format/clientPlan';
 import { installArenaRoomEntry } from '../src/game/shardfile/clientEntryBinds';
 import { entryOwner, publishEntryOwner } from '../src/game/shardfile/entryOwners';
 import { HeldClaims, type HeldSlotKit } from '../src/game/loadout/claims';
@@ -132,4 +133,13 @@ test('the reed vault portal owns fade, isolation, floor recovery and exit placem
  portal.leave(true); expect(portal.inside).toBe(true);
  portal.update(.21,.52); expect(portal.inside).toBe(false);
  expect(player.position.toArray()).toEqual([200,2,197]); expect(outside.visible).toBe(true); expect(animals.calm).toBe(false);
+});
+
+test('room and approved open-arena entries keep distinct owners and strict equipment rows',()=>{
+ const room={kind:'arena-room.entry',owner:'reed.room',claims:'reed.kit',reward:'reedBow',publish:'reed.vault'};
+ const open={...room,owner:'reed.open',reward:'reedBlade',publish:'reed.fight',equipment:'held-finishes'};
+ expect(parseClientPlan({version:1,features:[open,room]}).features).toEqual([open,room]);
+ for(const features of [[room,{...open,owner:room.owner}],[room,{...open,publish:room.publish}],
+   [{...open,equipment:{locker:'reflected'}}],[{...open,equipment:()=>undefined}],[{...open,locker:'new'}]])
+  expect(()=>parseClientPlan({version:1,features})).toThrow();
 });

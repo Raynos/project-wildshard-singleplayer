@@ -1,3 +1,12 @@
+import { installArenaRoomEntry } from '../src/game/shardfile/clientEntryBinds';
+import { entryOwner, publishEntryOwner } from '../src/game/shardfile/entryOwners';
+import { installClientCosmeticFinishes, clientCosmeticFinishes } from '../src/game/shardfile/clientCosmeticFinishes';
+import { publishBoundPersistence } from '../src/game/quest/chapterBindings';
+import type { AdventurePersistence } from '../src/game/quest/persistence';
+import { HeldClaims, type HeldSlotKit } from '../src/game/loadout/claims';
+import type { ModelDef } from '../src/engine/models/model';
+import { currentOwner } from '../src/engine/app/ownership';
+import finishes from '../src/shards/nalati-grasslands/data/skinFinishes.json' with {type:'json'};
 import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 import { arenaRoomFight, ArenaRoomEncounter } from '../src/game/boss/arenaRoom';
 import type { Animal } from '../src/engine/entities/AnimalView';
@@ -160,6 +169,7 @@ test.each([false,true])('arena script runs mounted phases, exposes its heart and
   const intake=vi.spyOn(ReturnProgram,'page');
   const owner = new ArenaRoomEncounter({kind:'open',world:{ game,player: f.player,weather: weather.weather,air: weather.air,tieSpot: null },rows:data});
   expect(intake.mock.calls).toStrictEqual([[data.programs.attack,scope],[data.programs.wind,scope]]);intake.mockRestore();
+  verifyOpenArenaEntry(owner,scope);
   const riders = new PatrolEncounterView({ patrol: night.patrol,motion: night.motion,view: parse(PatrolViewSchema,night.ride) },ReturnProgram.page(night.program,scope),
     { game,sky: f.sky,player: f.player,forest: f.forest,cues: new CueDirector(game,night.cues,scope),figures: { rider: figure,captain: figure,storm: figure } });
   riders.attachActors(f.manager); owner.riders = riders;
@@ -232,3 +242,29 @@ test('arena roles are full-row aliases and retired payload roles refuse',()=>{
 });
 
 type ArenaScriptFight=ArenaRoomEncounter['openFight'];
+
+/** Exercise the row on the same original open encounter used by the full fight oracle. */
+function verifyOpenArenaEntry(arena:ArenaRoomEncounter,parent:Scope):void{
+ const scope=parent.child('open.entry'),identity={slug:'orchard-entry',name:'Orchard',author:'Fixture',revision:1,seed:1};
+ const product=createShardProduct({slug:identity.slug,revision:1,shardfile:emptyShardfile(identity),
+  sections:new Map([['held/finishes',{order:[],rows:{},cards:[],extras:{},cosmetics:finishes}]]),files:new Map(),read:()=>Promise.reject(new Error('No fixture file read'))});
+ const ctx=legacyDouble<ShardContext>({scope,product,game:legacyDouble<ShardContext['game']>({runtime:legacyDouble<ShardRuntime>({menu:{}})})});
+ const claims=HeldClaims.fromSlots({version:1,id:'orchard.kit',slots:[{id:'blade',kind:'blade',item:'weapon.blade',source:{kind:'passes',file:'blade.json'}}],
+  registration:['blade'],equipment:{primary:'blade',extras:[]},selection:{unlock:[]},mount:[],refills:[],upgrades:[]});
+ const kit=legacyDouble<HeldSlotKit>({}),reward=legacyDouble<ModelDef<object>>({id:'orchard/reward'}),seen:unknown[]=[];
+ const bind=vi.spyOn(arena,'bind').mockImplementation((actual,held,model,equipment)=>{seen.push(actual,held,model,equipment,currentOwner());});
+ const pageKit=vi.spyOn(claims,'pageKit').mockReturnValue(kit),model=vi.spyOn(claims,'model').mockReturnValue(reward);
+ const row={kind:'arena-room.entry' as const,owner:'orchard.open',claims:'orchard.kit',reward:'orchard.spear',publish:'orchard.fight',equipment:'held-finishes' as const};
+ try{
+  publishEntryOwner(scope,'arena-room',row.owner,arena);publishEntryOwner(scope,'claims',row.claims,claims);
+  expect(()=>installArenaRoomEntry(ctx,row)).toThrow('not installed');expect(bind).not.toHaveBeenCalled();expect(model).not.toHaveBeenCalled();
+  publishBoundPersistence(scope,legacyDouble<AdventurePersistence>({cosmetics:{read:()=>({owned:[],worn:{}}),write:()=>true}}));
+  installClientCosmeticFinishes(ctx);const original=clientCosmeticFinishes(ctx).locker;
+  installArenaRoomEntry(ctx,row);
+  expect(seen).toHaveLength(5);expect(seen[0]).toBe(ctx);expect(seen[1]).toBe(kit);expect(seen[2]).toBe(reward);expect(seen[4]).toBe(scope);
+  expect(bind.mock.calls[0]?.[3]?.arsenal).toBe(claims);expect(bind.mock.calls[0]?.[3]?.locker).toBe(original);
+  expect(entryOwner(scope,'arena-room',row.publish)).toBe(arena);expect(model).toHaveBeenCalledWith(row.reward);
+  expect(()=>installArenaRoomEntry(ctx,row)).toThrow('unbound original kit');expect(bind).toHaveBeenCalledOnce();
+  scope.dispose();expect(()=>entryOwner(scope,'arena-room',row.publish)).toThrow('scope has ended');
+ }finally{scope.dispose();bind.mockRestore();pageKit.mockRestore();model.mockRestore();}
+}

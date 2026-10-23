@@ -408,6 +408,8 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
     return { features: plan.features };
   } catch (error) { throw new ProductError(product.slug, 'client/plan', 'schema', error instanceof Error ? error.message : 'Invalid client plan'); }
 }
+// Open arenas bind before rooms, independent of the product's feature order.
+const phaseKey=(row:ClientFeatureRow):string=>row.kind==='debug.expose'?row.name:row.kind==='arena-room.entry'?`${row.kind}:${row.equipment===undefined?1:0}:${row.owner}`:row.kind;
 /** Run a platform-ordered phase with bounded frame-budget pauses. Resident scene construction is cached by its host. */
 export async function installClientPhase(ctx: ShardContext, plan: AdmittedClientPlan, phase: ClientPhase, resident: Scope, lifetime?: 'resident' | 'entered'): Promise<void> {
   if(lifetime!=='resident'&&(phase==='world'||phase==='kit'))await prepareClientReturnModules(ctx);
@@ -417,7 +419,7 @@ export async function installClientPhase(ctx: ShardContext, plan: AdmittedClient
     return [...(feature.phase === phase ? [{ row, rank: feature.rank, install: feature.install }] : []),
       ...(phase === 'play' && feature.play !== undefined ? [{ row, ...feature.play }] : []),
       ...(phase === 'prepare-play' && feature.preparePlay !== undefined ? [{ row, ...feature.preparePlay }] : [])];
-  }).sort((a, b) => a.rank - b.rank || (a.row.kind === 'debug.expose' ? a.row.name : a.row.kind).localeCompare(b.row.kind === 'debug.expose' ? b.row.name : b.row.kind));
+  }).sort((a, b) => a.rank - b.rank || phaseKey(a.row).localeCompare(phaseKey(b.row)));
   // The platform's look phase precedes every entered world step, including
   // trusted runtimes whose data client intentionally skips presentation. A
   // metadata-only phase leaves look construction to its original native owner.

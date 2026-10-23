@@ -13197,3 +13197,10 @@ file slot in the actors metadata (`SpeciesActorsFileSchema.draws`). It uses
 the same `fixedDraws` intake as Driftwood's shipped island library. The
 population view retains the original joints and padded animated sphere;
 that radius override stays at the caller, outside static draw admission.
+
+An `arena-room.entry` may declare `equipment: 'held-finishes'` for an open
+arena: its existing claims and installed cosmetic locker are lent together,
+before binding or publishing anything. Room rows retain their three-argument
+bind. Distinct arena owners may each have one entry row; owner ids and
+publication ids are unique. The compiler binds open arenas before rooms,
+then orders each group by owner id, independent of product row order.
