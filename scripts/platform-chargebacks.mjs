@@ -40,12 +40,10 @@ const declarations = new Map([
  * users and mixed component attribution; a dispatcher is not another owner.
  * @type {Map<string,readonly string[]|null>} */
 const chapterViewNativeOwners = new Map([
-  // G601 approval changes credit, never the actual optional-facet consumer.
+  // Remaining unapproved dependencies retain their actual optional-facet consumer.
+  // G621 D4/R13 retires the approved figure, equipment and height-patch overrides.
   ["src/game/quest/carriedProp.ts", null],
-  ["src/engine/physics/heightPatch.ts", null],
   ["src/engine/combat/effects/types.ts", ["SourceMulDef", "anyTag", "sourceMultiplier"]],
-  ["src/game/loadout/actors.ts", ["EquipmentActorOwner", "owners", "equipmentActorOwner"]],
-  ["src/game/systems/npc/figureSkins.ts", ["atlasFigureSkin"]],
 ]);
 
 // Single-shard branches inside otherwise shared declarations. These spans select

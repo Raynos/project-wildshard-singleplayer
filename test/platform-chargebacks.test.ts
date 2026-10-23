@@ -261,8 +261,8 @@ test('optional chapter dispatch preserves the carried and merged-figure owners',
 });
 
 
-test('optional chapter imports retain all native dependency owners', () => {
-  const rows: readonly (readonly [string, readonly string[] | null])[] = [["src/engine/physics/heightPatch.ts", null], ["src/engine/combat/effects/types.ts", ["SourceMulDef", "anyTag", "sourceMultiplier"]], ["src/game/loadout/actors.ts", ["EquipmentActorOwner", "owners", "equipmentActorOwner"]], ["src/game/systems/npc/figureSkins.ts", ["atlasFigureSkin"]]];
+test('optional chapter imports retain the remaining unapproved combat dependency owners', () => {
+  const rows: readonly (readonly [string, readonly string[] | null])[] = [["src/engine/combat/effects/types.ts", ["SourceMulDef", "anyTag", "sourceMultiplier"]]];
   const shared = new Set(['pine-hollow', 'driftwood-isle', 'nalati-grasslands']);
   const modules = new Map(rows.map(([path]) => [path, shared]));
   const bindings = new Map(rows.flatMap(([path, names]) => [...(names ?? []), 'unrelatedShared'].map(name => [`${path}\0${name}`, shared])));
@@ -439,4 +439,32 @@ test('G615 encounter views include only their eight named concrete helper types'
   expect(platformChargeback(path, 'SlotEncounterView')).toBe('C4');
   expect(platformChargeback(path, 'PatrolEncounterView')).toBe('C4');
   expect(modules.get(path)).toEqual(shared);
+});
+
+
+test('G621 D4 retires only the three already-approved chapter dependency overrides', () => {
+  const shared = new Set(['pine-hollow', 'driftwood-isle', 'nalati-grasslands']);
+  const rows = [
+    ['src/engine/physics/heightPatch.ts', ['HeightPatch', 'HeightPatchOpts']],
+    ['src/game/loadout/actors.ts', ['EquipmentActorOwner', 'owners', 'equipmentActorOwner']],
+    ['src/game/systems/npc/figureSkins.ts', ['atlasFigureSkin']],
+  ] as const;
+  const modules = new Map(rows.map(([path]) => [path, shared]));
+  const bindings = new Map(rows.flatMap(([path, names]) => [...names, 'unreviewed'].map(name => [`${path}\0${name}`, shared])));
+  chargePlatformUsers(modules, bindings);
+  const approvals = g571HostApprovals('.');
+  for (const [path, names] of rows) {
+    expect(modules.get(path)).toEqual(shared);
+    expect(approvedG571Host(approvals, path)).toBe(false);
+    for (const name of names) {
+      expect(bindings.get(`${path}\0${name}`)).toEqual(shared);
+      expect(approvedG571Host(approvals, path, name)).toBe(true);
+    }
+    expect(approvedG571Host(approvals, path, 'unreviewed')).toBe(false);
+  }
+  const combat = 'src/engine/combat/effects/types.ts';
+  const native = new Map([[`${combat}\0sourceMultiplier`, shared]]);
+  chargePlatformUsers(new Map(), native);
+  expect(native.get(`${combat}\0sourceMultiplier`)).toEqual(new Set(['nalati-grasslands']));
+  expect(approvedG571Host(approvals, combat, 'sourceMultiplier')).toBe(false);
 });
