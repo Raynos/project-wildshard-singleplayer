@@ -1,0 +1,81 @@
+import { afterEach, expect, test, vi } from 'vitest';
+import { setDev } from '@wildshard/engine/core/devMode';
+import { memoryAttribution } from '@wildshard/engine/core/memoryAttribution';
+import { parseShardfile } from '@wildshard/format/shardSchema';
+import { SHARDFILE_VERSION } from '@wildshard/format/version';
+import { ClientAssets } from './clientAssets';
+
+const observed: ArrayBufferLike[] = [];
+afterEach(() => {
+  setDev(false);
+  for (const buffer of observed.splice(0)) memoryAttribution.release(buffer, 'ram');
+});
+function fixture() {
+  const edge = { heights: Array.from({ length: 257 }, () => 0), colours: Array.from({ length: 257 }, () => [0.5, 0.5, 0.5]), roadHeight: 0 };
+  const source = parseShardfile({ version: SHARDFILE_VERSION,
+    identity: { slug: 'transport-memory', name: 'Transport', author: 'Test', revision: 1, seed: 1 }, accent: 'sand',
+    requires: { sdk: SHARDFILE_VERSION, capabilities: [], commons: [], commonsWire: {}, commonsCosts: {} },
+    budgets: { library: { resident: 0, compressed: 0 }, sim: { resident: 0, compressed: 0 }, overlap: 0 },
+    entryways: ['north', 'east', 'south', 'west'].map((side, i) => ({ edge: side, at: [[0, 0, 250], [250, 0, 0], [0, 0, -250], [-250, 0, 0]][i], width: 8 })),
+    look: { families: [], grade: { exposure: 0, saturation: 1, contrast: 1, lut: null }, clock: 'engine', dayOverride: null, keys: [] },
+    sim: { fixedHz: 60, scriptTickDivisor: 2, commandVersion: 0, snapshotVersion: 0, scripts: [] },
+    state: { version: 1, sharedOwner: 'host', playerKey: 'actorId', shared: [], player: [] }, authorCaps: { players: 32, speed: 15 },
+    serverBudget: { tickMicros: 1000, memory: 1_000_000, entities: 100, commandsPerTick: 32 },
+    edge: { north: edge, south: edge, east: edge, west: edge }, files: [], tiles: [], library: [], critical: [], far: null });
+  const bytes = new Uint8Array([1, 2, 3]), ref = 'a'.repeat(64);
+  observed.push(bytes.buffer);
+  source.files.push({ hash: ref, kind: 'binary', compressed: bytes.length, decoded: 3, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false });
+  const fetch = vi.fn(() => Promise.reject(new Error('Unexpected transport fetch')));
+  const options = { base: 'https://example.invalid/product/', offline: true, firstParty: true, fetch,
+    hash: vi.fn(() => Promise.resolve(ref)) };
+  const rows = () => memoryAttribution.snapshot().allocations.filter(row => row.owner === 'product:transport-memory');
+  return { source, bytes, ref, options, fetch, rows };
+}
+
+test('Developer transport labels share original backing identity and survive map release while another owner holds it', async () => {
+  setDev(true);
+  const f = fixture(), wire = new Map([[f.ref, f.bytes]]);
+  const first = new ClientAssets(f.source, wire, f.options), second = new ClientAssets(f.source, wire, f.options);
+  const row = f.rows();
+  expect(row).toHaveLength(1);
+  expect(row[0]).toMatchObject({ asset: f.ref, kind: 'array-buffer', bytes: 3, precision: 'exact' });
+  expect(await first.read(f.ref)).toBe(f.bytes);
+  expect(await second.read(f.ref)).toBe(f.bytes);
+  first.releaseTransport([f.ref]); second.releaseTransport([f.ref]);
+  expect(first.retained.size).toBe(0); expect(second.retained.size).toBe(0);
+  expect(wire.get(f.ref)).toBe(f.bytes);
+  expect(f.rows()).toEqual(row);
+  structuredClone(f.bytes, { transfer: [f.bytes.buffer] });
+  expect(f.rows()[0]?.bytes).toBe(0);
+  expect(f.fetch).not.toHaveBeenCalled();
+});
+
+test('verified rereads are labelled without introducing a transport memo or another read', async () => {
+  setDev(true);
+  const f = fixture(), verifiedAsset = vi.fn(() => Promise.resolve(f.bytes));
+  const assets = new ClientAssets(f.source, new Map(), { ...f.options, cache: {
+    product: () => Promise.resolve(null), putProduct: () => Promise.resolve(),
+    asset: () => Promise.reject(new Error('Unexpected unverified read')),
+    putAsset: () => Promise.resolve(true), verifiedAsset,
+  } });
+  expect(await assets.read(f.ref)).toBe(f.bytes);
+  expect(await assets.read(f.ref)).toBe(f.bytes);
+  expect(verifiedAsset).toHaveBeenCalledTimes(2);
+  expect(assets.retained.size).toBe(0);
+  expect(f.rows()).toHaveLength(1);
+  expect(f.fetch).not.toHaveBeenCalled();
+});
+
+test('ordinary reads add no diagnostic rows and invalid verified bytes still refuse before observation', async () => {
+  const f = fixture(), assets = new ClientAssets(f.source, new Map([[f.ref, f.bytes]]), f.options);
+  expect(await assets.read(f.ref)).toBe(f.bytes);
+  expect(f.rows()).toHaveLength(0);
+  setDev(true);
+  const invalid = new ClientAssets(f.source, new Map(), { ...f.options, cache: {
+    product: () => Promise.resolve(null), putProduct: () => Promise.resolve(),
+    asset: () => Promise.resolve(null), putAsset: () => Promise.resolve(true),
+    verifiedAsset: () => Promise.resolve(new Uint8Array([1])),
+  } });
+  await expect(invalid.read(f.ref)).rejects.toThrow('hash or size mismatch');
+  expect(f.rows()).toHaveLength(0);
+});

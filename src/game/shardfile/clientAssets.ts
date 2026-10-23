@@ -1,4 +1,6 @@
 import { pacedResolve } from '@wildshard/engine/core/workSlice';
+import { isDev } from '@wildshard/engine/core/devMode';
+import { memoryAttribution } from '@wildshard/engine/core/memoryAttribution';
 import { declareDownloadFile, recordCachedDownload } from '@wildshard/engine/boot/download';
 import { boundedResponse, type ProductOptions } from './product';
 import { outputBlobUrl, outputDescriptor } from './outputDescriptor';
@@ -9,7 +11,15 @@ export class ClientAssets {
   private readonly wire: Map<string, Uint8Array>;
   private readonly source: Shardfile;
   private readonly options: ProductOptions;
-  constructor(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, options: ProductOptions) { this.source = source; this.wire = new Map(assets); this.options = options; }
+  constructor(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, options: ProductOptions) {
+    this.source = source; this.wire = new Map(assets); this.options = options;
+    if (isDev()) for (const [ref, bytes] of this.wire) this.observe(ref, bytes);
+  }
+  /** The existing weak ledger observes backing capacity, never a new byte owner or a resident-RAM claim. */
+  private observe(ref: string, bytes: Uint8Array): Uint8Array {
+    if (isDev()) memoryAttribution.buffer(bytes, { owner: `product:${this.source.identity.slug}`, asset: ref });
+    return bytes;
+  }
   get retained(): ReadonlyMap<string, Uint8Array> { return this.wire; }
   /** Lease authoritative/library roots for the level; render tiles receive their own shorter leases. */
   pin(): () => void { return this.lease(this.roots()); }
@@ -20,7 +30,7 @@ export class ClientAssets {
     if (file === undefined && !this.source.requires.commons.some((hash) => ref === `commons:${hash}`)) throw new Error('Undeclared resident asset');
     // a cached read resolves at once, unless the frame's build budget is spent (pacedResolve): a hook's chain of
     // cached reads must not run in one task on the road
-    const present = this.wire.get(ref); if (present !== undefined) return pacedResolve(present);
+    const present = this.wire.get(ref); if (present !== undefined) return pacedResolve(this.observe(ref, present));
     const hash = ref.replace(/^commons:/u, ''), base = new URL('.', this.options.base).href;
     const cap = file?.compressed ?? this.source.requires.commonsWire[hash] ?? 0;
     // Residency rereads may have no format-2 descriptor. Accounting observes
@@ -33,7 +43,7 @@ export class ClientAssets {
       ?? (url === undefined ? undefined : await this.options.verifiedResponse?.(url, hash, cap));
     if (verified !== null && verified !== undefined) {
       if (verified.length !== cap) throw new Error('Resident tile hash or size mismatch');
-      return verified;
+      return this.observe(ref, verified);
     }
     let bytes = this.options.cache?.verifiedAsset === undefined ? await this.options.cache?.asset(base, hash) : null, downloaded = false;
     if ((bytes === null || bytes === undefined) && url !== undefined && this.options.verifiedResponse === undefined) {
@@ -55,7 +65,7 @@ export class ClientAssets {
       }).catch(() => undefined);
     }
     else recordCachedDownload(hash, bytes.length);
-    return bytes;
+    return this.observe(ref, bytes);
   }
   /** SHA-256 of `bytes` off the page (an owned copy through `hashOwned`), else on the page. */
   private async hashOf(bytes: Uint8Array): Promise<string> {

@@ -3763,6 +3763,12 @@ CPU rows count shared array backing stores once, decoded PCM and Wasm linear cap
 explicitly estimated. Weak references and finalization never retain retired content; disposal/context loss removes GPU
 storage and resize/growth updates the original identity. Unknown labels remain an explicit unattributed part of totals.
 
+With Developer on, `game/shardfile/clientAssets.ClientAssets` labels the original admitted and verified-read backing
+buffers as `product:<slug>` with their immutable file reference in this same weak ledger. Shared views count the
+whole backing allocation once; detached buffers report zero. Releasing a transport map does not erase a buffer still
+held elsewhere. This observes capacity only, adds no byte copy or read memo, and does not prove resident RAM or a
+particular retaining owner. Developer off adds no transport observations.
+
 The live probe's `memory()` returns only scalars, even after level retirement. `snapshot()` keeps allocation totals,
 allocator `accountedBytes`, and optional provenance-bearing native `measured` (WebContent plus labelled GPU) SEPARATE.
 Capacity is not dirty resident RAM: never add the RAM census to WebContent or call its difference physical attribution.
