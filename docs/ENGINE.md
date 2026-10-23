@@ -12003,6 +12003,13 @@ across the read. `construct` requires that exact library when a prelude is
 declared. Geometry loading and concrete loan publication remain at the
 existing fixed-draw stage; the prelude adds no clock, yield or publication.
 
+`productFixedDraws(product, file)` also admits baked file rows through the
+product's original binary reader and slug. Metadata-only callers keep their
+inline/lane path. One promise remains memoized per actual product and JSON
+file, including refusals; JSON and binary reader identities stay pinned
+across each binary await. Named raw blocks use the existing fixed-draw
+geometry intake, without another cache, clock or publication stage.
+
 WorldAssemblySchema without `construction` walks its admitted stages at the
 caller's current native boundary, borrowing the original world and loaded draws.
 It adds no progress calls, prelude reads, implicit slices or GPU-root releases;

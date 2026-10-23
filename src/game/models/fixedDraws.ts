@@ -119,20 +119,29 @@ export function fixedDraws(product: Pick<ShardProduct, 'file' | 'slug'>, input: 
   };
 }
 
-/** A library whose rows read no product file (lane bakes and inline blocks only: a shard's prepared shapes); a file row
- *  refuses. */
 const productDraws = new WeakMap<object, Map<string, Promise<FixedDraws>>>();
-/** A product's baked fixed draws from its named JSON file of rows (`bakedFixedDraws`): one library (one promise, its
+/** A product's fixed draws from its named JSON file of rows: one library (one promise, its
  *  failure included) per exact product and file, so every world built from that product shares its loaded geometry. The
- *  product's reader must not change while the file is read. */
-export function productFixedDraws(product: { readonly json: (name: string) => Promise<unknown> }, file: string): Promise<FixedDraws> {
+ *  product's readers must not change during intake. File rows require its actual file reader and slug;
+ *  metadata-only callers retain the original lane/inline path. */
+export function productFixedDraws(product: { readonly json: (name: string) => Promise<unknown> } & Partial<Pick<ShardProduct, 'file' | 'slug'>>, file: string): Promise<FixedDraws> {
   let files = productDraws.get(product);
   if (files === undefined) { files = new Map(); productDraws.set(product, files); }
   const known = files.get(file);
   if (known !== undefined) return known;
-  const read = product.json, made = read(file).then(rows => {
+  const read = product.json, readFile = product.file, made = read(file).then(input => {
     if (product.json !== read) throw new Error(`Fixed draw product reader changed: ${file}`);
-    return bakedFixedDraws(rows);
+    const rows = v.parse(FixedDrawRowsSchema, input);
+    if (!rows.some(row => 'file' in row)) return bakedFixedDraws(rows);
+    if (readFile === undefined) throw new Error(`Fixed draw product file reader required: ${file}`);
+    const sourceSlug = v.parse(v.string(), product.slug);
+    const live = (): void => {
+      if (product.json !== read || product.file !== readFile) throw new Error(`Fixed draw product reader changed: ${file}`);
+    };
+    live();
+    return fixedDraws({ slug: sourceSlug, file: async name => {
+      live(); const bytes = await readFile.call(product, name); live(); return bytes;
+    } }, rows);
   });
   files.set(file, made);
   return made;

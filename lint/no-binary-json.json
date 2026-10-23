@@ -282,10 +282,6 @@
       "base64Chars": 2571420,
       "dataUris": 0
     },
-    "src/shards/nalati-grasslands/boot/shapeBook.generated.json": {
-      "base64Chars": 321872,
-      "dataUris": 0
-    },
     "src/shards/nalati-grasslands/data/audio.generated.json": {
       "base64Chars": 48780,
       "dataUris": 0
@@ -348,10 +344,6 @@
     },
     "src/shards/nalati-grasslands/data/ridingTerrain.generated.json": {
       "base64Chars": 7304,
-      "dataUris": 0
-    },
-    "src/shards/nalati-grasslands/data/shapeBook.generated.json": {
-      "base64Chars": 207732,
       "dataUris": 0
     },
     "src/shards/nalati-grasslands/data/signAtlases.json": {

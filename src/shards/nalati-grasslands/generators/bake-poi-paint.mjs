@@ -64,13 +64,15 @@ for (const tier of ['phone', 'desktop']) {
 }
 let totalBytes = 0;
 const fingerprint = createHash('sha256');
-const rows = meshes.map(([key, geometry]) => {
+const writer = byteWriter(process.argv.includes('--check'), 'nalati-poi-paint');
+const rows = meshes.map(([key, geometry], index) => {
   const blocks = [], row = writeGeometry(geometry, blocks, key), bytes = join(blocks);
   totalBytes += bytes.length; fingerprint.update(bytes); geometry.dispose();
-  return { key, geometry: row, data: deflateSync(bytes, { level: 9 }).toString('base64') };
+  const file = `data/poi-shape-${index}.bin`;
+  writer.put(resolve(root, 'src/shards/nalati-grasslands', file), bytes);
+  return { key, geometry: row, data: deflateSync(bytes, { level: 9 }).toString('base64'), file };
 });
 const fingerprintHex = fingerprint.digest('hex');
-const writer = byteWriter(process.argv.includes('--check'), 'nalati-poi-paint');
 writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/poiPaint.json'), jsonBytes({ bin: fingerprintHex, bytes: totalBytes, rows, glacierSnout, contacts }));
 writer.put(resolve(root, 'src/shards/nalati-grasslands/data/poiPaint.json'), jsonBytes({ bin: fingerprintHex, bytes: totalBytes, rows, glacierSnout, contacts }));
 writer.finish();

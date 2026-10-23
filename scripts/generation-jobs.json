@@ -951,7 +951,7 @@
         "src/shards/nalati-grasslands/boot/modelMetrics.generated.json": "7b28eb61e3b25fa53ed7bb2ff5eabfff08b42340a8de4c6e79989b485e3935e6",
         "src/shards/nalati-grasslands/data/staticCapture.generated.json": "d2efb3124053f39e8c9e29c5d3925cf98199de6f182c82a18a7dd6e92c1f09dc",
         "src/shards/nalati-grasslands/data/placeRuntime.generated.json": "9ed42660b19a5d0a471f57f4cb7c68550b78d917cd11034d9613c3a2b035c361",
-        "src/shards/nalati-grasslands/data/shapeBook.generated.json": "ccffd0f24f726a1a396986c2b92e348d5c582d96283f65c6c4293ef92bdd6671"
+        "src/shards/nalati-grasslands/data/shapeBook.generated.json": "623745bcdad1020c991d0c9293d0f0acd5b78509d3f98fa3acf847e25c38ad7a"
       },
       "seedOutputs": [],
       "catalogueDependencies": [
@@ -20166,7 +20166,21 @@
       ],
       "outputs": [
         "src/shards/nalati-grasslands/boot/poiPaint.json",
-        "src/shards/nalati-grasslands/data/poiPaint.json"
+        "src/shards/nalati-grasslands/data/poiPaint.json",
+        "src/shards/nalati-grasslands/data/poi-shape-0.bin",
+        "src/shards/nalati-grasslands/data/poi-shape-1.bin",
+        "src/shards/nalati-grasslands/data/poi-shape-2.bin",
+        "src/shards/nalati-grasslands/data/poi-shape-3.bin",
+        "src/shards/nalati-grasslands/data/poi-shape-4.bin",
+        "src/shards/nalati-grasslands/data/poi-shape-5.bin",
+        "src/shards/nalati-grasslands/data/poi-shape-6.bin",
+        "src/shards/nalati-grasslands/data/poi-shape-7.bin",
+        "src/shards/nalati-grasslands/data/poi-shape-8.bin",
+        "src/shards/nalati-grasslands/data/poi-shape-9.bin",
+        "src/shards/nalati-grasslands/data/poi-shape-10.bin",
+        "src/shards/nalati-grasslands/data/poi-shape-11.bin",
+        "src/shards/nalati-grasslands/data/poi-shape-12.bin",
+        "src/shards/nalati-grasslands/data/poi-shape-13.bin"
       ],
       "platform": "darwin"
     },

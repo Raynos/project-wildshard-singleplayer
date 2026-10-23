@@ -206,3 +206,37 @@ test('a product file of baked rows is one library per product and file; a failur
   const swapped: { json: (name: string) => Promise<unknown> } = { json: () => { swapped.json = () => Promise.resolve([row]); return Promise.resolve([row]); } };
   await expect(productFixedDraws(swapped, 'models/book.json')).rejects.toThrow('reader changed');
 });
+
+test('product fixed draws read baked files through the same concrete product receiver', async () => {
+  const row = {slot:'binary',file:'models/block.bin',channels:[],baked};
+  const book = {slug:'binary-book',json:():Promise<unknown>=>Promise.resolve([row]),file(name:string):Promise<Uint8Array>{
+    expect(this).toBe(book);expect(name).toBe(row.file);return Promise.resolve(block(11));
+  }};
+  const draws = await productFixedDraws(book,'models/book.json');
+  expect(await productFixedDraws(book,'models/book.json')).toBe(draws);
+  await draws.load();expect(draws.ready).toBe(true);
+  const geometry = draws.handle(row.slot).copy();expect(geometry.getAttribute('position').getX(0)).toBe(11);geometry.dispose();
+  await expect(productFixedDraws({json:()=>Promise.resolve([row])},'models/book.json')).rejects.toThrow('file reader required');
+});
+
+test.each(['json','file'] as const)('product fixed draws refuse replaced %s while binary intake is pending', async key => {
+  let finish: (bytes:Uint8Array)=>void = ()=>{throw new Error('Missing pending byte reader');};
+  const pending = new Promise<Uint8Array>(resolve=>{finish=resolve;});
+  const row = {slot:'binary',file:'models/block.bin',channels:[],baked};
+  const book = {slug:'binary-book',json:():Promise<unknown>=>Promise.resolve([row]),file:():Promise<Uint8Array>=>pending};
+  const draws = await productFixedDraws(book,'models/book.json'),loading = draws.load();
+  if(key==='json')book.json=()=>Promise.resolve([row]);
+  else book.file=()=>Promise.resolve(block(99));
+  finish(block(11));
+  await expect(loading).rejects.toThrow('reader changed');expect(draws.ready).toBe(false);
+});
+
+test('product fixed draws pin the binary reader before awaiting metadata', async () => {
+  let finish:(rows:unknown)=>void=()=>{throw new Error('Missing pending metadata reader');};
+  const pending=new Promise<unknown>(resolve=>{finish=resolve;});
+  const book={slug:'binary-book',json:()=>pending,file:()=>Promise.resolve(block(11))};
+  const loading=productFixedDraws(book,'models/book.json');
+  book.file=()=>Promise.resolve(block(99));
+  finish([{slot:'binary',file:'models/block.bin',channels:[],baked}]);
+  await expect(loading).rejects.toThrow('reader changed');
+});
