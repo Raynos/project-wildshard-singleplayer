@@ -52,10 +52,10 @@ test('G628 M4/M7: a red line per shard over its limit; the trend keeps the first
   expect(hud.querySelector('.ws-grid-budget-over')?.textContent).toBe('NINE OVER ITS LIMIT · +50.0 MB');
   const start = cost().playing;
   for (let i = 0; i < 9; i++) { overlay.crossed(); sims += 10_000_000; }
+  await new Promise(resolve => { setTimeout(resolve, 0); }); // each entry's line follows it by a task
   const trend = overlay.trend();
   expect(trend).toHaveLength(7);
   expect(trend[0]).toBe(start);
-  await new Promise(resolve => { setTimeout(resolve, 0); }); // the repaint follows the entry by a task
   expect(hud.querySelector('.ws-grid-budget-x')?.textContent).toMatch(/· \+\d+ MB SINCE START$/u);
 });
 

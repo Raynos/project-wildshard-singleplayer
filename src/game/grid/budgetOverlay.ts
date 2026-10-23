@@ -197,12 +197,15 @@ export function installBudgetOverlay(host: BudgetOverlayHost): BudgetOverlay {
   };
   const crossed = (): void => {
     if (scope.disposed) return;
+    // G639: the entry's cost is taken now; its memory snapshot, the trend line and the repaint (allocator table, a second
+    // snapshot, the DOM) wait for the task after it, out of its activation frame (~20 ms of a 250 ms Pine activation frame
+    // at phone 4x). Entries queue in order, so the trend is the same.
     const cost = host.allocator.cost();
-    trend.push(read(cost, isDev() ? snapshot(cost.accounted) : null).bytes);
-    if (trend.length > TREND_KEPT + 1) trend.splice(1, 1);
-    // G639: the repaint (allocator table, a second snapshot, the DOM) waits for the task after the entry, out of its
-    // activation frame (~10 ms of a 250 ms Pine activation frame at phone 4x); the trend above is still read at the entry
-    scope.timeout(0, refresh);
+    scope.timeout(0, () => {
+      trend.push(read(cost, isDev() ? snapshot(cost.accounted) : null).bytes);
+      if (trend.length > TREND_KEPT + 1) trend.splice(1, 1);
+      refresh();
+    });
   };
   const build = (): void => {
     root = el('div', 'ws-grid-budget'); root.setAttribute('role', 'button'); root.setAttribute('aria-expanded', 'false'); root.tabIndex = -1;
