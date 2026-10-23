@@ -121,7 +121,7 @@ class PushLoop(unittest.TestCase):
         result = PUSH['tick'](self.root, checker=lambda *_: {'ok': True, 'output': ''}, uploader=lambda *_: 0)
         self.assertEqual(result['status'], 'pushed')
 
-    def test_push_prioritizes_guards_related_then_importer_lint(self):
+    def test_push_prioritizes_fast_lint_guards_related_then_importer_lint(self):
         tip = self.commit('src/good.ts')
         commands = []
         def runner(command, *_):
@@ -133,9 +133,10 @@ class PushLoop(unittest.TestCase):
             return 0, ''
         result = LIVE['check'](self.root, self.base, tip, time.monotonic() + 45, runner)
         self.assertTrue(result['ok'])
-        self.assertEqual([command[0] for command in commands], ['pnpm', 'node', 'pnpm', 'node', 'pnpm'])
-        self.assertIn('scripts/vitest-push-guards.config.ts', commands[0])
-        self.assertIn('scripts/vitest-push.config.ts', commands[2])
+        self.assertEqual([command[0] for command in commands], ['node', 'pnpm', 'node', 'pnpm', 'node', 'pnpm'])
+        self.assertEqual(commands[0], ['node', str(self.root / 'scripts/lint-fast.mjs')])
+        self.assertIn('scripts/vitest-push-guards.config.ts', commands[1])
+        self.assertIn('scripts/vitest-push.config.ts', commands[3])
         self.assertIn('oxlint', commands[-1])
         self.assertEqual(result['types'], 'pre-commit+importers')
 
@@ -364,6 +365,34 @@ readFileSync('../public/assets/native/untracked.bin');
                         self.assertEqual(result['types'], 'ci-budget')
                         self.assertIn('defer to full CI', result['output'])
 
+    def test_fast_lint_covers_whole_tree_without_generated_inputs(self):
+        tip = self.commit('src/changed.ts')
+        calls = []
+        def runner(command, root, *_):
+            self.assertEqual(root, self.root)
+            calls.append(command)
+            return 0, ''
+        result = LIVE['check'](self.root, self.base, tip, time.monotonic() + 45,
+                               runner=runner, types_available=False, tests_available=False)
+        self.assertTrue(result['ok'])
+        self.assertEqual(calls[0], ['node', str(self.root / 'scripts/lint-fast.mjs')])
+        self.assertIn('scripts/vitest-push-guards.config.ts', calls[1])
+        self.assertIn('Whole-repo fast lint passed', result['output'])
+        self.assertFalse(any('--live' in command or 'importers' in command for command in calls))
+
+    def test_fast_lint_refuses_unchanged_file_before_any_test(self):
+        tip = self.commit('src/changed.ts')
+        for rc in (1, 124):
+            calls = []
+            def runner(command, *_):
+                calls.append(command)
+                return rc, 'src/unchanged.ts:2:1 error eslint(no-eval): refused'
+            result = LIVE['check'](self.root, self.base, tip, time.monotonic() + 45, runner=runner)
+            self.assertFalse(result['ok'])
+            self.assertEqual(result['phase'], 'fast-lint')
+            self.assertEqual(result['files'], ['src/unchanged.ts'])
+            self.assertEqual(calls, [['node', str(self.root / 'scripts/lint-fast.mjs')]])
+
     def test_preparation_errors_are_not_accepted_as_budget_deferrals(self):
         tip = self.commit('src/good.ts')
         @contextmanager
@@ -468,7 +497,7 @@ readFileSync('../public/assets/native/untracked.bin');
             result = PUSH['check_committed'](self.root, self.base, tip, time.monotonic() + 45)
         self.assertFalse(result['ok'])
         self.assertEqual(result['phase'], 'typed-check')
-        self.assertIn('scripts/vitest-push-guards.config.ts', calls[0])
+        self.assertIn('scripts/vitest-push-guards.config.ts', next(command for command in calls if 'vitest' in command))
         self.assertEqual(next(command for command in calls if 'oxlint' in command),
                          ['pnpm', 'exec', 'oxlint', '--type-aware',
                           '-c', '.oxlintrc.json', 'src/good.ts'])
@@ -488,8 +517,9 @@ readFileSync('../public/assets/native/untracked.bin');
         self.assertTrue(result['ok'])
         self.assertEqual(result['types'], 'ci-cache-miss')
         self.assertIn('full CI owns: src/good.ts', result['output'])
-        self.assertEqual(len(calls), 1)
-        self.assertIn('scripts/vitest-push-guards.config.ts', calls[0][0])
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(calls[0][0], ['node', str(self.root / 'scripts/lint-fast.mjs')])
+        self.assertIn('scripts/vitest-push-guards.config.ts', calls[1][0])
 
     def test_missing_discovery_prevents_a_partial_cache_from_enabling_types(self):
         self.put('src/shards/fixture/world/build.ts', "import manifest from '../discovery.generated';\nexport const seed = manifest.seed;\n")
@@ -538,7 +568,7 @@ readFileSync('../public/assets/native/untracked.bin');
         with self.assertRaisesRegex(ValueError, 'source differs'):
             CACHE['publish'](self.root, tip, generated)
 
-    def test_missing_generated_test_inputs_defer_without_repeating_lint(self):
+    def test_missing_generated_test_inputs_defer_without_repeating_typed_lint(self):
         tip = self.commit('src/good.ts')
         commands = []
         result = LIVE['check'](self.root, self.base, tip, time.monotonic() + 45,
@@ -546,8 +576,9 @@ readFileSync('../public/assets/native/untracked.bin');
         self.assertTrue(result['ok'])
         self.assertEqual(result['types'], 'pre-commit')
         self.assertIn('related tests defer', result['output'])
-        self.assertEqual(len(commands), 1)
-        self.assertIn('scripts/vitest-push-guards.config.ts', commands[0][0])
+        self.assertEqual(len(commands), 2)
+        self.assertEqual(commands[0][0], ['node', str(self.root / 'scripts/lint-fast.mjs')])
+        self.assertIn('scripts/vitest-push-guards.config.ts', commands[1][0])
 
     def test_prior_verified_inputs_enable_tests_but_never_typed_lint(self):
         tip = self.commit('src/good.ts')
@@ -558,7 +589,7 @@ readFileSync('../public/assets/native/untracked.bin');
         result = LIVE['check'](self.root, self.base, tip, time.monotonic() + 45,
                                runner=runner, types_available=False, tests_available=True, test_revision=self.base)
         self.assertTrue(result['ok'])
-        self.assertEqual([command[0] for command in commands], ['pnpm', 'node', 'pnpm'])
+        self.assertEqual([command[0] for command in commands], ['node', 'pnpm', 'node', 'pnpm'])
         self.assertIn('previous generation; not current type proof', result['output'])
         self.assertIn('Typed importers require exact', result['output'])
 

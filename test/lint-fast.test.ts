@@ -25,6 +25,9 @@ test('fast lint shares staged rules, propagates refusals and cleans each private
     rules:{'wildshard/no-authored-html':'off','wildshard/no-shard-host-callback':'off','wildshard/no-shard-branch':'error'},
     overrides:[{files:['src/**'],rules:{'wildshard/no-shard-host-callback':'error'}},
      {files:['**/*'],rules:{'wildshard/no-authored-html':'off','wildshard/no-shard-host-callback':'off'}}]}});
+  expect(run([]).status).toBe(0);
+  const whole:unknown=JSON.parse(readFileSync(resolve(fixture,'called.json'),'utf8'));
+  expect(whole).toMatchObject({args:['--threads=2','-c',expect.stringMatching(/^\.commit-fast-lint-\d+\.json$/u)]});
   expect(run(['src/one.ts'],'1').status).toBe(1);
   expect(run(['--type-aware']).status).toBe(2);
   expect(readdirSync(fixture).some(name=>name.startsWith('.commit-fast-lint-'))).toBe(false);

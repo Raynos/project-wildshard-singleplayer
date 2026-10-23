@@ -45,9 +45,9 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   Tool source lives in `scripts/`; disposable tool logs live in `tmp/sp-tools/`. The pane inherits the current
   tool environment without version-pinned Codex PATH entries.
   Never run `git push` or start the retired carrier/full local push gate.
-- **The local push gate has a 45-second ceiling and checks committed source only.** It selects related tests
-  and runs them within the budget, plus any typed checks explicitly deferred by pre-commit. Completed type/lint
-  checks are not repeated. Foreign working/staged edits
+- **The local push gate has a 45-second ceiling and checks committed source only.** Whole-repo fast lint runs
+  before focused guards and related tests (G655 LD2), even without generated inputs. Typed lint stays scoped to
+  changed files and importers; completed typed checks are not repeated. Foreign working/staged edits
   never enter the candidate; no generation, build, product or mirror job runs here. A matching verified cache
   supplies generated test inputs; missing inputs defer those tests to CI openly. **CI is the full gate**,
   including complete types, generation, build and tests. sp-x7 remains release owner and checks every 15 minutes.

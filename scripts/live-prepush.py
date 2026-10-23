@@ -123,6 +123,15 @@ def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_a
                     return result
                 result.update(phase='deleted-paths', output=output, files=failure_paths(output))
                 return result
+        # G655 LD2: lint the entire committed snapshot, including files outside
+        # this prefix's changed/importer selection. No generated types needed.
+        rc, output = runner(['node', str(tools / 'lint-fast.mjs')], root, deadline, env)
+        if rc:
+            if budget_deferred(rc, output):
+                return result
+            result.update(phase='fast-lint', output=output, files=failure_paths(output))
+            return result
+        result['output'] += '\nWhole-repo fast lint passed'
         guards = ['test/host-callbacks.test.ts', 'test/shardfile-boundaries.test.ts',
                   'test/platform-chargebacks.test.ts', 'test/manifest-declarations.test.ts']
         if any(name.startswith(('src/format/', 'src/sdk/')) for name in files):
