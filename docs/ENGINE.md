@@ -12907,6 +12907,15 @@ Required keys retain the eight-column stride (`z * 8 + x`); indices outside
 the declared rectangle refuse before pinning. Neighbours supply scene LOD only;
 this renderer never builds a whole world or installs shard runtime logic.
 
+`setFullRing(instance, radius)` replaces that instance's distance/lookahead
+L0 selection with a clipped square: 1 is 3 × 3, 2 is 5 × 5, and 8 is the
+whole rectangle. Pass the player's world x/z as `step(camera, fullCentre)`;
+only omitted centres fall back to the camera. The centre has 4 m tile-boundary
+hysteresis. Required pins remain additive; parent-first publication and
+native budget refusal still apply. Unwanted L0 tiles retire on the next
+step, including when a Debug ring shrinks. Passing null restores ordinary
+distance-based selection. Collider and simulation rings stay with callers.
+
 ### Synchronous group guest adoption (G621 R10b/R10c)
 
 `GroupBrain` subclasses use `captureGuest`, `prepareGuestCommit` and

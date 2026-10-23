@@ -152,6 +152,7 @@ export class TileStreamer<D> {
   private readonly slots = new Map<string, Slot<D>>();
   private readonly pins = new Map<string, { readonly tile: RingTile; refs: number }>();
   private readonly requirements = new Set<Requirement>();
+  private readonly fullRings = new Map<string, { radius: number; x: number | null; z: number | null }>();
   private readonly completed: { tile: RingTile; lease: TileStreamLease; result: D | Error }[] = [];
   private readonly retryAt = new Map<string, number>();
   private readonly cells: readonly LayoutCell[];
@@ -210,6 +211,18 @@ export class TileStreamer<D> {
     this.requirements.add(requirement);
     this.resolveRequirements();
     return { ready, release: () => { this.unpin(requirement, new Error('Tile requirement released')); } };
+  }
+
+  /** Select this instance's full-detail square: 1 = 3x3, 2 = 5x5, 8 = whole rectangle.
+   * Its centre follows `step`'s fullCentre with 4 m hysteresis. Pins remain additive. Null restores distance-based L0.
+   * Only render demand changes; the caller owns collider and simulation policy. */
+  setFullRing(instance: string, radius: number | null): void {
+    if (this.disposed) throw new Error('Tile streamer is disposed');
+    this.cell(instance);
+    if (radius === null) { this.fullRings.delete(instance); return; }
+    if (!Number.isInteger(radius) || radius < 0 || radius > 8) throw new RangeError('Invalid full tile ring');
+    const current = this.fullRings.get(instance);
+    if (current === undefined) this.fullRings.set(instance, { radius, x: null, z: null }); else current.radius = radius;
   }
 
   private unpin(requirement: Requirement, error: Error): void {
@@ -278,11 +291,11 @@ export class TileStreamer<D> {
   }
 
   /** One fixed step: choose, release, request, upload, re-mask. */
-  step(camera: RingCamera): void {
+  step(camera: RingCamera, fullCentre: { readonly x: number; readonly z: number } = camera): void {
     if (this.disposed) throw new Error('Render rings are disposed');
-    if (![camera.x, camera.z, camera.vx, camera.vz].every(Number.isFinite)) throw new RangeError('Invalid ring camera');
+    if (![camera.x, camera.z, camera.vx, camera.vz, fullCentre.x, fullCentre.z].every(Number.isFinite)) throw new RangeError('Invalid ring camera');
     this.frame++;
-    const want = this.desired(camera);
+    const want = this.desired(camera, fullCentre);
     // refresh eviction inputs; anything not wanted is cache
     for (const [id, slot] of this.slots) { const d = want.get(id); slot.distance = d?.distance ?? this.distance(slot.tile, camera); slot.lease.update({ distance: slot.distance, needed: d !== undefined }); }
     this.release(want, camera);
@@ -297,6 +310,7 @@ export class TileStreamer<D> {
   dispose(): void {
     if (this.disposed) return; this.disposed = true;
     for (const requirement of this.requirements) this.unpin(requirement, new Error('Tile streamer disposed'));
+    this.fullRings.clear();
     const order = [...this.slots.values()].sort((a, b) => LEVEL_RANK[b.tile.level] - LEVEL_RANK[a.tile.level]);
     const errors: unknown[] = [];
     for (const slot of order) { try { this.drop(slot); } catch (error) { errors.push(error); } }
@@ -328,7 +342,7 @@ export class TileStreamer<D> {
   }
 
   /** The wanted tiles with their distances, parents included. */
-  private desired(camera: RingCamera): Map<string, { tile: RingTile; distance: number }> {
+  private desired(camera: RingCamera, fullCentre: { readonly x: number; readonly z: number }): Map<string, { tile: RingTile; distance: number }> {
     const want = new Map<string, { tile: RingTile; distance: number }>();
     const add = (tile: RingTile, distance: number): void => { if (this.bytes(tile.instance, tile.level, tile.x, tile.z) !== null && !want.has(tile.key)) want.set(tile.key, { tile, distance }); };
     const cellDistance = (cell: LayoutCell): number => rectDistance(camera.x - cell.origin.x, camera.z - cell.origin.z, 'far', 0, 0, cell);
@@ -354,7 +368,7 @@ export class TileStreamer<D> {
       if (d > L1_RADIUS) continue;
       const lx = camera.x - cell.origin.x, lz = camera.z - cell.origin.z;
       for (let z = 0; z < cell.rows.l1; z++) for (let x = 0; x < cell.columns.l1; x++) { const td = rectDistance(lx, lz, 'l1', x, z, cell); if (td <= L1_RADIUS) l1.push({ tile: this.tile(cell.instance, 'l1', x, z), d: td }); }
-      for (let z = 0; z < cell.rows.l0; z++) for (let x = 0; x < cell.columns.l0; x++) { const td = rectDistance(lx, lz, 'l0', x, z, cell); if (td <= L0_RADIUS) l0.push({ tile: this.tile(cell.instance, 'l0', x, z), d: td }); }
+      if (!this.fullRings.has(cell.instance)) for (let z = 0; z < cell.rows.l0; z++) for (let x = 0; x < cell.columns.l0; x++) { const td = rectDistance(lx, lz, 'l0', x, z, cell); if (td <= L0_RADIUS) l0.push({ tile: this.tile(cell.instance, 'l0', x, z), d: td }); }
     }
     const order = (a: { tile: RingTile; d: number }, b: { tile: RingTile; d: number }): number => a.d - b.d || a.tile.key.localeCompare(b.tile.key);
     l0.sort(order); l1.sort(order);
@@ -366,12 +380,30 @@ export class TileStreamer<D> {
       for (let s = L0_RADIUS; s <= L0_RADIUS + reach && slots > 0; s += C.l0.size / 4) {
         const px = camera.x + camera.vx / speed * s, pz = camera.z + camera.vz / speed * s;
         for (const { cell } of ranked) {
+          if (this.fullRings.has(cell.instance)) continue;
           const lx = px - cell.origin.x, lz = pz - cell.origin.z;
           if (Math.abs(lx) >= cell.extent.width / 2 || Math.abs(lz) >= cell.extent.depth / 2) continue;
           const tile = this.tile(cell.instance, 'l0', Math.floor((lx + cell.extent.width / 2) / C.l0.size), Math.floor((lz + cell.extent.depth / 2) / C.l0.size));
           if (!seen.has(tile.key) && slots > 0) { seen.add(tile.key); slots--; fine.push({ tile, d: this.distance(tile, camera) }); }
         }
       }
+    }
+    // Explicit full rings bypass the distance/count selection, but never native budget admission.
+    for (const [instance, full] of this.fullRings) {
+      const cell = this.cell(instance), width = cell.extent.width, depth = cell.extent.depth;
+      const follow = (previous: number | null, local: number, extent: number, count: number): number => {
+        const next = Math.max(0, Math.min(count - 1, Math.floor((local + extent / 2) / C.l0.size)));
+        if (previous === null || next === previous) return next;
+        const min = -extent / 2 + previous * C.l0.size, max = Math.min(extent / 2, min + C.l0.size);
+        return local < min - 4 || local >= max + 4 ? next : previous;
+      };
+      full.x = follow(full.x, fullCentre.x - cell.origin.x, width, cell.columns.l0);
+      full.z = follow(full.z, fullCentre.z - cell.origin.z, depth, cell.rows.l0);
+      for (let z = Math.max(0, full.z - full.radius); z <= Math.min(cell.rows.l0 - 1, full.z + full.radius); z++)
+        for (let x = Math.max(0, full.x - full.radius); x <= Math.min(cell.columns.l0 - 1, full.x + full.radius); x++) {
+          const tile = this.tile(instance, 'l0', x, z);
+          fine.push({ tile, d: this.distance(tile, camera) });
+        }
     }
     // Pins may exceed the ordinary view's count cap, but still require real budget admission.
     for (const { tile } of this.pins.values()) if (this.bytes(tile.instance, tile.level, tile.x, tile.z) !== null
@@ -412,7 +444,8 @@ export class TileStreamer<D> {
       if (want.has(slot.tile.key) || this.slots.get(slot.tile.key) !== slot) continue;
       const level = slot.tile.level, cap = this.options.residentCaps[level] ?? Infinity;
       const over = count[level] > cap || (level === 'far' && farBytes > this.farBudget());
-      if (slot.state !== 'uploaded' ? !this.hasChildren(slot.tile) : away(slot) > keep[level] || over) dropTree(slot);
+      if (level === 'l0' && this.fullRings.has(slot.tile.instance)
+        || (slot.state !== 'uploaded' ? !this.hasChildren(slot.tile) : away(slot) > keep[level] || over)) dropTree(slot);
     }
   }
 
