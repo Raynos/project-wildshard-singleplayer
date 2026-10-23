@@ -1682,6 +1682,8 @@ export function installPivotNpc(ctx: PivotNpcLevel, row: NpcRow, ports: PivotNpc
   return npc;
 }
 
+/** Whole-geometry files read ahead of the one being assembled (bytes held at once stay bounded by this many files). */
+const WHOLE_READ_AHEAD = 4;
 /** A run list expands to at most this many ordinals (a 2 MB GLB JSON chunk cannot otherwise bound it). */
 const WHOLE_ORDINALS_MAX = 1 << 24;
 const WholeOrdinal = wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(0));
@@ -1816,9 +1818,21 @@ export async function readWholeGeometry(scope: ResourceScope, source: Shardfile 
     }
     assertLive();
   };
+  // read ahead: up to WHOLE_READ_AHEAD files' bytes in flight while the current one parses and assembles (the home's
+  // fixed draws read their tiles one after another: ~0.57 s at 4x CPU, much of it waiting on each read)
+  const reads = new Map<number, Promise<Uint8Array>>();
+  const readAt = (index: number): Promise<Uint8Array> | undefined => {
+    const hash = hashes[index]; if (hash === undefined) return undefined;
+    let read = reads.get(index);
+    if (read === undefined) { read = product.assets.read(hash); void read.catch(() => undefined); reads.set(index, read); }
+    return read;
+  };
   try {
-    for (const hash of hashes) {
-      const bytes = await product.assets.read(hash), gltf = await createRigLoader().parseBytesAsync(bytes, ''), cleanup: (() => void)[] = [];
+    for (const [index, hash] of hashes.entries()) {
+      for (let ahead = index; ahead < index + WHOLE_READ_AHEAD; ahead++) readAt(ahead);
+      const pending = readAt(index); if (pending === undefined) throw new Error('Whole geometry read missing');
+      const bytes = await pending; reads.delete(index);
+      const gltf = await createRigLoader().parseBytesAsync(bytes, ''), cleanup: (() => void)[] = [];
       try {
         const meshes: Mesh[] = [];
         gltf.scene.traverse(object => {

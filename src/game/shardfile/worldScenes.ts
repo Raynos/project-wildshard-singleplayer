@@ -47,6 +47,8 @@ interface Library {
   readonly geometry: (id: string) => BufferGeometry | null;
   readonly models?: Pick<ModelLibrary<string, string>, 'painted'>;
 }
+/** Owned-library models read ahead of the one being decoded (bytes held at once stay bounded by this many files). */
+const MODEL_READ_AHEAD = 4;
 const decoder = new TextDecoder('utf-8', { fatal: true });
 const residents = new WeakMap<Scope, WeakMap<ShardContext['product'], Promise<SceneHandles>>>();
 
@@ -287,9 +289,21 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
           const neededModels = row.models.filter(model => residentReferences.has(JSON.stringify([row.id, model.id])));
           const modelProgress = loadingUnits('Home models', neededModels.length);
           modelProgress(0, row.id);
+          // read ahead: the next MODEL_READ_AHEAD models' bytes are read while the current one decodes (one model after
+          // another waited on each read: much of the home's ~0.46 s library intake at 4x CPU)
+          const files = neededModels.map(model => typeof model.file === 'string' ? model.file : model.file[TIER]), ahead = new Map<string, Promise<Uint8Array>>();
+          const readAhead = (index: number): void => {
+            const name = files[index]; if (name === undefined || ahead.has(name)) return;
+            const read = product.file(name); void read.catch(() => undefined); ahead.set(name, read);
+          };
+          const reader = { url: (name: string) => product.url(name), file: (name: string): Promise<Uint8Array> => {
+            const read = ahead.get(name); if (read === undefined) return product.file(name);
+            ahead.delete(name); return read;
+          } };
           for (const [modelIndex, model] of neededModels.entries()) {
-            const file = typeof model.file === 'string' ? model.file : model.file[TIER];
-            const geometry = await readWorldSceneGeometry(owner, product, { file, attributes: model.attributes, ...(model.segments === undefined ? {} : { segments: model.segments }) }, ctx.app.assets);
+            for (let next = modelIndex; next < modelIndex + MODEL_READ_AHEAD; next++) readAhead(next);
+            const file = files[modelIndex] ?? (typeof model.file === 'string' ? model.file : model.file[TIER]);
+            const geometry = await readWorldSceneGeometry(owner, reader, { file, attributes: model.attributes, ...(model.segments === undefined ? {} : { segments: model.segments }) }, ctx.app.assets);
             finish.push(geometry.done); models.set(model.id, geometry);
             modelProgress(modelIndex + 1, model.id);
             // Consumers keep private mutable copies; finish releases the construction lease.
