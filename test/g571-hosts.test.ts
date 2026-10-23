@@ -129,6 +129,10 @@ test.each([
   '- G667 L3 Jake-approved host: `game/approved`.',
   '- G667 Jake-approved host: `game/approved` if another user joins.',
   '- G667 Jake-approved host: `game/approved`, conditional approval.',
+  '- G6770 Jake-approved host: `game/approved`.',
+  '- G677 L3 Jake-approved host: `game/approved`.',
+  '- G677 Jake-approved host: `game/approved` if another user joins.',
+  '- G677 Jake-approved host: `game/approved`, conditional approval.',
 ])('unapproved or conditional prose stays fully charged: %s', prose => {
   const root = fixture(), before = row(root);
   put(root, 'docs/HOST-BAR.md', prose);
@@ -144,7 +148,7 @@ test('picked approvals retain overlap and missing-binding refusal', () => {
   expect(() => row(root)).toThrow('Missing G571 binding');
 });
 
-test.each(['G614', 'G665', 'G667'])('%s credits the exact tagged binding without approving sibling declarations', decision => {
+test.each(['G614', 'G665', 'G667', 'G677'])('%s credits the exact tagged binding without approving sibling declarations', decision => {
   const root = fixture('export const approved = 1;\nconst law = 2;\nexport const helper = law;'), before = row(root);
   put(root, 'docs/HOST-BAR.md', `- ${decision} Jake-approved host: \`game/approved#approved\`.`);
   const approvals = g571HostApprovals(root), after = row(root);

@@ -3,7 +3,8 @@ import pendingRows from '../lint/platform-pending-users.json' with { type: 'json
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify retired receipts without touching the shared WIP ledger.
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { chargePlatformUsers, inlinePlatformPaths, inlinePlatformSpans, platformChargeback, recordPrivateCharge } from '../scripts/platform-chargebacks.mjs';
-import { pendingPlatformUsers, partitionPendingPlatformUsers, type PendingPlatformUser } from '../scripts/shard-platform.mjs';
+import { pendingPlatformUsers, partitionPendingPlatformUsers } from '../scripts/shard-platform.mjs';
+import type { PendingPlatformUser } from '../scripts/shard-platform.d.mts';
 import { componentInventory } from '../scripts/shard-components.mjs';
 import { g571HostApprovals,approvedG571Host } from '../scripts/g571-hosts.mjs';
 
@@ -579,4 +580,31 @@ test('G667 case two credits only the listed native driver roster and field',()=>
  expect(approvedG571Host(approvals,'src/game/population/environment.ts','installPopulationEnvironment')).toBe(false);
  expect(approvedG571Host(approvals,'src/game/population/nativeBake.ts','populationMetadata')).toBe(false);
  expect(approvedG571Host(approvals,'src/game/population/nativeBake.ts','createNativeBakeReader')).toBe(true);
+});
+
+test('G677 credits only the exact entered adapters and preserves their original authorities',()=>{
+  const rows = [
+    ['src/game/shardfile/clientStealthEntry.ts',['EntryRows','bindStealthWeapons','installClientStealthEntry']],
+    ['src/game/shardfile/clientTimedEncounters.ts',['installClientTimedEncounters']],
+    ['src/game/shardfile/clientEliteConstruction.ts',['installClientEliteConstruction']],
+  ] as const;
+  const users=new Set(['nalati-grasslands','pine-hollow']),approvals=g571HostApprovals('.');
+  const modules=new Map(rows.map(([path])=>[path,users]));
+  const bindings=new Map(rows.flatMap(([path,names])=>names.map(name=>[`${path}\0${name}`,users] as const)));
+  chargePlatformUsers(modules,bindings);
+  for(const [path,names]of rows){
+    expect(modules.get(path)).toBe(users);expect(approvedG571Host(approvals,path)).toBe(false);
+    for(const name of names){
+      expect(approvedG571Host(approvals,path,name)).toBe(true);expect(platformChargeback(path,name)).toBeNull();
+      expect(bindings.get(`${path}\0${name}`)).toBe(users);
+    }
+    expect(approvedG571Host(approvals,path,'unreviewed')).toBe(false);
+  }
+  // The original G571 module grant already covers these loan types; G677 must not duplicate it.
+  expect(approvedG571Host(approvals,'src/game/shardfile/entryOwners.ts','WorldFrameOwner')).toBe(true);
+  expect(approvedG571Host(approvals,'src/game/shardfile/entryOwners.ts','EliteEntryConstruction')).toBe(true);
+  expect(approvedG571Host(approvals,'src/game/riding/client.ts','enterClientRiding')).toBe(false);
+  const hostBar=readFileSync('docs/HOST-BAR.md','utf8').split('\n').filter(line=>line.startsWith('- G677 ')).join('\n');
+  expect(hostBar).not.toContain('game/stealth/controller');expect(hostBar).not.toContain('game/population/pageGroups');
+  expect(hostBar).not.toContain('game/shardfile/entryOwners');
 });

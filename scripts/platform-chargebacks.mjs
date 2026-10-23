@@ -6,6 +6,8 @@ const modules = new Map([
   // G530 O1: the seated-figure specimen's one user is Nalati's mounted shepherd (Explorer catalogue)
   ['src/game/models/mountedSpecimen.ts', 'C1'],
 ]);
+// G677 credits exact listed entry adapters through g571-hosts, without new
+// dispatch-user overrides or duplicate stealth/signal credit. Siblings stay charged.
 /** @type {Map<string,Map<string,import('./shard-components.mjs').Component>>} */
 // G665 R16: the listed open-arena host (including its boundary) is credited.
 const declarations = new Map([
