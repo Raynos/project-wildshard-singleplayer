@@ -16,7 +16,4 @@ export class HerdBrain<A extends AnimalSim> extends GrazerBrain<A> {
   constructor(members: A[], spec: HerdSpec, ports: HerdPorts<A>) { super(members, { pattern: 'herd', spec, ports }); }
   /** Narrow historical string continuation; the shared core owns every saved field and validates restore. */
   override snapshot(): string { return this.snapshotHerd(); }
-  /** The guard's state and body under the names a borrowed elite reads (engine/ai/view/eliteEntry BorrowedEliteHerd). */
-  get leaderState(): StallionState { return this.stallionState; }
-  get leader(): A | null { return this.stallion; }
 }

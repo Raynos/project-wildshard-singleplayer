@@ -1,14 +1,14 @@
 import {expect,test} from 'vitest';
 import {Scope} from '../src/engine/app/scope';
 import {ReturnProgram} from '../src/game/population/returnProgram';
-import {HerdEliteProjection,type HerdEliteFrame} from '../src/game/shardfile/eliteEncounters';
+import {NativeEliteProjection,type NativeEliteFrame} from '../src/engine/ai/eliteRoster';
 import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with {type:'json'};
 
-const rows={signal:'argymaqTick',states:{flaunt:1,rush:2,yield:3}};
-const frame:HerdEliteFrame={state:'flaunt',phase2:false,engaged:true,bonded:false,same:true,health:1,at:[1,2,3],player:[4,5,6]};
+const rows={bondedState:'bonded',signal:'argymaqTick',states:{flaunt:1,rush:2,yield:3}};
+const frame:NativeEliteFrame={state:'flaunt',phase2:false,engaged:true,bonded:false,same:true,health:1,at:[1,2,3],player:[4,5,6]};
 test('orchard herd encounter rows preserve cadence, native commands and the historical continuation',()=>{
   const scope=new Scope('orchard.herd-elite'),program=ReturnProgram.page(admission,scope);
-  const law=new HerdEliteProjection(rows,program),restored=new HerdEliteProjection(rows,program);
+  const law=new NativeEliteProjection(rows,program,scope),restored=new NativeEliteProjection(rows,program,scope);
   try{
     expect(law.advance(.05,frame)).toEqual({signature:false,lead:false,adopt:false});restored.restore(law.snapshot());
     const effect=law.advance(.05,frame);expect(effect).toEqual({signature:true,lead:false,adopt:false});expect(restored.advance(.05,frame)).toEqual(effect);
@@ -20,6 +20,15 @@ test('orchard herd encounter rows preserve cadence, native commands and the hist
     expect(law.advance(.1,bonded).adopt).toBe(true);
     expect(()=>law.restore({...saved,laneFrom:[1,2]})).toThrow();
     const {elapsed,...legacy}=saved;expect(elapsed).toBe(0);restored.restore(legacy);expect(restored.snapshot().elapsed).toBe(0);
-    expect(()=>new HerdEliteProjection({...rows,tick:()=>undefined},program)).toThrow();
+    expect(()=>new NativeEliteProjection({...rows,tick:()=>undefined},program,scope)).toThrow();
   }finally{scope.dispose();}
+});
+
+
+test('native projection refuses accessor rows before invoking their values', () => {
+  const scope = new Scope('quarry.projection'), program = ReturnProgram.page(admission, scope); let reads = 0;
+  try {
+    expect(() => new NativeEliteProjection({ ...rows, get signal() { reads++; return rows.signal; } }, program, scope)).toThrow('plain JSON');
+    expect(reads).toBe(0);
+  } finally { scope.dispose(); }
 });

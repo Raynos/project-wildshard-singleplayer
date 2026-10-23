@@ -1,8 +1,8 @@
 import { expect, expectTypeOf, test, vi } from 'vitest';
-import { NativeEliteRoster, type NativeEliteRosterRows, type NativeEliteScript } from '../src/engine/ai/eliteRoster';
+import { NativeEliteRoster, NativeEliteProjection, type NativeEliteRosterRows, type NativeEliteScript } from '../src/engine/ai/eliteRoster';
 import { NativeEliteLifecycle } from '../src/engine/ai/eliteLifecycle';
 import type { SimHost } from '../src/engine/sim';
-import { eliteBindings, HerdEliteProjection, type EliteEncounterRow, type EliteEncounterSpec } from '../src/game/shardfile/eliteEncounters';
+import { eliteBindings, type EliteEncounterRow, type EliteEncounterSpec } from '../src/game/shardfile/eliteEncounters';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';
 import { nativeEliteCore } from './fixtures/nativeEliteCore';
@@ -41,7 +41,7 @@ function fixture() {
   const loans = { host: f.host, core, bindings, kernel: f.loans };
   const borrowed = () => {
     order.push('borrowed'); const row = rows[1]; if (row === undefined) throw new Error('Missing borrowed row');
-    const controller = new HerdEliteProjection({ signal: 'argymaqTick', states: { display: 1 } }, ReturnProgram.native(f.host, admission));
+    const controller = new NativeEliteProjection({ signal: 'argymaqTick', states: { display: 1 }, bondedState: 'bonded' }, ReturnProgram.native(f.host, admission), f.scope);
     const member = { row, controller, animal: null, phase2: false, pack: null, adopted: false, detached: false };
     const script: NativeEliteScript = { def: row.def, get animal() { return member.animal; },
       spawn: vi.fn<() => void>(), despawn: vi.fn<() => void>(), reset: vi.fn<() => void>(), enterPhase2: vi.fn<() => void>(), trophy: vi.fn<() => void>(), tick: vi.fn<NativeEliteScript['tick']>() };
@@ -84,6 +84,8 @@ test('whole row suffix refuses before any native controller or registration', ()
     expect(getters).toBe(0);
     const [first, borrowed, last] = f.input.rows; if (first === undefined || borrowed === undefined || last === undefined) throw new Error('Missing rows');
     for (const input of [
+      { ...f.input, projections: { 'quarry.borrowed': { signal: 'tick', states: {}, bondedState: 'ready' } } },
+      { ...f.input, projections: { 'quarry.0': { signal: 'tick', states: {}, bondedState: 'ready' } } },
       { ...f.input, roles: ['native'] }, { ...f.input, kernels: f.input.kernels.slice(0, 1) },
       { ...f.input, rows: [first, borrowed, { ...last, def: first.def }] },
       { ...f.input, rows: [first, borrowed, { ...last, snapshot: 'records' }] },

@@ -21,7 +21,6 @@
       "installMountedPlayer"
     ],
     "@wildshard/game/riding/nativeTaming": [
-      "nativeTamingOf",
       "installNativeTaming"
     ],
     "@wildshard/game/shardfile/groupRuntime": [
@@ -107,12 +106,12 @@
         "labels": {
           "mount": "Mount the stallion",
           "breaking": "Break the stallion",
-          "trust": "The herd saw you drive the wolves off \u00b7 TRUST +30",
-          "start": "HOLD ON \u2014 lean against him (A / D, LEAN L / LEAN R)",
-          "thrown": "Thrown! TRUST \u221240 \u2014 find him again when the herd settles",
+          "trust": "The herd saw you drive the wolves off · TRUST +30",
+          "start": "HOLD ON — lean against him (A / D, LEAN L / LEAN R)",
+          "thrown": "Thrown! TRUST −40 — find him again when the herd settles",
           "bonded": [
-            "TULPAR is yours \u00b7 he waits at the camp's hitching rail \u00b7 whistle (X / HORSE) to call him",
-            "ARGYMAQ is yours \u2014 he takes Tulpar's place at the camp's rail \u00b7 whistle (X / HORSE) to call him"
+            "TULPAR is yours · he waits at the camp's hitching rail · whistle (X / HORSE) to call him",
+            "ARGYMAQ is yours — he takes Tulpar's place at the camp's rail · whistle (X / HORSE) to call him"
           ]
         }
       },
@@ -235,7 +234,7 @@
           "label": "Struck by lightning",
           "text": "Struck by lightning"
         },
-        "toast": "Struck by lightning \u2014 get low in a storm"
+        "toast": "Struck by lightning — get low in a storm"
       }
     },
     "nativeBake": {
@@ -1342,12 +1341,6 @@
                   "source": "herd",
                   "yaw": 0
                 },
-                "brokenState": "beaten",
-                "onAdopted": {
-                  "action": "win-and-detach",
-                  "variant": "tulpar",
-                  "scale": 1.3
-                },
                 "continuation": {
                   "borrowed": {
                     "group": 1,
@@ -1362,90 +1355,6 @@
                 "$ref": [
                   "bindings"
                 ]
-              },
-              "taming": {
-                "$fn": {
-                  "$call": [
-                    {
-                      "$fn": {
-                        "phase": {
-                          "$ref": [
-                            "args",
-                            0,
-                            "phase"
-                          ]
-                        },
-                        "tulpar": {
-                          "$ref": [
-                            "args",
-                            0,
-                            "companion"
-                          ]
-                        }
-                      }
-                    },
-                    {
-                      "$coalesce": [
-                        {
-                          "$coalesce": [
-                            {
-                              "$call": [
-                                {
-                                  "$ref": [
-                                    "@wildshard/game/riding/nativeTaming",
-                                    "nativeTamingOf"
-                                  ]
-                                },
-                                {
-                                  "$ref": [
-                                    "host"
-                                  ]
-                                }
-                              ]
-                            },
-                            null
-                          ]
-                        },
-                        {
-                          "phase": "wild",
-                          "companion": null
-                        }
-                      ]
-                    }
-                  ]
-                }
-              },
-              "herd": {
-                "$fn": {
-                  "$coalesce": [
-                    {
-                      "$ref": [
-                        "groups",
-                        "herds",
-                        1
-                      ]
-                    },
-                    null
-                  ]
-                }
-              },
-              "keepers": {
-                "herd": {
-                  "rows": {
-                    "signal": "argymaqTick",
-                    "states": {
-                      "display": 1,
-                      "charge": 2,
-                      "beaten": 3
-                    }
-                  },
-                  "program": {
-                    "$ref": [
-                      "boot",
-                      "admission"
-                    ]
-                  }
-                }
               },
               "kernels": {
                 "rows": [
@@ -1661,12 +1570,34 @@
                 "$ref": [
                   "groups"
                 ]
+              },
+              "program": {
+                "$ref": [
+                  "boot",
+                  "admission"
+                ]
               }
             },
             "core": {
               "$ref": [
                 "eliteCore"
               ]
+            },
+            "projections": {
+              "argymaq": {
+                "signal": "argymaqTick",
+                "states": {
+                  "display": 1,
+                  "charge": 2,
+                  "beaten": 3
+                },
+                "bondedState": "bonded",
+                "brokenState": "beaten",
+                "adoption": {
+                  "variant": "tulpar",
+                  "scale": 1.3
+                }
+              }
             }
           }
         ]
@@ -1942,6 +1873,21 @@
               {
                 "$ref": [
                   "creatures"
+                ]
+              }
+            ]
+          },
+          {
+            "$call": [
+              {
+                "$ref": [
+                  "elites",
+                  "bindBond"
+                ]
+              },
+              {
+                "$ref": [
+                  "taming"
                 ]
               }
             ]

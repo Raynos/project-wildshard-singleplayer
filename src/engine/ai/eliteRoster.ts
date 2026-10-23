@@ -2,6 +2,7 @@ import * as v from 'valibot';
 import { isJsonData } from '@wildshard/format/json';
 import { HandleIdSchema } from '@wildshard/format/sceneRefs';
 import { EliteContinuationRowsSchema, EliteCoreContinuationSchema } from '@wildshard/format/eliteContinuation';
+import type { Scope } from '../app/scope';
 import type { AnimalSim } from '../entities/AnimalSim';
 import type { SimHost } from '../sim';
 import { NativeEliteKernels, type NativeEliteKernelLoans } from './eliteKernels';
@@ -10,11 +11,54 @@ import { GrazerBrain } from './grazer';
 import { NativeEliteContinuation, type EliteContinuationCore, type EliteContinuationGroups, type EliteContinuationMember } from './eliteContinuation';
 
 const finite = v.pipe(v.number(), v.finite());
+const projectionRows = v.strictObject({ signal: v.pipe(v.string(), v.minLength(1), v.maxLength(128)),
+  states: v.pipe(v.record(v.string(), finite), v.maxEntries(16)),
+  bondedState: v.string(), brokenState: v.exactOptional(v.string()),
+  adoption: v.exactOptional(v.strictObject({ variant: v.string(), scale: v.pipe(finite, v.minValue(.000001)) })) });
+const point = v.tuple([finite, finite, finite]);
+const projectionSaved = v.strictObject({ laneT: finite, runT: finite, lastState: v.string(), elapsed: v.optional(finite, 0), laneFrom: point, laneTo: point });
+/** The original admitted numeric programme, lent without an alternate module or clock. */
+export interface NativeEliteProgram {
+  readonly project: (signal: string, fields: Readonly<Record<string, number>>) => Readonly<Record<string, number>>;
+}
+/** Original bond authority, bound after native services have been constructed. */
+export interface NativeEliteBond { readonly scope: Scope; readonly phase: string; readonly companion: AnimalSim | null }
+/** Concrete observations at the existing controller's sampling slot. */
+export interface NativeEliteFrame {
+  state: string; phase2: boolean; engaged: boolean; bonded: boolean; same: boolean; health: number;
+  at: readonly [number, number, number]; player: readonly [number, number, number];
+}
+/** The borrowed controller keeps its historical raw state string and ten-Hz
+ * continuation. Every decision still comes from its original admitted guest. */
+export class NativeEliteProjection {
+  private readonly rows; private readonly project; private readonly program: NativeEliteProgram; private readonly scope: Scope; private state: v.InferOutput<typeof projectionSaved> = { laneT: 0, runT: 0, lastState: '', elapsed: 0, laneFrom: [0,0,0], laneTo: [0,0,0] };
+  private readonly effects = { signature: false, lead: false, adopt: false };
+  constructor(input: unknown, program: NativeEliteProgram, scope: Scope) {
+    this.program = program; this.scope = scope;
+    if (!isJsonData(input)) throw new Error('Elite projection requires plain JSON');
+    this.rows = v.parse(projectionRows, input); this.project = program.project; this.live();
+  }
+  private live(): void {
+    if (this.scope.disposed || this.scope.disposing || typeof this.project !== 'function' || this.program.project !== this.project) throw new Error('Retired or replaced elite projection');
+  }
+  advance(dt: number, frame: NativeEliteFrame): Readonly<{ signature: boolean; lead: boolean; adopt: boolean }> {
+    this.live(); const state = this.state, effects = this.effects; effects.signature = false; effects.lead = false; effects.adopt = false;
+    state.elapsed += dt; if (state.elapsed + 1e-9 < .1) return effects;
+    const result = this.program.project(this.rows.signal, { dt: state.elapsed, state: this.rows.states[frame.state] ?? 0, previousState: this.rows.states[state.lastState] ?? 0,
+      laneT: state.laneT, runT: state.runT, phase2: Number(frame.phase2), engaged: Number(frame.engaged), bonded: Number(frame.bonded), same: Number(frame.same), health: frame.health });
+    this.live(); state.elapsed = 0; state.lastState = frame.state; state.laneT = result['laneT'] ?? state.laneT; state.runT = result['runT'] ?? state.runT;
+    if (result['capture'] === 1) { state.laneFrom = [...frame.at]; state.laneTo = [...frame.player]; }
+    effects.signature = result['signature'] === 1; effects.lead = result['lead'] === 1; effects.adopt = result['adopt'] === 1; return effects;
+  }
+  snapshot(): v.InferOutput<typeof projectionSaved> { this.live(); return structuredClone(this.state); }
+  prepareRestore(input: unknown): () => void { this.live(); const state = v.parse(projectionSaved, input); return () => { this.live(); this.state = state; }; }
+  restore(input: unknown): void { this.prepareRestore(input)(); }
+}
 const definition = v.object({ id: HandleIdSchema, lair: v.object({ x: finite, z: finite, r: finite }),
   awareR: finite, engageR: finite, leashR: finite, rule: v.picklist(['always', 'dusk', 'night', 'storm']), respawnMin: finite });
 const rowSchema = v.object({ ...EliteContinuationRowsSchema.entries.rows.item.entries, def: definition });
 const rowsSchema = v.strictObject({ step: HandleIdSchema, version: finite, wire: EliteContinuationRowsSchema.entries.wire,
-  rows: v.pipe(v.array(rowSchema), v.minLength(1), v.maxLength(64)), roles: v.array(v.picklist(['native', 'borrowed'])), kernels: v.unknown() });
+  rows: v.pipe(v.array(rowSchema), v.minLength(1), v.maxLength(64)), roles: v.array(v.picklist(['native', 'borrowed'])), kernels: v.unknown(), projections: v.exactOptional(v.record(HandleIdSchema, projectionRows)) });
 type Definition = v.InferOutput<typeof definition>;
 type ReadonlyRows<T> = T extends object ? { readonly [K in keyof T]: ReadonlyRows<T[K]> } : T;
 /** Canonical admitted native roster declaration; reused by compiled lenders. */
@@ -41,6 +85,17 @@ export interface NativeEliteRosterLoans {
   readonly groups?: EliteContinuationGroups;
 }
 function method<O extends object>(owner: O, key: keyof O): unknown { return owner[key]; }
+function readers(owner: object, keys: readonly string[] = ['phase', 'companion']): readonly unknown[] {
+  return keys.flatMap(key => {
+    let current: unknown = owner;
+    while (typeof current === 'object' && current !== null) {
+      const descriptor = Object.getOwnPropertyDescriptor(current, key);
+      if (descriptor !== undefined) return [current, method(descriptor, 'get'), method(descriptor, 'set')];
+      current = Object.getPrototypeOf(current);
+    }
+    return [undefined];
+  });
+}
 function scriptMethods(script: NativeEliteScript): readonly unknown[] {
   const descriptor = Object.getOwnPropertyDescriptor(script, 'animal');
   return [script.spawn, script.despawn, script.reset, script.enterPhase2, script.trophy, script.tick, script.broken, script.retired, script.canSpawn,
@@ -50,6 +105,7 @@ function scriptMethods(script: NativeEliteScript): readonly unknown[] {
  * Borrowed controllers are lent at their original row position, never made by
  * an authored factory. They retain all decisions and continuation authority. */
 export class NativeEliteRoster {
+  private readonly projections;
   private readonly input: NativeEliteRosterRows; private readonly rows: NativeEliteRosterRows['rows']; private readonly roles: NativeEliteRosterRows['roles']; private readonly rowOwner: NativeEliteRosterRows['rows']; private readonly roleOwner: NativeEliteRosterRows['roles'];
   private readonly host: SimHost; private readonly scope: SimHost['scope']; private readonly clock: SimHost['clock']; private readonly core: NativeEliteRosterCore; private readonly entries: NativeEliteRosterCore['entries']; private readonly bindings: NativeEliteRosterLoans['bindings'];
   private readonly kernelOwner: NativeEliteRosterLoans['kernel']; private readonly groups: NativeEliteRosterLoans['groups']; private readonly kernels: NativeEliteKernels | null; private readonly lifecycle: NativeEliteLifecycle | null;
@@ -58,10 +114,12 @@ export class NativeEliteRoster {
   private readonly calls: readonly unknown[]; private readonly loans: NativeEliteRosterLoans;
   private readonly members: NativeEliteMember[] = []; private readonly prepared: NativeEliteScript[] = [];
   private readonly borrowed: { member: NativeEliteMember; script: NativeEliteScript; controller: EliteContinuationMember['controller']; calls: readonly unknown[]; continuation: readonly unknown[] }[] = [];
-  private installed = false;
+  private installed = false; private bond: NativeEliteBond | null = null; private bondScope: Scope | null = null; private bondReaders: readonly unknown[] = [];
+  private readonly projected: { group: GrazerBrain<AnimalSim>; lead: unknown; readers: readonly unknown[]; program: NativeEliteProgram; project: unknown; won: unknown; core: NativeEliteRosterCore & { readonly won: (id: string) => void } }[] = [];
   constructor(input: unknown, loans: NativeEliteRosterLoans) {
     if (!isJsonData(input)) throw new Error('Elite roster requires plain JSON rows');
     if (!v.is(rowsSchema, input)) throw new Error('Invalid elite roster rows');
+    this.projections = v.parse(v.record(HandleIdSchema, projectionRows), input.projections ?? {});
     this.input = input; this.rows = [...input.rows]; this.roles = [...input.roles]; this.rowOwner = input.rows; this.roleOwner = input.roles; this.loans = loans;
     this.host = loans.host; this.scope = loans.host.scope; this.clock = loans.host.clock; this.core = loans.core; this.entries = loans.core.entries;
     this.bindings = loans.bindings; this.kernelOwner = loans.kernel; this.groups = loans.groups;
@@ -72,6 +130,7 @@ export class NativeEliteRoster {
       || new Set(keys).size !== keys.length || keys.some(key => key.length === 0 || ['__proto__', 'constructor', 'prototype'].includes(key))
       || this.rows.some(row => (row.pack !== undefined && this.groups === undefined)
         || (row.continuation?.borrowed !== undefined && !(this.groups?.herds[row.continuation.borrowed.group] instanceof GrazerBrain)))
+      || Object.keys(input.projections ?? {}).some(id => { const i = this.rows.findIndex(row => row.def.id === id), row = this.rows[i]; return row === undefined || this.roles[i] !== 'borrowed' || row.continuation?.borrowed === undefined || (input.projections?.[id]?.adoption !== undefined && (row.continuation.detachable !== true || input.wire.detached === undefined)); })
       || this.host.hasStep(input.step)) throw new Error('Invalid elite roster owners or identities');
     this.calls = this.callables(); if (this.calls.some(callable => typeof callable !== 'function')) throw new Error('Missing elite roster operation');
     this.kernels = loans.kernel === undefined ? null : new NativeEliteKernels(input.kernels, { ...loans.kernel, host: this.host, scope: this.scope, lifecycle: this.core, brains: this.bindings.brains });
@@ -89,6 +148,8 @@ export class NativeEliteRoster {
     const loans = this.loans; this.lifecycle?.validate();
     if (this.scope.disposed || this.scope.disposing || this.host.scope !== this.scope || this.host.clock !== this.clock || loans.host !== this.host || loans.core !== this.core || this.core.player !== this.host.player
       || loans.bindings !== this.bindings || loans.kernel !== this.kernelOwner || loans.groups !== this.groups || this.core.entries !== this.entries
+      || this.projected.some(loan => loan.group.leadAway !== loan.lead || loan.program.project !== loan.project || loan.core.won !== loan.won || readers(loan.group, ['leaderState','leader']).some((reader, i) => reader !== loan.readers[i]))
+      || (this.bond !== null && (this.bond.scope !== this.bondScope || this.bondScope !== this.scope || this.bondScope.disposed || this.bondScope.disposing || readers(this.bond).some((reader, i) => reader !== this.bondReaders[i])))
       || this.prepared.length !== this.members.length
       || this.bindings.brains !== this.brains || this.bindings.pinned !== this.pinned || this.groups?.packs !== this.packs || this.groups?.herds !== this.guards || this.kernelMembers().some((owner, i) => owner !== this.kernelLoans[i])
       || this.rows.some((row, i) => row.continuation?.borrowed !== undefined && this.guards?.[row.continuation.borrowed.group] !== this.borrowedGroups[i])
@@ -116,6 +177,45 @@ export class NativeEliteRoster {
     this.borrowed.push({ member, script, controller: member.controller, calls: scriptMethods(script), continuation: [method(member.controller, 'snapshot'), method(member.controller, 'prepareRestore')] });
     this.members.push(member); this.prepared.push(script); this.validate(); this.advanceConstruction();
   }
+  /** Construct a declared borrowed controller at its original interleaved row.
+   * Native group and bond services retain their bodies, adoption and save authority. */
+  bindProjected(index: number, program: NativeEliteProgram, core: NativeEliteRosterCore & { readonly won: (id: string) => void }): void {
+    this.validate(); const row = this.rows[index], profile = row === undefined ? undefined : this.projections[row.def.id];
+    const binding = row?.continuation?.borrowed, group = binding === undefined ? undefined : this.guards?.[binding.group];
+    if (row === undefined || binding === undefined || profile === undefined || !(group instanceof GrazerBrain) || core !== this.core || typeof core.won !== 'function'
+      || index !== this.borrowedIndex || typeof group.leadAway !== 'function') throw new Error('Missing projected elite owners');
+    const controller = new NativeEliteProjection(profile, program, this.scope);
+    const member: NativeEliteMember = { row, controller, animal: null, phase2: false, pack: null, adopted: false, detached: false };
+    this.projected.push({ group, lead: method(group, 'leadAway'), readers: readers(group, ['leaderState','leader']), program, project: method(program, 'project'), core, won: method(core, 'won') });
+    const live = (): void => { this.validate(); if (this.guards?.[binding.group] !== group) throw new Error('Replaced projected elite group'); };
+    const script: NativeEliteScript = {
+      def: row.def, get animal() { return member.animal; },
+      spawn: () => { live(); const actor = group.leader; if (actor === null || !actor.alive || member.animal !== null) throw new Error('Encounter group respawn is not hosted'); member.animal = actor; },
+      despawn: () => { live(); if (member.animal !== null) this.pinned.delete(member.animal); },
+      reset: () => { live(); member.phase2 = false; }, enterPhase2: () => { live(); member.phase2 = true; }, trophy: () => undefined,
+      ...(profile.brokenState === undefined ? {} : { broken: () => { live(); return group.leaderState === profile.brokenState; } }),
+      tick: (dt, _t, engaged, _leashing) => {
+        live(); const bond = this.bond; if (bond === null) throw new Error('Missing elite bond owner'); const animal = member.animal; if (animal !== null) { if (engaged) this.pinned.add(animal); else this.pinned.delete(animal); }
+        if (animal === null || member.detached) return;
+        // Capture the original bond facade before signature/lead can reenter its owner.
+        const phase = bond.phase, adopted = bond.companion, at = animal.position, player = this.host.player.position;
+        const effects = controller.advance(dt, { state: group.leaderState, phase2: member.phase2, engaged, bonded: phase === profile.bondedState,
+          same: group.leader === animal, health: animal.hp / animal.maxHp, at: [at.x, at.y, at.z], player: [player.x, player.y, player.z] });
+        if (effects.signature) { live(); core.signature(row.def.id); } if (effects.lead) { live(); group.leadAway(player.x, player.z); }
+        if (effects.adopt && adopted !== null) {
+          live(); const action = profile.adoption;
+          if (action === undefined || method(member, 'detached') === true || this.host.entities.get(adopted.entityId) !== adopted || adopted.variant !== action.variant) throw new Error('Adopted encounter reward has no native owner');
+          adopted.scale = action.scale; core.won(row.def.id); member.detached = true;
+        }
+      },
+    };
+    this.bindBorrowed(index, member, script);
+  }
+  /** Lend the original service after construction, before fresh or restored initialization. */
+  bindBond(owner: NativeEliteBond): void {
+    this.validate(); if (!this.installed || this.bond !== null || owner.scope !== this.scope || !['wild','breaking','bonded'].includes(owner.phase)) throw new Error('Foreign or duplicate elite bond owner');
+    this.bond = owner; this.bondScope = owner.scope; this.bondReaders = readers(owner);
+  }
   /** Register the complete ordered bank only after every controller is present. */
   install(): void {
     this.validate(); if (this.installed || this.members.length !== this.rows.length || this.host.hasStep(this.input.step)) throw new Error('Incomplete or duplicate elite roster installation');
@@ -128,6 +228,6 @@ export class NativeEliteRoster {
     this.host.onStep(this.input.step, dt => { if (this.scope.disposed || this.scope.disposing) return; this.validate(); this.core.update(dt, this.clock.now); }, continuation);
   }
   get scripts(): readonly NativeEliteScript[] { this.validate(); if (this.members.length !== this.rows.length) throw new Error('Incomplete elite roster'); return Object.freeze(this.prepared); }
-  initialize(): void { this.validate(); if (!this.installed) throw new Error('Uninstalled elite roster'); this.core.initialize(); }
+  initialize(): void { this.validate(); if (!this.installed) throw new Error('Uninstalled elite roster'); if (this.projected.length > 0 && this.bond === null) throw new Error('Missing elite bond owner'); this.core.initialize(); }
   bindPopulation(population: NativeElitePopulation): void { this.validate(); if (!this.installed) throw new Error('Uninstalled elite roster'); this.lifecycle?.bindPopulation(population); }
 }

@@ -111,7 +111,7 @@ test('foreign, duplicate, replaced and retiring population owners refuse before 
 
 test('native metadata binds the concrete population immediately before the original restoring initialization branch', () => {
   const last = assembly.install.at(-1);
-  expect(last).toEqual({ name: 'initialize', value: { $sequence: [{ $call: [{ $ref: ['elites', 'bindPopulation'] }, { $ref: ['creatures'] }] },
+  expect(last).toEqual({ name: 'initialize', value: { $sequence: [{ $call: [{ $ref: ['elites', 'bindPopulation'] }, { $ref: ['creatures'] }] }, { $call: [{ $ref: ['elites', 'bindBond'] }, { $ref: ['taming'] }] },
     { $if: [{ $not: { $ref: ['context', 'restoring'] } }, { $call: [{ $ref: ['elites', 'initialize'] }] }, { $ref: ['absent'] }] }] } });
 });
 
@@ -179,7 +179,7 @@ test('restore rechecks the same population after the entire continuation suffix 
   const prepare = core.prepareRestore.bind(core), writes = vi.spyOn(core, 'restoreClocks');
   vi.spyOn(core, 'prepareRestore').mockImplementation(value => { const commit = prepare(value); if (replace) Object.defineProperty(f.population, 'bodies', { value: [] }); return commit; });
   const instance = installEliteEncounters(f.host, { step: 'quarry.elites', version: 1, core, rows: [{ def: { ...f.row.def, lair: { ...f.row.def.lair, r: 1 }, rule: 'always', awareR: 10, engageR: 3, leashR: 20, respawnMin: 1 },
-    keeper: 'kernel', snapshot: 'member', member: f.row.member }], ports: { bindings: f.bindings, herd: () => null, keepers: { herd: { rows: {}, program: {} } }, kernels: { ...f.loans, rows: f.kernels.declaredRows.filter(row => row.id === f.row.def.id) } }, wire: {} });
+    keeper: 'kernel', snapshot: 'member', member: f.row.member }], ports: { bindings: f.bindings, kernels: { ...f.loans, rows: f.kernels.declaredRows.filter(row => row.id === f.row.def.id) } }, wire: {} });
   try {
     instance.bindPopulation(f.population);
     const script = instance.scripts[0]; if (script === undefined || adapter === undefined) throw new Error('Missing native owner');

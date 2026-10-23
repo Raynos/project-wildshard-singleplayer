@@ -408,6 +408,9 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
 
   /** the flight becomes a stampede, away from (x, z) */
   stampede(x: number, z: number): void { this.requireHerd(); this.startFlight(x, z, true); }
+  /** Original guard identity and state borrowed by native and entered elites. */
+  get leaderState(): GuardedStallionState { return this.stallionState; }
+  get leader(): A | null { return this.stallion; }
   /** the stallion leads the herd away from (x, z) at a gallop (taming: ALERT maxed with some trust) — not a stampede */
   leadAway(x: number, z: number): void { this.requireHerd(); this.startFlight(x, z, false); }
   /** the stallion leaves the herd for good (tamed): the herd grazes on without a guard */

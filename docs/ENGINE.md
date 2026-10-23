@@ -7855,10 +7855,25 @@ registration, initialization and update pin the same host, Core, scope, clock,
 rows, group arrays, native owners and callable identities. `initialize()` and
 `bindPopulation(owner)` retain their original late assembly slots. Borrowed
 controllers retain their decisions, adoption effects and historical save wire.
+Optional `projections` rows name the existing numeric signal/state codes, bond
+state, broken state and scale/variant adoption action. `bindProjected(index,
+program, core)` constructs the borrowed member/controller/script at that same
+row position, over the original `GrazerBrain` group selected by its continuation
+row. The same admitted programme owns decisions; no new executable, group step
+or sampling clock is installed. `NativeEliteProjection` preserves the historical
+raw `lastState`, lane endpoints and ten-Hz elapsed/save layout (including legacy
+saves with no elapsed field). Original signature, lead, scale, win and detach
+operations retain their order. Group getters and callable identities stay pinned.
+`bindBond(owner)` lends the original scope-owned phase/companion service beside
+population binding before fresh or restored initialization. The companion is
+sampled before native effects, preserving the original facade under reentry.
+`TamingSession.scope` exposes its existing construction scope for that identity
+check; it adds no owner or state. The roster pins the service's readers and scope.
 The deeply readonly `NativeEliteRosterRows` and concrete `NativeEliteRosterLoans`
 types expose this same admitted contract to compiled lenders. Game declarations
 derive shared definition, save-field, group and binding types from that contract;
-borrowed member policy remains with its original lender.
+manual borrowed controllers retain their original lender; declared projected
+controllers use the same engine roster binding.
 
 `engine/ai/eliteLifecycle.NativeEliteLifecycle` drives native boot adoption,
 allocated respawn, initial memory, pack placement/home assignment, retirement,

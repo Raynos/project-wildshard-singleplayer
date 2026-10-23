@@ -27,6 +27,7 @@ export interface NativeTamingRows {
 }
 /** Native observations and actions expose no per-shard hooks or callback ports. */
 export interface NativeTamingOwner {
+  readonly scope: SimHost['scope'];
   readonly phase: 'wild' | 'breaking' | 'bonded'; readonly companion: AnimalSim | null; readonly upgraded: boolean;
   readonly promptHorse: AnimalSim | null; readonly view: TamingObservation;
   readonly interactable: { position: Vector3; radius: number; label: string; onInteract: () => void };
