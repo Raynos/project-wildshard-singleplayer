@@ -3,9 +3,29 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { posix, resolve } from 'node:path';
 import * as v from 'valibot';
+import { parseSync } from 'vite';
 import { ratchetApprovalFailures } from './ratchet-approval.mjs';
 import { linkNodeModules } from './link-node-modules.mjs';
 import { commitCheckFailed, commitGuards, runCommitJobs } from './precommit-jobs.mjs';
+
+/** Only exact declared generated imports may be absent from a cold sealed
+ * snapshot. Ordinary missing modules remain failures of the selected guard.
+ * @param {string} root @param {string} guard @returns {string[]} */
+export function missingInventoryGeneration(root, guard) {
+  if(!existsSync(resolve(root,'scripts/generation-jobs.json'))||!existsSync(resolve(root,'scripts/source-generation-outputs.json')))return [];
+  const catalogue=v.parse(v.object({jobs:v.array(v.object({outputs:v.array(v.string())}))}),JSON.parse(readFileSync(resolve(root,'scripts/generation-jobs.json'),'utf8')));
+  const source=v.parse(v.object({producers:v.record(v.string(),v.array(v.string()))}),JSON.parse(readFileSync(resolve(root,'scripts/source-generation-outputs.json'),'utf8')));
+  const generated=new Set([...catalogue.jobs.flatMap(job=>job.outputs),...Object.values(source.producers).flat()]);
+  const parsed=parseSync(guard,readFileSync(resolve(root,guard),'utf8'));
+  if(parsed.errors.length>0)throw new Error(`Invalid inventory guard: ${guard}`);
+  const missing=[];
+  for(const row of parsed.program.body)if(row.type==='ImportDeclaration'&&row.source.value.startsWith('.')) {
+    const target=posix.normalize(posix.join(posix.dirname(guard),row.source.value));
+    const file=[target,`${target}.ts`,`${target}.json`,`${target}.js`].find(name=>generated.has(name));
+    if(file!==undefined&&!existsSync(resolve(root,file)))missing.push(file);
+  }
+  return [...new Set(missing)];
+}
 
 /** Check staged text only; no mirror, generator, app build or related walk.
  * @param {string} [root] @param {string} [executable] */
@@ -104,7 +124,16 @@ export async function precommitInputs(root = resolve(import.meta.dirname, '..'),
       }
       if (deleted.length > 0) jobs.push({ name: 'deleted paths', command: [process.execPath, worker, 'deleted'] });
       for (const file of guards) if (!existsSync(resolve(tree, file))) throw new Error(`Missing selected staged inventory guard: ${file}`);
-      if (guards.length > 0) jobs.push({ name: 'inventory guards', command: [process.execPath, resolve(root, 'node_modules/vitest/vitest.mjs'), 'run', '--config', 'scripts/vitest-push-guards.config.ts', ...guards] });
+      const readyGuards=[];
+      for(const guard of guards) {
+        const missing=missingInventoryGeneration(tree,guard);
+        if(missing.length===0)readyGuards.push(guard);
+        else {
+          recordDeferred('push-deferred-inventory.json',[guard]);
+          console.warn(`pre-commit: inventory guard ${guard} missing verified generated inputs: ${missing.join(', ')}; exact guard deferred to CI`);
+        }
+      }
+      if (readyGuards.length > 0) jobs.push({ name: 'inventory guards', command: [process.execPath, resolve(root, 'node_modules/vitest/vitest.mjs'), 'run', '--config', 'scripts/vitest-push-guards.config.ts', ...readyGuards] });
       checked = await runCommitJobs(tree, jobs, deadline);
       }
     }
