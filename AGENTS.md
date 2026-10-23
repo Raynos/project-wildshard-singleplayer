@@ -74,7 +74,7 @@ file in `docs/` is: [docs/README.md](docs/README.md).
 - ENGINE.md is the public API: document new APIs in source and its manual sections. Builders commit source only;
   the API tables and export index are build outputs of `pnpm docs` (gitignored, SF74 W13); the pusher regenerates
   graph counts and debt from clean HEAD (SF6b; GIT.md). A new shard starts from `src/shards/_template/` per SHARDS.md.
-- **The E357 lock** is lifted (GAME-NORMALIZATION archived 2026-10-01; `.github/lock.json` `"locked": false`).
+- **The E357 lock** was lifted when GAME-NORMALIZATION archived on 2026-10-01; its obsolete hook and policy are retired.
 
 ## Version control → [docs/process/GIT.md](docs/process/GIT.md)
 

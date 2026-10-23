@@ -3116,7 +3116,6 @@ initialization and any later identity addition require exact coordinator approva
 | `scripts/gen-shards.mjs --check` (AG10) | push gate, `pnpm test` (`test/gen-shards.test.ts`) | the manifest contract: `load` is `() => import('./plugin')` and nothing imports `./plugin` statically; the manifest's static closure stays within `lint/manifest-closure-budget.json` (may only fall; `default` for a new shard); every `ShardManifest` field is read by the engine, the game or the tooling |
 | `scripts/check-shards.mjs` (AG9) | pre-commit, `pnpm test` via `check-paths` | the folder layout in `lint/shard-layout.json`: required files, canonical folders, slug = folder name, `manifest.slug` = folder |
 | `scripts/gen-shards.mjs --check` | gate | the generated registry and the shard word list are current |
-| `scripts/check-lock.mjs` (`.githooks/commit-msg`) | every commit | the E357 lock: only reopened shards' allowlists, unless `E357-Lead: yes` |
 | `scripts/check-paths.mjs` | `pnpm test` | no stale tool paths or empty globs |
 | `test/manifests-node-safe.test.ts`, the shard contract tests | `pnpm test` | manifests import in bare node; a shard boots in the fake `Game` |
 | `test/engine-docs.test.ts` | `pnpm test` | this file lists every export; SHARDS.md names the layout; every shard has a README |

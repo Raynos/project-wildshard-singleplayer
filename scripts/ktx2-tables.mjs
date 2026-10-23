@@ -1,7 +1,45 @@
 // The encoder and the F9 migration share this partition; generation never needs basisu.
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { defaultAssetGlobs, globToRegExp } from './check-lock.mjs';
+
+/** Default texture ownership roots; a shard's authored assetGlobs add to them. */
+function defaultAssetGlobs(slug) {
+  return [
+    `public/assets/${slug}/**`,
+    `public/assets/gpu/${slug}/**`,
+    `public/assets/baked/${slug}/**`,
+    `public/assets/gpu/baked/${slug}/**`,
+    `public/assets/music/${slug}/**`,
+    `public/assets/sfx/${slug}/**`,
+    `public/assets/horizon/${slug}-*`,
+    `public/assets/gpu/horizon/${slug}-*`,
+    `public/assets/lut/${slug}.bin`,
+    `public/assets/title/${slug}-portrait.jpg`,
+  ];
+}
+
+const reCache = new Map();
+/** A glob → RegExp: `**` any depth, `*` within one segment, `{a,b}` alternatives, everything else literal. */
+function globToRegExp(glob) {
+  const hit = reCache.get(glob);
+  if (hit) return hit;
+  let re = '';
+  for (let i = 0; i < glob.length; i++) {
+    const c = glob[i];
+    if (c === '*' && glob[i + 1] === '*') {
+      i++;
+      if (glob[i + 1] === '/') { i++; re += '(?:.*/)?'; } else re += '.*';
+    } else if (c === '*') re += '[^/]*';
+    else if (c === '?') re += '[^/]';
+    else if (c === '{') re += '(?:';
+    else if (c === '}') re += ')';
+    else if (c === ',') re += '|';
+    else re += c.replaceAll(/[.+^$()|[\]\\]/g, String.raw`\$&`);
+  }
+  const out = new RegExp(`^${re}$`);
+  reCache.set(glob, out);
+  return out;
+}
 
 export function splitKtx2(map, shards) {
   const tables = new Map([['engine', { phone: {}, desktop: {} }], ...shards.map((m) => [m.slug, { phone: {}, desktop: {} }])]);

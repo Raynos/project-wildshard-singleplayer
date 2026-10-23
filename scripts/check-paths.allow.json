@@ -370,11 +370,6 @@
     "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
   },
   {
-    "path": "src/shards/${slug}/**",
-    "file": "scripts/check-lock.mjs",
-    "why": "E357 F6m: lock pathspec template for future reopened shard folders."
-  },
-  {
     "path": "src/engine/saves/store.ts",
     "file": "scripts/deploy-pin.mjs",
     "why": "E357 F6m: git show path on an historical commit; intentionally absent until F10."
