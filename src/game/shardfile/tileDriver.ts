@@ -95,6 +95,9 @@ export const tileKeys = (tiles: readonly CellTile[]): number[] => tiles.map(tile
 /** pause ▸ Settings ▸ Debug ▸ Tile residency (T5): the render ring's radius in tiles (8 or more: the whole cell). */
 export function tileResidencyRadius(): number { const value = setting('tileResidency'); return value === '3x3' ? 1 : value === '5x5' ? 2 : 8; }
 
+/** T6: the ring creatures stay awake in, whichever render ring ships: the 5 x 5, or the render ring when it is smaller. */
+export function creatureRing(): number { return Math.min(tileResidencyRadius(), 2); }
+
 /**
  * T6: the render ring as a viewer-following test (a creature manager's residency, `AnimalManager.setResidency`): given the
  * viewer's cell-local position, whether (x, z) lies in the ring of `radius` tiles around the viewer's tile, the tile followed

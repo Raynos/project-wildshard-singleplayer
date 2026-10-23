@@ -97,7 +97,7 @@ import { clientViews } from '../shardfile/clientViews';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { shardfileLook } from '../shardfile/look';
 import { findShard } from '../shard/registry';
-import { followRing } from '../shardfile/tileDriver';
+import { creatureRing, followRing } from '../shardfile/tileDriver';
 
 /** Page-root ports; every default is the standalone behaviour, the live session supplies the cell's own installs. */
 export interface RegionalWorldPorts {
@@ -459,7 +459,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
           const animals = frame.run(app, () => new AnimalManager(scene, sky, forest, { physics: host.physics }));
           await animals.buildAsync(ports.pause, frame);
           if (left()) throw new Error('Regional world left while building creatures');
-          animals.setResidency(followRing()); // T6 (Debug ▸ Tile residency): the animals outside the player's ring sleep
+          animals.setResidency(followRing(creatureRing())); // T6: the animals outside the player's 5 x 5 sleep
           return { animals, wearSkin: (equipment: EquipmentService, skin: SkinDef): void => {
             const model = equipment.get(skin.weapon).model;
             if (model instanceof Group) applySkin(model, skin, sky);
