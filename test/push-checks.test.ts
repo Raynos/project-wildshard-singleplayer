@@ -49,19 +49,19 @@ test('deleted paths ignore only frozen legacy folders and still refuse active co
   const put = (name: string, value: string): void => {
     const path = resolve(root, name); mkdirSync(resolve(path, '..'), { recursive: true }); writeFileSync(path, value);
   };
-  const deleted = ['src/shards/nalati-grasslands/species/goldenKing.ts'];
+  const deleted = [['src', 'shards', 'example-shard', 'gone.ts'].join('/')];
   const reference = JSON.stringify({ source: deleted[0] });
   try {
-    put('src/shards/nalati-grasslands-legacy/runtime/physics.baked.json', reference);
-    put('src/shards/nine-dragon-stack-legacy/runtime/old.ts', `const historical = '${deleted[0]}';`);
+    put('src/shards/example-shard-legacy/runtime/physics.baked.json', reference);
+    put('src/shards/other-shard-legacy/runtime/old.ts', `const historical = '${deleted[0]}';`);
     expect(deletedReferences(root, deleted).sort()).toEqual([]);
-    put('src/shards/nalati-grasslands/runtime/active.json', reference);
-    put('src/shards/nalati-grasslands-legacy-next/runtime/active.json', reference);
-    put('src/game/nalati-grasslands-legacy/active.json', reference);
+    put('src/shards/example-shard/runtime/active.json', reference);
+    put('src/shards/example-shard-legacy-next/runtime/active.json', reference);
+    put('src/game/example-shard-legacy/active.json', reference);
     expect(deletedReferences(root, deleted).sort()).toEqual([
-      `src/game/nalati-grasslands-legacy/active.json:1: deleted path ${deleted[0]}`,
-      `src/shards/nalati-grasslands-legacy-next/runtime/active.json:1: deleted path ${deleted[0]}`,
-      `src/shards/nalati-grasslands/runtime/active.json:1: deleted path ${deleted[0]}`,
+      `src/game/example-shard-legacy/active.json:1: deleted path ${deleted[0]}`,
+      `src/shards/example-shard-legacy-next/runtime/active.json:1: deleted path ${deleted[0]}`,
+      `src/shards/example-shard/runtime/active.json:1: deleted path ${deleted[0]}`,
     ]);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
