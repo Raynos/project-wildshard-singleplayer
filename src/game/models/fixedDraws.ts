@@ -1,4 +1,5 @@
 import { base64Bytes } from '@wildshard/engine/core/deflate';
+import { workSlice } from '@wildshard/engine/core/workSlice';
 import { FixedDrawRowsSchema } from '@wildshard/format/fixedDraws';
 import * as v from 'valibot';
 import { unzlibSync } from 'fflate';
@@ -102,10 +103,16 @@ export function fixedDraws(product: Pick<ShardProduct, 'file' | 'slug'>, input: 
           return [row.slot, value] as const;
         })));
         if (assembled !== undefined && assembled.size !== rows.filter(row => row.baked === undefined).length) throw new Error('Unexpected assembled fixed draw');
-        await Promise.all(rows.map(row => {
+        // G639: a baked slot decodes synchronously (its blocks, bounds and corner expansion), so the slots take turns
+        // with the frame: together they made a ~180 ms Nalati cell-entry frame (Chromium phone 4x). GLB loads still all
+        // start in row order and run together.
+        const slice = workSlice(), admits: Promise<void>[] = [];
+        for (const row of rows) {
           const template = templates.get(row.slot); if (template === undefined) throw new Error(`Undeclared fixed draw: ${row.slot}`);
-          return admitSlot(row, template, admitted.get(row.slot));
-        }));
+          const admit = admitSlot(row, template, admitted.get(row.slot)); admit.catch(() => undefined); admits.push(admit);
+          if (row.baked !== undefined) await slice.check();
+        }
+        await Promise.all(admits);
         ready = true;
       } finally { for (const view of assembled?.values() ?? []) view.release?.(); }
     },
