@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { PrefetchQuota } from './prefetchQuota';
+import { PrefetchQuota, PrefetchBytes } from './prefetchQuota';
 
 it('requests persistence first and prevents concurrent writes oversubscribing a stale quota', async () => {
   const events: string[] = [];
@@ -33,4 +33,28 @@ it('declines unknown/unavailable estimates without evicting anything or throwing
   expect(await PrefetchQuota.open({ persist: () => Promise.resolve(false), estimate: () => Promise.resolve({}) }, 20)).toBeNull();
   expect(await PrefetchQuota.open({ persist: () => Promise.reject(new Error('Denied')),
     estimate: () => Promise.reject(new Error('Unavailable')) }, 20)).toBeNull();
+});
+
+it('holds payload bytes through storage, wakes FIFO and releases each claim only once', async () => {
+  const memory = new PrefetchBytes(10), release = await memory.reserve(7);
+  const admitted: number[] = [];
+  const second = memory.reserve(6).then(done => { admitted.push(6); return done; });
+  const third = memory.reserve(3).then(done => { admitted.push(3); return done; });
+  await Promise.resolve();
+  expect(admitted).toEqual([]); // The smaller body cannot jump a blocked earlier body.
+  expect(memory.usedBytes).toBe(7);
+  release(); release();
+  const [releaseSecond, releaseThird] = await Promise.all([second, third]);
+  expect(admitted).toEqual([6, 3]);
+  expect(memory.usedBytes).toBe(9); expect(memory.peakBytes).toBe(9);
+  releaseSecond(); expect(memory.usedBytes).toBe(3);
+  releaseThird(); expect(memory.usedBytes).toBe(0);
+});
+
+it('refuses invalid or oversized payloads before queueing and admits zero-byte bodies', async () => {
+  expect(() => new PrefetchBytes(0)).toThrow('limit');
+  const memory = new PrefetchBytes(10);
+  for (const bytes of [-1, 11, 0.5, Infinity, Number.NaN]) expect(() => memory.reserve(bytes)).toThrow('size');
+  const release = await memory.reserve(0); release();
+  expect(memory.usedBytes).toBe(0); expect(memory.peakBytes).toBe(0);
 });

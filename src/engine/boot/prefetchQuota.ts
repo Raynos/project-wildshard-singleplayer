@@ -7,6 +7,36 @@ export interface PrefetchReservation {
   /** Settle once: a cache hit or failed write stores zero; a successful write reports its actual stored body bytes. */
   finish: (storedBytes: number) => void;
 }
+
+/** FIFO body-byte admission, held through the durable cache acknowledgement. */
+export class PrefetchBytes {
+  readonly limit: number;
+  private used = 0;
+  private peak = 0;
+  private readonly waiting: { bytes: number; resolve: (release: () => void) => void }[] = [];
+  constructor(limit: number) {
+    if (!Number.isSafeInteger(limit) || limit <= 0) throw new Error('Invalid prefetch byte limit');
+    this.limit = limit;
+  }
+  get usedBytes(): number { return this.used; }
+  get peakBytes(): number { return this.peak; }
+  reserve(bytes: number): Promise<() => void> {
+    if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > this.limit) throw new Error('Invalid prefetch body size');
+    return new Promise(resolve => { this.waiting.push({ bytes, resolve }); this.pump(); });
+  }
+  private pump(): void {
+    while (this.waiting[0] !== undefined && this.used + this.waiting[0].bytes <= this.limit) {
+      const row = this.waiting.shift();
+      if (row === undefined) return;
+      this.used += row.bytes; this.peak = Math.max(this.peak, this.used);
+      let released = false;
+      row.resolve(() => {
+        if (released) return;
+        released = true; this.used -= row.bytes; this.pump();
+      });
+    }
+  }
+}
 function freeBytes(estimate: { usage?: number; quota?: number }, headroom: number): number | null {
   const { usage, quota } = estimate;
   if (usage === undefined || quota === undefined || !Number.isSafeInteger(usage) || !Number.isSafeInteger(quota)

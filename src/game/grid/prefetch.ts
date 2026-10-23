@@ -14,8 +14,7 @@
  * start (the grid after the menu) only moves its cells to the front of the queue. Its fetches are not boot waits.
  * `window.__ws_gridPrefetch()` (captures, the bench) returns the counts.
  */
-import * as v from 'valibot';
-import { PrefetchQuota } from '@wildshard/engine/boot/prefetchQuota';
+import { PrefetchQuota, PrefetchBytes } from '@wildshard/engine/boot/prefetchQuota';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { outputBlobPath, parseOutputIndex } from '@wildshard/format/outputIndex';
 import { findShard } from '../shard/registry';
@@ -25,6 +24,8 @@ import type { GridAssembly } from './assembly';
 
 /** Files in flight at once: the page's own reads keep most of the pipe. */
 const CONCURRENCY = 2;
+/** Payloads, not process memory: worker/store snapshots also consume memory. */
+const IN_FLIGHT_BYTES = 32 * 1024 * 1024;
 /** Origin quota left free for saves, the app shell and the browser's own caches. */
 const HEADROOM = 64 * 1024 * 1024;
 
@@ -39,16 +40,30 @@ export interface GridPrefetchStatus {
   readonly knownFiles: number; readonly knownBytes: number;
   /** of those, already on disk before this run looked, and stored by this run */
   readonly presentFiles: number; readonly presentBytes: number; readonly storedFiles: number; readonly storedBytes: number;
+  readonly inFlightBytes: number; readonly peakInFlightBytes: number; readonly limitInFlightBytes: number;
 }
 interface Row { readonly path: string; readonly hash: string; readonly bytes: number }
 type PrefetchCache = Required<Pick<ProductCache, 'holds' | 'keepAsset'>>;
 
-const readable = v.object({ ok: v.literal(true) });
-async function read(url: string, maximum: number): Promise<Uint8Array> {
-  const response = await fetch(url);
-  if (!v.is(readable, response)) throw new Error(`Prefetch read failed: ${url}`);
-  const bytes = new Uint8Array(await response.arrayBuffer());
-  if (bytes.length > maximum) throw new Error('Prefetched file exceeds its declared size');
+/** The verified disk cache owns persistence; HTTP must not retain a second body. */
+export async function readGridPrefetch(url: string, maximum: number, fetcher: typeof fetch = fetch): Promise<Uint8Array> {
+  if (!Number.isSafeInteger(maximum) || maximum < 0 || maximum > IN_FLIGHT_BYTES) throw new Error('Invalid prefetch body size');
+  const response = await fetcher(url, { cache: 'no-store' });
+  if (!response.ok) throw new Error(`Prefetch read failed: ${url}`);
+  if (response.body === null) return new Uint8Array();
+  const reader = response.body.getReader(), chunks: Uint8Array[] = [];
+  let length = 0;
+  try {
+    while (true) {
+      const part = await reader.read();
+      if (part.done) break;
+      length += part.value.byteLength;
+      if (length > maximum) throw new Error('Prefetched file exceeds its declared size');
+      chunks.push(part.value);
+    }
+  } finally { await reader.cancel().catch(() => undefined); reader.releaseLock(); }
+  const bytes = new Uint8Array(length); let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
   return bytes;
 }
 function saveData(): boolean {
@@ -63,10 +78,11 @@ export function gridPrefetchOrder(assembly: Pick<GridAssembly, 'cells'>, at: Rea
 }
 
 class GridPrefetch {
+  private readonly memory = new PrefetchBytes(IN_FLIGHT_BYTES);
   private readonly queue: string[] = [];
   private readonly known = new Set<string>();
   private readonly hashes = new Set<string>();
-  private status: { -readonly [K in keyof GridPrefetchStatus]: GridPrefetchStatus[K] } = { phase: 'running', reason: null,
+  private status: Omit<{ -readonly [K in keyof GridPrefetchStatus]: GridPrefetchStatus[K] }, 'inFlightBytes' | 'peakInFlightBytes' | 'limitInFlightBytes'> = { phase: 'running', reason: null,
     products: 0, productsRead: 0, knownFiles: 0, knownBytes: 0, presentFiles: 0, presentBytes: 0, storedFiles: 0, storedBytes: 0 };
   /** Queue these slugs ahead of the rest (already read ones are skipped); start the run if it is not running. */
   prioritize(slugs: readonly string[]): void {
@@ -74,7 +90,8 @@ class GridPrefetch {
     for (const id of fresh) { const at = this.queue.indexOf(id); if (at !== -1) this.queue.splice(at, 1); this.known.add(id); }
     this.queue.unshift(...fresh); this.status.products = this.known.size;
   }
-  snapshot(): GridPrefetchStatus { return { ...this.status }; }
+  snapshot(): GridPrefetchStatus { return { ...this.status, inFlightBytes: this.memory.usedBytes,
+    peakInFlightBytes: this.memory.peakBytes, limitInFlightBytes: this.memory.limit }; }
   stop(reason: string, phase: 'quota' | 'stopped' | 'error' = 'stopped'): void {
     if (this.status.reason === null) { this.status.reason = reason; this.status.phase = phase; }
   }
@@ -96,7 +113,7 @@ class GridPrefetch {
     const url = new URL(descriptor, location.href), base = new URL('.', url).href, options = browserShardfileOptions(base, true);
     const holds = options.cache?.holds, keepAsset = options.cache?.keepAsset;
     if (holds === undefined || keepAsset === undefined) { this.stop('no content cache'); return; }
-    const bytes = await read(url.href, limits.sourceBytes);
+    const bytes = await readGridPrefetch(url.href, limits.sourceBytes);
     if (options.built !== undefined && !options.built.indexes.has(await options.hash(bytes))) { this.stop('a newer deployment'); return; }
     const index = parseOutputIndex(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
     const listed: Row[] = [...index.sections, ...index.schemas, ...index.files.map(file => ({ path: outputBlobPath(file), hash: file.hash, bytes: file.compressed }))];
@@ -116,18 +133,21 @@ class GridPrefetch {
     if (await cache.holds(row.hash, row.bytes)) { this.status.presentFiles++; this.status.presentBytes += row.bytes; return; }
     const reservation = await quota.reserve(row.bytes);
     if (reservation === null) { this.stop('storage quota', 'quota'); return; }
-    let stored = 0;
+    let stored = 0, release: (() => void) | undefined, bytes: Uint8Array | undefined;
     try {
+      release = await this.memory.reserve(row.bytes);
+      if (this.status.reason !== null) return;
       const url = new URL(row.path, base).href;
-      let bytes = await read(url, row.bytes), actual: string | undefined;
+      bytes = await readGridPrefetch(url, row.bytes);
+      let actual: string | undefined;
       if (bytes.length !== row.bytes) throw new Error('Prefetched file differs from its index');
       if (hashOwned !== undefined) {
         try { ({ hash: actual, bytes } = await hashOwned(bytes)); }
-        catch { if (bytes.byteLength !== row.bytes) bytes = await read(url, row.bytes); } // a failed transfer: read it again
+        catch { if (bytes.byteLength !== row.bytes) bytes = await readGridPrefetch(url, row.bytes); } // a failed transfer: read it again
       }
       if (bytes.length !== row.bytes || (actual ?? await hash(bytes)) !== row.hash) throw new Error('Prefetched file differs from its index');
       if (await cache.keepAsset(row.hash, bytes)) stored = bytes.length; else this.stop('content cache full', 'quota');
-    } finally { reservation.finish(stored); }
+    } finally { bytes = undefined; release?.(); reservation.finish(stored); }
     if (stored > 0) { this.status.storedFiles++; this.status.storedBytes += stored; }
   }
 }

@@ -896,6 +896,14 @@ response bodies. Expected files remain pending
 until a network or cache receipt arrives; completion credits from legacy steps
 are not downloaded bytes.
 
+`PrefetchBytes(limit)` in `@wildshard/engine/boot/prefetchQuota` admits
+declared body bytes in FIFO order until its idempotent release runs. The grid
+holds a 32 MiB payload allowance through each durable cache acknowledgement;
+worker/store copies are additional memory. Its status exposes current, peak and
+limit payload bytes. `readGridPrefetch(url, maximum, fetcher?)` streams with early
+size refusal and `cache: no-store`; the verified content cache owns persistence.
+No HTTP/cache receipt or process-memory estimate is invented by the allowance.
+
 A format-2 home descriptor declares every section, schema and immutable blob
 before its first section/cache read. Historical state-lineage reads declare
 only their sections and schemas. The boot byte counter declares selected
