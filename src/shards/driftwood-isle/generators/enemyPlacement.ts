@@ -8,6 +8,7 @@ import { BodySlotsSchema } from '@wildshard/format/bodySlots';
 import { parse } from 'valibot';
 import { sampleCreatureGroup, selectCreatureSites } from '@wildshard/game/plugin/brain';
 import { ENEMY_COUNTS } from './fauna';
+import { driftwoodPhysicsGroundBytes } from './physics';
 
 const volley = parse(BodySlotsSchema, volleyData);
 
@@ -106,7 +107,7 @@ export function enemyPlacements(): { seed: number; volley: typeof volley; practi
   const heightAt = driftwoodGroundSampler();
   const page = (tier: 'phone' | 'desktop') => pack({ seed, waterLevel, heightAt,
     crabSites: physics.habitat.crabSites, palms: [...foliage.tiers[tier].palms.specs, ...extra] });
-  const bytes = Uint8Array.from(atob(physics.ground.heights), byte => byte.codePointAt(0) ?? 0);
+  const bytes = driftwoodPhysicsGroundBytes();
   const heights = new Float32Array(bytes.buffer);
   const nativeHeight = (x: number, z: number): number => terrainTileHeight({ resolution: 256, x: -250, z: -250, size: 500, heights }, x, z,
     { layout: 'column-major', boundary: 'clamp' });

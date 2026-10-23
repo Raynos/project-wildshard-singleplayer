@@ -1,18 +1,12 @@
+import { nativeColliderRecordSchema } from '@wildshard/format/nativePhysics';
+import * as v from 'valibot';
 import rows from '../data/physicsRows.json' with { type: 'json' };
 import { driftwoodGroundRows } from './groundRows';
 
-/** Base64 of a lattice's float32 bytes, as Rapier hands its heightfield back. */
-function base64(floats: Float32Array): string {
-  const bytes = new Uint8Array(floats.buffer, floats.byteOffset, floats.byteLength);
-  let text = '';
-  for (let at = 0; at < bytes.length; at += 0x8000) text += String.fromCodePoint(...bytes.subarray(at, at + 0x8000));
-  return btoa(text);
-}
+const floorFile = 'data/physics-ground.generated.bin';
 
-/** G350-DW: Driftwood's physics product from authoring inputs only: the ground recipe (its native lattice, column-major
- * as Rapier holds it, at its datum, with the authored cells the world carves), and the authored rows no recipe computes
- * yet (solids, actors, herds, habitat, pieces, Captain). No world, model, registry, engine or runtime code runs. */
-export function driftwoodPhysics(): Record<string, unknown> {
+/** The original native column-major lattice, datum and authored carve order. */
+export function driftwoodPhysicsGroundBytes(): Uint8Array<ArrayBuffer> {
   const lattice = driftwoodGroundRows(), size = lattice.resolution, heights = new Float32Array(size * size);
   for (let ix = 0; ix < size; ix++) for (let iz = 0; iz < size; iz++) heights[ix * size + iz] = (lattice.heights[iz * size + ix] ?? Number.NaN) + lattice.datum;
   for (const [index = -1, height = Number.NaN] of rows.ground.carve) {
@@ -20,8 +14,32 @@ export function driftwoodPhysics(): Record<string, unknown> {
     heights[index] = height;
   }
   if (heights.some(height => !Number.isFinite(height))) throw new Error('Driftwood physics: the ground lattice is not finite');
+  return new Uint8Array(heights.buffer, heights.byteOffset, heights.byteLength);
+}
+
+/** G350-DW: authoring-only native metadata. Original buffers use named binary files; no world or runtime runs. */
+export function driftwoodPhysics(): Record<string, unknown> {
   const { carve: _carve, ...ground } = rows.ground;
   return { version: 1, profile: 'authored rows', notice: 'DO NOT EDIT: regenerate with generators/physics.ts (driftwood-physics).',
-    ground: { ...ground, heights: base64(heights) }, solids: rows.solids, actors: rows.actors, herds: rows.herds, habitat: rows.habitat,
+    ground: { ...ground, heights: { file: floorFile } }, solids: rows.solids, actors: rows.actors, herds: rows.herds, habitat: rows.habitat,
     pieces: rows.pieces, captain: rows.captain };
+}
+
+/** One registered producer emits the exact native floor bytes beside its metadata. */
+export function driftwoodPhysicsFiles(): Map<string, Uint8Array> {
+  return new Map([['data/physics.generated.json', new TextEncoder().encode(`${JSON.stringify(driftwoodPhysics())}\n`)], [floorFile, driftwoodPhysicsGroundBytes()]]);
+}
+
+/** Original floor and hull buffers through the existing named binary intake. */
+export function driftwoodPhysicsSources(): { name: string; kind: 'bin'; source: string; options: { decoded: number } }[] {
+  const colliders = new Map<string, number>();
+  for (const solid of v.parse(v.array(nativeColliderRecordSchema([1, 2, 9], 'tagged', true)), rows.solids)) {
+    for (const range of [solid.vertices, solid.indices]) {
+      if (range === undefined) continue;
+      if (typeof range === 'string') throw new Error('Driftwood physics requires admitted raw collider ranges');
+      colliders.set(range.file, Math.max(colliders.get(range.file) ?? 0, range.byteOffset + range.byteLength));
+    }
+  }
+  return [{ name: floorFile, kind: 'bin', source: floorFile, options: { decoded: (rows.ground.rows + 1) * (rows.ground.cols + 1) * 4 } },
+    ...Array.from(colliders, ([name, decoded]) => ({ name, kind: 'bin' as const, source: name, options: { decoded } }))];
 }

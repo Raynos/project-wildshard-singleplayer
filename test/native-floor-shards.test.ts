@@ -17,6 +17,7 @@ for (const slug of ['driftwood-isle','pine-hollow']) test(`${slug} retains all f
   const raw=nativeBakeGround({...row,heights:{file}},256,500,slug,{file,bytes});
   expect(original).toHaveLength(65536);
   if(slug==='pine-hollow') expect(hashImmutableBytes(bytes)).toBe('baf2636f4cd6668e9104241c91a265734f1c34f915832184809f7e0e50de1acd');
+  if(slug==='driftwood-isle') expect(hashImmutableBytes(bytes)).toBe('a859cfc1c1ae5a599f70c0160d34f771ff5d8bc500b2581db2d40880dc31ad94');
   for (const current of [inline,raw]) {
     expect(hashImmutableBytes(new Uint8Array(current.heights.buffer))).toBe(hashImmutableBytes(bytes));
     expect(original.every((value,index)=>Object.is(value,current.heights[index]))).toBe(true);

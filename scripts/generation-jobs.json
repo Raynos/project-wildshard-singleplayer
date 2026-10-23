@@ -6033,8 +6033,9 @@
         "./src/sdk/bake/source-loader.mjs",
         "src/sdk/bake/json.mjs",
         "src/shards/driftwood-isle/generators/physics.ts",
-        "driftwoodPhysics",
-        "src/shards/driftwood-isle/data/physics.generated.json"
+        "driftwoodPhysicsFiles",
+        "src/shards/driftwood-isle",
+        "--files"
       ],
       "inputRoots": [
         "package.json",
@@ -6140,14 +6141,18 @@
         "src/shards/driftwood-isle/generators/landscape.ts",
         "src/shards/driftwood-isle/generators/landscapeNoise.ts",
         "src/shards/driftwood-isle/generators/physics.ts",
-        "src/format/inputDeclarations.ts"
+        "src/format/inputDeclarations.ts",
+        "src/shards/driftwood-isle/data/physics-colliders.bin",
+        "src/format/nativePhysics.ts"
       ],
       "outputs": [
-        "src/shards/driftwood-isle/data/physics.generated.json"
+        "src/shards/driftwood-isle/data/physics.generated.json",
+        "src/shards/driftwood-isle/data/physics-ground.generated.bin"
       ],
       "platform": "portable",
       "buildOutputs": {
-        "src/shards/driftwood-isle/data/physics.generated.json": "814b98eedff6580b678c1f8077b4ef42d4fabe557ad8b492cef521346a083aa6"
+        "src/shards/driftwood-isle/data/physics.generated.json": "cf3bd8df1a8294501131cc9509acad3b5aa26e7e2ed5ef45717085a3b16a5717",
+        "src/shards/driftwood-isle/data/physics-ground.generated.bin": "a859cfc1c1ae5a599f70c0160d34f771ff5d8bc500b2581db2d40880dc31ad94"
       },
       "seedOutputs": []
     },
