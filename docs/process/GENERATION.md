@@ -31,6 +31,17 @@ checks; it never overwrites different committed bytes. The pilot keeps stamp see
 the producer must write every declared output, so a copied seed cannot masquerade as a fresh bake. Removing these
 seeds requires separating schemas from generated data before uncommitting them.
 
+G668 G10 audits with `node scripts/generate.mjs --determinism` (or `--job=<id> --determinism`). Every selected
+job executes two fresh producer processes in the **same** private stage, with identical staged inputs. Seeds are reset,
+incidental files removed and non-output input writes refused between runs; every declared output must be rewritten.
+The audit bypasses phase snapshots and shared output caches, compares exact output SHA256s, never restores source files
+and releases its private results after downstream consumers finish. All registered jobs, including report-only jobs,
+are checked by the full command; unsupported Darwin/browser/tool requirements fail explicitly. Run the full audit on
+one committed build-mirror revision under the build lane and a browser lane. The audit schedules at most one browser
+producer at a time, alongside the bounded non-browser producers.
+A difference names the producer, output and both hashes and publishes no cache entry. Normal generation's historical
+cache/pinned-output checks remain separate and unchanged: a stable fresh result does not approve a stale retained pin.
+
 Cold staging copies and their SHA256 checks run in a worker, requesting filesystem COW clones with ordinary-copy
 fallback (G668 G4). Stages live under the source tree's ignored `tmp/` and are removed after the producer, including
 copy failures. Immutable upstream cache loans stay live until their consumers finish. An observed cache hit creates

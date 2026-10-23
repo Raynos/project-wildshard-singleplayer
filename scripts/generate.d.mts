@@ -13,11 +13,11 @@ export function generationInputs(root:string,roots:string[],memo?:InputHashMemo,
 /** Walk shard generators and expose every unregistered bake entry point. */
 export function discoverGeneration(root:string,catalogPath?:string):{schema:string;jobs:ShardGenerationJob[];unregistered:string[]};
 /** Generate in an isolated root, compare every committed byte, optionally restore only absent outputs. */
-export function generateShardJob(root:string,job:ShardGenerationJob,options?:{preparation?:GenerationPreparation;inputHashes?:InputHashMemo;cacheDir?:string;forceCompare?:boolean;restore?:boolean;restoreOutputs?:string[];catalogPath?:string;preview?:{url:string;revision:string};onComparison?:(rows:readonly GenerationComparison[])=>void}):Promise<GenerationResult & {retention:GenerationRetention[]}>;
+export function generateShardJob(root:string,job:ShardGenerationJob,options?:{preparation?:GenerationPreparation;inputHashes?:InputHashMemo;cacheDir?:string;forceCompare?:boolean;/** Fresh twice-run audit; no cache/pin comparison or source restoration. */determinism?:boolean;restore?:boolean;restoreOutputs?:string[];catalogPath?:string;preview?:{url:string;revision:string};onComparison?:(rows:readonly GenerationComparison[])=>void}):Promise<GenerationResult & {retention:GenerationRetention[]}>;
 /** Report-only CI/Vercel phase, leaving committed outputs intact pending platform proof. */
 export function reportGeneration(root:string):ReturnType<typeof discoverGeneration> & {missing:string[]};
 /** Generate only admitted build outputs, verifying pinned hashes before restoring missing files. */
-export function prepareGeneration(root:string,options?:{cacheDir?:string;concurrency?:number}):Promise<ReturnType<typeof reportGeneration>>;
+export function prepareGeneration(root:string,options?:{cacheDir?:string;concurrency?:number;determinism?:boolean}):Promise<ReturnType<typeof reportGeneration>>;
 /** Freshly verify a complete local generation receipt before the product phase. */
 export function verifiedPreparedGeneration(root:string):boolean;
 
