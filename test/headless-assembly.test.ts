@@ -154,6 +154,42 @@ test('native restore checks the restored ground before releasing the host', asyn
   } finally { source.dispose(); empty.dispose(); }
 });
 
+test('ABI1-only raw returns borrow the original asset map on fresh and restored assembly hosts',async()=>{
+  const program={script:structuredClone(returnPrograms.attack.script),bytes:''};
+  const bytes=Uint8Array.from(atob(returnPrograms.attack.bytes),value=>value.codePointAt(0)??0),hash=sha256(bytes);
+  const assets=new Map([[hash,bytes]]),captured:ReturnProgram[]=[];
+  const returns=[program.script];
+  const install=(host:SimHost):void=>{
+    const original=ReturnProgram.native(host,program);captured.push(original);
+    expect(ReturnProgram.native(host,program)).toBe(original);
+    expect(original.project('bossClamp',{fullHp:100,share:.3})).toEqual({hp:30});
+  };
+  const declaration={...base,modules:{'src/game/rawAssemblyFixture':['install']},install:[{name:'original',value:{$call:[ref('src/game/rawAssemblyFixture','install'),ref('host')]}}]};
+  const shard=emptyShardfile({slug:'abi1-assembly',name:'ABI1 assembly',author:'Test',revision:1,seed:17});
+  const product=createShardProduct({slug:shard.identity.slug,revision:1,shardfile:shard,sections:new Map([['actors/return-scripts',returns]]),
+    files:new Map([['sim/headless-assembly.json',{hash:'assembly',url:'assembly'}]]),
+    read:()=>Promise.resolve(new TextEncoder().encode(JSON.stringify(declaration)))});
+  const plan=await prepareHeadlessAssembly({shard,product,assets,rapier},{'src/game/rawAssemblyFixture':{install}});
+  const fresh=createSimHost(plan.level,{...plan.ports,rapier}),foreign=createSimHost(plan.level,{...plan.ports,rapier});
+  let restored:SimHost|undefined;
+  try{
+    plan.install(fresh,{restoring:false,commands:()=>[],emit:()=>undefined});
+    restored=restoreSimHost(plan.level,{...plan.ports,rapier},snapshotSimHost(fresh),host=>{
+      plan.install(host,{restoring:true,commands:()=>[],emit:()=>undefined});
+    });
+    expect(captured).toHaveLength(2);expect(captured[0]).not.toBe(captured[1]);
+    expect(assets.get(hash)).toBe(bytes);
+    expect(()=>ReturnProgram.native(foreign,program)).toThrow('Missing admitted raw return module loan');
+    assets.set(hash,new Uint8Array([0]));
+    expect(()=>ReturnProgram.native(fresh,program)).toThrow('hash mismatch');
+    assets.set(hash,bytes);
+    const original=captured[0];if(original===undefined)throw new Error('Missing original projection');
+    fresh.dispose();
+    expect(()=>original.project('bossClamp',{fullHp:100,share:.3})).toThrow('Return owner disposed');
+    expect(captured[1]?.project('bossClamp',{fullHp:100,share:.3})).toEqual({hp:30});
+  }finally{fresh.dispose();foreign.dispose();restored?.dispose();}
+});
+
 test('raw return modules are lent before original native assembly owners on fresh and restored hosts',async()=>{
   const program=structuredClone(returnPrograms.attack),projection=parseReturnProjectionV2(program.v2),artifact=projection.artifact;
   const bytes=Uint8Array.from(atob(program.v2.bytes),value=>value.codePointAt(0)??0);program.v2.bytes='';

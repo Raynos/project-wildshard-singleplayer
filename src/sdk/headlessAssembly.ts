@@ -214,7 +214,7 @@ const primitives = {
  * Each install has fresh bindings; late callback reads retain that install's
  * live environment, including owners registered later. Save adapters, clocks,
  * physics, phases and disposal remain entirely with the called installers.
- * Missing ABI2 files are read from the admitted product into the original
+ * Raw module files are read from the admitted product into the original
  * asset Map before install; existing entries remain subject to strict checks.
  * Only an explicitly trusted caller supplies the static module catalogue. */
 export async function prepareHeadlessAssembly(preparation: HeadlessRuntimePreparation, modules: HeadlessAssemblyModules): Promise<HeadlessRuntimePlan> {
@@ -222,7 +222,7 @@ export async function prepareHeadlessAssembly(preparation: HeadlessRuntimePrepar
   const declaration = checkedHeadlessAssembly(data, modules);
   const shard = preparation.product.shardfile;
   const returns=preparation.product.has('actors/return-scripts')?parse(ReturnModulesSchema,preparation.product.section('actors/return-scripts')):[];
-  if(returns.some(row=>row.abi===2)){
+  if(returns.length>0){
     const assets=preparation.assets;
     await ReturnProgram.prepareModules(preparation.product,assets,returns);
   }
@@ -244,7 +244,7 @@ export async function prepareHeadlessAssembly(preparation: HeadlessRuntimePrepar
   if (!callable(entries)) throw new Error('Missing assembly entry proof');
   return { level, ports: { ground: false, heightAt },
     install: (host, context) => {
-      if(returns.some(row=>row.abi===2))ReturnProgram.lendModules(host.scope,preparation.assets,returns);
+      if(returns.length>0)ReturnProgram.lendModules(host.scope,preparation.assets,returns);
       installRows(declaration, { values: new Map<string, unknown>([['host', host], ['context', context]]), parent: env, native: { host, context, preparation } }); },
     proveEntries: host => {
       const proof = entries(host);
