@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 // oxlint-disable-next-line import/no-nodejs-modules -- Use the same Node executable as the parent test.
 import { execPath } from 'node:process';
 import { expect, test } from 'vitest';
-import { jsonOutputGuard, assertJsonRows } from '../scripts/json-output-guard.mjs';
+import { jsonOutputGuard, jsonOutputPolicy, assertJsonRows } from '../scripts/json-output-guard.mjs';
 import { byteWriter, jsonBytes } from '../scripts/bake-output.mjs';
 import { generateShardJob, prepareGeneration } from '../scripts/generate.mjs';
 
@@ -28,6 +28,48 @@ async function fixture(run: (root: string) => void | Promise<void>): Promise<voi
 const debt = (root: string, files: Record<string, { base64Chars: number; dataUris: number }>): void => {
   put(root, 'lint/no-binary-json.json', JSON.stringify({ schema: 'no-binary-json/1', source: 'a'.repeat(40), files }));
 };
+
+test('an isolated policy retains only declared allowances and still validates the full source',()=>fixture(root=>{
+  const other='src/shards/other/data/output.json';
+  debt(root,{[output]:{base64Chars:1024,dataUris:0},[other]:{base64Chars:2048,dataUris:0}});
+  const projected=jsonOutputPolicy(root,[output]);
+  if(projected===undefined)throw new Error('Expected the existing policy');
+  expect(JSON.parse(projected)).toEqual({schema:'no-binary-json/1',source:'a'.repeat(40),files:{[output]:{base64Chars:1024,dataUris:0}}});
+  put(root,'lint/no-binary-json.json',projected);
+  const guard=jsonOutputGuard(root);
+  expect(()=>guard(output,JSON.stringify({text:payload}))).not.toThrow();
+  expect(()=>guard(other,JSON.stringify({text:payload}))).toThrow('BINARY-JSON');
+  debt(root,{[output]:{base64Chars:1024,dataUris:0},[other]:{base64Chars:-1,dataUris:0}});
+  expect(()=>jsonOutputPolicy(root,[output])).toThrow('invalid allowance');
+}));
+
+test('an unrelated allowance paydown reuses generation while its own removed allowance still refuses',()=>fixture(async root=>{
+  const other='src/shards/other/data/output.json';
+  const job={id:'fixture-policy',shard:'example',entry,command:[entry],inputRoots:[entry],outputs:[output],buildTimeOutputs:[output],platform:'portable' as const};
+  put(root,entry,`import fs from 'node:fs';const policy=JSON.parse(fs.readFileSync('lint/no-binary-json.json','utf8'));fs.writeFileSync('${output}',JSON.stringify({paths:Object.keys(policy.files),text:'a'.repeat(1024)}));`);
+  put(root,'scripts/generation-jobs.json',JSON.stringify({schema:'generation-jobs/1',notice:'DO NOT EDIT fixture',jobs:[job]}));
+  const cacheDir=resolve(root,'cache');
+  debt(root,{[output]:{base64Chars:1024,dataUris:0},[other]:{base64Chars:2048,dataUris:0}});
+  const first=await generateShardJob(root,job,{cacheDir});
+  try {expect(JSON.parse(readFileSync(resolve(first.directory,output),'utf8'))).toEqual({paths:[output],text:payload});}
+  finally {first.release();}
+  debt(root,{[output]:{base64Chars:1024,dataUris:0},[other]:{base64Chars:1024,dataUris:0}});
+  const reused=await generateShardJob(root,job,{cacheDir});
+  try {expect(reused.hit).toBe(true);expect(reused.hashes).toEqual(first.hashes);}
+  finally {reused.release();}
+  debt(root,{[other]:{base64Chars:1024,dataUris:0}});
+  await expect(generateShardJob(root,job,{cacheDir})).rejects.toThrow('BINARY-JSON');
+}));
+
+test('a changed current job allowance refuses publication even after immutable staging',()=>fixture(async root=>{
+  const job={id:'fixture-policy-race',shard:'example',entry,command:[entry],inputRoots:[entry],outputs:[output],buildTimeOutputs:[output],platform:'portable' as const};
+  const changed=JSON.stringify({schema:'no-binary-json/1',source:'a'.repeat(40),files:{}});
+  put(root,entry,`import fs from 'node:fs';fs.writeFileSync('${output}','{}');fs.writeFileSync(${JSON.stringify(resolve(root,'lint/no-binary-json.json'))},${JSON.stringify(changed)});`);
+  put(root,'scripts/generation-jobs.json',JSON.stringify({schema:'generation-jobs/1',notice:'DO NOT EDIT fixture',jobs:[job]}));
+  debt(root,{[output]:{base64Chars:1024,dataUris:0}});
+  await expect(generateShardJob(root,job,{cacheDir:resolve(root,'cache'),restore:true})).rejects.toThrow('JSON output policy changed during generation');
+  expect(existsSync(resolve(root,output))).toBe(false);
+}));
 
  test('shared JSON serialization refuses byte values before their numeric disguise', () => {
   for (const value of [new Uint8Array([1, 2]), new Float32Array([1]), new ArrayBuffer(2), new SharedArrayBuffer(2), { type: 'Buffer', data: [1, 2] }]) {

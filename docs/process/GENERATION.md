@@ -57,6 +57,10 @@ The four boot-presence readers and Sky world's orphan cleanup opt into `catalogu
 every job ID, output path, admitted path and pin, while omitting unused commands and input roots. This preserves
 cross-shard/shared assets and cleanup protection; a changed output declaration still invalidates. The scheduler
 continues to read and validate the original complete catalogue, and checks the projection again after generation.
+The isolated binary-JSON policy likewise retains only the job's declared output-path allowances. Every source
+policy row is validated before projection, the relevant projection is fenced through copying/generation/cache
+return, and the full current source guard still checks all JSON results, including cache hits. Paying down another
+job's allowance cannot re-key this one; deleting this job's allowance still refuses its encoded output.
 Generation read receipts also record attempted workspace-package export keys, including caught missing exports.
 A manifest used only for module resolution may bind those exact keys instead of every unused export; wildcard
 rows and all other manifest fields remain exact. Explicit manifest reads and unsupported exports shapes keep

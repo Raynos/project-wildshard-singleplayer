@@ -1,5 +1,6 @@
 // G292: shard-owned generator discovery and isolated jobs over the shared content-addressed cache.
-import { jsonOutputGuard } from './json-output-guard.mjs';
+import { jsonOutputGuard, jsonOutputPolicy } from './json-output-guard.mjs';
+import { BINARY_JSON_POLICY } from './no-binary-json.mjs';
 import { defaultGenerationConcurrency, generationConcurrency, generationOrder } from './generation-scheduling.mjs';
 import { spawn, spawnSync } from 'node:child_process';
 import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
@@ -226,6 +227,7 @@ export async function generateShardJob(root,descriptor,options={}) {
   const command=job.command.map(arg=>arg.replaceAll('<preview-url>',preview?.url ?? ''));
   const captureArgs=job.capture && preview!==undefined ? [`--url=${preview.url}`,`--revision=${preview.revision}`,'--inputs=<stage>'] : [];
   const projected=catalogueProjection(root,job,catalog);
+  const policy=jsonOutputPolicy(root,job.outputs);
   const controller=bakeInputHashes(import.meta.dirname,['generate.mjs','generation-scheduling.mjs','generation-stage.mjs','generation-determinism.mjs','json-output-guard.mjs','no-binary-json.mjs','generation-inputs.mjs','generation-cache.mjs','generation-recorder.mjs','generation-node-cache.mjs','shardfile-inputs.mjs','shardfile-cache.mjs','compiler-code.mjs','function-source.mjs','generation-capture.mjs','generation-sources.mjs']);
   const external=await externalGenerationInputs(job.externalInputs,options.cacheDir);
   const tools={...generationTools(job.toolCommands),...(job.browser?{browserDigest:generationBrowserDigest()}:{})};
@@ -236,7 +238,7 @@ export async function generateShardJob(root,descriptor,options={}) {
   // dependencies, retained/committed outputs and schema seeds keep exact hashes.
   const candidates=options.preparation?.outputRoots===undefined?options.preparation?.outputs ?? []:roots.flatMap(folder=>options.preparation?.outputRoots?.get(folder) ?? []);
   const foreign=new Set(candidates.filter(file=>!options.preparation?.retained?.has(file) && !ownOutputs.has(file) && !explicitInputs.has(file) && roots.some(folder=>file.startsWith(`${folder}/`))));
-  const inputs=generationInputs(root,roots,inputHashes,file=>(projected===undefined || file!==catalog) && (!ownOutputs.has(file) || job.seedOutputs.includes(file)) && !postGenerationTable(root,catalog,file) && !foreign.has(file));
+  const inputs=generationInputs(root,roots,inputHashes,file=>file!==BINARY_JSON_POLICY && (projected===undefined || file!==catalog) && (!ownOutputs.has(file) || job.seedOutputs.includes(file)) && !postGenerationTable(root,catalog,file) && !foreign.has(file));
   /** @type {Map<string,{source:string,hash:string}>} */
   const upstreamFiles=new Map();
   if(options.preparation?.completedOutputs!==undefined) {
@@ -257,7 +259,7 @@ export async function generateShardJob(root,descriptor,options={}) {
   const stageHashes=Object.fromEntries([...Object.entries(inputs),...[...upstreamFiles].map(([file,row])=>[file,row.hash])].sort(([a],[b])=>a<b?-1:a>b?1:0));
   /** @type {number|null} */
   let coldSeconds=null;
-  const cacheJob={id:job.id,inputs,command:['node',...command,...captureArgs],outputs:job.outputs,platform:job.platform,tools:{...controller,...tools,descriptor:JSON.stringify(job),...(options.preparation===undefined?{}:{upstream:JSON.stringify(Object.fromEntries([...upstreamFiles].sort(([a],[b])=>a.localeCompare(b)).map(([file,row])=>[file,row.hash])))}),...(projected===undefined?{}:{catalogue:projected}),...(preview===undefined?{}:{previewBuild:preview.build,browserDigest:preview.browserDigest})}};
+  const cacheJob={id:job.id,inputs,command:['node',...command,...captureArgs],outputs:job.outputs,platform:job.platform,tools:{...controller,...tools,jsonPolicy:policy??'absent',descriptor:JSON.stringify(job),...(options.preparation===undefined?{}:{upstream:JSON.stringify(Object.fromEntries([...upstreamFiles].sort(([a],[b])=>a.localeCompare(b)).map(([file,row])=>[file,row.hash])))}),...(projected===undefined?{}:{catalogue:projected}),...(preview===undefined?{}:{previewBuild:preview.build,browserDigest:preview.browserDigest})}};
   /** @param {string} directory */
   const generate=async directory=>{
       const coldStarted=performance.now();
@@ -265,6 +267,7 @@ export async function generateShardJob(root,descriptor,options={}) {
       try {
         // The worker has copied and independently hashed every stage input.
         if(projected!==undefined){mkdirSync(dirname(resolve(tree,catalog)),{recursive:true});writeFileSync(resolve(tree,catalog),projected);}
+        if(policy!==undefined){mkdirSync(dirname(resolve(tree,BINARY_JSON_POLICY)),{recursive:true});writeFileSync(resolve(tree,BINARY_JSON_POLICY),policy);}
         // Some schemas import their committed stamps. Those seed inputs may exist, but a producer must still write
         // every output; otherwise a no-op could falsely pass regenerate-and-compare against the copied seed.
         for(const file of job.outputs) mkdirSync(dirname(resolve(tree,file)),{recursive:true});
@@ -279,6 +282,7 @@ export async function generateShardJob(root,descriptor,options={}) {
         const untouched=seeded.filter(file=>existsSync(resolve(tree,file)) && statSync(resolve(tree,file)).mtimeMs===1000);
         if(untouched.length>0) throw new Error(`Generator did not write declared outputs: ${untouched.join(', ')}`);
         if(projected!==catalogueProjection(root,job,catalog))throw new Error(`Catalogue changed during generation: ${job.id}`);
+        if(policy!==jsonOutputPolicy(root,job.outputs))throw new Error(`JSON output policy changed during generation: ${job.id}`);
         generationOutputHashes(tree,job.outputs);
         };
         await (options.determinism ? verifyStagedGeneration(tree,job,run) : run());
@@ -291,10 +295,11 @@ export async function generateShardJob(root,descriptor,options={}) {
   const result=options.determinism ? await runDeterminismAudit(root,cacheJob,generate,inputHashes)
     : await runObservedGeneration(root,cacheJob,{
       inputHashes,...(options.cacheDir===undefined?{}:{cacheDir:options.cacheDir}),...(options.forceCompare===undefined?{}:{forceCompare:options.forceCompare}),generate,
-    },job.entry,catalog,[...Object.keys(stageHashes),catalog,...external.map(source=>source.path)]);
+    },job.entry,catalog,[...Object.keys(stageHashes),catalog,...(policy===undefined?[]:[BINARY_JSON_POLICY]),...external.map(source=>source.path)]);
   if(options.determinism)return {...result,retention:generationRetention(result.directory,job.outputs,coldSeconds)};
   if(projected!==catalogueProjection(root,job,catalog))throw new Error(`Catalogue changed during generation: ${job.id}`);
   try {
+    if(policy!==jsonOutputPolicy(root,job.outputs))throw new Error(`JSON output policy changed during generation: ${job.id}`);
     const pins=Object.entries(job.buildOutputs);
     // A restored pinned output is retained only when committed: non-restored
     // outputs cannot share its path (discovery rejects duplicate producers).

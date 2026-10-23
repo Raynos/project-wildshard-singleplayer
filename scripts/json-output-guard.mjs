@@ -19,6 +19,16 @@ export function assertJsonRows(value, path = '<JSON value>') {
   }
 }
 
+/** An isolated job needs allowances only for its declared output paths. Parse
+ * the full source policy first; omission never grants debt to another output.
+ * @param {string} directory @param {readonly string[]} outputs */
+export function jsonOutputPolicy(directory,outputs) {
+  const file=resolve(directory,BINARY_JSON_POLICY);
+  if(!existsSync(file))return undefined;
+  const policy=binaryJsonPolicy(JSON.parse(readFileSync(file,'utf8'))),wanted=new Set(outputs);
+  return JSON.stringify({...policy,files:Object.fromEntries(Object.entries(policy.files).filter(([path])=>wanted.has(path)))});
+}
+
 /** A producer's immutable sandbox supplies its policy as a keyed source input.
  * Absent policy means zero debt, so an isolated author fixture cannot grant itself binary JSON.
  * @param {string} [directory] @returns {(file:string,bytes:Uint8Array|string)=>void} */
