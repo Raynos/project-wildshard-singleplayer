@@ -58,7 +58,7 @@ test('the compiled figures step uses one preparation and original loans before p
   const book = vi.spyOn(ProductFigureCatalogue, 'fromProduct').mockResolvedValue(catalogue);
   const scenes = vi.spyOn(worldScenes, 'installWorldScenes').mockResolvedValue(new SceneHandles());
   const figures = vi.spyOn(enteredFigures, 'installQuestFigures').mockImplementation((_ctx, _input, ports) => {
-    order.push('figures'); expect(ports.draws).toBe(f.draws); expect(ports.catalogue).toBe(catalogue); return [];
+    order.push('figures'); expect(ports?.draws).toBe(f.draws); expect(ports?.catalogue).toBe(catalogue); return [];
   });
   try {
     await installEntryQuestComposition(f.ctx, row);

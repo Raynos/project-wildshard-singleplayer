@@ -251,14 +251,12 @@ test('optional chapter dispatch preserves the carried and merged-figure owners',
   const carried = 'src/game/quest/carriedProp.ts', figures = 'src/game/systems/npc/figureRows.ts';
   const shared = new Set(['pine-hollow', 'driftwood-isle', 'nalati-grasslands']);
   const moduleUsers = new Map([[carried, shared], [figures, shared]]);
-  const names = ['FigureGroupMember', 'FigureGroup', 'memberPose', 'enterFigureGroup'];
-  const bindings = new Map([...names, 'FigureRows'].map(name => [`${figures}\0${name}`, shared]));
+  const bindings = new Map([[`${figures}\0FigureRows`, shared]]);
   chargePlatformUsers(moduleUsers, bindings);
   expect([...moduleUsers.get(carried) ?? []]).toEqual(['nalati-grasslands']);
   // G601 credit is the exact picked binding, never a fabricated second user.
   expect(platformChargeback(carried,'CarriedQuestProp')).toBeNull();
   expect(moduleUsers.get(figures)).toEqual(shared);
-  for (const name of names) expect([...bindings.get(`${figures}\0${name}`) ?? []]).toEqual(['nalati-grasslands']);
   expect(bindings.get(`${figures}\0FigureRows`)).toEqual(shared);
 });
 

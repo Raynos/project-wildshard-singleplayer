@@ -29,7 +29,7 @@ import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import type { Animal } from '../src/engine/entities/AnimalView';
 import type { QuestChapter } from '../src/game/quest/chapter';
 import * as chapterHost from '../src/game/quest/chapter';
-import * as figures from '../src/game/systems/npc/figureRows';
+import * as questFigures from '../src/game/quest/figures';
 import * as bindings from '../src/game/quest/chapterBindings';
 import { ArenaRoomEncounter } from '../src/game/boss/arenaRoom';
 import { ArenaScriptEncounter } from '../src/game/boss/arenaScript';
@@ -81,8 +81,8 @@ function fixture() {
     places: legacyDouble<NonNullable<QuestChapter['places']>>({ update: placesUpdate }),
     chip: legacyDouble<QuestChapter['chip']>({ update: vi.fn<QuestChapter['chip']['update']>() }), installFeats: vi.fn<QuestChapter['installFeats']>(), markers: () => [], talk: vi.fn<QuestChapter['talk']>(), dialogueBox: vi.fn<QuestChapter['dialogueBox']>() });
   vi.spyOn(chapterHost, 'buildQuestChapter').mockReturnValue(chapter);
-  const people = { group: new Group(), figures: new Map(), ready: Promise.resolve(), update: vi.fn<figures.FigureGroup['update']>() };
-  const enter = vi.spyOn(figures, 'enterFigureGroup').mockReturnValue(people);
+  const people = { group: new Group(), figures: new Map(), ready: Promise.resolve(), update: vi.fn<questFigures.QuestFigureGroup['update']>() };
+  const enter = vi.spyOn(questFigures, 'installQuestFigures').mockReturnValue(people);
   const kill = vi.fn<ReturnType<typeof bindings.enteredAdventurePersistence>['kill']>();
   vi.spyOn(bindings, 'enteredAdventurePersistence').mockReturnValue(legacyDouble<ReturnType<typeof bindings.enteredAdventurePersistence>>({ kill }));
   const rows = v.parse(ChapterViewSchema, { npcs: content.npcs, places: content.places, program: guest.program, view });
@@ -193,8 +193,10 @@ test('embedded original figures use the same admission and concrete entered loan
       arena: 'chapter.arena', fight: 'chapter.fight', taming: 'chapter.taming' });
     expect(f.enter).toHaveBeenCalledOnce();
     const call = f.enter.mock.calls[0]; if (call === undefined) throw new Error('Missing figure admission');
-    expect(call[0].scope === f.scope).toBe(true); expect(call[0].sky === f.world.sky).toBe(true);
-    expect(call[0].registry === f.world.registry).toBe(true); expect(call[1] === input.figures).toBe(true);
+    // the merged group goes through the quest-figures host, as the page's own rows (no copy)
+    const [owner, admitted] = call;
+    expect(owner === f.ctx).toBe(true); expect(admitted).toEqual({ figures: [], group: input.figures });
+    expect(typeof admitted === 'object' && admitted !== null && Reflect.get(admitted, 'group') === input.figures).toBe(true);
     expect(f.projection.mock.calls[0]).toEqual(['quest', { now: 0, bonded: 1, argymaq: 1, inside: 0, tied: 0 }]);
     expect(input.figures).toEqual(peopleRows);
   } finally { f.scope.dispose(); }

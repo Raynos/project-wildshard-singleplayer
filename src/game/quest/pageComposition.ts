@@ -4,7 +4,6 @@ import type { QuestPageRows, ChapterViewRows } from '@wildshard/format/questPage
 import type { PageTamingOwner } from '../riding/client';
 import { ArenaRoomEncounter } from '../boss/arenaRoom';
 import { ArenaScriptEncounter } from '../boss/arenaScript';
-import { enterFigureGroup } from '../systems/npc/figureRows';
 import { CarriedQuestProp } from './carriedProp';
 import { enteredAdventurePersistence, publishChapterFlags } from './chapterBindings';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
@@ -43,6 +42,7 @@ import { forestPage } from '../shardfile/forestPage';
 import { rangedPage } from '../loadout/rangedPage';
 import { installPageMap, installPageMover, pageCollectionCalls } from './pageFacets';
 import { installPageDoor } from './pageDoors';
+import { installQuestFigures } from './figures';
 
 const isCustom = (id: string): id is `custom/${string}` => id.startsWith('custom/');
 /** The page borrows the actual native boss and its baked reward pose. */
@@ -179,7 +179,7 @@ export async function installQuestPageComposition(ctx: ShardContext, input: Ques
     const rows = content.view;
     if (rows.story !== input.story) throw new Error('Chapter view story differs from its admitted entry');
     if ((figures === undefined) === (content.figures === undefined)) throw new Error('Chapter view requires exactly one figure source');
-    const people = enterFigureGroup({ scope: ctx.scope, sky: world.sky, registry: world.registry, channels: product.shardfile.clientChannels }, figures === undefined ? content.figures : figures);
+    const people = installQuestFigures(ctx, { figures: [], group: figures === undefined ? content.figures : figures });
     const chapter = buildQuestChapter(ctx, story, { content, program: content.program }), { chip, markers, places, line } = chapter;
     if (places === null || line === null) throw new Error('Chapter view requires its discovery and quest line');
     const carriedRows = await ctx.product.json<unknown>(rows.carried);

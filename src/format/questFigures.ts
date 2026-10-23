@@ -4,6 +4,7 @@
 import * as v from 'valibot';
 import { isJsonData } from './json';
 import { SpecimenModelMetadataSchema } from './specimenCatalogue';
+import { FigureGroupSchema } from './figures';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128)), n = v.pipe(v.number(), v.finite()), triple = v.tuple([n, n, n]);
 const place = v.strictObject({ poi: id, x: n, z: n, y: v.exactOptional(n), dy: v.exactOptional(n), yaw: v.exactOptional(n), anchor: v.exactOptional(id) });
@@ -30,10 +31,13 @@ export const QuestFigureSchema = v.strictObject({
   system,
 });
 /** One live figure per kit: a kit's catalogue rows name its part sources (`<kit>.<part>.source`) and its attention
- *  programs (`npc.<kit>`), so two rows reusing a kit would collide in the page's resources; ids are unique too. */
+ *  programs (`npc.<kit>`), so two rows reusing a kit would collide in the page's resources; ids are unique too. A page
+ *  may instead declare one merged figure group (format/figures `FigureGroupSchema`: its figures drawn as one atlas skin),
+ *  never beside kit figures. */
 export const QuestFiguresSchema = v.pipe(v.unknown(), v.check(isJsonData, 'plain JSON figures'),
   v.strictObject({ figures: v.pipe(v.array(QuestFigureSchema), v.maxLength(8),
-    v.check(rows => new Set(rows.map(row => row.kit)).size === rows.length && new Set(rows.map(row => row.id)).size === rows.length, 'one figure per kit, unique ids')) }));
+    v.check(rows => new Set(rows.map(row => row.kit)).size === rows.length && new Set(rows.map(row => row.id)).size === rows.length, 'one figure per kit, unique ids')),
+  group: v.exactOptional(FigureGroupSchema) }), v.check(rows => rows.group === undefined || rows.figures.length === 0, 'a merged figure group stands alone'));
 export type QuestFigureRows = v.InferOutput<typeof QuestFigureSchema>;
 export type QuestFiguresRows = v.InferOutput<typeof QuestFiguresSchema>;
 

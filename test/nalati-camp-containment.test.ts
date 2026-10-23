@@ -7,12 +7,24 @@ import { WorldRegistry } from '../src/engine/world/registry';
 import { setTerrainHeight } from '../src/engine/world/terrainHeight';
 import { cellClip } from '../src/game/grid/cellClip';
 import { uploadedSkinBounds } from '../src/game/grid/skinEnvelope';
-import { enterFigureGroup } from '../src/game/systems/npc/figureRows';
+import * as v from 'valibot';
+import { installQuestFigures } from '../src/game/quest/figures';
+import type { ShardContext } from '../src/game/plugin/context';
+import type { ShardRuntime } from '../src/game/shard/runtime';
+import { legacyDouble } from './fake/FakeGame';
+import { ClientChannelsSchema } from '../src/format/clientChannels';
 import * as skins from '../src/game/systems/npc/figureSkins';
 import channels from '../src/shards/nalati-grasslands/data/peopleChannels.generated.json' with { type: 'json' };
 import population from '../src/shards/nalati-grasslands/data/peopleFrames.generated.json' with { type: 'json' };
 
 afterEach(() => { vi.restoreAllMocks(); });
+/** A chapter's entered owners as the quest-figures host reads them: scope, world sky and registry, client channels. */
+function ownerOf(scope: Scope, sky: SkyRig, registry: WorldRegistry): ShardContext {
+  const world = legacyDouble<NonNullable<ShardRuntime['world']>>({ sky, registry });
+  return legacyDouble<ShardContext>({ scope, game: legacyDouble<ShardContext['game']>({ runtime: legacyDouble<ShardRuntime>({ world }) }),
+    product: legacyDouble<ShardContext['product']>({ shardfile: legacyDouble<ShardContext['product']['shardfile']>({ clientChannels: v.parse(ClientChannelsSchema, channels.clientChannels) }) }) });
+}
+
 function isSkin(value: unknown): value is SkinnedMesh { return value instanceof SkinnedMesh; }
 
 function prepared(scope: Scope): SkinnedMesh {
@@ -37,7 +49,7 @@ test('the real camp owns its manual joints and preserves poses in a translated g
       const registry=new WorldRegistry();registry.scope=owner;registry.frame=cell;
       registry.onAdd(piece=>{if(piece.object!==undefined)cell.add(piece.object);});
       const guard=cellClip(cell,250,owner);guard.sweep();
-      const camp=enterFigureGroup({scope:owner,sky,registry,channels:channels.clientChannels},population);
+      const camp=installQuestFigures(ownerOf(owner,sky,registry),{figures:[],group:population});
       await camp.ready;camp.update(.016,1,new Vector3(90,12,215));
       const mesh=camp.group.getObjectByName('prepared-camp');if(!isSkin(mesh))throw new Error('Missing camp skin');
       for(const bone of mesh.skeleton.bones)expect(bone.parent).toBe(camp.group);
