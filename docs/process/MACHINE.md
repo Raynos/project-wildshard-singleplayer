@@ -170,7 +170,10 @@ For a cross-deploy warm grid refusal, use that same official reader with
 same local origin to the new build, checks for the new worker, and taps the
 grid without adopting via the pill. Exact script/worker responses stay
 unchanged; URL, title, error, pill and controller states ride the existing
-poll log. An absent or changed old controller refuses the reading.
+poll log. The same installing candidate has at most 120 seconds to become
+waiting; replacement, redundancy or timeout refuses rather than reinstalling.
+Failures and response metadata survive cleanup. An absent or changed old
+controller refuses the reading.
 
 C2's WebKit comparison uses the same official Simulator reader:
 `scripts/sim-lane.sh run --max 20 wildshard-iphone node scripts/sim-grid-entry.mjs

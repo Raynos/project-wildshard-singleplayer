@@ -22,7 +22,7 @@ import { soakInspector } from './soak/inspector.mjs';
 import { loadingCardIndex, loadingShardName } from './loading-benchmark/catalogue.mjs';
 import { observeTransport } from './loading-benchmark/transport.mjs';
 import { accuracyRecorder } from './loading-benchmark/accuracy-data.mjs';
-import { requireCompiledEntry, downloadEvidence, transportEvidence } from './loading-benchmark/sim-shard.mjs';
+import { requireCompiledEntry, downloadEvidence, transportEvidence, waitForWaitingWorker } from './loading-benchmark/sim-shard.mjs';
 import { cachedBodyEvidence } from './loading-benchmark/cache-bodies.mjs';
 import { saveFixtureCode } from './debug-settings.mjs';
 import { readSimulatorCoreFootprint, coreMemoryTargets, coreMemorySummary, compiledFloorSave, scriptResourceURLs } from './shard-phone-memory.mjs';
@@ -288,9 +288,9 @@ async function run(mode, index, target) {
     if (!await until(`(() => { const b = document.querySelector('${button}'); return !!b && b.getClientRects().length > 0; })()`, 30000)) throw new Error('Missing real entry control');
     await sleep(6000);
     if (upgradeFrom !== undefined) {
-      const candidate = await settle(`async () => {const reg=await navigator.serviceWorker.getRegistration();const w=reg?.waiting;if(!w)return null;return new Promise(resolve=>{const ch=new MessageChannel();const timer=setTimeout(()=>{ch.port1.close();ch.port2.close();resolve(null)},5000);ch.port1.onmessage=e=>{clearTimeout(timer);ch.port1.close();ch.port2.close();resolve(e.data.build??null)};w.postMessage({type:'BUILD'},[ch.port2]);});}`);
+      const candidate = await settle(`async () => {const reg=await navigator.serviceWorker.getRegistration();if(!reg)throw Error('Missing upgrade registration');const w=await (${waitForWaitingWorker.toString()})(reg);return new Promise(resolve=>{const ch=new MessageChannel();const timer=setTimeout(()=>{ch.port1.close();ch.port2.close();resolve(null)},5000);ch.port1.onmessage=e=>{clearTimeout(timer);ch.port1.close();ch.port2.close();resolve(e.data.build??null)};w.postMessage({type:'BUILD'},[ch.port2]);});}`, 150000);
       const nextVersion = await (await fetch(new URL('version.json', upstream), {cache: 'no-store'})).json();
-      if (typeof candidate !== 'string' || !candidate.startsWith(`${nextVersion.build}-`)) throw new Error('New deployment worker is not waiting before the grid tap');
+      if (typeof candidate !== 'string' || !candidate.startsWith(`${nextVersion.build}-`)) throw new Error(`New deployment worker is not waiting before the grid tap: ${String(candidate).slice(0, 200)}`);
       log(file, {ev: 'upgrade-waiting', build: candidate});
     }
     await gesture(`(() => { sessionStorage.setItem('sim.tap', String(performance.timeOrigin + performance.now())); setTimeout(() => document.querySelector('${button}').click(), 0); return true; })()`);
@@ -360,14 +360,16 @@ try {
   for (const { mode, index, target } of visits) {
     quiet('take');
     try { results.push(await run(mode, index, target)); }
-    catch (error) { results.push({ mode, run: index, shard: target, error: String(error) }); break; }
+    catch (error) { const failure = {mode, run: index, shard: target, error: String(error)}; results.push(failure); console.info(JSON.stringify(failure)); writeFileSync(resolvePath(out, 'failure.json'), `${JSON.stringify(failure, null, 1)}\n`); break; }
     finally { quiet('release'); }
     const last = results.at(-1); console.info(JSON.stringify(last).slice(0, 600));
   }
 } finally {
   page?.close(); proxy.kill();
   try { execFileSync('xcrun', ['simctl', 'terminate', udid, 'com.apple.mobilesafari'], { stdio: 'ignore' }); } catch { /* Already closed. */ }
-  await transport?.close(); served?.stop();
+  await transport?.close();
+  if (upgradeFrom !== undefined) writeFileSync(resolvePath(out, 'upgrade-transport.json'), `${JSON.stringify({receipts: transport?.receipts ?? [], htmlFixtures: transport?.htmlFixtures ?? []}, null, 1)}\n`);
+  served?.stop();
 }
 
 if (coreMemory !== undefined) {

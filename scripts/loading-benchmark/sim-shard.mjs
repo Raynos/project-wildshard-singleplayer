@@ -36,3 +36,29 @@ export function transportEvidence(receipts) {
     expectedUnit: 'file content before HTTP compression; includes cache hits',
     observedUnit: 'HTTP response bodies; excludes cache hits and headers' };
 }
+
+
+/** Wait for this exact candidate to become waiting; observing state never retries an install. */
+export function waitForWaitingWorker(registration, timeoutMs = 120000) {
+  if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 120000) return Promise.reject(new Error('Invalid worker state deadline'));
+  if (registration.waiting !== null) return Promise.resolve(registration.waiting);
+  const candidate = registration.installing;
+  if (candidate === null) return Promise.reject(new Error('No new worker installing or waiting'));
+  return new Promise((resolve, reject) => {
+    /** @type {{poll?: ReturnType<typeof setInterval>; deadline?: ReturnType<typeof setTimeout>}} */
+    const timers = {};
+    /** @param {Error} [error] */
+    const finish = (error) => {
+      clearInterval(timers.poll); clearTimeout(timers.deadline);
+      if (error !== undefined) reject(error); else resolve(candidate);
+    };
+    const check = () => {
+      if (registration.waiting === candidate) finish();
+      else if (registration.waiting !== null || (registration.installing !== null && registration.installing !== candidate)) finish(new Error('Upgrade worker candidate changed'));
+      else if (candidate.state === 'redundant' || candidate.state === 'activated') finish(new Error(`Upgrade worker became ${candidate.state}`));
+    };
+    timers.poll = setInterval(check, 25);
+    timers.deadline = setTimeout(() => { finish(new Error('Upgrade worker did not become waiting before deadline')); }, timeoutMs);
+    check();
+  });
+}

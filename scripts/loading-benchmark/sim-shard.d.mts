@@ -4,3 +4,6 @@ export function downloadEvidence(samples: readonly DownloadSample[]): { measured
 export function transportEvidence(receipts: readonly { bodyBytes: number; decodedBodyBytes?: number | null }[]): {
   wireBodyBytes: number; networkContentBytes: number | null; unknownContentResponses: number; responses: number; expectedUnit: string; observedUnit: string;
 };
+
+/** Observe one native worker candidate; replacement, retirement and timeout refuse. */
+export function waitForWaitingWorker<T extends { readonly state: ServiceWorkerState }>(registration: { readonly waiting: T | null; readonly installing: T | null }, timeoutMs?: number): Promise<T>;
