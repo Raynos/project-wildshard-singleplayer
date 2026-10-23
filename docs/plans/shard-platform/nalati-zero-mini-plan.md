@@ -203,6 +203,31 @@ path only if Jake picks the one-user host.
 | R20 | Cut the spans R19 shows that no row above covers. | ~235 | Codex | 3 h | none left outside R15d | R19 |
 | R15d (was R15) | The final flip to a compiled no-TS entry, as Nine did in 86af73733d. | ~40 | Codex | 2 h | Nalati 0; C4 and C9 locked | everything |
 
+### Stall audit, 10-23 14:50 (ask E493)
+
+Jake, 14:45: *"Zero progress has been made on [Nalati] in 4 hours, like something is wrong."* A read-only subagent
+audit found that Nalati sat at 225 from 10:20 because **nobody worked on the only code that still counts**. All 225
+lines are the three entry files plus 4 platform lines: `manifest.ts` 25, `runtime/index.ts` 57,
+`runtime/state.ts` 139 C9 + 3 C4, `plugin#ShardPlugin` 2 and `seatedFigure#GESTURES/Mount` 2. The 16 Nalati commits
+since 10:00 were no-binaries work (base64 out of JSON), which the census doesn't count. sp-x2 left the entry slices
+for G610 at 10:09, and no lane replaced it. R15c/R15d had no owner and were missing from `lanes/ready-queue.md`. Pine,
+Driftwood and Nine got to zero with the same two steps: `manifest.json` (a5e53cc7d7) and a deleted runtime entry
+with `entry: {platform: "client-plan"}` (86af73733d). Nalati can copy them. These rows replace R15c/R15d and R20.
+
+| Row | What | Lines | Owner | Effort | Done when | After |
+|---|---|---:|---|---|---|---|
+| R21 (S1) | `manifest.ts` → `manifest.json`: poses baked with terrain heights at generation time; keep `entry: {native}` for now (copy a5e53cc7d7) | -25 | Codex | 1.5 h | no manifest.ts | now |
+| R22 (S6) | `GESTURES`/`Mount` join the riding `SeatedFigure` host listing (census fix) | -2 | Codex | 0.25 h | not charged | now |
+| R23 (S2) | `runtime/index.ts` world/kit/play onto the existing features: `species.program`, `held.claims.*`, `state.adventure`, `weather.forest` → HUD, `debug.expose` | ~-30 | Codex lane C | 2.5 h | index.ts holds only the host guard | now |
+| R24 (S3) | `state.ts` assembly (prefix, trophies, dressing anchors) as `world.assembly` rows; the King as an `arena-room` stage (worldAssembly.ts:325 gains the room variant) | ~-32 | lane C | 3 h | no WorldAssembly or buildArenaRoomEncounter calls in state.ts | R23 |
+| R25 (S4) | Weather loan, update-id loop, Titan bind, combat targets (Pine is the second user, pageLife.ts:146) and debug as `world.updates` / targets / `debug.expose` rows | ~-35 | lane C | 3 h | those blocks gone | R24 |
+| R26 (S5) | Stealth, riding, night and elite construction plus weapon handlers as features over the approved hosts (HOST-BAR.md:175, :205, :291); the Nalati-only adapters go where Jake's pick puts them | ~-70 shard, ~+40–60 listed platform | Codex lane D | 4–5 h | state.ts holds no glue | the pick (safe parts now) |
+| R27 (S7) | Final flip: delete `runtime/index.ts` and `state.ts`, `entry: {platform: "client-plan"}` (copy 86af73733d); `ShardPlugin` drops out; boot smoke and physics walk | rest (~-30, -2 platform) | Codex | 2 h | Nalati 0, C4 and C9 locked | all above + the JSON-node red fixed |
+
+Blockers: Nalati's shard file sits at 100,041 JSON nodes against the 100,000 limit (sp-x9 is fixing it; previews refuse
+to build until then); the pick on the Nalati-only adapters (STATE item 1). About 17 lane-hours: zero is about 10–12 h after two
+Codex lanes start (one on R21/R22 then R27, one on R23–R25), with R26 starting when the pick lands.
+
 **Lanes:** G639's order applied: three Codex lanes on Nalati (A, B, C) plus sp-x8 and sp-x6 until zero, taken from the
 extras (B5 no-binaries, T4, tile streaming). Every row left is non-graphical, so the Opus step-down (G605) is not the
 limit: only sp-o3's single sample needs an Opus lane. sp-x7 reverts any red older than 30 minutes (G620).
