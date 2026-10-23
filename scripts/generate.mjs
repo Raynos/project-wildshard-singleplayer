@@ -2,8 +2,7 @@
 import { jsonOutputGuard } from './json-output-guard.mjs';
 import { defaultGenerationConcurrency, generationConcurrency, generationOrder } from './generation-scheduling.mjs';
 import { spawn, spawnSync } from 'node:child_process';
-import { copyFileSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import * as v from 'valibot';
@@ -16,12 +15,13 @@ import { externalGenerationInputs, generationTools } from './generation-sources.
 import { linkNodeModules } from './link-node-modules.mjs';
 import { outputPolicy } from './generation-inventory.mjs';
 import { generationSnapshotIdentity, publishGenerationSnapshot, verifiedGenerationSnapshot } from './generation-snapshot.mjs';
+import { stageGenerationInputs } from './generation-stage.mjs';
 
 const path = v.pipe(v.string(),v.check(value=>value.length>0 && !isAbsolute(value) && !value.includes('\\') && value.split('/').every(part=>part!=='' && part!=='.' && part!=='..')));
 const jobIdSchema = v.pipe(v.string(),v.regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u));
 const Descriptor = v.strictObject({id:jobIdSchema,catalogueDependencies:v.optional(v.array(jobIdSchema)),shard:v.nullable(v.pipe(v.string(),v.regex(/^[a-z0-9_]+(?:-[a-z0-9]+)*$/u))),entry:path,command:v.array(v.string()),inputRoots:v.array(path),outputs:v.array(path),platform:v.picklist(['portable','native','darwin']),buildTimeOutputs:v.optional(v.array(path),[]),buildOutputs:v.optional(v.record(path,v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))),{}),comparisonOutputs:v.optional(v.record(path,v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))),{}),seedOutputs:v.optional(v.array(path),[]),capture:v.optional(v.boolean(),false),browser:v.optional(v.boolean(),false),preview:v.optional(v.boolean(),false),recordedInputs:v.optional(v.boolean(),false),externalInputs:v.optional(v.array(v.strictObject({path, url:v.string(),sha256:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))})),[]),toolCommands:v.optional(v.array(v.pipe(v.array(v.string()),v.minLength(1))),[])});
 const Catalog = v.strictObject({schema:v.literal('generation-jobs/1'),notice:v.pipe(v.string(),v.includes('DO NOT EDIT')),jobs:v.array(Descriptor)});
-const infrastructure=['src/format','scripts/json-output-guard.mjs','scripts/no-binary-json.mjs','lint/no-binary-json.json','scripts/generate.mjs','scripts/generation-scheduling.mjs','scripts/generation-cache.mjs','scripts/generation-inputs.mjs','scripts/generation-recorder.mjs','scripts/generation-node-cache.mjs','scripts/shardfile-inputs.mjs','scripts/shardfile-cache.mjs','scripts/compiler-code.mjs','scripts/function-source.mjs','scripts/generation-snapshot.mjs','scripts/bake-input-hashes.mjs','scripts/link-node-modules.mjs','scripts/generation-capture.mjs','scripts/generation-sources.mjs','scripts/generation-inventory.mjs','scripts/source-generation-outputs.json','package.json','pnpm-lock.yaml','pnpm-workspace.yaml'];
+const infrastructure=['src/format','scripts/json-output-guard.mjs','scripts/no-binary-json.mjs','lint/no-binary-json.json','scripts/generate.mjs','scripts/generation-scheduling.mjs','scripts/generation-stage.mjs','scripts/generation-cache.mjs','scripts/generation-inputs.mjs','scripts/generation-recorder.mjs','scripts/generation-node-cache.mjs','scripts/shardfile-inputs.mjs','scripts/shardfile-cache.mjs','scripts/compiler-code.mjs','scripts/function-source.mjs','scripts/generation-snapshot.mjs','scripts/bake-input-hashes.mjs','scripts/link-node-modules.mjs','scripts/generation-capture.mjs','scripts/generation-sources.mjs','scripts/generation-inventory.mjs','scripts/source-generation-outputs.json','package.json','pnpm-lock.yaml','pnpm-workspace.yaml'];
 // These are loader/check/hash/write helpers, not output producers. New bake entry points default to undeclared.
 const sharedHelpers=new Set(['bake-check.mjs','bake-loader.mjs','bake-input-hashes.mjs','bake-output.mjs']);
 // `pnpm gen` writes these tables before the generation step; producers read them (scripts/gen.mjs).
@@ -191,7 +191,7 @@ function retainedGenerationFiles(root,jobs) {
  * the source tree and retained-file admission from the exact exported tree.
  * @param {string} root @param {ReturnType<typeof discoverGeneration>['jobs']} jobs @param {Set<string>} retained */
 function phaseSnapshotIdentity(root,jobs,retained) {
-  return generationSnapshotIdentity({node:process.version,platform:process.platform,arch:process.arch,jobs,retained:[...retained].sort(),catalogue:bakeInputHashes(root,['scripts/generation-jobs.json']),jsonPolicy:existsSync(resolve(root,'lint/no-binary-json.json'))?bakeInputHashes(root,['lint/no-binary-json.json']):{},controller:bakeInputHashes(import.meta.dirname,['generate.mjs','generation-scheduling.mjs','json-output-guard.mjs','no-binary-json.mjs','generation-cache.mjs','bake-input-hashes.mjs','generation-snapshot.mjs','generation-capture.mjs','generation-sources.mjs','generation-inventory.mjs','link-node-modules.mjs']),tools:generationTools(jobs.flatMap(job=>job.toolCommands))});
+  return generationSnapshotIdentity({node:process.version,platform:process.platform,arch:process.arch,jobs,retained:[...retained].sort(),catalogue:bakeInputHashes(root,['scripts/generation-jobs.json']),jsonPolicy:existsSync(resolve(root,'lint/no-binary-json.json'))?bakeInputHashes(root,['lint/no-binary-json.json']):{},controller:bakeInputHashes(import.meta.dirname,['generate.mjs','generation-scheduling.mjs','generation-stage.mjs','json-output-guard.mjs','no-binary-json.mjs','generation-cache.mjs','bake-input-hashes.mjs','generation-snapshot.mjs','generation-capture.mjs','generation-sources.mjs','generation-inventory.mjs','link-node-modules.mjs']),tools:generationTools(jobs.flatMap(job=>job.toolCommands))});
 }
 
 /** Recheck a completed local phase at the next build fence. This is a fresh
@@ -221,7 +221,7 @@ export async function generateShardJob(root,descriptor,options={}) {
   const command=job.command.map(arg=>arg.replaceAll('<preview-url>',preview?.url ?? ''));
   const captureArgs=job.capture && preview!==undefined ? [`--url=${preview.url}`,`--revision=${preview.revision}`,'--inputs=<stage>'] : [];
   const projected=catalogueProjection(root,job,catalog);
-  const controller=bakeInputHashes(import.meta.dirname,['generate.mjs','generation-scheduling.mjs','json-output-guard.mjs','no-binary-json.mjs','generation-inputs.mjs','generation-cache.mjs','generation-recorder.mjs','generation-node-cache.mjs','shardfile-inputs.mjs','shardfile-cache.mjs','compiler-code.mjs','function-source.mjs','generation-capture.mjs','generation-sources.mjs']);
+  const controller=bakeInputHashes(import.meta.dirname,['generate.mjs','generation-scheduling.mjs','generation-stage.mjs','json-output-guard.mjs','no-binary-json.mjs','generation-inputs.mjs','generation-cache.mjs','generation-recorder.mjs','generation-node-cache.mjs','shardfile-inputs.mjs','shardfile-cache.mjs','compiler-code.mjs','function-source.mjs','generation-capture.mjs','generation-sources.mjs']);
   const external=await externalGenerationInputs(job.externalInputs,options.cacheDir);
   const tools={...generationTools(job.toolCommands),...(job.browser?{browserDigest:generationBrowserDigest()}:{})};
   const roots=[...job.inputRoots,...infrastructure.filter(file=>existsSync(resolve(root,file))),catalog];
@@ -256,15 +256,9 @@ export async function generateShardJob(root,descriptor,options={}) {
     inputHashes, ...(options.cacheDir===undefined?{}:{cacheDir:options.cacheDir}),...(options.forceCompare===undefined?{}:{forceCompare:options.forceCompare}),
     generate:async directory=>{
       const coldStarted=performance.now();
-      const tree=realpathSync(mkdtempSync(resolve(tmpdir(),'wildshard-generation-')));
+      const tree=await stageGenerationInputs({root,job:job.id,inputs:Object.entries(stageHashes).map(([file,hash])=>({file,hash,source:upstreamFiles.get(file)?.source ?? resolve(root,file)}))});
       try {
-        for(const file of Object.keys(stageHashes)) {const to=resolve(tree,file);mkdirSync(dirname(to),{recursive:true});copyFileSync(upstreamFiles.get(file)?.source ?? resolve(root,file),to);}
-        // Re-check after copying so concurrent edits cannot publish bytes under an earlier key.
-        const copied=bakeInputHashes(tree,Object.keys(stageHashes));
-        if(JSON.stringify(copied)!==JSON.stringify(stageHashes)) {
-          const changed=Object.keys(stageHashes).filter(file=>copied[file]!==stageHashes[file]);
-          throw new Error(`Generation inputs changed while copying ${job.id}: ${changed.map(file=>`${file} (expected ${stageHashes[file]}, copied ${copied[file]})`).join('; ')||'input map ordering differs'}`);
-        }
+        // The worker has copied and independently hashed every stage input.
         if(projected!==undefined){mkdirSync(dirname(resolve(tree,catalog)),{recursive:true});writeFileSync(resolve(tree,catalog),projected);}
         // Some schemas import their committed stamps. Those seed inputs may exist, but a producer must still write
         // every output; otherwise a no-op could falsely pass regenerate-and-compare against the copied seed.

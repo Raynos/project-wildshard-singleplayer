@@ -31,6 +31,11 @@ checks; it never overwrites different committed bytes. The pilot keeps stamp see
 the producer must write every declared output, so a copied seed cannot masquerade as a fresh bake. Removing these
 seeds requires separating schemas from generated data before uncommitting them.
 
+Cold staging copies and their SHA256 checks run in a worker, requesting filesystem COW clones with ordinary-copy
+fallback (G668 G4). Stages live under the source tree's ignored `tmp/` and are removed after the producer, including
+copy failures. Immutable upstream cache loans stay live until their consumers finish. An observed cache hit creates
+no stage; a changed producer still executes with its full declared closure before recording a new read set.
+
 Jobs hash every regular file in their declared conservative input roots plus the runner, sidecar, loader and lockfile.
 Produced files are excluded from input keys unless explicitly declared as schema seeds, so removing or restoring an
 admitted output does not invalidate its own cache. The complete output list remains verified even when only part of
