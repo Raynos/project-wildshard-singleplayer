@@ -12276,6 +12276,27 @@ no sampler, cache or owner. Nalati continues to use bakedSamplers; declared
 forest queries retain exact coordinate lookup and candidate order, with f64
 density rows preserving every original double and the legacy inline form.
 
+ScalarChannelRows.data also accepts {file}, a bounded relative .bin name.
+readScalarChannel(row, blocks) and readScalarLattice(row, blocks) borrow that
+named compressed block, retaining the same bounded inflate and native view.
+They perform no IO. Inline strings keep their original admission and decode.
+
+ScalarLatticeBindings is one definition's raw-block intake. lattice(rows,
+{min,max}?) declares a stable sampler; seal() closes the declaration set
+(maximum 64 distinct files). A file's shape and range must agree at every
+reference. Queries refuse until prepare(blocks) has validated the whole set;
+a malformed suffix publishes nothing. Preparation retains decoded samplers,
+not the compressed transport map. Aliases reuse that same decoded storage.
+
+defineShard constructs this intake only for referenced raw scalar rows and
+preserves its original ground, water and callback identities. Declaration
+performs no raw inflate or file read. prepareManifestScalarBlocks reads the
+same product's declared files, pinning identity, readers and a live scope
+through every await, then publishes the complete validated set. Standalone
+and regional world preparation call it before native construction. The
+offline prepareNativeScalarBlocks adapter lends the same authored files to
+the same intake. No shard branch, sampler law, clock or save is introduced.
+
 Declared ground accepts an optional f32 pond-mask lattice with explicit res,
 size and scalar storage. Its sample count must equal res squared; values must
 stay within zero and one. It is exclusive with a geometric pond. The existing

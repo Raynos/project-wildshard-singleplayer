@@ -1,4 +1,5 @@
-import { readScalarChannel,readScalarLattice } from '@wildshard/engine/world/scalarChannel';
+import type { Scope } from '@wildshard/engine/app/scope';
+import { readScalarChannel,readScalarLattice,ScalarLatticeBindings } from '@wildshard/engine/world/scalarChannel';
 import { ScalarLatticeSchema,ScalarTripletSchema,type ScalarLatticeRows,type ScalarTripletRows } from '@wildshard/format/scalarChannel';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import { basinBody,type WaterBody } from '@wildshard/engine/world/water/body';
@@ -475,6 +476,8 @@ export interface ShardManifest {
   trustedRuntime?: Pick<TrustedRuntimeEntry, 'slug' | 'entry'>;
   /** Built-in finite page owner, derived from the admitted entry policy; no source module exists. */
   clientPlanRuntime?: true;
+  /** Definition-owned raw scalar preparation; never an authored callback. */
+  scalarBlocks?: ScalarLatticeBindings;
   /** SF65 (G237–G241): the ways SHARD SELECT can enter this shard with Developer on, and the one the public build enters
    *  (`src/game/shard/entryMode.ts`). Absent: a shard with no TypeScript plugin (`load`) is shardfile only, any other is its TypeScript alone. */
   entries?: ShardEntries;
@@ -667,7 +670,7 @@ export interface ChunkMapDef {
 export interface ChunkPoi { id: string; name: string; x: number; z: number; r?: number }
 
 /** Data for first-party discovery and boot; native module loaders stay explicit bindings. */
-export type ShardManifestRows = Omit<ShardManifest, 'load' | 'render' | 'roster' | 'ktx2' | 'dev' | 'groundColor' | 'trustedRuntime' | 'ground' | 'horizon' | 'pois' | 'spawns' | 'minimap' | 'trees' | 'audio'> & {
+export type ShardManifestRows = Omit<ShardManifest, 'scalarBlocks' | 'load' | 'render' | 'roster' | 'ktx2' | 'dev' | 'groundColor' | 'trustedRuntime' | 'ground' | 'horizon' | 'pois' | 'spawns' | 'minimap' | 'trees' | 'audio'> & {
   readonly spawns: readonly ShardManifest['spawns'][number][];
   readonly trees: ChunkTrees | (Omit<ChunkTrees,'factory'> & { factory: 'declared' });
   readonly audio?: NonNullable<ShardManifest['audio']> & { catalogue?: boolean };
@@ -693,6 +696,8 @@ export function defineShard(rows: ShardManifestRows,
     const descriptor = Object.getOwnPropertyDescriptor(rows,key);
     if (key in rows && (descriptor === undefined || !descriptor.enumerable || !('value' in descriptor))) throw new Error('Manifest samples require own data fields');
   }
+  if('scalarBlocks' in rows)throw new Error('Scalar intake is constructed by the manifest reader');
+  const scalarBlocks=new ScalarLatticeBindings();
   const { runtimeEntry,postLook,poses,groundColour,horizon,pois,minimap,groundRows,groundColourSamples,surfaceSamples,forestMaskSamples,mapGroundSamples,...data } = rows;
   if (postLook !== undefined && bindings.render !== undefined) throw new Error('Conflicting manifest look bindings');
   const nativeGround = bindings.ground ?? data.ground,{ palette,...mapFields } = minimap ?? {};
@@ -717,12 +722,13 @@ export function defineShard(rows: ShardManifestRows,
   }
   const trees: ChunkTrees = data.trees.factory === 'declared' ? { ...data.trees,factory: declaredTreeSet(data.slug) } : data.trees;
   // Retain the original binding order after every referenced shape/count admits.
-  const forestMask = forestData === undefined ? undefined : readScalarLattice(forestData),
-    sampledColour = pigmentData === undefined ? undefined : declaredGroundColour(pigmentData),
-    sampledSurface = surfaceData === undefined ? undefined : declaredSurface(surfaceData),
-    ground = groundData === undefined ? nativeGround : declaredGround(groundData),
-    sampledMap = mapData === undefined ? undefined : declaredMapColour(mapData);
+  const forestMask = forestData === undefined ? undefined : typeof forestData.values.data==='string'?readScalarLattice(forestData):scalarBlocks.lattice(forestData),
+    sampledColour = pigmentData === undefined ? undefined : declaredGroundColour(pigmentData,scalarBlocks),
+    sampledSurface = surfaceData === undefined ? undefined : declaredSurface(surfaceData,scalarBlocks),
+    ground = groundData === undefined ? nativeGround : declaredGround(groundData,scalarBlocks),
+    sampledMap = mapData === undefined ? undefined : declaredMapColour(mapData,scalarBlocks);
   if (ground === undefined) throw new Error('Shard boot needs its declared ground owner');
+  if(rows.navmesh?.ground!==undefined&&typeof rows.navmesh.ground.wet.values.data!=='string')scalarBlocks.lattice(rows.navmesh.ground.wet);
   const map = minimap === undefined ? undefined : { ...mapFields,...(palette === undefined ? {} : { palette: sampledMap === undefined ? mapPalette(palette) : { ...mapPalette(palette),ground: sampledMap } }) };
   const manifest: ShardManifest = { ...data, ...bindings, ground, spawns: [...data.spawns],
     trees,...(audio === undefined ? {} : { audio }),...(boot === undefined ? {} : { boot }),
@@ -735,6 +741,8 @@ export function defineShard(rows: ShardManifestRows,
     ...(poses === undefined ? {} : { dev: { poses: () => Promise.resolve(structuredClone(poses)) } }),
     ...(groundColour === undefined ? {} : { groundColor: (_x, _z, _h, _slope, _terrain, out) => { out[0] = groundColour[0]; out[1] = groundColour[1]; out[2] = groundColour[2]; return out; } }),
   };
+  scalarBlocks.seal();
+  if(scalarBlocks.files.length>0)manifest.scalarBlocks=scalarBlocks;
   if (runtimeEntry !== undefined) manifest.trustedRuntime = { get slug() { return manifest.slug; }, entry: runtimeEntry };
   if (postLook !== undefined) manifest.render = async (product) => (await import('../looks/postGraphLook')).postGraphLook(product, postLook);
   return manifest;
@@ -748,15 +756,19 @@ export function defineShard(rows: ShardManifestRows,
  * An optional lattice replaces the pond mask; ground-only basins borrow that same field and its live water level.
  * The manifest names a generated rows file (`ground: { platform: 'declared', rows }`); no shard code builds its ground.
  */
-export function declaredGround(input: unknown): ShardManifest['ground'] & { terrain: ChunkTerrain } {
+export function declaredGround(input: unknown,scalarBlocks?:ScalarLatticeBindings): ShardManifest['ground'] & { terrain: ChunkTerrain } {
   const rows = v.parse(GroundRowsSchema,input), mask = rows.mask;
-  const values = mask === undefined ? null : readScalarChannel(mask.values);
+  const fileMask=mask!==undefined&&typeof mask.values.data!=='string';
+  const sampledMask=fileMask&&scalarBlocks!==undefined?scalarBlocks.lattice(mask,{min:0,max:1}):undefined;
+  if(fileMask&&sampledMask===undefined)throw new Error('Ground mask requires its scalar intake');
+  const values = mask === undefined||fileMask ? null : readScalarChannel(mask.values);
   if (values !== null && (!(values instanceof Float32Array) || !values.every(value => value >= 0 && value <= 1))) throw new Error('Invalid pond mask lattice');
   const bodies = rows.bodies.map(row => ({ row,body: row.kind === 'terrain-basin' ? null : declaredWaterBody(row) }));
   const stream = bodies.find(({ row }) => row.kind === 'stream')?.body ?? undefined;
   const metadata = buildTerrainMetadata(rows.terrain.seed, { trails: rows.trails, cabinSites: rows.cabinSites,
     ...(rows.pond === undefined ? {} : { pond: rows.pond }), ...(stream === undefined ? {} : { streamAt: stream.restAt }) }, () => rows.water);
   if (mask !== undefined && values instanceof Float32Array) metadata.pondMask = bakedSamplers({ res: mask.res,size: mask.size,heights: values,seed: rows.terrain.seed,landscapeHash: 0,splat: new Uint8Array(0),undergrowth: null }).heightAt;
+  if(sampledMask!==undefined)metadata.pondMask=sampledMask;
   const source = rows.terrain, terrain = 'flat' in source ? flatTerrainField(source.flat, metadata)
     : createBakedTerrainField(source, { ...metadata, ...(rows.datum === undefined ? {} : { datum: rows.datum }) });
   const water = bodies.map(({ row,body }) => body ?? basinBody(row.id,terrain));
@@ -851,18 +863,53 @@ export function defineAuthoredShard(input: unknown, slug: ShardSlug, rows: Autho
 }
 
 /** Ordered scalar rasters as the existing ground-colour callback, retaining the caller's output. */
-export function declaredGroundColour(input: unknown): NonNullable<ShardManifest['groundColor']> {
-  const rows = v.parse(ScalarTripletSchema,input),first = readScalarLattice(rows[0]),second = readScalarLattice(rows[1]),third = readScalarLattice(rows[2]);
+export function declaredGroundColour(input: unknown,scalarBlocks?:ScalarLatticeBindings): NonNullable<ShardManifest['groundColor']> {
+  const rows=v.parse(ScalarTripletSchema,input),sample=(row:ScalarLatticeRows)=>scalarBlocks===undefined||typeof row.values.data==='string'?readScalarLattice(row):scalarBlocks.lattice(row),
+    first=sample(rows[0]),second=sample(rows[1]),third=sample(rows[2]);
   return (x,z,_height,_slope,_terrain,out) => { out[0] = first(x,z);out[1] = second(x,z);out[2] = third(x,z);return out; };
 }
 /** Ordered scalar rasters as the existing surface callback, allocating its original fresh tuple. */
-export function declaredSurface(input: unknown): NonNullable<ShardManifest['surfaceAt']> {
-  const rows = v.parse(ScalarTripletSchema,input),first = readScalarLattice(rows[0]),second = readScalarLattice(rows[1]),third = readScalarLattice(rows[2]);
+export function declaredSurface(input: unknown,scalarBlocks?:ScalarLatticeBindings): NonNullable<ShardManifest['surfaceAt']> {
+  const rows=v.parse(ScalarTripletSchema,input),sample=(row:ScalarLatticeRows)=>scalarBlocks===undefined||typeof row.values.data==='string'?readScalarLattice(row):scalarBlocks.lattice(row),
+    first=sample(rows[0]),second=sample(rows[1]),third=sample(rows[2]);
   return (x,z,_height,_slope) => [first(x,z),second(x,z),third(x,z)];
 }
 
 /** Ordered scalar rasters as the existing minimap callback, retaining its output and void return. */
-export function declaredMapColour(input: unknown): MinimapPalette['ground'] {
-  const rows = v.parse(ScalarTripletSchema,input),first = readScalarLattice(rows[0]),second = readScalarLattice(rows[1]),third = readScalarLattice(rows[2]);
+export function declaredMapColour(input: unknown,scalarBlocks?:ScalarLatticeBindings): MinimapPalette['ground'] {
+  const rows=v.parse(ScalarTripletSchema,input),sample=(row:ScalarLatticeRows)=>scalarBlocks===undefined||typeof row.values.data==='string'?readScalarLattice(row):scalarBlocks.lattice(row),
+    first=sample(rows[0]),second=sample(rows[1]),third=sample(rows[2]);
   return (x,z,_height,_slope,_forest,out) => { out[0] = first(x,z);out[1] = second(x,z);out[2] = third(x,z); };
+}
+
+/** Read one definition's bounded named scalar blocks through the SAME product.
+ * No IO occurs during declaration; a malformed suffix publishes no sampler. */
+export async function prepareManifestScalarBlocks(manifest: ShardManifest, product: ShardProduct, scope: Scope): Promise<void> {
+  const intake = manifest.scalarBlocks;
+  if (intake === undefined) return;
+  const file = product.file, hasFile = product.hasFile, { slug: identity } = manifest;
+  const live = (): void => {
+    const { slug: productIdentity } = product, { slug: manifestIdentity } = manifest;
+    if (scope.disposed || scope.disposing || productIdentity !== identity || manifestIdentity !== identity
+      || product.file !== file || product.hasFile !== hasFile || manifest.scalarBlocks !== intake) {
+      throw new Error('Retired or replaced scalar source');
+    }
+  };
+  live();
+  if (intake.prepared) return;
+  const names = intake.files;
+  for (const name of names) {
+    live();
+    if (!hasFile.call(product, name)) throw new Error('Missing manifest scalar file');
+    live();
+  }
+  const blocks = new Map<string, Uint8Array>();
+  for (const name of names) {
+    live();
+    const bytes = await file.call(product, name);
+    live();
+    blocks.set(name, Uint8Array.from(bytes));
+  }
+  live();
+  intake.prepare(blocks);
 }

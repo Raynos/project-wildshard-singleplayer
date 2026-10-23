@@ -1,9 +1,19 @@
+import {readFileSync} from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+
+/** Offline transport for the same definition-owned scalar intake used by products. */
+export function prepareNativeScalarBlocks(def, root) {
+  const intake = def.scalarBlocks;
+  if (intake === undefined || intake.prepared) return;
+  const project = resolve(root, 'src/shards', def.slug);
+  intake.prepare(new Map(intake.files.map(file => [file, readFileSync(resolve(project, file))])));
+}
 
 /** Select the actual authored level and its original native bytes before terrain, forest or model construction. */
 export async function prepareNativeTerrain(def, options) {
   const src = p => import(pathToFileURL(resolve(options.root, 'src', p)).href);
+  prepareNativeScalarBlocks(def, options.root);
   const { bytes } = options;
   if (bytes.length < 24) throw new Error('Missing original native terrain');
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);

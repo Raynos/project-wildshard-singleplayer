@@ -1,3 +1,4 @@
+import {readNalatiScalarBlocks} from './fixtures/nalati-scalar-blocks';
 // oxlint-disable-next-line import/no-nodejs-modules -- validate generated ground metadata without inferring its full geography JSON type
 import { readFileSync } from 'node:fs';
 import { expect,test } from 'vitest';
@@ -14,6 +15,7 @@ import layout from '../src/shards/nalati-grasslands/boot/layout.generated.json' 
 import { GROUND } from './fixtures/nalati-terrain';
 import nalati from '../src/shards/nalati-grasslands/manifest';
 
+const scalarBlocks=readNalatiScalarBlocks();
 const finite=v.pipe(v.number(),v.finite());
 const geography=v.parse(v.object({ground:GroundRowsSchema,seed:finite,res:finite,size:finite,river:v.object({level:finite})}),
   JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/geography.generated.json','utf8')));
@@ -61,7 +63,7 @@ test('all mask metadata, storage and JSON preconditions refuse before a usable g
 });
 
 test('actual Nalati metadata, pond, water and required native terrain retain the predecessor laws', () => {
-  const values = readScalarChannel(geography.ground.mask?.values);
+  const values = readScalarChannel(geography.ground.mask?.values,scalarBlocks);
   if (!(values instanceof Float32Array)) throw new Error('Missing pond samples');
   const trails = [layout.S_ROAD_PTS,layout.N_ROAD_PTS,layout.E_ROAD_PTS,layout.W_ROAD_PTS,layout.SKY_ROAD,layout.CAMP_SPUR,...layout.BOWL_TRACKS,layout.EAGLE_TRAIL,layout.CAVE_TRAIL,layout.ARGYMAQ_TRAIL];
   const original = createBakedTerrainField({ key: 'nalati-grasslands',seed: geography.seed },{ water: geography.river.level,cabinSites: [],trails,mask: { res: geography.res,size: geography.size,values } });
@@ -79,7 +81,7 @@ test('actual Nalati metadata, pond, water and required native terrain retain the
   }
   const source = { seed: geography.seed,heightAt: () => 13,normalAt: (): [number,number,number] => [0,1,0],splatAt: (): [number,number,number,number] => [1,0,0,0] };
   installDeclaredBakedTerrain(original,source);expect(original.heightAt(0,0)).toBe(13);
-  const isolated = declaredGround(geography.ground).terrain;
+  const isolated = declaredGround(geography.ground,nalati.scalarBlocks).terrain;
   expect(() => isolated.heightAt(0,0)).toThrow('not ready');
   installDeclaredBakedTerrain(isolated,source);expect(isolated.heightAt(0,0)).toBe(13);
 });

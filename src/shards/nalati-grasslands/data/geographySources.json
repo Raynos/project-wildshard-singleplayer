@@ -1,0 +1,98 @@
+[
+  {
+    "name": "data/geography-pond.bin",
+    "kind": "bin",
+    "source": "data/geography-pond.bin",
+    "options": {
+      "decoded": 262144
+    }
+  },
+  {
+    "name": "data/geography-wet.bin",
+    "kind": "bin",
+    "source": "data/geography-wet.bin",
+    "options": {
+      "decoded": 262144
+    }
+  },
+  {
+    "name": "data/geography-forest.bin",
+    "kind": "bin",
+    "source": "data/geography-forest.bin",
+    "options": {
+      "decoded": 262144
+    }
+  },
+  {
+    "name": "data/geography-red.bin",
+    "kind": "bin",
+    "source": "data/geography-red.bin",
+    "options": {
+      "decoded": 262144
+    }
+  },
+  {
+    "name": "data/geography-green.bin",
+    "kind": "bin",
+    "source": "data/geography-green.bin",
+    "options": {
+      "decoded": 262144
+    }
+  },
+  {
+    "name": "data/geography-blue.bin",
+    "kind": "bin",
+    "source": "data/geography-blue.bin",
+    "options": {
+      "decoded": 262144
+    }
+  },
+  {
+    "name": "data/geography-gravel.bin",
+    "kind": "bin",
+    "source": "data/geography-gravel.bin",
+    "options": {
+      "decoded": 262144
+    }
+  },
+  {
+    "name": "data/geography-rock.bin",
+    "kind": "bin",
+    "source": "data/geography-rock.bin",
+    "options": {
+      "decoded": 262144
+    }
+  },
+  {
+    "name": "data/geography-ice.bin",
+    "kind": "bin",
+    "source": "data/geography-ice.bin",
+    "options": {
+      "decoded": 262144
+    }
+  },
+  {
+    "name": "data/geography-mapRed.bin",
+    "kind": "bin",
+    "source": "data/geography-mapRed.bin",
+    "options": {
+      "decoded": 262144
+    }
+  },
+  {
+    "name": "data/geography-mapGreen.bin",
+    "kind": "bin",
+    "source": "data/geography-mapGreen.bin",
+    "options": {
+      "decoded": 262144
+    }
+  },
+  {
+    "name": "data/geography-mapBlue.bin",
+    "kind": "bin",
+    "source": "data/geography-mapBlue.bin",
+    "options": {
+      "decoded": 262144
+    }
+  }
+]

@@ -1,3 +1,4 @@
+import {readNalatiScalarBlocks,inlineScalarBook} from './fixtures/nalati-scalar-blocks';
 import {grassBlock} from './fixtures/nalatiGrass';
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin every retained geography field after retiring unused rasters.
 import {createHash} from 'node:crypto';
@@ -29,6 +30,7 @@ import { installDeclaredBakedTerrain } from '../src/engine/world/bakedTerrainFie
 import { GROUND,forestMask } from './fixtures/nalati-terrain';
 import { readScalarLattice } from '../src/engine/world/scalarChannel';
 
+const scalarBlocks=readNalatiScalarBlocks();
 const finite=v.pipe(v.number(),v.finite());
 const geographyInput:unknown=JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/geography.generated.json','utf8'));
 const geography=v.parse(v.object({res:finite,size:finite,seed:finite,channels:v.object({wet:ScalarLatticeSchema})}),
@@ -39,7 +41,7 @@ const grassTierSchema=v.object({...originalTier.entries,cards:v.object({...origi
 const grass=v.parse(v.object({...GrassPresentationSchema.entries,phone:grassTierSchema,desktop:grassTierSchema}),
   JSON.parse(readFileSync('src/shards/nalati-grasslands/data/grass.generated.json','utf8')));
 
-const bound = GROUND.terrain,wetMask = readScalarLattice(geography.channels.wet);
+const bound = GROUND.terrain,wetMask = readScalarLattice(geography.channels.wet,scalarBlocks);
 
 test('baked layout owns every derived anchor and clearing', () => {
   const data = (source: object): object => Object.fromEntries(Object.entries(source).filter(([, value]) => typeof value !== 'function'));
@@ -123,5 +125,5 @@ test('compacted pose literals preserve arithmetic and private recurrence', () =>
 });
 
 test('geography keeps every retained field byte-exact without unused debug rasters',()=>{
-  expect(createHash('sha256').update(JSON.stringify(geographyInput)).digest('hex')).toBe('cc368832c88faf94cbfe1f27052758472d1401a194df337acfafc2048714f9b8');
+  expect(createHash('sha256').update(JSON.stringify(inlineScalarBook(geographyInput))).digest('hex')).toBe('cc368832c88faf94cbfe1f27052758472d1401a194df337acfafc2048714f9b8');
 });

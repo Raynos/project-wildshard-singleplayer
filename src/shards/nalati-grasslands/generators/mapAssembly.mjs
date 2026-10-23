@@ -69,8 +69,9 @@ export async function nalatiMapAssembly() {
   // The engine's pure forest placer reads exactly the same native samples and
   // baked geography mask as the page. No shard manifest or runtime is imported.
   const geography = read('boot/geography.generated.json'), layout = read('boot/layout.generated.json'), discovery = read('data/discovery.json');
+  const scalarBytes=data=>typeof data==='string'?Buffer.from(data,'base64'):readFileSync(resolve(base,data.file));
   const channel = key => bakedSamplers({ ...native, res: geography.res, size: geography.size,
-    heights: new Float32Array(Uint8Array.from(inflateSync(Buffer.from(key === 'pond' ? geography.ground.mask.values.data : geography.channels[key].values.data, 'base64'))).buffer) }).heightAt;
+    heights: new Float32Array(Uint8Array.from(inflateSync(scalarBytes(key === 'pond' ? geography.ground.mask.values.data : geography.channels[key].values.data))).buffer) }).heightAt;
   const trails = [layout.S_ROAD_PTS, layout.N_ROAD_PTS, layout.E_ROAD_PTS, layout.W_ROAD_PTS, layout.SKY_ROAD, layout.CAMP_SPUR,
     ...layout.BOWL_TRACKS, layout.EAGLE_TRAIL, layout.CAVE_TRAIL, layout.ARGYMAQ_TRAIL];
   const field = { ...buildTerrainMetadata(native.seed, { trails, cabinSites: [] }, () => geography.river.level), ...bakedSamplers(native), pondMask: channel('pond') };

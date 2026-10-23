@@ -24,6 +24,7 @@
 //   (--chunk defaults to driftwood-isle; cacheDir to ~/.cache/wildshard-blender/<slug>)
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { prepareNativeScalarBlocks } from '../../bake/nativeWorld.mjs';
 import { homedir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 
@@ -47,6 +48,7 @@ registry.setActiveChunk(SLUG);
 const hf = await imp('src/engine/world/Heightfield.ts');
 const baked = await imp('src/engine/world/BakedTerrain.ts');
 const def = registry.getActiveChunk();
+prepareNativeScalarBlocks(def, ROOT);
 const grid = baked.parseBakedTerrain(readFileSync(resolve(ROOT, `public/assets/baked/${SLUG}/terrain.bin`)).buffer.slice(0));
 if (!grid) throw new Error('no baked terrain');
 // the scene is exported in the raw bake's authored frame: a level shifted at runtime (its field's `datum`, Driftwood's G164

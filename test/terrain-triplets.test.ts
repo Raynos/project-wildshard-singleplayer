@@ -1,3 +1,4 @@
+import {scalarBlockBytes} from './fixtures/nalati-scalar-blocks';
 // oxlint-disable-next-line import/no-nodejs-modules -- validate numeric geography fixtures without inferring the full generated JSON type
 import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
@@ -46,8 +47,8 @@ test('input changes and unrelated declarations cannot redirect existing sampled 
 });
 
 test('actual declared pigment and surface retain the predecessor native sampler answers', () => {
-  const old = (data: string) => {
-    const bytes = unzlibSync(Uint8Array.from(atob(data),value => value.codePointAt(0) ?? 0));
+  const old = (data: string|{file:string}) => {
+    const bytes = unzlibSync(scalarBlockBytes(data));
     return bakedSamplers({ res: geography.res,size: geography.size,seed: geography.seed,landscapeHash: 0,heights: new Float32Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/4),splat: new Uint8Array(0),undergrowth: null }).heightAt;
   };
   const pigment = geography.pigment.map(row => old(row.values.data)),surface = geography.surface.map(row => old(row.values.data));

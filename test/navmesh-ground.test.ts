@@ -1,3 +1,4 @@
+import {scalarBlockBytes} from './fixtures/nalati-scalar-blocks';
 import { expect,test } from 'vitest';
 import { unzlibSync,zlibSync } from 'fflate';
 import { navmeshGroundExclusion } from '../scripts/bake/navmeshGround';
@@ -50,9 +51,9 @@ test('actual declared bake row preserves the original native predicate at clampe
   if (row === undefined) throw new Error('Missing declared exclusion');
   expect(row.wet).toBe(TERRAIN_ROWS.navmesh.ground.wet);
   expect(row.wet).toEqual(geography.channels.wet);
-  const exclude = navmeshGroundExclusion(nalati.navmesh,terrain);
+  const exclude = navmeshGroundExclusion(nalati.navmesh,terrain,nalati.scalarBlocks);
   if (exclude === undefined) throw new Error('Missing exclusion');
-  const bytes = unzlibSync(Uint8Array.from(atob(geography.channels.wet.values.data),value => value.codePointAt(0) ?? 0));
+  const bytes = unzlibSync(scalarBlockBytes(geography.channels.wet.values.data));
   const wet = bakedSamplers({ res: geography.res,size: geography.size,heights: new Float32Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/4),seed: geography.seed,landscapeHash: 0,splat: new Uint8Array(0),undergrowth: null }).heightAt;
   const points = [-500,-251,-250,-249.999,-0,0,.5,249.999,250,251,500,Number.NaN];
   for (let i = 0; i <= 24; i++) points.push(-250+500*i/24);

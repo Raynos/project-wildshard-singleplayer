@@ -1,3 +1,4 @@
+import {scalarBlockBytes} from './fixtures/nalati-scalar-blocks';
 import { expect,test } from 'vitest';
 import { zlibSync,unzlibSync } from 'fflate';
 import { declaredMapColour } from '../src/game/shard/manifest';
@@ -31,7 +32,7 @@ test('whole triplet admission rejects malformed rows and getters, with detached 
 
 test('unchanged actual raster bytes retain map answers, boundaries and POIs', () => {
   const old = [geography.channels.mapRed,geography.channels.mapGreen,geography.channels.mapBlue].map(row => {
-    const bytes = unzlibSync(Uint8Array.from(atob(row.values.data),value => value.codePointAt(0) ?? 0));
+    const bytes = unzlibSync(scalarBlockBytes(row.values.data));
     return bakedSamplers({ res: geography.res,size: geography.size,seed: geography.seed,landscapeHash: 0,heights: new Float32Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/4),splat: new Uint8Array(0),undergrowth: null }).heightAt;
   });
   for (const x of [-500,-250,-249.99,-0,0,12,250,500,Number.NaN]) for (const z of [-500,-250,-0,0,25,250,500]) {

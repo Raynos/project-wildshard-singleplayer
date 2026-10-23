@@ -1,0 +1,74 @@
+[
+  {
+    "file": "data/geography-wet.bin",
+    "bytes": 622,
+    "hash": "262d9218a0f70b8dc314063ac367944083d8e7f57543c19759193b321e2302d7",
+    "decoded": 262144
+  },
+  {
+    "file": "data/geography-forest.bin",
+    "bytes": 14715,
+    "hash": "827334eb0dc4171f3f2d81f3a4268568b52f0a7ea2b71f16de929bae3e80d0fe",
+    "decoded": 262144
+  },
+  {
+    "file": "data/geography-mapRed.bin",
+    "bytes": 90442,
+    "hash": "301b887756dbdcd81dec3b3aab1f709e295e034cfaee01440603a8e0df850fe5",
+    "decoded": 262144
+  },
+  {
+    "file": "data/geography-mapGreen.bin",
+    "bytes": 88352,
+    "hash": "1641afc53f05e073f782ed32f6a1c4f0c1fb49cec34e01b745538e3713949352",
+    "decoded": 262144
+  },
+  {
+    "file": "data/geography-mapBlue.bin",
+    "bytes": 91252,
+    "hash": "ad6844f8ccad8bb9c673f4c82646b91d0ba26fbbfcdd82ddbdbef208c1937196",
+    "decoded": 262144
+  },
+  {
+    "file": "data/geography-pond.bin",
+    "bytes": 5476,
+    "hash": "57919bb109a7fbe95afce2f9f49f576d4cc3d0c16af690937cac6f7a4d892f04",
+    "decoded": 262144
+  },
+  {
+    "file": "data/geography-red.bin",
+    "bytes": 194475,
+    "hash": "65a79815c367e6f7a4bc1c5c51ea413b0e4d1158aae825535a98cdf6646a8fc1",
+    "decoded": 262144
+  },
+  {
+    "file": "data/geography-green.bin",
+    "bytes": 192024,
+    "hash": "d3b0dd4556e327e81d46f16a11b074c637474d1cb67917a8884ec36c23303b83",
+    "decoded": 262144
+  },
+  {
+    "file": "data/geography-blue.bin",
+    "bytes": 194971,
+    "hash": "51a765e699e9030ff6234a9096c003a369ce1f43c99eac499945a6af040c43ad",
+    "decoded": 262144
+  },
+  {
+    "file": "data/geography-gravel.bin",
+    "bytes": 42570,
+    "hash": "73b9d2ab9a3679093d7349442d764e40b3f9b47f31eea581e49aafe02a61d45c",
+    "decoded": 262144
+  },
+  {
+    "file": "data/geography-rock.bin",
+    "bytes": 41754,
+    "hash": "3b85722fa57e338466b84443e57100559e2de14bc9d55b8868af0a234d3bcb1c",
+    "decoded": 262144
+  },
+  {
+    "file": "data/geography-ice.bin",
+    "bytes": 38966,
+    "hash": "0aea784f254f0166ca74f310e3667ac00d7a1ab13444cf9c9086709582c61c96",
+    "decoded": 262144
+  }
+]

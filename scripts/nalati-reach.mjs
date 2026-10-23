@@ -21,6 +21,7 @@
 // physics-baseline results given in --stuck as a magenta cross. A 24-bit BMP (sips / PIL turn it into a JPEG).
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { prepareNativeScalarBlocks } from './bake/nativeWorld.mjs';
 import { pathToFileURL } from 'node:url';
 
 const ROOT = resolve(import.meta.dirname, '..');
@@ -34,6 +35,7 @@ const registry = await src('game/shard/registry.ts');
 const HF = await src('engine/world/Heightfield.ts');
 const BT = await src('engine/world/BakedTerrain.ts');
 registry.setActiveChunk('nalati-grasslands');
+prepareNativeScalarBlocks(registry.getActiveChunk(), ROOT);
 const read = (p) => { const b = readFileSync(resolve(ROOT, 'public/assets/baked/nalati-grasslands', p)); return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength); };
 HF._installBakedTerrain(BT.bakedSamplers(BT.parseBakedTerrain(read('terrain.bin'))));
 const nav = parseNavmesh(read('navmesh.bin'));
@@ -131,7 +133,7 @@ if (mapFile) {
   const img = new Uint8Array(W * H * 3);
   const { NALATI_GRASSLANDS } = await src('shards/nalati-grasslands/manifest.ts');
   const { readScalarLattice } = await src('engine/world/scalarChannel.ts');
-  const policy = NALATI_GRASSLANDS.navmesh.ground, mask = readScalarLattice(policy.wet);
+  const policy = NALATI_GRASSLANDS.navmesh.ground, mask = NALATI_GRASSLANDS.scalarBlocks?.lattice(policy.wet)??readScalarLattice(policy.wet);
   const wet = (x,z) => mask(x,z) > policy.wetThreshold;
   for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
     const x = x1 - (i + 0.5) * px, z = z1 - (j + 0.5) * px; // +x (west) on the left, north up

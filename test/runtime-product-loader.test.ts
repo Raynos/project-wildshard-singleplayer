@@ -1,3 +1,6 @@
+import {zlibSync} from 'fflate';
+import {ScalarLatticeBindings} from '../src/engine/world/scalarChannel';
+import scalarManifest from '../src/shards/nalati-grasslands/manifest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Actual inert image fixture exercises the admitted cost envelope.
 import { readFileSync } from 'node:fs';
 import { afterEach, expect, test, vi } from 'vitest';
@@ -6,7 +9,7 @@ import * as schema from '../src/format/shardSchema';
 import { emptyShardfile } from '../src/sdk/author';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { outputSectionPayloads, parseOutputIndex } from '../src/format/outputIndex';
-import { loadShardProduct, runtimeProduct, shardProductFromAdmission } from '../src/game/shardfile/runtimeProduct';
+import { loadManifestProduct,provideManifestAdmission,loadShardProduct, runtimeProduct, shardProductFromAdmission } from '../src/game/shardfile/runtimeProduct';
 import { admitProduct, readProductDescriptor, type ProductOptions, type ProductCache } from '../src/game/shardfile/product';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import { neighbourProductFiles, productResidentBytes, runtimeOnlyProductFiles, tierLibrarySource, urlImageLibrarySource, scopedSpecimenLibrarySource, scopedSpecimenLibrarySourcePaced } from '../src/game/shardfile/productCost';
@@ -629,4 +632,22 @@ test('one missing durable asset prevents a batched offline product while the onl
   };
   const admitted = await admitProduct(f.index, { ...f.options, cache, cacheBatch: true });
   expect(admitted.assets.size).toBe(8); expect(published).not.toHaveBeenCalled();
+});
+
+test('the original manifest product loader prepares named scalar blocks before returning',async()=>{
+  const block=zlibSync(new Uint8Array(Float32Array.from([0,.25,.75,1]).buffer)),hash=hashImmutableBytes(block);
+  const f=fixture(false,source=>{
+    source.identity.slug=scalarManifest.slug;
+    source.files.push({hash,kind:'binary',compressed:block.length,decoded:16,gpu:0,triangles:0,draws:0,dependencies:[],critical:false});
+    source.library.push(hash);source.budgets.library={compressed:3+block.length,resident:19};return new Map();
+  },new Map([[hash,'data/manifest-samples.bin']]));
+  f.wires.set(`blobs/bin/${hash}.bin`,block);
+  const source=await readProductDescriptor(f.options),scope=own(),intake=new ScalarLatticeBindings();
+  const sample=intake.lattice({res:2,size:500,values:{type:'f32',count:4,data:{file:'data/manifest-samples.bin'}}});
+  intake.seal();const manifest={...scalarManifest,scalarBlocks:intake};
+  provideManifestAdmission(manifest,{source,assets:new Map([[hash,block]]),cached:false},f.options);
+  expect(()=>sample(0,0)).toThrow('not prepared');
+  const product=await loadManifestProduct(manifest,scope);
+  expect(product.shardfile).toBe(source);expect(intake.prepared).toBe(true);
+  expect(sample(-250,-250)).toBe(0);expect(sample(250,250)).toBe(1);expect(sample(0,0)).toBe(.5);
 });

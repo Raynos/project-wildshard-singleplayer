@@ -23,6 +23,7 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { brotliCompressSync, gzipSync } from 'node:zlib';
 import { visitAuthoredWorld } from './bake/worldHost.mjs';
+import { prepareNativeScalarBlocks } from './bake/nativeWorld.mjs';
 import { installBakeEnvironment } from './bake/environment.mjs';
 import { bakeNavigation } from '@wildshard/sdk/bake/navigation';
 import { navmeshGroundExclusion } from './bake/navmeshGround.ts';
@@ -198,7 +199,8 @@ function addTerrain(soup, grid, wet) {
 const output = byteWriter(check, 'bake-navmesh');
 for (const def of SHARDS.filter(registry.playable)) {
   if (only.length > 0 && !only.includes(def.slug)) continue;
-  const exclusion = navmeshGroundExclusion(def.navmesh,def.ground.terrain);
+  prepareNativeScalarBlocks(def, ROOT);
+  const exclusion = navmeshGroundExclusion(def.navmesh,def.ground.terrain,def.scalarBlocks);
   const bakedFile = resolve(ROOT, 'public/assets/baked', def.slug, 'terrain.bin');
   const required = def.ground.terrain === undefined ? null : bakedTerrainSource(def.ground.terrain);
   if (!existsSync(bakedFile) && required === null && def.ground.structures === undefined) throw new Error(`bake-navmesh: ${def.slug}/terrain.bin missing — run scripts/bake-chunk.mjs`);

@@ -11,7 +11,7 @@ import { waitFor } from '@wildshard/engine/boot/waits';
 import { currentOwner } from '@wildshard/engine/app/ownership';
 import { shardProductData } from './productData';
 import { absentShardProduct, type ShardProduct } from './shardProduct';
-import type { ShardManifest } from '../shard/manifest';
+import { prepareManifestScalarBlocks,type ShardManifest } from '../shard/manifest';
 import { outputDescriptor } from './outputDescriptor';
 import { ktx2TranscodeSupport } from '@wildshard/engine/core/ktx2';
 import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
@@ -204,13 +204,12 @@ export function manifestAdmittedSource(manifest: ShardManifest): Shardfile | und
 }
 
 /** Load a configured output before its plugin constructor, independent of entry mode. */
-export function loadManifestProduct(manifest: ShardManifest, scope: Scope): Promise<ShardProduct> {
-  const installed = manifestAdmissions.get(manifest);
-  if (installed !== undefined) return Promise.resolve(shardProductFromAdmission(installed.admitted, scope, installed.options));
-  const path = manifest.shardfile ?? manifest.gridShardfile;
-  if (path === undefined) return Promise.resolve(absentShardProduct(manifest.slug));
-  const base = new URL('.', new URL(path, typeof document === 'undefined' ? location.href : document.baseURI || location.href)).href;
-  return loadShardProduct(manifest.slug, browserShardfileOptions(base, true), scope);
+export async function loadManifestProduct(manifest: ShardManifest, scope: Scope): Promise<ShardProduct> {
+  const installed = manifestAdmissions.get(manifest),path=manifest.shardfile??manifest.gridShardfile;
+  const product=installed!==undefined?shardProductFromAdmission(installed.admitted,scope,installed.options)
+    :path===undefined?absentShardProduct(manifest.slug)
+    :await loadShardProduct(manifest.slug,browserShardfileOptions(new URL('.',new URL(path,typeof document==='undefined'?location.href:document.baseURI||location.href)).href,true),scope);
+  await prepareManifestScalarBlocks(manifest,product,scope);return product;
 }
 
 const admittedProducts = new WeakMap<object, ShardProduct>();

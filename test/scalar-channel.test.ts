@@ -1,3 +1,4 @@
+import {scalarBlockBytes,readNalatiScalarBlocks} from './fixtures/nalati-scalar-blocks';
 // oxlint-disable-next-line import/no-nodejs-modules -- validate numeric geography fixtures without inferring the full generated JSON type
 import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
@@ -11,12 +12,13 @@ import { bakedSamplers } from '../src/format/bakedTerrainSampling';
 import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
 import { forestMask,groundColor,surfaceAt,NALATI_MINIMAP,GROUND } from './fixtures/nalati-terrain';
 
+const scalarBlocks=readNalatiScalarBlocks();
 const finite=v.pipe(v.number(),v.finite());
 const channelsSchema=v.object({wet:ScalarLatticeSchema,forest:ScalarLatticeSchema,mapRed:ScalarLatticeSchema,mapGreen:ScalarLatticeSchema,mapBlue:ScalarLatticeSchema});
 const geography=v.parse(v.object({res:finite,size:finite,seed:finite,pigment:ScalarTripletSchema,surface:ScalarTripletSchema,channels:channelsSchema}),
   JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/geography.generated.json','utf8')));
 
-const TERRAIN = GROUND.terrain,wetMask = readScalarLattice(geography.channels.wet);
+const TERRAIN = GROUND.terrain,wetMask = readScalarLattice(geography.channels.wet,scalarBlocks);
 
 function encode(values: Float32Array | Float64Array): string {
   return btoa(String.fromCodePoint(...zlibSync(new Uint8Array(values.buffer,values.byteOffset,values.byteLength))));
@@ -51,8 +53,8 @@ test('packed and legacy forest candidates keep exact lookup, duplicate-coordinat
 });
 
 test('actual Nalati channels and every existing sampler retain exact boundary, signed-zero, pigment and minimap answers', () => {
-  const old = (data: string) => {
-    const bytes = unzlibSync(Uint8Array.from(atob(data),value => value.codePointAt(0) ?? 0));
+  const old = (data: string|{file:string}) => {
+    const bytes = unzlibSync(scalarBlockBytes(data));
     return bakedSamplers({ res: geography.res,size: geography.size,seed: geography.seed,landscapeHash: 0,heights: new Float32Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/4),splat: new Uint8Array(0),undergrowth: null }).heightAt;
   };
   const channels = { ...geography.channels,red: geography.pigment[0],green: geography.pigment[1],blue: geography.pigment[2],gravel: geography.surface[0],rock: geography.surface[1],ice: geography.surface[2] };
@@ -64,7 +66,7 @@ test('actual Nalati channels and every existing sampler retain exact boundary, s
     expect(surfaceAt(x,z,0,0)).toEqual(['gravel','rock','ice'].map(name => samplers[name]?.(x,z)));
     NALATI_MINIMAP.ground(x,z,0,0,0,out);expect(out).toEqual(['mapRed','mapGreen','mapBlue'].map(name => samplers[name]?.(x,z)));
   }
-  for (const name of ['red','green','blue'] as const) expect(readScalarChannel(channels[name].values)).toBeInstanceOf(Float32Array);
+  for (const name of ['red','green','blue'] as const) expect(readScalarChannel(channels[name].values,scalarBlocks)).toBeInstanceOf(Float32Array);
 });
 
 test('the defining scalar and forest schemas emit through their retained wire roots', () => {

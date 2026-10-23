@@ -76,7 +76,7 @@ import { heightAt } from '@wildshard/engine/world/Heightfield';
 import { loadBakedTerrain } from '@wildshard/engine/world/BakedTerrain';
 import { bakedTerrainSource } from '@wildshard/engine/world/bakedTerrainField';
 import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
-import type { ShardManifest } from '../shard/manifest';
+import { prepareManifestScalarBlocks,type ShardManifest } from '../shard/manifest';
 import { prepareShardAssets } from '../shard/load';
 import { toLevelSpec } from '../shard/spec';
 import type { ShardWorld } from '../shard/world';
@@ -235,7 +235,10 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
     if (request.scope.disposed) throw new Error('Regional world requires a live runtime scope');
     const { cell, page } = request, app = page.context.app, home = page.world, game = home.game, sky = home.sky;
     // the look and roster loaders read the cell's admitted product (the one its ShardContext gets), never shard.config
-    const level = ports.level === undefined ? toLevelSpec(hasDeclaredClientPage(request.admitted.source) ? { ...request.manifest, ground: clientPageGround(request.admitted.source, request.admitted.assets) } : request.manifest, shardProductFromAdmission(request.admitted, request.scope)) : ports.level(request.manifest);
+    const product=ports.level===undefined||request.manifest.scalarBlocks!==undefined
+      ?shardProductFromAdmission(request.admitted,request.scope):undefined;
+    if(product!==undefined)await prepareManifestScalarBlocks(request.manifest,product,request.scope);
+    const level = ports.level === undefined ? toLevelSpec(hasDeclaredClientPage(request.admitted.source) ? { ...request.manifest, ground: clientPageGround(request.admitted.source, request.admitted.assets) } : request.manifest, product) : ports.level(request.manifest);
     const { slug: identity } = request.manifest;
     if (level.id !== identity) throw new Error('Regional level identity differs from its trusted manifest');
     const resident = request.scope.child(`grid.world:${cell.instance}`), left = (): boolean => resident.disposed;

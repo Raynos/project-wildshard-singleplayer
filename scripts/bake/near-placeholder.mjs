@@ -22,6 +22,7 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { installBakeEnvironment } from './environment.mjs';
 import { visitAuthoredWorld } from './worldHost.mjs';
+import { prepareNativeScalarBlocks } from './nativeWorld.mjs';
 import { placeholderGridBytes, placeholderOf } from './placeholderShards.mjs';
 
 const slug = process.argv.slice(2).find(value => !value.startsWith('--'));
@@ -63,6 +64,7 @@ const sky = new Proxy({ setupMaterial: noop, csm: { lights: [new THREE.Direction
   ? new THREE.Color(1, 1, 1) : typeof key === 'string' && key.endsWith('Dir') ? new THREE.Vector3(0, 1, 0) : undefined });
 (await at('src/engine/core/tier.ts')).initializeTier('phone');
 const { default: manifest } = await at(shardManifestPath(root, slug));
+prepareNativeScalarBlocks(manifest, root);
 (await at('src/game/shard/list.ts')).installShards([manifest]);
 (await at('src/game/shard/registry.ts')).setActiveChunk(manifest.slug);
 const { Terrain, terrainChunkGeometry } = await at('src/engine/world/Terrain.ts');

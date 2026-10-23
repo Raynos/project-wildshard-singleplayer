@@ -10,7 +10,7 @@ import { readNalatiGeography } from './fixtures/nalati-geography';
 const geography=readNalatiGeography();
 
 const raster = (value: number): ScalarLatticeRows => ({ res: 2,size: 500,values: { type: 'f32',count: 4,data: btoa(String.fromCodePoint(...zlibSync(new Uint8Array(new Float32Array(4).fill(value).buffer)))) } });
-const { ground: _ground,groundColor: _colour,surfaceAt: _surface,forest: authoredForest,minimap: _map,...fixed } = nalati;
+const { scalarBlocks:_scalars,ground: _ground,groundColor: _colour,surfaceAt: _surface,forest: authoredForest,minimap: _map,...fixed } = nalati;
 if (authoredForest === undefined) throw new Error('Missing forest metadata');
 const { mask: _mask,...forest } = authoredForest;
 const base: ShardManifestRows = { ...fixed,forest,minimap: { palette: geography.map } };
@@ -20,7 +20,7 @@ function sampled(): ShardManifestRows {
 }
 
 test('manifest recipes retain the original complete decoder order and one native field',() => {
-  const order: string[] = [],read = channels.readScalarLattice,decode = channels.readScalarChannel;
+  const order: (string|{file:string})[] = [],read = channels.readScalarLattice,decode = channels.readScalarChannel;
   vi.spyOn(channels,'readScalarLattice').mockImplementation(input => { order.push(v.parse(ScalarLatticeSchema,input).values.data);return read(input); });
   vi.spyOn(channels,'readScalarChannel').mockImplementation(input => { order.push(v.parse(ScalarChannelSchema,input).data);return decode(input); });
   const input = sampled(),manifest = defineShard(input,{}),terrain = manifest.ground.terrain,out: [number,number,number] = [0,0,0];

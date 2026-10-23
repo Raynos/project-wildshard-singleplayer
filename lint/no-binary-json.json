@@ -258,10 +258,6 @@
       "base64Chars": 27360,
       "dataUris": 0
     },
-    "src/shards/nalati-grasslands/boot/geography.generated.json": {
-      "base64Chars": 1326676,
-      "dataUris": 0
-    },
     "src/shards/nalati-grasslands/boot/mountedLoadout.generated.json": {
       "base64Chars": 13960,
       "dataUris": 0

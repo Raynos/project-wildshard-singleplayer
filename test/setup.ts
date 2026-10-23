@@ -33,6 +33,8 @@ vi.stubGlobal('location', new URL('http://localhost:5173/'));
 // the app identity and asset tables first: save keys, the probe's handles and the boot read them (E405 E414 / E415)
 await import('../src/identity');
 await import('../src/shardList');
+const {shards:scalarDefinitions}=await import('../src/game/shard/list');
+for(const definition of scalarDefinitions()){const intake=definition.scalarBlocks;if(intake!==undefined)intake.prepare(new Map(intake.files.map(file=>[file,readFileSync(`src/shards/${definition.slug}/${file}`)])));}
 const { registerAchievements } = await import('../src/game/achievements');
 const { PINE_FEATS } = await import('../src/shards/pine-hollow/generators/questInventory');
 const { DRIFTWOOD_ITEMS, DRIFTWOOD_FEATS } = await import('../src/shards/driftwood-isle/generators/questInventory');
