@@ -5,19 +5,20 @@ import { SpeciesActorsFileSchema, SpeciesPresentationSchema } from '@wildshard/f
 import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { createShardProduct } from '../../src/game/shardfile/shardProduct';
+import { createShardProduct, type ShardProduct } from '../../src/game/shardfile/shardProduct';
+import { fixedDraws } from '../../src/game/models/fixedDraws';
+import type { CrowdBody } from '../../src/game/ambient/crowdDraw';
+import type { SpeciesActorsFileRows } from '../../src/format/speciesBookRows';
 import { bakeSheepBody } from '../../src/shards/nalati-grasslands/generators/sheepBody';
 
 const species=parse(object({presentation:SpeciesPresentationSchema}),
   JSON.parse(readFileSync('src/shards/nalati-grasslands/data/species.generated.json','utf8')));
 
-type SheepMetadata = Omit<ReturnType<typeof bakeSheepBody>, 'bytes' | 'parts'> & {
-  readonly species: typeof species.presentation; readonly page: { readonly world: null; readonly specimen: null }; readonly parts: readonly string[];
-};
+type SheepMetadata = SpeciesActorsFileRows;
 /** The real baked sheep channels, admitted through the same named-file grammar as play. */
 export function admittedSheepProduct(body: { readonly parts?: readonly string[]; readonly radius?: number } = {}): ReturnType<typeof createShardProduct> & { readonly bytes: Uint8Array; readonly metadata: SheepMetadata } {
-  const { bytes, ...baked } = bakeSheepBody();
-  const metadata = { species: species.presentation, page: { world: null, specimen: null }, ...baked, ...body };
+  const { bytes, row, ...baked } = bakeSheepBody();
+  const metadata = parse(SpeciesActorsFileSchema,{ species: species.presentation, page: { world: null, specimen: null }, draws:[{slot:'actors/sheep.bin',file:'actors/sheep.bin',channels:[],baked:{...row,expand:false}}], ...baked, ...body });
   const encoded = new TextEncoder().encode(JSON.stringify(metadata));
   const json = nameBlob('actors/sheep.json', 'json', encoded, { jsonSchema: namedJsonSchema(SpeciesActorsFileSchema) });
   const binary = nameBlob('actors/sheep.bin', 'bin', bytes);
@@ -30,4 +31,14 @@ export function admittedSheepProduct(body: { readonly parts?: readonly string[];
       throw new Error('Unexpected sheep product file');
     } });
   return { ...product, bytes, metadata };
+}
+
+/** The real shared fixed-draw intake; the fixture applies only the original animation bound. */
+export async function admittedSheepBody(product:Pick<ShardProduct,'file'|'json'|'slug'>=admittedSheepProduct()):Promise<CrowdBody> {
+  const rows=await product.json<SpeciesActorsFileRows>('actors/sheep.json'),draws=fixedDraws(product,rows.draws);
+  await draws.load();
+  const geometry=draws.handle('actors/sheep.bin').take();
+  if(geometry.boundingSphere===null)throw new Error('Missing admitted sheep bound');
+  geometry.boundingSphere.radius=rows.radius;
+  return {geometry,pivots:rows.pivots,parts:rows.parts};
 }

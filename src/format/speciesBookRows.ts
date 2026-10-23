@@ -2,6 +2,7 @@ import * as v from 'valibot';
 import { isJsonData } from './json';
 import { ActorProjectionV2Schema } from './actorProjectionV2';
 import { SpeciesSchema } from './speciesPrograms';
+import { FixedDrawRowsSchema } from './fixedDraws';
 import { RidingPresentationSchema } from './riding';
 import { CreatureStrikeSchema } from './creatures';
 import { SkinClipNameSchema } from './skinData';
@@ -54,11 +55,9 @@ export type NativeSpeciesLookBookRows=v.InferOutput<typeof NativeSpeciesLookBook
 const poseConfig=v.object({prefix:v.string(),group:v.string(),scalars:v.array(v.unknown()),look:v.exactOptional(v.unknown()),alive:v.exactOptional(v.boolean())});
 /** The existing named actors file retains its exact body and pose payload. */
 export const SpeciesPresentationSchema=v.object({poses:v.record(v.string(),poseConfig),packedBodies:CompactSpeciesBodiesSchema,guest:CreatureGuestSchema,lookBook:v.pick(book,['slug','rows','program'])});
-const bodyWhole=v.pipe(number,v.integer(),v.minValue(0));
 export const SpeciesActorsFileSchema=v.strictObject({species:SpeciesPresentationSchema,
   page:v.strictObject({world:v.unknown(),specimen:v.unknown()}),
-  row:v.strictObject({attrs:v.array(v.tuple([v.string(),v.literal('f32'),bodyWhole,v.boolean()])),count:bodyWhole,
-    index:v.nullable(v.picklist(['u16','u32'])),indexCount:bodyWhole,box:v.boolean()}),
+  draws:v.pipe(FixedDrawRowsSchema,v.length(1)),
   pivots:v.pipe(v.array(v.tuple([number,number,number])),v.maxLength(32)),
   parts:v.pipe(v.array(v.string()),v.maxLength(32)),radius:number,
 });

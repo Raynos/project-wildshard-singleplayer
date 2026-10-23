@@ -13167,3 +13167,9 @@ runtime object slot. `arena-room.entry` binds the original room encounter
 with the original claims kit and reward model. Their play ranks precede
 elite and chapter presentation. Neither feature constructs a replacement
 mount, encounter, clock or save owner; open-arena equipment stays separate.
+
+Population crowd geometry is admitted as one `FixedDrawRowsSchema` named
+file slot in the actors metadata (`SpeciesActorsFileSchema.draws`). It uses
+the same `fixedDraws` intake as Driftwood's shipped island library. The
+population view retains the original joints and padded animated sphere;
+that radius override stays at the caller, outside static draw admission.

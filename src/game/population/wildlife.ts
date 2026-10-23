@@ -3,7 +3,9 @@ import { macrotask } from '@wildshard/engine/boot/plan';
 import { wind } from '@wildshard/engine/world/steppeWind';
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import type { ShardContext } from '../plugin/context';
-import { createPageCrowds, readCrowdBody } from '../ambient/crowdPage';
+import { createPageCrowds } from '../ambient/crowdPage';
+import { fixedDraws } from '../models/fixedDraws';
+import type { SpeciesActorsFileRows } from '@wildshard/format/speciesBookRows';
 import type { CrowdDraw } from '../ambient/crowdDraw';
 import { prepareForagerDraw, type ForagerDraw } from '../ambient/foragerDraw';
 import { pageRidingMounted } from '../riding/mount';
@@ -135,9 +137,17 @@ export async function installClientWildlife(ctx: ShardContext, feature: ClientFe
   if (runtime === undefined || world === undefined || world === null || runtime.hooks.animalsBuilt !== undefined) throw new Error('Wildlife requires its unbound world animal stage');
   const rows = v.parse(WildlifePopulationSchema, await ctx.product.json(feature.file));
   bindPageGroups(ctx, rows.groups);
-  const body = await readCrowdBody(ctx.product, feature.crowd);
-  ctx.scope.own(body.geometry);
-  const page = v.parse(v.object({ page: v.object({ world: v.unknown() }) }), await ctx.product.json(feature.crowd.json));
+  const page = await ctx.product.json<SpeciesActorsFileRows>(feature.crowd.json);
+  if (page.parts.length === 0 || page.parts.length !== page.pivots.length || page.radius <= 0 || page.draws.length !== 1) throw new Error('Invalid crowd body joints or bound');
+  const draws = fixedDraws(ctx.product, page.draws), template = draws.handle(feature.crowd.binary);
+  const closed = (): boolean => ctx.scope.disposed || ctx.scope.disposing;
+  await draws.load();
+  const geometry = template.take();
+  if (closed() || geometry.boundingSphere === null) { geometry.dispose(); throw new Error('Crowd geometry owner left or bounds are missing'); }
+  ctx.scope.own(geometry);
+  // The original animated sphere includes moving limbs; fixedDraws stays static.
+  geometry.boundingSphere.radius = page.radius;
+  const body = { geometry, pivots: page.pivots, parts: page.parts };
   const predators: Animal[] = [], crowds = createPageCrowds(world.sky, world.chunk.seed, body, page.page.world, predators,world.game.levelScope);
   const foragers = rows.foragers?.view === undefined ? null : await prepareForagerDraw(ctx, rows);
   const owner: { wildlife: PageWildlife<CrowdDraw> | null } = { wildlife: null };

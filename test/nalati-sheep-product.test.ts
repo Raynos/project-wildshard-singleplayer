@@ -2,8 +2,7 @@ import { expect, it } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare baked channels by their exact bytes.
 import { createHash } from 'node:crypto';
 import type { BufferAttribute, InterleavedBufferAttribute } from 'three';
-import { admittedSheepProduct } from './fake/admittedSheep';
-import { readCrowdBody } from '../src/game/ambient/crowdPage';
+import { admittedSheepProduct, admittedSheepBody } from './fake/admittedSheep';
 import { FlockBrain } from '../src/engine/ai/flock';
 import { flock } from '../src/sdk/crowds';
 import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
@@ -11,7 +10,7 @@ import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json
 import FROZEN from './fixtures/legacy-oracles/nalati-sheep.json' with { type: 'json' };
 import { ShippingFlock } from './fixtures/flock-oracle/flock';
 
-const readFlockBody = (product: Parameters<typeof readCrowdBody>[0]) => readCrowdBody(product, { json: 'actors/sheep.json', binary: 'actors/sheep.bin' });
+const readFlockBody = admittedSheepBody;
 
 const source = admittedSheepProduct;
 
@@ -51,7 +50,7 @@ it('keeps every frozen sheep vertex, rig weight, index and animation bound exact
 
 it('refuses truncated product bytes before a flock can build', async () => {
   const product = source();
-  await expect(readFlockBody({ ...product, file: name => name === 'actors/sheep.bin' ? Promise.resolve(product.bytes.slice(1)) : product.file(name) })).rejects.toThrow('declared blocks');
+  await expect(readFlockBody({ ...product, file: name => name === 'actors/sheep.bin' ? Promise.resolve(product.bytes.slice(1)) : product.file(name) })).rejects.toThrow('byte count differs');
 });
 
 it('keeps the Explorer sheep setup draws, wool and pose on the declared owner', () => {
@@ -68,8 +67,4 @@ it('keeps the Explorer sheep setup draws, wool and pose on the declared owner', 
   expect(declared.state()).toEqual(original.state());
 });
 
-it('keeps native joint and radius guards after named admission', async () => {
-  for (const product of [source({ parts: [] }), source({ radius: 0 })]) {
-    await expect(readFlockBody(product)).rejects.toThrow('joints or bound');
-  }
-});
+

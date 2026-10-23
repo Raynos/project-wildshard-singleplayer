@@ -21,7 +21,6 @@ const declarations = new Map([
     'renderedPacks', 'renderedHerds', 'renderedDamage', 'renderedPackOf',
     'renderedHerdOf', 'observeHerdDamage', 'PageGroups',
   ].map(name => [name, 'C4']))],
-  ['src/game/ambient/crowdPage.ts', new Map([['readCrowdBody', 'C4']])],
   // G520 re-score: Pine's page life runs CrowdWeaponTarget over a CrowdRoster's ray (game/population/pageLife.ts, its
   // forager combat row), so both are shared; the roster's prey identity joins stay charged (inline, below)
   ['src/game/shardfile/crowdRuntime.ts', new Map([

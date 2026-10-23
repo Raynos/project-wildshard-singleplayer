@@ -16,11 +16,15 @@ test('species named-file admission precedes native catalogue allocation',async()
     files:new Map([['actors/sheep.json',{...blob.file,url:'https://example.test/species'}]]),read:()=>Promise.resolve(encode(payload))});
   expect(await product(file).json('actors/sheep.json')).toEqual(file);
   expect(encode(await product(file).json('actors/sheep.json'))).toEqual(encode(file));
+  const draw=file.draws[0];if(draw===undefined||!('file' in draw)||draw.baked===undefined)throw new Error('Missing original draw');
   for(const payload of [
     {...file,unexpected:true},
-    {...file,row:{...file.row,unexpected:true}},
-    {...file,row:{...file.row,count:-1}},
-    {...file,row:{...file.row,attrs:[['position','f16',3,false]]}},
+    {...file,row:{}},
+    {...file,draws:[{...draw,unexpected:true}]},
+    {...file,draws:[{...draw,baked:{...draw.baked,count:-1}}]},
+    {...file,draws:[{...draw,baked:{...draw.baked,attrs:[['position','f64',3,false]]}}]},
+    {...file,draws:[]},
+    {...file,draws:[draw,draw]},
     {...file,pivots:Array.from({length:33},()=>[0,0,0])},
     {...file,parts:Array.from({length:33},()=> 'joint')},
     {...file,radius:'wide'},

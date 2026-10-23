@@ -7,8 +7,6 @@ import { CrowdPresentationSchema, CrowdGuardSchema } from '@wildshard/format/cro
 import { FlockSchema, parseFlock } from '@wildshard/format/crowds';
 import { app } from '@wildshard/engine/app/runtime';
 import * as v from 'valibot';
-import { readBakedGeometry, bakedGeometryBytes, type BakedGeometryRow } from '../plugin/geometry';
-import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { prepareDeclaredCrowds, type PreparedCrowds, type CrowdObservation } from '@wildshard/game/shardfile/crowdRuntime';
 import { terrainHeight as heightAt, terrainNormal as normalAt } from '@wildshard/engine/world/terrainHeight';
 import { Vector3 } from 'three';
@@ -19,18 +17,6 @@ import { productRiggedHulls } from '../looks/riggedHulls';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { wildEnv } from '@wildshard/game/population/pageGroups';
-
-/** Admit the flock's exact static geometry and original seven shader pivots before any view builds. */
-export async function readCrowdBody(product: Pick<ShardProduct, 'file' | 'json'>, files: { readonly json: string; readonly binary: string }): Promise<FlockBody> {
-  const value = await product.json<{ row: BakedGeometryRow; pivots: FlockBody['pivots']; parts: FlockBody['parts']; radius: number }>(files.json);
-  if (value.parts.length === 0 || value.parts.length !== value.pivots.length || value.radius <= 0) throw new Error('Invalid crowd body joints or bound');
-  const bytes = await product.file(files.binary);
-  if (bytes.length !== bakedGeometryBytes(value.row)) throw new Error('Crowd geometry differs from its declared blocks');
-  const geometry = readBakedGeometry(bytes, 0, value.row);
-  if (geometry.boundingSphere === null) throw new Error('Crowd geometry has no bounds');
-  geometry.boundingSphere.radius = value.radius;
-  return { geometry, pivots: value.pivots, parts: value.parts };
-}
 
 interface FlockOpts { x: number; z: number; count: number; seed: number; range?: number }
 

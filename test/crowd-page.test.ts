@@ -14,18 +14,16 @@ import { Rng } from '../src/engine/core/rng';
 import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type: 'json' };
 import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
-import { createPageCrowds, readCrowdBody, thinkCrowdGuard } from '../src/game/ambient/crowdPage';
+import { createPageCrowds, thinkCrowdGuard } from '../src/game/ambient/crowdPage';
 import type { SkyRig } from '../src/engine/world/skyRig';
 import { legacyDouble } from './fake/FakeGame';
-import { admittedSheepProduct } from './fake/admittedSheep';
+import { admittedSheepBody } from './fake/admittedSheep';
 import view from '../src/shards/nalati-grasslands/data/crowdView.json' with { type: 'json' };
 import { setTerrainHeight, setTerrainPlacement } from '../src/engine/world/terrainHeight';
 import { wildEnv } from '../src/game/population/pageGroups';
 
 /** The live Nalati sheep body, read through the page crowd's own product reader. */
-function sheepBody(): ReturnType<typeof readCrowdBody> {
-  return readCrowdBody(admittedSheepProduct(), { json: 'actors/sheep.json', binary: 'actors/sheep.bin' });
-}
+const sheepBody = admittedSheepBody;
 
 function projectedRows(guard:OriginalGuardBinding['row']){
   const rows=parse(ActorProjectionStepV2Schema,guardProjection);
