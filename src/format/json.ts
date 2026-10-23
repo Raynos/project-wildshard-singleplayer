@@ -13,11 +13,17 @@ export function isJsonData(value: unknown): boolean { return boundedJsonData(val
  * budget. Repeated defining schemas do not spend the envelope's node budget. */
 export function isJsonDataWithFileSchemas(value: unknown): boolean { return boundedJsonData(value, true); }
 
-function boundedJsonData(value: unknown, separateSchemas: boolean): boolean {
+/** Failure-only measurement; this never participates in admission. The normal
+ * 100,000-node guard is unchanged. Oversized diagnostics stop at one million. */
+export function jsonDataNodes(value:unknown):number|undefined{
+  const count={nodes:0};return boundedJsonData(value,false,count)?count.nodes:undefined;
+}
+
+function boundedJsonData(value: unknown, separateSchemas: boolean, diagnostic?:{nodes:number}): boolean {
   const active = new Set<object>();
   let nodes = 0;
   const visit = (item: unknown, depth: number, location: 'index' | 'files' | 'file' | 'other'): boolean => {
-    if (++nodes > 100000 || depth > 64) return false;
+    if (++nodes > (diagnostic===undefined?100000:1000000) || depth > 64) return false;
     if (item === null || typeof item === 'boolean' || typeof item === 'string') return true;
     if (typeof item === 'number') return Number.isFinite(item) && !Object.is(item, -0);
     if (typeof item !== 'object' || active.has(item) || Object.getOwnPropertySymbols(item).length > 0) return false;
@@ -41,7 +47,7 @@ function boundedJsonData(value: unknown, separateSchemas: boolean): boolean {
     active.delete(item);
     return ok;
   };
-  return visit(value, 0, 'index');
+  const valid=visit(value, 0, 'index');if(diagnostic!==undefined)diagnostic.nodes=nodes;return valid;
 }
 
 /**

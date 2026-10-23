@@ -130,16 +130,27 @@ export function installClientAudioScene(ctx:ShardContext):void|Promise<void>{
  if(world===undefined||world===null||scope.disposed||scope.disposing)throw new Error('Audio scene requires an entered world');
  let products=enteredScenes.get(scope);if(products===undefined){products=new WeakMap();enteredScenes.set(scope,products);}
  if(products.has(product))throw new Error('Audio scene is already installed');
- const read=product.file,player=world.player,data=runtimeAudio(ctx,product.shardfile.audio),scene=new AudioSceneDirector(data,player),installed=products;
- const publish=():void=>{
-  if(scope.disposed||scope.disposing||ctx.scope!==scope||ctx.product!==product||ctx.game.runtime?.world!==world||world.player!==player||product.file!==read||runtimeAudio(ctx,product.shardfile.audio)!==data)throw new Error('Audio scene owner changed while preparing fields');
-  if(installed.has(product))throw new Error('Audio scene is already installed');
-  scene.listen(ctx);installed.set(product,scene);scope.onDispose(()=>{installed.delete(product);});
+ const read=product.file,json=product.json,player=world.player,data=runtimeAudio(ctx,product.shardfile.audio),installed=products,sceneFile=data.sceneFile;
+ const validate=():void=>{
+  if(scope.disposed||scope.disposing||ctx.scope!==scope||ctx.product!==product||ctx.game.runtime?.world!==world||world.player!==player||product.file!==read||product.json!==json||runtimeAudio(ctx,product.shardfile.audio)!==data)throw new Error('Audio scene owner changed while preparing fields');
  };
- if(scene.fieldFiles.length===0){publish();return;}
+ const build=(input:AudioData):void|Promise<void>=>{
+  validate();const scene=new AudioSceneDirector(input,player);
+  const publish=():void=>{
+   validate();if(installed.has(product))throw new Error('Audio scene is already installed');
+   scene.listen(ctx);installed.set(product,scene);scope.onDispose(()=>{installed.delete(product);});
+  };
+  if(scene.fieldFiles.length===0){publish();return;}
+  const prepare=async():Promise<void>=>{
+   const blocks=await Promise.all(scene.fieldFiles.map(async file=>[file,await read.call(product,file)] as const));
+   validate();scene.prepareFields(new Map(blocks));publish();
+  };
+  return prepare();
+ };
+ if(sceneFile===undefined)return build(data);
  const prepare=async():Promise<void>=>{
-  const blocks=await Promise.all(scene.fieldFiles.map(async file=>[file,await read.call(product,file)] as const));
-  scene.prepareFields(new Map(blocks));publish();
+  const scene=parse(AudioSceneSchema,await json.call(product,sceneFile));validate();
+  const hydrated={...data,scene};delete hydrated.sceneFile;await build(hydrated);
  };
  return prepare();
 }

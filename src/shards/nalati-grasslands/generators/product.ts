@@ -47,6 +47,8 @@ import titanWhirlsView from '../behaviour/titanWhirlsView.generated.json' with {
 const row = (side: keyof typeof NALATI_EDGES): { heights: number[]; colours: [number, number, number][]; roadHeight: 0 } => ({
   heights: [...NALATI_EDGES[side].heights], colours: NALATI_EDGES[side].colours.map(([r, g, b]): [number, number, number] => [r, g, b]), roadHeight: 0,
 });
+const {scene,...audioRows}=audio.audio;
+export const AUDIO_SCENE=scene;
 const base = emptyShardfile({ slug: 'nalati-grasslands', name: 'Nalati Grasslands', author: 'Wildshard', revision: 1, seed: 0x4a1a });
 // G384: the creatures' navigation is the platform's WSNM row over the original bytes (generators/navigation.ts), and the
 // ground's native lattice is query-only terrain (generators/terrain.ts: no render tiles; the bound runtime keeps rendering
@@ -81,5 +83,5 @@ export default parseShardfile({ ...base,
   look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries({ ...lookGraphs, ...presentationGraphs, 'nalati-sky-dome': skyDome }).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
   accent: 'ember', runtime: { entry: 'runtime/index.ts', cost: NALATI_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'clientChannels', 'terrain', 'props'], spawns: NALATI_RUNTIME_SPAWNS },
   clientChannels: compactChannels([...Object.values(speciesData.poses).flatMap(pose => parseClientChannels(pose.programs)),...kingPose.programs,...herdChannels.clientChannels,...weatherChannels.clientChannels,...peopleChannels.clientChannels]),
-  modes: ecology.modes, quests: {...questContent.quests,achievements:NALATI_FEATS}, ledger: parseLedgerRules(NALATI_LEDGER), state: NALATI_STATE, items, audio: audio.audio, spawn: { x: 0, y: 0, z: 232, yaw: 0 },
+  modes: ecology.modes, quests: {...questContent.quests,achievements:NALATI_FEATS}, ledger: parseLedgerRules(NALATI_LEDGER), state: NALATI_STATE, items, audio: {...audioRows,sceneFile:'audio/scene.json'}, spawn: { x: 0, y: 0, z: 232, yaw: 0 },
   edge: { north: row('north'), east: row('east'), south: row('south'), west: row('west') } });

@@ -4,6 +4,11 @@ import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import {afterEach,expect,test,vi} from 'vitest';
 import {Vector3} from 'three';
+import {AudioSceneSchema} from '../src/format/audioScene';
+import {namedJsonSchema} from '../src/sdk/formatJsonSchema';
+import {readProjectAssets} from '../src/sdk/project';
+import {admitClientPlan} from '../src/game/shardfile/clientPlan';
+import {jsonDataNodes,isJsonData} from '../src/format/json';
 import {parseAudioData,AudioDataSchema} from '../src/format/audio';
 import * as v from 'valibot';
 import {readScalarChannel} from '../src/engine/world/scalarChannel';
@@ -28,13 +33,16 @@ const scopes:Scope[]=[];
 afterEach(()=>{for(const scope of scopes.splice(0))scope.dispose();});
 const player=legacyDouble<Player>({position:new Vector3(),yaw:0});
 function data(){return parseAudioData(audio.audio);}
-function context(read:(name:string)=>Promise<Uint8Array>){
+function context(read:(name:string)=>Promise<Uint8Array>,named=false){
  const scope=new Scope('audio.fixture');scopes.push(scope);
- const source={...emptyShardfile({slug:'orchard',name:'Orchard',author:'Fixture',revision:1,seed:1}),audio:data()};
- const product=createShardProduct({slug:'orchard',revision:1,shardfile:source,sections:new Map(),files:new Map([...blocks.keys()].map(name=>[name,{hash:name,url:name}])),read});
+ const declared=data();if(named){delete declared.scene;declared.sceneFile='audio/scene.json';}
+ const files=new Map<string,{hash:string;url:string;jsonSchema?:Readonly<Record<string,unknown>>}>([...blocks.keys()].map(name=>[name,{hash:name,url:name}]));
+ if(named)files.set('audio/scene.json',{hash:'audio/scene.json',url:'audio/scene.json',jsonSchema:namedJsonSchema(AudioSceneSchema)});
+ const source={...emptyShardfile({slug:'orchard',name:'Orchard',author:'Fixture',revision:1,seed:1}),audio:declared};
+ const product=createShardProduct({slug:'orchard',revision:1,shardfile:source,sections:new Map(),files,read});
  const world=legacyDouble<NonNullable<NonNullable<ShardContext['game']['runtime']>['world']>>({player});
  const runtime=legacyDouble<NonNullable<ShardContext['game']['runtime']>>({world});
- const game=legacyDouble<ShardContext['game']>({runtime,declaredAudio:data()});
+ const game=legacyDouble<ShardContext['game']>({runtime,declaredAudio:declared});
  const subscriptions:string[]=[];const on=vi.fn((name:string):void=>{subscriptions.push(name);});
  return {scope,world,runtime,on,ctx:legacyDouble<ShardContext>({scope,product,game,on})};
 }
@@ -85,4 +93,36 @@ test.each(['type','count'])('refuses an incompatible raw field %s before prepara
  const row=input.scene.fields.channels['river'];if(row===undefined||Array.isArray(row))throw new Error('Missing raw field');
  if(field==='type')row.type='f64';else row.count--;
  expect(()=>parseAudioData(input)).toThrow('Audio field requires one f32 per sample');
+});
+
+test('a named scene resolves through the original product before reading its field blocks',async()=>{
+ const bytes=new TextEncoder().encode(JSON.stringify(data().scene));
+ const read=vi.fn((name:string)=>Promise.resolve(name==='audio/scene.json'?bytes:block(name))),f=context(read,true);
+ await installClientAudioScene(f.ctx);
+ expect(read.mock.calls.map(call=>call[0])).toEqual(['audio/scene.json',...Object.keys(data().scene?.fields.channels??{}).map(id=>`audio/fields/${id}.bin`)]);
+ expect(f.on).toHaveBeenCalledTimes(3);expect(clientAudioScene(f.ctx).fieldFiles).toHaveLength(4);
+});
+
+test('a disposed named-scene owner publishes nothing and never starts field reads',async()=>{
+ let release:((bytes:Uint8Array)=>void)|undefined;const file=new Promise<Uint8Array>(resolve=>{release=resolve;});
+ const read=vi.fn(()=>file),f=context(read,true),pending=installClientAudioScene(f.ctx),refusal=expect(pending).rejects.toThrow('owner changed');
+ f.scope.dispose();if(release===undefined)throw new Error('Missing scene barrier');release(new TextEncoder().encode(JSON.stringify(data().scene)));
+ await refusal;expect(read).toHaveBeenCalledTimes(1);expect(f.on).not.toHaveBeenCalled();
+});
+
+test('the actual Nalati envelope keeps its complete audio scene outside the 100000-node source budget',async()=>{
+ const loaded=await readProjectAssets('src/shards/nalati-grasslands'),nodes=jsonDataNodes(loaded.shard);
+ expect(isJsonData(loaded.shard)).toBe(true);expect(nodes).toBeDefined();expect(nodes).toBeLessThanOrEqual(100000);process.stdout.write(`Nalati source JSON nodes ${String(nodes)} (limit 100000)\n`);
+ expect(loaded.shard.audio.scene).toBeUndefined();expect(loaded.shard.audio.sceneFile).toBe('audio/scene.json');
+ const file=loaded.output.namedFiles?.find(row=>row.name==='audio/scene.json');expect(file).toMatchObject({kind:'json',critical:true});
+ const bytes=loaded.assets.get(file?.hash??'');if(bytes===undefined)throw new Error('Missing declared audio scene');
+ const hydrated={...loaded.shard.audio,scene:v.parse(AudioSceneSchema,JSON.parse(new TextDecoder().decode(bytes)))};delete hydrated.sceneFile;
+ expect(parseAudioData(hydrated).scene).toEqual(data().scene);
+});
+
+test('audio feature preflight requires the declared named scene before installation',()=>{
+ const f=context(name=>Promise.resolve(block(name)),true),row={version:1,features:[{kind:'audio.scene'}]};
+ expect(()=>admitClientPlan(row,f.ctx.product)).not.toThrow();
+ f.ctx.product.shardfile.audio.sceneFile='missing.json';
+ expect(()=>admitClientPlan(row,f.ctx.product)).toThrow('Audio scene requires its declared profile');expect(f.on).not.toHaveBeenCalled();
 });

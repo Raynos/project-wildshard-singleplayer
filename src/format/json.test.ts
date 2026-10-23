@@ -17,3 +17,19 @@ test('G639: negative zero and non-finite numbers still refuse, wherever they sit
 test('G639: text the scan cannot clear goes through the reviver and still parses when canonical', () => {
   expect(parseNamedJson(bytes('{"label":"-0","big":1e20,"tiny":1e-300}'))).toEqual({ label: '-0', big: 1e20, tiny: 1e-300 });
 });
+
+test('failure diagnostics report nodes without changing the 100000 admission bound',async()=>{
+  const {isJsonData,jsonDataNodes}=await import('./json');
+  const atLimit=Array.from({length:99999},()=>0),overLimit=[...atLimit,0];
+  expect(isJsonData(atLimit)).toBe(true);expect(jsonDataNodes(atLimit)).toBe(100000);
+  expect(isJsonData(overLimit)).toBe(false);expect(jsonDataNodes(overLimit)).toBe(100001);
+  const {parseShardfile}=await import('./shardSchema');
+  expect(()=>parseShardfile(overLimit)).toThrow('JSON nodes 100001 (limit 100000)');
+});
+
+test('node diagnostics do not invoke accessors or accept cycles',async()=>{
+  const {jsonDataNodes}=await import('./json');let reads=0;
+  const getter={get value(){reads++;return 1;}},cycle:unknown[]=[];cycle.push(cycle);
+  expect(jsonDataNodes(getter)).toBeUndefined();expect(reads).toBe(0);
+  expect(jsonDataNodes(cycle)).toBeUndefined();
+});

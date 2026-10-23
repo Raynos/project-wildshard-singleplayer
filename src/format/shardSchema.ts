@@ -5,7 +5,7 @@ import { grazerPreset } from '@wildshard/format/grazers';
 import { ShardFiniteSchema as finite, ShardReferenceSchema as ref, ShardNamesSchema as names, IdentitySchema, RequiresSchema, BudgetsSchema, SimSchema, AuthorCapsSchema, ServerBudgetSchema, FilesSchema, TilesSchema, LibrarySchema, CriticalSchema, FarSchema, SpawnSchema } from '@wildshard/format/shardSections';
 import * as v from 'valibot';
 import { CELL_ABOVE, CELL_BELOW, CHUNK_HALF, CONTENT_CAPS } from '@wildshard/format/contentBounds';
-import { isJsonData } from '@wildshard/format/json';
+import { isJsonData,jsonDataNodes } from '@wildshard/format/json';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { preflightShardfile } from '@wildshard/format/preflight';
 import { preflightAssetGraph } from '@wildshard/format/product';
@@ -326,7 +326,7 @@ export function shardfileRules(s: Shardfile): string[] {
 }
 /** Strict schema for the public SDK format; rejects unknown fields and invalid references.
  * Keep the unknown-input/named-output boundary independent of the nested validator implementation. */
-export const ShardfileSchema: v.GenericSchema<unknown, Shardfile> = v.pipe(v.unknown(), v.rawCheck(({ dataset, addIssue }) => { try { preflightShardfile(dataset.value); } catch (error) { const nonData = error instanceof Error && /(?:JSON data|accessors)/u.test(error.message); addIssue({ message: nonData ? 'shardfile carries JSON data only; executable behaviour must be admitted WASM' : 'shardfile manifest admission limits' }); } }), v.check(isJsonData, 'shardfile carries JSON data only; executable behaviour must be admitted WASM'), v.check((input) => !isJsonData(input) || (typeof input === 'object' && input !== null && 'entryways' in input && input.entryways !== undefined), 'illegal shard: four midpoint entryways are required'), rawSchema,
+export const ShardfileSchema: v.GenericSchema<unknown, Shardfile> = v.pipe(v.unknown(), v.rawCheck(({ dataset, addIssue }) => { try { preflightShardfile(dataset.value); } catch (error) { const nonData = error instanceof Error && /(?:JSON data|accessors)/u.test(error.message); const nodes=nonData?jsonDataNodes(dataset.value):undefined; addIssue({ message: nonData ? `shardfile carries JSON data only; executable behaviour must be admitted WASM${nodes===undefined?'':`; JSON nodes ${String(nodes)} (limit 100000)`}` : 'shardfile manifest admission limits' }); } }), v.check(isJsonData, 'shardfile carries JSON data only; executable behaviour must be admitted WASM'), v.check((input) => !isJsonData(input) || (typeof input === 'object' && input !== null && 'entryways' in input && input.entryways !== undefined), 'illegal shard: four midpoint entryways are required'), rawSchema,
   v.rawCheck(({ dataset, addIssue }) => { if (dataset.typed) { try { preflightAssetGraph(dataset.value); } catch (error) { addIssue({ message: error instanceof Error ? error.message : 'shardfile asset graph admission' }); } } }),
   v.check((s) => entrywayRules(s).length === 0, 'illegal shard: entryway openings must meet road height y=0'), v.check((s) => shardfileRules(s).length === 0, 'shardfile semantic rules'));
 /** Parse untrusted JSON as a validated shardfile, or throw a Valibot error. */

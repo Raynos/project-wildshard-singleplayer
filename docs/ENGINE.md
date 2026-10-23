@@ -1800,6 +1800,15 @@ listeners only after validation and live scope/world/player/reader checks.
 Legacy inline scenes still install synchronously. Both encodings retain the
 original f32 storage and bilinear sampling; audio timing and RNG are unchanged.
 
+`AudioData.sceneFile` selects a named `AudioSceneSchema` JSON file instead of
+inline `scene` (the two are exclusive). The client plan requires that admitted
+file before installation; the entered director verifies the same JSON reader
+and lifetime before preparing its field blocks. This keeps scene recipes out
+of the source envelope without changing their independent schema validation.
+Source admission remains 100,000 plain-JSON nodes. `format/json.jsonDataNodes`
+is a bounded, failure-only measurement; it never admits a larger source. The
+shard parse error includes that count, which the build-pool stderr tail retains.
+
 The client-only `game/audio/cueDirector` schedules existing sound cues and
 native VFX from `CueDirectorSchema` rows. Construct `CueDirector(game, rows,
 scope?, sounds?)` for impact targets, or use `CueDirector.install(ctx, rows)`
