@@ -55,7 +55,7 @@ test('Nine pool spans charge actual source lines while instance packets remain s
 test('reviewed Pine and Driftwood branches charge their actual owners', () => {
   const reports: string[] = [];
   const charges = new Map<string, {path: string; name: string; lines: number}[]>([['pine-hollow', []], ['driftwood-isle', []]]);
-  for (const path of inlinePlatformPaths().filter(file => !file.endsWith('/worldScenes.ts') && file !== 'src/game/shardfile/scenePools.ts')) {
+  for (const path of inlinePlatformPaths().filter(file => !file.endsWith('/worldScenes.ts') && file !== 'src/game/shardfile/scenePools.ts' && file !== 'src/game/shardfile/crowdRuntime.ts')) {
     const source = readFileSync(path, 'utf8');
     for (const span of inlinePlatformSpans(path, source, line => { reports.push(line); })) {
       expect(span.lines.length).toBeGreaterThan(0);
@@ -407,4 +407,19 @@ test('retired arsenal and variant modules leave no standalone item charge',()=>{
   expect(platformChargeback('src/game/loadout/mounted.ts')).toBeNull();
   expect(platformChargeback('src/game/weapons/bowVariant.ts')).toBeNull();
   expect(platformChargeback('src/game/boss/arenaScript.ts')).toBe('C4');
+});
+
+test('G520 re-score: Pine\'s page life runs the crowd weapon target and roster ray; only Nalati\'s prey joins stay charged', () => {
+  const path = 'src/game/shardfile/crowdRuntime.ts';
+  // Pine's generator declares its forager's combat row; the shared page life builds the weapon target over a roster from it
+  expect(readFileSync('src/shards/pine-hollow/generators/pageLife.ts', 'utf8')).toMatch(/combat: \{ target: \{ kind: life\.forager\.id/u);
+  expect(readFileSync('src/game/population/pageLife.ts', 'utf8')).toContain('new CrowdWeaponTarget(new CrowdRoster([], [new ForagerTargets(population, row.combat, row.scale)]), row.combat.target)');
+  for (const name of ['CrowdWeaponTarget', 'CrowdRoster']) expect(platformChargeback(path, name)).toBeNull();
+  for (const name of ['CrowdPrey', 'CrowdTargets']) expect(platformChargeback(path, name)).toBe('C4');
+  const reports: string[] = [], spans = inlinePlatformSpans(path, readFileSync(path, 'utf8'), line => { reports.push(line); });
+  expect(reports).toEqual([]);
+  expect(spans.map(span => [span.name, span.lines.length])).toEqual([['CrowdRoster', 17]]);
+  // the roster's prey joins charge Nalati inside the declaration Pine shares
+  const charges = new Map<string, { path: string; name: string; lines: number }[]>([['nalati-grasslands', []]]), row = { path, name: 'CrowdRoster', lines: 17 };
+  expect(recordPrivateCharge(charges, undefined, row)).toBe(true); expect(charges.get('nalati-grasslands')).toEqual([row]);
 });

@@ -21,8 +21,10 @@ const declarations = new Map([
     'renderedHerdOf', 'observeHerdDamage', 'PageGroups',
   ].map(name => [name, 'C4']))],
   ['src/game/ambient/crowdPage.ts', new Map([['readCrowdBody', 'C4']])],
+  // G520 re-score: Pine's page life runs CrowdWeaponTarget over a CrowdRoster's ray (game/population/pageLife.ts, its
+  // forager combat row), so both are shared; the roster's prey identity joins stay charged (inline, below)
   ['src/game/shardfile/crowdRuntime.ts', new Map([
-    'CrowdPrey', 'CrowdTargets', 'CrowdRoster', 'CrowdWeaponTarget',
+    'CrowdPrey', 'CrowdTargets',
   ].map(name => [name, 'C4']))],
   ['src/game/quest/elitePage.ts', new Map([
     'keeperBrains', 'keeperActs', 'keeperDamage', 'setEliteBrain', 'setEliteAct',
@@ -51,6 +53,12 @@ const chapterViewNativeOwners = new Map([
 // code lines, never fixed credits; packet/instance-matrix handling stays shared.
 /** @type {Map<string,Map<string,[string,number][]>>} */
 const inline = new Map([
+  // the pack prey identity joins only Nalati's page groups use, inside the roster Pine's forager ray shares
+  ['src/game/shardfile/crowdRuntime.ts', new Map([['CrowdRoster', [
+    ['  private readonly preyBindings = new Map<string, PackPrey>();', 1],
+    ['  identity(prey: PackPrey): string {', 8],
+    ['  resolve(id: string): PackPrey | null {', 8],
+  ]]])],
   // the tier-selected pool decoder the resident scenes and the catalogue's cold intake share
   ['src/game/shardfile/scenePools.ts', new Map([['WorldSceneTierPools', [
     ['geometryPools: files.map(file => ({ url: product.url(tierFile(file.file))', 1],
@@ -120,7 +128,8 @@ export function retiredPlatformModule(path) {
  * @param {Map<string,T[]>} charges @param {string|undefined} owner
  * @param {T} row @param {(line:string)=>void} [report] */
 export function recordPrivateCharge(charges, owner, row, report = console.error) {
-  const reviewed = platformChargeback(row.path, row.name) !== null;
+  // an audited inline branch charges its reviewed owner even inside a declaration another shard shares
+  const reviewed = platformChargeback(row.path, row.name) !== null || inline.get(row.path)?.has(row.name ?? '') === true;
   const shard = reviewed ? reviewedOwner(row.path, row.name) : owner;
   const target = charges.get(shard ?? '');
   if (target === undefined) {
