@@ -115,3 +115,24 @@ test('v0/v1 compile and admission paths keep their frozen module hashes', async 
   instrumentV2Finite(bytes(module('(func (param f64) (f64.store (i32.const 0) (local.get 0)))')));
   expect(sha256(await compileScript(v1Source,{ abi: 1 }))).toBe(sha256(current));
 });
+
+
+test('conditional reinterpret results retain explicit guards in both arms and widths',async()=>{
+  const f=await fixture(`(func (export "branch32") (param $choose i32) (param $bits i32) (result f32)
+    (if (result f32) (local.get $choose) (then (f32.reinterpret_i32 (local.get $bits)))
+      (else (f32.neg (f32.reinterpret_i32 (local.get $bits))))))
+    (func (export "branch64") (param $choose i32) (param $bits i64) (result f64)
+    (if (result f64) (local.get $choose) (then (f64.reinterpret_i64 (local.get $bits)))
+      (else (f64.neg (f64.reinterpret_i64 (local.get $bits))))))`);
+  for(const [bits,value]of [[0,0],[0x80000000,-0],[0x3fa00000,1.25]] as const){
+    expect(Object.is(f.call('branch32',1,bits),value)).toBe(true);expect(Object.is(f.call('branch32',0,bits),-value)).toBe(true);
+  }
+  for(const [bits,value]of [[0n,0],[0x8000000000000000n,-0],[0x3ff4000000000000n,1.25]] as const){
+    expect(Object.is(f.call('branch64',1,bits),value)).toBe(true);expect(Object.is(f.call('branch64',0,bits),-value)).toBe(true);
+  }
+  for(const choose of [0,1]){
+    for(const bits of [0x7f800000,0xff800000,0x7fc00001])expect(()=>f.call('branch32',choose,bits)).toThrow(WebAssembly.RuntimeError);
+    for(const bits of [0x7ff0000000000000n,0xfff0000000000000n,0x7ff8000000000001n])expect(()=>f.call('branch64',choose,bits)).toThrow(WebAssembly.RuntimeError);
+  }
+  expect(inspectV2Finite(f.bytes).reinterprets).toBe(4);
+});

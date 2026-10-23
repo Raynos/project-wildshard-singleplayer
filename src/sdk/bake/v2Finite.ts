@@ -98,7 +98,11 @@ export function instrumentV2Finite(bytes: Uint8Array): Uint8Array {
           : op === 'f64.store' || op === 'i64.reinterpret_f64' ? 'f64'
           : op === 'global.set' && typeof result[1] === 'string' ? types.get(result[1]) : undefined;
         if (type !== undefined && tail !== undefined) result[result.length - 1] = wrap(type, tail);
-        return op === 'f32.reinterpret_i32' ? wrap('f32', result) : op === 'f64.reinterpret_i64' ? wrap('f64', result) : result;
+        // A result block at the end of an if arm is flattened by Binaryen.
+        // Keep reinterpret guards expression-local for both verifiers. Finite
+        // multiplication by one preserves every bit, including signed zero.
+        return op === 'f32.reinterpret_i32' ? ['f32.mul',wrap('f32', result),['f32.const','1']]
+          : op === 'f64.reinterpret_i64' ? ['f64.mul',wrap('f64', result),['f64.const','1']] : result;
       };
       let body = 2;
       while (form(fn[body]) && ['param', 'result', 'local', 'type'].includes(String(fn[body]?.[0]))) body++;
