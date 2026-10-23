@@ -250,7 +250,12 @@ export const MAX_GRAPH_BUDGET: GraphBudget = Object.freeze({ nodes: 4096, sample
 
 /** Raw graph JSON bounds, enforced before typing or compiler work; trusted presets supply their own node budget. */
 export const GRAPH_ADMISSION_LIMITS = Object.freeze({ bytes: 64_000, depth: 64 });
-const PLAIN_JSON_STRING = /^[\u0020\u0021\u0023-\u005B\u005D-\u007E]*$/u;
+/** whether JSON writes `value` as itself in quotes: printable ASCII with no quote or backslash (a loop, not a regex: Node's
+ *  type stripping rewrote the regex's escaped bracket and broke it) */
+function plainJsonString(value: string): boolean {
+  for (let i = 0; i < value.length; i++) { const c = value.codePointAt(i) ?? 0; if (c < 32 || c > 126 || c === 34 || c === 92) return false; }
+  return true;
+}
 /** Check JSON bytes, all nested nodes and inert structure without invoking authored getters or toJSON methods. */
 export function graphAdmissionErrors(input: unknown, nodeLimit = DEFAULT_GRAPH_BUDGET.nodes): string[] {
   type Entry = { value: unknown; depth: number; nodes: boolean } | { leave: object };
@@ -259,7 +264,7 @@ export function graphAdmissionErrors(input: unknown, nodeLimit = DEFAULT_GRAPH_B
   // printable ASCII with no quote or backslash serializes as itself in quotes: its byte count without encoding a copy
   // (G639: the encode per string was most of each first-lookup graph validation, ~30 ms a Nalati entry frame)
   const stringBytes = (value: string): number => value.length > GRAPH_ADMISSION_LIMITS.bytes ? GRAPH_ADMISSION_LIMITS.bytes + 1
-    : PLAIN_JSON_STRING.test(value) ? value.length + 2 : encoder.encode(JSON.stringify(value)).length;
+    : plainJsonString(value) ? value.length + 2 : encoder.encode(JSON.stringify(value)).length;
   while (pending.length > 0) {
     const entry = pending.pop(); if (entry === undefined) break;
     if ('leave' in entry) { active.delete(entry.leave); continue; }
