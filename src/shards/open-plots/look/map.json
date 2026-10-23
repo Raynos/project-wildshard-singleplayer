@@ -28,6 +28,122 @@
       }
     ]
   },
+  "outputs": {
+    "why": "G633 (Night Market pilot NM4): a tiled plot paints its own palette (data/layouts/<layout>.json) as itself, so its top-down reads apart from the hologram plots; the gate and posters (textured, white in the source) read as the gate red with a lantern-gold rim. Its collision boxes stand over its roofs, so its map leaves them out.",
+    "open-plot-night-market": {
+      "style": {
+        "kind": "ground",
+        "smooth": 2,
+        "shade": 0.3,
+        "classes": [
+          {
+            "match": "#c9a57a",
+            "fill": "#c9a57a"
+          },
+          {
+            "match": "#dbbd94",
+            "fill": "#dbbd94"
+          },
+          {
+            "match": "#d6b68c",
+            "fill": "#d6b68c"
+          },
+          {
+            "match": "#d8bf98",
+            "fill": "#d8bf98"
+          },
+          {
+            "match": "#e2c9a3",
+            "fill": "#e2c9a3"
+          },
+          {
+            "match": "#d4b58d",
+            "fill": "#d4b58d"
+          },
+          {
+            "match": "#e9d6b0",
+            "fill": "#e9d6b0"
+          },
+          {
+            "match": "#24346b",
+            "fill": "#24346b",
+            "edge": "#4a62b0"
+          },
+          {
+            "match": "#5b3a24",
+            "fill": "#5b3a24"
+          },
+          {
+            "match": "#b8272b",
+            "fill": "#b8272b"
+          },
+          {
+            "match": "#7d171c",
+            "fill": "#7d171c"
+          },
+          {
+            "match": "#8a5a34",
+            "fill": "#8a5a34"
+          },
+          {
+            "match": "#2fa8cf",
+            "fill": "#2fa8cf",
+            "edge": "#b3aea6"
+          },
+          {
+            "match": "#8d8a86",
+            "fill": "#8d8a86"
+          },
+          {
+            "match": "#b3aea6",
+            "fill": "#b3aea6"
+          },
+          {
+            "match": "#4f8a3a",
+            "fill": "#4f8a3a"
+          },
+          {
+            "match": "#3c6e2e",
+            "fill": "#3c6e2e"
+          },
+          {
+            "match": "#4e8f3c",
+            "fill": "#4e8f3c"
+          },
+          {
+            "match": "#36692b",
+            "fill": "#36692b"
+          },
+          {
+            "match": "#5a4030",
+            "fill": "#5a4030"
+          },
+          {
+            "match": "#ffb24a",
+            "fill": "#ffb24a"
+          },
+          {
+            "match": "#ffcf73",
+            "fill": "#ffcf73"
+          },
+          {
+            "match": "#9a948c",
+            "fill": "#9a948c"
+          },
+          {
+            "match": "#14203f",
+            "fill": "#14203f"
+          },
+          {
+            "match": "#ffffff",
+            "fill": "#b8272b",
+            "edge": "#ffb24a"
+          }
+        ]
+      },
+      "exclude": "collide_"
+    }
+  },
   "inputs": [
     "shard.config.ts",
     "data/source.ts",

@@ -508,11 +508,11 @@
     {
       "slug": "open-plot-night-market",
       "idea": "night-market",
-      "name": "Neon Night Market",
+      "name": "Night Market",
       "accent": "pink",
       "manifest": {
-        "name": "Open Plot · Neon Night Market",
-        "blurb": "An open plot of the grid: walk round the Neon Night Market hologram, a world still to be built.",
+        "name": "Night Market · Open Plot Pilot",
+        "blurb": "The open-plot pilot (G633): a Night Market of house courts, canals, stall rows and gardens round a pagoda gate, a world still to be built.",
         "bindings": {
           "accent": "pink"
         },
@@ -531,18 +531,46 @@
         },
         "pois": [
           {
-            "id": "hologram",
-            "name": "Neon Night Market hologram",
-            "r": 12,
+            "id": "gate",
+            "name": "Pagoda gate",
+            "r": 22,
             "x": 0,
             "z": 0
           },
           {
-            "id": "billboard",
-            "name": "Billboard",
+            "id": "plaza-poster",
+            "name": "Plaza poster",
             "r": 14,
             "x": 0,
-            "z": 26
+            "z": -34
+          },
+          {
+            "id": "north-poster",
+            "name": "North entry poster",
+            "r": 8,
+            "x": -12.5,
+            "z": 247
+          },
+          {
+            "id": "south-poster",
+            "name": "South entry poster",
+            "r": 8,
+            "x": 12.5,
+            "z": -247
+          },
+          {
+            "id": "west-poster",
+            "name": "West entry poster",
+            "r": 8,
+            "x": 247,
+            "z": 12.5
+          },
+          {
+            "id": "east-poster",
+            "name": "East entry poster",
+            "r": 8,
+            "x": -247,
+            "z": -12.5
           }
         ]
       },
