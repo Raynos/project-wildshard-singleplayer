@@ -47,6 +47,15 @@ export async function precommitInputs(root = resolve(import.meta.dirname, '..'),
   if (existsSync(resolve(root, 'scripts/repo-size.mjs'))) early.push({ name: 'storage', command: [process.execPath, 'scripts/repo-size.mjs', '--index'] });
   if (same) early.push({ name: 'typed lint', command: [executable, '--type-aware', '-c', '.oxlintrc.json', ...files] });
   else if (files.length > 0) { defer(); console.warn('pre-commit: staged patch differs from working files; exact typed checks deferred to push'); }
+  // Inspect exact staged JSON in Git, including assets outside the source snapshot.
+  let binaryTree;
+  if (changed.some(path => path.endsWith('.json')) && (initial.includes('\tlint/no-binary-json.json\0') || changed.includes('lint/no-binary-json.json'))) {
+    mkdirSync(resolve(root, 'tmp'), { recursive: true });
+    binaryTree = mkdtempSync(resolve(root, 'tmp/commit-binary-'));
+    const checker = resolve(binaryTree, 'no-binary-json.mjs');
+    writeFileSync(checker, git(['show', ':scripts/no-binary-json.mjs']));
+    early.push({ name: 'binary JSON', command: [process.execPath, checker, '--staged'] });
+  }
   const running = runCommitJobs(root, early, deadline);
   let tree;
   try {
@@ -97,7 +106,7 @@ export async function precommitInputs(root = resolve(import.meta.dirname, '..'),
     if (same && git(['diff', '--name-only', '--', ...files]).trim() !== '') throw new Error('Commit inputs changed during checks');
     if (failures.length > 0) throw new Error(failures.join('\n'));
     console.info(`pre-commit: parallel checks ${(performance.now() - started).toFixed(0)} ms`);
-  } finally { await running; if (tree !== undefined) rmSync(tree, { recursive: true, force: true }); }
+  } finally { await running; if (binaryTree !== undefined) rmSync(binaryTree, { recursive: true, force: true }); if (tree !== undefined) rmSync(tree, { recursive: true, force: true }); }
 }
 
 if (import.meta.main) {

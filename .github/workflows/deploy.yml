@@ -324,6 +324,7 @@ jobs:
           key: generation-v1-${{ runner.os }}-node24-${{ steps.inputs.outputs.tree }}
           restore-keys: generation-v1-${{ runner.os }}-node24-
       - run: node scripts/gen.mjs --parallel
+      - run: node scripts/no-binary-json.mjs --all
       # Keep this isolated runner's newest reusable version of each producer.
       # The shared Mac keeps its ordinary retention and live-reader protection.
       - run: node scripts/generation-cache-prune.mjs --keep=1
@@ -385,6 +386,7 @@ jobs:
           zstd -d --rm generated-inputs.tar.zst
           python3 scripts/ci-products.py unpack-generated
       - run: node scripts/build-shardfiles.mjs --reuse
+      - run: node scripts/no-binary-json.mjs --all
       - name: Enforce closed component source and host locks
         run: node scripts/check-closed-components.mjs
       # A runner is isolated: save current reusable products rather than six

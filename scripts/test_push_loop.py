@@ -289,6 +289,38 @@ readFileSync('../public/assets/native/untracked.bin');
             self.assertEqual((self.root / name).read_bytes(), b'foreign working input')
         self.assertEqual((self.root / '.git/index').read_bytes(), index)
 
+    def test_binary_json_git_guard_precedes_source_preparation(self):
+        self.put('scripts/no-binary-json.mjs', (TOOL_ROOT / 'no-binary-json.mjs').read_text())
+        self.put('lint/no-binary-json.json', json.dumps({'schema': 'no-binary-json/1', 'source': self.base, 'files': {}}))
+        baseline = self.commit('src/policy.ts')
+        path = 'public/assets/example/rows.json'
+        self.put(path, json.dumps({'data': 'a' * 1024}))
+        bad = self.commit('src/binary.ts')
+        self.put(path, '{}')  # A dirty working file cannot hide a committed asset.
+        with patch.dict(PUSH['SOURCE'], committed_source=lambda *_: self.fail('source preparation ran')):
+            result = PUSH['check_committed'](self.root, baseline, bad, time.monotonic() + 45)
+        self.assertFalse(result['ok'])
+        self.assertEqual(result['phase'], 'binary-json')
+        self.assertEqual(result['files'], [path])
+        self.assertEqual((self.root / path).read_text(), '{}')
+        # A later deletion must not hide the offending outgoing commit.
+        (self.root / path).unlink()
+        self.git('add', '-u', '--', path)
+        clean = self.commit('src/clean.ts')
+        self.assertFalse(PUSH['check_binary_json'](self.root, baseline, clean, time.monotonic() + 45)['ok'])
+
+    def test_binary_json_budget_defers_only_without_an_observed_refusal(self):
+        self.put('scripts/no-binary-json.mjs', (TOOL_ROOT / 'no-binary-json.mjs').read_text())
+        self.put('lint/no-binary-json.json', json.dumps({'schema': 'no-binary-json/1', 'source': self.base, 'files': {}}))
+        tip = self.commit('src/policy.ts')
+        for output, accepted in [('still running', True), ('BINARY-JSON public/new.json: binary', False)]:
+            with patch.dict(LIVE, run=lambda *_: (124, output)):
+                result = PUSH['check_binary_json'](self.root, self.base, tip, time.monotonic() + 45)
+            self.assertEqual(result['ok'], accepted)
+        self.git('rm', 'scripts/no-binary-json.mjs')
+        deleted = self.commit('src/deleted-checker.ts')
+        self.assertFalse(PUSH['check_binary_json'](self.root, tip, deleted, time.monotonic() + 45)['ok'])
+
     def test_source_command_accepts_soft_preparation_deadline(self):
         result = PUSH['SOURCE']['command'](self.root, [sys.executable, '-c', 'print("exact")'],
                                            float('inf'), capture_output=True, text=True)

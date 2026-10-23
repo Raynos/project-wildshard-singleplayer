@@ -9,6 +9,7 @@ import re
 import runpy
 import subprocess
 import sys
+import tempfile
 import time
 
 LIVE = runpy.run_path(str(Path(__file__).with_name('live-prepush.py')))
@@ -30,14 +31,45 @@ def deferred_types(root, base, tip):
     return files
 
 
+def check_binary_json(root, base, tip, deadline):
+    """Exact Git blobs before source preparation; no working assets or generated cache."""
+    script = subprocess.run(['git', 'show', tip + ':scripts/no-binary-json.mjs'], cwd=root,
+                            capture_output=True, text=True, timeout=10)
+    if script.returncode != 0:
+        # Historical prefixes before the rule existed have nothing to run.
+        policy = subprocess.run(['git', 'log', '--format=%H', base + '..' + tip,
+                                 '--', 'lint/no-binary-json.json'], cwd=root,
+                                capture_output=True, text=True, timeout=10)
+        previous = subprocess.run(['git', 'cat-file', '-e', base + ':lint/no-binary-json.json'],
+                                  cwd=root, capture_output=True, timeout=10)
+        if policy.returncode != 0 or policy.stdout.strip() or previous.returncode == 0:
+            return {'ok': False, 'phase': 'binary-json', 'files': ['scripts/no-binary-json.mjs'],
+                    'output': 'BINARY-JSON scripts/no-binary-json.mjs: candidate checker missing'}
+        return {'ok': True, 'output': ''}
+    (root / 'tmp').mkdir(exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=root / 'tmp', prefix='push-binary-') as owned:
+        checker = Path(owned) / 'no-binary-json.mjs'
+        checker.write_text(script.stdout)
+        rc, output = LIVE['run'](['node', str(checker), '--range', base, tip], root, deadline)
+    if rc == 124 and 'BINARY-JSON ' not in output:
+        return {'ok': True, 'output': output + '\nBinary JSON check reached the local budget; defer to full CI.\n'}
+    if rc != 0:
+        paths = sorted(set(re.findall(r'^BINARY-JSON ([^\n:]+):', output, re.M)))
+        return {'ok': False, 'phase': 'binary-json', 'files': paths, 'output': output}
+    return {'ok': True, 'output': output}
+
+
 def check_committed(root, base, tip, deadline):
+    binary = check_binary_json(root, base, tip, deadline)
+    if not binary['ok']:
+        return binary
     preparation_started = time.monotonic()
     try:
         # The local check budget is soft; exact source preparation must finish.
         with SOURCE['committed_source'](root, tip, git(root, 'rev-parse', 'main'), float('inf')) as (tree, tools):
             if time.monotonic() >= deadline:
                 return {'ok': True, 'phase': 'preparation-deferred', 'files': [], 'types': 'ci-budget',
-                        'output': 'Exact committed source preparation completed in %.2f seconds. '
+                        'output': binary['output'] + 'Exact committed source preparation completed in %.2f seconds. '
                                   'Local check budget exhausted; deleted-path/inventory guards, related tests '
                                   'and remaining typed checks defer to full CI.' % (time.monotonic() - preparation_started)}
             inputs = json.loads((tree / '.push-types.json').read_text())
@@ -57,6 +89,7 @@ def check_committed(root, base, tip, deadline):
             if not result['ok'] and result['files']:
                 rc, output = LIVE['run'](['node', str(tools / 'push-inputs.mjs'), *result['files']], tree, deadline)
                 result['inputs'] = json.loads(output) if rc == 0 else []
+            result['output'] = binary['output'] + result['output']
             return result
     except (TimeoutError, subprocess.TimeoutExpired):
         return {'ok': False, 'phase': 'preparation', 'files': [], 'output': 'Committed check exceeded 45 seconds'}
