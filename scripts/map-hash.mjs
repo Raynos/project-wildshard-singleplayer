@@ -36,11 +36,13 @@ export const DEFAULT_MAP_INPUTS = ['shard.config.ts', 'layout.ts', 'world', 'gen
 /** the full cell the bake covers: CHUNK_SIZE (src/engine/core/config.ts) metres square, centred on the origin */
 export const MAP_METRES = 500;
 
+/** @param {string} shardDir */
 export function mapSettingsPath(shardDir) {
   const source = join(shardDir, 'data', 'map.json');
   return existsSync(source) ? source : join(shardDir, 'look', 'map.json');
 }
 /** Source-layout projects keep their stamp in data/; old projects retain look/. */
+/** @param {string} shardDir */
 export function mapStampPath(shardDir) {
   return existsSync(join(shardDir, 'data', 'map.json')) ? join(shardDir, 'data', 'productMap.json') : join(shardDir, 'look', 'map.baked.json');
 }
@@ -62,7 +64,7 @@ export function mapSettings(shardDir) {
   const own = mapSettingsPath(shardDir);
   if (!existsSync(own)) return { inputs: DEFAULT_MAP_INPUTS, hide: [], heightHide: [], keep: [], hideStanding: [], clipBelow: null, clipAbove: null, style: null, from: null };
   const parsed = JSON.parse(readFileSync(own, 'utf8'));
-  const list = (key) => {
+  const list = (/** @type {string} */ key) => {
     const value = parsed[key];
     if (value === undefined) return undefined;
     if (!Array.isArray(value) || !value.every((entry) => typeof entry === 'string')) throw new Error(`${own}: ${key} must be a string list`);
@@ -91,6 +93,9 @@ export function mapInputRoots(shardDir) {
 /** @param {string} dir @param {string[]} out */
 function walk(dir, out) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    // Package-manager launchers differ across installations and isolated bakes.
+    // Dependency identity comes from the declared lockfile, not node_modules.
+    if (entry.name === 'node_modules') continue;
     const path = join(dir, entry.name);
     if (entry.isDirectory()) walk(path, out); else if (entry.isFile()) out.push(path);
   }
