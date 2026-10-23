@@ -1,3 +1,6 @@
+import { ReturnProgram } from '@wildshard/game/population/returnProgram';
+import { ReturnModulesSchema } from '@wildshard/format/scriptContract';
+import { parse } from 'valibot';
 import { isJsonData } from '@wildshard/format/json';
 import { trustedLevel } from '@wildshard/game/plugin/simulation';
 import { createSimHost } from '@wildshard/engine/sim';
@@ -216,6 +219,7 @@ export async function prepareHeadlessAssembly(preparation: HeadlessRuntimePrepar
   const data: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await preparation.product.file('sim/headless-assembly.json')));
   const declaration = checkedHeadlessAssembly(data, modules);
   const shard = preparation.product.shardfile;
+  const returns=preparation.product.has('actors/return-scripts')?parse(ReturnModulesSchema,preparation.product.section('actors/return-scripts')):[];
   const values = new Map<string, unknown>([['shard', shard], ['assets', preparation.assets], ['rapier', preparation.rapier], ['product', preparation.product], ['assembly', primitives]]);
   // Expose precisely the declared exports, never a module namespace's remainder.
   for (const [name, exports] of Object.entries(declaration.modules)) values.set(name, Object.fromEntries(exports.map(key => [key, member(modules[name], key)])));
@@ -233,7 +237,9 @@ export async function prepareHeadlessAssembly(preparation: HeadlessRuntimePrepar
   const entries = evaluate(declaration.entries, env);
   if (!callable(entries)) throw new Error('Missing assembly entry proof');
   return { level, ports: { ground: false, heightAt },
-    install: (host, context) => { installRows(declaration, { values: new Map<string, unknown>([['host', host], ['context', context]]), parent: env, native: { host, context, preparation } }); },
+    install: (host, context) => {
+      if(returns.some(row=>row.abi===2))ReturnProgram.lendModules(host.scope,preparation.assets,returns);
+      installRows(declaration, { values: new Map<string, unknown>([['host', host], ['context', context]]), parent: env, native: { host, context, preparation } }); },
     proveEntries: host => {
       const proof = entries(host);
       if (!record(proof)) throw new Error('Invalid assembly entry result');

@@ -86,19 +86,19 @@ it.each(['retained','committed'])('keeps %s binary outputs in broad consumers be
 it('refreshes generated-table admission when a later report declares a retained producer',async()=>{
   mkdirSync('tmp',{recursive:true});const root=mkdtempSync(resolve('tmp/generation-admission-'));owned.push(root);
   const shard='src/shards/alpha',binary=`${shard}/data/retained.generated.bin`,output=`${shard}/data/inventory.json`,marker=`${shard}/data/marker.json`;
-  put(root,binary,'retained');mkdirSync(resolve(root,'scripts'));
+  put(root,binary,JSON.stringify('retained'));mkdirSync(resolve(root,'scripts'));
   put(root,'scripts/source-generation-outputs.json',JSON.stringify({producers:{}}));
   const consumer={id:'fixture-reader',shard:'alpha',entry:`${shard}/generators/bake-reader.mjs`,command:[`${shard}/generators/bake-reader.mjs`],inputRoots:[shard],outputs:[output],buildTimeOutputs:[output],platform:'portable'};
-  put(root,consumer.entry,`import fs from 'node:fs';fs.writeFileSync('${output}','initial');`);
+  put(root,consumer.entry,`import fs from 'node:fs';fs.writeFileSync('${output}',JSON.stringify('initial'));`);
   const catalog=(jobs:unknown[]):void=>put(root,'scripts/generation-jobs.json',JSON.stringify({schema:'generation-jobs/1',notice:'DO NOT EDIT fixture',jobs}));
   catalog([consumer]);await prepareGeneration(root,{cacheDir:resolve(root,'cache')});
   const producer={id:'fixture-retained',shard:'alpha',entry:`${shard}/generators/bake-retained.mjs`,command:[`${shard}/generators/bake-retained.mjs`],inputRoots:[shard],outputs:[binary,marker],buildTimeOutputs:[marker],platform:'portable'};
-  put(root,producer.entry,`import fs from 'node:fs';fs.writeFileSync('${binary}','unrestored');fs.writeFileSync('${marker}','marker');`);
+  put(root,producer.entry,`import fs from 'node:fs';fs.writeFileSync('${binary}',JSON.stringify('unrestored'));fs.writeFileSync('${marker}',JSON.stringify('marker'));`);
   put(root,consumer.entry,`import fs from 'node:fs';fs.writeFileSync('${output}',fs.readFileSync('${binary}'));`);
   catalog([consumer,producer]);await prepareGeneration(root,{cacheDir:resolve(root,'cache')});
-  expect(readFileSync(resolve(root,output),'utf8')).toBe('retained');
-  put(root,binary,'edited');await prepareGeneration(root,{cacheDir:resolve(root,'cache')});
-  expect(readFileSync(resolve(root,output),'utf8')).toBe('edited');
+  expect(JSON.parse(readFileSync(resolve(root,output),'utf8'))).toBe('retained');
+  put(root,binary,JSON.stringify('edited'));await prepareGeneration(root,{cacheDir:resolve(root,'cache')});
+  expect(JSON.parse(readFileSync(resolve(root,output),'utf8'))).toBe('edited');
 });
 
 it('reuses a consumer when a rerun producer writes identical stage bytes', async () => {
@@ -106,7 +106,7 @@ it('reuses a consumer when a rerun producer writes identical stage bytes', async
   const shard='src/shards/alpha', first=`${shard}/data/first.json`, second=`${shard}/data/second.json`;
   const entry=`${shard}/generators/bake-first.mjs`, consumer=`${shard}/generators/bake-second.mjs`;
   put(root,'source.txt','first input');
-  put(root,entry,`import fs from 'node:fs';fs.readFileSync('source.txt');fs.writeFileSync('${first}','same output');`);
+  put(root,entry,`import fs from 'node:fs';fs.readFileSync('source.txt');fs.writeFileSync('${first}',JSON.stringify('same output'));`);
   put(root,consumer,`import fs from 'node:fs';fs.writeFileSync('${second}',fs.readFileSync('${first}'));`);
   const jobs=[
     {id:'cutoff-first',shard:'alpha',entry,command:[entry],inputRoots:[entry,'source.txt'],outputs:[first],buildTimeOutputs:[first],platform:'portable'},
@@ -118,5 +118,5 @@ it('reuses a consumer when a rerun producer writes identical stage bytes', async
   await prepareGeneration(root,{cacheDir});
   expect(log.mock.calls.filter(row=>String(row[0]).includes(', generated,'))).toHaveLength(1);
   expect(log.mock.calls.some(row=>String(row[0]).includes('cutoff-second, verified cache'))).toBe(true);
-  expect(readFileSync(resolve(root,second),'utf8')).toBe('same output');
+  expect(JSON.parse(readFileSync(resolve(root,second),'utf8'))).toBe('same output');
 });

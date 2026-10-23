@@ -1,10 +1,13 @@
+import { ReturnProgram } from '../src/game/population/returnProgram';
+import { parseReturnProjectionV2 } from '../src/format/returnProjectionV2';
+import returnPrograms from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with {type:'json'};
 // oxlint-disable-next-line import/no-nodejs-modules -- The unit host uses the same native physics module as the resident.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
 import { checkedHeadlessAssembly, prepareHeadlessAssembly } from '../src/sdk/headlessAssembly';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import { createSimHost } from '../src/engine/sim';
+import { createSimHost, type SimHost } from '../src/engine/sim';
 import { snapshotSimHost, restoreSimHost, onSimHostRestored } from '../src/engine/sim/snapshot';
 import { hasStaticGround } from '../src/engine/physics/query';
 import { tagCollider } from '../src/engine/physics/surface';
@@ -145,4 +148,38 @@ test('native restore checks the restored ground before releasing the host', asyn
     expect(() => restoreSimHost(plan.level, ports, snapshotSimHost(empty), host => { plan.install(host, context); })).toThrow('require admitted ground');
     expect(() => plan.install(empty, context)).toThrow('not restoring');
   } finally { source.dispose(); empty.dispose(); }
+});
+
+test('raw return modules are lent before original native assembly owners on fresh and restored hosts',async()=>{
+  const program=structuredClone(returnPrograms.attack),projection=parseReturnProjectionV2(program.v2),artifact=projection.artifact;
+  const bytes=Uint8Array.from(atob(program.v2.bytes),value=>value.codePointAt(0)??0);program.v2.bytes='';
+  const assets=new Map([[artifact.hash,bytes]]),captured:ReturnProgram[]=[];
+  const returns=[{id:'fixture.return',module:`blobs/wasm/${artifact.hash}.wasm`,side:'sim' as const,abi:2 as const,lane:'project' as const,
+    pages:artifact.pages,ioBytes:artifact.ioBytes,compilerRevision:artifact.compilerRevision,admissionRevision:artifact.admissionRevision}];
+  const install=(host:SimHost):void=>{
+    const original=ReturnProgram.native(host,program);captured.push(original);
+    expect(ReturnProgram.native(host,program)).toBe(original);
+    expect(original.project('bossClamp',{fullHp:100,share:.3})).toEqual({hp:30});
+  };
+  const declaration={...base,modules:{'src/game/rawAssemblyFixture':['install']},install:[{name:'original',value:{$call:[ref('src/game/rawAssemblyFixture','install'),ref('host')]}}]};
+  const shard=emptyShardfile({slug:'raw-assembly',name:'Raw assembly',author:'Test',revision:1,seed:17});
+  const product=createShardProduct({slug:shard.identity.slug,revision:1,shardfile:shard,sections:new Map([['actors/return-scripts',returns]]),
+    files:new Map([['sim/headless-assembly.json',{hash:'assembly',url:'assembly'}]]),read:()=>Promise.resolve(new TextEncoder().encode(JSON.stringify(declaration)))});
+  const plan=await prepareHeadlessAssembly({shard,product,assets,rapier},{'src/game/rawAssemblyFixture':{install}});
+  const fresh=createSimHost(plan.level,{...plan.ports,rapier});
+  let restored:SimHost|undefined;
+  try{
+    plan.install(fresh,{restoring:false,commands:()=>[],emit:()=>undefined});
+    restored=restoreSimHost(plan.level,{...plan.ports,rapier},snapshotSimHost(fresh),host=>{
+      plan.install(host,{restoring:true,commands:()=>[],emit:()=>undefined});
+    });
+    expect(captured).toHaveLength(2);expect(captured[0]).not.toBe(captured[1]);
+    assets.set(artifact.hash,new Uint8Array([0]));
+    expect(()=>ReturnProgram.native(fresh,program)).toThrow('hash mismatch');
+    assets.set(artifact.hash,bytes);
+    const original=captured[0];if(original===undefined)throw new Error('Missing original projection');
+    fresh.dispose();
+    expect(()=>original.project('bossClamp',{fullHp:100,share:.3})).toThrow('Return owner disposed');
+    expect(captured[1]?.project('bossClamp',{fullHp:100,share:.3})).toEqual({hp:30});
+  }finally{fresh.dispose();restored?.dispose();}
 });
