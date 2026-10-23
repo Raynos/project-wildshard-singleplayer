@@ -32,8 +32,9 @@ export interface ClientChannelLane {
 /** A lane over a program its caller has just admitted with `parseClientChannels` (G639: a table installed group by group
  *  re-validated every row it had parsed; Nalati's entry spent 0.3-0.65 s frames in it). Its arrays are copied, never kept. */
 export function admittedClientChannels(program: ClientChannelProgram): ClientChannelLane {
-  const nodes = structuredClone(program.nodes), scratch = new Float64Array(nodes.length), published = new Float64Array(nodes.length), reads = new Float64Array(program.reads.length);
-  const slots = structuredClone(program.locals ?? []), locals = new Float64Array(slots.length), previous = new Float64Array(slots.length), next = new Float64Array(slots.length);
+  // a frozen (admitted, shared) table is read in place; any other caller's arrays are copied
+  const nodes = Object.isFrozen(program.nodes) ? program.nodes : structuredClone(program.nodes), scratch = new Float64Array(nodes.length), published = new Float64Array(nodes.length), reads = new Float64Array(program.reads.length);
+  const slots = program.locals !== undefined && Object.isFrozen(program.locals) ? program.locals : structuredClone(program.locals ?? []), locals = new Float64Array(slots.length), previous = new Float64Array(slots.length), next = new Float64Array(slots.length);
   let initialized = false;
   // each expression's operand slots, read once (-1: none), so the evaluator never asks a node which fields it has
   const operandA = Int32Array.from(nodes, node => 'a' in node ? node.a : -1), operandB = Int32Array.from(nodes, node => 'b' in node ? node.b : -1);
