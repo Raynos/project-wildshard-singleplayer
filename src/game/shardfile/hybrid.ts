@@ -303,8 +303,7 @@ export async function prepareHybridShard(input: ShardProduct | Pick<Shardfile, '
      * Admission and residency still run; the data client must not install a second simulation. */
     readonly stagesOwner?: 'declared' | 'runtime';
   },
-  entries: readonly TrustedRuntimeEntry[],
-  debug?: { context: ShardContext; row: Omit<Parameters<ShardContext['debugRow']>[0], 'change'> }): Promise<ShardPlugin> {
+  entries: readonly TrustedRuntimeEntry[]): Promise<ShardPlugin> {
   // Frozen callers provide only identity; their authored data is never read.
   // Every current entry passes the product already loaded before its hooks.
   const expectedIdentity = 'shardfile' in input ? input.slug : input.identity.slug;
@@ -318,15 +317,6 @@ export async function prepareHybridShard(input: ShardProduct | Pick<Shardfile, '
   if (source.runtime === null) throw new Error('Hybrid requires a declared runtime entry');
   provideHybridDeclaration(source);
   if (bindings.stagesOwner === 'runtime' && !options.firstParty) throw new Error('Runtime stage ownership requires a trusted first-party shard');
-  if (debug !== undefined) {
-    const choice = { hybrid: false };
-    const adapters = debug.context;
-    adapters.debugRow({ ...debug.row, change: (value) => { choice.hybrid = value === 'on'; } });
-    if (!choice.hybrid) {
-      const Runtime = await preparePageRuntime(source.runtime, product, source.identity.slug, options.firstParty, entries);
-      return new Runtime();
-    }
-  }
   const { residencyContext, retainHomeRuntime, stagesOwner, ...providedBindings } = bindings;
   const residency = residencyContext?.game.residency;
   if (residency !== undefined && providedBindings.residency !== undefined && residency !== providedBindings.residency) {

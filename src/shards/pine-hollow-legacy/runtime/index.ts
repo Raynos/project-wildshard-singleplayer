@@ -4,7 +4,6 @@ import { bindPineItems } from './items';
 import { installPineLandmarkUpdate } from './landmarkLifetime';
 import { STRINGS } from '../strings';
 import { installEnteredPineVoices } from './audio/entered';
-import { installPineDebug } from '../debug/options';
 import { PINE_SPAWNS } from '../combat/spawns';
 import { PINE_SPECIES, pineElk } from '../species/rows';
 import { pineLooks } from '../species/looks';
@@ -15,7 +14,6 @@ import { installPineCompendium } from '../compendium/install';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin } from '@wildshard/game/shard/plugin';
 import type { ShardRuntime } from '@wildshard/game/shard/runtime';
-import { installAiDebug } from '@wildshard/engine/ai/view/DebugOverlay';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import * as THREE from 'three';
@@ -65,7 +63,6 @@ export class PineHollow extends ShardPlugin {
 
   override async world(ctx: ShardContext): Promise<void> {
     ctx.strings(STRINGS);
-    installPineDebug(ctx);
     const rt = runtime(ctx), world = rt.world, step = rt.step;
     if (world === null || step === null) throw new Error('Pine world builder needs staged services');
     const { game, sky, forest, player, registry } = world;
@@ -163,8 +160,6 @@ export class PineHollow extends ShardPlugin {
     const { cabins, landmarks, particles } = this;
     const rifle = h.rifle, longbow = h.secondary, crossbow = h.primary;
     if (!(rifle instanceof LeverRifle) || !(longbow instanceof Bow) || !(crossbow instanceof Crossbow)) throw new Error('Pine ranged kit was not built');
-    installAiDebug(ctx, { game, actors: () => animals.animals, player }, undefined,
-      retainsRuntimeServices(ctx) ? (install) => { installEnteredRuntimeService(ctx, install); } : undefined);
     rt.hooks.wearFinish = (id) => {
       const pick = finishPick(skins, id); if (!pick) return;
       if (pick.act === 'wear') { wearSkin(pick.skin); return; }

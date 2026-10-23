@@ -180,7 +180,6 @@
     "./shardfile/hybrid": "./shardfile/hybrid.ts",
     "./shardfile/movers": "./shardfile/movers.ts",
     "./shardfile/moverRuntime": "./plugin/mover.ts",
-    "./shardfile/directorClient": "./shardfile/directorClient.ts",
     "./shardfile/crowdRuntime": "./shardfile/crowdRuntime.ts",
     "./shardfile/socketLiftProof": "./plugin/simulation.ts",
     "./weapons/starterGlyphs": "./weapons/starterGlyphs.ts",

@@ -3,8 +3,6 @@ import { ShardPlugin } from '@wildshard/game/shard/plugin';
 import { shardfileEntry } from '@wildshard/game/shard/runtimeVariant';
 import type { prepareHybridShard as prepareTrustedHybrid } from '@wildshard/game/shardfile/hybrid';
 import RuntimePlugin from './runtime/index';
-import { pineMemoryTrim } from './debug/options';
-import { bindPineViewTrim } from './look/viewDistance';
 
 /** Compatibility callers keep the unchanged trusted runtime hooks. */
 export class PineHollow extends RuntimePlugin {}
@@ -39,7 +37,6 @@ class PineHybrid extends ShardPlugin {
   constructor(Legacy: new () => ShardPlugin = RuntimePlugin, admit: (ctx: ShardContext) => Promise<ShardPlugin> = preparePineHybrid,
     shardfile: (ctx: ShardContext) => boolean = shardfileEntry) {
     super(); this.Legacy = Legacy; this.admit = admit; this.shardfile = shardfile;
-    bindPineViewTrim(pineMemoryTrim); // G187: before the level applies its tier row
   }
   override async world(ctx: ShardContext): Promise<void> {
     if (!this.shardfile(ctx)) {

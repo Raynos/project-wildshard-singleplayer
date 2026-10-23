@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 /**
- * SF47-g (E435, Debug ▸ Loading ▸ Pine memory trim): a decoded HDRI sky key as RGB9_E5 instead of RGBA16F. The key's alpha is
+ * Selected Pine memory trim (SF47-g): a decoded HDRI sky key as RGB9_E5 instead of RGBA16F. The key's alpha is
  * the constant 1 the decode writes (BakedSky.ts) and the sky shader reads only .rgb, so the GPU keeps 4 bytes a texel, not 8:
  * 16.8 MB → 8.4 MB per 2048 × 1024 key, two to three resident. RGB9_E5 keeps 9 mantissa bits per channel under one shared
  * exponent (half float: 10 bits each), sampled and filtered like the half-float key; the driver packs it from the half-float

@@ -5,9 +5,6 @@ import type { Terrain } from '@wildshard/engine/world/Terrain';
 import { decodeTerrainTile } from '@wildshard/engine/world/terrainTileData';
 import { installTerrainTile, maskTerrainTile } from '@wildshard/engine/world/terrainTileView';
 import { bindRuntimeProductTerrain } from '@wildshard/game/shardfile/runtimeProduct';
-import { jsonSlot } from '@wildshard/engine/saves/slots';
-import type { ShardContext } from '@wildshard/game/shard/context';
-import { developerToolsEnabled, runtimeVariantEnabled } from '@wildshard/game/shard/runtimeVariant';
 import source from '../shard.config';
 import { SPAWN } from '../data/layout';
 
@@ -67,23 +64,5 @@ async function follow(entry: NonNullable<typeof live>, x: number, z: number): Pr
 /** The resident fine tiles (a capture's witness), or null when the code-built ground is drawn. */
 export function sandTilesResident(): readonly string[] | null { return live === null ? null : [...live.bound.fine]; }
 
-const ROW = 'groundTiles', CHOICES = ['off', 'on'] as const;
-
-/**
- * M3 tiles-swap (G227, E435): Signal Dunes stands on and draws its compiled shardfile terrain tiles (the 64 L0 + 16 L1
- * tiles and the 257² collider, `generators/tiles.ts`) in place of the code-built ground mesh and heightfield. Read from the
- * row's device slot when the ground is built (the painter runs before the plugin's hooks), behind the same Developer fence as the
- * row (a Developer tool, E451: outside Developer the shipped code-built ground runs); default off until parity is proven.
- */
-export function groundTiles(): boolean {
-  if (!developerToolsEnabled()) return false;
-  const saved = jsonSlot(`debug.plugin.sunscar-dunes.${ROW}`, 'device').read();
-  return (CHOICES.find((choice) => choice === saved) ?? 'off') === 'on';
-}
-
-/** The Developer tool (reload: the ground is built once; no comparison row, E451). Goes once the default flips and the old path is deleted. */
-export function installSignalDebug(ctx: ShardContext): void {
-  runtimeVariantEnabled(ctx, { purpose: 'developer', id: 'groundTiles', group: 'loading', label: 'Signal Dunes ground tiles', choices: CHOICES.map((value) => ({ value, text: value === 'on' ? 'Tiles' : 'Code-built' })),
-    initial: 'off', reload: true, ask: 'E435', reviewBy: '2026-12-30',
-    note: 'E435 M3 tiles-swap (G227): the ground drawn and collided from the shardfile terrain tiles (L0 / L1 rings, the compiled collider) instead of the code-built mesh.' });
-}
+/** The unreachable legacy tile experiment is retired; keep its original code-built ground. */
+export function groundTiles(): boolean { return false; }

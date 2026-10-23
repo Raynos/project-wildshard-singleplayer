@@ -1,8 +1,5 @@
 import type { NalatiPersistence } from './persistence';
 import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
-import { installDeclaredCrowdFrames, type PreparedCrowds } from '@wildshard/game/shardfile/crowdRuntime';
-import { directorVariant } from '@wildshard/game/shardfile/directorClient';
-import { createNativeFlocks, type NativeFlocks } from './flockDeclared';
 import { bindEnteredEnvironment } from './enteredEnvironment';
 import { Wildlife, type SheepHit } from '../creatures/wildlife';
 import { wildEnv } from '../creatures/env';
@@ -128,8 +125,6 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
   const [{ practiceRoom }, { modelContext }] = await Promise.all([import('@wildshard/engine/core/practiceRoom'), import('@wildshard/engine/models/model')]);
   const { trample, grassHeightAt } = await import('@wildshard/game/systems/looks/trample');
   const { grassBaseHeightAt } = await import('@wildshard/game/systems/looks/grassField');
-  const crowdVariant = directorVariant(plugin);
-  let declaredCrowds: NativeFlocks | null = null;
   const updates: ((dt: number, t: number) => void)[] = [];
   const groups: Record<string, Object3D> = {};
 
@@ -273,7 +268,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     trample: (x, z, r, s, vx, vz) => { trample.push(x, z, r, s, vx, vz); }, wetAt: nalatiWetAt,
     onEvent: onSignal, onKnockdown,
   });
-  const wildlifeFrame = (dt: number, t: number, advance?: PreparedCrowds['advance']): void => {
+  const wildlifeFrame = (dt: number, t: number): void => {
     now = t;
     if (wildlife === null) return;
     wildPlayer.forward.set(-Math.sin(player.yaw), 0, -Math.cos(player.yaw));
@@ -281,10 +276,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
     extra.health01 = play?.health01() ?? 1;
     extra.mounted = ride?.mounted ?? false;   // B9: mounting stands you up; the packs get two tokens; a gallop stampedes the herd
     windEnv(wildEnv, wind);
-    wildlife.update(dt, t, wildPlayer, extra, advance === undefined ? undefined : (view, index, speed) => {
-      if (declaredCrowds === null) throw new Error('Missing declared native crowd owner');
-      declaredCrowds.advance(view, index, speed, wildPlayer.position, dt, t, advance);
-    });
+    wildlife.update(dt, t, wildPlayer, extra);
   };
   updates.push(wildlifeFrame);
 
@@ -315,9 +307,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
       plugin.scope.onDispose(bindFallbackGroupHost(APP_GROUP_HOST)); // the manager-only fallback groups' decision stream and director
       animals.wetAt = nalatiWetAt;
       animals.navSteer = true; // the packs, the herd, the flock's dog steer round what the navmesh walls off (NALATI-MERGE P3)
-      declaredCrowds = crowdVariant ? createNativeFlocks(sky, ctx.chunk.seed) : null;
-      const w = new Wildlife(animals, { scene: game.scene, sky, seed: ctx.chunk.seed,
-        ...(declaredCrowds !== null ? { flock: declaredCrowds.factory } : {}) });
+      const w = new Wildlife(animals, { scene: game.scene, sky, seed: ctx.chunk.seed });
       w.build();
       wildlife = w; nalati.wildlife = w;
       night.attach(animals);
@@ -423,13 +413,14 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, pro
 
   const ids = ['painterly', 'water', 'pois', 'dressing', 'weather.fx', 'titan', 'look', 'elites', 'boss', 'wildlife', 'stealth', 'night', 'ride', 'skins', 'sound'];
   let previous = 'main.world';
-  for (const [index, run] of updates.entries()) {
+  if (updates.length > 15) throw new Error('Nalati update registration lacks an id');
+  for (let index = 0; index < 15; index++) {
+    const run = updates[index];
+    if (run === undefined) break;
     const name = ids[index];
     if (name === undefined) throw new Error('Nalati update registration lacks an id');
-    const id = name === 'wildlife' && crowdVariant ? 'shard.nalati.wildlife.declared' : `shard.nalati.${name}`;
-    if (name === 'wildlife' && crowdVariant) installDeclaredCrowdFrames(plugin, { systemId: id, after: [previous], before: ['engine.creatures.update'],
-      current: () => declaredCrowds?.runtime ?? null, frame: wildlifeFrame });
-    else plugin.system({ id, phase: 'update', after: [previous], before: ['engine.creatures.update'], run });
+    const id = `shard.nalati.${name}`;
+    plugin.system({ id, phase: 'update', after: [previous], before: ['engine.creatures.update'], run });
     previous = id;
   }
   plugin.system({ id: 'shard.nalati.reins', phase: 'late', run: (dt) => { ride?.late(dt); } });

@@ -102,7 +102,7 @@
         "quest/Complete.ts": "1b161a8c7d782af7a93d219e4d94d3aa418e5abf94bc44083eeba263fa0ba45c",
         "quest/Ecology.ts": "452fbe5935dc20943db983ee23bd4603974372e4f8c35284c3edbbe94209000d",
         "quest/Feats.ts": "2bb8f8efe37b94af1748926c01bd15e6213012b5156c2ec62260fd04614bb62c",
-        "quest/Finale.ts": "9c0b47e30bac704ef297cf5f1ab557f0ced609ac5f57870ea66da56aa7107b02",
+        "quest/Finale.ts": "01eddd04b80b669fc5a5c984271f39f56957758fcbd672034717494cefe9dfb3",
         "quest/Places.ts": "983f12eea99ddb91e7cd1e5981c1609291a15a4bc108ed642fbdb94200cc724a",
         "quest/Spine.ts": "3ee2ec2fe3e79a249eac6c8ba55e4388fc1649a5a7b9947baf40b34286944def",
         "quest/TraderStall.ts": "5e8b60d35aad45e8174c17282e4a354a50c6d4b8b4670a61390a6ea23e2150aa",
@@ -136,7 +136,7 @@
         "runtime/enemyBrains.ts": "0d19aef8a3a84dd4feda33e6f3fbe50a860a2551706c230649c0078903effead",
         "runtime/entries.ts": "9e2e2e3591bb9878c9c2e1419408d219e64b4211ed6518458e7fb479cd11765d",
         "runtime/fauna.ts": "413a318762f8bd348b929e061a28eef6e80948a108152e09763289c04d60324d",
-        "runtime/finale.ts": "62f2a6e884ecd3c54d3dd86494c9f5104399242121d2d7ee68845af0cb6b6e21",
+        "runtime/finale.ts": "311ffb0491e044bae6020b8a6d2ac2e90966d9765e74f7e955c589a31f9e17ef",
         "runtime/headless.ts": "44704bbfc0bf792a7d016bd9f3f13698e591c93188f837da7e92606523980124",
         "runtime/hybrid.ts": "6b9a9e1b55b3d2091588b66254bd2e79993936a9c46568ee9e1e0a4d2ec0ec42",
         "runtime/index.ts": "ae6aab0311fd2cdeed7c43fe1dbc7e024e9be6c357ded47f8097468161fbf70e",
@@ -204,6 +204,16 @@
           "original": "c5226bb08f619337e19af12d10a7869a80b9d630a1828d6a29c0301af03d930e",
           "current": "98e3dc099fcca114d4a9f5416bcbe939ba54b7f1495d0f89e5977d61a5001f05",
           "reason": "Reviewed frozen compatibility: preserve Driftwood effects selection under the inventoried content identity without changing its save slug."
+        },
+        "runtime/finale.ts": {
+          "original": "62f2a6e884ecd3c54d3dd86494c9f5104399242121d2d7ee68845af0cb6b6e21",
+          "current": "311ffb0491e044bae6020b8a6d2ac2e90966d9765e74f7e955c589a31f9e17ef",
+          "reason": "G669 DR16 explicitly retires the legacy director/AI/debug branches and ships the selected Pine memory trim. Preserve original legacy clocks, combat, crowd bodies and save ownership."
+        },
+        "quest/Finale.ts": {
+          "original": "9c0b47e30bac704ef297cf5f1ab557f0ced609ac5f57870ea66da56aa7107b02",
+          "current": "01eddd04b80b669fc5a5c984271f39f56957758fcbd672034717494cefe9dfb3",
+          "reason": "G669 DR16 explicitly retires the legacy director/AI/debug branches and ships the selected Pine memory trim. Preserve original legacy clocks, combat, crowd bodies and save ownership."
         }
       }
     },
@@ -217,7 +227,7 @@
         "behaviour/director.as": "def2168225279022dc6fe267cd28c459060d9246373bc6c7046f8831d3d1a322",
         "boot/astc6/ktx2.generated.ts": "b63940c27a71a9fc23181d5152cd9a4e398b85a256096438db9fb7027f26ce1e",
         "boot/files.ts": "f680f34832417332c48cfd16577158b22a335d3277a719af7093496defe06849",
-        "boot/gpuTable.ts": "aa8460b717b0d8fa0d67de78a65d614db0a8eef2017a9ea69537a273755fc440",
+        "boot/gpuTable.ts": "b1ee1d9060d20b682fda13041df229608f2081c65a33ea311c19c3987c098b38",
         "boot/steps.ts": "dff1582794f72eea07a5bfec809c5d316efabf775d978f5d75ce3a42c2a2cd89",
         "budgetCeilings.ts": "7869f34c2d64e80d11f6d0e8ae672d937bbcf39ebaceddfa6cc915cba7562314",
         "budgets.ts": "fdebf2eea489a5d650bd08f7b309af5b587ecab9734de8babcb9279971f36250",
@@ -251,7 +261,7 @@
         "data/runtimeCost.ts": "e2c87fea31431118cb44f68821e4e25c16f72f2bbdeb5fe1dc792cd4950490ea",
         "data/spawns.ts": "6d021f403f89bcefb05af66fa53c54818ac3bfc78a4f182b4f44d9b39450a232",
         "data/state.ts": "13f22e5a32eb9f4a4f15070c77c248d6a4656cac7ef9bbee3f3827e6be8b7509",
-        "debug/options.ts": "6978509a6c07267d7870944c7d14dcd65464398a7212af5a0d9bfba57e701ccc",
+        "debug/options.ts": "485e489ff5dd6af5e7688f889ae70a29c0ddfa39ff6cf130a9f43f3b245d7028",
         "dev/perfLap.ts": "a44ca3691dba85b61a662ee5a75047675a283f202ce79b5a74cb677b654d2d32",
         "explore/models-pine-hollow.webp": "a13b56ed512f4a497bcefdbb76270018e5cf6a2273fd6a56eb7b759562c425ca",
         "explore/pine-den-live.jpg": "c3b5ec9e0fdb9cbbd390f995ccf83d7a71e535e92e8f5d4f4c066e3937d70e0a",
@@ -269,7 +279,7 @@
         "layout.ts": "4f687edba726985e27d1e33230baac96f8a13eb6c859e7fc25013752d019974f",
         "life/birdFix.ts": "891d76a95d390bb1ebd7a73b356c18907932a47149b1e19ebf57fc523efa2a08",
         "life/birdModels.ts": "671da24fc2b653b1231f69cbe82f8e7f7b358e443e2ad4add6d71810cbbcf39e",
-        "life/index.ts": "4c4845511dbab347f01c4395fdf3460c56baa8a9352bc5796b6eb747c76943cb",
+        "life/index.ts": "47bf597cdec4593655791b42acf982a32a9d3811e19272296ac63b63b6506f13",
         "life/lifeMath.ts": "99bb0642a9d780ca6b6c2a30a5d5e501b687eeaedced660aba1706e9c2e65039",
         "life/trunks.ts": "bc4c751d443b3840b80fabe0a64b350b0e7b1968193639fa2a84845078b8ca11",
         "loadout/ammo.ts": "0a85e311c82b8e26bd605db4b9659e937a59cb0af44023ea189e08d824d3a9fc",
@@ -282,11 +292,11 @@
         "look/far.ts": "66e47ac3877d125177edb8c80d758ae079233b5a50a09fc9108af0e00c82d711",
         "look/map.baked.json": "0dd41c9880eb6b41ab72584a831258dcaebae1519ce1f56d13034bb268f4af0b",
         "look/map.json": "ff3d868bb53ac19d6c2d013f8c692db79ca32ba5a5256c34b792df24b2aa4a6f",
-        "look/render.ts": "710416398dd1efd6fae22b61e44324c9281bac289a525c9aea4ac590eeb38a58",
-        "look/skyBackdrop.ts": "3110cb6efc0232f6c0610a5bece4e8c97da3312d47f156c6351d963f00f50858",
-        "look/skyKeyFormat.ts": "d24cf9f3e90fe926bab1d6df29b89bfdfa4d39e460ba172f8835806c73689239",
+        "look/render.ts": "15a3ac7ea3cc133136456f7c761a2b47e22fa78d35ed6bad851aefb13ac6c785",
+        "look/skyBackdrop.ts": "7160b1a80a18ee0da541fc2d15ad1162e44f8a3f4be725bb4841e70d13033b73",
+        "look/skyKeyFormat.ts": "1c551704b80e4eac9943a5d34bc6c8e14da94693e5d8aef2959d6c65992a655f",
         "look/skyKeys.ts": "52ab39caeea249542637350151d59ed5bd54b7aed8afae36ee3d2dbe9d042332",
-        "look/viewDistance.ts": "5e887410f305769964a5f57d3e43f2af9f2c12f648f1c1f66788ef5976f33167",
+        "look/viewDistance.ts": "77dfb72115ad721c99badbf4487db728896fcf04591c3e8176237517fdb0c183",
         "manifest.ts": "86bc588957ea072c2e4c2cf37c4200649ef68bac803c5f3ec00548538e3bf103",
         "models/antlerKing.ts": "7d11dba993f81b55cf96a3585f8b2bad96f66b6edcd46e9874836f57f64a0224",
         "models/beaverDam.ts": "17f77559e1bda4b8987da4e6005f1f6e4be2d167f08f9390e969b7ebfd2a6163",
@@ -332,13 +342,13 @@
         "models/woodenCrate.ts": "891f08a97fba60d084dff80364b3b08bc8769cc43d47cee9361752a4e5f5110b",
         "models/zipCable.ts": "e0c2716ae6c1b277dd4a956166e6e30ce32da62c359a4a8014bd62f67905704e",
         "models/ziplineLanding.ts": "5e7889f6856ec04a140904fb356d02c232bb6407e68e23c1eab6a4d613da4360",
-        "plugin.ts": "38b244d8a412bda5b22ffb3290cece4796aa0341e5172634428920af83e01c27",
+        "plugin.ts": "ba58f56e97ba869e6a387b2400dcf6d158236254c0cd6dfcc740704f0d20e991",
         "quest/beats.ts": "0af91492335fd7664436831fc0cae43b5d934ad55bb3fac2f1a902b0df79af7d",
         "quest/content.ts": "d8cc219e0ec8d0717541a75360cee87442f818d820c433d524d1bd0f7d39a632",
         "quest/contracts.ts": "2bb3ad0d5cee2e1946f4933276659cdcf9d32257dd1935db18a93929baf7b12c",
         "quest/featLaw.ts": "f27b767b174cda1903a15e0f24ab40696c005c0ceb4868bc79a63cbf5dca5d37",
         "quest/hollowLog.ts": "8fa39d15c6e40579830bfa6769c0ea4d1b93dddd58d1ec681974e8d82c306aa6",
-        "quest/index.ts": "00e9635cc51d729dab70b951fc10470a33194a4526511e413bccdbc98b33ac96",
+        "quest/index.ts": "cdcf521532628ee8da93b7944862b8df02af23009ccc6cdb83fee0d9b0290f52",
         "quest/nightBrain.ts": "fa95ab7a8fed57c14f4e8df58b84c1e02293c9d694592ebd0a9827e219baed7e",
         "quest/nightThralls.ts": "d53177f3a83d1727eeaddf104661545a6dae4d08ff38d49d0e73681dc1141e6f",
         "quest/npcModels.ts": "b0d8848ec84afdcd25437c7e42573994d4e9414af73deb19dbdc474079629d5a",
@@ -374,7 +384,7 @@
         "runtime/fauna.ts": "367368d258d4632743a6a3996f68b744e6df102b9e120716f6fc10d5dcc87027",
         "runtime/headless.ts": "e2d0a15165ae2e5bd5437168404f186f209462fecf7753c7e394a39d039c1d07",
         "runtime/herds.ts": "8b4c6a98ee4685a8d7383e57b3a8ab9a9370a2952a2aac55a929b6bf07cdf884",
-        "runtime/index.ts": "1605111784e1a5036d2bc65c5bfb5265e9f203384944288bde0474c6ece126b2",
+        "runtime/index.ts": "cd2a4bac7edd8c47070a4e23f98cc3f02d444ab5a67a8ab5137bf5ba01602b46",
         "runtime/items.ts": "d70f4162dbcb2630433e827d8ed1945ed098083718f8e4523034c1bb818431b7",
         "runtime/king.ts": "0d381daa2a2769a221968ba214c23f443c66890d47ceafd1d5c2374787365e10",
         "runtime/kingLifetime.ts": "2122cbdf7e8cf00ac7d4a545e3f9f19a649ef6c0a886c38cb86b9e57cf9274b0",
@@ -384,7 +394,6 @@
         "runtime/physics.baked.json": "9b37799ec3e6091f64e59806443d8b3a457a8c9704ea1085be5a7c379e89dbb4",
         "runtime/quest.ts": "740ef2141c3c9c631459db9beb189cfb52214b148948f4b324695c5118aea74d",
         "runtime/questClock.ts": "a223a4017a16dfe3d1c7005b788bf8c8545caa86395968a1a0a92dfb77794727",
-        "runtime/questDirector.ts": "70ae2912c91704b97e5d569d38c2d5773fee3db67afff254cec5a81f46a24d25",
         "runtime/questLifetime.ts": "8bfab66e9bd5876725c15ddf7db38e827f586cd67ac72b6efd2bbc1136e8c8a1",
         "runtime/roster.ts": "56c374870a4989e4a791ecb099c07bad76bbe053edf7a63239d5d645ae88c9dd",
         "runtime/spots.baked.json": "26a90ac05786ea72043ccb7b8e6c08e0ebbc62eb64533a29a4d9e92c87870aad",
@@ -555,8 +564,53 @@
         },
         "runtime/index.ts": {
           "original": "0bb3b1c4702b6398217fafb9b66f17e11d14b4cc439ec2e8ba5f72b6bc4a1a1b",
-          "current": "1605111784e1a5036d2bc65c5bfb5265e9f203384944288bde0474c6ece126b2",
-          "reason": "G669 DR15 explicitly retires the Pine score comparison in both entries. Remove its callback, saved pin and delayed audition sting; automatic day/night and native boss/reward audio keep their existing lifetimes."
+          "current": "cd2a4bac7edd8c47070a4e23f98cc3f02d444ab5a67a8ab5137bf5ba01602b46",
+          "reason": "G669 DR16 explicitly retires the legacy director/AI/debug branches and ships the selected Pine memory trim. Preserve original legacy clocks, combat, crowd bodies and save ownership."
+        },
+        "debug/options.ts": {
+          "original": "6978509a6c07267d7870944c7d14dcd65464398a7212af5a0d9bfba57e701ccc",
+          "current": "485e489ff5dd6af5e7688f889ae70a29c0ddfa39ff6cf130a9f43f3b245d7028",
+          "reason": "G669 DR16 explicitly retires the legacy director/AI/debug branches and ships the selected Pine memory trim. Preserve original legacy clocks, combat, crowd bodies and save ownership."
+        },
+        "plugin.ts": {
+          "original": "38b244d8a412bda5b22ffb3290cece4796aa0341e5172634428920af83e01c27",
+          "current": "ba58f56e97ba869e6a387b2400dcf6d158236254c0cd6dfcc740704f0d20e991",
+          "reason": "G669 DR16 explicitly retires the legacy director/AI/debug branches and ships the selected Pine memory trim. Preserve original legacy clocks, combat, crowd bodies and save ownership."
+        },
+        "look/render.ts": {
+          "original": "710416398dd1efd6fae22b61e44324c9281bac289a525c9aea4ac590eeb38a58",
+          "current": "15a3ac7ea3cc133136456f7c761a2b47e22fa78d35ed6bad851aefb13ac6c785",
+          "reason": "G669 DR16 explicitly retires the legacy director/AI/debug branches and ships the selected Pine memory trim. Preserve original legacy clocks, combat, crowd bodies and save ownership."
+        },
+        "life/index.ts": {
+          "original": "4c4845511dbab347f01c4395fdf3460c56baa8a9352bc5796b6eb747c76943cb",
+          "current": "47bf597cdec4593655791b42acf982a32a9d3811e19272296ac63b63b6506f13",
+          "reason": "G669 DR16 explicitly retires the legacy director/AI/debug branches and ships the selected Pine memory trim. Preserve original legacy clocks, combat, crowd bodies and save ownership."
+        },
+        "boot/gpuTable.ts": {
+          "original": "aa8460b717b0d8fa0d67de78a65d614db0a8eef2017a9ea69537a273755fc440",
+          "current": "b1ee1d9060d20b682fda13041df229608f2081c65a33ea311c19c3987c098b38",
+          "reason": "G669 DR16 explicitly retires the legacy director/AI/debug branches and ships the selected Pine memory trim. Preserve original legacy clocks, combat, crowd bodies and save ownership."
+        },
+        "look/viewDistance.ts": {
+          "original": "5e887410f305769964a5f57d3e43f2af9f2c12f648f1c1f66788ef5976f33167",
+          "current": "77dfb72115ad721c99badbf4487db728896fcf04591c3e8176237517fdb0c183",
+          "reason": "G669 DR16 explicitly retires the legacy director/AI/debug branches and ships the selected Pine memory trim. Preserve original legacy clocks, combat, crowd bodies and save ownership."
+        },
+        "look/skyBackdrop.ts": {
+          "original": "3110cb6efc0232f6c0610a5bece4e8c97da3312d47f156c6351d963f00f50858",
+          "current": "7160b1a80a18ee0da541fc2d15ad1162e44f8a3f4be725bb4841e70d13033b73",
+          "reason": "G669 DR16 explicitly retires the legacy director/AI/debug branches and ships the selected Pine memory trim. Preserve original legacy clocks, combat, crowd bodies and save ownership."
+        },
+        "look/skyKeyFormat.ts": {
+          "original": "d24cf9f3e90fe926bab1d6df29b89bfdfa4d39e460ba172f8835806c73689239",
+          "current": "1c551704b80e4eac9943a5d34bc6c8e14da94693e5d8aef2959d6c65992a655f",
+          "reason": "G669 DR16 explicitly retires the legacy director/AI/debug branches and ships the selected Pine memory trim. Preserve original legacy clocks, combat, crowd bodies and save ownership."
+        },
+        "quest/index.ts": {
+          "original": "00e9635cc51d729dab70b951fc10470a33194a4526511e413bccdbc98b33ac96",
+          "current": "cdcf521532628ee8da93b7944862b8df02af23009ccc6cdb83fee0d9b0290f52",
+          "reason": "G669 DR16 explicitly retires the legacy director/AI/debug branches and ships the selected Pine memory trim. Preserve original legacy clocks, combat, crowd bodies and save ownership."
         }
       }
     },
@@ -596,12 +650,11 @@
         "creatures/marmotBrain.ts": "4d42995a3c78d7a1d80b4f8f036f2b13fd06201a907cc2efaec4fdd20ba82e5a",
         "creatures/marmots.ts": "d44b614e194c0ec77f963a63290e7aca12b11bd781a37a4ab73b589b560b5a35",
         "creatures/raidClock.ts": "dbae0038c7b34b3ccffaaaaa3ce8d3f4dfaa1e7533d47bd36a1355444ae57812",
-        "creatures/raidDirector.ts": "c1ee7eedaeedc8c498054ee9a7ad642b4bbd57c4520b6ce97443a0930430ed6d",
-        "creatures/sheepRaid.ts": "a670c3609e90a62d485e39b53e8535e74b163bb670972a26a8e72e624c8a3a3e",
+        "creatures/sheepRaid.ts": "efd49ebf36e399ac1f46e0cb4b4ee053d2c36fa38641b37bbcca01f9749f5b9f",
         "creatures/sheepdogBrain.ts": "0da8dbdd642a330ee0624bfa3293ac445a1470fc23df3ecca2d8b45858259e97",
         "creatures/shepherdRule.ts": "dad13d0d3cc8d1ca753f1c175a5d855e45913ea03c5590423a6fb9e2109206f9",
         "creatures/wildPlacement.ts": "dac83eeb435c90a8d0c699bc3ad535019c82199826083de72c04b36d5ed5eaad",
-        "creatures/wildlife.ts": "4e9c8a09a6f533cd05a3993592480fa8429b1f7e71925be0106bd518a1b67622",
+        "creatures/wildlife.ts": "dce530a4969c0553e49f9e088763efea35fa279506871fff034ac0f60b36e87d",
         "data/audio.ts": "8ffd95ef46ee17148aeff9e532f6c11d3d64c82f4fbbedd1cbda72a46e2e9241",
         "data/brains.ts": "f79669b9048d13aced2f08b6fb7b4be6099cbe788b722b4226a6baeb35d4fd45",
         "data/crowds.ts": "8bde9349117f6e50f5d27ebd851f8cc6a626f6f606f8b50ff10814db8725ffd2",
@@ -721,7 +774,6 @@
         "runtime/bootRoster.ts": "c2ae98a80fce1901551dccee90cdd0a6e02e6fc69babfd4083d47aca4de73a9c",
         "runtime/enteredAdventure.ts": "2420df2dc740a711c405dcb5c4ceb2196cb7a0233611d73c2566fe45faf2b02d",
         "runtime/enteredEnvironment.ts": "243660533bf4b80e9f354d8cd290d51346a0a006b4c967848786e782faad6b47",
-        "runtime/flockDeclared.ts": "86194c00795c351c736b7939e6201656b47977df262c9c547f9848f127304596",
         "runtime/groupDeclared.ts": "2c466e7507b5cfb1196033213d3312d85a9b8fcb8fc8248d5cd75a40d0207198",
         "runtime/groupDispatch.ts": "8728f49311b747de8ad543a844351500e92429de7ceea11f68095235191cd314",
         "runtime/groupHost.ts": "83e6abd3d9054b90ee8587d994ecdcff0553e218b2f7eb5346b1ee315f6d298e",
@@ -732,12 +784,12 @@
         "runtime/headlessCreatures.ts": "df07b15e5641b8ab6f87b8eb0186f7f75a837171d2642f223134fc04bc220a03",
         "runtime/headlessElites.ts": "5e8f4905758d1490c5b3673d6fee9d88f1ccd3c656a32f09b4960a82e44679f2",
         "runtime/headlessRaid.ts": "20030ae91629f54f94e86a3e85224b421dbf336cb739438747205ed4246c00d9",
-        "runtime/index.ts": "12355eeebb01515ad89499c020ac28621a780ed2a485da0b34f4ed3c8ce17bd4",
+        "runtime/index.ts": "fe893d69752f4f9af0cc4a7cc215c1961c515e2434dca3e907baa9d1ef92c561",
         "runtime/items.ts": "1d1a9b6cf8a40b19ef861b9ca53472711f91aad8252f659f36b37a14f8e25974",
         "runtime/persistence.ts": "0e0e85ceec44b710739f26dd8063f69ad72306ae66a3a34ea1ab60c22f376a69",
         "runtime/physics.baked.json": "ca0b0024f928ea136fee79c15eb9edfa9d7a3c5411239af742311b4bde696826",
         "runtime/quests.ts": "30b42324e227c92dd4f38be5e5a4a0f4b85c82b69f5a8f80581ca8eb49367dab",
-        "runtime/state.ts": "e7bc314803e0090e51665728bbfd86009aa2fe87ee34577ba14c4bdc01dc82c3",
+        "runtime/state.ts": "32861085c18fb5e11e0bebd1bad892a99979ac6e37001b6979dd27c949c5d053",
         "runtime/weapons/GoldenBow.ts": "73ea48553c350bb274d11897731436fadf3accb1b8e90baa46e7127f4ec2517d",
         "runtime/weapons/Naizagai.ts": "591a476918c0337c3341f4c64118cde27cc01f771f1dc627060cd450216343a2",
         "runtime/weapons/Rifle.ts": "2ca08b8f39cc20daf8a47298690f3c3dfd45f19e8d20dd96f1d0bb774c751bd9",
@@ -821,6 +873,26 @@
           "original": "762809142db47b159c7e7442f769f8863050e80fdc242fe583444066dae18cf4",
           "current": "61c31c2e4a1b34b0773c478a9e78652b3d3eb919379d4d81610997d9aa2c1c21",
           "reason": "Reviewed frozen compatibility: preserve Nalati adventure selection under the inventoried content identity without changing its save slug."
+        },
+        "creatures/sheepRaid.ts": {
+          "original": "a670c3609e90a62d485e39b53e8535e74b163bb670972a26a8e72e624c8a3a3e",
+          "current": "efd49ebf36e399ac1f46e0cb4b4ee053d2c36fa38641b37bbcca01f9749f5b9f",
+          "reason": "G669 DR16 explicitly retires the legacy director/AI/debug branches and ships the selected Pine memory trim. Preserve original legacy clocks, combat, crowd bodies and save ownership."
+        },
+        "runtime/index.ts": {
+          "original": "12355eeebb01515ad89499c020ac28621a780ed2a485da0b34f4ed3c8ce17bd4",
+          "current": "fe893d69752f4f9af0cc4a7cc215c1961c515e2434dca3e907baa9d1ef92c561",
+          "reason": "G669 DR16 explicitly retires the legacy director/AI/debug branches and ships the selected Pine memory trim. Preserve original legacy clocks, combat, crowd bodies and save ownership."
+        },
+        "runtime/state.ts": {
+          "original": "e7bc314803e0090e51665728bbfd86009aa2fe87ee34577ba14c4bdc01dc82c3",
+          "current": "32861085c18fb5e11e0bebd1bad892a99979ac6e37001b6979dd27c949c5d053",
+          "reason": "G669 DR16 explicitly retires the legacy director/AI/debug branches and ships the selected Pine memory trim. Preserve original legacy clocks, combat, crowd bodies and save ownership."
+        },
+        "creatures/wildlife.ts": {
+          "original": "4e9c8a09a6f533cd05a3993592480fa8429b1f7e71925be0106bd518a1b67622",
+          "current": "dce530a4969c0553e49f9e088763efea35fa279506871fff034ac0f60b36e87d",
+          "reason": "G669 DR16 explicitly retires the legacy director/AI/debug branches and ships the selected Pine memory trim. Preserve original legacy clocks, combat, crowd bodies and save ownership."
         }
       }
     },
@@ -1091,7 +1163,7 @@
         "look/cube.ts": "0f592fd49db84041591153061de39e8efd10949676e9af4fb753832c564f9f92",
         "look/dusk.ts": "5f0d17a878b08f9332d3cce7db5387d96b32c3ff734a59ab64920f0912f7ff87",
         "look/families.ts": "d7e255c982d2f9ebfbf623f6a835d0186ba8755c286c0bf096170ccbff164e5d",
-        "look/groundTiles.ts": "b0c40afd28321535af7eb1021079bfb30ae4dce387470b391829dc0617257002",
+        "look/groundTiles.ts": "f296c4d1025c254c0d504ec78444435cea94da548d8023ed224d38708a89199c",
         "look/light.ts": "608700f316b985a2d6c28fab386ef1a946a0cc92efcf7b7d6819f785e727aa65",
         "look/map.baked.json": "bcc8c08265ab66b30e82a591b7d79a6f05327063951cbde619f679306af64697",
         "look/map.json": "fe714154b961c2e3deb78ad44601abf921226804eb1726987cfe49b71be6ff7a",
@@ -1101,7 +1173,7 @@
         "look/sky.ts": "0dadf850efbe01a83e3678b595915cae316defceb76e48f9122f00f5b409fdd4",
         "manifest.ts": "2f760561233be2d22a8a2f21a998fd4a072d4cb9f49cdb3059f9a330ff175e74",
         "models/gear.ts": "aa6d0d89b506348a09c9c7c5497ca8b2beadf555c8162e9d21beaa7c8b8469cd",
-        "plugin.ts": "4f6ccb1da2110866669383ce86dbc879d854f0aa05bf66f2a421ad07ba3ab373",
+        "plugin.ts": "7f21b0ca8c7f7b1e07e17c53efdb7fc544b5c12bc07ea025265ce237b0a3cd5e",
         "quest/install.ts": "8b2d600b06877b1b62e743afe7f1b29ad218e9c30e43d0ab2340af42ed662c23",
         "quest/scout.ts": "53076e0a046198b1ef107650f96a780a01fcef8a351daed3120953e4f91520ac",
         "quests/brazierFlag.ts": "efa7d1b67d5d28c3f379fa1c198304b1ec52ca8f9b4a4f245922c7fb10c359c4",
@@ -1163,6 +1235,16 @@
           "original": "0d74264fd9696281fe388a46251584e49d8ebbe11c32005b56604f7dc4389712",
           "current": "2f760561233be2d22a8a2f21a998fd4a072d4cb9f49cdb3059f9a330ff175e74",
           "reason": "Restore the frozen custom _JOINTS/_WEIGHTS skitterer rig after 02e371386 rewrote the primary rig as a standard skinned GLB; only the legacy URL and its asset declaration change."
+        },
+        "look/groundTiles.ts": {
+          "original": "b0c40afd28321535af7eb1021079bfb30ae4dce387470b391829dc0617257002",
+          "current": "f296c4d1025c254c0d504ec78444435cea94da548d8023ed224d38708a89199c",
+          "reason": "G669 DR16 explicitly retires the legacy director/AI/debug branches and ships the selected Pine memory trim. Preserve original legacy clocks, combat, crowd bodies and save ownership."
+        },
+        "plugin.ts": {
+          "original": "4f6ccb1da2110866669383ce86dbc879d854f0aa05bf66f2a421ad07ba3ab373",
+          "current": "7f21b0ca8c7f7b1e07e17c53efdb7fc544b5c12bc07ea025265ce237b0a3cd5e",
+          "reason": "G669 DR16 explicitly retires the legacy director/AI/debug branches and ships the selected Pine memory trim. Preserve original legacy clocks, combat, crowd bodies and save ownership."
         }
       }
     },

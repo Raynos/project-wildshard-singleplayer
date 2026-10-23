@@ -161,10 +161,9 @@ entity fields belong to that shared host; pending mover interactions have a sepa
 `DirectorLane` admits immutable module bytes, executes decisions in AssemblyScript with the existing
 script allowances, and restores full author memory, mutable globals, quota history and queued input.
 Shard subscriptions deliver declared payloads on the next fixed tick; grid subscriptions are reserved
-data and reject delivery in v1. `installDeclaredDirector` owns fixed-step and scope lifetime while
-trusted runtime recipes observe combat and render the published events. `directorVariant` requires
-a default-off reload row. `@wildshard/sdk/director` validates author declarations without installing code. An external director borrows the existing
-owner's clock instead of registering a second fixed callback. `DirectorLane.dispatch` delivers at
+data and reject delivery in v1. `@wildshard/sdk/director` validates author declarations without installing code.
+Legacy entries keep their original native clocks and event recipes; their unshipped script comparison installer is retired.
+An external director borrows the existing owner's clock instead of registering a second fixed callback. `DirectorLane.dispatch` delivers at
 zero elapsed time on the current tick and shares its remaining allowances; `step` accepts a bounded
 elapsed delta (the default remains 1/60). `prepareDirectorModule` verifies the hash once and returns
 a factory of independent author-state instances. Full snapshots remain the only continuation.

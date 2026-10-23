@@ -1,5 +1,4 @@
 import { GPU_FILES } from '../ktx2.generated';
-import { pineMemoryTrim } from '../debug/options';
 import { ASTC6_PHONE } from './astc6/ktx2.generated';
 import { usePineGpuFiles } from './files';
 
@@ -12,7 +11,7 @@ import { usePineGpuFiles } from './files';
  * The boot lists (boot/files.ts) read the same table, so the boot fetches exactly the files the build loads.
  */
 export function pineKtx2(): { GPU_FILES: typeof GPU_FILES } {
-  const table = pineMemoryTrim() ? { phone: { ...GPU_FILES.phone, ...ASTC6_PHONE }, desktop: GPU_FILES.desktop } : GPU_FILES;
+  const table = { phone: { ...GPU_FILES.phone, ...ASTC6_PHONE }, desktop: GPU_FILES.desktop };
   usePineGpuFiles(table);
   return { GPU_FILES: table };
 }

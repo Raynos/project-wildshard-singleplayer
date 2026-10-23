@@ -61,7 +61,6 @@ import { SkinKnife } from '../models/skinningKnife';
 import { loadBirdModels } from './birdModels';
 import { KIND, WildlifeMesh, newPose, type WildKind, type WildPose } from '../models/wildlife';
 import { BEAT, RAVEN_CARCASS, beatEnvelope, carcassMayGo, hareMayDraw, nearestUnvisited, ravenCount, ravenDelay, type PlaceSpot, type RavenVisit } from './lifeMath';
-import { pineMemoryTrim } from '../debug/options';
 import { smoothstep } from '@wildshard/engine/core/noise';
 
 export interface PineLifeHost {
@@ -129,7 +128,7 @@ const flying = (b: { mode: string }): boolean => b.mode !== 'off';
 const wrap = (a: number): number => Math.atan2(Math.sin(a), Math.cos(a));
 
 export function installPineLife(h: PineLifeHost): PineLife | null {
-  if (pineMemoryTrim()) h.animals.shadowBatch = false; // G180 B5: the herd shadows from the visible herd (Pine memory trim)
+  h.animals.shadowBatch = false; // G180 B5: the herd shadows from the visible herd (Pine memory trim)
   const { game, sky, player, animals } = h;
   const retained = retainsRuntimeServices(h.ctx);
   let lifeTime = app.clock.now;

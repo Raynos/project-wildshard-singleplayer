@@ -3,10 +3,9 @@ import type { LookStrategy, SkyBackdropFactory } from '@wildshard/engine/render/
 import * as THREE from 'three';
 import { PineSkyBackdrop, registerPineBackdrop, unregisterPineBackdrop } from './skyBackdrop';
 import { pineSunAt } from './dayKeys';
-import { pineMemoryTrim } from '../debug/options';
 
 const backdrop: SkyBackdropFactory = async ({ sky, scene, renderer, level, tier, look }) => {
-  const [pine, , lut] = await Promise.all([PineSkyBackdrop.create(renderer, scene, level.tiers?.[tier]?.envSteps === true, pineMemoryTrim(), tier === 'phone' && pineMemoryTrim()), preloadBakedTextures(), loadLUT(level.id)]);
+  const [pine, , lut] = await Promise.all([PineSkyBackdrop.create(renderer, scene, level.tiers?.[tier]?.envSteps === true, tier === 'phone'), preloadBakedTextures(), loadLUT(level.id)]);
   registerPineBackdrop(sky, pine);
   if (look) Object.assign(pine.look, { vol: look.vol, fogDist: look.fogDist, sat: look.sat, ambient: look.ambient, sky: look.sky });
   pineSunAt(pine.phase, sky.sunDir);

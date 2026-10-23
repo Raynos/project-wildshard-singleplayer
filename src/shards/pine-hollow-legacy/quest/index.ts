@@ -56,8 +56,7 @@ import type { Cabins } from '../world/homestead';
 import type { PineHollowSfx } from '../runtime/audio/sfx';
 import { SKINS } from '../loadout/skins';
 import { PINE_PHASES } from '../look/dayKeys';
-import type { PineClockEvent } from '../runtime/questClock';
-import { installPineClock } from '../runtime/questDirector';
+import { LegacyPineClock, type PineClockEvent } from '../runtime/questClock';
 import { waystoneSites, contractBoardSite, CANOE_SITE, ZIP_YAW, pineHamletBuildings, type PineLandmarks } from '../world/landmarks';
 import { BEAVER_DAM, CREEK, CABIN_SITES, HAMLET_SITES, ISLET, LOOKOUT, PINE_HOLLOW_POIS, PINE_HOLLOW_ZONES, POND, STANDING_STONES, KINGS_CLEARING, WATERFALL, CREEK_BRIDGE } from '../layout';
 import { KING_KIND } from '../runtime/antlerKing';
@@ -507,7 +506,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
       flags.set('seen:dawn');
     }
   };
-  const clock = await installPineClock(ctx, { seen: () => flags.has('seen:dawn'), hasClock: () => sky.dayNight !== null, night, publish: publishClock }, quest.current?.id === 'dawn');
+  const clock = new LegacyPineClock({ seen: () => flags.has('seen:dawn'), hasClock: () => sky.dayNight !== null, night, publish: publishClock });
   ctx.scope.onDispose(flags.onChange((f, on) => {
     if (!on) return;
     if (f === 'wait:night') clock.night();

@@ -12,7 +12,6 @@ import type { Wildlife } from './wildlife';
 import type { SheepPrey, Flock } from './flock';
 import { Pack, type PackController } from '../runtime/groupRegistry';
 import { legacyRaidTick, type RaidClockPorts } from './raidClock';
-import { installRaidDirector } from './raidDirector';
 import { horseBones } from '../species/horse';
 import { shepherdMotion, type ShepherdState } from './shepherdRule';
 import { PaintKit, v3 } from '../world/paint';
@@ -139,7 +138,6 @@ export class SheepRaid {
   raids = 0; taken = 0; drivenOff = 0; cracks = 0;
   private raidT = rand(FIRST_RAID);
   private raidPlayer: THREE.Vector3 | null = null;
-  private directed = false;
   private readonly raidClock: RaidClockPorts = this.clockPorts();
   private pack: PackController | null = null;
   /** the valley pack (spawned with the first raid) and how many have been spawned */
@@ -204,13 +202,8 @@ export class SheepRaid {
   }
 
   update(dt: number, playerPos: THREE.Vector3): void {
-    if (!this.directed) this.director(dt, playerPos);
+    this.director(dt, playerPos);
     this.ride(dt);
-  }
-
-  /** SF24: pack combat/shepherd recipes remain native; a bounded fixed-step director can own raid timing. */
-  async installDirector(context: Parameters<typeof installRaidDirector>[0], player: () => THREE.Vector3): Promise<void> {
-    this.directed = await installRaidDirector(context, this.raidClock, () => { this.raidPlayer = player(); }, app.rng.seedValue);
   }
 
   private director(dt: number, playerPos: THREE.Vector3): void {
