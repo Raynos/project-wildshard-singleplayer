@@ -3,6 +3,7 @@ import { ownSceneResource, sceneObjectOwner, sceneResourceOwner } from '../app/s
 import type { Scope } from '../app/scope';
 import type { AssetService } from '../app/assets';
 import { shaderPatchTextures } from './shaderPatches';
+import { renderCount, type Renders } from './frameCounter';
 
 function eventMethod(resource: object, method: 'addEventListener' | 'removeEventListener', listener: () => void): void {
   const fn: unknown = Reflect.get(resource, method);
@@ -12,7 +13,8 @@ function eventMethod(resource: object, method: 'addEventListener' | 'removeEvent
 type Resource = BufferGeometry | Material | Texture | WebGLRenderTarget | InstancedMesh | BatchedMesh;
 const isResource = (value: unknown): value is Resource => value instanceof BufferGeometry || value instanceof Material ||
   value instanceof Texture || value instanceof WebGLRenderTarget || value instanceof InstancedMesh || value instanceof BatchedMesh;
-type ObservedRenderer = Pick<WebGLRenderer, 'properties' | 'renderBufferDirect'> & Partial<Pick<WebGLRenderer, 'compile' | 'compileAsync'>>;
+type ObservedRenderer = Pick<WebGLRenderer, 'properties' | 'renderBufferDirect'> & Partial<Pick<WebGLRenderer, 'compile' | 'compileAsync' | 'render'>>;
+const renders = (renderer: ObservedRenderer): renderer is ObservedRenderer & Renders => renderer.render !== undefined;
 /** The resources a material's program and samplers upload with: the material, its maps and its uniform samplers. */
 function materialUploads(material: Resource): Resource[] {
   const out: Resource[] = [material];
@@ -63,11 +65,12 @@ export class UploadOwnership {
   private readonly assets: AssetService;
   private drawOwner: Scope | null = null;
   private drawDepth = 0;
-  /** G639 frame floor: one generation per draw (nested draws get their own); a resource already observed in this draw is
-   *  not observed again (three asks for a material's and texture's properties several times a draw, ~0.6 ms a frame) */
+  /** G639 frame floor: the engine render a draw belongs to (a test double without `render`: one generation per draw). A
+   *  resource already observed in this render for the same consumer is not observed again: three asks for a material's
+   *  and texture's properties several times a draw, and a shared material or texture is drawn many times a render. */
   private drawGen = 0;
   private drawGens = 0;
-  private readonly observedIn = new WeakMap<object, number>();
+  private readonly observedIn = new WeakMap<object, { render: number; owner: Scope | null }>();
   constructor(level: Scope, assets: AssetService) { this.level = level; this.assets = assets; }
   /** A snapshot of the live uploads (owned, and the unowned ones not yet collected). */
   resources(): ReadonlySet<object> {
@@ -90,7 +93,12 @@ export class UploadOwnership {
   observe(value: unknown): void {
     if (this.level.disposed || !isResource(value)) return;
     const resource = value;
-    if (this.drawDepth > 0) { if (this.observedIn.get(resource) === this.drawGen) return; this.observedIn.set(resource, this.drawGen); }
+    if (this.drawDepth > 0) {
+      const seen = this.observedIn.get(resource);
+      if (seen === undefined) this.observedIn.set(resource, { render: this.drawGen, owner: this.drawOwner });
+      else if (seen.render === this.drawGen && seen.owner === this.drawOwner) return;
+      else { seen.render = this.drawGen; seen.owner = this.drawOwner; }
+    }
     const acquired = this.assets.isAcquired(resource);
     const consumer = this.drawOwner ?? (this.drawDepth > 0 ? this.level : this.hints.get(resource)?.deref() ?? null);
     if (acquired && consumer !== null) this.retainAsset(resource, consumer);
@@ -165,6 +173,7 @@ export class UploadOwnership {
   private listenForRelease(resource: Resource, forget: () => void): void {
     const released = (): void => {
       this.releasing.add(resource); queueMicrotask(() => { this.releasing.delete(resource); });
+      this.observedIn.delete(resource); // a re-upload later in the same render is observed again
       this.retire(resource);
       eventMethod(resource, 'removeEventListener', released); forget();
       // Three deletes colour attachments with their target but does not dispatch their dispose events. Those events
@@ -215,10 +224,10 @@ export class UploadOwnership {
       if (this.drawOwner !== null || !(isResource(object) && this.releasing.has(object))) this.observe(object);
       return get(object);
     };
-    const draw = renderer.renderBufferDirect.bind(renderer);
+    const draw = renderer.renderBufferDirect.bind(renderer), counted = renders(renderer) ? renderer : null;
     renderer.renderBufferDirect = (camera, scene, geometry, material, object, group) => {
       const prior = this.drawOwner, priorGen = this.drawGen; this.drawOwner = sceneObjectOwner(object);
-      this.drawDepth++; this.drawGen = ++this.drawGens;
+      this.drawDepth++; this.drawGen = counted === null ? ++this.drawGens : renderCount(counted);
       try {
         // A batch must claim its private aggregate geometry/textures before renderer property reads observe them.
         this.observe(object); this.observe(geometry); this.observe(material);
