@@ -15,7 +15,7 @@ import { CASCADE_LOOKS } from './waterfallLook';
 import { WORLD_PLACEMENTS, TRAIL_PLACEMENTS } from './worldPlacements';
 import trailSpecimens from '../data/trailCatalogue.json' with { type: 'json' };
 import { SpecimenCatalogueSchema } from '@wildshard/format/specimenCatalogue';
-import { entryDeckSpecimen } from './entryDeckSpecimen';
+import { entryDeckSpecimen,entryDeckFiles } from './entryDeckSpecimen';
 import * as v from 'valibot';
 
 const { POOL_LOOK, SHRINE_POOL_LOOK } = authoredPoolLook;
@@ -63,7 +63,7 @@ export const WORLD_SCENES: WorldScenesSection = {
 };
 
 /** The original world index widths, normalized offline rather than expanded by the standalone GLB export. */
-export const SCENE_MODEL_BLOBS = [...rocks.blobs, ...foliage.blobs,
+export const SCENE_MODEL_BLOBS = [...entryDeckFiles().map(({name,source,bytes})=>({name,source,kind:'bin',options:{decoded:bytes.length,gpu:bytes.length}})),...rocks.blobs, ...foliage.blobs,
   { name: 'models/scene-pools.glb', kind: 'glb', source: 'assets/world-scenes/pools.glb' },
   { name: 'models/scene-rings.glb', kind: 'glb', source: 'assets/world-scenes/rings.glb' },
 ];

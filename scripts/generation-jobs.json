@@ -17199,11 +17199,17 @@
       ],
       "outputs": [
         "src/shards/driftwood-isle/boot/modelCatalogue.generated.json",
-        "src/shards/driftwood-isle/boot/specimenParams.generated.d.ts"
+        "src/shards/driftwood-isle/boot/specimenParams.generated.d.ts",
+        "src/shards/driftwood-isle/data/entry-deck-deep.generated.bin",
+        "src/shards/driftwood-isle/data/entry-deck-shallow.generated.bin",
+        "src/shards/driftwood-isle/data/entry-deck-world.generated.bin"
       ],
       "buildTimeOutputs": [
         "src/shards/driftwood-isle/boot/modelCatalogue.generated.json",
-        "src/shards/driftwood-isle/boot/specimenParams.generated.d.ts"
+        "src/shards/driftwood-isle/boot/specimenParams.generated.d.ts",
+        "src/shards/driftwood-isle/data/entry-deck-deep.generated.bin",
+        "src/shards/driftwood-isle/data/entry-deck-shallow.generated.bin",
+        "src/shards/driftwood-isle/data/entry-deck-world.generated.bin"
       ],
       "platform": "portable"
     },

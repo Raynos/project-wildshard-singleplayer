@@ -744,3 +744,23 @@ test('a resident pool held across ancestor retirement publishes no native geomet
   expect(publish).not.toHaveBeenCalled();
   while (retiring.next().done !== true) { /* complete the original native owner's retirement */ }
 });
+
+test('file-backed scene specimens prepare exact bytes before publishing resident resources',async()=>{
+  const {entryDeckSpecimen,entryDeckFiles}=await import('../src/shards/driftwood-isle/generators/entryDeckSpecimen');
+  const specimen=await import('../src/game/models/specimenCatalogue'),{SkyRig}=await import('../src/engine/world/skyRig');
+  for(const truncated of [false,true]){
+    const context=fixture(),sky:unknown=Object.create(SkyRig.prototype);if(!(sky instanceof SkyRig))throw new Error('Missing fixture sky');
+    Object.assign(context.game,{runtime:{world:{sky}}});
+    const raw=entryDeckFiles(),extra=new Map(raw.map(row=>[row.name,truncated?row.bytes.subarray(4):row.bytes]));
+    const catalogue='models/deck-catalogue.json';extra.set(catalogue,new TextEncoder().encode(JSON.stringify({product:'fixture-harbour',models:[]})));
+    const file=context.product.file.bind(context.product),has=context.product.hasFile.bind(context.product);
+    vi.spyOn(context.product,'hasFile').mockImplementation(name=>extra.has(name)||has(name));
+    vi.spyOn(context.product,'file').mockImplementation(name=>extra.has(name)?Promise.resolve(extra.get(name)??new Uint8Array()):file(name));
+    const define=vi.spyOn(specimen,'defineSpecimenCatalogue');
+    try{
+      const rows=parseWorldScenes({...section(),catalogue,specimens:[entryDeckSpecimen()],placements:[{id:'deck',model:'entryDeck',draw:'single',poses:[{x:0,y:0,z:0,yxz:{yaw:0,scale:1}}]}]});
+      if(truncated){await expect(installWorldScenes(context,rows)).rejects.toThrow('byte count');expect(define).not.toHaveBeenCalled();expect(context.app.registry.pieces).toEqual([]);}
+      else{const handles=await installWorldScenes(context,rows);expect(handles.placementModel('deck')).toBe('driftwood-isle/entry-deck');expect(define).toHaveBeenCalledTimes(1);expect(define.mock.calls[0]?.[3]).toEqual(new Map(raw.map(row=>[row.name,row.bytes])));}
+    }finally{vi.restoreAllMocks();context.scope.dispose();}
+  }
+});

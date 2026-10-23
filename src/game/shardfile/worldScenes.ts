@@ -8,7 +8,7 @@ import { assertSceneProfile } from './sceneProfile';
 import { BufferAttribute, BufferGeometry, InstancedBufferAttribute, InstancedMesh, type Material, Mesh, MeshBasicMaterial, MeshStandardMaterial, type Object3D, Sphere, Vector3 } from 'three';
 import { sharedModelContext } from '@wildshard/engine/models/model';
 import { bindWorldSceneModelSources, defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
-import { defineSpecimenCatalogue } from '../models/specimenCatalogue';
+import { defineSpecimenCatalogue,prepareSpecimenCatalogue } from '../models/specimenCatalogue';
 import { admitWorldSceneSurface, prepareWorldSceneSurfaces, worldSceneSurfaceMaterial } from './worldSceneSurface';
 import { worldSceneSourceMaterial } from './worldSceneMaterials';
 import { WorldScenePlacement } from './worldScenePlacement';
@@ -90,6 +90,7 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
 async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, resident: Scope, reads: WorldSceneReads): Promise<SceneHandles> {
   const registry = () => ctx.game.runtime?.world?.registry ?? ctx.app.registry;
   const product = ctx.product, recipes = new Map<string, WorldSceneRecipe>(), packets = new Map<string, Uint8Array>(), libraryRows = new Map(section.libraries.map(row => [row.id, row]));
+  const specimenFiles=await prepareSpecimenCatalogue(product,section.specimens??[],resident);reads.validate();
   const recipesProgress = loadingUnits('Scene recipes', section.steps.length);
   let recipesDone = 0;
   recipesProgress(0);
@@ -416,7 +417,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       }
       bindWorldSceneModelSources(sharedModelContext(sky), product.shardfile.identity.slug, { catalogue, geometries, materials, plumbing: product.shardfile.plumbing, scenes: modelScenes }, owner);
       // G3: a placement names a site model, or one of the section's code-built specimens (the specimen catalogue host)
-      const sites = defineWorldSceneCatalogue(catalogue), specimens = section.specimens === undefined ? null : defineSpecimenCatalogue<Record<string, Record<string, unknown>>>(section.specimens);
+      const sites = defineWorldSceneCatalogue(catalogue), specimens = section.specimens === undefined ? null : defineSpecimenCatalogue<Record<string, Record<string, unknown>>>(section.specimens,undefined,{},specimenFiles);
       const definitions = { model: (key: string) => specimens !== null && section.specimens?.some(model => model.key === key) === true ? specimens.model(key) : sites.model(key) };
       for (const row of placements) {
         const model = catalogue.models.find(entry => entry.key === row.model);
