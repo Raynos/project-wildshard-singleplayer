@@ -7472,19 +7472,20 @@ with the existing module image and never becomes durable continuation.
 source-budget admission and supplies only the selected authored closure; it
 does not compile an alternate entry as a replacement ABI1 witness.
 
-`src/sdk/headlessRuntime.ts` also defines `createNativeBakeReader(input,
-options)`, a typed one-time native-world intake composed from those readers.
-`NativeBakedActor` and `NativePhysicsBake` retain ordered body/herd metadata,
-owned ground/collider buffers and optional parked-body recipes. The returned
-`NativeBakeReader` admits individual solids through the same caller-provided
-strict provenance schema. The caller supplies its body recipe schema, extra
-root metadata schema and optional cross-record check; failed admission or
-checks never populate the memo. A declared parked roster cannot be missing,
-and extra metadata cannot shadow world fields. No bodies, transforms, samples
-or random draws are produced. Pine keeps King hit volumes and shelter checks
-in its reader declaration. G441's real W3 user is Nalati
-`runtime/baked.ts` (lattice, solids, actors and parsed-world memo); its
-flock/tree/group/spawn cross-record checks remain its own admission callback.
+`game/population/nativeBake.createNativeBakeReader(input, rows)` admits a
+stock native-world profile: lattice, rig, collider shapes/provenance and a
+parked-roster requirement. `NativeBakedActor` and `NativePhysicsBake` retain
+ordered body/herd metadata and owned ground/collider buffers. Actor ids must
+be unique, and every declared herd member must join an admitted actor.
+`NativeBakeReader.read()` memoizes only successful admission; independent
+readers own independent buffers. `solid(input)` uses the same stock schema.
+No caller validator, owner-check callback or arbitrary metadata schema is
+accepted. Optional `metadata:'population'` admits ordered trees/tops,
+ledges and the existing forager continuation, with matching canopy counts.
+That optional metadata schema and branch remain charged to their content
+owner. Pine retains its private hit/shelter metadata as assembly data;
+Nalati reads its stock population profile at the original prepare slot.
+No bodies, transforms, samples or random draws are produced.
 
 ### Ranged action clocks
 

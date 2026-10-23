@@ -107,6 +107,8 @@ test('missing parked bodies, invalid lattices, actor identities and collider cha
   expect(() => createNativeBakeReader(wrong, options).read()).toThrow('lattice');
   const actor = baked.actors[0]; if (actor === undefined) throw new Error('Missing actual Pine actor');
   expect(() => createNativeBakeReader({ ...input(), actors: [{ ...actor, kind: 'wrong' }] }, options).read()).toThrow('Divergent');
+  expect(() => createNativeBakeReader({ ...input(), actors: [actor, actor] }, options).read()).toThrow('one id per body');
+  expect(() => createNativeBakeReader({ ...input(), actors: [actor], herds: [{ kind: 'herd', members: ['missing'] }] }, options).read()).toThrow('one id per body');
   const solid = { shape: 6, body: null, at: [0, 0, 0], rot: [0, 0, 0, 1], groups: 1, friction: 1 };
   expect(() => createNativeBakeReader(input(), options).solid(solid)).toThrow('Unbuildable');
   expect(() => createNativeBakeReader(input(), options).solid({ ...solid, shape: 1, extra: true })).toThrow();

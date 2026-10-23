@@ -8,13 +8,13 @@ import { nalatiNativeAssets } from './nativeAssets';
 import { createSimHost, type SimHost } from '../../../src/engine/sim';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost, type SimSnapshot } from '../../../src/engine/sim/snapshot';
 import { loadRapier } from '../../../src/engine/physics/rapier';
-import { readPopulationBake } from '../../../src/game/population/nativeBake';
+import { createNativeBakeReader } from '../../../src/game/population/nativeBake';
 import { prepareHeadlessRuntime } from '../../fixtures/nalati-headless';
 import { nalatiTamingWitness } from './taming';
 import { canonicalSimDigest, sameBytes } from '../../fake/simState';
 
 const physics:unknown=JSON.parse(readFileSync('src/shards/nalati-grasslands/data/physics.generated.json','utf8'));
-const nalatiBake=()=>readPopulationBake(physics,{label:'Nalati',resolution:256,size:500});
+const nalatiBake=()=>createNativeBakeReader(physics,{label:'Nalati',resolution:256,size:500,parked:false,rig:'segments',provenance:'piece',shapes:[1,2,6,9],metadata:'population'}).read();
 
 /** Gaps are gameplay requirements, not exemptions; a boot/replay proof cannot certify the whole shard. */
 export const NALATI_WITNESS_GAPS = ['qyran', 'qara-and-night-roster', 'golden-king', 'storm-titan', 'taming', 'sabre-and-held-heavy', 'quests-and-gameplay-ledger'] as const;

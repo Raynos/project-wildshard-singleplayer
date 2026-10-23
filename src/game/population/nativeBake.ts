@@ -148,6 +148,8 @@ function nativeBakeReader<E extends object>(input: unknown, options: {
       const result = { ...extra, ground: nativeBakeGround(bake.ground, options.resolution, options.size, options.label),
         solids: bake.solids.map(decodeSolid), actors: nativeBakeActors(bake.actors, options.label),
         parked: nativeBakeActors(bake.parked ?? [], options.label), herds: bake.herds };
+      const ids = new Set(result.actors.map(actor => actor.id));
+      if (ids.size !== result.actors.length || !result.herds.every(herd => herd.members.every(id => ids.has(id)))) throw new Error('Baked population roster is not one id per body');
       parsed = result;
       return result;
     },
@@ -155,28 +157,20 @@ function nativeBakeReader<E extends object>(input: unknown, options: {
 }
 
 const finite=v.pipe(v.number(),v.finite());
-const populationMetadata=v.object({
+const populationMetadata=v.pipe(v.object({
   trees:v.array(v.tuple([finite,finite,v.pipe(finite,v.minValue(0))])),tops:v.array(finite),
   ledges:v.pipe(v.array(v.strictObject({x:finite,y:finite,z:finite,r:v.pipe(finite,v.minValue(0))})),v.maxLength(6)),
   marmots:ForagerContinuation,
-});
+}),v.check(row=>row.tops.length===row.trees.length,'Baked population trees and tops differ in count'));
 const lattice={label:v.pipe(v.string(),v.minLength(1),v.maxLength(128)),resolution:v.pipe(finite,v.integer(),v.minValue(2)),size:v.pipe(finite,v.minValue(0.001))};
-const populationIntake=v.strictObject(lattice);
 const nativeIntake=v.strictObject({...lattice,parked:v.boolean(),rig:v.picklist(['segments','axis']),provenance:v.picklist(['piece','tagged']),
+  metadata:v.exactOptional(v.literal('population')),
   shapes:v.pipe(v.array(v.picklist([1,2,6,9])),v.minLength(1),v.maxLength(4),v.check(shapes=>new Set(shapes).size===shapes.length))});
 /** Public native admission accepts only stock data profiles, never a validator
  * or owner-check callback. Metadata profiles are compiled into this module. */
+export function createNativeBakeReader(input:unknown,rows:{readonly metadata:'population'}):NativeBakeReader<v.InferOutput<typeof populationMetadata>>;
+export function createNativeBakeReader(input:unknown,rows:unknown):NativeBakeReader<object>;
 export function createNativeBakeReader(input:unknown,rows:unknown):NativeBakeReader<object>{
-  const row=v.parse(nativeIntake,rows);return nativeBakeReader(input,{...row,spec:nativeBodySchema(row.rig),solid:nativeColliderRecordSchema(row.shapes,row.provenance),extra:v.object({})});
-}
-/** Data-only population-world intake over the same native decoder. Admit the
- * actor and herd joins before publishing poses.
- * The runtime plan retains this result; no module-global world cache exists. */
-export type PopulationBake=NativePhysicsBake & v.InferOutput<typeof populationMetadata>;
-export function readPopulationBake(input:unknown,rows:unknown):PopulationBake{
-  const row=v.parse(populationIntake,rows),bake=nativeBakeReader(input,{...row,parked:false,spec:nativeBodySchema('segments'),solid:nativeColliderRecordSchema([1,2,6,9],'piece'),extra:populationMetadata}).read();
-  const ids=new Set(bake.actors.map(actor=>actor.id));
-  if(ids.size!==bake.actors.length||!bake.herds.every(herd=>herd.members.every(id=>ids.has(id))))throw new Error('Baked population roster is not one id per body');
-  if(bake.tops.length!==bake.trees.length)throw new Error('Baked population trees and tops differ in count');
-  return bake;
+  const row=v.parse(nativeIntake,rows),options={...row,spec:nativeBodySchema(row.rig),solid:nativeColliderRecordSchema(row.shapes,row.provenance)};
+  return row.metadata===undefined?nativeBakeReader(input,{...options,extra:v.object({})}):nativeBakeReader(input,{...options,extra:populationMetadata});
 }

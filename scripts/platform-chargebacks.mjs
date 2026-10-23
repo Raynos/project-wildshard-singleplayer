@@ -14,6 +14,7 @@ const declarations = new Map([
   ['src/game/looks/speciesBook.ts',new Map(['SpeciesLookBook','packedRows'].map(name=>[name,'C1']))],
   ['src/game/practice/course.ts', new Map(['MountedCourseEntry', 'GrappleCourseEntry', 'MountEntryRows', 'GrappleEntryRows'].map(name => [name, 'C6']))],
   ['src/game/boss/encounterView.ts', new Map(['SlotEncounterView','PatrolEncounterView'].map(name=>[name,'C4']))],
+  ['src/game/population/nativeBake.ts', new Map([['populationMetadata', 'C9']])],
   ['src/game/population/pageGroups.ts', new Map([
     'point', 'whole', 'PagePopulationPlanner',
     'PageWildEnvironment', 'wildEnv', 'bindPageGroups',
@@ -45,6 +46,14 @@ const chapterViewNativeOwners = new Map([
 // code lines, never fixed credits; packet/instance-matrix handling stays shared.
 /** @type {Map<string,Map<string,[string,number][]>>} */
 const inline = new Map([
+  // Stock native intake is shared; this optional population metadata profile is still Nalati's.
+  ['src/game/population/nativeBake.ts', new Map([
+    ['nativeIntake', [["metadata:v.exactOptional(v.literal('population'))", 1]]],
+    ['createNativeBakeReader', [
+      ["export function createNativeBakeReader(input:unknown,rows:{readonly metadata:'population'})", 2],
+      ['return row.metadata===undefined?', 1],
+    ]],
+  ])],
   // the pack prey identity joins only Nalati's page groups use, inside the roster Pine's forager ray shares
   ['src/game/shardfile/crowdRuntime.ts', new Map([['CrowdRoster', [
     ['  private readonly preyBindings = new Map<string, PackPrey>();', 1],

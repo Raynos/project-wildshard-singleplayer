@@ -48,7 +48,7 @@
       "knockdownVelocity"
     ],
     "@wildshard/game/population/nativeBake": [
-      "readPopulationBake",
+      "createNativeBakeReader",
       "installNativeCollision"
     ],
     "src/shards/nalati-grasslands/data/physics.generated.json": [
@@ -240,7 +240,17 @@
     "nativeBake": {
       "label": "Nalati",
       "resolution": 256,
-      "size": 500
+      "size": 500,
+      "parked": false,
+      "rig": "segments",
+      "provenance": "piece",
+      "shapes": [
+        1,
+        2,
+        6,
+        9
+      ],
+      "metadata": "population"
     }
   },
   "prepare": [
@@ -308,13 +318,13 @@
       }
     },
     {
-      "name": "bake",
+      "name": "bakeReader",
       "value": {
         "$call": [
           {
             "$ref": [
               "@wildshard/game/population/nativeBake",
-              "readPopulationBake"
+              "createNativeBakeReader"
             ]
           },
           {
@@ -327,6 +337,19 @@
             "$ref": [
               "constants",
               "nativeBake"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "bake",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "bakeReader",
+              "read"
             ]
           }
         ]
