@@ -10777,6 +10777,16 @@ Both preserve named variants and resolve main/rival identities through the
 concrete body authority. Restores validate every binding and strike before
 commit; a quiet re-save preserves the validated historical wire.
 
+`engine/ai/eliteKernels.NativeEliteKernels` admits a bounded ordered bank of
+native stalker profile, contact-selection and knockdown rows. It constructs
+the original kernels over concrete SimHost, terrain/environment, lifecycle,
+strike and body-registration loans. Every profile, strike reference and
+ledge bound is admitted before construction; sampler calls retain their
+original receiver. Same member objects, manager cadence, shared RNG,
+physics contacts and continuation remain authoritative. Binding rejects
+foreign bodies and replaced owners; sliced ancestor retirement closes
+callbacks without adding a body step, clock or save owner.
+
 The original Elites entered binding accepts optional finite action rows and
 concrete native service loans through
 `bindEnteredPresentation(owners, rows, {actions, loans})`. `v2OutputActions`
