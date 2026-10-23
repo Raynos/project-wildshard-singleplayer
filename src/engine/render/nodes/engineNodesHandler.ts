@@ -367,8 +367,10 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   /** node-material programs this handler built (the validator's and the bench's count) */
   builds = 0;
   /** The last BUILD_LOG_CAP builds, oldest first: when (diagnostic clock) and for which material and object (names
-   *  only). The frame floor attributes them to runtime hooks: a build after an entry's warm-up is a missed warm program. */
-  readonly buildLog: { at: number; material: string; object: string }[] = [];
+   *  only), and how the build went (`how`: 'reused', or why it was built in full: 'first of its key', 'no graph shape',
+   *  'no reuse key', a pairing refusal; '+ kept' when a full build was kept for reuse). The frame floor attributes them
+   *  to runtime hooks: a build after an entry's warm-up is a missed warm program. */
+  readonly buildLog: { at: number; material: string; object: string; how: string }[] = [];
   private readonly textureUpdates: TextureUpdates;
   private readonly frame: NodeFrame;
   /** The material's active program view, including its validated block list. */
@@ -756,14 +758,15 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const program = shape === null ? null : reuseKey(parameters, object, material, this.shareKeyOf(material));
     const key = shape === null || program === null ? null : `${program}\n${shape.signature}`;
     const reused = key === null || shape === null ? null : this.reusedBuild(key, material, object, shape);
-    if (typeof reused === 'object' && reused !== null) { this.applyReused(material, object, parameters, reused); this.reuses++; }
+    let how = shape === null ? 'no graph shape' : key === null ? 'no reuse key' : typeof reused === 'string' ? reused : 'first of its key';
+    if (typeof reused === 'object' && reused !== null) { this.applyReused(material, object, parameters, reused); this.reuses++; how = 'reused'; }
     else {
       if (material instanceof NodeMaterial) buildWithInstanceAttributes(material, () => { super.build(material, object, parameters); });
       else super.build(material, object, parameters);
       const real = key === null ? null : captureBuild(Reflect.get(material, '_latestBuilder'));
       if (key !== null && real !== null && shape !== null && owner !== undefined) {
         const { lazy, rest: unbound } = lazyReads(unboundReads(real, material, owner), owner);
-        if (unbound.length === 0) { this.reusable.set(key, new WeakRef(material)); this.reusableBuilds.set(material, { output: real, shape, lazy }); }
+        if (unbound.length === 0) { this.reusable.set(key, new WeakRef(material)); this.reusableBuilds.set(material, { output: real, shape, lazy }); how += ' + kept'; }
       }
     }
     this.disposeFirst(material);
@@ -788,7 +791,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     this.buildMs += diagnosticNow() - t0;
     this.builds++;
     if (this.buildLog.length >= BUILD_LOG_CAP) this.buildLog.shift();
-    this.buildLog.push({ at: t0, material: material.name || material.type, object: object.name || object.type });
+    this.buildLog.push({ at: t0, material: material.name || material.type, object: object.name || object.type, how });
     // WebGLRenderer.getProgram calls build only for a key its material has no program for, then files the acquired
     // program under that key: the program lands at the map's current size
     const builder: unknown = Reflect.get(material, '_latestBuilder');
