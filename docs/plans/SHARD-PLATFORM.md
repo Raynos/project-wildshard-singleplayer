@@ -36,6 +36,37 @@ Jake, 2026-10-13: *"Rather than refocusing one sprint at a time, we refocus perm
 - **Headline** (G403, G405): components closed N of M and custom lines per component, beside each shard's custom %;
   the plan agent reports it to Jake every 2 hours.
 
+## Mini plans, spikes and done (2026-10-22, G624)
+
+Every mini plan and spike of this plan, in one place (Jake, 2026-10-22: *"Are they attached to the shard platform mega
+plan? … what is in scope … and what do we all have to complete to be done?"*). Pages for Jake are in `docs/reviews/`.
+
+| Mini plan / spike | Decisions | State |
+|---|---|---|
+| [dw-pine-zero](shard-platform/dw-pine-zero-mini-plan.md), [quest-host](shard-platform/quest-host-mini-plan.md) | G564–G573, G589 | **done**: Pine and Driftwood at 0 |
+| [nine-nalati-zero](shard-platform/nine-nalati-zero-mini-plan.md) + the Nine / Nalati / C1C5C6 picks pages | G592, G597–G603, G614 | **Nine done** (0, grid-ready); Nalati continues in nalati-zero |
+| [c1-c5-c6-zero](shard-platform/c1-c5-c6-zero-mini-plan.md) (+ C2, G613) | G591, G593, G601, G613 | C1, C2, C5 closed and locked; **C6 8 lines left** (with the balbal cut) |
+| [nalati-zero](shard-platform/nalati-zero-mini-plan.md) | G613, G621 | **open**: rows R1–R15 (C6, C4, C9); est. Sat 10-24 ~12:00 |
+| [grid-ready](shard-platform/grid-ready-mini-plan.md) | G557–G561, G598 | **9 of 10**; Nalati after its zero |
+| [grid-crossing](shard-platform/grid-crossing-mini-plan.md) | G579–G581 | **open**: T1 warm neighbour on; T2–T6 to < 5 s shard to shard |
+| [loading-speed](shard-platform/loading-speed-mini-plan.md) (folds in [loading](shard-platform/loading-mini-plan.md), G618) | G543, G554, G618, G619, G622 | **open**: tap → controls < 5 s warm, < 15 s cold; M1 baseline next |
+| [open-plots](shard-platform/open-plots-mini-plan.md) redesign | G546, G607, G608, G616, G617, G621, G623 | **open**: modular tiles + landmark + five billboards; build not started |
+| [build-speed](shard-platform/build-speed-mini-plan.md), CI speed | G547, G548, G584, G609, G620 | build done; **CI open**: ≤ 10 min, green main (fix forward 30 min, then revert) |
+| [fail-fast](shard-platform/fail-fast-mini-plan.md) | G610, G612, G620 | **done** (F1–F9) |
+| WASM-HOST zero blockers ([WASM-HOST](WASM-HOST.md)) | G595, G600, G604 | **done**: H4, H5, view-target adapter, dismount / ignite / impulse |
+| [legacy-deletion](shard-platform/legacy-deletion-mini-plan.md) | G604, G606 | LD1–LD3 done; LD4 per shard at zero; LD5–LD8 only on Jake's word after his QA |
+
+**Out of scope here (their own plans, after this one):** [HOST-AUDIT](HOST-AUDIT.md) (starts after every shard is at
+zero, G596), SHARD-PLATFORM-NEXT, WASM-HOST beyond its zero blockers.
+
+**SHARD-PLATFORM is done when (G604, G624; replaces the 80/20 wording in §6):**
+1. Every shard at **0 custom TypeScript** (ruler), components C1–C9 closed and locked: only Nalati left.
+2. **All 10 grid-ready** (latched): only Nalati left.
+3. Infinite Wildshard **loads in < 5 s warm, < 15 s cold** (tap → controls, G619/G622) and **shard to shard < 5 s** (G579).
+4. **Open plots redesigned** (G617/G621/G623).
+5. **Live = main on a green CI**, then **Jake's one iPhone check** of all six shards in SHARD SELECT and the grid (G558, G604).
+6. Then, on Jake's word, the legacy folders are deleted (LD5–LD8) and the plan archives.
+
 ## 0. Read this first
 
 Jake, E431 (2026-10-03): *"high level the vision is the MMO. … a high level plan to get to the 80/20 split. The 80/20
@@ -332,6 +363,8 @@ cell (the row text is the authority).
 
 ## 6. Done when
 
+**Superseded by "Mini plans, spikes and done" (G604, G624) at the top: zero custom lines, not 80/20.**
+
 **G433:** the Explorer memory limit is 1.2 GB until the plan ends; the last row before the plan closes brings it back under 1.0 GB. **G417 overrides what follows:** one measure only, custom ÷ frozen legacy (the second measure is gone); **M2 is done** when the 3 × 3 grid plays from the menu with seamless travel and Jake's three phone runs have no tab kill and feel OK, with no Simulator millisecond targets; **the compatibility proofs** a shard must pass are headless only (it simulates on a server with no renderer); exact replay, ledger and witness matching are dropped.
 
 Part A (this plan's goal):
@@ -478,7 +511,7 @@ line to Jake at each milestone.
 Everything in [`shard-platform/`](shard-platform/), beside this file:
 
 - [STATE.md](shard-platform/STATE.md): the live status, calls for Jake and the fleet (coordinator only, ≤ 3 KB).
-- [decisions.md](shard-platform/decisions.md): every decision G1–G623+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
+- [decisions.md](shard-platform/decisions.md): every decision G1–G624+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
 - [rows.md](shard-platform/rows.md): §4 in full, Part A and Part B, with done-whens and evidence.
 - [contracts.md](shard-platform/contracts.md): §3 in full (determinism, caps, the grid, versioning, a shard project).
 - [history.md](shard-platform/history.md): the long State line, the council-time baseline (old §2), the pre-G291 measure and the 2026-10-04 Handoff.
