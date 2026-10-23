@@ -8,7 +8,7 @@ import { resolve } from 'node:path';
 import { env, execPath } from 'node:process';
 import { expect, test } from 'vitest';
 
-test('local batches and single-process CI partitions cover every file and propagate failure', () => {
+test('one typed process covers the full selection and each partition, and propagates failure', () => {
   mkdirSync('tmp', { recursive: true });
   const fixture = mkdtempSync(resolve('tmp', 'lint-all-'));
   const binary = resolve(fixture, 'bin'), calls = resolve(fixture, 'calls.txt');
@@ -23,7 +23,8 @@ const args = process.argv.slice(2);
 if (args.join(' ') === 'exec oxlint --debug files') {
   process.stdout.write(fs.readFileSync(process.env.LINT_ALL_SELECTION, 'utf8'));
 } else {
-  fs.appendFileSync(process.env.LINT_ALL_CALLS, args.slice(2).join('\n') + '\n--batch--\n');
+  if (args[2] !== '--type-aware') process.exit(9);
+  fs.appendFileSync(process.env.LINT_ALL_CALLS, args.slice(3).join('\n') + '\n--batch--\n');
   if (process.env.LINT_ALL_FAIL === 'yes' && args.some(file => file.endsWith('source 256.ts'))) process.exit(7);
 }
 `, { mode: 0o755 });
@@ -36,10 +37,11 @@ if (args.join(' ') === 'exec oxlint --debug files') {
     expect(success.status, success.stderr.toString()).toBe(0);
     const batches = readFileSync(calls, 'utf8').trim().split('\n--batch--').filter(Boolean).map(batch => batch.trim().split('\n'));
     expect(batches.flat()).toEqual(files);
-    expect(batches.map(batch => batch.length)).toEqual([256, 256, 256, 256, 1]);
+    expect(batches.map(batch => batch.length)).toEqual([1025]);
     writeFileSync(calls, '');
     expect(run(true).status).toBe(7);
-    expect(readFileSync(calls, 'utf8')).not.toContain('source 512.ts');
+    expect(readFileSync(calls, 'utf8').match(/--batch--/gu)).toHaveLength(1);
+    expect(readFileSync(calls, 'utf8')).toContain('source 1024.ts');
     const partitioned: string[] = [];
     const compare = (a: string, b: string): number => a < b ? -1 : a > b ? 1 : 0;
     const sortedFiles = [...files].sort(compare);

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Local batches bound AST retention; each CI partition builds its type program once.
+// One type program per invocation, including an unpartitioned full-repository run.
 import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -27,12 +27,7 @@ if (selected.length === 0) {
   console.error('lint-all: shard selected no files');
   process.exit(1);
 }
-const batchSize = shard === null ? 256 : selected.length;
-for (let offset = 0; offset < selected.length; offset += batchSize) {
-  console.info(`lint-all: shard ${part}/${parts}, batch ${offset / batchSize + 1}/${Math.ceil(selected.length / batchSize)}`);
-  const result = spawnSync('pnpm', ['exec', 'oxlint', ...selected.slice(offset, offset + batchSize)], { cwd: root, stdio: 'inherit' });
-  if (result.error !== undefined || result.status !== 0) {
-    if (result.error !== undefined) console.error(result.error.message);
-    process.exit(result.status ?? 1);
-  }
-}
+console.info(`lint-all: typed shard ${part}/${parts}, ${selected.length} files`);
+const result = spawnSync('pnpm', ['exec', 'oxlint', '--type-aware', ...selected], { cwd: root, stdio: 'inherit' });
+if (result.error !== undefined) console.error(result.error.message);
+process.exitCode = result.status ?? 1;

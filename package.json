@@ -21,6 +21,7 @@
     "deploy:admin": "bash admin/tools/deploy.sh",
     "lint": "pnpm gen && node scripts/lint-all.mjs",
     "lint:fast": "node scripts/lint-fast.mjs",
+    "lint:typed": "node scripts/lint-all.mjs",
     "lint:fix": "oxlint --fix",
     "lint:ratchet": "node lint/ratchet.mjs",
     "check:chunks": "node scripts/check-chunks.mjs dist",
