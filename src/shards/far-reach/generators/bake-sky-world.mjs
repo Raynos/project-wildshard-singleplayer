@@ -9,14 +9,13 @@ import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { constants, deflateSync, zstdCompressSync, zstdDecompressSync } from 'node:zlib';
-import { pathToFileURL } from 'node:url';
 import * as v from 'valibot';
 import { hashImmutableBytes, encodeCanonicalJson as canonicalJson } from '@wildshard/sdk/immutable';
 import { parseKtx2 } from '@wildshard/sdk/assets';
 import { readImagePixels, writeImagePixels } from '@wildshard/sdk/bake/image';
 
 const invokedFile = process.argv.at(1);
-if (invokedFile !== undefined && pathToFileURL(resolve(invokedFile)).href === import.meta.url) {
+if (invokedFile !== undefined && resolve(invokedFile) === import.meta.filename) {
 const root = resolve(import.meta.dirname, '../../../..'), project = resolve(root, 'src/shards/far-reach');
 const out = resolve(root, 'public/assets/far-reach/baked');
 const check = process.argv.includes('--check');
@@ -31,7 +30,7 @@ const keep = new Set(['fan.glb', 'prepared-models.glb']);
 // SF80: the pieces as one three.js scene through the SDK's bake(scene, identity), which also writes its scene.json to
 // .wildshard/cache/far-reach/ (gitignored, the inspectable middle step)
 {
-  const { SKY_PIECES, skyReachBake } = await import(pathToFileURL(resolve(project, 'generators/scene.ts')).href);
+  const { SKY_PIECES, skyReachBake } = await import('./scene.ts');
   const baked = skyReachBake(check ? undefined : root);
   if (baked.pieces.length !== SKY_PIECES.length) throw new Error('bake-sky-world: the scene baked a different set of pieces');
   baked.pieces.forEach(({ glb, kinds, colliders, rows: extras }, i) => {
@@ -42,15 +41,9 @@ const keep = new Set(['fan.glb', 'prepared-models.glb']);
     console.info(`far-reach ${piece}: ${String(glb.length)} bytes → baked/${piece}.glb (${hash}), ${String(kinds.length)} kinds, ${String(colliders.length)} colliders`);
   });
 }
-// the data-only bakes: rows a generator computes (no GLB)
-for (const [rows, file, name] of [['seaTexture', 'generators/seaTexture.ts', 'bakeSkySeaTexture']]) {
-  const generator = await import(pathToFileURL(resolve(project, file)).href);
-  emit(resolve(project, `data/${rows}.json`), `${JSON.stringify(generator[name](), null, 2)}\n`);
-  console.info(`far-reach ${rows}: data/${rows}.json`);
-}
 // the rope bridges: every rope span from the kit's two source models, as a deflated geometry pack (world/shapes.ts ropeBridge)
 {
-  const { bakeSkyBridges } = await import(pathToFileURL(resolve(project, 'generators/bridges.ts')).href);
+  const { bakeSkyBridges } = await import('./bridges.ts');
   const { bin, rows } = await bakeSkyBridges((url) => new Uint8Array(readFileSync(resolve(root, `public${url}`)))), packed = deflateSync(bin, { level: 9 });
   emit(resolve(out, 'bridges.bin'), packed);
   emit(resolve(project, 'data/bridges.json'), `${JSON.stringify({ pack: createHash('sha256').update(bin).digest('hex'), ...rows })}\n`);
@@ -58,7 +51,7 @@ for (const [rows, file, name] of [['seaTexture', 'generators/seaTexture.ts', 'ba
 }
 // every island the page draws from the builder, as a deflated geometry pack (world/isle.ts islandMesh)
 {
-  const { bakeSkyIsles } = await import(pathToFileURL(resolve(project, 'generators/isles.ts')).href);
+  const { bakeSkyIsles } = await import('./isles.ts');
   const { bin, rows } = bakeSkyIsles(), packed = deflateSync(bin, { level: 9 });
   emit(resolve(out, 'isles.bin'), packed);
   emit(resolve(project, 'data/isles.json'), `${JSON.stringify({ pack: createHash('sha256').update(bin).digest('hex'), ...rows })}\n`);
@@ -67,7 +60,7 @@ for (const [rows, file, name] of [['seaTexture', 'generators/seaTexture.ts', 'ba
 // the twelve static islands as compiled props tiles, each island whole (generators/isleProps.ts): data/props.json and the
 // tile GLBs under assets/<hash>, the shardfile's declared files (shard.config.ts); the runtime draws them (world/isle.ts)
 {
-  const { skyIsleProps } = await import(pathToFileURL(resolve(project, 'generators/isleProps.ts')).href);
+  const { skyIsleProps } = await import('./isleProps.ts');
   const baked = skyIsleProps();
   if (baked.far !== null) throw new Error('bake-sky-world: the islands baked a far proxy');
   if (!check) mkdirSync(resolve(project, 'assets'), { recursive: true });
@@ -79,7 +72,7 @@ for (const [rows, file, name] of [['seaTexture', 'generators/seaTexture.ts', 'ba
 }
 // the windmill's modelled tower and foot, fitted from their GLBs (world/mill.ts modelledSet)
 {
-  const { bakeSkyMillModel } = await import(pathToFileURL(resolve(project, 'generators/millModel.ts')).href);
+  const { bakeSkyMillModel } = await import('./millModel.ts');
   const { bin, rows } = await bakeSkyMillModel((url) => new Uint8Array(readFileSync(resolve(root, `public${url}`)))), packed = deflateSync(bin, { level: 9 });
   emit(resolve(out, 'mill-model.bin'), packed);
   emit(resolve(project, 'data/millModel.json'), `${JSON.stringify({ pack: createHash('sha256').update(bin).digest('hex'), ...rows })}\n`);
@@ -87,17 +80,17 @@ for (const [rows, file, name] of [['seaTexture', 'generators/seaTexture.ts', 'ba
 }
 // the sky-isle models' unit frames (world/skyIsleHd.ts skyIsleUnit), found from each model's GLB
 {
-  const { bakeSkyIsleFrames } = await import(pathToFileURL(resolve(project, 'generators/skyIsleFrames.ts')).href);
+  const { bakeSkyIsleFrames } = await import('./skyIsleFrames.ts');
   const frames = await bakeSkyIsleFrames((url) => new Uint8Array(readFileSync(resolve(root, `public${url}`))));
   emit(resolve(project, 'data/skyIsleFrames.json'), `${JSON.stringify(frames, null, 2)}\n`);
   console.info(`far-reach sky isle frames: ${frames.map((f) => f.model).join(', ')}`);
   // the firs on the sky isles, stood on the models' turf (world/build.ts reads the rows)
-  const { bakeSkyIslePines } = await import(pathToFileURL(resolve(project, 'generators/skyIslePines.ts')).href);
+  const { bakeSkyIslePines } = await import('./skyIslePines.ts');
   const pines = await bakeSkyIslePines((url) => new Uint8Array(readFileSync(resolve(root, `public${url}`))), frames);
   emit(resolve(project, 'data/skyIslePines.json'), `${JSON.stringify(pines, null, 2)}\n`);
   console.info(`far-reach sky isle pines: ${String(Object.values(pines).flat().length)} firs`);
   // where the static instanced things stand: the sky isles, the keels, the falls, the trees, the meadow's holes and paths
-  const { bakeSkyPlacements } = await import(pathToFileURL(resolve(project, 'generators/placements.ts')).href);
+  const { bakeSkyPlacements } = await import('./placements.ts');
   const placements = await bakeSkyPlacements((url) => new Uint8Array(readFileSync(resolve(root, `public${url}`))), frames, pines);
   emit(resolve(project, 'data/placements.json'), `${JSON.stringify(placements)}\n`);
   console.info(`far-reach placements: ${String(placements.standalone.trees.reduce((n, t) => n + t.m.length / 16, 0))} trees, ${String(placements.standalone.falls.length / 16)} falls`);

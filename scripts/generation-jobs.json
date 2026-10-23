@@ -8489,7 +8489,6 @@
         "src/shards/far-reach/data/bookStand.json",
         "src/shards/far-reach/data/knolls.json",
         "src/shards/far-reach/data/geometries.json",
-        "src/shards/far-reach/data/seaTexture.json",
         "src/shards/far-reach/data/dressing.json",
         "src/shards/far-reach/data/bridges.json",
         "src/shards/far-reach/data/isles.json",
@@ -8536,7 +8535,6 @@
         "src/shards/far-reach/data/bookStand.json",
         "src/shards/far-reach/data/knolls.json",
         "src/shards/far-reach/data/geometries.json",
-        "src/shards/far-reach/data/seaTexture.json",
         "src/shards/far-reach/data/dressing.json",
         "src/shards/far-reach/data/bridges.json",
         "src/shards/far-reach/data/isles.json",
@@ -15059,7 +15057,8 @@
         "pnpm-workspace.yaml",
         "src/format",
         "src/sdk",
-        "src/shards/far-reach/data/seaTexture.json",
+        "src/shards/far-reach/generators/seaTexture.ts",
+        "src/shards/far-reach/generators/rows/skyLook.ts",
         "src/shards/far-reach/generators/stormNoise.ts"
       ],
       "outputs": [

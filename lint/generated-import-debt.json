@@ -129,7 +129,6 @@
     "src/shards/far-reach/generators/sceneDressing.ts": 1,
     "src/shards/far-reach/generators/sceneSources.ts": 6,
     "src/shards/far-reach/generators/staticScene.ts": 1,
-    "src/shards/far-reach/generators/stormNoise.ts": 1,
     "src/shards/far-reach/generators/worldRows.ts": 12,
     "src/shards/far-reach/generators/worldScenes.ts": 9,
     "src/shards/nalati-grasslands-legacy/boot/files.ts": 1,

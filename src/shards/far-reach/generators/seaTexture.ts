@@ -1,8 +1,8 @@
 import { SEA, SKY_SUN } from './rows/skyLook';
 
 /**
- * Build-time only (SHARD-PLATFORM SF72): baked by scripts/bake-sky-world.mjs into data/seaTexture.json; the client
- * (look/cloudSea.ts seaTexture) uploads the bytes as the cloud sea's and the storm's small tileable cloud texture.
+ * Build-time only: the storm-noise bake consumes these original RGBA bytes directly.
+ * The shipped lossless library texture is shared by the cloud sea and storm.
  *
  * R: density (a periodic fbm over the unit square, so it tiles seamlessly); G: lit (the side of a puff that faces the sun),
  * baked for the fixed sun's heading (data/skyLook.ts SKY_SUN, from the painted panorama).
@@ -34,7 +34,7 @@ function seaBytes(sun: { readonly x: number; readonly z: number }): Uint8Array {
   return data;
 }
 
-/** The texture's rows: its size and its RGBA bytes (base64). */
-export function bakeSkySeaTexture(): { size: number; rgba: string } {
-  return { size: SEA.size, rgba: btoa(String.fromCodePoint(...seaBytes({ x: SKY_SUN[0], z: SKY_SUN[2] }))) };
+/** The original periodic raster, before the lossless texture encoder. */
+export function bakeSkySeaTexture(): { size: number; rgba: Uint8Array } {
+  return { size: SEA.size, rgba: seaBytes({ x: SKY_SUN[0], z: SKY_SUN[2] }) };
 }
