@@ -79,7 +79,9 @@ function renderAction(r: DebugRow, a: DebugActionSpec, row: HTMLElement, label: 
   });
   rest();
   row.append(label, b);
-  return { el: row, extra: [status], rebuild: () => undefined, paint: () => undefined };
+  const readout = DEBUG_READOUTS[r.id], out = readout ? make('ws-gmenu-note ws-gmenu-mem') : null;
+  const paint = (): void => { if (out && readout && seen(row)) { const text = readout(); if (out.textContent !== text) out.textContent = text; out.hidden = false; } };
+  return { el: row, extra: out ? [status, out] : [status], rebuild: () => undefined, paint };
 }
 
 function renderRow(r: DebugRow, onPick: (id: string) => void, scope: Scope,

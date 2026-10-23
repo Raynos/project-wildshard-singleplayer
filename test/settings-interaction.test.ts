@@ -85,3 +85,19 @@ test('retired diagnostics are absent while Clear downloads remains in Developer'
   expect(DEBUG_ROWS.some(row => row.id === 'time' || row.id === 'weather' || row.id === 'game.template')).toBe(false);
   expect(DEBUG_ROWS.find(row => row.id === 'clearDownloads')).toMatchObject({ purpose: 'developer', group: 'tools' });
 });
+
+
+test('storage lives under Clear downloads rather than a diagnostic row', () => {
+  expect(DEBUG_ROWS.some(row => ['fps', 'budgetReadout', 'storage'].includes(row.id))).toBe(false);
+  const scope = new Scope('storage.action'); owners.push(scope);
+  const card = document.createElement('div'); document.body.append(card);
+  const menu = buildDebugMenu(card, { scope, purpose: 'developer' }), row = menu.row('clearDownloads');
+  if (row === undefined) throw new Error('missing Clear downloads');
+  const geometry = Object.assign([new DOMRect(0, 0, 100, 44)], { item: (index: number) => index === 0 ? new DOMRect(0, 0, 100, 44) : null });
+  const visible = vi.spyOn(row, 'getClientRects').mockReturnValue(geometry);
+  try {
+    menu.paint();
+    const readout = row.parentElement?.querySelector<HTMLElement>('.ws-gmenu-mem');
+    expect(readout?.textContent).toContain('usage / quota'); expect(readout?.hidden).toBe(false);
+  } finally { visible.mockRestore(); }
+});

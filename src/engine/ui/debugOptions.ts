@@ -1,4 +1,3 @@
-import { currentProbe } from '../app/identity';
 import { authoredRows } from './authoredDebugRows';
 import { uiScope } from './ownership';
 import { engineString } from '../strings';
@@ -23,10 +22,8 @@ import type { LevelSpec } from '../level/spec';
 import { jsonSlot } from '../saves/slots';
 import { clearDownloads, freedBytes, lastClear, mbText, storageUsed } from '../boot/clearDownloads';
 import { RELOAD_PARAM } from '../core/GpuRecovery';
-import { lastEndLine, markReload } from '../boot/lastEnd';
+import { markReload } from '../boot/lastEnd';
 import { onSettingChange, saveSetting, setting, settingsReloadUrl, type OptionKey, type OptionValue } from './Settings';
-import { MOBILE_DEVICE } from '../core/tier';
-import { tierPickLine } from '../render/tierBoot';
 import type { DebugRowSpec } from '../level/context';
 import { isDev, onDev } from '../core/devMode';
 
@@ -177,40 +174,20 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   opt('distantTrees', 'look', engineString('s_distant_trees'), [['variant', engineString('s_distant_trees_variant')], ['species', engineString('s_distant_trees_species')]], { reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_distant_trees_note') }),
   opt('groundTiles', 'look', engineString('s_ground_tiles'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_ground_tiles_note') }),
   opt('fixedShadowSamples', 'perf', engineString('s_fixed_shadow_samples'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_fixed_shadow_samples_note') }),
-  opt('fps', 'perf', engineString('s_5f5c99339841'), [['auto', engineString('s_0286249762f7')], ['30', engineString('s_624b60c58c9d')], ['60', engineString('s_c1fe790a9f07')]], { purpose: 'developer', when: () => !MOBILE_DEVICE, ask: 'E193', reviewBy: '2026-12-30', note: engineString('s_d56f59162f05') }),
   opt('buildPacing', 'perf', engineString('s_build_pacing'), [['off', engineString('s_build_pacing_off')], ['on', engineString('s_build_pacing_on')], ['uploads', engineString('s_build_pacing_uploads')], ['entry', engineString('s_build_pacing_entry')], ['links', engineString('s_build_pacing_links')]], { purpose: 'developer', ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_build_pacing_note') }),
   opt('programShare', 'perf', engineString('s_program_share'), [['off', engineString('s_program_share_off')], ['on', engineString('s_program_share_on')]], { purpose: 'developer', reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_program_share_note') }),
   opt('graphUniforms', 'perf', engineString('s_graph_uniforms'), [['plain', engineString('s_graph_uniforms_plain')], ['blocks', engineString('s_graph_uniforms_blocks')]], { purpose: 'developer', reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_graph_uniforms_note') }),
 
   // ── Loading & memory ──
   opt('memorySaver', 'loading', engineString('s_memory_saver'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { purpose: 'developer', reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_memory_saver_note') }),
-  { purpose: 'developer', id: 'storage', group: 'loading', label: engineString('s_a69c4dece144'), choices: () => [], get: () => '', set: () => undefined, on: () => undefined, reload: false, when: always, ask: 'E357', reviewBy: '2026-12-30', note: engineString('s_281936523768') },
   clearDownloadsRow,
 
   // ── Developer tools ──
-  action('budgetReadout', 'perf', engineString('s_2461f265574b'), engineString('s_eff6d457bfb5'), (say) => {
-    const probe = currentProbe();
-    if (probe?.world === undefined) { say('READ BUDGETS', 'Enter a level to read its budgets.'); return; }
-    const rows = probe.budgets(['current']);
-    const measured = probe.world.game.lastFrame;
-    say('READ BUDGETS', `${tierPickLine()}\nMeasured ${measured.calls} draws / ${measured.triangles} tris\n${Object.entries(rows).map(([pose, row]) => `${pose}: derived ${JSON.stringify(row.derived)} / ceiling ${JSON.stringify(row.ceiling)} · ${row.formula.assumption}`).join('\n')}`);
-  }, { purpose: 'developer', ask: 'E357', reviewBy: '2026-12-30', note: engineString('s_2ed7f7dcebc2') }),
+
 ];
 
-/** Shards in memory's readout (E155 / E159): the resident shards, their texture estimate, the JS heap, the device's
- *  memory and the last reload's cause (E179) — read on the device (the iPhone has no dev tools) */
-function memoryReadout(): string {
-  const m = app.levelAdapters.residentMemory?.() ?? null;
-  // Chrome's performance.memory / navigator.deviceMemory: absent on iOS (and not in the DOM typings)
-  const pm: unknown = Reflect.get(performance, 'memory'), used: unknown = typeof pm === 'object' && pm !== null ? Reflect.get(pm, 'usedJSHeapSize') : undefined;
-  const dm: unknown = Reflect.get(navigator, 'deviceMemory');
-  const heap = typeof used === 'number' ? `${Math.round(used / 1e6)} MB` : 'n/a';
-  const levels = m === null ? [`no ${engineString('s_level_word_lower')} host`] : m.levels.map((x, i) => `${i + 1}. ${x.id}${x.running ? ' (playing)' : ''} · textures ~${Math.round(x.textureMB)} MB`);
-  // E179: why the page last reloaded (src/engine/boot/lastEnd.ts: the reason the game gave, or "ended unexpectedly")
-  return [`Resident (oldest first, keeps ${m?.cap ?? '?'}):`, ...levels, `JS heap: ${heap} · device memory: ${typeof dm === 'number' ? `${dm} GB` : 'n/a'}`, lastEndLine()].join('\n');
-}
 /** E172: a few live lines under a row (by row id), re-read while the row can be seen — in both menus */
-export const DEBUG_READOUTS: Readonly<Partial<Record<string, () => string>>> = { tex: memoryReadout, storage: storageReadout };
+export const DEBUG_READOUTS: Readonly<Partial<Record<string, () => string>>> = { clearDownloads: storageReadout };
 
 let storageEstimate = 'usage / quota: checking';
 let estimateAt = 0;

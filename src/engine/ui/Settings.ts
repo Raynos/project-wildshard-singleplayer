@@ -117,7 +117,6 @@ export const OPTION_VALUES = {
   touch: ['auto', 'on'],                               // on-screen controls (main.ts → TouchControls): auto = coarse pointer
   time: ['live', 'midday', 'golden', 'sunset', 'night'], // the day / night clock (the level backdrop's) — live
   weather: ['live', 'clear', 'fog', 'rain'],           // Pine Hollow: the weather (PH-L10, src/shards/pine-hollow/world/weather.ts) — live: dawn fog + showers; clear = none (the before); fog / rain hold one — live
-  fps: ['auto', '30', '60'],                           // frame cap (Game.start, tier.ts frameCapFps): mobile is locked at 30 whatever the pick (E193); desktop: auto = the display's rate — live
   // ── E162: the old URL switches, now pause ▸ Settings ▸ Debug rows only (declared with their group in src/engine/ui/debugOptions.ts).
   // The first value is the default. A test / capture script sets one in the saved settings before the page loads ──
   memorySaver: ['off', 'on'],                          // SF22d: the engine memory cuts (src/engine/render/memorySaver.ts) — a reload; off everywhere by default, a Developer tool turns it on (G271)
@@ -141,12 +140,11 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   touch: { def: 'auto', params: ['touch'], url: (q) => (q.has('touch') ? 'on' : null) },               // ?touch (any value) forces them, as before
   time: { def: 'live', params: ['tod', 'clock'], url: (q) => (q.has('tod') || q.has('clock') ? 'live' : null) }, // ?tod= / ?clock= run the clock from the URL's phase / speed
   weather: { def: 'live', params: ['weather'], url: (q) => q.get('weather') },                         // ?weather=rain: a held shower (captures)
-  fps: { def: 'auto', params: ['fps'], url: (q) => q.get('fps') },                                       // ?fps=60: the phone uncapped (a test); ?fps=30 caps any tier
   memorySaver: DEBUG_ONLY, fixedShadowSamples: DEBUG_ONLY, groundTiles: DEBUG_ONLY, graphMaterials: DEBUG_ONLY, buildPacing: DEBUG_ONLY, graphUniforms: DEBUG_ONLY, programShare: DEBUG_ONLY, distantTrees: DEBUG_ONLY,
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 /** Diagnostic choices are ignored by the public build; their saved picks remain available in Developer mode. */
-export const DEVELOPER_OPTIONS: readonly OptionKey[] = ['time', 'weather', 'fps', 'memorySaver', 'buildPacing', 'graphUniforms', 'programShare'];
+export const DEVELOPER_OPTIONS: readonly OptionKey[] = ['time', 'weather', 'memorySaver', 'buildPacing', 'graphUniforms', 'programShare'];
 
 /** the URL params that override option `k` */
 export function settingParams(k: OptionKey): readonly string[] { return OPTION_SPECS[k].params; }
@@ -206,7 +204,7 @@ export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'
   };
   const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
     tier: option('tier'), touch: option('touch'), time: option('time'),
-    weather: option('weather'), fps: option('fps'),
+    weather: option('weather'),
     memorySaver: option('memorySaver'), fixedShadowSamples: option('fixedShadowSamples'), groundTiles: option('groundTiles'), graphMaterials: option('graphMaterials'), buildPacing: option('buildPacing'), graphUniforms: option('graphUniforms'), programShare: option('programShare'), distantTrees: option('distantTrees'),
   };
   const persist = (): void => {
