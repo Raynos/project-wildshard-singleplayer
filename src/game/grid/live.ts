@@ -27,7 +27,9 @@ export interface LiveGridRegion { host: SimHost; dispose: () => void;
 /** Immutable content is admitted before its sim claim and world allocation; trusted runtime preparation imports only. */
 export interface LiveGridAdmission {
   bytes: number;
-  create: (saved: SimSnapshot | undefined, claim: ResidencyLease) => Promise<LiveGridRegion>;
+  /** `signal` aborts a road-approach build when the traveller commits to a crossing into another cell: stop at the next safe
+   * point and reject, disposing what was built (T7). */
+  create: (saved: SimSnapshot | undefined, claim: ResidencyLease, signal?: AbortSignal) => Promise<LiveGridRegion>;
   /** Release an unpublished product lease on refusal/cancellation. Idempotent after failed create or region disposal;
    *  successful publication transfers release to the returned region's dispose. */
   cancel?: () => void;
@@ -138,9 +140,15 @@ function boulevardApproachDistance(cell: GridCell, feet: GridPoint, previous: Gr
 
 /** A background admission (prefetch, road approach) that fails is recorded as the cell's issue and, until an explicit
  *  retry, not attempted again: say so once, or a failed build (op-hitch33: a throwing warm-up) leaves only a route timeout. */
+/** T7: a road-approach build given up for a committed crossing into another cell. It records no issue: the cell builds again
+ *  when the traveller heads for it. */
+class ApproachAbandonedError extends Error {
+  override readonly name = 'ApproachAbandonedError';
+}
+
 async function background(instance: string, admission: Promise<unknown>, alive: () => boolean): Promise<void> {
   try { await admission; }
-  catch (error) { if (alive()) console.error(`[grid] ${instance}: admission failed; it stays closed until a retry`, error); }
+  catch (error) { if (alive() && !(error instanceof ApproachAbandonedError)) console.error(`[grid] ${instance}: admission failed; it stays closed until a retry`, error); }
 }
 
 /** One page traveller with frozen owned regions. Borrowed homes keep the existing standalone composition;
@@ -285,7 +293,10 @@ export class LiveGridHost {
     })();
     this.productRequests.set(instance, request); return request;
   }
-  private ensure(instance: string): Promise<void> {
+  /** T7: the road-approach build in flight (a guess at the next crossing), which a committed crossing into any other cell
+   *  abandons (`abandonApproach`). */
+  private approach: { instance: string; controller: AbortController } | null = null;
+  private ensure(instance: string, guess = false): Promise<void> {
     if (this.disposed) return Promise.reject(new Error('Live grid is disposed'));
     const cell = this.assembly.cell(instance);
     if (this.borrowedHome(instance) || this.residents.has(instance)) return Promise.resolve();
@@ -295,16 +306,28 @@ export class LiveGridHost {
     const ticket = this.readiness.request(instance, 0, estimate, bundle.hybridWireBytes > 0);
     if (ticket === null) return Promise.reject(new Error('Stale live grid readiness request'));
     const releasePriority = this.ports.prioritize?.(cell);
-    const request = this.admitRegion(cell, bundle, ticket, this.sequence).finally(() => { releasePriority?.(); });
+    const controller = guess ? new AbortController() : undefined;
+    const request = this.admitRegion(cell, bundle, ticket, this.sequence, controller?.signal).finally(() => {
+      releasePriority?.();
+      if (this.approach?.controller === controller) this.approach = null;
+    });
+    if (controller !== undefined) this.approach = { instance, controller };
     this.requests.set(instance, request); this.sequence = this.settle(request); return request;
+  }
+  /** T7: a committed crossing toward `destination` abandons a road-approach build of any other cell, so the destination's
+   *  admission (queued behind it in `sequence`) waits only for that build's next safe point, never its whole world. */
+  private abandonApproach(destination: string): void {
+    const row = this.approach;
+    if (row !== null && row.instance !== destination) row.controller.abort();
   }
   private assertAlive(): void { if (this.disposed) throw new Error('Live grid is disposed'); }
   private async settle(request: Promise<void>): Promise<void> { try { await request; } catch { /* The requesting owner receives the admission error. */ } }
-  private async admitRegion(cell: GridCell, bundle: ReadinessBundle, ticket: ReadinessTicket, previous: Promise<void>): Promise<void> {
+  private async admitRegion(cell: GridCell, bundle: ReadinessBundle, ticket: ReadinessTicket, previous: Promise<void>, signal?: AbortSignal): Promise<void> {
     const instance = cell.instance;
     let admission: LiveGridAdmission | undefined;
+    const abandoned = (): void => { if (signal?.aborted === true) throw new ApproachAbandonedError(`Road approach of ${instance} abandoned for another crossing`); };
     try {
-      await previous; this.assertAlive(); this.retireColdRegions();
+      await previous; this.assertAlive(); abandoned(); this.retireColdRegions();
       const admitted = this.ports.home.mode === 'owned' ? await this.prefetchProduct(instance) : await this.ports.admit(cell);
       admission = admitted;
       this.assertAlive();
@@ -343,8 +366,8 @@ export class LiveGridHost {
         if (this.ports.home.mode !== 'owned') await admitted.prepareRuntime?.();
         this.assertAlive(); this.readiness.complete(ticket, 'runtime');
         if (this.ports.pause !== undefined) await this.ports.pause();
-        this.assertAlive();
-        region = await admitted.create(prior, lease); this.checkRegion(region);
+        this.assertAlive(); abandoned();
+        region = await admitted.create(prior, lease, signal); this.checkRegion(region);
         if (this.ports.pause !== undefined) await this.ports.pause();
         this.assertAlive();
         if (packed !== undefined) this.saved.store(instance, packed);
@@ -362,12 +385,14 @@ export class LiveGridHost {
         lease.release(); throw error;
       }
     } catch (error) {
+      // T7: an abandoned approach leaves no issue, so the cell can build again when the traveller heads for it
+      const gaveUp = signal?.aborted === true;
       this.readiness.invalidate(instance);
-      this.issues.set(instance, error instanceof Error ? error.message : String(error)); this.refusals.set(instance, error);
+      if (!gaveUp) { this.issues.set(instance, error instanceof Error ? error.message : String(error)); this.refusals.set(instance, error); }
       if (this.ports.home.mode === 'owned') this.products.delete(instance);
       try { admission?.cancel?.(); }
       catch (cleanup) { throw new AggregateError([error, cleanup], 'Live admission and product cancellation failed', { cause: cleanup }); }
-      throw error;
+      throw gaveUp && !(error instanceof ApproachAbandonedError) ? new ApproachAbandonedError(`Road approach of ${instance} abandoned for another crossing`, { cause: error }) : error;
     }
     finally { this.requests.delete(instance); }
   }
@@ -477,7 +502,7 @@ export class LiveGridHost {
         const reach = early === approach ? Infinity : moving === undefined ? wallReach : Math.max(wallReach, roadWidth);
         // a destination that still has to build first releases the kept source (one whole world building beside the road,
         // not two: Sim road pair loading peak 1961 -> under 1.8 GB)
-        if (this.distance(approach, feet) <= reach && !this.residents.has(approach.instance) && this.retireWarmSource(approach.instance)) void background(approach.instance, this.ensure(approach.instance), () => !this.disposed);
+        if (this.distance(approach, feet) <= reach && !this.residents.has(approach.instance) && this.retireWarmSource(approach.instance)) void background(approach.instance, this.ensure(approach.instance, true), () => !this.disposed);
       }
     }
     const walls = this.ports.home.mode !== 'owned' && this.active === this.ports.home.instance ? this.ports.home.walls
@@ -612,7 +637,9 @@ export class LiveGridHost {
     if (this.ports.home.mode === 'owned' && from !== null && to !== null) throw new Error('Owned runtime crossing must commit onto the neutral road first');
     if (this.ports.home.mode === 'owned' && from === null && to !== null) {
       // G663 (T7): a neighbour is never built whole beside a source: a committed crossing into another cell retires the
-      // source just left before its own world allocates (a U-turn back into that source re-activates it instead)
+      // source just left before its own world allocates (a U-turn back into that source re-activates it instead), and abandons
+      // a road-approach guess at any other cell rather than waiting for its whole world (sp-o3/sp-o4: Template behind Nalati)
+      this.abandonApproach(to);
       this.retireWarmSource(to);
       if (!(this.residents.has(to) && this.ready(to))) await this.sequence;
       this.assertAlive();

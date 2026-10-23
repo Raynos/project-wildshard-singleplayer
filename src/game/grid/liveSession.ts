@@ -160,7 +160,8 @@ const PLATFORM_LEVEL: SimLevel = { version: SIM_API_VERSION, id: 'platform.highw
   weapon: { id: 'platform.hands', shape: { kind: 'point', radius: 0 }, windup: 0, active: 0, recover: 0, cooldown: 0, range: 0, damage: 0, tags: [] } };
 
 /** The home cell's G68 loadout: stow silently to hands at the border, restore the shard's weapon on re-entry. */
-/** G598: a preparation that fails frees its half-built region as a crossing's retirement does (O20):
+/** G598: a preparation that fails (or a road approach abandoned for another crossing, T7) frees its half-built region as a
+ *  crossing's retirement does (O20):
  *  its stepped disposal under the loading slice, never one long frame (Driftwood's entry drive held 206 ms here). */
 async function disposeInSteps(region: PreparedRegionalRuntime['region']): Promise<void> {
   const retire = region.retire;
@@ -762,7 +763,7 @@ export class LiveGridSession {
     this.durability.set(cell.instance, saved);
     let closed = false;
     const release = (): void => { if (closed) return; closed = true; this.durability.delete(cell.instance); retained.release(); };
-    return { bytes, exclusiveRuntime: true, reloadsCheckpoint: true, cancel: release, prepareRuntime: prepareEntry, create: async (_prior, claim) => {
+    return { bytes, exclusiveRuntime: true, reloadsCheckpoint: true, cancel: release, prepareRuntime: prepareEntry, create: async (_prior, claim, signal) => {
       const factory = createRegionalRuntimeFactory({ home: this.ports.home.origin,
         continuation: regionalRuntimeCheckpoint(this.page.saves, { id: cell.instance, shard: cell.slug }, retained.admitted.source.identity.revision),
         prepareFoundation: createRegionalWorldFoundation({ rapier: this.ports.physics.R, navmesh: level => loadNavmesh(level.id, level.bakedId ?? level.id, level.navigation), pause: () => yieldGridConstruction(this.runtimeScope),
@@ -780,9 +781,17 @@ export class LiveGridSession {
       catch (error) { this.transferWalls.delete(cell.instance); saved.unbind(); throw error; }
       this.runtimeRegions.set(cell.instance, prepared); this.runtimeResidents.set(cell.instance, prepared.resident);
       this.respawnCells.set(cell.instance, { instance: cell.instance, origin: cell.origin, entryways: retained.admitted.source.entryways });
+      // T7: a road approach abandoned for another crossing stops its runtime install at the next stage
+      const abandon = (): void => { this.hybrid.abandon(cell.instance); };
+      const stopped = (): boolean => signal?.aborted === true;
       try {
-        await this.hybrid.prepare(cell.instance);
-        if (this.page.ownedHome === true && !await this.hybrid.installAhead(cell.instance)) throw new Error('Admitted runtime preparation left the approached cell');
+        if (stopped()) throw new Error('Road approach abandoned for another crossing');
+        const unlisten = signal === undefined ? undefined : this.runtimeScope.listen(signal, 'abort', abandon, { once: true });
+        try {
+          await this.hybrid.prepare(cell.instance);
+          if (this.page.ownedHome === true && !await this.hybrid.installAhead(cell.instance)) throw new Error('Admitted runtime preparation left the approached cell');
+        } finally { unlisten?.(); }
+        if (stopped()) throw new Error('Road approach abandoned for another crossing');
         prepared.park?.(); // parked until the crossing commits (the traveller is still on the road)
       }
       catch (error) {
