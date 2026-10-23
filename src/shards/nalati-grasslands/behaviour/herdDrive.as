@@ -65,11 +65,13 @@ export function drive(slot:i32,body:bool,resume:i32):void{
 }
 export function afterPassThrough(slot:i32):void{
   if(slot==role(S.stallion)){driveStallion(slot);return;}
-  const mode=i32(s(S.mode)),px=m(slot,M.x),pz=m(slot,M.z);
+  const mode=i32(s(S.mode)),px=m(slot,M.x),pz=m(slot,M.z),ridden=role(S.ridden);
   const foal=m(slot,M.foal)!=0,mother=i32(m(slot,M.mother));
   let sepX:f64=0,sepZ:f64=0,aliX:f64=0,aliZ:f64=0,nAli:i32=0;
+  // No native barrier occurs during this sum. Resolve the original ridden
+  // identity once rather than scanning the whole roster for every neighbour.
   for(let other=0;other<Read.members();other++){
-    if(other==slot||m(other,M.alive)==0||other==role(S.ridden))continue;
+    if(other==slot||m(other,M.alive)==0||other==ridden)continue;
     const ox=px-m(other,M.x),oz=pz-m(other,M.z),d=hypot(ox,oz);
     if(d<2.5&&d>1e-3){const f=(2.5-d)/2.5;sepX+=ox/d*f;sepZ+=oz/d*f;}
     if(d<8&&m(other,M.speed)>.5){aliX+=Math.sin(m(other,M.yaw));aliZ+=Math.cos(m(other,M.yaw));nAli++;}

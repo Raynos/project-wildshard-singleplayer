@@ -388,3 +388,19 @@ test('an unbound herd refuses before its initialization draw or public mutation'
   expect(()=>raw.stampede(1,2)).toThrow('not bound');expect(raw.snapshot()).toBe(before);expect(f.random.snapshot()).toEqual(random);
  }finally{f.scope.dispose();}
 });
+
+test('a full native herd keeps each ordinary member drive within the admitted group call',()=>{
+ for(const mode of modes)for(const state of ['watch','lead','ridden']){
+  const old=legacyFixture(mode,state,false,16),next=fixture(mode,state,false,16);
+  try{
+   const riddenOld=old.roster[15],riddenNext=next.roster[15];if(riddenOld===undefined||riddenNext===undefined)throw new Error('Missing late ridden member');
+   old.herd.setRidden(riddenOld);next.herd.setRidden(riddenNext);
+   for(let slot=0;slot<16;slot++){
+    const actor=old.roster[slot];if(actor===undefined)throw new Error('Missing full herd member');
+    old.herd.drive(actor,old.ctx);execute(next,slot);
+    numbers(next.log,old.log);expect(next.herd.snapshot()).toBe(old.herd.snapshot());
+    expect(next.random.snapshot()).toEqual(old.random.snapshot());expect(next.contextRandom.snapshot()).toEqual(old.contextRandom.snapshot());
+   }
+  }finally{old.scope.dispose();next.scope.dispose();}
+ }
+});
