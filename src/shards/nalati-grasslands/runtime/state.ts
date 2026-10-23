@@ -18,7 +18,6 @@ import { wind } from '@wildshard/engine/world/steppeWind';
 import { SceneDressing } from '@wildshard/game/shardfile/sceneDressing';
 import { buildArenaRoomEncounter } from '@wildshard/game/boss/arenaRoom';
 import { DeclaredEliteEntry } from '@wildshard/engine/ai/view/eliteEntry';
-import type { ExternalElitePage } from '@wildshard/game/quest/elitePage';
 import { parseEliteEntryPageRows } from '@wildshard/format/eliteEntryRows';
 import { WorldAssembly } from '@wildshard/game/shardfile/worldAssembly';
 import prefix from '../data/worldPrefix.json' with { type: 'json' };
@@ -76,7 +75,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   await WorldAssembly.construct(trophies, { runtime, native: plugin, product: plugin.product, scope: plugin.scope, draws: shapes, baked: new Map() });
   const drops = entryOwner(plugin.scope, 'drawn-models', 'nalati.trophies');
   const eliteLedges = anchors('crags', 'ledges');
-  const elites = new DeclaredEliteEntry<ExternalElitePage>(eliteRows.entry, game.levelScope);
+  const elites = new DeclaredEliteEntry(eliteRows.entry, game.levelScope);
   updates.push((dt, t) => {
     if (titan.engaged) { elites.bar?.hide(); return; }   // one boss bar at a time: the elites stand down while the Titan fights
     if (practiceRoom.open) { elites.bar?.hide(); return; }   // a practice room over the steppe: no banner, no bar, no lair found from 3 km up (E321)
