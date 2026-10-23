@@ -59,6 +59,12 @@ Generation read receipts also record attempted workspace-package export keys, in
 A manifest used only for module resolution may bind those exact keys instead of every unused export; wildcard
 rows and all other manifest fields remain exact. Explicit manifest reads and unsupported exports shapes keep
 whole-file identities. Current raw manifest bytes are fenced before publishing or returning a cache loan.
+Measure normal generation twice at one landed revision with
+`node scripts/benchmark-generation.mjs --rev=<full-main-sha> --parallel=4`.
+The pooled mirror is acquired before one build lease; both runs use identical committed source. Each runs the
+normal build-input generation command, reporting its command wall and individual step times. Queue/sync time
+stays separate. An initial failure ends the attempt; a warm result never means a successful cold build or an
+unrelated-edit benchmark. The command creates no preview, source overlay or permanent benchmark receipt.
 Observation families no longer include every input filename. A complete positive-read ESM observation can reuse
 its outputs after unrelated source files are added or removed. Positive realpath probes of recorded modules use
 those modules' existing identities. Exact existence/native realpath/absent-read probes bind the verified initial
