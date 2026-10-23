@@ -33,6 +33,21 @@ export function scopedSpecimenLibrarySource(source: Shardfile, assets: ReadonlyM
 /** Run `steps` to its result, pausing after each 8 ms of them, or sooner once the frame's shared build budget is spent:
  *  the grid admits several products at once, and their own clocks alone stacked 45-65 ms of steps into one Pine frame
  *  (a live admission paints in between). */
+/** Every string a JSON-like value holds, object keys included, handed to `found`, in steps of 4096 visited values (the
+ *  library projections walked a whole product's sections in one ~20-30 ms task of a neighbour's admission at 4x CPU). */
+function* stringsSteps(roots: readonly unknown[], found: (text: string) => void): Generator<void> {
+  const pending: unknown[] = [...roots];
+  let visited = 0;
+  while (pending.length > 0) {
+    const value = pending.pop();
+    if (++visited % 4096 === 0) yield;
+    if (typeof value === 'string') found(value);
+    else if (Array.isArray(value)) { const items: readonly unknown[] = value; for (const item of items) pending.push(item); }
+    else if (typeof value === 'object' && value !== null) for (const [key, child] of Object.entries(value)) { found(key); pending.push(child); }
+  }
+}
+const drive = <T>(steps: Generator<void, T>): T => { for (;;) { const step = steps.next(); if (step.done === true) return step.value; } };
+
 async function paced<T>(steps: Generator<void, T>, pause: () => Promise<void>): Promise<T> {
   let started = performance.now(), result = steps.next();
   while (result.done !== true) {
@@ -141,6 +156,13 @@ function* specimenCosts(source: Shardfile, assets: ReadonlyMap<string, Uint8Arra
  * Transport stays fully charged. References elsewhere or dependencies keep an asset resident;
  * arbitrary runtime names and unselected scene batches are never treated as tier selectors. */
 export function tierLibrarySource(source: Shardfile, tier: 'phone' | 'desktop', assets?: ReadonlyMap<string, Uint8Array>): Shardfile {
+  return drive(tierLibrarySourceSteps(source, tier, assets));
+}
+/** `tierLibrarySource`, paced like the admission's other projections. */
+export function tierLibrarySourcePaced(source: Shardfile, tier: 'phone' | 'desktop', assets: ReadonlyMap<string, Uint8Array>, pause: (() => Promise<void>) | undefined): Promise<Shardfile> {
+  return paced(tierLibrarySourceSteps(source, tier, assets), pause ?? (() => Promise.resolve()));
+}
+function* tierLibrarySourceSteps(source: Shardfile, tier: 'phone' | 'desktop', assets?: ReadonlyMap<string, Uint8Array>): Generator<void, Shardfile> {
   const descriptor = outputDescriptor(source);
   if (descriptor === undefined) return source;
   const names = new Map<string, string>();
@@ -217,14 +239,8 @@ export function tierLibrarySource(source: Shardfile, tier: 'phone' | 'desktop', 
     alternative(selected.geometry, other.geometry); if (selected.atlas !== undefined && other.atlas !== undefined) alternative(selected.atlas, other.atlas);
   }
   if (inactive.size === 0) return source;
-  const visit = (input: unknown): void => {
-    if (typeof input === 'string') { const hash = names.get(input); if (hash !== undefined) used.add(hash); }
-    else if (Array.isArray(input)) for (const value of input) visit(value);
-    else if (typeof input === 'object' && input !== null) for (const [key, value] of Object.entries(input)) { visit(key); visit(value); }
-  };
   const { files: _files, library: _library, critical: _critical, manifest: _manifest, ...fields } = source;
-  visit({ ...fields, manifest });
-  for (const value of sections.values()) visit(value);
+  yield* stringsSteps([{ ...fields, manifest }, ...sections.values()], text => { const hash = names.get(text); if (hash !== undefined) used.add(hash); });
   for (const file of source.files) for (const ref of file.dependencies) used.add(ref);
   const excluded = new Set([...inactive].filter(hash => !used.has(hash)));
   const library = new Set(source.library), saving = source.files.reduce((sum, file) =>
@@ -237,6 +253,13 @@ export function tierLibrarySource(source: Shardfile, tier: 'phone' | 'desktop', 
 /** Immutable manifest/journal URLs never create the data-URL string charged by image intake.
  * Keep one wire copy, CPU pixels and compositor pixels. Any other reader retains the full envelope. */
 export function urlImageLibrarySource(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>): Shardfile {
+  return drive(urlImageLibrarySourceSteps(source, assets));
+}
+/** `urlImageLibrarySource`, paced like the admission's other projections. */
+export function urlImageLibrarySourcePaced(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, pause: (() => Promise<void>) | undefined): Promise<Shardfile> {
+  return paced(urlImageLibrarySourceSteps(source, assets), pause ?? (() => Promise.resolve()));
+}
+function* urlImageLibrarySourceSteps(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>): Generator<void, Shardfile> {
   const descriptor = outputDescriptor(source);
   if (descriptor === undefined) return source;
   const names = new Map<string, string>();
@@ -246,12 +269,8 @@ export function urlImageLibrarySource(source: Shardfile, assets: ReadonlyMap<str
     if (file.name !== undefined) names.set(file.name, file.hash);
   }
   const eligible = new Set<string>(), other = new Set<string>();
-  const visit = (value: unknown, into: Set<string>): void => {
-    if (typeof value === 'string') { const hash = names.get(value); if (hash !== undefined) into.add(hash); }
-    else if (Array.isArray(value)) for (const child of value) visit(child, into);
-    else if (typeof value === 'object' && value !== null) for (const [key, child] of Object.entries(value)) { visit(key, into); visit(child, into); }
-  };
-  visit(source.manifest, eligible);
+  const into = (set: Set<string>) => (text: string): void => { const hash = names.get(text); if (hash !== undefined) set.add(hash); };
+  yield* stringsSteps([source.manifest], into(eligible));
   const compendiums = source.rows.compendiums.map(row => {
     if (!('kind' in row)) return row;
     for (const ref of journalImageRefs(row)) { const hash = names.get(ref); if (hash !== undefined) eligible.add(hash); }
@@ -261,9 +280,10 @@ export function urlImageLibrarySource(source: Shardfile, assets: ReadonlyMap<str
     }), ...(row.chalk === undefined ? {} : { chalk: { ...row.chalk, atlas: '' } }) };
   });
   const { files: _files, library: _library, critical: _critical, manifest: _manifest, rows, ...fields } = source;
-  visit({ ...fields, rows: { ...rows, compendiums } }, other);
   // These two typed sections are already represented by source.manifest/source.rows.
-  for (const [name, section] of descriptor.sections) if (name !== 'ui/level' && name !== 'ui/compendium') visit(section, other);
+  const sections: unknown[] = [];
+  for (const [name, section] of descriptor.sections) if (name !== 'ui/level' && name !== 'ui/compendium') sections.push(section);
+  yield* stringsSteps([{ ...fields, rows: { ...rows, compendiums } }, ...sections], into(other));
   for (const file of source.files) for (const ref of file.dependencies) other.add(ref);
   const library = new Set(source.library);
   let saving = 0;

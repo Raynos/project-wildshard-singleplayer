@@ -144,14 +144,28 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
   return source;
 }
 
+/** Per admitted file list: its own hashes and each hash's first index entry (outputBlobUrl ran a search of both per
+ *  call, once per asset: O(files^2), ~28 ms of a neighbour's admission at 4x CPU). */
+const blobLookups = new WeakMap<object, { readonly own: ReadonlySet<string>; readonly entries: ReadonlyMap<string, OutputIndex['files'][number]> }>();
+function blobLookup(source: Shardfile, descriptor: OutputDescriptor): { readonly own: ReadonlySet<string>; readonly entries: ReadonlyMap<string, OutputIndex['files'][number]> } {
+  let lookup = blobLookups.get(source.files);
+  if (lookup === undefined) {
+    const entries = new Map<string, OutputIndex['files'][number]>();
+    for (const entry of descriptor.index.files) if (!entries.has(entry.hash)) entries.set(entry.hash, entry);
+    lookup = { own: new Set(source.files.map(file => file.hash)), entries };
+    blobLookups.set(source.files, lookup);
+  }
+  return lookup;
+}
+
 /** Resolve only a declared format-2 blob, using its admitted kind/hash path. */
 export function outputBlobUrl(source: Shardfile, ref: string, base: string): string {
   const hash = ref.replace(/^commons:/u, '');
+  const descriptor = outputDescriptor(source), lookup = descriptor === undefined ? undefined : blobLookup(source, descriptor);
   if (!/^[a-f0-9]{64}$/u.test(hash) || (ref.startsWith('commons:')
-    ? !source.requires.commons.includes(hash) : !source.files.some(file => file.hash === hash))) throw new Error('Undeclared shardfile blob');
-  const descriptor = outputDescriptor(source);
-  if (descriptor === undefined) throw new Error('Blob reads require an admitted format-2 output');
-  const file = descriptor.index.files.find(entry => entry.hash === hash);
+    ? !source.requires.commons.includes(hash) : !(lookup?.own.has(hash) ?? source.files.some(file => file.hash === hash)))) throw new Error('Undeclared shardfile blob');
+  if (descriptor === undefined || lookup === undefined) throw new Error('Blob reads require an admitted format-2 output');
+  const file = lookup.entries.get(hash);
   if (file === undefined) throw new Error('Missing shardfile blob path');
   return new URL(outputBlobPath(file), base).href;
 }

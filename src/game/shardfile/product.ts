@@ -17,7 +17,7 @@ import { preflightShardfile } from '@wildshard/format/preflight';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { assertExternalShardSlug, externalShardInstance } from './identity';
 import { runtimeBoundWorldFiles } from '../plugin/headless';
-import { neighbourProductFilesPaced, runtimeOnlyProductFilesPaced, tierLibrarySource, urlImageLibrarySource, scopedSpecimenLibrarySourcePaced, deviceLibraryCostPaced } from './productCost';
+import { neighbourProductFilesPaced, runtimeOnlyProductFilesPaced, tierLibrarySourcePaced, urlImageLibrarySourcePaced, scopedSpecimenLibrarySourcePaced, deviceLibraryCostPaced } from './productCost';
 import { carryOutputDescriptor, IncompleteOutputCacheError, isBuildValidatedOutput, outputBlobUrl, outputDescriptor, resolveOutputDescriptor } from './outputDescriptor';
 
 
@@ -346,9 +346,9 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
     const hash = hashes.get(bytes); if (hash === undefined) throw new Error('Asset was not hashed'); return hash;
   }, options.memory, options.textures, scriptAdmissionRows(outputDescriptor(source)?.sections));
   if (receipt !== null && options.textures !== undefined) {
-    const tierSource = options.tier === undefined ? source : tierLibrarySource(source, options.tier, assets);
+    const tierSource = options.tier === undefined ? source : await tierLibrarySourcePaced(source, options.tier, assets, options.pause);
     await options.pause?.();
-    const imageSource = urlImageLibrarySource(tierSource, assets);
+    const imageSource = await urlImageLibrarySourcePaced(tierSource, assets, options.pause);
     await options.pause?.();
     const scopedSource = await scopedSpecimenLibrarySourcePaced(imageSource, assets,
       options.tier === undefined ? undefined : { tier: options.tier, ...(options.quality === undefined ? {} : { overrides: options.quality }) }, options.pause);
