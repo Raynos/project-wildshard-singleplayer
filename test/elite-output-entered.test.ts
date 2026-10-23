@@ -8,6 +8,11 @@ import { beforeAll,afterAll,beforeEach, expect, test, vi } from 'vitest';
 import { Window } from 'happy-dom';
 import { Group, PerspectiveCamera, Scene, Vector3, SkinnedMesh, MeshLambertMaterial } from 'three';
 import { Scope } from '../src/engine/app/scope';
+import { createSimHost } from '../src/engine/sim';
+import { CharacterMotor } from '../src/engine/physics/CharacterMotor';
+import { loadRapier } from '../src/engine/physics/rapier';
+import { fixtureBytes } from './fixtures/nativeBytes';
+import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { withOwner } from '../src/engine/app/ownership';
 import { app } from '../src/engine/app/runtime';
 import { StrikeRunner } from '../src/engine/ai/strikes';
@@ -45,6 +50,7 @@ beforeAll(async () => {
   // AssemblyScript chooses its global object once at compiler initialization.
   // Compile in actual Node BEFORE lending the window used by these widgets.
   await mixedRows(0);
+  await callerRows();
   vi.stubGlobal('window',dom);vi.stubGlobal('document',dom.document);
   vi.stubGlobal('HTMLElement',dom.HTMLElement);vi.stubGlobal('HTMLCanvasElement',dom.HTMLCanvasElement);
   vi.stubGlobal('ResizeObserver',dom.ResizeObserver);vi.stubGlobal('MutationObserver',dom.MutationObserver);
@@ -359,4 +365,79 @@ test('retirement by an earlier mixed operation fences a later channel without re
     expect(() => f.elites.drainEnteredOutputs()).toThrow(/Retired|owner/);
     expect(f.trace).toEqual([['ignite',11,1,2]]);expect(runner.channel(1)).toBe(11);
   } finally { f.root.dispose(); }
+});
+
+
+let callerCode: Promise<SpawnScriptRows> | undefined;
+function callerRows(): Promise<SpawnScriptRows> {
+  callerCode ??= (async () => {
+    const original = await mixedRows(0);
+    if (original.v2 === undefined) throw new Error('Missing caller fixture selection');
+    const callerCapacities = [...mixedCapacities, { kind: 6, capacity: 2 }];
+    const callerLayout = layoutV2(2048,1,new Map(callerCapacities.map(row => [row.kind,row.capacity])));
+    const modern = await compileSimV2(`import * as ws from './sdk/as/wsV2';export function onBinding():void{
+      assert(ws.fieldId(0)==2&&ws.fieldPresent(0)&&ws.field(0)==123);
+      assert(ws.fieldId(1)==1&&ws.fieldPresent(1)&&ws.field(1)==7);
+      ws.actorCommand(12,ws.self(),1,0,0);
+    }`, { io: 2048, ioBytes: callerLayout.bytes });
+    const { effects: _effects, ...selection } = original.v2;
+    return parseSpawnScript({ ...original,
+      slots: [{ id: 'main', handle: 7 }],
+      sites: [{ id: 'home', slot: 'main', point: [3,4], face: 'player' }],
+      fields: [{ id: 'grass', source: 'observed' }, { id: 'clock', source: 'observed' }],
+      script: { ...original.script, params: {}, actors: { main: 'main' }, fields: { grass: 'grass', clock: 'clock' } },
+      v2: { ...selection, capacities: callerCapacities, artifact: { ...selection.artifact, hash: sha256(modern), ioBytes: callerLayout.bytes },
+        bytes: btoa(String.fromCodePoint(...modern)), self: 'main',
+        columns: [{ name: 'grass', id: 1, source: { kind: 'grass', at: 'self' } }] },
+    });
+  })();
+  return callerCode;
+}
+
+test('the production external adoption runs ABI2 on its original native body and forwards effects at the original drain', async () => {
+  const rows = await callerRows(), f = fixture();
+  const rapier = await loadRapier(Uint8Array.from(fixtureBytes(new URL('../public/assets/physics/rapier.wasm', import.meta.url))));
+  const recipe = SIM_LEVEL.entities[0];
+  if (recipe === undefined) throw new Error('Missing native body recipe');
+  const host = createSimHost({ ...SIM_LEVEL, quests: [], entities: [{ ...recipe, spec: { ...recipe.spec, kind: 'reed-cat', variant: 'silver' } }] }, { rapier });
+  try {
+    const native = host.entities.get(recipe.id);
+    if (native === undefined) throw new Error('Missing original native body');
+    const motor = native.motor;
+    if (motor !== null && !(motor instanceof CharacterMotor)) throw new Error('Unexpected native motor');
+    const body = legacyDouble<Animal>(Object.assign(native, { motor, mesh: new SkinnedMesh() }));
+    body.position.set(3,2,4); f.loans.animals.animals = [body];
+    const sample = vi.spyOn(f.environment, 'grassHeightAt').mockImplementation((x,z) => x+z);
+    const create = vi.spyOn(SpawnScript, 'page');
+    const controller = withOwner(f.entered, () => new ExternalElitePage({
+      def: { ...f.keeper.def, id: 'reed.rider' }, mode: 'script', tell: [.2,.3,.4],
+      step: 'rider', ready: 'ready', damage: 'damage', broken: 'beaten',
+      cues: { warning: { voice: 'warning' } }, adopted: { scale: 1, kind: 'reed-cat', variant: 'silver', feed: 'Joined' },
+      states: {}, spawn: { source: 'rider', variant: 'rider', yaw: 0 },
+    }, { ...f.loans, elites: f.elites, spawnOwners: { scope: f.entered, environment: f.environment } },
+    legacyDouble<ReturnProgram>({ project: () => ({ count: 0 }) }), new Group(), rows));
+    f.elites.add(controller); f.controllers.push({ kind: 'external', owner: controller });
+    const presentation = f.presentation[f.keeper.def.id];
+    if (presentation === undefined) throw new Error('Missing entered presentation');
+    f.presentation[controller.def.id] = presentation;
+    f.bind(parseEliteOutputActions([{ id: 6, controller: 1, kind: 'sound', cue: 'warning' }], 2));
+    controller.spawn(); controller.drainEffects(); controller.adopt(body);
+    const creation = create.mock.results[0];
+    if (creation?.type !== 'return') throw new Error('Missing production actor runner');
+    const runner = creation.value; create.mockRestore();
+    expect(runner.body('main')).toBe(body);
+    const checkpoint = body.snapshot(), rng = host.rng.snapshot();
+    for (let tick = 1; tick <= 6; tick++) controller.tick(1/60,123,false,false);
+    expect(runner.failure).toBeNull(); expect(runner.host.snapshot().staged).toHaveLength(1);
+    expect(sample.mock.calls).toEqual([[3,4]]); expect(f.trace).toEqual([]); expect(controller.drainEffects()).toEqual([]);
+    controller.tick(1/60,123,false,false); expect(f.trace).toEqual([]);
+    f.elites.drainEnteredOutputs(); expect(f.trace).toEqual([['sound','warning',3,2,4]]);
+    expect(controller.animal).toBe(body); expect(f.loans.animals.animals).toHaveLength(1); expect(f.loans.animals.animals[0]).toBe(body);
+    expect(body.snapshot()).toEqual(checkpoint); expect(host.rng.snapshot()).toEqual(rng);
+    f.elites.drainEnteredOutputs(); expect(f.trace).toHaveLength(1);
+    const retirement = f.root.disposeSteps(); retirement.next();
+    expect(() => controller.tick(1/60,123,false,false)).toThrow(/Retired/);
+    for (const step of retirement) void step;
+    expect(host.rng.snapshot()).toEqual(rng);
+  } finally { host.dispose(); f.root.dispose(); }
 });

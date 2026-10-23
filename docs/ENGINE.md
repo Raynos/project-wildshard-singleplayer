@@ -10521,6 +10521,13 @@ impulse and weather still need their own feature owners.
 `actors/spawn-scripts` admits population-owned v1 rows separately from the
 normal actor decision catalogue. `scriptAdmissionRows` supplies both sets to
 product byte/memory admission; automatic actor decisions still read only
+The compiled Elites entry lends its SAME entered scope, environment,
+clock and weather to external actor scripts. Explicit ABI2 fight rows
+select the existing page runner at adoption; ABI1 retains its original
+constructor call. Observation capture stays at the due actor tick, and
+external effects remain in the original post-update entered drain.
+No query or world rights are inferred from these loans.
+
 `sim/scripts`. Catalogue bytes are empty: `readSpawnScript(product, step)`
 resolves the exact declared module through the admitted product inventory,
 then supplies those verified bytes to the synchronous owner. The worker

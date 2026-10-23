@@ -112,3 +112,14 @@ test('compiled v2 strike commands retain the native contact kernel and consume a
     expect(runner.failure).toBeNull();
   } finally { f.host.dispose(); }
 });
+
+
+test('a retired ABI2 page owner refuses before instantiation or body adoption', async () => {
+  const f = await fixture(), scope = new Scope('retired.page');
+  scope.dispose();
+  const original = f.body.snapshot(), instance = vi.spyOn(WebAssembly, 'Instance');
+  try {
+    expect(() => SpawnScript.page(f.animals,f.rows.v2,f.host.physics,{ ...f.owners,scope })).toThrow('Retired');
+    expect(instance).not.toHaveBeenCalled(); expect(f.body.snapshot()).toEqual(original);
+  } finally { instance.mockRestore(); f.host.dispose(); }
+});

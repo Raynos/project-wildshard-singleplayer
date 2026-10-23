@@ -114,6 +114,7 @@ export class SpawnScript {
     this.contract = JSON.stringify({ ...originalRows, script: decisionScriptContract(rows.script), bytes: undefined });
     this.v2Contract = selected === undefined ? undefined : JSON.stringify({ ...selected,bytes: undefined });
     if (selected !== undefined && v2Owners === undefined) throw new Error('V2 spawn requires entered concrete owners');
+    if (selected !== undefined && (v2Owners?.scope.disposed === true || v2Owners?.scope.disposing === true)) throw new Error('Retired v2 actor scope');
     if (selected?.queries !== undefined && queryLoans === undefined) throw new Error('Missing concrete query world authority');
     if (selected?.queries === undefined && queryLoans !== undefined) throw new Error('Undeclared query world authority');
     if (selected?.effects?.elites === true && (effectOwners?.elites === undefined || bodies.pageActor === undefined)) throw new Error('Missing concrete page effect authority');

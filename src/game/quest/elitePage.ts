@@ -18,7 +18,7 @@ import { Impacts } from '@wildshard/engine/fx/Impacts';
 import { GroundTell } from '@wildshard/engine/fx/groundTell';
 import type { Elites, EliteScript, EliteDef } from '../Elite';
 import { DomePuffs } from '@wildshard/engine/fx/groundFx';
-import { SpawnScript } from '../population/spawnScript';
+import { SpawnScript, type SpawnV2Owners } from '../population/spawnScript';
 import { EliteDecisions } from './eliteDecisions';
 import { parseEliteFeature, parseExternalElite, type ExternalEliteData } from '@wildshard/format/eliteFeature';
 
@@ -139,7 +139,7 @@ export class ExternalElitePage implements EliteScript {
   private readonly from = new THREE.Vector3(); private readonly to = new THREE.Vector3();
   private observations: { available: boolean; kills: number; bonded: boolean; mount: Animal | null } = { available: false, kills: 0, bonded: false, mount: null };
   private eligible = false;
-  constructor(readonly row: ExternalEliteData, private readonly services: { readonly game: Game; readonly animals: AnimalManager; readonly player: Player; readonly elites: Elites },
+  constructor(readonly row: ExternalEliteData, private readonly services: { readonly game: Game; readonly animals: AnimalManager; readonly player: Player; readonly elites: Elites; readonly spawnOwners?: SpawnV2Owners },
     private readonly decisions: ReturnProgram, private readonly drop: THREE.Object3D, private readonly fight?: SpawnScriptRows, deferPresentation = false) {
     this.row = parseExternalElite(row); this.def = row.def;
     if (!deferPresentation) this.tellValue = new GroundTell(services.game.scene, 'lane', new THREE.Color(...row.tell));
@@ -163,10 +163,16 @@ export class ExternalElitePage implements EliteScript {
   spawn(): void { if (this.animal?.alive === true || this.pending) return; this.pending = true; this.events.push({ kind: 'request', row: this.row }); }
   adopt(animal: Animal, herd: EncounterHerd | null = null): void {
     if (!this.pending) throw new Error('Unrequested encounter body');
+    const modern = this.row.mode === 'script' && this.fight?.v2 !== undefined
+      ? SpawnScript.page(this.services.animals, this.fight, this.services.game.app.physics, this.services.spawnOwners, this.services.elites)
+      : null;
+    modern?.adopt('main', animal.entityId);
     this.pending = false; this.animal = animal; this.herd = herd;
     if (this.row.mode === 'script') {
       const fight = this.fight; if (fight === undefined) throw new Error('Missing encounter fight');
-      this.program = SpawnScript.page(this.services.animals, fight, this.services.game.app.physics); this.program.adopt('main', animal.entityId);
+      if (modern === null) {
+        this.program = SpawnScript.page(this.services.animals, fight, this.services.game.app.physics); this.program.adopt('main', animal.entityId);
+      } else this.program = modern;
       setEliteDamage(animal, (_body, point) => this.decisions.project(this.row.damage, { mode: Number(this.program?.state('main')['mode'] ?? 0), distance: point.distanceTo(this.services.player.position) })['scale'] ?? 1);
     } else {
       for (const material of Array.isArray(animal.mesh.material) ? animal.mesh.material : [animal.mesh.material]) if (material instanceof THREE.MeshLambertMaterial) material.color.setRGB(...this.row.spawn.color);

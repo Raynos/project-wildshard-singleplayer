@@ -193,7 +193,7 @@ export class Elites {
       return { row, model };
     }) : [];
     const controllers = owners.controllers ?? selected.map(({ row, model }) => new ExternalElitePage(row,
-      { game, player, animals, elites: this }, program.value, model, row.mode === 'script' ? owners.fight : undefined, true));
+      { game, player, animals, elites: this, spawnOwners: { scope: entered.scope, environment: owners.environment, clock: owners.clock, weather: owners.weather } }, program.value, model, row.mode === 'script' ? owners.fight : undefined, true));
     if (controllers.length !== rows.borrowed.length || controllers.some((controller, index) => !(controller instanceof ExternalElitePage)
       || controller.def.id !== rows.borrowed[index]?.def.id) || new Set(controllers).size !== controllers.length) throw new Error('Foreign declared borrowed elite controller');
     const emptyActors = new Map<number, Animal>();
