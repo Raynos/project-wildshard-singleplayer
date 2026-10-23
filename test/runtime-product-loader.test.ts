@@ -242,6 +242,13 @@ test('independent platform sections keep their file-path inputs for synchronous 
   expect(runtimeOnlyProductFiles(source)).toEqual([]);
 });
 
+test('a neighbour releases world-scene files, which scenes read again through the product; the entered runtime keeps them', async () => {
+  const f = fixture(false, s => new Map([['world/scenes', { version: 1, libraries: [], materials: [], steps: [], catalogue: `blobs/bin/${s.files[0]?.hash ?? ''}.bin` }]]));
+  const source = await readProductDescriptor(f.options);
+  expect(runtimeOnlyProductFiles(source)).toEqual([]);
+  expect(neighbourProductFiles(source)).toEqual([f.ref]);
+});
+
 test('bound props stream tiles and whole geometry while retaining neighbour panel dependencies', () => {
   const f = fixture(), panel = 'b'.repeat(64), texture = 'c'.repeat(64);
   const file = f.source.files[0]; if (file === undefined) throw new Error('Missing fixture file');

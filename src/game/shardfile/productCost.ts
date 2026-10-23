@@ -315,12 +315,12 @@ export function runtimeOnlyProductFiles(source: Shardfile): readonly string[] {
   for (;;) { const step = steps.next(); if (step.done === true) return step.value; }
 }
 /** `runtimeOnlyProductFiles` in steps of 4096 visited values (its walk over a whole product was ~45 ms of a frame). */
-function* runtimeOnlyProductFilesSteps(source: Shardfile): Generator<void, readonly string[]> {
+function* runtimeOnlyProductFilesSteps(source: Shardfile, unread: ReadonlySet<string> = new Set()): Generator<void, readonly string[]> {
   let visited = 0;
   const files = new Map(source.files.map(file => [file.hash, file])), keep = new Set<string>();
   const descriptor = outputDescriptor(source), paths = new Map(descriptor?.index.files.map(file => [file.path, file.hash]));
   const pending: unknown[] = [{ ...source, files: [], critical: [], library: [] },
-    ...[...descriptor?.sections ?? []].flatMap(([name, value]) => isPlatformDataSection(name) ? [value] : [])];
+    ...[...descriptor?.sections ?? []].flatMap(([name, value]) => isPlatformDataSection(name) && !unread.has(name) ? [value] : [])];
   // O14: only strings can name a file: numbers, booleans and nulls (most of a product's rows) are never queued
   const queue = (item: unknown): void => { if (typeof item === 'string' || typeof item === 'object' && item !== null) pending.push(item); };
   while (pending.length > 0) {
@@ -342,16 +342,22 @@ function* runtimeOnlyProductFilesSteps(source: Shardfile): Generator<void, reado
   return source.files.filter(file => !keep.has(file.hash)).map(file => file.hash);
 }
 
+/** Platform sections no neighbour reads synchronously: world scenes read their files through the product's `file()`. */
+const NEIGHBOUR_UNREAD: ReadonlySet<string> = new Set(['world/scenes']);
 /** Neighbours stream terrain, props tiles and placeholders through ClientAssets.read; bound whole geometry belongs to the entered runtime.
- * Keep every synchronous panel, material, physics and simulation reference, including dependencies shared with a tile. */
+ * Keep every synchronous panel, material, physics and simulation reference, including dependencies shared with a tile.
+ * World scenes read every file through the product's asynchronous `file()` (a released file is read again from the
+ * cache or the network), so a neighbour holds none of its scene-only bytes (Nine's world GLBs were ~100 MB of a phone
+ * renderer). */
 export function neighbourProductFiles(source: Shardfile): readonly string[] {
-  return runtimeOnlyProductFiles(neighbourSource(source));
+  const steps = runtimeOnlyProductFilesSteps(neighbourSource(source), NEIGHBOUR_UNREAD);
+  for (;;) { const step = steps.next(); if (step.done === true) return step.value; }
 }
 const neighbourWalks = new WeakMap<Shardfile, Promise<readonly string[]>>();
 /** `neighbourProductFiles` paced like admission, walked once per admitted source (its pins, then its release). */
 export function neighbourProductFilesPaced(source: Shardfile, pause: (() => Promise<void>) | undefined): Promise<readonly string[]> {
   let walk = neighbourWalks.get(source);
-  if (walk === undefined) { walk = paced(runtimeOnlyProductFilesSteps(neighbourSource(source)), pause ?? (() => Promise.resolve())); neighbourWalks.set(source, walk); }
+  if (walk === undefined) { walk = paced(runtimeOnlyProductFilesSteps(neighbourSource(source), NEIGHBOUR_UNREAD), pause ?? (() => Promise.resolve())); neighbourWalks.set(source, walk); }
   return walk;
 }
 /** `runtimeOnlyProductFiles` paced like admission. */
