@@ -1,0 +1,395 @@
+{
+  "schema": 1,
+  "app": "c841c26198",
+  "harness": "656302678ff8375a7e9c7a89a08ac0c8204fbf1e",
+  "proof": "20261023T131512-sp-x1-l9-final-official-55383",
+  "runSeconds": 106,
+  "baseline": "1c61174e7a78ba9659621a02653caf752d1e9a35",
+  "metadata": {
+    "app": "c841c26198",
+    "metadataRawBytes": 30207,
+    "metadataGzipBytes": 7725,
+    "productsRawBytes": 1232,
+    "productsGzipBytes": 516,
+    "extrasRawBytes": 302,
+    "extrasGzipBytes": 206,
+    "selectedBank": [
+      "/assets/boot-sunscar-dunes-27b576af.json",
+      1604,
+      7379944,
+      "27b576aff7050fd90e0621c22f78ddce6cb76d77cb2fa094cdeeb73fdb95cc87"
+    ],
+    "selectedBankActualBytes": 1604,
+    "selectedBankGzipBytes": 522,
+    "selectedFiles": [
+      [
+        "/assets/models-sunscar-dunes-C704-o9v.webp",
+        18878
+      ],
+      [
+        "/assets/physics/rapier.wasm",
+        3292228
+      ],
+      [
+        "/assets/practice-sunscar-dunes-BYn_QKNs.webp",
+        29650
+      ],
+      [
+        "/assets/sets-sunscar-dunes-ofyf7Aky.webp",
+        10346
+      ],
+      [
+        "/assets/sunscar-dunes-B81dM8Mw.jpg",
+        27410
+      ],
+      [
+        "/assets/sunscar-dunes-landscape-l6_A2Wap.jpg",
+        116503
+      ],
+      [
+        "/assets/sunscar-dunes-portrait-CPb7DZ2F.jpg",
+        192736
+      ],
+      [
+        "/assets/sunscar-dunes/baked/braziers.glb",
+        26592
+      ],
+      [
+        "/assets/sunscar-dunes/baked/caravan.glb",
+        28508
+      ],
+      [
+        "/assets/sunscar-dunes/baked/dressing.glb",
+        127120
+      ],
+      [
+        "/assets/sunscar-dunes/baked/lash.glb",
+        357220
+      ],
+      [
+        "/assets/sunscar-dunes/baked/plait.bin",
+        20679
+      ],
+      [
+        "/assets/sunscar-dunes/baked/rest-fire.glb",
+        72196
+      ],
+      [
+        "/assets/sunscar-dunes/baked/rest-oil.glb",
+        3336
+      ],
+      [
+        "/assets/sunscar-dunes/baked/rest-well.glb",
+        8124
+      ],
+      [
+        "/assets/sunscar-dunes/baked/rocks.glb",
+        11552
+      ],
+      [
+        "/assets/sunscar-dunes/baked/tower.glb",
+        27540
+      ],
+      [
+        "/assets/sunscar-dunes/baked/well.glb",
+        186244
+      ],
+      [
+        "/assets/sunscar-dunes/models/brazier-hd/brazier-hd.glb",
+        218476
+      ],
+      [
+        "/assets/sunscar-dunes/models/caravan-scout/caravan-scout.glb",
+        309596
+      ],
+      [
+        "/assets/sunscar-dunes/models/crates-hd/crates-hd.glb",
+        86300
+      ],
+      [
+        "/assets/sunscar-dunes/models/glove-hd4/glove-hd4.glb",
+        202288
+      ],
+      [
+        "/assets/sunscar-dunes/models/horse-hd/horse-hd.glb",
+        166220
+      ],
+      [
+        "/assets/sunscar-dunes/models/sacks-hd/sacks-hd.glb",
+        203668
+      ],
+      [
+        "/assets/sunscar-dunes/models/wagon-hd2/wagon-hd2.glb",
+        252464
+      ],
+      [
+        "/assets/sunscar-dunes/rigs/matriarch.glb",
+        638824
+      ],
+      [
+        "/assets/sunscar-dunes/rigs/ray.glb",
+        643436
+      ],
+      [
+        "/assets/sunscar-dunes/rigs/skitterer.glb",
+        5740
+      ],
+      [
+        "/assets/sunscar-dunes/rigs/strider.glb",
+        84196
+      ],
+      [
+        "/assets/world-sunscar-dunes-2wnUOYu1.webp",
+        11874
+      ]
+    ]
+  },
+  "modes": {
+    "cold": {
+      "loaderPaintMs": 49,
+      "loaderEndMs": 4946,
+      "controlsMs": 5292,
+      "controlsObservationIntervalMs": 500,
+      "admissionMs": 1753,
+      "errors": [],
+      "download": {
+        "measuredFrames": 50,
+        "missingFrames": 4,
+        "denominatorChangesAfterAdmission": 0,
+        "downloadDrops": 0,
+        "maxPercentError": 0.972450265797761,
+        "finalDeclaredBytes": 25643369
+      },
+      "transport": {
+        "wireBodyBytes": 15069657,
+        "networkContentBytes": 22423771,
+        "unknownContentResponses": 0,
+        "responses": 451,
+        "expectedUnit": "file content before HTTP compression; includes cache hits",
+        "observedUnit": "HTTP response bodies; excludes cache hits and headers"
+      },
+      "finalCounters": {
+        "cachedBytes": 2773181,
+        "pendingBytes": 0
+      },
+      "setupStarts": [
+        {
+          "step": "modules",
+          "at": 282,
+          "setup": 0,
+          "elapsedPercent": 5.709657825470743,
+          "errorPoints": 5.709657825470743
+        },
+        {
+          "step": "admission",
+          "at": 801,
+          "setup": 11,
+          "elapsedPercent": 16.21785786596477,
+          "errorPoints": 5.2178578659647705
+        },
+        {
+          "step": "data",
+          "at": 2568,
+          "setup": 47,
+          "elapsedPercent": 51.99433083620166,
+          "errorPoints": 4.994330836201662
+        },
+        {
+          "step": "world",
+          "at": 2665,
+          "setup": 48,
+          "elapsedPercent": 53.958291152055075,
+          "errorPoints": 5.958291152055075
+        },
+        {
+          "step": "loadout",
+          "at": 3718,
+          "setup": 73,
+          "elapsedPercent": 75.27839643652561,
+          "errorPoints": 2.278396436525611
+        },
+        {
+          "step": "shaders",
+          "at": 4065.0000000000005,
+          "setup": 78,
+          "elapsedPercent": 82.3041101437538,
+          "errorPoints": 4.304110143753803
+        },
+        {
+          "step": "firstFrame",
+          "at": 4451.000000000001,
+          "setup": 88,
+          "elapsedPercent": 90.11945738003647,
+          "errorPoints": 2.119457380036465
+        }
+      ],
+      "maxSetupStartErrorPoints": 5.958291152055075,
+      "completionBeforeFade": true,
+      "stepTotals": [
+        15
+      ],
+      "stepNumberDrops": 0,
+      "legacyPackRequests": 0,
+      "audioRequests": 0,
+      "artRequests": [
+        {
+          "path": "/shardfiles/sunscar-dunes/blobs/image/40a66e35cec793dcfa92a8ee6517fa1ccf446f8df7c804d1f8787a7459578f07.jpg",
+          "bytes": 192736
+        },
+        {
+          "path": "/shardfiles/sunscar-dunes/blobs/image/6a354a8effc4e93057314f0351827a6aaa02036320a3a5f2bfbe1fd35ec4360e.jpg",
+          "bytes": 116503
+        },
+        {
+          "path": "/shardfiles/sunscar-dunes/blobs/image/7ac3525da991c85e5fe81b3e6543eb3e9a3ba65da6bc877e658174701984973b.webp",
+          "bytes": 29650
+        },
+        {
+          "path": "/shardfiles/sunscar-dunes/blobs/image/9bd2e2ead0c47f5cf504d46a522b4ccfe2d3af7ebb04202a768252b3be2d127a.webp",
+          "bytes": 10346
+        },
+        {
+          "path": "/shardfiles/sunscar-dunes/blobs/image/9f7c40dfb28c8761937843f5c9acf592b2de8c559994018f0c7de7a259940959.jpg",
+          "bytes": 27410
+        },
+        {
+          "path": "/shardfiles/sunscar-dunes/blobs/image/bac9393474d96298d9bd4a407197d0bc86be913b872c8430e8f2e0aabd5cb399.webp",
+          "bytes": 172348
+        },
+        {
+          "path": "/shardfiles/sunscar-dunes/blobs/image/bf3447eb261c0de4d17064d50bcb5ee71fdad5b5d0ec1e721dd5bfa4b982b8e1.webp",
+          "bytes": 11874
+        },
+        {
+          "path": "/shardfiles/sunscar-dunes/blobs/image/ce569d724b47ead1617f3a3ecd84aeae0948c8f3e8b714f8e3fa20776a7731e7.webp",
+          "bytes": 18878
+        },
+        {
+          "path": "/assets/sunscar-dunes-landscape-l6_A2Wap.jpg",
+          "bytes": 116503
+        },
+        {
+          "path": "/assets/world-sunscar-dunes-2wnUOYu1.webp",
+          "bytes": 11874
+        },
+        {
+          "path": "/assets/models-sunscar-dunes-C704-o9v.webp",
+          "bytes": 18878
+        },
+        {
+          "path": "/assets/sets-sunscar-dunes-ofyf7Aky.webp",
+          "bytes": 10346
+        },
+        {
+          "path": "/assets/practice-sunscar-dunes-BYn_QKNs.webp",
+          "bytes": 29650
+        },
+        {
+          "path": "/assets/sunscar-dunes/sky/dusk-late.webp",
+          "bytes": 33376
+        },
+        {
+          "path": "/assets/sunscar-dunes/sky/dusk-early.webp",
+          "bytes": 84814
+        }
+      ],
+      "unknownTimingSizes": 222
+    },
+    "warm": {
+      "loaderPaintMs": 29,
+      "loaderEndMs": 4555,
+      "controlsMs": 4973,
+      "controlsObservationIntervalMs": 500,
+      "admissionMs": 1630,
+      "errors": [],
+      "download": {
+        "measuredFrames": 43,
+        "missingFrames": 2,
+        "denominatorChangesAfterAdmission": 0,
+        "downloadDrops": 0,
+        "maxPercentError": 10.351932462540319,
+        "finalDeclaredBytes": 25643369
+      },
+      "transport": {
+        "wireBodyBytes": 147653,
+        "networkContentBytes": 147653,
+        "unknownContentResponses": 0,
+        "responses": 11,
+        "expectedUnit": "file content before HTTP compression; includes cache hits",
+        "observedUnit": "HTTP response bodies; excludes cache hits and headers"
+      },
+      "finalCounters": {
+        "cachedBytes": 5948362,
+        "pendingBytes": 0
+      },
+      "setupStarts": [
+        {
+          "step": "modules",
+          "at": 170,
+          "setup": 0,
+          "elapsedPercent": 3.7354427598330036,
+          "errorPoints": 3.7354427598330036
+        },
+        {
+          "step": "admission",
+          "at": 243,
+          "setup": 11,
+          "elapsedPercent": 5.339485827290705,
+          "errorPoints": 5.660514172709295
+        },
+        {
+          "step": "data",
+          "at": 1880.0000000000002,
+          "setup": 47,
+          "elapsedPercent": 41.30960228521205,
+          "errorPoints": 5.690397714787949
+        },
+        {
+          "step": "world",
+          "at": 2610,
+          "setup": 48,
+          "elapsedPercent": 57.350032959789054,
+          "errorPoints": 9.350032959789054
+        },
+        {
+          "step": "loadout",
+          "at": 3478,
+          "setup": 73,
+          "elapsedPercent": 76.42276422764228,
+          "errorPoints": 3.4227642276422756
+        },
+        {
+          "step": "shaders",
+          "at": 3780.0000000000005,
+          "setup": 78,
+          "elapsedPercent": 83.0586684245221,
+          "errorPoints": 5.0586684245220965
+        },
+        {
+          "step": "firstFrame",
+          "at": 4126,
+          "setup": 88,
+          "elapsedPercent": 90.66139310041748,
+          "errorPoints": 2.6613931004174844
+        }
+      ],
+      "maxSetupStartErrorPoints": 9.350032959789054,
+      "completionBeforeFade": true,
+      "stepTotals": [
+        15
+      ],
+      "stepNumberDrops": 0,
+      "legacyPackRequests": 0,
+      "audioRequests": 0,
+      "artRequests": [],
+      "unknownTimingSizes": 514
+    }
+  },
+  "verdict": {
+    "timing": "Cold and warm meet controls budgets; polling interval is 500 ms. First paint remains below baseline62/32ms. Admission remains below2500ms.",
+    "download": "Fixed denominator and zero drops in both modes. Cold ratio error below1point. Warm original receipt has one10.35point mixed-snapshot sample; subsequent source fix is regression-tested and is not device-measured here.",
+    "size": "Cold wire bodies15.070MB exceed1.2x5.67MB product target. Required rawmodels and Rapier remain outside product. No legacy packs or audio downloaded.",
+    "units": "Declared25.643MB includes cache hits and decoded module content. Cold network decoded22.424MB and encoded15.070MB are different units; unavailable Safari cache content prevents an independent final5percent coverage verdict. No pass claimed.",
+    "cleanup": "Official reader stopped preview, Safari, proxy and simulator; quiet released."
+  }
+}
