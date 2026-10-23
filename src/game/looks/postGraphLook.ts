@@ -396,7 +396,7 @@ export function paintedWorld(slug: string, input: unknown): PaintedWorldParts {
     // the cloud shadows first, then the panorama fog: every fogged material fades into the painted haze behind it
     fog: { ...ramp, install: () => { air.install(); ramp.install(); } },
     terrainPainter: paintedGroundPainter(slug, row.ground, row.tiles, bake),
-    grass: { build: (sky, forest) => new GrassPresentation(grass, sky, forest, bake, cards).build() },
+    grass: { build: (sky, forest) => new GrassPresentation(grass, sky, forest, bake, cards).build(), prepare: () => grass.prepare() },
     sky: air.sky,
   } };
   paintedWorlds.set(slug, parts);

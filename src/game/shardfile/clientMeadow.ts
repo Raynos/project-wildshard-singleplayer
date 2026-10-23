@@ -12,7 +12,7 @@ export async function installPageMeadow(ctx:ShardContext,input:unknown):Promise<
   if(ctx.scope.disposed||runtime===undefined||world===null||world===undefined||step===null||step===undefined)throw new Error('Meadow requires its counted world owner');
   configureGrassFieldData(input,ctx.scope);
   const result=await step('grass',async()=>{
-    const grass=new Grass(world.sky,world.forest).build();await macrotask();
+    const grass=new Grass(world.sky,world.forest);await grass.prepare();grass.build();await macrotask();
     const particles=new Particles(world.sky,world.forest).build();
     world.game.scene.add(grass.group,particles.group);return {grass,particles};
   });

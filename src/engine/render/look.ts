@@ -117,8 +117,9 @@ export interface TerrainPainter { build: (t: Terrain, field: PainterField, scope
 
 /** what a `GrassDriver` builds: its group goes in the scene, `update` runs every frame from the engine's Grass */
 export interface GrassLayer { group: Group | Object3D; update: (dt: number, playerPos: Vector3) => void }
-/** a level's own grass in place of the engine's carpet (Grass.build) */
-export interface GrassDriver { build: (sky: Sky, forest: Forest) => GrassLayer }
+/** a level's own grass in place of the engine's carpet (Grass.build); `prepare` (Grass.prepare, awaited before the
+ *  synchronous build) does what can run across frames first: compiling its looks, decoding its buffers */
+export interface GrassDriver { build: (sky: Sky, forest: Forest) => GrassLayer; prepare?: () => Promise<void> }
 
 /**
  * A level's own sky layer on the engine's sky rig (07 §6.2 step 5). Sky.build runs `build` where it builds its cloud

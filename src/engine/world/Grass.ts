@@ -148,6 +148,13 @@ export class Grass {
     this.policy = policy;
   }
 
+  /** The level look's grass driver's preparation (`GrassDriver.prepare`), if it has one: await it before `build`, so a
+   *  look's compiles and decodes take turns with the frame instead of all landing in the build's (G639). */
+  async prepare(): Promise<void> {
+    const bound = boundLevelLook();
+    await (bound === undefined ? app.render?.look : bound)?.grass?.prepare?.();
+  }
+
   build(): this {
     // a bound level frame (a grid region) grows its own level's grass, never the page look's (SF63)
     const bound = boundLevelLook();

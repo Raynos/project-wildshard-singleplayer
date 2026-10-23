@@ -4,6 +4,7 @@ import { GrassPresentationSchema, type GrassPresentationRows } from '@wildshard/
 import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 import * as THREE from 'three';
 import { macrotask } from '@wildshard/engine/boot/plan';
+import { workSlice } from '@wildshard/engine/core/workSlice';
 
 import { TIER } from '@wildshard/engine/core/tier';
 import type { Renderer } from '@wildshard/engine/render/renderer';
@@ -25,15 +26,16 @@ import { parseSceneBuffers } from '@wildshard/format/sceneBuffers';
 import { createSceneBuffers } from '@wildshard/game/shardfile/sceneBuffers';
 import { resourceScope } from '@wildshard/engine/app/resources';
 
-import { lentLook, setLentParam, setLentTexture } from '../shardfile/lentLooks';
+import { lentLook, prepareLentLooks, setLentParam, setLentTexture } from '../shardfile/lentLooks';
 
 const MAX_TILES = 256;
 type InstancedBufferGeometry = THREE.InstancedBufferGeometry;
 const decode = (encoded: string): Uint8Array<ArrayBuffer> => unzlibSync(base64Bytes(encoded));
-/** Admit the declared instanced drawing buffers. */
-function geometries(encoded: string, look: string): InstancedBufferGeometry[] {
-  const input: unknown = JSON.parse(new TextDecoder().decode(decode(encoded)));
-  return createSceneBuffers(parseSceneBuffers(input), lentLook(look), resourceScope()).children.map(child => {
+/** A scene's draw rows, decoded and admitted. */
+const sceneRows = (encoded: string): ReturnType<typeof parseSceneBuffers> => parseSceneBuffers(JSON.parse(new TextDecoder().decode(decode(encoded))));
+/** Admit the declared instanced drawing buffers (`rows`: the scene's rows a preparation already decoded). */
+function geometries(encoded: string, look: string, rows = sceneRows(encoded)): InstancedBufferGeometry[] {
+  return createSceneBuffers(rows, lentLook(look), resourceScope()).children.map(child => {
     if (!(child instanceof THREE.Mesh) || !(child.geometry instanceof THREE.InstancedBufferGeometry)) throw new Error('Grass draw requires instanced geometry');
     for (const name of ['aTile', 'aHole']) { const attribute = child.geometry.getAttribute(name); if (attribute instanceof THREE.BufferAttribute) attribute.setUsage(THREE.DynamicDrawUsage); }
     return child.geometry;
@@ -51,6 +53,27 @@ export class GrassPresentationProfile {
   track(instance: GrassPresentation): void { this.instances.add(new WeakRef(instance)); }
   readonly input: GrassPresentationRows;
   constructor(input: unknown) { this.input = v.parse(GrassPresentationSchema,input); this.uniforms.uGrassGain.value = this.input.view.gain; }
+  /** what `prepare` decoded for the next build (each taken once: a build owns its arrays) */
+  private readonly prepared = new Map<string, Uint8Array<ArrayBuffer> | ReturnType<typeof parseSceneBuffers>>();
+  /** G639: before the synchronous build, the looks compile one build step each and the maps and draw rows decode in
+   *  slices (together they were one ~200 ms Nalati cell-entry frame, Chromium phone 4x). */
+  async prepare(): Promise<void> {
+    await prepareLentLooks(this.input.view.looks);
+    const slice = workSlice(), rows = this.input[TIER];
+    this.heightTexture(); await slice.check();
+    for (const encoded of [this.input.field, this.input.ground]) { this.prepared.set(encoded, decode(encoded)); await slice.check(); }
+    for (const encoded of [rows.scenes.blades, rows.scenes.flowers, rows.scenes.cards]) { this.prepared.set(encoded, sceneRows(encoded)); await slice.check(); }
+  }
+  /** a map's bytes: prepared, else decoded now */
+  bytes(encoded: string): Uint8Array<ArrayBuffer> {
+    const ready = this.prepared.get(encoded); this.prepared.delete(encoded);
+    return ready instanceof Uint8Array ? ready : decode(encoded);
+  }
+  /** a scene's draw rows: prepared, else decoded now */
+  scene(encoded: string): ReturnType<typeof parseSceneBuffers> {
+    const ready = this.prepared.get(encoded); this.prepared.delete(encoded);
+    return ready === undefined || ready instanceof Uint8Array ? sceneRows(encoded) : ready;
+  }
 readonly uniforms = {
   uSunView: { value: new THREE.Vector3(0, 0.4, 1).normalize() },
   uHemiSky: { value: new THREE.Color(0.4, 0.46, 0.62) },
@@ -105,7 +128,7 @@ export class GrassPresentation {
     const grassRows = profile.input, { heightSize: HN, lattice: LAT, half: CHUNK_HALF } = grassRows.view, LN = Math.ceil(CHUNK_HALF * 2 / LAT) + 1;
     profile.track(this);
     const tHeight = profile.heightTexture();
-    const fd = decode(grassRows.field), gd = decode(grassRows.ground);
+    const fd = profile.bytes(grassRows.field), gd = profile.bytes(grassRows.ground);
     const tField = new THREE.DataTexture(fd, LN, LN, THREE.RGBAFormat); tField.magFilter = tField.minFilter = THREE.LinearFilter; tField.needsUpdate = true;
     const tGround = new THREE.DataTexture(gd, LN, LN, THREE.RGBAFormat); tGround.magFilter = tGround.minFilter = THREE.LinearFilter; tGround.needsUpdate = true;
     this.maskData = new Uint8Array(HN * HN * 4).fill(255);
@@ -129,7 +152,7 @@ export class GrassPresentation {
       this.group.add(mesh);
       return mesh;
     };
-    const blades = geometries(rows.scenes.blades, BLADES);
+    const blades = geometries(rows.scenes.blades, BLADES, this.profile.scene(rows.scenes.blades));
     RINGS.forEach((cfg, ri) => {
       const half = (cfg.G * cfg.T) / 2;
       const geo = blades[ri]; if (geo === undefined) throw new Error('Grass ring missing');
@@ -137,12 +160,12 @@ export class GrassPresentation {
     });
     {
       const cfg = FLOWERS, half = (cfg.G * cfg.T) / 2;
-      const geo = geometries(rows.scenes.flowers, HEADS)[0]; if (geo === undefined) throw new Error('Grass flowers missing');
+      const geo = geometries(rows.scenes.flowers, HEADS, this.profile.scene(rows.scenes.flowers))[0]; if (geo === undefined) throw new Error('Grass flowers missing');
       this.flowers = { T: cfg.T, G: cfg.G, mesh: draw(HEADS, geo, 'grass-v2-flowers'), geo, half };
     }
     // the near field: the painted card atlas as clumps of 3 crossed quads (not camera-facing: they hold up walked round),
     // on the same field, mask, wind and trample as the blades, cut at the atlas's alpha; the atlas swapped in when it lands
-    const per = rows.per, geo = geometries(rows.scenes.cards, CLUMPS)[0];
+    const per = rows.per, geo = geometries(rows.scenes.cards, CLUMPS, this.profile.scene(rows.scenes.cards))[0];
     if (geo === undefined) throw new Error('Grass cards missing');
     setLentParam(CLUMPS, 'cardNear', [NEAR[0], NEAR[1], per]);
     draw(CLUMPS, geo, 'grass-v2-cards');
