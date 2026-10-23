@@ -34,6 +34,7 @@ import renderTiles from '../data/renderTiles.json' with { type: 'json' };
 import kingPose from '../data/goldenKingPose.generated.json' with { type: 'json' };
 import admission from '../behaviour/admission.generated.json' with { type: 'json' };
 import creatureViews from '../behaviour/creatureViews.generated.json' with { type: 'json' };
+import eliteViews from '../behaviour/eliteViews.generated.json' with { type: 'json' };
 
 // The existing plugin remains the trusted world entry while its audio comes from the shardfile.
 // SF48-g edges (G93 / G99 / G103 / G131): the four 8 m midpoint entryways (`emptyShardfile`'s, the engine's ENTRY_WIDTH) stand
@@ -60,8 +61,8 @@ const heldProjection = heldWeapons.program.v2;
 const programMemory = programs.reduce((sum, program) => sum + program.script.pages * 65536 * 2, programBytes)
   + atob(projection.bytes).length + projection.artifact.pages * 65536 * 2
   + atob(heldProjection.bytes).length + heldProjection.artifact.pages * 65536 * 2;
-// the creature view module (behaviour/creatureViews.as): its live and last-good pages on the client
-const viewMemory = creatureViews.pages * 65536 * 2;
+// the creature and elite view modules (behaviour/creatureViews.as, eliteViews.as): their live and last-good pages on the client
+const viewMemory = (creatureViews.pages + eliteViews.pages) * 65536 * 2;
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
 export default parseShardfile({ ...base,
   navigation: navigation.navigation, terrain: queryTerrain.terrain, files: [...files, ...renderTiles.files].sort((a, b) => a.hash.localeCompare(b.hash)), critical: [...navigation.critical, ...queryTerrain.critical],

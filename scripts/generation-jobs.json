@@ -12219,6 +12219,32 @@
       ]
     },
     {
+      "id": "nalati-elite-views",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-elite-views.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-elite-views.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/format",
+        "src/sdk",
+        "src/shards/nalati-grasslands/behaviour/eliteViews.as",
+        "src/shards/nalati-grasslands/generators/bake-elite-views.mjs"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/behaviour/eliteViews.generated.json"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "src/shards/nalati-grasslands/behaviour/eliteViews.generated.json"
+      ]
+    },
+    {
       "id": "nine-movers-view",
       "shard": "nine-dragon-stack",
       "entry": "src/shards/nine-dragon-stack/generators/bake-movers-view.mjs",

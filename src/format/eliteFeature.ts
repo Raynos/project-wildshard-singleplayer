@@ -93,6 +93,15 @@ export const ExternalEliteSchema = v.variant('mode', [
 ]);
 export type ExternalEliteData = v.InferOutput<typeof ExternalEliteSchema>;
 export function parseExternalElite(input: unknown): ExternalEliteData { return v.parse(ExternalEliteSchema, input); }
+/**
+ * Nalati zero R9 (G621): what an external elite lends its entry's view program (G600 L7), by its def id. The values
+ * (`eliteViewSource`, read once a frame, never written back): its last windup (1) or active (2) strike, else 0, that
+ * strike lane's ends and width, and its charge lane's time and ends. The program draws the lane tell it lends
+ * (`eliteViewTell`) from them; nothing returns to the encounter.
+ */
+export const ELITE_VIEW_FIELDS = ['strike', 'sx0', 'sz0', 'sx1', 'sz1', 'sw', 'laneT', 'fx', 'fz', 'tx', 'tz'] as const;
+export const eliteViewSource = (elite: string): string => `elite.${elite}`;
+export const eliteViewTell = (elite: string): string => `elite.${elite}.lane`;
 
 const outputId = v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(65535));
 const outputSlot = v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(63));

@@ -20,7 +20,8 @@ import type { Elites, EliteScript, EliteDef } from '../Elite';
 import { DomePuffs } from '@wildshard/engine/fx/groundFx';
 import { SpawnScript, type SpawnV2Owners } from '../population/spawnScript';
 import { EliteDecisions } from './eliteDecisions';
-import { parseEliteFeature, parseExternalElite, type ExternalEliteData } from '@wildshard/format/eliteFeature';
+import { eliteViewSource, eliteViewTell, parseEliteFeature, parseExternalElite, type ExternalEliteData } from '@wildshard/format/eliteFeature';
+import { lendViewTell, lendViewValues } from '../shardfile/clientViewProgram';
 
 
 /** Client-only presentation over the same v1 owner as native encounters. Every authority is an existing concrete service;
@@ -139,18 +140,28 @@ export class ExternalElitePage implements EliteScript {
   private readonly from = new THREE.Vector3(); private readonly to = new THREE.Vector3();
   private observations: { available: boolean; kills: number; bonded: boolean; mount: Animal | null } = { available: false, kills: 0, bonded: false, mount: null };
   private eligible = false;
+  /** what the entry's view program draws the lane tell from (format/eliteFeature ELITE_VIEW_FIELDS; absent reads 0) */
+  private readonly view = new Map<string, number>();
   constructor(readonly row: ExternalEliteData, private readonly services: { readonly game: Game; readonly animals: AnimalManager; readonly player: Player; readonly elites: Elites; readonly spawnOwners?: SpawnV2Owners },
     private readonly decisions: ReturnProgram, private readonly drop: THREE.Object3D, private readonly fight?: SpawnScriptRows, deferPresentation = false) {
     this.row = parseExternalElite(row); this.def = row.def;
-    if (!deferPresentation) this.tellValue = new GroundTell(services.game.scene, 'lane', new THREE.Color(...row.tell));
+    if (!deferPresentation) this.lend(new GroundTell(services.game.scene, 'lane', new THREE.Color(...row.tell)));
     if (row.mode === 'script' && fight === undefined) throw new Error('Script encounter needs an admitted fight');
+  }
+  /** The lane tell and its values, lent to the entered scope's view programs (behaviour/eliteViews.as draws it). */
+  private lend(tell: GroundTell): void {
+    this.tellValue = tell;
+    const scope = this.services.spawnOwners?.scope;
+    if (scope === undefined) return;
+    lendViewTell(scope, eliteViewTell(this.def.id), tell);
+    lendViewValues(scope, eliteViewSource(this.def.id), field => this.view.get(field) ?? 0);
   }
   /** Compiled entry construction calls this concrete lifecycle once, at the
    * borrowed row's original position. No clock, RNG, guest capture or body work. */
   prepareEntered(): void {
     const owner = this.presentationOwner;
     if (this.tellValue !== null || owner.disposed || owner.disposing || !resourceScope().belongsTo(owner)) throw new Error('Invalid external elite presentation phase');
-    this.tellValue = new GroundTell(this.services.game.scene, 'lane', new THREE.Color(...this.row.tell));
+    this.lend(new GroundTell(this.services.game.scene, 'lane', new THREE.Color(...this.row.tell)));
   }
   observe(dt: number, observations: typeof this.observations): void {
     this.observations = observations; this.readyTime += dt;
@@ -180,19 +191,19 @@ export class ExternalElitePage implements EliteScript {
   }
   support(actors: readonly Animal[]): void { this.line = actors; }
   despawn(): void {
-    this.scope?.dispose(); this.scope = null; this.tellValue?.hide(); this.program?.interrupt(); this.pending = false;
+    this.scope?.dispose(); this.scope = null; this.view.clear(); this.program?.interrupt(); this.pending = false;
     if (this.row.mode === 'herd') return;
     for (const actor of this.line) if (actor.alive) this.events.push({ kind: 'retire', actor }); this.line = [];
     if (this.animal !== null) this.events.push({ kind: 'retire', actor: this.animal }); this.animal = null; this.program = null;
   }
-  reset(): void { this.phase2 = false; this.program?.interrupt(); this.program?.signal('main', 0); this.tell.hide(); }
+  reset(): void { this.phase2 = false; this.program?.interrupt(); this.program?.signal('main', 0); this.view.clear(); }
   enterPhase2(): void { this.phase2 = true; }
   broken(): boolean { return this.isBroken; }
   barFrac(): number { return this.row.mode === 'script' && this.animal !== null ? this.animal.hp / this.animal.maxHp : this.fraction; }
   trophy(): void { /* The encounter host owns rewards. */ }
   dropModel(): THREE.Object3D { return this.drop.clone(true); }
   tick(dt: number, time: number, engaged: boolean, leashing: boolean): void {
-    const animal = this.animal; if (animal === null) return;
+    const animal = this.animal; if (animal === null) { this.view.clear(); return; }
     if (engaged && this.scope === null) { this.scope = this.services.game.levelScope.child(`elite.${this.def.id}`); pinBrain(animal, this.scope); }
     else if (!engaged) { this.scope?.dispose(); this.scope = null; }
     this.elapsed += dt;
@@ -214,8 +225,10 @@ export class ExternalElitePage implements EliteScript {
           if (cue.feed !== undefined) this.events.push({ kind: 'feed', id: cue.feed, at: animal.position.clone() });
         }
       }
-      this.tell.hide(); this.tell.setTime(time);
-      for (const strike of program.strikePresentation()) if (strike.phase === 'windup' || strike.phase === 'active') this.tell.lane(strike.x0, strike.z0, strike.x1, strike.z1, strike.width, strike.phase === 'windup' ? .42 : .36);
+      this.tell.setTime(time); this.view.set('strike', 0);
+      for (const strike of program.strikePresentation()) if (strike.phase === 'windup' || strike.phase === 'active') {
+        const v = this.view; v.set('strike', strike.phase === 'windup' ? 1 : 2); v.set('sx0', strike.x0); v.set('sz0', strike.z0); v.set('sx1', strike.x1); v.set('sz1', strike.z1); v.set('sw', strike.width);
+      }
       return;
     }
     const herd = this.herd; if (herd === null) return;
@@ -235,10 +248,7 @@ export class ExternalElitePage implements EliteScript {
       }
     }
     this.tell.setTime(time);
-    if (this.laneT > 0) {
-      const dx = this.to.x - this.from.x, dz = this.to.z - this.from.z, distance = Math.hypot(dx, dz) || 1, k = Math.max(0, distance - 3) / distance;
-      this.tell.lane(this.from.x, this.from.z, this.from.x + dx * k, this.from.z + dz * k, 3, .55 * Math.min(1, this.laneT * 2));
-    } else this.tell.hide();
+    const v = this.view; v.set('laneT', this.laneT); v.set('fx', this.from.x); v.set('fz', this.from.z); v.set('tx', this.to.x); v.set('tz', this.to.z);
   }
   drainEffects(): ExternalEliteEffect[] { return this.events.splice(0); }
 }
