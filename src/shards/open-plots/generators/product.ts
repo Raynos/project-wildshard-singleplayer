@@ -16,10 +16,11 @@ const { why: _why, ...tiledMaterials } = source.tiledMaterials;
 const tiledLook = { ...look, materials: { ...look.materials, ...tiledMaterials } };
 
 /** One idea row's output (validated whole by the build's parseShardfile; SF88g: one per idea). */
-function project(row: { readonly slug: string; readonly idea: string; readonly name: string; readonly accent: string; readonly layout?: string }) {
+function project(row: { readonly slug: string; readonly idea: string; readonly name: string; readonly accent: string; readonly layout?: string; readonly look?: { readonly keys: readonly unknown[] } }) {
   const identity = { slug: row.slug, name: `Open Plot · ${row.name}`, author: source.author, revision: source.revision, seed: source.seed };
   // G641: a row with a layout is a tiled plot; its far proxy is its far-only stand-ins alone (NM0's farMode 'replace')
-  if (row.layout !== undefined) return { ...emptyShardfile(identity), identity, accent: row.accent, spawn: source.spawn, look: tiledLook,
+  // NM12: a row's own sky keys (the Night Market's night) over the plots' shared dusk
+  if (row.layout !== undefined) return { ...emptyShardfile(identity), identity, accent: row.accent, spawn: source.spawn, look: row.look === undefined ? tiledLook : { ...tiledLook, keys: row.look.keys },
     // NM5: its own near view from its coarse tiles, so the road sees the tiles instead of the far proxy
     world: { glb: `assets/${row.idea}/world.glb`, colliders: 'nodes:collide_', far: 'far_', farMode: 'replace', near: 'coarse',
       materials: { Paving: 'kit', Kit: 'kit', Water: 'water', Glow: 'glow', Pool: 'pool', Landmark: 'landmark', Poster: 'billboard' } },
