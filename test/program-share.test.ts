@@ -2,17 +2,16 @@ import { afterAll, afterEach, expect, test, vi } from 'vitest';
 import * as THREE from 'three';
 import { compileGraph } from '../src/engine/render/graph/compile';
 import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandler';
-import { overrideSetting } from '../src/engine/ui/Settings';
 import { isDev, setDev } from '../src/engine/core/devMode';
 import type { GraphIr } from '@wildshard/format/materialGraph';
 
 vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
 const developer = isDev();
-afterEach(() => { overrideSetting('programShare', null); setDev(developer); });
+afterEach(() => { setDev(developer); });
 afterAll(() => { vi.unstubAllGlobals(); });
 
 // P0 grid entry: equal graphs (ground cover's kinds) still linked a GL program each, because three keys a program by its
-// material's node ids. With `programShare` on, the key leads with the graph's shape, so equal graphs key one program.
+// material's node ids. The key leads with the graph's shape, so equal graphs key one program.
 const GRAPH = (k: number, op: 'mul' | 'add' = 'mul'): GraphIr => ({ version: 1, kind: 'material', model: 'unlit', effectState: { fog: false },
   params: { k: { type: 'float', value: k }, painting: { type: 'texture', value: 'painting', role: 'lent' } },
   nodes: { uv: { op: 'uv' }, tap: { op: 'texture', param: 'painting', in: ['uv'] }, rgb: { op: 'swizzle', in: ['tap'], mask: 'xyz' },
@@ -44,17 +43,16 @@ function harness(): { handler: EngineNodesHandler; build: (material: THREE.Mater
   return { handler, build, done: () => { handler.renderEnd(); geometry.dispose(); } };
 }
 
-test('equal graphs key one program with programShare on, their own nodes key them off; another shape keys its own', () => {
+test('equal graphs key one program; another shape keys its own', () => {
   setDev(true);
-  for (const share of ['off', 'on'] as const) {
-    overrideSetting('programShare', share);
+  {
     const { handler, build, done } = harness();
     const a = compileGraph(GRAPH(0.25)), b = compileGraph(GRAPH(0.75)), c = compileGraph(GRAPH(0.25, 'add'));
     try {
       const first = build(a.material), second = build(b.material), other = build(c.material);
-      expect(second.customProgramCacheKey === first.customProgramCacheKey).toBe(share === 'on');
+      expect(second.customProgramCacheKey).toBe(first.customProgramCacheKey);
       expect(other.customProgramCacheKey).not.toBe(first.customProgramCacheKey);
-      // node reuse still pairs the equal graphs under either key, and the shared key stands for one program's code
+      // node reuse pairs the equal graphs, and the shared key stands for one program's code
       expect(handler.reuses).toBe(1);
       expect(second.fragmentShader).toBe(first.fragmentShader);
       expect(second.vertexShader).toBe(first.vertexShader);

@@ -64,7 +64,6 @@ import { Scope } from '../../app/scope';
 import { rebindGeometry } from '../../app/cachedAssets';
 import { diagnosticNow } from '../../core/clock';
 import { worldTime } from '../../core/time';
-import { setting } from '../../ui/Settings';
 import type { Renderer } from '../renderer';
 import type { ProgramLike } from '../../boot/perflog';
 import { NodePlainUniforms, type BlockGroup } from './nodePlainUniforms';
@@ -811,14 +810,14 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   }
 
   /**
-   * With the `programShare` Developer row on (and node reuse on), a graph material's program key leads with its type and
+   * A graph material's program key leads with its type and
    * its graph's shape (`graphShape`: every node its compile made, with its class, code-bearing fields, constants and
    * texture kinds) instead of the hash of its node ids: three files programs by key (acquireProgram), so equal graphs
    * under the same scene, target, fog, layer and object then link ONE GL program, each material with its own uniforms.
    * Null (its own nodes key it) for any other material, or a shape whose builds wrote other code under one key.
    */
   private shareKeyOf(material: THREE.Material): string | null {
-    if (setting('programShare') !== 'on' || !(material instanceof NodeMaterial)) return null;
+    if (!(material instanceof NodeMaterial)) return null;
     const owner = graphNodeOwner(material);
     if (owner === undefined) return null;
     let shape = this.shapes.get(material);

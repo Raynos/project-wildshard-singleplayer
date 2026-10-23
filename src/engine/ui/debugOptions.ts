@@ -171,7 +171,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
 
   // ── Performance ──
   opt('distantTrees', 'look', engineString('s_distant_trees'), [['variant', engineString('s_distant_trees_variant')], ['species', engineString('s_distant_trees_species')]], { reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_distant_trees_note') }),
-  opt('programShare', 'perf', engineString('s_program_share'), [['off', engineString('s_program_share_off')], ['on', engineString('s_program_share_on')]], { purpose: 'developer', reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_program_share_note') }),
 
   // ── Loading & memory ──
   opt('memorySaver', 'loading', engineString('s_memory_saver'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { purpose: 'developer', reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_memory_saver_note') }),

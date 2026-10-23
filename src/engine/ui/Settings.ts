@@ -121,7 +121,6 @@ export const OPTION_VALUES = {
   // The first value is the default. A test / capture script sets one in the saved settings before the page loads ──
   memorySaver: ['off', 'on'],                          // SF22d: the engine memory cuts (src/engine/render/memorySaver.ts) — a reload; off everywhere by default, a Developer tool turns it on (G271)
   distantTrees: ['variant', 'species'],                // G639 frame floor: the forest's far and impostor levels draw one shape a species, at each tree's height (game/models/treeSet.ts) — a reload; a look call for Jake
-  programShare: ['off', 'on'],                         // a graph material's program key leads with its graph's shape, so equal graphs link one GL program (render/nodes/engineNodesHandler.ts shareKeyOf); off until a Chromium phone 4x reading — a reload
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
@@ -135,11 +134,11 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   touch: { def: 'auto', params: ['touch'], url: (q) => (q.has('touch') ? 'on' : null) },               // ?touch (any value) forces them, as before
   time: { def: 'live', params: ['tod', 'clock'], url: (q) => (q.has('tod') || q.has('clock') ? 'live' : null) }, // ?tod= / ?clock= run the clock from the URL's phase / speed
   weather: { def: 'live', params: ['weather'], url: (q) => q.get('weather') },                         // ?weather=rain: a held shower (captures)
-  memorySaver: DEBUG_ONLY, programShare: DEBUG_ONLY, distantTrees: DEBUG_ONLY,
+  memorySaver: DEBUG_ONLY, distantTrees: DEBUG_ONLY,
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 /** Diagnostic choices are ignored by the public build; their saved picks remain available in Developer mode. */
-export const DEVELOPER_OPTIONS: readonly OptionKey[] = ['time', 'weather', 'memorySaver', 'programShare'];
+export const DEVELOPER_OPTIONS: readonly OptionKey[] = ['time', 'weather', 'memorySaver'];
 
 /** the URL params that override option `k` */
 export function settingParams(k: OptionKey): readonly string[] { return OPTION_SPECS[k].params; }
@@ -200,7 +199,7 @@ export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'
   const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
     tier: option('tier'), touch: option('touch'), time: option('time'),
     weather: option('weather'),
-    memorySaver: option('memorySaver'), programShare: option('programShare'), distantTrees: option('distantTrees'),
+    memorySaver: option('memorySaver'), distantTrees: option('distantTrees'),
   };
   const persist = (): void => {
     const picks: Partial<Record<string, string>> = {};
