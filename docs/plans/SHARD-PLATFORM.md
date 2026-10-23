@@ -61,6 +61,8 @@ plan? … what is in scope … and what do we all have to complete to be done?"*
 **Out of scope here (their own plans, after this one):** [TOOLING-PERF](TOOLING-PERF.md) (draft, G635), [HOST-AUDIT](HOST-AUDIT.md) (starts after every shard is at
 zero, G596), SHARD-PLATFORM-NEXT, WASM-HOST beyond its zero blockers.
 
+**Order (G639):** live reds that stop Jake playing → **Nalati to zero** (component by component) → **grid readiness 10/10**; every other mini plan above is an extra taken only by a lane with no zero / grid row free (CI and gate rows first, then the Night Market pilot, loading, memory strip, tile streaming, hero).
+
 **SHARD-PLATFORM is done when (G604, G624; replaces the 80/20 wording in §6):**
 1. Every shard at **0 custom TypeScript** (ruler), components C1–C9 closed and locked: only Nalati left.
 2. **All 10 grid-ready** (latched): only Nalati left.
@@ -513,7 +515,7 @@ line to Jake at each milestone.
 Everything in [`shard-platform/`](shard-platform/), beside this file:
 
 - [STATE.md](shard-platform/STATE.md): the live status, calls for Jake and the fleet (coordinator only, ≤ 3 KB).
-- [decisions.md](shard-platform/decisions.md): every decision G1–G638+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
+- [decisions.md](shard-platform/decisions.md): every decision G1–G639+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
 - [rows.md](shard-platform/rows.md): §4 in full, Part A and Part B, with done-whens and evidence.
 - [contracts.md](shard-platform/contracts.md): §3 in full (determinism, caps, the grid, versioning, a shard project).
 - [history.md](shard-platform/history.md): the long State line, the council-time baseline (old §2), the pre-G291 measure and the 2026-10-04 Handoff.
