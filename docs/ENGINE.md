@@ -11798,6 +11798,11 @@ across the read. `construct` requires that exact library when a prelude is
 declared. Geometry loading and concrete loan publication remain at the
 existing fixed-draw stage; the prelude adds no clock, yield or publication.
 
+WorldAssemblySchema without `construction` walks its admitted stages at the
+caller's current native boundary, borrowing the original world and loaded draws.
+It adds no progress calls, prelude reads, implicit slices or GPU-root releases;
+construction and native scopes and concrete product/world owners stay fenced.
+
 WorldAssemblySchema may declare construction checkpoints around its existing
 ordered stages. WorldAssembly.construct(input, WorldConstructionPorts) walks
 those stages once, preserving the caller's concrete IslandLibrary, scene and

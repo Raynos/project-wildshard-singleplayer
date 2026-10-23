@@ -20,7 +20,6 @@ import { buildArenaRoomEncounter } from '@wildshard/game/boss/arenaRoom';
 import { DeclaredEliteEntry } from '@wildshard/engine/ai/view/eliteEntry';
 import type { ExternalElitePage } from '@wildshard/game/quest/elitePage';
 import { parseEliteEntryPageRows } from '@wildshard/format/eliteEntryRows';
-import { sharedModelContext } from '@wildshard/engine/models/model';
 import { WorldAssembly } from '@wildshard/game/shardfile/worldAssembly';
 import prefix from '../data/worldPrefix.json' with { type: 'json' };
 import { installWorldUpdates } from '@wildshard/game/shardfile/worldUpdates';
@@ -76,7 +75,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   const { constants: { pageElites: eliteInput, trophies } } = await plugin.product.json<{ constants: { pageElites: unknown; trophies: unknown } }>('sim/headless-assembly.json');
   const eliteRows = parseEliteEntryPageRows(eliteInput);
   // the lairs' trophies: drawn from the shape book at this slot (data/worldTrophies.json, a drawn-models stage)
-  await WorldAssembly.admit(trophies, { scope: plugin.scope, context: sharedModelContext(sky, game), registry: null, draws: shapes, slice: () => Promise.resolve() }).next('nalati.trophies');
+  await WorldAssembly.construct(trophies, { runtime, native: plugin, product: plugin.product, scope: plugin.scope, draws: shapes, baked: new Map() });
   const drops = entryOwner(plugin.scope, 'drawn-models', 'nalati.trophies');
   const eliteLedges = anchors('crags', 'ledges');
   const elites = new DeclaredEliteEntry<ExternalElitePage>(eliteRows.entry, game.levelScope);

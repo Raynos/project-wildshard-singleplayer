@@ -169,10 +169,10 @@ export class WorldAssembly {
   }
 
   /** One walk of the declared stages, retaining native checkpoint and progress
-   * boundaries. The caller keeps its original resident cache and lending. */
+   * boundaries. A stage-only row has no progress, prelude or release actions.
+   * The caller keeps its original resident cache and lending. */
   static async construct(input: unknown, ports: WorldConstructionPorts): Promise<Record<string, Object3D>> {
     const parsed = v.parse(WorldAssemblySchema, input), rows = parsed.construction, stages = admitted(input);
-    if (rows === undefined) throw new Error('World construction needs its declared checkpoints');
     const native = ports.native;
     if (stages.some(stage => ['water-surface','dressing-piece','dressing-anchor','dressing','weather','arena-script','painted-reseed','painted-world'].includes(stage.kind)) && native === undefined) throw new Error('World construction needs its original native context');
     const { runtime, scope, product, library, scenes, baked } = ports, world = runtime.world;
@@ -190,7 +190,7 @@ export class WorldAssembly {
     let publication: { readonly id: string; readonly root: Object3D } | undefined;
     const live = (): void => {
       if (native !== undefined && (ports.native !== native || native.scope !== scope || native.product !== product || native.game.runtime !== runtime)) throw new Error('World construction native owners changed');
-      if (scope.disposed || scope.disposing || nativeOwner !== undefined && (nativeOwner.disposed || nativeOwner.disposing || game.levelScope !== nativeOwner || native?.game !== nativeGame) || runtime.world !== world || world.player !== player || world.game !== game || world.registry !== registry
+      if (ports.runtime !== runtime || ports.scope !== scope || ports.product !== product || scope.disposed || scope.disposing || nativeOwner !== undefined && (nativeOwner.disposed || nativeOwner.disposing || game.levelScope !== nativeOwner || native?.game !== nativeGame) || runtime.world !== world || world.player !== player || world.game !== game || world.registry !== registry
         || world.sky !== sky || world.physics !== physics || game.scene !== scene || runtime.viewer !== viewer
         || product.file !== read || product.json !== json || ports.draws !== originalDraws || library !== undefined && library.product !== product) throw new Error('World construction owner left or changed');
       if (native !== undefined && (borrowedDressing !== undefined && SceneDressing.current(native) !== borrowedDressing || waters !== undefined && clientWaterSurfaces(native) !== waters)) throw new Error('World construction borrowed owners changed');
@@ -199,6 +199,17 @@ export class WorldAssembly {
       if (publication !== undefined && entryOwner(scope, 'object', publication.id) !== publication.root) throw new Error('World construction root changed');
     };
     live();
+    const create = (root: Object3D, slice: WorldAssemblyPorts['slice'], draws: FixedDraws | undefined, cells?: Uint8Array): WorldAssembly => WorldAssembly.admit(parsed, {
+      scope, ...(scenes === undefined ? {} : { scenes }), ...(native === undefined ? {} : { weatherContext: native }), ...(ports.sites === undefined ? {} : { sites: ports.sites }),
+      context: sharedModelContext(sky, game), registry, slice, product, ...(draws === undefined ? {} : { draws }), physics, fixed: game,
+      ...(cells === undefined ? {} : { cover: { cells, viewer, updates: game } }),
+      entry: { root, scope, tier: game.tier, physics, ...(ports.variant === undefined ? {} : { variant: ports.variant }), piece: piece => { registry.add(piece); } },
+    });
+    if (rows === undefined) {
+      const assembly = create(scene, () => Promise.resolve(), originalDraws ?? library?.loaded());
+      for (const stage of stages) { live(); await assembly.next(stage.id); live(); }
+      return {};
+    }
     if (rows.prelude !== undefined) {
       if (native === undefined || originalDraws === undefined) throw new Error('World construction needs its native prelude draws');
       const prepared = await WorldAssembly.prepareNative(parsed, native); live();
@@ -248,9 +259,7 @@ export class WorldAssembly {
     const draws = ports.draws ?? library?.loaded(), slice = slicer(rows.progress.budgetMs, ports.progress), total = rows.progress.total;
     let completed = 0;
     const complete = async (label: string): Promise<void> => { await slice(++completed, total, label); };
-    const assembly = WorldAssembly.admit(input, { scope, ...(scenes === undefined ? {} : { scenes }), ...(native === undefined ? {} : { weatherContext: native }), ...(ports.sites === undefined ? {} : { sites: ports.sites }), context: sharedModelContext(sky, game), registry,
-      slice: explicit ? () => Promise.resolve() : complete, product, ...(draws === undefined ? {} : { draws }), physics, fixed: game, ...(cells === undefined ? {} : { cover: { cells, viewer, updates: game } }),
-      entry: { root, scope, tier: game.tier, physics, ...(ports.variant === undefined ? {} : { variant: ports.variant }), piece: piece => { registry.add(piece); } } });
+    const assembly = create(root, explicit ? () => Promise.resolve() : complete, draws, cells);
     if (rows.root !== undefined) { publishEntryOwner(scope, 'object', rows.root.id, root); publication = { id: rows.root.id, root }; }
     const checkpoint = async (stage: string, at: 'before' | 'after'): Promise<void> => {
       const check = checkpoints.get(`${at}:${stage}`);
