@@ -117,12 +117,18 @@ function* specimenCosts(source: Shardfile, assets: ReadonlyMap<string, Uint8Arra
       }
     }
   }
+  // Only strings and containers can retain geometry. Scan keys directly rather
+  // than allocating entry pairs and recursing through every numeric pose word.
   const visit = (value: unknown): void => {
     if (typeof value === 'string') { const hash = names.get(value); if (hash !== undefined) retained.add(hash); }
-    else if (Array.isArray(value)) for (const child of value) visit(child);
+    else if (Array.isArray(value)) for (const child of value) { if (typeof child === 'string' || typeof child === 'object' && child !== null) visit(child); }
     else if (typeof value === 'object' && value !== null) {
       if ('library' in value && 'model' in value && typeof value.library === 'string' && typeof value.model === 'string') for (const hash of refs(value.library, value.model)) retained.add(hash);
-      for (const [key, child] of Object.entries(value)) { visit(key); visit(child); }
+      const row = value as Readonly<Record<string, unknown>>;
+      for (const key of Object.keys(row)) {
+        const hash = names.get(key); if (hash !== undefined) retained.add(hash);
+        const child = row[key]; if (typeof child === 'string' || typeof child === 'object' && child !== null) visit(child);
+      }
     }
   };
   const { files: _files, library: _library, critical: _critical, ...fields } = source;
