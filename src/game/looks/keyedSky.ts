@@ -13,6 +13,7 @@ import type { DayLookRow, DayLookSchema } from '@wildshard/format/dayLook';
 import type { PaintedSkyRows } from '@wildshard/format/forestWeather';
 import { installChannelPrograms } from '../plugin/channelPrograms';
 import { lentLook, pushLentParams } from '../shardfile/lentLooks';
+import { publishSkyClock } from '../session/clockSettings';
 import { dayLookPresets, type DayLookPreset } from './dayLookPresets';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { driveDayAir, driveDayLight, runDayClock } from '@wildshard/game/looks/daySky';
@@ -441,6 +442,8 @@ export async function paintedSky(product: ShardProduct, game: Game, sky: SkyRig,
   const clock = new DayCycle(rows.clock), time = params.get('time');
   if (time !== null) { const hour = Number.parseFloat(time); if (Number.isFinite(hour)) void clock.set(hour); else if (isClockName(time)) void clock.set(time); }
   clock.paused = params.get('clock') === '0';
+  // R12: its runtime's day cycle while entered (session/clockSettings.ts): Settings ▸ Time and the day badge turn this sky
+  if (scope !== undefined) publishSkyClock(scope, clock);
   const input = await product.json(rows.file); live();
   const file = v.parse(PaintedFile, input), schema = file.sky.schema;
   if (!paintedSchema(schema)) throw new Error('Painted sky schema lacks its rig fields');

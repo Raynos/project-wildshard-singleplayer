@@ -97,7 +97,6 @@ export const ClientFeatureSchema = v.variant('kind', [
     cap: v.strictObject({ shard: v.nullable(PageCapSchema), grid: v.nullable(PageCapSchema) }),
     spots: v.exactOptional(v.strictObject({ ranged: label, zone: id, fade: finite, max: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(256)) })) })) }),
   v.strictObject({ kind: v.literal('weather.forest'), file: label }),
-  v.strictObject({ kind: v.literal('weather.clock'), weather: id }),
   v.strictObject({ kind: v.literal('page.life'), file: label, ranged: label, object: v.exactOptional(id) }),
   v.strictObject({ kind: v.literal('held.ranged-page'), file: label, shadowBatch: v.exactOptional(v.strictObject({ shard: v.boolean(), grid: v.boolean() })) }),
   v.strictObject({ kind: v.literal('quest.chapter-view'), chapterView: label, story: label, arena: id, fight: id, taming: v.exactOptional(id) }),

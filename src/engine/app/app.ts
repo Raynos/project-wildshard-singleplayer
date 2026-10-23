@@ -156,11 +156,23 @@ export class App {
     this.trampleFields.set(scope, field);
     scope.onDispose(() => { this.trampleFields.delete(scope); });
   }
-  get dayCycle(): DayCycleClock | null { return this.levelScope === null ? null : this.clocks.get(this.levelScope) ?? null; }
+  /** the entered clocks over the level's, newest last (`enterDayCycle`) */
+  private readonly enteredClocks: { readonly read: () => DayCycleClock | null }[] = [];
+  get dayCycle(): DayCycleClock | null {
+    for (let i = this.enteredClocks.length - 1; i >= 0; i--) { const clock = this.enteredClocks[i]?.read() ?? null; if (clock !== null) return clock; }
+    return this.levelScope === null ? null : this.clocks.get(this.levelScope) ?? null;
+  }
   registerDayCycle(clock: DayCycleClock | null, scope: Scope): void {
     if (clock === null) this.clocks.delete(scope);
     else this.clocks.set(scope, clock);
     scope.onDispose(() => { this.clocks.delete(scope); });
+  }
+  /** While `scope` lives, the clock `read` returns (when not null) is the day cycle over the level's own: an entered region's
+   *  sky drives Settings, the light presets and the day badge, and the level's clock returns as it was when the scope ends. */
+  enterDayCycle(read: () => DayCycleClock | null, scope: Scope): void {
+    const entry = { read };
+    this.enteredClocks.push(entry);
+    scope.onDispose(() => { const at = this.enteredClocks.indexOf(entry); if (at !== -1) this.enteredClocks.splice(at, 1); });
   }
   aimTargets: readonly AimTarget[] = [];
   registryValue: WorldRegistry | null = null;

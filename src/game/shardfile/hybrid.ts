@@ -11,7 +11,8 @@ import { shardContext, type ShardContext, gridCells, gridHomeSim, pageGridInstan
 
 import type { ShardRuntime } from '../shard/runtime';
 import { bindScopedRuntime, createScopedRuntimeBinding, type ScopedRuntimeBinding } from '../shard/scopedRuntime';
-import { RetainedRuntimeHooks } from "../shard/retainedHooks";
+import { RetainedRuntimeHooks, installEnteredRuntimeService } from "../shard/retainedHooks";
+import { enterSkyClock } from '../session/clockSettings';
 
 import { shardfileSource } from '../plugin/ui';
 import type { ProductOptions } from './product';
@@ -226,6 +227,8 @@ export class HybridShardPlugin extends ShardPlugin {
       slots?.activate();
       const runtime = slots?.runtime ?? bindScopedRuntime(parent, scope), base = hybridInstallation(ctx, scope, runtime);
       const hooks = slots === undefined ? undefined : new RetainedRuntimeHooks(base.context);
+      // R12: while entered, the runtime's own sky clock is the day cycle (a painted sky's, published on its runtime)
+      if (hooks !== undefined) { const owned = hooks.context; installEnteredRuntimeService(owned, (entered) => { enterSkyClock(owned.app, [owned.scope], entered); }); }
       const installation = hooks === undefined ? base : { ...base, context: hooks.context };
       const plugin = withOwner(scope, () => new this.Runtime());
       const custom: CustomRuntime = { plugin, installation, active: true, ready: false,
@@ -495,6 +498,8 @@ export class HybridRuntimeSession {
       bindResidentWorldScope(scope, resident.scope);
       const hooks = slots === undefined ? undefined : new RetainedRuntimeHooks(installation.context, { deferActivation: preparing || parkedEntry });
       if (slots !== undefined && hooks !== undefined) active.retained = { slots, hooks };
+      // R12: while entered, the cell's own sky clock is the day cycle (its region's layered sky, or a painted sky's runtime)
+      if (hooks !== undefined) { const owned = hooks.context; installEnteredRuntimeService(owned, (entered) => { enterSkyClock(owned.app, [owned.scope, resident.scope], entered); }); }
       const context = hooks?.context ?? installation.context;
       const live = (): boolean => !scope.disposed && (preparing ? this.active?.resident !== resident : this.active === active && generation === this.generation);
       if (preparing || parkedEntry) {

@@ -84,6 +84,7 @@ import type { RegionalRuntimeFoundation, RegionalRuntimePage, RegionalRuntimeReq
 import { frameLookOf, lookChainKind, regionChain, regionGrade, replacedKnobs, wholeChainKnobs, type FrameLookPort } from './frameLook';
 import { applyLevelLight, holdPageLight, regionLightSwap } from './regionLight';
 import { buildRegionSky, type RegionBackdrop, type RegionSkyOutcome } from './regionSky';
+import { publishSkyClock } from '../session/clockSettings';
 import { imagesFirstPlayingBytes } from './runtimeCost';
 import { provideRuntimeProduct, runtimeProduct, shardProductFromAdmission } from '../shardfile/runtimeProduct';
 import type { AdmittedProduct } from '../shardfile/product';
@@ -370,6 +371,8 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
                 const pass = layered.backdrop.environmentPass;
                 if (pass !== undefined) await compileOffscreenPass(game.renderer, pass);
                 made.backdrop = layered.backdrop;
+                // R12: its clock is the day cycle while its runtime is entered (session/clockSettings.ts)
+                publishSkyClock(resident, layered.backdrop.clock);
                 // Attachment binds the clock and creates its PMREM. Read that environment after attach, not before.
                 made.environment = () => layered.layer.holder.environment;
                 // its clock turns the page's saturation with its hour as standalone, where the page carries its chain
