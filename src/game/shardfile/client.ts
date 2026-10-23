@@ -44,6 +44,7 @@ import type { PageResidency, HomeResidencyClaim } from '../grid/pageResidency';
 import { leaseClientLibrary } from './clientLibrary';
 import { compendiumSketches } from '@wildshard/format/compendiumSketches';
 import { clientMaterials } from './clientMaterials';
+import { splatGroundDrawn } from './clientSplatTerrain';
 import { lendLooks, lendSceneMaterials } from './lentLooks';
 import type { GraphSources } from './clientGraphs';
 import { clientPostStack, type ClientPost } from './clientPost';
@@ -252,6 +253,8 @@ export class ShardfileClient {
       views: clientViews({ root: ctx.root, terrain: this.source.terrain?.family ?? null, terrainShadow: this.source.terrain?.shadow, terrainOrder: this.source.terrain?.order, ...presentation, ...(collider === undefined ? {} : { lattice: decodeTerrainTile(collider) }) }),
     });
     const tiles = this.worldTiles;
+    // Debug ▸ Ground tiles (P1): a splat ground draws from its props tiles; the world's whole native ground mesh hides
+    if (splatGroundDrawn(this.source.props)) world.terrain.group.visible = false;
     this.followViewer(ctx, runtime, tiles, presentation, start);
     if (this.mode === 'presentation') { ctx.debug.expose('shardfileResidency', { tiles, allocator, mode: 'presentation', workers: false }); return; }
     // SF59 step 4: the shard's own post stack (Debug ▸ Look ▸ "Graph materials", default off); in the grid it fades with its

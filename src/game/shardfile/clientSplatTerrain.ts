@@ -8,13 +8,14 @@
  *
  * The source layer textures are never uploaded: their mips are copied into the arrays, then released.
  */
-import { CompressedArrayTexture, CompressedTexture, LinearFilter, LinearMipmapLinearFilter, NoColorSpace, RepeatWrapping, SRGBColorSpace, type Material, type Texture } from 'three';
+import { CompressedArrayTexture, CompressedTexture, LinearFilter, LinearMipmapLinearFilter, MeshBasicMaterial, NoColorSpace, RepeatWrapping, SRGBColorSpace, type Material, type Texture } from 'three';
 import { layerArrayMips } from '@wildshard/engine/core/ktx2';
 import { splatTerrainMaterial, type SplatLayers } from '@wildshard/engine/world/Terrain';
 import type { PropSurfaceBinding } from '@wildshard/engine/world/declaredProps';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { TIER } from '@wildshard/engine/core/tier';
-import { SPLAT_CHANNELS, SPLAT_ROLES, splatLayers, type SplatRole, type SplatTerrain } from '@wildshard/format/splatTerrain';
+import { setting } from '@wildshard/engine/ui/Settings';
+import { SPLAT_CHANNELS, SPLAT_ROLES, splatLayers, splatTerrainOf, type SplatRole, type SplatTerrain } from '@wildshard/format/splatTerrain';
 
 /** The largest array edge the client builds (the live terrain's `loadPBRArray(…, 1024)`). */
 export const SPLAT_LAYER_SIZE = 1024;
@@ -53,6 +54,20 @@ export function splatSurface(splat: SplatTerrain, ports: { scope: Scope; texture
   const material = ports.scope.own(splatTerrainMaterial(layers, { tints: splat.tints, boreal: splat.boreal }));
   const channels = Object.fromEntries(Object.entries(SPLAT_CHANNELS).map(([semantic, row]) => [semantic.toLowerCase(), row]));
   return { material, binding: { material, maps: NO_MAPS, compiled: true, channels } };
+}
+
+/**
+ * Whether a shard's splat ground draws from its tiles (pause ▸ Settings ▸ Debug ▸ Ground tiles, G518, tile streaming P1):
+ * on, its props tiles' ground primitives draw and the world hides its whole native ground mesh; off (the default until a
+ * phone reading), the whole mesh draws as before and the ground primitives never do.
+ */
+export function splatGroundDrawn(props: object | null): boolean {
+  return props !== null && splatTerrainOf(props) !== undefined && setting('groundTiles') === 'on';
+}
+/** The splat material name's binding while the ground tiles are off: its primitives load but never draw (no layer textures). */
+export function hiddenSplatSurface(scope: Scope): PropSurfaceBinding {
+  const material = scope.own(new MeshBasicMaterial({ visible: false }));
+  return { material, maps: NO_MAPS, compiled: true };
 }
 
 /** Put the splat material name in front of a named-material resolver (or the one-family path's absence of one). */

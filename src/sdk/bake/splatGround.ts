@@ -104,12 +104,12 @@ export interface SplatLayerPaths { colour: string[]; normal: string[]; arm: stri
 /**
  * The KTX2 files four native ground layers (`groundLayers` ids, in splat channel order) draw from on each tier, exactly as the
  * runtime's texture arrays resolve them (`filePolicy(tier, 'ktx2', table).layer`: the engine table under the shard's own,
- * the phone's `.phone` variants); throws when a layer has no `#layer` KTX2.
+ * the phone's `.phone` variants, found in `inventory`: the public files, keyed by URL); throws when a layer has no `#layer` KTX2.
  */
-export function splatLayerFiles(ids: readonly string[], table: Ktx2Table): { desktop: SplatLayerPaths; phone: SplatLayerPaths } {
+export function splatLayerFiles(ids: readonly string[], table: Ktx2Table, inventory: Readonly<Record<string, number | true>>): { desktop: SplatLayerPaths; phone: SplatLayerPaths } {
   if (ids.length !== 4) throw new Error('A splat ground has four layers');
   const tier = (name: 'phone' | 'desktop'): SplatLayerPaths => {
-    const policy = filePolicy(name, 'ktx2', table), roles: SplatLayerPaths = { colour: [], normal: [], arm: [] };
+    const policy = filePolicy(name, 'ktx2', table, inventory), roles: SplatLayerPaths = { colour: [], normal: [], arm: [] };
     for (const id of ids) {
       const [colour, normal, arm] = policy.pbr(id).map(url => {
         const file = policy.layer(url);
