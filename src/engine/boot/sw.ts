@@ -138,17 +138,28 @@ function watch(reg: ServiceWorkerRegistration): void {
 /** `to`: where the page goes once the new worker controls it (default: reload this URL) */
 async function adopt(to?: string, why = 'new build adopted'): Promise<void> {
   const w = api.waiting;
-  if (!sw || !w) return;
+  // An announcement can outlive its worker (another tab already adopted it,
+  // or a later install replaced it). None of those states needs a hand-over.
+  if (!sw || !w || pageScope.disposed || pageScope.disposing || sw.controller === w
+    || (w.state !== 'installed' && w.state !== 'activating')) return;
   await new Promise<void>((resolve) => {
-    const timer = pageScope.timeout(CAP_MS, resolve); // the hand-over never landed: leave the page alone
-    pageScope.listen(sw, 'controllerchange', () => {
-        pageScope.cancelTimer(timer);
-        markReload(`${why}: the new service worker took over`);
-        if (to === undefined) location.reload();
-        else location.replace(to);
-      }, { once: true });
-    // oxlint-disable-next-line unicorn/require-post-message-target-origin -- ServiceWorker.postMessage has no targetOrigin parameter (that is Window.postMessage)
-    w.postMessage({ type: 'SKIP_WAITING' });
+    const attempt = pageScope.child('worker-adoption');
+    const clean = (): void => attempt.dispose();
+    attempt.timeout(CAP_MS, () => { clean(); resolve(); });
+    attempt.listen(sw, 'controllerchange', () => {
+      if (sw.controller !== w) return;
+      clean();
+      markReload(`${why}: the new service worker took over`);
+      if (to === undefined) location.reload();
+      else location.replace(to);
+    });
+    attempt.listen(w, 'statechange', () => {
+      if (w.state === 'redundant') { clean(); resolve(); }
+    });
+    try {
+      // oxlint-disable-next-line unicorn/require-post-message-target-origin -- ServiceWorker.postMessage has no targetOrigin parameter (that is Window.postMessage)
+      w.postMessage({ type: 'SKIP_WAITING' });
+    } catch { clean(); resolve(); } // the ordinary document reload remains available
   });
 }
 
