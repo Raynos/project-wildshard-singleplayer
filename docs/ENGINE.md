@@ -12175,6 +12175,18 @@ registration. Audio and cosmetic rows may resolve actual entry-owner ids
 when no explicit native loan map is supplied. Only toon rows require the
 `look/toon` section; other worlds keep their native material preparation.
 
+`combat.targets` declares bounded unique id/kind/owner bindings for original
+`arena-room` or `timed-encounters` loans. The existing installCombatTargets
+accepts these data rows alongside its direct native Map API; both routes
+retain identical ray/aim ordering and the same mutable wildlife-readiness
+book. Entire data admission and native owner resolution precede events.
+
+`debug.expose.source` selects one original runtime object, SceneDressing,
+timed riders or world-weather loan at world-bindings. It cannot be mixed
+with the existing objects list. Values retain their native identities; no
+resource, scene or callback owner is synthesized. The weather source is
+the original ForestWeatherRig, not a cached diagnostic component facade.
+
 ### Native world construction checkpoints
 
 `WorldAssembly.prepareNative(input, ctx)` resolves the strict optional

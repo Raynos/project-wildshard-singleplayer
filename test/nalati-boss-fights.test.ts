@@ -10,7 +10,7 @@ import type { ModelDef } from '../src/engine/models/model';
 import { currentOwner } from '../src/engine/app/ownership';
 import finishes from '../src/shards/nalati-grasslands/data/skinFinishes.json' with {type:'json'};
 import {lendNalatiPasture} from './fixtures/nalati-return-modules';
-import { arenaRoomFight, ArenaRoomEncounter } from '../src/game/boss/arenaRoom';
+import { arenaRoomFight, ArenaRoomEncounter, type OpenArenaWorld } from '../src/game/boss/arenaRoom';
 import type { Animal } from '../src/engine/entities/AnimalView';
 import { eliteDamageMul } from '../src/engine/entities/eliteBrain';
 // @vitest-environment happy-dom
@@ -39,7 +39,6 @@ import type { LevelContext } from '../src/engine/level/context';
 import nightInput from '../src/shards/nalati-grasslands/data/night.generated.json' with {type:'json'};
 import {withWeatherWitness} from './fixtures/weatherInlineWitness';
 import { bossArena } from './fake/bossArena';
-import type { Nalati } from '../src/shards/nalati-grasslands/runtime/state';
 import fireView from '../src/shards/nalati-grasslands/data/arenaFire.json' with { type: 'json' };
 import titan from '../src/shards/nalati-grasslands/data/stormTitanFight.generated.json' with { type: 'json' };
 import geometry from '../src/shards/nalati-grasslands/data/stormTitanGeometry.generated.json' with { type: 'json' };
@@ -128,7 +127,7 @@ test.each([false,true])('arena script runs mounted phases, exposes its heart and
   Object.assign(f.player,{ velocity: new Vector3(),setBodyEnabled: () => undefined });
   lendLooks(scope, { materials, setParam: () => undefined, setTexture: () => undefined, bindMeshMap: () => { throw new Error('No mapped materials in this fight'); },
     instance: () => ({ material: new MeshBasicMaterial(), setParam: () => undefined }) });
-  const weather = legacyDouble<Nalati['weather']>({ weather: legacyDouble<Nalati['weather']['weather']>({ flash: 0, raise: () => undefined,stormActive: true }),air: legacyDouble<Nalati['weather']['air']>({}) });
+  const weather = { weather: legacyDouble<OpenArenaWorld['weather']>({ flash: 0, raise: () => undefined,stormActive: true }),air: legacyDouble<OpenArenaWorld['air']>({}) };
   scope.expose(app,'levelScope',scope);
   const game = Object.assign(f.game.asGame(), { app,levelScope: scope });
   lendNalatiPasture(scope);

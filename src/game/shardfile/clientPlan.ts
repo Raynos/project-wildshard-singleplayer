@@ -1,3 +1,4 @@
+import { entryOwner as declaredOwner } from './entryOwners';
 import { prepareClientReturnModules } from './clientReturnModules';
 import { preflightIslandBook } from './islandBook';
 import { installClientAdventurePersistence } from '../quest/persistence';
@@ -95,6 +96,10 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     const { installWorldUpdates } = await import('./worldUpdates');
     installWorldUpdates(ctx, row.rows);
   } },
+  'combat.targets': {phase:'world-bindings',rank:0,lifetime:'entered',sections:[],install:async(ctx,row)=>{
+    if(row.kind!=='combat.targets')throw new Error('Invalid combat target feature');
+    const {installCombatTargets}=await import('./clientTargets');installCombatTargets(ctx,row.rows,row.bindings);
+  }},
   'world.runtime-hooks': { phase: 'world-bindings', rank: 0, lifetime: 'entered', sections: [], install: async (ctx, row) => {
     if (row.kind !== 'world.runtime-hooks') throw new Error('Invalid runtime hooks feature');
     const { installClientRuntimeHooks } = await import('./clientRuntimeHooks');
@@ -321,9 +326,13 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     install: (ctx, row) => { if (row.kind === 'audio.cues' && row.stage === 'world') installClientCues(ctx, row); },
     play: { rank: 30, install: (ctx, row) => { if (row.kind === 'audio.cues' && row.stage !== 'world') installClientCues(ctx, row); } } },
   'fx.trail': { phase: 'play', rank: 90, lifetime: 'entered', sections: ['world/scenes'], install: installClientTrails },
-  'debug.expose': { phase: 'play', phaseFor: row => row.kind === 'debug.expose' && row.objects !== undefined ? 'world-bindings' : 'play', rank: 100, lifetime: 'entered', sections: [], install: (ctx, row) => {
-    if (row.kind !== 'debug.expose' || ctx.game.runtime === undefined) throw new Error('Client debug feature requires its runtime');
-    if (row.objects !== undefined) {
+  'debug.expose': { phase: 'play', phaseFor: row => row.kind === 'debug.expose' && (row.objects !== undefined || row.source !== undefined) ? 'world-bindings' : 'play', rank: 100, lifetime: 'entered', sections: [], install: (ctx, row) => {
+    if (row.kind !== 'debug.expose' || ctx.scope.disposed || ctx.scope.disposing || ctx.game.runtime === undefined) throw new Error('Client debug feature requires its runtime');
+    if (row.source !== undefined) {
+      const source=row.source;
+      const value=source.kind==='runtime-object'?ctx.game.runtime.objects[source.id]:source.kind==='dressing'?SceneDressing.current(ctx):source.kind==='timed-riders'?declaredOwner(ctx.scope,'timed-encounters',source.owner).riders:declaredOwner(ctx.scope,'world-weather',source.owner);
+      if(value===undefined)throw new Error('Missing declared debug source');ctx.debug.expose(row.name,value);
+    } else if (row.objects !== undefined) {
       const runtime = ctx.game.runtime, objects = runtime.objects;
       ctx.debug.expose(row.name, Object.defineProperties({}, Object.fromEntries(row.objects.map(key => [key, {enumerable: true, get: () => {
         if (ctx.game.runtime !== runtime || runtime.objects !== objects) throw new Error('Debug object owner changed'); return objects[key];

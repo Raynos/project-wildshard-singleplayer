@@ -62,7 +62,7 @@ test('cold boot metadata publishes canonical discovery for terrain and commit sn
 test('authored native entry keeps its exact compiled selection and refuses unknown fields',()=>{
   const data=parseManifestMetadata(metadata),entry=data.bindings.entry;
   expect(entry).toEqual({native:{module:'./runtime/index',export:'NalatiPlugin'},retainHomeRuntime:true,stagesOwner:'declared',
-    nativePlan:{phases:['world','world-bindings','kit','prepare-play','play'],features:['world.updates','world.assembly','state.adventure','species.program','weather.forest','held.claims.prepare','held.claims.install','debug.expose','taming.entry','arena-room.entry','elite.entry','stealth.entry','elite.construct','timed.encounters','quest.chapter-view']}});
+    nativePlan:{phases:['world','world-bindings','kit','prepare-play','play'],features:['combat.targets','world.updates','world.assembly','state.adventure','species.program','weather.forest','held.claims.prepare','held.claims.install','debug.expose','taming.entry','arena-room.entry','elite.entry','stealth.entry','elite.construct','timed.encounters','quest.chapter-view']}});
   expect(data.loadout).toEqual(original.loadout);expect(data.hud).toEqual(original.hud);expect(data.bag).toEqual(original.bag);
   for(const nativePlan of [{phases:['play'],features:['unknown']},{phases:['play'],features:['weather.forest','weather.forest']},{phases:['play','play']}])
     expect(()=>parseManifestMetadata({...metadata,bindings:{...metadata.bindings,entry:{...metadata.bindings.entry,nativePlan}}})).toThrow();

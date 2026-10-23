@@ -572,6 +572,7 @@
           "play"
         ],
         "features": [
+          "combat.targets",
           "world.updates",
           "world.assembly",
           "state.adventure",

@@ -44,3 +44,10 @@ export const CombatTargetRowsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'C
     append: v.pipe(v.array(id), v.maxLength(32), v.check(ids => new Set(ids).size === ids.length)) })),
 }), v.check(row => row.ray !== undefined || row.aim !== undefined));
 export type CombatTargetRows = v.InferOutput<typeof CombatTargetRowsSchema>;
+
+/** Concrete entered owner selection for the existing ordered target reducer. */
+export const DeclaredCombatTargetsSchema: v.StrictObjectSchema<{
+  kind:v.LiteralSchema<'combat.targets',undefined>; rows:v.GenericSchema<unknown,CombatTargetRows>;
+  bindings:v.GenericSchema<unknown,{id:string;kind:'arena-room'|'timed-encounters';owner:string}[]>;
+},undefined> = v.strictObject({kind:v.literal('combat.targets'),rows:CombatTargetRowsSchema,
+  bindings:v.pipe(v.array(v.strictObject({id,kind:v.picklist(['arena-room','timed-encounters']),owner:id})),v.maxLength(32),v.check(rows=>new Set(rows.map(row=>row.id)).size===rows.length,'Unique target owner bindings'))});

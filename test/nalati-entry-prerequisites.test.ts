@@ -32,7 +32,7 @@ test('every native entry hook refuses missing world prerequisites before reads o
     const f = context(owner), native = new NalatiPlugin();
     try {
       const message = owner === undefined ? 'requires its world host' : 'requires counted world steps';
-      await expect(native.world(f.ctx)).rejects.toThrow(message);
+      expect(()=>native.world(f.ctx)).toThrow(message);
       expect('kit' in native).toBe(false);
       await expect(native.play(f.ctx)).rejects.toThrow(message);
       expect(f.json).not.toHaveBeenCalled(); expect(f.species).not.toHaveBeenCalled(); expect(f.speciesLook).not.toHaveBeenCalled();

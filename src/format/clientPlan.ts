@@ -6,6 +6,7 @@ import { WaterSurfaceSchema } from './water';
 import { ClientCuesSchema } from './clientCues';
 import { ClientTrailsSchema } from './clientTrails';
 import * as v from 'valibot';
+import { DeclaredCombatTargetsSchema } from './targets';
 import { WorldUpdatesSchema } from './worldUpdates';
 import { WorldAssemblySchema } from './worldAssembly';
 import { isJsonData } from './json';
@@ -54,6 +55,7 @@ export const ClientFeatureSchema = v.variant('kind', [
     flocks: v.pipe(v.array(v.strictObject({ id, owner: id })), v.maxLength(64),
       v.check(rows => new Set(rows.map(row => row.id)).size === rows.length && new Set(rows.map(row => row.owner)).size === rows.length, 'unique ambient ids and owners')) }),
   v.strictObject({ kind: v.literal('world.updates'), rows: WorldUpdatesSchema }),
+  DeclaredCombatTargetsSchema,
   v.pipe(v.strictObject({ kind: v.literal('world.assembly'), native: v.exactOptional(v.strictObject({ groups: id })), library: v.exactOptional(id), catalogue: v.exactOptional(label), entered: v.exactOptional(v.strictObject({ root: id, blocks: v.pipe(v.array(id), v.minLength(1), v.maxLength(64), v.check(blocks => new Set(blocks).size === blocks.length, 'unique entered blocks')) })), rows: WorldAssemblySchema }),
     v.check(row => (row.library === undefined) === (row.catalogue === undefined), 'World assembly library and catalogue must be declared together'),
     v.check(row => row.native === undefined || row.library === undefined && row.catalogue === undefined && row.entered === undefined, 'Native assembly retains its original context without a library or entered-piece adapter')),
@@ -128,7 +130,11 @@ export const ClientFeatureSchema = v.variant('kind', [
   ClientHeldBossSchema, ClientSpawnedBossSchema, ClientPlayerEnterSchema, ClientBossTelegraphSchema,
   v.strictObject({ kind: v.literal('light.emitters'), rows: LightEmittersSchema }),
   v.strictObject({ kind: v.literal('weather.fields'), rows: EasedFieldsSchema, quest: id }),
-  v.strictObject({ kind: v.literal('debug.expose'), name: id, objects: v.exactOptional(v.pipe(v.array(id), v.minLength(1), v.maxLength(16), v.check(keys => new Set(keys).size === keys.length, 'Unique debug object keys'))) }),
+  v.pipe(v.strictObject({ kind: v.literal('debug.expose'), name: id, objects: v.exactOptional(v.pipe(v.array(id), v.minLength(1), v.maxLength(16), v.check(keys => new Set(keys).size === keys.length, 'Unique debug object keys'))),
+    source:v.exactOptional(v.variant('kind',[
+      v.strictObject({kind:v.literal('runtime-object'),id}),v.strictObject({kind:v.literal('dressing')}),
+      v.strictObject({kind:v.literal('timed-riders'),owner:id}),v.strictObject({kind:v.literal('world-weather'),owner:id}),
+    ])) }),v.check(row=>row.objects===undefined||row.source===undefined,'Debug exposure requires one concrete source')),
 ]);
 /** Rows are unordered. Phase, rank and lifetime belong exclusively to the compiled registry. */
 export const ClientPlanSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Client plan requires plain JSON'), v.strictObject({ version: v.literal(1), features: v.pipe(v.array(ClientFeatureSchema), v.maxLength(64)) }),
