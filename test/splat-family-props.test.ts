@@ -43,3 +43,11 @@ test('the splat ground and family-drawn timber share one props tile', async () =
     expect(drawn.filter(m => m !== surface.material)).toHaveLength(1);
   } finally { scope.dispose(); }
 });
+
+test('a phone layer set draws on the phone; desktop draws layers; admission sees both', () => {
+  const phone: SplatTerrain = v.parse(SplatTerrainSchema, { ...SPLAT, phone: { colour: [h(21), h(22), h(23), h(24)], normal: [h(25), h(26), h(27), h(28)], arm: [h(9), h(10), h(11), h(12)] } });
+  expect(splatTextureRefs(phone, 'desktop')).toEqual(splatTextureRefs(SPLAT));
+  expect(splatTextureRefs(phone, 'phone').slice(0, 8)).toEqual([21, 22, 23, 24, 25, 26, 27, 28].map(h));
+  expect(splatTextureRefs(phone)).toHaveLength(12 + 8); // the shared ARM files count once
+  expect(splatTextureRefs(SPLAT, 'phone')).toEqual(splatTextureRefs(SPLAT));
+});

@@ -41,6 +41,8 @@ export const SplatTerrainSchema = v.strictObject({
   material: glbName,
   /** per role, layer i's KTX2 file (the unflipped `#layer` twin); layer i is splat channel i */
   layers: v.strictObject({ colour: four(ref), normal: four(ref), arm: four(ref) }),
+  /** the phone tier's own layer files, as `layers` (a shard's phone transcodes, Pine's ASTC 6x6); absent: the phone draws `layers` */
+  phone: v.exactOptional(v.strictObject({ colour: four(ref), normal: four(ref), arm: four(ref) })),
   /** the layer tints (linear RGB multipliers on the colour layer), the ground set's `groundTints` */
   tints: four(v.tuple([factor, factor, factor])),
   /** the boreal extras (canopy litter, moss, heath, tiling breakup); null draws the plain splat shader */
@@ -58,9 +60,15 @@ export function splatTerrainOf(props: object): SplatTerrain | undefined {
   read.set(props, value); return value;
 }
 
-/** Every layer file in role order (colour ×4, normal ×4, ARM ×4). */
-export function splatTextureRefs(splat: SplatTerrain | undefined): string[] {
-  return splat === undefined ? [] : [...splat.layers.colour, ...splat.layers.normal, ...splat.layers.arm];
+/** The layer files a tier draws: the phone's own set when the row has one, else `layers`. */
+export function splatLayers(splat: SplatTerrain, tier: 'phone' | 'desktop'): SplatTerrain['layers'] {
+  return tier === 'phone' && splat.phone !== undefined ? splat.phone : splat.layers;
+}
+/** Every layer file in role order (colour ×4, normal ×4, ARM ×4): one tier's set, or (no tier) both sets, the phone's after. */
+export function splatTextureRefs(splat: SplatTerrain | undefined, tier?: 'phone' | 'desktop'): string[] {
+  if (splat === undefined) return [];
+  const sets = tier === undefined ? [splat.layers, ...(splat.phone === undefined ? [] : [splat.phone])] : [splatLayers(splat, tier)];
+  return [...new Set(sets.flatMap(set => set.colour.concat(set.normal, set.arm)))];
 }
 
 /**
@@ -75,7 +83,7 @@ export function validateSplatTerrain(splat: SplatTerrain, context: {
   const files = new Map(context.files.map((file) => [file.hash, file]));
   const declared = new Set(context.tiles.flatMap((tile) => files.get(tile)?.dependencies ?? []));
   const elsewhere = new Set([...materialTextureRefs(context.look), ...context.propTextures]), roles = new Map<string, string>();
-  for (const role of Object.keys(SPLAT_ROLES) as SplatRole[]) for (const [layer, hash] of splat.layers[role].entries()) {
+  for (const set of [splat.layers, ...(splat.phone === undefined ? [] : [splat.phone])]) for (const role of Object.keys(SPLAT_ROLES) as SplatRole[]) for (const [layer, hash] of set[role].entries()) {
     if (files.get(hash)?.kind !== 'ktx2' || !declared.has(hash)) throw new Error(`props.splat ${role} layer ${layer}: must be a KTX2 dependency of a declared props tile`);
     if (elsewhere.has(hash)) throw new Error(`props.splat ${role} layer ${layer}: also bound by another material (the arrays own their files)`);
     const use = SPLAT_ROLES[role], seen = roles.get(hash);

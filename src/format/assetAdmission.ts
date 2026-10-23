@@ -131,7 +131,9 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
           if (splatTextureRefs(s.props.splat).some(ref => !f.dependencies.includes(ref))) throw new Error('Splat terrain GLB must directly declare every layer dependency');
           continue;
         }
-        const binding = propMaterials?.[name]; if (binding === undefined) throw new Error(`Missing admitted prop material ${name}`);
+        // a splat terrain beside family props (no props.materials): every other name draws with the family
+        if (propMaterials === undefined) continue;
+        const binding = propMaterials[name]; if (binding === undefined) throw new Error(`Missing admitted prop material ${name}`);
         used[name] = binding;
       }
       validatePropMaterials(used, { look: s.look.materials, models: [f.hash], textures: s.props?.textures ?? [], files: s.files });

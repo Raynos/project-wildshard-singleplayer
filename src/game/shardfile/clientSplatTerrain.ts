@@ -13,7 +13,8 @@ import { layerArrayMips } from '@wildshard/engine/core/ktx2';
 import { splatTerrainMaterial, type SplatLayers } from '@wildshard/engine/world/Terrain';
 import type { PropSurfaceBinding } from '@wildshard/engine/world/declaredProps';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { SPLAT_CHANNELS, SPLAT_ROLES, type SplatRole, type SplatTerrain } from '@wildshard/format/splatTerrain';
+import { TIER } from '@wildshard/engine/core/tier';
+import { SPLAT_CHANNELS, SPLAT_ROLES, splatLayers, type SplatRole, type SplatTerrain } from '@wildshard/format/splatTerrain';
 
 /** The largest array edge the client builds (the live terrain's `loadPBRArray(…, 1024)`). */
 export const SPLAT_LAYER_SIZE = 1024;
@@ -42,7 +43,7 @@ export function splatArray(role: SplatRole, layers: readonly Texture[], anisotro
 export function splatSurface(splat: SplatTerrain, ports: { scope: Scope; texture: (ref: string) => Texture; anisotropy?: number }): { material: Material; binding: PropSurfaceBinding } {
   const sources = new Set<Texture>();
   const array = (role: SplatRole): CompressedArrayTexture => {
-    const textures = splat.layers[role].map((ref) => ports.texture(ref));
+    const textures = splatLayers(splat, TIER)[role].map((ref) => ports.texture(ref));
     for (const t of textures) sources.add(t);
     return ports.scope.own(splatArray(role, textures, ports.anisotropy));
   };

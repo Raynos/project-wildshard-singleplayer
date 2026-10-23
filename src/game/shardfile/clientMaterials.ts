@@ -32,6 +32,7 @@ import type { PropSurfaceBinding } from '@wildshard/engine/world/declaredProps';
 import { propMaterialTextureRefs, propMaterialsOf } from '@wildshard/format/propMaterials';
 import { propSurfaces } from './clientPropMaterials';
 import { splatSurface, withSplatSurface } from './clientSplatTerrain';
+import { TIER } from '@wildshard/engine/core/tier';
 import { splatTerrainOf, splatTextureRefs } from '@wildshard/format/splatTerrain';
 
 /** Defer unused graph catalogue entries until a view actually asks for them. Iteration still resolves every declared ID. */
@@ -131,8 +132,8 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
   const textures = new Map<string, Texture>(), uses = new Map<string, 'colour' | 'data'>();
   const named = shard.props === null ? undefined : propMaterialsOf(shard.props);
   const splat = shard.props === null ? undefined : splatTerrainOf(shard.props);
-  const refs = new Set([...materialTextureRefs(sampledMaterials), ...graphFileTextureRefs(sampledMaterials, (hash) => assets.get(hash)), ...(shard.props?.textures.map((entry) => entry.colour) ?? []), ...propMaterialTextureRefs(named), ...splatTextureRefs(splat)]);
-  const splatRefs = new Set(splatTextureRefs(splat));
+  const refs = new Set([...materialTextureRefs(sampledMaterials), ...graphFileTextureRefs(sampledMaterials, (hash) => assets.get(hash)), ...(shard.props?.textures.map((entry) => entry.colour) ?? []), ...propMaterialTextureRefs(named), ...splatTextureRefs(splat, TIER)]);
+  const splatRefs = new Set(splatTextureRefs(splat, TIER));
   if (refs.size > 0) {
     const loader = detectKtx2Support(new KTX2Loader().setTranscoderPath(BASIS_PATH), renderer);
     scope.onDispose(() => { loader.dispose(); });
