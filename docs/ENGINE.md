@@ -11414,6 +11414,9 @@ A duplicate, invalid id, expired owner or cross-construction loan refuses.
 then pins the original publication. Missing owners never fall back; either
 scope retiring or replacement of that loan refuses. The open arena uses this
 for storm and air without deferring its geometry or programme admission.
+The G615 painted-world owner likewise consumes its exact stars dome at
+first frame use. Panorama, key light, capture and caster construction
+remain before boot shader warmup; neither scope may retire or swap its sky.
 The book owns no clocks, rule decisions, script continuations or saved state.
 
 ### Ranged-page entry preparation (G571)

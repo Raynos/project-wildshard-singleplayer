@@ -126,11 +126,11 @@ test('a painted-world stage refuses a leaving world or missing loans before it w
 
 /** a construction scope holding the stage's loans (a weather rig whose painted sky can be swapped), a separate native level
  *  scope, and the painted world's wire held open until `release` */
-function heldStage() {
+function heldStage(weather = true) {
   const scope = new Scope('orchard-construction'), nativeScope = new Scope('orchard-native'), trees = new Object3D(), dome = new Mesh();
   const sky = (): PaintedSky => legacyDouble<PaintedSky>({ dome: new Mesh() });
   const rig = legacyDouble<ForestWeatherRig>({ sky: sky() });
-  publishEntryOwner(scope, 'world-weather', row.weather, rig); publishEntryOwner(scope, 'object', 'orchard.trees', trees);
+  if (weather) publishEntryOwner(scope, 'world-weather', row.weather, rig); publishEntryOwner(scope, 'object', 'orchard.trees', trees);
   // a plain instance (a promise resolution reads `then`), carrying only the dome the stage lends
   const built: unknown = Object.assign(Object.create(PainterlyWorld.prototype), { panorama: { dome } });
   if (!(built instanceof PainterlyWorld)) throw new Error('Missing painterly world');
@@ -194,5 +194,38 @@ test('the declared assembly wires at its ordered boundary and observes native ow
       if (replaced) { await expect(pending).rejects.toThrow('replaced its owners'); unlent(f.scope); }
       else { await pending; expect(assembly.done).toBe(true); expect(entryOwner(f.scope, 'painted-world', row.id)).toBe(f.built); }
     } finally { later.dispose(); f.end(); }
+  }
+});
+
+
+test('painted construction completes before its late stars, keeping the original live dome', async () => {
+  const f = heldStage(false);
+  try {
+    const pending = installPaintedWorldStage(f.ports, row);
+    expect(f.wire).toHaveBeenCalledOnce();
+    f.release(); await pending;
+    expect(entryOwner(f.scope, 'painted-world', row.id)).toBe(f.built);
+    const ports = f.wire.mock.calls[0]?.[0];
+    if (ports === undefined) throw new Error('Missing original wire ports');
+    expect(() => ports.stars).toThrow('Missing live entry owner');
+    publishEntryOwner(f.scope, 'world-weather', row.weather, f.rig);
+    expect(ports.stars).toBe(f.rig.sky?.dome);
+    f.rig.sky = f.sky();
+    expect(() => ports.stars).toThrow('left or replaced');
+  } finally { f.end(); }
+});
+
+test('late stars cannot outlive their construction or independent native scope', async () => {
+  for (const which of ['construction', 'native'] as const) {
+    const f = heldStage(false);
+    try {
+      const pending = installPaintedWorldStage(f.ports, row); f.release(); await pending;
+      const ports = f.wire.mock.calls[0]?.[0];
+      if (ports === undefined) throw new Error('Missing original wire ports');
+      publishEntryOwner(f.scope, 'world-weather', row.weather, f.rig);
+      expect(ports.stars).toBe(f.rig.sky?.dome);
+      (which === 'construction' ? f.scope : f.nativeScope).dispose();
+      expect(() => ports.stars).toThrow('left or replaced');
+    } finally { f.end(); }
   }
 });

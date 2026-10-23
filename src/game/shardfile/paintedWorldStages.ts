@@ -18,7 +18,7 @@ import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import type { FixedDraws } from '../models/fixedDraws';
 import { paintedWorldOf } from '../looks/postGraphLook';
-import { entryOwner, publishEntryOwner } from './entryOwners';
+import { entryOwner, lateEntryOwner, presentEntryOwner, publishEntryOwner } from './entryOwners';
 
 /** one load a page per library, as a level's own loader kept (a re-entered world reuses it; a failed load stays failed) */
 const loads = new WeakMap<FixedDraws, Promise<void>>();
@@ -73,9 +73,7 @@ export interface PaintedWorldStageRow {
 /** The construction scope's loans a painted world reads: its weather rig, that rig's painted sky and dome, the named
  *  groups and the casters, in row order. */
 function stageLoans(scope: Scope, stage: PaintedWorldStageRow): readonly unknown[] {
-  const rig = entryOwner(scope, 'world-weather', stage.weather), painted = rig.sky;
-  if (painted === null) throw new Error(`Weather ${stage.weather} has no painted sky`);
-  return [rig, painted, painted.dome, ...stage.groups.map(row => entryOwner(scope, 'object', row.object)), ...stage.casters.map(id => entryOwner(scope, 'object', id))];
+  return [...stage.groups.map(row => entryOwner(scope, 'object', row.object)), ...stage.casters.map(id => entryOwner(scope, 'object', id))];
 }
 
 /** Wire the painted world under the native level scope over the construction scope's exact loans and lend it; nothing is
@@ -83,18 +81,33 @@ function stageLoans(scope: Scope, stage: PaintedWorldStageRow): readonly unknown
 export async function installPaintedWorldStage(ports: PaintedWorldStagePorts, stage: PaintedWorldStageRow): Promise<void> {
   const { scope, nativeScope, renderer, scene, sky, forest, daySaturation } = ports;
   if (!live(scope) || !live(nativeScope)) throw new Error('A painted-world stage needs a live world');
-  const loans = stageLoans(scope, stage), rig = entryOwner(scope, 'world-weather', stage.weather), painted = rig.sky;
-  if (painted === null) throw new Error(`Weather ${stage.weather} has no painted sky`);
+  const loans = stageLoans(scope, stage), weatherLoan = lateEntryOwner(scope, 'world-weather', stage.weather);
+  let stars: { readonly sky: NonNullable<ReturnType<typeof weatherLoan>['sky']>; readonly dome: Object3D } | undefined;
+  const kept = (): boolean => live(scope) && live(nativeScope) && ports.scope === scope && ports.nativeScope === nativeScope && ports.renderer === renderer
+    && ports.scene === scene && ports.sky === sky && ports.forest === forest && ports.daySaturation === daySaturation;
+  const readStars = (): Object3D => {
+    if (!kept()) throw new Error('The world left or replaced its owners while its painted world built');
+    const painted = weatherLoan().sky;
+    if (stars !== undefined && (painted !== stars.sky || painted.dome !== stars.dome))
+      throw new Error('The world left or replaced its owners while its painted world built');
+    if (painted === null) throw new Error(`Weather ${stage.weather} has no painted sky`);
+    stars ??= { sky: painted, dome: painted.dome };
+    return stars.dome;
+  };
+  const checkStars = (): void => {
+    if (stars !== undefined || presentEntryOwner(scope, 'world-weather', stage.weather) !== null) readStars();
+  };
+  checkStars();
   if (stage.forest && forest === null) throw new Error('A painted-world stage names a forest the world does not have');
   const groups = Object.fromEntries(stage.groups.map(row => [row.name, entryOwner(scope, 'object', row.object)]));
   const casters = [...stage.casters.map(id => entryOwner(scope, 'object', id)), ...(stage.forest && forest !== null ? [forest] : [])];
-  const world = await paintedWorldOf(stage.world).wire({ renderer, scene, scope: nativeScope, sky, stars: painted.dome, groups, casters, daySaturation });
-  const kept = live(scope) && live(nativeScope) && ports.scope === scope && ports.nativeScope === nativeScope && ports.renderer === renderer
-    && ports.scene === scene && ports.sky === sky && ports.forest === forest && ports.daySaturation === daySaturation;
-  const again = kept ? stageLoans(scope, stage) : [];
-  if (!kept || again.length !== loans.length || again.some((value, at) => value !== loans[at])) {
+  const world = await paintedWorldOf(stage.world).wire({ renderer, scene, scope: nativeScope, sky,
+    get stars() { return readStars(); }, groups, casters, daySaturation });
+  const again = kept() ? stageLoans(scope, stage) : [];
+  if (!kept() || again.length !== loans.length || again.some((value, at) => value !== loans[at])) {
     throw new Error('The world left or replaced its owners while its painted world built');
   }
+  checkStars();
   if (world === null) throw new Error(`Painted world ${stage.world} declares no world rows`);
   publishEntryOwner(scope, 'painted-world', stage.id, world);
   publishEntryOwner(scope, 'object', stage.id, world.panorama.dome);

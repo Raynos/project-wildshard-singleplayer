@@ -326,7 +326,7 @@ export interface PainterlyCapture { readonly staticOffCsm: boolean; add: (root: 
 export class PainterlyWorld {
   private sweepT = 0;
   private constructor(private readonly rows: v.InferOutput<typeof PainterlyWorldSchema>, private readonly sky: SkyRig, private readonly capture: PainterlyCapture,
-    readonly panorama: PaintedPanorama, private readonly key: PainterKeyLight, private readonly grass: GrassPresentationProfile, private readonly stars: Object3D) {}
+    readonly panorama: PaintedPanorama, private readonly key: PainterKeyLight, private readonly grass: GrassPresentationProfile, private readonly starOwner: Pick<PaintedWorldPorts, 'stars'>) {}
   static async build(input: unknown, ports: { readonly renderer: Renderer; readonly scene: Scene; readonly scope: Scope; readonly sky: SkyRig; readonly stars: Object3D;
     readonly groups: Readonly<Record<string, Object3D>>; readonly casters: readonly Object3D[]; readonly grass: GrassPresentationProfile;
     readonly capture: { readonly rows: unknown; readonly uniforms: StaticCaptureUniforms } | { readonly lent: PainterlyCapture }; readonly panorama: { readonly rows: unknown } & Parameters<typeof PaintedPanorama.build>[4];
@@ -342,10 +342,10 @@ export class PainterlyWorld {
       sky.csm.shadowMapSize = rows.liveMap;
       for (const light of sky.csm.lights) { light.shadow.mapSize.set(rows.liveMap, rows.liveMap); light.shadow.map?.dispose(); light.shadow.map = null; }
     }
-    return new PainterlyWorld(rows, sky, capture, panorama, key, ports.grass, ports.stars);
+    return new PainterlyWorld(rows, sky, capture, panorama, key, ports.grass, ports);
   }
   update(dt: number, frame: PainterlyFrame): void {
-    const look = frame.look;
+    const look = frame.look, stars = this.starOwner.stars;
     this.sweepT -= dt;
     if (this.sweepT <= 0) { this.sweepT = this.rows.sweep; this.capture.sweep(); }   // streamed-in casters join the capture
     this.key.apply(look);
@@ -353,7 +353,7 @@ export class PainterlyWorld {
     const night = this.panorama.update(look.sunDir, frame.sunElevation);
     this.grass.uniforms.uSunView.value.copy(look.sunDir);
     this.grass.mood(night, smoothstep(this.rows.dusk[0], this.rows.dusk[1], frame.sunElevation) * (1 - night), frame.overcast);
-    this.stars.visible = night > 0.001;
+    stars.visible = night > 0.001;
     if (look.moon <= 0) this.sky.sunDisc.visible = false;   // the sun is painted; the disc stays only as the moon
   }
 }
@@ -397,8 +397,10 @@ export function paintedWorld(slug: string, input: unknown, files:ReadonlyMap<str
     if (saturation === undefined) throw new Error(`Painted world grade has no ${world.grade.saturation}`);
     const uniforms = { ...Object.fromEntries(Object.entries(grade).filter(([name]) => name !== world.grade.saturation)),
       ...Object.fromEntries(Object.entries(world.tint).map(([name, part]) => [name, panoramaTint[part]])) };
-    return PainterlyWorld.build(world.rows, { ...ports, grass, capture: { rows: row.capture, uniforms: bake },
-      panorama: { rows: world.panorama, ridge: world.ridge, lut: fogLut, uniforms }, key: { rows: world.key, daySaturation: ports.daySaturation, saturation } });
+    const { renderer, scene, scope, sky, groups, casters, daySaturation } = ports;
+    return PainterlyWorld.build(world.rows, { renderer, scene, scope, sky, groups, casters,
+      get stars() { return ports.stars; }, grass, capture: { rows: row.capture, uniforms: bake },
+      panorama: { rows: world.panorama, ridge: world.ridge, lut: fogLut, uniforms }, key: { rows: world.key, daySaturation, saturation } });
   };
   const parts: PaintedWorldParts = { bake, fogLut, tint: panoramaTint, grass, wire, look: {
     // the cloud shadows first, then the panorama fog: every fogged material fades into the painted haze behind it

@@ -52,3 +52,22 @@ test('the panorama decides whether the world builds; the rows refuse a tiny live
   expect(await PainterlyWorld.build(harbour, base)).toBeNull();
   await expect(PainterlyWorld.build({ ...harbour, liveMap: 8 }, base)).rejects.toThrow();
 });
+
+
+test('panorama and capture build before a late stars owner is first consumed', async () => {
+  const p = ports(), scope = new Scope('harbour-late-stars');
+  const panorama = { dome: new Mesh(), update: vi.fn(() => 0.25) };
+  const build = vi.spyOn(PaintedPanorama, 'build').mockResolvedValue(panorama as Pick<PaintedPanorama, 'dome' | 'update'> as PaintedPanorama);
+  let reads = 0;
+  try {
+    const world = await PainterlyWorld.build(harbour, { renderer: p.renderer, scene: new Scene(), scope, sky: p.sky,
+      get stars() { reads++; return p.stars; }, groups: { town: p.town, rocks: p.rocks }, casters: [p.boats], grass: p.grass,
+      capture: { lent }, panorama: { rows: {}, ridge: [], lut: new DataTexture(), uniforms: {} },
+      key: { rows: key, daySaturation: 1, saturation: { value: 1 } } });
+    if (world === null) throw new Error('Missing world');
+    expect(reads).toBe(0); expect(captured.added).toEqual([p.town, p.rocks, p.boats]);
+    expect(build).toHaveBeenCalledOnce(); expect(p.csm.shadowMapSize).toBe(256);
+    world.update(0.5, { look: look(new Vector3(0, 1, 0)), sunElevation: 5, overcast: 0.4 });
+    expect(reads).toBe(1); expect(p.stars.visible).toBe(true); expect(captured.updates).toBe(1);
+  } finally { scope.dispose(); }
+});
