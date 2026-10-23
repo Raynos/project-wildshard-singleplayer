@@ -4,6 +4,7 @@ import { DeclaredEliteEntry } from '@wildshard/engine/ai/view/eliteEntry';
 import { parseEliteEntryPageRows } from '@wildshard/format/eliteEntryRows';
 import { parseClientPlan } from '@wildshard/format/clientPlan';
 import type { ShardContext } from '../plugin/context';
+import { clientNativeBook } from './clientNativeBook';
 import { ReturnProgram } from '../population/returnProgram';
 import { readSpawnScript } from '../population/spawnScript';
 import { clientWildlifeState } from '../population/wildlife';
@@ -31,7 +32,10 @@ export async function installClientEliteConstruction(ctx: ShardContext, input: u
   const {admission} = v.parse(v.object({admission: v.unknown()}), await product.json(row.admission)); live();
   const {constants: {pageElites}} = v.parse(v.object({constants: v.object({pageElites: v.unknown()})}), await product.json(row.file)); live();
   const rows = parseEliteEntryPageRows(pageElites), program = ReturnProgram.page(admission, scope);
-  const fight = await readSpawnScript(product, row.fight); live();
+  const assets = clientNativeBook(ctx).decisionAssets;
+  const fight = await readSpawnScript(product, row.fight, assets); live();
+  const fightModule = fight.bytes === '' ? assets.get(fight.script.module.slice('blobs/wasm/'.length,-'.wasm'.length)) : undefined;
+  if (fight.bytes === '' && fightModule === undefined) throw new Error('Missing prepared elite fight module');
   const ledges = SceneDressing.current(ctx).pieces.get(row.ledges.part)?.anchors[row.ledges.anchor] ?? [];
   const entry = new DeclaredEliteEntry(rows.entry, construction);
   let population: ReturnType<typeof clientWildlifeState> | undefined;
@@ -43,7 +47,7 @@ export async function installClientEliteConstruction(ctx: ShardContext, input: u
   const readWeather = () => { live(); const rig = weather(); originalWeather ??= resolveWeather();
     if (rig.sky !== originalWeather.sky || rig.storm !== originalWeather.storm || originalWeather.sky.clock !== originalWeather.clock)
       throw new Error('Elite weather owner changed'); return originalWeather; };
-  const loan: EliteEntryConstruction = {entry, rows, construction, models, program: {id: row.program, scope: construction, value: program}, fight, environment: wildEnv, ledges,
+  const loan: EliteEntryConstruction = {entry, rows, construction, models, program: {id: row.program, scope: construction, value: program}, fight, ...(fightModule === undefined ? {} : {fightModule}), environment: wildEnv, ledges,
     get population() { return readPopulation(); },
     get clock() { return readWeather().clock; },
     get weather() { return readWeather().storm; },

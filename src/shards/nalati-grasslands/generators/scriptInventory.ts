@@ -9,6 +9,7 @@ import ridingPrograms from '../behaviour/riding.generated.json' with { type: 'js
 import titanProgram from '../behaviour/titan.generated.json' with { type: 'json' };
 import charge from '../data/eliteCharge.generated.json' with { type: 'json' };
 
+const {compiled: _chargeFile,...chargeRows} = charge;
 const programs = [weatherDecision.script, kokpar.program.script];
 const legacy = programs.filter((row, index, all) => all.findIndex(entry => entry.module === row.module) === index);
 function projection(id: string, program: typeof heldWeapons.program.v2): Record<string, string | number> {
@@ -19,7 +20,7 @@ function projection(id: string, program: typeof heldWeapons.program.v2): Record<
 /** Complete sim admission, shared by emitted sections and the module-cap proof.
  * Inline ABI1 witnesses are data; only selected executable rows appear here. */
 export const NALATI_SCRIPT_SECTIONS: ReadonlyMap<PlatformDataSectionName, unknown> = new Map([
-  ['actors/spawn-scripts', [{ ...charge, bytes: '' }]],
+  ['actors/spawn-scripts', [chargeRows]],
   ['actors/return-scripts', [...legacy, projection('nalati.admission.projection',admission.v2), projection('nalati.held-weapons.projection', heldWeapons.program.v2),
     projection('nalati.titan.projection', titanProgram.attack.v2),projection('nalati.mounts.projection',ridingPrograms.approach.v2),projection('nalati.pasture.projection',pasture.v2)]],
 ]);

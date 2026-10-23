@@ -20182,11 +20182,13 @@
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/eliteCharge.generated.json",
-        "src/shards/nalati-grasslands/data/night.generated.json"
+        "src/shards/nalati-grasslands/data/night.generated.json",
+        "src/shards/nalati-grasslands/behaviour/elite-charge.generated.wasm"
       ],
       "buildTimeOutputs": [
         "src/shards/nalati-grasslands/data/eliteCharge.generated.json",
-        "src/shards/nalati-grasslands/data/night.generated.json"
+        "src/shards/nalati-grasslands/data/night.generated.json",
+        "src/shards/nalati-grasslands/behaviour/elite-charge.generated.wasm"
       ],
       "platform": "portable"
     },

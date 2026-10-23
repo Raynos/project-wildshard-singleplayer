@@ -26,6 +26,7 @@ import { Rng } from '@wildshard/engine/core/rng';
 import { DECISION_PLAYER_HANDLE, decisionBindingMap } from '@wildshard/format/decisionBindings';
 import { parseSpawnScript, SpawnScriptsSchema, spawnScriptRegistries, type SpawnScriptRows } from '@wildshard/format/spawnScripts';
 import { SCRIPT_V1_EVENTS, SCRIPT_V1_READS, SCRIPT_V1_LISTS, type ScriptV1Command, type ScriptV1ReadName, type ScriptV1ListName } from '@wildshard/format/scriptAbiV1';
+import { sha256 } from '../plugin/moduleHash';
 import { admitScriptContract } from '@wildshard/format/scriptContract';
 import { populationRoster } from './roster';
 import { ANIMAL_STATES, type AnimalSim } from '@wildshard/engine/entities/AnimalSim';
@@ -33,7 +34,7 @@ import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 
 /** Entered concrete service loans only; no shard callback or reflected name resolver. */
-export type SpawnV2Owners = Omit<V2ColumnOwners,'self' | 'player' | 'observed' | 't' | 'dt'>;
+export type SpawnV2Owners = Omit<V2ColumnOwners,'self' | 'player' | 'observed' | 't' | 'dt'> & { readonly module?: Uint8Array };
 /** Actual native worlds keyed by the original numeric binding id, not an
  * authored resolver. Roster arrays preserve the source owner's live order. */
 export interface SpawnQueryLoansV2 { readonly worlds: ReadonlyMap<number,V2QueryWorld> }
@@ -108,13 +109,14 @@ export class SpawnScript {
     const rows = parseSpawnScript(input); this.rows = rows;
     this.controlState = v.parse(v.picklist(ANIMAL_STATES), rows.controlState);
     const registries = spawnScriptRegistries(rows); this.combat = new ScriptStrikes(rows.strikes ?? []);
-    const bytes = Uint8Array.from(atob(rows.bytes), byte => byte.codePointAt(0) ?? 0);
+    const bytes = v2Owners?.module ?? Uint8Array.from(atob(rows.bytes), byte => byte.codePointAt(0) ?? 0);
+    if (v2Owners?.module !== undefined && (rows.bytes !== '' || !(bytes instanceof Uint8Array) || rows.script.module !== `blobs/wasm/${sha256(bytes)}.wasm`)) throw new Error('Invalid raw spawn module');
     admitScriptContract(bytes, { abi: 1, pages: rows.script.pages });
     const { v2: selected,...originalRows } = rows;
     this.contract = JSON.stringify({ ...originalRows, script: decisionScriptContract(rows.script), bytes: undefined });
     this.v2Contract = selected === undefined ? undefined : JSON.stringify({ ...selected,bytes: undefined });
     if (selected !== undefined && v2Owners === undefined) throw new Error('V2 spawn requires entered concrete owners');
-    if (selected !== undefined && (v2Owners?.scope.disposed === true || v2Owners?.scope.disposing === true)) throw new Error('Retired v2 actor scope');
+    if ((selected !== undefined || v2Owners?.module !== undefined) && (v2Owners?.scope.disposed === true || v2Owners?.scope.disposing === true)) throw new Error('Retired v2 actor scope');
     if (selected?.queries !== undefined && queryLoans === undefined) throw new Error('Missing concrete query world authority');
     if (selected?.queries === undefined && queryLoans !== undefined) throw new Error('Undeclared query world authority');
     if (selected?.effects?.elites === true && (effectOwners?.elites === undefined || bodies.pageActor === undefined)) throw new Error('Missing concrete page effect authority');
@@ -709,12 +711,13 @@ export function installNativeSpawnScript(host: SimHost, day: Pick<DayCycleClock,
 }
 
 /** Resolve a spawn-owned catalogue row and its exact admitted module bytes before installing the synchronous owner. */
-export async function readSpawnScript(product: ShardProduct, step: string): Promise<SpawnScriptRows> {
+export async function readSpawnScript(product: ShardProduct, step: string, rawModules?: Map<string,Uint8Array>): Promise<SpawnScriptRows> {
   const rows = v.parse(SpawnScriptsSchema, product.section('actors/spawn-scripts'));
   const row = value(rows.find(item => item.step === step), 'catalogue step');
   const descriptor = value(outputDescriptor(product.shardfile), 'admitted product');
   const file = value(descriptor.index.files.find(item => item.kind === 'wasm' && item.path === row.script.module), 'catalogue module');
   const bytes = await product.file(value(file.name, 'named catalogue module'));
+  if (row.v2 === undefined && rawModules !== undefined) { Map.prototype.set.call(rawModules,file.hash,bytes); return { ...row,bytes: '' }; }
   if (row.v2 === undefined) return { ...row, bytes: btoa(String.fromCodePoint(...bytes)) };
   const modulePath = `blobs/wasm/${row.v2.artifact.hash}.wasm`, modern = value(descriptor.index.files.find(item => item.kind === 'wasm' && item.path === modulePath && item.hash === row.v2?.artifact.hash), 'v2 catalogue module');
   const v2Bytes = await product.file(value(modern.name,'named v2 catalogue module'));

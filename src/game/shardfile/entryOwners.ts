@@ -38,7 +38,7 @@ export interface WorldFrameOwner { readonly update: (dt: number, time: number) =
 /** Original elite construction resources, lent to the existing entered engine
  * feature. No factory, shard object, reflected path or new durable owner. */
 export interface EliteEntryConstruction extends Pick<EliteDeclaredEntryOwners,
-  'construction' | 'models' | 'program' | 'fight' | 'environment' | 'clock' | 'weather' | 'ledges' | 'patrol'> {
+  'construction' | 'models' | 'program' | 'fight' | 'fightModule' | 'environment' | 'clock' | 'weather' | 'ledges' | 'patrol'> {
   readonly population: ReturnType<typeof clientWildlifeState>;
   readonly entry: DeclaredEliteEntry;
   readonly rows: EliteEntryPageRows;

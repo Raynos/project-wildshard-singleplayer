@@ -194,8 +194,8 @@ export class Elites {
       if (model === undefined || (row.mode === 'script' && owners.fight === undefined)) throw new Error('Missing declared borrowed elite model or fight');
       return { row, model };
     }) : [];
-    const fight = owners.fight, spawnOwners = { scope: entered.scope, environment: owners.environment, clock: owners.clock, weather: owners.weather };
-    const pages = fight === undefined ? undefined : { page: () => fight.v2 === undefined ? SpawnScript.page(animals, fight, game.app.physics) : SpawnScript.page(animals, fight, game.app.physics, spawnOwners, this) };
+    const fight = owners.fight, spawnOwners = { scope: entered.scope, environment: owners.environment, clock: owners.clock, weather: owners.weather, ...(owners.fightModule === undefined ? {} : { module: owners.fightModule }) };
+    const pages = fight === undefined ? undefined : { page: () => fight.v2 === undefined ? SpawnScript.page(animals, fight, game.app.physics, owners.fightModule === undefined ? undefined : spawnOwners) : SpawnScript.page(animals, fight, game.app.physics, spawnOwners, this) };
     const controllers = owners.controllers ?? selected.map(({ row, model }) => new BorrowedElite(row,
       { game, player, elites: this, ...(row.mode === 'script' && pages !== undefined ? { fight: pages } : {}) }, program.value, model, true));
     if (controllers.length !== rows.borrowed.length || controllers.some((controller, index) => !(controller instanceof BorrowedElite)
@@ -461,6 +461,7 @@ export interface EliteDeclaredEntryOwners<T extends CrowdTargets = CrowdTargets>
   readonly program: { readonly id: string; readonly scope: Scope; readonly value: ReturnProgram };
   readonly controllers?: readonly BorrowedElite[];
   readonly fight?: SpawnScriptRows;
+  readonly fightModule?: Uint8Array;
   readonly environment: PageWildEnvironment & V2EnvironmentColumns;
   readonly clock: DayCycleClock; readonly weather: { readonly stormActive: boolean };
   readonly ledges: readonly PouncerLedge[]; readonly rock: { readonly x: number; readonly z: number; readonly top: number };
