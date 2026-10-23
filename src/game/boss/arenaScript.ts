@@ -364,8 +364,6 @@ export class ArenaScriptFight implements BossScript {
 
   // ── III · the grass fire + chain lightning ──
 
-  /** A burning cell is observed by the mounted refusal and HUD. */
-  burningAt(x: number, z: number): boolean { return this.field.activeAt(x, z); }
   private ignite(x: number, z: number): void { this.field.activate(x, z); }
   private addScorch(c: number): void {
     this.fire.scorchCell(this.field, c);
@@ -416,7 +414,6 @@ export class ArenaScriptFight implements BossScript {
   refuses(x: number, z: number): boolean {
     return arenaBlockedAt(this.field, { x, z }, this.data.boundary, this.refusalMask);
   }
-  get sealedNow(): boolean { return this.sealed; }
 }
 
 // ─────────────────────────────── the wiring ───────────────────────────────
