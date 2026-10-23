@@ -238,7 +238,8 @@
         "alert",
         "stalk",
         "wander"
-      ]
+      ],
+      "required": true
     },
     {
       "kind": "look-position",

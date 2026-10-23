@@ -118,7 +118,7 @@ test('orchard native manager drives the admitted roster at ten Hz across body fr
   const manager = new NativeManager(host, hunt, random, { limit: 64, sightSlots: 1, initialSight: false });
   const groups = herdService(host, 'unused.herds', 'fixture.driver', { id: 'orchard.tokens', owners: new WeakMap() });
   const makeDriver = (id = 'orchard.tokens', ownerHost = host): InstanceType<typeof NativePopulationDriver> => new NativePopulationDriver(ownerHost, manager, hunt, random, [actor], new Map(), new Map(), eliteBindings(), [], [],
-    { tokens: id, program: admission, packKind: 'boar', dogKind: 'collie', eliteKinds: [], dispatch: 'dispatch', dogDecision: 'dog', stragglerDistance: 12 }, groups);
+    { tokens: id, program: admission, packKind: 'boar', dogKind: 'collie', eliteKinds: [], dispatch: 'dispatch' }, groups);
   expect(() => makeDriver('foreign.tokens')).toThrow('Missing native manager tokens');
   const foreign = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier });
   try { expect(groups.owns(foreign)).toBe(false); expect(() => makeDriver('orchard.tokens', foreign)).toThrow('Missing native manager tokens'); }
@@ -277,7 +277,7 @@ test('orchard fixture installs the complete native population through data rows'
       packKind: 'boar', dogKind: 'collie', eliteKinds: ['silver-boar'], motorKinds: ['boar'], retiredY: -9999, variants: [], flocks: [], forager: { row: foragers.row, seed: 41 },
       frame: { speed: 'speed', alert: 'whistle', range: 'scare', packRadius: 20, scareSeconds: 6, scareRadius: 60, foragerRunSpeed: 5,
         trample: { kinds: { boar: .5 }, minSpeed: .6, range: 80, fullSpeed: 6 }, knockdown: { speed: 7, min: .4, max: 1.5, seconds: .28 } },
-      driver: { dispatch: 'dispatch', dogDecision: 'dog', stragglerDistance: 12 }, companion: { id: 'orchard.companion', kind: 'boar', variant: 'boar', wildKinds: ['boar'] }, shepherdOffset: [2, 3], raidVariants: ['boar'] },
+      driver: { dispatch: 'dispatch' }, companion: { id: 'orchard.companion', kind: 'boar', variant: 'boar', wildKinds: ['boar'] }, shepherdOffset: [2, 3], raidVariants: ['boar'] },
     bodies: [{ actor, boot: { id: actor.entityId, seed: actor.seed, adopted: { x: actor.position.x, z: actor.position.z, stream: checkpoint } } }], herds: [], stream, wildStream: new Rng(3).snapshot(),
     bake: { actors: [{ spec: sample.spec }], marmots: foragers.snapshot() }, spawnY: 10, elites: eliteBindings() });
   try {

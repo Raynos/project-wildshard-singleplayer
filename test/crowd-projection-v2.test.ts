@@ -133,3 +133,12 @@ test('the original native callback and ABI2 rows keep RNG, JSON continuation and
     }
   }finally{f.scope.dispose();g.scope.dispose();}
 });
+
+
+test('invalid declared state refuses the entire guard output before memory, motion or RNG publication',()=>{
+  const f=fixture(native),programme=f.binding.program(f.scope),before=f.actor.snapshot(),random=f.random.snapshot();
+  const prepare=programme.prepare;if(prepare===undefined)throw new Error('Missing selected prepare');
+  const invalid=vi.spyOn(programme,'prepare').mockImplementation((...args)=>{const candidate=prepare(...args);return {...candidate,values:{...candidate.values,state:99}};});
+  try{expect(()=>f.binding.step(f.actor,f.context,f.owner)).toThrow('Invalid actor projection state');expect(f.actor.snapshot()).toStrictEqual(before);expect(f.random.snapshot()).toStrictEqual(random);expect(f.calls).toStrictEqual([]);}
+  finally{invalid.mockRestore();f.scope.dispose();}
+});

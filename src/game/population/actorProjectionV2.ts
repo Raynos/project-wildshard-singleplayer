@@ -190,6 +190,7 @@ export class ActorProjectionV2 {
         }
         case 'state': {
           const index=scalar(operation.value),state=ANIMAL_STATES.find(value=>value===operation.states[index]);
+          if(operation.required===true&&state===undefined)throw new Error('Invalid actor projection state');
           return ()=>{
             if(state!==undefined)actor.state=state;
           };

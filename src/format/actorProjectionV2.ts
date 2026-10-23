@@ -19,7 +19,7 @@ type ProjectionOperationV2 =
   | { kind: 'navigate'; x: ProjectionScalarV2; z: ProjectionScalarV2; yaw: ProjectionScalarV2; speed: ProjectionScalarV2; turn: ProjectionScalarV2; path: ProjectionScalarV2 }
   | { kind: 'confine' }
   | { kind: 'sound-position'; value: ProjectionScalarV2; cue: string; height: number }
-  | { kind: 'state'; value: ProjectionScalarV2; states: string[] }
+  | { kind: 'state'; value: ProjectionScalarV2; states: string[]; required?: boolean }
   | { kind: 'attack'; when: ProjectionConditionV2; seconds: number }
   | { kind: 'motion'; when: ProjectionConditionV2; yaw: ProjectionScalarV2;
       speed: ProjectionScalarV2; turn: ProjectionScalarV2; path?: ProjectionConditionV2 }
@@ -54,7 +54,7 @@ v.strictObject({kind:v.literal('look-position'),x:scalar,y:scalar,z:scalar,weigh
 v.strictObject({kind:v.literal('navigate'),x:scalar,z:scalar,yaw:scalar,speed:scalar,turn:scalar,path:scalar}),
 v.strictObject({kind:v.literal('confine')}),
 v.strictObject({kind:v.literal('sound-position'),value:scalar,cue:key,height:finite}),
-v.strictObject({kind:v.literal('state'),value:scalar,states:v.pipe(v.array(key),v.maxLength(64))}),
+v.strictObject({kind:v.literal('state'),value:scalar,states:v.pipe(v.array(key),v.maxLength(64)),required:v.exactOptional(v.boolean())}),
 v.strictObject({kind:v.literal('attack'),when:condition,seconds:v.pipe(finite,v.minValue(0))}),
 v.strictObject({kind:v.literal('motion'),when:condition,yaw:scalar,speed:scalar,turn:scalar,path:v.exactOptional(condition)}),
 v.strictObject({kind:v.literal('cancel'),when:condition}),

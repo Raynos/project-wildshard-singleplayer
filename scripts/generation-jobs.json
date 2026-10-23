@@ -306,7 +306,6 @@
         "src/shards/nalati-grasslands/generators/speciesRows.ts",
         "src/shards/nalati-grasslands/species/horse.json",
         "src/shards/nalati-grasslands/data/speciesLooks.json",
-        "src/shards/nalati-grasslands/data/crowdGuard.json",
         "src/shards/nalati-grasslands/data/wolfPalette.json",
         "src/engine",
         "src/game",

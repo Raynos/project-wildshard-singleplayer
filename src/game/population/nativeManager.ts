@@ -100,7 +100,7 @@ export class NativeManager {
 /** The single shard supplies dispatch roles and guest ids; clocks and concrete
  * actor, group, hunt, token and elite owners belong to the game. */
 export interface NativeDriverRows {
-  tokens: string; program: unknown; packKind: string; dogKind: string; eliteKinds: readonly string[]; dispatch: string; dogDecision: string; stragglerDistance: number;projection?:unknown;
+  tokens: string; program: unknown; packKind: string; dogKind: string; eliteKinds: readonly string[]; dispatch: string; projection?:unknown;
 }
 /** Manager decisions and native body continuation. Contexts allocate only when
  * a concrete actor joins; restored and newly bonded actors keep the same owner. */
@@ -155,29 +155,14 @@ export class NativePopulationDriver {
   private dog(actor: HuntBody, dt: number): void {
     const flock = this.flocks.find(row => row.dog === actor);
     if (flock === undefined) { actor.setMotion(actor.yaw, 0, 1); return; }
-    if(this.projection!==undefined){
-      actor.mem['dogThinkAt']=this.host.clock.now;
-      const context=this.context(actor,dt);
-      if(context.projection.owner?.crowd?.owner!==flock)context.projection.owner={scope:this.host.scope,group:'crowd.guard',slot:0,identity:actor.entityId,random:this.host.rng.stream('ai'),
-        crowd:{owner:flock,point:this.sheep},rosters:new Map([['threats',this.wolves]])};
-      this.projection.step(actor,context,context.projection.owner);return;
-    }
-    let nearest: FlockThreat | null = null, distance = Infinity;
-    for (const wolf of this.wolves) { const d = Math.hypot(wolf.position.x - flock.cx, wolf.position.z - flock.cz); if (wolf.alive && d < distance) { distance = d; nearest = wolf; } }
-    const straggler = flock.straggler(this.rows.stragglerDistance); if (straggler >= 0) flock.positions(straggler, this.sheep);
-    const p = actor.position, memory = actor.mem, player = this.host.player.position;
-    memory['dogThinkAt'] = this.host.clock.now;
-    const answer = this.author.project(this.rows.dogDecision, { px: p.x, py: p.y, pz: p.z, cx: flock.cx, cz: flock.cz, dt,
-      bark: memory['barkT'] ?? 0, rest: memory['rest'] ?? 0, wolf: Number(nearest !== null), distance: nearest === null ? 0 : distance,
-      wx: nearest?.position.x ?? 0, wy: nearest?.position.y ?? 0, wz: nearest?.position.z ?? 0, straggler: Number(straggler >= 0),
-      sx: this.sheep.x, sy: this.sheep.y, sz: this.sheep.z, playerX: player.x, playerY: player.y, playerZ: player.z }, this.host.rng.stream('ai'));
-    const n = (key: string): number => { const value = answer[key]; if (value === undefined || !Number.isFinite(value)) throw this.missing; return value; };
-    memory['barkT'] = n('bark'); memory['snarl'] = n('snarl'); memory['low'] = n('low'); if (answer['rest'] !== undefined) memory['rest'] = n('rest');
-    const state = (['idle', 'alert', 'stalk', 'wander'] as const)[n('state')]; if (state === undefined) throw this.missing;
-    actor.state = state; actor.lookTarget.set(n('lookX'), n('lookY'), n('lookZ')); actor.lookWeight = n('look');
-    const path = n('path'), yaw = path > 0 ? this.hunt.pathYawFor(actor, n('x'), n('z'), path) : n('yaw');
-    if (path < 0) actor.setMotion(yaw, n('speed'), n('turn')); else this.hunt.steerAny(actor, yaw, n('speed'), n('turn')); this.hunt.confine(actor);
+    if(this.projection===undefined)throw new Error('Missing native crowd projection rows');
+    actor.mem['dogThinkAt']=this.host.clock.now;
+    const context=this.context(actor,dt);
+    if(context.projection.owner?.crowd?.owner!==flock)context.projection.owner={scope:this.host.scope,group:'crowd.guard',slot:0,identity:actor.entityId,random:this.host.rng.stream('ai'),
+      crowd:{owner:flock,point:this.sheep},rosters:new Map([['threats',this.wolves]])};
+    this.projection.step(actor,context,context.projection.owner);
   }
+
   private decide(actor: HuntBody, dt: number): void {
     const elite = this.elites.brains.get(actor);
     if (!actor.alive) { actor.lookWeight = 0; return; }

@@ -1,3 +1,6 @@
+import {parse} from 'valibot';
+import {ActorProjectionStepV2Schema} from '../src/format/actorProjectionV2';
+import {bindOriginalPageGuard,originalPageGuard,type OriginalGuardBinding} from './fixtures/originalPageGuard';
 import {Scope} from '../src/engine/app/scope';
 import {AnimalSim} from '../src/engine/entities/AnimalSim';
 import {app} from '../src/engine/app/runtime';
@@ -24,22 +27,35 @@ function sheepBody(): ReturnType<typeof readCrowdBody> {
   return readCrowdBody(admittedSheepProduct(), { json: 'actors/sheep.json', binary: 'actors/sheep.bin' });
 }
 
+function projectedRows(guard:OriginalGuardBinding['row']){
+  const rows=parse(ActorProjectionStepV2Schema,guardProjection);
+  rows.clock=guard.clock;rows.every=guard.every;
+  const keys=new Map([['dogThinkAt',guard.clock],['barkT',guard.memory.bark],['rest',guard.memory.rest],['snarl',guard.memory.snarl],['low',guard.memory.low]]);
+  for(const column of rows.columns){if(column.source.kind==='memory')column.source.key=keys.get(column.source.key)??column.source.key;if(column.source.kind==='crowd')column.source.distance=guard.straggler;}
+  for(const operation of rows.operations){if(operation.kind==='memory')operation.key=keys.get(operation.key)??operation.key;
+    if(operation.kind==='sound-position'){operation.cue=guard.bark;operation.height=guard.soundHeight;}
+    if(operation.kind==='state')operation.states=guard.states;}
+  return rows;
+}
+
 test('an unrelated marsh crowd uses its own bounds, identity, material and native cadence', async () => {
   setTerrainHeight(() => 0); setTerrainPlacement(() => [0, 1, 0], () => -1000);
   const sky = legacyDouble<SkyRig>({ csm: legacyDouble<SkyRig['csm']>({ lights: [] }), sunDir: new Vector3(0, 1, 0), setupMaterial: () => undefined });
-  const body = await sheepBody(), geometry = body.geometry;
+  const body = await sheepBody(), geometry = body.geometry,scope=new Scope('marsh.guard');
   const row = { id: 'marsh.cranes', kind: 'flock', x: 12, z: -25, count: 3, seed: 17, range: 20, runSpeed: 4, walkSpeed: .8, grazeStep: .2, bleatCue: 'crane.call' };
   const guard = { signal: 'dog', clock: 'marsh.guardClock', every: .2, straggler: 15, bark: 'crane.alarm', soundHeight: .8, memory: { bark: 'marsh.bark', rest: 'marsh.rest', snarl: 'marsh.snarl', low: 'marsh.low' }, states: ['idle', 'alert', 'stalk', 'wander'] };
-  const data = { guard, slug: 'reed-marsh', hull: null, bounds: [-40, 70, -90, 40], rows: [row], material: { rim: .3, bands: .6 }, view: { ...view, name: 'marsh.cranes' } };
+  const data = { guard:{projection:projectedRows(guard)}, slug: 'reed-marsh', hull: null, bounds: [-40, 70, -90, 40], rows: [row], material: { rim: .3, bands: .6 }, view: { ...view, name: 'marsh.cranes' } };
   const wet = wildEnv.wetAt.bind(wildEnv), grass = wildEnv.grassHeightAt.bind(wildEnv);
   wildEnv.wetAt = () => false; wildEnv.grassHeightAt = () => 0;
   try {
-    const crowds = createPageCrowds(sky, 5, body, data);
+    const invalidGuard={...data.guard.projection,operations:data.guard.projection.operations.map(operation=>operation.kind==='state'?{...operation,states:['missing.guard.state']}:operation)};
+    expect(()=>createPageCrowds(sky,5,body,{...data,guard:{projection:invalidGuard}},[],scope)).toThrow('Invalid crowd guardian states');
+    const crowds = createPageCrowds(sky, 5, body, data,[],scope);
     expect(crowds.runtime.policies.has('marsh.cranes')).toBe(true);
     expect(() => crowds.factory({ x: 0, z: 0, count: 3, seed: 22, range: 20 }, 0)).toThrow('roster');
     const draw = crowds.factory({ x: 12, z: -25, count: 3, seed: 22, range: 20 }, 0);
-    const actor = legacyDouble<Animal>({ alive: true, position: new Vector3(12, 0, -25), mem: {}, lookTarget: new Vector3(), lookWeight: 0, state: 'idle', yaw: 0, setMotion: () => undefined });
-    crowds.guardian(actor, 0, ReturnProgram.page(admission), new Rng(4));
+    const actor = legacyDouble<Animal>({ entityId:'marsh.guard',alive: true, position: new Vector3(12, 0, -25), mem: {}, lookTarget: new Vector3(), lookWeight: 0, state: 'idle', yaw: 0, setMotion: () => undefined });
+    crowds.guardian(actor, 0, ReturnProgram.page(admission,scope), new Rng(4));
     const frame = legacyDouble<ThinkCtx>({ dt: .1, t: 1, player: new Vector3(), pathYaw: () => 0, steer: () => undefined, confine: () => undefined });
     thinkCrowdGuard(actor, frame); expect(actor.mem['marsh.guardClock']).toBe(1); expect(Number.isFinite(actor.mem['marsh.bark'])).toBe(true);
     frame.t = 1.1; thinkCrowdGuard(actor, frame); expect(actor.mem['marsh.guardClock']).toBe(1);
@@ -50,7 +66,7 @@ test('an unrelated marsh crowd uses its own bounds, identity, material and nativ
     for (const material of Array.isArray(draw.mesh.material) ? draw.mesh.material : [draw.mesh.material]) material.dispose();
     draw.mesh.customDepthMaterial?.dispose();
     expect(() => createPageCrowds(sky, 5, body, { ...data, bounds: [10, -10, 0, 40] })).toThrow('bounds');
-  } finally { wildEnv.wetAt = wet; wildEnv.grassHeightAt = grass; geometry.dispose(); }
+  } finally { scope.dispose();wildEnv.wetAt = wet; wildEnv.grassHeightAt = grass; geometry.dispose(); }
 });
 
 test('entered page rows reuse the original admission owner and keep guard cadence, sound, RNG and native operation order',async()=>{
@@ -73,11 +89,11 @@ test('entered page rows reuse the original admission owner and keep guard cadenc
         snapshot:()=>{const saved=sim.snapshot();return {...saved,state:actor.state,motion:{...saved.motion,lookWeight:actor.lookWeight}};}});
       actor.position.set(3,2,4);actors.push(actor);
       const wolf=legacyDouble<Animal>({alive:true,position:new Vector3(10,2,0)});
-      const data={...world,guard:{...oldGuard,...(index===0?{}:{projection:guardProjection})}};
+      const data={...world,guard:{projection:projectedRows(oldGuard)}};
       const crowds=createPageCrowds(sky,5,body,data,[wolf],scope),draw=crowds.factory({x:0,z:0,count:3,seed:22,range:20},0);draws.push(draw);
       const random=new Rng(31);randoms.push(random);
       const programme=index===0?ReturnProgram.page({script:admission.script,bytes:admission.bytes}):ReturnProgram.page(admission,scope);
-      crowds.guardian(actor,0,programme,random);
+      if(index===0)bindOriginalPageGuard(actor,{row:oldGuard,flock:draw,wolves:[wolf],author:programme,random});else crowds.guardian(actor,0,programme,random);
       if(index===1)expect(new ActorProjectionV2('guard',{program:admission,step:guardProjection}).program(scope)).toBe(programme);
       frames.push(legacyDouble<ThinkCtx>({dt:1/60,t:0,player:new Vector3(9,2,4),pathYaw:(_actor:Animal,x:number,z:number,period=1)=>{trace.push(['path',x,z,period]);return .3;},
         steer:(_actor:Animal,yaw:number,speed:number,turn:number)=>{trace.push(['steer',yaw,speed,turn]);},confine:()=>{trace.push(['confine']);}}));
@@ -85,7 +101,7 @@ test('entered page rows reuse the original admission owner and keep guard cadenc
     for(let tick=0;tick<120;tick++){
       for(const [index,actor]of actors.entries()){
         const frame=frames[index],trace=traces[index];if(frame===undefined||trace===undefined)throw new Error('Missing frame');
-        frame.t=tick/60;emit.mockClear();thinkCrowdGuard(actor,frame);
+        frame.t=tick/60;emit.mockClear();if(index===0)originalPageGuard(actor,frame);else thinkCrowdGuard(actor,frame);
         for(const [name,event]of emit.mock.calls)if(name==='creature.sound')trace.push(['sound',event]);
       }
       const first=actors[0],second=actors[1];if(first===undefined||second===undefined)throw new Error('Missing guards');

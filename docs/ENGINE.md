@@ -12543,6 +12543,12 @@ rows; the projector keeps only the scoped original programme loan, avoiding
 per-step descriptor admission. Page wildlife and guard projections borrow the
 same original world scope and selected admission instance.
 
+`CrowdGuardSchema` requires the finite projection row; the page and native
+bindings have no duplicate sampling/apply callback. A state operation may
+set `required:true` to refuse an unknown state index during whole-bank
+preflight, before memory, motion or borrowed RNG publication. Omission keeps
+the existing no-write state sentinel for other actor projections.
+
 ### H4 group continuation bank codec
 
 GroupBankV2 (engine/script/groupBankV2) admits finite

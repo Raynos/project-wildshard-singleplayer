@@ -105,9 +105,7 @@
       }
     },
     "driver": {
-      "dispatch": "dispatch",
-      "dogDecision": "dog",
-      "stragglerDistance": 12
+      "dispatch": "dispatch"
     },
     "companion": {
       "id": "nalati.mounts",
