@@ -2,12 +2,12 @@ import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { MeshoptDecoder, MeshoptSimplifier } from 'meshoptimizer';
 import sharp from 'sharp';
-import { BufferAttribute, BufferGeometry, Color, Matrix4, MeshStandardMaterial, Quaternion, SRGBColorSpace, Vector3 } from 'three';
+import { BufferAttribute, BufferGeometry, Color, Float32BufferAttribute, Matrix4, MeshBasicMaterial, MeshStandardMaterial, Quaternion, SRGBColorSpace, Vector3 } from 'three';
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { parseBakedTerrain } from '@wildshard/engine/world/BakedTerrain';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import type { PlaceholderTree } from '@wildshard/format/placeholderSource';
-import { NEAR_PLACEHOLDER_LIMITS } from '@wildshard/format/nearPlaceholder';
+import { NEAR_LIGHT, NEAR_PLACEHOLDER_LIMITS } from '@wildshard/format/nearPlaceholder';
 import { MEASURE_SLOT, parseFamilyMaterial, type FamilyMaterialParams } from '@wildshard/format/materialFamilies';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { placeholderGeometry, placeholderLeanDrop, type PlaceholderGrid, type PlaceholderLook, type PlaceholderLookRuntime, type PlaceholderPart } from '@wildshard/game/plugin/animation';
@@ -512,7 +512,35 @@ export async function coarseNearView(shard: Shardfile, assets: Map<string, Uint8
   const baked = await bakeNearPlaceholder({ grid: null, look: shardfileLook(shard), prototypes, residentBytes: Math.min(NEAR_BAKE.residentBytes, NEAR_PLACEHOLDER_LIMITS.contentBytes) });
   const file = baked.manifest.file;
   assets.set(file.hash, baked.bytes);
-  return { ...shard, files: shard.files.some(row => row.hash === file.hash) ? shard.files : [...shard.files, file], near: { version: 1, terrain: [], content: [file.hash] } };
+  // NM13: what `skip` left out is light; it draws in its own additive layer over the near view (the grid's near loader
+  // keeps the mesh named NEAR_LIGHT apart from the lit draw)
+  const lightBytes = skip === undefined ? null : await nearLightGlb(shard, assets, skip), lightFile = lightBytes === null ? null : fileRow(lightBytes);
+  if (lightBytes !== null && lightFile !== null) assets.set(lightFile.hash, lightBytes);
+  const added = [file, ...(lightFile === null ? [] : [lightFile])].filter(row => !shard.files.some(known => known.hash === row.hash));
+  return { ...shard, files: [...shard.files, ...added], near: { version: 1, terrain: [], content: [file.hash, ...(lightFile === null ? [] : [lightFile.hash])] } };
+}
+
+/** m²: light triangles smaller than this (a bulb, a firefly) leave the near light layer; pools, windows and lanterns stay */
+const NEAR_LIGHT_MIN_AREA = 0.3;
+/** The light primitives of the coarse tiles (`light` names their materials) as one non-indexed vertex-colour mesh. */
+async function nearLightGlb(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, light: (material: string) => boolean): Promise<Uint8Array | null> {
+  const prototypes = await shardfileWorld(shard, assets, name => !light(name)), positions: number[] = [], colours: number[] = [];
+  const m = new Matrix4(), a = new Vector3(), b = new Vector3(), c = new Vector3(), e1 = new Vector3(), e2 = new Vector3();
+  for (const p of prototypes) for (const t of p.transforms) {
+    m.fromArray(t);
+    for (let k = 0; k + 2 < p.index.length; k += 3) {
+      const ia = p.index[k] ?? 0, ib = p.index[k + 1] ?? 0, ic = p.index[k + 2] ?? 0;
+      a.fromArray(p.positions, ia * 3).applyMatrix4(m); b.fromArray(p.positions, ib * 3).applyMatrix4(m); c.fromArray(p.positions, ic * 3).applyMatrix4(m);
+      if (e1.subVectors(b, a).cross(e2.subVectors(c, a)).length() / 2 < NEAR_LIGHT_MIN_AREA) continue;
+      for (const [v, i] of [[a, ia], [b, ib], [c, ic]] as const) {
+        positions.push(v.x, v.y, v.z); colours.push(p.colours[i * 3] ?? 0, p.colours[i * 3 + 1] ?? 0, p.colours[i * 3 + 2] ?? 0);
+      }
+    }
+  }
+  if (positions.length === 0) return null;
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new Float32BufferAttribute(positions, 3)); geometry.setAttribute('color', new Float32BufferAttribute(colours, 3));
+  return staticGlb([{ geometry, material: new MeshBasicMaterial({ vertexColors: true }), name: NEAR_LIGHT, castShadow: false }], NEAR_LIGHT);
 }
 
 /**

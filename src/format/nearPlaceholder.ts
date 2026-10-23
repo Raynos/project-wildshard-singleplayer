@@ -24,6 +24,9 @@ export const NearPlaceholderSchema = v.pipe(v.unknown(), v.check(isJsonData, 'JS
     new Set(row.terrain.map(tile => `${tile.x}/${tile.z}`)).size === row.terrain.length &&
     new Set([...row.terrain.map(tile => tile.file), ...row.content]).size === row.terrain.length + row.content.length &&
     row.terrain.length + row.content.length > 0, 'complete terrain, unique roots and nonempty near placeholder'));
+/** The node name of a near view's light layer (NM13): one unlit vertex-colour mesh in a content GLB, drawn additively over
+ *  the near view's lit draw. */
+export const NEAR_LIGHT = 'near-light';
 /** Admitted immutable near presentation; missing sections retain ordinary far proxies. */
 export type NearPlaceholder = v.InferOutput<typeof NearPlaceholderSchema>;
 /** Persistent decoded/GPU bytes and wire bytes of a deduplicated visual closure. */

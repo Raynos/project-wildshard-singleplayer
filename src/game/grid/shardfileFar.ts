@@ -1,7 +1,7 @@
 import { Mesh, type BufferGeometry, type Object3D } from 'three';
 import { createRigLoader } from '@wildshard/engine/anim/rig';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { nearPlaceholderCost, type NearPlaceholder } from '@wildshard/format/nearPlaceholder';
+import { NEAR_LIGHT, nearPlaceholderCost, type NearPlaceholder } from '@wildshard/format/nearPlaceholder';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { FarPrepared } from './farView';
 import { decodeFarImpostor } from './farImpostorView';
@@ -62,7 +62,7 @@ function shardfileHaze(fog: ShardfileFarRows['fog']): FarPrepared['look'] {
 export async function loadShardfileNear(rows: ShardfileNearRows, read: (ref: string) => Promise<Uint8Array>): Promise<{ prepared: FarPrepared; bytes: number; owns: boolean }> {
   const near = rows.near;
   if (near.content.length === 0) throw new Error('Shardfile declares no near content');
-  const cost = nearPlaceholderCost(near, rows.inventory), loader = createRigLoader(), parts: BufferGeometry[] = [];
+  const cost = nearPlaceholderCost(near, rows.inventory), loader = createRigLoader(), parts: BufferGeometry[] = [], lights: BufferGeometry[] = [];
   try {
     for (const ref of near.content) {
       const gltf = await loader.parseAsync((await read(ref)).slice().buffer, '');
@@ -70,14 +70,17 @@ export async function loadShardfileNear(rows: ShardfileNearRows, read: (ref: str
       gltf.scene.traverse(node => {
         if (!isMesh(node)) return;
         for (const material of Array.isArray(node.material) ? node.material : [node.material]) material.dispose();
-        parts.push(node.geometry.applyMatrix4(node.matrixWorld));
+        // NM13: the light layer stays apart from the lit draw (drawn additively, unlit)
+        (node.name === NEAR_LIGHT ? lights : parts).push(node.geometry.applyMatrix4(node.matrixWorld));
       });
     }
-  } catch (error) { for (const part of parts) part.dispose(); throw error; }
+  } catch (error) { for (const part of [...parts, ...lights]) part.dispose(); throw error; }
   const [first] = parts;
   if (first === undefined) throw new Error('Near content has no mesh');
   const geometry = parts.length === 1 ? first : merge(parts);
   if (parts.length > 1) for (const part of parts) part.dispose();
   if (geometry === null) throw new Error('Near content has no mergeable mesh');
-  return { prepared: { geometry, positionalMask: true, look: shardfileHaze(rows.fog) }, bytes: cost.content.resident, owns: false };
+  const light = lights.length === 0 ? null : lights.length === 1 ? lights[0] ?? null : merge(lights);
+  if (lights.length > 1) for (const part of lights) part.dispose();
+  return { prepared: { geometry, positionalMask: true, look: shardfileHaze(rows.fog), ...(light === null ? {} : { light }) }, bytes: cost.content.resident, owns: false };
 }

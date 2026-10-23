@@ -154,8 +154,10 @@ export async function bakeAuthoredWorld(input: unknown, bytes: Uint8Array): Prom
       meshCollision: { version: 1, tiles: collision.tiles.map(({ x, z, file }) => ({ x, z, file })), panels: panelCollision },
       far: { bounds: { min: farBox.min.toArray(), max: farBox.max.toArray() }, files: [farFile.hash], compressed: farFile.compressed, decoded: farFile.decoded, gpu: farFile.gpu, triangles: farFile.triangles, draws: farFile.draws }, edge: edges(world) });
     // NM5: its own near view from its coarse tiles (a first-party product builds with no placeholders)
-    // its additive light (pools, glows over what is behind them) has no vertex-colour form: the near view leaves it out
-    const lightNames = new Set(world.materials.flatMap((row, index) => light.has(index) ? [row.name, row.id] : []));
+    // its light (additive pools, unlit or emissive glows) has no lit vertex-colour form: the near view draws it in its own
+    // additive light layer (NM13, `coarseNearView`)
+    const lightNames = new Set(world.materials.flatMap((row, index) => { const entry = materials[row.id];
+      return light.has(index) || entry?.family === 'emissive' || (entry?.family === 'graph' && 'graph' in entry && entry.graph.model === 'unlit') ? [row.name, row.id] : []; }));
     if (authored.near === 'coarse') return { shard: await coarseNearView(shard, baked.assets, name => lightNames.has(name)), assets: baked.assets };
     return { shard, assets: baked.assets };
   } finally { catalogue.dispose(); geometry.forEach(part => part.dispose()); }

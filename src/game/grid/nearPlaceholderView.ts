@@ -140,7 +140,7 @@ export class NearPlaceholders {
       const lease = root === undefined ? null : this.host.allocator.reserve({ id: `near:${instance}`, category: 'near', bytes, owner: instance, distance, needed: false,
         evictSync: () => { const live = this.slots.get(instance); if (live !== undefined) this.drop(live, false); } });
       if (root === undefined || lease === null) { prepared.geometry.dispose(); this.slots.delete(instance); return; } // refused: the far proxy stays
-      const view = installFarProxy(root, prepared.geometry, prepared.look, prepared.positionalMask === true, this.host.decorate, true);
+      const view = installFarProxy(root, prepared.geometry, prepared.look, prepared.positionalMask === true, this.host.decorate, true, null, prepared.light ?? null);
       view.mesh.name = 'near-placeholder';
       slot.view = view; slot.lease = lease; slot.owns = owns;
       this.bytes.set(instance, bytes);
