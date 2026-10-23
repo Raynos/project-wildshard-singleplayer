@@ -15,7 +15,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { buildYield } from '@wildshard/engine/core/workSlice';
 import { setting } from '@wildshard/engine/ui/Settings';
 import { followTile, ring, tileKey, type TileContent } from './tileContent';
-import { tileOrder, type CellTile, type TileEntryway } from './tileOrder';
+import { tileOf, tileOrder, type CellTile, type TileEntryway } from './tileOrder';
 
 type Layer = 'render' | 'colliders';
 
@@ -94,6 +94,24 @@ export const tileKeys = (tiles: readonly CellTile[]): number[] => tiles.map(tile
 
 /** pause ▸ Settings ▸ Debug ▸ Tile residency (T5): the render ring's radius in tiles (8 or more: the whole cell). */
 export function tileResidencyRadius(): number { const value = setting('tileResidency'); return value === '3x3' ? 1 : value === '5x5' ? 2 : 8; }
+
+/**
+ * T6: the render ring as a viewer-following test (a creature manager's residency, `AnimalManager.setResidency`): given the
+ * viewer's cell-local position, whether (x, z) lies in the ring of `radius` tiles around the viewer's tile, the tile followed
+ * with the same hysteresis as the tile driver's. Null for a whole cell (nothing sleeps).
+ */
+export function followRing(radius = tileResidencyRadius()): ((viewer: { readonly x: number; readonly z: number }) => (x: number, z: number) => boolean) | null {
+  if (radius >= 8) return null;
+  let centre: CellTile | null = null, resident = (_x: number, _z: number): boolean => true;
+  return viewer => {
+    const next = followTile(centre, viewer.x, viewer.z);
+    if (centre === null || next.i !== centre.i || next.j !== centre.j) {
+      centre = next; const keys = ring(next, radius);
+      resident = (x, z) => keys.has(tileKey(tileOf(x, z)));
+    }
+    return resident;
+  };
+}
 
 const drivers = new WeakMap<Scope, TileDriver>(), started = new WeakSet<Scope>();
 /**

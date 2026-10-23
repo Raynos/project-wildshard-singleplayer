@@ -30,6 +30,7 @@ import { HUD } from '@wildshard/engine/ui/HUD';
 import { setting } from '@wildshard/engine/ui/Settings';
 import { hudAdapters } from '@wildshard/engine/ui/hudAdapters';
 import { bindClockSettings } from './clockSettings';
+import { followRing } from '../shardfile/tileDriver';
 
 async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) {
   const { kit, stage, boot, step, fieldModels, world, game, sky, player, forest, chunk, registry, nolock, product } = ctx;
@@ -37,6 +38,7 @@ async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) {
 
   const animals = await step('animals', async (p) => {
     const a = await new AnimalManager(game.rootScene, sky, forest).buildAsync(macrotask); // a task per herd, not one long one
+    a.setResidency(followRing()); // T6 (Debug ▸ Tile residency): the animals outside the player's ring sleep
     p.detail(`${a.animals.length} animals`);
     return a;
   });

@@ -300,6 +300,9 @@ export class AnimalManager {
   private rng = new Rng(SEED + 31);
   readonly scheduler = new TickScheduler(app.scheduler);
   private readonly visibility = new WeakMap<Animal, boolean>();
+  /** Tile streaming T6: from the viewer, which animals stay awake (a resident ring); null: every animal */
+  private residency: ((viewer: THREE.Vector3) => (x: number, z: number) => boolean) | null = null;
+  private resident: ((x: number, z: number) => boolean) | null = null;
   private dodgeId = dodgeFx.id;
   private playerSprinting = false;
   private blood!: BloodFX;
@@ -554,8 +557,23 @@ export class AnimalManager {
     }
   }
 
+  /**
+   * Tile streaming T6: `follow(viewer)` answers which animals stay awake, by their position (the shard's resident ring
+   * around the player). Outside it an animal is dormant: no decision, no body step, not drawn, its state left exactly as it
+   * was (a save stays exact), until the ring reaches it again. A pinned, driven, harness-held or simulation-bound animal
+   * never sleeps. Null: every animal awake, as before.
+   */
+  setResidency(follow: ((viewer: THREE.Vector3) => (x: number, z: number) => boolean) | null): void {
+    this.residency = follow; this.resident = null;
+  }
+  private dormant(a: Animal): boolean {
+    const resident = this.resident;
+    return resident !== null && !a.simulationBound && !a.harnessHold && !a.drawPinned && !a.driven && !brainPinned(a) && !resident(a.position.x, a.position.z);
+  }
+
   update(dt: number, t: number, playerPos: THREE.Vector3, playerSprinting = false, viewPos: THREE.Vector3 = playerPos, camera: THREE.PerspectiveCamera | null = null): void {
     this.playerPos.copy(playerPos);
+    this.resident = this.residency === null ? null : this.residency(playerPos);
     this.playerSprinting = playerSprinting;
     this.scheduler.beginFrame(dt, playerPos);
     this.hunt.beginTick(dt);
@@ -575,7 +593,7 @@ export class AnimalManager {
       const t0 = frameCost.on ? performance.now() : 0;
       if (this.dodgeId !== dodgeFx.id) { this.dodgeId = dodgeFx.id; this.interruptTargets('target.dodge'); }
       for (const a of this.animals) {
-        if (a.simulationBound || a.harnessHold || a.hidden) { this.scheduler.forget(a); continue; }
+        if (a.simulationBound || a.harnessHold || a.hidden || this.dormant(a)) { this.scheduler.forget(a); continue; }
         const rate = this.tickRate(a);
         if (a.alive && a.aggressive && (a.state === 'charge' || a.state === 'stalk' || a.state === 'alert')) {
           const seen = this.canReach(a, playerPos);
@@ -598,6 +616,7 @@ export class AnimalManager {
     for (let i = 0; i < n; i++) {
       const a = this.animals[i];
       if (a === undefined || a.hidden) continue;
+      if (this.dormant(a)) { a.mesh.visible = false; (this.casters.get(a) ?? a.mesh).castShadow = false; continue; }   // T6: asleep outside the ring
       const d2 = a.position.distanceToSquared(viewPos);
       const near = d2 < ANIM_LOD * ANIM_LOD;
       const bodyDt = a.harnessHold ? 0 : a.simulationBound ? dt : this.scheduler.bodyDt(this.tickRate(a), a);
