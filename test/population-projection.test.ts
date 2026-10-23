@@ -1,7 +1,9 @@
 // @vitest-environment happy-dom
-import { expect, test, vi } from 'vitest';
+import { expect, onTestFinished, test, vi } from 'vitest';
+import { lendDriftwoodReturns } from './fixtures/driftwood-return-modules';
 import { Points, PointLight, MeshStandardMaterial, Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
+import { LightPool } from '../src/engine/fx/LightPool';
 import { SEED } from '../src/engine/core/config';
 import { Rng } from '../src/engine/core/rng';
 import { overrideTerrain } from './fake/terrain';
@@ -22,7 +24,7 @@ import island from '../src/shards/driftwood-isle/data/islandFacts.generated.json
 test('a marsh population projects memory effects, loose lights and practice returns, then restores habitat ownership', async () => {
   mockCanvas();
   const terrain = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 }), f = manager();
-  const scope = new Scope('marsh.projection'), material = new MeshStandardMaterial(); vi.spyOn(look, 'lowPolyLookMaterial').mockReturnValue(material);
+  const scope = lendDriftwoodReturns(new Scope('marsh.projection')), material = new MeshStandardMaterial(); vi.spyOn(look, 'lowPolyLookMaterial').mockReturnValue(material);
   const source = populationProjectionRows(), variant = speciesDef('boar').variants[0]?.id;
   if (variant === undefined) throw new Error('Missing fixture variant');
   const row = { kind: 'boar', variant, x: 3, z: 4, yaw: 0, herd: 0, practice: true } as const;
@@ -45,10 +47,12 @@ test('a marsh population projects memory effects, loose lights and practice retu
     const points = projection.group.children.find((object): object is Points => object instanceof Points);
     if (points === undefined) throw new Error('Missing pool');
     expect(Array.from(points.geometry.getAttribute('position').array).some(value => value > 0)).toBe(true);
-    const lights = projection.group.children.filter(object => object instanceof PointLight); expect(lights).toHaveLength(1);
+    // the loose light is lent by the scene's pool (a fixed light count, B7), not parented to the projection's own group
+    const pool = LightPool.for(f.game.scene), lights = pool.group.children.filter(object => object instanceof PointLight);
+    expect(lights).toHaveLength(1); expect(pool.free).toBe(0); expect(projection.group.children.some(object => object instanceof PointLight)).toBe(false);
     actor.alive = false; actor.hidden = true; projection.update(.2, 2, new Vector3(30, 0, 30)); projection.update(.01, 2.01, new Vector3(30, 0, 30));
     expect(projection.practice).not.toBe(actor); expect(projection.placed['hogs']).toBe(3);
-    scope.dispose(); expect(projection.group.parent).toBeNull(); expect(f.manager.habitat.throwCoconut).toBe(previous); expect(f.manager.animals).toHaveLength(0);
+    scope.dispose(); expect(projection.group.parent).toBeNull(); expect(pool.free).toBe(pool.size); expect(lights[0]?.parent).toBe(pool.group); expect(f.manager.habitat.throwCoconut).toBe(previous); expect(f.manager.animals).toHaveLength(0);
     expect(f.manager.habitat.perches).toBe(previousPerches); expect(f.manager.habitat.perchBases).toBe(previousBases);
     projection.dispose();
   } finally { scope.dispose(); material.dispose(); terrain(); }
@@ -71,7 +75,8 @@ test('both tiers bake every leaning crown and base with the installed native ter
 
 test('the admitted return guest retains hidden-corpse gates and samples at ten Hz', () => {
   const rows = populationProjectionRows().practice, rule = { delay: .3, away: 5, fade: 'hidden' } as const;
-  const guest = ReturnProgram.page(rows.program), sample = vi.spyOn(guest, 'project');
+  const scope = lendDriftwoodReturns(new Scope('return.guest')); onTestFinished(() => { scope.dispose(); });
+  const guest = ReturnProgram.page(rows.program, scope), sample = vi.spyOn(guest, 'project');
   const law = new ProjectedState({ ...rows.law, parameters: { delay: rule.delay, away: rule.away }, signals: { step: rows.law.signal } }, guest);
   const clock = { dead: 0, fade: -1 }, actions = { none: 0, fade: 1, replace: 2 };
   for (const frame of [
