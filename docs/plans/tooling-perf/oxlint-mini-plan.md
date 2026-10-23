@@ -39,12 +39,12 @@ JSON: full 10.3 s / 8 GB. Full typed + full JS plugin in one run: 180 s / 12.7 G
 | R1 | `lint:fast`: today's config with `typeAware: false`, unused-directive reporting off, the 2 heavy JS rules removed (reuse `scripts/push-lint-config.mjs` `untypedLintConfig()`) | full repo ≤ 10 s; 20 files ≤ 1 s |
 | R2 | Pre-commit runs `lint:fast` on staged files as a hard gate (inside G636's parallel set) | no type program in the hook; typed attempt kept per G636 |
 | R3 | `lint:typed` (type-aware + the 2 heavy JS rules): push gate on changed files + importers; CI one full-repo job (+ one `lint:fast` job) instead of 4 `lint-all` shards | push-gate typed lint ≤ 15 s |
-| R4 | Typed declarations for the generated JSON (`allowArbitraryExtensions`, `x.generated.d.json.ts`) — shared with the TypeScript plan | full typed lint ≤ 15 s / ≤ 8 GB |
+| R4 | **G643:** TypeScript never reads generated JSON — imports resolve to one ambient `unknown` module, importers parse with their valibot schema — shared with the TypeScript plan | full typed lint ≤ 15 s / ≤ 8 GB |
 | R5 | Fix the real error at HEAD: `src/game/riding/client.ts:26` duplicate import of `./taming` | lint clean |
 
 ## Decisions for Jake
 
 1. **The 2 heavy JS rules: DECIDED (G642)** — rewrite them to use only oxlint's AST (no TypeScript program); until then they run only in `lint:typed`. Also: all generated files excluded from lint (G642).
 2. **Push-gate `lint:fast` scope:** full repo, 6–10 s (recommended) / changed files only, < 1 s.
-3. **Generated JSON:** typed declaration files (recommended) / load big tables at runtime with a valibot parse.
+3. **Generated JSON: DECIDED (G643)** — excluded from the type program entirely (`unknown` + schema parse), no companion declarations.
 4. **`--type-check` in `lint:typed`:** leave out, keep tsc as the type check (recommended).
