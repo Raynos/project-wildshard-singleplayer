@@ -37,6 +37,11 @@ import { loadHeldBow } from '../weapons/heldLauncher';
 import { HeldFirearm, type HeldFirearmProfile, type HeldFirearmView, type HeldFirearmRows } from '../plugin/heldFirearm';
 import type { VariantBowPower } from '../weapons/bowVariant';
 import type { ArcWeaponPower } from '../weapons/arcPower';
+import type { ShardProduct } from '../shardfile/shardProduct';
+import { SpecimenBookSchema } from '@wildshard/format/specimenCatalogue';
+import { defineSpecimenCatalogue } from '../models/specimenCatalogue';
+import { fetchLaneBake } from '../plugin/geometry';
+import type { ModelDef } from '@wildshard/engine/models/model';
 
 type EquipmentBuilder = NonNullable<NonNullable<ShardContext['game']['runtime']>['buildEquipment']>;
 /** The original built primary and its admitted native combat profile. */
@@ -183,9 +188,28 @@ class HeldClaim extends ItemPickup {
   }
 }
 
+type SlotCatalogue=ReturnType<typeof defineSpecimenCatalogue<Record<string,object>>>;
+interface SlotMetadata {
+  readonly product:ShardProduct;
+  readonly source:ShardProduct['shardfile'];
+  readonly items:ShardProduct['shardfile']['items'];
+  readonly files:readonly {readonly name:string;readonly url:string}[];
+  readonly file:string;
+  readonly declaration:string;
+  readonly readFile:ShardProduct['file'];
+  readonly readJson:ShardProduct['json'];
+  readonly resolveUrl:ShardProduct['url'];
+  catalogue:SlotCatalogue|null;
+  loaded:boolean;
+  preparing:boolean;
+  ready:{readonly scope:Scope}|null;
+  sources:(()=>void)|null;
+}
+const productSlots=new WeakMap<ShardProduct,Map<string,HeldClaims>>();
 const catalogues = new Map<string, HeldClaims>();
 /** Client-only held melee families, world claims and Explorer cards. The shard supplies rows and platform contexts. */
 export class HeldClaims {
+  private metadata:SlotMetadata|null=null;
   private readonly originalRows: HeldArmsRows|null;
   private slotRows: HeldSlotsRows|null;
   private readonly blades=new Map<string,BladeSet>();
@@ -221,6 +245,70 @@ export class HeldClaims {
   /** Admit finite native construction and control rows without preparing any
    * asset or constructing equipment. Cold metadata never installs a page. */
   static fromSlots(input:unknown):HeldClaims {return new HeldClaims(null,input);}
+  /** Product/id-pinned metadata only. Cold admission never prepares native
+   * equipment, decodes packed geometry or installs an entered factory. */
+  static fromProductSlots(product:ShardProduct,input:unknown,file:string):HeldClaims {
+    const rows=parseHeldSlots(input),declaration=JSON.stringify(rows);
+    const names=[file,...rows.slots.flatMap(row=>row.kind==='blade'?(row.source.kind==='passes'?[row.source.file]:row.source.framing===undefined?[]:[row.source.framing])
+      :row.kind==='bow'?[]:row.kind==='tool'?[row.source,row.presentation]:[row.file])];
+    if(names.some(name=>!product.hasFile(name)))throw new Error('Missing held source file');
+    const files=[...new Set(names)].map(name=>({name,url:product.url(name)}));
+    let owners=productSlots.get(product);
+    const previous=owners?.get(rows.id);
+    if(previous!==undefined){
+      const kept=previous.metadata;
+      if(kept===null||kept.source!==product.shardfile||kept.file!==file||kept.declaration!==declaration)throw new Error('Held metadata declaration was replaced');
+      previous.checkSlotMetadata(kept);return previous;
+    }
+    const held=HeldClaims.fromSlots(rows);
+    held.metadata={product,source:product.shardfile,items:product.shardfile.items,files,file,declaration,readFile:product.file,readJson:product.json,resolveUrl:product.url,catalogue:null,loaded:false,preparing:false,ready:null,sources:null};
+    if(owners===undefined){owners=new Map();productSlots.set(product,owners);}
+    owners.set(rows.id,held);return held;
+  }
+  private checkSlotMetadata(metadata:SlotMetadata):void {
+    const product=metadata.product;
+    if(product.shardfile!==metadata.source||metadata.source.items!==metadata.items||product.file!==metadata.readFile||product.json!==metadata.readJson||product.url!==metadata.resolveUrl
+      ||metadata.files.some(file=>product.url(file.name)!==file.url))throw new Error('Held metadata owner was replaced');
+    metadata.sources?.();
+  }
+  /** Keep the original post-props preparation order. Metadata survives scope
+   * retirement; only the current explicit construction readiness is revoked. */
+  async prepareSlotSources(ctx:ShardContext):Promise<void> {
+    const metadata=this.metadata,world=ctx.game.runtime?.world;
+    if(metadata===null||world===undefined||world===null)throw new Error('Held slot preparation needs its pinned product and world');
+    if(metadata.preparing)throw new Error('Held slot sources are already preparing');
+    const scope=ctx.scope,owner=heldSlotOwner(ctx,world),source=metadata.source,items=metadata.items,equipment=ctx.app.equipment;
+    // oxlint-disable-next-line typescript/unbound-method -- Identity snapshots only; calls keep their concrete receiver.
+    const blades=[...this.blades].map(([id,value])=>({id,value,prepare:value.prepare,profile:value.profile,Weapon:value.Weapon,Power:value.Power}));
+    // oxlint-disable-next-line typescript/unbound-method -- Identity snapshots only; calls keep their concrete receiver.
+    const polearms=[...this.polearms].map(([id,value])=>({id,value,prepare:value.prepare,profile:value.profile,Weapon:value.Weapon}));
+    const sources=():void=>{
+      for(const row of blades)if(this.blades.get(row.id)!==row.value||row.value.prepare!==row.prepare||row.value.profile!==row.profile||row.value.Weapon!==row.Weapon||row.value.Power!==row.Power)throw new Error('Held blade source was replaced');
+      for(const row of polearms)if(this.polearms.get(row.id)!==row.value||row.value.prepare!==row.prepare||row.value.profile!==row.profile||row.value.Weapon!==row.Weapon)throw new Error('Held polearm source was replaced');
+    };
+    const check=():void=>{owner();sources();this.checkSlotMetadata(metadata);if(ctx.product!==metadata.product||ctx.product.shardfile!==source||source.items!==items||ctx.product.file!==metadata.readFile||ctx.product.json!==metadata.readJson||ctx.product.url!==metadata.resolveUrl||ctx.app.equipment!==equipment)throw new Error('Held metadata owner was replaced');};
+    check();metadata.preparing=true;
+    try {
+      if(!metadata.loaded){
+        for(const row of blades){await row.value.prepare(metadata.product);check();}
+        for(const row of polearms){await row.value.prepare(metadata.product);check();}
+        const book=v.parse(SpecimenBookSchema,await metadata.product.json(metadata.file));check();
+        const packed=book.packed;if(packed===undefined)throw new Error('Held specimen book has no packed source');
+        const catalogue=defineSpecimenCatalogue<Record<string,object>>(book.rows,packed,book.materials);
+        const bytes=await fetchLaneBake(packed.bin);check();
+        catalogue.usePacked(bytes);check();
+        metadata.catalogue=catalogue;metadata.loaded=true;metadata.sources=sources;
+      }
+      check();const ready={scope};metadata.ready=ready;
+      scope.onDispose(()=>{if(metadata.ready===ready)metadata.ready=null;});
+    } finally {metadata.preparing=false;}
+  }
+  /** Borrow original definitions; never memoize model() results in the kit. */
+  model(key:string):ModelDef<object> {
+    const metadata=this.metadata,catalogue=metadata?.catalogue;if(metadata===null||catalogue===undefined||catalogue===null)throw new Error('Held specimen source is not prepared');
+    this.checkSlotMetadata(metadata);return catalogue.model(key);
+  }
+
   /** Original metadata owners, prepared explicitly at the caller's existing phase. */
   blade(id:string):BladeSet {const owner=this.blades.get(id);if(owner===undefined)throw new Error('Unknown held blade source');return owner;}
   polearm(id:string):PolearmSet {const owner=this.polearms.get(id);if(owner===undefined)throw new Error('Unknown held polearm source');return owner;}
@@ -267,7 +355,10 @@ export class HeldClaims {
     const weaponRows=rows.slots.filter(row=>row.kind!=='tool'),toolRows=rows.slots.filter(row=>row.kind==='tool');
     if(weaponRows.length>16||toolRows.length>1)throw new Error('Held slots exceed their native binding capacity');
     if(rows.bindAt==='entered'&&(weaponRows.length!==1||weaponRows[0]?.kind!=='blade'||weaponRows[0].source.kind!=='starter'))throw new Error('Entered held slots require one starter primary');
-    const scope=ctx.scope,active=heldSlotOwner(ctx,world),equipment=ctx.app.equipment;active();
+    const scope=ctx.scope,owner=heldSlotOwner(ctx,world),equipment=ctx.app.equipment,metadata=this.metadata,ready=metadata?.ready;
+    const active=():void=>{owner();if(metadata!==null){if(ctx.product!==metadata.product)throw new Error('Held metadata owner was replaced');this.checkSlotMetadata(metadata);}};
+    active();
+    if(metadata!==null&&(!metadata.loaded||ready===undefined||ready===null||ready.scope.disposed||ready.scope.disposing||!scope.belongsTo(ready.scope)))throw new Error('Held slot sources are not prepared for this owner');
     if(this.kits.has(scope))throw new Error('Held slots are already installed');
     const catalogue=new ItemCatalogue(ctx.product.shardfile.items),items=ctx.product.shardfile.items;
     const sources=new Map(rows.slots.map(row=>[row.id,row]));
@@ -299,7 +390,7 @@ export class HeldClaims {
     const tools=this.originalRows!==null&&'kind' in this.originalRows?this.originalRows.tools.map(id=>{
       if(!items.rows.some(row=>row.id===id&&row.kind==='tool'))throw new Error(`Missing declared tool: ${id}`);return catalogue.equipment(id);
     }):[];
-    const check=():void=>{active();if(ctx.app.equipment!==equipment)throw new Error('Held slot equipment was replaced');};
+    const check=():void=>{active();if(ctx.app.equipment!==equipment)throw new Error('Held slot equipment was replaced');if(metadata!==null){if(metadata.ready!==ready)throw new Error('Held construction readiness was replaced');const prepared=metadata.ready;if(prepared===null||prepared.scope.disposed||prepared.scope.disposing)throw new Error('Held construction readiness was replaced');}};
     check();
     if(this.originalRows!==null&&'kind' in this.originalRows){const first=profiles[0];if(first===undefined)throw new Error('Missing held primary factory');ctx.rows.weapon(first.profile);}
     else if(profiles.every(entry=>entry.row.kind!=='tool'))ctx.rows.weapon(profiles.map(entry=>entry.profile));

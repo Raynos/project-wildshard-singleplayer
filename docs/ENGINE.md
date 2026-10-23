@@ -3418,6 +3418,21 @@ and reward operations update those original native owners in row order. Bow
 upgrades retain multiplier, onLoose and mount before applying power; blade
 upgrades carry pass state and replace the current primary. The equipment service
 retains ammunition, selection and save ownership. No slot continuation is added.
+
+HeldClaims.fromProductSlots(product, rows, specimenFile) pins one metadata
+owner to the actual product and row id. Reusing that id requires the same
+normalized rows, named source URLs, item source, reader functions and specimen
+file. Admission is cold: it never prepares a native arsenal or installs a page.
+prepareSlotSources(context) runs at the caller's existing post-props phase:
+original blade sources, then polearm sources, then the named specimen book,
+then one fetchLaneBake/usePacked adoption using its original packed URL.
+Every yield fences the concrete scope, product, world, equipment and source
+callables. Metadata and its original native sets survive entry retirement;
+construction readiness belongs to the preparing scope and is revoked on its
+retirement. A descendant may borrow that readiness; another entry must prepare
+explicitly. Replaced readiness refuses a suspended build, while an already-built
+kit retains its original native owners. model(key) delegates to the same
+specimen catalogue without adding a model memo or another packed decoder.
 `game/plugin/simulation.bindNativeLoadout` supplies the existing slot/swap law,
 live body and aim readers, and optional step/snapshot registration at the native
 owner's original id and phase. Weapon and ammunition continuations keep their
