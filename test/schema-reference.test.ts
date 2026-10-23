@@ -3,7 +3,7 @@ import { cwd } from 'node:process';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { schemaInventory } from '../scripts/docs/schema-reference.mjs';
-import { HeldFirearmViewSchema } from '@wildshard/format/weaponProfiles';
+import { HeldFirearmViewSchema, HeldBowRowsSchema } from '@wildshard/format/weaponProfiles';
 
 test('the firearm view reference covers open objects and their declared nested fields', () => {
   const rows = schemaInventory(HeldFirearmViewSchema);
@@ -36,4 +36,16 @@ test('strict tuples retain exact arity and expose every indexed child to the ref
   expect(rows.map(row => row.path)).toEqual(['$', '$[0]', '$[1]', '$[1].enabled']);
   expect(v.safeParse(strict, [1, { enabled: true }]).success).toBe(true);
   expect(v.safeParse(strict, [1, { enabled: true }, 2]).success).toBe(false);
+});
+
+
+test('bounded record entries retain minimum and maximum constraints in the reference', () => {
+  const styles = v.pipe(v.record(v.string(), v.string()), v.minEntries(1), v.maxEntries(8));
+  expect(schemaInventory(styles)[0]).toMatchObject({ type: 'record', constraints: ['min_entries 1', 'max_entries 8'] });
+  expect(v.safeParse(styles, {}).success).toBe(false);
+  expect(v.safeParse(styles, { plain: 'paint' }).success).toBe(true);
+  expect(v.safeParse(styles, Object.fromEntries(Array.from({ length: 9 }, (_, index) => [String(index), 'paint']))).success).toBe(false);
+  expect(schemaInventory(HeldBowRowsSchema).find(row => row.path === '$.styles')).toMatchObject({
+    type: 'record', constraints: ['min_entries 1 "Invalid held bow styles"', 'max_entries 8 "Invalid held bow styles"'],
+  });
 });
