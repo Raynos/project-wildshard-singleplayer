@@ -71,7 +71,7 @@ export function buildDecisionScripts(project: string, input: unknown, registries
 /** Inspect every authored source once; entries capture only their checked relative
  * closure. ABI2 uses the same budget/handler/import law without executing ABI1. */
 export async function captureDecisionSources(authored:ReadonlyMap<string,string>,options:DecisionBuildOptions):Promise<{
-  lines:number;ceiling:number;entry:(row:DecisionScriptRow,bindingPath:string)=>Record<string,string>;
+  lines:number;ceiling:number;entry:(row:DecisionScriptRow,bindingPath:string,helpers?:ReadonlySet<string>)=>Record<string,string>;
 }>{
   const ceiling=decisionLineCeiling(options),virtual:Record<string,string>={},inspected=new Map<string,Awaited<ReturnType<typeof inspectDecisionSource>>>();
   let lines = 0;
@@ -82,7 +82,7 @@ export async function captureDecisionSources(authored:ReadonlyMap<string,string>
     virtual[`${path.slice(0, -3)}.ts`] = text;
   }
   if (lines > ceiling) throw new Error(`Authored AssemblyScript budget exceeded: ${lines} > ${ceiling}`);
-  return {lines,ceiling,entry:(row,bindingPath)=>{
+  return {lines,ceiling,entry:(row,bindingPath,helpers)=>{
     const source=inspected.get(row.source);if(source===undefined)throw new Error(`Missing decision source: ${row.source}`);checkDecisionHandlers(row,source.handlers);
     const sources:Record<string,string>={};
     const pending = [row.source], seen = new Set<string>();
@@ -96,7 +96,8 @@ export async function captureDecisionSources(authored:ReadonlyMap<string,string>
       for (const specifier of info.imports) {
         if (!specifier.startsWith('.')) throw new Error('Decision source imports must be relative');
         const target = `${posix.normalize(posix.join(posix.dirname(path), specifier)).replace(/\.(?:as|ts)$/u, '')}.ts`;
-        if (target === bindingPath) continue;
+        // the generated bindings, and SDK helper sources the caller declares (a projection's group helpers)
+        if (target === bindingPath || helpers?.has(target) === true) continue;
         if (!Object.hasOwn(virtual, target)) throw new Error(`Undeclared decision source import: ${specifier}`);
         pending.push(`${target.slice(0, -3)}.as`);
       }

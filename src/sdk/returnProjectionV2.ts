@@ -1,7 +1,10 @@
 /** Dual compile stateless AS numeric rules. The candidate uses
- * ws_project and the defining v2 SDK, while the public v1 artifact is retained. */
+ * ws_project and the defining v2 SDK, while the public v1 artifact is retained.
+ * With `groups`, the same programme also serves group steps (ReturnProgram.prepareGroup): the selected project entry
+ * exports groupStep() beside onSignal, and a call that lends group state runs it. */
 import { parseDecisionScripts,scriptV1Identifier } from '@wildshard/format/decisionScripts';
 import { parseReturnProjectionV2,returnProjectionV2Layout,type ReturnProjectionV2Rows } from '@wildshard/format/returnProjectionV2';
+import type { GroupStepRowsV2 } from '@wildshard/format/scriptGroupStepV2';
 import { compileDecisionScripts,captureDecisionSources,type DecisionBuildOptions } from './buildDecisionScripts';
 import type { DecisionRegistries } from './decisionBindingMap';
 import { compileScriptV2 } from './bake/compileScriptV2';
@@ -10,7 +13,7 @@ import { v2CoreSource } from './as/wsV2';
 import { hashImmutableBytes } from './immutable';
 import { decisionBindingsPath } from './decisionScriptBindings';
 
-export async function compileReturnProjectionV2(input:unknown,registries:DecisionRegistries,authored:ReadonlyMap<string,string>,options:DecisionBuildOptions & {readonly projectSource?:string;readonly outputCapacity?:number;readonly worldActions?:boolean;readonly capture?:{readonly fields:readonly string[];readonly channels:readonly string[]}}):Promise<{
+export async function compileReturnProjectionV2(input:unknown,registries:DecisionRegistries,authored:ReadonlyMap<string,string>,options:DecisionBuildOptions & {readonly projectSource?:string;readonly outputCapacity?:number;readonly worldActions?:boolean;readonly capture?:{readonly fields:readonly string[];readonly channels:readonly string[]};readonly groups?:{readonly rows:GroupStepRowsV2;readonly helpers:Readonly<Record<string,string>>}}):Promise<{
   readonly legacy:{readonly script:ReturnType<typeof parseDecisionScripts>[number];readonly bytes:string};readonly candidate:ReturnProjectionV2Rows;
 }> {
   const row=parseDecisionScripts([input])[0];
@@ -23,7 +26,7 @@ export async function compileReturnProjectionV2(input:unknown,registries:Decisio
   const selected=options.projectSource??row.source;
   const captured=await captureDecisionSources(authored,options);
   const fields=Object.values(row.fields).sort(),signals=Object.values(row.signals).sort(),channels=Object.values(row.channels).sort();
-  const layout=returnProjectionV2Layout(fields.length,row.pages,options.outputCapacity),path=decisionBindingsPath(row);
+  const groups=options.groups,layout=returnProjectionV2Layout(fields.length,row.pages,options.outputCapacity,groups?.rows),path=decisionBindingsPath(row);
   const lines=["import * as core from '../../sdk/as/wsV2';"];
   for(const [kind,namespace,names]of [['fields','Field',fields],['signals','Signal',signals],['channels','Channel',channels]] as const){
     lines.push(`export namespace ${namespace}{`,...Object.entries(row[kind]).map(([alias,name])=>`export const ${scriptV1Identifier(alias)}:i32=${names.indexOf(name)+1};`),'}');
@@ -50,15 +53,18 @@ export async function compileReturnProjectionV2(input:unknown,registries:Decisio
   // The legacy compiler has already checked the entire source budget and the
   // selected entry's captured import closure. Supply only admitted author texts.
   const sources:Record<string,string>={[path]:lines.join('\n'),'sdk/as/wsV2.ts':v2CoreSource(0)};
-  Object.assign(sources,captured.entry({...row,source:selected},path));
-  const source=`import {onSignal} from './${selected.slice(0,-3)}';
+  if(groups!==undefined)for(const [name,text]of Object.entries(groups.helpers)){
+    if(!/^sdk\/as\/group(?:Bank|Step)V2\.[a-z][a-z0-9-]*\.ts$/u.test(name)||Object.hasOwn(sources,name))throw new Error('Invalid group helper source');sources[name]=text;
+  }
+  Object.assign(sources,captured.entry({...row,source:selected},path,groups===undefined?undefined:new Set(Object.keys(groups.helpers))));
+  const source=`import {onSignal${groups===undefined?'':',groupStep'}} from './${selected.slice(0,-3)}';
     import * as core from './sdk/as/wsV2';
     export function ws_abi():i32{return 2;}
     export function ws_io():i32{return 0;}
     export function ws_init(lo:i32,hi:i32,fuel:i32):i32{return fuel;}
-    export function ws_project(fuel:i32):i32{core.beginState();assert(core.beginBinding(0));onSignal(i32(core.parameter(0)),0,0);core.endBinding();return fuel;}`;
+    export function ws_project(fuel:i32):i32{core.beginState();assert(core.beginBinding(0));${groups===undefined?'':'if(core.count(2)>0)groupStep();else '}onSignal(i32(core.parameter(0)),0,0);core.endBinding();return fuel;}`;
   const bytes=await compileScriptV2(source,{maximumPages:row.pages,ioBytes:layout.bytes,lane:'project',sources});
   const candidate=parseReturnProjectionV2({artifact:{abi:2,minor:0,compilerRevision:SCRIPT_V2_REVISIONS.compiler,admissionRevision:SCRIPT_V2_REVISIONS.admission,
-    hash:hashImmutableBytes(bytes),lane:'project',pages:row.pages,ioBytes:layout.bytes},fields,signals,channels,...(options.outputCapacity===undefined?{}:{outputCapacity:options.outputCapacity}),bytes:btoa(Array.from(bytes,byte=>String.fromCodePoint(byte)).join(''))});
+    hash:hashImmutableBytes(bytes),lane:'project',pages:row.pages,ioBytes:layout.bytes},fields,signals,channels,...(options.outputCapacity===undefined?{}:{outputCapacity:options.outputCapacity}),bytes:btoa(Array.from(bytes,byte=>String.fromCodePoint(byte)).join('')),...(groups===undefined?{}:{groups:groups.rows})});
   return {legacy:{script,bytes:btoa(Array.from(blob.bytes,byte=>String.fromCodePoint(byte)).join(''))},candidate};
 }
