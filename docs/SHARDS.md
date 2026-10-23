@@ -225,14 +225,9 @@ Template's underscore keeps it hidden from the ordinary picker; its reference so
 
 ### Checks on the shared machine
 
-Check committed candidates in the shared build mirror; never copy or export the
-repository. For example:
-
-```bash
-node scripts/build-mirror.mjs run HEAD --slot check3 -- pnpm exec tsc --noEmit
-```
-
-Use a focused test file for the changed behavior. For a standalone boot use the
+Land on types, scoped typed lint and `vitest related` in the working tree (G612,
+G670); never run checks in the build mirror or copy the repository. Use a focused
+test file for the changed behavior. For a standalone boot use the
 stock `scripts/serve-build.sh --rev SHA --shard SLUG`; it releases the mirror
 before serving. Every browser goes through `scripts/browser-lane.sh`.
 

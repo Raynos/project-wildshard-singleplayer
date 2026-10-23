@@ -7,7 +7,7 @@ AGENTS.md and docs/process/ hold the rest.
 2. `.git/quiet` only through the official Simulator reading script; never for Chromium samples or profiles.
 3. Land each slice on types + scoped typed lint + `vitest related` in the working tree (G612).
 4. No new Debug rows (G669): new work lands on, or behind Developer only if unfinished.
-5. A red you caused: fix it within 30 minutes or revert it (G620); sp-x7 reverts at 30 minutes.
+5. A red you caused: fix it forward within 30 minutes; no reverts (G674).
 
 - **Small commits (Jake):** land each green cut now (G507).
 - **Never idle:** task done = take the top open row of your type in `ready-queue.md` (claim it,

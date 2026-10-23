@@ -74,18 +74,10 @@ and AGENTS.md disagree, AGENTS.md wins and this file is the bug. Execute in orde
    - A Conventional Commits subject (≤ 50 characters) that states the finding, and the `Assisted-by:` trailer per
      AGENTS.md "Version control" (no `Co-Authored-By:`; the commit-msg hook refuses it). Say plainly
      what is red and whose it is — another agent's uncommitted WIP is not your red, but a red *HEAD* is everyone's.
-2. **The four gates on HEAD in the build mirror — before the push.** Never a fresh export:
-   ```
-   node scripts/build-mirror.mjs run HEAD -- bash -c 'PATH=$PWD/node_modules/.bin:$PATH \
-     && node scripts/gen.mjs && tsc --noEmit && oxlint && node scripts/check-css.mjs && vite build'
-   ```
-   The mirror holds HEAD without `art/`, `progress/` and `sources/` (no gate reads them and Vercel ignores them): one
-   persistent copy under `./tmp/build-mirror/build`, synced file by file and locked while the gates run. The shims
-   resolve through its linked `node_modules` (never `pnpm exec` there; gen first: src/shards.generated is not in git).
-   Nothing to delete afterwards: a re-run after a fix only rewrites the files that changed.
-   Red on something you committed → fix it with a new pathspec commit and re-run (never `--amend`: other agents'
-   commits may already sit on top of yours in the shared `main`). Red on someone else's commit → name the commit
-   and its owner in the report; don't push over a red HEAD.
+2. **Land on the quick checks (G612, G670).** Types, scoped typed lint and `vitest related` on your files in the
+   working tree; never a build-mirror run or a fresh export. The push gate, CI and the exact-SHA boot smoke are the
+   full check. Red on something you committed → fix it forward with a new pathspec commit (never `--amend`, never a
+   revert, G674). Red on someone else's commit → name the commit and its owner in the report.
 3. **Push through the lock — and stop there.** `scripts/push-main.sh`. If another push holds the lock it exits
    0 with your commits still local — the push in flight re-checks `origin/main..main` before it lets go, so it
    carries them; re-check later: `git log origin/main..main` empty = shipped. Rejected (non-fast-forward) →
