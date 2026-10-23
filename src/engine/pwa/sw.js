@@ -185,30 +185,44 @@ async function putDocument(cache, key, res) {
 workerScope.listen(self, 'install', (event) => {
   event.waitUntil(
     (async () => {
-      const shell = await caches.open(SHELL);
-      // The document must be THIS build's (E144). The host serves one deploy at a time and 404s every other deploy's
-      // /assets (Vercel has no skew protection here), and deploys land minutes apart. A worker whose sw.js came from
-      // deploy N but whose index.html or bundle was fetched after N+1 went live held a document it could not boot.
-      // The pill adopted it, the reload ran the index chunk, and then `import(main)` 404'd: a loader frozen at
-      // 00:00.0 and nothing else. A mismatch fails the install instead: the old worker keeps serving, and the next
-      // update() fetches the live sw.js and tries again.
-      const doc = await fetch(abs('/index.html'), { cache: 'no-store' });
-      if (!doc.ok) throw new Error(`install: /index.html ${doc.status}`);
-      const foreign = await foreignRefs(doc.clone());
-      if (foreign.length > 0) throw new Error(`install: /index.html is another build's (${foreign.join(', ')})`);
-      await shell.put(abs('/index.html'), doc);
-      await Promise.all(SHELL_CRITICAL.filter((p) => p !== '/index.html').map((p) => backgroundCache(shell, p))); // throws → install fails → the old worker keeps serving
-      await fillMissing(shell, SHELL_OPTIONAL);
-      // The entry chunk was requested by the HTML before this worker controlled anything (a first visit), so
-      // it never passed through `fetch` below; name it here or the second boot is not all-cache. Immutable on
-      // the host, so this is served by the HTTP cache, not the network, when the page just fetched it.
-      // Code and styles only: the hashed images (every shard's hero stills, portrait AND landscape, ~2 MB) are cached
-      // by cacheFirst when the menu actually shows one — a phone never shows the landscape set (ask P5, cold bytes).
-      // STRICT (E144): every static entry dependency and extracted stylesheet
-      // must exist before this worker can serve its document. Lazy shard code
-      // is verified on demand, then warmed after the title is usable.
-      await fillMissing(await caches.open(IMMUTABLE_CACHE), INSTALL, true);
-      await fillMissing(await caches.open(STATIC), [...STATIC_OPTIONAL, ...FONTS]);
+      try {
+        const shell = await caches.open(SHELL);
+        // The document must be THIS build's (E144). The host serves one deploy at a time and 404s every other deploy's
+        // /assets (Vercel has no skew protection here), and deploys land minutes apart. A worker whose sw.js came from
+        // deploy N but whose index.html or bundle was fetched after N+1 went live held a document it could not boot.
+        // The pill adopted it, the reload ran the index chunk, and then `import(main)` 404'd: a loader frozen at
+        // 00:00.0 and nothing else. A mismatch fails the install instead: the old worker keeps serving, and the next
+        // update() fetches the live sw.js and tries again.
+        const doc = await fetch(abs('/index.html'), { cache: 'no-store' });
+        if (!doc.ok) throw new Error(`install: /index.html ${doc.status}`);
+        const foreign = await foreignRefs(doc.clone());
+        if (foreign.length > 0) throw new Error(`install: /index.html is another build's (${foreign.join(', ')})`);
+        await shell.put(abs('/index.html'), doc);
+        await Promise.all(SHELL_CRITICAL.filter((p) => p !== '/index.html').map((p) => backgroundCache(shell, p))); // throws → install fails → the old worker keeps serving
+        await fillMissing(shell, SHELL_OPTIONAL);
+        // The entry chunk was requested by the HTML before this worker controlled anything (a first visit), so
+        // it never passed through `fetch` below; name it here or the second boot is not all-cache. Immutable on
+        // the host, so this is served by the HTTP cache, not the network, when the page just fetched it.
+        // Code and styles only: the hashed images (every shard's hero stills, portrait AND landscape, ~2 MB) are cached
+        // by cacheFirst when the menu actually shows one — a phone never shows the landscape set (ask P5, cold bytes).
+        // STRICT (E144): every static entry dependency and extracted stylesheet
+        // must exist before this worker can serve its document. Lazy shard code
+        // is verified on demand, then warmed after the title is usable.
+        await fillMissing(await caches.open(IMMUTABLE_CACHE), INSTALL, true);
+        await fillMissing(await caches.open(STATIC), [...STATIC_OPTIONAL, ...FONTS]);
+      } catch (error) {
+        // A rejected installer becomes redundant before a page can query it.
+        // Report the original failure, then preserve that exact rejection.
+        console.error('Service worker installation failed', error);
+        try {
+          const pages = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+          for (const page of pages) {
+            // oxlint-disable-next-line unicorn/require-post-message-target-origin -- Client.postMessage has no targetOrigin parameter.
+            page.postMessage({ type: 'WS_SW_INSTALL_ERROR', build: BUILD, error: String(error).slice(0, 2000) });
+          }
+        } catch { /* Diagnostics must never replace the original refusal. */ }
+        throw error;
+      }
     })(),
   );
 });

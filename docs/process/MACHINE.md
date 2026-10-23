@@ -172,6 +172,8 @@ grid without adopting via the pill. Exact script/worker responses stay
 unchanged; URL, title, error, pill and controller states ride the existing
 poll log. The same installing candidate has at most 120 seconds to become
 waiting; replacement, redundancy or timeout refuses rather than reinstalling.
+Rejected installers report their exact build and error to the existing page
+before preserving the rejection; the reader retains those diagnostics.
 Failures and response metadata survive cleanup. An absent or changed old
 controller refuses the reading.
 

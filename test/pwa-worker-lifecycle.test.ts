@@ -25,6 +25,7 @@ class StoredCache {
 }
 function fixture(read?: (url: string, init?: RequestInit) => Promise<Response>) {
   const listeners = new Map<string, ((event: WorkerEvent) => void)[]>(), books = new Map<string, StoredCache>();
+  const installErrors: unknown[] = [];
   const open = (name: string): Promise<StoredCache> => {
     let cache = books.get(name); if (cache === undefined) { cache = new StoredCache(); books.set(name, cache); } return Promise.resolve(cache);
   };
@@ -36,7 +37,7 @@ function fixture(read?: (url: string, init?: RequestInit) => Promise<Response>) 
   const navigator = { onLine: true };
   const self = {
     navigator, location: new URL(base), registration: { scope: base },
-    clients: { matchAll: () => Promise.resolve([]), claim: () => Promise.resolve() },
+    clients: { matchAll: () => Promise.resolve([{ postMessage: (value: unknown) => { installErrors.push(value); } }]), claim: () => Promise.resolve() },
     addEventListener: (kind: string, listener: (event: WorkerEvent) => void) => { listeners.set(kind, [...listeners.get(kind) ?? [], listener]); },
   };
   const caches = { open, keys: () => Promise.resolve([...books.keys()]), delete: (name: string) => Promise.resolve(books.delete(name)),
@@ -55,7 +56,7 @@ function fixture(read?: (url: string, init?: RequestInit) => Promise<Response>) 
     for (const listener of listeners.get(kind) ?? []) listener({ ...payload, waitUntil: work => { pending.push(work); }, respondWith: work => { pending.push(work); } });
     await Promise.all(pending);
   };
-  return { fetch, open, dispatch, navigator };
+  return { fetch, open, dispatch, navigator, installErrors };
 }
 afterEach(() => { vi.useRealTimers(); });
 
@@ -68,6 +69,10 @@ test('installation remains strict for its complete entry graph and never reads l
   expect(paths).not.toContain(dependency); expect(paths).not.toContain(lazy); expect(paths).not.toContain(later);
   const refused = fixture(url => Promise.resolve(new Response(url.endsWith(dependency) ? 'missing' : url.endsWith('/index.html') ? `<script src="${entry}"></script>` : 'exact', { status: url.endsWith(dependency) ? 404 : 200 })));
   await expect(refused.dispatch('install')).rejects.toThrow('precache:');
+  expect(refused.installErrors).toHaveLength(1);
+  expect(JSON.stringify(refused.installErrors[0])).toContain('WS_SW_INSTALL_ERROR');
+  expect(JSON.stringify(refused.installErrors[0])).toContain('precache:');
+  expect(JSON.stringify(refused.installErrors[0])).toContain('unit-build');
 });
 
 test('background code is serial, yields its body to foreground reads, then supports offline access', async () => {

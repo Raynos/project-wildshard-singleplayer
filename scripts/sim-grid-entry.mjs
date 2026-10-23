@@ -264,6 +264,7 @@ async function run(mode, index, target) {
       const oldVersion = await (await fetch(new URL('version.json', upgradeFrom), {cache: 'no-store'})).json();
       if (typeof oldWorker?.build !== 'string' || typeof oldVersion.build !== 'string' || !oldWorker.build.startsWith(`${oldVersion.build}-`)) throw new Error('Old controlling worker does not match the deployed build');
       log(file, {ev: 'upgrade-old-controller', worker: oldWorker.build, version: oldVersion});
+      await page.evaluate(`window.__simWorkerFailures=[];navigator.serviceWorker.addEventListener('message',event=>{if(event.data?.type==='WS_SW_INSTALL_ERROR')window.__simWorkerFailures.push({build:event.data.build,error:event.data.error});});true`);
       oldDeployment = false;
       const nextVersion = await (await fetch(new URL('version.json', upstream), {cache: 'no-store'})).json();
       if (nextVersion.build === oldVersion.build) throw new Error('Upgrade observation requires different builds');
@@ -289,6 +290,7 @@ async function run(mode, index, target) {
     await sleep(6000);
     if (upgradeFrom !== undefined) {
       const candidate = await settle(`async () => {const reg=await navigator.serviceWorker.getRegistration();if(!reg)throw Error('Missing upgrade registration');const w=await (${waitForWaitingWorker.toString()})(reg);return new Promise(resolve=>{const ch=new MessageChannel();const timer=setTimeout(()=>{ch.port1.close();ch.port2.close();resolve(null)},5000);ch.port1.onmessage=e=>{clearTimeout(timer);ch.port1.close();ch.port2.close();resolve(e.data.build??null)};w.postMessage({type:'BUILD'},[ch.port2]);});}`, 150000);
+      log(file, {ev: 'upgrade-install-errors', errors: JSON.parse(await page.evaluate('JSON.stringify(window.__simWorkerFailures??[])'))});
       const nextVersion = await (await fetch(new URL('version.json', upstream), {cache: 'no-store'})).json();
       if (typeof candidate !== 'string' || !candidate.startsWith(`${nextVersion.build}-`)) throw new Error(`New deployment worker is not waiting before the grid tap: ${String(candidate).slice(0, 200)}`);
       log(file, {ev: 'upgrade-waiting', build: candidate});
