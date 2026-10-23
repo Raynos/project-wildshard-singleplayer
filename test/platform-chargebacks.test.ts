@@ -561,3 +561,26 @@ test('G667 case 1 credits only the listed herd and pack host',()=>{
   expect(approvedG571Host(approvals,'src/game/shardfile/worldAssembly.ts','installAssemblyWeather')).toBe(false);
   expect(platformChargeback('src/game/shardfile/worldAssembly.ts','installAssemblyWeather')).toBe('C9');
 });
+
+
+test('G667 case two credits only the listed native driver roster and field',()=>{
+ const rows=[
+  ['src/game/population/nativeManager.ts',['NativePopulationDriver','NativeDriverRows']],
+  ['src/game/shardfile/homeKeeper.ts',['NativeDeferredRoster','NativeDeferredSpawn']],
+  ['src/game/population/environment.ts',['NativePopulationField']],
+ ] as const;
+ const approvals=g571HostApprovals('.'),users=new Set(['nalati-grasslands']);
+ const modules=new Map(rows.map(([path])=>[path,users]));
+ const bindings=new Map(rows.flatMap(([path,names])=>names.map(name=>[`${path}\0${name}`,users] as const)));
+ chargePlatformUsers(modules,bindings);
+ for(const[path,names]of rows){
+  expect(modules.get(path)).toBe(users);expect(approvedG571Host(approvals,path)).toBe(false);
+  for(const name of names){expect(approvedG571Host(approvals,path,name)).toBe(true);expect(platformChargeback(path,name)).toBeNull();expect(bindings.get(`${path}\0${name}`)).toBe(users);}
+  expect(approvedG571Host(approvals,path,'unreviewed')).toBe(false);
+ }
+ expect(approvedG571Host(approvals,'src/game/population/nativeManager.ts','NativeManager')).toBe(false);
+ expect(approvedG571Host(approvals,'src/game/shardfile/homeKeeper.ts','createNativeCreatureRoster')).toBe(false);
+ expect(approvedG571Host(approvals,'src/game/population/environment.ts','installPopulationEnvironment')).toBe(false);
+ expect(approvedG571Host(approvals,'src/game/population/nativeBake.ts','populationMetadata')).toBe(false);
+ expect(approvedG571Host(approvals,'src/game/population/nativeBake.ts','createNativeBakeReader')).toBe(true);
+});
