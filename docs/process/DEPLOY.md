@@ -44,9 +44,9 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
     (`test/fake/simSnapshot.ts`), never `toEqual` on whole snapshots nor serialising both sides to compare. A walk tape
     is at most 10k ticks per test, with a 60 s budget.
 - **GitHub drops the :17 schedule** under load, with no error (2026-10-02/03: one run every 4–6 h). A launchd agent on
-  Jake's Mac is the backstop (E403): `scripts/deploy-backstop/backstop.sh` runs at :47 every second hour and dispatches
-  the deploy when no scheduled run started in the last 119 minutes and `deploy-pin.mjs release-slot` proves the shared
-  hourly slot is free and `release-ready` finds the newest BOTH-proof-green candidate. A newer pending smoke never
+  Jake's Mac is the backstop (E403): `scripts/deploy-backstop/backstop.sh` runs at :47 every hour and dispatches
+  the deploy when `deploy-pin.mjs release-slot` proves the shared hourly slot is free, `release-ready` finds the newest
+  BOTH-proof-green candidate, and production does not already serve it. A newer pending smoke never
   blocks an existing proven candidate; with none proven, readiness defers without consuming the hour. API errors refuse it.
   Other configured pin modes retain their release-job proof checks. A recent scheduled/manual release or any
   queued/running release blocks it. Every retry checks
