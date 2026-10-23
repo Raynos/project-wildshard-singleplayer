@@ -1,6 +1,6 @@
 # pnpm gen speed: mini plan (TOOLING-PERF mini plan; runs as a SHARD-PLATFORM extra, G647)
 
-**State:** `draft` 2026-10-23 — audit + benchmark by a plan-agent subagent; decisions for Jake below. The [generators redesign](generators-spike-mini-plan.md) (G654: one program per shard, catalogue deleted) replaces the job graph long term; rows here that only tune today's catalogue (G5–G7, G10) shrink to what still applies once GR2 lands. G1, G2 and G9 are quick wins regardless. G8 is covered by G654/GR0 and G649.
+**State:** `open` 2026-10-23 — audit + benchmark by a plan-agent subagent; all four decisions ruled by G668. The [generators redesign](generators-spike-mini-plan.md) (G654: one program per shard, catalogue deleted) replaces the job graph long term; rows here that only tune today's catalogue (G5–G7, G10) shrink to what still applies once GR2 lands. G1, G2 and G9 are quick wins regardless. G8 is covered by G654/GR0 and G649.
 
 Jake, 2026-10-23: *"a separate mini plan, audit, benchmarks, pnpm gen"*. Benchmark 2026-10-23 00:44–01:45 Cancun on
 `7c8e3b33a2`, mirror slots check2 (warm) / check3 (cold), every run under `heavy-lane build` (taskpolicy utility),
@@ -87,7 +87,7 @@ Cold cache footprint: 1.9 GB for one commit.
 | G2 | Move derived docs (api, host-catalogue + its 15 MB JSON, webgpu, liveness README, generator inventory) out of `pnpm gen` into `pnpm docs` (CI builds them) | no-change gen tail ≤ 5 s | 26–125 s every gen |
 | G3 | Memoize boot tables, both `genShards` passes and the push seal on the phase snapshot | no-change gen ≤ 5 s (today 53–67) | 10–25 s |
 | G4 | Staging: `copyFileSync(…, COPYFILE_FICLONE)` (APFS clone), stage only the traced reads on a probe-hit recipe, move staging/hashing into the worker so the parent never blocks | cold tree CPU ≥ 6 cores at c12 | est. 2–4x cold generation |
-| G5 | Concurrency default = cores-4 (cap 16) for every gen, longest-first scheduling (nine-layout, open-plots-world, nalati-species start first) | cold ≤ 90 s at load ≤ 10 | 400 s cold |
+| G5 | Concurrency default = cores-4, capped at 4 (G668) for every gen, longest-first scheduling (nine-layout, open-plots-world, nalati-species start first) | cold ≤ 90 s at load ≤ 10 | 400 s cold |
 | G6 | Narrow keys: drop the file inventory from the recipe (keep the recorder's negative probes), replace whole-layer roots with traced modules, hash only the package.json exports entries a job resolves, catalogue projection for every job; find why nine-layout re-keys on a Nalati edit | a one-shard edit regenerates only that shard's dependants; Loading.ts edit regenerates 0 | C 215→≤20 s, D2 139→~2 s |
 | G7 | Cache retention by bytes + recency (24 h, 20 GiB cap), not `keep=3` per job; drop the duplicate alias entry | exact-restore rerun regenerates 0 | B2 175→~2 s |
 | G8 | Generated data is files, not TypeScript: base64-in-JSON (lightSpill 52 MB, paintArray 47, castHook 29, nalati physics 2.5 = 131 MB) becomes .bin/.glb; numeric-array JSON (mapAssembly 29/9/6/4, worldRows 3.5, modelCatalogue/rockScenes ~55 % arrays) and instance tables (floorLayout 11, dressing-stone 6, nine layout 7) become typed .bin + small JSON header; generators `readFileSync` + valibot-parse the header at run time; lint bans importing `*.generated.json` | 0 static generated-JSON imports; JSON written per cold gen ≤ 30 MB | base64 +33 % bytes and 130 MB of JSON parse/stringify; TS stops parsing 127 MB |
@@ -106,9 +106,10 @@ Expected after G1–G9: no-change ≤ 5 s (snapshot 1 s + memoized tables); one-
 shard's critical chain only); cold ≤ 90 s (4,229 job-s inflated → ~1,500 real job-s / 14 cores + nine-layout ~50 s).
 CI: G6 + projection should take a typical push from 141 to ~20 regenerated jobs (197 s → ~40 s).
 
-## Decisions for Jake
+## Decisions (G668, Jake 2026-10-23)
 
-1. Derived docs leave `pnpm gen` for `pnpm docs` + CI (recommended), or stay and get cached.
-2. gen at normal QoS when someone waits on it (recommended), or stays utility and slow under load.
-3. Generated JSON imports banned outright, binaries become .bin/.glb (recommended), or only the > 1 MB files move.
-4. Default concurrency cores-4 (recommended), or a fixed 8.
+1. Derived docs leave `pnpm gen` for `pnpm docs`, built by CI on every push (G2).
+2. gen runs at normal priority when a person, a lane or the push gate waits on it; background gens stay utility (G9).
+3. Generated JSON imports are banned and binaries become .bin/.glb: already decided by G649, G654 and G655 (G8).
+4. Default concurrency cores − 4, **capped at 4** (Jake: *"Core minus 4 and max 4"*); longest jobs first (G5). The cold
+   target in G5 is re-measured at 4 jobs instead of assumed.
