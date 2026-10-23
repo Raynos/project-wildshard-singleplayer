@@ -1,33 +1,35 @@
 # SHARD-PLATFORM — State (wildshard-new; ≤ 3 KB)
 
 **Order:** live reds + the P0 phone entry → Nalati COMPONENT BY COMPONENT (G613: lock each in its last cut; C4 + C9
-last) → CI speed (G609) → the rest. Grid readiness NOW (G598). G612 D5: land on types/lint/focused tests only; no
-pre-land mirror or first frame. D3: 5-min lock waits fail, never retry. Full closed-component guard runs in CI.
+last) → CI speed (G609) → the rest. G612 D5: land on types/lint/focused tests only. D3: 5-min waits fail, no retry.
 
-**Census (official f07290dccd; later cuts per lane ruler):** Pine, DW, Far Reach, Sunscar, Pastel, Ink, templates,
-NINE 0. Nalati C1/C2/C3/C5/C7/C8 CLOSED + locked. Open: C6 7 (balbal + 2 native loans -> sp-x9 H4 actor binding,
-lock then); C4 ~1,120 (L2 Titan sp-x6, cda600a803 -13; Titan views -25 sp-o4 after; L4 elites sp-x1: 041327006f
-broke the 8-script cap, rolled back f84c97e85e, retry inside the existing 8; L5 sims sp-o4 on H4 83cf27394b);
-C9 ~840 (sp-x8: taming to AS on v2 world actions, order tests 72e83202f5; LB flip last).
+**Census (official 6c80f62227, sp-x1):** every shard 0 except Nalati and open plots (20 local, unclassified).
+Nalati C4 1,118 (arenaScript 483, eliteEncounters 213, pageGroups 134, elitePage 122, balbal 59), C6 8, C9 826
+(state 145, nativeManager 109, binding 96+29, groupRuntime 92, index 80, shared manifest 74). Its C1 47 / C2 186 /
+C8 156 "regrowth" is a census-harness error (ruler slot lost Nine/Pine/DW generated discovery, so shared exports
+looked Nalati-only); sp-x1 corrects the count + adds a missing-discovery refusal. Locks stand.
 
-**Grid-ready:** DW + NINE latched. PINE oneFrameLooks open (sp-o4: aff1fb6373 + sp-o1 7ee1f3e71f; worst 216 ms ->
-latch pending). Nine margin: 4110bf1670 parallel post links; Nine->Nalati leave 300 ms frame at 4.5 s (sp-o5).
+**Routes:** C6 + balbal -> sp-x9 H4 actor binding (502d55f73b shared ABI2 module, 8 scripts). C4: Titan -> sp-x6
+life/tell snapshot + sp-o4 view (~-11); elites: two routes measured net-0, no honest cut yet; L5 pack/herd sims ->
+sp-o4 pure AS module, needs a group step from sp-x9. C9: taming -> sp-x8 (AS on v2 world actions; G415 tolerance).
 
-**P0 (Jake's phone):** live ab93dccfe0 (pre-P0), pinned by sp-x7. Floor f84c97e85e: CI products/types/lint green,
-behaviours running; sp-x7 unpins + releases on full CI + exact smoke. Chromium 4x tap->play 14.1 -> ~13.0 s
-(e4b4e1a847 + 27ca9a9f42 shaders after play). Next: node-build reuse (sp-o3 6c4b4e33e0, default-off, reading
-pending), home CPU + boot 404 (sp-o1), CSM shadow chunking (sp-o5). Open row: fewer/larger boot chunks (Rolldown).
+**Grid-ready:** DW + PINE (b9d191e259) + NINE latched (G598 done). Cold first crossing ~200-267 ms at 4x is mostly
+GC/native (e0d24f014b allocation cuts; harness now samples grid.current()). Nine->Nalati 283 ms frame: sp-o5 GC trace.
 
-**Lanes (5 Opus at Claude weekly 32 %; 5 Codex + sp-x7):** above, plus sp-x2 CI speed (product 318 s; tile bake
--1.7 s, zstd -153 MB/run; fixing the Nalati placeRuntime reader red) and sp-o2 Night Market floor hole (mask origin
-fix ready, stray per-quadrant mask probe).
+**P0 (Jake's phone):** live ab93dccfe0 pinned (sp-x7). Floor 0ea6fb46f0 (fixes: f7b3e4b66d quest bind, a672369245
+King rules, f112d6c62f + 0ea6fb46f0 tests, 8c5189879b tuple); release on CI + exact smoke. Chromium 4x region start
+~13.0 s tap->play (shaders after play, home warm-up first-frame only, CSM chunking a128352530). ROAD START
+70e0bbd4bd + 53b57e917b (Debug row 'Start of play', default region): tap->play 5.0 s; tap->inside home 21.5 s vs
+13.0 s, as the home builds at in-play budget; sp-o1 raising that one build's budget. Node-build reuse 92bba7c1ba
+(sp-o3, default-off, on/off reading next).
 
-**For wildshard-v (Jake picks):** (1) P0: micro-cuts can't reach G579's <5 s. sp-o4 recommends G578-style in-world
-loading for the HOME cell (start on the road deck, home builds behind a cell screen); changes G578's first-boot
-loader rule. Yes/no? (2) Audio offline rule: 94 audio files (all music styles + SFX) load before the bar and share
-the phone's IO with the home build; load only the selected style/set before play, the rest after? Yes/no?
+**Lanes (5 Opus at Claude weekly 35 %; 5 Codex + sp-x7):** sp-x2 CI speed (16 behaviour partitions 4341449733,
+model max 146 s; f84 wall 16m17); sp-o2 themed ground (Night Market holes fixed 401a2821ea).
 
-**Hazard:** 40+ working copies equal OLDER blobs (--patch landings); lanes land only own hunks from HEAD.
+**For wildshard-v (Jake pick):** start new players on the ROAD (play in ~5 s, home ready later) instead of in the
+home region (~13 s)? sp-o1's final numbers come with the faster home build; yes/no. The audio question is dropped
+(no gain measured).
 
-**Rules:** G605 Opus steps (50 % 3, 70 % 2, 80 % 1, 90 % 0). G492; never herdr wildshard-v; no net-0 moves or
-relabels (G571; G520 re-scores need a real second shard). G606: no legacy deletion before Jake's word.
+**Hazard:** 40+ stale working copies; land only own hunks from HEAD. Mirror slots clear generated outputs (c007).
+
+**Rules:** G605 Opus steps (50 % 3, 70 % 2, 80 % 1, 90 % 0). G492; never herdr wildshard-v; no net-0 moves (G571).
