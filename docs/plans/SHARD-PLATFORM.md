@@ -59,7 +59,7 @@ plan? … what is in scope … and what do we all have to complete to be done?"*
 | [core-memory](shard-platform/core-memory-mini-plan.md) (core game floor, Templates 1 + 2 in SHARD SELECT) | G640 | **draft**: measurement first |
 | [legacy-deletion](shard-platform/legacy-deletion-mini-plan.md) | G604, G606 | LD1–LD3 done; LD4 per shard at zero; LD5–LD8 only on Jake's word after his QA |
 
-**Out of scope here (their own plans, after this one):** [TOOLING-PERF](TOOLING-PERF.md) (draft, G635), [HOST-AUDIT](HOST-AUDIT.md) (starts after every shard is at
+**Out of scope here (their own plans, after this one):** [TOOLING-PERF](TOOLING-PERF.md) (parked draft, G659), [HOST-AUDIT](HOST-AUDIT.md) (starts after every shard is at
 zero, G596), SHARD-PLATFORM-NEXT, WASM-HOST beyond its zero blockers.
 
 **Order (G639):** live reds that stop Jake playing → **Nalati to zero** (component by component) → **grid readiness 10/10**; every other mini plan above is an extra taken only by a lane with no zero / grid row free (CI and gate rows first, then the Night Market pilot, loading, memory strip, tile streaming, hero).
@@ -516,7 +516,7 @@ line to Jake at each milestone.
 Everything in [`shard-platform/`](shard-platform/), beside this file:
 
 - [STATE.md](shard-platform/STATE.md): the live status, calls for Jake and the fleet (coordinator only, ≤ 3 KB).
-- [decisions.md](shard-platform/decisions.md): every decision G1–G658+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
+- [decisions.md](shard-platform/decisions.md): every decision G1–G659+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
 - [rows.md](shard-platform/rows.md): §4 in full, Part A and Part B, with done-whens and evidence.
 - [contracts.md](shard-platform/contracts.md): §3 in full (determinism, caps, the grid, versioning, a shard project).
 - [history.md](shard-platform/history.md): the long State line, the council-time baseline (old §2), the pre-G291 measure and the 2026-10-04 Handoff.

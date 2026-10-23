@@ -1,6 +1,6 @@
 # Plan: TOOLING-PERF — the CI, tooling, build, TypeScript, lint and test mega audit
 
-**State:** `draft` 2026-10-23 — G651 audit done (plan-agent subagent, from 7 days of GitHub runs, 147 red-run logs,
+**State:** `parked` (G659) — a draft in the same bucket as SHARD-PLATFORM-NEXT and WASM-HOST: nothing is worked until Jake says when; its picks (G657) are recorded. The zoomed-in mini plans it links (TypeScript, oxlint, no binaries in JSON, generators) are not parked: they run as SHARD-PLATFORM extras (G647). 2026-10-23 — G651 audit done (plan-agent subagent, from 7 days of GitHub runs, 147 red-run logs,
 `.git/push.log`, the hooks, workflows and every check script; cheap checks timed at load ~30, the rest marked est.).
 Nothing is worked here until Jake says go; decided SHARD-PLATFORM tooling rows (G609, G610/G612, G620, G627, G628, G634,
 G636) keep landing there and move here when it starts; decisions stay in [decisions.md](shard-platform/decisions.md);
