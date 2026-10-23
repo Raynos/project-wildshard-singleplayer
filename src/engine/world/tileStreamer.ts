@@ -80,6 +80,12 @@ export interface RingOptions {
   /** Stop starting more uploads after this many milliseconds (default 12). One synchronous upload is indivisible. */
   uploadMsPerFrame?: number;
 }
+/** Pins keep render tiles wanted until release. `ready` requires successful publication; failures reject and unpin. */
+export interface TileRequirement { readonly ready: Promise<void>; readonly release: () => void }
+interface Requirement {
+  readonly tiles: readonly RingTile[]; readonly resolve: () => void; readonly reject: (error: Error) => void; settled: boolean;
+}
+
 /** The far ring's last plan: its byte budget, what it charged, and each proxy within reach it left out for the budget
  * (`visible`: inside the view distance, where `ready()` waits on it). */
 export interface FarPlan { readonly budget: number; readonly charged: number; readonly wanted: readonly FarCharge[]; readonly omitted: readonly FarCharge[] }
@@ -130,6 +136,8 @@ function parentOf(tile: { instance: string; level: RingLevel; x: number; z: numb
 /** The render rings of one grid session. Call `step` once per fixed step with the camera; `dispose` at session end. */
 export class TileStreamer<D> {
   private readonly slots = new Map<string, Slot<D>>();
+  private readonly pins = new Map<string, { readonly tile: RingTile; refs: number }>();
+  private readonly requirements = new Set<Requirement>();
   private readonly completed: { tile: RingTile; lease: TileStreamLease; result: D | Error }[] = [];
   private readonly retryAt = new Map<string, number>();
   private readonly cells: readonly RingCell[];
@@ -155,6 +163,51 @@ export class TileStreamer<D> {
     if (!Number.isFinite(this.options.uploadMsPerFrame) || this.options.uploadMsPerFrame <= 0) throw new RangeError('Invalid tile upload time budget');
     if (!Number.isInteger(this.options.farCount) || this.options.farCount < 1) throw new RangeError('Invalid far ring count');
     if (!(this.options.farRadius >= this.options.viewDistance)) throw new RangeError('Invalid far ring reach');
+  }
+
+  /** Pin L0 keys (`z * 8 + x`) and their parents. Continue calling `step` while awaiting `ready`.
+   * Missing catalogue tiles are empty and already satisfied. Readiness covers this renderer's publication only.
+   * Releasing a pending requirement rejects it; a failed prerequisite rejects and releases its dependants. */
+  require(instance: string, keys: Iterable<number>): TileRequirement {
+    if (this.disposed) throw new Error('Tile streamer is disposed');
+    this.cell(instance);
+    const tiles = [...new Set(keys)].map(value => {
+      if (!Number.isInteger(value) || value < 0 || value >= 64) throw new RangeError('Invalid required tile key');
+      return this.tile(instance, 'l0', value % 8, Math.floor(value / 8));
+    });
+    let resolveReady: () => void = () => undefined, rejectReady: (error: Error) => void = () => undefined;
+    const ready = new Promise<void>((resolve, reject) => { resolveReady = resolve; rejectReady = reject; });
+    const requirement: Requirement = { tiles, resolve: resolveReady, reject: rejectReady, settled: false };
+    for (const tile of tiles) {
+      const pin = this.pins.get(tile.key);
+      if (pin === undefined) this.pins.set(tile.key, { tile, refs: 1 }); else pin.refs++;
+    }
+    this.requirements.add(requirement);
+    this.resolveRequirements();
+    return { ready, release: () => { this.unpin(requirement, new Error('Tile requirement released')); } };
+  }
+
+  private unpin(requirement: Requirement, error: Error): void {
+    if (!this.requirements.delete(requirement)) return;
+    for (const tile of requirement.tiles) {
+      const pin = this.pins.get(tile.key);
+      if (pin !== undefined && --pin.refs === 0) this.pins.delete(tile.key);
+    }
+    if (!requirement.settled) { requirement.settled = true; requirement.reject(error); }
+  }
+
+  private resolveRequirements(): void {
+    for (const requirement of this.requirements) {
+      if (requirement.settled || !requirement.tiles.every(tile => this.catalogue(tile.instance, tile.level, tile.x, tile.z) === null
+        || this.slots.get(tile.key)?.state === 'uploaded')) continue;
+      requirement.settled = true; requirement.resolve();
+    }
+  }
+
+  private failRequirements(failed: RingTile, error: Error): void {
+    for (const requirement of this.requirements) if (requirement.tiles.some(tile => tile.instance === failed.instance &&
+      (failed.level === 'far' || failed.level === 'l0' && tile.key === failed.key || failed.level === 'l1' &&
+      Math.floor(tile.x / 2) === failed.x && Math.floor(tile.z / 2) === failed.z))) this.unpin(requirement, error);
   }
 
   /** Cells currently in view (each must show its far proxy, or finer, everywhere). */
@@ -212,11 +265,13 @@ export class TileStreamer<D> {
     this.drain();
     this.release(want, camera); // this step's uploads may have pushed a level over its resident cap
     this.remaskAll(camera);
+    this.resolveRequirements();
   }
 
   /** Dispose every view and release every lease. */
   dispose(): void {
     if (this.disposed) return; this.disposed = true;
+    for (const requirement of this.requirements) this.unpin(requirement, new Error('Tile streamer disposed'));
     const order = [...this.slots.values()].sort((a, b) => LEVEL_RANK[b.tile.level] - LEVEL_RANK[a.tile.level]);
     const errors: unknown[] = [];
     for (const slot of order) { try { this.drop(slot); } catch (error) { errors.push(error); } }
@@ -279,6 +334,9 @@ export class TileStreamer<D> {
         }
       }
     }
+    // Pins may exceed the ordinary view's count cap, but still require real budget admission.
+    for (const { tile } of this.pins.values()) if (this.catalogue(tile.instance, tile.level, tile.x, tile.z) !== null
+      && !fine.some(row => row.tile.key === tile.key)) fine.push({ tile, d: this.distance(tile, camera) });
     for (const { tile, d } of l1.slice(0, C.l1Count)) add(tile, d);
     // a wanted child always wants its parents (the cap never strands an L0 tile without its L1)
     for (const { tile, d } of fine) {
@@ -352,7 +410,7 @@ export class TileStreamer<D> {
           if (this.disposed) { if (!(result instanceof Error)) this.ports.discard?.(tile, result); return; }
           this.completed.push({ tile, lease, result });
         });
-      } catch (error) { this.drop(slot); throw error; }
+      } catch (error) { this.failRequirements(tile, error instanceof Error ? error : new Error(String(error))); this.drop(slot); throw error; }
     }
   }
 
@@ -361,7 +419,7 @@ export class TileStreamer<D> {
     for (const done of this.completed.splice(0)) {
       const slot = this.slots.get(done.tile.key);
       if (slot === undefined || slot.lease !== done.lease || slot.state !== 'fetching') { if (!(done.result instanceof Error)) this.ports.discard?.(done.tile, done.result); continue; } // dropped meanwhile
-      if (done.result instanceof Error) { this.drop(slot); this.retryAt.set(done.tile.key, this.frame + 30); continue; }
+      if (done.result instanceof Error) { this.failRequirements(done.tile, done.result); this.drop(slot); this.retryAt.set(done.tile.key, this.frame + 30); continue; }
       slot.data = done.result; slot.state = 'queued';
     }
     const queue = [...this.slots.values()].filter((s) => s.state === 'queued').sort((a, b) => LEVEL_RANK[a.tile.level] - LEVEL_RANK[b.tile.level] || a.distance - b.distance || a.tile.key.localeCompare(b.tile.key));
@@ -372,7 +430,7 @@ export class TileStreamer<D> {
         || this.now() - started >= this.options.uploadMsPerFrame))) break;
       const data = slot.data; if (data === null) continue;
       try { slot.view = this.ports.upload(slot.tile, data); }
-      catch (error) { this.drop(slot); throw error; }
+      catch (error) { this.failRequirements(slot.tile, error instanceof Error ? error : new Error(String(error))); this.drop(slot); throw error; }
       slot.data = null; slot.state = 'uploaded';
       count++; bytes += slot.bytes; this.uploads++;
       // a far proxy's own bytes are known once it has loaded (the catalogue charged a full slot before): charge those

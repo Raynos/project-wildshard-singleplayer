@@ -12860,6 +12860,12 @@ The scheduler preserves the 150 m trace and count/byte budgets, and stops
 starting more uploads once `uploadMsPerFrame` (default 12 ms) is spent.
 One synchronous upload remains indivisible. `TileStreamBudget.now` is an
 optional monotonic measurement clock; production defaults to diagnostic
-wall time. Rectangular road/junction tiles and entered-content pins are
-the remaining S1 extensions. Neighbours supply scene LOD only;
+wall time. `require(instance, keys)` pins L0 keys (`z * 8 + x`) and their
+parents; it returns `{ready, release}`. The caller continues `step` while
+awaiting publication and releases its own pins afterward. Overlapping
+requirements share pins; releasing one cannot remove another's demand.
+Empty catalogue tiles need no publication. A failed prerequisite, pending
+release or streamer disposal rejects readiness and releases that demand.
+This promises render publication, not a runtime or collider admission.
+Rectangular road/junction tiles remain an S1 extension. Neighbours supply scene LOD only;
 this renderer never builds a whole world or installs shard runtime logic.
