@@ -393,7 +393,7 @@ jobs:
       - name: Pack exact-run generated inputs and products
         run: |
           python3 scripts/ci-products.py pack
-          zstd -3 -T2 --rm test-products.tar
+          zstd --long=27 -3 -T2 --rm test-products.tar
       - uses: actions/upload-artifact@v4
         with:
           name: test-products
