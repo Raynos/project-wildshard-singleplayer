@@ -4,6 +4,7 @@ import metadata from '../src/shards/nalati-grasslands/manifest.json' with {type:
 import {parseManifestMetadata} from '../src/format/minimap';
 import {parseClientPlan} from '../src/format/clientPlan';
 import {ForestWeatherSchema} from '../src/format/forestWeather';
+import {parseEliteEntryPageRows} from '../src/format/eliteEntryRows';
 import {ArenaScriptFightFileSchema} from '../src/format/arenaScriptRows';
 import {CLIENT_FEATURES} from '../src/game/shardfile/clientPlan';
 import {createShardProduct} from '../src/game/shardfile/shardProduct';
@@ -37,11 +38,26 @@ test('the declared plan constructs the original elite and night owners once afte
   const fight=v.parse(ArenaScriptFightFileSchema,await product.json(titan.files.fight));
   expect(fight.arenaScript.view.debug).toBe('nalati.titan');
   expect(debug.some(row=>row.name===fight.arenaScript.view.debug)).toBe(false);
-  for(const [name,kind,owner] of [['nalati.boss','arena-room','nalati.king'],['nalati.elites','elite-entry','nalati.elites']])
+  for(const [name,kind,owner] of [['nalati.boss','arena-room','nalati.king']])
     expect(debug.find(row=>row.name===name)).toMatchObject({source:{kind,owner}});
   const constructors=selected.filter(row=>row.kind==='elite.construct'||row.kind==='timed.encounters');
-  const {constants}=v.parse(v.object({constants:v.object({eliteEntry:v.unknown(),timedEntry:v.unknown()})}),await product.json('sim/headless-assembly.json'));
+  const {constants}=v.parse(v.object({constants:v.object({eliteEntry:v.unknown(),timedEntry:v.unknown(),pageElites:v.unknown()})}),await product.json('sim/headless-assembly.json'));
   expect(constructors).toEqual([constants.eliteEntry,constants.timedEntry]);
+  const elites=parseEliteEntryPageRows(constants.pageElites),stealth=selected.find(row=>row.kind==='stealth.entry');
+  expect(elites.debug).toBe('nalati.elites');expect(stealth?.debugRiding).toBe('nalati.ride');
+  const audio=product.shardfile.audio,publication=audio.gameplay?.entryEnvironment?.publish.id??audio.gameplay?.environment?.publish.id;
+  expect(audio.gameplay).toBeUndefined();expect(audio.sampledScene).toBeUndefined();
+  expect(publication).toBeUndefined();
+  // Complete declared/native label audit: forest weather, open arena, elite
+  // binding and riding own their original publications. Normal audio scenes,
+  // TimedEncounters, SceneDressing and the closed room publish no debug label.
+  for(const kind of ['quest.composition','quest.world','page.life','world.movers','weather.fields','held.ranged-page','held.claims.enter'])
+    expect(selected.map(row=>row.kind)).not.toContain(kind);
+  expect(selected.find(row=>row.kind==='content.catalogue')).toMatchObject({effects:[],compendiums:[]});
+  const native=[weatherRows.debug,fight.arenaScript.view.debug,elites.debug,stealth?.debugRiding,publication,audio.sampledScene?.debug,
+    `${product.slug}.loot`,'grid','gridBudget','gridHud','shardfile','shardfileResidency','shardfilePost','shardfileClientScripts','render.tierPick','leakBaseline','input'].filter((name):name is string=>name!==undefined);
+  expect(debug.map(row=>row.name).sort()).toEqual(['harness.shard.nalati-grasslands','nalati.boss','nalati.dressing','nalati.ghosts']);
+  const labels=[...debug.map(row=>row.name),...native];expect(new Set(labels).size).toBe(labels.length);
   expect(selected.filter(row=>row.kind==='world.assembly')).toHaveLength(1);
   expect(selected.filter(row=>row.kind==='elite.entry')).toHaveLength(1);
   expect(selected.filter(row=>row.kind==='stealth.entry')).toHaveLength(1);

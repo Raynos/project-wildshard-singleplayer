@@ -326,7 +326,7 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     if (row.kind !== 'debug.expose' || ctx.scope.disposed || ctx.scope.disposing || ctx.game.runtime === undefined) throw new Error('Client debug feature requires its runtime');
     if (row.source !== undefined) {
       const source=row.source;
-      const value=source.kind==='runtime-object'?ctx.game.runtime.objects[source.id]:source.kind==='dressing'?SceneDressing.current(ctx):source.kind==='timed-riders'?declaredOwner(ctx.scope,'timed-encounters',source.owner).riders:source.kind==='arena-room'?declaredOwner(ctx.scope,'arena-room',source.owner):source.kind==='elite-entry'?declaredOwner(ctx.scope,'elite-entry',source.owner):declaredOwner(ctx.scope,'world-weather',source.owner);
+      const value=source.kind==='runtime-object'?ctx.game.runtime.objects[source.id]:source.kind==='dressing'?SceneDressing.current(ctx):source.kind==='timed-riders'?declaredOwner(ctx.scope,'timed-encounters',source.owner).riders:source.kind==='arena-room'?declaredOwner(ctx.scope,'arena-room',source.owner):declaredOwner(ctx.scope,'world-weather',source.owner);
       if(value===undefined)throw new Error('Missing declared debug source');ctx.debug.expose(row.name,value);
     } else if (row.objects !== undefined) {
       const runtime = ctx.game.runtime, objects = runtime.objects;

@@ -135,7 +135,7 @@ export const ClientFeatureSchema = v.variant('kind', [
     source:v.exactOptional(v.variant('kind',[
       v.strictObject({kind:v.literal('runtime-object'),id}),v.strictObject({kind:v.literal('dressing')}),
       v.strictObject({kind:v.literal('timed-riders'),owner:id}),v.strictObject({kind:v.literal('world-weather'),owner:id}),
-      v.strictObject({kind:v.literal('arena-room'),owner:id}),v.strictObject({kind:v.literal('elite-entry'),owner:id}),
+      v.strictObject({kind:v.literal('arena-room'),owner:id}),
     ])) }),v.check(row=>row.objects===undefined||row.source===undefined,'Debug exposure requires one concrete source')),
 ]);
 /** Rows are unordered. Phase, rank and lifetime belong exclusively to the compiled registry. */

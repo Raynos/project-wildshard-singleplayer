@@ -503,7 +503,7 @@ test('the phone frame contract reads authored handles from the public probe and 
   const game = legacyDouble<Game>({ renderer: legacyDouble<Game['renderer']>({ info: legacyDouble<Game['renderer']['info']>({
     render: { frame: 1, calls: 2, triangles: 0, points: 0, lines: 0 },
   }) }) });
-  const probe = { app: { state: 'play' as const }, world: { game }, shard: { slug: 'nalati-grasslands', 'nalati.elites': { entry: { scripts: [{ def: { id: 'original.elite' } }] } } } };
+  const probe = { app: { state: 'play' as const }, world: { game }, shard: { slug: 'nalati-grasslands', 'nalati.elites': { scripts: [{ def: { id: 'original.elite' } }] } } };
   expect(eliteEntryProbeFrame(probe)).toEqual({ ids: ['original.elite'], frames: 1, calls: 2 });
   expect(() => eliteEntryProbeFrame({ ...probe, shard: { slug: probe.shard.slug } })).toThrow('authored elite exposure');
   expect(() => eliteEntryProbeFrame({ ...probe, world: undefined })).toThrow('entered play');
