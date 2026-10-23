@@ -321,6 +321,14 @@
       "value": { "$call": [{ "$ref": ["product", "file"] }, "data/physics-ground.bin"] }
     },
     {
+      "name": "physicsColliders0",
+      "value": { "$call": [{ "$ref": ["product", "file"] }, "data/physics-colliders-0.bin"] }
+    },
+    {
+      "name": "physicsColliders1",
+      "value": { "$call": [{ "$ref": ["product", "file"] }, "data/physics-colliders-1.bin"] }
+    },
+    {
       "name": "bakeReader",
       "value": {
         "$call": [
@@ -342,7 +350,11 @@
               "nativeBake"
             ]
           },
-          { "file": "data/physics-ground.bin", "bytes": { "$ref": ["physicsGround"] } }
+          { "file": "data/physics-ground.bin", "bytes": { "$ref": ["physicsGround"] } },
+          [
+            { "file": "data/physics-colliders-0.bin", "bytes": { "$ref": ["physicsColliders0"] } },
+            { "file": "data/physics-colliders-1.bin", "bytes": { "$ref": ["physicsColliders1"] } }
+          ]
         ]
       }
     },

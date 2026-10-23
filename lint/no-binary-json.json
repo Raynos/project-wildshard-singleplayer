@@ -302,14 +302,6 @@
       "base64Chars": 39172,
       "dataUris": 0
     },
-    "src/shards/nalati-grasslands/data/physics.generated.json": {
-      "base64Chars": 764784,
-      "dataUris": 0
-    },
-    "src/shards/nalati-grasslands/data/physicsRows.json": {
-      "base64Chars": 764784,
-      "dataUris": 0
-    },
     "src/shards/nalati-grasslands/data/placeRuntime.generated.json": {
       "base64Chars": 20268,
       "dataUris": 0

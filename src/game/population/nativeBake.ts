@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { nativeBodySchema, nativeGroundRecordSchema, nativeColliderRecordSchema, type NativeGroundStorage } from '@wildshard/format/nativePhysics';
+import { nativeBodySchema, nativeGroundRecordSchema, nativeColliderRecordSchema, type NativeGroundStorage, type NativeArrayStorage } from '@wildshard/format/nativePhysics';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { tagCollider, tagOf, type Material } from '@wildshard/engine/physics/surface';
@@ -27,6 +27,17 @@ export interface NativeGroundRecord {
 }
 /** Verified bytes lent from the native product before world construction. */
 export interface NativeGroundBlock { readonly file: string; readonly bytes: Uint8Array }
+
+/** Original collider buffers lent from named product files before native construction. */
+export interface NativeColliderBlock { readonly file: string; readonly bytes: Uint8Array }
+
+function colliderBytes(storage: NativeArrayStorage, blocks: ReadonlyMap<string, Uint8Array>): Uint8Array<ArrayBuffer> {
+  if (typeof storage === 'string') return nativeBakeBytes(storage);
+  const bytes = blocks.get(storage.file);
+  if (bytes === undefined) throw new Error('Missing native collider block');
+  if (storage.byteOffset + storage.byteLength > bytes.byteLength) throw new Error('Native collider range exceeds block');
+  return Uint8Array.from(bytes.subarray(storage.byteOffset, storage.byteOffset + storage.byteLength));
+}
 
 /** Decode an owned native heightfield, refusing a different lattice or world scale. */
 export function nativeBakeGround(row: NativeGroundRecord, resolution: number, size: number, label: string, block?: NativeGroundBlock): NativeCollisionBake['ground'] {
@@ -107,7 +118,7 @@ export function installNativeCollision(host:Pick<SimHost,'physics'|'scope'|'onSt
 
 /** Validated wire collider before its binary channels become owned typed views. */
 export type NativeColliderRecord<S extends 1|2|6|9 = 1|2|6|9> = Omit<NativeCollisionSolid,'points'|'indices'|'shape'> & {
-  readonly shape:S;readonly body?:number|null;readonly vertices?:string;readonly indices?:string;
+  readonly shape:S;readonly body?:number|null;readonly vertices?:NativeArrayStorage;readonly indices?:NativeArrayStorage;
 };
 
 /** Ordered body recipe captured at native boot; no body or new random stream is created by intake. */
@@ -135,6 +146,7 @@ function nativeBakeReader<E extends object>(input: unknown, options: {
   readonly solid: v.GenericSchema<unknown, NativeColliderRecord>;
   readonly extra: v.GenericSchema<unknown, E>;
   readonly groundBlock?: NativeGroundBlock;
+  readonly colliderBlocks:ReadonlyMap<string,Uint8Array>;
 }): NativeBakeReader<E> {
   const finite = v.pipe(v.number(), v.finite());
   const body = { id: v.string(), kind: v.string(), variant: v.string(), spec: options.spec, seed: finite, scale: finite };
@@ -144,7 +156,7 @@ function nativeBakeReader<E extends object>(input: unknown, options: {
     herds: v.array(v.strictObject({ kind: v.string(), members: v.array(v.string()) })) });
   const decodeSolid = ({ vertices, indices, body: _body, ...rest }: NativeColliderRecord): NativeCollisionSolid => {
     if ((rest.shape === 6 || rest.shape === 9) !== (vertices !== undefined) || (rest.shape === 6) !== (indices !== undefined)) throw new Error(`Unbuildable baked ${options.label} collider`);
-    return { ...rest, ...(vertices === undefined ? {} : { points: nativeBakeFloats(vertices) }), ...(indices === undefined ? {} : { indices: new Uint32Array(nativeBakeBytes(indices).buffer) }) };
+    return { ...rest, ...(vertices === undefined ? {} : { points: new Float32Array(colliderBytes(vertices,options.colliderBlocks).buffer) }), ...(indices === undefined ? {} : { indices: new Uint32Array(colliderBytes(indices,options.colliderBlocks).buffer) }) };
   };
   let parsed: (NativePhysicsBake & E) | null = null;
   return {
@@ -171,8 +183,14 @@ const nativeIntake=v.strictObject({...lattice,parked:v.boolean(),rig:v.picklist(
   shapes:v.pipe(v.array(v.picklist([1,2,6,9])),v.minLength(1),v.maxLength(4),v.check(shapes=>new Set(shapes).size===shapes.length))});
 /** Public native admission accepts only stock data profiles, never a validator
  * or owner-check callback. Owner metadata uses named Product.json files. */
-export function createNativeBakeReader(input:unknown,rows:unknown,groundBlock?:NativeGroundBlock):NativeBakeReader<object>{
-  const row=v.parse(nativeIntake,rows),options={...row,spec:nativeBodySchema(row.rig),solid:nativeColliderRecordSchema(row.shapes,row.provenance)};
+export function createNativeBakeReader(input:unknown,rows:unknown,groundBlock?:NativeGroundBlock,
+  colliderBlocks:readonly NativeColliderBlock[]=[]):NativeBakeReader<object>{
+  const row=v.parse(nativeIntake,rows),options={...row,spec:nativeBodySchema(row.rig),solid:nativeColliderRecordSchema(row.shapes,row.provenance,true)};
   if(groundBlock!==undefined&&!(groundBlock.bytes instanceof Uint8Array))throw new Error('Invalid native floor bytes');
-  return nativeBakeReader(input,{...options,extra:v.object({}),...(groundBlock===undefined?{}:{groundBlock})});
+  const blocks = new Map<string, Uint8Array>();
+  for (const block of colliderBlocks) {
+    if (blocks.has(block.file) || !(block.bytes instanceof Uint8Array)) throw new Error('Invalid or duplicate native collider block');
+    blocks.set(block.file, block.bytes);
+  }
+  return nativeBakeReader(input,{...options,extra:v.object({}),colliderBlocks:blocks,...(groundBlock===undefined?{}:{groundBlock})});
 }

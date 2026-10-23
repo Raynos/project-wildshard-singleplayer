@@ -21,10 +21,23 @@ export function nativeBodySchema(rig: 'segments' | 'axis'): v.GenericSchema<unkn
 
 /** An admitted raw floor blob, read through the original native product. */
 export interface NativeGroundFile { readonly file: string }
+const binaryFile = v.pipe(v.string(),v.minLength(1),v.maxLength(240),v.regex(/^(?:[A-Za-z0-9_-][A-Za-z0-9_.-]*\/)*[A-Za-z0-9_-][A-Za-z0-9_.-]*\.bin$/u));
 export const NativeGroundFileSchema: v.GenericSchema<unknown, NativeGroundFile> = v.strictObject({
-  file: v.pipe(v.string(),v.minLength(1),v.maxLength(240),v.regex(/^(?:[A-Za-z0-9_-][A-Za-z0-9_.-]*\/)*[A-Za-z0-9_-][A-Za-z0-9_.-]*\.bin$/u)),
+  file: binaryFile,
 });
 export type NativeGroundStorage = string | NativeGroundFile;
+
+/** Aligned byte range in an admitted native collider buffer; no numeric conversion. */
+export interface NativeArraySlice {
+  readonly file: string;
+  readonly byteOffset: number;
+  readonly byteLength: number;
+}
+const aligned = v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(2_147_483_644), v.multipleOf(4));
+export const NativeArraySliceSchema: v.GenericSchema<unknown, NativeArraySlice> = v.strictObject({
+  file: binaryFile, byteOffset: aligned, byteLength: aligned,
+});
+export type NativeArrayStorage = string | NativeArraySlice;
 
 /** Raw native floor declaration; its lattice resolution remains an explicit caller policy. */
 export interface NativeGroundRecord<Storage extends NativeGroundStorage = string> {
@@ -45,20 +58,29 @@ export function nativeGroundRecordSchema(resolution: number, files = false): v.G
 const colliderFields = { groups: finite, friction: finite, at: triple, rot: v.tuple([finite, finite, finite, finite]),
   body: v.exactOptional(v.nullable(finite)), material: v.exactOptional(v.picklist(materials)), owner: v.exactOptional(v.string()),
   ownerId: v.exactOptional(v.pipe(v.string(), v.regex(/^(?:piece|declared):[^\r\n]{1,256}$/u))),
-  half: v.exactOptional(triple), halfHeight: v.exactOptional(finite), radius: v.exactOptional(finite), vertices: v.exactOptional(v.string()), indices: v.exactOptional(v.string()) };
+  half: v.exactOptional(triple), halfHeight: v.exactOptional(finite), radius: v.exactOptional(finite) };
 
 /** Undecoded numeric collider with an explicit producer provenance policy. */
-export interface NativeColliderRecord<S extends 1 | 2 | 6 | 9 = 1 | 2 | 6 | 9> {
+export interface NativeColliderRecord<S extends 1 | 2 | 6 | 9 = 1 | 2 | 6 | 9, Storage extends NativeArrayStorage = string> {
   readonly shape: S; readonly groups: number; readonly friction: number;
   readonly at: readonly [number, number, number]; readonly rot: readonly [number, number, number, number];
   readonly body?: number | null; readonly material?: (typeof materials)[number]; readonly owner?: string; readonly ownerId?: string;
   readonly half?: readonly [number, number, number]; readonly halfHeight?: number; readonly radius?: number;
-  readonly vertices?: string; readonly indices?: string;
+  readonly vertices?: Storage; readonly indices?: Storage;
 }
 
 /** Retain each producer's admitted shapes and provenance namespace before binary decoding. */
-export function nativeColliderRecordSchema<const S extends readonly (1 | 2 | 6 | 9)[]>(shapes: S, owner: 'piece' | 'tagged'): v.GenericSchema<unknown, NativeColliderRecord<S[number]>> {
-  return v.pipe(v.strictObject({ shape: v.picklist(shapes), ...colliderFields }),
+export function nativeColliderRecordSchema<const S extends readonly (1 | 2 | 6 | 9)[]>(
+  shapes: S, owner: 'piece' | 'tagged',
+): v.GenericSchema<unknown, NativeColliderRecord<S[number]>>;
+export function nativeColliderRecordSchema<const S extends readonly (1 | 2 | 6 | 9)[]>(
+  shapes: S, owner: 'piece' | 'tagged', files: true,
+): v.GenericSchema<unknown, NativeColliderRecord<S[number], NativeArrayStorage>>;
+export function nativeColliderRecordSchema<const S extends readonly (1 | 2 | 6 | 9)[]>(
+  shapes: S, owner: 'piece' | 'tagged', files = false,
+): v.GenericSchema<unknown, NativeColliderRecord<S[number], NativeArrayStorage>> {
+  const array = files ? v.union([v.string(), NativeArraySliceSchema]) : v.string();
+  return v.pipe(v.strictObject({ shape: v.picklist(shapes), ...colliderFields, vertices: v.exactOptional(array), indices: v.exactOptional(array) }),
     v.check(row => owner === 'piece' ? Object.hasOwn(row, 'body') && !Object.hasOwn(row, 'owner')
       : !['body', 'ownerId', 'indices'].some(key => Object.hasOwn(row, key)), 'Unsupported native collider provenance'));
 }

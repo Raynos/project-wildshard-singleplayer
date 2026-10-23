@@ -12282,6 +12282,16 @@ only the complete valid bake. Missing, mismatched or malformed blocks
 refuse. The existing assembly reads the file in preparation, before world
 construction; no IO occurs during configuration or native installation.
 
+Native collider arrays may also use `{file, byteOffset, byteLength}` instead
+of an inline string. `nativeColliderRecordSchema(shapes, provenance, true)`
+admits only aligned relative `.bin` ranges; omitted `true` retains the old
+grammar. The fourth `createNativeBakeReader` argument lends ordered
+`NativeColliderBlock {file, bytes}` rows from the same product. Duplicate or
+missing files, unaligned ranges and ranges beyond a block refuse. The reader
+copies each range into its original f32 vertex or u32 index storage and keeps
+the original complete-result memo, collider order and provenance. Binary
+files remain outside TypeScript imports and configuration performs no IO.
+
 ScalarChannelRows.data also accepts {file}, a bounded relative .bin name.
 readScalarChannel(row, blocks) and readScalarLattice(row, blocks) borrow that
 named compressed block, retaining the same bounded inflate and native view.

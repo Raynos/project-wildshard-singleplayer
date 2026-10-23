@@ -8262,14 +8262,16 @@
         "src/sdk/package.json",
         "src/shards/nalati-grasslands/data/physicsRows.json",
         "src/shards/nalati-grasslands/generators/physics.ts",
-        "src/shards/nalati-grasslands/data/physics-ground.bin"
+        "src/shards/nalati-grasslands/data/physics-ground.bin",
+        "src/shards/nalati-grasslands/data/physics-colliders-0.bin",
+        "src/shards/nalati-grasslands/data/physics-colliders-1.bin"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/physics.generated.json"
       ],
       "platform": "portable",
       "buildOutputs": {
-        "src/shards/nalati-grasslands/data/physics.generated.json": "4311d224e9d6ddf42ab39a8ea710762c143967dadfc3a74e274d1aedf35dd9b3"
+        "src/shards/nalati-grasslands/data/physics.generated.json": "1d74aa8e39f172b53a024210d3fed205efc9524b287b5c32861148c2727e64e4"
       },
       "seedOutputs": []
     },

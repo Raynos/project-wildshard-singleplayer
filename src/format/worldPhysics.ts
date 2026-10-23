@@ -19,7 +19,7 @@ function world(rig: 'segments' | 'axis', provenance: 'piece' | 'tagged') {
   const actor = v.strictObject({ ...body, herd: finite, scripted: v.exactOptional(v.boolean()), pose: v.exactOptional(pose),
     at: v.exactOptional(v.nullable(v.strictObject({ x: finite, z: finite }))) });
   return v.strictObject({ version: v.literal(1), rig: v.literal(rig), provenance: v.literal(provenance), ground,
-    solids: v.pipe(v.array(nativeColliderRecordSchema(provenance === 'piece' ? [1, 2, 6, 9] : [1, 2, 9], provenance)), v.maxLength(65535)),
+    solids: v.pipe(v.array(nativeColliderRecordSchema(provenance === 'piece' ? [1, 2, 6, 9] : [1, 2, 9], provenance,true)), v.maxLength(65535)),
     actors: v.pipe(v.array(actor), v.maxLength(4096)), parked: v.exactOptional(v.pipe(v.array(v.strictObject(body)), v.maxLength(4096))),
     herds: v.pipe(v.array(v.strictObject({ kind: v.string(), members: v.pipe(v.array(v.string()), v.maxLength(4096)) })), v.maxLength(4096)) });
 }
