@@ -173,3 +173,15 @@ About 16 lane-days, plus ~2 for B on D1. With 1 Opus + 2 Codex that is **~6–8 
 Driftwood slice (T0–T5) is ~3 days**. The memory fix on crossings (T7) is ~day 5–6. The saving is unproven until T0: if
 ~60 % of a world is tile-local, a 5 × 5 window keeps 40–60 % of the island and 25 of 64 tiles on a dense shard, and a
 crossing stops holding 2–4 whole worlds (an estimated 300–600 MB off the peak).
+
+## Uniform tile grid (Jake, 2026-10-23, G638 follow-up)
+
+Jake asked how shards can have 17 or 64 + 16 tiles if everything is one grid. The grid is the same everywhere (8 × 8 L0
+of 62.5 m + 4 × 4 L1 of 125 m over the same 500 m); today a shard ships files only for occupied squares, Driftwood never
+baked L1, and Pine/Nalati draw their terrain tiles with their own code. Rows added:
+
+| Row | What | Done when |
+|---|---|---|
+| U1 | Every shard bakes all 64 L0 squares (empty sea / sky squares as near-empty tiles) | the census shows 64 L0 per shard |
+| U2 | Every shard bakes all 16 L1 squares (Driftwood and Sky first) | 16 L1 per shard |
+| U3 | Pine and Nalati terrain tiles go through the one shared streamer (T2), not shard code | no shard-owned tile drawing left |
