@@ -125,7 +125,7 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
   prepare?: (ids: readonly string[]) => Promise<void>;
   outline: GraphOutlineHook; graphs: { bind: (sources: GraphSources) => void; readout: GraphReadout }; surfaces: ((name: string) => PropSurfaceBinding | null) | null;
   /** the splat ground's material while its tiles draw (Debug ▸ Ground tiles), which the tile views merge (`groundMerge`) */
-  ground: Material | null;
+  ground?: Material | null;
 }> {
   // a look that declares its graphs required (SF88e) draws them on every path: standalone, regional and grid near
   const graphsOn = shard.look.graphs === 'required' || (options.graphs ?? setting('graphMaterials') === 'on');
