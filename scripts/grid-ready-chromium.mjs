@@ -127,15 +127,18 @@ try {
     document.body.append(caption);
    },`${pin.slice(0,7)} · ${slug} entered · iPhone 16 Pro · CPU 4x`);
    await page.screenshot({path:resolvePath(out,`${caseName}.jpg`),type:'jpeg',quality:70,scale:'css'});
-   let road=entry.waypoints[0];
+   let road=entry.waypoints[0],along=null;
    if(route.setup.length>0) {
     const last=entry.waypoints.at(-1),x=cell.cell[0]*555,z=cell.cell[1]*555;
     if(last===undefined)throw new Error('Home entry lacks its final waypoint');
     const dx=last.x-x,dz=last.z-z;
     road=Math.abs(dz)>=Math.abs(dx)?{x:last.x,z:z+Math.sign(dz)*277.5}:{x:x+Math.sign(dx)*277.5,z:last.z};
+    // then 40 m along the edge road: a leave that stops pointed at the next cell's mouth makes the road approach start that
+    // cell as its destination, and the next case's arrival waits behind its build (sp-o1, G580 T4; Nine -> Template)
+    along=Math.abs(dz)>=Math.abs(dx)?{x:road.x+40,z:road.z}:{x:road.x,z:road.z+40};
    }
    const leave=await gridFloorDeclaredPlan(page,entered.after,{name:`${slug}-leave`,from:cell.instance,to:null,movement:'road-hover',
-    waypoints:[road],requiredResidents:[],finishOnArrival:false});
+    waypoints:along===null?[road]:[road,along],requiredResidents:[],finishOnArrival:false});
    await profileStart();
    await page.evaluate(()=>window.__gridReadyProbe.start('playing'));
    const left=await page.evaluate(`(${measuredDrive.toString()})(${driveFloorGrid.toString()},${JSON.stringify(leave)},${JSON.stringify(identity)})`);
