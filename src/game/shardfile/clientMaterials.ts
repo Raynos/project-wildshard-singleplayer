@@ -22,7 +22,6 @@ import type { LookInstance } from './lentLooks';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { setting } from '@wildshard/engine/ui/Settings';
 import { buildYield } from '@wildshard/engine/core/workSlice';
-import { installMeasurePlainRow, offersMeasurePlain } from './measurePlain';
 import { loadGraphCompiler, bindGraphMeshMap } from '@wildshard/engine/render/graphBackend';
 import { curvedParams, graphFileTextureRefs, materialTextureRefs } from '@wildshard/format/materials';
 import { clientGraphs, graphOutlineHook, isGraphEntry, type GraphOutlineHook, type GraphReadout, type GraphSources } from './clientGraphs';
@@ -129,7 +128,6 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
 }> {
   // a look that declares its graphs required (SF88e) draws them on every path: standalone, regional and grid near
   const graphsOn = shard.look.graphs === 'required' || (options.graphs ?? setting('graphMaterials') === 'on');
-  if (offersMeasurePlain(shard)) installMeasurePlainRow(scope);
   const sampledMaterials = graphsOn ? shard.look.materials : Object.fromEntries(Object.entries(shard.look.materials).filter(([, entry]) => entry.family !== 'graph' || 'preset' in entry));
   const textures = new Map<string, Texture>(), uses = new Map<string, 'colour' | 'data'>();
   const named = shard.props === null ? undefined : propMaterialsOf(shard.props);
