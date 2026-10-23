@@ -32,7 +32,6 @@ import { StealthController, type StealthController as Stealth, type StealthThrea
 import { enterClientRiding, type PageRidingView as Ride } from '@wildshard/game/riding/client';
 import { clientCosmeticFinishes } from '@wildshard/game/shardfile/clientCosmeticFinishes';
 import { installCombatTargets, type CombatTargetOwner } from '@wildshard/game/shardfile/clientTargets';
-import targetRows from '../data/combatTargets.json' with { type: 'json' };
 
 
 
@@ -40,7 +39,7 @@ import targetRows from '../data/combatTargets.json' with { type: 'json' };
 export type Nalati = Awaited<ReturnType<typeof buildNalatiState>>;
 
 async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin: ShardContext, progress?: StepProgress) {
-  const { admission, worldUpdates } = v.parse(v.object({ admission: v.unknown(), worldUpdates: v.unknown() }), await plugin.product.json('sim/headless-boot.json'));
+  const { admission, worldUpdates, combatTargets: targetRows } = v.parse(v.object({ admission: v.unknown(), worldUpdates: v.unknown(), combatTargets: v.unknown() }), await plugin.product.json('sim/headless-boot.json'));
   const shapes = await WorldAssembly.prepareNative(prefix, plugin);
   const eliteProgram = ReturnProgram.page(admission, plugin.scope);
   const { game, sky } = ctx;

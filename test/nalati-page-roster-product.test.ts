@@ -1,5 +1,7 @@
 import { expect,test } from 'vitest';
 import * as v from 'valibot';
+import { CombatTargetRowsSchema } from '../src/format/targets';
+import combatTargets from '../src/shards/nalati-grasslands/data/combatTargets.json' with { type: 'json' };
 import { outputScriptAdmissionRows } from '../src/sdk/outputProduct';
 import { decisionModuleContracts } from '../src/format/scriptContract';
 import { validateShardfileAssets } from '../src/format/assetAdmission';
@@ -9,6 +11,11 @@ import ridingTerrain from '../src/shards/nalati-grasslands/data/ridingTerrain.ge
 
 test('the shared assembly document retains the complete page elite roster and its contact lookup', async () => {
   const product = await readProjectAssets('src/shards/nalati-grasslands');
+  const bootFile = product.output.namedFiles?.find(row => row.name === 'sim/headless-boot.json');
+  const bootBytes = bootFile === undefined ? undefined : product.assets.get(bootFile.hash);
+  if (bootBytes === undefined) throw new Error('Missing admitted combat target rows');
+  const boot = v.parse(v.object({ combatTargets: CombatTargetRowsSchema }), JSON.parse(new TextDecoder().decode(bootBytes)));
+  expect(boot.combatTargets).toEqual(combatTargets);
   const scripts=outputScriptAdmissionRows(product.output.platform);
   expect(new Set(scripts.filter(row=>row.side==='sim').map(row=>row.module)).size).toBe(8);
   expect(()=>validateShardfileAssets(product.shard,product.assets,contentHash,undefined,undefined,scripts)).not.toThrow();
