@@ -1,4 +1,4 @@
-import { InstancedMesh, Mesh, Object3D, SkinnedMesh, type BufferGeometry, type Material } from 'three';
+import { BufferGeometry, InstancedMesh, Mesh, Object3D, SkinnedMesh, type Material } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 /**
@@ -11,12 +11,13 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
  * and meshes with children, are left as they are. The source geometries are not disposed (a catalogue may share them);
  * the caller owns the merged ones it gets back.
  */
-const defaultBeforeRender = Object3D.prototype.onBeforeRender;
+const defaultBeforeRender: unknown = Reflect.get(Object3D.prototype, 'onBeforeRender');
+const isGeometry = (value: unknown): value is BufferGeometry => value instanceof BufferGeometry;
 function mergeable(node: Object3D): node is Mesh<BufferGeometry, Material> {
   if (!(node instanceof Mesh) || node instanceof InstancedMesh || node instanceof SkinnedMesh) return false;
-  const geometry: unknown = node.geometry, material: unknown = node.material;
-  return node.visible && node.children.length === 0 && node.onBeforeRender === defaultBeforeRender && !Array.isArray(material)
-    && typeof geometry === 'object' && geometry !== null && node.geometry.groups.length === 0 && Object.keys(node.geometry.morphAttributes).length === 0;
+  const geometry: unknown = node.geometry, material: unknown = node.material, hook: unknown = Reflect.get(node, 'onBeforeRender');
+  return node.visible && node.children.length === 0 && hook === defaultBeforeRender && !Array.isArray(material)
+    && isGeometry(geometry) && geometry.groups.length === 0 && Object.keys(geometry.morphAttributes).length === 0;
 }
 function signature(node: Mesh<BufferGeometry, Material>): string {
   const geometry = node.geometry, attributes = Object.keys(geometry.attributes).sort().map((name) => {
@@ -40,9 +41,10 @@ export function mergeStaticSiblings(root: Object3D): { readonly geometries: read
     const first = members[0];
     if (members.length < 2 || first === undefined) continue;
     const parts = members.map((member) => { member.updateMatrix(); return member.geometry.clone().applyMatrix4(member.matrix); });
-    const merged = mergeGeometries(parts, false);
+    // typed non-null, but null on a layout mismatch
+    const merged: unknown = mergeGeometries(parts, false);
     for (const part of parts) part.dispose();
-    if (merged === null) continue;
+    if (!isGeometry(merged)) continue;
     merged.computeBoundingSphere(); merged.computeBoundingBox();
     const mesh = new Mesh(merged, first.material);
     mesh.name = `${first.name || 'mesh'}+${String(members.length - 1)}`;
