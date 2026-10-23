@@ -1,28 +1,31 @@
 # SHARD-PLATFORM — State (wildshard-new; ≤ 3 KB)
 
 **Order:** live reds + the P0 phone entry → Nalati COMPONENT BY COMPONENT (G613: lock each in its last cut; C4 + C9
-last) → CI speed (G609) → the rest. Grid readiness NOW (G598). Only Jake-picked hosts get HOST-BAR lines. G602/G603
-core hosts row-only + tests. G612 D5: land on types/lint/focused tests only (working tree fine); no pre-land mirror or
-first frame. D3: 5-min lock waits fail, never retry. The full closed-component guard now runs in CI (e0a52c59cc).
+last) → CI speed (G609) → the rest. Grid readiness NOW (G598). G612 D5: land on types/lint/focused tests only; no
+pre-land mirror or first frame. D3: 5-min lock waits fail, never retry. Full closed-component guard runs in CI.
 
-**Census (~00:30):** Pine, DW, Far Reach, Sunscar, Pastel, Ink, templates, NINE 0 (Nine C1-C9 locked, G614 a62326bc61).
-Nalati ~2,390: C3/C5/C7/C8 CLOSED + locked (C5 253419b72e); C1 1 (sp-x9 loadout, then sp-x8 locks); C2 ~25 (all in
-LB-flip files); C6 open (sp-x9 slots + sp-x1 bow); C4 ~1,217 + C9 ~912 last. open-plots 19. Every shard raw GLSL 0.
+**Census (official f07290dccd, sp-x8; later cuts per lane ruler):** Pine, DW, Far Reach, Sunscar, Pastel, Ink,
+templates, NINE 0. Nalati C1/C2/C3/C5/C7/C8 CLOSED + locked (C1 1f1a12fc6e, C2 385fdbfe08). Open: C6 7 (balbal 5
++ 2 native loans -> sp-x9 ABI2 balbal, lock then); C4 ~1,130 (L2 Titan sp-x6 -> Titan views -25 sp-o4; L4 elites
+sp-x1; L5 group sims on H4 runner 83cf27394b); C9 ~850 (sp-x8 riding/roster/taming, LB flip last).
 
-**Grid-ready:** DW + PINE latched (697f240928, 68bfadee66). Nine: memory latched; looks miss (entry 733 ms) -> sp-o5.
+**Grid-ready:** DW + NINE latched (697f240928; af0a1cdf76 + eee536972b). PINE: memory only, oneFrameLooks OPEN ->
+sp-o4. Nine margin cuts: e216d930e3 (no page Ajv on first-party JSON); allocator evictFor -> sp-o5.
 
-**P0 (Jake's phone: tap -> grid ~30 s on live ec4ca6f855):** fixes landed 5630a9c63b, 675c5e83c3, b0aa47b827,
-dd590b3552, 5932b6eca5, 85a4c1de57, 8a8facb65e, 968a93abe6; reds fixed 1a68a44415, 625c110ac1, 5d32513b87, 1e4304926a.
-First full candidate 1e4304926a in CI; sp-x7 releases immediately on CI + smoke green. Chromium 4x: tap->play 19 -> 16 s.
-Remaining: home build ~6 s + shader warm-up ~3.6 s before play (sp-o4 idle/overlap, sp-o1 Application modules).
+**P0 (Jake's phone: tap -> grid ~30 s on live ec4ca6f855):** CI reds all fixed (0e43b7e466, 19c8f4fe62, e0afed264c,
+94e91aff2c, fa80abf3bf, d01df38664); floor d01df38664, sp-x7 releases on CI + smoke green. Chromium 4x tap->play
+~14 s. Shaders 4.3 s: defer-after-play (sp-o1), node-build reuse by graph structure (sp-o3, default-off first).
+Boot modulepreload: no gain; open row = fewer/larger boot chunks (Rolldown bug) or a smaller plugin/ui graph.
 
-**Lanes (5 Opus at Claude weekly 27 %; 5 Codex + sp-x7):** sp-x1 + sp-x9 C6; sp-x8 DW placeholder-cost + LB map;
-sp-x6 L2 Titan/King (C4); sp-x2 CI speed (17-18 min, <=10 open); sp-o1/sp-o4 P0; sp-o3 phone memory (backing stores,
-wasm); sp-o5 Nine looks; sp-o2 open-plot bugs + themed ground (holograms 6x landed 0fdc29ff5d).
+**Lanes (5 Opus at Claude weekly 30 %; 5 Codex + sp-x7):** sp-x1 L4 elites (ABI2 route or C9); sp-x6 L2 Titan law;
+sp-x8 C9; sp-x9 balbal ABI2 + C6 lock; sp-x2 CI speed (zstd -153 MB/run; <=10 min open); sp-o1/sp-o3 shaders;
+sp-o4 Pine looks, then L5 sims; sp-o5 Nine margin; sp-o2 open plots (Night Market floor hole in grid/rings remask).
 
-**For wildshard-v (Jake pick):** P0: micro-cuts can't reach G579's <5 s (home ~6 s + shaders ~3.6 s before play). sp-o4
-recommends G578-style in-world loading for the HOME cell too (start on the road deck, home builds behind a cell screen),
-which changes G578's first-boot loader rule. Yes or no?
+**For wildshard-v (Jake pick):** P0: micro-cuts can't reach G579's <5 s. sp-o4 recommends G578-style in-world
+loading for the HOME cell too (start on the road deck, home builds behind a cell screen), which changes G578's
+first-boot loader rule. Yes or no?
+
+**Hazard:** 40+ working copies equal OLDER committed blobs (--patch landings); lanes told to land only own hunks.
 
 **Rules:** G605 Opus steps (50 % 3, 70 % 2, 80 % 1, 90 % 0). G492; never herdr wildshard-v; no net-0 moves or
-relabels (G571). G558: Chromium is the check. G606: no legacy deletion before Jake's word (LD1-LD3 done).
+relabels (G571; G520 re-scores need a real second shard). G606: no legacy deletion before Jake's word.
