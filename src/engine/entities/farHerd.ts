@@ -225,8 +225,11 @@ class FarBatch {
       }
     }
     const idx = new Uint32Array(cap * indices);
-    const srcIdx = src.getIndex();
-    for (let s = 0; s < cap; s++) for (let i = 0; i < indices; i++) idx[s * indices + i] = (srcIdx === null ? i : srcIdx.getX(i)) + s * verts;
+    // the source index read once as plain numbers, each slot then an offset copy (getX a slot an index was most of a
+    // page's build: G639, the far herd's pages in Pine's desktop entry frames)
+    const srcIdx = src.getIndex(), base = new Uint32Array(indices);
+    for (let i = 0; i < indices; i++) base[i] = srcIdx === null ? i : srcIdx.getX(i);
+    for (let s = 0; s < cap; s++) { const at = s * indices, shift = s * verts; for (let i = 0; i < indices; i++) idx[at + i] = (base[i] ?? 0) + shift; }
     g.setIndex(new THREE.BufferAttribute(idx, 1));
     g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), Infinity);
     if (!this.shadow) {
