@@ -303,7 +303,6 @@
     "test/arena-field.test.ts": 2,
     "test/arena-fire-field.test.ts": 1,
     "test/arena-room-fight.test.ts": 1,
-    "test/audio-authoring.test.ts": 2,
     "test/audio-catalogue-manifest.test.ts": 2,
     "test/audio-voice-patches.test.ts": 1,
     "test/balbal-v2.test.ts": 2,
