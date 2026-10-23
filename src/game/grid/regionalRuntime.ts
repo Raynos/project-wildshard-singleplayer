@@ -119,7 +119,7 @@ export interface PreparedRegionalRuntime {
   /** Its own scoped runtime's interact prompts (frame-local; emptied on entry, ended with the runtime); callers scan them
    *  only while this runtime is ready and entered (`enteredRuntime`). Empty before the runtime's context exists. */
   readonly interactables: () => readonly ShardRuntime['interactables'][number][];
-  /** G580 T1: a neighbour built ahead stays parked (invisible) while the traveller is still in its source: stop its subtree's
+  /** A destination built on the road stays parked (invisible) until its crossing commits: stop its subtree's
    *  per-frame matrix updates while it is hidden (they resume whenever it shows; sp-o5's freezeParkedMatrices). Once. */
   readonly park?: () => void;
   /** Actual actor-object provenance in the retained region; repeated IDs in parked neighbours grant no permission. */

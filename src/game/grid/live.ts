@@ -27,9 +27,7 @@ export interface LiveGridRegion { host: SimHost; dispose: () => void;
 /** Immutable content is admitted before its sim claim and world allocation; trusted runtime preparation imports only. */
 export interface LiveGridAdmission {
   bytes: number;
-  /** `signal` aborts a build-ahead (G580 T1) when the traveller crosses into another cell: stop at the next safe point
-   * and reject, disposing what was built. */
-  create: (saved: SimSnapshot | undefined, claim: ResidencyLease, signal?: AbortSignal) => Promise<LiveGridRegion>;
+  create: (saved: SimSnapshot | undefined, claim: ResidencyLease) => Promise<LiveGridRegion>;
   /** Release an unpublished product lease on refusal/cancellation. Idempotent after failed create or region disposal;
    *  successful publication transfers release to the returned region's dispose. */
   cancel?: () => void;
@@ -109,8 +107,6 @@ const COLD_DWELL_TICKS = 5 * 60;
 // Contact corrections at a closed readiness wall are not a U-turn. Accumulate real horizontal travel
 // before selecting another approach, so sub-centimetre capsule recoil cannot evict the world just prepared.
 const APPROACH_TRAVEL_METRES = 0.1;
-// G580 T1: a sample step longer than this is a teleport (staging, respawn, recovery), not travel toward a neighbour
-const WARM_TRAVEL_MAX_METRES = 5;
 const entryAxes = [['x', 'z'], ['z', 'x']] as const;
 // Distance can decrease while passing parallel to a cell. Only a ray into its first boundary's midpoint mouth
 // predicts entry; product downloads remain radial, but an unrelated native world must not block the real turn-in.
@@ -142,14 +138,9 @@ function boulevardApproachDistance(cell: GridCell, feet: GridPoint, previous: Gr
 
 /** A background admission (prefetch, road approach) that fails is recorded as the cell's issue and, until an explicit
  *  retry, not attempted again: say so once, or a failed build (op-hitch33: a throwing warm-up) leaves only a route timeout. */
-/** G580 T1: a build-ahead given up for a crossing into another cell. It records no issue: the cell builds again later. */
-class BuildAheadAbandonedError extends Error {
-  override readonly name = 'BuildAheadAbandonedError';
-}
-
 async function background(instance: string, admission: Promise<unknown>, alive: () => boolean): Promise<void> {
   try { await admission; }
-  catch (error) { if (alive() && !(error instanceof BuildAheadAbandonedError)) console.error(`[grid] ${instance}: admission failed; it stays closed until a retry`, error); }
+  catch (error) { if (alive()) console.error(`[grid] ${instance}: admission failed; it stays closed until a retry`, error); }
 }
 
 /** One page traveller with frozen owned regions. Borrowed homes keep the existing standalone composition;
@@ -182,10 +173,6 @@ export class LiveGridHost {
   private readonly highway: LiveGridRegion | LiveGridHighway;
   private readonly limit: number;
   private sequence: Promise<void> = Promise.resolve();
-  /** G580 T1: the in-flight build-ahead, which a crossing into any other cell abandons (`preempt`). */
-  private speculative: { instance: string; controller: AbortController } | null = null;
-  /** G580 T1: the neighbour the in-source build-ahead last chose; only it is kept whole beside the source (`warmAhead`). */
-  private aheadCell: string | null = null;
   private active: string | null;
   private unbind: (() => void) | undefined;
   private disposed = false;
@@ -298,7 +285,7 @@ export class LiveGridHost {
     })();
     this.productRequests.set(instance, request); return request;
   }
-  private ensure(instance: string, speculative = false): Promise<void> {
+  private ensure(instance: string): Promise<void> {
     if (this.disposed) return Promise.reject(new Error('Live grid is disposed'));
     const cell = this.assembly.cell(instance);
     if (this.borrowedHome(instance) || this.residents.has(instance)) return Promise.resolve();
@@ -308,33 +295,22 @@ export class LiveGridHost {
     const ticket = this.readiness.request(instance, 0, estimate, bundle.hybridWireBytes > 0);
     if (ticket === null) return Promise.reject(new Error('Stale live grid readiness request'));
     const releasePriority = this.ports.prioritize?.(cell);
-    const controller = speculative ? new AbortController() : undefined;
-    const request = this.admitRegion(cell, bundle, ticket, this.sequence, controller?.signal).finally(() => {
-      releasePriority?.();
-      if (this.speculative?.controller === controller) this.speculative = null;
-    });
-    if (controller !== undefined) this.speculative = { instance, controller };
+    const request = this.admitRegion(cell, bundle, ticket, this.sequence).finally(() => { releasePriority?.(); });
     this.requests.set(instance, request); this.sequence = this.settle(request); return request;
-  }
-  /** G580 T1: a crossing toward `destination` abandons a build-ahead of any other cell, so the destination's admission
-   * (queued behind it in `sequence`) waits only for that build's next safe point, never its whole world. */
-  private preempt(destination: string): void {
-    const row = this.speculative;
-    if (row !== null && row.instance !== destination) row.controller.abort();
   }
   private assertAlive(): void { if (this.disposed) throw new Error('Live grid is disposed'); }
   private async settle(request: Promise<void>): Promise<void> { try { await request; } catch { /* The requesting owner receives the admission error. */ } }
-  private async admitRegion(cell: GridCell, bundle: ReadinessBundle, ticket: ReadinessTicket, previous: Promise<void>, signal?: AbortSignal): Promise<void> {
+  private async admitRegion(cell: GridCell, bundle: ReadinessBundle, ticket: ReadinessTicket, previous: Promise<void>): Promise<void> {
     const instance = cell.instance;
     let admission: LiveGridAdmission | undefined;
-    const abandoned = (): void => { if (signal?.aborted === true) throw new BuildAheadAbandonedError(`Build-ahead of ${instance} abandoned for another crossing`); };
     try {
-      await previous; this.assertAlive(); abandoned(); this.retireColdRegions();
+      await previous; this.assertAlive(); this.retireColdRegions();
       const admitted = this.ports.home.mode === 'owned' ? await this.prefetchProduct(instance) : await this.ports.admit(cell);
       admission = admitted;
       this.assertAlive();
       if (this.ports.home.mode === 'owned') {
-        // G580 T1 (G590 default): owned worlds overlap (the resident limit still bounds them); a failed disposal still blocks
+        // owned worlds overlap only while the source just left retires (G663: no neighbour built beside a source); a failed
+        // disposal still blocks
         if ([...this.residents.values()].some((row) => row.disposalFailed === true)) throw new Error('Exclusive runtime awaits successful disposal');
         this.products.delete(instance);
       }
@@ -367,8 +343,8 @@ export class LiveGridHost {
         if (this.ports.home.mode !== 'owned') await admitted.prepareRuntime?.();
         this.assertAlive(); this.readiness.complete(ticket, 'runtime');
         if (this.ports.pause !== undefined) await this.ports.pause();
-        this.assertAlive(); abandoned();
-        region = await admitted.create(prior, lease, signal); this.checkRegion(region);
+        this.assertAlive();
+        region = await admitted.create(prior, lease); this.checkRegion(region);
         if (this.ports.pause !== undefined) await this.ports.pause();
         this.assertAlive();
         if (packed !== undefined) this.saved.store(instance, packed);
@@ -386,14 +362,12 @@ export class LiveGridHost {
         lease.release(); throw error;
       }
     } catch (error) {
-      // G580 T1: an abandoned build-ahead leaves no issue, so the cell can build again when the traveller heads for it
-      const gaveUp = signal?.aborted === true;
       this.readiness.invalidate(instance);
-      if (!gaveUp) { this.issues.set(instance, error instanceof Error ? error.message : String(error)); this.refusals.set(instance, error); }
+      this.issues.set(instance, error instanceof Error ? error.message : String(error)); this.refusals.set(instance, error);
       if (this.ports.home.mode === 'owned') this.products.delete(instance);
       try { admission?.cancel?.(); }
       catch (cleanup) { throw new AggregateError([error, cleanup], 'Live admission and product cancellation failed', { cause: cleanup }); }
-      throw gaveUp && !(error instanceof BuildAheadAbandonedError) ? new BuildAheadAbandonedError(`Build-ahead of ${instance} abandoned for another crossing`, { cause: error }) : error;
+      throw error;
     }
     finally { this.requests.delete(instance); }
   }
@@ -401,12 +375,11 @@ export class LiveGridHost {
   /** Automatic retirement uses a wider release radius and a continuous five-second dwell; explicit durable departure
    * still retires an exclusive runtime immediately before another foundation can allocate. */
   private retireColdRegions(): void {
-    const ahead = this.warmAhead();
     for (const cell of this.assembly.cells) {
       if (this.borrowedHome(cell.instance)) continue;
       const estimate = readinessModel(this.ports.readiness.bundle(cell), this.ports.readiness.link), distance = this.distance(cell);
       const resident = this.residents.get(cell.instance);
-      const inside = cell.instance === ahead || distance <= estimate.distance + Math.max(10, this.ports.readiness.link.speed * 5);
+      const inside = distance <= estimate.distance + Math.max(10, this.ports.readiness.link.speed * 5);
       if (inside) {
         this.coldUnloadRefused.delete(cell.instance);
         if (resident !== undefined) delete resident.outsideSince;
@@ -416,17 +389,6 @@ export class LiveGridHost {
       if (!inside && !dwelling && resident !== undefined && cell.instance !== this.active && resident.reservations === 0 && !resident.evicting
         && !this.coldUnloadRefused.has(cell.instance) && !this.retire(cell.instance)) this.coldUnloadRefused.add(cell.instance); // O20: in steps
     }
-  }
-  /** G580 T1: the neighbour built ahead of the active source (not the source just left) stays whole while it borders
-   * that source: the traveller may stand anywhere in the source for minutes, so neither the cold dwell nor the allocator
-   * may drop it before the crossing. */
-  private warmAhead(): string | null {
-    // the one the build-ahead chose, never any other resident (a small declarative cell nearby once blocked the real
-    // neighbour's build and was itself kept whole: Chromium default-on run)
-    const id = this.aheadCell;
-    if (this.ports.home.mode !== 'owned' || this.active === null || id === null || id === this.active || id === this.lastSource() || !this.residents.has(id)) return null;
-    const active = this.assembly.cell(this.active), cell = this.assembly.cell(id);
-    return Math.max(Math.abs(cell.origin.x - active.origin.x), Math.abs(cell.origin.z - active.origin.z)) <= this.assembly.pitch * 1.001 ? id : null;
   }
   /** The cell most recently left for another (the active one excluded): a road crossing records two transitions,
    * source -> road and road -> destination, so the last transition alone names only the road. */
@@ -484,33 +446,6 @@ export class LiveGridHost {
       const estimate = readinessModel(this.ports.readiness.bundle(cell), this.ports.readiness.link), distance = this.distance(cell, feet);
       if (this.assembly.approaching(distance, estimate.distance) && !this.issues.has(cell.instance)) void background(cell.instance, this.prefetch([cell.instance]), () => !this.disposed);
     }
-    // G580 T1: still inside the source, the nearest neighbour builds whole now (one at a time), so the wall is
-    // open and its runtime parked by the time the traveller reaches it (the crossing re-activates it).
-    // One neighbour at a time beside the source just left: a second build would only queue in front of the crossing.
-    // Only real travel asks for it (sp-o5's Simulator reading: a spawn facing Pine built a whole Pine world, and the
-    // crossing's destination then queued behind it): standing, turning or a teleport builds nothing.
-    // A turn toward another neighbour retires the stale choice first, so at most one is built ahead.
-    const step = previous === undefined ? 0 : Math.hypot(feet.x - previous.x, feet.z - previous.z);
-    if (this.ports.home.mode === 'owned' && this.active !== null && this.requests.size === 0
-      && previous !== undefined && travelled && step <= WARM_TRAVEL_MAX_METRES) {
-      // the neighbour ahead, whatever its readiness reach (inside a source a player can travel for minutes): the nearest by
-      // edge distance over the square of how squarely the travel heads at its centre (cells behind never), so a diagonal
-      // neighbour the traveller heads for wins over a nearer one to the side
-      const fx = (feet.x - previous.x) / step, fz = (feet.z - previous.z) / step;
-      const score = (cell: GridCell): number => {
-        const dx = cell.origin.x - feet.x, dz = cell.origin.z - feet.z, facing = (dx * fx + dz * fz) / Math.max(1e-6, Math.hypot(dx, dz));
-        return facing <= 0 ? Infinity : this.distance(cell, feet) / (facing * facing);
-      };
-      const next = candidates.slice(0, 8).filter(cell => !this.issues.has(cell.instance))
-        .map(cell => ({ cell, score: score(cell) })).filter(row => Number.isFinite(row.score)).sort((m, n) => m.score - n.score)[0]?.cell;
-      if (next !== undefined && next.instance !== this.aheadCell) {
-        const stale = this.warmAhead();
-        if (this.residents.has(next.instance)) this.aheadCell = next.instance;
-        else if (this.retireWarmSource(next.instance) && (stale === null || this.releaseKept(stale))) {
-          this.aheadCell = next.instance; void background(next.instance, this.ensure(next.instance, true), () => !this.disposed);
-        }
-      }
-    }
     // Once the source has left, spend the road approach on the destination's admitted world rather than waiting
     // at its wall. Actual world-space movement selects the approaching cell: proximity alone would rebuild the
     // just-retired source behind the traveller. Stationary/missed first samples retain the original wall reach.
@@ -540,8 +475,8 @@ export class LiveGridHost {
         // Opaque alternatives at an ambiguous junction stay product/module-only until the turn identifies one destination.
         const roadWidth = this.assembly.pitch - 2 * CHUNK_HALF;
         const reach = early === approach ? Infinity : moving === undefined ? wallReach : Math.max(wallReach, roadWidth);
-        // G580 T1: a destination already built ahead is entered as it stands; one that still has to build first releases
-        // the kept source (one whole world building beside the road, not two: Sim road pair loading peak 1961 -> under 1.8 GB)
+        // a destination that still has to build first releases the kept source (one whole world building beside the road,
+        // not two: Sim road pair loading peak 1961 -> under 1.8 GB)
         if (this.distance(approach, feet) <= reach && !this.residents.has(approach.instance) && this.retireWarmSource(approach.instance)) void background(approach.instance, this.ensure(approach.instance), () => !this.disposed);
       }
     }
@@ -676,10 +611,9 @@ export class LiveGridHost {
     if (this.disposed || this.active !== from || from === to) throw new Error('Stale live frame preparation');
     if (this.ports.home.mode === 'owned' && from !== null && to !== null) throw new Error('Owned runtime crossing must commit onto the neutral road first');
     if (this.ports.home.mode === 'owned' && from === null && to !== null) {
-      // G580 T1: a destination already parked (built ahead) waits for no other cell's admission, and a build-ahead of
-      // any other cell is abandoned rather than waited for. Only this committed crossing pre-empts: the road approach's
-      // guess (right after a leave, the source just left) would abandon a good build (Chromium run). Other residents stay.
-      this.preempt(to);
+      // G663 (T7): a neighbour is never built whole beside a source: a committed crossing into another cell retires the
+      // source just left before its own world allocates (a U-turn back into that source re-activates it instead)
+      this.retireWarmSource(to);
       if (!(this.residents.has(to) && this.ready(to))) await this.sequence;
       this.assertAlive();
       if (this.current() !== from) throw new Error('Stale live frame preparation');
