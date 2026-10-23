@@ -192,6 +192,12 @@ export interface ModelPart {
   readonly tint?: boolean;
   /** batched: this material's batch sorts its copies front to back every draw (the forest's needle cards: E142) */
   readonly sortObjects?: boolean;
+  /**
+   * instanced, per-copy culled, a LOD level: the copy's uniform scale about its origin at this level (default 1). A level
+   * whose parts are the very geometries and materials of another variant's level draws in that variant's meshes, at this
+   * scale: variants share one draw a level (the forest's distant trees of one species). Every part of a level scales alike.
+   */
+  readonly scale?: number;
 }
 
 /** What `build` returns: the parts of one copy (every draw technique), or a whole object (`draw: 'single'` only). */

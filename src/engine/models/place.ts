@@ -629,13 +629,37 @@ function* drawInstancedSteps<P extends object>(def: ModelDef<P>, pls: readonly P
   }
   const objects: THREE.Object3D[] = [];
   const byLevel: THREE.Object3D[][] = Array.from({ length: levels }, () => []);
-  /** `groups[v * levels + l]`: variant v's level l's instance buffers — its parts share one; a part with an `until` has its own */
-  const groups: InstancedSink[][] = [];
-  for (const [v, lvls] of built.entries()) {
-    const cap = perVariant[v] ?? 0;
-    for (let l = 0; l < levels; l++) {
-      const parts = lvls[l] ?? [], group: InstancedSink[] = [];
-      groups.push(group);
+  // per-copy culled (InstancedCull): a level whose parts are another variant's very geometries and materials draws in that
+  // variant's buffers at its own scale (ModelPart.scale), one draw a level for the variants sharing a shape
+  const sharing = culls && o.cull?.cells === undefined;
+  const ids = new WeakMap<object, number>(); let nextId = 0;
+  const idOf = (x: object | undefined): number => {
+    if (x === undefined) return -1;
+    let k = ids.get(x); if (k === undefined) { k = nextId++; ids.set(x, k); }
+    return k;
+  };
+  const keyOf = (v: number, l: number, parts: readonly ModelPart[]): string => sharing && parts.length > 0
+    ? `${String(l)}|${parts.map((part) => [idOf(part.geometry), idOf(part.material), idOf(part.customDepthMaterial), part.until ?? '', String(part.tint ?? ''),
+      String(part.castShadow ?? ''), String(part.receiveShadow ?? ''), part.renderOrder ?? ''].join(':')).join(',')}`
+    : `${String(v)}|${String(l)}`;
+  const scales = new Float32Array(built.length * levels).fill(1), keyAt: string[] = [];
+  /** each draw group, first seen in variant order: the variant and level whose parts it draws, its capacity and copies */
+  const plan = new Map<string, { v: number; l: number; cap: number; copies: number[] }>();
+  for (const [v, lvls] of built.entries()) for (let l = 0; l < levels; l++) {
+    const parts = lvls[l] ?? [], scale = parts[0]?.scale ?? 1;
+    if (parts.some((part) => (part.scale ?? 1) !== scale)) throw new Error(`[models] ${def.id}: a level's parts scale alike`);
+    if (scale !== 1 && !sharing) throw new Error(`[models] ${def.id}: a scaled level needs per-copy culled instancing`);
+    scales[v * levels + l] = scale;
+    const key = keyOf(v, l, parts); keyAt.push(key);
+    let entry = plan.get(key);
+    if (entry === undefined) { entry = { v, l, cap: 0, copies: [] }; plan.set(key, entry); }
+    entry.cap += perVariant[v] ?? 0;
+    for (const [i, x] of of.entries()) if (x === v) entry.copies.push(i);
+  }
+  const made = new Map<string, InstancedSink[]>();
+  for (const [key, { v, l, cap, copies }] of plan) {
+      const parts = built[v]?.[l] ?? [], group: InstancedSink[] = [];
+      made.set(key, group);
       if (parts.length === 0 || cap === 0) continue;
       for (const until of new Set(parts.map((part) => part.until))) {
         const mine = parts.filter((part) => part.until === until);
@@ -665,8 +689,6 @@ function* drawInstancedSteps<P extends object>(def: ModelDef<P>, pls: readonly P
           }
           for (const im of meshes) { im.count = c; im.computeBoundingSphere(); }
         } else {
-          const copies: number[] = [];
-          of.forEach((x, i) => { if (x === v) copies.push(i); });
           const envelope = envelopeOf(boxes, copies);
           for (const im of meshes) { im.count = 0; im.visible = false; im.frustumCulled = false; setInstanceEnvelope(im, envelope); }
         }
@@ -674,8 +696,10 @@ function* drawInstancedSteps<P extends object>(def: ModelDef<P>, pls: readonly P
         group.push({ matrix, color, meshes, ...(until === undefined ? {} : { until }) });
         yield;
       }
-    }
   }
+  /** `groups[v * levels + l]`: variant v's level l's instance buffers — its parts share one; a part with an `until` has its own;
+   *  variants sharing a level's shape share the same buffers */
+  const groups = keyAt.map((key) => made.get(key) ?? []);
   let cull: ((camera: THREE.Camera) => void) | null = null, cullWith: Drawn['cullWith'] = null;
   const bounds = (): Float32Array => (o.cull?.bounds === 'sphere' ? posedSpheres((i) => built[of[i] ?? 0]?.[0] ?? [], poses) : spheresOf(boxes));
   const cells = o.cull?.cells;
@@ -688,7 +712,8 @@ function* drawInstancedSteps<P extends object>(def: ModelDef<P>, pls: readonly P
   } else if (culls) {
     // `casters`: each choice reads the casting cascades' frusta (a cascade's getFrustum rebuilds its footprint: once a choice)
     const casting = o.cull?.casters === undefined ? undefined : (): THREE.Frustum[] => o.ctx.sky.csm.lights.filter((l) => l.castShadow).map((l) => l.shadow.getFrustum());
-    const c = new InstancedCull(groups, levels, of, matrices, colors, bounds(), levelsOf(def), o.cull ?? {}, originsOf(pls, o), fadesOf(def), casting);
+    const c = new InstancedCull(groups, levels, of, matrices, colors, bounds(), levelsOf(def), o.cull ?? {}, originsOf(pls, o), fadesOf(def), casting,
+      scales.some((k) => k !== 1) ? scales : null);
     cull = (camera) => { c.update(camera); }; cullWith = (f, e) => { c.updateWith(f, e); };
   }
   return { object: wrap(objects, def.id), drawnAs: 'instanced', colliders, boxes, cull, cullWith };

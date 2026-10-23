@@ -179,6 +179,7 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Creatures & NPCs ──
 
   // ── Performance ──
+  opt('distantTrees', 'look', engineString('s_distant_trees'), [['variant', engineString('s_distant_trees_variant')], ['species', engineString('s_distant_trees_species')]], { reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_distant_trees_note') }),
   opt('groundTiles', 'look', engineString('s_ground_tiles'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_ground_tiles_note') }),
   opt('fixedShadowSamples', 'perf', engineString('s_fixed_shadow_samples'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_fixed_shadow_samples_note') }),
   opt('fps', 'perf', engineString('s_5f5c99339841'), [['auto', engineString('s_0286249762f7')], ['30', engineString('s_624b60c58c9d')], ['60', engineString('s_c1fe790a9f07')]], { purpose: 'developer', when: () => !MOBILE_DEVICE, ask: 'E193', reviewBy: '2026-12-30', note: engineString('s_d56f59162f05') }),

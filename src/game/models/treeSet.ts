@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { resourceScope } from '@wildshard/engine/app/resources';
 import { loadTexture, loadPBRArray } from '@wildshard/engine/core/assets';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
+import { setting } from '@wildshard/engine/ui/Settings';
 import { defineModel, type ModelContext, type ModelDef, type ModelPart } from '@wildshard/engine/models/model';
 import type { LookReplaceContext } from '@wildshard/engine/render/look';
 import { FOREST_BANDS, trunkCapsule } from '@wildshard/engine/world/forest/Forest';
@@ -92,13 +93,22 @@ export interface TreeSetParams { readonly v: number; readonly height: number; re
 export function treeSetModel(rows: TreeSetRows): { readonly model: ModelDef<TreeSetParams>; readonly use: (ctx: ModelContext, factory: TreeFactory) => void } {
   const key = `${rows.model.id}:factory`;
   const factoryOf = (ctx: ModelContext): TreeFactory => ctx.once<TreeFactory>(key, () => { throw new Error(`[${rows.model.id}] no tree factory`); });
+  // G639 (Debug ▸ Distant trees, default per variant; a look call for Jake): past the near band a tree draws its species'
+  // first variant's shape at its own height, so each far / impostor level is one draw a species (place.ts shares a level
+  // whose parts are the same geometries and materials, each variant at its `scale`)
+  const shapes = rows.variants.map((s) => {
+    const first = rows.variants.findIndex((r) => r.species === s.species), height = rows.variants[first]?.height ?? s.height;
+    return { first, scale: s.height / height };
+  });
+  const perSpecies = setting('distantTrees') === 'species';
   const band = (ctx: ModelContext, i: number, level: 'near' | 'far' | 'impostor'): ModelPart[] => {
-    const f = factoryOf(ctx), t = f.variants[i];
+    const shape = perSpecies && level !== 'near' ? shapes[i] : undefined, f = factoryOf(ctx), t = f.variants[shape?.first ?? i];
     if (!t) return [];
-    if (level === 'impostor') return [{ geometry: t.far, material: f.farMaterial, receiveShadow: true }];
+    const scaled = shape === undefined || shape.scale === 1 ? {} : { scale: shape.scale };
+    if (level === 'impostor') return [{ geometry: t.far, material: f.farMaterial, receiveShadow: true, ...scaled }];
     if (level === 'far') return [
-      { geometry: t.trunkLo ?? t.trunk, material: f.barkMaterial, castShadow: TIER_CONFIG.loTreeShadows, receiveShadow: true, tint: f.tintBark },
-      { geometry: t.cardsLo, material: f.needleMaterial, castShadow: TIER_CONFIG.loTreeShadows, receiveShadow: true, sortObjects: true },
+      { geometry: t.trunkLo ?? t.trunk, material: f.barkMaterial, castShadow: TIER_CONFIG.loTreeShadows, receiveShadow: true, tint: f.tintBark, ...scaled },
+      { geometry: t.cardsLo, material: f.needleMaterial, castShadow: TIER_CONFIG.loTreeShadows, receiveShadow: true, sortObjects: true, ...scaled },
     ];
     return [
       { geometry: t.trunk, material: f.barkMaterial, castShadow: true, receiveShadow: true, tint: f.tintBark },

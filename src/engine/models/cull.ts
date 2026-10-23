@@ -238,20 +238,34 @@ export interface InstancedSink {
  */
 class Sinks {
   private readonly flat: InstancedSink[] = [];
-  /** group g's sinks are `flat[first[g] … first[g + 1])` */
+  /** group g's sinks are `flat[members[first[g] … first[g + 1])]`: a sink several groups share (variants drawing one
+   *  shape at a level) is one entry, its copies counted together */
   private readonly first: Uint32Array;
+  private readonly members: Uint32Array;
+  /** each group's copy scale (1: as placed), or null when no group scales */
+  private readonly scales: Float32Array | null;
   private readonly counts: Int32Array;
   private readonly until2: Float64Array;
   /** each sink's upload ranges, reused (only the drawn prefix of a buffer goes to the GPU; nothing allocated per update) */
   private readonly ranges: readonly { matrix: { start: number; count: number }; color: { start: number; count: number } }[];
   private readonly matrices: Float32Array;
   private readonly colors: Float32Array | null;
-  constructor(groups: readonly (readonly InstancedSink[])[], matrices: Float32Array, colors: Float32Array | null) {
+  constructor(groups: readonly (readonly InstancedSink[])[], matrices: Float32Array, colors: Float32Array | null, scales: Float32Array | null = null) {
     this.matrices = matrices;
     this.colors = colors;
+    this.scales = scales;
     this.first = new Uint32Array(groups.length + 1);
-    groups.forEach((g, k) => { this.first[k] = this.flat.length; this.flat.push(...g); });
-    this.first[groups.length] = this.flat.length;
+    const index = new Map<InstancedSink, number>(), members: number[] = [];
+    groups.forEach((g, k) => {
+      this.first[k] = members.length;
+      for (const sink of g) {
+        let at = index.get(sink);
+        if (at === undefined) { at = this.flat.length; index.set(sink, at); this.flat.push(sink); }
+        members.push(at);
+      }
+    });
+    this.first[groups.length] = members.length;
+    this.members = Uint32Array.from(members);
     this.counts = new Int32Array(this.flat.length);
     this.until2 = Float64Array.from(this.flat, (x) => (x.until === undefined ? Number.POSITIVE_INFINITY : x.until * x.until));
     this.ranges = this.flat.map(() => ({ matrix: { start: 0, count: 0 }, color: { start: 0, count: 0 } }));
@@ -259,13 +273,15 @@ class Sinks {
   reset(): void { this.counts.fill(0); }
   /** copy i, at distance² d2, into group g's sinks */
   put(i: number, g: number, d2: number): void {
-    const m = this.matrices, c = this.colors;
-    for (let s = this.first[g] ?? 0; s < (this.first[g + 1] ?? 0); s++) {
+    const m = this.matrices, c = this.colors, k = this.scales?.[g] ?? 1;
+    for (let at = this.first[g] ?? 0; at < (this.first[g + 1] ?? 0); at++) {
+      const s = this.members[at] ?? 0;
       if (d2 >= (this.until2[s] ?? Number.POSITIVE_INFINITY)) continue;
       const sink = this.flat[s];
       if (!sink) continue;
       const n = this.counts[s] ?? 0, dst = sink.matrix.array as Float32Array;
-      for (let j = 0, a = i * 16, d = n * 16; j < 16; j++) dst[d + j] = m[a + j] ?? 0;
+      // a scaled group (another variant's shape at this copy's size) scales the basis about the copy's origin
+      for (let j = 0, a = i * 16, d = n * 16; j < 16; j++) dst[d + j] = (m[a + j] ?? 0) * (j < 12 ? k : 1);
       if (c && sink.color) { const cd = sink.color.array as Float32Array; cd[n * 3] = c[i * 3] ?? 1; cd[n * 3 + 1] = c[i * 3 + 1] ?? 1; cd[n * 3 + 2] = c[i * 3 + 2] ?? 1; }
       this.counts[s] = n + 1;
     }
@@ -297,19 +313,21 @@ export class InstancedCull {
   /**
    * `groups[v * levels + l]` are variant v's level l's sinks (empty: a level that draws nothing); `variantOf[i]` copy i's
    * variant; `matrices` 16 floats per copy; `colors` 3 per copy or null; `bounds` x, y, z, r per copy (world); `origins`
-   * x, y, z per copy (`from: 'origin'`); `fades` each level's dissolve band (a copy in it is drawn at both levels)
+   * x, y, z per copy (`from: 'origin'`); `fades` each level's dissolve band (a copy in it is drawn at both levels);
+   * `scales` each group's copy scale (variants sharing a level's sinks at their own sizes), null: none scales
    */
   constructor(
     groups: readonly (readonly InstancedSink[])[], levels: number, variantOf: Uint16Array,
     matrices: Float32Array, colors: Float32Array | null, bounds: Float32Array, from: readonly number[], o: CullOptions,
     origins: Float32Array | Float64Array | null = null, fades: readonly number[] = [], casting: () => readonly THREE.Frustum[] = () => [],
+    scales: Float32Array | null = null,
   ) {
     this.casting = casting;
     this.levels = levels;
     this.variantOf = variantOf;
     this.view = viewFor(o);
     this.chooser = new Chooser(from, o, bounds, origins, fades);
-    this.sinks = new Sinks(groups, matrices, colors);
+    this.sinks = new Sinks(groups, matrices, colors, scales);
   }
 
   update(camera: THREE.Camera): void {
