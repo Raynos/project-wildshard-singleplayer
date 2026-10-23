@@ -5,8 +5,11 @@ import { NavmeshGroundSchema } from '../src/format/navigation';
 import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
 import { bakedSamplers } from '../src/format/bakedTerrainSampling';
 import { GROUND } from './fixtures/nalati-terrain';
-import geography from '../src/shards/nalati-grasslands/boot/geography.generated.json' with { type: 'json' };
+import { readNalatiGeography } from './fixtures/nalati-geography';
+import { TERRAIN_ROWS } from '../src/shards/nalati-grasslands/boot/declaration.generated';
 import nalati from '../src/shards/nalati-grasslands/manifest';
+
+const geography=readNalatiGeography();
 
 const encode = (values: readonly number[]): string => btoa(String.fromCodePoint(...zlibSync(new Uint8Array(Float32Array.from(values).buffer))));
 const mask = { res: 2,size: 32,values: { type: 'f32',count: 4,data: encode([.5,.50000006,0,1]) } };
@@ -45,7 +48,8 @@ test('complete bake policy admission preserves legacy identity and refuses ambig
 test('actual declared bake row preserves the original native predicate at clamped and equality boundaries',() => {
   const row = nalati.navmesh?.ground,terrain = GROUND.terrain;
   if (row === undefined) throw new Error('Missing declared exclusion');
-  expect(row.wet).toBe(geography.channels.wet);
+  expect(row.wet).toBe(TERRAIN_ROWS.navmesh.ground.wet);
+  expect(row.wet).toEqual(geography.channels.wet);
   const exclude = navmeshGroundExclusion(nalati.navmesh,terrain);
   if (exclude === undefined) throw new Error('Missing exclusion');
   const bytes = unzlibSync(Uint8Array.from(atob(geography.channels.wet.values.data),value => value.codePointAt(0) ?? 0));

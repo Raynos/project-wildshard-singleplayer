@@ -5,7 +5,9 @@ import { defineShard,declaredGround,type ShardManifestRows } from '../src/game/s
 import { ScalarChannelSchema,ScalarLatticeSchema,type ScalarLatticeRows } from '../src/format/scalarChannel';
 import * as v from 'valibot';
 import nalati from '../src/shards/nalati-grasslands/manifest';
-import geography from '../src/shards/nalati-grasslands/boot/geography.generated.json' with { type: 'json' };
+import { readNalatiGeography } from './fixtures/nalati-geography';
+
+const geography=readNalatiGeography();
 
 const raster = (value: number): ScalarLatticeRows => ({ res: 2,size: 500,values: { type: 'f32',count: 4,data: btoa(String.fromCodePoint(...zlibSync(new Uint8Array(new Float32Array(4).fill(value).buffer)))) } });
 const { ground: _ground,groundColor: _colour,surfaceAt: _surface,forest: authoredForest,minimap: _map,...fixed } = nalati;
