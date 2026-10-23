@@ -1,3 +1,6 @@
+import {ReturnProgram} from '../src/game/population/returnProgram';
+import pasture from '../src/shards/nalati-grasslands/behaviour/pasture.generated.json' with {type:'json'};
+import herdBinding from '../src/shards/nalati-grasslands/data/herdGuest.json' with {type:'json'};
 import {beforeAll,expect,expectTypeOf,test} from 'vitest';
 import {Vector3} from 'three';
 import {Scope} from '../src/engine/app/scope';
@@ -67,6 +70,8 @@ function fixture(id='body'){
  onKnockdown(x,z,strength){log.push(['knock',x,z,strength,this===herdPorts]);},onEvent(name,x,z){log.push(['event',name,x,z,this===herdPorts]);}};
  const herd=new GrazerBrain([body],{pattern:'herd',spec:{walkSpeed:2,trotSpeed:4,gallopSpeed:7,chargeSpeed:8,sightRadius:40,grazingSightRadius:20,coneAngle:1,hearing:[1,2,3,4],alertThreshold:.5,
  flightMinDistance:20,flightMaxDistance:40,stallionVariant:'leader',foalPrefix:'young',snortCue:'snort',neighCue:'neigh',squealCue:'squeal'},ports:herdPorts});
+ const program=ReturnProgram.page(pasture,scope);if(program.groupBindings===undefined||program.prepareGroup===undefined)throw new Error('Missing selected herd programme');
+ herd.bindGuest({groupBindings:program.groupBindings,prepareGroup:program.prepareGroup},herdBinding,{scope,group:'native.herd',handle:17,player,actors:herd.members});
  const selected:{context:CirclingPackContext<AnimalSim>|GuardedHerdContext<AnimalSim>}={context:packContext};
  const member:V2ColumnOwners={scope,self:{group:'sample',slot:0,identity:body.entityId,actor:body},player:{position:player},observed:new Map(),t:2,dt:.1,get context(){return selected.context;}};
  const members=[member],state=Float64Array.of(0),runner=new GroupStepV2(bytes,rows,scope),input={group:'sample',handle:1,signal:'pack',tick:1,state,members,references:[],random};

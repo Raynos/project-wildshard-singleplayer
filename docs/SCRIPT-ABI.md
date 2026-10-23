@@ -1362,5 +1362,6 @@ identity and JSON continuation while their selected laws run in the guest.
 
 Nalati's pasture numeric laws and main herd profile share one selected module.
 Wind, fire and page wildlife use the original world scope, so the existing
-ReturnProgram scope/hash cache returns the same programme. The unbound legacy
-herd law remains supported and charged until its separate retirement.
+ReturnProgram scope/hash cache returns the same programme. The guarded-herd TypeScript fallback is retired; an unbound group refuses
+before its first initialization draw or public decision call. Existing generic
+herd recipes lend their original scoped programme and finite binding explicitly.

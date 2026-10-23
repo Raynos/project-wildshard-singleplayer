@@ -27,8 +27,8 @@ const strike = { id: 'orchard.contact', shape: { kind: 'point', radius: 1, exclu
 const rows = { id: 'orchard.groups', herds: 'orchard.herds', tokens: 'orchard.tokens', bounds: [-16,16,-16,16], owned: ['orchard.buck'],
   contacts: { pack: strike, herd: strike }, steps: [{ kind: 'group', row: pack, adopt: null }, { kind: 'group', row: herd, adopt: 'orchard.buck' }] };
 
-test.each([false,true])('orchard native groups retain identities with selected herd %s', async selected => {
-  const input=selected?{...rows,steps:rows.steps.map(step=>step.row.kind==='herd'?{...step,guest:{program:pasture,binding:herdGuest}}:step)}:rows;
+test('orchard native groups retain identities with their declared herd guest', async () => {
+  const input={...rows,steps:rows.steps.map(step=>step.row.kind==='herd'?{...step,guest:{program:pasture,binding:herdGuest}}:step)};
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   const sample = SIM_LEVEL.entities[0]; if (sample === undefined) throw new Error('Missing native actor');
   const entities = [];
@@ -41,6 +41,8 @@ test.each([false,true])('orchard native groups retain identities with selected h
   const grid = { res: 2,size: 32,seed: 19,landscapeHash: 0,heights: new Float32Array(4),splat: new Uint8Array(16),undergrowth: null };
   try {
     const before = host.rng.snapshot();
+    expect(()=>installNativeGroupRows(host,rows,grid,env)).toThrow('Missing native herd guest');
+    expect(host.rng.snapshot()).toEqual(before);expect(host.entities.get('orchard.buck')?.mem['owned']).toBeUndefined();
     expect(() => installNativeGroupRows(host,{ ...input, owned: ['orchard.missing'] },grid,env)).toThrow('Missing group actor');
     expect(host.rng.snapshot()).toEqual(before); expect(host.entities.get('orchard.buck')?.mem['owned']).toBeUndefined();
     const owner = installNativeGroupRows(host,input,grid,env), kid = host.entities.get('orchard.kid'), buck = host.entities.get('orchard.buck');

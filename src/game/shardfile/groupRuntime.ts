@@ -13,7 +13,7 @@ import { HerdBrain, type HerdPorts, type HerdContext } from '@wildshard/engine/a
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { Rng, RngState } from '@wildshard/engine/core/rng';
-import { nativeGroupBrain, groupBrainRules, type ShardGroupBrain, type ShardPackGroup, type ShardHerdGroup } from '@wildshard/format/groupBrains';
+import { nativeGroupBrain, groupBrainRules, type ShardGroupBrain, type ShardPackGroup, type ShardHerdGroup, type GuardedHerdGuestRows } from '@wildshard/format/groupBrains';
 
 /** One group continuation; actor memory, motors and random streams remain with the simulation owner. */
 export type DeclaredGroupPolicy = PackBrain<AnimalSim> | HerdBrain<AnimalSim>;
@@ -25,6 +25,7 @@ export interface DeclaredPackRecipe {
 }
 /** Trusted herd perception, taming/contact identities and per-actor steering observations. Recipe construction is pure. */
 export interface DeclaredHerdRecipe {
+  readonly guest?: {readonly program:ReturnProgram;readonly binding:GuardedHerdGuestRows};
   ports: HerdPorts<AnimalSim>;
   observe: (actor: AnimalSim, dt: number) => HerdContext<AnimalSim>;
 }
@@ -75,7 +76,11 @@ function prepareRegistration(host: SimHost, group: ShardPackGroup | ShardHerdGro
       const recipe = ports.herd(group, members, host);
       functionsPresent([...commonFunctions.map(key => recipe.ports[key]), recipe.ports.passThrough, recipe.ports.chargeContact,
         recipe.ports.scarePack, recipe.ports.resolveActor, recipe.observe]);
+      const guest=recipe.guest;
+      if(guest?.program.groupBindings===undefined||guest.program.prepareGroup===undefined)throw new Error('Missing declared herd guest');
       const policyForGroup = new HerdBrain(members, group, recipe.ports);
+      policyForGroup.bindGuest({groupBindings:guest.program.groupBindings,prepareGroup:guest.program.prepareGroup},guest.binding,
+        {scope:host.scope,group:group.id,handle:1,player:host.player.position,actors:host.entities});
       return { id, members, policy: policyForGroup, random: recipe.ports.sharedRng, run: dt => {
         if (host.state.tick % group.thinkDivisor === 0) for (const actor of members) if (actor.alive) {
           const context = { ...recipe.observe(actor, group.thinkDivisor / 60), dt: group.thinkDivisor / 60, t: host.clock.now };
@@ -237,6 +242,7 @@ export function installNativeGroupRows(host: SimHost, input: unknown, grid: Bake
   const rows = v.parse(NativeGroupRowsSchema, input), sample = bakedSamplers(grid);
   if (!(environment instanceof NativeWildEnvironment) || collections.get(host)?.has(rows.id)) throw new Error('Invalid or installed group world');
   const actor = (id: string): AnimalSim => { const body = host.entities.get(id); if (body === undefined) throw new Error(`Missing group actor ${id}`); return body; };
+  if(rows.steps.some(step=>step.kind==='group'&&step.row.kind==='herd'&&step.guest===undefined))throw new Error('Missing native herd guest');
   const declarations = rows.steps.flatMap(step => step.kind === 'group' ? [{ row: nativeGroupBrain(step.row), adopt: step.adopt }] : []);
   const members = declarations.flatMap(({ row, adopt }) => [...row.members, ...adopt === null ? [] : [adopt]]);
   if (new Set(members).size !== members.length || declarations.filter(({ row }) => row.kind === 'pack').length === 0

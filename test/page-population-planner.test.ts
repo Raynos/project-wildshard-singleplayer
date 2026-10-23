@@ -1,3 +1,5 @@
+import pasture from '../src/shards/nalati-grasslands/behaviour/pasture.generated.json' with {type:'json'};
+import herdBinding from '../src/shards/nalati-grasslands/data/herdGuest.json' with {type:'json'};
 import { PopulationRelations } from '../src/game/population/relations';
 import { setTerrainHeight, setTerrainPlacement } from '../src/engine/world/terrainHeight';
 import { afterEach, expect, test } from 'vitest';
@@ -19,17 +21,17 @@ afterEach(() => { setTerrainHeight(() => 0); setTerrainPlacement(() => [0, 1, 0]
 
 test('marsh page groups resolve native ids, adoption and water from rows without ports', () => {
   const make = (id: string,variant: string,x: number): Animal => legacyDouble<Animal>({ entityId: id,variant,position: new Vector3(x,0,0),
-    yaw: 0,scale: 1,lastHitT: -Infinity,maxHp: 100,hp: 100,mem: {},alive: true });
+    yaw: 0,scale: 1,lastHitT: -Infinity,maxHp: 100,hp: 100,mem: {},alive: true,seed:1,speed:0,state:'graze',mods:{speed:1,chargeDist:1,damageTaken:1,chargeDamage:1,relentless:false} });
   const scout = make('marsh.scout','reed',0),kid = make('marsh.kid','fawn',3),buck = make('marsh.buck','antlered',5);
   const manager = legacyDouble<AnimalManager>({ animals: [scout,kid,buck] });
   const wet = btoa(String.fromCodePoint(...zlibSync(new Uint8Array(Float32Array.from([1,1,1,1]).buffer))));
   const rows = { pack: { ...brains.pack,id: 'marsh.pack',members: ['unused'],home: [0,0],leaderVariant: 'reed',runSpeed: 6 },
     herd: { ...brains.herd,id: 'marsh.herd',members: ['unused'],stallionVariant: 'antlered',foalPrefix: 'fawn' },
     contacts: { pack: strikes.wolf,herd: strikes.stallion },world: { res: 2,size: 32,water: -1,wet,pond: wet },
-    wind: { x: 0,z: 1,strength: .5 },prey: 'marsh',damage: admission };
+    wind: { x: 0,z: 1,strength: .5 },prey: 'marsh',damage: admission,guest:{program:pasture,binding:herdBinding} };
   const scope = new Scope('marsh');
   try {
-    wildEnv.enter(scope,rows,ReturnProgram.page(admission,scope)); const groups = new PageGroups(manager,[],rows),pack = groups.pack([scout.entityId],0,0),herd = groups.herd([kid.entityId]);
+    wildEnv.enter(scope,rows,ReturnProgram.page(admission,scope)); const groups = new PageGroups(manager,[],rows,{scope,player:new Vector3()}),pack = groups.pack([scout.entityId],0,0),herd = groups.herd([kid.entityId]);
     herd.adoptStallion(buck);
     expect(renderedPackOf(scout)).toBe(pack); expect(renderedHerdOf(kid)).toBe(herd); expect(renderedHerdOf(buck)).toBe(herd);
     expect(pack.findPrey?.(0,0,10)).toBe(kid); expect(herd.findThreat?.(3,0,10)).toBe(scout);

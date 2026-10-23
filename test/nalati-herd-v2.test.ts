@@ -1,3 +1,4 @@
+import {FrozenHerd} from './fixtures/herdNativeOracle';
 import {scriptAdmissionRows} from '../src/format/scriptContract';
 import {NALATI_SCRIPT_SECTIONS} from '../src/shards/nalati-grasslands/generators/scriptInventory';
 import {expect,test} from 'vitest';
@@ -8,18 +9,14 @@ import {HerdBrain,type HerdSpec,type HerdPorts,type HerdContext} from '../src/en
 import {Scope} from '../src/engine/app/scope';
 import {Rng} from '../src/engine/core/rng';
 import type {GroupStepReferenceV2} from '../src/engine/script/groupStepV2';
-import {GroupBankV2} from '../src/engine/script/groupBankV2';
 import type {GroupBankValueV2} from '../src/format/scriptGroupBankV2';
 import {ReturnProgram} from '../src/game/population/returnProgram';
-import {parseGroupStepV2} from '../src/format/scriptGroupStepV2';
-import profile from '../src/shards/nalati-grasslands/data/herdGroup.json' with {type:'json'};
 import binding from '../src/shards/nalati-grasslands/data/herdGuest.json' with {type:'json'};
 import pasture from '../src/shards/nalati-grasslands/behaviour/pasture.generated.json' with {type:'json'};
 
-const rows=parseGroupStepV2(profile);
 const modes=['graze','drift','alert','flee','settle'],states=['watch','warn','display','charge','wheel','lead','beaten','ridden'];
 const savedSchema=v.looseObject({state:v.record(v.string(),v.unknown()),lead:v.nullable(v.string()),stallion:v.nullable(v.string()),ridden:v.nullable(v.string()),chargeTarget:v.nullable(v.string()),foals:v.array(v.string()),mothers:v.array(v.tuple([v.string(),v.string()]))});
-const saved=(herd:HerdBrain<AnimalSim>)=>v.parse(savedSchema,JSON.parse(herd.snapshot()));
+const saved=(herd:{snapshot:()=>string})=>v.parse(savedSchema,JSON.parse(herd.snapshot()));
 function makeBody(id:string,variant:string,x:number,z:number,scale=1):AnimalSim{
  const a=new AnimalSim({kind:'horse',label:'Horse',variant,rarity:'common',hp:100,aggressive:false,
  dims:{bodyY:1.2,bodyHalfLen:1,bodyRadius:.4,headRadius:.25,legLen:.7,feet:[],halfWidth:.4},
@@ -31,27 +28,35 @@ class NativeHerd extends HerdBrain<AnimalSim>{
  captureRoles(actor:AnimalSim){return this.captureHerdGuestRoles(actor);}
  prepareValues(values:Readonly<Record<string,GroupBankValueV2>>,references:readonly (GroupStepReferenceV2&{body:AnimalSim})[],scope:Scope){return this.prepareHerdGuestState(values,references,scope);}
 }
+const guestOwners=new WeakMap<NativeHerd,Map<string,AnimalSim>>();
 const spec:HerdSpec={walkSpeed:2,trotSpeed:5,gallopSpeed:10,chargeSpeed:11,sightRadius:45,grazingSightRadius:20,coneAngle:1.2,hearing:[4,8,15,30],alertThreshold:.6,flightMinDistance:80,flightMaxDistance:120,stallionVariant:'stallion',foalPrefix:'foal',snortCue:'snort',neighCue:'neigh',squealCue:'squeal'};
-function fixture(mode:string,stallionState:string,mutate=false,count=4){
+type HerdSurface=Pick<HerdBrain<AnimalSim>,'snapshot'|'restore'|'initialize'|'members'|'mode'|'stallionState'|'findThreat'|'addTrust'|'setRidden'|'releaseStallion'|'adoptStallion'|'leadAway'|'stampede'|'disturb'|'tick'|'drive'|'stallion'|'trust'|'alert'|'stampeding'>;
+function fixtureWith<H extends HerdSurface>(create:(members:AnimalSim[],spec:HerdSpec,ports:HerdPorts<AnimalSim>)=>H,mode:string,stallionState:string,mutate=false,count=4){
  const roster=[makeBody('mare-a','mare',-3,1,1.2),makeBody('foal-a','foal-a',-1,3,.8),makeBody('stallion','stallion',8,5),makeBody('mare-b','mare',10,2)];
  if(count<roster.length)roster.length=count;
  while(roster.length<count){const i=roster.length;roster.push(makeBody(`mare-${i}`,'mare',i*2-5,i%3+2));}
  const random=new Rng(905),contextRandom=new Rng(1907),log:(string|number)[][]=[];
  const ports:HerdPorts<AnimalSim>={sharedRng:()=>random,environment:()=>({playerMounted:false,playerCrouched:false}),visibility:()=>1,hearing:()=>8,downwind:()=>false,inBounds:()=>true,normalY:()=>1,
  passThrough:(a,through)=>{log.push(['pass',a.entityId,Number(through)]);},chargeContact:(a,_c,r)=>{log.push(['contact',a.entityId,r]);},scarePack:()=>false};
- const pending:AnimalSim[]=[],threats:AnimalSim[]=[];const herd=new NativeHerd(roster,spec,ports);herd.initialize();
+ const pending:AnimalSim[]=[],threats:AnimalSim[]=[];const herd=create(roster,spec,ports);
+ const scope=new Scope('herd-drive'),player=new Vector3(12,0,16);
+ if(herd instanceof NativeHerd){
+  const program=ReturnProgram.page(pasture,scope);if(program.prepareGroup===undefined||program.groupBindings===undefined)throw new Error('Missing selected herd');
+  const actors=new Map(roster.map(actor=>[actor.entityId,actor]));guestOwners.set(herd,actors);
+  herd.bindGuest({groupBindings:program.groupBindings,prepareGroup:program.prepareGroup},binding,{scope,group:'herd',handle:50,player,actors});
+ }
+ herd.initialize();
  herd.findThreat=(x,z,r)=>{let nearest:AnimalSim|null=null,distance=r;for(const actor of threats)if(actor.alive){const d=Math.hypot(actor.position.x-x,actor.position.z-z);if(d<distance){nearest=actor;distance=d;}}return nearest;};ports.resolveActor=id=>[...threats,...pending].find(actor=>actor.entityId===id)??null;
  const snapshot=saved(herd);Object.assign(snapshot.state,{mode,stallionState,cx:3,cz:2,spotX:45,spotZ:20,spotT:40,fleeX:.6,fleeZ:.8,fleeLen:100,fleeRun:12,modeT:1,sT:.6});herd.restore(JSON.stringify(snapshot));
- const scope=new Scope('herd-drive'),player=new Vector3(12,0,16);
  const ctx:HerdContext<AnimalSim>={dt:.1,t:2,player,playerSpeed:.4,calm:false,rng:contextRandom,
  sound:cue=>{log.push(['sound',cue]);},hurt:amount=>{log.push(['hurt',amount]);},
  steer:(a,yaw,speed,turn)=>{log.push(['steer',a.entityId,yaw,speed,turn]);a.setMotion(yaw,speed,turn);if(mutate){a.position.x+=.5;herd.mode='alert';}},
  pathYaw:(a,x,z,every)=>{log.push(['path',a.entityId,x,z,every??0]);return Math.atan2(x-a.position.x,z-a.position.z)+.03;},confine:a=>{log.push(['confine',a.entityId]);}};
  for(const a of roster){const original=a.setMotion.bind(a);a.setMotion=(yaw,speed,turn)=>{log.push(['motion',a.entityId,yaw,speed,turn??2.5]);original(yaw,speed,turn);};}
- const program=ReturnProgram.page(pasture,scope);if(program.prepareGroup===undefined||program.groupBindings===undefined)throw new Error('Missing selected herd capability');
- const runner={prepare:program.prepareGroup},codec=new GroupBankV2(rows.bank);
- return{roster,pending,threats,random,contextRandom,log,herd,ports,scope,ctx,runner,codec};
+ return{roster,pending,threats,random,contextRandom,log,herd,ports,scope,ctx};
 }
+function fixture(mode:string,state:string,mutate=false,count=4){return fixtureWith((members,row,ports)=>new NativeHerd(members,row,ports),mode,state,mutate,count);}
+function legacyFixture(mode:string,state:string,mutate=false,count=4){return fixtureWith((members,row,ports)=>new FrozenHerd(members,row,ports),mode,state,mutate,count);}
 function numbers(actual:unknown,expected:unknown):void{
  if(typeof expected==='number'&&typeof actual==='number'){
   // G415: AS owns trig. Its libm may differ by one ULP; native effects,
@@ -63,10 +68,9 @@ function numbers(actual:unknown,expected:unknown):void{
   expect(Object.keys(actual)).toEqual(Object.keys(expected));for(const [key,value]of Object.entries(expected))numbers(Reflect.get(actual,key),value);return;
  }expect(actual).toEqual(expected);
 }
-const guestOwners=new WeakMap<NativeHerd,Map<string,AnimalSim>>();
 function execute(f:ReturnType<typeof fixture>,slot:number,asBody=false,signal='drive',args:Readonly<Record<string,number>>={}){
- let actors=guestOwners.get(f.herd);
- if(actors===undefined){const original=f.herd.snapshot();actors=bindNativeGuest(f).actors;f.herd.restore(original);guestOwners.set(f.herd,actors);}
+ const actors=guestOwners.get(f.herd);
+ if(actors===undefined)throw new Error('Missing bound herd roster');
  for(const actor of [...f.roster,...f.pending,...f.threats])actors.set(actor.entityId,actor);
  const body=f.roster[slot];if(body===undefined)throw new Error('Missing original native slot');
  const argument=args['argHandle']??0;
@@ -87,7 +91,7 @@ function execute(f:ReturnType<typeof fixture>,slot:number,asBody=false,signal='d
 }
 test('all herd modes and ordinary guard states match original per-member effects and continuation',()=>{
  for(const mode of modes)for(const state of states.filter(value=>!['charge','ridden'].includes(value)))for(const slot of [0,1,2,3]){
-  const old=fixture(mode,state),next=fixture(mode,state);
+  const old=legacyFixture(mode,state),next=fixture(mode,state);
   try{
    const actor=old.roster[slot];if(actor===undefined)throw new Error('Missing original actor');old.herd.drive(actor,old.ctx);execute(next,slot);
    numbers(next.log,old.log);expect(next.random.snapshot()).toEqual(old.random.snapshot());expect(next.contextRandom.snapshot()).toEqual(old.contextRandom.snapshot());
@@ -98,7 +102,7 @@ test('all herd modes and ordinary guard states match original per-member effects
 });
 test('a native steering effect can mutate the group before the same horse tail resumes',()=>{
  for(const state of ['watch','display','lead']){
-  const old=fixture('drift',state,true),next=fixture('drift',state,true);
+  const old=legacyFixture('drift',state,true),next=fixture('drift',state,true);
   try{const actor=old.roster[2];if(actor===undefined)throw new Error('Missing original guard');old.herd.drive(actor,old.ctx);execute(next,2);numbers(next.log,old.log);expect(next.herd.snapshot()).toBe(old.herd.snapshot());}
   finally{old.scope.dispose();next.scope.dispose();}
  }
@@ -106,13 +110,13 @@ test('a native steering effect can mutate the group before the same horse tail r
 
 test('charge contact and stampede keep same-call hurt, knockdown, sound and state barriers',()=>{
  for(const charge of [true,false])for(const bodyTick of [true,false]){
-  const old=fixture(charge?'graze':'flee',charge?'charge':'lead'),next=fixture(charge?'graze':'flee',charge?'charge':'lead');
+  const old=legacyFixture(charge?'graze':'flee',charge?'charge':'lead'),next=fixture(charge?'graze':'flee',charge?'charge':'lead');
   try{
    for(const f of [old,next]){
     const actor=f.roster[2];if(actor===undefined)throw new Error('Missing guard');
     actor.speed=8;f.ctx.player.copy(actor.position).add(new Vector3(.2,0,.3));
     f.ports.onKnockdown=(x,z,power)=>{f.log.push(['knock',x,z,power]);};
-    f.herd.onStallionState=state=>{f.log.push(['state',state]);};
+    f.herd.onStallionState=(state:HerdBrain<AnimalSim>['stallionState'])=>{f.log.push(['state',state]);};
     if(!charge)f.herd.stampeding=true;
    }
    const actor=old.roster[2];if(actor===undefined)throw new Error('Missing guard');old.herd.drive(actor,old.ctx,bodyTick);execute(next,2,bodyTick);
@@ -124,7 +128,7 @@ test('charge contact and stampede keep same-call hurt, knockdown, sound and stat
 
 test('the full group tick preserves original sensing, alarms, modes and save order',()=>{
  for(const mode of modes)for(const state of states){
-  const old=fixture(mode,state),next=fixture(mode,state);
+  const old=legacyFixture(mode,state),next=fixture(mode,state);
   try{
    old.herd.tick(old.ctx);execute(next,0,false,'tick');numbers(next.log,old.log);
    expect(next.random.snapshot()).toEqual(old.random.snapshot());expect(next.contextRandom.snapshot()).toEqual(old.contextRandom.snapshot());expect(next.herd.snapshot()).toBe(old.herd.snapshot());
@@ -134,7 +138,7 @@ test('the full group tick preserves original sensing, alarms, modes and save ord
 });
 
 test('duplicate group instants and native between-slot group changes retain the one original clock',()=>{
- const old=fixture('alert','watch'),next=fixture('alert','watch');
+ const old=legacyFixture('alert','watch'),next=fixture('alert','watch');
  try{
   for(const dt of [.1,.06,.04,.35,0,.1]){
    for(const f of [old,next]){f.ctx.dt=dt;f.ctx.t+=dt;}
@@ -148,12 +152,12 @@ test('duplicate group instants and native between-slot group changes retain the 
  }finally{old.scope.dispose();next.scope.dispose();}
 });
 test('a real same-call taming callback can change stallion ownership before the outer tick continues',()=>{
- const old=fixture('alert','display'),next=fixture('alert','display');
+ const old=legacyFixture('alert','display'),next=fixture('alert','display');
  try{
   for(const f of [old,next]){
    const guard=f.roster[2];if(guard===undefined)throw new Error('Missing guard');guard.hp=20;
-   f.herd.onStallionState=state=>{f.log.push(['state',state]);if(state==='beaten')f.herd.releaseStallion();};
-   f.herd.onBeaten=actor=>{f.log.push(['beaten',actor.entityId]);};
+   f.herd.onStallionState=(state:HerdBrain<AnimalSim>['stallionState'])=>{f.log.push(['state',state]);if(state==='beaten')f.herd.releaseStallion();};
+   f.herd.onBeaten=(actor:AnimalSim)=>{f.log.push(['beaten',actor.entityId]);};
    f.ports.onEvent=(event,x,z)=>{f.log.push(['event',event,x,z]);};
   }
   old.herd.tick(old.ctx);execute(next,0,false,'tick');numbers(next.log,old.log);
@@ -163,7 +167,7 @@ test('a real same-call taming callback can change stallion ownership before the 
 
 test('terrain rejection consumes the original context RNG while shared awareness keeps its own stream',()=>{
  for(const capacity of [1,4,16])for(const attempt of [0,1,7,15,16]){
-  const old=fixture('graze','watch',false,capacity),next=fixture('graze','watch',false,capacity);
+  const old=legacyFixture('graze','watch',false,capacity),next=fixture('graze','watch',false,capacity);
   try{
    for(const f of [old,next]){
     const snapshot=saved(f.herd);snapshot.state['spotT']=0;f.herd.restore(JSON.stringify(snapshot));
@@ -184,9 +188,9 @@ test('terrain rejection consumes the original context RNG while shared awareness
 test('public taming mutations keep the original actor, trust, state and same-call event order',()=>{
  const commands=['addTrust','setRidden','release','stampede','leadAway','adopt','disturb'] as const;
  for(const command of commands)for(const value of [-80,0,70,140]){
-  const old=fixture('alert','display'),next=fixture('alert','display');
+  const old=legacyFixture('alert','display'),next=fixture('alert','display');
   try{
-   for(const f of [old,next]){f.herd.onStallionState=state=>{f.log.push(['state',state,f.herd.stallion?.entityId??'none']);};f.herd.onFlight=stampede=>{f.log.push(['flight',Number(stampede)]);};f.ports.onEvent=(name,x,z)=>{f.log.push(['event',name,x,z]);};}
+   for(const f of [old,next]){f.herd.onStallionState=(state:HerdBrain<AnimalSim>['stallionState'])=>{f.log.push(['state',state,f.herd.stallion?.entityId??'none']);};f.herd.onFlight=(stampede:boolean)=>{f.log.push(['flight',Number(stampede)]);};f.ports.onEvent=(name,x,z)=>{f.log.push(['event',name,x,z]);};}
    const actor=old.roster[0];if(actor===undefined)throw new Error('Missing adoption actor');
    if(command==='addTrust'){old.herd.addTrust(value);execute(next,0,false,command,{argument:value});}
    else if(command==='setRidden'){old.herd.setRidden(value===0?null:actor);execute(next,0,false,command,{argHandle:value===0?0:1});}
@@ -199,7 +203,7 @@ test('public taming mutations keep the original actor, trust, state and same-cal
  }
 });
 test('the original initialization timer consumes only its original shared stream once',()=>{
- const old=fixture('graze','watch'),next=fixture('graze','watch');
+ const old=legacyFixture('graze','watch'),next=fixture('graze','watch');
  try{
   for(const f of [old,next]){const snapshot=saved(f.herd);snapshot.state['initialized']=false;f.herd.restore(JSON.stringify(snapshot));}
   old.herd.initialize();execute(next,0,false,'initialize');expect(next.herd.snapshot()).toBe(old.herd.snapshot());expect(next.random.snapshot()).toEqual(old.random.snapshot());expect(next.contextRandom.snapshot()).toEqual(old.contextRandom.snapshot());
@@ -207,7 +211,7 @@ test('the original initialization timer consumes only its original shared stream
 });
 test('cross-group nearest threats and charge contact retain actual original actor identities',()=>{
  for(const kicks of [0,1])for(const replacement of [false,true]){
-  const old=fixture('graze','charge'),next=fixture('graze','charge');
+  const old=legacyFixture('graze','charge'),next=fixture('graze','charge');
   try{
    for(const f of [old,next]){
     const guard=f.roster[2];if(guard===undefined)throw new Error('Missing guard');guard.mem['kicks']=kicks;
@@ -216,7 +220,7 @@ test('cross-group nearest threats and charge contact retain actual original acto
     wolf.applyDamage=(amount,point,dir)=>{f.log.push(['damage',wolf.entityId,amount,...point,...dir]);return damage(amount,point,dir);};
     wolf.stagger=(dir,strength)=>{f.log.push(['stagger',wolf.entityId,...dir,strength??0]);stagger(dir,strength??0);};
     f.ports.scarePack=(actor,radius)=>{f.log.push(['scare',actor.entityId,radius]);return true;};
-    f.ports.onEvent=(name,x,z)=>{f.log.push(['event',name,x,z]);};f.herd.onStallionState=state=>{f.log.push(['state',state]);};
+    f.ports.onEvent=(name,x,z)=>{f.log.push(['event',name,x,z]);};f.herd.onStallionState=(state:HerdBrain<AnimalSim>['stallionState'])=>{f.log.push(['state',state]);};
     const snapshot=saved(f.herd);snapshot.chargeTarget=wolf.entityId;f.herd.restore(JSON.stringify(snapshot));
     if(replacement){const steer=f.ctx.steer;f.ctx.steer=(actor,yaw,speed,turn)=>{steer(actor,yaw,speed,turn);const changed=saved(f.herd);changed.chargeTarget=null;f.herd.restore(JSON.stringify(changed));wolf.position.x+=.15;};}
    }
@@ -227,12 +231,12 @@ test('cross-group nearest threats and charge contact retain actual original acto
 });
 test('the real nearest binder preserves ordered ties, live threats and post-flight target mutation',()=>{
  for(const firstDead of [false,true])for(const mutate of [false,true]){
-  const old=fixture('graze','watch'),next=fixture('graze','watch');
+  const old=legacyFixture('graze','watch'),next=fixture('graze','watch');
   try{
    for(const f of [old,next]){
     const a=makeBody('wolf-a','wolf',2,3),b=makeBody('wolf-b','wolf',4,3);a.alive=!firstDead;f.threats.push(a,b);
-    f.herd.onStallionState=state=>{f.log.push(['state',state]);};
-    f.herd.onFlight=stampede=>{f.log.push(['flight',Number(stampede)]);if(mutate){a.position.set(14,1,15);b.position.set(16,1,15);}};
+    f.herd.onStallionState=(state:HerdBrain<AnimalSim>['stallionState'])=>{f.log.push(['state',state]);};
+    f.herd.onFlight=(stampede:boolean)=>{f.log.push(['flight',Number(stampede)]);if(mutate){a.position.set(14,1,15);b.position.set(16,1,15);}};
     f.ports.onEvent=(name,x,z)=>{f.log.push(['event',name,x,z]);};
    }
    old.herd.tick(old.ctx);execute(next,0,false,'tick');numbers(next.log,old.log);expect(next.herd.snapshot()).toBe(old.herd.snapshot());expect(next.random.snapshot()).toEqual(old.random.snapshot());expect(next.contextRandom.snapshot()).toEqual(old.contextRandom.snapshot());
@@ -240,7 +244,7 @@ test('the real nearest binder preserves ordered ties, live threats and post-flig
  }
 });
 test('a real native sense can change the next member before its own original capture',()=>{
- const old=fixture('graze','watch'),next=fixture('graze','watch');
+ const old=legacyFixture('graze','watch'),next=fixture('graze','watch');
  try{
   for(const f of [old,next]){let reads=0;f.ports.visibility=(x,z,player,speed,time)=>{f.log.push(['visibility',x,z,player.x,player.z,speed,time]);if(++reads===1){const later=f.roster[1];if(later!==undefined){later.position.x+=20;later.mem['aw']=.7;}}return .8;};f.ports.hearing=(radii,player,speed)=>{f.log.push(['hearing',...radii,player.x,player.z,speed]);return 12;};}
   old.herd.tick(old.ctx);execute(next,0,false,'tick');numbers(next.log,old.log);expect(next.herd.snapshot()).toBe(old.herd.snapshot());expect(next.random.snapshot()).toEqual(old.random.snapshot());expect(next.contextRandom.snapshot()).toEqual(old.contextRandom.snapshot());
@@ -248,42 +252,42 @@ test('a real native sense can change the next member before its own original cap
  }finally{old.scope.dispose();next.scope.dispose();}
 });
 test('nested public taming calls reuse the same executable and return before the outer native slot resumes',()=>{
- const old=fixture('alert','display'),next=fixture('alert','display');
+ const old=legacyFixture('alert','display'),next=fixture('alert','display');
  try{
   for(const f of [old,next]){
    const guard=f.roster[2];if(guard===undefined)throw new Error('Missing guard');guard.hp=20;
-   f.herd.onStallionState=state=>{f.log.push(['state',state]);if(state==='beaten'){
-    if(f===old){f.herd.addTrust(17);f.herd.setRidden(guard);}else{execute(f,0,false,'addTrust',{argument:17});execute(f,0,false,'setRidden',{argHandle:3});}
+   f.herd.onStallionState=(state:HerdBrain<AnimalSim>['stallionState'])=>{f.log.push(['state',state]);if(state==='beaten'){
+    if(f===old){f.herd.addTrust(17);f.herd.setRidden(guard);}else{execute(next,0,false,'addTrust',{argument:17});execute(next,0,false,'setRidden',{argHandle:3});}
    }};
-   f.herd.onBeaten=actor=>{f.log.push(['beaten',actor.entityId]);};f.ports.onEvent=(name,x,z)=>{f.log.push(['event',name,x,z]);};
+   f.herd.onBeaten=(actor:AnimalSim)=>{f.log.push(['beaten',actor.entityId]);};f.ports.onEvent=(name,x,z)=>{f.log.push(['event',name,x,z]);};
   }
   old.herd.tick(old.ctx);execute(next,0,false,'tick');numbers(next.log,old.log);expect(next.herd.snapshot()).toBe(old.herd.snapshot());expect(next.random.snapshot()).toEqual(old.random.snapshot());expect(next.contextRandom.snapshot()).toEqual(old.contextRandom.snapshot());
  }finally{old.scope.dispose();next.scope.dispose();}
 });
 test('sixteen newly hurt members keep original alarm and flight order within the bounded same-slot transaction',()=>{
- const old=fixture('graze','watch',false,16),next=fixture('graze','watch',false,16);
+ const old=legacyFixture('graze','watch',false,16),next=fixture('graze','watch',false,16);
  try{
   for(const f of [old,next]){
    for(const actor of f.roster){actor.lastHitT=1;delete actor.mem['hitT'];}
-   f.herd.onStallionState=state=>{f.log.push(['state',state]);};f.herd.onFlight=stampede=>{f.log.push(['flight',Number(stampede)]);};f.ports.onEvent=(name,x,z)=>{f.log.push(['event',name,x,z]);};
+   f.herd.onStallionState=(state:HerdBrain<AnimalSim>['stallionState'])=>{f.log.push(['state',state]);};f.herd.onFlight=(stampede:boolean)=>{f.log.push(['flight',Number(stampede)]);};f.ports.onEvent=(name,x,z)=>{f.log.push(['event',name,x,z]);};
   }
   old.herd.tick(old.ctx);execute(next,0,false,'tick');numbers(next.log,old.log);expect(next.herd.snapshot()).toBe(old.herd.snapshot());expect(next.random.snapshot()).toEqual(old.random.snapshot());expect(next.contextRandom.snapshot()).toEqual(old.contextRandom.snapshot());
   for(let i=0;i<old.roster.length;i++)numbers(next.roster[i]?.mem,old.roster[i]?.mem);
  }finally{old.scope.dispose();next.scope.dispose();}
 });
 test('adopting a newly registered elite appends that exact actor before its original state callback',()=>{
- const old=fixture('alert','display'),next=fixture('alert','display');
+ const old=legacyFixture('alert','display'),next=fixture('alert','display');
  try{
   for(const f of [old,next]){
    const elite=makeBody('new-elite','elite',3,4);f.pending.push(elite);
-   f.herd.onStallionState=state=>{f.log.push(['state',state,f.herd.stallion?.entityId??'none',...f.herd.members.map(actor=>actor.entityId)]);};
+   f.herd.onStallionState=(state:HerdBrain<AnimalSim>['stallionState'])=>{f.log.push(['state',state,f.herd.stallion?.entityId??'none',...f.herd.members.map(actor=>actor.entityId)]);};
   }
   const elite=old.pending[0];if(elite===undefined)throw new Error('Missing admitted elite');old.herd.adoptStallion(elite);execute(next,0,false,'adopt',{argHandle:200});
   numbers(next.log,old.log);expect(next.herd.snapshot()).toBe(old.herd.snapshot());expect(next.herd.stallion).toBe(next.pending[0]);expect(next.herd.members.at(-1)).toBe(next.pending[0]);expect(next.random.snapshot()).toEqual(old.random.snapshot());expect(next.contextRandom.snapshot()).toEqual(old.contextRandom.snapshot());
  }finally{old.scope.dispose();next.scope.dispose();}
 });
 test('an explicitly saved native negative-infinity hit stamp keeps its original semantics and wire',()=>{
- const old=fixture('graze','watch'),next=fixture('graze','watch');
+ const old=legacyFixture('graze','watch'),next=fixture('graze','watch');
  try{
   for(const f of [old,next])for(const actor of f.roster){actor.mem['hitT']=-Infinity;actor.lastHitT=0;}
   old.herd.tick(old.ctx);execute(next,0,false,'tick');numbers(next.log,old.log);expect(next.herd.snapshot()).toBe(old.herd.snapshot());expect(next.random.snapshot()).toEqual(old.random.snapshot());expect(next.contextRandom.snapshot()).toEqual(old.contextRandom.snapshot());for(let i=0;i<old.roster.length;i++)numbers(next.roster[i]?.mem,old.roster[i]?.mem);
@@ -292,7 +296,7 @@ test('an explicitly saved native negative-infinity hit stamp keeps its original 
 
 test('environment reads keep their original gates and reentrant group ordering',()=>{
  for(const scenario of ['body-gate','pass-through','standing','sensing','trample']){
-  const old=fixture(scenario==='trample'?'flee':'graze',scenario==='trample'?'lead':'warn'),next=fixture(scenario==='trample'?'flee':'graze',scenario==='trample'?'lead':'warn');
+  const old=legacyFixture(scenario==='trample'?'flee':'graze',scenario==='trample'?'lead':'warn'),next=fixture(scenario==='trample'?'flee':'graze',scenario==='trample'?'lead':'warn');
   for(const f of [old,next]){
    if(scenario==='trample'){
     f.herd.stampeding=true;f.roster[0]?.position.copy(f.ctx.player);f.roster[0]?.setMotion(.3,9,2);
@@ -340,19 +344,13 @@ test('scalar publication validates roles and all original storage before any com
  }
 });
 
-function bindNativeGuest(f:ReturnType<typeof fixture>){
- const actors=new Map([...f.roster,...f.pending,...f.threats].map(actor=>[actor.entityId,actor]));
- const snapshot=saved(f.herd);snapshot.state['initialized']=false;f.herd.restore(JSON.stringify(snapshot));
- const selected=ReturnProgram.page(pasture,f.scope);if(selected.prepareGroup===undefined||selected.groupBindings===undefined)throw new Error('Missing selected herd');
- const program={groupBindings:selected.groupBindings,prepareGroup:selected.prepareGroup};
- f.herd.bindGuest(program,binding,
-  {scope:f.scope,group:'herd',handle:50,player:f.ctx.player,actors});
- return {program,actors};
+function resetInitialization(f:ReturnType<typeof fixture>):void{
+ const original=saved(f.herd);original.state['initialized']=false;f.herd.restore(JSON.stringify(original));
 }
 test('the actual native owner initializes and handles pure public mutations through the shared loop without a local RNG loan',()=>{
- const old=fixture('graze','warn'),next=fixture('graze','warn');try{
+ const old=legacyFixture('graze','warn'),next=fixture('graze','warn');try{
   const oldState=saved(old.herd);oldState.state['initialized']=false;old.herd.restore(JSON.stringify(oldState));
-  bindNativeGuest(next);const context=next.contextRandom.snapshot();
+  resetInitialization(next);const context=next.contextRandom.snapshot();
   old.herd.initialize();next.herd.initialize();
   for(const amount of [11,-200,50,101]){old.herd.addTrust(amount);next.herd.addTrust(amount);expect(next.herd.snapshot()).toBe(old.herd.snapshot());}
   const a=old.roster[0],b=next.roster[0];if(a===undefined||b===undefined)throw new Error('Missing original member');
@@ -363,9 +361,9 @@ test('the actual native owner initializes and handles pure public mutations thro
 });
 test('the actual native owner drives ordinary members through the shared loop and keeps native steering reentry',()=>{
  for(const mutate of [false,true]){
-  const old=fixture('graze','warn',mutate),next=fixture('graze','warn',mutate);try{
+  const old=legacyFixture('graze','warn',mutate),next=fixture('graze','warn',mutate);try{
    const oldState=saved(old.herd);oldState.state['initialized']=false;old.herd.restore(JSON.stringify(oldState));
-   bindNativeGuest(next);old.herd.initialize();next.herd.initialize();
+   resetInitialization(next);old.herd.initialize();next.herd.initialize();
    for(const index of [0,1,3]){
     const a=old.roster[index],b=next.roster[index];if(a===undefined||b===undefined)throw new Error('Missing original member');
     old.herd.drive(a,old.ctx);next.herd.drive(b,next.ctx);numbers(next.log,old.log);numbers(a.mem,b.mem);expect(next.herd.snapshot()).toBe(old.herd.snapshot());
@@ -381,4 +379,12 @@ test('the selected pasture replaces its active witness and keeps exactly eight s
  expect(sim.filter(row=>row.module===pasture.script.module)).toEqual([]);
  expect(sim.filter(row=>row.module===`blobs/wasm/${pasture.v2.artifact.hash}.wasm`)).toHaveLength(1);
  expect(sim.find(row=>row.id==='nalati.pasture.projection')?.abi).toBe(2);
+});
+
+test('an unbound herd refuses before its initialization draw or public mutation',()=>{
+ const f=fixture('graze','watch');try{
+  const raw=new HerdBrain(f.roster,spec,f.ports),before=raw.snapshot(),random=f.random.snapshot();
+  expect(()=>raw.initialize()).toThrow('not bound');expect(()=>raw.addTrust(10)).toThrow('not bound');
+  expect(()=>raw.stampede(1,2)).toThrow('not bound');expect(raw.snapshot()).toBe(before);expect(f.random.snapshot()).toEqual(random);
+ }finally{f.scope.dispose();}
 });

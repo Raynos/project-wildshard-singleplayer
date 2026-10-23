@@ -240,18 +240,16 @@ export class PageGroups {
     this.packs.push(pack); for (const actor of members) { renderedPacks.set(actor,pack); } return pack;
   }
   herd(ids: readonly string[]): HerdBrain<Animal> {
+    if(this.rows.guest===undefined||this.groupOwner===undefined)throw new Error('Herd guest requires its original world owner');
     const members = ids.map(id => this.actor(id)),row = { ...this.herdRow,members: [...ids] },herd = new HerdBrain(members,row,{ ...this.common(),
       passThrough: (actor,through) => { actor.motor?.passThrough(through ? ['PLAYER'] : []); },resolveActor: id => this.animals.animals.find(body => body.entityId === id) ?? null,
       chargeContact: (actor,context,radius) => { this.contact(actor,context,radius,true); },
       scarePack: (actor,radius) => { const pack = renderedPacks.get(actor); if (pack === undefined) return false; pack.scare(actor.position.x,actor.position.z,radius); return true; },
       onKnockdown: (x,z,strength) => { wildEnv.onKnockdown(x,z,strength); } });
-    if(this.rows.guest!==undefined){
-      if(this.groupOwner===undefined)throw new Error('Herd guest requires the original world scope');
-      const program=ReturnProgram.page(this.rows.guest.program,this.groupOwner.scope);
-      if(program.prepareGroup===undefined||program.groupBindings===undefined)throw new Error('Missing herd group capability');
-      herd.bindGuest({groupBindings:program.groupBindings,prepareGroup:program.prepareGroup},this.rows.guest.binding,
-        {scope:this.groupOwner.scope,group:`herd.${this.herds.length}`,handle:this.herds.length+1,player:this.groupOwner.player,actors:this.animals.animals});
-    }
+    const program=ReturnProgram.page(this.rows.guest.program,this.groupOwner.scope);
+    if(program.prepareGroup===undefined||program.groupBindings===undefined)throw new Error('Missing herd group capability');
+    herd.bindGuest({groupBindings:program.groupBindings,prepareGroup:program.prepareGroup},this.rows.guest.binding,
+      {scope:this.groupOwner.scope,group:`herd.${this.herds.length}`,handle:this.herds.length+1,player:this.groupOwner.player,actors:this.animals.animals});
     herd.initialize(); herd.findThreat = (x,z,radius) => nearestPopulationActor(this.packs.flatMap(pack => pack.members),x,z,radius);
     const adopt = herd.adoptStallion.bind(herd); herd.adoptStallion = actor => { adopt(actor); renderedHerds.set(actor,herd); };
     this.herds.push(herd); for (const actor of members) { renderedHerds.set(actor,herd); } return herd;
