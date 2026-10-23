@@ -1,3 +1,5 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Original inline oracle from the same raw rasters.
+import {readFileSync} from 'node:fs';
 import {preflightShardfile} from '../src/format/preflight';
 import {emptyShardfile} from '../src/sdk/author';
 import {AudioSceneSchema} from '../src/format/audioScene';
@@ -61,8 +63,14 @@ it('uses scene geometry and surfaces from an unrelated orchard fixture',()=>{
 
 it('admits chunked fields under the fixed text bound and decodes the original field lattice',()=>{
  expect(()=>preflightShardfile({...emptyShardfile({slug:'audio-fixture',name:'Audio fixture',author:'Test',revision:1,seed:1}),audio:audio.audio})).not.toThrow();
- const data=parseAudioData(audio.audio),profile=parse(AudioSceneSchema,data.scene);
- for(const chunks of Object.values(profile.fields.channels)){expect(chunks.every(chunk=>chunk.length<=4096)).toBe(true);expect(chunks.join('').length).toBeGreaterThan(4096);}
+ const data=parseAudioData(audio.audio);if(data.scene===undefined)throw new Error('Missing scene');
+ for(const [id,row]of Object.entries(data.scene.fields.channels)){
+  if(Array.isArray(row)||typeof row.data==='string')throw new Error('Missing raw scene field');
+  const bytes=readFileSync(`src/shards/nalati-grasslands/data/audio-${id}.bin`).toString('base64');
+  data.scene.fields.channels[id]=bytes.match(/.{1,4096}/gu)??[];
+ }
+ const profile=parse(AudioSceneSchema,data.scene);
+ for(const chunks of Object.values(profile.fields.channels)){if(!Array.isArray(chunks))throw new Error('Missing legacy chunks');expect(chunks.every(chunk=>chunk.length<=4096)).toBe(true);expect(chunks.join('').length).toBeGreaterThan(4096);}
  const scene=new AudioSceneDirector(data,legacyDouble<Player>({position:new Vector3(),yaw:0}));expect(['grass','wood','gravel']).toContain(scene.surfaceAt(0,0));
  const broken=structuredClone(profile);broken.fields.channels['invalid']=['A'.repeat(4097)];expect(()=>parse(AudioSceneSchema,broken)).toThrow();
 });

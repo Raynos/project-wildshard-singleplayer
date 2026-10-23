@@ -1783,6 +1783,15 @@ A door is a piece whose `active()` is false while it is open, plus an `Interacta
 
 ## 15. Audio
 
+`AudioSceneSchema.fields.channels` accepts legacy bounded string chunks or
+`ScalarChannelRows` (f32, exactly res squared samples). Raw rows use named
+compressed binary files. `AudioSceneDirector.fieldFiles` lists those files;
+`prepareFields(blocks)` validates all rasters before exposing any sampler.
+`installClientAudioScene(ctx)` reads them through the same product and publishes
+listeners only after validation and live scope/world/player/reader checks.
+Legacy inline scenes still install synchronously. Both encodings retain the
+original f32 storage and bilinear sampling; audio timing and RNG are unchanged.
+
 The client-only `game/audio/cueDirector` schedules existing sound cues and
 native VFX from `CueDirectorSchema` rows. Construct `CueDirector(game, rows,
 scope?, sounds?)` for impact targets, or use `CueDirector.install(ctx, rows)`

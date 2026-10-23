@@ -5,10 +5,9 @@ import { runtimeAudio, installRuntimeAudioEntry, installRuntimeGameplayAudio, ty
 import type { ShardProduct } from '../shardfile/shardProduct';
 import { Vector3 } from 'three';
 import { parse } from 'valibot';
-import { unzlibSync } from 'fflate';
+import { ScalarLatticeBindings } from '@wildshard/engine/world/scalarChannel';
 import { AudioSceneSchema, type AudioScene } from '@wildshard/format/audioScene';
 import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
-import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import type { AudioData } from '@wildshard/format/audio';
 import type { Audio, HoofSurface, ImpactKind } from '@wildshard/engine/audio/Audio';
 import type { Music } from '@wildshard/engine/audio/Music';
@@ -40,6 +39,7 @@ export class AudioSceneDirector {
  readonly rows:AudioScene;
  readonly inputs:Record<string,number>;
  private readonly fields=new Map<string,(x:number,z:number)=>number>();
+ private readonly lattices=new ScalarLatticeBindings();
  private readonly cues=new CombatCues();
  private readonly point=new Vector3();
  private audio:Audio|null=null;
@@ -50,8 +50,12 @@ export class AudioSceneDirector {
  private bedT=0;private chorusT:number;private thrustPending=false;
  constructor(private readonly data:AudioData,private readonly player:Player){
   this.rows=parse(AudioSceneSchema,data.scene);this.inputs={...this.rows.initial};this.chorusT=this.rows.chorus.initial;
-  for(const [id,encoded]of Object.entries(this.rows.fields.channels)){const bytes=unzlibSync(Uint8Array.from(atob(encoded.join('')),c=>c.codePointAt(0)??0));if(bytes.byteLength!==this.rows.fields.res**2*4)throw new Error('Invalid audio field lattice');const heights=new Float32Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/4);if(!heights.every(value=>Number.isFinite(value)))throw new Error('Invalid audio field sample');this.fields.set(id,bakedSamplers({res:this.rows.fields.res,size:this.rows.fields.size,heights,seed:0,landscapeHash:0,splat:new Uint8Array(0),undergrowth:null}).heightAt);}
+  const {res,size,channels}=this.rows.fields;
+  for(const [id,encoded]of Object.entries(channels))this.fields.set(id,this.lattices.lattice({res,size,values:Array.isArray(encoded)?{type:'f32',count:res*res,data:encoded.join('')}:encoded}));
  }
+ /** Declared raw rasters use the product's verified file intake before publication. */
+ get fieldFiles():readonly string[]{return this.lattices.files;}
+ prepareFields(blocks:ReadonlyMap<string,Uint8Array>):void{this.lattices.prepare(blocks);}
  /** Native scoped signal subscriptions; weapon ids/phases and creature events are declared rows. */
  listen(ctx:ShardContext):void{
   ctx.on('audio.scene-frame', ({delta,inputs})=>{this.update(delta,inputs);});
@@ -121,12 +125,23 @@ export async function enterDeclaredAudioPhase(ctx: ShardContext, phase: 'kit' | 
  installRuntimeAudioEntry(ctx, phase, { audio, ...(audio.music === null ? {} : { music: audio.music }) });
 }
 /** Z1 installs one declared director and its signal subscriptions for the entered owner. */
-export function installClientAudioScene(ctx:ShardContext):void{
- const world=ctx.game.runtime?.world;if(world===undefined||world===null||ctx.scope.disposed)throw new Error('Audio scene requires an entered world');
- let products=enteredScenes.get(ctx.scope);if(products===undefined){products=new WeakMap();enteredScenes.set(ctx.scope,products);}
- if(products.has(ctx.product))throw new Error('Audio scene is already installed');
- const scene=new AudioSceneDirector(runtimeAudio(ctx,ctx.product.shardfile.audio),world.player);scene.listen(ctx);products.set(ctx.product,scene);
- const installed=products;ctx.scope.onDispose(()=>{installed.delete(ctx.product);});
+export function installClientAudioScene(ctx:ShardContext):void|Promise<void>{
+ const scope=ctx.scope,product=ctx.product,world=ctx.game.runtime?.world;
+ if(world===undefined||world===null||scope.disposed||scope.disposing)throw new Error('Audio scene requires an entered world');
+ let products=enteredScenes.get(scope);if(products===undefined){products=new WeakMap();enteredScenes.set(scope,products);}
+ if(products.has(product))throw new Error('Audio scene is already installed');
+ const read=product.file,player=world.player,data=runtimeAudio(ctx,product.shardfile.audio),scene=new AudioSceneDirector(data,player),installed=products;
+ const publish=():void=>{
+  if(scope.disposed||scope.disposing||ctx.scope!==scope||ctx.product!==product||ctx.game.runtime?.world!==world||world.player!==player||product.file!==read||runtimeAudio(ctx,product.shardfile.audio)!==data)throw new Error('Audio scene owner changed while preparing fields');
+  if(installed.has(product))throw new Error('Audio scene is already installed');
+  scene.listen(ctx);installed.set(product,scene);scope.onDispose(()=>{installed.delete(product);});
+ };
+ if(scene.fieldFiles.length===0){publish();return;}
+ const prepare=async():Promise<void>=>{
+  const blocks=await Promise.all(scene.fieldFiles.map(async file=>[file,await read.call(product,file)] as const));
+  scene.prepareFields(new Map(blocks));publish();
+ };
+ return prepare();
 }
 /** Native bindings borrow the installed audio scene and supply their numeric observations. */
 export function clientAudioScene(ctx:ShardContext):AudioSceneDirector{

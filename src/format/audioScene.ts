@@ -1,12 +1,13 @@
 import * as v from 'valibot';
 import { AudioMixExpressionSchema as expr } from './audioProfiles';
+import { ScalarChannelSchema } from './scalarChannel';
 
 const n=v.pipe(v.number(),v.finite()),id=v.pipe(v.string(),v.minLength(1),v.maxLength(128));
 const point=v.tuple([n,n]);
 const values=v.pipe(v.array(v.tuple([id,expr])),v.maxLength(64));
 /** Client-only audio scene observations, geometry, cue subscriptions and score rows. */
 export const AudioSceneSchema=v.strictObject({
- fields:v.strictObject({res:v.pipe(n,v.integer(),v.minValue(2),v.maxValue(2048)),size:v.pipe(n,v.minValue(.001),v.maxValue(100000)),channels:v.pipe(v.record(id,v.pipe(v.array(v.pipe(v.string(),v.minLength(1),v.maxLength(4096))),v.minLength(1),v.maxLength(977),v.check(chunks=>chunks.reduce((sum,chunk)=>sum+chunk.length,0)<=4000000))),v.check(channels=>Object.keys(channels).length<=16))}),
+ fields:v.pipe(v.strictObject({res:v.pipe(n,v.integer(),v.minValue(2),v.maxValue(2048)),size:v.pipe(n,v.minValue(.001),v.maxValue(100000)),channels:v.pipe(v.record(id,v.union([v.pipe(v.array(v.pipe(v.string(),v.minLength(1),v.maxLength(4096))),v.minLength(1),v.maxLength(977),v.check(chunks=>chunks.reduce((sum,chunk)=>sum+chunk.length,0)<=4000000)),ScalarChannelSchema])),v.check(channels=>Object.keys(channels).length<=16))}),v.check(row=>Object.values(row.channels).every(channel=>Array.isArray(channel)||(channel.type==='f32'&&channel.count===row.res*row.res)),'Audio field requires one f32 per sample')),
  profiles:v.record(id,v.strictObject({x0:n,step:n,values:v.pipe(v.array(point),v.minLength(2),v.maxLength(4096))})),
  paths:v.record(id,v.pipe(v.array(point),v.maxLength(2048))),
  probes:v.record(id,v.variant('kind',[

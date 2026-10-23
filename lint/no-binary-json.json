@@ -226,14 +226,6 @@
       "base64Chars": 20268,
       "dataUris": 0
     },
-    "src/shards/nalati-grasslands/data/audio.generated.json": {
-      "base64Chars": 48780,
-      "dataUris": 0
-    },
-    "src/shards/nalati-grasslands/data/audioScene.json": {
-      "base64Chars": 48780,
-      "dataUris": 0
-    },
     "src/shards/nalati-grasslands/data/cragRock.generated.json": {
       "base64Chars": 27360,
       "dataUris": 0
