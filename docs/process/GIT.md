@@ -14,8 +14,9 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   Historical (E357 Z4): **The per-push CI gate** stays green: the `macos-15` parity jobs for every shard and the template, and
   the node checks (layers, ratchets, contracts, the asset audit, `gen-shards --check`). Keep the nightly
   `gpu-perf` run on Jake's Mac enabled.
-- **Strict means strict.** `tsconfig.json` has every strictness flag on, and `.oxlintrc.json` is type-aware with every
-  category at error and zero warnings allowed. Fix the type, never the gate: no `any`, no non-null `!`, no
+- **Strict means strict.** `tsconfig.json` has every strictness flag on, and `.oxlintrc.json` is type-aware with stable
+  categories at error and zero warnings allowed. L4 pins the linter and excludes nursery rules until reviewed.
+  Fix the type, never the gate: no `any`, no non-null `!`, no
   `@ts-ignore` / `@ts-expect-error`, no `as unknown as`, no tsconfig `exclude`, no blanket `oxlint-disable`. A per-line
   `oxlint-disable-next-line <rule> -- <reason>` only where the rule really is wrong there.
 - **Never mutate what you didn't author.** No `git stash`, `checkout`, `restore` or `git rm` on others' files; leave

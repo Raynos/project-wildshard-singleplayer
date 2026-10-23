@@ -1,5 +1,6 @@
 {
-  // Wildshard lint gate. Every category is an error; the `rules` block below lists the rules that are
+  // Wildshard lint gate. Stable categories are errors; nursery rules wait for review (L4).
+  // The `rules` block below lists the rules that are
   // deliberately switched off (one-line reason each) or configured. CI runs `pnpm run lint` (`oxlint`; type-aware via `options` below).
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["typescript", "unicorn", "oxc", "import", "promise"],
@@ -18,7 +19,7 @@
     "pedantic": "error",
     "restriction": "error",
     "style": "error",
-    "nursery": "error"
+    "nursery": "off"
   },
   "rules": {
     "wildshard/no-generated-import": "error",
