@@ -191,3 +191,24 @@ test('over-budget admissions report the same owner totals as the scanning alloca
   expect(held.map(pairs => pairs.map(lease => lease !== null))).toEqual(held.map(pairs => [pairs[0] !== null, pairs[0] !== null]));
   same(ledgers);
 });
+
+test('many idle claims evicted a few at a time leave in the original order with the same bytes', () => {
+  const playing = CONTENT_CAPS.engineBase + CONTENT_CAPS.overlap + 20_000;
+  const ledgers = pair(playing, false), events = ledgers.map(() => [] as string[]), held = ledgers.map(() => [] as (LedgerLease | null)[]);
+  const claim = (i: number, ledger: Ledger, at: number) => ledger.reserve({ id: `idle-${String(i).padStart(4, '0')}`, owner: i % 3 === 0 ? 'a' : 'b',
+    category: i % 2 === 0 ? 'far' : 'l1', bytes: 40 + (i % 7) * 13, needed: false, distance: (i * 37) % 101,
+    prepareEvict: () => (i % 11 === 5 ? null : { commit: () => { events[at]?.push(`commit:${i}`); }, abort: () => { events[at]?.push(`abort:${i}`); } }) });
+  for (const [at, ledger] of ledgers.entries()) for (let i = 0; i < 400; i++) held[at]?.push(claim(i, ledger, at));
+  same(ledgers);
+  // each needed claim evicts a few idle ones; departures between them keep the rest in order
+  for (let round = 0; round < 40; round++) {
+    const decisions = ledgers.map((ledger, at) => {
+      if (round % 5 === 4) held[at]?.[round * 3]?.release();
+      const lease = ledger.reserve({ id: `need-${round}`, owner: 'c', category: 'near', bytes: 150 + round * 9, needed: true, distance: 0 });
+      held[at]?.push(lease); return lease !== null;
+    });
+    expect(decisions[1]).toBe(decisions[0]); same(ledgers);
+    expect(committed(events[1])).toEqual(committed(events[0]));
+  }
+  expect(committed(events[0]).length).toBeGreaterThan(40);
+});

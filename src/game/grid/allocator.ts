@@ -87,6 +87,8 @@ export class ResidencyAllocator {
   private readonly owners = new Map<string, number>();
   private readonly evictable = new Set<Entry>();
   private evictionOrder: Entry[] | null = null;
+  /** claims that left `evictable` since `evictionOrder` was made (they keep the others' order: one filter drops them) */
+  private evictionStale = 0;
   /** The evictable claims' raw bytes per category (and page calibration credit), kept with the evictable index: the most
    *  room evicting all of them could make, as an upper bound (a covered claim is charged nothing, a parent re-exposes its
    *  children), so the bound refuses only claims eviction cannot fit. */
@@ -264,8 +266,10 @@ export class ResidencyAllocator {
   private refreshEviction(entry: Entry): void {
     // Only eligible claims enter the sorted index; distance/needed/hold changes invalidate its snapshot.
     const eligible = this.entries_.get(entry.id) === entry && !entry.needed && entry.holds === 0 && entry.prepare !== undefined;
-    if (eligible) { this.evictable.add(entry); this.evictionOrder = null; }
-    else if (this.evictable.delete(entry)) this.evictionOrder = null;
+    if (eligible) { this.evictable.add(entry); this.evictionOrder = null; this.evictionStale = 0; }
+    // a claim that leaves keeps the others' order: the next walk drops it rather than sorting every claim again (an
+    // entry's over-budget registrations each evicted a few idle claims and re-sorted thousands: Nine's grid entry, 4x CPU)
+    else if (this.evictable.delete(entry) && this.evictionOrder !== null) this.evictionStale++;
     const before = this.evictableShares.get(entry);
     if (before !== undefined) { this.evictableBytes[before.category] -= before.bytes; this.evictableCredit -= before.credit; this.evictableShares.delete(entry); }
     if (!eligible) return;
@@ -306,6 +310,12 @@ export class ResidencyAllocator {
    * thousands of idle geometry allocations quadratic for each over-target registration. */
   private omit(input: ContentCostInput, entry: Entry, omitted: Set<string>, extra: ResidencyClaim & { baseCredit: number }): void {
     if (this.entries_.get(entry.id) !== entry) return;
+    // a plain claim (not a page component, covering nothing, not the new claim's cover) moves one field
+    if (entry.category !== 'page' && extra.coveredBy !== entry.id && !this.coverage.has(entry.id)) {
+      if (!this.covered(entry, omitted)) { const key = field[entry.category]; input[key] = (input[key] ?? 0) - entry.bytes; }
+      omitted.add(entry.id);
+      return;
+    }
     let page = input.page ?? 0, credit = CONTENT_CAPS.engineBase - (input.engineBase ?? CONTENT_CAPS.engineBase);
     const adjust = (row: Pick<Entry, 'category' | 'bytes' | 'baseCredit'>, sign: number): void => {
       if (row.category === 'page') { page += sign * row.bytes; credit += sign * row.baseCredit; }
@@ -339,7 +349,7 @@ export class ResidencyAllocator {
    * and evict nothing. A failed commit retains its charge and aborts uncommitted preparations. Returns whether the claim now fits.
    */
   private evictFor(extra: ResidencyClaim & { baseCredit: number }): boolean {
-    const candidates = this.evictionOrder ??= [...this.evictable].sort((a, b) => b.distance - a.distance || a.id.localeCompare(b.id));
+    const candidates = this.evictionCandidates();
     // When even evicting every eligible claim could not make room, nothing is prepared. (While a page sat over its target,
     // each further claim prepared and aborted every idle candidate: a neighbour's build registering its geometry held a
     // 600 ms frame on the phone at 4x.)
@@ -369,6 +379,12 @@ export class ResidencyAllocator {
       this.drop(current.entry);
     }
     return this.fits(extra);
+  }
+  /** The evictable claims, farthest first (ids break ties): sorted once, then only the claims that left are dropped. */
+  private evictionCandidates(): Entry[] {
+    if (this.evictionOrder === null) { this.evictionOrder = [...this.evictable].sort((a, b) => b.distance - a.distance || a.id.localeCompare(b.id)); this.evictionStale = 0; }
+    else if (this.evictionStale > 0) { this.evictionOrder = this.evictionOrder.filter(entry => this.evictable.has(entry)); this.evictionStale = 0; }
+    return this.evictionOrder;
   }
   private drop(entry: Entry): void {
     if (this.entries_.get(entry.id) !== entry) return;
