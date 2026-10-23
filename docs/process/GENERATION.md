@@ -37,7 +37,9 @@ incidental files removed and non-output input writes refused between runs; every
 The audit bypasses phase snapshots and shared output caches, compares exact output SHA256s, never restores source files
 and releases its private results after downstream consumers finish. All registered jobs, including report-only jobs,
 are checked by the full command; unsupported Darwin/browser/tool requirements fail explicitly. Run the full audit on
-one committed build-mirror revision under the build lane and a browser lane. The audit schedules at most one browser
+one committed revision with `node scripts/check-generation-determinism.mjs --rev=<full-main-sha>`. The official runner
+prepares declared inputs in a pooled build mirror, then checks all jobs under the build and browser lanes. It acquires
+the mirror before the heavy lease and releases both on completion/failure. The audit schedules at most one browser
 producer at a time, alongside the bounded non-browser producers.
 A difference names the producer, output and both hashes and publishes no cache entry. Normal generation's historical
 cache/pinned-output checks remain separate and unchanged: a stable fresh result does not approve a stale retained pin.
@@ -49,6 +51,10 @@ no stage; a changed producer still executes with its full declared closure befor
 A complete successful read observation may omit unread catalogue bytes from a cache lookup (G668 G6).
 A producer that reads the catalogue still binds its exact bytes. Other non-code metadata, producer/tool identity
 and verified outputs remain required; a miss always runs the complete declared stage.
+The four boot-presence readers and Sky world's orphan cleanup opt into `catalogueOutputsOnly`: their stage keeps
+every job ID, output path, admitted path and pin, while omitting unused commands and input roots. This preserves
+cross-shard/shared assets and cleanup protection; a changed output declaration still invalidates. The scheduler
+continues to read and validate the original complete catalogue, and checks the projection again after generation.
 Generation read receipts also record attempted workspace-package export keys, including caught missing exports.
 A manifest used only for module resolution may bind those exact keys instead of every unused export; wildcard
 rows and all other manifest fields remain exact. Explicit manifest reads and unsupported exports shapes keep
