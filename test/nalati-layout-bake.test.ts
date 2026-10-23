@@ -1,8 +1,9 @@
+import {grassBlock} from './fixtures/nalatiGrass';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the committed native lattice.
 import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { ScalarLatticeSchema } from '../src/format/scalarChannel';
-import { GrassPresentationSchema } from '../src/format/fieldPresentation';
+import { GrassPresentationSchema, type GrassPayload } from '../src/format/fieldPresentation';
 import { expect, test } from 'vitest';
 import { unzlibSync } from 'fflate';
 import { InstancedBufferGeometry, Mesh, MeshBasicMaterial } from 'three';
@@ -89,7 +90,7 @@ test('baked geography keeps bounded masks and complementary zones', () => {
 });
 
 test('both grass tiers admit every ring, flower and card draw', () => {
-  const decode = (value: string): Uint8Array => unzlibSync(Uint8Array.from(atob(value), char => char.codePointAt(0) ?? 0));
+  const decode = (value: GrassPayload): Uint8Array => unzlibSync(grassBlock(value));
   expect(decode(grass.height).length).toBe(512 * 512 * 2);
   expect(decode(grass.field).length).toBe(126 * 126 * 4);
   expect(decode(grass.ground).length).toBe(126 * 126 * 4);

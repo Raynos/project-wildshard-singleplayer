@@ -1,0 +1,62 @@
+[
+  {
+    "id": "height",
+    "bytes": 350855,
+    "hash": "d6661c318086ee8b392264e8e2b0e129059d18afdf6fc3b651cdfd91fb1dfd95",
+    "decoded": 524288
+  },
+  {
+    "id": "mask",
+    "bytes": 35499,
+    "hash": "7154aa4eb80ce388ae84a4186e872919c435b3c3e268cff10c3ce1ac80f16e76",
+    "decoded": 1048576
+  },
+  {
+    "id": "field",
+    "bytes": 48434,
+    "hash": "c22050b2179000f9f51bb21aeb9ce2f1fb08c033d48ffce235d9505da46b94fb",
+    "decoded": 63504
+  },
+  {
+    "id": "ground",
+    "bytes": 30887,
+    "hash": "b6ee5cdb66de8189c39740617eeef5d89b60afc0b9ff2bfd6010fdcd501fab5f",
+    "decoded": 63504
+  },
+  {
+    "id": "phone-blades",
+    "bytes": 187795,
+    "hash": "11c7ba502ed080d1b1ce5439c584690f925e8a1cb6f1a67ef47234a35ec621f3",
+    "decoded": 2207753
+  },
+  {
+    "id": "phone-flowers",
+    "bytes": 20091,
+    "hash": "58dadd84b10046b2bf85e86feffbb04fc7e500ed1d99b5ebf7d4ac2fbf851b22",
+    "decoded": 238914
+  },
+  {
+    "id": "phone-cards",
+    "bytes": 7312,
+    "hash": "70c6ed9b7a0022b7661c6e5ad3749e16d491a2ffe587b19934b2a2d1ac78a77d",
+    "decoded": 97423
+  },
+  {
+    "id": "desktop-blades",
+    "bytes": 421893,
+    "hash": "12615c8fcb7a955afbfae307ed48c40ead6065a3fe5f21432841fc7ba3c3c225",
+    "decoded": 5012473
+  },
+  {
+    "id": "desktop-flowers",
+    "bytes": 33340,
+    "hash": "ce5d722c355ed0207afb83b00671576792cbd19c13ae980e1ba0cf81bc5467bb",
+    "decoded": 417330
+  },
+  {
+    "id": "desktop-cards",
+    "bytes": 10462,
+    "hash": "a018f9ac4a031c9469327bfff0bc7241a9878928b0ea3b513294df1daa055053",
+    "decoded": 139663
+  }
+]

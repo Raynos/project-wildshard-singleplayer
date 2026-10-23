@@ -1,6 +1,6 @@
 import { base64Bytes } from '@wildshard/engine/core/deflate';
 import * as v from 'valibot';
-import { GrassPresentationSchema, type GrassPresentationRows } from '@wildshard/format/fieldPresentation';
+import { GrassPresentationSchema, grassPresentationFiles, type GrassPayload, type GrassPresentationRows } from '@wildshard/format/fieldPresentation';
 import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 import * as THREE from 'three';
 import { macrotask } from '@wildshard/engine/boot/plan';
@@ -30,11 +30,10 @@ import { lentLook, prepareLentLooks, setLentParam, setLentTexture } from '../sha
 
 const MAX_TILES = 256;
 type InstancedBufferGeometry = THREE.InstancedBufferGeometry;
-const decode = (encoded: string): Uint8Array<ArrayBuffer> => unzlibSync(base64Bytes(encoded));
 /** A scene's draw rows, decoded and admitted. */
-const sceneRows = (encoded: string): ReturnType<typeof parseSceneBuffers> => parseSceneBuffers(JSON.parse(new TextDecoder().decode(decode(encoded))));
+const sceneRows = (bytes: Uint8Array): ReturnType<typeof parseSceneBuffers> => parseSceneBuffers(JSON.parse(new TextDecoder().decode(bytes)));
 /** Admit the declared instanced drawing buffers (`rows`: the scene's rows a preparation already decoded). */
-function geometries(encoded: string, look: string, rows = sceneRows(encoded)): InstancedBufferGeometry[] {
+function geometries(look: string, rows: ReturnType<typeof parseSceneBuffers>): InstancedBufferGeometry[] {
   return createSceneBuffers(rows, lentLook(look), resourceScope()).children.map(child => {
     if (!(child instanceof THREE.Mesh) || !(child.geometry instanceof THREE.InstancedBufferGeometry)) throw new Error('Grass draw requires instanced geometry');
     for (const name of ['aTile', 'aHole']) { const attribute = child.geometry.getAttribute(name); if (attribute instanceof THREE.BufferAttribute) attribute.setUsage(THREE.DynamicDrawUsage); }
@@ -52,27 +51,37 @@ export class GrassPresentationProfile {
   private readonly instances = new Set<WeakRef<GrassPresentation>>();
   track(instance: GrassPresentation): void { this.instances.add(new WeakRef(instance)); }
   readonly input: GrassPresentationRows;
-  constructor(input: unknown) { this.input = v.parse(GrassPresentationSchema,input); this.uniforms.uGrassGain.value = this.input.view.gain; }
+  constructor(input: unknown, private readonly files: ReadonlyMap<string,Uint8Array> = new Map()) {
+    this.input = v.parse(GrassPresentationSchema,input);
+    for(const file of grassPresentationFiles(this.input))if(!files.has(file))throw new Error(`Missing grass file ${file}`);
+    this.uniforms.uGrassGain.value = this.input.view.gain;
+  }
+  private decode(payload: GrassPayload): Uint8Array<ArrayBuffer> {
+    if(typeof payload==='string')return unzlibSync(base64Bytes(payload));
+    const bytes=this.files.get(payload.file);
+    if(bytes===undefined)throw new Error(`Missing grass file ${payload.file}`);
+    return unzlibSync(bytes);
+  }
   /** what `prepare` decoded for the next build (each taken once: a build owns its arrays) */
-  private readonly prepared = new Map<string, Uint8Array<ArrayBuffer> | ReturnType<typeof parseSceneBuffers>>();
+  private readonly prepared = new Map<GrassPayload, Uint8Array<ArrayBuffer> | ReturnType<typeof parseSceneBuffers>>();
   /** G639: before the synchronous build, the looks compile one build step each and the maps and draw rows decode in
    *  slices (together they were one ~200 ms Nalati cell-entry frame, Chromium phone 4x). */
   async prepare(): Promise<void> {
     await prepareLentLooks(this.input.view.looks);
     const slice = workSlice(), rows = this.input[TIER];
     this.heightTexture(); await slice.check();
-    for (const encoded of [this.input.field, this.input.ground]) { this.prepared.set(encoded, decode(encoded)); await slice.check(); }
-    for (const encoded of [rows.scenes.blades, rows.scenes.flowers, rows.scenes.cards]) { this.prepared.set(encoded, sceneRows(encoded)); await slice.check(); }
+    for (const encoded of [this.input.field, this.input.ground]) { this.prepared.set(encoded, this.decode(encoded)); await slice.check(); }
+    for (const encoded of [rows.scenes.blades, rows.scenes.flowers, rows.scenes.cards]) { this.prepared.set(encoded, sceneRows(this.decode(encoded))); await slice.check(); }
   }
   /** a map's bytes: prepared, else decoded now */
-  bytes(encoded: string): Uint8Array<ArrayBuffer> {
+  bytes(encoded: GrassPayload): Uint8Array<ArrayBuffer> {
     const ready = this.prepared.get(encoded); this.prepared.delete(encoded);
-    return ready instanceof Uint8Array ? ready : decode(encoded);
+    return ready instanceof Uint8Array ? ready : this.decode(encoded);
   }
   /** a scene's draw rows: prepared, else decoded now */
-  scene(encoded: string): ReturnType<typeof parseSceneBuffers> {
+  scene(encoded: GrassPayload): ReturnType<typeof parseSceneBuffers> {
     const ready = this.prepared.get(encoded); this.prepared.delete(encoded);
-    return ready === undefined || ready instanceof Uint8Array ? sceneRows(encoded) : ready;
+    return ready === undefined || ready instanceof Uint8Array ? sceneRows(this.decode(encoded)) : ready;
   }
 readonly uniforms = {
   uSunView: { value: new THREE.Vector3(0, 0.4, 1).normalize() },
@@ -98,7 +107,7 @@ mood(night: number, dusk: number, overcast: number): void {
 
   heightTexture(): THREE.DataTexture {
     if (this.heightTex !== null) return this.heightTex;
-    const bytes = decode(this.input.height), data = new Uint16Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/2), n = this.input.view.heightSize;
+    const bytes = this.decode(this.input.height), data = new Uint16Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/2), n = this.input.view.heightSize;
     const texture = new THREE.DataTexture(data,n,n,THREE.RedFormat,THREE.HalfFloatType);
     texture.magFilter = texture.minFilter = THREE.LinearFilter; texture.needsUpdate = true;
     this.heightTex = cacheUntilDisposed(texture, () => { if (this.heightTex === texture) this.heightTex = null; }); return texture;
@@ -152,7 +161,7 @@ export class GrassPresentation {
       this.group.add(mesh);
       return mesh;
     };
-    const blades = geometries(rows.scenes.blades, BLADES, this.profile.scene(rows.scenes.blades));
+    const blades = geometries(BLADES, this.profile.scene(rows.scenes.blades));
     RINGS.forEach((cfg, ri) => {
       const half = (cfg.G * cfg.T) / 2;
       const geo = blades[ri]; if (geo === undefined) throw new Error('Grass ring missing');
@@ -160,12 +169,12 @@ export class GrassPresentation {
     });
     {
       const cfg = FLOWERS, half = (cfg.G * cfg.T) / 2;
-      const geo = geometries(rows.scenes.flowers, HEADS, this.profile.scene(rows.scenes.flowers))[0]; if (geo === undefined) throw new Error('Grass flowers missing');
+      const geo = geometries(HEADS, this.profile.scene(rows.scenes.flowers))[0]; if (geo === undefined) throw new Error('Grass flowers missing');
       this.flowers = { T: cfg.T, G: cfg.G, mesh: draw(HEADS, geo, 'grass-v2-flowers'), geo, half };
     }
     // the near field: the painted card atlas as clumps of 3 crossed quads (not camera-facing: they hold up walked round),
     // on the same field, mask, wind and trample as the blades, cut at the atlas's alpha; the atlas swapped in when it lands
-    const per = rows.per, geo = geometries(rows.scenes.cards, CLUMPS, this.profile.scene(rows.scenes.cards))[0];
+    const per = rows.per, geo = geometries(CLUMPS, this.profile.scene(rows.scenes.cards))[0];
     if (geo === undefined) throw new Error('Grass cards missing');
     setLentParam(CLUMPS, 'cardNear', [NEAR[0], NEAR[1], per]);
     draw(CLUMPS, geo, 'grass-v2-cards');
@@ -189,7 +198,7 @@ export class GrassPresentation {
     const run = ++this.baking;
     await macrotask(); // not inside the caller's task (SF67: the first rows were the grass step's)
     if (run !== this.baking) return;
-    const d = decode(this.profile.input.mask);
+    const d = this.profile.bytes(this.profile.input.mask);
     // spruce trunks: no blades inside a trunk
     for (const t of this.forest.trees) {
       const r = t.r;

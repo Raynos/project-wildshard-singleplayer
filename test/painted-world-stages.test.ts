@@ -1,3 +1,4 @@
+import {GRASS_FILES} from './fixtures/nalatiGrass';
 // oxlint-disable-next-line import/no-nodejs-modules -- admit generated grass rows without inferring their complete JSON type
 import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
@@ -76,7 +77,7 @@ test('a world that leaves or swaps its library during the load publishes nothing
 function orchard(): PaintedWorldParts {
   return paintedWorld('orchard-stages', { fog: { start: 40, end: 900, haze: [0.3, 0.32, 0.36], aerial: [0.002, 40, -5, 0.001], edge: [0.9, 251, 270, 15], order: 280, lut: [0.5, 0.55, 0.6] },
     air: { tile: 800, threshold: 0.6, strength: 0.4, softness: 0.1, drift: [1, 0.5] }, ground: 'ground' in paintedTextures ? paintedTextures.ground : null, tiles: specimenData.materials,
-    capture, grass: { rows: grassRows, cards: { url: '/assets/orchard/cards.webp', phoneUrl: '/assets/orchard/cards.phone.webp', name: 'orchard-cards' } } });
+    capture, grass: { rows: grassRows, cards: { url: '/assets/orchard/cards.webp', phoneUrl: '/assets/orchard/cards.phone.webp', name: 'orchard-cards' } } },GRASS_FILES);
 }
 
 test('a painted-reseed stage reseeds the named painted world\'s grass for a live world only', () => {

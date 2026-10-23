@@ -36,11 +36,16 @@ for (let j = 0; j < 126; j++) for (let i = 0; i < 126; i++) {
   for (let c = 0; c < 3; c++) gd[k+c] = Math.round(Math.min(1,field.sample(x,z,c+4))*255);
   gd[k+3] = 255;
 }
-const encode = array => Buffer.from(zlibSync(new Uint8Array(array.buffer, array.byteOffset, array.byteLength))).toString('base64');
+const writer = byteWriter(process.argv.includes('--check'), 'nalati-grass'),sources=[];
+const encode = (array,id) => {
+  const source=`data/grass-${id}.bin`,name=`look/grass/${id}.bin`;
+  writer.put(resolve(import.meta.dirname,'..',source),zlibSync(new Uint8Array(array.buffer,array.byteOffset,array.byteLength)));
+  sources.push({name,kind:'bin',source,options:{decoded:array.byteLength}});return {file:name};
+};
 const encodeRows = phone => {
   const rows = grassRows(phone);
-  return { ...rows, scenes: Object.fromEntries(Object.entries(rows.scenes).map(([key, scene]) => [key, encode(new TextEncoder().encode(JSON.stringify(scene)))])) };
+  return { ...rows, scenes: Object.fromEntries(Object.entries(rows.scenes).map(([key, scene]) => [key, encode(new TextEncoder().encode(JSON.stringify(scene)),`${phone?'phone':'desktop'}-${key}`)])) };
 };
-const writer = byteWriter(process.argv.includes('--check'), 'nalati-grass');
-writer.put(resolve(import.meta.dirname, '..', 'data', 'grass.generated.json'), jsonBytes({ view, height: encode(height), mask: encode(mask), field: encode(fd), ground: encode(gd), phone: encodeRows(true), desktop: encodeRows(false) }, 0));
+const rows={view,height:encode(height,'height'),mask:encode(mask,'mask'),field:encode(fd,'field'),ground:encode(gd,'ground'),phone:encodeRows(true),desktop:encodeRows(false)};
+writer.put(resolve(import.meta.dirname, '..', 'data', 'grass.generated.json'), jsonBytes({...rows,sources}, 0));
 writer.finish();

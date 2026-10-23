@@ -1,9 +1,10 @@
+import {GRASS_FILES} from './fixtures/nalatiGrass';
 // oxlint-disable-next-line import/no-nodejs-modules -- admit generated grass rows without inferring their complete JSON type
 import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
 import { afterEach, expect, test } from 'vitest';
 import * as v from 'valibot';
-import { paintedWorld, paintedWorldOf } from '../src/game/looks/postGraphLook';
+import { paintedWorld, paintedWorldOf, postGraphLook } from '../src/game/looks/postGraphLook';
 import { PaintedWorldSchema } from '../src/format/postGraphLook';
 import paintedTextures from '../src/shards/nalati-grasslands/data/paintedTextures.generated.json' with { type: 'json' };
 import specimenData from '../src/shards/nalati-grasslands/data/specimens.generated.json' with { type: 'json' };
@@ -31,7 +32,7 @@ test('a painted world refuses executable or malformed rows', () => {
 
 test('a level builds its painted world once a page and its world wiring reads the same parts by slug', () => {
   expect(() => paintedWorldOf('moor')).toThrow('No painted world for moor');
-  const parts = paintedWorld('moor', moor());
+  const parts = paintedWorld('moor', moor(),GRASS_FILES);
   expect(paintedWorld('moor', moor())).toBe(parts);
   expect(paintedWorldOf('moor')).toBe(parts);
   expect(parts.fogLut.image.width).toBe(2);
@@ -41,4 +42,28 @@ test('a level builds its painted world once a page and its world wiring reads th
   expect(parts.grass.input.view.trail.speedLimit).toBeGreaterThan(0);
   parts.look.fog.install();
   expect(THREE.ShaderChunk.fog_pars_fragment.split('float pCloudShadow()').length).toBe(2);
+});
+
+const rawLook = () => ({passes:{},sides:[],composite:{pass:'frame',output:'out'},inputs:{},uniforms:{},painted:moor()});
+test('product look reads every raw grass file through its original receiver before publishing',async()=>{
+  const reads:string[]=[],product={slug:'raw-grass-world',json:()=>Promise.resolve(rawLook()),file(name:string):Promise<Uint8Array>{
+    expect(this).toBe(product);reads.push(name);const bytes=GRASS_FILES.get(name);
+    if(bytes===undefined)throw new Error(`Missing grass file ${name}`);return Promise.resolve(bytes);
+  }};
+  await postGraphLook(product,{file:'look/post.json',field:[]});
+  expect(reads).toEqual([...GRASS_FILES.keys()]);expect(paintedWorldOf(product.slug).grass.input.view).toEqual(grassRows.view);
+});
+test.each(['json','file'] as const)('product look refuses replaced %s across raw intake before publication',async key=>{
+  let finish:(value:Uint8Array)=>void=()=>{throw new Error('Missing pending reader');};
+  const pending=new Promise<Uint8Array>(resolve=>{finish=resolve;}),bytes=GRASS_FILES.values().next().value;
+  if(bytes===undefined)throw new Error('Missing grass bytes');
+  const product={slug:`pending-grass-${key}`,json:()=>Promise.resolve(rawLook()),file:()=>pending};
+  const intake=postGraphLook(product,{file:'look/post.json',field:[]});await Promise.resolve();
+  if(key==='json')product.json=()=>Promise.resolve(rawLook());else product.file=()=>Promise.resolve(bytes);
+  finish(bytes);await expect(intake).rejects.toThrow('reader changed');expect(()=>paintedWorldOf(product.slug)).toThrow('No painted world');
+});
+test('a raw look refuses an absent file reader before publishing',async()=>{
+  const product={slug:'missing-grass-reader',json:()=>Promise.resolve(rawLook())};
+  await expect(postGraphLook(product,{file:'look/post.json',field:[]})).rejects.toThrow('file reader required');
+  expect(()=>paintedWorldOf(product.slug)).toThrow('No painted world');
 });

@@ -94,7 +94,6 @@
     "src/shards/nalati-grasslands/generators/bake-elite-charge.mjs": 1,
     "src/shards/nalati-grasslands/generators/bake-elite-views.mjs": 1,
     "src/shards/nalati-grasslands/generators/bake-geography.mjs": 1,
-    "src/shards/nalati-grasslands/generators/bake-grass.mjs": 1,
     "src/shards/nalati-grasslands/generators/bake-kokpar.mjs": 1,
     "src/shards/nalati-grasslands/generators/bake-poi-paint.mjs": 2,
     "src/shards/nalati-grasslands/generators/bake-quest-prop.mjs": 1,

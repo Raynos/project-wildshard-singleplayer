@@ -294,10 +294,6 @@
       "base64Chars": 15840,
       "dataUris": 0
     },
-    "src/shards/nalati-grasslands/data/grass.generated.json": {
-      "base64Chars": 1528772,
-      "dataUris": 0
-    },
     "src/shards/nalati-grasslands/data/heldWeapons.generated.json": {
       "base64Chars": 318896,
       "dataUris": 0

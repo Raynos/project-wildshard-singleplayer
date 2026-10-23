@@ -12033,6 +12033,18 @@ Construction creates no new library or scene intake, cache, entered update,
 phase, save owner or progress slice. The caller keeps resident caching and
 explicit lending; this API does not select a client runtime declaration.
 
+GrassPresentationSchema accepts each height, mask, field, ground and scene
+block as its original inline string or a strict {file} reference to a named
+product binary. grassPresentationFiles returns the finite distinct file
+list. postGraphLook reads those compressed bytes through the same concrete
+product before constructing the painted world, fencing its JSON and binary
+readers across every await. GrassPresentationProfile takes the resulting
+readonly byte loan; an absent block refuses before texture allocation.
+paintedWorld may receive that same loan as its third argument. The existing
+sliced preparation, texture lifetime, tier selection and scene-buffer
+admission remain on their original owners. Binary source rows declare their
+original decompressed byte length for product admission costs.
+
 The CORE WorldAssembly `painted-world` stage wires an admitted painterly world at its declared construction boundary. Its finite rows name the original weather rig, ordered named object groups, casters and optional native forest. Allocation uses the original native level scope; publication uses the construction scope. Both scopes and all concrete owners are pinned across the wire await. `worldUpdates` painted-world rows name that world and weather rig and retain explicit `before` and optional `after` system edges, without another clock or phase.
 
 WorldAssembly construction can omit IslandLibrary and cover cells when its
