@@ -661,6 +661,14 @@ the complete declared channel bank or none: its count and header offset 76 are
 both its capacity or both zero. Frozen targets are excluded by the host's trusted
 binding table even when the guest writes those positions.
 
+A declared view program ([format/viewProgram.ts](../src/format/viewProgram.ts)) names where each bank value lands:
+the camera, a lent look's parameter, a target's visibility, opacity, colour or uniform, a slot actor's visual field, one
+copy's instanced attribute, a numeric cell its owner lends by id (`cell`, read by the owner after the frame), or one
+parameter of a ground tell its owner lends (`tell`): a tell's channels are exactly one shape's parameters (ring
+`x, z, radius, alpha`; lane `x, z, x1, z1, width, alpha`; wedge `x, z, yaw, reach, fill, alpha`), and on landing it
+draws that shape draped on the terrain, or hides at an alpha of 0.01 or less.
+[engine/script/viewProgram.ts](../src/engine/script/viewProgram.ts) [game/shardfile/clientViewProgram.ts](../src/game/shardfile/clientViewProgram.ts)
+
 ### Query operation and reply records
 
 Query ids 4 and 5 retain the v1 list ids; 8 through 11 are v2 query ids.

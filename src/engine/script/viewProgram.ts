@@ -2,14 +2,15 @@
  * G600 L7: one view module and its rows (format/viewProgram) as a view-lane owner (SCRIPT-ABI v2, lane 3; WASM-HOST H9).
  * Each displayed frame it samples its binding's columns (the player, a registry piece's floor under the player,
  * constants, each pool's actor slots), runs the lane, re-adds the last landed bank's camera channels and, on landing,
- * writes its look, visibility, opacity, uniform and instanced-attribute channels and puts each validated matrix on its
+ * writes its look, visibility, opacity, uniform, instanced-attribute and lent-cell channels, draws each lent ground tell
+ * from its channels (its ring, lane or wedge, or hides it), and puts each validated matrix on its
  * target: a lent object, a named bone under it, one copy of a lent instanced draw, or the actor bound to a pool slot.
  * Every target is claimed once for its owner's life (a slot's actor for as long as it holds the slot) and restored when
  * it ends; a rendered pose is a visual only and never an authority position. Client-only.
  */
 import { BufferAttribute, BufferGeometry, Color, InstancedMesh, InterleavedBufferAttribute, Material, Matrix4, Quaternion, ShaderMaterial, Vector3,
   type Camera, type Object3D } from 'three';
-import type { ViewProgramRows, ViewTargetRef } from '@wildshard/format/viewProgram';
+import { viewTellShape, type ViewProgramRows, type ViewTargetRef, type ViewTellShape } from '@wildshard/format/viewProgram';
 import type { Scope } from '../app/scope';
 import { ViewLane } from './viewLane';
 
@@ -20,6 +21,13 @@ export interface ViewSlotActor {
   readonly x: number; readonly y: number; readonly z: number; readonly yaw: number; readonly alive: boolean; readonly ground: number;
   field: (name: string) => number;
   set: (name: string, value: number) => void;
+}
+/** A ground tell its owner lends (engine/fx/groundTell): its draped ring, lane and wedge, or hidden. */
+export interface ViewTell {
+  ring: (x: number, z: number, radius: number, alpha: number) => void;
+  lane: (x: number, z: number, x1: number, z1: number, width: number, alpha: number) => void;
+  wedge: (x: number, z: number, yaw: number, reach: number, fill: number, alpha: number) => void;
+  hide: () => void;
 }
 /** A native group's ordered slots, as its owner binds them (null: the slot is free); `refresh` (optional) rebinds them once a
  *  frame, before the program reads any of them. */
@@ -35,6 +43,10 @@ export interface ViewProgramPorts {
   readonly slots: (group: string) => ViewSlots | null;
   readonly object: (id: string) => Object3D;
   readonly look: (look: string, param: string, value: number) => void;
+  /** a lent numeric cell by id, written on landing (absent: the owner lends none) */
+  readonly cell?: (id: string) => { value: number };
+  /** a lent ground tell by id (absent: the owner lends none) */
+  readonly tell?: (id: string) => ViewTell;
 }
 export interface ViewProgram {
   /** one displayed frame: the presentation delta and its system's frame time (the `clock` sample), seconds */
@@ -118,9 +130,32 @@ export function viewProgram(bytes: Uint8Array, rows: ViewProgramRows, ports: Vie
     claim(scope, mesh, `instance:${String(row.index)}`, () => { mesh.setMatrixAt(row.index, saved); mesh.instanceMatrix.needsUpdate = true; });
     return value => { if (typeof value !== 'number') { mesh.setMatrixAt(row.index, value); mesh.instanceMatrix.needsUpdate = true; } };
   });
+  // each lent tell its channels name, claimed for the owner's life (hidden when it ends); drawn after each landing
+  const tells = new Map<string, { readonly tell: ViewTell; readonly params: Record<string, number>; readonly shape: ViewTellShape }>();
+  for (const row of rows.channels) if (row.kind === 'tell' && !tells.has(row.tell)) {
+    const tell = ports.tell?.(row.tell), shape = viewTellShape(rows.channels.flatMap(other => other.kind === 'tell' && other.tell === row.tell ? [other.param] : []));
+    if (tell === undefined || shape === null) throw new Error(`View tell ${row.tell} is not lent`);
+    claim(scope, tell, 'tell', () => { tell.hide(); });
+    tells.set(row.tell, { tell, params: {}, shape });
+  }
+  const draw = (): void => {
+    for (const { tell, params, shape } of tells.values()) {
+      const p = (name: string): number => params[name] ?? 0, alpha = p('alpha');
+      if (alpha <= .01) tell.hide();
+      else if (shape === 'ring') tell.ring(p('x'), p('z'), p('radius'), alpha);
+      else if (shape === 'lane') tell.lane(p('x'), p('z'), p('x1'), p('z1'), p('width'), alpha);
+      else tell.wedge(p('x'), p('z'), p('yaw'), p('reach'), p('fill'), alpha);
+    }
+  };
   // channels landed on landing; camera channels are re-added every displayed frame
   const writers = rows.channels.map((row): ((value: number) => void) | null => {
     if (row.kind === 'camera') return null;
+    if (row.kind === 'cell') {
+      const cell = ports.cell?.(row.cell); if (cell === undefined) throw new Error(`View cell ${row.cell} is not lent`);
+      const saved = cell.value; claim(scope, cell, 'cell', () => { cell.value = saved; });
+      return value => { cell.value = value; };
+    }
+    if (row.kind === 'tell') { const params = tells.get(row.tell)?.params; return value => { if (params !== undefined) params[row.param] = value; }; }
     if (row.kind === 'look') return value => { ports.look(row.look, row.param, value); };
     if (row.kind === 'field') {
       const pool = pools.get(row.pool); if (pool === undefined) throw new Error(`Unknown view pool ${row.pool}`);
@@ -174,7 +209,7 @@ export function viewProgram(bytes: Uint8Array, rows: ViewProgramRows, ports: Vie
     write: (index, matrix) => { const staging = staged[index]; if (staging === undefined) throw new Error('Unknown view transform'); if (live()) { staging.fromArray(matrix); dirty.add(index); } },
     channels: values => {
       landed.set(values.subarray(0, landed.length));
-      if (live()) for (const [i, write] of writers.entries()) write?.(landed[i] ?? 0);
+      if (live()) { for (const [i, write] of writers.entries()) write?.(landed[i] ?? 0); draw(); }
     },
     upload: () => {
       if (live()) for (const index of dirty) { const matrix = staged[index]; if (matrix !== undefined) setters[index]?.(matrix); }

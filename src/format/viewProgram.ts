@@ -2,6 +2,20 @@ import * as v from 'valibot';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128)), finite = v.pipe(v.number(), v.finite());
 const count = (min: number, max: number) => v.pipe(v.number(), v.integer(), v.minValue(min), v.maxValue(max));
+/** The parameters of each ground-tell shape, in the order its owner draws it (engine/fx/groundTell `ring` / `lane` / `wedge`). */
+export const VIEW_TELL_SHAPES = {
+  ring: ['x', 'z', 'radius', 'alpha'], lane: ['x', 'z', 'x1', 'z1', 'width', 'alpha'], wedge: ['x', 'z', 'yaw', 'reach', 'fill', 'alpha'],
+} as const;
+export type ViewTellShape = keyof typeof VIEW_TELL_SHAPES;
+const tellParams = ['x', 'z', 'radius', 'x1', 'z1', 'width', 'yaw', 'reach', 'fill', 'alpha'] as const;
+/** The one shape whose parameters are exactly `params` (each once), or null. */
+export function viewTellShape(params: readonly string[]): ViewTellShape | null {
+  for (const shape of ['ring', 'lane', 'wedge'] as const) {
+    const want: readonly string[] = VIEW_TELL_SHAPES[shape];
+    if (params.length === want.length && want.every(param => params.filter(row => row === param).length === 1)) return shape;
+  }
+  return null;
+}
 /** A target: an object its owner lends by id, or the actor bound to one slot of a pool. */
 const ref = v.union([id, v.strictObject({ pool: id, slot: count(0, 63), part: v.exactOptional(id) })]);
 /**
@@ -14,7 +28,11 @@ const ref = v.union([id, v.strictObject({ pool: id, slot: count(0, 63), part: v.
  * added to the camera every displayed frame (the last landed bank between scheduled frames), or written on landing to a
  * lent look's parameter, a target's visibility (value > 0.5), its materials' opacity, colour (a base colour times the
  * value) or a named uniform, a named visual field of a slot's actor, or one component of one copy's instanced attribute.
- * A slot target may name a `part`, a child of the actor's object. `transforms` are the transform positions in order: a target's local
+ * A slot target may name a `part`, a child of the actor's object. A `cell` channel writes a numeric cell its owner lends
+ * by id (the owner reads it after the program's frame, as it reads its own). A `tell` channel is one parameter of a ground
+ * tell its owner lends by id: a tell's channels name exactly one shape's parameters (VIEW_TELL_SHAPES), and on landing the
+ * tell draws that shape from them (draped on the terrain, as its owner draws it) or hides at an alpha of 0.01 or less.
+ * `transforms` are the transform positions in order: a target's local
  * matrix, a named bone under it, or one copy of a lent instanced draw. A program sampling a piece or a group its owner
  * lacks installs nothing. Client-only; nothing reaches the sim or a save.
  */
@@ -39,6 +57,8 @@ export const ViewProgramSchema = v.pipe(v.strictObject({
     v.strictObject({ kind: v.literal('color'), object: ref, color: v.tuple([finite, finite, finite]) }),
     v.strictObject({ kind: v.literal('field'), pool: id, slot: count(0, 63), field: id }),
     v.strictObject({ kind: v.literal('attribute'), object: id, attribute: id, index: count(0, 65535), component: count(0, 3) }),
+    v.strictObject({ kind: v.literal('cell'), cell: id }),
+    v.strictObject({ kind: v.literal('tell'), tell: id, param: v.picklist(tellParams) }),
   ])), v.maxLength(256)),
   transforms: v.pipe(v.array(v.variant('kind', [
     v.strictObject({ kind: v.literal('object'), object: ref }),
@@ -52,6 +72,10 @@ export const ViewProgramSchema = v.pipe(v.strictObject({
   const refs = [...rows.channels, ...rows.transforms].flatMap(row => 'object' in row && typeof row.object === 'object' ? [row.object] : 'pool' in row ? [row] : []);
   return pools.size === rows.pools.length && rows.samples.every(row => row.kind !== 'pool' || pools.has(row.pool))
     && refs.every(row => row.slot < (pools.get(row.pool) ?? 0));
-}, 'Pools are unique and every pool reference names a declared slot'));
+}, 'Pools are unique and every pool reference names a declared slot'), v.check(rows => {
+  const tells = new Map<string, string[]>();
+  for (const row of rows.channels) if (row.kind === 'tell') tells.set(row.tell, [...(tells.get(row.tell) ?? []), row.param]);
+  return [...tells.values()].every(params => viewTellShape(params) !== null);
+}, 'Each tell names exactly one shape\'s parameters, each once'));
 export type ViewProgramRows = v.InferOutput<typeof ViewProgramSchema>;
 export type ViewTargetRef = v.InferOutput<typeof ref>;

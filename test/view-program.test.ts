@@ -1,5 +1,7 @@
 import { expect, test } from 'vitest';
-import { BoxGeometry, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera, ShaderMaterial, Vector3 } from 'three';
+import { BoxGeometry, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera, Scene, ShaderMaterial, Vector3 } from 'three';
+import { GroundTell } from '../src/engine/fx/groundTell';
+import { overrideTerrain } from './fake/terrain';
 import { parse } from 'valibot';
 import { Scope } from '../src/engine/app/scope';
 import { viewProgram, type ViewSlotActor } from '../src/engine/script/viewProgram';
@@ -151,4 +153,54 @@ export function ws_view(dt: f64, alpha: f64, fuel: i32): i32 {
     expect(() => { program.frame(1 / 60, Number.NaN); }).toThrow('View clock is not finite');
   } finally { scope.dispose(); }
   expect(seen).toEqual([1234.5, 1834.5]);
+});
+
+test('a lent cell takes its channel on landing, before its owner reads it, and is restored on leave', async () => {
+  const module = await compileScriptV2(LANTERN, { lane: 'view', ioBytes: 4096 });
+  const scope = new Scope('marsh.cell'), glow = { value: .2 }, looks: number[] = [];
+  const cells = parse(ViewProgramSchema, { ...rows, samples: [{ kind: 'constant', value: 0 }, { kind: 'constant', value: .8 }],
+    channels: [{ kind: 'cell', cell: 'lantern.glow' }], transforms: [] });
+  // the owner's own frame reads the cell after the program's (an owner's syncLook-style push)
+  const sync = (): void => { looks.push(glow.value); };
+  const bare = { scope, player: { position: new Vector3(), velocity: new Vector3(), yaw: 0 }, camera: new PerspectiveCamera(), floor: () => null, slots: () => null,
+    values: () => null, look: () => undefined, object: (id: string): Object3D => { throw new Error(id); } };
+  const ports = { ...bare, cell: (id: string) => { if (id !== 'lantern.glow') throw new Error(id); return glow; } };
+  const program = viewProgram(module, cells, ports); if (program === null) throw new Error('Missing program');
+  try {
+    sync(); program.frame(1 / 60, 0); sync();
+    expect(looks).toEqual([.2, .8]);
+    expect(() => viewProgram(module, cells, ports)).toThrow('already lent');
+    expect(() => viewProgram(module, cells, bare)).toThrow('not lent');
+  } finally { scope.dispose(); }
+  expect(glow.value).toBe(.2);
+});
+
+test('a lent tell draws the ring, lane or wedge its channels name with its owner\'s own geometry, and hides', async () => {
+  const module = await compileScriptV2(LANTERN, { lane: 'view', ioBytes: 4096 });
+  const restore = overrideTerrain({ heightAt: (x: number, z: number) => .1 * x + .05 * z });
+  const owner = new Scope('marsh.tells'), scene = new Scene(), make = (kind: 'ring' | 'lane' | 'wedge'): GroundTell =>
+    owner.run(() => kind === 'wedge' ? new GroundTell(scene, kind, 0xffffff, { cone: .6, material: new MeshBasicMaterial(), fill: { value: 0 }, alpha: { value: 0 } }) : new GroundTell(scene, kind, 0xffcc00));
+  const drawn = { ring: make('ring'), lane: make('lane'), wedge: make('wedge') }, direct = { ring: make('ring'), lane: make('lane'), wedge: make('wedge') };
+  const values = { ring: [3, 4, 2.5, .7], lane: [1, 2, 6, 8, 1.5, .6], wedge: [-2, 5, .4, 3, .5, .9] };
+  const shapes = ['ring', 'lane', 'wedge'] as const, params = { ring: ['x', 'z', 'radius', 'alpha'], lane: ['x', 'z', 'x1', 'z1', 'width', 'alpha'], wedge: ['x', 'z', 'yaw', 'reach', 'fill', 'alpha'] };
+  const tellRows = parse(ViewProgramSchema, { ...rows, samples: [{ kind: 'constant', value: 0 }, ...shapes.flatMap(shape => values[shape].map(value => ({ kind: 'constant', value })))],
+    channels: shapes.flatMap(shape => params[shape].map(param => ({ kind: 'tell', tell: `marsh.${shape}`, param }))), transforms: [] });
+  const scope = new Scope('marsh.view');
+  const ports = { scope, player: { position: new Vector3(), velocity: new Vector3(), yaw: 0 }, camera: new PerspectiveCamera(), floor: () => null, slots: () => null,
+    values: () => null, look: () => undefined, object: (id: string): Object3D => { throw new Error(id); },
+    tell: (id: string) => { const shape = shapes.find(row => `marsh.${row}` === id); if (shape === undefined) throw new Error(id); return drawn[shape]; } };
+  const program = viewProgram(module, tellRows, ports); if (program === null) throw new Error('Missing program');
+  try {
+    program.frame(1 / 60, 0);
+    const [rx, rz, rr, ra] = values.ring, [lx, lz, lx1, lz1, lw, la] = values.lane, [wx, wz, wy, wr, wf, wa] = values.wedge;
+    direct.ring.ring(rx ?? 0, rz ?? 0, rr ?? 0, ra ?? 0); direct.lane.lane(lx ?? 0, lz ?? 0, lx1 ?? 0, lz1 ?? 0, lw ?? 0, la ?? 0); direct.wedge.wedge(wx ?? 0, wz ?? 0, wy ?? 0, wr ?? 0, wf ?? 0, wa ?? 0);
+    for (const shape of shapes) {
+      const a = drawn[shape].mesh, b = direct[shape].mesh;
+      expect(Array.from(a.geometry.getAttribute('position').array)).toEqual(Array.from(b.geometry.getAttribute('position').array));
+      expect(a.visible).toBe(true);
+    }
+    expect(() => parse(ViewProgramSchema, { ...tellRows, channels: [{ kind: 'tell', tell: 'marsh.ring', param: 'x' }, { kind: 'tell', tell: 'marsh.ring', param: 'width' }] })).toThrow();
+  } finally { scope.dispose(); }
+  for (const shape of shapes) expect(drawn[shape].mesh.visible).toBe(false);
+  owner.dispose(); restore();
 });
