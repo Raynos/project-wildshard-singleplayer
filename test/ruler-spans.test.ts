@@ -18,7 +18,8 @@ test('publishes the existing census for every shard, including zero-native rows'
   },[shard,...native],null);
   expect(Object.keys(rows)).toEqual([shard,...native]);
   expect(Object.keys(rows)).toHaveLength(24);
-  expect(rows[shard]).toMatchObject({total:7,counts:{C4:7},spans:[{symbol:'PagePopulationPlanner',component:'C4',lines:7}]});
+  // G667 retired this host's C4 override; supplied census lines still publish in full under its C9 fallback.
+  expect(rows[shard]).toMatchObject({total:7,counts:{C4:0,C9:7},spans:[{symbol:'PagePopulationPlanner',component:'C9',lines:7}]});
   expect(rows['native']).toMatchObject({total:0,spans:[],measurementError:null});
   expect(()=>rulerSpanReports('',{},[shard],null)).toThrow('missing source spans');
 });
