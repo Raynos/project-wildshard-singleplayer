@@ -18,6 +18,24 @@ beforeEach(() => {
 });
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); document.body.replaceChildren(); });
 
+it('does not invent a one-step total before the actual path is declared', () => {
+  const loading = new Loading({ id: 'pending', name: 'Pending' });
+  try {
+    loading.waiting('Preparing application services');
+    now = 400; vi.advanceTimersByTime(32);
+    const fact = (): string => loading.root.querySelector('[data-el="suFact"]')?.textContent ?? '';
+    expect(fact()).toContain('Application modules');
+    expect(fact()).not.toMatch(/step \d+ \/ \d+/u);
+    loading.setPath({ id: 'shardfile', steps: [{ key: 'modules', label: 'Modules', weight: 1 },
+      { key: 'admission', label: 'Product admission', weight: 1 }, { key: 'world', label: 'World', weight: 1 }] });
+    now = 700; vi.advanceTimersByTime(32);
+    expect(fact()).toContain('step 1 / 3');
+    loading.paintAdmission({ phase: 'product', detail: 'Reading files', bytesRead: 0, bytesTotal: 10, filesDone: 0, filesTotal: 1 });
+    now = 1000; vi.advanceTimersByTime(32);
+    expect(fact()).toContain('step 2 / 3');
+  } finally { loading.scope.dispose(); }
+});
+
 it('shows a controlling worker instead of assuming an offline cache from the API handle', () => {
   const descriptor = Object.getOwnPropertyDescriptor(navigator, 'serviceWorker');
   const old = window.__ws_sw;

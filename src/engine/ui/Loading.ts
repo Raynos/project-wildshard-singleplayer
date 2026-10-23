@@ -284,7 +284,9 @@ export class Loading {
     const current = timeline.rows.find(row => row.key === timeline.display);
     const currentGap = timeline.gaps.find(row => row.state === 'on');
     setData(this.root, 'step', current?.key ?? 'gap');
-    if (current !== undefined) set(this.els.suFact, engineString('s_af18899b96b3', [current.number, timeline.rows.length, current.label, current.detail ? engineString('s_614cafefe4f0', [current.detail]) : '']));
+    if (current !== undefined) set(this.els.suFact, this.configured
+      ? engineString('s_af18899b96b3', [current.number, timeline.rows.length, current.label, current.detail ? engineString('s_614cafefe4f0', [current.detail]) : ''])
+      : `${current.label}${current.detail ? ` · ${current.detail}` : ''}`);
     else set(this.els.suFact, currentGap?.label ?? 'Final activation');
     const shown: (LoadingRow | LoadingGap)[] = [];
     for (const gap of timeline.gaps) if (gap.after === null) shown.push(gap);
