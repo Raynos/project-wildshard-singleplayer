@@ -10,8 +10,14 @@ const read = name => JSON.parse(readFileSync(resolve(root, shard, name), 'utf8')
 const catalogue = read('data/campCatalogue.json');
 const places = read('data/places.json'), dressing = read('data/dressingGeos.json');
 const bytes = g => g.attrs.reduce((n, [,type,size]) => n + Math.ceil(g.count * size * ({f32:4,u8:1,i8:1,u16:2,f16:2}[type]) / 4) * 4, 0) + (g.index === null ? 0 : g.indexCount * 4);
+const floors=[];
+const floorRow=input=>{
+  const baked=placeFloors(input);if(!('raw'in baked))return baked;
+  const {raw,...row}=baked,index=floors.length,name=`world/floors/${index}.bin`,source=`data/place-floor-${index}.generated.bin`;
+  floors.push({name,kind:'bin',source,bytes:raw});return {...row,file:name};
+};
 let at=0;
-const rows=places.rows.map(row=>({...row,members:row.members.map(([id,member])=>[id,{...member,floors:member.floors.map(placeFloors)}]),instances: row.instances.map(([name, instance]) => {
+const rows=places.rows.map(row=>({...row,members:row.members.map(([id,member])=>[id,{...member,floors:member.floors.map(floorRow)}]),instances: row.instances.map(([name, instance]) => {
  const asset = catalogue.find(entry => entry.source.asset?.instance?.name === name)?.source.asset;
  if (asset === undefined) throw new Error(`Missing asset declaration ${name}`);
  const matrices = instance.placements.flatMap(p => new Matrix4().compose(new Vector3(p.x,p.y,p.z), new Quaternion().setFromEuler(new Euler(p.pitch ?? 0,p.rot ?? 0,p.roll ?? 0,'YXZ')),new Vector3(p.sx ?? p.scale ?? 1,p.sy ?? p.scale ?? 1,p.sz ?? p.scale ?? 1)).toArray());
@@ -38,8 +44,10 @@ for(const step of view.sequence){
 const centre=low.map((v,i)=>(v+high[i])/2),radius=Math.sqrt(high.reduce((sum,v,i)=>sum+(v-low[i])**2,0))/2+12;
 const smoke={attributes,centre,radius,puffs};
 const writer=byteWriter(process.argv.includes('--check'),'nalati-place-runtime');
-writer.put(resolve(root,shard,'boot/placeRuntime.generated.json'),jsonBytes({places:{...places,rows},dressing:{...dressing,rows:shapes},view:{...view,smoke}}));
-writer.put(resolve(root,shard,'data/placeRuntime.generated.json'),jsonBytes({places:{...places,rows},dressing:{...dressing,rows:shapes},view:{...view,smoke}}));
+for(const floor of floors)writer.put(resolve(root,shard,floor.source),floor.bytes);
+const floorSources=floors.map(floor=>({name:floor.name,kind:floor.kind,source:floor.source}));
+writer.put(resolve(root,shard,'boot/placeRuntime.generated.json'),jsonBytes({floorSources,places:{...places,rows},dressing:{...dressing,rows:shapes},view:{...view,smoke}}));
+writer.put(resolve(root,shard,'data/placeRuntime.generated.json'),jsonBytes({floorSources,places:{...places,rows},dressing:{...dressing,rows:shapes},view:{...view,smoke}}));
 writer.put(resolve(root,shard,'boot/modelMetrics.generated.json'),jsonBytes(read('data/modelMetrics.json')));
 writer.put(resolve(root,shard,'data/staticCapture.generated.json'),jsonBytes(read('data/staticCapture.json')));
 const paint=read('data/poiPaint.json');

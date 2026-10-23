@@ -1001,15 +1001,19 @@
         "src/shards/nalati-grasslands/boot/modelMetrics.generated.json",
         "src/shards/nalati-grasslands/data/staticCapture.generated.json",
         "src/shards/nalati-grasslands/data/placeRuntime.generated.json",
-        "src/shards/nalati-grasslands/data/shapeBook.generated.json"
+        "src/shards/nalati-grasslands/data/shapeBook.generated.json",
+        "src/shards/nalati-grasslands/data/place-floor-0.generated.bin",
+        "src/shards/nalati-grasslands/data/place-floor-1.generated.bin"
       ],
       "platform": "portable",
       "buildOutputs": {
-        "src/shards/nalati-grasslands/boot/placeRuntime.generated.json": "9ed42660b19a5d0a471f57f4cb7c68550b78d917cd11034d9613c3a2b035c361",
+        "src/shards/nalati-grasslands/boot/placeRuntime.generated.json": "a14825fbd1e823975852a553f94feb72a5d024a54228a2182e857534844914b8",
         "src/shards/nalati-grasslands/boot/modelMetrics.generated.json": "7b28eb61e3b25fa53ed7bb2ff5eabfff08b42340a8de4c6e79989b485e3935e6",
         "src/shards/nalati-grasslands/data/staticCapture.generated.json": "d2efb3124053f39e8c9e29c5d3925cf98199de6f182c82a18a7dd6e92c1f09dc",
-        "src/shards/nalati-grasslands/data/placeRuntime.generated.json": "9ed42660b19a5d0a471f57f4cb7c68550b78d917cd11034d9613c3a2b035c361",
-        "src/shards/nalati-grasslands/data/shapeBook.generated.json": "623745bcdad1020c991d0c9293d0f0acd5b78509d3f98fa3acf847e25c38ad7a"
+        "src/shards/nalati-grasslands/data/placeRuntime.generated.json": "a14825fbd1e823975852a553f94feb72a5d024a54228a2182e857534844914b8",
+        "src/shards/nalati-grasslands/data/shapeBook.generated.json": "623745bcdad1020c991d0c9293d0f0acd5b78509d3f98fa3acf847e25c38ad7a",
+        "src/shards/nalati-grasslands/data/place-floor-0.generated.bin": "895bd0eff0cc3cd710b4a16e624c9dc962bc35e90e8f8985c8dfab0bc2ee3cf4",
+        "src/shards/nalati-grasslands/data/place-floor-1.generated.bin": "31f46016e071151f68724c5b8937a4147e01ef99ff6fb24da29b47f7de391029"
       },
       "seedOutputs": [],
       "catalogueDependencies": [

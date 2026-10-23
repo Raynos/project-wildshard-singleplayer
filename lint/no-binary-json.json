@@ -210,20 +210,12 @@
       "base64Chars": 13960,
       "dataUris": 0
     },
-    "src/shards/nalati-grasslands/boot/placeRuntime.generated.json": {
-      "base64Chars": 20268,
-      "dataUris": 0
-    },
     "src/shards/nalati-grasslands/data/eliteCharge.generated.json": {
       "base64Chars": 15840,
       "dataUris": 0
     },
     "src/shards/nalati-grasslands/data/kokpar.generated.json": {
       "base64Chars": 27008,
-      "dataUris": 0
-    },
-    "src/shards/nalati-grasslands/data/placeRuntime.generated.json": {
-      "base64Chars": 20268,
       "dataUris": 0
     },
     "src/shards/nalati-grasslands/data/populationField.generated.json": {

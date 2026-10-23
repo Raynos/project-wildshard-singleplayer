@@ -33,6 +33,7 @@ export const SceneDressingContactsSchema=list(v.variant('kind',[
 export const SceneFloorSchema=v.union([
   v.strictObject({rects:list(v.strictObject({x:finite,z:finite,hw:finite,hd:finite,y:finite,rot:v.exactOptional(finite),slope:v.exactOptional(finite),tilt:v.exactOptional(finite),profile:v.exactOptional(list(v.tuple([finite,finite,finite]),8))}),4096)}),
   v.strictObject({x:finite,z:finite,size:v.pipe(finite,v.minValue(0)),res:v.pipe(count,v.minValue(2)),data:v.pipe(v.string(),v.maxLength(1048576))}),
+  v.strictObject({x:finite,z:finite,size:v.pipe(finite,v.minValue(0)),res:v.pipe(count,v.minValue(2)),...BinaryFileSchema.entries}),
 ]);
 const packedContacts={kind:v.literal('packed-hulls'),origins:list(v.tuple([finite,finite,finite,count]),8192),surface:v.picklist(['rock','wood','stone','ground'])};
 const contactSource = v.union([SceneDressingContactsSchema,

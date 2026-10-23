@@ -12216,6 +12216,12 @@ the same compressed bytes and preserves independent float32 point lanes,
 origin order and native registration; the temporary byte loan adds no
 registry, clock or persistence. Retiring ancestors refuse before reads.
 
+Sampled SceneFloorSchema rows may name a raw f32 file instead of legacy
+compressed data. readSceneFloors(rows, files?) consumes that same prepared
+byte loan. The existing installer validates all floor lengths (res squared
+times four) before allocating dressing. NaN holes, bilinear sampling and
+highest-floor selection are unchanged; missing or mixed sources refuse.
+
 Native construction may also borrow installed water-surface and dressing
 owners through its original ShardContext. water-surface names an installed
 surface; dressing-piece names a static piece; dressing-anchor captures its

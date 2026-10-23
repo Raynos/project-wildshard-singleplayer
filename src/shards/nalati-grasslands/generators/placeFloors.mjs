@@ -1,5 +1,4 @@
 // Build-only floor profiles. Physics still uses the original collider rows.
-import { zlibSync } from 'fflate';
 
 export function placeFloors(row) {
   if (row.kind === 'ledge') return { rects: [{ x: row.x, z: row.z, hw: row.hw, hd: row.hd, y: row.top, rot: row.heading === undefined ? Math.atan2(row.sn,row.cs) : Math.atan2(...row.heading) }] };
@@ -28,5 +27,5 @@ export function placeFloors(row) {
     return hood===undefined?floor:floor===undefined?hood:Math.max(hood,floor);
   }
   for(let j=0;j<res;j++)for(let i=0;i<res;i++)values[j*res+i]=sample(x-size/2+i*size/(res-1),z-size/2+j*size/(res-1))??Number.NaN;
-  return {x,z,size,res,data:Buffer.from(zlibSync(new Uint8Array(values.buffer))).toString('base64')};
+  return {x,z,size,res,raw:new Uint8Array(values.buffer)};
 }

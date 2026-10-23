@@ -203,3 +203,43 @@ test('dressing keeps its small animation and mote rows live after construction',
   host.update(.25);expect(setParam).toHaveBeenCalledWith('orchard-paint','clock',.5);
   scope.dispose();expect(root.children).toHaveLength(0);material.dispose();
 });
+
+
+test('raw floor grids preserve legacy NaN holes, interpolation and shifted buffers',()=>{
+  const bytes=new Uint8Array(new Float32Array([2,Number.NaN,6,8]).buffer);
+  let packed='';for(const byte of zlibSync(bytes))packed+=String.fromCodePoint(byte);
+  const row={x:30,z:40,size:2,res:2},files=new Map([['floor.bin',bytes]]);
+  const legacy=readSceneFloors([{...row,data:btoa(packed)}])[0];
+  const raw=readSceneFloors([{...row,file:'floor.bin'}],files)[0];
+  expect(legacy).toBeDefined();expect(raw).toBeDefined();
+  for(let x=28;x<=32;x+=.1)for(let z=38;z<=42;z+=.1)expect(raw?.(x,z)).toBe(legacy?.(x,z));
+  expect(raw?.(31,39)).toBeUndefined();
+  const shifted=new Uint8Array(bytes.byteLength+1);shifted.set(bytes,1);
+  const unaligned=readSceneFloors([{...row,file:'floor.bin'}],new Map([['floor.bin',shifted.subarray(1)]]))[0];
+  expect(unaligned?.(29,39)).toBe(legacy?.(29,39));
+  expect(()=>readSceneFloors([{...row,file:'floor.bin'}])).toThrow('not prepared');
+  expect(()=>readSceneFloors([{...row,file:'floor.bin',data:btoa(packed)}],files)).toThrow();
+  expect(()=>readSceneFloors([{...row,file:'floor.bin',res:3}],files)).toThrow('byte count');
+});
+
+test.each(['world','retire','length']as const)('raw floor preflight refuses %s before allocation',async failure=>{
+  const parent=new Scope('floor.parent'),scope=parent.child('floor.entered'),root=new THREE.Group(),system=vi.fn<ShardContext['system']>();
+  type Runtime=NonNullable<ShardContext['game']['runtime']>;
+  const runtime=legacyDouble<Runtime>({world:legacyDouble<NonNullable<Runtime['world']>>({})});
+  let finish:(bytes:Uint8Array)=>void=()=>{throw new Error('Missing floor read');};
+  const read=vi.fn((name:string)=>name==='bad.bin'?Promise.resolve(new Uint8Array(0)):new Promise<Uint8Array>(resolve=>{finish=resolve;}));
+  const ctx=legacyDouble<ShardContext>({scope,root,system,product:legacyDouble<ShardContext['product']>({file:read,hasFile:()=>true}),game:legacyDouble<ShardContext['game']>({runtime})});
+  const rows={name:'floor',catalogues:[],packs:{},geometry:{shape:{kind:'inline',data:'',row:{attrs:[],count:0,index:null,indexCount:0,box:false,expand:false}}},materials:{paint:{kind:'painterly',rim:.2,bands:.5}},layers:[],animations:[],
+    staticModels:[{model:{id:'orchard/floor',name:'Floor',file:'fixture.ts',category:'nature',pipeline:'code',defaults:{}},geometry:'shape',material:'paint'}],
+    statics:[{name:'surface',recipe:{version:1,root:'root',materials:[],nodes:[{kind:'group',id:'root',children:[]}]},geometry:{},materials:{},tris:0,
+      members:[{model:'orchard/floor',draw:'merged',placements:[],boxes:[],contacts:[],floors:[{x:0,z:0,size:2,res:2,file:'floor.bin'},...(failure==='length'?[{x:0,z:0,size:2,res:2,file:'bad.bin'}]:[])]}]}]};
+  const owned=vi.spyOn(scope,'own');
+  try{
+    const pending=SceneDressing.install(ctx,rows);expect(read).toHaveBeenCalledTimes(1);expect(owned).not.toHaveBeenCalled();
+    if(failure==='world')runtime.world=legacyDouble<NonNullable<Runtime['world']>>({});
+    const retiring=failure==='retire'?parent.disposeSteps():undefined;retiring?.next();finish(new Uint8Array(16));
+    await expect(pending).rejects.toThrow(failure==='length'?'byte count':failure==='retire'?'retired':'owner changed');
+    expect(owned).not.toHaveBeenCalled();expect(system).not.toHaveBeenCalled();expect(root.children).toEqual([]);
+    if(retiring!==undefined)for(const _ of retiring){/* finish the original teardown */}
+  }finally{parent.dispose();owned.mockRestore();}
+});

@@ -43,12 +43,13 @@ const books = new WeakMap<Scope,WeakMap<ShardContext['product'],SceneDressing>>(
 const contacts = (input: readonly unknown[]) => readColliderRows(input, {kinds:['box','treads','hull','capsule','ball','trimesh'],surfaces:['sand','wetSand','grass','rock','planks','stone','water','wood','metal','flesh','shell','ground','edge','felt','earth']});
 
 /** Prepared local floor tables retain their original highest-surface policy. */
-export function readSceneFloors(input:unknown):((x:number,z:number)=>number|undefined)[]{
+export function readSceneFloors(input:unknown,files:ReadonlyMap<string,Uint8Array>=new Map()):((x:number,z:number)=>number|undefined)[]{
   return v.parse(v.array(SceneFloorSchema),input).map(row=>{
     if('rects'in row)return(x,z)=>floorAtRects(row.rects,x,z,'highest');
-    const raw=unzlibSync(base64Bytes(row.data));
+    const raw=binarySourceBytes('file'in row?{file:row.file}:{data:row.data},files);
     if(raw.byteLength!==row.res*row.res*4)throw new Error('Floor sample byte count differs');
-    const heights=new Float32Array(raw.buffer,raw.byteOffset,raw.byteLength/4);
+    const aligned=raw.byteOffset%4===0?raw:raw.slice();
+    const heights=new Float32Array(aligned.buffer,aligned.byteOffset,aligned.byteLength/4);
     const sample=bakedSamplers({res:row.res,size:row.size,heights,splat:new Uint8Array(0),undergrowth:null,seed:0,landscapeHash:0}).heightAt;
     return(x,z)=>{const height=sample(x-row.x,z-row.z);return Number.isFinite(height)?height:undefined;};
   });
@@ -143,7 +144,8 @@ export class SceneDressing {
     live();for(const file of names)if(!hasFile.call(product,file))throw new Error(`Missing scene contact file ${file}`);
     for(const file of names){live();const bytes=await read.call(product,file);live();files.set(file,bytes);}
     const raw=await prepareBinarySources(product,[...Object.values(rows.geometry).flatMap(row=>row.kind==='file'?[{source:{file:row.file},bytes:bakedGeometryBytes(row.row)}]:[]),
-      ...Object.values(rows.materials).flatMap(row=>row.kind==='lettering-file'?[{source:{file:row.file},bytes:row.width*row.height*4}]:[])],scope);
+      ...Object.values(rows.materials).flatMap(row=>row.kind==='lettering-file'?[{source:{file:row.file},bytes:row.width*row.height*4}]:[]),
+      ...rows.statics.flatMap(row=>row.members.flatMap(member=>member.floors.flatMap(floor=>'file'in floor?[{source:{file:floor.file},bytes:floor.res*floor.res*4}]:[])))],scope);
     live();for(const [name,bytes] of raw)files.set(name,bytes);
     const specimens=await prepareSpecimenCatalogue(product,rows.catalogues.flatMap(source=>source.rows),scope);live();for(const [name,bytes]of specimens)files.set(name,bytes);
     const owner=new SceneDressing(ctx,rows);
@@ -238,7 +240,7 @@ export class SceneDressing {
       const piece={name:row.name,object:made.root,tris:row.tris,placed:[] as Placed[],anchors:row.anchors};this.pieces.set(row.name,piece);
       this.group.add(made.root);this.propTris+=row.tris;
       for(const member of row.members){
-        const floors=readSceneFloors(member.floors),floor=(x:number,z:number):number|undefined=>{let top:number|undefined;for(const sample of floors){const height=sample(x,z);if(height!==undefined&&(top===undefined||height>top))top=height;}return top;};
+        const floors=readSceneFloors(member.floors,files),floor=(x:number,z:number):number|undefined=>{let top:number|undefined;for(const sample of floors){const height=sample(x,z);if(height!==undefined&&(top===undefined||height>top))top=height;}return top;};
         const registered=withOwner(ctx.scope,()=>place(needModel(member.model),member.placements.map(({matrix,heading,...pose})=>({...pose,...(heading===undefined?{}:{yaw:Math.atan2(...heading)}),...(matrix===undefined?{}:{matrix:new THREE.Matrix4().fromArray(matrix)})})),{
           ctx:models,draw:member.draw,registry:ctx.app.registry,drawnInto:{object:made.root,boxes:Float32Array.from(member.boxes),colliders:Array.isArray(member.contacts)?contacts(member.contacts):unpackHulls(member.contacts,files)},piece:{solidFloor:true,...(floors.length===0?{}:{floor}),collide:false,split:{every:150,yieldTask:pause}},
         }));await registered.registered;this.placed.push(registered);piece.placed.push(registered);
