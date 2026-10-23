@@ -1,6 +1,6 @@
 // Deterministic static encounter data and geometry; all live fight/pose owners are retained.
 import { fileURLToPath } from 'node:url';
-import { compileDecisionScripts, readDecisionSources } from '@wildshard/sdk/buildDecisionScripts';
+import { readDecisionSources } from '@wildshard/sdk/buildDecisionScripts';
 import { compileReturnProjectionV2 } from '@wildshard/sdk/returnProjectionV2';
 import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
 import * as fight from './stormTitanFight.ts';
@@ -30,9 +30,10 @@ const pastureText=['pastureWind','pasture','titanWind','titanFire'].map(name=>au
 const names=prefix=>[...new Set([...pastureText.matchAll(new RegExp(`${prefix}\\.([A-Za-z0-9_]+)`,'g'))].map(match=>match[1]))];
 const pf=names('Field'),pc=names('Channel'),ps=names('Signal');
 const pastureSource={...source,id:'nalati.pasture-wind',source:'behaviour/pastureWind.as',reads:['field','random','radial'],fields:aliases(pf),channels:aliases(pc),signals:aliases(ps)};
-const pastureBuilt=await compileDecisionScripts([pastureSource],{fields:registry(pf),channels:registry(pc),signals:registry(ps)},authored,{asLineCeiling:2837,singleSignal:true});
-const pastureScript=pastureBuilt.rows.at(0),pastureBlob=pastureBuilt.blobs.at(0);if(pastureScript===undefined||pastureBlob===undefined)throw new Error('Missing pasture/wind decision program');
-const wind={script:pastureScript,bytes:Buffer.from(pastureBlob.bytes).toString('base64')};
+// R10b: the shared pasture programme (wind, fire, pasture; the pack and herd group profiles join it) selected as ABI v2 with
+// its exact ABI1 witness kept (test/nalati-pasture-v2.test.ts: every signal answers as the witness)
+const pastureDual=await compileReturnProjectionV2(pastureSource,{fields:registry(pf),channels:registry(pc),signals:registry(ps)},authored,{asLineCeiling:2837});
+const wind={...pastureDual.legacy,v2:pastureDual.candidate};
 const programs={attack:program,fire:wind,wind,rules:program};
 
 const writer = byteWriter(process.argv.includes('--check'), 'nalati-storm-titan');
