@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, expect, test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own only this generated, tiny product fixture.
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep all fixture bytes under the repository scratch root.
 import { resolve } from 'node:path';
 import { emptyShardfile } from '@wildshard/sdk/author';
@@ -60,4 +60,24 @@ test('changed built Wasm refuses rather than compiling or looking up an author m
   writeFileSync(modulePath, new Uint8Array([0]));
   try { await expect(scenario('published', 'disk.main', { products: root, seed: 5 })).rejects.toThrow('Native product blob hash or size mismatch'); }
   finally { writeFileSync(modulePath, moduleBytes); }
+});
+
+test('an explicit immutable cache directory preserves the same product and host admission', async () => {
+  const original = resolve(root, 'published'), cached = resolve(root, 'cache-key');
+  const before = await scenario('published', 'disk.main', { products: root, seed: 5 });
+  renameSync(original, cached);
+  try {
+    const loaded = await scenario('published', 'disk.main', { productDirectory: cached, seed: 5 });
+    before.send('start'); loaded.send('start');
+    expect(loaded.save()).toEqual(before.save());
+    expect(loaded.product).toEqual(before.product);
+    await expect(scenario('published', 'disk.main', { productDirectory: cached, products: root, seed: 5 })).rejects.toThrow('one product location');
+    const alias = resolve(root, 'cache-alias'); symlinkSync(cached, alias, 'dir');
+    await expect(scenario('published', 'disk.main', { productDirectory: alias, seed: 5 })).rejects.toThrow('cannot be a symlink');
+    writeFileSync(resolve(cached, modulePath.slice(original.length + 1)), new Uint8Array([0]));
+    await expect(scenario('published', 'disk.main', { productDirectory: cached, seed: 5 })).rejects.toThrow('Native product blob hash or size mismatch');
+  } finally {
+    writeFileSync(resolve(cached, modulePath.slice(original.length + 1)), moduleBytes);
+    renameSync(cached, original);
+  }
 });

@@ -1,10 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The proof uses official product and physics bytes.
 import { readFileSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- Standalone tests run the official product writer.
-import { execFileSync } from 'node:child_process';
-// oxlint-disable-next-line import/no-nodejs-modules -- Only an exact product receipt skips generation.
-import { env, execPath } from 'node:process';
-import { beforeAll, expect, test } from 'vitest';
+import { expect, test } from 'vitest';
+import { builtProduct } from './fixtures/builtProduct';
 import { Vector3 } from 'three';
 import PINE_TERRAIN from '../src/shards/pine-hollow/data/terrainBindings.json' with { type: 'json' };
 import * as v from 'valibot';
@@ -16,10 +13,6 @@ import { outputDescriptor } from '@wildshard/game/shardfile/outputDescriptor';
 import { loadHeadlessProduct } from '@wildshard/sdk/headlessProduct';
 import { createTrustedHeadlessResident } from '@wildshard/sdk/headlessRuntime';
 
-beforeAll(() => {
-  if (env['WS_TEST_PRODUCTS_SHA'] !== env['VERCEL_GIT_COMMIT_SHA'] || env['WS_TEST_PRODUCTS_SHA'] === undefined)
-    execFileSync(execPath, ['scripts/build-shardfiles.mjs', '--reuse'], { stdio: 'inherit' });
-}, 120_000);
 const savedControl = v.object({ version:v.literal(1),actor:v.string(),phase:v.number(),fighting:v.boolean(),decision:v.string(),strike:v.unknown() });
 const logical = v.object({ decision: v.object({ bindings: v.array(v.object({ failures: v.number() })) }) });
 function record(value:SimValue):Record<string,SimValue> {
@@ -27,11 +20,11 @@ function record(value:SimValue):Record<string,SimValue> {
 }
 for (const [slug,kind] of [['driftwood-isle','captain'],['pine-hollow','antler-king']] as const) {
   test(`${kind} uses the same native body through guest phases and restore`, async () => {
-    const product=await loadHeadlessProduct(`out/${slug}`),descriptor=outputDescriptor(product.shardfile);
+    const directory=builtProduct(slug),product=await loadHeadlessProduct(directory),descriptor=outputDescriptor(product.shardfile);
     if(descriptor===undefined)throw new Error('Missing verified product');
     const rapier=await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
     const assets=new Map(descriptor.index.files.map(file=>[file.commons===true?`commons:${file.hash}`:file.hash,
-      Uint8Array.from(readFileSync(`out/${slug}/${file.path}`))]));
+      Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
     if(slug==='pine-hollow')for(const file of [PINE_TERRAIN.terrain,PINE_TERRAIN.navmesh])assets.set(file,Uint8Array.from(readFileSync(file)));
     const preparation={product,shard:product.shardfile,assets,rapier},entry={module:new URL(kind==='captain'?'./fixtures/driftwood-headless.ts':'./fixtures/pine-headless.ts',import.meta.url).href},resident=await createTrustedHeadlessResident(preparation,entry);
     let resumed:Awaited<ReturnType<typeof createTrustedHeadlessResident>>|undefined;

@@ -27,6 +27,9 @@ export interface DiskScenarioOptions extends Omit<ScenarioWorldInput, 'actors'> 
   seed: number;
   /** Published output root, defaulting to out/ in the caller's working directory. */
   products?: string;
+  /** Explicit read-only product directory, including a verified immutable cache entry.
+   * Mutually exclusive with products; normal product admission still checks every byte. */
+  productDirectory?: string;
   actors?: readonly (Omit<ScenarioActor, 'id' | 'fieldBounds'> & { id: string | number })[];
 }
 export type DiskScriptScenario = ScriptScenario & { readonly product: {

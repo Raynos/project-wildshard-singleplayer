@@ -1,20 +1,16 @@
 import { beforeAll, expect, test } from 'vitest';
-// oxlint-disable-next-line import/no-nodejs-modules -- The scenario only reads official published products.
-import { execFileSync } from 'node:child_process';
-// oxlint-disable-next-line import/no-nodejs-modules -- Exact build receipts avoid rebuilding in the gate.
-import { env, execPath } from 'node:process';
+import { builtProduct } from '../fixtures/builtProduct';
 import { scenario, type DiskScriptScenario } from '@wildshard/sdk/scriptScenario';
 import { loadHeadlessProduct } from '@wildshard/sdk/headlessProduct';
 
-beforeAll(() => {
-  if (env['WS_TEST_PRODUCTS_SHA'] !== env['VERCEL_GIT_COMMIT_SHA'] || !env['WS_TEST_PRODUCTS_SHA'])
-    execFileSync(execPath, ['scripts/build-shardfiles.mjs', '--reuse'], { stdio: 'inherit' });
-}, 120_000);
+const directories = new Map<string, string>();
+beforeAll(() => { for (const slug of ['driftwood-isle', 'pine-hollow']) directories.set(slug, builtProduct(slug)); });
 
 async function encounter(slug: string, actorName: string, at: readonly [number, number, number], player: readonly [number, number, number]) {
-  const product = await loadHeadlessProduct(`out/${slug}`);
+  const directory = directories.get(slug); if (directory === undefined) throw new Error('Missing selected scenario product');
+  const product = await loadHeadlessProduct(directory);
   const made = await scenario(slug, `${slug === 'pine-hollow' ? 'pine.king' : 'driftwood.captain'}.decision`, {
-    seed: 6218, actors: [{ id: actorName, at }], players: [{ id: 101, at: player }],
+    productDirectory: directory, seed: 6218, actors: [{ id: actorName, at }], players: [{ id: 101, at: player }],
   });
   const fields = new Map(product.shardfile.state.shared.map(row => [row.name, row.id]));
   const body = (owner: DiskScriptScenario) => {

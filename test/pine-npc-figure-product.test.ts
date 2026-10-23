@@ -1,8 +1,5 @@
-import { beforeAll, expect, test, vi } from 'vitest';
-// oxlint-disable-next-line import/no-nodejs-modules -- Standalone cold fixtures use the gate's official product producer.
-import { execFileSync } from 'node:child_process';
-// oxlint-disable-next-line import/no-nodejs-modules -- Reuse only the gate's exact-SHA product prerequisite.
-import { env, execPath } from 'node:process';
+import { expect, test, vi } from 'vitest';
+import { builtProduct } from './fixtures/builtProduct';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import type { ShardProduct } from '../src/game/shardfile/shardProduct';
 import * as runtimeProduct from '../src/game/shardfile/runtimeProduct';
@@ -12,12 +9,6 @@ import * as packs from '../src/engine/core/deflate';
 import { FigureRows } from '../src/game/systems/npc/figureRows';
 import packed from '../src/shards/pine-hollow/data/codeParts.json' with { type: 'json' };
 
-beforeAll(() => {
-  const built = env['WS_TEST_PRODUCTS_SHA'];
-  if (built === undefined || !/^[a-f0-9]{40}$/u.test(built) || built !== env['VERCEL_GIT_COMMIT_SHA']) {
-    execFileSync(execPath, ['scripts/build-shardfiles.mjs', '--reuse', '--shard=pine-hollow'], { stdio: 'inherit' });
-  }
-}, 120_000);
 
 // Malformed rows replace only the value under test. Every boot dependency comes
 // from the complete generated product, so a new named file needs no fixture edit.
@@ -29,7 +20,7 @@ function product(base: ShardProduct, value: unknown): ShardProduct {
 test('NPC catalogue admission preserves rows, refuses atomically and prepares cold cards', async () => {
   const figures = new FigureCatalogue('pine-hollow', 'people/catalogue.json');
   expect(() => figures.rows('ranger')).toThrow('not admitted');
-  const admitted = await loadHeadlessProduct('out/pine-hollow');
+  const admitted = await loadHeadlessProduct(builtProduct('pine-hollow'));
   const json: unknown = JSON.parse(new TextDecoder().decode(await admitted.file('people/catalogue.json')));
   const packsLoad = vi.spyOn(packs, 'fetchDeflatedBytes').mockResolvedValue(new Uint8Array(packed.rows.bytes));
   const skinsLoad = vi.spyOn(FigureRows, 'prepareSkins').mockResolvedValue();

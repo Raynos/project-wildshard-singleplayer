@@ -1,11 +1,8 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The native proof reads official immutable output bytes.
 import { readFileSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- Standalone execution produces products before the proof.
-import { execFileSync } from 'node:child_process';
-// oxlint-disable-next-line import/no-nodejs-modules -- Only an exact committed receipt skips production.
-import { env, execPath } from 'node:process';
 import * as v from 'valibot';
-import { beforeAll, expect, test } from 'vitest';
+import { expect, test } from 'vitest';
+import { builtProduct } from './fixtures/builtProduct';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { createSimHost } from '../src/engine/sim';
 import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
@@ -19,15 +16,11 @@ import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 
 const savedPolicy = v.object({ phase: v.number(), fighting: v.boolean(), decision: v.string() });
 const logical = v.object({ decision: v.object({ bindings: v.array(v.object({ failures: v.number(), slots: v.record(v.string(), v.union([v.number(), v.boolean()])) })) }) });
-beforeAll(() => {
-  if (env['WS_TEST_PRODUCTS_SHA'] !== env['VERCEL_GIT_COMMIT_SHA'] || env['WS_TEST_PRODUCTS_SHA'] === undefined)
-    execFileSync(execPath, ['scripts/build-shardfiles.mjs', '--reuse'], { stdio: 'inherit' });
-}, 120_000);
 test('the Matriarch guest borrows each encounter body and resumes its grounded continuation', async () => {
-  const product = await loadHeadlessProduct('out/sunscar-dunes'), declaration = parseNativeRuntimePlan(product.section('sim/runtime-plan'));
+  const directory = builtProduct('sunscar-dunes'), product = await loadHeadlessProduct(directory), declaration = parseNativeRuntimePlan(product.section('sim/runtime-plan'));
   const descriptor = outputDescriptor(product.shardfile); if (descriptor === undefined) throw new Error('Missing verified product');
   const assets = new Map(descriptor.index.files.map(file => [file.commons === true ? `commons:${file.hash}` : file.hash,
-    Uint8Array.from(readFileSync(`out/sunscar-dunes/${file.path}`))]));
+    Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
   const world = await prepareRuntimeWorld(product.shardfile, assets, declaration.baked, declaration.recipe, descriptor.sections);
   const host = createSimHost(world.level, { ...world.ports, rapier });

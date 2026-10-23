@@ -1,20 +1,14 @@
 import { beforeAll, expect, test } from 'vitest';
-// oxlint-disable-next-line import/no-nodejs-modules -- Standalone invocation builds official products outside the scenario's timed body.
-import { execFileSync } from 'node:child_process';
-// oxlint-disable-next-line import/no-nodejs-modules -- Only an exact committed product receipt skips the official producer.
-import { env, execPath } from 'node:process';
+import { builtProduct } from '../fixtures/builtProduct';
 import { scenario as diskScenario,type DiskScriptScenario } from '@wildshard/sdk/scriptScenario';
 
 let prepared:readonly [DiskScriptScenario,DiskScriptScenario]|undefined;
 
 beforeAll(async () => {
-  const built = env['WS_TEST_PRODUCTS_SHA'];
-  if (built === undefined || !/^[a-f0-9]{40}$/u.test(built) || built !== env['VERCEL_GIT_COMMIT_SHA']) {
-    execFileSync(execPath, ['scripts/build-shardfiles.mjs', '--reuse', '--shard=far-reach'], { stdio: 'inherit' });
-  }
+  const directory = builtProduct('far-reach');
   // Disk admission and independent host allocation are fixture preparation.
   // The unchanged two-second body measures every gameplay/save/restore step.
-  const create = () => diskScenario('far-reach', 'far.roc.decision', { seed: 6417,
+  const create = () => diskScenario('far-reach', 'far.roc.decision', { productDirectory: directory, seed: 6417,
     actors: [{ id: 'roc', at: [13, 55, -196] }], players: [{ id: 101, at: [0, 44, -196] }],
   });
   prepared=[await create(),await create()];

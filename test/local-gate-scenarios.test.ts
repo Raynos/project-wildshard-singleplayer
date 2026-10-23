@@ -1,6 +1,18 @@
 import { expect, test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the gate's pure Python selection rule without running a gate.
 import { execFileSync } from 'node:child_process';
+// oxlint-disable-next-line import/no-nodejs-modules -- Enforce read-only setup for the shipped-product scenario suites.
+import { readFileSync } from 'node:fs';
+
+test.each([
+  'ground-borrowed-body', 'matriarch-borrowed-body', 'roc-borrowed-body', 'pine-npc-figure-product',
+  'scripts/_template-boss', 'scripts/ground-encounters', 'scripts/sunscar-matriarch',
+  'scripts/far-reach-roc', 'scripts/skitterer-pack',
+])('%s consumes an existing product without invoking a producer or server', name => {
+  const source = readFileSync(`test/${name}.test.ts`, 'utf8');
+  expect(source).toContain('builtProduct(');
+  expect(source).not.toMatch(/node:child_process|scripts\/build-shardfiles|createServer\(|localhost:3000/u);
+});
 
 test('selected disk readers require exactly their published products', () => {
   const result = execFileSync('python3', ['-c', `

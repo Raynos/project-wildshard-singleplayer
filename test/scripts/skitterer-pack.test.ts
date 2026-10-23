@@ -1,9 +1,6 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The scenario reads the admitted product and native physics.
 import { readFileSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- Standalone scenarios build the official products before admission.
-import { execFileSync } from 'node:child_process';
-// oxlint-disable-next-line import/no-nodejs-modules -- An exact product receipt skips duplicate production.
-import { env, execPath } from 'node:process';
+import { builtProduct } from '../fixtures/builtProduct';
 import { beforeAll, expect, test, vi } from 'vitest';
 import * as v from 'valibot';
 import { loadHeadlessProduct } from '../../src/sdk/headlessProduct';
@@ -24,13 +21,11 @@ import { prepareRuntimeWorld } from '../../src/game/plugin/simulation';
 import { nativeRuntimeActorIds, parseNativeRuntimePlan } from '../../src/format/nativeRuntimePlan';
 import { borrowedDecisionControl } from '../../src/game/shardfile/borrowedDecisions';
 
-beforeAll(() => {
-  if (env['WS_TEST_PRODUCTS_SHA'] !== env['VERCEL_GIT_COMMIT_SHA'] || env['WS_TEST_PRODUCTS_SHA'] === undefined)
-    execFileSync(execPath, ['scripts/build-shardfiles.mjs', '--reuse', '--shard=sunscar-dunes'], { stdio: 'inherit' });
-}, 120_000);
+let directory: string;
+beforeAll(() => { directory = builtProduct('sunscar-dunes'); });
 
 async function pack(seed = 6511) {
-  const product = await loadHeadlessProduct('out/sunscar-dunes'), source = product.shardfile, descriptor = outputDescriptor(source);
+  const product = await loadHeadlessProduct(directory), source = product.shardfile, descriptor = outputDescriptor(source);
   if (descriptor === undefined) throw new Error('Missing admitted product');
   const { sections } = descriptor;
   const rows = parseDecisionScripts(sections.get('sim/scripts'));
@@ -63,7 +58,7 @@ test('one pack row surfaces, ring-runs, retreats and burrows with independent se
   if (first === undefined || script === undefined) throw new Error('Missing first member');
   for (const p of [a, b]) { for (const binding of p.bindings) p.host.enqueue(binding.id, [1, 0, 0, 0, 0, 0]); p.step(7); }
   expect(a.host.snapshot()).toEqual(b.host.snapshot()); expect(a.bindings).toHaveLength(10);
-  const disk = await scenario('sunscar-dunes', 'sunscar.skitterer.decision', { seed: 6511,
+  const disk = await scenario('sunscar-dunes', 'sunscar.skitterer.decision', { productDirectory: directory, seed: 6511,
     actors: a.world.snapshot().actors ?? [], players: a.world.snapshot().players ?? [] });
   disk.send('start');
   expect(disk.host.snapshot().bindings.map(binding => binding.slots)).toEqual(a.host.snapshot().bindings.map(binding => binding.slots));
@@ -90,11 +85,11 @@ test('one pack row surfaces, ring-runs, retreats and burrows with independent se
 }, 5_000);
 
 test('native pack uses one module, real contacts and an exact fresh-host continuation', async () => {
-  const product = await loadHeadlessProduct('out/sunscar-dunes'), descriptor = outputDescriptor(product.shardfile);
+  const product = await loadHeadlessProduct(directory), descriptor = outputDescriptor(product.shardfile);
   if (descriptor === undefined) throw new Error('Missing product');
   const plan = parseNativeRuntimePlan(product.section('sim/runtime-plan'));
   const assets = new Map(descriptor.index.files.map(file => [file.commons === true ? `commons:${file.hash}` : file.hash,
-    Uint8Array.from(readFileSync(`out/sunscar-dunes/${file.path}`))]));
+    Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
   const world = await prepareRuntimeWorld(product.shardfile, assets, plan.baked, plan.recipe, descriptor.sections), host = createSimHost(world.level, { ...world.ports, rapier });
   let resumed: ReturnType<typeof restoreSimHost> | undefined;

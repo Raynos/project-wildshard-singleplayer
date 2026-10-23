@@ -17,9 +17,11 @@ import { createScriptScenario, type ScenarioActor, type DiskScenarioOptions, typ
 /** Disk admission and the game use the same defining catalogue; the fixture never allocates actor ids. */
 export async function readDiskScriptScenario(slug: string, id: string, options: DiskScenarioOptions): Promise<DiskScriptScenario> {
   if (!/^_?[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/u.test(slug)) throw new Error('Invalid scenario output folder');
-  const root = resolve(options.products ?? 'out'), directory = resolve(root, slug);
+  if (options.products !== undefined && options.productDirectory !== undefined) throw new Error('Scenario requires one product location');
+  const root = resolve(options.products ?? 'out'), directory = options.productDirectory === undefined ? resolve(root, slug) : resolve(options.productDirectory);
   if (!existsSync(resolve(directory, 'shard.json'))) throw new Error(`Missing published scenario output ${slug}; run wildshard build first`);
-  if (realpathSync(directory) !== resolve(realpathSync(root), slug)) throw new Error('Scenario output cannot be a symlink');
+  const expected = options.productDirectory === undefined ? resolve(realpathSync(root), slug) : directory;
+  if (realpathSync(directory) !== expected) throw new Error('Scenario output cannot be a symlink');
   const product = await loadHeadlessProduct(directory), shard = product.shardfile, descriptor = outputDescriptor(shard);
   if (descriptor === undefined) throw new Error('Missing admitted scenario descriptor');
   const { index, sections } = descriptor;

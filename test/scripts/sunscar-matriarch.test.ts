@@ -1,16 +1,11 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Standalone execution builds the official products before the timed scenario.
-import { execFileSync } from 'node:child_process';
-// oxlint-disable-next-line import/no-nodejs-modules -- An exact immutable receipt avoids duplicate production.
-import { env, execPath } from 'node:process';
+import { builtProduct } from '../fixtures/builtProduct';
 import { beforeAll, expect, test } from 'vitest';
 import { scenario } from '@wildshard/sdk/scriptScenario';
 
-beforeAll(() => {
-  if (env['WS_TEST_PRODUCTS_SHA'] !== env['VERCEL_GIT_COMMIT_SHA'] || env['WS_TEST_PRODUCTS_SHA'] === undefined)
-    execFileSync(execPath, ['scripts/build-shardfiles.mjs', '--reuse'], { stdio: 'inherit' });
-}, 120_000);
+let directory: string;
+beforeAll(() => { directory = builtProduct('sunscar-dunes'); });
 test('the published Matriarch guest flies, grounds and restores without replaying effects', async () => {
-  const create = () => scenario('sunscar-dunes', 'sunscar.matriarch.decision', { seed: 6511,
+  const create = () => scenario('sunscar-dunes', 'sunscar.matriarch.decision', { productDirectory: directory, seed: 6511,
     actors: [{ id: 'matriarch', at: [-14, 18, -150] }], players: [{ id: 101, at: [-14, 0, -130] }],
   });
   const boss = await create(); boss.send('start');

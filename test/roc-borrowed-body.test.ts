@@ -1,11 +1,8 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The native proof reads the official immutable product.
 import { readFileSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- Standalone test invocation runs the official producer.
-import { execFileSync } from 'node:child_process';
-// oxlint-disable-next-line import/no-nodejs-modules -- Only the exact output receipt skips production.
-import { env, execPath } from 'node:process';
 import * as v from 'valibot';
-import { beforeAll, expect, test } from 'vitest';
+import { expect, test } from 'vitest';
+import { builtProduct } from './fixtures/builtProduct';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { snapshotSimHost } from '../src/engine/sim/snapshot';
 import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
@@ -14,16 +11,12 @@ import { createTrustedHeadlessResident } from '../src/sdk/headlessRuntime';
 
 const policySchema = v.object({ phase: v.number(), fighting: v.boolean(), decision: v.string(), strike: v.object({ clock: v.number(), currentId: v.nullable(v.string()) }) });
 const logicalSchema = v.object({ decision: v.object({ tick: v.number(), bindings: v.array(v.object({ slots: v.record(v.string(), v.union([v.number(), v.boolean()])), failures: v.number() })) }) });
-beforeAll(() => {
-  if (env['WS_TEST_PRODUCTS_SHA'] !== env['VERCEL_GIT_COMMIT_SHA'] || env['WS_TEST_PRODUCTS_SHA'] === undefined)
-    execFileSync(execPath, ['scripts/build-shardfiles.mjs', '--reuse'], { stdio: 'inherit' });
-}, 120_000);
 test('the published Roc guest drives the retained native body through phases and logical restore', async () => {
-  const product = await loadHeadlessProduct('out/far-reach');
+  const directory = builtProduct('far-reach'), product = await loadHeadlessProduct(directory);
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
   const descriptor = outputDescriptor(product.shardfile); if (descriptor === undefined) throw new Error('Missing admitted output');
   const assets = new Map(descriptor.index.files.map(file => [file.commons === true ? `commons:${file.hash}` : file.hash,
-    Uint8Array.from(readFileSync(`out/far-reach/${file.path}`))]));
+    Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
   const preparation = { product, shard: product.shardfile, assets, rapier };
   const resident = await createTrustedHeadlessResident(preparation);
   let resumed: Awaited<ReturnType<typeof createTrustedHeadlessResident>> | undefined;

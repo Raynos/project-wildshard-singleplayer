@@ -1,22 +1,17 @@
 import { beforeAll, expect, test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Optional scenario receipt belongs to this test runner.
 import { writeFileSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- Standalone test runs prepare official outputs outside the timed scenario.
-import { execFileSync } from 'node:child_process';
-// oxlint-disable-next-line import/no-nodejs-modules -- Reuse only an exact gate build, never a loose ready flag.
-import { env, execPath } from 'node:process';
+// oxlint-disable-next-line import/no-nodejs-modules -- Optional scenario receipts use the caller environment.
+import { env } from 'node:process';
+import { builtProduct } from '../fixtures/builtProduct';
 import { scenario as diskScenario } from '@wildshard/sdk/scriptScenario';
 import { scenarioHostHash, scriptScenarioReceipt } from '../../scripts/script-scenario-metrics.mjs';
 
-beforeAll(() => {
-  const built = env['WS_TEST_PRODUCTS_SHA'];
-  if (built === undefined || !/^[a-f0-9]{40}$/u.test(built) || built !== env['VERCEL_GIT_COMMIT_SHA']) {
-    execFileSync(execPath, ['scripts/build-shardfiles.mjs', '--reuse', '--shard=_template'], { stdio: 'inherit' });
-  }
-}, 120_000);
+let directory: string;
+beforeAll(() => { directory = builtProduct('_template'); });
 
 test('Template boss runs published Wasm decisions and resumes a logical save', async () => {
-  const create = () => diskScenario('_template', 'template.boss.decision', { seed: 437,
+  const create = () => diskScenario('_template', 'template.boss.decision', { productDirectory: directory, seed: 437,
     players: [{ id: 101, at: [-15, 0, -18] }],
   });
   const scenario = await create();

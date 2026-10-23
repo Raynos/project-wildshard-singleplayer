@@ -8786,7 +8786,7 @@ belong to the host. Native movement completion is an explicit test event,
 not another movement implementation. Logical saves include host and fixture
 observations; restore rolls observations back if host validation refuses.
 The constructor port takes the real host, never a substitute Wasm runner.
-`scenario(folder,id,{seed,products?,actors?,players?})` reads only a published
+`scenario(folder,id,{seed,products?,productDirectory?,actors?,players?})` reads only a published
 format-2 output (default root `out/`). It hash-verifies sections and the selected Wasm,
 uses the defining actor/move/spot binding registry and runs the actual
 DecisionHost. Missing output or bytes refuse; it never builds, compiles or
@@ -8795,9 +8795,12 @@ spawn poses. Retained actors with only XZ metadata require explicit XYZ
 fixtures, named by the script alias or the actual actor id. Public field
 bounds come from the product and cannot be widened by a fixture.
 `product.sectionHash` and `product.indexHash` bind observations to disk bytes.
-The gate builds published outputs once before selected disk scenarios; the
-Template save/restore sample consumes these outputs inside its two-second
-scenario budget. Standalone test setup builds outside the timed scenario.
+`productDirectory` selects one existing product directory, including an immutable
+cache entry, and is exclusive with `products`. Both paths refuse symlinked output.
+CI prepares the published products before the scenarios; local tests select only
+products with matching sealed source receipts and print the required build command
+when absent. Tests never build products or start a preview. The Template save/restore
+sample retains its two-second scenario budget.
 
 ### Lossless named GLB compression
 
