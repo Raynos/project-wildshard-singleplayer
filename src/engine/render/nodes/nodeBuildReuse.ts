@@ -89,11 +89,12 @@ export function graphNodeOwner(material: THREE.Material): GraphNodeOwner | undef
  * fog, layer and object), the object's class and the material's plain user data (the graph compiler's build switches).
  * Null when the custom key does not start with the material's hash (a variant keyed another way).
  */
-export function reuseKey(parameters: object, object: THREE.Object3D, material: THREE.Material): string | null {
+export function reuseKey(parameters: object, object: THREE.Object3D, material: THREE.Material, shared: string | null = null): string | null {
   const own: unknown = Reflect.get(Object.getPrototypeOf(material) ?? {}, 'customProgramCacheKey');
   const custom: unknown = Reflect.get(parameters, 'customProgramCacheKey');
   if (typeof own !== 'function' || typeof custom !== 'string') return null;
-  const hash: unknown = Reflect.apply(own, material, []);
+  // a shared program key (the handler's `programShare`) leads with the graph's shape in place of the material's hash
+  const hash: unknown = shared !== null && custom.startsWith(shared) ? shared : Reflect.apply(own, material, []);
   if (typeof hash !== 'string' || !custom.startsWith(hash)) return null;
   const parts: string[] = [object.constructor.name, `custom=${custom.slice(hash.length)}`];
   for (const [name, value] of Object.entries(material.userData)) {

@@ -101,6 +101,12 @@ export interface EpilogueContext {
 /** one stage of the engine epilogue: the output colour after the output transform → the colour it leaves */
 export type EpilogueStage = (out: Node<'vec4'>, ctx: EpilogueContext) => Node<'vec4'>;
 
+/** a code string's length and 32-bit FNV-1a hash (programShare's shared-code check) */
+function codeHash(code: string): string {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < code.length; i++) { h ^= code.codePointAt(i) ?? 0; h = Math.imul(h, 0x01000193) >>> 0; }
+  return `${String(code.length)}:${h.toString(16)}`;
+}
 /** the output transform for the bound target, as classic three decides it (WebGLPrograms.js getParameters) */
 export function outputTransform(renderer: Renderer): { toneMapping: THREE.ToneMapping; colorSpace: string } {
   const target = renderer.getRenderTarget();
@@ -386,6 +392,10 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   private readonly reusable = new Map<string, { readonly material: WeakRef<THREE.Material>; readonly output: BuildOutput; readonly shape: GraphShape; readonly lazy: readonly LazyUniform[] }>();
   /** each graph material's shape, read before its first build touched its nodes (`nodeReuse`) */
   private readonly shapes = new WeakMap<THREE.Material, GraphShape>();
+  /** programShare: graph shapes whose builds wrote other code under one shared key (they key by their own nodes) */
+  private readonly unshared = new Set<string>();
+  /** programShare: each shared build key's code, as a length and hash */
+  private readonly sharedCode = new Map<string, string>();
   /** `verify` only: each program's code, the first key it was built under */
   private readonly verifiedKeys = new Map<string, string>();
   private real: Renderer | null = null;
@@ -474,6 +484,14 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     // It is computed once per material, receive-shadow flag and key context (scene hash, bound target, output transform:
     // `keyContextNow`), and again whenever the material's version moves.
     const stockKeys = this.stockKeys, keyContext = (): number => this.keyContextNow();
+    // programShare: the stock key with its leading material hash (the hash of its node ids) replaced by its graph's shape
+    const sharedStock = (material: THREE.Material): string => {
+      const stock = stockKey.call(material), lead = this.shareKeyOf(material);
+      if (lead === null) return stock;
+      const own: unknown = Reflect.get(Object.getPrototypeOf(material) ?? {}, 'customProgramCacheKey');
+      const hash: unknown = typeof own === 'function' ? Reflect.apply(own, material, []) : null;
+      return typeof hash === 'string' && stock.startsWith(hash) ? lead + stock.slice(hash.length) : stock;
+    };
     self.customProgramCacheKeyCallback = function customProgramCacheKeyCallback(this: THREE.Material): string {
       const current = frame();
       const object: unknown = typeof current === 'object' && current !== null ? Reflect.get(current, 'object') : undefined;
@@ -484,7 +502,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       const stamp = keyContext();
       const rawOutput = this.userData['graphRawOutput'] === true, objectKey = nodeObjectKey(object);
       const depth = this.userData['graphDepthVariant'] === true;
-      if (stamp < 0) return shaderPatchProgramKey(this, wholeKey(depth ? depthStockKey(this, receive) : stockKey.call(this), this.toneMapped, rawOutput, objectKey, fog, layer));
+      if (stamp < 0) return shaderPatchProgramKey(this, wholeKey(depth ? depthStockKey(this, receive) : sharedStock(this), this.toneMapped, rawOutput, objectKey, fog, layer));
       let memos = stockKeys.get(this);
       if (memos === undefined || memos[0]?.version !== this.version) { memos = []; stockKeys.set(this, memos); }
       let memo = memos.find(m => m.stamp === stamp);
@@ -502,7 +520,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       const slot = receive ? 1 : 0, kept = shape[slot];
       if (kept !== undefined) return shaderPatchProgramKey(this, kept);
       let stock = receive ? memo.receive : memo.plain;
-      if (stock === undefined) { stock = depth ? depthStockKey(this, receive) : stockKey.call(this); if (receive) memo.receive = stock; else memo.plain = stock; }
+      if (stock === undefined) { stock = depth ? depthStockKey(this, receive) : sharedStock(this); if (receive) memo.receive = stock; else memo.plain = stock; }
       const key = wholeKey(stock, this.toneMapped, rawOutput, objectKey, fog, layer); shape[slot] = key;
       return shaderPatchProgramKey(this, key);
     };
@@ -735,7 +753,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const owner = mode === 'off' ? undefined : graphNodeOwner(material);
     let shape = owner === undefined ? null : this.shapes.get(material) ?? null;
     if (owner !== undefined && shape === null) { shape = graphShape(material, owner); this.shapes.set(material, shape); }
-    const program = shape === null ? null : reuseKey(parameters, object, material);
+    const program = shape === null ? null : reuseKey(parameters, object, material, this.shareKeyOf(material));
     const key = shape === null || program === null ? null : `${program}\n${shape.signature}`;
     const reused = key === null || shape === null ? null : this.reusedBuild(key, material, object, shape);
     if (mode === 'on' && typeof reused === 'object' && reused !== null) { this.applyReused(material, object, parameters, reused); this.reuses++; }
@@ -776,6 +794,15 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       if (!shader.includes('float wildshardGraphPointSize;') || !shader.includes('gl_PointSize = 1.0;')) throw new Error('Missing graph point-size output');
       parameters.vertexShader = shader.replace('gl_PointSize = 1.0;', 'gl_PointSize = wildshardGraphPointSize;');
     }
+    // programShare: one shared key stands for one program's code; a build that wrote other code stops its shape sharing
+    if (key !== null && shape !== null && this.shareKeyOf(material) !== null) {
+      const code = codeHash(`${parameters.vertexShader}\0${parameters.fragmentShader}`), seen = this.sharedCode.get(key);
+      if (seen === undefined) this.sharedCode.set(key, code);
+      else if (seen !== code) {
+        this.unshared.add(shape.signature);
+        console.warn(`[programShare] ${material.name || material.type} wrote other code under a shared program key: it keys by its own nodes from now on`);
+      }
+    }
     this.buildMs += diagnosticNow() - t0;
     this.builds++;
     if (this.buildLog.length >= BUILD_LOG_CAP) this.buildLog.shift();
@@ -802,6 +829,22 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       Reflect.set(material, '_latestBuilder', { uniformGroups, uniforms: { vertex: [], fragment: [] }, updateNodes });
     }
     this.pendingBuilds.set(material, pending);
+  }
+
+  /**
+   * With the `programShare` Developer row on (and node reuse on), a graph material's program key leads with its type and
+   * its graph's shape (`graphShape`: every node its compile made, with its class, code-bearing fields, constants and
+   * texture kinds) instead of the hash of its node ids: three files programs by key (acquireProgram), so equal graphs
+   * under the same scene, target, fog, layer and object then link ONE GL program, each material with its own uniforms.
+   * Null (its own nodes key it) for any other material, or a shape whose builds wrote other code under one key.
+   */
+  private shareKeyOf(material: THREE.Material): string | null {
+    if (setting('programShare') !== 'on' || setting('nodeReuse') === 'off' || !(material instanceof NodeMaterial)) return null;
+    const owner = graphNodeOwner(material);
+    if (owner === undefined) return null;
+    let shape = this.shapes.get(material);
+    if (shape === undefined) { shape = graphShape(material, owner); this.shapes.set(material, shape); }
+    return this.unshared.has(shape.signature) ? null : `${material.type}~${shape.signature}`;
   }
 
   /** the build an earlier material of the same program key and graph shape left, bound to `material`'s own nodes; null

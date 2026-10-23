@@ -186,6 +186,7 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   opt('bootShaders', 'perf', engineString('s_boot_shaders'), [['drawn', engineString('s_boot_shaders_drawn')], ['all', engineString('s_boot_shaders_all')]], { purpose: 'developer', reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_boot_shaders_note') }),
   opt('homeEntry', 'perf', engineString('s_home_entry'), [['region', engineString('s_home_entry_region')], ['road', engineString('s_home_entry_road')]], { purpose: 'developer', reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_home_entry_note') }),
   opt('nodeReuse', 'perf', engineString('s_node_reuse'), [['off', engineString('s_node_reuse_off')], ['on', engineString('s_node_reuse_on')], ['verify', engineString('s_node_reuse_verify')]], { purpose: 'developer', reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_node_reuse_note') }),
+  opt('programShare', 'perf', engineString('s_program_share'), [['off', engineString('s_program_share_off')], ['on', engineString('s_program_share_on')]], { purpose: 'developer', reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_program_share_note') }),
   opt('graphUniforms', 'perf', engineString('s_graph_uniforms'), [['plain', engineString('s_graph_uniforms_plain')], ['blocks', engineString('s_graph_uniforms_blocks')]], { purpose: 'developer', reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_graph_uniforms_note') }),
 
   // ── Loading & memory ──
