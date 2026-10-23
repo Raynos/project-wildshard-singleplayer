@@ -229,8 +229,21 @@ function runtimeTags(source, path, fallback) {
   for (const comment of parsed.comments) { blanked += source.slice(cursor, comment.start) + source.slice(comment.start, comment.end).replaceAll(/[^\n]/gu, ' '); cursor = comment.end; }
   blanked += source.slice(cursor);
   for (let i = 0; i < source.length; i++) if (source[i] === '\n') starts.push(i + 1);
-  const tags = blanked.split('\n').map((line, index) => line.trim() ? { line:index + 1, component:fallback, priority:0, reason:'file owner' } : null);
+  const tags = blanked.split('\n').map((line, index) => line.trim() ? { line:index + 1, component:fallback, priority:0, reason:'file owner', symbol:'' } : null);
   const lineOf = offset => { let low=0, high=starts.length-1; while(low<high){const mid=(low+high+1)>>1;if(starts[mid]<=offset)low=mid;else high=mid-1;}return low; };
+  // R19: retain defining symbols without changing semantic ownership or counts.
+  const symbol = (node, name) => {
+    for (let i=lineOf(node.start);i<=lineOf(Math.max(node.start,node.end-1));i++) if(tags[i]) tags[i].symbol=name;
+  };
+  for (const statement of parsed.program.body) {
+    const node=statement.type==='ExportNamedDeclaration'?statement.declaration:statement;
+    if(!node)continue;
+    if(node.type==='VariableDeclaration')for(const declaration of node.declarations)symbol(declaration,nodeName(declaration.id));
+    else if(node.id) {
+      const name=nodeName(node.id);symbol(node,name);
+      if(node.type==='ClassDeclaration')for(const member of node.body.body)if(member.type==='MethodDefinition')symbol(member,`${name}.${nodeName(member.key)}`);
+    }
+  }
   const assign = (node, component, priority, reason) => {
     if (!component) return;
     const owner = fallback === 'C3' && (component === 'C1' || component === 'C2') ? 'C3' : component;
@@ -302,7 +315,7 @@ export function componentInventory(root, shard, sources, canonical) {
     const reviewed = platformChargeback(row.path, row.name);
     if (reviewed !== null) {
       counts[reviewed] += row.lines;
-      spans.push({path:row.path,kind:row.kind,component:reviewed,lines:row.lines,reason:'G520 fixture-only host; real second shard absent'});
+      spans.push({path:row.path,symbol:row.name??null,kind:row.kind,component:reviewed,lines:row.lines,reason:'G520 fixture-only host; real second shard absent'});
       continue;
     }
     const ownerPath=row.ownerPath??row.path;
@@ -315,14 +328,14 @@ export function componentInventory(root, shard, sources, canonical) {
       for(const tag of tags) {
         counts[tag.component]++;
         const last=spans.at(-1);
-        if(last && last.path===row.path && last.kind===row.kind && last.component===tag.component && last.end===tag.line-1 && last.reason===tag.reason){last.end=tag.line;last.lines++;}
-        else spans.push({path:row.path,kind:row.kind,component:tag.component,start:tag.line,end:tag.line,lines:1,reason:tag.reason});
+        if(last && last.path===row.path && last.kind===row.kind && last.component===tag.component && last.end===tag.line-1 && last.reason===tag.reason && last.symbol===(tag.symbol||null)){last.end=tag.line;last.lines++;}
+        else spans.push({path:row.path,symbol:tag.symbol||null,kind:row.kind,component:tag.component,start:tag.line,end:tag.line,lines:1,reason:tag.reason});
       }
     } else {
       // Additional GLSL is the canonical shader unit; sole exports already have deduplicated declaration spans.
       const component=row.kind==='additional-glsl'?(owner==='C3'?'C3':'C2'):namedRole(row.name??'',row.path)??owner;
       counts[component]+=row.lines;
-      spans.push({path:row.path,kind:row.kind,component,lines:row.lines,reason:row.name?`G294 declaration ${row.name}`:'additional GLSL owner'});
+      spans.push({path:row.path,symbol:row.name??null,kind:row.kind,component,lines:row.lines,reason:row.name?`G294 declaration ${row.name}`:'additional GLSL owner'});
     }
   }
   const total=Object.values(counts).reduce((sum,n)=>sum+n,0);

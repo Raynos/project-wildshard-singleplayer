@@ -57,3 +57,8 @@ inventory. Template and Pastel are native, with no invented denominator; their
 ratio and port headline remain null. Headless availability is a separate status.
 G294 attributes sole-user platform declarations; G419 reports documented
 pending later-wave users explicitly rather than treating them as actual users.
+
+The same ruler refresh writes `spans-<slug>.json` beside `ruler.json` for every measured shard, from that run's
+verified source census. Each record pins the revision, component totals and spans (path, defining symbol,
+component, counted lines and available physical ranges). Module wiring has a null symbol. Failed ownership
+measurements write explicit null totals/spans instead of reusing old lists. This adds no build or ownership-count pass.

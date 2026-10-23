@@ -17,6 +17,7 @@ import { dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import * as v from 'valibot';
 import { writePortShares } from '../gen-port-shares.mjs';
+import { writeRulerSpans } from './ruler-spans.mjs';
 
 export const RULER_PATH = 'progress/shard-platform/ruler/ruler.json';
 export const RULER_CHART = 'progress/shard-platform/ruler/custom-vs-hours.jpg';
@@ -260,6 +261,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
   const fresh = nextRuler(measured, null, at);
   const prev = existsSync(file) ? readRulerHistory(JSON.parse(readFileSync(file, 'utf8')), fresh.plan) : seeded;
   const next = readRuler(nextRuler(measured, prev, at));
+  writeRulerSpans(dirname(file), measured._summary.sourceSpans, revision);
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(`${file}.tmp`, `${JSON.stringify(next, null, 1)}\n`);
   renameSync(`${file}.tmp`, file);
