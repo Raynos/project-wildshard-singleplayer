@@ -1,5 +1,5 @@
-import { MountedArsenal } from '../src/game/loadout/mounted';
-import loadout from '../src/shards/nalati-grasslands/boot/mountedLoadout.generated.json' with { type: 'json' };
+import { BladeSet } from '../src/game/weapons/mountedBlade';
+import loadout from '../src/shards/nalati-grasslands/data/loadout.json' with { type: 'json' };
 import heldWeapons from '../src/shards/nalati-grasslands/data/heldWeapons.generated.json' with {type:'json'};
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the emitted GLB against its original authoring geometry.
 import { readFileSync } from 'node:fs';
@@ -16,7 +16,7 @@ import rows from '../src/shards/nalati-grasslands/data/sabre.generated.json' wit
 
 const {polearm:_polearm,blade:_blade,programs:_programs,...weaponPower}=heldWeapons;
 
-const { blade } = new MountedArsenal(loadout);
+const blade = new BladeSet({file:loadout.blade.file,item:'weapon.sabre'});
 
 test('baked sabre preserves every move, contact, mounted coefficient and mutable geometry channel', async () => {
   const key = (row: typeof PASS_LEFT.keys[number]) => ({ t: row.t, pos: row.pos.toArray(), q: row.q.toArray() });

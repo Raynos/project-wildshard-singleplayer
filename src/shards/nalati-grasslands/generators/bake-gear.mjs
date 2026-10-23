@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { isDeepStrictEqual } from 'node:util';
 import { parse } from 'valibot';
 import { BowVariantSchema, BowSourceMultipliersSchema } from '@wildshard/format/bowVariantRows';
+import { heldSlotRows } from './heldSlots.ts';
 import { resolve } from 'node:path';
 import { deflateSync } from 'node:zlib';
 import * as THREE from 'three';
@@ -75,7 +76,6 @@ try {
   // build-time data (generators read it; play code reads the product's models/gear-book.json); the loadout is its own file
   writer.put(resolve(import.meta.dirname, '../data/gear.generated.json'), jsonBytes({ catalogue, materials, variants: JSON.parse(readFileSync(resolve(import.meta.dirname, '../data/legendaryWeapons.json'), 'utf8')),
     packed: { bin: '/assets/nalati/baked/gear-specimens.bin', bytes: bytes.length, rows } }));
-  writer.put(resolve(import.meta.dirname,'../boot/mountedLoadout.generated.json'),jsonBytes(loadout));
   writer.put(resolve(import.meta.dirname,'../boot/bowTrail.generated.json'),jsonBytes(JSON.parse(readFileSync(resolve(import.meta.dirname,'../data/bowTrail.json'),'utf8'))));
   const variant=JSON.parse(readFileSync(resolve(import.meta.dirname,'../data/bowVariant.json'),'utf8'));
   variant.program=JSON.parse(readFileSync(resolve(import.meta.dirname,'../data/kokpar.generated.json'),'utf8')).program;
@@ -99,6 +99,7 @@ try {
   variant.damageScale={base:scales(''),kinds:Object.fromEntries([...kinds].map(kind=>[kind,scales(kind)]))};
   variant.trail=JSON.parse(readFileSync(resolve(import.meta.dirname,'../data/bowTrail.json'),'utf8'));
   const admittedVariant=parse(BowVariantSchema,variant);
+  writer.put(resolve(import.meta.dirname,'../boot/mountedLoadout.generated.json'),jsonBytes(heldSlotRows(loadout,admittedVariant)));
   if(!isDeepStrictEqual(admittedVariant,variant))throw new Error('Bow variant must include its admitted defaults');
   writer.put(resolve(import.meta.dirname,'../boot/bowVariant.generated.json'),jsonBytes(variant));
   writer.put(resolve(import.meta.dirname,'../boot/bowVariant.generated.d.json.ts'),"declare const variant: import('@wildshard/format/bowVariantRows').BowVariantRows;\nexport default variant;\n");

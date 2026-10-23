@@ -3,7 +3,7 @@ import { installEnteredLevelService } from '../shard/retainedHooks';
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import { DataPanel } from '../ui/dataPanels';
 import { enteredAdventurePersistence } from '../quest/chapterBindings';
-import type { MountedArsenal } from '../loadout/mounted';
+import type { HeldClaims } from '../loadout/claims';
 import { clientWildlife } from '../population/wildlife';
 import type { CrowdDraw } from '../ambient/crowdDraw';
 import { wildEnv } from '../population/pageGroups';
@@ -298,7 +298,7 @@ export async function installClientRiding(ctx: ShardContext, feature: ClientFeat
 }
 /** Enter after native animals and equipment exist. The plan supplies all labels,
  * guest rows and resource ids; the page resolves its own concrete authorities. */
-export function enterClientRiding(ctx: ShardContext, arsenal: MountedArsenal): PageRidingView {
+export function enterClientRiding(ctx: ShardContext, arsenal: HeldClaims): PageRidingView {
   const owner = clientSessions.get(ctx.scope), runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play;
   if (owner === undefined || ctx.scope.disposed || runtime === undefined || world === undefined || world === null || play === undefined || play === null) throw new Error('Riding feature is not ready');
   if (owner.view !== null) throw new Error('Riding feature is already entered');
@@ -350,8 +350,8 @@ export function enterClientRiding(ctx: ShardContext, arsenal: MountedArsenal): P
     },
     late: dt => {
       weaponMount.speed = mount.speed; weaponMount.yaw = mount.heading - Math.PI; kit.setMount(mount.mounted ? weaponMount : null);
-      if (mount.gallopFloat) kit.bow.extraSpreadDeg *= .5;
-      const bow = kit.bow, drawing = ctx.app.equipment?.current === bow && (bow.adsHeld || bow.drawing);
+      if (mount.gallopFloat) kit.bow('bow').extraSpreadDeg *= .5;
+      const bow = kit.bow('bow'), drawing = ctx.app.equipment?.current === bow && (bow.adsHeld || bow.drawing);
       reins.update(dt, mount.horse, mount.mounted, mount.breaking || drawing);
     },
   };

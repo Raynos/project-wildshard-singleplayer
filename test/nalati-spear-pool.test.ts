@@ -1,5 +1,5 @@
-import { MountedArsenal } from '../src/game/loadout/mounted';
-import loadout from '../src/shards/nalati-grasslands/boot/mountedLoadout.generated.json' with { type: 'json' };
+import { PolearmSet } from '../src/game/weapons/heldPolearm';
+import loadout from '../src/shards/nalati-grasslands/data/loadout.json' with { type: 'json' };
 import ARM_STYLE from '../src/shards/nalati-grasslands/data/armsStyle.json' with {type:'json'};
 import heldWeapons from '../src/shards/nalati-grasslands/data/heldWeapons.generated.json' with {type:'json'};
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare the production GLB with retained source geometry.
@@ -20,7 +20,7 @@ import rows from '../src/shards/nalati-grasslands/data/spear.generated.json' wit
 installPortableMath();
 const { buildSpear: authorSpear, buildJavelin: authorJavelin, SPEAR_VIEW, SPEAR_PROFILE } = await import('../src/shards/nalati-grasslands/generators/spear');
 
-const { polearm } = new MountedArsenal(loadout);
+const polearm = new PolearmSet({file:loadout.polearm.file,item:'weapon.spear'});
 
 test('baked spear retains all geometry channels, poses, coefficients and independent copies', async () => {
   const bytes = readFileSync(`public${rows.pool.url}`);

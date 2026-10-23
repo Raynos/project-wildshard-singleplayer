@@ -3433,6 +3433,16 @@ retirement. A descendant may borrow that readiness; another entry must prepare
 explicitly. Replaced readiness refuses a suspended build, while an already-built
 kit retains its original native owners. model(key) delegates to the same
 specimen catalogue without adding a model memo or another packed decoder.
+
+A bow upgrade may declare power: {kind: 'charged-pierce', rows: admitted bow
+variant}. Its item/name must match the replacement and prediction retains
+the original 48-point bound. pageKit.bowPower(id) prepares one private slot
+power at the original entered bind position, exposing applied and update(dt).
+upgradeBow(id, equipment) consumes that same prepared power. The original
+AS thresholds, contact values, callback order, delayed native contacts and
+system timing remain. Projection/update/damage callbacks fence their owner;
+the trail retires with that entered scope. No new clock, save or public
+power owner is introduced. Product-pinned rows are owned immutable metadata.
 `game/plugin/simulation.bindNativeLoadout` supplies the existing slot/swap law,
 live body and aim readers, and optional step/snapshot registration at the native
 owner's original id and phase. Weapon and ammunition continuations keep their
@@ -11372,26 +11382,28 @@ re-entry replays them against the same clock without resetting it. This does
 not build a sky, create a clock or change its native saved state. The new
 clock wiring remains charged to its sole user.
 
-`held.mounted {arsenal}` runs at entered kit rank -10. It borrows the concrete
-`mounted-arsenal` owner prepared by world and calls that same MountedArsenal's
-installPage; play and boss upgrades borrow the same arsenal and native kit.
-It creates no second weapon family, specimen catalogue or saved owner.
-`enterClientRiding(ctx, arsenal)` borrows `arsenal.pageKit(ctx)` from that
-concrete entered owner. The arsenal lends its exact built kit only within
-its construction scope; an unbuilt, disposing or disposed scope returns
-null. There is no second global kit publication or scope-to-kit book.
-Mounted construction pins its original scope, product/source, game/runtime,
-world, app and equipment identities before construction. Every constructor
-pause and product read rechecks them before the next family or publication;
-a retiring ancestor also refuses. `build` accepts the same optional concrete
-context loan from `installPage`; its four-argument native use is unchanged.
-This transitional capability does not waive the mounted host's sole-user charge.
+`held.claims.install {claims, preparation?: 'kit' | 'world'}` runs at entered
+kit rank -10. Omitted preparation retains the original matching kit-prepare
+row and held/arms admission. World preparation instead borrows the concrete
+claims loan prepared at the existing world slot, refuses a repeated kit
+prepare, and validates its pinned product, id and live source readiness before
+registration. Installation uses the current entered context, never the saved
+world context. The entered grapple capability retains its kit-only admission.
 
-A transitional native phase selection may also give a finite `features` list,
-for example `{phases: ['kit'], features: ['held.mounted']}`. The adapter admits
-the whole plan, refuses repeated or missing selected kinds, then runs only the
-selected rows inside the selected phases. Unrelated native kit/world/play
-owners remain under their existing hooks; the hybrid still runs its full plan.
+`enterClientRiding(ctx, claims)` borrows `claims.pageKit(ctx)`: the exact kit
+built in that construction scope, or null before build and during retirement.
+There is no second global kit book. Product metadata, original blade/polearm
+sets and the specimen catalogue survive entry retirement; native preparation,
+construction, reward upgrades and mount/refill loans keep their original
+order. Every await fences the concrete source, scope, product, game/runtime,
+world, app and equipment before another family or publication. An ancestor
+in sliced retirement also refuses. The mounted adapter is retired.
+
+A native phase selection may also give a finite features list, for example
+`{phases: ['kit'], features: ['held.claims.install']}`. The adapter admits the
+whole plan, refuses repeated or missing selected kinds, then runs only the
+selected rows inside those phases. Other native owners keep their existing
+hooks; the hybrid still runs its full plan.
 
 The strict declared-primary branch of held/arms names one original melee
 item/blade/presentation file plus ordered tool ids. HeldClaims.prepare reads

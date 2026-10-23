@@ -30,9 +30,7 @@ import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { ReturnProgram } from '../population/returnProgram';
 import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
 import { BossEncounterDefinitionSchema } from '@wildshard/format/bossEncounter';
-import { VariantBowPower } from '../weapons/bowVariant';
-import type { BowVariantRows } from '@wildshard/format/bowVariantRows';
-import type { MountedLoadout } from '../loadout/mounted';
+import type { HeldSlotKit } from '../loadout/claims';
 import { enteredAdventurePersistence } from '../quest/chapterBindings';
 import { modelContext, type ModelDef } from '@wildshard/engine/models/model';
 import { parsePrivateScene } from '@wildshard/format/clientChannels';
@@ -572,7 +570,7 @@ export class ArenaRoomEncounter {
   fight: ReturnType<typeof arenaRoomFight> | null = null;
   ui: BossBar | null = null;
   private portal: ArenaRoomPortal | null = null;
-  power: VariantBowPower | null = null;
+  power: ReturnType<HeldSlotKit['bowPower']> | null = null;
   private skipKeys = false; private skipTouch = false;
   private readonly rows;
   get inside(): boolean { return this.portal?.inside ?? false; }
@@ -591,7 +589,7 @@ export class ArenaRoomEncounter {
     return this;
   }
   /** Concrete entered services supply native effects, never shard callbacks. */
-  bind(ctx: ShardContext, kit: MountedLoadout, rewardModel: ModelDef<object>, powerRows: BowVariantRows): void {
+  bind(ctx: ShardContext, kit: HeldSlotKit, rewardModel: ModelDef<object>): void {
     const runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play;
     if (runtime === undefined || world === undefined || world === null || play === undefined || play === null) throw new Error('Arena encounter requires its entered native kit');
     const health = ctx.app.player;
@@ -599,7 +597,7 @@ export class ArenaRoomEncounter {
     const { game,sky,player } = world, row = this.rows, scope = game.levelScope;
     this.portal = new ArenaRoomPortal({ game,player,animals: play.animals },this.dungeon,row.portal,ReturnProgram.page(this.rows.program,scope),this.entrance);
     try { play.animals.factory.model(row.client.prewarm.kind,row.client.prewarm.variant); } catch (error: unknown) { console.warn('Arena adds did not prewarm',error); }
-    const power = this.power = new VariantBowPower(game.scene,game.camera,powerRows);
+    this.power = kit.bowPower("bow-reward");
     const persistence = enteredAdventurePersistence(ctx.scope);
     this.fight = arenaRoomFight(ctx,this.dungeon,row.page);
     const encounter = installBossEncounter({ definition: row.definition,reward: row.reward },() => {
@@ -608,7 +606,7 @@ export class ArenaRoomEncounter {
       reward: { model: () => {
         const object = rewardModel.build(modelContext(sky),rewardModel.defaults,new Rng(0));
         if (!(object instanceof THREE.Object3D)) throw new Error('Arena reward requires a native scene specimen'); return object;
-      }, grant: () => { kit.upgradeBow(play.weapons,power); } },
+      }, grant: () => { kit.upgradeBow("bow-reward",play.weapons); } },
       lockInput: on => { this.portal?.setLocked(on); play.weapons.setEnabled(!on); },
       respawn: (at,yaw) => { player.position.copy(at); player.velocity.set(0,0,0); player.yaw = yaw; player.pitch = 0; kit.refill(); },
       skipHeld: () => this.skipKeys || this.skipTouch || ctx.app.input.held('jump') || ctx.app.input.held('use'),
@@ -617,7 +615,7 @@ export class ArenaRoomEncounter {
     });
     this.boss = encounter.boss; this.ui = encounter.ui; this.portal.bind(encounter.boss,encounter.ui,this.fight);
     encounter.fight.reset(0); this.fight.setPresent(false);
-    if (encounter.boss.rewardTaken) kit.upgradeBow(play.weapons,power);
+    if (encounter.boss.rewardTaken) kit.upgradeBow("bow-reward",play.weapons);
     listenPage(scope,'keydown',event => { if (event instanceof KeyboardEvent && event.code === 'Enter') this.skipKeys = true; });
     listenPage(scope,'keyup',event => { if (event instanceof KeyboardEvent && event.code === 'Enter') this.skipKeys = false; });
     listenPage(scope,'pointerdown',() => { this.skipTouch = true; });

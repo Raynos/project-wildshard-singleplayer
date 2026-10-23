@@ -17,6 +17,7 @@ export async function prepareHeldClaimsEntry(ctx: ShardContext, id: string): Pro
 
 /** Install the same prepared claims after creature registration and before the
  * ordinary kit catalogue, retaining all original native item ids and order. */
-export function installHeldClaimsEntry(ctx: ShardContext, id: string): void {
-  entryOwner(ctx.scope, 'claims', id).install();
+export function installHeldClaimsEntry(ctx: ShardContext, id: string, preparation:'kit'|'world'='kit'): void {
+  const held=entryOwner(ctx.scope,'claims',id);
+  if(preparation==='world')held.install(ctx,id);else held.install();
 }

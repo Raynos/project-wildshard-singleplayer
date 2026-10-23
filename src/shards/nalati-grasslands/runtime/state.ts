@@ -26,7 +26,7 @@ import prefix from '../data/worldPrefix.json' with { type: 'json' };
 import { installWorldUpdates } from '@wildshard/game/shardfile/worldUpdates';
 
 
-import type { NalatiLoadout } from '../weapons/loadout';
+import type { HeldSlotKit } from '@wildshard/game/loadout/claims';
 import { TimedEncounters } from '@wildshard/game/boss/timedEncounters';
 import { creatureGuest } from '../species/balbal';
 import { StealthController, type StealthController as Stealth, type StealthThreat } from '@wildshard/game/stealth/controller';
@@ -103,7 +103,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   const player = ctx.player;
   const stealthRows=plugin.product.section('player/stealth');
   let wildlife: PageWildlife<Flock> | null = null;
-  let playKit: NalatiLoadout | null = null;
+  let playKit: HeldSlotKit | null = null;
   let ride: Ride | null = null;
   updates.push(() => undefined); // The declared population owns this frame slot.
 
@@ -122,7 +122,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
     get ride(): Ride | null { return ride; },
     get wildlife() { return clientWildlife(plugin); },
     get skins() { return clientCosmeticFinishes(plugin).locker; },
-    bindPlay(p: NalatiLoadout): void {
+    bindPlay(p: HeldSlotKit): void {
       playKit = p;
       wildlife = clientWildlife(plugin);
       const attachedAnimals = plugin.game.runtime?.play?.animals;
@@ -130,10 +130,10 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
       night.attach(attachedAnimals);
       stealth = new StealthController(plugin,player,stealthRows);
       if (wildlife === null) throw new Error('Nalati creatures have not been built');
-      ride = enterClientRiding(plugin, entryOwner(plugin.scope, 'mounted-arsenal', 'nalati.arsenal'));
+      ride = enterClientRiding(plugin, entryOwner(plugin.scope, 'claims', 'nalati.arsenal'));
       plugin.debug.expose('nalati.ride',ride);
 
-      const bow=p.bow,prevBow=bow.damageMultiplier;bow.damageMultiplier=hit=>(prevBow?.(hit)??1)*(stealth?.sneakMultiplier()??1);
+      const bow=p.bow('bow'),prevBow=bow.damageMultiplier;bow.damageMultiplier=hit=>(prevBow?.(hit)??1)*(stealth?.sneakMultiplier()??1);
       painter = clientCosmeticFinishes(plugin).painter;
     },
   };
@@ -144,7 +144,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
     for(let i=0;i<96;i++){const pack=wildlife?.packs[i];if(pack===undefined)break;for(let j=0;j<96;j++){const actor=pack.members[j];if(actor===undefined)break;if(actor.alive)threats.push({x:actor.position.x,z:actor.position.z,awareness:pack.awareness,alert:.35,hunting:Number(pack.phase==='shadow'||pack.phase==='encircle'||pack.phase==='regroup')});}}
     for(let i=0;i<96;i++){const herd=wildlife?.herds[i];if(herd===undefined)break;for(let j=0;j<96;j++){const actor=herd.members[j];if(actor===undefined)break;if(actor.alive&&(actor.mem['ridden']??0)!==1&&(actor.mem['owned']??0)!==1)threats.push({x:actor.position.x,z:actor.position.z,awareness:actor.mem['aw']??0,alert:.45,hunting:0});}}
     stealth.update(dt,t,{grass:wildEnv.grassStandingAt(player.position.x,player.position.z),mounted:ride?.mounted ?? false,forced:ride!==null&&ride.taming.view.trust!==null,threats:threats.sort((a,b)=>Math.hypot(a.x-player.position.x,a.z-player.position.z)-Math.hypot(b.x-player.position.x,b.z-player.position.z)).slice(0,8)});
-    if(playKit!==null)playKit.spear.damageScale=stealth.sneakMultiplier();
+    if(playKit!==null)playKit.polearm('polearm').damageScale=stealth.sneakMultiplier();
   });
   // ── dusk + night enemies (bow agent, B11): the balbal warriors wake at dusk, the ghost riders ride the ridges at night —
   //    src/shards/nalati-grasslands/nightEnemies.ts (balbalWarriors.ts, ghostRiders.ts); chained into attachAnimals / bindPlay / the Targets ray ──
@@ -160,13 +160,13 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
       if (syncT <= 0) { syncT = 1; for (const id of elites.skins) nalati.skins.own(id); }
       const kit = playKit, mounted = ride?.mount.horse, bonded = ride?.taming.companion;
       painter?.update({ objects: new Map([
-        ['blade', kit === null ? [] : [kit.sabre.model]],
-        ['arrows', kit === null ? [] : [kit.bow.arrows.mesh]],
+        ['blade', kit === null ? [] : [kit.blade('blade').model]],
+        ['arrows', kit === null ? [] : [kit.bow('bow').arrows.mesh]],
         ['mounts', [...new Set([...(mounted === null || mounted === undefined ? [] : [mounted.mesh]), ...(bonded?.alive === true && !bonded.hidden ? [bonded.mesh] : [])])]],
       ]),
       facts: new Set([...(boss.power?.applied === true ? ['golden'] : []), ...(titan.power?.applied === true ? ['storm'] : [])]) });
       if (kit !== null) for (const style of ['recurve', 'golden', 'sky-wolf'] as const)
-        if (style === painter?.selectedFinishes.get('bow') && kit.bow.style !== style) kit.bow.setStyle(style);
+        if (style === painter?.selectedFinishes.get('bow') && kit.bow('bow').style !== style) kit.bow('bow').setStyle(style);
     });
 
   // ── sound (B16 audio): wraps attachAnimals / bindPlay / wildEnv.onEvent for the creatures and the kit — src/shards/nalati-grasslands/sound.ts ──
@@ -184,7 +184,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
     previous = id;
   }
   plugin.system({ id: 'shard.nalati.reins', phase: 'late', run: (dt) => { ride?.late(dt); } });
-  plugin.on('weapon.fired', () => { stealth?.noteShot(); if(playKit!==null)playKit.spear.damageScale=stealth?.sneakMultiplier()??1; wildEnv.lastShotT = plugin.app.clock.now; });
+  plugin.on('weapon.fired', () => { stealth?.noteShot(); if(playKit!==null)playKit.polearm('polearm').damageScale=stealth?.sneakMultiplier()??1; wildEnv.lastShotT = plugin.app.clock.now; });
   // A landing arrow or javelin, preserving the original exclusion around the player.
   plugin.on('weapon.impact', ({ point }) => {
     if (wildlife === null || Math.hypot(point.x - player.position.x, point.z - player.position.z) < 4.5) return;

@@ -1,6 +1,10 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { HeldClaims } from '../src/game/loadout/claims';
-import { MountedArsenal } from '../src/game/loadout/mounted';
+import { MountedArsenal, VariantBowPower } from './fixtures/originalMountedArsenal';
+import * as THREE from 'three';
+import { bindEquipmentActors } from '../src/game/loadout/actors';
+import type { AnimalManager } from '../src/engine/entities/AnimalManager';
+import variant from '../src/shards/nalati-grasslands/boot/bowVariant.generated.json' with { type:'json' };
 import { Scope } from '../src/engine/app/scope';
 import type { Targets } from '../src/engine/combat/types';
 import type { EquipmentService } from '../src/engine/combat/EquipmentService';
@@ -17,7 +21,6 @@ import * as bowBinding from '../src/game/weapons/Bow';
 import * as firearmBinding from '../src/game/plugin/heldFirearm';
 import * as launcher from '../src/game/weapons/heldLauncher';
 import * as plan from '../src/engine/boot/plan';
-import type { VariantBowPower } from '../src/game/weapons/bowVariant';
 import type { ArcWeaponPower } from '../src/game/weapons/arcPower';
 import items from '../src/shards/nalati-grasslands/data/items.json' with { type:'json' };
 import loadout from '../src/shards/nalati-grasslands/data/loadout.json' with { type:'json' };
@@ -29,7 +32,7 @@ function slots(){return parseHeldSlots({version:1,id:'native-kit',bindAt:'equipm
   registration:['bow','blade','polearm','firearm'],equipment:{primary:'blade',rifle:'firearm',extras:['bow','polearm'],order:['bow','blade','polearm']},
   selection:{initial:'bow',unlock:['bow','polearm']},mount:['blade','polearm','bow'],
   refills:[{slot:'polearm',kind:'fill-capacity'},{slot:'bow',kind:'add-magazine'}],
-  upgrades:[{id:'bow-reward',slot:'bow',kind:'bow',replacement:{item:'weapon.golden-bow',name:'Golden Bow'}},
+  upgrades:[{id:'bow-reward',slot:'bow',kind:'bow',replacement:{item:'weapon.golden-bow',name:'Golden Bow'},power:{kind:'charged-pierce',rows:variant}},
     {id:'blade-reward',slot:'blade',kind:'blade-pass',replacement:{item:'weapon.naizagai',name:'Naizagai'}}]});}
 
 afterEach(()=>{vi.restoreAllMocks();});
@@ -46,7 +49,7 @@ function fixture(mode:'original'|'slots'){
   type Blade=InstanceType<typeof blade.Weapon>;
   type Polearm=InstanceType<typeof polearm.Weapon>;
   type Bow=InstanceType<typeof bowBinding.Bow>;
-  const bows:Bow[]=[],blades:Blade[]=[],mounts=new Map<Bow,Blade['mount']>();
+  const bows:Bow[]=[],blades:Blade[]=[],mounts=new Map<Bow,Blade['mount']>(),powerBoundary=vi.fn<(weapon:Bow)=>void>();
   function makeBlade(...args:ConstructorParameters<typeof blade.Weapon>):Blade {
     const options=args[2];
     const row=options?.profile??bladeProfile,id=row.legacySlot;if(id===undefined)throw new Error('Missing native blade slot');
@@ -65,7 +68,8 @@ function fixture(mode:'original'|'slots'){
     const options=args[2];
     const row=options.row,id=row.legacySlot;if(id===undefined)throw new Error('Missing native bow slot');
     events.push(`bow:${row.id}`);
-    const weapon=legacyDouble<Bow>({row,id,meta:row.meta,magazine:9,damageMultiplier:undefined,onLoose:undefined,
+    const weapon=legacyDouble<Bow>({row,id,meta:row.meta,magazine:9,damageMultiplier:undefined,onLoose:undefined,targetSource:args[1],drawSpeedScale:1,
+      setStyle:()=>{powerBoundary(weapon);events.push('bow:power');},
       addBolts:value=>{events.push(`bow:refill:${value}`);},setMount:value=>{mounts.set(weapon,value);events.push('bow:mount');},
       carryMountState:previous=>{mounts.set(weapon,mounts.get(previous)??null);events.push('bow:carry');}});
     bows.push(weapon);return weapon;
@@ -85,12 +89,12 @@ function fixture(mode:'original'|'slots'){
   const read=vi.fn(()=>{events.push('firearm:read');return Promise.resolve(bytes);});
   const product=createShardProduct({slug:source.identity.slug,revision:1,shardfile:source,sections:new Map(),
     files:new Map([[loadout.page.firearm.file,{hash:'a'.repeat(64),url:'/firearm.json'}]]),read});
-  const world=legacyDouble<NonNullable<ShardRuntime['world']>>({}),runtime=legacyDouble<ShardRuntime>({world});
+  const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(),world=legacyDouble<NonNullable<ShardRuntime['world']>>({game:legacyDouble<NonNullable<ShardRuntime['world']>['game']>({scene,camera})}),runtime=legacyDouble<ShardRuntime>({world});
   const ctx=legacyDouble<ShardContext>({scope,product,app:legacyDouble<ShardContext['app']>({equipment:null}),
     game:legacyDouble<ShardContext['game']>({runtime}),rows:legacyDouble<ShardContext['rows']>({weapon:rows=>{
       if('id' in rows)registered.push(rows.id);else for(const row of rows)registered.push(row.id);
     }})});
-  return {parent,scope,source,owner,blade,polearm,ctx,runtime,events,registered,read,bind,bows,blades,mounts};
+  return {parent,scope,source,owner,blade,polearm,ctx,runtime,events,registered,read,bind,bows,blades,mounts,powerBoundary,bytes,scene,camera};
 }
 
 async function run(mode:'original'|'slots'){
@@ -98,7 +102,8 @@ async function run(mode:'original'|'slots'){
   try {
     f.owner.installPage(f.ctx);const builder=f.runtime.buildEquipment;
     if(builder===undefined)throw new Error('Missing native slot builder');
-    const result=await builder(legacyDouble<Targets>({}),false),kit=f.owner.pageKit(f.ctx);
+    const targets=legacyDouble<Targets>({});bindEquipmentActors(targets,legacyDouble<AnimalManager>({}),f.scope);
+    const result=await builder(targets,false),kit=f.owner.pageKit(f.ctx);
     if(kit===null)throw new Error('Missing original kit');
     const currentBow=()=>('blade' in kit?kit.bow('bow'):kit.bow);
     const currentBlade=()=>('blade' in kit?kit.blade('blade'):kit.sabre);
@@ -114,19 +119,21 @@ async function run(mode:'original'|'slots'){
     const initial=currentBow(),bladeBefore=currentBlade(),mount={speed:7,yaw:.2};
     const damage=vi.fn(()=>2),loose=vi.fn<NonNullable<InstanceType<typeof bowBinding.Bow>['onLoose']>>();initial.damageMultiplier=damage;initial.onLoose=loose;bladeBefore.passChain=3;
     kit.setMount(mount);kit.refill();
-    const power=legacyDouble<VariantBowPower>({apply:bow=>{expect(bow.damageMultiplier).toBe(damage);expect(bow.onLoose).toBe(loose);events.push('bow:power');}});
+    f.powerBoundary.mockImplementation(bow=>{expect(bow.damageMultiplier).toBe(damage);expect(bow.onLoose).toBe(loose);});
+    const originalPower='blade' in kit?null:new VariantBowPower(f.scene,f.camera,variant);
+    if('blade' in kit)kit.bowPower('bow-reward');
     const bladePower=legacyDouble<ArcWeaponPower>({});
-    if('blade' in kit){kit.upgradeBow('bow-reward',equipment,power);kit.upgradeBlade('blade-reward',equipment,bladePower);}
-    else {kit.upgradeBow(equipment,power);kit.upgradeSabre(equipment,bladePower);}
+    if('blade' in kit){kit.upgradeBow('bow-reward',equipment);kit.upgradeBlade('blade-reward',equipment,bladePower);}
+    else {if(originalPower===null)throw new Error('Missing original bow power');kit.upgradeBow(equipment,originalPower);kit.upgradeSabre(equipment,bladePower);}
     const bow=currentBow(),blade=currentBlade();
     expect(bow===initial,JSON.stringify(f.events)).toBe(false);expect(blade===bladeBefore,JSON.stringify(f.events)).toBe(false);expect(blade.passChain).toBe(3);
     expect(blade.mount).toBe(mount);expect(f.mounts.get(bow)).toBe(mount);expect(weapons.get('sabre')).toBe(blade);expect('blade' in kit?kit.weapon('blade'):kit.base).toBe(blade);
     kit.refill();expect(spear.javelins).toBe(spear.maxJavelins);
     const before=f.events.length;
-    if('blade' in kit){kit.upgradeBow('bow-reward',equipment,power);kit.upgradeBlade('blade-reward',equipment,bladePower);}
-    else {kit.upgradeBow(equipment,power);kit.upgradeSabre(equipment,bladePower);}
+    if('blade' in kit){kit.upgradeBow('bow-reward',equipment);kit.upgradeBlade('blade-reward',equipment,bladePower);}
+    else {if(originalPower===null)throw new Error('Missing original bow power');kit.upgradeBow(equipment,originalPower);kit.upgradeSabre(equipment,bladePower);}
     expect(f.events.length).toBe(before);
-    return {events:[...f.events],registered:[...f.registered],selection,bow:bow.row,blade:blade.row};
+    return {events:[...f.events],registered:[...f.registered],selection,bow:bow.row,blade:blade.row,drawSpeed:bow.drawSpeedScale};
   } finally {f.parent.dispose();vi.restoreAllMocks();}
 }
 
@@ -194,4 +201,84 @@ test('concurrent native construction refuses before allocating another weapon',a
     if(finish===undefined)throw new Error('Missing construction pause');finish();
     await first;expect(f.blades).toHaveLength(1);expect(f.bows).toHaveLength(1);
   } finally {f.parent.dispose();}
+});
+
+function deferred<T>() {
+  let settle:((value:T)=>void)|undefined;
+  const promise=new Promise<T>(resolve=>{settle=resolve;});
+  return {promise,resolve(value:T):void{if(settle===undefined)throw new Error('Missing deferred resolver');settle(value);}};
+}
+
+test.each(['scope','product','source','items','game','runtime','world','app','equipment'] as const)(
+  'the live slot builder refuses a replaced %s before allocating a native family',async kind=>{
+    const f=fixture('slots');
+    try{
+      f.owner.installPage(f.ctx);const builder=f.runtime.buildEquipment;if(builder===undefined)throw new Error('Missing live slot builder');
+      const replace={
+        scope:()=>{Object.defineProperty(f.ctx,'scope',{value:f.parent.child('replacement')});},
+        product:()=>{Object.defineProperty(f.ctx,'product',{value:{...f.ctx.product}});},
+        source:()=>{Object.defineProperty(f.ctx.product,'shardfile',{value:{...f.ctx.product.shardfile},configurable:true});},
+        items:()=>{Object.defineProperty(f.ctx.product.shardfile,'items',{value:{...f.ctx.product.shardfile.items}});},
+        game:()=>{Object.defineProperty(f.ctx,'game',{value:{...f.ctx.game}});},
+        runtime:()=>{Object.defineProperty(f.ctx.game,'runtime',{value:{...f.runtime}});},
+        world:()=>{f.runtime.world=legacyDouble<NonNullable<ShardRuntime['world']>>({});},
+        app:()=>{Object.defineProperty(f.ctx,'app',{value:legacyDouble<ShardContext['app']>({equipment:null})});},
+        equipment:()=>{Object.defineProperty(f.ctx.app,'equipment',{value:legacyDouble<NonNullable<ShardContext['app']['equipment']>>({})});},
+      };
+      replace[kind]();await expect(builder(legacyDouble<Targets>({}),false)).rejects.toThrow(/was replaced/u);
+      expect(f.events).toEqual([]);expect(f.read).not.toHaveBeenCalled();expect(f.bind).not.toHaveBeenCalled();expect(f.owner.pageKit({scope:f.scope})).toBeNull();
+    }finally{f.parent.dispose();}
+  });
+
+test.each([0,1,2])('the live slot builder stops at native yield %s before a later family or file',async stage=>{
+  const f=fixture('slots'),pause=deferred<undefined>(),at=deferred<undefined>();let hop=0;
+  vi.spyOn(plan,'macrotask').mockImplementation(()=>{if(hop++===stage){at.resolve(undefined);return pause.promise;}return Promise.resolve();});
+  try{
+    f.owner.installPage(f.ctx);const builder=f.runtime.buildEquipment;if(builder===undefined)throw new Error('Missing live slot builder');
+    const pending=builder(legacyDouble<Targets>({}),false),refusal=expect(pending).rejects.toThrow(/was replaced/u);
+    await at.promise;f.runtime.world=legacyDouble<NonNullable<ShardRuntime['world']>>({});pause.resolve(undefined);await refusal;
+    expect(f.blades).toHaveLength(1);expect(f.events.some(event=>event.startsWith('polearm:'))).toBe(stage>0);expect(f.bows).toHaveLength(stage===2?1:0);
+    expect(f.read).not.toHaveBeenCalled();expect(f.bind).not.toHaveBeenCalled();expect(f.owner.pageKit(f.ctx)).toBeNull();
+  }finally{f.parent.dispose();}
+});
+
+test('the live slot builder refuses after a suspended bow read before bow or firearm allocation',async()=>{
+  const f=fixture('slots'),at=deferred<undefined>();
+  type BowRead=Awaited<ReturnType<typeof launcher.loadHeldBow>>;
+  const file=deferred<BowRead>();vi.spyOn(launcher,'loadHeldBow').mockImplementation(()=>{at.resolve(undefined);return file.promise;});
+  try{
+    f.owner.installPage(f.ctx);const builder=f.runtime.buildEquipment;if(builder===undefined)throw new Error('Missing live slot builder');
+    const pending=builder(legacyDouble<Targets>({}),false),refusal=expect(pending).rejects.toThrow(/was replaced/u);
+    await at.promise;f.runtime.world=legacyDouble<NonNullable<ShardRuntime['world']>>({});
+    file.resolve({rows:legacyDouble<BowRead['rows']>({}),model:{},profile:legacyDouble<BowRead['profile']>({})});await refusal;
+    expect(f.bows).toHaveLength(0);expect(f.read).not.toHaveBeenCalled();expect(f.bind).not.toHaveBeenCalled();expect(f.owner.pageKit(f.ctx)).toBeNull();
+  }finally{f.parent.dispose();}
+});
+
+test.each(['world','equipment','retirement'] as const)('the live slot firearm read refuses %s before native allocation or publication',async kind=>{
+  const f=fixture('slots'),file=deferred<typeof f.bytes>(),at=deferred<undefined>();
+  f.read.mockImplementation(()=>{at.resolve(undefined);return file.promise;});
+  try{
+    f.owner.installPage(f.ctx);const builder=f.runtime.buildEquipment;if(builder===undefined)throw new Error('Missing live slot builder');
+    const pending=builder(legacyDouble<Targets>({}),false),refusal=expect(pending).rejects.toThrow(kind==='retirement'?/owner has ended/u:/was replaced/u);
+    await at.promise;const before=[...f.scene.children];
+    if(kind==='world')f.runtime.world=legacyDouble<NonNullable<ShardRuntime['world']>>({});
+    else if(kind==='equipment')Object.defineProperty(f.ctx.app,'equipment',{value:legacyDouble<NonNullable<ShardContext['app']['equipment']>>({})});
+    else f.scope.dispose();file.resolve(f.bytes);await refusal;
+    expect(f.events.some(event=>event.startsWith('firearm:weapon.'))).toBe(false);expect(f.scene.children).toEqual(before);expect(f.bind).not.toHaveBeenCalled();expect(f.owner.pageKit(f.ctx)).toBeNull();
+  }finally{f.parent.dispose();}
+});
+
+
+test.each([false,true])('a pending live slot build cannot publish after retirement (ancestor: %s)',async ancestor=>{
+  const f=fixture('slots'),pause=deferred<undefined>(),at=deferred<undefined>();let retirement:Generator|undefined;
+  vi.spyOn(plan,'macrotask').mockImplementation(()=>{at.resolve(undefined);return pause.promise;});
+  try{
+    f.owner.installPage(f.ctx);const builder=f.runtime.buildEquipment;if(builder===undefined)throw new Error('Missing live slot builder');
+    const pending=builder(legacyDouble<Targets>({}),false),refusal=expect(pending).rejects.toThrow('owner has ended');
+    await at.promise;
+    if(ancestor){f.parent.onDispose(()=>undefined);retirement=f.parent.disposeSteps();retirement.next();expect(f.scope.disposing).toBe(true);}
+    else f.scope.dispose();pause.resolve(undefined);await refusal;
+    expect(f.events).toEqual(['blade:weapon.sabre']);expect(f.read).not.toHaveBeenCalled();expect(f.bind).not.toHaveBeenCalled();expect(f.owner.pageKit(f.ctx)).toBeNull();
+  }finally{if(retirement!==undefined)for(const _step of retirement){/* Complete real ancestor retirement. */}f.parent.dispose();}
 });

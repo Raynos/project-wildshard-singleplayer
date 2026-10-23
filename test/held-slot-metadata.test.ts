@@ -120,3 +120,15 @@ test('a changed named source URL cannot reuse the pinned metadata declaration',a
     expect(f.bladePrepare).not.toHaveBeenCalled();expect(f.polearmPrepare).not.toHaveBeenCalled();expect(f.read).not.toHaveBeenCalled();expect(f.packed).not.toHaveBeenCalled();
   } finally {f.parent.dispose();}
 });
+
+
+test('the pinned declaration cannot be changed through its public metadata view',()=>{
+  const f=fixture();
+  try {
+    expect(()=>{f.held.slots.selection.unlock.push('blade');}).toThrow(TypeError);
+    const blade=f.held.slots.slots.find(row=>row.id==='blade');
+    if(blade?.kind!=='blade'||blade.source.kind!=='passes')throw new Error('Missing original blade declaration');
+    const source=blade.source;expect(()=>{source.file='weapons/replaced.json';}).toThrow(TypeError);
+    expect(f.read).not.toHaveBeenCalled();expect(f.bladePrepare).not.toHaveBeenCalled();expect(f.polearmPrepare).not.toHaveBeenCalled();
+  } finally {f.parent.dispose();}
+});

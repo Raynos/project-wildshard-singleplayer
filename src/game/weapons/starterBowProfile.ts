@@ -8,7 +8,7 @@ export type BowStyle = 'recurve' | 'golden' | 'sky-wolf';
 export type BowProfile = PlatformBowProfile<BowStyle>;
 
 /** The default bow's numbers. SF54: its view (the recurve's poses, arrow line, build and arrow) moved with the recurve into
- *  Nalati (src/shards/nalati-grasslands/weapons/loadout.ts NALATI_BOW); a bow brings its own, as Pine's longbow does. */
+ *  the admitted held bow row; a bow brings its own, as Pine's longbow does. */
 export const BOW: Omit<BowProfile, 'poses' | 'arrowX' | 'arrowY' | 'arrowLength' | 'build' | 'arrow'> = {
   ...STARTER_BOW, wind,
 };

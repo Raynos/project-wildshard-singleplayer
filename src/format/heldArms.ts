@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { isJsonData } from './json';
+import { BowVariantSchema } from './bowVariantRows';
 import { ToonLightingSchema } from './toonLighting';
 import { PrivateSceneSchema } from './clientChannels';
 import { QuestStepRowsSchema } from './questSteps';
@@ -99,7 +100,7 @@ export const HeldSlotsSchema = v.strictObject({
   mount: slotReferences,
   refills: v.pipe(v.array(v.strictObject({ slot: slotId, kind: v.picklist(['add-magazine', 'fill-capacity']) })), v.maxLength(16)),
   upgrades: v.pipe(v.array(v.strictObject({ id: slotId, slot: slotId, kind: v.picklist(['bow', 'blade-pass']),
-    replacement: v.strictObject({ item: slotWeapon, name }) })), v.maxLength(16)),
+    replacement: v.strictObject({ item: slotWeapon, name }), power: v.exactOptional(v.strictObject({ kind: v.literal('charged-pierce'), rows: BowVariantSchema })) })), v.maxLength(16)),
 });
 export type HeldSlotsRows = v.InferOutput<typeof HeldSlotsSchema>;
 export type HeldSlotRow = HeldSlotsRows['slots'][number];
@@ -142,6 +143,8 @@ export function parseHeldSlots(input: unknown): HeldSlotsRows {
   if (!unique(rows.upgrades.map(row => row.id)) || !unique(rows.upgrades.map(row => row.replacement.item))) throw new Error('Duplicate held upgrade identity');
   for (const upgrade of rows.upgrades) {
     const row = requireSlot(upgrade.slot);
+    if (upgrade.power !== undefined && (upgrade.kind !== 'bow' || upgrade.power.rows.id !== upgrade.replacement.item
+      || upgrade.power.rows.name !== upgrade.replacement.name || upgrade.power.rows.trail.points > 48)) throw new Error('Held bow power differs from its declared upgrade');
     if (rows.slots.some(slot => slot.item === upgrade.replacement.item)
       || (upgrade.kind === 'bow' && row.kind !== 'bow')
       || (upgrade.kind === 'blade-pass' && !(row.kind === 'blade' && row.source.kind === 'passes'))) throw new Error('Held upgrade differs from its native owner');

@@ -16,8 +16,8 @@ import { enteredOwner, withOwner } from '@wildshard/engine/app/ownership';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { grassBaseHeightAt } from '@wildshard/game/systems/looks/grassField';
 import { buildNalatiWorld, type Nalati } from './state';
-import { arsenal, prepareWeaponCatalogue, weaponCatalogue } from '../weapons/loadout';
-import bowVariant from '../boot/bowVariant.generated.json' with { type: 'json' };
+import { HeldClaims } from '@wildshard/game/loadout/claims';
+import slots from '../boot/mountedLoadout.generated.json' with { type:'json' };
 
 function host(ctx: ShardContext) {
   const shell = ctx.game.runtime;
@@ -36,10 +36,9 @@ export class NalatiPlugin extends ShardPlugin {
     const actorRows = await ctx.product.json<SpeciesActorsFileRows>('actors/sheep.json');
     prepareNalatiSpecies(productSpeciesCatalogue(ctx.product, actorRows.species, await ctx.product.json('actors/species-looks.json'), NALATI_DEFINITIONS));
     this.rt = await step('props', (progress) => buildNalatiWorld(world, ctx, progress));
-    await arsenal.blade.prepare(ctx.product);
-    await arsenal.polearm.prepare(ctx.product);
-    await prepareWeaponCatalogue(ctx.product);
-    publishEntryOwner(ctx.scope, 'mounted-arsenal', 'nalati.arsenal', arsenal);
+    const arsenal=HeldClaims.fromProductSlots(ctx.product,slots,'models/gear-book.json');
+    await arsenal.prepareSlotSources(ctx);
+    publishEntryOwner(ctx.scope, 'claims', 'nalati.arsenal', arsenal);
     shell.objects['nalati'] = this.rt;
     // the probe's `shard` handles (E405 AG25), read when the probe installs (ride and wildlife arrive in later hooks)
     // `coats`: the baked coats' source (scripts/bake-coats.mjs --shard=nalati-grasslands); `grassBase`: the grass before
@@ -53,7 +52,7 @@ export class NalatiPlugin extends ShardPlugin {
   }
 
   override async play(ctx: ShardContext): Promise<void> {
-    const { shell, world } = host(ctx), h = shell.play, rt = this.rt, mounted = entryOwner(ctx.scope, 'mounted-arsenal', 'nalati.arsenal'), kit = mounted.pageKit(ctx);
+    const { shell, world } = host(ctx), h = shell.play, rt = this.rt, mounted = entryOwner(ctx.scope, 'claims', 'nalati.arsenal'), kit = mounted.pageKit(ctx);
     if (h === null || rt === null || kit === null) throw new Error('Nalati gameplay requires its world, equipment and UI');
     const { animals, hud, audio, music, progress } = h;
     const persistence = entryOwner(ctx.scope, 'adventure', 'progress');
@@ -73,7 +72,7 @@ export class NalatiPlugin extends ShardPlugin {
     Object.assign(shell.objects, { wildlife, ride });
     ctx.on('weather.changed', (state) => { hud.setWeather(state); });
     await part();
-    ctx.scope.run(() => rt.boss.bind(ctx,kit,weaponCatalogue.model('goldenBow'),bowVariant));
+    ctx.scope.run(() => rt.boss.bind(ctx,kit,mounted.model('goldenBow')));
     publishEntryOwner(ctx.scope, 'arena-room', 'arena', rt.boss);
     await part();
     const eliteScope = ctx.scope.child('Elites.bind');
@@ -88,7 +87,7 @@ export class NalatiPlugin extends ShardPlugin {
         patrol: rt.elitePatrol, wildlife, persistence, contacts: new StrikeRunner() });
     }); } catch (error) { eliteScope.dispose(); throw error; }
     await part();
-    ctx.scope.run(() => rt.titan.bind(ctx,kit,mounted,weaponCatalogue.model('naizagai'),rt.skins));
+    ctx.scope.run(() => rt.titan.bind(ctx,kit,mounted,mounted.model('naizagai'),rt.skins));
     publishEntryOwner(ctx.scope, 'arena-script', 'fight', rt.titan);
     // Boss prewarming reserves its identity before the authored lairs materialize for strict restore.
     if (retainsRuntimeServices(ctx)) rt.elites.initialize(rt.eliteFrame());

@@ -200,15 +200,10 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     if (ctx.scope.disposed || ctx.scope.disposing) throw new Error('Client feature owner is disposed');
     await installProductCreatures(ctx, authority);
   } },
-  'held.claims.install': { phase: 'kit', rank: -10, lifetime: 'entered', sections: ['held/arms'], install: async (ctx, row) => {
+  'held.claims.install': { phase: 'kit', rank: -10, lifetime: 'entered', sections: [], install: async (ctx, row) => {
     if (row.kind !== 'held.claims.install') throw new Error('Invalid claims installation feature');
     const { installHeldClaimsEntry } = await import('./heldClaimsEntry');
-    installHeldClaimsEntry(ctx, row.claims);
-  } },
-  'held.mounted': { phase: 'kit', rank: -10, lifetime: 'entered', sections: [], install: async (ctx, row) => {
-    if (row.kind !== 'held.mounted') throw new Error('Invalid mounted arsenal feature');
-    const { entryOwner } = await import('./entryOwners');
-    entryOwner(ctx.scope, 'mounted-arsenal', row.arsenal).installPage(ctx);
+    installHeldClaimsEntry(ctx, row.claims, row.preparation);
   } },
   'held.claims.enter': { phase: 'play', rank: -50, lifetime: 'entered', sections: ['held/arms'], install: async (ctx, row) => {
     if (row.kind !== 'held.claims.enter') throw new Error('Invalid held claims entry feature');
@@ -295,12 +290,12 @@ export interface AdmittedClientPlan { readonly features: readonly ClientFeatureR
 export function admitClientPlan(input: unknown, product: ShardProduct): AdmittedClientPlan {
   try {
     const plan = parseClientPlan(input);
-    if (plan.features.some(row => row.kind === 'held.mounted') && plan.features.some(row => row.kind === 'held.claims.prepare' || row.kind === 'held.melee' || row.kind === 'held.ranged-page')) throw new Error('Mounted arsenal requires its sole native equipment builder');
+    if(plan.features.some(row=>row.kind==='held.claims.install')&&plan.features.some(row=>row.kind==='held.melee'||row.kind==='held.ranged-page'))throw new Error('Held claims require their sole native equipment builder');
     for (const row of plan.features) if (row.kind === 'world.assembly') preflightIslandBook(product, row);
     for (const row of plan.features) {
       if (row.kind === 'held.claims.enter') {
         if (!plan.features.some(owner => owner.kind === 'held.claims.prepare' && owner.id === row.claims)
-          || !plan.features.some(owner => owner.kind === 'held.claims.install' && owner.claims === row.claims)) throw new Error('Held play entry requires matching declared claims');
+          || !plan.features.some(owner => owner.kind === 'held.claims.install' && owner.claims === row.claims && owner.preparation!=='world')) throw new Error('Held play entry requires matching declared claims');
         if (![row.grapple.source, row.grapple.presentation].every(file => product.hasFile(file))) throw new Error('Held play entry requires its admitted grapple files');
         if (!product.shardfile.items.rows.some(item => item.id === row.grapple.item && item.kind === 'tool')) throw new Error('Held play entry requires its declared tool');
       }
@@ -319,7 +314,10 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
         || cards.some(card => card.product !== identity || !product.hasFile(card.sockets))) throw new Error('Hull book kit requires its unique admitted socket cards');
     }
     const prepare = plan.features.find(row => row.kind === 'held.claims.prepare'), install = plan.features.find(row => row.kind === 'held.claims.install');
-    if ((prepare !== undefined || install !== undefined) && (prepare?.kind !== 'held.claims.prepare' || install?.kind !== 'held.claims.install' || prepare.id !== install.claims)) throw new Error('Held claims require one matching preparation and installation');
+    if(install?.preparation==='world'){
+      if(prepare!==undefined)throw new Error('World-prepared held claims cannot repeat kit preparation');
+    } else if((prepare!==undefined||install!==undefined)&&(prepare===undefined||install===undefined||prepare.id!==install.claims))throw new Error('Held claims require one matching preparation and installation');
+    if(install!==undefined&&install.preparation!=='world')product.section('held/arms');
     if (plan.features.some(row => row.kind === 'population.product-creatures')) {
       if (!product.hasFile('actors/creature-install.json')) throw new Error('Product creatures require their admitted install rows');
       // Compatibility owners already live in the admitted product; they are not new client feature schemas.

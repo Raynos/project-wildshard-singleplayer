@@ -5,8 +5,6 @@ const modules = new Map([
   ...['game/boss/arenaScript', 'game/boss/arenaField'].map(path => [`src/${path}.ts`, 'C4']),
   // G530 O1: the seated-figure specimen's one user is Nalati's mounted shepherd (Explorer catalogue)
   ['src/game/models/mountedSpecimen.ts', 'C1'],
-  // G516/G518: only one live shard drives these item hosts; fixtures grant no credit.
-  ...['game/weapons/bowVariant', 'game/loadout/mounted'].map(path => [`src/${path}.ts`, 'C6']),
 ]);
 /** @type {Map<string,Map<string,import('./shard-components.mjs').Component>>} */
 const declarations = new Map([

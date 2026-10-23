@@ -20863,6 +20863,7 @@
         "src/format",
         "src/commons",
         "src/shards/nalati-grasslands/generators/bake-gear.mjs",
+        "src/shards/nalati-grasslands/generators/heldSlots.ts",
         "src/shards/nalati-grasslands/generators/gear.ts",
         "src/shards/nalati-grasslands/generators/weaponRewards.ts",
         "src/shards/nalati-grasslands/generators/sabre.ts",

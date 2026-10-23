@@ -21,7 +21,7 @@ import { SWORD_WOOD, SWORD_IRON } from '../weapons/starterMeleeProfile';
 import { Sword } from '../weapons/Sword';
 import { MeleeWeaponProfileSchema, FirearmWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
 import type { SwordWorld } from '@wildshard/engine/combat/view/melee';
-import type { Targets } from '@wildshard/engine/combat/types';
+import type { Targets, TargetAnimal } from '@wildshard/engine/combat/types';
 import { GrappleTool, grappleGuard } from '../grapple/tool';
 import { parseGrappleProfile, type GrappleRows } from '@wildshard/format/grapple';
 import { QuestStepRunner, type QuestStepFrame } from '../quest/steps';
@@ -35,7 +35,10 @@ import { PolearmSet, type HeldPolearmWorld } from '../weapons/heldPolearm';
 import { Bow } from '../weapons/Bow';
 import { loadHeldBow } from '../weapons/heldLauncher';
 import { HeldFirearm, type HeldFirearmProfile, type HeldFirearmView, type HeldFirearmRows } from '../plugin/heldFirearm';
-import type { VariantBowPower } from '../weapons/bowVariant';
+import type { BowVariantRows } from '@wildshard/format/bowVariantRows';
+import { equipmentActorOwner } from './actors';
+import { ReturnProgram } from '../population/returnProgram';
+import { ProjectedTrail } from '@wildshard/engine/combat/view/projectedTrail';
 import type { ArcWeaponPower } from '../weapons/arcPower';
 import type { ShardProduct } from '../shardfile/shardProduct';
 import { SpecimenBookSchema } from '@wildshard/format/specimenCatalogue';
@@ -66,6 +69,66 @@ function heldSword(world: SwordWorld, targets: Targets, allowUnlocked: boolean,
     ...(world.game.level.camera === undefined ? {} : { portraitFov: world.game.level.camera.portraitFov }) });
 }
 
+/** Client-only held variant. The existing bow and its native actor owner keep
+ * their identities; charged activation and contact numbers come from the guest. */
+class ChargedBowSlot {
+  private bow:Bow|null=null;
+  private brain:ReturnProgram|null=null;
+  private readonly trail:ProjectedTrail;
+  private readonly pending:{t:number;target:TargetAnimal;point:THREE.Vector3;dir:THREE.Vector3;base:number}[]=[];
+  private charged=false;
+  private readonly origin=new THREE.Vector3();private readonly direction=new THREE.Vector3();private readonly velocity=new THREE.Vector3();private readonly at=new THREE.Vector3();private readonly segment=new THREE.Vector3();
+  constructor(scene:THREE.Scene,private readonly camera:THREE.Camera,private readonly rows:BowVariantRows,private readonly check:()=>void){
+    this.check();
+    this.trail=new ProjectedTrail(scene,camera,this.rows.trail);
+  }
+  get applied():boolean{this.check();return this.bow!==null;}
+  dispose():void{this.pending.length=0;this.trail.dispose();}
+  apply(bow:Bow):void{
+    this.check();
+    const {rows}=this,owner=equipmentActorOwner(bow.targetSource);this.brain??=ReturnProgram.page(rows.program,owner.scope);
+    bow.row={...bow.row,id:rows.id,meta:{...bow.meta,name:rows.name}};if(this.bow===bow)return;
+    this.bow=bow;bow.setStyle(rows.style);bow.drawSpeedScale*=rows.drawSpeed;bow.onLoose=power=>{this.loosed(power);};
+    const previous=bow.damageMultiplier;
+    bow.damageMultiplier=hit=>{
+      this.check();
+      const scales=Object.hasOwn(rows.damageScale.kinds,hit.animal.kind)?rows.damageScale.kinds[hit.animal.kind]:undefined;
+      return (previous?.(hit)??1)*(scales??rows.damageScale.base)[this.charged?1:0];
+    };
+  }
+  private decide(power:number,base=0,crush=false):Readonly<Record<string,number>>{
+    const rows=this.rows;if(this.brain===null)throw new Error('Variant has no applied native owner');return this.brain.project(rows.signal,{bowPower:power,bowThreshold:rows.threshold,bowBaseDamage:base,bowPierce:rows.pierce,bowCrush:Number(crush),bowCrushScale:rows.crush});
+  }
+  private loosed(power:number):void{
+    this.check();
+    const bow=this.bow;this.charged=this.decide(power)['bowSun']===1;if(bow===null||!this.charged)return;
+    const {flight}=this.rows,animals=equipmentActorOwner(bow.targetSource).animals,o=this.origin,d=this.direction,velocity=this.velocity,a=this.at,b=this.segment;
+    this.camera.getWorldDirection(d);o.setFromMatrixPosition(this.camera.matrixWorld).addScaledVector(d,flight.offset);velocity.copy(d).multiplyScalar(flight.base+flight.draw*power).add(bow.carrierVelocity);
+    const n=bow.arrows.predict(o,velocity,this.trail.points,this.rows.trail.points,flight.step,flight.from);this.trail.show(n);
+    let first:TargetAnimal|null=null,travelled=0,ax=o.x,ay=o.y,az=o.z;
+    for(let i=0;i<48;i++){
+      if(i>=n)break;const bx=this.trail.points[i*3]??ax,by=this.trail.points[i*3+1]??ay,bz=this.trail.points[i*3+2]??az;
+      a.set(ax,ay,az);b.set(bx-ax,by-ay,bz-az);const length=b.length();
+      if(length>1e-3){b.multiplyScalar(1/length);let from=0;
+        for(let guard=0;guard<3;guard++){
+          const hit=animals.raycast(a.set(ax,ay,az).addScaledVector(b,from),b,length-from);if(hit===null)break;
+          if(first===null){first=hit.animal;from+=hit.distance+flight.gap;continue;}
+          if(hit.animal!==first&&hit.animal.alive){this.pending.push({t:(travelled+from+hit.distance)/(flight.base+flight.draw*power),target:hit.animal,point:hit.point.clone(),dir:b.clone(),base:hit.damage});return;}
+          from+=hit.distance+flight.gap;
+        }
+      }
+      travelled+=length;ax=bx;ay=by;az=bz;
+    }
+  }
+  update(dt:number):void{
+    this.check();
+    this.trail.advance(dt);
+    for(let i=this.pending.length-1;i>=0;i--){const hit=this.pending[i];if(hit===undefined)continue;hit.t-=dt;if(hit.t>0)continue;this.pending.splice(i,1);
+      if(!hit.target.alive)continue;const result=this.decide(0,hit.base,this.rows.crushKinds.includes(hit.target.kind)),damage=result['bowDamage'];if(damage===undefined)throw new Error('Missing variant contact number');hit.target.applyDamage(damage,hit.point,hit.dir);
+    }
+  }
+}
+
 type PassBlade = InstanceType<BladeSet['Weapon']>;
 type SlotPolearm = InstanceType<PolearmSet['Weapon']>;
 type SlotBowProfile = Awaited<ReturnType<typeof loadHeldBow>>['profile'];
@@ -82,7 +145,8 @@ export interface HeldSlotKit {
   bow:(id:string)=>Bow;
   refill:()=>void;
   setMount:(state:PassBlade['mount'])=>void;
-  upgradeBow:(id:string,equipment:EquipmentService,power:VariantBowPower)=>void;
+  bowPower:(id:string)=>{readonly applied:boolean;update:(dt:number)=>void};
+  upgradeBow:(id:string,equipment:EquipmentService)=>void;
   upgradeBlade:(id:string,equipment:EquipmentService,power:ArcWeaponPower)=>void;
 }
 
@@ -205,6 +269,13 @@ interface SlotMetadata {
   ready:{readonly scope:Scope}|null;
   sources:(()=>void)|null;
 }
+/** Freeze only the newly admitted owned JSON; native metadata remains original. */
+function freezeSlotRows(value:unknown):void {
+  if(typeof value!=='object'||value===null)return;
+  const children:readonly unknown[]=Object.values(value);
+  for(const child of children)freezeSlotRows(child);
+  Object.freeze(value);
+}
 const productSlots=new WeakMap<ShardProduct,Map<string,HeldClaims>>();
 const catalogues = new Map<string, HeldClaims>();
 /** Client-only held melee families, world claims and Explorer cards. The shard supplies rows and platform contexts. */
@@ -260,7 +331,7 @@ export class HeldClaims {
       if(kept===null||kept.source!==product.shardfile||kept.file!==file||kept.declaration!==declaration)throw new Error('Held metadata declaration was replaced');
       previous.checkSlotMetadata(kept);return previous;
     }
-    const held=HeldClaims.fromSlots(rows);
+    const held=HeldClaims.fromSlots(rows);freezeSlotRows(held.slots);
     held.metadata={product,source:product.shardfile,items:product.shardfile.items,files,file,declaration,readFile:product.file,readJson:product.json,resolveUrl:product.url,catalogue:null,loaded:false,preparing:false,ready:null,sources:null};
     if(owners===undefined){owners=new Map();productSlots.set(product,owners);}
     owners.set(rows.id,held);return held;
@@ -401,7 +472,7 @@ export class HeldClaims {
     this.kits.set(scope,record);scope.onDispose(()=>{this.kits.delete(scope);});
     runtime.buildEquipment=async(targets,allowUnlocked,viewmodel)=>{
       check();if(record.started)throw new Error('Held slot construction has already started');record.started=true;
-      const built=new Map<string,BuiltSlot>();
+      const built=new Map<string,BuiltSlot>(),bowPowers=new Map<string,ChargedBowSlot>();
       for(const [index,row] of rows.slots.entries()){
         if(row.kind==='tool')continue;
         if(row.kind==='blade'){
@@ -437,9 +508,17 @@ export class HeldClaims {
         polearm:id=>{active();const slot=need(id);if(slot.kind!=='polearm')throw new Error('Held slot is not a polearm');return slot.weapon;},
         setMount:state=>{active();for(const id of rows.mount){const slot=need(id);if(slot.kind==='bow')slot.weapon.setMount(state);else if(slot.kind==='blade'||slot.kind==='polearm')slot.weapon.mount=state;else throw new Error('Invalid held mount owner');}},
         refill:()=>{active();for(const row of rows.refills){const slot=need(row.slot);if(slot.kind==='bow'&&row.kind==='add-magazine')slot.weapon.addBolts(slot.weapon.magazine);else if(slot.kind==='polearm'&&row.kind==='fill-capacity')slot.weapon.javelins=slot.weapon.maxJavelins;else throw new Error('Invalid held refill owner');}},
-        upgradeBow:(id,weapons,power)=>{
+        bowPower:id=>{
+          active();const row=rows.upgrades.find(entry=>entry.id===id);
+          if(row?.kind!=='bow'||row.power===undefined)throw new Error('Unknown held bow power');
+          let power=bowPowers.get(id);
+          if(power===undefined){const created=new ChargedBowSlot(world.game.scene,world.game.camera,row.power.rows,active);power=created;bowPowers.set(id,created);scope.onDispose(()=>{created.dispose();});}
+          return power;
+        },
+        upgradeBow:(id,weapons)=>{
           active();const row=rows.upgrades.find(entry=>entry.id===id),slot=row===undefined?undefined:need(row.slot);
           if(row?.kind!=='bow'||slot?.kind!=='bow')throw new Error('Unknown held bow upgrade');
+          const power=bowPowers.get(id);if(power===undefined)throw new Error('Held bow power is not prepared');
           const previous=slot.weapon;if(previous.row.id===row.replacement.item)return;
           if(weapons.get(previous.id)!==previous)throw new Error('Held upgrade requires its original equipment');
           const next=new Bow(world,targets,{row:{...previous.row,id:`weapon.${row.replacement.item.slice(7)}`,ui:{...previous.row.ui,name:row.replacement.name,swapName:row.replacement.name},meta:{...previous.meta,name:row.replacement.name}},profile:slot.profile,allowUnlocked});
@@ -586,7 +665,12 @@ export class HeldClaims {
 
   /** Normalize the retained held wire once, then use the finite native slot
    * factory. Existing cards, claims, source rows and entered API stay original. */
-  install():void {
+  install(context?:ShardContext,id?:string):void {
+    if(this.originalRows===null){
+      if(context===undefined||id!==this.slots.id||this.metadata===null||this.metadata.product!==context.product)throw new Error('Held installation requires its pinned product and declared id');
+      this.installPage(context);return;
+    }
+    if(context!==undefined&&(context.scope!==this.context.scope||context.product!==this.context.product))throw new Error('Held installation requires its original entered owner');
     this.slotRows??=this.wireSlots(this.context);
     this.installPage(this.context);
   }

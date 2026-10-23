@@ -1,4 +1,5 @@
 import { ReturnModulesSchema } from '@wildshard/format/scriptContract';
+import { BowVariantSchema } from '@wildshard/format/bowVariantRows';
 import { ReturnProjectionV2Schema } from '@wildshard/format/returnProjectionV2';
 import { ScalarChannelSchema,ScalarLatticeSchema,ScalarTripletSchema } from '@wildshard/format/scalarChannel';
 import { RuntimeBoundsSchema } from '@wildshard/format/clientPlan';
@@ -132,6 +133,9 @@ const customSchemas = new Map<object, JsonSchema>([
   [input.entries.id, { type: 'string', maxLength: 128, pattern: '^[a-z][a-z0-9-]*(?:\\.[a-z][a-zA-Z0-9-]*)+$' }],
   [debug.entries.ask, { type: 'string', pattern: '^E[1-9][0-9]*$' }],
 ]);
+const bowVariant = BowVariantSchema.pipe[2].entries;
+customSchemas.set(bowVariant.id, { type: 'string', pattern: '^weapon\\.[a-z0-9.-]+$' });
+customSchemas.set(bowVariant.sourceTag, { type: 'string', pattern: '^[^.]+\\..+$' });
 customSchemas.set(CreatureStrikeSchema.entries.tags.pipe[0].item, { type: 'string', maxLength: 128, pattern: '^[a-z][a-zA-Z0-9.-]*\\.[a-zA-Z0-9.*-]+$' });
 // Exact fixed-palette validator; a caller's new custom schema receives no bridge.
 customSchemas.set(AccentSchema.pipe[2], { type: 'string', enum: [...ACCENT_IDS] });
@@ -164,6 +168,7 @@ const finiteNumbers = new Set<object>([
 
 // Only the exact retained defining roots grant action bridges. A caller's new check or transform never joins.
 const wireRoots: Readonly<Record<string, GenericSchema>> = {
+  'bowVariantRows.BowVariant': BowVariantSchema,
   'scalarChannel.ScalarChannel': ScalarChannelSchema,
   'terrain.ForestRows': ForestRowsSchema,
   'clientPlan.RuntimeBounds': RuntimeBoundsSchema,

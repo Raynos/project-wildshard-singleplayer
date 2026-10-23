@@ -36,7 +36,7 @@ import { ArenaFireView, ArenaWhirlsView } from './arenaFire';
 import { ArenaSceneView, CloudBody, type PatrolEncounterView } from './encounterView';
 import type { GroundTell } from '../Elite';
 import type { ArcWeaponPower } from '../weapons/arcPower';
-import type { MountedArsenal, MountedLoadout } from '../loadout/mounted';
+import type { HeldClaims, HeldSlotKit } from '../loadout/claims';
 import type { CosmeticFinishLocker } from '../loadout/cosmeticFinishes';
 import { enteredAdventurePersistence } from '../quest/chapterBindings';
 import { pageRidingMount, respawnPageMounted } from '../riding/client';
@@ -460,7 +460,7 @@ export class ArenaScriptEncounter {
   riders: PatrolEncounterView | null = null;
   mount: Mount | null = null;
   private context: ShardContext | null = null;
-  private kit: MountedLoadout | null = null;
+  private kit: HeldSlotKit | null = null;
   private readonly prompt: Interactable;
   private readonly contacts = new Map<string,StrikeSpec>();
   private readonly strikes = new StrikeRunner();
@@ -504,13 +504,13 @@ export class ArenaScriptEncounter {
     this.hurt(amount,why); return true;
   }
   /** Bind the concrete kit, saved owner, native cosmetic locker and specimen. */
-  bind(ctx: ShardContext, kit: MountedLoadout, arsenal: MountedArsenal, rewardModel: ModelDef<object>, locker: CosmeticFinishLocker): void {
+  bind(ctx: ShardContext, kit: HeldSlotKit, arsenal: HeldClaims, rewardModel: ModelDef<object>, locker: CosmeticFinishLocker): void {
     const runtime = ctx.game.runtime, play = runtime?.play;
     if (runtime === undefined || play === undefined || play === null) throw new Error('Arena script requires entered play');
     const health = ctx.app.player;
     installEnteredRuntimeService(ctx, entered => { health?.checkpoint(entered, () => this.onPlayerDeath(), () => ctx.app.player === health); });
     this.context = ctx; this.kit = kit; this.mount = pageRidingMount(ctx);
-    const { game,player } = this.world, power = new arsenal.blade.Power({ scene: game.scene,player,camera: game.camera,
+    const { game,player } = this.world, power = new (arsenal.blade('blade').Power)({ scene: game.scene,player,camera: game.camera,
       animals: play.animals,weather: this.world.weather,scope: ctx.scope });
     this.power = power;
     const saved = enteredAdventurePersistence(ctx.scope), row = this.data;
@@ -519,7 +519,7 @@ export class ArenaScriptEncounter {
       reward: { model: () => {
         const model = rewardModel.build(modelContext(game.sky),rewardModel.defaults,new Rng(0));
         if (!(model instanceof THREE.Object3D)) throw new Error('Arena reward requires a native specimen'); return model;
-      },grant: () => { kit.upgradeSabre(play.weapons,power); locker.own(row.skin.id); play.hud.toast(row.skin.toast); } },
+      },grant: () => { kit.upgradeBlade('blade-reward',play.weapons,power); locker.own(row.skin.id); play.hud.toast(row.skin.toast); } },
       lockInput: on => { play.weapons.setEnabled(!on); player.moveScale = on ? 0 : 1; },
       respawn: (pos,yaw) => { respawnPageMounted(ctx,pos,yaw,row.view.respawn); kit.refill(); },
       skipHeld: () => this.skipEnter || this.skipTouch || ctx.app.input.held('jump') || ctx.app.input.held('use'),
@@ -527,7 +527,7 @@ export class ArenaScriptEncounter {
       music: event => { if (event === 'death' || event === 'pickup') play.music.sting(event); else if (event === 'victory') play.music.sting('chunk'); else play.music.combat(1); },
     });
     this.boss = encounter.boss; this.ui = encounter.ui; runtime.interactables.push(this.prompt);
-    if (encounter.boss.rewardTaken) kit.upgradeSabre(play.weapons,power);
+    if (encounter.boss.rewardTaken) kit.upgradeBlade('blade-reward',play.weapons,power);
     installArenaBoundary(ctx.scope,this.fight.boundary);
     listenPage(ctx.scope,'keydown',event => { if (event instanceof KeyboardEvent && event.code === 'Enter') this.skipEnter = true; });
     listenPage(ctx.scope,'keyup',event => { if (event instanceof KeyboardEvent && event.code === 'Enter') this.skipEnter = false; });

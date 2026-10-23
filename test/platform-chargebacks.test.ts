@@ -399,3 +399,10 @@ test('G615 credits only timed encounters and its selected slot and patrol views'
   for (const name of ['CloudBody', 'ArenaSceneView', 'EncounterSites', 'PatrolActor', 'SlotViewActor']) expect(approvedG571Host(approvals, path, name)).toBe(false);
   expect(platformChargeback(path, 'PatrolEncounterView')).toBe('C4');
 });
+
+
+test('retired arsenal and variant modules leave no standalone item charge',()=>{
+  expect(platformChargeback('src/game/loadout/mounted.ts')).toBeNull();
+  expect(platformChargeback('src/game/weapons/bowVariant.ts')).toBeNull();
+  expect(platformChargeback('src/game/boss/arenaScript.ts')).toBe('C4');
+});

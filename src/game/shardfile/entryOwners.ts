@@ -1,4 +1,3 @@
-import type { MountedArsenal } from '../loadout/mounted';
 /** Client-only concrete loans between compiled entry capabilities. No shard
  * callbacks, reflected paths, clocks or continuation state live in this book. */
 import type { Object3D, Vector3 } from 'three';
@@ -53,7 +52,6 @@ export interface EntryOwnerTypes {
   'ambient-draw': AmbientFlockDraw;
   collection: CollectionCatalogue;
   claims: HeldClaims;
-  'mounted-arsenal': MountedArsenal;
   animals: AnimalManager;
   sounds: DeclaredSoundBank;
   'quest-spawns': QuestSpawnResult;
@@ -72,7 +70,7 @@ function book(scope: Scope): Owners {
   let value = books.get(scope);
   if (value === undefined) {
     value = { scenes: new Map(), 'world-weather': new Map(), 'world-point': new Map(), 'arena-script': new Map(), 'arena-room': new Map(), taming: new Map(), adventure: new Map(), buildings: new Map(), forest: new Map(), cave: new Map(), quest: new Map(), 'quest-reference': new Map(),
-      object: new Map(), placed: new Map(), site: new Map(), floor: new Map(), 'fixed-draws': new Map(), 'drawn-models': new Map(), chain: new Map(), 'rope-deck': new Map(), ambient: new Map(), 'ambient-draw': new Map(), collection: new Map(), claims: new Map(), 'mounted-arsenal': new Map(),
+      object: new Map(), placed: new Map(), site: new Map(), floor: new Map(), 'fixed-draws': new Map(), 'drawn-models': new Map(), chain: new Map(), 'rope-deck': new Map(), ambient: new Map(), 'ambient-draw': new Map(), collection: new Map(), claims: new Map(),
       animals: new Map(), sounds: new Map(), 'quest-spawns': new Map(), 'painted-world': new Map() };
     books.set(scope, value);
   }

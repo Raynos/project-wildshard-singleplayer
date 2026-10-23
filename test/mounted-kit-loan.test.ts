@@ -4,7 +4,7 @@ import { Scope } from '../src/engine/app/scope';
 import * as plan from '../src/engine/boot/plan';
 import * as launcher from '../src/game/weapons/heldLauncher';
 import type { Targets } from '../src/engine/combat/types';
-import { MountedArsenal, type MountedLoadout } from '../src/game/loadout/mounted';
+import { MountedArsenal, type MountedLoadout } from './fixtures/originalMountedArsenal';
 import * as nativeItems from '../src/game/plugin/headless';
 import { ItemCatalogue } from '../src/game/plugin/nativeItems';
 import type { ShardContext } from '../src/game/plugin/context';

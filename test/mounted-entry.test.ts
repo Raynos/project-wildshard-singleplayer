@@ -1,7 +1,10 @@
-import { expect, test, vi } from 'vitest';
+import { afterEach, expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
-import { MountedArsenal } from '../src/game/loadout/mounted';
+import { HeldClaims } from '../src/game/loadout/claims';
+import * as geometry from '../src/game/plugin/geometry';
+import { heldSlotRows } from '../src/shards/nalati-grasslands/generators/heldSlots';
+import power from '../src/shards/nalati-grasslands/boot/bowVariant.generated.json' with {type:'json'};
 import { ShardPlugin, type ShardContext } from '../src/game/plugin/context';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import { declaredRuntimeEntry } from '../src/game/shard/declaredEntry';
@@ -16,27 +19,35 @@ import items from '../src/shards/nalati-grasslands/data/items.json' with { type:
 import loadout from '../src/shards/nalati-grasslands/data/loadout.json' with { type: 'json' };
 import { legacyDouble } from './fake/FakeGame';
 
-const mounted = { kind: 'held.mounted', arsenal: 'fixture.arsenal' } as const;
+afterEach(()=>{vi.restoreAllMocks();});
+const mounted = { kind: 'held.claims.install', claims: 'fixture.arsenal',preparation:'world' } as const;
 const paths = { kind: 'world.paths', rows: { id: 'fixture.paths', name: 'Paths' } } as const;
-function fixture() {
+async function fixture() {
   const parent = new Scope('mounted resident'), scope = parent.child('mounted entry');
   const source = { ...emptyShardfile({ slug: 'mounted-fixture', name: 'Mounted fixture', author: 'Fixture', revision: 1, seed: 4 }), items: parseItems(items) };
-  const read = vi.fn(() => Promise.reject(new Error('Kit registration must not read a file')));
+  const book={rows:[],packed:{bin:'/assets/fixture/gear.bin',bytes:0,rows:[]},materials:{}};
+  const read=vi.fn(()=>Promise.resolve(new TextEncoder().encode(JSON.stringify(book))));
   const product = createShardProduct({ slug: source.identity.slug, revision: 1, shardfile: source,
-    sections: new Map([['client/plan', { version: 1, features: [paths, mounted] }]]), files: new Map(), read });
-  const arsenal = new MountedArsenal({ ...loadout, variants: { bow: { id: 'weapon.golden-bow', name: 'Golden Bow' }, blade: { id: 'weapon.naizagai', name: 'Naizagai' } } });
+    sections: new Map([['client/plan', { version: 1, features: [paths, mounted] }]]), files: new Map(['models/gear.json',loadout.blade.file,loadout.polearm.file,loadout.page.firearm.file].map(name=>[name,{hash:'a'.repeat(64),url:`/fixture/${name}`} ])), read });
+  const slots=heldSlotRows({ ...loadout, variants: { bow: { id: 'weapon.golden-bow', name: 'Golden Bow' }, blade: { id: 'weapon.naizagai', name: 'Naizagai' } } },power);
+  const arsenal=HeldClaims.fromProductSlots(product,{...slots,id:mounted.claims},'models/gear.json');
+  vi.spyOn(arsenal.blade('blade'),'prepare').mockResolvedValue();vi.spyOn(arsenal.polearm('polearm'),'prepare').mockResolvedValue();
+  vi.spyOn(arsenal.blade('blade'),'profile').mockReturnValue(legacyDouble<ReturnType<ReturnType<typeof arsenal.blade>['profile']>>({}));
+  vi.spyOn(arsenal.polearm('polearm'),'profile').mockReturnValue(legacyDouble<ReturnType<ReturnType<typeof arsenal.polearm>['profile']>>({}));
+  vi.spyOn(geometry,'fetchLaneBake').mockResolvedValue(new Uint8Array());
   const weapon = vi.fn<ShardContext['rows']['weapon']>();
   const runtime: ShardRuntime = { world: legacyDouble<NonNullable<ShardRuntime['world']>>({}), step: null, play: null,
     interactables: [], overhead: [], hooks: {}, objects: {}, viewer: () => new Vector3(), horizonVeil: null };
   const ctx = legacyDouble<ShardContext>({ scope, product, app:legacyDouble<ShardContext['app']>({equipment:null}), game: legacyDouble<ShardContext['game']>({ runtime }),
     rows: legacyDouble<ShardContext['rows']>({ weapon }) });
+  await arsenal.prepareSlotSources({...ctx,scope:parent});read.mockClear();read.mockRejectedValue(new Error('Kit registration must not read a file'));
   return { parent, scope, product, arsenal, weapon, runtime, ctx, read };
 }
 
 test('mounted kit borrows the original prepared arsenal before ordinary kit consumers', async () => {
-  const f = fixture(), order: string[] = [];
-  publishEntryOwner(f.parent, 'mounted-arsenal', mounted.arsenal, f.arsenal);
-  lendEntryOwner(f.scope, f.parent, 'mounted-arsenal', mounted.arsenal);
+  const f = await fixture(), order: string[] = [];
+  publishEntryOwner(f.parent, 'claims', mounted.claims, f.arsenal);
+  lendEntryOwner(f.scope, f.parent, 'claims', mounted.claims);
   f.weapon.mockImplementation(() => { order.push('mounted'); });
   const path = vi.spyOn(CLIENT_FEATURES['world.paths'], 'install').mockImplementation(() => { order.push('paths'); });
   try {
@@ -45,7 +56,7 @@ test('mounted kit borrows the original prepared arsenal before ordinary kit cons
     expect(order).toEqual([]);
     await installClientPhase(f.ctx, plan, 'kit', f.parent, 'entered');
     expect(order).toEqual(['mounted', 'paths']);
-    expect(entryOwner(f.scope, 'mounted-arsenal', mounted.arsenal) === f.arsenal).toBe(true);
+    expect(entryOwner(f.scope, 'claims', mounted.claims) === f.arsenal).toBe(true);
     expect(f.weapon.mock.calls[0]?.[0]).toEqual([
       expect.objectContaining({ id: 'weapon.bow' }), expect.objectContaining({ id: 'weapon.sabre' }),
       expect.objectContaining({ id: 'weapon.spear' }), expect.objectContaining({ id: 'weapon.rifle' }),
@@ -60,60 +71,60 @@ test('mounted kit borrows the original prepared arsenal before ordinary kit cons
 });
 
 test('missing and retiring mounted owners refuse before registration', async () => {
-  const f = fixture(), plan = admitClientPlan({ version: 1, features: [mounted] }, f.product);
+  const f = await fixture(), plan = admitClientPlan({ version: 1, features: [mounted] }, f.product);
   try {
     await expect(installClientPhase(f.ctx, plan, 'kit', f.parent)).rejects.toThrow('Missing live entry owner');
     expect(f.weapon).not.toHaveBeenCalled();
-    publishEntryOwner(f.parent, 'mounted-arsenal', mounted.arsenal, f.arsenal);
-    lendEntryOwner(f.scope, f.parent, 'mounted-arsenal', mounted.arsenal);
+    publishEntryOwner(f.parent, 'claims', mounted.claims, f.arsenal);
+    lendEntryOwner(f.scope, f.parent, 'claims', mounted.claims);
     f.parent.onDispose(() => undefined);
     const retiring = f.parent.disposeSteps(); retiring.next();
     expect(f.scope.disposing).toBe(true); expect(f.scope.disposed).toBe(false);
     await expect(installClientPhase(f.ctx, plan, 'kit', f.parent)).rejects.toThrow('disposed');
-    expect(() => f.arsenal.installPage(f.ctx)).toThrow('live native equipment');
+    expect(() => f.arsenal.installPage(f.ctx)).toThrow('owner has ended');
     expect(f.weapon).not.toHaveBeenCalled();
     for (const _step of retiring) { /* Complete the actual sliced retirement. */ }
   } finally { f.parent.dispose(); }
 });
 
 test('the same arsenal can register a fresh entered kit after the old borrower leaves', async () => {
-  const f = fixture();
-  publishEntryOwner(f.parent, 'mounted-arsenal', mounted.arsenal, f.arsenal);
+  const f = await fixture();
+  publishEntryOwner(f.parent, 'claims', mounted.claims, f.arsenal);
   const path = vi.spyOn(CLIENT_FEATURES['world.paths'], 'install').mockImplementation(() => undefined);
   try {
     for (let visit = 0; visit < 2; visit++) {
       const scope = f.parent.child('visit');
       const ctx = { ...f.ctx, scope };
-      lendEntryOwner(scope, f.parent, 'mounted-arsenal', mounted.arsenal);
+      lendEntryOwner(scope, f.parent, 'claims', mounted.claims);
       await installClientPhase(ctx, admitClientPlan(f.product.section('client/plan'), f.product), 'kit', f.parent);
       scope.dispose();
-      expect(entryOwner(f.parent, 'mounted-arsenal', mounted.arsenal) === f.arsenal).toBe(true);
+      expect(entryOwner(f.parent, 'claims', mounted.claims) === f.arsenal).toBe(true);
     }
     expect(f.weapon).toHaveBeenCalledTimes(2);
   } finally { path.mockRestore(); f.parent.dispose(); }
 });
 
 test('native feature selection preserves world, species and play without replaying unrelated kit rows', async () => {
-  const f = fixture(), order: string[] = [];
+  const f = await fixture(), order: string[] = [];
   class Native extends ShardPlugin {
-    override world(ctx: ShardContext): void { order.push('world'); publishEntryOwner(ctx.scope, 'mounted-arsenal', mounted.arsenal, f.arsenal); }
+    override world(ctx: ShardContext): void { order.push('world'); publishEntryOwner(ctx.scope, 'claims', mounted.claims, f.arsenal); }
     override kit(): void { order.push('species'); }
-    override play(ctx: ShardContext): void { expect(entryOwner(ctx.scope, 'mounted-arsenal', mounted.arsenal) === f.arsenal).toBe(true); order.push('play'); }
+    override play(ctx: ShardContext): void { expect(entryOwner(ctx.scope, 'claims', mounted.claims) === f.arsenal).toBe(true); order.push('play'); }
   }
   f.weapon.mockImplementation(() => { order.push('mounted'); });
   const path = vi.spyOn(CLIENT_FEATURES['world.paths'], 'install');
-  const policy = { entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'declared', nativePlan: { phases: ['kit'], features: ['held.mounted'] } } as const;
+  const policy = { entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'declared', nativePlan: { phases: ['kit'], features: ['held.claims.install'] } } as const;
   const Entry = declaredRuntimeEntry(Native, Native, policy).default, plugin = new Entry(undefined, undefined, () => false);
   try {
     await plugin.world(f.ctx); await plugin.kit(f.ctx); await plugin.play(f.ctx);
     expect(order).toEqual(['world', 'species', 'mounted', 'play']);
     expect(path).not.toHaveBeenCalled(); expect(f.weapon).toHaveBeenCalledOnce(); expect(f.read).not.toHaveBeenCalled();
-    expect(() => declaredRuntimeEntry(Native, Native, { ...policy, nativePlan: { phases: ['kit'], features: ['held.mounted', 'held.mounted'] } })).toThrow('feature selection');
+    expect(() => declaredRuntimeEntry(Native, Native, { ...policy, nativePlan: { phases: ['kit'], features: ['held.claims.install', 'held.claims.install'] } })).toThrow('feature selection');
   } finally { path.mockRestore(); f.parent.dispose(); }
 });
 
 test('a selected native kind must exist in the admitted plan before its kit effects', async () => {
-  const f = fixture();
+  const f = await fixture();
   class Native extends ShardPlugin { override kit(): void { /* The selected feature owns this phase's effects. */ } }
   const Entry = declaredRuntimeEntry(Native, Native, { entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'declared',
     nativePlan: { phases: ['kit'], features: ['held.claims.prepare'] } }).default;
@@ -126,11 +137,11 @@ test('a selected native kind must exist in the admitted plan before its kit effe
 });
 
 test('regional entry registers the same mounted owner once after native species and before play', async () => {
-  const f = fixture(), order: string[] = [];
+  const f = await fixture(), order: string[] = [];
   class Native extends ShardPlugin {
-    override world(ctx: ShardContext): void { order.push('world'); publishEntryOwner(ctx.scope, 'mounted-arsenal', mounted.arsenal, f.arsenal); }
+    override world(ctx: ShardContext): void { order.push('world'); publishEntryOwner(ctx.scope, 'claims', mounted.claims, f.arsenal); }
     override kit(): void { order.push('species'); }
-    override play(ctx: ShardContext): void { expect(entryOwner(ctx.scope, 'mounted-arsenal', mounted.arsenal) === f.arsenal).toBe(true); order.push('play'); }
+    override play(ctx: ShardContext): void { expect(entryOwner(ctx.scope, 'claims', mounted.claims) === f.arsenal).toBe(true); order.push('play'); }
   }
   f.weapon.mockImplementation(() => { order.push('mounted'); });
   const path = vi.spyOn(CLIENT_FEATURES['world.paths'], 'install').mockImplementation(() => { order.push('paths'); });
@@ -144,15 +155,15 @@ test('regional entry registers the same mounted owner once after native species 
 });
 
 test('mounted entry wire rejects executable, reflected, duplicate and ignored settings', () => {
-  for (const row of [{ ...mounted, arsenal: () => 'anything' }, { ...mounted, owner: 'world' }, { ...mounted, file: 'ignored.json' }])
+  for (const row of [{ ...mounted, claims: () => 'anything' }, { ...mounted, owner: 'world' }, { ...mounted, file: 'ignored.json' }])
     expect(() => parseClientPlan({ version: 1, features: [row] })).toThrow();
   expect(() => parseClientPlan({ version: 1, features: [mounted, mounted] })).toThrow('Duplicate');
 });
 
-test('a mounted arsenal refuses competing equipment builders before any registration', () => {
-  const f = fixture();
+test('a mounted arsenal refuses competing equipment builders before any registration', async () => {
+  const f = await fixture();
   try {
-    expect(() => admitClientPlan({ version: 1, features: [mounted, { kind: 'held.claims.prepare', id: 'other.claims' }] }, f.product)).toThrow('sole native equipment builder');
+    expect(() => admitClientPlan({ version: 1, features: [mounted, { kind: 'held.claims.prepare', id: 'other.claims' }] }, f.product)).toThrow('cannot repeat kit preparation');
     expect(() => admitClientPlan({ version: 1, features: [mounted, { kind: 'held.ranged-page', file: 'other.json' }] }, f.product)).toThrow('sole native equipment builder');
     expect(f.weapon).not.toHaveBeenCalled(); expect(f.read).not.toHaveBeenCalled();
   } finally { f.parent.dispose(); }
