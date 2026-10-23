@@ -13,10 +13,6 @@ import { DomePuffs } from '@wildshard/engine/fx/groundFx';
 import { SpawnScript } from '../population/spawnScript';
 import { EliteDecisions } from './eliteDecisions';
 import { parseEliteFeature } from '@wildshard/format/eliteFeature';
-import type { BorrowedElite } from '@wildshard/engine/ai/view/eliteEntry';
-
-/** Nalati zero R9: the borrowed controller is the engine's; this name stays only until Nalati state.ts drops its import. */
-export type ExternalElitePage = BorrowedElite;
 
 
 /** Client-only presentation over the same v1 owner as native encounters. Every authority is an existing concrete service;

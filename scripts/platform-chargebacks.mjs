@@ -28,7 +28,7 @@ const declarations = new Map([
   ['src/game/quest/elitePage.ts', new Map([
     'keeperBrains', 'keeperActs', 'keeperDamage', 'setEliteBrain', 'setEliteAct',
     'setEliteDamage', 'eliteThink', 'eliteAct', 'eliteDamageMul', 'KeeperEliteRow',
-    'KeeperEliteEffect', 'KeeperEliteServices', 'KeeperElitePage', 'ExternalElitePage',
+    'KeeperEliteEffect', 'KeeperEliteServices', 'KeeperElitePage',
   ].map(name => [name, 'C4']))],
   ['src/game/shardfile/worldScenes.ts', new Map([['WorldScenePoolPublications', 'C1']])],
   ['src/game/shardfile/scenePools.ts', new Map([['WorldSceneTierPools', 'C1']])],
