@@ -12,7 +12,7 @@
 // areas are excluded, while generated source bytes remain conservative inputs.
 // Products are shared across mirror slots in ~/.cache/wildshard/shardfiles.
 import { createHash, randomBytes } from 'node:crypto';
-import { constants, cpSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, readlinkSync, renameSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
+import { constants, cpSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, readlinkSync, renameSync, rmSync, rmdirSync, statSync, utimesSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
 
@@ -23,7 +23,7 @@ export function readBuildKey(directory) {
   try { return readFileSync(join(directory,KEY_FILE),'utf8').trim(); } catch { /* Format-2 products keep this in their receipt. */ }
   try { const key=JSON.parse(readFileSync(join(directory,'validation.json'),'utf8')).buildKey;return typeof key==='string'?key:''; } catch { return ''; }
 }
-const KEEP_PER_SHARD = 6;
+const ENTRY = /^[a-f0-9]{64}$/u;
 // Top-level entries no shardfile build reads (outputs, docs, native shells, side sites, local caches).
 const SKIP_TOP = new Set(['.git', '.github', '.githooks', '.claude', '.cache', '.review', '.vercel', '.native-build', '.tsc-layers',
   'node_modules', 'tmp', 'out', 'dist', 'dist-native', 'dist-drafts', 'dist-site', 'dist-admin', 'coverage',
@@ -118,19 +118,107 @@ export function publishProduct(from, to) {
 /** A complete cache entry for this key, or undefined. @param {string} cacheRoot @param {string} slug @param {string} key */
 function entryFor(cacheRoot, slug, key) {
   const entry = join(cacheRoot, slug, key);
+  if (existsSync(`${entry}.lock`)) return undefined;
   try { if (readFileSync(join(entry, KEY_FILE), 'utf8').trim() === key) return entry; } catch { /* missing or partial */ }
   return undefined;
 }
 
-/** Keep the newest entries per shard; never one touched in the last 10 minutes (a sibling may be cloning it). */
-function prune(cacheRoot, slug) {
-  const dir = join(cacheRoot, slug);
-  const entries = readdirSync(dir).filter(name => /^[a-f0-9]{64}$/u.test(name))
-    .map(name => ({ name, at: statSync(join(dir, name)).mtimeMs })).sort((a, b) => b.at - a.at);
-  for (const old of entries.slice(KEEP_PER_SHARD)) if (Date.now() - old.at > 600_000) rmSync(join(dir, old.name), { recursive: true, force: true });
-  for (const name of readdirSync(dir)) {
-    if (name.startsWith('.staging-') && Date.now() - statSync(join(dir, name)).mtimeMs > 3_600_000) rmSync(join(dir, name), { recursive: true, force: true });
+/** @param {number} pid */
+function alive(pid) {
+  try { process.kill(pid, 0); return true; }
+  catch (error) { return !(error instanceof Error && 'code' in error && error.code === 'ESRCH'); }
+}
+/** Pin before looking up an entry, so eviction cannot race a product clone.
+ * @param {string} entry */
+export function borrowShardfileEntry(entry, untilExit = false) {
+  const readers = `${entry}.readers`, owner = join(readers, `${process.pid}-${untilExit ? '0'.repeat(24) : randomBytes(12).toString('hex')}`);
+  for (;;) {
+    mkdirSync(readers, { recursive: true });
+    try { writeFileSync(owner, '', { flag: untilExit ? 'w' : 'wx' }); break; }
+    catch (error) { if (!(error instanceof Error) || !('code' in error) || error.code !== 'ENOENT') throw error; }
   }
+  return () => {
+    rmSync(owner, { force: true });
+    try { rmdirSync(readers); } catch { /* Another original reader still owns it. */ }
+  };
+}
+/** @param {string} entry */
+function liveReaders(entry) {
+  const readers = `${entry}.readers`;
+  if (!existsSync(readers)) return false;
+  let live = false;
+  for (const name of readdirSync(readers)) {
+    const match = /^(\d+)-[a-f0-9]{24}$/u.exec(name);
+    if (match === null || alive(Number(match[1]))) live = true;
+    else rmSync(join(readers, name), { force: true });
+  }
+  return live;
+}
+/** Allocated bytes without following links. @param {string} path @returns {number} */
+function diskBytes(path) {
+  try {
+    const stat = lstatSync(path);
+    return stat.blocks * 512 + (stat.isDirectory() ? readdirSync(path).reduce((sum, name) => sum + diskBytes(join(path, name)), 0) : 0);
+  } catch { return 0; /* A sibling removed it while counting. */ }
+}
+/** Prune idle entries, then LRU across every shard. Active clones and producers
+ * survive; publication stages are never mistaken for complete products.
+ * @param {string} cacheRoot
+ * @param {{capBytes?:number,maxAgeMs?:number,dryRun?:boolean}} [options] */
+export function pruneShardfileCache(cacheRoot, options = {}) {
+  const capBytes = options.capBytes ?? 4 * 1024 ** 3, maxAgeMs = options.maxAgeMs ?? 86_400_000;
+  const report = { deleted: 0, freedBytes: 0, keptBytes: 0, locked: 0 };
+  if (!existsSync(cacheRoot) || !lstatSync(cacheRoot).isDirectory()) return report;
+  const directories = readdirSync(cacheRoot, { withFileTypes: true }).filter(row => row.isDirectory() && !row.name.startsWith('.')).map(row => join(cacheRoot, row.name));
+  const inputRoot = join(cacheRoot, '.inputs-v2');
+  if (existsSync(inputRoot) && lstatSync(inputRoot).isDirectory()) {
+    for (const row of readdirSync(inputRoot, { withFileTypes: true })) if (row.isDirectory()) directories.push(join(inputRoot, row.name));
+  }
+  // Receipt histories and ancillary metadata count toward the same budget.
+  // Unknown paths/stages remain intact and consume available capacity.
+  const allocated = diskBytes(cacheRoot);
+  const entries = directories.flatMap(directory =>
+    readdirSync(directory, { withFileTypes: true }).filter(child => child.isDirectory() && ENTRY.test(child.name)).flatMap(child => {
+      const path = join(directory, child.name);
+      try { return [{ path, at: statSync(path).mtimeMs, bytes: diskBytes(path) }]; } catch { return []; }
+    })).sort((a, b) => a.at - b.at);
+  let total = allocated;
+  for (const row of entries) {
+    if (Date.now() - row.at <= maxAgeMs && total <= capBytes) continue;
+    const lock = `${row.path}.lock`;
+    if (!options.dryRun && existsSync(lock)) {
+      const owners = readdirSync(lock);
+      if (owners.length === 1 && /^\d+$/u.test(owners[0] ?? '') && !alive(Number(owners[0]))) rmSync(lock, { recursive: true });
+    }
+    if (existsSync(lock) || liveReaders(row.path)) { report.locked++; continue; }
+    if (!options.dryRun) {
+      try { mkdirSync(lock); } catch { report.locked++; continue; }
+      const doomed = join(dirname(row.path), `.evicting-${basename(row.path)}-${process.pid}`);
+      try {
+        writeFileSync(join(lock, String(process.pid)), '');
+        // Readers pin first, then inspect this lock before using the entry.
+        if (liveReaders(row.path) || statSync(row.path).mtimeMs !== row.at) continue;
+        renameSync(row.path, doomed);
+      } catch { continue; }
+      finally { rmSync(lock, { recursive: true, force: true }); }
+      rmSync(doomed, { recursive: true, force: true });
+    }
+    report.deleted++; report.freedBytes += row.bytes; total -= row.bytes;
+  }
+  report.keptBytes = total;
+  return report;
+}
+
+/** Prune at most once per ten minutes; caching cannot fail a valid build.
+ * @param {string} root */
+function maybePrune(root) {
+  const stamp = join(root, '.prune-stamp');
+  try {
+    if (existsSync(stamp) && Date.now() - statSync(stamp).mtimeMs < 600_000) return;
+    writeFileSync(stamp, new Date().toISOString());
+    const report = pruneShardfileCache(root);
+    if (report.keptBytes > 4 * 1024 ** 3) console.warn('shardfile-cache: active entries exceed 4 GiB; pruning deferred until release');
+  } catch (error) { console.warn(`shardfile-cache: prune failed: ${String(error)}`); }
 }
 
 /**
@@ -140,32 +228,37 @@ function prune(cacheRoot, slug) {
  * @returns {Promise<'slot'|'cache'|'built'>}
  */
 export async function reuseOrBuild({ slug, key, destination, cacheRoot = shardfileCacheRoot(), fresh = false, build }) {
-  const existing = fresh ? undefined : entryFor(cacheRoot, slug, key);
-  const now = new Date();
-  if (existing !== undefined) {
-    utimesSync(existing, now, now);
-    const here = readBuildKey(destination);
-    // The slot's own copy counts only while its shard.json still matches the entry's byte for byte.
-    if (here === key && existsSync(join(destination, 'shard.json'))
-      && readFileSync(join(destination, 'shard.json')).equals(readFileSync(join(existing, 'shard.json')))) return 'slot';
-    publishProduct(existing, destination);
-    return 'cache';
-  }
-  mkdirSync(join(cacheRoot, slug), { recursive: true });
-  const staging = join(cacheRoot, slug, `.staging-${process.pid}-${randomBytes(4).toString('hex')}`);
+  const release = borrowShardfileEntry(join(cacheRoot, slug, key));
   try {
-    const captured = await build(staging);
-    const publishedKey = typeof captured === 'string' ? captured : key;
-    writeFileSync(join(staging, KEY_FILE), `${publishedKey}\n`);
-    publishProduct(staging, destination);
-    const entry = join(cacheRoot, slug, publishedKey);
-    if (entryFor(cacheRoot, slug, publishedKey) === undefined) {
-      try { rmSync(entry, { recursive: true, force: true }); renameSync(staging, entry); } catch (error) {
-        // A sibling published the same key first: theirs is as good as ours.
-        if (entryFor(cacheRoot, slug, publishedKey) === undefined) throw error;
-      }
-    } else utimesSync(entry, now, now);
-    prune(cacheRoot, slug);
-    return 'built';
-  } finally { rmSync(staging, { recursive: true, force: true }); }
+    const existing = fresh ? undefined : entryFor(cacheRoot, slug, key);
+    const now = new Date();
+    if (existing !== undefined) {
+      utimesSync(existing, now, now);
+      const here = readBuildKey(destination);
+      // The slot's own copy counts only while its shard.json still matches the entry's byte for byte.
+      if (here === key && existsSync(join(destination, 'shard.json'))
+        && readFileSync(join(destination, 'shard.json')).equals(readFileSync(join(existing, 'shard.json')))) return 'slot';
+      publishProduct(existing, destination);
+      return 'cache';
+    }
+    mkdirSync(join(cacheRoot, slug), { recursive: true });
+    const staging = join(cacheRoot, slug, `.staging-${process.pid}-${randomBytes(4).toString('hex')}`);
+    try {
+      const captured = await build(staging);
+      const publishedKey = typeof captured === 'string' ? captured : key;
+      writeFileSync(join(staging, KEY_FILE), `${publishedKey}\n`);
+      publishProduct(staging, destination);
+      const entry = join(cacheRoot, slug, publishedKey), releasePublished = borrowShardfileEntry(join(cacheRoot, slug, publishedKey));
+      try {
+        if (entryFor(cacheRoot, slug, publishedKey) === undefined) {
+          try { rmSync(entry, { recursive: true, force: true }); renameSync(staging, entry); } catch (error) {
+            // A sibling published the same key first: theirs is as good as ours.
+            if (entryFor(cacheRoot, slug, publishedKey) === undefined) throw error;
+          }
+        } else utimesSync(entry, now, now);
+        maybePrune(cacheRoot);
+        return 'built';
+      } finally { releasePublished(); }
+    } finally { rmSync(staging, { recursive: true, force: true }); }
+  } finally { release(); }
 }

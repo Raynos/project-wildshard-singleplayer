@@ -215,20 +215,21 @@ function evict(jobDir, key) {
   return true;
 }
 
-/** G430 eviction: per job keep the newest `keep` entries (by last use), then delete least-recently-used entries until
- * the cache fits `capBytes`. The newest entry of every job, `protect`ed directories (the current inputs), entries with
- * a lock and `generating-*` staging dirs are never deleted.
+/** Evict entries idle for 24 hours, then least-recently-used entries until the
+ * cache fits 4 GiB. Only explicit current inputs, live readers, locks and stages
+ * survive pressure; per-job history never overrides the whole-cache budget.
  * @param {string} cacheDir @param {import('./generation-cache.mjs').PruneOptions} [options]
  * @returns {import('./generation-cache.mjs').PruneReport} */
 export function pruneGenerationCache(cacheDir, options = {}) {
-  const keep = options.keep ?? 3, capBytes = options.capBytes ?? 20 * GIB, dryRun = options.dryRun === true;
+  const capBytes = options.capBytes ?? 4 * GIB, maxAgeMs = options.maxAgeMs ?? 86_400_000, dryRun = options.dryRun === true;
   const protect = new Set((options.protect ?? []).map(path => resolve(path)));
   /** @type {import('./generation-cache.mjs').PruneReport} */
   const report = { deleted: [], keptBytes: 0, keptEntries: 0, locked: 0, freedBytes: 0 };
-  if (!existsSync(cacheDir)) return report;
-  /** @type {{job:string,key:string,path:string,mtimeMs:number,newest:boolean,pinned:boolean,bytes:number}[]} */
+  if (!existsSync(cacheDir) || !lstatSync(cacheDir).isDirectory()) return report;
+  const allocated = diskBytes(cacheDir);
+  /** @type {{job:string,key:string,path:string,mtimeMs:number,pinned:boolean,bytes:number}[]} */
   const survivors = [];
-  /** @param {{job:string,key:string}} entry @param {number} bytes @param {'keep'|'cap'} reason */
+  /** @param {{job:string,key:string}} entry @param {number} bytes @param {'age'|'cap'} reason */
   const drop = (entry, bytes, reason) => {
     if (!dryRun && !evict(resolve(cacheDir, entry.job), entry.key)) return false;
     report.deleted.push({ job: entry.job, key: entry.key, bytes, reason }); report.freedBytes += bytes; return true;
@@ -248,19 +249,20 @@ export function pruneGenerationCache(cacheDir, options = {}) {
         return stat.isDirectory() ? [{ key, path, mtimeMs: stat.mtimeMs, locked: names.includes(`${key}.lock`) ? true : liveReaders(path) }] : [];
       } catch { return []; }
     }).sort((a, b) => b.mtimeMs - a.mtimeMs);
-    entries.forEach((entry, index) => {
+    entries.forEach(entry => {
       const pinned = protect.has(entry.path) || entry.locked;
       if (entry.locked) report.locked += 1;
       const bytes = diskBytes(entry.path);
-      if (index >= keep && !pinned && drop({ job, key: entry.key }, bytes, 'keep')) return;
-      survivors.push({ job, key: entry.key, path: entry.path, mtimeMs: entry.mtimeMs, newest: index === 0, pinned, bytes });
+      if (Date.now() - entry.mtimeMs > maxAgeMs && !pinned && drop({ job, key: entry.key }, bytes, 'age')) return;
+      survivors.push({ job, key: entry.key, path: entry.path, mtimeMs: entry.mtimeMs, pinned, bytes });
     });
   }
-  let total = survivors.reduce((sum, entry) => sum + entry.bytes, 0);
+  // Stages and ancillary metadata also consume capacity, but are not evicted.
+  let total = allocated - report.freedBytes;
   const kept = new Set(survivors);
   for (const entry of [...survivors].sort((a, b) => a.mtimeMs - b.mtimeMs)) {
     if (total <= capBytes) break;
-    if (entry.newest || entry.pinned) continue;
+    if (entry.pinned) continue;
     if (drop(entry, entry.bytes, 'cap')) { total -= entry.bytes; kept.delete(entry); }
   }
   report.keptEntries = kept.size; report.keptBytes = total;

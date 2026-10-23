@@ -49,7 +49,7 @@ it('keeps coalesced upstream readers pinned through downstream copies and prunes
   writeFileSync(resolve(root,'input.txt'),'second');
   const newer=await runGenerationJob(root,descriptor(root),{cacheDir,generate});newer.release();
   const old=new Date(Date.now()-3_600_000);utimesSync(first.directory,old,old);
-  const prune=()=>pruneGenerationCache(cacheDir,{keep:1,capBytes:1});
+  const prune=()=>pruneGenerationCache(cacheDir,{maxAgeMs:1_800_000});
   expect(prune().deleted).toHaveLength(0);
   first.release();expect(prune().deleted).toHaveLength(0);
   const copied=resolve(root,'downstream.bin');copyFileSync(resolve(second.directory,'b.bin'),copied);

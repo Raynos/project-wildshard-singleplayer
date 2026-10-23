@@ -11,7 +11,7 @@ import { runWildshard } from './wildshard.mjs';
 import { checkHeadlessAssembly } from './check-headless-assemblies.mjs';
 import { legacyInventory } from './legacy-shards.mjs';
 import { mapInputHashes, mapTilesHash, mapStampPath, verifyMapPixels } from './map-hash.mjs';
-import { readBuildKey, reuseOrBuild, shardfileCacheRoot, shardfileKey, treeHashes } from './shardfile-cache.mjs';
+import { borrowShardfileEntry, readBuildKey, reuseOrBuild, shardfileCacheRoot, shardfileKey, treeHashes } from './shardfile-cache.mjs';
 import { createDataMapPreparation } from './bake-data-maps.mjs';
 import { createHash, randomBytes } from 'node:crypto';
 import { InputHashMemo } from './bake-input-hashes.mjs';
@@ -20,6 +20,7 @@ import { quietCli } from './quiet-cli.mjs';
 import { productFolder, shardOutputs } from './shard-outputs.mjs';
 import { shardfileValidationRevision } from './shardfile-validation-revision.mjs';
 import { runShardBuild, runShardBuildPool } from './shard-build-pool.mjs';
+import { checkTileBake } from './tile-bakes.mjs';
 
 /** Exact closed-runtime copy admission shared by the builder and read-only product consumers.
  * @param {string} root @param {string} project */
@@ -55,7 +56,8 @@ function productRecipe(root, name, flags, toolchain, cacheRoot) {
   const receipts = resolve(cacheRoot,'.inputs-v2',name,createHash('sha256').update(JSON.stringify(recipe)).digest('hex'));
   return { normalized, recipe, receipts };
 }
-/** Locate a normal build's product without generating, publishing or touching cache entries.
+/** Locate a normal build's product without generating or publishing bytes.
+ * A cache path loan remains pinned through this consumer process's lifetime.
  * CI consumes its exact build output. Local callers require a matching sealed input receipt.
  * The caller still admits the returned product's complete bytes through its normal loader.
  * @param {string} sourceRoot @param {string} name
@@ -76,6 +78,12 @@ export function readBuiltShardfile(sourceRoot, name, { cacheRoot = shardfileCach
   const { recipe, receipts } = productRecipe(root, name, flags, toolchain, cacheRoot);
   const key = matchingProductInputKey(root, receipts, recipe, memo);
   if (key !== undefined) for (const directory of [destination, resolve(cacheRoot, name, key)]) {
+    if (directory !== destination) {
+      // Lazy product readers keep using the returned directory after this call.
+      // Dead-process pins are reaped by the same ordinary cache eviction.
+      borrowShardfileEntry(directory, true);
+      if (existsSync(`${directory}.lock`)) continue;
+    }
     if (readBuildKey(directory) === key && existsSync(resolve(directory, 'shard.json'))) return directory;
   }
   throw new Error(`Missing current product ${name}; run: node scripts/build-shardfiles.mjs --reuse --shard=${name}`);
@@ -190,6 +198,8 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
     // Cache transport never substitutes for current strict admission, including
     // file hashes, schemas, budgets and executing the admitted script bytes.
     if (strict && how !== 'built') await buildOne(['validate',destination]);
+    const tiles = checkTileBake(root, name, destination);
+    console.info(`tile bake: ${name} ${tiles.l0} L0/${tiles.l1} L1, 16 full 5x5 windows checked, ${Object.keys(tiles.debt).length} existing debt metrics`);
     console.info(`wildshard build: ${name} ${how === 'built' ? 'built' : `reused (${how})`} in ${((performance.now() - started) / 1000).toFixed(1)}s`);
     count++;
     } catch(error) {

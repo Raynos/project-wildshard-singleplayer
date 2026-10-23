@@ -9,6 +9,7 @@ import { readBuiltShardfile } from '../scripts/build-shardfiles.mjs';
 import { captureProductInputs, productInputKey, productToolchainKey, publishProductInputs, recordBundle } from '../scripts/shardfile-inputs.mjs';
 import { InputHashMemo } from '../scripts/bake-input-hashes.mjs';
 import { shardfileValidationRevision } from '../scripts/shardfile-validation-revision.mjs';
+import { pruneShardfileCache } from '../scripts/shardfile-cache.mjs';
 
 const owned: string[] = [];
 afterEach(() => { for (const root of owned.splice(0)) rmSync(root, { recursive: true, force: true }); });
@@ -36,7 +37,7 @@ async function fixture(named = false) {
   return { root, name, cacheRoot, directory, key, source, receipt: resolve(receipts, `${key}.json`), options: { cacheRoot, env: {} } };
 }
 
-test('local reads require current input bytes and leave cache and output trees untouched', async () => {
+test('local reads require current input bytes and leave product and output bytes untouched', async () => {
   const f = await fixture(), before = statSync(f.directory).mtimeMs;
   expect(readBuiltShardfile(f.root, f.name, f.options)).toBe(f.directory);
   expect(statSync(f.directory).mtimeMs).toBe(before);
@@ -44,6 +45,15 @@ test('local reads require current input bytes and leave cache and output trees u
   expect(existsSync(resolve(f.root, '.cache'))).toBe(false);
   write(f.root, f.source, 'export default {changed:true};');
   expect(() => readBuiltShardfile(f.root, f.name, f.options)).toThrow(`Missing current product ${f.name}; run: node scripts/build-shardfiles.mjs --reuse --shard=${f.name}`);
+  expect(existsSync(resolve(f.root, 'out'))).toBe(false);
+});
+
+test('a returned cache path remains readable through this consumer process under eviction pressure', async () => {
+  const f = await fixture();
+  const directory = readBuiltShardfile(f.root, f.name, f.options);
+  const result = pruneShardfileCache(f.cacheRoot, { capBytes: 0 });
+  expect(result.locked).toBe(1);
+  expect(readFileSync(resolve(directory, 'shard.json'), 'utf8')).toBe('{}');
   expect(existsSync(resolve(f.root, 'out'))).toBe(false);
 });
 

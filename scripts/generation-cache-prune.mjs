@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // G430: evict old generation-cache entries (scripts/generation-cache.mjs pruneGenerationCache; docs/process/GENERATION.md).
-//   node scripts/generation-cache-prune.mjs [--dry-run] [--keep=3] [--cap-gb=20] [--cache=<dir>]
+//   node scripts/generation-cache-prune.mjs [--dry-run] [--max-age-hours=24] [--cap-gb=4] [--cache=<dir>]
 import { generationCacheRoot, pruneGenerationCache } from './generation-cache.mjs';
 
 const arg = (/** @type {string} */ flag) => process.argv.find(item => item.startsWith(`--${flag}=`))?.slice(flag.length + 3);
@@ -12,7 +12,7 @@ const number = (/** @type {string} */ flag, /** @type {number} */ fallback) => {
   return value;
 };
 const cacheDir = arg('cache') ?? generationCacheRoot(), dryRun = process.argv.includes('--dry-run');
-const report = pruneGenerationCache(cacheDir, { keep: number('keep', 3), capBytes: number('cap-gb', 20) * 1024 ** 3, dryRun });
+const report = pruneGenerationCache(cacheDir, { maxAgeMs: number('max-age-hours', 24) * 3_600_000, capBytes: number('cap-gb', 4) * 1024 ** 3, dryRun });
 const gb = (/** @type {number} */ bytes) => `${(bytes / 1024 ** 3).toFixed(1)} GB`;
 /** @type {Map<string, {count:number,bytes:number}>} */
 const byJob = new Map();

@@ -18,6 +18,7 @@ import { fileURLToPath } from 'node:url';
 import * as v from 'valibot';
 import {compilerCodeHash} from './compiler-code.mjs';
 import {functionSource} from './function-source.mjs';
+import {borrowShardfileEntry} from './shardfile-cache.mjs';
 
 const raw = { read:fs.readFileSync, stat:fs.lstatSync, list:fs.readdirSync, real:fs.realpathSync.native, write:fs.writeFileSync, mkdir:fs.mkdirSync, rename:fs.renameSync };
 const digest = (/** @type {string|Uint8Array} */ bytes) => createHash('sha256').update(bytes).digest('hex');
@@ -268,21 +269,33 @@ export function productInputKey(root,receipt,args,memo) {
  * another build's evidence. Only a byte-matching captured snapshot can hit.
  * @param {string} root @param {string} directory @param {string[]} args @param {import('./bake-input-hashes.mjs').InputHashMemo} memo */
 export function matchingProductInputKey(root,directory,args,memo) {
+  const release=borrowShardfileEntry(directory);
   try {
+    if(fs.existsSync(`${directory}.lock`))return undefined;
     const receipts=raw.list(directory).filter(file=>/^[a-f0-9]{64}\.json$/u.test(file)).map(file=>({file,mtime:raw.stat(resolve(directory,file)).mtimeMs})).sort((a,b)=>b.mtime-a.mtime);
     for(const row of receipts.slice(0,12)) {
       const key=productInputKey(root,resolve(directory,row.file),args,memo);
-      if(key !== undefined && row.file === `${key}.json`) return key;
+      if(key !== undefined && row.file === `${key}.json`) {
+        const now=new Date();fs.utimesSync(directory,now,now);
+        return key;
+      }
     }
   } catch { /* Missing/incomplete evidence builds a fresh product. */ }
+  finally {release();}
   return undefined;
 }
 /** Publish one complete immutable receipt atomically.
  * @param {string} directory @param {string} receipt @param {string} key */
 export function publishProductInputs(directory,receipt,key) {
-  raw.mkdir(directory,{recursive:true});
-  const temporary=resolve(directory,`${key}.${process.pid}.tmp`);
-  raw.write(temporary,raw.read(receipt)); raw.rename(temporary,resolve(directory,`${key}.json`));
+  const release=borrowShardfileEntry(directory);
+  try {
+    // An eviction already in flight may omit this optional warm receipt;
+    // the product's own immutable receipt/admission remains authoritative.
+    if(fs.existsSync(`${directory}.lock`))return;
+    raw.mkdir(directory,{recursive:true});
+    const temporary=resolve(directory,`${key}.${process.pid}.tmp`);
+    raw.write(temporary,raw.read(receipt)); raw.rename(temporary,resolve(directory,`${key}.json`));
+  } finally {release();}
 }
 if (process.execArgv.some((arg,index)=>arg==='--import' && process.execArgv[index+1] === import.meta.filename)) installInputRecorder();
 
