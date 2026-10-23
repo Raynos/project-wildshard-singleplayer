@@ -1478,8 +1478,7 @@
       ],
       "inputRoots": [
         "src/shards/nalati-grasslands/generators/bake-audio.mjs",
-        "src/shards/nalati-grasslands/generators/audio.ts",
-        "src/shards/nalati-grasslands/generators/audioPhrases.ts",
+        "src/shards/nalati-grasslands/data/audioSource.json",
         "src/sdk/audio.ts",
         "src/sdk/immutable.ts",
         "scripts/bake-output.mjs",
