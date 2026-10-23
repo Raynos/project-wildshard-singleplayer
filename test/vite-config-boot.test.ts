@@ -1,0 +1,19 @@
+import { expect, test } from 'vitest';
+import { loadConfigFromFile } from 'vite';
+// oxlint-disable-next-line import/no-nodejs-modules -- Own and remove the real Node config-loader fixture.
+import { mkdirSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Import the actual build helper from the fixture config.
+import { resolve } from 'node:path';
+
+test('the Vite bundled Node config loader reads boot facts without importing the runtime format graph', async () => {
+  mkdirSync('tmp/vite-config-boot', { recursive: true });
+  const root = mkdtempSync(resolve('tmp/vite-config-boot/case-'));
+  try {
+    const path = resolve(root, 'vite.config.ts');
+    writeFileSync(path, `import { bootProductTotals } from ${JSON.stringify(resolve('vite/bootProducts.ts'))}; export default { define: { BOOT_TOTALS: JSON.stringify(bootProductTotals(${JSON.stringify(root)})) } };`);
+    const loaded = await loadConfigFromFile({ command: 'build', mode: 'production' }, path, root, 'silent', undefined, 'bundle');
+    if (loaded === null || loaded.config.define === undefined) throw new Error('Config loader did not reach the build configuration');
+    const value: unknown = Reflect.get(loaded.config.define, 'BOOT_TOTALS');
+    expect(value).toBe('{}');
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
