@@ -67,3 +67,8 @@ test('shared held construction leaves broad UI and quest presentation cold', () 
   const files = titleGraph(['src/game/plugin/weaponFamily.ts', 'src/game/plugin/heldFirearm.ts']);
   expect(files.filter(file => /src\/game\/(?:plugin\/(?:ui|bossStorm)|quest\/(?:pageComposition|reward)|loot\/CoinBurst)\.ts$/u.test(file))).toEqual([]);
 });
+
+test('selected catalogue and status bindings leave quest presentation cold', () => {
+  const files = titleGraph(['src/game/shardfile/clientCatalogue.ts', 'src/sdk/runtime/effects.ts']);
+  expect(files.filter(file => /src\/game\/(?:plugin\/ui|quest\/chapter)\.ts$/u.test(file))).toEqual([]);
+});

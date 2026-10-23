@@ -12,7 +12,8 @@ import type { ShardContext } from '../src/game/plugin/context';
 import { ItemCatalogue } from '../src/game/plugin/nativeItems';
 import { HeldFinishes } from '../src/game/loadout/finishes';
 import source from '../src/shards/pine-hollow/shard.config';
-import { STARTER_EFFECTS } from '../src/game/plugin/ui';
+import { STARTER_EFFECTS } from '../src/game/loadout/effects';
+import starterRows from '../src/game/systems/effects/starterRows.json' with { type: 'json' };
 import loot from '../src/shards/driftwood-isle/data/loot.generated.json' with { type: 'json' };
 import { driftwoodCatalogueEconomy } from '../src/shards/driftwood-isle/generators/catalogueEconomy';
 import { parseRows } from '../src/format/rows';
@@ -38,6 +39,10 @@ function fixture(parent?: Scope) {
   const context = legacyDouble<ShardContext>({ scope, product, rows: legacyDouble<ShardContext['rows']>(rows) });
   return { scope, product, context, rows, read };
 }
+
+test('starter status rows retain the exact authored tuning and order', () => {
+  expect(STARTER_EFFECTS).toEqual(starterRows);
+});
 
 test('catalogue metadata retains original equipment, effects, economy and skin registration order', () => {
   const f = fixture(), projected = driftwoodCatalogueEconomy(), original = declaredLootEconomy(parseRows({ strikes: [], weather: [], days: [], species: [], looks: [], compendiums: [], loot: [loot] }).loot);

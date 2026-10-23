@@ -73,13 +73,13 @@ for exact SF73-registered frozen callers only. Primaries own Nalati `models/npc/
 `npc/faceHeads`; `wildshard/legacy-npc-imports` rejects every other caller. The historical internal type dependency is
 kept, and each definition/export is deleted with its last registered legacy consumer. No aliases or frozen edits.
 
-`@wildshard/game/plugin/ui` (`installStarterEffects` and its status-icon row; trusted runtimes use
+`@wildshard/game/loadout/effects` (`installStarterEffects` and its status-icon row; trusted runtimes use
 `@wildshard/sdk/runtime/effects`), `@wildshard/game/plugin/weaponFamily` (`declaredKitItemFamilies`),
 `@wildshard/game/systems/tools/hoverboard` and `@wildshard/game/icons` (with `src/game/icons.merge.d.ts`) moved unchanged
 from the kit, and its weapon compatibility names gave way to the defining `@wildshard/game/weapons/*` and engine
 modules (SF54). That emptied the kit: `@wildshard/kit`, its workspace entry and its guard layer are deleted.
 
-`@wildshard/game/plugin/ui.STARTER_EFFECTS` owns the typed runtime
+`@wildshard/game/loadout/effects.STARTER_EFFECTS` owns the typed runtime
 view of the authored rows in `game/systems/effects/starterRows.json`. The SDK exposes the same rows through
 `runtime/effects`; `pnpm gen` and direct Vite/native builds generate their literal
 table before compilation. Runtime imports apply nothing.
@@ -2199,7 +2199,7 @@ The practice predicate isolates the room when true, even when it has no targets.
 | `EffectDef` | `{ id: 'effect.*', tags, kind: 'instant' · 'timed' · 'permanent', duration?, period?, modifiers, stacking, cue?, icon?, blockedBy?, grants? … }` |
 | `EffectService`, `EffectTarget`, `EffectId`, `ActiveEffect`, `AttributeSet`, `matchesTag` | `apply(target, id, source?)`, `remove(target, id)`, `has(target, tag)` |
 
-The starter set (`@wildshard/game/plugin/ui`) is `effect.poison`, `effect.burn`, `effect.bleed`, `effect.slow`, `effect.stun`
+The starter set (`@wildshard/game/loadout/effects`) is `effect.poison`, `effect.burn`, `effect.bleed`, `effect.slow`, `effect.stun`
 (`STARTER_EFFECTS`, `installStarterEffects`). Register rows with `ctx.rows.effect(STARTER_EFFECTS)` in `kit`.
 
 **Explorer specimen ownership (CM1).** Data model catalogues use
@@ -10046,7 +10046,7 @@ prepared specimen file map. The existing chapter installer prepares declared
 model files through prepareSpecimenCatalogue and rechecks entered owners
 before constructing the prop; inline catalogues retain their original path.
 
-`game/quest/chapter.installQuestCatalogue(ctx)` registers `items.catalogue`
+`game/shardfile/clientCatalogue.installQuestCatalogue(ctx)` registers `items.catalogue`
 from `combat/items` and `quests.achievements` from `quests/quests` through
 the existing scoped item and achievement registries. Both are optional,
 bounded, duplicate-checked display rows; they add no counter or save owner.

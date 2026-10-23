@@ -5,10 +5,8 @@ import { isJsonData } from '@wildshard/format/json';
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import type { ShardContext } from '../plugin/context';
 import { HeldFinishes } from '../loadout/finishes';
-import { heldFinishEffect } from '../loadout/effects';
+import { heldFinishEffect, STARTER_EFFECTS } from '../loadout/effects';
 import { ItemCatalogue } from '../plugin/nativeItems';
-import { STARTER_EFFECTS } from '../plugin/ui';
-import { installQuestCatalogue } from '../quest/chapter';
 import { declaredProductCompendium } from '../shard/declaredRows';
 
 /** Kit-only catalogue registration from admitted ids. Preparation stays with
@@ -33,4 +31,13 @@ export function installClientCatalogue(ctx: ShardContext, row: ClientFeatureRow)
   if (effects.length > 0) ctx.rows.effect(effects);
   if (economy !== undefined) { ctx.rows.effect(economy.effects); ctx.rows.shop(economy.goods); }
   if (row.finishes && finishes !== null) ctx.rows.skin(finishes.list());
+}
+
+/** Client-only registration of admitted item and achievement rows in their existing level scope.
+ * Simulation counters, ledger rewards and saved inventory retain their original owners. */
+export function installQuestCatalogue(ctx: Pick<ShardContext, 'product'> & { readonly rows: Pick<ShardContext['rows'], 'item' | 'feat'> }): void {
+  const items = ctx.product.section('combat/items').items.catalogue;
+  const feats = ctx.product.section('quests/quests').quests.achievements;
+  if (items !== undefined) ctx.rows.item(items);
+  if (feats !== undefined) ctx.rows.feat(feats);
 }

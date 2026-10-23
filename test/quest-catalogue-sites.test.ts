@@ -9,7 +9,7 @@ import { Mesh, BufferGeometry, Material } from 'three';
 import { floorAtRects } from '../src/engine/physics/box';
 import { parseItems } from '../src/format/items';
 import { parseQuestData } from '../src/format/quests';
-import { installQuestCatalogue } from '../src/game/quest/chapter';
+import { installQuestCatalogue } from '../src/game/shardfile/clientCatalogue';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { GeometryPack, packedRows } from '../src/sdk/kit/geometryPack';
 import { readSourceModel } from '../src/sdk/bake/skinned';

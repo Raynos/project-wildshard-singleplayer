@@ -414,15 +414,6 @@ export function buildQuestChapter(ctx: ShardContext, storyInput: unknown, input:
   return chapter;
 }
 
-/** Client-only registration of admitted item and achievement rows in their existing level scope.
- * Simulation counters, ledger rewards and saved inventory retain their original owners. */
-export function installQuestCatalogue(ctx: Pick<ShardContext, 'product'> & { readonly rows: Pick<ShardContext['rows'], 'item' | 'feat'> }): void {
-  const items = ctx.product.section('combat/items').items.catalogue;
-  const feats = ctx.product.section('quests/quests').quests.achievements;
-  if (items !== undefined) ctx.rows.item(items);
-  if (feats !== undefined) ctx.rows.feat(feats);
-}
-
 /** Client-only interactable presentation over entered services and saved quest flags.
  * Intake contains only bounded table/placement rows and floor policy. The caller
  * retains its update phase and event wiring; this owns no clock or save wire.
