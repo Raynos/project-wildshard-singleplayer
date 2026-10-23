@@ -12051,8 +12051,9 @@ candidates retain readScalarChannel and their existing coordinate lookup.
 
 Practice controller rows select a fixed or spawn-relative room, a mounted native actor/road/start or the
 equipped grapple tool's hooks, and lap or checkpoint HUD text. PracticeCourse admits these rows before
-allocating the room and uses one CourseController over the unchanged NumericCourse/ABI1 guest. Body/tool entry,
-exit and reset retain their original owners; the shared presenter preserves per-frame versus sampled statuses,
+allocating the room and uses one CourseController for native entry and the unchanged NumericCourse/ABI1 guest.
+Finite entry rows borrow the original mount or current equipped grapple tool; lazy spawn, terrain projection,
+road/marker publication, exit and reset retain their original owners and order; the shared presenter preserves per-frame versus sampled statuses,
 best times, fall recovery, and clock-read order. No authored callback, new simulation clock or save state enters
 this API.
 

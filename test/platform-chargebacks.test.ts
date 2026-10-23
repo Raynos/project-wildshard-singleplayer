@@ -360,12 +360,14 @@ test('the hardened CORE scene host credits all fourteen inline lines without cha
 });
 
 
-test('C11 credits the admitted grapple entry while native mounted authority remains charged', () => {
-  const approvals=g571HostApprovals('.'),path='src/game/practice/course.ts';
-  expect(approvedG571Host(approvals,path,'GrappleCourseEntry')).toBe(true);
-  expect(approvedG571Host(approvals,path,'GrappleEntryRows')).toBe(true);
-  expect(approvedG571Host(approvals,path,'MountedCourseEntry')).toBe(false);
-  expect(platformChargeback(path,'GrappleCourseEntry')).toBe('C6');
+test('C11 shares one native row controller and retires the separate entry classes', () => {
+  const approvals=g571HostApprovals('.'),path='src/game/practice/course.ts',source=readFileSync(path,'utf8');
+  expect(approvedG571Host(approvals,path,'CourseController')).toBe(true);
+  for(const name of ['MountedCourseEntry','GrappleCourseEntry','MountEntryRows','GrappleEntryRows']){
+    expect(approvedG571Host(approvals,path,name)).toBe(false);
+    expect(source.includes(name)).toBe(false);
+    expect(platformChargeback(path,name)).toBe('C6');
+  }
 });
 
 
