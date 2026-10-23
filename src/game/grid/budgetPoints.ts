@@ -133,6 +133,48 @@ export function budgetPoints(input: BudgetPointsInput): BudgetPoints {
   };
 }
 
+/** One resident world's own share of the headline: its claimed bytes at the resident factor (no base, no overlap). */
+export interface BreakdownWorld { readonly owner: string; readonly bytes: number }
+/** One page-wide part of the headline (the engine base, a page component, the road and commons, the decode overlap). */
+export interface BreakdownShared { readonly label: string; readonly bytes: number }
+/**
+ * G628 M2: the page's memory headline split into parts that add up to it (bytes): the worlds (owners holding a world: a
+ * `sim` claim), each its own bytes at the resident factor; the page-wide parts; and every other cell (far proxies, near
+ * placeholders, edges) grouped. worlds + shared + cells = headline, within the cost model's one rounding.
+ */
+export interface BudgetBreakdown {
+  readonly headline: number;
+  /** heaviest first */
+  readonly worlds: readonly BreakdownWorld[];
+  readonly shared: readonly BreakdownShared[];
+  readonly cells: { readonly count: number; readonly bytes: number };
+}
+
+/** Split the cost model's playing headline (`cost.playing`) over the allocator's table. */
+export function budgetBreakdown(entries: readonly ResidencyEntry[], cost: BudgetPointsInput['cost']): BudgetBreakdown {
+  const factor = CONTENT_CAPS.residentFactor, own = new Map<string, number>(), worlds = new Set<string>(), page = new Map<string, number>();
+  let road = 0;
+  for (const entry of entries) {
+    if (entry.category === 'page') { const label = entry.id.replace(/^page:/u, ''); page.set(label, (page.get(label) ?? 0) + entry.accountedBytes); continue; }
+    if (entry.owner === PLATFORM_OWNER) { road += entry.accountedBytes; continue; }
+    own.set(entry.owner, (own.get(entry.owner) ?? 0) + entry.accountedBytes);
+    if (entry.category === 'sim') worlds.add(entry.owner);
+  }
+  const listed = [...page.values()].reduce((sum, bytes) => sum + bytes, 0), pageBytes = cost.input.page ?? 0;
+  const shared: BreakdownShared[] = [{ label: 'engine base', bytes: cost.input.engineBase ?? CONTENT_CAPS.engineBase },
+    ...[...page].filter(([, bytes]) => bytes > 0).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([label, bytes]) => ({ label, bytes })),
+    ...(pageBytes === listed ? [] : [{ label: 'page (unlisted)', bytes: pageBytes - listed }]),
+    { label: 'road + commons', bytes: road * factor }, { label: 'decode overlap', bytes: cost.input.overlap }];
+  let cellBytes = 0, cellCount = 0;
+  const resident: BreakdownWorld[] = [];
+  for (const [owner, bytes] of own) {
+    if (worlds.has(owner)) resident.push({ owner, bytes: bytes * factor });
+    else { cellBytes += bytes * factor; cellCount++; }
+  }
+  resident.sort((a, b) => b.bytes - a.bytes || a.owner.localeCompare(b.owner));
+  return { headline: cost.playing, worlds: resident, shared, cells: { count: cellCount, bytes: cellBytes } };
+}
+
 /** Score the live allocator now: its table and its cost model, read once each. */
 export function readBudgetPoints(allocator: Pick<ResidencyAllocator, 'entries' | 'cost'>, labels: Pick<BudgetPointsInput, 'name' | 'measuredMB' | 'shard'> = {}): BudgetPoints {
   return budgetPoints({ entries: allocator.entries(), cost: allocator.cost(), ...labels });
