@@ -347,21 +347,18 @@ export class Terrain {
   private layers: SplatLayers | null = null;
   private retired = false;
   /**
-   * Tile streaming P2 (G652): the whole drawn ground retires once its tiles draw it: its mesh, slab and layer arrays are
-   * disposed, and an empty invisible mesh (a structure world's) keeps the canopy, punch and wear calls working. The
-   * heightfield (physics, `heightAt`) is untouched; the slab's shared rock textures stay. Once.
+   * Tile streaming P2 (G652): the whole drawn ground retires once its tiles draw it: its mesh and layer arrays are disposed,
+   * and an empty invisible mesh (a structure world's) keeps the canopy, punch and wear calls working. The slab (the floating
+   * shard's rock walls, which no tile carries) and the heightfield (physics, `heightAt`) stay. Once.
    */
   retireMesh(): void {
     if (this.retired) return;
     this.retired = true;
-    for (const child of this.group.children.slice()) { // a copy: each removal shortens the list
-      child.removeFromParent();
-      child.traverse((o) => {
-        if (!(o instanceof THREE.Mesh)) return;
-        const geometry: unknown = o.geometry, material: unknown = o.material;
-        if (geometry instanceof THREE.BufferGeometry) geometry.dispose();
-        for (const m of Array.isArray(material) ? material : [material]) if (m instanceof THREE.Material) m.dispose();
-      });
+    const ground = this.builtMesh;
+    if (ground !== undefined) {
+      ground.removeFromParent(); ground.geometry.dispose();
+      const material: unknown = ground.material;
+      for (const m of Array.isArray(material) ? material : [material]) if (m instanceof THREE.Material) m.dispose();
     }
     if (this.layers !== null) { this.layers.map.dispose(); this.layers.normalMap.dispose(); this.layers.armMap.dispose(); this.layers = null; }
     this.buildNone();

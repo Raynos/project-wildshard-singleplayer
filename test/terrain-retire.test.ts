@@ -2,8 +2,8 @@ import { expect, test } from 'vitest';
 import * as THREE from 'three';
 import { Terrain } from '../src/engine/world/Terrain';
 
-// Tile streaming P2: once its tiles draw the ground, the whole terrain mesh and its slab are disposed and an empty
-// invisible mesh stands in, so the canopy, punch and wear calls still find a mesh. Once.
+// Tile streaming P2: once its tiles draw the ground, the whole terrain mesh is disposed (the slab, which no tile carries,
+// stays) and an empty invisible mesh stands in, so the canopy, punch and wear calls still find a mesh. Once.
 test('the whole ground retires to an empty invisible mesh, disposing what it drew', () => {
   const terrain = new Terrain(), disposed: string[] = [];
   const mesh = (name: string): THREE.Mesh => {
@@ -16,8 +16,8 @@ test('the whole ground retires to an empty invisible mesh, disposing what it dre
   const ground = mesh('ground'), slab = mesh('slab');
   terrain.mesh = ground; terrain.group.add(ground, slab);
   terrain.retireMesh();
-  expect(disposed.sort()).toEqual(['ground.geometry', 'ground.material', 'slab.geometry', 'slab.material']);
-  expect(terrain.group.children).toEqual([terrain.mesh]);
+  expect(disposed.sort()).toEqual(['ground.geometry', 'ground.material']);
+  expect(terrain.group.children).toEqual([slab, terrain.mesh]);
   expect(terrain.mesh.visible).toBe(false);
   expect(terrain.mesh.geometry.getAttribute('position').count).toBe(0);
   const stand = terrain.mesh; terrain.retireMesh();
