@@ -43,6 +43,8 @@ function hook(name: string): unknown { return typeof window === 'undefined' ? un
 function census(): boolean { return typeof hook('__sc_label_gl') === 'function'; }
 function sampledCensus(): boolean { return hook('__sc_gl_sample_labels') === true; }
 function enabled(): boolean { return isDev() || census(); }
+/** the census hooks as read at the current render's start (G639: two window lookups a draw were read per draw) */
+let drawCensus = false, drawSampled = false;
 function emit(name: string, resource: object, label: Label, identity?: object): void {
   if (name === '__sc_label_gl' && label.priority > 0) memoryAttribution.label(resource, label);
   const fn = hook(name);
@@ -379,7 +381,7 @@ export function installGpuLabels(renderer: Renderer, developer: () => boolean = 
     const original: unknown = Reflect.get(renderer, method);
     if (typeof original !== 'function') continue;
     Reflect.set(renderer, method, function labelledRender(this: Renderer, ...args: unknown[]): unknown {
-      generation++;
+      generation++; drawCensus = census(); drawSampled = sampledCensus();
       const scene = args[0];
       if ((developer() || census()) && isObject(scene)) {
         if (sampled && !sceneSeen.has(scene)) { sceneSeen.add(scene); sceneRefs.add(new WeakRef(scene)); }
@@ -395,7 +397,7 @@ export function installGpuLabels(renderer: Renderer, developer: () => boolean = 
     // keyed on the object's own material (an array for multi-material meshes), not the group's: a per-group key flipped on
     // every draw of a multi-material mesh and re-marked it each time (SF69: ~1.2 MB / frame)
     const own: unknown = Reflect.get(object, 'material');
-    if ((!census() || sampledCensus()) && !due(drawn, object, geo, own)) { draw(camera, scene, geo, mat, object, group); return; }
+    if ((!drawCensus || drawSampled) && !due(drawn, object, geo, own)) { draw(camera, scene, geo, mat, object, group); return; }
     const label = drawLabel(object, mat);
     markGeometry(geo, label); markMaterial(mat, label);
     if (Array.isArray(own)) for (const m of own as readonly unknown[]) if (isMaterial(m) && m !== mat) markMaterial(m, label);
