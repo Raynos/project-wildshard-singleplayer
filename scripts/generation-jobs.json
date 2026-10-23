@@ -6288,7 +6288,8 @@
         "src/shards/pine-hollow/ktx2.generated.ts",
         "scripts/named-blob-output.mjs",
         "scripts/bake-output.mjs",
-        "src/shards/pine-hollow/generators/materialGlb.mjs"
+        "src/shards/pine-hollow/generators/materialGlb.mjs",
+        "src/shards/pine-hollow/generators/cragCodec.ts"
       ],
       "outputs": [
         "src/shards/pine-hollow/data/beaverPool.json"
@@ -6786,7 +6787,8 @@
         "src/shards/pine-hollow/ktx2.generated.ts",
         "scripts/named-blob-output.mjs",
         "scripts/bake-output.mjs",
-        "src/shards/pine-hollow/generators/materialGlb.mjs"
+        "src/shards/pine-hollow/generators/materialGlb.mjs",
+        "src/shards/pine-hollow/generators/cragCodec.ts"
       ],
       "outputs": [
         "src/shards/pine-hollow/data/props.json"
