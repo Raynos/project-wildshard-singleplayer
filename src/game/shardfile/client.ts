@@ -44,7 +44,7 @@ import type { PageResidency, HomeResidencyClaim } from '../grid/pageResidency';
 import { leaseClientLibrary } from './clientLibrary';
 import { compendiumSketches } from '@wildshard/format/compendiumSketches';
 import { clientMaterials } from './clientMaterials';
-import { splatGroundDrawn } from './clientSplatTerrain';
+import { splatGroundDrawn, splatGroundFiles, withSplatGround } from './clientSplatTerrain';
 import { lendLooks, lendSceneMaterials } from './lentLooks';
 import type { GraphSources } from './clientGraphs';
 import { clientPostStack, type ClientPost } from './clientPost';
@@ -152,10 +152,11 @@ function emptyHybridData(source: Shardfile, audioOwner: ShardfileClientBindings[
  * is presentation-only: its runtime keeps the simulation and the data client only draws.
  */
 function withoutPresentation(source: Shardfile): Shardfile {
+  // a splat ground's tiles and layers are presentation too (P1: the ground a trusted runtime's data client draws)
   const files = new Set([...(source.terrain === null ? [] : [source.terrain.collider,
-    ...(source.terrain.sampling === undefined ? [] : [source.terrain.sampling.file]), ...source.terrain.tiles.map((tile) => tile.file)]), ...materialTextureRefs(source.look.materials)]);
+    ...(source.terrain.sampling === undefined ? [] : [source.terrain.sampling.file]), ...source.terrain.tiles.map((tile) => tile.file)]), ...materialTextureRefs(source.look.materials), ...splatGroundFiles(source)]);
   const keep = (ref: string): boolean => !files.has(ref);
-  return { ...source, terrain: null, files: source.files.filter((file) => keep(file.hash)), critical: source.critical.filter(keep), library: source.library.filter(keep),
+  return { ...source, terrain: null, props: source.props === null ? null : { ...source.props, tiles: source.props.tiles.filter(tile => keep(tile.file)) }, files: source.files.filter((file) => keep(file.hash)), critical: source.critical.filter(keep), library: source.library.filter(keep),
     tiles: source.tiles.flatMap((tile) => { const kept = tile.files.filter(keep); return kept.length === 0 ? [] : [kept.length === tile.files.length ? tile : { ...tile, files: kept }]; }),
     look: { ...source.look, families: [], materials: {}, familyLooks: {} } };
 }
@@ -192,8 +193,9 @@ export class ShardfileClient {
       if (home.instance !== bindings.instance || home.allocator !== bindings.allocator) throw new Error('Shardfile client requires its early page home residency');
     }
     // M3: a trusted runtime's bound sections (runtime.binds) are its own to install (hybridRows.ts); the data client never installs them
-    const data = bindings.trustedRuntime === true ? withoutRuntimeRows(source) : source;
-    if (bindings.trustedRuntime === true) assets.releaseTransport(runtimeBoundWorldFiles(source));
+    // P1: a runtime-bound splat ground the Debug row draws streams through this client (its primary files keep their transport)
+    const data = bindings.trustedRuntime === true ? withSplatGround(withoutRuntimeRows(source), source) : source;
+    if (bindings.trustedRuntime === true) { const ground = splatGroundFiles(data); assets.releaseTransport(new Set([...runtimeBoundWorldFiles(source)].filter(ref => !ground.has(ref)))); }
     this.source = data; this.assets = assets; this.bindings = bindings; this.curveState = source.state;
     this.mode = bindings.runtimeStagesOnly === true ? 'empty' : bindings.trustedRuntime !== true ? 'full'
       : emptyHybridData(data, bindings.audioOwner, bindings.worldOwner) ? 'empty'
