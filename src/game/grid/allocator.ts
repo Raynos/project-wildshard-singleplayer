@@ -89,9 +89,9 @@ export class ResidencyAllocator {
   private evictionOrder: Entry[] | null = null;
   /** claims that left `evictable` since `evictionOrder` was made (they keep the others' order: one filter drops them) */
   private evictionStale = 0;
-  /** The evictable claims' raw bytes per category (and page calibration credit), kept with the evictable index: the most
-   *  room evicting all of them could make, as an upper bound (a covered claim is charged nothing, a parent re-exposes its
-   *  children), so the bound refuses only claims eviction cannot fit. */
+  /** The evictable claims' charged bytes per category (and page calibration credit), kept with the evictable index: the
+   *  most room evicting all of them could make, as an upper bound (a covered claim frees nothing, a parent's bytes ignore
+   *  the children it re-exposes), so the bound refuses only claims eviction cannot fit. */
   private readonly evictableShares = new Map<Entry, { readonly category: ResidencyCategory; readonly bytes: number; readonly credit: number }>();
   private readonly evictableBytes: Record<ResidencyCategory, number> = { l0: 0, l1: 0, far: 0, near: 0, library: 0, sim: 0, commons: 0, product: 0, page: 0 };
   private evictableCredit = 0;
@@ -155,7 +155,7 @@ export class ResidencyAllocator {
     const entry: Entry = { id: claim.id, category: claim.category, bytes: claim.bytes, owner: claim.owner, distance: claim.distance, needed: claim.needed, prepare, refs: 1, holds: 0, generation: ++this.generation, coveredBy: claim.coveredBy, baseCredit };
     const children = this.coverage.get(entry.id);
     if (children !== undefined) this.adjustCoverage(children, -1);
-    this.entries_.set(entry.id, entry); this.orderedEntries = null; this.track(entry, 1); this.refreshEviction(entry);
+    this.entries_.set(entry.id, entry); this.orderedEntries = null; this.track(entry, 1); this.refreshEviction(entry); this.reshare(children);
     return this.lease(entry);
   }
 
@@ -270,11 +270,22 @@ export class ResidencyAllocator {
     // a claim that leaves keeps the others' order: the next walk drops it rather than sorting every claim again (an
     // entry's over-budget registrations each evicted a few idle claims and re-sorted thousands: Nine's grid entry, 4x CPU)
     else if (this.evictable.delete(entry) && this.evictionOrder !== null) this.evictionStale++;
+    this.share(entry, eligible);
+  }
+  /** An evictable claim's share of the bound: what evicting it can take off the ledger. A covered claim is charged
+   *  nothing, so it frees nothing (with its parent, the parent's own share already counts its bytes): at Nine's entry
+   *  idle covered caches let the raw-byte bound pass, so each registration over target prepared and aborted them all. */
+  private share(entry: Entry, eligible: boolean): void {
     const before = this.evictableShares.get(entry);
     if (before !== undefined) { this.evictableBytes[before.category] -= before.bytes; this.evictableCredit -= before.credit; this.evictableShares.delete(entry); }
     if (!eligible) return;
-    const share = { category: entry.category, bytes: entry.bytes, credit: entry.category === 'page' ? entry.baseCredit : 0 };
+    const covered = this.covered(entry);
+    const share = { category: entry.category, bytes: covered ? 0 : entry.bytes, credit: entry.category === 'page' && !covered ? entry.baseCredit : 0 };
     this.evictableShares.set(entry, share); this.evictableBytes[share.category] += share.bytes; this.evictableCredit += share.credit;
+  }
+  /** A parent's arrival or departure changes whether its evictable children are charged. */
+  private reshare(group: Coverage | undefined): void {
+    if (group !== undefined) for (const child of group.children) if (this.evictableShares.has(child)) this.share(child, true);
   }
   private input(extra?: ResidencyClaim & { baseCredit: number }, omitted?: ReadonlySet<string>): ContentCostInput {
     const input: ContentCostInput = { l0: this.totals.l0, l1: this.totals.l1, far: this.totals.far, libraries: this.totals.library,
@@ -390,7 +401,7 @@ export class ResidencyAllocator {
     if (this.entries_.get(entry.id) !== entry) return;
     this.track(entry, -1); this.entries_.delete(entry.id); this.orderedEntries = null; this.measured.delete(entry.id); this.refreshEviction(entry);
     const children = this.coverage.get(entry.id);
-    if (children !== undefined) this.adjustCoverage(children, 1);
+    if (children !== undefined) { this.adjustCoverage(children, 1); this.reshare(children); }
     // The table is already authoritative. Derive warning totals only when a resident report can consume them,
     // rather than re-walking every remaining cache allocation after each individual release.
     // Parent/page retirement can expose calibrated page coverage and must still validate that input immediately.

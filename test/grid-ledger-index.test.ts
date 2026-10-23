@@ -140,6 +140,25 @@ test('thousands of idle cache claims are not even prepared when pressure cannot 
   pressure?.release(); expect(ledger.entries()).toEqual(before); expect(ledger.cost()).toEqual(cost);
 });
 
+test('idle covered caches free nothing, so pressure they cannot fit prepares none of them (Nine entry)', () => {
+  // the parent covers 4000 idle caches: the raw-byte bound saw 8000 bytes of room, evicting them frees none
+  const playing = CONTENT_CAPS.engineBase + CONTENT_CAPS.overlap + Math.ceil(12_000 * CONTENT_CAPS.residentFactor);
+  const ledgers = pair(playing, true), prepares = [0, 0];
+  for (const [i, ledger] of ledgers.entries()) {
+    ledger.reserve({ id: 'sim:nine', owner: 'nine', category: 'sim', bytes: 10_000, needed: true, distance: 0 });
+    ledger.markMeasuredPage('sim:nine');
+    for (let index = 0; index < 4000; index++) ledger.reserve({ id: `cache:${String(index)}`, owner: 'platform', category: 'commons', bytes: 2,
+      needed: false, distance: index, coveredBy: 'sim:nine', prepareEvict: () => { prepares[i] = (prepares[i] ?? 0) + 1; return { commit: () => undefined, abort: () => undefined }; } });
+  }
+  same(ledgers);
+  for (let round = 0; round < 3; round++) {
+    const decisions = ledgers.map(ledger => ledger.reserve({ id: `pressure:${String(round)}`, owner: 'nine', category: 'far', bytes: 6000, needed: true, distance: 0 }) !== null);
+    expect(decisions[1]).toBe(decisions[0]); same(ledgers);
+  }
+  expect(prepares[0]).toBe(12_000); expect(prepares[1]).toBe(0);
+  expect(ledgers[1]?.memory.reports()).toEqual(ledgers[0]?.memory.reports());
+});
+
 test('pressure planning rebases when an eviction preparation changes a live allocation', () => {
   const ledgers = pair(CONTENT_CAPS.engineBase + CONTENT_CAPS.overlap + 1000, false);
   const events = ledgers.map(() => [] as string[]);
