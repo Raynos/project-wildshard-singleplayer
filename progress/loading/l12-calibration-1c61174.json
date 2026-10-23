@@ -1,0 +1,50 @@
+{
+  "source": "1c61174e7a78ba9659621a02653caf752d1e9a35",
+  "method": "Official scripts/sim-grid-entry.mjs compiled sunscar-dunes reader through sim-lane; one cold and one warm Simulator run",
+  "tier": "phone",
+  "note": "Official Simulator cold/warm exclusive stage timings. L13 later declares runtimeModules and audioFiles; the old module pass maps to runtimeModules. Audio files have no independent pre-L13 wall sample; one millisecond is an explicit initial fallback. These are calibration inputs, not acceptance of L12-L14.",
+  "runs": [
+    {
+      "mode": "cold",
+      "declaredBytes": 20686714,
+      "loaderMs": 5324,
+      "ms": {
+        "modules": 901.0,
+        "admission": 1826.0,
+        "runtimeModules": 25,
+        "data": 11.0,
+        "world": 1086.0,
+        "renderer": 51.0,
+        "loadout": 178,
+        "weapon": 3,
+        "gameplay": 193,
+        "menu": 17,
+        "finish": 1,
+        "shaders": 442,
+        "firstFrame": 388,
+        "audio": 2
+      }
+    },
+    {
+      "mode": "warm",
+      "declaredBytes": 20732906,
+      "loaderMs": 3496,
+      "ms": {
+        "modules": 278,
+        "admission": 967,
+        "runtimeModules": 6,
+        "data": 11.0,
+        "world": 851,
+        "renderer": 57.0,
+        "loadout": 138,
+        "weapon": 3,
+        "gameplay": 193,
+        "menu": 7,
+        "finish": 1,
+        "shaders": 440,
+        "firstFrame": 385,
+        "audio": 2
+      }
+    }
+  ]
+}

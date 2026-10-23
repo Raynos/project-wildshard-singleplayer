@@ -20,7 +20,7 @@ export function accuracyRecorder() {
           duration: row.children.item(2)?.textContent ?? '', state: row.className,
           key: row.dataset.key, ms: row.dataset.ms,
         }));
-        const sample = { at: now, clock: text('clock'), detail: text('suFact'), download: text('dlFact'), footer: text('foot'), diagnostics: text('diagnostics'),
+        const sample = { at: now, clock: text('clock'), tier: text('tier'), fading: root.classList.contains('hide'), detail: text('suFact'), download: text('dlFact'), footer: text('foot'), diagnostics: text('diagnostics'),
           waiting: root.dataset.waiting, filesInFlight: root.dataset.filesInFlight, stalled: root.dataset.stalled,
           path: root.dataset.path, step: root.dataset.step, setup: root.dataset.setup,
           networkBytes: root.dataset.networkBytes, cachedBytes: root.dataset.cachedBytes,
@@ -29,7 +29,7 @@ export function accuracyRecorder() {
         // Wait ages are clocks, not completed work. Real transport/cache byte
         // changes still count during a long read before its file completes.
         const footer = sample.footer.replaceAll(/ · \d+(?:\.\d+)? s(?= ·|$)/gu, '');
-        const detailed = `${sample.detail}|${footer}|${sample.networkBytes}|${sample.cachedBytes}|${sample.pendingBytes}|${sample.unclassifiedFiles}|${sample.prefetch}|${rows.map(row => row.detail).join('|')}`;
+        const detailed = `${sample.detail}|${sample.setup}|${sample.fading}|${footer}|${sample.networkBytes}|${sample.cachedBytes}|${sample.pendingBytes}|${sample.unclassifiedFiles}|${sample.prefetch}|${rows.map(row => row.detail).join('|')}`;
         const changed = detailed !== state.last;
         if (changed) { state.updates.push(now); state.last = detailed; }
         if (changed || now - state.lastSampleAt >= 250) { state.samples.push(sample); state.lastSampleAt = now; }

@@ -954,8 +954,14 @@ Setup fractions shown separately in Developer, during admission and setup.
 `Loading.setPath({id, steps, ignored?}, calibrations?)` accepts a data-only step
 vocabulary and measured baseline tables supplied by the composition root.
 Each calibration names its tier, path, identity, source SHA, sample count and
-per-stage milliseconds. Like-for-like local history blends with that baseline;
-missing measurements use explicit row-weight fallbacks. Running rows use real
+per-stage milliseconds. An optional `workload: {bytes, steps}` scales only the
+named byte-dependent stage estimates against this load's declared file bytes.
+A wildcard tier/identity supplies an explicitly measured fallback model for
+uncalibrated loads, never fake shard-specific measurements. Exact tier/identity
+history still wins. Local timing keys use the fixed-path v2 schema, keeping the
+old dynamically appended rows out of new histories. Missing measurements retain
+explicit row-weight fallbacks. `done()` paints full completion for a frame
+before starting the existing 250 ms fade. Running rows use real
 completed units when available, reserving a final completion unit; unmetered
 rows approach their expected share exponentially. Only completion grants the
 full share.

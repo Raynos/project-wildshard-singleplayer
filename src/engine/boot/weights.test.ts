@@ -33,3 +33,12 @@ it('uses reported units instead of elapsed easing while a counted row runs', () 
   expect(loadingFraction([row], { models: 1000 }, true)).toBe(1);
   expect(loadingFraction([{ key: 'models', state: 'on', ms: 1000 }], { models: 1000 })).toBeCloseTo(1 - Math.exp(-1));
 });
+
+it('scales only measured byte-dependent stages and preserves exact local stage history', () => {
+  const steps = [{ key: 'world', weight: 1 }, { key: 'modules', weight: 1 }, { key: 'unknown', weight: 2 }];
+  const model = { bytes: 100, steps: ['world'] };
+  expect(loadingExpectations(steps, { world: 400, modules: 200 }, {}, model, 200))
+    .toEqual({ world: 800, modules: 200, unknown: 600 });
+  expect(loadingExpectations(steps, { world: 400, modules: 200 }, { world: 300 }, model, 200)['world']).toBe(300);
+  expect(loadingExpectations(steps, { world: 400 }, {}, model, 0)['world']).toBe(400);
+});

@@ -74,7 +74,7 @@ export class Loading {
   private readonly identity: string;
   private timingKey: LoadingTimingKey;
   private baseline: LoadingTimings = {};
-  private expected: LoadingTimings = {};
+  private expectations: () => LoadingTimings = () => ({});
   private configured = false;
   private finished = false;
   private shownSetup = 0;
@@ -178,9 +178,11 @@ export class Loading {
     this.timeline.configure(path); setData(this.root, 'path', path.id);
     this.timingKey = { tier: TIER, path: path.id, identity: this.identity };
     const calibration = calibrations.find(row => row.tier === TIER && row.path === path.id && row.identity === this.identity)
-      ?? calibrations.find(row => row.tier === TIER && row.path === path.id && row.identity === '*');
+      ?? calibrations.find(row => row.tier === TIER && row.path === path.id && row.identity === '*')
+      ?? calibrations.find(row => row.tier === '*' && row.path === path.id && row.identity === '*');
     this.baseline = calibration?.ms ?? {};
-    this.expected = loadingExpectations(path.steps, this.baseline, loadPathTimings(this.timingKey));
+    const own = loadPathTimings(this.timingKey);
+    this.expectations = () => loadingExpectations(path.steps, this.baseline, own, calibration?.workload, this.downloads.snapshot().declaredBytes);
     this.configured = true;
   }
   /** End pre-session admission before LevelLoader's data/world boundaries take over. */
@@ -239,7 +241,7 @@ export class Loading {
     const p = this.admission;
     if (p === null) return;
     this.dirty = false;
-    const download = this.paintDownloads(false);
+    const download = this.paintDownloads(this.finished);
     const setup = this.setupProgress();
     setData(this.root, 'download', String(Math.floor(download * 100)));
     setData(this.root, 'setup', String(Math.floor(setup * 100)));
@@ -258,7 +260,7 @@ export class Loading {
 
   private setupProgress(): number {
     if (!this.configured) return 0;
-    this.shownSetup = Math.max(this.shownSetup, loadingFraction(this.timeline.snapshot().rows, this.expected, this.finished));
+    this.shownSetup = Math.max(this.shownSetup, loadingFraction(this.timeline.snapshot().rows, this.expectations(), this.finished));
     return this.shownSetup;
   }
 
@@ -372,7 +374,7 @@ export class Loading {
   }
 
   /**
-   * Complete the path, store its exclusive stage times, then fade out and resolve when gone.
+   * Complete the path, store its exclusive stage times, paint completion, then fade and resolve when gone.
    * it used to hold that for 350 ms and fade for 700 — a second of nothing between a built world and
    * the title menu, on every launch. The fade (loading.css) is 250 ms; the menu is live under it.
    */
@@ -384,8 +386,12 @@ export class Loading {
     else this.dirty = true;
     this.paintNow();
     return new Promise((resolve) => {
-      this.root.classList.add('hide');
-      this.scope.timeout(250, () => { this.scope.cancelRaf(this.raf); this.scope.dispose(); resolve(); });
+      // Two animation callbacks put a painted completion frame between the
+      // final DOM update and the fade, even when done runs inside a frame.
+      this.scope.raf(() => { this.scope.raf(() => {
+        this.root.classList.add('hide');
+        this.scope.timeout(250, () => { this.scope.cancelRaf(this.raf); this.scope.dispose(); resolve(); });
+      }); });
     });
   }
 }

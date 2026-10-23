@@ -107,9 +107,14 @@ it('ends a scoped cell step immediately when fading without a boot-plan view', a
     expect(loading.root.querySelector('[data-el="foot"]')?.textContent).toContain('Activating destination');
     now = 201;
     const finished = loading.done();
+    expect(loading.root.dataset['setup']).toBe('100');
+    expect(loading.root.querySelector<HTMLElement>('[data-el="bar"]')?.style.width).toBe('100%');
+    expect(loading.root.classList.contains('hide')).toBe(false);
+    await vi.advanceTimersByTimeAsync(17);
+    expect(loading.root.classList.contains('hide')).toBe(false);
     expect(loading.root.dataset['step']).toBe('gap');
     expect(loading.root.querySelector('[data-el="foot"]')?.textContent).toBe(`Now working on: ${loading.root.querySelector('[data-el="suFact"]')?.textContent}`);
-    await vi.advanceTimersByTimeAsync(250); await finished;
+    await vi.advanceTimersByTimeAsync(300); await finished;
     expect(loading.scope.disposed).toBe(true);
   } finally { loading.scope.dispose(); }
 });

@@ -3,34 +3,57 @@
     "tier": "phone",
     "path": "shardfile",
     "identity": "driftwood-isle",
-    "source": "47f83b6acab324b1ab5e05cb7e3b98d896dfa326; progress/loading/g543/calibration-47f83b6/",
+    "source": "47f83b6acab324b1ab5e05cb7e3b98d896dfa326; progress/loading/g543/calibration-47f83b6/; nested legacy world stages folded into compiled world",
     "samples": 1,
     "ms": {
       "admission": 548.0,
-      "animals": 43.0,
       "assembly": 0.0,
       "audio": 942.0,
-      "cabins": 0.0,
-      "cards": 1.0,
       "data": 24.0,
-      "edge": 16.0,
       "finish": 0.0,
       "firstFrame": 152.0,
-      "forest": 4.0,
       "gameplay": 232.0,
-      "grass": 4.0,
       "home": 0,
       "loadout": 446.0,
       "menu": 9.0,
       "modules": 1258.0,
-      "physics": 13.0,
-      "props": 4286.0,
       "renderer": 33.0,
       "shaders": 5563.0,
-      "sky": 732.0,
-      "terrain": 90.0,
       "weapon": 4.0,
-      "world": 60.0
+      "world": 5249.0
+    }
+  },
+  {
+    "tier": "*",
+    "path": "shardfile",
+    "identity": "*",
+    "source": "1c61174e7a; progress/loading/l12-calibration-1c61174.json; measured phone distribution, byte-scaled fallback for uncalibrated loads",
+    "samples": 2,
+    "workload": {
+      "bytes": 20709810.0,
+      "steps": [
+        "admission",
+        "world",
+        "loadout",
+        "shaders"
+      ]
+    },
+    "ms": {
+      "modules": 589.5,
+      "admission": 1396.5,
+      "runtimeModules": 15.5,
+      "data": 11.0,
+      "world": 968.5,
+      "renderer": 54.0,
+      "loadout": 158.0,
+      "weapon": 3.0,
+      "gameplay": 193.0,
+      "menu": 12.0,
+      "finish": 1.0,
+      "shaders": 441.0,
+      "firstFrame": 386.5,
+      "audio": 2.0,
+      "audioFiles": 1
     }
   },
   {
