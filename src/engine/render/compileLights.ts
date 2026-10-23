@@ -7,11 +7,18 @@ interface Copy { readonly source: ShadowLight; readonly light: ShadowLight; borr
 /** Warm-up-only lights preserve the future program's light counts. Borrow an
  * existing shadow without redrawing it; a missing map may be built privately.
  * The warm owns those private maps, never the source light or its attachments. */
+const sources = new WeakMap<Light, Light>();
+/** The page light a warm-up copy stands for (undefined: not a copy). A node (TSL) program keys its lights by each light's
+ *  id and binds its uniforms to that light, so a copy's own id keyed a program no real draw asks for: the node back-end
+ *  builds node programs with the sources (EngineNodesHandler.updateLights); classic programs key only light counts. */
+export function compileLightSource(light: Light): Light | undefined { return sources.get(light); }
+
 export class CompileLights {
   private readonly copies: Copy[] = [];
 
   copy(source: Light): Light {
     const light = source.clone(false);
+    sources.set(light, source);
     if (shadowLight(source) && shadowLight(light)) this.copies.push({ source, light, borrowed: null });
     return light;
   }

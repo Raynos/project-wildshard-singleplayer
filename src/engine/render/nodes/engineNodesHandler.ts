@@ -60,6 +60,7 @@ import { tentShadowFilter } from './tentShadowFilter';
 import { planeBiasShadowFilter } from './planeBiasShadowFilter';
 import { EngineDirectionalLightNode } from './cascadeLightNode';
 import { isCascadeGhost } from '../../world/cascadeLights';
+import { compileLightSource } from '../compileLights';
 import { Scope } from '../../app/scope';
 import { rebindGeometry } from '../../app/cachedAssets';
 import { diagnosticNow } from '../../core/clock';
@@ -741,7 +742,10 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     }
     // the fade's ghosts light nothing (intensity 0) and lend their maps to their cascades: no light node of their own
     this.lightsStamp++;
-    super.updateLights(lights.some(isCascadeGhost) ? lights.filter((l) => !isCascadeGhost(l)) : lights);
+    const lit = lights.some(isCascadeGhost) ? lights.filter((l) => !isCascadeGhost(l)) : lights;
+    // a warm-up's copied lights stand for the page's own (compileLights.ts): the program keys and binds those, so the warm
+    // builds the program the real draw uses (a phone-4x Nine road drive built one ring tile's material 10-18 times)
+    super.updateLights(lit.some(light => compileLightSource(light) !== undefined) ? lit.map(light => compileLightSource(light) ?? light) : lit);
   }
 
   /** build one node material's program (timed: `builds`, `buildMs`); the build waits to be paired with its program */
