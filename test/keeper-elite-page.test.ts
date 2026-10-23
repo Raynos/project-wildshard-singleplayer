@@ -1,6 +1,6 @@
 import { setTerrainHeight } from '../src/engine/world/terrainHeight';
 import { ReturnProgram } from '../src/game/population/returnProgram';
-import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type: 'json' };
+import groupProgram from '../src/shards/nalati-grasslands/behaviour/eliteGroup.generated.json' with { type: 'json' };
 import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
 import { beforeEach, expect, test } from 'vitest';
 import { Group, Scene, Vector3, SkinnedMesh, BoxGeometry, MeshLambertMaterial } from 'three';
@@ -49,7 +49,7 @@ test('an independent marsh herd encounter adopts native bodies and follows AS te
   const script = new ExternalElitePage({ ...template, def, spawn: { ...template.spawn, kind: 'marsh-stag' },
     adopted: { ...template.adopted, kind: 'marsh-stag', feed: 'A stag joins you' } },
   { game: legacyDouble<Game>({ scene: new Scene() }), animals: legacyDouble<AnimalManager>({}), player: legacyDouble<Player>({ position: new Vector3(10, 0, 20) }),
-    elites: legacyDouble<Elites>({ signature: id => { signatures.push(id); }, won: id => { wins.push(id); } }) }, ReturnProgram.page(admission), new Group());
+    elites: legacyDouble<Elites>({ signature: id => { signatures.push(id); }, won: id => { wins.push(id); } }) }, ReturnProgram.page(groupProgram), new Group());
   script.observe(0, { available: true, kills: 0, bonded: false, mount: null }); expect(script.canSpawn()).toBe(true);
   script.spawn(); expect(script.drainEffects()[0]?.kind).toBe('request'); script.adopt(actor, herd);
   script.tick(.1, .1, false, false); expect(signatures).toEqual([def.id]); expect(script.barFrac()).toBe(1);

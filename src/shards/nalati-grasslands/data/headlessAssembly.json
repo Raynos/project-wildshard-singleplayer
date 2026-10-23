@@ -1333,17 +1333,26 @@
                 },
                 "herd": {
                   "rows": {
-                    "signal": "argymaqTick",
                     "states": {
                       "display": 1,
                       "charge": 2,
                       "beaten": 3
+                    },
+                    "law": {
+                      "$ref": [
+                        "constants",
+                        "pageElites",
+                        "borrowed",
+                        1,
+                        "projection"
+                      ]
                     }
                   },
                   "program": {
                     "$ref": [
-                      "boot",
-                      "admission"
+                      "constants",
+                      "pageElites",
+                      "projectionProgram"
                     ]
                   }
                 }

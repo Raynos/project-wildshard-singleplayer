@@ -1,3 +1,4 @@
+import groupProgram from '../behaviour/eliteGroup.generated.json' with {type:'json'};
 import { parseEliteEntryRows, ELITE_BODY_COLUMNS, ELITE_CONDITION_COLUMNS, type EliteEntryRows, parseEliteEntryPageRows, type EliteEntryPageRows } from '@wildshard/format/eliteEntryRows';
 import { parseEliteOutputActions, type EliteOutputAction } from '@wildshard/format/eliteFeature';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
@@ -68,7 +69,7 @@ export function buildEliteEntryRows(): {
  * retired page roster bootstrap without adding a second section or clock. */
 export function buildEliteEntryPageRows(): EliteEntryPageRows {
   const { rows: entry, actions, observations } = buildEliteEntryRows();
-  return parseEliteEntryPageRows({ entry, actions, observations,
+  return parseEliteEntryPageRows({ entry, actions, observations,projectionProgram:groupProgram,
     profiles: ecology.keeperElites.map(value => ({ id: value.def.id, value })), borrowed: ecology.externalElites,
     presentation: Object.fromEntries(Object.values(ecology.elites).map(def => [def.id, {
       prompt: `Take the ${def.drop.skinName} ${def.drop.weapon} skin`, toast: `${def.drop.skinName} ${def.drop.weapon} skin — ${def.drop.blurb}`, hum: true,

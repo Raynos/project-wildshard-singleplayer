@@ -32,6 +32,7 @@ import { NativeEliteController } from '../src/engine/ai/view/eliteController';
 import { PageWildEnvironment } from '../src/game/population/pageGroups';
 import type { AdventurePersistence } from '../src/game/quest/persistence';
 import { parseEliteOutputActions, parseEliteOutputBank, type EliteOutputAction } from '../src/format/eliteFeature';
+import groupLaw from '../src/shards/nalati-grasslands/data/eliteGroup.json' with { type: 'json' };
 import pouncer from '../src/shards/nalati-grasslands/data/aqbarsProfile.json' with { type: 'json' };
 import { legacyDouble } from './fake/FakeGame';
 import { mockCanvas } from './fake/weaponParity';
@@ -152,7 +153,7 @@ function external(f: ReturnType<typeof fixture>, mode: 'script' | 'herd'): Exter
     const common = { def, tell: [.2, .3, .4] as [number, number, number], step: 'reed.rider', ready: 'ready', damage: 'damage', broken: 'beaten', cues: {},
       adopted: { scale: 1.1, kind: 'reed', variant: 'silver', feed: 'Joined' }, states: { display: 1, beaten: 3 } };
     const row = mode === 'script' ? { ...common, mode: 'script' as const, spawn: { source: 'rider' as const, variant: 'rider' as const, yaw: .7 } }
-      : { ...common, mode: 'herd' as const, spawn: { source: 'herd' as const, kind: 'reed', variant: 'silver', yaw: .7,
+      : { ...common, mode: 'herd' as const, projection:groupLaw, spawn: { source: 'herd' as const, kind: 'reed', variant: 'silver', yaw: .7,
         offset: [2, -3] as [number, number], mares: 3, foals: 0, stallion: false, color: [.4, .5, .6] as [number, number, number] } };
     const controller = new ExternalElitePage(row, { game: f.loans.game, player: f.loans.player, animals: f.loans.animals, elites: f.elites },
       legacyDouble<ReturnProgram>({}), new Group(), mode === 'script' ? legacyDouble<SpawnScriptRows>({}) : undefined);

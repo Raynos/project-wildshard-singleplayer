@@ -22,6 +22,7 @@ import { PageWildEnvironment } from '../src/game/population/pageGroups';
 import { ELITE_CONDITION_COLUMNS } from '../src/format/eliteEntryRows';
 import { legacyDouble } from './fake/FakeGame';
 import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
+import groupProgram from '../src/shards/nalati-grasslands/behaviour/eliteGroup.generated.json' with { type: 'json' };
 import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type: 'json' };
 import charge from '../src/shards/nalati-grasslands/data/eliteCharge.generated.json' with { type: 'json' };
 import { parseExternalElite } from '../src/format/eliteFeature';
@@ -48,7 +49,7 @@ test('a marsh roster binds its own herd, drop and identities without author call
     entries: [{ id: row.def.id, condition: 'always', controller: { kind: 'borrowed', controller: row.def.id } }] },
     actions: [{ id: 1, controller: 0, kind: 'wildlife-herd', actorKind: row.spawn.kind, variant: row.spawn.variant, offset: row.spawn.offset, mares: 3, foals: 0, stallion: row.spawn.stallion },
       { id: 2, controller: 0, kind: 'record', actorKind: row.adopted.kind, variant: row.adopted.variant }, { id: 3, controller: 0, kind: 'feed', text: row.adopted.feed }],
-    profiles: [], borrowed: [row], observations: [{ id: 'conditions', rows: ELITE_CONDITION_COLUMNS }],
+    profiles: [], borrowed: [row],projectionProgram:groupProgram, observations: [{ id: 'conditions', rows: ELITE_CONDITION_COLUMNS }],
     presentation: { [row.def.id]: { prompt: `Take the ${row.def.drop.skinName} ${row.def.drop.weapon} skin`,
       toast: `${row.def.drop.skinName} ${row.def.drop.weapon} skin — ${row.def.drop.blurb}`, hum: true, sting: { banner: .8, phase2: 1, kill: 'chunk' } } },
     strikes: [], fallbackStrike: strike(strikes.captain), prewarm: [] };
@@ -59,7 +60,7 @@ test('a marsh roster binds its own herd, drop and identities without author call
     entered.expose(app, 'levelScope', construction);
     entered.run(() => {
       const owner = new Elites({ scene: game.scene, camera: game.camera, player, condition: rule => entry.holds(rule) }, legacyDouble<EliteBar>({}), 'reed-marsh', saved);
-      const controller = new ExternalElitePage(row, { game, player, animals, elites: owner }, guest, new Group(), fight, true);
+      const controller = new ExternalElitePage(row, { game, player, animals, elites: owner }, ReturnProgram.page(groupProgram), new Group(), fight, true);
       owner.bindDeclaredEntry(entry, rows, { construction, entered: { scope: entered, interactables: [],
         hud: legacyDouble<HUD>({ killFeed: () => undefined }), audio: legacyDouble<Audio>({ animal: () => undefined }), music: legacyDouble<Music>({}) }, game, player, body: 'animals', animals,
         models, program: { id: 'rules', scope: construction, value: guest }, controllers: [controller], environment: new PageWildEnvironment(),

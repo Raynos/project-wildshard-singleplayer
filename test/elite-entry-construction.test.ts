@@ -12,6 +12,7 @@ import { app } from '../src/engine/app/runtime';
 import type { AdventurePersistence } from '../src/game/quest/persistence';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type: 'json' };
+import groupProgram from '../src/shards/nalati-grasslands/behaviour/eliteGroup.generated.json' with { type: 'json' };
 import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
 import { parseExternalElite } from '../src/format/eliteFeature';
 import { StrikeRunner } from '../src/engine/ai/strikes';
@@ -503,7 +504,7 @@ test('admitted borrowed rows construct the original controller inside the existi
   const source = ecology.externalElites.find(row => row.mode === 'herd');
   if (source === undefined) throw new Error('Missing original herd law');
   const borrowed = parseExternalElite({ ...source, def: { ...source.def, rule: 'always' } });
-  const row = { ...rows, borrowed: [borrowed], entry: { ...rows.entry, entries: [...rows.entry.entries,
+  const row = { ...rows, projectionProgram:groupProgram, borrowed: [borrowed], entry: { ...rows.entry, entries: [...rows.entry.entries,
     { id: borrowed.def.id, condition: 'always', controller: { kind: 'borrowed' as const, controller: borrowed.def.id } }] },
     presentation: { ...rows.presentation, [borrowed.def.id]: { prompt: 'Take', toast: 'Taken', hum: false, sting: { banner: 0, phase2: 0, kill: 'pickup' as const } } } };
   const entry = new DeclaredEliteEntry<ExternalElitePage>(row.entry, f.construction), model = new Group();
@@ -526,7 +527,7 @@ test('missing final borrowed model refuses before any native kernel or tell is p
   const source = ecology.externalElites.find(row => row.mode === 'herd');
   if (source === undefined) throw new Error('Missing original herd law');
   const borrowed = parseExternalElite({ ...source, def: { ...source.def, rule: 'always' } });
-  const row = { ...rows, borrowed: [borrowed], entry: { ...rows.entry, entries: [...rows.entry.entries,
+  const row = { ...rows, projectionProgram:groupProgram, borrowed: [borrowed], entry: { ...rows.entry, entries: [...rows.entry.entries,
     { id: borrowed.def.id, condition: 'always', controller: { kind: 'borrowed' as const, controller: borrowed.def.id } }] },
     presentation: { ...rows.presentation, [borrowed.def.id]: { prompt: 'Take', toast: 'Taken', hum: false, sting: { banner: 0, phase2: 0, kill: 'pickup' as const } } } };
   const entry = new DeclaredEliteEntry<ExternalElitePage>(row.entry, f.construction);

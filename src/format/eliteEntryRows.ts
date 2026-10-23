@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { ReturnProgramSchema } from './namedJsonContracts';
 import { HandleIdSchema } from './sceneRefs';
 import { isJsonData } from './json';
 import { EliteEnteredPresentationSchema, EliteOutputActionsSchema, ExternalEliteSchema, parseEliteOutputActions } from './eliteFeature';
@@ -83,6 +84,7 @@ export const EliteEntryPageRowsSchema = v.strictObject({
   profiles: v.pipe(v.array(v.strictObject({ id: handle, value: v.unknown() })), v.maxLength(64)),
   borrowed: v.pipe(v.array(ExternalEliteSchema), v.maxLength(64)),
   observations: v.pipe(v.array(v.strictObject({ id: handle, rows: ObservationColumnsV2Schema })), v.maxLength(65)),
+  projectionProgram:v.exactOptional(ReturnProgramSchema),
   presentation: EliteEnteredPresentationSchema,
   strikes: v.pipe(v.array(v.strictObject({ amount: v.pipe(finite, v.minValue(0)), strike: CreatureStrikeSchema })), v.maxLength(64)),
   fallbackStrike: CreatureStrikeSchema,
@@ -95,6 +97,7 @@ export function parseEliteEntryPageRows(input: unknown): EliteEntryPageRows {
   const rows = v.parse(EliteEntryPageRowsSchema, input);
   parseEliteEntryRows(rows.entry); parseEliteOutputActions(rows.actions, rows.entry.entries.length);
   for (const row of rows.observations) parseObservationColumnsV2(row.rows);
+  if(rows.borrowed.some(row=>row.mode==='herd')&&rows.projectionProgram===undefined)throw new Error('Missing declared elite projection program');
   const borrowed = rows.entry.entries.flatMap(row => row.controller.kind === 'borrowed' ? [row.controller.controller] : []);
   if (new Set(rows.borrowed.map(row => row.def.id)).size !== rows.borrowed.length || borrowed.length !== rows.borrowed.length
     || borrowed.some((id, index) => rows.borrowed[index]?.def.id !== id)

@@ -63,7 +63,8 @@
         "pnpm-workspace.yaml",
         "src/sdk/package.json",
         "src/format/package.json",
-        "src/shards/nalati-grasslands/data/qyranProfile.json"
+        "src/shards/nalati-grasslands/data/qyranProfile.json",
+        "src/shards/nalati-grasslands/data/eliteGroup.json"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/boot/layout.generated.json",
@@ -361,10 +362,12 @@
         "src/format/decisionScripts.ts"
       ],
       "outputs": [
-        "src/shards/nalati-grasslands/behaviour/admission.generated.json"
+        "src/shards/nalati-grasslands/behaviour/admission.generated.json",
+        "src/shards/nalati-grasslands/behaviour/eliteGroup.generated.json"
       ],
       "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/behaviour/admission.generated.json"
+        "src/shards/nalati-grasslands/behaviour/admission.generated.json",
+        "src/shards/nalati-grasslands/behaviour/eliteGroup.generated.json"
       ],
       "platform": "portable"
     },
