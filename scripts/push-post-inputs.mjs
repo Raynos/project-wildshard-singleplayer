@@ -7,7 +7,8 @@ import { resolve } from 'node:path';
 /** @param {Uint8Array | string} bytes */
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 /** @param {string} file */
-export const postInputSource = file => /\.(?:[cm]?[jt]sx?|jsonc?|yaml|yml|as|py|sh|html|css|wgsl|glsl)$/u.test(file) && !file.includes('.generated.');
+export const postInputSource = file => /^(?:(?:src|scripts|lint|vite|budgets)\/|[^/]+$)/u.test(file)
+  && /\.(?:[cm]?[jt]sx?|jsonc?|yaml|yml|as|py|sh|html|css|wgsl|glsl)$/u.test(file) && !file.includes('.generated.');
 
 /** Capture committed source before generation, then seal completed tables.
  * No evidence is created for loose working-tree generation.
@@ -27,6 +28,8 @@ export function beginPushInputs(inputRoot, fixture) {
     if (!existsSync(phaseFile)) return;
     /** @type {{seal: string}} */
     const phase = JSON.parse(readFileSync(phaseFile, 'utf8'));
+    const blobs = resolve(root, '.cache/push-post-blobs');
+    mkdirSync(blobs, { recursive: true });
     /** @type {Record<string,string>} */
     const outputs = {};
     for (const folder of ['src', 'lint']) {
@@ -34,7 +37,11 @@ export function beginPushInputs(inputRoot, fixture) {
       for (const file of readdirSync(resolve(root, folder), { recursive: true })) {
         if (!file.split('/').includes('node_modules') && /\.generated\.(?:ts|mts|json)$/u.test(file)) {
           const name = `${folder}/${file}`;
-          if (!tracked.files.includes(name)) outputs[name] = hash(readFileSync(resolve(root, name)));
+          if (!tracked.files.includes(name)) {
+            const data = readFileSync(resolve(root, name)), digest = hash(data);
+            outputs[name] = digest;
+            if (!existsSync(resolve(blobs, digest))) writeFileSync(resolve(blobs, digest), data);
+          }
         }
       }
     }
