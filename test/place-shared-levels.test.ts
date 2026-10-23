@@ -15,7 +15,8 @@ function fixture(scaleB?: number) {
   const at = (variant: string, x: number) => ({ x, y: 0, z: -50, variant });
   return { def, material, placements: [at('a', 0), at('b', 3), at('a', 6), at('b', 9)] };
 }
-const meshes = (root: Object3D): InstancedMesh[] => { const out: InstancedMesh[] = []; root.traverse(o => { if (o instanceof InstancedMesh) out.push(o); }); return out; };
+const isInstanced = (o: Object3D): o is InstancedMesh => o instanceof InstancedMesh;
+const meshes = (root: Object3D): InstancedMesh[] => { const out: InstancedMesh[] = []; root.traverse(o => { if (isInstanced(o)) out.push(o); }); return out; };
 const view = () => { const camera = new PerspectiveCamera(60, 1, 0.1, 1000); camera.lookAt(new Vector3(0, 0, -1)); camera.updateMatrixWorld(true); return camera; };
 
 test('variants drawing one far shape share one draw, each copy at its variant scale', () => {
@@ -28,7 +29,7 @@ test('variants drawing one far shape share one draw, each copy at its variant sc
   const [shared] = level1;
   if (shared === undefined) throw new Error('Missing shared level');
   expect(shared.count).toBe(4); expect(shared.instanceMatrix.count).toBeGreaterThanOrEqual(4);
-  const scales = Array.from({ length: 4 }, (_, i) => new Vector3().setFromMatrixScale(shared.getMatrixAt(i, new Matrix4())).x).sort();
+  const scales = Array.from({ length: 4 }, (_, i) => new Vector3().setFromMatrixScale(shared.getMatrixAt(i, new Matrix4())).x).sort((p, q) => p - q);
   expect(scales).toEqual([0.5, 0.5, 1, 1]);
   const xs = Array.from({ length: 4 }, (_, i) => new Vector3().setFromMatrixPosition(shared.getMatrixAt(i, new Matrix4())).x).sort((p, q) => p - q);
   expect(xs).toEqual([0, 3, 6, 9]); // scaled about each copy's own origin
