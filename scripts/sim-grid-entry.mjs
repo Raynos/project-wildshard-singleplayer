@@ -18,7 +18,8 @@ import { setTimeout as sleep } from 'node:timers/promises';
 import { soakInspector } from './soak/inspector.mjs';
 
 const REPO = resolvePath(import.meta.dirname, '..');
-const args = Object.fromEntries(process.argv.slice(2).map(arg => /^--([^=]+)(?:=(.*))?$/u.exec(arg)).filter(match => match !== null).map(match => [match[1], match[2] ?? '1']));
+/** @type {Partial<Record<string, string>>} */
+const args = Object.fromEntries(process.argv.slice(2).map(arg => /^--([^=]+)(?:=(.*))?$/u.exec(arg)).filter(match => match !== null).map(match => [match[1], match.at(2) ?? '1']));
 const udid = process.env.SIM_UDID;
 if (udid === undefined || udid === '') throw new Error('Run under scripts/sim-lane.sh run (it sets SIM_UDID)');
 if ((args.base === undefined) === (args.rev === undefined)) throw new Error('Pass exactly one of --base=<url> or --rev=<sha>');
@@ -36,7 +37,7 @@ function serve(rev) {
 }
 
 const served = args.rev === undefined ? null : serve(args.rev);
-const BASE = served?.url ?? String(args.base).replace(/\/$/u, '');
+const BASE = served?.url ?? (args.base ?? '').replace(/\/$/u, '');
 const sock = execFileSync('xcrun', ['simctl', 'getenv', udid, 'RWI_LISTEN_SOCKET'], { encoding: 'utf8' }).trim();
 const proxy = spawn('ios_webkit_debug_proxy', ['-s', `unix:${sock}`, '-c', 'null:9221,:9232-9240'], { stdio: 'ignore' });
 
@@ -115,7 +116,7 @@ const distance = (a, b) => { let sum = 0; for (let i = 0; i < a.length; i++) sum
 /** Frames between the loader's end and the reveal's start that look like neither (mean RGB distance, 0..255). */
 function brokenFrames(video, loaderEnd, revealStart) {
   // 1.5 s of loader before (the video is placed by the recorder's start message, a few hundred ms late at worst)
-  const list = frames(video, loaderEnd - 1.5, revealStart + 0.5), loader = list[0], world = list.at(-1);
+  const list = frames(video, loaderEnd - 1.5, revealStart + 0.5), loader = list.at(0), world = list.at(-1);
   if (loader === undefined || world === undefined) return { checked: 0, broken: [] };
   const broken = [];
   list.forEach((frame, index) => {
