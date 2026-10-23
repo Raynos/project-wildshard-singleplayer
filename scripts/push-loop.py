@@ -60,7 +60,7 @@ def check_binary_json(root, base, tip, deadline):
         checker.write_text(script.stdout)
         rc, output = LIVE['run'](['node', str(checker), '--range', base, tip], root, deadline)
     if rc == 124 and 'BINARY-JSON ' not in output:
-        return {'ok': False, 'budget': True, 'files': [], 'output': output + '\nBinary JSON check exceeded the local budget; upload refused.\n'}
+        return {'ok': True, 'budget': True, 'files': [], 'output': output + '\nDEFERRED TO CI binary-json: local budget exhausted.\n'}
     if rc != 0:
         paths = sorted(set(re.findall(r'^BINARY-JSON ([^\n:]+):', output, re.M)))
         return {'ok': False, 'phase': 'binary-json', 'files': paths, 'output': output}
@@ -86,16 +86,26 @@ def fast_tools(root, revision, deadline):
 
 
 def check_committed(root, base, tip, deadline):
-    names = ('binary-json', 'tool-inputs', 'storage', 'fast-lint', 'guards', 'deleted-paths', 'ratchet',
+    names = ('binary-json', 'tool-inputs', 'storage', 'deleted-paths', 'ratchet', 'guards', 'fast-lint',
              'typed-lint', 'related-tests')
     steps = LIVE['GateSteps'](names)
     steps.skip(('typed-lint', 'related-tests'), 'ci-G675')
     result = {'ok': False, 'phase': 'binary-json', 'files': [], 'output': '', 'types': 'ci', 'steps': steps.rows}
+    def defer_budget(phase):
+        for entry in steps.rows:
+            if entry['step'] == phase or entry['status'] == 'skipped' and entry.get('reason') == 'not-reached':
+                entry.update(status='deferred', reason='budget-ci')
+                result['output'] += '\nDEFERRED TO CI ' + entry['step'] + ': local budget exhausted.'
+        result.update(ok=True, phase='ci-budget', types='ci-budget')
+        return result
+
     with steps.measure('binary-json') as row:
         binary = check_binary_json(root, base, tip, deadline)
         row['status'] = 'budget' if binary.get('budget') else 'passed' if binary['ok'] else 'failed'
     result['output'] = binary['output']
-    if not binary['ok'] or binary.get('budget'):
+    if binary.get('budget') and binary['ok']:
+        return defer_budget('binary-json')
+    if not binary['ok']:
         result.update(phase='binary-json', files=binary.get('files', []))
         return result
     files = LIVE['changed'](root, base, tip)
@@ -106,7 +116,7 @@ def check_committed(root, base, tip, deadline):
             folder = tools.__enter__()
         try:
             env = dict(os.environ, WS_GIT_CHECK_DEADLINE=str(int((time.time() + max(0, deadline-time.monotonic())) * 1000)))
-            for phase in ('storage', 'fast-lint', 'guards', 'deleted-paths', 'ratchet'):
+            for phase in ('storage', 'deleted-paths', 'ratchet', 'guards', 'fast-lint'):
                 if phase == 'deleted-paths' and not removed:
                     steps.skip((phase,), 'no-deletions')
                     continue
@@ -116,12 +126,19 @@ def check_committed(root, base, tip, deadline):
                 result['output'] += '\n' + output
                 if not rc and 'DEFERRED TO CI' in output:
                     steps.row(phase).update(status='deferred', reason='inputs-do-not-match-tip')
+                observed = re.search(r'(?:\berror(?:\s|\[|\()|(?:Error|TypeError|SyntaxError|RangeError|ReferenceError):|BINARY-JSON |CLOSED |SHRINK-ONLY |Ratchet rose:|deleted path|was \d+, now \d+)', LIVE['ANSI'].sub('', output), re.I)
+                if rc == 124 and observed is None:
+                    return defer_budget(phase)
                 if rc:
+                    if rc == 124 and observed is not None:
+                        steps.row(phase).update(status='failed', reason='observed-refusal')
                     result.update(phase=phase, files=LIVE['failure_paths'](output))
                     steps.skip(names, 'prior-refusal' if rc != 124 else 'budget-failed')
                     return result
         finally:
             tools.__exit__(None, None, None)
+    except (TimeoutError, subprocess.TimeoutExpired):
+        return defer_budget('tool-inputs')
     except (OSError, subprocess.SubprocessError) as error:
         result.update(phase='tool-inputs', output=result['output'] + '\nExact checker inputs failed: ' + str(error))
         return result

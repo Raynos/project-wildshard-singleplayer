@@ -4,7 +4,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, dirname, matchesGlob, relative, resolve } from 'node:path';
 import ts from '@typescript/typescript6';
 import { pathToFileURL } from 'node:url';
-import { gitSourceView, activateGitSourceView } from './git-source-view.mjs';
+import { gitSourceView, installGitSourceView, deriveGitVocabulary } from './git-source-view.mjs';
 import { gitRuleCount } from './git-rule-counts.mjs';
 import * as v from 'valibot';
 
@@ -13,7 +13,7 @@ export async function committedFastChecks(root,base,tip,phase,paths) {
   process.chdir(root);
   const view=gitSourceView(root,tip);
   const json=(/** @type {ReturnType<typeof gitSourceView>} */ source,/** @type {string} */ path,/** @type {object} */ fallback={})=>source.files.has(path)?JSON.parse(source.read(path).toString('utf8')):fallback;
-  await activateGitSourceView(view);
+  installGitSourceView(view);
   /** @param {string} path @returns {Promise<unknown>} */
   const module=path=>import(pathToFileURL(resolve(root,path)).href);
   const failures=[];
@@ -41,10 +41,16 @@ export async function committedFastChecks(root,base,tip,phase,paths) {
         });
         writeFileSync(config,JSON.stringify(settings));
         const shared=[...view.files.keys()].filter(path=>/^\.oxlint|^(?:src\/[^/]+\/)?(?:package|tsconfig[^/]*)\.json$|^pnpm-lock\.yaml$|^lint\//u.test(path));
+        const mismatchedShared=shared.filter(path=>!view.matches(path));
+        if(mismatchedShared.length>0) {
+          for(const file of roots)console.log(`DEFERRED TO CI fast-lint ${file}: unverified configuration ${mismatchedShared.join(', ')}`);
+          return;
+        }
         const closure=(/** @type {string} */ selected)=>{
-          const seen=new Set(shared),missing=new Set();
+          const seen=new Set(shared),missing=new Set(),mismatched=new Set();
           const visit=(/** @type {string} */ file)=>{
-            if(seen.has(file))return;seen.add(file);
+            if(missing.size>0||mismatched.size>0||seen.has(file))return;seen.add(file);
+            if(!view.matches(file)){mismatched.add(file);return;}
             if(!/\.[cm]?[jt]sx?$/u.test(file))return;
             for(const imported of ts.preProcessFile(view.read(file).toString('utf8'),true,true).importedFiles) {
               const source=imported.fileName;
@@ -59,11 +65,11 @@ export async function committedFastChecks(root,base,tip,phase,paths) {
               const resolved=[target,`${target}.ts`,`${target}.tsx`,`${target}.mts`,`${target}.mjs`,`${target}.js`,`${target}/index.ts`].find(path=>view.files.has(path));
               if(resolved===undefined)missing.add(target);else visit(resolved);
             }
-          };visit(selected);return {inputs:[...seen],missing:[...missing]};
+          };visit(selected);return {inputs:[...seen],missing:[...missing],mismatched:[...mismatched]};
         };
         const eligible=[],inputs=new Set();
         for(const file of roots) {
-          const current=closure(file),mismatched=current.inputs.filter(path=>!view.matches(path));
+          const current=closure(file),mismatched=current.mismatched;
           if(mismatched.length>0||current.missing.length>0)console.log(`DEFERRED TO CI fast-lint ${file}: unverified inputs ${[...mismatched,...current.missing].join(', ')}`);
           else {eligible.push(file);for(const input of current.inputs)inputs.add(input);}
         }
@@ -79,6 +85,7 @@ export async function committedFastChecks(root,base,tip,phase,paths) {
           else console.log(`Fast lint passed on ${eligible.length} exact changed files`);
         }
       } else {
+        await deriveGitVocabulary(view);
         const debt=v.parse(v.object({rules:v.record(v.string(),v.unknown()),ignorePatterns:v.optional(v.array(v.string()),[]),jsPlugins:v.array(v.union([v.string(),v.object({name:v.string(),specifier:v.string()})]))}),json(view,'.oxlintrc.ratchet.json'));
         const {legacyInventory,registeredLegacyFile}=/** @type {typeof import('./legacy-shards.mjs')} */(await module('scripts/legacy-shards.mjs'));
         const frozen=legacyInventory(root);

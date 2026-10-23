@@ -119,12 +119,13 @@ export function installGitSourceView(view) {
 
 /** Derive the lint vocabulary from static Git data; no generation job or file write.
  * @param {ReturnType<typeof gitSourceView>} view */
-export async function activateGitSourceView(view) {
-  installGitSourceView(view);
+export async function deriveGitVocabulary(view) {
   if(view.files.has('scripts/gen-shard-words.mjs')) {
     const {shardWordData}=/** @type {typeof import('./gen-shard-words.mjs')} */(await import(pathToFileURL(resolve(view.root,'scripts/gen-shard-words.mjs')).href));
     view.derived.set('lint/shard-words.generated.json',Buffer.from(JSON.stringify(shardWordData(view.root))));
   }
 }
-if(process.env.WS_GIT_CHECK_ROOT!==undefined&&process.env.WS_GIT_CHECK_REV!==undefined)
-  await activateGitSourceView(gitSourceView(resolve(process.env.WS_GIT_CHECK_ROOT),process.env.WS_GIT_CHECK_REV));
+if(process.env.WS_GIT_CHECK_ROOT!==undefined&&process.env.WS_GIT_CHECK_REV!==undefined) {
+  const view=gitSourceView(resolve(process.env.WS_GIT_CHECK_ROOT),process.env.WS_GIT_CHECK_REV);
+  installGitSourceView(view);await deriveGitVocabulary(view);
+}

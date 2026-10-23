@@ -343,11 +343,11 @@ readFileSync('../public/assets/native/untracked.bin');
         clean = self.commit('src/clean.ts')
         self.assertFalse(PUSH['check_binary_json'](self.root, baseline, clean, time.monotonic() + 45)['ok'])
 
-    def test_binary_json_budget_never_accepts_an_unchecked_candidate(self):
+    def test_binary_json_budget_defers_but_preserves_observed_refusal(self):
         self.put('scripts/no-binary-json.mjs', (TOOL_ROOT / 'no-binary-json.mjs').read_text())
         self.put('lint/no-binary-json.json', json.dumps({'schema': 'no-binary-json/1', 'source': self.base, 'files': {}}))
         tip = self.commit('src/policy.ts')
-        for output, accepted in [('still running', False), ('BINARY-JSON public/new.json: binary', False)]:
+        for output, accepted in [('still running', True), ('BINARY-JSON public/new.json: binary', False)]:
             with patch.dict(LIVE, run=lambda *_: (124, output)):
                 result = PUSH['check_binary_json'](self.root, self.base, tip, time.monotonic() + 45)
             self.assertEqual(result['ok'], accepted)
@@ -380,7 +380,7 @@ readFileSync('../public/assets/native/untracked.bin');
             result = PUSH['check_committed'](self.root, self.base, tip, time.monotonic() + 45)
         self.assertTrue(result['ok'])
         self.assertEqual(result['types'], 'ci')
-        self.assertEqual(calls, ['storage', 'fast-lint', 'guards', 'ratchet'])
+        self.assertEqual(calls, ['storage', 'ratchet', 'guards', 'fast-lint'])
         self.assertEqual(cleanups, [tip])
         steps = {row['step']: row for row in result['steps']}
         self.assertNotIn('source-prepare', steps)
@@ -582,7 +582,7 @@ readFileSync('../public/assets/native/untracked.bin');
             result = PUSH['check_committed'](self.root, self.base, tip, time.monotonic() + 45)
         self.assertTrue(result['ok'])
         self.assertEqual(result['types'], 'ci')
-        self.assertEqual([command[5] for command in calls], ['storage', 'fast-lint', 'guards', 'ratchet'])
+        self.assertEqual([command[5] for command in calls], ['storage', 'ratchet', 'guards', 'fast-lint'])
         self.assertFalse(any('oxlint' in command or 'vitest' in command for command in calls))
 
     def test_policy_guards_refuse_before_ratchet_or_upload(self):
@@ -603,8 +603,9 @@ readFileSync('../public/assets/native/untracked.bin');
             result = PUSH['check_committed'](self.root, self.base, tip, time.monotonic() + 45)
         self.assertFalse(result['ok'])
         self.assertEqual(result['phase'], 'guards')
-        self.assertEqual(calls, ['storage', 'fast-lint', 'guards'])
-        self.assertEqual(next(row for row in result['steps'] if row['step']=='ratchet')['reason'], 'prior-refusal')
+        self.assertEqual(calls, ['storage', 'ratchet', 'guards'])
+        self.assertEqual(next(row for row in result['steps'] if row['step']=='ratchet')['status'], 'passed')
+        self.assertEqual(next(row for row in result['steps'] if row['step']=='fast-lint')['reason'], 'prior-refusal')
         self.put('.git/push-deferred-policy.json', json.dumps({'lint/ratchet.json': ['wrong blob']}))
         self.assertEqual(PUSH['deferred_policy'](self.root, self.base, tip), [])
 
@@ -616,21 +617,35 @@ readFileSync('../public/assets/native/untracked.bin');
         self.assertFalse(result['ok'])
         self.assertEqual(result['phase'], 'ratchet')
 
-    def test_mandatory_guard_timeout_fails_instead_of_deferring_to_ci(self):
+    def test_each_budget_hands_off_to_ci_but_preserves_real_refusals(self):
+        self.git('rm', 'src/base.ts')
         tip = self.commit('src/good.ts')
         @contextmanager
         def prepared(*_):
             yield self.root / 'scripts'
-        calls = []
-        def runner(command, *_):
-            calls.append(command[5])
-            return (124, 'pre-push budget exhausted') if command[5] == 'guards' else (0, '')
-        with patch.dict(PUSH, fast_tools=prepared), patch.dict(LIVE, run=runner):
-            result = PUSH['check_committed'](self.root, self.base, tip, time.monotonic() + 45)
-        self.assertFalse(result['ok'])
-        self.assertEqual(result['phase'], 'guards')
-        self.assertEqual(calls, ['storage', 'fast-lint', 'guards'])
-        self.assertEqual(next(row for row in result['steps'] if row['step']=='guards')['status'], 'budget')
+        phases = ['storage', 'deleted-paths', 'ratchet', 'guards', 'fast-lint']
+        for phase in phases:
+            for text, accepted in [('pre-push budget exhausted', True), ('Error: observed policy refusal', False)]:
+                calls = []
+                def runner(command, *_):
+                    calls.append(command[5])
+                    return (124, text) if command[5] == phase else (0, '')
+                with patch.dict(PUSH, fast_tools=prepared), patch.dict(LIVE, run=runner):
+                    result = PUSH['check_committed'](self.root, self.base, tip, time.monotonic() + 45)
+                self.assertEqual(result['ok'], accepted, (phase, text))
+                self.assertEqual(calls, phases[:phases.index(phase)+1])
+                rows = {row['step']:row for row in result['steps']}
+                if accepted:
+                    self.assertEqual(result['types'], 'ci-budget')
+                    for pending in phases[phases.index(phase):]:
+                        self.assertEqual(rows[pending]['status'], 'deferred')
+                        self.assertIn('DEFERRED TO CI ' + pending, result['output'])
+                    for completed in phases[:phases.index(phase)]:
+                        self.assertEqual(rows[completed]['status'], 'passed')
+                else:
+                    self.assertEqual(result['phase'], phase)
+                    self.assertEqual(rows[phase]['status'], 'failed')
+                    self.assertEqual(rows[phase]['reason'], 'observed-refusal')
 
     def test_missing_discovery_prevents_a_partial_cache_from_enabling_types(self):
         self.put('src/shards/fixture/world/build.ts', "import manifest from '../discovery.generated';\nexport const seed = manifest.seed;\n")

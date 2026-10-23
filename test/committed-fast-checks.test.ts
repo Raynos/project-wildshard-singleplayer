@@ -34,7 +34,7 @@ export default {
   put('src/main.ts','export const value=1;\n');
   const commit=()=>{git('add','.');git('commit','-qm','fixture');return git('rev-parse','HEAD');};
   const base=commit();linkNodeModules(repository,root);
-  const run=(phase:string,tip:string,files=['src/main.ts'],from=base)=>spawnSync('node',[resolve('scripts/committed-fast-checks.mjs'),root,from,tip,phase,JSON.stringify(files)],{cwd:repository,encoding:'utf8',timeout:15_000});
+  const run=(phase:string,tip:string,files=['src/main.ts'],from=base,trace=false)=>spawnSync('node',[resolve('scripts/committed-fast-checks.mjs'),root,from,tip,phase,JSON.stringify(files)],{cwd:repository,encoding:'utf8',timeout:15_000,env:{...process.env,...(trace?{GIT_TRACE:'1'}:{})}});
   return {root,git,put,commit,base,run,close:()=>rmSync(root,{recursive:true,force:true})};
 }
 
@@ -69,6 +69,16 @@ test('native lint detects exact cycles and defers a changed dependency',()=>{
     const exact=f.run('fast-lint',bad);expect(exact.status,exact.stderr).toBe(1);expect(exact.stderr).toContain('no-cycle');
     f.put('src/other.ts','export const other=1;');
     const result=f.run('fast-lint',bad);expect(result.status,result.stderr).toBe(0);expect(result.stdout).toContain('DEFERRED TO CI fast-lint src/main.ts');expect(result.stdout).not.toContain('Fast lint passed');
+  }finally{f.close();}
+});
+
+test('a dirty configuration defers before reading even the source root',()=>{
+  const f=fixture();try {
+    f.put('src/main.ts',"import './missing';export const value=1;");const tip=f.commit();
+    const hash=f.git('rev-parse',`${tip}:src/main.ts`);f.put('lint/marker.json','dirty policy');
+    const result=f.run('fast-lint',tip,['src/main.ts'],f.base,true);
+    expect(result.status,result.stderr).toBe(0);expect(result.stdout).toContain('unverified configuration lint/marker.json');
+    expect(result.stderr).not.toContain(`cat-file blob ${hash}`);expect(result.stdout).not.toContain('Fast lint passed');
   }finally{f.close();}
 });
 
