@@ -20,11 +20,6 @@ const declarations = new Map([
     'renderedPacks', 'renderedHerds', 'renderedDamage', 'renderedPackOf',
     'renderedHerdOf', 'observeHerdDamage', 'PageGroups',
   ].map(name => [name, 'C4']))],
-  // G520 re-score: Pine's page life runs CrowdWeaponTarget over a CrowdRoster's ray (game/population/pageLife.ts, its
-  // forager combat row), so both are shared; the roster's prey identity joins stay charged (inline, below)
-  ['src/game/shardfile/crowdRuntime.ts', new Map([
-    'CrowdPrey', 'CrowdTargets',
-  ].map(name => [name, 'C4']))],
   ['src/game/shardfile/worldScenes.ts', new Map([['WorldScenePoolPublications', 'C1']])],
   ['src/game/shardfile/scenePools.ts', new Map([['WorldSceneTierPools', 'C1']])],
   ['src/format/worldScenes.ts', new Map([['WorldSceneTierPools', 'C1'], ['WorldScenePoolPublications', 'C1']])],
@@ -52,12 +47,6 @@ const inline = new Map([
       ['return row.metadata===undefined?', 1],
     ]],
   ])],
-  // the pack prey identity joins only Nalati's page groups use, inside the roster Pine's forager ray shares
-  ['src/game/shardfile/crowdRuntime.ts', new Map([['CrowdRoster', [
-    ['  private readonly preyBindings = new Map<string, PackPrey>();', 1],
-    ['  identity(prey: PackPrey): string {', 8],
-    ['  resolve(id: string): PackPrey | null {', 8],
-  ]]])],
   // the tier-selected pool decoder the resident scenes and the catalogue's cold intake share
   ['src/game/shardfile/scenePools.ts', new Map([['WorldSceneTierPools', [
     ['geometryPools: files.map(file => ({ url: product.url(tierFile(file.file))', 1],
