@@ -75,6 +75,11 @@ export function binaryJsonFailures(path, text, policy) {
   let value;
   try { value = binaryJsonValue(text); }
   catch (error) { throw new Error(`BINARY-JSON ${path}: invalid JSON`, { cause: error }); }
+  return binaryJsonValueFailures(path, value, policy);
+}
+
+/** @param {string} path @param {unknown} value @param {BinaryPolicy} policy @returns {string[]} */
+export function binaryJsonValueFailures(path, value, policy) {
   const counts = binaryJsonCounts(value);
   const allowed = (Object.hasOwn(policy.files, path) ? policy.files[path] : undefined) ?? { base64Chars: 0, dataUris: 0 };
   return counts.base64Chars <= allowed.base64Chars && counts.dataUris <= allowed.dataUris ? []

@@ -3,14 +3,16 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { dirname, relative } from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { assertJsonRows, jsonOutputGuard } from './json-output-guard.mjs';
 
 export const outputHash = (bytes) => createHash('sha256').update(bytes).digest('hex');
-export const jsonBytes = (value, indent = 2) => Buffer.from(`${JSON.stringify(value, null, indent)}\n`);
+export const jsonBytes = (value, indent = 2) => { assertJsonRows(value); return Buffer.from(`${JSON.stringify(value, null, indent)}\n`); };
 export function toolVersion(command, args) {
   try { return execFileSync(command, args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim().split('\n')[0]; }
   catch { return null; }
 }
-export function byteWriter(check, label) {
+export function byteWriter(check, label, root = process.cwd()) {
+  const guard = jsonOutputGuard(root);
   let changed = 0;
   const mismatch = (path) => {
     changed++;
@@ -18,7 +20,7 @@ export function byteWriter(check, label) {
   };
   return {
     put(path, bytes) {
-      const buf = Buffer.from(bytes);
+      const buf = Buffer.from(bytes); guard(path, buf);
       if (existsSync(path) && readFileSync(path).equals(buf)) return;
       mismatch(path);
       if (!check) { mkdirSync(dirname(path), { recursive: true }); writeFileSync(path, buf); }

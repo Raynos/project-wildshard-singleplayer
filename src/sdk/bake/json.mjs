@@ -8,13 +8,14 @@ import { dirname, isAbsolute, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 // oxlint-disable-next-line import/no-nodejs-modules -- This executable reads its explicit producer arguments.
 import process from 'node:process';
+import { assertJsonRows, jsonOutputGuard } from '../../../scripts/json-output-guard.mjs';
 
 const args = process.argv.slice(2);
 const entry = args.at(0), binding = args.at(1), output = args.at(2);
 const binary = args.length === 4 && args.at(3) === '--bytes';
 const multiple = args.length === 4 && args.at(3) === '--files';
 if ((!binary && !multiple && args.length !== 3) || entry === undefined || binding === undefined || output === undefined) throw new Error('generate-json: entry, function and output required');
-const root = process.cwd();
+const root = process.cwd(), guard = jsonOutputGuard(root);
 /** Restrict source and destination to explicit regular paths in the isolated generation tree. @param {string} path */
 function confined(path) {
   if (isAbsolute(path) || path.includes('\\') || path.split('/').some(part => part === '' || part === '.' || part === '..')) throw new Error('generate-json: path must stay inside the generation tree');
@@ -58,15 +59,17 @@ if (multiple) {
     /** @type {unknown} */
     const name = item[0], bytes = item[1];
     if (typeof name !== 'string' || !(bytes instanceof Uint8Array) || bytes.length > 25_000_000) throw new Error('generate-json: relative byte outputs required');
-    files.push([confined(`${output}/${name}`), bytes]);
+    const path = confined(`${output}/${name}`); guard(path, bytes); files.push([path, bytes]);
   }
   for (const [path, bytes] of files) { mkdirSync(dirname(path), { recursive: true }); writeFileSync(path, bytes); }
 } else if (binary) {
   if (!(value instanceof Uint8Array)) throw new Error('generate-json: byte recipe must return Uint8Array');
+  guard(destination, value);
   mkdirSync(dirname(destination), { recursive: true }); writeFileSync(destination, value);
 } else {
 if (value === undefined || typeof value === 'function' || typeof value === 'symbol') throw new Error('generate-json: authoring function returned no JSON data');
-const bytes = JSON.stringify(value);
+assertJsonRows(value, output);
+const bytes = JSON.stringify(value); guard(destination, bytes);
 mkdirSync(dirname(destination), { recursive: true });
 writeFileSync(destination, `${bytes}\n`);
 }
