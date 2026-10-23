@@ -46,8 +46,15 @@ function createLoader(): KTX2Loader {
   const made = new KTX2Loader().setTranscoderPath(BASIS_PATH);
   // Basis workers retain separate Wasm heaps; phone reads stay parallel, transcodes do not.
   made.workerPool = new ScopedWorkerPool(pageScope, TIER === 'phone' ? 1 : 4);
-  // G639 frame floor: a raw-texel zstd file's levels decode in a worker first (ktx2Zstd.ts), not in three's parse on the
-  // page's thread; an unready loader still throws at once, as three's own parse does
+  return offThreadZstd(made);
+}
+const zstdWrapped = new WeakSet<KTX2Loader>();
+/** G639 frame floor: a raw-texel zstd file's levels decode in a worker first (ktx2Zstd.ts), not in three's parse on the
+ *  page's thread. Every loader the engine makes or configures (`detectKtx2Support`) takes it once; an unready loader still
+ *  throws at once, as three's own parse does. */
+function offThreadZstd(made: KTX2Loader): KTX2Loader {
+  if (zstdWrapped.has(made)) return made;
+  zstdWrapped.add(made);
   const parse = made.parse.bind(made);
   made.parse = (buffer, onLoad, onError): void => {
     if (made.workerConfig === null) { parse(buffer, onLoad, onError); return; }
@@ -65,6 +72,7 @@ function createLoader(): KTX2Loader {
  */
 export function detectKtx2Support(made: KTX2Loader, renderer: Renderer): KTX2Loader {
   made.detectSupport(renderer);
+  offThreadZstd(made);
   applyKtx2Probe(made.workerConfig);
   if (harnessPins()?.ktx2Probe === 'skip') {
     const parse = made.parse.bind(made);
