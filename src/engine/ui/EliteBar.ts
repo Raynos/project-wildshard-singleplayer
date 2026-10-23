@@ -83,7 +83,14 @@ export class EliteBar {
     this.chev = el('i', engineString('s_026ecaf4ec08'));
     this.root.append(this.bar, this.ban, this.chev);
     mountUi(this.root, this.scope, parent);
+    const measure = (): void => {
+      const w: unknown = Reflect.get(globalThis, 'innerWidth'), h: unknown = Reflect.get(globalThis, 'innerHeight');
+      this.viewW = typeof w === 'number' ? w : 0; this.viewH = typeof h === 'number' ? h : 0;
+    };
+    measure(); if (typeof window !== 'undefined') this.scope.listen(window, 'resize', measure);
   }
+  /** G639: the viewport, kept by resize (reading innerWidth after another bar's transform write forced a layout a bar a frame) */
+  private viewW = 0; private viewH = 0;
 
   show(name: string, epithet: string): void {
     this.name.textContent = name; this.epithet.textContent = epithet;
@@ -111,7 +118,7 @@ export class EliteBar {
     if (mode === 'pinned' || head === null) { this.barTf(''); this.flag('offscreen', false); this.flag('dim', false); return; }
     // over its head: project; off screen → clamp to the edge, the arrow points at it
     _v.copy(head).project(camera);
-    const w = innerWidth, h = innerHeight;
+    const w = this.viewW, h = this.viewH;
     const behind = _v.z > 1;
     let x = (_v.x * 0.5 + 0.5) * w, y = (-_v.y * 0.5 + 0.5) * h;
     if (behind) { x = w - x; y = h - y; }
@@ -161,7 +168,7 @@ export class EliteBar {
     if (_v.z > 1) { dx = -dx; dy = -dy; }
     const onScreen = _v.z <= 1 && Math.abs(_v.x) < 0.85 && Math.abs(_v.y) < 0.85;
     if (onScreen) { this.chev.classList.remove('show'); return; }
-    const w = innerWidth, h = innerHeight, m = 46;
+    const w = this.viewW, h = this.viewH, m = 46;
     const k = Math.min((w / 2 - m) / Math.max(1e-3, Math.abs(dx * w / 2)), (h / 2 - m) / Math.max(1e-3, Math.abs(dy * h / 2)));
     const x = w / 2 + dx * w / 2 * k, y = h / 2 + dy * h / 2 * k;
     this.chev.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) rotate(${Math.atan2(dy * h, dx * w).toFixed(3)}rad)`;
