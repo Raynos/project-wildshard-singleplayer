@@ -358,19 +358,23 @@ export function buildLayout(grid, parts, p, seed) {
     // NM7: string lights over the lanes between tiles (each tile strings its north and east seams when they are inside the
     // plot), on posts at the lane crossings' corners
     const plot = writer(parts, centre, 0); // the seams run in plot axes, whatever the tile's turn
-    if (r > 0) stringLights(plot, p, 0);
-    if (c < 7) stringLights(plot, p, 1);
+    if (r > 0) stringLights(plot, p, 0, centre);
+    if (c < 7) stringLights(plot, p, 1, centre);
   }
 }
 
 /** The lane on a tile's north (side 0) or east (side 1) seam: two strings of bulbs 3 m either side of the seam, sagging
  *  between posts at the crossings' corners, the bulbs alternating gold and red (Glow, merged into the tile's glow draw). */
-function stringLights(w, p, side) {
+function stringLights(w, p, side, centre) {
   const along = (u, off, y) => (side === 0 ? [u, y, HALF + off] : [HALF + off, y, -u]);
   const ends = [-HALF + 4, HALF - 4], top = 6.2, sag = 1.4, step = 2.5, bulb = 0.16;
+  // an entry's footprint (8 m wide, 15 m in from the plot's edge, on the x = 0 and z = 0 seams) stays clear above the road
+  const clear = (x, z) => { const wx = centre[0] + x, wz = centre[1] + z, margin = 1.5;
+    return (Math.abs(wx) < 4 + margin && Math.abs(wz) > 235 - margin) || (Math.abs(wz) < 4 + margin && Math.abs(wx) > 235 - margin); };
   for (const off of [-3, 3]) {
     for (const u of ends) {
       const [x, , z] = along(u, off, 0);
+      if (clear(x, z)) continue;
       w.box('Kit', [x - 0.12, 0, z - 0.12], [x + 0.12, top + 0.3, z + 0.12], p.wood);
       w.solid([x - 0.15, 0, z - 0.15], [x + 0.15, top, z + 0.15]);
       // NM9: a red banner with a gold head on each post, hung across the lane so it reads down it and from above
@@ -383,6 +387,7 @@ function stringLights(w, p, side) {
     const span = ends[1] - ends[0], count = Math.floor(span / step);
     for (let i = 1; i < count; i++) {
       const t = i / count, u = ends[0] + span * t, y = top - sag * 4 * t * (1 - t), [x, , z] = along(u, off, y);
+      if (clear(x, z)) continue;
       w.box('Glow', [x - bulb, y - bulb, z - bulb], [x + bulb, y + bulb, z + bulb], i % 2 === 0 ? p.lantern : p.bulbRed, i % 2 === 0 ? p.lantern : p.bulbRed);
     }
   }
