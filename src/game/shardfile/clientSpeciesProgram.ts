@@ -21,7 +21,7 @@ export async function installClientSpeciesProgram(ctx: ShardContext, input: unkn
   if (declared.program === undefined || descriptor === undefined) throw new Error('Species feature needs its admitted program and product');
   const library = sceneModelSource(product, row.library);
   await library.preloadRigs();
-  await Promise.all(parseDecisionScripts(product.section('sim/scripts')).filter(script => script.side === 'sim').map(async script => {
+  await Promise.all(parseDecisionScripts(product.section('sim/scripts')).map(async script => {
     const hash = script.module.slice('blobs/wasm/'.length, -'.wasm'.length), file = descriptor.index.files.find(candidate => candidate.hash === hash);
     if (file?.name === undefined) throw new Error('Species decision needs its admitted logical file');
     book.decisionAssets.set(hash, await product.file(file.name));
