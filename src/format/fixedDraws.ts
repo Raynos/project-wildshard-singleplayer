@@ -11,12 +11,11 @@ const offset = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(2 ** 31
  *  - `inline`: a baked block, zlib-deflated and base64 in the row (small shapes a view builds at once).
  *  `lane` and `inline` always carry `baked`. */
 const channels = v.pipe(v.array(v.strictTuple([text, text])), v.maxLength(16));
-type BakedGeometry = v.InferOutput<typeof SceneBakedGeometrySchema>;
-interface DrawChannels { slot:string;channels:[string,string][] }
-interface FileDraw extends DrawChannels { file:string;baked?:BakedGeometry }
-interface LaneDraw extends DrawChannels { lane:{url:string;offset:number};baked:BakedGeometry }
-interface InlineDraw extends DrawChannels { inline:string;baked:BakedGeometry }
-type FixedDrawRows = (FileDraw|LaneDraw|InlineDraw)[];
+type FixedDrawRows = (
+  {slot:string;channels:[string,string][];file:string;baked?:v.InferOutput<typeof SceneBakedGeometrySchema>}
+  | {slot:string;channels:[string,string][];lane:{url:string;offset:number};baked:v.InferOutput<typeof SceneBakedGeometrySchema>}
+  | {slot:string;channels:[string,string][];inline:string;baked:v.InferOutput<typeof SceneBakedGeometrySchema>}
+)[];
 export const FixedDrawRowsSchema:v.GenericSchema<unknown,FixedDrawRows> = v.pipe(v.unknown(), v.check(isJsonData, 'Fixed draws require plain JSON'), v.array(v.union([
   v.strictObject({ slot: text, channels, file: text, baked: v.exactOptional(SceneBakedGeometrySchema) }),
   v.strictObject({ slot: text, channels, lane: v.strictObject({ url: text, offset }), baked: SceneBakedGeometrySchema }),
