@@ -49,7 +49,7 @@ import { onOwnerDispose } from '../app/ownership';
 import { ROOM_BG, arenaMap, fitRoom, paintRoom, type RoomMap } from './roomMap';
 
 /** the level's baked map while it loads (`image` null) and once decoded; `closed` once released */
-interface BakedGround { url: string; image: ImageBitmap | null; closed: boolean }
+interface BakedGround { url: string; image: ImageBitmap | null; closed: boolean; ready: Promise<void> }
 
 /** a point the map marks with a small diamond (Minimap.setMarks) */
 export interface MapMark { x: number; z: number; color: string }
@@ -311,9 +311,9 @@ export class Minimap {
   }
   private loadBaked(url: string): void {
     this.releaseBaked();
-    const entry: BakedGround = { url, image: null, closed: false };
+    const entry: BakedGround = { url, image: null, closed: false, ready: Promise.resolve() };
     this.baked = entry;
-    void (async () => {
+    entry.ready = (async () => {
       try {
         const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -323,6 +323,9 @@ export class Minimap {
       } catch (error) { if (!entry.closed) console.warn(`[minimap] the baked map ${url} did not load:`, error); }
     })();
   }
+  /** L15: start the level's map now and resolve once it can draw (the baked image decoded, or failed; a painted layer at
+   *  once), so the loader hands over to a filled minimap rather than an empty ring for the decode's few hundred ms */
+  prepare(): Promise<void> { this.ground(); return this.baked?.ready ?? Promise.resolve(); }
   private releaseBaked(): void {
     const b = this.baked; if (b === null) return;
     b.closed = true; b.image?.close(); b.image = null; this.baked = null; this.layerGen++;

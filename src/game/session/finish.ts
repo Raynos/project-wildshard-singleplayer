@@ -111,10 +111,16 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   disableBootGpuGuard();
   if (fragileBoot) game.levelScope.unlisten(game.canvas, 'webglcontextlost', onBootContextLost);
   setPoseProvider(() => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null)); // the Look Lab's reload prompt comes back right here (E65)
+  // L15: the loader fades over the live world, not over the boot's last warm-up render (round 53: a washed-out lower
+  // half, an empty minimap and the title ghost under the HUD for ~0.3 s): the loop starts first, and the loader leaves once
+  // two frames have drawn and the minimap's baked map has decoded, waiting at most 1.5 s for both
+  app.setState(hud.entered ? 'play' : 'title');
+  game.start();
+  const drawnFrom = game.frameCount;
+  const drawn = new Promise<void>((resolve) => { const check = (): void => { if (game.frameCount >= drawnFrom + 2) resolve(); else game.levelScope.raf(check); }; check(); });
+  await Promise.race([Promise.all([drawn, ctx.minimap.prepare()]), new Promise<void>((resolve) => { game.levelScope.timeout(1500, resolve); })]);
   await loading.done();
   if (level === undefined) app.events.emit('level.loaded', { id: slug });
-  app.setState(hud.entered ? 'play' : 'title');
-  game.start(); // keep the full render loop out of the loader's 100% fade and its transient boot-memory peak
   // G554: the grid's whole known set into the disk cache, this cell and its neighbours first, in the background once play
   // starts (round 39: during the loading screen its ~4,000 cache checks queued ahead of the home region's own reads)
   if (ctx.grid !== null) startGridPrefetch(gridPrefetchOrder(ctx.grid.assembly, player.position));
