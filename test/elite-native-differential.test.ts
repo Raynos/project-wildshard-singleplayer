@@ -35,7 +35,7 @@ function encounter(pattern: 'pouncer' | 'howler', original: boolean) {
     strike: (strike, actor, target, hit, ports) => f.loans.contacts.contact(strike, { actor, target, hit, canReach: ports.reach }),
     knock: { duration: 1, dash: (x, z, _strength, out) => { const length = Math.hypot(x, z) || 1; out.x = x / length * 9; out.z = z / length * 9; } },
   }) }) : installEliteEncounters(f.host, { ...spec, core: nativeEliteCore(f.host), rows: [{ ...nativeRow, keeper: 'kernel' } satisfies EliteEncounterRow],
-    ports: legacyDouble<EliteEncounterPorts>({ ...common, keepers: { herd: { rows: {}, program: {} } }, kernels: {
+    ports: legacyDouble<EliteEncounterPorts>({ ...common, groups: { packs: [], herds: [] }, keepers: { herd: { rows: {}, program: {} } }, kernels: {
       ...f.loans, rows: f.rows.filter(candidate => candidate.profile.pattern === pattern),
     } }),
   });

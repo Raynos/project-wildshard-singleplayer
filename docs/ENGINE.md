@@ -7814,29 +7814,41 @@ returning a quiet commit. The commit refuses if the installed entry references
 changed after preparation, and invokes no script, hook, persistence write or
 random source. Untouched last-hit clocks retain the historical null wire value.
 
-`EliteCoreContinuationSchema.entries` composes these fields into a caller's
+`format/eliteContinuation#EliteCoreContinuationSchema.entries` composes these fields into a caller's
 strict versioned envelope. Its top-level parser can also project those core
 fields directly from that envelope; nested rows remain strict.
 
-`game/shardfile/eliteEncounters#installEliteEncounters(host, spec)` owns the
-ordered native encounter roster on this core. Pine Hollow and Nalati both
-install it from their admitted headless assemblies. `scripted` lends an
-existing controller factory with its field/lane/RNG continuations; `rows` declares keeper constructors, member kind
-and variant, boot/spawn/herd adoption, initial memory, pack offsets and member
-order. Lair and respawn rules remain each row's `def` on `EliteCore`.
-`eliteBindings()` lends pins and decision/act bindings to the one manager body
-step. Keeper state is restored before body bindings are reattached; pack
-members must retain their declared kind, count and consecutive native IDs.
-The optional `win-and-detach` adoption action validates the native reward,
-sets its declared scale, retires the encounter and detaches its herd lookup.
-It takes no shard callback.
+`game/shardfile/eliteEncounters#installEliteEncounters(host, spec)` retains the
+native encounter roster on this core. Rows declare original kernel or borrowed
+group members, body kind/variant, initial memory and pack ordering. Lair and
+respawn rules remain each row's `def`; `eliteBindings()` lends the original pins
+and decision/act bindings to the manager's one body step. Adoption validates the
+same native reward before applying its scale, win and detach operations.
 
-The installer's scripted ports give existing fights boot-body adoption,
+`engine/ai/eliteContinuation.NativeEliteContinuation` admits versioned member
+save rows over the SAME Core, members, controllers, SimHost and native group
+arrays. `continuation.borrowed: {group, role: 'guard'}` resolves the original
+GrazerBrain guard at that group index. `continuation.detachable: true` retains
+the historical retired-member exception. The optional `wire.detached` names the
+existing permanent-detachment field; no new wire or durable owner is introduced.
+Every body, Core, group and controller suffix is admitted before mutation.
+Prepared transactions pin group arrays, pack members and guard/body identities
+before controller preparation, then recheck before committing Core, clearing
+bindings, restoring members and reattaching the original kernels, in that order.
+
+`StalkerBrain.prepareRestore(value)` prepares a native encounter continuation
+without reconstructing a kernel or reading callbacks/RNG. The borrowed numeric
+projection exposes the same quiet preparation. Raw state strings, legacy omitted
+elapsed, exact f64 tuples and negative-infinity native sentinels retain their
+original wire behavior. A changed owner or retired/disposing scope refuses.
+
+The existing `game/quest/eliteFeature#installEliteFeaturePage` scripted ports
+give fights boot-body adoption,
 cover-checked combat, lane constructors, bounds and a saved player root.
 The roster retains spawn IDs, draws and retirement; no second body installer,
 attack clock or decision controller is introduced.
 
-`wire` names the existing adapter envelope's script, stun and optional
+The page feature's `wire` names its existing adapter envelope's script, stun and optional
 permanent-detachment keys. Pine saves version 4 and Nalati version 1, retaining
 their historical field and actor identities. Explicit `wire.upgrades` admit
 Pine v2 and remove v3's obsolete prelude cursors; v1 binds the install-time

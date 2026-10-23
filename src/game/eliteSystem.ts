@@ -16,6 +16,7 @@
  */
 
 import * as v from 'valibot';
+import { EliteCoreContinuationSchema, type EliteCoreContinuation } from '@wildshard/format/eliteContinuation';
 
 export type EliteCoreRule = 'always' | 'dusk' | 'night' | 'storm';
 
@@ -79,18 +80,6 @@ export interface EliteCoreEntry<S extends EliteCoreScript = EliteCoreScript> {
 
 /** One lair's persisted record (the page's 'ws.elites.v1' row). */
 export interface EliteCoreRecord { timer: number; discovered: boolean; skinTaken: boolean; kills: number; retired: boolean }
-const continuationNumber = v.pipe(v.number(), v.finite());
-const lairContinuation = v.strictObject({ timer: continuationNumber, discovered: v.boolean(), skinTaken: v.boolean(), kills: continuationNumber, retired: v.boolean() });
-const entryContinuation = v.strictObject({ id: v.string(), state: v.picklist(['absent', 'idle', 'aware', 'engaged', 'leash', 'dead', 'broken', 'retired']),
-  timer: continuationNumber, waitDusk: v.boolean(), discovered: v.boolean(), bannerArmed: v.boolean(), farT: continuationNumber,
-  phase2: v.boolean(), beatT: continuationNumber, lockHp: continuationNumber, seenSig: v.boolean(), leashT: continuationNumber,
-  lastHit: v.nullable(continuationNumber), forced: v.boolean() });
-/** Compose these core fields into the caller's strict versioned envelope; script/body/strike state stays with that caller.
- * The top-level object also accepts that envelope directly, projecting only the core fields. Nested rows stay strict. */
-export const EliteCoreContinuationSchema = v.object({ clocks: v.strictObject({ saveT: continuationNumber, lastDusk: v.boolean() }),
-  records: v.record(v.string(), lairContinuation), entries: v.array(entryContinuation) });
-/** Detached lair rules state, with a null last-hit value representing the untouched negative-infinity clock. */
-export type EliteCoreContinuation = v.InferOutput<typeof EliteCoreContinuationSchema>;
 
 export interface EliteCorePersistence {
   read: (slug: string) => Record<string, EliteCoreRecord>;

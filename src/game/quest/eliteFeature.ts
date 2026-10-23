@@ -1,9 +1,10 @@
+import { EliteCoreContinuationSchema } from '@wildshard/format/eliteContinuation';
 import { Vector3 } from 'three';
 import * as v from 'valibot';
 import { parseEliteFeature, type EliteFeatureRows } from '@wildshard/format/eliteFeature';
 import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';
-import { EliteCore, EliteCoreContinuationSchema, memoryElitePersistence } from '../eliteSystem';
+import { EliteCore, memoryElitePersistence } from '../eliteSystem';
 import { EliteDecisions } from './eliteDecisions';
 import { SpawnScript, readSpawnScript } from '../population/spawnScript';
 import type { ShardProduct } from '../shardfile/shardProduct';

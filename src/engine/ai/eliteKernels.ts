@@ -131,9 +131,14 @@ export class NativeEliteKernels {
     if (entry?.id !== id || entry.state !== state || row === undefined) throw new Error('Foreign elite phase binding');
     if (row.profile.pattern === 'howler') controller.enterPhase2(state.animal);
   }
+  /** Pure original-controller admission for a surrounding whole-bank restore. */
+  validateController(id: string, controller: StalkerBrain<AnimalSim>, state: NativeEliteKernelState): void {
+    this.validate(); const entry = this.created.get(controller);
+    if (entry?.id !== id || entry.state !== state) throw new Error('Foreign elite kernel binding');
+  }
   bind(id: string, controller: StalkerBrain<AnimalSim>, state: NativeEliteKernelState, actor: AnimalSim): void {
-    this.validate(); const entry = this.created.get(controller), row = this.rows.find(candidate => candidate.id === id);
-    if (entry?.id !== id || entry.state !== state || row === undefined || state.animal !== actor || this.host.entities.get(actor.entityId) !== actor) throw new Error('Foreign elite kernel binding');
+    this.validateController(id, controller, state); const row = this.rows.find(candidate => candidate.id === id);
+    if (row === undefined || state.animal !== actor || this.host.entities.get(actor.entityId) !== actor) throw new Error('Foreign elite kernel binding');
     this.brains.set(actor, {
       think: (body, context) => { if (this.scope.disposed || this.scope.disposing) return; this.validate(); if (body !== actor) throw new Error('Foreign elite body'); if (row.profile.pattern === 'pouncer') controller.decidePouncer(body, context); else controller.decideHowler(body, context); },
       act: body => { if (this.scope.disposed || this.scope.disposing) return; this.validate(); if (body !== actor) throw new Error('Foreign elite body'); controller.act(body); },

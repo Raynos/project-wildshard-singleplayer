@@ -1,16 +1,16 @@
 import * as v from 'valibot';
 import { isJsonData } from '@wildshard/format/json';
 import { ReturnProgram } from '../population/returnProgram';
+import { NativeEliteContinuation, type EliteContinuationGroups } from '@wildshard/engine/ai/eliteContinuation';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
-import type { SimHost, SimValue } from '@wildshard/engine/sim';
+import type { SimHost } from '@wildshard/engine/sim';
 import { NativeEliteKernels, type NativeEliteKernelLoans } from '@wildshard/engine/ai/eliteKernels';
 import type { StalkerBrain } from '@wildshard/engine/ai/stalker';
 import type { PackBrain } from '@wildshard/engine/ai/pack';
-import { EliteCore, EliteCoreContinuationSchema, type EliteCoreDef, type EliteCoreScript } from '../eliteSystem';
+import { EliteCore, type EliteCoreDef, type EliteCoreScript } from '../eliteSystem';
 
 const silent = (): void => undefined;
 const finite = v.pipe(v.number(), v.finite());
-const PackSave = v.strictObject({ animal: v.nullable(v.string()), phase2: v.boolean(), keeper: v.unknown(), pack: v.nullable(v.pipe(finite, v.integer(), v.minValue(0))) });
 
 /** Manager-owned elite pins and decision bindings; the manager retains its single body-step installer. */
 export interface EliteBindings {
@@ -29,6 +29,7 @@ export interface EliteEncounterRow {
   readonly keeper: 'kernel' | 'herd'; readonly snapshot: string;
   readonly member: { readonly kind: string; readonly variant: string; readonly source: 'boot' | 'spawn' | 'herd'; readonly yaw: number; readonly memory?: Readonly<Record<string, number>> };
   readonly pack?: { readonly offset: readonly [number, number]; readonly variants: readonly string[]; readonly kind: string; readonly idPrefix: string };
+  readonly continuation?: { readonly borrowed?: { readonly group: number; readonly role: 'guard' }; readonly detachable?: true };
   readonly brokenState?: string;
   readonly onAdopted?: { readonly action: 'win-and-detach'; readonly variant: string; readonly scale: number };
 }
@@ -38,7 +39,8 @@ export interface EliteEncounterPorts {
   readonly spawn: (kind: string, x: number, z: number, yaw: number, variant: string) => AnimalSim;
   readonly retire: (a: AnimalSim) => void;
   readonly spawnPack: (x: number, z: number, variants: readonly string[]) => PackBrain<AnimalSim>;
-  readonly retirePack: (pack: PackBrain<AnimalSim>) => void; readonly packs: () => readonly PackBrain<AnimalSim>[];
+  readonly retirePack: (pack: PackBrain<AnimalSim>) => void;
+  readonly groups?: EliteContinuationGroups;
   readonly herd: () => Herd | null;
   readonly taming?: HerdTaming;
   readonly keepers: { readonly herd: { readonly rows: unknown; readonly program: unknown } };
@@ -83,11 +85,12 @@ export class HerdEliteProjection {
     effects.signature=result['signature']===1;effects.lead=result['lead']===1;effects.adopt=result['adopt']===1;return effects;
   }
   snapshot():v.InferOutput<typeof HerdProjectionSaved>{return structuredClone(this.state);}
-  restore(input:unknown):void{this.state=v.parse(HerdProjectionSaved,input);}
+  prepareRestore(input:unknown):()=>void{const state=v.parse(HerdProjectionSaved,input);return()=>{this.state=state;};}
+  restore(input:unknown):void{this.prepareRestore(input)();}
 }
 
 interface Member { readonly row: EliteEncounterRow; animal: AnimalSim | null; phase2: boolean; pack: PackBrain<AnimalSim> | null; adopted: boolean; detached: boolean;
-  readonly controller: StalkerBrain<AnimalSim> | HerdEliteProjection; readonly validate: (value: unknown) => void }
+  readonly controller: StalkerBrain<AnimalSim> | HerdEliteProjection }
 
 /** Install ordered named encounters on EliteCore. Shared ownership covers spawn/adoption, script/keeper continuation,
  * pack rebind, root effects and declared permanent detachment. Controllers retain fight decisions and clocks.
@@ -98,7 +101,6 @@ export function installEliteEncounters(host: SimHost, spec: EliteEncounterSpec):
 } {
   const core = spec.core;
   if (!(core instanceof EliteCore) || Object.getPrototypeOf(core) !== EliteCore.prototype || core.player !== host.player || core.entries.length > 0) throw new Error('Foreign or populated native elite core');
-  const rebinders = new WeakMap<Member, (a: AnimalSim) => void>();
   const ports = spec.ports, rows = spec.rows ?? [], members: Member[] = [];
   const pin = (a: AnimalSim | null, engaged: boolean): void => { if (a === null || ports === undefined) return; if (engaged) ports.bindings.pinned.add(a); else ports.bindings.pinned.delete(a); };
   const kernels = ports?.kernels === undefined ? null : new NativeEliteKernels(ports.kernels.rows, {
@@ -117,7 +119,7 @@ export function installEliteEncounters(host: SimHost, spec: EliteEncounterSpec):
       const herd=ports.keepers.herd;return new HerdEliteProjection(herd.rows,ReturnProgram.native(host,herd.program));
     };
     const controller = create();
-    const member: Member = Object.assign(live, { row, controller, validate: (value: unknown): void => { create().restore(value); } });
+    const member: Member = Object.assign(live, { row, controller });
     members.push(member);
     const bind = (a: AnimalSim): void => {
       if (!('think' in controller)) return;
@@ -167,50 +169,13 @@ export function installEliteEncounters(host: SimHost, spec: EliteEncounterSpec):
         }
       },
     };
-    // Keep the rebind closure beside the member, without adding a second body step.
-    rebinders.set(member, bind); nativeScripts.push(script);
+    nativeScripts.push(script);
   }
   const scripts = nativeScripts;
   if (scripts.length === 0 || new Set(scripts.map(s => s.def.id)).size !== scripts.length) throw new Error('Invalid encounter roster');
   scripts.forEach(s => { core.add(s); });
-  const wire = spec.wire;
-  const envelope: v.ObjectEntries = { version: v.literal(spec.version), ...EliteCoreContinuationSchema.entries };
-  if (wire.detached !== undefined) envelope[wire.detached] = v.exactOptional(v.literal(true));
-  for (const row of rows) envelope[row.snapshot] = row.pack === undefined ? v.omit(PackSave, ['pack']) : PackSave;
-  host.onStep(spec.step, dt => { core.update(dt, host.clock.now); }, {
-    snapshot: () => {
-      const saved: Record<string, SimValue> = { version: spec.version, ...core.snapshot() };
-      if (wire.detached !== undefined && members.some(m => m.detached)) saved[wire.detached] = true;
-      for (const m of members) saved[m.row.snapshot] = { animal: m.animal?.entityId ?? null, phase2: m.phase2, keeper: m.controller.snapshot(),
-        ...(m.row.pack === undefined ? {} : { pack: m.pack === null ? null : ports?.packs().indexOf(m.pack) ?? -1 }) };
-      return saved;
-    },
-    restore: value => {
-      const saved = v.parse(v.strictObject(envelope), value);
-      const continuation = v.parse(EliteCoreContinuationSchema, saved), commitCore = core.prepareRestore(continuation);
-      const ids = scripts.map(s => s.def.id);
-      if (Object.keys(continuation.records).length !== ids.length || ids.some(id => continuation.records[id] === undefined)) throw new Error('Incompatible encounter records');
-      const bound = members.map((m, i) => {
-        const s = v.parse(m.row.pack === undefined ? v.omit(PackSave, ['pack']) : PackSave, saved[m.row.snapshot]);
-        const a = s.animal === null ? null : host.entities.get(s.animal);
-        const detached = wire.detached !== undefined && saved[wire.detached] === true && m.row.onAdopted !== undefined;
-        if (a === undefined || (a !== null && (a.kind !== m.row.member.kind || a.variant !== m.row.member.variant))
-          || (m.row.member.source === 'herd' && a !== null && !detached && a !== ports?.herd()?.stallion)
-          || continuation.entries[i]?.phase2 !== s.phase2
-          || (detached && (continuation.entries[i].state !== 'retired' || continuation.records[m.row.def.id]?.retired !== true))) throw new Error('Incompatible encounter member binding');
-        const index = 'pack' in s ? s.pack : null, pack = typeof index === 'number' ? ports?.packs()[index] : null;
-        const row = m.row.pack, leader = a;
-        if (row !== undefined && (pack === undefined || (a === null) !== (pack === null) || (pack !== null && (pack.members.length !== row.variants.length
-          || (leader === null || pack.members.some((b, n) => b.kind !== row.kind || b.entityId !== `${row.idPrefix}${String(Number(leader.entityId.slice(row.idPrefix.length)) + n + 1)}`)))))) throw new Error('Incompatible encounter pack binding');
-        m.validate(s.keeper); return { m, s, a, detached, pack: pack ?? null };
-      });
-      commitCore();
-      if (ports !== undefined) { ports.bindings.brains.clear(); ports.bindings.pinned.clear(); }
-      for (const { m, s, a, detached, pack } of bound) {
-        m.controller.restore(s.keeper); m.animal = a; m.phase2 = s.phase2; m.pack = pack; m.adopted = true; m.detached = detached;
-        pin(a, core.entry(m.row.def.id)?.state === 'engaged'); if (a !== null) rebinders.get(m)?.(a);
-      }
-    },
-  });
+  const continuation = new NativeEliteContinuation({ version: spec.version, wire: spec.wire, rows },
+    { host, core, members, bindings: ports?.bindings ?? eliteBindings(), kernels, ...(ports?.groups === undefined ? {} : { groups: ports.groups }) });
+  host.onStep(spec.step, dt => { core.update(dt, host.clock.now); }, continuation);
   return { core, scripts, initialize: () => { core.initialize(); } };
 }

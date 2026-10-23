@@ -315,6 +315,13 @@ export class StalkerBrain<A extends AnimalSim> extends HuntingStalkerCore<A> {
     else if (this.profile.pattern === 'pouncer') this.pouncerRestore(saved);
     else if (saved !== this.contract) throw new Error('Incompatible skirmisher continuation');
   }
+  /** Admit the complete native continuation without allocation, callbacks or mutation.
+   * Commit only after the surrounding owner has admitted its whole save bank. */
+  prepareRestore(saved: unknown): () => void {
+    if (this.profile.pattern === 'howler') { const state = v.parse(HowlerSaved, saved); return () => { this.howlerRestore(state); }; }
+    if (this.profile.pattern === 'pouncer') { const state = v.parse(PouncerSaved, saved); return () => { this.pouncerRestore(state); }; }
+    throw new Error('Pattern continuation is not owned by the native encounter');
+  }
   /** Observe on the original native manager cadence; mismatched ports refuse before effects. */
   think(a: A, c: StalkerObservation<A>): void;
   think(a: A, dt: number, player: Vector3, sprinting: boolean, playerSpeed: number): void;

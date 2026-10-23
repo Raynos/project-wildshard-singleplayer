@@ -17,7 +17,7 @@ test('native member admission preserves strict pack fields and original continua
   const originalRows:OriginalRow[]=[{def:pouncer.def,keeper:'pouncer',snapshot:'solo',member:{kind:pouncer.kind,variant:pouncer.def.id,source:'boot',yaw:pouncer.yaw}},
     {def:howler.def,keeper:'howler',snapshot:'group',member:{kind:howler.kind,variant:howler.def.id,source:'boot',yaw:howler.yaw},pack:{offset:[0,0],variants:[],kind:'herd',idPrefix:'herd'}}];
   const rows:EliteEncounterRow[]=originalRows.map(row=>({...row,keeper:'kernel'}));
-  const ports=legacyDouble<EliteEncounterPorts>({bindings:eliteBindings(),keepers:{herd:{rows:{},program:{}}},packs:()=>[],
+  const ports=legacyDouble<EliteEncounterPorts>({bindings:eliteBindings(),groups:{packs:[],herds:[]},keepers:{herd:{rows:{},program:{}}},
     kernels:{rows:fixture.rows,contacts:fixture.loans.contacts,strikes:fixture.loans.strikes,terrain:fixture.loans.terrain,
       environment:fixture.loans.environment,ledges:[]}});
   installEliteEncounters(host,{step:'marsh.elites',version:1,core:nativeEliteCore(host),rows,ports,wire:{}});

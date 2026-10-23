@@ -1,4 +1,5 @@
 // Frozen original native encounter authority before R8 kernel rows.
+import { EliteCoreContinuationSchema } from '@wildshard/format/eliteContinuation';
 import * as v from 'valibot';
 import { isJsonData } from '@wildshard/format/json';
 import { ReturnProgram } from '../../src/game/population/returnProgram';
@@ -9,7 +10,7 @@ import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { canReach } from '@wildshard/engine/ai/reach';
 import { StalkerBrain, type PouncerContext, type PouncerLedge, type PouncerSpec, type HowlerSpec, type HowlerPorts } from '@wildshard/engine/ai/stalker';
 import type { PackBrain } from '@wildshard/engine/ai/pack';
-import { EliteCore, EliteCoreContinuationSchema, memoryElitePersistence, type EliteCoreDef, type EliteCoreScript } from '../../src/game/eliteSystem';
+import { EliteCore, memoryElitePersistence, type EliteCoreDef, type EliteCoreScript } from '../../src/game/eliteSystem';
 
 const silent = (): void => undefined;
 const finite = v.pipe(v.number(), v.finite());
