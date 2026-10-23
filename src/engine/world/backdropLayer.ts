@@ -67,6 +67,7 @@ import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 import { frameNodeMaterial } from '../render/nodeLayerFrame';
 import type { Scope } from '../app/scope';
 import { resourceScope } from '../app/resources';
+import { noteEnvironment } from '../render/drawnEnvironment';
 import { ownSceneResource, ownSceneTree } from '../app/sceneOwnership';
 import type { AssetService } from '../app/assets';
 import type { SkyBackdrop, SkyBackdropTargets } from '../render/look';
@@ -444,6 +445,9 @@ export class BackdropLayer {
     if (on !== this.drawn) { this.drawn = on; for (const dome of this.domes) dome.visible = on; }
     this.applied = on ? w : 0;
     if (!on) return null;
+    // the PMREM this layer swaps in once it weighs half: recorded while it fades in, so the road's views are warmed for it
+    // before it does (drawnEnvironment.ts)
+    noteEnvironment(this.holder.environment);
     backdrop.update(dt, camera);
     // its own sky layer (a dome and its cloud ring) travels with the camera, as Game.ts keeps the page's `sky.clouds`;
     // left at the page origin, a ring drawn around its own centre sat off-centre and behind the far world (SF63)

@@ -38,6 +38,7 @@
     "./script/inputInboxV2": "./script/inputInboxV2.ts",
     "./script/liveObservationsV2": "./script/liveObservationsV2.ts",
     "./render/programRetention": "./render/programRetention.ts",
+    "./render/drawnEnvironment": "./render/drawnEnvironment.ts",
     "./models/placementBatch": "./models/placementBatch.ts",
     "./models/ownedGeometry": "./models/ownedGeometry.ts",
     "./entities/bodyClear": "./entities/bodyClear.ts",

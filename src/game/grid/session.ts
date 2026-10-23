@@ -27,6 +27,7 @@ import { BufferGeometry, Group, Mesh, Vector3, type Material, type Object3D } fr
 import { createRigLoader } from '@wildshard/engine/anim/rig';
 import * as v from 'valibot';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
+import { onPageEnvironment } from '@wildshard/engine/render/drawnEnvironment';
 import { versionedUrl } from '@wildshard/engine/boot/bytes';
 import { publicBytes } from '@wildshard/engine/boot/tables';
 import type { LevelSpec } from '@wildshard/engine/level/spec';
@@ -454,6 +455,9 @@ export class GridSession {
     // The normal world stage owns the home's sockets; this scope adds only rebased neighbours.
     installEntrySockets(host.physics, host.scope, this.neighbours.map((cell) => ({ x: cell.origin.x - nativeOrigin.origin.x, z: cell.origin.z - nativeOrigin.origin.z })));
     this.walls = new ReadinessWalls(host.physics, [...this.neighbours.flatMap((cell) => neighbourEdges(cell, nativeOrigin)), ...rimEdges(this.assembly, nativeOrigin)], host.scope);
+    // a cell's PMREM of a new cube height fading in (drawnEnvironment.ts): the road's views take its variants before it lights
+    // them (G639 desktop: Pine's 1024 and Nalati's 512 ring / road variants linked on the first road frame beside each)
+    host.scope.onDispose(onPageEnvironment(() => { this.prelinkViews(); }));
     // G72, one landmass: the home level's open water stays inside its own cell (its sea surface and its swell body)
     waterExtent.uWaterHalf.value = CHUNK_HALF;
     host.scope.onDispose(() => { waterExtent.uWaterHalf.value = WATER_UNBOUNDED; });
