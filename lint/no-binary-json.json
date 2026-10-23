@@ -382,10 +382,6 @@
       "base64Chars": 13048,
       "dataUris": 0
     },
-    "src/shards/nine-dragon-stack/data/castHook.generated.json": {
-      "base64Chars": 29394904,
-      "dataUris": 0
-    },
     "src/shards/nine-dragon-stack/data/glyphs.generated.json": {
       "base64Chars": 2037504,
       "dataUris": 0
@@ -396,10 +392,6 @@
     },
     "src/shards/nine-dragon-stack/data/lightSpill.generated.json": {
       "base64Chars": 52097036,
-      "dataUris": 0
-    },
-    "src/shards/nine-dragon-stack/data/paintArray.generated.json": {
-      "base64Chars": 46746040,
       "dataUris": 0
     },
     "src/shards/nine-dragon-stack/data/signAtlas.generated.json": {

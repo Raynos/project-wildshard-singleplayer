@@ -24,7 +24,9 @@ writeFileSync(resolve(root, 'src/shards/nine-dragon-stack/data/fixedKits.generat
   (_key, value) => typeof value === 'number' && Object.is(value, -0) ? '-0' : value)}\n`);
 
 writeFileSync(resolve(root, 'src/shards/nine-dragon-stack/data/deckFloors.generated.json'), `${JSON.stringify(floors)}\n`);
+const hook = await hookProduct(url => new Uint8Array(readFileSync(resolve(root, `public${url}`))));
+writeFileSync(resolve(root, 'src/shards/nine-dragon-stack/data/castHook.generated.glb'), hook.glb);
 writeFileSync(resolve(root, 'src/shards/nine-dragon-stack/data/castHook.generated.json'), `${JSON.stringify({
-  ...await hookProduct(url => new Uint8Array(readFileSync(resolve(root, `public${url}`)))),
-  casts: [...new Map([...casts, ...fixed.packs, ...lods])].map(([name, bytes]) => ({ name, glb: Buffer.from(bytes).toString('base64') })),
+  glb: 'castHook.generated.glb', material: hook.material,
+  casts: [...new Map([...casts, ...fixed.packs, ...lods])].map(([name]) => ({ name, file: `/assets/nine-dragon/baked/casts/${name}.glb` })),
 })}\n`);

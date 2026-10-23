@@ -9,7 +9,8 @@ import canopy from '../data/canopy.json' with { type: 'json' };
 import filament from '../data/filament.json' with { type: 'json' };
 
 const root = new URL('../../../../public/assets/nine-dragon/paint/', import.meta.url);
-const output = {};
+const output = {}, chunks = [];
+let byteOffset = 0;
 for (const [tier, size] of Object.entries(paint.sizes)) {
   const parts = [];
   for (const [layer, row] of paint.layers.entries()) {
@@ -34,12 +35,15 @@ for (const [tier, size] of Object.entries(paint.sizes)) {
     for (let i = 0; i < size * size; i++) data[i * 4 + 3] = alpha === null ? 128 : alpha[i * 4];
     for (let offset = 0; offset < data.length; offset += paint.chunkBytes) {
       const bytes = data.subarray(offset, offset + paint.chunkBytes);
-      parts.push({ layer, offset, packed: Buffer.from(deflateSync(bytes, { level: 9 })).toString('base64') });
+      const packed = deflateSync(bytes, { level: 9 });
+      parts.push({ layer, offset, byteOffset, byteLength: packed.length });
+      chunks.push(packed); byteOffset += packed.length;
     }
   }
   output[tier] = { size, layers: paint.layers.length, parts };
 }
 const writer = byteWriter(process.argv.includes('--check'), 'nine-paint-array');
+writer.put(fileURLToPath(new URL('../data/paintArray.generated.bin', import.meta.url)), Buffer.concat(chunks));
 writer.put(fileURLToPath(new URL('../data/paintArray.generated.json', import.meta.url)), JSON.stringify(output));
 const shape = value => Array.isArray(value) ? `readonly [${value.map(shape).join(',')}]`
   : value !== null && typeof value === 'object' ? `{${Object.entries(value).map(([key, child]) => `readonly ${JSON.stringify(key)}:${shape(child)}`).join(';')}}`

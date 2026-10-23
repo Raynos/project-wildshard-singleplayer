@@ -1,0 +1,695 @@
+{
+  "casts": [
+    {
+      "name": "dragon-hook",
+      "hash": "7410f5133b54262b057b968f20ce821e43d688018b0288ddc9dcd4cad6d45e06",
+      "length": 1039276
+    },
+    {
+      "name": "walker-dark",
+      "hash": "2cda07b5ef09a1ef009053df33db68b0c8dbd152edf349a6eaec9bcab5c5b484",
+      "length": 443496
+    },
+    {
+      "name": "walker-light",
+      "hash": "d8a22a0ca1fc7323583e78a1108ad070b09e988f75c531a657752991c7e353e9",
+      "length": 443500
+    },
+    {
+      "name": "sitter-dark",
+      "hash": "12bb8fd49616d7ff1290732475eeab7f827aff35e14d6af6769f0614692f4a12",
+      "length": 514776
+    },
+    {
+      "name": "sitter-light",
+      "hash": "b929c00b9e65e45a5bfb621874d3d69c919f53997e70d24bf6b5ef92f663e059",
+      "length": 514776
+    },
+    {
+      "name": "lion",
+      "hash": "9641d52383bb3d353724eca9fd5084edc7976a5f9c185d85c3b91eaf6e76dbac",
+      "length": 2593252
+    },
+    {
+      "name": "guard",
+      "hash": "4ff25071f8bd3f728a27e39049b4524cf827bf6c1e9f4791bb6c0c841f2beb8a",
+      "length": 1122068
+    },
+    {
+      "name": "entries-open",
+      "hash": "48ebcc3989092f33810625c0c5c7c1f6d9bf02332258cb398f6b84da5ce2aaa3",
+      "length": 54600
+    },
+    {
+      "name": "entries-capped",
+      "hash": "636cacf412781c2339f373b72da3ee55a194c49ebb4e9ea75da20e959f6cacc9",
+      "length": 658464
+    },
+    {
+      "name": "facade-signs",
+      "hash": "10311d0f2f61b47dc24533f1ba52e4f4090081f1bcfff7de1a58c4ed018cda9c",
+      "length": 36292
+    },
+    {
+      "name": "lion-mid10",
+      "hash": "29eaa0ee8c11279d4c7daa811f4d612137c68e81c8c0919603629f81891914e3",
+      "length": 2545876
+    },
+    {
+      "name": "lion-mid30",
+      "hash": "6dff641ecf84c672580840de25b01698c5f4799d7ec98b25b098b6fea668edd0",
+      "length": 2515324
+    },
+    {
+      "name": "dragon-hook-mid15",
+      "hash": "d788bf1b9f35d56dd2eb3922ae6b412e45b1b98a3660660229bf2f0178a218f1",
+      "length": 874764
+    },
+    {
+      "name": "dragon-hook-mid40",
+      "hash": "1116c294776d0fb27e917e713c27b8e5993da48cde4cbdadf8f09ec0bbd1c343",
+      "length": 863328
+    },
+    {
+      "name": "walker-dark-mid12",
+      "hash": "0f739829e73bf0e035703c929f935d9b2b00675dd4a162664cb0e31b628c70c5",
+      "length": 438540
+    },
+    {
+      "name": "walker-dark-mid22",
+      "hash": "abc448cdc0b2c6403feec9dbd129ba5f7e01fa2728419a2f6855a090b47032de",
+      "length": 435564
+    },
+    {
+      "name": "walker-dark-far",
+      "hash": "9d329fba887a732a2b65afc6e2984704570fdf0a0439ba79875b31da7601837e",
+      "length": 13488
+    },
+    {
+      "name": "walker-oxblood",
+      "hash": "08a458d11a597c6eecf4a32d9860aac4acb276f8eb8c6121d72a9dd51414221d",
+      "length": 443504
+    },
+    {
+      "name": "walker-oxblood-mid12",
+      "hash": "4ba3706cf0518ae992b392f5b321484da792038d36dc9371d70c4d3d3212f711",
+      "length": 438548
+    },
+    {
+      "name": "walker-oxblood-mid22",
+      "hash": "edad825d7d92a2ae944722beae6fcbcc645e6e57ab34b017c836d41eb76d5fdd",
+      "length": 435568
+    },
+    {
+      "name": "walker-oxblood-far",
+      "hash": "606dc7680e7739d36f850d5d61acff281caa5bd86c91b1c2b15a64b68593ea39",
+      "length": 13492
+    },
+    {
+      "name": "walker-blue",
+      "hash": "d74d0ba70fd30c62995d7495f4352a7be1cac25ac41f4f7f2f2107a3d219b0f2",
+      "length": 443496
+    },
+    {
+      "name": "walker-blue-mid12",
+      "hash": "d64b6dbeab3e836d71c8f0fe9b5c7238a256f98d3aeafe046833eddc3968bea0",
+      "length": 438540
+    },
+    {
+      "name": "walker-blue-mid22",
+      "hash": "4642d7d2ea9183caadc26a5dcd2935cba12950b6f94db2107a733e0edf1207bc",
+      "length": 435564
+    },
+    {
+      "name": "walker-blue-far",
+      "hash": "e1bd61fbb0782d9a67a5707d90dc1ef4757dc3a7b095f63b4d1a67850bce747c",
+      "length": 13488
+    },
+    {
+      "name": "walker-light-mid12",
+      "hash": "5a9c3c03cb8c7b0088872459be58977d95aa9798e359ac95ac392ed8ad836faf",
+      "length": 438544
+    },
+    {
+      "name": "walker-light-mid22",
+      "hash": "b470465aaf7c3563e589dce44306566f61ef884f88ae9ec61db4d5d2ef7a2961",
+      "length": 435564
+    },
+    {
+      "name": "walker-light-far",
+      "hash": "56d11303e75cee2ad0d958450caef7342f1321fbd2d266339bde013a7287a86a",
+      "length": 13488
+    },
+    {
+      "name": "walker-paper",
+      "hash": "fb92f59763b03500366e28d4131f614c31ad37bb6dcaf33a6b5cd518cfc43cba",
+      "length": 443500
+    },
+    {
+      "name": "walker-paper-mid12",
+      "hash": "b51e5ad1714b185e539967feabe51eac27e22714ece1e6b932808410cd6de6da",
+      "length": 438544
+    },
+    {
+      "name": "walker-paper-mid22",
+      "hash": "605f5408b90734f73d63c2ee2f606390ab30a0de04243126a55e8f29b7f10b1c",
+      "length": 435564
+    },
+    {
+      "name": "walker-paper-far",
+      "hash": "1970a530497edee86d69a5e2a5a4759c59638a4ee98880144d1114eb2e89fd34",
+      "length": 13488
+    },
+    {
+      "name": "sitter-dark-mid12",
+      "hash": "6ba8509a464ef831c1b5294fc0bc248271a25dd36c8c18f55477eca1831c3f06",
+      "length": 510072
+    },
+    {
+      "name": "sitter-dark-mid22",
+      "hash": "8ab4db0bd3052cb578a87acfbe32d36502f28618fd6bd055154a4da137101bb9",
+      "length": 504636
+    },
+    {
+      "name": "sitter-dark-far",
+      "hash": "996aeb3ed1ec521011e01f560a9c543f98d568497d91591c6d602bc74eef51ee",
+      "length": 14228
+    },
+    {
+      "name": "sitter-light-mid12",
+      "hash": "ad580299d7b37ab50151953c01530bbdfd5fe0c458686792cafc212c59bbb0c1",
+      "length": 510072
+    },
+    {
+      "name": "sitter-light-mid22",
+      "hash": "2b883f40f6887eae09a118333233e6e2ea9c8b2e0b52bf6e58089e0e54e3e486",
+      "length": 504636
+    },
+    {
+      "name": "sitter-light-far",
+      "hash": "44d3a40621168a301cbab682f87b452ec294ddae8dae8b34b89765f1e2af5b8a",
+      "length": 14232
+    }
+  ],
+  "paint": {
+    "hash": "b103bd277266ae53eb282cca201456f7fe12d809d20004f18e192296cd8fde5e",
+    "length": 35059269,
+    "chunks": 252
+  },
+  "castFiles": [
+    {
+      "name": "geometry/casts/walker-dark.glb",
+      "path": "blobs/glb/45c5d220a10ff7e9adf38c57f26cfbb2162a395f46761e3cfbb9981aa756a726.glb",
+      "kind": "glb",
+      "hash": "45c5d220a10ff7e9adf38c57f26cfbb2162a395f46761e3cfbb9981aa756a726",
+      "compressed": 128928,
+      "decoded": 570512,
+      "gpu": 441612,
+      "triangles": 1363,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/walker-light.glb",
+      "path": "blobs/glb/6e0693c1c34443960368285294027a2414f0637a1ec541c288b31011b72320d1.glb",
+      "kind": "glb",
+      "hash": "6e0693c1c34443960368285294027a2414f0637a1ec541c288b31011b72320d1",
+      "compressed": 128856,
+      "decoded": 570440,
+      "gpu": 441612,
+      "triangles": 1363,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/walker-oxblood.glb",
+      "path": "blobs/glb/41df8b0b41a3a3e51871c46bd93302aa14ec6284f6709cdccc39d0324877c34b.glb",
+      "kind": "glb",
+      "hash": "41df8b0b41a3a3e51871c46bd93302aa14ec6284f6709cdccc39d0324877c34b",
+      "compressed": 129436,
+      "decoded": 571020,
+      "gpu": 441612,
+      "triangles": 1363,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/walker-paper.glb",
+      "path": "blobs/glb/43376680c527a5c35b2e1f4010f3862c9fde193255583870518d4c7a55427f6c.glb",
+      "kind": "glb",
+      "hash": "43376680c527a5c35b2e1f4010f3862c9fde193255583870518d4c7a55427f6c",
+      "compressed": 129372,
+      "decoded": 570956,
+      "gpu": 441612,
+      "triangles": 1363,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/walker-blue.glb",
+      "path": "blobs/glb/d12d40e2f5e463b40dddafde010b3b7807825d2aabe9604e401d6ef5c60779c8.glb",
+      "kind": "glb",
+      "hash": "d12d40e2f5e463b40dddafde010b3b7807825d2aabe9604e401d6ef5c60779c8",
+      "compressed": 129504,
+      "decoded": 571088,
+      "gpu": 441612,
+      "triangles": 1363,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/sitter-dark.glb",
+      "path": "blobs/glb/6052dfc72038b5be2abc1228733fe659b1924d5f6f52cad286d10578efa1cf39.glb",
+      "kind": "glb",
+      "hash": "6052dfc72038b5be2abc1228733fe659b1924d5f6f52cad286d10578efa1cf39",
+      "compressed": 149968,
+      "decoded": 662832,
+      "gpu": 512892,
+      "triangles": 1583,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/sitter-light.glb",
+      "path": "blobs/glb/07b5381ce856a61ac569169064b876236c11050d40f7fb0fc9005c02d3130bc9.glb",
+      "kind": "glb",
+      "hash": "07b5381ce856a61ac569169064b876236c11050d40f7fb0fc9005c02d3130bc9",
+      "compressed": 149936,
+      "decoded": 662800,
+      "gpu": 512892,
+      "triangles": 1583,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/lion.glb",
+      "path": "blobs/glb/d2f8ac5c9929919be4a1d0a260e1c37b786a99a0089c8c84a21f9228c781c5cb.glb",
+      "kind": "glb",
+      "hash": "d2f8ac5c9929919be4a1d0a260e1c37b786a99a0089c8c84a21f9228c781c5cb",
+      "compressed": 734792,
+      "decoded": 3326116,
+      "gpu": 2591352,
+      "triangles": 7998,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/entries-open.glb",
+      "path": "blobs/glb/1788e0f33010bdb850c192d08772de280d8a1e65bfba0823d785b5d449bf8a0a.glb",
+      "kind": "glb",
+      "hash": "1788e0f33010bdb850c192d08772de280d8a1e65bfba0823d785b5d449bf8a0a",
+      "compressed": 14828,
+      "decoded": 67600,
+      "gpu": 52800,
+      "triangles": 240,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/entries-capped.glb",
+      "path": "blobs/glb/4bcc21ba31192aee3e64586cd7482f61ed4c6bf0830865dc3be80b5e5a7d1b54.glb",
+      "kind": "glb",
+      "hash": "4bcc21ba31192aee3e64586cd7482f61ed4c6bf0830865dc3be80b5e5a7d1b54",
+      "compressed": 145036,
+      "decoded": 801520,
+      "gpu": 656512,
+      "triangles": 2848,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/facade-signs.glb",
+      "path": "blobs/glb/efd0c545ca0f8aa44170bdf3517a2870ab4b6d088499c57074e50b93e13058a4.glb",
+      "kind": "glb",
+      "hash": "efd0c545ca0f8aa44170bdf3517a2870ab4b6d088499c57074e50b93e13058a4",
+      "compressed": 10696,
+      "decoded": 44988,
+      "gpu": 34320,
+      "triangles": 156,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/lion-mid10.glb",
+      "path": "blobs/glb/95c55f0b5acd948c41c3948981373b8bbcdef92ae575e6e2a80a0840e8c138a7.glb",
+      "kind": "glb",
+      "hash": "95c55f0b5acd948c41c3948981373b8bbcdef92ae575e6e2a80a0840e8c138a7",
+      "compressed": 729204,
+      "decoded": 3273140,
+      "gpu": 2543964,
+      "triangles": 4049,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/lion-mid30.glb",
+      "path": "blobs/glb/d794f9b0e808bff3ef98999dd27ae616739304d20fee77bd76d0af4c39d2d8d1.glb",
+      "kind": "glb",
+      "hash": "d794f9b0e808bff3ef98999dd27ae616739304d20fee77bd76d0af4c39d2d8d1",
+      "compressed": 718860,
+      "decoded": 3232244,
+      "gpu": 2513412,
+      "triangles": 1503,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/dragon-hook-mid15.glb",
+      "path": "blobs/glb/471e5afe0710d85746fa4ccc2e814b107678d0795e92b749333b5d8ecb4c8e40.glb",
+      "kind": "glb",
+      "hash": "471e5afe0710d85746fa4ccc2e814b107678d0795e92b749333b5d8ecb4c8e40",
+      "compressed": 626208,
+      "decoded": 1499516,
+      "gpu": 873336,
+      "triangles": 1278,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/dragon-hook-mid40.glb",
+      "path": "blobs/glb/6549453fc946fd6a4f4a7198b9bf2c75db9dcbec6ddfad21cd51bd57e672ff49.glb",
+      "kind": "glb",
+      "hash": "6549453fc946fd6a4f4a7198b9bf2c75db9dcbec6ddfad21cd51bd57e672ff49",
+      "compressed": 622056,
+      "decoded": 1483928,
+      "gpu": 861900,
+      "triangles": 325,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/walker-dark-mid12.glb",
+      "path": "blobs/glb/0039688fd8c3fb944b2e0b378ef47eefa84c86d82018822e877520ff5cd4df22.glb",
+      "kind": "glb",
+      "hash": "0039688fd8c3fb944b2e0b378ef47eefa84c86d82018822e877520ff5cd4df22",
+      "compressed": 128360,
+      "decoded": 564976,
+      "gpu": 436644,
+      "triangles": 949,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/walker-dark-mid22.glb",
+      "path": "blobs/glb/ef65ce2ae6f2bcbd523da6b2eb109eb9c6478705d336bca24a59758ee2238072.glb",
+      "kind": "glb",
+      "hash": "ef65ce2ae6f2bcbd523da6b2eb109eb9c6478705d336bca24a59758ee2238072",
+      "compressed": 127524,
+      "decoded": 561164,
+      "gpu": 433668,
+      "triangles": 701,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/walker-dark-far.glb",
+      "path": "blobs/glb/fccd8bfde791b566a305673b4520ef5ce3cbff1b568cb71e572e36a01e883943.glb",
+      "kind": "glb",
+      "hash": "fccd8bfde791b566a305673b4520ef5ce3cbff1b568cb71e572e36a01e883943",
+      "compressed": 7176,
+      "decoded": 18768,
+      "gpu": 11620,
+      "triangles": 223,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/walker-light-mid12.glb",
+      "path": "blobs/glb/ef649761e26b92d6c32e72623411604375f30abc1b4494a40d27e31cc089e650.glb",
+      "kind": "glb",
+      "hash": "ef649761e26b92d6c32e72623411604375f30abc1b4494a40d27e31cc089e650",
+      "compressed": 128288,
+      "decoded": 564904,
+      "gpu": 436644,
+      "triangles": 949,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/walker-light-mid22.glb",
+      "path": "blobs/glb/1eafdd4159fd1536923e3e2fc9a935914840c29c5ec9bc10676fe0551cc88d3a.glb",
+      "kind": "glb",
+      "hash": "1eafdd4159fd1536923e3e2fc9a935914840c29c5ec9bc10676fe0551cc88d3a",
+      "compressed": 127452,
+      "decoded": 561092,
+      "gpu": 433668,
+      "triangles": 701,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/walker-light-far.glb",
+      "path": "blobs/glb/48633b884e2036a608f544971edccf55454e6ae4209d1ea060a0c8167f5524f0.glb",
+      "kind": "glb",
+      "hash": "48633b884e2036a608f544971edccf55454e6ae4209d1ea060a0c8167f5524f0",
+      "compressed": 7164,
+      "decoded": 18756,
+      "gpu": 11620,
+      "triangles": 223,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/walker-oxblood-mid12.glb",
+      "path": "blobs/glb/60ea78d4e13847d1a9d570c22e49b24442611a0b4e367c166485959e4371fa87.glb",
+      "kind": "glb",
+      "hash": "60ea78d4e13847d1a9d570c22e49b24442611a0b4e367c166485959e4371fa87",
+      "compressed": 128868,
+      "decoded": 565484,
+      "gpu": 436644,
+      "triangles": 949,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/walker-oxblood-mid22.glb",
+      "path": "blobs/glb/1f962cadff2db471d84251d8cb4517593094528df7acbfe63631dc4dd5e11bf4.glb",
+      "kind": "glb",
+      "hash": "1f962cadff2db471d84251d8cb4517593094528df7acbfe63631dc4dd5e11bf4",
+      "compressed": 128032,
+      "decoded": 561672,
+      "gpu": 433668,
+      "triangles": 701,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/walker-oxblood-far.glb",
+      "path": "blobs/glb/850efc3ea58af009e005670915a32cc23a8b0d7d8d22c83448060b5645e36838.glb",
+      "kind": "glb",
+      "hash": "850efc3ea58af009e005670915a32cc23a8b0d7d8d22c83448060b5645e36838",
+      "compressed": 7200,
+      "decoded": 18792,
+      "gpu": 11620,
+      "triangles": 223,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/walker-paper-mid12.glb",
+      "path": "blobs/glb/043ddae581e1ecf758c97cf808c2b3084ad882bf2a9cb81faa470b6f93d68009.glb",
+      "kind": "glb",
+      "hash": "043ddae581e1ecf758c97cf808c2b3084ad882bf2a9cb81faa470b6f93d68009",
+      "compressed": 128804,
+      "decoded": 565420,
+      "gpu": 436644,
+      "triangles": 949,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/walker-paper-mid22.glb",
+      "path": "blobs/glb/74123b1561232050afdc96afe73fa4b9401311c09ba2dd5dcdc62598e2ed598d.glb",
+      "kind": "glb",
+      "hash": "74123b1561232050afdc96afe73fa4b9401311c09ba2dd5dcdc62598e2ed598d",
+      "compressed": 127968,
+      "decoded": 561608,
+      "gpu": 433668,
+      "triangles": 701,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/walker-paper-far.glb",
+      "path": "blobs/glb/6b658c1bcb919a6e2341eb87877615e40b50b056b8326ea5887bbd5953d2c9aa.glb",
+      "kind": "glb",
+      "hash": "6b658c1bcb919a6e2341eb87877615e40b50b056b8326ea5887bbd5953d2c9aa",
+      "compressed": 7188,
+      "decoded": 18780,
+      "gpu": 11620,
+      "triangles": 223,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/walker-blue-mid12.glb",
+      "path": "blobs/glb/983ea9a2d0c93e5fcae779f0b0fb188bf7886d90ee14af47a23560ff2e81dd11.glb",
+      "kind": "glb",
+      "hash": "983ea9a2d0c93e5fcae779f0b0fb188bf7886d90ee14af47a23560ff2e81dd11",
+      "compressed": 128936,
+      "decoded": 565552,
+      "gpu": 436644,
+      "triangles": 949,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/walker-blue-mid22.glb",
+      "path": "blobs/glb/9269af1002417c5fbf09c10bc1215c0f60575e3074668764d174ef42881779c0.glb",
+      "kind": "glb",
+      "hash": "9269af1002417c5fbf09c10bc1215c0f60575e3074668764d174ef42881779c0",
+      "compressed": 128100,
+      "decoded": 561740,
+      "gpu": 433668,
+      "triangles": 701,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/walker-blue-far.glb",
+      "path": "blobs/glb/954d4a2c681fa9b4739d40bd5270b92609cb372c16bf5d6dbf2db7b4f7a7fda3.glb",
+      "kind": "glb",
+      "hash": "954d4a2c681fa9b4739d40bd5270b92609cb372c16bf5d6dbf2db7b4f7a7fda3",
+      "compressed": 7196,
+      "decoded": 18788,
+      "gpu": 11620,
+      "triangles": 223,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/sitter-dark-mid12.glb",
+      "path": "blobs/glb/2c123219c172f7cea98bc2743ffc5082b5ac5597e6a92fc71de623dd2884f9c4.glb",
+      "kind": "glb",
+      "hash": "2c123219c172f7cea98bc2743ffc5082b5ac5597e6a92fc71de623dd2884f9c4",
+      "compressed": 149948,
+      "decoded": 658096,
+      "gpu": 508176,
+      "triangles": 1190,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/sitter-dark-mid22.glb",
+      "path": "blobs/glb/420a0b05108ea595b2ff09108f3c3f6f711cb3653d4e967986609fc5ed614b7f.glb",
+      "kind": "glb",
+      "hash": "420a0b05108ea595b2ff09108f3c3f6f711cb3653d4e967986609fc5ed614b7f",
+      "compressed": 148344,
+      "decoded": 651056,
+      "gpu": 502740,
+      "triangles": 737,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/sitter-dark-far.glb",
+      "path": "blobs/glb/1632541eddf0a062aa5b1b79752ca1a78942a3fad959e0a2bd5b977491fcc377.glb",
+      "kind": "glb",
+      "hash": "1632541eddf0a062aa5b1b79752ca1a78942a3fad959e0a2bd5b977491fcc377",
+      "compressed": 7404,
+      "decoded": 19732,
+      "gpu": 12356,
+      "triangles": 215,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/sitter-light-mid12.glb",
+      "path": "blobs/glb/f2ebbf7997bccb7994317ea0fa6aa5a45257b702f4cf7c199905b648e5740161.glb",
+      "kind": "glb",
+      "hash": "f2ebbf7997bccb7994317ea0fa6aa5a45257b702f4cf7c199905b648e5740161",
+      "compressed": 149916,
+      "decoded": 658064,
+      "gpu": 508176,
+      "triangles": 1190,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/sitter-light-mid22.glb",
+      "path": "blobs/glb/a59530273b317b967d5b5e4b9e13c0a721de9a397720cbede63dc79ea456d37a.glb",
+      "kind": "glb",
+      "hash": "a59530273b317b967d5b5e4b9e13c0a721de9a397720cbede63dc79ea456d37a",
+      "compressed": 148308,
+      "decoded": 651020,
+      "gpu": 502740,
+      "triangles": 737,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/casts/sitter-light-far.glb",
+      "path": "blobs/glb/620071d74437bfb470bd3d7a53c6b8cc71bc03ea718aaf3526b187469c557478.glb",
+      "kind": "glb",
+      "hash": "620071d74437bfb470bd3d7a53c6b8cc71bc03ea718aaf3526b187469c557478",
+      "compressed": 7384,
+      "decoded": 19712,
+      "gpu": 12356,
+      "triangles": 215,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "geometry/dragon-hook.glb",
+      "path": "blobs/glb/7410f5133b54262b057b968f20ce821e43d688018b0288ddc9dcd4cad6d45e06.glb",
+      "kind": "glb",
+      "hash": "7410f5133b54262b057b968f20ce821e43d688018b0288ddc9dcd4cad6d45e06",
+      "compressed": 1039276,
+      "decoded": 1039248,
+      "gpu": 1037434,
+      "triangles": 17989,
+      "draws": 2,
+      "critical": false,
+      "dependencies": []
+    },
+    {
+      "name": "world/casts.json",
+      "path": "blobs/json/ff01b492774fe5cb1741d104364817bcf5b26938981f62ced7bbad253dde0e14.json",
+      "kind": "json",
+      "hash": "ff01b492774fe5cb1741d104364817bcf5b26938981f62ced7bbad253dde0e14",
+      "compressed": 418,
+      "decoded": 418,
+      "gpu": 0,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    }
+  ]
+}

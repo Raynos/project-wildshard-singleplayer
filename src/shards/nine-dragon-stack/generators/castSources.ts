@@ -1,3 +1,7 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Build-only intake reads the retained GLB outputs directly.
+import { readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Resolve author files without Vite rewriting them as browser asset URLs.
+import {resolve} from 'node:path';
 import hook from '../data/castHook.generated.json' with { type: 'json' };
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { compressGlb } from '@wildshard/sdk/bake/glbCompression';
@@ -30,12 +34,13 @@ export const CAST_WELD = { id: 'casts', file: 'world/casts.json' };
 // and the hook's brass over its colour and normal maps
 export const CAST_MATERIALS = [{ id: 'hook-source', kind: 'source', url: '/assets/nine-dragon/lab/grapple/dragon-hook.glb', anisotropyMaps: [], gpuOnlyMaps: true },
   { id: 'casts.hook-brass', kind: 'mapped', material: { kind: 'standard', source: { material: 'hook-source', maps: ['map', 'normalMap'] }, properties: hook.material } }];
-const hookBytes = Uint8Array.from(atob(hook.glb), value => value.codePointAt(0) ?? 0);
-const bytes = new Map(hook.casts.map(row => [row.name, row.glb]));
+const source = resolve(import.meta.dirname, '..');
+const hookBytes = new Uint8Array(readFileSync(resolve(source,'data',hook.glb)));
+const files = new Map(hook.casts.map(row => [row.name, row.file]));
 const geometryBlobs = [...names.map(name => {
-  const glb = bytes.get(name);
-  if (glb === undefined) throw new Error(`Missing prepared Nine cast ${name}`);
-  return nameBlob(`geometry/casts/${name}.glb`, 'glb', compressGlb(Uint8Array.from(atob(glb), value => value.codePointAt(0) ?? 0)));
+  const file = files.get(name);
+  if (file === undefined) throw new Error(`Missing prepared Nine cast ${name}`);
+  return nameBlob(`geometry/casts/${name}.glb`, 'glb', compressGlb(new Uint8Array(readFileSync(resolve(source,'../../..',`public${file}`)))));
 }), nameBlob('geometry/dragon-hook.glb', 'glb', hookBytes)];
 /** a cast the world-scenes catalogue draws (the guardian lion, the crowd, the Fei Zhua hook), with its prepared levels */
 const migrated = (name: string): boolean => name === 'lion' || name.startsWith('lion-') || name.startsWith('dragon-hook-') || crowd.some(key => name === key || name.startsWith(`${key}-`));

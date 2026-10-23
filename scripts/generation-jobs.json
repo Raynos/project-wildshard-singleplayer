@@ -10907,7 +10907,8 @@
         "public/assets/nine-dragon/baked/casts/walker-oxblood.glb",
         "public/assets/nine-dragon/baked/casts/walker-paper.glb",
         "public/assets/nine-dragon/baked/casts/walker-blue.glb",
-        "src/shards/nine-dragon-stack/data/castHook.generated.json"
+        "src/shards/nine-dragon-stack/data/castHook.generated.json",
+        "src/shards/nine-dragon-stack/data/castHook.generated.glb"
       ],
       "buildTimeOutputs": [
         "public/assets/nine-dragon/baked/casts/walker-dark.glb",
@@ -10949,7 +10950,8 @@
         "public/assets/nine-dragon/baked/casts/walker-oxblood.glb",
         "public/assets/nine-dragon/baked/casts/walker-paper.glb",
         "public/assets/nine-dragon/baked/casts/walker-blue.glb",
-        "src/shards/nine-dragon-stack/data/castHook.generated.json"
+        "src/shards/nine-dragon-stack/data/castHook.generated.json",
+        "src/shards/nine-dragon-stack/data/castHook.generated.glb"
       ],
       "platform": "portable",
       "catalogueDependencies": [
@@ -21179,14 +21181,16 @@
         "src/shards/nine-dragon-stack/data/paint.d.json.ts",
         "src/shards/nine-dragon-stack/data/light.d.json.ts",
         "src/shards/nine-dragon-stack/data/canopy.d.json.ts",
-        "src/shards/nine-dragon-stack/data/filament.d.json.ts"
+        "src/shards/nine-dragon-stack/data/filament.d.json.ts",
+        "src/shards/nine-dragon-stack/data/paintArray.generated.bin"
       ],
       "buildTimeOutputs": [
         "src/shards/nine-dragon-stack/data/paintArray.generated.json",
         "src/shards/nine-dragon-stack/data/paint.d.json.ts",
         "src/shards/nine-dragon-stack/data/light.d.json.ts",
         "src/shards/nine-dragon-stack/data/canopy.d.json.ts",
-        "src/shards/nine-dragon-stack/data/filament.d.json.ts"
+        "src/shards/nine-dragon-stack/data/filament.d.json.ts",
+        "src/shards/nine-dragon-stack/data/paintArray.generated.bin"
       ],
       "platform": "portable"
     },

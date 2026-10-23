@@ -126,12 +126,13 @@ test('halo discs compile with additive alpha preservation inside the existing ca
 
 test('paint chunks cover every layer exactly with a neutral unmasked alpha', () => {
   const natural=v.pipe(v.number(),v.integer(),v.minValue(0));
-  const chunks=v.strictObject({size:v.pipe(natural,v.minValue(1),v.maxValue(8192)),layers:v.pipe(natural,v.minValue(1),v.maxValue(256)),parts:v.array(v.strictObject({layer:natural,offset:natural,packed:v.string()}))});
+  const chunks=v.strictObject({size:v.pipe(natural,v.minValue(1),v.maxValue(8192)),layers:v.pipe(natural,v.minValue(1),v.maxValue(256)),parts:v.array(v.strictObject({layer:natural,offset:natural,byteOffset:natural,byteLength:natural}))});
   const paintArray=v.parse(v.strictObject({phone:chunks,desktop:chunks}),JSON.parse(readFileSync(new URL('../src/shards/nine-dragon-stack/data/paintArray.generated.json',import.meta.url),'utf8')));
+  const packed = readFileSync('src/shards/nine-dragon-stack/data/paintArray.generated.bin');
   for (const row of Object.values(paintArray)) {
     const ends = Array.from({ length: row.layers }, () => 0);
     for (const part of row.parts) {
-      const bytes = unzlibSync(Uint8Array.from(atob(part.packed), char => char.codePointAt(0) ?? 0));
+      const bytes = unzlibSync(packed.subarray(part.byteOffset,part.byteOffset+part.byteLength));
       expect(part.offset).toBe(ends[part.layer]);
       expect(bytes.length).toBe(Math.min(196608, row.size * row.size * 4 - part.offset));
       ends[part.layer] = part.offset + bytes.length;
