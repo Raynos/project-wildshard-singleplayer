@@ -1,3 +1,6 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- read the original native proof input without inferring its full generated JSON type
+import {readFileSync} from 'node:fs';
+import * as v from 'valibot';
 import { loadHeadlessProduct } from '../../../src/sdk/headlessProduct';
 // oxlint-disable-next-line import/no-nodejs-modules -- The witness refuses incomplete native gameplay rather than report a passing flag.
 import assert from 'node:assert/strict';
@@ -9,10 +12,15 @@ import type { HeadlessCommand } from '../../../src/sdk/tickProtocol';
 import source from '../../../src/shards/nalati-grasslands/shard.config';
 import { prepareHeadlessRuntime } from '../../fixtures/nalati-headless';
 import { readPopulationBake } from '../../../src/game/population/nativeBake';
-import physics from '../../../src/shards/nalati-grasslands/data/physics.generated.json' with {type:'json'};
 import { nativeTamingOf } from '@wildshard/game/riding/nativeTaming';
 import { mountedPlayerOf } from '@wildshard/game/riding/native';
 import { canonicalSimDigest } from '../../fake/simState';
+
+const physics=(()=>{
+ const rows:unknown=JSON.parse(readFileSync('src/shards/nalati-grasslands/data/physics.generated.json','utf8'));
+ const finite=v.pipe(v.number(),v.finite());
+ v.assert(v.object({spawns:v.array(v.object({id:v.string(),at:v.pipe(v.array(finite),v.length(3))}))}),rows);return rows;
+})();
 
 const nalatiBake=()=>readPopulationBake(physics,{label:'Nalati',resolution:256,size:500});
 
