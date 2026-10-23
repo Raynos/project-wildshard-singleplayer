@@ -7825,6 +7825,20 @@ respawn rules remain each row's `def`; `eliteBindings()` lends the original pins
 and decision/act bindings to the manager's one body step. Adoption validates the
 same native reward before applying its scale, win and detach operations.
 
+`engine/ai/eliteRoster.NativeEliteRoster` admits ordered native/borrowed roles,
+original definitions, member/save rows and native profile rows before construction.
+It constructs native controllers until `borrowedIndex`, where the original lender
+constructs and lends the same concrete member, script and controller through
+`bindBorrowed(index, member, script)`. Native construction then resumes at the
+next row. `install()` registers the complete bank on the original Core in row
+order, followed by its original host step and continuation adapter. No authored
+factory, new clock or save owner is introduced. `scripts` refuses an incomplete
+bank and freezes the completed array without replacing its scripts. Construction,
+registration, initialization and update pin the same host, Core, scope, clock,
+rows, group arrays, native owners and callable identities. `initialize()` and
+`bindPopulation(owner)` retain their original late assembly slots. Borrowed
+controllers retain their decisions, adoption effects and historical save wire.
+
 `engine/ai/eliteLifecycle.NativeEliteLifecycle` drives native boot adoption,
 allocated respawn, initial memory, pack placement/home assignment, retirement,
 reset and kernel advancement from rows over the original mutable member. The

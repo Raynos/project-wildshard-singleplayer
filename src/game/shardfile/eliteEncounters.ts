@@ -1,12 +1,12 @@
 import * as v from 'valibot';
 import { isJsonData } from '@wildshard/format/json';
 import { ReturnProgram } from '../population/returnProgram';
-import { NativeEliteContinuation, type EliteContinuationGroups } from '@wildshard/engine/ai/eliteContinuation';
+import type { EliteContinuationGroups } from '@wildshard/engine/ai/eliteContinuation';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost } from '@wildshard/engine/sim';
-import { NativeEliteKernels, type NativeEliteKernelLoans } from '@wildshard/engine/ai/eliteKernels';
-import { NativeEliteLifecycle, type NativeElitePopulation } from '@wildshard/engine/ai/eliteLifecycle';
-import type { StalkerBrain } from '@wildshard/engine/ai/stalker';
+import type { NativeEliteKernelLoans } from '@wildshard/engine/ai/eliteKernels';
+import type { NativeElitePopulation } from '@wildshard/engine/ai/eliteLifecycle';
+import { NativeEliteRoster } from '@wildshard/engine/ai/eliteRoster';
 import type { PackBrain } from '@wildshard/engine/ai/pack';
 import { EliteCore, type EliteCoreDef, type EliteCoreScript } from '../eliteSystem';
 
@@ -87,7 +87,7 @@ export class HerdEliteProjection {
 }
 
 interface Member { readonly row: EliteEncounterRow; animal: AnimalSim | null; phase2: boolean; pack: PackBrain<AnimalSim> | null; adopted: boolean; detached: boolean;
-  readonly controller: StalkerBrain<AnimalSim> | HerdEliteProjection }
+  readonly controller: HerdEliteProjection }
 
 /** Install ordered named encounters on EliteCore. Shared ownership covers spawn/adoption, script/keeper continuation,
  * pack rebind, root effects and declared permanent detachment. Controllers retain fight decisions and clocks.
@@ -98,26 +98,18 @@ export function installEliteEncounters(host: SimHost, spec: EliteEncounterSpec):
 } {
   const core = spec.core;
   if (!(core instanceof EliteCore) || Object.getPrototypeOf(core) !== EliteCore.prototype || core.player !== host.player || core.entries.length > 0) throw new Error('Foreign or populated native elite core');
-  const ports = spec.ports, rows = spec.rows ?? [], members: Member[] = [];
-  const kernels = ports?.kernels === undefined ? null : new NativeEliteKernels(ports.kernels.rows, {
-    ...ports.kernels, host, scope: host.scope, lifecycle: core, brains: ports.bindings.brains,
-  });
-  const nativeIds = rows.filter(row => row.keeper !== 'herd').map(row => row.def.id);
-  if (nativeIds.length !== (kernels?.declaredRows.length ?? 0) || nativeIds.some(id => !kernels?.declaredRows.some(row => row.id === id))) throw new Error('Incomplete native elite kernels');
-  const lifecycle = kernels === null || ports === undefined ? null : new NativeEliteLifecycle(rows.filter(row => row.keeper === 'kernel'), { host, kernels, bindings: ports.bindings });
-  const nativeScripts: EliteCoreScript<AnimalSim>[] = [];
-  for (const row of rows) {
-    if (ports === undefined) throw new Error('Encounter rows need native body authority');
-    const def = row.def;
-    const signature = (): void => { core.signature(def.id); };
-    const live: { animal: AnimalSim | null; phase2: boolean; pack: PackBrain<AnimalSim> | null; adopted: boolean; detached: boolean } = { animal: null, phase2: false, pack: null, adopted: false, detached: false };
-    if (row.keeper === 'kernel') {
-      if (lifecycle === null) throw new Error('Missing native elite lifecycle');
-      const { controller, script } = lifecycle.create(def, live);
-      members.push(Object.assign(live, { row, controller })); nativeScripts.push(script); continue;
-    }
+  const ports = spec.ports, rows = spec.rows ?? [];
+  if (ports === undefined) throw new Error('Encounter rows need native body authority');
+  if (!isJsonData(rows)) throw new Error('Encounter rows require plain JSON');
+  const roster = new NativeEliteRoster({ step: spec.step, version: spec.version, wire: spec.wire, rows,
+    roles: rows.map(row => row.keeper === 'kernel' ? 'native' : 'borrowed'), kernels: ports.kernels?.rows ?? [] },
+    { host, core, bindings: ports.bindings, ...(ports.kernels === undefined ? {} : { kernel: ports.kernels }), ...(ports.groups === undefined ? {} : { groups: ports.groups }) });
+  for (let index = roster.borrowedIndex; index !== null; index = roster.borrowedIndex) {
+    const row = rows[index]; if (row?.keeper !== 'herd') throw new Error('Missing borrowed encounter row');
+    const def = row.def, signature = (): void => { core.signature(def.id); };
+    const live = { animal: null, phase2: false, pack: null, adopted: false, detached: false };
     const herdRows = ports.keepers.herd, controller = new HerdEliteProjection(herdRows.rows, ReturnProgram.native(host, herdRows.program));
-    const member: Member = Object.assign(live, { row, controller }); members.push(member);
+    const member: Member = Object.assign(live, { row, controller });
     const script: EliteCoreScript<AnimalSim> = {
       def, get animal() { return member.animal; },
       spawn: () => {
@@ -145,13 +137,8 @@ export function installEliteEncounters(host: SimHost, spec: EliteEncounterSpec):
         }
       },
     };
-    nativeScripts.push(script);
+    roster.bindBorrowed(index, member, script);
   }
-  const scripts = nativeScripts;
-  if (scripts.length === 0 || new Set(scripts.map(s => s.def.id)).size !== scripts.length) throw new Error('Invalid encounter roster');
-  scripts.forEach(s => { core.add(s); });
-  const continuation = new NativeEliteContinuation({ version: spec.version, wire: spec.wire, rows },
-    { host, core, members, bindings: ports?.bindings ?? eliteBindings(), kernels, ...(lifecycle === null ? {} : { lifecycle }), ...(ports?.groups === undefined ? {} : { groups: ports.groups }) });
-  host.onStep(spec.step, dt => { core.update(dt, host.clock.now); }, continuation);
-  return { core, scripts, initialize: () => { lifecycle?.validate(); core.initialize(); }, bindPopulation: population => { lifecycle?.bindPopulation(population); } };
+  roster.install();
+  return { core, scripts: roster.scripts, initialize: () => { roster.initialize(); }, bindPopulation: population => { roster.bindPopulation(population); } };
 }
