@@ -15,6 +15,7 @@ import { lendLooks } from './lentLooks';
 import { installWorldScenes } from './worldScenes';
 import { residentBakedTiles } from './bakedTiles';
 import { publishEntryOwner, lendEntryOwner, entryOwner } from './entryOwners';
+import { timeClientPreparation } from './preparationTiming';
 
 const enteredScopes = new WeakSet<ShardContext['scope']>();
 const residents = new WeakMap<IslandLibrary<unknown> | ShardProduct, {
@@ -44,13 +45,15 @@ export async function installClientWorldAssembly(ctx: ShardContext, row: Extract
       if (owner.disposed || owner.disposing || product.shardfile !== source || product.file !== read || product.json !== json || product.section('world/scenes') !== sceneRows || runtime.world !== world || ctx.game.runtime !== runtime || ctx.product !== product || world.game !== game || world.registry !== registry || world.sky !== sky || world.physics !== physics) throw new Error('Island construction owner left or changed');
     };
     check();
-    const materials = await runtimeLookMaterials({ scope: owner, game: ctx.game }, product.shardfile, true, bound ? looks.bound : looks.unbound); check();
+    // Developer pages time each part of the build ('wildshard.prepare:<slug>:assembly:<part>', G626 H3)
+    const timed = <T,>(part: string, work: () => Promise<T>): Promise<T> => timeClientPreparation(product.slug, `assembly:${part}`, work);
+    const materials = await timed('looks', () => runtimeLookMaterials({ scope: owner, game: ctx.game }, product.shardfile, true, bound ? looks.bound : looks.unbound)); check();
     lendLooks(owner, materials);
-    const scenes = await installWorldScenes(ctx, sceneRows, owner); check();
-    const baked = book === undefined ? new Map() : await residentBakedTiles(ctx, owner); check();
+    const scenes = await timed('scenes', () => installWorldScenes(ctx, sceneRows, owner)); check();
+    const baked = book === undefined ? new Map() : await timed('baked', () => residentBakedTiles(ctx, owner)); check();
     const variant = construction.variant?.[cube === null ? 'standalone' : 'cell'];
-    await WorldAssembly.construct(row.rows, { runtime, product, scope: owner, scenes, baked, progress,
-      ...(book === undefined ? {} : { library: book.library, sites: book.sites }), ...(variant === undefined ? {} : { variant }) }); check();
+    await timed('construct', () => WorldAssembly.construct(row.rows, { runtime, product, scope: owner, scenes, baked, progress,
+      ...(book === undefined ? {} : { library: book.library, sites: book.sites }), ...(variant === undefined ? {} : { variant }) })); check();
     if (book !== undefined && publish !== undefined) {
       publishEntryOwner(owner, 'collection', publish.collection, book.library.collections);
       publishEntryOwner(owner, 'fixed-draws', publish.draws, book.library.loaded());

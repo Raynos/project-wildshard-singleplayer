@@ -254,7 +254,7 @@ export class WorldAssembly {
     if (rows.root !== undefined) { root.name = rows.root.name; scope.onDispose(() => { root.removeFromParent(); }); }
     let cells: Uint8Array | undefined;
     if (library !== undefined || rows.cells !== undefined) {
-      [, cells] = await Promise.all([library?.load(undefined, game.registrationScope, scope), rows.cells === undefined ? undefined : product.file(rows.cells[TIER])]);
+      [, cells] = await timeClientPreparation('world', 'assembly:library', () => Promise.all([library?.load(undefined, game.registrationScope, scope), rows.cells === undefined ? undefined : product.file(rows.cells[TIER])]));
       live();
     }
     const draws = ports.draws ?? library?.loaded(), slice = slicer(rows.progress.budgetMs, ports.progress), total = rows.progress.total;

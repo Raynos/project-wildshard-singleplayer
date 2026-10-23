@@ -6,6 +6,7 @@ import { createOwnedGeometry, type OwnedGeometry } from '@wildshard/engine/model
 import type { ShardProduct } from '../shardfile/shardProduct';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { bakedGeometryBytes, fetchLaneBake, readBakedGeometry, type readWholeGeometry } from '../plugin/geometry';
+import { timeClientPreparation } from '../shardfile/preparationTiming';
 
 /** One loaded library of fixed draws (see fixedDraws). */
 export interface FixedDraws {
@@ -90,7 +91,8 @@ export function fixedDraws(product: Pick<ShardProduct, 'file' | 'slug'>, input: 
     get ready() { return ready; },
     handle: slot => { const handle = templates.get(slot); if (handle === undefined) throw new Error(`Undeclared fixed draw: ${slot}`); return handle; },
     load: async (bytes, owner) => {
-      const assembled = owner === undefined ? undefined : await (await import('../plugin/geometry')).readWholeGeometry(owner, product.slug);
+      // Developer pages time the whole-geometry assembly ('wildshard.prepare:<slug>:fixed-draws:whole', G626 H3)
+      const assembled = owner === undefined ? undefined : await timeClientPreparation(product.slug, 'fixed-draws:whole', async () => (await import('../plugin/geometry')).readWholeGeometry(owner, product.slug));
       const lanes = new Map<string, Promise<Uint8Array>>();
       try {
         const admitted = new Map(await Promise.all(rows.map(async row => {
