@@ -31,7 +31,8 @@ const ref = v.union([id, v.strictObject({ pool: id, slot: count(0, 63), part: v.
  * A slot target may name a `part`, a child of the actor's object. A `cell` channel writes a numeric cell its owner lends
  * by id (the owner reads it after the program's frame, as it reads its own). A `tell` channel is one parameter of a ground
  * tell its owner lends by id: a tell's channels name exactly one shape's parameters (VIEW_TELL_SHAPES), and on landing the
- * tell draws that shape from them (draped on the terrain, as its owner draws it) or hides at an alpha of 0.01 or less.
+ * tell draws that shape from them (draped on the terrain, as its owner draws it) or hides at an alpha of 0.01 or less;
+ * a negative alpha leaves the tell as it is for that landing (no draw and no hide).
  * `transforms` are the transform positions in order: a target's local
  * matrix, a named bone under it, or one copy of a lent instanced draw. A program sampling a piece or a group its owner
  * lacks installs nothing. Client-only; nothing reaches the sim or a save.

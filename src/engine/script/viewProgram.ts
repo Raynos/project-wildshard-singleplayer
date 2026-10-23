@@ -141,6 +141,8 @@ export function viewProgram(bytes: Uint8Array, rows: ViewProgramRows, ports: Vie
   const draw = (): void => {
     for (const { tell, params, shape } of tells.values()) {
       const p = (name: string): number => params[name] ?? 0, alpha = p('alpha');
+      // a negative alpha leaves the tell as it is this landing (no draw, no hide: an owner that made no call there)
+      if (alpha < 0) continue;
       if (alpha <= .01) tell.hide();
       else if (shape === 'ring') tell.ring(p('x'), p('z'), p('radius'), alpha);
       else if (shape === 'lane') tell.lane(p('x'), p('z'), p('x1'), p('z1'), p('width'), alpha);

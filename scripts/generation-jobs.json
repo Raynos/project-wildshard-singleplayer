@@ -12245,6 +12245,32 @@
       ]
     },
     {
+      "id": "nalati-titan-view",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-titan-view.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-titan-view.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/format",
+        "src/sdk",
+        "src/shards/nalati-grasslands/behaviour/titanView.as",
+        "src/shards/nalati-grasslands/generators/bake-titan-view.mjs"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/behaviour/titanView.generated.json"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "src/shards/nalati-grasslands/behaviour/titanView.generated.json"
+      ]
+    },
+    {
       "id": "nine-movers-view",
       "shard": "nine-dragon-stack",
       "entry": "src/shards/nine-dragon-stack/generators/bake-movers-view.mjs",
