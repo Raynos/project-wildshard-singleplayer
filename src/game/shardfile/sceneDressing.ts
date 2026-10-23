@@ -277,14 +277,15 @@ export class SceneDressing {
   private colliderTiles(name:string):TileContent{
     const registry=this.ctx.app.registry,tiles=new Set(this.colliderGroups.flatMap(group=>[...group.byTile.keys()]));
     return{id:`${name}.colliders`,tiles:()=>tiles,attach:()=>Promise.resolve(),attachColliders:async(tile,scope)=>{
+      const left=():boolean=>scope.disposed;   // read live: the tile may leave across each await
       for(const group of this.colliderGroups){
         const rows=group.byTile.get(tile)??[],model=group.model;
         for(let at=0;at<rows.length;at+=COLLIDERS_PER_TASK){
-          if(scope.disposed)return;
+          if(left())return;
           const part=rows.slice(at,at+COLLIDERS_PER_TASK),id=`${model.id}.${group.key}.c${String(tile)}${at===0?'':`-${String(at/COLLIDERS_PER_TASK)}`}`;
           withOwner(scope,()=>registry.add({id,name:model.name,category:model.category,file:model.file,anchor:anchorOf(part),colliders:part,solidFloor:true,
             ...(model.surface===undefined?{}:{surface:model.surface})}));
-          try{await buildYield(scope);}catch(error:unknown){if(scope.disposed)return;throw error;}   // a tile that left mid-way: done, not failed
+          try{await buildYield(scope);}catch(error:unknown){if(left())return;throw error;}   // a tile that left mid-way: done, not failed
         }
       }
     }};
