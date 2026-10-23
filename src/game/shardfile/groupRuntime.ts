@@ -262,6 +262,12 @@ export function installNativeGroupRows(host: SimHost, input: unknown, grid: Bake
         register: (body,director) => { tokens.set(body,director); }, bite: (body,context,radius) => { contact(body,context,radius,false); },
         preyIdentity: target => { const id = ids.get(target); if (id === undefined) throw new Error('Missing native prey identity'); return id; },
         resolvePrey: id => id.startsWith('actor:') ? actors.get(id.slice(6)) ?? null : prey.get(id) ?? null });
+      if(step.guest!==undefined){
+        const program=ReturnProgram.native(host,step.guest.program);
+        if(program.prepareGroup===undefined||program.groupBindings===undefined)throw new Error('Missing native pack group capability');
+        pack.bindGuest({groupBindings:program.groupBindings,prepareGroup:program.prepareGroup},step.guest.binding,
+          {scope:host.scope,group:row.id,handle:100+packs.length,roster:()=>herds.flatMap(herd => herd.foals)});
+      }
       pack.initialize(); pack.findPrey = (x,z,radius) => nearestPopulationActor(herds.flatMap(herd => herd.foals),x,z,radius);
       packs.push(pack); wolves.push(...bodies); for (const body of bodies) packOf.set(body,pack);
     } else {

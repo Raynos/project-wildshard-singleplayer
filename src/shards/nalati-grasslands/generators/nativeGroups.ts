@@ -1,4 +1,5 @@
 import herdBinding from '../data/herdGuest.json' with {type:'json'};
+import packBinding from '../data/packGuest.json' with {type:'json'};
 import * as v from 'valibot';
 import { NativeGroupRowsSchema,PageGroupRowsSchema,PopulationKnockdownSchema } from '@wildshard/format/creatures';
 import { WildlifePopulationSchema } from '@wildshard/format/wildlifePopulation';
@@ -30,7 +31,7 @@ export const nalatiNativeGroupRows = v.parse(NativeGroupRowsSchema, {
   owned: boot.roster.bodies.filter(body => body.kind === 'horse' && body.herd === -1).map(body => body.id),
   contacts: { pack: contacts.wolf, herd: contacts.stallion },
   steps: [
-    { kind: 'group', row: { ...brains.pack, members: herd(0), home: [den.x,den.z] }, adopt: null },
+    { kind: 'group', row: { ...brains.pack, members: herd(0), home: [den.x,den.z] }, adopt: null,guest:{program:pasture,binding:packBinding} },
     { kind: 'group', row: { ...brains.herd, members: herd(1) }, adopt: null,guest:{program:pasture,binding:herdBinding} },
     { kind: 'delay', program: admission, signal: 'firstRaid', channel: 'time' },
     { kind: 'group', row: { ...brains.herd, members: lair }, adopt,guest:{program:pasture,binding:herdBinding} },

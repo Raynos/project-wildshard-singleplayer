@@ -32,7 +32,7 @@ const fields=names('Field'),channels=names('Channel'),signals=names('Signal');
 const aliases=values=>Object.fromEntries(values.map(name=>[name,name]));
 const registry=values=>new Map([...values].sort((a,b)=>a<b?-1:a>b?1:0).map((name,index)=>[name,index+1]));
 const source={id:'nalati.held-weapons',abi:'1.0',side:'sim',module:`blobs/wasm/${'0'.repeat(64)}.wasm`,source:'behaviour/heldWeapons.as',binding:{shard:true},pages:1,onFail:'hold',on:['signal'],tick:null,stateVersion:1,state:[],params:{},reads:['field'],commands:['channel'],fields:aliases(fields),channels:aliases(channels),signals:aliases(signals)};
-const dual=await compileReturnProjectionV2(source,{fields:registry(fields),channels:registry(channels),signals:registry(signals)},authored,{asLineCeiling:2837});
+const dual=await compileReturnProjectionV2(source,{fields:registry(fields),channels:registry(channels),signals:registry(signals)},authored,{asLineCeiling:5674});
 const crackBody=bodyRows.bodies.find(row=>row.key.startsWith('balbal:'));
 if(crackBody===undefined)throw new Error('Missing species program or skeleton');
 const cracks=buildCracks(crackBody.bones);

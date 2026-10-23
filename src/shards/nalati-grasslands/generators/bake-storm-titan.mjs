@@ -1,7 +1,4 @@
-import herdRows from '../data/herdGroup.json' with {type:'json'};
-import {groupBankSourceV2} from '@wildshard/sdk/as/groupBankV2';
-import {groupStepSourceV2} from '@wildshard/sdk/as/groupStepV2';
-import {parseGroupStepV2} from '@wildshard/format/scriptGroupStepV2';
+import { pastureGroups } from './packGroup.ts';
 // Deterministic static encounter data and geometry; all live fight/pose owners are retained.
 import { fileURLToPath } from 'node:url';
 import { readDecisionSources } from '@wildshard/sdk/buildDecisionScripts';
@@ -28,7 +25,7 @@ const source = { id:'nalati.titan',abi:'1.0',side:'sim',module:`blobs/wasm/${'0'
   reads:['field','random'],commands:['channel'],fields:aliases(fields),channels:aliases(channels),signals:aliases(signals) };
 const authored = readDecisionSources(fileURLToPath(new URL('../', import.meta.url)));
 const row={...source,id:'nalati.titan-combined',source:'behaviour/titanCombined.as'};
-const dual=await compileReturnProjectionV2(row,{fields:registry(fields),channels:registry(channels),signals:registry(signals)},authored,{asLineCeiling:2837,projectSource:'behaviour/titanCommands.as',outputCapacity:96,worldActions:true,additional:{fields:['zzzzIntroT'],signals:['zzzzDismount','zzzzIgnite','zzzzIntroClock'],channels:['zzzzIntroT','zzzzIntroTick']}});
+const dual=await compileReturnProjectionV2(row,{fields:registry(fields),channels:registry(channels),signals:registry(signals)},authored,{asLineCeiling:5674,projectSource:'behaviour/titanCommands.as',outputCapacity:96,worldActions:true,additional:{fields:['zzzzIntroT'],signals:['zzzzDismount','zzzzIgnite','zzzzIntroClock'],channels:['zzzzIntroT','zzzzIntroTick']}});
 const program={...dual.legacy,v2:dual.candidate};
 const pastureText=['pastureWind','pasture','titanWind','titanFire'].map(name=>authored.get(`behaviour/${name}.as`)).join('\n');
 const names=prefix=>[...new Set([...pastureText.matchAll(new RegExp(`${prefix}\\.([A-Za-z0-9_]+)`,'g'))].map(match=>match[1]))];
@@ -36,8 +33,7 @@ const pf=names('Field'),pc=names('Channel'),ps=names('Signal');
 const pastureSource={...source,id:'nalati.pasture-wind',source:'behaviour/pastureWind.as',reads:['field','random','radial'],fields:aliases(pf),channels:aliases(pc),signals:aliases(ps)};
 // R10b: the shared pasture programme (wind, fire, pasture; the pack and herd group profiles join it) selected as ABI v2 with
 // its exact ABI1 witness kept (test/nalati-pasture-v2.test.ts: every signal answers as the witness)
-const herd=parseGroupStepV2(herdRows);
-const pastureDual=await compileReturnProjectionV2(pastureSource,{fields:registry(pf),channels:registry(pc),signals:registry(ps)},authored,{asLineCeiling:2837,projectSource:'behaviour/pastureProject.as',groups:{rows:herd,helpers:{'sdk/as/groupBankV2.herd.ts':groupBankSourceV2(0,herd.bank.length),'sdk/as/groupStepV2.herd.ts':groupStepSourceV2(herd.columns.length,herd.members)}}});
+const pastureDual=await compileReturnProjectionV2(pastureSource,{fields:registry(pf),channels:registry(pc),signals:registry(ps)},authored,{asLineCeiling:5674,projectSource:'behaviour/pastureProject.as',groups:pastureGroups()});
 const wind={...pastureDual.legacy,v2:pastureDual.candidate};
 const programs={attack:program,fire:wind,wind,rules:program};
 

@@ -5,6 +5,8 @@ import { ReturnProgram } from '../src/game/population/returnProgram';
 import { Rng } from '../src/engine/core/rng';
 import programs from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type: 'json' };
 import pasture from '../src/shards/nalati-grasslands/behaviour/pasture.generated.json' with { type: 'json' };
+import { pastureGroups } from '../src/shards/nalati-grasslands/generators/packGroup';
+import { Scope } from '../src/engine/app/scope';
 
 // R10b (3): the shared pasture/wind/fire programme (nalati.pasture-wind) selected as v2 answers every original signal
 // exactly as its ABI1 witness: outputs (f64, -0), refusals and the borrowed RNG.
@@ -13,7 +15,8 @@ beforeAll(async () => {
   const row = programs.wind.script;
   const ids = (values: Readonly<Record<string, string>>): Map<string, number> => new Map(Object.values(values).sort().map((name, index) => [name, index + 1]));
   built = await compileReturnProjectionV2(row, { fields: ids(row.fields), signals: ids(row.signals), channels: ids(row.channels) },
-    readDecisionSources(new URL('../src/shards/nalati-grasslands/', import.meta.url).pathname), { asLineCeiling: 2837 });
+    readDecisionSources(new URL('../src/shards/nalati-grasslands/', import.meta.url).pathname),
+    { asLineCeiling: 5674, projectSource: 'behaviour/pastureProject.as', groups: pastureGroups() });
 }, 300_000);
 
 test('the pasture programme keeps its exact ABI1 witness, shared by wind, fire and pasture', () => {
@@ -37,7 +40,8 @@ function value(name: string, random: Rng): number {
 }
 
 test('every pasture/wind/fire signal answers as the ABI1 witness on the same descriptor and borrowed RNG', () => {
-  const old = ReturnProgram.page(built.legacy), next = ReturnProgram.page({ ...built.legacy, v2: built.candidate });
+  // the shipped composition (herd + pack groups) belongs to an entered scope
+  const owner = new Scope('nalati.pasture-v2'), old = ReturnProgram.page(built.legacy), next = ReturnProgram.page({ ...built.legacy, v2: built.candidate }, owner);
   const fields = built.candidate.fields, signals = built.candidate.signals, fuzz = new Rng(20261023);
   let answered = 0, refused = 0;
   for (let round = 0; round < 300; round++) for (const signal of signals) {
@@ -55,4 +59,5 @@ test('every pasture/wind/fire signal answers as the ABI1 witness on the same des
   }
   expect(answered).toBeGreaterThan(signals.length * 100);
   expect(refused + answered).toBe(300 * signals.length);
+  owner.dispose();
 });

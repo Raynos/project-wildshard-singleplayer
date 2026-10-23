@@ -1290,7 +1290,8 @@
         "src/sdk/decisionScriptBindings.ts",
         "src/format/scriptAbiV1.ts",
         "src/format/decisionScripts.ts",
-        "src/shards/nalati-grasslands/data/herdGroup.json"
+        "src/shards/nalati-grasslands/data/herdGroup.json",
+        "src/shards/nalati-grasslands/generators/packGroup.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/stormTitanFight.generated.json",

@@ -12,7 +12,7 @@ const source={id:'nalati.admission',abi:'1.0',side:'sim',module:`blobs/wasm/${'0
   binding:{shard:true},pages:1,onFail:'hold',on:['signal'],tick:null,stateVersion:1,state:[],params:{},
   reads:['field','random','radial'],commands:['channel'],fields:aliases(fields),channels:aliases(channels),signals:aliases(signals)};
 const built=await compileDecisionScripts([source],{fields:registry(fields),channels:registry(channels),signals:registry(signals)},
-  readDecisionSources(fileURLToPath(new URL('../',import.meta.url))),{asLineCeiling:2837});
+  readDecisionSources(fileURLToPath(new URL('../',import.meta.url))),{asLineCeiling:5674});
 const script=built.rows.at(0),blob=built.blobs.at(0);
 if(script===undefined||blob===undefined)throw new Error('Missing native admission program');
 const bytes=`${JSON.stringify({script,bytes:Buffer.from(blob.bytes).toString('base64')},null,2)}\n`;
