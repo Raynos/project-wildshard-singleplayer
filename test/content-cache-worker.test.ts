@@ -275,3 +275,40 @@ test('without a live worker a read is left to the page', async () => {
   expect(await client.fetchVerified('https://example.test/y', 'b'.repeat(64), 1, { reply: 'bytes' })).toBeNull();
   expect(fallback.put).not.toHaveBeenCalled();
 });
+
+test('a planned close retires only that worker: the next request starts a successor holding live leases', async () => {
+  const workers: ControlledWorker[] = [];
+  const fallback = { get: vi.fn(() => Promise.resolve(null)), holds: vi.fn(() => Promise.resolve(false)), put: vi.fn(() => Promise.resolve(true)),
+    pin: vi.fn(() => () => undefined), flush: vi.fn(() => Promise.resolve()), stats: vi.fn(() => Promise.resolve({ bytes: 0, entries: 0 })) };
+  const client = new ContentCacheWorker(fallback, { worker: () => { const made = new ControlledWorker(); made.automatic = true; workers.push(made); return made; } });
+  const release = client.pin(['a'.repeat(64)]);
+  expect(await client.get('b'.repeat(64))).toBeNull();
+  await client.close();
+  expect(workers).toHaveLength(1);
+  expect(workers[0]?.terminated).toBe(true);
+  expect(await client.put('c'.repeat(64), Uint8Array.of(1))).toBe(true);
+  expect(workers).toHaveLength(2);
+  // the successor is pinned before the write it serves
+  expect(workers[1]?.sent.map(command => command.op)).toEqual(['pin', 'put']);
+  release();
+  await client.flush();
+  expect(workers[1]?.sent.map(command => command.op)).toEqual(['pin', 'put', 'release', 'flush']);
+  expect(fallback.get).not.toHaveBeenCalled(); expect(fallback.put).not.toHaveBeenCalled(); expect(fallback.pin).not.toHaveBeenCalled();
+  await client.close();
+});
+
+test('reads posted while a worker closes are served by its successor', async () => {
+  const workers: ControlledWorker[] = [];
+  const fallback = { get: vi.fn(() => Promise.resolve(null)), holds: vi.fn(() => Promise.resolve(false)), put: vi.fn(() => Promise.resolve(true)),
+    pin: vi.fn(() => () => undefined), flush: vi.fn(() => Promise.resolve()), stats: vi.fn(() => Promise.resolve({ bytes: 0, entries: 0 })) };
+  const client = new ContentCacheWorker(fallback, { worker: () => { const made = new ControlledWorker(); workers.push(made); return made; } });
+  const first = client.stats(); workers[0]?.reply(0); await first;
+  const closing = client.close(), read = client.get('a'.repeat(64));
+  expect(workers[0]?.sent.map(command => command.op)).toEqual(['stats', 'flush', 'get']);
+  workers[0]?.reply(1); await closing; // the flush drained; the read is still out
+  expect(workers).toHaveLength(2);
+  workers[1]?.drain();
+  expect(await read).toBeNull();
+  expect(fallback.get).not.toHaveBeenCalled();
+  workers[1]?.drain(); await client.close();
+});
