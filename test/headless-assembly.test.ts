@@ -1,3 +1,7 @@
+import {sha256} from '../src/game/plugin/moduleHash';
+import {OUTPUT_SECTIONS,outputSectionPayloads,parseOutputIndex} from '../src/format/outputIndex';
+import {parseShardfile} from '../src/format/shardSchema';
+import {resolveOutputDescriptor,carryOutputDescriptor} from '../src/game/shardfile/outputDescriptor';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { parseReturnProjectionV2 } from '../src/format/returnProjectionV2';
 import returnPrograms from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with {type:'json'};
@@ -153,7 +157,8 @@ test('native restore checks the restored ground before releasing the host', asyn
 test('raw return modules are lent before original native assembly owners on fresh and restored hosts',async()=>{
   const program=structuredClone(returnPrograms.attack),projection=parseReturnProjectionV2(program.v2),artifact=projection.artifact;
   const bytes=Uint8Array.from(atob(program.v2.bytes),value=>value.codePointAt(0)??0);program.v2.bytes='';
-  const assets=new Map([[artifact.hash,bytes]]),captured:ReturnProgram[]=[];
+  const assets=new Map<string,Uint8Array>(),captured:ReturnProgram[]=[];
+  let moduleReads=0;
   const returns=[{id:'fixture.return',module:`blobs/wasm/${artifact.hash}.wasm`,side:'sim' as const,abi:2 as const,lane:'project' as const,
     pages:artifact.pages,ioBytes:artifact.ioBytes,compilerRevision:artifact.compilerRevision,admissionRevision:artifact.admissionRevision}];
   const install=(host:SimHost):void=>{
@@ -163,9 +168,30 @@ test('raw return modules are lent before original native assembly owners on fres
   };
   const declaration={...base,modules:{'src/game/rawAssemblyFixture':['install']},install:[{name:'original',value:{$call:[ref('src/game/rawAssemblyFixture','install'),ref('host')]}}]};
   const shard=emptyShardfile({slug:'raw-assembly',name:'Raw assembly',author:'Test',revision:1,seed:17});
-  const product=createShardProduct({slug:shard.identity.slug,revision:1,shardfile:shard,sections:new Map([['actors/return-scripts',returns]]),
-    files:new Map([['sim/headless-assembly.json',{hash:'assembly',url:'assembly'}]]),read:()=>Promise.resolve(new TextEncoder().encode(JSON.stringify(declaration)))});
+  const file={hash:artifact.hash,kind:'wasm' as const,compressed:bytes.length,decoded:bytes.length,gpu:0,triangles:0,draws:0,dependencies:[],critical:false};
+  shard.files.push(file);shard.library.push(artifact.hash);
+  shard.budgets.library={resident:bytes.length,compressed:bytes.length};
+  const wires=new Map<string,Uint8Array>();
+  const sections=[...outputSectionPayloads(shard)].map(([name,payload])=>{
+    const mapping=OUTPUT_SECTIONS.find(row=>row.name===name);if(mapping===undefined)throw new Error('Missing fixture section');
+    const wire=new TextEncoder().encode(JSON.stringify(payload)),path=`sections/${name}.json`;wires.set(path,wire);
+    return {name,path,schema:`wildshard:${name}@1`,hash:sha256(wire),bytes:wire.length};
+  });
+  const index=parseOutputIndex({format:'wildshard.shardfile',formatVersion:2,sdk:'0.2',version:shard.version,identity:shard.identity,
+    build:{sourceHash:sha256(new TextEncoder().encode(JSON.stringify(shard))),validator:'fixture'},requires:shard.requires,
+    admission:{budgets:shard.budgets,serverBudget:shard.serverBudget,authorCaps:shard.authorCaps,critical:shard.critical,library:shard.library},
+    sections,schemas:[],files:[{...file,path:`blobs/wasm/${artifact.hash}.wasm`,name:'behaviour/fixture.wasm'}],runtime:null});
+  const assembled=await resolveOutputDescriptor(index,{offline:false,hash:wire=>Promise.resolve(sha256(wire)),read:path=>{
+    const wire=wires.get(path);if(wire===undefined)throw new Error('Missing fixture wire');return Promise.resolve(wire);
+  }});
+  const admitted=parseShardfile(assembled);carryOutputDescriptor(assembled,admitted);
+  const product=createShardProduct({slug:shard.identity.slug,revision:1,shardfile:admitted,sections:new Map([['actors/return-scripts',returns]]),
+    files:new Map([['sim/headless-assembly.json',{hash:'assembly',url:'assembly'}],['behaviour/fixture.wasm',{hash:artifact.hash,url:'module'}]]),read:hash=>{
+      if(hash===artifact.hash){moduleReads++;return Promise.resolve(bytes);}
+      return Promise.resolve(new TextEncoder().encode(JSON.stringify(declaration)));
+    }});
   const plan=await prepareHeadlessAssembly({shard,product,assets,rapier},{'src/game/rawAssemblyFixture':{install}});
+  expect(assets.get(artifact.hash)).toBe(bytes);expect(moduleReads).toBe(1);
   const fresh=createSimHost(plan.level,{...plan.ports,rapier});
   let restored:SimHost|undefined;
   try{
@@ -175,6 +201,9 @@ test('raw return modules are lent before original native assembly owners on fres
     });
     expect(captured).toHaveLength(2);expect(captured[0]).not.toBe(captured[1]);
     assets.set(artifact.hash,new Uint8Array([0]));
+    const corrupt=await prepareHeadlessAssembly({shard,product,assets,rapier},{'src/game/rawAssemblyFixture':{install}});
+    expect(moduleReads).toBe(1);
+    expect(()=>corrupt.install(fresh,{restoring:false,commands:()=>[],emit:()=>undefined})).toThrow('hash mismatch');
     expect(()=>ReturnProgram.native(fresh,program)).toThrow('hash mismatch');
     assets.set(artifact.hash,bytes);
     const original=captured[0];if(original===undefined)throw new Error('Missing original projection');

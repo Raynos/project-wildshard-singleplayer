@@ -1,4 +1,5 @@
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
+import { outputDescriptor } from '@wildshard/game/shardfile/outputDescriptor';
 import { ReturnModulesSchema } from '@wildshard/format/scriptContract';
 import { parse } from 'valibot';
 import { isJsonData } from '@wildshard/format/json';
@@ -214,12 +215,26 @@ const primitives = {
  * Each install has fresh bindings; late callback reads retain that install's
  * live environment, including owners registered later. Save adapters, clocks,
  * physics, phases and disposal remain entirely with the called installers.
+ * Missing ABI2 files are read from the admitted product into the original
+ * asset Map before install; existing entries remain subject to strict checks.
  * Only an explicitly trusted caller supplies the static module catalogue. */
 export async function prepareHeadlessAssembly(preparation: HeadlessRuntimePreparation, modules: HeadlessAssemblyModules): Promise<HeadlessRuntimePlan> {
   const data: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await preparation.product.file('sim/headless-assembly.json')));
   const declaration = checkedHeadlessAssembly(data, modules);
   const shard = preparation.product.shardfile;
   const returns=preparation.product.has('actors/return-scripts')?parse(ReturnModulesSchema,preparation.product.section('actors/return-scripts')):[];
+  if(returns.some(row=>row.abi===2)){
+    const assets=preparation.assets;
+    if(!(assets instanceof Map))throw new Error('Return modules require the original asset map');
+    const descriptor=outputDescriptor(shard);
+    for(const row of returns)if(row.abi===2){
+      const hash=row.module.slice('blobs/wasm/'.length,-'.wasm'.length);
+      if(Map.prototype.has.call(assets,hash))continue;
+      const file=descriptor?.index.files.find(candidate=>candidate.kind==='wasm'&&candidate.hash===hash);
+      if(file?.name===undefined)throw new Error('Return module needs its admitted logical file');
+      Map.prototype.set.call(assets,hash,await preparation.product.file(file.name));
+    }
+  }
   const values = new Map<string, unknown>([['shard', shard], ['assets', preparation.assets], ['rapier', preparation.rapier], ['product', preparation.product], ['assembly', primitives]]);
   // Expose precisely the declared exports, never a module namespace's remainder.
   for (const [name, exports] of Object.entries(declaration.modules)) values.set(name, Object.fromEntries(exports.map(key => [key, member(modules[name], key)])));
