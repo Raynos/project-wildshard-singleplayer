@@ -481,13 +481,17 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     // It is computed once per material, receive-shadow flag and key context (scene hash, bound target, output transform:
     // `keyContextNow`), and again whenever the material's version moves.
     const stockKeys = this.stockKeys, keyContext = (): number => this.keyContextNow();
-    // programShare: the stock key with its leading material hash (the hash of its node ids) replaced by its graph's shape
+    // The stock key with its leading material hash (the hash of its node ids) replaced by its graph's shape (G669 DR8).
+    // three's key is materialHash + sceneHash + rendererHash + objectHash, and its material hash is the class's own
+    // customProgramCacheKey: the tail is read through a stand-in whose class hash is empty, so a shared graph's key walks no
+    // node ids at all (computing the hash to cut it off walked them twice a memo miss)
+    const blankHash = { prototype: { customProgramCacheKey: (): string => '' } };
     const sharedStock = (material: THREE.Material): string => {
-      const stock = stockKey.call(material), lead = this.shareKeyOf(material);
-      if (lead === null) return stock;
-      const own: unknown = Reflect.get(Object.getPrototypeOf(material) ?? {}, 'customProgramCacheKey');
-      const hash: unknown = typeof own === 'function' ? Reflect.apply(own, material, []) : null;
-      return typeof hash === 'string' && stock.startsWith(hash) ? lead + stock.slice(hash.length) : stock;
+      const lead = this.shareKeyOf(material);
+      if (lead === null) return stockKey.call(material);
+      const bare: unknown = Object.create(material, { constructor: { value: blankHash } });
+      const tail: unknown = Reflect.apply(stockKey, bare, []);
+      return typeof tail === 'string' ? lead + tail : stockKey.call(material);
     };
     self.customProgramCacheKeyCallback = function customProgramCacheKeyCallback(this: THREE.Material): string {
       const current = frame();

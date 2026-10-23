@@ -8,6 +8,16 @@ import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandle
 
 vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
 afterAll(() => { vi.unstubAllGlobals(); });
+/** stock keys computed: its renderer part (the handler's output-transform hash) is read once a memo miss. A shared graph's
+ *  key walks no node ids (G669 DR8), so the misses are counted here rather than on the material hash. */
+function stockKeys(handler: EngineNodesHandler): () => number {
+  const proxy: unknown = Reflect.get(handler, 'renderer');
+  const read: unknown = typeof proxy === 'object' && proxy !== null ? Reflect.get(proxy, 'getCacheKey') : undefined;
+  if (typeof proxy !== 'object' || proxy === null || typeof read !== 'function') throw new Error('Missing renderer proxy');
+  let calls = 0;
+  Reflect.set(proxy, 'getCacheKey', (...args: unknown[]): unknown => { calls++; const key: unknown = Reflect.apply(read, proxy, args); return key; });
+  return () => calls;
+}
 
 // sp-o290: the program-key memo (dc4740b44) kept the first stock key for the whole render call, so a target bound inside
 // one render call (or a light update) reused the previous target's output transform and could pick the wrong program.
@@ -55,7 +65,7 @@ test('the program-key memo follows a target bound inside one render call', () =>
 });
 
 // The memo outlives a render call while the scene's hash (lights, environment, fog), the target and the output transform
-// hold: the stock key's node walk runs once, not once per render call; a scene hash change keys afresh.
+// hold: the stock key is computed once, not once per render call; a scene hash change keys afresh.
 test('the program-key memo outlives render calls of an unchanged scene', () => {
   const renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);
   if (!(renderer instanceof THREE.WebGLRenderer)) throw new Error('Missing renderer');
@@ -71,19 +81,20 @@ test('the program-key memo outlives render calls of an unchanged scene', () => {
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(), material);
   const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(), sun = new THREE.DirectionalLight();
   scene.add(mesh);
-  const walk = vi.spyOn(NodeMaterial.prototype, 'customProgramCacheKey');
+  const walk = stockKeys(handler), ids = vi.spyOn(NodeMaterial.prototype, 'customProgramCacheKey');
   const call = (lights: THREE.Light[]): string => {
     handler.renderStart(scene, camera); handler.updateLights(lights); handler.setObject(mesh, material);
     const key = material.customProgramCacheKey(); handler.renderEnd(); return key;
   };
   const first = call([]);
   expect(call([])).toBe(first); expect(call([])).toBe(first);
-  expect(walk).toHaveBeenCalledTimes(1);
+  expect(walk()).toBe(1);
   scene.fog = new THREE.Fog(0xffffff, 1, 10);
   const fogged = call([sun]);
-  expect(fogged).not.toBe(first); expect(walk).toHaveBeenCalledTimes(2);
-  expect(call([sun])).toBe(fogged); expect(walk).toHaveBeenCalledTimes(2);
-  walk.mockRestore();
+  expect(fogged).not.toBe(first); expect(walk()).toBe(2);
+  expect(call([sun])).toBe(fogged); expect(walk()).toBe(2);
+  expect(ids).not.toHaveBeenCalled(); // the graph's shape leads its key
+  ids.mockRestore();
 });
 
 // A frame that draws a material into a target and to the screen keeps a memo for each: alternating them costs no walk.
@@ -103,7 +114,7 @@ test('the program-key memo keeps a key per bound target across alternating rende
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(), material), scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera();
   scene.add(mesh);
   const offscreen = new THREE.WebGLRenderTarget(1, 1);
-  const walk = vi.spyOn(NodeMaterial.prototype, 'customProgramCacheKey');
+  const walk = stockKeys(handler);
   const call = (into: THREE.WebGLRenderTarget | null): string => {
     target = into; handler.renderStart(scene, camera); handler.updateLights([]); handler.setObject(mesh, material);
     const key = material.customProgramCacheKey(); handler.renderEnd(); return key;
@@ -111,8 +122,7 @@ test('the program-key memo keeps a key per bound target across alternating rende
   const screen = call(null), inTarget = call(offscreen);
   expect(inTarget).not.toBe(screen);
   for (let i = 0; i < 3; i++) { expect(call(offscreen)).toBe(inTarget); expect(call(null)).toBe(screen); }
-  expect(walk).toHaveBeenCalledTimes(2);
-  walk.mockRestore();
+  expect(walk()).toBe(2);
 });
 
 
