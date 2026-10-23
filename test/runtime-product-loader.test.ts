@@ -472,7 +472,7 @@ test('tier residency excludes the other tier of a rigged-hull book', async () =>
   expect(tierLibrarySource(source, 'desktop').library).toContain(desktop);
 });
 
-async function specimenCostFixture(profiles = false) {
+async function specimenCostFixture(profiles = false, fileScene = false) {
   const assets = new Map<string, Uint8Array>(), names = new Map<string, string>();
   const add = (source: schema.Shardfile, name: string, wire: Uint8Array, decoded: number): string => {
     const hash = hashImmutableBytes(wire); assets.set(hash, wire); names.set(hash, name);
@@ -485,7 +485,7 @@ async function specimenCostFixture(profiles = false) {
       add(source, name, new Uint8Array([30 + i]), 100); return { id, file: name };
     });
     const catalogue = { product: 'runtime-loader', models: [{ key: 'crate', id: 'runtime-loader/crate', name: 'Crate', file: 'crate.json', category: 'props', pipeline: 'code', assembly: 'scene', defaults: { style: 0 },
-      choices: models.map((model, i) => ({ id: model.id, params: { style: i }, size: [1, 1, 1], colliders: [], draws: [], scene: { id: model.id, root: 'root', nodes: [
+      choices: models.map((model, i) => ({ id: model.id, params: { style: i }, size: [1, 1, 1], colliders: [], draws: [], scene: fileScene && i === 0 ? { knob: 'fixture.rich', false: { phone: { file: 'scenes/plain.json' }, desktop: { file: 'scenes/plain.json' } }, true: { phone: { file: 'scenes/rich.json' }, desktop: { file: 'scenes/rich.json' } } } : { id: model.id, root: 'root', nodes: [
         { id: 'mesh', parent: 'root', kind: 'mesh', geometry: { library: 'shapes', model: model.id }, material: 'paint', sphere: [0, 0, 0, 1] },
       ] } })) }] };
     const wire = bytes(catalogue); add(source, 'models/catalogue.json', wire, wire.length);
@@ -539,6 +539,25 @@ test('selected world profiles keep their own geometry and charge a fresh expensi
   await expect(scopedSpecimenLibrarySourcePaced(source, assets, undefined, () => Promise.reject(new Error('Owner disposed')))).rejects.toThrow('Owner disposed');
   assets.clear();
   await expect(scopedSpecimenLibrarySourcePaced(source, assets, undefined, () => Promise.resolve())).rejects.toThrow('Missing specimen cost bytes');
+});
+
+
+test('specimen selection reuses admitted leaves and still rejects an unselected malformed graph', async () => {
+  const { source, assets } = await specimenCostFixture(true, true);
+  const graph = (model: string) => bytes({ id: 'world', root: 'root', nodes: [{ kind: 'mesh', id: 'wall', parent: 'root', geometry: { library: 'shapes', model }, material: 'paint', sphere: [0, 0, 0, 1] }] });
+  const plain = hashImmutableBytes(graph('m0')), rich = hashImmutableBytes(graph('wide'));
+  const read = vi.spyOn(assets, 'get');
+  const selected = scopedSpecimenLibrarySource(source, assets, { tier: 'phone' });
+  // Four specimen leaves are admitted once each; the world reads its selected
+  // plain graph separately. The two selected leaves need no second parse.
+  expect(read.mock.calls.filter(([hash]) => hash === plain)).toHaveLength(3);
+  expect(read.mock.calls.filter(([hash]) => hash === rich)).toHaveLength(2);
+  expect(selected.budgets.library.resident).toBeLessThan(source.budgets.library.resident);
+  read.mockRestore();
+  expect(await scopedSpecimenLibrarySourcePaced(source, assets, { tier: 'phone' }, () => Promise.resolve())).toEqual(selected);
+  assets.set(rich, bytes({ id: 'world', root: 'root', nodes: [{ kind: 'mesh' }] }));
+  expect(() => scopedSpecimenLibrarySource(source, assets, { tier: 'phone' })).toThrow();
+  await expect(scopedSpecimenLibrarySourcePaced(source, assets, { tier: 'phone' }, () => Promise.resolve())).rejects.toThrow();
 });
 
 test('a lower exact estimate clears a previous warning without changing the cap', () => {

@@ -97,7 +97,8 @@ function* specimenCosts(source: Shardfile, assets: ReadonlyMap<string, Uint8Arra
   let largest = 0;
   for (const model of catalogue.models) {
     for (const choice of model.choices) {
-      const graphs = worldSceneModelGraphs(choice).map(leaf => 'file' in leaf ? parseWorldSceneWeld(read(leaf.file)) : leaf);
+      const leaves = worldSceneModelGraphs(choice);
+      const graphs = leaves.map(leaf => 'file' in leaf ? parseWorldSceneWeld(read(leaf.file)) : leaf);
       const resources = worldSceneModelResources({ ...catalogue, models: [{ ...model, choices: [choice] }] }, graphs);
       const hashes = new Set(resources.geometry.flatMap(ref => refs(ref.library, ref.model)));
       if (model.assembly !== 'scene') { for (const hash of hashes) retained.add(hash); yield; continue; }
@@ -106,9 +107,10 @@ function* specimenCosts(source: Shardfile, assets: ReadonlyMap<string, Uint8Arra
       // leaves; a union of mutually exclusive leaves is not one resident copy.
       // Only the admitted knob branch can be viewed (another quality reloads and
       // re-admits); both of its tier comparisons stay reserved.
-      const scene = choice.scene, viewable = quality === undefined || scene === undefined || !('knob' in scene) ? graphs
-        : worldSceneModelGraphs({ ...choice, scene: scene[plumbingKnob(source.plumbing, quality.tier, scene.knob, 'boolean', quality.overrides) ? 'true' : 'false'] })
-          .map(leaf => 'file' in leaf ? parseWorldSceneWeld(read(leaf.file)) : leaf);
+      const scene = choice.scene, selectedLeaves = quality === undefined || scene === undefined || !('knob' in scene) ? undefined
+        : worldSceneModelGraphs({ ...choice, scene: scene[plumbingKnob(source.plumbing, quality.tier, scene.knob, 'boolean', quality.overrides) ? 'true' : 'false'] });
+      // Every leaf was parsed above, before the first yield for this choice.
+      const viewable = selectedLeaves === undefined ? graphs : graphs.filter((_graph, index) => { const leaf = leaves[index]; return leaf !== undefined && selectedLeaves.includes(leaf); });
       for (const graph of viewable) {
         const selected = worldSceneModelResources({ ...catalogue, models: [{ ...model, choices: [{ ...choice, scene: graph }] }] });
         const selectedHashes = new Set(selected.geometry.flatMap(ref => refs(ref.library, ref.model)));
