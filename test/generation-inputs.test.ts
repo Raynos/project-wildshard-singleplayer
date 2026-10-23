@@ -59,6 +59,46 @@ function upstreamFixture(source?:string,workspace=false) {
   };
   return {...row,upstream:run};
 }
+function optionalTablesFixture() {
+  const f=upstreamFixture("import fs from 'node:fs';fs.writeFileSync('src/shards/alpha/data/output.txt',JSON.stringify({identity:globalThis.fixtureIdentity,tables:globalThis.fixtureTables,shards:globalThis.fixtureShards??[]}));");
+  put(f.root,'scripts/bake-loader.mjs',readFileSync('scripts/bake-loader.mjs','utf8'));
+  put(f.root,'src/engine/app/identity.ts','export const installAppIdentity=value=>{globalThis.fixtureIdentity=value;};');
+  put(f.root,'src/game/identity.ts',"export const WILDSHARD_IDENTITY={name:'fixture'};");
+  put(f.root,'src/engine/boot/tables.ts','export const installAssetTables=value=>{globalThis.fixtureTables=value;};');
+  put(f.root,'src/game/shard/list.ts','export const installShards=value=>{globalThis.fixtureShards=value;};');
+  f.job.inputRoots=['src','scripts/bake-loader.mjs'];
+  f.job.command=['--import','./scripts/bake-loader.mjs',f.entry];
+  return f;
+}
+it('keeps absent optional boot tables off unrelated directory and upstream keys',async()=>{
+  const f=optionalTablesFixture(),first=await f.upstream({'unread.bin':'old'});
+  expect(JSON.parse(first.text)).toEqual({identity:{name:'fixture'},tables:{bytes:{},versions:{},music:{},sfx:{},packs:{}},shards:[]});
+  expect(await f.upstream({'unread.bin':'new'})).toEqual({...first,hit:true});
+  put(f.root,'src/sdk/new-unread.ts','export const unused=1;');
+  expect(await f.upstream({'unread.bin':'new'})).toEqual({...first,hit:true});
+});
+it('installs newly present optional tables and keeps their consumed bytes exact',async()=>{
+  const f=optionalTablesFixture();await f.upstream({'unread.bin':'old'});
+  put(f.root,'src/game/boot/bytes.generated.ts','export const PUBLIC_BYTES={asset:12};');
+  put(f.root,'src/game/boot/versions.generated.ts',"export const ASSET_VERSIONS={asset:'first'};");
+  put(f.root,'src/game/boot/audio.generated.ts',"export const MUSIC_MANIFESTS={theme:'music'},SFX_MANIFESTS={bell:'sound'};");
+  put(f.root,'src/game/boot/packs.generated.ts',"export const PACKS={main:'pack'};");
+  put(f.root,'src/shards.generated.ts',"export const SHARDS=['alpha'],LEGACY_SHARDS=['old'];");
+  const present=await f.upstream({'unread.bin':'old'});expect(present.hit).toBe(false);
+  expect(JSON.parse(present.text)).toEqual({identity:{name:'fixture'},tables:{bytes:{asset:12},versions:{asset:'first'},music:{theme:'music'},sfx:{bell:'sound'},packs:{main:'pack'}},shards:['alpha','old']});
+  expect(await f.upstream({'unread.bin':'new'})).toEqual({...present,hit:true});
+  put(f.root,'src/game/boot/bytes.generated.ts','export const PUBLIC_BYTES={asset:13};');
+  const changed=await f.upstream({'unread.bin':'new'});expect(changed.hit).toBe(false);
+  expect(changed.text).toBe(present.text.replace('"asset":12','"asset":13'));
+});
+it('preserves stale optional table fallback and refuses unrelated evaluation errors',async()=>{
+  const f=optionalTablesFixture();
+  put(f.root,'src/game/boot/bytes.generated.ts',"import './stale.generated.ts';export const PUBLIC_BYTES={asset:12};");
+  const stale=await f.upstream({'unread.bin':'old'});
+  expect(stale.text).toContain('"bytes":{}');
+  put(f.root,'src/game/boot/bytes.generated.ts',"throw new Error('fixture evaluation refused');export const PUBLIC_BYTES={asset:12};");
+  await expect(f.upstream({'unread.bin':'old'})).rejects.toThrow('Generator exited 1');
+});
 it('reuses unread upstream bytes behind authoring dependency probes',async()=>{
   const f=upstreamFixture(undefined,true);
   put(f.root,'src/sdk/bake/source-loader.mjs',readFileSync('src/sdk/bake/source-loader.mjs','utf8'));

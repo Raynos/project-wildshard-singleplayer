@@ -72,6 +72,9 @@ registerHooks({
 const here = (path) => new URL(path, import.meta.url).href;
 /** @param {string} path @returns {Promise<Record<string, unknown>>} */
 const optional = async (path) => {
+  // Missing derived tables are normal before generation. Bind their exact
+  // presence without invoking Node's unrelated directory-import suggestions.
+  if (!existsSync(new URL(path, import.meta.url))) return {};
   try { return await import(here(path)); } catch (error) {
     if (error instanceof Error && (/generated/u.test(error.message) || (error instanceof SyntaxError && /\.generated\.ts:\d/u.test(error.stack ?? '')) || ('code' in error && error.code === 'ERR_MODULE_NOT_FOUND'))) return {};
     throw error;
