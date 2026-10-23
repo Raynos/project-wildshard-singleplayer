@@ -154,7 +154,12 @@ export class ObservationColumnsV2 {
         case 'memory': {
           const fallback=source.default,body=need(actor??undefined,'self');
           value=body.mem[source.key]??(fallback.when!==undefined&&body.mem[fallback.when.field]===fallback.when.equal?fallback.when.value:
-            fallback.source===undefined?fallback.value:fallback.source==='yaw'?body.yaw:body.position[fallback.source]);break;
+            fallback.source===undefined?fallback.value:fallback.source==='yaw'?body.yaw:body.position[fallback.source]);
+          if (source.encoding !== undefined) {
+            if (value !== -Infinity && !Number.isFinite(value)) throw new Error('Invalid encoded memory value');
+            value = source.encoding.part === 'valid' ? Number(value !== -Infinity) : value === -Infinity ? 0 : value;
+          }
+          break;
         }
         case 'memory-present':value=Number(source.keys.every(key=>memory()?.[key]!==undefined));break;
         case 'actor-state':value=source.states.indexOf(need(actor??undefined,'self').state);break;

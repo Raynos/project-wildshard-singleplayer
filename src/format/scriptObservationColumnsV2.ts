@@ -23,7 +23,8 @@ const source = v.variant('kind',[
     v.strictObject({kind:v.literal('sense'),field:v.literal('hearing'),radii:v.strictTuple([
       v.pipe(finite,v.minValue(0)),v.pipe(finite,v.minValue(0)),v.pipe(finite,v.minValue(0)),v.pipe(finite,v.minValue(0))])}),
   ]),
-  v.strictObject({kind:v.literal('memory'),key,default:memoryDefault}),
+  v.strictObject({kind:v.literal('memory'),key,default:memoryDefault,
+    encoding:v.exactOptional(v.strictObject({kind:v.literal('negative-infinity'),part:v.picklist(['value','valid'])}))}),
   v.strictObject({kind:v.literal('memory-present'),keys:v.pipe(v.array(key),v.minLength(1),v.maxLength(64))}),
   v.strictObject({kind:v.literal('actor-state'),states:v.pipe(v.array(key),v.maxLength(64))}),
   v.strictObject({kind:v.literal('player-position'),axis:v.picklist(['x','y','z'])}),

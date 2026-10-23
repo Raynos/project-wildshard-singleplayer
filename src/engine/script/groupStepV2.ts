@@ -1,7 +1,7 @@
 /** One reusable AS group executable over the original group's borrowed bank.
  * Calls happen at the original native slot. There is no tick loop, body/RNG/save
  * owner, action dispatcher or per-group module instance in this transport. */
-import { parseGroupStepV2, groupStepLayoutV2, type GroupStepNativeV2 } from '@wildshard/format/scriptGroupStepV2';
+import { parseGroupStepV2, groupStepLayoutV2, groupNativeWordsV2, type GroupStepNativeV2 } from '@wildshard/format/scriptGroupStepV2';
 import type { GroupBankReferenceV2 } from '@wildshard/format/scriptGroupBankV2';
 import { admitScriptV2 } from '@wildshard/format/scriptAdmissionV2';
 import { prepareV2Rng } from '@wildshard/format/scriptRngV2';
@@ -13,7 +13,7 @@ import { prepareV2Observations } from './observationsV2';
 import { ScriptModuleV2 } from './moduleV2';
 import type { QueryRingV2 } from './queriesV2';
 import type { Scope } from '../app/scope';
-import type { AnimalSim } from '../entities/AnimalSim';
+import { ANIMAL_STATES, type AnimalSim } from '../entities/AnimalSim';
 import type { Rng, RngState } from '../core/rng';
 import type { AggressionDirector, AggressionService } from '../ai/director';
 import type { Events } from '../events/events';
@@ -244,6 +244,7 @@ export class GroupStepV2 {
 function freezeNative(input: GroupStepNativeV2): Readonly<GroupStepNativeV2> {
   const row = structuredClone(input);
   if (row.kind === 'hearing') Object.freeze(row.radii);
+  if (row.kind === 'state') Object.freeze(row.states);
   return Object.freeze(row);
 }
 
@@ -273,10 +274,10 @@ export interface GroupStepNativeResultV2 {
   readonly member?: V2ActorColumnSlot;
 }
 
-/** Prepare a result-only segment without sampling or changing any native
+/** Prepare a finite native segment without sampling or changing any native
  * owner. The original group accepts its candidate before run(), then feeds
  * these transient results into source:result columns and resumes at the SAME
- * call slot. A different operation in the bank refuses before any prefix. */
+ * call slot. An undeclared operation in the bank refuses before any prefix. */
 export function prepareGroupNativeV2(operations: readonly GroupStepOperationV2[], owners: GroupStepNativeOwnersV2): {
   readonly validate: () => void;
   readonly run: () => readonly GroupStepNativeResultV2[];
@@ -294,15 +295,18 @@ export function prepareGroupNativeV2(operations: readonly GroupStepOperationV2[]
   const channels = new Set<string>();
   const prepared = operations.map(operation => {
     const request = operation.native;
-    if (request === undefined || request.channel.length === 0 || request.channel.length > 128
+    if (request === undefined || 'channel' in request && (request.channel.length === 0 || request.channel.length > 128)
       || operation.reference !== undefined || operation.values.some(value => !Number.isFinite(value)))
       throw new Error('Missing or invalid native group result declaration');
     const point = request.kind === 'grass' || request.kind === 'normal' || request.kind === 'nearest';
-    if (operation.values.length !== (request.kind === 'nearest' ? 3 : point ? 2 : 1)) throw new Error('Native group result arity');
+    if (operation.values.length !== groupNativeWordsV2(request)) throw new Error('Native group result arity');
     const member = operation.member;
-    const channel = JSON.stringify([member?.slot ?? null, request.channel]);
-    if (channels.has(channel)) throw new Error('Duplicate native group result channel');
-    channels.add(channel);
+    const resultChannel = 'channel' in request ? request.channel : undefined;
+    if (resultChannel !== undefined) {
+      const channel = JSON.stringify([member?.slot ?? null, resultChannel]);
+      if (channels.has(channel)) throw new Error('Duplicate native group result channel');
+      channels.add(channel);
+    }
     const source = member === undefined ? undefined : sources[member.slot];
     if (point ? member !== undefined : member === undefined || source === undefined
       || !Number.isInteger(member.slot) || member.slot < 0 || operation.values[0] !== member.slot
@@ -316,8 +320,58 @@ export function prepareGroupNativeV2(operations: readonly GroupStepOperationV2[]
         && source.self.slot === member.slot && source.self.identity === member.identity
         && body !== null && body.entityId === member.identity);
     }
-    let invoke: () => number;
+    let invoke: () => number | undefined;
     switch (request.kind) {
+      case 'memory': {
+        const body = member?.actor, value = operation.values[1], valid = operation.values[2];
+        if (body === undefined || body === null || value === undefined || !/^(?!(?:__proto__|prototype|constructor)$).+$/u.test(request.key))
+          throw new Error('Invalid native memory operation');
+        if (request.encoding !== undefined && (valid !== 0 && valid !== 1 || valid === 0 && !Object.is(value,0)))
+          throw new Error('Invalid native memory encoding');
+        const memory = body.mem, key = request.key;
+        const writable = (): boolean => {
+          const descriptor = Object.getOwnPropertyDescriptor(memory,key);
+          return descriptor === undefined ? Object.isExtensible(memory) : Object.hasOwn(descriptor,'value') && descriptor.writable === true;
+        };
+        const prototype: unknown = Object.getPrototypeOf(memory);
+        if (prototype !== Object.prototype && prototype !== null || !writable()) throw new Error('Invalid native memory owner');
+        pins.push(() => body.mem === memory && writable());
+        const decoded = request.encoding === 'negative-infinity' && valid === 0 ? -Infinity : value;
+        invoke = () => { memory[key] = decoded;return undefined; };
+        break;
+      }
+      case 'state': {
+        const body = member?.actor, code = operation.values[1], state = code === undefined ? undefined : request.states[code];
+        const value = ANIMAL_STATES.find(row => row === state);
+        if (body === undefined || body === null || code === undefined || !Number.isInteger(code) || value === undefined
+          || request.states.some(row => !ANIMAL_STATES.some(allowed => allowed === row))) throw new Error('Unknown native actor state');
+        invoke = () => { body.state = value;return undefined; };
+        break;
+      }
+      case 'look-weight': {
+        const body = member?.actor, value = operation.values[1];
+        if (body === undefined || body === null || value === undefined) throw new Error('Missing native look owner');
+        invoke = () => { body.lookWeight = value;return undefined; };
+        break;
+      }
+      case 'look-position': {
+        const body = member?.actor, x = operation.values[1], y = operation.values[2], z = operation.values[3];
+        if (body === undefined || body === null || x === undefined || y === undefined || z === undefined) throw new Error('Missing native look owner');
+        const target = body.lookTarget, set: unknown = Reflect.get(target,'set');
+        if (typeof set !== 'function') throw new Error('Invalid native look callable');
+        pins.push(() => body.lookTarget === target && target.set === set);
+        invoke = () => { target.set(x,y,z);return undefined; };
+        break;
+      }
+      case 'motion': {
+        const body = member?.actor, yaw = operation.values[1], speed = operation.values[2], turn = operation.values[3];
+        if (body === undefined || body === null || yaw === undefined || speed === undefined || turn === undefined) throw new Error('Missing native motion owner');
+        const set: unknown = Reflect.get(body,'setMotion');
+        if (typeof set !== 'function') throw new Error('Invalid native motion callable');
+        pins.push(() => body.setMotion === set);
+        invoke = () => { body.setMotion(yaw,speed,turn);return undefined; };
+        break;
+      }
       case 'grass': {
         const owner = owners.grass, x = operation.values[0], z = operation.values[1];
         if (owner === undefined || typeof owner.grassHeightAt !== 'function' || x === undefined || z === undefined)
@@ -433,7 +487,7 @@ export function prepareGroupNativeV2(operations: readonly GroupStepOperationV2[]
       }
       default: throw new Error('Unknown native group result operation');
     }
-    return { channel: request.channel, member, invoke };
+    return { channel: resultChannel, member, invoke };
   });
   const validate = (): void => {
     live();
@@ -442,11 +496,12 @@ export function prepareGroupNativeV2(operations: readonly GroupStepOperationV2[]
   validate();
   return { validate, run: () => {
     validate();used = true;
-    const result = prepared.map(operation => {
+    const result = prepared.flatMap(operation => {
       live();
       const value = operation.invoke();
-      if (!Number.isFinite(value)) throw new Error('Non-finite native group result');
-      return Object.freeze({ channel: operation.channel, value, ...(operation.member === undefined ? {} : { member: operation.member }) });
+      if (value === undefined) return [];
+      if (!Number.isFinite(value) || operation.channel === undefined) throw new Error('Non-finite native group result');
+      return [Object.freeze({ channel: operation.channel, value, ...(operation.member === undefined ? {} : { member: operation.member }) })];
     });
     live();return Object.freeze(result);
   } };

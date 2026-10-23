@@ -12563,7 +12563,7 @@ and reflected method names are refused. Existing actions without this metadata
 retain their original operation/save representation.
 
 A prepared group call exposes prepareNative(originalOwners). This prepares a
-result-only bank against the SAME entered scope and original ordered member
+finite native bank against the SAME entered scope and original ordered member
 loans. It rejects a mixed undeclared suffix before accepting bank/RNG state or
 executing a native prefix. Its accept validates everything, accepts the group
 candidate once, then executes the native operations once in emitted order.
@@ -12582,8 +12582,8 @@ call. The original native caller feeds them into existing source:result columns
 and resumes the SAME selected programme at the original decision slot before
 another RNG draw. Point results may be lent through member-zero/group input
 columns. There is no saved result outbox, query replay, new cadence or clock.
-This finite result subset does not yet apply group motion/contact effects or
-activate any shipping pack/herd descriptor.
+Finite member effects are described below; steering/contact authority and
+shipping pack/herd activation remain separate.
 
 ### Borrowing two original group RNG streams (H4, G621 R10a)
 
@@ -12631,3 +12631,33 @@ existing handle or zero. It excludes no body implicitly and resolves no kind,
 species or global id. The caller lends its original candidate roster, such as
 its existing cross-group member collection. Scalar results resume through the
 same ephemeral result columns; pose columns read the original chosen loan.
+
+### Ordered native group member effects (H4, G621 R10a)
+
+The same group native bank admits finite member effects as well as result
+requests. Every effect uses operand zero for the original member slot:
+memory {key} consumes value; state {states} consumes a picklist index;
+motion consumes yaw/speed/turn; look-position consumes x/y/z; look-weight
+consumes weight. groupNativeWordsV2 defines exact arity. Authored keys select
+only native actor memory, never reflected methods or object paths. Prototype
+keys, invalid state names/indices, accessors and nonwritable memory refuse.
+
+prepareNative preflights the complete mixed bank before accepting group/RNG
+state or executing any prefix. It then applies native effects and result calls
+in emitted order on the original body, memory and pose objects. Each operation
+rechecks entered scope, original member and its concrete callable/owner; scope
+retirement by an earlier native call prevents later member effects. Operations
+never re-resolve or retarget the emitted actor. No new body, save or clock is
+owned. Steering, pathfinding and contact are separate original authorities;
+these member setters do not claim those operations.
+
+A memory column may declare encoding:{kind:negative-infinity,part:value|valid}.
+Only the original -Infinity sentinel encodes as value zero and valid zero.
+Finite values, including signed zero, retain value and valid one; other
+non-finite values refuse. Missing memory uses its original declared fallback.
+The body is never normalized during capture. A native memory row with
+encoding:negative-infinity consumes [slot,value,valid] and restores -Infinity
+when valid is zero (requiring positive-zero value). Without encoding it uses
+[slot,value]. This retains the original memory and snapshot bytes while the
+AS bank remains finite; no field name or species-specific sentinel is hidden
+in the transport.

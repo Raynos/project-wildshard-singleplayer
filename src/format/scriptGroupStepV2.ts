@@ -18,10 +18,17 @@ export type GroupStepNativeV2 =
   | { kind: 'downwind'; channel: string }
   | { kind: 'claim'; channel: string }
   | { kind: 'nearest'; channel: string; roster: string }
+  | { kind: 'memory'; key: string; encoding?: 'negative-infinity' }
+  | { kind: 'state'; states: readonly string[] }
+  | { kind: 'motion' | 'look-position' | 'look-weight' }
   | { kind: 'hearing'; channel: string; radii: readonly [number, number, number, number] };
 const radius = v.pipe(v.number(), v.finite(), v.minValue(0));
+const memoryKey = v.pipe(name,v.regex(/^(?!(?:__proto__|prototype|constructor)$).+$/));
 const nativeSchema: v.GenericSchema<GroupStepNativeV2> = v.variant('kind', [
   v.strictObject({ kind: v.picklist(['grass', 'normal', 'visibility', 'downwind', 'claim']), channel: name }),
+  v.strictObject({ kind: v.literal('memory'),key:memoryKey,encoding:v.exactOptional(v.literal('negative-infinity')) }),
+  v.strictObject({ kind: v.literal('state'),states:v.pipe(v.array(name),v.minLength(1),v.maxLength(64)) }),
+  v.strictObject({ kind: v.picklist(['motion','look-position','look-weight']) }),
   v.strictObject({ kind: v.literal('nearest'), channel: name, roster: name }),
   v.strictObject({ kind: v.literal('hearing'), channel: name, radii: v.strictTuple([radius, radius, radius, radius]) }),
 ]);
@@ -65,6 +72,18 @@ export const GroupStepV2Schema: v.GenericSchema<GroupStepRowsV2> = v.strictObjec
   randomStreams: v.exactOptional(v.literal(2)),
   queries: v.exactOptional(v.strictObject({ pending: v.pipe(natural, v.maxValue(64)), scalars: v.pipe(natural, v.maxValue(1024)) })),
 });
+/** The op25 payload has four numeric operands; member operations always use
+ * operand zero for their original slot. No guest selects a native setter. */
+export function groupNativeWordsV2(row: GroupStepNativeV2): number {
+  switch (row.kind) {
+    case 'nearest': return 3;
+    case 'grass': case 'normal': case 'state': case 'look-weight': return 2;
+    case 'memory': return row.encoding === undefined ? 2 : 3;
+    case 'motion': case 'look-position': return 4;
+    case 'visibility': case 'hearing': case 'downwind': case 'claim': return 1;
+    default: throw new Error('Unknown native group operation');
+  }
+}
 export function groupStepLayoutV2(rows: GroupStepRowsV2): V2Layout {
   const profiles = [rows, ...(rows.profiles ?? [])];
   const width = Math.max(...profiles.map(profile => profile.bank.reduce((sum, row) => sum + groupBankWidthV2(row), 0)));
@@ -101,8 +120,10 @@ export function parseGroupStepV2(input: unknown): GroupStepRowsV2 {
         || row.member !== undefined && row.reference?.word === row.member) throw new Error('Invalid group action operands');
       if (row.native !== undefined) {
         const point = row.native.kind === 'grass' || row.native.kind === 'normal' || row.native.kind === 'nearest';
-        if (row.words !== (row.native.kind === 'nearest' ? 3 : point ? 2 : 1) || row.member !== (point ? undefined : 0) || row.reference !== undefined)
+        if (row.words !== groupNativeWordsV2(row.native) || row.member !== (point ? undefined : 0) || row.reference !== undefined)
           throw new Error('Invalid native group result operands');
+        if (row.native.kind === 'state' && new Set(row.native.states).size !== row.native.states.length)
+          throw new Error('Duplicate native group state');
       }
     }
   }
