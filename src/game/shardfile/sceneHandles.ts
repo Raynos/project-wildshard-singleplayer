@@ -81,7 +81,9 @@ export class SceneHandles {
     if (!(value instanceof WorldScenePlacement)) throw new Error(`Expected scene placement: ${id}`);
     return value.modelId();
   }
-  /** Every element placed by tile so far (`tile()`), in order. */
+  /** T3: a tiled element that is not a placement (a recipe step's merged mesh, `tiledMesh`). */
+  addTiled(content: TileContent): void { this.tileContents.push(content); }
+  /** Every element placed by tile so far (`tile()`, `addTiled()`), in order. */
   tiled(): readonly TileContent[] { return this.tileContents; }
   /** Whether `id` names a declared frozen graph (a weld assembly) rather than a placement or part. */
   frozen(id: string): boolean { return this.values.get(id) instanceof WorldSceneWeldAssembly; }
