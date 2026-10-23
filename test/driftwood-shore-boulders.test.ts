@@ -1,10 +1,10 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Node fixture reads registered binary bake outputs.
 import { readFileSync } from 'node:fs';
+import * as v from 'valibot';
 import { parseWorldSceneModels } from '../src/format/worldSceneModels';
 import { parseWorldScene } from '../src/format/clientChannels';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 import { bakeRockScenes } from '../src/shards/driftwood-isle/generators/rockScenes';
-import rockRows from '../src/shards/driftwood-isle/data/rockScenes.generated.json' with { type: 'json' };
 import { expect, it } from 'vitest';
 import foliage from '../src/shards/driftwood-isle/data/foliagePlacements.generated.json';
 import shore from '../src/shards/driftwood-isle/data/shoreBoulders.generated.json';
@@ -12,6 +12,15 @@ import { STATIC_BOAT, WORLD_GULL_PERCHES, SHORE_BOULDERS } from '../src/shards/d
 import { SEED } from '../src/shards/driftwood-isle/generators/landscapeRows';
 import WRECK_SITES from '../src/shards/driftwood-isle/data/wreckSites.json' with { type: 'json' };
 import { scatterShore } from '../src/shards/driftwood-isle/generators/shoreBoulders';
+
+const finite=v.pipe(v.number(),v.finite());
+const copy={matrix:v.pipe(v.array(finite),v.length(16)),from:finite,count:finite,
+  box:v.pipe(v.array(finite),v.length(6)),colliders:v.array(v.unknown())};
+const rockRows=v.parse(v.object({scene:v.unknown(),catalogue:v.unknown(),
+  section:v.object({step:v.object({bounds:v.array(v.object({part:v.string(),sphere:v.object({center:v.tuple([finite,finite,finite]),radius:finite})}))})}),
+  world:v.object({shore:v.array(v.object({params:v.object({r:finite,squash:finite}),...copy})),
+    small:v.array(v.object({params:v.object({r:finite,sq:finite}),...copy}))})}),
+  JSON.parse(readFileSync('src/shards/driftwood-isle/data/rockScenes.generated.json','utf8')));
 
 it('keeps the admitted shoreline clear of the wreck with unchanged placements', () => {
   const rocks = shore.specs;
