@@ -213,7 +213,8 @@ const summary = { base: BASE, rev: args.rev ?? null, at: new Date().toISOString(
   const steps = [...new Set(rows.flatMap(row => row.rows.map(step => step.key)))];
   return [mode, { runs: rows.length, failed: results.filter(row => row.mode === mode && row.error !== undefined).length,
     ...Object.fromEntries(keys.map(key => [key, median(rows.map(row => row[key]))])),
-    stepTotalGrew: rows.some(row => row.stepTotals.length > 1), downloadDrops: rows.reduce((sum, row) => sum + row.downloadDrops, 0),
+    // the first total (1) is the modules-only path the loader shows before the entry sets its own
+    stepTotalGrew: rows.some(row => row.stepTotals.filter(total => total > 1).length > 1), downloadDrops: rows.reduce((sum, row) => sum + row.downloadDrops, 0),
     brokenFrames: rows.reduce((sum, row) => sum + (row.brokenFrames?.broken.length ?? 0), 0),
     steps: Object.fromEntries(steps.map(key => [key, median(rows.map(row => row.rows.find(step => step.key === key)?.ms))])) }];
 })) };
