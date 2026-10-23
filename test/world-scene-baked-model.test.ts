@@ -23,6 +23,7 @@ import { SkyRig } from '../src/engine/world/skyRig';
 import type { ShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { WorldRegistry } from '../src/engine/world/registry';
+import * as colliderReader from '../src/engine/models/colliders';
 import { WorldScenePlacement } from '../src/game/shardfile/worldScenePlacement';
 import { installWorldScenes } from '../src/game/shardfile/worldScenes';
 import { parseWorldScenes } from '../src/format/worldScenes';
@@ -284,4 +285,51 @@ test('native shader parity ignores only an unused diagnostic material label', ()
   expect(shaderCodeSources([stone])).toEqual(shaderCodeSources([other]));
   expect(shaderCodeSources([stone])).not.toEqual(shaderCodeSources([other.replace('1.0', '2.0')]));
   expect(shaderCodeSources([`${stone}\nSHADER_NAME`])).not.toEqual(shaderCodeSources([`${other}\nSHADER_NAME`]));
+});
+
+
+test('tiled placement admits authored contacts once, never decodes the whole table per draw', async () => {
+  const owner = new Scope('tiled-contacts'), sky = fixtureSky(), registry = new WorldRegistry(), game = {};
+  const context = { scope: owner, app: { registry }, game } as ShardContext;
+  Object.assign(game, { runtime: { world: { sky, game, registry } } });
+  const catalogue = defineWorldSceneCatalogue({ product: 'fixture-quay', models: [{ key: 'marker', id: 'fixture-quay/marker', name: 'Marker',
+    category: 'props', pipeline: 'code', file: 'marker.json', defaults: {}, choices: [{ id: 'only', params: {}, size: [1, 1, 1],
+      draws: [], colliders: [{ kind: 'ball', x: 0, y: 0, z: 0, radius: 99 }] }] }] });
+  const pose = (x: number) => ({ x, y: 0, z: 4, yxz: { yaw: 0, scale: 1 } });
+  const row = parseWorldScenePlacement({ id: 'contacts', model: 'marker', draw: 'single', poses: [pose(3), pose(100)],
+    colliders: [{ kind: 'hull', x: 3, y: 0, z: 4, points: [0, 0, 0, 1, 0, 0, 0, 1, 0], surface: 'rock' },
+      { kind: 'trimesh', x: 100, y: 0, z: 4, vertices: [0, 0, 0, 1, 0, 0, 0, 1, 0], indices: [0, 1, 2] }], piece: { id: 'contacts' } });
+  const expected = colliderReader.readColliderRows(row.colliders ?? [], { kinds: ['hull', 'trimesh'], surfaces: ['rock'] });
+  const read = vi.spyOn(colliderReader, 'readColliderRows'), handles = new WorldScenePlacement(context, row, catalogue, owner, new Map(), []);
+  const admitted = () => read.mock.calls.filter(([input]) => input === row.colliders).length;
+  try {
+    expect([...handles.tiles()]).toEqual([36, 37]); expect(admitted()).toBe(1);
+    const container = new Group(), left = owner.child('left'), right = owner.child('right');
+    const a = await handles.attach(36, left, container), b = await handles.attach(37, right, container);
+    expect(a?.colliders).toEqual([]); expect(b?.colliders).toEqual([]); // authored rows suppress the model's ball
+    await handles.attachColliders(36, left); await handles.attachColliders(37, right);
+    const contacts = () => registry.pieces.filter(piece => piece.id.startsWith('contacts.c')).flatMap(piece => piece.colliders);
+    expect(contacts()).toEqual(expected); expect(JSON.stringify(contacts())).toBe(JSON.stringify(expected));
+    expect(admitted()).toBe(1);
+    left.dispose(); right.dispose(); expect(contacts()).toEqual([]); expect(container.children).toHaveLength(0);
+    const again = owner.child('again'); await handles.attach(36, again, container); await handles.attachColliders(36, again);
+    expect(contacts()).toEqual(expected.slice(0, 1)); expect(admitted()).toBe(1);
+    again.dispose();
+    const whole = new WorldScenePlacement(context, row, catalogue, owner, new Map(), []);
+    expect((await whole.load()).colliders).toEqual(expected); expect(admitted()).toBe(2);
+  } finally { owner.dispose(); registry.retire(); }
+});
+
+test('a direct tiled build refuses an invalid authored contact before placing any copy', async () => {
+  const owner = new Scope('bad-tiled-contact'), sky = fixtureSky(), registry = new WorldRegistry(), game = {};
+  const context = { scope: owner, app: { registry }, game } as ShardContext;
+  Object.assign(game, { runtime: { world: { sky, game, registry } } });
+  const model = vi.fn(() => { throw new Error('Must refuse before requesting a model'); });
+  const row = parseWorldScenePlacement({ id: 'bad', model: 'marker', draw: 'single',
+    poses: [{ x: 3, y: 0, z: 4, yxz: { yaw: 0, scale: 1 } }], colliders: [{ kind: 'box', x: 0 }] });
+  try {
+    const handles = new WorldScenePlacement(context, row, { model }, owner, new Map(), []);
+    await expect(handles.attach(36, owner.child('tile'), new Group())).rejects.toThrow();
+    expect(model).not.toHaveBeenCalled(); expect(registry.pieces).toEqual([]);
+  } finally { owner.dispose(); registry.retire(); }
 });

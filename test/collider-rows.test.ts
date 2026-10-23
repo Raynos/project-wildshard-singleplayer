@@ -61,3 +61,14 @@ test('copies bounded indexed facts instead of custom array iterators', () => {
   expect(mesh.indices).toEqual(new Uint32Array([0, 0, 0]));
   expect(iterator).not.toHaveBeenCalled();
 });
+
+
+test('collision-free copies allocate no shape grammar or policy reads', () => {
+  const surfaces = vi.fn(() => ['rock'] as const), kinds = vi.fn(() => ['box'] as const);
+  const policy = { get surfaces() { return surfaces(); }, get kinds() { return kinds(); } };
+  const a = readColliderRows([], policy), b = readColliderRows([], policy);
+  expect(a).toEqual([]); expect(b).toEqual([]); expect(a).not.toBe(b);
+  expect(surfaces).not.toHaveBeenCalled(); expect(kinds).not.toHaveBeenCalled();
+  expect(readColliderRows([{ kind: 'box', x: 0, y: 0, z: 0, hx: 1, hy: 1, hz: 1, surface: 'rock' }], policy)).toHaveLength(1);
+  expect(surfaces).toHaveBeenCalled(); expect(kinds).toHaveBeenCalled();
+});

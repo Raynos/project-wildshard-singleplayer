@@ -135,12 +135,14 @@ export class WorldScenePlacement {
     await this.prepareMaterials(world.sky);
     requireLive(owner);
     const cull = this.cullOptions(world.forest);
-    const definition = this.catalogue.model(row.model);
-    const preplaced = row.colliders === undefined ? undefined : readColliderRows(row.colliders, COLLIDER_ROWS)
+    // Tiled draws never consume the whole authored table: the collider ring admits and partitions it once.
+    if (tile !== undefined && row.colliders !== undefined) this.authoredByTile();
+    const preplaced = tile !== undefined || row.colliders === undefined ? undefined : readColliderRows(row.colliders, COLLIDER_ROWS)
       // Keep the authored descriptor's field order as well as its typed lanes; exact native parity hashes both.
       .map((shape, i) => { const ordered = {}; return Object.assign(ordered, row.colliders?.[i], shape); });
+    const definition = this.catalogue.model(row.model);
     const pieceId = row.piece === undefined || tile === undefined ? row.piece?.id : `${row.piece.id}.t${tile}`;
-    const placed = withOwner(owner, () => place(preplaced === undefined ? definition : { ...definition, colliders: () => [] },
+    const placed = withOwner(owner, () => place(row.colliders === undefined ? definition : { ...definition, colliders: () => [] },
       poses.map(posed),
       // E271 / E272: no multi-draw anywhere; a 'batched' row draws instanced (a graph look on a multi-draw batch did not compile)
       { ctx: sharedModelContext(world.sky, world.game), registry: world.registry, draw: row.draw === 'batched' ? 'instanced' : row.draw,

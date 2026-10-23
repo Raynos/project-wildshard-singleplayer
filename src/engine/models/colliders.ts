@@ -35,6 +35,8 @@ export function readColliderRows(rows: readonly unknown[], policy: {
   readonly requireSurface?: boolean;
 }): ColliderDesc[] {
   if (rows.length > 65_536) throw new Error('Collider row bound exceeded');
+  // Collision-free model copies need no shape grammar or policy traversal.
+  if (rows.length === 0) return [];
   const finite = val.pipe(val.number('Collider values must be finite'), val.finite('Collider values must be finite'));
   const point = val.strictObject({ x: finite, y: finite, z: finite }, 'Collider lacks an endpoint');
   const surface = val.exactOptional(val.picklist(policy.surfaces));
