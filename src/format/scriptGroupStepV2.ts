@@ -21,6 +21,7 @@ export type GroupStepNativeV2 =
   | { kind: 'memory'; key: string; encoding?: 'negative-infinity' }
   | { kind: 'state'; states: readonly string[] }
   | { kind: 'motion' | 'look-position' | 'look-weight' | 'steer' | 'confine' }
+  | { kind: 'damage' | 'stagger' | 'health' }
   | { kind: 'path'; channel: string }
   | { kind: 'hearing'; channel: string; radii: readonly [number, number, number, number] };
 const radius = v.pipe(v.number(), v.finite(), v.minValue(0));
@@ -29,7 +30,7 @@ const nativeSchema: v.GenericSchema<GroupStepNativeV2> = v.variant('kind', [
   v.strictObject({ kind: v.picklist(['grass', 'normal', 'visibility', 'downwind', 'claim']), channel: name }),
   v.strictObject({ kind: v.literal('memory'),key:memoryKey,encoding:v.exactOptional(v.literal('negative-infinity')) }),
   v.strictObject({ kind: v.literal('state'),states:v.pipe(v.array(name),v.minLength(1),v.maxLength(64)) }),
-  v.strictObject({ kind: v.picklist(['motion','look-position','look-weight','steer','confine']) }),
+  v.strictObject({ kind: v.picklist(['motion','look-position','look-weight','steer','confine','damage','stagger','health']) }),
   v.strictObject({ kind: v.literal('path'), channel: name }),
   v.strictObject({ kind: v.literal('nearest'), channel: name, roster: name }),
   v.strictObject({ kind: v.literal('hearing'), channel: name, radii: v.strictTuple([radius, radius, radius, radius]) }),
@@ -79,11 +80,22 @@ export const GroupStepV2Schema: v.GenericSchema<GroupStepRowsV2> = v.strictObjec
 export function groupNativeWordsV2(row: GroupStepNativeV2): number {
   switch (row.kind) {
     case 'nearest': return 3;
-    case 'grass': case 'normal': case 'state': case 'look-weight': return 2;
+    case 'grass': case 'normal': case 'state': case 'look-weight': case 'health': return 2;
     case 'memory': return row.encoding === undefined ? 2 : 3;
-    case 'motion': case 'look-position': case 'steer': case 'path': return 4;
+    case 'motion': case 'look-position': case 'steer': case 'path': case 'damage': case 'stagger': return 4;
     case 'visibility': case 'hearing': case 'downwind': case 'claim': case 'confine': return 1;
     default: throw new Error('Unknown native group operation');
+  }
+}
+/** Reference effects use an emitted native reference handle, never a member
+ * slot or reflected target selector. */
+export function groupNativeTargetV2(row: GroupStepNativeV2): 'point' | 'member' | 'reference' {
+  switch (row.kind) {
+    case 'grass': case 'normal': case 'nearest': return 'point';
+    case 'damage': case 'stagger': case 'health': return 'reference';
+    case 'visibility': case 'hearing': case 'downwind': case 'claim': case 'memory': case 'state':
+    case 'motion': case 'look-position': case 'look-weight': case 'steer': case 'confine': case 'path': return 'member';
+    default: throw new Error('Unknown native group target');
   }
 }
 export function groupStepLayoutV2(rows: GroupStepRowsV2): V2Layout {
@@ -121,8 +133,9 @@ export function parseGroupStepV2(input: unknown): GroupStepRowsV2 {
       if (row.member !== undefined && row.member >= row.words || row.reference !== undefined && row.reference.word >= row.words
         || row.member !== undefined && row.reference?.word === row.member) throw new Error('Invalid group action operands');
       if (row.native !== undefined) {
-        const point = row.native.kind === 'grass' || row.native.kind === 'normal' || row.native.kind === 'nearest';
-        if (row.words !== groupNativeWordsV2(row.native) || row.member !== (point ? undefined : 0) || row.reference !== undefined)
+        const target = groupNativeTargetV2(row.native);
+        if (row.words !== groupNativeWordsV2(row.native) || row.member !== (target === 'member' ? 0 : undefined)
+          || (target === 'reference' ? row.reference?.word !== 0 || row.reference.nullable === true : row.reference !== undefined))
           throw new Error('Invalid native group result operands');
         if (row.native.kind === 'state' && new Set(row.native.states).size !== row.native.states.length)
           throw new Error('Duplicate native group state');

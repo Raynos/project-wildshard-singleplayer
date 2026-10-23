@@ -1235,3 +1235,24 @@ changes a current actor does not retarget later operations; method replacement
 or entered-scope retirement prevents their execution. These rows introduce no
 path cache, body, random stream, clock or saved owner. Contact and group
 notifications remain separate native authorities.
+
+### Native group reference effects (H4, G621 R10a)
+
+Finite damage and stagger rows consume [referenceHandle,amount,dirX,dirZ]
+and [referenceHandle,dirX,dirZ,strength]; health consumes [referenceHandle,hp].
+The declared reference operand is zero and cannot be nullable. These effects
+borrow the SAME original reference list as the group candidate. Foreign bodies,
+unknown handles, member aliases, malformed arity or missing native methods
+refuse the whole bank before state/RNG acceptance or any member/effect prefix.
+
+Damage calls the original AnimalSim or explicit pose-prey applyDamage owner
+with its original current position and horizontal direction. Stagger and health
+require original AnimalSim storage; a pose-only crowd prey cannot borrow those
+rights. The original native methods, body position and writable health storage
+are preflighted and fenced, including after ancestor scope retirement.
+
+Reference membership is checked before the first effect. Every operation then
+retains the emitted body even if an earlier original native callback adopts a
+new target or changes the roster. No later operation looks the handle up again.
+Original body and crowd snapshot/restore owners retain all damage/death state;
+there is no second combat pipeline, actor book, save envelope or event clock.

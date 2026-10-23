@@ -1,7 +1,8 @@
 /** One reusable AS group executable over the original group's borrowed bank.
  * Calls happen at the original native slot. There is no tick loop, body/RNG/save
  * owner, action dispatcher or per-group module instance in this transport. */
-import { parseGroupStepV2, groupStepLayoutV2, groupNativeWordsV2, type GroupStepNativeV2 } from '@wildshard/format/scriptGroupStepV2';
+import { parseGroupStepV2, groupStepLayoutV2, groupNativeWordsV2, groupNativeTargetV2, type GroupStepNativeV2 } from '@wildshard/format/scriptGroupStepV2';
+import { Vector3 } from 'three';
 import type { GroupBankReferenceV2, GroupBankValueV2 } from '@wildshard/format/scriptGroupBankV2';
 import { admitScriptV2 } from '@wildshard/format/scriptAdmissionV2';
 import { prepareV2Rng } from '@wildshard/format/scriptRngV2';
@@ -290,7 +291,7 @@ export function prepareGroupNativeV2(operations: readonly GroupStepOperationV2[]
   readonly run: () => readonly GroupStepNativeResultV2[];
 } {
   const scope = owners.scope, sources = owners.members.slice();
-  const pins: (() => boolean)[] = [];
+  const pins: (() => boolean)[] = [], before: (() => boolean)[] = [];
   const live = (): void => {
     if (owners.scope !== scope || scope.disposed || scope.disposing
       || owners.members.length !== sources.length || sources.some((row, index) => owners.members[index] !== row)
@@ -303,9 +304,9 @@ export function prepareGroupNativeV2(operations: readonly GroupStepOperationV2[]
   const prepared = operations.map(operation => {
     const request = operation.native;
     if (request === undefined || 'channel' in request && (request.channel.length === 0 || request.channel.length > 128)
-      || operation.reference !== undefined || operation.values.some(value => !Number.isFinite(value)))
+      || operation.values.some(value => !Number.isFinite(value)))
       throw new Error('Missing or invalid native group result declaration');
-    const point = request.kind === 'grass' || request.kind === 'normal' || request.kind === 'nearest';
+    const targetKind = groupNativeTargetV2(request);
     if (operation.values.length !== groupNativeWordsV2(request)) throw new Error('Native group result arity');
     const member = operation.member;
     const resultChannel = 'channel' in request ? request.channel : undefined;
@@ -315,7 +316,7 @@ export function prepareGroupNativeV2(operations: readonly GroupStepOperationV2[]
       channels.add(channel);
     }
     const source = member === undefined ? undefined : sources[member.slot];
-    if (point ? member !== undefined : member === undefined || source === undefined
+    if (targetKind !== 'member' ? member !== undefined : member === undefined || source === undefined
       || !Number.isInteger(member.slot) || member.slot < 0 || operation.values[0] !== member.slot
       || source.scope !== scope || source.self.actor !== member.actor || member.actor === null
       || source.self.identity !== member.identity || source.self.group !== member.group
@@ -327,8 +328,49 @@ export function prepareGroupNativeV2(operations: readonly GroupStepOperationV2[]
         && source.self.slot === member.slot && source.self.identity === member.identity
         && body !== null && body.entityId === member.identity);
     }
+    const emittedReference = operation.reference;
+    if (targetKind === 'reference') {
+      const references = owners.references;
+      if (emittedReference === undefined || references === undefined || references.length > 1024 || !validReference(emittedReference)
+        || operation.values[0] !== emittedReference.handle || !references.some(row => sameReference(row,emittedReference)))
+        throw new Error('Foreign native group effect reference');
+      // Membership is checked before the first effect. Later adoption may
+      // change the roster; every operation retains this emitted body.
+      before.push(() => owners.references === references && references.some(row => sameReference(row,emittedReference)));
+    } else if (emittedReference !== undefined) throw new Error('Unexpected native group effect reference');
     let invoke: () => number | undefined;
     switch (request.kind) {
+      case 'damage': {
+        const body = emittedReference?.body, amount = operation.values[1], x = operation.values[2], z = operation.values[3];
+        if (body === undefined || amount === undefined || x === undefined || z === undefined || typeof body.applyDamage !== 'function')
+          throw new Error('Missing native damage owner');
+        const apply = body.applyDamage, position = body.position;
+        const finitePose = (): boolean => [position.x,position.y,position.z].every(Number.isFinite);
+        if (!finitePose()) throw new Error('Invalid native damage position');
+        pins.push(() => body.applyDamage === apply && body.position === position && finitePose());
+        invoke = () => { apply.call(body,amount,position,new Vector3(x,0,z));return undefined; };
+        break;
+      }
+      case 'stagger': case 'health': {
+        if (emittedReference === undefined || emittedReference.pose === true) throw new Error('Native effect requires original actor storage');
+        const body = emittedReference.body, value = operation.values[1];
+        if (value === undefined) throw new Error('Missing native actor effect operand');
+        if (request.kind === 'health') {
+          const writable = (): boolean => {
+            const property = Object.getOwnPropertyDescriptor(body,'hp');
+            return property !== undefined && Object.hasOwn(property,'value') && property.writable === true;
+          };
+          if (!writable()) throw new Error('Invalid native health owner');
+          pins.push(writable);
+          invoke = () => { body.hp = value;return undefined; };
+        } else {
+          const z = operation.values[2], strength = operation.values[3], stagger: unknown = Reflect.get(body,'stagger');
+          if (z === undefined || strength === undefined || typeof stagger !== 'function') throw new Error('Missing native stagger owner');
+          pins.push(() => body.stagger === stagger);
+          invoke = () => { body.stagger(new Vector3(value,0,z),strength);return undefined; };
+        }
+        break;
+      }
       case 'memory': {
         const body = member?.actor, value = operation.values[1], valid = operation.values[2];
         if (body === undefined || body === null || value === undefined || !/^(?!(?:__proto__|prototype|constructor)$).+$/u.test(request.key))
@@ -530,6 +572,7 @@ export function prepareGroupNativeV2(operations: readonly GroupStepOperationV2[]
   const validate = (): void => {
     live();
     if (used) throw new Error('Native group result segment already consumed');
+    if (before.some(pin => !pin())) throw new Error('Changed native group effect reference');
   };
   validate();
   return { validate, run: () => {
