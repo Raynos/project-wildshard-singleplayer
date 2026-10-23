@@ -197,7 +197,8 @@ export class ShardfileClient {
     const data = bindings.trustedRuntime === true ? withSplatGround(withoutRuntimeRows(source), source) : source;
     if (bindings.trustedRuntime === true) { const ground = splatGroundFiles(data); assets.releaseTransport(new Set([...runtimeBoundWorldFiles(source)].filter(ref => !ground.has(ref)))); }
     this.source = data; this.assets = assets; this.bindings = bindings; this.curveState = source.state;
-    this.mode = bindings.runtimeStagesOnly === true ? 'empty' : bindings.trustedRuntime !== true ? 'full'
+    // a runtime that owns the client stages draws nothing of this data, but a splat ground the Debug row draws (P1)
+    this.mode = bindings.runtimeStagesOnly === true ? splatGroundFiles(data).size > 0 ? 'presentation' : 'empty' : bindings.trustedRuntime !== true ? 'full'
       : emptyHybridData(data, bindings.audioOwner, bindings.worldOwner) ? 'empty'
       : emptyHybridData(withoutPresentation(data), bindings.audioOwner, bindings.worldOwner) ? 'presentation' : 'full';
     this.nativeFeatures = hasDeclaredClientPage(source);
