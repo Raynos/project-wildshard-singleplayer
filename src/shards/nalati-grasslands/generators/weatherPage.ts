@@ -45,5 +45,5 @@ export const NALATI_WEATHER_PAGE = {
     ],
     rain: { look: 'nalati-rain', radius: { phone: 11, desktop: 16 }, streaks: { phone: 3500, desktop: 6000 }, order: 20 },
   },
-  system: { id: 'shard.nalati.weather', after: ['shard.nalati.pois'], before: ['shard.nalati.weather.fx'] },
+  system: { id: 'shard.nalati.weather', after: ['main.world'], before: ['shard.nalati.titan'] },
 };

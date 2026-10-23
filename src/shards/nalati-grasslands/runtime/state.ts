@@ -51,7 +51,6 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   const groups = await WorldAssembly.construct(prefix, { runtime, native: plugin, product: plugin.product, scope: plugin.scope, draws: shapes, baked: new Map(), ...(progress === undefined ? {} : { progress }) });
   const dressing = SceneDressing.current(plugin);
   const anchors = (place: string, name: string) => dressing.pieces.get(place)?.anchors[name] ?? [];
-  updates.push(() => undefined); // The dressing owns this frame slot.
   const weatherLoan = lateEntryOwner(plugin.scope, 'world-weather', 'nalati.weather');
   const resolveWeather = () => {
     const rig = weatherLoan(), storm = rig.storm, painted = rig.sky;
@@ -60,16 +59,11 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   };
   let weather: ReturnType<typeof resolveWeather> | undefined;
   const readWeather = () => { weatherLoan(); weather ??= resolveWeather(); return weather; };
-  updates.push(() => undefined); // The weather host owns this frame slot.
 
   // ── Jel Ata the Storm Titan (B14; src/shards/nalati-grasslands/stormTitan.ts): the Wind Cairn's threshold (mounted, in a natural storm), the
   //    Titan beyond the south rim, the arena's wall / whirlwinds / riders / fire; the heart joins the Targets chain below ──
   const titan = entryOwner(plugin.scope, 'arena-room', 'nalati.titan');
   updates.push((dt, t) => { titan.update(dt, t); });
-
-  // ── the look (src/shards/nalati-grasslands/look/): ONE seamless 360° panorama on a sky dome — the painting is the sky, the clouds, the
-  //    planet, the sun and the far range; the fog takes its colour from it (docs/design/nalati/handoff/port-v2.md) ──
-  updates.push(() => undefined); // The declared painted-world owns this frame slot.
 
   // ── named elites (elites agent, B12): the five lairs, their spawn rules on the clock / the storm — src/shards/nalati-grasslands/elites.ts ──
   const charge = await readSpawnScript(plugin.product, 'nalati.qara-charge');
@@ -106,7 +100,6 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   let wildlife: PageWildlife<Flock> | null = null;
   let playKit: HeldSlotKit | null = null;
   let ride: Ride | null = null;
-  updates.push(() => undefined); // The declared population owns this frame slot.
 
   // B9, wired below; the crouch also works on the meadow while you approach a stallion to tame (E287: the quest asks for it)
   let stealth: Stealth | null = null;
@@ -144,17 +137,14 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
 
   titan.riders = night.riders;    // B14: the Titan's storm riders ride the same rig
   updates.push((dt, t) => { if (!practiceRoom.open) night.update(dt, t); });   // no night riders shooting up at a practice room (E321)
-  const ids = ['pois', 'weather.fx', 'titan', 'look', 'elites', 'boss', 'wildlife', 'stealth', 'night'];
-  let previous = 'main.world';
+  // the frames in their original order: the weather host, the declared look (world-update rows) and the declared
+  // population register their own frames (shard.nalati.weather / look / wildlife) between these
+  const ids = ['titan', 'elites', 'boss', 'stealth', 'night'], after = [['main.world', 'shard.nalati.weather'], ['shard.nalati.look'], ['shard.nalati.elites'], ['shard.nalati.wildlife'], ['shard.nalati.stealth']];
   if (updates.length !== ids.length) throw new Error('Nalati update registration lacks an id');
-  for (let index = 0; index < 9; index++) {
-    const name = ids[index], run = updates[index];
-    if (name === undefined || run === undefined) throw new Error('Nalati update registration lacks an id');
-    const id = `shard.nalati.${name}`;
-    if (name === 'look') installWorldUpdates(plugin, worldUpdates, {arenas:new Map([['arena',boss],['fight',titan]]),elites:new Map([['elites',elites]])});
-    else if (name !== 'wildlife') plugin.system({ id, phase: 'update', after: [previous], before: ['engine.creatures.update'], run });
-    previous = id;
-  }
+  updates.forEach((run, index) => {
+    plugin.system({ id: `shard.nalati.${ids[index] ?? ''}`, phase: 'update', after: after[index] ?? [], before: ['engine.creatures.update'], run });
+    if (index === 0) installWorldUpdates(plugin, worldUpdates, {arenas:new Map([['arena',boss],['fight',titan]]),elites:new Map([['elites',elites]])});
+  });
   plugin.on('weapon.fired', () => { stealth?.noteShot(); if(playKit!==null)playKit.polearm('polearm').damageScale=stealth?.sneakMultiplier()??1; wildEnv.lastShotT = plugin.app.clock.now; });
   // A landing arrow or javelin, preserving the original exclusion around the player.
   plugin.on('weapon.impact', ({ point }) => {
