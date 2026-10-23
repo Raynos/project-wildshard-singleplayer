@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- All writes are confined to an owned temporary policy fixture.
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync, existsSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The guard compares actual immutable Node source trees.
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exact frozen fixture identity uses the policy's SHA256.
@@ -128,13 +128,20 @@ test('retains exact frozen sites after primary debt retires', () => {
   put(baselineRoot, list, JSON.stringify(before));
   put(candidateRoot, list, JSON.stringify({ ...before, sites }));
   const check = () => comparePlatformList(list, join(baselineRoot, list), join(candidateRoot, list), { baselineRoot, candidateRoot });
+  const read = (base: string) => (path: string) => existsSync(join(base, path)) ? readFileSync(join(base, path), 'utf8') : undefined;
+  const checkBlobs = () => comparePlatformList(list, join(baselineRoot, list), join(candidateRoot, list), undefined, undefined,
+    { before: read(baselineRoot), after: read(candidateRoot) });
   try {
     put(candidateRoot, file, source);
     expect(check()).toEqual([]);
+    expect(checkBlobs()).toEqual([]);
+    expect(comparePlatformList(list, join(baselineRoot, list), join(candidateRoot, list))).not.toEqual([]);
     put(candidateRoot, file, `${source}\nchanged();`);
     expect(check()).not.toEqual([]);
+    expect(checkBlobs()).not.toEqual([]);
     put(candidateRoot, file, source);
     put(baselineRoot, 'lint/legacy-shards.json', JSON.stringify({ version: 1, sealed: true, shards: {} }));
     expect(check()).not.toEqual([]);
+    expect(checkBlobs()).not.toEqual([]);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });

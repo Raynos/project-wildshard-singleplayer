@@ -98,20 +98,29 @@ function rekeyedRuntimeSites(before, after, trees) {
 }
 
 // Retired primary debt can remain at an unchanged, already registered frozen source only.
-function frozenRuntimeRetentions(after, trees) {
+function frozenRuntimeRetentions(after, trees, sources) {
   const admitted = new Set();
-  if (trees === undefined) return admitted;
-  const inventory = legacyInventory(trees.baselineRoot);
+  if (trees === undefined && sources === undefined) return admitted;
+  const readBefore = sources?.before ?? (file => {
+    const path = join(trees.baselineRoot, file);
+    return existsSync(path) ? readFileSync(path, 'utf8') : undefined;
+  });
+  const readAfter = sources?.after ?? (file => {
+    const path = join(trees.candidateRoot, file);
+    return existsSync(path) ? readFileSync(path, 'utf8') : undefined;
+  });
+  const inventoryText = sources === undefined ? undefined : readBefore(LEGACY_INVENTORY);
+  const inventory = sources === undefined ? legacyInventory(trees.baselineRoot)
+    : inventoryText === undefined ? { shards: {} } : JSON.parse(inventoryText);
   for (const [site, item] of Object.entries(after.sites)) {
     const match = /^(src\/shards\/([^/]+)\/(runtime\/[^:]+\.ts)):([^:]+):([a-f0-9]{64})$/u.exec(site);
     if (match === null || !Number.isSafeInteger(item.count) || item.count <= 0) continue;
     const [, file, folder, relativeFile, rule, hash] = match;
     if (!Object.hasOwn(inventory.shards, folder) || !Object.hasOwn(inventory.shards[folder].files, relativeFile) || file.split('/').includes('..')) continue;
     const digest = inventory.shards[folder].files[relativeFile];
-    const before = join(trees.baselineRoot, file), afterFile = join(trees.candidateRoot, file);
-    if (!existsSync(before) || !existsSync(afterFile)) continue;
-    const source = readFileSync(before, 'utf8');
-    if (createHash('sha256').update(source).digest('hex') !== digest || readFileSync(afterFile, 'utf8') !== source) continue;
+    const source = readBefore(file), next = readAfter(file);
+    if (source === undefined || next === undefined) continue;
+    if (createHash('sha256').update(source).digest('hex') !== digest || next !== source) continue;
     if ((siteCounts(source, file).get(`${rule}:${hash}`) ?? 0) === item.count) admitted.add(site);
   }
   return admitted;
@@ -220,7 +229,7 @@ function retiredClassCeilings(trees) {
 
 /** Explicit immutable trees permit proven verbatim moves; every other policy allowance remains shrink-only.
  * Without trees, `sections` carries the predecessor and candidate custom-section policies (pre-commit). */
-export function comparePlatformList(list, baselineFile, candidateFile, trees, sections) {
+export function comparePlatformList(list, baselineFile, candidateFile, trees, sections, sources) {
   if (list === 'lint/ratchet.json' || list === CUSTOM_SECTION_POLICY) {
     const read=file=>existsSync(file)?JSON.parse(readFileSync(file,'utf8')):undefined;
     const locks = list === 'lint/ratchet.json' ? compareClosedComponents(read(baselineFile)?.closedComponents, read(candidateFile)?.closedComponents, read(baselineFile)?.closingComponents, read(candidateFile)?.closingComponents) : [];
@@ -291,7 +300,7 @@ export function comparePlatformList(list, baselineFile, candidateFile, trees, se
     // Newly visible debt is paid by exact syntax consumed from engine/game/SDK,
     // not by a review label. Charge ordinary sites to the existing row ceilings.
     const migrated = verbatimRuntimeMoves(before, after, trees);
-    for (const site of frozenRuntimeRetentions(after, trees)) migrated.add(site);
+    for (const site of frozenRuntimeRetentions(after, trees, sources)) migrated.add(site);
     const charged = Object.fromEntries(Object.entries(after.sites).filter(([site]) => !migrated.has(site)));
     const ceilings = totals(before.sites);
     for (const [key, count] of totals(charged)) if (count > (ceilings.get(key) ?? 0)) failures.push(`${list}: ${key} total rose`);

@@ -148,7 +148,10 @@ export async function committedFastChecks(root,base,tip,phase,paths) {
           const a=resolve(temporary,'before.json'),b=resolve(temporary,'after.json');
           if(before.files.has(path))writeFileSync(a,before.read(path));
           if(after.files.has(path))writeFileSync(b,after.read(path));
-          failures.push(...comparePlatformList(path,a,b,undefined,{before:json(before,'lint/custom-sections.json'),after:json(after,'lint/custom-sections.json')}));
+          failures.push(...comparePlatformList(path,a,b,undefined,{before:json(before,'lint/custom-sections.json'),after:json(after,'lint/custom-sections.json')},{
+            before:file=>before.files.has(file)?before.read(file).toString('utf8'):undefined,
+            after:file=>after.files.has(file)?after.read(file).toString('utf8'):undefined,
+          }));
           rmSync(a,{force:true});rmSync(b,{force:true});
         }
       }
