@@ -324,7 +324,7 @@ export const ENGINE_STRINGS = {
   "s_24d3f7fed5a7": "New version · tap to update",
   "s_cdffb5171a9f": "new ⟦0⟧ · tap to update",
   "s_9e4fe13a912d": "⟦0⟧ · reload",
-  "s_41273a4673fc": "updating…",
+  "s_41273a4673fc": "Updating · ⟦0⟧ files · ⟦1⟧s",
   "s_85c05389552b": "<span class=\"ws-update-dot\"></span><span data-el=\"text\"></span>",
   "s_3aaadf6760b9": "<svg viewBox=\"0 0 24 24\">⟦0⟧</svg>",
   "s_1fe41cba9ec7": "<svg viewBox=\"0 0 24 24\">⟦0⟧</svg><span>⟦1⟧⟦2⟧</span>",

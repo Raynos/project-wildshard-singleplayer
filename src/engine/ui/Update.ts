@@ -17,6 +17,7 @@ import { engineString } from '../strings';
  */
 import { isDev, onDev } from '../core/devMode';
 import { markReload } from '../boot/lastEnd';
+import { DownloadAccounting, observeDownloadAccounting } from '../boot/download';
 
 
 // The update pill exists before content is selected; keep App and Three out of the entry graph.
@@ -37,8 +38,17 @@ let busy = false;
 const reload = async (): Promise<void> => {
   if (busy) return;
   busy = true;
-  const text = el.querySelector('[data-el="text"]');
-  if (text) text.textContent = engineString('s_41273a4673fc'); // the tap is acknowledged at once, whatever the hand-over does
+  const text = el.querySelector('[data-el="text"]'), attempt = scope.child('update');
+  const started = performance.now(), downloads = new DownloadAccounting(location.href, started);
+  attempt.onDispose(observeDownloadAccounting(downloads));
+  const progress = (): void => {
+    if (text) text.textContent = engineString('s_41273a4673fc', [downloads.snapshot().filesDone, ((performance.now() - started) / 1000).toFixed(1)]);
+  };
+  progress();
+  attempt.interval(250, progress);
+  // Navigation may itself wait for a response: keep receipts and elapsed time
+  // live until the document leaves, then release this attempt's observers.
+  attempt.listen(window, 'pagehide', () => { attempt.dispose(); }, { once: true });
   // A newer service worker waiting: adopt it (SKIP_WAITING → controllerchange → reload, src/engine/boot/sw.ts).
   const sw = window.__ws_sw;
   if (sw?.waiting && sw.waiting.state !== 'redundant') await sw.adopt(undefined, 'build pill tap');
