@@ -258,3 +258,21 @@ test('earlier owner-row registration preserves the original native update graph'
   }
   expect(sortSystems(adopted).map(system => system.id)).toEqual(sortSystems(original).map(system => system.id));
 });
+
+
+test('the painted frame registers before weather and pins the late original sky',()=>{
+ const f=fixture(),update=vi.fn<PainterlyWorld['update']>();
+ const painted=legacyDouble<PainterlyWorld>({update});
+ const sky=legacyDouble<PaintedSky>({look:legacyDouble<PaintedSky['look']>({}),clock:legacyDouble<PaintedSky['clock']>({sunElevation:.3})});
+ const rig=legacyDouble<ForestWeatherRig>({sky,weather:legacyDouble<ForestWeatherRig['weather']>({overcast:.4})});
+ const row={kind:'painted-world' as const,system:'orchard.late-look',before:[],world:'orchard.painted',weather:'orchard.weather'};
+ try{
+  publishEntryOwner(f.construction,'painted-world',row.world,painted);lendEntryOwner(f.scope,f.construction,'painted-world',row.world);
+  installWorldUpdates(f.ctx,[row]);const frame=f.systems[0];if(frame===undefined)throw new Error('Missing frame');
+  expect(()=>frame.run(.1,1)).toThrow('Missing live entry owner');expect(update).not.toHaveBeenCalled();
+  publishEntryOwner(f.construction,'world-weather',row.weather,rig);lendEntryOwner(f.scope,f.construction,'world-weather',row.weather);
+  frame.run(.1,2);expect(update.mock.calls[0]?.[0]).toBe(.1);expect(update.mock.calls[0]?.[1].look).toBe(sky.look);expect(update.mock.calls[0]?.[1].sunElevation).toBe(.3);expect(update.mock.calls[0]?.[1].overcast).toBe(.4);
+  rig.sky=legacyDouble<PaintedSky>({});expect(()=>frame.run(.1,3)).toThrow('Painted weather owner changed');expect(update).toHaveBeenCalledOnce();
+  f.scope.dispose();expect(()=>frame.run(.1,4)).toThrow(/ended|owner left/u);
+ }finally{f.finish();}
+});

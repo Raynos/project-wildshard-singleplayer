@@ -8,7 +8,7 @@ import type { ArenaRoomEncounter } from '../boss/arenaRoom';
 import type { ShardContext } from '../plugin/context';
 import { followToonLook } from '../looks/toonLook';
 import { toonLightingOf } from '../looks/toonLighting';
-import { entryOwner } from './entryOwners';
+import { entryOwner, lateEntryOwner, presentEntryOwner } from './entryOwners';
 import { lentToon } from './lentLooks';
 import { boundResidentWorldScope } from './hybridPresentation';
 import { paintedWorldUpdate } from './paintedWorldStages';
@@ -54,8 +54,8 @@ export function installWorldUpdates(ctx: ShardContext, input: unknown, loans:Wor
       checks.push(() => withOwner(construction, () => lentToon(row.look)) === toon && toonLightingOf(lightingId) === lighting);
       run = () => { follow(); };
     } else if (row.kind === 'painted-world') {
-      const painted = entryOwner(scope, 'painted-world', row.world), rig = entryOwner(scope, 'world-weather', row.weather);
-      checks.push(() => entryOwner(scope, 'painted-world', row.world) === painted && entryOwner(scope, 'world-weather', row.weather) === rig);
+      const painted = entryOwner(scope, 'painted-world', row.world);
+      checks.push(() => entryOwner(scope, 'painted-world', row.world) === painted);
       run = paintedWorldUpdate(scope, row);
     } else if(row.kind==='audio-scene'){
       // oxlint-disable-next-line typescript/unbound-method -- pin identities; emission uses call(events), gust uses wind's receiver
@@ -69,11 +69,21 @@ export function installWorldUpdates(ctx: ShardContext, input: unknown, loans:Wor
           ownChecks.push(()=>loans.arenas?.get(source.owner)===owner);
           sample=source.field==='inside'?()=>Number(owner.inside):()=>Number(owner.engaged);
         }else{
-          const rig=entryOwner(scope,'world-weather',source.owner),sky=rig.sky,storm=rig.storm;
-          if(sky===null||source.field==='storm'&&storm===null)throw new Error('Audio weather requires its original sky and storm');
-          const clock=sky.clock;
-          ownChecks.push(()=>entryOwner(scope,'world-weather',source.owner)===rig&&rig.sky===sky&&rig.storm===storm&&sky.clock===clock);
-          sample=source.field==='sun'?()=>clock.sunElevation:source.field==='dark'?()=>Number(clock.dayPhase==='dusk'||clock.dayPhase==='night'):()=>{if(storm===null)throw new Error('Missing audio storm');return Number(storm.stormActive);};
+          const weatherLoan=lateEntryOwner(scope,'world-weather',source.owner);
+          const resolve=()=>{
+            const rig=weatherLoan(),sky=rig.sky,storm=rig.storm;
+            if(sky===null||source.field==='storm'&&storm===null)throw new Error('Audio weather requires its original sky and storm');
+            return {rig,sky,storm,clock:sky.clock};
+          };
+          let original:ReturnType<typeof resolve>|undefined;
+          const read=()=>{
+            const rig=weatherLoan();
+            original??=resolve();
+            if(rig!==original.rig||rig.sky!==original.sky||rig.storm!==original.storm||original.sky.clock!==original.clock)throw new Error('Audio frame owner changed');
+            return original;
+          };
+          ownChecks.push(()=>{if(original!==undefined||presentEntryOwner(scope,'world-weather',source.owner)!==null)read();return true;});
+          sample=()=>{const {clock,storm}=read();if(source.field==='sun')return clock.sunElevation;if(source.field==='dark')return Number(clock.dayPhase==='dusk'||clock.dayPhase==='night');if(storm===null)throw new Error('Missing audio storm');return Number(storm.stormActive);};
         }
         return {name,sample};
       });

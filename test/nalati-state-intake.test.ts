@@ -5,7 +5,6 @@ import { Scope } from '../src/engine/app/scope';
 import type { ShardWorld } from '../src/game/shard/world';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import type { ShardContext } from '../src/game/plugin/context';
-import type { ForestWeatherRig } from '../src/game/weather/forest';
 import type { FixedDraws } from '../src/game/models/fixedDraws';
 import { WorldAssembly } from '../src/game/shardfile/worldAssembly';
 import { SceneDressing } from '../src/game/shardfile/sceneDressing';
@@ -24,7 +23,7 @@ import { nalatiSpeciesCatalogue } from './fake/nalatiSpecies';
 
 // Run the real state function and its independent King intake. Unrelated world
 // construction and charge intake keep their own native/product oracles.
-test('the shipped fight envelope reaches the real state King intake with the selected attack owner',async()=>{
+test('the shipped King intake retains its attack owner before weather is published',async()=>{
   const emitted=await readProjectAssets('src/shards/nalati-grasslands');
   const files=new Map((emitted.output.namedFiles??[]).flatMap(file=>file.name===undefined?[]:[[file.name,{...file,url:file.path}] as const]));
   const product=createShardProduct({slug:emitted.shard.identity.slug,revision:emitted.shard.identity.revision,shardfile:emitted.shard,sections:new Map(),files,
@@ -34,10 +33,6 @@ test('the shipped fight envelope reaches the real state King intake with the sel
   const scope=new Scope('state-intake'),f=fakeWorld(),game=Object.assign(f.game.asGame(),{levelScope:scope});
   const world=legacyDouble<ShardWorld>({game,sky:f.sky,player:f.player,forest:f.forest}),runtime=legacyDouble<ShardRuntime>({world});
   const plugin=legacyDouble<ShardContext>({scope,product,game:legacyDouble<ShardContext['game']>({runtime})});
-  const rig=legacyDouble<ForestWeatherRig>({storm:legacyDouble<NonNullable<ForestWeatherRig['storm']>>({}),
-    sky:legacyDouble<NonNullable<ForestWeatherRig['sky']>>({clock:legacyDouble<NonNullable<ForestWeatherRig['sky']>['clock']>({}),
-      look:legacyDouble<NonNullable<ForestWeatherRig['sky']>['look']>({}),dome:legacyDouble<NonNullable<ForestWeatherRig['sky']>['dome']>({})}),weather:legacyDouble<ForestWeatherRig['weather']>({})});
-  publishEntryOwner(scope,'world-weather','nalati.weather',rig);
   publishEntryOwner(scope,'arena-room','nalati.titan',legacyDouble<ArenaRoomEncounter>({}));
   publishEntryOwner(scope,'drawn-models','nalati.trophies',new Map());
   const stop=new Error('King intake reached');let selected:ReturnProgram|undefined;

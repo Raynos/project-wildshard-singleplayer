@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { App } from '../src/engine/app/app';
 import { Scope } from '../src/engine/app/scope';
 import { DayCycle } from '../src/engine/world/dayCycle';
-import { overrideSetting } from '../src/engine/ui/Settings';
+import { createSettings, overrideSetting } from '../src/engine/ui/Settings';
 import { enterSkyClock, publishSkyClock, skyClockOf } from '../src/game/session/clockSettings';
 
 const clock = (): DayCycle => new DayCycle({ units: 'hour', start: 13, sun: { maxElevation: 60, azimuthOffset: 0 },
@@ -78,4 +78,21 @@ test('the nearest sky wins: a runtime\'s own over an ancestor\'s, never a siblin
     publishSkyClock(p.runtime, p.skyClock);
     expect(skyClockOf([p.runtime])).toBe(p.skyClock);
   } finally { p.level.dispose(); }
+});
+
+
+test('a late sky receives the selected time once on first use without resetting its continuation', async () => {
+  const p = page(), time = vi.spyOn(p.skyClock, 'setTime');
+  const settings = createSettings({ getItem: () => null, setItem: () => undefined }, () => '');
+  settings.overrideSetting('time', 'night');
+  try {
+    const entered = p.runtime.child('runtime.entered');
+    enterSkyClock(p.app, [p.runtime, p.cell], entered, settings);
+    expect(p.app.dayCycle).toBe(p.pageClock); expect(time).not.toHaveBeenCalled();
+    publishSkyClock(p.world, p.skyClock);
+    expect(p.app.dayCycle).toBe(p.skyClock); expect(time).toHaveBeenCalledExactlyOnceWith('night');
+    await p.skyClock.set(7.5); const held = p.skyClock.snapshot();
+    expect(p.app.dayCycle).toBe(p.skyClock); expect(p.skyClock.snapshot()).toEqual(held); expect(time).toHaveBeenCalledOnce();
+    entered.dispose(); expect(p.app.dayCycle).toBe(p.pageClock);
+  } finally { time.mockRestore(); overrideSetting('time', null); p.level.dispose(); }
 });

@@ -115,7 +115,18 @@ export async function installPaintedWorldStage(ports: PaintedWorldStagePorts, st
 
 /** The painted world `world`'s frame, from the weather rig `weather` (the look it painted, its sun, its overcast). */
 export function paintedWorldUpdate(scope: Scope, row: { readonly world: string; readonly weather: string }): (dt: number) => void {
-  const world = entryOwner(scope, 'painted-world', row.world), rig = entryOwner(scope, 'world-weather', row.weather), painted = rig.sky;
-  if (painted === null) throw new Error(`Weather ${row.weather} has no painted sky`);
-  return (dt) => { world.update(dt, { look: painted.look, sunElevation: painted.clock.sunElevation, overcast: rig.weather.overcast }); };
+  const world = entryOwner(scope, 'painted-world', row.world), weatherLoan = lateEntryOwner(scope, 'world-weather', row.weather);
+  let painted: ReturnType<typeof weatherLoan>['sky'] | undefined;
+  const sky = () => {
+    const current = weatherLoan().sky;
+    if (current === null) throw new Error(`Weather ${row.weather} has no painted sky`);
+    if (painted !== undefined && current !== painted) throw new Error('Painted weather owner changed');
+    painted = current;
+    return current;
+  };
+  if (presentEntryOwner(scope, 'world-weather', row.weather) !== null) sky();
+  return (dt) => {
+    const current = sky(), rig = weatherLoan();
+    world.update(dt, { look: current.look, sunElevation: current.clock.sunElevation, overcast: rig.weather.overcast });
+  };
 }

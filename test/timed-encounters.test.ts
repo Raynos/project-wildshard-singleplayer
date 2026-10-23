@@ -40,11 +40,12 @@ test('the listed night binding preserves phases, native identities, figures and 
     contact: { strike: strikes.arrow, tags: ['creature.marsh-watch'], origin: 'actor' } };
   try {
     const clock = legacyDouble<DayCycleClock>({ dayPhase: 'day' });
-    const watch = new TimedEncounters({ game, player: legacyDouble<Player>({ position: new Vector3(1, 0, 2) }), sky: legacyDouble({}), forest: legacyDouble({}), sites: null, clock },
+    let clockReads=0;
+    const watch = new TimedEncounters({ game, player: legacyDouble<Player>({ position: new Vector3(1, 0, 2) }), sky: legacyDouble({}), forest: legacyDouble({}), sites: null, get clock(){clockReads++;return clock;} },
       parse(TimedEncountersSchema,rows), { rider: figure, captain: figure, storm: figure }, ReturnProgram.page(night.program), new CueDirector(game, night.cues, scope));
     expect(watch.slots).toBeDefined(); expect(watch.riders).toBeDefined();
     expect(watch.target(new Vector3(), new Vector3(0, 0, 1), 10, null)).toBeNull();
-    watch.update(.05, .05);
+    expect(clockReads).toBe(0);watch.update(.05, .05);expect(clockReads).toBe(1);
     expect(() => parse(TimedEncountersSchema,{ ...rows, contact: { ...rows.contact, tags: ['bad'] } })).toThrow();
   } finally { scope.dispose(); figure.dispose(); }
 });

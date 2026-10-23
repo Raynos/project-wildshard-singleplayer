@@ -1,4 +1,4 @@
-import { entryOwner, publishEntryOwner } from '@wildshard/game/shardfile/entryOwners';
+import { entryOwner, lateEntryOwner, publishEntryOwner } from '@wildshard/game/shardfile/entryOwners';
 import { readSpawnScript } from '@wildshard/game/population/spawnScript';
 import { clientWildlife, clientWildlifeState, type PageWildlife } from '@wildshard/game/population/wildlife';
 import type { CrowdDraw as Flock } from '@wildshard/game/ambient/crowdDraw';
@@ -52,9 +52,14 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   const dressing = SceneDressing.current(plugin);
   const anchors = (place: string, name: string) => dressing.pieces.get(place)?.anchors[name] ?? [];
   updates.push(() => undefined); // The dressing owns this frame slot.
-  const rig = entryOwner(plugin.scope, 'world-weather', 'nalati.weather'), storm = rig.storm, painted = rig.sky;
-  if (storm === null || painted === null) throw new Error('Nalati requires its painted sky and storm');
-  const weather = { clock: painted.clock, look: painted.look, dome: painted.dome, air: rig.weather, weather: storm };
+  const weatherLoan = lateEntryOwner(plugin.scope, 'world-weather', 'nalati.weather');
+  const resolveWeather = () => {
+    const rig = weatherLoan(), storm = rig.storm, painted = rig.sky;
+    if (storm === null || painted === null) throw new Error('Nalati requires its painted sky and storm');
+    return { clock: painted.clock, look: painted.look, dome: painted.dome, air: rig.weather, weather: storm };
+  };
+  let weather: ReturnType<typeof resolveWeather> | undefined;
+  const readWeather = () => { weatherLoan(); weather ??= resolveWeather(); return weather; };
   updates.push(() => undefined); // The weather host owns this frame slot.
 
   // ── Jel Ata the Storm Titan (B14; src/shards/nalati-grasslands/stormTitan.ts): the Wind Cairn's threshold (mounted, in a natural storm), the
@@ -106,12 +111,12 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   // B9, wired below; the crouch also works on the meadow while you approach a stallion to tame (E287: the quest asks for it)
   let stealth: Stealth | null = null;
   const riderFigure = game.levelScope.own(shapes.handle('ghost-rider').copy()), captainFigure = game.levelScope.own(shapes.handle('ghost-captain').copy());
-  const night = await TimedEncounters.install(plugin, { game, sky, player: ctx.player, forest: ctx.forest, sites: dressing.sites.get('balbals')?.sites ?? null, clock: weather.clock },
+  const night = await TimedEncounters.install(plugin, { game, sky, player: ctx.player, forest: ctx.forest, sites: dressing.sites.get('balbals')?.sites ?? null, get clock() { return readWeather().clock; } },
     'combat/timed-encounters.json', { rider: riderFigure, captain: captainFigure, storm: riderFigure }, species.program('balbal'));
   function eliteFrame() { return { patrolAvailable: true, herdAvailable: wildlife !== null, kills: night.riders.killsTonight,
     bonded: ride?.taming.phase === 'bonded', mount: ride?.taming.companion ?? null }; }
   const nalati = {
-    weather, groups, boss, elites, titan, eliteFrame, eliteRows, eliteProgram, eliteDrops: drops, eliteCharge: charge, eliteLedges,
+    get weather() { return readWeather(); }, groups, boss, elites, titan, eliteFrame, eliteRows, eliteProgram, eliteDrops: drops, eliteCharge: charge, eliteLedges,
     get elitePatrol() { return night.riders; },
     get stealth(): Stealth | null { return stealth; },
     get ride(): Ride | null { return ride; },
@@ -165,7 +170,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   publishEntryOwner(plugin.scope, 'elite-entry', 'nalati.elites', {
     entry: elites, rows: eliteRows, construction: game.levelScope, models: drops, population: clientWildlifeState(plugin),
     program: { id: 'elite.rules', scope: game.levelScope, value: eliteProgram }, fight: charge,
-    environment: wildEnv, clock: weather.clock, weather: weather.weather,
+    environment: wildEnv, get clock() { return readWeather().clock; }, get weather() { return readWeather().weather; },
     ledges: eliteLedges, patrol: night.riders,
   });
   return nalati;

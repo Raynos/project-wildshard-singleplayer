@@ -41,9 +41,17 @@ export function skyClockOf(owners: readonly Scope[]): DayCycleClock | null {
  * ends. An explicit Developer time is applied on entry (Live keeps the clock as it is), so a re-entry finds it unreset.
  */
 export function enterSkyClock(app: Pick<App, 'enterDayCycle'>, owners: readonly Scope[], entered: Scope, settings: Pick<Settings, 'setting' | 'onSettingChange'> = pageSettings): void {
-  const read = (): DayCycleClock | null => skyClockOf(owners);
+  let current: DayCycleClock | null = null;
+  const read = (): DayCycleClock | null => {
+    const clock = skyClockOf(owners);
+    if (clock !== null && clock !== current) {
+      current = clock;
+      const initial = settings.setting('time');
+      if (initial !== 'live') clock.setTime(initial);
+    }
+    return clock;
+  };
   app.enterDayCycle(read, entered);
-  const initial = settings.setting('time');
-  if (initial !== 'live') read()?.setTime(initial);
-  entered.onDispose(settings.onSettingChange('time', (time) => { read()?.setTime(time); }));
+  read();
+  entered.onDispose(settings.onSettingChange('time', (time) => { current = skyClockOf(owners); current?.setTime(time); }));
 }

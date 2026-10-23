@@ -23,7 +23,7 @@ import { legacyDouble } from './fake/FakeGame';
 
 const frameRows=v.parse(WorldUpdatesSchema,rows.filter(row=>row.kind==='cosmetic-finishes'||row.kind==='audio-scene'));
 type World=NonNullable<NonNullable<ShardContext['game']['runtime']>['world']>;
-function fixture(){
+function fixture(weatherReady=true){
  const scope=new Scope('world-inputs'),events=new Events(),emit=vi.spyOn(events,'emit'),systems:SystemSpec[]=[];
  const player=legacyDouble<World['player']>({position:new Vector3(1.123456789012345,2,-3.987654321098765)}),game=legacyDouble<World['game']>({});
  const world=legacyDouble<World>({game,player});
@@ -34,7 +34,7 @@ function fixture(){
  let sun=.37,phase:PaintedSky['clock']['dayPhase']='night',storm=true,inside=false,engaged=true;
  const clock=legacyDouble<PaintedSky['clock']>({get sunElevation(){return sun;},get dayPhase(){return phase;}});
  const sky=legacyDouble<PaintedSky>({clock}),weather=legacyDouble<ForestWeatherRig>({sky,storm:legacyDouble<NonNullable<ForestWeatherRig['storm']>>({get stormActive(){return storm;}})});
- publishEntryOwner(scope,'world-weather','nalati.weather',weather);
+ if(weatherReady)publishEntryOwner(scope,'world-weather','nalati.weather',weather);
  const arena=legacyDouble<ArenaRoomEncounter>({get inside(){return inside;}}),fight=legacyDouble<ArenaRoomEncounter>({get engaged(){return engaged;}});
  const elite=legacyDouble<DeclaredEliteEntry>({skins:new Set(['first','second'])}),arenas=new Map([['arena',arena],['fight',fight]]),elites=new Map([['elites',elite]]);
  publishBoundPersistence(scope,legacyDouble<AdventurePersistence>({cosmetics:{read:()=>({owned:[],worn:{}}),write:()=>true}}));
@@ -116,4 +116,18 @@ test('retirement during a grant prevents later grants and painting',()=>{
 test('rows refuse duplicate input names, reflected sources, callbacks and unbounded cadence',()=>{
  const audio=frameRows.find(row=>row.kind==='audio-scene');if(audio?.kind!=='audio-scene')throw new Error('Missing row');
  for(const bad of [{...audio,inputs:[...audio.inputs,...audio.inputs]},{...audio,inputs:[{name:'x',source:{kind:'arena',owner:'arena',field:'room.inside'}}]},{...audio,read:()=>1},{kind:'cosmetic-finishes',system:'s',before:[],elite:'e',every:0}])expect(v.safeParse(WorldUpdatesSchema,[bad]).success).toBe(false);
+});
+
+
+test('audio registration waits for the same late weather loan before any frame emission',()=>{
+ const f=fixture(false);
+ try{
+  installWorldUpdates(f.ctx,frameRows,{arenas:f.arenas,elites:f.elites});
+  const audio=f.systems.find(row=>row.id==='shard.nalati.sound');if(audio===undefined)throw new Error('Missing audio');
+  expect(()=>audio.run(.1,1)).toThrow('Missing live entry owner');expect(f.emit).not.toHaveBeenCalled();
+  publishEntryOwner(f.scope,'world-weather','nalati.weather',f.weather);
+  audio.run(.1,2);expect(f.emit).toHaveBeenCalledOnce();f.emit.mockClear();
+  Object.assign(f.weather,{sky:legacyDouble<PaintedSky>({clock:f.clock})});
+  expect(()=>audio.run(.1,3)).toThrow('Audio frame owner changed');expect(f.emit).not.toHaveBeenCalled();
+ }finally{f.finish();}
 });
