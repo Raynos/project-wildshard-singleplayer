@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { GridAssembly } from '../src/game/grid/assembly';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { FAR_RING } from '../src/game/grid/farProxy';
-import { RenderRings, type RingCatalogue, type RingPorts } from '../src/game/grid/rings';
+import { TileStreamer, type RingCatalogue, type RingPorts } from '../src/engine/world/tileStreamer';
 
 // ringsReady: ready() waits on every visible cell, and the far ring requests a proxy only while its charge fits the
 // 14.4 MB budget. Charging unloaded proxies the 1.6 MB cap left the 12th visible cell of a corner spawn unrequested (the
@@ -14,7 +14,7 @@ const SLOT = 1_600_000, DECLARED = 740_000;
 function corner(charge: number): { requested: number; unrequested: readonly string[]; omittedVisible: number } {
   const catalogue: RingCatalogue = (_instance, level) => (level === 'far' ? charge : null);
   const ports: RingPorts<string> = { fetch: () => undefined, upload: () => ({ mask: () => undefined, shadow: () => undefined, dispose: () => undefined }) };
-  const rings = new RenderRings(cells, new ResidencyAllocator(), catalogue, ports, { farRadius: FAR_RING.reach, maxInFlight: 64 });
+  const rings = new TileStreamer(cells, new ResidencyAllocator(), catalogue, ports, { farRadius: FAR_RING.reach, maxInFlight: 64 });
   rings.step({ x: 270, z: 270, vx: 0, vz: 0 }); // near the home cell's corner: the most cells in view
   const waiting = rings.waiting(), plan = rings.farPlan();
   rings.dispose();

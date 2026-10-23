@@ -4,7 +4,7 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { ClientAssets } from './clientAssets';
 import { terrainResidency } from './residency';
 import { slicer } from '@wildshard/engine/boot/plan';
-import type { RingCamera } from '../grid/rings';
+import type { RingCamera } from '@wildshard/engine/world/tileStreamer';
 import type { ResidencyAllocator } from '../grid/allocator';
 
 /** Renderer-owned tile controls; the loader owns admission and residency, without shader or scene code. */

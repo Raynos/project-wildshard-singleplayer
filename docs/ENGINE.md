@@ -12843,3 +12843,20 @@ signals can run before a local context RNG exists, while tick/drive borrow both
 when they use both. Reading an absent stream refuses without advancing the
 original owner. No per-signal metadata, fake stream or earlier construction is
 needed to retain that lifecycle.
+
+
+### Tile residency scheduler (S1, extraction)
+
+`@wildshard/engine/world/tileStreamer#TileStreamer` schedules render-only
+LOD tiles from instance origins, a byte catalogue and a borrowed
+`TileStreamBudget`. The game allocator supplies leases structurally; the
+engine imports no game module. `step`, `ready`, `waiting`, `resident`,
+`farPlan` and `dispose` retain the former render-ring contract. Parent
+holds and immediate masks prevent a child opening a hole in its parent.
+Prepared work is cancelled before its budget lease releases; late results
+are discarded by lease identity. Render adapters own construction scopes.
+
+This first extraction preserves the 150 m trace and current count/byte
+budgets. Rectangular road/junction tiles, entered-content pins and a time
+budget are the remaining S1 extensions. Neighbours supply scene LOD only;
+this renderer never builds a whole world or installs shard runtime logic.

@@ -10,7 +10,7 @@
  * - **No holes**: a parent hides a region (an L1 quadrant, a far proxy's 4 × 4 L1 regions) only while the child drawing
  *   that region is uploaded; every upload and every eviction re-masks the parent in the same call, so each patch of a
  *   visible cell is drawn by exactly one level at every moment the renderer can see it.
- * - **One allocator**: every tile is charged through `ResidencyAllocator` (the SF22a cost model) before its bytes are
+ * - **One allocator**: every tile is charged through `TileStreamBudget` (the SF22a cost model) before its bytes are
  *   fetched, so decode and refinement never push the session past the envelope; a refused tile simply leaves the parent
  *   showing. Tiles the rings no longer want stay as an evictable cache (needed = false) until hysteresis drops them or
  *   the allocator evicts them, farthest first.
@@ -19,8 +19,20 @@
  *
  * Node-safe and deterministic: the same camera path and the same completion order give the same residency trace.
  */
-import { CHUNK_HALF, CONTENT_CAPS as C } from '@wildshard/engine/core/config';
-import type { ResidencyAllocator, ResidencyLease } from './allocator';
+import { CHUNK_HALF, CONTENT_CAPS as C } from '../core/config';
+/** The renderer borrows the caller's budget; the engine owns no game allocator. */
+export interface TileStreamLease {
+  readonly id: string;
+  shrink: (bytes: number) => void;
+  update: (patch: { distance?: number; needed?: boolean }) => void;
+  hold: () => () => void;
+  release: () => void;
+}
+/** Only render allocations: no simulation, durability or game policy crosses this port. */
+export interface TileStreamBudget {
+  reserve: (claim: { readonly id: string; readonly category: RingLevel; readonly bytes: number;
+    readonly owner: string; readonly distance: number; readonly needed: boolean; readonly evictSync: () => void }) => TileStreamLease | null;
+}
 
 /** A placed shard instance; `origin` is its cell centre in world metres (GridAssembly's GridCell fits). */
 export interface RingCell { readonly instance: string; readonly origin: { readonly x: number; readonly z: number } }
@@ -97,7 +109,7 @@ const SIZE = { far: CHUNK_HALF * 2, l1: C.l1.size, l0: C.l0.size } as const;
 const L0_RADIUS = C.nearRadius, L1_RADIUS = 400, LOOKAHEAD_SLOTS = C.l0Count - 32;
 type State = 'fetching' | 'queued' | 'uploaded';
 /** sp-o105: `parent` is `parentOf(tile)`, kept on the slot: the step's scans compared a freshly built key per slot pair. */
-interface Slot<D> { tile: RingTile; readonly parent: string | null; state: State; lease: ResidencyLease; unholdParent: () => void; view: RingView | null; data: D | null; bytes: number; distance: number; masked: string; shadow: boolean }
+interface Slot<D> { tile: RingTile; readonly parent: string | null; state: State; lease: TileStreamLease; unholdParent: () => void; view: RingView | null; data: D | null; bytes: number; distance: number; masked: string; shadow: boolean }
 
 function key(instance: string, level: RingLevel, x: number, z: number): string { return level === 'far' ? `${instance}:far` : `${instance}:${level}/${x}/${z}`; }
 /** Distance from a cell-local point to a tile's square (0 inside). */
@@ -111,12 +123,12 @@ function parentOf(tile: { instance: string; level: RingLevel; x: number; z: numb
 }
 
 /** The render rings of one grid session. Call `step` once per fixed step with the camera; `dispose` at session end. */
-export class RenderRings<D> {
+export class TileStreamer<D> {
   private readonly slots = new Map<string, Slot<D>>();
-  private readonly completed: { tile: RingTile; lease: ResidencyLease; result: D | Error }[] = [];
+  private readonly completed: { tile: RingTile; lease: TileStreamLease; result: D | Error }[] = [];
   private readonly retryAt = new Map<string, number>();
   private readonly cells: readonly RingCell[];
-  private readonly allocator: ResidencyAllocator;
+  private readonly budget: TileStreamBudget;
   private readonly catalogue: RingCatalogue;
   private readonly ports: RingPorts<D>;
   private readonly options: Required<RingOptions>;
@@ -128,9 +140,9 @@ export class RenderRings<D> {
   private farPlanned: FarPlan = { budget: 0, charged: 0, wanted: [], omitted: [] };
   private disposed = false;
 
-  constructor(cells: readonly RingCell[], allocator: ResidencyAllocator, catalogue: RingCatalogue, ports: RingPorts<D>, options: RingOptions = {}) {
+  constructor(cells: readonly RingCell[], budget: TileStreamBudget, catalogue: RingCatalogue, ports: RingPorts<D>, options: RingOptions = {}) {
     if (new Set(cells.map((c) => c.instance)).size !== cells.length || cells.some((c) => c.instance.length === 0 || !Number.isFinite(c.origin.x) || !Number.isFinite(c.origin.z))) throw new RangeError('Invalid ring cells');
-    this.cells = [...cells].sort((a, b) => a.instance.localeCompare(b.instance)); this.allocator = allocator; this.catalogue = catalogue; this.ports = ports;
+    this.cells = [...cells].sort((a, b) => a.instance.localeCompare(b.instance)); this.budget = budget; this.catalogue = catalogue; this.ports = ports;
     const viewDistance = options.viewDistance ?? 1.5 * C.pitch, farPrefetch = options.farPrefetch ?? 435;
     this.options = { readinessSeconds: 4, viewDistance, farPrefetch, farRadius: viewDistance + farPrefetch, farCount: C.farCount, uploadsPerFrame: 2, uploadBytesPerFrame: 8 * 1_000_000, maxInFlight: 8, ...options,
       residentCaps: { l1: C.l1Count, l0: C.l0Count, ...options.residentCaps } };
@@ -324,7 +336,7 @@ export class RenderRings<D> {
       const parentKey = parentOf(tile), parent = parentKey === null ? undefined : this.slots.get(parentKey);
       if (parentKey !== null && this.exists(tile) && parent?.state !== 'uploaded') continue;
       const bytes = this.catalogue(tile.instance, tile.level, tile.x, tile.z); if (bytes === null) continue;
-      const lease = this.allocator.reserve({ id: `render:${tile.key}`, category: tile.level, bytes, owner: tile.instance, distance, needed: true, evictSync: () => { this.evicted(tile.key); } });
+      const lease = this.budget.reserve({ id: `render:${tile.key}`, category: tile.level, bytes, owner: tile.instance, distance, needed: true, evictSync: () => { this.evicted(tile.key); } });
       if (lease === null) { this.refused++; this.retryAt.set(tile.key, this.frame + 15); continue; }
       const slot: Slot<D> = { tile, parent: parentKey, state: 'fetching', lease, unholdParent: parent?.lease.hold() ?? ((): void => undefined), view: null, data: null, bytes, distance, masked: '', shadow: false };
       this.slots.set(tile.key, slot); inFlight++;

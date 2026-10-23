@@ -9,7 +9,7 @@ import { Scope } from '../../../../src/engine/app/scope';
 import { encodeTerrainTile, type TerrainTileData } from '@wildshard/format/terrainTileBytes';
 import { installTerrainTile, maskTerrainTile } from '../../../../src/engine/world/terrainTileView';
 import { ResidencyAllocator } from '../../../../src/game/grid/allocator';
-import { RenderRings, type RingCell, type RingTile, type RingView } from '../../../../src/game/grid/rings';
+import { TileStreamer, type RingCell, type RingTile, type RingView } from '../../../../src/engine/world/tileStreamer';
 import { TileDecoder } from '../../../../src/game/grid/tileDecoder';
 
 const DRIVE_SECONDS = 60, SPEED = 30, LINK = 5_000_000, LATENCY = 0.1, STALL: readonly [number, number] = [25, 35];
@@ -86,7 +86,7 @@ for (let i = 0; i < 4; i++) {
   allocator.reserve({ id: `library:cell${i}`, category: 'library', bytes: C.library.resident, owner: `cell${i}`, distance: 0, needed: true });
 }
 allocator.reserve({ id: 'commons:base', category: 'commons', bytes: 10_000_000, owner: 'platform', distance: 0, needed: true });
-const rings = new RenderRings<TerrainTileData[]>(cells, allocator, (_instance, level) => resident[level], { fetch: fetchTile, upload });
+const rings = new TileStreamer<TerrainTileData[]>(cells, allocator, (_instance, level) => resident[level], { fetch: fetchTile, upload });
 
 const legs: { from: readonly [number, number]; to: readonly [number, number]; hold?: number }[] = [
   { from: [0, -100], to: [760, -100] }, { from: [760, -100], to: [-760, -100] }, { from: [-760, -100], to: [-760, -100], hold: 4 }, { from: [-760, -100], to: [-760, 700] },

@@ -470,6 +470,7 @@
     "./render/drawGuards": "./render/drawGuards.ts",
     "./script/ownedSimBatchV2": "./script/ownedSimBatchV2.ts",
     "./script/groupBankV2": "./script/groupBankV2.ts",
-    "./script/groupStepV2": "./script/groupStepV2.ts"
+    "./script/groupStepV2": "./script/groupStepV2.ts",
+    "./world/tileStreamer": "./world/tileStreamer.ts"
   }
 }

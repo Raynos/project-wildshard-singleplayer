@@ -4,7 +4,7 @@ import { Scope } from '../src/engine/app/scope';
 import { emptyShardfile } from '../src/sdk/author';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import { clientRingPorts, type PreparedRingTile } from '../src/game/shardfile/clientRings';
-import type { RingTile } from '../src/game/grid/rings';
+import type { RingTile } from '../src/engine/world/tileStreamer';
 import { TileDecoder } from '../src/game/grid/tileDecoder';
 
 const tile: RingTile = { key: 'home:l0/0/0', instance: 'home', level: 'l0', x: 0, z: 0 };

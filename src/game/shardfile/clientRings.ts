@@ -10,7 +10,7 @@
  */
 import { Group, type Object3D } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { RingCatalogue, RingPorts, RingTile, RingView } from '../grid/rings';
+import type { RingCatalogue, RingPorts, RingTile, RingView } from '@wildshard/engine/world/tileStreamer';
 import type { TileDecoder } from '../grid/tileDecoder';
 import type { ClientAssets } from './clientAssets';
 import type { ResidentTile } from './clientWorld';

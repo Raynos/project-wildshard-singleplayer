@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { GridAssembly } from '../src/game/grid/assembly';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { FAR_RING } from '../src/game/grid/farProxy';
-import { RenderRings, type RingCatalogue, type RingPorts } from '../src/game/grid/rings';
+import { TileStreamer, type RingCatalogue, type RingPorts } from '../src/engine/world/tileStreamer';
 
 // SF88c (G526): from anywhere on the 5 × 5's outer road, every cell of the layout keeps its far proxy (no whole cell pops), inside the
 // far ring's unchanged budget (9 charges of 1.6 MB), each proxy charged its own bytes once loaded.
@@ -18,7 +18,7 @@ function drive(path: readonly (readonly [number, number])[]): { far: number; see
     fetch: (tile, done) => { loaded.add(tile.instance); done(tile.instance); },
     upload: () => ({ mask: () => undefined, shadow: () => undefined, dispose: () => undefined }),
   };
-  const rings = new RenderRings(cells, new ResidencyAllocator(), catalogue, ports, { farRadius: FAR_RING.reach });
+  const rings = new TileStreamer(cells, new ResidencyAllocator(), catalogue, ports, { farRadius: FAR_RING.reach });
   const seen = new Set<number>();
   for (const [x, z] of path) for (let i = 0; i < 30; i++) { rings.step({ x, z, vx: 0, vz: 0 }); if (i === 29) seen.add(rings.stats().resident.far); }
   rings.dispose();

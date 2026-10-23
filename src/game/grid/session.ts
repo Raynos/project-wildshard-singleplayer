@@ -49,7 +49,7 @@ import { gridCells, pageGridInstance, pageMode } from '../plugin/context';
 import type { ResidencyAllocator } from './allocator';
 import type { PageResidency } from './pageResidency';
 import { PlatformRenderResidency } from './renderResidency';
-import { RenderRings, levelPorts, type FarPlan, type LevelPrepared, type RingPorts, type RingWait } from './rings';
+import { TileStreamer, levelPorts, type FarPlan, type LevelPrepared, type RingPorts, type RingWait } from '@wildshard/engine/world/tileStreamer';
 import { farRingPorts, type FarPrepared, type FarProxyView } from './farView';
 import { decodeFarImpostor, farBandShare } from './farImpostorView';
 import { FarImpostorSchema, type FarImpostor } from '@wildshard/format/shardSections';
@@ -258,7 +258,7 @@ export class GridSession {
   readonly assembly: GridAssembly;
   readonly home: GridCell;
   readonly allocator: ResidencyAllocator;
-  private readonly rings: RenderRings<LevelPrepared<FarPrepared, PreparedRingTile>>;
+  private readonly rings: TileStreamer<LevelPrepared<FarPrepared, PreparedRingTile>>;
   private readonly neighbours: readonly GridCell[];
   private readonly costs = new Map<string, number>();
   /** each shardfile neighbour's declared far bytes, read at start: its far ring charge until the proxy loads (then `costs`) */
@@ -548,7 +548,7 @@ export class GridSession {
     // ground over the cell), so the rings stop refining it to its own L1 / L0 tiles, which would mask the near view near
     // the road (round 3's first A = B); a terrain-only near view (the template, its world in its tiles) keeps them; a cell
     // with no near view at all keeps its far proxy (its tiles draw in looks only its entered world lights)
-    this.rings = new RenderRings(this.neighbours, this.allocator, (id, level, x, z) => (level === 'far' ? this.costs.get(id) ?? this.declaredFar.get(id) ?? 1_600_000
+    this.rings = new TileStreamer(this.neighbours, this.allocator, (id, level, x, z) => (level === 'far' ? this.costs.get(id) ?? this.declaredFar.get(id) ?? 1_600_000
       : this.near.owns(id) || this.near.absent(id) ? null : tileCost(id, level, x, z)),
       levelPorts<FarPrepared, PreparedRingTile>(farPorts, tiles.ports), { farRadius: FAR_RING.reach });
     this.admitNeighbour = host.renderer === undefined ? undefined : this.tileAdmission(host.renderer, roots, tiles.instances);
