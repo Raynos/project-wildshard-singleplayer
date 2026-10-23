@@ -37,6 +37,7 @@ import type { ModelSite } from '@wildshard/engine/models/place';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import { WorldAssemblySchema, type WorldAssemblyStage, type WorldConstructionRows } from '@wildshard/format/worldAssembly';
 import { publishEntryOwner, entryOwner, lendEntryOwner } from './entryOwners';
+import { tileResidencyRadius } from './tileDriver';
 import { WorldEntry, type WorldEntryPorts } from './worldEntry';
 import { timeClientPreparation } from './preparationTiming';
 import type { SceneHandles } from './sceneHandles';
@@ -410,6 +411,12 @@ export class WorldAssembly {
       const deck = entryOwner(scope, 'rope-deck', stage.deck), chain = new RopeChain(physics, deck.chainSpec());
       fixed.onFixed('post', () => { chain.capture(); }, stage.capture);
       publishEntryOwner(scope, 'chain', stage.id, chain);
+    } else if (stage.kind === 'place' && tileResidencyRadius() < 8) {
+      // tile streaming T3: by tile, its stable root now and its copies as the tile driver attaches them (T4); it places
+      // nothing whole, so a GPU root may not name it
+      const content = scenes.tile(stage.id);
+      publishEntryOwner(scope, 'object', stage.id, scenes.object(`${content.id}.root`)); publishEntryOwner(scope, 'placed', stage.id, []);
+      publishEntryOwner(scope, 'floor', stage.id, (x, z) => scenes.floorAt(stage.id, x, z));
     } else if (stage.kind === 'place') {
       const placed = await scenes.place(stage.id);
       live();

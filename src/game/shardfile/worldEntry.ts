@@ -10,6 +10,7 @@ import type { Physics } from '@wildshard/engine/physics/Physics';
 import { parseWorldEntry, type WorldEntryRows, type WorldEntryStep } from '@wildshard/format/worldEntry';
 import type { SceneHandles } from './sceneHandles';
 import { lentLook } from './lentLooks';
+import { tileResidencyRadius } from './tileDriver';
 
 /** What a world entry runs against: the admitted scene handles, the world root it attaches under, and the build's facts. */
 export interface WorldEntryPorts {
@@ -38,6 +39,8 @@ export interface WorldEntryPorts {
 export class WorldEntry {
   private readonly placements = new Map<string, Placed>();
   private readonly restored = new Set<string>();
+  /** T3: the placements this build took by tile (the tile driver attaches their copies) */
+  private readonly tiled = new Set<string>();
   private readonly ran = new Set<string>();
   private constructor(private readonly rows: WorldEntryRows, private readonly ports: WorldEntryPorts) {}
 
@@ -70,7 +73,7 @@ export class WorldEntry {
   /** The placements one block's `place` rows loaded, in row order (rows another tier or variant skipped are absent). */
   placedIn(block: string): Placed[] {
     if (!this.ran.has(block)) throw new Error(`World entry block has not run: ${block}`);
-    return (this.rows.blocks[block] ?? []).flatMap(row => row.kind === 'place' && this.applies(row) && !this.restored.has(row.id) ? [this.placed(row.id)] : []);
+    return (this.rows.blocks[block] ?? []).flatMap(row => row.kind === 'place' && this.applies(row) && !this.restored.has(row.id) && !this.tiled.has(row.id) ? [this.placed(row.id)] : []);
   }
 
   private live(): void {
@@ -92,6 +95,9 @@ export class WorldEntry {
       if (this.placements.has(row.id) || this.restored.has(row.id)) throw new Error(`World entry placed ${row.id} twice`);
       const handles = scenes();
       if (handles.frozen(row.id)) { await handles.assemble(row.id); this.restored.add(row.id); return; }
+      // tile streaming T3: under a tile residency (pause > Settings > Debug) a placement goes by tile; the resident's tile
+      // driver attaches its copies (T4)
+      if (tileResidencyRadius() < 8) { handles.tile(row.id); this.tiled.add(row.id); return; }
       this.placements.set(row.id, await handles.place(row.id));
       return;
     }
@@ -118,7 +124,7 @@ export class WorldEntry {
     }
     const object = row.as === 'group' ? scenes().group(row.id) : row.as === 'mesh' ? scenes().mesh(row.id) : scenes().object(row.id);
     if (row.name !== undefined) object.name = row.name;
-    if (row.nameAfter !== undefined) object.name = this.placed(row.nameAfter).model;
+    if (row.nameAfter !== undefined) object.name = this.tiled.has(row.nameAfter) ? scenes().placementModel(row.nameAfter) : this.placed(row.nameAfter).model;
     if (row.castShadow !== undefined) object.castShadow = row.castShadow;
     if (row.userData !== undefined) Object.assign(object.userData, row.userData);
     (row.parent === undefined ? root : scenes().group(row.parent)).add(object);

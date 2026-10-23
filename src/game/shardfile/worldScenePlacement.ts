@@ -44,18 +44,25 @@ export class WorldScenePlacement {
     this.pending ??= this.build(null, this.owner);
     return this.pending;
   }
+  /** T3: the scene part a set draws this placement's copies into (`drawnInto`), if any: by tile, such a placement carries
+   *  only its copies' colliders and tap boxes; the set keeps drawing them. */
+  drawnInto(): string | undefined { return this.row.drawnInto?.part; }
+  /** The model its copies are (the placed model's id, as `load()`'s `Placed.model`). */
+  modelId(): string { return this.catalogue.model(this.row.model).id; }
   /** T3: the tiles (keys j * 8 + i, cell-local) holding this placement's copies. */
   tiles(): ReadonlySet<number> { return new Set(this.bucketed().keys()); }
   /**
-   * T3: build this placement's copies in `tile` under `scope` and add them to `container` (the placement's stable object);
-   * the scope's end takes them, their draws and their colliders away. Null when the tile holds none of its copies.
+   * T3: build this placement's copies in `tile` under `scope` (their draws join `container`, the placement's stable object;
+   * a placement drawn into a set registers only their colliders and boxes); the scope's end takes them away. Null when
+   * the tile holds none of its copies.
    */
-  async attach(tile: number, scope: Scope, container: Group): Promise<Placed | null> {
+  async attach(tile: number, scope: Scope, container: Group | null): Promise<Placed | null> {
     const copies = this.bucketed().get(tile);
     if (copies === undefined) return null;
-    if (this.pending !== undefined) throw new Error('Scene placement is already built whole');
+    if (this.pending !== undefined) throw new Error('Scene placement is built whole');
     const placed = await this.build(copies, scope, tile);
-    if (scope.disposed) return null;
+    if (scope.disposed || this.row.drawnInto !== undefined) return placed;
+    if (container === null) throw new Error('Scene placement by tile needs its container');
     container.add(placed.object); scope.onDispose(() => { placed.object.removeFromParent(); });
     return placed;
   }

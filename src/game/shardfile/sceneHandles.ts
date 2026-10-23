@@ -67,11 +67,19 @@ export class SceneHandles {
     const value = this.value(id);
     if (!(value instanceof WorldScenePlacement)) throw new Error(`Expected scene placement: ${id}`);
     if (this.has(`${id}.root`)) throw new Error(`Scene placement ${id} is already placed`);
-    const container = new Group(); container.name = id;
-    this.publish(`${id}.root`, container);
+    // a placement drawn into a set keeps the set as its root (it tiles only its colliders); any other gets a container
+    const part = value.drawnInto(), container = part === undefined ? new Group() : null;
+    if (container !== null) container.name = id;
+    this.publish(`${id}.root`, container ?? this.object(part ?? id));
     const content: TileContent = { id, tiles: () => value.tiles(), attach: async (tile, scope) => { await value.attach(tile, scope, container); } };
     this.tileContents.push(content);
     return content;
+  }
+  /** The model placement `id`'s copies are (`Placed.model`), placed whole or by tile. */
+  placementModel(id: string): string {
+    const value = this.value(id);
+    if (!(value instanceof WorldScenePlacement)) throw new Error(`Expected scene placement: ${id}`);
+    return value.modelId();
   }
   /** Every element placed by tile so far (`tile()`), in order. */
   tiled(): readonly TileContent[] { return this.tileContents; }
