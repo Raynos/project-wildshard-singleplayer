@@ -158,14 +158,6 @@
       "base64Chars": 4572,
       "dataUris": 0
     },
-    "src/shards/far-reach/data/paintedLook.generated.json": {
-      "base64Chars": 27552,
-      "dataUris": 0
-    },
-    "src/shards/far-reach/data/skyDressing.json": {
-      "base64Chars": 27552,
-      "dataUris": 0
-    },
     "src/shards/ink-cel-valley/data/rows.json": {
       "base64Chars": 0,
       "dataUris": 1

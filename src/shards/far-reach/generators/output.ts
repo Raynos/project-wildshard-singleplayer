@@ -1,5 +1,5 @@
 import { SKY_CLIENT_PLAN } from './clientPlan';
-import { skyPaintedPresentation } from './paintedLook';
+import { skyPaintedPresentation, SKY_PAINTED_ATTRIBUTE_SOURCES } from './paintedLook';
 import { FAN_ID } from './rows/items';
 import { parseExplorerCatalogue } from '@wildshard/format/explorerCatalogue';
 import { SKY_SCENE_BLOBS, SKY_WORLD_SCENES } from './worldScenes';
@@ -17,7 +17,7 @@ import baked from '../data/physics.generated.json' with { type: 'json' };
 
 /** Build-only declarations; the compiled client features own all presentation. */
 const sources = emitNamedBlobs(SKY_SCENE_BLOBS);
-export const output = { namedFiles: sources.files, assets: sources.assets,
+export const output = { blobs:SKY_PAINTED_ATTRIBUTE_SOURCES,namedFiles: sources.files, assets: sources.assets,
   platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([
     ['ui/strings', STRINGS],
     ['client/plan', SKY_CLIENT_PLAN],

@@ -5,6 +5,12 @@ import { validateGraph } from '@wildshard/format/materialGraph';
 import * as v from 'valibot';
 import { SKY_WORLD_PREPARATION } from './worldTextures';
 
+/** Original authored per-instance float32 storage, read through the normal named-file intake. */
+const cumulus=SKY_PAINTED.dressing.cumulus.cards.cards[0];
+if(cumulus===undefined)throw new Error('Missing authored cumulus attributes');
+export const SKY_PAINTED_ATTRIBUTE_SOURCES=Object.entries(cumulus.instances)
+  .map(([name,row])=>({name:row.file,kind:'bin' as const,source:`data/sky-cumulus-${name}.bin`,options:{critical:true,gpu:row.count*4}}));
+
 /** Resolve the fixed golden-hour look, image samplers and dressing graphs offline. */
 export function paintedLookRows(): unknown {
   const { look, day, haze, ...rows } = SKY_PAINTED;
