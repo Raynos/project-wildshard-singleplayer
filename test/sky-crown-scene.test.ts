@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { BoxGeometry, Group, InstancedMesh, MeshStandardMaterial } from 'three';
-import { bindWorldSceneParts, createWorldScene } from '../src/game/plugin/ui';
+import { bindWorldSceneParts, createWorldScene } from '../src/game/plugin/scene';
 import type { ColliderDesc } from '../src/engine/world/registry';
 import { CROWN_SCENE } from '../src/shards/far-reach/generators/rows/crownScene.generated';
 

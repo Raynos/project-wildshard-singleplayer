@@ -8,7 +8,7 @@ import { ownSceneTree } from '@wildshard/engine/app/sceneOwnership';
 import { parseWorldScene, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
 import type { WorldScenesSection } from '@wildshard/format/worldScenes';
 import type { ShardProduct } from '../shardfile/shardProduct';
-import { createWorldScene } from '../plugin/ui';
+import { createWorldScene } from '../plugin/scene';
 import type { SceneDraw } from '@wildshard/format/sceneDraws';
 import { drawSceneRows, prepareSceneDrawRows } from '../shardfile/sceneDraws';
 import { prepareSceneSpecimens, sceneModelSource } from '../shardfile/sceneSources';

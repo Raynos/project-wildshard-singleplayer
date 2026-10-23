@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { Group, MeshStandardMaterial } from 'three';
-import { createWorldScene } from '../src/game/plugin/ui';
+import { createWorldScene } from '../src/game/plugin/scene';
 import { worldPieces } from '../src/game/shardfile/bakedKinds';
 import type { Piece } from '../src/engine/world/registry';
 import { admitHeldRecipe } from '../src/game/plugin/heldRecipe';

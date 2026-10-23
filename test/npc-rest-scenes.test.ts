@@ -4,7 +4,7 @@ import { SECTIONS } from '../src/shards/driftwood-isle/generators/sections';
 import { driftwoodRows } from './fixtures/driftwoodLegacyRows';
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 import { expect, test } from 'vitest';
-import { bindWorldSceneParts, createClientScene } from '../src/game/plugin/ui';
+import { bindWorldSceneParts, createClientScene } from '../src/game/plugin/scene';
 import { CASTAWAY_BINDINGS, CASTAWAY_PARTS, CASTAWAY_SCENE, TRADER_BINDINGS, TRADER_PARTS, TRADER_SCENE } from '../src/shards/driftwood-isle/generators/npcScenes';
 
 test('trader rows retain borrowed graph material, native pivots and ordered hierarchy', () => {

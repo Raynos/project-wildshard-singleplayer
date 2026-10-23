@@ -27,7 +27,7 @@ import { parseHeldView, type HeldViewRow } from '@wildshard/format/heldView';
 import { toonLighting } from '../../looks/toonLighting';
 import { loadFirstPartyProduct, runtimeLookMaterials } from '../../shardfile/runtimeProduct';
 import type { ShardProduct } from '../../shardfile/shardProduct';
-import { createClientScene } from '../../plugin/ui';
+import { createClientScene } from '../../plugin/scene';
 import { BLEND_ADD_KEEP_ALPHA } from '../../plugin/shaderFamily';
 import type { ShardSword } from '../../shard/manifest';
 import type { ShardContext } from '../../plugin/context';

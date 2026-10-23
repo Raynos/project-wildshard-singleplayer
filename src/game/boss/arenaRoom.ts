@@ -9,7 +9,7 @@ import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { HeightPatch } from '@wildshard/engine/physics/heightPatch';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
-import { createClientScene } from '../plugin/ui';
+import { createClientScene } from '../plugin/scene';
 import { bossFight, type BossViewBinding, type PhasedBossBrain, type PhasedBossFight } from '../plugin/bossPhase';
 import type { BossScript } from '@wildshard/engine/ai/BossBrain';
 import { canReach } from '@wildshard/engine/ai/reach';

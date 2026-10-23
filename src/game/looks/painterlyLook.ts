@@ -18,7 +18,7 @@ import { parsePaintedTerrain } from '@wildshard/format/materialFamilies';
 import { parseWorldScene } from '@wildshard/format/clientChannels';
 import { SpecimenTextureSchema } from '@wildshard/format/specimenCatalogue';
 import { loadSpecimenTexture } from '../models/specimenCatalogue';
-import { createClientScene } from '../plugin/ui';
+import { createClientScene } from '../plugin/scene';
 import { lentLook, setLentParam, setLentTexture } from '../shardfile/lentLooks';
 import { loadFirstPartyProduct, runtimeProduct } from '../shardfile/runtimeProduct';
 import type { StaticCaptureUniforms } from './staticCapture';

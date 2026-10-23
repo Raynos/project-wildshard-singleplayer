@@ -22,7 +22,7 @@ import { emptyShardfile } from '../src/sdk/author';
 import { emitNamedBlobs, nameBlob } from '../src/sdk/blobs';
 import { parseWorldScenes } from '../src/format/worldScenes';
 import { parseWorldScene } from '../src/format/clientChannels';
-import { bindWorldSceneParts, createWorldScene } from '../src/game/plugin/ui';
+import { bindWorldSceneParts, createWorldScene } from '../src/game/plugin/scene';
 import { SKY_SCENE_BLOBS, SKY_WORLD_SCENES } from '../src/shards/far-reach/generators/worldScenes';
 
 const plumbing = (blades: number) => ({ namespace: 'far', input: [], debug: [], knobs: [{ id: 'far.meadowBlades' as const, phone: blades, desktop: blades }] });

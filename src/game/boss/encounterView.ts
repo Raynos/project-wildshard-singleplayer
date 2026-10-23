@@ -22,7 +22,7 @@ import type { CueDirector } from '../audio/cueDirector';
 import { GroundTell } from '../Elite';
 import { LightningStrip } from '../weapons/arcPower';
 import { ProjectedState, type ReturnProgram } from '../population/returnProgram';
-import { createClientScene } from '../plugin/ui';
+import { createClientScene } from '../plugin/scene';
 import { installChannelPrograms } from '../plugin/channelPrograms';
 import { lentLook, lentLookInstance, setLentParam, type LookInstance } from '../shardfile/lentLooks';
 import { CloudSpecimenSchema, EncounterSitesSchema, type EncounterSlotsRows, type EncounterPatrolRows, type EncounterScheduleRows, type SlotViewRows, type PatrolViewRows, type CloudBodyRows, type ArenaSceneRows, type EncounterMaterialRows } from '@wildshard/format/encounterRows';

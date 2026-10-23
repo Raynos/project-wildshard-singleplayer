@@ -5540,7 +5540,7 @@ references are checked before assembly. Group, mesh, imported owned object
 and indexed child-anchor nodes preserve the original hierarchy and draw
 order. Optional resources omit their entire subtree before decoding.
 
-`@wildshard/game/plugin/ui.createClientScene(row, ports)` constructs only a
+`@wildshard/game/plugin/scene.createClientScene(row, ports)` constructs only a
 private model, with no registry, collision, fetch or installation. Standard
 material properties and transforms are rows. Texture ports retain original
 samplers; bounded RGBA planes reference admitted bytes at exact offsets,
@@ -5728,7 +5728,7 @@ two ordered primary phases, bounded durations/charge/spring/placement and
 an immediate namespaced secondary action or delayed channel/part bindings.
 The schema refuses crossed phase identities, intervals and unknown fields.
 
-`@wildshard/game/plugin/ui.createHeldMeleeBinding` binds that schedule to
+`@wildshard/game/plugin/scene.createHeldMeleeBinding` binds that schedule to
 existing private scene parts and compiles a stable phase lookup. It does
 not allocate geometry, alter poses or install input, collision or scripts.
 
@@ -5919,7 +5919,7 @@ Signal well prompts use these rows on their existing input owners.
 ### Static world scene recipes
 
 `format/clientChannels.parseWorldScene` admits bounded private scene rows
-with named baked-piece and model imports. `game/plugin/ui.createWorldScene`
+with named baked-piece and model imports. `game/plugin/scene.createWorldScene`
 uses the caller's real geometry, model and baked ports, returning its Group,
 named parts and borrowed baked metadata in `baked`. Material collectors stay
 owned ports. `game/shardfile/bakedKinds.worldPieces.scene` registers named
@@ -6054,7 +6054,7 @@ world target and quest actor before registering its step, refusing missing
 spots. Original light/heavy crack outcomes remain on the timed contact
 family; direct owned `world` targets remain supported.
 
-`bindWorldSceneParts(scene, kinds, rows)` in `game/plugin/ui` binds named
+`bindWorldSceneParts(scene, kinds, rows)` in `game/plugin/scene` binds named
 native groups, meshes, point lights, materials and baked collider arrays.
 Vector and scalar rows copy bounded authored anchors; scene parts remain
 borrowed identities. `format/clientChannels.parseWorldSceneBindings` admits

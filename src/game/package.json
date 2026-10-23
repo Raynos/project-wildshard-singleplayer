@@ -214,6 +214,7 @@
     "./plugin/bossPhase": "./plugin/bossPhase.ts",
     "./plugin/mover": "./plugin/mover.ts",
     "./plugin/director": "./plugin/director.ts",
+    "./plugin/scene": "./plugin/scene.ts",
     "./plugin/ui": "./plugin/ui.ts",
     "./plugin/audio": "./plugin/audio.ts",
     "./plugin/shaderFamily": "./plugin/shaderFamily.ts",

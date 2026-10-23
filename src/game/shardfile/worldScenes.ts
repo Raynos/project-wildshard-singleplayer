@@ -32,7 +32,7 @@ import { parseWorldScene, type WorldSceneRecipe } from '@wildshard/format/client
 import type { ShardContext } from '../plugin/context';
 import type { ModelLibrary } from '../plugin/geometry';
 import { tierFile, worldScenePool } from './scenePools';
-import { createWorldScene, bindWorldSceneParts } from '../plugin/ui';
+import { createWorldScene, bindWorldSceneParts } from '../plugin/scene';
 import { hasLentLook, lentLook, lentMappedLook, lendLooks, sceneMaterial } from './lentLooks';
 import { runtimeLookMaterials } from './runtimeProduct';
 import { loadingUnits } from '@wildshard/engine/boot/waits';

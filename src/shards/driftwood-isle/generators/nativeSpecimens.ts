@@ -1,6 +1,6 @@
 /** Native card snapshots over the same fixed geometry and rest scenes as the entered people. */
 import { Box3, BufferGeometry, Group, Material, Mesh, MeshBasicMaterial, type Object3D, Vector3 } from 'three';
-import { createClientScene } from '@wildshard/game/plugin/ui';
+import { createClientScene } from '@wildshard/game/plugin/scene';
 import { FigureRows } from '@wildshard/game/systems/npc/figureRows';
 import { parseWorldSceneModels, type WorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { parseWorldSceneWeld, type WorldSceneWeldNode } from '@wildshard/format/worldSceneWeld';

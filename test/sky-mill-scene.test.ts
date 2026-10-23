@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { BoxGeometry, Group, Mesh, MeshStandardMaterial, Texture } from 'three';
-import { bindWorldSceneParts, createWorldScene } from '../src/game/plugin/ui';
+import { bindWorldSceneParts, createWorldScene } from '../src/game/plugin/scene';
 import millScene from '../src/shards/far-reach/data/millScene.generated.json' with { type: 'json' };
 import routeScene from '../src/shards/far-reach/data/routeScene.generated.json' with { type: 'json' };
 

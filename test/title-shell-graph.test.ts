@@ -62,3 +62,8 @@ test('client admission and unused world features do not load presentation owners
   const files = titleGraph(['src/game/shardfile/clientSource.ts', 'src/game/session/session.ts', 'src/game/shardfile/client.ts']);
   expect(files.filter(file => /src\/game\/(?:plugin\/ui|shardfile\/(?:sceneDressing|worldScenes|sceneMotion|weatherFields|clientCues)|models\/(?:islandLibrary|worldSceneCatalogue))\.ts$/u.test(file))).toEqual([]);
 });
+
+test('shared held construction leaves broad UI and quest presentation cold', () => {
+  const files = titleGraph(['src/game/plugin/weaponFamily.ts', 'src/game/plugin/heldFirearm.ts']);
+  expect(files.filter(file => /src\/game\/(?:plugin\/(?:ui|bossStorm)|quest\/(?:pageComposition|reward)|loot\/CoinBurst)\.ts$/u.test(file))).toEqual([]);
+});

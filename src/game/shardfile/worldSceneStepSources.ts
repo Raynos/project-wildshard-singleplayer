@@ -3,7 +3,7 @@ import type { WorldScenesSection } from '@wildshard/format/worldScenes';
 import type { WorldSceneRecipe } from '@wildshard/format/clientChannels';
 import type { ShardProduct } from './shardProduct';
 import { applySurfaceLooks } from '../systems/looks/surfaceLooks';
-import type { WorldScenePorts } from '../plugin/ui';
+import type { WorldScenePorts } from '../plugin/scene';
 import { sceneBakeSource, sceneModelSource, sceneSourceDeclares, sceneModelDefinition, sceneSurfaceInputs } from './sceneSources';
 
 type Step = WorldScenesSection['steps'][number];

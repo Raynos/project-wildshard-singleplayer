@@ -8,7 +8,7 @@ import { KitFigureSchema, type KitFigureRows } from '@wildshard/format/kitFigure
 import { FigureRowSchema } from '@wildshard/format/figures';
 import { playClips, type ClipCtx } from '../../plugin/animation';
 import { installChannelPrograms } from '../../plugin/channelPrograms';
-import { createClientScene, bindWorldSceneParts } from '../../plugin/ui';
+import { createClientScene, bindWorldSceneParts } from '../../plugin/scene';
 import type { SceneHandles } from '../../shardfile/sceneHandles';
 import { FigureRows } from './figureRows';
 

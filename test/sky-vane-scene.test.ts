@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { BoxGeometry, Group, Mesh, Vector3 } from 'three';
-import { bindWorldSceneParts, createWorldScene } from '../src/game/plugin/ui';
+import { bindWorldSceneParts, createWorldScene } from '../src/game/plugin/scene';
 import routeScene from '../src/shards/far-reach/data/routeScene.generated.json' with { type: 'json' };
 
 const { SKY_VANES } = routeScene;

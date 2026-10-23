@@ -24,7 +24,7 @@ import * as v from 'valibot';
 import { heldFirearmParts, heldGrip, placeHeldFist, type HeldFirearmHands, type HeldFirearmModel, type HeldModelRows } from '../plugin/heldFirearm';
 import type { ModelLibrary } from '../plugin/geometry';
 import { type HeldBowRowsSchema, HeldBowDefinitionSchema } from '@wildshard/format/weaponProfiles';
-import { createClientScene } from '../plugin/ui';
+import { createClientScene } from '../plugin/scene';
 import { HeldPlayback } from '../plugin/weaponFamily';
 
 /**

@@ -11,7 +11,7 @@ import { expect, test } from 'vitest';
 import { MeshStandardMaterial, type BufferGeometry } from 'three';
 import { GeometryPack, packedRows } from '../src/sdk/kit/geometryPack';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
-import { createWorldScene } from '../src/game/plugin/ui';
+import { createWorldScene } from '../src/game/plugin/scene';
 import { parseWorldScene } from '../src/format/clientChannels';
 import { QUEST_RIDE_BLOBS, QUEST_RIDE_MODEL_BLOBS, QUEST_RIDE_LIBRARY, QUEST_RIDE_MATERIAL, QUEST_RIDE_STEP } from '../src/shards/pine-hollow/generators/questRideScenes';
 import packed from '../src/shards/pine-hollow/data/codeParts.json';

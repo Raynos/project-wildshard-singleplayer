@@ -12,7 +12,7 @@ import type { RosterEntry } from '@wildshard/engine/models/live';
 import { HeldArmsSchema, parseHeldSlots, type HeldSlotsRows, type HeldArmsRows } from '@wildshard/format/heldArms';
 import type { ShardContext } from '../plugin/context';
 import { createOwnedGeometry, type OwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
-import { createClientScene } from '../plugin/ui';
+import { createClientScene } from '../plugin/scene';
 import { bindRuntimeEquipment, bindRuntimeItems, sameRuntimeProfile } from '../plugin/headless';
 import { ItemCatalogue } from '../plugin/nativeItems';
 import { heldArmsGear } from '../models/heldGear';

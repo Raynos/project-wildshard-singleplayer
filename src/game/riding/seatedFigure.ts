@@ -6,7 +6,7 @@ import { inlineFixedDraw } from '../models/fixedDraws';
 import { bakedGeometryBytes,readBakedGeometry,expandBakedGeometry } from '../plugin/geometry';
 import { prepareBinarySources,type BinaryFileReader } from '../models/binarySource';
 import { playClips, type ClipCtx } from '../plugin/animation';
-import { createClientScene } from '../plugin/ui';
+import { createClientScene } from '../plugin/scene';
 
 /** The profile admits at most 16 gestures; a riding session presents at most 8 cue kinds a frame. */
 const GESTURES = 16, SIGNALS = 8;

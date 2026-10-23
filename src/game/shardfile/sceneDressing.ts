@@ -23,7 +23,7 @@ import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
 import { mergeStaticSiblings } from '@wildshard/engine/models/staticSets';
 import { createPackedSpecimens, defineSpecimenCatalogue, prepareSpecimenCatalogue, loadBoundSpecimen, loadSpecimenTexture, specimenMaterial } from '../models/specimenCatalogue';
 import { expandBakedGeometrySliced, fetchLaneBake, readBakedGeometry, bakedGeometryBytes } from '../plugin/geometry';
-import { createClientScene } from '../plugin/ui';
+import { createClientScene } from '../plugin/scene';
 import { AmbientWingField } from '../ambient/wingField';
 import { EncounterSites } from '../boss/encounterView';
 import { letteringMaterial } from '../looks/lettering';

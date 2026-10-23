@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { Group, Mesh, BoxGeometry, MeshBasicMaterial, type Object3D } from 'three';
-import { createWorldScene } from '../src/game/plugin/ui';
+import { createWorldScene } from '../src/game/plugin/scene';
 import { worldPieces, type WorldPieceRow } from '../src/game/shardfile/bakedKinds';
 import type { Piece } from '../src/engine/world/registry';
 import groundScene from '../src/shards/far-reach/data/groundScene.generated.json' with { type: 'json' };

@@ -4,7 +4,8 @@ import { defineSceneModels, type SceneModelRow, type ModelDef } from '@wildshard
 import type { PrivateScene } from '@wildshard/format/clientChannels';
 import type { SurfaceLook } from '@wildshard/format/surfaceLooks';
 import { createHeldPresentation, type HeldMeleeRecipe, type HeldPresentationPorts } from '../plugin/weaponFamily';
-import { questNpcSpecimen, type QuestNpcModelRow, type QuestNpcModelSource, type ClientScenePorts } from '../plugin/ui';
+import { questNpcSpecimen, type QuestNpcModelRow, type QuestNpcModelSource } from '../plugin/ui';
+import type { ClientScenePorts } from '../plugin/scene';
 import { applySurfaceLooks } from '../systems/looks/surfaceLooks';
 import { sceneModelSource, sceneBakeSource, sceneSurfaceInputs, sceneModelDefinitions } from '../shardfile/sceneSources';
 import type { ShardProduct } from '../shardfile/shardProduct';
