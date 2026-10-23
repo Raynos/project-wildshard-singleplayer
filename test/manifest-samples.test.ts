@@ -63,3 +63,10 @@ test('legacy native callbacks and ground owners retain identity and fixed RGB be
   expect(manifest.load).toBe(nalati.load);expect(manifest.render).toBe(nalati.render);expect(manifest.dev).toBe(nalati.dev);
   const out: [number,number,number] = [0,0,0];expect(manifest.groundColor?.(0,0,0,0,ground.terrain,out)).toBe(out);expect(out).toEqual([.1,.2,.3]);
 });
+
+test('a declared post look binds the manifest render and refuses a second look binding',() => {
+  const input = { ...sampled(),postLook: { file: 'look/post.json',field: ['look'] } },manifest = defineShard(input,{});
+  expect(typeof manifest.render).toBe('function');
+  expect(manifest.postLook).toBeUndefined();
+  expect(() => defineShard(input,{ render: () => Promise.reject(new Error('unused')) })).toThrow('Conflicting manifest look bindings');
+});

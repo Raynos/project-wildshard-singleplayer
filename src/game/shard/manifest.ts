@@ -603,6 +603,9 @@ export interface ShardManifest {
    * ever sees the bound loader (progress/shard-platform/product-in-look-o272/).
    */
   render?: (product: ShardProduct) => Promise<LookStrategy>;
+  /** the look as a row: a post-graph look read from a product file's row (game/looks/postGraphLook `postGraphLook`);
+   *  `defineShard` binds it as `render` */
+  readonly postLook?: { readonly file: string; readonly field: readonly string[] };
   /**
    * A built fragment's limits (the landscape shards have the terrain's edge walls instead): below `floor` or outside the
    * box, on foot or on the board, the player is put back on the last floor they stood on inside them (a registry floor;
@@ -690,7 +693,8 @@ export function defineShard(rows: ShardManifestRows,
     const descriptor = Object.getOwnPropertyDescriptor(rows,key);
     if (key in rows && (descriptor === undefined || !descriptor.enumerable || !('value' in descriptor))) throw new Error('Manifest samples require own data fields');
   }
-  const { runtimeEntry,poses,groundColour,horizon,pois,minimap,groundRows,groundColourSamples,surfaceSamples,forestMaskSamples,mapGroundSamples,...data } = rows;
+  const { runtimeEntry,postLook,poses,groundColour,horizon,pois,minimap,groundRows,groundColourSamples,surfaceSamples,forestMaskSamples,mapGroundSamples,...data } = rows;
+  if (postLook !== undefined && bindings.render !== undefined) throw new Error('Conflicting manifest look bindings');
   const nativeGround = bindings.ground ?? data.ground,{ palette,...mapFields } = minimap ?? {};
   if (groundRows !== undefined && nativeGround !== undefined || groundColourSamples !== undefined && groundColour !== undefined
     || surfaceSamples !== undefined && data.surfaceAt !== undefined || forestMaskSamples !== undefined && (data.forest === undefined || 'mask' in data.forest)
@@ -732,6 +736,7 @@ export function defineShard(rows: ShardManifestRows,
     ...(groundColour === undefined ? {} : { groundColor: (_x, _z, _h, _slope, _terrain, out) => { out[0] = groundColour[0]; out[1] = groundColour[1]; out[2] = groundColour[2]; return out; } }),
   };
   if (runtimeEntry !== undefined) manifest.trustedRuntime = { get slug() { return manifest.slug; }, entry: runtimeEntry };
+  if (postLook !== undefined) manifest.render = async (product) => (await import('../looks/postGraphLook')).postGraphLook(product, postLook);
   return manifest;
 }
 

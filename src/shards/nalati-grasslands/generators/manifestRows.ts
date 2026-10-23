@@ -9,6 +9,7 @@ export const NALATI_MANIFEST_ROWS = {
   loadout: { weapons: ['bow', 'sabre', 'spear', 'rifle'], tools: ['tool.hoverboard'], start: ['bow', 'sabre', 'spear', 'tool.hoverboard'], held: 'bow', loans: [{ id: 'rifle', in: 'practice' }] },
   bag: { tabs: ['map', 'gear', 'finds', 'feats'], pack: { slots: 0 }, skinsTitle: 'Skins' },
   kitLook: 'painterly',
+  postLook: { file: 'look/post.json', field: [] },
   fight: { input: { bufferMs: 120, coyoteMs: 100 }, telegraphed: true },
   creatures: { lowPoly: false, waitForModels: true, furRim: false, tintRange: 0.2, oneMaterial: false },
   debugOptions: [],
@@ -58,4 +59,4 @@ export const NALATI_MANIFEST_ROWS = {
     shadowTint: [0.9, 0.96, 1.1], highTint: [1.05, 1.01, 0.94],
     lift: [0.0, 0.004, 0.018], gain: [1.02, 1.02, 1.0], gamma: 1.0,
 }
-} satisfies Pick<ShardManifest, 'uses' | 'api' | 'gridShardfile' | 'entries' | 'loadout' | 'bag' | 'kitLook' | 'fight' | 'creatures' | 'debugOptions' | 'assetGlobs' | 'order' | 'status' | 'name' | 'label' | 'treeCount' | 'accent' | 'biome' | 'blurb' | 'style' | 'tiers' | 'hud' | 'weapon' | 'assets' | 'spawns' | 'sky' | 'atmosphere' | 'grade'>;
+} satisfies Pick<ShardManifest, 'uses' | 'api' | 'gridShardfile' | 'entries' | 'loadout' | 'bag' | 'kitLook' | 'postLook' | 'fight' | 'creatures' | 'debugOptions' | 'assetGlobs' | 'order' | 'status' | 'name' | 'label' | 'treeCount' | 'accent' | 'biome' | 'blurb' | 'style' | 'tiers' | 'hud' | 'weapon' | 'assets' | 'spawns' | 'sky' | 'atmosphere' | 'grade'>;
