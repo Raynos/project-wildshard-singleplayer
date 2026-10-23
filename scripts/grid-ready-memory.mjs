@@ -34,6 +34,34 @@ export function chromiumProcessPeaks(events) {
   return peaks;
 }
 
+/** Allocator trees retain their paths: parent and child sizes are not additive.
+ * @param {readonly unknown[]} events */
+export function chromiumAllocatorBytes(events) {
+  const names = new Map();
+  for (const event of events) { const row = v.safeParse(named, event); if (row.success) names.set(row.output.pid, row.output.args.name); }
+  const schema = v.looseObject({ pid: v.number(), ph: v.literal('v'), args: v.looseObject({ dumps: v.looseObject({
+    allocators: v.record(v.string(), v.looseObject({ attrs: v.optional(v.record(v.string(), v.unknown()), {}) })),
+  }) }) });
+  const bytes = v.looseObject({ units: v.literal('bytes'), value: hex });
+  const rows = [];
+  for (const event of events) {
+    const parsed = v.safeParse(schema, event); if (!parsed.success) continue;
+    const role = names.get(parsed.output.pid);
+    if (role !== 'Renderer') continue;
+    const entries = [];
+    for (const [path, allocator] of Object.entries(parsed.output.args.dumps.allocators)) {
+      const amount = v.safeParse(bytes, allocator.attrs.effective_size ?? allocator.attrs.size);
+      if (!amount.success) continue;
+      const value = Number.parseInt(amount.output.value, 16);
+      if (!Number.isSafeInteger(value) || value < 0) throw new Error('Invalid allocator size');
+      entries.push({ path, bytes: value });
+    }
+    rows.push({ pid: parsed.output.pid, role, entries });
+  }
+  if (!rows.some(row => row.entries.length > 0)) throw new Error('CDP memory dump omitted renderer allocators');
+  return rows;
+}
+
 /** Attribute the cell's effective deduplicated claims plus its shared product transport once.
  * Other cells, platform and commons remain page totals, never another copy of the shard's charge.
  * @param {readonly {id:string,owner:string,accountedBytes:number}[]} claims @param {string} instance @param {string} slug */

@@ -1,5 +1,5 @@
 import {expect,it} from 'vitest';
-import {chromiumProcessPeaks,ownedResidencyBytes} from '../scripts/grid-ready-memory.mjs';
+import {chromiumProcessPeaks,chromiumAllocatorBytes,ownedResidencyBytes} from '../scripts/grid-ready-memory.mjs';
 
 it('reads hexadecimal CDP footprint bytes and sums simultaneous renderer processes',()=>{
  const names=['Browser','Renderer','Renderer','GPU Process'].map((name,pid)=>({name:'process_name',pid,args:{name}}));
@@ -17,4 +17,13 @@ it('counts effective own-cell bytes and its product once without page or other-c
   {id:'page:programs',owner:'platform',accountedBytes:700}];
  expect(ownedResidencyBytes(claims,'template-2','_template')).toBe(120);
  expect(()=>ownedResidencyBytes([{id:'bad',owner:'template-2',accountedBytes:-1}],'template-2','_template')).toThrow('Invalid owned');
+});
+
+it('keeps renderer allocator parents and children separate and reads effective hexadecimal bytes',()=>{
+ const names=[{name:'process_name',pid:1,args:{name:'Renderer'}},{name:'process_name',pid:2,args:{name:'GPU Process'}}];
+ const entry={attrs:{size:{units:'bytes',value:'100'},effective_size:{units:'bytes',value:'80'}}};
+ const row=(pid:number)=>({ph:'v',pid,args:{dumps:{allocators:{partition_alloc:entry,'partition_alloc/buffer':{attrs:{size:{units:'bytes',value:'40'}}}}}}});
+ expect(chromiumAllocatorBytes([...names,row(1),row(2)])).toEqual([{pid:1,role:'Renderer',entries:[
+  {path:'partition_alloc',bytes:128},{path:'partition_alloc/buffer',bytes:64}]}]);
+ expect(()=>chromiumAllocatorBytes(names)).toThrow('omitted renderer');
 });
