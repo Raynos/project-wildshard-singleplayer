@@ -62,7 +62,7 @@ export async function prepareDataMaps(root,only) {await createDataMapPreparation
  * public/assets/<output>/map/top.webp with its stamp at look/map.<output>.baked.json. An output's own row in the map
  * settings' `outputs` (G633: a tiled open plot) gives its `style` (else the folder's) and an `exclude` node-name prefix
  * its glbs leave out (its collision boxes stand over its roofs). */
-export async function paintDataMap(root, slug, { output, glbs } = {}) {
+export async function paintDataMap(root, slug, { output, glbs, sources } = {}) {
   const { decodeTerrainTile } = await import('../src/format/terrainTileBytes.ts');
   const dir = resolve(root, 'src/shards', slug), settings = json(mapSettingsPath(dir));
   const tilesHash = mapTilesHash(dir);
@@ -75,19 +75,22 @@ export async function paintDataMap(root, slug, { output, glbs } = {}) {
     if (!declared.some(source => path === source || path.startsWith(source + sep))) throw new Error(`${slug}: undeclared map input ${file}`);
     return path;
   };
+  const source = file => sources?.get(file) ?? input(file);
+  const readBytes = file => { const value = source(file); return value instanceof Uint8Array ? value : readFileSync(value); };
+  const rows = file => JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(readBytes(file)));
   for (const file of painter.terrain ?? []) {
-    const row = json(input(file));
-    for (const tile of row.terrain.tiles.filter(entry => entry.lod === 0)) raster.terrain(decodeTerrainTile(readFileSync(input(`assets/${tile.file}`))));
+    const row = rows(file);
+    for (const tile of row.terrain.tiles.filter(entry => entry.lod === 0)) raster.terrain(decodeTerrainTile(readBytes(`assets/${tile.file}`)));
   }
   for (const file of painter.props ?? []) {
-    const { props } = json(input(file));
+    const { props } = rows(file);
     if (props.wholeLibrary !== undefined) throw new Error(`${slug}: whole-library props need an explicit map assembly`);
-    for (const tile of props.tiles.filter(entry => entry.lod === 0)) for (const ref of [tile.file, ...tile.additionalFiles ?? []]) await raster.glb(input(`assets/${ref}`));
-    for (const panel of props.panels.filter(entry => entry.visible !== false)) await raster.glb(input(`assets/${panel.file}`));
+    for (const tile of props.tiles.filter(entry => entry.lod === 0)) for (const ref of [tile.file, ...tile.additionalFiles ?? []]) await raster.glb(source(`assets/${ref}`));
+    for (const panel of props.panels.filter(entry => entry.visible !== false)) await raster.glb(source(`assets/${panel.file}`));
   }
   const own = output === undefined ? undefined : settings.outputs?.[output];
   const exclude = own?.exclude, drawn = exclude === undefined ? undefined : node => !node.getName().startsWith(exclude);
-  for (const file of glbs ?? painter.glbs ?? []) await raster.glb(input(file), undefined, drawn);
+  for (const file of glbs ?? painter.glbs ?? []) await raster.glb(source(file), undefined, drawn);
   if (painter.scenes !== undefined) {
     const { paintMapScenes } = await import('./map-scenes.mjs');
     await paintMapScenes(raster, painter.scenes, settings, { input, json: file => json(input(file)), bytes: file => readFileSync(input(file)) });
@@ -107,7 +110,7 @@ export async function paintDataMap(root, slug, { output, glbs } = {}) {
   if (output !== undefined) { console.info(`data-map: ${output}, ${raster.triangles} source triangles, ${bytes.length} bytes`); return { raster, stamp }; }
   const companion = resolve(dir, 'data/productMap.json');
   if (companion !== stampPath && (painter.authored === true || existsSync(companion))) writeFileSync(companion, `${JSON.stringify(stamp, null, 2)}\n`);
-  if (painter.authored === true) writeFileSync(resolve(dir, 'assets/map.webp'), bytes);
+  if (painter.authored === true) { mkdirSync(resolve(dir, 'assets'), { recursive: true }); writeFileSync(resolve(dir, 'assets/map.webp'), bytes); }
   console.info(`data-map: ${slug}, ${raster.triangles} source triangles, ${bytes.length} bytes`);
   return { raster, stamp };
 }

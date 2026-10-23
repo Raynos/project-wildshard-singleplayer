@@ -62,7 +62,7 @@ export class MapRaster {
     const io = new NodeIO().registerExtensions(ALL_EXTENSIONS)
       .registerDependencies({ 'meshopt.decoder': MeshoptDecoder });
     let doc = this.documents.get(file);
-    if (doc === undefined) { doc = await io.readBinary(new Uint8Array(readFileSync(file))); this.documents.set(file, doc); }
+    if (doc === undefined) { doc = await io.readBinary(file instanceof Uint8Array ? file : new Uint8Array(readFileSync(file))); this.documents.set(file, doc); }
     return doc;
   }
   geometry(geometry, matrix = identity) {

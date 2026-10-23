@@ -8,7 +8,7 @@ import { expect, test } from 'vitest';
 import * as schema from 'valibot';
 import { MapRaster, mapPixel, stylizeMap } from '../scripts/map-painter.mjs';
 import { decodeTerrainTile, terrainTileHeight } from '../src/format/terrainTileBytes';
-import terrain from '../src/shards/_template/data/terrain.json' with { type: 'json' };
+import { templateTerrain } from '../src/shards/_template/generators/terrain';
 import { paintDataMap } from '../scripts/bake-data-maps.mjs';
 import { mapTilesHash } from '../scripts/map-hash.mjs';
 import { paintMapScenes } from '../scripts/map-scenes.mjs';
@@ -44,9 +44,11 @@ test('depth, clipping and triangle winding preserve placed coverage', () => {
   expect(raster.height[12 * 100 + 12]).toBe(8 * 65536);
 });
 test('actual template render tile keeps its placement and collision diagonal', () => {
+  const terrain = templateTerrain();
   const tile = terrain.terrain.tiles.find(row => row.lod === 0 && row.x === 3 && row.z === 3);
   if (tile === undefined) throw new Error('Missing template render tile');
-  const data = decodeTerrainTile(readFileSync(`src/shards/_template/assets/${tile.file}`));
+  const bytes = terrain.assets.get(tile.file); if (bytes === undefined) throw new Error('Missing producer tile bytes');
+  const data = decodeTerrainTile(bytes);
   const raster = new MapRaster(100);
   raster.terrain(data);
   for (let y = 50; y < 62; y++) for (let x = 50; x < 62; x++) {

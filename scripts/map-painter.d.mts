@@ -12,6 +12,6 @@ export class MapRaster {
   triangle(points: readonly (readonly number[])[], colours: readonly (readonly number[])[]): void;
   terrain(tile: TerrainTileData): void;
   geometry(geometry: BufferGeometry, matrix?: Matrix4): void;
-  glb(file: string, placement?: Matrix4, select?: (node: Node) => boolean, options?: { local?: boolean }): Promise<void>;
+  glb(file: string | Uint8Array, placement?: Matrix4, select?: (node: Node) => boolean, options?: { local?: boolean }): Promise<void>;
 }
 export function stylizeMap(raster: MapRaster, style: { kind: string } & Record<string, unknown>): Buffer;

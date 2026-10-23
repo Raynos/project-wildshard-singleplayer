@@ -326,7 +326,7 @@
     "test/crowd-page.test.ts": 1,
     "test/crowd-projection-product.test.ts": 1,
     "test/crowd-projection-v2.test.ts": 1,
-    "test/data-map-painter.test.ts": 3,
+    "test/data-map-painter.test.ts": 2,
     "test/declared-audio-set.test.ts": 1,
     "test/declared-ground-mask.test.ts": 1,
     "test/declared-npc-talks.test.ts": 1,

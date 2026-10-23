@@ -68,7 +68,11 @@ The author entry is the executable `shard.config.ts` program. It calls the
 terrain and props producers in-process through `ctx.cached`, retaining their
 original rows and immutable bytes. Native fixtures call those same producers;
 browser boards read the built format-2 product. The obsolete standalone product
-report job has no consumer and is removed. The remaining map and AssemblyScript
-producers still run through the generation catalogue during GR1 migration.
+report job has no consumer and is removed. The map calls the same terrain and
+props functions and consumes their byte maps;
+the separate terrain/props jobs are retired. The remaining map and AssemblyScript
+producers still run through the catalogue during GR1 migration.
 `assets/map.webp` and `data/productMap.json` are generated together with the public
-raster by `template-data-map`. The live stale-map gate still checks its stamp.
+raster by `template-data-map`. Its conservative source key covers the author
+generators, layout, SDK, format grammar and pinned dependency lock. The live
+stale-map gate still checks its stamp.
