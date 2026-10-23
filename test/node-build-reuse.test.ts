@@ -82,7 +82,7 @@ test('verify builds in full and finds the reused build equal; off never reuses',
     expect(verify.handler.reuses).toBe(1);
     expect(verify.handler.reuseDifferences).toBe(0);
   } finally { verify.done(); a.material.dispose(); b.material.dispose(); }
-  overrideSetting('nodeReuse', null);
+  overrideSetting('nodeReuse', 'off');
   const off = harness();
   const c = compileGraph(GRAPH(0.25)), d = compileGraph(GRAPH(0.75));
   try {

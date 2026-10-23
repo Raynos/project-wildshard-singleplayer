@@ -128,7 +128,7 @@ export const OPTION_VALUES = {
   graphUniforms: ['plain', 'blocks'],                  // node materials' uniforms: plain program uniforms, or the std140 blocks (render/nodes/nodePlainUniforms.ts) — a reload
   bootShaders: ['drawn', 'all'],                       // the boot's Shaders step: only what the first frame draws (the rest compiles in play, sliced), or all of them — a reload
   homeEntry: ['region', 'road'],                       // the grid boot: the home region before play, or play from the road deck outside it (the home admitted in play like any cell) — a reload
-  nodeReuse: ['off', 'on', 'verify'],                 // P0: a node material whose program another material's build already made reuses that build's code (render/nodes/engineNodesHandler.ts); verify also builds it and counts differences — a reload
+  nodeReuse: ['on', 'off', 'verify'],                 // P0: a node material whose program another material's build already made reuses that build's code (render/nodes/engineNodesHandler.ts); verify also builds it and counts differences — a reload; on by default (Chromium phone 4x: node builds −19 %, no look change)
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
