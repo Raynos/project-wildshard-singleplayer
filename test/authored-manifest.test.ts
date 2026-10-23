@@ -28,10 +28,10 @@ import * as v from 'valibot';
 const root = resolve(import.meta.dirname, '..');
 const metadata = (slug: string): unknown => JSON.parse(readFileSync(resolve(root, `src/shards/${slug}/manifest.json`), 'utf8'));
 describe('authored JSON discovery', () => {
-  test('embeds checked spawn plans without importing their generator at runtime', () => {
+  test('reads checked spawn data without importing its generator at runtime', () => {
     const source = authoredManifestSource(root, 'driftwood-isle');
     expect(driftwood.spawns).toEqual(DRIFTWOOD_FAUNA_PLANS);
-    expect(source).toContain(`spawns: ${JSON.stringify(DRIFTWOOD_FAUNA_PLANS)}`);
+    expect(parseManifestMetadata(metadata('driftwood-isle')).spawns).toEqual(DRIFTWOOD_FAUNA_PLANS);
     expect(source).not.toMatch(/from ["']\.\/(?:generators|data)\/fauna["']/u);
   });
   test('refuses malformed spawn plans and imports outside the generator directory', () => {

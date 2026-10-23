@@ -323,10 +323,6 @@
       "module": "./data/runtimeCost.json",
       "export": "default"
     },
-    "spawns": {
-      "module": "./generators/fauna",
-      "export": "DRIFTWOOD_FAUNA_PLANS"
-    },
     "ground": {
       "platform": "declared",
       "rows": {
@@ -392,6 +388,108 @@
       "z": 0,
       "yaw": -1.5707963267948966,
       "pitch": 0
+    }
+  ],
+  "spawns": [
+    {
+      "kind": "boar",
+      "count": 4,
+      "variants": [
+        "boar",
+        "sow",
+        "black",
+        "big"
+      ],
+      "anchor": {
+        "x": 66,
+        "z": -132,
+        "rMin": 5,
+        "rMax": 20
+      },
+      "canopy": false,
+      "trailBand": [
+        8,
+        600
+      ]
+    },
+    {
+      "kind": "boar",
+      "count": 3,
+      "variants": [
+        "boar",
+        "sow",
+        "black",
+        "big"
+      ],
+      "anchor": {
+        "x": -140,
+        "z": -30,
+        "rMin": 5,
+        "rMax": 30
+      },
+      "canopy": false,
+      "trailBand": [
+        8,
+        600
+      ]
+    },
+    {
+      "kind": "boar",
+      "count": 4,
+      "variants": [
+        "boar",
+        "sow",
+        "black",
+        "big"
+      ],
+      "anchor": {
+        "x": 30,
+        "z": 150,
+        "rMin": 5,
+        "rMax": 30
+      },
+      "canopy": false,
+      "trailBand": [
+        8,
+        600
+      ]
+    },
+    {
+      "kind": "bear",
+      "count": 1,
+      "variants": [
+        "brown"
+      ],
+      "anchor": {
+        "x": 56,
+        "z": -84,
+        "rMin": 4,
+        "rMax": 16
+      },
+      "canopy": false,
+      "trailBand": [
+        8,
+        600
+      ]
+    },
+    {
+      "kind": "bear",
+      "count": 1,
+      "variants": [
+        "black",
+        "black-blaze"
+      ],
+      "anchor": {
+        "x": -122,
+        "z": -100,
+        "rMin": 4,
+        "rMax": 14
+      },
+      "canopy": false,
+      "trailBand": [
+        8,
+        600
+      ]
     }
   ]
 }
