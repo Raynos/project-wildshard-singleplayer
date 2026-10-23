@@ -47,7 +47,11 @@ function outsideFirstCuts(positions: Float64Array, a: number, b: number, c: numb
  * This is offline render geometry clipping; the independent WMC1 baker remains the collision authority. */
 export function worldGeometry(source: WorldPrimitive, bounds?: readonly [number, number, number, number], transform?: readonly number[]): BufferGeometry {
   const rows = channels(source), output = rows.map(() => [] as number[]), matrix = transform === undefined ? null : new Matrix4().fromArray(transform);
-  const vertex = (index: number): Vertex => rows.flatMap(row => Array.from(row.data.subarray(index * row.width, (index + 1) * row.width)));
+  const vertex = (index: number): Vertex => {
+    const values: Vertex = [];
+    for (const row of rows) for (const value of row.data.subarray(index * row.width, (index + 1) * row.width)) values.push(value);
+    return values;
+  };
   for (let i = 0; i < source.indices.length; i += 3) {
     const ai = source.indices[i] ?? 0, bi = source.indices[i + 1] ?? 0, ci = source.indices[i + 2] ?? 0;
     if (bounds !== undefined && outsideFirstCuts(source.positions, ai, bi, ci, bounds)) continue;
