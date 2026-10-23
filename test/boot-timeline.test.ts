@@ -91,3 +91,17 @@ it('numbers actual starts and gives re-entered admission its own labelled row', 
   resumed.end(); clock = 50; home.end();
   expect(timeline.snapshot().rows.reduce((sum, row) => sum + row.ms, 0)).toBe(50);
 });
+
+it('declares the grid home cell\'s second passes up front, so the step total never grows mid-load', () => {
+  let clock = 0;
+  const path = loadingPath('grid'), timeline = new LoadingTimeline(path, 0, () => clock), total = timeline.snapshot().rows.length;
+  expect(path.steps.filter(row => row.key.endsWith('#2')).map(row => row.label)).toEqual(['Product admission · pass 2', 'Region world · pass 2', 'Equipment and HUD · pass 2']);
+  for (const name of ['admission', 'level.world', 'level.kit', 'home', 'product', 'render', 'roster']) { const stage = timeline.begin(name); clock += 10; stage.end(); }
+  const rows = timeline.snapshot().rows;
+  expect(rows).toHaveLength(total);
+  expect(rows.filter(row => row.key.endsWith('#2')).map(row => [row.key, row.state, row.ms])).toEqual([['admission#2', 'ok', 10], ['world#2', 'ok', 10], ['loadout#2', 'ok', 10]]);
+  // a stage the path never declared still gets its own row
+  const third = timeline.begin('admission'); clock += 10; third.end();
+  expect(timeline.snapshot().rows).toHaveLength(total + 1);
+  expect(timeline.snapshot().rows.find(row => row.key === 'admission#3')).toMatchObject({ label: 'Product admission · pass 3', state: 'ok' });
+});

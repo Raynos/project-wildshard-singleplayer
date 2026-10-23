@@ -7,6 +7,11 @@ export interface LoadingRow {
 }
 export interface LoadingGap { label: string; state: 'on' | 'ok'; ms: number; after: string | null }
 interface Stage { key: string; base: string; detail: string; fraction?: number }
+/** A stage's later pass as a row: a path that knows the stage runs again declares it up front, so the step total never
+ * grows mid-load (an undeclared repeat still gets this same row when it begins). */
+export function repeatedStep(step: Pick<LoadingStep, 'key' | 'label'>, pass: number): LoadingStep {
+  return { key: `${step.key}#${pass}`, label: engineString('s_loading_step_repeat', [step.label, pass]), weight: 1 };
+}
 /** Nested/parallel waits never double-count elapsed seconds: the most recently entered stage owns each interval. */
 export class LoadingTimeline {
   private path: LoadingPath;
@@ -81,12 +86,11 @@ export class LoadingTimeline {
     const count = this.occurrences.get(base) ?? 0;
     const already = [...this.active.values()].find(stage => stage.base === base);
     const repeated = count > 0 && already === undefined;
-    const key = already?.key ?? (repeated ? `${base}#${count + 1}` : base);
+    const again = repeated ? repeatedStep({ key: base, label: this.label(base) }, count + 1) : null, key = already?.key ?? again?.key ?? base;
     if (repeated || count === 0) this.occurrences.set(base, count + 1);
     if (!this.rows.has(key)) {
       this.rows.set(key, { ms: 0, started: false, detail: '' });
-      this.path = { ...this.path, steps: [...this.path.steps, { key,
-        label: repeated ? engineString('s_loading_step_repeat', [this.label(base), count + 1]) : name, weight: 1 }] };
+      this.path = { ...this.path, steps: [...this.path.steps, again ?? { key, label: name, weight: 1 }] };
     }
     const previous = this.gaps.at(-1); if (previous?.state === 'on') previous.state = 'ok';
     const row = this.rows.get(key); if (row !== undefined) row.started = true;
