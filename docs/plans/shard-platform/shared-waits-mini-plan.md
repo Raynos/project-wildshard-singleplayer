@@ -69,12 +69,17 @@ design (it records 24 h, then never again), so build-lease numbers above are a l
 After SW1, re-read the build leases: if more than five 5-minute timeouts a day remain, the fix is TOOLING-PERF M1
 (previews from the live tree), which needs Jake to un-park it.
 
-## For Jake
+## Decisions (G670, Jake 2026-10-23 ~10:20)
 
-- **D1 Quiet windows only for official Simulator readings, from now.** Recommended: yes. Chromium captures are
-  diagnostic under G415, and 2.8 h of quiet a day stops nine lanes and the push loop.
-- **D2 Un-park TOOLING-PERF H1 (pre-commit materialises only staged files) as a SHARD-PLATFORM extra.** Recommended:
-  yes. One S row; it is the biggest file-churn source on the Mac and saves 2–4 s on every commit.
+- **D1** quiet windows only for official Simulator readings (SW2).
+- **D2** TOOLING-PERF H1 un-parked as a SHARD-PLATFORM extra (SW4); the rest of TOOLING-PERF stays parked.
+- **D3** lanes follow rules by guardrails, not reminders (SW7).
+- **D4** what enforces G620's 30-minute revert (sp-x7 at 30 min vs locking main to fixes while red): skipped, `needs pick`.
+  SW3 stays as written meanwhile.
+
+| Row | What | Owner | Size | Done when |
+|---|---|---|---|---|
+| **SW7** | **Guardrails (D3).** (1) SW1's refusal plus: quiet is taken only by the official Simulator reading script, and neither quiet nor the mirror accepts a caller under `tmp/`. (2) Delete the doc lines that teach a banned move (AGENTS.md:122, GIT.md:175/:189, MACHINE.md:131) in the same commits. (3) `lanes/common.md` gains a 5-rule card of the rules broken in the latest reading; the coordinator pastes it into every new task brief at the boundary. (4) The twice-daily reading counts broken rules by lane; a repeat offender gets the card again at its next boundary. | Codex (1, 2) + coordinator (3) + plan agent (4) | S | two readings in a row with no mirror probe, no non-Simulator quiet, and the card in every brief |
 
 ## Twice-daily review (~10:45 and ~16:45 Cancun, 15 minutes, one subagent)
 
