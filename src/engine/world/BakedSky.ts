@@ -142,7 +142,7 @@ export async function loadBakedSky(urls: { color: string; gain: string }): Promi
   const { width, height, data } = offthread
     ? await decodeInWorker(color, gain).catch((e: unknown) => { console.warn(`[sky] ${String(e)}; decoding on the main thread`); return decodeHere(color, gain); })
     : await decodeHere(color, gain);
-  // op-hitch47: in play (buildPacing), each decoded key resolves on a drawn frame of its own, so the caller's upload of it
+  // op-hitch47: in play, each decoded key resolves on a drawn frame of its own, so the caller's upload of it
   // starts a frame: two keys decoded together were uploaded back to back, 35 ms of the frame a grid cell's sky attached in
   if (presenting()) await drawnFrameTurn();
   const tex = new THREE.DataTexture(data, width, height, THREE.RGBAFormat, THREE.HalfFloatType);

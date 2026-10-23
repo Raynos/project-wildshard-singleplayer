@@ -39,10 +39,9 @@ import { WorldRenderPass } from './worldDepth';
 import { makeSystem, setLoopState, systemFault, type GameSystem } from './faults';
 import { frameCost } from './frameCost';
 import { diagnosticNow } from './clock';
-import { buildHeld, noteFrameDrawn, setFramePacing } from './framePacing';
+import { buildHeld, noteFrameDrawn } from './framePacing';
 import { buildYield } from './workSlice';
 import { boundEntryWarmup } from '../render/entryWarmupBound';
-import { onSettingChange, setting } from '../ui/Settings';
 import { dropOutputDepth, halfLuminance, installMemorySaver, memorySaverOn, shadowLights } from '../render/memorySaver';
 import { dropShadowColour } from '../world/shadowVariants';
 import { recordGpuCheckpoint, traceBootPasses } from '../boot/gpuTrace';
@@ -736,7 +735,7 @@ export class Game {
     const { waitForDrawnFrame, LIVE_UPLOAD_BUDGET } = await import('../render/precompile');
     const current = (): boolean => !this.levelScope.disposed && this._composer === composer;
     await layer.prepare(this.renderer, this.camera, composer.inputBuffer, () => waitForDrawnFrame(this.engineScope, () => this.frameCount, current),
-      setting('buildPacing') !== 'off' ? LIVE_UPLOAD_BUDGET : undefined);
+      LIVE_UPLOAD_BUDGET);
   }
 
   /** Hide newly constructed models from this owner's asynchronous preparation until entry, on every browser.
@@ -762,7 +761,7 @@ export class Game {
       // before play (no frame drawn yet) the boot's Shaders step builds what the first frame draws and the rest is warmed
       // in play: a region's own warm-up here keeps only its resources then
       await prepareSceneRoots(this.renderer, this.camera, this.rootScene, composer.inputBuffer, roots, live, pause,
-        setting('buildPacing') !== 'off' ? LIVE_UPLOAD_BUDGET : undefined, this.frameCount > 0);
+        LIVE_UPLOAD_BUDGET, this.frameCount > 0);
     });
   }
 
@@ -847,8 +846,6 @@ export class Game {
 
   private async warmEnteredStages(owner: Scope, composer: EffectComposer, trace: EntryPreparation,
     current: () => boolean, futureRoot: THREE.Object3D | undefined, enter: (phase: string) => void): Promise<void> {
-    const linkDraws = setting('buildPacing') === 'links';
-    if (linkDraws) cullPlaced(this.camera);
     const futureScene = this.scene, futureLighting = futureRoot ?? futureScene;
     const futureEnvironment = futureScene.environment;
     const progress = (done: number, total: number, detail: string): void => { trace.progress = { done, total, detail }; };
@@ -857,21 +854,18 @@ export class Game {
       if (phase === 'compile') enter('shader-links');
       else if (phase === 'link') enter('texture-uploads');
     };
-    const isolateImageUploads = setting('buildPacing') === 'links'
-      || navigator.userAgent.includes('AppleWebKit') && !/Chrome|Chromium|Edg/.test(navigator.userAgent);
-    const { precompileLevel, warmComposerFrame, waitForDrawnFrame, entryFrameExclusions, LIVE_UPLOAD_BUDGET, SLICED_UPLOAD_BUDGET, LIVE_PRECOMPILE_SLICE_MS,
+    const isolateImageUploads = navigator.userAgent.includes('AppleWebKit') && !/Chrome|Chromium|Edg/.test(navigator.userAgent);
+    const { precompileLevel, warmComposerFrame, waitForDrawnFrame, entryFrameExclusions, LIVE_UPLOAD_BUDGET, LIVE_PRECOMPILE_SLICE_MS,
       parkedMatricesFrozen, freezeParkedMatrices } = await import('../render/precompile');
     // G580 T2 (Developer): the parked destination's static matrices are not recomputed every frame while it waits hidden
     const thaw = futureRoot !== undefined && futureRoot !== this.rootScene && !futureRoot.visible && parkedMatricesFrozen() ? freezeParkedMatrices(futureRoot, { shown: 'skip' }) : undefined;
     try {
-    const pause = (isolateImageUploads || setting('buildPacing') === 'entry') && this.frameCount > 0
+    const pause = isolateImageUploads && this.frameCount > 0
       ? () => waitForDrawnFrame(owner, () => this.frameCount, current) : undefined;
     // Live image batches share the measured byte/time bound. Compressed uploads retain their independent painted fences.
-    const uploadBudget = linkDraws ? { ms: 4, bytes: 1024 * 1024 }
-      : isolateImageUploads && setting('buildPacing') !== 'off' ? LIVE_UPLOAD_BUDGET
-      : setting('buildPacing') === 'uploads' ? SLICED_UPLOAD_BUDGET : undefined;
+    const uploadBudget = isolateImageUploads ? LIVE_UPLOAD_BUDGET : undefined;
     // Both browser families use the existing live slice; boot retains its larger bound.
-    const sliceMs = this.frameCount > 0 && setting('buildPacing') !== 'off' ? LIVE_PRECOMPILE_SLICE_MS : undefined;
+    const sliceMs = this.frameCount > 0 ? LIVE_PRECOMPILE_SLICE_MS : undefined;
     const shaderStart = diagnosticNow();
     // OP2: the node (TSL) builds this warm-up ran: on Safari each is one long frame of the entry
     const nodeStats = (): { builds: number; buildMs: number } | null => {
@@ -892,7 +886,7 @@ export class Game {
     if (nodesAfter !== null) onStage('node-builds', nodesAfter.buildMs - (nodesBefore?.buildMs ?? 0), nodesAfter.builds - (nodesBefore?.builds ?? 0));
     const { warmParkedDraws, warmOffscreenPasses, HELD_PARKED_BUDGET } = await import('../render/parkedDraws');
     // G580 T5 (Developer): a held traveller's parked draws take bigger slices; each slice costs a drawn frame
-    const drawBudget = linkDraws ? { budget: { drawables: 1, newMaterials: 1, bufferBytes: 1024 * 1024 } } : buildHeld() ? { budget: HELD_PARKED_BUDGET } : {};
+    const drawBudget = buildHeld() ? { budget: HELD_PARKED_BUDGET } : {};
     const drawnPause = this.frameCount > 0 ? () => waitForDrawnFrame(owner, () => this.frameCount, current) : (): Promise<void> => new Promise(resolve => { this.engineScope.raf(() => { this.engineScope.timeout(0, resolve); }); });
     // Camera models live outside the parked world. Compilation linked them, but
     // their staged group and equipment roots still hide their first buffer draws.
@@ -911,9 +905,9 @@ export class Game {
       const start = diagnosticNow();
       // Tiny already-linked draws can share the bounded construction slice. Each draw restores every flag
       // before yielding; the final painted barrier still precedes readiness. Desktop retains its prior cadence.
-      const paced = isolateImageUploads && this.frameCount > 0 && setting('buildPacing') !== 'off';
+      const paced = isolateImageUploads && this.frameCount > 0;
       const drawn = await warmParkedDraws(this.renderer, this.rootScene, this.camera, composer.inputBuffer, futureRoot, current,
-        paced && !linkDraws ? () => buildYield(owner) : drawnPause, { ...drawBudget, onProgress: (done, total) => { progress(done, total, `${done} / ${total} scene draws warmed`); }, environment: futureEnvironment });
+        paced ? () => buildYield(owner) : drawnPause, { ...drawBudget, onProgress: (done, total) => { progress(done, total, `${done} / ${total} scene draws warmed`); }, environment: futureEnvironment });
       if (paced) await drawnPause();
       onStage('parked-draws', diagnosticNow() - start, drawn);
     }
@@ -1105,11 +1099,6 @@ export class Game {
     };
     this.kickLoop = () => { if (!this.dead && performance.now() - lastRun > 1000) this.engineScope.raf(loop); };
     this.primeFrame = () => { if (!this.dead) forceFrame = true; };
-    // op-hitch26: sliced builds in play pace themselves to these frames only with the default-off Developer tool on
-    setFramePacing(setting('buildPacing') !== 'off');
-    this.engineScope.onDispose(onSettingChange('buildPacing', (v) => {
-      setFramePacing(v !== 'off');
-    }));
     setLoopState('running');
     loop();
   }

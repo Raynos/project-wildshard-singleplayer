@@ -6,13 +6,13 @@ import { defineModel, modelContext } from '../src/engine/models/model';
 import { LIVE_SPLIT_EVERY, LIVE_SPLIT_OVER, place } from '../src/engine/models/place';
 import { pageScope } from '../src/engine/app/resources';
 import { WorldRegistry } from '../src/engine/world/registry';
-import { noteFrameDrawn, setFramePacing } from '../src/engine/core/framePacing';
+import { noteFrameDrawn } from '../src/engine/core/framePacing';
 import { chunkShadowCastersSliced } from '../src/engine/world/shadowChunks';
 import { cellClip } from '../src/game/grid/cellClip';
 import { Scope } from '../src/engine/app/scope';
 
 beforeEach(() => { vi.spyOn(performance, 'now').mockReturnValue(1000); });
-afterEach(() => { setFramePacing(false); vi.restoreAllMocks(); });
+afterEach(() => { noteFrameDrawn(Number.NEGATIVE_INFINITY); vi.restoreAllMocks(); });
 
 function fixture(): { registry: WorldRegistry; run: () => Promise<{ pieces: number; colliders: number[]; yields: number }> } {
   const material = new MeshStandardMaterial(), registry = new WorldRegistry(), ctx = modelContext(null);
@@ -42,7 +42,7 @@ test('a split piece keeps its caller\'s every on the loading screen', async () =
 
 test('in play a split piece registers the same colliders a dozen at a time', async () => {
   const loading = await fixture().run();
-  setFramePacing(true); noteFrameDrawn(performance.now());
+   noteFrameDrawn(performance.now());
   const { run } = fixture();
   const live = await run();
   expect(live.pieces).toBe(Math.ceil(40 / LIVE_SPLIT_EVERY));
@@ -56,7 +56,7 @@ test('in play a large unsplit piece splits on the engine\'s yield, the same coll
     colliders: () => [{ kind: 'box', x: 0, y: 0.5, z: 0, hx: 0.5, hy: 0.5, hz: 0.5, yaw: 0 }] });
   const placements = Array.from({ length: 40 }, (_, i) => ({ x: i * 3, y: 0, z: 0, matrix: new Matrix4().makeTranslation(i * 3, 0, 0) }));
   const count = async (scoped: boolean, playing: boolean): Promise<{ pieces: number; colliders: number }> => {
-    setFramePacing(playing); if (playing) noteFrameDrawn(performance.now());
+    noteFrameDrawn(playing ? performance.now() : Number.NEGATIVE_INFINITY); if (playing) noteFrameDrawn(performance.now());
     const registry = new WorldRegistry();
     if (scoped) registry.scope = pageScope;
     const placed = place(model, placements, { ctx, draw: 'instanced', registry, piece: { id: 'auto' } });

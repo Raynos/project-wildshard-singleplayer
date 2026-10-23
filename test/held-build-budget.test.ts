@@ -1,11 +1,11 @@
 import { afterEach, expect, test } from 'vitest';
-import { frameBudgetSpent, heldBudget, HELD_BUILD_MS, noteFrameDrawn, setBuildHeld, setFramePacing } from '../src/engine/core/framePacing';
+import { frameBudgetSpent, heldBudget, HELD_BUILD_MS, noteFrameDrawn, setBuildHeld } from '../src/engine/core/framePacing';
 
-afterEach(() => { setBuildHeld(false); setFramePacing(false); });
+afterEach(() => { setBuildHeld(false); noteFrameDrawn(Number.NEGATIVE_INFINITY); });
 
 // G580 T5: while the traveller is held at a cell's wall, a build stretch runs HELD_BUILD_MS past the last drawn frame.
 test('a held build keeps its stretch past the shared frame budget, up to the held budget', () => {
-  setFramePacing(true);
+  
   noteFrameDrawn(performance.now() - 12); // drawn 12 ms ago: past the ordinary ~4-8 ms shared budget
   expect(frameBudgetSpent(8)).toBe(true);
   setBuildHeld(true);

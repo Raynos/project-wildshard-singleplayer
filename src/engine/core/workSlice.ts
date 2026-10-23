@@ -51,7 +51,7 @@ function buildTurn(owner: Scope): Promise<void> {
 
 /**
  * A world build's pause between its pieces (op-hitch45, E435 frame floor): a fresh task of `owner`, or, in play with a
- * frame due (`framePacing.ts`, the `buildPacing` Developer tool), a wait until the engine loop has drawn it. A plain timer
+ * frame due (`framePacing.ts`), a wait until the engine loop has drawn it. A plain timer
  * hop is not enough there: WebKit drew no frame across Nine Dragon's ~15 back-to-back `timeout(0)` build tasks (a 233 ms
  * frame on the iOS Simulator). Pacing off, it is exactly the timer task. Rejects when `owner` has closed (before or after
  * the pause): an unloaded cell stops building. Live cheap pieces use message tasks within the existing shared budget;

@@ -5,7 +5,6 @@ import { MoverRuntime, type MoverInstallation } from '../plugin/mover';
 import { ownerTask, withOwner } from '@wildshard/engine/app/ownership';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
-import { setting } from '@wildshard/engine/ui/Settings';
 import { createLevelInstallation, type LevelInstallation } from '@wildshard/engine/level/installation';
 import { shardContext, type ShardContext, gridCells, gridHomeSim, pageGridInstance, type GridCellEvents, type GridCellRef, ShardPlugin, prepareTrustedRuntime, type TrustedRuntimeEntry } from '../plugin/context';
 
@@ -492,17 +491,16 @@ export class HybridRuntimeSession {
       } else this.active = active;
       scope.onDispose(() => { if (this.active === active) this.active = undefined; if (this.retained.get(cell.instance) === active) this.retained.delete(cell.instance); });
       const slots = resident.retainRuntime === true ? createScopedRuntimeBinding(resident.runtime, scope) : undefined;
-      const parkedEntry = !preparing && slots !== undefined && setting('buildPacing') === 'links';
-      if (!preparing && !parkedEntry) slots?.activate();
+      if (!preparing) slots?.activate();
       const runtime = slots?.runtime ?? bindScopedRuntime(resident.runtime, scope), installation = resident.context(scope, runtime);
       bindResidentWorldScope(scope, resident.scope);
-      const hooks = slots === undefined ? undefined : new RetainedRuntimeHooks(installation.context, { deferActivation: preparing || parkedEntry });
+      const hooks = slots === undefined ? undefined : new RetainedRuntimeHooks(installation.context, { deferActivation: preparing });
       if (slots !== undefined && hooks !== undefined) active.retained = { slots, hooks };
       // R12: while entered, the cell's own sky clock is the day cycle (its region's layered sky, or a painted sky's runtime)
       if (hooks !== undefined) { const owned = hooks.context; installEnteredRuntimeService(owned, (entered) => { enterSkyClock(owned.app, [owned.scope, resident.scope], entered); }); }
       const context = hooks?.context ?? installation.context;
       const live = (): boolean => !scope.disposed && (preparing ? this.active?.resident !== resident : this.active === active && generation === this.generation);
-      if (preparing || parkedEntry) {
+      if (preparing) {
         if (installation.prepareConstruction === undefined) throw new Error('Road preparation requires isolated construction bindings');
         construction = installation.prepareConstruction(context);
       }
@@ -524,13 +522,6 @@ export class HybridRuntimeSession {
         await enterDeclaredAudioPhase(context, 'play'); await runtimeClientPhase(context, 'prepare-play', resident.scope); await plugin.play?.(context); await runtimeClientPhase(context, 'play', resident.scope);
       })); if (!live()) return false;
       await this.stage(scope, cell.instance, 'afterPlay', () => ownerTask(scope, () => installation.afterPlay?.(context))); if (!live()) return false;
-      // Keep a cold entered world parked through its actual shader/texture warm.
-      // Publishing its services earlier lets partial world builds draw and link.
-      if (parkedEntry) {
-        construction?.(); construction = undefined;
-        slots.activate();
-        try { hooks?.activate(); } catch (error) { slots.deactivate(); throw error; }
-      }
       active.ready = true;
       if (active.retained !== undefined) this.retained.set(cell.instance, active);
       return true;

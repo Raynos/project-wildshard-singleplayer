@@ -798,12 +798,12 @@ the download numerator still reports all actual bytes. `slicer(budgetMs, progres
 returns a yield callback accepting `(done?, total?, detail?)`, so builders report
 completed authored work units before the budget check without changing yield timing.
 
-In play (a grid cell built on the road while the engine loop draws frames) the same builders can pace themselves to the
-frame floor (op-hitch26), with `buildPacing` defaulting on after its quiet frame-floor proof. The existing Developer tool (Settings ▸ Developer ▸ Performance) can switch it off:
-`@wildshard/engine/core/framePacing` learns each drawn frame from `Game`'s loop, `presenting()` is true while it keeps
-drawing (and the tool is on), and `slicer()` then caps its stretches at `WORK_SLICE_MS`. `macrotask()`, `slicer()` and a
+In play (a grid cell built on the road while the engine loop draws frames), builders always pace themselves to the
+frame floor. `@wildshard/engine/core/framePacing` learns each drawn frame from `Game`'s loop; `presenting()` is true
+while it keeps drawing, and `slicer()` caps its stretches at `WORK_SLICE_MS`. `macrotask()`, `slicer()` and a
 `workSlice()` yield all go through `paceYield`: when a frame is due they wait until the loop has drawn it (rAF, then a
-scoped MessageChannel task after paint, without a nested timer clamp). With the tool off, or off the road (the loading screen, Node bakers and tests), nothing changes.
+scoped MessageChannel task after paint, without a nested timer clamp). Loading screens, Node bakers and other callers
+without recent drawn frames retain their ordinary task yields.
 
 Build pacing uses the actual drawn frame's rAF timestamp and active fps cap to set the next deadline.
 `noteFrameDrawn(done, rafAt, cap, cadenceAt)` optionally receives the capped loop's recovery anchor.
@@ -1044,11 +1044,6 @@ Streamed-root preparation now shares the entered-frame presented-time bound: a s
 with a named issue instead of leaving a far/near fetch pending forever. The draw barrier itself also carries this bound,
 including sky/post callers outside an entered-frame warm-up. Disposing its owner rejects immediately.
 
-The experimental `entry` choice in the existing Build pacing developer row slices scene-inventory traversal by the
-shared frame budget. Compile-only ordinary instanced stand-ins borrow population buffers rather than copying them; no live
-geometry, transforms or visibility change. Desktop preparation preserves already-drawn material selections across
-yields and waits for a completed game draw between compile batches. The default remains the measured `on` choice.
-
 `Game.warmEnteredFrame(owner, futureRoot?, before?)` captures the installing content scene before yielding. Regional callers
 pass their whole view root so authored sibling lights outside the native scene are included. Only that root's parked
 visibility is ignored; hidden descendants remain hidden. The bound native scene supplies the PMREM independently.
@@ -1089,44 +1084,7 @@ Live WebKit shader preparation separates drawable compile jobs and settles one p
 Incomplete links yield before retrying completion; ready links resolve in the same slice, then yield.
 Ready programs are not polled again; weak resolved identities avoid repeating work for borrowed variants.
 KHR completion is checked before uniforms are resolved, and shader-error diagnostics remain enabled.
-The default-off `links` choice in Build pacing pairs only the drawn program;
-future layouts are paired in their own preparation slice. In that choice,
-`collectTextures(jobs, renderer)` also borrows the node backend's compiled
-samplers through `EngineNodesHandler.materialTextures(material)`. These are
-current uniform values, including pending layouts and retargeted textures;
-the inventory neither links programs nor uploads resources. The existing
-image budget uploads those samplers before their first visible draw.
-Live `prepareSceneRoots` also runs the existing tiny parked draws, one
-drawable per painted slice, before the caller publishes a streamed root.
-A detached root stays hidden between slices and leaves the page scene
-with its original visibility restored. Authored hidden children stay hidden.
-The same choice keeps cold retained runtime entries in their existing
-construction binding until `afterPlay` preparation finishes, then publishes
-entered services and runtime slots. Cancellation never publishes them.
-The construction binding spans the resident and its runtime children:
-resident-owned static services keep building into the hidden destination,
-while page-owned road callbacks temporarily restore the page frame.
-Camera model stages keep the runtime-child lifetime and include the active
-resident construction, so a yielded kit cannot mount directly on camera.
-It also uses the live one-program/image cadence on desktop. A pending
-first-use link check crosses a painted fence after issue; compile and
-native uniform discovery cannot share that experimental slice. Shader
-error diagnostics stay enabled. Compile-only light traversal borrows the real identities without reparenting them;
-shadow flags and child arrays restore synchronously, and an initially
-missing map remains source-owned and requests its first real redraw.
-Paced herd pages in this choice cap destination geometry at 1 MiB (one
-oversized rig still gets one slot), counting converted attributes and
-Uint32 indices. Shadow pages count only their retained attributes. Bone
-textures remain separate; one new page per frame and deferred rigs retain
-their existing behavior. Default pacing keeps its original 16-slot pages.
-Once a batch opens paced pages, a late frame cannot grow them through the
-loading-screen path; unpaced construction still starts at eight slots.
-Before entry preparation, the experimental path fills the destination forest's
-render-only view and ordinary placement cullers after its listeners are registered.
-It preserves the road's shared viewer/gust uniforms and advances no gameplay clock.
-Whole-world and camera pre-draws use one drawable, one new material and 1 MiB of
-new buffers per painted frame; images use 1 MiB / 4 ms batches. A single larger
-image or drawable remains indivisible.
+Paced herd pages retain their original 16-slot capacity; loading-screen construction starts at eight slots.
 The same linked-program slice calls `EngineNodesHandler.prepareProgram` for its node materials.
 `NodeUniformBuffers.prepare` resolves their block indices without allocating buffers, uploading values,
 selecting a material variant or changing bindings; the first draw retains ordinary pairing and uploads.
@@ -1154,7 +1112,7 @@ An optional `UploadBudget` (`{ ms, bytes }`, `precompileLevel`'s `uploadBudget`,
 under `ms`, the next one's cost predicted before it starts from its decoded size (`imageUploadBytes`) and the
 byte-weighted rate measured so far, so a large image still uploads alone and one native upload can overshoot by itself
 only. Without isolation (desktop) the same budget replaces the 12 ms check made after each upload, so a slice never
-starts an upload it cannot fit. Compressed textures keep their fenced path. `Game` passes `LIVE_UPLOAD_BUDGET` (8 ms, 8 MiB) during paced live WebKit preparation. Explicit `off` retains isolated uploads; desktop retains its ordinary path unless `uploads` selects `SLICED_UPLOAD_BUDGET` (10 ms, 64 MiB).
+starts an upload it cannot fit. Compressed textures keep their fenced path. `Game` passes `LIVE_UPLOAD_BUDGET` (8 ms, 8 MiB) during paced live WebKit preparation. Desktop retains its ordinary upload path.
 
 Live WebKit parked draws can share the same bounded construction slice through `buildYield`. Each existing drawable/material-count slice restores every flag before its task yield. A final `waitForDrawnFrame` remains before offscreen warm-up and readiness; compressed-upload fences and desktop parked-draw cadence are unchanged.
 

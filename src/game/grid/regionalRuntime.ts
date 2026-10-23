@@ -39,9 +39,6 @@ import { SkinLocker } from '../cosmetics/locker';
 import { coverRuntimeAssets } from './assetResidency';
 import { FrameCamera } from '@wildshard/engine/world/frameCamera';
 import { pacedResolve } from '@wildshard/engine/core/workSlice';
-import { setting } from '@wildshard/engine/ui/Settings';
-import { forestFade } from '@wildshard/engine/world/TreeFactory';
-import { windUniforms } from '@wildshard/engine/world/wind';
 
 function isSceneNode(value: unknown): value is Object3D { return value instanceof Object3D; }
 
@@ -264,7 +261,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
               // The resident can outlive a failed runtime child. Never restore that child's frame during its teardown.
               // Static world services belong to the resident, not its shorter-lived runtime child. Keep both in
               // the destination frame; page-owned callbacks still suspend it. The child below owns cancellation.
-              const leave = bindConstructionEnvironment(setting('buildPacing') === 'links' ? scope : owner, () => {
+              const leave = bindConstructionEnvironment(owner, () => {
                 const frameScope = owner.child('runtime.construction');
                 try {
                   prepareFrame(frameScope); app.bindPlayerServices(pageScope, frameScope); view.prepare(frameScope);
@@ -363,13 +360,6 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
               // a stall there or in the warm-up is this admission's reported issue, never a silent hang (OP).
               await request.page.world.game.warmEnteredFrame(owner, view.root, async () => {
                 await foundation.beforeWarm?.();
-                if (setting('buildPacing') !== 'links') return;
-                // The entered forest drives dependent instance cullers. Fill them before their first buffer draw,
-                // after every world listener exists, without ticking gameplay or changing the road's shared uniforms.
-                view.root.updateWorldMatrix(true, true); request.page.world.game.camera.updateMatrixWorld(true);
-                const viewer = forestFade.uViewer.value.clone(), gust = windUniforms.uGust.value;
-                try { foundationWorld.forest.update(0, view.root.worldToLocal(request.page.world.player.position.clone())); }
-                finally { forestFade.uViewer.value.copy(viewer); windUniforms.uGust.value = gust; }
               });
               restored = true;
             },

@@ -5,8 +5,6 @@ import { bindConstructionEnvironment, withOwner } from '../src/engine/app/owners
 import { ViewmodelRoot } from '../src/engine/render/viewmodel';
 import { warmParkedDraws, type ParkedDrawRenderer } from '../src/engine/render/parkedDraws';
 import { prepareSceneRoots } from '../src/engine/render/precompile';
-import { overrideSetting } from '../src/engine/ui/Settings';
-import { isDev, setDev } from '../src/engine/core/devMode';
 
 const isMesh = (object: Object3D): object is Mesh => object instanceof Mesh;
 
@@ -135,8 +133,7 @@ test('the warming view never clones camera equipment or prepares unused material
   } finally { clone.mockRestore(); f.dispose(); }
 });
 
-test.each(['on', 'links', 'cancel'] as const)('streamed roots prepare first draws without early exposure: %s', async mode => {
-  const developer = isDev(); setDev(true); overrideSetting('buildPacing', mode === 'on' ? 'on' : 'links');
+test('streamed roots compile without exposing or drawing them', async () => {
   const f = fixture(), root = new Group(), geometry = new BoxGeometry(), material = new MeshBasicMaterial(), alternate = material.clone();
   const first = new Mesh(geometry, material), second = new Mesh(geometry, alternate), hidden = new Mesh(geometry, material);
   hidden.visible = false; root.add(first, second, hidden);
@@ -144,17 +141,16 @@ test.each(['on', 'links', 'cancel'] as const)('streamed roots prepare first draw
   if (!(renderer instanceof WebGLRenderer)) throw new Error('Missing renderer');
   for (const [key, value] of Object.entries({ ...f.renderer, info: { programs: [] }, extensions: { has: () => false },
     properties: { get: () => ({}), has: () => false }, compile: () => undefined, initTexture: () => undefined })) Reflect.set(renderer, key, value);
-  let current = true;
+  const current = true;
   const prepare = () => prepareSceneRoots(renderer, f.camera, f.scene, f.target, [root], () => current, () => {
     // A root unpublished by detachment must remain invisible between warm slices.
     expect(root.visible).toBe(root.parent === null); expect(hidden.visible).toBe(false); f.restored();
-    if (mode === 'cancel' && f.draws.length === 2) current = false;
     return Promise.resolve();
   });
   try {
-    await (mode === 'cancel' ? expect(prepare()).rejects.toThrow('owner left') : prepare());
-    expect(f.draws).toEqual(mode === 'on' ? [] : [[first], [second]]);
+    await prepare();
+    expect(f.draws).toEqual([]);
     expect(root.parent).toBeNull(); expect(root.visible).toBe(true); expect(hidden.visible).toBe(false);
     expect([first.layers.mask, second.layers.mask]).toEqual([1, 1]); f.restored();
-  } finally { f.dispose(); geometry.dispose(); material.dispose(); alternate.dispose(); overrideSetting('buildPacing', null); setDev(developer); }
+  } finally { f.dispose(); geometry.dispose(); material.dispose(); alternate.dispose(); }
 });

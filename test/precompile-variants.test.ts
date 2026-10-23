@@ -3,8 +3,6 @@ import { Bone, BoxGeometry, InstancedMesh, Mesh, MeshBasicMaterial, MeshDepthMat
 import { runPrecompile, sceneJobs, shadowJobs } from '../src/engine/render/precompile';
 import type { ProgramLike } from '../src/engine/boot/perflog';
 import { loadGraphBackend } from '../src/engine/render/graphBackend';
-import { overrideSetting } from '../src/engine/ui/Settings';
-import { isDev, setDev } from '../src/engine/core/devMode';
 
 test('preparation retains both shadow-receiver variants of a shared material', () => {
   const scene = new Scene(), geometry = new BoxGeometry(), material = new MeshStandardMaterial();
@@ -48,30 +46,8 @@ test('preparation covers distinct skin array lengths without splitting instance 
   geometry.dispose(); material.dispose();
 });
 
-test('paced entry borrows instance layout without copying population buffers', () => {
-  const developer = isDev(); setDev(true);
-  overrideSetting('buildPacing', 'entry');
-  const scene = new Scene(), geometry = new BoxGeometry(), material = new MeshStandardMaterial();
-  const original = new InstancedMesh(geometry, material, 10000);
-  original.setColorAt(0, material.color); scene.add(original);
-  const clone = vi.spyOn(original, 'clone');
-  try {
-    const { jobs } = sceneJobs(scene, null);
-    const copy = jobs[0]?.root.children[0];
-    if (!(copy instanceof InstancedMesh)) throw new Error('Missing instanced compile stand-in');
-    expect(clone).not.toHaveBeenCalled();
-    expect(copy.instanceMatrix).toBe(original.instanceMatrix);
-    expect(copy.instanceColor).toBe(original.instanceColor);
-    expect(copy.count).toBe(original.count);
-    expect(original.parent).toBe(scene);
-    expect(copy.parent).not.toBe(scene);
-    copy.dispose();
-  } finally { overrideSetting('buildPacing', null); setDev(developer); clone.mockRestore(); original.dispose(); geometry.dispose(); material.dispose(); }
-});
-
-test('paced entry retains a specialized instanced constructor', () => {
+test('preparation retains a specialized instanced constructor', () => {
   class PresentationInstances extends InstancedMesh { readonly presentation = true; }
-  const developer = isDev(); setDev(true); overrideSetting('buildPacing', 'entry');
   const scene = new Scene(), geometry = new BoxGeometry(), material = new MeshStandardMaterial();
   const original = new PresentationInstances(geometry, material, 2); scene.add(original);
   try {
@@ -80,7 +56,7 @@ test('paced entry retains a specialized instanced constructor', () => {
     expect(copy.presentation).toBe(true);
     expect(copy.instanceMatrix).not.toBe(original.instanceMatrix);
     copy.dispose();
-  } finally { overrideSetting('buildPacing', null); setDev(developer); original.dispose(); geometry.dispose(); material.dispose(); }
+  } finally { original.dispose(); geometry.dispose(); material.dispose(); }
 });
 
 test('shadow preparation compiles the depth variant a registered shadow draw substitutes (sp-o289)', () => {
@@ -156,9 +132,8 @@ test('every acquired node layout prepares blocks across paced frames', async () 
   prepareProgram.mockRestore(); geometry.dispose(); material.dispose(); shared.dispose();
 });
 
-test.each([['links', false, true], ['links', true, true], ['links', true, false], ['on', false, true]] as const)(
-  '%s isolates issue and first-use discovery (parallel %s, immediately ready %s)', async (pacing, parallel, immediate) => {
-    const developer = isDev(); setDev(true); overrideSetting('buildPacing', pacing);
+test.each([[false, true], [true, true], [true, false]] as const)(
+  'preparation preserves issue and discovery (parallel %s, immediately ready %s)', async (parallel, immediate) => {
     const renderer: unknown = Object.create(WebGLRenderer.prototype);
     if (!(renderer instanceof WebGLRenderer)) throw new Error('Missing renderer');
     const geometry = new BoxGeometry(), material = new MeshBasicMaterial(), scene = new Scene();
@@ -179,8 +154,7 @@ test.each([['links', false, true], ['links', true, true], ['links', true, false]
         () => { frame++; return Promise.resolve(); });
       expect(events.map(event => event.operation)).toEqual(['issue', 'resolve']);
       expect(events[0]?.frame).toBe(0);
-      if (pacing === 'links') expect(events[1]?.frame).toBeGreaterThan(0);
-      else expect(events[1]?.frame).toBe(0); // Existing pacing retains its same-frame behavior.
+      expect(events[1]?.frame).toBe(parallel && !immediate ? 1 : 0);
       expect(diagnostics.checkShaderErrors).toBe(true);
-    } finally { geometry.dispose(); material.dispose(); overrideSetting('buildPacing', null); setDev(developer); }
+    } finally { geometry.dispose(); material.dispose(); }
   });

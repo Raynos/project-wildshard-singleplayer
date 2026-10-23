@@ -5,8 +5,6 @@ import { App } from '../src/engine/app/app';
 import { Scope } from '../src/engine/app/scope';
 import { bindConstructionEnvironment, constructionOwner, ownedFacade, withOwner } from '../src/engine/app/ownership';
 import { createLevelInstallation } from '../src/engine/level/installation';
-import { setDev, isDev } from '../src/engine/core/devMode';
-import { overrideSetting } from '../src/engine/ui/Settings';
 import { parseShardSlug } from '../src/game/shard/slug';
 import { ShardPlugin, shardContext, type ShardContext } from '../src/game/plugin/context';
 import { installEnteredRuntimeService } from '../src/game/shard/retainedHooks';
@@ -44,9 +42,8 @@ test('resident services keep yielded construction hidden while page callbacks se
   }
 });
 
-test.each(['on', 'links'] as const)('cold entered services publish after preparation with %s pacing', async pacing => {
+test('entered services retain the ordinary activation order', async () => {
   for (const outcome of ['success', 'cancel', 'fail'] as const) {
-    const developer = isDev(); setDev(true); overrideSetting('buildPacing', pacing);
     const manifest = { ...TEMPLATE, slug: parseShardSlug('fixture-entry') };
     const scope = new Scope('entry-preparation'), app = new App(), events: string[] = [];
     const runtime: ShardRuntime = { world: null, step: null, play: null, interactables: [], overhead: [], objects: {}, hooks: {},
@@ -75,25 +72,19 @@ test.each(['on', 'links'] as const)('cold entered services publish after prepara
       // Observe a rejection immediately while the controlled warm is still pending.
       const settled = (async () => { try { return { value: await entering }; } catch (error) { return { error }; } })();
       await warming;
-      expect(visible).toBe(pacing === 'on'); expect(session.state().ready).toBe(false);
-      expect(runtime.objects['built']).toBe(pacing === 'on' ? true : undefined);
+      expect(visible).toBe(true); expect(session.state().ready).toBe(false);
+      expect(runtime.objects['built']).toBe(true);
       if (outcome === 'cancel') session.leave();
       release?.(); const result = await settled;
       if (outcome === 'fail') expect('error' in result && String(result.error)).toContain('Preparation failed');
       else expect(result).toEqual({ value: outcome === 'success' });
       expect(visible).toBe(outcome === 'success');
-      if (pacing === 'links') {
-        expect(events.indexOf('construct')).toBeLessThan(events.indexOf('world'));
-        expect(events.filter(event => event === 'restore')).toHaveLength(1);
-        if (outcome === 'success') expect(events.indexOf('restore')).toBeLessThan(events.indexOf('publish'));
-        else expect(events).not.toContain('publish');
-      }
       if (outcome === 'success') {
         expect(runtime.objects['built']).toBe(true); session.leave(); expect(visible).toBe(false);
         expect(await session.enter({ instance: 'fixture', slug: manifest.slug })).toBe(true); expect(visible).toBe(true);
         expect(events.filter(event => event === 'world')).toHaveLength(1);
       }
-    } finally { scope.dispose(); overrideSetting('buildPacing', null); setDev(developer); }
+    } finally { scope.dispose(); }
     expect(visible).toBe(false); expect(runtime.objects['built']).toBeUndefined();
   }
 });

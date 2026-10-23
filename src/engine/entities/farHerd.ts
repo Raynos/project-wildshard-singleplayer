@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { SHADOW_LAYER } from '../core/shadowLayer';
 import { markGpuOnly } from '../core/gpuOnly';
 import { presenting } from '../core/framePacing';
-import { setting } from '../ui/Settings';
 
 /**
  * The far herd: every animal past TIER_CONFIG.animalFarBatchDist drawn in ONE draw per model (a kind:variant: its own
@@ -30,7 +29,7 @@ import { setting } from '../ui/Settings';
  * carries only the attributes that program reads, and its bounding sphere follows its members, so a cascade that none of
  * them can shadow skips it (cascadeCull.ts).
  *
- * Paced (op-hitch47, the `buildPacing` Developer tool: `presenting()`): a model's members fill fixed pages of `PAGE_SLOTS`
+ * Paced (op-hitch47, `presenting()`): a model's members fill fixed pages of `PAGE_SLOTS`
  * slots, one draw each, and a herd opens at most one new page a drawn frame; a member with no room yet keeps drawing its own
  * rig (the same pixels) until a page has one. Unpaced, one batch a model grows as members arrive, as before. Pine Hollow's
  * entry frame took every far animal at once: the batches grew 8 → 12 → 18 … slots in one flush (each grow re-copies every
@@ -54,21 +53,6 @@ export interface FarMember {
  * reads uv; the same attributes and the model's own fur keep it the rigs' program, not a new one
  */
 const SHADOW_ATTRS = new Set(['position', 'normal', 'uv', 'skinIndex', 'skinWeight']);
-
-/** Bound a new page's destination geometry, including converted attributes and its always-Uint32 index.
- * A single larger rig still gets one slot. Bone textures are separate from this geometry upload budget. */
-function uploadSlots(src: THREE.BufferGeometry, shadow: boolean): number {
-  const verts = src.getAttribute('position').count;
-  let bytes = (src.index?.count ?? verts) * Uint32Array.BYTES_PER_ELEMENT;
-  for (const [name, attribute] of Object.entries(src.attributes)) {
-    if (shadow && !SHADOW_ATTRS.has(name)) continue;
-    if (!(attribute instanceof THREE.BufferAttribute)) throw new Error(`farHerd: attribute '${name}' is interleaved`);
-    const width = name === 'skinIndex' ? Uint16Array.BYTES_PER_ELEMENT
-      : name === 'color' ? Float32Array.BYTES_PER_ELEMENT : attribute.array.BYTES_PER_ELEMENT;
-    bytes += verts * attribute.itemSize * width;
-  }
-  return THREE.MathUtils.clamp(Math.floor(1024 * 1024 / bytes), 1, PAGE_SLOTS);
-}
 
 const _idle = new THREE.Bone();
 _idle.scale.setScalar(0);
@@ -331,7 +315,7 @@ export class FarHerd<M extends FarMember = FarMember> {
     if (b === undefined) {
       const shadow = this.opts.shadow === true;
       const mat = shadow || mesh.geometry.hasAttribute('color') ? this.materialFor(m) : null;
-      b = mat === null ? null : { src: mesh.geometry, material: mat, bones: mesh.skeleton.bones.length, pages: [], pageOf: new WeakMap(), paced: false };
+      b = mat === null ? null : { src: mesh.geometry, material: mat, bones: mesh.skeleton.bones.length, pages: [], pageOf: new WeakMap() };
       if (b !== null && !shadow) markGpuOnly('the far herd');
       this.batches.set(key, b);
     }
@@ -356,15 +340,15 @@ export class FarHerd<M extends FarMember = FarMember> {
     let page = b.pages.find((p) => p.room() > 0);
     if (page === undefined) {
       // A late frame must not grow a bounded page as if it were a loading-screen batch.
-      const paced = presenting() || setting('buildPacing') === 'links' && b.paced, last = b.pages.at(-1);
+      const paced = presenting(), last = b.pages.at(-1);
       if (!paced && last !== undefined) page = last; // unpaced: the batch grows to fit in `flush`, as it always did
       else if (paced && this.opened >= 1) return null; // a page a frame: the rig draws itself until there is room
       else {
         const shadow = this.opts.shadow === true;
-        const slots = paced ? (setting('buildPacing') === 'links' ? uploadSlots(b.src, shadow) : PAGE_SLOTS) : 8;
+        const slots = paced ? PAGE_SLOTS : 8;
         page = new FarBatch(b.src, b.material, b.bones, shadow, slots);
         b.pages.push(page); this.group.add(page.mesh);
-        if (paced) { b.paced = true; this.opened++; }
+        if (paced) this.opened++;
       }
     }
     b.pageOf.set(m, page);
@@ -384,7 +368,6 @@ export class FarHerd<M extends FarMember = FarMember> {
 
 /** One batch key's pages: the source every page copies, and which page each member last took. */
 interface FarPages {
-  paced: boolean;
   readonly src: THREE.BufferGeometry;
   readonly material: THREE.Material;
   readonly bones: number;

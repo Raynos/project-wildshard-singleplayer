@@ -55,8 +55,7 @@ const developerBefore = isDev();
 beforeAll(() => { setDev(true); overrideSetting('graphUniforms', 'blocks'); });
 afterAll(() => { vi.unstubAllGlobals(); overrideSetting('graphUniforms', null); setDev(developerBefore); });
 
-test.each(['on', 'links'] as const)('a live draw isolates future variant discovery with %s pacing', async pacing => {
-  const developer = isDev(); setDev(true); overrideSetting('buildPacing', pacing);
+test('a live draw pairs every acquired variant with its own uniforms', async () => {
   const renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);
   if (!(renderer instanceof THREE.WebGLRenderer)) throw new Error('Missing renderer');
   const gl = new Buffers(), programs = new Map<string, object>();
@@ -93,30 +92,25 @@ test.each(['on', 'links'] as const)('a live draw isolates future variant discove
   try {
     const road = compile('road'), future = compile('future'), later = compile('later');
     const jobs = sceneJobs(scene, null).jobs;
-    expect(handler.materialTextures(material)).toEqual([sample]);
-    expect(collectTextures(jobs, renderer)).toEqual(pacing === 'links' ? [sample] : []);
+    expect(collectTextures(jobs)).toEqual([]);
     expect(road.getUniforms).not.toHaveBeenCalled(); expect(future.getUniforms).not.toHaveBeenCalled();
     properties.currentProgram = road.program;
     handler.onUpdateProgram(material, road.program, properties);
     expect(road.getUniforms).toHaveBeenCalled();
-    if (pacing === 'links') {
-      expect(future.getUniforms).not.toHaveBeenCalled(); expect(later.getUniforms).not.toHaveBeenCalled();
-    } else { expect(future.getUniforms).toHaveBeenCalled(); expect(later.getUniforms).toHaveBeenCalled(); }
+    expect(future.getUniforms).toHaveBeenCalled(); expect(later.getUniforms).toHaveBeenCalled();
     const uniforms = properties.uniforms, list = properties.uniformsList, writes = gl.writes;
     compiled.setTexture('sample', replacement);
-    expect(handler.materialTextures(material)).toEqual([replacement]);
-    expect(collectTextures(jobs, renderer)).toEqual(pacing === 'links' ? [replacement] : []);
+    expect(collectTextures(jobs)).toEqual([]);
     compiled.setTexture('sample', sample);
     handler.prepareProgram(material, future.program);
     expect(future.getUniforms).toHaveBeenCalled();
     expect(properties.currentProgram).toBe(road.program); expect(properties.uniforms).toBe(uniforms);
     expect(properties.uniformsList).toBe(list); expect(gl.writes).toBe(writes);
-    if (pacing === 'links') expect(later.getUniforms).not.toHaveBeenCalled();
     handler.onUpdateProgram(material, future.program, properties);
     expect(properties.uniforms).toBe(future.uniforms);
     handler.prepareProgram(material, later.program); handler.onUpdateProgram(material, later.program, properties);
     expect(properties.uniforms).toBe(later.uniforms);
-  } finally { material.dispose(); geometry.dispose(); sample.dispose(); replacement.dispose(); overrideSetting('buildPacing', null); setDev(developer); }
+  } finally { material.dispose(); geometry.dispose(); sample.dispose(); replacement.dispose(); }
 });
 
 test('a shared material pairs its precompiled composer program after an environment draw', () => {

@@ -22,7 +22,6 @@ import { postTriangle } from './postPreparation';
 import { shadowDepthResolver, type ShadowDepthResolver } from './shadowDepthVariants';
 import { installedGraphBackend } from './graphBackend';
 import { boundEntryWarmup } from './entryWarmupBound';
-import { setting } from '../ui/Settings';
 import { workSlice } from '../core/workSlice';
 import { heldBudget, presenting } from '../core/framePacing';
 import { waitFor } from '../boot/waits';
@@ -271,17 +270,9 @@ function compileObjects(root: THREE.Object3D, visit: (object: THREE.Object3D) =>
  * variants compile again at the first frame.
  */
 function standIn(mesh: MeshLike): MeshLike {
-  // compile inspects layouts, never instance values. InstancedMesh.copy otherwise
-  // allocates and copies the entire population's matrices/colours for each variant.
-  const borrowInstances = setting('buildPacing') === 'entry' && Object.getPrototypeOf(mesh) === THREE.InstancedMesh.prototype;
-  const copy = (borrowInstances && mesh instanceof THREE.InstancedMesh
-    ? THREE.Mesh.prototype.copy.call(new THREE.InstancedMesh(mesh.geometry, mesh.material, 0), mesh, false) : mesh.clone(false)) as BatchedLike;
+  const copy = mesh.clone(false) as BatchedLike;
   const src = mesh as BatchedLike;
   if (src.isBatchedMesh && src._colorsTexture && !copy._colorsTexture) copy._colorsTexture = src._colorsTexture;
-  if (borrowInstances && copy instanceof THREE.InstancedMesh && mesh instanceof THREE.InstancedMesh) {
-    copy.instanceMatrix = mesh.instanceMatrix; copy.instanceColor = mesh.instanceColor;
-    copy.morphTexture = mesh.morphTexture; copy.count = mesh.count;
-  }
   // compile() walks visible objects only: a culled level (an LOD step hidden until its first draw) still needs its program
   copy.visible = true;
   linkStandIn(copy, mesh); // its uploads belong to the mesh's owner (SF57 upload-owner)
@@ -354,24 +345,10 @@ export async function prepareSceneRoots(renderer: Renderer, camera: THREE.Camera
   await prepareSceneResources(roots, camera, current);
   // `scenePrograms` false: the roots' resources and exterior variants only (the boot's Shaders step builds what its first
   // frame draws, and the rest is warmed in play)
-  const { jobs, materials } = !scenePrograms ? { jobs: [], materials: 0 } : setting('buildPacing') === 'entry'
-    ? await pacedSceneJobs(scene, target, 1, roots, undefined, current, pageScope) : sceneJobs(scene, target, 1, roots);
+  const { jobs, materials } = !scenePrograms ? { jobs: [], materials: 0 } : sceneJobs(scene, target, 1, roots);
   jobs.push(...exteriorJobs(scene, target, false, roots));
   await runPrecompile(renderer, camera, jobs, materials, undefined, undefined, current, pause !== undefined, pause, uploadBudget);
-  if (setting('buildPacing') === 'links' && pause !== undefined) {
-    const { warmParkedDraws } = await import('./parkedDraws');
-    for (const root of roots) {
-      if (!current()) throw new Error('Shader preparation owner left');
-      const detached = root !== scene && root.parent === null, visible = root.visible;
-      if (detached) { root.visible = false; scene.add(root); }
-      try {
-        await warmParkedDraws(renderer, scene, camera, target, root, current, pause, { budget: { drawables: 1, newMaterials: 1 } });
-        if (!current()) throw new Error('Shader preparation owner left');
-      } finally {
-        if (detached) { if (root.parent === scene) root.removeFromParent(); root.visible = visible; }
-      }
-    }
-  }
+
 }
 
 /** Prepare registered override passes with their real caster flags and camera layers. Borrowed materials, geometry,
@@ -645,20 +622,16 @@ export async function warmPostJobs(renderer: Pick<Renderer, 'getRenderTarget' | 
 /**
  * Every texture the first frame would upload — material maps, ShaderMaterial uniforms (the post
  * chain's lookup tables included), the scene's background / environment — read off the compile jobs.
- * With a renderer, isolated graph preparation also reads compiled node samplers;
- * those textures are nested in layouts rather than classic material properties.
  * Uploading (texImage + mipmaps, ~30 × 1024² on the phone) is otherwise the first draw's job,
  * inside the first frame's stall.
  */
-export function collectTextures(jobs: CompileJob[], renderer?: Renderer): THREE.Texture[] {
+export function collectTextures(jobs: CompileJob[]): THREE.Texture[] {
   const out = new Set<THREE.Texture>();
-  const nodes = renderer !== undefined && setting('buildPacing') === 'links' ? installedGraphBackend(renderer) : null;
   const isTexture = (v: unknown): v is THREE.Texture => typeof v === 'object' && v !== null && (v as { isTexture?: boolean }).isTexture === true;
   const add = (v: unknown): void => { if (isTexture(v) && !v.isRenderTargetTexture) out.add(v); };
   const fromMaterial = (m: THREE.Material): void => {
     for (const v of Object.values(m)) add(v);
     for (const texture of shaderPatchTextures(m)) add(texture);
-    for (const texture of nodes?.materialTextures(m) ?? []) add(texture);
     const u = (m as THREE.Material & { uniforms?: Record<string, THREE.IUniform> }).uniforms;
     if (u) for (const uni of Object.values(u)) add(uni.value);
   };
@@ -757,7 +730,6 @@ const resolvedPrograms = new WeakSet<ProgramLike>();
 const preparedBlocks = new WeakMap<ProgramLike, WeakSet<THREE.Material>>();
 
 /** The Developer tool's budget for other browsers' slices: under the 12 ms checked after the fact, and 64 MiB. */
-export const SLICED_UPLOAD_BUDGET: UploadBudget = { ms: 10, bytes: 64 * 1024 * 1024 };
 
 /** A slice's wall time, checked after each unit (a job's compile, a program's resolve, an image's upload): boot's bound. */
 const PRECOMPILE_SLICE_MS = 12;
@@ -863,7 +835,7 @@ function drawnFrame(scope: Scope, drawn: () => number, current: () => boolean): 
 export async function runPrecompile(
   renderer: Renderer, camera: THREE.Camera, jobs: CompileJob[], materials: number,
   onProgress?: (done: number, total: number, detail: string) => void,
-  textures: THREE.Texture[] = collectTextures(jobs, renderer),
+  textures: THREE.Texture[] = collectTextures(jobs),
   current: () => boolean = () => true,
   isolateImageUploads = false,
   pause: () => Promise<void> = frame,
@@ -893,7 +865,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   uploadBudget: UploadBudget | undefined, onStage: PrecompileStage | undefined, sliceMs: number): Promise<PrecompileReport> {
   const checkCurrent = (): void => { if (!current()) throw new Error('Shader warm-up owner left'); };
   checkCurrent();
-  for (const texture of collectTextures(jobs, renderer)) watch(texture);
+  for (const texture of collectTextures(jobs)) watch(texture);
   const parallel = renderer.extensions.has('KHR_parallel_shader_compile');
   const before = snapshotPrograms(renderer);
   const created: ProgramLike[] = [];
@@ -939,8 +911,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     const prevRt = renderer.getRenderTarget(), prevTone = renderer.toneMapping;
     const fog = job.target?.fog ?? null;
     const environment = job.target?.environment ?? null;
-    let restoreLights: (() => void) | undefined;
-    const restoreDrawn = isolateImageUploads || setting('buildPacing') === 'entry' ? holdDrawnPrograms(renderer, job.root) : undefined;
+    const restoreDrawn = isolateImageUploads ? holdDrawnPrograms(renderer, job.root) : undefined;
     try {
       if (job.fogOff && job.target) job.target.fog = null;
       if (job.environment !== undefined && job.target) job.target.environment = job.environment;
@@ -951,7 +922,6 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
         delete job.futureLights;
       }
       job.lights?.prepare();
-      if (setting('buildPacing') === 'links') restoreLights = job.lights?.borrowSources();
       job.prepare?.();
       renderer.compile(job.root, job.camera ?? camera, job.target ?? undefined);
       job.root.traverse(object => { for (const material of materialsOf(object)) {
@@ -964,7 +934,6 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
         }
       } });
     } finally {
-      restoreLights?.();
       restoreDrawn?.();
       renderer.setRenderTarget(prevRt); renderer.toneMapping = prevTone;
       if (job.fogOff && job.target) job.target.fog = fog;
@@ -981,9 +950,6 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     // them (Sky Reach's entry: 18 programs in one 217 ms Simulator frame of afterPlay).
     const capped = isolateImageUploads && programCount(renderer) - programsAtFrame >= programsPerFrame();
     if (performance.now() - tFrame > heldBudget(sliceMs) || capped || i === jobs.length - 1) {
-      // Linking can finish quickly yet first uniform discovery still builds the native pipeline. Keep that work
-      // off the issuing frame: combining two individually bounded steps caused a 50 ms live preparation frame.
-      if (isolateImageUploads && setting('buildPacing') === 'links' && queued.length > settled) { await pause(); checkCurrent(); }
       if (isolateImageUploads) settleOne();
       // oxlint-disable-next-line eslint/no-useless-assignment -- read by the next iteration's guard; oxlint's flow analysis loses the loop back-edge across the try/finally above
       await pause(); tFrame = performance.now(); programsAtFrame = programCount(renderer);
@@ -1044,7 +1010,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   }
   // Compilation exposes samplers injected by shader callbacks; merge them before any draw.
   if (onStage !== undefined) { onStage('link', performance.now() - stageStart, pending.length); stageStart = performance.now(); }
-  const uploadTextures = [...new Set([...textures, ...collectTextures(jobs, renderer)])];
+  const uploadTextures = [...new Set([...textures, ...collectTextures(jobs)])];
   for (const texture of uploadTextures) watch(texture);
   // Phase C: compressed textures retain their fenced slices. Live WebKit image preparation
   // isolates native uploads; a post-upload time check alone can overshoot before it yields.
@@ -1197,7 +1163,7 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     const excludedRoots = entryFrameExclusions(scene, options.futureLighting);
     const kinded = (kind: string, list: CompileJob[]): CompileJob[] => { for (const job of list) job.kind = kind; return list; };
     const { jobs, materials } = policy?.scene === false ? { jobs: [], materials: 0 }
-      : live || setting('buildPacing') === 'entry' || options.drawnOnly === true
+      : live || options.drawnOnly === true
         ? await pacedSceneJobs(scene, rt, per, [scene], excludedRoots, options.current ?? (() => true), pageScope, options.drawnOnly === true ? drawnFrom(game.camera) : undefined)
         : sceneJobs(scene, rt, per, [scene], excludedRoots);
     // Diagnostic split: the entered root's own materials, else the rest of the page compiled under its lights.

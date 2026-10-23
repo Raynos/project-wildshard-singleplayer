@@ -9,9 +9,7 @@
  *
  * Not presenting (the loading screen, a frozen title, Node bakers and tests): nothing changes, every yield is the caller's
  * own macrotask and `presenting()` is false, so a loader keeps its own budgets. Quiet frame floors back pacing on by default.
- * The Developer tool `buildPacing` (pause ▸ Settings ▸ Developer ▸ Performance) can switch it off: `presenting()` is then
- * always false and every caller runs exactly as it did before. `Game` wires the page's setting; importing this module alone
- * does not enable pacing.
+ * Pacing follows the loop's recent drawn frames; importing this module does not draw or schedule a frame.
  */
 import type { Scope } from '../app/scope';
 import { resourceScope } from '../app/resources';
@@ -29,7 +27,6 @@ const BUILD_FRAME_MS = 1000 / 60;
 let lastDrawn = Number.NEGATIVE_INFINITY;
 let lastFrameAt = Number.NEGATIVE_INFINITY;
 let lastVsyncAt = Number.NEGATIVE_INFINITY;
-let enabled = false;
 /** Declared capped cadence, or the fastest observed uncapped cadence; legacy completion-only calls smooth it. */
 let interval = 1000 / 60;
 /** G580 T5: while the traveller waits at a grid cell's wall for its build (`setBuildHeld`), a build stretch may run this
@@ -58,11 +55,8 @@ export function noteFrameDrawn(at: number = diagnosticNow(), frameAt?: number, c
   lastFrameAt = start; lastDrawn = at;
 }
 
-/** Turn the pacing on or off (the `buildPacing` Developer tool; `Game` wires it). Off, `presenting()` is always false. */
-export function setFramePacing(on: boolean): void { enabled = on; }
-
-/** Whether pacing is on and the engine loop is drawing frames: a build now runs between drawn frames, in play. */
-export function presenting(now: number = diagnosticNow()): boolean { return enabled && now - lastDrawn < PRESENTING_MS; }
+/** Whether the engine loop is drawing frames: a build now runs between drawn frames, in play. */
+export function presenting(now: number = diagnosticNow()): boolean { return now - lastDrawn < PRESENTING_MS; }
 
 /** Whether a presenting page's next frame is due (its interval since the last drawn frame has run out). */
 export function frameDue(now: number = diagnosticNow()): boolean {

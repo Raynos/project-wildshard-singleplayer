@@ -123,7 +123,6 @@ export const OPTION_VALUES = {
   fixedShadowSamples: ['off', 'on'],                   // G437: fixed depth-texture flip uniforms; reload, default off.
   groundTiles: ['off', 'on'],                          // G518: a painted ground draws its baked L0 tiles instead of its one mesh; reload, default off.
   graphMaterials: ['off', 'on'],                       // SF59: shardfile graph materials compile through the lazy TSL back-end (src/game/shardfile/clientGraphs.ts); off = their family presets — a reload
-  buildPacing: ['on', 'off', 'uploads', 'entry', 'links'], // entry / links: experimental preparation; default off.
   graphUniforms: ['plain', 'blocks'],                  // node materials' uniforms: plain program uniforms, or the std140 blocks (render/nodes/nodePlainUniforms.ts) — a reload
   distantTrees: ['variant', 'species'],                // G639 frame floor: the forest's far and impostor levels draw one shape a species, at each tree's height (game/models/treeSet.ts) — a reload; a look call for Jake
   programShare: ['off', 'on'],                         // a graph material's program key leads with its graph's shape, so equal graphs link one GL program (render/nodes/engineNodesHandler.ts shareKeyOf); off until a Chromium phone 4x reading — a reload
@@ -140,11 +139,11 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   touch: { def: 'auto', params: ['touch'], url: (q) => (q.has('touch') ? 'on' : null) },               // ?touch (any value) forces them, as before
   time: { def: 'live', params: ['tod', 'clock'], url: (q) => (q.has('tod') || q.has('clock') ? 'live' : null) }, // ?tod= / ?clock= run the clock from the URL's phase / speed
   weather: { def: 'live', params: ['weather'], url: (q) => q.get('weather') },                         // ?weather=rain: a held shower (captures)
-  memorySaver: DEBUG_ONLY, fixedShadowSamples: DEBUG_ONLY, groundTiles: DEBUG_ONLY, graphMaterials: DEBUG_ONLY, buildPacing: DEBUG_ONLY, graphUniforms: DEBUG_ONLY, programShare: DEBUG_ONLY, distantTrees: DEBUG_ONLY,
+  memorySaver: DEBUG_ONLY, fixedShadowSamples: DEBUG_ONLY, groundTiles: DEBUG_ONLY, graphMaterials: DEBUG_ONLY, graphUniforms: DEBUG_ONLY, programShare: DEBUG_ONLY, distantTrees: DEBUG_ONLY,
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 /** Diagnostic choices are ignored by the public build; their saved picks remain available in Developer mode. */
-export const DEVELOPER_OPTIONS: readonly OptionKey[] = ['time', 'weather', 'memorySaver', 'buildPacing', 'graphUniforms', 'programShare'];
+export const DEVELOPER_OPTIONS: readonly OptionKey[] = ['time', 'weather', 'memorySaver', 'graphUniforms', 'programShare'];
 
 /** the URL params that override option `k` */
 export function settingParams(k: OptionKey): readonly string[] { return OPTION_SPECS[k].params; }
@@ -205,7 +204,7 @@ export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'
   const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
     tier: option('tier'), touch: option('touch'), time: option('time'),
     weather: option('weather'),
-    memorySaver: option('memorySaver'), fixedShadowSamples: option('fixedShadowSamples'), groundTiles: option('groundTiles'), graphMaterials: option('graphMaterials'), buildPacing: option('buildPacing'), graphUniforms: option('graphUniforms'), programShare: option('programShare'), distantTrees: option('distantTrees'),
+    memorySaver: option('memorySaver'), fixedShadowSamples: option('fixedShadowSamples'), groundTiles: option('groundTiles'), graphMaterials: option('graphMaterials'), graphUniforms: option('graphUniforms'), programShare: option('programShare'), distantTrees: option('distantTrees'),
   };
   const persist = (): void => {
     const picks: Partial<Record<string, string>> = {};
