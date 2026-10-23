@@ -760,9 +760,9 @@ export class Game {
       const live = (): boolean => withinBound() && current() && this._composer === composer;
       const pause = this.frameCount > 0 ? () => waitForDrawnFrame(this.levelScope, () => this.frameCount, live) : undefined;
       // before play (no frame drawn yet) the boot's Shaders step builds what the first frame draws and the rest is warmed
-      // in play (Debug ▸ Shaders before play): a region's own warm-up here keeps only its resources then
+      // in play: a region's own warm-up here keeps only its resources then
       await prepareSceneRoots(this.renderer, this.camera, this.rootScene, composer.inputBuffer, roots, live, pause,
-        setting('buildPacing') !== 'off' ? LIVE_UPLOAD_BUDGET : undefined, this.frameCount > 0 || setting('bootShaders') !== 'drawn');
+        setting('buildPacing') !== 'off' ? LIVE_UPLOAD_BUDGET : undefined, this.frameCount > 0);
     });
   }
 
@@ -882,8 +882,8 @@ export class Game {
     // O14: the entering owner's camera models (a cell's weapons) go with it, so the road's exterior frame never draws them
     const leaving = this.viewmodel.staged(owner);
     // the boot's entry (no frame drawn yet): the Shaders step builds what the first frame draws and the rest is warmed in
-    // play (Debug ▸ Shaders before play), so the entered root's scene programs and whole-root draws wait for them
-    const bootDrawn = this.frameCount === 0 && setting('bootShaders') === 'drawn';
+    // play, so the entered root's scene programs and whole-root draws wait for them
+    const bootDrawn = this.frameCount === 0;
     await warmComposerFrame(composer, this.renderer, () => precompileLevel(this, progress, { chunkCasters: false, current, owner, futureLighting, isolateImageUploads, onStage, drawnOnly: bootDrawn,
       ...(leaving === undefined ? {} : { leaving: [leaving] }), ...(sliceMs === undefined ? {} : { sliceMs }),
       ...(futureEnvironment === null ? {} : { futureEnvironment }), ...(pause === undefined ? {} : { pause }), ...(uploadBudget === undefined ? {} : { uploadBudget }) }), current);

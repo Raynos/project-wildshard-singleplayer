@@ -14,7 +14,6 @@ import { TIER } from '@wildshard/engine/core/tier';
 import { installProbe } from '@wildshard/engine/debug/probe';
 import { lockOn as lockState } from '@wildshard/engine/player/AimTargets';
 import { precompileLevel } from '@wildshard/engine/render/precompile';
-import { setting } from '@wildshard/engine/ui/Settings';
 import { textureBytes } from '@wildshard/engine/render/textureBytes';
 import { setPoseProvider } from '@wildshard/engine/ui/ReloadPrompt';
 import { registerBeforeReload } from '@wildshard/engine/boot/lastEnd';
@@ -62,8 +61,6 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   // Compile programs in batches with a visible count, then draw the first frames as a step —
   // instead of the first render() compiling ~100 programs in one stall (minutes on iOS).
   const programs = () => `${game.renderer.info.programs?.length ?? 0} programs`;
-  // P0 slow grid entry: the first frame's programs before play, the rest in play (pause ▸ Settings ▸ Debug ▸ Shaders before play)
-  const deferShaders = setting('bootShaders') === 'drawn';
   try {
     await step('shaders', async (p) => {
       if (warmGrid && ctx.gridLive !== null) {
@@ -73,7 +70,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
       }
       // A six-material job exceeded the loading text's one-second update
       // budget at phone CPU speed. Use the existing one-material sliced path.
-      await precompileLevel(game, (d, n, what) => p.set(d, n, `${what} · ${programs()}`), { sliceMs: 12, warmPost: true, drawnOnly: deferShaders });
+      await precompileLevel(game, (d, n, what) => p.set(d, n, `${what} · ${programs()}`), { sliceMs: 12, warmPost: true, drawnOnly: true });
     });
     if (fragileBoot && game.renderer.getContext().isContextLost()) throw new Error('WebGL context lost during shader compile');
     await step('firstFrame', async (p) => {
@@ -122,14 +119,12 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   // starts (round 39: during the loading screen its ~4,000 cache checks queued ahead of the home region's own reads)
   if (ctx.grid !== null) startGridPrefetch(gridPrefetchOrder(ctx.grid.assembly, player.position));
   // the programs the first frame did not draw, a few a frame in play (the Shaders step built only the drawn ones)
-  if (deferShaders) {
-    const levelScope = game.levelScope;
-    const warmRest = async (): Promise<void> => {
-      try { await precompileLevel(game, undefined, { sliceMs: 6, current: () => !levelScope.disposed }); }
-      catch (error: unknown) { if (!levelScope.disposed) console.warn('[shaders] the in-play warm-up stopped:', error); }
-    };
-    void warmRest();
-  }
+  const levelScope = game.levelScope;
+  const warmRest = async (): Promise<void> => {
+    try { await precompileLevel(game, undefined, { sliceMs: 6, current: () => !levelScope.disposed }); }
+    catch (error: unknown) { if (!levelScope.disposed) console.warn('[shaders] the in-play warm-up stopped:', error); }
+  };
+  void warmRest();
   if (arrival?.mode === 'enter' || arrival?.mode === 'arena') enter();
   else if (arrival?.mode === 'explore') hud.startExplore(); // import the viewer only after shader compilation and the loader's peak
   if (arrival?.mode === 'arena') hud.enterArenaNow();
