@@ -120,3 +120,19 @@ test('the parallel pre-commit job uses the staged checker and JSON, preserving f
     expect(readFileSync(resolve(root, 'scripts/no-binary-json.mjs'), 'utf8')).toContain('foreign uncommitted checker');
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
+
+
+test('a debt correction needs exact unique final-footer approval, including at committed Git checks', () => fixture((root, git, put) => {
+  const before = policy(), after = policy({ [path]: { base64Chars: 13960, dataUris: 0 } });
+  const line = `Binary-JSON-Approved: wildshard-new ${path} 13960 0`;
+  const message = `fix: record measured debt\n\n${line}\n\nAssisted-by: fixture:model`;
+  expect(binaryPolicyIncreases(before, after, message)).toEqual([]);
+  for (const text of [message.replace('13960', '13961'), message.replace('wildshard-new', 'other'),
+    `fix: bad\n\n${line}\n\nbody after approval`, `fix: bad\n\n${line}\n${line}`])
+    expect(binaryPolicyIncreases(before, after, text).length).toBeGreaterThan(0);
+  expect(binaryPolicyIncreases(before, before, message).length).toBeGreaterThan(0);
+  const parent = git('rev-parse', 'HEAD');
+  put('lint/no-binary-json.json', JSON.stringify(after)); put(path, JSON.stringify({ text: 'a'.repeat(13960) }));
+  git('add', '.'); git('commit', '-qm', message);
+  expect(checkBinaryRevision(root, 'HEAD', parent, ['lint/no-binary-json.json', path])).toEqual([]);
+}));

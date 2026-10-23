@@ -49,14 +49,22 @@ export function binaryJsonPolicy(value) {
   return { schema, source, files: checked };
 }
 
-/** @param {BinaryPolicy} before @param {BinaryPolicy} after @returns {string[]} */
-export function binaryPolicyIncreases(before, after) {
-  const failures = [];
+/** Exact reviewed corrections are the only exception to shrinking debt.
+ * @param {BinaryPolicy} before @param {BinaryPolicy} after @param {string} [message] @returns {string[]} */
+export function binaryPolicyIncreases(before, after, message = '') {
+  const expected = new Map(), failures = [], approved = new Set();
   for (const [path, row] of Object.entries(after.files)) {
     const previous = Object.hasOwn(before.files, path) ? before.files[path] : undefined;
     if (previous === undefined || row.base64Chars > previous.base64Chars || row.dataUris > previous.dataUris)
-      failures.push(`BINARY-JSON ${BINARY_JSON_POLICY}: allowance grew for ${path}`);
+      expected.set(`Binary-JSON-Approved: wildshard-new ${path} ${row.base64Chars} ${row.dataUris}`, path);
   }
+  const content = message.trimEnd().replace(/\n\nAssisted-by:[^\n]+$/u, '').replaceAll(/\n[ \t]+/gu, ' ');
+  const footer = content.split(/\n\s*\n/u).at(-1) ?? '';
+  for (const line of content.split('\n').filter(item => item.startsWith('Binary-JSON-Approved:'))) {
+    if (!footer.split('\n').includes(line) || !expected.has(line) || approved.has(line)) failures.push(`BINARY-JSON ${BINARY_JSON_POLICY}: invalid or unmatched approval ${line}`);
+    approved.add(line);
+  }
+  for (const [line, path] of expected) if (!approved.has(line)) failures.push(`BINARY-JSON ${BINARY_JSON_POLICY}: allowance grew for ${path}; missing ${line}`);
   return failures;
 }
 
@@ -131,7 +139,8 @@ export function checkBinaryRevision(root, revision, previous, changed) {
   if (!tree.has(BINARY_JSON_POLICY)) return parent.has(BINARY_JSON_POLICY) ? [`BINARY-JSON ${BINARY_JSON_POLICY}: policy deleted`] : [];
   const policy = binaryJsonPolicy(JSON.parse(blobs(root, tree, [BINARY_JSON_POLICY]).get(BINARY_JSON_POLICY) ?? 'null'));
   const before = parent.has(BINARY_JSON_POLICY) ? binaryJsonPolicy(JSON.parse(blobs(root, parent, [BINARY_JSON_POLICY]).get(BINARY_JSON_POLICY) ?? 'null')) : undefined;
-  const failures = before === undefined ? [] : binaryPolicyIncreases(before, policy);
+  const message = revision === ':' ? process.env['WS_COMMIT_MESSAGE'] ?? '' : git(root, ['show', '-s', '--format=%B', revision]).toString();
+  const failures = before === undefined ? [] : binaryPolicyIncreases(before, policy, message);
   const selected = changed.includes(BINARY_JSON_POLICY) ? [...tree.keys()].filter(path => path.endsWith('.json')) : changed.filter(path => path.endsWith('.json'));
   for (const [path, text] of blobs(root, tree, selected)) failures.push(...binaryJsonFailures(path, text, policy));
   return failures;

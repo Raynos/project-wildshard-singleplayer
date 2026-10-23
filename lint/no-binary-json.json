@@ -278,6 +278,10 @@
       "base64Chars": 1518880,
       "dataUris": 0
     },
+    "src/shards/nalati-grasslands/boot/mountedLoadout.generated.json": {
+      "base64Chars": 13960,
+      "dataUris": 0
+    },
     "src/shards/nalati-grasslands/boot/peopleFallback.generated.json": {
       "base64Chars": 577760,
       "dataUris": 0
