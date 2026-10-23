@@ -289,7 +289,10 @@ GEN_ARGS="--proof"; SHARDFILE_ARGS="--reuse"
   'step() { local s=$SECONDS; "$@" || return; echo "serve-build step $1 $2: $((SECONDS - s))s"; }
    step node scripts/gen.mjs $3 && step node scripts/build-shardfiles.mjs $4 && step pnpm exec vite build --mode "$1" --config "$2"' \
   bash "$MODE" "$CFG" "$GEN_ARGS" "$SHARDFILE_ARGS" ) > "$BASE/$stamp/build.log" 2>&1 \
-  || { echo "serve-build: build failed; stderr/stdout tail from $BASE/$stamp/build.log:" >&2; tail -60 "$BASE/$stamp/build.log" >&2; exit 1; }
+  || { echo "serve-build: build failed; stderr/stdout tail from $BASE/$stamp/build.log:" >&2; tail -60 "$BASE/$stamp/build.log" >&2
+         # the build directory goes with the failed preview: keep its whole log (a shard's first error sits above the tail)
+         cp "$BASE/$stamp/build.log" "$BASE/failed-$stamp.log" 2>/dev/null && echo "serve-build: full log kept at $BASE/failed-$stamp.log" >&2
+         exit 1; }
 grep -h '^serve-build step\|^wildshard build: .* in \|^heavy-lane: acquired' "$BASE/$stamp/build.log" | sed 's/^/serve-build: /' >&2
 # public/ by symlink (vite preview follows them): an entry the build didn't write is linked whole; a folder both have
 # (assets/: the build's JS chunks + public's models) is merged one level down, recursively; a file the build wrote wins
