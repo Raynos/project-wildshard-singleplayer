@@ -10,7 +10,7 @@ import { commitGuards, runCommitJobs } from './precommit-jobs.mjs';
  * @param {string} [root] @param {string} [executable] */
 export async function precommitInputs(root = resolve(import.meta.dirname, '..'), executable = resolve(root, 'node_modules/.bin/oxlint')) {
   const started = performance.now(), deadline = started + 5_000;
-  const git = (/** @type {string[]} */ args) => execFileSync('git', args, { cwd: root, encoding: 'utf8' });
+  const git = (/** @type {string[]} */ args) => execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 1 << 30 });
   const initial = git(['ls-files', '--stage', '-z']);
   const changed = git(['diff', '--cached', '--name-only', '-z', '--no-renames', '--diff-filter=ACMRD']).split('\0').filter(Boolean);
   const deleted = git(['diff', '--cached', '--name-only', '-z', '--no-renames', '--diff-filter=D']).split('\0').filter(Boolean);
@@ -58,7 +58,7 @@ export async function precommitInputs(root = resolve(import.meta.dirname, '..'),
       // Immutable predecessor allowance; the candidate cannot grant itself debt.
       const policy = 'lint/ratchet.json';
       if (existsSync(resolve(tree, policy))) {
-        const baseline = execFileSync('git', ['show', `HEAD:${policy}`], { cwd: root, encoding: 'utf8' });
+        const baseline = execFileSync('git', ['show', `HEAD:${policy}`], { cwd: root, encoding: 'utf8', maxBuffer: 1 << 30 });
         writeFileSync(resolve(tree, '.commit-baseline-ratchet.json'), baseline);
       }
       const stagedWorker = resolve(tree, 'scripts/precommit-checks.mjs');
