@@ -1,7 +1,9 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- parse the generated pixel chunks at runtime instead of inferring their 47 MB JSON type
+import { readFileSync } from 'node:fs';
+import * as v from 'valibot';
 import { unzlibSync } from 'fflate';
 import { parseGrappleFilament } from '@wildshard/format/grapple';
 import filamentRows from '../src/shards/nine-dragon-stack/data/filament.json' with { type: 'json' };
-import paintArray from '../src/shards/nine-dragon-stack/data/paintArray.generated.json' with { type: 'json' };
 import { burstGraphs } from '../src/shards/nine-dragon-stack/generators/burstGraphs';
 import { effectField } from '../src/engine/fx/effectField';
 import burstRows from '../src/shards/nine-dragon-stack/data/burstFields.json' with { type: 'json' };
@@ -123,6 +125,9 @@ test('halo discs compile with additive alpha preservation inside the existing ca
 
 
 test('paint chunks cover every layer exactly with a neutral unmasked alpha', () => {
+  const natural=v.pipe(v.number(),v.integer(),v.minValue(0));
+  const chunks=v.strictObject({size:v.pipe(natural,v.minValue(1),v.maxValue(8192)),layers:v.pipe(natural,v.minValue(1),v.maxValue(256)),parts:v.array(v.strictObject({layer:natural,offset:natural,packed:v.string()}))});
+  const paintArray=v.parse(v.strictObject({phone:chunks,desktop:chunks}),JSON.parse(readFileSync(new URL('../src/shards/nine-dragon-stack/data/paintArray.generated.json',import.meta.url),'utf8')));
   for (const row of Object.values(paintArray)) {
     const ends = Array.from({ length: row.layers }, () => 0);
     for (const part of row.parts) {
