@@ -1,3 +1,4 @@
+import { BASE64_POLICY, noBase64Rule } from './no-base64.mjs';
 import { clientPlanSchemaViolations } from './client-plan-boundary.mjs';
 import { explicitSchemaTypes } from './schema-types.mjs';
 // Wildshard's own oxlint rules (loaded by `jsPlugins` in .oxlintrc.json; oxlint's ESLint-compatible JS plugin API).
@@ -1088,6 +1089,7 @@ const plugin = {
   rules: {
     'no-client-plan-reflection': clientPlanReflection,
     'explicit-schema-types': explicitSchemaTypes(shardfileDebt,pathOf),
+    'no-base64': noBase64Rule(process.env.WILDSHARD_BASE64_FILE ?? BASE64_POLICY),
     'no-reexport': noReexport,
     'shard-game-imports': shardGameImports,
     'shard-game-plugins': shardGamePlugins,

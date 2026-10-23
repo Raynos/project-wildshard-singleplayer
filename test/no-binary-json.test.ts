@@ -136,3 +136,19 @@ test('a debt correction needs exact unique final-footer approval, including at c
   git('add', '.'); git('commit', '-qm', message);
   expect(checkBinaryRevision(root, 'HEAD', parent, ['lint/no-binary-json.json', path])).toEqual([]);
 }));
+
+
+test('source/tool base64 debt cannot grow, move or disappear from exact Git policy',()=>fixture((root,git,put)=>{
+  const file='lint/base64-debt.json';
+  const debt=(files:Record<string,number>)=>JSON.stringify({schema:'no-base64/1',source,files});
+  put(file,debt({'src/old.ts':2,'scripts/old.mjs':1}));git('add',file);git('commit','-qm','seed source debt');
+  put(file,debt({'src/old.ts':1}));git('add',file);
+  expect(checkBinaryRevision(root,':','HEAD',[file])).toEqual([]);
+  const cases:Record<string,number>[]=[{'src/old.ts':3},{'src/new.ts':1},{'scripts/new.mjs':1}];
+  for(const files of cases){
+    put(file,debt(files));git('add',file);
+    expect(checkBinaryRevision(root,':','HEAD',[file]).join(' ')).toContain('base64 allowance grew');
+  }
+  git('rm','-f',file);
+  expect(checkBinaryRevision(root,':','HEAD',[file]).join(' ')).toContain('base64 policy deleted');
+}));

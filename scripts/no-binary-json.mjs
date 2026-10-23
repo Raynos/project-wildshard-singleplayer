@@ -132,15 +132,37 @@ function blobs(root, tree, paths) {
   return found;
 }
 
+/** A separate source/tooling census cannot be erased by src-only central debt regeneration.
+ * @param {string} root @param {Map<string,{mode:string,oid:string}>} tree @param {Map<string,{mode:string,oid:string}>} parent */
+function base64DebtChanges(root, tree, parent) {
+  const file = 'lint/base64-debt.json';
+  if (!tree.has(file)) return parent.has(file) ? [`BINARY-JSON ${file}: base64 policy deleted`] : [];
+  /** @param {Map<string,{mode:string,oid:string}>} records @returns {Record<string,number>} */
+  const read = records => {
+    const value = JSON.parse(blobs(root, records, [file]).get(file) ?? 'null');
+    if (value === null || typeof value !== 'object' || value.schema !== 'no-base64/1' || !/^[a-f0-9]{40}$/u.test(value.source)
+      || value.files === null || typeof value.files !== 'object' || Array.isArray(value.files)) throw new Error(`BINARY-JSON ${file}: invalid base64 policy`);
+    for (const [path, count] of Object.entries(value.files)) if (!/^(?:src|scripts)\//u.test(path) || path !== posix.normalize(path) || path.includes('\\') || !/\.[cm]?[jt]sx?$/u.test(path)
+      || typeof count !== 'number' || !Number.isSafeInteger(count) || count <= 0) throw new Error(`BINARY-JSON ${file}: invalid base64 allowance ${path}`);
+    return value.files;
+  };
+  const after = read(tree);
+  if (!parent.has(file)) return [];
+  const before = read(parent), failures = [];
+  for (const [path, count] of Object.entries(after)) if (!Object.hasOwn(before, path) || count > (before[path] ?? 0)) failures.push(`BINARY-JSON ${file}: base64 allowance grew for ${path}`);
+  return failures;
+}
+
 /** Check exact immutable/index blobs, never a neighbour's working file.
  * @param {string} root @param {string} revision @param {string} previous @param {readonly string[]} changed */
 export function checkBinaryRevision(root, revision, previous, changed) {
   const tree = entries(root, revision), parent = entries(root, previous);
-  if (!tree.has(BINARY_JSON_POLICY)) return parent.has(BINARY_JSON_POLICY) ? [`BINARY-JSON ${BINARY_JSON_POLICY}: policy deleted`] : [];
+  const base64 = base64DebtChanges(root, tree, parent);
+  if (!tree.has(BINARY_JSON_POLICY)) return [...base64, ...(parent.has(BINARY_JSON_POLICY) ? [`BINARY-JSON ${BINARY_JSON_POLICY}: policy deleted`] : [])];
   const policy = binaryJsonPolicy(JSON.parse(blobs(root, tree, [BINARY_JSON_POLICY]).get(BINARY_JSON_POLICY) ?? 'null'));
   const before = parent.has(BINARY_JSON_POLICY) ? binaryJsonPolicy(JSON.parse(blobs(root, parent, [BINARY_JSON_POLICY]).get(BINARY_JSON_POLICY) ?? 'null')) : undefined;
   const message = revision === ':' ? process.env['WS_COMMIT_MESSAGE'] ?? '' : git(root, ['show', '-s', '--format=%B', revision]).toString();
-  const failures = before === undefined ? [] : binaryPolicyIncreases(before, policy, message);
+  const failures = [...base64, ...(before === undefined ? [] : binaryPolicyIncreases(before, policy, message))];
   const selected = changed.includes(BINARY_JSON_POLICY) ? [...tree.keys()].filter(path => path.endsWith('.json')) : changed.filter(path => path.endsWith('.json'));
   for (const [path, text] of blobs(root, tree, selected)) failures.push(...binaryJsonFailures(path, text, policy));
   return failures;
