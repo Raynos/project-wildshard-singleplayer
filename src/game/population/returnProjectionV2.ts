@@ -45,8 +45,9 @@ export class ReturnProjectionV2 {
   private readonly module: ScriptModuleV2;
   private busy = false;
   private readonly groups:GroupStepV2|null=null;
-  /** each actor's declared field column names (`actor/name`), made once */
-  private readonly columns: string[][] = [];
+  /** per actor count: every actor's declared field columns (`actor/name`) in the observation writer's name order, made
+   *  once, so the writer takes them without a sort */
+  private readonly columns: { readonly actor: number; readonly index: number; readonly name: string; readonly field: string }[][] = [];
   constructor(input: unknown,private readonly owner?: Scope,raw?:Uint8Array) {
     this.live();
     this.row = parseReturnProjectionV2(input);this.layout = returnProjectionV2Layout(this.row.fields.length,this.row.artifact.pages,this.row.outputCapacity,this.row.groups);
@@ -76,13 +77,12 @@ export class ReturnProjectionV2 {
     this.live();
     const rng = prepareV2Rng(layout,before === undefined ? [] : [{ binding: 1,stream: 1,algorithm: 1,
       state: [before.state,before.initial,Number(before.scrambledFork),0,0,0] }]);
-    const fields = Array.from({ length: candidates.length+1 },(_,actor) => {
-      const names = this.columns[actor] ??= this.row.fields.map(name => `${String(actor)}/${name}`);
-      return this.row.fields.map((name,index) => {
-        const value = frames[actor]?.[name];
-        return { name: names[index] ?? `${String(actor)}/${name}`,id: actor*this.row.fields.length+index+1,...(value === undefined ? {} : { value }) };
-      });
-    }).flat();
+    const columns = this.columns[candidates.length] ??= Array.from({ length: candidates.length+1 },(_,actor) => this.row.fields.map((field,index) => ({ actor,index,field,name: `${String(actor)}/${field}` })))
+      .flat().sort((a,b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
+    const fields = columns.map(({ actor,index,field,name }) => {
+      const value = frames[actor]?.[field],id = actor*this.row.fields.length+index+1;
+      return value === undefined ? { name,id } : { name,id,value };
+    });
     const input = prepareV2Observations(layout,0,{ bindings: [{ identity: 'projection',handle: 1,self: 1,player: 0,observed: new Set([1]),enabled: true,due: true,
       divisor: 6,fuel: 400000,previousTick: 0,currentTick: 0,state: [],parameters: [{ name: 'signal',value: signalId }],fields,sample: { atTick: 0,target: 0 } }],
     players: [],edges: [],events: [],actions: new Set(),eventKinds: new Set() });

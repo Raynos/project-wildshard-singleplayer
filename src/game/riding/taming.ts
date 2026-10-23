@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import * as v from 'valibot';
 import type {Scope} from '@wildshard/engine/app/scope';
-import {V2_ACTION_OPS,type V2ActionBinding,type V2ActionTarget} from '@wildshard/format/scriptActionsV2';
+import {V2_ACTION_OPS,type V2ActionBinding,type V2ActionOperation,type V2ActionTarget} from '@wildshard/format/scriptActionsV2';
 import {ReturnProgram} from '../population/returnProgram';
 import type {PreparedProjectionV2} from '../population/returnProjectionV2';
 import {prepareV2WorldActions,type PreparedV2WorldActions,type TamingActionResult,type V2WorldActionLoan} from '../shardfile/worldActionsV2';
@@ -15,6 +15,8 @@ const Saved = v.strictObject({ version: v.literal(3), phase: v.picklist(['wild',
   clock: v.pipe(finite, v.minValue(0), v.maxValue(.1)), prev: v.nullable(v.tuple([finite, finite, finite])) });
 
 type SavedTaming=v.InferOutput<typeof Saved>;
+/** the action operations a taming step may emit (none on a read-only eligibility check), made once */
+const WRITES:ReadonlySet<V2ActionOperation>=new Set(Object.values(V2_ACTION_OPS).filter(op=>op===23||op>=26)),READ_ONLY:ReadonlySet<V2ActionOperation>=new Set();
 /** a taming key in the programme's camelCase (`zz_h_dot` -> `zzHDot`), made once per key (G639: every probe frame ran the
  *  regex over every frame and candidate key) */
 const camelKeys = new Map<string, string>();
@@ -64,13 +66,20 @@ export class TamingSession<A extends TamingHorse,H extends TamingHerd<A>> {
       if(capture===3){const a=this.promptHorse;if(a===null)throw new Error('Missing taming actor');Object.assign(extra,{zz_adoptX:a.position.x,zz_adoptZ:a.position.z,zz_adoptYaw:a.yaw});}
       const actors=[...this.actors.values()],id=(name:string|null):number=>name===null?0:actors.findIndex(a=>a.entityId===name)+1;
       if(actors.length>64)throw new Error('Taming owner capacity');
-      const slots={phase:['wild','breaking','bonded'].indexOf(this.phase),bonded:id(this.bonded),upgraded:Number(this.upgraded),herd:this.herd??-1,stallion:id(this.stallion),clock:this.clock,previous:Number(this.previous!==null),prevX:this.previous?.[0]??0,prevY:this.previous?.[1]??0,prevZ:this.previous?.[2]??0,...Object.fromEntries(Array.from({length:8},(_,i)=>[`drove${String(i)}`,[...this.drove][i]??-1]))};
-      const frame:Record<string,number>={...observed.frame,...Object.fromEntries(Object.entries(slots).map(([key,value])=>[`zz_${key}`,value])),...Object.fromEntries(Object.entries(this.state).map(([key,value])=>[`zz_s_${key}`,value])),...Object.fromEntries(Object.entries(this.visual).map(([key,value])=>[`zz_v_${key}`,value])),
-        ...Object.fromEntries(Object.entries(this.opts.programs.initial).map(([key,value])=>[`zz_initial_${key}`,value])),zz_mounted:id(this.opts.mount.horse?.entityId??null),zz_nativeAccepted:nativeAccepted,zz_adopted:id(adopted),zz_selectedYaw:this.promptHorse?.yaw??0,zz_candidateUpgraded:Number(this.promptHorse?.kind===this.opts.profile.upgradeKind),...extra};
-      const candidates=observed.candidates.map((row,index)=>Object.assign(row,{zz_h_actor:id(observed.ids[index]??null)}));
+      // the guest's frame is built straight in its camelCase keys, in the order (and with the overwrites) of the
+      // snake_case rows it was once spread from; no per-step snake object and re-keyed copy
+      const frame:Record<string,number>={},put=(key:string,value:number):void=>{frame[camel(key)]=value;},drove=[...this.drove],previous=this.previous;
+      for(const [key,value] of Object.entries(observed.frame))put(key,value);
+      put('zz_phase',['wild','breaking','bonded'].indexOf(this.phase));put('zz_bonded',id(this.bonded));put('zz_upgraded',Number(this.upgraded));put('zz_herd',this.herd??-1);put('zz_stallion',id(this.stallion));put('zz_clock',this.clock);
+      put('zz_previous',Number(previous!==null));put('zz_prevX',previous?.[0]??0);put('zz_prevY',previous?.[1]??0);put('zz_prevZ',previous?.[2]??0);for(let i=0;i<8;i++)put(`zz_drove${String(i)}`,drove[i]??-1);
+      for(const [key,value] of Object.entries(this.state))put(`zz_s_${key}`,value);for(const [key,value] of Object.entries(this.visual))put(`zz_v_${key}`,value);
+      for(const [key,value] of Object.entries(this.opts.programs.initial))put(`zz_initial_${key}`,value);
+      put('zz_mounted',id(this.opts.mount.horse?.entityId??null));put('zz_nativeAccepted',nativeAccepted);put('zz_adopted',id(adopted));put('zz_selectedYaw',this.promptHorse?.yaw??0);put('zz_candidateUpgraded',Number(this.promptHorse?.kind===this.opts.profile.upgradeKind));
+      for(const [key,value] of Object.entries(extra))put(key,value);
+      const candidates=observed.candidates.map((row,index)=>{const out:Record<string,number>={};for(const [key,value] of Object.entries(row))out[camel(key)]=value;out[camel('zz_h_actor')]=id(observed.ids[index]??null);return out;});
       const targets=new Map<number,V2ActionTarget>([[1,{identity:'service',kind:'taming'}],[2,{identity:'mount',kind:'mount'}],...Array.from({length:8},(_,i):[number,V2ActionTarget]=>[16+i,{identity:`herd:${String(i)}`,kind:'taming-herd'}]),...actors.map((a,i):[number,V2ActionTarget]=>[64+i,{identity:a.entityId,kind:'taming-actor'}])]);
-      const binding:V2ActionBinding={identity:'taming',handle:1,targets,operations:new Set(readOnly?[]:Object.values(V2_ACTION_OPS).filter(op=>op===23||op>=26)),maxCommands:32,bounds:{coordinate:Number.MAX_VALUE,velocity:0}};
-      const prepared:PreparedProjectionV2=this.project(camel(signal),Object.fromEntries(Object.entries(frame).map(([key,value])=>[camel(key),value])),new Map([[1,binding]]),candidates.map(row=>Object.fromEntries(Object.entries(row).map(([key,value])=>[camel(key),value]))));
+      const binding:V2ActionBinding={identity:'taming',handle:1,targets,operations:readOnly?READ_ONLY:WRITES,maxCommands:32,bounds:{coordinate:Number.MAX_VALUE,velocity:0}};
+      const prepared:PreparedProjectionV2=this.project(camel(signal),frame,new Map([[1,binding]]),candidates);
       result=prepared.values;const number=(key:string):number=>{const value=result[camel(`zz_${key}`)];if(value===undefined||!Number.isFinite(value))throw new Error('Missing taming continuation output');return value;};
       const bit=(key:string):number=>{const value=number(key);if(value!==0&&value!==1)throw new Error('Invalid taming flag');return value;};
       const nextSignal=number('next'),nextCapture=number('capture'),nextPresent=bit('present'),nextUpgrade=bit('upgrade');bit('accept');
