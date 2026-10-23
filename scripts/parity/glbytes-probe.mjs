@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // SF22b: full, uncapped resident GL census after visiting every authored standing pose.
 // scripts/browser-lane.sh node scripts/parity/glbytes-probe.mjs <preview-url> <output.json> [shard] [phone|desktop]
+// Add --tile-census --pin=<full SHA> for scalar scene-buffer links and 4x phone CPU.
 // Serve a pinned build first with scripts/serve-build.sh --head, from your scratchpad. Phone render scale is 2x.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
@@ -8,9 +9,13 @@ import { chromium, devices } from 'playwright';
 import { GL_INIT, GL_FULL_INIT } from './glbytes.mjs';
 import { saveFixtureCode } from '../debug-settings.mjs';
 
+// Full SHA comes from the serve-build lease; HTTP confirms its build stamp.
+const tileCensus = process.argv.includes('--tile-census');
+const pin = process.argv.find(arg => arg.startsWith('--pin='))?.slice(6);
+if ((tileCensus || pin !== undefined) && !/^[a-f0-9]{40}$/u.test(pin ?? '')) throw new Error('Tile census requires --pin=<full served SHA>');
 const labelMode = process.argv.find(arg => arg.startsWith('--gl-labels='))?.slice(12) ?? 'sampled';
 if (!['sampled', 'full'].includes(labelMode)) throw new Error('GL labels must be sampled or full');
-const [url, output, shard = 'pine-hollow', tier = 'phone'] = process.argv.slice(2).filter(arg => !arg.startsWith('--gl-labels='));
+const [url, output, shard = 'pine-hollow', tier = 'phone'] = process.argv.slice(2).filter(arg => !arg.startsWith('--gl-labels=') && !arg.startsWith('--pin=') && arg !== '--tile-census');
 if (!url || !output || !['phone', 'desktop'].includes(tier)) throw new Error('Usage: glbytes-probe.mjs <preview-url> <output.json> [shard] [phone|desktop]');
 const browser = await chromium.launch({ channel: 'chromium', args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
@@ -19,19 +24,26 @@ try {
     : { viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2, serviceWorkers: 'block' });
   await context.addInitScript(labelMode === 'full' ? GL_FULL_INIT : GL_INIT);
   await context.addInitScript([
-    saveFixtureCode({ scope: 'global', key: 'settings', data: { tier, fps: 'auto' }, merge: true }),
+    saveFixtureCode({ scope: 'global', key: 'settings', data: { tier, fps: 'auto', volume: 0 }, merge: true }),
     saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } }),
     saveFixtureCode({ scope: 'device', key: 'devMode', data: true }),
   ].join(';'));
   const page = await context.newPage();
+  if (tileCensus && tier === 'phone') {
+    const cdp = await context.newCDPSession(page);
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  }
   const errors = /** @type {string[]} */ ([]);
   page.on('pageerror', (error) => errors.push(error.message));
   const version = await (await page.request.get(new URL('/version.json', url).href)).json();
+  if (pin !== undefined && !String(version.build).startsWith(`${pin.slice(0, 7)}-`)) throw new Error('Census build stamp differs from served SHA');
   await context.addInitScript((build) => {
     window.__wildshardHarness = { seed: 1, capture: null, lane: 'glbytes-census', sha: build, browser: 'chromium', errors: [], audioRequests: [], saves: { read: [], written: [] } };
   }, String(version.build));
   await page.goto(`${url}/?chunk=${encodeURIComponent(shard)}&mute=1&skipintro=1&nolock=1&sw=0`);
   await page.waitForFunction('Boolean(window.__wildshard?.world?.game) && !document.querySelector(".ws-load")', undefined, { timeout: 120000 });
+  const actual = await page.evaluate('window.__wildshard.requireWorld().game.level.id');
+  if (actual !== shard) throw new Error(`Census requested ${shard}, entered ${actual}`);
   const poses = await page.evaluate(async () => {
     const cameras = await window.__wildshard.requireWorld().game.level.capturePoses?.() ?? {};
     return Object.entries(cameras).flatMap(([name, camera]) => camera.probe ? [{ ...camera.probe, name }] : camera.feet ? [{ name, x: camera.feet[0], y: camera.feet[1], z: camera.feet[2], yaw: -camera.yaw * Math.PI / 180, pitch: camera.pitch * Math.PI / 180 }] : []);
@@ -60,7 +72,24 @@ try {
       renderScale:g.renderer.getPixelRatio(),canvas:[g.canvas.width,g.canvas.height],viewport:[innerWidth,innerHeight],
       renderer:g.renderer.getContext().getParameter(g.renderer.getContext().RENDERER)};
   })()`));
-  const record = { version, shard, tier, labelMode, poses: ['spawn', ...poses.map((pose) => pose.name)], observed, errors };
+  let tileData = {};
+  if (tileCensus) {
+    const allocation = await page.evaluate('window.__wildshard.memory()');
+    const nodes = await page.evaluate(`(() => {
+      const rows = [];
+      window.__wildshard.requireWorld().game.scene.traverse(node => {
+        const geometry = node.geometry;
+        if (!geometry?.isBufferGeometry) return;
+        const attributes = [...Object.values(geometry.attributes), geometry.index, node.instanceMatrix, node.instanceColor].filter(Boolean);
+        const buffers = [...new Set(attributes.flatMap(value => window.__sc_gl_source_ids?.(value.isInterleavedBufferAttribute ? value.data : value) ?? []))];
+        const parents = []; for (let at = node; at !== null; at = at.parent) parents.unshift(at.name || at.type);
+        rows.push({ path: parents.join('/'), type: node.type, buffers });
+      });
+      return rows;
+    })()`);
+    tileData = { pinned: pin, cpuRate: tier === 'phone' ? 4 : 1, allocation, nodes };
+  }
+  const record = { ...tileData, version, shard, tier, labelMode, poses: ['spawn', ...poses.map((pose) => pose.name)], observed, errors };
   mkdirSync(dirname(output), { recursive: true });
   writeFileSync(output, `${JSON.stringify(record, null, 2)}\n`);
   console.log(`${shard}.${tier}: ${observed.contexts.reduce((sum, c) => sum + c.resources.length, 0)} resources, ${observed.totalBytes} bytes (${(observed.totalBytes / 2 ** 20).toFixed(2)} MiB), ${observed.unlabelled} unlabelled, reconciled=${observed.reconciled}`);
