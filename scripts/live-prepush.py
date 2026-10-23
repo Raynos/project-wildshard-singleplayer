@@ -58,6 +58,19 @@ def failure_paths(output):
     return sorted(set(re.findall(r'(?<![\w])((?:src|scripts|test|admin|api|drafts|lint|vite)/[^\s():\x1b]+\.(?:json|[cm]?[jt]sx?|py|sh))\b', plain)))
 
 
+def json_path_list(output):
+    """Read the last JSON payload despite merged, trailing tool diagnostics."""
+    for line in reversed(ANSI.sub('', output).splitlines()):
+        try:
+            value = json.loads(line)
+        except ValueError:
+            continue
+        if isinstance(value, list) and all(isinstance(path, str) for path in value):
+            return value
+        raise ValueError('Expected a JSON array of paths')
+    raise ValueError('Missing JSON array of paths')
+
+
 def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_available=True,
           tests_available=None, test_revision=None, deleted=(), typed_files=()):
     files = changed(root, base, tip) if files is None else files
@@ -109,7 +122,11 @@ def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_a
                 result.update(phase='selection', output=output, files=failure_paths(output))
                 return result
             if rc == 0:
-                tests = json.loads(output.strip().splitlines()[-1])
+                try:
+                    tests = json_path_list(output)
+                except ValueError as error:
+                    result.update(phase='selection', output=f'Invalid related selector output: {error}\n{output}', files=[])
+                    return result
                 tests = [test for test in tests if test not in guards]
                 result['output'] += '\n' + output
                 if tests:
@@ -134,7 +151,11 @@ def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_a
                 return result
             lint = list(typed_files)
             if rc == 0:
-                lint = list(dict.fromkeys([*lint, *json.loads(output.strip().splitlines()[-1])]))
+                try:
+                    lint = list(dict.fromkeys([*lint, *json_path_list(output)]))
+                except ValueError as error:
+                    result.update(phase='importers', output=f'Invalid importer selector output: {error}\n{output}', files=[])
+                    return result
             else:
                 result['output'] += '\nImporter selection reached the ceiling; typed importers run in CI'
             if lint and deadline - time.monotonic() > 1:

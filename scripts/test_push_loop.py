@@ -139,6 +139,42 @@ class PushLoop(unittest.TestCase):
         self.assertIn('oxlint', commands[-1])
         self.assertEqual(result['types'], 'pre-commit+importers')
 
+    def test_selector_diagnostics_after_json_do_not_crash_or_skip_tests(self):
+        tip = self.commit('src/good.ts')
+        commands = []
+        def runner(command, *_):
+            commands.append(command)
+            if '--live' in command:
+                # rc=0 with a diagnostic after JSON matches the observed crash:
+                # merged stderr can arrive after the selector writes its array.
+                return 0, 'selection complete\n["test/unit.test.ts"]\n\x1b[33mVite warning after shutdown\x1b[0m\n'
+            if 'importers' in command:
+                return 0, '["src/good.ts"]\nNode diagnostic after stdout\n'
+            return 0, ''
+        result = LIVE['check'](self.root, self.base, tip, time.monotonic() + 45, runner)
+        self.assertTrue(result['ok'], result)
+        self.assertTrue(any('test/unit.test.ts' in command for command in commands))
+        self.assertTrue(any('oxlint' in command and 'src/good.ts' in command for command in commands))
+        self.assertEqual(LIVE['json_path_list']('[]\ntrailing warning'), [])
+
+    def test_invalid_selector_output_refuses_with_diagnostics_without_exception(self):
+        tip = self.commit('src/good.ts')
+        for payload in ['', 'not JSON', '{}', '[1]', '["test/unit.test.ts"']:
+            with self.subTest(payload=payload):
+                def runner(command, *_):
+                    return (0, payload) if '--live' in command else (0, '')
+                result = LIVE['check'](self.root, self.base, tip, time.monotonic() + 45, runner)
+                self.assertFalse(result['ok'])
+                self.assertEqual(result['phase'], 'selection')
+                self.assertEqual(result['files'], [])
+                self.assertIn('Invalid related selector output', result['output'])
+        def malformed_importers(command, *_):
+            return (0, '[]') if '--live' in command else (0, 'not JSON')
+        result = LIVE['check'](self.root, self.base, tip, time.monotonic() + 45, malformed_importers)
+        self.assertFalse(result['ok'])
+        self.assertEqual(result['phase'], 'importers')
+        self.assertIn('Invalid importer selector output', result['output'])
+
     def test_edit_during_tests_cannot_earn_a_pass(self):
         tip = self.commit('src/good.ts')
         def runner(command, *_):
