@@ -26,6 +26,8 @@ test('invalid events, channels, slots and conflicting retention refuse before al
     {...rows,retainEvents:{step:{value:'step'}}},
     {...rows,signals:{...rows.signals,other:'unknown'}},
     {...rows,outputs:['unknown']},
+    {...rows,outputsEvents:{missing:['value']}},
+    {...rows,outputsEvents:{step:['unknown']}},
   ])expect(()=>ProjectedState.preflight(row,declared)).toThrow();
   expect(()=>ProjectedState.preflight({...rows,initial:{...rows.initial,value:Number.NaN}},declared)).toThrow('Invalid projection state');
 });
@@ -38,4 +40,21 @@ test('missing event outputs and a corrupt retained bank refuse before RNG/state 
   output={value:2,mask:4};state.state.tell=Number.NaN;expect(()=>state.event('step')).toThrow('Invalid projection state');
   expect(state.state.step).toBe(0);expect(state.state.value).toBe(0);expect(accepted).toBe(0);
   state.reset();state.event('step');expect(accepted).toBe(1);expect(state.state).toStrictEqual({value:2,step:4,tell:-0});
+});
+
+
+test('event output banks validate before acceptance without requiring another event bank',()=>{
+  let accepted=0,output:Readonly<Record<string,number>>={value:2,mask:-0};
+  const row={initial:{value:0},signals:{member:'advance',damage:'draw'},outputsEvents:{member:['value','mask'],damage:['mask']}};
+  ProjectedState.preflight(row,declared);
+  const state=new ProjectedState(row,{project:()=>output,prepare:()=>({values:output,accept:()=>{accepted++;}})});
+  state.event('member');expect(state.value('value')).toBe(2);expect(accepted).toBe(1);
+  output={mask:.5};state.event('damage');expect(state.value('value')).toBe(2);expect(accepted).toBe(2);
+  for(const bad of [{value:3},{value:3,mask:Number.NaN},{value:3,mask:Number.POSITIVE_INFINITY}]){
+    output=bad;expect(()=>state.event('member')).toThrow('Missing required projection output');
+    expect(state.value('value')).toBe(2);expect(accepted).toBe(2);
+  }
+  output={value:-0,mask:-0};const result=state.event('member');
+  expect(Object.is(state.value('value'),-0)).toBe(true);expect(Object.is(result['mask'],-0)).toBe(true);
+  expect(accepted).toBe(3);state.reset();expect(state.value('value')).toBe(0);
 });

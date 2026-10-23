@@ -10083,8 +10083,11 @@ gates and six-attempt land placement are Driftwood's behaviour/returns.as.
 numeric guest channels and event aliases. Its state/reset operations do not
 invoke rules; `restart` resets then requests the guest's reset event, and
 `step` requests at most one decision per 100 ms without catch-up bursts.
-Nalati's actual arena clocks and Nine's actual grapple course share this
-renderer-free owner. Bodies, field grids and presentation remain external.
+Optional `outputsEvents` rows require each event's complete finite channel
+bank before accepting borrowed RNG or retained state; other events keep their
+own requirements. Admission checks event aliases and channels before allocating
+a program. Nalati's actual arena clocks and Nine's actual grapple course share
+this renderer-free owner. Bodies, field grids and presentation remain external.
 
 RespawnQueue can select this concrete policy owner; place retains entry
 identity when a guest defers it. ReturnGate keeps native corpse/fade clocks in

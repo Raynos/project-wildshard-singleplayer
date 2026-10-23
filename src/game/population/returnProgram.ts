@@ -187,6 +187,8 @@ interface ProjectedStateRows<S extends Record<string,number>> {
   readonly signals?:Readonly<Record<string,string>>; readonly signal?:string;
   /** Required numeric outputs retained only at their original event slot. */
   readonly retainEvents?:Readonly<Record<string,Readonly<Record<string,string>>>>;
+  /** Complete required bank for one event, checked before RNG or state accepts. */
+  readonly outputsEvents?:Readonly<Record<string,readonly string[]>>;
 }
 export class ProjectedState<S extends Record<string,number> = Record<string,number>> {
   readonly state:S;
@@ -200,6 +202,11 @@ export class ProjectedState<S extends Record<string,number> = Record<string,numb
     const signals=program===undefined?null:new Set(Object.values(program.script.signals));
     if(signals!==null&&[...Object.values(row.signals??{}),...(row.signal===undefined?[]:[row.signals===undefined?row.signal:row.signals[row.signal]])].some(signal=>signal===undefined||!signals.has(signal)))throw new Error('Missing projection event');
     if(channels!==null&&row.outputs?.some(channel=>!channels.has(channel))===true)throw new Error('Missing projection channel');
+    for(const [event,outputs]of Object.entries(row.outputsEvents??{})){
+      const signal=row.signals===undefined?event:row.signals[event];
+      if(signal===undefined||signals!==null&&!signals.has(signal))throw new Error('Missing projection event');
+      if(channels!==null&&outputs.some(channel=>!channels.has(channel)))throw new Error('Missing projection channel');
+    }
     for(const [event,map]of Object.entries(row.retainEvents??{})){
       const signal=row.signals===undefined?event:row.signals[event];
       if(signal===undefined||signals!==null&&!signals.has(signal))throw new Error('Missing projection event');
@@ -229,6 +236,7 @@ export class ProjectedState<S extends Record<string,number> = Record<string,numb
     const input={...this.row.parameters,...this.state,...frame},prepared=this.program.prepare?.(signal,input,random,candidates);
     const out=prepared?.values??this.program.project(signal,input,random,candidates),next:Record<string,number>={...this.state},eventRetain=this.row.retainEvents?.[event];
     if(this.row.outputs?.some(key=>!Number.isFinite(out[key]))===true
+      ||this.row.outputsEvents?.[event]?.some(key=>!Number.isFinite(out[key]))===true
       ||Object.keys(eventRetain??{}).some(key=>!Number.isFinite(out[key])))throw new Error('Missing required projection output');
     for(const [channel,slot]of Object.entries({...this.retain,...eventRetain})){const value=out[channel];if(value!==undefined)next[slot]=value;}
     if(Object.entries(next).some(([key,value])=>!Object.hasOwn(this.row.initial,key)||!Number.isFinite(value)))throw new Error('Invalid projection state');

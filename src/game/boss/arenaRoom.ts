@@ -60,7 +60,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { GroundTell } from '../Elite';
 import type { ArcWeaponPower } from '../weapons/arcPower';
 import type { CosmeticFinishLocker } from '../loadout/cosmeticFinishes';
-import { pageRidingMount, respawnPageMounted,arenaBlockedAt,installArenaBoundary,type ArenaBoundary } from '../riding/client';
+import { pageRidingMount, respawnPageMounted,installArenaBoundary,type ArenaBoundary } from '../riding/client';
 import type { Mount } from '../riding/mount';
 import {V2_ACTION_OPS,type V2ActionBinding} from '@wildshard/format/scriptActionsV2';
 import {prepareV2WorldActions,type V2WorldActionLoan} from '../shardfile/worldActionsV2';
@@ -623,6 +623,7 @@ class OpenArenaProjection implements BossScript {
   // phase II
   private stormRiders: SupportActor[] = [];
   private readonly support: ProjectedState;
+  private readonly memberOutputs: readonly string[];
   private get domeBroken(): boolean { return this.life.value('broke')===1; }
   private set domeBroken(on: boolean) { this.life.event('support',{ hp: this.hp,broke: Number(on) }); }
   // phase III
@@ -669,10 +670,13 @@ class OpenArenaProjection implements BossScript {
       ||[...retain.map(([channel])=>channel),'strike','stuck','hurt','spread',clocks.spear,...clocks.landings.flatMap(row=>[row.strike,row.hurt])].some(key=>!outputs.includes(key))
       ||channels!==undefined&&outputs.some(key=>!channels.includes(key))
       ||Object.keys(clocks.clear).length!==slots.length||slots.some(key=>!Object.hasOwn(clocks.clear,key)||!Object.is(clocks.clear[key],state[key])))throw new Error('Invalid encounter clock bank');
+    const actors=data.support.actors;
+    if(actors===undefined||Object.entries(data.support.commit).some(([slot,value])=>!Object.hasOwn(data.support.member,slot)||!Number.isFinite(value)))throw new Error('Invalid support actor binding');
+    this.memberOutputs=['show','alpha','hurt',...Object.values(actors.memory)];
     const bindings=ReturnProgram.projectionBindings(data.programs.attack);
     ProjectedState.preflight(data.script.fight,bindings);
-    ProjectedState.preflight(clocks.frame,bindings);ProjectedState.preflight({...data.support,signal:'couple'},bindings);
-    ProjectedState.preflight({initial:{...data.support.member,theta:0},parameters:data.support.parameters,signals:data.support.signals,signal:'member'},bindings);
+    ProjectedState.preflight(clocks.frame,bindings);ProjectedState.preflight({...data.support,signal:'couple',outputs:['index','hp','mask','broke']},bindings);
+    ProjectedState.preflight({initial:{...data.support.member,theta:0},parameters:data.support.parameters,signals:data.support.signals,signal:'member',outputsEvents:{member:this.memberOutputs,damage:['alpha']}},bindings);
     const windBindings=ReturnProgram.projectionBindings(data.programs.wind);
     for(const law of data.whirls.laws)ProjectedState.preflight(law,windBindings);
     if(data.field.contact!==undefined)ProjectedState.preflight(data.field.contact.law,windBindings);
@@ -684,7 +688,7 @@ class OpenArenaProjection implements BossScript {
     this.field = new CellField(this.data.field, windLaw, app.rng.stream('ai'));
     this.boundary = { field: this.field,boundary: data.boundary,mask: 0 };
     this.life = new ProjectedState(this.data.script.fight,this.author);
-    this.support = new ProjectedState({...this.data.support,signal:'couple'},this.author);
+    this.support = new ProjectedState({...this.data.support,signal:'couple',outputs:['index','hp','mask','broke']},this.author);
     this.body = arenaScriptCloud(scene, this.pose, data);
     this.fightDraw = installChannelPrograms(this.data.geometry.poses, this.data.view.group, new Map<string,unknown>([
       ['pose',this.pose],['alpha',this.body.alpha],['flash',this.body.flash],['fight',this.viewRead],
@@ -921,7 +925,7 @@ class OpenArenaProjection implements BossScript {
       const lane = this.arena.tells('lane')[i];
       if (lane === undefined) continue;
       const rows=this.data.support,actors=rows.actors;if(actors===undefined)throw new Error('Missing support actor rows');
-      const law=new ProjectedState({initial:{...rows.member,theta:site.theta},parameters:rows.parameters,signals:rows.signals,signal:'member'},this.author),player=this.host.player.position;
+      const law=new ProjectedState({initial:{...rows.member,theta:site.theta},parameters:rows.parameters,signals:rows.signals,signal:'member',outputsEvents:{member:this.memberOutputs,damage:['alpha']}},this.author),player=this.host.player.position;
       a.maxHp=actors.hp;a.hp=actors.hp;
       setEliteDamage(a,(body,point)=>law.event('damage',{x:point.x,z:point.z,px:player.x,pz:player.z,radius:body.scale})['alpha']??1);
       const r: SupportActor = { a,lane,law };
@@ -1024,10 +1028,6 @@ class OpenArenaProjection implements BossScript {
     wildEnv.onEvent('lightning', x, z);
   }
 
-  /** the storm wall and the fire line the horse will not ride into */
-  refuses(x: number, z: number): boolean {
-    return arenaBlockedAt(this.field, { x, z }, this.data.boundary, this.life.value(this.data.script.fight.retainEvents.step.mask));
-  }
 }
 
 export class ArenaRoomEncounter {
