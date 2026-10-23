@@ -1,3 +1,7 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Admit the original foliage rows without inferring their full JSON type.
+import { readFileSync } from 'node:fs';
+import * as v from 'valibot';
+import { WorldScenePlacementSchema } from '../src/format/worldScenePlacement';
 import { fixtureBytes } from './fixtures/nativeBytes';
 import { expect, test } from 'vitest';
 import { BufferAttribute, type BufferGeometry } from 'three';
@@ -6,12 +10,22 @@ import { placeCollider, poseOf } from '../src/engine/models/colliders';
 import { decodePalmWorld, decodeHibiscusWorld, decodeReefWorld } from '../src/shards/driftwood-isle/generators/foliageGeometry';
 import { palmColliders } from '../src/shards/driftwood-isle/generators/foliageModels';
 import { withPortableMath } from '../src/commons/bake/portableMath';
-import data from '../src/shards/driftwood-isle/data/foliageScenes.generated.json' with { type: 'json' };
 import foliage from '../src/shards/driftwood-isle/data/foliagePlacements.generated.json' with { type: 'json' };
 import reef from '../src/shards/driftwood-isle/data/reefLayout.generated.json' with { type: 'json' };
 import dressingBlobs from '../src/shards/driftwood-isle/data/dressingBlobs.generated.json' with { type: 'json' };
 import reefBlobs from '../src/shards/driftwood-isle/data/reefBlobs.generated.json' with { type: 'json' };
 import { DRIFTWOOD_ASSET_NAMES, DRIFTWOOD_OUTPUT } from '../src/shards/driftwood-isle/generators/assets';
+
+const finite=v.pipe(v.number(),v.finite());
+const placement=v.strictObject({...WorldScenePlacementSchema.entries,
+  drawnInto:v.object({part:v.string(),boxes:v.array(finite)}),colliders:v.array(v.unknown())});
+const foliageTier=v.object({palms:placement,hibiscus:placement});
+const data=(()=>{
+  const value:unknown=JSON.parse(readFileSync('src/shards/driftwood-isle/data/foliageScenes.generated.json','utf8'));
+  v.assert(v.object({blobs:v.array(v.object({name:v.string(),source:v.string()})),
+    libraries:v.array(v.object({models:v.array(v.object({file:v.union([v.string(),v.record(v.string(),v.string())])}))})),
+    placements:v.object({phone:foliageTier,desktop:foliageTier})}),value);return value;
+})();
 
 const project = new URL('../src/shards/driftwood-isle/', import.meta.url);
 test('runtime foliage uses the finished GLBs without dangling retired transport aliases', () => {

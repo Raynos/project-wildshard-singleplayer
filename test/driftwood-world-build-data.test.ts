@@ -1,3 +1,5 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Read the authored foliage fixture without a generated JSON type program.
+import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { floorAtRects } from '@wildshard/engine/physics/box';
 import * as v from 'valibot';
@@ -6,8 +8,14 @@ import { output } from '../src/shards/driftwood-isle/generators/output';
 import { decodeEntryDecks } from '../src/shards/driftwood-isle/generators/entryDecks';
 import decks from '../src/shards/driftwood-isle/data/entryDecks.generated.json' with { type: 'json' };
 import { WORLD_PLACEMENTS,uprightPoses } from '../src/shards/driftwood-isle/generators/worldPlacements';
-import authoredScenes from '../src/shards/driftwood-isle/data/foliageScenes.generated.json' with {type:'json'};
 import foliage from '../src/shards/driftwood-isle/data/foliagePlacements.generated.json' with { type: 'json' };
+
+const finite=v.pipe(v.number(),v.finite());
+const placement=v.strictObject({...WorldScenePlacementSchema.entries,poses:v.array(v.object({x:finite,y:finite,z:finite,
+  matrix:v.array(finite),params:v.exactOptional(v.record(v.string(),v.unknown()))}))});
+const foliageTier=v.object({palms:placement,hibiscus:placement});
+const authoredScenes=v.parse(v.object({placements:v.object({phone:foliageTier,desktop:foliageTier})}),
+  JSON.parse(readFileSync('src/shards/driftwood-isle/data/foliageScenes.generated.json','utf8')));
 
 function rows(tier:'phone'|'desktop',kind:'palms'|'hibiscus') {
   const name=`world/foliage/${kind}-${tier}.json`,file=output.namedFiles.find(row=>row.name===name),bytes=file===undefined?undefined:output.assets.get(file.hash);
