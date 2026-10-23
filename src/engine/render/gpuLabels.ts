@@ -357,7 +357,8 @@ export function installGpuLabels(renderer: Renderer, developer: () => boolean = 
       // SF69: outside the census, a handle already tagged with this label is not re-tagged on every property read
       const last = tags.get(value);
       const same = last !== undefined && last.owner === label.owner && last.base === label.asset && last.priority === label.priority;
-      if (same && (!census() || sampledCensus())) return;
+      // the census hooks as this render read them (G639: two window lookups a tagged handle on every properties read)
+      if (same && (!drawCensus || drawSampled)) return;
       if (!same) tags.set(value, { owner: label.owner, base: label.asset, priority: label.priority });
       emit('__sc_label_gl', value, derive(label, role));
     };
