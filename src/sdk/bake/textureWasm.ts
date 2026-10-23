@@ -6,10 +6,13 @@ import { mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Local dependency artifacts, never an author-supplied path or URL.
 import { dirname, join } from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- The trusted build runner opts into its private transform cache.
+import process from 'node:process';
 import { readImagePixels } from './image';
 import { worldImageInfo } from './worldImage';
 import { hashImmutableBytes } from '../immutable';
 import { parseKtx2 } from '../assets';
+import { cachedWorldTexture } from './worldTextureMemo';
 
 /** Exact packaged encoder artifacts; lockfile integrity pins the containing dependency as well. */
 export const WORLD_TEXTURE_TOOL = Object.freeze({
@@ -17,6 +20,7 @@ export const WORLD_TEXTURE_TOOL = Object.freeze({
   glue: 'd204cc62dfdf910f92bce616872a6d6057b6d2b45bbaffbc0ef047375351e4a6',
   wasm: '62ce0364ea8f4969e1e4277ce275213dcce5b234c8c96586da06e3879010341c',
 });
+const settings = Object.freeze({ktx2:true,supercompression:true,quality:128,uastc:true,mips:true,sourceIsPng:false});
 interface Encoder {
   setCreateKTX2File: (value: boolean) => void; setKTX2UASTCSupercompression: (value: boolean) => void;
   setKTX2SRGBTransferFunc: (value: boolean) => void; setSliceSourceImage: (slice: number, data: Uint8Array, width: number, height: number, png: boolean) => void;
@@ -52,15 +56,26 @@ export async function bakeWorldTexture(image: Uint8Array, colourSpace: 'srgb' | 
   if (!['srgb', 'linear'].includes(colourSpace)) throw new Error('World texture transfer must be srgb or linear');
   const info = await worldImageInfo(image), size: [number, number] = [info.width, info.height];
   const decoded = await readImagePixels(image, options);
-  basis ??= loadBasis(); const module = await basis, raw = new module.BasisEncoder();
+  // Even a memo hit loads and verifies the exact pinned encoder artifacts.
+  basis ??= loadBasis(); const module = await basis;
+  const pixels = new Uint8Array(decoded.pixels.buffer, decoded.pixels.byteOffset, decoded.pixels.byteLength);
+  const key = hashImmutableBytes(new TextEncoder().encode(JSON.stringify({schema:1,tool:WORLD_TEXTURE_TOOL,settings,colourSpace,size,pixels:hashImmutableBytes(pixels)})));
+  return cachedWorldTexture(process.env['WILDSHARD_WORLD_TEXTURE_CACHE'],key,()=>{
+  const raw = new module.BasisEncoder();
   if (!encoderApi(raw)) throw new Error('Invalid pinned encoder methods');
   try {
     const srgb = colourSpace === 'srgb';
-    raw.setCreateKTX2File(true); raw.setKTX2UASTCSupercompression(true); raw.setKTX2SRGBTransferFunc(srgb);
-    raw.setSliceSourceImage(0, new Uint8Array(decoded.pixels.buffer, decoded.pixels.byteOffset, decoded.pixels.byteLength), size[0], size[1], false); raw.setPerceptual(srgb); raw.setMipSRGB(srgb);
-    raw.setQualityLevel(128); raw.setUASTC(true); raw.setMipGen(true);
+    raw.setCreateKTX2File(settings.ktx2); raw.setKTX2UASTCSupercompression(settings.supercompression); raw.setKTX2SRGBTransferFunc(srgb);
+    raw.setSliceSourceImage(0, pixels, size[0], size[1], settings.sourceIsPng); raw.setPerceptual(srgb); raw.setMipSRGB(srgb);
+    raw.setQualityLevel(settings.quality); raw.setUASTC(settings.uastc); raw.setMipGen(settings.mips);
     const output = new Uint8Array(size[0] * size[1] * 4 + 1_048_576), length = raw.encode(output);
     if (!Number.isSafeInteger(length) || length < 1 || length > output.length || length > 25_000_000) throw new Error('World texture encoding failed or exceeded wire cap');
-    const bytes = output.slice(0, length); parseKtx2(bytes); return bytes;
+    return output.slice(0, length);
   } finally { raw.delete(); }
+  },bytes=>{
+    parseKtx2(bytes);
+    const header = new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),dfd = header.getUint32(48,true);
+    if(header.getUint32(20,true)!==size[0]||header.getUint32(24,true)!==size[1]
+      ||header.getUint32(40,true)!==1+Math.floor(Math.log2(Math.max(...size)))||bytes[dfd+14]!== (colourSpace==='srgb'?2:1)) throw new Error('World texture memo dimensions, mips or transfer differ');
+  });
 }

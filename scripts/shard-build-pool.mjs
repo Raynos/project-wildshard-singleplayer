@@ -1,6 +1,7 @@
 // Bound CPU-heavy author builds by process; the parent owns cache publication and catalogue admission.
 import { spawn } from 'node:child_process';
 import { resolve as resolvePath } from 'node:path';
+import {shardfileCacheRoot} from './shardfile-cache.mjs';
 
 /** @template T @param {readonly T[]} items @param {(item:T,signal:AbortSignal)=>Promise<void>} work */
 export async function runShardBuildPool(items, work) {
@@ -25,7 +26,7 @@ export async function runShardBuildPool(items, work) {
 export function runShardBuild(args, signal) {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, ['--import', resolvePath(import.meta.dirname,'shardfile-inputs.mjs'), resolvePath(import.meta.dirname, 'wildshard.mjs'), ...args], {
-      cwd: resolvePath(import.meta.dirname, '..'), env: process.env, signal, stdio: ['ignore', 'inherit', 'inherit'],
+      cwd: resolvePath(import.meta.dirname, '..'), env: {...process.env,WILDSHARD_WORLD_TEXTURE_CACHE:process.env.WILDSHARD_WORLD_TEXTURE_CACHE??resolvePath(shardfileCacheRoot(),'.world-textures-v1')}, signal, stdio: ['ignore', 'inherit', 'inherit'],
     });
     /** @type {Error|undefined} */
     let failure;
