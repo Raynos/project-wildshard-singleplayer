@@ -12,10 +12,15 @@ const arenaKey=v.pipe(v.string(),v.minLength(1),v.maxLength(512));
  * lifecycle, phase, damage and boundary policy. No authored ports are lent. */
 export const ArenaScriptBossProfileSchema = v.strictObject({
   kind: v.literal('boss'), pattern: v.literal('arena-script'), fight: v.strictObject({
-    initial: v.pipe(v.record(arenaKey, arenaNumber), v.maxEntries(32)),
+    initial: v.pipe(v.record(arenaKey, arenaNumber), v.maxEntries(64)),
     parameters: v.pipe(v.record(arenaKey, arenaNumber), v.maxEntries(32)),
     signals: v.pipe(v.record(arenaKey, arenaKey), v.maxEntries(16)),
     retain: v.pipe(v.record(arenaKey, arenaKey), v.maxEntries(32)),
+    retainEvents: v.strictObject({
+      step: v.strictObject({enter:arenaKey,mask:arenaKey,shield:arenaKey,show:arenaKey,active:arenaKey,arm:arenaKey,spread:arenaKey,weapon:arenaKey,dome:arenaKey}),
+      tell: v.strictObject({chainRadius:arenaKey,chainAlpha:arenaKey,tell:arenaKey,ringRadius:arenaKey,ringAlpha:arenaKey,forkRadius:arenaKey,forkAlpha:arenaKey,bend:arenaKey,bendRate:arenaKey,raise:arenaKey,raiseRate:arenaKey,castL:arenaKey,struck:arenaKey,alpha:arenaKey}),
+      intro: v.strictObject({rise:arenaKey,kneel:arenaKey,alpha:arenaKey}),
+    }),
   }),
 });
 

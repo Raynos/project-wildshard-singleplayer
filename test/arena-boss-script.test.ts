@@ -62,6 +62,35 @@ test('build admission keeps arena numeric, key and retained-channel bounds',()=>
   const parseFight=(fight:unknown)=>parse(ArenaScriptBossProfileSchema,{...TITAN_SCRIPT,fight});
   expect(()=>parseFight({...TITAN_SCRIPT.fight,initial:{hp:Infinity}})).toThrow();
   expect(()=>parseFight({...TITAN_SCRIPT.fight,parameters:{hp:1000001}})).toThrow();
-  expect(()=>parseFight({...TITAN_SCRIPT.fight,initial:Object.fromEntries(Array.from({length:33},(_,i)=>[`slot${String(i)}`,0]))})).toThrow();
+  expect(()=>parseFight({...TITAN_SCRIPT.fight,initial:Object.fromEntries(Array.from({length:65},(_,i)=>[`slot${String(i)}`,0]))})).toThrow();
   expect(()=>parseFight({...TITAN_SCRIPT.fight,signals:{['x'.repeat(513)]:'damage'}})).toThrow();
+});
+
+
+test('life snapshots match the original output records across event collisions and irregular clocks',()=>{
+  const profile=parse(ArenaScriptBossProfileSchema,TITAN_SCRIPT).fight;
+  const initial={phase:0,hp:2600,invuln:0,fighting:0,open:0,victoryT:-1,tied:0,sealed:0,broke:0,immuneT:0,introBolt:0,wall:0};
+  const old=new ProjectedState({initial,parameters:profile.parameters,signals:profile.signals,retain:profile.retain},ReturnProgram.page({script:programs.attack.script,bytes:programs.attack.bytes}));
+  const next=new ProjectedState(profile,ReturnProgram.page(programs.attack));
+  const fields={...frame,fighting:1,engaged:1,storm:1,armed:0,victory:0};
+  const same=(event:string,input:Readonly<Record<string,number>>):Readonly<Record<string,number>>=>{
+    const a=old.event(event,input),b=next.event(event,input);expect(b).toStrictEqual(a);
+    for(const key of Object.keys(initial))expect(next.value(key)).toBe(old.value(key));return b;
+  };
+  for(const phase of [0,1,2]){
+    old.reset();next.reset();same('reset',{phase,share:1});same('intro',{t:.8,amount:0});same('begin',{phase});
+    let clock=0;
+    for(const dt of [.016,.017,.067,.5,.03,.03,.04,.2]){
+      clock+=dt;const a=old.step(dt,fields),b=next.step(dt,fields);expect(b).toStrictEqual(a);
+      if(b.dt>0){
+        for(const [channel,slot]of Object.entries(profile.retainEvents.step))expect(next.value(slot)).toBe(a.values[channel]);
+        const tell=same('tell',{t:clock,mode:1,spearT:.2,chainLeft:2,bend:-0,raise:.2});
+        for(const [channel,slot]of Object.entries(profile.retainEvents.tell))expect(next.value(slot)).toBe(tell[channel]);
+      }
+      const step=Object.fromEntries(Object.values(profile.retainEvents.step).map(slot=>[slot,next.value(slot)]));
+      same('phase',{phase});same('damage',{mode:3,amount:80});
+      expect(Object.fromEntries(Object.values(profile.retainEvents.step).map(slot=>[slot,next.value(slot)]))).toStrictEqual(step);
+    }
+    same('victory',{});
+  }
 });

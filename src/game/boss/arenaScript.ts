@@ -70,7 +70,7 @@ export class ArenaScriptFight implements BossScript {
   private get open(): boolean { return this.life.value('open')===1; }
   private get victoryT(): number { return this.life.value('victoryT'); }
   // the spear
-  private readonly spearAt = new THREE.Vector3();
+  readonly spearAt = new THREE.Vector3();
   // phase II
   private stormRiders: SupportActor[] = [];
   private readonly support: ProjectedState;
@@ -82,7 +82,7 @@ export class ArenaScriptFight implements BossScript {
   private readonly fire: ArenaFireView;
   private readonly chains: Chain[];
   private get chainLeft(): number { return this.clocks.value(this.data.clocks.left); }
-  private readonly clocks:ProjectedState;
+  readonly clocks:ProjectedState;
   private readonly clockRandom=app.rng.stream('ai');
   private readonly whirls: ArenaWhirlsView;
   // the seal
@@ -92,9 +92,6 @@ export class ArenaScriptFight implements BossScript {
   private hazardDt = 0;
   readonly boundary: ArenaBoundary;
   private boundaryEffect: Readonly<Record<string,number>> | null = null;
-  private readonly frame: Record<string,number> = {};
-  private tellFrame: Readonly<Record<string,number>> = {};
-  private arenaReady = false; private arenaShield = false; private refusalMask = 0;
   private readonly author: ReturnProgram;
   readonly life: ProjectedState;
   private readonly fightDraw: ReturnType<typeof installChannelPrograms>;
@@ -111,6 +108,7 @@ export class ArenaScriptFight implements BossScript {
       ||[...retain.map(([channel])=>channel),'strike','stuck','hurt','spread',clocks.spear,...clocks.landings.flatMap(row=>[row.strike,row.hurt])].some(key=>!outputs.includes(key))
       ||channels!==undefined&&outputs.some(key=>!channels.includes(key))
       ||Object.keys(clocks.clear).length!==slots.length||slots.some(key=>!Object.hasOwn(clocks.clear,key)||!Object.is(clocks.clear[key],state[key])))throw new Error('Invalid encounter clock bank');
+    ProjectedState.preflight(data.script.fight,ReturnProgram.projectionBindings(data.programs.attack));
     this.author=ReturnProgram.page(this.data.programs.attack,ctx.game.levelScope);
     this.clocks=new ProjectedState(clocks.frame,this.author);
     const windLaw = ReturnProgram.page(this.data.programs.wind, ctx.game.levelScope);
@@ -135,12 +133,12 @@ export class ArenaScriptFight implements BossScript {
 
   // ── BossScript ──
   get hpFrac(): number { return Math.max(0, this.hp / this.data.place.heartHp); }
-  get shielded(): boolean { return this.arenaShield; }
+  get shielded(): boolean { return this.life.value(this.data.script.fight.retainEvents.step.shield)===1; }
   get dead(): boolean { return this.hp <= 0; }
   get heartOpen(): boolean {
     return this.open;
   }
-  inArena(_p: THREE.Vector3): boolean { return this.arenaReady; }
+  inArena(_p: THREE.Vector3): boolean { return this.life.value(this.data.script.fight.retainEvents.step.enter)===1; }
   /** the strip is tied (the cairn's prompt) — the threshold */
   get tied(): boolean { return this.life.value('tied')===1; }
   set tied(on: boolean) { this.life.event('tied',{ amount: Number(on) }); }
@@ -158,9 +156,7 @@ export class ArenaScriptFight implements BossScript {
 
   reset(phase: number): void {
     this.life.restart({ phase,share: this.data.phases[phase]?.at ?? 1,tied: Number(this.tied),sealed: Number(this.sealed) }); this.clocks.reset(); this.introT = -1;
-    for (const key of Object.keys(this.frame)) delete this.frame[key];
-    this.tellFrame = {}; this.boundaryEffect = null; this.hazardDt = 0;
-    this.arenaReady = false; this.arenaShield = false; this.refusalMask = 0; this.boundary.mask = 0;
+    this.boundaryEffect = null; this.hazardDt = 0; this.boundary.mask = 0;
     const b = this.body;
     Object.assign(this.pose,this.data.pose);
     b.alpha.value = 1; b.part(this.data.view.dome).visible = false;
@@ -177,8 +173,8 @@ export class ArenaScriptFight implements BossScript {
     const b = this.body; if (!b.visible) b.setVisible(true);
     if (this.introT<0 || t-this.introT>=.1-1e-9) {
       this.introT = t; const answer = this.life.event('intro',{ t,amount: Number(short) });
-      this.pose.rise = answer['rise'] ?? this.pose.rise; this.pose.kneel = answer['kneel'] ?? this.pose.kneel;
-      b.alpha.value = answer['alpha'] ?? b.alpha.value; b.flash.value = answer['flash'] ?? b.flash.value;
+      this.pose.rise = this.life.value(this.data.script.fight.retainEvents.intro.rise); this.pose.kneel = this.life.value(this.data.script.fight.retainEvents.intro.kneel);
+      b.alpha.value = this.life.value(this.data.script.fight.retainEvents.intro.alpha); b.flash.value = answer['flash'] ?? b.flash.value;
       if (answer['strike']===1) this.bolt(this.data.arena.center.x+this.data.view.introBolt.x,this.data.arena.center.z+this.data.view.introBolt.z);
     }
     return b.focusWorld(_hitP);
@@ -213,9 +209,7 @@ export class ArenaScriptFight implements BossScript {
       engaged: Number(this.host.engaged),storm: Number(this.ctx.weather.stormActive),armed: Number(boss?.state==='armed'),victory: Number(boss?.state==='victory') });
     this.hazardDt = decision.dt;
     if (decision.dt>0) {
-      Object.assign(this.frame,decision.values); this.boundaryEffect = decision.values;
-      this.arenaReady = decision.values['enter']===1; this.arenaShield = decision.values['shield']===1;
-      this.refusalMask = decision.values['mask'] ?? 0; this.boundary.mask = this.refusalMask;
+      this.boundaryEffect = decision.values; this.boundary.mask = this.life.value(this.data.script.fight.retainEvents.step.mask);
       if (decision.values['show']===0) b.setVisible(false);
     }
     this.arena.update(dt, t, this.sealed);   // the wall rises / falls with the seal
@@ -225,27 +219,27 @@ export class ArenaScriptFight implements BossScript {
     const fog = this.ctx.game.scene.fog;
     if (fog) b.fogColour.copy(fog.color);
     // the dome
-    b.part(this.data.view.dome).visible = b.visible && this.frame['dome']===1;
-    if (this.frame['active']===1 && this.fighting) {
+    b.part(this.data.view.dome).visible = b.visible && this.life.value(this.data.script.fight.retainEvents.step.dome)===1;
+    if (this.life.value(this.data.script.fight.retainEvents.step.active)===1 && this.fighting) {
       const step = this.clocks.step(dt, { phase: this.phase, fighting: Number(fighting), px: p.x, pz: p.z }, this.clockRandom);
-      if (this.frame['weapon']===1) this.updateSpear(step.values[this.data.clocks.spear]===1?step.values:undefined);
-      if (this.frame['arm']===1 && step.dt>0) this.updateRiders(step.dt);
-      if (this.frame['spread']===1 && step.dt>0) this.updateChains(step.values);
+      if (this.life.value(this.data.script.fight.retainEvents.step.weapon)===1) this.updateSpear(step.values[this.data.clocks.spear]===1?step.values:undefined);
+      if (this.life.value(this.data.script.fight.retainEvents.step.arm)===1 && step.dt>0) this.updateRiders(step.dt);
+      if (this.life.value(this.data.script.fight.retainEvents.step.spread)===1 && step.dt>0) this.updateChains(step.values);
     }
-    if (decision.dt>0) this.tellFrame = this.life.event('tell',{ t,mode: this.clocks.value('mode'),spearT: this.clocks.value('t'),chainLeft: this.chainLeft,bend: this.pose.bend,raise: this.pose.raise });
-    const tell = this.tellFrame;
-    this.pose.bend += ((tell['bend'] ?? this.pose.bend)-this.pose.bend)*Math.min(1,dt*(tell['bendRate'] ?? 0));
-    this.pose.raise += ((tell['raise'] ?? this.pose.raise)-this.pose.raise)*Math.min(1,dt*(tell['raiseRate'] ?? 0));
-    this.pose.castL += ((tell['castL'] ?? 0)-this.pose.castL)*Math.min(1,dt*4);
-    if (tell['tell']===1) {
-      this.arena.tell('spear').ring(this.spearAt.x,this.spearAt.z,tell['ringRadius'] ?? 0,tell['ringAlpha'] ?? 0);
-      this.arena.tell('fork').ring(this.spearAt.x,this.spearAt.z,tell['forkRadius'] ?? 0,tell['forkAlpha'] ?? 0);
+    if (decision.dt>0) this.life.event('tell',{ t,mode: this.clocks.value('mode'),spearT: this.clocks.value('t'),chainLeft: this.chainLeft,bend: this.pose.bend,raise: this.pose.raise });
+    const tell = this.life.state,slots=this.data.script.fight.retainEvents.tell,struck=tell[slots.struck],alpha=tell[slots.alpha];
+    this.pose.bend += ((tell[slots.bend] ?? this.pose.bend)-this.pose.bend)*Math.min(1,dt*(tell[slots.bendRate] ?? 0));
+    this.pose.raise += ((tell[slots.raise] ?? this.pose.raise)-this.pose.raise)*Math.min(1,dt*(tell[slots.raiseRate] ?? 0));
+    this.pose.castL += ((tell[slots.castL] ?? 0)-this.pose.castL)*Math.min(1,dt*4);
+    if (tell[slots.tell]===1) {
+      this.arena.tell('spear').ring(this.spearAt.x,this.spearAt.z,tell[slots.ringRadius] ?? 0,tell[slots.ringAlpha] ?? 0);
+      this.arena.tell('fork').ring(this.spearAt.x,this.spearAt.z,tell[slots.forkRadius] ?? 0,tell[slots.forkAlpha] ?? 0);
     } else { this.arena.tell('spear').hide(); this.arena.tell('fork').hide(); }
-    for (const ring of this.chains) if (this.clocks.value(ring.row.on)===1) ring.tell.ring(this.clocks.value(ring.row.x),this.clocks.value(ring.row.z),tell['chainRadius'] ?? 0,tell['chainAlpha'] ?? 0);
+    for (const ring of this.chains) if (this.clocks.value(ring.row.on)===1) ring.tell.ring(this.clocks.value(ring.row.x),this.clocks.value(ring.row.z),tell[slots.chainRadius] ?? 0,tell[slots.chainAlpha] ?? 0);
     this.updateWhirls(dt, t, fighting && this.victoryT < 0, this.hazardDt);
     this.updateFire(dt, t, fighting && this.victoryT < 0, this.hazardDt);
     // the spear in his hand (raised) or stuck in the meadow
-    b.aim(tell['struck']===1 ? this.spearAt : null,b.visible ? tell['alpha'] ?? 0 : 0);
+    b.aim(struck===1 ? this.spearAt : null,b.visible ? alpha ?? 0 : 0);
     b.update(t, this.ctx.game.camera);
   }
 
@@ -412,7 +406,7 @@ export class ArenaScriptFight implements BossScript {
 
   /** the storm wall and the fire line the horse will not ride into */
   refuses(x: number, z: number): boolean {
-    return arenaBlockedAt(this.field, { x, z }, this.data.boundary, this.refusalMask);
+    return arenaBlockedAt(this.field, { x, z }, this.data.boundary, this.life.value(this.data.script.fight.retainEvents.step.mask));
   }
 }
 

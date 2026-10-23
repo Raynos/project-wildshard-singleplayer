@@ -12265,6 +12265,12 @@ programs: `attack` owns both clock and lifecycle projections; `wind` owns both
 the cell field and whirlwind laws. Each is resolved once on the original scope.
 Retired `rules` and `fire` aliases refuse at admission; build-only witnesses
 retain the complete original descriptors and bytes.
+The same numeric continuation may declare `retainEvents`, a bounded event-to-
+channel/slot mapping. Resource owners preflight it against their actual program
+before allocation. A declared event snapshot requires every named output; it
+commits with the full retained bank and RNG at the original event call. Other
+events leave that snapshot untouched. Reset restores its declared initial
+values; it adds no clock, module, native effect or second snapshot owner.
 An optional schedule `outputs` list requires each named numeric result before
 prepared RNG or retained columns are published, including ephemeral channels.
 `ReturnProjectionV2` (game population/returnProjectionV2) captures actor zero

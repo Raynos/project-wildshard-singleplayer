@@ -103,6 +103,8 @@ export class ReturnProgram {
     owner.onDispose(() => { modules.delete(key); });
     return program;
   }
+  /** Detached declared names for resource preflight before allocating a module. */
+  static projectionBindings(input:unknown):{readonly script:Pick<DecisionScriptRow,'signals'|'channels'>} { const {script}=readProgram(input);return {script}; }
   /** Built-in terrain owners share one admitted instance per module and scope. */
   static native(host: SimHost, input: unknown): ReturnProgram { return ReturnProgram.owned(host.scope, input, (x, z) => host.groundHeightAt(x, z)); }
   static page(input: unknown, owner?: Scope): ReturnProgram { return owner === undefined ? new ReturnProgram(input, terrainHeight) : ReturnProgram.owned(owner, input, terrainHeight); }
@@ -174,15 +176,40 @@ export interface NumericProjection {
 /** Native continuation for admitted numeric projections. The guest owns rules;
  * rows name retained channels and event aliases. Both live arena clocks and
  * practice courses use the same state owner and optional ten-Hz sampling. */
+interface ProjectedStateRows<S extends Record<string,number>> {
+  readonly initial:S; readonly parameters?:Readonly<Record<string,number>>;
+  readonly retain?:Readonly<Record<string,string>>; readonly outputs?:readonly string[];
+  readonly signals?:Readonly<Record<string,string>>; readonly signal?:string;
+  /** Required numeric outputs retained only at their original event slot. */
+  readonly retainEvents?:Readonly<Record<string,Readonly<Record<string,string>>>>;
+}
 export class ProjectedState<S extends Record<string,number> = Record<string,number>> {
   readonly state:S;
   private elapsed=0;
   private readonly retain:Readonly<Record<string,string>>;
-  constructor(private readonly row:{ readonly initial:S; readonly parameters?:Readonly<Record<string,number>>;
-    readonly retain?:Readonly<Record<string,string>>; readonly outputs?:readonly string[]; readonly signals?:Readonly<Record<string,string>>; readonly signal?:string },
-    private readonly program:NumericProjection) {
-    this.state={...row.initial};this.retain=row.retain??Object.fromEntries(Object.keys(row.initial).map(key=>[key,key]));
-    if(Object.values(this.retain).some(key=>!Object.hasOwn(row.initial,key)))throw new Error('Missing projection state slot');
+  /** Call with the declared program before module allocation when admitting a
+   * resource owner. Construction repeats the structural checks for direct use. */
+  static preflight(row:ProjectedStateRows<Record<string,number>>,program?:{readonly script:Pick<DecisionScriptRow,'signals'|'channels'>}):void {
+    const retain=row.retain??Object.fromEntries(Object.keys(row.initial).map(key=>[key,key]));
+    const channels=program===undefined?null:new Set(Object.values(program.script.channels));
+    const signals=program===undefined?null:new Set(Object.values(program.script.signals));
+    if(signals!==null&&[...Object.values(row.signals??{}),...(row.signal===undefined?[]:[row.signal])].some(signal=>!signals.has(signal)))throw new Error('Missing projection event');
+    if(channels!==null&&row.outputs?.some(channel=>!channels.has(channel))===true)throw new Error('Missing projection channel');
+    for(const [event,map]of Object.entries(row.retainEvents??{})){
+      const signal=row.signals===undefined?event:row.signals[event];
+      if(signal===undefined||signals!==null&&!signals.has(signal))throw new Error('Missing projection event');
+      const merged={...retain,...map},targets=Object.values(merged);
+      if(Object.entries(map).some(([channel,slot])=>Object.hasOwn(retain,channel)&&retain[channel]!==slot)
+        ||new Set(targets).size!==targets.length)throw new Error('Conflicting projection retention');
+    }
+    for(const map of [retain,...Object.values(row.retainEvents??{})])for(const [channel,slot]of Object.entries(map)){
+      if(!Object.hasOwn(row.initial,slot))throw new Error('Missing projection state slot');
+      if(channels!==null&&!channels.has(channel))throw new Error('Missing projection channel');
+    }
+    if(Object.values(row.initial).some(value=>!Number.isFinite(value)))throw new Error('Invalid projection state');
+  }
+  constructor(private readonly row:ProjectedStateRows<S>,private readonly program:NumericProjection) {
+    ProjectedState.preflight(row);this.state={...row.initial};this.retain=row.retain??Object.fromEntries(Object.keys(row.initial).map(key=>[key,key]));
   }
   value(key:string):number {const value=this.state[key];if(value===undefined)throw new Error('Unknown projection state slot');return value;}
   set(values:Readonly<Record<string,number>>):void {
@@ -195,9 +222,10 @@ export class ProjectedState<S extends Record<string,number> = Record<string,numb
   event(event:string,frame:Readonly<Record<string,number>>={},random?:Rng,candidates:readonly Readonly<Record<string,number>>[]=[]):Readonly<Record<string,number>> {
     const signal=this.row.signals===undefined?event:this.row.signals[event];if(signal===undefined)throw new Error('Missing projection event');
     const input={...this.row.parameters,...this.state,...frame},prepared=this.program.prepare?.(signal,input,random,candidates);
-    const out=prepared?.values??this.program.project(signal,input,random,candidates),next:Record<string,number>={};
-    if(this.row.outputs?.some(key=>!Number.isFinite(out[key]))===true)throw new Error('Missing required projection output');
-    for(const [channel,slot]of Object.entries(this.retain)){const value=out[channel];if(value!==undefined)next[slot]=value;}
+    const out=prepared?.values??this.program.project(signal,input,random,candidates),next:Record<string,number>={...this.state},eventRetain=this.row.retainEvents?.[event];
+    if(this.row.outputs?.some(key=>!Number.isFinite(out[key]))===true
+      ||Object.keys(eventRetain??{}).some(key=>!Number.isFinite(out[key])))throw new Error('Missing required projection output');
+    for(const [channel,slot]of Object.entries({...this.retain,...eventRetain})){const value=out[channel];if(value!==undefined)next[slot]=value;}
     if(Object.entries(next).some(([key,value])=>!Object.hasOwn(this.row.initial,key)||!Number.isFinite(value)))throw new Error('Invalid projection state');
     prepared?.accept();this.set(next);return out;
   }

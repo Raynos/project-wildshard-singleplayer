@@ -140,12 +140,17 @@ export const TITAN_CLOCKS = {
 };
 
 /** Arena boss-script contract: retained lifecycle state is owned by G474. */
+const stepSnapshot={enter:'stepenter',mask:'stepmask',shield:'stepshield',show:'stepshow',active:'stepactive',arm:'steparm',spread:'stepspread',weapon:'stepweapon',dome:'stepdome'};
+const tellSnapshot={chainRadius:'tellchainRadius',chainAlpha:'tellchainAlpha',tell:'telltell',ringRadius:'tellringRadius',ringAlpha:'tellringAlpha',forkRadius:'tellforkRadius',forkAlpha:'tellforkAlpha',bend:'tellbend',bendRate:'tellbendRate',raise:'tellraise',raiseRate:'tellraiseRate',castL:'tellcastL',struck:'tellstruck',alpha:'tellalpha'};
+const introSnapshot={rise:'introrise',kneel:'introkneel',alpha:'introalpha'};
 export const TITAN_SCRIPT = { kind: 'boss', pattern: 'arena-script', fight: {
-  initial: { phase: 0, hp: TITAN_PLACE.heartHp, invuln: 0, fighting: 0, open: 0, victoryT: -1, tied: 0, sealed: 0, broke: 0, immuneT: 0, introBolt: 0, wall: 0 },
+  initial: { phase: 0, hp: TITAN_PLACE.heartHp, invuln: 0, fighting: 0, open: 0, victoryT: -1, tied: 0, sealed: 0, broke: 0, immuneT: 0, introBolt: 0, wall: 0,
+    ...Object.fromEntries([...Object.values(stepSnapshot),...Object.values(tellSnapshot),...Object.values(introSnapshot)].map(key=>[key,0])),tellraise:.2 },
   parameters: { fullHp: TITAN_PLACE.heartHp, fullDraw: TITAN_TUNING.fullDraw, fullDrawMul: TITAN_TUNING.fullDrawMul, rewardDistance: 3.5, respawnDistance: 16, storm: 0, engaged: 0, armed: 0, victory: 0, chainRadius: TITAN_TUNING.chainRadius,spearAim: TITAN_TUNING.spearAim, spearLock: TITAN_TUNING.spearLock, spearRadius: TITAN_TUNING.spearRadius },
   signals: { reset: 'bossReset', begin: 'bossBegin', phase: 'bossPhase', damage: 'bossDamage', step: 'bossStep', victory: 'bossVictory',
     clamp: 'bossClamp', invulnerable: 'bossShield', seal: 'bossSeal', tied: 'bossTie', tie: 'tie', intro: 'bossIntro', support: 'bossSupport', point: 'bossPoint', tell: 'bossTell' },
   retain: Object.fromEntries(['phase','hp','invuln','fighting','open','victoryT','tied','sealed','broke','immuneT','introBolt','wall'].map(field => [field,field])),
+  retainEvents:{step:stepSnapshot,tell:tellSnapshot,intro:introSnapshot},
 } };
 
 /** G474 arena boss-script binding; native owners receive rows and resources. */

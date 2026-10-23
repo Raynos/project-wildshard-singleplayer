@@ -110,6 +110,8 @@ test.each([false,true])('arena script runs mounted phases, exposes its heart and
     if(malformed==='alias'){const first=invalid.clocks.landings[0],second=invalid.clocks.landings[1];if(first===undefined||second===undefined)throw new Error('Missing landing rows');second.on=first.on;}
     expect(()=>new ArenaScriptEncounter({game,player:f.player,weather:weather.weather,air:weather.air,tieSpot:null},invalid)).toThrow('Invalid encounter clock bank');
   }
+  const invalidSnapshot=structuredClone(data);invalidSnapshot.script.fight.retainEvents.tell.bend='missing';
+  expect(()=>new ArenaScriptEncounter({game,player:f.player,weather:weather.weather,air:weather.air,tieSpot:null},invalidSnapshot)).toThrow('Missing projection state slot');
   expect(allocate).not.toHaveBeenCalled();expect(add).not.toHaveBeenCalled();allocate.mockRestore();add.mockRestore();
   const intake=vi.spyOn(ReturnProgram,'page');
   const owner = new ArenaScriptEncounter({ game,player: f.player,weather: weather.weather,air: weather.air,tieSpot: null },data);
@@ -125,6 +127,16 @@ test.each([false,true])('arena script runs mounted phases, exposes its heart and
   const e = encounter(data.definition, fight, f.player.position), direction = new Vector3(0, 0, -1);
   let support:Animal|null=null,supportChecked=false;
   try {
+    fight.reset(0);fight.intro(0,true);fight.update(.016,.016,false);
+    expect(fight.pose.raise).toBe(.2);expect(fight.inArena(f.player.position)).toBe(false);expect(fight.shielded).toBe(false);
+    expect(fight.life.value(data.script.fight.retainEvents.tell.raiseRate)).toBe(0);
+    fight.reset(0);
+    const seeds=data.seeds.map(at=>({...at}));data.seeds.splice(0,data.seeds.length,{x:0,z:0},{x:5,z:0});
+    fight.reset(2);fight.intro(0,true);fight.begin(2);fight.clocks.set({mode:3});
+    const aim=vi.spyOn(fight.body,'aim'),panic=vi.spyOn(owner,'horseSteed').mockImplementation(()=>{fight.reset(0);});
+    fight.update(.1,1,true);expect(panic).toHaveBeenCalled();expect(aim.mock.calls.at(-1)?.[0]).toBe(fight.spearAt);
+    expect(aim.mock.calls.at(-1)?.[1]).toBe(0);aim.mockRestore();panic.mockRestore();data.seeds.splice(0,data.seeds.length,...seeds);
+    fight.reset(0);
     const chain=data.clocks.frame;
     const initial=chain.initial['zzChainCd'];chain.initial['zzChainCd']=0;fight.reset(2);fight.begin(2);fight.body.setVisible(true);
     const raised=vi.spyOn(weather.weather,'raise'),random=app.rng.stream('ai'),before=random.snapshot();
