@@ -240,6 +240,16 @@ went 94 → 112 GB.
   103 GB and 681k files, and the repo is 125 GB. At the time of the check no `serve-build` or `build-mirror run`
   process was alive, and no lane's recent herdr output names `--slot check2`, so the caller is a lane's own loop. Its
   build logs show `heavy-lane` tickets 10177 → 10297.
+- **10-22 ~12:00:** Jake deleted `check2/tree/tmp/serve`, which had grown to 45 GB by then, along with 80 generation
+  copies older than a day and the 10-17 `.ktrace` files. After that the boot purge was at 113k files and `./tmp` at 72 GB.
+- **10-23 00:47: the nested builds are back, now in four slots.** `check` has 1, `check2` 2, `check3` 3 (5.1 GB) and
+  `check4` 2: 8 builds, about 10.5 GB. `./tmp` went 73 → 85 GB (+67k files) in 4 h, made up of these nested builds, 5
+  live previews in `tmp/serve` (9.3 GB), and `tmp/o27` (2.1 GB of `cross/` and `dmem/` lane scratch since 10-22 09:32).
+  The `serve-build.sh:26` fix is still the one that matters.
+- **The compile cache is growing again, slowly.** `$TMPDIR/node-compile-cache` held 17.2k files: the main
+  `v24.18.1-arm64-…` folder had 13.6k (5.1 GB, up from 3k on 10-21) and the new `generation-portable/` folder 3.6k
+  (d609db4b36, `scripts/generation-node-cache.mjs`). The portable cache uses relative paths, so it should stay bounded.
+  The main folder is the one to watch.
 
 ## Decisions (Jake, 2026-10-15)
 
