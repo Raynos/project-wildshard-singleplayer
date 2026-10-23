@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import type { Rng } from '../core/rng';
 import { Noise2D } from '../core/noise';
 import { bakedGeometry } from './geometryBake';
+import { dropTriangles, hiddenTriangles, type HiddenOptions } from './hiddenFaces';
 
 /**
  * The engine geometry kit (E357 X5, 10 §X5): the shape builders every model kit shares. Flat-shaded ones (`log`, `beam`,
@@ -232,4 +233,11 @@ export function revolveUV(fn: (theta: number, t: number) => [number, number], se
     n.setXYZ(a, x / l, y / l, z / l); n.setXYZ(b, x / l, y / l, z / l);
   }
   return g;
+}
+
+/** Finished parts (normals and colours baked) without their hidden triangles (hiddenFaces.ts: inside another closed part,
+ * or buried), each part culled against all the others; a part with nothing hidden comes back as it was. */
+export function withoutHidden(parts: readonly THREE.BufferGeometry[], options: HiddenOptions = {}): THREE.BufferGeometry[] {
+  const hidden = hiddenTriangles(parts, options);
+  return parts.map((g, i) => dropTriangles(g, hidden[i] ?? new Uint8Array(0)));
 }

@@ -4,18 +4,12 @@ import { SEED } from '@wildshard/engine/core/config';
 import { Rng } from '@wildshard/engine/core/rng';
 import { rock, tris } from '@wildshard/engine/world/geometryKit';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
-import { fern, hibiscus, grassTuft, broadClump, PLANT, type Part } from './lowpolyPlants';
+import { fern, hibiscus, grassTuft, broadClump, openEnded, PLANT, type Part } from './lowpolyPlants';
 import { authoredRockGeometry as rockGeometry } from './rocks';
 import { triAreas } from './coverTris';
 
 interface CoverLook { r: number; g: number; b: number; top: number; side: number }
 
-/** a thin stem's end caps are never seen (in the ground, under the leaves or petals): keep the tube, drop the caps (E117) */
-const openEnded = (parts: Part[]): Part[] => parts.map(([g, c]) => {
-  const idx = g.getIndex(), side = g.groups[0];
-  if (idx !== null && g.groups.length >= 2 && side !== undefined) { g.setIndex(Array.from(idx.array.slice(side.start, side.start + side.count))); g.clearGroups(); }
-  return [g, c];
-});
 // ── the far models' pieces (E117 follow-up): one or two triangles each ──
 /** a grass blade leaning out along yaw `a`: base width 2w, height h, lean (0 up … 1 flat) */
 function bladeTri(a: number, w: number, h: number, lean: number): THREE.BufferGeometry {

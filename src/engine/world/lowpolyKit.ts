@@ -26,6 +26,7 @@ import { attachFogUniforms } from './Atmosphere';
 import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 import { voxelAO, aoTint, hemisphere } from './voxelAO';
 import { wobble, log, tris } from './geometryKit';
+import { dropTriangles, hiddenTriangles, type HiddenOptions } from './hiddenFaces';
 
 export type ColorLike = THREE.Color | string;
 
@@ -123,15 +124,24 @@ export class LowPolyKit {
 
   get triangleCount(): number { let n = 0; for (const p of this.parts) n += p.getAttribute('position').count / 3; return n; }
 
-  /** merge everything, flat normals, optional AO bake; the kit is empty afterwards */
-  finish(opts: { ao?: AOOptions | false } = {}): THREE.BufferGeometry {
+  /** merge everything, flat normals, optional AO bake; the kit is empty afterwards. `hidden` drops the faces no one can
+   * see (inside another closed part, or buried: hiddenFaces.ts) after the AO bake, so the kept faces bake as before. */
+  finish(opts: { ao?: AOOptions | false; hidden?: HiddenOptions } = {}): THREE.BufferGeometry {
+    // read before the still parts take a zero aSway: a swaying part never hides another
+    const hidden = opts.hidden === undefined ? null : hiddenTriangles(this.parts, opts.hidden);
     // the parts must share their attributes to merge: if any part sways, the still ones get a zero aSway
     if (this.parts.some((p) => p.hasAttribute('aSway'))) for (const p of this.parts) if (!p.hasAttribute('aSway')) p.setAttribute('aSway', new THREE.BufferAttribute(new Float32Array(p.getAttribute('position').count * 2), 2));
-    const geo = mergeGeometries(this.parts, false);
+    let geo = mergeGeometries(this.parts, false);
     for (const p of this.parts) p.dispose();
     this.parts = [];
     geo.computeVertexNormals(); // non-indexed → flat per-face normals
     if (opts.ao !== false) bakeAO(geo, opts.ao ?? {});
+    if (hidden !== null) {
+      const flags = new Uint8Array(hidden.reduce((n, part) => n + part.length, 0));
+      let at = 0;
+      for (const part of hidden) { flags.set(part, at); at += part.length; }
+      geo = dropTriangles(geo, flags);
+    }
     geo.computeBoundingSphere();
     geo.computeBoundingBox();
     return geo;

@@ -274,7 +274,7 @@ class HutBuilder {
     }
 
     // ── meshes ──
-    const geo = kit.finish({ ao: { ground: (x, z) => this.ground(x, z), cell: 0.2, strength: 0.62 } });
+    const geo = kit.finish({ ao: { ground: (x, z) => this.ground(x, z), cell: 0.2, strength: 0.62 }, hidden: { ground: (x, z) => this.ground(x, z) } });
     bakeLight(geo, lamps);
     const gGeo = glow.finish({ ao: false });
     const gc = gGeo.getAttribute('color');

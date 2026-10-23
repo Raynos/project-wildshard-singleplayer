@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { SEED } from '@wildshard/engine/core/config';
 import { Rng } from '@wildshard/engine/core/rng';
-import { log, plank, rock, rope } from '@wildshard/engine/world/geometryKit';
+import { log, plank, rock, rope, withoutHidden } from '@wildshard/engine/world/geometryKit';
 import { ShipwreckBuilder, WRECK_COLOURS as C, type CargoCopy, type WreckAround } from './shipwreck';
 import { addBarrel, addCoil, addCrate } from './cargo';
 import { authoredRockGeometry as rockGeometry } from './rocks';
@@ -116,8 +116,10 @@ export function wreckSite(spec: WreckSpec, heightAt: (x: number, z: number) => n
       }
       if (reef.length > 0) {
         // their own smooth normals can't join the flat-shaded kit: all the rocks are one more draw
-        reefGeometry = mergeGeometries(reef, false);
-        for (const part of reef) part.dispose();
+        // T8: their buried feet and the faces one rock hides inside another go (each rock's paint and normals are its own)
+        const shown = withoutHidden(reef, { ground: heightAt });
+        reefGeometry = mergeGeometries(shown, false);
+        for (const part of shown) part.dispose();
       }
       // flotsam: planks lying in the shallows by the stern, a spar leaning on the hull
       for (let k = 0; k < 6; k++) {

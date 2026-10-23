@@ -16,6 +16,14 @@ const asColor = (c: ColorLike): THREE.Color => (typeof c === 'string' ? tmpColor
 /** a geometry + the colour to paint it: plants are a few of these */
 export type Part = [THREE.BufferGeometry, ColorLike];
 
+/** a thin stem's end caps are never seen (in the ground, under the leaves or petals): keep the tube, drop the caps
+ * (E117 ground cover; T8 the shrine's jungle) */
+export const openEnded = (parts: Part[]): Part[] => parts.map(([g, c]) => {
+  const idx = g.getIndex(), side = g.groups[0];
+  if (idx !== null && g.groups.length >= 2 && side !== undefined) { g.setIndex(Array.from(idx.array.slice(side.start, side.start + side.count))); g.clearGroups(); }
+  return [g, c];
+});
+
 export const PLANT = {
   leaf: '#4f8f34', leafB: '#63a63c', leafDark: '#3c7430', leafLight: '#7fbf4a', stem: '#5b7a34',
   hibiscus: '#e2372c', hibiscusB: '#f0543a', stamen: '#ffd24a', lily: '#4f9a3c', lilyB: '#66ad45', lotus: '#f4f0ea', lotusPink: '#f2b6c6',

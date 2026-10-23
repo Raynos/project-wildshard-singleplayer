@@ -585,7 +585,7 @@ export class ShipwreckBuilder {
     around?.({ kit, rng, sea, colliders: this.colliders, cs: this.cs, sn: this.sn, floorY: this.floorY });
 
     // ── finish: merge, AO (fine cells so the hold shades), the lanterns baked in ──
-    const geo = kit.finish({ ao: { ground: this.ground, cell: 0.22, strength: 0.7 } });
+    const geo = kit.finish({ ao: { ground: this.ground, cell: 0.22, strength: 0.7 }, hidden: { ground: this.ground } });
     bakeLight(geo, lamps);
     const gGeo = glow.finish({ ao: false });
     const cols = gGeo.getAttribute('color');

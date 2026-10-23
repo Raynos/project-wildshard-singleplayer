@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { SEED } from '@wildshard/engine/core/config';
 import { Rng } from '@wildshard/engine/core/rng';
-import { rock, log, tris } from '@wildshard/engine/world/geometryKit';
+import { rock, log, tris, withoutHidden } from '@wildshard/engine/world/geometryKit';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
 import { bakeLight, type BakedLight } from './lowpolyPlants';
 import { authoredRockGeometry as rockGeometry } from './rocks';
@@ -202,11 +202,12 @@ export function coveGeometry(spec: CoveSpec, heightAt: (x: number, z: number) =>
       lights.push({ x: p.x, y: p.y + 0.4, z: p.z, color: '#6fe6ff', range: 3.6 + s * 1.2, intensity: 1.2 * s });
     }
 
-    const structure = kit.finish({ ao: { ground: heightAt, cell: 0.25, strength: 0.6 } });
+    const structure = kit.finish({ ao: { ground: heightAt, cell: 0.25, strength: 0.6 }, hidden: { ground: heightAt } });
     bakeLight(structure, lights);
     if (smoothRocks.length === 0 || poolParts.length === 0) throw new Error('Cove geometry requires its native rocks and pools');
-    const rocks = mergeGeometries(smoothRocks, false);
-    for (const part of smoothRocks) part.dispose();
+    // T8: their buried feet and the faces one rock hides inside another go (each rock's paint and normals are its own)
+    const shown = withoutHidden(smoothRocks, { ground: heightAt }), rocks = mergeGeometries(shown, false);
+    for (const part of shown) part.dispose();
     const glowGeometry = glow.finish({ ao: false });
     const gc = glowGeometry.getAttribute('color');
     for (let i = 0; i < gc.count; i++) gc.setXYZ(i, gc.getX(i) * 2.6, gc.getY(i) * 2.6, gc.getZ(i) * 2.6);

@@ -27,7 +27,7 @@ import type { Rng } from '@wildshard/engine/core/rng';
 import { siteFloor, type BoxSpec as Collider, type FloorRect } from '@wildshard/engine/physics/box';
 import { rock, tris } from '@wildshard/engine/world/geometryKit';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
-import { bakeLight, fern, broadClump, hibiscusBush, hibiscus, lilyPad, lotus, vineStrand, PLANT } from './lowpolyPlants';
+import { bakeLight, fern, broadClump, hibiscusBush, hibiscus, lilyPad, lotus, openEnded, vineStrand, PLANT } from './lowpolyPlants';
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 
 import type { ShrineSite, ShrineAnchor, ShrineParams } from './shrineTypes';
@@ -282,22 +282,22 @@ export class ShrineBuilder {
       if ((lx / (POOL.rx + 1)) ** 2 + ((lz - POOL.z) / (POOL.rz + 1)) ** 2 < 1) continue;      // the pool
       const [x, z] = this.W(lx, lz), m = new THREE.Matrix4().compose(new THREE.Vector3(x, this.ground(x, z) - 0.05, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, rng.range(0, 6), 0)), new THREE.Vector3(1, 1, 1));
       const kind = i % 3, s = rng.range(1.1, 2.4) * (r > 13 ? 1.3 : 1);
-      kit.addParts(kind === 0 ? broadClump(rng, s) : kind === 1 ? fern(rng, s * 0.9) : hibiscusBush(rng, s * 0.8), { matrix: m, jitter: 0.1 });
+      kit.addParts(openEnded(kind === 0 ? broadClump(rng, s) : kind === 1 ? fern(rng, s * 0.9) : hibiscusBush(rng, s * 0.8)), { matrix: m, jitter: 0.1 });
     }
     TIERS.forEach((t, i) => {
       if (i === 2) return;
       for (let k = 0; k < 7; k++) {
         const side = k % 2 ? 1 : -1, lz = rng.range(t.z0 + 0.4, t.z1 - 0.3), lx = side * (TIERS[i + 1 as 1 | 2].hw + rng.range(0.25, 0.7));
-        kit.addParts(k % 3 === 0 ? hibiscusBush(rng, 0.7) : fern(rng, 0.7), { matrix: this.M(lx, base + t.top, lz, rng.range(0, 6)), jitter: 0.1 });
+        kit.addParts(openEnded(k % 3 === 0 ? hibiscusBush(rng, 0.7) : fern(rng, 0.7)), { matrix: this.M(lx, base + t.top, lz, rng.range(0, 6)), jitter: 0.1 });
       }
     });
     for (const side of [-1, 1]) for (let k = 0; k < 3; k++) {
       const lz = STAIR.z1 - 0.8 - k * 1.6, y = base + TIERS[2].top * ((STAIR.z1 - lz) / (STAIR.z1 - STAIR.z0)) + 0.85;
-      for (const [g, c] of hibiscus(0.13)) kit.add(g, c, { matrix: this.M(side * (STAIR.hw + 0.28) + rng.range(-0.15, 0.15), y, lz, 0, rng.range(-0.4, 0.4)), jitter: 0.05 });
+      for (const [g, c] of openEnded(hibiscus(0.13))) kit.add(g, c, { matrix: this.M(side * (STAIR.hw + 0.28) + rng.range(-0.15, 0.15), y, lz, 0, rng.range(-0.4, 0.4)), jitter: 0.05 });
     }
 
     // ── meshes ──
-    const geo = kit.finish({ ao: { ground: (x, z) => this.ground(x, z), cell: 0.3, strength: 0.62 } });
+    const geo = kit.finish({ ao: { ground: (x, z) => this.ground(x, z), cell: 0.3, strength: 0.62 }, hidden: { ground: (x, z) => this.ground(x, z) } });
     // the sun sits behind the ring (it has to: the ring frames the planet, which hangs near the sun), so its face would
     // stay in the toon shade band; a broad, soft bounce baked from the approach lifts the stair face like the mockup
     { const [x, z] = this.W(0, 26); bakeLight(geo, [{ x, y: base + 7, z, color: '#fff1dc', range: 42, intensity: 0.32 }]); }

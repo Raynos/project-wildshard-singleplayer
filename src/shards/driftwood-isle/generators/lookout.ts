@@ -12,7 +12,6 @@
  * writes both.
  */
 import * as THREE from 'three';
-import type { CableLayout } from '@wildshard/engine/sim/cableTraversal';
 import { SEED } from '@wildshard/engine/core/config';
 import { siteFloor, type BoxSpec as Collider, type FloorRect } from '@wildshard/engine/physics/box';
 import { log, beam, plank, rope, rock, sagLine, tris } from '@wildshard/engine/world/geometryKit';
@@ -276,7 +275,7 @@ class LookoutBuilder {
       collider(-1.6, z0 - run - 1.4, 0.12, 0.12, sp.y - 1, sp.y + 2.5);
     }
 
-    const geo = kit.finish({ ao: { ground: this.ground, cell: 0.2, strength: 0.6 } });
+    const geo = kit.finish({ ao: { ground: this.ground, cell: 0.2, strength: 0.6 }, hidden: { ground: this.ground } });
 
     const A = (lx: number, lz: number, y: number, yaw: number): LookoutAnchor => { const [x, z] = this.toWorld(lx, lz); return { x, y, z, yaw: this.spec.rot + yaw }; };
     this.anchors['beacon'] = A(e - 0.8, e - 0.8, platY, Math.PI);
@@ -360,7 +359,14 @@ export function lookoutBake(site: LookoutSite, ground: (x: number, z: number) =>
 }
 
 /** Original launch deck, cable and trolley, authored offline beside its lookout. */
-export function buildZiplineGeometry(lay: CableLayout): { rig: THREE.BufferGeometry; trolley: THREE.BufferGeometry } {
+/** the cable a zipline's geometry follows: what it reads of the engine's CableLayout */
+interface ZiplineCable {
+  readonly a: THREE.Vector3; readonly b: THREE.Vector3; readonly dir: THREE.Vector3; readonly len: number;
+  readonly deck: { readonly x: number; readonly z: number; readonly yaw: number; readonly y: number; readonly hw: number; readonly hd: number };
+  readonly spec: { readonly bottom: { readonly y: number } };
+  readonly at: (s: number, out: THREE.Vector3) => THREE.Vector3;
+}
+export function buildZiplineGeometry(lay: ZiplineCable): { rig: THREE.BufferGeometry; trolley: THREE.BufferGeometry } {
   const palette = { wood: '#8a6440', woodDark: '#5f432a', woodLight: '#a88157', steel: '#3c4046', rope: '#b9a57a', pad: '#c9b27c', straw: '#d8c07a', red: '#a83a2a' };
   const V = (x: number, y: number, z: number): THREE.Vector3 => new THREE.Vector3(x, y, z);
   const k = new LowPolyKit(0x21e);
