@@ -42,9 +42,9 @@ fi
 
 # ── BLOCK: bare `git push` — pushes go through scripts/push-main.sh ─────────
 # 2026-09-22 (E19): six agents pushed the same ~12 MB at once over a ~10–100 KB/s
-# uplink and every push hung for 15+ minutes. push-main.sh takes .git/push.lock;
-# a held lock leaves your commits local (the push in flight carries them — we
-# all share one local main). Escape (rare): SKIP_PUSHLOCK=1.
+# uplink and every push hung for 15+ minutes. push-main.sh now requests the
+# scheduled push loop; .git/push-loop.lock serializes its committed-only gate
+# and upload. Escape (rare): SKIP_PUSHLOCK=1.
 if has "${BE}git[[:space:]]+push([[:space:]]|$)" && ! has 'SKIP_PUSHLOCK=1'; then
   cat >&2 <<'EOF'
 BLOCKED by .claude/hooks/guard-bash-safety.sh: bare 'git push'.
@@ -54,9 +54,9 @@ pack hung for 15+ minutes (E19). Use:
 
     scripts/push-main.sh
 
-It takes .git/push.lock, pushes origin main, and keeps pushing until origin/main
-has every local commit. If another push holds the lock it leaves your commits
-LOCAL and exits 0 — that push carries them (everyone shares one local main).
+It requests a scheduled push-loop tick. The loop holds .git/push-loop.lock
+through its committed-only gate and upload; a busy tick leaves local commits
+for the scheduled loop (everyone shares one local main).
 Shipped? `git log origin/main..main` is empty. Escape (rare): SKIP_PUSHLOCK=1.
 EOF
   exit 2

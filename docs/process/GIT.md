@@ -134,8 +134,8 @@ rewrite still needs Jake's approval.
   then cheapest first, the rest to CI; Jake, 2026-10-15); and `pnpm build` under the gate's own
   `push-gate` lease, so it never queues behind a lane's build. **The full suite runs in CI on every
   code push** (`deploy.yml`'s `behaviour` job), fix-forward: a transitive break the related walk
-  missed shows up there; fix it like any red run. Each step's seconds print and land in
-  `.git/push-gate-steps.jsonl`; a passed SHA is stamped in `.git/build-gate-g416/`. Required exact-SHA
+  missed shows up there; fix it like any red run. The former timing logs and
+  full-gate stamps are retired; current push verdicts and gate seconds live in `.git/push.log`. Required exact-SHA
   boot smoke retains WebKit rendering, every public shard, and the road into Signal. Production
   selects only a CI-green and smoke-green commit.
 - **Source checks:** pre-commit checks the pathspec's named files and refuses if they change during the check.

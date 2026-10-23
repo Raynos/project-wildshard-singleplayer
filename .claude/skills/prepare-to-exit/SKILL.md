@@ -34,7 +34,8 @@ and AGENTS.md disagree, AGENTS.md wins and this file is the bug. Execute in orde
   `>` onto computed paths; `guard-rm.py` blocks `rm -r` of `/`, `~`, `~/projects`, system dirs and shallow paths.
   A plain `rm -rf <literal path>` is allowed (2026-10-02).
 - **Pushes are serialized.** Six parallel pushes of one pack once hung 15+ minutes (E19). Push only through
-  `scripts/push-main.sh` (it holds `.git/push.lock`), and keep packs small: the storage check
+  `scripts/push-main.sh` (requests the scheduled loop; `.git/push-loop.lock` serializes its gate/upload).
+  Keep packs small: the storage check
   (`scripts/repo-size.mjs`, docs/process/STORAGE.md) in pre-commit and pre-push refuses a preview image over 250 KB
   (boards 500 KB), video / audio / archives / `.blend` outside `public/` and more than 10 MB of new binary per push;
   mockups under `art/<subject>/round-<n>-<label>/` are committed as JPEG.
