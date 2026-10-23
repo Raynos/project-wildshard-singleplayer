@@ -288,14 +288,36 @@ it('keeps package main metadata exact for CommonJS resolution-only calls',async(
   put(root,'src/sdk/chosen/package.json',JSON.stringify({main:'second.mjs'}));
   expect(await run()).toMatchObject({hit:false,text:'second.mjs'});
 });
-it('keeps actual CommonJS module execution on the full byte closure',async()=>{
+it('keeps actual CommonJS source byte-exact while omitting unread code',async()=>{
   const {root,run}=fixture("import{createRequire}from'node:module';import fs from'node:fs';const value=createRequire(import.meta.url)('../../../sdk/chosen.cjs').value;fs.writeFileSync('src/shards/alpha/data/output.txt',String(value));");
   put(root,'src/sdk/chosen.cjs','module.exports={value:1};');
   expect(await run()).toMatchObject({hit:false,text:'1'});
-  put(root,'src/sdk/unread.ts','// still conservative for actual CommonJS execution');
+  put(root,'src/sdk/unread.ts','// not read by the CommonJS module');
+  expect(await run()).toMatchObject({hit:true,text:'1'});
+  put(root,'src/sdk/chosen.cjs','// changed raw CommonJS bytes\nmodule.exports={value:1};');
   expect(await run()).toMatchObject({hit:false,text:'1'});
   put(root,'src/sdk/chosen.cjs','module.exports={value:2};');
   expect(await run()).toMatchObject({hit:false,text:'2'});
+});
+it('captures nested CommonJS modules, required JSON and late getter reads',async()=>{
+  const {root,run}=fixture("import{createRequire}from'node:module';import fs from'node:fs';const value=createRequire(import.meta.url)('../../../sdk/chosen.cjs').value;fs.writeFileSync('src/shards/alpha/data/output.txt',String(value));");
+  put(root,'src/sdk/chosen.cjs',"const fs=require('node:fs');const nested=require('./nested.cjs');const rows=require('./rows.json');module.exports={get value(){return nested.value+rows.value+Number(fs.readFileSync('src/sdk/late.txt','utf8'));}};");
+  put(root,'src/sdk/nested.cjs','module.exports={value:1};');
+  put(root,'src/sdk/rows.json',JSON.stringify({value:2}));put(root,'src/sdk/late.txt','3');
+  expect(await run()).toMatchObject({hit:false,text:'6'});
+  put(root,'src/sdk/nested.cjs','module.exports={value:2};');
+  expect(await run()).toMatchObject({hit:false,text:'7'});
+  put(root,'src/sdk/rows.json',JSON.stringify({value:3}));
+  expect(await run()).toMatchObject({hit:false,text:'8'});
+  put(root,'src/sdk/late.txt','4');
+  expect(await run()).toMatchObject({hit:false,text:'9'});
+});
+it('keeps a CommonJS child process on the full conservative closure',async()=>{
+  const {root,run}=fixture("import{createRequire}from'node:module';import fs from'node:fs';const value=createRequire(import.meta.url)('../../../sdk/chosen.cjs').value;fs.writeFileSync('src/shards/alpha/data/output.txt',value);");
+  put(root,'src/sdk/chosen.cjs',"const {execFileSync}=require('node:child_process');module.exports={value:execFileSync(process.execPath,['-e',\"process.stdout.write('opaque child')\"])};");
+  expect(await run()).toMatchObject({hit:false,text:'opaque child'});
+  put(root,'src/sdk/unread.ts','// a child process can inspect this file without a trace');
+  expect(await run()).toMatchObject({hit:false,text:'opaque child'});
 });
 it('keeps opaque subprocess reads on the conservative closure',async()=>{
   const output='src/shards/alpha/data/output.txt';

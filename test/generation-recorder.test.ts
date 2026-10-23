@@ -48,6 +48,12 @@ it('retains CommonJS resolution inventory without treating a builtin as source e
   const {child,read}=fixture("import{createRequire}from'node:module';createRequire(import.meta.url)('node:fs');");
   expect(child.status,child.stderr).toBe(0);expect(read().inventory).toContain('R commonjs-resolution');expect(read().opaque).toEqual([]);
 });
+it('records raw CommonJS and required JSON through synchronous load hooks',()=>{
+  const {child,read}=fixture("import fs from'node:fs';import{createRequire}from'node:module';fs.writeFileSync('rows.json','{\"value\":1}');fs.writeFileSync('nested.cjs',\"module.exports=require('./rows.json');\");createRequire(import.meta.url)('./nested.cjs');");
+  expect(child.status,child.stderr).toBe(0);const trace=read();
+  expect(trace.files).toContain('nested.cjs');expect(trace.files).toContain('rows.json');
+  expect(trace.execution).not.toContain('nested.cjs');expect(trace.inventory).toContain('R commonjs-module');expect(trace.opaque).toEqual([]);
+});
 it.each([
   ["import{spawnSync}from'node:child_process';spawnSync(process.execPath,['-e',\"require('fs').readFileSync('unread.ts')\"]);",'child-process'],
   ["try{process.dlopen({exports:{}},'missing-native-addon.node');}catch{}",'native-addon'],

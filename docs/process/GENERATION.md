@@ -79,7 +79,9 @@ That view includes immutable upstream copies, projected catalogue files, pinned 
 directories, never loose checkout files. Unsupported paths, glob/readlink probes, dependency-link scans and unresolved
 bare packages retain the full inventory; failed file resolution also binds the candidate's parent subtree.
 CommonJS resolution-only calls (including Node's ESM error hints) bind the complete filename inventory and package
-metadata; actual CommonJS module execution, native and subprocess work keep the complete conservative byte key.
+metadata. Synchronous load hooks record actual CommonJS source byte-exact, including nested require/JSON loads;
+CommonJS source never uses ESM code normalization. Native, worker and subprocess work keep the complete conservative
+byte key, including when called from a CommonJS module.
 Every miss still executes the complete current stage.
 
 Jobs hash every regular file in their declared conservative input roots plus the runner, sidecar, loader and lockfile.

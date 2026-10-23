@@ -131,7 +131,7 @@ export function installInputRecorder() {
     const scope=inputScope();
     // require.resolve and Node's ESM error hints inspect candidates without
     // executing their bodies. Retain every filename and package manifest for
-    // resolution; actual CommonJS module loads below remain fully opaque.
+    // resolution; actual CommonJS module loads below bind raw source bytes.
     if(scope?.traceOnly===true&&context.conditions.includes('require'))scope.inventory?.add('R commonjs-resolution');
     try {return next(specifier,context);}
     catch(error){
@@ -159,8 +159,13 @@ export function installInputRecorder() {
     let loaded;
     try {loaded=next(url,context);}
     finally {if(scope!==undefined){scope.observing=observing ?? false;scope.loading=loading;}}
-    if(loaded.format==='commonjs'||loaded.format==='commonjs-typescript')scope?.opaque?.add('commonjs-module');
-    if(file!==undefined)note(code.test(file)?moduleKind:'F',file);
+    const commonjs=loaded.format==='commonjs'||loaded.format==='commonjs-typescript';
+    if(commonjs&&scope?.traceOnly===true)scope.inventory?.add('R commonjs-module');
+    // Node's synchronous load hooks cover nested require and JSON loads too.
+    // Preserve raw CommonJS bytes, including source inspections and wrappers;
+    // never normalize them as ESM execution. Native/worker/child calls below
+    // independently mark the complete observation opaque.
+    if(file!==undefined)note(commonjs&&scope?.traceOnly===true||!code.test(file)?'F':moduleKind,file);
     return loaded;
   }});
   /** @type {unknown} */
