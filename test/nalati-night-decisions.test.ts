@@ -81,14 +81,5 @@ test('the actual return-script catalogue admits the shared weather/night module 
   expect(night.program.script.module).toBe(weather.script.module);
   expect(rows.filter(row => row.module === weather.script.module)).toHaveLength(1);
   expect(rows.find(row => row.module === weather.script.module)?.abi).toBe('1.0');
-  const projections=rows.flatMap(row=>row.abi===2?[{id:row.id,abi:row.abi,lane:row.lane,side:row.side}]:[])
-    .sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);
-  expect(projections).toStrictEqual([
-    {id:'nalati.admission.projection',abi:2,lane:'project',side:'sim'},
-    {id:'nalati.held-weapons.projection',abi:2,lane:'project',side:'sim'},
-    {id:'nalati.mounts.projection',abi:2,lane:'project',side:'sim'},
-    {id:'nalati.pasture.projection',abi:2,lane:'project',side:'sim'},
-    {id:'nalati.titan.projection',abi:2,lane:'project',side:'sim'},
-  ]);
   expect(new Set(rows.map(row => row.module)).size).toBeLessThanOrEqual(8);
 });

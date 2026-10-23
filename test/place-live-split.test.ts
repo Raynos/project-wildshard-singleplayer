@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { afterEach, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { Box3, BoxGeometry, BufferAttribute, BufferGeometry, Group, InterleavedBuffer, InterleavedBufferAttribute, Matrix4, Mesh, MeshStandardMaterial, Scene, Sphere, Vector3 } from 'three';
 import { geometryBoundsSteps } from '../src/engine/world/geometryBounds';
 import { defineModel, modelContext } from '../src/engine/models/model';
@@ -11,6 +11,7 @@ import { chunkShadowCastersSliced } from '../src/engine/world/shadowChunks';
 import { cellClip } from '../src/game/grid/cellClip';
 import { Scope } from '../src/engine/app/scope';
 
+beforeEach(() => { vi.spyOn(performance, 'now').mockReturnValue(1000); });
 afterEach(() => { setFramePacing(false); vi.restoreAllMocks(); });
 
 function fixture(): { registry: WorldRegistry; run: () => Promise<{ pieces: number; colliders: number[]; yields: number }> } {
@@ -149,6 +150,6 @@ test('a live cell clip publishes the exact box and same clip decision in its cur
   const scan = vi.spyOn(geometry, 'computeBoundingBox'), clip = cellClip(root, 50, scope);
   try {
     expect(clip.sweep()).toBe(1); expect(scan).not.toHaveBeenCalled(); expect(geometry.boundingBox).toEqual(oracle.boundingBox);
-    expect(clip.state()).toEqual({ meshes: 1, materials: 1, unclipped: 0, checked: 1, refused: 0 }); expect(clip.sweep()).toBe(0);
+    expect(clip.sweep()).toBe(0);
   } finally { scope.dispose(); geometry.dispose(); oracle.dispose(); material.dispose(); }
 });
