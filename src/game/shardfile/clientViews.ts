@@ -39,7 +39,7 @@ export interface ClientTileViews {
  * The view ports: the terrain family's material id, the family `materials`, admitted `textures`, the graph outline hook and
  * the named prop surfaces (SF55; null or absent: every prop draws with `props.family`) and the optional shared terrain lattice.
  */
-interface ViewPorts { terrain: string | NonNullable<Shardfile['terrain']> | null; materials: ReadonlyMap<string, Material>; textures: ReadonlyMap<string, Texture>; outline?: GraphOutlineHook; surfaces?: ((name: string) => PropSurfaceBinding) | null;
+interface ViewPorts { terrain: string | NonNullable<Shardfile['terrain']> | null; materials: ReadonlyMap<string, Material>; textures: ReadonlyMap<string, Texture>; outline?: GraphOutlineHook; surfaces?: ((name: string) => PropSurfaceBinding | null) | null;
   /** The decoded terrain collider every tile was cut from: each tile's normals come from it, so tile edges light alike (absent: each tile's own grid). */
   lattice?: TerrainTileData;
   /** The terrain's shadow flags (`terrain.shadow`): a tile casts only when `cast` (and the shadow disc says so), receives only when `receive` (absent: both). */
@@ -57,7 +57,7 @@ function outlineProps(root: Object3D, ports: ViewPorts, family: Material | undef
   const meshes: Mesh[] = []; root.traverse((object) => { if (isMesh(object)) meshes.push(object); });
   for (const mesh of meshes) for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) outline(mesh, material, scope);
 }
-const surfacePort = (ports: ViewPorts): { surfaces?: (name: string) => PropSurfaceBinding } => (ports.surfaces === null || ports.surfaces === undefined ? {} : { surfaces: ports.surfaces });
+const surfacePort = (ports: ViewPorts): { surfaces?: (name: string) => PropSurfaceBinding | null } => (ports.surfaces === null || ports.surfaces === undefined ? {} : { surfaces: ports.surfaces });
 
 /** Ring-tile views over a terrain declaration or family id (query/null: no drawn terrain), the family `materials` and admitted `textures`. */
 export function clientTileViews(ports: ViewPorts): ClientTileViews {

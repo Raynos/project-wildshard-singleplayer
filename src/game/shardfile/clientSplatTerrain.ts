@@ -55,10 +55,10 @@ export function splatSurface(splat: SplatTerrain, ports: { scope: Scope; texture
 }
 
 /** Put the splat material name in front of a named-material resolver (or the one-family path's absence of one). */
-export function withSplatSurface(splat: { readonly name: string; readonly binding: PropSurfaceBinding }, surfaces: ((name: string) => PropSurfaceBinding) | null): (name: string) => PropSurfaceBinding {
+export function withSplatSurface(splat: { readonly name: string; readonly binding: PropSurfaceBinding }, surfaces: ((name: string) => PropSurfaceBinding) | null): (name: string) => PropSurfaceBinding | null {
   return (name) => {
     if (name === splat.name) return splat.binding;
-    if (surfaces === null) throw new Error(`props GLB material "${name || '(unnamed)'}" is not the splat terrain, and the props declare no named materials`);
-    return surfaces(name);
+    // without named materials every other prop draws with the family, as it did before the ground joined the tiles
+    return surfaces === null ? null : surfaces(name);
   };
 }

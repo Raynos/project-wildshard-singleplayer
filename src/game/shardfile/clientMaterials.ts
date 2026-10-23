@@ -122,7 +122,7 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
   /** compile each still-deferred graph look among `ids` in its own build step (in play, one a drawn frame), so its first
    *  lookup finds it made; rejects once the scope has closed */
   prepare?: (ids: readonly string[]) => Promise<void>;
-  outline: GraphOutlineHook; graphs: { bind: (sources: GraphSources) => void; readout: GraphReadout }; surfaces: ((name: string) => PropSurfaceBinding) | null;
+  outline: GraphOutlineHook; graphs: { bind: (sources: GraphSources) => void; readout: GraphReadout }; surfaces: ((name: string) => PropSurfaceBinding | null) | null;
 }> {
   // a look that declares its graphs required (SF88e) draws them on every path: standalone, regional and grid near
   const graphsOn = shard.look.graphs === 'required' || (options.graphs ?? setting('graphMaterials') === 'on');

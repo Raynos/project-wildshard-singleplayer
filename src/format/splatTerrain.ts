@@ -86,11 +86,13 @@ export function validateSplatTerrain(splat: SplatTerrain, context: {
 
 /**
  * The props GLB material-name check with a splat terrain. Without one, `checkPropMaterialNames` as before (named materials
- * only). With one, every props GLB draws on the named path (the client resolves the splat name first): each material name
- * is the splat material or a `props.materials` name, every primitive has a material, and a name both map is refused.
+ * only). With one and `props.materials`, every props GLB draws on the named path (the client resolves the splat name
+ * first): each material name is the splat material or a `props.materials` name, every primitive has a material, and a name
+ * both map is refused. With one and no `props.materials`, every other name draws with the props family as before.
  */
 export function checkTileMaterialNames(materials: PropMaterials | undefined, splat: SplatTerrain | undefined, bytes: Uint8Array): void {
   if (splat === undefined) { if (materials !== undefined) checkPropMaterialNames(materials, bytes); return; }
-  if (materials !== undefined && Object.hasOwn(materials, splat.material)) throw new Error(`props material "${splat.material}" is both the splat terrain and a named prop material`);
+  if (materials === undefined) return;
+  if (Object.hasOwn(materials, splat.material)) throw new Error(`props material "${splat.material}" is both the splat terrain and a named prop material`);
   checkPropMaterialNames({ ...materials, [splat.material]: { id: 'pbr', colour: null, normal: null, metallicRoughness: null, occlusion: null, emissive: null } }, bytes);
 }

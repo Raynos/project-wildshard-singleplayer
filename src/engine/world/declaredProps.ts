@@ -121,12 +121,13 @@ export interface InstalledProps { tiles: ReadonlyMap<string, Object3D>; panels: 
  * material and texture slots (the port throws for a name it does not carry, so an unmapped material refuses the install,
  * never draws a guess). A family base draws as a shared variant carrying the GLB's factors and the slots; a graph's node
  * material, and a `compiled` surface (a splat terrain tile's, its `channels` renamed onto the mesh first), are shared as
- * compiled. Without `surfaces` nothing changes.
+ * compiled. A name the port answers null for draws with the family as before (a splat terrain beside family props, G227).
+ * Without `surfaces` nothing changes.
  */
 export async function installDeclaredProps(props: DeclaredProps, ports: {
   scene: Object3D; scope: Scope; assets: ReadonlyMap<string, Uint8Array>; materials: ReadonlyMap<string, Material>;
   textures?: ReadonlyMap<string, Texture>; lod?: 0 | 1 | 'far'; selectedTiles?: ReadonlySet<string>; includeLibrary?: boolean;
-  surfaces?: (name: string) => PropSurfaceBinding;
+  surfaces?: (name: string) => PropSurfaceBinding | null;
 }): Promise<InstalledProps> {
   const roots = new Group(), geometries = new Set<BufferGeometry>(), held: Material[] = [], bases = new Map<Material, Material>();
   // SF57 leak5: a GLB's EXT_mesh_gpu_instancing node parses to an InstancedMesh, whose instance buffers are its own upload; it
@@ -153,14 +154,16 @@ export async function installDeclaredProps(props: DeclaredProps, ports: {
       const original = Array.isArray(o.material) ? o.material : [o.material];
       const vertexColours = o.geometry.hasAttribute('color');
       const named = ports.surfaces;
-      const convert = named === undefined ? (source: Material | undefined): Material => {
+      const familyConvert = (source: Material | undefined): Material => {
         const glb = source === undefined ? null : surfaceOf(source), standard = source instanceof MeshStandardMaterial ? source : null;
         const m = acquireVariant(family, { colour: glb?.color ?? null, roughness: standard?.roughness ?? null, metalness: standard?.metalness ?? null, map: texture, vertexColours,
           side: source?.side ?? family.side, transparent: source?.transparent ?? family.transparent, opacity: source?.opacity ?? family.opacity });
         // the GLB's own material is only read: it never reaches the GPU
         source?.dispose(); held.push(m); return m;
-      } : (source: Material | undefined): Material => {
+      };
+      const convert = named === undefined ? familyConvert : (source: Material | undefined): Material => {
         const binding = named(source?.name ?? '');
+        if (binding === null) return familyConvert(source);
         if (binding.channels !== undefined) adoptChannels(o.geometry, binding.channels, source?.name ?? '');
         if (binding.compiled === true || isNodeMaterial(binding.material)) {
           const mapped: unknown = source === undefined ? undefined : Reflect.get(source, 'map');
