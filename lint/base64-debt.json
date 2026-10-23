@@ -97,7 +97,6 @@
     "src/shards/pine-hollow/generators/bake-geography.mjs": 1,
     "src/shards/pine-hollow/generators/bake-life.mjs": 1,
     "src/shards/pine-hollow/generators/bake-pine-clock-director.mjs": 1,
-    "src/shards/pine-hollow/generators/bake-pine-night-director.mjs": 1,
     "src/shards/pine-hollow/generators/bake-pine-painted.mjs": 2,
     "src/shards/pine-hollow/generators/bake-shelter.mjs": 1,
     "src/shards/pine-hollow/generators/cabinPropMaterials.mjs": 1,

@@ -10,7 +10,7 @@ const built=await compileDecisionScripts([NIGHT_SPAWN.script],spawnScriptRegistr
 const script=built.rows[0],blob=built.blobs[0];
 
 const bytes=blob.bytes;
-const output=`${JSON.stringify({...NIGHT_SPAWN,script,bytes:Buffer.from(bytes).toString('base64')},null,2)}\n`;
+const output=`${JSON.stringify({...NIGHT_SPAWN,script,bytes:''},null,2)}\n`;
 const path=resolve(root,project,'behaviour/night.generated.json');
 if(process.argv.includes('--check')){if(readFileSync(path,'utf8')!==output)throw new Error('Pine night v1 output stale');}
 else { writeFileSync(path,output); writeFileSync(resolve(root,project,'assets',blob.file.hash),bytes); }

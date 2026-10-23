@@ -8,17 +8,21 @@ import { createSimHost } from '../src/engine/sim';
 import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
 import { Rng } from '../src/engine/core/rng';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
-import night from '../src/shards/pine-hollow/behaviour/night.generated.json' with { type: 'json' };
+import rawNight from '../src/shards/pine-hollow/behaviour/night.generated.json' with { type: 'json' };
 import { readSpeciesPrograms } from '../src/format/speciesPrograms';
 import { parseSpawnScript } from '../src/format/spawnScripts';
 import type { AnimalSim } from '../src/engine/entities/AnimalSim';
 import { installPopulationRoster } from '../src/game/population/roster';
 import { PINE_SPECIES_PROGRAMS } from '../src/shards/pine-hollow/generators/speciesPrograms';
 
+const moduleBytes=Uint8Array.from(readFileSync(`src/shards/pine-hollow/assets/${rawNight.script.module.slice('blobs/wasm/'.length,-'.wasm'.length)}`));
+const encode=(bytes:Uint8Array):string=>btoa(String.fromCodePoint(...bytes));
+// The original inline fixture remains the independent execution/save oracle.
+const night={...rawNight,bytes:encode(moduleBytes)};
 const active = { draws: 0, created: [] as AnimalSim[] };
 let rapier: Rapier;
 beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); });
-function scenario(rosterStep = 'pine.roster', program: unknown = night) {
+function scenario(rosterStep = 'pine.roster', program: unknown = night, raw = false) {
   const host = createSimHost({ ...SIM_LEVEL, entities: [] }, { rapier });
   active.draws = 0; active.created = [];
   const sample = SIM_LEVEL.entities[0]; if (sample === undefined) throw new Error('Missing fixture recipe');
@@ -39,7 +43,7 @@ function scenario(rosterStep = 'pine.roster', program: unknown = night) {
   vi.spyOn(host, 'spawn').mockImplementation(recipe => {
     const body = spawn(recipe); active.created.push(body); active.draws += 6; return body;
   });
-  const runner = SpawnScript.native(host, { ...parseSpawnScript(program), roster: rosterStep });
+  const runner = SpawnScript.native(host, { ...parseSpawnScript(program), roster: rosterStep },raw?{scope:host.scope,module:moduleBytes}:undefined);
   const point = { x: 150, y: 0, z: -40 };
   return { host, runner, point, run: (ticks: number, dark = 1, flags: string[] = []) => {
     for (let i = 0; i < ticks; i++) {
@@ -150,7 +154,7 @@ test('an unrelated salt-marsh script spawns and retires its own species and site
   const compiled = built.rows[0], blob = built.blobs[0]; if (compiled === undefined || blob === undefined) throw new Error('Missing fixture script');
   const { host } = scenario('marsh.roster');
   try {
-    const runner = SpawnScript.native(host, { ...data, script: compiled, bytes: btoa(String.fromCodePoint(...blob.bytes)) });
+    const runner = SpawnScript.native(host, { ...data, script: compiled, bytes: encode(blob.bytes) });
     for (let tick = 0; tick < 7; tick++) runner.advance(1 / 60, { x: 0, y: 0, z: 0 }, 0, 1, []);
     expect(active.created[0]).toMatchObject({ kind: 'heron', variant: 'reed', position: { x: 8, z: 8 } });
     expect(host.entities.has('creature:0')).toBe(true); expect(active.draws).toBe(6);
@@ -240,4 +244,19 @@ test('published spawn catalogue admits v1 bytes without installing a second gene
     // The native seed's three bounded placement requests accept exactly two sites here.
     expect(runner.channel(1)).toBe(2); expect(active.draws).toBe(12); expect(runner.failure).toBeNull();
   } finally { host.dispose(); }
+});
+
+test('raw night sidecar preserves original staged spawning, RNG and save bytes',()=>{
+  expect(rawNight.bytes).toBe('');expect(moduleBytes.byteLength).toBe(10895);
+  const original=scenario(),before=[];
+  try{
+    original.run(181);const saved=original.runner.snapshot(),ids=active.created.map(actor=>actor.entityId),draws=active.draws,rng=original.host.rng.snapshot();
+    for(let tick=0;tick<150;tick++){original.run(1,0);before.push(...original.runner.drainEffects());}
+    const after=original.runner.snapshot(),raw=scenario('pine.roster',rawNight,true);
+    try{
+      raw.run(181);expect(raw.runner.snapshot()).toBe(saved);expect(active.created.map(actor=>actor.entityId)).toEqual(ids);expect(active.draws).toBe(draws);expect(raw.host.rng.snapshot()).toEqual(rng);
+      const events=[];for(let tick=0;tick<150;tick++){raw.run(1,0);events.push(...raw.runner.drainEffects());}
+      expect(events).toEqual(before);expect(raw.runner.snapshot()).toBe(after);expect(raw.runner.failure).toBeNull();
+    }finally{raw.host.dispose();}
+  }finally{original.host.dispose();}
 });
