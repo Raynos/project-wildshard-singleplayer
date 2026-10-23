@@ -8,12 +8,12 @@ import { resolve } from 'node:path';
 import { env, execPath } from 'node:process';
 import { expect, test } from 'vitest';
 
-test('complete lint batches cover every selected file and propagate a child failure', () => {
+test('local batches and single-process CI partitions cover every file and propagate failure', () => {
   mkdirSync('tmp', { recursive: true });
   const fixture = mkdtempSync(resolve('tmp', 'lint-all-'));
   const binary = resolve(fixture, 'bin'), calls = resolve(fixture, 'calls.txt');
   mkdirSync(binary);
-  const files = Array.from({ length: 513 }, (_, index) => resolve(fixture, `source ${index}.ts`));
+  const files = Array.from({ length: 1025 }, (_, index) => resolve(fixture, `source ${index}.ts`));
   for (const file of files) writeFileSync(file, 'export const value = 0;');
   const selection = resolve(fixture, 'files.txt');
   writeFileSync(selection, files.join('\n'));
@@ -36,7 +36,7 @@ if (args.join(' ') === 'exec oxlint --debug files') {
     expect(success.status, success.stderr.toString()).toBe(0);
     const batches = readFileSync(calls, 'utf8').trim().split('\n--batch--').filter(Boolean).map(batch => batch.trim().split('\n'));
     expect(batches.flat()).toEqual(files);
-    expect(batches.map(batch => batch.length)).toEqual([256, 256, 1]);
+    expect(batches.map(batch => batch.length)).toEqual([256, 256, 256, 256, 1]);
     writeFileSync(calls, '');
     expect(run(true).status).toBe(7);
     expect(readFileSync(calls, 'utf8')).not.toContain('source 512.ts');
@@ -48,11 +48,15 @@ if (args.join(' ') === 'exec oxlint --debug files') {
       const result = run(false, [`--shard=${part}/4`]);
       expect(result.status, result.stderr.toString()).toBe(0);
       const actual = readFileSync(calls, 'utf8').split('\n').filter(line => line.length > 0 && line !== '--batch--');
+      expect(readFileSync(calls,'utf8').match(/--batch--/gu)).toHaveLength(1);
       expect(actual).toEqual(sortedFiles.filter((_, index) => index % 4 === part - 1));
       partitioned.push(...actual);
     }
     expect(new Set(partitioned).size).toBe(files.length);
     expect([...partitioned].sort(compare)).toEqual(sortedFiles);
+    writeFileSync(calls,'');
+    expect(run(false,['--shard=1/1']).status).toBe(0);
+    expect(readFileSync(calls,'utf8').match(/--batch--/gu)).toHaveLength(1);
     for (const invalid of ['--shard=0/4', '--shard=5/4', '--shard=1/0', '--shard=bad']) {
       expect(run(false, [invalid]).status).toBe(2);
     }

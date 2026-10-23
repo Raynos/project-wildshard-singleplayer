@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Fresh plugin workers bound AST retention while every selected file keeps the full lint policy.
+// Local batches bound AST retention; each CI partition builds its type program once.
 import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -22,12 +22,12 @@ if (files.length === 0 || files.some(file => !file || !existsSync(resolve(root, 
   console.error('lint-all: could not enumerate the complete oxlint file selection');
   process.exit(1);
 }
-const batchSize = 256;
 const selected = (parts === 1 ? files : files.toSorted()).filter((_, index) => index % parts === part - 1);
 if (selected.length === 0) {
   console.error('lint-all: shard selected no files');
   process.exit(1);
 }
+const batchSize = shard === null ? 256 : selected.length;
 for (let offset = 0; offset < selected.length; offset += batchSize) {
   console.info(`lint-all: shard ${part}/${parts}, batch ${offset / batchSize + 1}/${Math.ceil(selected.length / batchSize)}`);
   const result = spawnSync('pnpm', ['exec', 'oxlint', ...selected.slice(offset, offset + batchSize)], { cwd: root, stdio: 'inherit' });

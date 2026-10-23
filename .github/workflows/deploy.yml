@@ -283,7 +283,7 @@ jobs:
           pnpm exec tsc --noEmit -p admin/tools
       - name: Lint
         if: matrix.shard != 'types'
-        # Fresh plugin workers bound AST retention on the verified exact tree.
+        # One type program per partition on the verified exact tree.
         run: node scripts/lint-all.mjs --shard=${{ matrix.shard }}/4
 
   # Types and lint need generated inputs, while behaviour and web builds also
