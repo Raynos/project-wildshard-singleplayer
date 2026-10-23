@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
-import { compileDecisionScripts, decisionLineCeiling } from '@wildshard/sdk/buildDecisionScripts';
+import { captureDecisionSources, compileDecisionScripts, decisionLineCeiling } from '@wildshard/sdk/buildDecisionScripts';
 import { inspectDecisionSource } from '@wildshard/sdk/decisionSource';
 import { generateDecisionBindings } from '@wildshard/sdk/decisionScriptBindings';
 import { DecisionHost, type DecisionScript } from '@wildshard/engine/script/decision';
@@ -46,6 +46,18 @@ test('the budget counts every authored source and preserves comment-looking stri
   const authored = sources(); authored.set('behaviour/unused.as', 'const unused=1;');
   await expect(compileDecisionScripts([raw], registries, authored, { asLineCeiling: 3 })).rejects.toThrow('4 > 3');
   await expect(compileDecisionScripts([raw], registries, new Map([['behaviour/generated/hidden.as', source]]), budget)).rejects.toThrow('Invalid authored');
+});
+
+test('inline generated helpers remain visible in the checked source budget', async () => {
+  const authored = sources();
+  authored.set('behaviour/weakPoints.generated.as', `export function weakPoint(x:f64,y:f64,z:f64):bool{
+  return x < 1
+    || y < 1
+    || z < 1;
+}
+`);
+  expect((await captureDecisionSources(authored, { asLineCeiling: 8 })).lines).toBe(8);
+  await expect(captureDecisionSources(authored, { asLineCeiling: 7 })).rejects.toThrow('8 > 7');
 });
 
 test('emits the exact source SHA and replaces a stale producer claim', async () => {
