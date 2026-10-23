@@ -151,6 +151,14 @@ A subsequent HTTP-cache clear is a labelled diagnostic only,
 leaving CacheStorage intact. Run it through `browser-lane.sh`, then stop its
 owned preview. These are Chromium readings, never inferred Safari/phone RAM.
 
+For the C7 milestone, use the same ruler with `core --floor --pin=<full-sha>`
+as its target/options under `browser-lane.sh --max 12`. One command measures
+menu, SHARD SELECT, Template 1 and Template 2 in separate fresh browsers,
+using the real menu and compiled card entry. It prints the original 120-second
+renderer + GPU totals against G658 M1's 50/100 MiB targets and fails if a floor
+is over target or unavailable. It retains 10/60/120-second samples and the
+post-sample scalar owner ledger; cache-clear diagnostics cannot pass a floor.
+
 Chromium process-memory tools (`shard-phone-memory`, `grid-ready-chromium`,
 `load-mem-probe`, `capture-main-menu-hero`, and `crossroads-rig/desktop-probe`)
 use `chromium-memory-browser.mjs`. Its public CDP transport caps response-body

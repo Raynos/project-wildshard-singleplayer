@@ -4,22 +4,41 @@
 //   scripts/browser-lane.sh --max 10 node scripts/shard-phone-memory.mjs <preview url> <shard> <label> <out.json>
 // --floor samples at 10/60/120 s without forced GC, then diagnoses HTTP-cache retention.
 // It also accepts menu or select as the target, with the real Developer prefetch on.
+// Use core --floor --pin=<sha> for all four independent milestone floors.
 import { spawnSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
+import { resolve as resolvePath } from 'node:path';
 import { devices } from 'playwright';
+import * as v from 'valibot';
 import { launchMemoryBrowser } from './chromium-memory-browser.mjs';
 import { saveFixture } from './debug-settings.mjs';
 import { chromiumProcessPeaks, chromiumAllocatorBytes } from './grid-ready-memory.mjs';
 import { loadingCardIndex } from './loading-benchmark/catalogue.mjs';
+import { pageMemoryAttributionExpression } from './memory-report-snapshot.mjs';
 
-const [base, shard, label, out] = process.argv.slice(2);
-const floor = process.argv.includes('--floor'), title = shard === 'menu' || shard === 'select';
-const pin = process.argv.find(arg => arg.startsWith('--pin='))?.slice(6);
-if (title && !floor) throw new Error('Menu targets require --floor');
-if (pin !== undefined) {
-  if (!/^[a-f0-9]{40}$/u.test(pin)) throw new Error('Expected exact served source pin');
-  const version = await (await fetch(new URL('/version.json', base))).json();
-  if (!version.build?.startsWith(pin.slice(0, 7))) throw new Error('Served source differs from pin');
+/** G658 M1 targets use MiB, as in the core-memory plan's measurement table. */
+export const coreMemoryTargets = Object.freeze([
+  Object.freeze({shard: 'menu', name: 'Menu', limitBytes: 50 * 1048576}),
+  Object.freeze({shard: 'select', name: 'SHARD SELECT', limitBytes: 50 * 1048576}),
+  Object.freeze({shard: '_template', name: 'Template 1', limitBytes: 100 * 1048576}),
+  Object.freeze({shard: 'blender-template', name: 'Template 2', limitBytes: 100 * 1048576}),
+]);
+const footprintBytes = v.pipe(v.number(), v.safeInteger(), v.minValue(0));
+const floorRows = v.array(v.object({shard: v.string(), errors: v.array(v.string()),
+  samples: v.array(v.object({phase: v.string(), rendererBytes: footprintBytes, gpuBytes: footprintBytes}))}));
+
+/** Compare only the unmodified 120-second floor, never the cache-clear diagnostic.
+ * Missing/failed readings stay unknown and fail; Chromium is not phone RAM.
+ * @param {unknown} input */
+export function coreMemorySummary(input) {
+  const rows = v.parse(floorRows, input);
+  if (new Set(rows.map(row => row.shard)).size !== rows.length || rows.some(row => !coreMemoryTargets.some(target => target.shard === row.shard))) throw new Error('Duplicate or unknown core memory floor');
+  return coreMemoryTargets.map(target => {
+    const row = rows.find(value => value.shard === target.shard), samples = row?.samples.filter(sample => sample.phase === '120s') ?? [];
+    if (samples.length > 1) throw new Error(`Duplicate 120s floor: ${target.shard}`);
+    const sample = samples[0], totalBytes = sample === undefined || row?.errors.length !== 0 ? null : sample.rendererBytes + sample.gpuBytes;
+    return {...target, totalBytes, passed: totalBytes !== null && totalBytes <= target.limitBytes};
+  });
 }
 const PY = String.raw`
 import ctypes, json, sys
@@ -31,9 +50,6 @@ for p in sys.argv[1:]:
     out[p] = u.phys_footprint if lib.proc_pid_rusage(int(p), 0, ctypes.byref(u)) == 0 else None
 print(json.dumps(out))
 `;
-const memoryBrowser = await launchMemoryBrowser(['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', '--enable-precise-memory-info']);
-const {browser} = memoryBrowser;
-const result = { label, shard, base, pin, floor, inspectorResponseBodyBytes: 0, samples: [], errors: [] };
 async function footprint(session) {
   const info = await session.send('SystemInfo.getProcessInfo');
   const pids = info.processInfo.filter(row => row.type === 'renderer' || row.type === 'GPU');
@@ -56,7 +72,7 @@ async function memoryDump(session, phase) {
     return { phase, at: Date.now(), process: chromiumProcessPeaks(events), allocators: chromiumAllocatorBytes(events) };
   } finally { session.off('Tracing.dataCollected', collect); }
 }
-async function floors(page, context) {
+async function floors(page, context, browser, result) {
   const session = await browser.newBrowserCDPSession(), cdp = await context.newCDPSession(page), started = Date.now();
   const sample = async phase => {
     const heap = await cdp.send('Runtime.getHeapUsage');
@@ -69,12 +85,20 @@ async function floors(page, context) {
     await page.waitForTimeout(Math.max(0, second * 1000 - (Date.now() - started)));
     result.samples.push(await sample(`${second}s`));
   }
+  // Original scalar owner ledger, after acceptance; never resource getters or GC.
+  result.attribution = await page.evaluate(`(() => {const api=window.__wildshard;return ${pageMemoryAttributionExpression};})()`);
   result.memoryDumps = [await memoryDump(session, '120s-unmodified')];
   // Diagnostic only, AFTER the acceptance samples. CacheStorage stays intact.
   await cdp.send('Network.clearBrowserCache'); await page.waitForTimeout(5000);
   result.afterHttpCacheClear = await sample('after-http-cache-clear');
   result.memoryDumps.push(await memoryDump(session, 'after-http-cache-clear'));
 }
+
+async function measureTarget(base, shard, label, out, pin, floor, requireCompiled = false) {
+const title = shard === 'menu' || shard === 'select';
+const memoryBrowser = await launchMemoryBrowser(['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', '--enable-precise-memory-info']);
+const {browser} = memoryBrowser;
+const result = { label, shard, base, pin, floor, inspectorResponseBodyBytes: 0, samples: [], errors: [] };
 try {
   const context = await browser.newContext({ ...devices['iPhone 16 Pro'], serviceWorkers: floor ? 'block' : 'allow' });
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
@@ -94,6 +118,7 @@ try {
         await page.locator(`.ws-menu-dots i[data-i="${selected}"]`).click();
         await page.locator(`.ws-menu-card.selected[data-i="${selected}"]`).waitFor();
         const compiled = page.locator('.ws-menu-shardfile');
+        if (requireCompiled && !await compiled.isVisible()) throw new Error(`Missing compiled floor entry: ${shard}`);
         await (await compiled.isVisible() ? compiled : page.locator('.ws-menu-play')).click();
         await page.waitForURL(url => url.searchParams.get('chunk') === shard);
       }
@@ -107,7 +132,7 @@ try {
   if (failure) throw new Error(failure);
   await page.evaluate(() => window.__wildshard.requireWorld().hud.enterNow());
   }
-  if (floor) await floors(page, context);
+  if (floor) await floors(page, context, browser, result);
   else {
   await page.waitForTimeout(20000);
   for (let i = 0; i < 3; i++) {
@@ -129,5 +154,42 @@ try {
   }
   await page.screenshot({ path: out.replace(/\.json$/u, '.jpg'), type: 'jpeg', quality: 70 });
 } catch (error) { result.errors.push(String(error)); }
-finally { await memoryBrowser.close(); writeFileSync(out, `${JSON.stringify(result, null, 2)}\n`); console.log(JSON.stringify(result)); }
-if (result.errors.length > 0) process.exitCode = 1;
+finally { await memoryBrowser.close(); }
+return result;
+}
+
+async function main() {
+  const [base, shard, label, out] = process.argv.slice(2), floor = process.argv.includes('--floor');
+  const pin = process.argv.find(arg => arg.startsWith('--pin='))?.slice(6);
+  if (!base || !shard || !label || !out || !out.endsWith('.json')) throw new Error('Expected <preview URL> <shard|menu|select|core> <label> <out.json>');
+  if (['menu', 'select', 'core'].includes(shard) && !floor) throw new Error('Menu/core targets require --floor');
+  if (shard === 'core' && pin === undefined) throw new Error('Core floors require --pin=<full-sha>');
+  if (pin !== undefined) {
+    if (!/^[a-f0-9]{40}$/u.test(pin)) throw new Error('Expected exact served source pin');
+    const version = await (await fetch(new URL('/version.json', base))).json();
+    if (!version.build?.startsWith(pin.slice(0, 7))) throw new Error('Served source differs from pin');
+  }
+  if (shard !== 'core') {
+    const result = await measureTarget(base, shard, label, out, pin, floor);
+    writeFileSync(out, `${JSON.stringify(result, null, 2)}\n`); console.log(JSON.stringify(result));
+    if (result.errors.length > 0) process.exitCode = 1;
+    return;
+  }
+  const result = {label, base, pin, protocol: 'chromium-phone-core/1', targets: [], summary: []};
+  try {
+    for (const target of coreMemoryTargets) {
+      // A fresh browser (not just context) prevents the previous floor's GPU/
+      // renderer processes and prefetch payloads from inflating the next floor.
+      const row = await measureTarget(base, target.shard, label, out.replace(/\.json$/u, `-${target.shard}.json`), pin, true, true);
+      result.targets.push(row);
+      if (row.errors.length > 0) break;
+    }
+  } finally {
+    result.summary = coreMemorySummary(result.targets);
+    writeFileSync(out, `${JSON.stringify(result, null, 2)}\n`);
+    for (const row of result.summary) console.log(`${row.name}: ${row.totalBytes === null ? 'UNKNOWN' : `${(row.totalBytes / 1048576).toFixed(1)} MiB`} / ${row.limitBytes / 1048576} MiB ${row.passed ? 'PASS' : 'FAIL'}`);
+    if (result.summary.some(row => !row.passed)) process.exitCode = 1;
+  }
+}
+
+if (process.argv[1] !== undefined && resolvePath(process.argv[1]) === import.meta.filename) await main();
