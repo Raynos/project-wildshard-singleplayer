@@ -67,11 +67,17 @@ def import_reader():
     program = """const ts=require(process.argv[1]);
 const lines=require('node:readline').createInterface({input:process.stdin});
 lines.on('line',line=>{
- const [name,text]=JSON.parse(line),source=ts.createSourceFile(name,text,ts.ScriptTarget.Latest,true),imports=[];
+ const [name,text,includeTypes]=JSON.parse(line),source=ts.createSourceFile(name,text,ts.ScriptTarget.Latest,true),imports=[];
  function visit(node){
-  if(ts.isImportTypeNode(node))return;
+  if(ts.isImportTypeNode(node)){
+   if(includeTypes&&ts.isLiteralTypeNode(node.argument)&&ts.isStringLiteral(node.argument.literal))imports.push(node.argument.literal.text);
+   return;
+  }
+  if(ts.isImportEqualsDeclaration(node)&&ts.isExternalModuleReference(node.moduleReference)&&node.moduleReference.expression&&ts.isStringLiteral(node.moduleReference.expression)){
+   if(includeTypes||!node.isTypeOnly)imports.push(node.moduleReference.expression.text);
+  }
   if(ts.isImportDeclaration(node)||ts.isExportDeclaration(node)){
-   if(node.isTypeOnly||node.importClause?.isTypeOnly)return;
+   if(!includeTypes&&(node.isTypeOnly||node.importClause?.isTypeOnly))return;
    if(node.moduleSpecifier&&ts.isStringLiteral(node.moduleSpecifier))imports.push(node.moduleSpecifier.text);
   }
   if(ts.isCallExpression(node)&&(node.expression.kind===ts.SyntaxKind.ImportKeyword||ts.isIdentifier(node.expression)&&node.expression.text==='require')){
@@ -83,8 +89,8 @@ lines.on('line',line=>{
 });"""
     process = subprocess.Popen(['node', '-e', program, str(library)], stdin=subprocess.PIPE,
                                stdout=subprocess.PIPE, text=True)
-    def read(name, text):
-        process.stdin.write(json.dumps([name, text]) + '\n'); process.stdin.flush()
+    def read(name, text, include_types=False):
+        process.stdin.write(json.dumps([name, text, include_types]) + '\n'); process.stdin.flush()
         line = process.stdout.readline()
         if not line:
             raise ValueError('Staged import parser exited without a result')
@@ -101,7 +107,7 @@ lines.on('line',line=>{
 
 
 # Pure staged input selection; callers supply immutable Git blobs, never loose source.
-def required_sources(blobs, specification, tree=None, executable=None):
+def required_sources(blobs, specification, tree=None, executable=None, staged_paths=None):
     def regular(name):
         path = PurePosixPath(name)
         return not path.is_absolute() and '..' not in path.parts
@@ -151,7 +157,7 @@ def required_sources(blobs, specification, tree=None, executable=None):
             target = manifest.get('exports', {}).get('./' + key if key else '.')
             base = f'src/{package}/{target[2:]}' if isinstance(target, str) and target.startswith('./') else ''
         elif value.startswith('.'):
-            base = os.path.normpath(str(PurePosixPath(source).parent / value))
+            return next((name for name in relative_candidates(source, value) if exists(name)), None)
         elif value.startswith('/src/'):
             base = value[1:]
         else:
@@ -163,6 +169,8 @@ def required_sources(blobs, specification, tree=None, executable=None):
     pending = [name for name in selected if name.startswith('lint/') and PurePosixPath(name).suffix in {'.js', '.mjs'}] + roots
     visited = set()
     with import_reader() as imports:
+        if staged_paths is not None:
+            check_staged_imports(blobs, specification.get('files', []), staged_paths, imports)
         while pending:
             name = pending.pop()
             if name in visited or not regular(name) or not exists(name):
@@ -194,6 +202,64 @@ def required_sources(blobs, specification, tree=None, executable=None):
     return selected & available
 
 
+def relative_candidates(source, value):
+    value = value.split('?', 1)[0].split('#', 1)[0]
+    base = os.path.normpath(str(PurePosixPath(source).parent / value))
+    if PurePosixPath(base).is_absolute() or '..' in PurePosixPath(base).parts:
+        return []
+    suffix = PurePosixPath(base).suffix
+    substitutes = {'.js': ['.ts', '.tsx', '.d.ts'], '.jsx': ['.tsx', '.ts', '.d.ts'],
+                   '.mjs': ['.mts', '.d.mts'], '.cjs': ['.cts', '.d.cts']}
+    if suffix in substitutes:
+        return [base, *[base[:-len(suffix)] + extension for extension in substitutes[suffix]]]
+    if suffix in {'.json', '.bin', '.wasm', '.png', '.jpg', '.jpeg', '.webp', '.svg', '.glb', '.gltf', '.hdr', '.css'}:
+        return [base]
+    extensions = ('.ts', '.tsx', '.mts', '.cts', '.js', '.jsx', '.mjs', '.cjs', '.d.ts', '.json')
+    return [base, *[base + extension for extension in extensions],
+            *[base + '/index' + extension for extension in extensions]]
+
+
+def check_staged_imports(blobs, files, staged_paths, imports):
+    """Authored imports must exist in Git's candidate, never just in loose WIP."""
+    generated = None
+    def declared_output(file):
+        nonlocal generated
+        if generated is None:
+            catalogue = json.loads(blobs.get('scripts/generation-jobs.json', b'{"jobs":[]}'))
+            sources = json.loads(blobs.get('scripts/source-generation-outputs.json', b'{"producers":{}}'))
+            generated = {output for job in catalogue['jobs'] for output in job.get('outputs', [])}
+            generated.update(output for outputs in sources['producers'].values() for output in outputs)
+            copies = json.loads(blobs.get('scripts/copied-runtime-inputs.json', b'{"copies":[]}'))
+            generated.update(row['target'] for row in copies['copies'])
+            generated.update(['src/shards.generated.ts', 'src/game/shard/slugs.generated.ts',
+                'src/game/shard/slugs.generated.json', 'src/game/shard/manifest-closure.generated.json',
+                'lint/shard-words.generated.json', 'src/game/boot/bytes.generated.ts',
+                'src/game/boot/versions.generated.ts', 'src/game/boot/audio.generated.ts',
+                'src/game/boot/packs.generated.ts', 'src/game/shard/art.generated.ts',
+                'src/game/systems/viewmodel/clips.generated.ts', 'src/game/weapons/starter.generated.ts',
+                'src/game/bag/starter.generated.ts', 'src/game/systems/effects/starter.generated.ts'])
+            for name in staged_paths:
+                if not name.startswith('src/shards/') or not name.endswith('/manifest.json'):
+                    continue
+                folder = str(PurePosixPath(name).parent)
+                outputs = json.loads(blobs.get(folder + '/outputs.json', b'{"outputs":[]}'))['outputs']
+                if outputs:
+                    generated.update(folder + '/discovery.' + row['slug'] + '.generated.ts' for row in outputs)
+                else:
+                    generated.add(folder + '/discovery.generated.ts')
+        return file in generated
+    for file in files:
+        if file not in blobs or PurePosixPath(file).suffix not in {'.ts', '.tsx', '.mts', '.cts', '.js', '.jsx', '.mjs', '.cjs'}:
+            continue
+        for value in sorted(imports(file, blobs[file].decode('utf8'), True)):
+            if not value.startswith('.'):
+                continue
+            candidates = relative_candidates(file, value)
+            if not any(candidate in staged_paths for candidate in candidates) and not any(declared_output(candidate) for candidate in candidates):
+                target = candidates[0] if candidates else value
+                raise ValueError(f'MISSING STAGED MODULE {file}: {value} -> {target} is untracked or absent in the staged tree')
+
+
 def staged_source(repo, tree, deadline, revision=None, specification=None):
     def git(*args, **kwargs):
         return subprocess.check_output(['git', *args], cwd=repo,
@@ -221,7 +287,9 @@ def staged_source(repo, tree, deadline, revision=None, specification=None):
             entries.append((path, oid, mode))
     with git_blobs(repo, entries, deadline) as contents:
         executable = set()
-        selected = set(contents) if specification is None else required_sources(contents, specification, executable=executable)
+        staged_paths = {os.fsdecode(row.split(b'\t', 1)[1]) for row in records} if revision is None else None
+        selected = set(contents) if specification is None else required_sources(contents, specification,
+            executable=executable, staged_paths=staged_paths)
         for path, _, mode in entries:
             if str(path) not in selected:
                 continue

@@ -12,9 +12,11 @@ import { precommitInputs } from '../scripts/precommit-inputs.mjs';
 const { WS_PRECOMMIT_FIXTURE: fixturePath, WS_PRECOMMIT_SOURCE: sourcePath } = env;
 
 test('selected source retains exact imports, predecessor, assets, deleted readers and locked owners', () => {
-  expect(execFileSync('python3', [fixturePath ?? 'test/fixtures/precommit-source-selection.py',
+  const output = execFileSync('python3', [fixturePath ?? 'test/fixtures/precommit-source-selection.py',
     sourcePath ?? resolve('scripts/precommit-source.py')],
-  { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 })).toContain('12 exact staged-source selection regressions passed');
+  { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
+  expect(output).toContain('12 exact staged-source selection regressions passed');
+  expect(output).toContain('13 staged import guard regressions passed');
 });
 
 test('docs-only commits make no source snapshot or lint worker', async () => {

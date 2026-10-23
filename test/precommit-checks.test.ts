@@ -72,7 +72,7 @@ test('a wall cap defers every cheap check but preserves observed refusals', () =
     expect(commitCheckFailed({ name, code: 124, timedOut: false, output: '' })).toBe(false);
     expect(commitCheckFailed({ name, code: 1, timedOut: false, output: '' })).toBe(true);
   }
-  for (const output of ['unit.ts:1: error typescript(TS2322): wrong', ' FAIL test/bad.test.ts', 'CLOSED C1 has custom lines', 'src/a.ts: deleted path src/gone.ts']) {
+  for (const output of ['unit.ts:1: error typescript(TS2322): wrong', ' FAIL test/bad.test.ts', 'CLOSED C1 has custom lines', 'src/a.ts: deleted path src/gone.ts', 'MISSING STAGED MODULE src/a.ts: ./missing']) {
     expect(commitCheckFailed({ name: 'check', code: 124, timedOut: true, output })).toBe(true);
   }
 });

@@ -41,4 +41,45 @@ with tempfile.TemporaryDirectory(dir=base/'tmp',prefix='staged-inputs-test-') as
  git('add','lint/ratchet.json','src/shards','scripts/generation-jobs.json');tree=root/'closed';staged_source(root,tree,time.time()+5,specification={**spec,'closed':True})
  assert (tree/'src/shards/example/runtime/run.ts').is_file();assert not (tree/'src/shards/other/runtime/run.ts').exists()
  assert (tree/'src/shards/example/generators/bake-one.mjs').is_file()
+ # Missing authored imports refuse from index metadata even when loose bytes exist.
+ put('src/loose.ts','export const hidden = 1;\n')
+ checks=0
+ def missing(text,target):
+  global checks
+  put('src/unit.ts',text);git('add','src/unit.ts')
+  try:
+   staged_source(root,root/f'missing-{checks}',time.time()+5,specification=spec)
+   raise AssertionError('Missing staged module was accepted')
+  except ValueError as error:
+   assert 'MISSING STAGED MODULE src/unit.ts:' in str(error) and target in str(error),error
+  checks+=1
+ for text in ['import "./loose";','import type {hidden} from "./loose";',
+              'type Hidden = import("./loose").hidden;', 'export type {hidden} from "./loose";',
+              'const hidden = require("./loose");', 'import hidden = require("./loose");']:
+  missing(text,'src/loose')
+ # Adding the target in the SAME index passes, including TS's .js substitution.
+ git('add','src/loose.ts');put('src/loose.ts','throw Error("foreign loose edit");\n')
+ put('src/unit.ts','import {hidden} from "./loose.js"; export {hidden};\n');git('add','src/unit.ts')
+ tree=root/'same-index';staged_source(root,tree,time.time()+5,specification=spec)
+ assert (tree/'src/loose.ts').read_text()=='export const hidden = 1;\n';checks+=1
+ # A staged deletion stays missing even when its old working file remains.
+ git('rm','--cached','src/dependency.ts')
+ missing('import "./dependency";','src/dependency');git('add','src/dependency.ts')
+ # Strings/comments that resemble imports are not module edges.
+ put('src/unit.ts','// import "./missing";\nexport const text = \'import "./missing";\';\n');git('add','src/unit.ts')
+ staged_source(root,root/'comments',time.time()+5,specification=spec);checks+=1
+ # Only exact generation declarations may defer generated inputs to CI.
+ put('scripts/generation-jobs.json',json.dumps({'jobs':[{'entry':'src/shards/example/generators/bake-one.mjs','outputs':['src/fixture.generated.ts']}]}))
+ git('add','scripts/generation-jobs.json')
+ put('src/unit.ts','import "./fixture.generated";\n');git('add','src/unit.ts')
+ staged_source(root,root/'declared-generated',time.time()+5,specification=spec);checks+=1
+ missing('import "./undeclared.generated";','src/undeclared.generated')
+ put('src/unit.ts','import url from "./asset.bin?url"; export {url};\n');git('add','src/unit.ts')
+ tree=root/'tracked-asset-query';staged_source(root,tree,time.time()+5,specification=spec)
+ assert (tree/'src/asset.bin').read_bytes()==b'exact asset';checks+=1
+ put('scripts/copied-runtime-inputs.json',json.dumps({'copies':[{'target':'public/assets/fixture/runtime.wasm'}]}))
+ git('add','scripts/copied-runtime-inputs.json')
+ put('src/unit.ts','import url from "../public/assets/fixture/runtime.wasm?url"; export {url};\n');git('add','src/unit.ts')
+ staged_source(root,root/'declared-runtime-copy',time.time()+5,specification=spec);checks+=1
+ print(f'{checks} staged import guard regressions passed')
  print('12 exact staged-source selection regressions passed')
