@@ -3207,6 +3207,12 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 `prepareHybridShard` accepts an explicit first-party `stagesOwner: "runtime"` transition when the native runtime installs all admitted world, kit and play declarations (including its movers). Product validation, immutable-byte admission and residency run before native hooks. The data plugin is not constructed, so it registers no duplicate simulation, equipment or handoff. The default remains declared stages; outside products cannot select runtime stage ownership. This is a trusted composition port, not a shardfile-authored escape from admission.
 
 
+The boot art bank contains the active card's thumbnail, portrait and
+landscape plus its declared Explore/precache images. Other cards retain
+original URLs for the deck to request on demand. Background world prefetch
+still visits each world's own bank. Playing one home no longer eagerly
+queues every shard's portraits; no placeholder or card content changes.
+
 `compiledPageBoot(authored, compiled)` in `@wildshard/game/plugin/context`
 borrows the admitted client's exact file/source inventory while retaining
 authored boot policy (steps, phone settings, audio and Explore). Only the

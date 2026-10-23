@@ -53,6 +53,21 @@ test('selected extras enter the download denominator before prefetch and never i
   }finally{releaseByteCounter();dispose();}
 });
 
+test('a home declares its own card and Explore images while other cards retain demand URLs',()=>{
+  const own={thumb:'/assets/own-thumb.jpg',portrait:'/assets/own-portrait.jpg',landscape:'/assets/own-landscape.jpg'};
+  const foreign={thumb:'/assets/other-thumb.jpg',portrait:'/assets/other-portrait.jpg',landscape:'/assets/other-landscape.jpg'};
+  const home:BootLevel={...level,card:own,boot:{...level.boot,files:[],sources:()=>blank,explore:{art:['/assets/own-explore.webp']}}};
+  const other:BootLevel={...level,slug:'other',card:foreign};
+  const artBytes={ [own.thumb]:10,[own.portrait]:20,[own.landscape]:30,'/assets/own-explore.webp':40,
+    [foreign.thumb]:1000,[foreign.portrait]:2000,[foreign.landscape]:3000 };
+  setBootCatalog({levels:[other,home],playable:[other,home],find:()=>home,artBytes});
+  const files=bootFiles({...home},'img',NO_AUDIO);
+  expect(files.art).toEqual([...Object.values(own),'/assets/own-explore.webp']);
+  expect(extraFetches(files)).toEqual(files.art);
+  expect(declareTotals(files).art).toEqual({bytes:100,files:4});
+  expect(other.card).toBe(foreign);expect(other.card.portrait).toBe('/assets/other-portrait.jpg');
+});
+
 test('preload ignores foreign inventory and decodes selected compressed bytes offline without another fetch',async()=>{
   const fetch=vi.spyOn(globalThis,'fetch').mockImplementation(()=>Promise.resolve(new Response(new Uint8Array([1,2,3]))));
   const seen:string[]=[],decode=vi.fn<LevelAudioProfile['decode']>(async(style,read)=>{

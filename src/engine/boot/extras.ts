@@ -51,11 +51,9 @@ const cardArt = new Set<string>();
 
 function artFor(def: BootLevel): { urls: string[]; bytes: Record<string, number> } {
   const urls: string[] = [], bytes: Record<string, number> = {};
-  const cards: string[] = [];
-  for (const level of bootCatalog().levels) {
-    cards.push(level.card.thumb, level.card.portrait);
-    if (TIER === 'desktop' || level === def) cards.push(level.card.landscape);
-  }
+  // Other cards retain their authored URLs; the deck requests their pictures
+  // when shown. Playing one world does not preload every world's portraits.
+  const cards = [def.card.thumb, def.card.portrait, def.card.landscape];
   const cardUrls = new Set(cards);
   for (const url of new Set([...cards, ...(def.boot?.explore?.art ?? []), ...(def.boot?.precache ?? [])])) {
     if (url.startsWith('data:')) continue; // inlined into the bundle: nothing to fetch
