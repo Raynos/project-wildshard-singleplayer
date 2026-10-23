@@ -842,7 +842,7 @@ async function main() {
     // owner), so back-to-back A/B rows in a quiet window build nothing; its build id is still checked below (sp-o286)
     const serveBase = flag('serve-base', '');
     if (serveBase !== '') ownedServer = false;
-    base = serveBase !== '' ? (serveBase.endsWith('/') ? serveBase : `${serveBase}/`) : await run(join(ROOT, 'scripts/serve-build.sh'), ['--rev', sha, '--name', `frame-floor-${runId}`, '--hours', '1', ...(devserverBuild ? ['--devserver'] : []), ...(serveShard === '' ? [] : ['--shard', serveShard])], { cwd: scratch });
+    base = serveBase !== '' ? (serveBase.endsWith('/') ? serveBase : `${serveBase}/`) : await run(join(ROOT, 'scripts/serve-build.sh'), ['--rev', sha, '--name', `frame-floor-${runId}`, '--hours', '1', ...(devserverBuild ? ['--devserver'] : []), ...(serveShard === '' ? [] : ['--shard', serveShard])], { cwd: ROOT }); // G670: previews start from the checkout, never a tmp/ caller
     const version = await (await fetch(`${base}version.json`)).json();
     if (!JSON.stringify(version).includes(sha.slice(0, 7))) throw new Error(`Preview build id does not match ${sha}: ${JSON.stringify(version)}`);
     // Safari cannot inject a pre-navigation script with its inspector protocol. Add pins to a COPY of the clean
@@ -874,7 +874,7 @@ async function main() {
     console.log(`Baseline ${output}: ${elapsedSeconds.toFixed(1)} seconds, complete=${record.complete}, pass=${record.pass}`);
     process.exitCode = record.complete ? record.pass ? 0 : 2 : 3;
   } finally {
-    if (base && ownedServer) await run(join(ROOT, 'scripts/serve-build.sh'), ['stop', new URL(base).port], { cwd: scratch });
+    if (base && ownedServer) await run(join(ROOT, 'scripts/serve-build.sh'), ['stop', new URL(base).port], { cwd: ROOT });
     for (const out of temporary) rmSync(out, { force: true });
     rmSync(scratch, { recursive: true, force: true });
   }
