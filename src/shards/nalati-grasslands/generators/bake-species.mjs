@@ -8,7 +8,8 @@ import kingPose from '../data/goldenKingPose.generated.json' with { type: 'json'
 import { inflateSync, deflateSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { compileDecisionScripts, readDecisionSources } from '@wildshard/sdk/buildDecisionScripts';
+import { compileReturnProjectionV2 } from '@wildshard/sdk/returnProjectionV2';
+import { readDecisionSources } from '@wildshard/sdk/buildDecisionScripts';
 import { fileURLToPath } from 'node:url';
 import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
 import bodyRows from '../data/bodies.json' with { type: 'json' };
@@ -30,9 +31,9 @@ const fields=names('Field'),channels=names('Channel'),signals=names('Signal');
 const aliases=values=>Object.fromEntries(values.map(name=>[name,name]));
 const registry=values=>new Map([...values].sort((a,b)=>a<b?-1:a>b?1:0).map((name,index)=>[name,index+1]));
 const source={id:'nalati.held-weapons',abi:'1.0',side:'sim',module:`blobs/wasm/${'0'.repeat(64)}.wasm`,source:'behaviour/heldWeapons.as',binding:{shard:true},pages:1,onFail:'hold',on:['signal'],tick:null,stateVersion:1,state:[],params:{},reads:['field'],commands:['channel'],fields:aliases(fields),channels:aliases(channels),signals:aliases(signals)};
-const built=await compileDecisionScripts([source],{fields:registry(fields),channels:registry(channels),signals:registry(signals)},authored,{asLineCeiling:2837,singleSignal:true});
-const script=built.rows.at(0),blob=built.blobs.at(0),crackBody=bodyRows.bodies.find(row=>row.key.startsWith('balbal:'));
-if(script===undefined||blob===undefined||crackBody===undefined)throw new Error('Missing species program or skeleton');
+const dual=await compileReturnProjectionV2(source,{fields:registry(fields),channels:registry(channels),signals:registry(signals)},authored,{asLineCeiling:2837});
+const crackBody=bodyRows.bodies.find(row=>row.key.startsWith('balbal:'));
+if(crackBody===undefined)throw new Error('Missing species program or skeleton');
 const cracks=buildCracks(crackBody.bones);
 const lanes=inflateSync(readFileSync(fileURLToPath(new URL('../../../../public/assets/nalati/baked/bodies.bin',import.meta.url)))),words=lanes.length/4,raw=new Uint8Array(lanes.length);
 for(let i=0;i<words;i++)for(let byte=0;byte<4;byte++)raw[i*4+byte]=lanes[byte*words+i];
@@ -89,7 +90,8 @@ const crackIndex=cracks.index;if(crackIndex===null)throw new Error('Missing crac
 let last=0;const deltas=Int32Array.from(crackIndex.array,index=>{const delta=index-last;last=index;return delta;});crackBlocks.push(new Uint8Array(deltas.buffer));crackSize+=deltas.byteLength;
 const crackBytes=new Uint8Array(crackSize);let crackAt=0;for(const bytes of crackBlocks){crackBytes.set(bytes,crackAt);crackAt+=bytes.length;}
 const crackRow={attrs:crackAttrs,count:cracks.getAttribute('position').count,index:'u32',indexCount:crackIndex.count,box:false};
-const program=wireProgram({script,bytes:Buffer.from(blob.bytes).toString('base64')});
+// One shared selected module; each original ABI1 descriptor/byte witness remains inline.
+const program=wireProgram({...dual.legacy,v2:dual.candidate});
 const guest=v.parse(CreatureGuestSchema,{...speciesRows.balbalGuest,program,strike:strikes.balbal});
 const presentation={packedBodies:compactBodies,poses:poseConfigs,guest,lookBook:{slug:'nalati-grasslands',rows:SPECIES_LOOK_ROWS,program:wireProgram(admission)}};
 const writer=byteWriter(process.argv.includes('--check'),'nalati-species');

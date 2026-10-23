@@ -96,12 +96,15 @@ it('shares one module across all weapon signals and isolates their channels',asy
  expect(sabre.update(.1,blade)?.['start']).toBeUndefined();scope.dispose();
 });
 
-it('shares reordered wire aliases while refusing a changed declaration',async()=>{
+for(const modern of [false,true])it(`shares reordered ABI${modern?2:1} wire aliases while refusing a changed declaration`,async()=>{
  const {Scope}=await import('../src/engine/app/scope'),scope=new Scope('wire-alias-fixture');
- const first=new HeldDecision(rows.programs.polearm,scope),source=rows.programs.blade;
+ const polearmSource=rows.programs.polearm,bladeSource=rows.programs.blade;
+ const first=new HeldDecision(modern?polearmSource:{script:polearmSource.script,bytes:polearmSource.bytes,signal:polearmSource.signal},scope);
+ const source=modern?bladeSource:{script:bladeSource.script,bytes:bladeSource.bytes,signal:bladeSource.signal};
  const reverse=(input:Record<string,string>)=>Object.fromEntries(Object.entries(input).reverse());
  const reordered={...source,script:{...source.script,fields:reverse(source.script.fields),channels:reverse(source.script.channels),signals:reverse(source.script.signals)}};
  expect(new HeldDecision(reordered,scope).program).toBe(first.program);
- expect(()=>new HeldDecision({...reordered,script:{...reordered.script,fields:{...reordered.script.fields,mode:'changed'}}},scope)).toThrow('Shared return declaration changed');
+ expect(first.program.prepare).toBeTypeOf(modern?'function':'undefined');
+ expect(()=>new HeldDecision({...reordered,script:{...reordered.script,fields:{...reordered.script.fields,mode:'changed'}}},scope)).toThrow(modern?'Mismatched return projection declaration':'Shared return declaration changed');
  scope.dispose();
 });

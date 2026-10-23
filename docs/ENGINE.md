@@ -12256,3 +12256,12 @@ lane, fixed pages, I/O and revisions survive named-file reconstruction and
 product transport. These rows grant byte admission only: no scheduler, binding,
 clock or guest query is installed. Missing declarations still refuse; admission
 never infers an ABI from module bytes.
+
+The shared held/stealth/creature numeric guest selects ABI2 projection rows
+explicitly. Its original ABI1 descriptors and bytes remain inline witnesses;
+only the selected module is admitted as an active executable. All consumers
+receive the same candidate, with the original page/native scope keys. The
+body owner's 10 Hz callback still captures memory defaults, clock/player
+keys and native Math.hypot/Wedge contact at their original slots; ABI2 adds
+no clock, body or save owner. Selected bytes and live/reset memory are
+accounted separately. This selection does not retire the callback adapter.
