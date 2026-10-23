@@ -2,6 +2,7 @@ import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { postChainRows } from './postChain.ts';
 import { PANO_RIDGE_V } from './panoramaData.ts';
 import { manifestDeclaration } from '../../../../scripts/manifest-declaration.mjs';
+import { authoredManifestSource } from '../../../../scripts/authored-manifest.mjs';
 import paintedTextures from '../data/paintedTextures.json' with { type: 'json' };
 import discovery from '../data/discovery.json' with { type: 'json' };
 import { NALATI_MAP, SNOW_LINE, GLACIER } from './layout.ts';
@@ -109,4 +110,7 @@ const fog = { start: 30, end: 600, aerial: [0.0032, 30, -10, 0.002], edge: [0.95
 // drifting at 1.6 × the wind + 2 m/s
 const air = { tile: 520, threshold: 0.53, strength: 0.66, softness: 0.06, drift: [1.6, 2] };
 writer.put(resolve(root, 'src/shards/nalati-grasslands/data/paintedTextures.generated.json'), jsonBytes({ ...paintedTextures, ground, panorama, key, world, fog, air }));
+// Terrain producers consume discovery before gen-shards runs. Publish the same
+// canonical module with its boot bindings, rather than borrow a warm tree's copy.
+writer.put(resolve(root, 'src/shards/nalati-grasslands/discovery.generated.ts'), authoredManifestSource(root, 'nalati-grasslands', { generation: true }));
 writer.finish();
