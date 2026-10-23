@@ -256,10 +256,11 @@ export function scopeLookChunks(root: THREE.Object3D, look: LookChunks, scope: S
     root.updateWorldMatrix(true, false);
     origin.value.setFromMatrixPosition(root.matrixWorld);
     const before = count;
+    // every frame over the whole region: no array made per node (G639: ~0.9 ms a Signal Dunes drive frame at phone 4x)
     root.traverse((node) => {
       const material: unknown = Reflect.get(node, 'material');
-      const list: readonly unknown[] = Array.isArray(material) ? material : [material];
-      for (const m of list) if (isMaterial(m)) visit(m);
+      if (isMaterial(material)) visit(material);
+      else if (Array.isArray(material)) { const list: readonly unknown[] = material; for (const m of list) if (isMaterial(m)) visit(m); }
     });
     return count - before;
   };
