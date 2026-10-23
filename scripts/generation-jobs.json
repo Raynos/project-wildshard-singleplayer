@@ -2282,7 +2282,14 @@
         "public/assets/horizon/pine-hollow-day.webp",
         "public/assets/horizon/pine-hollow-night.webp",
         "public/assets/horizon/pine-hollow-day-phone.webp",
-        "public/assets/horizon/pine-hollow-night-phone.webp"
+        "public/assets/horizon/pine-hollow-night-phone.webp",
+        "src/shards/pine-hollow/data/ground.generated.json",
+        "src/shards/pine-hollow/data/boot-poses.generated.json",
+        "src/shards/pine-hollow/data/bootMetadata.generated.json",
+        "src/shards/pine-hollow/data/geography.generated.json",
+        "src/shards/pine-hollow/data/pondClip.generated.json",
+        "src/shards/pine-hollow/data/gpuTables.generated.json",
+        "src/shards/pine-hollow/data/perches.generated.json"
       ],
       "outputs": [
         "src/shards/pine-hollow/data/perchRows.generated.json"
@@ -2330,7 +2337,13 @@
         "public/assets/tex/forrest_ground_03",
         "public/assets/tex/leafy_grass",
         "public/assets/tex/rock_ground",
-        "public/assets/tex/stony_dirt_path"
+        "public/assets/tex/stony_dirt_path",
+        "src/shards/pine-hollow/data/ground.generated.json",
+        "src/shards/pine-hollow/data/boot-poses.generated.json",
+        "src/shards/pine-hollow/data/bootMetadata.generated.json",
+        "src/shards/pine-hollow/data/geography.generated.json",
+        "src/shards/pine-hollow/data/pondClip.generated.json",
+        "src/shards/pine-hollow/data/gpuTables.generated.json"
       ],
       "outputs": [
         "src/shards/pine-hollow/data/groundTiles.json",
@@ -8179,7 +8192,13 @@
         "src/format/materialGraph.ts",
         "src/format/materials.ts",
         "src/format/paintedLook.ts",
-        "src/format/runtimeBinds.ts"
+        "src/format/runtimeBinds.ts",
+        "src/shards/pine-hollow/data/ground.generated.json",
+        "src/shards/pine-hollow/data/boot-poses.generated.json",
+        "src/shards/pine-hollow/data/bootMetadata.generated.json",
+        "src/shards/pine-hollow/data/geography.generated.json",
+        "src/shards/pine-hollow/data/pondClip.generated.json",
+        "src/shards/pine-hollow/data/gpuTables.generated.json"
       ],
       "outputs": [
         "public/assets/hdri/qwantani_dawn_puresky_2k.key.jpg",
