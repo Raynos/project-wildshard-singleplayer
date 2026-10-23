@@ -1,7 +1,7 @@
-import { app } from '../app/runtime';
+import { pageScope } from '../app/resources';
+import { HudSlots } from './hudSlots';
 import { engineString } from '../strings';
 import { onDev } from '../core/devMode';
-import { uiScope, mountUi } from './ownership';
 /** Renderer-free opening title: the shared title deck (src/game/titleDeck.ts, E318 — the same deck "Exit to main" shows).
  *  Only the selected shard's hero art is decoded. The entry hands in the deck builder (E405: the engine imports no game). */
 import { previousBootLine } from '../boot/bootTrace';
@@ -11,7 +11,7 @@ import type { TitleDeckView } from './HUD';
 export type StartTitleDeck = (opts: { settings: () => void; notice?: string }) => TitleDeckView;
 
 export function showStartTitle(buildDeck: StartTitleDeck): void {
-  const scope = uiScope('StartTitle', app.engineScope);
+  const scope = pageScope.child('ui.StartTitle'), slots = new HudSlots();
   const hud = document.getElementById('hud');
   if (hud === null) throw new Error('Start title: missing #hud');
   hud.classList.add('intro');
@@ -24,7 +24,7 @@ export function showStartTitle(buildDeck: StartTitleDeck): void {
       settings: () => { void import('./BootSettings').then(({ openBootSettings }) => openBootSettings()); },
       ...(interrupted ? { notice: `${interrupted}\n${engineString('s_returned_to_select')}` } : {}),
     });
-    mountUi(deck.root, scope, hud);
+    slots.widget('band.1', deck.root, 0, scope, hud);
     const index = deck.cards.map((card): string => card.slug).indexOf(selected ?? '');
     if (index !== -1) deck.select(index, false);
     deck.start();

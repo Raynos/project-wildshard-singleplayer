@@ -1,4 +1,4 @@
-import { app } from '@wildshard/engine/app/runtime';
+import { pageScope } from '@wildshard/engine/app/resources';
 import { isDev } from '@wildshard/engine/core/devMode';
 import { listenDom, listenTap } from '@wildshard/engine/input/dom';
 /**
@@ -205,7 +205,7 @@ function hintFor(card: DeckEntry, active: boolean, mode: MenuMode = menuMode()):
 export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
   installLegacyButtonsRow(); // G531: Settings ▸ Debug offers it from the title on
   const mode = opts.mode ?? menuMode;
-  const scope = app.engineScope.child('title-deck');
+  const scope = pageScope.child('title-deck');
   const onTap = (el: HTMLElement, fn: () => void): void => { listenTap(scope, el, fn); };
   const { cards } = opts;
   const entries: readonly DeckEntry[] = [...cards.map(fromShard), ...DRAFT_TITLES.map(fromDraft)];

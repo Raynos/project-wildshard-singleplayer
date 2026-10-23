@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { app } from '@wildshard/engine/app/runtime';
+import { saves } from '@wildshard/engine/saves/runtime';
 import type { SaveStore } from '@wildshard/engine/saves/store';
 import { progressSave } from './saves';
 import { ordinaryShardManifests } from './shard/legacy';
@@ -48,6 +48,6 @@ export function summaryStore(store: SaveStore, read: (slug: string) => SummaryPr
     },
   };
 }
-const summaries = summaryStore(app.saves, (slug) => progressSave.peek(slug));
+const summaries = summaryStore(saves, (slug) => progressSave.peek(slug));
 export function readSummary(): WildshardSummary { return summaries.read(); }
 export function updateSummary(slug: ShardSlug, progress: SummaryProgress, total: number): void { summaries.update(slug, progress, total); }

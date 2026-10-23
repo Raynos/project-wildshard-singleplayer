@@ -9,7 +9,7 @@
  * session's refused slugs for SHARD SELECT.
  */
 import * as v from 'valibot';
-import { app } from '@wildshard/engine/app/runtime';
+import { saves } from '@wildshard/engine/saves/runtime';
 import { GAME_STRINGS } from '../strings';
 
 /** Why a shard can't load: its format needs a newer client, it does not fit this device's budget, it failed a safety
@@ -50,7 +50,7 @@ export type FarViewStatus = 'resident' | 'loading' | 'none';
 
 const schema: v.GenericSchema<unknown, Readonly<Record<string, ShardRefusal>>> = v.record(v.string(), v.picklist(REFUSALS));
 /** the app's save store (src/engine/saves/store.ts) */
-type Store = typeof app.saves;
+type Store = typeof saves;
 /** This session's refused shards, for SHARD SELECT's UNAVAILABLE card. Session scope: a reload in the tab keeps the card,
  *  a fresh launch tries the shard again (a memory squeeze or a dropped connection is not forever). */
 export interface ShardRefusals {
@@ -70,6 +70,6 @@ export function shardRefusals(store: Store): ShardRefusals {
 let page: ShardRefusals | null = null;
 /** this page's refusals, on the app's save store (defined on first use) */
 export function pageShardRefusals(): ShardRefusals {
-  page ??= shardRefusals(app.saves);
+  page ??= shardRefusals(saves);
   return page;
 }
