@@ -68,7 +68,9 @@ export class SceneHandles {
   tile(id: string, options: { readonly coarse?: boolean } = {}): TileContent {
     const value = this.value(id);
     if (!(value instanceof WorldScenePlacement)) throw new Error(`Expected scene placement: ${id}`);
-    if (this.has(`${id}.root`)) throw new Error(`Scene placement ${id} is already placed`);
+    // placed already (whole, by a stage that needs its copies at once, as a cover field; or tiled by an earlier row): that
+    // placement stands, and this one has no tiles of its own
+    if (this.has(`${id}.root`)) return { id, tiles: () => new Set<number>(), attach: () => Promise.resolve() };
     // a placement drawn into a set keeps the set as its root (it tiles only its colliders); any other gets a container
     const part = value.drawnInto(), container = part === undefined ? new Group() : null;
     if (container !== null) container.name = id;
