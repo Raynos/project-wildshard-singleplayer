@@ -35,6 +35,9 @@ Cold staging copies and their SHA256 checks run in a worker, requesting filesyst
 fallback (G668 G4). Stages live under the source tree's ignored `tmp/` and are removed after the producer, including
 copy failures. Immutable upstream cache loans stay live until their consumers finish. An observed cache hit creates
 no stage; a changed producer still executes with its full declared closure before recording a new read set.
+A complete successful read observation may omit unread catalogue bytes from a cache lookup (G668 G6).
+A producer that reads the catalogue still binds its exact bytes. The full file inventory, other non-code metadata,
+producer/tool identity and verified outputs remain required; a miss always runs the complete declared stage.
 
 Jobs hash every regular file in their declared conservative input roots plus the runner, sidecar, loader and lockfile.
 Produced files are excluded from input keys unless explicitly declared as schema seeds, so removing or restoring an

@@ -2,5 +2,6 @@ import type {GenerationJob,GenerationOptions,GenerationResult} from './generatio
 /** Private successful producer read metadata; never a declared runtime output. */
 export const generationReadReceipt: string;
 /** Probe immutable observed keys, then run the full closure on a miss and
- * publish a narrower key only from a complete successful observation. */
-export function runObservedGeneration(root:string,job:GenerationJob,options:GenerationOptions,entry:string):Promise<GenerationResult>;
+ * publish a narrower key only from a complete successful observation. Unread
+ * catalogue bytes may leave the key; its inventory presence remains bound. */
+export function runObservedGeneration(root:string,job:GenerationJob,options:GenerationOptions,entry:string,catalogue?:string):Promise<GenerationResult>;

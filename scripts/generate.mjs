@@ -280,7 +280,7 @@ export async function generateShardJob(root,descriptor,options={}) {
         coldSeconds=(performance.now()-coldStarted)/1000;
       } finally {rmSync(tree,{recursive:true,force:true});}
     }
-  },job.entry);
+  },job.entry,catalog);
   if(projected!==catalogueProjection(root,job,catalog))throw new Error(`Catalogue changed during generation: ${job.id}`);
   try {
     const pins=Object.entries(job.buildOutputs);

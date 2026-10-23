@@ -28,28 +28,31 @@ function readTrace(file,entry) {
     return trace;
   } catch {return undefined;}
 }
-/** Retain every non-code input, including manifests, inventories and toolchain
- * metadata. Only unread source modules may leave the byte identity.
- * @param {Record<string,string>} inputs @param {string[]} files */
-function selectInputs(inputs,files) {
+/** Retain every non-code input, including manifests and toolchain metadata.
+ * A catalogue never read by this producer may also leave the byte identity;
+ * its file presence remains bound by the conservative recipe inventory.
+ * @param {Record<string,string>} inputs @param {string[]} files @param {string} catalogue */
+function selectInputs(inputs,files,catalogue) {
   const read=new Set(files);
-  return Object.fromEntries(Object.entries(inputs).filter(([file])=>!code.test(file)||read.has(file)));
+  const selected=Object.fromEntries(Object.entries(inputs).filter(([file])=>read.has(file)||(!code.test(file)&&file!==catalogue)));
+  // Keep the backend's nonempty-source contract for tiny standalone producers.
+  return Object.keys(selected).length===0?inputs:selected;
 }
 /** Existing read sets are lookup hints, never permission to execute a changed
  * producer with an old dependency list. Inventory changes also invalidate the
  * hint, covering negative probes, globs and higher-priority module candidates.
  * @param {string} root @param {import('./generation-cache.mjs').GenerationJob} job
  * @param {import('./generation-cache.mjs').GenerationOptions} options
- * @param {string} entry
+ * @param {string} entry @param {string} [catalogue]
  * @returns {Promise<import('./generation-cache.mjs').GenerationResult>} */
-export async function runObservedGeneration(root,job,options,entry) {
+export async function runObservedGeneration(root,job,options,entry,catalogue='scripts/generation-jobs.json') {
   const inventory=Object.keys(job.inputs).sort(order);
   const recipe=digest(JSON.stringify({schema:'generation-inputs/2',node:process.version,id:job.id,inventory,command:job.command,outputs:job.outputs,platform:job.platform,tools:job.tools}));
   const profiles=resolve(options.cacheDir??generationCacheRoot(),'.reads-v1',job.id,recipe);
   /** @param {v.InferOutput<typeof Trace>} trace */
   const executionInputs=trace=>Object.fromEntries(trace.execution.filter(file=>code.test(file)&&Object.hasOwn(job.inputs,file)).map(file=>[file,job.inputs[file]]));
   /** @param {v.InferOutput<typeof Trace>} trace */
-  const narrowed=trace=>({...job,inputs:selectInputs(job.inputs,trace.files),tools:{...job.tools,readInventory:recipe,
+  const narrowed=trace=>({...job,inputs:selectInputs(job.inputs,trace.files,catalogue),tools:{...job.tools,readInventory:recipe,
     execution:JSON.stringify(Object.fromEntries(Object.entries(executionInputs(trace)).map(([file,raw])=>[file,compilerCodeHash(file,raw,()=>readFileSync(resolve(root,file)))])))}});
   /** Even a normalized execution hit must validate the current raw source
    * through the full phase memo; semantic identity never freezes old bytes.

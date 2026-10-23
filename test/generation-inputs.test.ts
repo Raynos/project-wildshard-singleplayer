@@ -8,20 +8,21 @@ import {generateShardJob,type ShardGenerationJob} from '../scripts/generate.mjs'
 const owned:string[]=[];
 afterEach(()=>{for(const root of owned.splice(0))rmSync(root,{recursive:true,force:true});});
 function put(root:string,file:string,text:string):void {mkdirSync(dirname(resolve(root,file)),{recursive:true});writeFileSync(resolve(root,file),text);}
-function fixture(source?:string) {
+function fixture(source?:string,catalogPath='scripts/generation-jobs.json') {
   mkdirSync('tmp',{recursive:true});const root=mkdtempSync(resolve('tmp/generation-inputs-'));owned.push(root);
   const entry='src/shards/alpha/generators/bake-reader.mjs',output='src/shards/alpha/data/output.txt';
   put(root,entry,source??`import {value} from '../../../sdk/used.mjs';import fs from 'node:fs';fs.writeFileSync('${output}',String(value));`);
+  put(root,'package.json',JSON.stringify({type:'module'}));
   put(root,'src/sdk/used.mjs','export const value=1;');put(root,'src/sdk/unread.ts','// unrelated source');
   for(const name of ['generation-recorder.mjs','shardfile-inputs.mjs','shardfile-cache.mjs','compiler-code.mjs','function-source.mjs','bake-input-hashes.mjs']) {
     mkdirSync(resolve(root,'scripts'),{recursive:true});copyFileSync(resolve('scripts',name),resolve(root,'scripts',name));
   }
   mkdirSync(resolve(root,'node_modules'));symlinkSync(realpathSync(resolve('node_modules/valibot')),resolve(root,'node_modules/valibot'));
   const job:ShardGenerationJob={id:'fixture-reader',shard:'alpha',entry,command:[entry],inputRoots:['src/shards/alpha','src/sdk'],outputs:[output],buildTimeOutputs:[output],platform:'portable'};
-  put(root,'scripts/generation-jobs.json',JSON.stringify({schema:'generation-jobs/1',notice:'DO NOT EDIT fixture',jobs:[job]}));
+  put(root,catalogPath,JSON.stringify({schema:'generation-jobs/1',notice:'DO NOT EDIT fixture',jobs:[job]}));
   const cacheDir=resolve(root,'cache');
   const run=async(forceCompare=false)=>{
-    const result=await generateShardJob(root,job,{cacheDir,forceCompare});
+    const result=await generateShardJob(root,job,{cacheDir,forceCompare,catalogPath});
     try {return {hit:result.hit,key:result.key,text:readFileSync(resolve(result.directory,output),'utf8')};}
     finally {result.release();}
   };
@@ -42,6 +43,30 @@ it('reuses unread SDK edits but rebuilds imported code and newly read branches',
   put(root,'src/sdk/unread.ts','// newly observed bytes');
   expect(await run()).toMatchObject({hit:false,text:'// newly observed bytes'});
   expect((await run()).hit).toBe(true);
+});
+it.each(['scripts/generation-jobs.json','scripts/custom-jobs.json'])('reuses unread %s bytes but still fences added input files',async file=>{
+  const {root,run}=fixture(undefined,file);const first=await run();expect(first.hit).toBe(false);
+  const catalogue=readFileSync(resolve(root,file),'utf8');
+  put(root,file,catalogue.replace('DO NOT EDIT fixture','DO NOT EDIT changed unrelated catalogue metadata'));
+  expect(await run()).toEqual({...first,hit:true});
+  // The byte-only exception does not remove the full file-inventory fence.
+  put(root,'src/sdk/new-module.ts','export const unused=1;');
+  expect((await run()).hit).toBe(false);
+});
+it.each(['scripts/generation-jobs.json','scripts/custom-jobs.json'])('keeps actually read %s bytes exact',async file=>{
+  const output='src/shards/alpha/data/output.txt';
+  const {root,run}=fixture(`import fs from 'node:fs';fs.writeFileSync('${output}',fs.readFileSync('${file}'));`,file);
+  const first=await run();expect(first.hit).toBe(false);expect((await run()).hit).toBe(true);
+  const text=readFileSync(resolve(root,file),'utf8').replace('DO NOT EDIT fixture','DO NOT EDIT changed catalogue metadata');
+  put(root,file,text);
+  expect(await run()).toMatchObject({hit:false,text});
+});
+it('keeps the conservative key when no raw input would remain',async()=>{
+  const {root,run}=fixture();rmSync(resolve(root,'package.json'));
+  await run();expect((await run()).hit).toBe(true);
+  const file='scripts/generation-jobs.json';
+  put(root,file,readFileSync(resolve(root,file),'utf8').replace('DO NOT EDIT fixture','DO NOT EDIT changed metadata'));
+  expect((await run()).hit).toBe(false);
 });
 it.each(['raw','function-text'])('keeps %s self-source reads byte-exact',async mode=>{
   const {root,entry,output,run}=fixture();
