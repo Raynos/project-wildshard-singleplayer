@@ -12,7 +12,7 @@ import { outputSectionPayloads, parseOutputIndex } from '../src/format/outputInd
 import { loadManifestProduct,provideManifestAdmission,loadShardProduct, runtimeProduct, shardProductFromAdmission } from '../src/game/shardfile/runtimeProduct';
 import { admitProduct, readProductDescriptor, type ProductOptions, type ProductCache } from '../src/game/shardfile/product';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
-import { neighbourProductFiles, productResidentBytes, runtimeOnlyProductFiles, tierLibrarySource, urlImageLibrarySource, scopedSpecimenLibrarySource, scopedSpecimenLibrarySourcePaced } from '../src/game/shardfile/productCost';
+import { neighbourProductFiles, productResidentBytes, jsonResidentBytes, runtimeOnlyProductFiles, tierLibrarySource, urlImageLibrarySource, scopedSpecimenLibrarySource, scopedSpecimenLibrarySourcePaced } from '../src/game/shardfile/productCost';
 import { carryOutputDescriptor, resolveOutputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { MemoryAdmission } from '../src/format/product';
 import { acceptValidatedCost } from '../src/format/assetAdmission';
@@ -311,6 +311,28 @@ test('neighbour transport release shrinks the shared claim before readers copy i
   first.release(); expect(allocator.entries()).toHaveLength(1);
   second.release(); products.dispose(); first.value.unpin?.();
   expect(allocator.entries()).toHaveLength(0); expect(pins.size).toBe(0);
+});
+
+test.each([Number.NaN, Infinity, -0])('residency refuses noncanonical JSON numbers %s before accounting', value => {
+  const source = fixture().source;
+  source.identity.seed = value;
+  expect(() => jsonResidentBytes(source)).toThrow('bounded plain JSON');
+  expect(() => productResidentBytes(source)).toThrow('bounded plain JSON');
+});
+
+test('residency retains accessor, cycle and source-cap refusals', () => {
+  const source = fixture().source;
+  let reads = 0;
+  Object.defineProperty(source, 'authored', { configurable: true, enumerable: true, get: () => { reads++; return 1; } });
+  expect(() => jsonResidentBytes(source)).toThrow('bounded plain JSON');
+  expect(() => productResidentBytes(source)).toThrow('bounded plain JSON');
+  expect(reads).toBe(0);
+  Object.defineProperty(source, 'authored', { configurable: true, enumerable: true, value: source });
+  expect(() => jsonResidentBytes(source)).toThrow('bounded plain JSON');
+  expect(() => productResidentBytes(source)).toThrow('bounded plain JSON');
+  Reflect.deleteProperty(source, 'authored');
+  source.identity.name = 'x'.repeat(1024);
+  expect(() => productResidentBytes(source)).toThrow('string exceeds admission cap');
 });
 
 test('declared neighbour inputs and their transitive dependencies survive runtime trimming', () => {

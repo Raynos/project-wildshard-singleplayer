@@ -301,6 +301,10 @@ function* urlImageLibrarySourceSteps(source: Shardfile, assets: ReadonlyMap<stri
 /** Conservative heap estimate for a bounded plain-JSON source or its owned projection, including strings and container overhead. */
 export function jsonResidentBytes(input: unknown): number {
   if (!isJsonData(input)) throw new Error('Product residency needs bounded plain JSON');
+  return jsonHeapBytes(input);
+}
+/** Heap accounting after this caller has validated the same synchronous value. */
+function jsonHeapBytes(input: unknown): number {
   let heap = 0;
   const pending: unknown[] = [input];
   // O14: a primitive is counted where it is met, never queued: the products' row arrays are mostly numbers
@@ -325,7 +329,9 @@ export function productResidentBytes(source: Shardfile): number {
   // File/common aliases are copied into separate owned buffers by admitProduct, so count each actual Map entry.
   const wire = source.files.reduce((sum, file) => sum + file.compressed, 0)
     + source.requires.commons.reduce((sum, hash) => sum + (source.requires.commonsWire[hash] ?? 0), 0);
-  return wire + jsonResidentBytes(source) * 2 + (source.files.length + source.requires.commons.length) * 128 + 1024;
+  // Preflight already checked every JSON node. Count that same source without
+  // repeating its descriptor/prototype validation a second time.
+  return wire + jsonHeapBytes(source) * 2 + (source.files.length + source.requires.commons.length) * 128 + 1024;
 }
 
 /** Files read only through the asynchronous runtime product API. Inventory membership is not a use:
