@@ -3792,6 +3792,16 @@ setter for existing cell transitions. Its HUD includes entered estimates
 and all resident violations; retained cold-neighbour reports stay available
 in admission history. This adds no page cap or admission run.
 
+`format/contentCost` uses the C6 Simulator calibration: a 250 MiB
+(262,144,000 byte) engine base, from the 965b2bd1d6 WebKit template census
+in [core-memory section 1](plans/shard-platform/core-memory-mini-plan.md#1-measurements).
+Template 2 recorded 250 MiB WebContent plus 39 MiB GPU; Template 1 recorded
+261 plus 43. These are Simulator readings, not Chromium inspector data.
+Standalone inputs omit page claims and supply zero overlap when none exists;
+there is no implicit grid allowance. Grid program caches, roads and other page
+allocations remain explicit actual claims. The prediction remains separate
+from measured process/GPU observations and from the unchanged memory limits.
+
 ### Regional texture admission
 
 `@wildshard/engine/level/frame.LevelFrameOptions.textures` accepts the structural `enter()` port of a retained texture policy. The frame enters that same policy for each resident callback and leaves it afterward. Game regional admission resolves `TexturePolicyBinding` once before reserving the runtime: an accepted compressed path uses its primary measured claim, while an image fallback uses `runtime.cost.imagesFirst` when declared. Construction and entered frames reuse the resolved policy; the capability probe and total-memory caps remain unchanged. Measurements keep their source revision and evidence.
