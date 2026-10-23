@@ -49,8 +49,10 @@ fallback (G668 G4). Stages live under the source tree's ignored `tmp/` and are r
 copy failures. Immutable upstream cache loans stay live until their consumers finish. An observed cache hit creates
 no stage; a changed producer still executes with its full declared closure before recording a new read set.
 A complete successful read observation may omit unread catalogue bytes from a cache lookup (G668 G6).
-A producer that reads the catalogue still binds its exact bytes. Other non-code metadata, producer/tool identity
-and verified outputs remain required; a miss always runs the complete declared stage.
+A producer that reads the catalogue still binds its exact bytes. Resolution manifests, root/build policy metadata,
+producer/tool identity and verified outputs remain required. Authored source/public JSON and binary content bind
+their bytes when actually read or imported by a complete observed producer, rather than merely sharing its broad
+input folder. Opaque work keeps every declared byte; a miss always runs the complete declared stage.
 The four boot-presence readers and Sky world's orphan cleanup opt into `catalogueOutputsOnly`: their stage keeps
 every job ID, output path, admitted path and pin, while omitting unused commands and input roots. This preserves
 cross-shard/shared assets and cleanup protection; a changed output declaration still invalidates. The scheduler

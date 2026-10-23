@@ -29,13 +29,15 @@ function readTrace(file,entry) {
     return trace;
   } catch {return undefined;}
 }
-/** Retain every non-code input, including manifests and toolchain metadata.
- * A catalogue never read by this producer may also leave the byte identity;
- * probed file presence remains bound by its staged path identity.
+/** Resolution manifests and build/tool policy remain exact. Content files in
+ * authored source/public roots bind bytes only when actually consumed by a
+ * complete observed producer; their presence stays in the probe model.
+ * A catalogue never read by this producer may also leave the byte identity.
  * @param {Record<string,string>} inputs @param {string[]} files @param {string} catalogue */
 function selectInputs(inputs,files,catalogue) {
   const read=new Set(files);
-  const selected=Object.fromEntries(Object.entries(inputs).filter(([file])=>read.has(file)||(!code.test(file)&&file!==catalogue)));
+  const selected=Object.fromEntries(Object.entries(inputs).filter(([file])=>read.has(file)||(!code.test(file)&&file!==catalogue&&
+    ((!file.startsWith('src/')&&!file.startsWith('public/'))||file.endsWith('/package.json')))));
   // Keep the backend's nonempty-source contract for tiny standalone producers.
   return Object.keys(selected).length===0?inputs:selected;
 }
@@ -112,7 +114,7 @@ function probeIdentity(trace,job,staged,inventory) {
 export async function runObservedGeneration(root,job,options,entry,catalogue,staged) {
   const catalog=catalogue??'scripts/generation-jobs.json';
   const inventory=Object.keys(job.inputs).sort(order);
-  const recipe=digest(JSON.stringify({schema:'generation-inputs/5',node:process.version,id:job.id,command:job.command,outputs:job.outputs,platform:job.platform,tools:job.tools}));
+  const recipe=digest(JSON.stringify({schema:'generation-inputs/6',node:process.version,id:job.id,command:job.command,outputs:job.outputs,platform:job.platform,tools:job.tools}));
   const profiles=resolve(options.cacheDir??generationCacheRoot(),'.reads-v1',job.id,recipe);
   /** @param {v.InferOutput<typeof Trace>} trace */
   const executionInputs=trace=>Object.fromEntries(trace.execution.filter(file=>code.test(file)&&Object.hasOwn(job.inputs,file)).map(file=>[file,job.inputs[file]]));

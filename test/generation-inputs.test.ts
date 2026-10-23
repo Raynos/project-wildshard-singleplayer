@@ -85,6 +85,34 @@ it('reuses unread SDK edits but rebuilds imported code and newly read branches',
   expect(await run()).toMatchObject({hit:false,text:'// newly observed bytes'});
   expect((await run()).hit).toBe(true);
 });
+it.each(['json','bin'])('reuses unread %s content and records newly consumed bytes',async extension=>{
+  const {root,entry,output,run}=fixture();
+  const file=`src/sdk/unread.${extension}`;put(root,file,'first bytes');
+  const first=await run();put(root,file,'changed unread bytes');
+  expect(await run()).toEqual({...first,hit:true});
+  put(root,entry,`import fs from 'node:fs';fs.writeFileSync('${output}',fs.readFileSync('${file}'));`);
+  expect(await run()).toMatchObject({hit:false,text:'changed unread bytes'});
+  put(root,file,'changed consumed bytes');
+  expect(await run()).toMatchObject({hit:false,text:'changed consumed bytes'});
+});
+it('records JSON module bytes even when the native loader bypasses public fs reads',async()=>{
+  const file='src/sdk/rows.json';
+  const {root,run}=fixture(`import rows from '../../../sdk/rows.json' with {type:'json'};import fs from 'node:fs';fs.writeFileSync('src/shards/alpha/data/output.txt',String(rows.value));`);
+  put(root,file,JSON.stringify({value:1}));expect(await run()).toMatchObject({hit:false,text:'1'});
+  put(root,file,JSON.stringify({value:2}));expect(await run()).toMatchObject({hit:false,text:'2'});
+});
+it('keeps unobserved content bytes conservative when a child process consumes them',async()=>{
+  const file='src/sdk/unread.json';
+  const {root,run}=fixture(`import fs from 'node:fs';import {execFileSync} from 'node:child_process';fs.writeFileSync('src/shards/alpha/data/output.txt',execFileSync(process.execPath,['-e',"process.stdout.write(require('fs').readFileSync('${file}'))"]));`);
+  put(root,file,'first bytes');expect(await run()).toMatchObject({hit:false,text:'first bytes'});
+  put(root,file,'changed opaque bytes');expect(await run()).toMatchObject({hit:false,text:'changed opaque bytes'});
+});
+it('retains unconsumed root build policy metadata',async()=>{
+  const {root,run}=fixture();put(root,'pnpm-lock.yaml','first lock identity');
+  await run();expect((await run()).hit).toBe(true);
+  put(root,'pnpm-lock.yaml','changed lock identity');
+  expect((await run()).hit).toBe(false);
+});
 it.each(['scripts/generation-jobs.json','scripts/custom-jobs.json'])('reuses unread %s bytes and unrelated source additions',async file=>{
   const {root,run}=fixture(undefined,file);const first=await run();expect(first.hit).toBe(false);
   const catalogue=readFileSync(resolve(root,file),'utf8');
