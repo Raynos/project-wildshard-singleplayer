@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // G291: authored runtime TS / the frozen legacy TS size; G604: a shard passes only at zero.
 // G417: one measure only; platform-native shards have no frozen denominator.
-import { representativeProduct } from './shard-outputs.mjs';
+import { representativeProduct, shardProducts } from './shard-outputs.mjs';
+import { productManifestPath } from './authored-manifest.mjs';
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { dirname, relative, resolve } from 'node:path';
@@ -678,6 +679,11 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
     const catalogue = v.parse(SourceOutputs, JSON.parse(readFileSync(resolve(root, sourceOutputs), 'utf8')));
     for (const outputs of Object.values(catalogue.producers)) for (const path of outputs) generated.add(path);
   }
+  if (sourceProgress) for (const product of shardProducts(root, slugs)) {
+    if (!exists(`src/shards/${product.folder}/manifest.json`)) continue;
+    const path = productManifestPath(root, product);
+    if (!exists(path)) throw new Error(`Source census requires generated discovery: ${path}; restore generation before counting`);
+  }
   const text = (path) => {
     if (!texts.has(path)) texts.set(path, readFileSync(resolve(root, path), 'utf8'));
     return texts.get(path);
@@ -721,6 +727,7 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
     if (manifest?.name !== name || !(spec === name || spec?.startsWith(`${name}/`))) return null;
     const key = spec === name ? '.' : `.${spec.slice(name.length)}`, target = manifest.exports?.[key];
     const path = typeof target === 'string' ? relative(root, resolve(root, `src/${pkg}`, target)).replaceAll('\\', '/') : null;
+    if (sourceProgress && path !== null && generated.has(path) && !exists(path)) throw new Error(`Source census requires generated source: ${path}`);
     return path !== null && exists(path) ? path : null;
   };
   const publishedTarget = (pkg, spec) => {
@@ -738,6 +745,10 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
     const assemblyPath = base === null ? null : [base, `${base}.as`, `${base}/index.as`].find((candidate) => candidate.endsWith('.as') && exists(candidate));
     // A local JSON import is data: it resolves to its file, which the folder rules then classify like any other.
     const jsonPath = base !== null && base.endsWith('.json') && exists(base) ? base : null;
+    if (sourceProgress && to === null && assemblyPath === undefined && jsonPath === null) {
+      const required = base !== null && generated.has(base) ? base : resolveSpecifier(path, spec, candidate => generated.has(candidate));
+      if (required !== null && !exists(required)) throw new Error(`Source census requires generated source: ${required} (from ${path})`);
+    }
     // Classify the resolved path's namespace components; an audited tree need not contain that namespace.
     const local = (to ?? '').split('/');
     const trustedLocal = local.length > 3 && local[0] === 'src' && local[1] === 'sdk' && local[2] === 'runtime';
