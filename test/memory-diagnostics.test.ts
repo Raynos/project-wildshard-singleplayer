@@ -29,7 +29,8 @@ test('G628 M1/M3: one line, the page headline in its danger band; the shard limi
   for (const gone of ['SHARDS OK', 'SHARED', 'OF BUDGET', 'NO OWNER']) expect(hud.textContent).not.toContain(gone);
   expect(hud.querySelector('[data-owner="dw"]')).toBeNull();
   overlay.toggle();
-  expect(hud.querySelector('[data-owner="dw"]')?.textContent).toBe('DRIFTWOOD ISLE61% · 737 / 1200 MB');
+  // d2ef0c0848 calibrates the base to 250 MiB: 262144000 + ceil(bytes * 1.11) + 80000000 = 699144000.
+  expect(hud.querySelector('[data-owner="dw"]')?.textContent).toBe('DRIFTWOOD ISLE58% · 699 / 1200 MB');
   expect(hud.querySelector('.ws-grid-budget-gauge')).toBeNull();
 });
 
