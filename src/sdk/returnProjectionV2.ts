@@ -65,7 +65,8 @@ export async function compileReturnProjectionV2(input:unknown,registries:Decisio
   if(groups!==undefined)for(const [name,text]of Object.entries(groups.helpers)){
     if(!/^sdk\/as\/group(?:Bank|Step)V2\.[a-z][a-z0-9-]*\.ts$/u.test(name)||Object.hasOwn(sources,name))throw new Error('Invalid group helper source');sources[name]=text;
   }
-  Object.assign(sources,captured.entry({...row,source:selected},path,groups===undefined?undefined:new Set(Object.keys(groups.helpers))));
+  // a group program's sources may import its helpers and the v2 core the module already carries
+  Object.assign(sources,captured.entry({...row,source:selected},path,groups===undefined?undefined:new Set([...Object.keys(groups.helpers),'sdk/as/wsV2.ts'])));
   const source=`import {onSignal${groups===undefined?'':',groupStep'}} from './${selected.slice(0,-3)}';
     import * as core from './sdk/as/wsV2';
     export function ws_abi():i32{return 2;}

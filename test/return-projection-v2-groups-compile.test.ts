@@ -17,8 +17,10 @@ const authored = new Map([
     export function onSignal(signal:i32,value:f64,source:i32):void{Do.channel(Channel.out,Read.field(0,Field.value)*2);}`],
   ['behaviour/project.as', `import { onSignal as rules } from './rules';
     import * as bank from '../sdk/as/groupBankV2.fixture';
+    import * as core from '../sdk/as/wsV2';
     export function onSignal(signal:i32,value:f64,source:i32):void{rules(signal,value,source);}
-    export function groupStep():void{bank.write(0,bank.value(0)+1);}`],
+    // the group's signal ordinal through the core (advance = 1)
+    export function groupStep():void{bank.write(0,bank.value(0)+core.parameter(0));}`],
 ]);
 
 test('a projection compiled with group rows serves its signals and its group steps from one programme', async () => {
