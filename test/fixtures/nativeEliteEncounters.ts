@@ -1,15 +1,16 @@
+// Test-only adapter for pre-row callers; production constructs NativeEliteRoster directly.
 import { isJsonData } from '@wildshard/format/json';
-import { ReturnProgram } from '../population/returnProgram';
+import { ReturnProgram } from '../../src/game/population/returnProgram';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { NativeElitePopulation } from '@wildshard/engine/ai/eliteLifecycle';
-import { NativeEliteRoster, type NativeEliteRosterRows, type NativeEliteRosterLoans, type NativeEliteBond } from '@wildshard/engine/ai/eliteRoster';
-import { EliteCore, type EliteCoreScript } from '../eliteSystem';
+import { NativeEliteRoster, nativeEliteBindings, type NativeEliteRosterRows, type NativeEliteRosterLoans, type NativeEliteBond } from '@wildshard/engine/ai/eliteRoster';
+import { EliteCore, type EliteCoreScript } from '../../src/game/eliteSystem';
 
 /** Manager-owned elite pins and decision bindings; the manager retains its single body-step installer. */
 export type EliteBindings = NativeEliteRosterLoans['bindings'] & { readonly absent: Set<AnimalSim> };
 /** Allocate per simulation, never at module import. */
-export function eliteBindings(): EliteBindings { return { pinned: new Set(), absent: new Set(), brains: new Map() }; }
+export function eliteBindings(): EliteBindings { return nativeEliteBindings(); }
 
 /** A member's identity, adoption and save key are author data. Pack ordering is checked against the owner's actor IDs. */
 export interface EliteEncounterRow extends Pick<NativeEliteRosterRows['rows'][number], 'def' | 'snapshot' | 'continuation'> {

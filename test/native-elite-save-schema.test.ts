@@ -1,7 +1,7 @@
 import { nativeEliteCore } from './fixtures/nativeEliteCore';
 import {expect,test} from 'vitest';
 import * as v from 'valibot';
-import {installEliteEncounters,eliteBindings,type EliteEncounterPorts,type EliteEncounterRow} from '../src/game/shardfile/eliteEncounters';
+import {installEliteEncounters,eliteBindings,type EliteEncounterPorts,type EliteEncounterRow} from './fixtures/nativeEliteEncounters';
 import type {SimHost,SimValue} from '../src/engine/sim';
 import {legacyDouble} from './fake/FakeGame';
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';

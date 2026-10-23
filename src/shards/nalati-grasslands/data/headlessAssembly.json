@@ -13,10 +13,6 @@
     "@wildshard/game/plugin/mover": [
       "proveTerrainEntries"
     ],
-    "@wildshard/game/shardfile/eliteEncounters": [
-      "eliteBindings",
-      "installEliteEncounters"
-    ],
     "@wildshard/game/riding/native": [
       "installMountedPlayer"
     ],
@@ -73,6 +69,10 @@
     "@wildshard/game/eliteSystem": [
       "EliteCore",
       "memoryElitePersistence"
+    ],
+    "@wildshard/engine/ai/eliteRoster": [
+      "NativeEliteRoster",
+      "nativeEliteBindings"
     ]
   },
   "constants": {
@@ -634,8 +634,8 @@
         "$call": [
           {
             "$ref": [
-              "@wildshard/game/shardfile/eliteEncounters",
-              "eliteBindings"
+              "@wildshard/engine/ai/eliteRoster",
+              "nativeEliteBindings"
             ]
           }
         ]
@@ -1254,16 +1254,11 @@
     {
       "name": "elites",
       "value": {
-        "$call": [
+        "$new": [
           {
             "$ref": [
-              "@wildshard/game/shardfile/eliteEncounters",
-              "installEliteEncounters"
-            ]
-          },
-          {
-            "$ref": [
-              "host"
+              "@wildshard/engine/ai/eliteRoster",
+              "NativeEliteRoster"
             ]
           },
           {
@@ -1282,7 +1277,6 @@
                   ]
                 },
                 "snapshot": "aqbars",
-                "keeper": "kernel",
                 "member": {
                   "kind": "leopard",
                   "variant": "aqbars",
@@ -1302,7 +1296,6 @@
                   ]
                 },
                 "snapshot": "kokbori",
-                "keeper": "kernel",
                 "member": {
                   "kind": "kokbori",
                   "variant": "kokbori",
@@ -1334,7 +1327,6 @@
                   ]
                 },
                 "snapshot": "argymaq",
-                "keeper": "herd",
                 "member": {
                   "kind": "argymaq",
                   "variant": "stallion",
@@ -1350,239 +1342,178 @@
                 }
               }
             ],
-            "ports": {
-              "bindings": {
-                "$ref": [
-                  "bindings"
-                ]
-              },
-              "kernels": {
-                "rows": [
-                  {
-                    "id": {
-                      "$ref": [
-                        "constants",
-                        "pageElites",
-                        "profiles",
-                        0,
-                        "value",
-                        "def",
-                        "id"
-                      ]
-                    },
-                    "profile": {
-                      "pattern": "pouncer",
-                      "spec": {
-                        "$ref": [
-                          "constants",
-                          "pageElites",
-                          "profiles",
-                          0,
-                          "value",
-                          "spec"
-                        ]
-                      }
-                    },
-                    "lair": {
-                      "x": {
-                        "$ref": [
-                          "constants",
-                          "pageElites",
-                          "profiles",
-                          0,
-                          "value",
-                          "def",
-                          "lair",
-                          "x"
-                        ]
-                      },
-                      "z": {
-                        "$ref": [
-                          "constants",
-                          "pageElites",
-                          "profiles",
-                          0,
-                          "value",
-                          "def",
-                          "lair",
-                          "z"
-                        ]
-                      }
-                    },
-                    "awareRadius": {
-                      "$ref": [
-                        "constants",
-                        "pageElites",
-                        "profiles",
-                        0,
-                        "value",
-                        "def",
-                        "awareR"
-                      ]
-                    },
-                    "contacts": [
-                      {
-                        "amount": 14,
-                        "strike": {
-                          "$ref": [
-                            "nativeEliteStrikes",
-                            "swipe",
-                            "id"
-                          ]
-                        }
-                      }
-                    ],
-                    "fallbackStrike": {
-                      "$ref": [
-                        "nativeEliteStrikes",
-                        "pounce",
-                        "id"
-                      ]
-                    },
-                    "knockdown": {
-                      "$ref": [
-                        "constants",
-                        "nativeKnockdown"
-                      ]
-                    }
+            "roles": [
+              "native",
+              "native",
+              "borrowed"
+            ],
+            "kernels": [
+              {
+                "id": {
+                  "$ref": [
+                    "constants",
+                    "pageElites",
+                    "profiles",
+                    0,
+                    "value",
+                    "def",
+                    "id"
+                  ]
+                },
+                "profile": {
+                  "pattern": "pouncer",
+                  "spec": {
+                    "$ref": [
+                      "constants",
+                      "pageElites",
+                      "profiles",
+                      0,
+                      "value",
+                      "spec"
+                    ]
+                  }
+                },
+                "lair": {
+                  "x": {
+                    "$ref": [
+                      "constants",
+                      "pageElites",
+                      "profiles",
+                      0,
+                      "value",
+                      "def",
+                      "lair",
+                      "x"
+                    ]
                   },
+                  "z": {
+                    "$ref": [
+                      "constants",
+                      "pageElites",
+                      "profiles",
+                      0,
+                      "value",
+                      "def",
+                      "lair",
+                      "z"
+                    ]
+                  }
+                },
+                "awareRadius": {
+                  "$ref": [
+                    "constants",
+                    "pageElites",
+                    "profiles",
+                    0,
+                    "value",
+                    "def",
+                    "awareR"
+                  ]
+                },
+                "contacts": [
                   {
-                    "id": {
-                      "$ref": [
-                        "constants",
-                        "pageElites",
-                        "profiles",
-                        1,
-                        "value",
-                        "def",
-                        "id"
-                      ]
-                    },
-                    "profile": {
-                      "pattern": "howler",
-                      "spec": {
-                        "$ref": [
-                          "constants",
-                          "pageElites",
-                          "profiles",
-                          1,
-                          "value",
-                          "spec"
-                        ]
-                      }
-                    },
-                    "lair": {
-                      "x": {
-                        "$ref": [
-                          "constants",
-                          "pageElites",
-                          "profiles",
-                          1,
-                          "value",
-                          "def",
-                          "lair",
-                          "x"
-                        ]
-                      },
-                      "z": {
-                        "$ref": [
-                          "constants",
-                          "pageElites",
-                          "profiles",
-                          1,
-                          "value",
-                          "def",
-                          "lair",
-                          "z"
-                        ]
-                      }
-                    },
-                    "awareRadius": {
-                      "$ref": [
-                        "constants",
-                        "pageElites",
-                        "profiles",
-                        1,
-                        "value",
-                        "def",
-                        "awareR"
-                      ]
-                    },
-                    "contacts": [],
-                    "fallbackStrike": {
+                    "amount": 14,
+                    "strike": {
                       "$ref": [
                         "nativeEliteStrikes",
-                        "bite",
+                        "swipe",
                         "id"
-                      ]
-                    },
-                    "knockdown": {
-                      "$ref": [
-                        "constants",
-                        "nativeKnockdown"
                       ]
                     }
                   }
                 ],
-                "contacts": {
+                "fallbackStrike": {
                   "$ref": [
-                    "strikeContacts"
+                    "nativeEliteStrikes",
+                    "pounce",
+                    "id"
                   ]
                 },
-                "strikes": [
-                  {
-                    "$ref": [
-                      "nativeEliteStrikes",
-                      "swipe"
-                    ]
-                  },
-                  {
-                    "$ref": [
-                      "nativeEliteStrikes",
-                      "pounce"
-                    ]
-                  },
-                  {
-                    "$ref": [
-                      "nativeEliteStrikes",
-                      "bite"
-                    ]
-                  }
-                ],
-                "terrain": {
+                "knockdown": {
                   "$ref": [
-                    "samplers"
-                  ]
-                },
-                "environment": {
-                  "$ref": [
-                    "env"
-                  ]
-                },
-                "ledges": {
-                  "$ref": [
-                    "bake",
-                    "ledges"
+                    "constants",
+                    "nativeKnockdown"
                   ]
                 }
               },
-              "groups": {
-                "$ref": [
-                  "groups"
-                ]
-              },
-              "program": {
-                "$ref": [
-                  "boot",
-                  "admission"
-                ]
+              {
+                "id": {
+                  "$ref": [
+                    "constants",
+                    "pageElites",
+                    "profiles",
+                    1,
+                    "value",
+                    "def",
+                    "id"
+                  ]
+                },
+                "profile": {
+                  "pattern": "howler",
+                  "spec": {
+                    "$ref": [
+                      "constants",
+                      "pageElites",
+                      "profiles",
+                      1,
+                      "value",
+                      "spec"
+                    ]
+                  }
+                },
+                "lair": {
+                  "x": {
+                    "$ref": [
+                      "constants",
+                      "pageElites",
+                      "profiles",
+                      1,
+                      "value",
+                      "def",
+                      "lair",
+                      "x"
+                    ]
+                  },
+                  "z": {
+                    "$ref": [
+                      "constants",
+                      "pageElites",
+                      "profiles",
+                      1,
+                      "value",
+                      "def",
+                      "lair",
+                      "z"
+                    ]
+                  }
+                },
+                "awareRadius": {
+                  "$ref": [
+                    "constants",
+                    "pageElites",
+                    "profiles",
+                    1,
+                    "value",
+                    "def",
+                    "awareR"
+                  ]
+                },
+                "contacts": [],
+                "fallbackStrike": {
+                  "$ref": [
+                    "nativeEliteStrikes",
+                    "bite",
+                    "id"
+                  ]
+                },
+                "knockdown": {
+                  "$ref": [
+                    "constants",
+                    "nativeKnockdown"
+                  ]
+                }
               }
-            },
-            "core": {
-              "$ref": [
-                "eliteCore"
-              ]
-            },
+            ],
             "projections": {
               "argymaq": {
                 "signal": "argymaqTick",
@@ -1599,6 +1530,125 @@
                 }
               }
             }
+          },
+          {
+            "host": {
+              "$ref": [
+                "host"
+              ]
+            },
+            "core": {
+              "$ref": [
+                "eliteCore"
+              ]
+            },
+            "bindings": {
+              "$ref": [
+                "bindings"
+              ]
+            },
+            "kernel": {
+              "contacts": {
+                "$ref": [
+                  "strikeContacts"
+                ]
+              },
+              "strikes": [
+                {
+                  "$ref": [
+                    "nativeEliteStrikes",
+                    "swipe"
+                  ]
+                },
+                {
+                  "$ref": [
+                    "nativeEliteStrikes",
+                    "pounce"
+                  ]
+                },
+                {
+                  "$ref": [
+                    "nativeEliteStrikes",
+                    "bite"
+                  ]
+                }
+              ],
+              "terrain": {
+                "$ref": [
+                  "samplers"
+                ]
+              },
+              "environment": {
+                "$ref": [
+                  "env"
+                ]
+              },
+              "ledges": {
+                "$ref": [
+                  "bake",
+                  "ledges"
+                ]
+              }
+            },
+            "groups": {
+              "$ref": [
+                "groups"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "bindElite.argymaq",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "elites",
+              "bindProjected"
+            ]
+          },
+          2,
+          {
+            "$call": [
+              {
+                "$ref": [
+                  "@wildshard/game/population/returnProgram",
+                  "ReturnProgram",
+                  "native"
+                ]
+              },
+              {
+                "$ref": [
+                  "host"
+                ]
+              },
+              {
+                "$ref": [
+                  "boot",
+                  "admission"
+                ]
+              }
+            ]
+          },
+          {
+            "$ref": [
+              "eliteCore"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "installElites",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "elites",
+              "install"
+            ]
           }
         ]
       }

@@ -6,7 +6,7 @@ import { nativeGroupBrain } from '../src/format/groupBrains';
 import brainRows from '../src/shards/nalati-grasslands/data/brains.json' with { type: 'json' };
 import * as reach from '../src/engine/ai/reach';
 import { NALATI_STRIKES } from './fixtures/nalati-strikes';
-import { installEliteEncounters, eliteBindings, type EliteEncounterPorts, type EliteEncounterRow } from '../src/game/shardfile/eliteEncounters';
+import { installEliteEncounters, eliteBindings, type EliteEncounterPorts, type EliteEncounterRow } from './fixtures/nativeEliteEncounters';
 import { installEliteEncounters as originalInstall, type EliteEncounterPorts as OriginalPorts, type EliteEncounterRow as OriginalRow } from './fixtures/originalEliteEncounters';
 import type { AnimalSim } from '../src/engine/entities/AnimalSim';
 import type { SimHost } from '../src/engine/sim';

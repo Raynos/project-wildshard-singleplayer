@@ -12,7 +12,7 @@ import type { HerdBrain } from '@wildshard/engine/ai/herd';
 import type { FlockBrain, FlockThreat } from '@wildshard/engine/ai/flock';
 import { canReach } from '@wildshard/engine/ai/reach';
 import { createNativeSpeciesContext } from '../plugin/brain';
-import type { EliteBindings } from '../shardfile/eliteEncounters';
+import type { NativeEliteBindings } from '@wildshard/engine/ai/eliteRoster';
 import { ReturnProgram } from './returnProgram';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { HuntBody } from '@wildshard/engine/ai/hunt';
@@ -115,7 +115,7 @@ export class NativePopulationDriver {
   private dodgeCd = 0;
   constructor(private readonly host: SimHost, private readonly manager: NativeManager, private readonly hunt: StalkerBrain<HuntBody>, private readonly rng: Rng,
     private readonly bodies: HuntBody[], private readonly packs: ReadonlyMap<AnimalSim, PackBrain<AnimalSim>>,
-    private readonly herds: ReadonlyMap<AnimalSim, HerdBrain<AnimalSim>>, private readonly elites: EliteBindings,
+    private readonly herds: ReadonlyMap<AnimalSim, HerdBrain<AnimalSim>>, private readonly elites: NativeEliteBindings,
     private readonly flocks: readonly FlockBrain[], private readonly wolves: readonly FlockThreat[], private readonly rows: NativeDriverRows, groups: NativeGroupCollection) {
     const tokens = groups.tokens; if (!groups.owns(host) || tokens === undefined || tokens.id !== rows.tokens || !(tokens.owners instanceof WeakMap)) throw new Error('Missing native manager tokens'); this.tokens = tokens.owners;
     if (bodies.length > 64 || flocks.length > 4) throw new Error('Native population driver capacity exceeded');

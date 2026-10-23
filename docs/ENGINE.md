@@ -7835,12 +7835,13 @@ random source. Untouched last-hit clocks retain the historical null wire value.
 strict versioned envelope. Its top-level parser can also project those core
 fields directly from that envelope; nested rows remain strict.
 
-`game/shardfile/eliteEncounters#installEliteEncounters(host, spec)` retains the
-native encounter roster on this core. Rows declare original kernel or borrowed
-group members, body kind/variant, initial memory and pack ordering. Lair and
-respawn rules remain each row's `def`; `eliteBindings()` lends the original pins
-and decision/act bindings to the manager's one body step. Adoption validates the
-same native reward before applying its scale, win and detach operations.
+The native assembly constructs the existing `engine/ai/eliteRoster.NativeEliteRoster`
+directly from its declared input and original concrete loans. It binds each
+projected row at the same constructor position, then calls `install()` before
+population installation. The former game installer and its export are retired.
+`nativeEliteBindings()` allocates the same per-simulation pins, absent identities
+and decision/act bindings lent to the body manager; `NativeEliteBindings` is their
+canonical type. No lookup wrapper, callback factory or second book is installed.
 
 `engine/ai/eliteRoster.NativeEliteRoster` admits ordered native/borrowed roles,
 original definitions, member/save rows and native profile rows before construction.

@@ -2,7 +2,7 @@ import { expect, expectTypeOf, test, vi } from 'vitest';
 import { NativeEliteRoster, NativeEliteProjection, type NativeEliteRosterRows, type NativeEliteScript } from '../src/engine/ai/eliteRoster';
 import { NativeEliteLifecycle } from '../src/engine/ai/eliteLifecycle';
 import type { SimHost } from '../src/engine/sim';
-import { eliteBindings, type EliteEncounterRow, type EliteEncounterSpec } from '../src/game/shardfile/eliteEncounters';
+import { eliteBindings, type EliteEncounterRow, type EliteEncounterSpec } from './fixtures/nativeEliteEncounters';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';
 import { nativeEliteCore } from './fixtures/nativeEliteCore';

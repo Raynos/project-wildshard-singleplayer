@@ -21,7 +21,7 @@ import { mountedPlayerOf } from './native';
 import { nativeTamingOf } from './nativeTaming';
 import { createNativeHunt } from '../plugin/brain';
 import { NativePopulationField } from '../population/environment';
-import type { EliteBindings } from '../shardfile/eliteEncounters';
+import type { NativeEliteBindings } from '@wildshard/engine/ai/eliteRoster';
 import { ReturnProgram } from '../population/returnProgram';
 import { NativeManager, NativePopulationDriver, NativeWildlifeFrame, type NativeWildlifeRows } from '../population/nativeManager';
 
@@ -76,7 +76,7 @@ interface BootBake {
 }
 /** Compare the exact admitted identity join before spawning on native floors. */
 export function installNativeBootRoster(host: SimHost, ports: { boot: NativePopulationBootRows; bake: BootBake; field: NativePopulationField; spawnY: number;
-  clock: { readonly phase: string; readonly storm: boolean }; elites: EliteBindings }): {
+  clock: { readonly phase: string; readonly storm: boolean }; elites: NativeEliteBindings }): {
   bodies: { boot: NativePopulationBootBody; baked: BootBake['actors'][number]; actor: AnimalSim }[]; herds: readonly NativePopulationBootHerd[]; stream: RngState; wildStream: RngState;
 } {
   const { bake,boot,field } = ports, roster = structuredClone(boot.roster);
@@ -107,7 +107,7 @@ export interface NativePopulationBindings {
   boot: NativePopulationBoot; config: NativePopulationConfig;
   bodies: readonly { actor: AnimalSim; boot: { id: string; seed: number; adopted: { x: number; z: number; stream: RngState } } }[];
   herds: readonly { kind: string; cx: number; cz: number }[]; stream: RngState; wildStream: RngState;
-  bake: { actors: readonly { spec: AnimalSimSpec }[]; marmots: unknown }; spawnY: number; elites: EliteBindings; snapshot?: Readonly<SimSnapshot>;
+  bake: { actors: readonly { spec: AnimalSimSpec }[]; marmots: unknown }; spawnY: number; elites: NativeEliteBindings; snapshot?: Readonly<SimSnapshot>;
 }
 /** The feature's concrete native owners and ordinary actor-id actions. */
 export interface NativePopulation {

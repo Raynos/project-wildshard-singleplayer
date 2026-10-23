@@ -84,6 +84,10 @@ export interface NativeEliteRosterLoans {
   readonly kernel?: Omit<NativeEliteKernelLoans, 'scope' | 'host' | 'lifecycle' | 'brains'>;
   readonly groups?: EliteContinuationGroups;
 }
+/** One per-simulation identity/decision book lent to the original body manager. */
+export type NativeEliteBindings = NativeEliteRosterLoans['bindings'] & { readonly absent: Set<AnimalSim> };
+/** Allocate the same mutable collections at the declared native assembly slot. */
+export function nativeEliteBindings(): NativeEliteBindings { return { pinned: new Set(), absent: new Set(), brains: new Map() }; }
 function method<O extends object>(owner: O, key: keyof O): unknown { return owner[key]; }
 function readers(owner: object, keys: readonly string[] = ['phase', 'companion']): readonly unknown[] {
   return keys.flatMap(key => {

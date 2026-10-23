@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { NativeEliteContinuation, type EliteContinuationMember } from '../src/engine/ai/eliteContinuation';
-import { NativeEliteProjection } from '../src/engine/ai/eliteRoster';
+import { nativeEliteBindings as eliteBindings, NativeEliteProjection } from '../src/engine/ai/eliteRoster';
 import { NativeEliteKernels } from '../src/engine/ai/eliteKernels';
 import { PackBrain, type PackPorts } from '../src/engine/ai/pack';
 import { nativeGroupBrain } from '../src/format/groupBrains';
@@ -8,7 +8,6 @@ import brainRows from '../src/shards/nalati-grasslands/data/brains.json' with { 
 import { HerdBrain, type HerdPorts } from '../src/engine/ai/herd';
 import type { AnimalSim } from '../src/engine/entities/AnimalSim';
 import type { EliteContinuationRows } from '../src/format/eliteContinuation';
-import { eliteBindings } from '../src/game/shardfile/eliteEncounters';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';
 import { nativeEliteCore } from './fixtures/nativeEliteCore';

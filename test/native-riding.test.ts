@@ -106,7 +106,7 @@ test('orchard native manager drives the admitted roster at ten Hz across body fr
   const { Rng } = await import('@wildshard/engine/core/rng');
   const { NativeManager, NativePopulationDriver } = await import('@wildshard/game/population/nativeManager');
   const { createNativeCreatureRoster } = await import('@wildshard/game/shardfile/homeKeeper');
-  const { eliteBindings } = await import('@wildshard/game/shardfile/eliteEncounters');
+  const { nativeEliteBindings: eliteBindings } = await import('@wildshard/engine/ai/eliteRoster');
   const { default: admission } = await import('../src/shards/nalati-grasslands/behaviour/admission.generated.json');
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
   const host = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier }), random = new Rng(71);
@@ -244,7 +244,7 @@ test('orchard fixture installs the complete native population through data rows'
   const { NativeGroupCollection } = await import('@wildshard/game/shardfile/groupRuntime');
   const { NativeWildEnvironment } = await import('@wildshard/game/population/nativeManager');
   const { installNativePopulation, nativePopulationOf } = await import('@wildshard/game/riding/nativePopulation');
-  const { eliteBindings } = await import('@wildshard/game/shardfile/eliteEncounters');
+  const { nativeEliteBindings: eliteBindings } = await import('@wildshard/engine/ai/eliteRoster');
   const { GrassField } = await import('@wildshard/game/systems/looks/grassField');
   const { TrampleField } = await import('@wildshard/game/systems/looks/trample');
   const { ForagerPopulation } = await import('@wildshard/engine/ai/ambientForager');

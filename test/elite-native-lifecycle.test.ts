@@ -9,7 +9,7 @@ import brainRows from '../src/shards/nalati-grasslands/data/brains.json' with { 
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';
 import { nativeEliteCore } from './fixtures/nativeEliteCore';
 import type { SimHost } from '../src/engine/sim';
-import { eliteBindings, installEliteEncounters } from '../src/game/shardfile/eliteEncounters';
+import { eliteBindings, installEliteEncounters } from './fixtures/nativeEliteEncounters';
 import { legacyDouble } from './fake/FakeGame';
 import type { AnimalSim } from '../src/engine/entities/AnimalSim';
 import assembly from '../src/shards/nalati-grasslands/data/headlessAssembly.json' with { type: 'json' };

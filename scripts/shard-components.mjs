@@ -176,7 +176,7 @@ const w3SharedOwners = new Map([
   ...['src/engine/combat/targets.ts', 'src/engine/combat/effects/types.ts',
     'src/engine/player/firstPersonArms.ts', 'src/game/weapons/heldLauncher.ts',
     'src/game/systems/viewmodel/armRig.ts'].map(path => [path, 'C6']),
-  ...['src/game/shardfile/eliteEncounters.ts', 'src/sdk/crowds.ts',
+  ...['src/sdk/crowds.ts',
     'src/game/shardfile/crowdRuntime.ts', 'src/sdk/phasedBoss.ts'].map(path => [path, 'C4']),
   ...['src/engine/core/gpuOnly.ts', 'src/sdk/kit/bakedGeometry.ts',
     'src/sdk/kit/geometryPack.ts'].map(path => [path, 'C1']),

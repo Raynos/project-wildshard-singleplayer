@@ -4,7 +4,7 @@ import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { EliteCore, memoryElitePersistence, type EliteCoreScript, type EliteCoreRule } from '../src/game/eliteSystem';
 import { ReturnProgram } from '../src/game/population/returnProgram';
-import { installEliteEncounters } from '../src/game/shardfile/eliteEncounters';
+import { NativeEliteRoster, nativeEliteBindings } from '../src/engine/ai/eliteRoster';
 import type { AnimalSim } from '../src/engine/entities/AnimalSim';
 import type { Rapier } from '../src/engine/physics/rapier';
 import { legacyDouble } from './fake/FakeGame';
@@ -62,7 +62,10 @@ test('foreign player and populated core loans refuse before native registration'
     try {
       const core = nativeEliteCore(kind === 'player' ? other.host : f.host);
       if (kind === 'populated') core.add({ def: { id: 'existing', rule: 'always', lair: { x: 0, z: 0, r: 1 }, awareR: 2, engageR: 1, leashR: 3, respawnMin: 1 }, animal: null, spawn: () => undefined, despawn: () => undefined, tick: () => undefined, enterPhase2: () => undefined, reset: () => undefined, trophy: () => undefined });
-      expect(() => installEliteEncounters(f.host, { step: 'quarry.elites', version: 1, core, wire: {} })).toThrow('Foreign or populated');
+      expect(() => new NativeEliteRoster({ step: 'quarry.elites', version: 1, wire: {}, roles: ['borrowed'], kernels: [], rows: [{
+        def: { id: 'quarry.borrowed', rule: 'always', lair: { x: 0, z: 0, r: 1 }, awareR: 2, engageR: 1, leashR: 3, respawnMin: 1 },
+        snapshot: 'borrowed', member: { kind: 'guardian', variant: 'guard' },
+      }] }, { host: f.host, core, bindings: nativeEliteBindings() })).toThrow('Invalid elite roster owners');
       expect(f.loans.brains.size).toBe(0); expect(f.hit).not.toHaveBeenCalled();
     } finally { f.scope.dispose(); other.scope.dispose(); }
   }

@@ -10,7 +10,7 @@ import { Rng } from '../src/engine/core/rng';
 import { NativePopulationField } from '../src/game/population/environment';
 import { NativeWildEnvironment } from '../src/game/population/nativeManager';
 import { installNativeBootRoster } from '../src/game/riding/nativePopulation';
-import { eliteBindings } from '../src/game/shardfile/eliteEncounters';
+import { nativeEliteBindings as eliteBindings } from '../src/engine/ai/eliteRoster';
 import { nativeWeatherBundle } from '../src/game/weather/reactions';
 import { installWeatherContinuation } from '../src/game/weather/continuation';
 import { parseWeatherProgram } from '../src/format/weatherProgram';
