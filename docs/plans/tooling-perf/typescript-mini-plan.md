@@ -62,14 +62,14 @@ Goal (Jake): a full TypeScript check of the whole repo before push, warm in seco
 
 | Row | What | Expected | Size | Done when |
 |---|---|---|---|---|
-| T1 | Generated JSON out of the program: `resolveJsonModule` off, `*.json` → `unknown`, valibot parse at each site (generators read at run time) | −4 GB, −15–30 s | M | root program ≤ 6 GB, green |
+| T1 | Generated JSON out of the program (G655): no generated file is imported (GR0 ban + the generator redesign G654); authored JSON stays typed | −4 GB, −15–30 s | M | root program ≤ 6 GB, green |
 | T2 | Check src once: layers `-b` is the only src check; the root re-check goes | −60 s CI | S–M | CI Typecheck step < 1 min |
 | T3 | **Tests next to their source (G645):** unit and integration tests move into their layer's workspace (next to the file or in the layer), checked by that layer's project; only regression, end-to-end and scenario tests stay in a separate test project referencing the layers | warm per-layer checks; tests stop being one 2.8 GB lump | M–L | no unit test under `test/`; every layer project includes its tests |
 | T4 | Explicit types on exported valibot schemas, format first, then `isolatedDeclarations` per layer (G644; engine 786 sites) | fixes TS2589, format `.d.ts` 14 MB → < 2 MB, cheaper `-b` edits | L | no TS2589; `isolatedDeclarations` on in engine, then the others |
 | T5 | Pre-push full check: `tsc -b` with a persistent tsbuildinfo (fixed slot, or the cache copied into the push tree; paths are relative) | 1–5 s no change, ~15 s shard edit after T1–T3 | M | the gate runs the full check within 45 s; over-budget (engine API edit) falls back to CI (D2) |
 | T6 | Mac only, after T1: `--checkers 8` | 62 → 25 s, +3.4 GB | S | measured after T1 |
 
-## Decisions for Jake
+## Decisions (decided G655: D1 keep authored JSON typed, generated never imported via GR0; D2 leave to CI; D3 lint rule)
 
 1. **D1 Checked-in JSON:** `resolveJsonModule` off and **all** JSON `unknown`, parsed with valibot at the boundary (recommended) /
    rename generated outputs so TS never resolves them.

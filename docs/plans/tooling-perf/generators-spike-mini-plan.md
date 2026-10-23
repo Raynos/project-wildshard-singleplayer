@@ -1,6 +1,6 @@
 # Generators spike and redesign: mini plan (TOOLING-PERF, G648/G650)
 
-**State:** `draft` 2026-10-23 — spike done (static read of the catalogue, the scheduler and every entry's import
+**State:** `open` (G654) 2026-10-23 — spike done (static read of the catalogue, the scheduler and every entry's import
 closure; no timings). The rows and decisions below wait on Jake's picks. Separate from the [gen speed plan](gen-mini-plan.md)
 (caching and timing), the [TypeScript plan](typescript-mini-plan.md) and [no binaries in JSON](no-binaries-in-json-mini-plan.md).
 
@@ -133,7 +133,7 @@ in `public/assets/<slug>/` as real `.glb` / `.png` / `.ktx2` / `.bin`. App-wide 
 GR0–GR2 first, then one shard at a time, each an independent lane-task that lands in small commits. The gen plan's timings
 pick which steps get `cached`.
 
-## Decisions for Jake
+## Decisions (decided G654: GD1 A, GD2 committed binaries, GD3 call functions, GD4 out/gen + @gen alias, GD5 Nine)
 
 1. **Design:** A (one program per shard, the shardfile build calling its generators), B, or C? **Recommend A.**
 2. **The 7 browser / ImageMagick steps:** committed real binaries in `public/assets/<slug>/`, rebuilt by a separate

@@ -180,7 +180,7 @@ so `'add'` is deleted at rollout.
 | NM5 | Near view back: re-land `fcc5bd1cb6`'s `near: 'coarse'` (safe now: nothing additive) so the road and neighbours see tiles, not the far proxy | Opus A | 1 h | Road-entry shot from outside the cell shows tiles, gate and text |
 | NM6 | Proof: the **9-angle capture** (iPhone 16 Pro portrait, phone tier, muted, `browser-lane.sh`), round-38 poses: road entry, road far side, 40 m over the road, 100 m over the neighbour, top-down 630 m, 300 m oblique, plaza, inside corner, entry billboard. Labelled board beside round 46; frame floor at the entry; memory strip reading | Opus A | 1 h | Board matches round 46 in layout, gate silhouette and five boards; ≥ 30 fps floor; recorded in the commit |
 | — | **Jake checks in-game** on the grid and in SHARD SELECT (Developer on) | Jake | — | His word |
-| R1 | Five new idea names + pitches (G629) for Jake's approval | builder | 0.5 h | Approved |
+| R1 | Five new ideas (G653, approved): Jungle Ziggurat, Patchwork Fairground, Saltwind Lighthouse, Mushroom Hollow, Fossil Badlands; outputs.json rows + grid cells replace the five repeats | builder | 0.5 h | All 19 cells unique |
 | R2 | Rollout: per idea, a style and palette row, a layout, and a landmark (D1); 18 ideas over 2–3 Opus lanes (~2–3 h each) | Opus ×3 | ~2 days | All 19 cells unique; one hero + entry board per idea |
 | R3 | Delete the hologram path (the list in §1) and SDK `farMode: 'add'` | Opus | 1 h | `net` lines negative; push gate green |
 
