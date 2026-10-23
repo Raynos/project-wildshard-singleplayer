@@ -120,6 +120,14 @@ and worker receipts, declared-byte changes, percentage drops and named
 performance measures. Missing counters stay missing; a successful capture
 alone does not pass the loading budgets. Controls are observed at 500 ms
 intervals. Grid-only reveal/frame checks stay unavailable in compiled mode.
+
+The independent observer retains encoded HTTP body bytes and, separately,
+stream-counted content bytes after gzip/brotli/deflate. Corrupt or unsupported
+encodings stay unknown. `transportUnits` labels expected content (including
+cache hits) separately from network responses (excluding cache hits and
+headers); those totals must not be compared as the same unit. No response body
+is retained or changed, apart from the already documented HTML fixture.
+
 Any failed run stops the cohort and returns failure, with no automatic retry.
 The reader closes Safari, its proxy and any preview it opened in `finally`.
 

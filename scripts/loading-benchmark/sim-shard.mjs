@@ -25,3 +25,14 @@ export function downloadEvidence(samples) {
   return { measuredFrames: measured, missingFrames: samples.length - measured, denominatorChangesAfterAdmission: changes,
     downloadDrops: drops, maxPercentError: measured === 0 ? null : maximumError, finalDeclaredBytes: previous?.total ?? null };
 }
+
+/** Never compare expected content (including cache hits) to compressed network
+ * traffic. Retain both independent units and any missing decode evidence. */
+export function transportEvidence(receipts) {
+  const unknown = receipts.filter(row => !Number.isSafeInteger(row.decodedBodyBytes) || row.decodedBodyBytes < 0);
+  return { wireBodyBytes: receipts.reduce((sum, row) => sum + row.bodyBytes, 0),
+    networkContentBytes: unknown.length > 0 ? null : receipts.reduce((sum, row) => sum + row.decodedBodyBytes, 0),
+    unknownContentResponses: unknown.length, responses: receipts.length,
+    expectedUnit: 'file content before HTTP compression; includes cache hits',
+    observedUnit: 'HTTP response bodies; excludes cache hits and headers' };
+}

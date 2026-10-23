@@ -20,7 +20,7 @@ import { soakInspector } from './soak/inspector.mjs';
 import { loadingCardIndex, loadingShardName } from './loading-benchmark/catalogue.mjs';
 import { observeTransport } from './loading-benchmark/transport.mjs';
 import { accuracyRecorder } from './loading-benchmark/accuracy-data.mjs';
-import { requireCompiledEntry, downloadEvidence } from './loading-benchmark/sim-shard.mjs';
+import { requireCompiledEntry, downloadEvidence, transportEvidence } from './loading-benchmark/sim-shard.mjs';
 import { saveFixtureCode } from './debug-settings.mjs';
 
 const REPO = resolvePath(import.meta.dirname, '..');
@@ -229,7 +229,7 @@ async function run(mode, index) {
     requireCompiledEntry(compiled.href, shard, compiled.accuracy);
     const receipts = transport.receipts.filter(row => row.endedAt >= compiled.origin && row.endedAt <= compiled.origin + compiled.accuracy.readyAt);
     const result = { mode, run: index, shard, href: compiled.href, accuracy: compiled.accuracy, measures: compiled.measures,
-      download: downloadEvidence(compiled.accuracy.samples), transportReceipts: receipts, htmlFixtures: transport.htmlFixtures,
+      download: downloadEvidence(compiled.accuracy.samples), transportUnits: transportEvidence(receipts), transportReceipts: receipts, htmlFixtures: transport.htmlFixtures,
       rows: compiled.accuracy.final.rows.flatMap(row => Number.isFinite(Number(row.ms)) ? [{ key: row.key, ms: Number(row.ms), label: row.label, detail: row.detail }] : []),
       loaderPaintMs: sample.fcp === null ? null : Math.round(compiled.origin + sample.fcp - sample.tap),
       loaderEndMs: Math.round(compiled.origin + compiled.accuracy.readyAt - sample.tap),

@@ -1,6 +1,25 @@
 // Observe served asset bytes unchanged; optional HTML recorder fixtures retain both content hashes.
 import http from 'node:http';
 import { createHash } from 'node:crypto';
+import { createGunzip, createBrotliDecompress, createInflate } from 'node:zlib';
+
+/** Proof-only streaming count: HTTP content and encoded wire bodies have
+ * different units. No application body is retained or consumed a second time. */
+export function decodedBodyCounter(encoding) {
+  const decoder = encoding === 'gzip' ? createGunzip() : encoding === 'br' ? createBrotliDecompress()
+    : encoding === 'deflate' ? createInflate() : null;
+  let bytes = 0;
+  if (decoder === null) return {
+    write: chunk => { bytes += chunk.length; },
+    finish: () => Promise.resolve(encoding === undefined || encoding === 'identity' ? bytes : null),
+  };
+  const result = new Promise(resolve => {
+    decoder.on('data', chunk => { bytes += chunk.length; });
+    decoder.on('end', () => { resolve(bytes); });
+    decoder.on('error', () => { resolve(null); });
+  });
+  return { write: chunk => { decoder.write(chunk); }, finish: () => { decoder.end(); return result; } };
+}
 
 export async function observeTransport(upstream, fixture = {}) {
   const receipts = [], htmlFixtures = [];
@@ -25,7 +44,8 @@ export async function observeTransport(upstream, fixture = {}) {
       const chunks = [];
       if (!inject) response.writeHead(incoming.statusCode ?? 502, headers);
       let body = 0;
-      incoming.on('data', chunk => { body += chunk.length; if (inject) chunks.push(chunk); else response.write(chunk); });
+      const decoded = decodedBodyCounter(incoming.headers['content-encoding']);
+      incoming.on('data', chunk => { body += chunk.length; decoded.write(chunk); if (inject) chunks.push(chunk); else response.write(chunk); });
       incoming.on('end', () => {
         if (inject) {
           const original = Buffer.concat(chunks).toString('utf8');
@@ -39,7 +59,9 @@ export async function observeTransport(upstream, fixture = {}) {
           response.writeHead(incoming.statusCode ?? 502, headers); response.write(patched);
         }
         response.end();
-        receipts.push({ url: target.href, status: incoming.statusCode ?? 502, endedAt: Date.now(), bodyBytes: body,
+        const endedAt = Date.now();
+        void decoded.finish().then(contentBytes => receipts.push({ url: target.href, status: incoming.statusCode ?? 502, endedAt, bodyBytes: body,
+          decodedBodyBytes: inject ? body : contentBytes,
           requestCache: { cacheControl: request.headers['cache-control'], ifNoneMatch: request.headers['if-none-match'],
             ifModifiedSince: request.headers['if-modified-since'], acceptEncoding: request.headers['accept-encoding'],
             serviceWorker: request.headers['service-worker'], origin: request.headers.origin,
@@ -48,7 +70,7 @@ export async function observeTransport(upstream, fixture = {}) {
             vary: incoming.headers.vary, contentEncoding: incoming.headers['content-encoding'] },
           // Resource Timing's transferSize charges a fixed 300-byte header estimate.
           // Keep the independent observed payload and actual response headers separate.
-          headerBytes: Buffer.byteLength(`HTTP/1.1 ${incoming.statusCode} ${incoming.statusMessage}\r\n${Object.entries(headers).map(([key, value]) => `${key}: ${value}\r\n`).join('')}\r\n`) });
+          headerBytes: Buffer.byteLength(`HTTP/1.1 ${incoming.statusCode} ${incoming.statusMessage}\r\n${Object.entries(headers).map(([key, value]) => `${key}: ${value}\r\n`).join('')}\r\n`) })).catch(() => { response.destroy(); });
       });
       incoming.on('error', () => { response.destroy(); });
     });
