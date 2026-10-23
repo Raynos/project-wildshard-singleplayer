@@ -1,4 +1,3 @@
-import type {GroupGuestBindingsV2} from '@wildshard/engine/ai/GroupBrain';
 /** Synchronous stateless numeric projection. This installs no clock, query or
  * body owner; callers retain their existing continuation and decision slots. */
 import { parseReturnProjectionV2,returnProjectionV2Layout } from '@wildshard/format/returnProjectionV2';
@@ -33,12 +32,6 @@ function snapshotFrame(input: unknown): Readonly<Record<string,number>> {
   }
   return Object.fromEntries(values);
 }
-/** Freeze the already-admitted owned descriptor; readers borrow it unchanged. */
-function freezeGroups(value:unknown):void {
-  if(value===null||typeof value!=='object'||Object.isFrozen(value))return;
-  for(const child of Object.values(value))freezeGroups(child);
-  Object.freeze(value);
-}
 export class ReturnProjectionV2 {
   private readonly row;
   private readonly layout;
@@ -50,6 +43,7 @@ export class ReturnProjectionV2 {
   constructor(input: unknown,private readonly owner?: Scope) {
     this.live();
     this.row = parseReturnProjectionV2(input);this.layout = returnProjectionV2Layout(this.row.fields.length,this.row.artifact.pages,this.row.outputCapacity,this.row.groups);
+    if(this.row.groups!==undefined&&owner===undefined)throw new Error('Group projection requires an entered scope');
     const bytes = Uint8Array.from(atob(this.row.bytes),byte => byte.codePointAt(0) ?? 0);
     if (sha256(bytes) !== this.row.artifact.hash) throw new Error('Return projection hash mismatch');
     const admitted = admitScriptV2(bytes,{ lane: 'project',ioBytes: this.layout.bytes,compilerRevision: this.row.artifact.compilerRevision,admissionRevision: this.row.artifact.admissionRevision });
@@ -57,10 +51,8 @@ export class ReturnProjectionV2 {
     this.module = new ScriptModuleV2(bytes,{ seed: [0,0],initFuel: 400000,output: [],ioBytes: this.layout.bytes });
     if (this.module.io !== this.layout.io) throw new Error('Return projection IO mismatch');
     if(this.row.groups!==undefined&&owner!==undefined)this.groups=new GroupStepV2(bytes,this.row.groups,owner,{module:this.module,layout:this.layout});
-    freezeGroups(this.row.groups);this.live();
+    this.live();
   }
-  /** Original admitted group rows; reading adds no module or continuation. */
-  get groupBindings():GroupGuestBindingsV2|undefined { this.live();return this.row.groups; }
   private live(): void { if (this.owner?.disposed === true || this.owner?.disposing === true) throw new Error('Return owner disposed'); }
   /** Capture once. No RNG is changed until the caller has validated its retained
    * state as well as every channel. Traps and rejected candidates consume none. */
@@ -129,7 +121,6 @@ export class ReturnProjectionV2 {
   prepareGroup(input:Parameters<GroupStepV2['prepare']>[0]):ReturnType<GroupStepV2['prepare']>{
     this.live();
     if(this.busy)throw new Error('Reentrant return projection');
-    if(this.owner===undefined)throw new Error('Group projection requires an entered scope');
     if(this.groups===null)throw new Error('Missing group projection declaration');
     this.busy=true;
     try{return this.groups.prepare(input);}finally{this.busy=false;}

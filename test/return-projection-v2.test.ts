@@ -18,7 +18,7 @@ beforeAll(async()=>{
   const row=programs.attack.script;
   const ids=(values:Readonly<Record<string,string>>):Map<string,number>=>new Map(Object.values(values).sort().map((name,index)=>[name,index+1]));
   built=await compileReturnProjectionV2(row,{fields:ids(row.fields),signals:ids(row.signals),channels:ids(row.channels)},
-    readDecisionSources(new URL('../src/shards/nalati-grasslands/',import.meta.url).pathname),{asLineCeiling:5674,projectSource:'behaviour/titanCommands.as',outputCapacity:96,worldActions:true,additional:programs.attack.v2.additional});
+    readDecisionSources(new URL('../src/shards/nalati-grasslands/',import.meta.url).pathname),{asLineCeiling:2837,projectSource:'behaviour/titanCommands.as',outputCapacity:96,worldActions:true,additional:programs.attack.v2.additional});
   const layout=returnProjectionV2Layout(1);
   const bytes=await compileScriptV2(`import * as core from './core';
     export function ws_abi():i32{return 2;}export function ws_io():i32{return 0;}
@@ -122,9 +122,9 @@ test('an alternate project entry retains captured source and handler admission',
   const ids=(values:Readonly<Record<string,string>>):Map<string,number>=>new Map(Object.values(values).sort().map((name,index)=>[name,index+1]));
   const registries={fields:ids(row.fields),signals:ids(row.signals),channels:ids(row.channels)};
   const sources=readDecisionSources(new URL('../src/shards/nalati-grasslands/',import.meta.url).pathname);
-  await expect(compileReturnProjectionV2(row,registries,sources,{asLineCeiling:5674,projectSource:'behaviour/missing.as'})).rejects.toThrow('Missing decision source');
+  await expect(compileReturnProjectionV2(row,registries,sources,{asLineCeiling:2837,projectSource:'behaviour/missing.as'})).rejects.toThrow('Missing decision source');
   const escaped=new Map(sources);escaped.set('behaviour/escape.as',"import {run} from '../unowned';export function onSignal(signal:i32,value:f64,source:i32):void{run();}");
-  await expect(compileReturnProjectionV2(row,registries,escaped,{asLineCeiling:5674,projectSource:'behaviour/escape.as'})).rejects.toThrow('Undeclared decision source import');
+  await expect(compileReturnProjectionV2(row,registries,escaped,{asLineCeiling:2837,projectSource:'behaviour/escape.as'})).rejects.toThrow('Undeclared decision source import');
 },60000);
 
 
@@ -152,8 +152,8 @@ test('omitted output capacity keeps the original default32 wire bytes',async()=>
   const row=programs.attack.script;
   const ids=(values:Readonly<Record<string,string>>):Map<string,number>=>new Map(Object.values(values).sort().map((name,index)=>[name,index+1]));
   const registries={fields:ids(row.fields),signals:ids(row.signals),channels:ids(row.channels)},sources=readDecisionSources(new URL('../src/shards/nalati-grasslands/',import.meta.url).pathname);
-  const implicit=await compileReturnProjectionV2(row,registries,sources,{asLineCeiling:5674});
-  const explicit=await compileReturnProjectionV2(row,registries,sources,{asLineCeiling:5674,outputCapacity:32});
+  const implicit=await compileReturnProjectionV2(row,registries,sources,{asLineCeiling:2837});
+  const explicit=await compileReturnProjectionV2(row,registries,sources,{asLineCeiling:2837,outputCapacity:32});
   expect(implicit.candidate.outputCapacity).toBeUndefined();
   expect(explicit.candidate).toStrictEqual({...implicit.candidate,outputCapacity:32});
   expect(explicit.legacy).toStrictEqual(implicit.legacy);

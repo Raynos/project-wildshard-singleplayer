@@ -124,7 +124,7 @@ test('Nalati captain charges on the 10 Hz guest and leashing cancels its attack'
   const { DecisionHost } = await import('../src/engine/script/decision');
   const rows = parseSpawnScript(charge), registry = spawnScriptRegistries(rows);
   const built = await compileDecisionScripts([rows.script], registry, new Map([[rows.script.source,
-    readFileSync(`src/shards/nalati-grasslands/${rows.script.source}`, 'utf8')]]), { asLineCeiling: 5674 });
+    readFileSync(`src/shards/nalati-grasslands/${rows.script.source}`, 'utf8')]]), { asLineCeiling: 2837 });
   const row = built.rows.at(0), blob = built.blobs.at(0);
   if (row === undefined || blob === undefined) throw new Error('Missing captain guest');
   const ids = decisionBindingMap(row, registry).ids;

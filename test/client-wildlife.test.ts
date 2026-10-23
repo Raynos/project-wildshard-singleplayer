@@ -34,7 +34,7 @@ test('declared wildlife waits for animals, owns one frame and retires its hook',
   const rows = { ...headlessAssembly.constants.pageWildlife, packs: [], herds: [], flocks: [], mountables: [], foragers: null };
   const hooks: ShardRuntime['hooks'] = {};
   const runtime = legacyDouble<ShardRuntime>({ hooks, world: legacyDouble<NonNullable<ShardRuntime['world']>>({
-    game: legacyDouble<NonNullable<ShardRuntime['world']>['game']>({ scene: new Scene(),levelScope:scope }),
+    game: legacyDouble<NonNullable<ShardRuntime['world']>['game']>({ scene: new Scene() }),
     sky: legacyDouble<NonNullable<ShardRuntime['world']>['sky']>({}), chunk: legacyDouble<NonNullable<ShardRuntime['world']>['chunk']>({ seed: 7 }),
     player: legacyDouble<Player>({ position: new Vector3(), yaw: .4, crouching: true }) }) });
   const readJson = vi.fn<ShardProduct['file']>().mockResolvedValueOnce(new TextEncoder().encode(JSON.stringify(rows))).mockResolvedValueOnce(new TextEncoder().encode(JSON.stringify({ page: { world: {} } })));

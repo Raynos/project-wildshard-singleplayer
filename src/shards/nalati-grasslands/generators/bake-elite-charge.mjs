@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { charge } from './eliteCharge.ts';
 
 const row = parseSpawnScript(charge);
-const built = await compileDecisionScripts([row.script], spawnScriptRegistries(row), readDecisionSources(fileURLToPath(new URL('../', import.meta.url))), { asLineCeiling: 5674 });
+const built = await compileDecisionScripts([row.script], spawnScriptRegistries(row), readDecisionSources(fileURLToPath(new URL('../', import.meta.url))), { asLineCeiling: 2837 });
 const script = built.rows.at(0), blob = built.blobs.at(0);
 if (script === undefined || blob === undefined) throw new Error('Missing captain program');
 const output = `${JSON.stringify({ ...row, script, bytes: Buffer.from(blob.bytes).toString('base64') }, null, 2)}\n`;
