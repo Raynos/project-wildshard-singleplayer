@@ -896,6 +896,15 @@ response bodies. Expected files remain pending
 until a network or cache receipt arrives; completion credits from legacy steps
 are not downloaded bytes.
 
+A format-2 home descriptor declares every section, schema and immutable blob
+before its first section/cache read. Historical state-lineage reads declare
+only their sections and schemas. The boot byte counter declares selected
+audio and menu art before prefetch or decoding starts; background audio
+inventories remain separate. DOWNLOAD shows the actual completed/declared
+ratio, including 100 percent when all declared files arrive. It does not
+hide a late dependency behind a maximum-so-far value or a 99.9 percent cap.
+Lazy module coverage still requires the selected build dependency graph.
+
 `observeDownloadAccounting(accounting)` adds a disposable page-activity observer
 without replacing the active boot attempt. Declarations, verified cache reads and
 worker receipts reach both; each observer keeps its own start time and receipt

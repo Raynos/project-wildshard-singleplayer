@@ -66,6 +66,27 @@ test('v2 sections reconstruct host values and refuse the old monolithic transpor
   expect(() => outputBlobUrl(source, file.hash, base)).toThrow('format-2');
 });
 
+test('the complete blob bank is declared before the first section read, except for historical lineage', async () => {
+  const { index, wires } = fixture(true);
+  const expected = new Map(index.sections.map(file => [file.path, file.bytes]));
+  for (const file of index.files) expected.set(file.path, file.compressed);
+  for (const lineage of [false, true]) {
+    const declared = new Map<string, number>(); let reads = 0;
+    await resolveOutputDescriptor(index, {
+      offline: false, lineage, hash,
+      declare: (path, bytes) => { declared.set(path, bytes); },
+      read: (path) => {
+        expect(declared).toEqual(lineage ? new Map(index.sections.map(file => [file.path, file.bytes])) : expected);
+        reads++;
+        const bytes = wires.get(path);
+        if (bytes === undefined) throw new Error('Missing section');
+        return Promise.resolve(bytes);
+      },
+    });
+    expect(reads).toBe(index.sections.length);
+  }
+});
+
 test('admission preserves v2 addressing across parser copies and offline section reassembly', async () => {
   const { source, wires, index } = fixture(), store = cacheStore(), opts = options(wires, store.cache);
   const read = await readProductDescriptor(opts), admitted = await admitProduct(read, opts);

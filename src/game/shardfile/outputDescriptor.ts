@@ -91,6 +91,10 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
   const index = parseOutputDescriptorIndex(input);
   if (index === null) return input;
   for (const file of [...index.sections, ...index.schemas]) reader.declare?.(file.path, file.bytes);
+  // A home admission reads the complete immutable bank after its sections.
+  // Publish that denominator before the first section/cache request, not when
+  // the much larger blob stage starts. A historical lineage never reads blobs.
+  if (reader.lineage !== true) for (const file of index.files) reader.declare?.(outputBlobPath(file), file.compressed);
   const sections = new Map<string, unknown>();
   let cached = reader.cached !== undefined;
   const stores: Promise<void>[] = [];

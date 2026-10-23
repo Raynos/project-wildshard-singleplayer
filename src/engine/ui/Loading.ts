@@ -70,7 +70,7 @@ export class Loading {
   private readonly timeline: LoadingTimeline;
   private phase: { end: () => void; detail: (text: string) => void } | undefined;
   private phaseKey = 'modules';
-  private readonly stall = new LoadingStall(performance.now());
+  private readonly stall = new LoadingStall(this.t0);
   private readonly identity: string;
   private timingKey: LoadingTimingKey;
   private baseline: LoadingTimings = {};
@@ -78,8 +78,6 @@ export class Loading {
   private configured = false;
   private finished = false;
   private shownSetup = 0;
-  /** the home load's download track as shown: it never goes back (a late declaration grows the total, not the past) */
-  private shownDownload = 0;
   private readonly admissionPhases = new Set<string>();
   private readonly paintedRows: (LoadingRow | LoadingGap)[] = [];
   /** G555: a mid-play load (a grid cell entry): no boot trace, no adopted shell, no page-wide timeline or download
@@ -255,8 +253,7 @@ export class Loading {
   private downloadProgress(done: boolean) {
     for (const entry of this.downloadObserver.takeRecords()) if (entry instanceof PerformanceResourceTiming) this.downloads.resource(entry);
     const transfer = this.downloads.snapshot();
-    this.shownDownload = Math.max(this.shownDownload, loadingDownloadFraction(transfer, done));
-    return { ...transfer, fraction: this.shownDownload };
+    return { ...transfer, fraction: loadingDownloadFraction(transfer, done) };
   }
 
   private setupProgress(): number {

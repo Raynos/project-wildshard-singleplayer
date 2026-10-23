@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { Loading } from '../src/engine/ui/Loading';
 import type { ProgressView } from '../src/engine/boot/plan';
+import { declareDownloadFile, recordCachedDownload } from '../src/engine/boot/download';
 
 let now = 100;
 beforeEach(() => {
@@ -14,6 +15,24 @@ beforeEach(() => {
   });
 });
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); document.body.replaceChildren(); });
+
+it('shows the actual declared ratio when a late dependency is discovered, without a 99 percent cap', () => {
+  const loading = new Loading({ id: 'test', name: 'Test' }, { scoped: true });
+  const view: ProgressView = { download: 0, setup: 0, done: false, error: null, step: 'audio', label: 'Audio', detail: '',
+    bytes: null, bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0, worldBytesReady: false, doneCount: 0, rows: [], gaps: [] };
+  try {
+    declareDownloadFile('/assets/known.bin', 10);
+    recordCachedDownload('known', 10, '/assets/known.bin');
+    loading.paint(view);
+    expect(loading.root.dataset['download']).toBe('100');
+    declareDownloadFile('/assets/later.bin', 30);
+    loading.paint(view);
+    expect(loading.root.dataset['download']).toBe('25');
+    recordCachedDownload('later', 30, '/assets/later.bin');
+    loading.paint(view);
+    expect(loading.root.dataset['download']).toBe('100');
+  } finally { loading.scope.dispose(); }
+});
 
 it('paints completion rows and footer together without waiting for another frame', () => {
   const loading = new Loading({ id: 'test', name: 'Test' }, { scoped: true });

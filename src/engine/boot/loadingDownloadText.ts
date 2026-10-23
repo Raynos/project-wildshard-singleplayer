@@ -15,7 +15,7 @@ export interface LoadingPrefetchSnapshot {
  * the wire or the cache; done when the load is. Grid prefetch and other page traffic never move it (they have their own row). */
 export function loadingDownloadFraction(transfer: DownloadSnapshot, done: boolean): number {
   if (done) return 1;
-  return transfer.declaredBytes === 0 ? 0 : Math.min(0.999, transfer.declaredDoneBytes / transfer.declaredBytes);
+  return transfer.declaredBytes === 0 ? 0 : Math.min(1, transfer.declaredDoneBytes / transfer.declaredBytes);
 }
 
 /** Declared progress first (the fact line truncates), then the wire and the offline cache. WebKit sizes no service-worker

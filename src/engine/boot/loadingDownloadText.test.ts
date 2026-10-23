@@ -10,7 +10,7 @@ it('the home track counts only the load\'s declared files and is full when the l
   expect(loadingDownloadFraction(traffic, false)).toBe(0.75);
   // undeclared page traffic and unsized transfers never move it
   expect(loadingDownloadFraction({ ...traffic, networkBytes: 90_000_000, unclassifiedFiles: 40, unclassifiedBytes: 50_000_000 }, false)).toBe(0.75);
-  expect(loadingDownloadFraction({ ...traffic, declaredDoneBytes: 2_000_000 }, false)).toBe(0.999);
+  expect(loadingDownloadFraction({ ...traffic, declaredDoneBytes: 2_000_000 }, false)).toBe(1);
   expect(loadingDownloadFraction({ ...traffic, declaredBytes: 0, declaredDoneBytes: 0 }, false)).toBe(0);
   expect(loadingDownloadFraction(traffic, true)).toBe(1);
 });

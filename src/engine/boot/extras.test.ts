@@ -3,10 +3,11 @@ import {afterEach,beforeEach,expect,test,vi} from 'vitest';
 import {bootFiles,extraFetches,startDeferredAudioPreload} from './extras';
 import {setBootCatalog,type BootLevel} from './catalog';
 import {prepareBootAudio} from './audioInventory';
-import {declareTotals,type ChunkFiles} from './bytes';
+import {declareTotals,installByteCounter,releaseByteCounter,type ChunkFiles} from './bytes';
 import {installAssetTables,publicBytes,assetVersions,musicManifests,sfxManifests,bootPacks} from './tables';
 import {NO_AUDIO,type LevelAudioProfile,type LevelAudioBank} from '../audio/levelAudio';
-import type {StepProgress} from './plan';
+import {createBootPlan,type StepProgress} from './plan';
+import {DownloadAccounting,installDownloadAccounting} from './download';
 import * as settings from '../ui/Settings';
 
 const music='/assets/music/folk/title.m4a',sfx='/assets/sfx/field/step.m4a';
@@ -36,6 +37,18 @@ test('boot declares only selected profile audio while background inventory retai
   expect(bootFiles(level,'img',NO_AUDIO)).toMatchObject({music:[],sfx:[]});
   vi.mocked(settings.getMusicStyle).mockReturnValue('piano');
   expect(bootFiles(level,'img',profile)).toMatchObject({music:[foreignMusic],sfx:[foreignSfx]});
+});
+
+test('selected extras enter the download denominator before prefetch and never include foreign styles',()=>{
+  const accounting=new DownloadAccounting(location.href),dispose=installDownloadAccounting(accounting);
+  const files={...blank,art:['/assets/card.webp'],music:[music],sfx:[sfx]};
+  installAssetTables({...priorTables,bytes:{[music]:3,[sfx]:3,'/assets/card.webp':7,[foreignMusic]:100,[foreignSfx]:100}});
+  try{
+    installByteCounter(createBootPlan(()=>undefined,{totals:declareTotals(files)}),files);
+    expect(accounting.snapshot()).toMatchObject({declaredFiles:3,declaredBytes:13,declaredDoneBytes:0,networkBytes:0});
+    accounting.resource({name:new URL(music,location.href).href,startTime:1,transferSize:0,encodedBodySize:3,workerStart:0,serverTiming:[]});
+    expect(accounting.snapshot()).toMatchObject({declaredFiles:3,declaredBytes:13,declaredDoneBytes:3,cachedBytes:3});
+  }finally{releaseByteCounter();dispose();}
 });
 
 test('preload ignores foreign inventory and decodes selected compressed bytes offline without another fetch',async()=>{

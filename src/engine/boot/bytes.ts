@@ -17,6 +17,7 @@ import { DefaultLoadingManager } from 'three';
 import { TIER_CONFIG } from '../core/tier';
 import { standIn, texMode, type TexMode } from './gpuFiles';
 import { decodeImageBitmap } from './imageDecode';
+import { declareDownloadFile } from './download';
 
 export type ChunkFiles = Readonly<Record<ByteKey, readonly string[]>>;
 type Bytes = Record<string, number>;
@@ -101,6 +102,13 @@ let counterInstalled = false;
 export function installByteCounter(plan: Plan<BootStep>, files: ChunkFiles): void {
   const sourceOf = new Map<string, ByteKey>();
   for (const key of Object.keys(files) as ByteKey[]) for (const f of files[key]) sourceOf.set(f, key);
+  // These extras use their own URLs, outside the world's streaming pack.
+  // Declare the selected inventory before either prefetch or decoding starts.
+  for (const f of [...files.art, ...files.music, ...files.sfx]) {
+    const bytes = sizeOf(f);
+    if (bytes === undefined) throw new Error(`boot: missing download size for ${f}`);
+    declareDownloadFile(f, bytes);
+  }
   const readers = new Map<ByteKey, ByteProgress>();
   const reader = (k: ByteKey): ByteProgress => { let r = readers.get(k); if (!r) { r = plan.reader(k); readers.set(k, r); } return r; };
   // files whose bytes were counted by the tee / credited at all — per build: a later shard's bar counts its own
