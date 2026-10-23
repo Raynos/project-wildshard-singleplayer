@@ -1,6 +1,6 @@
 import { validateLocalMovement, type LocalMovementCommand } from './input/commands';
 import { Vector3 } from 'three';
-import { Scope } from './app/scope';
+import { Scope, type DisposeStep } from './app/scope';
 import { withOwner } from './app/ownership';
 import { Events } from './events/events';
 import { GameClock } from './core/clock';
@@ -924,6 +924,11 @@ export class SimHost {
   dispose(): void {
     if (this.disposed) return; this.disposed = true;
     this.scope.dispose();
+  }
+  /** The same teardown as steps (`Scope.disposeSteps`): a retiring region spreads it over frames; drain to the end. */
+  *disposeSteps(): Generator<DisposeStep, void> {
+    if (this.disposed) return; this.disposed = true;
+    yield* this.scope.disposeSteps();
   }
 }
 /** Embed a level with an initialized Rapier module. Its own scope owns teardown, independently of the caller's ambient page callback. */

@@ -28,7 +28,7 @@ import { installBootProgramChoice } from './bootPrograms';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { WORK_SLICE_MS, workSlice } from '@wildshard/engine/core/workSlice';
 import { CHUNK_HALF, ENTRY_ASPHALT } from '@wildshard/engine/core/config';
-import type { Scope } from '@wildshard/engine/app/scope';
+import type { DisposeStep, Scope } from '@wildshard/engine/app/scope';
 import type { Events } from '@wildshard/engine/events/events';
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import type { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
@@ -654,9 +654,15 @@ export class LiveGridSession {
             try { await hangCellDataSky(request); } catch (error) { console.warn(`[region sky] ${cell.instance}`, error); }
           })();
         }
+        const unlist = (): void => { this.regions.delete(cell.instance); this.transferWalls.delete(cell.instance); savedRegion.unbind(); };
+        const release = (): void => { try { releaseBasis(); } finally { releaseProduct(); } };
         return Promise.resolve({ host: region.host, dispose: () => {
-          this.regions.delete(cell.instance); this.transferWalls.delete(cell.instance); savedRegion.unbind();
-          try { region.dispose(); } finally { try { releaseBasis(); } finally { releaseProduct(); } }
+          unlist();
+          try { region.dispose(); } finally { release(); }
+        // T7 (the leave freeze: leaving template-2 drew 0.4-0.7 s frames): a crossing retires the data region in steps (O20)
+        }, *retire(): Generator<DisposeStep, void> {
+          unlist();
+          try { yield* region.host.disposeSteps(); } finally { release(); }
         } });
       } catch (error) {
         savedRegion.unbind();
