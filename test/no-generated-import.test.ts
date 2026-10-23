@@ -18,9 +18,11 @@ function fixture(run:(root:string,put:(path:string,text:string)=>void)=>void):vo
 }
 
 test('declared outputs and public conditional exports resolve without a type program',()=>fixture((root,put)=>{
-  put('src/game/package.json',JSON.stringify({exports:{'./table':{types:'./table.generated.ts',default:'./table.generated.ts'},'./rows/*':'./data/*.json'}}));
-  const check=generatedImportContext(root,['src/game/table.generated.ts','src/game/data/rows.json','src/game/binary.bin'],['src/game/table.generated.ts']);
+  put('src/game/package.json',JSON.stringify({exports:{'.':'./index.generated.ts','./table':{types:'./table.generated.ts',default:'./table.generated.ts'},'./rows/*':'./data/*.json'}}));
+  const check=generatedImportContext(root,['src/game/index.generated.ts','src/game/table.generated.ts','src/game/data/rows.json','src/game/binary.bin'],['src/game/table.generated.ts']);
   expect(check('src/game/reader.ts','@wildshard/game/table')).toBe(false);
+  expect(check('src/game/reader.ts','@wildshard/game')).toBe(true);
+  expect(check('src/game/reader.ts','@other/game')).toBe(false);
   expect(check('src/game/reader.ts','./table.generated')).toBe(false);
   expect(check('src/game/reader.ts','@wildshard/game/rows/rows')).toBe(true);
   expect(check('test/reader.ts','../src/game/binary.bin?url')).toBe(true);

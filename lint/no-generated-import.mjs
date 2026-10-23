@@ -14,14 +14,14 @@ export function generatedImportContext(root,files,sources=[]){
     if(path.startsWith('.'))return [relative(root,resolve(dirname(resolve(root,file)),path)).split(sep).join('/')];
     if(path.startsWith('/src/'))return [path.slice(1)];
     const match=/^@wildshard\/(engine|format|game|sdk|commons)(?:\/(.*))?$/u.exec(path);
-    if(match===null||match[1]===undefined)return [path];
-    const packageName=match[1];
+    const packageName=match?.at(1);
+    if(packageName===undefined)return [path];
     let exports=packages.get(packageName);
     if(exports===undefined){
       const source=resolve(root,'src',packageName,'package.json');
       exports=existsSync(source)?JSON.parse(readFileSync(source,'utf8')).exports??{}:{};packages.set(packageName,exports);
     }
-    const key=match[2]===undefined?'.':`./${match[2]}`;
+    const subpath=match?.at(2),key=subpath===undefined?'.':`./${subpath}`;
     let entry=exports[key],capture='';
     if(entry===undefined)for(const [pattern,value]of Object.entries(exports)){
       const star=pattern.indexOf('*');if(star===-1)continue;

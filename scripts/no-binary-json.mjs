@@ -104,7 +104,8 @@ function entries(root, revision) {
   for (const record of output.toString().split('\0').filter(Boolean)) {
     const tab = record.indexOf('\t');
     if (tab === -1) throw new Error('BINARY-JSON malformed Git path');
-    const path = record.slice(tab + 1), [mode, middle, last] = record.slice(0, tab).split(' ');
+    const path = record.slice(tab + 1), fields = record.slice(0, tab).split(' ');
+    const mode = fields.at(0), middle = fields.at(1), last = fields.at(2);
     if (mode === undefined || middle === undefined || last === undefined) throw new Error('BINARY-JSON malformed Git entry');
     if (revision === ':' && last !== '0') throw new Error('BINARY-JSON unmerged index');
     found.set(path, { mode, oid: revision === ':' ? middle : last });
@@ -167,7 +168,7 @@ export function checkBinaryRevision(root, revision, previous, changed) {
   if (!tree.has(BINARY_JSON_POLICY)) return [...base64, ...(parent.has(BINARY_JSON_POLICY) ? [`BINARY-JSON ${BINARY_JSON_POLICY}: policy deleted`] : [])];
   const policy = binaryJsonPolicy(JSON.parse(blobs(root, tree, [BINARY_JSON_POLICY]).get(BINARY_JSON_POLICY) ?? 'null'));
   const before = parent.has(BINARY_JSON_POLICY) ? binaryJsonPolicy(JSON.parse(blobs(root, parent, [BINARY_JSON_POLICY]).get(BINARY_JSON_POLICY) ?? 'null')) : undefined;
-  const message = revision === ':' ? process.env['WS_COMMIT_MESSAGE'] ?? '' : git(root, ['show', '-s', '--format=%B', revision]).toString();
+  const message = revision === ':' ? process.env.WS_COMMIT_MESSAGE ?? '' : git(root, ['show', '-s', '--format=%B', revision]).toString();
   const failures = [...base64, ...(before === undefined ? [] : binaryPolicyIncreases(before, policy, message))];
   const selected = changed.includes(BINARY_JSON_POLICY) ? [...tree.keys()].filter(path => path.endsWith('.json')) : changed.filter(path => path.endsWith('.json'));
   for (const [path, text] of blobs(root, tree, selected)) failures.push(...binaryJsonFailures(path, text, policy));
@@ -202,7 +203,8 @@ export function checkBinaryTree(directory, baseline) {
 }
 
 if (import.meta.main) {
-  const root = process.cwd(), [mode, base, tip] = process.argv.slice(2);
+  const root = process.cwd(), args = process.argv.slice(2);
+  const mode = args.at(0), base = args.at(1), tip = args.at(2);
   /** @type {string[]} */
   const failures = [];
   if (mode === '--staged') {

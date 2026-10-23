@@ -1,11 +1,11 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise exact immutable Git and staged-input policy in owned fixtures.
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own disposable source fixtures only.
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve fixture paths within ignored tmp.
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Drop inherited Git index variables in owned fixtures.
-import { env as processEnv } from 'node:process';
+import { env as processEnv, execPath } from 'node:process';
 import { expect, test } from 'vitest';
 import { binaryJsonCounts, binaryJsonFailures, binaryJsonPolicy, binaryPolicyIncreases,
   checkBinaryRevision, checkBinaryTree } from '../scripts/no-binary-json.mjs';
@@ -167,3 +167,13 @@ test('generated import debt and app table exemptions cannot grow or be deleted',
   git('rm','-f',file);
   expect(checkBinaryRevision(root,':','HEAD',[file]).join(' ')).toContain('source debt policy deleted');
 }));
+
+
+test('the binary CLI refuses missing range operands before any Git traversal', () => {
+  for (const args of [['--range'], ['--range', 'HEAD']]) {
+    const result = spawnSync(execPath, [resolve('scripts/no-binary-json.mjs'), ...args], { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 });
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('usage: no-binary-json.mjs');
+    expect(result.stderr).not.toContain('bad revision');
+  }
+});
