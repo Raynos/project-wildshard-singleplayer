@@ -3,8 +3,8 @@
 **Order (G639):** (1) live reds → (2) NALATI TO ZERO → (3) grid / frame floor. Extras: loading, core memory (C1-C7),
 TOOLING-PERF (G668), Night Market, tile streaming, no-binaries.
 
-**(1) LIVE ff45b6a24d (~6.5 h behind).** Every CI red since has a pushed fix; the last (Roc test, 6dbc3ee3a5 and the
-King fixture in 969b88c9d9) closed by 19:00Z. Release = the first fully green CI + exact six-leg smoke incl. grid
+**(1) LIVE ff45b6a24d (~7.5 h behind).** Every CI red since has a pushed fix; last: Nalati JSON-node overrun (audio scene
+4724b9b77c + ratchet 2957b28a50); sp-x7 (G676) proved the full HEAD build locally (all 24 products). Release = the first fully green CI + exact six-leg smoke incl. grid
 (hang fix 9ee919dc14 proven). SW8 gate: 55 s → 8-34 s; budget overruns now defer to CI (aa1994c3a6).
 
 **(2) Nalati: 225 counted lines, stalled since 10:20 (my call, wrong).** I held the entry (state.ts 139, index.ts 57,
@@ -23,17 +23,10 @@ enabled the buffer is 10 MiB, not 216). Past Chromium memory readings were infla
 **Tooling / no-binaries:** G668 gen warm 53-67 s → 2.70 s (G1-G5, G6 in progress; G10 determinism 195 of 267 jobs match,
 0 differences). B5 today ≈ -10 M chars incl. Nine 52 M orphan; poiPaint shared raw intake (+57 of 160 approved TS).
 
-**For wildshard-v (Jake picks needed):**
-1. Nalati's remaining one-user code (stealth controller + rows, riding world-frame loans, elite/titan/night frame
-   adapters, signal → HUD effect adapter ~25): (a) HOST-AUDIT like G667 (recommended), (b) second shard, (c) charged.
-2. Signal Dunes quest-end deep dusk unchanged since 10-10 (key light 5 %): keep or lighten?
-   art/grid/round-54-explorer-dark/board-explorer-fix.jpg.
-3. Night Market NM11 board: art/grid/round-56-night-market-nm11/board.jpg (gaps: fewer greens, dusk-not-night sky, no
-   canal glow). NM10 motion (~4-6 h) only if you want more.
-4. Loading L10: cold wire 15.07 MB vs ≤ 1.2x product (raw models ~3.7 MB + Rapier 3.3 MB are required). Recommended:
-   a separate TOTAL cold-wire ceiling, a ratchet from 15.1 MB.
+**For wildshard-v:** answered: G677 one-user adapters (R26, sp-x2), Signal dusk lightened (8cfdbaf4a8), NM gaps
+(NM12 night sky 727c05dbf8, more next). OPEN: Loading L10 total cold-wire ceiling (15.1 MB ratchet, recommended).
 
-**Lanes:** Claude weekly 72 %: 2 Opus (sp-o3, sp-o4); 5 Codex + sp-x7.
+**Lanes:** Claude weekly 73 %: 2 Opus (sp-o3, sp-o4); 5 Codex + sp-x7.
 
 **Rules:** G605. Fix forward in 30 min, NO reverts (G674). No new Debug rows (G669). Guardrails G670. No one-user
 credit without a case pick (G571/G667); never herdr wildshard-v.
