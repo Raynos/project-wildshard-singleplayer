@@ -217,11 +217,7 @@ export class NativeGroupCollection {
     const source = this.packs[0]; if (source === undefined || this.packs.length >= 8 || members.length > 64 || members.some(actor => this.host.entities.get(actor.entityId) !== actor)) throw new Error('Invalid deferred native pack');
     for (const actor of members) { this.actors.set(actor.entityId, actor); this.ids.set(actor, `actor:${actor.entityId}`); this.wolves.push(actor); }
     const pack = source.sibling(members, x, z);
-    pack.findPrey = (px, pz, radius) => {
-      let selected: AnimalSim | null = null, best = radius;
-      for (const herd of this.herds) for (const actor of herd.foals) { const distance = Math.hypot(actor.position.x-px,actor.position.z-pz); if (actor.alive && distance < best) { selected = actor; best = distance; } }
-      return selected;
-    };
+    pack.findPrey = (px, pz, radius) => nearestPopulationActor(this.herds.flatMap(herd => herd.foals), px, pz, radius);
     this.packs.push(pack); for (const actor of members) this.packOf.set(actor, pack); return pack;
   }
   bindFlocks(flocks: readonly FlockBrain[], prefix: string): readonly (readonly PackPrey[])[] {
