@@ -30,7 +30,7 @@ import shelterProgram from '../behaviour/shelter.generated.json' with { type: 'j
 // tile streaming P1: the ground's 80 splat tiles, the timber on its 12 L0 tiles after it
 const world = withPineGround(timbers.props, timbers.shardfile, ground);
 const base = emptyShardfile({ slug: 'pine-hollow', name: 'Pine Hollow', author: 'Wildshard', revision: 1, seed: identity.seed });
-const libraryFiles = [...timbers.shardfile.files.filter(file => timbers.shardfile.library.includes(file.hash)), ...journal.files];
+const libraryFiles = [...world.shardfile.files.filter(file => world.shardfile.library.includes(file.hash)), ...journal.files];
 const criticalFiles = timbers.shardfile.files.filter(file => timbers.shardfile.critical.includes(file.hash));
 // The original seven one-page guests plus the admitted shelter guest, with live and rewind copies.
 const scriptMemory = 14 * 65536 + shelterProgram.script.pages * 65536 * 2;
@@ -39,7 +39,7 @@ const row = (heights: readonly number[]): { heights: number[]; colours: [number,
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
 export default parseShardfile({
   ...base, ...world.shardfile, plumbing, props: world.props,
-  files: [...world.shardfile.files, ...journal.files], library: [...timbers.shardfile.library, ...journal.files.map(file => file.hash)],
+  files: [...world.shardfile.files, ...journal.files], library: [...world.shardfile.library, ...journal.files.map(file => file.hash)],
   budgets: { ...base.budgets, sim: { resident: scriptMemory + criticalFiles.reduce((n, file) => n + file.decoded + file.gpu, 0), compressed: criticalFiles.reduce((n, file) => n + file.compressed, 0) }, library: { resident: libraryFiles.reduce((n, file) => n + file.decoded + file.gpu, 0), compressed: libraryFiles.reduce((n, file) => n + file.compressed, 0) } },
   serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + scriptMemory + criticalFiles.reduce((n, file) => n + file.decoded, 0) },
   accent: 'moss', rows: { ...base.rows, compendiums: [journal.row], loot: [{ id: 'barter', economy: tradeEconomy() }] },

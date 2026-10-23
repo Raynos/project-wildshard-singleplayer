@@ -2,6 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { checkTileMaterialNames, splatTerrainOf, splatTextureRefs } from '@wildshard/format/splatTerrain';
+import { preflightDeclaredCosts } from '@wildshard/format/assetAdmission';
 import product from '../src/shards/pine-hollow/generators/product';
 import timbers from '../src/shards/pine-hollow/data/timberWorld.generated.json' with { type: 'json' };
 
@@ -23,4 +24,6 @@ test('the ground joins every props tile, the timber after it', () => {
     checkTileMaterialNames(undefined, splat, new Uint8Array(readFileSync(new URL(`../src/shards/pine-hollow/assets/${tile.file}`, import.meta.url))));
   }
   expect(splat.phone).toBeDefined(); // Pine's phone draws its ASTC 6x6 ground layers
+  // every tile's declared cost covers its closure (the ground GLB, its layer KTX2s, the timber), as the build admits it
+  expect(() => preflightDeclaredCosts(product)).not.toThrow();
 });

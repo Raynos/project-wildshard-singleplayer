@@ -24,10 +24,11 @@ const lodOf = (lod: number): 0 | 1 => { if (lod !== 0 && lod !== 1) throw new Er
 /**
  * The product's props and tile content with the ground joined: every one of the 80 tiles draws its ground GLB first (the
  * props tile `file`), the props already on that tile (Pine's timber) after it (`additionalFiles`); the tile rows carry both
- * files with their bounds unioned and their costs summed, and the ground GLBs and layer KTX2s join the files.
+ * files with their bounds unioned and their costs summed, the ground GLBs and layer KTX2s join the files, and the layer KTX2s
+ * join the library: one shard-wide copy that admission charges to the library budget, never to each tile's closure.
  */
-export function withPineGround<P extends { tiles: readonly PropsTile[] }, S extends { tiles: readonly TileRow[]; files: readonly FileRow[] }>(
-  props: P, shardfile: S, ground: PineGroundRows): { props: P & { splat: unknown; tiles: PropsTile[] }; shardfile: S & { tiles: TileRow[]; files: FileRow[] } } {
+export function withPineGround<P extends { tiles: readonly PropsTile[] }, S extends { tiles: readonly TileRow[]; files: readonly FileRow[]; library: readonly string[] }>(
+  props: P, shardfile: S, ground: PineGroundRows): { props: P & { splat: unknown; tiles: PropsTile[] }; shardfile: S & { tiles: TileRow[]; files: FileRow[]; library: string[] } } {
   const key = (row: { lod: number; x: number; z: number }): string => `${String(row.lod)}/${String(row.x)}/${String(row.z)}`;
   const propsTiles = new Map(props.tiles.map(row => [key(row), row])), contentTiles = new Map(shardfile.tiles.map(row => [key(row), row]));
   const covered = new Set(ground.tiles.map(key));
@@ -43,5 +44,6 @@ export function withPineGround<P extends { tiles: readonly PropsTile[] }, S exte
     return { propsTile, tile };
   });
   return { props: { ...props, splat: ground.splat, tiles: tiles.map(row => row.propsTile) },
-    shardfile: { ...shardfile, tiles: tiles.map(row => row.tile), files: [...shardfile.files, ...ground.tiles.map(row => row.file), ...ground.textures] } };
+    shardfile: { ...shardfile, tiles: tiles.map(row => row.tile), files: [...shardfile.files, ...ground.tiles.map(row => row.file), ...ground.textures],
+      library: [...shardfile.library, ...ground.textures.map(file => file.hash)] } };
 }
