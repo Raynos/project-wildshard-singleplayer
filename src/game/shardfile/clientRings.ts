@@ -10,7 +10,7 @@
  */
 import { Group, type Object3D } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { RingCatalogue, RingPorts, RingTile, RingView } from '@wildshard/engine/world/tileStreamer';
+import { scopedTilePorts, type RingCatalogue, type RingPorts, type RingTile } from '@wildshard/engine/world/tileStreamer';
 import type { TileDecoder } from '../grid/tileDecoder';
 import type { ClientAssets } from './clientAssets';
 import type { ResidentTile } from './clientWorld';
@@ -48,7 +48,6 @@ export function clientRingCatalogue(instances: ReadonlyMap<string, { readonly so
 export function clientRingPorts(instances: ReadonlyMap<string, ClientRingInstance>, ports: { scope: Scope; decoder: TileDecoder;
   /** Prepare the detached, fully built tile before publication; rejection retires only this tile's scope. */
   prepare?: (tile: PreparedRingTile) => Promise<void> }): RingPorts<PreparedRingTile> {
-  const active = new Map<string, Scope>();
   const prepare = async (tile: RingTile, instance: ClientRingInstance, scope: Scope, group: Group): Promise<PreparedRingTile> => {
     const key = lodKey(tile); if (key === null) throw new Error('shardfile rings: far proxies are the far view\'s (SF23)');
     const tiles: ResidentTile[] = [], { source, assets, views } = instance;
@@ -71,39 +70,18 @@ export function clientRingPorts(instances: ReadonlyMap<string, ClientRingInstanc
     }
     return { scope, group, tiles, root: instance.root };
   };
-  const run = async (tile: RingTile, report: (result: PreparedRingTile | Error) => void): Promise<void> => {
-    if (ports.scope.disposed || ports.scope.disposing) { report(new Error('shardfile rings: tile owner left')); return; }
-    if (active.has(tile.key)) { report(new Error('shardfile rings: tile already preparing or resident')); return; }
-    const instance = instances.get(tile.instance); if (instance === undefined) { report(new Error(`shardfile rings: unknown instance ${tile.instance}`)); return; }
-    const scope = ports.scope.child(`ring:${tile.key}`), group = new Group(); group.name = `ring:${tile.key}`;
-    active.set(tile.key, scope);
-    scope.onDispose(() => {
-      group.removeFromParent();
-      if (active.get(tile.key) === scope) active.delete(tile.key);
-    });
-    let result: PreparedRingTile | Error;
-    try {
-      result = await prepare(tile, instance, scope, group);
-      await ports.prepare?.(result);
-      if (scope.disposed || scope.disposing) throw new Error('shardfile rings: tile dropped during preparation');
-    }
-    catch (error) { scope.dispose(); result = error instanceof Error ? error : new Error(String(error)); }
-    report(result);
-  };
-  return {
-    fetch: (tile, report) => { void run(tile, report); },
-    // The allocator releases this tile immediately; its construction must retire
-    // at the same boundary, even while a read/decode/prepare promise is pending.
-    cancel: (tile) => { active.get(tile.key)?.dispose(); },
-    upload: (_tile, prepared): RingView => {
-      if (prepared.scope.disposed || prepared.scope.disposing) throw new Error('shardfile rings: uploading a disposed tile');
-      prepared.root.add(prepared.group);
-      return {
-        mask: (excluded) => { for (const tile of prepared.tiles) tile.mask(excluded); },
-        shadow: (enabled) => { for (const tile of prepared.tiles) tile.shadow(enabled); },
-        dispose: () => { prepared.scope.dispose(); },
-      };
-    },
-    discard: (_tile, prepared) => { prepared.scope.dispose(); },
-  };
+  return scopedTilePorts(ports.scope, async (tile, scope) => {
+    const instance = instances.get(tile.instance); if (instance === undefined) throw new Error(`shardfile rings: unknown instance ${tile.instance}`);
+    const group = new Group(); group.name = `ring:${tile.key}`;
+    scope.onDispose(() => { group.removeFromParent(); });
+    const prepared = await prepare(tile, instance, scope, group);
+    await ports.prepare?.(prepared);
+    return prepared;
+  }, (_tile, prepared) => {
+    prepared.root.add(prepared.group);
+    return {
+      mask: excluded => { for (const tile of prepared.tiles) tile.mask(excluded); },
+      shadow: enabled => { for (const tile of prepared.tiles) tile.shadow(enabled); },
+    };
+  });
 }

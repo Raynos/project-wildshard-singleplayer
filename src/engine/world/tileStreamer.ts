@@ -21,6 +21,7 @@
  */
 import { CHUNK_HALF, CONTENT_CAPS as C } from '../core/config';
 import { diagnosticNow } from '../core/clock';
+import type { Scope } from '../app/scope';
 /** The renderer borrows the caller's budget; the engine owns no game allocator. */
 export interface TileStreamLease {
   readonly id: string;
@@ -70,6 +71,49 @@ export interface RingPorts<D> {
   /** Cancel the tile's construction scope before releasing its claim. Idempotent; late results still go to discard. */
   cancel?: (tile: RingTile) => void;
 }
+/** Scope-backed render ports. Preparation owns all resources under the supplied child scope and stays detached.
+ * Publication is synchronous; its mask/shadow handles borrow that same scope. Cancel, discard and view retirement
+ * dispose it immediately. Old completions never retire a replacement for the same key. */
+export function scopedTilePorts<D extends { readonly scope: Scope }>(owner: Scope,
+  prepare: (tile: RingTile, scope: Scope) => Promise<D>,
+  publish: (tile: RingTile, prepared: D) => Pick<RingView, 'mask' | 'shadow'>): RingPorts<D> {
+  const active = new Map<string, Scope>(), awaiting = new WeakSet<D>();
+  const failed = (scope: Scope, error: unknown): Error => {
+    const original = error instanceof Error ? error : new Error(String(error));
+    try { scope.dispose(); } catch (cleanup) { return new AggregateError([original, cleanup], 'Tile work and cleanup failed'); }
+    return original;
+  };
+  const run = async (tile: RingTile, report: (result: D | Error) => void): Promise<void> => {
+    if (owner.disposed || owner.disposing) { report(new Error('tile ports: tile owner left')); return; }
+    if (active.has(tile.key)) { report(new Error('tile ports: tile already preparing or resident')); return; }
+    const scope = owner.child(`ring:${tile.key}`);
+    active.set(tile.key, scope);
+    scope.onDispose(() => { if (active.get(tile.key) === scope) active.delete(tile.key); });
+    let result: D | Error;
+    try {
+      result = await prepare(tile, scope);
+      if (result.scope !== scope) throw new Error('tile ports: preparation changed its scope');
+      if (scope.disposed || scope.disposing) throw new Error('tile ports: tile dropped during preparation');
+      awaiting.add(result);
+    } catch (error) { result = failed(scope, error); }
+    report(result);
+  };
+  return {
+    fetch: (tile, report) => { void run(tile, report); },
+    cancel: tile => { active.get(tile.key)?.dispose(); },
+    upload: (tile, prepared) => {
+      const scope = prepared.scope;
+      if (scope.disposed || scope.disposing) throw new Error('tile ports: uploading a disposed tile');
+      if (active.get(tile.key) !== scope || !awaiting.delete(prepared)) throw new Error('tile ports: tile is not awaiting publication');
+      try {
+        const view = publish(tile, prepared);
+        return { mask: excluded => { view.mask(excluded); }, shadow: enabled => { view.shadow(enabled); }, dispose: () => { scope.dispose(); } };
+      } catch (error) { throw failed(scope, error); }
+    },
+    discard: (_tile, prepared) => { awaiting.delete(prepared); prepared.scope.dispose(); },
+  };
+}
+
 /** Camera pose in world metres and its velocity in m/s. */
 export interface RingCamera { readonly x: number; readonly z: number; readonly vx: number; readonly vz: number }
 export interface RingOptions {

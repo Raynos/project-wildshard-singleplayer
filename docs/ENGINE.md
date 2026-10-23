@@ -12916,6 +12916,16 @@ native budget refusal still apply. Unwanted L0 tiles retire on the next
 step, including when a Debug ring shrinks. Passing null restores ordinary
 distance-based selection. Collider and simulation rings stay with callers.
 
+`scopedTilePorts(owner, prepare, publish)` lends each preparation a child
+of the original owner scope. Prepared data returns that exact `scope`;
+all native resources and scene detach operations belong to it. Preparation
+stays detached, and `publish` synchronously returns its mask/shadow handles.
+Cancel, discard, owner retirement and view disposal close the same scope.
+Duplicate active keys, replaced scopes, repeated publication and retired
+owners refuse. A late completion cannot retire a replacement for its key.
+The shardfile ring adapter uses this lifecycle without changing its asset
+lease/read, decoder or detached group publication order.
+
 ### Synchronous group guest adoption (G621 R10b/R10c)
 
 `GroupBrain` subclasses use `captureGuest`, `prepareGuestCommit` and
