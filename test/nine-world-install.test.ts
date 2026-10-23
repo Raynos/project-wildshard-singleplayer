@@ -1,11 +1,14 @@
 // @vitest-environment happy-dom
+// oxlint-disable-next-line import/no-nodejs-modules -- admit the generated world rows without inferring their full JSON type
+import { readFileSync } from 'node:fs';
+import * as v from 'valibot';
 import { expect, test } from 'vitest';
 import baked from '../src/shards/nine-dragon-stack/data/physics.generated.json' with { type: 'json' };
 import rows from '../src/shards/nine-dragon-stack/world/install.generated.json' with { type: 'json' };
 import caps from '../src/shards/nine-dragon-stack/data/deckCaps.generated.json' with { type: 'json' };
 import stair from '../src/shards/nine-dragon-stack/world/stairPlan.generated.json' with { type: 'json' };
 import { fragmentFloor as authoredFloor } from '../src/shards/nine-dragon-stack/generators/fragmentFloor';
-import worldRows from '../src/shards/nine-dragon-stack/data/worldRows.generated.json' with { type: 'json' };
+import { WorldRowsSchema } from '../src/shards/nine-dragon-stack/generators/sections';
 import { floorAtRects } from '../src/engine/physics/box';
 import { stairFloor } from '../src/shards/nine-dragon-stack/generators/stairPlan';
 import { BoxGeometry, InstancedMesh, MeshBasicMaterial, type Object3D, PerspectiveCamera } from 'three';
@@ -14,6 +17,7 @@ import { place } from '../src/engine/models/place';
 import { compileGraph } from '../src/engine/render/graph/compile';
 import lookGraphs from '../src/shards/nine-dragon-stack/data/lookGraphs.json' with { type: 'json' };
 
+const worldRows=v.parse(v.object({rows:WorldRowsSchema}),JSON.parse(readFileSync('src/shards/nine-dragon-stack/data/worldRows.generated.json','utf8')));
 const fragmentFloor = (x: number, z: number): number | undefined => floorAtRects(worldRows.rows.floors, x, z, 'first');
 
 // The pre-existing physics bake retains the original page registry's complete
