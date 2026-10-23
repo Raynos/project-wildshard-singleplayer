@@ -2,6 +2,9 @@
 import {copyFileSync,mkdirSync,mkdtempSync,readFileSync,readdirSync,realpathSync,rmSync,symlinkSync,writeFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Bounded fixture paths.
 import {dirname,resolve} from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- Reseal old/malformed owned observations to exercise version validation.
+import {createHash} from 'node:crypto';
+import * as v from 'valibot';
 import {afterEach,expect,it} from 'vitest';
 import {generateShardJob,type ShardGenerationJob} from '../scripts/generate.mjs';
 
@@ -82,14 +85,16 @@ it('reuses unread SDK edits but rebuilds imported code and newly read branches',
   expect(await run()).toMatchObject({hit:false,text:'// newly observed bytes'});
   expect((await run()).hit).toBe(true);
 });
-it.each(['scripts/generation-jobs.json','scripts/custom-jobs.json'])('reuses unread %s bytes but still fences added input files',async file=>{
+it.each(['scripts/generation-jobs.json','scripts/custom-jobs.json'])('reuses unread %s bytes and unrelated source additions',async file=>{
   const {root,run}=fixture(undefined,file);const first=await run();expect(first.hit).toBe(false);
   const catalogue=readFileSync(resolve(root,file),'utf8');
   put(root,file,catalogue.replace('DO NOT EDIT fixture','DO NOT EDIT changed unrelated catalogue metadata'));
   expect(await run()).toEqual({...first,hit:true});
-  // The byte-only exception does not remove the full file-inventory fence.
+  // Fully positive ESM reads do not depend on unrelated source names.
   put(root,'src/sdk/new-module.ts','export const unused=1;');
-  expect((await run()).hit).toBe(false);
+  expect(await run()).toEqual({...first,hit:true});
+  rmSync(resolve(root,'src/sdk/unread.ts'));
+  expect(await run()).toEqual({...first,hit:true});
 });
 it.each(['scripts/generation-jobs.json','scripts/custom-jobs.json'])('keeps actually read %s bytes exact',async file=>{
   const output='src/shards/alpha/data/output.txt';
@@ -120,6 +125,24 @@ it('invalidates negative probes when the declared input inventory gains a file',
   put(root,'src/sdk/optional.ts','// newly resolvable module');
   expect(await run()).toMatchObject({hit:false,text:'true'});
 });
+it.each([
+  ["import fs from 'node:fs';fs.writeFileSync('src/shards/alpha/data/output.txt',JSON.stringify(fs.readdirSync('src/sdk').sort()));",'directory'],
+  ["import fs from 'node:fs';fs.writeFileSync('src/shards/alpha/data/output.txt',JSON.stringify(fs.globSync('src/sdk/*.mjs').sort()));",'glob'],
+  ["import fs from 'node:fs';let value='absent';try{value=fs.realpathSync.native('src/sdk/optional.mjs').split('/').at(-1);}catch{}fs.writeFileSync('src/shards/alpha/data/output.txt',value);",'native-realpath'],
+  ["import fs from 'node:fs';let value='absent';try{value=fs.readFileSync('src/sdk/optional.mjs','utf8');}catch{}fs.writeFileSync('src/shards/alpha/data/output.txt',value);",'failed-read'],
+  ["import fs from 'node:fs';let value=0;try{value=(await import('../../../sdk/optional.mjs')).value;}catch{}fs.writeFileSync('src/shards/alpha/data/output.txt',String(value));",'failed-import'],
+])('invalidates %s observations when a previously absent source appears',async(source,kind)=>{
+  const {root,run}=fixture(source);const first=await run();expect((await run()).hit).toBe(true);
+  put(root,'src/sdk/optional.mjs','export const value=2;');
+  const changed=await run();expect(changed.hit,kind).toBe(false);expect(changed.text).not.toBe(first.text);
+});
+it('keeps higher-priority CommonJS candidates on the complete key',async()=>{
+  const {root,run}=fixture("import{createRequire}from'node:module';import fs from'node:fs';const value=createRequire(import.meta.url)('../../../sdk/chosen').value;fs.writeFileSync('src/shards/alpha/data/output.txt',String(value));");
+  put(root,'package.json',JSON.stringify({type:'commonjs'}));put(root,'src/sdk/chosen.json',JSON.stringify({value:1}));
+  expect(await run()).toMatchObject({hit:false,text:'1'});expect((await run()).hit).toBe(true);
+  put(root,'src/sdk/chosen.js','module.exports={value:2};');
+  expect(await run()).toMatchObject({hit:false,text:'2'});
+});
 it('keeps opaque subprocess reads on the conservative closure',async()=>{
   const output='src/shards/alpha/data/output.txt';
   const {root,run}=fixture(`import fs from 'node:fs';import {execFileSync} from 'node:child_process';fs.writeFileSync('${output}',execFileSync(process.execPath,['-e',"process.stdout.write(require('fs').readFileSync('src/sdk/unread.ts'))"]));`);
@@ -133,6 +156,19 @@ it('falls back to the complete key when read profiles are corrupt',async()=>{
   const recipes=readdirSync(jobDir);expect(recipes).toHaveLength(1);
   for(const recipe of recipes)for(const file of readdirSync(resolve(jobDir,recipe)))writeFileSync(resolve(jobDir,recipe,file),'{}');
   put(root,'src/sdk/unread.ts','// cannot trust the corrupted hint');
+  expect((await run()).hit).toBe(false);
+});
+it.each(['old-schema','missing-probes'])('rejects resealed %s observations',async mode=>{
+  const {root,cacheDir,run}=fixture();await run();
+  const jobDir=resolve(cacheDir,'.reads-v1/fixture-reader');
+  for(const recipe of readdirSync(jobDir))for(const file of readdirSync(resolve(jobDir,recipe))) {
+    const path=resolve(jobDir,recipe,file),trace=v.parse(v.record(v.string(),v.unknown()),JSON.parse(readFileSync(path,'utf8')));
+    delete trace['seal'];delete trace['inventory'];
+    if(mode==='old-schema')trace['schema']='generation-reads/3';
+    const seal=createHash('sha256').update(JSON.stringify(trace)).digest('hex');
+    writeFileSync(path,JSON.stringify({...trace,seal}));
+  }
+  put(root,'src/sdk/unread.ts','// old or incomplete observations grant no narrower key');
   expect((await run()).hit).toBe(false);
 });
 it('runs strict regeneration even when an observed key is warm',async()=>{

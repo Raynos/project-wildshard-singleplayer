@@ -3,5 +3,5 @@ import type {GenerationJob,GenerationOptions,GenerationResult} from './generatio
 export const generationReadReceipt: string;
 /** Probe immutable observed keys, then run the full closure on a miss and
  * publish a narrower key only from a complete successful observation. Unread
- * catalogue bytes may leave the key; its inventory presence remains bound. */
+ * catalogue bytes may leave the key; probe-dependent file inventories remain bound. */
 export function runObservedGeneration(root:string,job:GenerationJob,options:GenerationOptions,entry:string,catalogue?:string):Promise<GenerationResult>;

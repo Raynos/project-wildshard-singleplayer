@@ -25,7 +25,7 @@ const digest = (/** @type {string|Uint8Array} */ bytes) => createHash('sha256').
 const schema = 'shardfile-inputs/5', modules = new Set([import.meta.filename,resolve(import.meta.dirname,'bake-input-hashes.mjs'),resolve(import.meta.dirname,'compiler-code.mjs'),resolve(import.meta.dirname,'function-source.mjs')]);
 const code=/\.[cm]?[jt]sx?$/u;
 const Receipt = v.strictObject({schema:v.literal(schema),node:v.string(),inputs:v.pipe(v.array(v.pipe(v.string(),v.regex(/^(?:[FDMP] .+|G [a-f0-9]{64})$/u))),v.minLength(1)),values:v.record(v.string(),v.string()),seal:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))});
-/** @type {AsyncLocalStorage<{root:string,reads:Map<string,string>,writes:Set<string>,bundles:number,invalid:string[],observing:boolean,traceOnly?:boolean,opaque?:Set<string>,packageExports?:Map<string,Set<string>>}>} */
+/** @type {AsyncLocalStorage<{root:string,reads:Map<string,string>,writes:Set<string>,bundles:number,invalid:string[],observing:boolean,loading?:string|undefined,traceOnly?:boolean,inventory?:Set<string>,opaque?:Set<string>,packageExports?:Map<string,Set<string>>}>} */
 const scopes = new AsyncLocalStorage();
 /** @type {ReturnType<typeof scopes.getStore>} */
 let generationScope;
@@ -77,8 +77,17 @@ function value(root, entry, memo) {
 }
 /** @param {string} kind @param {unknown} target */
 function note(kind, target) {
-  const scope = inputScope(), path = localPath(target);
-  if (scope === undefined || scope.observing || path === undefined) return;
+  const scope = inputScope();
+  if(scope===undefined)return;
+  const path=localPath(target);
+  if(scope.traceOnly&&(kind==='P'||kind==='D'||kind==='I')) {
+    const bounded=path===undefined?'unknown':relative(scope.root,path).split(sep).join('/');
+    scope.inventory?.add(`${kind} ${bounded===''?'.':bounded}`);
+  }
+  // Only the exact module being loaded is a semantic execution read. Other
+  // loader file reads remain raw dependencies, even inside the load callback.
+  const loaderRead=scope.traceOnly&&kind==='F'&&path!==scope.loading;
+  if((scope.observing&&!loaderRead)||kind==='I'||path===undefined)return;
   const bounded=relative(scope.root,path).split(sep).join('/');
   const file = scope.traceOnly&&bounded!==''&&!bounded.startsWith('../')&&!isAbsolute(bounded)?bounded:inside(scope.root,path);
   if(file===undefined) {
@@ -119,18 +128,22 @@ export function installInputRecorder() {
   registerHooks({
   resolve(specifier,context,next) {
     notePackageExport(specifier);
-    return next(specifier,context);
+    const scope=inputScope();
+    if(context.conditions.includes('require'))scope?.opaque?.add('commonjs-resolution');
+    try {return next(specifier,context);}
+    catch(error){if(scope?.traceOnly===true)scope.inventory?.add(`R ${specifier}`);throw error;}
   },
   load(url,context,next) {
     const file=url.startsWith('file:')?fileURLToPath(url):undefined,scope=inputScope();
     if(file!==undefined)modules.add(file);
     // Reading a module to execute it differs from consuming its source text.
     // Hide only the loader's own I/O; explicit reads after evaluation stay F.
-    const observing=scope?.observing;
-    if(scope!==undefined)scope.observing=true;
+    const observing=scope?.observing,loading=scope?.loading;
+    if(scope!==undefined){scope.observing=true;scope.loading=file;}
     let loaded;
     try {loaded=next(url,context);}
-    finally {if(scope!==undefined)scope.observing=observing ?? false;}
+    finally {if(scope!==undefined){scope.observing=observing ?? false;scope.loading=loading;}}
+    if(loaded.format==='commonjs'||loaded.format==='commonjs-typescript')scope?.opaque?.add('commonjs-module');
     if(file!==undefined)note(code.test(file)?moduleKind:'F',file);
     return loaded;
   }});
@@ -163,11 +176,14 @@ export function installInputRecorder() {
       Object.defineProperties(traced,Object.getOwnPropertyDescriptors(original)); table[name] = traced;
     }
   };
-  wrap(fs,['existsSync','realpathSync'],'P');
+  wrap(fs,['existsSync','exists','realpathSync'],'P');
+  const nativeRealpath={native:fs.realpathSync.native};wrap(nativeRealpath,['native'],'P');fs.realpathSync.native=nativeRealpath.native;
+  wrap(fs,['globSync','glob','readlinkSync','readlink'],'I');
   wrap(fs,['openAsBlob','readFileSync','readFile','statSync','stat','lstatSync','lstat','openSync','open','createReadStream','accessSync','access','copyFileSync','cpSync'],'F');
   wrap(fs,['readdirSync','readdir','opendirSync','opendir'],'D');
   wrap(fs,['writeFileSync','writeFile','appendFileSync','appendFile'],'W');
   wrap(fsp,['realpath'],'P');
+  wrap(fsp,['glob','readlink'],'I');
   wrap(fsp,['readFile','stat','lstat','open','access','copyFile','cp'],'F');
   wrap(fsp,['readdir','opendir'],'D'); wrap(fsp,['writeFile','appendFile'],'W');
   const nativeLoad=process.dlopen.bind(process);
@@ -353,7 +369,9 @@ export function startGenerationInputTrace(root,receipt) {
   moduleKind='M';installInputRecorder();
   /** @type {Map<string,Set<string>>} */
   const packageExports=new Map();
-  const scope={root:raw.real(root),reads:new Map(),writes:new Set(),bundles:0,invalid:[],observing:false,traceOnly:true,opaque:new Set(),packageExports};
+  /** @type {Set<string>} */
+  const inventory=new Set();
+  const scope={root:raw.real(root),reads:new Map(),writes:new Set(),bundles:0,invalid:[],observing:false,traceOnly:true,inventory,opaque:new Set(),packageExports};
   generationScope=scope;scopes.enterWith(scope);
   for(const file of modules)if(inside(scope.root,file)!==undefined)note(code.test(file)?'M':'F',file);
   process.on('exit',status=>{
@@ -361,7 +379,7 @@ export function startGenerationInputTrace(root,receipt) {
     const files=[...scope.reads.keys()].filter(entry=>entry.startsWith('F ')).map(entry=>entry.slice(2)).sort((a,b)=>a<b?-1:a>b?1:0);
     const execution=[...scope.reads.keys()].filter(entry=>entry.startsWith('M ')).map(entry=>entry.slice(2)).filter(file=>!scope.reads.has(`F ${file}`)).sort((a,b)=>a<b?-1:a>b?1:0);
     const packages=Object.fromEntries([...scope.packageExports].sort(([a],[b])=>a<b?-1:a>b?1:0).map(([file,keys])=>[file,[...keys].sort((a,b)=>a<b?-1:a>b?1:0)]));
-    const body={schema:'generation-reads/3',files,execution,packages,opaque:[...scope.opaque].sort((a,b)=>a<b?-1:a>b?1:0)};
+    const body={schema:'generation-reads/4',files,execution,packages,inventory:[...scope.inventory].sort((a,b)=>a<b?-1:a>b?1:0),opaque:[...scope.opaque].sort((a,b)=>a<b?-1:a>b?1:0)};
     raw.write(receipt,JSON.stringify({...body,seal:digest(JSON.stringify(body))}));
   });
 }
