@@ -1,3 +1,4 @@
+import {carriedPropFiles} from './fixtures/carriedPropFiles';
 import {lendNalatiKokpar} from './fixtures/nalati-return-modules';
 import { parseDecisionScripts } from '../src/format/decisionScripts';
 import { writeGeometry, join } from '../src/shards/nalati-grasslands/generators/geometryWriter';
@@ -53,7 +54,7 @@ it('matches frozen round rules at 10 Hz while carrying poses stay per frame', ()
       },
     }},
   });
-  const current=new CarriedQuestProp(ctx,carriedQuestRows);
+  const current=new CarriedQuestProp(ctx,carriedQuestRows,carriedPropFiles);
   const requests = vi.spyOn(ReturnProgram.prototype, 'project');
   let pending = 0;
   const project = (dt: number, next: KokparMount | null, win = false): void => {
@@ -123,12 +124,12 @@ it('an orchard delivery uses its own shape, program profile and quest effects',(
     events:[{value:1,effects:[{kind:'toast',text:'Harvest loaded'}]},{value:7,effects:[{kind:'toast',text:'Harvest delivered'},{kind:'flag',flag:'harvest:delivered'}]}],
   };
   try{
-    const prop=new CarriedQuestProp(ctx,orchardRows);prop.update(.1);expect(prop.carrying).toBe(true);expect(events).toEqual(['Harvest loaded']);
+    const prop=new CarriedQuestProp(ctx,orchardRows,carriedPropFiles);prop.update(.1);expect(prop.carrying).toBe(true);expect(events).toEqual(['Harvest loaded']);
     horse.position.set(12,0,6);prop.update(.1);expect(prop.carrying).toBe(false);expect(flags.has('harvest:delivered')).toBe(true);
     expect(events).toEqual(['Harvest loaded','Harvest delivered']);expect(prop.object.position.x).toBe(12);expect(prop.object.name).toBe('harvest-crate');
     for(const [window,height,expected] of [[.75,.5,.5],[.75,.75,0],[.75,0,0],[.75,-.5,0],[2,1.5,1.5],[0,.5,0]] as const){
       deck=height;
-      const sample=new CarriedQuestProp(ctx,{...orchardRows,floorWindow:window});
+      const sample=new CarriedQuestProp(ctx,{...orchardRows,floorWindow:window},carriedPropFiles);
       expect(sample.object.position.y).toBe(expected+orchardRows.poses.home.height);
     }
     const {floorWindow,...missingWindow}=orchardRows;

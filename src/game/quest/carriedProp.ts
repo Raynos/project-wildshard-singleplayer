@@ -34,7 +34,7 @@ export class CarriedQuestProp {
   private readonly music:CarriedQuestProp['play']['music'];
   private readonly at:{x:number;z:number};
   private pending=0;
-  constructor(private readonly ctx:ShardContext,input:unknown){
+  constructor(private readonly ctx:ShardContext,input:unknown,files:ReadonlyMap<string,Uint8Array>=new Map()){
     const rows=parseCarriedQuest(input),runtime=ctx.game.runtime,world=runtime?.world,play=runtime?.play;
     this.entered=ctx.scope;this.construction=resourceScope();
     if(this.entered.disposed||this.entered.disposing||this.construction.disposed||this.construction.disposing
@@ -44,7 +44,7 @@ export class CarriedQuestProp {
     this.state={...rows.state};this.at={...rows.home};this.mount=rows.carrier?.kind==='player'?null:pageRidingMount(ctx);
     this.brain=ReturnProgram.page(rows.program,ctx.scope);
     const modelRow=rows.model[0];if(modelRow===undefined)throw new Error('Missing carried model');
-    const model=defineSpecimenCatalogue<Record<string,object>>(rows.model).model(modelRow.key);
+    const model=defineSpecimenCatalogue<Record<string,object>>(rows.model,undefined,{},files).model(modelRow.key);
     const object=model.build(modelContext(world.sky),model.defaults,new Rng(0));
     if(!(object instanceof THREE.Object3D))throw new Error('Carried model requires its scene');
     this.object=object;this.object.name=rows.objectName;this.resetPose();

@@ -1,3 +1,4 @@
+import {carriedPropFiles} from './fixtures/carriedPropFiles';
 import {lendNalatiKokpar} from './fixtures/nalati-return-modules';
 import {expect,it,vi} from 'vitest';
 import * as THREE from 'three';
@@ -31,7 +32,7 @@ function fixture(){
   const rows={...carriedQuestRows,quest:'orchard',objectName:'delivery-crate',carrier:{kind:'player',minimumSpeed:1},home:{x:4,z:6},goals:[{x:12,z:6},{x:-4,z:6}],
     program:{...carriedQuestRows.program,script:{...script,id:'orchard.delivery',params:{...script.params,homeX:4,homeZ:6,goal0X:12,goal0Z:6,goal1X:-4,goal1Z:6}}},
     warning:[],events:[{value:1,effects:[{kind:'toast',text:'Loaded'}]},{value:5,effects:[{kind:'toast',text:'Too slow'}]},{value:7,effects:[{kind:'toast',text:'Delivered'},{kind:'flag',flag:'delivery:won'}]}]};
-  const create=()=>construction.run(()=>new CarriedQuestProp(ctx,rows));
+  const create=()=>construction.run(()=>new CarriedQuestProp(ctx,rows,carriedPropFiles));
   return {construction,scope,ctx,world,play,runtime,quest,flags,player,events,rows,create,dispose:()=>{scope.dispose();construction.dispose();vi.restoreAllMocks();}};
 }
 
@@ -69,10 +70,10 @@ it('keeps construction and entered lifetime independent, refusing sliced retirem
     const f=fixture(),parent=new Scope('retiring parent');try{
       const child=new Scope('entered child',parent);
       if(retire==='entered'){Object.assign(f.ctx,{scope:child});publishBoundQuest(child,f.quest);lendNalatiKokpar(child);}
-      const prop=retire==='construction'?child.run(()=>new CarriedQuestProp(f.ctx,f.rows)):f.create();
+      const prop=retire==='construction'?child.run(()=>new CarriedQuestProp(f.ctx,f.rows,carriedPropFiles)):f.create();
       parent.onDispose(()=>undefined);const steps=parent.disposeSteps();steps.next();
       expect(child.disposing).toBe(true);expect(()=>prop.update(.1)).toThrow('owner changed');expect(f.events).toEqual([]);
-      expect(()=>child.run(()=>new CarriedQuestProp(f.ctx,f.rows))).toThrow('live entered owners');
+      expect(()=>child.run(()=>new CarriedQuestProp(f.ctx,f.rows,carriedPropFiles))).toThrow('live entered owners');
       for(const step of steps)expect(step.scope.length).toBeGreaterThan(0);
     }finally{parent.dispose();f.dispose();}
   }

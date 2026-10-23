@@ -1,3 +1,5 @@
+import {ReturnProgram} from '../src/game/population/returnProgram';
+import {carriedPropFiles,carriedPropBytes} from './fixtures/carriedPropFiles';
 import {lendNalatiPasture,lendNalatiKokpar} from './fixtures/nalati-return-modules';
 import { type OpenArenaWorld, ArenaRoomEncounter } from '../src/game/boss/arenaRoom';
 // @vitest-environment happy-dom
@@ -70,7 +72,7 @@ function fixture() {
   });
   const runtime = legacyDouble<Runtime>({ world, play });
   const product = createShardProduct({ slug: 'chapter-view', revision: 1, shardfile: legacyDouble<ShardContext['product']['shardfile']>({ clientChannels: [] }),
-    sections: new Map(), files: new Map(), read: () => Promise.reject(new Error('Mocked product should not read bytes')) });
+    sections: new Map(), files: new Map([...carriedPropFiles.keys()].map(name=>[name,{hash:'prop',url:name}])), read: () => Promise.resolve(carriedPropBytes) });
   const json = vi.spyOn(product, 'json'), system = vi.fn<ShardContext['system']>(), events = new Events(), onNames: string[] = [];
   const on: ShardContext['on'] = (name, handler, options) => { onNames.push(name); events.on(name, handler, scope, options); };
   const ctx = legacyDouble<ShardContext>({ scope, app, game: legacyDouble<ShardContext['game']>({ runtime }),
@@ -232,4 +234,23 @@ test('chapter figures cross the exact named schema bridge without changing the o
     expect(() => v.parse(ChapterViewSchema, Object.defineProperty({ ...f.rows }, 'figures', { enumerable: true, get: getter }))).toThrow();
     expect(getter).not.toHaveBeenCalled();
   } finally { f.scope.dispose(); }
+});
+
+
+test.each(['retired','product','world','reader'] as const)('raw carried model preparation refuses a changed %s owner before constructing the prop',async change=>{
+  const f=fixture(),product=f.ctx.product,runtime=f.ctx.game.runtime;
+  if(runtime===undefined)throw new Error('Missing actual fixture runtime');
+  let begin=():void=>{throw new Error('Missing read latch');},settle=(_bytes:Uint8Array):void=>{throw new Error('Missing raw read resolver');};
+  const started=new Promise<void>(resolve=>{begin=resolve;}),bytes=new Promise<Uint8Array>(resolve=>{settle=resolve;});
+  const read=vi.spyOn(product,'file').mockImplementation(()=>{begin();return bytes;}),construct=vi.spyOn(ReturnProgram,'page');
+  const run=installQuestPageComposition(f.ctx,{chapterView:'quests/content.json',story:'quests/chapters.json'},f.owners);
+  const refused=expect(run).rejects.toThrow(/retired|left|changed/u);
+  await started;
+  if(change==='retired')f.scope.dispose();
+  else if(change==='product')Object.assign(f.ctx,{product:{...product}});
+  else if(change==='world')runtime.world={...f.world};
+  else read.mockRestore();
+  settle(carriedPropBytes);
+  try{await refused;expect(construct).not.toHaveBeenCalled();expect(f.system).not.toHaveBeenCalled();}
+  finally{f.scope.dispose();}
 });

@@ -9990,7 +9990,10 @@ carry/deliver decisions and effect order. Exact f64 home/goal coordinates
 remain authoritative independently of scene presentation. Captured entered
 and resource scopes and native owners must remain live and identical before
 projection or win effects; sibling scopes are permitted. No new clock or
-save owner.
+save owner. The optional third constructor argument lends the original
+prepared specimen file map. The existing chapter installer prepares declared
+model files through prepareSpecimenCatalogue and rechecks entered owners
+before constructing the prop; inline catalogues retain their original path.
 
 `game/quest/chapter.installQuestCatalogue(ctx)` registers `items.catalogue`
 from `combat/items` and `quests.achievements` from `quests/quests` through

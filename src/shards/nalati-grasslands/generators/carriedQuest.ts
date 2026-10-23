@@ -2,6 +2,8 @@ import kokpar from '../data/kokpar.generated.json' with {type:'json'};
 import prop from '../data/questProp.generated.json' with {type:'json'};
 import { parseCarriedQuest } from '@wildshard/format/questSteps';
 
+/** Original prop geometry enters through the existing named binary source path. */
+export const CARRIED_QUEST_SOURCES=[{name:prop.source.file,kind:'bin' as const,source:'data/quest-prop.generated.bin'}];
 /** The existing round program chooses poses and existing quest service effects. */
 export const carriedQuestRows=parseCarriedQuest({
   quest:'tulpar',objectName:'nalati-kokpar-goat',model:[prop],program:kokpar.program,floorWindow:2,step:.1,home:kokpar.home,goals:kokpar.goals,

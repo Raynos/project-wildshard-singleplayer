@@ -84,7 +84,6 @@
     "src/shards/nalati-grasslands-legacy/runtime/baked.ts": 1,
     "src/shards/nalati-grasslands/generators/bake-elite-charge.mjs": 1,
     "src/shards/nalati-grasslands/generators/bake-geography.mjs": 1,
-    "src/shards/nalati-grasslands/generators/bake-quest-prop.mjs": 1,
     "src/shards/nalati-grasslands/generators/dressingScene.ts": 1,
     "src/shards/nalati-grasslands/generators/grassRows.ts": 1,
     "src/shards/nalati-grasslands/generators/mapAssembly.mjs": 1,

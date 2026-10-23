@@ -21806,10 +21806,12 @@
         "pnpm-lock.yaml"
       ],
       "outputs": [
-        "src/shards/nalati-grasslands/data/questProp.generated.json"
+        "src/shards/nalati-grasslands/data/questProp.generated.json",
+        "src/shards/nalati-grasslands/data/quest-prop.generated.bin"
       ],
       "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/data/questProp.generated.json"
+        "src/shards/nalati-grasslands/data/questProp.generated.json",
+        "src/shards/nalati-grasslands/data/quest-prop.generated.bin"
       ],
       "platform": "portable",
       "catalogueDependencies": [
