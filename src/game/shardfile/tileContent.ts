@@ -95,17 +95,18 @@ export function ring(centre: CellTile, radius: number): Set<number> {
 }
 
 /**
- * The tile the rings centre on as the player moves: it changes only once the player is `hysteresis` metres inside
- * another tile, so walking along a tile edge never flips the resident set back and forth.
+ * The tile the rings centre on as the player moves: it changes only once the player is `hysteresis` metres outside the
+ * current tile, so walking along a tile edge never flips the resident set back and forth, while a jump (a respawn, a
+ * teleport, a recovery) that lands anywhere further away moves it at once, even near the new tile's own edge.
  */
 export function followTile(current: CellTile | null, x: number, z: number, hysteresis = 4): CellTile {
   const next = tileOf(x, z);
   if (current === null || (next.i === current.i && next.j === current.j)) return next;
-  const left = -HALF + next.i * TILE_SIZE, bottom = -HALF + next.j * TILE_SIZE;
-  const inside = Math.min(x - left, left + TILE_SIZE - x, z - bottom, bottom + TILE_SIZE - z);
+  const left = -HALF + current.i * TILE_SIZE, bottom = -HALF + current.j * TILE_SIZE;
+  const outside = Math.max(left - x, x - left - TILE_SIZE, bottom - z, z - bottom - TILE_SIZE);
   // a step across the cell's own edge (a clamped point) always moves
   const clamped = Math.abs(x) >= HALF || Math.abs(z) >= HALF;
-  return inside >= hysteresis || clamped ? next : current;
+  return outside >= hysteresis || clamped ? next : current;
 }
 
 /** The tiles a square footprint (`x`, `z` ± `reach` metres) touches, clipped to the cell. */

@@ -35,4 +35,8 @@ test('T3: the ring clips to the cell; the followed tile waits out its hysteresis
   // 1 m over the edge into the next tile: stays; 5 m in: moves
   expect(followTile(start, 63.5, 30)).toEqual(start);
   expect(followTile(start, 67.5, 30)).toEqual({ i: 5, j: 4 });
+  // a jump landing 3 m inside a far tile (the King's clearing from the spawn, a respawn) moves at once; back 1 m: stays
+  const far = followTile(start, 128, -30);
+  expect(far).toEqual({ i: 6, j: 3 });
+  expect(followTile(far, 124, -30)).toEqual(far);
 });
