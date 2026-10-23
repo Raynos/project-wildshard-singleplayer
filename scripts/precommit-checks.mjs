@@ -1,6 +1,6 @@
 // Cheap staged-source guards; the caller owns the common wall deadline.
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { relative, resolve } from 'node:path';
 import { compareCounts, hardRules, readLintConfig } from './guard-counts.mjs';
 import { untypedLintConfig } from './push-lint-config.mjs';
@@ -24,10 +24,13 @@ export function fastCommitLintConfig(raw) {
 /** @param {string[]} files @param {string} executable */
 export function fastLint(files, executable) {
   const config = fastCommitLintConfig({ options: { typeAware: false }, ...readLintConfig('.oxlintrc.json') });
-  writeFileSync('.commit-fast-lint.json', JSON.stringify(config));
-  const result = spawnSync(executable, ['--threads=2', '-c', '.commit-fast-lint.json', ...files], { encoding: 'utf8', stdio: 'inherit' });
-  if (result.error !== undefined) throw result.error;
-  if (result.status !== 0) throw new Error('Fast staged lint refused');
+  const path = `.commit-fast-lint-${process.pid}.json`;
+  writeFileSync(path, JSON.stringify(config));
+  try {
+    const result = spawnSync(executable, ['--threads=2', '-c', path, ...files], { encoding: 'utf8', stdio: 'inherit' });
+    if (result.error !== undefined) throw result.error;
+    if (result.status !== 0) throw new Error('Fast staged lint refused');
+  } finally { unlinkSync(path); }
 }
 
 /** @param {string[]} files @param {string} executable @param {string} [repository] */

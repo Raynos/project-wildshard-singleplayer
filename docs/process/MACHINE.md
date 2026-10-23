@@ -47,6 +47,11 @@ and app Vite builds refuse an absent or copied lease before workers start. Focus
 unrestricted; `--project`, `--shard` and reporter flags alone are still full runs. Listing tests needs no lease.
 An SDK package build that includes its app clients also runs through the build wrapper.
 
+Run `pnpm lint:fast <files...>` for the same ordinary and custom rules used by
+staged fast lint; without paths it uses the normal repository selection. Only
+the two approved expensive plugin rules defer, alongside type-aware rules.
+The G636 five-second typed attempt in pre-commit remains separate.
+
 Local root TypeScript checks use `pnpm typecheck:root`. The compiler reuses
 `node_modules/.cache/ws-root.tsbuildinfo`; CI and GitHub Actions keep the plain
 no-emit check. The command propagates compiler failures, including cached ones.
