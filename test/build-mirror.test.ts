@@ -187,15 +187,19 @@ it('keeps whole generated jobs, invalidates partial jobs and prunes retired outp
 it('clears generated jobs when a released source overlay could have produced them', () => {
   const { repo, commit, env } = fixture();
   const outputs = ['dist/ecology.generated.json', 'dist/companion.json', 'assets/retained'];
-  const sha = commit({ 'scripts/generation-jobs.json': JSON.stringify({ jobs: [{ buildTimeOutputs: outputs }] }), 'src/generator.ts': 'HEAD source', 'assets/retained': 'authored' });
+  const sha = commit({ 'scripts/generation-jobs.json': JSON.stringify({ jobs: [
+    { buildTimeOutputs: outputs }, { buildTimeOutputs: ['dist/unrelated.json'] }, { buildTimeOutputs: ['dist/new.json'] },
+  ] }), 'src/generator.ts': 'HEAD source', 'assets/retained': 'authored' });
   const one = openMirror(sha, { repo, env });
   mkdirSync(join(one.dir, 'dist'), { recursive: true });
   writeFileSync(join(one.dir, outputs[0] ?? ''), 'HEAD ecology');
   writeFileSync(join(one.dir, outputs[1] ?? ''), 'HEAD companion');
+  writeFileSync(join(one.dir, 'dist/unrelated.json'), 'HEAD unrelated');
   one.release();
   const overlay = openMirror(sha, { repo, env });
   writeFileSync(join(overlay.dir, 'src/generator.ts'), 'unlanded projection source');
   writeFileSync(join(overlay.dir, outputs[0] ?? ''), '{"projection":true}');
+  writeFileSync(join(overlay.dir, 'dist/new.json'), 'unlanded output');
   overlay.release();
   const next = openMirror(sha, { repo, env });
   try {
@@ -203,7 +207,51 @@ it('clears generated jobs when a released source overlay could have produced the
     expect(existsSync(join(next.dir, outputs[0] ?? ''))).toBe(false);
     expect(existsSync(join(next.dir, outputs[1] ?? ''))).toBe(false);
     expect(readFileSync(join(next.dir, 'assets/retained'), 'utf8')).toBe('authored');
+    expect(readFileSync(join(next.dir, 'dist/unrelated.json'), 'utf8')).toBe('HEAD unrelated');
+    expect(existsSync(join(next.dir, 'dist/new.json'))).toBe(false);
     expect(readFileSync(join(repo, 'src/generator.ts'), 'utf8')).toBe('HEAD source');
+  } finally { next.release(); }
+});
+
+it('refreshes timestamp-only tracked rewrites before sync and release without clearing ready outputs', () => {
+  const { repo, commit, env } = fixture();
+  const source = 'src/source.ts', output = 'dist/rows.json';
+  const sha = commit({ 'scripts/generation-jobs.json': JSON.stringify({ jobs: [{ buildTimeOutputs: [output] }] }), [source]: 'HEAD' });
+  const one = openMirror(sha, { repo, env });
+  mkdirSync(join(one.dir, 'dist'), { recursive: true });
+  writeFileSync(join(one.dir, output), 'HEAD rows');
+  const tracked = join(one.dir, source);
+  writeFileSync(tracked, 'HEAD');
+  utimesSync(tracked, 1, 1);
+  one.release();
+  expect(readFileSync(join(one.dir, output), 'utf8')).toBe('HEAD rows');
+  // An interrupted byte-identical writer also changes the index stat tuple.
+  writeFileSync(tracked, 'HEAD');
+  utimesSync(tracked, 2, 2);
+  const next = openMirror(sha, { repo, env });
+  try { expect(readFileSync(join(next.dir, output), 'utf8')).toBe('HEAD rows'); }
+  finally { next.release(); }
+});
+
+it('clears metadata only for the producer whose tracked output changed', () => {
+  const { repo, commit, env } = fixture();
+  const sha = commit({ 'scripts/generation-jobs.json': JSON.stringify({ jobs: [
+    { buildTimeOutputs: ['assets/tracked', 'dist/metadata.json'] },
+    { buildTimeOutputs: ['dist/unrelated.json'] },
+  ] }), 'assets/tracked': 'HEAD asset' });
+  const one = openMirror(sha, { repo, env });
+  mkdirSync(join(one.dir, 'dist'), { recursive: true });
+  writeFileSync(join(one.dir, 'dist/metadata.json'), 'HEAD metadata');
+  writeFileSync(join(one.dir, 'dist/unrelated.json'), 'HEAD unrelated');
+  one.release();
+  const changed = openMirror(sha, { repo, env });
+  writeFileSync(join(changed.dir, 'assets/tracked'), 'unlanded asset');
+  changed.release();
+  const next = openMirror(sha, { repo, env });
+  try {
+    expect(readFileSync(join(next.dir, 'assets/tracked'), 'utf8')).toBe('HEAD asset');
+    expect(existsSync(join(next.dir, 'dist/metadata.json'))).toBe(false);
+    expect(readFileSync(join(next.dir, 'dist/unrelated.json'), 'utf8')).toBe('HEAD unrelated');
   } finally { next.release(); }
 });
 
@@ -233,10 +281,13 @@ it('clears a whole generated job after an output-only overlay, retaining untouch
 
 it('detects source overlays left behind before the next sync resets tracked files', () => {
   const { repo, commit, env } = fixture();
-  const sha = commit({ 'scripts/generation-jobs.json': JSON.stringify({ jobs: [{ buildTimeOutputs: ['dist/rows.json'] }] }), 'src/source.ts': 'HEAD' });
+  const sha = commit({ 'scripts/generation-jobs.json': JSON.stringify({ jobs: [
+    { buildTimeOutputs: ['dist/rows.json'] }, { buildTimeOutputs: ['dist/unrelated.json'] },
+  ] }), 'src/source.ts': 'HEAD' });
   const one = openMirror(sha, { repo, env });
   mkdirSync(join(one.dir, 'dist'), { recursive: true });
   writeFileSync(join(one.dir, 'dist/rows.json'), 'HEAD rows');
+  writeFileSync(join(one.dir, 'dist/unrelated.json'), 'HEAD unrelated');
   one.release();
   // Model an interrupted overlay owner that never ran its release cleanup.
   writeFileSync(join(one.dir, 'src/source.ts'), 'overlay');
@@ -245,6 +296,7 @@ it('detects source overlays left behind before the next sync resets tracked file
   try {
     expect(readFileSync(join(next.dir, 'src/source.ts'), 'utf8')).toBe('HEAD');
     expect(existsSync(join(next.dir, 'dist/rows.json'))).toBe(false);
+    expect(readFileSync(join(next.dir, 'dist/unrelated.json'), 'utf8')).toBe('HEAD unrelated');
   } finally { next.release(); }
 });
 

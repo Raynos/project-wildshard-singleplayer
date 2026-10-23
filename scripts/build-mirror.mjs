@@ -184,7 +184,17 @@ function generatedGroups(dir) {
   }));
 }
 
+/** @param {(args: string[])=>unknown} git */
+function refreshIndex(git) {
+  try { git(['update-index', '-q', '--refresh']); }
+  catch (error) {
+    // Refresh reports 1 for genuinely changed source; other failures refuse.
+    if (!(error instanceof Error && 'status' in error && error.status === 1)) throw error;
+  }
+}
+
 function sourceOverlay(git, generated) {
+  refreshIndex(git);
   if (git(['diff-files', '--name-only', '-z']).length > 0) return true;
   return git(['ls-files', '--others', '--exclude-standard', '-z'], { encoding: 'utf8' }).split('\0')
     .some(file => file && !generated.has(file) && !file.split('/').includes('node_modules'));
@@ -235,10 +245,10 @@ export function openMirror(rev, { repo = REPO, slot = 'check', full = false, env
     const gitEnv = { ...env, GIT_INDEX_FILE: join(root, 'index') };
     const git = (args, options = {}) => execFileSync('git', ['--work-tree', dir, ...args], { cwd: repo, env: gitEnv, maxBuffer: 1 << 28, ...options });
     const previous = generatedGroups(dir).flat();
-    // Check before read-tree erases evidence of an interrupted source overlay.
-    const overlaid = sourceOverlay(git, new Set(previous));
+    // Byte-identical generator rewrites must not look like source overlays.
+    refreshIndex(git);
     git(['read-tree', '--reset', '-u', buildTree(repo, sha, full)]);
-    spawnSync('git', ['--work-tree', dir, 'update-index', '-q', '--refresh'], { cwd: repo, env: gitEnv });
+    refreshIndex(git);
     const drifted = git(['diff-files', '--name-only', '-z']);
     if (drifted.length > 0) git(['checkout-index', '-f', '-z', '--stdin'], { input: drifted });
     const groups = generatedGroups(dir);
@@ -266,7 +276,7 @@ export function openMirror(rev, { repo = REPO, slot = 'check', full = false, env
     const currentHash = file => {
       try { return hashes.hash(file); } catch { return undefined; }
     };
-    for (const outputs of groups) if (overlaid || outputs.some(file => !existsSync(join(dir, file)) || !tracked.has(file) && (accepted[file] === undefined || currentHash(file) !== accepted[file]))) clear(outputs);
+    for (const outputs of groups) if (outputs.some(file => !existsSync(join(dir, file)) || !tracked.has(file) && (accepted[file] === undefined || currentHash(file) !== accepted[file]))) clear(outputs);
     const save = () => {
       // A producer left from an interrupted owner may still remove an output
       // between presence and hashing. Such a job is unproven, never reusable.
@@ -294,13 +304,19 @@ export function openMirror(rev, { repo = REPO, slot = 'check', full = false, env
     };
     // Persist the baseline before handing over the slot, so an output-only
     // overlay is detected even if its owner dies without running release.
+    save();
+    // Include tracked companions so rewriting a tracked producer output also
+    // invalidates that producer's untracked metadata, never unrelated jobs.
     /** @type {Record<string,string|undefined>} */
-    const existing = save();
+    const existing = {};
+    for (const file of generated) existing[file] = currentHash(file);
     cleanup = () => {
       const dirty = sourceOverlay(git, generated);
-      // Normal generation may fill an empty job. Changing a ready job's bytes is an
-      // overlay: discard the whole group, including unchanged companion files.
-      for (const outputs of groups) if (dirty || outputs.some(file => existing[file] !== undefined && currentHash(file) !== existing[file])) clear(outputs);
+      // Ready groups survive a source-only overlay when their own bytes stay
+      // unchanged. Newly filled groups are admitted only with clean source.
+      for (const outputs of groups) if (outputs.some(file => existing[file] !== undefined
+        ? currentHash(file) !== existing[file]
+        : dirty && currentHash(file) !== undefined)) clear(outputs);
       save();
     };
     if (linkModules) linkNodeModules(repo, dir);

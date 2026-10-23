@@ -11,5 +11,6 @@ export function genAskIds(root = process.cwd()) {
   const asks = resolve(root, 'docs/tasks/asks');
   if (!existsSync(asks)) return;
   for (const file of readdirSync(asks)) if (/^E\d+\.md$/u.test(file)) ids.add(file.slice(0, -3));
-  writeFileSync(resolve(root, 'lint/ask-ids.json'), `${JSON.stringify([...ids].sort(), null, 2)}\n`);
+  const output = resolve(root, 'lint/ask-ids.json'), contents = `${JSON.stringify([...ids].sort((left, right) => left.localeCompare(right)), null, 2)}\n`;
+  if (!existsSync(output) || readFileSync(output, 'utf8') !== contents) writeFileSync(output, contents);
 }
