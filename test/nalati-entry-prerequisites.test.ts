@@ -25,7 +25,7 @@ function makeRuntime(world: ShardRuntime['world'], step: ShardRuntime['step'], p
   return { world, step, play, interactables: [], overhead: [], hooks: {}, objects: {}, viewer: () => new Vector3(), horizonVeil: null };
 }
 
-test('declared publication refuses missing entered prerequisites before reads or wildlife lookup', () => {
+test('declared publication refuses missing entered prerequisites before reads or wildlife lookup', async () => {
   if(row?.kind!=='population.wildlife')throw new Error('Missing wildlife row');
   const install=CLIENT_FEATURES['population.wildlife'].play?.install;if(install===undefined)throw new Error('Missing publication slot');
   const stepped=vi.fn(),step:NonNullable<ShardRuntime['step']>=()=>{stepped();return Promise.reject(new Error('Unexpected boot step'));};
@@ -33,7 +33,7 @@ test('declared publication refuses missing entered prerequisites before reads or
   const capture=vi.spyOn(population,'clientWildlife');
   try{for(const owner of [undefined,makeRuntime(null,step,play),makeRuntime(world,null,play),makeRuntime(world,step,null)]){
     const f=context(owner);try{
-      expect(()=>install(f.ctx,row,f.scope)).toThrow('entered world and play owner');
+      await expect(install(f.ctx,row,f.scope)).rejects.toThrow('entered world and play owner');
       expect(f.json).not.toHaveBeenCalled();expect(f.species).not.toHaveBeenCalled();expect(f.speciesLook).not.toHaveBeenCalled();
       expect(capture).not.toHaveBeenCalled();expect(stepped).not.toHaveBeenCalled();
     }finally{f.scope.dispose();}
@@ -47,10 +47,10 @@ test('publication keeps the original wildlife identity after chapter view and re
   const f=context(runtime),wildlife=legacyDouble<NonNullable<ReturnType<typeof population.clientWildlife>>>({}),capture=vi.spyOn(population,'clientWildlife').mockReturnValue(null);
   try{
     expect(feature.rank).toBeGreaterThan(CLIENT_FEATURES['quest.chapter-view'].rank);
-    expect(()=>feature.install(f.ctx,row,f.scope)).toThrow('not been built');expect(runtime.objects).toEqual({});
+    await expect(feature.install(f.ctx,row,f.scope)).rejects.toThrow('not been built');expect(runtime.objects).toEqual({});
     capture.mockReturnValue(wildlife);await feature.install(f.ctx,row,f.scope);
     expect(capture.mock.calls.at(-1)?.[0]).toBe(f.ctx);expect(runtime.objects['wildlife']).toBe(wildlife);
     f.scope.dispose();expect(runtime.objects['wildlife']).toBeUndefined();
-    capture.mockClear();expect(()=>feature.install(f.ctx,row,f.scope)).toThrow('entered world and play owner');expect(capture).not.toHaveBeenCalled();
+    capture.mockClear();await expect(feature.install(f.ctx,row,f.scope)).rejects.toThrow('entered world and play owner');expect(capture).not.toHaveBeenCalled();
   }finally{capture.mockRestore();f.scope.dispose();}
 });
