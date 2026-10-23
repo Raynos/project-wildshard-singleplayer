@@ -106,6 +106,10 @@ export class FirstHints {
   private shownT = 0; // s the current hint has been up this time
   private readonly shownAll = new Map<HintControl, number>();
   private measureT = 0;
+  /** each control's anchor, looked up at most once a MEASURE_EVERY: every unseen trigger's per-frame box and computed
+   *  style read forced a layout each frame (~10 ms a second of a phone-4x Nine drive) */
+  private readonly anchors = new Map<HintControl, HTMLElement | null | undefined>();
+  private lookT = 0;
   private origin: { x: number; z: number } | null = null;
   private walked = 0;
   private last = { x: 0, z: 0 };
@@ -155,6 +159,8 @@ export class FirstHints {
 
   update(dt: number): void {
     if (this.opts.paused()) { this.show(null); return; }
+    this.lookT -= dt;
+    if (this.lookT <= 0) { this.lookT = MEASURE_EVERY; this.anchors.clear(); }
     this.track();
     if (lockOn.state === 'locked') this.used('lock'); // a tap-to-lock on the enemy itself counts too
     let pick: HintTrigger | null = null;
@@ -188,8 +194,10 @@ export class FirstHints {
   /** the touch control a hint sits on, when it is on screen (undefined: not drawn now, so no hint); null = the desktop line */
   private anchor(c: HintControl): HTMLElement | null | undefined {
     if (!this.opts.touch) return null;
-    const el = document.querySelector<HTMLElement>(`.ws-touch ${ANCHOR[c]}`);
-    return el !== null && shown(el) ? el : undefined;
+    if (this.anchors.has(c)) return this.anchors.get(c);
+    const el = document.querySelector<HTMLElement>(`.ws-touch ${ANCHOR[c]}`), found = el !== null && shown(el) ? el : undefined;
+    this.anchors.set(c, found);
+    return found;
   }
 
   private show(t: HintTrigger | null): void {
