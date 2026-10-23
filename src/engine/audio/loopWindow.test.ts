@@ -1,11 +1,12 @@
 import { expect, it, vi } from 'vitest';
-import { compactLoopWindow } from '../src/engine/audio/loopWindow';
+import { compactLoopWindow } from './loopWindow';
 
 class Pcm {
   readonly numberOfChannels = 2;
   readonly sampleRate = 48000;
   readonly channels: Float32Array<ArrayBuffer>[];
-  constructor(readonly length: number) { this.channels = [new Float32Array(length), new Float32Array(length)]; }
+  readonly length: number;
+  constructor(length: number) { this.length = length; this.channels = [new Float32Array(length), new Float32Array(length)]; }
   getChannelData(channel: number): Float32Array<ArrayBuffer> {
     const data = this.channels[channel]; if (data === undefined) throw new Error('Missing PCM channel'); return data;
   }
@@ -44,7 +45,7 @@ it('shares compact decoded content without replacing the full-file decoder entry
   vi.stubGlobal('AudioBuffer', class extends Pcm { constructor(options: { length: number }) { super(options.length); } });
   vi.stubGlobal('OfflineAudioContext', class { decodeAudioData(): Promise<Pcm> { return Promise.resolve(new Pcm(48000)); } });
   try {
-    const { decodeBytes, compactSampleLoop } = await import('../src/engine/audio/preload');
+    const { decodeBytes, compactSampleLoop } = await import('./preload');
     const buffer = await decodeBytes(new Uint8Array([1, 2, 3]).buffer);
     const bounds = { loopStart: .25, loopEnd: .75 };
     const a = compactSampleLoop(buffer, bounds, '/assets/sfx/fixture/loop.m4a');

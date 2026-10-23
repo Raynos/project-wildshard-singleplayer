@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { BoxGeometry, MeshStandardMaterial, Texture } from 'three';
-import { ResourceMemo, rebindGeometry } from '../src/engine/app/cachedAssets';
+import { ResourceMemo, rebindGeometry } from './cachedAssets';
 
 test('shares immediate async acquisition and forgets both source and dependent surface on retirement', async () => {
   const mats = new ResourceMemo<string, MeshStandardMaterial>();

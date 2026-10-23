@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { loadingDownloadText, loadingDownloadFraction, loadingPrefetchFraction, loadingPrefetchText, type LoadingPrefetchSnapshot } from '../src/engine/boot/loadingDownloadText';
+import { loadingDownloadText, loadingDownloadFraction, loadingPrefetchFraction, loadingPrefetchText, type LoadingPrefetchSnapshot } from './loadingDownloadText';
 
 const traffic = { networkBytes: 1_300_000, cachedBytes: 2_000_000, pendingBytes: 500_000, filesDone: 4, filesTotal: 5, unclassifiedBytes: 100_000, unclassifiedFiles: 0,
   declaredBytes: 2_000_000, declaredDoneBytes: 1_500_000, declaredFiles: 4, declaredFilesDone: 3 };

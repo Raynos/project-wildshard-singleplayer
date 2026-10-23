@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { floorAtRects, type FloorRect } from '../src/engine/physics/box';
+import { floorAtRects, type FloorRect } from './box';
 
 test('deck floors preserve first/highest priority, inclusive edges and the authored inverse turn', () => {
   const floors: readonly FloorRect[] = [

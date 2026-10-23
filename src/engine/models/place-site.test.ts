@@ -1,14 +1,14 @@
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
 import { Box3, BoxGeometry, MeshStandardMaterial, Vector3 } from 'three';
-import { defineModel, modelContext } from '../src/engine/models/model';
-import { placeModelSite } from '../src/engine/models/place';
-import { WorldRegistry } from '../src/engine/world/registry';
+import { defineModel, modelContext } from './model';
+import { placeModelSite } from './place';
+import { WorldRegistry } from '../world/registry';
 
 test('a fixed model site lends its existing floor and translates the actual model, boxes and anchors once', () => {
   const material = new MeshStandardMaterial(), registry = new WorldRegistry(), context = modelContext(null);
   let builds = 0;
-  const model = defineModel({ id: 'shared/site-fixture', name: 'Fixed site', category: 'buildings', pipeline: 'code', file: 'test/model-site.test.ts', defaults: { width: 2 },
+  const model = defineModel({ id: 'shared/site-fixture', name: 'Fixed site', category: 'buildings', pipeline: 'code', file: 'src/engine/models/place-site.test.ts', defaults: { width: 2 },
     build: (_ctx, params) => { builds++; return [{ geometry: new BoxGeometry(params.width, 2, 2), material }]; },
     colliders: (params) => [{ kind: 'box', x: 0, y: 1, z: 0, hx: params.width / 2, hy: 1, hz: 1, yaw: 0 }] });
   const origin = { x: 12, y: 5, z: -8 }, anchor = { x: 1, y: 2, z: 3, yaw: 0.7 };

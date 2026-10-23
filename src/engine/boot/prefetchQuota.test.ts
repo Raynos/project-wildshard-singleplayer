@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { PrefetchQuota } from '../src/engine/boot/prefetchQuota';
+import { PrefetchQuota } from './prefetchQuota';
 
 it('requests persistence first and prevents concurrent writes oversubscribing a stale quota', async () => {
   const events: string[] = [];

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { ContentCacheQueue } from '../src/engine/boot/contentCacheQueue';
+import { ContentCacheQueue } from './contentCacheQueue';
 
 test('all cache reads finish while the prefetch write is still blocked', async () => {
   const queue = new ContentCacheQueue(), order: string[] = [];

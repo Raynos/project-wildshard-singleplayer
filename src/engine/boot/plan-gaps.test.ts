@@ -1,6 +1,6 @@
 import { expect, it, vi } from 'vitest';
-import { createBootPlan } from '../src/engine/boot/plan';
-import { STEP_INFO } from '../src/engine/boot/steps';
+import { createBootPlan } from './plan';
+import { STEP_INFO } from './steps';
 
 const empty = { bytes: 0, files: 0 };
 const totals = { sky: empty, baked: empty, terrain: empty, trees: empty, physics: empty,

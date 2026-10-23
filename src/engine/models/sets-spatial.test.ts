@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { Box3, Group, Vector3 } from 'three';
-import type { Placed } from '../src/engine/models/place';
-import { placedWithin } from '../src/engine/models/sets';
+import type { Placed } from './place';
+import { placedWithin } from './sets';
 
 test('spatial copy views keep distinct bounds/centre policies', () => {
   const boxes = [new Box3(new Vector3(-1, 0, -1), new Vector3(11, 2, 1)), new Box3(new Vector3(-0.2, 0, -0.2), new Vector3(0.2, 2, 0.2)), new Box3(new Vector3(20, 0, 0), new Vector3(21, 2, 1))];
