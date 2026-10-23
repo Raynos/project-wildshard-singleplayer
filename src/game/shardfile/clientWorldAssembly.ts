@@ -16,6 +16,7 @@ import { installWorldScenes } from './worldScenes';
 import { residentBakedTiles } from './bakedTiles';
 import { publishEntryOwner, lendEntryOwner, entryOwner } from './entryOwners';
 import { timeClientPreparation } from './preparationTiming';
+import { followResidentTiles, residentTiles } from './tileDriver';
 
 const enteredScopes = new WeakSet<ShardContext['scope']>();
 const residents = new WeakMap<IslandLibrary<unknown> | ShardProduct, {
@@ -82,4 +83,10 @@ export async function installClientWorldAssembly(ctx: ShardContext, row: Extract
     lendEntryOwner(scope, resident, 'fixed-draws', publish.draws);
     lendEntryOwner(scope, resident, 'collection', publish.collection);
   }
+  // tile streaming T4 (pause ▸ Settings ▸ Debug ▸ Tile residency): the tiled world content's spawn and entry tiles (all
+  // of them for the whole cell) before controls, once per resident; then each entry's tiles follow the player
+  const owner = resident ?? scope;
+  await residentTiles(owner, scenes.tiled(), source.spawn, source.entryways); live();
+  const follow = followResidentTiles(owner, () => world.player.position);
+  if (follow !== null) ctx.system({ id: 'client.world.tiles', phase: 'update', run: () => { follow(); } });
 }
