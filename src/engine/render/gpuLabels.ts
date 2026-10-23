@@ -223,13 +223,17 @@ function due(cache: WeakMap<object, Walked>, node: Object3D, geometry: unknown, 
  * only to ask `due()`, was still ≈ 28 % of Pine Hollow's Developer main thread (work p95 15 ms against 8.5 ms with
  * Developer off; its cabin pose is GPU-bound at vsync, so the stalled submission doubled frames,
  * progress/frame-floor/2026-10-09-head/). The scene is flattened (pre-order, so a parent's label precedes its children)
- * once per refresh window, and each render labels the next slice of that list. The whole scene is covered within half
- * a window. A drawn object is still relabelled at its next draw when its geometry or material changes
- * (`renderBufferDirect`); a node that is not drawn picks up its change within the window. Labels are diagnostics.
+ * once per sweep window (`SWEEP_WINDOW`, four refresh windows), and each render labels the next slice of that list. The
+ * whole scene is covered within half a sweep window. A drawn object is still relabelled at its next draw when its geometry
+ * or material changes (`renderBufferDirect`); a node that is not drawn picks up its change within the sweep window. Labels
+ * are diagnostics.
  */
 interface Sweep { nodes: Object3D[]; parents: (Object3D | null)[]; indices: number[]; cursor: number; built: number }
 const sweeps = new WeakMap<Object3D, Sweep>();
-const SWEEP_SLICES = REFRESH / 2;
+// G639 frame floor: the sweep re-walks the scene once every four refresh windows (≈ 4–8 s), not every window (~0.75 ms of a
+// Developer Pine grid frame at 3080f174e5); drawn objects are relabelled at their draw, so only undrawn ones wait longer
+const SWEEP_WINDOW = REFRESH * 4;
+const SWEEP_SLICES = SWEEP_WINDOW / 2;
 // nodes a render labels at least, so a small scene is labelled within its first renders (G639: 64 a render was ~1.4 ms of a
 // Pine frame at phone 4x, mostly on bones; the remaining scene still sweeps in well under a second)
 const SWEEP_MIN = 16;
@@ -250,7 +254,7 @@ function flatten(root: Object3D, built: number): Sweep {
 }
 function amortizedTree(root: Object3D, owner: string, asset: string, priority: number): void {
   let sweep = sweeps.get(root);
-  if (sweep === undefined || generation - sweep.built >= REFRESH) { sweep = flatten(root, generation); sweeps.set(root, sweep); }
+  if (sweep === undefined || generation - sweep.built >= SWEEP_WINDOW) { sweep = flatten(root, generation); sweeps.set(root, sweep); }
   const { nodes, parents, indices } = sweep, count = nodes.length;
   const end = Math.min(count, sweep.cursor + Math.max(SWEEP_MIN, Math.ceil(count / SWEEP_SLICES)));
   for (let k = sweep.cursor; k < end; k++) {
