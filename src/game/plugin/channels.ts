@@ -33,10 +33,15 @@ export interface ClientChannelLane {
  *  re-validated every row it had parsed; Nalati's entry spent 0.3-0.65 s frames in it). Its arrays are copied, never kept. */
 /** each expression's operand slots (-1: none); a frozen node list's are made once and shared by every lane over it (G639:
  *  a herd's first pose frame made them once per body), never written */
-const operandTables = new WeakMap<object, { readonly a: Int32Array; readonly b: Int32Array }>();
-function operandsOf(nodes: ClientChannelProgram['nodes']): { readonly a: Int32Array; readonly b: Int32Array } {
+/** the evaluator's operations in opcode order (an unknown op is 255 and refuses at evaluation) */
+const OPS = ['constant', 'clock', 'read', 'local', 'neg', 'sin', 'cos', 'sqrt', 'abs', 'add', 'sub', 'mul', 'pow', 'div', 'mod', 'min', 'max',
+  'atan2', 'hypot', 'hypot3', 'sample', 'gt', 'select'] as const;
+const operandTables = new WeakMap<object, { readonly a: Int32Array; readonly b: Int32Array; readonly codes: Uint8Array }>();
+function operandsOf(nodes: ClientChannelProgram['nodes']): { readonly a: Int32Array; readonly b: Int32Array; readonly codes: Uint8Array } {
   const known = operandTables.get(nodes); if (known !== undefined) return known;
-  const made = { a: Int32Array.from(nodes, node => 'a' in node ? node.a : -1), b: Int32Array.from(nodes, node => 'b' in node ? node.b : -1) };
+  const ops: readonly string[] = OPS;
+  const made = { a: Int32Array.from(nodes, node => 'a' in node ? node.a : -1), b: Int32Array.from(nodes, node => 'b' in node ? node.b : -1),
+    codes: Uint8Array.from(nodes, node => { const code = ops.indexOf(node.op); return code === -1 ? 255 : code; }) };
   if (Object.isFrozen(nodes)) operandTables.set(nodes, made);
   return made;
 }
@@ -46,7 +51,7 @@ export function admittedClientChannels(program: ClientChannelProgram): ClientCha
   const slots = program.locals !== undefined && Object.isFrozen(program.locals) ? program.locals : structuredClone(program.locals ?? []), locals = new Float64Array(slots.length), previous = new Float64Array(slots.length), next = new Float64Array(slots.length);
   let initialized = false;
   // each expression's operand slots, read once (-1: none), so the evaluator never asks a node which fields it has
-  const { a: operandA, b: operandB } = operandsOf(nodes);
+  const { a: operandA, b: operandB, codes } = operandsOf(nodes);
   const frame: Partial<Record<ClientChannelProperty, number>> = {};
   for (const channel of program.channels) Object.defineProperty(frame, channel.property, { enumerable: true, get: () => published[channel.value] });
   Object.freeze(frame);
@@ -69,6 +74,46 @@ export function admittedClientChannels(program: ClientChannelProgram): ClientCha
     return Object.freeze(connectorFrame);
   });
   if (connectors !== undefined) Object.freeze(connectors);
+  /** one node's value by its row: the ops with operands or tables of their own, and any op off the opcode fast path */
+  const rowValue = (node: ClientChannelProgram['nodes'][number], a: number, b: number, time: number, delta: number): number => {
+    switch (node.op) {
+      case 'constant': return node.value;
+      case 'clock': return node.value === 'time' ? time : delta;
+      case 'read': return reads[node.index] ?? Number.NaN;
+      case 'local': return previous[node.index] ?? Number.NaN;
+      case 'neg': return -a;
+      case 'sin': return Math.sin(a);
+      case 'cos': return Math.cos(a);
+      case 'sqrt': return Math.sqrt(a);
+      case 'abs': return Math.abs(a);
+      case 'add': return a + b;
+      case 'sub': return a - b;
+      case 'mul': return a * b;
+      case 'pow': return a ** b;
+      case 'div': return a / b;
+      case 'mod': return a % b;
+      case 'min': return Math.min(a, b);
+      case 'max': return Math.max(a, b);
+      case 'atan2': return Math.atan2(a, b);
+      case 'hypot': return Math.hypot(a, b);
+      case 'hypot3': return Math.hypot(a, b, scratch[node.c] ?? Number.NaN);
+      case 'sample': {
+        const last = node.keys.at(-1); if (last === undefined) throw new Error('Missing keyframe endpoint');
+        for (let segment = 1; segment < node.keys.length; segment++) {
+          const start = node.keys[segment - 1], end = node.keys[segment];
+          if (start === undefined || end === undefined) throw new Error('Missing keyframe segment');
+          if (a > end[0]) continue;
+          const u = Math.max(0, Math.min(1, (a - start[0]) / Math.max(1e-6, end[0] - start[0])));
+          const eased = node.interpolation === 'smoothstep' ? u * u * (3 - 2 * u) : u;
+          return start[1] + (end[1] - start[1]) * eased;
+        }
+        return last[1];
+      }
+      case 'gt': return Number(a > b);
+      case 'select': return (scratch[node.test] ?? Number.NaN) !== 0 ? scratch[node.yes] ?? Number.NaN : scratch[node.no] ?? Number.NaN;
+      default: throw new Error('Unknown client operation');
+    }
+  };
   const evaluate = (observation: ClientChannelObservation): void => {
     const { time, delta, values } = observation;
     if (!Number.isFinite(time) || !Number.isFinite(delta) || delta < 0 || Math.abs(time) > 1e12 || delta > 1e12 || values.length !== reads.length) throw new Error('Invalid copied client observation');
@@ -82,43 +127,25 @@ export function admittedClientChannels(program: ClientChannelProgram): ClientCha
       const ai = operandA[i] ?? -1, bi = operandB[i] ?? -1;
       const a = ai >= 0 ? scratch[ai] ?? Number.NaN : 0, b = bi >= 0 ? scratch[bi] ?? Number.NaN : 0;
       let value: number;
-      switch (node.op) {
-        case 'constant': value = node.value; break;
-        case 'clock': value = node.value === 'time' ? time : delta; break;
-        case 'read': value = reads[node.index] ?? Number.NaN; break;
-        case 'local': value = previous[node.index] ?? Number.NaN; break;
-        case 'neg': value = -a; break;
-        case 'sin': value = Math.sin(a); break;
-        case 'cos': value = Math.cos(a); break;
-        case 'sqrt': value = Math.sqrt(a); break;
-        case 'abs': value = Math.abs(a); break;
-        case 'add': value = a + b; break;
-        case 'sub': value = a - b; break;
-        case 'mul': value = a * b; break;
-        case 'pow': value = a ** b; break;
-        case 'div': value = a / b; break;
-        case 'mod': value = a % b; break;
-        case 'min': value = Math.min(a, b); break;
-        case 'max': value = Math.max(a, b); break;
-        case 'atan2': value = Math.atan2(a, b); break;
-        case 'hypot': value = Math.hypot(a, b); break;
-        case 'hypot3': value = Math.hypot(a, b, scratch[node.c] ?? Number.NaN); break;
-        case 'sample': {
-          const last = node.keys.at(-1); if (last === undefined) throw new Error('Missing keyframe endpoint');
-          value = last[1];
-          for (let segment = 1; segment < node.keys.length; segment++) {
-            const start = node.keys[segment - 1], end = node.keys[segment];
-            if (start === undefined || end === undefined) throw new Error('Missing keyframe segment');
-            if (a > end[0]) continue;
-            const u = Math.max(0, Math.min(1, (a - start[0]) / Math.max(1e-6, end[0] - start[0])));
-            const eased = node.interpolation === 'smoothstep' ? u * u * (3 - 2 * u) : u;
-            value = start[1] + (end[1] - start[1]) * eased; break;
-          }
-          break;
-        }
-        case 'gt': value = Number(a > b); break;
-        case 'select': value = (scratch[node.test] ?? Number.NaN) !== 0 ? scratch[node.yes] ?? Number.NaN : scratch[node.no] ?? Number.NaN; break;
-        default: throw new Error('Unknown client operation');
+      // G639: the arithmetic ops by their small opcode (one per node, shared like the operands), the rest by their row
+      switch (codes[i] ?? 255) {
+        case 4: value = -a; break;
+        case 5: value = Math.sin(a); break;
+        case 6: value = Math.cos(a); break;
+        case 7: value = Math.sqrt(a); break;
+        case 8: value = Math.abs(a); break;
+        case 9: value = a + b; break;
+        case 10: value = a - b; break;
+        case 11: value = a * b; break;
+        case 12: value = a ** b; break;
+        case 13: value = a / b; break;
+        case 14: value = a % b; break;
+        case 15: value = Math.min(a, b); break;
+        case 16: value = Math.max(a, b); break;
+        case 17: value = Math.atan2(a, b); break;
+        case 18: value = Math.hypot(a, b); break;
+        case 21: value = Number(a > b); break;
+        default: value = rowValue(node, a, b, time, delta); break;
       }
       if (!Number.isFinite(value) || Math.abs(value) > 1e12) throw new Error('Non-finite or excessive client expression');
       scratch[i] = value;
