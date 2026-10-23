@@ -48,7 +48,15 @@ function subsetAttribute(attribute: BufferAttribute, selected: readonly number[]
   const array = attribute.array.slice(0, selected.length * attribute.itemSize);
   // slice above may be smaller than the requested size only if callers repeat vertices (partitioning deduplicates).
   if (array.length !== selected.length * attribute.itemSize) throw new Error('Whole geometry subset exceeds source vertices');
-  for (const [i, vertex] of selected.entries()) array.set(attribute.array.subarray(vertex * attribute.itemSize, (vertex + 1) * attribute.itemSize), i * attribute.itemSize);
+  // Adjacent ordinals are copied as one raw run, preserving every storage bit.
+  for (let i = 0; i < selected.length;) {
+    const vertex = selected[i];
+    if (vertex === undefined) throw new Error('Missing whole geometry vertex');
+    let end = i + 1;
+    while (end < selected.length && selected[end] === vertex + end - i) end++;
+    array.set(attribute.array.subarray(vertex * attribute.itemSize, (vertex + end - i) * attribute.itemSize), i * attribute.itemSize);
+    i = end;
+  }
   return attribute instanceof Float16BufferAttribute ? new Float16BufferAttribute(array, attribute.itemSize, attribute.normalized)
     : new BufferAttribute(array, attribute.itemSize, attribute.normalized);
 }
