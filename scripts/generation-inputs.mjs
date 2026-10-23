@@ -31,7 +31,7 @@ function readTrace(file,entry) {
 }
 /** Retain every non-code input, including manifests and toolchain metadata.
  * A catalogue never read by this producer may also leave the byte identity;
- * probed file presence remains bound by the conservative inventory fence.
+ * probed file presence remains bound by its staged path identity.
  * @param {Record<string,string>} inputs @param {string[]} files @param {string} catalogue */
 function selectInputs(inputs,files,catalogue) {
   const read=new Set(files);
@@ -52,23 +52,73 @@ function packageProjection(root,file,expected,keys) {
   const used=new Set(keys);
   return JSON.stringify({...json,exports:Object.fromEntries(Object.entries(exports.output).filter(([key])=>used.has(key)||key.includes('*')))});
 }
+/** The virtual initial stage contains verified copied files, external inputs,
+ * projected catalogue bytes and declared output-parent directories. It never
+ * consults loose/missing outputs in the caller's working tree.
+ * @param {readonly string[]} staged @param {string[]} outputs */
+function stageProbeView(staged,outputs) {
+  const files=new Set(v.parse(paths,staged));
+  /** @type {Set<string>} */
+  const directories=new Set();
+  for(const file of [...files,...outputs])for(let parent=dirname(file);parent!=='.';parent=dirname(parent))directories.add(parent);
+  const roots=new Set([...directories].filter(file=>!file.includes('/')));
+  const entries=[...files,...directories].sort(order);
+  // link-node-modules may add dependencies below each immediate src package.
+  // A scan that could include those links keeps the conservative fence.
+  const linked=[...directories].filter(file=>/^src\/[^/]+$/u.test(file)).map(file=>`${file}/node_modules`);
+  /** @param {string} kind @param {string} file */
+  return (kind,file)=>{
+    if(!['P','D','F'].includes(kind)||!v.safeParse(path,file).success||file.split('/').some(part=>['node_modules','.git','.cache','.wildshard','tmp','out'].includes(part)))return undefined;
+    if(!files.has(file)&&!roots.has(file.split('/').at(0)??''))return undefined;
+    const directory=directories.has(file),scan=kind==='D'||kind==='F'&&directory;
+    if(scan&&linked.some(folder=>folder.startsWith(`${file}/`)))return undefined;
+    /** @type {[string,string][]} */
+    const chain=[];
+    const parts=file.split('/');
+    for(let count=1;count<=parts.length;count++) {
+      const prefix=parts.slice(0,count).join('/');
+      chain.push([prefix,files.has(prefix)?'file':directories.has(prefix)?'directory':'absent']);
+    }
+    // Include descendants for both ordinary and recursive directory readers;
+    // the latter bypass repeated calls to the public filesystem wrappers.
+    return JSON.stringify({chain,...(scan?{entries:entries.filter(name=>name.startsWith(`${file}/`))}:{})});
+  };
+}
+/** @param {v.InferOutput<typeof Trace>} trace @param {import('./generation-cache.mjs').GenerationJob} job
+ * @param {readonly string[]|undefined} staged @param {string[]} inventory */
+function probeIdentity(trace,job,staged,inventory) {
+  const view=staged===undefined?undefined:stageProbeView(staged,job.outputs);
+  const positive=new Set([...trace.files,...trace.execution].filter(file=>Object.hasOwn(job.inputs,file)));
+  const probes=new Set([...trace.inventory,...trace.files.filter(file=>!Object.hasOwn(job.inputs,file)).map(file=>`F ${file}`)]);
+  /** @type {Record<string,string>} */
+  const values={};let fallback=false;
+  for(const probe of [...probes].sort(order)) {
+    const kind=probe.slice(0,1),file=probe.slice(2);
+    if(kind==='P'&&positive.has(file))continue;
+    const value=view?.(kind,file);
+    if(value===undefined){fallback=true;values[probe]='conservative';}
+    else values[probe]=value;
+  }
+  return digest(JSON.stringify({values,...(fallback?{inventory,staged:staged===undefined?[]:[...new Set(staged)].sort(order)}:{})}));
+}
 /** Existing read sets are lookup hints, never permission to execute a changed
  * producer with an old dependency list. Recipes locate observations independently
- * of file additions; unresolved probes retain the full inventory fence.
- * Only complete positive-read observations can omit unrelated source names.
+ * of file additions. Probes bind the exact initial stage path or subtree;
+ * unmodeled probes retain the complete conservative inventory fence.
  * @param {string} root @param {import('./generation-cache.mjs').GenerationJob} job
  * @param {import('./generation-cache.mjs').GenerationOptions} options
- * @param {string} entry @param {string} [catalogue]
+ * @param {string} entry @param {string} [catalogue] @param {readonly string[]} [staged]
  * @returns {Promise<import('./generation-cache.mjs').GenerationResult>} */
-export async function runObservedGeneration(root,job,options,entry,catalogue='scripts/generation-jobs.json') {
+export async function runObservedGeneration(root,job,options,entry,catalogue,staged) {
+  const catalog=catalogue??'scripts/generation-jobs.json';
   const inventory=Object.keys(job.inputs).sort(order);
-  const recipe=digest(JSON.stringify({schema:'generation-inputs/4',node:process.version,id:job.id,command:job.command,outputs:job.outputs,platform:job.platform,tools:job.tools}));
+  const recipe=digest(JSON.stringify({schema:'generation-inputs/5',node:process.version,id:job.id,command:job.command,outputs:job.outputs,platform:job.platform,tools:job.tools}));
   const profiles=resolve(options.cacheDir??generationCacheRoot(),'.reads-v1',job.id,recipe);
   /** @param {v.InferOutput<typeof Trace>} trace */
   const executionInputs=trace=>Object.fromEntries(trace.execution.filter(file=>code.test(file)&&Object.hasOwn(job.inputs,file)).map(file=>[file,job.inputs[file]]));
   /** @param {v.InferOutput<typeof Trace>} trace */
   const narrowed=trace=>{
-    const inputs={...selectInputs(job.inputs,trace.files,catalogue)},rawReads=new Set(trace.files);
+    const inputs={...selectInputs(job.inputs,trace.files,catalog)},rawReads=new Set(trace.files);
     /** @type {Record<string,string>} */
     const packages={};
     for(const [file,keys]of Object.entries(trace.packages)) {
@@ -79,9 +129,7 @@ export async function runObservedGeneration(root,job,options,entry,catalogue='sc
     }
     // The backend retains its nonempty-source contract even for tiny fixtures.
     const retained=Object.keys(inputs).length===0?job.inputs:inputs;
-    const positive=new Set([...trace.files,...trace.execution].filter(file=>Object.hasOwn(job.inputs,file)));
-    const probed=trace.inventory.some(probe=>!probe.startsWith('P ')||!positive.has(probe.slice(2)))||trace.files.some(file=>!Object.hasOwn(job.inputs,file));
-    return {...job,inputs:retained,tools:{...job.tools,readInventory:recipe,probeInventory:probed?digest(JSON.stringify(inventory)):'positive-reads',packageExports:JSON.stringify(packages),
+    return {...job,inputs:retained,tools:{...job.tools,readInventory:recipe,probeInventory:probeIdentity(trace,job,staged,inventory),packageExports:JSON.stringify(packages),
       execution:JSON.stringify(Object.fromEntries(Object.entries(executionInputs(trace)).map(([file,raw])=>[file,compilerCodeHash(file,raw,()=>readFileSync(resolve(root,file)))])))}};
   };
   /** Normalized execution and projected exports still validate current raw

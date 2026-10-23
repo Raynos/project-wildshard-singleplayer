@@ -6,7 +6,7 @@ import {dirname,resolve} from 'node:path';
 import {createHash} from 'node:crypto';
 import * as v from 'valibot';
 import {afterEach,expect,it} from 'vitest';
-import {generateShardJob,type ShardGenerationJob} from '../scripts/generate.mjs';
+import {generateShardJob,type GenerationPreparation,type ShardGenerationJob} from '../scripts/generate.mjs';
 
 const owned:string[]=[];
 afterEach(()=>{for(const root of owned.splice(0))rmSync(root,{recursive:true,force:true});});
@@ -24,12 +24,12 @@ function fixture(source?:string,catalogPath='scripts/generation-jobs.json') {
   const job:ShardGenerationJob={id:'fixture-reader',shard:'alpha',entry,command:[entry],inputRoots:['src/shards/alpha','src/sdk'],outputs:[output],buildTimeOutputs:[output],platform:'portable'};
   put(root,catalogPath,JSON.stringify({schema:'generation-jobs/1',notice:'DO NOT EDIT fixture',jobs:[job]}));
   const cacheDir=resolve(root,'cache');
-  const run=async(forceCompare=false)=>{
-    const result=await generateShardJob(root,job,{cacheDir,forceCompare,catalogPath});
+  const run=async(forceCompare=false,preparation?:GenerationPreparation)=>{
+    const result=await generateShardJob(root,job,{cacheDir,forceCompare,catalogPath,...(preparation===undefined?{}:{preparation})});
     try {return {hit:result.hit,key:result.key,text:readFileSync(resolve(result.directory,output),'utf8')};}
     finally {result.release();}
   };
-  return {root,entry,output,cacheDir,run};
+  return {root,entry,output,cacheDir,job,run};
 }
 function packageFixture(source?:string) {
   const row=fixture(source??`import {value} from '@wildshard/sdk/used';import fs from 'node:fs';fs.writeFileSync('src/shards/alpha/data/output.txt',String(value));`);
@@ -122,6 +122,8 @@ it('invalidates negative probes when the declared input inventory gains a file',
   const output='src/shards/alpha/data/output.txt';
   const {root,run}=fixture(`import fs from 'node:fs';fs.writeFileSync('${output}',String(fs.existsSync('src/sdk/optional.ts')));`);
   expect(await run()).toMatchObject({hit:false,text:'false'});expect((await run()).hit).toBe(true);
+  put(root,'src/sdk/unrelated-new.ts','export const unused=1;');
+  expect(await run()).toMatchObject({hit:true,text:'false'});
   put(root,'src/sdk/optional.ts','// newly resolvable module');
   expect(await run()).toMatchObject({hit:false,text:'true'});
 });
@@ -133,8 +135,79 @@ it.each([
   ["import fs from 'node:fs';let value=0;try{value=(await import('../../../sdk/optional.mjs')).value;}catch{}fs.writeFileSync('src/shards/alpha/data/output.txt',String(value));",'failed-import'],
 ])('invalidates %s observations when a previously absent source appears',async(source,kind)=>{
   const {root,run}=fixture(source);const first=await run();expect((await run()).hit).toBe(true);
+  if(['native-realpath','failed-read'].includes(kind)) {
+    put(root,'src/sdk/unrelated-new.mjs','export const unused=1;');
+    expect((await run()).hit,kind).toBe(true);
+  }
   put(root,'src/sdk/optional.mjs','export const value=2;');
   const changed=await run();expect(changed.hit,kind).toBe(false);expect(changed.text).not.toBe(first.text);
+});
+it('models only staged paths instead of loose working-tree files',async()=>{
+  const {root,run}=fixture("import fs from 'node:fs';fs.writeFileSync('src/shards/alpha/data/output.txt',String(fs.existsSync('src/not-in-stage/optional.mjs')));");
+  put(root,'src/not-in-stage/optional.mjs','export const loose=1;');
+  expect(await run()).toMatchObject({hit:false,text:'false'});
+  put(root,'src/sdk/unrelated-new.mjs','export const unused=1;');
+  expect(await run()).toMatchObject({hit:true,text:'false'});
+  rmSync(resolve(root,'src/not-in-stage/optional.mjs'));
+  expect(await run()).toMatchObject({hit:true,text:'false'});
+});
+it('includes the catalogue and initially created output directories in probes',async()=>{
+  const {root,run}=fixture("import fs from 'node:fs';fs.writeFileSync('src/shards/alpha/data/output.txt',JSON.stringify([fs.existsSync('scripts/generation-jobs.json'),fs.existsSync('src/shards/alpha/data')]));");
+  expect(await run()).toMatchObject({hit:false,text:'[true,true]'});
+  put(root,'src/sdk/unrelated-new.mjs','export const unused=1;');
+  expect(await run()).toMatchObject({hit:true,text:'[true,true]'});
+});
+it('includes immutable upstream stage files even when absent from the checkout',async()=>{
+  const upstream='src/shards/alpha/data/upstream.mjs';
+  const {root,cacheDir,job,run}=fixture(`import fs from 'node:fs';fs.writeFileSync('src/shards/alpha/data/output.txt',String(fs.existsSync('${upstream}')));`);
+  const entry='src/shards/alpha/generators/bake-upstream.mjs';
+  put(root,entry,`import fs from 'node:fs';fs.writeFileSync('${upstream}','export const value=1;');`);
+  const producer:ShardGenerationJob={id:'fixture-upstream',shard:'alpha',entry,command:[entry],inputRoots:[entry],outputs:[upstream],buildTimeOutputs:[upstream],platform:'portable'};
+  put(root,'scripts/generation-jobs.json',JSON.stringify({schema:'generation-jobs/1',notice:'DO NOT EDIT fixture',jobs:[producer,job]}));
+  const loan=await generateShardJob(root,producer,{cacheDir});
+  try {
+    const preparation:GenerationPreparation={outputs:[upstream,...job.outputs],upstream:new Map([[producer.id,loan]])};
+    expect(await run(false,preparation)).toMatchObject({hit:false,text:'true'});
+    put(root,'src/sdk/unrelated-new.mjs','export const unused=1;');
+    expect(await run(false,preparation)).toMatchObject({hit:true,text:'true'});
+    // No raw working-tree output was published; dropping the immutable loan
+    // changes the actual initial stage and must invalidate its presence probe.
+    preparation.upstream.clear();
+    expect(await run(false,preparation)).toMatchObject({hit:false,text:'false'});
+  } finally {loan.release();}
+});
+it('fences recursive directory reads by their staged subtree',async()=>{
+  const {root,run}=fixture("import fs from 'node:fs';fs.writeFileSync('src/shards/alpha/data/output.txt',JSON.stringify(fs.readdirSync('src/sdk/list',{recursive:true}).sort()));");
+  put(root,'src/sdk/list/first.mjs','export const first=1;');
+  const first=await run();expect(first.hit).toBe(false);
+  put(root,'src/sdk/unrelated-new.mjs','export const unused=1;');
+  expect(await run()).toEqual({...first,hit:true});
+  put(root,'src/sdk/list/nested/second.mjs','export const second=2;');
+  const changed=await run();expect(changed.hit).toBe(false);expect(changed.text).toContain('second.mjs');
+});
+it('includes ancestor types in failed path identities',async()=>{
+  const {root,run}=fixture("import fs from 'node:fs';let value='present';try{fs.realpathSync.native('src/sdk/parent.mjs/optional.mjs');}catch(error){value=error.code;}fs.writeFileSync('src/shards/alpha/data/output.txt',value);");
+  expect(await run()).toMatchObject({hit:false,text:'ENOENT'});
+  put(root,'src/sdk/parent.mjs','export const unused=1;');
+  expect(await run()).toMatchObject({hit:false,text:'ENOTDIR'});
+});
+it('binds failed file resolution to nearby candidates instead of unrelated trees',async()=>{
+  const {root,run}=fixture("import fs from 'node:fs';let value=0;try{value=(await import('../../../sdk/optional/target.mjs')).value;}catch{}fs.writeFileSync('src/shards/alpha/data/output.txt',String(value));");
+  expect(await run()).toMatchObject({hit:false,text:'0'});
+  put(root,'src/sdk/unrelated-new.mjs','export const unused=1;');
+  expect(await run()).toMatchObject({hit:true,text:'0'});
+  put(root,'src/sdk/optional/nearby.mjs','export const other=1;');
+  expect(await run()).toMatchObject({hit:false,text:'0'});
+  put(root,'src/sdk/optional/target.mjs','export const value=2;');
+  expect(await run()).toMatchObject({hit:false,text:'2'});
+});
+it.each([
+  "import fs from 'node:fs';fs.writeFileSync('src/shards/alpha/data/output.txt',String(fs.existsSync('node_modules/valibot')));",
+  "import fs from 'node:fs';try{await import('fixture-absent-package');}catch{}fs.writeFileSync('src/shards/alpha/data/output.txt','absent');",
+])('keeps dependency-link and bare-resolution probes conservative: %s',async source=>{
+  const {root,run}=fixture(source);await run();expect((await run()).hit).toBe(true);
+  put(root,'src/sdk/unrelated-new.mjs','export const unused=1;');
+  expect((await run()).hit).toBe(false);
 });
 it('keeps higher-priority CommonJS candidates on the complete key',async()=>{
   const {root,run}=fixture("import{createRequire}from'node:module';import fs from'node:fs';const value=createRequire(import.meta.url)('../../../sdk/chosen').value;fs.writeFileSync('src/shards/alpha/data/output.txt',String(value));");

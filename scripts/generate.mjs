@@ -288,7 +288,7 @@ export async function generateShardJob(root,descriptor,options={}) {
   const result=options.determinism ? await runDeterminismAudit(root,cacheJob,generate,inputHashes)
     : await runObservedGeneration(root,cacheJob,{
       inputHashes,...(options.cacheDir===undefined?{}:{cacheDir:options.cacheDir}),...(options.forceCompare===undefined?{}:{forceCompare:options.forceCompare}),generate,
-    },job.entry,catalog);
+    },job.entry,catalog,[...Object.keys(stageHashes),catalog,...external.map(source=>source.path)]);
   if(options.determinism)return {...result,retention:generationRetention(result.directory,job.outputs,coldSeconds)};
   if(projected!==catalogueProjection(root,job,catalog))throw new Error(`Catalogue changed during generation: ${job.id}`);
   try {

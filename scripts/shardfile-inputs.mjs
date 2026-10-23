@@ -131,7 +131,20 @@ export function installInputRecorder() {
     const scope=inputScope();
     if(context.conditions.includes('require'))scope?.opaque?.add('commonjs-resolution');
     try {return next(specifier,context);}
-    catch(error){if(scope?.traceOnly===true)scope.inventory?.add(`R ${specifier}`);throw error;}
+    catch(error){
+      if(scope?.traceOnly===true) {
+        // File/relative failures also bind nearby resolution candidates (and
+        // directory-import suggestions). Bare resolution stays conservative.
+        let candidate;
+        try {
+          if(specifier.startsWith('file:'))candidate=new URL(specifier);
+          else if((specifier.startsWith('.')||isAbsolute(specifier))&&context.parentURL?.startsWith('file:'))candidate=new URL(specifier,context.parentURL);
+        }catch { /* Unsupported candidate retains the conservative fence. */ }
+        if(candidate?.protocol==='file:'){note('P',candidate);note('D',new URL('.',candidate));}
+        else scope.inventory?.add(`R ${specifier}`);
+      }
+      throw error;
+    }
   },
   load(url,context,next) {
     const file=url.startsWith('file:')?fileURLToPath(url):undefined,scope=inputScope();

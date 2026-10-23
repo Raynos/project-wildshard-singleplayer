@@ -55,8 +55,12 @@ rows and all other manifest fields remain exact. Explicit manifest reads and uns
 whole-file identities. Current raw manifest bytes are fenced before publishing or returning a cache loan.
 Observation families no longer include every input filename. A complete positive-read ESM observation can reuse
 its outputs after unrelated source files are added or removed. Positive realpath probes of recorded modules use
-those modules' existing identities. Other existence/directory/native realpath/glob probes, failed resolution or
-absent reads retain the full file inventory; CommonJS/native/subprocess work keeps the complete conservative key.
+those modules' existing identities. Exact existence/native realpath/absent-read probes bind the verified initial
+stage's file/directory/absent ancestor chain; directory reads bind their subtree, including recursive descendants.
+That view includes immutable upstream copies, projected catalogue files, pinned external inputs and output-parent
+directories, never loose checkout files. Unsupported paths, glob/readlink probes, dependency-link scans and unresolved
+bare packages retain the full inventory; failed file resolution also binds the candidate's parent subtree.
+CommonJS/native/subprocess work keeps the complete conservative key.
 Every miss still executes the complete current stage.
 
 Jobs hash every regular file in their declared conservative input roots plus the runner, sidecar, loader and lockfile.
