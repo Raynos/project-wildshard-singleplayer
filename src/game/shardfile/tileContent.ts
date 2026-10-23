@@ -11,7 +11,20 @@
  *
  * A tile's key is `j * 8 + i` (row j along z, column i along x). Pure arithmetic: no three.js, no DOM.
  */
+import type { Scope } from '@wildshard/engine/app/scope';
 import { TILES_PER_SIDE, TILE_SIZE, tileOf, type CellTile } from './tileOrder';
+
+/**
+ * One installed world element by tile (the port the tile streamer drives, T4): the tiles it holds content in, and `attach`,
+ * which builds one tile's content (its draws and colliders) under that tile's scope; the scope's end takes it away.
+ */
+export interface TileContent {
+  readonly id: string;
+  readonly tiles: () => ReadonlySet<number>;
+  readonly attach: (tile: number, scope: Scope) => Promise<void>;
+  /** the tile's colliders alone, when the element can register them apart from its draws (the collider ring, D2 B) */
+  readonly attachColliders?: (tile: number, scope: Scope) => Promise<void>;
+}
 
 const TILES = TILES_PER_SIDE * TILES_PER_SIDE;
 const HALF = (TILES_PER_SIDE * TILE_SIZE) / 2;

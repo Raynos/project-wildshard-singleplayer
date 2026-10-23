@@ -7,6 +7,7 @@ import * as v from 'valibot';
 import { WorldScenePlacement } from './worldScenePlacement';
 import { WorldSceneBatch } from './worldSceneBatch';
 import { WorldSceneWeldAssembly } from './worldSceneWeld';
+import type { TileContent } from './tileContent';
 
 type NativePart = BufferGeometry | Material | Object3D;
 type Handle = NativePart | Texture | Vector3 | number | WorldScenePlacement | WorldSceneBatch | WorldSceneWeldAssembly | readonly ColliderDesc[];
@@ -16,6 +17,7 @@ type Handle = NativePart | Texture | Vector3 | number | WorldScenePlacement | Wo
 export class SceneHandles {
   private readonly values = new Map<string, Handle>();
   private readonly materialLists = new Map<string, readonly MeshStandardMaterial[]>();
+  private readonly tileContents: TileContent[] = [];
   constructor(private readonly lighting?: Pick<SkyRig, 'setupMaterial'>) {}
   get sky(): Pick<SkyRig, 'setupMaterial'> {
     if (this.lighting === undefined) throw new Error('Scene handles need world sky');
@@ -57,6 +59,22 @@ export class SceneHandles {
     if (!this.has(`${id}.root`)) { this.publish(`${id}.root`, placed.object); this.publishColliders(`${id}.colliders`, placed.colliders); }
     return placed;
   }
+  /**
+   * Tile streaming T3: placement `id` by tile instead of whole: its stable container (published as `<id>.root`, empty until
+   * tiles attach) and a TileContent the streamer drives; `tiled()` lists every element taken this way, in order.
+   */
+  tile(id: string): TileContent {
+    const value = this.value(id);
+    if (!(value instanceof WorldScenePlacement)) throw new Error(`Expected scene placement: ${id}`);
+    if (this.has(`${id}.root`)) throw new Error(`Scene placement ${id} is already placed`);
+    const container = new Group(); container.name = id;
+    this.publish(`${id}.root`, container);
+    const content: TileContent = { id, tiles: () => value.tiles(), attach: async (tile, scope) => { await value.attach(tile, scope, container); } };
+    this.tileContents.push(content);
+    return content;
+  }
+  /** Every element placed by tile so far (`tile()`), in order. */
+  tiled(): readonly TileContent[] { return this.tileContents; }
   /** Whether `id` names a declared frozen graph (a weld assembly) rather than a placement or part. */
   frozen(id: string): boolean { return this.values.get(id) instanceof WorldSceneWeldAssembly; }
   /** Restore a declared frozen graph once, after its living roots have been published. */

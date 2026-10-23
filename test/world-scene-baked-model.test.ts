@@ -203,6 +203,18 @@ test('fictional baked building retains ordered draws, depth layers and tier band
   expect(registry.floorAt(3, 4)).toBe(7); expect(registry.floorAt(40, 40)).toBeUndefined();
   expect(registry.pieces.find(piece => piece.id === 'jetty')?.solidFloor).toBe(true);
   expect(placed.object.position.toArray()).toEqual([3, 1, 4]);
+  // tile streaming T3: by tile, each tile's copies under that tile's scope in one container; its end takes them and their piece
+  const pose = (x: number) => ({ x, y: 0, z: 4, yxz: { yaw: 0, scale: 1 } });
+  const tiled = new WorldScenePlacement(context, parseWorldScenePlacement({ id: 'row', model: 'shelter', draw: 'single', poses: [pose(3), pose(100), pose(110)],
+    piece: { id: 'row', floors: [{ x: 3, z: 4, hw: 1, hd: 1, y: 2 }] } }), defineWorldSceneCatalogue(catalogue), owner, new Map(), []);
+  expect([...tiled.tiles()].sort((a, b) => a - b)).toEqual([36, 37]);
+  const container = new Group(), tileScope = owner.child('tile-37');
+  const two = await tiled.attach(37, tileScope, container);
+  expect(container.children).toHaveLength(1); expect(two?.object.parent).toBe(container);
+  expect(registry.pieces.some(piece => piece.id === 'row.t37')).toBe(true);
+  expect(await tiled.attach(9, owner.child('tile-9'), container)).toBeNull();
+  tileScope.dispose();
+  expect(container.children).toHaveLength(0); expect(registry.pieces.some(piece => piece.id === 'row.t37')).toBe(false);
   expect(() => parseWorldSceneModels({ ...input, models: [{ ...input.models[0], assembly: 'parts' }] })).toThrow();
   expect(() => parseWorldSceneModels({ ...input, models: [{ ...input.models[0], choices: [{ ...input.models[0]?.choices[0], lods: [{ from: 10, draws: [] }] }] }] })).toThrow();
   for (const child of made.children) if (child instanceof Mesh) { const drawn: unknown = child.geometry; if (drawn instanceof BufferGeometry) drawn.dispose(); }
