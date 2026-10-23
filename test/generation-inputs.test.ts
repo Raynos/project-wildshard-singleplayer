@@ -104,6 +104,31 @@ it.each(['scripts/generation-jobs.json','scripts/custom-jobs.json'])('keeps actu
   put(root,file,text);
   expect(await run()).toMatchObject({hit:false,text});
 });
+it('projects output-only catalogue readers without losing shared or orphan-protected paths',async()=>{
+  const source="import fs from 'node:fs';const {jobs}=JSON.parse(fs.readFileSync('scripts/generation-jobs.json','utf8'));fs.writeFileSync('src/shards/alpha/data/output.txt',JSON.stringify(jobs.map(({id,outputs,buildOutputs,buildTimeOutputs})=>({id,outputs,buildOutputs,buildTimeOutputs}))));";
+  const {root,job,run}=fixture(source);job.catalogueOutputsOnly=true;
+  const other:ShardGenerationJob={id:'fixture-other',shard:'beta',entry:'src/shards/beta/generators/bake-other.mjs',command:['src/shards/beta/generators/bake-other.mjs'],inputRoots:['src/shards/beta'],outputs:['public/assets/shared/retained.bin','public/assets/beta/runtime.bin'],buildOutputs:{'public/assets/shared/retained.bin':'a'.repeat(64)},buildTimeOutputs:['public/assets/beta/runtime.bin'],platform:'portable'};
+  const write=():void=>put(root,'scripts/generation-jobs.json',JSON.stringify({schema:'generation-jobs/1',notice:'DO NOT EDIT fixture',jobs:[other,job]}));
+  write();const first=await run();expect(first.hit).toBe(false);
+  expect(first.text).toContain('public/assets/shared/retained.bin');
+  expect(first.text).toContain('public/assets/beta/runtime.bin');
+  other.command.push('--different-authoring-mode');other.inputRoots.push('src/format');
+  write();expect(await run()).toEqual({...first,hit:true});
+  other.outputs.push('public/assets/beta/orphan-protected.glb');
+  write();expect(await run()).toMatchObject({hit:false});
+  expect((await run()).text).toContain('orphan-protected.glb');
+  other.buildOutputs={'public/assets/shared/retained.bin':'b'.repeat(64)};
+  write();expect((await run()).hit).toBe(false);
+  other.buildTimeOutputs?.push('public/assets/beta/new-runtime.bin');
+  write();expect((await run()).hit).toBe(false);
+});
+it('keeps full-catalogue readers byte-exact unless they explicitly opt in',async()=>{
+  const {root,run}=fixture("import fs from 'node:fs';fs.writeFileSync('src/shards/alpha/data/output.txt',fs.readFileSync('scripts/generation-jobs.json'));");
+  await run();expect((await run()).hit).toBe(true);
+  const file='scripts/generation-jobs.json';
+  put(root,file,readFileSync(resolve(root,file),'utf8').replace('DO NOT EDIT fixture','DO NOT EDIT another notice'));
+  expect((await run()).hit).toBe(false);
+});
 it('keeps the conservative key when no raw input would remain',async()=>{
   const {root,run}=fixture();rmSync(resolve(root,'package.json'));
   await run();expect((await run()).hit).toBe(true);

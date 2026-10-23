@@ -20,7 +20,7 @@ import { runDeterminismAudit, verifyStagedGeneration } from './generation-determ
 
 const path = v.pipe(v.string(),v.check(value=>value.length>0 && !isAbsolute(value) && !value.includes('\\') && value.split('/').every(part=>part!=='' && part!=='.' && part!=='..')));
 const jobIdSchema = v.pipe(v.string(),v.regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u));
-const Descriptor = v.strictObject({id:jobIdSchema,catalogueDependencies:v.optional(v.array(jobIdSchema)),shard:v.nullable(v.pipe(v.string(),v.regex(/^[a-z0-9_]+(?:-[a-z0-9]+)*$/u))),entry:path,command:v.array(v.string()),inputRoots:v.array(path),outputs:v.array(path),platform:v.picklist(['portable','native','darwin']),buildTimeOutputs:v.optional(v.array(path),[]),buildOutputs:v.optional(v.record(path,v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))),{}),comparisonOutputs:v.optional(v.record(path,v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))),{}),seedOutputs:v.optional(v.array(path),[]),capture:v.optional(v.boolean(),false),browser:v.optional(v.boolean(),false),preview:v.optional(v.boolean(),false),recordedInputs:v.optional(v.boolean(),false),externalInputs:v.optional(v.array(v.strictObject({path, url:v.string(),sha256:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))})),[]),toolCommands:v.optional(v.array(v.pipe(v.array(v.string()),v.minLength(1))),[])});
+const Descriptor = v.strictObject({id:jobIdSchema,catalogueDependencies:v.optional(v.array(jobIdSchema)),catalogueOutputsOnly:v.optional(v.boolean()),shard:v.nullable(v.pipe(v.string(),v.regex(/^[a-z0-9_]+(?:-[a-z0-9]+)*$/u))),entry:path,command:v.array(v.string()),inputRoots:v.array(path),outputs:v.array(path),platform:v.picklist(['portable','native','darwin']),buildTimeOutputs:v.optional(v.array(path),[]),buildOutputs:v.optional(v.record(path,v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))),{}),comparisonOutputs:v.optional(v.record(path,v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))),{}),seedOutputs:v.optional(v.array(path),[]),capture:v.optional(v.boolean(),false),browser:v.optional(v.boolean(),false),preview:v.optional(v.boolean(),false),recordedInputs:v.optional(v.boolean(),false),externalInputs:v.optional(v.array(v.strictObject({path, url:v.string(),sha256:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))})),[]),toolCommands:v.optional(v.array(v.pipe(v.array(v.string()),v.minLength(1))),[])});
 const Catalog = v.strictObject({schema:v.literal('generation-jobs/1'),notice:v.pipe(v.string(),v.includes('DO NOT EDIT')),jobs:v.array(Descriptor)});
 const infrastructure=['src/format','scripts/json-output-guard.mjs','scripts/no-binary-json.mjs','lint/no-binary-json.json','scripts/generate.mjs','scripts/generation-scheduling.mjs','scripts/generation-stage.mjs','scripts/generation-determinism.mjs','scripts/generation-cache.mjs','scripts/generation-inputs.mjs','scripts/generation-recorder.mjs','scripts/generation-node-cache.mjs','scripts/shardfile-inputs.mjs','scripts/shardfile-cache.mjs','scripts/compiler-code.mjs','scripts/function-source.mjs','scripts/generation-snapshot.mjs','scripts/bake-input-hashes.mjs','scripts/link-node-modules.mjs','scripts/generation-capture.mjs','scripts/generation-sources.mjs','scripts/generation-inventory.mjs','scripts/source-generation-outputs.json','package.json','pnpm-lock.yaml','pnpm-workspace.yaml'];
 // These are loader/check/hash/write helpers, not output producers. New bake entry points default to undeclared.
@@ -130,20 +130,23 @@ export function discoverGeneration(root,catalogPath='scripts/generation-jobs.jso
   return {schema:'generation-discovery/1',jobs:catalog.jobs,unregistered:entries.filter(entry=>!catalog.jobs.some(job=>job.entry===entry)).sort()};
 }
 
-/** An opted-in producer sees only its own row and declared catalogue dependencies.
+/** An opted-in producer sees its own row and declared catalogue dependencies,
+ * or only output declarations for presence/cleanup readers. Output-only views
+ * retain every selected path and pin, but never commands or source roots.
  * Omission preserves the complete catalogue. Missing/duplicate IDs or crossed
  * caller descriptors refuse; projected bytes are part of the cache identity.
  * @param {string} root @param {import('./generate.mjs').ShardGenerationJob} job @param {string} catalog */
 function catalogueProjection(root, job, catalog) {
-  if (job.catalogueDependencies === undefined) return undefined;
+  if (job.catalogueDependencies === undefined && !job.catalogueOutputsOnly) return undefined;
   /** @type {{schema:string,notice:string,jobs:import('./generate.mjs').ShardGenerationJob[]}} */
   const source=JSON.parse(readFileSync(resolve(root,catalog),'utf8'));
-  const parsed=v.parse(Catalog,source), wanted=[job.id,...job.catalogueDependencies];
+  const parsed=v.parse(Catalog,source), wanted=[job.id,...(job.catalogueDependencies??[])];
   if(new Set(wanted).size!==wanted.length)throw new Error(`Duplicate catalogue dependency: ${job.id}`);
   const own=parsed.jobs.find(row=>row.id===job.id);
   if(own===undefined || JSON.stringify(own)!==JSON.stringify(job))throw new Error(`Crossed catalogue descriptor: ${job.id}`);
   for(const name of wanted)if(parsed.jobs.filter(row=>row.id===name).length!==1)throw new Error(`Missing or duplicate catalogue dependency: ${name}`);
-  return JSON.stringify({...source,jobs:source.jobs.filter(row=>wanted.includes(row.id))});
+  const selected=job.catalogueDependencies===undefined?source.jobs:source.jobs.filter(row=>wanted.includes(row.id));
+  return JSON.stringify({...source,jobs:job.catalogueOutputsOnly ? selected.map(row=>({id:row.id,outputs:row.outputs,buildOutputs:row.buildOutputs??{},buildTimeOutputs:row.buildTimeOutputs??[]})) : selected});
 }
 
 /** Run a Node producer without a shell, in its own copied source tree. @param {string} cwd @param {string[]} command */

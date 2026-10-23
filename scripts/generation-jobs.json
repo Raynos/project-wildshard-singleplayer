@@ -536,6 +536,7 @@
     },
     {
       "id": "nalati-boot-metadata",
+      "catalogueOutputsOnly": true,
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-boot-metadata.mjs",
       "command": [
@@ -1943,6 +1944,7 @@
     },
     {
       "id": "driftwood-boot-inventory",
+      "catalogueOutputsOnly": true,
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/bake-boot-inventory.mjs",
       "command": [
@@ -8341,6 +8343,7 @@
     },
     {
       "id": "sky-world",
+      "catalogueOutputsOnly": true,
       "shard": "far-reach",
       "entry": "src/shards/far-reach/generators/bake-sky-world.mjs",
       "command": [
@@ -17727,6 +17730,7 @@
     },
     {
       "id": "pine-boot-metadata",
+      "catalogueOutputsOnly": true,
       "shard": "pine-hollow",
       "entry": "src/shards/pine-hollow/generators/bake-boot-metadata.mjs",
       "command": [
@@ -18322,6 +18326,7 @@
     },
     {
       "id": "nine-boot-metadata",
+      "catalogueOutputsOnly": true,
       "shard": "nine-dragon-stack",
       "entry": "src/shards/nine-dragon-stack/generators/bake-boot-metadata.mjs",
       "command": [
