@@ -46,8 +46,9 @@ const HALF = TILE / 2;
 const BORDER = 4;
 const INNER = HALF - BORDER;
 /** the canal's water half-width, its stone rim and how far the water sits below the paving */
-const CANAL = { half: 6, rim: 0.8, rimHeight: 0.6, depth: 0.45 };
-const BRIDGE = { rise: 1.1, half: 7.5, deck: 0.3, steps: 12 };
+// NM8: wide water as in the mockup (20 m), high arched bridges over it
+const CANAL = { half: 10, rim: 0.8, rimHeight: 0.6, depth: 0.45 };
+const BRIDGE = { rise: 2, half: 11.5, deck: 0.3, steps: 16 };
 
 /** Parse a layout row set: eight strings of eight `<letter><turns>` pairs (north row first). */
 export function parseLayout(rows) {
@@ -198,7 +199,7 @@ function garden(w, p, variant) {
       frustum(w, 'Kit', cx, cz, 10, 8.6, 8.6, 0, 0.35, p.stone);
       for (let i = 0; i < 10; i++) {
         const a0 = i / 10 * Math.PI * 2, a1 = (i + 1) / 10 * Math.PI * 2;
-        w.tri('Kit', [cx, 0.38, cz], [cx + 7.8 * Math.sin(a0), 0.38, cz + 7.8 * Math.cos(a0)], [cx + 7.8 * Math.sin(a1), 0.38, cz + 7.8 * Math.cos(a1)], p.water);
+        w.tri('Water', [cx, 0.38, cz], [cx + 7.8 * Math.sin(a0), 0.38, cz + 7.8 * Math.cos(a0)], [cx + 7.8 * Math.sin(a1), 0.38, cz + 7.8 * Math.cos(a1)], p.water);
       }
       w.solid([cx - 8.6, 0, cz - 8.6], [cx + 8.6, 0.6, cz + 8.6]);
       continue;
@@ -241,7 +242,7 @@ function canal(w, p, type) {
   const rects = waterOf(type);
   const { half, rim, rimHeight, depth } = CANAL;
   // the water and its walls, each walked with the water on its left so it faces the water
-  for (const [x0, z0, x1, z1] of rects) w.floor('Kit', x0, z0, x1, z1, -depth, p.water);
+  for (const [x0, z0, x1, z1] of rects) w.floor('Water', x0, z0, x1, z1, -depth, p.water);
   const walls = type === 'C'
     ? [[-half, HALF, -half, -HALF], [half, -HALF, half, HALF]]
     : [[-half, half, -half, -HALF], [HALF, half, -half, half], [half, -HALF, half, -half], [half, -half, HALF, -half]];

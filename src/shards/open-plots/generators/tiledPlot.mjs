@@ -103,12 +103,21 @@ async function tiledPlot(root, repo, layoutName) {
   const palette = Object.fromEntries(Object.entries(layout.palette).map(([key, hex]) => [key, linear(hex)]));
   // NM5: the posters' faces carry their picture's mean colour (the Poster material draws the picture alone), for the near view
   palette.picture = await meanColour(resolve(repo, layout.posters.image));
-  const grid = parseLayout(layout.rows), parts = { Paving: new Soup(), Kit: new Soup(), Glow: new Soup(), Pool: new Soup(), Poster: new Soup(), far: new Soup(), solid: new Soup() };
+  const grid = parseLayout(layout.rows), parts = { Paving: new Soup(), Kit: new Soup(), Water: new Soup(), Glow: new Soup(), Pool: new Soup(), Poster: new Soup(), far: new Soup(), solid: new Soup() };
   // the plot's ground: the outer ring, then each tile's paving inside it (the lanes a shade lighter, the canals open)
   for (const [x0, z0, x1, z1] of [[-250, RING, 250, 250], [-250, -250, 250, -RING], [-250, -RING, -RING, RING], [RING, -RING, 250, RING]]) {
     parts.Paving.quad('Paving', [x0, 0, z0], [x0, 0, z1], [x1, 0, z1], [x1, 0, z0], [1, 1, 1]);
   }
-  for (const [x0, z0, x1, z1, lane] of paving(grid, RING)) parts.Kit.quad('Kit', [x0, 0, z0], [x0, 0, z1], [x1, 0, z1], [x1, 0, z0], lane ? palette.lane : palette.paving);
+  // NM8: the paving in 5 m slabs on the plot's grid, two shades in a checker (the lanes their own pair), as the mockup's stone
+  const SLAB = 5, cut = (a0, a1) => { const out = [a0]; for (let v = Math.ceil(a0 / SLAB) * SLAB; v < a1; v += SLAB) if (v > a0) out.push(v); out.push(a1); return out; };
+  for (const [x0, z0, x1, z1, lane] of paving(grid, RING)) {
+    const xs = cut(x0, x1), zs = cut(z0, z1);
+    for (let i = 0; i + 1 < xs.length; i++) for (let k = 0; k + 1 < zs.length; k++) {
+      const odd = (Math.floor(xs[i] / SLAB) + Math.floor(zs[k] / SLAB)) % 2 !== 0;
+      const colour = lane ? (odd ? palette.laneAlt : palette.lane) : (odd ? palette.pavingAlt : palette.paving);
+      parts.Kit.quad('Kit', [xs[i], 0, zs[k]], [xs[i], 0, zs[k + 1]], [xs[i + 1], 0, zs[k + 1]], [xs[i + 1], 0, zs[k]], colour);
+    }
+  }
   // the kerb in the ring, open at the four entries (the lanes on the x = 0 and z = 0 seams)
   for (const side of [-1, 1]) for (const [a, b] of [[-KERB.to, -KERB.gap], [KERB.gap, KERB.to]]) {
     const along = [[a, side * KERB.from], [b, side * KERB.to]], across = [[side * KERB.from, a], [side * KERB.to, b]];
@@ -156,6 +165,7 @@ export async function writeTiledWorld(root, repo, idea) {
     Kit: doc.createMaterial('Kit').setBaseColorFactor([1, 1, 1, 1]).setRoughnessFactor(0.9).setMetallicFactor(0),
     Glow: doc.createMaterial('Glow').setBaseColorFactor([1, 1, 1, 1]).setMetallicFactor(0),
     Pool: doc.createMaterial('Pool').setBaseColorFactor([1, 1, 1, 1]).setMetallicFactor(0),
+    Water: doc.createMaterial('Water').setBaseColorFactor([1, 1, 1, 1]).setRoughnessFactor(0.12).setMetallicFactor(0.2),
     Landmark: doc.createMaterial('Landmark').setBaseColorFactor([1, 1, 1, 1]).setRoughnessFactor(0.8).setMetallicFactor(0).setBaseColorTexture(await texture('landmark', nearImage)),
     Poster: doc.createMaterial('Poster').setBaseColorFactor([1, 1, 1, 1]).setMetallicFactor(0).setBaseColorTexture(await texture('poster', await readImagePixels(readFileSync(posterFile)))),
   };
@@ -179,6 +189,7 @@ export async function writeTiledWorld(root, repo, idea) {
   };
   node('ws_terrain_floor', parts.Paving.part('Paving'), materials.Paving);
   node('draw_kit', parts.Kit.part('Kit'), materials.Kit);
+  node('draw_water', parts.Water.part('Water'), materials.Water);
   node('draw_glow', parts.Glow.part('Glow'), materials.Glow);
   node('draw_pool', parts.Pool.part('Pool'), materials.Pool, { normals: false });
   node('draw_poster', parts.Poster.part('Poster'), materials.Poster, { uv: true });
