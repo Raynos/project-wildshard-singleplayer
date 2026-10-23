@@ -421,6 +421,9 @@ export function formatJsonSchema(schema: GenericSchema, target: 'draft-07' | 'dr
     target, errorMode: 'throw', typeMode: 'output',
     overrideSchema: ({ valibotSchema }) => customSchemas.get(valibotSchema),
     overrideAction: ({ valibotAction, jsonSchema, errors }) => {
+      // Exact one-pass sample transforms retain the original wire grammar; JSON numbers are finite.
+      if (valibotAction === SkinPoseLayerSchema.entries.times.pipe[1]) return { type: 'array', items: { type: 'number' }, minItems: 2, maxItems: 4097 };
+      if (valibotAction === SkinPoseLayerSchema.entries.tracks.pipe[0].item.entries.values.pipe[1]) return { type: 'array', items: { type: 'number' }, maxItems: 300000 };
       if (valibotAction === GraphArmsSchema.entries.rig.entries.sockets.pipe[3]) return { ...jsonSchema, uniqueItems: true };
       if (valibotAction === HeldArmsSchema.options[1].entries.tools.pipe[2]) return { ...jsonSchema, uniqueItems: true };
       // This defining transform only omits empty optional namespaces; all nonempty maps retain the schema below.
