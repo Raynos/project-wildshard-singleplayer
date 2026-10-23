@@ -11685,8 +11685,14 @@ offset re-applied every displayed frame from the last landed bank; written on
 landing: a lent look parameter, a lent object's visibility, its materials'
 opacity or a named shader uniform, or one component of one copy's attribute,
 a per-instance look value), the transform positions (a lent object's local
-matrix, a named bone under it, or one copy of a lent instanced draw), the lane
-budget and the matrix bounds. Every target is claimed once for the owner's
+matrix, a named bone under it, or one copy of a lent instanced draw), numeric
+arrays the owner lends by id (`lendViewArray`: read whole once a frame, a field's
+cells or a grid's heights), instanced draws the owner lends by id that a frame
+writes in bulk (`lendViewDraw`: how many copies draw and a changed range of their
+matrices and one per-instance attribute, inside the bounds and the batch's
+capacity), the lane budget and the matrix bounds. A program runs in its own
+update system or inline at an owner's frame slot (`lendViewFrame`), whose
+`frame` says whether the module ran (its lane's rate can skip a frame). Every target is claimed once for the owner's
 life and restored when it ends; a rendered pose is never an authority
 position. A program sampling a piece the registry lacks installs
 nothing. `engine/script/viewProgram` owns the lane; the game install only

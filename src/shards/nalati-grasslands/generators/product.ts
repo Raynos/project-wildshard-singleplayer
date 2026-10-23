@@ -36,6 +36,8 @@ import admission from '../behaviour/admission.generated.json' with { type: 'json
 import creatureViews from '../behaviour/creatureViews.generated.json' with { type: 'json' };
 import eliteViews from '../behaviour/eliteViews.generated.json' with { type: 'json' };
 import titanView from '../behaviour/titanView.generated.json' with { type: 'json' };
+import titanFireView from '../behaviour/titanFireView.generated.json' with { type: 'json' };
+import titanWhirlsView from '../behaviour/titanWhirlsView.generated.json' with { type: 'json' };
 
 // The existing plugin remains the trusted world entry while its audio comes from the shardfile.
 // SF48-g edges (G93 / G99 / G103 / G131): the four 8 m midpoint entryways (`emptyShardfile`'s, the engine's ENTRY_WIDTH) stand
@@ -64,8 +66,8 @@ const programMemory = programs.reduce((sum, program) => sum + program.script.pag
   + atob(projection.bytes).length + projection.artifact.pages * 65536 * 2
   + atob(heldProjection.bytes).length + heldProjection.artifact.pages * 65536 * 2
   + atob(ridingProjection.bytes).length+ridingProjection.artifact.pages*65536*2;
-// the creature, elite and Titan view modules (behaviour/creatureViews.as, eliteViews.as, titanView.as): their live and last-good pages on the client
-const viewMemory = (creatureViews.pages + eliteViews.pages + titanView.pages) * 65536 * 2;
+// the creature, elite and Titan view modules (behaviour/creatureViews.as, eliteViews.as, titanView.as, titanFireView.as, titanWhirlsView.as): their live and last-good pages on the client
+const viewMemory = (creatureViews.pages + eliteViews.pages + titanView.pages + titanFireView.pages + titanWhirlsView.pages) * 65536 * 2;
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
 export default parseShardfile({ ...base,
   navigation: navigation.navigation, terrain: queryTerrain.terrain, files: [...files, ...renderTiles.files].sort((a, b) => a.hash.localeCompare(b.hash)), critical: [...navigation.critical, ...queryTerrain.critical],

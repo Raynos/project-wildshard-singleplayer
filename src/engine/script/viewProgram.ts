@@ -13,6 +13,7 @@ import { BufferAttribute, BufferGeometry, Color, InstancedMesh, InterleavedBuffe
 import { viewTellShape, type ViewProgramRows, type ViewTargetRef, type ViewTellShape } from '@wildshard/format/viewProgram';
 import type { Scope } from '../app/scope';
 import { ViewLane } from './viewLane';
+import { diagnosticNow } from '../core/clock';
 
 /** The actor bound to one slot: its identity (a new one starts uninterpolated), pose, life, the ground under it, its
  *  named finite fields, the visual fields a program may set, and its drawn object. */
@@ -47,10 +48,15 @@ export interface ViewProgramPorts {
   readonly cell?: (id: string) => { value: number };
   /** a lent ground tell by id (absent: the owner lends none) */
   readonly tell?: (id: string) => ViewTell;
+  /** a lent numeric array by id, read whole once a frame (absent: the owner lends none) */
+  readonly array?: (id: string) => () => ArrayLike<number>;
+  /** a lent instanced draw by id that a frame writes in bulk (absent: the owner lends none) */
+  readonly draw?: (id: string) => InstancedMesh;
 }
 export interface ViewProgram {
-  /** one displayed frame: the presentation delta and its system's frame time (the `clock` sample), seconds */
-  frame: (dt: number, time: number) => void;
+  /** one displayed frame: the presentation delta and its system's frame time (the `clock` sample), seconds; whether the
+   *  module ran (the lane's rate may skip a frame: an owner that hands it one-frame events keeps them until it runs) */
+  frame: (dt: number, time: number) => boolean;
   readonly frozen: boolean;
 }
 
@@ -205,9 +211,31 @@ export function viewProgram(bytes: Uint8Array, rows: ViewProgramRows, ports: Vie
   const n = rows.samples.reduce((sum, row) => sum + width(row), 0), columns = new Float64Array(2 * n);
   const seen = new Map<string, (string | null)[]>([...pools].map(([key, pool]) => [key, Array.from({ length: pool.row.count }, () => null)]));
   const staged = rows.transforms.map(() => new Matrix4()), dirty = new Set<number>(), landed = new Float64Array(rows.channels.length);
+  // each lent array and each lent instanced draw its rows name; a draw is claimed for the owner's life (its drawn count
+  // restored when that ends) and its attribute must hold a component per instance for every one the row writes
+  const arrayRows = rows.arrays ?? [], batchRows = rows.batches ?? [];
+  const arrays = arrayRows.map(row => { const read = ports.array?.(row.id); if (read === undefined) throw new Error(`View array ${row.id} is not lent`); return read; });
+  const batches = batchRows.map(row => {
+    const mesh = ports.draw?.(row.draw); if (mesh === undefined) throw new Error(`View draw ${row.draw} is not lent`);
+    const found: unknown = row.attribute === undefined ? null : mesh.geometry.getAttribute(row.attribute.name);
+    const attribute = found instanceof BufferAttribute ? found : null;
+    if (row.attribute !== undefined && (attribute === null || attribute.itemSize < row.attribute.itemSize || attribute.count < mesh.instanceMatrix.count)) throw new Error(`View draw ${row.draw} lacks its attribute`);
+    const saved = mesh.count; claim(scope, mesh, 'batch', () => { mesh.count = saved; });
+    return { mesh, attribute, itemSize: row.attribute?.itemSize ?? 0 };
+  });
   const lane = new ViewLane(bytes, rows.budget.pages, { bindings: [{ handle: 1, columns: n }],
     transforms: rows.transforms.map((_, output) => ({ binding: 0, output, element: 0 })), channels: rows.channels.length,
+    arrays: arrayRows.map(row => row.length),
+    batches: batchRows.map((row, i) => ({ instances: batches[i]?.mesh.instanceMatrix.count ?? 0, capacity: row.capacity, itemSize: row.attribute?.itemSize ?? 0 })),
     bounds: rows.bounds, targetMs: rows.budget.targetMs, fuel: rows.budget.fuel }, {
+    batch: (index, total, first, changed, matrices, values) => {
+      const batch = batches[index]; if (batch === undefined || !live()) return;
+      const { mesh, attribute, itemSize } = batch;
+      for (let k = 0; k < changed; k++) mesh.instanceMatrix.array.set(matrices.subarray(k * 16, k * 16 + 16), (first + k) * 16);
+      if (attribute !== null) for (let k = 0; k < changed; k++) for (let c = 0; c < itemSize; c++) attribute.setComponent(first + k, c, values[k * itemSize + c] ?? 0);
+      if (changed > 0) { mesh.instanceMatrix.needsUpdate = true; if (attribute !== null) attribute.needsUpdate = true; }
+      mesh.count = total;
+    },
     write: (index, matrix) => { const staging = staged[index]; if (staging === undefined) throw new Error('Unknown view transform'); if (live()) { staging.fromArray(matrix); dirty.add(index); } },
     channels: values => {
       landed.set(values.subarray(0, landed.length));
@@ -220,7 +248,7 @@ export function viewProgram(bytes: Uint8Array, rows: ViewProgramRows, ports: Vie
   });
   const camera = ports.camera, player = ports.player;
   let tick = 0;
-  return { get frozen() { return lane.isFrozen; }, frame: (dt, time) => {
+  return { get frozen() { return lane.isFrozen; }, frame: (dt, time): boolean => {
     const p = player.position;
     for (const pool of pools.values()) pool.slots.refresh?.();
     // previous columns are last frame's current ones; a fresh value (a scalar, a new identity in a slot) has no previous
@@ -251,13 +279,14 @@ export function viewProgram(bytes: Uint8Array, rows: ViewProgramRows, ports: Vie
         : row.field === 'speed' ? Math.hypot(player.velocity.x, player.velocity.z) : row.field === 'yaw' ? player.yaw : p[row.field], true);
     }
     tick++;
-    lane.frame(dt, 0, tick, [{ previousTick: tick - 1, currentTick: tick, values: columns }], 60, () => performance.now());
-    if (lane.isFrozen) return;
+    const ran = lane.frame(dt, 0, tick, [{ previousTick: tick - 1, currentTick: tick, values: columns }], 60, diagnosticNow, arrays.map(read => read()));
+    if (lane.isFrozen) return ran;
     for (const [i, row] of rows.channels.entries()) {
       if (row.kind !== 'camera') continue;
       const value = landed[i] ?? 0;
       if (row.field === 'roll') camera.rotation.z += value; else if (row.field === 'pitch') camera.rotation.x += value;
       else if (row.field === 'yaw') camera.rotation.y += value; else camera.position[row.field] += value;
     }
+    return ran;
   } };
 }

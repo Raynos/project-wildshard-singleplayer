@@ -12271,6 +12271,58 @@
       ]
     },
     {
+      "id": "nalati-titan-fire-view",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-titan-fire-view.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-titan-fire-view.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/format",
+        "src/sdk",
+        "src/shards/nalati-grasslands/behaviour/titanFireView.as",
+        "src/shards/nalati-grasslands/generators/bake-titan-fire-view.mjs"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/behaviour/titanFireView.generated.json"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "src/shards/nalati-grasslands/behaviour/titanFireView.generated.json"
+      ]
+    },
+    {
+      "id": "nalati-titan-whirls-view",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-titan-whirls-view.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/nalati-grasslands/generators/bake-titan-whirls-view.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/format",
+        "src/sdk",
+        "src/shards/nalati-grasslands/behaviour/titanWhirlsView.as",
+        "src/shards/nalati-grasslands/generators/bake-titan-whirls-view.mjs"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/behaviour/titanWhirlsView.generated.json"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "src/shards/nalati-grasslands/behaviour/titanWhirlsView.generated.json"
+      ]
+    },
+    {
       "id": "nine-movers-view",
       "shard": "nine-dragon-stack",
       "entry": "src/shards/nine-dragon-stack/generators/bake-movers-view.mjs",

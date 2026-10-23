@@ -12,10 +12,14 @@
 import { readV2Module } from '@wildshard/format/scriptModuleV2';
 
 /** Region kinds and strides (SCRIPT-ABI v2 "Header and region directory"); every kind is present, unused ones empty. */
-const STRIDES = [64, 8, 8, 8, 96, 16, 80, 32, 56, 64, 80, 64, 8, 1, 32, 8, 80, 8, 48, 16, 64, 64] as const;
-const BINDINGS = 1, SAMPLE_DIRECTORY = 15, SAMPLE_COLUMNS = 16, TRANSFORMS = 17, CHANNELS = 18;
+const STRIDES = [64, 8, 8, 8, 96, 16, 80, 32, 56, 64, 80, 64, 8, 1, 32, 8, 80, 8, 48, 16, 64, 64, 4, 4] as const;
+const BINDINGS = 1, SAMPLE_DIRECTORY = 15, SAMPLE_COLUMNS = 16, TRANSFORMS = 17, CHANNELS = 18, ARRAYS = 23, BATCHES = 24;
+/** one batch record's header words (total, first changed, changed, pad) before its matrices and attribute values */
+const BATCH_HEADER = 4;
 const MAGIC = 0x32565357, HEADER = 128, ENTRY = 24, LANE_VIEW = 3;
 const align16 = (n: number): number => Math.ceil(n / 16) * 16;
+/** one batch record's 32-bit words: its header, `capacity` matrices and `capacity` attribute items */
+const batchWords = (row: { readonly capacity: number; readonly itemSize: number }): number => BATCH_HEADER + row.capacity * (16 + row.itemSize);
 
 /** One view binding: its stable handle and the public sim columns it samples (previous and current, stamped). */
 export interface ViewBindingRow { readonly handle: number; readonly columns: number }
@@ -25,6 +29,11 @@ export interface ViewLaneRows {
   readonly bindings: readonly ViewBindingRow[];
   readonly transforms: readonly ViewTransformRow[];
   readonly channels: number;
+  /** view arrays (kind 23): each lent array's length, in order; the host writes their current values as f32 */
+  readonly arrays?: readonly number[];
+  /** view batches (kind 24): per lent instanced draw, its instance count, the copies one frame may write (capacity) and
+   *  its per-instance attribute's components (0: none) */
+  readonly batches?: readonly ViewBatchRow[];
   /** a changed matrix's translation magnitude, column scale range and normalized column cross-dot must stay inside */
   readonly bounds: { readonly translation: number; readonly scale: readonly [number, number]; readonly shear: number };
   /** total view cost per scheduled call (marshalling, guest, validation, targets) the rate policy holds to, ms */
@@ -32,12 +41,18 @@ export interface ViewLaneRows {
   /** fuel per call */
   readonly fuel: number;
 }
+/** One batch: a lent instanced draw of `instances` copies; one frame writes at most `capacity` of them, each a matrix and
+ *  `itemSize` attribute values (0-4). */
+export interface ViewBatchRow { readonly instances: number; readonly capacity: number; readonly itemSize: number }
 /** Where a validated frame lands: the renderer adapter the owner supplies (an InstancedMesh, bones, look channels). */
 export interface ViewTargets {
   /** one validated changed matrix (column-major) for its transform position */
   write: (position: number, matrix: Float32Array) => void;
   /** the complete validated channel bank */
   channels: (values: Float64Array) => void;
+  /** one validated batch: its drawn count, then `changed` copies from `first` (matrices 16 f32 each, attribute values
+   *  `itemSize` each) */
+  batch?: (index: number, total: number, first: number, changed: number, matrices: Float32Array, attributes: Float32Array) => void;
   /** the whole frame validated: mark what changed for upload */
   upload: () => void;
 }
@@ -52,6 +67,8 @@ export class ViewLane {
   private readonly offsets = new Map<number, number>();
   private readonly frozen = new Set<number>();
   private readonly matrix = new Float32Array(16);
+  /** each batch's last landed total (a frame starts from it) */
+  private readonly totals: number[] = [];
   private sequence = 0;
   private frames = 0;
   private pendingDt = 0;
@@ -76,7 +93,10 @@ export class ViewLane {
     this.io = this.call('ws_io');
     this.view = new DataView(this.memory.buffer);
     const capacity = new Map([[BINDINGS, rows.bindings.length], [SAMPLE_DIRECTORY, rows.bindings.length],
-      [SAMPLE_COLUMNS, rows.bindings.reduce((n, row) => n + 2 * row.columns, 0)], [TRANSFORMS, rows.transforms.length], [CHANNELS, rows.channels]]);
+      [SAMPLE_COLUMNS, rows.bindings.reduce((n, row) => n + 2 * row.columns, 0)], [TRANSFORMS, rows.transforms.length], [CHANNELS, rows.channels],
+      [ARRAYS, (rows.arrays ?? []).reduce((n, length) => n + length, 0)], [BATCHES, (rows.batches ?? []).reduce((n, row) => n + batchWords(row), 0)]]);
+    // a batch's capacity may exceed its draw's instances (one row, several tiers' draws): its total never may
+    for (const row of rows.batches ?? []) if (![row.instances, row.capacity, row.itemSize].every(Number.isInteger) || row.instances < 0 || row.capacity < 1 || row.itemSize < 0 || row.itemSize > 4) throw new Error('Invalid view batch');
     let end = align16(HEADER + STRIDES.length * ENTRY);
     if (!Number.isInteger(this.io) || this.io < 0 || this.io % 16 !== 0) throw new Error('View IO base is not aligned');
     const directory = this.io + HEADER;
@@ -88,7 +108,8 @@ export class ViewLane {
       end += stride * count;
     }
     if (this.io + end > this.memory.buffer.byteLength) throw new Error('View layout does not fit its fixed memory');
-    this.view.setUint32(this.io, MAGIC, true); this.view.setUint16(this.io + 4, 2, true); this.view.setUint16(this.io + 6, 0, true);
+    // minor 1: the view lane's kinds 23 (arrays) and 24 (batches)
+    this.view.setUint32(this.io, MAGIC, true); this.view.setUint16(this.io + 4, 2, true); this.view.setUint16(this.io + 6, 1, true);
     this.view.setUint32(this.io + 8, HEADER, true); this.view.setUint32(this.io + 12, end, true); this.view.setUint32(this.io + 20, LANE_VIEW, true);
     this.view.setUint32(this.io + 96, STRIDES.length, true); this.view.setUint32(this.io + 100, HEADER, true);
     for (const [i, row] of rows.bindings.entries()) {
@@ -109,22 +130,36 @@ export class ViewLane {
    * header and samples, call the guest, validate and land its frame. `displayHz` bounds the halving at 15 Hz; `now`
    * reads the clock for the rate policy (the caller's `performance.now`). Returns whether the guest ran.
    */
-  frame(dt: number, alpha: number, tick: number, samples: readonly ViewSample[], displayHz: number, now: () => number): boolean {
+  frame(dt: number, alpha: number, tick: number, samples: readonly ViewSample[], displayHz: number, now: () => number, arrays: readonly ArrayLike<number>[] = []): boolean {
     if (this.disabled) return false;
     this.pendingDt += dt;
     if (++this.frames % this.interval !== 0) return false;
-    const start = now(), ok = this.run(this.pendingDt, alpha, tick, samples);
+    const start = now(), ok = this.run(this.pendingDt, alpha, tick, samples, arrays);
     this.pendingDt = 0;
     this.rate(now() - start, ok, displayHz);
     return true;
   }
 
-  private run(dt: number, alpha: number, tick: number, samples: readonly ViewSample[]): boolean {
+  private run(dt: number, alpha: number, tick: number, samples: readonly ViewSample[], arrays: readonly ArrayLike<number>[]): boolean {
     const v = this.view, io = this.io, origin = Math.floor(tick / 2 ** 30) * 2 ** 30;
     v.setUint32(io + 24, ++this.sequence, true); v.setInt32(io + 28, tick - origin, true); v.setFloat64(io + 104, origin, true);
     v.setUint32(io + 32, this.rows.bindings.length - this.frozen.size, true); v.setUint32(io + 64, 0, true);
     v.setUint32(io + 72, 0, true); v.setUint32(io + 76, 0, true); v.setFloat64(io + 80, dt, true); v.setFloat64(io + 88, alpha, true); v.setUint32(io + 112, this.sequence, true);
     for (const kind of [TRANSFORMS, CHANNELS]) v.setUint32(io + HEADER + (kind - 1) * ENTRY + 16, 0, true);
+    // arrays: each lent array's current values, f32, in declared order (a short or absent array is zero-filled)
+    let word = 0;
+    for (const [i, length] of (this.rows.arrays ?? []).entries()) {
+      const values = arrays[i];
+      for (let k = 0; k < length; k++) v.setFloat32(this.region(ARRAYS) + (word + k) * 4, values?.[k] ?? 0, true);
+      word += length;
+    }
+    // batches: each record starts as its last landed total and no change (a frame that writes nothing keeps its draw)
+    word = 0;
+    for (const [i, row] of (this.rows.batches ?? []).entries()) {
+      const at = this.region(BATCHES) + word * 4;
+      v.setUint32(at, this.totals[i] ?? 0, true); v.setUint32(at + 4, 0, true); v.setUint32(at + 8, 0, true); v.setUint32(at + 12, 0, true);
+      word += batchWords(row);
+    }
     let column = this.region(SAMPLE_COLUMNS) / 8;
     const columns = new Float64Array(this.memory.buffer), stamps = this.region(SAMPLE_DIRECTORY);
     for (const [i, row] of this.rows.bindings.entries()) {
@@ -162,6 +197,17 @@ export class ViewLane {
     const channels = v.getUint32(io + HEADER + (CHANNELS - 1) * ENTRY + 16, true), dirty = v.getUint32(io + 76, true);
     if (channels !== dirty || (channels !== 0 && channels !== this.rows.channels)) return false;
     for (let i = 0; i < channels; i++) if (!Number.isFinite(v.getFloat64(this.region(CHANNELS) + i * 8, true))) return false;
+    // each batch: a total inside its instances, a changed range inside the total and the capacity, every written matrix
+    // bounded and every written attribute value finite
+    let word = 0;
+    for (const row of this.rows.batches ?? []) {
+      const at = this.region(BATCHES) + word * 4, total = v.getUint32(at, true), first = v.getUint32(at + 4, true), n = v.getUint32(at + 8, true);
+      if (total > row.instances || n > row.capacity || first + n > total || v.getUint32(at + 12, true) !== 0) return false;
+      const matrices = at + BATCH_HEADER * 4, attributes = matrices + row.capacity * 64;
+      for (let k = 0; k < n; k++) if (!this.bounded(matrices + k * 64)) return false;
+      for (let k = 0; k < n * row.itemSize; k++) if (!Number.isFinite(v.getFloat32(attributes + k * 4, true))) return false;
+      word += batchWords(row);
+    }
     return true;
   }
 
@@ -186,6 +232,14 @@ export class ViewLane {
       this.targets.write(i, this.matrix);
     }
     if (v.getUint32(this.io + HEADER + (CHANNELS - 1) * ENTRY + 16, true) !== 0) this.targets.channels(new Float64Array(this.memory.buffer, this.region(CHANNELS), this.rows.channels));
+    let word = 0;
+    for (const [i, row] of (this.rows.batches ?? []).entries()) {
+      const at = this.region(BATCHES) + word * 4, total = v.getUint32(at, true), first = v.getUint32(at + 4, true), n = v.getUint32(at + 8, true);
+      const matrices = at + BATCH_HEADER * 4;
+      this.totals[i] = total;
+      this.targets.batch?.(i, total, first, n, new Float32Array(this.memory.buffer, matrices, n * 16), new Float32Array(this.memory.buffer, matrices + row.capacity * 64, n * row.itemSize));
+      word += batchWords(row);
+    }
     this.targets.upload();
   }
 

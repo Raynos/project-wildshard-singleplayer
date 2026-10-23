@@ -575,7 +575,7 @@ Offsets below are relative to `ws_io()`. The header is exactly 128 bytes.
 | Offset | Type | Field |
 |---|---|---|
 | 0 | u32 | magic `0x32565357` (`WSV2`) |
-| 4, 6 | u16, u16 | major 2, minor 0 |
+| 4, 6 | u16, u16 | major 2, minor 0 (a view lane writes minor 1: kinds 23 and 24) |
 | 8, 12 | u32, u32 | header bytes 128, complete IO byte length |
 | 16, 20 | u32, u32 | module handle, lane (1 sim, 2 projection, 3 view) |
 | 24, 28 | u32, i32 | call sequence, relative 60 Hz tick |
@@ -586,7 +586,7 @@ Offsets below are relative to `ws_io()`. The header is exactly 128 bytes.
 | 64, 68 | u32, u32 | running binding hint, query-reply scalar count |
 | 72, 76 | u32, u32 | changed view-transform count, changed view-channel count |
 | 80, 88 | f64, f64 | view dt seconds, fractional fixed-step alpha |
-| 96, 100 | u32, u32 | directory count 22, directory byte offset 128 |
+| 96, 100 | u32, u32 | directory count 22 (24 in a view lane), directory byte offset 128 |
 | 104 | f64 | absolute tick origin |
 | 112, 116 | u32, u32 | view frame sequence, reserved zero |
 | 120 | 8 bytes | reserved zero |
@@ -626,6 +626,8 @@ record indices, validated together with their counts against host metadata.
 | 20 | Projection channels | 16: `request,channel:u32`; `value:f64` |
 | 21 | Committed RNG | 64: `binding,stream,algorithm,draws:u32`; six `state:f64` values |
 | 22 | Candidate RNG | 64: same shape as kind 21 |
+| 23 | View arrays (view lane) | 4: `value:f32`, each lent array's current values in declared order (host-written, never read back) |
+| 24 | View batches (view lane) | 4: per declared batch, `total,first,changed,pad:u32`, then `capacity` column-major 16 × f32 matrices, then `capacity × itemSize` f32 attribute values |
 
 Kind 14 has stride 1 and a byte capacity. Its header is
 `originX,originZ,cellX,cellZ:f64; cols,rows,samplesOffset,pad:u32;
@@ -666,7 +668,13 @@ the camera, a lent look's parameter, a target's visibility, opacity, colour or u
 copy's instanced attribute, a numeric cell its owner lends by id (`cell`, read by the owner after the frame), or one
 parameter of a ground tell its owner lends (`tell`): a tell's channels are exactly one shape's parameters (ring
 `x, z, radius, alpha`; lane `x, z, x1, z1, width, alpha`; wedge `x, z, yaw, reach, fill, alpha`), and on landing it
-draws that shape draped on the terrain, or hides at an alpha of 0.01 or less.
+draws that shape draped on the terrain, or hides at an alpha of 0.01 or less; a negative alpha leaves the tell as it is for
+that landing. `arrays` are numeric arrays the owner lends by id, written to kind 23 each scheduled call. `batches` are
+instanced draws the owner lends by id: before a call the host writes each kind-24 record's total as its last landed total
+with first and changed zero (a call that writes nothing keeps the draw); after it, a total above the draw's copies, a
+changed count above the batch's capacity, a changed range past the total, a nonzero pad, a written matrix outside the
+program's bounds or a non-finite attribute value refuses the whole frame. A landed batch draws `total` copies and
+writes the `changed` copies from `first` (their matrices and, with an attribute, its first `itemSize` components).
 [engine/script/viewProgram.ts](../src/engine/script/viewProgram.ts) [game/shardfile/clientViewProgram.ts](../src/game/shardfile/clientViewProgram.ts)
 
 ### Query operation and reply records

@@ -31,6 +31,9 @@ export class CellField {
     this.lifetimes = new Float32Array(this.modes.length);
   }
   get length(): number { return this.modes.length; }
+  /** every cell's mode and remaining lifetime, live and in cell order (a view program reads them whole each frame) */
+  get modeCells(): ArrayLike<number> { return this.modes; }
+  get lifetimeCells(): ArrayLike<number> { return this.lifetimes; }
   state(cell: number): number { return this.modes[cell] ?? this.rows.states.spent; }
   remaining(cell: number): number { return this.lifetimes[cell] ?? 0; }
   x(cell: number): number { return this.rows.x + (cell % this.rows.width + .5) * this.rows.cell; }

@@ -34,14 +34,19 @@ const ref = v.union([id, v.strictObject({ pool: id, slot: count(0, 63), part: v.
  * tell draws that shape from them (draped on the terrain, as its owner draws it) or hides at an alpha of 0.01 or less;
  * a negative alpha leaves the tell as it is for that landing (no draw and no hide).
  * `transforms` are the transform positions in order: a target's local
- * matrix, a named bone under it, or one copy of a lent instanced draw. A program sampling a piece or a group its owner
+ * matrix, a named bone under it, or one copy of a lent instanced draw. `arrays` are numeric arrays its owner lends by id
+ * (read whole once a frame, never written back: a field's cells, a grid's heights), `length` values each. `batches` are
+ * instanced draws its owner lends by id that a frame writes in bulk: how many copies draw, then up to `capacity` changed
+ * copies from a first index, each its matrix (inside `bounds`) and, with `attribute`, that many components of a named
+ * per-instance attribute; a frame that writes none keeps the draw as it was. A program sampling a piece or a group its owner
  * lacks installs nothing. Client-only; nothing reaches the sim or a save.
  */
 export const ViewProgramSchema = v.pipe(v.strictObject({
   /** it runs in its own update system (`system`, ordered `before` others), or inline where its owner calls the frame slot
    * the owner lends (`slot`: the program builds once the owner has lent the slot, after the values, cells and tells it lends) */
   system: v.exactOptional(id), before: v.optional(v.pipe(v.array(id), v.maxLength(16)), []), slot: v.exactOptional(id),
-  budget: v.strictObject({ pages: count(1, 4), ioBytes: count(16, 65536), fuel: count(1, 10_000_000), targetMs: v.pipe(finite, v.minValue(0.01), v.maxValue(16)) }),
+  /** `ioBytes` up to the admission's own bound (a lane's fixed pages hold its IO: view arrays and batches need room) */
+  budget: v.strictObject({ pages: count(1, 4), ioBytes: count(16, 4 * 65536), fuel: count(1, 10_000_000), targetMs: v.pipe(finite, v.minValue(0.01), v.maxValue(16)) }),
   pools: v.optional(v.pipe(v.array(v.strictObject({ id, group: id, count: count(1, 64), fields: v.pipe(v.array(id), v.maxLength(16)) })), v.maxLength(8)), []),
   samples: v.pipe(v.array(v.variant('kind', [
     v.strictObject({ kind: v.literal('player'), field: v.picklist(['x', 'y', 'z', 'yaw', 'speed']) }),
@@ -68,6 +73,9 @@ export const ViewProgramSchema = v.pipe(v.strictObject({
     v.strictObject({ kind: v.literal('bone'), object: ref, bone: id }),
     v.strictObject({ kind: v.literal('instance'), object: id, index: count(0, 65535) }),
   ])), v.maxLength(256), v.check(rows => new Set(rows.map(row => JSON.stringify(row))).size === rows.length, 'One transform position per target')),
+  arrays: v.exactOptional(v.pipe(v.array(v.strictObject({ id, length: count(1, 8192) })), v.maxLength(8))),
+  batches: v.exactOptional(v.pipe(v.array(v.strictObject({ draw: id, capacity: count(1, 4096),
+    attribute: v.exactOptional(v.strictObject({ name: id, itemSize: count(1, 4) })) })), v.maxLength(8))),
   /** a written matrix's translation length, column scale range and normalized column cross-dot stay inside these */
   bounds: v.strictObject({ translation: v.pipe(finite, v.minValue(0)), scale: v.tuple([v.pipe(finite, v.minValue(0)), v.pipe(finite, v.minValue(0))]), shear: v.pipe(finite, v.minValue(0), v.maxValue(1)) }),
 }), v.check(rows => (rows.system === undefined) !== (rows.slot === undefined) && (rows.slot === undefined || rows.before.length === 0),

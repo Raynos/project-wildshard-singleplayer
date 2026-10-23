@@ -250,7 +250,11 @@
     "src/shards/sunscar-dunes/generators/bake-signal-sand.mjs": 4,
     "src/shards/sunscar-dunes/generators/bake-signal-world.mjs": 3,
     "src/shards/sunscar-dunes/generators/bake-skitterer-behaviour.mjs": 3,
-    "src/shards/sunscar-dunes/generators/landscape.ts": 1
+    "src/shards/sunscar-dunes/generators/landscape.ts": 1,
+    "src/shards/nalati-grasslands/generators/titanFireView.ts": 2,
+    "src/shards/nalati-grasslands/generators/bake-titan-fire-view.mjs": 1,
+    "src/shards/nalati-grasslands/generators/titanWhirlsView.ts": 2,
+    "src/shards/nalati-grasslands/generators/bake-titan-whirls-view.mjs": 1
   },
   "wildshard/no-build-time-import": {
     "src/shards/_template/quests/adventure.ts": 1,
