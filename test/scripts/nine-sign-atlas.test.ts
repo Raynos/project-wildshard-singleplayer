@@ -12,8 +12,19 @@ import { readSourceModel } from '../../src/sdk/bake/skinned';
 import { parseKtx2 } from '../../src/format/product';
 import { rawKtx2, bakeSignalSand } from '../../src/shards/sunscar-dunes/generators/sand';
 import { signAtlasBlobs } from '../../src/shards/nine-dragon-stack/generators/signAtlasOutput';
-import atlas from '../../src/shards/nine-dragon-stack/data/signAtlas.generated.json' with { type: 'json' };
+// oxlint-disable-next-line import/no-nodejs-modules -- Read the original atlas bytes without a generated JSON type program.
+import { readFileSync } from 'node:fs';
 import reference from '../fixtures/nine-sign-atlas.json' with { type: 'json' };
+
+const finite=v.pipe(v.number(),v.finite());
+const atlasTier=v.object({cells:v.record(v.string(),v.unknown()),placed:v.array(v.unknown()),lights:v.array(v.unknown()),
+  keys:v.record(v.string(),v.string()),mono:v.object({packed:v.string(),bytes:finite}),colour:v.object({packed:v.string(),bytes:finite}),
+  geometries:v.record(v.string(),v.object({attributes:v.record(v.string(),v.object({width:finite,data:v.string()})),
+    index:v.string(),sphere:v.nullable(v.array(finite))}))});
+const atlas=(()=>{
+  const value:unknown=JSON.parse(readFileSync('src/shards/nine-dragon-stack/data/signAtlas.generated.json','utf8'));
+  v.assert(v.object({phone:atlasTier,desktop:atlasTier}),value);return value;
+})();
 
 const hash = (bytes: Uint8Array | string): string => createHash('sha256').update(bytes).digest('hex');
 const digest = (value: unknown): string => hash(JSON.stringify(value));

@@ -1,7 +1,9 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Admit glyph fixture metrics without inferring its packed pixel data.
+import { readFileSync } from 'node:fs';
+import * as v from 'valibot';
 import { expect, test } from 'vitest';
 import { DataTexture, RGFormat, UnsignedByteType } from 'three';
 import { output } from '../src/shards/nine-dragon-stack/generators/output';
-import glyphs from '../src/shards/nine-dragon-stack/data/glyphs.generated.json' with { type: 'json' };
 import baseline from './fixtures/nine-glyphs.json' with { type: 'json' };
 import { FONT_CHARS, WORDS } from '../src/shards/nine-dragon-stack/generators/words';
 import signRows from '../src/shards/nine-dragon-stack/data/signView.json' with { type: 'json' };
@@ -11,6 +13,13 @@ import { NINE_WORLD_SCENES } from '../src/shards/nine-dragon-stack/generators/wo
 import { worldScenesForTier } from '../src/format/worldScenes';
 import { createModelLibrary } from '../src/game/plugin/geometry';
 
+const finite=v.pipe(v.number(),v.finite());
+const glyphTier=v.object({layout:v.object({cell:finite,fontPx:finite,spread:finite,skeletonSpread:finite}),
+  rects:v.record(v.string(),v.object({u0:finite,v0:finite,u1:finite,v1:finite}))});
+const glyphs=(()=>{
+  const value:unknown=JSON.parse(readFileSync('src/shards/nine-dragon-stack/data/glyphs.generated.json','utf8'));
+  v.assert(v.object({phone:glyphTier,desktop:glyphTier}),value);return value;
+})();
 
 function blob(name: string): Uint8Array {
   const row = output.namedFiles.find(file => file.name === name), bytes = row === undefined ? undefined : output.assets.get(row.hash);
@@ -102,7 +111,7 @@ test('native sign and specimen rows retain every original field and variant', as
 });
 
 test('baked neon pools retain readable gains and complete picking rows', async () => {
-  const [{ GLTFLoader }, v] = await Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('valibot')]);
+  const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
   const rows = v.parse(v.object({ pools: v.array(v.object({ name: v.string(), parts: v.array(v.string()) })),
     neonLights: v.array(v.unknown()), copies: v.array(v.object({ neon: v.boolean(), boxes: v.array(v.number()), poses: v.array(v.unknown()) })) }),
   JSON.parse(new TextDecoder().decode(blob('signs/atlas-phone.json'))));
