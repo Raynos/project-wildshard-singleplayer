@@ -107,27 +107,6 @@ let sliceStart:i32=-1;
   store<u32>(dir+16,n+1);const at=row(11,i32(n));store<i32>(at,handle());store<u32>(at+4,id);store<i32>(at+8,op);store<u32>(at+12,0);store<i32>(at+16,load<i32>(IO+28));store<i32>(at+20,target);
   store<f64>(at+24,a);store<f64>(at+32,b);store<f64>(at+40,c);store<f64>(at+48,d);store<f64>(at+56,e);store<f64>(at+64,f);store<f64>(at+72,g);store<u32>(IO+60,n+1);
 }
-/** A bounded logical point-list request occupies its header plus up to six
- * continuation records. Replies contain the corresponding ordered samples. */
-export function queryPoints(op:i32,id:u32,points:usize,size:i32):void{
-  assert((op==12||op==13)&&id>0&&size>=1&&size<=16&&points%8==0);
-  const limit=usize(memory.size())*65536;
-  assert(points>=IO+load<u32>(IO+12)&&points<=limit&&usize(size)*16<=limit-points);
-  const blocks=(size+2)/3,dir=directory(11),start=load<u32>(dir+16),records=u32(1+blocks);
-  assert(start<=load<u32>(dir+12)&&records<=load<u32>(dir+12)-start);
-  store<u32>(dir+16,start+records);
-  for(let block:i32=-1;block<blocks;block++){
-    const at=row(11,i32(start)+block+1);store<i32>(at,handle());store<u32>(at+4,id);store<i32>(at+8,op);
-    store<u32>(at+12,block<0?0:1);store<i32>(at+16,load<i32>(IO+28));store<u32>(at+20,0);
-    for(let word:i32=0;word<7;word++){
-      let value:f64=0;const point=block*6+word;
-      if(block<0){if(word==0)value=f64(size);}
-      else if(word<6&&point<size*2)value=load<f64>(points+usize(point)*8);
-      assert(value<Infinity&&value>-Infinity);store<f64>(at+24+usize(word)*8,value);
-    }
-  }
-  store<u32>(IO+60,start+records);
-}
 @inline export function replyBinding(index:i32):i32{return load<i32>(row(12,index));}
 @inline function reply(index:i32):usize{const at=row(12,index);assert(load<i32>(at)==handle());return at;}
 @inline export function replyId(index:i32):u32{return load<u32>(reply(index)+4);}
@@ -176,5 +155,26 @@ export function queryPoints(op:i32,id:u32,points:usize,size:i32):void{
 @inline export function bearing(x:f64,z:f64,toX:f64,toZ:f64):f64{return Math.atan2(toX-x,toZ-z);}
 @inline export function radialX(yaw:f64,radius:f64):f64{return Math.sin(yaw)*radius;}
 @inline export function radialZ(yaw:f64,radius:f64):f64{return Math.cos(yaw)*radius;}
+/** A bounded logical point-list request occupies its header plus up to six
+ * continuation records. Replies contain the corresponding ordered samples. */
+export function queryPoints(op:i32,id:u32,points:usize,size:i32):void{
+  assert((op==12||op==13)&&id>0&&size>=1&&size<=16&&points%8==0);
+  const limit=usize(memory.size())*65536;
+  assert(points>=IO+load<u32>(IO+12)&&points<=limit&&usize(size)*16<=limit-points);
+  const blocks=(size+2)/3,dir=directory(11),start=load<u32>(dir+16),records=u32(1+blocks);
+  assert(start<=load<u32>(dir+12)&&records<=load<u32>(dir+12)-start);
+  store<u32>(dir+16,start+records);
+  for(let block:i32=-1;block<blocks;block++){
+    const at=row(11,i32(start)+block+1);store<i32>(at,handle());store<u32>(at+4,id);store<i32>(at+8,op);
+    store<u32>(at+12,block<0?0:1);store<i32>(at+16,load<i32>(IO+28));store<u32>(at+20,0);
+    for(let word:i32=0;word<7;word++){
+      let value:f64=0;const point=block*6+word;
+      if(block<0){if(word==0)value=f64(size);}
+      else if(word<6&&point<size*2)value=load<f64>(points+usize(point)*8);
+      assert(value<Infinity&&value>-Infinity);store<f64>(at+24+usize(word)*8,value);
+    }
+  }
+  store<u32>(IO+60,start+records);
+}
 `;
 }
