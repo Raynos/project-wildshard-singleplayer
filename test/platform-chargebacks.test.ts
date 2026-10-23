@@ -7,14 +7,15 @@ import { componentInventory } from '../scripts/shard-components.mjs';
 import { g571HostApprovals,approvedG571Host } from '../scripts/g571-hosts.mjs';
 
 test('optional shared dispatch does not invent another arena or keeper user', () => {
-  const arena = 'src/game/boss/arenaScript.ts', phase = 'src/game/plugin/bossPhase.ts';
+  const arena = 'src/game/boss/arenaRoom.ts', phase = 'src/game/plugin/bossPhase.ts';
   const groups = 'src/game/population/pageGroups.ts';
   const both = new Set(['nalati-grasslands', 'pine-hollow']);
   const modules = new Map([[arena, both], [phase, both], [groups, both]]);
-  const bindings = new Map([[`${phase}\0bossFight`, both],
+  const bindings = new Map([[`${arena}\0OpenArenaProjection`,both],[`${phase}\0bossFight`, both],
     [`${groups}\0PageGroups`, both], [`${groups}\0FixedPageSpawnTable`, both]]);
   chargePlatformUsers(modules, bindings);
-  expect([...modules.get(arena) ?? []]).toEqual(['nalati-grasslands']);
+  expect(modules.get(arena)).toEqual(both);
+  expect([...bindings.get(`${arena}\0OpenArenaProjection`)??[]]).toEqual(['nalati-grasslands']);
   expect([...bindings.get(`${groups}\0PageGroups`) ?? []]).toEqual(['nalati-grasslands']);
   expect(bindings.get(`${phase}\0bossFight`)).toEqual(both);
   expect(bindings.get(`${groups}\0FixedPageSpawnTable`)).toEqual(both);
@@ -23,7 +24,7 @@ test('optional shared dispatch does not invent another arena or keeper user', ()
 });
 
 test('a non-shard sole user maps to its reviewed owner or reports its excluded lines', () => {
-  const arena = { path: 'src/game/boss/arenaScript.ts', lines: 514 };
+  const arena = { path: 'src/game/boss/arenaRoom.ts',name:'OpenArenaProjection', lines: 514 };
   const charges = new Map<string, { path: string; lines: number; name?: string }[]>([['nalati-grasslands', []]]);
   const reports: string[] = [], report = (line: string) => { reports.push(line); };
   expect(recordPrivateCharge(charges, 'fixture-only-user', arena, report)).toBe(true);
@@ -118,7 +119,7 @@ test('the real Pine and Driftwood Explorer dispatcher no longer has a sole-user 
   }
   // Dispatch credit does not waive a private intake or presentation owner.
   expect(platformChargeback('src/engine/models/geometrySources.ts', 'registerPackedGeometrySource')).toBeNull();
-  expect(platformChargeback('src/game/boss/arenaScript.ts')).toBe('C4');
+  expect(platformChargeback('src/game/boss/arenaRoom.ts','OpenArenaProjection')).toBe('C4');
 });
 
 test('day-one feature credit cannot erase a G520 chargeback', () => {
@@ -404,7 +405,7 @@ test('G615 credits only timed encounters and its selected slot and patrol views'
 test('retired arsenal and variant modules leave no standalone item charge',()=>{
   expect(platformChargeback('src/game/loadout/mounted.ts')).toBeNull();
   expect(platformChargeback('src/game/weapons/bowVariant.ts')).toBeNull();
-  expect(platformChargeback('src/game/boss/arenaScript.ts')).toBe('C4');
+  expect(platformChargeback('src/game/boss/arenaRoom.ts','OpenArenaProjection')).toBe('C4');
 });
 
 test('G520 re-score: Pine\'s page life runs the crowd weapon target and roster ray; only Nalati\'s prey joins stay charged', () => {
