@@ -274,10 +274,6 @@
       "base64Chars": 15840,
       "dataUris": 0
     },
-    "src/shards/nalati-grasslands/data/heldWeapons.generated.json": {
-      "base64Chars": 212352,
-      "dataUris": 0
-    },
     "src/shards/nalati-grasslands/data/kokpar.generated.json": {
       "base64Chars": 27008,
       "dataUris": 0
@@ -307,11 +303,7 @@
       "dataUris": 0
     },
     "src/shards/nalati-grasslands/data/species.generated.json": {
-      "base64Chars": 187972,
-      "dataUris": 0
-    },
-    "src/shards/nalati-grasslands/data/stealth.generated.json": {
-      "base64Chars": 53088,
+      "base64Chars": 28708,
       "dataUris": 0
     },
     "src/shards/nine-dragon-stack/behaviour/movers.generated.json": {

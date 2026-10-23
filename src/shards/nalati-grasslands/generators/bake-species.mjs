@@ -93,14 +93,15 @@ const crackIndex=cracks.index;if(crackIndex===null)throw new Error('Missing crac
 let last=0;const deltas=Int32Array.from(crackIndex.array,index=>{const delta=index-last;last=index;return delta;});crackBlocks.push(new Uint8Array(deltas.buffer));crackSize+=deltas.byteLength;
 const crackBytes=new Uint8Array(crackSize);let crackAt=0;for(const bytes of crackBlocks){crackBytes.set(bytes,crackAt);crackAt+=bytes.length;}
 const crackRow={attrs:crackAttrs,count:cracks.getAttribute('position').count,index:'u32',indexCount:crackIndex.count,box:false};
-// One shared selected module; each original ABI1 descriptor/byte witness remains inline.
+// One shared selected module; the unchanged ABI1 witness is a raw data dependency.
 const selected=dual.binary;
 const compiled={source:'behaviour/held-weapons.generated.wasm',bytes:selected.length,hash:dual.candidate.artifact.hash};
-const program=wireProgram({...dual.legacy,v2:{...dual.candidate,bytes:''}});
+const program=wireProgram({...dual.legacy,bytes:'',v2:{...dual.candidate,bytes:''}});
 const guest=v.parse(CreatureGuestSchema,{...speciesRows.balbalGuest,program,strike:strikes.balbal});
 const presentation={packedBodies:compactBodies,poses:poseConfigs,guest,lookBook:{slug:'nalati-grasslands',rows:SPECIES_LOOK_ROWS.map(row=>row.metadata.kind===speciesRows.balbal.kind?{...row,projection:actorProjection(guest)}:row),program:wireProgram(admission)}};
 const writer=byteWriter(process.argv.includes('--check'),'nalati-species');
 writer.put(fileURLToPath(new URL('../behaviour/held-weapons.generated.wasm',import.meta.url)),selected);
+writer.put(fileURLToPath(new URL('../behaviour/held-witness.generated.bin',import.meta.url)),dual.witness);
 writer.put(fileURLToPath(new URL(`../../../../public${file}`,import.meta.url)),compressed);
 // G600 L8: the looks are the hull book's packed looks (game/looks/speciesBook HullLookBook.packedLooks): the compact bodies
 // as the book's section, each row its bodies, coats, painterly material, rigged hull skins and post-pose programmes
@@ -128,7 +129,7 @@ const {kingFrame,kingPoseDefaults}=speciesRows;
 const frames={king:{programs:kingPose.programs,surface:'king.surface',observe:kingFrame.group,pose:kingPose.group,look:kingFrame.look,
   smooth:kingFrame.smooth.map(({input,output,initial})=>({input,output,initial})),floor:{lift:kingFrame.floor.lift,death:kingFrame.floor.death},memory:kingPoseDefaults}};
 const looks={poses:SPECIES_POSES,frames,rows:SPECIES_LOOK_ROWS.map(lookRow)};
-writer.put(fileURLToPath(new URL('../data/species.generated.json',import.meta.url)),jsonBytes({packedBodies,poses:SPECIES_POSES,presentation,hullBook,looks,crackBytes:Array.from(crackBytes),program,compiled}));
+writer.put(fileURLToPath(new URL('../data/species.generated.json',import.meta.url)),jsonBytes({packedBodies,poses:SPECIES_POSES,presentation,hullBook,looks,crackBytes:Array.from(crackBytes),program,compiled,witnessBytes:dual.witness.length}));
 const {balbal,king,slam}=speciesRows;
 writer.put(resolve(import.meta.dirname,'../boot/speciesRows.generated.json'),jsonBytes({balbal:{kind:balbal.kind},king:{kind:king.kind},slam}));
 writer.finish();

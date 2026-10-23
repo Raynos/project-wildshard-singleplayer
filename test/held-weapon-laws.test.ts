@@ -1,6 +1,6 @@
 import {afterEach,beforeEach,expect,it} from 'vitest';
 import {Scope} from '../src/engine/app/scope';
-import {lendNalatiHeld} from './fixtures/nalati-return-modules';
+import {lendNalatiHeld,heldWitnessBytes} from './fixtures/nalati-return-modules';
 import {HeldDecision} from '../src/game/weapons/heldDecision';
 import rows from '../src/shards/nalati-grasslands/data/heldWeapons.generated.json' with {type:'json'};
 
@@ -104,9 +104,9 @@ it('shares one module across all weapon signals and isolates their channels',()=
 
 for(const modern of [false,true])it(`shares reordered ABI${modern?2:1} wire aliases while refusing a changed declaration`,()=>{
  const owner=new Scope('wire-alias-fixture');lendNalatiHeld(owner);
- const polearmSource=rows.programs.polearm,bladeSource=rows.programs.blade;
- const first=new HeldDecision(modern?polearmSource:{script:polearmSource.script,bytes:polearmSource.bytes,signal:polearmSource.signal},owner);
- const source=modern?bladeSource:{script:bladeSource.script,bytes:bladeSource.bytes,signal:bladeSource.signal};
+ const polearmSource=rows.programs.polearm,bladeSource=rows.programs.blade,legacyBytes=Buffer.from(heldWitnessBytes).toString('base64');
+ const first=new HeldDecision(modern?polearmSource:{script:polearmSource.script,bytes:legacyBytes,signal:polearmSource.signal},owner);
+ const source=modern?bladeSource:{script:bladeSource.script,bytes:legacyBytes,signal:bladeSource.signal};
  const reverse=(input:Record<string,string>)=>Object.fromEntries(Object.entries(input).reverse());
  const reordered={...source,script:{...source.script,fields:reverse(source.script.fields),channels:reverse(source.script.channels),signals:reverse(source.script.signals)}};
  expect(new HeldDecision(reordered,owner).program).toBe(first.program);

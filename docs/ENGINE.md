@@ -12646,8 +12646,9 @@ after sampling or during presentation refuses subsequent publication. The
 input system, guest cadence, detection state and save authority are unchanged.
 
 The shared held/stealth/creature numeric guest selects ABI2 projection rows
-explicitly. Its original ABI1 descriptors and bytes remain inline witnesses;
-only the selected module is admitted as an active executable. All consumers
+explicitly. Its original ABI1 descriptor remains inline; its byte-exact
+witness is a binary dependency borrowed through the same scoped module loan.
+Only the selected module is admitted as an active executable. All consumers
 receive the same candidate, with the original page/native scope keys. The
 body owner's 10 Hz callback still captures memory defaults, clock/player
 keys and native Math.hypot/Wedge contact at their original slots; ABI2 adds

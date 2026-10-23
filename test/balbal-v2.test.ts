@@ -1,8 +1,8 @@
-import { heldModuleBytes, lendNalatiHeld } from './fixtures/nalati-return-modules';
+import { heldModuleBytes, heldWitnessBytes, lendNalatiHeld } from './fixtures/nalati-return-modules';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 // oxlint-disable-next-line import/no-nodejs-modules -- validate generated species rows without inferring the complete JSON type
 import { readFileSync } from 'node:fs';
-import { boolean, literal, number, object, parse, strictObject, string } from 'valibot';
+import { array, boolean, literal, number, object, parse, strictObject, string } from 'valibot';
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
@@ -111,12 +111,14 @@ test('the selected creature artifact is admitted in the complete emitted invento
   expect(row.script).toEqual(generated.program.script); expect(row.bytes).toBe(generated.program.bytes);
   expect(held.program.bytes).toBe(generated.program.bytes); expect(held.program.script).toEqual(generated.program.script);
   const module = nameBlob('behaviour/nalati.held-weapons.wasm','wasm',heldModuleBytes,
-    { critical: true, script: { abi: 2, lane: 'project', pages: candidate.artifact.pages, ioBytes: candidate.artifact.ioBytes,
+    { dependencies:[hashImmutableBytes(heldWitnessBytes)],critical: true, script: { abi: 2, lane: 'project', pages: candidate.artifact.pages, ioBytes: candidate.artifact.ioBytes,
       compilerRevision: candidate.artifact.compilerRevision, admissionRevision: candidate.artifact.admissionRevision } });
-  expect(candidate.bytes).toBe('');
+  expect(candidate.bytes).toBe('');expect(row.bytes).toBe('');
+  expect(heldWitnessBytes.length).toBe(39814);
+  expect(hashImmutableBytes(heldWitnessBytes)).toBe('87e51e95e14a28cbc1d98828d8cec1864bccef8237e4cf941bb6b208b5fcb5e9');
   expect(held.compiled).toEqual({source:'behaviour/held-weapons.generated.wasm',bytes:19976,hash:'a35c2e6a3527a6e3509d7df83b76c203878bba6b806eb92ef03de1b963d316d5'});
   expect(hashImmutableBytes(heldModuleBytes)).toBe(held.compiled.hash);
-  const original={...held.program,v2:{...held.program.v2,bytes:btoa(String.fromCodePoint(...heldModuleBytes))}};
+  const original={...held.program,bytes:Buffer.from(heldWitnessBytes).toString('base64'),v2:{...held.program.v2,bytes:btoa(String.fromCodePoint(...heldModuleBytes))}};
   expect(hashImmutableBytes(new TextEncoder().encode(JSON.stringify(original)))).toBe('94840973a5f44b945d143bff5b51ffab5992704113ca15a49c12f95a4e95945a');
   expect(held.program.v2).toEqual(row.v2); expect(stealth.program.v2).toEqual(row.v2);
   const rows = scriptAdmissionRows(NALATI_SCRIPT_SECTIONS);
@@ -124,12 +126,15 @@ test('the selected creature artifact is admitted in the complete emitted invento
   expect(rows.some(item => item.module === module.file.path && item.abi === 2)).toBe(true);
   expect(decisionModuleContracts(rows,rows.map(item => item.module === module.file.path ? module.file : { kind: 'wasm', path: item.module, hash: item.module.slice(11,-5) })).get(candidate.artifact.hash)).toMatchObject({ abi:2,lane:'project' });
   const { output }=await import('../src/shards/nalati-grasslands/generators/output');
-  const declaration=parse(object({name:string(),kind:literal('wasm'),source:string(),options:object({critical:boolean(),
+  const declaration=parse(object({name:string(),kind:literal('wasm'),source:string(),options:object({dependencies:array(string()),critical:boolean(),
     script:object({abi:literal(2),lane:literal('project'),pages:number(),ioBytes:number(),compilerRevision:literal(1),admissionRevision:literal(1)})})}),
     output.blobs.find(blob=>blob.name==='behaviour/nalati.held-weapons.wasm'));
   const actual=await readNamedBlob('src/shards/nalati-grasslands',declaration.name,declaration.source,declaration.kind,declaration.options);
   expect(actual.bytes).toEqual(heldModuleBytes);expect(actual.file).toEqual(module.file);
   expect(actual.script).toEqual(module.script);
+  const witness=parse(object({name:string(),kind:literal('bin'),source:string()}),output.blobs.find(blob=>blob.name==='behaviour/held-witness.bin'));
+  const raw=await readNamedBlob('src/shards/nalati-grasslands',witness.name,witness.source,witness.kind);
+  expect(raw.bytes).toEqual(heldWitnessBytes);expect(actual.file.dependencies).toEqual([raw.file.hash]);
 });
 
 test('selected Balbal capture refuses missing fields and retired owners without native memory or effects', () => {
@@ -146,7 +151,7 @@ test('selected Balbal capture refuses missing fields and retired owners without 
 
 test('every shared held, power, stealth and creature signal matches its unchanged ABI1 witness', () => {
   const scope = owner(), row = generated.program, modern = ReturnProgram.page(row,scope);
-  const original = ReturnProgram.page({ script: row.script, bytes: row.bytes },scope);
+  const original = ReturnProgram.page({ script: row.script, bytes: Buffer.from(heldWitnessBytes).toString('base64') },scope);
   let accepted = 0;
   try {
     for (const signal of row.v2.signals) for (const scalar of [.125,.5,1]) {
