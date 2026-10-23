@@ -1,4 +1,4 @@
-import { BufferAttribute, BufferGeometry, InterleavedBufferAttribute, Material, Object3D, Skeleton, Texture, WebGLRenderTarget } from 'three';
+import { Bone, BufferAttribute, BufferGeometry, InterleavedBufferAttribute, Material, Object3D, Skeleton, Texture, WebGLRenderTarget } from 'three';
 import type { Renderer } from './renderer';
 import { arrayReleased } from './releasedArrays';
 import { isDev } from '../core/devMode';
@@ -230,10 +230,17 @@ function due(cache: WeakMap<object, Walked>, node: Object3D, geometry: unknown, 
 interface Sweep { nodes: Object3D[]; parents: (Object3D | null)[]; indices: number[]; cursor: number; built: number }
 const sweeps = new WeakMap<Object3D, Sweep>();
 const SWEEP_SLICES = REFRESH / 2;
-const SWEEP_MIN = 64; // nodes a render labels at least, so a small scene is labelled on its first render
+// nodes a render labels at least, so a small scene is labelled within its first renders (G639: 64 a render was ~1.4 ms of a
+// Pine frame at phone 4x, mostly on bones; the remaining scene still sweeps in well under a second)
+const SWEEP_MIN = 16;
+const onlyBones = (node: Object3D): boolean => node instanceof Bone && node.children.every(onlyBones);
 function flatten(root: Object3D, built: number): Sweep {
   const sweep: Sweep = { nodes: [], parents: [], indices: [], cursor: 0, built };
   const visit = (node: Object3D, parent: Object3D | null, index: number): void => {
+    // a hidden bone subtree (entities/animalMatrices.ts hides an animal's all-bone chains, ~80 % of Pine's scene graph)
+    // holds nothing to label: bones own no resources, their skeleton's bone texture is labelled as it is allocated, and a
+    // child attached later shows its chain again
+    if (parent !== null && !node.visible && onlyBones(node)) return;
     sweep.nodes.push(node); sweep.parents.push(parent); sweep.indices.push(index);
     const children = node.children;
     for (let i = 0; i < children.length; i++) { const child = children[i]; if (child !== undefined) visit(child, node, i); }
