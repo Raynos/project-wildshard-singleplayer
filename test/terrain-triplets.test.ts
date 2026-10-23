@@ -1,11 +1,17 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- validate numeric geography fixtures without inferring the full generated JSON type
+import { readFileSync } from 'node:fs';
+import * as v from 'valibot';
 import { expect,test } from 'vitest';
 import { zlibSync,unzlibSync } from 'fflate';
 import { declaredGroundColour,declaredSurface } from '../src/game/shard/manifest';
 import { ScalarTripletSchema } from '../src/format/scalarChannel';
 import { bakedSamplers } from '../src/format/bakedTerrainSampling';
 import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
-import geography from '../src/shards/nalati-grasslands/boot/geography.generated.json' with { type: 'json' };
 import { groundColor,surfaceAt,GROUND } from './fixtures/nalati-terrain';
+
+const finite=v.pipe(v.number(),v.finite());
+const geography=v.parse(v.object({res:finite,size:finite,seed:finite,pigment:ScalarTripletSchema,surface:ScalarTripletSchema}),
+  JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/geography.generated.json','utf8')));
 
 const TERRAIN = GROUND.terrain;
 

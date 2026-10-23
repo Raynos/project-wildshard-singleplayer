@@ -1,13 +1,20 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- validate numeric geography fixtures without inferring the full generated JSON type
+import { readFileSync } from 'node:fs';
+import * as v from 'valibot';
 import { expect,test } from 'vitest';
 import { zlibSync,unzlibSync } from 'fflate';
 import { readScalarChannel,readScalarLattice } from '../src/engine/world/scalarChannel';
-import { ScalarChannelSchema } from '../src/format/scalarChannel';
+import { ScalarChannelSchema, ScalarLatticeSchema, ScalarTripletSchema } from '../src/format/scalarChannel';
 import { ForestRowsSchema } from '../src/format/terrain';
 import { declaredForestQueries } from '../src/game/shard/manifest';
 import { bakedSamplers } from '../src/format/bakedTerrainSampling';
 import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
-import geography from '../src/shards/nalati-grasslands/boot/geography.generated.json' with { type: 'json' };
 import { forestMask,groundColor,surfaceAt,NALATI_MINIMAP,GROUND } from './fixtures/nalati-terrain';
+
+const finite=v.pipe(v.number(),v.finite());
+const channelsSchema=v.object({wet:ScalarLatticeSchema,forest:ScalarLatticeSchema,valley:ScalarLatticeSchema,bowl:ScalarLatticeSchema,snow:ScalarLatticeSchema,mapRed:ScalarLatticeSchema,mapGreen:ScalarLatticeSchema,mapBlue:ScalarLatticeSchema});
+const geography=v.parse(v.object({res:finite,size:finite,seed:finite,pigment:ScalarTripletSchema,surface:ScalarTripletSchema,channels:channelsSchema}),
+  JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/geography.generated.json','utf8')));
 
 const TERRAIN = GROUND.terrain,wetMask = readScalarLattice(geography.channels.wet);
 
