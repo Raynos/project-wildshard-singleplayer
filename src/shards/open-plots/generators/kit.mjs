@@ -242,7 +242,7 @@ function garden(w, p, variant) {
     firefly(w, x0 + (x1 - x0) * 0.6, 1.2, z0 + (z1 - z0) * 0.55); firefly(w, x0 + (x1 - x0) * 0.25, 1.8, z0 + (z1 - z0) * 0.2);
     const spots = index % 2 === 0 ? [[0.3, 0.3], [0.72, 0.4], [0.45, 0.75]] : [[0.3, 0.68], [0.7, 0.7], [0.55, 0.28]];
     for (const [i, [u, v]] of spots.entries()) {
-      const x = x0 + (x1 - x0) * u, z = z0 + (z1 - z0) * v, size = 6 + i;
+      const x = x0 + (x1 - x0) * u, z = z0 + (z1 - z0) * v, size = 8 + i; // NM14: fuller crowns, as the mockup's gardens
       tree(w, x, z, size, p, i * 0.7 + index);
       // NM9: a lantern hung under each crown and its pool
       w.box('Glow', [x + 0.8, size * 0.5, z - 0.3], [x + 1.4, size * 0.5 + 0.7, z + 0.3], p.lantern, p.lantern);
