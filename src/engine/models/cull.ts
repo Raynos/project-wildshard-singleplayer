@@ -71,6 +71,9 @@ export interface CullOptions {
   readonly test?: (i: number, d2: number) => boolean;
 }
 
+/** metres: the square a culler buckets its copies in (`Chooser.begin`), and the fewest copies it buckets */
+const CELL = 24, CELL_MIN = 64;
+
 /** a view that tells its cullers when it changed (`CullOptions.view`) */
 export interface CullView {
   onViewChange: (fn: (frustum: THREE.Frustum, eye: THREE.Vector3) => void) => void;
@@ -198,7 +201,51 @@ class Chooser {
     while (l > 0 && d2 < (this.from2[l] ?? 0)) l--;
     return l;
   }
+  /**
+   * G639: the copies bucketed once into `CELL`-metre squares by their measure point, each square with a box round its
+   * copies' spheres (grown by `pad`) and one round their measure points. As a choice begins, a square wholly past the
+   * range, or past `keepNear` and out of view, is marked, and `level` rejects its copies without their own tests (a Nine
+   * Dragon drive re-chose every copy every frame). Exact: a copy's sphere lies in its square's box, so a box out of every
+   * frustum puts the copy out too, and the points' box bounds each copy's distance from below. Off with a `test` or a
+   * `radiusBias`, and for few copies.
+   */
+  private cellOf: Uint32Array | null = null;
+  private cellBoxes: THREE.Box3[] = [];
+  private cellPoints = new Float64Array(0);
+  private skip = new Uint8Array(0);
+  private readonly cellSphere = new THREE.Sphere();
+  begin(view: View): void {
+    const count = this.bounds.length / 4;
+    if (this.test !== null || this.bias !== 0 || count < CELL_MIN) return;
+    if (this.cellOf === null) this.bucket(count);
+    const points = this.cellPoints, eye = view.eye;
+    for (let c = 0; c < this.cellBoxes.length; c++) {
+      const at = c * 6;
+      const dx = Math.max(0, (points[at] ?? 0) - eye.x, eye.x - (points[at + 3] ?? 0)), dz = Math.max(0, (points[at + 2] ?? 0) - eye.z, eye.z - (points[at + 5] ?? 0));
+      const dy = this.flat ? 0 : Math.max(0, (points[at + 1] ?? 0) - eye.y, eye.y - (points[at + 4] ?? 0)), d2 = dx * dx + dy * dy + dz * dz;
+      let out = d2 > this.far2;
+      if (!out && this.frustum && d2 > this.keep2) { this.cellBoxes[c]?.getBoundingSphere(this.cellSphere); out = !view.sees(this.cellSphere); }
+      this.skip[c] = out ? 1 : 0;
+    }
+  }
+  private bucket(count: number): void {
+    const c = this.origins ?? this.bounds, k = this.origins ? 3 : 4, b = this.bounds, keys = new Map<string, number>(), cellOf = new Uint32Array(count);
+    const boxes: THREE.Box3[] = [], points: number[] = [];
+    for (let i = 0; i < count; i++) {
+      const px = c[i * k] ?? 0, py = c[i * k + 1] ?? 0, pz = c[i * k + 2] ?? 0, key = `${String(Math.floor(px / CELL))},${String(Math.floor(pz / CELL))}`;
+      let cell = keys.get(key);
+      if (cell === undefined) { cell = boxes.length; keys.set(key, cell); boxes.push(new THREE.Box3()); points.push(px, py, pz, px, py, pz); }
+      cellOf[i] = cell;
+      const x = b[i * 4] ?? 0, y = b[i * 4 + 1] ?? 0, z = b[i * 4 + 2] ?? 0, r = (b[i * 4 + 3] ?? 0) + this.pad;
+      boxes[cell]?.expandByPoint(this.sphere.center.set(x - r, y - r, z - r)).expandByPoint(this.sphere.center.set(x + r, y + r, z + r));
+      const at = cell * 6;
+      points[at] = Math.min(points[at] ?? px, px); points[at + 1] = Math.min(points[at + 1] ?? py, py); points[at + 2] = Math.min(points[at + 2] ?? pz, pz);
+      points[at + 3] = Math.max(points[at + 3] ?? px, px); points[at + 4] = Math.max(points[at + 4] ?? py, py); points[at + 5] = Math.max(points[at + 5] ?? pz, pz);
+    }
+    this.cellOf = cellOf; this.cellBoxes = boxes; this.cellPoints = Float64Array.from(points); this.skip = new Uint8Array(boxes.length);
+  }
   level(i: number, view: View): number {
+    if (this.cellOf !== null && this.skip[this.cellOf[i] ?? 0] === 1) return -1;
     const b = this.bounds, x = b[i * 4] ?? 0, y = b[i * 4 + 1] ?? 0, z = b[i * 4 + 2] ?? 0, r = b[i * 4 + 3] ?? 0;
     const d2 = this.dist2(i, view.eye);
     this.d2 = d2;
@@ -344,6 +391,7 @@ export class InstancedCull {
   private choose(): void {
     const ch = this.chooser, sinks = this.sinks;
     this.view.shadows.length = 0; this.view.shadows.push(...this.casting());
+    ch.begin(this.view);
     sinks.reset();
     for (let i = 0; i < this.variantOf.length; i++) {
       const l = ch.level(i, this.view);
