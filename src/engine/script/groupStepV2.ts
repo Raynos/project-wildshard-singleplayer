@@ -1,3 +1,4 @@
+import {GUARDED_STALLION_STATES} from '@wildshard/format/groupBrains';
 /** One reusable AS group executable over the original group's borrowed bank.
  * Calls happen at the original native slot. There is no tick loop, body/RNG/save
  * owner, action dispatcher or per-group module instance in this transport. */
@@ -19,7 +20,7 @@ import type { Rng, RngState } from '../core/rng';
 import type { AggressionDirector, AggressionService } from '../ai/director';
 import type { Events } from '../events/events';
 import type { CirclingPackPrey, CirclingPackContext, StalkerBrain } from '../ai/stalker';
-import { GUARDED_STALLION_STATES, type GuardedHerdContext, type GrazerBrain } from '../ai/grazer';
+import type { GuardedHerdContext, GrazerBrain } from '../ai/grazer';
 
 export type GroupStepReferenceV2<A extends AnimalSim = AnimalSim> = GroupBankReferenceV2 & (
   | { readonly body: A; readonly pose?: never }

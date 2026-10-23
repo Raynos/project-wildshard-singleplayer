@@ -9,8 +9,7 @@ import ridingPrograms from '../behaviour/riding.generated.json' with { type: 'js
 import titanProgram from '../behaviour/titan.generated.json' with { type: 'json' };
 import charge from '../data/eliteCharge.generated.json' with { type: 'json' };
 
-const programs = [weatherDecision.script, kokpar.program.script, admission.script, pasture.script,
-  titanProgram.fire.script, titanProgram.wind.script];
+const programs = [weatherDecision.script, kokpar.program.script, admission.script];
 const legacy = programs.filter((row, index, all) => all.findIndex(entry => entry.module === row.module) === index);
 function projection(id: string, program: typeof heldWeapons.program.v2): Record<string, string | number> {
   return { id, module: `blobs/wasm/${program.artifact.hash}.wasm`, side: 'sim', abi: 2, lane: 'project',
@@ -22,5 +21,5 @@ function projection(id: string, program: typeof heldWeapons.program.v2): Record<
 export const NALATI_SCRIPT_SECTIONS: ReadonlyMap<PlatformDataSectionName, unknown> = new Map([
   ['actors/spawn-scripts', [{ ...charge, bytes: '' }]],
   ['actors/return-scripts', [...legacy, projection('nalati.held-weapons.projection', heldWeapons.program.v2),
-    projection('nalati.titan.projection', titanProgram.attack.v2),projection('nalati.mounts.projection',ridingPrograms.approach.v2)]],
+    projection('nalati.titan.projection', titanProgram.attack.v2),projection('nalati.mounts.projection',ridingPrograms.approach.v2),projection('nalati.pasture.projection',pasture.v2)]],
 ]);

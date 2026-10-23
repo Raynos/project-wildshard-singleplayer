@@ -3,6 +3,7 @@ import { Scope } from '../src/engine/app/scope';
 import { Rng } from '../src/engine/core/rng';
 import { ScriptModuleV2 } from '../src/engine/script/moduleV2';
 import { GroupStepV2 } from '../src/engine/script/groupStepV2';
+import { ReturnProjectionV2 } from '../src/game/population/returnProjectionV2';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { parseGroupStepV2 } from '../src/format/scriptGroupStepV2';
 import { parseReturnProjectionV2, returnProjectionV2Layout } from '../src/format/returnProjectionV2';
@@ -73,7 +74,9 @@ test('full group metadata participates in cache identity before any second insta
     changed.v2.groups = { ...groups, signals: ['different'] };
     expect(() => ReturnProgram.page(changed, owner)).toThrow('Shared return declaration changed');
     expect(ReturnProgram.page(descriptor, owner)).toBe(programme);
-    expect(() => ReturnProgram.page(descriptor)).toThrow('entered scope');
+    const numeric=ReturnProgram.page(descriptor),random=new Rng(6),oracle=new Rng(6);
+    expect(numeric.prepareGroup).toBeUndefined();expect(numeric.project('run',{value:2},random)).toStrictEqual({out:2+oracle.next()});
+    const unowned=new ReturnProjectionV2(descriptor.v2);expect(()=>unowned.prepareGroup({group:'unowned',handle:1,signal:'advance',tick:0,state:Float64Array.of(0),members:[],references:[]})).toThrow('entered scope');
     expect(() => parseReturnProjectionV2({ ...descriptor.v2, groups: { ...groups, pages: 2 } })).toThrow('pages');
   } finally { owner.dispose(); }
 });
@@ -127,4 +130,24 @@ test('native capture cannot reenter the other side of the shared programme', () 
     const state = Float64Array.of(0);prepare({ group: 'first', handle: 1, signal: 'advance', tick: 0, state, members: [], references: [], random });
     expect(state[0]).toBe(0);expect(snapshot()).toStrictEqual(before);
   } finally { spy.mockRestore();owner.dispose(); }
+});
+
+test('the original programme exposes one deeply frozen admitted group descriptor without creating an instance',()=>{
+ const scope=new Scope('group-bindings'),Native=WebAssembly.Instance;let instances=0;
+ const spy=vi.spyOn(WebAssembly,'Instance').mockImplementation(class extends Native {
+  constructor(module:WebAssembly.Module,imports?:WebAssembly.Imports){super(module,imports);instances++;}
+ });
+ try{
+  const program=ReturnProgram.page(descriptor,scope),bindings=program.groupBindings;
+  if(bindings===undefined)throw new Error('Missing admitted group bindings');
+  expect(instances).toBe(1);expect(program.groupBindings).toBe(bindings);
+  expect(ReturnProgram.page(structuredClone(descriptor),scope).groupBindings).toBe(bindings);
+  expect(Object.isFrozen(bindings)).toBe(true);expect(Object.isFrozen(bindings.bank)).toBe(true);
+  const field=bindings.bank[0];if(field===undefined)throw new Error('Missing group field');
+  expect(Object.isFrozen(field)).toBe(true);expect(Reflect.set(field,'name','replaced')).toBe(false);
+  const profile=bindings.profiles?.[0];if(profile===undefined)throw new Error('Missing group profile');
+  expect(Object.isFrozen(profile.columns)).toBe(true);expect(Object.isFrozen(profile.signals)).toBe(true);
+  expect(Reflect.set(profile.signals,'0','replaced')).toBe(false);expect(instances).toBe(1);
+  expect(ReturnProgram.page({script:descriptor.script,bytes:descriptor.bytes}).groupBindings).toBeUndefined();
+ }finally{spy.mockRestore();scope.dispose();}
 });

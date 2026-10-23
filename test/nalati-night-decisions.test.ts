@@ -86,6 +86,7 @@ test('the actual return-script catalogue admits the shared weather/night module 
   expect(projections).toStrictEqual([
     {id:'nalati.held-weapons.projection',abi:2,lane:'project',side:'sim'},
     {id:'nalati.mounts.projection',abi:2,lane:'project',side:'sim'},
+    {id:'nalati.pasture.projection',abi:2,lane:'project',side:'sim'},
     {id:'nalati.titan.projection',abi:2,lane:'project',side:'sim'},
   ]);
   expect(new Set(rows.map(row => row.module)).size).toBeLessThanOrEqual(8);

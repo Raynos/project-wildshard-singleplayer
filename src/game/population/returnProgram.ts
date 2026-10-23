@@ -1,3 +1,4 @@
+import type {GroupGuestBindingsV2} from '@wildshard/engine/ai/GroupBrain';
 import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
 import { DecisionModule } from '@wildshard/engine/script/decisionModule';
 import { scriptV1Layout, SCRIPT_V1_EVENTS, SCRIPT_V1_COMMANDS } from '@wildshard/format/scriptAbiV1';
@@ -46,6 +47,8 @@ export class ReturnProgram {
   private active = false;
   readonly prepareWorld?: (signal:string,observations:Readonly<Record<string,number>>,bindings:ReadonlyMap<number,V2ActionBinding>,candidates?:readonly Readonly<Record<string,number>>[],random?:Rng)=>PreparedProjectionV2;
   readonly prepare?: NonNullable<NumericProjection['prepare']>;
+  /** The same immutable admitted descriptor used by this selected instance. */
+  readonly groupBindings?:GroupGuestBindingsV2;
   readonly prepareGroup?:NonNullable<NumericProjection['prepareGroup']>;
   private constructor(input: unknown, floor: (x: number, z: number) => number,owner?: Scope) {
     const row = readProgram(input),script = row.script;
@@ -62,7 +65,8 @@ export class ReturnProgram {
     if (row.v2 !== undefined) {
       const projection = new ReturnProjectionV2(row.v2,owner);
       this.prepare = projection.prepare.bind(projection);
-      if(row.v2.groups!==undefined)this.prepareGroup=projection.prepareGroup.bind(projection);
+      if(projection.groupBindings!==undefined)this.groupBindings=projection.groupBindings;
+      if(row.v2.groups!==undefined&&owner!==undefined)this.prepareGroup=projection.prepareGroup.bind(projection);
       this.prepareWorld=(signal,observations,bindings,candidates,random)=>projection.prepare(signal,observations,random,candidates??[],bindings);
       return;
     }

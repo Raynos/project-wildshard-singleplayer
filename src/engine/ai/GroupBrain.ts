@@ -1,3 +1,8 @@
+import {prepareGroupNativeV2,type GroupStepV2,type GroupStepNativeOwnersV2,type GroupStepNativeResultV2} from '../script/groupStepV2';
+import type {AnimalSim} from '../entities/AnimalSim';
+import type {V2ColumnOwners} from '../script/observationColumnsV2';
+import type {GroupStepRowsV2} from '@wildshard/format/scriptGroupStepV2';
+import type {GroupBankValueV2} from '@wildshard/format/scriptGroupBankV2';
 import { AggressionDirector } from './director';
 import * as v from 'valibot';
 
@@ -6,13 +11,31 @@ const groupState = v.strictObject({
   directors: v.array(v.strictObject({ cap: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(128)), held: v.array(v.string()) })),
 });
 
+type ReadonlyTree<T> = T extends object ? { readonly [K in keyof T]: ReadonlyTree<T[K]> } : T;
+export type GroupGuestBindingsV2 = ReadonlyTree<GroupStepRowsV2>;
+export interface GroupGuestProjectionV2 {
+ readonly groupBindings?:GroupGuestBindingsV2;
+ readonly prepareGroup:(input:Parameters<GroupStepV2['prepare']>[0])=>ReturnType<GroupStepV2['prepare']>;
+}
+export interface GroupGuestFrameV2<A extends AnimalSim = AnimalSim> {
+ readonly input:Omit<Parameters<GroupStepV2['prepare']>[0],'members'> & {readonly members:readonly V2ColumnOwners<A>[]};
+ readonly native:GroupStepNativeOwnersV2<A>;
+ readonly resume:{readonly field:string;readonly values:readonly number[];readonly segments:number};
+}
+export interface GroupGuestPublicationV2 {
+ /** Pure validation of the original codec, roster and scalar publication. */
+ readonly validate:()=>void;
+ /** Only assignments to the original owner's fields; no hooks/RNG/effects. */
+ readonly commit:()=>void;
+}
+
 export interface GroupMember { readonly alive: boolean }
 /** Shared roster, blackboard and decision clock. Authored goals remain in the owning content. */
 export class GroupBrain<A extends GroupMember> {
   readonly tickClass = 'ai';
   readonly members: A[];
   readonly blackboard = new Map<string, unknown>();
-  private groupTime = -Infinity;
+  protected groupTime = -Infinity;
   private directors: Map<number, AggressionDirector<A>> | undefined;
   constructor(members: A[]) { this.members = members; }
   /** Member callbacks may arrive together; the group makes one decision per simulation instant. */
@@ -57,4 +80,42 @@ export class GroupBrain<A extends GroupMember> {
     }
     this.groupTime = data.time ?? -Infinity; this.directors = directors;
   }
+  /** Internal native subclasses capture current original owners at every barrier. */
+  protected captureGuest(_replies:readonly GroupStepNativeResultV2[]):GroupGuestFrameV2<A & AnimalSim> { throw new Error('Missing native group guest capture'); }
+  /** Validate the original codec before RNG acceptance; commit performs only scalar/role publication. */
+  protected prepareGuestCommit(_frame:GroupGuestFrameV2<A & AnimalSim>,_values:Readonly<Record<string,GroupBankValueV2>>):GroupGuestPublicationV2 { throw new Error('Missing native group guest publication'); }
+ /** Run one original method across synchronous native barriers. Every segment
+   * captures fresh original owners. State and RNG accept before ordered native
+   * effects, so a native exception retains the original accepted prefix; no
+   * rollback or replay is introduced around native side effects. */
+ protected runGuest(program:GroupGuestProjectionV2):void {
+  const prepare=program.prepareGroup;
+  let frame=this.captureGuest([]);
+  const resume=frame.resume,scope=frame.input.members[0]?.scope;
+  const field=resume.field,segments=resume.segments,states=resume.values.slice();
+  const original=frame.input,{group,handle,profile,signal,tick,random,contextRandom,state}=original;
+  if(scope===undefined||scope!==frame.native.scope||!Number.isInteger(resume.segments)||resume.segments<1||resume.segments>512
+   ||resume.values.length===0||resume.values.length>512||!resume.values.includes(0)
+   ||new Set(resume.values).size!==resume.values.length||resume.values.some(value=>!Number.isSafeInteger(value)||value<0))throw new Error('Invalid group guest continuation');
+  for(let segment=0;segment<segments;segment++){
+   if(scope.disposed||scope.disposing||program.prepareGroup!==prepare||frame.resume!==resume||frame.native.scope!==scope
+    ||resume.field!==field||resume.segments!==segments||resume.values.length!==states.length||resume.values.some((value,index)=>value!==states[index])
+    ||frame.input.group!==group||frame.input.handle!==handle||frame.input.profile!==profile||frame.input.signal!==signal||frame.input.tick!==tick
+    ||frame.input.random!==random||frame.input.contextRandom!==contextRandom||frame.input.state!==state
+    ||frame.input.members.some(member=>member.scope!==scope))throw new Error('Replaced group guest owner');
+   const prepared=prepare.call(program,frame.input);
+   // The original codec validates the already-decoded candidate before
+   // either borrowed RNG accepts its next state.
+   const values=prepared.values;
+   const pc=values[field];
+   if(typeof pc!=='number'||!states.includes(pc))throw new Error('Undeclared group guest continuation');
+   const publication=this.prepareGuestCommit(frame,values),native=prepareGroupNativeV2(prepared.operations,frame.native);
+   publication.validate();native.validate();prepared.validate();
+   prepared.accept();publication.commit();
+   const replies=native.run();
+   if(pc===0)return;
+   frame=this.captureGuest(replies);
+  }
+  throw new Error('Group guest continuation exceeded its declared bound');
+ }
 }

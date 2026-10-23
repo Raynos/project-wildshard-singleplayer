@@ -12869,3 +12869,29 @@ release or streamer disposal rejects readiness and releases that demand.
 This promises render publication, not a runtime or collider admission.
 Rectangular road/junction tiles remain an S1 extension. Neighbours supply scene LOD only;
 this renderer never builds a whole world or installs shard runtime logic.
+
+### Synchronous group guest adoption (G621 R10b/R10c)
+
+`GroupBrain` subclasses use `captureGuest`, `prepareGuestCommit` and
+`runGuest` for one original method call. Every resume captures fresh original
+member/context/reference loans. The admitted resume field, values and segment
+limit bound the synchronous drain; no frame yield, second clock or save owner
+is introduced. Complete codec, native effects and both borrowed RNG streams
+validate before acceptance. The original scalar/role fields publish before
+native effects, which drain in emitted order. A native exception retains the
+accepted prefix, matching the original synchronous methods.
+
+`ReturnProgram.groupBindings` exposes the same deeply frozen admitted group
+descriptor without another Wasm instance. `prepareGroup` exists only with both
+group metadata and an original scope. Unscoped numeric projections may carry
+the same metadata, but acquire no group capability; direct unowned group calls
+refuse before capture. Native and page group rows may lend a programme plus
+`GuardedHerdGuestSchema` binding, beside their unchanged saved group spec.
+`GrazerBrain.bindGuest` binds that profile before initialization to the original
+scope, player and live actor roster. Public herd methods retain their native
+identity and JSON continuation while their selected laws run in the guest.
+
+Nalati's pasture numeric laws and main herd profile share one selected module.
+Wind, fire and page wildlife use the original world scope, so the existing
+ReturnProgram scope/hash cache returns the same programme. The unbound legacy
+herd law remains supported and charged until its separate retirement.

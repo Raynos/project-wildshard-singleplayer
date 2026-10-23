@@ -1,3 +1,5 @@
+import pasture from '../src/shards/nalati-grasslands/behaviour/pasture.generated.json' with {type:'json'};
+import herdGuest from '../src/shards/nalati-grasslands/data/herdGuest.json' with {type:'json'};
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type: 'json' };
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the actual native simulation owners.
@@ -25,7 +27,8 @@ const strike = { id: 'orchard.contact', shape: { kind: 'point', radius: 1, exclu
 const rows = { id: 'orchard.groups', herds: 'orchard.herds', tokens: 'orchard.tokens', bounds: [-16,16,-16,16], owned: ['orchard.buck'],
   contacts: { pack: strike, herd: strike }, steps: [{ kind: 'group', row: pack, adopt: null }, { kind: 'group', row: herd, adopt: 'orchard.buck' }] };
 
-test('orchard rows bind native senses, prey, adopted herd and deferred pack identities', async () => {
+test.each([false,true])('orchard native groups retain identities with selected herd %s', async selected => {
+  const input=selected?{...rows,steps:rows.steps.map(step=>step.row.kind==='herd'?{...step,guest:{program:pasture,binding:herdGuest}}:step)}:rows;
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   const sample = SIM_LEVEL.entities[0]; if (sample === undefined) throw new Error('Missing native actor');
   const entities = [];
@@ -38,9 +41,9 @@ test('orchard rows bind native senses, prey, adopted herd and deferred pack iden
   const grid = { res: 2,size: 32,seed: 19,landscapeHash: 0,heights: new Float32Array(4),splat: new Uint8Array(16),undergrowth: null };
   try {
     const before = host.rng.snapshot();
-    expect(() => installNativeGroupRows(host,{ ...rows, owned: ['orchard.missing'] },grid,env)).toThrow('Missing group actor');
+    expect(() => installNativeGroupRows(host,{ ...input, owned: ['orchard.missing'] },grid,env)).toThrow('Missing group actor');
     expect(host.rng.snapshot()).toEqual(before); expect(host.entities.get('orchard.buck')?.mem['owned']).toBeUndefined();
-    const owner = installNativeGroupRows(host,rows,grid,env), kid = host.entities.get('orchard.kid'), buck = host.entities.get('orchard.buck');
+    const owner = installNativeGroupRows(host,input,grid,env), kid = host.entities.get('orchard.kid'), buck = host.entities.get('orchard.buck');
     expect(nativeGroupCollection(host,rows.id)).toBe(owner); expect(owner.owns(host)).toBe(true); expect(owner.tokens?.id).toBe(rows.tokens);
     const admitted = nativeHerdCollection(host,rows.herds);
     expect(admitted).toBe(owner); expect(nativeHerdCollection(host,rows.herds)).toBe(admitted);
@@ -54,7 +57,7 @@ test('orchard rows bind native senses, prey, adopted herd and deferred pack iden
     expect(env.downwind(5,0,point)).toBe(true); expect(env.downwind(-5,0,point)).toBe(false);
     const next = host.spawn({ ...sample, id: 'orchard.return', spec: { ...sample.spec, variant: 'elder' } });
     const packOwner = owner.addPack([next],1,2); expect(packOwner.findPrey?.(3,4,10)).toBe(kid);
-    expect(() => installNativeGroupRows(host,rows,grid,env)).toThrow('installed');
+    expect(() => installNativeGroupRows(host,input,grid,env)).toThrow('installed');
   } finally { host.dispose(); }
   expect(() => nativeHerdCollection(host,rows.herds)).toThrow('Missing native herd collection');
 });

@@ -1,6 +1,13 @@
+import {GUARDED_STALLION_STATES,GuardedHerdGuestSchema,type GuardedHerdGuestRows} from '@wildshard/format/groupBrains';
 import * as v from 'valibot';
 import { MathUtils, Vector3 } from 'three';
-import { GroupBrain } from './GroupBrain';
+import { GroupBrain, type GroupGuestPublicationV2, type GroupGuestProjectionV2, type GroupGuestBindingsV2, type GroupGuestFrameV2 } from './GroupBrain';
+import type { GroupBankValueV2, GroupBankReferenceV2 } from '@wildshard/format/scriptGroupBankV2';
+import type { Scope } from '../app/scope';
+import { GroupBankV2 } from '../script/groupBankV2';
+import type { V2ColumnOwners } from '../script/observationColumnsV2';
+import type { GroupStepNativeResultV2 } from '../script/groupStepV2';
+import { isJsonData } from '@wildshard/format/json';
 import type { AnimalSim } from '../entities/AnimalSim';
 import type { Rng } from '../core/rng';
 import type { SimValue } from '../sim';
@@ -39,7 +46,7 @@ export interface CircleGrazerPorts<A extends AnimalSim> {
 /** Shared grazing, alert and flight modes of a guarded herd. */
 export type GuardedHerdMode = 'graze' | 'drift' | 'alert' | 'flee' | 'settle';
 /** Guard animal decisions; riding and taming remain host-owned recipes. */
-export const GUARDED_STALLION_STATES = ['watch', 'warn', 'display', 'charge', 'wheel', 'lead', 'beaten', 'ridden'] as const;
+
 export type GuardedStallionState = typeof GUARDED_STALLION_STATES[number];
 /** Declared guarded-herd tuning, independent of any particular species rig. */
 export interface GuardedHerdSpec {
@@ -85,6 +92,7 @@ const herdContinuation = v.strictObject({ contract: v.string(), group: v.string(
     alertOwned: v.boolean(), cx: herdFinite, cz: herdFinite, spotX: herdFinite, spotZ: herdFinite, spotT: herdFinite, fleeX: herdFinite, fleeZ: herdFinite,
     fleeRun: herdFinite, fleeLen: herdFinite, fleeFromX: herdFinite, fleeFromZ: herdFinite, modeT: herdFinite, sT: herdFinite, chargeCd: herdFinite,
     beatenT: herdFinite, beaten: v.boolean(), knockCd: herdFinite }) });
+
 
 /** A movement/attack pattern; old row names select these presets without changing their save contract. */
 export type GrazerProfile<A extends AnimalSim = AnimalSim> =
@@ -346,9 +354,126 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
   private sT = 0; private chargeCd = 0; private beatenT = 0; private beaten = false; private chargeTarget: A | null = null;
   private knockCd = 0;
 
+  private guest: {
+    readonly program: GroupGuestProjectionV2;
+    readonly prepare: GroupGuestProjectionV2['prepareGroup'];
+    readonly bindings: GroupGuestBindingsV2;
+    readonly shape: GroupGuestBindingsV2 | NonNullable<GroupGuestBindingsV2['profiles']>[number];
+    readonly rows: GuardedHerdGuestRows;
+    readonly scope: Scope; readonly group: string; readonly handle: number; readonly player: Vector3;
+    readonly actors: Map<string,A> | readonly A[];
+    readonly codec: GroupBankV2;
+  } | undefined;
+  private guestCall: {
+    readonly binding: NonNullable<GrazerBrain<A>['guest']>;
+    readonly context: GuardedHerdContext<A> | undefined;
+    readonly signal: string; readonly bank: Float64Array;
+    readonly references: (GroupBankReferenceV2 & {group:string;slot:number;body:A})[];
+    readonly random: Rng;
+    readonly arguments: Readonly<Record<string,number>>;
+    reply: number;
+  } | undefined;
+  /** Select a profile on the SAME admitted programme. Scope, bodies, player and
+   * random owners remain concrete native loans; rows contain only bindings. */
+  bindGuest(program: GroupGuestProjectionV2, input: unknown, loans: {
+    readonly scope: Scope; readonly group: string; readonly handle: number;
+    readonly player: Vector3; readonly actors: Map<string,A> | readonly A[];
+  }): void {
+    this.requireHerd();
+    if (this.guest !== undefined || this.initialized || loans.scope.disposed || loans.scope.disposing
+      || loans.group.length === 0 || !Number.isSafeInteger(loans.handle) || loans.handle < 1) throw new Error('Invalid herd guest binding owner');
+    if (!isJsonData(input)) throw new Error('Herd guest binding requires JSON rows');
+    const rows = v.parse(GuardedHerdGuestSchema,input), bindings = program.groupBindings;
+    if (bindings === undefined || typeof program.prepareGroup !== 'function') throw new Error('Missing herd guest executable');
+    const shape = rows.profile === 'main' ? bindings : bindings.profiles?.find(row => row.id === rows.profile);
+    if (shape === undefined || this.members.length > shape.members || shape.bank.some(row => row.kind === 'nullable-number' || row.kind === 'references')
+      || ['drive','tick','initialize','stampede','leadAway','addTrust','setRidden','adopt','release','disturb'].some(name => !shape.signals.includes(name))
+      || Object.entries(rows.references??{}).some(([name,field]) => ['self','target','threat'].includes(name) || !shape.bank.some(row=>row.name===field&&(row.kind==='number'||row.kind==='reference')))
+      || !shape.bank.some(row => row.name === rows.resume.field && row.kind === 'number')
+      || Object.keys(rows.parameters).some(name => !name.startsWith('context.') || !shape.bank.some(row => row.name === name && row.kind === 'number')))
+      throw new Error('Incompatible herd guest profile');
+    this.guest = {program,prepare:program.prepareGroup,bindings,shape,rows,scope:loans.scope,group:loans.group,handle:loans.handle,
+      player:loans.player,actors:loans.actors,codec:new GroupBankV2(shape.bank)};
+  }
+  private runHerdGuest(signal: string, context?: GuardedHerdContext<A>, actor?: A, body = false,
+    arguments_: Readonly<Record<string,number>> = {}): boolean {
+    const binding = this.guest;
+    if (binding === undefined) return false;
+    if (binding.scope.disposed || binding.scope.disposing || binding.program.prepareGroup !== binding.prepare
+      || binding.program.groupBindings !== binding.bindings) throw new Error('Replaced herd guest binding');
+    const pool = binding.actors instanceof Map ? [...binding.actors.values()] : binding.actors;
+    if (actor !== undefined && !pool.includes(actor) || this.members.some(member => !pool.includes(member))) throw new Error('Foreign herd guest actor');
+    const bodies = [...this.members,...pool.filter(candidate => !this.members.includes(candidate))];
+    if (bodies.length > 1024 || new Set(bodies).size !== bodies.length || new Set(bodies.map(member => member.entityId)).size !== bodies.length) throw new Error('Ambiguous herd guest references');
+    const references = bodies.map((member,index) => ({group:this.members.includes(member)?binding.group:`${binding.group}:external`,
+      slot:this.members.includes(member)?this.members.indexOf(member):index,identity:member.entityId,wire:member.entityId,handle:index+1,body:member}));
+    const slot = actor === undefined ? 0 : this.members.indexOf(actor);
+    const initial: Record<string,GroupBankValueV2> = Object.fromEntries(binding.shape.bank.map(row =>
+      [row.name,row.kind === 'boolean' ? false : row.kind === 'reference' ? null : row.kind === 'enum' ? row.values[0] ?? '' : 0]));
+    Object.assign(initial,this.captureHerdGuestState(),{slot:Math.max(0,slot),body});
+    const argumentHandle = actor === undefined ? 0 : references.find(row => row.body === actor)?.handle;
+    if (argumentHandle === undefined) throw new Error('Missing herd guest argument');
+    const previous = this.guestCall;
+    this.guestCall = {binding,context,signal,bank:binding.codec.encode(initial,binding.group,references),references,
+      random:this.herdPorts.sharedRng(),arguments:{...arguments_,'context.argHandle':argumentHandle},reply:0};
+    try { this.runGuest(binding.program); } finally { this.guestCall = previous; }
+    return true;
+  }
+  protected override captureGuest(replies: readonly GroupStepNativeResultV2[]): GroupGuestFrameV2<A> {
+    const call = this.guestCall;
+    if (call === undefined || call.binding !== this.guest) throw new Error('Missing herd guest call');
+    const {binding,context,references} = call, player = context?.player ?? binding.player;
+    if (binding.scope.disposed || binding.scope.disposing || binding.program.prepareGroup !== binding.prepare
+      || binding.program.groupBindings !== binding.bindings) throw new Error('Replaced herd guest binding');
+    for (const reply of replies) { if (reply.channel !== 'reply') throw new Error('Unknown herd guest result');call.reply = reply.value; }
+    for (const [slot,actor] of this.members.entries()) {
+      const reference = references.find(row => row.body === actor);
+      if (reference === undefined) throw new Error('Unknown appended herd member');
+      reference.group = binding.group;reference.slot = slot;
+    }
+    const retained = binding.codec.decode(call.bank,binding.group,references), current = this.captureHerdGuestState();
+    const target = references.find(row => row.body === this.chargeTarget) ?? null;
+    const named = Object.entries(binding.rows.references??{}).map(([name,field]):[string,typeof references[number]|null]=>{
+      const value=retained[field];if(value===null||value===0)return[name,null];
+      const reference=typeof value==='number'?references.find(row=>row.handle===value):typeof value==='string'?references.find(row=>row.wire===value):undefined;
+      if(reference===undefined)throw new Error('Unresolved herd guest capture reference');return[name,reference];
+    });
+    const threat = references.find(row => row.handle === call.reply) ?? null, spec = this.herdSpec;
+    const parameters: Record<string,number> = {...binding.rows.parameters,...call.arguments,
+      'context.walk':spec.walkSpeed,'context.trot':spec.trotSpeed,'context.gallop':spec.gallopSpeed,'context.charge':spec.chargeSpeed,
+      'context.sight':spec.sightRadius,'context.grazingSight':spec.grazingSightRadius,'context.cone':spec.coneAngle,
+      'context.alertThreshold':spec.alertThreshold,'context.flightMin':spec.flightMinDistance,'context.flightMax':spec.flightMaxDistance,
+      'context.dt':context?.dt ?? 0,'context.time':context?.t ?? 0,'context.calm':Number(context?.calm ?? false),
+      'context.playerSpeed':context?.playerSpeed ?? 0,'context.px':player.x,'context.py':player.y,'context.pz':player.z};
+    const record = {...retained,...current};
+    for (const row of binding.shape.bank) if (row.name.startsWith('context.')) record[row.name] = parameters[row.name] ?? 0;
+    call.bank.set(binding.codec.encode(record,binding.group,references));
+    const members: V2ColumnOwners<A>[] = this.members.map((actor,slot) => ({scope:binding.scope,self:{group:binding.group,slot,identity:actor.entityId,actor},
+      player:{position:player},observed:new Map(),t:context?.t ?? 0,dt:context?.dt ?? 0,...(context === undefined ? {} : {context}),
+      references:new Map([...named,['self',references.find(row => row.body === actor) ?? null],['target',target],['threat',threat]]),
+      results:{...this.captureHerdGuestRoles(actor),reply:call.reply}}));
+    return {input:{group:binding.group,handle:binding.handle,profile:binding.rows.profile,signal:call.signal,tick:0,state:call.bank,members,references,
+      random:call.random,...(context === undefined ? {} : {contextRandom:context.rng})},
+      native:{scope:binding.scope,members,references,group:{kind:'herd',owner:this},ground:this.herdPorts,
+        ...(context === undefined ? {} : {contexts:members.map(() => context)})},resume:binding.rows.resume};
+  }
+  protected override prepareGuestCommit(frame: GroupGuestFrameV2<A>,values: Readonly<Record<string,GroupBankValueV2>>): GroupGuestPublicationV2 {
+    const call = this.guestCall;
+    if (call === undefined || call.binding !== this.guest || frame.input.state !== call.bank || frame.input.references !== call.references)
+      throw new Error('Foreign herd guest publication');
+    const publication = this.prepareHerdGuestState(values,call.references,call.binding.scope);
+    const validate = (): void => {
+      if (this.guestCall !== call || this.guest !== call.binding || call.binding.program.prepareGroup !== call.binding.prepare
+        || call.binding.program.groupBindings !== call.binding.bindings) throw new Error('Replaced herd guest call');
+      publication.validate();
+    };
+    return {validate,commit:() => {validate();publication.commit();}};
+  }
+
   /** Perform only the shipping initial graze-timer draw, exactly once after complete controller preflight. */
   initialize(): void { this.requireHerd();
     if (this.initialized) throw new Error('Herd already initialized');
+    if (this.runHerdGuest('initialize')) return;
     this.spotT = 20 + this.herdPorts.sharedRng().next() * 40; this.initialized = true;
   }
 
@@ -358,12 +483,82 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     return JSON.stringify({ contract: this.contract, group: this.snapshotGroup(actor => actor.entityId), lead: id(this.lead),
       stallion: id(this.stallion), ridden: id(this.ridden), chargeTarget: id(this.chargeTarget), foals: this.foals.map(actor => actor.entityId),
       mothers: [...this.mothers].map(([foal, mother]) => [foal.entityId, mother.entityId]), state: {
-        initialized: this.initialized, mode: this.mode, stampeding: this.stampeding, stallionState: this.stallionState, trust: this.trust, alert: this.alert,
+  ...this.herdGuestScalars() } });
+  }
+  /** Read the original saved scalar fields without rebuilding its roster,
+   * director books, JSON continuation or clock. The guest owns no second save. */
+  protected herdGuestScalars(): v.InferOutput<typeof herdContinuation.entries.state> {
+    return {
+      initialized: this.initialized, mode: this.mode, stampeding: this.stampeding, stallionState: this.stallionState, trust: this.trust, alert: this.alert,
         alertOwned: this.alertOwned, cx: this.cx, cz: this.cz, spotX: this.spotX, spotZ: this.spotZ, spotT: this.spotT,
         fleeX: this.fleeX, fleeZ: this.fleeZ, fleeRun: this.fleeRun, fleeLen: this.fleeLen, fleeFromX: this.fleeFromX,
         fleeFromZ: this.fleeFromZ, modeT: this.modeT, sT: this.sT, chargeCd: this.chargeCd, beatenT: this.beatenT,
-        beaten: this.beaten, knockCd: this.knockCd } });
+        beaten: this.beaten, knockCd: this.knockCd
+    };
   }
+  /** Capture only existing scalar/role owners; the returned data is per-call
+   * scratch. It does not serialize or restore the group's director book. */
+  protected captureHerdGuestState(): Readonly<Record<string, GroupBankValueV2>> {
+    this.requireHerd();
+    return { ...this.herdGuestScalars(), lead: this.lead?.entityId ?? null, stallion: this.stallion?.entityId ?? null,
+      ridden: this.ridden?.entityId ?? null, chargeTarget: this.chargeTarget?.entityId ?? null,
+      groupTimePresent: this.groupTime !== -Infinity, groupTime: this.groupTime === -Infinity ? 0 : this.groupTime };
+  }
+  /** The existing foal/mother identity map at this member's current slot. */
+  protected captureHerdGuestRoles(actor: A): { readonly foal: number; readonly mother: number } {
+    this.requireHerd();
+    const mother = this.mothers.get(actor);
+    return { foal: Number(this.foals.includes(actor)), mother: mother === undefined ? -1 : this.members.indexOf(mother) };
+  }
+  /** Validate the complete guest scalar/role candidate before RNG acceptance.
+   * Commit performs assignments only; notifications and body effects retain
+   * their original native drain positions. Per-call scratch never enters save. */
+  protected prepareHerdGuestState(values: Readonly<Record<string, GroupBankValueV2>>,
+    references: readonly (GroupBankReferenceV2 & { readonly body: A })[], scope: Scope): GroupGuestPublicationV2 {
+    this.requireHerd();
+    if (scope.disposed || scope.disposing) throw new Error('Retired herd guest owner');
+    const storage = [...Object.keys(herdContinuation.entries.state.entries),'lead','stallion','ridden','chargeTarget','groupTime'].map(name => ({name,descriptor:Object.getOwnPropertyDescriptor(this,name)}));
+    if (storage.some(({descriptor}) => descriptor === undefined || !Object.hasOwn(descriptor,'value') || descriptor.writable !== true)) throw new Error('Invalid herd guest storage');
+    const before = Object.entries(this.herdGuestScalars()), roster = this.members, members = roster.slice();
+    const beforeRoles = [this.lead,this.stallion,this.ridden,this.chargeTarget], beforeTime = this.groupTime;
+    const source = references.map(row => ({ row, body: row.body, group: row.group, slot: row.slot,
+      identity: row.identity, wire: row.wire, handle: row.handle }));
+    const next = v.parse(herdContinuation.entries.state,Object.fromEntries(before.map(([name]) => [name,values[name]])));
+    const role = (name: string, own: boolean): A | null => {
+      const wire = values[name];
+      if (wire === null) return null;
+      if (typeof wire !== 'string') throw new Error('Invalid herd guest role');
+      const reference = source.find(row => row.wire === wire);
+      if (reference === undefined || reference.body.entityId !== reference.identity
+        || own && !members.includes(reference.body)) throw new Error('Foreign herd guest role');
+      return reference.body;
+    };
+    const lead = role('lead',true), stallion = role('stallion',true), ridden = role('ridden',true), target = role('chargeTarget',false);
+    const present = v.parse(v.boolean(),values['groupTimePresent']), time = v.parse(herdFinite,values['groupTime']);
+    if (!present && !Object.is(time,0)) throw new Error('Nonzero absent herd clock');
+    let accepted = false;
+    const validate = (): void => {
+      if (storage.some(({name,descriptor}) => {
+        const current = Object.getOwnPropertyDescriptor(this,name);
+        return current === undefined || descriptor === undefined || !Object.hasOwn(current,'value') || current.writable !== true || !Object.is(current.value,descriptor.value);
+      })) throw new Error('Changed herd guest storage');
+      const current = Object.entries(this.herdGuestScalars());
+      if (accepted || scope.disposed || scope.disposing || this.members !== roster || members.length !== roster.length
+        || members.some((body,index) => roster[index] !== body)
+        || !Object.is(this.groupTime,beforeTime) || [this.lead,this.stallion,this.ridden,this.chargeTarget].some((body,index) => body !== beforeRoles[index])
+        || current.length !== before.length || current.some(([name,value],index) => {const prior=before[index];return prior===undefined||name!==prior[0]||!Object.is(value,prior[1]);})
+        || references.length !== source.length || source.some((pin,index) => references[index] !== pin.row || pin.row.body !== pin.body
+          || pin.row.group !== pin.group || pin.row.slot !== pin.slot || pin.row.identity !== pin.identity || pin.row.wire !== pin.wire || pin.row.handle !== pin.handle
+          || pin.body.entityId !== pin.identity)) throw new Error('Changed herd guest publication owner');
+    };
+    validate();
+    return { validate, commit: () => {
+      validate();accepted = true;Object.assign(this,next);
+      this.lead = lead;this.stallion = stallion;this.ridden = ridden;this.chargeTarget = target;
+      this.groupTime = present ? time : -Infinity;
+    } };
+  }
+
   /** Preflight tuning, roster, mothers and external threats before restoring; no body, taming callback or RNG executes. */
   private restoreHerd(saved: string): void {
     const data = v.parse(herdContinuation, JSON.parse(saved));
@@ -391,15 +586,17 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
 
   /** B7: this horse is being ridden — the herd lets go of it (null hands it back) */
   setRidden(a: A | null): void { this.requireHerd();
+    if (this.runHerdGuest('setRidden',undefined,a??undefined)) return;
     if (this.ridden !== null) this.ridden.mem['ridden'] = 0;
     this.ridden = a;
     if (a !== null) { a.mem['ridden'] = 1; if (a === this.stallion) this.setStallion('ridden'); }
     else if (this.stallionState === 'ridden') this.setStallion('watch');
   }
-  addTrust(n: number): void { this.requireHerd(); this.trust = MathUtils.clamp(this.trust + n, 0, 100); }
+  addTrust(n: number): void { this.requireHerd(); if (this.runHerdGuest('addTrust',undefined,undefined,false,{'context.argument':n})) return; this.trust = MathUtils.clamp(this.trust + n, 0, 100); }
 
   /** a shot / a loud thing landed at (x, z): within 15 m of a horse → stampede, within 40 m → heads up */
   disturb(x: number, z: number): void { this.requireHerd();
+    if (this.runHerdGuest('disturb',undefined,undefined,false,{'context.argX':x,'context.argZ':z})) return;
     let near = Infinity;
     for (const h of this.members) if (h.alive) near = Math.min(near, Math.hypot(h.position.x - x, h.position.z - z));
     if (near < 15) this.stampede(x, z);
@@ -407,15 +604,15 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
   }
 
   /** the flight becomes a stampede, away from (x, z) */
-  stampede(x: number, z: number): void { this.requireHerd(); this.startFlight(x, z, true); }
+  stampede(x: number, z: number): void { this.requireHerd(); if (this.runHerdGuest('stampede',undefined,undefined,false,{'context.argX':x,'context.argZ':z})) return; this.startFlight(x, z, true); }
   /** the stallion leads the herd away from (x, z) at a gallop (taming: ALERT maxed with some trust) — not a stampede */
-  leadAway(x: number, z: number): void { this.requireHerd(); this.startFlight(x, z, false); }
+  leadAway(x: number, z: number): void { this.requireHerd(); if (this.runHerdGuest('leadAway',undefined,undefined,false,{'context.argX':x,'context.argZ':z})) return; this.startFlight(x, z, false); }
   /** the stallion leaves the herd for good (tamed): the herd grazes on without a guard */
   /** a stallion of another kind joins this herd as its stallion (the elite Argymaq, src/shards/nalati-grasslands/combat/elites.ts). Without the
    *  registration his brain (thinkHorse → forThink) found no herd and built a fresh one every tick — he was never BEATEN
    *  and the mares were re-homed into throwaway herds (GrazerBrain<A>.all grew at 10 Hz) */
-  adoptStallion(a: A): void { this.requireHerd(); if (!this.members.includes(a)) this.members.push(a); this.stallion = a; this.setStallion('watch'); }
-  releaseStallion(): void { this.requireHerd(); if (this.stallion !== null) { this.stallion.mem['ridden'] = 1; this.stallion = null; } this.alertOwned = false; }
+  adoptStallion(a: A): void { this.requireHerd(); if (this.runHerdGuest('adopt',undefined,a)) return; if (!this.members.includes(a)) this.members.push(a); this.stallion = a; this.setStallion('watch'); }
+  releaseStallion(): void { this.requireHerd(); if (this.runHerdGuest('release')) return; if (this.stallion !== null) { this.stallion.mem['ridden'] = 1; this.stallion = null; } this.alertOwned = false; }
 
   private centre(): void {
     let x = 0, z = 0, n = 0;
@@ -448,6 +645,7 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
   /** the herd-level tick: senses, alarms, mode changes (once per AI tick) */
   tick(c: GuardedHerdContext<A>): void { this.requireHerd();
     if (!this.initialized) throw new Error('Herd is not initialized');
+    if (this.runHerdGuest('tick',c)) return;
     const dt = this.groupDelta(c.t, c.dt);
     if (dt <= 0) return;
     this.modeT += dt; this.sT += dt; this.chargeCd = Math.max(0, this.chargeCd - dt); this.knockCd = Math.max(0, this.knockCd - dt);
@@ -612,6 +810,7 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
   /** steer one horse for this tick (after `tick`) */
   drive(a: A, c: GuardedHerdContext<A>, body = false): void { this.requireHerd();
     if (!this.initialized) throw new Error('Herd is not initialized');
+    if (this.runHerdGuest('drive',c,a,body)) return;
     const m = a.mem;
     const committed = a === this.stallion && this.stallionState === 'charge';
     if (body !== committed) return;
