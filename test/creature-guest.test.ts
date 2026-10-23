@@ -1,6 +1,8 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- validate generated species rows without inferring the complete JSON type
+import { readFileSync } from 'node:fs';
 import { Scope } from '../src/engine/app/scope';
 import { app } from '../src/engine/app/runtime';
-import { array,number,parse,tuple } from 'valibot';
+import { array,number,object,parse,tuple } from 'valibot';
 import { afterEach,beforeEach,expect,test } from 'vitest';
 import { Vector3 } from 'three';
 import { BALBAL_SPECIES } from './fixtures/projectedCreature';
@@ -13,8 +15,11 @@ import titan from '../src/shards/nalati-grasslands/behaviour/titan.generated.jso
 import { parseDecisionScripts } from '../src/format/decisionScripts';
 import sourceAdmission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type:'json' };
 import { CreatureGuestSchema } from '../src/format/speciesBookRows';
-import generated from '../src/shards/nalati-grasslands/data/species.generated.json' with { type:'json' };
+import { ReturnProgramSchema } from '../src/format/namedJsonContracts';
 import rows from '../src/shards/nalati-grasslands/data/speciesRows.json' with { type:'json' };
+
+const generated=parse(object({presentation:object({guest:CreatureGuestSchema,lookBook:object({program:ReturnProgramSchema})})}),
+  JSON.parse(readFileSync('src/shards/nalati-grasslands/data/species.generated.json','utf8')));
 
 let scope: Scope;
 beforeEach(() => { scope = new Scope('creature-guest.fixture'); scope.expose(app, 'levelScope', scope); });
