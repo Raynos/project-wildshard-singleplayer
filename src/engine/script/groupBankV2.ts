@@ -20,7 +20,7 @@ function references(input: readonly GroupBankReferenceV2[]): ReadonlyMap<number,
   const wires = new Set<string>(), identities = new Set<string>(), slots = new Set<string>();
   for (const row of input) {
     integer(row.handle, 1, 0x7fffffff);
-    integer(row.slot, 0, 15);
+    integer(row.slot, 0, 4095);
     const slot = JSON.stringify([row.group, row.slot]);
     if (row.group.length === 0 || row.identity.length === 0 || row.wire.length === 0
       || result.has(row.handle) || wires.has(row.wire) || identities.has(row.identity) || slots.has(slot))

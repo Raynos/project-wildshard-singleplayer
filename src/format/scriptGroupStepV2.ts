@@ -17,10 +17,12 @@ export type GroupStepNativeV2 =
   | { kind: 'visibility'; channel: string }
   | { kind: 'downwind'; channel: string }
   | { kind: 'claim'; channel: string }
+  | { kind: 'nearest'; channel: string; roster: string }
   | { kind: 'hearing'; channel: string; radii: readonly [number, number, number, number] };
 const radius = v.pipe(v.number(), v.finite(), v.minValue(0));
 const nativeSchema: v.GenericSchema<GroupStepNativeV2> = v.variant('kind', [
   v.strictObject({ kind: v.picklist(['grass', 'normal', 'visibility', 'downwind', 'claim']), channel: name }),
+  v.strictObject({ kind: v.literal('nearest'), channel: name, roster: name }),
   v.strictObject({ kind: v.literal('hearing'), channel: name, radii: v.strictTuple([radius, radius, radius, radius]) }),
 ]);
 export interface GroupStepActionV2 {
@@ -98,8 +100,8 @@ export function parseGroupStepV2(input: unknown): GroupStepRowsV2 {
       if (row.member !== undefined && row.member >= row.words || row.reference !== undefined && row.reference.word >= row.words
         || row.member !== undefined && row.reference?.word === row.member) throw new Error('Invalid group action operands');
       if (row.native !== undefined) {
-        const point = row.native.kind === 'grass' || row.native.kind === 'normal';
-        if (row.words !== (point ? 2 : 1) || row.member !== (point ? undefined : 0) || row.reference !== undefined)
+        const point = row.native.kind === 'grass' || row.native.kind === 'normal' || row.native.kind === 'nearest';
+        if (row.words !== (row.native.kind === 'nearest' ? 3 : point ? 2 : 1) || row.member !== (point ? undefined : 0) || row.reference !== undefined)
           throw new Error('Invalid native group result operands');
       }
     }

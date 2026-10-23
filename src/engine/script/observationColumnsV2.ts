@@ -22,6 +22,17 @@ export interface V2SenseColumns {
   readonly hearing:(radii:readonly[number,number,number,number],player:Vector3,speed:number)=>number;
   readonly downwind:(x:number,z:number,player:Vector3)=>boolean;
 }
+/** An original scoped body/prey loan, including native crowd members that do
+ * not have AnimalSim storage. Identity comes from the original roster owner. */
+export interface V2ReferenceColumn {
+  readonly identity: string;
+  readonly handle: number;
+  readonly body: {
+    readonly position: Readonly<{x:number;y:number;z:number}>;
+    readonly yaw: number;
+    readonly alive: boolean;
+  };
+}
 export interface V2ActorColumnSlot {
   readonly group: string; readonly slot: number; readonly identity: string;
   readonly actor: AnimalSim | null;
@@ -33,6 +44,7 @@ export interface V2ColumnOwners {
   readonly scope: Scope; readonly self: V2ActorColumnSlot;
   readonly player: { readonly position: Readonly<{ x: number; y?: number; z: number }> };
   readonly observed: ReadonlyMap<number,AnimalSim>;
+  readonly references?: ReadonlyMap<string,V2ReferenceColumn | null>;
   readonly t: number; readonly dt: number;
   readonly context?: {readonly calm:boolean;readonly playerSpeed:number};
   readonly hit?: Readonly<{x:number;y:number;z:number}>;
@@ -85,6 +97,7 @@ export class ObservationColumnsV2 {
     const identity = (body: AnimalSim | null): number => body === null ? 0 : need(observed.get(body),'actor identity');
     const herds = owners.herds ?? [];
     if (herds.length > 64 || new Set(herds.map(row => JSON.stringify([row.group,row.slot]))).size !== herds.length) throw new Error('Ambiguous observation herd loan');
+    const referencePins: (() => boolean)[] = [];
     const sensePins:{owner:V2SenseColumns;field:'visibility'|'hearing'|'downwind';callable:unknown;player:Vector3}[]=[];
     // Resolve the complete suffix before invoking any native grass query.
     const prepared = this.rows.map(row => {
@@ -96,6 +109,17 @@ export class ObservationColumnsV2 {
         if(typeof callable!=='function'||owner.player!==owners.player.position)throw new Error('Invalid native sense owner');
         sensePins.push({owner,field:source.field,callable,player:owner.player});
       }
+      let reference: V2ReferenceColumn | null = null;
+      if (source.kind === 'reference') {
+        const owner = need(owners.references,'reference'), loan = need(owner.get(source.binding),'reference binding');
+        if (owner.size > 128) throw new Error('Observation reference capacity');
+        if (loan !== null && (loan.identity.length === 0 || !Number.isInteger(loan.handle) || loan.handle < 1 || loan.handle > 0x7fffffff
+          || typeof loan.body.alive !== 'boolean')) throw new Error('Invalid observation reference loan');
+        reference = loan;
+        const body = loan?.body, referenceIdentity = loan?.identity, handle = loan?.handle;
+        referencePins.push(() => owners.references === owner && owner.get(source.binding) === loan
+          && loan?.body === body && loan?.identity === referenceIdentity && loan?.handle === handle);
+      }
       if (source.kind === 'clock') need(owners.clock,'clock');
       if (source.kind === 'weather') need(owners.weather,'weather');
       if (source.kind === 'taming') need(owners.taming,'taming');
@@ -105,7 +129,7 @@ export class ObservationColumnsV2 {
       if (source.kind === 'herd' && source.field === 'stallion' && herd !== null) identity(herd.stallion);
       if (source.kind === 'taming' && source.field === 'companion') identity(owners.taming?.companion ?? null);
       if (source.kind === 'mount' && source.field === 'actor') identity(owners.mount?.actor ?? null);
-      return { row,herd };
+      return { row,herd,reference };
     });
     const memory=():Readonly<Record<string,number>>|undefined=>actor?.mem;
     const point=(source: Extract<ObservationColumnV2['source'],{kind:'distance-xz'}>['from']):Readonly<{x:number;z:number}>=>{
@@ -119,11 +143,11 @@ export class ObservationColumnsV2 {
       }
     };
     const live=():void=>{
-      if(this.scope.disposed||this.scope.disposing||owners.self.actor!==actor)throw new Error('Retired observation owner');
+      if(this.scope.disposed||this.scope.disposing||owners.self.actor!==actor||referencePins.some(pin=>!pin()))throw new Error('Retired observation owner');
       for(const pin of sensePins)if(owners.senses!==pin.owner||pin.owner.player!==pin.player
         ||owners.player.position!==pin.player||Reflect.get(pin.owner,pin.field)!==pin.callable)throw new Error('Replaced native sense owner');
     };
-    const result=prepared.map(({ row,herd }) => {
+    const result=prepared.map(({ row,herd,reference }) => {
       live();
       const source = row.source;let value: number;
       switch (source.kind) {
@@ -141,6 +165,13 @@ export class ObservationColumnsV2 {
         case 'request-tags':value=Number(need(owners.request,'request')?.sourceTags.some(tag=>source.tags.includes(tag))===true);break;
         case 'equipment':value=Number(source.ids.includes(need(owners.equipment,'equipment')));break;
         case 'result':value=need(owners.results?.[source.channel],'projection result');break;
+        case 'reference':
+          if (reference === null) value = 0;
+          else if (source.field === 'present') value = 1;
+          else if (source.field === 'handle') value = reference.handle;
+          else if (source.field === 'x' || source.field === 'y' || source.field === 'z') value = reference.body.position[source.field];
+          else value = Number(reference.body[source.field]);
+          break;
         case 'bearing': {const target=point(source.target),body=need(actor??undefined,'self');value=Math.atan2(target.x-body.position.x,target.z-body.position.z);break;}
         case 'heading-offset': {
           const body=need(actor??undefined,'self'),heading=source.target.kind==='player'?Math.atan2(owners.player.position.x-body.position.x,owners.player.position.z-body.position.z):body.mem[source.target.key]??body.yaw;

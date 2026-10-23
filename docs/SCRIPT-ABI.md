@@ -1136,3 +1136,31 @@ original owners once. Rejected output, stale draws, replacement or ancestor
 retirement publishes neither bank nor the other RNG. The native JSON codecs
 remain with the original group/population owners; there is no combined RNG save,
 new random stream, replay, clock or selected executable created by this API.
+
+### Native group references and nearest rosters (H4, G621 R10a)
+
+A reference column names a declared binding and one finite field: present,
+handle, x/y/z, yaw or alive. V2ColumnOwners.references borrows a named map of
+original native body/prey loans or explicit null. Null samples zero; a missing
+binding refuses. Columns are detached, with scoped map, row, body, identity and
+handle fences. GroupStep requires every such loan to match its original
+reference list; replacing a row, membership, wire or reference metadata before
+acceptance refuses state/RNG publication.
+
+The default GroupStepReferenceV2 body remains an AnimalSim whose entityId must
+match. An explicit native pose:true loan carries an original CirclingPackPrey,
+including crowd prey without AnimalSim storage. Its existing roster supplies
+identity/wire and owns damage and saved JSON; no second identity registry or
+body is created. Pose loans cannot impersonate this group's own member slots.
+External reference slots are bounded to 0..4095 for crowd rosters; this group's
+actual member/operation slots remain bounded to sixteen.
+
+A native nearest result row declares {kind:nearest,roster,channel}; its three
+operands are x,z,radius. prepareNative borrows the SAME references array and an
+explicit native roster map. Every ordered roster loan must match a reference
+before any native prefix. Selection scans the actual live bodies, uses strict
+horizontal Math.hypot distance < radius, retains the first tie, and returns the
+existing handle or zero. It excludes no body implicitly and resolves no kind,
+species or global id. The caller lends its original candidate roster, such as
+its existing cross-group member collection. Scalar results resume through the
+same ephemeral result columns; pose columns read the original chosen loan.

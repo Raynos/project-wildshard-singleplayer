@@ -33,6 +33,7 @@ const source = v.variant('kind',[
   v.strictObject({kind:v.literal('request-tags'),tags:v.pipe(v.array(key),v.maxLength(32))}),
   v.strictObject({kind:v.literal('equipment'),ids:v.pipe(v.array(key),v.maxLength(32))}),
   v.strictObject({kind:v.literal('result'),channel:key}),
+  v.strictObject({kind:v.literal('reference'),binding:key,field:v.picklist(['present','handle','x','y','z','yaw','alive'])}),
   v.strictObject({kind:v.literal('bearing'),target:point}),
   v.strictObject({kind:v.literal('heading-offset'),target:v.union([v.strictObject({kind:v.literal('player')}),v.strictObject({kind:v.literal('memory'),key})])}),
   v.strictObject({kind:v.literal('distance-xz'),from:point,to:point}),

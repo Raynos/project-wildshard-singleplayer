@@ -17,8 +17,20 @@ import type { AnimalSim } from '../entities/AnimalSim';
 import type { Rng, RngState } from '../core/rng';
 import type { AggressionDirector, AggressionService } from '../ai/director';
 import type { Events } from '../events/events';
+import type { CirclingPackPrey } from '../ai/stalker';
 
-export interface GroupStepReferenceV2 extends GroupBankReferenceV2 { readonly body: AnimalSim }
+export type GroupStepReferenceV2 = GroupBankReferenceV2 & (
+  | { readonly body: AnimalSim; readonly pose?: never }
+  | { readonly body: CirclingPackPrey; readonly pose: true }
+);
+function validReference(row: GroupStepReferenceV2): boolean {
+  return row.pose === true ? typeof row.body.alive === 'boolean' : row.body.entityId === row.identity;
+}
+function sameReference(current: GroupStepReferenceV2 | undefined, before: GroupStepReferenceV2): boolean {
+  return current !== undefined && current.body === before.body && current.pose === before.pose
+    && current.group === before.group && current.slot === before.slot && current.identity === before.identity
+    && current.wire === before.wire && current.handle === before.handle && validReference(current);
+}
 export interface GroupStepOperationV2 {
   readonly id: number;
   readonly values: readonly number[];
@@ -92,26 +104,27 @@ export class GroupStepV2 {
       const originalState = input.state.slice();
       profile.bank.decode(originalState, input.group, input.references);
       const refs = input.references.map(row => {
-        if (row.body.entityId !== row.identity) throw new Error('Foreign group reference body');
+        if (!validReference(row)) throw new Error('Foreign group reference body');
         return Object.freeze({ ...row });
       });
-      for (const row of refs) if (row.group === input.group && input.members[row.slot]?.self.actor !== row.body)
+      for (const row of refs) if (row.group === input.group && (row.pose === true || input.members[row.slot]?.self.actor !== row.body))
         throw new Error('Foreign group member reference');
       const identities = input.members.filter(owners => owners.self.actor !== null).map(owners => owners.self.identity);
       if (new Set(identities).size !== identities.length) throw new Error('Duplicate group body loan');
       const members = input.members.map((owners, slot) => {
         if (owners.scope !== this.scope || owners.self.group !== input.group || owners.self.slot !== slot) throw new Error('Foreign group member loan');
-        return { source: owners, self: Object.freeze({ ...owners.self }), values: profile.columns.capture(owners) };
+        const referenceOwner = owners.references, references = referenceOwner === undefined ? [] : [...referenceOwner].map(([name, loan]) => {
+          if (loan !== null && !refs.some(row => row.body === loan.body && row.identity === loan.identity && row.handle === loan.handle))
+            throw new Error('Foreign observed group reference');
+          return { name, loan, body: loan?.body, identity: loan?.identity, handle: loan?.handle };
+        });
+        return { source: owners, self: Object.freeze({ ...owners.self }), referenceOwner, references, values: profile.columns.capture(owners) };
       });
       const fields = members.flatMap((member, slot) => [...member.values].sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0).map((row, column) => ({
         name: `${String(slot).padStart(2, '0')}/${row.name}`, id: slot * profile.rows.columns.length + column + 1, value: row.value,
       })));
       if (originalState.some((value, index) => !Object.is(value, input.state[index]))
-        || input.references.length !== refs.length || refs.some((row, index) => {
-          const current = input.references[index];
-          return current?.body !== row.body || current.group !== row.group || current.slot !== row.slot
-            || current.identity !== row.identity || current.wire !== row.wire || current.handle !== row.handle;
-        })) throw new Error('Group state or reference changed during capture');
+        || input.references.length !== refs.length || refs.some((row, index) => !sameReference(input.references[index], row))) throw new Error('Group state or reference changed during capture');
       const random = input.random, contextRandom = input.contextRandom;
       if (contextRandom !== undefined && (this.rows.randomStreams !== 2 || random === undefined || contextRandom === random))
         throw new Error('Undeclared or aliased group RNG streams');
@@ -195,8 +208,13 @@ export class GroupStepV2 {
           const owners = input.members[slot];
           return owners !== member.source || owners.scope !== this.scope || owners.self.actor !== member.self.actor
             || owners.self.group !== member.self.group || owners.self.slot !== member.self.slot || owners.self.identity !== member.self.identity
-            || member.self.actor !== null && member.self.actor.entityId !== member.self.identity;
-        }) || input.references.length !== refs.length || refs.some((row, index) => input.references[index]?.body !== row.body || row.body.entityId !== row.identity)) throw new Error('Changed group body loan');
+            || member.self.actor !== null && member.self.actor.entityId !== member.self.identity
+            || owners.references !== member.referenceOwner || (owners.references?.size ?? 0) !== member.references.length
+            || member.references.some(reference => {
+              const current = owners.references?.get(reference.name);
+              return current !== reference.loan || current?.body !== reference.body || current?.identity !== reference.identity || current?.handle !== reference.handle;
+            });
+        }) || input.references.length !== refs.length || refs.some((row, index) => !sameReference(input.references[index], row))) throw new Error('Changed group body loan');
         if (randoms.some(loan => Reflect.get(loan.owner, 'restore') !== loan.restore || Reflect.get(loan.owner, 'snapshot') !== loan.snapshot
           || Reflect.get(loan.owner, 'next') !== loan.next || !sameRng(loan.before, loan.owner.snapshot())
           || !candidate.next.some(row => row.stream === loan.stream))) throw new Error('Changed group RNG owner');
@@ -211,7 +229,8 @@ export class GroupStepV2 {
         accepted = true; this.revision++;
       };
       return { operations: candidate.operations, validate, accept, prepareNative: owners => {
-        if (owners.scope !== this.scope || owners.members !== input.members) throw new Error('Foreign native group result scope');
+        if (owners.scope !== this.scope || owners.members !== input.members
+          || owners.references !== undefined && owners.references !== input.references) throw new Error('Foreign native group result scope');
         const native = prepareGroupNativeV2(candidate.operations, owners);
         const validateNative = (): void => { validate();native.validate(); };
         return { validate: validateNative, accept: () => {
@@ -233,6 +252,8 @@ function freezeNative(input: GroupStepNativeV2): Readonly<GroupStepNativeV2> {
 export interface GroupStepNativeOwnersV2 {
   readonly scope: Scope;
   readonly members: readonly V2ColumnOwners[];
+  readonly references?: readonly GroupStepReferenceV2[];
+  readonly rosters?: ReadonlyMap<string, readonly GroupStepReferenceV2[]>;
   readonly ground?: { readonly normalY: (x: number, z: number) => number };
   readonly grass?: { readonly grassHeightAt: (x: number, z: number) => number };
   readonly aggression?: {
@@ -276,8 +297,8 @@ export function prepareGroupNativeV2(operations: readonly GroupStepOperationV2[]
     if (request === undefined || request.channel.length === 0 || request.channel.length > 128
       || operation.reference !== undefined || operation.values.some(value => !Number.isFinite(value)))
       throw new Error('Missing or invalid native group result declaration');
-    const point = request.kind === 'grass' || request.kind === 'normal';
-    if (operation.values.length !== (point ? 2 : 1)) throw new Error('Native group result arity');
+    const point = request.kind === 'grass' || request.kind === 'normal' || request.kind === 'nearest';
+    if (operation.values.length !== (request.kind === 'nearest' ? 3 : point ? 2 : 1)) throw new Error('Native group result arity');
     const member = operation.member;
     const channel = JSON.stringify([member?.slot ?? null, request.channel]);
     if (channels.has(channel)) throw new Error('Duplicate native group result channel');
@@ -316,6 +337,33 @@ export function prepareGroupNativeV2(operations: readonly GroupStepOperationV2[]
           const result = sample.call(owner, x, z);
           if (result < -1 || result > 1) throw new Error('Invalid native ground normal');
           return result;
+        };
+        break;
+      }
+      case 'nearest': {
+        const owner = owners.rosters, roster = owner?.get(request.roster), references = owners.references;
+        const x = operation.values[0], z = operation.values[1], radius = operation.values[2];
+        if (owner === undefined || roster === undefined || references === undefined || owner.size > 64
+          || roster.length > 1024 || references.length > 1024 || x === undefined || z === undefined || radius === undefined || radius < 0)
+          throw new Error('Missing or invalid native nearest roster');
+        const borrowed = roster.map(row => {
+          if (!references.some(reference => sameReference(reference,row))) throw new Error('Foreign native nearest reference');
+          return Object.freeze({...row});
+        });
+        if (new Set(borrowed.map(row => row.handle)).size !== borrowed.length) throw new Error('Duplicate native nearest reference');
+        const valid = (): boolean => owners.rosters === owner && owner.get(request.roster) === roster
+          && owners.references === references && roster.length === borrowed.length
+          && borrowed.every((row,index) => sameReference(roster[index],row) && references.some(reference => sameReference(reference,row))
+            && [row.body.position.x,row.body.position.z].every(Number.isFinite));
+        if (!valid()) throw new Error('Invalid native nearest position');
+        pins.push(valid);
+        invoke = () => {
+          let selected = 0, distance = radius;
+          for (const row of borrowed) if (row.body.alive) {
+            const next = Math.hypot(row.body.position.x-x,row.body.position.z-z);
+            if (next < distance) { distance = next;selected = row.handle; }
+          }
+          return selected;
         };
         break;
       }
