@@ -1,33 +1,38 @@
 # SHARD-PLATFORM — State (wildshard-new; ≤ 3 KB)
 
-**Order (G639):** (1) live reds → (2) NALATI TO ZERO → (3) grid / frame floor. Extras: loading (U, L9-L15),
-TOOLING-PERF (G668/G670/G671), Night Market wow (NM7-NM11), tile streaming, no-binaries.
+**Order (G639):** (1) live reds → (2) NALATI TO ZERO → (3) grid / frame floor. Extras: loading, core memory (C1-C7),
+TOOLING-PERF (G668), Night Market, tile streaming, no-binaries.
 
-**(1) LIVE ff45b6a24d (~5.5 h behind).** HEAD builds again (Nalati node budget fixed 11fe3664da + 3498b2d821 + gen
-inputs 8402942dd9); grid hang PROVEN fixed on 8402942dd9 (9ee919dc14); CI reds since then fixed (0041cc71fe lint
-comments, ffb22d541e bootModules types). OPEN: SW8 gate (97e8dcaeb8, 55 s → ~10 s on 3 clean pushes) now goes red on
-budget timeouts under load; sp-x9 makes overruns defer to CI. Release = first CI-green build with an exact grid leg.
+**(1) LIVE ff45b6a24d (~6.5 h behind).** Every CI red since has a pushed fix; the last (Roc test, 6dbc3ee3a5 and the
+King fixture in 969b88c9d9) closed by 19:00Z. Release = the first fully green CI + exact six-leg smoke incl. grid
+(hang fix 9ee919dc14 proven). SW8 gate: 55 s → 8-34 s; budget overruns now defer to CI (aa1994c3a6).
 
 **(2) Nalati.** Titan + G667 listed, weather ported. Left: the entry (R15c/R15d) plus pick 1 below.
 
-**(3) Grid / frame floor.** 5x5 everywhere, T6, T11, T8 bake check (805c19a26b, 606 debt metrics shrink-only).
-Ring prelink e5a834d4ba and draw-wrapper cuts (d1c54e304d, fa08d819fb) await a green HEAD build to measure.
-DW walk 0.78 m: stale 10-07 expectations, not a regression. Update pill 9.5 s → 1.56 s (Sim); L9-L11 Sim timing pending.
+**(3) Frame floor.** Nalati (sp-o3, 9 landings): look max 200 → 67 ms (30 fps), its own frames all < 200 ms; drive
+max 250-350 ms left = sp-o4's sync shader link + precompile slice. Pine wrappers 4.4 → 2.95 ms/f, look/travel p95
+67 → 50 ms. Template-2 leave 417-700 → 133 ms; ring prelink proven; x5 memory flat. S2 tile streaming -277 TS
+(c2a06d82e6). sp-o4: DW 1,067 ms crossing (7 programs linked at draw + weapons), then Nalati's last two frames.
+sp-o3: frame census of Nine, Sky, Signal, template.
 
-**Done today:** G672 settings burn-down DR1-DR19. Guardrails: SW7, staged-import guard (fedbba4eb5), H1 pre-commit
-1.0-2.3 s, G2/G3/G4/G5/G9/G1 gen, C4/C5/C6/P1/P3/V1/V3/H3/H4/K4/L4, S3 24 of 31 repeat-reds green. NM7 light + NM8
-water/paving + NM9 density + geometry trim (f7c6f3a79f).
+**Loading/memory:** cold Signal Dunes tap → controls 6.78 → 5.29 s; cold wire 17.05 → 15.07 MB (legacy packs and card
+art cut). C1 prefetch capped at 23.6 MiB but a ~203 MiB native buffer stays; one decisive diagnostic (DevTools
+network never enabled) decides app vs inspector.
+
+**Tooling / no-binaries:** G668 gen warm 53-67 s → 2.70 s (G1-G5, G6 in progress; G10 determinism 195 of 267 jobs match,
+0 differences). B5 today ≈ -10 M chars incl. Nine 52 M orphan; poiPaint shared raw intake (+57 of 160 approved TS).
 
 **For wildshard-v (Jake picks needed):**
 1. Nalati's remaining one-user code (stealth controller + rows, riding world-frame loans, elite/titan/night frame
    adapters, signal → HUD effect adapter ~25): (a) HOST-AUDIT like G667 (recommended), (b) second shard, (c) charged.
 2. Signal Dunes quest-end deep dusk unchanged since 10-10 (key light 5 %): keep or lighten?
    art/grid/round-54-explorer-dark/board-explorer-fix.jpg.
-3. Night Market NM11 board (def60a9ec9): art/grid/round-56-night-market-nm11/board.jpg (mockup | NM6 | now). Gaps: fewer
-   greens/trees, sky reads dusk not night, no blue canal glow at 100 m. NM10 motion (~4-6 h) only if you want more.
-4. Machine: swap near full. Idle non-lane Claude sessions since 10-20/10-22 (pids 5785, 8113, 9033, 94906, 95877, 8537).
+3. Night Market NM11 board: art/grid/round-56-night-market-nm11/board.jpg (gaps: fewer greens, dusk-not-night sky, no
+   canal glow). NM10 motion (~4-6 h) only if you want more.
+4. Loading L10: cold wire 15.07 MB vs ≤ 1.2x product (raw models ~3.7 MB + Rapier 3.3 MB are required). Recommended:
+   a separate TOTAL cold-wire ceiling, a ratchet from 15.1 MB.
 
-**Lanes:** Claude weekly 71 %: 2 Opus (sp-o3 Nalati frame floor + NM, sp-o4 frame floor); sp-o1 stopped 17:40Z. 5 Codex + sp-x7.
+**Lanes:** Claude weekly 72 %: 2 Opus (sp-o3, sp-o4); 5 Codex + sp-x7.
 
-**Rules:** G605. G620 fix forward in 30 min, NO reverts (G674). No new Debug rows (G669). Guardrails G670. No one-user
+**Rules:** G605. Fix forward in 30 min, NO reverts (G674). No new Debug rows (G669). Guardrails G670. No one-user
 credit without a case pick (G571/G667); never herdr wildshard-v.
