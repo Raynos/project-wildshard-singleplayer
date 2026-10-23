@@ -82,3 +82,15 @@ At today's lane count (5 Opus + 5 Codex, mostly on Nalati and CI speed), with **
 M1 half a day; wave 1 about 1.5 days; wave 2 about 2 days; **about 4 lane-days, ~2–3 calendar days**, then
 Jake's phone check. Warm < 5 s is likely (the reveal is 6.5 s of the 13.6 s gap); cold < 15 s is the riskier half and
 hinges on C1 + H2 + H3 together.
+
+## The update pill (Jake, 2026-10-23 09:33, iPhone screenshot on ab93dccfe: *"Pressing the updating button takes forever. I just expected to refresh the page. I don't know why refreshing the page takes so long."*)
+
+The pill (`src/engine/ui/Update.ts`) shows "UPDATING…", waits up to the service worker's adopt cap for a waiting
+worker, then replaces the page with a cache-busted URL. The new build then boots with new content hashes, so every boot
+pack downloads again, and the new worker installs alongside. To Jake that is a refresh that takes as long as a cold start.
+
+| Row | What | Owner | Done when |
+|---|---|---|---|
+| U1 | Measure one tap → title on the new build on the Simulator from a build several deploys old: adopt wait, reload, worker install, boot-pack bytes re-downloaded vs unchanged | Codex | the wait is split into its parts, numbers in the commit |
+| U2 | Fix the biggest part: unchanged packs keep their URLs across builds (content-hashed, so only changed packs download), the adopt wait drops when no worker is waiting, the worker's install never blocks the reload | Codex | tap → title ≤ 5 s on the Simulator after a typical deploy |
+| U3 | The pill keeps showing progress (bytes or steps) instead of a static "UPDATING…" | Codex | no static label for more than 1 s |
