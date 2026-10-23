@@ -21,8 +21,8 @@ test('Nine compiled entry preserves original native binds, section authority, ru
   expect(actual).toEqual(old);
   expect(regionalRuntimeAccountedBytes({ source }, MANIFEST)).toBe(runtimeAccountedBytes(cost));
   expect(MANIFEST.clientPlanRuntime).toBe(true); expect(MANIFEST.trustedRuntime).toBeUndefined();
-  expect(useOwnedGridHome('grid', false, MANIFEST, source)).toBe(true);
-  expect(useOwnedGridHome('shard', false, MANIFEST, source)).toBe(false);
+  expect(useOwnedGridHome('grid', MANIFEST, source)).toBe(true);
+  expect(useOwnedGridHome('shard', MANIFEST, source)).toBe(false);
   for (const path of ['plugin.ts', 'runtime/index.ts', 'runtime/state.ts', 'world/build.ts']) {
     expect(existsSync(`src/shards/nine-dragon-stack/${path}`), path).toBe(false);
   }

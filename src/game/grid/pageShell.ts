@@ -7,15 +7,18 @@ import { toLevelSpec } from '../shard/spec';
 import { EmptyEquipment } from '../shardfile/emptyEquipment';
 import { emptyLook } from '../shardfile/emptyLook';
 import { ROAD_SKY } from './frameModel';
-import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
+import type { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 
 
-/** G226/G258: every admitted grid runtime owns its region so leaving it releases the whole world before the next loads.
- * Tile streaming T7: a data shard's home is owned too, entered as every crossing enters a data cell, so no grid page
- * boots a borrowed home world. */
-export function useOwnedGridHome(mode: PageMode, _developer: boolean, manifest: Pick<ShardManifest, 'trustedRuntime' | 'clientPlanRuntime' | 'gridShardfile'>, source?: Parameters<typeof hasDeclaredClientPage>[0]): boolean {
-  if (mode === 'grid' && source?.runtime === null) return true;
-  return mode === 'grid' && ((manifest.trustedRuntime !== undefined || manifest.clientPlanRuntime === true) && manifest.gridShardfile !== undefined || source !== undefined && (hasDeclaredClientPage(source) || source.runtime !== undefined && source.runtime !== null && !('entry' in source.runtime)));
+/** G226/G258: every grid home is an owned region, so leaving it releases the whole world before the next loads; the page
+ * is the neutral shell (T7: no grid page boots a borrowed home world, and nothing caps the live worlds by count). A home
+ * that cannot be owned (neither a declared shardfile nor a trusted runtime) refuses to boot. Standalone pages: false. */
+export function useOwnedGridHome(mode: PageMode, manifest: Pick<ShardManifest, 'slug' | 'trustedRuntime' | 'clientPlanRuntime' | 'gridShardfile'>, source?: Parameters<typeof hasDeclaredClientPage>[0]): boolean {
+  if (mode !== 'grid') return false;
+  const owned = (manifest.trustedRuntime !== undefined || manifest.clientPlanRuntime === true) && manifest.gridShardfile !== undefined
+    || source !== undefined && (source.runtime === null || source.runtime !== undefined && !('entry' in source.runtime));
+  if (!owned) throw new Error(`Grid home ${manifest.slug} cannot be an owned region (no declared shardfile or trusted runtime)`);
+  return true;
 }
 
 /**

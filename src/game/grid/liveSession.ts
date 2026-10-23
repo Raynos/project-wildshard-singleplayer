@@ -37,12 +37,12 @@ import type { PlayerFrameQueries } from '@wildshard/engine/player/Player';
 import type { PlayerHealth } from '@wildshard/engine/combat/health';
 import type { SaveStore } from '@wildshard/engine/saves/store';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
-import { createSimHost, SIM_API_VERSION, type SimHost, type SimLevel } from '@wildshard/engine/sim';
+import type { SimHost } from '@wildshard/engine/sim';
 import { restoreSimHost, finishSimSteps } from '@wildshard/engine/sim/snapshot';
 import { installStripCollider, PLATFORM_COLLIDER_OWNER } from '@wildshard/engine/physics/stripColliders';
 import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
 import { gridCreatureConstraint, installGridBorders } from '@wildshard/engine/physics/gridBorders';
-import { ReadinessWalls, type ReadinessEdge } from '@wildshard/engine/physics/readinessWalls';
+import type { ReadinessWalls, ReadinessEdge } from '@wildshard/engine/physics/readinessWalls';
 import { TransferWalls, TRANSFER_WALL_BYTES } from '@wildshard/engine/physics/transferWalls';
 import type { ReadinessBundle, ReadinessLink } from '@wildshard/engine/sim/readiness';
 import type { GridAssembly, GridCell } from './assembly';
@@ -50,11 +50,11 @@ import type { ResidencyAllocator } from './allocator';
 import type { HomeResidencyClaim } from './pageResidency';
 import { LiveGridHost, type LiveGridAdmission, type LiveGridFrame, type LiveGridState } from './live';
 import { installGridCrossing, type GridCheckpointResult, type GridCrossingSession, type GridCrossingState } from './crossing';
-import { GridWallet, stowGridMount, type GridLoadout } from './wallet';
+import { GridWallet, stowGridMount } from './wallet';
 import { GridRegionDurability } from './durability';
 import type { LedgerCatalogueItem } from '../ledger';
 import { installGridHoverSpeed, installGridTravellerCombat } from './rules';
-import { gridHomeSim, gridCells, type GridHomeSimulation, prepareTrustedRuntime, manifestRuntimeEntry, type TrustedRuntimeEntry } from '../plugin/context';
+import { gridCells, prepareTrustedRuntime, manifestRuntimeEntry, type TrustedRuntimeEntry } from '../plugin/context';
 import { findShard } from '../shard/registry';
 import { gridPostCosts, gridShardfileProduct, prioritizeGridProduct } from './products';
 import { gridPostPairRefusal } from './postPairs';
@@ -97,7 +97,6 @@ export interface LiveTraveller {
 /** What the live wiring reads from the page once the player's health and equipment exist. */
 export interface LiveGridPage {
   /** G226: the page has no shard world; its catalogue home uses the same owned factory as every other hybrid. */
-  readonly ownedHome?: boolean;
   /** Actual staged services; a neighbour never constructs another page shell. */
   readonly runtimePage?: () => RegionalRuntimePage | null;
   readonly traveller: LiveTraveller;
@@ -150,7 +149,7 @@ export interface LiveGridSessionState {
   readonly leaveTiming?: readonly { instance: string; leaveMs: number }[];
   readonly crossingLoading: readonly ReturnType<typeof crossingLoadingRows>[];
   /** the board's cap now (m/s; null off the board's grid rule) and whether the home client's simulation runs (null: no handoff) */
-  readonly hoverCap: number | null; readonly homeActive: boolean | null;
+  readonly hoverCap: number | null;
 }
 /** The highway's own surfaces: the deck and strips at road level, no water (G72: the outer ring is land). */
 const HIGHWAY_QUERIES: PlayerFrameQueries = { heightAt: () => 0, waterSurfaceAt: () => null, platforms: [] };
@@ -159,10 +158,7 @@ export interface LiveGridSpawn { readonly x: number; readonly y: number | undefi
 
 /** The platform travel envelope at the deck's 30 m/s; a shardfile's critical bundle is its declared compressed sim. */
 const LINK: ReadinessLink = { speed: 30, linkBitsPerSecond: 5_000_000, requestLatencySeconds: 0.25, maxStallSeconds: 10 };
-const PLATFORM_LEVEL: SimLevel = { version: SIM_API_VERSION, id: 'platform.highway', seed: 1, ground: { size: 2000, height: 0 }, player: { at: { x: 0, y: 0, z: 0 }, yaw: 0, speed: 30 }, entities: [], quests: [],
-  weapon: { id: 'platform.hands', shape: { kind: 'point', radius: 0 }, windup: 0, active: 0, recover: 0, cooldown: 0, range: 0, damage: 0, tags: [] } };
 
-/** The home cell's G68 loadout: stow silently to hands at the border, restore the shard's weapon on re-entry. */
 /** G598: a preparation that fails (or a road approach abandoned for another crossing, T7) frees its half-built region as a
  *  crossing's retirement does (O20):
  *  its stepped disposal under the loading slice, never one long frame (Driftwood's entry drive held 206 ms here). */
@@ -176,27 +172,6 @@ async function disposeInSteps(region: PreparedRegionalRuntime['region']): Promis
   }
 }
 
-function homeLoadout(equipment: EquipmentService, scope: Scope, checkpoint: () => boolean, stowMount: () => void): GridLoadout {
-  let before: { stowed: boolean; tools: readonly { tool: EquipmentService['tools'][number]; enabled: boolean }[] } | undefined;
-  return {
-    checkpoint,
-    stow: () => {
-      if (scope.disposed) return;
-      stowMount();
-      if (before !== undefined) return;
-      // The carried board belongs to the traveller; only cell-owned tools stow at the border.
-      before = { stowed: equipment.stowed, tools: equipment.tools.filter(tool => !tool.actions.includes('hover')).map((tool) => ({ tool, enabled: tool.enabled })) };
-      equipment.stowed = true; equipment.adsHeld = false; equipment.altHeld = false;
-      for (const { tool } of before.tools) tool.enabled = false;
-    },
-    interior: () => {
-      if (scope.disposed || before === undefined) return;
-      const prior = before; before = undefined;
-      equipment.stowed = prior.stowed;
-      for (const { tool, enabled } of prior.tools) tool.enabled = enabled;
-    },
-  };
-}
 function regionTransferWalls(host: SimHost, radius: number, restoring = false): TransferWalls {
   const walls = new TransferWalls(() => host.physics, [{ x: 0, z: 0 }], radius, 'exit', host.scope, restoring);
   host.onStep('platform.transferWalls', () => undefined, { snapshot: () => walls.snapshot(), restore: value => { walls.restore(value); } });
@@ -214,11 +189,9 @@ export class LiveGridSession {
   private readonly offset = new Vector3();
   private framePhysics: Physics;
   private readonly applied = new Vector3();
-  private readonly loadout: GridLoadout;
   private readonly roadWallet: GridWallet;
   /** each admitted region's authored spawn (its level's player start) and its ground / water queries, local */
   private readonly regions = new Map<string, { readonly spawn: LiveGridSpawn; readonly queries: PlayerFrameQueries; readonly simulation: ShardfileSimulation; readonly prompts: ReturnType<typeof copyPrompts> }>();
-  private homeSim: GridHomeSimulation | null = null;
   private readonly runtimeScope: Scope;
   private readonly runtimeRegions = new Map<string, PreparedRegionalRuntime>();
   private readonly leaveTiming: { instance: string; leaveMs: number }[] = [];
@@ -243,9 +216,9 @@ export class LiveGridSession {
     if (ports.residency.allocator !== ports.allocator || ports.residency.instance !== ports.home.instance) throw new Error('Live grid requires its admitted home on the page allocator');
     this.ports = ports; this.page = page;
     // The one-shot boot intent identifies the home before GridSession constructs; an owned page starts on the road.
-    if (page.ownedHome === true) gridCells.leave();
+    gridCells.leave();
     this.framePhysics = ports.physics;
-    const { assembly, home, scope } = ports, rapier = ports.physics.R;
+    const { assembly, home, scope } = ports;
     this.bootProgramCell = installBootProgramChoice(scope, assembly.cells.flatMap(cell => {
       const manifest = findShard(cell.slug);
       return manifest === undefined || manifest.trustedRuntime === undefined && manifest.clientPlanRuntime !== true ? [] : [{ instance: cell.instance, label: manifest.name }];
@@ -265,12 +238,6 @@ export class LiveGridSession {
     }));
     const transferScope = scope.child('grid.transfer.home');
     this.roadWallet = new GridWallet(page.saves, { id: home.instance, shard: home.slug });
-    const transferLease = page.ownedHome === true ? undefined : ports.allocator.reserve({ id: `sim-transfer:${home.instance}`, category: 'sim', owner: home.instance,
-      bytes: TRANSFER_WALL_BYTES, distance: 0, needed: true });
-    if (transferLease === null) { transferScope.dispose(); throw new Error('Home transfer fence exceeds residency budget'); }
-    transferScope.onDispose(() => { transferLease?.release(); });
-    try { if (page.ownedHome !== true) this.transferWalls.set(home.instance, new TransferWalls(() => ports.physics, [{ x: 0, z: 0 }], traveller.motor.opts.radius, 'exit', transferScope)); }
-    catch (error) { transferScope.dispose(); throw error; }
     this.road = new RoadRecovery(assembly);
     for (const cell of assembly.cells) {
       const entryways = ports.strips.flatMap((strip): RoadRecoveryCell['entryways'] => {
@@ -289,25 +256,14 @@ export class LiveGridSession {
     try { this.live = new LiveGridHost(assembly, {
       continuations: 'durable', // Every owned production region below reconstructs its basis and reloads its durable save.
       keepPrograms: instance => { this.keepPrograms(instance); },
-      home: page.ownedHome === true ? { mode: 'owned', instance: home.instance, bytes: ports.residency.bytes, residency: ports.residency }
-        : { instance: home.instance, physics: ports.physics, bytes: ports.residency.bytes, residency: ports.residency, checkpoint: () => this.checkpointHome(), walls: ports.walls },
+      home: { mode: 'owned', instance: home.instance, bytes: ports.residency.bytes, residency: ports.residency },
       player, allocator: ports.allocator,
       highway: { bytes: highwayBytes, create: () => {
-        if (page.ownedHome === true) {
-          const highwayScope = scope.child('grid.highway.platform');
-          this.transferWalls.set(null, new TransferWalls(() => ports.physics, assembly.cells.map(cell => cell.origin), traveller.motor.opts.radius, 'entry', highwayScope));
-          // GridSession already installed global strips/sockets/readiness walls in this neutral root. It never frees
-          // root Physics or the latest traveller motor; page teardown runs after the live registry returns that motor.
-          return { physics: ports.physics, walls: ports.walls, dispose: () => { highwayScope.dispose(); } };
-        }
-        const host = createSimHost(PLATFORM_LEVEL, { rapier, playerBody: false, ground: false });
-        try {
-          for (const strip of ports.strips) installStripCollider(host.physics, strip.mesh, host.scope);
-          const origin = { x: 0, z: 0 };
-          const walls = new ReadinessWalls(host.physics, [...assembly.cells.flatMap((cell) => ports.neighbourEdges(cell, origin)), ...ports.rimEdges(origin)], host.scope);
-          this.transferWalls.set(null, new TransferWalls(() => host.physics, assembly.cells.map(cell => cell.origin), traveller.motor.opts.radius, 'entry', host.scope));
-          return { host, walls, dispose: () => { host.dispose(); } };
-        } catch (error) { host.dispose(); throw error; }
+        const highwayScope = scope.child('grid.highway.platform');
+        this.transferWalls.set(null, new TransferWalls(() => ports.physics, assembly.cells.map(cell => cell.origin), traveller.motor.opts.radius, 'entry', highwayScope));
+        // GridSession already installed global strips/sockets/readiness walls in this neutral root. It never frees
+        // root Physics or the latest traveller motor; page teardown runs after the live registry returns that motor.
+        return { physics: ports.physics, walls: ports.walls, dispose: () => { highwayScope.dispose(); } };
       } },
       admit: (cell) => this.admit(cell),
       prioritize: (cell) => prioritizeGridProduct(cell.slug, { allocator: ports.allocator, scope }),
@@ -321,7 +277,6 @@ export class LiveGridSession {
       readiness: { link: LINK, bundle: (cell) => this.bundle(cell) },
     }); } catch (error) { transferScope.dispose(); throw error; }
     scope.onDispose(() => { this.live.dispose(); });
-    this.loadout = homeLoadout(page.equipment, scope, page.checkpoint, () => { stowGridMount(traveller); });
     this.crossing = this.installCrossing();
     installGridTravellerCombat(page.events, scope, page.health, () => {
       const active = this.hybrid.state();
@@ -343,13 +298,6 @@ export class LiveGridSession {
       const speedClass = hoverClasses.get(`${Math.round(feet.x / p)},${Math.round(feet.z / p)}`) ?? 'shard';
       return { local, shardCap: 14, onHighwayDeck: feet.y < 4, speedClass };
     });
-    // the freeze fence: the home client's existing driver runs only while the traveller is in the home frame (sp-x5's handoff)
-    scope.onDispose(gridHomeSim.take((sim) => {
-      if (sim.residency !== ports.residency) throw new Error('Home simulation handoff must retain its admitted page claim');
-      this.homeSim = sim; sim.setActive(this.live.current() === home.instance);
-      if (this.checkpointsSuppressed) sim.suppressCheckpoint?.();
-    }));
-    scope.onDispose(() => { this.homeSim?.setActive(true); this.homeSim = null; });
     page.onFixedPre(() => {
       if (scope.disposed) return;
       this.live.beforeFixed(); this.crossing.step(this.live.worldFeet());
@@ -404,7 +352,6 @@ export class LiveGridSession {
         return readiness === true ? this.live.checkpoint(instance) : readiness;
       }, target: (feet) => this.live.target(feet) },
     this.ports.assembly, (instance) => {
-      if (instance === this.ports.home.instance && this.page.ownedHome !== true) return this.loadout;
       const runtime = this.runtimeRegions.get(instance), flush = (): boolean => this.regionSave(instance).flush();
       if (runtime === undefined) return { checkpoint: flush, stow: () => { stowGridMount(this.page.traveller); }, interior: () => undefined };
       // rt3-crossing2: a committed runtime the traveller never entered never ran its hooks and never played: it saves as
@@ -412,7 +359,7 @@ export class LiveGridSession {
       // commit held the crossing in save-failed for good.
       return this.startedRuntimes.has(instance) ? runtime.loadout : { ...runtime.loadout, checkpoint: flush };
     }, this.ports.scope, (from, to) => {
-      if (this.page.ownedHome !== true || to !== null || from === null) return;
+      if (to !== null || from === null) return;
       const leaveStart = diagnosticNow();
       gridCells.leave(); // entered callbacks must finish before their retained native world retires
       this.leaveTiming.push({ instance: from, leaveMs: diagnosticNow() - leaveStart }); if (this.leaveTiming.length > 16) this.leaveTiming.shift();
@@ -421,8 +368,8 @@ export class LiveGridSession {
   }
 
   private prepareCrossing(from: string | null, to: string | null): ReturnType<LiveGridHost['prepare']> {
-    // G580 T1: the other residents stay; the resident limit and the cold-dwell rule bound them
-    if (this.page.ownedHome === true && from === null && to !== null && !this.live.state().pending.includes(to)) this.live.retry(to);
+    // G580 T1: the other residents stay; the cold-dwell rule bounds them
+    if (from === null && to !== null && !this.live.state().pending.includes(to)) this.live.retry(to);
     return this.live.prepare(from, to);
   }
 
@@ -430,9 +377,7 @@ export class LiveGridSession {
     if (this.checkpointsSuppressed) return false;
     // There is no home gameplay owner in the neutral shell. Retry the real stored local purse/bag without flushing
     // the page's inert Progress/Inventory copies over a newer owned runtime continuation.
-    if (this.page.ownedHome === true) return this.roadWallet.flush();
-    const sim = this.homeSim;
-    return sim !== null && !sim.disposed() ? sim.checkpoint() : this.page.checkpoint();
+    return this.roadWallet.flush();
   }
 
   private regionSave(instance: string): GridRegionDurability {
@@ -479,7 +424,6 @@ export class LiveGridSession {
     if (!gridRecovery(this.page.saves).write(this.ports.assembly, this.ports.home, this.recoveryRoad(), reason)) return false;
     // The intent names exactly this checkpoint; a later pagehide/timer must not replace its location or continuation.
     this.checkpointsSuppressed = true; this.autosave?.return(false); this.autosave = null;
-    this.homeSim?.suppressCheckpoint?.();
     return true;
   }
 
@@ -493,27 +437,14 @@ export class LiveGridSession {
     if (!recovery.prepareReset(this.ports.assembly, home, road, target ?? { id: home.instance, shard: home.slug })) throw new Error('New game recovery road is not durable');
     return () => {
       this.checkpointsSuppressed = true; this.autosave?.return(false); this.autosave = null;
-      this.homeSim?.suppressCheckpoint?.();
       recovery.completeReset(this.ports.assembly);
     };
   }
 
   /** Ordinary admitted boot then a prepared highway transfer, with progress read from real instance saves. */
-  async resumeRoad(road: RoadPoint): Promise<void> {
+  resumeRoad(road: RoadPoint): void {
     if (!onRoad(this.ports.assembly, road.x, road.z) || ![road.x, road.z, road.yaw].every(Number.isFinite)) throw new Error('Invalid recovery road');
-    if (this.page.ownedHome === true && this.live.current() === null) {
-      this.page.traveller.position.set(road.x, 0.5, road.z);
-      this.road.observe({ x: road.x, y: 0, z: road.z }, road.yaw, true);
-      return;
-    }
-    if (this.live.current() !== this.ports.home.instance) throw new Error('Recovery requires the newly admitted home');
-    this.loadout.stow();
-    const prepared = await this.live.prepare(this.ports.home.instance, null);
-    try {
-      if (this.ports.scope.disposed) throw new Error('Recovery boot disposed');
-      prepared.commit();
-    } catch (error) { prepared.cancel(); throw error; }
-    this.crossing.crossing.dispose(); this.crossing = this.installCrossing();
+    if (this.live.current() !== null) throw new Error('Road recovery requires the neutral road');
     this.page.traveller.position.set(road.x, 0.5, road.z);
     this.road.observe({ x: road.x, y: 0, z: road.z }, road.yaw, true);
   }
@@ -522,7 +453,7 @@ export class LiveGridSession {
    * Only native programs survive on a page-owned material; no geometry, textures, live actors or second world are kept. */
   async prepareBootPrograms(): Promise<void> {
     const start = diagnosticNow();
-    if (this.page.ownedHome !== true || this.live.current() !== null || this.live.state().residents.length > 0) throw new Error('Loading program preparation requires the initial neutral road');
+    if (this.live.current() !== null || this.live.state().residents.length > 0) throw new Error('Loading program preparation requires the initial neutral road');
     const page = this.page.runtimePage?.();
     if (page === null || page === undefined) throw new Error('Loading programs need the page services');
     const cell = this.ports.assembly.cells.find(row => row.instance === this.bootProgramCell);
@@ -575,7 +506,7 @@ export class LiveGridSession {
 
   /** Initial staging only: admit the owned home after the page play host exists and before its first fixed tick. */
   async enterInitialHome(): Promise<void> {
-    if (this.page.ownedHome !== true || this.live.current() !== null) throw new Error('Owned home must start on the neutral road');
+    if (this.live.current() !== null) throw new Error('Owned home must start on the neutral road');
     const cell = this.ports.home, manifest = findShard(cell.slug);
     if (manifest === undefined) throw new Error('Initial owned home is absent from its catalogue');
     const spawn = manifest.spawn, feet = this.ports.assembly.world({ x: spawn.x, y: spawn.y ?? 0, z: spawn.z }, cell);
@@ -613,11 +544,11 @@ export class LiveGridSession {
   }
 
   /** Normal boot admits the saved instance and its continuation before applying its durable local pose. */
-  async resumeRecovery(record: NonNullable<GridRecoveryRecord>): Promise<{ x: number; y: number; z: number; yaw: number; road: boolean }> {
+  resumeRecovery(record: NonNullable<GridRecoveryRecord>): { x: number; y: number; z: number; yaw: number; road: boolean } {
     if (record.instance !== this.ports.home.instance || ![record.slug].includes(this.ports.home.slug)) throw new Error('Recovery instance was not admitted');
     const saved = record.saved;
     if (saved?.location.kind !== 'cell') {
-      await this.resumeRoad(record.road);
+      this.resumeRoad(record.road);
       return { ...record.road, y: 0.5, road: true };
     }
     if (saved.instance !== record.instance || ![saved.slug].includes(record.slug) || this.live.current() !== record.instance) throw new Error('Recovery continuation does not match the active instance');
@@ -625,7 +556,7 @@ export class LiveGridSession {
     const world = this.ports.assembly.world(saved.location, this.ports.home);
     if (this.ports.assembly.at(world.x, world.z)?.instance !== record.instance) throw new Error('Recovery pose is outside the admitted cell');
     this.page.traveller.position.set(x, y, z);
-    if (this.page.ownedHome === true) this.runtimeRegions.get(record.instance)?.loadout.interior(); else this.loadout.interior();
+    this.runtimeRegions.get(record.instance)?.loadout.interior();
     return { x, y, z, yaw, road: false };
   }
 
@@ -716,8 +647,8 @@ export class LiveGridSession {
           // the admitted terrain inside the cell (one source of truth); its strips are road level (the terrain tile ends at the cell edge)
           queries: { heightAt: (x, z) => (Math.max(Math.abs(x), Math.abs(z)) <= CHUNK_HALF ? host.groundHeightAt(x, z) : 0), waterSurfaceAt: (x, z) => water.restAt(x, z), platforms: [] }, simulation: region, prompts: copyPrompts(copySource, region) });
         this.respawnCells.set(cell.instance, { instance: cell.instance, origin: cell.origin, entryways: source.entryways });
-        // G321: its own sky inside its cell (its data look's dome and light), laid while it is resident; a borrowed home's page draws its own
-        if (cell.instance !== this.ports.home.instance || this.page.ownedHome === true) {
+        // G321: its own sky inside its cell (its data look's dome and light), laid while it is resident
+        {
           const request = { instance: cell.instance, slug: cell.slug, look: copySource.look, assets, page: this.page.runtimePage?.() ?? null, allocator: this.ports.allocator, scope: host.scope };
           void (async (): Promise<void> => {
             try { await hangCellDataSky(request); } catch (error) { console.warn(`[region sky] ${cell.instance}`, error); }
@@ -798,7 +729,7 @@ export class LiveGridSession {
         const unlisten = signal === undefined ? undefined : this.runtimeScope.listen(signal, 'abort', abandon, { once: true });
         try {
           await this.hybrid.prepare(cell.instance);
-          if (this.page.ownedHome === true && !await this.hybrid.installAhead(cell.instance)) throw new Error('Admitted runtime preparation left the approached cell');
+          if (!await this.hybrid.installAhead(cell.instance)) throw new Error('Admitted runtime preparation left the approached cell');
         } finally { unlisten?.(); }
         if (stopped()) throw new Error('Road approach abandoned for another crossing');
         prepared.park?.(); // parked until the crossing commits (the traveller is still on the road)
@@ -879,16 +810,13 @@ export class LiveGridSession {
   /** The fixed-boundary rebind: the page's stepped world, the player's motor and the render origin. */
   private bind(frame: LiveGridFrame): void {
     this.framePhysics = frame.physics;
-    const home = frame.instance === this.ports.home.instance && this.page.ownedHome !== true;
     const runtime = frame.instance === null ? undefined : this.runtimeRegions.get(frame.instance);
     const runtimeQueries = runtime === undefined ? undefined : { ...runtime.queries,
       heightAt: (x: number, z: number) => Math.max(Math.abs(x), Math.abs(z)) <= CHUNK_HALF ? runtime.queries.heightAt(x, z) : 0,
       waterSurfaceAt: (x: number, z: number) => Math.max(Math.abs(x), Math.abs(z)) <= CHUNK_HALF ? runtime.queries.waterSurfaceAt(x, z) : null };
-    this.page.traveller.bindFrame(frame.physics, frame.motor, home ? null : frame.instance === null ? HIGHWAY_QUERIES : runtimeQueries ?? this.regions.get(frame.instance)?.queries ?? HIGHWAY_QUERIES);
+    this.page.traveller.bindFrame(frame.physics, frame.motor, frame.instance === null ? HIGHWAY_QUERIES : runtimeQueries ?? this.regions.get(frame.instance)?.queries ?? HIGHWAY_QUERIES);
     this.page.setPhysics(frame.physics);
     this.offset.set(frame.origin.x - this.ports.home.origin.x, 0, frame.origin.z - this.ports.home.origin.z);
-    if (this.homeSim?.disposed() === true) this.homeSim = null;
-    this.homeSim?.setActive(home);
   }
 
   /**
@@ -903,7 +831,6 @@ export class LiveGridSession {
       return { x: road.x - x, y: 0.5, z: road.z - z, yaw: road.yaw };
     }
     const current = this.live.current();
-    if (current === this.ports.home.instance && this.page.ownedHome !== true) return null;
     const p = this.page.traveller.position;
     if (current === null) return { x: p.x, y: 0.5, z: p.z, yaw: this.page.traveller.yaw };
     const runtime = this.runtimeRegions.get(current);
@@ -955,6 +882,6 @@ export class LiveGridSession {
   state(): LiveGridSessionState {
     const cap = this.page.traveller.hoverSpeedLimit?.();
     return { bootPrograms: this.bootPrograms, keptPrograms: this.keeper?.size ?? 0, live: this.live.state(), crossing: this.crossing.crossing.state(), stowed: this.page.equipment.stowed, renderOrigin: { x: this.offset.x, z: this.offset.z }, runtimeTiming: this.hybrid.timings(), crossingTiming: this.crossing.crossing.timings(), leaveTiming: this.leaveTiming.map(row => ({ ...row })), crossingLoading: this.crossing.crossing.timings().map(crossingLoadingRows),
-      hoverCap: cap === undefined ? null : Math.round(cap * 100) / 100, homeActive: this.homeSim === null ? null : this.live.current() === this.ports.home.instance };
+      hoverCap: cap === undefined ? null : Math.round(cap * 100) / 100 };
   }
 }

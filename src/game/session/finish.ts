@@ -33,7 +33,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
     }
     if (ctx.session.recovery !== undefined) {
       if (ctx.gridLive === null) throw new Error('Recovery requires the admitted live grid');
-      const pose = await ctx.gridLive.resumeRecovery(ctx.session.recovery);
+      const pose = ctx.gridLive.resumeRecovery(ctx.session.recovery);
       player.spawn(pose.x, pose.z, pose.yaw, pose.y); player.pitch = 0;
       if (pose.road) gridCells.leave();
     }

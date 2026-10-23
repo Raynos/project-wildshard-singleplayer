@@ -102,7 +102,6 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   await macrotask();
   // SF21a / the grid client: EXPERIMENTAL Wildshard's 3 × 3 around this home cell (deck, soft walls, neighbours' far proxies)
   const grid = await step('assembly', p => pageMode() === 'grid' ? GridSession.create({ scene: game.rootScene, physics: world.physics, scope: game.levelScope, feet: () => player.position, renderer: game.renderer,
-    ownedHome: session.ownedGridHome === true,
     // G371: the near tier plans from the drawn eye (a free / hero camera gets the cells it is over)
     eye: () => ({ x: game.camera.position.x - player.position.x, z: game.camera.position.z - player.position.z }),
     prepareTile: (tile) => game.warmSceneRoots([tile.group], () => !tile.scope.disposed),
@@ -164,7 +163,6 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   // the grid client step 2: the live crossing (LiveGridHost + GridCrossing in the page's one fixed step; G68's safe zone)
   // The installed play owner confirms its progress and pack writes; source clients supply their own durable handoff.
   gridLive = grid?.attach({ traveller: player, health: playerHealth, equipment: weapons, events: app.events,
-    ownedHome: session.ownedGridHome === true,
     runtimePage: () => boot.context === undefined || boot.runtime.play === null ? null : { world, play: boot.runtime.play, context: boot.context, ...(ctx.enteredEquipment === undefined ? {} : { equipment: ctx.enteredEquipment }) },
     onSafeZone: () => { app.effects?.clearHarmful(playerHealth); },
     scriptNotices: { toast: (text) => { hud.toast(text, 'warn'); }, devAlert: (text) => { hud.devAlert(text); } },
@@ -595,7 +593,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     unmark();
   }, 'main.world');
   app.addSystem({ id: 'engine.creatures.update', phase: 'update', after: ['main.world'], before: ['main.equipment'], run: (dt, t) => {
-    const homeActive = grid === null || gridLive === null || (session.ownedGridHome !== true && gridLive.live.current() === grid.home.instance);
+    const homeActive = grid === null || gridLive === null;
     aimList.length = 0;
     if (homeActive) {
       animals.update(dt, t, player.position, player.sprinting, viewer(), game.camera);
@@ -622,7 +620,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     // nearest interactable: standalone and in the grid's home frame the page runtime's own; inside an entered runtime cell
     // (Sky Reach's RIDE, a cell's talk / pickup / open) that cell's own, in its frame (grid-interact, src/game/grid/enteredInteract.ts)
     const physics = app.physics;
-    const homeActive = grid === null || gridLive === null || (session.ownedGridHome !== true && gridLive.live.current() === grid.home.instance);
+    const homeActive = grid === null || gridLive === null;
     nearest = gridLive === null ? pickInteractable(boot.runtime.interactables, game.camera.position, physics)
       : gridLive.pickPrompt(homeActive ? boot.runtime.interactables : gridLive.interactables(), game.camera.position, physics);
     carcass = undefined;

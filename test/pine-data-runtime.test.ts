@@ -24,7 +24,7 @@ test('the Pine compiled entry keeps original source authority, spawns, host payl
   expect(actual).toEqual(old);
   expect(regionalRuntimeAccountedBytes({source},MANIFEST)).toBe(runtimeAccountedBytes(cost));
   expect(regionalRuntimeAccountedBytes({source},MANIFEST,'img')).toBe(runtimeAccountedBytes(cost.imagesFirst));
-  expect(MANIFEST.trustedRuntime).toBeUndefined();expect(MANIFEST.clientPlanRuntime).toBe(true);expect(useOwnedGridHome('grid',false,MANIFEST)).toBe(true);expect(useOwnedGridHome('grid',false,MANIFEST,source)).toBe(true);expect(useOwnedGridHome('shard',false,MANIFEST,source)).toBe(false);
+  expect(MANIFEST.trustedRuntime).toBeUndefined();expect(MANIFEST.clientPlanRuntime).toBe(true);expect(useOwnedGridHome('grid',MANIFEST)).toBe(true);expect(useOwnedGridHome('grid',MANIFEST,source)).toBe(true);expect(useOwnedGridHome('shard',MANIFEST,source)).toBe(false);
 });
 
 test('the removed source directory contains no authored executable or baked alias TS',()=>{

@@ -29,7 +29,6 @@ import { setBootCatalog } from '@wildshard/engine/boot/catalog';
 import { setAliveSource, type AliveInfo } from '@wildshard/engine/boot/lastEnd';
 import { consumeTitleArrival } from '@wildshard/engine/boot/titleArrival';
 import { reportError } from '@wildshard/engine/core/errorReport';
-import { isDev } from '@wildshard/engine/core/devMode';
 import { pageSeed } from '@wildshard/engine/core/rng';
 import { LevelLoadError } from '@wildshard/engine/level/load';
 import { registerPlayground } from '@wildshard/engine/practice/playground/catalog';
@@ -69,7 +68,7 @@ export async function startSession(manifest: ShardManifest, kit: KitPorts, optio
     session.arrival = consumeTitleArrival(selected);
     // SF21a: the one-shot EXPERIMENTAL Wildshard intent, consumed by every boot; grid mode drops the URL to the title's
     const mode = options.mode ?? bootPageMode(selected);
-    session.ownedGridHome = useOwnedGridHome(mode, isDev(), manifest, manifestAdmittedSource(manifest));
+    session.ownedGridHome = useOwnedGridHome(mode, manifest, manifestAdmittedSource(manifest));
     const pageManifest = session.ownedGridHome ? gridPageShell(manifest) : manifest;
     if (mode === 'grid' && options.residency === undefined) throw new Error('Grid boot requires residency admission before hydration');
     // T7: an owned data home has no data page to admit its claim; admit it at the regional charge its entry hands off
