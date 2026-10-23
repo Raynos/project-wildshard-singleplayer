@@ -14,12 +14,6 @@ const declarations = new Map([
   ['src/game/practice/course.ts', new Map(['MountedCourseEntry', 'GrappleCourseEntry', 'MountEntryRows', 'GrappleEntryRows'].map(name => [name, 'C6']))],
   ['src/game/boss/encounterView.ts', new Map(['SlotEncounterView','PatrolEncounterView'].map(name=>[name,'C4']))],
   ['src/game/population/nativeBake.ts', new Map([['populationMetadata', 'C9']])],
-  ['src/game/population/pageGroups.ts', new Map([
-    'point', 'whole', 'PagePopulationPlanner',
-    'PageWildEnvironment', 'wildEnv', 'bindPageGroups',
-    'renderedPacks', 'renderedHerds', 'renderedDamage', 'renderedPackOf',
-    'renderedHerdOf', 'observeHerdDamage', 'PageGroups',
-  ].map(name => [name, 'C4']))],
   ['src/game/shardfile/worldScenes.ts', new Map([['WorldScenePoolPublications', 'C1']])],
   ['src/game/shardfile/scenePools.ts', new Map([['WorldSceneTierPools', 'C1']])],
   ['src/format/worldScenes.ts', new Map([['WorldSceneTierPools', 'C1'], ['WorldScenePoolPublications', 'C1']])],

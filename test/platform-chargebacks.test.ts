@@ -17,7 +17,7 @@ test('optional shared dispatch does not invent another arena or keeper user', ()
   chargePlatformUsers(modules, bindings);
   expect(modules.get(arena)).toEqual(both);
   expect(bindings.get(`${arena}\0OpenArenaProjection`)).toEqual(both);
-  expect([...bindings.get(`${groups}\0PageGroups`) ?? []]).toEqual(['nalati-grasslands']);
+  expect(bindings.get(`${groups}\0PageGroups`)).toEqual(both);
   expect(bindings.get(`${phase}\0bossFight`)).toEqual(both);
   expect(bindings.get(`${groups}\0FixedPageSpawnTable`)).toEqual(both);
   expect(platformChargeback('src/game/looks/staticCapture.ts', 'StaticCapture')).toBeNull();
@@ -225,18 +225,17 @@ test('shared hull imports grant no second user to the packed species adapter',()
 });
 
 
-test('G571 placed actor binding is platform while wildlife rules stay charged',()=>{
+test('G571 placed actors and G667 group bindings keep broad ownership without chargebacks',()=>{
   const path='src/game/population/pageGroups.ts',broad=new Set(['nalati-grasslands','driftwood-isle','pine-hollow']);
   const names=['Placement','Counts','PageActorGroups','PagePopulationPlanner','PageGroups'];
   const bindings=new Map(names.map(name=>[`${path}\0${name}`,broad]));
   chargePlatformUsers(new Map(),bindings);
   for(const name of names){
-    const placed=['Placement','Counts','PageActorGroups'].includes(name);
-    expect(bindings.get(`${path}\0${name}`)).toEqual(placed?broad:new Set(['nalati-grasslands']));
-    expect(platformChargeback(path,name)).toBe(placed?null:'C4');
+    expect(bindings.get(`${path}\0${name}`)).toBe(broad);
+    expect(platformChargeback(path,name)).toBeNull();
     const row={path,name,lines:7},charges=new Map<string,typeof row[]>([['nalati-grasslands',[]]]);
-    expect(recordPrivateCharge(charges,'fixture-only-user',row)).toBe(!placed);
-    expect(charges.get('nalati-grasslands')).toEqual(placed?[]:[row]);
+    expect(recordPrivateCharge(charges,'fixture-only-user',row)).toBe(false);
+    expect(charges.get('nalati-grasslands')).toEqual([]);
   }
 });
 
@@ -547,4 +546,30 @@ test('G667 case three credits only its exact original binding selectors',()=>{
   expect(approvedG571Host(approvals,'src/game/ambient/crowdPage.ts','createPageCrowds')).toBe(false);
   expect(approvedG571Host(approvals,'src/game/shardfile/crowdRuntime.ts','CrowdWeaponTarget')).toBe(false);
   expect(approvedG571Host(approvals,'src/engine/entities/eliteBrain.ts','setEliteBrain')).toBe(false);
+});
+
+
+test('G667 case 1 credits only the listed herd and pack host',()=>{
+  const rows=[
+    ["src/game/population/pageGroups.ts", ["point", "whole", "PagePopulationPlanner", "PageWildEnvironment", "wildEnv", "renderedPacks", "renderedHerds", "renderedDamage", "bindPageGroups", "renderedPackOf", "renderedHerdOf", "observeHerdDamage", "PageGroups"]],
+    ["src/game/shardfile/groupRuntime.ts", ["collections", "nativeHerdCollection", "nativeGroupCollection", "NativeGroupCollection", "installNativeGroupRows"]],
+    ["src/game/population/directedSpecies.ts", ["DirectedSpecies"]],
+    ["src/game/population/groupSpecies.ts", ["groupSpecies"]],
+  ] as const;
+  const approvals=g571HostApprovals('.'),users=new Set(['nalati-grasslands','pine-hollow']);
+  const modules=new Map(rows.map(([path])=>[path,users]));
+  const bindings=new Map(rows.flatMap(([path,names])=>names.map(name=>[`${path}\0${name}`,users] as const)));
+  chargePlatformUsers(modules,bindings);
+  for(const [path,names]of rows){
+    expect(modules.get(path)).toBe(users);
+    expect(approvedG571Host(approvals,path)).toBe(false);
+    for(const name of names){
+      expect(approvedG571Host(approvals,path,name)).toBe(true);
+      expect(platformChargeback(path,name)).toBeNull();
+      expect(bindings.get(`${path}\0${name}`)).toBe(users);
+    }
+    expect(approvedG571Host(approvals,path,'unreviewed')).toBe(false);
+  }
+  expect(approvedG571Host(approvals,'src/game/shardfile/worldAssembly.ts','installAssemblyWeather')).toBe(false);
+  expect(platformChargeback('src/game/shardfile/worldAssembly.ts','installAssemblyWeather')).toBe('C9');
 });
