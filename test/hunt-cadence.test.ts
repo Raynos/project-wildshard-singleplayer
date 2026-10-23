@@ -66,3 +66,17 @@ test('owned enemy policy retains stagger hold and ignores fauna damage wake', ()
   expect(decided).toBe(false); expect(body.lookWeight).toBe(1);
   cadence.damaged(body.combatActor(), false); expect(brain.events).toEqual([]);
 });
+
+
+test('a policy-owned state gate samples only a normal decision, after wake and before its policy', () => {
+  const brain = new ObservedBrain(), body = actor(), events: string[] = [];
+  let due = true;
+  const cadence = brain.bindRoster({ limit: 1, order: 'combined', at: () => body, actor: value => value, id: value => value.entityId,
+    player: new Vector3(), noise: { seen: false, prev: new Vector3(), speed: 0 }, sight: [], reach: () => true,
+    brainDt: () => due ? .1 : 0,
+    policy: () => ({ state: 'owned', sample: () => { events.push('terrain'); }, decide: () => { events.push(body.stunned ? 'stunned' : 'decide'); } }) });
+  cadence.wake(body); expect(events).toEqual(['decide']);
+  body.stagger(new Vector3(1, 0, 0), 1); cadence.decide(); expect(events).toEqual(['decide', 'terrain', 'stunned']);
+  due = false; cadence.decide(); expect(events).toHaveLength(3);
+  body.alive = false; due = true; cadence.decide(); expect(events.slice(3)).toEqual(['terrain', 'stunned']);
+});

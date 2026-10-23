@@ -6225,7 +6225,10 @@ cadence to an existing roster. `observe(dt)` updates its lent noise meter;
 Combined mode requests one urgent tick; interrupt mode wakes before the
 ordinary tick. `damaged(target, killed)` wakes hunt actors after a blow;
 custom policies keep their own damage listeners. `wake(body)` also serves
-external alarms. Caller noise/sight records, snapshot envelopes, clocks,
+external alarms. A policy's optional `state:'owned'` retains its own
+dead/stunned handling. Its optional `sample()` runs before due ordinary
+decisions only, preserving wake-time observation order. Caller noise/sight
+records, snapshot envelopes, clocks,
 policy/charge/body phases and RNG streams remain with their owners.
 
 `bindMeshMap(id, originalMaterial)` and model-library

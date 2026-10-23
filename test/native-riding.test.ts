@@ -7,6 +7,7 @@ import type { HuntBody } from '@wildshard/engine/ai/hunt';
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { zlibSync } from 'fflate';
+import { Vector3 } from 'three';
 import { createSimHost, type SimHost } from '@wildshard/engine/sim';
 import { loadRapier } from '@wildshard/engine/physics/rapier';
 import { restoreSimHost, snapshotSimHost } from '@wildshard/engine/sim/snapshot';
@@ -334,4 +335,53 @@ test('v2 thrown dismount uses the original mounted capsule once, without a secon
     const command = { moveX: 0,moveZ: 0,yaw: 0,commandVersion: 1 as const };
     for (let step = 0; step < 6; step++) { host.step(command);direct.step(command);expect(snapshotSimHost(host)).toEqual(snapshotSimHost(direct)); }
   } finally { host.dispose();direct.dispose(); }
+});
+
+
+test('native shared cadence retains the original driver noise, terrain, dodge and restore order', async () => {
+  const { fixtureNativeRoster } = await import('./fixtures/native-roster');
+  const { NativeManager, NativePopulationDriver } = await import('@wildshard/game/population/nativeManager');
+  const { OriginalNativePopulationDriver } = await import('./fixtures/original-native-driver');
+  const { createNativeCreatureRoster } = await import('@wildshard/game/shardfile/homeKeeper');
+  const { nativeEliteBindings } = await import('@wildshard/engine/ai/eliteRoster');
+  const admission: unknown = JSON.parse(readFileSync('src/shards/nalati-grasslands/behaviour/admission.generated.json', 'utf8'));
+  const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
+  const sample = SIM_LEVEL.entities[0]; if (sample === undefined) throw new Error('Missing original driver actor');
+  const make = (Driver: typeof NativePopulationDriver | typeof OriginalNativePopulationDriver) => {
+    const host = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier }), random = new FixtureRandom(71);
+    const { hunt, services } = fixtureNativeRoster(host, random);
+    const intake = createNativeCreatureRoster(host, { specs: [sample.spec], variants: new Map(), rng: random, services, hunted: 'every', spawnY: 10 });
+    const slot = intake.body('orchard.boar', sample.spec.kind, sample.spec.variant, -1, { x: 2, z: 3 }, 0, [1, 1]);
+    const actor = intake.arrive(slot); intake.remember(slot);
+    const terrain: number[] = []; actor.sampleTerrain = () => { terrain.push(host.state.tick); };
+    const manager = new NativeManager(host, hunt, random, { limit: 64, sightSlots: 1, initialSight: true });
+    const groups = herdService(host, 'unused.herds', 'fixture.driver', { id: 'orchard.tokens', owners: new WeakMap() });
+    const driver = new Driver(host, manager, hunt, random, [actor], new Map(), new Map(), nativeEliteBindings(), [], [],
+      { tokens: 'orchard.tokens', program: admission, packKind: 'boar', dogKind: 'collie', eliteKinds: [], dispatch: 'dispatch' }, groups);
+    host.onStep('orchard.population', dt => { driver.update(dt); });
+    return { host, actor, manager, driver, random, terrain };
+  };
+  const actual = make(NativePopulationDriver), original = make(OriginalNativePopulationDriver);
+  let dodgeSeen = false;
+  try {
+    for (let frame = 0; frame < 240; frame++) {
+      for (const world of [actual, original]) {
+        if (frame === 20 || frame === 25) Object.assign(world.actor, { hidden: frame === 20 });
+        if (frame === 40 || frame === 45) world.actor.harnessHold = frame === 40;
+        if (frame === 60) world.actor.stagger(new Vector3(1, 0, 0), .2);
+        if (frame === 90 || frame === 95) world.actor.alive = frame === 95;
+        if (frame === 120) world.driver.restore(0);
+        world.host.step({ moveX: frame % 20 < 10 ? .4 : -.4, moveZ: .2, yaw: .3, ...(frame === 10 || frame === 130 ? { dodge: true } : {}) });
+      }
+      const capture = (world: ReturnType<typeof make>) => ({
+        common: world.manager.snapshot([world.actor.entityId], [world.actor.entityId]), driver: world.driver.snapshot(),
+        actor: snapshotSimHost(world.host).entities, terrain: world.terrain, stream: world.random.snapshot(),
+      });
+      expect(capture(actual), `original driver frame ${String(frame)}`).toEqual(capture(original));
+      dodgeSeen ||= original.driver.snapshot() > 0;
+    }
+    expect(actual.terrain.length).toBeGreaterThan(10);
+    expect(dodgeSeen).toBe(true);
+    expect(actual.manager.noise.prev.y).toBe(0);
+  } finally { actual.host.dispose(); original.host.dispose(); }
 });
