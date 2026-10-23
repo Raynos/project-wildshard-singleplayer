@@ -32,6 +32,8 @@ export interface InputState {
   bufferMs: number; contexts: string[]; recent: { action: Action; at: number }[];
 }
 interface Context { def: InputContextDef; scope: Scope }
+interface RefreshFrame { wanted: Set<Action>; actions: (Action | undefined)[] }
+const WILDCARD_EXCLUDED = new Set(['Escape', 'ArrowLeft', 'ArrowRight', 'MetaLeft', 'MetaRight', 'ControlLeft', 'ControlRight', 'ShiftLeft', 'ShiftRight', 'AltLeft', 'AltRight']);
 /** Additive contexts and a shared press buffer. Consuming a press removes it for every later system. */
 export class InputService {
   recordCommand: ((command: ActionCommand) => void) | null = null;
@@ -99,6 +101,11 @@ export class InputService {
   }
   private readonly definitions = new Map<string, Context>();
   private readonly stack: Context[] = [];
+  // A callback may reenter either scan; each depth keeps separate, cleared storage.
+  private readonly allowedFrames: (Context | undefined)[][] = [];
+  private allowedDepth = 0;
+  private readonly refreshFrames: RefreshFrame[] = [];
+  private refreshDepth = 0;
   private readonly physical = new Set<string>();
   private readonly manual = new Set<Action>();
   private readonly callbacks = new Set<{ action: Action; run: () => void; enabled: () => boolean }>();
@@ -139,12 +146,22 @@ export class InputService {
   pop(id: string): void { const at = this.stack.findIndex((entry) => entry.def.id === id); if (at === -1) return; this.stack.splice(at, 1); this.refresh(false); this.pushed.get(id)?.(); this.pushed.delete(id); this.repaint(); }
   get top(): string { return this.stack.at(-1)?.def.id ?? ''; }
   allowed(action: Action): boolean {
-    for (const { def } of [...this.stack].reverse()) {
-      if (def.enabled?.() === false) continue;
-      if (Array.isArray(def.actions) && def.actions.includes(action)) return true;
-      if (def.blocks === 'below' || def.blocks?.includes(action)) return false;
+    const entries = this.allowedFrames[this.allowedDepth] ?? [];
+    this.allowedFrames[this.allowedDepth++] = entries;
+    const count = this.stack.length;
+    for (let index = 0; index < count; index++) entries[index] = this.stack[index];
+    try {
+      for (let index = count - 1; index >= 0; index--) {
+        const def = entries[index]?.def;
+        if (def === undefined || def.enabled?.() === false) continue;
+        if (Array.isArray(def.actions) && def.actions.includes(action)) return true;
+        if (def.blocks === 'below' || def.blocks?.includes(action)) return false;
+      }
+      return true;
+    } finally {
+      for (let index = 0; index < count; index++) entries[index] = undefined;
+      this.allowedDepth--;
     }
-    return true;
   }
   queue(action: Action): void { this.executeCommand({ kind: 'queue', action, at: this.now() }); }
   press(action: Action): void { this.executeCommand({ kind: 'press', action, at: this.now() }); }
@@ -165,12 +182,31 @@ export class InputService {
   has(id: string): boolean { return this.definitions.has(id); }
   active(id: string): boolean { return this.stack.some(({ def }) => def.id === id && def.enabled?.() !== false); }
   get contexts(): readonly string[] { return this.stack.filter(({ def }) => def.enabled?.() !== false).map(({ def }) => def.id); }
+  private physicalCode(code: string): boolean {
+    if (code !== '*') return this.physical.has(code);
+    for (const key of this.physical) if (!WILDCARD_EXCLUDED.has(key)) return true;
+    return false;
+  }
   refresh(edges = true): void {
-    const wanted = new Set(this.manual);
-    for (const { def } of this.stack) if (def.enabled?.() !== false) for (const [action, codes] of Object.entries(this.bindings.keys(def.id))) {
-      if (codes?.some((code) => code === '*' ? [...this.physical].some((key) => !['Escape', 'ArrowLeft', 'ArrowRight', 'MetaLeft', 'MetaRight', 'ControlLeft', 'ControlRight', 'ShiftLeft', 'ShiftRight', 'AltLeft', 'AltRight'].includes(key)) : this.physical.has(code))) wanted.add(action as Action);
+    const frame = this.refreshFrames[this.refreshDepth] ?? { wanted: new Set<Action>(), actions: [] };
+    this.refreshFrames[this.refreshDepth++] = frame;
+    const { wanted, actions } = frame; let count = 0;
+    try {
+      for (const action of this.manual) wanted.add(action);
+      for (const { def } of this.stack) if (def.enabled?.() !== false) for (const [action, codes] of Object.entries(this.bindings.keys(def.id))) {
+        if (codes !== undefined) for (const code of codes) if (this.physicalCode(code)) { wanted.add(action as Action); break; }
+      }
+      // Freeze the original down-then-wanted union before any transition callback.
+      for (const action of this.down) actions[count++] = action;
+      for (const action of wanted) if (!this.down.has(action)) actions[count++] = action;
+      for (let index = 0; index < count; index++) {
+        const action = actions[index]; if (action !== undefined) this.transition(action, wanted.has(action), edges);
+      }
+    } finally {
+      if (wanted.size > 0) wanted.clear();
+      for (let index = 0; index < count; index++) actions[index] = undefined;
+      this.refreshDepth--;
     }
-    for (const action of new Set([...this.down, ...wanted])) this.transition(action, wanted.has(action), edges);
   }
   setHeld(action: Action, on: boolean): void { this.executeCommand({ kind: 'held', action, on, at: this.now() }); }
   private transition(action: Action, on: boolean, edges: boolean): void {
