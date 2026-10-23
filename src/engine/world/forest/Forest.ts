@@ -260,8 +260,19 @@ export class Forest {
    */
   readonly keeps = (i: number, d2: number): boolean => {
     const t = this.trees[i];
-    return t !== undefined && (d2 <= (this.keepNear * this.keepNear) || this.seen(t, d2 <= (this.shadowKeep * this.shadowKeep)));
+    return t !== undefined && (this.resident === null || this.resident(t.x, t.z)) && (d2 <= (this.keepNear * this.keepNear) || this.seen(t, d2 <= (this.shadowKeep * this.shadowKeep)));
   };
+
+  /** Tile streaming P3: from the viewer's position, which trees may draw at all (a resident tile ring); null: every tree. */
+  private residency: ((viewer: THREE.Vector3) => (x: number, z: number) => boolean) | null = null;
+  private resident: ((x: number, z: number) => boolean) | null = null;
+  /**
+   * Tile streaming P3 (G652): `follow(viewer)` answers which trees the model's culler may keep (`keeps`), by their own
+   * coordinates; a new answer (the viewer crossed into another tile) refills the buckets. Null: every tree, as before.
+   */
+  setResidency(follow: ((viewer: THREE.Vector3) => (x: number, z: number) => boolean) | null): void {
+    this.residency = follow; this.resident = null; this.lastLodPos.set(1e9, 0, 0);
+  }
 
   /** in the padded view frustum — or, within this.shadowKeep (`shadows`), casting its shadow into it */
   private seen(t: TreeInstance, shadows: boolean): boolean {
@@ -290,7 +301,9 @@ export class Forest {
     forestFade.uViewer.value.copy(viewer).applyMatrix4(frame); // the dissolve bands follow every frame; the buckets below only on a move / turn
     const cam = this.sky.viewCamera;
     cam.getWorldDirection(this.viewDir);
-    const moved = viewer.distanceToSquared(this.lastLodPos) > 1.5 * 1.5;
+    const resident = this.residency === null ? null : this.residency(viewer), ring = resident !== this.resident;
+    this.resident = resident;
+    const moved = ring || viewer.distanceToSquared(this.lastLodPos) > 1.5 * 1.5;
     const turned = this.viewDir.dot(this.lastDir) < Math.cos(3 * Math.PI / 180);
     if (!moved && !turned) return;
     this.lastLodPos.copy(viewer); this.lastDir.copy(this.viewDir);

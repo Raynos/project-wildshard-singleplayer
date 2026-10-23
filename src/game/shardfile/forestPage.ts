@@ -29,6 +29,9 @@ import { timeClientPreparation } from './preparationTiming';
 import { lendLooks, setLentParam } from './lentLooks';
 import type { SceneHandles } from './sceneHandles';
 import type { ShardContext } from '../plugin/context';
+import { tileResidencyRadius } from './tileDriver';
+import { followTile, ring, tileKey } from './tileContent';
+import { tileOf, type CellTile } from './tileOrder';
 
 export interface LivingPage {
   readonly resources: SceneHandles; readonly life: LivingBuildings; readonly group: Group;
@@ -165,6 +168,20 @@ export async function placeForestPageModels(ctx: ShardContext, id: string): Prom
           matrix: new Matrix4().compose(at.set(t.x, t.y, t.z), q.setFromAxisAngle(up, t.rot), sc.set(t.scale, t.scale, t.scale)) }; });
       await placeSliced(trees.model, pls, { ctx: models, draw: forest.path, registry, piece: { id: trees.model.id }, sortObjects: false,
         cull: { view: forest, test: forest.keeps, from: 'origin', flat: true }, parent: forest.group }, due);
+      // tile streaming P3 (Debug ▸ Tile residency 5 x 5 / 3 x 3): only the trees of the tiles around the viewer draw
+      const radius = tileResidencyRadius();
+      if (radius < 8) {
+        let centre: CellTile | null = null, resident = (_x: number, _z: number): boolean => true;
+        forest.setResidency(viewer => {
+          const next = followTile(centre, viewer.x, viewer.z);
+          if (centre === null || next.i !== centre.i || next.j !== centre.j) {
+            centre = next; const keys = ring(next, radius);
+            resident = (x, z) => keys.has(tileKey(tileOf(x, z)));
+          }
+          return resident;
+        });
+        ctx.scope.onDispose(() => { forest.setResidency(null); });
+      }
     }
   }
   const cells = under.cells(), cull = { view: under.view, cells: { size: cells.size, pad: cells.pad }, far: cells.far };
