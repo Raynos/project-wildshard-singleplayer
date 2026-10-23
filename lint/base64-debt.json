@@ -88,7 +88,6 @@
     "src/shards/far-reach/generators/stormNoise.ts": 1,
     "src/shards/nalati-grasslands-legacy/runtime/baked.ts": 1,
     "src/shards/nalati-grasslands/generators/bake-admission.mjs": 1,
-    "src/shards/nalati-grasslands/generators/bake-balbal-specimen.mjs": 1,
     "src/shards/nalati-grasslands/generators/bake-crag-rock.mjs": 1,
     "src/shards/nalati-grasslands/generators/bake-creature-views.mjs": 1,
     "src/shards/nalati-grasslands/generators/bake-elite-charge.mjs": 1,

@@ -1,3 +1,5 @@
+import { prepareBinarySources,binarySourceBytes,type BinaryFileReader } from './binarySource';
+import type { Scope } from '@wildshard/engine/app/scope';
 import { base64Bytes } from '@wildshard/engine/core/deflate';
 import { SpecimenCatalogueSchema, PackedSpecimenSchema, SpecimenMaterialSchema, PickupCatalogueSchema, assertSpecimenJson as jsonData } from '@wildshard/format/specimenCatalogue';
 import { unzlibSync } from 'fflate';
@@ -249,10 +251,17 @@ export function createPackedSpecimens(input: unknown): {
   };
 }
 
+/** Prepare every declared raw specimen file before definitions or decoded resources are published. */
+export function prepareSpecimenCatalogue(product:BinaryFileReader,input:unknown,scope?:Scope):Promise<ReadonlyMap<string,Uint8Array>> {
+  jsonData(input);const rows=v.parse(SpecimenCatalogueSchema,input);
+  return prepareBinarySources(product,rows.flatMap(row=>row.source.kind==='selection'?row.source.variants.map(variant=>variant.source):[row.source])
+    .flatMap(source=>source.kind==='file'?[{source:{file:source.file},bytes:bakedGeometryBytes(source.geometry)}]:[]),scope);
+}
+
 /** Complete model declaration: parameters and specimen selection are data, with no shard callback. */
 export type SpecimenModelRow = v.InferOutput<typeof SpecimenCatalogueSchema>[number];
 /** Bind a named parameter map to an ordered catalogue. Definitions register immediately; assets remain lazy. */
-export function defineSpecimenCatalogue<Params extends { readonly [K in keyof Params]: object }>(input: unknown, packedInput?: unknown, materialRowsInput: unknown = {}): { readonly model: <K extends keyof Params & string>(key: K) => ModelDef<Params[K]>; readonly usePacked: (bytes: Uint8Array) => void } {
+export function defineSpecimenCatalogue<Params extends { readonly [K in keyof Params]: object }>(input: unknown, packedInput?: unknown, materialRowsInput: unknown = {}, files:ReadonlyMap<string,Uint8Array>=new Map()): { readonly model: <K extends keyof Params & string>(key: K) => ModelDef<Params[K]>; readonly usePacked: (bytes: Uint8Array) => void } {
   jsonData(input);
   jsonData(materialRowsInput);
   const packed = packedInput === undefined ? undefined : createPackedSpecimens(packedInput);
@@ -266,8 +275,8 @@ export function defineSpecimenCatalogue<Params extends { readonly [K in keyof Pa
     const build = (ctx: ModelContext, params: object): ModelBuild => {
       const source = row.source.kind==='selection'?row.source.variants.find(candidate=>parameterKey(candidate.params)===parameterKey(params))?.source:row.source;
       if(source===undefined)throw new Error(`No authored specimen: ${row.model.id}`);
-      if(source.kind==='inline'){
-        const decodedBytes=unzlibSync(base64Bytes(source.data));
+      if(source.kind==='inline'||source.kind==='file'){
+        const decodedBytes=binarySourceBytes(source.kind==='inline'?{data:source.data}:{file:source.file},files);
         if(decodedBytes.length!==bakedGeometryBytes(source.geometry))throw new Error('Inline specimen byte count differs');
         const decoded=readBakedGeometry(decodedBytes,0,source.geometry),geometry=source.geometry.expand?expandBakedGeometry(decoded):decoded;
         const part={geometry,material:specimenMaterial(ctx.sky,source.material),castShadow:true,receiveShadow:true};

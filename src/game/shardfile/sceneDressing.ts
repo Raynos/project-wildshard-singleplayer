@@ -21,7 +21,7 @@ import { instancedQuad } from '@wildshard/engine/render/instancedGeometry';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
 import { mergeStaticSiblings } from '@wildshard/engine/models/staticSets';
-import { createPackedSpecimens, defineSpecimenCatalogue, loadBoundSpecimen, loadSpecimenTexture, specimenMaterial } from '../models/specimenCatalogue';
+import { createPackedSpecimens, defineSpecimenCatalogue, prepareSpecimenCatalogue, loadBoundSpecimen, loadSpecimenTexture, specimenMaterial } from '../models/specimenCatalogue';
 import { expandBakedGeometrySliced, fetchLaneBake, readBakedGeometry, bakedGeometryBytes } from '../plugin/geometry';
 import { createClientScene } from '../plugin/ui';
 import { AmbientWingField } from '../ambient/wingField';
@@ -144,6 +144,7 @@ export class SceneDressing {
     for(const file of names){live();const bytes=await read.call(product,file);live();files.set(file,bytes);}
     const raw=await prepareBinarySources(product,Object.values(rows.geometry).flatMap(row=>row.kind==='file'?[{source:{file:row.file},bytes:bakedGeometryBytes(row.row)}]:[]),scope);
     live();for(const [name,bytes] of raw)files.set(name,bytes);
+    const specimens=await prepareSpecimenCatalogue(product,rows.catalogues.flatMap(source=>source.rows),scope);live();for(const [name,bytes]of specimens)files.set(name,bytes);
     const owner=new SceneDressing(ctx,rows);
     await owner.build(rows,files);products.set(ctx.product,owner);const installed=products;
     // N2: the tiled colliders follow the player by tile (spawn and entries before controls), as an assembled world's do
@@ -171,7 +172,7 @@ export class SceneDressing {
     const definitions=new Map<string,ModelDef<object>>();
     for(const source of rows.catalogues){
       const pack='pack'in source?rows.packs[source.pack]:{rows:source.packed,materials:source.materials};if(pack===undefined)throw new Error('Missing catalogue pack');
-      const catalogue=defineSpecimenCatalogue<Record<string,object>>(source.rows,pack.rows,pack.materials);
+      const catalogue=defineSpecimenCatalogue<Record<string,object>>(source.rows,pack.rows,pack.materials,files);
       for(const row of source.rows)definitions.set(row.model.id,catalogue.model(row.key));
     }
     const packs=new Map(Object.entries(rows.packs).map(([key,source])=>[key,createPackedSpecimens(source.rows)]));

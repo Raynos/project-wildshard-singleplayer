@@ -46,6 +46,8 @@ const paint=v.parse(paintSchema,paintInput);
 /** Exact raw contact files, read only by the SDK's normal named-file intake. */
 export const DRESSING_CONTACT_SOURCES=v.parse(v.array(v.object({name:text,kind:v.literal('bin'),source:text,
   options:v.object({decoded:v.pipe(number,v.integer(),v.minValue(0))})})), 'sources'in paintInput?paintInput.sources:[]);
+/** Prepared carving files share the SDK's named geometry intake. */
+export const DRESSING_SPECIMEN_SOURCES=v.parse(v.array(v.object({name:text,kind:v.literal('bin'),source:text})),balbal.sources);
 const cover=v.parse(coverSchema,coverInput);
 // the places' anchors and the camp smoke's baked puffs (bake-place-runtime.mjs)
 const spot=v.object({x:number,y:number,z:number}),placed=v.parse(v.object({places:v.object({rows:v.array(v.object({name:text,

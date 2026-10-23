@@ -2,7 +2,7 @@ import { parse } from 'valibot';
 import { admittedIslandBook } from '../shardfile/islandBook';
 import { SpecimenBookSchema } from '@wildshard/format/specimenCatalogue';
 import { TIER } from '@wildshard/engine/core/tier';
-import { defineSpecimenCatalogue } from './specimenCatalogue';
+import { defineSpecimenCatalogue,prepareSpecimenCatalogue } from './specimenCatalogue';
 /** Client-only Model Explorer adapter. Ordered data selects the existing model
  * contract; the authoritative simulation never imports this module. */
 import { HeldClaims } from '../loadout/claims';
@@ -98,7 +98,7 @@ async function resolveExplorerRoster(product: ShardProduct, native: readonly Ros
       entries.push({ ...present(model, row), prepare });
     } else if(row.kind==='specimen'){
       const file=row.books[TIER];let catalogue=preparedSpecimens.get(file);
-      if(catalogue===undefined){const book=parse(SpecimenBookSchema,await product.json<unknown>(file));catalogue=defineSpecimenCatalogue<Record<string,object>>(book.rows,book.packed,book.materials);preparedSpecimens.set(file,catalogue);}
+      if(catalogue===undefined){const book=parse(SpecimenBookSchema,await product.json<unknown>(file));catalogue=defineSpecimenCatalogue<Record<string,object>>(book.rows,book.packed,book.materials,await prepareSpecimenCatalogue(product,book.rows));preparedSpecimens.set(file,catalogue);}
       const copies=row.tierCopies?.[TIER];entries.push(present(catalogue.model(row.model),copies===undefined?row:{...row,copies}));
     } else if (row.kind === 'collection' || row.kind === 'scene-model') {
       const book = await admittedIslandBook(product, row.library);

@@ -21711,10 +21711,14 @@
         "pnpm-lock.yaml"
       ],
       "outputs": [
-        "src/shards/nalati-grasslands/data/balbalSpecimen.generated.json"
+        "src/shards/nalati-grasslands/data/balbalSpecimen.generated.json",
+        "src/shards/nalati-grasslands/data/balbal-carving-0.generated.bin",
+        "src/shards/nalati-grasslands/data/balbal-carving-1.generated.bin"
       ],
       "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/data/balbalSpecimen.generated.json"
+        "src/shards/nalati-grasslands/data/balbalSpecimen.generated.json",
+        "src/shards/nalati-grasslands/data/balbal-carving-0.generated.bin",
+        "src/shards/nalati-grasslands/data/balbal-carving-1.generated.bin"
       ],
       "platform": "portable",
       "catalogueDependencies": [
