@@ -2,18 +2,14 @@ import { emptyShardfile } from '@wildshard/sdk/author';
 import declared from '../outputs.json' with { type: 'json' };
 import source from '../data/source.json' with { type: 'json' };
 import hologram from '../data/hologram.graph.json' with { type: 'json' };
-import beam from '../data/beam.graph.json' with { type: 'json' };
-import plot from '../data/plot.json' with { type: 'json' };
 
 /** The open-plots source shard (SF88g, G538/G539/G541/G542/G545): data rows (`outputs.json`, one product per idea) and one
  *  build-time generator (`generators/bake-plots.mjs`, which writes each idea's `assets/<idea>/world.glb`); this module
  *  assembles each idea's product at build time (shard.config.ts is its documented entry); no runtime code. The world bake turns a plot into tiles, collision (its `collide_` nodes only), edges and a far proxy.
  *  `data/source.json` holds the plot's authorship, spawn and look (G541, G545: the measure-grid survey floor, plain PBR
- *  kerb and frames, lit-from-within billboard and sign, cyan rim); the idea's hologram and the corner beams draw in the
- *  ONE shared hologram graph (`data/hologram.graph.json`) and `data/beam.graph.json` (G539). */
+ *  kerb and frames, lit-from-within billboard and sign, cyan rim); each hologram draws in the shared graph. */
 const look = { ...source.look, materials: { ...source.look.materials,
-  // G608: the beams fade over their full height (data/plot.json)
-  hologram: { family: 'graph', graph: hologram }, beam: { family: 'graph', graph: { ...beam, params: { ...beam.params, top: { ...beam.params.top, value: plot.beam.height } } } } } };
+  hologram: { family: 'graph', graph: hologram } } };
 
 /** One idea row's output (validated whole by the build's parseShardfile; SF88g: one per idea). */
 function project(row: { readonly slug: string; readonly idea: string; readonly name: string; readonly accent: string }) {
@@ -21,7 +17,7 @@ function project(row: { readonly slug: string; readonly idea: string; readonly n
   return { ...emptyShardfile(identity), identity, accent: row.accent, spawn: source.spawn, look,
     // G608: the `far_` stand-ins draw only in the far proxy
     world: { glb: `assets/${row.idea}/world.glb`, colliders: 'nodes:collide_', far: 'far_',
-      materials: { Floor: 'floor', Kerb: 'kerb', Plinth: 'plinth', Rim: 'rim', Frame: 'frame', Billboard: 'billboard', Sign: 'sign', Hologram: 'hologram', Beam: 'beam', Glow: 'rim' } },
+      materials: { Floor: 'floor', Kerb: 'kerb', Plinth: 'plinth', Rim: 'rim', Frame: 'frame', Billboard: 'billboard', Sign: 'sign', Hologram: 'hologram', Glow: 'rim' } },
   };
 }
 

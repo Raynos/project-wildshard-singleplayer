@@ -10,12 +10,11 @@ idea. There is no runtime code: the shard is data rows and one build-time genera
 - `generators/bake-plots.mjs` (generation job `open-plots-world`, cheap build-time outputs) writes each idea's
   `assets/<idea>/world.glb` (git-ignored): a 500 m plot floor with a kerb broken by four entries, a low round plinth
   (radius 10 m) with a cyan rim, the idea's hologram standing on it, the billboard behind it, the 'OPEN PLOT · COMING
-  SOON' sign and a striped beacon in each corner with a cyan sky beam; then each output's data map. The world bake turns a plot into tiles, collision (only the `collide_` nodes,
+  SOON' sign; then each output's data map. The world bake turns a plot into tiles, collision (only the `collide_` nodes,
   never the hologram), edges and a far proxy.
 - `data/plot.json` (G608): the hologram's scale (6: 72 m, Jake's G615 pick A on art/grid/round-37-open-plot-scale), the
-  beams' heights and the floor's accent tint. The hologram and the beams are light (additive), so the generator also
-  writes `far_` stand-ins (the hologram welded, a glowing box up each beam) that only the far proxy draws; the far
-  bake simplifies them into the far budget.
+  floor's accent tint. The hologram is additive, so the generator also writes a welded `far_hologram` stand-in
+  that only the far proxy draws; the far bake simplifies it into the far budget.
 - Each idea's inputs live in `public/assets/open-plots/<idea>/`: `billboard.webp` and `sign.webp` (with the card in
   `thumbs/<idea>.jpg`, `scripts/open-plots/make-art.sh`) and `hologram.glb` (Hunyuan3D-2 full, 8k triangles, 12 m,
   meshopt: `scripts/open-plots/gen-refs.sh`, `batch-holograms.sh`, reviewed with `clay-review.mjs`).
@@ -23,8 +22,7 @@ idea. There is no runtime code: the shard is data rows and one build-time genera
   fresnel rim `pow(1 - |n·v|, 2.2)`, alpha `0.07 + rim × 0.7`, world-Y scanlines and a slow upward sweep, 28° feature edges
   at 0.55 and a 0.07 wireframe (both decoded from the generator's per-corner edge code in the vertex colours), colour
   `#46e6ff`, drawn at every distance (G607). Its vertex stage turns the hologram slowly about the plinth's axis.
-- `data/beam.graph.json` draws the corner beams (G539): additive cyan, thinning with height to `data/plot.json`'s beam
-  height (G608, its twin lower), drawn at every distance (G607): every plot's beams read across the 5 × 5.
+
 
 On the 5 × 5 (G538, P7): every open cell of `src/game/grid/singleplayer.json` is an `open-plot-<idea>` output, entered
 over the road like any shard cell, with its baked far proxy and impostor in the shared far tier; all 14 ideas stand on the

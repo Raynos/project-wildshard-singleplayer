@@ -188,9 +188,6 @@
       },
       "hologram": {
         "family": "graph"
-      },
-      "beam": {
-        "family": "graph"
       }
     },
     "day": {
