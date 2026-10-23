@@ -1,7 +1,7 @@
 // G636: parallel exact-source checks within one five-second wall budget.
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { posix, resolve } from 'node:path';
 import * as v from 'valibot';
 import { ratchetApprovalFailures } from './ratchet-approval.mjs';
 import { linkNodeModules } from './link-node-modules.mjs';
@@ -26,7 +26,7 @@ export async function precommitInputs(root = resolve(import.meta.dirname, '..'),
   const patterns = /"ignorePatterns"\s*:\s*\[([^\]]*)\]/u.exec(config)?.[1] ?? '';
   const ignored = [...patterns.matchAll(/"([^"]+)"/gu)].map(match => match[1]);
   const files = source.filter(path => !ignored.some(pattern => {
-    if (path.startsWith(pattern)) return true;
+    if (posix.matchesGlob(path, pattern) || path.startsWith(pattern)) return true;
     return !pattern.slice(0, -1).includes('/') && path.includes(`/${pattern}`);
   }));
   const defer = () => {

@@ -76,3 +76,24 @@ test('a wall cap defers every cheap check but preserves observed refusals', () =
     expect(commitCheckFailed({ name: 'check', code: 124, timedOut: true, output })).toBe(true);
   }
 });
+
+
+test('generated glob ignores never start staged fast or typed work',async()=>{
+ mkdirSync('tmp',{recursive:true});const root=mkdtempSync(resolve('tmp/generated-hook-'));
+ const gitEnv=Object.fromEntries(Object.entries(env).filter(([key])=>!key.startsWith('GIT_')));
+ const git=(...args:string[]):string=>execFileSync('git',args,{cwd:root,env:gitEnv,encoding:'utf8'}).trim();
+ try{
+  git('init','-q');git('config','user.email','fixture@example.invalid');git('config','user.name','fixture');git('config','core.hooksPath','/dev/null');
+  writeFileSync(resolve(root,'.oxlintrc.json'),JSON.stringify({ignorePatterns:['**/*.generated.*']}));
+  git('add','--','.oxlintrc.json');git('commit','-qm','base');
+  mkdirSync(resolve(root,'src'));
+  writeFileSync(resolve(root,'src/owner.ts'),'export const value = 1;\n');
+  writeFileSync(resolve(root,'src/owner.generated.ts'),'export const generated = 1;\n');
+  git('add','--','src/owner.ts','src/owner.generated.ts');
+  const checker=resolve(root,'checker.sh'),calls=resolve(root,'calls.txt');
+  writeFileSync(checker,`#!/bin/sh\nprintf '%s\\n' "$@" >> '${calls}'\n`);chmodSync(checker,0o755);
+  await precommitInputs(root,checker);
+  const output=readFileSync(calls,'utf8');
+  expect(output).toContain('src/owner.ts');expect(output).not.toContain('src/owner.generated.ts');
+ }finally{rmSync(root,{recursive:true,force:true});}
+});
