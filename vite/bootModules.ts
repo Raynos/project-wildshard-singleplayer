@@ -27,7 +27,7 @@ export function startupImports(source: string): string[] {
       }
       if (node.arguments.length !== 1) throw new Error('Startup import requires a literal source');
       const argument = node.arguments[0];
-      if (!ts.isStringLiteral(argument)) throw new Error('Startup import requires a literal source');
+      if (argument === undefined || !ts.isStringLiteral(argument)) throw new Error('Startup import requires a literal source');
       imports.add(argument.text);
     }
     ts.forEachChild(node, visit);
@@ -93,7 +93,7 @@ export function bootModulesPlugin(): Plugin {
       }
       if (!Object.hasOwn(bundle, 'index.html')) throw new Error('Missing boot module document');
       const html = bundle['index.html'];
-      if (html.type !== 'asset' || typeof html.source !== 'string' || !html.source.includes('<head>')) throw new Error('Missing boot module document');
+      if (html?.type !== 'asset' || typeof html.source !== 'string' || !html.source.includes('<head>')) throw new Error('Missing boot module document');
       const client = await this.resolve('./game/shardfile/client', entry);
       if (client === null || client.external !== false) throw new Error('Missing compiled client module');
       const rows = { common: bootModuleFiles(bundle, ids), client: bootModuleFiles(bundle, [client.id]), products: bootProductTotals(root) };
