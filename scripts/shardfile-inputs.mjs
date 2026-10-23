@@ -2,7 +2,7 @@
 // Rust-bundled module inputs and resolution candidates which bypass Node fs.
 import fs from 'node:fs';
 import fsp from 'node:fs/promises';
-import * as childProcess from 'node:child_process';
+import childProcess from 'node:child_process';
 import worker from 'node:worker_threads';
 import net from 'node:net';
 import tls from 'node:tls';
@@ -25,7 +25,7 @@ const digest = (/** @type {string|Uint8Array} */ bytes) => createHash('sha256').
 const schema = 'shardfile-inputs/5', modules = new Set([import.meta.filename,resolve(import.meta.dirname,'bake-input-hashes.mjs'),resolve(import.meta.dirname,'compiler-code.mjs'),resolve(import.meta.dirname,'function-source.mjs')]);
 const code=/\.[cm]?[jt]sx?$/u;
 const Receipt = v.strictObject({schema:v.literal(schema),node:v.string(),inputs:v.pipe(v.array(v.pipe(v.string(),v.regex(/^(?:[FDMP] .+|G [a-f0-9]{64})$/u))),v.minLength(1)),values:v.record(v.string(),v.string()),seal:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))});
-/** @type {AsyncLocalStorage<{root:string,reads:Map<string,string>,writes:Set<string>,bundles:number,invalid:string[],observing:boolean,traceOnly?:boolean,opaque?:Set<string>}>} */
+/** @type {AsyncLocalStorage<{root:string,reads:Map<string,string>,writes:Set<string>,bundles:number,invalid:string[],observing:boolean,traceOnly?:boolean,opaque?:Set<string>,packageExports?:Map<string,Set<string>>}>} */
 const scopes = new AsyncLocalStorage();
 /** @type {ReturnType<typeof scopes.getStore>} */
 let generationScope;
@@ -93,10 +93,34 @@ function note(kind, target) {
   try { scope.reads.set(entry,value(scope.root,entry)); } catch (error) { scope.invalid.push(`${entry}: ${String(error)}`); }
   finally { scope.observing = false; }
 }
+/** Track attempted workspace subpaths before resolution, including missing
+ * exports caught by a producer. Installed third-party manifests stay pinned by
+ * the lockfile; only real manifests inside the isolated source tree qualify.
+ * @param {string} specifier */
+function notePackageExport(specifier) {
+  const scope=inputScope();
+  if(scope?.traceOnly!==true||scope.observing)return;
+  const parts=specifier.split('/'),prefix=parts.at(0),local=parts.at(1);
+  if(prefix?.startsWith('@')!==true||local===undefined||local==='')return;
+  const name=`${prefix}/${local}`,key=parts.length===2?'.':`./${parts.slice(2).join('/')}`;
+  try {
+    const manifest=raw.real(resolve(scope.root,'node_modules',name,'package.json'));
+    const file=inside(scope.root,manifest);
+    if(file===undefined)return;
+    const json=v.parse(v.object({name:v.string()}),JSON.parse(raw.read(manifest,'utf8')));
+    if(json.name!==name)return;
+    const keys=scope.packageExports?.get(file)??new Set([key]);keys.add(key);
+    scope.packageExports?.set(file,keys);
+  } catch { /* Missing/unsupported manifests retain their complete raw key. */ }
+}
 /** Install once in the compiler process, before its entry imports load. */
 export function installInputRecorder() {
   if (installed) return; installed = true;
   registerHooks({
+  resolve(specifier,context,next) {
+    notePackageExport(specifier);
+    return next(specifier,context);
+  },
   load(url,context,next) {
     const file=url.startsWith('file:')?fileURLToPath(url):undefined,scope=inputScope();
     if(file!==undefined)modules.add(file);
@@ -192,7 +216,7 @@ export function installInputRecorder() {
       Object.defineProperties(traced,Object.getOwnPropertyDescriptors(original));table[name]=traced;
     }
   };
-  observeChildren(childProcess.default);
+  observeChildren(childProcess);
   syncBuiltinESMExports();
 }
 /** Bind candidate presence/type; selected modules record their actual bytes.
@@ -327,14 +351,17 @@ export function inputRecorderPlugin(options={}) {
 export function startGenerationInputTrace(root,receipt) {
   if(generationScope!==undefined)throw new Error('Generation trace already active');
   moduleKind='M';installInputRecorder();
-  const scope={root:raw.real(root),reads:new Map(),writes:new Set(),bundles:0,invalid:[],observing:false,traceOnly:true,opaque:new Set()};
+  /** @type {Map<string,Set<string>>} */
+  const packageExports=new Map();
+  const scope={root:raw.real(root),reads:new Map(),writes:new Set(),bundles:0,invalid:[],observing:false,traceOnly:true,opaque:new Set(),packageExports};
   generationScope=scope;scopes.enterWith(scope);
   for(const file of modules)if(inside(scope.root,file)!==undefined)note(code.test(file)?'M':'F',file);
   process.on('exit',status=>{
     if(status!==0)return;
     const files=[...scope.reads.keys()].filter(entry=>entry.startsWith('F ')).map(entry=>entry.slice(2)).sort((a,b)=>a<b?-1:a>b?1:0);
     const execution=[...scope.reads.keys()].filter(entry=>entry.startsWith('M ')).map(entry=>entry.slice(2)).filter(file=>!scope.reads.has(`F ${file}`)).sort((a,b)=>a<b?-1:a>b?1:0);
-    const body={schema:'generation-reads/2',files,execution,opaque:[...scope.opaque].sort((a,b)=>a<b?-1:a>b?1:0)};
+    const packages=Object.fromEntries([...scope.packageExports].sort(([a],[b])=>a<b?-1:a>b?1:0).map(([file,keys])=>[file,[...keys].sort((a,b)=>a<b?-1:a>b?1:0)]));
+    const body={schema:'generation-reads/3',files,execution,packages,opaque:[...scope.opaque].sort((a,b)=>a<b?-1:a>b?1:0)};
     raw.write(receipt,JSON.stringify({...body,seal:digest(JSON.stringify(body))}));
   });
 }

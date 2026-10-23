@@ -8,10 +8,10 @@ import {generationCacheRoot,runGenerationJob} from './generation-cache.mjs';
 import {compilerCodeHash} from './compiler-code.mjs';
 
 export const generationReadReceipt='.generation-reads.json';
-const digest=(/** @type {string} */ text)=>createHash('sha256').update(text).digest('hex');
+const digest=(/** @type {string|Uint8Array} */ text)=>createHash('sha256').update(text).digest('hex');
 const path=v.pipe(v.string(),v.check(file=>file.length>0&&!isAbsolute(file)&&!file.includes('\\')&&file.split('/').every(part=>part!==''&&part!=='.'&&part!=='..')));
 const paths=v.pipe(v.array(path),v.maxLength(100_000));
-const Trace=v.strictObject({schema:v.literal('generation-reads/2'),files:paths,execution:paths,opaque:v.array(v.string()),seal:v.string()});
+const Trace=v.strictObject({schema:v.literal('generation-reads/3'),files:paths,execution:paths,packages:v.record(path,v.array(v.string())),opaque:v.array(v.string()),seal:v.string()});
 const order=(/** @type {string} */ a,/** @type {string} */ b)=>a<b?-1:a>b?1:0;
 const code=/\.[cm]?[jt]sx?$/u;
 const cacheMiss=new Error('Observed generation cache miss');
@@ -22,8 +22,9 @@ function readTrace(file,entry) {
     const stat=lstatSync(file);
     if(!stat.isFile()||stat.size>5_000_000)return undefined;
     const trace=v.parse(Trace,JSON.parse(readFileSync(file,'utf8')));
-    const body={schema:trace.schema,files:trace.files,execution:trace.execution,opaque:trace.opaque};
+    const body={schema:trace.schema,files:trace.files,execution:trace.execution,packages:trace.packages,opaque:trace.opaque};
     const all=[...trace.files,...trace.execution];
+    if(Object.values(trace.packages).some(keys=>keys.length!==new Set(keys).size))return undefined;
     if(trace.opaque.length>0||all.length!==new Set(all).size||!all.includes(entry)||digest(JSON.stringify(body))!==trace.seal)return undefined;
     return trace;
   } catch {return undefined;}
@@ -38,6 +39,19 @@ function selectInputs(inputs,files,catalogue) {
   // Keep the backend's nonempty-source contract for tiny standalone producers.
   return Object.keys(selected).length===0?inputs:selected;
 }
+/** Retain every field except unused exact exports. Wildcard rows remain exact
+ * because they can affect a previously missing subpath. Explicit JSON reads
+ * never use this projection, nor do unsupported/conditional-root exports.
+ * @param {string} root @param {string} file @param {string} expected @param {string[]} keys */
+function packageProjection(root,file,expected,keys) {
+  const bytes=readFileSync(resolve(root,file));
+  if(digest(bytes)!==expected)throw new Error(`Generation package changed: ${file}`);
+  const json=v.parse(v.record(v.string(),v.unknown()),JSON.parse(bytes.toString('utf8')));
+  const exports=v.safeParse(v.record(v.string(),v.unknown()),json.exports);
+  if(!exports.success||Object.keys(exports.output).some(key=>key!=='.'&&!key.startsWith('./')))return undefined;
+  const used=new Set(keys);
+  return JSON.stringify({...json,exports:Object.fromEntries(Object.entries(exports.output).filter(([key])=>used.has(key)||key.includes('*')))});
+}
 /** Existing read sets are lookup hints, never permission to execute a changed
  * producer with an old dependency list. Inventory changes also invalidate the
  * hint, covering negative probes, globs and higher-priority module candidates.
@@ -47,18 +61,31 @@ function selectInputs(inputs,files,catalogue) {
  * @returns {Promise<import('./generation-cache.mjs').GenerationResult>} */
 export async function runObservedGeneration(root,job,options,entry,catalogue='scripts/generation-jobs.json') {
   const inventory=Object.keys(job.inputs).sort(order);
-  const recipe=digest(JSON.stringify({schema:'generation-inputs/2',node:process.version,id:job.id,inventory,command:job.command,outputs:job.outputs,platform:job.platform,tools:job.tools}));
+  const recipe=digest(JSON.stringify({schema:'generation-inputs/3',node:process.version,id:job.id,inventory,command:job.command,outputs:job.outputs,platform:job.platform,tools:job.tools}));
   const profiles=resolve(options.cacheDir??generationCacheRoot(),'.reads-v1',job.id,recipe);
   /** @param {v.InferOutput<typeof Trace>} trace */
   const executionInputs=trace=>Object.fromEntries(trace.execution.filter(file=>code.test(file)&&Object.hasOwn(job.inputs,file)).map(file=>[file,job.inputs[file]]));
   /** @param {v.InferOutput<typeof Trace>} trace */
-  const narrowed=trace=>({...job,inputs:selectInputs(job.inputs,trace.files,catalogue),tools:{...job.tools,readInventory:recipe,
-    execution:JSON.stringify(Object.fromEntries(Object.entries(executionInputs(trace)).map(([file,raw])=>[file,compilerCodeHash(file,raw,()=>readFileSync(resolve(root,file)))])))}});
-  /** Even a normalized execution hit must validate the current raw source
-   * through the full phase memo; semantic identity never freezes old bytes.
+  const narrowed=trace=>{
+    const inputs={...selectInputs(job.inputs,trace.files,catalogue)},rawReads=new Set(trace.files);
+    /** @type {Record<string,string>} */
+    const packages={};
+    for(const [file,keys]of Object.entries(trace.packages)) {
+      const expected=inputs[file];
+      if(rawReads.has(file)||expected===undefined)continue;
+      const projected=packageProjection(root,file,expected,keys);
+      if(projected!==undefined){packages[file]=projected;delete inputs[file];}
+    }
+    // The backend retains its nonempty-source contract even for tiny fixtures.
+    const retained=Object.keys(inputs).length===0?job.inputs:inputs;
+    return {...job,inputs:retained,tools:{...job.tools,readInventory:recipe,packageExports:JSON.stringify(packages),
+      execution:JSON.stringify(Object.fromEntries(Object.entries(executionInputs(trace)).map(([file,raw])=>[file,compilerCodeHash(file,raw,()=>readFileSync(resolve(root,file)))])))}};
+  };
+  /** Normalized execution and projected exports still validate current raw
+   * source/manifest bytes through the phase memo before returning a loan.
    * @param {v.InferOutput<typeof Trace>} trace */
   const verifyExecution=trace=>{
-    const inputs=executionInputs(trace);
+    const inputs={...executionInputs(trace),...Object.fromEntries(Object.keys(trace.packages).filter(file=>Object.hasOwn(job.inputs,file)).map(file=>[file,job.inputs[file]]))};
     if(options.inputHashes!==undefined)options.inputHashes.verifyInputs(inputs);
     else for(const [file,expected]of Object.entries(inputs))if(createHash('sha256').update(readFileSync(resolve(root,file))).digest('hex')!==expected)throw new Error(`Generation execution changed: ${file}`);
   };

@@ -38,6 +38,10 @@ no stage; a changed producer still executes with its full declared closure befor
 A complete successful read observation may omit unread catalogue bytes from a cache lookup (G668 G6).
 A producer that reads the catalogue still binds its exact bytes. The full file inventory, other non-code metadata,
 producer/tool identity and verified outputs remain required; a miss always runs the complete declared stage.
+Generation read receipts also record attempted workspace-package export keys, including caught missing exports.
+A manifest used only for module resolution may bind those exact keys instead of every unused export; wildcard
+rows and all other manifest fields remain exact. Explicit manifest reads and unsupported exports shapes keep
+whole-file identities. Current raw manifest bytes are fenced before publishing or returning a cache loan.
 
 Jobs hash every regular file in their declared conservative input roots plus the runner, sidecar, loader and lockfile.
 Produced files are excluded from input keys unless explicitly declared as schema seeds, so removing or restoring an

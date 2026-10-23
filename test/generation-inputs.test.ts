@@ -28,6 +28,44 @@ function fixture(source?:string,catalogPath='scripts/generation-jobs.json') {
   };
   return {root,entry,output,cacheDir,run};
 }
+function packageFixture(source?:string) {
+  const row=fixture(source??`import {value} from '@wildshard/sdk/used';import fs from 'node:fs';fs.writeFileSync('src/shards/alpha/data/output.txt',String(value));`);
+  put(row.root,'src/sdk/other.mjs','export const value=2;');
+  const write=(exports:Record<string,unknown>,metadata:Record<string,unknown>={}):void=>put(row.root,'src/sdk/package.json',JSON.stringify({name:'@wildshard/sdk',type:'module',...metadata,exports}));
+  write({'./used':'./used.mjs','./unused':'./other.mjs'});
+  mkdirSync(resolve(row.root,'node_modules/@wildshard'),{recursive:true});
+  symlinkSync('../../src/sdk',resolve(row.root,'node_modules/@wildshard/sdk'),'dir');
+  return {...row,write};
+}
+it('reuses only unused workspace export edits and keeps other package fields exact',async()=>{
+  const {write,run}=packageFixture();const first=await run();expect(first).toMatchObject({hit:false,text:'1'});
+  write({'./used':'./used.mjs','./unused':'./used.mjs','./new-unused':'./other.mjs'});
+  expect(await run()).toEqual({...first,hit:true});
+  write({'./used':'./other.mjs','./unused':'./used.mjs','./new-unused':'./other.mjs'});
+  expect(await run()).toMatchObject({hit:false,text:'2'});
+  write({'./used':'./other.mjs','./unused':'./used.mjs','./new-unused':'./other.mjs'},{private:true});
+  expect((await run()).hit).toBe(false);
+});
+it('keeps attempted missing exports so an added matching key invalidates',async()=>{
+  const {write,run}=packageFixture(`import fs from 'node:fs';let value=0;try{value=(await import('@wildshard/sdk/optional')).value;}catch{}fs.writeFileSync('src/shards/alpha/data/output.txt',String(value));`);
+  await run();expect(await run()).toMatchObject({hit:true,text:'0'});
+  write({'./used':'./used.mjs','./optional':'./other.mjs'});
+  expect(await run()).toMatchObject({hit:false,text:'2'});
+});
+it('keeps wildcard export rows and raw package reads exact',async()=>{
+  const {write,run}=packageFixture();await run();
+  write({'./used':'./used.mjs','./unused':'./other.mjs','./*':'./other.mjs'});
+  expect((await run()).hit).toBe(false);
+  const raw=packageFixture(`import {value} from '@wildshard/sdk/used';import fs from 'node:fs';fs.writeFileSync('src/shards/alpha/data/output.txt',String(value)+fs.readFileSync('src/sdk/package.json','utf8'));`);
+  await raw.run();raw.write({'./used':'./used.mjs','./unused':'./used.mjs'});
+  expect((await raw.run()).hit).toBe(false);
+});
+it('keeps unsupported conditional-root package exports conservative',async()=>{
+  const {write,run}=packageFixture(`import {value} from '@wildshard/sdk';import fs from 'node:fs';fs.writeFileSync('src/shards/alpha/data/output.txt',String(value));`);
+  write({import:'./used.mjs',default:'./used.mjs'});await run();
+  write({import:'./used.mjs',default:'./other.mjs'});
+  expect((await run()).hit).toBe(false);
+});
 it('reuses unread SDK edits but rebuilds imported code and newly read branches',async()=>{
   const {root,entry,output,run}=fixture();const first=await run();expect(first.hit).toBe(false);
   put(root,'src/sdk/unread.ts','// edited unrelated source');

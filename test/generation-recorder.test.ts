@@ -21,7 +21,7 @@ function fixture(source:string) {
   const child=spawnSync(process.execPath,['--import',resolve('scripts/generation-recorder.mjs'),'entry.mjs'],{
     cwd:root,env:{...process.env,WS_GENERATION_READ_RECEIPT:receipt},encoding:'utf8',
   });
-  return {root,receipt,child,read:()=>v.parse(v.object({schema:v.literal('generation-reads/2'),files:v.array(v.string()),execution:v.array(v.string()),opaque:v.array(v.string()),seal:v.string()}),JSON.parse(readFileSync(receipt,'utf8')))};
+  return {root,receipt,child,read:()=>v.parse(v.object({schema:v.literal('generation-reads/3'),files:v.array(v.string()),execution:v.array(v.string()),packages:v.record(v.string(),v.array(v.string())),opaque:v.array(v.string()),seal:v.string()}),JSON.parse(readFileSync(receipt,'utf8')))};
 }
 it('records imports and descriptor-based raw reads without consuming unrelated source modules',()=>{
   const {child,read}=fixture("import{value}from'./used.mjs';import fs from'node:fs';const fd=fs.openSync('raw.ts','r');fs.readSync(fd,Buffer.alloc(1),0,1,null);fs.closeSync(fd);fs.writeFileSync('output.json',JSON.stringify(value));");
