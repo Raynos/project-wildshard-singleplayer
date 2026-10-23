@@ -21,7 +21,7 @@ import type { ColliderDesc } from '@wildshard/engine/world/registry';
 /** The collider rows a scene placement may author (`readColliderRows`). */
 const COLLIDER_ROWS = { kinds: ['box', 'treads', 'hull', 'capsule', 'ball', 'trimesh'], surfaces: ['sand', 'wetSand', 'grass', 'rock', 'planks', 'stone', 'water', 'wood', 'metal', 'flesh', 'shell', 'ground', 'edge', 'felt', 'earth'] } as const;
 /** A collider-only piece's anchor (T3): the middle of its colliders' points. */
-function anchorOf(rows: readonly ColliderDesc[]): Vector3 {
+export function anchorOf(rows: readonly ColliderDesc[]): Vector3 {
   const at = new Vector3();
   for (const row of rows) { const point = row.kind === 'treads' ? row.from : row; at.x += point.x; at.y += point.y; at.z += point.z; }
   return at.divideScalar(Math.max(1, rows.length));

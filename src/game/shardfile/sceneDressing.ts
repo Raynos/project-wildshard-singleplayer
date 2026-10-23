@@ -30,7 +30,14 @@ import { letteringMaterial } from '../looks/lettering';
 import { hasLentLook, lendLooks, lentLook, lentMappedLook, setLentParam, setLentTexture } from './lentLooks';
 import { runtimeLookMaterials } from './runtimeProduct';
 import type { Scope } from '@wildshard/engine/app/scope';
+import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import { anchorOf } from './worldScenePlacement';
+import { colliderTileKeys, type TileContent } from './tileContent';
+import { followResidentTiles, residentTiles, tileResidencyRadius } from './tileDriver';
 import type { ShardContext } from '../plugin/context';
+
+/** N2: a tile's dressing colliders register this many a task (Rapier hulls: ~1 ms each on the phone) */
+const COLLIDERS_PER_TASK=48;
 
 const books = new WeakMap<Scope,WeakMap<ShardContext['product'],SceneDressing>>();
 const contacts = (input: readonly unknown[]) => readColliderRows(input, {kinds:['box','treads','hull','capsule','ball','trimesh'],surfaces:['sand','wetSand','grass','rock','planks','stone','water','wood','metal','flesh','shell','ground','edge','felt','earth']});
@@ -113,6 +120,10 @@ export class SceneDressing {
   private time = 0;
   private instances:SceneInstanceFields|undefined;
   private wings: AmbientWingField | undefined;
+  /** N2 (Debug ▸ Tile residency 3 x 3 / 5 x 5): each placement's colliders by every tile they reach, registered on the
+   *  collider ring (`colliderTiles`) while its draws stay whole; empty for a whole cell */
+  private readonly colliderGroups: { readonly key: string; readonly model: ModelDef<object>; readonly byTile: Map<number, ColliderDesc[]> }[] = [];
+  private follow: (() => void) | null = null;
   private readonly animations:SceneDressingRows['animations'];
   private readonly motes:SceneDressingRows['motes'];
   private readonly emitters:SceneDressingRows['emitters'];
@@ -135,6 +146,12 @@ export class SceneDressing {
     }
     const owner=new SceneDressing(ctx,rows);
     await owner.build(rows,files);products.set(ctx.product,owner);const installed=products;
+    // N2: the tiled colliders follow the player by tile (spawn and entries before controls), as an assembled world's do
+    if(owner.colliderGroups.length>0){
+      const tiles=ctx.scope.child('scene.dressing.tiles'),shard=ctx.product.shardfile,world=ctx.game.runtime?.world;
+      await residentTiles(tiles,[owner.colliderTiles(rows.name)],shard.spawn,shard.entryways);
+      if(world!==undefined&&world!==null)owner.follow=followResidentTiles(tiles,()=>world.player.position);
+    }
     ctx.scope.onDispose(()=>{if(installed.get(ctx.product)===owner)installed.delete(ctx.product);owner.instances?.dispose();for(const piece of owner.pieces.values())piece.object.removeFromParent();owner.group.removeFromParent();});
     ctx.system({id:'client.scene.dressing',phase:'update',after:['main.world'],before:['engine.creatures.update'],run:dt=>owner.update(dt)});
     return owner;
@@ -150,7 +167,7 @@ export class SceneDressing {
     for(const row of rows.layers)if(!ctx.product.hasFile(row.file))throw new Error('Missing scene scatter file');
     const looks=[...Object.values(rows.materials).flatMap(row=>row.kind==='look'||row.kind==='mapped'?[row.look]:[]),...(rows.motes===undefined?[]:[rows.motes.look])];
     const missing=looks.filter(id=>!hasLentLook(id));if(missing.length>0)lendLooks(ctx.scope,await runtimeLookMaterials({scope:ctx.scope,game:ctx.game},ctx.product.shardfile,true,missing));
-    const sky=world.sky, models=modelContext(sky), pause=()=>buildYield(ctx.scope);
+    const sky=world.sky, models=modelContext(sky), pause=()=>buildYield(ctx.scope), tiled=tileResidencyRadius()<8;
     const definitions=new Map<string,ModelDef<object>>();
     for(const source of rows.catalogues){
       const pack='pack'in source?rows.packs[source.pack]:{rows:source.packed,materials:source.materials};if(pack===undefined)throw new Error('Missing catalogue pack');
@@ -207,8 +224,8 @@ export class SceneDressing {
       const layer=scatterLayer(row.id,needGeometry(row.geometry),needMaterial(row.material),poses,row.far,row.castShadow,row.keepNear);this.layers.push(layer);this.group.add(layer.mesh);
       const colliderRows=Array.isArray(row.contacts)?contacts(row.contacts):unpackHulls(row.contacts,files);
       const registered=withOwner(ctx.scope,()=>place(needModel(row.model),poses.map(it=>({x:it.x,y:it.y,z:it.z})),{
-        ctx:models,draw:'instanced',registry:ctx.app.registry,drawnInto:{object:layer.mesh,boxes:instanceBoxes(layer.mesh.geometry,poses),colliders:colliderRows},piece:{solidFloor:true,split:{every:150,yieldTask:pause}},
-      }));await registered.registered;this.placed.push(registered);
+        ctx:models,draw:'instanced',registry:ctx.app.registry,drawnInto:{object:layer.mesh,boxes:instanceBoxes(layer.mesh.geometry,poses),colliders:colliderRows},piece:{solidFloor:true,...(tiled?{collide:false as const}:{}),split:{every:150,yieldTask:pause}},
+      }));await registered.registered;this.placed.push(registered);if(tiled)this.byTile(row.id,needModel(row.model),registered.colliders);
       });await pause();
     }
     });
@@ -220,8 +237,9 @@ export class SceneDressing {
       for(const member of row.members){
         const floors=readSceneFloors(member.floors),floor=(x:number,z:number):number|undefined=>{let top:number|undefined;for(const sample of floors){const height=sample(x,z);if(height!==undefined&&(top===undefined||height>top))top=height;}return top;};
         const registered=withOwner(ctx.scope,()=>place(needModel(member.model),member.placements.map(({matrix,heading,...pose})=>({...pose,...(heading===undefined?{}:{yaw:Math.atan2(...heading)}),...(matrix===undefined?{}:{matrix:new THREE.Matrix4().fromArray(matrix)})})),{
-          ctx:models,draw:member.draw,registry:ctx.app.registry,drawnInto:{object:made.root,boxes:Float32Array.from(member.boxes),colliders:Array.isArray(member.contacts)?contacts(member.contacts):unpackHulls(member.contacts,files)},piece:{solidFloor:true,...(floors.length===0?{}:{floor}),split:{every:150,yieldTask:pause}},
-        }));await registered.registered;this.placed.push(registered);piece.placed.push(registered);await pause();
+          ctx:models,draw:member.draw,registry:ctx.app.registry,drawnInto:{object:made.root,boxes:Float32Array.from(member.boxes),colliders:Array.isArray(member.contacts)?contacts(member.contacts):unpackHulls(member.contacts,files)},piece:{solidFloor:true,...(floors.length===0?{}:{floor}),...(tiled?{collide:false as const}:{}),split:{every:150,yieldTask:pause}},
+        }));await registered.registered;this.placed.push(registered);piece.placed.push(registered);
+        if(tiled)this.byTile(`${row.name}.${String(row.members.indexOf(member))}`,needModel(member.model),registered.colliders);await pause();
       }
       // G639 frame floor (Developer staticSets, default off): the piece's sibling meshes on one material draw as one
       if(setting('staticSets')==='on')for(const merged of mergeStaticSiblings(made.root).geometries){ctx.scope.own(merged);gpuOnlyAttributes(merged,'scene.dressing');}
@@ -248,6 +266,29 @@ export class SceneDressing {
     for(const [key,shape]of geometry)if(!templates.has(key)&&Object.keys(shape.morphAttributes).length===0)gpuOnlyAttributes(shape,'scene.dressing');
     ctx.root.add(this.group);
   }
+  /** N2: a placement's world-space colliders by every tile their footprint reaches (none missing at a ring edge) */
+  private byTile(key:string,model:ModelDef<object>,colliders:readonly ColliderDesc[]):void{
+    const byTile=new Map<number,ColliderDesc[]>();
+    for(const shape of colliders)for(const tile of colliderTileKeys(shape)){const list=byTile.get(tile);if(list===undefined)byTile.set(tile,[shape]);else list.push(shape);}
+    if(byTile.size>0)this.colliderGroups.push({key,model,byTile});
+  }
+  /** N2: the dressing as tiled content: no draws by tile (they stay whole), each tile's colliders on a piece per placement
+   *  under the tile's collider scope, a paced task per `COLLIDERS_PER_TASK` (the phone's per-task collider budget) */
+  private colliderTiles(name:string):TileContent{
+    const registry=this.ctx.app.registry,tiles=new Set(this.colliderGroups.flatMap(group=>[...group.byTile.keys()]));
+    return{id:`${name}.colliders`,tiles:()=>tiles,attach:()=>Promise.resolve(),attachColliders:async(tile,scope)=>{
+      for(const group of this.colliderGroups){
+        const rows=group.byTile.get(tile)??[],model=group.model;
+        for(let at=0;at<rows.length;at+=COLLIDERS_PER_TASK){
+          if(scope.disposed)return;
+          const part=rows.slice(at,at+COLLIDERS_PER_TASK),id=`${model.id}.${group.key}.c${String(tile)}${at===0?'':`-${String(at/COLLIDERS_PER_TASK)}`}`;
+          withOwner(scope,()=>registry.add({id,name:model.name,category:model.category,file:model.file,anchor:anchorOf(part),colliders:part,solidFloor:true,
+            ...(model.surface===undefined?{}:{surface:model.surface})}));
+          try{await buildYield(scope);}catch(error:unknown){if(scope.disposed)return;throw error;}   // a tile that left mid-way: done, not failed
+        }
+      }
+    }};
+  }
   update(dt:number):void{
     const world=this.ctx.game.runtime?.world;if(world===null||world===undefined)return;
     const camera=this.frame.of(world.game.camera);camera.getWorldPosition(this.position);camera.getWorldDirection(this.direction);
@@ -255,6 +296,7 @@ export class SceneDressing {
       this.lastPosition.copy(this.position);this.lastDirection.copy(this.direction);camera.updateMatrixWorld();this.matrix.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse);this.frustum.setFromProjectionMatrix(this.matrix);
       for(const layer of this.layers)layer.cull(this.frustum,this.position);
     }
+    this.follow?.();
     this.time+=dt;
     for(const row of this.animations){const w=painterlyUniforms.uPWind.value;setLentParam(row.look,row.timeParam,this.time);setLentParam(row.look,row.windParam,[w.x,w.y,Math.min(row.windMax,w.z*row.windScale)]);}
     for(const row of this.emitters){
