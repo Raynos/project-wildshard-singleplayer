@@ -1,4 +1,4 @@
-import weatherScript from '../src/shards/nalati-grasslands/behaviour/weather.generated.json' with { type: 'json' };
+import {weatherWitness as weatherScript} from './fixtures/weatherInlineWitness';
 import { overrideTerrain } from './fake/terrain';
 import { expect, test } from 'vitest';
 import type { SystemSpec } from '../src/engine/app/systems';

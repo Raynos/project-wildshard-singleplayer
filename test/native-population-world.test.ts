@@ -16,7 +16,7 @@ import { nativeWeatherBundle } from '../src/game/weather/reactions';
 import { installWeatherContinuation } from '../src/game/weather/continuation';
 import { parseWeatherProgram } from '../src/format/weatherProgram';
 import pine from '../src/shards/pine-hollow/data/weather.json' with { type: 'json' };
-import storm from '../src/shards/nalati-grasslands/behaviour/weather.generated.json' with { type: 'json' };
+import {weatherWitness as storm} from './fixtures/weatherInlineWitness';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 const raster = (values: readonly number[]): string => btoa(String.fromCodePoint(...zlibSync(new Uint8Array(Float32Array.from(values).buffer))));

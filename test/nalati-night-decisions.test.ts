@@ -3,8 +3,11 @@ import { ReturnModulesSchema } from '../src/format/scriptContract';
 import { expect, test } from 'vitest';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { Rng } from '../src/engine/core/rng';
-import night from '../src/shards/nalati-grasslands/data/night.generated.json' with { type: 'json' };
-import weather from '../src/shards/nalati-grasslands/behaviour/weather.generated.json' with { type: 'json' };
+import nightInput from '../src/shards/nalati-grasslands/data/night.generated.json' with {type:'json'};
+import {weatherWitness as weather,withWeatherWitness} from './fixtures/weatherInlineWitness';
+
+const night=withWeatherWitness(nightInput);
+
 
 const author = (): { project: ReturnProgram['project'] } => {
   const module = ReturnProgram.page(night.program);

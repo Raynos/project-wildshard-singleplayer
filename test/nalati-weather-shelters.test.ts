@@ -5,7 +5,7 @@ import {expect,test} from 'vitest';
 import {headlessAssembly} from '../src/shards/nalati-grasslands/generators/nativeGroups';
 import {nativeWeatherBundle} from '../src/game/weather/reactions';
 import weather from '../src/shards/nalati-grasslands/data/weather.json' with {type:'json'};
-import reactions from '../src/shards/nalati-grasslands/behaviour/weather.generated.json' with {type:'json'};
+import {weatherWitness as reactions} from './fixtures/weatherInlineWitness';
 
 const scalar=pipe(number(),finite());
 const physics=parse(object({yurts:array(tuple([scalar,scalar,scalar]))}),

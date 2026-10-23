@@ -16,8 +16,11 @@ import { TimedEncounters } from '../src/game/boss/timedEncounters';
 import { setTerrainHeight, setTerrainPlacement } from '../src/engine/world/terrainHeight';
 import { legacyDouble } from './fake/FakeGame';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
-import night from '../src/shards/nalati-grasslands/data/night.generated.json' with { type: 'json' };
+import nightInput from '../src/shards/nalati-grasslands/data/night.generated.json' with {type:'json'};
+import {withWeatherWitness} from './fixtures/weatherInlineWitness';
 import strikes from '../src/shards/nalati-grasslands/data/strikeProfiles.generated.json' with { type: 'json' };
+
+const night=withWeatherWitness(nightInput);
 
 /** The night's two spray looks (data/lookGraphs.json), lent as the runtime lends every look before the world builds. */
 function lendSprays(scope: Scope): void {

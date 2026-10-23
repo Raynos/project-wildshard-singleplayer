@@ -10,7 +10,7 @@ import { legacyDouble } from './fake/FakeGame';
 import type { ShardContext } from '../src/game/plugin/context';
 import { bindPageWeatherHit,installWeatherReactions } from '../src/game/weather/reactions';
 import pine from '../src/shards/pine-hollow/data/weather.json' with { type: 'json' };
-import storm from '../src/shards/nalati-grasslands/behaviour/weather.generated.json' with { type: 'json' };
+import {weatherWitness as storm} from './fixtures/weatherInlineWitness';
 
 // A made-up marsh shard (G474's fixture second user): a Pine-shaped rain program whose rain flashes in the cloud and whose
 // open ground tells the player to keep low, on its own registers, cadence, points and shelters.

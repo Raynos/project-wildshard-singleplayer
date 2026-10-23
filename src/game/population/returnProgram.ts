@@ -18,7 +18,7 @@ import { ReturnProjectionV2,type PreparedProjectionV2 } from './returnProjection
 import type {ShardProduct} from '../shardfile/shardProduct';
 import {outputDescriptor} from '../shardfile/outputDescriptor';
 
-type RawReturnRow = Extract<ReturnModuleRow,{abi:2}>;
+type RawReturnRow = ReturnModuleRow;
 interface ReturnOwnerBook {
   readonly instances: Map<string,{declaration:string;program:ReturnProgram}>;
   loan?: {readonly assets:ReadonlyMap<string,Uint8Array>;readonly rows:ReadonlyMap<string,RawReturnRow>};
@@ -38,10 +38,13 @@ function rawModule(owner:Scope|undefined,row:ReturnType<typeof readProgram>,witn
   let lender:Scope|undefined,book:ReturnOwnerBook|undefined;
   for(const [scope,candidate]of scoped)if(candidate.loan!==undefined&&owner.belongsTo(scope)
     &&!scope.disposed&&!scope.disposing&&(lender===undefined||scope.belongsTo(lender))){lender=scope;book=candidate;}
-  const loan=book?.loan,artifact=row.v2?.artifact,contract=artifact===undefined?undefined:loan?.rows.get(artifact.hash);
-  if(loan===undefined||artifact===undefined||contract===undefined)throw new Error('Missing admitted raw return module loan');
-  if(contract.pages!==artifact.pages||contract.ioBytes!==artifact.ioBytes)throw new Error('Raw return module contract mismatch');
-  const hash=witness?row.script.module.slice('blobs/wasm/'.length,-'.wasm'.length):artifact.hash;
+  const loan=book?.loan,artifact=row.v2?.artifact;
+  const hash=witness?row.script.module.slice('blobs/wasm/'.length,-'.wasm'.length):artifact?.hash;
+  const contract=hash===undefined?undefined:loan?.rows.get(artifact?.hash??hash);
+  if(loan===undefined||hash===undefined||contract===undefined)throw new Error('Missing admitted raw return module loan');
+  if(artifact===undefined){
+    if(contract.abi===2||contract.pages!==row.script.pages)throw new Error('Raw return module contract mismatch');
+  }else if(contract.abi!==2||contract.pages!==artifact.pages||contract.ioBytes!==artifact.ioBytes)throw new Error('Raw return module contract mismatch');
   const bytes:unknown=Map.prototype.get.call(loan.assets,hash);
   if(!(bytes instanceof Uint8Array)||sha256(bytes)!==hash)throw new Error('Raw return module hash mismatch');
   return bytes;
@@ -85,7 +88,7 @@ export class ReturnProgram {
   /** The same immutable admitted descriptor used by this selected instance. */
   readonly groupBindings?:GroupGuestBindingsV2;
   readonly prepareGroup?:NonNullable<NumericProjection['prepareGroup']>;
-  private constructor(input: unknown, floor: (x: number, z: number) => number,owner?: Scope,raw?:Uint8Array,witness?:Uint8Array) {
+  private constructor(input: unknown, floor: (x: number, z: number) => number,private readonly owner?: Scope,raw?:Uint8Array,witness?:Uint8Array) {
     const row = readProgram(input),script = row.script;
     const freeze=(value:unknown):void=>{if(typeof value!=='object'||value===null||Object.isFrozen(value))return;for(const child of Object.values(value))freeze(child);Object.freeze(value);};
     freeze(row);this.declaration=row;
@@ -154,10 +157,10 @@ export class ReturnProgram {
   static async prepareModules(product:ShardProduct,assets:ReadonlyMap<string,Uint8Array>,rows:readonly ReturnModuleRow[]):Promise<void> {
     if(!(assets instanceof Map))throw new Error('Return modules require the original asset map');
     const files=outputDescriptor(product.shardfile)?.index.files;
-    for(const row of rows)if(row.abi===2){
+    for(const row of rows){
       const hash=row.module.slice('blobs/wasm/'.length,-'.wasm'.length);
       const root=files?.find(file=>file.kind==='wasm'&&file.hash===hash);
-      if(root?.name===undefined)throw new Error('Return module needs its admitted logical file');
+      if(root?.name===undefined){if(row.abi===2)throw new Error('Return module needs its admitted logical file');continue;}
       for(const key of [hash,...root.dependencies]){
         if(Map.prototype.has.call(assets,key))continue;
         const file=files?.find(candidate=>candidate.hash===key);
@@ -171,15 +174,16 @@ export class ReturnProgram {
   static lendModules(owner:Scope,assets:ReadonlyMap<string,Uint8Array>,input:readonly ReturnModuleRow[]):void {
     if(!(assets instanceof Map))throw new Error('Return modules require the original asset map');
     const rows=v.parse(ReturnModulesSchema,input),selected=new Map<string,RawReturnRow>();
-    for(const row of rows)if(row.abi===2){
+    for(const row of rows){
       const hash=row.module.slice('blobs/wasm/'.length,-'.wasm'.length),previous=selected.get(hash);
+      if(row.abi!==2&&!Map.prototype.has.call(assets,hash))continue;
       if(previous!==undefined&&JSON.stringify(previous)!==JSON.stringify(row))throw new Error('Conflicting raw return module declarations');
       const bytes:unknown=Map.prototype.get.call(assets,hash);
       if(!(bytes instanceof Uint8Array))throw new Error('Raw return module hash mismatch');
       const declared=JSON.stringify(row);
       if(lentBytes.get(bytes)!==declared){
         if(sha256(bytes)!==hash)throw new Error('Raw return module hash mismatch');
-        admitScriptContract(bytes,{abi:2,lane:row.lane,pages:row.pages,ioBytes:row.ioBytes,compilerRevision:row.compilerRevision,admissionRevision:row.admissionRevision});lentBytes.set(bytes,declared);
+        admitScriptContract(bytes,row.abi===2?{abi:2,lane:row.lane,pages:row.pages,ioBytes:row.ioBytes,compilerRevision:row.compilerRevision,admissionRevision:row.admissionRevision}:{abi:1,pages:row.pages});lentBytes.set(bytes,declared);
       }
       selected.set(hash,row);
     }
@@ -193,12 +197,17 @@ export class ReturnProgram {
   static native(host: SimHost, input: unknown): ReturnProgram { return ReturnProgram.owned(host.scope, input, (x, z) => host.groundHeightAt(x, z)); }
   static page(input: unknown, owner?: Scope): ReturnProgram { return owner === undefined ? new ReturnProgram(input, terrainHeight) : ReturnProgram.owned(owner, input, terrainHeight); }
 
+  private validateOwner():void {
+    if(this.owner?.disposed===true||this.owner?.disposing===true)throw new Error('Return owner disposed');
+  }
+
   /** Resolve only the admitted signal table for a same-call native barrier. */
   signalName(id:number):string{const name=Number.isInteger(id)?this.signalNames[id-1]:undefined;if(name===undefined)throw new Error('Unknown return signal');return name;}
 
   /** A request is atomic with its borrowed stream. Refusals publish no channel
    * and restore the stream, including traps after one or more terrain retries. */
   project(signal: string, observations: Readonly<Record<string, number>>, random?: Rng, candidates: readonly Readonly<Record<string, number>>[] = []): Readonly<Record<string, number>> {
+    this.validateOwner();
     if (this.prepare !== undefined) { const result = this.prepare(signal,observations,random,candidates);result.accept();return result.values; }
     if (this.active) throw new Error('Reentrant return request');
     const signalId = Object.values(this.script.signals).sort().indexOf(signal) + 1;
@@ -222,6 +231,7 @@ export class ReturnProgram {
           || value === undefined || !Number.isFinite(value) || Object.hasOwn(result, name)) throw new Error('Invalid return output');
         result[name] = value;
       }
+      this.validateOwner();
       return result;
     } catch (error) { if (before !== undefined) random?.restore(before); throw error; }
     finally { this.active = false; this.observations = {}; this.candidates = []; this.random = undefined; module.rewind(); }

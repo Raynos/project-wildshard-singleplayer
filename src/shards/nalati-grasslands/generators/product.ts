@@ -58,7 +58,7 @@ const files = [...navigation.files, ...queryTerrain.files].sort((a, b) => a.hash
 // ground draws them in its own material behind the Debug row groundTiles; the files stay out of the sim budgets below
 const resident = files.reduce((sum, file) => sum + file.decoded, 0);
 const programs = [heldWeapons.program,stealth.program,speciesData.program,weatherDecision,kokpar.program,kokpar.course, admission, pasture, titanProgram.attack,titanProgram.fire,titanProgram.wind,titanProgram.rules, ridingPrograms.approach, ridingPrograms.breaking, ridingPrograms.riding, charge];
-const programBytes = programs.filter((program,index,all)=>all.findIndex(entry=>entry.script.module===program.script.module)===index).reduce((sum, program) => sum + atob(program.bytes).length, titanProgram.compiled.witnessBytes+speciesData.witnessBytes+ridingPrograms.compiled.witnessBytes);
+const programBytes = programs.filter((program,index,all)=>all.findIndex(entry=>entry.script.module===program.script.module)===index).reduce((sum, program) => sum + atob(program.bytes).length, weatherDecision.compiled.bytes+titanProgram.compiled.witnessBytes+speciesData.witnessBytes+ridingPrograms.compiled.witnessBytes);
 // Retain the legacy witness allowance and account for the one selected v2
 // module, shared by attack/rules in the original construction scope.
 const projection = titanProgram.attack.v2;

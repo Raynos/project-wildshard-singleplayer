@@ -10,7 +10,10 @@ import { overrideTerrain } from './fake/terrain';
 import { CueDirector } from '../src/game/audio/cueDirector';
 import { SlotEncounterView } from '../src/game/boss/encounterView';
 import { ReturnProgram } from '../src/game/population/returnProgram';
-import night from '../src/shards/nalati-grasslands/data/night.generated.json' with { type: 'json' };
+import nightInput from '../src/shards/nalati-grasslands/data/night.generated.json' with {type:'json'};
+import {withWeatherWitness} from './fixtures/weatherInlineWitness';
+
+const night=withWeatherWitness(nightInput);
 
 // Alternate-data fixture only: crowned guards, plinths, cues and wedge.
 // This grants no second-shard credit to the native slot owner.

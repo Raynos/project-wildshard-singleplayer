@@ -12670,6 +12670,13 @@ publication. The producer declares the selected ABI2 module and its memory cost;
 this transport changes no native contact, body, target or save authority.
 
 
+ReturnProgram.prepareModules also reads named ABI1 modules into the same
+admitted asset map. lendModules validates their original pages, instrumentation
+and hash before lending that map to its original scope and descendants. A
+raw ABI1 return row keeps its original script and sets bytes to an empty string;
+missing, foreign, replaced or retired loans refuse. Inline rows retain their
+original synchronous path. This adds no cache, instance, clock or save owner.
+
 The actors/return-scripts inventory admits strict stateless ABI2 project-module
 rows beside unchanged ABI1 policies. Its explicit module path, sim side, project
 lane, fixed pages, I/O and revisions survive named-file reconstruction and

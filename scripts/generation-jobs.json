@@ -1793,12 +1793,14 @@
       "outputs": [
         "src/shards/nalati-grasslands/data/weatherChannels.generated.json",
         "src/shards/nalati-grasslands/data/herdChannels.generated.json",
-        "src/shards/nalati-grasslands/behaviour/weather.generated.json"
+        "src/shards/nalati-grasslands/behaviour/weather.generated.json",
+        "src/shards/nalati-grasslands/behaviour/weather.generated.wasm"
       ],
       "buildTimeOutputs": [
         "src/shards/nalati-grasslands/data/weatherChannels.generated.json",
         "src/shards/nalati-grasslands/data/herdChannels.generated.json",
-        "src/shards/nalati-grasslands/behaviour/weather.generated.json"
+        "src/shards/nalati-grasslands/behaviour/weather.generated.json",
+        "src/shards/nalati-grasslands/behaviour/weather.generated.wasm"
       ],
       "platform": "portable"
     },

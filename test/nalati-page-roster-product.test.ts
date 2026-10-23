@@ -30,7 +30,11 @@ test('the shared assembly document retains the complete page elite roster and it
   if(fightBytes===undefined)throw new Error('Missing dual-port witness');
   const fight=v.parse(v.object({programs:v.object({attack:v.object({script:v.object({module:v.string()}),bytes:v.string()})})}),JSON.parse(new TextDecoder().decode(fightBytes)));
   const witness=fight.programs.attack;
-  expect(`blobs/wasm/${contentHash(Uint8Array.from(atob(witness.bytes),byte=>byte.codePointAt(0)??0))}.wasm`).toBe(witness.script.module);
+  expect(witness.bytes).toBe('');
+  const witnessFile=product.output.namedFiles?.find(row=>row.name==='behaviour/titan-witness.bin');
+  const witnessBytes=witnessFile===undefined?undefined:product.assets.get(witnessFile.hash);
+  if(witnessBytes===undefined)throw new Error('Missing admitted original witness sidecar');
+  expect(`blobs/wasm/${contentHash(witnessBytes)}.wasm`).toBe(witness.script.module);
   expect(scripts.some(row=>row.module===witness.script.module)).toBe(false);
   const projection=product.output.namedFiles?.find(row=>row.name==='behaviour/nalati.titan.attack.v2.wasm');
   if(projection===undefined)throw new Error('Missing selected project module');

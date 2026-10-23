@@ -14,7 +14,10 @@ import { lendLooks } from '../src/game/shardfile/lentLooks';
 import { PatrolEncounterView } from '../src/game/boss/encounterView';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { Rng } from '../src/engine/core/rng';
-import night from '../src/shards/nalati-grasslands/data/night.generated.json' with { type: 'json' };
+import nightInput from '../src/shards/nalati-grasslands/data/night.generated.json' with {type:'json'};
+import {withWeatherWitness} from './fixtures/weatherInlineWitness';
+
+const night=withWeatherWitness(nightInput);
 
 // Alternate-data fixture only: lantern wraiths, a warden and declared looks/cues.
 // This grants no second-shard credit to the native patrol adapter.

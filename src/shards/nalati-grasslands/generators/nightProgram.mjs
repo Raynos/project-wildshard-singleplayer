@@ -14,7 +14,8 @@ export async function nightProgram() {
   for (let i=1;i<=4;i++) params[`z${i}`]=ridge[i][1]-BOWL.z;
   let distance = 0;
   for (let i=0;i<4;i++) {distance+=Math.hypot(ridge[i+1][0]-ridge[i][0],ridge[i+1][1]-ridge[i][1]);params[`d${i+1}`]=distance;}
-  const program = await weatherDecision();
+  const {script,bytes} = await weatherDecision();
+  const program={script,bytes};
   const {geometry,material,...arrow}=ghostArrowKind();
   const shape={data:geometry.toJSON().data};geometry.dispose();material.dispose();
   const view = {cycle:{wake:"spawn",dawn:"dissolve"},states:{broken:"broken",retire:"retire",home:"statue"},

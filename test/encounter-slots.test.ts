@@ -1,6 +1,9 @@
 import { expect,test } from 'vitest';
 import { ProjectedState,ReturnProgram } from '../src/game/population/returnProgram';
-import night from '../src/shards/nalati-grasslands/data/night.generated.json' with {type:'json'};
+import nightInput from '../src/shards/nalati-grasslands/data/night.generated.json' with {type:'json'};
+import {withWeatherWitness} from './fixtures/weatherInlineWitness';
+
+const night=withWeatherWitness(nightInput);
 
 test('authored slot cycles wake once, rotate nights and release corpses during daylight',()=>{
   const program=ReturnProgram.page(night.program),cycle=new ProjectedState({...night.slots.cycle,signals:{step:night.slots.cycle.signal}},program);

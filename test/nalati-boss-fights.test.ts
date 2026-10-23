@@ -36,7 +36,8 @@ import { CueDirector } from '../src/game/audio/cueDirector';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { Mount } from '../src/game/riding/mount';
 import type { LevelContext } from '../src/engine/level/context';
-import night from '../src/shards/nalati-grasslands/data/night.generated.json' with { type: 'json' };
+import nightInput from '../src/shards/nalati-grasslands/data/night.generated.json' with {type:'json'};
+import {withWeatherWitness} from './fixtures/weatherInlineWitness';
 import { bossArena } from './fake/bossArena';
 import type { Nalati } from '../src/shards/nalati-grasslands/runtime/state';
 import fireView from '../src/shards/nalati-grasslands/data/arenaFire.json' with { type: 'json' };
@@ -58,6 +59,8 @@ import { emptyShardfile } from '../src/sdk/author';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 import { nalatiTitanView } from '../src/shards/nalati-grasslands/generators/titanView';
 import titanViewModule from '../src/shards/nalati-grasslands/behaviour/titanView.generated.json' with { type: 'json' };
+
+const night=withWeatherWitness(nightInput);
 
 /** R6: a fight driven without its entered bind adopts the real view module at its frame slot (tells, pose ease, aim) */
 function adoptTitanView(fight: ArenaScriptFight, scope: Scope): void {

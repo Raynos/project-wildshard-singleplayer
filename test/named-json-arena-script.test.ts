@@ -11,8 +11,11 @@ import titan from '../src/shards/nalati-grasslands/data/stormTitanFight.generate
 import geometry from '../src/shards/nalati-grasslands/data/stormTitanGeometry.generated.json' with {type:'json'};
 import arenaFire from '../src/shards/nalati-grasslands/data/arenaFire.json' with {type:'json'};
 import {titanPrograms as programs} from './fixtures/titanInlineWitness';
-import night from '../src/shards/nalati-grasslands/data/night.generated.json' with {type:'json'};
+import nightInput from '../src/shards/nalati-grasslands/data/night.generated.json' with {type:'json'};
+import {withWeatherWitness} from './fixtures/weatherInlineWitness';
 import strikes from '../src/shards/nalati-grasslands/data/strikeProfiles.generated.json' with {type:'json'};
+
+const night=withWeatherWitness(nightInput);
 
 const encode=(value:unknown):Uint8Array=>new TextEncoder().encode(JSON.stringify(value));
 

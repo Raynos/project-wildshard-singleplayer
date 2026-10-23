@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import {weatherRaw,weatherWitness,weatherModuleBytes,nightParameters} from './fixtures/weatherInlineWitness';
 import {parseReturnProjectionV2} from '../src/format/returnProjectionV2';
 import {expect,test,vi} from 'vitest';
 import {Scope} from '../src/engine/app/scope';
@@ -40,4 +41,24 @@ test('page preparation lends the same verified book to sibling construction and 
     expect(ReturnProgram.page(row,level).project('bossClamp',{fullHp:100,share:.3})).toEqual({hp:30});
     expect(ReturnProgram.page(row,scope).project('bossClamp',{fullHp:100,share:.3})).toEqual({hp:30});
   }finally{lend.mockRestore();descriptor.mockRestore();root.dispose();}
+});
+
+test('preparation reads ABI1 named modules into the original map',async()=>{
+  const scope=new Scope('weather.preparation'),assets=new Map<string,Uint8Array>();
+  const hash=weatherRaw.script.module.slice('blobs/wasm/'.length,-'.wasm'.length),name='behaviour/nalati.weather.wasm';
+  const source=emptyShardfile({slug:'weather-place',name:'Weather',author:'Fixture',revision:1,seed:7});
+  const read=vi.fn(()=>Promise.resolve(weatherModuleBytes));
+  const product=createShardProduct({slug:'weather-place',revision:1,shardfile:source,
+    sections:new Map(),files:new Map([[name,{hash,url:'weather.wasm'}]]),read});
+  const descriptor=vi.spyOn(descriptors,'outputDescriptor').mockReturnValue(legacyDouble<OutputDescriptor>({
+    index:legacyDouble<OutputDescriptor['index']>({files:[legacyDouble<OutputDescriptor['index']['files'][number]>({kind:'wasm',hash,name,dependencies:[]})]})}));
+  try{
+    await ReturnProgram.prepareModules(product,assets,[weatherRaw.script]);
+    expect(assets.get(hash)).toBe(weatherModuleBytes);expect(read).toHaveBeenCalledTimes(1);
+    await ReturnProgram.prepareModules(product,assets,[weatherRaw.script]);
+    expect(read).toHaveBeenCalledTimes(1);
+    ReturnProgram.lendModules(scope,assets,[weatherRaw.script]);
+    expect(ReturnProgram.page({script:weatherRaw.script,bytes:weatherRaw.bytes},scope).project('lineSlot',{...nightParameters,s:0,slot:0})).toEqual(
+      ReturnProgram.page({script:weatherWitness.script,bytes:weatherWitness.bytes}).project('lineSlot',{...nightParameters,s:0,slot:0}));
+  }finally{descriptor.mockRestore();scope.dispose();}
 });

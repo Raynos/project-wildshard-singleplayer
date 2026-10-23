@@ -33,7 +33,7 @@ import geometry from '../src/shards/nalati-grasslands/data/stormTitanGeometry.ge
 import arenaFire from '../src/shards/nalati-grasslands/data/arenaFire.json' with { type: 'json' };
 import {titanPrograms as programs} from './fixtures/titanInlineWitness';
 import weatherRows from '../src/shards/nalati-grasslands/data/weather.json' with { type: 'json' };
-import weatherProgram from '../src/shards/nalati-grasslands/behaviour/weather.generated.json' with { type: 'json' };
+import {weatherWitness as weatherProgram} from './fixtures/weatherInlineWitness';
 
 const row = { kind: 'arena-room', id: 'meadow.titan', files: { fight: 'combat/titan-fight.json', geometry: 'combat/titan-geometry.json' },
   weather: 'meadow.weather', anchor: 'meadow.cairn' };
