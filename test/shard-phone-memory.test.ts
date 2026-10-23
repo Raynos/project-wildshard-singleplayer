@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Refusals must occur before launching a memory browser.
 import { execFileSync } from 'node:child_process';
 import { expect, test } from 'vitest';
-import { coreMemorySummary, coreMemoryTargets } from '../scripts/shard-phone-memory.mjs';
+import { coreMemorySummary, coreMemoryTargets, simulatorCoreFootprint } from '../scripts/shard-phone-memory.mjs';
 
 const MiB = 1048576;
 const rows = () => coreMemoryTargets.map(target => ({shard: target.shard, errors: [],
@@ -51,4 +51,19 @@ test('core command requires the floor protocol and source pin before any browser
     expect(() => execFileSync('node', ['scripts/shard-phone-memory.mjs', 'http://127.0.0.1:1', 'core', 'fixture', 'tmp/unused-core.json', ...flags],
       {encoding: 'utf8', stdio: 'pipe'})).toThrow(flags.length > 0 ? 'Core floors require --pin' : 'Menu/core targets require --floor');
   }
+});
+
+test('Simulator footprint sums original process identities and keeps GPU separate', () => {
+  const webContent = [{pid: 12, startAbstime: 100, physicalFootprintBytes: 120 * MiB},
+    {pid: 13, startAbstime: 101, physicalFootprintBytes: 20 * MiB}];
+  const gpu = [{pid: 14, startAbstime: 102, physicalFootprintBytes: 30 * MiB}];
+  expect(simulatorCoreFootprint({webContent, gpu})).toEqual({webContent, gpu, rendererBytes: 140 * MiB, gpuBytes: 30 * MiB});
+  expect(simulatorCoreFootprint({webContent, gpu: []}).gpuBytes).toBe(0);
+});
+
+test('Simulator missing, duplicate or corrupt native process readings refuse', () => {
+  const process = {pid: 12, startAbstime: 100, physicalFootprintBytes: MiB};
+  for (const input of [{webContent: [], gpu: []}, {webContent: [process]},
+    {webContent: [process], gpu: [process]}, {webContent: [{...process, physicalFootprintBytes: -1}], gpu: []},
+    {webContent: [{...process, startAbstime: 0}], gpu: []}]) expect(() => simulatorCoreFootprint(input)).toThrow();
 });

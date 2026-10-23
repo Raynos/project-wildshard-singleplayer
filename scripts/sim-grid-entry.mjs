@@ -4,6 +4,7 @@
 //   scripts/sim-lane.sh run --max 45 wildshard-iphone node scripts/sim-grid-entry.mjs --base=<url> | --rev=<sha>
 //     [--runs=3] [--modes=cold,warm] [--out=tmp/sim-grid-entry/<label>] [--keep-video]
 //     [--shard=sunscar-dunes] selects the explicit compiled card, never legacy.
+//     [--core-memory=menu] reads Developer-on menu WebContent/GPU at 10/60/120s, no Network capture or GC.
 // --base drives a served build or live; --rev serves that commit (scripts/serve-build.sh --rev) and stops it after.
 // Each run: Safari terminated; a cold run clears the worker, every cache and the prefetch markers (a warm run keeps
 // them); the title; Developer on; six seconds on the menu (its prefetch starts 4 s in); tap INFINITE WILDSHARD; record
@@ -23,6 +24,8 @@ import { accuracyRecorder } from './loading-benchmark/accuracy-data.mjs';
 import { requireCompiledEntry, downloadEvidence, transportEvidence } from './loading-benchmark/sim-shard.mjs';
 import { cachedBodyEvidence } from './loading-benchmark/cache-bodies.mjs';
 import { saveFixtureCode } from './debug-settings.mjs';
+import { readSimulatorCoreFootprint } from './shard-phone-memory.mjs';
+import { pageMemoryAttributionExpression } from './memory-report-snapshot.mjs';
 
 const REPO = resolvePath(import.meta.dirname, '..');
 /** @type {Partial<Record<string, string>>} */
@@ -36,10 +39,12 @@ function quiet(action) {
   if (result.status !== 0) { const message=result.stderr.trim();throw new Error(message.length===0?'Simulator quiet refused':message); }
 }
 const shard = args.shard;
+const coreMemory = args['core-memory'];
+if (coreMemory !== undefined && (coreMemory !== 'menu' || shard !== undefined)) throw new Error('Expected --core-memory=menu without --shard');
 if (shard !== undefined) loadingShardName(shard);
 if (shard !== undefined && args.base !== undefined && new URL(args.base).protocol !== 'http:') throw new Error('Compiled byte observation requires a local HTTP served build');
 quiet('verify');
-const runs = Number(args.runs ?? 3), modes = (args.modes ?? 'cold,warm').split(','), keepVideo = args['keep-video'] === '1';
+const runs = Number(args.runs ?? (coreMemory === undefined ? 3 : 1)), modes = (args.modes ?? (coreMemory === undefined ? 'cold,warm' : 'cold')).split(','), keepVideo = args['keep-video'] === '1';
 if (!Number.isSafeInteger(runs) || runs < 1 || runs > 3 || new Set(modes).size !== modes.length || modes.some(mode => !['cold', 'warm'].includes(mode))) throw new Error('Expected 1..3 runs and unique cold/warm modes');
 const out = resolvePath(REPO, args.out ?? `tmp/sim-grid-entry/${args.rev ?? 'base'}`);
 mkdirSync(out, { recursive: true });
@@ -151,7 +156,43 @@ function brokenFrames(video, loaderEnd, revealStart) {
 
 function log(file, row) { appendFileSync(file, `${JSON.stringify({ t: Date.now(), ...row })}\n`); }
 
+async function runCoreMemory(mode, index) {
+  if (mode !== 'cold') throw new Error('Core menu reading requires a cold Safari process');
+  try { execFileSync('xcrun', ['simctl', 'terminate', udid, 'com.apple.mobilesafari'], {stdio: 'ignore'}); } catch { /* Not running. */ }
+  await sleep(2000);
+  execFileSync('xcrun', ['simctl', 'openurl', udid, `${BASE}/version.json`]);
+  await connect(`${BASE}/version.json`);
+  const version = await page.evaluate('document.body.innerText');
+  const reset = await settle(`async () => {
+    const regs=await navigator.serviceWorker.getRegistrations();for(const reg of regs)await reg.unregister();
+    const keys=await caches.keys();for(const key of keys)await caches.delete(key);
+    let markers=0;for(const key of Object.keys(localStorage))if(key.startsWith('ktx2set:')||key.includes('prefetch')){localStorage.removeItem(key);markers++;}
+    const http=await fetch('/clear-cache.json?sw=0',{cache:'no-store'}).then(response=>response.status);
+    return {serviceWorkers:regs.length,caches:keys.length,markers,http};
+  }`);
+  if (reset === null || typeof reset !== 'object') throw new Error(`Core menu reset failed: ${String(reset)}`);
+  const setup = [saveFixtureCode({scope: 'device', key: 'devMode', data: true}),
+    saveFixtureCode({scope: 'global', key: 'settings', merge: true, data: {tier: 'phone', volume: 0}}),
+    saveFixtureCode({scope: 'global', key: 'gfx', data: {dpr: '2', aa: 'auto'}})].join(';');
+  await page.evaluate(`${setup};setTimeout(() => location.replace('/?sw=0'), 50);true`);
+  await sleep(800); await connect(`${BASE}/`);
+  if (!await until(`!!document.querySelector('.ws-main')?.getClientRects().length && !!document.querySelector('.ws-main-grid') && !!document.querySelector('.ws-main-select')`, 180000)) throw new Error('Developer menu never became ready');
+  const started = Date.now(), samples = [];
+  // The inspector transport uses Runtime only: never enable Network or capture bodies.
+  for (const second of [10, 60, 120]) {
+    await sleep(Math.max(0, second * 1000 - (Date.now() - started)));
+    samples.push({phase: `${second}s`, elapsedMs: Date.now() - started, ...readSimulatorCoreFootprint(udid),
+      page: JSON.parse(await page.evaluate(`JSON.stringify({href:location.href,prefetch:window.__ws_gridPrefetch?.()??null,resources:performance.getEntriesByType('resource').length})`))});
+  }
+  const attribution = await page.evaluate(`(() => {const api=window.__wildshard;return ${pageMemoryAttributionExpression};})()`);
+  const result = {mode, run: index, shard: 'menu', protocol: 'webkit-core-menu/1', version, reset, samples, attribution,
+    inspectorResponseBodyBytes: 0, forcedGC: false, scope: 'all WebContent and GPU processes under the owned Simulator launchd; not phone GPU evidence'};
+  writeFileSync(resolvePath(out, `${mode}-${index}.json`), `${JSON.stringify(result, null, 1)}\n`);
+  return result;
+}
+
 async function run(mode, index) {
+  if (coreMemory !== undefined) return runCoreMemory(mode, index);
   const label = `${mode}-${index}`, file = resolvePath(out, `${label}.jsonl`), video = resolvePath(out, `${label}.mp4`);
   rmSync(file, { force: true });
   try { execFileSync('xcrun', ['simctl', 'terminate', udid, 'com.apple.mobilesafari'], { stdio: 'ignore' }); } catch { /* not running */ }
@@ -275,6 +316,11 @@ try {
   await transport?.close(); served?.stop();
 }
 
+if (coreMemory !== undefined) {
+  const summary = {coreMemory, base: BASE, rev: args.rev ?? null, at: new Date().toISOString(), results};
+  writeFileSync(resolvePath(out, 'summary.json'), `${JSON.stringify(summary, null, 1)}\n`);
+  for (const row of results) for (const sample of row.samples ?? []) console.info(`WebKit menu ${sample.phase}: WebContent ${(sample.rendererBytes / 1048576).toFixed(1)} MiB, GPU ${(sample.gpuBytes / 1048576).toFixed(1)} MiB`);
+} else {
 const summary = { shard: shard ?? null, base: BASE, rev: args.rev ?? null, at: new Date().toISOString(), modes: Object.fromEntries(modes.map(mode => {
   const rows = results.filter(row => row.mode === mode && row.error === undefined);
   const keys = ['loaderPaintMs', 'loaderEndMs', 'revealStartMs', 'controlsMs', 'worstFrameAfterControlsMs'];
@@ -289,4 +335,5 @@ const summary = { shard: shard ?? null, base: BASE, rev: args.rev ?? null, at: n
 writeFileSync(resolvePath(out, 'summary.json'), `${JSON.stringify(summary, null, 1)}\n`);
 for (const [mode, row] of Object.entries(summary.modes)) console.info(`${mode}: ${row.runs} runs (${row.failed} failed) · loader ${row.loaderPaintMs} ms · loader end ${row.loaderEndMs} · reveal ${row.revealStartMs} · controls ${row.controlsMs} ms · worst frame after controls ${row.worstFrameAfterControlsMs} ms · step total grew ${row.stepTotalGrew} · download drops ${row.downloadDrops} · broken frames ${row.brokenFrames}`);
 console.info(`summary: ${resolvePath(out, 'summary.json')}`);
+}
 if (results.some(row => row.error !== undefined)) process.exitCode = 1;

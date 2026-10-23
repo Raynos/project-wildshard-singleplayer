@@ -40,6 +40,35 @@ export function coreMemorySummary(input) {
     return {...target, totalBytes, passed: totalBytes !== null && totalBytes <= target.limitBytes};
   });
 }
+
+const processRows = v.array(v.object({pid: v.pipe(v.number(), v.safeInteger(), v.minValue(1)),
+  startAbstime: v.pipe(v.number(), v.safeInteger(), v.minValue(1)), physicalFootprintBytes: footprintBytes}));
+/** Validate native identities; an absent GPU process is distinct from an unreadable one.
+ * @param {unknown} input */
+export function simulatorCoreFootprint(input) {
+  const row = v.parse(v.object({webContent: processRows, gpu: processRows}), input);
+  const processes = [...row.webContent, ...row.gpu];
+  if (row.webContent.length === 0 || new Set(processes.map(process => process.pid)).size !== processes.length) throw new Error('Missing or duplicate Simulator memory process');
+  return {...row, rendererBytes: row.webContent.reduce((sum, process) => sum + process.physicalFootprintBytes, 0),
+    gpuBytes: row.gpu.reduce((sum, process) => sum + process.physicalFootprintBytes, 0)};
+}
+
+/** Same libproc reader as the Simulator watchdog, with no interval reset or GC.
+ * Caller owns sim-lane; process ancestry confines this to its Simulator.
+ * @param {string} device */
+export function readSimulatorCoreFootprint(device) {
+  const native = spawnSync('python3', ['-c', String.raw`
+import json,runpy,sys
+tool=runpy.run_path('scripts/ios-memory-watchdog.py')
+manager=int(tool['command'](['xcrun','simctl','spawn',sys.argv[1],'launchctl','managerpid']))
+native=tool['NativeMemory']()
+def readings(name):
+    return [native.sample(pid) for pid in sorted(tool['simulator_processes'](manager,name))]
+print(json.dumps({'webContent':readings('com.apple.WebKit.WebContent'),'gpu':readings('com.apple.WebKit.GPU')}))
+`, device], {cwd: resolvePath(import.meta.dirname, '..'), encoding: 'utf8'});
+  if (native.status !== 0) throw new Error(`Simulator native footprint failed: ${native.stderr.trim()}`);
+  return simulatorCoreFootprint(JSON.parse(native.stdout));
+}
 const PY = String.raw`
 import ctypes, json, sys
 class R(ctypes.Structure):
