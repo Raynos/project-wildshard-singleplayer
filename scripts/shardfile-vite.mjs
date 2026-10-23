@@ -11,6 +11,10 @@ export { parseSync } from 'vite';
 /** @param {import('vite').InlineConfig} options */
 export async function build(options) {
   const execution=options.plugins?.some(plugin=>v.is(Execution,plugin))===true;
+  const started = performance.now();
   const result = await viteBuild({...options,plugins:[inputRecorderPlugin({execution}),...(options.plugins ?? [])]});
-  recordBundle(result,{execution}); return result;
+  recordBundle(result,{execution});
+  const library = options.build?.lib;
+  if (process.env.GITHUB_ACTIONS === 'true') console.info(`author timing: ${JSON.stringify({ pid: process.pid, phase: 'project-bundle', entry: library === undefined || library === false ? null : library.entry, execution, seconds: Number(((performance.now() - started) / 1000).toFixed(3)) })}`);
+  return result;
 }

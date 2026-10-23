@@ -20,6 +20,7 @@ export async function runWildshard(args) {
   const receipt = args.find(arg=>arg.startsWith('--input-receipt='))?.slice('--input-receipt='.length);
   if (receipt !== undefined) { await captureProductInputs(resolve(import.meta.dirname,'..'),receipt,()=>runWildshard(args.filter(arg=>!arg.startsWith('--input-receipt=')))); return; }
   runner ??= (async () => {
+    const started = performance.now();
     const result = await build({ configFile: false, publicDir: false, resolve: { alias: rapierAlias }, logLevel: 'silent', define: { __SHARDFILE_VALIDATOR__: JSON.stringify(shardfileValidationRevision()), 'import.meta.dirname': JSON.stringify(resolve(import.meta.dirname, '../src/sdk')) }, plugins: [inputRecorderPlugin({execution:true}), { name: 'author-node-vite', enforce: 'pre', resolveId(id) {
       if (id === 'vite') return { id: pathToFileURL(resolve(import.meta.dirname,'shardfile-vite.mjs')).href, external: true };
       if (id === 'sharp' || id === 'binaryen' || /^assemblyscript(?:\/|$)/u.test(id)) return { id: pathToFileURL(authorRequire.resolve(id)).href, external: true };
@@ -32,6 +33,7 @@ export async function runWildshard(args) {
     if (chunks.length !== 1) throw new Error('Author CLI must bundle to one module');
     const cli = await import(`data:text/javascript;base64,${Buffer.from(chunks[0].code).toString('base64')}`);
     if (typeof cli.runCli !== 'function') throw new Error('Author CLI has no runner');
+    if (process.env.GITHUB_ACTIONS === 'true') console.info(`author timing: ${JSON.stringify({ pid: process.pid, phase: 'compiler-bundle', product: args[1] ?? null, seconds: Number(((performance.now() - started) / 1000).toFixed(3)) })}`);
     return cli.runCli;
   })();
   const root = resolve(import.meta.dirname, '..');
