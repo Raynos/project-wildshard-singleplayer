@@ -1,8 +1,7 @@
 /** Shadow maps are depth textures, so their backend Y convention is known at build time. */
 import { DepthTexture } from 'three';
 import { TextureNode, type Node, type NodeBuilder } from 'three/webgpu';
-import { nodeObject, texture } from 'three/tsl';
-import { setting } from '../../ui/Settings';
+import { nodeObject } from 'three/tsl';
 
 function isNode(value: unknown): value is Node {
   return typeof value === 'object' && value !== null && Reflect.get(value, 'isNode') === true;
@@ -28,7 +27,8 @@ class ShadowDepthTextureNode extends TextureNode {
   }
 }
 
-/** Sample an engine-owned shadow depth map; taps, comparison and filtering stay with the caller. */
-export function shadowDepthSample(depth: DepthTexture, uv: Node<'vec2'>, fixed = setting('fixedShadowSamples') === 'on'): TextureNode {
-  return fixed ? nodeObject(new ShadowDepthTextureNode(depth, uv)) : texture(depth, uv);
+/** Sample an engine-owned shadow depth map at its fixed depth-texture orientation (G437; G669 DR5: always, no per-object
+ *  flip update); taps, comparison and filtering stay with the caller. */
+export function shadowDepthSample(depth: DepthTexture, uv: Node<'vec2'>): TextureNode {
+  return nodeObject(new ShadowDepthTextureNode(depth, uv));
 }

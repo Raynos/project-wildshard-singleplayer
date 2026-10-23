@@ -12,8 +12,6 @@ export const ENGINE_STRINGS = {
   "s_explore_playgrounds": "⟦0⟧ · playgrounds",
   "s_memory_saver": "Memory saver",
   "s_memory_saver_note": "SF22d · E435: frees image and mesh copies once on the GPU, drops the shadow map's colour texture, half-size bloom luminance, one composer depth buffer. Reloads",
-  "s_fixed_shadow_samples": "Fixed shadow samples",
-  "s_fixed_shadow_samples_note": "G437 · E435: remove fixed depth-texture flip updates. Off while horizon differences are reviewed; reloads",
   "s_distant_trees": "Distant trees",
   "s_distant_trees_variant": "Per variant · as before",
   "s_distant_trees_species": "Per species",

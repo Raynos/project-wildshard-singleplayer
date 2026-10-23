@@ -1,6 +1,6 @@
 import { afterAll, expect, test, vi } from 'vitest';
 import * as THREE from 'three';
-import { NodeUpdateType, TextureNode } from 'three/webgpu';
+import { NodeUpdateType } from 'three/webgpu';
 import { uv, vec3 } from 'three/tsl';
 import { compileGraph } from '../src/engine/render/graph/compile';
 import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandler';
@@ -69,8 +69,7 @@ test.each([tentShadowFilter, planeBiasShadowFilter])('receiver offsets reach fil
 test('shadow depth comparisons keep their fixed orientation without object updates and refuse colour maps', () => {
   const depth = new THREE.DepthTexture(4, 4), replacement = new THREE.DepthTexture(8, 8), colour = new THREE.Texture();
   depth.compareFunction = THREE.LessEqualCompare; replacement.compareFunction = THREE.LessEqualCompare;
-  expect(shadowDepthSample(depth, uv()).constructor).toBe(TextureNode); // Default-off retains stock sampling.
-  const sample = shadowDepthSample(depth, uv(), true).compare(0.5);
+  const sample = shadowDepthSample(depth, uv()).compare(0.5);
   const compiled = compileGraph({ version: 1, kind: 'material', model: 'unlit', nodes: {}, stages: { surface: { colour: [1, 1, 1] } } });
   compiled.material.colorNode = vec3(sample.x);
   try {
