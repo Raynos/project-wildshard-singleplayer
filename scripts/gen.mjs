@@ -11,8 +11,10 @@ import { genDecisionPolicies } from './gen-decision-policy.mjs';
 import { writeGeneratorInventory } from './generator-inventory.mjs';
 import { execFileSync } from 'node:child_process';
 import { quietCli } from './quiet-cli.mjs';
+import { beginPushInputs } from './push-post-inputs.mjs';
 
 quietCli('gen');
+const publishPushInputs = beginPushInputs(`${import.meta.dirname}/..`);
 
 const buildInputs = process.argv.includes('--build-inputs');
 // --proof (fast proofs: serve-build.sh, `pnpm build:proof`): the game's build inputs only, with the pre-commit's parallel
@@ -70,3 +72,5 @@ if (!buildInputs && !proof) {
 // G405: derived documentation is fresh build output, never commit payload.
 if (!buildInputs && !proof) execFileSync(process.execPath, ['scripts/normalize/liveness.mjs', '--readme'], {cwd: `${import.meta.dirname}/..`, stdio: 'inherit'});
 if (!proof) await step('generator-inventory', () => writeGeneratorInventory(`${import.meta.dirname}/..`));
+try { publishPushInputs(); }
+catch (error) { console.warn(`push-inputs: completed cache unavailable: ${error instanceof Error ? error.message : String(error)}`); }
