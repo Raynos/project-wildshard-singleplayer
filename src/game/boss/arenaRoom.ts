@@ -36,7 +36,6 @@ import { enteredAdventurePersistence } from '../quest/chapterBindings';
 import { modelContext, type ModelDef, type ModelContext } from '@wildshard/engine/models/model';
 import { parsePrivateScene } from '@wildshard/format/clientChannels';
 import { Rng } from '@wildshard/engine/core/rng';
-import { memorySaverOn } from '@wildshard/engine/render/memorySaver';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { buildYield } from '@wildshard/engine/core/workSlice';
 import { listenPage } from '@wildshard/engine/input/dom';
@@ -1081,9 +1080,9 @@ export class ArenaRoomEncounter {
     }
   }
   async buildSliced(world:{readonly scene:THREE.Scene;readonly registry:WorldRegistry}):Promise<this>{
-    const dungeon=this.room;if(dungeon===null)throw new Error('Open arena is already constructed');const lazy=memorySaverOn();
+    const dungeon=this.room;if(dungeon===null)throw new Error('Open arena is already constructed');
     await dungeon.buildSliced(true,macrotask);await macrotask();world.scene.add(dungeon.group,this.spareLight);dungeon.register(world.registry);
-    if(!lazy){await macrotask();await dungeon.buildStaticSliced(macrotask);}return this;
+    return this;
   }
   riderOwner():PatrolEncounterView|null{return this.riders;}
   mounted():boolean{return this.mount?.mounted===true;}

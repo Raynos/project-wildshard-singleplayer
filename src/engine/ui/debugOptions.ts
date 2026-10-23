@@ -172,7 +172,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Performance ──
 
   // ── Loading & memory ──
-  opt('memorySaver', 'loading', engineString('s_memory_saver'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { purpose: 'developer', reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_memory_saver_note') }),
   clearDownloadsRow,
 
   // ── Developer tools ──

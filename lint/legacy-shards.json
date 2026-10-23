@@ -453,7 +453,7 @@
         "world/treeFactory.ts": "a55a1b51bcb5240076572975c16f94dde108e6f908ccd658d053f0e74f6cd5f8",
         "world/treeSet.ts": "0891b108325701c964d74c6823fde9ede8a4e07ad670ccbf8ae290b7fe6bdbae",
         "world/trophyWall.ts": "30dff611661539821c621a155a7c71888c000a40230d4d8dec216a72fbd3327f",
-        "world/undergrowth.ts": "dec06e46a0316cb5e8c3ba9573475dd5eee1bf691f54a8530f627d9b9b88bd2d",
+        "world/undergrowth.ts": "c58a5a3b155dd4c55a2b4192dff4b51f4ee466f29f120138af0e610e1e4258de",
         "world/undergrowthKit.ts": "7fab2b1986a428d44c383d4dca1e166eef209122ac330c9e5047751825985ca4",
         "world/water.ts": "dfc6e3b0f4c748078a4a371628f58a06da5f2a8353e64ffe279ffbfaf67f5be5",
         "world/weather.ts": "1ee47cb7ace83e057753740afd128248ed61abffb996dba75a4f1df2056eac7e",
@@ -539,8 +539,8 @@
         },
         "world/undergrowth.ts": {
           "original": "9a9e01a1c83a4b82108a91e374834a5b612e2a2bad36620ae78cbe310c018728",
-          "current": "dec06e46a0316cb5e8c3ba9573475dd5eee1bf691f54a8530f627d9b9b88bd2d",
-          "reason": "G486 compatibility: preserve original seven tier values and sealed callers while the engine removes shard knobs; import-only redirects, no body changes."
+          "current": "c58a5a3b155dd4c55a2b4192dff4b51f4ee466f29f120138af0e610e1e4258de",
+          "reason": "G486 compatibility: preserve original seven tier values and sealed callers while the engine removes shard knobs; import-only redirects, no body changes. G669 DR17 / G674: the Memory saver is on for everyone and the engine drops memorySaverOn(); its gates here become the on path (import-only removal, the same behaviour as the saver on)."
         },
         "models/logCabin.ts": {
           "original": "1f2d460f651363185dd425c227d5014f83059164d202d74ab0fb5e6cef5e8ac9",
@@ -635,7 +635,7 @@
         "combat/eliteRoster.ts": "6adce58815e95b44b90c0cbd8eefe741ab4c3a8725c219247c185d4a73889e0b",
         "combat/elites.ts": "869517160f30eafa3a23299438544197b88b19c4f83d83d23a93d590e9d734f0",
         "combat/ghostRiders.ts": "ab447cb25928bee78418d15b5369bc2c9aaf131c6d2ebeaaf9b35a0330b26c29",
-        "combat/goldenKing.ts": "30052d01b78454185b88c54deabd532f19fe2120e0ba31a74aade67413563c22",
+        "combat/goldenKing.ts": "59ca694d5f429570ff17bc558bf2246b6a8b2158e914d58ecc6b416fe54fc543",
         "combat/night.ts": "2ee3ceaa1859e973fa0a858ebbea0853416cb8b7af316b5dcaab6a77962f221f",
         "combat/nightFx.ts": "a6e6e2125b5ae24db4c21ac86e7b084baef7e9a977924ed8a14b123d73bf18fa",
         "combat/spawns.ts": "a065b5ac8af873df9783ef6000720a29da83b0ff384008e1a80355422270ad1c",
@@ -893,6 +893,11 @@
           "original": "4e9c8a09a6f533cd05a3993592480fa8429b1f7e71925be0106bd518a1b67622",
           "current": "dce530a4969c0553e49f9e088763efea35fa279506871fff034ac0f60b36e87d",
           "reason": "G669 DR16 explicitly retires the legacy director/AI/debug branches and ships the selected Pine memory trim. Preserve original legacy clocks, combat, crowd bodies and save ownership."
+        },
+        "combat/goldenKing.ts": {
+          "original": "30052d01b78454185b88c54deabd532f19fe2120e0ba31a74aade67413563c22",
+          "current": "59ca694d5f429570ff17bc558bf2246b6a8b2158e914d58ecc6b416fe54fc543",
+          "reason": "G669 DR17 / G674: the Memory saver is on for everyone and the engine drops memorySaverOn(); its gates here become the on path (import-only removal, the same behaviour as the saver on)."
         }
       }
     },
@@ -942,7 +947,7 @@
         "layout.ts": "1cc4d50e7230ffb3635b508f2e61a8ee8f8b9beb53b56503616eb5db6cb31d7a",
         "look/cloudSea.ts": "571c78113dbbfd1ebdbf7b4a42c2dd45a95f0b3fcf61c443cf1b0a3db391738b",
         "look/far.ts": "89fcb6e92db242e3cc1d0c2e3c231e4766db7ec9a6917170f86ad4355d5040f5",
-        "look/image.ts": "77f0d01bd9d1a76b04044a85a41a94369f2bd952da8ad241075de98b399c3e3f",
+        "look/image.ts": "abeae9aee09841a0c4e2952291fe1681a9cc742dc12e09d916cb9aaa849aad03",
         "look/light.ts": "04793f419fa79a7513ee1abd83ccd55e39382a9d315df48a53b1f5cf1896a111",
         "look/map.baked.json": "ff3e7576779d2132021530d744be2097de2308bb2110cb72c4ea45be70677bc1",
         "look/map.json": "37431384dd267be99ac6a18b5fc30ff4b03506225a38266f1f90ad28706cf5d9",
@@ -1031,6 +1036,11 @@
           "original": "22f509f1b53f8769a890e5a844726d17ee474a50e31da41a6f09111b5bcccbcd",
           "current": "9d74a530799ae8509187889aa30ab857e253f58a568796c7630f2f46970e65bb",
           "reason": "G469 coordinator-approved proof import migration: keep the frozen headless entry loadable when entryway proofs leave the gameplay module; no behaviour or pinned 1258254a3 line basis changes."
+        },
+        "look/image.ts": {
+          "original": "77f0d01bd9d1a76b04044a85a41a94369f2bd952da8ad241075de98b399c3e3f",
+          "current": "abeae9aee09841a0c4e2952291fe1681a9cc742dc12e09d916cb9aaa849aad03",
+          "reason": "G669 DR17 / G674: the Memory saver is on for everyone and the engine drops memorySaverOn(); its gates here become the on path (import-only removal, the same behaviour as the saver on)."
         }
       }
     },

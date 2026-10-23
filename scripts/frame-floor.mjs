@@ -138,8 +138,7 @@ const picks = Object.fromEntries(settingArgs.map((arg) => {
   if (!match || ['tier', 'fps'].includes(match[1])) throw new Error('Invalid Debug setting; tier and fps belong to the floor protocol');
   return [match[1], match[2]];
 }));
-if (publicGrid && Object.hasOwn(picks, 'memorySaver') && picks.memorySaver !== 'off') throw new Error('Public grid measures the shipping Memory saver default OFF');
-const settings = { ...picks, ...(publicGrid ? {memorySaver:'off'} : {}), tier: surface === 'sim' ? 'phone' : 'desktop', fps: 'auto' };
+const settings = { ...picks, tier: surface === 'sim' ? 'phone' : 'desktop', fps: 'auto' };
 const deviceSaveArgs = args.filter((arg) => arg.startsWith('--device-save='));
 const deviceSaves = Object.fromEntries(deviceSaveArgs.map((arg) => {
   const match = /^--device-save=([a-zA-Z][a-zA-Z0-9._-]*)=(.+)$/u.exec(arg);
@@ -412,7 +411,6 @@ async function measureShard(driver, shard, deadline) {
     if (surface === 'sim' && (meta.viewport[0] >= meta.viewport[1] || !meta.userAgent.includes('iPhone'))) throw new Error('Simulator must be portrait iPhone Safari');
     if (surface === 'desktop' && !meta.renderer.includes('ANGLE Metal Renderer')) throw new Error(`Metal required, got ${meta.renderer}`);
     if (publicGrid) {
-      if (meta.settings.memorySaver !== 'off') throw new Error('Public grid Memory saver must be saved OFF');
       meta.publicGrid = await driver.evaluate(`(${readPublicGridWitness.toString()})()`);
       const failures = publicGridWitnessFailures(meta.publicGrid, false);
       if (failures.length > 0) throw new Error(failures.join('; '));

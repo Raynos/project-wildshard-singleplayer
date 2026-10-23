@@ -27,7 +27,6 @@ import { markGpuOnly } from './gpuOnly';
 import { type Renderer, probeRenderer } from '../render/renderer';
 import { labelAsset } from '../render/gpuLabels';
 import { ScopedWorkerPool } from './scopedWorkerPool';
-import { memorySaverOn } from '../render/memorySaver';
 import { Ktx2Sources } from './ktx2Sources';
 import { uploadCompressedTexture } from '../render/compressedUpload';
 import { registerCompressedMipmaps, compressedMipmapsUploaded } from '../render/compressedMipmaps';
@@ -246,7 +245,7 @@ export async function ktx2File(url: string): Promise<THREE.CompressedTexture> {
   const t = (await load(url, true)).clone();
   t.flipY = false;
   t.generateMipmaps = false;
-  if (memorySaverOn()) sources.share(t, url, 0);
+  sources.share(t, url, 0);
   return labelAsset(releaseAfterUpload(t), 'engine/ktx2File', url);
 }
 
@@ -272,7 +271,7 @@ export async function ktx2Texture(served: string, maxSize = Infinity): Promise<T
   }
   t.flipY = false;
   t.generateMipmaps = false;
-  if (memorySaverOn()) sources.share(t, url, Math.max(0, skip));
+  sources.share(t, url, Math.max(0, skip));
   return labelAsset(releaseAfterUpload(t), 'engine/ktx2Texture', url);
 }
 
@@ -324,7 +323,7 @@ export async function linearKtx2Texture(served: string, maxSize = Infinity): Pro
   }
   t.flipY = false;
   t.generateMipmaps = false;
-  if (memorySaverOn()) sources.share(t, url, Math.max(0, skip));
+  sources.share(t, url, Math.max(0, skip));
   return labelAsset(releaseAfterUpload(t), 'engine/linearKtx2Texture', url);
 }
 

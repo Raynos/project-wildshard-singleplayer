@@ -23,7 +23,7 @@ export async function loadPainted(url: string, name: string, tile = false): Prom
     const bitmap = await createImageBitmap(await response.blob(), { imageOrientation: 'flipY' });
     const tex = new Texture(bitmap); tex.colorSpace = SRGBColorSpace; tex.name = name;
     onPaintedDispose(tex, () => { bitmap.close(); });
-    // Memory saver (on with Developer, so wherever Sky Reach is reachable): the decoded RGBA copy goes at its upload.
+    // Memory saver (on for everyone, G674): the decoded RGBA copy goes at its upload.
     // Nothing reads these pixels on the CPU and every clone keeps the sampler key (the mill's bump channel is not in it).
     releaseDecodedOnUpload(tex, () => { bitmap.close(); });
     if (tile) { tex.wrapS = RepeatWrapping; tex.wrapT = RepeatWrapping; tex.generateMipmaps = true; tex.minFilter = LinearMipmapLinearFilter; tex.anisotropy = 4; }

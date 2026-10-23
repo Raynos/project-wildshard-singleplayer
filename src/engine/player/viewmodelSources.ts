@@ -11,14 +11,14 @@ export class ViewmodelSources {
   private readonly sources = new Map<SetName, Sources>();
   private readonly wrap: (source: Source, srgb: boolean) => DataTexture;
   constructor(wrap: (source: Source, srgb: boolean) => DataTexture) { this.wrap = wrap; }
-  take(name: SetName, sharing: boolean, build: () => Textures): Textures {
-    const cached = sharing ? this.sources.get(name) : undefined;
+  take(name: SetName, build: () => Textures): Textures {
+    const cached = this.sources.get(name);
     const col = cached?.col.deref(), nrm = cached?.nrm.deref(), arm = cached?.arm?.deref();
     if (col && nrm && (cached?.arm === null || arm)) {
       return { map: this.wrap(col, true), normalMap: this.wrap(nrm, false), armMap: arm ? this.wrap(arm, false) : null };
     }
     const textures = build();
-    if (sharing) this.sources.set(name, { col: new WeakRef(textures.map.source), nrm: new WeakRef(textures.normalMap.source),
+    this.sources.set(name, { col: new WeakRef(textures.map.source), nrm: new WeakRef(textures.normalMap.source),
       arm: textures.armMap === null ? null : new WeakRef(textures.armMap.source) });
     return textures;
   }

@@ -16,7 +16,6 @@ import { ktx2Texture, prepareCompressedTexture } from '../../core/ktx2';
 import { activeLevel } from '../../level/selection';
 import { PATCH_ORDER, patchShader } from '../../render/shaderPatches';
 import { ParticlePool, pointScale } from '../../fx/ParticlePool';
-import { memorySaverOn } from '../../render/memorySaver';
 import { ViewmodelSources } from '../../player/viewmodelSources';
 
 export interface RangedWorld { game: Game; sky: Sky; player: Player; forest: Forest }
@@ -157,15 +156,15 @@ const proceduralSources = new ViewmodelSources((source, srgb) => {
   return texture;
 });
 function proceduralTextures(name: SetName): { map: THREE.DataTexture; normalMap: THREE.DataTexture; armMap: THREE.DataTexture | null } {
-  return proceduralSources.take(name, memorySaverOn(), () => {
+  return proceduralSources.take(name, () => {
     const pixels = takePixels(name);
     return { map: dataTexture(pixels.col, pixels.w, pixels.h, true), normalMap: dataTexture(pixels.nrm, pixels.w, pixels.h, false),
       armMap: pixels.arm === null ? null : dataTexture(pixels.arm, pixels.w, pixels.h, false) };
   });
 }
 /** A viewmodel texture set (map sRGB; normal + ARM linear; repeat-wrapped, mipmapped, anisotropy 8).
- * With Memory saver ON, live procedural copies share immutable sources; sampler/transform objects stay independent.
- * The weak source memo retains no retired pixels. Compressed sets and the OFF path keep their existing ownership. */
+ * Live procedural copies share immutable sources (the Memory saver); sampler/transform objects stay independent.
+ * The weak source memo retains no retired pixels. Compressed sets keep their existing ownership. */
 export function viewmodelTexSet(name: Exclude<SetName, 'cord'>): TexSet {
   const baked = bakedSets.get(name);
   if (baked) { bakedSets.delete(name); return baked; } // taken once, as the pixels are (a second ask draws on the main thread)

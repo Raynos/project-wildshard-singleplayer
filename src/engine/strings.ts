@@ -10,8 +10,6 @@ export const ENGINE_STRINGS = {
   "s_hover_boost_label": "Hover boost",
   "s_interact_item_count": "⟦0⟧ ×⟦1⟧",
   "s_explore_playgrounds": "⟦0⟧ · playgrounds",
-  "s_memory_saver": "Memory saver",
-  "s_memory_saver_note": "SF22d · E435: frees image and mesh copies once on the GPU, drops the shadow map's colour texture, half-size bloom luminance, one composer depth buffer. Reloads",
   "s_item_card_picked": "Picked up",
   "s_item_card_pack": "⟦0⟧ in the pack",
   "s_script_failure": "⟦0⟧: ⟦1⟧: ⟦2⟧⟦3⟧",

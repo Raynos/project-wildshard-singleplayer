@@ -117,27 +117,21 @@ export const OPTION_VALUES = {
   touch: ['auto', 'on'],                               // on-screen controls (main.ts → TouchControls): auto = coarse pointer
   time: ['live', 'midday', 'golden', 'sunset', 'night'], // the day / night clock (the level backdrop's) — live
   weather: ['live', 'clear', 'fog', 'rain'],           // Pine Hollow: the weather (PH-L10, src/shards/pine-hollow/world/weather.ts) — live: dawn fog + showers; clear = none (the before); fog / rain hold one — live
-  // ── E162: the old URL switches, now pause ▸ Settings ▸ Debug rows only (declared with their group in src/engine/ui/debugOptions.ts).
-  // The first value is the default. A test / capture script sets one in the saved settings before the page loads ──
-  memorySaver: ['off', 'on'],                          // SF22d: the engine memory cuts (src/engine/render/memorySaver.ts) — a reload; off everywhere by default, a Developer tool turns it on (G271)
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
 /** read once while the page loads: main menu ▸ Settings, APPLY & RELOAD. Every other option applies live (pause menu). */
 export const BOOT_OPTIONS: readonly OptionKey[] = ['tier', 'touch'];
-/** a debug-menu-only option (E162): no URL override; its default is its first value */
-const DEBUG_ONLY = { def: null, params: [], url: (): null => null } as const;
 /** per option: the default, the URL params that override it (dropped by settingsReloadUrl) and how they read */
 const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: readonly string[]; url: (q: URLSearchParams) => string | null } } = {
   tier: { def: 'auto', params: ['tier'], url: (q) => q.get('tier') },
   touch: { def: 'auto', params: ['touch'], url: (q) => (q.has('touch') ? 'on' : null) },               // ?touch (any value) forces them, as before
   time: { def: 'live', params: ['tod', 'clock'], url: (q) => (q.has('tod') || q.has('clock') ? 'live' : null) }, // ?tod= / ?clock= run the clock from the URL's phase / speed
   weather: { def: 'live', params: ['weather'], url: (q) => q.get('weather') },                         // ?weather=rain: a held shower (captures)
-  memorySaver: DEBUG_ONLY,
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 /** Diagnostic choices are ignored by the public build; their saved picks remain available in Developer mode. */
-export const DEVELOPER_OPTIONS: readonly OptionKey[] = ['time', 'weather', 'memorySaver'];
+export const DEVELOPER_OPTIONS: readonly OptionKey[] = ['time', 'weather'];
 
 /** the URL params that override option `k` */
 export function settingParams(k: OptionKey): readonly string[] { return OPTION_SPECS[k].params; }
@@ -198,7 +192,6 @@ export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'
   const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
     tier: option('tier'), touch: option('touch'), time: option('time'),
     weather: option('weather'),
-    memorySaver: option('memorySaver'),
   };
   const persist = (): void => {
     const picks: Partial<Record<string, string>> = {};

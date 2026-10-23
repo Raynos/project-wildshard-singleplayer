@@ -3,7 +3,7 @@ import { resourceScope } from '../app/resources';
 import { withOwner } from '../app/ownership';
 import { ownAudioSource } from './ownership';
 import { tap } from '../core/harnessTap';
-import { setting, type MusicStyle as MusicGenre } from '../ui/Settings';
+import type { MusicStyle as MusicGenre } from '../ui/Settings';
 import { AacTrack } from './aacTrack';
 import { AacSource } from './aacSource';
 // src/engine/audio/Stems.ts — the MiniMax-Music3 stem player behind src/engine/audio/Music.ts (project/archive/2026-09-23-music.md v3, row 7).
@@ -125,7 +125,7 @@ export async function decodeStyle(genre: MusicGenre, slots: readonly SlotName[],
       const spec = m.slots[slot];
       if (!spec) return;
       try {
-        const bounded = spec.layers.length === 0 && (spec.tension !== undefined || setting('memorySaver') === 'on');
+        const bounded = spec.layers.length === 0;
         const stem = (file: string): Promise<AudioBuffer | AacTrack> => bounded ? readOne(file, async bytes => {
           const prepared = await AacTrack.prepare(new Uint8Array(bytes), spec.loopStart, spec.loopEnd, decode, undefined, owner);
           if (owner.disposed) throw new Error('Music preparation owner retired');

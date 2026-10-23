@@ -9,7 +9,7 @@ import { TIER_CONFIG } from './tier';
 import { workSlice } from './workSlice';
 import type { Renderer } from '../render/renderer';
 import { labelAsset, labelObjectTree } from '../render/gpuLabels';
-import { memorySaverOn, releaseOnUpload } from '../render/memorySaver';
+import { releaseOnUpload } from '../render/memorySaver';
 
 const gltfLoader = createRigLoader();
 const hdrLoader = new HDRLoader();
@@ -117,13 +117,13 @@ export async function loadTexture(url: string, srgb = false, repeat = 1, maxSize
     return prepareCompressedTexture(labelAsset(k, 'engine/loadTexture', url));
   }
   const key = imageKey(url, maxSize);
-  const shared = memorySaverOn() ? sharedSources.get(sourceKey(key, srgb)) : undefined;
+  const shared = sharedSources.get(sourceKey(key, srgb));
   let t: THREE.Texture;
   if (shared === undefined) {
     const image = await loadImage(url, maxSize);
     t = new THREE.Texture(image);
     t.flipY = !(typeof ImageBitmap !== 'undefined' && image instanceof ImageBitmap); // bitmaps are flipped at decode
-    if (memorySaverOn()) shareSource(t, key, srgb, image);
+    shareSource(t, key, srgb, image);
   } else {
     t = new THREE.Texture();
     t.source = shared.source;

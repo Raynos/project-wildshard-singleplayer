@@ -35,7 +35,7 @@ async function main() {
   mkdirSync(out, { recursive: true });
   const report = { purpose: 'Ten cold Pine entries; intermittent Simulator GPU diagnosis, never a phone cap/soak/saving proof',
     sha, version, sourceFingerprints: frozen, harness: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
-    settings: { developer: true, tier: 'phone', renderScale: 2, memorySaver: 'default from fixed runtime', mute: true }, attempts: [] };
+    settings: { developer: true, tier: 'phone', renderScale: 2, mute: true }, attempts: [] };
   const save = () => writeFileSync(join(out, 'summary.json'), `${JSON.stringify(report, null, 2)}\n`);
   save();
   for (let attempt = 1; attempt <= 10; attempt++) {

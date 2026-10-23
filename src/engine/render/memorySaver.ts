@@ -1,6 +1,5 @@
 /**
- * SF22d (E435): the Memory saver, a reload. Off everywhere by default (Jake, G271: full quality for everyone); a Developer
- * tool turns it on (pause ▸ Settings ▸ Developer tools ▸ Memory saver), and Developer off fences a saved ON pick off. The
+ * SF22d (E435): the Memory saver, on for everyone (Jake, G674; G669 DR17 deleted its row and the off path). The
  * engine's memory cuts from the Pine Hollow / Driftwood breakdown (docs/design/mmo/research/e435/memory-pine-driftwood.md,
  * `4ec64f071`) that change no look:
  *
@@ -16,22 +15,14 @@
  * 2. A shadow map three made keeps only its depth texture (`dropShadowColour`, as Driftwood's E174 maps).
  * 3. Bloom's luminance pass at half resolution and no depth buffer on the composer's output buffer (Game.buildComposer).
  *
- * A context loss reloads the page while it is on (gpuOnly.ts: the released copies cannot be uploaded again).
+ * A context loss reloads the page (gpuOnly.ts: the released copies cannot be uploaded again).
  */
 import * as THREE from 'three';
 import { RenderPass, type BloomEffect, type EffectComposer, type Pass } from 'postprocessing';
-import { setting } from '../ui/Settings';
 import { markGpuOnly } from '../core/gpuOnly';
 import { arrayReleased, markArrayReleased, markArrayRestored } from './releasedArrays';
 import type { Renderer } from './renderer';
 import { renderCount } from './frameCounter';
-
-let on: boolean | null = null;
-/** the row, read once per page (a reload row) */
-export function memorySaverOn(): boolean {
-  on ??= setting('memorySaver') === 'on';
-  return on;
-}
 
 const LABEL = 'engine/memorySaver';
 const isTexture = (value: unknown): value is THREE.Texture => value instanceof THREE.Texture;
@@ -56,10 +47,10 @@ let placeholder: THREE.TextureSource<unknown> | null = null;
 let warned = false;
 
 /** Register an exclusively owned, immutable decoded texture source for Memory saver retirement.
- * With Memory saver enabled, `done` runs after its first upload and the source retains only dimensions;
+ * `done` runs after its first upload and the source retains only dimensions;
  * release a private bitmap or relinquish the image cache there. No CPU reader or different-sampler clone
  * may use those pixels afterward. The existing GPU-only context-loss recovery reloads the page.
- * Registration alone does not release an image when Memory saver is off; the owner also handles disposal. */
+ * The owner also handles disposal. */
 export function releaseOnUpload(source: THREE.TextureSource<unknown>, done: () => void): void { bitmapRelease.set(source, done); }
 
 function decodedImage(im: unknown): im is ImageBitmap | HTMLImageElement {
@@ -156,7 +147,7 @@ function releasableAttribute(name: string, a: unknown): a is THREE.BufferAttribu
 }
 
 /**
- * No bounds are computed here: `position` stays, so a box or sphere is computed when something asks, as with the row off.
+ * No bounds are computed here: `position` stays, so a box or sphere is computed when something asks.
  * Computing them at release read geometries whose owner had already dropped its arrays (the far herd's view batch: its
  * attributes keep their count over an empty array, gpuOnly-style), so every vertex came back NaN (SF22d).
  */
@@ -202,10 +193,9 @@ function watchUploads(context: WebGL2RenderingContext): void {
 
 /**
  * The renderer's hooks: every texture is looked at when three first asks for its properties (before its upload), every
- * geometry when it first draws. When off (the public default), nothing is installed.
+ * geometry when it first draws.
  */
 export function installMemorySaver(renderer: Renderer): void {
-  if (!memorySaverOn()) return;
   const context = renderer.getContext();
   if (context instanceof WebGL2RenderingContext) watchUploads(context);
   const seenTextures = new WeakSet<THREE.Texture>();
