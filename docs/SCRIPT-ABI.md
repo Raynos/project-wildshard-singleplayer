@@ -1069,3 +1069,19 @@ This API enables a coherent shared executable selection; it does not itself
 activate pack/herd laws or change shipping admission rows. The producer must
 supply the SAME complete selected descriptor to every numeric/group consumer,
 preserve the inline ABI1 witness and prove the original numeric outputs/RNG.
+
+### Native group sense columns (H4, G621 R10a)
+
+ObservationColumnsV2 admits sense columns for visibility, hearing and
+downwind. Hearing declares exactly four finite nonnegative radii in their
+original order. The native V2SenseColumns loan supplies the original concrete
+sense functions and SAME player Vector3 as the entered player owner. Capture
+uses the current member x/z, original context.playerSpeed and time.t seconds;
+it preserves each native callable's receiver and the declared sample order.
+A missing actor samples zero. No RNG, cadence or continuation is created.
+
+The actor vocabulary also exposes hp, maxHp, seed, stunned (0/1) and modSpeed
+from the original body. These are finite samples, not setters. All sense
+owners and suffix requirements are resolved before calling any sense; scope,
+member, player and callable identity are checked during and after capture.
+Retirement or replacement refuses publication of the detached column bank.

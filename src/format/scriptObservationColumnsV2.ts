@@ -16,7 +16,13 @@ const source = v.variant('kind',[
   v.strictObject({ kind: v.literal('clock'),field: v.picklist(['hour','dayPhase','night']) }),
   v.strictObject({ kind: v.literal('time'),field: v.picklist(['t','dt']) }),
   v.strictObject({ kind: v.literal('weather'),field: v.literal('stormActive') }),
-  v.strictObject({ kind: v.literal('actor'),field: v.picklist(['x','y','z','yaw','alive','speed','hpShare','attackPhase','lastHitValid','lastHitSeconds','scale','yOffset']) }),
+  v.strictObject({ kind: v.literal('actor'),field: v.picklist(['x','y','z','yaw','alive','speed','hpShare','attackPhase','lastHitValid','lastHitSeconds','scale','yOffset','hp','maxHp','seed','stunned','modSpeed']) }),
+  v.variant('field',[
+    v.strictObject({kind:v.literal('sense'),field:v.literal('visibility')}),
+    v.strictObject({kind:v.literal('sense'),field:v.literal('downwind')}),
+    v.strictObject({kind:v.literal('sense'),field:v.literal('hearing'),radii:v.strictTuple([
+      v.pipe(finite,v.minValue(0)),v.pipe(finite,v.minValue(0)),v.pipe(finite,v.minValue(0)),v.pipe(finite,v.minValue(0))])}),
+  ]),
   v.strictObject({kind:v.literal('memory'),key,default:memoryDefault}),
   v.strictObject({kind:v.literal('memory-present'),keys:v.pipe(v.array(key),v.minLength(1),v.maxLength(64))}),
   v.strictObject({kind:v.literal('actor-state'),states:v.pipe(v.array(key),v.maxLength(64))}),

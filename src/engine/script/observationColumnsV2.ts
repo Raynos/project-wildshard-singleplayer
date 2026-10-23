@@ -2,6 +2,7 @@ import { parseObservationColumnsV2,type ObservationColumnV2 } from '@wildshard/f
 import type { Scope } from '../app/scope';
 import type { AnimalSim } from '../entities/AnimalSim';
 import type { GrazerBrain } from '../ai/grazer';
+import type { Vector3 } from 'three';
 import type { DayCycleClock } from '../world/dayCycle';
 
 /** Both page and native population environments lend these SAME live fields.
@@ -12,6 +13,14 @@ export interface V2EnvironmentColumns {
   readonly light: number; readonly storm: boolean;
   readonly wind: { readonly x: number; readonly z: number; readonly strength: number };
   readonly grassHeightAt: (x: number,z: number) => number;
+}
+/** Same native senses and player used by the original group decision slot.
+ * Sampling observes only; no random stream, schedule or group is created. */
+export interface V2SenseColumns {
+  readonly player:Vector3;
+  readonly visibility:(x:number,z:number,player:Vector3,speed:number,time:number)=>number;
+  readonly hearing:(radii:readonly[number,number,number,number],player:Vector3,speed:number)=>number;
+  readonly downwind:(x:number,z:number,player:Vector3)=>boolean;
 }
 export interface V2ActorColumnSlot {
   readonly group: string; readonly slot: number; readonly identity: string;
@@ -31,6 +40,7 @@ export interface V2ColumnOwners {
   readonly equipment?: string;
   readonly results?: Readonly<Record<string,number>>;
   readonly environment?: V2EnvironmentColumns;
+  readonly senses?: V2SenseColumns;
   readonly clock?: Pick<DayCycleClock,'hour' | 'dayPhase' | 'night'>;
   readonly weather?: { readonly stormActive: boolean };
   readonly herds?: readonly { readonly group: string; readonly slot: number; readonly owner: Herd | null }[];
@@ -45,8 +55,7 @@ function freeze(value: unknown):void {
 function finite(value: number): number { if (!Number.isFinite(value)) throw new Error('Non-finite observation column');return value; }
 function need<T>(value: T | undefined,kind: string): T { if (value === undefined) throw new Error(`Missing observation ${kind} owner`);return value; }
 
-type Immutable<T> = T extends readonly (infer Item)[] ? readonly Immutable<Item>[]
-  : T extends object ? { readonly [Key in keyof T]: Immutable<T[Key]> } : T;
+type Immutable<T> = T extends object ? { readonly [Key in keyof T]: Immutable<T[Key]> } : T;
 
 /** Detached columns at the original decision slot. No scheduler, body/RNG/save
  * owner or cached world frame lives here. In particular, keeper grass at:self
@@ -76,10 +85,17 @@ export class ObservationColumnsV2 {
     const identity = (body: AnimalSim | null): number => body === null ? 0 : need(observed.get(body),'actor identity');
     const herds = owners.herds ?? [];
     if (herds.length > 64 || new Set(herds.map(row => JSON.stringify([row.group,row.slot]))).size !== herds.length) throw new Error('Ambiguous observation herd loan');
+    const sensePins:{owner:V2SenseColumns;field:'visibility'|'hearing'|'downwind';callable:unknown;player:Vector3}[]=[];
     // Resolve the complete suffix before invoking any native grass query.
     const prepared = this.rows.map(row => {
       const source = row.source;
       if (source.kind === 'environment' || source.kind === 'grass' || source.kind === 'player' || source.kind === 'wind') need(owners.environment,'environment');
+      if(source.kind==='sense'){
+        const owner=need(owners.senses,'senses');need(owners.context,'sense context');
+        const callable:unknown=Reflect.get(owner,source.field);
+        if(typeof callable!=='function'||owner.player!==owners.player.position)throw new Error('Invalid native sense owner');
+        sensePins.push({owner,field:source.field,callable,player:owner.player});
+      }
       if (source.kind === 'clock') need(owners.clock,'clock');
       if (source.kind === 'weather') need(owners.weather,'weather');
       if (source.kind === 'taming') need(owners.taming,'taming');
@@ -102,7 +118,13 @@ export class ObservationColumnsV2 {
         default:throw new Error('Unknown observation point');
       }
     };
-    return prepared.map(({ row,herd }) => {
+    const live=():void=>{
+      if(this.scope.disposed||this.scope.disposing||owners.self.actor!==actor)throw new Error('Retired observation owner');
+      for(const pin of sensePins)if(owners.senses!==pin.owner||pin.owner.player!==pin.player
+        ||owners.player.position!==pin.player||Reflect.get(pin.owner,pin.field)!==pin.callable)throw new Error('Replaced native sense owner');
+    };
+    const result=prepared.map(({ row,herd }) => {
+      live();
       const source = row.source;let value: number;
       switch (source.kind) {
         case 'memory': {
@@ -126,6 +148,14 @@ export class ObservationColumnsV2 {
         }
         case 'distance-xz': {const from=point(source.from),to=point(source.to);value=Math.hypot(from.x-to.x,from.z-to.z);break;}
         case 'heading-component':value=Math[source.axis](need(actor??undefined,'self').yaw*source.sign);break;
+        case 'sense':{
+          const sense=need(owners.senses,'senses'),context=need(owners.context,'sense context');
+          if(actor===null){value=0;break;}
+          const speed=finite(context.playerSpeed),time=finite(owners.t),x=finite(actor.position.x),z=finite(actor.position.z);
+          value=source.field==='visibility'?sense.visibility(x,z,sense.player,speed,time)
+            :source.field==='hearing'?sense.hearing(source.radii,sense.player,speed):Number(sense.downwind(x,z,sense.player));
+          break;
+        }
         case 'environment': value = Number(need(owners.environment,'environment')[source.field]);break;
         case 'wind': value = need(owners.environment,'environment').wind[source.field];break;
         case 'player': {
@@ -151,7 +181,8 @@ export class ObservationColumnsV2 {
             const stamp = actor.lastHitT;
             if (stamp !== -Infinity && !Number.isFinite(stamp)) throw new Error('Invalid actor hit stamp');
             value = field === 'lastHitValid' ? Number(stamp !== -Infinity) : stamp === -Infinity ? 0 : stamp;
-          } else if (field === 'x' || field === 'y' || field === 'z') value = actor.position[field];
+          } else if(field==='modSpeed')value=actor.mods.speed;
+          else if (field === 'x' || field === 'y' || field === 'z') value = actor.position[field];
           else if (field === 'hpShare') { if (actor.maxHp <= 0) throw new Error('Invalid actor maximum health');value = actor.hp/actor.maxHp; }
           else value = Number(actor[field]);break;
         }
@@ -168,5 +199,6 @@ export class ObservationColumnsV2 {
       }
       return { name: row.name,id: row.id,value: finite(value) };
     });
+    live();return result;
   }
 }
