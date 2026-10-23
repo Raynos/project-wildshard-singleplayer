@@ -12,7 +12,7 @@ import NALATI_RUNTIME_SPAWNS from '../src/shards/nalati-grasslands/data/spawns.j
 import { expect, test,vi } from 'vitest';
 import { parse } from 'valibot';
 import { PatrolViewSchema } from '../src/format/encounterRows';
-import { BoxGeometry, MeshBasicMaterial, Vector3 } from 'three';
+import { BoxGeometry, MeshBasicMaterial, PerspectiveCamera, Vector3 } from 'three';
 import { BossBrain, type BossScript, type BossDefinition } from '../src/engine/ai/BossBrain';
 import { silentBossPresentation } from '../src/engine/ai/phases';
 import { overrideTerrain } from './fake/terrain';
@@ -38,6 +38,31 @@ import { manager } from './fake/manager';
 import { legacyDouble } from './fake/FakeGame';
 import programs from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type: 'json' };
 import { mockCanvas } from './fake/weaponParity';
+import { App } from '../src/engine/app/app';
+import { createLevelInstallation } from '../src/engine/level/installation';
+import { WorldRegistry } from '../src/engine/world/registry';
+import { shardContext } from '../src/game/plugin/context';
+import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { installViewProgram } from '../src/game/shardfile/clientViewProgram';
+import { emptyShardfile } from '../src/sdk/author';
+import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
+import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
+import { nalatiTitanView } from '../src/shards/nalati-grasslands/generators/titanView';
+import titanViewSource from '../src/shards/nalati-grasslands/behaviour/titanView.as?raw';
+import type { ArenaScriptFight } from '../src/game/boss/arenaScript';
+
+/** R6: a fight driven without its entered bind adopts the real view module at its frame slot (tells, pose ease, aim) */
+async function adoptTitanView(fight: ArenaScriptFight, scope: Scope): Promise<void> {
+  const rows = nalatiTitanView(), module = await compileScriptV2(titanViewSource, { lane: 'view', ioBytes: rows.budget.ioBytes });
+  const product = createShardProduct({ slug: 'titan-view-fixture', revision: 1, sections: new Map(), files: new Map(),
+    shardfile: emptyShardfile({ slug: 'titan-view-fixture', name: 'Titan view fixture', author: 'Test', revision: 1, seed: 1 }),
+    read: () => Promise.reject(new Error('The Titan view needs no file read')) });
+  const level = createLevelInstallation(new App(), scope.child('titan-view'), {}, () => ({ set: () => undefined, detail: () => undefined }));
+  const ctx = shardContext(level.context, TEMPLATE, { shard: TEMPLATE, rows: new Map(), bag: { tab: () => () => undefined, fragment: () => () => undefined } }, product);
+  Object.defineProperty(ctx.game, 'runtime', { value: { world: { registry: new WorldRegistry(), player: { position: new Vector3(), velocity: new Vector3(), yaw: 0 }, game: { camera: new PerspectiveCamera() } } } });
+  fight.lendView(ctx.scope);
+  installViewProgram(ctx, { kind: 'view.program', id: 'titan-view', module: 'views/nalati.titan-view.wasm', rows }, module);
+}
 
 function encounter(def: Omit<BossDefinition, 'reward'>, script: BossScript, position: Vector3) {
   let rewards = 0;
@@ -83,7 +108,7 @@ test('Golden King runs all phases, clears the real adds and reaches its single r
   } finally { scope.dispose(); restore(); }
 });
 
-test.each([false,true])('arena script runs mounted phases, exposes its heart and wins (orchard fixture %s)', orchard => {
+test.each([false,true])('arena script runs mounted phases, exposes its heart and wins (orchard fixture %s)', async orchard => {
   mockCanvas();
   const restore = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 }), scope = new Scope('titan-headless');
   const f = manager(), figure = new BoxGeometry(.2,.5,.3), materials = new Map(['nalati-titan-cloud','nalati-titan-flame','nalati-titan-smoke','nalati-spray-debris','nalati-spray-mist','nalati-tell','nalati-ghost','nalati-ghost-captain','nalati-ghost-storm'].map(id => [id, new MeshBasicMaterial()]));
@@ -125,6 +150,7 @@ test.each([false,true])('arena script runs mounted phases, exposes its heart and
     { speeds: { walk: 1.8,trot: 4.5,canter: 8.5,gallop: 13 },names: {},thrownDamage: 7,thrownLabel: 'Thrown',restAt: { x: 3,z: 5 } });
   const horse = f.manager.spawn('horse',0,0,0); owner.mount.horse = horse;
   const fight = owner.fight;
+  await adoptTitanView(fight, scope);
   f.player.position.set(world.CAIRN.x, 0, world.CAIRN.z + titan.TITAN_PLACE.centreZ); fight.tied = true;
   const e = encounter(data.definition, fight, f.player.position), direction = new Vector3(0, 0, -1);
   let support:Animal|null=null,supportChecked=false;
