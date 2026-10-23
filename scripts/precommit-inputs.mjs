@@ -70,7 +70,7 @@ export async function precommitInputs(root = resolve(import.meta.dirname, '..'),
       if (files.length > 0) jobs.push({ name: 'fast lint', command: [process.execPath, worker, 'fast', executable] });
       if (existsSync(resolve(tree, policy))) {
         jobs.push({ name: 'closed components', command: [process.execPath, worker, 'closed'] });
-        jobs.push({ name: 'ratchet', command: [process.execPath, worker, 'ratchet', executable] });
+        jobs.push({ name: 'ratchet', command: [process.execPath, worker, 'ratchet', executable, root] });
       }
       if (deleted.length > 0) jobs.push({ name: 'deleted paths', command: [process.execPath, worker, 'deleted'] });
       const guards = commitGuards(changed).filter(file => existsSync(resolve(tree, file)));

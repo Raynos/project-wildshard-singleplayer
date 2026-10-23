@@ -17,6 +17,7 @@ def staged_source(repo, tree, deadline, revision=None):
     def git(*args, **kwargs):
         return subprocess.check_output(['git', *args], cwd=repo,
                                        timeout=max(.01, deadline - time.time()), **kwargs)
+    tree.mkdir(parents=True, exist_ok=True)
     listed = git('ls-files', '--stage', '-z') if revision is None else git('ls-tree', '-rz', revision)
     entries = []
     records = []
@@ -85,7 +86,7 @@ def staged_source(repo, tree, deadline, revision=None):
 
 if __name__ == '__main__':
     try:
-        staged_source(Path(sys.argv[1]).resolve(), Path(sys.argv[2]).resolve(), float(sys.argv[3]))
+        staged_source(Path(sys.argv[1]).resolve(), Path(sys.argv[2]).resolve(), float(sys.argv[3]), sys.argv[4] if len(sys.argv) > 4 else None)
     except (TimeoutError, subprocess.TimeoutExpired) as error:
         print('pre-commit source preparation deferred: ' + str(error), file=sys.stderr)
         raise SystemExit(124)
