@@ -177,6 +177,8 @@ type State = 'fetching' | 'queued' | 'uploaded';
 /** sp-o105: `parent` is `parentOf(tile)`, kept on the slot: the step's scans compared a freshly built key per slot pair. */
 interface Slot<D> { tile: RingTile; readonly parent: string | null; state: State; lease: TileStreamLease; unholdParent: () => void; view: RingView | null; data: D | null; bytes: number; distance: number; masked: string; shadow: boolean }
 
+interface ReleaseRow<D> { slot: Slot<D> | undefined; distance: number }
+
 function key(instance: string, level: RingLevel, x: number, z: number): string { return level === 'far' ? `${instance}:far` : `${instance}:${level}/${x}/${z}`; }
 /** Distance from a cell-local point to a tile's square (0 inside). */
 function rectDistance(lx: number, lz: number, level: RingLevel, x: number, z: number, cell: LayoutCell): number {
@@ -194,6 +196,7 @@ function parentOf(tile: { instance: string; level: RingLevel; x: number; z: numb
 /** The render rings of one grid session. Call `step` once per fixed step with the camera; `dispose` at session end. */
 export class TileStreamer<D> {
   private readonly slots = new Map<string, Slot<D>>();
+  private readonly releaseWork: { rows: ReleaseRow<D>[]; order: ReleaseRow<D>[] }[] = [];
   private readonly pins = new Map<string, { readonly tile: RingTile; refs: number }>();
   private readonly requirements = new Set<Requirement>();
   private readonly fullRings = new Map<string, { radius: number; x: number | null; z: number | null }>();
@@ -477,27 +480,44 @@ export class TileStreamer<D> {
    * unwanted tile has no wanted descendant, and the children go first so a parent never leaves under one.
    */
   private release(want: ReadonlyMap<string, unknown>, camera: RingCamera): void {
-    const keep = { far: this.options.farRadius + C.pitch / 2, l1: L1_RADIUS + C.l1.size, l0: L0_RADIUS + C.l0.size } as const;
-    // each slot's distance once (a pure function of the camera), not twice per comparison
-    const distances = new Map<Slot<D>, number>();
-    for (const slot of this.slots.values()) distances.set(slot, this.distance(slot.tile, camera));
-    const away = (slot: Slot<D>): number => distances.get(slot) ?? this.distance(slot.tile, camera);
-    const order = [...this.slots.values()].sort((a, b) => LEVEL_RANK[b.tile.level] - LEVEL_RANK[a.tile.level] || away(b) - away(a) || a.tile.key.localeCompare(b.tile.key));
-    const count = { far: 0, l1: 0, l0: 0 };
-    let farBytes = 0;
-    for (const slot of this.slots.values()) if (slot.state === 'uploaded') { count[slot.tile.level]++; if (slot.tile.level === 'far') farBytes += slot.bytes; }
-    const dropTree = (slot: Slot<D>): void => {
-      for (const child of this.slots.values()) if (child.parent === slot.tile.key) dropTree(child);
-      if (this.slots.get(slot.tile.key) !== slot) return;
-      if (slot.state === 'uploaded') { count[slot.tile.level]--; if (slot.tile.level === 'far') farBytes -= slot.bytes; }
-      this.drop(slot);
-    };
-    for (const slot of order) {
-      if (want.has(slot.tile.key) || this.slots.get(slot.tile.key) !== slot) continue;
-      const level = slot.tile.level, cap = this.options.residentCaps[level] ?? Infinity;
-      const over = count[level] > cap || (level === 'far' && farBytes > this.farBudget());
-      if (level === 'l0' && this.fullRings.has(slot.tile.instance)
-        || (slot.state !== 'uploaded' ? !this.hasChildren(slot.tile) : away(slot) > keep[level] || over)) dropTree(slot);
+    // A nested step from disposal borrows another workspace. Retired slots never
+    // remain in the idle scratch records after this pass completes or throws.
+    const work = this.releaseWork.pop() ?? { rows: [], order: [] }, order = work.order;
+    try {
+      const keep = { far: this.options.farRadius + C.pitch / 2, l1: L1_RADIUS + C.l1.size, l0: L0_RADIUS + C.l0.size } as const;
+      const count = { far: 0, l1: 0, l0: 0 };
+      let farBytes = 0;
+      for (const slot of this.slots.values()) {
+        if (slot.state === 'uploaded') { count[slot.tile.level]++; if (slot.tile.level === 'far') farBytes += slot.bytes; }
+        if (want.has(slot.tile.key)) continue;
+        const distance = this.distance(slot.tile, camera);
+        let row = work.rows[order.length];
+        if (row === undefined) { row = { slot, distance }; work.rows.push(row); }
+        else { row.slot = slot; row.distance = distance; }
+        order.push(row);
+      }
+      order.sort((a, b) => {
+        const first = a.slot, second = b.slot;
+        if (first === undefined || second === undefined) throw new Error('Missing release work slot');
+        return LEVEL_RANK[second.tile.level] - LEVEL_RANK[first.tile.level] || b.distance - a.distance || first.tile.key.localeCompare(second.tile.key);
+      });
+      const dropTree = (slot: Slot<D>): void => {
+        for (const child of this.slots.values()) if (child.parent === slot.tile.key) dropTree(child);
+        if (this.slots.get(slot.tile.key) !== slot) return;
+        if (slot.state === 'uploaded') { count[slot.tile.level]--; if (slot.tile.level === 'far') farBytes -= slot.bytes; }
+        this.drop(slot);
+      };
+      for (const row of order) {
+        const slot = row.slot;
+        if (slot === undefined || want.has(slot.tile.key) || this.slots.get(slot.tile.key) !== slot) continue;
+        const level = slot.tile.level, cap = this.options.residentCaps[level] ?? Infinity;
+        const over = count[level] > cap || (level === 'far' && farBytes > this.farBudget());
+        if (level === 'l0' && this.fullRings.has(slot.tile.instance)
+          || (slot.state !== 'uploaded' ? !this.hasChildren(slot.tile) : row.distance > keep[level] || over)) dropTree(slot);
+      }
+    } finally {
+      for (const row of order) row.slot = undefined;
+      order.length = 0; this.releaseWork.push(work);
     }
   }
 

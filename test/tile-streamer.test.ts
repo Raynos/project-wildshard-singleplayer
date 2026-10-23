@@ -111,3 +111,38 @@ test.each([
 test.each([0, -1, Number.NaN, Number.POSITIVE_INFINITY])('invalid time budget %s refuses before preparation', uploadMsPerFrame => {
   expect(() => timedUploads(1, { uploadMsPerFrame })).toThrow('Invalid tile upload time budget');
 });
+
+test.each(['nested', 'throw'] as const)('release planning survives %s disposal without changing the remaining order', action => {
+  const allocator = new ResidencyAllocator(), disposed: string[] = [];
+  let entered = false;
+  let nested = (): void => { throw new Error('Missing live streamer'); };
+  const ports: RingPorts<string> = {
+    fetch: (tile, done) => { done(tile.key); },
+    upload: tile => ({ mask: () => undefined, shadow: () => undefined, dispose: () => {
+      disposed.push(tile.key);
+      if (entered) return;
+      entered = true;
+      if (action === 'throw') throw new Error('Fixture cleanup failed');
+      // This nested camera still wants b/c. The outer release must retain its
+      // own plan and finish dropping them in its original distance order.
+      nested();
+    } }),
+  };
+  const streamer = new TileStreamer(['a', 'b', 'c'].map((instance, index) => ({ instance, origin: { x: index * 555, z: 0 } })),
+    { reserve: claim => allocator.reserve(claim), now: () => 0 }, (_instance, level) => level === 'far' ? 1000 : null, ports,
+    { viewDistance: 1500, farRadius: 1500, uploadsPerFrame: 4 });
+  nested = () => { streamer.step({ x: 2000, z: 0, vx: 0, vz: 0 }); };
+  try {
+    streamer.step(camera);
+    expect(streamer.resident()).toEqual(['a:far', 'b:far', 'c:far']);
+    const away = { x: 10000, z: 0, vx: 0, vz: 0 };
+    if (action === 'throw') {
+      expect(() => streamer.step(away)).toThrow('Ring tile cleanup failed');
+      expect(disposed).toEqual(['a:far']);
+    }
+    streamer.step(away);
+    expect(disposed).toEqual(['a:far', 'b:far', 'c:far']);
+    expect(streamer.resident()).toEqual([]);
+    expect(allocator.entries()).toEqual([]);
+  } finally { streamer.dispose(); }
+});
