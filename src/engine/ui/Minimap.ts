@@ -194,6 +194,8 @@ export class Minimap {
 
   private size = 0;      // device px, square
   private dpr = 1;
+  /** each extra label's outlined text, rasterized once at the screen's density and font (re-made when either changes) */
+  private readonly labelSprites = new Map<string, { readonly canvas: HTMLCanvasElement; readonly half: number }>();
   private visible = true;
   /** a practice room's own map while one is up (the arena, a playground: src/engine/ui/roomMap.ts, E321) — the shard's is not drawn */
   private roomMap: RoomMap | null = null;
@@ -476,13 +478,12 @@ export class Minimap {
    *  rim turns to run along it (so a long name never crosses the arrow) */
   private paintExtraLabels(labels: readonly MapExtraLabel[], pos: { x: number; z: number }, c: number, k: number): void {
     const ctx = this.ctx, s = this.dpr, inner = VIEW_RADIUS - 9;
-    ctx.font = `700 ${Math.round(7.5 * s)}px Rajdhani, 'Bahnschrift', 'DIN Alternate', sans-serif`;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round'; ctx.lineWidth = 3 * s; ctx.strokeStyle = DOT_OUTLINE;
+    const font = `700 ${Math.round(7.5 * s)}px Rajdhani, 'Bahnschrift', 'DIN Alternate', sans-serif`, loaded = document.fonts.check(font);
     for (const l of labels) {
       let dx = l.x - pos.x, dz = l.z - pos.z;
       const d = Math.hypot(dx, dz);
       if (d > inner) { dx *= inner / d; dz *= inner / d; }
-      const text = l.text.toUpperCase(), half = ctx.measureText(text).width / 2;
+      const sprite = this.labelSprite(l.text.toUpperCase(), l.color, font, loaded), half = sprite.half;
       let sx = c - dx * k, sy = c - dz * k, turn = 0;
       if (Math.abs(dx) > Math.abs(dz) && Math.abs(dx) * k > c * 0.5) {
         turn = sx < c ? -Math.PI / 2 : Math.PI / 2; // along the left / right rim
@@ -493,9 +494,22 @@ export class Minimap {
         sx = Math.min(c + chord - half, Math.max(c - chord + half, sx));
       }
       ctx.save(); ctx.translate(sx, sy); ctx.rotate(turn);
-      ctx.strokeText(text, 0, 0); ctx.fillStyle = l.color; ctx.fillText(text, 0, 0);
+      ctx.drawImage(sprite.canvas, -sprite.canvas.width / 2, -sprite.canvas.height / 2);
       ctx.restore();
     }
+  }
+  /** one label's dark-outlined text as drawn on the disc (centred), its half width for the rim placement */
+  private labelSprite(text: string, color: string, font: string, loaded: boolean): { readonly canvas: HTMLCanvasElement; readonly half: number } {
+    const key = `${font}\0${String(loaded)}\0${color}\0${text}`, had = this.labelSprites.get(key);
+    if (had !== undefined) return had;
+    if (this.labelSprites.size >= 128) this.labelSprites.clear();
+    const s = this.dpr, surface = document.createElement('canvas'), sprite = ctx2d(surface);
+    sprite.font = font; const half = sprite.measureText(text).width / 2, pad = Math.ceil(3 * s);
+    surface.width = 2 * Math.ceil(half + pad); surface.height = 2 * Math.ceil(Math.round(7.5 * s) * 0.75 + pad);
+    sprite.font = font; sprite.textAlign = 'center'; sprite.textBaseline = 'middle'; sprite.lineJoin = 'round'; sprite.lineWidth = 3 * s;
+    sprite.strokeStyle = DOT_OUTLINE; sprite.strokeText(text, surface.width / 2, surface.height / 2);
+    sprite.fillStyle = color; sprite.fillText(text, surface.width / 2, surface.height / 2);
+    const made = { canvas: surface, half }; this.labelSprites.set(key, made); return made;
   }
 
   private paintRoom(pos: { x: number; z: number }, yaw: number, map: RoomMap): void {
@@ -513,7 +527,7 @@ export class Minimap {
     const dpr = Math.min(3, window.devicePixelRatio || 1);
     const D = Math.round(css * dpr);
     if (D === this.size && dpr === this.dpr) return;
-    this.size = D; this.dpr = dpr;
+    this.size = D; this.dpr = dpr; this.labelSprites.clear();
     this.canvas.width = this.canvas.height = D;
     this.fog.width = this.fog.height = D;
     this.fogCtx = ctx2d(this.fog);

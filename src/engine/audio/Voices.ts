@@ -182,15 +182,19 @@ export class VoicePool {
   prewarm(names: readonly string[]): void {
     if (!this.host.ready) return;
     for (const n of names) { const f = this.family(n); if (f && !this.warm.some(job => job[0] === n)) for (let v = 0; v < f.n; v++) for (let c = 0; c < f.ch; c++) this.warm.push([n, v * 2 + c]); }
-    if (!this.warming) { this.warming = true; this.slice(); }
+    // even the first slice waits for an idle moment: an ambience built on a frame must not render an impulse inside it
+    if (!this.warming) { this.warming = true; this.next(); }
+  }
+  private next(): void {
+    const w: { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number } = window;
+    if (w.requestIdleCallback) w.requestIdleCallback(() => this.slice(), { timeout: 400 }); else this.scope.timeout(16, () => this.slice());
   }
   private slice(): void {
     const job = this.warm.shift();
     if (!job) { this.warming = false; return; }
     const [name, vc] = job;
     this.variant(name, vc >> 1, vc & 1);
-    const w: { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number } = window;
-    if (w.requestIdleCallback) w.requestIdleCallback(() => this.slice(), { timeout: 400 }); else this.scope.timeout(16, () => this.slice());
+    this.next();
   }
   /** one variant rendered into its AudioBuffer — every channel, or only `ch` (prewarm renders a stereo IR a channel per slice) */
   private variant(name: string, v: number, ch = -1): AudioBuffer | undefined {

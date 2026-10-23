@@ -283,7 +283,9 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
     unique.set(hash, cap);
   }
   const transport = new Map<string, Uint8Array>(), addresses = [...unique];
-  for (const [hash, cap] of addresses) declareDownloadFile(outputBlobUrl(source, source.files.some(file => file.hash === hash) ? hash : `commons:${hash}`, base), cap);
+  // one lookup set: a product's own files against its commons (a per-asset scan of every file was quadratic in its size)
+  const ownFiles = new Set(source.files.map(file => file.hash));
+  for (const [hash, cap] of addresses) declareDownloadFile(outputBlobUrl(source, ownFiles.has(hash) ? hash : `commons:${hash}`, base), cap);
   const verifiedCached = new Set<string>();
   let bytesRead = 0, filesDone = 0;
   const bytesTotal = addresses.reduce((total, [, cap]) => total + cap, 0);
@@ -292,7 +294,7 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
   };
   progress('assets', 'Reading immutable assets');
   const load = async ([hash, cap]: [string, number]): Promise<Uint8Array> => {
-    const url = outputBlobUrl(source, source.files.some(file => file.hash === hash) ? hash : `commons:${hash}`, base);
+    const url = outputBlobUrl(source, ownFiles.has(hash) ? hash : `commons:${hash}`, base);
     let bytes = await options.cache?.asset(base, hash)
       ?? await options.cachedResponse?.(url, hash, cap);
     const fromCache = bytes !== null && bytes !== undefined;
