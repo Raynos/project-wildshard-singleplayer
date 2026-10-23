@@ -1,4 +1,5 @@
-import { parseDecisionScripts } from '../src/format/decisionScripts';
+import * as v from 'valibot';
+import { ReturnModulesSchema } from '../src/format/scriptContract';
 import { expect, test } from 'vitest';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { Rng } from '../src/engine/core/rng';
@@ -76,8 +77,10 @@ test('the actual return-script catalogue admits the shared weather/night module 
   const { output } = await import('../src/shards/nalati-grasslands/generators/output');
   const bytes = output.platform.files.get('sections/actors/return-scripts.json');
   if (bytes === undefined) throw new Error('Missing return-script catalogue');
-  const rows = parseDecisionScripts(JSON.parse(new TextDecoder().decode(bytes)));
+  const rows = v.parse(ReturnModulesSchema, JSON.parse(new TextDecoder().decode(bytes)));
   expect(night.program.script.module).toBe(weather.script.module);
   expect(rows.filter(row => row.module === weather.script.module)).toHaveLength(1);
+  expect(rows.find(row => row.module === weather.script.module)?.abi).toBe('1.0');
+  expect(rows.filter(row => row.abi === 2)).toEqual([expect.objectContaining({ abi: 2, lane: 'project' })]);
   expect(new Set(rows.map(row => row.module)).size).toBeLessThanOrEqual(8);
 });
