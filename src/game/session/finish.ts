@@ -1,6 +1,5 @@
 import type { BuiltWorld } from './context';
 import { gridCells } from '../plugin/context';
-import { safeGridRecovery } from '../grid/pageEntry';
 import type { playStage } from './play';
 import { asShell } from '@wildshard/engine/app/ownership';
 import { app } from '@wildshard/engine/app/runtime';
@@ -23,22 +22,11 @@ import { gridPrefetchOrder, startGridPrefetch } from '../grid/prefetch';
 
 export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): Promise<BuiltWorld> {
   const { manifest, boot, slug, loading, audioProfile, files, bootSteps, plan, step, audioLoad, deferredAudio, world, game, sky, player, chunk, fragileBoot, failGpuBoot, onBootContextLost, edgeDressing, boundary, water, interactables, props, disableBootGpuGuard, level, animals, arena, crossbow, weapons, lockSys, hud, perf, audio, music, playerHealth, exploring, hands, windupWarn, resuming, arrival, menuFirst, enter, getPlayground, leakPhysics } = ctx;
-  // P0 slow grid entry (pause ▸ Settings ▸ Debug ▸ Start of play): a fresh boot plays from the road deck outside the home
-  // cell, facing it, and the home is admitted in play like any neighbour (behind its cell screen), as a road recovery does
-  const roadEntry = ctx.gridLive !== null && ctx.grid !== null && ctx.session.ownedGridHome === true && ctx.session.recovery === undefined
-    && setting('homeEntry') === 'road';
-  const warmGrid = !roadEntry && ctx.gridLive?.bootProgramCell !== null && ctx.gridLive?.bootProgramCell !== undefined && ctx.session.ownedGridHome === true;
+  const warmGrid = ctx.gridLive?.bootProgramCell !== null && ctx.gridLive?.bootProgramCell !== undefined && ctx.session.ownedGridHome === true;
 
   // The staged loader invokes the trusted play hook after buildPlay. Only a fully installed runtime can leave:
   // leaving during buildPlay disposes its kit scope before that hook runs and makes recovery fall back to title.
   const enterGrid = async (): Promise<void> => {
-    if (roadEntry && ctx.gridLive !== null && ctx.grid !== null) {
-      const { road } = safeGridRecovery(ctx.grid.assembly, Date.now()), yaw = Math.PI / 2; // the lane east of the home, facing west into it
-      await ctx.gridLive.resumeRoad({ ...road, yaw });
-      player.spawn(road.x, road.z, yaw, 0.5); player.pitch = 0;
-      gridCells.leave();
-      return;
-    }
     if (ctx.session.ownedGridHome === true) {
       if (ctx.gridLive === null) throw new Error('Owned grid home requires its admitted live session');
       if (ctx.session.recovery?.saved?.location.kind === 'cell' || ctx.session.recovery === undefined) await ctx.gridLive.enterInitialHome();
@@ -129,8 +117,6 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   if (level === undefined) app.events.emit('level.loaded', { id: slug });
   app.setState(hud.entered ? 'play' : 'title');
   game.start(); // keep the full render loop out of the loader's 100% fade and its transient boot-memory peak
-  // the road start: the home is the known destination, so it builds from the first frames of play, ahead of the prefetch
-  if (roadEntry) ctx.gridLive?.admitHomeAhead();
   // G554: the grid's whole known set into the disk cache, this cell and its neighbours first, in the background once play
   // starts (round 39: during the loading screen its ~4,000 cache checks queued ahead of the home region's own reads)
   if (ctx.grid !== null) startGridPrefetch(gridPrefetchOrder(ctx.grid.assembly, player.position));
