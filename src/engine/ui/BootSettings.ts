@@ -1,3 +1,4 @@
+import { listenTap } from '../input/dom';
 import { uiScope, mountUi } from './ownership';
 import { app } from '../app/runtime';
 import type { UiHandle } from './layers';
@@ -19,13 +20,12 @@ import { automaticTier, TIER, gfxPrefs, saveGfxPrefs } from '../core/tier';
 
 import { isDev, onDev } from '../core/devMode';
 import { activeLevel } from '../level/selection';
-import { askReload } from './ReloadPrompt';
 import { devSwitchRows } from './devSwitch';
 import { foldCard } from './cards';
 import { buildDebugMenu, type DebugMenu } from './DebugMenu';
 import { TITLE_SKIPPERS } from './debugOptions';
 import { MUSIC_CREDIT, sfxCredit } from '../audio/credits';
-import { BOOT_OPTIONS, getSfxSet, pendingReload, saveSetting, savedSetting, setting, settingFromUrl, settingParams, settingsReloadUrl, type OptionKey, type OptionValue } from './Settings';
+import { BOOT_OPTIONS, getSfxSet, pendingReload, saveSetting, savedSetting, settingFromUrl, settingParams, settingsReloadUrl, type OptionKey, type OptionValue } from './Settings';
 import { markReload } from '../boot/lastEnd';
 import { buildMusicStyleRow } from './musicStyleRow';
 
@@ -43,6 +43,7 @@ const optionLabel = (k: OptionKey): string => (k === 'tier' || k === 'touch' ? L
 const BOOT_GFX = { ...gfxPrefs };
 
 let root: HTMLElement | undefined;
+let refresh: (() => void) | undefined;
 /** the Debug registry (E162), the same one the pause menu renders (E172) */
 let debug: DebugMenu | null = null;
 let developerTools: DebugMenu | null = null;
@@ -58,6 +59,7 @@ export function openBootSettings(): void {
   debug?.applies({ chunk: activeLevel(), weapons: new Set() });
   developerTools?.applies({ chunk: activeLevel(), weapons: new Set() });
   if (layer?.active !== true) { openScope = scope.child('open'); layer = app.ui.push('menu', { root: r, order: 0, back: close }, openScope); openScope.interval(2000, () => { debug?.paint(); developerTools?.paint(); }); }
+  refresh?.();
   r.classList.add('show');
   r.inert = false;
 }
@@ -89,28 +91,30 @@ function build(): HTMLElement {
   const apply = el('ws-gmenu-btn resume', engineString('s_aa22d01f58bf'), 'button') as HTMLButtonElement; apply.type = 'button';
   const paints: (() => void)[] = [];
   const repaint = (): void => {
-    for (const f of paints) f();
     const pending: string[] = pendingReload().map(optionLabel);
     if (gfxPrefs.dpr !== BOOT_GFX.dpr) pending.push(engineString('s_2dee7435d0fe'));
     if (gfxPrefs.aa !== BOOT_GFX.aa) pending.push(engineString('s_c77c3af22c64'));
-    status.textContent = pending.length > 0 ? engineString('s_2cbee05c7629', [pending.join(', ')]) : engineString('s_937833a58685');
-    apply.classList.toggle('exit', pending.length === 0);
+    const count = pending.length + (debug?.pendingReload() ?? 0) + (developerTools?.pendingReload() ?? 0);
+    status.textContent = count > 0 ? engineString('s_settings_pending', [count]) : engineString('s_937833a58685');
+    apply.hidden = count === 0;
+    apply.textContent = engineString('s_settings_apply_reload_count', [count]);
   };
 
   const seg = (label: string, experimental: boolean, options: { v: string; text: string }[], get: () => string, set: (v: string) => void): HTMLElement => {
     const row = el('ws-gmenu-row', engineString('s_135d0923e690', [label, experimental ? engineString('s_33b99f60d520') : '']));
     const box = el('ws-gmenu-seg');
+    const paint = (): void => { for (const c of box.children) (c as HTMLElement).classList.toggle('active', (c as HTMLElement).dataset['v'] === get()); };
     for (const o of options) {
       const b = words('ws-gmenu-segbtn', o.text, 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['v'] = o.v;
-      scope.listen(b, 'click', () => { set(o.v); repaint(); });
+      listenTap(scope, b, () => { set(o.v); paint(); repaint(); });
       box.append(b);
     }
-    paints.push(() => { for (const c of box.children) (c as HTMLElement).classList.toggle('active', (c as HTMLElement).dataset['v'] === get()); });
+    paints.push(paint); paint();
     row.append(box);
     return row;
   };
   const row = <K extends BootKey>(k: K, spec: Row<K>): HTMLElement =>
-    seg(spec.label, spec.experimental === true, spec.options, () => savedSetting(k), (v) => { const o = spec.options.find((x) => x.v === v); if (o) { saveSetting(k, o.v); if (o.v !== setting(k)) askReload(document.body, spec.label); } });
+    seg(spec.label, spec.experimental === true, spec.options, () => savedSetting(k), (v) => { const o = spec.options.find((x) => x.v === v); if (o) { saveSetting(k, o.v); } });
 
   const dprOpts = [{ v: '1', text: engineString('s_aa23e5562422') }, { v: '1.25', text: engineString('s_dfbe15a4b4a5') }, { v: '1.5', text: engineString('s_79105e58c657') }, { v: '2', text: engineString('s_d1ce94426019') }, { v: 'native', text: engineString('s_d509e4938852') }, { v: 'auto', text: engineString('s_0286249762f7') }];
   const aaOpts = [{ v: 'on', text: engineString('s_130011756125') }, { v: 'off', text: engineString('s_ca7981b46ecf') }, { v: 'auto', text: engineString('s_0286249762f7') }];
@@ -120,14 +124,14 @@ function build(): HTMLElement {
   // (Jake, 2026-09-26: "back in the open") — it is how the card appears at all.
   const dbg = foldCard('bootdebug', engineString('s_1a03bd2fd107'), engineString('s_8c4422087396'));
   const tools = foldCard('bootDeveloperTools', engineString('s_96f0c06bbcb7'), 'Diagnostics and unfinished work');
-  developerTools = buildDebugMenu(tools, { purpose: 'developer' });
+  developerTools = buildDebugMenu(tools, { purpose: 'developer', onPick: repaint });
   const registry = el('ws-gmenu-debugslot');
-  debug = buildDebugMenu(registry);
+  debug = buildDebugMenu(registry, { onPick: repaint });
   dbg.append(registry);
   dbg.hidden = !isDev(); tools.hidden = !isDev(); onDev((on) => { dbg.hidden = !on; tools.hidden = !on; if (on) { debug?.paint(); developerTools?.paint(); } });
   p.append(running,
     el('ws-gmenu-label', engineString('s_a874fca87cdd')), row('tier', LABELS.tier),
-    seg(engineString('s_2dee7435d0fe'), false, dprOpts, () => gfxPrefs.dpr, (v) => { if (v === 'auto' || v === '1' || v === '1.25' || v === '1.5' || v === '2' || v === 'native') { gfxPrefs.dpr = v; saveGfxPrefs(); if (v !== BOOT_GFX.dpr) askReload(document.body, engineString('s_2dee7435d0fe')); } }),
+    seg(engineString('s_2dee7435d0fe'), false, dprOpts, () => gfxPrefs.dpr, (v) => { if (v === 'auto' || v === '1' || v === '1.25' || v === '1.5' || v === '2' || v === 'native') { gfxPrefs.dpr = v; saveGfxPrefs(); } }),
     seg(engineString('s_c77c3af22c64'), false, aaOpts, () => gfxPrefs.aa, (v) => { if (v === 'auto' || v === 'on' || v === 'off') { gfxPrefs.aa = v; saveGfxPrefs(); } }),
     el('ws-gmenu-label', engineString('s_799c26913574')), row('touch', LABELS.touch),
     buildMusicStyleRow(scope),
@@ -141,14 +145,16 @@ function build(): HTMLElement {
   // print them under the cards; they live here now, and in the pause menu ▸ Settings ▸ Audio next to the pickers
   p.append(el('ws-gmenu-label', engineString('s_2a6b24ad2872')), ...[MUSIC_CREDIT, sfxCredit(getSfxSet())].filter((t) => t !== '').map((t) => words('ws-gmenu-note', t)));
 
-  scope.listen(apply, 'click', () => {
+  listenTap(scope, apply, () => {
+    debug?.applyPending(); developerTools?.applyPending();
     const next = settingsReloadUrl(location.href, TITLE_SKIPPERS);
     markReload('main menu settings: apply & reload');
     if (next === location.href) location.reload(); else location.replace(next);
   });
-  const closeBtn = sheet.querySelector('.ws-gmenu-close');
-  if (closeBtn) scope.listen(closeBtn, 'click', close);
+  const closeBtn = sheet.querySelector<HTMLButtonElement>('.ws-gmenu-close');
+  if (closeBtn) listenTap(scope, closeBtn, close);
   scope.listen(r, 'pointerdown', (e) => { if (e.target === r) close(); });
-  repaint();
+  refresh = () => { for (const paint of paints) paint(); repaint(); };
+  refresh();
   return r;
 }

@@ -1,3 +1,4 @@
+import { listenTap } from '../input/dom';
 import { uiScope } from './ownership';
 import { saveStorage } from '../saves/slots';
 
@@ -31,7 +32,7 @@ export function foldCard(id: string, title: string, sub = ''): HTMLElement {
   card.append(head);
   const paint = (open: boolean): void => { card.classList.toggle('folded', !open); head.setAttribute('aria-expanded', String(open)); };
   paint(wasOpen(id));
-  scope.listen(head, 'click', () => {
+  listenTap(scope, head, () => {
     const open = card.classList.contains('folded');
     paint(open);
     try { savedStorage.setItem(key(id), open ? 'open' : 'shut'); } catch { /* storage blocked: the fold is just not remembered */ }

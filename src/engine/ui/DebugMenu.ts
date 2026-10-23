@@ -1,3 +1,4 @@
+import { listenTap } from '../input/dom';
 import { app } from '../app/runtime';
 import type { UiHandle } from './layers';
 import { uiScope } from './ownership';
@@ -21,8 +22,6 @@ import { saveStorage } from '../saves/slots';
  */
 import './styles/debug.css';
 import { DEBUG_GROUPS, DEBUG_READOUTS, levelDebugRows, type DebugActionSpec, type DebugCtx, type DebugGroupId, type DebugRow } from './debugOptions';
-import { settingsReloadUrl } from './Settings';
-import { markReload } from '../boot/lastEnd';
 
 const savedStorage = saveStorage('device');
 
@@ -40,6 +39,9 @@ export interface DebugMenu {
   /** re-read the readouts that can be seen (E172) */
   paint: () => void;
   row: (id: string) => HTMLElement | undefined;
+  /** Choices remain local to this menu until its explicit APPLY & RELOAD. */
+  pendingReload: () => number;
+  applyPending: () => void;
 }
 
 /** a rendered row: its element, the lines after it (a readout, an action's status), and how to refresh it */
@@ -52,7 +54,7 @@ const ARM_MS = 6000;
 const seen = (e: HTMLElement): boolean => e.isConnected && e.getClientRects().length > 0;
 
 /** a button row: one tap runs it, or (with `confirm`, E172) the first tap arms it and a second within ARM_MS runs it */
-function renderAction(r: DebugRow, a: DebugActionSpec, row: HTMLElement, label: HTMLElement, onPick: (id: string) => void, scope: Scope): Rendered {
+function renderAction(r: DebugRow, a: DebugActionSpec, row: HTMLElement, label: HTMLElement, onPick: (id: string) => void, scope: Scope, stageAction: () => void): Rendered {
   const b = make('ws-gmenu-segbtn ws-dbg-action', a.text, 'button') as HTMLButtonElement; b.type = 'button';
   const status = make('ws-gmenu-note ws-dbg-status');
   const say = (text: string, line: string): void => { b.textContent = text; status.textContent = line; status.hidden = line === ''; };
@@ -61,11 +63,11 @@ function renderAction(r: DebugRow, a: DebugActionSpec, row: HTMLElement, label: 
   const run = (): void => {
     b.disabled = true;
     void Promise.resolve().then(() => a.run(say)).catch((e: unknown) => { console.warn(`[debug] ${r.id} failed`, e); }).finally(() => {
-      b.disabled = false; onPick(r.id);
-      if (r.reload) { markReload(`debug action ${r.id} (reloads)`); location.href = settingsReloadUrl(location.href); }
+      b.disabled = false;
+      if (r.reload) stageAction(); else onPick(r.id);
     });
   };
-  scope.listen(b, 'click', () => {
+  listenTap(scope, b, () => {
     const confirm = a.confirm;
     if (confirm === undefined || armed) { scope.cancelTimer(disarm); armed = false; b.classList.remove('armed'); run(); return; }
     b.disabled = true; b.textContent = engineString('s_a1f421df5e50');
@@ -80,21 +82,24 @@ function renderAction(r: DebugRow, a: DebugActionSpec, row: HTMLElement, label: 
   return { el: row, extra: [status], rebuild: () => undefined, paint: () => undefined };
 }
 
-function renderRow(r: DebugRow, onPick: (id: string) => void, scope: Scope): Rendered {
+function renderRow(r: DebugRow, onPick: (id: string) => void, scope: Scope,
+  pending: Map<DebugRow, string>, actions: Set<DebugRow>): Rendered {
   const row = make('ws-gmenu-row ws-dbg-row');
   const label = make('ws-gmenu-swlabel', r.label, 'span');
   if (r.reload) label.append(make('ws-dbg-reload', engineString('s_4027f515418b'), 'i'));
   label.append(make('ws-dbg-note', r.note, 'small'));
-  if (r.action) return renderAction(r, r.action, row, label, onPick, scope);
+  if (r.action) return renderAction(r, r.action, row, label, onPick, scope, () => { actions.add(r); onPick(r.id); });
   const box = make('ws-gmenu-seg ws-dbg-seg');
-  const paint = (): void => { for (const c of box.children) if (c instanceof HTMLElement) c.classList.toggle('active', c.dataset['v'] === r.get()); };
+  const paint = (): void => { for (const c of box.children) if (c instanceof HTMLElement) c.classList.toggle('active', c.dataset['v'] === (pending.get(r) ?? r.get())); };
   const build = (): void => {
     box.replaceChildren(...r.choices().map((c) => {
       const b = make('ws-gmenu-segbtn', c.text, 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['v'] = c.v;
-      scope.listen(b, 'click', () => {
-        if (r.get() === c.v) return;
-        r.set(c.v); paint(); onPick(r.id);
-        if (r.reload) { markReload(`debug row ${r.id} → ${c.v} (reloads)`); location.href = settingsReloadUrl(location.href); }
+      listenTap(scope, b, () => {
+        if ((pending.get(r) ?? r.get()) === c.v) return;
+        if (r.reload) {
+          if (r.get() === c.v) pending.delete(r); else pending.set(r, c.v);
+        } else r.set(c.v);
+        paint(); onPick(r.id);
       });
       return b;
     }));
@@ -113,6 +118,7 @@ export function buildDebugMenu(card: HTMLElement, opts: { onPick?: (id: string) 
   const scope = opts.scope?.child('debug') ?? uiScope('debug');
   const layer = app.ui.push('menu', { root: card, embedded: true, order: 0, back: () => undefined }, scope);
   const onPick = opts.onPick ?? ((): void => undefined);
+  const pending = new Map<DebugRow, string>(), actions = new Set<DebugRow>();
   const open = loadOpen();
   const byId = new Map<string, HTMLElement>();
   const filter = document.createElement('input');
@@ -139,7 +145,7 @@ export function buildDebugMenu(card: HTMLElement, opts: { onPick?: (id: string) 
     head.append(make('ws-dbg-caret', '', 'i'), make('ws-dbg-title', g.label, 'span'), count);
     const body = make('ws-dbg-body');
     const rows = defs.map((def) => {
-      const r = renderRow(def, (id) => { onPick(id); paintAll(); }, scope);
+      const r = renderRow(def, onPick, scope, pending, actions);
       byId.set(def.id, r.el); body.append(r.el, ...r.extra);
       return { def, r, text: `${def.label} ${def.note} ${g.label} ${def.id}`.toLowerCase() };
     });
@@ -147,7 +153,7 @@ export function buildDebugMenu(card: HTMLElement, opts: { onPick?: (id: string) 
     box.append(head, body);
     card.append(box);
     const s: Section = { id: g.id, box, head, count, rows };
-    scope.listen(head, 'click', () => {
+    listenTap(scope, head, () => {
       if (filter.value.trim() !== '') return; // while filtering, the matches decide what is open
       if (open.has(g.id)) open.delete(g.id); else open.add(g.id);
       saveOpen(open); paintOpen(s); paintAll();
@@ -185,5 +191,7 @@ export function buildDebugMenu(card: HTMLElement, opts: { onPick?: (id: string) 
     applies: (c) => { ctx = c; for (const s of sections) for (const r of s.rows) r.r.rebuild(); repaint(); paintAll(); },
     paint: paintAll,
     row: (id) => byId.get(id),
+    pendingReload: () => pending.size + actions.size,
+    applyPending: () => { for (const [row, value] of pending) row.set(value); pending.clear(); actions.clear(); },
   };
 }

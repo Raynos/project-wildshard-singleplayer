@@ -1243,6 +1243,7 @@ listeners attach (E362 AG18); `no-raw-input` also refuses the helper form (`scop
 | `EquipmentInput` | what equipment reads from input |
 | `installGameplayInput`, `weaponInputContext`, `weaponActionGate` | the shell's gameplay contexts (ports) |
 | `listenDom` | a scoped DOM listener for engine-side UI code; shards don't need it |
+| `listenTap` | scoped pointerup activation with paired-click suppression and keyboard click support |
 
 | `InputService` method | What it does |
 |---|---|

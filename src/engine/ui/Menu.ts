@@ -1,3 +1,5 @@
+import { listenTap } from '../input/dom';
+import { reloadWithPicks } from './ReloadPrompt';
 import type { Scope } from '../app/scope';
 import type { UiHandle } from './layers';
 import { TabRegistry, type TabSpec, type TabFragment } from './tabs';
@@ -135,7 +137,7 @@ export class GameMenu {
     this.tabBar = el('ws-gmenu-tabs');
     for (const t of TABS) {
       const b = tabButton(t.label, t.icon); b.dataset['tab'] = t.id;
-      this.scope.listen(b, 'click', () => this.select(t.id));
+      listenTap(this.scope, b, () => this.select(t.id));
       this.tabBar.append(b);
     }
     this.sheet.append(this.tabBar);
@@ -157,7 +159,7 @@ export class GameMenu {
     const zooms = el('ws-gmenu-zooms');
     for (const z of [1, 2, 4]) {
       const b = el('ws-gmenu-zoom', engineString('s_03a5f0ef36b4', [z]), 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['z'] = String(z);
-      this.scope.listen(b, 'click', () => { opts.fullMap.setZoom(z); this.syncZoom(); });
+      listenTap(this.scope, b, () => { opts.fullMap.setZoom(z); this.syncZoom(); });
       zooms.append(b); this.zoomChips.push(b);
   }
     this.mapLegend = el('ws-gmenu-legend', engineString('s_dd35e28aa4b1', [icon('poi'), icon('you')]));
@@ -175,8 +177,8 @@ export class GameMenu {
     const subtitle = this.sheet.querySelector<HTMLElement>('.ws-gmenu-sub'); if (!subtitle) throw new Error('GameMenu: no .ws-gmenu-sub');
     this.title = title; this.subtitle = subtitle; this.closeBtn = closeBtn; this.exitBtn = exitBtn;
     this.subtitle.textContent = levelName;
-    this.scope.listen(closeBtn, 'click', () => { this.close(); });
-    this.scope.listen(exitBtn, 'click', () => { this.close(true); this.onExit?.(); }); // silent: the HUD brings the title back itself
+    listenTap(this.scope, closeBtn, () => { this.close(); });
+    listenTap(this.scope, exitBtn, () => { this.close(true); this.onExit?.(); }); // silent: the HUD brings the title back itself
     this.scope.listen(this.root, 'pointerdown', (e) => { if (e.target === this.root) this.close(); });
     containMenuInput(this.root, this.scope);
     const toggle = (tab: MenuTab): void => {
@@ -334,7 +336,7 @@ export class GameMenu {
     const panel = el('ws-gmenu-panel scroll'); panel.dataset['scroll'] = '';
     const button = tabButton(spec.title, spec.icon);
     button.type = 'button'; button.dataset['tab'] = spec.id;
-    scope.listen(button, 'click', () => { this.select(spec.id); });
+    listenTap(scope, button, () => { this.select(spec.id); });
     this.panels[spec.id] = panel;
     this.panels.map.parentElement?.append(panel);
     const next = this.tabsRegistry.registeredTabs.find((row) => row.id !== spec.id && (row.order ?? 0) > (spec.order ?? 0));
@@ -403,7 +405,7 @@ export class GameMenu {
       const b = el('ws-gmenu-switch', engineString('s_d652c0be6be8', [label]), 'button') as HTMLButtonElement; b.type = 'button'; b.setAttribute('role', 'switch');
       const sync = (v: boolean) => { b.classList.toggle('on', v); b.setAttribute('aria-checked', String(v)); };
       sync(getSetting(key)); onSetting(key, sync);
-      this.scope.listen(b, 'click', () => setSetting(key, !getSetting(key)));
+      listenTap(this.scope, b, () => setSetting(key, !getSetting(key)));
       return b;
     };
     // "applies when" (E130): a row that does not apply to the weapons you hold or to this shard is hidden (re-read on every
@@ -458,7 +460,7 @@ export class GameMenu {
       const paint = () => { for (const c of box.children) (c as HTMLElement).classList.toggle('active', (c as HTMLElement).dataset['v'] === get()); };
       for (const o of options) {
         const b = words('ws-gmenu-segbtn', o.text, 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['v'] = o.v;
-        this.scope.listen(b, 'click', () => { set(o.v); paint(); });
+        listenTap(this.scope, b, () => { set(o.v); paint(); });
         box.append(b);
       }
       paint(); on(paint); row.append(box); return row;
@@ -480,8 +482,15 @@ export class GameMenu {
     // DEBUG (E162): every variant, taste toggle and developer aid, grouped — declared once in src/engine/ui/debugOptions.ts and
     // rendered by src/engine/ui/DebugMenu.ts (collapsible groups, only the rows that apply to this shard, a filter). Shards in
     // memory carries the on-device readout (E155 / E159): refreshed only while this menu is open on Settings
-    this.debug = buildDebugMenu(dbg);
-    this.developerTools = buildDebugMenu(tools, { purpose: 'developer' });
+    const apply = document.createElement('button'); apply.type = 'button'; apply.className = 'ws-gmenu-btn resume';
+    const paintPending = (): void => {
+      const count = (this.debug?.pendingReload() ?? 0) + (this.developerTools?.pendingReload() ?? 0);
+      apply.hidden = count === 0; apply.textContent = engineString('s_settings_apply_reload_count', [count]);
+    };
+    this.debug = buildDebugMenu(dbg, { onPick: paintPending });
+    this.developerTools = buildDebugMenu(tools, { purpose: 'developer', onPick: paintPending });
+    listenTap(this.scope, apply, () => { this.debug?.applyPending(); this.developerTools?.applyPending(); reloadWithPicks('pause settings: apply & reload'); });
+    paintPending(); cats.pane.append(apply);
     // Review is not debug (E140): playtesters unlock notes with it, so it stays in Settings, with the Developer switch
     const review = [this.buildReview(), ...devSwitchRows()];
     p.append(...review); cats.tag('review', ...review);
@@ -548,16 +557,16 @@ export class GameMenu {
         // the menu listens for M / Esc and the player for WASD on document: typing a password must not reach them
         this.scope.listen(input, 'keydown', (e) => { if (e.code !== 'Escape') e.stopPropagation(); if (e.code === 'Enter') void tryUnlock(); });
         this.scope.listen(input, 'keyup', (e) => { e.stopPropagation(); });
-        this.scope.listen(go, 'click', () => { void tryUnlock(); });
+        listenTap(this.scope, go, () => { void tryUnlock(); });
         row.append(input, go);
         box.append(row, note);
         return;
       }
       const sw = el('ws-gmenu-switch', engineString('s_e1e76f890568'), 'button') as HTMLButtonElement; sw.type = 'button'; sw.setAttribute('role', 'switch');
       sw.classList.toggle('on', quickNote()); sw.setAttribute('aria-checked', String(quickNote()));
-      this.scope.listen(sw, 'click', () => setQuickNote(!quickNote()));
+      listenTap(this.scope, sw, () => setQuickNote(!quickNote()));
       const lock = el('ws-gmenu-unlock', engineString('s_db44b8db4f05'), 'button') as HTMLButtonElement; lock.type = 'button';
-      this.scope.listen(lock, 'click', () => lockReview());
+      listenTap(this.scope, lock, () => lockReview());
       const row = el('ws-gmenu-row', engineString('s_b39f8f67f676'));
       row.append(lock);
       box.append(sw, row, el('ws-gmenu-note', engineString('s_806c6e56a7d8')));

@@ -6,6 +6,20 @@ export function listenDom<K extends string>(scope: Scope, target: EventTarget | 
   if (target === null || target === undefined) return;
   scope.listen(target, type, (event) => { fn(event); }, typeof options === 'boolean' ? { capture: options } : options);
 }
+/** Answer an iOS tap before its cancellable synthesized click; keyboard clicks
+ * remain active. Both listeners retire with the widget scope. */
+export function listenTap(scope: Scope, target: HTMLElement, fn: () => void): void {
+  let pointerAt = -Infinity;
+  listenDom(scope, target, 'pointerup', (event) => {
+    if (event.button !== 0 || (target instanceof HTMLButtonElement && target.disabled)) return;
+    event.stopPropagation(); pointerAt = event.timeStamp; fn();
+  });
+  listenDom(scope, target, 'click', (event) => {
+    event.stopPropagation();
+    if (event.detail > 0 && event.timeStamp - pointerAt < 500) return;
+    fn();
+  });
+}
 export function mountDom(scope: Scope, parent: HTMLElement, ...nodes: HTMLElement[]): void {
   parent.append(...nodes);
   for (const node of nodes) scope.ownNode(node);

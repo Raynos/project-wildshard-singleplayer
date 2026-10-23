@@ -1,3 +1,4 @@
+import { listenTap } from '../input/dom';
 import { uiScope } from './ownership';
 import { engineString } from '../strings';
 /**
@@ -21,7 +22,7 @@ export function devSwitchRows(): HTMLElement[] {
   sync(isDev()); scope.onDispose(onDev(sync));
   // A tap must repaint its own switch even if a page subscriber is rebuilt during notification.
   // Native click also covers touch activation and keyboard activation, without double-toggling.
-  scope.listen(b, 'click', () => { setDev(!isDev()); sync(isDev()); });
+  listenTap(scope, b, () => { setDev(!isDev()); sync(isDev()); });
   const note = document.createElement('div');
   note.className = 'ws-gmenu-note';
   note.textContent = engineString('s_f427cd6641a5');

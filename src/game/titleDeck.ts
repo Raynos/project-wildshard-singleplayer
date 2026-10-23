@@ -1,6 +1,6 @@
 import { app } from '@wildshard/engine/app/runtime';
 import { isDev } from '@wildshard/engine/core/devMode';
-import { listenDom } from '@wildshard/engine/input/dom';
+import { listenDom, listenTap } from '@wildshard/engine/input/dom';
 /**
  * The title screen's shard deck — ONE implementation for both ways in (E318, Jake: "lol wtf why do we have two title
  * screens, one only please"): the cold launch (src/engine/ui/StartTitle.ts, renderer-free, before any shard loads) and pause ▸
@@ -205,20 +205,7 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
   installLegacyButtonsRow(); // G531: Settings ▸ Debug offers it from the title on
   const mode = opts.mode ?? menuMode;
   const scope = app.engineScope.child('title-deck');
-  // iOS can cancel the synthesized click after a small touch movement. Answer
-  // pointerup immediately, while keeping keyboard clicks and suppressing its paired click.
-  const onTap = (el: HTMLElement, fn: () => void): void => {
-    let pointerAt = -Infinity;
-    listenDom(scope, el, 'pointerup', (ev) => {
-      if (ev.button !== 0 || (el instanceof HTMLButtonElement && el.disabled)) return;
-      ev.stopPropagation(); pointerAt = ev.timeStamp; fn();
-    });
-    listenDom(scope, el, 'click', (ev) => {
-      ev.stopPropagation();
-      if (ev.detail > 0 && ev.timeStamp - pointerAt < 500) return;
-      fn();
-    });
-  };
+  const onTap = (el: HTMLElement, fn: () => void): void => { listenTap(scope, el, fn); };
   const { cards } = opts;
   const entries: readonly DeckEntry[] = [...cards.map(fromShard), ...DRAFT_TITLES.map(fromDraft)];
   const activeIndex = entries.map((card): string => card.slug).indexOf(opts.active ?? '');

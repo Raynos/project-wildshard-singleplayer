@@ -1,19 +1,6 @@
-import { uiScope, mountUi } from './ownership';
-import { engineString } from '../strings';
-/**
- * The reload prompt (E65 Look Lab): a pick that only takes effect on a fresh page (the lighting model, the sky) asks
- * right away — "Needs a reload · Reload now / Later" — instead of leaving a note to go and find an Apply button.
- *
- *   setPoseProvider(() => ({ x, y, z, yaw, pitch }) | null)   // main.ts, once: where the player stands (currentPose)
- *   askReload(panel, 'Render scale')                           // main menu ▸ Settings: Reload now lands on the title
- *
- * The saved picks win: settingsReloadUrl drops any address param that would override them. (The pause-menu variant that
- * came back into the world had no caller left and is gone — E140, dead item 10.)
- * "Later" just closes the prompt — the pick is saved and applies on the next load.
- */
+/** Reload only on explicit APPLY & RELOAD; currentPose also serves recovery. */
 import { RELOAD_PARAM } from '../core/GpuRecovery';
 import { settingsReloadUrl } from './Settings';
-import './styles/reload.css';
 import { markReload } from '../boot/lastEnd';
 
 interface Pose { x: number; y: number; z: number; yaw: number; pitch: number }
@@ -34,27 +21,3 @@ export function reloadWithPicks(why = 'reload prompt: reload now'): void {
   location.replace(url.toString());
 }
 
-let open: HTMLElement | null = null;
-/**
- * Ask once, right where the pick was made: a small sheet over `host` with RELOAD NOW / LATER. A second pick while it is
- * up just rewrites its line (one prompt, the latest picks).
- */
-export function askReload(host: HTMLElement, what: string): void {
-  const line = `${what} needs a reload to apply.`;
-  if (open?.isConnected) { const t = open.querySelector('.ws-reload-text'); if (t) t.textContent = line; return; }
-  const scope = uiScope('reloadPrompt');
-  const sheet = document.createElement('div');
-  sheet.className = 'ws-reload';
-  sheet.setAttribute('role', 'alertdialog');
-  sheet.setAttribute('aria-live', 'polite');
-  const text = document.createElement('p'); text.className = 'ws-reload-text'; text.textContent = line;
-  const go = document.createElement('button'); go.type = 'button'; go.className = 'ws-reload-go'; go.textContent = engineString('s_401ed5e6c7b0');
-  const later = document.createElement('button'); later.type = 'button'; later.className = 'ws-reload-later'; later.textContent = engineString('s_73b6e48a1b55');
-  const row = document.createElement('div'); row.className = 'ws-reload-row'; row.append(later, go);
-  sheet.append(text, row);
-  scope.listen(go, 'click', (e) => { e.stopPropagation(); go.disabled = true; go.textContent = engineString('s_ea456dcf3d90'); reloadWithPicks(); });
-  scope.listen(later, 'click', (e) => { e.stopPropagation(); scope.dispose(); open = null; });
-  mountUi(sheet, scope, host);
-  open = sheet;
-  go.focus();
-}

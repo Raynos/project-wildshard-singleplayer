@@ -1,3 +1,4 @@
+import { listenTap } from '../input/dom';
 import type { Scope } from '../app/scope';
 import { engineString } from '../strings';
 
@@ -56,7 +57,7 @@ export function settingsCategories(panel: HTMLElement, scope: Scope, labels: Rec
   };
   for (const cat of SETTINGS_CATS) {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'ws-gmenu-cat'; b.textContent = labels[cat]; b.dataset['cat'] = cat;
-    scope.listen(b, 'click', () => { api.select(cat); });
+    listenTap(scope, b, () => { api.select(cat); });
     buttons.set(cat, b); rail.append(b);
   }
   scope.listen(media, 'change', () => { api.sync(); });

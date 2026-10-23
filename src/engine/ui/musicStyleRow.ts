@@ -1,3 +1,4 @@
+import { listenTap } from '../input/dom';
 import type { Scope } from '../app/scope';
 import { onAudioBusy } from '../audio/preload';
 import { engineString } from '../strings';
@@ -13,7 +14,7 @@ export function buildMusicStyleRow(scope: Scope): HTMLElement {
   const buttons = MUSIC_STYLES.map(value => {
     const button = document.createElement('button'); button.type = 'button'; button.className = 'ws-gmenu-segbtn';
     button.textContent = labels[value]; button.dataset['v'] = value;
-    scope.listen(button, 'click', () => { setMusicStyle(value); }); box.append(button); return button;
+    listenTap(scope, button, () => { setMusicStyle(value); }); box.append(button); return button;
   });
   const paint = (): void => { for (const button of buttons) button.classList.toggle('active', button.dataset['v'] === getMusicStyle()); };
   paint(); scope.onDispose(onMusicStyle(paint));
