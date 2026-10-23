@@ -302,7 +302,7 @@ export function sceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null
 }
 
 function* sceneJobSteps(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, per: number, roots: readonly THREE.Object3D[],
-  excludedRoots?: ReadonlySet<THREE.Object3D>): Generator<void, { jobs: CompileJob[]; materials: number }> {
+  excludedRoots?: ReadonlySet<THREE.Object3D>, include?: (object: THREE.Object3D) => boolean): Generator<void, { jobs: CompileJob[]; materials: number }> {
   const seen = new Set<string>();
   const mats = new Set<THREE.Material>();
   const clones: THREE.Object3D[] = [];
@@ -312,7 +312,7 @@ function* sceneJobSteps(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, 
     if (o === undefined || excludedRoots?.has(o) === true) continue;
     for (let i = o.children.length - 1; i >= 0; i--) { const child = o.children[i]; if (child !== undefined) pending.push(child); }
     const mesh = o as MeshLike;
-    const list = materialsOf(mesh);
+    const materials = materialsOf(mesh), list = materials.length > 0 && include !== undefined && !include(o) ? [] : materials;
     if (list.length === 0) { yield; continue; }
     const ok = programObjectKey(mesh);
     const wanted = list.filter((m) => { mats.add(m); const k = m.uuid + ok; if (seen.has(k)) return false; seen.add(k); return true; });
@@ -334,8 +334,8 @@ function* sceneJobSteps(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, 
 }
 
 async function pacedSceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, per: number, roots: readonly THREE.Object3D[],
-  excluded: ReadonlySet<THREE.Object3D> | undefined, current: () => boolean, owner: Scope): Promise<{ jobs: CompileJob[]; materials: number }> {
-  const steps = sceneJobSteps(scene, rt, per, roots, excluded), slice = workSlice(undefined, owner);
+  excluded: ReadonlySet<THREE.Object3D> | undefined, current: () => boolean, owner: Scope, include?: (object: THREE.Object3D) => boolean): Promise<{ jobs: CompileJob[]; materials: number }> {
+  const steps = sceneJobSteps(scene, rt, per, roots, excluded, include), slice = workSlice(undefined, owner);
   for (;;) {
     if (!current()) throw new Error('Shader preparation owner left');
     const step = steps.next(); if (step.done) return step.value;
@@ -1113,6 +1113,24 @@ export async function compileOffscreenPass(renderer: Renderer, pass: OffscreenPa
   }
 }
 
+/**
+ * Whether the renderer would draw `object` from `camera` now: shown up its parents, on the camera's layers, with copies to
+ * draw, and in the camera's frustum unless it is never frustum culled (three's own test).
+ */
+function drawnFrom(camera: THREE.Camera): (object: THREE.Object3D) => boolean {
+  camera.updateMatrixWorld();
+  const frustum = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+  return (object) => {
+    for (let at: THREE.Object3D | null = object; at !== null; at = at.parent) if (!at.visible) return false;
+    if (!object.layers.test(camera.layers)) return false;
+    if (object instanceof THREE.InstancedMesh && object.count === 0) return false;
+    if (!object.frustumCulled) return true;
+    // what three's frustum test reads: a bounded geometry (anything else, a sprite too, is compiled now)
+    const geometry: unknown = Reflect.get(object, 'geometry');
+    return !(geometry instanceof THREE.BufferGeometry) || frustum.intersectsObject(object);
+  };
+}
+
 /** The level supplies compile policy; the mechanism owns all shader jobs. */
 export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | 'scene' | 'rootScene' | 'composer' | 'level'>, onProgress?: (done: number, total: number, detail: string) => void,
   options: { /** Entered frames reuse their existing caster geometry. */ chunkCasters?: boolean; /** Fence yielded work to its entered owner. */ current?: () => boolean;
@@ -1125,7 +1143,9 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     /** Batch image uploads per frame under this budget (op-hitch32): several when isolated, none started past it. */ uploadBudget?: UploadBudget;
     /** Optional scalar stage timings, including painted waits. Does not retain materials or native handles. */ onStage?: PrecompileStage;
     /** Warm post draw pipelines one material per paint during initial loading; never used by live preparation. */ warmPost?: boolean;
-    /** A live warm-up's slice bound (LIVE_PRECOMPILE_SLICE_MS): one material a job, each slice checked against it. */ sliceMs?: number } = {}): Promise<number> {
+    /** A live warm-up's slice bound (LIVE_PRECOMPILE_SLICE_MS): one material a job, each slice checked against it. */ sliceMs?: number;
+    /** Scene programs only for what the camera draws now (the first frame's); the rest is the caller's later warm-up.
+     *  Shadow, family, post, background and exterior jobs stay whole. */ drawnOnly?: boolean } = {}): Promise<number> {
 
     if (options.current?.() === false) throw new Error('Shader warm-up owner left');
     if (options.futureLighting !== undefined) {
@@ -1175,8 +1195,9 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     const excludedRoots = entryFrameExclusions(scene, options.futureLighting);
     const kinded = (kind: string, list: CompileJob[]): CompileJob[] => { for (const job of list) job.kind = kind; return list; };
     const { jobs, materials } = policy?.scene === false ? { jobs: [], materials: 0 }
-      : live || setting('buildPacing') === 'entry' ? await pacedSceneJobs(scene, rt, per, [scene], excludedRoots, options.current ?? (() => true), pageScope)
-      : sceneJobs(scene, rt, per, [scene], excludedRoots);
+      : live || setting('buildPacing') === 'entry' || options.drawnOnly === true
+        ? await pacedSceneJobs(scene, rt, per, [scene], excludedRoots, options.current ?? (() => true), pageScope, options.drawnOnly === true ? drawnFrom(game.camera) : undefined)
+        : sceneJobs(scene, rt, per, [scene], excludedRoots);
     // Diagnostic split: the entered root's own materials, else the rest of the page compiled under its lights.
     const entered = new Set<THREE.Material>();
     options.futureLighting?.traverse(object => { for (const material of materialsOf(object)) entered.add(material); });
