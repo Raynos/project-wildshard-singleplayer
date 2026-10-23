@@ -583,6 +583,8 @@
           "arena-room.entry",
           "elite.entry",
           "stealth.entry",
+          "elite.construct",
+          "timed.encounters",
           "quest.chapter-view"
         ]
       }

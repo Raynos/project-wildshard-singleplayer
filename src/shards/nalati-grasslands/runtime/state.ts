@@ -10,8 +10,6 @@ import * as v from 'valibot';
 
 
 import { SceneDressing } from '@wildshard/game/shardfile/sceneDressing';
-import { installClientTimedEncounters } from '@wildshard/game/shardfile/clientTimedEncounters';
-import { installClientEliteConstruction } from '@wildshard/game/shardfile/clientEliteConstruction';
 import { installWorldUpdates } from '@wildshard/game/shardfile/worldUpdates';
 
 
@@ -45,8 +43,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   updates.push((dt, t) => { titan.update(dt, t); });
 
   // ── named elites (elites agent, B12): the five lairs, their spawn rules on the clock / the storm — src/shards/nalati-grasslands/elites.ts ──
-  const { constants: { timedEntry, eliteEntry } } = await plugin.product.json<{ constants: { timedEntry: unknown; eliteEntry: unknown } }>('sim/headless-assembly.json');
-  const eliteOwner = await installClientEliteConstruction(plugin, eliteEntry);
+  const eliteOwner = entryOwner(plugin.scope, 'elite-entry', 'nalati.elites');
   const { entry: elites, rows: eliteRows, models: drops, fight: charge, ledges: eliteLedges } = eliteOwner;
   const eliteProgram = eliteOwner.program.value;
   updates.push((dt, t) => {
@@ -66,7 +63,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   plugin.answer('weather.indoors', inside => Math.max(inside, Number(boss.inside))); // weather agent (B10): no lightning / rain in the dungeon, and no storm starts during the fight
 
   // ── creatures (creatures agent, B4): Wildlife over main's AnimalManager, fed the grass, the wind, the water, the player ──
-  const night = await installClientTimedEncounters(plugin, timedEntry);
+  const night = entryOwner(plugin.scope, 'timed-encounters', 'nalati.night');
   function eliteFrame() { const ride = presentEntryOwner(plugin.scope, 'riding-play', 'nalati.riding'); return { patrolAvailable: true, herdAvailable: clientWildlife(plugin) !== null, kills: night.riders.killsTonight,
     bonded: ride?.taming.phase === 'bonded', mount: ride?.taming.companion ?? null }; }
   const nalati = {
