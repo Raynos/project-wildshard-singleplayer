@@ -1,8 +1,6 @@
 import { prepareBinarySources,binarySourceBytes,type BinaryFileReader } from './binarySource';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { base64Bytes } from '@wildshard/engine/core/deflate';
 import { SpecimenCatalogueSchema, PackedSpecimenSchema, SpecimenMaterialSchema, PickupCatalogueSchema, assertSpecimenJson as jsonData } from '@wildshard/format/specimenCatalogue';
-import { unzlibSync } from 'fflate';
 import * as THREE from 'three';
 import * as v from 'valibot';
 import type { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -22,20 +20,27 @@ import { interactParts } from '@wildshard/engine/world/interact/kit';
 import { registerPickupLook, type PickupPart } from '@wildshard/engine/world/interact/types';
 import { installCoinModel } from '../loot/coinModel';
 
-/** Install prepared pickup looks shared by authored interaction tables and loot effects.
- * Each request owns fresh geometry; unknown seeds refuse and no decoded template is retained. */
-export function installPickupCatalogue(input: unknown): void {
+function readPickupCatalogue(input:unknown):v.InferOutput<typeof PickupCatalogueSchema> {
   jsonData(input);
   const rows = v.parse(PickupCatalogueSchema, input);
   const keys = rows.geometries.map(row => `${row.key}:${row.seed}`);
   if (new Set(keys).size !== keys.length || new Set(rows.looks.map(row => row.id)).size !== rows.looks.length
     || new Set(rows.looks.map(row => row.model)).size !== rows.looks.length) throw new Error('Duplicate pickup declaration');
   if (rows.looks.some(row => row.parts.some(part => !keys.includes(`${part.key}:${rows.seed}`)))) throw new Error('Missing pickup specimen geometry');
+  return rows;
+}
+/** Prepare the shared pickup catalogue's raw files before registering any look or coin factory. */
+export function preparePickupCatalogue(product:BinaryFileReader,input:unknown,scope?:Scope):Promise<ReadonlyMap<string,Uint8Array>> {
+  return prepareBinarySources(product,readPickupCatalogue(input).geometries.flatMap(row=>'file'in row?[{source:{file:row.file},bytes:bakedGeometryBytes(row.geometry)}]:[]),scope);
+}
+/** Each request owns fresh geometry; preparation retains only the original raw storage, never decoded templates. */
+export function installPickupCatalogue(input: unknown,files:ReadonlyMap<string,Uint8Array>=new Map()): void {
+  const rows=readPickupCatalogue(input);
+  for(const row of rows.geometries)if('file'in row&&files.get(row.file)?.byteLength!==bakedGeometryBytes(row.geometry))throw new Error('Pickup source was not prepared');
   const geometry = (key: string, seed: number): THREE.BufferGeometry => {
     const row = rows.geometries.find(candidate => candidate.key === key && candidate.seed === seed);
     if (row === undefined) throw new Error(`No prepared pickup geometry: ${key}:${seed}`);
-    const compressed = base64Bytes(row.data);
-    const bytes = unzlibSync(compressed);
+    const bytes = binarySourceBytes('data'in row?{data:row.data}:{file:row.file},files);
     if (bytes.length !== bakedGeometryBytes(row.geometry)) throw new Error(`Invalid prepared pickup bytes: ${key}:${seed}`);
     return readBakedGeometry(bytes, 0, row.geometry);
   };

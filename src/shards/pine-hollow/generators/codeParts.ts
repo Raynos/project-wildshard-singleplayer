@@ -27,10 +27,12 @@ import { NPC_MILLER_BODY, NPC_RANGER_BODY, NPC_RANGER_GLASS, NPC_TRADER_BODY } f
 
 const tokens = v.parse(PickupCatalogueSchema, pickupRows).geometries.filter(row => row.key === 'token');
 /** The shelf's eight authored seed variants use the same prepared bytes as the legacy live shelf. */
-function carvedToken(seed: number): THREE.BufferGeometry {
+function carvedToken(seed: number,files:ReadonlyMap<string,Uint8Array>): THREE.BufferGeometry {
   const row = tokens.find(candidate => candidate.seed === seed);
   if (row === undefined) throw new Error(`Missing prepared shelf token ${seed}`);
-  return readBakedGeometry(unzlibSync(Uint8Array.from(atob(row.data), character => character.codePointAt(0) ?? 0)), 0, row.geometry);
+  const bytes='file'in row?files.get(row.file):unzlibSync(Uint8Array.from(atob(row.data), character => character.codePointAt(0) ?? 0));
+  if(bytes===undefined)throw new Error('Missing prepared shelf bytes');
+  return readBakedGeometry(bytes, 0, row.geometry);
 }
 
 const uvScale = (g: THREE.BufferGeometry, su: number, sv: number): THREE.BufferGeometry => {
@@ -79,7 +81,7 @@ export function hollowLogColliders(): { kind: 'box'; x: number; y: number; z: nu
 const TOKENS = 8, SCALE = 0.6, PITCH = 0.185, LEAN = -0.14;
 
 /** the token shelf in the rack's frame: origin on the mantel top under the rack's centre, +Z out into the room */
-function tokenShelf(): THREE.BufferGeometry {
+function tokenShelf(files:ReadonlyMap<string,Uint8Array>): THREE.BufferGeometry {
   const k = new LowPolyKit(8088);
   const len = TOKENS * PITCH + 0.12, r = (0.15 * SCALE);
   k.add(plank(len, 0.13, 0.03, k.rng, 0.004).translate(0, 0.015, 0), '#9a7048', { jitter: 0.05 });            // the base
@@ -93,7 +95,7 @@ function tokenShelf(): THREE.BufferGeometry {
     const x = (i - (TOKENS - 1) / 2) * PITCH;
     e.set(LEAN + ((i * 37) % 5) * 0.012, ((i * 53) % 7 - 3) * 0.03, ((i * 29) % 5 - 2) * 0.02);
     m.compose(p.set(x, 0.03 + r, -0.005), q.setFromEuler(e), sc);
-    parts.push(carvedToken(1000 + i).applyMatrix4(m));
+    parts.push(carvedToken(1000 + i,files).applyMatrix4(m));
   }
   return mergeGeometries(parts, false);
 }
@@ -165,10 +167,10 @@ function ghostStagTines(): THREE.BufferGeometry {
 }
 
 /** every code-built part, by name, in pack order */
-export function pineCodeParts(heightAt: (x: number, z: number) => number): Record<string, THREE.BufferGeometry> {
+export function pineCodeParts(heightAt: (x: number, z: number) => number,files:ReadonlyMap<string,Uint8Array>=new Map()): Record<string, THREE.BufferGeometry> {
   return {
     ...hollowLog(),
-    'token-shelf': tokenShelf(),
+    'token-shelf': tokenShelf(files),
     'npc-ranger': buildPrimitiveParts(NPC_RANGER_BODY), 'npc-ranger-glass': buildPrimitiveParts(NPC_RANGER_GLASS),
     'npc-miller': buildPrimitiveParts(NPC_MILLER_BODY), 'npc-trader': buildPrimitiveParts(NPC_TRADER_BODY),
     'zip-trolley': zipTrolley(), canoe: canoe(), 'zip-cable': zipCable(), 'cave-roof': caveRoof(heightAt), 'ghost-stag-tines': ghostStagTines(),
@@ -176,8 +178,8 @@ export function pineCodeParts(heightAt: (x: number, z: number) => number): Recor
 }
 
 /** The pack: its bytes, its rows and each part's geometry index. */
-export function bakePineCodeParts(heightAt: (x: number, z: number) => number): { bin: Uint8Array; rows: PackedGeometryRows; parts: Record<string, number> } {
+export function bakePineCodeParts(heightAt: (x: number, z: number) => number,files:ReadonlyMap<string,Uint8Array>=new Map()): { bin: Uint8Array; rows: PackedGeometryRows; parts: Record<string, number> } {
   const writer = new GeometryPackWriter('pine code parts'), parts: Record<string, number> = {};
-  for (const [name, geometry] of Object.entries(pineCodeParts(heightAt))) { parts[name] = writer.add(geometry); geometry.dispose(); }
+  for (const [name, geometry] of Object.entries(pineCodeParts(heightAt,files))) { parts[name] = writer.add(geometry); geometry.dispose(); }
   return { bin: writer.bytes(), rows: writer.rows(), parts };
 }

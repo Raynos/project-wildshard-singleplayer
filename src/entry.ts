@@ -129,7 +129,7 @@ async function startSelected(): Promise<void> {
   loading.setPrefetchSource(gridPrefetchStatus);
   loading.waiting('Preparing application services');
   // each module the boot needs, by name (E434: no barrels); they load in parallel, as the indexes did
-  const [{ installKitSpecies }, { installKitIcons, BAG_ICONS }, { installPickupCatalogue }, { default: PICKUP_CATALOGUE }, { installKitProps }, { STARTER_BAG_ITEMS }, { HOVERBOARD_TOOL },
+  const [{ installKitSpecies }, { installKitIcons, BAG_ICONS }, { installPickupCatalogue, preparePickupCatalogue }, { default: PICKUP_CATALOGUE }, { installKitProps }, { STARTER_BAG_ITEMS }, { HOVERBOARD_TOOL },
     { sharedWeaponVoices, declaredWeaponVoices }, { sharedCombatCues }, { BOAR_LOOK }, { declaredKitItemFamilies }] = await Promise.all([
     retried(() => import('./game/systems/species/install')), retried(() => import('./game/icons')),
     retried(() => import('./game/models/specimenCatalogue')), retried(() => import('./game/data/pickupCatalogue.json')),
@@ -173,7 +173,16 @@ async function startSelected(): Promise<void> {
     if (source !== null || manifest.shardfile !== undefined) document.documentElement.classList.remove('title-first');
     installKitSpecies();
     installKitIcons();
-    installPickupCatalogue(PICKUP_CATALOGUE);
+    const [{boundedResponse,browserContentHash},{publicBytes}] = await Promise.all([retried(()=>import('./game/shardfile/product')),retried(()=>import('./engine/boot/tables'))]);
+    const pickupAssets=publicBytes(), pickupPath=/^\/assets\/baked\/common\/pickups\/([a-f0-9]{64})\.bin$/u;
+    const pickupFiles=await preparePickupCatalogue({hasFile:file=>pickupPath.test(file)&&Object.hasOwn(pickupAssets,file),file:async file=>{
+      const hash=pickupPath.exec(file)?.[1],cap=pickupAssets[file];
+      if(hash===undefined||cap===undefined)throw new Error('Missing pickup asset declaration');
+      const bytes=await boundedResponse(await fetch(file),cap);
+      if(await browserContentHash(bytes)!==hash)throw new Error('Pickup asset hash differs');
+      return bytes;
+    }},PICKUP_CATALOGUE,entryScope);
+    installPickupCatalogue(PICKUP_CATALOGUE,pickupFiles);
     installKitProps();
     const { startSession } = await retried(() => import('./game/session/session'));
     await startSession(manifest, {

@@ -118,10 +118,6 @@
       "base64Chars": 0,
       "dataUris": 1
     },
-    "src/game/data/pickupCatalogue.json": {
-      "base64Chars": 98912,
-      "dataUris": 0
-    },
     "src/shards/_template/.wildshard/product/shard.json": {
       "base64Chars": 0,
       "dataUris": 8

@@ -15,7 +15,13 @@ import { bakePineCodeParts, hollowLogColliders } from './codeParts.ts';
 
 const root = resolve(import.meta.dirname, '../../../..'), check = process.argv.includes('--check');
 const ground = readNativeTerrain(readFileSync(resolve(root, 'public/assets/baked/pine-hollow/terrain.bin')));
-const { bin, rows, parts } = bakePineCodeParts(ground.heightAt);
+const pickups=JSON.parse(readFileSync(resolve(root,'src/game/data/pickupCatalogue.json'),'utf8'));
+const pickupFiles=new Map(pickups.geometries.flatMap(row=>{
+  if(!('file'in row))return [];
+  if(!/^\/assets\/baked\/common\/pickups\/[a-f0-9]{64}\.bin$/u.test(row.file))throw new Error('Invalid prepared pickup source');
+  return [[row.file,new Uint8Array(readFileSync(resolve(root,`public${row.file}`)))]];
+}));
+const { bin, rows, parts } = bakePineCodeParts(ground.heightAt,pickupFiles);
 const sha256 = createHash('sha256').update(bin).digest('hex');
 const url = `/assets/pine-hollow/baked/code-parts-${sha256.slice(0, 12)}.bin`;
 const packed = deflateSync(bin, { level: 9 });

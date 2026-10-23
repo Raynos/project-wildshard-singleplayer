@@ -4,7 +4,6 @@
   "files": {
     "scripts/bake-coats.mjs": 2,
     "scripts/bake-maps.mjs": 2,
-    "scripts/bake-pickups.mjs": 1,
     "scripts/bake-template-shardfile.mjs": 1,
     "scripts/bake-textures.mjs": 1,
     "scripts/bake-viewmodel-sets.mjs": 2,

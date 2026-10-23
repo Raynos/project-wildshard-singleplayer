@@ -1,4 +1,5 @@
 // node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/bake-pickups.mjs [--check]
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { zlibSync, unzlibSync } from 'fflate';
@@ -52,7 +53,8 @@ const coin = authoredPickups.find(row => row.id === 'coin').parts[0]; add(coin, 
 const token = authoredPickups.find(row => row.id === 'token').parts[0];
 for (let i = 0; i < 8; i++) add(token, 1000 + i);
 
-let rawBytes = 0, compressedBytes = 0;
+const writer = byteWriter(process.argv.includes('--check'), 'pickup-bake');
+let rawBytes = 0, compressedBytes = 0, legacyEncodedBytes = 0;
 const geometries = [...variants.values()].map(({ part, seed: value }) => {
   const geometry = part.geometry(value), chunks = [];
   if (geometry.index !== null || geometry.groups.length > 0) throw new Error('Pickup bake requires original unindexed draws');
@@ -70,14 +72,15 @@ const geometries = [...variants.values()].map(({ part, seed: value }) => {
       .equals(Buffer.from(actual.buffer, actual.byteOffset, actual.byteLength))) throw new Error(`Pickup byte mismatch ${part.key}:${value}:${name}`);
   }
   if (!geometry.boundingBox.equals(restored.boundingBox) || !geometry.boundingSphere.equals(restored.boundingSphere)) throw new Error(`Pickup bounds mismatch ${part.key}:${value}`);
-  rawBytes += bytes.length; compressedBytes += compressed.length;
+  rawBytes += bytes.length; compressedBytes += compressed.length; legacyEncodedBytes += Math.ceil(compressed.length/3)*4;
   geometry.dispose(); restored.dispose();
-  return { key: part.key, seed: value, geometry: row, data: Buffer.from(compressed).toString('base64') };
+  const file = `/assets/baked/common/pickups/${createHash('sha256').update(bytes).digest('hex')}.bin`;
+  writer.put(fileURLToPath(new URL(`../public${file}`, import.meta.url)),bytes);
+  return { key: part.key, seed: value, geometry: row, file };
 });
 const looks = authoredPickups.map(row => ({ id: row.id, model: row.model, name: row.name, batch: row.batch, lift: row.lift,
   parts: row.parts.map(({ geometry: _geometry, ...part }) => part) }));
 const rows = { file: 'src/game/generators/pickups.ts', seed, coin: coin.key, geometries, looks };
-const writer = byteWriter(process.argv.includes('--check'), 'pickup-bake');
 writer.put(fileURLToPath(new URL('../src/game/data/pickupCatalogue.json', import.meta.url)), jsonBytes(rows));
 writer.finish();
-console.log(JSON.stringify({ variants: geometries.length, rawBytes, compressedBytes, encodedBytes: geometries.reduce((n, row) => n + row.data.length, 0), traces }, null, 2));
+console.log(JSON.stringify({ variants: geometries.length, rawBytes, compressedBytes, encodedBytes: 0, legacyEncodedBytes, traces }, null, 2));
