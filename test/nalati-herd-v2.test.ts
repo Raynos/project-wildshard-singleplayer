@@ -1,14 +1,14 @@
 import {FrozenHerd} from './fixtures/herdNativeOracle';
 import {scriptAdmissionRows} from '../src/format/scriptContract';
 import {NALATI_SCRIPT_SECTIONS} from '../src/shards/nalati-grasslands/generators/scriptInventory';
-import {expect,test} from 'vitest';
+import {expect,test,vi} from 'vitest';
 import * as v from 'valibot';
 import {Vector3} from 'three';
 import {AnimalSim} from '../src/engine/entities/AnimalSim';
 import {HerdBrain,type HerdSpec,type HerdPorts,type HerdContext} from '../src/engine/ai/herd';
 import {Scope} from '../src/engine/app/scope';
 import {Rng} from '../src/engine/core/rng';
-import type {GroupStepReferenceV2} from '../src/engine/script/groupStepV2';
+import {GroupStepV2,type GroupStepReferenceV2} from '../src/engine/script/groupStepV2';
 import type {GroupBankValueV2} from '../src/format/scriptGroupBankV2';
 import {ReturnProgram} from '../src/game/population/returnProgram';
 import binding from '../src/shards/nalati-grasslands/data/herdGuest.json' with {type:'json'};
@@ -403,4 +403,20 @@ test('a full native herd keeps each ordinary member drive within the admitted gr
    }
   }finally{old.scope.dispose();next.scope.dispose();}
  }
+});
+
+
+test('original body and group-clock gates capture no guest bank for ineligible callbacks',()=>{
+ const f=fixture('graze','watch',false,16),prepare=vi.spyOn(GroupStepV2.prototype,'prepare');
+ try{
+  const before=f.herd.snapshot(),random=f.random.snapshot(),local=f.contextRandom.snapshot();
+  for(let frame=0;frame<120;frame++)for(const actor of f.roster)f.herd.drive(actor,f.ctx,true);
+  expect(prepare).not.toHaveBeenCalled();expect(f.log).toEqual([]);expect(f.herd.snapshot()).toBe(before);
+  expect(f.random.snapshot()).toEqual(random);expect(f.contextRandom.snapshot()).toEqual(local);
+  f.herd.tick(f.ctx);const calls=prepare.mock.calls.length,once=f.herd.snapshot();
+  expect(calls).toBeGreaterThan(0);
+  for(let member=0;member<16;member++)f.herd.tick(f.ctx);
+  expect(prepare).toHaveBeenCalledTimes(calls);expect(f.herd.snapshot()).toBe(once);
+  f.scope.dispose();expect(()=>f.herd.drive(f.roster[0]??makeBody('absent','mare',0,0),f.ctx,true)).toThrow('binding');
+ }finally{prepare.mockRestore();f.scope.dispose();}
 });

@@ -392,12 +392,16 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     this.guest = {program,prepare:program.prepareGroup,bindings,shape,rows,scope:loans.scope,group:loans.group,handle:loans.handle,
       player:loans.player,actors:loans.actors,codec:new GroupBankV2(shape.bank)};
   }
-  private runHerdGuest(signal: string, context?: GuardedHerdContext<A>, actor?: A, body = false,
-    arguments_: Readonly<Record<string,number>> = {}): void {
+  private requireHerdGuest(): NonNullable<GrazerBrain<A>['guest']> {
     const binding = this.guest;
     if(binding===undefined)throw new Error('Herd guest is not bound');
     if (binding.scope.disposed || binding.scope.disposing || binding.program.prepareGroup !== binding.prepare
       || binding.program.groupBindings !== binding.bindings) throw new Error('Replaced herd guest binding');
+    return binding;
+  }
+  private runHerdGuest(signal: string, context?: GuardedHerdContext<A>, actor?: A, body = false,
+    arguments_: Readonly<Record<string,number>> = {}): void {
+    const binding = this.requireHerdGuest();
     const pool = binding.actors instanceof Map ? [...binding.actors.values()] : binding.actors;
     if (actor !== undefined && !pool.includes(actor) || this.members.some(member => !pool.includes(member))) throw new Error('Foreign herd guest actor');
     const bodies = [...this.members,...pool.filter(candidate => !this.members.includes(candidate))];
@@ -606,12 +610,21 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
   /** the herd-level tick: senses, alarms, mode changes (once per AI tick) */
   tick(c:GuardedHerdContext<A>):void {this.requireHerd();
     if(!this.initialized)throw new Error('Herd is not initialized');
+    this.requireHerdGuest();
+    // The original group clock rejects duplicate member callbacks before any
+    // observations. It remains published by the same admitted group bank.
+    if(Math.abs(c.t-this.groupTime)<1e-8)return;
     this.runHerdGuest('tick',c);
   }
 
   /** steer one horse for this tick (after `tick`) */
   drive(a:A,c:GuardedHerdContext<A>,body=false):void {this.requireHerd();
     if(!this.initialized)throw new Error('Herd is not initialized');
+    this.requireHerdGuest();
+    // Original AI/body scheduling gate: ordinary members have no body-frame
+    // work. Do not capture a whole group merely for the guest to return.
+    const committed=a===this.stallion&&this.stallionState==='charge';
+    if(body!==committed||a===this.ridden||(a.mem['ridden']??0)===1)return;
     this.runHerdGuest('drive',c,a,body);
   }
 
