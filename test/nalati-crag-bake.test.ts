@@ -6,13 +6,20 @@ import { readFileSync } from 'node:fs';
 import { inflateSync } from 'node:zlib';
 import * as v from 'valibot';
 import { SceneBakedGeometrySchema } from '@wildshard/format/sceneDressing';
+import { PrivateSceneSchema } from '@wildshard/format/clientChannels';
 import { expect, it } from 'vitest';
 import { MeshBasicMaterial } from 'three';
 import { readBakedGeometry } from '@wildshard/sdk/kit/bakedGeometry';
 import { createClientScene } from '@wildshard/game/plugin/ui';
 import { unshuffleLanes as unshuffleBodyLanes } from '../src/engine/core/deflate';
-import rows from '../src/shards/nalati-grasslands/boot/cragRock.generated.json';
 import oracle from './fixtures/nalati-crag-bake.json';
+
+const finite=v.pipe(v.number(),v.finite());
+const tierSchema=v.object({meshes:v.array(v.object({key:v.string(),offset:finite,row:SceneBakedGeometrySchema})),
+  recipe:PrivateSceneSchema,placements:v.array(v.unknown()),boxes:v.array(finite),colliders:v.array(v.unknown()),
+  count:v.record(v.string(),finite),triangles:finite,hulls:v.array(v.unknown())});
+const rows=v.parse(v.object({phone:tierSchema,desktop:tierSchema}),
+  JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/cragRock.generated.json','utf8')));
 
 const hash = (bytes: string | Uint8Array): string => createHash('sha256').update(bytes).digest('hex');
 

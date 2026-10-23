@@ -1,13 +1,19 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- admit generated keeper metadata without inferring the complete bake
+import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { Rng } from '../src/engine/core/rng';
 import { enemyPlacements } from '../src/shards/driftwood-isle/generators/enemyPlacement';
 import { keeperRows } from '../src/shards/driftwood-isle/generators/keeperRows';
-import { parse } from 'valibot';
+import * as v from 'valibot';
 import { PopulationKeeperRowsSchema } from '../src/format/populationKeeper';
-import physics from '../src/shards/driftwood-isle/data/physics.generated.json' with { type: 'json' };
+
+const finite=v.pipe(v.number(),v.finite());
+const physics=v.parse(v.object({actors:v.array(v.object({id:v.string(),kind:v.string(),variant:v.string(),seed:finite,scale:finite})),
+  habitat:v.object({practice:v.string()}),herds:v.array(v.object({kind:v.string()}))}),
+  JSON.parse(readFileSync('src/shards/driftwood-isle/data/physics.generated.json','utf8')));
 
 test('keeper compilation retains the captured native recipes, placement order and stream checkpoints', () => {
-  const placement = enemyPlacements(), rows = parse(PopulationKeeperRowsSchema, keeperRows(placement));
+  const placement = enemyPlacements(), rows = v.parse(PopulationKeeperRowsSchema, keeperRows(placement));
   expect(rows.bodies.map(({ id, kind, variant, seed, scale }) => ({ id, kind, variant, seed, scale })))
     .toEqual(physics.actors.map(({ id, kind, variant, seed, scale }) => ({ id, kind, variant, seed, scale })));
   expect(rows.bodies.filter(row => row.practice).map(row => row.id)).toEqual([physics.habitat.practice]);
@@ -23,5 +29,5 @@ test('keeper compilation retains the captured native recipes, placement order an
     rng.next(); rng.next(); rng.next(); expect(row.stream).toEqual(rng.snapshot());
     expect([row.x, row.z, row.yaw]).toEqual([source.x, source.z, source.yaw]);
   }
-  expect(() => parse(PopulationKeeperRowsSchema, { ...rows, extra: true })).toThrow();
+  expect(() => v.parse(PopulationKeeperRowsSchema, { ...rows, extra: true })).toThrow();
 });
