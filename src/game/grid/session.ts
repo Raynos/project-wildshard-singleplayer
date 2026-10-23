@@ -38,7 +38,6 @@ import type { Physics } from '@wildshard/engine/physics/Physics';
 import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
 import { installStripCollider } from '@wildshard/engine/physics/stripColliders';
 import { ReadinessWalls, type ReadinessEdge } from '@wildshard/engine/physics/readinessWalls';
-import { installGridBorders } from '@wildshard/engine/physics/gridBorders';
 import { WATER_UNBOUNDED, waterExtent } from '@wildshard/engine/world/waves';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { generatePlatform, generatePlatformSliced, type GeneratedStrip, type PlatformCell, type StripProfile } from '@wildshard/engine/sim/strips';
@@ -67,7 +66,7 @@ import { jsonResidentBytes } from '../shardfile/productCost';
 import { RAIL_OFFSET, roadLayout } from './roadLayout';
 import type { RoadLookState } from './roadLook';
 import { installPlatformRoad, installPlatformRoadSliced, type PlatformRoad } from './roadLookPlatform';
-import { collisionStrips, type CollisionMesh, type CollisionStrip } from './collisionStrips';
+import { collisionStrips, type CollisionStrip } from './collisionStrips';
 import { installSoftWallLook, type SoftWallState } from './softWallLook';
 import type { SeamLookState } from './seamLook';
 import { roadResident, roadViewCost, type CullPlan, type RoadResident, type RoadViewCost } from './roadCull';
@@ -113,8 +112,6 @@ export function gridLevel(spec: LevelSpec): LevelSpec {
 
 /** What the session reads from the page: the player's feet in the home frame, the scene, the world, the fixed step. */
 export interface GridSessionHost {
-  /** The root world is neutral highway physics; the initial home is admitted as an owned regional runtime. */
-  readonly ownedHome?: boolean;
   /** The owner's allocator already includes the home before this late play-stage session constructs the platform. */
   readonly residency?: PageResidency;
   readonly scene: Object3D;
@@ -377,7 +374,8 @@ export class GridSession {
     if (instance === null) throw new Error('A grid session needs a grid page');
     this.home = this.assembly.cell(instance);
     const home = this.home;
-    this.neighbours = this.assembly.cells.filter((cell) => host.ownedHome === true || cell.instance !== home.instance);
+    // the root world is neutral highway physics and the home an owned region like every cell, so every cell is a neighbour
+    this.neighbours = [...this.assembly.cells];
     // ringsReady: the far ring charges each proxy its declared bytes before it loads, not the 1.6 MB cap, so placeholder
     // charges never leave a visible cell out of the ring (12 visible proxies of 0.4-1.6 MB fit its 14.4 MB)
     const declare = async (cell: GridCell): Promise<void> => {
@@ -391,7 +389,7 @@ export class GridSession {
     // SF19a / G158 (on for everyone since Jake's G175 pick, E450): the shard the player stands in owns the whole frame, the
     // road look owns the road, blended over 16 m at the cell edge; a host with no camera / composer builds none
     const frameHost = host.frame;
-    this.frame = frameHost !== undefined ? new GridFrame({ host: frameHost, scope: host.scope, home, homeIsFrame: host.ownedHome !== true, half: CHUNK_HALF, feet: () => this.world(),
+    this.frame = frameHost !== undefined ? new GridFrame({ host: frameHost, scope: host.scope, home, homeIsFrame: false, half: CHUNK_HALF, feet: () => this.world(),
       cells: this.assembly.cells.map((cell) => ({ instance: cell.instance, origin: { x: cell.origin.x, z: cell.origin.z } })) }) : null;
     const frame = this.frame;
     // SF17b look: the boulevard over the deck's road band (G80 / G81 / G93) and the VR void past the outer road (G89)
@@ -449,13 +447,11 @@ export class GridSession {
       ports: { feet: () => { const at = this.world(); return { x: at.x - home.origin.x, z: at.z - home.origin.z }; },
         status: () => { if (++polled % 4 === 0) status = crossingSaveStatus(this.live?.state().crossing); return status; },
         text: (shown) => (shown === 'saving' ? GAME_STRINGS.grid.saving : GAME_STRINGS.grid.saveFailed) } });
-    const nativeOrigin = host.ownedHome === true ? { origin: { x: 0, z: 0 } } : home;
-    const nativeMesh = (mesh: CollisionMesh): CollisionMesh => host.ownedHome === true ? mesh : this.rebased(mesh);
-    for (const { mesh } of this.strips) installStripCollider(host.physics, nativeMesh(mesh), host.scope);
+    const nativeOrigin = { origin: { x: 0, z: 0 } };
+    for (const { mesh } of this.strips) installStripCollider(host.physics, mesh, host.scope);
     // The normal world stage owns the home's sockets; this scope adds only rebased neighbours.
     installEntrySockets(host.physics, host.scope, this.neighbours.map((cell) => ({ x: cell.origin.x - nativeOrigin.origin.x, z: cell.origin.z - nativeOrigin.origin.z })));
     this.walls = new ReadinessWalls(host.physics, [...this.neighbours.flatMap((cell) => neighbourEdges(cell, nativeOrigin)), ...rimEdges(this.assembly, nativeOrigin)], host.scope);
-    if (host.ownedHome !== true) installGridBorders(host.physics, host.scope); // owned regions install their own creature borders
     // G72, one landmass: the home level's open water stays inside its own cell (its sea surface and its swell body)
     waterExtent.uWaterHalf.value = CHUNK_HALF;
     host.scope.onDispose(() => { waterExtent.uWaterHalf.value = WATER_UNBOUNDED; });
@@ -684,7 +680,6 @@ export class GridSession {
     return this.live;
   }
 
-  private rebased(mesh: CollisionMesh): CollisionMesh { return { ...mesh, origin: { x: mesh.origin.x - this.home.origin.x, z: mesh.origin.z - this.home.origin.z } }; }
   /** G107 / SF66: a cell's admitted baked map once loaded, retaining the home's full raster size. */
   mapImage(instance: string): HTMLCanvasElement | ImageBitmap | null { return this.mapImages.image(this.assembly.cell(instance).slug); }
   /** the neighbours' baked maps held now (bytes), for the memory readouts */
