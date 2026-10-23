@@ -1,10 +1,10 @@
 import { SHARD_LOADERS } from 'virtual:wildshard-selection';
 import { TIER } from '@wildshard/engine/core/tier';
 import { declareModuleFiles } from '@wildshard/engine/boot/download';
-import { installShards } from './game/shard/list';
-import { titleManifests,findTitleManifest } from './game/shard/titleList';
-import { retried } from './engine/boot/retry';
-import type { PageMode } from './game/grid/pageMode';
+import { installShards } from '@wildshard/game/shard/list';
+import { titleManifests,findTitleManifest } from '@wildshard/game/shard/titleList';
+import { retried } from '@wildshard/engine/boot/retry';
+import type { PageMode } from '@wildshard/game/grid/pageMode';
 
 /** Compiler facts cover only the discovery graph this page actually loads. */
 function modules(selection?:string):void {
