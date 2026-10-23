@@ -7,7 +7,7 @@
 // Each run: Safari terminated; a cold run clears the worker, every cache and the prefetch markers (a warm run keeps
 // them); the title; Developer on; six seconds on the menu (its prefetch starts 4 s in); tap INFINITE WILDSHARD; record
 // the screen. The page's own clocks give the times from the tap: the loader's first paint (first contentful paint of
-// the entry page), each loader row (data-key / data-ms) and the step totals shown, the download % shown, the loader's
+// the entry page), each loader row (data-key / data-ms and its detail) and the step totals shown, the download % shown, the loader's
 // end, the reveal's start and the controls (the reveal's end), and the worst frame in the 8 s after the controls. The
 // video is read only for the broken-frame check: between the loader's end and the reveal, a frame like neither the last
 // loader frame nor the first reveal frame (round 40's HUD over orange / blue triangles). Medians per mode at the end.
@@ -85,7 +85,7 @@ const WATCH = `window.__simEntry ??= (() => {
     const shown = l !== null && l.isConnected && l.getClientRects().length > 0 && getComputedStyle(l).display !== 'none' && getComputedStyle(l).opacity !== '0';
     if (shown) {
       s.seen = true;
-      s.rows = [...l.querySelectorAll('[data-key]')].map(e => [e.dataset.key, Number(e.dataset.ms), (e.children[0]?.textContent ?? '').trim()]);
+      s.rows = [...l.querySelectorAll('[data-key]')].map(e => [e.dataset.key, Number(e.dataset.ms), (e.children[0]?.textContent ?? '').trim(), (e.children[1]?.textContent ?? '').trim()]);
       const total = /(\\d+)\\s*\\/\\s*(\\d+)/u.exec(l.querySelector('[data-el="suFact"]')?.textContent ?? '')?.[2];
       if (total !== undefined && s.totals.at(-1) !== Number(total)) s.totals.push(Number(total));
       const dl = Number(l.dataset.download);
@@ -187,7 +187,7 @@ async function run(mode, index) {
     revealStartMs: from(reveal.startedAt), controlsMs: from(reveal.startedAt + reveal.endedMs), revealSkipped: reveal.skipped,
     worstFrameAfterControlsMs: Math.round(entry.worst), worstFrameAt: entry.worstAt === null ? null : Math.round(entry.worstAt),
     stepTotals: entry.totals, downloadShown: entry.downloads, downloadDrops: entry.downloads.filter((value, i) => i > 0 && value < (entry.downloads[i - 1] ?? 0)).length,
-    rows: entry.rows.map(([key, ms, text]) => ({ key, ms: Math.round(ms), label: text })) };
+    rows: entry.rows.map(([key, ms, text, detail]) => ({ key, ms: Math.round(ms), label: text, detail })) };
   // video seconds of a page time: the recording started at recordingAt (wall clock), the tap at tapAt
   const videoAt = ms => (tap + ms - recordingAt) / 1000;
   result.brokenFrames = result.loaderEndMs === null ? null : brokenFrames(video, videoAt(result.loaderEndMs), videoAt(result.revealStartMs));
