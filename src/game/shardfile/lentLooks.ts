@@ -31,6 +31,8 @@ export interface LentLooks {
   readonly toon?: ToonLook;
   /** a further compile of graph look `id` with its own params (a pooled effect's copy that moves alone) */
   readonly instance?: (id: string) => LookInstance;
+  /** compile the still-deferred looks among `ids`, one build step each */
+  readonly prepare?: (ids: readonly string[]) => Promise<void>;
 }
 /** One compiled copy of a graph look: its own material and its own param writer (checked as the look's are). */
 export interface LookInstance {
@@ -80,6 +82,15 @@ export function lentLooksOf(id: string): LentLooks {
   const lend = holder(id);
   if (lend === null) throw new Error(`No lent look ${id}: the runtime compiles and lends its looks before the world builds`);
   return lend;
+}
+
+/** Compile the still-deferred lent looks among `ids` one build step each, before a synchronous pass touches them all (a
+ *  deferred graph look otherwise compiles inside its first lookup's frame, several in one task); ids no lend holds, or
+ *  whose lend compiles eagerly, are skipped. */
+export async function prepareLentLooks(ids: readonly string[]): Promise<void> {
+  const held = new Map<LentLooks, string[]>();
+  for (const id of new Set(ids)) { const lend = holder(id); if (lend?.prepare !== undefined) held.set(lend, [...(held.get(lend) ?? []), id]); }
+  for (const [lend, owned] of held) await lend.prepare?.(owned);
 }
 
 /** Whether a compiled look `id` is lent (a module that may build outside its world draws nothing without it). */

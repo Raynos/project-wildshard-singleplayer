@@ -63,6 +63,8 @@ async function lookMaterials(context: Parameters<typeof runtimeLookMaterials>[0]
   if (context.scope.disposed) throw new Error('Held view scope unloaded during preparation');
   const missing = ids.filter(id => !looks.materials.has(id));
   if (missing.length > 0) throw new Error(`Held view: look.materials lacks ${missing.join(', ')}`);
+  // its graph looks compile one a step, not all in the frame that first dresses the rig
+  await looks.prepare?.(ids);
   return looks;
 }
 

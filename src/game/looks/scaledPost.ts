@@ -5,10 +5,43 @@ import type { Renderer } from '@wildshard/engine/render/renderer';
 import { validateGraph } from '@wildshard/format/materialGraph';
 import type { PostPackTerm, ScaledPostRow } from '@wildshard/format/scaledPost';
 import { BLEND_ADD_KEEP_ALPHA, type UniformMap } from '../plugin/shaderFamily';
+import { buildYield } from '@wildshard/engine/core/workSlice';
+import type { Scope } from '@wildshard/engine/app/scope';
 
 const compilers = new WeakMap<Renderer, GraphCompiler>();
 /** Prepare the client backend during async world loading, before synchronous composer construction. */
 export async function prepareScaledPost(renderer: Renderer): Promise<void> { compilers.set(renderer, await loadGraphCompiler(renderer)); }
+type CompiledPost = ReturnType<GraphCompiler['compileGraph']>;
+/** programs compiled ahead (`precompileScaledPost`), by their graph row, each copy taken once */
+const ahead = new WeakMap<Renderer, Map<object, CompiledPost[]>>();
+function compilePost(compiler: GraphCompiler, pass: string, name: string, p: ScaledPostRow['programs'][string]): CompiledPost {
+  const checked = validateGraph(p.graph, { trustedBudget: true });
+  if (!checked.ok || p.graph.kind !== 'post') throw new Error(`Invalid scaled post graph ${name}`);
+  const graph = compiler.compileGraph(p.graph, { trustedBudget: true });
+  graph.material.name = `${pass}.${name}`;
+  if (p.blend === 'addKeepAlpha') Object.assign(graph.material, { transparent: true, ...BLEND_ADD_KEEP_ALPHA });
+  return graph;
+}
+/** Compile `rows`' programs ahead, one build step each, during async world loading: a later pass of the same row takes
+ *  these copies instead of compiling every program in its synchronous constructor (a cell's composite is built in one
+ *  frame); the copies `scope` leaves untaken are disposed with it. */
+export async function precompileScaledPost(renderer: Renderer, rows: readonly ScaledPostRow[], scope: Scope): Promise<void> {
+  const compiler = compilers.get(renderer);
+  if (compiler === undefined) throw new Error('Scaled post backend was not prepared during world loading');
+  const pool = ahead.get(renderer) ?? new Map<object, CompiledPost[]>(), made: CompiledPost[] = [];
+  ahead.set(renderer, pool);
+  scope.onDispose(() => {
+    for (const graph of made) for (const [key, list] of pool) {
+      const at = list.indexOf(graph); if (at === -1) continue;
+      list.splice(at, 1); graph.material.dispose(); if (list.length === 0) pool.delete(key);
+    }
+  });
+  for (const row of rows) for (const [name, p] of Object.entries(row.programs)) {
+    await buildYield(scope);
+    const graph = compilePost(compiler, row.name, name, p); made.push(graph);
+    pool.set(p.graph, [...(pool.get(p.graph) ?? []), graph]);
+  }
+}
 /** Generic client-only post executor: all differences between shards are graphs and rows. */
 export class ScaledPostPass extends Pass {
   private readonly graphs = new Map<string, ReturnType<GraphCompiler['compileGraph']>>();
@@ -36,11 +69,7 @@ export class ScaledPostPass extends Pass {
     }
     for (const target of Object.values(row.outputs)) if (!known.has(target) || target === 'input') throw new Error('Invalid scaled post output');
     for (const [name, p] of Object.entries(row.programs)) {
-      const checked = validateGraph(p.graph, { trustedBudget: true });
-      if (!checked.ok || p.graph.kind !== 'post') throw new Error(`Invalid scaled post graph ${name}`);
-      const graph = compiler.compileGraph(p.graph, { trustedBudget: true });
-      graph.material.name = `${row.name}.${name}`;
-      if (p.blend === 'addKeepAlpha') Object.assign(graph.material, { transparent: true, ...BLEND_ADD_KEEP_ALPHA });
+      const graph = ahead.get(ctx.renderer)?.get(p.graph)?.shift() ?? compilePost(compiler, row.name, name, p);
       this.graphs.set(name, graph);
       Object.defineProperty(this, `material:${name}`, { value: graph.material, enumerable: true });
     }

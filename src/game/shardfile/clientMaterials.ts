@@ -21,6 +21,7 @@ import type { GraphLiteral } from '@wildshard/format/materialGraph';
 import type { LookInstance } from './lentLooks';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { setting } from '@wildshard/engine/ui/Settings';
+import { buildYield } from '@wildshard/engine/core/workSlice';
 import { installMeasurePlainRow, offersMeasurePlain } from './measurePlain';
 import { loadGraphCompiler, bindGraphMeshMap } from '@wildshard/engine/render/graphBackend';
 import { curvedParams, graphFileTextureRefs, materialTextureRefs } from '@wildshard/format/materials';
@@ -42,6 +43,8 @@ class MaterialCatalogue implements ReadonlyMap<string, Material> {
   set(id: string, material: Material): void { this.factories.set(id, () => material); this.ready.set(id, material); }
   defer(id: string, make: () => Material): void { this.factories.set(id, make); }
   has(id: string): boolean { return this.factories.has(id); }
+  /** whether `id` is declared and not yet made */
+  pending(id: string): boolean { return this.factories.has(id) && !this.ready.has(id); }
   get(id: string): Material | undefined {
     const found = this.ready.get(id); if (found !== undefined) return found;
     const make = this.factories.get(id); if (make === undefined) return undefined;
@@ -116,6 +119,9 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
   materials: ReadonlyMap<string, Material>; textures: ReadonlyMap<string, Texture>; compile: (entry: unknown, meshMap?: Texture) => Material; bindMeshMap: (id: string, map: Texture | Material) => Material; tick: (dt: number) => void;
   /** a further compile of graph catalogue entry `id`, scope-owned, with its own param writer */
   instance?: (id: string) => LookInstance;
+  /** compile each still-deferred graph look among `ids` in its own build step (in play, one a drawn frame), so its first
+   *  lookup finds it made; rejects once the scope has closed */
+  prepare?: (ids: readonly string[]) => Promise<void>;
   outline: GraphOutlineHook; graphs: { bind: (sources: GraphSources) => void; readout: GraphReadout }; surfaces: ((name: string) => PropSurfaceBinding) | null;
 }> {
   // a look that declares its graphs required (SF88e) draws them on every path: standalone, regional and grid near
@@ -224,6 +230,8 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
     if (material === undefined) throw new Error(`Unknown catalogue material ${id}`);
     if (standardSurface(id, material)) { bindStandardLightmap(material, name, texture); return; }
     graphs.setTexture(material, name, texture);
+  }, prepare: async ids => {
+    for (const id of new Set(ids)) { if (!materials.pending(id)) continue; await buildYield(scope); materials.get(id); }
   }, materials, textures, compile, bindMeshMap, instance, outline: graphOutlineHook(graphs.outline), tick: (dt) => { toon.tick(dt); painterly.tick(dt); emissive.tick(dt); graphs.tick(dt); moveCurves(); },
     graphs: { bind: (sources) => { if (sources.state !== undefined) stateOf = sources.state; graphs.bind(sources); moveCurves(); }, readout: graphs.readout }, surfaces };
 }

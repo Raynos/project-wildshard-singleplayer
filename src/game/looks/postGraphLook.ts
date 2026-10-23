@@ -22,12 +22,12 @@ import { ColourRampFog, panoramaTint } from '@wildshard/engine/world/Atmosphere'
 import { smoothstep } from '@wildshard/engine/core/noise';
 import type { Events } from '@wildshard/engine/events/events';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { TIER_CONFIG, type Tier } from '@wildshard/engine/core/tier';
+import { TIER, TIER_CONFIG, type Tier } from '@wildshard/engine/core/tier';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { PaintedWorldSchema, PostGraphLookSchema, type PostGraphEffect, type PostGraphLookRow, type PostGraphWrite } from '@wildshard/format/postGraphLook';
 import type { ScaledPostRow } from '@wildshard/format/scaledPost';
 import { uniformsFrom, type UniformMap } from '../plugin/shaderFamily';
-import { ScaledPostPass, prepareScaledPost } from './scaledPost';
+import { ScaledPostPass, precompileScaledPost, prepareScaledPost } from './scaledPost';
 import { hasLentLook, lendUniforms, lentUniforms, setLentParam, setLentTexture } from '../shardfile/lentLooks';
 import { paintedAir } from './paintedLook';
 import { PaintedPanorama, PainterKeyLight, paintedGroundPainter, type PainterSkyLook } from './painterlyLook';
@@ -244,7 +244,11 @@ export function postGraphLookOf(slug: string, input: unknown): LookStrategy {
   };
 
   const parts = {
-    prepareWorld: ({ renderer }: WorldLookContext) => prepareScaledPost(renderer),
+    // the tier's side passes and the composite compile ahead, one program a step: a cell builds its composite in one frame
+    prepareWorld: async ({ renderer, scope }: WorldLookContext) => {
+      await prepareScaledPost(renderer);
+      await precompileScaledPost(renderer, [...row.sides.flatMap(side => 'bloom' in side || !side.tiers.includes(TIER) ? [] : [passRow(row, side.pass)]), passRow(row, row.composite.pass)], scope);
+    },
     ...(row.sky === undefined ? {} : { sky: row.sky }),
     cell: {
       replaces: 'chain',

@@ -10,7 +10,7 @@ import { fetchDeflatedBytes } from '@wildshard/engine/core/deflate';
 import { TIER } from '@wildshard/engine/core/tier';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { WorldSceneLentTexture } from '@wildshard/format/worldScenes';
-import { setLentParam, setLentTexture } from './lentLooks';
+import { prepareLentLooks, setLentParam, setLentTexture } from './lentLooks';
 import { applyTextureSampler } from './clientMaterials';
 import type { SceneHandles } from './sceneHandles';
 import type { ShardProduct } from './shardProduct';
@@ -21,6 +21,9 @@ export async function lendWorldSceneTextures(rows: readonly WorldSceneLentTextur
   cube: 'standalone' | 'cell'): Promise<void> {
   const products = rows.filter(row => row.kind === 'product');
   if (products.length > 0 && renderer === undefined) throw new Error('Product textures need the world renderer');
+  // the looks these textures lend to compile one a step first: the rows' loads settle back to back
+  await prepareLentLooks(rows.flatMap(row => row.looks));
+  if (owner.disposed) throw new Error('World scene textures unloaded while preparing their looks');
   const loader = renderer === undefined || products.length === 0 ? null : detectKtx2Support(new KTX2Loader().setTranscoderPath(BASIS_PATH), renderer);
   try {
     await Promise.all(rows.map(async row => {
