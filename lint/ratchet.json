@@ -775,7 +775,7 @@
     "src/shards/nalati-grasslands/generators/nalatiCaptureInventory.ts": 3,
     "src/shards/nalati-grasslands/generators/nalatiGroundSource.ts": 1,
     "src/shards/nalati-grasslands/generators/nalatiWorldRows.ts": 1,
-    "src/shards/nalati-grasslands/generators/output.ts": 19,
+    "src/shards/nalati-grasslands/generators/output.ts": 20,
     "src/shards/nalati-grasslands/generators/places.ts": 3,
     "src/shards/nalati-grasslands/generators/weaponHooks.ts": 1,
     "src/shards/nalati-grasslands/generators/yard.ts": 1,
