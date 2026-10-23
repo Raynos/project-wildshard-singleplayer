@@ -7,6 +7,7 @@ import {build} from 'vite';
 import {assertConfigBoundary} from '../src/sdk/configBoundary';
 
 import {nineCastBlobs} from './fixtures/nine-cast-blobs';
+import {bakeFixedKits,readFixedSlots} from '../src/shards/nine-dragon-stack/generators/casts';
 import {hookProduct} from '../src/shards/nine-dragon-stack/generators/hookProduct';
 import hook from '../src/shards/nine-dragon-stack/data/castHook.generated.json' with {type:'json'};
 import baseline from './fixtures/nine-binary-outputs.json' with {type:'json'};
@@ -19,6 +20,15 @@ test('every named cast retains its exact original file metadata and GLB bytes',(
   for(const row of baseline.casts){
     const bytes=readFileSync(row.name==='dragon-hook'?`src/shards/nine-dragon-stack/data/${hook.glb}`:`public/assets/nine-dragon/baked/casts/${row.name}.glb`);
     expect(bytes.length,row.name).toBe(row.length);expect(hash(bytes),row.name).toBe(row.hash);
+  }
+});
+test('the cold fixed-kit builder preserves the original neutral spill and every raw GLB byte',()=>{
+  const layout:unknown=JSON.parse(readFileSync('src/shards/nine-dragon-stack/data/layout.generated.json','utf8'));
+  const fixed=bakeFixedKits(readFixedSlots(layout));
+  for(const[name,bytes]of fixed.packs){
+    const expected=baseline.casts.find(row=>row.name===name);
+    if(expected===undefined)throw new Error(`Missing original fixed kit ${name}`);
+    expect(bytes.length,name).toBe(expected.length);expect(hash(bytes),name).toBe(expected.hash);
   }
 });
 test('the hook producer returns the same original GLB and material without encoding it',async()=>{
