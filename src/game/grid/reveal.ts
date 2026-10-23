@@ -1,20 +1,22 @@
 /**
- * Entering Infinite Wildshard (SHARD-PLATFORM SF21a, Jake's G98 "B Sky-down reveal"): the camera comes down from about
- * 400 m over Driftwood's pier to the player's eye at the spawn, showing the road and the neighbours on the way, and it
- * covers the streaming the loading screen used to hold for.
+ * Entering Infinite Wildshard (SHARD-PLATFORM SF21a, Jake's G98 "B Sky-down reveal"; G622 D1: 3 s, any touch skips):
+ * the camera comes down from about 400 m over Driftwood's pier to the player's eye at the spawn, showing the road and
+ * the neighbours on the way.
  *
  * - It runs in the page's late phase, after the player has placed the camera: each frame reads that pose as the landing
  *   pose, so a spawn that settles on the pier is followed, and the next frame's player update starts from scratch.
- * - Player input is cleared before it is collected and the weapon is off and hidden; the touch layer is hidden behind
- *   the reveal's own full-screen layer, which takes the one tap that skips.
- * - It ends at whichever comes last: the path's end, the rings' readiness (every visible neighbour drawn) and the home
- *   cell's simulation handoff when one is on its way (`gridHomeSim`). A tap releases immediately; the existing soft
- *   walls hold what is not ready. A real-time ceiling and menu/background release cannot depend on gameplay frames.
+ * - The weapon is off and hidden. Input is live from the loader's end (loading-speed R1): any touch, key, button or stick
+ *   ends the reveal and is the player's own. The HUD is invisible while the camera flies but takes touches, so the touch
+ *   that skips is already a stick or look drag; until the first frame draws, a touch skips the whole path.
+ * - It ends at the path's end: controls never wait for the rings or the home cell's simulation handoff (`gridHomeSim`),
+ *   whose times it still records; the existing soft walls hold what is not ready. A real-time ceiling and the
+ *   menu/background release cannot depend on gameplay frames.
  * - `window.__wsReveal` carries the timings (ms from the reveal's start) for the menu capture (`sf21a/menu.mjs --reveal`).
  */
 import { Matrix4, Quaternion, Vector3, type PerspectiveCamera } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { app } from '@wildshard/engine/app/runtime';
+import { listenPage } from '@wildshard/engine/input/dom';
 import { hudSlots } from '@wildshard/engine/ui/hudSlots';
 import { GAME_STRINGS } from '../strings';
 import './gridHud.css';
@@ -37,9 +39,9 @@ export interface GridRevealHost {
   readonly onLate: (fn: (dt: number) => void) => void;
   /** the home shard's name for the caption */
   readonly home: string;
-  /** the rings' readiness (every visible neighbour drawn) */
+  /** the rings' readiness (every visible neighbour drawn): recorded, never waited for */
   readonly ringsReady: () => boolean;
-  /** the home simulation's handoff: true once it arrived, or when none is on its way */
+  /** the home simulation's handoff (true once it arrived, or when none is on its way): recorded, never waited for */
   readonly homeSimReady: () => boolean;
   /** the weapon gate (EquipmentService) */
   readonly weapons: { readonly enabled: boolean; setEnabled: (on: boolean) => void; visible: boolean };
@@ -49,11 +51,11 @@ export interface GridRevealHost {
   readonly entered: () => boolean;
 }
 
-/** how long the path takes, and the sky pose relative to the landing pose */
-const PATH_S = 7;
+/** how long the path takes (G622 D1), and the sky pose relative to the landing pose */
+const PATH_S = 3;
 const SKY_UP = 400, SKY_BACK = 170, LOOK_AHEAD = 140;
-/** past the path's end, how long readiness may hold the player before the reveal lets go anyway */
-const CEILING_MS = 20_000;
+/** past the path's end, the wall-clock backstop for a loop that stopped drawing */
+const CEILING_MS = 2000;
 
 const smooth = (t: number): number => t * t * (3 - 2 * t);
 const clamp01 = (t: number): number => Math.min(1, Math.max(0, t));
@@ -73,13 +75,10 @@ export function installGridReveal(host: GridRevealHost): () => boolean {
   const publish = (): void => {
     window.__wsReveal = { startedAt: started, pathEndMs: pathEnd, ringsReadyMs: ringsAt, homeSimMs: homeAt, endedMs: endedAt, skipped, ceiling };
   };
-  // the player's input is dropped before it is collected while the reveal runs
-  app.addSystem({ id: 'game.grid.reveal.input', phase: 'input', before: ['engine.input.collect'], run: () => { if (live && started >= 0) app.input.clear(); } }, scope);
-
   const end = (at: number): void => {
     if (!live) return;
     live = false; endedAt = at - started;
-    host.hudRoot.classList.remove('ws-grid-revealing');
+    host.hudRoot.classList.remove('ws-grid-revealing', 'ws-grid-live');
     if (layer !== null) hudSlots.discard(layer);
     layer = null;
     host.weapons.setEnabled(wasEnabled); host.weapons.visible = wasVisible;
@@ -96,29 +95,40 @@ export function installGridReveal(host: GridRevealHost): () => boolean {
     const el = document.createElement('div'); el.className = 'ws-grid-reveal';
     const caption = document.createElement('div'); caption.className = 'ws-grid-reveal-caption';
     const title = document.createElement('b'); title.textContent = GAME_STRINGS.grid.reveal(host.home);
-    const skip = document.createElement('span'); skip.textContent = GAME_STRINGS.grid.revealSkip;
-    caption.append(title, skip); el.append(caption);
-    scope.listen(el, 'pointerdown', (e) => {
-      e.preventDefault(); e.stopPropagation();
-      skipped = true; pathEnd = now() - started; end(now());
-    });
+    const hint = document.createElement('span'); hint.textContent = GAME_STRINGS.grid.revealSkip;
+    caption.append(title, hint); el.append(caption);
+    host.hudRoot.classList.add('ws-grid-live');
     hudSlots.widget('band.1', el, 0, scope, host.hudRoot);
     layer = el;
     publish();
-    // A paused/gated loop never reaches onLate, including its old ceiling.
-    // Capture keeps its deterministic clock; live play has a wall-time backstop.
+    // A paused/gated loop never reaches onLate: capture keeps its deterministic clock, live play has a wall-time backstop.
     if (app.clock.mode === 'live') scope.timeout(PATH_S * 1000 + CEILING_MS, () => { ceiling = true; end(now()); });
   };
   scope.onDispose(() => {
     host.canvas.style.visibility = '';
     if (live && started < 0) host.hudRoot.classList.remove('ws-grid-revealing');
-    if (live && started >= 0) { live = false; host.hudRoot.classList.remove('ws-grid-revealing'); host.viewmodel.visible = viewmodelWas; }
+    if (live && started >= 0) { live = false; host.hudRoot.classList.remove('ws-grid-revealing', 'ws-grid-live'); host.viewmodel.visible = viewmodelWas; }
   });
   // From the loader's end until the first gated frame (gameplay ready), nothing of this world has been drawn: the canvas
   // still holds the loading steps' warm-up draws. Both it and the HUD stay hidden until `begin` (round 40: a 0.4 s frame
   // of the HUD over broken orange and blue triangles on the phone).
   host.hudRoot.classList.add('ws-grid-revealing'); host.canvas.style.visibility = 'hidden';
   const release = (): void => { if (live && started >= 0) end(now()); };
+  // any touch or click takes over: before the touch layer sees it (the capture phase), so the same touch moves or looks
+  let skipAsked = false;
+  const skip = (): void => {
+    if (!live) return;
+    if (started < 0) { skipAsked = true; return; } // before the first frame: the reveal ends on it, at the landing pose
+    skipped = true; pathEnd ??= now() - started; end(now());
+  };
+  listenPage(scope, 'pointerdown', skip, { capture: true });
+  // while the camera flies, the player's input is dropped before it is collected, unless it asks for control: a key, a
+  // button or a stick since the last frame ends the reveal and goes through
+  const intent = (): boolean => { const state = app.input.snapshot(); return state.physical.length + state.manual.length + state.presses.length > 0 || state.axes.some((axis) => axis.x !== 0 || axis.y !== 0); };
+  app.addSystem({ id: 'game.grid.reveal.input', phase: 'input', before: ['engine.input.collect'], run: () => {
+    if (!live || started < 0) return;
+    if (intent()) skip(); else app.input.clear();
+  } }, scope);
   // A pause menu must be visible and usable rather than hidden beneath arrival.
   scope.listen(window, 'ws-menu', release);
   scope.listen(document, 'ws:background', release);
@@ -127,16 +137,13 @@ export function installGridReveal(host: GridRevealHost): () => boolean {
   host.onLate(() => {
     if (!live || !host.entered()) return;
     const at = now();
-    if (started < 0) begin(at);
+    if (started < 0) { begin(at); if (skipAsked) { skip(); return; } }
     const ms = at - started;
     if (ringsAt === null && host.ringsReady()) ringsAt = ms;
     if (homeAt === null && host.homeSimReady()) homeAt = ms;
-    const u = skipped ? 1 : clamp01(ms / (PATH_S * 1000));
-    if (u >= 1 && pathEnd === null) { pathEnd = ms; publish(); }
-    if (pathEnd !== null && ringsAt !== null && homeAt !== null) { end(at); return; }
-    if (pathEnd !== null && ms - pathEnd > CEILING_MS) { ceiling = true; end(at); return; }
-    host.viewmodel.visible = u >= 1 && viewmodelWas; // the arms come back only at the landing pose
-    if (u >= 1) return; // holding at the landing pose: the player's own camera, input still off
+    if (ms >= PATH_S * 1000) { pathEnd = ms; end(at); return; } // the landing pose is the player's own camera
+    const u = clamp01(ms / (PATH_S * 1000));
+    host.viewmodel.visible = false; // the arms come back with control
     // the landing pose is where the player put the camera this frame; the sky pose hangs back and up, looking ahead of it
     land.copy(camera.position); landQ.copy(camera.quaternion);
     fwd.set(0, 0, -1).applyQuaternion(landQ); fwd.y = 0;

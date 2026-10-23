@@ -493,7 +493,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   if (menuFirst) { weapons.setEnabled(false); weapons.visible = false; perf.setActive(false); audio.worldMuted = true; hud.showIntro(enter); }
   else if (arrival?.mode === 'explore') { weapons.setEnabled(false); weapons.visible = false; perf.setActive(false); hud.setOnEnter(enter); } // Explore ▸ Practice enters through it without the title: no handler left the weapon off and the DODGE disc dead (E285)
   else { hud.markEntered(enter); weapons.setEnabled(!nolock || params.has('skipintro')); }
-  // the grid's player-facing moments: G98's sky-down reveal to the pier (it waits for the rings and the home handoff), then
+  // the grid's player-facing moments: G98's sky-down reveal to the pier (G622 D1: 3 s, any touch or key takes over), then
   // G78's SAFE ZONE + dimmed ATTACK on the road, G82 / G105's title card on entering a shard, G97's speed look (gridHud.ts)
   if (grid !== null) {
     const revealing = session.recovery === undefined ? installGridReveal({ scope: game.levelScope, camera: game.camera, hudRoot: hud.root, canvas: game.renderer.domElement, onLate: (fn) => { game.onLate(fn, 'game.grid.reveal'); },

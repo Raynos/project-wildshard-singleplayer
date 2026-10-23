@@ -3,10 +3,11 @@
    road; G82 / G105 the centred title card on entering a shard; G97 thin edge speed lines at the deck's 30 m/s. The road's
    colour is the HUD's own cyan (the reserved 21st accent, G104). */
 
-/* G98: while the camera comes down, the HUD under the reveal is hidden; the reveal's layer takes the one tap that skips */
-.ws-grid-revealing > * { visibility: hidden; }
-.ws-grid-revealing > .ws-grid-reveal { visibility: visible; }
-.ws-grid-reveal { position: absolute; inset: 0; z-index: calc(var(--ws-layer-hud) + 20); pointer-events: auto; touch-action: none; -webkit-tap-highlight-color: transparent;
+/* G98: until the reveal's first frame the HUD is hidden; G622 D1: while the camera comes down (.ws-grid-live) it is
+   invisible but takes touches, so the touch that skips is already the player's stick or look; the reveal's layer only shows */
+.ws-grid-revealing:not(.ws-grid-live) > * { visibility: hidden; }
+.ws-grid-revealing.ws-grid-live > :not(.ws-grid-reveal) { opacity: 0; }
+.ws-grid-reveal { position: absolute; inset: 0; z-index: calc(var(--ws-layer-hud) + 20); pointer-events: none;
   background: linear-gradient(180deg, rgba(6, 10, 18, 0.55) 0%, rgba(6, 10, 18, 0) 18%, rgba(6, 10, 18, 0) 72%, rgba(6, 10, 18, 0.6) 100%); }
 .ws-grid-reveal-caption { position: absolute; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom, 0px) + 56px); display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: none; animation: ws-grid-rise 0.9s ease-out both; }
 .ws-grid-reveal-caption b { font-family: var(--ws-display); font-weight: 700; font-size: 22px; letter-spacing: 0.2em; text-indent: 0.2em; text-transform: uppercase; color: #eaf8ff; text-shadow: 0 0 14px rgba(143, 227, 255, 0.45), 0 2px 16px rgba(0, 0, 0, 0.6); }

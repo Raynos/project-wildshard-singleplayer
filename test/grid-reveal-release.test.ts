@@ -13,7 +13,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-function arrival(ready = false) {
+function arrival(ready = false, firstFrame = true) {
   vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'performance'] });
   const scope = new Scope('reveal.test'); scopes.push(scope);
   const hudRoot = document.createElement('div'); document.body.append(hudRoot);
@@ -28,9 +28,11 @@ function arrival(ready = false) {
   // round 40: before the first gated frame the canvas holds no frame of this world and the HUD has nothing over it
   expect(hudRoot.classList.contains('ws-grid-revealing')).toBe(true);
   expect(canvas.style.visibility).toBe('hidden');
-  late();
-  expect(hudRoot.classList.contains('ws-grid-revealing')).toBe(true);
-  expect(canvas.style.visibility).toBe('');
+  if (firstFrame) {
+    late();
+    expect(hudRoot.classList.contains('ws-grid-revealing')).toBe(true);
+    expect(canvas.style.visibility).toBe('');
+  }
   const released = (): void => {
     expect(active()).toBe(false);
     expect(hudRoot.classList.contains('ws-grid-revealing')).toBe(false);
@@ -42,23 +44,45 @@ function arrival(ready = false) {
     input?.run(0, 0);
     expect(collect).not.toHaveBeenCalled();
   };
-  return { late, hudRoot, released };
+  return { late, hudRoot, controls, released };
 }
 
-test('skip releases immediately without ready rings or another gameplay frame', () => {
+test('any touch skips at once and still reaches the control under it (G622 D1)', () => {
   const run = arrival();
-  run.hudRoot.querySelector('.ws-grid-reveal')?.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+  let touched = false;
+  run.controls.addEventListener('pointerdown', () => { touched = true; });
+  run.controls.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+  run.released();
+  expect(touched).toBe(true);
+  expect(window.__wsReveal?.skipped).toBe(true);
+});
+
+test('a key since the last frame skips and goes through to the player', () => {
+  const run = arrival();
+  app.input.executeCommand({ kind: 'physical', code: 'KeyW', on: true, at: 0 });
+  const clear = vi.spyOn(app.input, 'clear');
+  app.systemsByPhase().input.find(system => system.id === 'game.grid.reveal.input')?.run(0, 0);
+  expect(clear).not.toHaveBeenCalled();
   run.released();
   expect(window.__wsReveal?.skipped).toBe(true);
+  clear.mockRestore(); app.input.clear();
+});
+
+test('a touch before the first frame skips the whole path', () => {
+  const run = arrival(false, false);
+  document.body.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+  run.late();
+  run.released();
+  expect(window.__wsReveal).toMatchObject({ skipped: true, endedMs: 0 });
 });
 
 test('real-time ceiling releases while gameplay and its clock are gated', () => {
   const run = arrival();
   const frameClock = app.clock.real;
-  vi.advanceTimersByTime(27_000);
+  vi.advanceTimersByTime(5000);
   expect(app.clock.real).toBe(frameClock);
   run.released();
-  expect(window.__wsReveal).toMatchObject({ ceiling: true, endedMs: 27_000 });
+  expect(window.__wsReveal).toMatchObject({ ceiling: true, endedMs: 5000 });
 });
 
 test('opening and closing a pause menu during arrival leaves it usable', () => {
@@ -86,10 +110,13 @@ test('a visible return alone releases an arrival whose hidden event was missed',
   run.released();
 });
 
-test('ready arrival still finishes its authored seven-second path', () => {
-  const run = arrival(true);
-  vi.advanceTimersByTime(7000);
+test('the three-second path hands over control without waiting for the rings or the home handoff', () => {
+  const run = arrival(false);
+  vi.advanceTimersByTime(2900);
+  run.late();
+  expect(run.hudRoot.classList.contains('ws-grid-revealing')).toBe(true);
+  vi.advanceTimersByTime(100);
   run.late();
   run.released();
-  expect(window.__wsReveal?.ceiling).toBe(false);
+  expect(window.__wsReveal).toMatchObject({ ceiling: false, skipped: false, ringsReadyMs: null, homeSimMs: null, endedMs: 3000 });
 });
