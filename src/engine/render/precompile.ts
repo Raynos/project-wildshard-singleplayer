@@ -350,9 +350,11 @@ async function pacedSceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | 
  * An optional upload budget batches the isolated image uploads per drawn frame (op-hitch32). */
 export async function prepareSceneRoots(renderer: Renderer, camera: THREE.Camera, scene: THREE.Scene,
   target: THREE.WebGLRenderTarget | null, roots: readonly THREE.Object3D[], current: () => boolean, pause?: () => Promise<void>,
-  uploadBudget?: UploadBudget): Promise<void> {
+  uploadBudget?: UploadBudget, scenePrograms = true): Promise<void> {
   await prepareSceneResources(roots, camera, current);
-  const { jobs, materials } = setting('buildPacing') === 'entry'
+  // `scenePrograms` false: the roots' resources and exterior variants only (the boot's Shaders step builds what its first
+  // frame draws, and the rest is warmed in play)
+  const { jobs, materials } = !scenePrograms ? { jobs: [], materials: 0 } : setting('buildPacing') === 'entry'
     ? await pacedSceneJobs(scene, target, 1, roots, undefined, current, pageScope) : sceneJobs(scene, target, 1, roots);
   jobs.push(...exteriorJobs(scene, target, false, roots));
   await runPrecompile(renderer, camera, jobs, materials, undefined, undefined, current, pause !== undefined, pause, uploadBudget);

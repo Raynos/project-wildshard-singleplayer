@@ -759,8 +759,10 @@ export class Game {
     await boundEntryWarmup(this.levelScope, () => this.frameCount, () => 'streamed-scene-roots', async withinBound => {
       const live = (): boolean => withinBound() && current() && this._composer === composer;
       const pause = this.frameCount > 0 ? () => waitForDrawnFrame(this.levelScope, () => this.frameCount, live) : undefined;
+      // before play (no frame drawn yet) the boot's Shaders step builds what the first frame draws and the rest is warmed
+      // in play (Debug ▸ Shaders before play): a region's own warm-up here keeps only its resources then
       await prepareSceneRoots(this.renderer, this.camera, this.rootScene, composer.inputBuffer, roots, live, pause,
-        setting('buildPacing') !== 'off' ? LIVE_UPLOAD_BUDGET : undefined);
+        setting('buildPacing') !== 'off' ? LIVE_UPLOAD_BUDGET : undefined, this.frameCount > 0 || setting('bootShaders') !== 'drawn');
     });
   }
 
