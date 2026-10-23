@@ -461,6 +461,7 @@
     "./player/heldHandParts": "./player/heldHandParts.ts",
     "./audio/declaredGameplay": "./audio/declaredGameplay.ts",
     "./render/streamedInstances": "./render/streamedInstances.ts",
+    "./render/staticMatrices": "./render/staticMatrices.ts",
     "./models/nativeGeometry": "./models/nativeGeometry.ts",
     "./models/trainingDummy": "./models/trainingDummy.ts",
     "./models/hoverboard": "./models/hoverboard.ts",

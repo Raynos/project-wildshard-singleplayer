@@ -27,6 +27,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { enteredOwner, withOwner } from '@wildshard/engine/app/ownership';
 import { ownSceneTree } from '@wildshard/engine/app/sceneOwnership';
 import { registerExteriorLighting } from '@wildshard/engine/render/precompile';
+import { holdStaticMatrices } from '@wildshard/engine/render/staticMatrices';
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import { addPiece } from '@wildshard/engine/physics/pieces';
 import type { PlayerFrameQueries } from '@wildshard/engine/player/Player';
@@ -117,7 +118,12 @@ export function createRegionalView(request: RegionalViewRequest): RegionalView {
   // The neutral road has the page sun/fill, no regional point lights or cell PMREM. Prepare those exact keys before leaving.
   if (isScene(request.scene)) registerExteriorLighting(request.scene, scope, root, null);
   root.updateMatrixWorld(true);
-  const sync = (): void => { if (!scope.disposed) for (const move of movers) move(); };
+  // G639 frame floor (Developer `staticMatrices`, default off): the root and every piece that is not a mover leave the
+  // per-frame matrix walk; a node that moves after all is caught by its check (run with the movers) and returns to it
+  const checks = new Set<() => void>();
+  const checked = (owner: Scope) => (check: () => void): void => { checks.add(check); owner.onDispose(() => { checks.delete(check); }); };
+  holdStaticMatrices(root, scope, checked(scope), { subtree: false });
+  const sync = (): void => { if (scope.disposed) return; for (const move of movers) move(); for (const check of checks) check(); };
   if (request.fixedPre !== undefined) scope.onDispose(request.fixedPre(sync));
 
   withOwner(scope, () => {
@@ -145,6 +151,8 @@ export function createRegionalView(request: RegionalViewRequest): RegionalView {
         const added = addPiece(physics, piece, root);
         if (added.body !== null || piece.active !== undefined) {
           movers.add(added.sync); pieceScope.onDispose(() => { movers.delete(added.sync); });
+        } else if (object !== undefined && objects.get(object)?.refs === 1) {
+          const placement = objects.get(object); if (placement !== undefined) holdStaticMatrices(object, placement.scope, checked(placement.scope));
         }
         const floor = piece.floor;
         if (floor !== undefined && piece.solidFloor !== true) {
