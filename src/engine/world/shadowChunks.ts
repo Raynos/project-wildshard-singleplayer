@@ -82,9 +82,11 @@ const isMesh = (o: THREE.Object3D): o is THREE.Mesh => (o as Partial<THREE.Mesh>
 
 function eligible(o: THREE.Object3D): o is THREE.Mesh {
   if (!isMesh(o) || !o.castShadow || whole.has(o)) return false;
+  // a split mesh and the pieces it made are marked: the walk passes them before the prototype tests
+  if ((o.userData as ChunkUserData).shadowChunked === true) return false;
   if ('isInstancedMesh' in o || 'isSkinnedMesh' in o || 'isBatchedMesh' in o) return false;
   const mesh = o;
-  if ((mesh.userData as ChunkUserData).shadowChunked === true || Array.isArray(mesh.material)) return false;
+  if (Array.isArray(mesh.material)) return false;
   const g = mesh.geometry;
   const pos = g.attributes['position'];
   if (!(pos instanceof THREE.BufferAttribute) || pos.usage !== THREE.StaticDrawUsage) return false; // interleaved or rewritten per frame: whole
@@ -102,7 +104,11 @@ function* split(mesh: THREE.Mesh): Generator<void, number> {
   if (pos === undefined) return 0;
   const src = g.index;
   const nTri = triangles(g);
-  const vert = (t: number, k: number): number => (src ? src.getX(3 * t + k) : 3 * t + k);
+  // the arrays themselves (what getX / getZ / fromBufferAttribute read for an unnormalised attribute): in the page those
+  // accessors see every attribute class, and the walks over every vertex of an island-wide caster were the chunking's
+  // largest cost (Nine's home region, 4x CPU)
+  const indices = src === null ? null : src.array, xyz = pos instanceof THREE.BufferAttribute && !pos.normalized && pos.itemSize === 3 ? pos.array : null;
+  const vert = (t: number, k: number): number => (indices !== null ? indices[3 * t + k] ?? 0 : 3 * t + k);
   yield* geometryBoundsSteps(g, 'box');
   const box = g.boundingBox;
   if (box === null) return 0;
@@ -113,7 +119,7 @@ function* split(mesh: THREE.Mesh): Generator<void, number> {
   const counts = new Uint32Array(nx * nz);
   for (let t = 0; t < nTri; t++) {
     let cx = 0, cz = 0;
-    for (let k = 0; k < 3; k++) { const v = vert(t, k); cx += pos.getX(v); cz += pos.getZ(v); }
+    for (let k = 0; k < 3; k++) { const v = vert(t, k); cx += xyz !== null ? xyz[3 * v] ?? 0 : pos.getX(v); cz += xyz !== null ? xyz[3 * v + 2] ?? 0 : pos.getZ(v); }
     const ix = Math.min(nx - 1, Math.max(0, Math.floor((cx / 3 - box.min.x) / cell)));
     const iz = Math.min(nz - 1, Math.max(0, Math.floor((cz / 3 - box.min.z) / cell)));
     const c = iz * nx + ix;
@@ -151,13 +157,17 @@ function* split(mesh: THREE.Mesh): Generator<void, number> {
     const first = (start[c] ?? 0) * 3;
     geo.setDrawRange(first, count * 3);
     sphere.makeEmpty();
-    for (let i = first; i < first + count * 3; i++) { const v = index[i] ?? 0; sphere.expandByPoint(p.fromBufferAttribute(pos, v)); }
+    for (let i = first; i < first + count * 3; i++) {
+      const v = index[i] ?? 0;
+      sphere.expandByPoint(xyz !== null ? p.set(xyz[3 * v] ?? 0, xyz[3 * v + 1] ?? 0, xyz[3 * v + 2] ?? 0) : p.fromBufferAttribute(pos, v));
+    }
     if (count > PAUSE_EVERY / 4) yield;
     geo.boundingBox = sphere.clone();
     geo.boundingSphere = sphere.getBoundingSphere(new THREE.Sphere());
     const piece = new THREE.Mesh(geo, mesh.material);
     piece.name = `${pieces.name}-${String(c)}`;
     piece.castShadow = true;
+    (piece.userData as ChunkUserData).shadowChunked = true;
     piece.receiveShadow = false;
     piece.layers.set(SHADOW_LAYER);
     piece.matrixAutoUpdate = false;
