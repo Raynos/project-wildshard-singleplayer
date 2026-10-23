@@ -672,7 +672,8 @@ draws that shape draped on the terrain, or hides at an alpha of 0.01 or less.
 ### Query operation and reply records
 
 Query ids 4 and 5 retain the v1 list ids; 8 through 11 are v2 query ids.
-Flags are zero and a request's atTick equals its issuing entry tick. A
+Flags are zero on request headers; only the bounded point-list continuation
+records described below use flags=1. A request's atTick equals its issuing entry tick. A
 nonzero target is an observed body to exclude, resolved to its stable identity
 before queuing. Navigation, nearest-roster and point-sight requests use target zero. The a..g fields are:
 
@@ -682,6 +683,8 @@ before queuing. Navigation, nearest-roster and point-sight requests use target z
 | 5 path | fromX,fromY,fromZ,toX,toY,toZ,radius; radius >= 0 | inline pointCount,0,0,0,0; data is flat xyz triples |
 | 8 ray | origin xyz, unit direction xyz, maxDistance >= 0 | inline hit (0/1), point xyz, distance; hit data is normal xyz then body handle (0 absent); a miss is all zero with no data |
 | 9 overlap | center xyz,radius > 0,0,0,0 | inline bodyCount,0,0,0,0; data is unique observed body handles |
+| 12 grass | pointCount,0,0,0,0,0,0 followed by bounded x/z records | inline pointCount,0,0,0,0; data is ordered grass heights |
+| 13 normal | same point-list format | inline pointCount,0,0,0,0; data is ordered terrain normal Y components |
 | 10 nearest | origin xyz,radius >= 0,declaredRosterCode,0,0 | inline body handle, point xyz, horizontal distance; no match is five zeroes; no data |
 | 11 sight | from xyz,to xyz,slack >= 0 | inline visible (0/1),0,0,0,0; no data |
 
@@ -979,3 +982,36 @@ ring revision, state, RNG methods and body identity are checked before accept.
 Refused candidates advance neither group bank, random stream nor query ring.
 This foundational runner does not activate a group simulation or add a
 shipping module/admission row; pack and herd adoption own those changes.
+
+### Bounded point queries (H5, G621 R10a)
+
+Query operations 12 (grass height, metres) and 13 (terrain normal Y) carry
+one ordered list of 1..16 x/z points chosen by AS. The original QueryRingV2
+owns pending/ready state, afterBodies resolution and later-entry delivery.
+V2QueryWorld lends the existing grass.grassHeightAt and ground.normalY native
+owners; no active-page fallback, new terrain sampler or species lookup exists.
+Missing authority returns refused. Non-finite samples, an out-of-range normal
+component or a replaced native callable refuse before reply publication.
+
+An ordinary 80-byte kind-11 header has flags=0, target=0, point count in a
+and positive zero in b..g. It is immediately followed by ceil(count/3)
+continuation records: same binding/id/op/issue tick, flags=1 and target=0.
+Each continuation contains up to three x/z pairs in a..f; all unused words,
+including g, are positive zero. Intake bounds and copies the entire logical
+request before queuing it. Truncated, foreign, orphaned or malformed suffixes
+cannot publish a prefix. There is no guest pointer in the queued request.
+
+The guest queryPoints(op,id,pointer,count) writer reads at most 256 bytes from
+aligned Wasm scratch beyond the host IO envelope. It allocates nothing and
+bounds all output records before writing them. A maximum list uses seven wire
+records but one native pending-request slot. Group-step layouts reserve seven
+request records per logical pending slot; other callers must declare the same
+appropriate wire capacity. Scalar reply reservations account for every point.
+A successful reply has count in inline a and ordered samples in kind 13.
+Pending/ready saves carry detached points, with no new save owner or clock;
+legacy request/snapshot keys remain unchanged for operations without points.
+
+Next-tick replies are appropriate where the consumer preserves its original
+cadence or explicitly permits that delay (the pack spot/roam refresh). They
+must not replace a same-call herd terrain/RNG barrier: that original native
+slot uses a segmented group projection and explicit transient result columns.

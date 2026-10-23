@@ -41,7 +41,7 @@ export const GroupStepV2Schema: v.GenericSchema<GroupStepRowsV2> = v.strictObjec
 export function groupStepLayoutV2(rows: GroupStepRowsV2): V2Layout {
   const width = rows.bank.reduce((sum, row) => sum + groupBankWidthV2(row), 0);
   return layoutV2(0, rows.pages, new Map([[1, 1], [2, width], [3, width], [4, 2], [5, 1],
-    [6, rows.columns.length * rows.members], [10, rows.outputs], [11, rows.queries?.pending ?? 0],
+    [6, rows.columns.length * rows.members], [10, rows.outputs], [11, (rows.queries?.pending ?? 0) * 7],
     [12, rows.queries?.pending ?? 0], [13, rows.queries?.scalars ?? 0], [21, 1], [22, 1]]));
 }
 /** Columns are flattened by member slot then lexicographic column name.

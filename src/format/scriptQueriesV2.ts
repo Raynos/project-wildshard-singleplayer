@@ -3,8 +3,9 @@
 import { SCRIPT_V1_LISTS } from './scriptAbiV1';
 import { relativeTickV2,type V2Layout } from './scriptWireV2';
 
-export const V2_QUERY_OPS = Object.freeze({ walkable: SCRIPT_V1_LISTS.nearestWalkable,path: SCRIPT_V1_LISTS.path,ray: 8,overlap: 9,nearest: 10,sight: 11 });
+export const V2_QUERY_OPS = Object.freeze({ walkable: SCRIPT_V1_LISTS.nearestWalkable,path: SCRIPT_V1_LISTS.path,ray: 8,overlap: 9,nearest: 10,sight: 11,grass: 12,normal: 13 });
 export type V2QueryOperation = typeof V2_QUERY_OPS[keyof typeof V2_QUERY_OPS];
+type Vec2 = readonly [number,number];
 type Vec3 = readonly [number,number,number];
 type Values = readonly [number,number,number,number,number,number,number];
 export interface V2QueryBinding {
@@ -14,6 +15,8 @@ export interface V2QueryBinding {
 export interface V2QueryRequest {
   readonly binding: string; readonly id: number; readonly op: V2QueryOperation;
   readonly target: string | null; readonly atTick: number; readonly values: Values;
+  /** Detached points; only list operations 12/13 carry this bounded payload. */
+  readonly points?: readonly Vec2[];
 }
 export type V2QueryAnswer = { readonly status: 2 | 3 } | { readonly status: 1 } & (
   { readonly kind: 'walkable'; readonly point: Vec3 }
@@ -21,10 +24,11 @@ export type V2QueryAnswer = { readonly status: 2 | 3 } | { readonly status: 1 } 
   | { readonly kind: 'overlap'; readonly bodies: readonly string[] }
   | { readonly kind: 'nearest'; readonly actor: null | { readonly id: string; readonly point: Vec3; readonly distance: number } }
   | { readonly kind: 'sight'; readonly visible: boolean }
+  | { readonly kind: 'grass' | 'normal'; readonly samples: readonly number[] }
   | { readonly kind: 'ray'; readonly hit: null | { readonly point: Vec3; readonly normal: Vec3; readonly distance: number; readonly body: string | null } }
 );
 export interface V2QueryReply { readonly request: V2QueryRequest; readonly atTick: number; readonly answer: V2QueryAnswer }
-function operation(value: number): value is V2QueryOperation { return value === 4 || value === 5 || value === 8 || value === 9 || value === 10 || value === 11; }
+function operation(value: number): value is V2QueryOperation { return value === 4 || value === 5 || value === 8 || value === 9 || value === 10 || value === 11 || value === 12 || value === 13; }
 function finite(value: number): number { if (!Number.isFinite(value)) throw new Error('Non-finite v2 query value');return value; }
 function uint(value: number): number { if (!Number.isInteger(value) || value < 1 || value > 0xffffffff) throw new Error('Invalid v2 request id');return value; }
 function bindingHandle(binding: V2QueryBinding): number { uint(binding.handle);if (binding.handle > 0x7fffffff || binding.identity.length === 0) throw new Error('Invalid v2 query binding');return binding.handle; }
@@ -34,6 +38,12 @@ function pose(values: Vec3): Vec3 { return [finite(values[0]),finite(values[1]),
 export function validateV2QueryRequest(request: V2QueryRequest): void {
   const { op,target,values,atTick } = request;uint(request.id);relativeTickV2(atTick,atTick);
   if (!operation(op) || request.binding.length === 0 || target?.length === 0) throw new Error('Invalid v2 stable query identity');values.forEach(value => { finite(value); });
+  if (op === 12 || op === 13) {
+    const points = request.points;
+    if (target !== null || points === undefined || points.length === 0 || points.length > 16 || points.length !== values[0]
+      || values.slice(1).some(value => !Object.is(value, 0))) throw new Error('Invalid v2 point-list arguments');
+    for (const point of points) { finite(point[0]);finite(point[1]); }
+  } else if (request.points !== undefined) throw new Error('Unexpected v2 query points');
   if ((op === 4 && (target !== null || values[3] < 0 || values[4] !== 0 || values[5] !== 0 || values[6] !== 0))
     || (op === 5 && (target !== null || values[6] < 0))
     || (op === 8 && (values[6] < 0 || Math.abs(Math.hypot(values[3],values[4],values[5])-1) > 1e-6))
@@ -46,6 +56,10 @@ export function validateV2QueryAnswer(request: V2QueryRequest,answer: V2QueryAns
   if (V2_QUERY_OPS[answer.kind] !== request.op) throw new Error('Mismatched v2 query answer');
   switch (answer.kind) {
     case 'walkable': pose(answer.point);break;
+    case 'grass': case 'normal':
+      if (request.points === undefined || answer.samples.length !== request.points.length) throw new Error('Incomplete v2 point-list answer');
+      for (const value of answer.samples) { finite(value);if (answer.kind === 'normal' && (value < -1 || value > 1)) throw new Error('Invalid v2 normal component'); }
+      break;
     case 'sight': if (typeof answer.visible !== 'boolean') throw new Error('Invalid v2 sight answer');break;
     case 'nearest': if (answer.actor !== null) {
       pose(answer.actor.point);finite(answer.actor.distance);
@@ -73,7 +87,30 @@ export function readV2QueryRequests(view: DataView,layout: V2Layout,count: numbe
     const value = (j: number): number => finite(view.getFloat64(at+24+j*8,true));
     const values: Values = [value(0),value(1),value(2),value(3),value(4),value(5),value(6)];
     const key = JSON.stringify([binding.identity,id]);if (seen.has(key)) throw new Error('Duplicate v2 request id');seen.add(key);
-    const request = Object.freeze({ binding: binding.identity,id,op,target: stable,atTick: tick,values: Object.freeze(values) });validateV2QueryRequest(request);rows.push(request);
+    let points: readonly Vec2[] | undefined;
+    if (op === 12 || op === 13) {
+      const size = values[0], blocks = Math.ceil(size / 3);
+      if (!Number.isInteger(size) || size < 1 || size > 16 || blocks > count - i - 1) throw new Error('Incomplete v2 point-list payload');
+      const copied: Vec2[] = [];
+      for (let block = 0; block < blocks; block++) {
+        const payload = layout.io + region.offset + (++i) * 80;
+        if (view.getUint32(payload, true) !== local || view.getUint32(payload + 4, true) !== id
+          || view.getUint32(payload + 8, true) !== op || view.getUint32(payload + 12, true) !== 1
+          || view.getInt32(payload + 16, true) !== relative || view.getUint32(payload + 20, true) !== 0)
+          throw new Error('Foreign v2 point-list payload');
+        const words = Array.from({ length: 7 }, (_, j) => finite(view.getFloat64(payload + 24 + j * 8, true)));
+        const used = Math.min(3, size - copied.length) * 2;
+        if (words.slice(used).some(operand => !Object.is(operand, 0))) throw new Error('Invalid v2 point-list padding');
+        for (let j = 0; j < used; j += 2) {
+          const x = words[j], z = words[j + 1];
+          if (x === undefined || z === undefined) throw new Error('Missing v2 query point');
+          copied.push(Object.freeze([x, z]));
+        }
+      }
+      points = Object.freeze(copied);
+    }
+    const request = Object.freeze({ binding: binding.identity,id,op,target: stable,atTick: tick,values: Object.freeze(values),
+      ...(points === undefined ? {} : { points }) });validateV2QueryRequest(request);rows.push(request);
   }
   return Object.freeze(rows);
 }
@@ -88,7 +125,7 @@ export function prepareV2QueryReplies(layout: V2Layout,tick: number,replies: rea
   for (const reply of replies) {
     const request = reply.request, binding = bindings.get(request.binding), answer = reply.answer, key = JSON.stringify([request.binding,request.id]);
     if (binding === undefined || !binding.operations.has(request.op) || seen.has(key) || reply.atTick < request.atTick || reply.atTick >= tick) throw new Error('Invalid v2 reply identity or delivery tick');seen.add(key);uint(request.id);
-    if (request.op === 10 || request.op === 11) { validateV2QueryRequest(request);validateV2QueryAnswer(request,answer); }
+    if (request.op === 10 || request.op === 11 || request.op === 12 || request.op === 13) { validateV2QueryRequest(request);validateV2QueryAnswer(request,answer); }
     const body = (identity: string | null): number => {
       if (identity === null) return 0;
       const matches = [...binding.observed].filter(([,value]) => value === identity);const value = matches[0]?.[0];
@@ -99,6 +136,7 @@ export function prepareV2QueryReplies(layout: V2Layout,tick: number,replies: rea
       if (V2_QUERY_OPS[answer.kind] !== request.op) throw new Error('Mismatched v2 query answer');
       switch (answer.kind) {
         case 'walkable': values = [...pose(answer.point),0,0];break;
+        case 'grass': case 'normal': values = [answer.samples.length,0,0,0,0];data = [...answer.samples];break;
         case 'sight': values = [Number(answer.visible),0,0,0,0];break;
         case 'nearest': if (answer.actor !== null) values = [body(answer.actor.id),...pose(answer.actor.point),answer.actor.distance];break;
         case 'path':

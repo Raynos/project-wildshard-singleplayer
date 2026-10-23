@@ -12430,3 +12430,36 @@ ring revision, state, RNG methods and body identity are checked before accept.
 Refused candidates advance neither group bank, random stream nor query ring.
 This foundational runner does not activate a group simulation or add a
 shipping module/admission row; pack and herd adoption own those changes.
+
+### Bounded point queries (H5, G621 R10a)
+
+Query operations 12 (grass height, metres) and 13 (terrain normal Y) carry
+one ordered list of 1..16 x/z points chosen by AS. The original QueryRingV2
+owns pending/ready state, afterBodies resolution and later-entry delivery.
+V2QueryWorld lends the existing grass.grassHeightAt and ground.normalY native
+owners; no active-page fallback, new terrain sampler or species lookup exists.
+Missing authority returns refused. Non-finite samples, an out-of-range normal
+component or a replaced native callable refuse before reply publication.
+
+An ordinary 80-byte kind-11 header has flags=0, target=0, point count in a
+and positive zero in b..g. It is immediately followed by ceil(count/3)
+continuation records: same binding/id/op/issue tick, flags=1 and target=0.
+Each continuation contains up to three x/z pairs in a..f; all unused words,
+including g, are positive zero. Intake bounds and copies the entire logical
+request before queuing it. Truncated, foreign, orphaned or malformed suffixes
+cannot publish a prefix. There is no guest pointer in the queued request.
+
+The guest queryPoints(op,id,pointer,count) writer reads at most 256 bytes from
+aligned Wasm scratch beyond the host IO envelope. It allocates nothing and
+bounds all output records before writing them. A maximum list uses seven wire
+records but one native pending-request slot. Group-step layouts reserve seven
+request records per logical pending slot; other callers must declare the same
+appropriate wire capacity. Scalar reply reservations account for every point.
+A successful reply has count in inline a and ordered samples in kind 13.
+Pending/ready saves carry detached points, with no new save owner or clock;
+legacy request/snapshot keys remain unchanged for operations without points.
+
+Next-tick replies are appropriate where the consumer preserves its original
+cadence or explicitly permits that delay (the pack spot/roam refresh). They
+must not replace a same-call herd terrain/RNG barrier: that original native
+slot uses a segmented group projection and explicit transient result columns.

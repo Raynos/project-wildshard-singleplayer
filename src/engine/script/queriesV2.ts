@@ -10,7 +10,7 @@ const key = (request: V2QueryRequest): string => JSON.stringify([request.binding
 function tick(value: number): void { if (!Number.isSafeInteger(value) || value < 0) throw new Error('Invalid v2 query phase tick'); }
 function scalarCount(answer: V2QueryAnswer): number {
   if (answer.status !== 1) return 0;
-  switch (answer.kind) { case 'path': return answer.points.length*3;case 'overlap': return answer.bodies.length;case 'ray': return answer.hit === null ? 0 : 4;case 'walkable': case 'nearest': case 'sight': return 0;default: throw new Error('Unknown v2 query answer'); }
+  switch (answer.kind) { case 'path': return answer.points.length*3;case 'overlap': return answer.bodies.length;case 'ray': return answer.hit === null ? 0 : 4;case 'walkable': case 'nearest': case 'sight': return 0;case 'grass': case 'normal': return answer.samples.length;default: throw new Error('Unknown v2 query answer'); }
 }
 function order(a: V2QueryRequest,b: V2QueryRequest): number { return a.binding < b.binding ? -1 : a.binding > b.binding ? 1 : a.id-b.id; }
 
@@ -29,7 +29,7 @@ export class QueryRingV2 {
     this.layout = layout;this.slots = records.capacity;this.scalars = data.capacity;
     this.rights = new Map([...rights].map(([identity,row]) => {
       if (identity.length === 0 || !Number.isInteger(row.pending) || row.pending < 0 || row.pending > this.slots) throw new Error('Invalid v2 query binding quota');
-      for (const [op,count] of row.operations) if (![4,5,8,9,10,11].includes(op) || !Number.isInteger(count) || count < 0 || count > this.scalars || (op === 8 && count < 4)) throw new Error('Invalid v2 query data reservation');
+      for (const [op,count] of row.operations) if (![4,5,8,9,10,11,12,13].includes(op) || !Number.isInteger(count) || count < 0 || count > this.scalars || (op === 8 && count < 4)) throw new Error('Invalid v2 query data reservation');
       this.highWater.set(identity,0);return [identity,{ pending: row.pending,operations: new Map(row.operations) }];
     }));
   }
@@ -118,7 +118,8 @@ export class QueryRingV2 {
     for (const row of saved.highWater) { if (!this.rights.has(row.binding) || highWater.has(row.binding)) throw new Error('Invalid v2 query high-water identity');highWater.set(row.binding,row.id); }
     if (highWater.size !== this.rights.size) throw new Error('Incomplete v2 query high-water registry');
     for (const entry of saved.entries) {
-      const request = Object.freeze({ ...entry.request,values: Object.freeze(entry.request.values) }), id = key(request), latest = highWater.get(request.binding), limit = this.rights.get(request.binding)?.operations.get(request.op);
+      const request = Object.freeze({ ...entry.request,values: Object.freeze(entry.request.values),
+        ...(entry.request.points === undefined ? {} : { points: Object.freeze(entry.request.points.map(point => Object.freeze(point))) }) }), id = key(request), latest = highWater.get(request.binding), limit = this.rights.get(request.binding)?.operations.get(request.op);
       validateV2QueryRequest(request);
       if (entries.has(id) || latest === undefined || request.id > latest || limit === undefined || (request.target !== null && !observed.get(request.binding)?.has(request.target))) throw new Error('Invalid v2 pending query identity');
       if (entry.reply === null ? request.atTick <= saved.phase : entry.reply.atTick < request.atTick || entry.reply.atTick > saved.phase) throw new Error('Invalid v2 pending query phase');

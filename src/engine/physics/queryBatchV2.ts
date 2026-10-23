@@ -18,6 +18,10 @@ export interface V2QueryWorld {
   readonly as: GroupName;
   /** Stable declared roster codes, not transient body handles. Arrays borrow
    * actual actors in original source order; no implicit self exclusion. */
+  /** Existing native field owners, lent by admission at afterBodies. These
+   * are not guest callbacks or global terrain lookups. */
+  readonly grass?: { readonly grassHeightAt: (x: number,z: number) => number };
+  readonly ground?: { readonly normalY: (x: number,z: number) => number };
   readonly rosters?: ReadonlyMap<number,readonly Pick<AnimalSim,'entityId' | 'alive' | 'position'>[]>;
 }
 const scratch = new WeakMap<Physics,{ readonly ray: Ray; readonly ball: Ball }>();
@@ -37,6 +41,23 @@ export function resolvePhysicsQueriesV2(requests: readonly { readonly module: st
       }
       const points = navmesh.findPath(from,{ x: values[3],y: values[4],z: values[5] },values[6]);
       return points === null ? { status: 2 } : { status: 1,kind: 'path',points: points.map(point => [point.x,point.y,point.z]) };
+    }
+    if (request.op === 12 || request.op === 13) {
+      const owner = request.op === 12 ? world.grass : world.ground;
+      const key = request.op === 12 ? 'grassHeightAt' : 'normalY';
+      if (owner === undefined) return { status: 3 };
+      const sample: unknown = Reflect.get(owner, key);
+      if (typeof sample !== 'function' || request.points === undefined) return { status: 3 };
+      const points = request.points, samples: number[] = [];
+      for (const [x, z] of points) {
+        if (Reflect.get(owner, key) !== sample) throw new Error('Replaced v2 query field owner');
+        const value: unknown = Reflect.apply(sample, owner, [x, z]);
+        if (typeof value !== 'number' || !Number.isFinite(value)
+          || request.op === 13 && (value < -1 || value > 1)) throw new Error('Invalid v2 query field sample');
+        samples.push(value);
+      }
+      if (Reflect.get(owner, key) !== sample) throw new Error('Replaced v2 query field owner');
+      return { status: 1,kind: request.op === 12 ? 'grass' : 'normal',samples };
     }
     if (request.op === 10) {
       const roster = world.rosters?.get(values[4]);if (roster === undefined) return { status: 3 };
