@@ -147,8 +147,23 @@ test('source/tool base64 debt cannot grow, move or disappear from exact Git poli
   const cases:Record<string,number>[]=[{'src/old.ts':3},{'src/new.ts':1},{'scripts/new.mjs':1}];
   for(const files of cases){
     put(file,debt(files));git('add',file);
-    expect(checkBinaryRevision(root,':','HEAD',[file]).join(' ')).toContain('base64 allowance grew');
+    expect(checkBinaryRevision(root,':','HEAD',[file]).join(' ')).toContain('source debt allowance grew');
   }
   git('rm','-f',file);
-  expect(checkBinaryRevision(root,':','HEAD',[file]).join(' ')).toContain('base64 policy deleted');
+  expect(checkBinaryRevision(root,':','HEAD',[file]).join(' ')).toContain('source debt policy deleted');
+}));
+
+
+test('generated import debt and app table exemptions cannot grow or be deleted',()=>fixture((root,git,put)=>{
+  const file='lint/generated-import-debt.json';
+  const debt=(files:Record<string,number>,sources=['src/game/table.generated.ts'])=>JSON.stringify({schema:'no-generated-import/1',source,files,sources});
+  put(file,debt({'src/old.ts':2,'test/old.test.ts':1}));git('add',file);git('commit','-qm','seed import debt');
+  put(file,debt({'src/old.ts':1}));git('add',file);
+  expect(checkBinaryRevision(root,':','HEAD',[file])).toEqual([]);
+  put(file,debt({'src/new.ts':1}));git('add',file);
+  expect(checkBinaryRevision(root,':','HEAD',[file]).join(' ')).toContain('source debt allowance grew');
+  put(file,debt({},['src/game/table.generated.ts','src/game/new.generated.ts']));git('add',file);
+  expect(checkBinaryRevision(root,':','HEAD',[file]).join(' ')).toContain('app source exemption grew');
+  git('rm','-f',file);
+  expect(checkBinaryRevision(root,':','HEAD',[file]).join(' ')).toContain('source debt policy deleted');
 }));

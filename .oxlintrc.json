@@ -21,6 +21,7 @@
     "nursery": "error"
   },
   "rules": {
+    "wildshard/no-generated-import": "error",
     "wildshard/no-base64": "error",
     // ── kept on, but configured ──────────────────────────────────────────────────────────────────
     "typescript/no-explicit-any": "error",

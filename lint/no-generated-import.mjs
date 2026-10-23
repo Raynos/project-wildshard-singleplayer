@@ -1,0 +1,82 @@
+// GR0: import spelling and declared paths only; no TypeScript program.
+import {existsSync,readFileSync} from 'node:fs';
+import {dirname,resolve,relative,sep} from 'node:path';
+
+const text=node=>node?.type==='Literal'&&typeof node.value==='string'?node.value
+  :node?.type==='TemplateLiteral'&&node.expressions.length===0?node.quasis[0]?.value.cooked:undefined;
+const clean=value=>value.split(/[?#]/u)[0];
+/** Keep catalogue lookup separate from the parser so immutable Git audits and
+ * tiny fixtures use the same declared-output boundary. */
+export function generatedImportContext(root,files,sources=[]){
+  const outputs=new Set(files),authored=new Set(sources),packages=new Map();
+  function target(file,specifier){
+    const path=clean(specifier);
+    if(path.startsWith('.'))return [relative(root,resolve(dirname(resolve(root,file)),path)).split(sep).join('/')];
+    if(path.startsWith('/src/'))return [path.slice(1)];
+    const match=/^@wildshard\/(engine|format|game|sdk|commons)(?:\/(.*))?$/u.exec(path);
+    if(match===null||match[1]===undefined)return [path];
+    const packageName=match[1];
+    let exports=packages.get(packageName);
+    if(exports===undefined){
+      const source=resolve(root,'src',packageName,'package.json');
+      exports=existsSync(source)?JSON.parse(readFileSync(source,'utf8')).exports??{}:{};packages.set(packageName,exports);
+    }
+    const key=match[2]===undefined?'.':`./${match[2]}`;
+    let entry=exports[key],capture='';
+    if(entry===undefined)for(const [pattern,value]of Object.entries(exports)){
+      const star=pattern.indexOf('*');if(star===-1)continue;
+      const prefix=pattern.slice(0,star),suffix=pattern.slice(star+1);
+      if(key.startsWith(prefix)&&key.endsWith(suffix)){entry=value;capture=key.slice(prefix.length,key.length-suffix.length);break;}
+    }
+    const values=[],pending=[entry];
+    while(pending.length>0){
+      const value=pending.pop();
+      if(typeof value==='string')values.push(relative(root,resolve(root,'src',packageName,value.replaceAll('*',capture))).split(sep).join('/'));
+      else if(value!==null&&typeof value==='object')pending.push(...Object.values(value));
+    }
+    return values.length>0?values:[path];
+  }
+
+  return (file,specifier)=>{
+    const resolved=target(file,specifier);
+    return resolved.some(path=>{const candidates=[path,...['.ts','.tsx','.mts','.cts','.js','.mjs','.cjs','.json'].map(extension=>path+extension)];
+      return !candidates.some(candidate=>authored.has(candidate))
+        &&(/\.generated(?:\.|$)/u.test(path)||candidates.some(candidate=>outputs.has(candidate)));});
+  };
+}
+/** Existing registered producers are data, not an executable discovery/build. */
+export function generatedOutputPaths(root){
+  const files=new Set();
+  const jobs=resolve(root,'scripts/generation-jobs.json');
+  if(existsSync(jobs))for(const row of JSON.parse(readFileSync(jobs,'utf8')).jobs)for(const file of row.outputs)files.add(file);
+  const sources=resolve(root,'scripts/source-generation-outputs.json');
+  if(existsSync(sources))for(const rows of Object.values(JSON.parse(readFileSync(sources,'utf8')).producers))for(const file of rows)files.add(file);
+  return files;
+}
+/** Every actual import form, including type imports and literal dynamic loads. */
+export function generatedImportVisitors(check){
+  const source=(node,value)=>{const specifier=text(value);if(specifier!==undefined)check(node,specifier);};
+  return {
+    ImportDeclaration(node){source(node,node.source);},
+    ExportNamedDeclaration(node){source(node,node.source);},
+    ExportAllDeclaration(node){source(node,node.source);},
+    ImportExpression(node){source(node,node.source);},
+    TSImportType(node){source(node,node.source);},
+    CallExpression(node){if(node.callee.type==='Identifier'&&node.callee.name==='require')source(node,node.arguments[0]);},
+  };
+}
+export function noGeneratedImportRule(root,policyFile){
+  const policy=existsSync(policyFile)?JSON.parse(readFileSync(policyFile,'utf8')):{files:{}};
+  const generated=generatedImportContext(root,generatedOutputPaths(root),policy.sources??[]);
+  return {meta:{type:'problem',docs:{description:'Call authoring functions or read admitted products, never import a generated output (GR0)'},
+    schema:[{type:'object',properties:{count:{type:'boolean'}},additionalProperties:false}]},
+    create(context){
+      const file=relative(root,context.filename).split(sep).join('/');
+      if(!/^(?:src|test)\//u.test(file))return {};
+      const limit=context.options[0]?.count===true?0:Object.hasOwn(policy.files,file)?policy.files[file]:0;
+      let found=0;
+      return generatedImportVisitors((node,specifier)=>{
+        if(generated(file,specifier)&&++found>limit)context.report({node,message:'NO-GENERATED-IMPORT: call the authoring function or read the admitted product (GR0)'});
+      });
+    }};
+}
