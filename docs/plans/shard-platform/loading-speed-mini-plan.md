@@ -1,5 +1,7 @@
 # Infinite Wildshard loading: mini plan (G619)
 
+**Jake's picks (G622):** D1 a 3 s reveal any touch skips · D2 the whole home shard builds fast, no partial streaming (H3 becomes "whole home build fast") · D3 home first, neighbour placeholders (far proxies) for the descent · D4 no frame over 100 ms after controls.
+
 Jake, 2026-10-22 (G619): players start **inside their home region (Driftwood), made faster**, not on the road. Target
 **tap → controls under 5 s warm and under 15 s cold** on the Simulator / phone tier, every step budgeted, measured with
 the same recording before and after. Grid loading stays in-world after the loader (G578). G618's five fixes are the
