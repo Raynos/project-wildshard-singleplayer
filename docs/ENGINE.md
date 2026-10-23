@@ -877,6 +877,13 @@ checks one-shot entry intent against the receiving document's start before cold 
 or admission can consume its 60-second navigation window. Title, grid and travel
 handoffs still reset on their first read, reject future timestamps and refuse a new
 navigation starting after expiry. Explicit clocks support deterministic tests.
+`pendingTitleArrival(slug)` reads the same validated, fresh session/device
+arrival without consuming it. The grid's entry recovery uses it only with
+an exact planned stale-product reload and the original pending travel
+handoff; ordinary title visits and crashes cannot resume that old entry.
+The initial grid boot registers its existing planned-reload capture before
+clearing its route; the live grid later replaces it with actual position
+and continuation capture. All paths retain the existing durable loop guard.
 
 `leaseClientLibrary` in `@wildshard/game/shardfile/clientLibrary` awaits verified
 rereads of released transport before charging the complete decoded/GPU library

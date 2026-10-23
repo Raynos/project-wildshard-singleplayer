@@ -1,5 +1,7 @@
 import { beginNavigationShell } from '@wildshard/engine/boot/shell';
 import { pageScope } from '@wildshard/engine/app/resources';
+import { registerBeforeReload, type LastEnd } from '@wildshard/engine/boot/lastEnd';
+import { freshPageArrival, pendingTitleArrival } from '@wildshard/engine/boot/titleArrival';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { saves } from '@wildshard/engine/saves/runtime';
 import type { SaveStore } from '@wildshard/engine/saves/store';
@@ -12,7 +14,7 @@ import { pageGridCells as gridCells } from './cellEvents';
 import type { PageMode } from '../plugin/context';
 import { findTitleManifest } from '../shard/titleList';
 import { chooseShardEntry } from '../shard/entryMode';
-import { travel } from '../travel/travel';
+import { travel, travelSlot } from '../travel/travel';
 
 // P0 (Jake's phone, tap -> loader): the page entry routes on these before anything else, so this module stays off
 // three.js and the game graph (src/entry.ts imports it first; plugin/ui's 3.2 MB closure evaluated in that task).
@@ -66,6 +68,16 @@ export function bootPageMode(slug: string): PageMode {
   const mode: PageMode = intent === null ? 'shard' : 'grid';
   setPageMode(mode);
   if (intent !== null) gridCells.enter({ instance: intent.instance, slug: intent.slug }); // the home cell: the page starts inside it
+  if (intent !== null) {
+    const target = intent;
+    const assembly = new GridAssembly(gridMode(DEVSERVER));
+    const home = assembly.cells.find(cell => cell.instance === target.instance && [target.slug].includes(cell.slug));
+    if (home === undefined) throw new Error('Grid entry intent has no current catalogue cell');
+    const road = recovery?.road ?? safeGridRecovery(assembly, Date.now()).road;
+    // The live session replaces this initial capture once it owns real position/save state.
+    // A stale product or module can request a planned reload before that session exists.
+    registerBeforeReload(pageScope, reason => gridRecovery(saves).write(assembly, home, road, reason));
+  }
   if (mode === 'grid' && typeof history !== 'undefined') {
     try { history.replaceState(history.state, '', new URL(location.pathname, location.origin)); } catch { /* a sandboxed frame: the URL stays */ }
   }
@@ -92,10 +104,29 @@ export function safeGridRecovery(assembly: GridAssembly, now: number): NonNullab
 }
 
 /** Consume recovery metadata before routing/hydration; ordinary boot and unsupported future records select nothing. */
-export function consumeGridRecovery(options: { assembly?: GridAssembly; saves?: SaveStore; now?: () => number; unexpected?: boolean } = {}): NonNullable<GridRecoveryRecord> | null {
+export function consumeGridRecovery(options: { assembly?: GridAssembly; saves?: SaveStore; now?: () => number; unexpected?: boolean;
+  previous?: LastEnd; search?: URLSearchParams } = {}): NonNullable<GridRecoveryRecord> | null {
   const assembly = options.assembly ?? new GridAssembly(gridMode(DEVSERVER));
   const now = options.now ?? Date.now;
-  const result = gridRecovery(options.saves ?? saves, now).consume(assembly, options.unexpected);
+  const store = options.saves ?? saves, service = gridRecovery(store, now);
+  let result = service.consume(assembly, options.unexpected);
+  const end = options.previous, search = options.search;
+  // Older clients consumed their grid intent and cleared chunk before product admission.
+  // Only their exact planned stale-product reload can recover from the still-pending
+  // title/travel handoff. Ordinary title visits, crashes and explicit shard URLs cannot.
+  if (result.kind === 'none' && end?.kind === 'intentional' && !end.discarded && end.mode === ''
+    && end.reason === 'stuck boot recovery (app older than its product)' && Number.isFinite(end.at)
+    && now() >= end.at && now() - end.at <= 60_000 && search?.size === 1 && search.has('v')) {
+    const home = assembly.at(0, 0);
+    if (home !== undefined && pendingTitleArrival(home.slug)?.mode === 'enter') {
+      const handoff = travelSlot(store).peek();
+      if (handoff !== null && [home.slug].includes(handoff.to) && handoff.from === null && handoff.mode === 'enter'
+        && handoff.arrive === null && handoff.carry.length === 0 && freshPageArrival(handoff.at, now())) {
+        const road = safeGridRecovery(assembly, now()).road;
+        if (service.write(assembly, home, road, 'reload')) result = service.consume(assembly);
+      }
+    }
+  }
   loop = result.kind === 'loop';
   refused = result.kind === 'refused' || loop;
   selected = result.kind === 'resume' ? result.record : result.kind === 'fallback' ? safeGridRecovery(assembly, now()) : null;

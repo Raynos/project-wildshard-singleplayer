@@ -44,3 +44,11 @@ export function consumeTitleArrival(slug: string): TitleArrival | null {
   try { backup = saveStorage('device').getItem(BACKUP_KEY); saveStorage('device').removeItem(BACKUP_KEY); } catch { /* use the session copy */ }
   return valid(session, slug) ?? valid(backup, slug);
 }
+
+/** Inspect the same fresh one-shot arrival without consuming the receiving session's handoff. */
+export function pendingTitleArrival(slug: string): TitleArrival | null {
+  let session: string | null = null, backup: string | null = null;
+  try { session = saveStorage('session').getItem(KEY); } catch { /* the backup may survive */ }
+  try { backup = saveStorage('device').getItem(BACKUP_KEY); } catch { /* the session may survive */ }
+  return valid(session, slug) ?? valid(backup, slug);
+}

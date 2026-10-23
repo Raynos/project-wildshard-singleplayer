@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import { saves } from '@wildshard/engine/saves/runtime';
 import { markUnload } from '@wildshard/engine/boot/lastEnd';
 import { freshPageArrival, setTitleArrival } from '@wildshard/engine/boot/titleArrival';
-import type { SaveSlot } from '@wildshard/engine/saves/store';
+import type { SaveKeyDef, SaveSlot } from '@wildshard/engine/saves/store';
 import { findTitleManifest, titleManifests } from '../shard/titleList';
 import { shardEntry } from '../shard/entryMode';
 import { shardEntryManifest } from '../shard/legacy';
@@ -51,9 +51,8 @@ export function travelService(ports: TravelPorts): { travel: (request: TravelReq
     },
   };
 }
-export function travelSlot(store = saves): SaveSlot<TravelHandoff | null> {
-  return store.define({ key: 'travel.handoff', scope: 'session', version: 1, schema, initial: () => null });
-}
+const handoffDefinition: SaveKeyDef<TravelHandoff | null> = { key: 'travel.handoff', scope: 'session', version: 1, schema, initial: () => null };
+export function travelSlot(store = saves): SaveSlot<TravelHandoff | null> { return store.define(handoffDefinition); }
 let running: TravelSource | null = null;
 /** The composition root binds the live Bag and rows; the cold title has no running shard. */
 export function bindTravelInventory(source: TravelSource): () => void {
