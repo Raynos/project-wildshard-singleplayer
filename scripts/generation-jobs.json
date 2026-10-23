@@ -21693,7 +21693,15 @@
         "src/engine",
         "src/format",
         "src/sdk",
-        "src/shards/nalati-grasslands/generators"
+        "src/shards/nalati-grasslands/generators",
+        "src/game",
+        "src/commons",
+        "src/shards/nalati-grasslands/boot/layout.generated.json",
+        "src/shards/nalati-grasslands/boot/clearings.generated.json",
+        "src/shards/nalati-grasslands/boot/poiLayout.generated.json",
+        "src/shards/nalati-grasslands/data/water.generated.json",
+        "src/shards/nalati-grasslands/data/layout.generated.json",
+        "src/shards/nalati-grasslands/data/poiLayout.generated.json"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/renderTiles.json",
