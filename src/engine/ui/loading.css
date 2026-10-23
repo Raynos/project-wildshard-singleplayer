@@ -35,6 +35,8 @@
 .ws-load .ws-load-clock { margin-left: auto; font-family: var(--ws-mono); font-size: 13px; letter-spacing: 0.08em; color: var(--ws-cyan); font-weight: 400; }
 .ws-load .ws-load-track { margin-top: 12px; }
 .ws-load .ws-load-track-row { display: flex; align-items: baseline; gap: 12px; margin-bottom: 6px; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; }
+.ws-load .ws-load-grid { margin: 8px 0 0; }
+.ws-load .ws-load-track-row[hidden] { display: none; }
 .ws-load .ws-load-track-name { width: 78px; color: var(--ws-cyan-dim); flex: none; }
 .ws-load .ws-load-track-fact { flex: 1; color: var(--ws-text-dim); text-transform: none; letter-spacing: 0.06em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ws-load .ws-load-track-pct { color: #fff; font-family: var(--ws-display); font-size: 18px; letter-spacing: 0.04em; width: 44px; text-align: right; flex: none; }

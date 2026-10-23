@@ -2,6 +2,8 @@
 export interface DownloadSnapshot {
   networkBytes: number; cachedBytes: number; pendingBytes: number;
   filesDone: number; filesTotal: number; unclassifiedBytes: number; unclassifiedFiles: number;
+  /** the files this load declared (exact index sizes) and how much of them has arrived, from the wire or the cache */
+  declaredBytes: number; declaredDoneBytes: number; declaredFiles: number; declaredFilesDone: number;
 }
 interface File { bytes: number; complete: boolean }
 export interface DownloadTiming {
@@ -79,14 +81,15 @@ export class DownloadAccounting {
     else this.unknown.set(id, { url, bytes: body });
   }
   snapshot(): DownloadSnapshot {
-    let pendingBytes = 0, pendingFiles = 0, cachedBytes = this.browserCache;
-    for (const file of this.files.values()) if (!file.complete) { pendingBytes += file.bytes; pendingFiles++; }
+    let pendingBytes = 0, pendingFiles = 0, cachedBytes = this.browserCache, declaredBytes = 0;
+    for (const file of this.files.values()) { declaredBytes += file.bytes; if (!file.complete) { pendingBytes += file.bytes; pendingFiles++; } }
     for (const bytes of this.cache.values()) cachedBytes += bytes;
     let unclassifiedBytes = 0;
     for (const receipt of this.unknown.values()) unclassifiedBytes += Math.max(receipt.bytes,
       this.bodyHints.get(receipt.url) ?? 0, this.files.get(receipt.url)?.bytes ?? 0);
     return { networkBytes: this.network, cachedBytes, pendingBytes, filesDone: this.completed + this.cache.size,
-      filesTotal: this.completed + this.cache.size + pendingFiles, unclassifiedBytes, unclassifiedFiles: this.unknown.size };
+      filesTotal: this.completed + this.cache.size + pendingFiles, unclassifiedBytes, unclassifiedFiles: this.unknown.size,
+      declaredBytes, declaredDoneBytes: declaredBytes - pendingBytes, declaredFiles: this.files.size, declaredFilesDone: this.files.size - pendingFiles };
   }
 }
 let active: DownloadAccounting | undefined;

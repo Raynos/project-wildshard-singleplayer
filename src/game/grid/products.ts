@@ -20,7 +20,7 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 import { EdgeProfilesSchema } from '@wildshard/format/edgeProfiles';
 import { EntrywaysSchema } from '@wildshard/format/entryways';
 import * as v from 'valibot';
-import { declareDownloadFile, recordCachedDownload } from '@wildshard/engine/boot/download';
+import { recordCachedDownload } from '@wildshard/engine/boot/download';
 import { GridAdmissionPriority } from './admissionPriority';
 import { timeClientPreparation } from '../shardfile/preparationTiming';
 
@@ -44,11 +44,11 @@ async function readGridProductIndex(url: string, identity: string, options: Prod
  * checked; a network read is kept in the content cache like an admission's. */
 async function readGridProductFile(at: GridProductIndex, path: string, hash: string, size: number): Promise<Uint8Array> {
   const { options } = at, base = new URL('.', at.url).href, address = new URL(path, at.url).href;
-  declareDownloadFile(address, size);
   const held = await options.cache?.asset(base, hash) ?? await options.cachedResponse?.(address, hash, size);
   const bytes = held ?? await boundedResponse(await options.fetch(address), size);
   if (bytes.length !== size || await options.hash(bytes) !== hash) throw new Error(`Grid product file ${path} hash or size mismatch`);
-  if (held !== null && held !== undefined) recordCachedDownload(hash, bytes.length, address);
+  // a grid cell's file is not the home load's: a cache hit is credited as cache, never declared into the home track
+  if (held !== null && held !== undefined) recordCachedDownload(hash, bytes.length);
   else await options.cache?.putAsset(base, hash, bytes);
   return bytes;
 }

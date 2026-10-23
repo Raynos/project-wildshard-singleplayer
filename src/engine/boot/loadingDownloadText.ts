@@ -11,26 +11,31 @@ export interface LoadingPrefetchSnapshot {
   readonly storedFiles: number; readonly storedBytes: number;
 }
 
-/** The download track completes only when both declared load work and discovered prefetch work finish. */
-export function loadingDownloadFraction(transfer: DownloadSnapshot, done: boolean, prefetch: LoadingPrefetchSnapshot | null): number {
-  const received = transfer.networkBytes + transfer.cachedBytes;
-  const activity = done && transfer.filesDone === transfer.filesTotal && transfer.unclassifiedFiles === 0 ? 1
-    : Math.min(0.999, received / (received + transfer.pendingBytes + transfer.unclassifiedBytes + 1));
-  if (prefetch === null) return activity;
-  const complete = prefetch.phase === 'done' && prefetch.productsRead === prefetch.products
-    && prefetch.presentFiles + prefetch.storedFiles === prefetch.knownFiles;
-  const disk = complete ? 1 : Math.min(0.999, (prefetch.presentBytes + prefetch.storedBytes) / Math.max(1, prefetch.knownBytes));
-  return Math.min(activity, disk);
+/** The home load's own track: the bytes of the files it declared (product indexes give exact sizes) that have arrived, from
+ * the wire or the cache; done when the load is. Grid prefetch and other page traffic never move it (they have their own row). */
+export function loadingDownloadFraction(transfer: DownloadSnapshot, done: boolean): number {
+  if (done) return 1;
+  return transfer.declaredBytes === 0 ? 0 : Math.min(0.999, transfer.declaredDoneBytes / transfer.declaredBytes);
 }
 
-/** Wire traffic, verified cache reads and disk-prefetch completion have separate units and totals. */
-export function loadingDownloadText(transfer: DownloadSnapshot, scoped: boolean, prefetch: LoadingPrefetchSnapshot | null): string {
-  const unknown = transfer.unclassifiedFiles > 0 ? ` · wire size unavailable for ${transfer.unclassifiedFiles} files (${formatMB(transfer.unclassifiedBytes)} known body)` : '';
-  const network = transfer.unclassifiedFiles > 0 ? `Network total unavailable (${formatMB(transfer.networkBytes)} measured)` : `${formatMB(transfer.networkBytes)} network`;
-  const activity = `${scoped ? 'Page activity during this load: ' : ''}${network} · ${formatMB(transfer.cachedBytes)} offline cache · ${formatMB(transfer.pendingBytes)} declared pending · ${transfer.filesDone} / ${transfer.filesTotal} load files${unknown}`;
-  if (prefetch === null) return activity;
+/** Declared progress first (the fact line truncates), then the wire and the offline cache. WebKit sizes no service-worker
+ * transfer: those count by their known body size, said once, never as a missing total. */
+export function loadingDownloadText(transfer: DownloadSnapshot): string {
+  const network = transfer.unclassifiedFiles > 0
+    ? `${formatMB(transfer.networkBytes + transfer.unclassifiedBytes)} network (${transfer.unclassifiedFiles} files by body size)` : `${formatMB(transfer.networkBytes)} network`;
+  return `${formatMB(transfer.declaredDoneBytes)} of ${formatMB(transfer.declaredBytes)} · ${transfer.declaredFilesDone} / ${transfer.declaredFiles} files · ${network} · ${formatMB(transfer.cachedBytes)} offline cache`;
+}
+
+/** The grid prefetch's own row: disk bytes against the set discovered so far (a finished run with every product read is 1). */
+export function loadingPrefetchFraction(prefetch: LoadingPrefetchSnapshot): number {
+  const complete = prefetch.phase === 'done' && prefetch.productsRead === prefetch.products
+    && prefetch.presentFiles + prefetch.storedFiles === prefetch.knownFiles;
+  return complete ? 1 : Math.min(0.999, (prefetch.presentBytes + prefetch.storedBytes) / Math.max(1, prefetch.knownBytes));
+}
+
+export function loadingPrefetchText(prefetch: LoadingPrefetchSnapshot): string {
   const bytes = prefetch.presentBytes + prefetch.storedBytes, files = prefetch.presentFiles + prefetch.storedFiles;
   const state = prefetch.phase === 'running' ? 'prefetching' : prefetch.phase === 'done' ? 'prefetch finished' : 'prefetch stopped';
   // Even a finished run can skip a failed product: its discovered set is not an invented whole-set total.
-  return `${activity} · On disk: ${formatMB(bytes)} of ${formatMB(prefetch.knownBytes)} known so far · ${files} / ${prefetch.knownFiles} prefetch files · ${prefetch.productsRead} / ${prefetch.products} products checked · ${state}${prefetch.reason === null ? '' : ` (${prefetch.reason})`}`;
+  return `On disk: ${formatMB(bytes)} of ${formatMB(prefetch.knownBytes)} known so far · ${files} / ${prefetch.knownFiles} files · ${prefetch.productsRead} / ${prefetch.products} products checked · ${state}${prefetch.reason === null ? '' : ` (${prefetch.reason})`}`;
 }

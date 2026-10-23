@@ -8,7 +8,7 @@ import { loadShellTemplate } from '../boot/shell';
 import { appIdentity } from '../app/identity';
 import { recordBootCheckpoint, recordBootProgress, startBoot } from '../boot/bootTrace';
 import { DownloadAccounting, installDownloadAccounting, observeDownloadAccounting } from '../boot/download';
-import { loadingDownloadText, loadingDownloadFraction, type LoadingPrefetchSnapshot } from '../boot/loadingDownloadText';
+import { loadingDownloadText, loadingDownloadFraction, loadingPrefetchFraction, loadingPrefetchText, type LoadingPrefetchSnapshot } from '../boot/loadingDownloadText';
 import { LoadingTimeline, installLoadingTimeline, type LoadingPath, type LoadingRow, type LoadingGap } from '../boot/timeline';
 import { LoadingStall } from '../boot/stall';
 import { loadingExpectations, loadingFraction, type LoadingTimings, type LoadingTimingKey, type LoadingCalibration } from '../boot/weights';
@@ -29,7 +29,7 @@ const savedStorage = saveStorage('session');
  * index.html before the first paint — src/engine/core/devMode.ts; loading.css does the hiding).
  */
 type TimelineSnapshot = ReturnType<LoadingTimeline['snapshot']>;
-type ElKey = 'clock' | 'dlFact' | 'dlPct' | 'dlBar' | 'suFact' | 'suPct' | 'suBar' | 'rows' | 'foot' | 'slug' | 'tier' | 'bar' | 'line' | 'diagnostics';
+type ElKey = 'clock' | 'dlFact' | 'dlPct' | 'dlBar' | 'pfRow' | 'pfFact' | 'pfPct' | 'suFact' | 'suPct' | 'suBar' | 'rows' | 'foot' | 'slug' | 'tier' | 'bar' | 'line' | 'diagnostics';
 
 /** Write text only when it changed: an unchanged textContent write still dirties layout. */
 const set = (el: HTMLElement, text: string): void => { if (el.textContent !== text) el.textContent = text; };
@@ -78,6 +78,8 @@ export class Loading {
   private configured = false;
   private finished = false;
   private shownSetup = 0;
+  /** the home load's download track as shown: it never goes back (a late declaration grows the total, not the past) */
+  private shownDownload = 0;
   private readonly admissionPhases = new Set<string>();
   private readonly paintedRows: (LoadingRow | LoadingGap)[] = [];
   /** G555: a mid-play load (a grid cell entry): no boot trace, no adopted shell, no page-wide timeline or download
@@ -115,7 +117,7 @@ export class Loading {
     this.scope.onDispose(() => { this.downloadObserver.disconnect(); });
     const tagline = this.root.querySelector('.ws-load-tagline'); if (tagline === null) throw new Error('Loading: no tagline'); tagline.textContent = appIdentity().tagline;
     const el = (key: ElKey): HTMLElement => { const e = this.root.querySelector<HTMLElement>(`[data-el="${key}"]`); if (!e) throw new Error(`Loading: no [data-el="${key}"]`); return e; };
-    this.els = { slug: el('slug'), tier: el('tier'), clock: el('clock'), dlFact: el('dlFact'), dlPct: el('dlPct'), dlBar: el('dlBar'), suFact: el('suFact'), suPct: el('suPct'), suBar: el('suBar'), rows: el('rows'), foot: el('foot'), bar: el('bar'), line: el('line'), diagnostics: el('diagnostics') };
+    this.els = { slug: el('slug'), tier: el('tier'), clock: el('clock'), dlFact: el('dlFact'), dlPct: el('dlPct'), dlBar: el('dlBar'), pfRow: el('pfRow'), pfFact: el('pfFact'), pfPct: el('pfPct'), suFact: el('suFact'), suPct: el('suPct'), suBar: el('suBar'), rows: el('rows'), foot: el('foot'), bar: el('bar'), line: el('line'), diagnostics: el('diagnostics') };
     this.els.slug.textContent = chunk.name;
     this.els.tier.textContent = engineString('s_783b614ae363', [TIER, Math.round(innerWidth * devicePixelRatio), Math.round(innerHeight * devicePixelRatio), nav.hardwareConcurrency ?? engineString('s_8a8de823d5ed'), window.__ws_sw ? engineString('s_5c75b0e90774') : '']);
     const key = 'loadAttempt';
@@ -253,8 +255,8 @@ export class Loading {
   private downloadProgress(done: boolean) {
     for (const entry of this.downloadObserver.takeRecords()) if (entry instanceof PerformanceResourceTiming) this.downloads.resource(entry);
     const transfer = this.downloads.snapshot();
-    const fraction = loadingDownloadFraction(transfer, done, this.prefetchSource?.() ?? null);
-    return { ...transfer, fraction };
+    this.shownDownload = Math.max(this.shownDownload, loadingDownloadFraction(transfer, done));
+    return { ...transfer, fraction: this.shownDownload };
   }
 
   private setupProgress(): number {
@@ -271,8 +273,11 @@ export class Loading {
     setData(this.root, 'unclassifiedFiles', String(transfer.unclassifiedFiles));
     setData(this.root, 'unclassifiedBytes', String(transfer.unclassifiedBytes));
     const prefetch = this.prefetchSource?.() ?? null;
+    setData(this.root, 'declaredBytes', String(transfer.declaredBytes));
     setData(this.root, 'prefetch', prefetch === null ? '' : JSON.stringify(prefetch));
-    set(this.els.dlFact, loadingDownloadText(transfer, this.scoped, prefetch));
+    set(this.els.dlFact, loadingDownloadText(transfer));
+    this.els.pfRow.hidden = prefetch === null;
+    if (prefetch !== null) { set(this.els.pfFact, loadingPrefetchText(prefetch)); set(this.els.pfPct, String(Math.floor(loadingPrefetchFraction(prefetch) * 100))); }
     return transfer.fraction;
   }
 

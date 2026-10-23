@@ -39,7 +39,8 @@ it('counts undeclared network requests and early modules once, separately from c
   accounting.resource(timing('/worker-safari-hit.js', { workerStart: 0, transferSize: 0,
     serverTiming: [{ name: 'ws-cache', duration: 1024 }], encodedBodySize: 0 }));
   expect(accounting.snapshot()).toEqual({ networkBytes: 1300, cachedBytes: 1924,
-    pendingBytes: 0, filesDone: 5, filesTotal: 5, unclassifiedBytes: 900, unclassifiedFiles: 1 });
+    pendingBytes: 0, filesDone: 5, filesTotal: 5, unclassifiedBytes: 900, unclassifiedFiles: 1,
+    declaredBytes: 0, declaredDoneBytes: 0, declaredFiles: 0, declaredFilesDone: 0 });
 });
 
 it('does not turn all-zero worker timings into cache hits or invent wire bytes from body hints', () => {
@@ -64,8 +65,9 @@ it('retains exact pending index sizes and resolves cache reads and late declarat
   accounting.declare('/early.js', 1000);
   expect(accounting.snapshot()).toMatchObject({ pendingBytes: 3000, cachedBytes: 2500,
     networkBytes: 1300, filesDone: 2, filesTotal: 3 });
+  expect(accounting.snapshot()).toMatchObject({ declaredBytes: 6500, declaredDoneBytes: 3500, declaredFiles: 3, declaredFilesDone: 2 });
   accounting.resource(timing('/pending.bin', { encodedBodySize: 3000, transferSize: 3300 }));
-  expect(accounting.snapshot().pendingBytes).toBe(0);
+  expect(accounting.snapshot()).toMatchObject({ pendingBytes: 0, declaredBytes: 6500, declaredDoneBytes: 6500, declaredFilesDone: 3 });
 });
 
 it('keeps unclassified worker bytes explicit and excludes previous attempts', () => {

@@ -23,6 +23,7 @@ const shellHtml = (tagline: string): string => `<div class="ws-load-head">
 <div class="ws-load-track">
 <div class="ws-load-track-row"><span class="ws-load-track-name">download</span><span class="ws-load-track-fact" data-el="dlFact">—</span><span class="ws-load-track-pct" data-el="dlPct">0</span></div>
 <div class="ws-load-bar"><div class="ws-load-fill" data-el="dlBar"></div></div>
+<div class="ws-load-track-row ws-load-grid" data-el="pfRow" hidden><span class="ws-load-track-name">grid</span><span class="ws-load-track-fact" data-el="pfFact">—</span><span class="ws-load-track-pct" data-el="pfPct">0</span></div>
 </div>
 <div class="ws-load-track">
 <div class="ws-load-track-row"><span class="ws-load-track-name">setup</span><span class="ws-load-track-fact" data-el="suFact">—</span><span class="ws-load-track-pct" data-el="suPct">0</span></div>
