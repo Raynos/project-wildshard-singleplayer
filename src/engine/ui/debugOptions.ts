@@ -11,7 +11,7 @@ import { app } from '../app/runtime';
  * the shard you are in, a filter box on top. There are no URL switches (AGENTS.md "No URL switches, ever").
  *
  *   opt('weather', 'sky', 'Weather', [['live', 'Live'], ['rain', 'Rain']], { ask: 'E162', reviewBy: '2026-12-30', note: 'E162: aiming aid.' })
- *   action('clearDownloads', 'loading', 'Downloads', 'Clear', () => …, { ask: 'E172', reviewBy: '2026-12-30', note: 'E172 …' })   // a button row, not a pick
+ *   action('clearDownloads', 'tools', 'Downloads', 'Clear', () => …, { ask: 'E172', reviewBy: '2026-12-30', note: 'E172 …' })   // a button row, not a pick
  *   DEBUG_READOUTS        → a live readout under a row, by row id (E172: Shards in memory's; both menus show it)
  *   DEBUG_ROWS            → every row, in menu order within its group
  *   DEBUG_GROUPS          → the groups, in menu order (never add one without need: a row belongs in an existing group)
@@ -147,7 +147,7 @@ export const TITLE_SKIPPERS = ['skipintro', 'tour', 'explore', 'cam', 'model', '
 /** E172 (the user: "I need a button to nuke the cache so i can test it"): every downloaded file gone, the saves kept
  *  (src/engine/boot/clearDownloads.ts), then a reload to the title like a fresh launch — the running shard's ?chunk= stays */
 const CLEAR_IDLE = engineString('s_e94f3b418bf5');
-const clearDownloadsRow = action('clearDownloads', 'loading', engineString('s_59cb301bb126'), engineString('s_59cb301bb126'), async (say) => {
+const clearDownloadsRow = action('clearDownloads', 'tools', engineString('s_59cb301bb126'), engineString('s_59cb301bb126'), async (say) => {
   say('Clearing…', CLEAR_IDLE);
   const r = await clearDownloads();
   const freed = freedBytes(r);
@@ -161,7 +161,6 @@ const clearDownloadsRow = action('clearDownloads', 'loading', engineString('s_59
     return last === null ? CLEAR_IDLE : `Last clear freed ${mbText(freedBytes(last))} (${last.caches} caches, ${last.workers} worker${last.workers === 1 ? '' : 's'}). ${CLEAR_IDLE}`;
   },
 });
-const TIMES = [['live', 'Live'], ['midday', 'Midday'], ['golden', 'Golden'], ['sunset', 'Sunset'], ['night', 'Night']] as const;
 
 
 export const DEBUG_ROWS: readonly DebugRow[] = [
@@ -169,10 +168,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   opt('graphMaterials', 'look', engineString('s_graph_materials'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_graph_materials_note') }),
 
 
-  // ── Sky & weather ──
-  // Authored clocks and weather opt in through level mechanisms.
-  opt('time', 'sky', engineString('s_318fb174f5eb'), TIMES, { purpose: 'developer', when: (c) => c.chunk.mechanisms.includes('dayCycle'), ask: 'E55', reviewBy: '2026-12-30', note: engineString('s_f42607c7d703') }),
-  opt('weather', 'sky', engineString('s_a0bba6381246'), [['live', engineString('s_b64ac05f17e6')], ['clear', engineString('s_83b12c2216ef')], ['fog', engineString('s_14394e978d84')], ['rain', engineString('s_a6d20aa6a4c7')]], { purpose: 'developer', when: (c) => c.chunk.mechanisms.includes('weather'), ask: 'E357', reviewBy: '2026-12-30', note: engineString('s_a931181d0abf') }),
 
   // ── Combat & weapons ──
 

@@ -15,7 +15,6 @@ import { shards } from '../shard/list';
 import { ART_URL_BYTES } from '../shard/art.generated';
 import { runShardLoad, withShardHooks, ShardLoadError, type LoadStage } from '../shard/load';
 import type { KitPorts, BuiltWorld, SessionState, StagedBoot, SessionContext } from './context';
-import { installTemplateDebug } from '../shard/templateDebug';
 import { dataStage } from './data';
 import { worldStage } from './world';
 import { loadoutStage } from './loadout';
@@ -142,7 +141,6 @@ async function buildSession(manifest: ShardManifest, stage: LoadStage, kit: KitP
   };
   app.levelAdapters.debugRow = (spec) => registerLevelDebugRow(spec, manifest.slug);
   app.levelAdapters.playground = (spec) => registerPlayground(manifest.slug, spec);
-  installTemplateDebug(app, app.engineScope);
   try {
     return await bootLevel(session.ownedGridHome ? gridPageShellLevel(manifest) : gridLevel(toLevelSpec(manifest, product)), {
       sequence, scope, progress: () => boot.progress,

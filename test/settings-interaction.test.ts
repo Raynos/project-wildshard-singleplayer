@@ -6,7 +6,7 @@ import { openBootSettings } from '../src/engine/ui/BootSettings';
 import { savedSetting, setting } from '../src/engine/ui/Settings';
 import { authoredRows } from '../src/engine/ui/authoredDebugRows';
 import { buildDebugMenu } from '../src/engine/ui/DebugMenu';
-import type { DebugRow } from '../src/engine/ui/debugOptions';
+import { DEBUG_ROWS, type DebugRow } from '../src/engine/ui/debugOptions';
 
 const owners: Scope[] = [], rows: DebugRow[] = [];
 afterEach(() => { for (const scope of owners.splice(0)) scope.dispose(); for (const row of rows.splice(0)) authoredRows.delete(row); document.body.replaceChildren(); vi.unstubAllGlobals(); });
@@ -77,4 +77,10 @@ test('the real title panel stages a quality pick and reloads only once on Apply'
     tap(originalChoice); expect(apply.hidden).toBe(true);
     root.querySelector<HTMLButtonElement>('.ws-gmenu-close')?.click();
   } finally { unbind(); }
+});
+
+
+test('retired diagnostics are absent while Clear downloads remains in Developer', () => {
+  expect(DEBUG_ROWS.some(row => row.id === 'time' || row.id === 'weather' || row.id === 'game.template')).toBe(false);
+  expect(DEBUG_ROWS.find(row => row.id === 'clearDownloads')).toMatchObject({ purpose: 'developer', group: 'tools' });
 });

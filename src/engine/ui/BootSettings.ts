@@ -123,7 +123,7 @@ function build(): HTMLElement {
   // pause menu's (E177) and, like it, only in developer mode. The Developer switch itself sits in the open above it
   // (Jake, 2026-09-26: "back in the open") — it is how the card appears at all.
   const dbg = foldCard('bootdebug', engineString('s_1a03bd2fd107'), engineString('s_8c4422087396'));
-  const tools = foldCard('bootDeveloperTools', engineString('s_96f0c06bbcb7'), 'Diagnostics and unfinished work');
+  const tools = foldCard('bootDeveloperTools', engineString('s_3fb7b39416f1'));
   developerTools = buildDebugMenu(tools, { purpose: 'developer', onPick: repaint });
   const registry = el('ws-gmenu-debugslot');
   debug = buildDebugMenu(registry, { onPick: repaint });

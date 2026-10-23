@@ -391,7 +391,7 @@ export class GameMenu {
     // E178: no full-width RESUME / EXIT TO MAIN MENU on top of the panel any more — they are the header bar's two buttons
     const p = el('ws-gmenu-card', engineString('s_e68f72548349')); this.settingsCard = p;
     const dbg = foldCard('debug', engineString('s_1a03bd2fd107'), engineString('s_8c4422087396')); // E177: folded until it is asked for
-    const tools = foldCard('developerTools', engineString('s_96f0c06bbcb7'), 'Diagnostics and unfinished work');
+    const tools = foldCard('developerTools', engineString('s_3fb7b39416f1'));
     // developer mode only (E140, the user's 7a): the Settings ▸ Developer switch shows / hides it live
     dbg.hidden = !isDev(); tools.hidden = !isDev(); onDev((on) => { dbg.hidden = !on; tools.hidden = !on; cats.sync(); });
     cats.pane.append(p, tools, dbg); cats.tag('review', tools); cats.tag('debug', dbg);
