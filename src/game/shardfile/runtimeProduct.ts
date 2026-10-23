@@ -169,7 +169,7 @@ export async function loadShardProduct(expectedIdentity: string, options: Produc
       if (entry === undefined) {
         const assets = new ClientAssets(source, new Map(), options);
         entry = { source, assets, options, key, owners: new Set(), requests: new Set(),
-          product: shardProductData(source, base, ref => assets.read(ref), descriptor?.receipt === undefined) };
+          product: shardProductData(source, base, ref => assets.read(ref), descriptor?.receipt === undefined, options.firstParty) };
         productsByIndex.set(key, entry);
       }
       entry.requests.add(requestKey);
