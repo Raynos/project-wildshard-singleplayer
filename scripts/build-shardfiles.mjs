@@ -20,7 +20,6 @@ import { quietCli } from './quiet-cli.mjs';
 import { productFolder, shardOutputs } from './shard-outputs.mjs';
 import { shardfileValidationRevision } from './shardfile-validation-revision.mjs';
 import { runShardBuild, runShardBuildPool } from './shard-build-pool.mjs';
-import { checkTileBake } from './tile-bakes.mjs';
 
 /** Exact closed-runtime copy admission shared by the builder and read-only product consumers.
  * @param {string} root @param {string} project */
@@ -198,8 +197,6 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
     // Cache transport never substitutes for current strict admission, including
     // file hashes, schemas, budgets and executing the admitted script bytes.
     if (strict && how !== 'built') await buildOne(['validate',destination]);
-    const tiles = checkTileBake(root, name, destination);
-    console.info(`tile bake: ${name} ${tiles.l0} L0/${tiles.l1} L1, 16 full 5x5 windows checked, ${Object.keys(tiles.debt).length} existing debt metrics`);
     console.info(`wildshard build: ${name} ${how === 'built' ? 'built' : `reused (${how})`} in ${((performance.now() - started) / 1000).toFixed(1)}s`);
     count++;
     } catch(error) {
