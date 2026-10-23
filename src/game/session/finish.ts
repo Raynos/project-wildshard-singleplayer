@@ -18,6 +18,7 @@ import { textureBytes } from '@wildshard/engine/render/textureBytes';
 import { setPoseProvider } from '@wildshard/engine/ui/ReloadPrompt';
 import { registerBeforeReload } from '@wildshard/engine/boot/lastEnd';
 import { gridPrefetchOrder, startGridPrefetch } from '../grid/prefetch';
+import { enterSkyClock } from './clockSettings';
 
 export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): Promise<BuiltWorld> {
   const { manifest, boot, slug, loading, audioProfile, files, bootSteps, plan, step, audioLoad, deferredAudio, world, game, sky, player, chunk, fragileBoot, failGpuBoot, onBootContextLost, edgeDressing, boundary, water, interactables, props, disableBootGpuGuard, level, animals, arena, crossbow, weapons, lockSys, hud, perf, audio, music, playerHealth, exploring, hands, windupWarn, resuming, arrival, menuFirst, enter, getPlayground, leakPhysics } = ctx;
@@ -53,6 +54,9 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   // wait is the grid path's 'road' step (it was an unnamed gap after Home region, 0.46 s cold on live, round 40)
   if (ctx.grid === null) await macrotask();
   else { const grid = ctx.grid; await loadingStage('road', async () => { await macrotask(); await grid.roadLanded(); }); }
+  // R12: a standalone page's own sky clock (a painted sky, published by its runtime) is the day cycle while the level lives
+  // and takes the pinned time; on the grid each entered cell registers its own (hybrid.ts)
+  if (ctx.grid === null) enterSkyClock(app, [game.levelScope], game.levelScope);
   game.buildComposer();
   // The first live late/render phases would otherwise publish the home PMREM and install its grade only after
   // shaders/firstFrame, invalidating every warmed world key. Settle the same presentation owners without a tick.
