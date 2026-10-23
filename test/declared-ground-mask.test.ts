@@ -1,3 +1,5 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- validate generated ground metadata without inferring its full geography JSON type
+import { readFileSync } from 'node:fs';
 import { expect,test } from 'vitest';
 import { zlibSync } from 'fflate';
 import * as v from 'valibot';
@@ -8,10 +10,13 @@ import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
 import { createBakedTerrainField,installDeclaredBakedTerrain,bakedTerrainSource } from '../src/engine/world/bakedTerrainField';
 import { basinBody } from '../src/engine/world/water/body';
 import { readScalarChannel } from '../src/engine/world/scalarChannel';
-import geography from '../src/shards/nalati-grasslands/boot/geography.generated.json' with { type: 'json' };
 import layout from '../src/shards/nalati-grasslands/boot/layout.generated.json' with { type: 'json' };
 import { GROUND } from './fixtures/nalati-terrain';
 import nalati from '../src/shards/nalati-grasslands/manifest';
+
+const finite=v.pipe(v.number(),v.finite());
+const geography=v.parse(v.object({ground:GroundRowsSchema,seed:finite,res:finite,size:finite,river:v.object({level:finite})}),
+  JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/geography.generated.json','utf8')));
 
 const encode = (values: Float32Array | Float64Array): string => btoa(String.fromCodePoint(...zlibSync(new Uint8Array(values.buffer))));
 const lattice = { res: 2,size: 500,values: { type: 'f32',count: 4,data: encode(new Float32Array([0,.25,.75,1])) } };
