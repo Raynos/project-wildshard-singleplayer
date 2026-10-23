@@ -1,5 +1,4 @@
 import { BufferGeometry, InstancedMesh, Material, type Matrix4, Mesh, Object3D } from 'three';
-import type { ModelBuildVisit, ModelPlacementVisitor } from '@wildshard/engine/models/model';
 import { poseOf } from '@wildshard/engine/models/colliders';
 import { MANIFEST as NALATI_GRASSLANDS } from '../discovery.generated';
 import { captureScatterSource as captureDressLayerSource, type ScatterSource as DressLayerSource } from '@wildshard/engine/render/scatterInstances';
@@ -93,7 +92,7 @@ export class NalatiCaptureInventory {
     const id = this.meshCount++; this.meshIds.set(mesh, id); return id;
   };
 
-  readonly visitPlacement: ModelPlacementVisitor = entry => {
+  readonly visitPlacement: NonNullable<Parameters<typeof visitAuthoredWorld>[1]['visitPlacement']> = entry => {
     if (this.sealed) throw new Error('Nalati capture already sealed');
     const role = entry.moving || hybridModels.has(entry.model) ? 'hybrid' : 'static-candidate';
     let root: number | null = null;
@@ -109,7 +108,7 @@ export class NalatiCaptureInventory {
     return build => { this.captureBuild(entry.model, build); };
   };
 
-  private captureBuild<P extends object>(model: string, build: ModelBuildVisit<P>): void {
+  private captureBuild(model: string, build: Parameters<NonNullable<ReturnType<NalatiCaptureInventory['visitPlacement']>>>[0]): void {
     if (this.sealed) throw new Error('Nalati capture already sealed');
     const meshes = build.kind === 'model' && !(build.built instanceof Object3D) ? build.built.map(part => {
         const object = new Mesh(part.geometry, part.material); object.updateMatrixWorld(true);
