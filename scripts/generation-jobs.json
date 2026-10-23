@@ -199,7 +199,7 @@
         "src/shards/nalati-grasslands/data/speciesRows.json",
         "src/sdk/clientChannels.ts",
         "src/shards/nalati-grasslands/generators/goldenKingFight.ts",
-        "src/shards/nalati-grasslands/generators/strikeProfiles.ts",
+        "src/shards/nalati-grasslands/data/strikeProfiles.json",
         "src/sdk/bake/source-loader.mjs",
         "src/sdk/species.ts",
         "src/sdk/phasedBoss.ts",

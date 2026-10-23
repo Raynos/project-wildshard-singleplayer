@@ -7,7 +7,7 @@ import * as layout from './kurganLayout.ts';
 import { GOLDEN_KING_BOSS_PROFILE } from './goldenKingArena.ts';
 import { KING_ENCOUNTER, KING_REWARD, KING_TUNING, KING_PORTAL } from './goldenKingFight.ts';
 import { GOLDEN_KING_POSE } from './goldenKingPose.ts';
-import { NALATI_STRIKE_ROWS } from './strikeProfiles.ts';
+import NALATI_STRIKE_ROWS from '../data/strikeProfiles.json' with { type: 'json' };
 
 const root = resolve(import.meta.dirname, '../../../..');
 const strikes = Object.fromEntries(Object.entries(NALATI_STRIKE_ROWS).map(([name, row]) =>
