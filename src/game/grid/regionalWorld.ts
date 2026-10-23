@@ -68,7 +68,7 @@ import { TreeFactory } from '@wildshard/engine/world/TreeFactory';
 import { Forest } from '@wildshard/engine/world/forest/Forest';
 import { WaterBodies } from '@wildshard/engine/world/water/body';
 import { CHUNK_SIZE, TERRAIN_RES } from '@wildshard/engine/core/config';
-import { workSlice } from '@wildshard/engine/core/workSlice';
+import { buildYield, workSlice } from '@wildshard/engine/core/workSlice';
 import { heightAt } from '@wildshard/engine/world/Heightfield';
 import { loadBakedTerrain } from '@wildshard/engine/world/BakedTerrain';
 import { bakedTerrainSource } from '@wildshard/engine/world/bakedTerrainField';
@@ -88,13 +88,12 @@ import type { AdmittedProduct } from '../shardfile/product';
 import { clientMaterials } from '../shardfile/clientMaterials';
 import { splatGroundDrawn } from '../shardfile/clientSplatTerrain';
 import { lendLooks, lendSceneMaterials } from '../shardfile/lentLooks';
-import type { ClientTileRegistration } from '../shardfile/clientRings';
-import { clientWorld } from '../shardfile/clientWorld';
+import { standaloneClientTiles, type ClientTileRegistration } from '../shardfile/clientRings';
 import { clientViews } from '../shardfile/clientViews';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { shardfileLook } from '../shardfile/look';
 import { findShard } from '../shard/registry';
-import { followRing } from '../shardfile/tileDriver';
+import { followRing, TILE_RING } from '../shardfile/tileDriver';
 
 /** Page-root ports; every default is the standalone behaviour, the live session supplies the cell's own installs. */
 export interface RegionalWorldPorts {
@@ -165,12 +164,18 @@ async function regionalPresentation(admitted: AdmittedProduct, start: { readonly
   }
   const views = clientViews({ root, terrain: terrain?.family ?? null, terrainShadow: terrain?.shadow, terrainOrder: terrain?.order, ...presentation,
     ...(collider === undefined ? {} : { lattice: decodeTerrainTile(collider) }) });
+  let frame: (() => void) | undefined, position = start;
   if (registration !== undefined && data.props !== null) await views.library(data.props, assets.retained, scope);
-  const tiles = registration === undefined ? await clientWorld(data, assets, { scope, x: start.x, z: start.z,
-    residency: { allocator, owner: instance }, views }) : await registration.enter(instance, { source: data, assets, root, views: views.tiles }, scope, start);
+  const entry = { source: data, assets, root, views: views.tiles };
+  const tiles = registration === undefined ? await standaloneClientTiles(entry, scope, {
+    instance, budget: allocator, radius: () => TILE_RING, start, viewer: () => position,
+    library: owner => data.props === null ? Promise.resolve(null) : views.library(data.props, assets.retained, owner),
+    pause: () => buildYield(scope), frame: run => { frame = run; },
+  }) : await registration.enter(instance, entry, scope, start);
   const distance = terrain?.follow ?? 5;
   let priorX = start.x, priorZ = start.z;
-  return { tick: presentation.tick, follow: (x, z) => {
+  return { tick: dt => { presentation.tick(dt); frame?.(); }, follow: (x, z) => {
+    position = { x, z };
     if (Math.hypot(x - priorX, z - priorZ) < distance) return;
     priorX = x; priorZ = z; void tiles.refresh(x, z);
   } };

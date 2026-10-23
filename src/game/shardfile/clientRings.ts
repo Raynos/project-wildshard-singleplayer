@@ -9,11 +9,12 @@
  * them while the cell is in the far ring).
  */
 import { Group, type Object3D } from 'three';
+import type { InstalledProps } from '@wildshard/engine/world/declaredProps';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { TileStreamer, type TileStreamBudget, type TileRequirement, scopedTilePorts, type RingCatalogue, type RingPorts, type RingTile } from '@wildshard/engine/world/tileStreamer';
 import { TileDecoder } from '../grid/tileDecoder';
 import type { ClientAssets } from './clientAssets';
-import { type clientWorld, prepareClientTile, type ClientWorldViews, type ResidentTile } from './clientWorld';
+import { prepareClientTile, type ClientWorldViews, type ResidentTile } from './clientWorld';
 import type { ClientTileViews } from './clientViews';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { tileOrder } from './tileOrder';
@@ -134,6 +135,9 @@ export function clientTileRegistration(instances: Map<string, ClientRingInstance
   };
 }
 
+/** A loaded tile view borrows the one scheduler; refresh changes its selection, never starts another queue. */
+export interface ClientTileWorld { readonly props: InstalledProps | null; readonly fine: ReadonlySet<string>; refresh: (x: number, z: number) => Promise<void> }
+
 /** SHARD SELECT uses the same tile ports/registration and one page-owned scheduler. Initial publication advances
  * through the caller's cooperative loading yield; after readiness the caller's late phase alone steps the scheduler. */
 export async function standaloneClientTiles(entry: ClientRingInstance, parent: Scope, ports: {
@@ -141,7 +145,7 @@ export async function standaloneClientTiles(entry: ClientRingInstance, parent: S
   readonly radius: () => number; readonly library: (scope: Scope) => Promise<Awaited<ReturnType<ClientWorldViews['library']>> | null>;
   readonly viewer: () => { readonly x: number; readonly z: number }; readonly pause: () => Promise<void>;
   readonly frame: (step: () => void) => void;
-}): Promise<Awaited<ReturnType<typeof clientWorld>>> {
+}): Promise<ClientTileWorld> {
   if (parent.disposed || parent.disposing) throw new Error('Standalone tile owner left');
   const scope = parent.child('standalone-tiles'), instances = new Map<string, ClientRingInstance>(), decoder = new TileDecoder();
   scope.onDispose(() => { decoder.dispose(); });

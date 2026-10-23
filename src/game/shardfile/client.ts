@@ -57,7 +57,6 @@ import { clientViews } from './clientViews';
 import { createShardfileClientScripts } from './clientScripts';
 
 import { installClientWater } from './clientWater';
-import { clientWorld } from './clientWorld';
 import { standaloneClientTiles } from './clientRings';
 import { TILE_RING } from './tileDriver';
 import { buildYield } from '@wildshard/engine/core/workSlice';
@@ -177,7 +176,7 @@ export class ShardfileClient {
   private presentation: Awaited<ReturnType<typeof clientMaterials>> | undefined;
   private post: ClientPost | null = null;
   private skins: ReadonlyMap<string, ClientSkin> = new Map();
-  private worldTiles: Awaited<ReturnType<typeof clientWorld>> | undefined;
+  private worldTiles: Awaited<ReturnType<typeof standaloneClientTiles>> | undefined;
   private sim: ShardfileSimulation | undefined;
   private items: DeclaredItems | undefined;
   private itemModels: Awaited<ReturnType<typeof loadItemModels>> = new Map();
@@ -253,14 +252,12 @@ export class ShardfileClient {
     const start = nativeWorld ? ctx.manifest.spawn : this.source.spawn;
     const collider = nativeWorld && this.source.terrain !== null ? await this.assets.read(this.source.terrain.collider) : undefined;
     const views = clientViews({ root: ctx.root, terrain: this.source.terrain?.family ?? null, terrainShadow: this.source.terrain?.shadow, terrainOrder: this.source.terrain?.order, ...presentation, ...(collider === undefined ? {} : { lattice: decodeTerrainTile(collider) }) });
-    this.worldTiles = ctx.cube === null && this.source.runtime === null
-      ? await standaloneClientTiles({ source: this.source, assets: this.assets, root: ctx.root, views: views.tiles }, ctx.scope, {
+    this.worldTiles = await standaloneClientTiles({ source: this.source, assets: this.assets, root: ctx.root, views: views.tiles }, ctx.scope, {
         instance: this.bindings.instance, budget: allocator, radius: () => TILE_RING, start,
         library: owner => this.source.props === null ? Promise.resolve(null) : views.library(this.source.props, this.assets.retained, owner),
         viewer: () => runtime.viewer(), pause: () => buildYield(ctx.scope),
         frame: run => { ctx.system({ id: 'game.shardfile.tiles', phase: 'late', run }); },
-      }) : await clientWorld(this.source, this.assets, { scope: ctx.scope, x: start.x, z: start.z,
-        ...(this.bindings.residency !== undefined && this.source.runtime === null ? { residency: { allocator, owner: this.bindings.instance } } : {}), views });
+      });
     const tiles = this.worldTiles;
     // Debug ▸ Ground tiles (P1/P2): a splat ground draws from its props tiles; the world's whole native ground mesh retires
     if (splatGroundDrawn(this.source.props)) world.terrain.retireMesh();
