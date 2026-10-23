@@ -200,7 +200,9 @@ export function installBudgetOverlay(host: BudgetOverlayHost): BudgetOverlay {
     const cost = host.allocator.cost();
     trend.push(read(cost, isDev() ? snapshot(cost.accounted) : null).bytes);
     if (trend.length > TREND_KEPT + 1) trend.splice(1, 1);
-    refresh();
+    // G639: the repaint (allocator table, a second snapshot, the DOM) waits for the task after the entry, out of its
+    // activation frame (~10 ms of a 250 ms Pine activation frame at phone 4x); the trend above is still read at the entry
+    scope.timeout(0, refresh);
   };
   const build = (): void => {
     root = el('div', 'ws-grid-budget'); root.setAttribute('role', 'button'); root.setAttribute('aria-expanded', 'false'); root.tabIndex = -1;

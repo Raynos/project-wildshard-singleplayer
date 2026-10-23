@@ -41,7 +41,7 @@ test('G628 M1/M5: the headline is the larger of model and measured; amber at 1.5
   expect(memoryHeadline(1_000_000_000, native, 300_000_000)).toMatchObject({ bytes: 1_600_000_000, source: 'native' });
 });
 
-test('G628 M4/M7: a red line per shard over its limit; the trend keeps the first entry and the last six', () => {
+test('G628 M4/M7: a red line per shard over its limit; the trend keeps the first entry and the last six', async () => {
   setDev(true);
   const scope = owner(), hud = document.createElement('div');
   document.body.append(hud);
@@ -55,6 +55,7 @@ test('G628 M4/M7: a red line per shard over its limit; the trend keeps the first
   const trend = overlay.trend();
   expect(trend).toHaveLength(7);
   expect(trend[0]).toBe(start);
+  await new Promise(resolve => { setTimeout(resolve, 0); }); // the repaint follows the entry by a task
   expect(hud.querySelector('.ws-grid-budget-x')?.textContent).toMatch(/· \+\d+ MB SINCE START$/u);
 });
 
