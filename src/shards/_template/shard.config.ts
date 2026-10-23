@@ -1,15 +1,17 @@
 // oxlint-disable-next-line unicorn/prefer-export-from -- E434 forbids re-export barrels.
 import product, { templateProduct } from './generators/product';
 import { templateTerrain } from './generators/terrain';
+import { templatePropRows } from './generators/props';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { parseShardfile, type Shardfile } from '@wildshard/sdk/shardfile';
 import { BUILD_OPTIONS } from './generators/buildOptions';
 
 // Edit the build-time declaration to author this project's data.
 export async function generate(ctx: ProjectGenerationContext): Promise<Shardfile> {
-  const files = await ctx.cached({ id: 'terrain-product' }, () => {
+  const files = await ctx.cached({ id: 'world-product' }, () => {
     const { assets, ...terrain } = templateTerrain();
-    return new Map([['shard.json', new TextEncoder().encode(JSON.stringify(templateProduct(terrain)))], ...assets]);
+    const props = templatePropRows();
+    return new Map([['shard.json', new TextEncoder().encode(JSON.stringify(templateProduct(terrain, props)))], ...assets, ...props.assets]);
   });
   const metadata = files.get('shard.json');
   if (metadata === undefined) throw new Error('Terrain cache misses shard rows');

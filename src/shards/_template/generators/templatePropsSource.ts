@@ -1,5 +1,4 @@
-import { Group, type Matrix4, Mesh, MeshStandardMaterial, Scene, type Object3D } from 'three';
-import { Scatter, type BakeInputs } from '@wildshard/sdk/bake';
+import { Group, type Matrix4, Mesh, MeshStandardMaterial, type Object3D } from 'three';
 import { templateHeightAt } from './landscape';
 import { templateScatterRandom } from './landscapeNoise';
 import { buildCellFill, cellCoarse, cellFar, CELL_PIECES } from './cell';
@@ -35,11 +34,3 @@ export function templateProps(count = 20): { source: PropsBakeSource; original: 
   return { source: { static: staticRoot, scatter: [{ model, transforms }, cell.posts], panels: [{ id: 'template.door', model: door }, { id: 'template.jump', model: course, visible: false }], colliders, models: [{ id: 'template.lantern', model: lampShapes }], coarse, far }, original, dispose: () => { for (const resource of resources) resource.dispose(); for (const cleanup of cleanups) cleanup(); model.geometry.dispose(); model.material.dispose(); } };
 }
 
-/** The template's props as one three.js scene for `bake(scene, identity)`: the merged static shapes, the crates and lamp posts
- * as scatter; the library panels, lantern and proxies stay build inputs. Same triangles and order as `templateProps`. */
-export function templateScene(count = 20): { scene: Scene; props: NonNullable<BakeInputs['props']>; dispose: () => void } {
-  const fixture = templateProps(count), { static: shapes, scatter = [], ...props } = fixture.source, scene = new Scene();
-  scene.add(shapes);
-  scatter.forEach((batch, i) => { scene.add(new Scatter(i === 0 ? 'template.crates' : 'template.posts', batch.model, batch.transforms)); });
-  return { scene, props, dispose: fixture.dispose };
-}

@@ -12236,7 +12236,8 @@
         "src/shards/_template/generators/landscapeNoise.ts",
         "src/shards/_template/generators/templatePropsSource.ts",
         "src/shards/_template/generators/world.ts",
-        "src/format/inputDeclarations.ts"
+        "src/format/inputDeclarations.ts",
+        "src/shards/_template/generators/templateScene.ts"
       ],
       "outputs": [
         "src/shards/_template/assets/0179d1cdfa05d8a58f3a3d2c53c5f61b7ba672716c6f485d4ddc02c5f9d97882",

@@ -2,7 +2,8 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture artifact paths are local build products.
 import { join } from 'node:path';
-import { templateProps, templateScene } from '../../../../src/shards/_template/generators/templatePropsSource';
+import { templateProps } from '../../../../src/shards/_template/generators/templatePropsSource';
+import { templateScene } from '../../../../src/shards/_template/generators/templateScene';
 import { bake } from '../../../../src/sdk/bake';
 import { bakeProps } from '../../../../src/sdk/bake/props';
 import { bakeTerrain } from '../../../../src/sdk/bake/terrain';

@@ -3,7 +3,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { bake } from '@wildshard/sdk/bake';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
-import { templateScene } from './templatePropsSource.ts';
+import { templateScene } from './templateScene.ts';
 
 const project = resolve(import.meta.dirname, '..');
 const fixture = templateScene(20);

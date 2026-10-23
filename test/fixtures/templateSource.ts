@@ -4,12 +4,13 @@ import fs from 'node:fs';
 import { resolve } from 'node:path';
 import { templateTerrain } from '../../src/shards/_template/generators/terrain';
 import { templateProduct } from '../../src/shards/_template/generators/product';
+import { templatePropRows } from '../../src/shards/_template/generators/props';
 
-const { assets: terrain, ...rows } = templateTerrain();
+const { assets: terrain, ...rows } = templateTerrain(), props = templatePropRows(), generated = new Map([...terrain, ...props.assets]);
 /** Native tests consume producer rows and bytes; other readers still need the product module's legacy default. */
-export const TEMPLATE_SOURCE = templateProduct(rows);
+export const TEMPLATE_SOURCE = templateProduct(rows, props);
 /** Preserve independently owned input bytes for each admission. Other producers migrate in subsequent GR1 slices. */
 export function templateAssets(): Map<string, Uint8Array> {
   return new Map(TEMPLATE_SOURCE.files.map(file => [file.hash,
-    new Uint8Array(terrain.get(file.hash) ?? fs.readFileSync(resolve('src/shards/_template/assets', file.hash)))]));
+    new Uint8Array(generated.get(file.hash) ?? fs.readFileSync(resolve('src/shards/_template/assets', file.hash)))]));
 }

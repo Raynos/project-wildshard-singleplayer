@@ -11,20 +11,26 @@ import { build } from 'vite';
 import { generate } from '../src/shards/_template/shard.config';
 import { templateTerrain } from '../src/shards/_template/generators/terrain';
 import { templateProduct } from '../src/shards/_template/generators/product';
+import { templatePropRows } from '../src/shards/_template/generators/props';
 import { createProjectGeneration, isProjectGenerator } from '../src/sdk/projectGeneration';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { parseShardfile } from '../src/sdk/shardfile';
 
-test('template direct generation and a cache hit retain every original terrain row and asset byte', async () => {
+test('template direct generation and a cache hit retain every original world row and asset byte', async () => {
   mkdirSync('tmp', { recursive: true }); const cache = mkdtempSync(resolve('tmp', 'template-generation-'));
   try {
-    const before = performance.now(), { assets: original, ...rows } = templateTerrain(), produced = performance.now() - before;
+    const before = performance.now(), { assets: original, ...rows } = templateTerrain(), props = templatePropRows(), produced = performance.now() - before;
     const assets = new Map<string, Uint8Array>(), root = resolve('src/shards/_template');
     const coldAt = performance.now(), cold = await generate(createProjectGeneration(root, 'c'.repeat(64), assets, cache)), coldMs = performance.now() - coldAt;
     const hitAt = performance.now(), hit = await generate(createProjectGeneration(root, 'c'.repeat(64), assets, cache)), hitMs = performance.now() - hitAt;
-    expect(JSON.stringify(cold)).toBe(JSON.stringify(templateProduct(rows))); expect(hit).toEqual(cold); expect(assets).toEqual(original);
-    process.stdout.write(`${JSON.stringify({ templateTerrainMs: produced, coldProgramMs: coldMs, cachedProgramMs: hitMs, files: assets.size })}\n`);
+    expect(JSON.stringify(cold)).toBe(JSON.stringify(templateProduct(rows, props))); expect(hit).toEqual(cold);
+    const expected = new Map([...original, ...props.assets]); expect([...assets.keys()]).toEqual([...expected.keys()]);
+    for (const [hash, bytes] of assets) {
+      const old = expected.get(hash); if (old === undefined) throw new Error('Unexpected world asset');
+      expect(Buffer.compare(bytes, old), hash).toBe(0);
+    }
+    process.stdout.write(`${JSON.stringify({ templateWorldMs: produced, coldProgramMs: coldMs, cachedProgramMs: hitMs, files: assets.size })}\n`);
   } finally { rmSync(cache, { recursive: true, force: true }); }
 });
 
