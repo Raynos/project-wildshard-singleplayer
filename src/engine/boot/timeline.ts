@@ -7,8 +7,7 @@ export interface LoadingRow {
 }
 export interface LoadingGap { label: string; state: 'on' | 'ok'; ms: number; after: string | null }
 interface Stage { key: string; base: string; detail: string; fraction?: number }
-/** A stage's later pass as a row: a path that knows the stage runs again declares it up front, so the step total never
- * grows mid-load (an undeclared repeat still gets this same row when it begins). */
+/** Declare a later pass up front. Undeclared passes fold into the last declared row. */
 export function repeatedStep(step: Pick<LoadingStep, 'key' | 'label'>, pass: number): LoadingStep {
   return { key: `${step.key}#${pass}`, label: engineString('s_loading_step_repeat', [step.label, pass]), weight: 1 };
 }
@@ -20,7 +19,6 @@ export class LoadingTimeline {
   private readonly aliases = new Map<string, string>();
   private readonly ignored = new Set<string>();
   private readonly gaps: LoadingGap[] = [];
-  private readonly startedOrder: string[] = [];
   private readonly occurrences = new Map<string, number>();
   private sequence = 0;
   private at: number;
@@ -32,7 +30,7 @@ export class LoadingTimeline {
     const initial = this.gaps.pop(), first = path.steps[0];
     if (first !== undefined) {
       const row = this.rows.get(first.key);
-      if (row !== undefined) { row.started = true; row.ms = initial?.ms ?? 0; this.startedOrder.push(first.key); }
+      if (row !== undefined) { row.started = true; row.ms = initial?.ms ?? 0; }
     }
   }
   configure(path: LoadingPath): void {
@@ -78,39 +76,36 @@ export class LoadingTimeline {
       }
     }
   }
-  /** A missing key becomes an explicit row, so an unrecognised stage can never disappear from the clock. */
+  /** Keep the declared denominator fixed. Unknown work remains visible in its
+   * active parent's detail; repeats reuse their last declared pass. */
   begin(name: string, detail = ''): { end: () => void; detail: (text: string) => void } {
     if (this.ignored.has(name)) return { end: () => undefined, detail: () => undefined };
     this.accrue();
-    const base = this.aliases.get(name) ?? name;
+    const known = this.aliases.get(name);
+    const base = known ?? this.current()?.base ?? this.last ?? this.path.steps[0]?.key;
+    if (base === undefined) throw new Error('Loading work requires a declared step');
+    const initialDetail = known === undefined ? `${name}${detail ? ` · ${detail}` : ''}` : detail;
     const count = this.occurrences.get(base) ?? 0;
     const already = [...this.active.values()].find(stage => stage.base === base);
-    const repeated = count > 0 && already === undefined;
-    const again = repeated ? repeatedStep({ key: base, label: this.label(base) }, count + 1) : null, key = already?.key ?? again?.key ?? base;
+    const repeated = known !== undefined && count > 0 && already === undefined;
+    const again = repeated ? this.path.steps.find(step => step.key === `${base}#${count + 1}`)
+      ?? this.path.steps.reduce<LoadingStep | undefined>((last, step) => step.key === base || step.key.startsWith(`${base}#`) ? step : last, undefined) : undefined;
+    const key = already?.key ?? again?.key ?? base;
     if (repeated || count === 0) this.occurrences.set(base, count + 1);
-    if (!this.rows.has(key)) {
-      this.rows.set(key, { ms: 0, started: false, detail: '' });
-      this.path = { ...this.path, steps: [...this.path.steps, again ?? { key, label: name, weight: 1 }] };
-    }
     const previous = this.gaps.at(-1); if (previous?.state === 'on') previous.state = 'ok';
     const row = this.rows.get(key); if (row !== undefined) row.started = true;
-    if (!this.startedOrder.includes(key)) this.startedOrder.push(key);
-    const id = ++this.sequence, stage = { key, base, detail };
+    const id = ++this.sequence, stage = { key, base, detail: initialDetail };
     this.active.set(id, stage);
     return { end: () => {
       if (!this.active.has(id)) return;
       this.accrue(); this.active.delete(id); this.last = key;
     }, detail: text => { stage.detail = text; } };
   }
-  snapshot(): { path: string; rows: LoadingRow[]; gaps: LoadingGap[]; current: string | null } {
+  snapshot(): { path: string; rows: LoadingRow[]; gaps: LoadingGap[]; current: string | null; display: string | null } {
     this.accrue();
     const running = new Set([...this.active.values()].map(stage => stage.key));
-    // Number actual starts in their real order. Planned later work stays visible
-    // after them; a resumed boundary has its own row rather than reopening step 2.
-    const steps = new Map(this.path.steps.map(step => [step.key, step]));
-    const ordered = [...this.startedOrder.filter(key => steps.has(key)), ...this.path.steps.filter(step => !this.startedOrder.includes(step.key)).map(step => step.key)];
-    const rows = ordered.map((key, index): LoadingRow => {
-      const step = steps.get(key);
+    const rows = this.path.steps.map((step, index): LoadingRow => {
+      const key = step.key;
       const row = this.rows.get(key);
       const result: LoadingRow = { key, label: step?.label ?? key, number: index + 1,
         state: running.has(key) ? 'on' : row?.started ? 'ok' : 'todo', ms: row?.ms ?? 0, detail: row?.detail ?? '' };
@@ -118,7 +113,10 @@ export class LoadingTimeline {
       return result;
     });
     return { path: this.path.id, rows, gaps: this.gaps.map(gap => ({ label: gap.label, state: gap.state,
-      ms: gap.ms, after: gap.after })), current: this.current()?.key ?? null };
+      ms: gap.ms, after: gap.after })), current: this.current()?.key ?? null,
+      // Presentation stays on the outer/earliest running step. Exclusive
+      // accounting and unit reports still belong to the newest nested work.
+      display: this.active.values().next().value?.key ?? null };
   }
 }
 

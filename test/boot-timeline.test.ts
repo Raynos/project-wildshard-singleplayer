@@ -33,8 +33,8 @@ it('uses actual path rows and keeps unnamed work visible', () => {
   clock = 100; ignored.end(); world.end();
   const unknown = timeline.begin('Unexpected preparation');
   clock = 300; unknown.end();
-  expect(timeline.snapshot().rows.find(row => row.key === 'world')?.ms).toBe(100);
-  expect(timeline.snapshot().rows.find(row => row.key === 'Unexpected preparation')?.ms).toBe(200);
+  expect(timeline.snapshot().rows.find(row => row.key === 'world')).toMatchObject({ ms: 300, detail: 'Unexpected preparation' });
+  expect(timeline.snapshot().rows).toHaveLength(path.steps.length);
   expect(loadingPath('legacy').steps.map(row => row.key)).toContain('terrain');
   expect(loadingPath('shardfile', undefined, true).id).toBe('shardfile');
   expect(loadingPath('shardfile', undefined, true).steps.map(row => row.key)).toContain('props');
@@ -67,13 +67,14 @@ it('keeps parallel work counts visible without charging its time twice', () => {
   timeline.report('admission', 'Product schemas 1 / 4', 1, 4);
   const snapshot = timeline.snapshot();
   expect(snapshot.current).toBe('assembly');
+  expect(snapshot.display).toBe('admission');
   expect(snapshot.rows.find(row => row.key === 'admission')).toMatchObject({ detail: 'Product schemas 1 / 4', fraction: 0.2, ms: 0, state: 'on' });
   expect(snapshot.rows.find(row => row.key === 'assembly')?.ms).toBe(200);
   admission.end(); assembly.end();
   expect(timeline.snapshot().rows.reduce((sum, row) => sum + row.ms, 0)).toBe(200);
 });
 
-it('numbers actual starts and gives re-entered admission its own labelled row', () => {
+it('keeps declared numbers while an outer home step contains re-entered admission', () => {
   let clock = 0;
   const timeline = new LoadingTimeline(loadingPath('grid'), 0, () => clock);
   const admission = timeline.begin('admission'); clock = 10; admission.end();
@@ -82,9 +83,10 @@ it('numbers actual starts and gives re-entered admission its own labelled row', 
   timeline.report('admission', 'Neighbour schemas 2 / 4', 2, 4);
   const current = timeline.snapshot();
   expect(current.rows.filter(row => row.state !== 'todo').map(row => [row.number, row.key])).toEqual([
-    [1, 'modules'], [2, 'admission'], [3, 'home'], [4, 'admission#2'],
+    [1, 'modules'], [2, 'admission'], [14, 'home'], [15, 'admission#2'],
   ]);
   expect(current.current).toBe('admission#2');
+  expect(current.display).toBe('home');
   expect(current.rows.find(row => row.key === current.current)).toMatchObject({ label: 'Product admission · pass 2', detail: 'Neighbour schemas 2 / 4', ms: 10 });
   expect(current.rows.find(row => row.key === 'admission')).toMatchObject({ state: 'ok', ms: 10 });
   const parallel = timeline.begin('product'); clock = 40; parallel.end();
@@ -101,8 +103,29 @@ it('declares the grid home cell\'s second passes up front, so the step total nev
   const rows = timeline.snapshot().rows;
   expect(rows).toHaveLength(total);
   expect(rows.filter(row => row.key.endsWith('#2')).map(row => [row.key, row.state, row.ms])).toEqual([['admission#2', 'ok', 10], ['world#2', 'ok', 10], ['loadout#2', 'ok', 10]]);
-  // a stage the path never declared still gets its own row
+  // A further undeclared pass reuses the declared repeated row.
   const third = timeline.begin('admission'); clock += 10; third.end();
-  expect(timeline.snapshot().rows).toHaveLength(total + 1);
-  expect(timeline.snapshot().rows.find(row => row.key === 'admission#3')).toMatchObject({ label: 'Product admission · pass 3', state: 'ok' });
+  expect(timeline.snapshot().rows).toHaveLength(total);
+  expect(timeline.snapshot().rows.find(row => row.key === 'admission#2')).toMatchObject({ label: 'Product admission · pass 2', state: 'ok', ms: 20 });
+});
+
+it('keeps one fixed ordered list and monotone display through module passes, nested renderer and final shaders', () => {
+  let clock = 0;
+  const path = loadingPath('shardfile'), timeline = new LoadingTimeline(path, 0, () => clock);
+  const samples: number[] = [];
+  const sample = (): void => {
+    const view = timeline.snapshot();
+    expect(view.rows.map(row => row.key)).toEqual(path.steps.map(row => row.key));
+    const shown = view.rows.find(row => row.key === view.display);
+    if (shown !== undefined) samples.push(shown.number);
+  };
+  const run = (key: string): void => { const active = timeline.begin(key); clock += 10; sample(); active.end(); sample(); };
+  run('modules'); run('product'); run('manifest.load'); run('level.data');
+  const files = timeline.begin('audioFiles'); sample();
+  const world = timeline.begin('level.world'); sample();
+  run('renderer'); files.end(); sample(); world.end();
+  run('level.kit'); run('level.play');
+  const finish = timeline.begin('finish'); sample(); run('shaders'); run('firstFrame'); run('audio'); finish.end();
+  expect(samples).toEqual([...samples].sort((a, b) => a - b));
+  expect(timeline.snapshot().rows.filter(row => row.key.startsWith('modules'))).toHaveLength(1);
 });

@@ -9,6 +9,8 @@ import {NO_AUDIO,type LevelAudioProfile,type LevelAudioBank} from '../audio/leve
 import {createBootPlan,type StepProgress} from './plan';
 import {DownloadAccounting,installDownloadAccounting} from './download';
 import * as settings from '../ui/Settings';
+import {LoadingTimeline,installLoadingTimeline} from './timeline';
+import {STEP_INFO} from './steps';
 
 const music='/assets/music/folk/title.m4a',sfx='/assets/sfx/field/step.m4a';
 const foreignMusic='/assets/music/electronic/other.m4a',foreignSfx='/assets/sfx/other/unused.m4a';
@@ -78,4 +80,27 @@ test('missing audio retains synth fallback and an asset-free profile reads nothi
   const empty=startDeferredAudioPreload({...blank,...all},level,NO_AUDIO);
   await empty.wait({set:()=>undefined,detail:()=>undefined});await empty.decode();
   expect(fetch).toHaveBeenCalledTimes(2);
+});
+
+test('the declared audio-download row owns its original parallel reads before the later audio wait',async()=>{
+  const timeline=new LoadingTimeline({id:'fixture',steps:[
+    {key:'data',label:STEP_INFO.menu.label,weight:1},{key:'audioFiles',label:STEP_INFO.audio.label,weight:1},
+    {key:'world',label:STEP_INFO.props.label,weight:1},
+  ]},0,()=>100);
+  const restore=installLoadingTimeline(timeline), data=timeline.begin('data'),complete:(()=>void)[]=[];
+  vi.spyOn(globalThis,'fetch').mockImplementation(()=>new Promise<Response>(resolve=>{
+    complete.push(()=>{resolve(new Response(new Uint8Array([1,2,3])));});
+  }));
+  try{
+    const preload=startDeferredAudioPreload({...blank,...all},level,profile);
+    data.end();const world=timeline.begin('world');
+    await vi.waitFor(()=>{expect(complete).toHaveLength(2);});
+    expect(timeline.snapshot().display).toBe('audioFiles');
+    expect(timeline.snapshot().rows.find(row=>row.key==='audioFiles')?.state).toBe('on');
+    for(const finish of complete)finish();
+    await preload.wait({set:()=>undefined,detail:()=>undefined});
+    expect(timeline.snapshot().rows.find(row=>row.key==='audioFiles')).toMatchObject({state:'ok',fraction:2/3});
+    expect(timeline.snapshot().display).toBe('world');
+    world.end();
+  }finally{restore();}
 });

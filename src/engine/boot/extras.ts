@@ -41,6 +41,7 @@ import { TIER } from '../core/tier';
 import { NO_AUDIO, type LevelAudioProfile, type LevelAudioBank } from '../audio/levelAudio';
 import { bootAudioFiles } from './audioInventory';
 import { loadingUnits, waitFor } from './waits';
+import { currentLoadingTimeline } from './timeline';
 
 
 const pathOf = (url: string): string => { try { return new URL(url, location.href).pathname; } catch { return url; } };
@@ -173,6 +174,9 @@ export function startDeferredAudioPreload(files: ChunkFiles, _def: BootLevel, pr
   const selected = new Set((profile ?? NO_AUDIO).bootFiles(style));
   const urls = [...new Set([...files.music, ...files.sfx])].filter(url => selected.has(url));
   const c = counter(urls.length);
+  const reading = urls.length === 0 ? undefined : currentLoadingTimeline()?.begin('audioFiles');
+  const fileProgress = loadingUnits('Selected audio files', urls.length);
+  let completedFiles = 0;
   // Keep only the selected compressed bytes until decode. That makes the post-bar decode work offline even if
   // Cache Storage is unavailable; the background shard prefetch retains the complete other-style inventory.
   const selectedBytes = new Map<string, ArrayBuffer>();
@@ -186,7 +190,11 @@ export function startDeferredAudioPreload(files: ChunkFiles, _def: BootLevel, pr
       downloaded.add(url);
     } catch { downloaded.delete(url); /* a missing sound keeps its synth fallback */ }
     c.tick();
+    fileProgress(++completedFiles, url);
   })(), 'file'));
+  // Observe the existing parallel reads without changing their queue or decode
+  // boundary. Their row ends with the reads, not when a later waiter attaches.
+  void Promise.all(downloads).then(() => { reading?.end(); return undefined; }, () => { reading?.end(); return undefined; });
   let decoding: Promise<AudioBanks> | undefined;
   return {
     style,

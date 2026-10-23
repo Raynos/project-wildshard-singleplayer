@@ -959,8 +959,12 @@ The engine contains no content identities or product measurements.
 boundaries, including LevelLoader hooks and initial home entry. Nested stages
 own exclusive wall intervals, so stage and explicit gap rows sum to the loading
 clock. Parallel stages keep their actual counts and detail visible while a newer
-stage owns that interval. Unknown stages become visible rows; ignored shell stages remain inside
-their reported parent. The game supplies legacy, shardfile, grid and crossing
+stage owns that interval. The declared list and row numbers stay fixed: unknown
+work is named in its parent's detail, and undeclared passes reuse the last
+declared pass. `snapshot().current` retains the newest work for unit accounting;
+`snapshot().display` names the earliest running step for presentation. Ignored
+shell stages remain inside their reported parent. Parallel selected-audio reads
+have their own declared row, ending when the reads settle. The game supplies legacy, shardfile, grid and crossing
 tables. Crossing diagnostics partition preparation, boundary wait, checkpoint,
 commit and activation using the existing same-clock transition timestamps.
 

@@ -279,7 +279,7 @@ export class Loading {
   }
 
   private paintRows(timeline: TimelineSnapshot): void {
-    const current = timeline.rows.find(row => row.key === timeline.current);
+    const current = timeline.rows.find(row => row.key === timeline.display);
     const currentGap = timeline.gaps.find(row => row.state === 'on');
     setData(this.root, 'step', current?.key ?? 'gap');
     if (current !== undefined) set(this.els.suFact, engineString('s_af18899b96b3', [current.number, timeline.rows.length, current.label, current.detail ? engineString('s_614cafefe4f0', [current.detail]) : '']));
@@ -346,8 +346,8 @@ export class Loading {
     const pending = this.scoped ? [] : bootWaits(), files = pending.filter(wait => wait.kind === 'file');
     const wait = files[0] ?? pending.find(row => row.kind !== 'admission') ?? pending[0];
     const transfer = this.downloads.snapshot();
-    const current = timeline.rows.find(row => row.key === timeline.current);
-    const signature = `${timeline.current}:${timeline.rows.map(row => `${row.state}:${row.detail}`).join('|')}:${transfer.networkBytes}:${transfer.cachedBytes}:${this.downloads.progressVersion}:${wait?.id ?? 0}`;
+    const current = timeline.rows.find(row => row.key === timeline.display);
+    const signature = `${timeline.display}:${timeline.rows.map(row => `${row.state}:${row.detail}`).join('|')}:${transfer.networkBytes}:${transfer.cachedBytes}:${this.downloads.progressVersion}:${wait?.id ?? 0}`;
     const quietMs = this.stall.quietMs(signature, performance.now());
     const stalled = !this.finished && quietMs >= 10_000;
     setData(this.root, 'stalled', String(stalled));
