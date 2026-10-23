@@ -62,6 +62,10 @@ function readProgram(input: unknown): Omit<v.InferOutput<typeof ReturnProgramSch
  * The caller retains its queue, phase and
  * continuation; the guest can read numeric observations and publish channels.
  * There is no scheduler, actor mutation, timer or private persistent state. */
+/** module bytes already hashed and admitted for their declaration row, keyed by the byte array itself (G639: Nalati's
+ *  entry lent the same modules to its entry scope and then its level, hashing and admitting each twice in one 183 ms
+ *  frame); a replaced array is verified again, and every program hashes and admits its bytes again when it is built */
+const lentBytes = new WeakMap<Uint8Array, string>();
 export class ReturnProgram {
   /** The same frozen admitted rows, for a native binding over this owner. */
   readonly declaration:ReturnType<typeof readProgram>;
@@ -150,8 +154,13 @@ export class ReturnProgram {
       const hash=row.module.slice('blobs/wasm/'.length,-'.wasm'.length),previous=selected.get(hash);
       if(previous!==undefined&&JSON.stringify(previous)!==JSON.stringify(row))throw new Error('Conflicting raw return module declarations');
       const bytes:unknown=Map.prototype.get.call(assets,hash);
-      if(!(bytes instanceof Uint8Array)||sha256(bytes)!==hash)throw new Error('Raw return module hash mismatch');
-      admitScriptContract(bytes,{abi:2,lane:row.lane,pages:row.pages,ioBytes:row.ioBytes,compilerRevision:row.compilerRevision,admissionRevision:row.admissionRevision});selected.set(hash,row);
+      if(!(bytes instanceof Uint8Array))throw new Error('Raw return module hash mismatch');
+      const declared=JSON.stringify(row);
+      if(lentBytes.get(bytes)!==declared){
+        if(sha256(bytes)!==hash)throw new Error('Raw return module hash mismatch');
+        admitScriptContract(bytes,{abi:2,lane:row.lane,pages:row.pages,ioBytes:row.ioBytes,compilerRevision:row.compilerRevision,admissionRevision:row.admissionRevision});lentBytes.set(bytes,declared);
+      }
+      selected.set(hash,row);
     }
     const book=ownerBook(owner),previous=book.loan;
     if(previous!==undefined&&(previous.assets!==assets||JSON.stringify([...previous.rows])!==JSON.stringify([...selected])))throw new Error('Raw return module loan changed');
