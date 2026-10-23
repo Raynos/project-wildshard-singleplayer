@@ -12270,38 +12270,6 @@
       ]
     },
     {
-      "id": "nalati-qara",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-qara.mjs",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-qara.mjs"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/format/package.json",
-        "src/sdk/assemblyscriptCompiler.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/bake/compileScript.ts",
-        "src/sdk/package.json",
-        "src/shards/nalati-grasslands/behaviour/qara.as",
-        "src/shards/nalati-grasslands/generators/bake-qara.mjs",
-        "src/shards/nalati-grasslands/generators/qara.ts",
-        "src/sdk/decisionScriptBindings.ts",
-        "src/format/scriptAbiV1.ts",
-        "src/format/decisionScripts.ts"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/behaviour/qara.generated.json"
-      ],
-      "platform": "portable",
-      "buildOutputs": {
-        "src/shards/nalati-grasslands/behaviour/qara.generated.json": "1f83e2bd97ccaf81fdb95c073a5d980d07ebe2b824be6b63e8b0037be3a39f47"
-      }
-    },
-    {
       "id": "pine-elite-behaviours",
       "shard": "pine-hollow",
       "entry": "src/shards/pine-hollow/generators/bake-elite-behaviours.mjs",

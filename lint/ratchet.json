@@ -760,7 +760,6 @@
     "src/shards/nalati-grasslands/generators/bake-nalati-ghost-director.mjs": 3,
     "src/shards/nalati-grasslands/generators/bake-nalati-places.mjs": 4,
     "src/shards/nalati-grasslands/generators/bake-nalati-raid-director.mjs": 3,
-    "src/shards/nalati-grasslands/generators/bake-qara.mjs": 1,
     "src/shards/nalati-grasslands/generators/bake-titan-fire-view.mjs": 1,
     "src/shards/nalati-grasslands/generators/bake-titan-whirls-view.mjs": 1,
     "src/shards/nalati-grasslands/generators/bake-weapon-hooks.mjs": 3,

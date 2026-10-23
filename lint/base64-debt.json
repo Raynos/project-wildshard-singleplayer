@@ -81,7 +81,6 @@
     "src/shards/nalati-grasslands/generators/grassRows.ts": 1,
     "src/shards/nalati-grasslands/generators/mapAssembly.mjs": 1,
     "src/shards/nalati-grasslands/generators/product.ts": 1,
-    "src/shards/nalati-grasslands/generators/qara.ts": 1,
     "src/shards/nalati-grasslands/generators/reinsCard.ts": 1,
     "src/shards/nine-dragon-stack/generators/bake-decal-atlas.mjs": 2,
     "src/shards/nine-dragon-stack/generators/bake-glyphs.mjs": 5,
