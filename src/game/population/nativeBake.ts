@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { nativeBodySchema, nativeGroundRecordSchema, nativeColliderRecordSchema } from '@wildshard/format/nativePhysics';
+import { nativeBodySchema, nativeGroundRecordSchema, nativeColliderRecordSchema, type NativeGroundStorage } from '@wildshard/format/nativePhysics';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { tagCollider, tagOf, type Material } from '@wildshard/engine/physics/surface';
@@ -20,14 +20,23 @@ export function nativeBakeFloats(text: string): Float32Array<ArrayBuffer> {
 
 /** Raw native floor declaration. The producer's resolution stays part of admission. */
 export interface NativeGroundRecord {
-  readonly rows: number; readonly cols: number; readonly heights: string;
+  readonly rows: number; readonly cols: number; readonly heights: NativeGroundStorage;
   readonly friction: number; readonly groups: number;
   readonly scale: { x: number; y: number; z: number };
   readonly at: { x: number; y: number; z: number };
 }
+/** Verified bytes lent from the native product before world construction. */
+export interface NativeGroundBlock { readonly file: string; readonly bytes: Uint8Array }
+
 /** Decode an owned native heightfield, refusing a different lattice or world scale. */
-export function nativeBakeGround(row: NativeGroundRecord, resolution: number, size: number, label: string): NativeCollisionBake['ground'] {
-  const heights = nativeBakeFloats(row.heights);
+export function nativeBakeGround(row: NativeGroundRecord, resolution: number, size: number, label: string, block?: NativeGroundBlock): NativeCollisionBake['ground'] {
+  const storage = row.heights;
+  let heights: Float32Array<ArrayBuffer>;
+  if (typeof storage === 'string') heights = nativeBakeFloats(storage);
+  else {
+    if (block === undefined || block.file !== storage.file) throw new Error('Missing native floor block');
+    heights = new Float32Array(Uint8Array.from(block.bytes).buffer);
+  }
   if (heights.length !== resolution ** 2 || row.scale.x !== size || row.scale.z !== size || row.scale.y !== 1)
     throw new Error(`${label} baked floor is not its ${String(resolution)}² lattice`);
   return { heights, friction: row.friction, groups: row.groups, scale: row.scale, at: row.at };
@@ -125,10 +134,11 @@ function nativeBakeReader<E extends object>(input: unknown, options: {
   readonly spec: v.GenericSchema<unknown, AnimalSimSpec>;
   readonly solid: v.GenericSchema<unknown, NativeColliderRecord>;
   readonly extra: v.GenericSchema<unknown, E>;
+  readonly groundBlock?: NativeGroundBlock;
 }): NativeBakeReader<E> {
   const finite = v.pipe(v.number(), v.finite());
   const body = { id: v.string(), kind: v.string(), variant: v.string(), spec: options.spec, seed: finite, scale: finite };
-  const schema = v.object({ version: v.literal(1), ground: nativeGroundRecordSchema(options.resolution), solids: v.array(options.solid),
+  const schema = v.object({ version: v.literal(1), ground: nativeGroundRecordSchema(options.resolution,true), solids: v.array(options.solid),
     actors: v.array(v.strictObject({ id: body.id, kind: body.kind, variant: body.variant, herd: finite, spec: body.spec, seed: finite, scale: finite, scripted: v.boolean() })),
     parked: v.exactOptional(v.array(v.strictObject(body))),
     herds: v.array(v.strictObject({ kind: v.string(), members: v.array(v.string()) })) });
@@ -144,7 +154,7 @@ function nativeBakeReader<E extends object>(input: unknown, options: {
       const bake = v.parse(schema, input), extra = v.parse(options.extra, input);
       if (Object.keys(extra).some(key => ['ground', 'solids', 'actors', 'parked', 'herds'].includes(key))) throw new Error('Native bake metadata shadows a world field');
       if (options.parked && bake.parked === undefined) throw new Error(`Missing baked ${options.label} parked roster`);
-      const result = { ...extra, ground: nativeBakeGround(bake.ground, options.resolution, options.size, options.label),
+      const result = { ...extra, ground: nativeBakeGround(bake.ground, options.resolution, options.size, options.label,options.groundBlock),
         solids: bake.solids.map(decodeSolid), actors: nativeBakeActors(bake.actors, options.label),
         parked: nativeBakeActors(bake.parked ?? [], options.label), herds: bake.herds };
       const ids = new Set(result.actors.map(actor => actor.id));
@@ -161,7 +171,8 @@ const nativeIntake=v.strictObject({...lattice,parked:v.boolean(),rig:v.picklist(
   shapes:v.pipe(v.array(v.picklist([1,2,6,9])),v.minLength(1),v.maxLength(4),v.check(shapes=>new Set(shapes).size===shapes.length))});
 /** Public native admission accepts only stock data profiles, never a validator
  * or owner-check callback. Owner metadata uses named Product.json files. */
-export function createNativeBakeReader(input:unknown,rows:unknown):NativeBakeReader<object>{
+export function createNativeBakeReader(input:unknown,rows:unknown,groundBlock?:NativeGroundBlock):NativeBakeReader<object>{
   const row=v.parse(nativeIntake,rows),options={...row,spec:nativeBodySchema(row.rig),solid:nativeColliderRecordSchema(row.shapes,row.provenance)};
-  return nativeBakeReader(input,{...options,extra:v.object({})});
+  if(groundBlock!==undefined&&!(groundBlock.bytes instanceof Uint8Array))throw new Error('Invalid native floor bytes');
+  return nativeBakeReader(input,{...options,extra:v.object({}),...(groundBlock===undefined?{}:{groundBlock})});
 }

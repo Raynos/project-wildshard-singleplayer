@@ -317,6 +317,10 @@
       }
     },
     {
+      "name": "physicsGround",
+      "value": { "$call": [{ "$ref": ["product", "file"] }, "data/physics-ground.bin"] }
+    },
+    {
       "name": "bakeReader",
       "value": {
         "$call": [
@@ -337,7 +341,8 @@
               "constants",
               "nativeBake"
             ]
-          }
+          },
+          { "file": "data/physics-ground.bin", "bytes": { "$ref": ["physicsGround"] } }
         ]
       }
     },

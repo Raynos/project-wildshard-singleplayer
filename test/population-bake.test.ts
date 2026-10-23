@@ -64,20 +64,20 @@ test('the actual population assembly reads the stock profile at its original pre
     '@wildshard/game/population/nativeBake': ['createNativeBakeReader'],
     'src/shards/nalati-grasslands/data/physics.generated.json': ['default'],
     'src/game/populationFixture': ['capture'],
-  }, constants: { nativeBake: rows }, prepare: assembly.prepare.filter(row => row.name === 'bakeReader' || row.name === 'bakeMetadata' || row.name === 'bake'),
+  }, constants: { nativeBake: rows }, prepare: assembly.prepare.filter(row => row.name === 'physicsGround' || row.name === 'bakeReader' || row.name === 'bakeMetadata' || row.name === 'bake'),
   install: [{ name: 'capture', value: { $call: [{ $ref: ['src/game/populationFixture', 'capture'] }, { $ref: ['bake'] }] } }],
   level: { speed: 5, lift: .1, ground: { size: 32, height: 0 } }, ports: { ground: false, heightAt: { $fn: 0 } },
   entries: { $fn: { lanes: 0, steps: 0 } } };
-  expect(declaration.prepare.map(row => row.name)).toEqual(['bakeReader', 'bakeMetadata', 'bake']);
+  expect(declaration.prepare.map(row => row.name)).toEqual(['physicsGround', 'bakeReader', 'bakeMetadata', 'bake']);
   const bytes = new TextEncoder().encode(JSON.stringify(declaration)),schema=metadataBlob.file.jsonSchema;
   if(schema===undefined)throw new Error('Missing named metadata schema');
   const shard = emptyShardfile({ slug: 'population-fixture', name: 'Population fixture', author: 'Test', revision: 1, seed: 73 });
   const product = createShardProduct({ slug: shard.identity.slug, revision: 1, shardfile: shard, sections: new Map(),
-    files: new Map([['sim/headless-assembly.json', { hash: 'assembly', url: 'assembly' }],['sim/population-metadata.json',{hash:metadataBlob.file.hash,url:metadataBlob.file.path,jsonSchema:schema}]]),
-    read: hash => Promise.resolve(hash==='assembly'?bytes:metadataBlob.bytes) });
+    files: new Map([['sim/headless-assembly.json', { hash: 'assembly', url: 'assembly' }],['data/physics-ground.bin',{hash:'ground',url:'ground'}],['sim/population-metadata.json',{hash:metadataBlob.file.hash,url:metadataBlob.file.path,jsonSchema:schema}]]),
+    read: hash => Promise.resolve(hash==='assembly'?bytes:hash==='ground'?new Uint8Array(new Float32Array([0,1,2,3]).buffer):metadataBlob.bytes) });
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   const source = input(), modules = { '@wildshard/game/population/nativeBake': { createNativeBakeReader },
-    'src/shards/nalati-grasslands/data/physics.generated.json': { default: source }, 'src/game/populationFixture': { capture } };
+    'src/shards/nalati-grasslands/data/physics.generated.json': { default: {...source,ground:{...source.ground,heights:{file:'data/physics-ground.bin'}}} }, 'src/game/populationFixture': { capture } };
   const first = await prepareHeadlessAssembly({ shard, product, assets: new Map(), rapier }, modules);
   const independent = await prepareHeadlessAssembly({ shard, product, assets: new Map(), rapier }, modules);
   const host = createSimHost(first.level, { ...first.ports, rapier });

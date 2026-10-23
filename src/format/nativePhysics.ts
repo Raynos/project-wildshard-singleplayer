@@ -19,18 +19,27 @@ export function nativeBodySchema(rig: 'segments' | 'axis'): v.GenericSchema<unkn
     : !['headAt', 'bodyAt', 'bodyPitch', 'fore'].some(key => Object.hasOwn(row.dims, key)), 'Unsupported native body rig field'));
 }
 
+/** An admitted raw floor blob, read through the original native product. */
+export interface NativeGroundFile { readonly file: string }
+export const NativeGroundFileSchema: v.GenericSchema<unknown, NativeGroundFile> = v.strictObject({
+  file: v.pipe(v.string(),v.minLength(1),v.maxLength(240),v.regex(/^(?:[A-Za-z0-9_-][A-Za-z0-9_.-]*\/)*[A-Za-z0-9_-][A-Za-z0-9_.-]*\.bin$/u)),
+});
+export type NativeGroundStorage = string | NativeGroundFile;
+
 /** Raw native floor declaration; its lattice resolution remains an explicit caller policy. */
-export interface NativeGroundRecord {
-  readonly rows: number; readonly cols: number; readonly heights: string;
+export interface NativeGroundRecord<Storage extends NativeGroundStorage = string> {
+  readonly rows: number; readonly cols: number; readonly heights: Storage;
   readonly friction: number; readonly groups: number;
   readonly scale: { x: number; y: number; z: number };
   readonly at: { x: number; y: number; z: number };
 }
 
 /** The native lattice's original structural admission; the decoder also checks byte count and world scale. */
-export function nativeGroundRecordSchema(resolution: number): v.GenericSchema<unknown, NativeGroundRecord> {
+export function nativeGroundRecordSchema(resolution: number): v.GenericSchema<unknown, NativeGroundRecord>;
+export function nativeGroundRecordSchema(resolution: number, files: true): v.GenericSchema<unknown, NativeGroundRecord<NativeGroundStorage>>;
+export function nativeGroundRecordSchema(resolution: number, files = false): v.GenericSchema<unknown, NativeGroundRecord<NativeGroundStorage>> {
   return v.strictObject({ rows: v.literal(resolution - 1), cols: v.literal(resolution - 1), scale: xyz, at: xyz,
-    friction: finite, groups: finite, heights: v.string() });
+    friction: finite, groups: finite, heights: files ? v.union([v.string(),NativeGroundFileSchema]) : v.string() });
 }
 
 const colliderFields = { groups: finite, friction: finite, at: triple, rot: v.tuple([finite, finite, finite, finite]),

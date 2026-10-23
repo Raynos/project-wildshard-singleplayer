@@ -8261,14 +8261,15 @@
         "src/sdk/bake/source-loader.mjs",
         "src/sdk/package.json",
         "src/shards/nalati-grasslands/data/physicsRows.json",
-        "src/shards/nalati-grasslands/generators/physics.ts"
+        "src/shards/nalati-grasslands/generators/physics.ts",
+        "src/shards/nalati-grasslands/data/physics-ground.bin"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/physics.generated.json"
       ],
       "platform": "portable",
       "buildOutputs": {
-        "src/shards/nalati-grasslands/data/physics.generated.json": "ef9af7acda74a7775afc4cfa2fb473afc0f75122f24043931ae4763aa9cb5696"
+        "src/shards/nalati-grasslands/data/physics.generated.json": "4311d224e9d6ddf42ab39a8ea710762c143967dadfc3a74e274d1aedf35dd9b3"
       },
       "seedOutputs": []
     },

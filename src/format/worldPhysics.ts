@@ -1,13 +1,13 @@
 import * as v from 'valibot';
 import { isJsonData } from './json';
-import { nativeBodySchema, nativeColliderRecordSchema } from './nativePhysics';
+import { NativeGroundFileSchema, nativeBodySchema, nativeColliderRecordSchema } from './nativePhysics';
 
 const finite = v.pipe(v.number(), v.finite());
 const triple = v.tuple([finite, finite, finite]);
 const count = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(65535));
 const xyz = v.strictObject({ x: finite, y: finite, z: finite });
 const encoded = v.pipe(v.string(), v.regex(/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u), v.maxLength(24_000_000));
-const ground = v.pipe(v.strictObject({ rows: count, cols: count, heights: encoded, friction: finite, groups: finite, scale: xyz, at: xyz }),
+const ground = v.pipe(v.strictObject({ rows: count, cols: count, heights: v.union([encoded,NativeGroundFileSchema]), friction: finite, groups: finite, scale: xyz, at: xyz }),
   v.check(row => row.rows === row.cols, 'Native floor must be square'));
 const pose = v.strictObject({ joints: v.pipe(v.array(v.strictObject({ name: v.pipe(v.string(), v.minLength(1), v.maxLength(64)),
   parent: v.pipe(finite, v.integer(), v.minValue(-1), v.maxValue(31)), position: triple, order: v.picklist(['XYZ', 'YXZ', 'ZXY', 'ZYX', 'YZX', 'XZY']), scale: triple })), v.minLength(1), v.maxLength(32)), custom: v.boolean(),
