@@ -1,5 +1,6 @@
 import { thinkCrowdGuard } from '../ambient/crowdPage';
 import { eliteAct, eliteDamageMul, eliteThink } from '@wildshard/engine/entities/eliteBrain';
+import { ActorProjectionV2 } from '../population/actorProjectionV2';
 import { DirectedSpecies } from '../population/directedSpecies';
 import { groupSpecies } from '../population/groupSpecies';
 import { installChannelPrograms, numericCreaturePose } from '../plugin/channelPrograms';
@@ -13,7 +14,7 @@ import { packedCreatureBodies,readBakedGeometry,type BakedGeometryRow } from '..
 import { Color, MeshBasicMaterial, SkinnedMesh, type BufferGeometry } from 'three';
 import { productRiggedHulls } from './riggedHulls';
 import { HullLookBookSchema, PackedCreatureLooksSchema, type CompactSpeciesBodiesRows, type LookFrameSchema } from '@wildshard/format/speciesLooks';
-import type { CreatureGuestRows, NativeSpeciesLookBookRows, SpeciesPresentationRows } from '@wildshard/format/speciesBookRows';
+import type { NativeSpeciesLookBookRows, SpeciesPresentationRows } from '@wildshard/format/speciesBookRows';
 import { speciesWithLook, type SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { EngineRows } from '@wildshard/engine/level/context';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
@@ -85,10 +86,10 @@ export class HullLookBook {
    *  file's behaviour rows (`speciesBehaviour`) with each kind's page controls (think and act on its row, damage on its
    *  look), each packed look under the behaviour's look rules, and its guest rows. A control for a kind the rows lack
    *  refuses. */
-  speciesCatalogue(data: SpeciesPresentationRows, lookRows: unknown, controls: readonly SpeciesControl[]): SpeciesCatalogue {
+  speciesCatalogue(data: Pick<SpeciesPresentationRows,'lookBook'>, lookRows: unknown, controls: readonly SpeciesControl[]): SpeciesCatalogue {
     const rules = speciesBehaviour(data.lookBook), packed = this.packedLooks(lookRows), bodies = this.packed;
     const owned = new Map(controls.map(control => [control.kind, control] as const));
-    if (owned.size !== controls.length || controls.some(control => !rules.rows.some(row => row.kind === control.kind))) throw new Error('Unknown species control');
+    if (owned.size !== controls.length || controls.some(control=>rules.projections.has(control.kind)) || controls.some(control => !rules.rows.some(row => row.kind === control.kind))) throw new Error('Unknown species control');
     const rows = rules.rows.map((row): SpeciesRow => {
       const control = owned.get(row.kind); if (control === undefined) return row;
       return { ...row, ...(control.think === undefined ? {} : { think: control.think }), ...(control.act === undefined ? {} : { act: control.act }) };
@@ -97,7 +98,7 @@ export class HullLookBook {
       const ruled = rules.look(look), damageMul = owned.get(look.kind)?.damageMul;
       return damageMul === undefined ? ruled : { ...ruled, damageMul };
     });
-    return { rows, looks, packed, guest: data.guest, preload: () => bodies.preload(),
+    return { rows, looks, packed, program:kind=>{const projection=rules.projections.get(kind);if(projection===undefined)throw new Error('Missing actor projection');return projection.program();}, preload: () => bodies.preload(),
       install: target => { target.species(rows); target.speciesLook(looks); },
       register: () => {
         for (const row of rows) { const look = looks.find(candidate => candidate.kind === row.kind); if (look === undefined) throw new Error('Missing species look'); registerSpecies(speciesWithLook(row, look)); }
@@ -240,7 +241,7 @@ export function productHullBook(product: { readonly section: (name: 'look/hull-b
 }
 
 /** A product's species catalogue (its hull book's `speciesCatalogue`). */
-export function productSpeciesCatalogue(product: Parameters<typeof productHullBook>[0], data: SpeciesPresentationRows, lookRows: unknown, controls: readonly SpeciesControl[]): SpeciesCatalogue {
+export function productSpeciesCatalogue(product: Parameters<typeof productHullBook>[0], data: Pick<SpeciesPresentationRows,'lookBook'>, lookRows: unknown, controls: readonly SpeciesControl[]): SpeciesCatalogue {
   return productHullBook(product).speciesCatalogue(data, lookRows, controls);
 }
 /** A shard's page controls for one kind: its gameplay bindings until its guest rows (G600 L4 / L5). */
@@ -248,7 +249,8 @@ export type SpeciesControl = Pick<SpeciesDef, 'kind' | 'think' | 'act' | 'damage
 /** A product's species: its rows and looks (installed on the level's rows, or registered by test fixtures), the packed
  *  looks' poses, the creature guest rows and the packed bodies' preload. */
 export interface SpeciesCatalogue {
-  readonly rows: readonly SpeciesRow[]; readonly looks: readonly SpeciesLook[]; readonly guest: CreatureGuestRows;
+  readonly rows: readonly SpeciesRow[]; readonly looks: readonly SpeciesLook[];
+  program:(kind:string)=>ReturnType<ActorProjectionV2['program']>;
   readonly packed: ReturnType<HullLookBook['packedLooks']>;
   preload: () => Promise<void>; install: (target: Pick<EngineRows, 'species' | 'speciesLook'>) => void; register: () => void;
 }
@@ -267,9 +269,10 @@ function expandCompactBodies(data:CompactSpeciesBodiesRows):unknown{
 /** G600 L8: the species rows' behaviour hooks (group, directed, crowd guard and the elites' think / act / damage), kept
  *  outside the look book until L4 (the engine elite feature) and L5 (the wildlife group sims) absorb them; the looks are
  *  the hull book's packed looks. */
-export function speciesBehaviour(book: Pick<NativeSpeciesLookBookRows, 'rows' | 'program'>): { readonly rows: readonly SpeciesRow[]; look: (look: SpeciesLook) => SpeciesLook } {
-  const rows = book.rows.map(row => ({ ...row.metadata, ...(row.group === undefined ? {} : groupSpecies(row.group)), ...(row.directed === undefined ? {} : new DirectedSpecies(row.directed, book.program).binding),
+export function speciesBehaviour(book: Pick<NativeSpeciesLookBookRows, 'rows' | 'program'>): { readonly rows: readonly SpeciesRow[]; readonly projections:ReadonlyMap<string,ActorProjectionV2>; look: (look: SpeciesLook) => SpeciesLook } {
+  const projections=new Map(book.rows.flatMap(row=>row.projection===undefined?[]:[[row.metadata.kind,new ActorProjectionV2(row.metadata.kind,row.projection)] as const]));
+  const rows = book.rows.map(row => ({ ...row.metadata, ...(projections.get(row.metadata.kind)?.binding), ...(row.group === undefined ? {} : groupSpecies(row.group)), ...(row.directed === undefined ? {} : new DirectedSpecies(row.directed, book.program).binding),
     ...(row.guard === true ? { think: thinkCrowdGuard } : {}), ...(row.elite === true ? { think: eliteThink, act: eliteAct } : {}) }));
   const elites = new Set(book.rows.flatMap(row => row.elite === true ? [row.metadata.kind] : []));
-  return { rows, look: look => elites.has(look.kind) ? { ...look, damageMul: eliteDamageMul } : look };
+  return { rows, projections, look: look => {const controlled=projections.get(look.kind)?.binding.damageMul;return controlled!==undefined?{...look,damageMul:controlled}:elites.has(look.kind)?{...look,damageMul:eliteDamageMul}:look;} };
 }

@@ -1,8 +1,7 @@
 import type { SpeciesControl } from '@wildshard/game/looks/speciesBook';
-import { BALBAL_SPECIES } from './balbal';
 import { GOLDENKING_SPECIES } from './goldenKing';
 
 /** Existing per-species controls; shared look resources, the balbal's and the eagle's frames and the elites' controls are
  *  admitted as data. The golden eagle's flight height (its brain's `altY`, smoothed) is the creature view module's
  *  (behaviour/creatureViews.as). */
-export const NALATI_DEFINITIONS:readonly SpeciesControl[]=[BALBAL_SPECIES,GOLDENKING_SPECIES];
+export const NALATI_DEFINITIONS:readonly SpeciesControl[]=[GOLDENKING_SPECIES];

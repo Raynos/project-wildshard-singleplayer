@@ -169,3 +169,14 @@ listed here with its lines instead of being forced into a one-user host.
 
 **Pine and Driftwood lines this plan takes (G570, measured at d16f3c3ae3):** Pine per-frame view 174 (`quest/views.ts` 63, `poolSurface.ts` 62, `beaverPool.ts` 33, `water.ts` 13) plus per-frame one-user code (King pose 54, posedInstances 61); Driftwood per-frame view 166 (rope bridge 128, creatureLooks 21, per-frame systems 17) plus NPC head focus, figures, gulls and cover (~150). Full span list: the plan agent's inventory, re-run with `sourceProgressInventory()`.
 - 2026-10-21 (G573): H0 runs now on the Mac, Chromium and the iOS Simulator; Jake opens the calibration page on his iPhone when he has time, and the view-lane work adjusts to his numbers then. The phone run never blocks.
+
+
+### H4 finite original-slot projection surface
+
+The actor projection binding uses format/actorProjectionV2 rows and the same
+ObservationColumnsV2 owner/slot vocabulary. It retains original actor memory,
+callback cadence, native contact geometry and synchronous effect order; it
+creates no scheduler, body or save owner. A species catalogue can bind these
+rows without preparing WASM during cold metadata construction. L5 member
+movement shares this surface; group banks, ordered member writes and H5
+queries are the remaining group-step extension, not claimed by this surface.

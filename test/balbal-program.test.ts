@@ -1,7 +1,7 @@
 import { afterEach,expect,test,vi } from 'vitest';
 import { parse } from 'valibot';
 import { CreatureGuestSchema } from '../src/format/speciesBookRows';
-import { program } from '../src/shards/nalati-grasslands/species/balbal';
+import { program } from './fixtures/projectedCreature';
 import * as strikes from '../src/engine/ai/strikeRows';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import generated from '../src/shards/nalati-grasslands/data/species.generated.json' with {type:'json'};

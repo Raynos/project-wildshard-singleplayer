@@ -862,3 +862,21 @@ recursive/deep calls, hidden memory/global state, stale player handles, per-bind
 sample stamps, ring overflow and mixed valid/invalid transaction output. No v1
 fallback is permitted for a refused v2 binary, and no shipped v1 bytes change
 merely because this additional contract is present.
+
+
+### H4 native actor projection bindings
+
+A lane-project request may be bound to an original actor callback by finite
+actor-projection rows. Named ObservationColumnsV2 columns copy the original
+actor memory, pose, explicit context and hit/request facts at that slot. Native
+bearing, wrapped-heading and horizontal-distance columns retain the original
+floating-point geometry observations. They perform no mutation or RNG draw.
+AS returns channels; the binding validates the complete scalar/operation bank
+before applying ordered native memory, pose, attack, motion, contact and sound
+operations synchronously. It adds no staged actor command, persistent outbox,
+clock, body or save envelope. The existing actor/group snapshot owns memory.
+
+This is distinct from SimBatchV2's staged actor commands. Group decisions that
+need AS-chosen queries must use the bounded H5 request/reply protocol and their
+original group continuation; they are not silently implemented as synchronous
+imports or as a second per-member clock.

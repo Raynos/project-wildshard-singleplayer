@@ -17,6 +17,7 @@ import { SPECIES_POSES } from './speciesPoses.ts';
 import { buildCracks } from './balbalCracks.ts';
 import { CreatureGuestSchema } from '@wildshard/format/speciesBookRows';
 import { wireProgram } from './returnProgramRows.ts';
+import { actorProjection } from './actorProjection.ts';
 
 const authored=readDecisionSources(fileURLToPath(new URL('../',import.meta.url)));
 // The existing weak-point row bounds move with their build-time admission.
@@ -93,7 +94,7 @@ const crackRow={attrs:crackAttrs,count:cracks.getAttribute('position').count,ind
 // One shared selected module; each original ABI1 descriptor/byte witness remains inline.
 const program=wireProgram({...dual.legacy,v2:dual.candidate});
 const guest=v.parse(CreatureGuestSchema,{...speciesRows.balbalGuest,program,strike:strikes.balbal});
-const presentation={packedBodies:compactBodies,poses:poseConfigs,guest,lookBook:{slug:'nalati-grasslands',rows:SPECIES_LOOK_ROWS,program:wireProgram(admission)}};
+const presentation={packedBodies:compactBodies,poses:poseConfigs,guest,lookBook:{slug:'nalati-grasslands',rows:SPECIES_LOOK_ROWS.map(row=>row.metadata.kind===speciesRows.balbal.kind?{...row,projection:actorProjection(guest)}:row),program:wireProgram(admission)}};
 const writer=byteWriter(process.argv.includes('--check'),'nalati-species');
 writer.put(fileURLToPath(new URL(`../../../../public${file}`,import.meta.url)),compressed);
 // G600 L8: the looks are the hull book's packed looks (game/looks/speciesBook HullLookBook.packedLooks): the compact bodies

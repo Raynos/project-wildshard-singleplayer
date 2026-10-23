@@ -22,15 +22,25 @@ type Herd = Pick<GrazerBrain<AnimalSim>,'cx' | 'cz' | 'trust' | 'alert' | 'stall
  * before capture. This resolver never allocates, adopts or indexes a body. */
 export interface V2ColumnOwners {
   readonly scope: Scope; readonly self: V2ActorColumnSlot;
-  readonly player: { readonly position: Readonly<{ x: number; z: number }> };
+  readonly player: { readonly position: Readonly<{ x: number; y?: number; z: number }> };
   readonly observed: ReadonlyMap<number,AnimalSim>;
   readonly t: number; readonly dt: number;
+  readonly context?: {readonly calm:boolean;readonly playerSpeed:number};
+  readonly hit?: Readonly<{x:number;y:number;z:number}>;
+  readonly request?: {readonly sourceTags:readonly string[]} | null;
+  readonly equipment?: string;
+  readonly results?: Readonly<Record<string,number>>;
   readonly environment?: V2EnvironmentColumns;
   readonly clock?: Pick<DayCycleClock,'hour' | 'dayPhase' | 'night'>;
   readonly weather?: { readonly stormActive: boolean };
   readonly herds?: readonly { readonly group: string; readonly slot: number; readonly owner: Herd | null }[];
   readonly taming?: { readonly phase: string; readonly companion: AnimalSim | null } | null;
   readonly mount?: { readonly mounted: boolean; readonly actor: AnimalSim | null } | null;
+}
+function freeze(value: unknown):void {
+  if(typeof value!=='object'||value===null||Object.isFrozen(value))return;
+  for(const child of Object.values(value))freeze(child);
+  Object.freeze(value);
 }
 function finite(value: number): number { if (!Number.isFinite(value)) throw new Error('Non-finite observation column');return value; }
 function need<T>(value: T | undefined,kind: string): T { if (value === undefined) throw new Error(`Missing observation ${kind} owner`);return value; }
@@ -47,13 +57,7 @@ export class ObservationColumnsV2 {
   constructor(input: unknown,scope: Scope) {
     this.scope = scope;
     const rows = parseObservationColumnsV2(input);
-    for (const row of rows) {
-      if (row.source.kind === 'herd-state') {
-        for (const code of row.source.states) Object.freeze(code);
-        Object.freeze(row.source.states);
-      }
-      Object.freeze(row.source);Object.freeze(row);
-    }
+    freeze(rows);
     this.rows = Object.freeze(rows);
   }
   /** The same immutable admitted metadata, without sampling any live owner.
@@ -87,9 +91,41 @@ export class ObservationColumnsV2 {
       if (source.kind === 'mount' && source.field === 'actor') identity(owners.mount?.actor ?? null);
       return { row,herd };
     });
+    const memory=():Readonly<Record<string,number>>|undefined=>actor?.mem;
+    const point=(source: Extract<ObservationColumnV2['source'],{kind:'distance-xz'}>['from']):Readonly<{x:number;z:number}>=>{
+      switch(source.kind){
+        case 'self':return need(actor?.position,'self');
+        case 'player':return owners.player.position;
+        case 'hit':return need(owners.hit,'hit');
+        case 'memory':return {x:memory()?.[source.x]??(source.fallback==='self'?need(actor?.position,'self').x:0),
+          z:memory()?.[source.z]??(source.fallback==='self'?need(actor?.position,'self').z:0)};
+        default:throw new Error('Unknown observation point');
+      }
+    };
     return prepared.map(({ row,herd }) => {
       const source = row.source;let value: number;
       switch (source.kind) {
+        case 'memory': {
+          const fallback=source.default,body=need(actor??undefined,'self');
+          value=body.mem[source.key]??(fallback.when!==undefined&&body.mem[fallback.when.field]===fallback.when.equal?fallback.when.value:
+            fallback.source===undefined?fallback.value:fallback.source==='yaw'?body.yaw:body.position[fallback.source]);break;
+        }
+        case 'memory-present':value=Number(source.keys.every(key=>memory()?.[key]!==undefined));break;
+        case 'actor-state':value=source.states.indexOf(need(actor??undefined,'self').state);break;
+        case 'player-position':value=need(owners.player.position[source.axis],'player position');break;
+        case 'context':value=Number(need(owners.context,'context')[source.field]);break;
+        case 'hit':value=need(owners.hit,'hit')[source.axis];break;
+        case 'request':value=Number(need(owners.request,'request')!==null);break;
+        case 'request-tags':value=Number(need(owners.request,'request')?.sourceTags.some(tag=>source.tags.includes(tag))===true);break;
+        case 'equipment':value=Number(source.ids.includes(need(owners.equipment,'equipment')));break;
+        case 'result':value=need(owners.results?.[source.channel],'projection result');break;
+        case 'bearing': {const target=point(source.target),body=need(actor??undefined,'self');value=Math.atan2(target.x-body.position.x,target.z-body.position.z);break;}
+        case 'heading-offset': {
+          const body=need(actor??undefined,'self'),heading=source.target.kind==='player'?Math.atan2(owners.player.position.x-body.position.x,owners.player.position.z-body.position.z):body.mem[source.target.key]??body.yaw;
+          const delta=heading-body.yaw;value=Math.atan2(Math.sin(delta),Math.cos(delta));break;
+        }
+        case 'distance-xz': {const from=point(source.from),to=point(source.to);value=Math.hypot(from.x-to.x,from.z-to.z);break;}
+        case 'heading-component':value=Math[source.axis](need(actor??undefined,'self').yaw*source.sign);break;
         case 'environment': value = Number(need(owners.environment,'environment')[source.field]);break;
         case 'wind': value = need(owners.environment,'environment').wind[source.field];break;
         case 'player': {
@@ -98,8 +134,8 @@ export class ObservationColumnsV2 {
           value = fields[source.field];break;
         }
         case 'grass': {
-          const point = source.at === 'self' ? actor?.position : owners.player.position;
-          value = point === undefined ? 0 : need(owners.environment,'environment').grassHeightAt(finite(point.x),finite(point.z));break;
+          const sampledPoint = source.at === 'self' ? actor?.position : owners.player.position;
+          value = sampledPoint === undefined ? 0 : need(owners.environment,'environment').grassHeightAt(finite(sampledPoint.x),finite(sampledPoint.z));break;
         }
         case 'clock': {
           const clock = need(owners.clock,'clock');

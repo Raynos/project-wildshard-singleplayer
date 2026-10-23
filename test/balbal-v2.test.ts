@@ -6,7 +6,7 @@ import type { Animal } from '../src/engine/entities/AnimalView';
 import type { ThinkCtx } from '../src/engine/entities/species/registry';
 import type { DamageRequest } from '../src/engine/combat/pipeline';
 import { ReturnProgram } from '../src/game/population/returnProgram';
-import { BALBAL_SPECIES } from '../src/shards/nalati-grasslands/species/balbal';
+import { BALBAL_SPECIES } from './fixtures/projectedCreature';
 import { BALBAL_SPECIES as ORIGINAL } from './fixtures/originalBalbal';
 import { legacyDouble } from './fake/FakeGame';
 import generated from '../src/shards/nalati-grasslands/data/species.generated.json' with { type: 'json' };
@@ -136,4 +136,31 @@ test('every shared held, power, stealth and creature signal matches its unchange
     }
     expect(accepted).toBeGreaterThan(row.v2.signals.length);
   } finally { scope.dispose(); }
+});
+
+
+test('retirement from native contact reach cannot publish hurt or either sound',()=>{
+  const scope=owner(),actual=controls(BALBAL_SPECIES),a=fixture({init:1,st:3,hit:0});
+  a.setAttack(.55);a.context.dt=.1;a.context.t=7;
+  a.context.reach=()=>{scope.dispose();return true;};
+  try{expect(()=>actual.think(a.body,a.context)).toThrow('disposed');expect(a.trace.filter(value=>value[0]==='hurt'||value[0]==='sound')).toEqual([]);}
+  finally{scope.dispose();}
+});
+
+
+test('AS request-tag policy retains legacy equipment fallback, visibility and stow precedence',()=>{
+  type Equipment=NonNullable<typeof app.equipment>;
+  const scope=owner(),actual=controls(BALBAL_SPECIES),oracle=controls(ORIGINAL);
+  const tagSets:DamageRequest['sourceTags'][]=[[],['dmg.legacy'],['weapon.javelin'],['weapon.sabre'],['dmg.legacy','weapon.javelin']];
+  const requests:(DamageRequest|undefined)[]=[undefined,...tagSets.map(sourceTags=>legacyDouble<DamageRequest>({sourceTags}))];
+  const equipmentIds:Equipment['current']['row']['id'][]=['weapon.spear','weapon.sabre'];
+  try{
+    for(const id of equipmentIds)for(const visible of [true,false])for(const stowed of [true,false]){
+      const loan=scope.child('equipment');
+      const current=legacyDouble<Equipment['current']>({row:legacyDouble<Equipment['current']['row']>({id})});
+      loan.expose(app,'equipment',legacyDouble<Equipment>({visible,stowed,current}));
+      try{for(const request of requests){const a=fixture({open:1}),b=fixture({open:1}),hit=new Vector3(.4,1,1);expect(actual.damageMul(a.body,hit,new Vector3(),request)).toBe(oracle.damageMul(b.body,hit,new Vector3(),request));}}
+      finally{loan.dispose();}
+    }
+  }finally{scope.dispose();}
 });

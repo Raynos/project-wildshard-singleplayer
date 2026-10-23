@@ -1,7 +1,7 @@
 import { array,number,parse,tuple } from 'valibot';
 import { expect,test } from 'vitest';
 import { Vector3 } from 'three';
-import { BALBAL_SPECIES } from '../src/shards/nalati-grasslands/species/balbal';
+import { BALBAL_SPECIES } from './fixtures/projectedCreature';
 import type { Animal } from '../src/engine/entities/AnimalView';
 import type { ThinkCtx } from '../src/engine/entities/species/registry';
 import type { DamageRequest } from '../src/engine/combat/pipeline';
@@ -43,7 +43,7 @@ test('the actual balbal binding observes native bodies at ten Hz and samples dec
 
 test('authored weak-point query preserves yaw, body lift, scale and strict radius',()=>{
   const binding=controls();
-  const actor=legacyDouble<Animal>({mem:{},position:new Vector3(12,-3,8),yaw:.7,scale:2.75,yOffset:.3});
+  const actor=legacyDouble<Animal>({entityId:'quarry.guard',mem:{},position:new Vector3(12,-3,8),yaw:.7,scale:2.75,yOffset:.3});
   const world=(x:number,y:number,z:number):Vector3=>new Vector3(
     actor.position.x+actor.scale*(x*Math.cos(actor.yaw)+z*Math.sin(actor.yaw)),
     actor.position.y+actor.yOffset+y*actor.scale,

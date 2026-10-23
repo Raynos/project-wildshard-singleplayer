@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { isJsonData } from './json';
+import { ActorProjectionV2Schema } from './actorProjectionV2';
 import { SpeciesSchema } from './speciesPrograms';
 import { RidingPresentationSchema } from './riding';
 import { CreatureStrikeSchema } from './creatures';
@@ -28,6 +29,7 @@ const book=v.object({slug:text,body:v.unknown(),poses:v.optional(v.record(text,v
     rig:v.optional(v.picklist(['quadruped','custom'])),pose:v.optional(v.object({grazeNeck:number,gallopTail:number})),gait:v.optional(v.object({trot:number,gallop:number})),
     eyeGlow:v.optional(rgb),eyeGlowIntensity:v.optional(number),
     variants:v.record(text,v.object({body:text,tint:v.optional(v.record(text,rgb)),traits:v.optional(v.record(text,v.union([number,v.boolean()]))) })),
+    projection:v.exactOptional(ActorProjectionV2Schema),
     group: v.optional(SpeciesGroupSchema), directed: v.optional(DirectedSpeciesSchema), guard: v.optional(v.literal(true)),
     /** a named elite: its think / act / damage are the elite page's (game/quest/elitePage) */
     elite: v.optional(v.literal(true)),

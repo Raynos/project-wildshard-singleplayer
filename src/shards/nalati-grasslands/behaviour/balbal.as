@@ -10,7 +10,8 @@ import { Signal, Field, Channel, Read, Do } from './generated/nalatiHeldWeapons'
   }
   if(signal==Signal.damage){
     const open=f(Field.open)==1?1.25:1;
-    put(Channel.damage,f(Field.field)==1&&f(Field.rise)<.6?.25:f(Field.range)>4.2?.5*open:f(Field.piercing)==1?(f(Field.crack)==1?2.5:1)*open:1.5*open);return;
+    const piercing=f(Field.requestPresent)==0||f(Field.legacyTag)==1?f(Field.equipmentMatch):f(Field.piercingTag);
+    put(Channel.damage,f(Field.field)==1&&f(Field.rise)<.6?.25:f(Field.range)>4.2?.5*open:piercing==1?(f(Field.crack)==1?2.5:1)*open:1.5*open);return;
   }
   const dt=f(Field.dt),field=f(Field.field)==1,px=f(Field.px),py=f(Field.py),pz=f(Field.pz),ay=f(Field.ay),yaw0=f(Field.yaw);
   let x=f(Field.x),z=f(Field.z),st=f(Field.st),t=f(Field.t)+dt,cd=Math.max(0,f(Field.cd)-dt),rise=f(Field.rise),emerge=f(Field.emerge),hit=f(Field.hit);

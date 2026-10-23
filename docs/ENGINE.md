@@ -12282,3 +12282,30 @@ population owner: it is a no-op before animalsBuilt, then preserves the incoming
 hit through the original wildlife target query. State retains its null gate
 and applies night then Titan after that reducer. Disposal removes the listener;
 re-entry installs a fresh listener at the same feature boundary.
+
+
+### H4 original-slot actor projection
+
+ActorProjectionV2 consumes finite format/actorProjectionV2 rows. Cold
+construction admits and detaches metadata only. Its step lends the original
+AnimalSim, native context and scoped {group, slot, identity}; optional
+ObservationColumnsV2 environment, clock, weather, herd, taming and mount loans
+are captured at that same native slot. Death retains a slot; only the original
+roster owner despawns or reassigns it. No body, scheduler, save or clock is added.
+
+Columns select actor memory with explicit defaults/presence, state codes,
+player/hit positions, request tags, equipment identity and finite native
+bearing, wrapped heading or horizontal distance. Query-result columns refer
+only to the current detached projection request. AS decides policy. Ordered
+operations write the same actor memory/pose and call its original attack,
+motion, immediate strike/contact and sound authorities. All output scalars and
+native ports preflight before the first write; each operation fences the same
+scope, body buffers and callables. Contact retains the native geometry/reach
+law and sound order. Program access admits the native strike before publishing
+the original scoped ReturnProgram. The species catalogue lends that same
+programme to encounter presentation.
+
+Nalati's stone-guardian callback is the first adoption; L5 pack/herd member
+drives use the same primitive next. Group decisions, ordered member banks,
+cross-group queries and group continuation remain separate work on the same
+H4 vocabulary; this primitive does not claim to execute those group ticks.
