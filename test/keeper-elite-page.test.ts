@@ -10,8 +10,9 @@ import type { AnimalManager } from '../src/engine/entities/AnimalManager';
 import type { Player } from '../src/engine/player/Player';
 import type { EliteBar } from '../src/engine/ui/EliteBar';
 import type { EliteDef, Elites } from '../src/game/Elite';
-import { ExternalElitePage } from '../src/game/quest/elitePage';
 import { NativeEliteController } from '../src/engine/ai/view/eliteController';
+import { BorrowedElite } from '../src/engine/ai/view/eliteEntry';
+import type { StallionState } from '../src/engine/ai/herd';
 import { eliteDamageMul } from '../src/engine/entities/eliteBrain';
 import { Scope } from '../src/engine/app/scope';
 import { legacyDouble } from './fake/FakeGame';
@@ -45,16 +46,16 @@ test('an independent marsh herd encounter adopts native bodies and follows AS te
   const signatures: string[] = [], wins: string[] = [];
   const actor = legacyDouble<Animal>({ position: new Vector3(3, 0, 4), hp: 750, maxHp: 750, alive: true, mesh: new SkinnedMesh(new BoxGeometry(), new MeshLambertMaterial()) });
   const mount = legacyDouble<Animal>({ position: new Vector3(1, 0, 2), scale: 1, mesh: new SkinnedMesh() });
-  const herd: NonNullable<Parameters<ExternalElitePage['adopt']>[1]> = { stallionState: 'display', stallion: actor, leadAway: () => undefined };
-  const script = new ExternalElitePage({ ...template, def, spawn: { ...template.spawn, kind: 'marsh-stag' },
+  const herd: { leaderState: StallionState; leader: Animal | null; leadAway: () => void } = { leaderState: 'display', leader: actor, leadAway: () => undefined };
+  const script = new BorrowedElite({ ...template, def, spawn: { ...template.spawn, kind: 'marsh-stag' },
     adopted: { ...template.adopted, kind: 'marsh-stag', feed: 'A stag joins you' } },
-  { game: legacyDouble<Game>({ scene: new Scene() }), animals: legacyDouble<AnimalManager>({}), player: legacyDouble<Player>({ position: new Vector3(10, 0, 20) }),
+  { game: legacyDouble<Game>({ scene: new Scene() }), player: legacyDouble<Player>({ position: new Vector3(10, 0, 20) }),
     elites: legacyDouble<Elites>({ signature: id => { signatures.push(id); }, won: id => { wins.push(id); } }) }, ReturnProgram.page(admission), new Group());
   script.observe(0, { available: true, kills: 0, bonded: false, mount: null }); expect(script.canSpawn()).toBe(true);
   script.spawn(); expect(script.drainEffects()[0]?.kind).toBe('request'); script.adopt(actor, herd);
   script.tick(.1, .1, false, false); expect(signatures).toEqual([def.id]); expect(script.barFrac()).toBe(1);
-  herd.stallionState = 'beaten'; script.tick(.1, .2, false, false); expect(script.broken()).toBe(true);
-  herd.stallion = null; script.observe(.1, { available: true, kills: 0, bonded: true, mount }); script.tick(.1, .3, false, false);
+  herd.leaderState = 'beaten'; script.tick(.1, .2, false, false); expect(script.broken()).toBe(true);
+  herd.leader = null; script.observe(.1, { available: true, kills: 0, bonded: true, mount }); script.tick(.1, .3, false, false);
   expect(wins).toEqual([def.id]); expect(mount.scale).toBe(1.3);
   const effects = script.drainEffects(); expect(effects.map(effect => effect.kind)).toEqual(['record', 'feed']);
   script.despawn(); expect(script.animal).toBe(actor);

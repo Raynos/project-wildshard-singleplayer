@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { Group, Scene, PerspectiveCamera, Vector3, SkinnedMesh, MeshLambertMaterial } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { app } from '../src/engine/app/runtime';
-import { DeclaredEliteEntry } from '../src/engine/ai/view/eliteEntry';
+import { BorrowedElite, DeclaredEliteEntry } from '../src/engine/ai/view/eliteEntry';
 import { StrikeRunner } from '../src/engine/ai/strikes';
 import type { Game } from '../src/engine/core/Game';
 import type { Animal } from '../src/engine/entities/AnimalView';
@@ -16,16 +16,13 @@ import type { DayCycleClock } from '../src/engine/world/dayCycle';
 import type { AdventurePersistence } from '../src/game/quest/persistence';
 import type { PageWildlife } from '../src/game/population/wildlife';
 import { Elites } from '../src/game/Elite';
-import { ExternalElitePage } from '../src/game/quest/elitePage';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { PageWildEnvironment } from '../src/game/population/pageGroups';
 import { ELITE_CONDITION_COLUMNS } from '../src/format/eliteEntryRows';
 import { legacyDouble } from './fake/FakeGame';
 import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
 import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type: 'json' };
-import charge from '../src/shards/nalati-grasslands/data/eliteCharge.generated.json' with { type: 'json' };
 import { parseExternalElite } from '../src/format/eliteFeature';
-import { parseSpawnScript } from '../src/format/spawnScripts';
 import { strike } from '../src/sdk/species';
 import strikes from '../src/shards/nalati-grasslands/data/strikeProfiles.generated.json' with { type: 'json' };
 
@@ -52,14 +49,14 @@ test('a marsh roster binds its own herd, drop and identities without author call
     presentation: { [row.def.id]: { prompt: `Take the ${row.def.drop.skinName} ${row.def.drop.weapon} skin`,
       toast: `${row.def.drop.skinName} ${row.def.drop.weapon} skin — ${row.def.drop.blurb}`, hum: true, sting: { banner: .8, phase2: 1, kill: 'chunk' } } },
     strikes: [], fallbackStrike: strike(strikes.captain), prewarm: [] };
-  const guest = ReturnProgram.page(admission), models = new Map([[row.def.id, new Group()]]), fight = parseSpawnScript(charge);
+  const guest = ReturnProgram.page(admission), models = new Map([[row.def.id, new Group()]]);
   try {
     expect(() => new DeclaredEliteEntry({ ...rows.entry, entries: [...rows.entry.entries, ...rows.entry.entries] }, construction)).toThrow('identities');
-    const entry = new DeclaredEliteEntry<ExternalElitePage>(rows.entry, construction);
+    const entry = new DeclaredEliteEntry(rows.entry, construction);
     entered.expose(app, 'levelScope', construction);
     entered.run(() => {
       const owner = new Elites({ scene: game.scene, camera: game.camera, player, condition: rule => entry.holds(rule) }, legacyDouble<EliteBar>({}), 'reed-marsh', saved);
-      const controller = new ExternalElitePage(row, { game, player, animals, elites: owner }, guest, new Group(), fight, true);
+      const controller = new BorrowedElite(row, { game, player, elites: owner }, guest, new Group(), true);
       owner.bindDeclaredEntry(entry, rows, { construction, entered: { scope: entered, interactables: [],
         hud: legacyDouble<HUD>({ killFeed: () => undefined }), audio: legacyDouble<Audio>({ animal: () => undefined }), music: legacyDouble<Music>({}) }, game, player, body: 'animals', animals,
         models, program: { id: 'rules', scope: construction, value: guest }, controllers: [controller], environment: new PageWildEnvironment(),

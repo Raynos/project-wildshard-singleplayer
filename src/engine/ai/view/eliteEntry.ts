@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { parseEliteEntryRows, ELITE_BODY_COLUMNS, ELITE_CONDITION_COLUMNS, type EliteEntryRows } from '@wildshard/format/eliteEntryRows';
-import { EliteFeatureSchema, parseEliteOutputActions, type EliteFeatureRows, type EliteOutputAction } from '@wildshard/format/eliteFeature';
+import { EliteFeatureSchema, parseEliteOutputActions, parseExternalElite, type EliteFeatureRows, type EliteOutputAction, type ExternalEliteData } from '@wildshard/format/eliteFeature';
 import { isJsonData } from '@wildshard/format/json';
 import { HandleIdSchema } from '@wildshard/format/sceneRefs';
 import { Scope } from '../../app/scope';
@@ -8,11 +8,17 @@ import { resourceScope } from '../../app/resources';
 import { readPouncerSpec, readHowlerSpec } from '../stalker';
 import { readWindDiverSpec } from '../diver';
 import { ObservationColumnsV2, type V2ColumnOwners } from '../../script/observationColumnsV2';
-import { NativeEliteController, type NativeEliteRow, type NativeEliteServices } from './eliteController';
+import { NativeEliteController, type NativeEliteEffect, type NativeEliteRow, type NativeEliteServices } from './eliteController';
 import { EncounterRegistry } from '../encounters';
 import type { Animal } from '../../entities/AnimalView';
 import type { AnimalManager } from '../../entities/AnimalManager';
-import { Object3D } from 'three';
+import { Color, MeshLambertMaterial, Object3D, Vector3 } from 'three';
+import { GroundTell } from '../../fx/groundTell';
+import { setEliteDamage } from '../../entities/eliteBrain';
+import { pinBrain } from '../pinning';
+import type { HerdBrain } from '../herd';
+import type { Game } from '../../core/Game';
+import type { Player } from '../../player/Player';
 
 type Definition = EliteFeatureRows['fights'][number]['def'];
 function freezeJson<T>(value: T): T {
@@ -23,6 +29,156 @@ export interface BorrowedEliteController {
   readonly def: Definition; readonly row: { readonly mode: 'script' | 'herd' };
   readonly observe: (dt: number, frame: { readonly available: boolean; readonly kills: number; readonly bonded: boolean; readonly mount: Animal | null }) => void;
   readonly despawn: () => void; readonly prepareEntered: () => void;
+}
+/** What a borrowed elite leaves its owner: native effects, its fight's page banks, a body request, a retirement, a support
+ * count and an adoption record. */
+export type BorrowedEliteEffect = NativeEliteEffect | { readonly kind: 'page-bank'; readonly bank: { readonly validate: () => void; readonly operations: readonly (() => void)[] } }
+  | { readonly kind: 'request'; readonly row: ExternalEliteData }
+  | { readonly kind: 'retire'; readonly actor: Animal } | { readonly kind: 'support'; readonly count: number }
+  | { readonly kind: 'record'; readonly species: string; readonly variant: string };
+/** The guarded group a herd-mode elite reads and steers: the existing herd brain's leader state and body, and lead-away. */
+export type BorrowedEliteHerd = Pick<HerdBrain<Animal>, 'leaderState' | 'leader' | 'leadAway'>;
+/** The fight a script-mode elite drives: its owner's admitted spawn program, paged afresh for each adopted body. */
+export interface BorrowedEliteFight {
+  readonly adopt: (slot: string, id: string) => void; readonly interrupt: () => void; readonly signal: (slot: string, n: number) => void;
+  readonly cue: (id: number) => string; readonly state: (slot: string) => Readonly<Record<string, number | boolean>>;
+  readonly frame: (point: Vector3, night: number, observations: Readonly<Record<string, number>>) => void; readonly advanceFrame: (dt: number) => void;
+  readonly drainEffects: () => readonly ({ readonly kind: 'cue' | 'retire'; readonly id: number } | { readonly kind: 'hit'; readonly hit: { readonly damage: number } }
+    | Extract<BorrowedEliteEffect, { readonly kind: 'page-bank' }>)[];
+  readonly strikePresentation: () => readonly { readonly phase: string; readonly x0: number; readonly z0: number; readonly x1: number; readonly z1: number; readonly width: number }[];
+}
+/** The admitted decision program a borrowed elite projects (the entry's condition program loan). */
+type EliteProjection = EliteEntryLoans<BorrowedEliteController>['programs'][number]['program'];
+/** The existing services a borrowed elite works through; none is authored. `fight` pages a script-mode elite's program. */
+export interface BorrowedEliteServices {
+  readonly game: Game; readonly player: Player;
+  readonly elites: { readonly signature: (id: string) => void; readonly won: (id: string) => void };
+  readonly fight?: { readonly page: () => BorrowedEliteFight };
+}
+/**
+ * A borrowed elite (format/eliteFeature ExternalEliteSchema rows). Its decisions are the admitted program's projections
+ * (`ready`, `step`, `damage`); its body arrives from its owner after a `request`. A script-mode elite drives its paged
+ * fight; a herd-mode one reads and steers its adopted group's leader. Its owner lends the lane tell (`tell`) and the
+ * values it is drawn from (`viewValue`, format/eliteFeature ELITE_VIEW_FIELDS; absent reads 0) to the entered view programs.
+ */
+export class BorrowedElite implements BorrowedEliteController {
+  readonly def: Definition;
+  readonly row: ExternalEliteData;
+  animal: Animal | null = null;
+  private herd: BorrowedEliteHerd | null = null;
+  private line: readonly Animal[] = [];
+  private program: BorrowedEliteFight | null = null;
+  private readonly events: BorrowedEliteEffect[] = [];
+  private tellValue: GroundTell | null = null;
+  private readonly presentationOwner = resourceScope();
+  private scope: Scope | null = null;
+  private phase2 = false; private pending = false; private elapsed = 0; private readyTime = 0; private initialized = false;
+  private laneT = 0; private runT = 0; private previousState = 0; private fraction = 0; private isBroken = false;
+  private readonly from = new Vector3(); private readonly to = new Vector3();
+  private observations: { available: boolean; kills: number; bonded: boolean; mount: Animal | null } = { available: false, kills: 0, bonded: false, mount: null };
+  private eligible = false;
+  private readonly view = new Map<string, number>();
+  readonly viewValue = (field: string): number => this.view.get(field) ?? 0;
+  private readonly services: BorrowedEliteServices;
+  private readonly decisions: EliteProjection;
+  private readonly drop: Object3D;
+  constructor(row: ExternalEliteData, services: BorrowedEliteServices, decisions: EliteProjection, drop: Object3D, deferPresentation = false) {
+    this.services = services; this.decisions = decisions; this.drop = drop;
+    this.row = parseExternalElite(row); this.def = row.def;
+    if (!deferPresentation) this.tellValue = new GroundTell(services.game.scene, 'lane', new Color(...row.tell));
+    if (row.mode === 'script' && services.fight === undefined) throw new Error('Script encounter needs an admitted fight');
+  }
+  get tell(): GroundTell { if (this.tellValue === null) throw new Error('Unprepared external elite presentation'); return this.tellValue; }
+  /** Compiled entry construction calls this once, at the borrowed row's original position. No clock, RNG or body work. */
+  prepareEntered(): void {
+    const owner = this.presentationOwner;
+    if (this.tellValue !== null || owner.disposed || owner.disposing || !resourceScope().belongsTo(owner)) throw new Error('Invalid external elite presentation phase');
+    this.tellValue = new GroundTell(this.services.game.scene, 'lane', new Color(...this.row.tell));
+  }
+  observe(dt: number, observations: typeof this.observations): void {
+    this.observations = observations; this.readyTime += dt;
+    if (!this.initialized || this.readyTime + 1e-9 >= .1) {
+      this.initialized = true; this.readyTime = 0;
+      this.eligible = this.row.mode === 'herd' || this.decisions.project(this.row.ready, { kills: observations.kills, engaged: 0, line: 0 })['accept'] === 1;
+    }
+  }
+  canSpawn(): boolean { return this.observations.available && this.eligible; }
+  spawn(): void { if (this.animal?.alive === true || this.pending) return; this.pending = true; this.events.push({ kind: 'request', row: this.row }); }
+  adopt(animal: Animal, herd: BorrowedEliteHerd | null = null): void {
+    if (!this.pending) throw new Error('Unrequested encounter body');
+    const program = this.row.mode === 'script' ? need(this.services.fight).page() : null;
+    program?.adopt('main', animal.entityId);
+    this.pending = false; this.animal = animal; this.herd = herd;
+    if (program !== null) {
+      this.program = program;
+      setEliteDamage(animal, (_body, point) => this.decisions.project(this.row.damage, { mode: Number(this.program?.state('main')['mode'] ?? 0), distance: point.distanceTo(this.services.player.position) })['scale'] ?? 1);
+    } else if (this.row.mode === 'herd') {
+      const color = this.row.spawn.color;
+      for (const material of Array.isArray(animal.mesh.material) ? animal.mesh.material : [animal.mesh.material]) if (material instanceof MeshLambertMaterial) material.color.setRGB(...color);
+    }
+  }
+  support(actors: readonly Animal[]): void { this.line = actors; }
+  despawn(): void {
+    this.scope?.dispose(); this.scope = null; this.view.clear(); this.program?.interrupt(); this.pending = false;
+    if (this.row.mode === 'herd') return;
+    for (const actor of this.line) if (actor.alive) this.events.push({ kind: 'retire', actor }); this.line = [];
+    if (this.animal !== null) this.events.push({ kind: 'retire', actor: this.animal }); this.animal = null; this.program = null;
+  }
+  reset(): void { this.phase2 = false; this.program?.interrupt(); this.program?.signal('main', 0); this.view.clear(); }
+  enterPhase2(): void { this.phase2 = true; }
+  broken(): boolean { return this.isBroken; }
+  barFrac(): number { return this.row.mode === 'script' && this.animal !== null ? this.animal.hp / this.animal.maxHp : this.fraction; }
+  trophy(): void { /* The encounter host owns rewards. */ }
+  dropModel(): Object3D { return this.drop.clone(true); }
+  tick(dt: number, time: number, engaged: boolean, leashing: boolean): void {
+    const animal = this.animal; if (animal === null) { this.view.clear(); return; }
+    if (engaged && this.scope === null) { this.scope = this.services.game.levelScope.child(`elite.${this.def.id}`); pinBrain(animal, this.scope); }
+    else if (!engaged) { this.scope?.dispose(); this.scope = null; }
+    this.elapsed += dt;
+    if (this.row.mode === 'script') {
+      const program = this.program; if (program === null) return;
+      if (this.elapsed + 1e-9 >= .1) {
+        this.elapsed = 0;
+        const count = this.decisions.project(this.row.step, { kills: this.observations.kills, engaged: Number(engaged), line: this.line.filter(actor => actor.alive).length })['count'] ?? 0;
+        if (count > 0) this.events.push({ kind: 'support', count });
+      }
+      program.frame(this.services.player.position, 0, { engaged: Number(engaged), leashing: Number(leashing), phase2: Number(this.phase2), clock: time }); program.advanceFrame(dt);
+      for (const effect of program.drainEffects()) {
+        if (effect.kind === 'page-bank') this.events.push(effect);
+        else if (effect.kind === 'hit') { this.events.push({ kind: 'hit', animal, amount: effect.hit.damage }, { kind: 'knock', x: Math.sin(animal.yaw), z: Math.cos(animal.yaw) }); }
+        else if (effect.kind === 'cue') {
+          const cue = this.row.cues[program.cue(effect.id)]; if (cue === undefined) continue;
+          if (cue.signature === true) this.services.elites.signature(this.def.id);
+          if (cue.voice !== undefined) this.events.push({ kind: 'sound', id: cue.voice, at: animal.position.clone() });
+          if (cue.feed !== undefined) this.events.push({ kind: 'feed', id: cue.feed, at: animal.position.clone() });
+        }
+      }
+      this.tell.setTime(time); this.view.set('strike', 0);
+      for (const strike of program.strikePresentation()) if (strike.phase === 'windup' || strike.phase === 'active') {
+        const view = this.view; view.set('strike', strike.phase === 'windup' ? 1 : 2); view.set('sx0', strike.x0); view.set('sz0', strike.z0); view.set('sx1', strike.x1); view.set('sz1', strike.z1); view.set('sw', strike.width);
+      }
+      return;
+    }
+    const herd = this.herd; if (herd === null) return;
+    if (this.elapsed + 1e-9 >= .1) {
+      const state = this.row.states[herd.leaderState] ?? 0;
+      const result = this.decisions.project(this.row.step, { dt: this.elapsed, state, previousState: this.previousState, laneT: this.laneT, runT: this.runT,
+        phase2: Number(this.phase2), engaged: Number(engaged), bonded: Number(this.observations.bonded), same: Number(herd.leader === animal), health: animal.hp / animal.maxHp });
+      this.elapsed = 0; this.previousState = state; this.laneT = result['laneT'] ?? this.laneT; this.runT = result['runT'] ?? this.runT; this.fraction = result['fraction'] ?? 0;
+      this.isBroken = herd.leaderState === this.row.broken;
+      if (result['capture'] === 1) { this.from.copy(animal.position); this.to.copy(this.services.player.position); }
+      if (result['signature'] === 1) this.services.elites.signature(this.def.id);
+      if (result['lead'] === 1) herd.leadAway(this.services.player.position.x, this.services.player.position.z);
+      const mount = this.observations.mount;
+      if (result['adopt'] === 1 && mount !== null) {
+        mount.scale = this.row.adopted.scale; mount.mesh.scale.setScalar(mount.scale); this.services.elites.won(this.def.id); this.herd = null;
+        this.events.push({ kind: 'record', species: this.row.adopted.kind, variant: this.row.adopted.variant }, { kind: 'feed', id: this.row.adopted.feed, at: mount.position.clone() });
+      }
+    }
+    this.tell.setTime(time);
+    const view = this.view; view.set('laneT', this.laneT); view.set('fx', this.from.x); view.set('fz', this.from.z); view.set('tx', this.to.x); view.set('tz', this.to.z);
+  }
+  drainEffects(): BorrowedEliteEffect[] { return this.events.splice(0); }
 }
 export interface EliteEntryFrame {
   readonly patrolAvailable: boolean; readonly herdAvailable: boolean; readonly kills: number;
@@ -116,7 +272,7 @@ function admitActions(entry: Entry, row: NativeEliteRow, index: number, actions:
 }
 /** Admit the WHOLE construction before allocating a tell, bar, kernel or body.
  * A prepared plan has no scheduler, registry, save state or random stream. */
-export function prepareEliteEntry<S extends BorrowedEliteController>(input: unknown, source: EliteEntryLoans<S>): {
+export function prepareEliteEntry<S extends BorrowedEliteController = BorrowedElite>(input: unknown, source: EliteEntryLoans<S>): {
   readonly rows: EliteEntryRows; readonly validate: () => void;
   readonly construct: () => readonly (NativeEliteController | S)[];
   readonly observeNative: () => void; readonly updateConditions: (dt: number) => void; readonly holds: (id: string) => boolean;
@@ -277,7 +433,7 @@ export function prepareEliteEntry<S extends BorrowedEliteController>(input: unkn
 /** The declared feature is prepared during construction and borrows entered
  * authorities only at its original binding slot. It creates no save or clock
  * beyond the original bounded condition owner; kernels retain native cadence. */
-export class DeclaredEliteEntry<S extends BorrowedEliteController> {
+export class DeclaredEliteEntry<S extends BorrowedEliteController = BorrowedElite> {
   readonly rows: EliteEntryRows;
   readonly skins = new Set<string>();
   get scripts(): readonly (NativeEliteController | S)[] { return this.live() ? this.binding?.scripts ?? [] : []; }

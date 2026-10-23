@@ -28,7 +28,7 @@ import { installEngineStrings } from '../src/engine/strings';
 import { setTerrainHeight } from '../src/engine/world/terrainHeight';
 import { ENGINE_CONTENT_STRINGS } from '../src/game/engineStrings';
 import { Elites, type EliteOutputController, type ElitePageOutputLoans, type EliteEnteredOwners } from '../src/game/Elite';
-import { ExternalElitePage } from '../src/game/quest/elitePage';
+import { BorrowedElite, type BorrowedEliteFight } from '../src/engine/ai/view/eliteEntry';
 import { NativeEliteController } from '../src/engine/ai/view/eliteController';
 import { PageWildEnvironment } from '../src/game/population/pageGroups';
 import type { AdventurePersistence } from '../src/game/quest/persistence';
@@ -178,7 +178,7 @@ test('same-object service replacement and a real sliced ancestor retirement fenc
   finally { for (const step of retirement) void step; }
 });
 
-function external(f: ReturnType<typeof fixture>, mode: 'script' | 'herd'): ExternalElitePage {
+function external(f: ReturnType<typeof fixture>, mode: 'script' | 'herd'): BorrowedElite {
   return withOwner(f.entered, () => {
     const def = { ...f.keeper.def, id: 'reed.rider' };
     const common = { def, tell: [.2, .3, .4] as [number, number, number], step: 'reed.rider', ready: 'ready', damage: 'damage', broken: 'beaten', cues: {},
@@ -186,8 +186,8 @@ function external(f: ReturnType<typeof fixture>, mode: 'script' | 'herd'): Exter
     const row = mode === 'script' ? { ...common, mode: 'script' as const, spawn: { source: 'rider' as const, variant: 'rider' as const, yaw: .7 } }
       : { ...common, mode: 'herd' as const, spawn: { source: 'herd' as const, kind: 'reed', variant: 'silver', yaw: .7,
         offset: [2, -3] as [number, number], mares: 3, foals: 0, stallion: false, color: [.4, .5, .6] as [number, number, number] } };
-    const controller = new ExternalElitePage(row, { game: f.loans.game, player: f.loans.player, animals: f.loans.animals, elites: f.elites },
-      legacyDouble<ReturnProgram>({}), new Group(), mode === 'script' ? legacyDouble<SpawnScriptRows>({}) : undefined);
+    const controller = new BorrowedElite(row, { game: f.loans.game, player: f.loans.player, elites: f.elites,
+      ...(mode === 'script' ? { fight: { page: () => legacyDouble<BorrowedEliteFight>({}) } } : {}) }, legacyDouble<ReturnProgram>({}), new Group());
     f.elites.add(controller); f.controllers.push({ kind: 'external', owner: controller });
     const presentation = f.presentation[f.keeper.def.id]; if (presentation === undefined) throw new Error('Missing original presentation');
     f.presentation[def.id] = presentation;
@@ -349,7 +349,7 @@ function mixedRunner(f: ReturnType<typeof fixture>,rows: SpawnScriptRows,retire 
   } }]);
   runner.frame(f.loans.player.position,0,{});return runner;
 }
-function forwardMixed(controller: ExternalElitePage,runner: SpawnScript): void {
+function forwardMixed(controller: BorrowedElite,runner: SpawnScript): void {
   const bank = runner.drainEffects().filter(effect => effect.kind === 'page-bank');
   vi.spyOn(controller,'drainEffects').mockReturnValueOnce(bank);
 }
@@ -441,13 +441,14 @@ test('the production external adoption runs ABI2 on its original native body and
     body.position.set(3,2,4); f.loans.animals.animals = [body];
     const sample = vi.spyOn(f.environment, 'grassHeightAt').mockImplementation((x,z) => x+z);
     const create = vi.spyOn(SpawnScript, 'page');
-    const controller = withOwner(f.entered, () => new ExternalElitePage({
+    const controller = withOwner(f.entered, () => new BorrowedElite({
       def: { ...f.keeper.def, id: 'reed.rider' }, mode: 'script', tell: [.2,.3,.4],
       step: 'rider', ready: 'ready', damage: 'damage', broken: 'beaten',
       cues: { warning: { voice: 'warning' } }, adopted: { scale: 1, kind: 'reed-cat', variant: 'silver', feed: 'Joined' },
       states: {}, spawn: { source: 'rider', variant: 'rider', yaw: 0 },
-    }, { ...f.loans, elites: f.elites, spawnOwners: { scope: f.entered, environment: f.environment } },
-    legacyDouble<ReturnProgram>({ project: () => ({ count: 0 }) }), new Group(), rows));
+    }, { game: f.loans.game, player: f.loans.player, elites: f.elites,
+      fight: { page: () => SpawnScript.page(f.loans.animals, rows, f.loans.game.app.physics, { scope: f.entered, environment: f.environment }, f.elites) } },
+    legacyDouble<ReturnProgram>({ project: () => ({ count: 0 }) }), new Group()));
     f.elites.add(controller); f.controllers.push({ kind: 'external', owner: controller });
     const presentation = f.presentation[f.keeper.def.id];
     if (presentation === undefined) throw new Error('Missing entered presentation');

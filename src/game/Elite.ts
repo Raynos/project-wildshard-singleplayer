@@ -1,6 +1,5 @@
-import { ExternalElitePage } from './quest/elitePage';
 import { NativeEliteController } from '@wildshard/engine/ai/view/eliteController';
-import type { DeclaredEliteEntry, EliteEntryLoans } from '@wildshard/engine/ai/view/eliteEntry';
+import { BorrowedElite, type DeclaredEliteEntry, type EliteEntryLoans } from '@wildshard/engine/ai/view/eliteEntry';
 import { ObservationColumnsV2, type V2EnvironmentColumns } from '@wildshard/engine/script/observationColumnsV2';
 import { parseEliteEntryPageRows } from '@wildshard/format/eliteEntryRows';
 import type { ReturnProgram } from './population/returnProgram';
@@ -19,7 +18,9 @@ import { canReach } from '@wildshard/engine/ai/reach';
 import { strikeFromData, type StrikeData } from '@wildshard/engine/ai/strikeRows';
 import { app } from '@wildshard/engine/app/runtime';
 import type { CrowdTargets } from './shardfile/crowdRuntime';
-import { parseEliteOutputActions, parseEliteOutputBank, type EliteEnteredPresentation, type EliteOutputAction, type EliteOutput } from '@wildshard/format/eliteFeature';
+import { eliteViewSource, eliteViewTell, parseEliteOutputActions, parseEliteOutputBank, type EliteEnteredPresentation, type EliteOutputAction, type EliteOutput } from '@wildshard/format/eliteFeature';
+import { SpawnScript } from './population/spawnScript';
+import { lendViewTell, lendViewValues } from './shardfile/clientViewProgram';
 import { Scope } from '@wildshard/engine/app/scope';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import type { Music } from '@wildshard/engine/audio/Music';
@@ -178,7 +179,7 @@ export class Elites {
   /** Resolve only original typed authorities for an admitted engine entry.
    * Controller selection, condition cadence and lifecycle ordering live in the
    * engine; this owner retains presentation, native effects and persistence. */
-  bindDeclaredEntry<T extends CrowdTargets>(entry: DeclaredEliteEntry<ExternalElitePage>, input: unknown,
+  bindDeclaredEntry<T extends CrowdTargets>(entry: DeclaredEliteEntry, input: unknown,
     owners: EliteDeclaredEntryOwners<T>): void {
     const rows = parseEliteEntryPageRows(input), { construction, entered, game, player, animals, models, program } = owners;
     if (this.entered !== null || entered.scope.disposed || entered.scope.disposing || construction.disposed || construction.disposing
@@ -193,21 +194,27 @@ export class Elites {
       if (model === undefined || (row.mode === 'script' && owners.fight === undefined)) throw new Error('Missing declared borrowed elite model or fight');
       return { row, model };
     }) : [];
-    const controllers = owners.controllers ?? selected.map(({ row, model }) => new ExternalElitePage(row,
-      { game, player, animals, elites: this, spawnOwners: { scope: entered.scope, environment: owners.environment, clock: owners.clock, weather: owners.weather } }, program.value, model, row.mode === 'script' ? owners.fight : undefined, true));
-    if (controllers.length !== rows.borrowed.length || controllers.some((controller, index) => !(controller instanceof ExternalElitePage)
+    const fight = owners.fight, spawnOwners = { scope: entered.scope, environment: owners.environment, clock: owners.clock, weather: owners.weather };
+    const pages = fight === undefined ? undefined : { page: () => fight.v2 === undefined ? SpawnScript.page(animals, fight, game.app.physics) : SpawnScript.page(animals, fight, game.app.physics, spawnOwners, this) };
+    const controllers = owners.controllers ?? selected.map(({ row, model }) => new BorrowedElite(row,
+      { game, player, elites: this, ...(row.mode === 'script' && pages !== undefined ? { fight: pages } : {}) }, program.value, model, true));
+    if (controllers.length !== rows.borrowed.length || controllers.some((controller, index) => !(controller instanceof BorrowedElite)
       || controller.def.id !== rows.borrowed[index]?.def.id) || new Set(controllers).size !== controllers.length) throw new Error('Foreign declared borrowed elite controller');
     const emptyActors = new Map<number, Animal>();
     const observations = rows.observations.map(row => ({ id: row.id, columns: new ObservationColumnsV2(row.rows, entered.scope), owners: {
       scope: entered.scope, self: { group: rows.entry.id, slot: 0, identity: '', actor: null }, player, observed: emptyActors, t: 0, dt: 0,
       environment: owners.environment, clock: owners.clock, weather: owners.weather } }));
-    const loans: EliteEntryLoans<ExternalElitePage> = { construction, entered: entered.scope, ui: { id: rows.entry.ui,
+    const loans: EliteEntryLoans<BorrowedElite> = { construction, entered: entered.scope, ui: { id: rows.entry.ui,
       services: { game, player, lifecycle: this, bar: this.bar, ledges: owners.ledges, rock: owners.rock } },
       profiles: rows.profiles, bodies: rows.entry.entries.some(row => row.controller.kind !== 'borrowed') ? [{ id: owners.body, manager: animals }] : [], models: [...new Set(rows.entry.entries.flatMap(row => row.controller.kind === 'borrowed' ? [] : [row.controller.model]))].map(id => { const object = models.get(id); if (object === undefined) throw new Error('Missing elite model loan'); return { id, object }; }), observations,
       programs: [{ id: program.id, owner: program.scope, program: program.value }], controllers: controllers.map(controller => ({ id: controller.def.id, controller })), actions: rows.actions };
     if (this.host.renderer !== undefined && this.host.renderer !== game.renderer) throw new Error('Foreign elite presentation renderer');
     this.host.renderer = game.renderer;
     entry.bind(loans, this, app.encounters);
+    // the lane tells, and the values they are drawn from, for the entered view programs (format/eliteFeature ELITE_VIEW_FIELDS)
+    for (const controller of controllers) {
+      lendViewTell(entered.scope, eliteViewTell(controller.def.id), controller.tell); lendViewValues(entered.scope, eliteViewSource(controller.def.id), controller.viewValue);
+    }
     const outputs: ElitePageOutputLoans<T> = { construction, entered: entered.scope, game,
       controllers: entry.scripts.map(owner => owner instanceof NativeEliteController ? { kind: 'keeper', owner } : { kind: 'external', owner }),
       patrol: owners.patrol, wildlife: owners.wildlife, animals, environment: owners.environment, player,
@@ -444,7 +451,7 @@ export class GroundTell {
 /** Compiled native admission produces these tags beside the real controller;
  * authored action rows cannot construct or reclassify a controller loan. */
 export type EliteOutputController = { readonly kind: 'keeper'; readonly owner: NativeEliteController }
-  | { readonly kind: 'external'; readonly owner: ExternalElitePage };
+  | { readonly kind: 'external'; readonly owner: BorrowedElite };
 /** Compiled loans for the existing page owner; no authored factory, callback
  * map or opaque shard object is admitted. Construction and entered may be siblings. */
 export interface EliteDeclaredEntryOwners<T extends CrowdTargets = CrowdTargets> {
@@ -452,7 +459,7 @@ export interface EliteDeclaredEntryOwners<T extends CrowdTargets = CrowdTargets>
   readonly game: Game; readonly player: Player; readonly body: string; readonly animals: AnimalManager;
   readonly models: ReadonlyMap<string, THREE.Object3D>;
   readonly program: { readonly id: string; readonly scope: Scope; readonly value: ReturnProgram };
-  readonly controllers?: readonly ExternalElitePage[];
+  readonly controllers?: readonly BorrowedElite[];
   readonly fight?: SpawnScriptRows;
   readonly environment: PageWildEnvironment & V2EnvironmentColumns;
   readonly clock: DayCycleClock; readonly weather: { readonly stormActive: boolean };

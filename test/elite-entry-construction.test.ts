@@ -22,8 +22,7 @@ import type { Audio } from '../src/engine/audio/Audio';
 import type { Music } from '../src/engine/audio/Music';
 import { strike } from '../src/sdk/species';
 import strikes from '../src/shards/nalati-grasslands/data/strikeProfiles.generated.json' with { type: 'json' };
-import { ExternalElitePage } from '../src/game/quest/elitePage';
-import { prepareEliteEntry, DeclaredEliteEntry, type EliteEntryLifecycle } from '../src/engine/ai/view/eliteEntry';
+import { BorrowedElite, prepareEliteEntry, DeclaredEliteEntry, type EliteEntryLifecycle } from '../src/engine/ai/view/eliteEntry';
 import { NativeEliteController } from '../src/engine/ai/view/eliteController';
 import { ELITE_BODY_COLUMNS, ELITE_CONDITION_COLUMNS } from '../src/format/eliteEntryRows';
 import { ObservationColumnsV2, type V2EnvironmentColumns } from '../src/engine/script/observationColumnsV2';
@@ -329,14 +328,14 @@ test('declared engine entry is inert before binding and permits re-entry only af
 
 
 test('the original game lifecycle is lent directly without a compatible wrapper or factory', () => {
-  expectTypeOf<Elites>().toExtend<EliteEntryLifecycle<ExternalElitePage>>();
+  expectTypeOf<Elites>().toExtend<EliteEntryLifecycle<BorrowedElite>>();
 });
 
 
 function originalOwnerFixture() {
   const f = fixture(), services = f.loans.ui.services;
   f.input.entries = f.input.entries.slice(0, 1);
-  const entry = new DeclaredEliteEntry<ExternalElitePage>(f.input, f.construction);
+  const entry = new DeclaredEliteEntry(f.input, f.construction);
   const saved = { read: () => ({}), write: () => true }, persistence = legacyDouble<AdventurePersistence>({ elites: saved, kill: () => undefined, feat: () => undefined });
   const elites = f.entered.run(() => new Elites({ scene: f.scene, camera: services.game.camera, player: services.player,
     condition: rule => entry.holds(rule), ownSkin: skin => { entry.skins.add(skin); } }, services.bar, 'marsh', saved));
@@ -434,8 +433,8 @@ test('deferred concrete presentation preserves the original native-then-external
   if (template === undefined) throw new Error('Missing herd template');
   const row = parseExternalElite({ ...template, def: { ...template.def, id: next.borrowed.def.id, rule: 'always' } });
   const projected = vi.fn<ReturnProgram['project']>(() => ({})), guest = legacyDouble<ReturnProgram>({ project: projected });
-  const external = (f: ReturnType<typeof fixture>, defer: boolean): ExternalElitePage => f.entered.run(() => new ExternalElitePage(row,
-    { game: f.loans.ui.services.game, player: f.loans.ui.services.player, animals: f.manager, elites: legacyDouble<Elites>({}) }, guest, new Group(), undefined, defer));
+  const external = (f: ReturnType<typeof fixture>, defer: boolean): BorrowedElite => f.entered.run(() => new BorrowedElite(row,
+    { game: f.loans.ui.services.game, player: f.loans.ui.services.player, elites: legacyDouble<Elites>({}) }, guest, new Group(), defer));
   const geometry = (scene: Scene) => scene.children.map(object => {
     if (!(object instanceof Mesh)) throw new Error('Unexpected constructor allocation');
     const buffer: unknown = object.geometry; if (!(buffer instanceof BufferGeometry)) throw new Error('Unexpected constructor geometry');
@@ -461,8 +460,8 @@ test('a replacement after borrowed presentation allocation unwinds both native a
   const f = fixture(), template = ecology.externalElites.find(row => row.mode === 'herd');
   if (template === undefined) throw new Error('Missing herd template');
   const row = parseExternalElite({ ...template, def: { ...template.def, id: f.borrowed.def.id, rule: 'always' } });
-  const borrowed = f.entered.run(() => new ExternalElitePage(row, { game: f.loans.ui.services.game, player: f.loans.ui.services.player,
-    animals: f.manager, elites: legacyDouble<Elites>({}) }, legacyDouble<ReturnProgram>({}), new Group(), undefined, true));
+  const borrowed = f.entered.run(() => new BorrowedElite(row, { game: f.loans.ui.services.game, player: f.loans.ui.services.player,
+    elites: legacyDouble<Elites>({}) }, legacyDouble<ReturnProgram>({}), new Group(), true));
   let added = 0;
   f.scene.addEventListener('childadded', () => { added++; if (added === 2) f.manager.spawn = () => { throw new Error('Foreign body owner'); }; });
   try {
@@ -510,14 +509,14 @@ test('admitted borrowed rows construct the original controller inside the existi
   const row = { ...rows, borrowed: [borrowed], entry: { ...rows.entry, entries: [...rows.entry.entries,
     { id: borrowed.def.id, condition: 'always', controller: { kind: 'borrowed' as const, controller: borrowed.def.id } }] },
     presentation: { ...rows.presentation, [borrowed.def.id]: { prompt: 'Take', toast: 'Taken', hum: false, sting: { banner: 0, phase2: 0, kill: 'pickup' as const } } } };
-  const entry = new DeclaredEliteEntry<ExternalElitePage>(row.entry, f.construction), model = new Group();
+  const entry = new DeclaredEliteEntry(row.entry, f.construction), model = new Group();
   f.entered.expose(owners, 'controllers', undefined);
   f.entered.expose(owners, 'models', new Map([...owners.models, [borrowed.def.id, model]]));
   try {
     f.entered.run(() => elites.bindDeclaredEntry(entry, row, owners));
     const controller = entry.scripts[1];
-    expect(controller).toBeInstanceOf(ExternalElitePage);
-    if (!(controller instanceof ExternalElitePage)) throw new Error('Missing original borrowed controller');
+    expect(controller).toBeInstanceOf(BorrowedElite);
+    if (!(controller instanceof BorrowedElite)) throw new Error('Missing original borrowed controller');
     expect(controller.row).toEqual(borrowed); expect(controller.def.id).toBe(borrowed.def.id);
     expect(controller.dropModel()).not.toBe(model); expect(elites.entries[1]?.script === controller).toBe(true);
     expect(f.spawn).not.toHaveBeenCalled();
@@ -533,7 +532,7 @@ test('missing final borrowed model refuses before any native kernel or tell is p
   const row = { ...rows, borrowed: [borrowed], entry: { ...rows.entry, entries: [...rows.entry.entries,
     { id: borrowed.def.id, condition: 'always', controller: { kind: 'borrowed' as const, controller: borrowed.def.id } }] },
     presentation: { ...rows.presentation, [borrowed.def.id]: { prompt: 'Take', toast: 'Taken', hum: false, sting: { banner: 0, phase2: 0, kill: 'pickup' as const } } } };
-  const entry = new DeclaredEliteEntry<ExternalElitePage>(row.entry, f.construction);
+  const entry = new DeclaredEliteEntry(row.entry, f.construction);
   f.entered.expose(owners, 'controllers', undefined);
   try {
     expect(() => f.entered.run(() => elites.bindDeclaredEntry(entry, row, owners))).toThrow('borrowed elite model');

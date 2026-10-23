@@ -11628,11 +11628,13 @@ The optional `state.adventure.id` publishes its original AdventurePersistence
 under that concrete entered-service id. A live scope and unchanged product and
 world are required across admission; no second persistence owner is created.
 `Elites.bindDeclaredEntry` may omit explicit `controllers`: its admitted
-`borrowed` rows then select the original ExternalElitePage constructors using
-the supplied models, decision program and optional fight loan. All required
-models and fight loans are checked before construction; presentation remains
-deferred to the engine's original ordered entered transaction. Explicit legacy
-controller loans retain their original identity and order.
+`borrowed` rows then construct the engine's BorrowedElite
+(engine/ai/view/eliteEntry) with the supplied models, decision program and,
+for a script row, a pager of the admitted fight. All required models and fight
+loans are checked before construction; presentation remains deferred to the
+engine's original ordered entered transaction, after which the owner lends
+each borrowed elite's lane tell and view values to the entered view programs.
+Explicit legacy controller loans retain their original identity and order.
 
 The installer captures its concrete owners and entered runtime/world/play
 before reads, and rejects a replaced, disposed or retiring entry after
@@ -12276,7 +12278,7 @@ anything. Their registered generation inputs keep the original owner order.
 
 ### Declared elite entry
 
-engine/ai/view/eliteEntry defines DeclaredEliteEntry and prepareEliteEntry over strict format/eliteEntryRows construction rows. Rows select ordered native controller kinds, profiles, original body/model loans, condition programs and finite effect IDs; borrowed rows name the same existing typed controller and cannot supply native construction fields or a factory. The engine validates the complete row/loan bank, immutable H4 column declarations, native spec and finite resolved spawn pose before constructing native kernels. Construction and entered scopes may be siblings. EncounterRegistry prepares leases in its original registry and interleaves registration with the original Elites.add order. Each transaction pins concrete lifetimes, entry arrays and callable identities; sliced retirement refuses new work. A borrowed ExternalElitePage defers only its tell allocation through its concrete prepareEntered lifecycle, at its original row position; native and external presentation share the same transaction child, so a late failure unwinds both without retiring the borrowed entered owner. Default external construction stays immediate.
+engine/ai/view/eliteEntry defines DeclaredEliteEntry and prepareEliteEntry over strict format/eliteEntryRows construction rows. Rows select ordered native controller kinds, profiles, original body/model loans, condition programs and finite effect IDs; borrowed rows name the same existing typed controller and cannot supply native construction fields or a factory. The engine validates the complete row/loan bank, immutable H4 column declarations, native spec and finite resolved spawn pose before constructing native kernels. Construction and entered scopes may be siblings. EncounterRegistry prepares leases in its original registry and interleaves registration with the original Elites.add order. Each transaction pins concrete lifetimes, entry arrays and callable identities; sliced retirement refuses new work. A BorrowedElite (the engine's row-driven borrowed controller: decisions are the admitted program's `ready` / `step` / `damage` projections, a script row drives its paged fight, a herd row reads and steers the adopted HerdBrain's `leaderState` / `leader` / `leadAway`) defers only its tell allocation through its concrete prepareEntered lifecycle, at its original row position; native and external presentation share the same transaction child, so a late failure unwinds both without retiring the borrowed entered owner. Default external construction stays immediate.
 
 The original Elites owner resolves page loans through bindDeclaredEntry, retaining its presentation, rewards, persistence and existing native output drain. A private entered child scope rolls back the full binding on a late suffix failure. Conditions capture the original H4 clock/weather fields at the original bounded ten-Hz slot; native observations sample the current original actor x/z, with no invented climate defaults. Native controller effects remain synchronous after the same Elites.update; previously staged external page banks retain their original staged commit and post-update drain. No new clock, continuation, body registry or save owner is introduced. The entered
 binding pins its concrete scopes, controller/service loans and callables for its
