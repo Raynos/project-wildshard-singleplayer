@@ -3,12 +3,10 @@
 **Order (G639):** (1) live reds → (2) NALATI TO ZERO → (3) grid / frame floor. Extras: loading (U, L9-L15),
 TOOLING-PERF (G668/G670/G671), Night Market wow (NM7-NM11), tile streaming, no-binaries.
 
-**(1) LIVE ff45b6a24d (~5 h behind).** OPEN: HEAD won't build: Nalati's shardfile is 100,583 of json.ts's 100,000-node
-budget (3d1de4c40d raw colliders + N1b tiles). No cap change: sp-x9's CSE 3498b2d821 (-192) landed; sp-o1 moves the
-16 L1 tile rows into a named bundle-root blob packed as 4 quad GLBs (~-500). The grid-hang fix 9ee919dc14 waits for a
-buildable HEAD and an exact grid smoke leg before release. Fixed since 16:00: grid hang cause 8a97034b97, NM bounds +
-entry footprint (07b38cc8d4, ccd7eddc5c), K4 gen closure (0881f637ef), tile-guard sweep (dce09cf54f), docs command
-(cf27a3f9a7), DR16 test (21a07284bc). No reverts (G674).
+**(1) LIVE ff45b6a24d (~5.5 h behind).** HEAD builds again (Nalati node budget fixed 11fe3664da + 3498b2d821 + gen
+inputs 8402942dd9); grid hang PROVEN fixed on 8402942dd9 (9ee919dc14); CI reds since then fixed (0041cc71fe lint
+comments, ffb22d541e bootModules types). OPEN: SW8 gate (97e8dcaeb8, 55 s → ~10 s on 3 clean pushes) now goes red on
+budget timeouts under load; sp-x9 makes overruns defer to CI. Release = first CI-green build with an exact grid leg.
 
 **(2) Nalati.** Titan + G667 listed, weather ported. Left: the entry (R15c/R15d) plus pick 1 below.
 
@@ -25,10 +23,11 @@ water/paving + NM9 density + geometry trim (f7c6f3a79f).
    adapters, signal → HUD effect adapter ~25): (a) HOST-AUDIT like G667 (recommended), (b) second shard, (c) charged.
 2. Signal Dunes quest-end deep dusk unchanged since 10-10 (key light 5 %): keep or lighten?
    art/grid/round-54-explorer-dark/board-explorer-fix.jpg.
-3. Push gate: SW8 (gate median 109 s → ~1.3-5.5 s; tests/lint/types stay in CI) vs P4. Recommended SW8.
+3. Night Market NM11 board (def60a9ec9): art/grid/round-56-night-market-nm11/board.jpg (mockup | NM6 | now). Gaps: fewer
+   greens/trees, sky reads dusk not night, no blue canal glow at 100 m. NM10 motion (~4-6 h) only if you want more.
 4. Machine: swap near full. Idle non-lane Claude sessions since 10-20/10-22 (pids 5785, 8113, 9033, 94906, 95877, 8537).
 
-**Lanes:** Claude weekly 69 %; at 70 % sp-o1 stops after it lands the Nalati unblock (2 Opus: sp-o3, sp-o4).
+**Lanes:** Claude weekly 71 %: 2 Opus (sp-o3 Nalati frame floor + NM, sp-o4 frame floor); sp-o1 stopped 17:40Z. 5 Codex + sp-x7.
 
 **Rules:** G605. G620 fix forward in 30 min, NO reverts (G674). No new Debug rows (G669). Guardrails G670. No one-user
 credit without a case pick (G571/G667); never herdr wildshard-v.
