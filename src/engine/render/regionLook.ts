@@ -37,7 +37,7 @@ import * as THREE from 'three';
 import { bindMaterialNodeFog } from './fogPatches';
 import type { Scope } from '../app/scope';
 import { captureFogUniforms } from '../world/Atmosphere';
-import { PATCH_ORDER, patchShader, type ShaderSource } from './shaderPatches';
+import { PATCH_ORDER, hasShaderPatch, patchShader, type ShaderSource } from './shaderPatches';
 import type { FogModel, LightingRig, SkyDressing } from './look';
 
 /** A level look's chunk text and fog uniforms, as its installs would have left them on the page now. */
@@ -237,6 +237,9 @@ export function scopeLookChunks(root: THREE.Object3D, look: LookChunks, scope: S
     if (done.has(material)) return;
     done.add(material);
     if (options.isShared?.(material) === true) return;
+    // a patch copy of a material this look already reached (the grid cell clip's variant, copyShaderPatches) carries its
+    // look: patching it again re-keyed the variant, so a clipped piece linked a second program after its first draw
+    if (hasShaderPatch(material, 'region.look')) return;
     if (parts.worldPatch !== undefined) { parts.worldPatch(material, scope); material.needsUpdate = true; }
     const nodeFog = parts.fog?.node;
     if (parts.fog !== undefined) bindMaterialNodeFog(material, { id: look.id, origin, ...(nodeFog === undefined ? {} : { node: nodeFog }) }, scope);

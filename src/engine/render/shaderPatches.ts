@@ -188,6 +188,9 @@ export function shaderPatchProgramKey(material: THREE.Material, rendererKey: str
  * same closures, so uniforms a patch hands the shader stay shared. A snapshot: patches added to either material later
  * stay its own. No-op when `from` has no registry patches.
  */
+/** Whether `mat` carries a patch entry `id` (its own, or copied in by `copyShaderPatches`). */
+export function hasShaderPatch(mat: THREE.Material, id: string): boolean { return states.get(mat)?.entries.some((e) => e.id === id) ?? false; }
+
 export function copyShaderPatches(from: THREE.Material, to: THREE.Material): void {
   const source = states.get(from);
   if (source === undefined || from.onBeforeCompile !== source.runner) return;
