@@ -268,6 +268,8 @@ export class WorldAssembly {
       if (ref.kind === 'object') return ref.id === rows.root?.id ? root : entryOwner(scope, 'object', ref.id);
       if (ref.kind === 'placed') {
         const [placed] = entryOwner(scope, 'placed', ref.id);
+        // T3: a stage placed by tile has only its stable root now (the tiles it attaches later keep their CPU copies)
+        if (placed === undefined && tileResidencyRadius() < 8) return entryOwner(scope, 'object', ref.id);
         if (placed === undefined) throw new Error(`World GPU root placed nothing: ${ref.id}`);
         return placed.object;
       }
@@ -413,7 +415,7 @@ export class WorldAssembly {
       publishEntryOwner(scope, 'chain', stage.id, chain);
     } else if (stage.kind === 'place' && tileResidencyRadius() < 8) {
       // tile streaming T3: by tile, its stable root now and its copies as the tile driver attaches them (T4); it places
-      // nothing whole, so a GPU root may not name it
+      // nothing whole: a GPU root naming it takes the stable root alone
       const content = scenes.tile(stage.id);
       publishEntryOwner(scope, 'object', stage.id, scenes.object(`${content.id}.root`)); publishEntryOwner(scope, 'placed', stage.id, []);
       publishEntryOwner(scope, 'floor', stage.id, (x, z) => scenes.floorAt(stage.id, x, z));
