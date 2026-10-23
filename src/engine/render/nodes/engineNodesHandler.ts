@@ -78,7 +78,7 @@ import { withNodeChildSnapshots } from './nodeChildren';
 import { NodeProgramVariants } from './nodeProgramVariants';
 import { classicModelUniform } from './nodeObjectUniforms';
 import { registerShadowDepthResolver } from '../shadowDepthVariants';
-import { buildDifferences, captureBuild, rebindBuild, reuseKey, twinGraph, type BuildOutput } from './nodeBuildReuse';
+import { attachedAt, bindLazy, buildDifferences, captureBuild, graphNodeOwner, graphShape, lazyReads, pairShapes, rebindBuild, reuseKey, unboundReads, type BuildOutput, type GraphShape, type LazyUniform } from './nodeBuildReuse';
 
 /** Depth displacement reads the same authored local normal as its surface. */
 class GraphShadowDepthMaterial extends MeshBasicNodeMaterial {
@@ -383,7 +383,11 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   reuses = 0;
   reuseDifferences = 0;
   /** per reuse key, the last full build and its material (`nodeReuse`) */
-  private readonly reusable = new Map<string, { readonly material: WeakRef<THREE.Material>; readonly output: BuildOutput }>();
+  private readonly reusable = new Map<string, { readonly material: WeakRef<THREE.Material>; readonly output: BuildOutput; readonly shape: GraphShape; readonly lazy: readonly LazyUniform[] }>();
+  /** each graph material's shape, read before its first build touched its nodes (`nodeReuse`) */
+  private readonly shapes = new WeakMap<THREE.Material, GraphShape>();
+  /** `verify` only: each program's code, the first key it was built under */
+  private readonly verifiedKeys = new Map<string, string>();
   private real: Renderer | null = null;
   private warnedLevelFog = false;
   /** the node programs' uniforms, sent per draw: plain program uniforms (`nodePlainUniforms.ts`), or the std140 blocks
@@ -727,20 +731,38 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   private buildProgram(material: THREE.Material, object: THREE.Object3D, parameters: THREE.WebGLProgramParametersWithUniforms): void {
     const t0 = diagnosticNow();
     const mode = material instanceof NodeMaterial && !parameters.skinning && !parameters.morphTargets ? setting('nodeReuse') : 'off';
-    const key = mode === 'off' ? null : reuseKey(parameters, object, material);
-    const reused = key === null ? null : this.reusedBuild(key, material);
+    // graph materials only (their compile owns its nodes); the shape is read before the build touches the graph
+    const owner = mode === 'off' ? undefined : graphNodeOwner(material);
+    let shape = owner === undefined ? null : this.shapes.get(material) ?? null;
+    if (owner !== undefined && shape === null) { shape = graphShape(material, owner); this.shapes.set(material, shape); }
+    const program = shape === null ? null : reuseKey(parameters, object, material);
+    const key = shape === null || program === null ? null : `${program}\n${shape.signature}`;
+    const reused = key === null || shape === null ? null : this.reusedBuild(key, material, object, shape);
     if (mode === 'on' && typeof reused === 'object' && reused !== null) { this.applyReused(material, object, parameters, reused); this.reuses++; }
     else {
       if (material instanceof NodeMaterial) buildWithInstanceAttributes(material, () => { super.build(material, object, parameters); });
       else super.build(material, object, parameters);
       const real = key === null ? null : captureBuild(Reflect.get(material, '_latestBuilder'));
-      if (key !== null && real !== null) {
-        this.reusable.set(key, { material: new WeakRef(material), output: real });
+      if (key !== null && real !== null && shape !== null && owner !== undefined) {
+        const { lazy, rest: unbound } = lazyReads(unboundReads(real, material, owner), owner);
+        if (unbound.length === 0) this.reusable.set(key, { material: new WeakRef(material), output: real, shape, lazy });
+        else if (mode === 'verify') console.info(`[nodeReuse] ${material.name || material.type} is not reusable: it reads ${unbound.slice(0, 6).map(node => `${node.constructor.name}#${String(node.id)}${owner.owns(node) ? ' made by its compile' : ` attached at ${attachedAt(material, node)}`}`).join(', ')}`);
         if (mode === 'verify' && typeof reused === 'string') console.info(`[nodeReuse] ${material.name || material.type} builds in full: ${reused}`);
         if (mode === 'verify' && typeof reused === 'object' && reused !== null) {
           const differences = buildDifferences(reused, real);
-          if (differences.length === 0) this.reuses++;
+          if (differences.length === 0) { this.reuses++; console.info(`[nodeReuse] ${material.name || material.type} matches its reuse`); }
           else { this.reuseDifferences++; console.warn(`[nodeReuse] ${material.name || material.type} differs: ${differences.slice(0, 6).join('; ')}`); }
+        }
+        // a program the renderer will share under another key is a reuse the key misses: name the parts that differ
+        if (mode === 'verify') {
+          const code = real.vertexShader + real.fragmentShader, seen = this.verifiedKeys.get(code);
+          if (seen === undefined) this.verifiedKeys.set(code, key);
+          else if (seen !== key) {
+            const ours = key.split('\n'), theirs = seen.split('\n'), at = ours.findIndex((line, i) => line !== theirs[i]);
+            const parts = (line: string | undefined): Set<string> => new Set((line ?? '').split(at === 0 ? '|' : ' '));
+            const a = parts(ours[at]), b = parts(theirs[at]);
+            console.info(`[nodeReuse] ${material.name || material.type} equal code, other key at line ${String(at)}: ${[...a].filter(part => !b.has(part)).slice(0, 6).join(' ')} vs ${[...b].filter(part => !a.has(part)).slice(0, 6).join(' ')}`);
+          }
         }
       }
     }
@@ -782,14 +804,13 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     this.pendingBuilds.set(material, pending);
   }
 
-  /** the build an equal program's earlier material left, bound to `material`'s own nodes; null without one, the reason
-   *  when the two graphs differ (`nodeBuildReuse.ts`) */
-  private reusedBuild(key: string, material: THREE.Material): BuildOutput | string | null {
+  /** the build an earlier material of the same program key and graph shape left, bound to `material`'s own nodes; null
+   *  without one, the reason when they cannot be bound (`nodeBuildReuse.ts`) */
+  private reusedBuild(key: string, material: THREE.Material, object: THREE.Object3D, shape: GraphShape): BuildOutput | string | null {
     const entry = this.reusable.get(key), source = entry?.material.deref();
     if (entry === undefined || source === undefined || source === material) return null;
-    if (source.constructor !== material.constructor) return 'another material class';
-    const twins = twinGraph(source, material);
-    if (typeof twins === 'string') return twins;
+    const twins = pairShapes(entry.shape, shape);
+    if (!bindLazy(entry.lazy, twins, object, material)) return 'a reference uniform cannot be made alike';
     return rebindBuild(entry.output, twins) ?? 'a paired uniform is not a uniform node';
   }
 

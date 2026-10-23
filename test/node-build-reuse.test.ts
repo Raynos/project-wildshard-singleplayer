@@ -14,10 +14,10 @@ afterAll(() => { vi.unstubAllGlobals(); });
 
 // P0: ground cover's kinds share one program, and each still paid a full node build. A material whose program key an
 // earlier material's build already made reuses that build's code with its own uniforms (the `nodeReuse` Developer tool).
-const GRAPH = (k: number): GraphIr => ({ version: 1, kind: 'material', model: 'unlit', effectState: { fog: false },
+const GRAPH = (k: number, op: 'mul' | 'add' = 'mul'): GraphIr => ({ version: 1, kind: 'material', model: 'unlit', effectState: { fog: false },
   params: { k: { type: 'float', value: k }, painting: { type: 'texture', value: 'painting', role: 'lent' } },
   nodes: { uv: { op: 'uv' }, tap: { op: 'texture', param: 'painting', in: ['uv'] }, rgb: { op: 'swizzle', in: ['tap'], mask: 'xyz' },
-    k: { op: 'param', param: 'k' }, out: { op: 'mul', in: ['rgb', 'k'] } },
+    k: { op: 'param', param: 'k' }, out: { op, in: ['rgb', 'k'] } },
   stages: { surface: { colour: 'out' } } });
 
 function harness(): { handler: EngineNodesHandler; build: (material: THREE.Material) => THREE.WebGLProgramParametersWithUniforms; done: () => void } {
@@ -35,10 +35,11 @@ function harness(): { handler: EngineNodesHandler; build: (material: THREE.Mater
   scene.add(sun); handler.renderStart(scene, camera); handler.updateLights([sun]);
   const build = (material: THREE.Material): THREE.WebGLProgramParametersWithUniforms => {
     const mesh = new THREE.Mesh(geometry, material); scene.add(mesh);
-    const parameters: object = { precision: 'highp', customProgramCacheKey: 'equal' };
+    handler.setObject(mesh, material);
+    const parameters: object = { precision: 'highp', customProgramCacheKey: material.customProgramCacheKey() };
     const isParameters = (value: object): value is THREE.WebGLProgramParametersWithUniforms => !Array.isArray(value);
     if (!isParameters(parameters)) throw new Error('Missing parameters');
-    handler.setObject(mesh, material); handler.build(material, mesh, parameters);
+    handler.build(material, mesh, parameters);
     return parameters;
   };
   return { handler, build, done: () => { handler.renderEnd(); geometry.dispose(); } };
@@ -89,4 +90,15 @@ test('verify builds in full and finds the reused build equal; off never reuses',
     expect(off.handler.reuses).toBe(0);
     expect(off.handler.builds).toBe(2);
   } finally { off.done(); c.material.dispose(); d.material.dispose(); }
+});
+
+test('a graph of another shape (one operator differs) builds in full', () => {
+  setDev(true); overrideSetting('nodeReuse', 'on');
+  const { handler, build, done } = harness();
+  const a = compileGraph(GRAPH(0.25)), b = compileGraph(GRAPH(0.25, 'add'));
+  try {
+    const first = build(a.material), second = build(b.material);
+    expect(handler.reuses).toBe(0);
+    expect(second.fragmentShader).not.toBe(first.fragmentShader);
+  } finally { done(); a.material.dispose(); b.material.dispose(); }
 });

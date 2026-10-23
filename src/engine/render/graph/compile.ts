@@ -52,6 +52,7 @@ import { Pass } from 'postprocessing';
 import { retargetableTexture } from '../nodes/engineNodesHandler';
 import { EngineDirectionalLightNode } from '../nodes/cascadeLightNode';
 import { skinDirection } from '../nodes/skinDirection';
+import { GraphNodeOwner, ownGraphNodes } from '../nodes/nodeBuildReuse';
 import { optionalGraphAttribute } from '../nodes/graphAttributes';
 import { instanceTransformNode, instanceColourNode } from '../nodes/nodeInstancing';
 import { layerFrameOf } from '../nodeLayerFrame';
@@ -471,6 +472,15 @@ function stagedTexture(sample: TextureNode): Node<'vec4'> { return new GraphText
  * `loadGraphCompiler(renderer)` resolved, which installs the engine's node handler first.
  */
 export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): CompiledGraph {
+  // every node this compile makes, now and when its own code runs inside a build, is its materials' (node-build reuse)
+  const owner = new GraphNodeOwner();
+  const compiled = owner.run(() => compileOwned(input, opts, owner));
+  owner.seal();
+  ownGraphNodes(compiled.material, owner);
+  if (compiled.outline !== null) ownGraphNodes(compiled.outline, owner);
+  return compiled;
+}
+function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNodeOwner): CompiledGraph {
   if (opts.validated !== undefined && opts.validated.graph !== input) throw new Error('material graph: a validation of another graph');
   const checked = opts.validated ?? validateGraph(input, opts);
   if (!checked.ok) throw new Error(`material graph refused:\n  ${checked.errors.join('\n  ')}`);
@@ -946,7 +956,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
         if (body === undefined) break;
         // the body builds when the program does (after this call returns): a fog stage's inputs are restored for it
         const fogNow = fogIn;
-        const looped = Fn(() => {
+        const looped = Fn(() => owner.run(() => {
           const acc = Var(init.n);
           Loop(count, ({ i }: { i: Node<'int'> }) => {
             const inner: Scope = { nodes: body.nodes, parent: scope, memo: new Map(), acc: { t: init.t, n: acc }, index: { t: 'float', n: float(i) } };
@@ -955,7 +965,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
             try { acc.assign(ref(body.out, inner).n); } finally { fogIn = fogOuter; }
           });
           return acc;
-        });
+        }));
         return { t: init.t, n: looped() };
       }
       default: break;
@@ -1046,20 +1056,27 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
     return { ...litHooks(lighting, scope), replaceEnvironmentDiffuse: true };
   };
   /** Authored scalar factors multiply borrowed PBR slots, as native material factors do. */
-  const mappedFactor = (base: Node<'float'>, slot: 'roughnessMap' | 'aoMap'): Node<'float'> => Fn((builder: NodeBuilder): Node<'float'> => {
+  const mappedFactor = (base: Node<'float'>, slot: 'roughnessMap' | 'aoMap'): Node<'float'> => Fn((builder: NodeBuilder): Node<'float'> => owner.run(() => {
     const map: unknown = Reflect.get(builder.material, slot);
     if (!(map instanceof THREE.Texture)) return base;
     const sample = texture(map);
     return slot === 'roughnessMap' ? base.mul(sample.g)
       : base.mul(sample.r.sub(1).mul(new ConvertNode<'float'>(materialReference('aoMapIntensity', 'float'), 'float')).add(1));
-  })();
+  }))();
   /** a material graph: the lighting model's material with the surface and vertex stages in its slots */
   const surfaceMaterial = (): NodeMaterial => {
     const s = st.surface ?? {};
     const scales = st['vertex.scale'];
     const sunScale = scales?.sun === undefined ? undefined : varying(clamp(asFloat(ref(scales.sun, root)), 0, 1), 'wildshardGraphSunScale');
     const fogScale = scales?.fog === undefined ? undefined : varying(clamp(asFloat(ref(scales.fog, root)), 0, 1), 'wildshardGraphFogScale');
-    const withScale = (hooks: LitHooks): LitHooks => sunScale === undefined ? hooks : { ...hooks, sunScale };
+    // the lighting hooks run inside each build: what they make is this compile's too
+    const withScale = (raw: LitHooks): LitHooks => {
+      const { sun, ambient, grade } = raw;
+      const hooks: LitHooks = { ...raw, sun: sun === null ? null : (direction, colour, shadow) => owner.run(() => sun(direction, colour, shadow)),
+        ambient: ambient === null ? null : (irradiance, environment) => owner.run(() => ambient(irradiance, environment)),
+        grade: grade === null ? null : lit => owner.run(() => grade(lit)) };
+      return sunScale === undefined ? hooks : { ...hooks, sunScale };
+    };
     const lit = st.lighting, vertexNormal = out(st['vertex.normal']?.normal);
     const targetAlpha = out(s.targetAlpha);
     const plain = vertexNormal === null && fogScale === undefined && targetAlpha === null;
