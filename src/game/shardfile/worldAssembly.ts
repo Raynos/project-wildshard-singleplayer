@@ -38,6 +38,7 @@ import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import { WorldAssemblySchema, type WorldAssemblyStage, type WorldConstructionRows } from '@wildshard/format/worldAssembly';
 import { publishEntryOwner, entryOwner, lendEntryOwner } from './entryOwners';
 import { WorldEntry, type WorldEntryPorts } from './worldEntry';
+import { timeClientPreparation } from './preparationTiming';
 import type { SceneHandles } from './sceneHandles';
 
 /** What an assembly builds against: the construction scope its loans belong to, the admitted scene handles, the shard's
@@ -319,8 +320,10 @@ export class WorldAssembly {
     if (entered !== construction) for (const { kind, id } of loans) lendEntryOwner(entered, construction, kind, id);
   }
 
-  /** Run the next declared stage, which must be `id` (the build keeps the declared order), and publish its loans. */
-  async next(id: string): Promise<void> {
+  /** Run the next declared stage, which must be `id` (the build keeps the declared order), and publish its loans. Developer
+   *  pages time each stage (`wildshard.prepare:world:assembly.<id>`, G626: which stages a tile-ordered home could defer). */
+  next(id: string): Promise<void> { return timeClientPreparation('world', `assembly.${id}`, () => this.runStage(id)); }
+  private async runStage(id: string): Promise<void> {
     const stage = this.stages[this.at];
     if (stage?.id !== id) throw new Error(`World assembly expected ${stage?.id ?? 'no stage'}, not ${id}`);
     const { scope, scenes } = this.ports;
