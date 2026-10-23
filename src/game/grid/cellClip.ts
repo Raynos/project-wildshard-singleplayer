@@ -9,6 +9,15 @@ import { skinEnvelope, uploadedSkinBounds } from './skinEnvelope';
 import { guardObjectDraw, type DrawGuard } from '@wildshard/engine/render/drawGuards';
 import { instanceEnvelope } from '@wildshard/engine/render/instancedGeometry';
 
+
+/** `material.clone()` with its `userData` shallow-copied by reference (G639: three's Material.copy deep-copies userData through
+ *  JSON, and a painted ground's userData holds its textures, so every clipped variant serialised them to data URLs: 224 ms
+ *  of one desktop Nalati drive frame, for a copy that kept no texture) */
+function cloneKeepingData(material: Material): Material {
+  const data = material.userData;
+  material.userData = {};
+  try { const copy = material.clone(); copy.userData = { ...data }; return copy; } finally { material.userData = data; }
+}
 export interface CellClipState { readonly meshes: number; readonly materials: number; readonly unclipped: number; readonly checked: number; readonly refused: number }
 export interface CellClip {
   /** Admit a pre-existing tree. Later child additions are admitted synchronously, without a frame sweep. */
@@ -269,7 +278,7 @@ export function cellClip(root: Object3D, half: number, scope: Scope, options: Ce
       if ([...patched.values()].includes(material)) return material;
       let variant = patched.get(material);
       if (variant === undefined) {
-        variant = material.clone(); ownedVariants.add(variant); copyShaderPatches(material, variant); fresh.push(variant);
+        variant = cloneKeepingData(material); ownedVariants.add(variant); copyShaderPatches(material, variant); fresh.push(variant);
         // G639: Material.copy carries no defines (only ShaderMaterial's does): the cascades' USE_CSM / CSM_CASCADES / CSM_FADE
         // set on the source (Sky.setupMaterial) went missing, so a clipped piece drew unshadowed on a program of its own
         // that linked on its first sight (161 ms of a Nalati look frame at phone 4x)
