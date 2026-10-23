@@ -78,6 +78,7 @@ import { withNodeChildSnapshots } from './nodeChildren';
 import { NodeProgramVariants } from './nodeProgramVariants';
 import { classicModelUniform } from './nodeObjectUniforms';
 import { registerShadowDepthResolver } from '../shadowDepthVariants';
+import { buildDifferences, captureBuild, rebindBuild, reuseKey, twinGraph, type BuildOutput } from './nodeBuildReuse';
 
 /** Depth displacement reads the same authored local normal as its surface. */
 class GraphShadowDepthMaterial extends MeshBasicNodeMaterial {
@@ -201,6 +202,7 @@ interface StockInternals {
   onBeforeRenderCallback: THREE.Material['onBeforeRender'];
   onDisposeMaterialCallback: (this: THREE.Material) => void;
   updateGeometryAttributes: (builder: unknown, geometry: THREE.BufferGeometry) => void;
+  updateShaderParameters: (builder: unknown, parameters: THREE.WebGLProgramParametersWithUniforms) => void;
 }
 const internals = (h: WebGLNodesHandler): StockInternals => h as WebGLNodesHandler & StockInternals;
 
@@ -376,6 +378,12 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   private readonly plainHooked = new WeakSet();
   /** ms spent in the node builder (JS), summed */
   buildMs = 0;
+  /** builds that reused an equal program's earlier build (the `nodeReuse` Developer tool, `nodeBuildReuse.ts`); under
+   *  `verify` these are the full builds a reuse matched, and `reuseDifferences` the ones it did not */
+  reuses = 0;
+  reuseDifferences = 0;
+  /** per reuse key, the last full build and its material (`nodeReuse`) */
+  private readonly reusable = new Map<string, { readonly material: WeakRef<THREE.Material>; readonly output: BuildOutput }>();
   private real: Renderer | null = null;
   private warnedLevelFog = false;
   /** the node programs' uniforms, sent per draw: plain program uniforms (`nodePlainUniforms.ts`), or the std140 blocks
@@ -596,6 +604,8 @@ export class EngineNodesHandler extends WebGLNodesHandler {
 
   /** One owned depth variant per material, including independent clones; never per frame. */
   private readonly shadowDepths = new WeakMap<NodeMaterial, GraphShadowDepthMaterial>();
+  /** materials whose dispose a reused build registered (`applyReused`: no stock build added the stock callback) */
+  private readonly reuseDisposals = new WeakSet<THREE.Material>();
 
   /**
    * The depth variant the shadow pass draws a caster of `source` with, configured from its stock depth material `stock`
@@ -716,8 +726,24 @@ export class EngineNodesHandler extends WebGLNodesHandler {
 
   private buildProgram(material: THREE.Material, object: THREE.Object3D, parameters: THREE.WebGLProgramParametersWithUniforms): void {
     const t0 = diagnosticNow();
-    if (material instanceof NodeMaterial) buildWithInstanceAttributes(material, () => { super.build(material, object, parameters); });
-    else super.build(material, object, parameters);
+    const mode = material instanceof NodeMaterial && !parameters.skinning && !parameters.morphTargets ? setting('nodeReuse') : 'off';
+    const key = mode === 'off' ? null : reuseKey(parameters, object, material);
+    const reused = key === null ? null : this.reusedBuild(key, material);
+    if (mode === 'on' && typeof reused === 'object' && reused !== null) { this.applyReused(material, object, parameters, reused); this.reuses++; }
+    else {
+      if (material instanceof NodeMaterial) buildWithInstanceAttributes(material, () => { super.build(material, object, parameters); });
+      else super.build(material, object, parameters);
+      const real = key === null ? null : captureBuild(Reflect.get(material, '_latestBuilder'));
+      if (key !== null && real !== null) {
+        this.reusable.set(key, { material: new WeakRef(material), output: real });
+        if (mode === 'verify' && typeof reused === 'string') console.info(`[nodeReuse] ${material.name || material.type} builds in full: ${reused}`);
+        if (mode === 'verify' && typeof reused === 'object' && reused !== null) {
+          const differences = buildDifferences(reused, real);
+          if (differences.length === 0) this.reuses++;
+          else { this.reuseDifferences++; console.warn(`[nodeReuse] ${material.name || material.type} differs: ${differences.slice(0, 6).join('; ')}`); }
+        }
+      }
+    }
     this.disposeFirst(material);
     parameters.vertexShader = instanceAttributeShader(parameters.vertexShader, object, parameters.extensionMultiDraw);
     // Three's classic node builder hardcodes GL_POINTS to one pixel. A compiler-owned
@@ -754,6 +780,37 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       Reflect.set(material, '_latestBuilder', { uniformGroups, uniforms: { vertex: [], fragment: [] }, updateNodes });
     }
     this.pendingBuilds.set(material, pending);
+  }
+
+  /** the build an equal program's earlier material left, bound to `material`'s own nodes; null without one, the reason
+   *  when the two graphs differ (`nodeBuildReuse.ts`) */
+  private reusedBuild(key: string, material: THREE.Material): BuildOutput | string | null {
+    const entry = this.reusable.get(key), source = entry?.material.deref();
+    if (entry === undefined || source === undefined || source === material) return null;
+    if (source.constructor !== material.constructor) return 'another material class';
+    const twins = twinGraph(source, material);
+    if (typeof twins === 'string') return twins;
+    return rebindBuild(entry.output, twins) ?? 'a paired uniform is not a uniform node';
+  }
+
+  /** the stock build's tail for a reused build: the program's code and uniforms, the material's builder view, the update
+   *  nodes' first update (a reused build carries no buffer attributes) */
+  private applyReused(material: THREE.Material, object: THREE.Object3D, parameters: THREE.WebGLProgramParametersWithUniforms, output: BuildOutput): void {
+    const self = internals(this);
+    this.frame.material = material; this.frame.object = object;
+    self.updateShaderParameters(output, parameters);
+    Reflect.set(material, '_latestBuilder', output);
+    // the stock build's dispose callback, as the material's own lifetime (the shadow-depth variants' pattern); first in
+    // line like the stock one (`disposeFirst`), so its shader-cache release runs before the renderer's
+    if (!material.hasEventListener('dispose', self.onDisposeMaterialCallback) && !this.reuseDisposals.has(material)) {
+      this.reuseDisposals.add(material);
+      const lifetime = new Scope('graph:reused-build');
+      lifetime.listenOnceEmitter(material, 'dispose', () => { this.reuseDisposals.delete(material); lifetime.dispose(); this.disposeMaterial(material); });
+      const listeners: unknown = Reflect.get(material, '_listeners');
+      const list: unknown = typeof listeners === 'object' && listeners !== null ? Reflect.get(listeners, 'dispose') : undefined;
+      if (Array.isArray(list)) { const added: unknown = list.pop(); list.unshift(added); }
+    }
+    self.updateNodes(output.updateNodes);
   }
 
   /**
