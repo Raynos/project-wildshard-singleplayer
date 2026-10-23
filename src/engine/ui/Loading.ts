@@ -7,7 +7,7 @@ import { TIER } from '../core/tier';
 import { loadShellTemplate } from '../boot/shell';
 import { appIdentity } from '../app/identity';
 import { recordBootCheckpoint, recordBootProgress, startBoot } from '../boot/bootTrace';
-import { DownloadAccounting, installDownloadAccounting, observeDownloadAccounting } from '../boot/download';
+import { DownloadAccounting, installDownloadAccounting, observeDownloadAccounting, type DownloadSnapshot } from '../boot/download';
 import { loadingDownloadText, loadingDownloadFraction, loadingPrefetchFraction, loadingPrefetchText, type LoadingPrefetchSnapshot } from '../boot/loadingDownloadText';
 import { LoadingTimeline, installLoadingTimeline, type LoadingPath, type LoadingRow, type LoadingGap } from '../boot/timeline';
 import { LoadingStall } from '../boot/stall';
@@ -205,7 +205,7 @@ export class Loading {
     if (!this.scoped) recordBootProgress(v);
     this.dirty = true;
     const pct = (f: number): string => String(Math.floor(f * 100));
-    setData(this.root, 'download', pct(v.download));
+    this.paintDownloadCounters(transfer);
     setData(this.root, 'setup', pct(v.setup));
     if (v.error) { this.els.foot.textContent = v.error; this.paintNow(); }
     else if (v.done) this.paintNow();
@@ -223,17 +223,17 @@ export class Loading {
     const hardware: { hardwareConcurrency?: number | undefined } = navigator;
     set(this.els.tier, engineString('s_783b614ae363', [TIER, Math.round(innerWidth * devicePixelRatio), Math.round(innerHeight * devicePixelRatio), hardware.hardwareConcurrency ?? engineString('s_8a8de823d5ed'), navigator.serviceWorker?.controller ? engineString('s_5c75b0e90774') : '']));
     const pct = (f: number): string => String(Math.floor(f * 100));
+    const download = this.paintDownloads(v.done);
     setData(this.root, 'setup', pct(v.setup));
-    set(this.els.dlPct, pct(v.download));
+    set(this.els.dlPct, pct(download));
     set(this.els.suPct, pct(v.setup));
-    const dl = `${(v.download * 100).toFixed(1)}%`, su = `${(v.setup * 100).toFixed(1)}%`;
+    const dl = `${(download * 100).toFixed(1)}%`, su = `${(v.setup * 100).toFixed(1)}%`;
     if (this.els.dlBar.style.width !== dl) this.els.dlBar.style.width = dl;
     if (this.els.suBar.style.width !== su) this.els.suBar.style.width = su;
     // Both phases use the same two-track model; neither can complete the player bar alone.
-    const all = combinedLoadingFraction(v.download, v.setup), allW = `${(all * 100).toFixed(1)}%`;
+    const all = combinedLoadingFraction(download, v.setup), allW = `${(all * 100).toFixed(1)}%`;
     if (this.els.bar.style.width !== allW) this.els.bar.style.width = allW;
     set(this.els.line, this.finished ? engineString('s_5fa7aac5375c') : engineString('s_bf5e849564ae', [v.worldBytesReady ? 'Building the world' : engineString('s_37b345555d7e'), pct(all)]));
-    this.paintDownloads(v.done);
     this.paintRows(timeline);
   }
 
@@ -264,15 +264,21 @@ export class Loading {
     return this.shownSetup;
   }
 
-  private paintDownloads(done: boolean): number {
-    const transfer = this.downloadProgress(done);
+  /** Publish each cheap progress tuple together, even between throttled paints. */
+  private paintDownloadCounters(transfer: DownloadSnapshot & { readonly fraction: number }): void {
+    setData(this.root, 'download', String(Math.floor(transfer.fraction * 100)));
     setData(this.root, 'networkBytes', String(transfer.networkBytes));
     setData(this.root, 'cachedBytes', String(transfer.cachedBytes));
     setData(this.root, 'pendingBytes', String(transfer.pendingBytes));
     setData(this.root, 'unclassifiedFiles', String(transfer.unclassifiedFiles));
     setData(this.root, 'unclassifiedBytes', String(transfer.unclassifiedBytes));
-    const prefetch = this.prefetchSource?.() ?? null;
     setData(this.root, 'declaredBytes', String(transfer.declaredBytes));
+  }
+
+  private paintDownloads(done: boolean): number {
+    const transfer = this.downloadProgress(done);
+    this.paintDownloadCounters(transfer);
+    const prefetch = this.prefetchSource?.() ?? null;
     setData(this.root, 'prefetch', prefetch === null ? '' : JSON.stringify(prefetch));
     set(this.els.dlFact, loadingDownloadText(transfer));
     this.els.pfRow.hidden = prefetch === null;

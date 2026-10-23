@@ -90,11 +90,31 @@ it('shows the actual declared ratio when a late dependency is discovered, withou
     declareDownloadFile('/assets/later.bin', 30);
     loading.paint(view);
     expect(loading.root.dataset['download']).toBe('25');
+    expect(loading.root.dataset['pendingBytes']).toBe('30');
+    expect(loading.root.dataset['declaredBytes']).toBe('40');
     now = 400; vi.advanceTimersByTime(32);
     expect(loading.root.querySelector<HTMLElement>('[data-el="bar"]')?.style.width).toBe('12.5%');
     recordCachedDownload('later', 30, '/assets/later.bin');
     loading.paint(view);
     expect(loading.root.dataset['download']).toBe('100');
+  } finally { loading.scope.dispose(); }
+});
+
+it('paints download bars and facts from the same fresh cache snapshot', () => {
+  const loading = new Loading({ id: 'fresh', name: 'Fresh' }, { scoped: true });
+  const view: ProgressView = { download: 0, setup: 0, done: false, error: null, step: 'terrain', label: 'Terrain', detail: '',
+    bytes: null, bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0, worldBytesReady: false, doneCount: 0, rows: [], gaps: [] };
+  try {
+    declareDownloadFile('/assets/cache-between-paints.bin', 40);
+    loading.paint(view);
+    expect(loading.root.dataset['download']).toBe('0');
+    recordCachedDownload('cache-between-paints', 40, '/assets/cache-between-paints.bin');
+    now = 400; vi.advanceTimersByTime(32);
+    expect(loading.root.dataset['download']).toBe('100');
+    expect(loading.root.dataset['pendingBytes']).toBe('0');
+    expect(loading.root.querySelector('[data-el="dlPct"]')?.textContent).toBe('100');
+    expect(loading.root.querySelector<HTMLElement>('[data-el="dlBar"]')?.style.width).toBe('100.0%');
+    expect(loading.root.querySelector('[data-el="dlFact"]')?.textContent).toContain('1 / 1 files');
   } finally { loading.scope.dispose(); }
 });
 
