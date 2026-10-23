@@ -584,7 +584,6 @@
         "src/shards/nalati-grasslands/manifest.json",
         "src/shards/nalati-grasslands/look/map.json",
         "src/shards/nalati-grasslands/runtime/index.ts",
-        "src/shards/nalati-grasslands/data/navigation.generated.json",
         "src/shards/nalati-grasslands/data/discovery.json",
         "src/shards/nalati-grasslands/explore",
         "src/shards/nalati-grasslands/thumbs",

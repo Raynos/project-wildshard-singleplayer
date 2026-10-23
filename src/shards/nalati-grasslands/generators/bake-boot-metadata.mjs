@@ -112,5 +112,5 @@ const air = { tile: 520, threshold: 0.53, strength: 0.66, softness: 0.06, drift:
 writer.put(resolve(root, 'src/shards/nalati-grasslands/data/paintedTextures.generated.json'), jsonBytes({ ...paintedTextures, ground, panorama, key, world, fog, air }));
 // Terrain producers consume discovery before gen-shards runs. Publish the same
 // canonical module with its boot bindings, rather than borrow a warm tree's copy.
-writer.put(resolve(root, 'src/shards/nalati-grasslands/discovery.generated.ts'), authoredManifestSource(root, 'nalati-grasslands', { generation: true }));
+writer.put(resolve(root, 'src/shards/nalati-grasslands/discovery.generated.ts'), authoredManifestSource(root, 'nalati-grasslands', { metadataOnly: true }));
 writer.finish();
