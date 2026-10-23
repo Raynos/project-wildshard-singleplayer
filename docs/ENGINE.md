@@ -12472,6 +12472,13 @@ re-entry installs a fresh listener at the same feature boundary.
 
 ### H4 original-slot actor projection
 
+Page bindings lend their original app as the optional concrete constructor
+loan `{levelScope, equipment, events}`. The actor runner has no runtime app
+import: native callers supply their original scoped actor owner directly.
+Page-only damage equipment and positioned sound use that explicit loan;
+missing page services refuse before RNG acceptance or native writes. The
+renderer-refusing Node loader checks the actual native driver import.
+
 ActorProjectionV2 consumes finite format/actorProjectionV2 rows. Cold
 construction admits and detaches metadata only. Its step lends the original
 AnimalSim, native context and scoped {group, slot, identity}; optional

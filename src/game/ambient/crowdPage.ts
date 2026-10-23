@@ -84,7 +84,7 @@ export function createPageCrowds(sky: SkyRig, seed: number, body: FlockBody, inp
     if(data.guard.projection!==undefined){
       // Borrow the exact original descriptor supplied by the wildlife owner.
       if(projectionAuthor!==undefined&&projectionAuthor!==author)throw new Error('Replaced crowd projection programme');
-      projection??=new ActorProjectionV2('crowd.guard',{program:author.declaration,step:data.guard.projection});projectionAuthor=author;
+      projection??=new ActorProjectionV2('crowd.guard',{program:author.declaration,step:data.guard.projection},app);projectionAuthor=author;
     }
     if(projection!==undefined&&scope===undefined)throw new Error('Missing crowd projection scope');
     guards.set(actor, { row: data.guard, flock: view, wolves: dogWolves, author, random,...(projection===undefined||scope===undefined?{}:{projection,owner:{scope,group:rows[index]?.id??'crowd.guard',slot:0,identity:actor.entityId,random,crowd:{owner:view,point:stragglerPoint},rosters:new Map([['threats',dogWolves]])}}) });

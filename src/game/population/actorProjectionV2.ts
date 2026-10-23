@@ -1,6 +1,6 @@
 import { parseActorProjectionV2,type ActorProjectionV2Rows } from '@wildshard/format/actorProjectionV2';
 import { ObservationColumnsV2,type V2ColumnOwners } from '@wildshard/engine/script/observationColumnsV2';
-import { app } from '@wildshard/engine/app/runtime';
+import type { App } from '@wildshard/engine/app/app';
 import { ANIMAL_STATES,type AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { SpeciesDef,ThinkCtx } from '@wildshard/engine/entities/species/registry';
@@ -39,13 +39,15 @@ function number(value:number|undefined):number{
 * construction admits metadata only. No body, continuation or clock is owned. */
 export class ActorProjectionV2 {
   private readonly rows;
+  private readonly page:Pick<App,'levelScope'|'equipment'|'events'>|undefined;
   private readonly contacts=new StrikeRunner();
   private readonly strikes=new Map<Operation,ReturnType<typeof strikeFromData>>();
   private scope:Scope|null=null;
   private programme:{scope:Scope;value:ReturnProgram}|null=null;
   private columns:readonly ObservationColumnsV2[]=[];
   readonly binding:Pick<SpeciesDef,'kind'|'think'|'damageMul'>;
-  constructor(kind:string,input:unknown){
+  constructor(kind:string,input:unknown,page?:Pick<App,'levelScope'|'equipment'|'events'>){
+    this.page=page;
     this.rows=structuredClone(parseActorProjectionV2(input));
     const freeze=(value:unknown):void=>{
       if(typeof value!=='object'||value===null)return;
@@ -61,7 +63,7 @@ export class ActorProjectionV2 {
   }
   /** Strike admission precedes publishing the shared programme, as at the
   * original native bind slot. The original ReturnProgram scope owns caching. */
-  program(scope=app.levelScope??undefined):ReturnProgram{
+  program(scope=this.page?.levelScope??undefined):ReturnProgram{
     for(const operation of this.rows.step?.operations??[])if(operation.kind==='contact'&&!this.strikes.has(operation)){
       const strike=strikeFromData(operation.strike);
       if(operation.length!==undefined&&strike.shape.kind!=='wedge')throw new Error('Scaled contact requires wedge');
@@ -76,8 +78,8 @@ export class ActorProjectionV2 {
     return this.programme.value;
   }
   private captureOwners<A extends AnimalSim>(actor:A,context:ActorProjectionContext<A>|undefined,hit?:Vector3,request?:DamageRequest,owner?:ActorProjectionOwner):V2ColumnOwners{
-    const scope=owner?.scope??app.levelScope;
-    if(scope===null||scope.disposed||scope.disposing)throw new Error('Actor projection owner disposed');
+    const scope=owner?.scope??this.page?.levelScope;
+    if(scope===undefined||scope===null||scope.disposed||scope.disposing)throw new Error('Actor projection owner disposed');
     if(this.scope!==scope){
       const columns=[...(this.rows.step===undefined?[]:[this.rows.step.columns]),...(this.rows.damage?.requests.map(row=>row.columns)??[])];
       this.columns=columns.map(row=>new ObservationColumnsV2(row,scope));
@@ -89,11 +91,11 @@ export class ActorProjectionV2 {
         }
       });
     }
-    const equipment=context===undefined?app.equipment:null;
+    const equipment=context===undefined?this.page?.equipment:null;
     return {...owner,scope,self:{group:owner?.group??this.binding.kind,slot:owner?.slot??0,identity:owner?.identity??actor.entityId,actor},observed:owner?.observed??new Map(),
       player:{position:context?.player??actor.position},t:context?.t??0,dt:context?.dt??0,
       ...(context===undefined?{}:{context}),
-      ...(hit===undefined?{}:{hit}),request:request??null,equipment:equipment!==null&&equipment.visible&&!equipment.stowed?equipment.current.row.id:''};
+      ...(hit===undefined?{}:{hit}),request:request??null,equipment:equipment!==undefined&&equipment!==null&&equipment.visible&&!equipment.stowed?equipment.current.row.id:''};
   }
   private observations(index:number,owners:V2ColumnOwners):Record<string,number>{
     const columns=this.columns[index];
@@ -104,7 +106,7 @@ export class ActorProjectionV2 {
   step<A extends AnimalSim>(actor:A,context:ActorProjectionContext<A>,owner?:ActorProjectionOwner):void{
     const row=this.rows.step;
     if(row===undefined)return;
-    const scope=owner?.scope??app.levelScope;if(scope===null||scope.disposed||scope.disposing)throw new Error('Actor projection owner disposed');
+    const scope=owner?.scope??this.page?.levelScope;if(scope===undefined||scope===null||scope.disposed||scope.disposing)throw new Error('Actor projection owner disposed');
     // The original cadence guard precedes scope/column allocation and ALL live
     // sampling. Only this actor's declared columns are captured when due.
     const previous=actor.mem[row.clock],elapsed=previous===undefined?context.dt:context.t-previous;
@@ -175,7 +177,9 @@ export class ActorProjectionV2 {
           return ()=>{confine.call(context,actor);};
         }
         case 'sound-position':{
-          const emit=scalar(operation.value);return ()=>{if(emit!==0)app.events.emit('creature.sound',{cue:operation.cue,x:actor.position.x,y:terrainHeight(actor.position.x,actor.position.z)+operation.height,z:actor.position.z});};
+          const emit=scalar(operation.value),events=this.page?.events;
+          if(events===undefined)throw new Error('Missing actor projection sound owner');pin(events,'emit');
+          return ()=>{if(emit!==0)events.emit('creature.sound',{cue:operation.cue,x:actor.position.x,y:terrainHeight(actor.position.x,actor.position.z)+operation.height,z:actor.position.z});};
         }
         case 'look': {
           const value=scalar(operation.weight);

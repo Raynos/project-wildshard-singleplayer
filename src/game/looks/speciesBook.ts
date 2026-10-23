@@ -1,3 +1,4 @@
+import { app } from '@wildshard/engine/app/runtime';
 import { thinkCrowdGuard } from '../ambient/crowdPage';
 import { arenaRoomSpeciesControl } from '../boss/arenaRoom';
 import { eliteAct, eliteDamageMul, eliteThink } from '@wildshard/engine/entities/eliteBrain';
@@ -257,7 +258,7 @@ function expandCompactBodies(data:CompactSpeciesBodiesRows):unknown{
 export function speciesBehaviour(book: Pick<NativeSpeciesLookBookRows, 'rows' | 'program'>): { readonly rows: readonly SpeciesRow[]; readonly projections:ReadonlyMap<string,ActorProjectionV2>; look: (look: SpeciesLook) => SpeciesLook } {
   if(book.rows.some(row=>row.control!==undefined&&(row.projection!==undefined||row.group!==undefined||row.directed!==undefined||row.guard===true||row.elite===true)))throw new Error('Conflicting species controls');
   const controls=new Map(book.rows.flatMap(row=>row.control===undefined?[]:[[row.metadata.kind,arenaRoomSpeciesControl(row.control)] as const]));
-  const projections=new Map(book.rows.flatMap(row=>row.projection===undefined?[]:[[row.metadata.kind,new ActorProjectionV2(row.metadata.kind,row.projection)] as const]));
+  const projections=new Map(book.rows.flatMap(row=>row.projection===undefined?[]:[[row.metadata.kind,new ActorProjectionV2(row.metadata.kind,row.projection,app)] as const]));
   const rows = book.rows.map(row => ({ ...row.metadata, ...controls.get(row.metadata.kind), ...(projections.get(row.metadata.kind)?.binding), ...(row.group === undefined ? {} : groupSpecies(row.group)), ...(row.directed === undefined ? {} : new DirectedSpecies(row.directed, book.program).binding),
     ...(row.guard === true ? { think: thinkCrowdGuard } : {}), ...(row.elite === true ? { think: eliteThink, act: eliteAct } : {}) }));
   const elites = new Set(book.rows.flatMap(row => row.elite === true ? [row.metadata.kind] : []));
