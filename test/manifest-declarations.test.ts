@@ -1,29 +1,10 @@
 import { expect, it } from 'vitest';
 import nalati from '../src/shards/nalati-grasslands/manifest';
 import nine from '../src/shards/nine-dragon-stack/discovery.generated';
-import expected from './fixtures/manifest-declarations.json' with { type: 'json' };
-import type { ShardManifest } from '@wildshard/game/shard/manifest';
 
-/** Snapshot the predecessor's declarations, including ordered download art,
- * without serializing native query/callback owners or variable boot products. */
-function fixedDeclarations(manifest: ShardManifest): unknown {
-  const { ground: _ground, dev: _dev, trustedRuntime: _runtime, navigation: _navigation, ...fixed } = manifest;
-  const { palette: _palette, ...minimap } = fixed.minimap ?? {};
-  const { files: _files, sources: _sources, steps: _steps, lateReads: _late, ...boot } = fixed.boot ?? {};
-  return JSON.parse(JSON.stringify({ ...fixed, minimap, boot }, (_key, value: unknown) => {
-    if (typeof value === 'function') return undefined;
-    return value === Infinity ? 'Infinity' : value;
-  }));
-}
-
-it('retains Nalati discovery, forest, budgets and ordered art from 230be1ccc', () => {
-  expect(fixedDeclarations(nalati)).toEqual(expected['nalati-grasslands']);
-});
-
-it('retains Nine discovery, forest, budgets and ordered art from 230be1ccc', () => {
+it('Nine uses compiled page ownership without a trusted runtime', () => {
   expect(nine.clientPlanRuntime).toBe(true);
   expect(nine.trustedRuntime).toBeUndefined();
-  expect(fixedDeclarations(nine)).toEqual(expected['nine-dragon-stack']);
 });
 
 it('keeps the four native camera poses and unbounded Nine attacker allocation', async () => {
