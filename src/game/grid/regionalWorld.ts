@@ -90,6 +90,7 @@ import type { AdmittedProduct } from '../shardfile/product';
 import { clientMaterials } from '../shardfile/clientMaterials';
 import { splatGroundDrawn } from '../shardfile/clientSplatTerrain';
 import { lendLooks, lendSceneMaterials } from '../shardfile/lentLooks';
+import type { ClientTileRegistration } from '../shardfile/clientRings';
 import { clientWorld } from '../shardfile/clientWorld';
 import { clientViews } from '../shardfile/clientViews';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
@@ -98,6 +99,8 @@ import { findShard } from '../shard/registry';
 
 /** Page-root ports; every default is the standalone behaviour, the live session supplies the cell's own installs. */
 export interface RegionalWorldPorts {
+  /** The page's existing scheduler owns render tiles; regions borrow scoped instance registration. */
+  readonly tiles?: ClientTileRegistration;
   readonly rapier: Rapier;
   /** The trusted level of the admitted manifest (default: the manifest's ordinary `toLevelSpec`). */
   readonly level?: (manifest: ShardManifest) => LevelSpec;
@@ -137,7 +140,7 @@ export async function regionalTerrain(level: LevelSpec, scope: Scope, binding: L
 
 /** Compile the actual data page's materials, scene sources and drawn terrain under its regional owner.
  * Static resources survive re-entry; their curves and viewer residency advance only while entered. */
-async function regionalPresentation(admitted: AdmittedProduct, start: { readonly x: number; readonly z: number }, root: Object3D, renderer: Parameters<typeof clientMaterials>[2], scope: Scope, hour: () => number | null, allocator: ResidencyAllocator, instance: string, sky: ShardWorld['sky']): Promise<{ tick: (dt: number) => void; follow: (x: number, z: number) => void } | null> {
+async function regionalPresentation(admitted: AdmittedProduct, start: { readonly x: number; readonly z: number }, root: Object3D, renderer: Parameters<typeof clientMaterials>[2], scope: Scope, hour: () => number | null, allocator: ResidencyAllocator, instance: string, sky: ShardWorld['sky'], registration?: ClientTileRegistration): Promise<{ tick: (dt: number) => void; follow: (x: number, z: number) => void } | null> {
   const full = admitted.source;
   if (!hasDeclaredClientPage(full)) return null;
   const data = full, terrain = data.terrain;
@@ -162,10 +165,11 @@ async function regionalPresentation(admitted: AdmittedProduct, start: { readonly
     await bindSceneSourceLooks(product, scope, presentation);
     presentation.graphs.bind({ hour });
   }
-  const tiles = await clientWorld(data, assets, { scope, x: start.x, z: start.z,
-    residency: { allocator, owner: instance },
-    views: clientViews({ root, terrain: terrain?.family ?? null, terrainShadow: terrain?.shadow, terrainOrder: terrain?.order, ...presentation,
-      ...(collider === undefined ? {} : { lattice: decodeTerrainTile(collider) }) }) });
+  const views = clientViews({ root, terrain: terrain?.family ?? null, terrainShadow: terrain?.shadow, terrainOrder: terrain?.order, ...presentation,
+    ...(collider === undefined ? {} : { lattice: decodeTerrainTile(collider) }) });
+  if (registration !== undefined && data.props !== null) await views.library(data.props, assets.retained, scope);
+  const tiles = registration === undefined ? await clientWorld(data, assets, { scope, x: start.x, z: start.z,
+    residency: { allocator, owner: instance }, views }) : await registration.enter(instance, { source: data, assets, root, views: views.tiles }, scope, start);
   const distance = terrain?.follow ?? 5;
   let priorX = start.x, priorZ = start.z;
   return { tick: presentation.tick, follow: (x, z) => {
@@ -279,7 +283,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       const terrain = ports.terrain === undefined ? await regionalTerrain(level, resident, frame.terrain, levelLook) : await ports.terrain(level, resident, frame.terrain);
       await ports.pause();
       if (left()) throw new Error('Regional world left while building its terrain');
-      const presented = await regionalPresentation(request.admitted, request.manifest.spawn, scene, game.renderer, resident, () => game.sky.dayNight?.hour ?? null, request.allocator, cell.instance, sky);
+      const presented = await regionalPresentation(request.admitted, request.manifest.spawn, scene, game.renderer, resident, () => game.sky.dayNight?.hour ?? null, request.allocator, cell.instance, sky, ports.tiles);
       if (left()) throw new Error('Regional world left while drawing its presentation ground');
       // a painter that bound its own ground (its compiled collider) moves the collision built above onto it
       if (terrain.groundBound) frame.run(app, () => { resampleTerrain(host.physics); });

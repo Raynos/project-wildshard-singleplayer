@@ -87,3 +87,25 @@ test.each(['fetch', 'upload'] as const)('a synchronous %s refusal rejects readin
   finally { streamer.dispose(); }
   expect(allocator.entries()).toHaveLength(0);
 });
+
+test('coarse requirements retain coverage without requesting fine children', async () => {
+  const f = fixture(), pin = f.streamer.require('home', [0], 'l1');
+  try {
+    for (let step = 0; step < 2; step++) f.streamer.step(camera);
+    await pin.ready;
+    expect(f.requests).toEqual(['home:far', 'home:l1/0/0']);
+    expect(f.live.has('home:l0/0/0')).toBe(false);
+    pin.release(); f.streamer.step(camera);
+    expect(f.allocator.entries()).toHaveLength(0);
+    for (const keys of [[16], [-1], [0.5], [Number.NaN]]) expect(() => f.streamer.require('home', keys, 'l1')).toThrow('Invalid required tile key');
+  } finally { pin.release(); f.streamer.dispose(); }
+});
+
+test('failed coarse publication rejects coarse and fine requirements together', async () => {
+  const f = fixture('l1'), coarse = f.streamer.require('home', [0], 'l1'), fine = f.streamer.require('home', [0]);
+  const rejected = Promise.all([expect(coarse.ready).rejects.toThrow('broken l1'), expect(fine.ready).rejects.toThrow('broken l1')]);
+  try {
+    for (let step = 0; step < 5; step++) f.streamer.step(camera);
+    await rejected; expect(f.allocator.entries()).toHaveLength(0);
+  } finally { coarse.release(); fine.release(); f.streamer.dispose(); }
+});

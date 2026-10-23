@@ -75,7 +75,7 @@ import { loadGridEdgeProfiles, type GridEdgeSource } from './edgeProfiles';
 import { readGridEdges } from './edgeSources';
 import { findShard } from '../shard/registry';
 import { TileDecoder } from './tileDecoder';
-import { clientRingCatalogue, clientRingPorts, type ClientRingInstance, type PreparedRingTile } from '../shardfile/clientRings';
+import { clientTileRegistration, type ClientTileRegistration, clientRingCatalogue, clientRingPorts, type ClientRingInstance, type PreparedRingTile } from '../shardfile/clientRings';
 import { ClientAssets } from '../shardfile/clientAssets';
 import { clientMaterials } from '../shardfile/clientMaterials';
 import { clientTileViews, type ClientTileViews } from '../shardfile/clientViews';
@@ -90,6 +90,7 @@ import { leaseMapImage } from '../shardfile/mapImage';
 import { crossingSaveStatus, installBorderShimmer, type BorderShimmerState, type CrossingSaveStatus } from './borderShimmer';
 import { GAME_STRINGS } from '../strings';
 import { GridCellWaitingError, classifyRefusal, pageShardRefusals, refusalReason, type ShardRefusal } from './refusal';
+import { tileResidencyRadius } from '../shardfile/tileDriver';
 import { CellLoading, type CellLoadingInput } from './cellLoading';
 import { CellScreen, facingEdge } from './cellScreens';
 
@@ -260,6 +261,7 @@ export class GridSession {
   readonly allocator: ResidencyAllocator;
   private readonly rings: TileStreamer<LevelPrepared<FarPrepared, PreparedRingTile>>;
   private readonly neighbours: readonly GridCell[];
+  private readonly clientTiles: ClientTileRegistration;
   private readonly costs = new Map<string, number>();
   /** each shardfile neighbour's declared far bytes, read at start: its far ring charge until the proxy loads (then `costs`) */
   private readonly declaredFar = new Map<string, number>();
@@ -549,11 +551,12 @@ export class GridSession {
     // the road (round 3's first A = B); a terrain-only near view (the template, its world in its tiles) keeps them; a cell
     // with no near view at all keeps its far proxy (its tiles draw in looks only its entered world lights)
     this.rings = new TileStreamer(this.neighbours, this.allocator, (id, level, x, z) => (level === 'far' ? this.costs.get(id) ?? this.declaredFar.get(id) ?? 1_600_000
-      : this.near.owns(id) || this.near.absent(id) ? null : tileCost(id, level, x, z)),
+      : !this.clientTiles.owns(id) && (this.near.owns(id) || this.near.absent(id)) ? null : tileCost(id, level, x, z)),
       levelPorts<FarPrepared, PreparedRingTile>(farPorts, tiles.ports), { farRadius: FAR_RING.reach });
-    this.admitNeighbour = host.renderer === undefined ? undefined : this.tileAdmission(host.renderer, roots, tiles.instances);
+    this.clientTiles = clientTileRegistration(tiles.instances, this.rings, tileResidencyRadius);
+    this.admitNeighbour = host.renderer === undefined ? undefined : this.tileAdmission(host.renderer, roots);
     host.scope.onDispose(() => {
-      this.rings.dispose();
+      this.clientTiles.dispose(); this.rings.dispose();
       for (const root of roots.values()) root.removeFromParent();
     });
     // O15: with a drawn frame, what only draws (rings, screens, shimmer, near view) steps once a frame in the late
@@ -576,7 +579,7 @@ export class GridSession {
    * reader, material set and view set per slug (the template copies share them), each cell its own root. A neighbour that
    * fails to admit keeps its far proxy.
    */
-  private tileAdmission(renderer: Renderer, roots: ReadonlyMap<string, Group>, instances: Map<string, ClientRingInstance>): (cell: GridCell) => void {
+  private tileAdmission(renderer: Renderer, roots: ReadonlyMap<string, Group>): (cell: GridCell) => void {
     const scope = this.host.scope, skins = new Map<string, Promise<ReadonlyMap<string, ClientSkin>>>();
     const shared = new Map<string, Promise<{ source: ClientRingInstance['source']; assets: ClientAssets; views: ClientTileViews; bytes: ReadonlyMap<string, Uint8Array>; compile: (entry: unknown) => Material }>>();
     const requested = new Set<string>();
@@ -600,7 +603,7 @@ export class GridSession {
       try {
         const { source, assets, views, bytes, compile } = await loading;
         if (scope.disposed) return;
-        if (source.tiles.length > 0) instances.set(cell.instance, { source, assets, root, views });
+        if (source.tiles.length > 0) this.clientTiles.offer(cell.instance, { source, assets, root, views });
         try { await this.life.admit(cell, root, source, bytes, compile, skins); } catch (error) { console.warn(`[grid] ${cell.instance} stays still (client scripts):`, error); }
         try { await this.panels.admit(cell, root, source, bytes, views); } catch (error) { console.warn(`[grid] ${cell.instance} draws no doors (declared panels):`, error); }
       } catch (error) { this.refuse(cell, error); } // G167 / G217: a refused shard's cell screen names the reason
@@ -676,7 +679,7 @@ export class GridSession {
     if (this.live !== null) throw new Error('The grid session already has its live crossing');
     if (this.host.residency === undefined) throw new Error('Grid session requires the early page residency owner');
     this.live = new LiveGridSession({ assembly: this.assembly, home: this.home, physics: this.host.physics, scope: this.host.scope, walls: this.walls, strips: this.strips, allocator: this.allocator,
-      residency: this.host.residency.home(),
+      residency: this.host.residency.home(), tiles: this.clientTiles,
       neighbourEdges: (cell, origin) => neighbourEdges(cell, { origin }), rimEdges: (origin) => rimEdges(this.assembly, { origin }) }, page);
     return this.live;
   }
@@ -719,7 +722,7 @@ export class GridSession {
   private viewStep(): void {
     const at = this.last ?? this.world(), speed = Math.hypot(this.velocity.x, this.velocity.z), clamp = speed > 60 ? 60 / speed : 1; // a respawn's jump is not a velocity
     this.rings.step({ x: at.x, z: at.z, vx: this.velocity.x * clamp, vz: this.velocity.z * clamp });
-    for (const cell of this.neighbours) if (this.near.owns(cell.instance) || this.near.absent(cell.instance)) this.rings.retireRefinement(cell.instance);
+    for (const cell of this.neighbours) if (!this.clientTiles.owns(cell.instance) && (this.near.owns(cell.instance) || this.near.absent(cell.instance))) this.rings.retireRefinement(cell.instance);
     this.stepCellLoading();
     this.shimmer.step();
     const active = this.live === null ? this.home.instance : this.live.live.current();

@@ -76,6 +76,7 @@ import { yieldGridAdmission, yieldGridConstruction } from './admissionYield';
 import { HybridRuntimeSession, type HybridResident } from '../shardfile/hybrid';
 
 import { createRegionalRuntimeFactory, regionalRuntimeAccountedBytes, type PreparedRegionalRuntime, type RegionalRuntimePage } from './regionalRuntime';
+import type { ClientTileRegistration } from '../shardfile/clientRings';
 import { createRegionalWorldFoundation, hangCellDataSky, resolveRegionalRuntimeTextures } from './regionalWorld';
 import { regionalRuntimeCheckpoint } from './runtimeCheckpoint';
 import { regionalSimAccountedBytes } from './runtimeCost';
@@ -127,6 +128,8 @@ export interface LiveGridPage {
 }
 /** What the session lends: the assembly, the home world and its walls, the strips and the one allocator. */
 export interface LiveGridSessionPorts {
+  /** Borrow the page render scheduler when an entered data region replaces neighbour views. */
+  readonly tiles?: ClientTileRegistration;
   readonly residency: HomeResidencyClaim;
   readonly assembly: GridAssembly; readonly home: GridCell; readonly physics: Physics; readonly scope: Scope;
   readonly walls: ReadinessWalls; readonly strips: readonly CollisionStrip[]; readonly allocator: ResidencyAllocator;
@@ -766,7 +769,7 @@ export class LiveGridSession {
     return { bytes, exclusiveRuntime: true, reloadsCheckpoint: true, cancel: release, prepareRuntime: prepareEntry, create: async (_prior, claim, signal) => {
       const factory = createRegionalRuntimeFactory({ home: this.ports.home.origin,
         continuation: regionalRuntimeCheckpoint(this.page.saves, { id: cell.instance, shard: cell.slug }, retained.admitted.source.identity.revision),
-        prepareFoundation: createRegionalWorldFoundation({ rapier: this.ports.physics.R, navmesh: level => loadNavmesh(level.id, level.bakedId ?? level.id, level.navigation), pause: () => yieldGridConstruction(this.runtimeScope),
+        prepareFoundation: createRegionalWorldFoundation({ rapier: this.ports.physics.R, ...(this.ports.tiles === undefined ? {} : { tiles: this.ports.tiles }), navmesh: level => loadNavmesh(level.id, level.bakedId ?? level.id, level.navigation), pause: () => yieldGridConstruction(this.runtimeScope),
           install: host => {
             for (const strip of this.ports.strips) for (const row of strip.duplicates) if (row.instance === cell.instance) installStripCollider(host.physics, row.mesh, host.scope);
             installEntrySockets(host.physics, host.scope, [{ x: 0, z: 0 }], 'backstop');

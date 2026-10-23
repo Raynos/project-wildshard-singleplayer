@@ -12971,7 +12971,9 @@ starting more uploads once `uploadMsPerFrame` (default 12 ms) is spent.
 One synchronous upload remains indivisible. `TileStreamBudget.now` is an
 optional monotonic measurement clock; production defaults to diagnostic
 wall time. `require(instance, keys)` pins L0 keys (`z * 8 + x`) and their
-parents; it returns `{ready, release}`. The caller continues `step` while
+parents; passing `'l1'` as the third argument instead pins coarse keys
+(`z * 4 + x`) and their far parent, without requesting fine children.
+It returns `{ready, release}`. The caller continues `step` while
 awaiting publication and releases its own pins afterward. Overlapping
 requirements share pins; releasing one cannot remove another's demand.
 Empty catalogue tiles need no publication. A failed prerequisite, pending

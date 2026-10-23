@@ -10,12 +10,13 @@
  */
 import { Group, type Object3D } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { scopedTilePorts, type RingCatalogue, type RingPorts, type RingTile } from '@wildshard/engine/world/tileStreamer';
+import { type TileStreamer, type TileRequirement, scopedTilePorts, type RingCatalogue, type RingPorts, type RingTile } from '@wildshard/engine/world/tileStreamer';
 import type { TileDecoder } from '../grid/tileDecoder';
 import type { ClientAssets } from './clientAssets';
 import { prepareClientTile, type ResidentTile } from './clientWorld';
 import type { ClientTileViews } from './clientViews';
 import type { Shardfile } from '@wildshard/format/shardSchema';
+import { tileOrder } from './tileOrder';
 
 /** One placed instance: its admitted shardfile, its asset reader, its render root (already at its render origin), its views. */
 export interface ClientRingInstance { readonly source: Shardfile; readonly assets: ClientAssets; readonly root: Object3D; readonly views: ClientTileViews }
@@ -74,4 +75,61 @@ export function clientRingPorts(instances: ReadonlyMap<string, ClientRingInstanc
       shadow: enabled => { for (const tile of prepared.tiles) tile.shadow(enabled); },
     };
   });
+}
+
+/** A page's one render scheduler accepts entered roots as scoped replacements for its neighbour views. */
+export interface ClientTileRegistration {
+  owns: (instance: string) => boolean;
+  dispose: () => void;
+  offer: (instance: string, entry: ClientRingInstance) => void;
+  enter: (instance: string, entry: ClientRingInstance, scope: Scope, start: { readonly x: number; readonly z: number }) => Promise<{ readonly fine: ReadonlySet<string>; refresh: () => Promise<void> }>;
+}
+
+/** Borrow the existing scheduler; late neighbour admissions update its fallback without replacing an entered root. */
+export function clientTileRegistration(instances: Map<string, ClientRingInstance>,
+  streamer: Pick<TileStreamer<unknown>, 'require' | 'resident' | 'setFullRing' | 'retireRefinement'>, radius: () => number): ClientTileRegistration {
+  const entered = new Map<string, () => void>(), fallback = new Map(instances);
+  let disposed = false;
+  return {
+    owns: instance => entered.has(instance),
+    dispose: () => { if (disposed) return; disposed = true; for (const release of entered.values()) release(); },
+    offer: (instance, entry) => { if (disposed) throw new Error('Tile registration disposed'); fallback.set(instance, entry); if (!entered.has(instance)) instances.set(instance, entry); },
+    enter: async (instance, entry, scope, start) => {
+      const ownerLeft = (): boolean => disposed || scope.disposed || scope.disposing;
+      if (ownerLeft()) throw new Error('Entered tile owner left');
+      if (entered.has(instance)) throw new Error('Tile instance already entered');
+      const renderRows = [...entry.source.terrain?.tiles ?? [], ...entry.source.props?.tiles ?? []];
+      const keys = new Set(renderRows.map(tile => `${tile.lod}/${tile.x}/${tile.z}`));
+      const requirements: TileRequirement[] = [];
+      let closed = false, registered = false;
+      const release = (): void => {
+        if (closed) return; closed = true;
+        if (!registered) return;
+        for (const requirement of requirements) requirement.release();
+        streamer.retireRefinement(instance); streamer.setFullRing(instance, null);
+        entered.delete(instance);
+        const prior = fallback.get(instance); if (prior === undefined) instances.delete(instance); else instances.set(instance, prior);
+      };
+      try {
+        streamer.setFullRing(instance, radius()); registered = true; streamer.retireRefinement(instance);
+        instances.set(instance, { ...entry, source: { ...entry.source, tiles: entry.source.tiles.filter(tile => keys.has(`${tile.lod}/${tile.x}/${tile.z}`)) } });
+        entered.set(instance, release); scope.onDispose(release);
+        // Entered scenes hide the neighbour root: keep every coarse quadrant there until this region leaves.
+        const coarse = streamer.require(instance, Array.from({ length: 16 }, (_, key) => key), 'l1');
+        requirements.push(coarse);
+        // A cell without an L1 for a patch needs that patch's L0 as its permanent coverage.
+        const uncovered = renderRows.filter(tile => tile.lod === 0 && !keys.has(`1/${Math.floor(tile.x / 2)}/${Math.floor(tile.z / 2)}`));
+        const coverage = streamer.require(instance, uncovered.map(tile => tile.z * 8 + tile.x)); requirements.push(coverage);
+        const order = tileOrder(start, entry.source.entryways);
+        const initial = streamer.require(instance, order.tiles.filter(tile => order.rank(tile) === 0).map(tile => tile.j * 8 + tile.i)); requirements.push(initial);
+        await Promise.all(requirements.map(requirement => requirement.ready));
+        initial.release(); entry.assets.releaseTiles();
+        if (ownerLeft()) throw new Error('Entered tile owner left');
+        return {
+          get fine() { return new Set(streamer.resident().filter(key => key.startsWith(`${instance}:l0/`)).map(key => key.slice(instance.length + 1).replace('l0/', '0/'))); },
+          refresh: () => { if (!closed) streamer.setFullRing(instance, radius()); return Promise.resolve(); },
+        };
+      } catch (error) { release(); throw error; }
+    },
+  };
 }

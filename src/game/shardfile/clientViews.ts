@@ -103,9 +103,10 @@ export function clientTileViews(ports: ViewPorts): ClientTileViews {
  * The views for one shardfile scene: terrain tiles in `terrain` (the terrain family's material id, null when the shard has
  * no terrain), props from the resolved family `materials` and admitted `textures`, all under `root`.
  */
-export function clientViews(ports: ViewPorts & { root: Object3D }): ClientWorldViews {
+export function clientViews(ports: ViewPorts & { root: Object3D }): ClientWorldViews & { readonly tiles: ClientTileViews } {
   const tiles = clientTileViews(ports);
   return {
+    tiles,
     terrain: (bytes, scope, shadow) => tiles.terrain(bytes, ports.root, scope, shadow),
     library: async (props, assets, scope) => {
       const installed = await installDeclaredProps(props, { scene: ports.root, scope, assets, materials: ports.materials, textures: ports.textures, lod: 0, selectedTiles: new Set(), ...surfacePort(ports) });

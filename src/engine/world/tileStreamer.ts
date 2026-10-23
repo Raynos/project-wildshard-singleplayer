@@ -235,15 +235,17 @@ export class TileStreamer<D> {
     if (!(this.options.farRadius >= this.options.viewDistance)) throw new RangeError('Invalid far ring reach');
   }
 
-  /** Pin L0 keys (`z * 8 + x`) and their parents. Continue calling `step` while awaiting `ready`.
+  /** Pin L0 keys (`z * 8 + x`), or L1 keys (`z * 4 + x`) with the optional level, and their parents.
+   * Continue calling `step` while awaiting `ready`.
    * Missing catalogue tiles are empty and already satisfied. Readiness covers this renderer's publication only.
    * Releasing a pending requirement rejects it; a failed prerequisite rejects and releases its dependants. */
-  require(instance: string, keys: Iterable<number>): TileRequirement {
+  require(instance: string, keys: Iterable<number>, level: 'l0' | 'l1' = 'l0'): TileRequirement {
     if (this.disposed) throw new Error('Tile streamer is disposed');
     const cell = this.cell(instance);
+    const stride = level === 'l0' ? 8 : 4;
     const tiles = [...new Set(keys)].map(value => {
-      if (!Number.isInteger(value) || value < 0 || value >= 64 || value % 8 >= cell.columns.l0 || Math.floor(value / 8) >= cell.rows.l0) throw new RangeError('Invalid required tile key');
-      return this.tile(instance, 'l0', value % 8, Math.floor(value / 8));
+      if (!Number.isInteger(value) || value < 0 || value >= stride * stride || value % stride >= cell.columns[level] || Math.floor(value / stride) >= cell.rows[level]) throw new RangeError('Invalid required tile key');
+      return this.tile(instance, level, value % stride, Math.floor(value / stride));
     });
     let resolveReady: () => void = () => undefined, rejectReady: (error: Error) => void = () => undefined;
     const ready = new Promise<void>((resolve, reject) => { resolveReady = resolve; rejectReady = reject; });
@@ -288,7 +290,7 @@ export class TileStreamer<D> {
 
   private failRequirements(failed: RingTile, error: Error): void {
     for (const requirement of this.requirements) if (requirement.tiles.some(tile => tile.instance === failed.instance &&
-      (failed.level === 'far' || failed.level === 'l0' && tile.key === failed.key || failed.level === 'l1' &&
+      (failed.level === 'far' || tile.key === failed.key || failed.level === 'l1' && tile.level === 'l0' &&
       Math.floor(tile.x / 2) === failed.x && Math.floor(tile.z / 2) === failed.z))) this.unpin(requirement, error);
   }
 
@@ -450,8 +452,14 @@ export class TileStreamer<D> {
         }
     }
     // Pins may exceed the ordinary view's count cap, but still require real budget admission.
-    for (const { tile } of this.pins.values()) if (this.bytes(tile.instance, tile.level, tile.x, tile.z) !== null
-      && !fine.some(row => row.tile.key === tile.key)) fine.push({ tile, d: this.distance(tile, camera) });
+    for (const { tile } of this.pins.values()) if (this.bytes(tile.instance, tile.level, tile.x, tile.z) !== null) {
+      if (tile.level === 'l0') { if (!fine.some(row => row.tile.key === tile.key)) fine.push({ tile, d: this.distance(tile, camera) }); }
+      else {
+        const cell = this.cell(tile.instance);
+        add(this.tile(tile.instance, 'far', 0, 0), cellDistance(cell));
+        add(tile, this.distance(tile, camera));
+      }
+    }
     for (const { tile, d } of l1.slice(0, C.l1Count)) add(tile, d);
     // a wanted child always wants its parents (the cap never strands an L0 tile without its L1)
     for (const { tile, d } of fine) {
