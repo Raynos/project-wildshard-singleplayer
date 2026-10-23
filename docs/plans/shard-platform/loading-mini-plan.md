@@ -16,12 +16,12 @@ playtests wait for Phase 1 acceptance. The lane tests the real 5 x 5 on Chromium
 | Row | What | Code (from the audit) | Effort (est.) |
 |---|---|---|---|
 | **L1 — accepted `8264f6dca2`; source `0e5a42feb3`; pushed** | Step number and name always match; time between steps becomes an explicit row ("gap after X · 75.7 s") so no second is unaccounted | `Loading.ts:174`, `:206`; `boot/plan.ts:232`, `:274` | 0.5 day |
-| **L2 — cold accepted and pushed `8264f6dca2`; Safari warm accepted `de6833b8b7`; Chromium eviction residual in `9fd203d409`** | **The download counter counts every byte**: shardfile file reads, grid neighbour products, everything fetched; cache hits shown separately ("from cache"); totals from each product index's sizes; never 100 % while files remain | `boot/steps.ts`, `session/data.ts:41`, `shardfile/product.ts`, `grid/products.ts` | 1 day |
+| **L2 — cold accepted and pushed `8264f6dca2`; Safari warm accepted `de6833b8b7`; Chromium eviction residual in `9fd203d409`; reopened 2026-10-23 as L9/L10 (frame audit below)** | **The download counter counts every byte**: shardfile file reads, grid neighbour products, everything fetched; cache hits shown separately ("from cache"); totals from each product index's sizes; never 100 % while files remain | `boot/steps.ts`, `session/data.ts:41`, `shardfile/product.ts`, `grid/products.ts` | 1 day |
 | **L3 — accepted `8264f6dca2`; source `583123db2a`; pushed** | A `waitFor(label, promise)` registry at admission, file reads, Wasm, workers and shader linking; a live "Now waiting for: …" line with its age and files in flight | new in `engine/boot`; call sites per the audit | 0.5–1 day |
 | **L4 — accepted `8264f6dca2`; source `c54a3c5c54`; pushed** | A step table per load path (shardfile, grid entry, grid crossing; legacy comparison retained) replacing the fixed 16-row legacy table; page-shell rows dropped; every unreported await moved into a step | `session/loadout.ts:63-134`, `session/play.ts:99-121`, `session/finish.ts:26-55`, `grid/liveSession.ts:533-556` | 1–2 days |
 | **L5 — accepted `8264f6dca2`; source `91a491c8a8 / 390a57867c`; pushed** | Numbers inside every long step that move at least once a second: admission files N/M, world scenes N/M, home region scenes/models N/M, shaders built/linked N/M, textures N/M, first frame pass N/5 | `shardfile/product.ts:240`, `grid/products.ts:52`, `game/shardfile/worldScenes.ts`, `driftwood-isle/world/build.ts:85`, shader precompile | 1 day |
 | **L6 — accepted `8264f6dca2`; source `977a0d1303`; pushed** | Stall text in amber after 10 s with no progress, naming the open wait; "Last reload" and "Longest page pause" removed or relabelled; Physics/Trees rows report the real region, not the empty shell | `Loading.ts:211-244`, `boot/lastEnd.ts`, `engine/core/bootstrap.ts:95`, `:106`, `play.ts:168` | 0.5 day |
-| **L7 — accepted `8264f6dca2`; source `8dd0eeaa0e / 09bdb72199`; pushed** | A realistic bar: per-path stage weights from a committed table measured on the iOS Simulator at phone tier, blended with the device's own runs (keyed by tier, path, shard); a running step without counts eases toward its share (1 − e^(−t/T)); no 99.5 % freeze; admission weighted by time | `boot/timing.ts:17-21`, `boot/plan.ts:216`, `Loading.ts:115-185` | 1 day + a Simulator session |
+| **L7 — accepted `8264f6dca2`; source `8dd0eeaa0e / 09bdb72199`; pushed; reopened 2026-10-23 as L12 (frame audit below)** | A realistic bar: per-path stage weights from a committed table measured on the iOS Simulator at phone tier, blended with the device's own runs (keyed by tier, path, shard); a running step without counts eases toward its share (1 − e^(−t/T)); no 99.5 % freeze; admission weighted by time | `boot/timing.ts:17-21`, `boot/plan.ts:216`, `Loading.ts:115-185` | 1 day + a Simulator session |
 | **L8 — cold matrix accepted and pushed `8264f6dca2`; Safari warm accepted; Chromium residual retained `9fd203d409`** | Acceptance: on both SHARD SELECT and the grid path, stage rows add up to the wall time within 3 s; the detailed text changes at least once a second; the byte counter matches network bytes within 5 %; measured in the Simulator and Chromium; a test fails if any unlabelled gap exceeds 2 s | test + a capture for Jake | 0.5 day |
 
 ## G554 follow-up: reopened accuracy
@@ -574,3 +574,110 @@ Final carrier verification: `origin/main` at `b9cabb4aeb` includes O5 source,
 API, evidence `7e37b39b44` and final row tick `6cf6d4e51b`. Every loading
 row is accepted and pushed with its local gates green. No CI/deploy wait
 is added; the recorded Chromium warm residual remains accepted explicitly.
+
+## Frame-by-frame audit (2026-10-23, Signal Dunes)
+
+Jake, 2026-10-23 09:34 (iPhone 17 Pro PWA, live `ff45b6a24`): *"the downloading and updating flow still doesn't make
+any sense to me … why is the downloading bar not continuous, why are the numbers not correct."* His screenshot at 8.7 s:
+DOWNLOAD "0.34 MB of 5.95 MB · 54 / 164 files · 99 %" with a full bar, SETUP "step 2 / 13 · Product admission ·
+Verifying 050c19a9d47b… 7 %", step 2 at 8.2 s, footer "NOW WAITING FOR: ADMIT PRODUCT · 2.9 S · 0 FILES IN FLIGHT".
+
+Method: the live site in the Simulator's Safari (`wildshard-iphone`, an iPhone 17 Pro device, Mac network), the
+player's taps (title, DEV on, SHARD SELECT, Signal Dunes, ENTER WORLD), `simctl io recordVideo` plus an in-page sampler
+of the loader's DOM and `data-*` byte counters on every change. Frames read at 5 fps and 10-15 fps around jumps.
+Board and labelled frames: [`art/grid/round-53-loading-audit/`](../../../art/grid/round-53-loading-audit/).
+
+**Tap -> in control:** cold (Safari data cleared) **10.0 s**; warm (same Safari) **2.8 s**; update pill tap -> title **0.5 s**, but only with no new build waiting (below).
+The Simulator is faster than the phone (Mac network, 8 cores); the shapes below are the same as Jake's.
+
+### Timeline (cold, seconds after ENTER WORLD)
+
+| t (s) | DOWNLOAD text · % · bar | SETUP · step | Footer / screen | What is wrong |
+|---|---|---|---|---|
+| 0.5 | waiting · 0 · 0 | Loading application modules | panel painted | — |
+| 0.76 | 0.00 of 0.00 MB · 0 | 5 % · 2 / 13 Product admission | Read shard.json | — |
+| 0.96 | 0.00 of 0.28 MB · 0 / 50 · 0 | 7 % | Content cache get · 50 waits | denominator = 50 section files only |
+| 1.39 | 0.28 of 0.28 MB · 50 / 50 · **99 · bar 99.9 %** | 7 % | Admit product · 0 files | bar full after 0.28 MB |
+| 1.48 | 0.28 of **5.95** MB · 50 / **164** · 99 · full | 7 % | Read blobs/json/… | 114 blobs declared late; bar stays full |
+| 1.68 | **0.34 of 5.95 MB · 54 / 164 · 99 · full** | 7 % | Read blobs/tile/… · 4 in flight | = Jake's screenshot |
+| 4.0 | 4.45 of 5.95 · 106 / 164 · 99 · full | 7 % · step 2 at 3.2 s | 4 files in flight | 4-wide chain; SETUP frozen |
+| 6.43 | 5.95 of 5.95 · 164 / 164 · 99 · full | 10 % | Admit product · 5.0 s · 0 files | validate + save, unnamed |
+| 7.03 | same | 10 % · **3 / 14** Application modules · pass 2 | — | total grows 13 -> 14 |
+| 7.06-7.08 | same | 20 -> 25 % · **6 / 14 Renderer -> 5 / 14 Region world** | Read audio …/piano/**pine-calm**… · 94 files in flight | number goes back; Pine's music in Dunes |
+| 7.1-8.9 | same (99, full) | 25 -> 31 % · Region world, HUD, Weapons | audio reads, +16 MB fetched | bytes outside "of 5.95 MB" |
+| 8.9-9.4 | same | **44 -> 70 %** · Title art, Shaders, First frame | — | 26 pts in 0.5 s |
+| 9.6 | 100 · 100 (one fading frame) | 100 | loader fades | 70 -> 100 only under the fade |
+| 9.7-9.9 | — | — | HUD over a washed-out lower half, empty minimap | half-drawn world frames |
+| 10.0 | — | — | world drawn, ATTACK button, minimap | in control |
+
+Warm (same Safari): the 51 sections arrive from cache by 0.49 s (99 % at once), 165 / 165 files by 0.62 s (the
+denominator is 5.99 MB / 165 files here: the cached `shard.json`, 46,192 bytes, is declared by its cache receipt,
+`runtimeProduct.ts:73-75` via `download.ts:49-57`, while on cold the fetched index is never declared), step 2 lasts 0.58 s, 13.4 MB of audio comes from cache under
+"Region world", SETUP reaches 70 % at 2.19 s and the loader is gone at 2.37 s.
+
+Update pill: no newer deploy existed during the session, so the run tapped the title pill on the current build
+(`ff45b6a24 · reload`). With no waiting worker, `adopt()` returns at once and the page replaces itself with `?v=`:
+blank at 0.3 s, title back at 0.5 s. Jake's long static "UPDATING…" needs a waiting worker: on `ff45b6a24` the label is set once
+(`src/engine/ui/Update.ts:41` there; HEAD `6c6ffea1e0` already ticks "Updating · N files · N s", U3), `adopt()` then waits up to `CAP_MS` = 2.5 s for `controllerchange`
+(`src/engine/boot/sw.ts:47`, `:139-153`), and the reloaded new build downloads its renamed packs before the title.
+
+### Why each number is wrong (code at live `ff45b6a24`; every file below is unchanged at HEAD)
+
+1. **The bar sits full at 99 % from 1.4 s.** `Loading.downloadProgress` keeps `shownDownload = max(shown, done / declared)`
+   (`src/engine/ui/Loading.ts:255-259`, comment `:81`). The first declarations are only the 50 section files
+   (`src/game/shardfile/product.ts:176`); when they finish, `done / declared` = 0.999 (`src/engine/boot/loadingDownloadText.ts:16-19`
+   caps at 0.999, so it reads 99, never 100). The 114 blobs are declared later, after the sections parse
+   (`product.ts:293`); the text follows the new denominator (0.34 of 5.95 MB) but the max() keeps the bar at 99.9 %.
+   Files, MB and % then disagree for the rest of the load.
+2. **"of 5.95 MB" is not what the load downloads.** Only product files are declared. The boot reads every music style
+   and SFX set (`src/engine/boot/extras.ts:169-180`: piano and orchestral Pine music, title tracks) plus title art,
+   about **16 MB more** on cold, none of it declared, so DOWNLOAD says 99 % while most bytes are still to come. WebKit
+   reports `transferSize` 0 for service-worker responses, so every byte lands in "files by body size" and "network"
+   stays at 757 bytes (`src/engine/boot/download.ts:78-81`).
+3. **Product admission is slow and opaque.** `admitProductWork` reads the 114 blobs through 4 slots
+   (`product.ts:337`); each slot fetches, copies (`Uint8Array.from`, `product.ts:313`, main thread), hashes in the
+   content-hash worker (`product.ts:314-318`, `src/engine/boot/contentHash.ts:56-73`) and only then starts the next file:
+   6.3 s for 5.95 MB on the Simulator, latency-bound, not CPU-bound. A cached file is hashed twice: once on the page by
+   `cachedTransport` (`src/game/shardfile/runtimeProduct.ts:79-80`), again in the worker. Only fetch and body reads are
+   registered waits (`product.ts:148`, `runtimeProduct.ts:72`); the worker round trip, its lazy start
+   (`contentHash.ts:35-47`, a module worker fetched on first use) and CacheStorage lookups are not, so the footer falls
+   back to "Admit product · 0 files in flight" (`Loading.ts:349-350`). **Jake's 8.2 s "Verifying 050c19a9d47b…"**:
+   050c19a9d47b is the first blob read (a 17 KB tile; it verifies in under 0.3 s here). At 4 / 114 blobs with 0 files in
+   flight, all four slots were waiting on the hash worker's first reply or a cache lookup; hashing 17 KB is
+   microseconds. The step's first 5.3 s were the descriptor and 50 sections (0.6 s on the Simulator).
+4. **SETUP crawls, then jumps, then vanishes at 70 %.** Weights are expected wall times: `loadingExpectations` falls back to
+   300 ms per step (`src/engine/boot/weights.ts:10`) because `src/loadingCalibration.json` has rows for driftwood-isle
+   only. So a 6.3 s admission is 1/13 of the bar (5 -> 10 %), the 2.5 s of later steps fill 10 -> 70 %, and the last
+   30 % (First frame, Audio) is granted only by `done()` under the 250 ms fade (`Loading.ts:381-390`).
+5. **Step total grows and numbers go back.** `manifest.load` is an alias of step 1 (`src/game/boot/loadingPaths.ts:12`);
+   the session begins it again after admission (`src/game/session/session.ts:132`), and the timeline appends an
+   undeclared repeat ("Application modules · pass 2"), so 13 becomes 14 (`src/engine/boot/timeline.ts:88-93`). The shown
+   step is the most recently entered running stage (`timeline.ts:47`) while numbers follow start order (`timeline.ts:111`),
+   so a nested Renderer (6) ending hands the label back to Region world (5). "Final activation" (11) ends before Shaders
+   (12) and First frame (13). "Texture and audio preparation" lasts 6 ms while the audio downloads run under Region world.
+6. **Labels.** TIER's "offline cache" only means a service worker is registered (`Loading.ts:122`, `:224`, string
+   `s_5c75b0e90774`), not that this shard is cached. The footer names the oldest page-wide file wait
+   (`Loading.ts:350`), so Signal Dunes' Region world shows "waiting for … pine-calm-923e0056.m4a". The players' one bar
+   is SETUP only (`Loading.ts:233-234`) and ignores DOWNLOAD.
+7. **Half-drawn world.** For about 0.3 s after the fade the HUD sits over a washed-out lower half (ground not drawn), an
+   empty minimap and the title wordmark ghost (frame `05-half-drawn-world.jpg`).
+
+### Fix rows (one honest progress model)
+
+One bar for everyone: bytes actually fetched over bytes the load needs (cache hits counted as done at once and named
+"from disk"), declared in full before the first byte, then setup steps by measured weight. "Done when" is checked on one
+Simulator recording of HEAD (cold and warm Signal Dunes, the same tap path), frame by frame.
+
+| Row | What | Owner | Size | Done when |
+|---|---|---|---|---|
+| **L9** | One download denominator, declared up front: the product index's sections and blobs at descriptor time, plus the audio, art and modules the boot reads; no `max()` ratchet over a growing total and no 0.999 cap (`Loading.ts:255-259`, `loadingDownloadText.ts:16-19`, `product.ts:176/293`, `extras.ts:169`); service-worker bodies counted in the same bar | Codex | M | DOWNLOAD % stays within 2 pts of bytes done / bytes needed in every sampled frame, never moves back, and its total changes at most once after step 2 starts; final total within 5 % of all bytes fetched |
+| **L10** | The boot reads only this shard's music and SFX (selected style), not every style; the rest stays with the worker's background cache (`extras.ts:169-180`) | Codex | S | cold Dunes fetches ≤ 1.2 × the product bytes before control; no other shard's track is read during its load |
+| **L11** | Product admission: more than 4 transports (or all blobs at once), no `Uint8Array.from` copy, one hash per file (no page hash before the worker hash), the hash worker started with the loader; worker round trips and cache lookups registered as waits (`product.ts:313-337`, `runtimeProduct.ts:79`, `contentHash.ts:35-73`) | Codex | M | cold Dunes step 2 ≤ 2.5 s on the Simulator (6.3 s today); the footer names a file or a hash in every frame of step 2 (never "0 files in flight" while blobs remain) |
+| **L12** | Real step weights: calibration rows for every shardfile shard (only driftwood-isle today) or weights from declared bytes and measured runs; the bar reaches 100 % before the fade (`weights.ts:10`, `loadingCalibration.json`, `Loading.ts:381`) | Codex | S | SETUP % at each step start within 15 pts of elapsed / total wall time; ≥ 95 % shown on screen before the fade begins |
+| **L13** | A stable, monotone step list: the plugin-module pass declared or folded into step 1, the earliest running step shown (not the newest nested one), rows in plan order, audio reads under the step that names them (`loadingPaths.ts:12`, `session.ts:132`, `timeline.ts:47/88-93/111`) | Codex | S | the total never changes and the step number only increases in every sampled frame |
+| **L14** | Labels that mean what they say: TIER shows "worker ready" or the shard's cached state instead of "offline cache"; the footer prefers waits of the current step; the players' bar uses the same combined model (`Loading.ts:122/224/233/350`) | Codex | S | in every sampled frame the footer's wait belongs to the current step and no label claims a cache that is empty |
+| **L15** | No half-drawn world under the HUD: the loader leaves only after a complete first frame (ground drawn, minimap filled) | Opus | S | no frame between the loader and the world with missing ground or an empty minimap |
+
+The update pill's static "UPDATING…" stays with U1-U3 in [loading-speed-mini-plan.md](loading-speed-mini-plan.md);
+this audit adds no update rows: the Simulator run shows the reload itself is 0.5 s, so U1's split (adopt wait,
+worker install, re-downloaded packs) is where the time goes.
