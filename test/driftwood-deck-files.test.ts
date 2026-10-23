@@ -1,6 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Check the registered catalogue and exact original geometry bytes.
 import {readFileSync} from 'node:fs';
 import {expect,test,vi} from 'vitest';
+import * as v from 'valibot';
 import {BufferGeometry,BufferAttribute,InterleavedBufferAttribute,Object3D} from 'three';
 import {SkyRig} from '../src/engine/world/skyRig';
 import {modelContext} from '../src/engine/models/model';
@@ -12,9 +13,20 @@ import {prepareSpecimenCatalogue,defineSpecimenCatalogue} from '../src/game/mode
 import {encodeCanonicalJson,hashImmutableBytes} from '../src/sdk/immutable';
 
 const pins={deep:'247da8ed53b57d128fdfc9de4dc17722e85594ccc091a308ce0060224b98d47a',shallow:'fdd6865555774ed20743338b7b16afd9798d8ecf9fa7fa0609c8bd503c513548',world:'f53767fa4ff41a219b644198f806d0615e380d1be5daa55dcc41b3a7461898e4'};
-test('the complete original catalogue changes only the three deck transport references',()=>{
+test('the complete catalogue preserves deck transport and corrected source provenance',()=>{
   const book:unknown=JSON.parse(readFileSync('src/shards/driftwood-isle/boot/modelCatalogue.generated.json','utf8'));
-  expect(hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson(book)))).toBe('475877ed3676170b688c4cc64561ff012cb45ab2644a38e4b1dbd5b47f7f582c');
+  expect(hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson(book)))).toBe('9586790f2793e9d952267ad0ec4661fb25acb33c6593b5277b1e0817d8339f40');
+  // The original pin used stale upstream source labels. Reverse only the six
+  // proven provenance corrections and retain that full-catalogue byte oracle.
+  v.assert(v.object({siteCatalogue:v.object({models:v.array(v.object({key:v.string(),file:v.string()}))})}),book);
+  const original=structuredClone(book), keys=['palm','hibiscus','driftLog','pier','boat','zipline'];
+  for(const [offset,key]of keys.entries()){
+    const model=original.siteCatalogue.models[7+offset];if(model===undefined)throw new Error('Missing original source model');
+    expect(model.key).toBe(key);
+    expect(model.file).toBe(`src/shards/driftwood-isle/generators/bake-${offset<3?'foliage':'pier'}-scenes.mjs`);
+    model.file='src/shards/driftwood-isle/models/catalogue.ts';
+  }
+  expect(hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson(original)))).toBe('475877ed3676170b688c4cc64561ff012cb45ab2644a38e4b1dbd5b47f7f582c');
   const files=entryDeckFiles();expect(files).toHaveLength(3);
   for(const [deck,hash]of Object.entries(pins)){
     const file=files.find(row=>row.name===`models/entry-deck-${deck}.bin`);if(file===undefined)throw new Error('Missing original deck');
