@@ -32,11 +32,13 @@ function installDrawRetirement(renderer: UploadTarget, state: UploadState): void
     if (object instanceof THREE.CompressedTexture) {
       assertCompressedMipmapsUnchanged(object);
       const native = retired.get(object);
+      // three's own lookup, once: it returns the same properties object every time (G639: a draw asks several times)
       const properties: unknown = get(object);
       if (native !== undefined && (typeof properties !== 'object' || properties === null || Reflect.get(properties, '__webglTexture') !== native)) {
         throw new Error(`Compressed texture ${object.name || object.id} lost its allocation after mip retirement`);
       }
       if (depth > 0 && state.final.has(object)) bound.add(object);
+      return properties;
     }
     return get(object);
   };
