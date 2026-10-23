@@ -12856,7 +12856,10 @@ holds and immediate masks prevent a child opening a hole in its parent.
 Prepared work is cancelled before its budget lease releases; late results
 are discarded by lease identity. Render adapters own construction scopes.
 
-This first extraction preserves the 150 m trace and current count/byte
-budgets. Rectangular road/junction tiles, entered-content pins and a time
-budget are the remaining S1 extensions. Neighbours supply scene LOD only;
+The scheduler preserves the 150 m trace and count/byte budgets, and stops
+starting more uploads once `uploadMsPerFrame` (default 12 ms) is spent.
+One synchronous upload remains indivisible. `TileStreamBudget.now` is an
+optional monotonic measurement clock; production defaults to diagnostic
+wall time. Rectangular road/junction tiles and entered-content pins are
+the remaining S1 extensions. Neighbours supply scene LOD only;
 this renderer never builds a whole world or installs shard runtime logic.

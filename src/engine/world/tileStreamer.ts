@@ -20,6 +20,7 @@
  * Node-safe and deterministic: the same camera path and the same completion order give the same residency trace.
  */
 import { CHUNK_HALF, CONTENT_CAPS as C } from '../core/config';
+import { diagnosticNow } from '../core/clock';
 /** The renderer borrows the caller's budget; the engine owns no game allocator. */
 export interface TileStreamLease {
   readonly id: string;
@@ -30,6 +31,8 @@ export interface TileStreamLease {
 }
 /** Only render allocations: no simulation, durability or game policy crosses this port. */
 export interface TileStreamBudget {
+  /** Monotonic wall-clock measurement only; omitted callers use diagnosticNow. */
+  now?: () => number;
   reserve: (claim: { readonly id: string; readonly category: RingLevel; readonly bytes: number;
     readonly owner: string; readonly distance: number; readonly needed: boolean; readonly evictSync: () => void }) => TileStreamLease | null;
 }
@@ -74,6 +77,8 @@ export interface RingOptions {
   /** uploaded tiles per level, wanted or cached, beyond which unwanted cache drops farthest-first (memory is bounded by count, not only distance) */
   residentCaps?: Partial<Record<RingLevel, number>>;
   uploadsPerFrame?: number; uploadBytesPerFrame?: number; maxInFlight?: number;
+  /** Stop starting more uploads after this many milliseconds (default 12). One synchronous upload is indivisible. */
+  uploadMsPerFrame?: number;
 }
 /** The far ring's last plan: its byte budget, what it charged, and each proxy within reach it left out for the budget
  * (`visible`: inside the view distance, where `ready()` waits on it). */
@@ -129,6 +134,7 @@ export class TileStreamer<D> {
   private readonly retryAt = new Map<string, number>();
   private readonly cells: readonly RingCell[];
   private readonly budget: TileStreamBudget;
+  private readonly now: () => number;
   private readonly catalogue: RingCatalogue;
   private readonly ports: RingPorts<D>;
   private readonly options: Required<RingOptions>;
@@ -142,10 +148,11 @@ export class TileStreamer<D> {
 
   constructor(cells: readonly RingCell[], budget: TileStreamBudget, catalogue: RingCatalogue, ports: RingPorts<D>, options: RingOptions = {}) {
     if (new Set(cells.map((c) => c.instance)).size !== cells.length || cells.some((c) => c.instance.length === 0 || !Number.isFinite(c.origin.x) || !Number.isFinite(c.origin.z))) throw new RangeError('Invalid ring cells');
-    this.cells = [...cells].sort((a, b) => a.instance.localeCompare(b.instance)); this.budget = budget; this.catalogue = catalogue; this.ports = ports;
+    this.cells = [...cells].sort((a, b) => a.instance.localeCompare(b.instance)); this.budget = budget; this.now = budget.now ?? diagnosticNow; this.catalogue = catalogue; this.ports = ports;
     const viewDistance = options.viewDistance ?? 1.5 * C.pitch, farPrefetch = options.farPrefetch ?? 435;
-    this.options = { readinessSeconds: 4, viewDistance, farPrefetch, farRadius: viewDistance + farPrefetch, farCount: C.farCount, uploadsPerFrame: 2, uploadBytesPerFrame: 8 * 1_000_000, maxInFlight: 8, ...options,
+    this.options = { readinessSeconds: 4, viewDistance, farPrefetch, farRadius: viewDistance + farPrefetch, farCount: C.farCount, uploadsPerFrame: 2, uploadBytesPerFrame: 8 * 1_000_000, maxInFlight: 8, ...options, uploadMsPerFrame: options.uploadMsPerFrame ?? 12,
       residentCaps: { l1: C.l1Count, l0: C.l0Count, ...options.residentCaps } };
+    if (!Number.isFinite(this.options.uploadMsPerFrame) || this.options.uploadMsPerFrame <= 0) throw new RangeError('Invalid tile upload time budget');
     if (!Number.isInteger(this.options.farCount) || this.options.farCount < 1) throw new RangeError('Invalid far ring count');
     if (!(this.options.farRadius >= this.options.viewDistance)) throw new RangeError('Invalid far ring reach');
   }
@@ -359,8 +366,10 @@ export class TileStreamer<D> {
     }
     const queue = [...this.slots.values()].filter((s) => s.state === 'queued').sort((a, b) => LEVEL_RANK[a.tile.level] - LEVEL_RANK[b.tile.level] || a.distance - b.distance || a.tile.key.localeCompare(b.tile.key));
     let count = 0, bytes = 0;
+    const started = this.now();
     for (const slot of queue) {
-      if (count >= this.options.uploadsPerFrame || (count > 0 && bytes + slot.bytes > this.options.uploadBytesPerFrame)) break;
+      if (count >= this.options.uploadsPerFrame || (count > 0 && (bytes + slot.bytes > this.options.uploadBytesPerFrame
+        || this.now() - started >= this.options.uploadMsPerFrame))) break;
       const data = slot.data; if (data === null) continue;
       try { slot.view = this.ports.upload(slot.tile, data); }
       catch (error) { this.drop(slot); throw error; }

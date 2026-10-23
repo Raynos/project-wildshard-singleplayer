@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { TileStreamer, type RingPorts, type RingTile, type RingLevel } from '../src/engine/world/tileStreamer';
+import { TileStreamer, type RingPorts, type RingTile, type RingLevel, type RingOptions, type TileStreamBudget } from '../src/engine/world/tileStreamer';
 
 // Captured from the pre-extraction scheduler on the same 1 km path. Render
 // ownership, masks and allocator charges are part of the oracle, not only counts.
@@ -20,7 +20,7 @@ function drive() {
     discard: tile => { events.push(`discard:${tile.key}`); },
   };
   const bytes = (_instance: string, level: RingLevel): number => level === 'far' ? 8000 : level === 'l1' ? 2000 : 1000;
-  const streamer = new TileStreamer(cells, allocator, bytes, ports);
+  const streamer = new TileStreamer(cells, { reserve: claim => allocator.reserve(claim), now: () => 0 }, bytes, ports);
   let holes = 0, overlaps = 0, readyFrames = 0;
   for (let frame = 0; frame <= 120; frame++) {
     if (frame % 3 === 0) for (const row of pending.splice(0)) row.done(row.tile.key);
@@ -60,4 +60,54 @@ test('invalid cell data refuses before any borrowed render or budget service run
   const ports: RingPorts<string> = { fetch: () => { throw new Error('Unexpected fetch'); }, upload: () => { throw new Error('Unexpected upload'); } };
   expect(() => new TileStreamer([{ instance: 'bad', origin: { x: Number.NaN, z: 0 } }], allocator, () => 1, ports)).toThrow('Invalid ring cells');
   expect(allocator.entries()).toHaveLength(0);
+});
+
+function timedUploads(cost: number, options: RingOptions = {}) {
+  let now = 0;
+  const allocator = new ResidencyAllocator();
+  const budget: TileStreamBudget = { reserve: claim => allocator.reserve(claim), now: () => now };
+  const cells = Array.from({ length: 4 }, (_, index) => ({ instance: `cell${String(index)}`, origin: { x: index * 555, z: 0 } }));
+  const drawn = new Set<string>();
+  const ports: RingPorts<string> = {
+    fetch: (tile, done) => { done(tile.key); },
+    upload: tile => { now += cost; drawn.add(tile.key); return {
+      mask: () => undefined, shadow: () => undefined, dispose: () => { drawn.delete(tile.key); },
+    }; },
+  };
+  const streamer = new TileStreamer(cells, budget, (_instance, level) => level === 'far' ? 1000 : null, ports,
+    { viewDistance: 3000, farRadius: 3000, uploadsPerFrame: 4, uploadBytesPerFrame: 4000, ...options });
+  return { streamer, allocator, drawn };
+}
+const camera = { x: 0, z: 0, vx: 0, vz: 0 };
+
+test('elapsed uploads pause refinement without dropping its scopes or claims', () => {
+  const f = timedUploads(12);
+  try {
+    f.streamer.step(camera);
+    expect(f.streamer.stats()).toMatchObject({ resident: { far: 1 }, queued: 3, uploads: 1 });
+    expect(f.allocator.entries()).toHaveLength(4);
+    expect(f.streamer.ready()).toBe(false);
+    for (let frame = 1; frame < 4; frame++) {
+      f.streamer.step(camera);
+      expect(f.streamer.stats().uploads).toBe(frame + 1);
+    }
+    expect(f.streamer.ready()).toBe(true);
+  } finally { f.streamer.dispose(); }
+  expect(f.drawn.size).toBe(0); expect(f.allocator.entries()).toHaveLength(0);
+});
+
+test.each([
+  { cost: 1, options: { uploadsPerFrame: 2 }, uploads: 2 },
+  { cost: 1, options: { uploadBytesPerFrame: 2000 }, uploads: 2 },
+  { cost: 8, options: { uploadMsPerFrame: 8 }, uploads: 1 },
+  { cost: 30, options: { uploadMsPerFrame: 12 }, uploads: 1 },
+])('count, byte and time limits independently bound new uploads: %o', ({ cost, options, uploads }) => {
+  const f = timedUploads(cost, options);
+  try { f.streamer.step(camera); expect(f.streamer.stats().uploads).toBe(uploads); }
+  finally { f.streamer.dispose(); }
+  expect(f.allocator.entries()).toHaveLength(0);
+});
+
+test.each([0, -1, Number.NaN, Number.POSITIVE_INFINITY])('invalid time budget %s refuses before preparation', uploadMsPerFrame => {
+  expect(() => timedUploads(1, { uploadMsPerFrame })).toThrow('Invalid tile upload time budget');
 });
