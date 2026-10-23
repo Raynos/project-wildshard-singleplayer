@@ -37,7 +37,9 @@ const ref = v.union([id, v.strictObject({ pool: id, slot: count(0, 63), part: v.
  * lacks installs nothing. Client-only; nothing reaches the sim or a save.
  */
 export const ViewProgramSchema = v.pipe(v.strictObject({
-  system: id, before: v.pipe(v.array(id), v.maxLength(16)),
+  /** it runs in its own update system (`system`, ordered `before` others), or inline where its owner calls the frame slot
+   * the owner lends (`slot`: the program builds once the owner has lent the slot, after the values, cells and tells it lends) */
+  system: v.exactOptional(id), before: v.optional(v.pipe(v.array(id), v.maxLength(16)), []), slot: v.exactOptional(id),
   budget: v.strictObject({ pages: count(1, 4), ioBytes: count(16, 65536), fuel: count(1, 10_000_000), targetMs: v.pipe(finite, v.minValue(0.01), v.maxValue(16)) }),
   pools: v.optional(v.pipe(v.array(v.strictObject({ id, group: id, count: count(1, 64), fields: v.pipe(v.array(id), v.maxLength(16)) })), v.maxLength(8)), []),
   samples: v.pipe(v.array(v.variant('kind', [
@@ -67,7 +69,8 @@ export const ViewProgramSchema = v.pipe(v.strictObject({
   ])), v.maxLength(256), v.check(rows => new Set(rows.map(row => JSON.stringify(row))).size === rows.length, 'One transform position per target')),
   /** a written matrix's translation length, column scale range and normalized column cross-dot stay inside these */
   bounds: v.strictObject({ translation: v.pipe(finite, v.minValue(0)), scale: v.tuple([v.pipe(finite, v.minValue(0)), v.pipe(finite, v.minValue(0))]), shear: v.pipe(finite, v.minValue(0), v.maxValue(1)) }),
-}), v.check(rows => {
+}), v.check(rows => (rows.system === undefined) !== (rows.slot === undefined) && (rows.slot === undefined || rows.before.length === 0),
+  'A view program runs in one update system or one owner slot'), v.check(rows => {
   const pools = new Map(rows.pools.map(pool => [pool.id, pool.count]));
   const refs = [...rows.channels, ...rows.transforms].flatMap(row => 'object' in row && typeof row.object === 'object' ? [row.object] : 'pool' in row ? [row] : []);
   return pools.size === rows.pools.length && rows.samples.every(row => row.kind !== 'pool' || pools.has(row.pool))

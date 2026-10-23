@@ -1,11 +1,12 @@
 /**
  * G600 L7: a declared view program (client plan `view.program`, format/viewProgram) on its entered world. It admits the
  * module's v2 view contract, lends the program its world (player, camera, registry floors), the entered objects its rows
- * name (entry-owner `object` loans) and the lent looks its channels write, and runs it in its rows' update system.
+ * name (entry-owner `object` loans) and the lent looks its channels write, and runs it in its rows' update system, or
+ * inline in its owner's update where the owner calls the frame slot it lends (rows `slot`).
  */
 import { admitScriptV2 } from '@wildshard/format/scriptAdmissionV2';
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
-import { viewProgram, type ViewSlots, type ViewTell } from '@wildshard/engine/script/viewProgram';
+import { viewProgram, type ViewProgram, type ViewSlots, type ViewTell } from '@wildshard/engine/script/viewProgram';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { speciesViewSlots } from '../population/speciesViewSlots';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -15,25 +16,25 @@ import { setLentParam } from './lentLooks';
 
 const lentSlots = new WeakMap<Scope, Map<string, ViewSlots>>(), lentValues = new WeakMap<Scope, Map<string, (field: string) => number>>();
 const lentCells = new WeakMap<Scope, Map<string, { value: number }>>(), lentTells = new WeakMap<Scope, Map<string, ViewTell>>();
-/** An owner lends a native group's ordered actor slots to its scope's view programs (pools name the group). */
-export function lendViewSlots(scope: Scope, group: string, slots: ViewSlots): void {
-  let book = lentSlots.get(scope); if (book === undefined) { book = new Map(); lentSlots.set(scope, book); }
-  if (book.has(group) || scope.disposed || scope.disposing) throw new Error(`View slots cannot be lent: ${group}`);
-  const held = book; held.set(group, slots); scope.onDispose(() => { held.delete(group); });
-}
-
-/** An owner lends a numeric snapshot (named finite fields, read once a frame and never written back) to its scope's view programs. */
-export function lendViewValues(scope: Scope, source: string, read: (field: string) => number): void {
-  let book = lentValues.get(scope); if (book === undefined) { book = new Map(); lentValues.set(scope, book); }
-  if (book.has(source) || scope.disposed || scope.disposing) throw new Error(`View values cannot be lent: ${source}`);
-  const held = book; held.set(source, read); scope.onDispose(() => { held.delete(source); });
-}
-
+/** an owner's inline frame slot: the program its rows install there (built once the owner lends it) */
+interface FrameSlot { build: (() => ViewProgram | null) | null; program: ViewProgram | null }
+const lentFrames = new WeakMap<Scope, Map<string, FrameSlot>>(), installedFrames = new WeakMap<Scope, Map<string, () => ViewProgram | null>>();
 /** One lender book a scope: lend `value` as `id` for the scope's life (refused twice or once the scope is leaving). */
 function lend<T>(books: WeakMap<Scope, Map<string, T>>, scope: Scope, id: string, value: T, what: string): void {
   let book = books.get(scope); if (book === undefined) { book = new Map(); books.set(scope, book); }
   if (book.has(id) || scope.disposed || scope.disposing) throw new Error(`View ${what} cannot be lent: ${id}`);
   const held = book; held.set(id, value); scope.onDispose(() => { held.delete(id); });
+}
+/** An owner lends a native group's ordered actor slots to its scope's view programs (pools name the group). */
+export function lendViewSlots(scope: Scope, group: string, slots: ViewSlots): void { lend(lentSlots, scope, group, slots, 'slots'); }
+/** An owner lends a numeric snapshot (named finite fields, read once a frame and never written back) to its scope's view programs. */
+export function lendViewValues(scope: Scope, source: string, read: (field: string) => number): void { lend(lentValues, scope, source, read, 'values'); }
+/** An owner lends its inline frame slot, after the values, cells and tells the slot's program samples and writes: the
+ * program builds now (or when it installs, if later) and runs only where the owner calls `frame` in its own update. */
+export function lendViewFrame(scope: Scope, id: string): { frame: (dt: number, time: number) => void } {
+  const slot: FrameSlot = { build: installedFrames.get(scope)?.get(id) ?? null, program: null };
+  lend(lentFrames, scope, id, slot, 'frame'); slot.program = slot.build?.() ?? null;
+  return { frame: (dt, time) => { slot.program?.frame(dt, time); } };
 }
 /** An owner lends a numeric cell its scope's view programs write (`cell` channels); it reads the cell after their frame. */
 export function lendViewCell(scope: Scope, id: string, cell: { value: number }): void { lend(lentCells, scope, id, cell, 'cell'); }
@@ -57,11 +58,18 @@ export function installViewProgram(ctx: ShardContext, row: Extract<ClientFeature
     }
     return slots;
   };
-  const program = viewProgram(bytes, row.rows, { scope: ctx.scope, player: world.player, camera: world.game.camera,
+  const build = (): ViewProgram | null => viewProgram(bytes, row.rows, { scope: ctx.scope, player: world.player, camera: world.game.camera,
     floor: piece => { const found = world.registry.get(piece); return found === undefined ? null : (x, z) => found.floor?.(x, z); },
     slots: group => lentSlots.get(ctx.scope)?.get(group) ?? speciesPool(group), values: source => lentValues.get(ctx.scope)?.get(source) ?? null, object: id => entryOwner(ctx.scope, 'object', id),
     cell: id => { const cell = lentCells.get(ctx.scope)?.get(id); if (cell === undefined) throw new Error(`View cell ${id} is not lent`); return cell; },
     tell: id => { const tell = lentTells.get(ctx.scope)?.get(id); if (tell === undefined) throw new Error(`View tell ${id} is not lent`); return tell; }, look: (look, param, value) => { setLentParam(look, param, value); } });
-  if (program === null) return;
-  ctx.system({ id: row.rows.system, phase: 'update', before: [...row.rows.before], run: (dt, time) => { program.frame(dt, time); } });
+  const { system, slot } = row.rows;
+  if (slot !== undefined) {
+    lend(installedFrames, ctx.scope, slot, build, 'frame program');
+    const lent = lentFrames.get(ctx.scope)?.get(slot); if (lent !== undefined) { lent.build = build; lent.program = build(); }
+    return;
+  }
+  const program = build();
+  if (program === null || system === undefined) return;
+  ctx.system({ id: system, phase: 'update', before: [...row.rows.before], run: (dt, time) => { program.frame(dt, time); } });
 }
