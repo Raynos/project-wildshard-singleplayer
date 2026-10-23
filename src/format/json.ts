@@ -45,11 +45,13 @@ function boundedJsonData(value: unknown, separateSchemas: boolean): boolean {
 }
 
 /**
- * Any token that may decode to -0 (a negative zero, or a negative number underflowing through a 3-digit negative exponent)
- * or to ±Infinity (a 2-digit positive exponent, or a run of 100 digits): conservative, so a match only means the reviver
- * checks the parse (a string holding such text matches too, and costs only that).
+ * Any number token that may decode to -0 (a negative zero, or a negative number underflowing through a 3-digit negative
+ * exponent) or to ±Infinity (a 2-digit positive exponent, or a run of 100 digits): conservative, so a match only means the
+ * reviver checks the parse. A number token always follows `:`, `[`, `,` or whitespace, so text inside a string matches
+ * only after one of those (G639: base64 such as `e12` sent every file carrying it through the reviver, ~50 ms of a Nalati
+ * entry frame).
  */
-const MAYBE_NOT_CANONICAL = /-0(?:\.0*)?(?:[eE][+-]?\d+)?(?![\d.])|[eE]\+?\d{2}|[eE]-\d{3}|\d{100}/u;
+const MAYBE_NOT_CANONICAL = /(?<=[:[,\s])(?:-0(?:\.0*)?(?:[eE][+-]?\d+)?(?![\d.])|-?\d+(?:\.\d+)?[eE]\+?\d{2}|-?\d+(?:\.\d+)?[eE]-\d{3}|-?\d{100})/u;
 /** Decode an already byte-bounded named payload. JSON.parse supplies only plain
  * data; reject the numeric values JSON can decode but cannot preserve. The
  * defining schema owns the payload's shape and bounds, without a new node cap. */
