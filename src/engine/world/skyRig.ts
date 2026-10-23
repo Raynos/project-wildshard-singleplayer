@@ -242,6 +242,8 @@ export class SkyRig {
    * and drawn under, every other layer, at its weight's share of what they leave (`applyLayers`). Null before the sky is
    * built.
    */
+  /** The attached, live backdrop layers (a grid's resident cells' skies), for a warm-up of their domes (`Game.warmSkyLayers`). */
+  attachedLayers(): BackdropLayer[] { return [...this.layers].filter((layer) => { const state = layer.state(); return state.attached && !state.disposed; }); }
   layerBackdrop(options: { readonly air?: () => THREE.Fog | null; readonly owner?: Scope; readonly base?: boolean; readonly origin?: () => THREE.Vector3; readonly environment?: LayerEnvironmentOnly } = {}): BackdropLayer | null {
     const targets = this.targets;
     if (targets === null) return null;

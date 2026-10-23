@@ -110,6 +110,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     eye: () => ({ x: game.camera.position.x - player.position.x, z: game.camera.position.z - player.position.z }),
     prepareTile: (tile) => game.warmSceneRoots([tile.group], () => !tile.scope.disposed),
     prepareView: (root, current) => game.warmSceneRoots([root], () => !game.levelScope.disposed && current()),
+    prepareSkyLayers: () => game.warmSkyLayers(),
     ...(ctx.session.residency === undefined ? {} : { residency: ctx.session.residency }),
     onFixed: (fn) => { game.onFixed('post', fn, 'game.grid.session'); },
     frame: { prepareDisplay: pass => game.preparePostPass(pass), scene: game.rootScene, camera: game.camera, composer: () => game.composer, post: () => game.post, sunDir: () => game.sky.sunDir, cinematic: () => game.regionCinematic(), slices: () => game.depthSlices,

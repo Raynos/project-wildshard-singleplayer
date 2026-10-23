@@ -127,6 +127,8 @@ export interface GridSessionHost {
   readonly renderer?: Renderer;
   /** Prepare a streamed view while hidden; its current fence cancels work before retirement. */
   readonly prepareView?: (root: Object3D, current: () => boolean) => Promise<void>;
+  /** Prepare every attached sky layer's domes under the page's lights now (`Game.warmSkyLayers`). */
+  readonly prepareSkyLayers?: () => Promise<void>;
   /** Prepare an admitted, detached ring tile before its budgeted visible upload. */
   readonly prepareTile?: (tile: PreparedRingTile) => Promise<void>;
   /** G371: the drawn camera's horizontal offset from the feet, in the feet's frame (absent: the eye at the feet). The near
@@ -700,6 +702,9 @@ export class GridSession {
       try { await prepare(root, () => !scope.disposed && root.parent !== null); } catch (error: unknown) { console.warn('[grid] neighbour view prelink stopped', error); }
     };
     for (const root of [...this.viewRoots.values(), ...this.roadRoots]) void warm(root);
+    // the resident cells' sky domes too, under these lights (each layer was prepared under the lights it was built in)
+    const skies = this.host.prepareSkyLayers;
+    if (skies !== undefined) void (async (): Promise<void> => { try { await skies(); } catch (error: unknown) { console.warn('[grid] sky prelink stopped', error); } })();
   }
   /** G107 / SF66: a cell's admitted baked map once loaded, retaining the home's full raster size. */
   mapImage(instance: string): HTMLCanvasElement | ImageBitmap | null { return this.mapImages.image(this.assembly.cell(instance).slug); }

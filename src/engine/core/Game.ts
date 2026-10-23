@@ -728,6 +728,16 @@ export class Game {
   /** Warm an attached sky against the allocated composer's actual target before exposing it.
    * Before buildComposer, ordinary boot shader/first-frame stages own preparation; attachment
    * and its environment remain valid without reading the not-yet-created composer. */
+  /** G639 frame floor: every attached sky layer's domes under the page's lights now (a grid crossing's settled lighting, a
+   *  new cell PMREM): a layer prepared under another cell's lights linked its dome again on the road (Pine's sky dome, a
+   *  524 ms desktop link at its first road frame). No shader change: the same programs, keyed by the lights they draw under. */
+  async warmSkyLayers(): Promise<void> {
+    if (this._sky === null) return;
+    for (const layer of this._sky.attachedLayers()) {
+      try { await this.warmSkyLayer(layer); } catch (error: unknown) { console.warn('[sky] layer warm-up stopped', error); }
+    }
+  }
+
   async warmSkyLayer(layer: Pick<BackdropLayer, 'prepare'>): Promise<void> {
     const composer = this._composer;
     if (composer === null) return;
