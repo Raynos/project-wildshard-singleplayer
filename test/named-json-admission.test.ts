@@ -2,6 +2,8 @@ import { expect, test } from 'vitest';
 import { isJsonData, isJsonDataWithFileSchemas } from '../src/format/json';
 import { nameBlob } from '../src/sdk/blobs';
 import { validateNamedJsonSchema, validateNamedJsonSchemaPaced } from '../src/game/shardfile/customSchema';
+import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { emptyShardfile } from '@wildshard/sdk/author';
 
 const jsonSchema = { $schema: 'http://json-schema.org/draft-07/schema#', type: 'array', maxItems: 20000,
   items: { type: 'array', minItems: 10, maxItems: 10, items: { type: 'number' } } };
@@ -42,4 +44,21 @@ test('each inline schema keeps the existing independent plain-JSON cap', () => {
   expect(isJsonDataWithFileSchemas({ files: [{ jsonSchema: { ...schema, extra: schema } }] })).toBe(false);
   const accessor = { files: [{ get jsonSchema() { throw new Error('Getter must not run'); } }] };
   expect(isJsonDataWithFileSchemas(accessor)).toBe(false);
+});
+
+test("a first-party build's named JSON parses without its schema; an external product's validates", async () => {
+  const schema = { ...jsonSchema, maxItems: 2 }, good = [Array.from({ length: 10 }, () => 1)], bad = [[1]];
+  const identity = { slug: 'named-built', name: 'Named built', author: 'Wildshard', revision: 1, seed: 1 };
+  const product = (value: unknown, builtJson: boolean) => createShardProduct({ slug: identity.slug, revision: 1, shardfile: emptyShardfile(identity),
+    sections: new Map(), files: new Map([['data/rows.json', { hash: 'a'.repeat(64), url: 'https://example.test/rows', jsonSchema: schema }]]),
+    read: () => Promise.resolve(encode(value)), builtJson });
+  // the build refuses malformed rows before they reach a product
+  expect(() => nameBlob('data/rows.json', 'json', encode(bad), { jsonSchema: schema })).toThrow('refuses its schema');
+  expect(await product(good, true).json('data/rows.json')).toEqual(good);
+  expect(await product(good, false).json('data/rows.json')).toEqual(good);
+  await expect(product(bad, false).json('data/rows.json')).rejects.toThrow('refuses its schema');
+  // a built read still refuses bytes that are not canonical JSON
+  await expect(createShardProduct({ slug: identity.slug, revision: 1, shardfile: emptyShardfile(identity), sections: new Map(),
+    files: new Map([['data/rows.json', { hash: 'a'.repeat(64), url: 'https://example.test/rows', jsonSchema: schema }]]),
+    read: () => Promise.resolve(new TextEncoder().encode('[[-0]]')), builtJson: true }).json('data/rows.json')).rejects.toThrow('canonical numbers');
 });

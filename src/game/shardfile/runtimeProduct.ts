@@ -224,7 +224,7 @@ export function shardProductFromAdmission(admitted: AdmittedProduct, scope: Scop
     product = shardProductData(admitted.source, opts.base, ref => {
       const present = admitted.assets.get(ref);
       return present === undefined ? reader.read(ref) : pacedResolve(present);
-    }, outputDescriptor(admitted.source)?.receipt === undefined);
+    }, outputDescriptor(admitted.source)?.receipt === undefined, opts.firstParty);
     admittedProducts.set(admitted.source.files, product);
   }
   const release = opts.cache?.pin?.(outputDescriptor(admitted.source)?.index.sections.map(section => section.hash) ?? []);
