@@ -53,7 +53,9 @@ function holder(path, pid, slot) {
     try { return execFileSync('ps', ['-p', String(pid), '-o', `${field}=`], { encoding: 'utf8' }).trim(); }
     catch { return 'unavailable'; }
   };
-  return `slot=${slot} pid=${pid === 0 ? 'unavailable' : pid} command=${JSON.stringify(details?.command ?? (pid ? inspect('command') : 'unavailable'))} start=${details?.startedAt ?? (pid ? inspect('lstart') : 'unavailable')}`;
+  const started = details?.startedAt ?? (pid ? inspect('lstart') : 'unavailable');
+  const elapsed = Date.now() - Date.parse(started);
+  return `slot=${slot} pid=${pid === 0 ? 'unavailable' : pid} lane=${details?.lane ?? 'unknown'} age=${Number.isFinite(elapsed) ? `${Math.max(0, elapsed / 1000).toFixed(1)}s` : 'unavailable'} command=${JSON.stringify(details?.command ?? (pid ? inspect('command') : 'unavailable'))} start=${started}`;
 }
 
 function acquire(root, slots) {
@@ -61,7 +63,7 @@ function acquire(root, slots) {
   const queueDir = join(root, `${slots.length > 1 ? 'checks' : slots[0]}.queue`);
   mkdirSync(queueDir, { recursive: true });
   const ticket = `${String(Date.now()).padStart(15, '0')}-${process.pid}`;
-  const details = { pid: process.pid, command: process.argv.join(' '), startedAt: new Date().toISOString() };
+  const details = { pid: process.pid, command: process.argv.join(' '), startedAt: new Date().toISOString(), lane: process.env.SERVE_OWNER ?? process.env.HERDR_PANE_ID ?? process.env.CLAUDE_CODE_SESSION_ID ?? process.env.CODEX_SESSION_ID ?? 'unknown' };
   writeFileSync(join(queueDir, ticket), JSON.stringify(details));
   const leave = () => { rmSync(join(queueDir, ticket), { force: true }); process.removeListener('exit', leave); };
   process.once('exit', leave);

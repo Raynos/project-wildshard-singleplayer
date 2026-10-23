@@ -15,9 +15,9 @@ import sys
 import time
 import uuid
 
-# G568: two app-build slots; pre-push never acquires a build lease.
+# G620: three app-build slots; pre-push never acquires a build lease.
 # Keep the original build lock as slot one so running old wrappers remain accounted for.
-BUILD_SLOTS = ('build', 'build-2')
+BUILD_SLOTS = ('build', 'build-2', 'build-3')
 RESOURCES = {'full-test': ('full-test',), 'build': ('build',), 'check': ('full-test', 'build')}
 LANES = ('full-test', *BUILD_SLOTS)
 WAIT_SECONDS = 5 * 60
@@ -34,7 +34,9 @@ def holder(resource, entry):
             pass
     if isinstance(started, (int, float)):
         started = datetime.fromtimestamp(started, timezone.utc).isoformat()
-    return 'slot=%s pid=%s command=%s start=%s' % (resource, pid, json.dumps(command), started or 'unavailable')
+    age = entry.get('startedAt', entry.get('queuedAt'))
+    age = '%.1fs' % max(0, time.time() - age) if isinstance(age, (int, float)) else 'unavailable'
+    return 'slot=%s pid=%s lane=%s age=%s command=%s start=%s' % (resource, pid, entry.get('lane', 'unknown'), age, json.dumps(command), started or 'unavailable')
 
 
 def read_entry(path):
@@ -368,7 +370,8 @@ def main():
     token = uuid.uuid4().hex
     entry = {'token': token, 'pid': os.getpid(), 'runnerPid': os.getpid(), 'childPid': None,
              'resources': resources, 'priority': 1,
-             'cwd': os.getcwd(), 'command': command, 'queuedAt': time.time()}
+             'cwd': os.getcwd(), 'command': command, 'queuedAt': time.time(),
+             'lane': os.environ.get('SERVE_OWNER') or os.environ.get('HERDR_PANE_ID') or os.environ.get('CLAUDE_CODE_SESSION_ID') or os.environ.get('CODEX_SESSION_ID') or 'unknown'}
     held, child, started, load, code = None, None, None, None, 130
     deadline = time.monotonic() + WAIT_SECONDS
     def interrupted(_signal, _frame):

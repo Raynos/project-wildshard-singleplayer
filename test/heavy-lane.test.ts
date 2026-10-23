@@ -2,9 +2,14 @@ import { expect, test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise real flock leases in an isolated owned fixture.
 import { execFileSync, spawnSync } from 'node:child_process';
 
+test('shared preview ports, pinned builds and caller releases retain their leases', () => {
+  const result = spawnSync('python3', ['scripts/test_serve_ports.py'], { encoding: 'utf8', timeout: 45000 });
+  expect(result.status, result.stderr).toBe(0);
+}, 50000);
+
 test('queue and scheduler deadlines name holders without launching or taking their locks', () => {
   const result = execFileSync('python3', ['-c', `
-import fcntl, importlib.util, json, os, pathlib, subprocess, sys, tempfile, time
+import contextlib, fcntl, importlib.util, json, os, pathlib, subprocess, sys, tempfile, time
 sys.path.insert(0, str(pathlib.Path('scripts').resolve()))
 spec = importlib.util.spec_from_file_location('heavy_lane', 'scripts/heavy-lane.py')
 module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
@@ -13,6 +18,7 @@ module.WAIT_SECONDS = .02
 with tempfile.TemporaryDirectory(prefix='deadline-test-', dir='tmp') as temporary:
  root = pathlib.Path(temporary).resolve()
  owner = {'pid':os.getpid(), 'command':['node','owned-build.mjs'], 'startedAt':time.time()}
+ owner['lane'] = 'fixture-lane'
  with (root/'scheduler.lock').open('w+') as lock:
   json.dump(owner,lock); lock.flush(); fcntl.flock(lock,fcntl.LOCK_EX)
   started = time.monotonic()
@@ -20,7 +26,7 @@ with tempfile.TemporaryDirectory(prefix='deadline-test-', dir='tmp') as temporar
    with module.scheduler(root): raise AssertionError('stole scheduler lock')
   except TimeoutError as error:
    message = str(error)
-   assert all(value in message for value in ('5 min','slot=scheduler','pid='+str(os.getpid()),'owned-build.mjs','start=20')), message
+   assert all(value in message for value in ('5 min','slot=scheduler','pid='+str(os.getpid()),'owned-build.mjs','start=20','lane=fixture-lane','age=')), message
   assert time.monotonic()-started < 1
  # Main exercises the actual FIFO/resource admission and its ticket cleanup.
  (root/'queue.json').write_text(json.dumps({'next':1,'queue':[dict(owner,token='older',ticket=0,resources=['build'],priority=1,queuedAt=time.time())]}))
@@ -34,11 +40,12 @@ with tempfile.TemporaryDirectory(prefix='deadline-test-', dir='tmp') as temporar
   queue = json.loads((root/'queue.json').read_text())['queue']
   assert len(queue)==1 and queue[0]['token']=='older', queue
   (root/'queue.json').write_text(json.dumps({'next':1,'queue':[]}))
-  with (root/'build.lock').open('a+') as first, (root/'build-2.lock').open('a+') as second:
-   for lock in (first,second): fcntl.flock(lock,fcntl.LOCK_EX)
+  with contextlib.ExitStack() as stack:
+   locks = [stack.enter_context((root/(slot+'.lock')).open('a+')) for slot in module.BUILD_SLOTS]
+   for lock in locks: fcntl.flock(lock,fcntl.LOCK_EX)
    assert module.main() == 124
    assert json.loads((root/'queue.json').read_text())['queue'] == []
-   for lock in (first,second): fcntl.flock(lock,fcntl.LOCK_EX | fcntl.LOCK_NB)
+   for lock in locks: fcntl.flock(lock,fcntl.LOCK_EX | fcntl.LOCK_NB)
  finally:
   os.environ.clear(); os.environ.update(saved_env)
 print(json.dumps(True))
@@ -51,7 +58,7 @@ test('two checks waiting on a mirror leave build capacity for its preview', () =
   expect(result.status, result.stderr).toBe(0);
 }, 30000);
 
-test('two build slots queue FIFO, inherit leases and report one day', () => {
+test('three build slots queue FIFO, inherit leases and report one day', () => {
   const result = execFileSync('python3', ['-c', `
 import json, os, pathlib, subprocess, sys, tempfile, time
 repo = pathlib.Path.cwd()
@@ -71,6 +78,10 @@ with tempfile.TemporaryDirectory(prefix='capacity-test-', dir=repo / 'tmp') as t
  def wait_for(predicate):
   deadline = time.monotonic() + 6
   while not predicate():
+   for process in processes:
+    if process.poll() not in (None, 0):
+     out, err = process.communicate()
+     raise AssertionError((process.returncode, out, err))
    if time.monotonic() > deadline:
     raise TimeoutError('fixture synchronization')
    time.sleep(.01)
@@ -82,20 +93,21 @@ with tempfile.TemporaryDirectory(prefix='capacity-test-', dir=repo / 'tmp') as t
   b = launch('build', 'b'); wait_for(lambda: (root/'b.started').exists())
   copied = dict(env, WS_HEAVY_TOKEN=json.loads((root/'build-2.active.json').read_text())['token'])
   assert subprocess.run(['node','--input-type=module','-e',guard], env=copied, capture_output=True).returncode != 0
-  c = launch('build', 'c'); wait_for(lambda: queue_size(1))
-  gate = launch('build', 'd'); wait_for(lambda: queue_size(2))
-  assert not (root/'c.started').exists() and not (root/'d.started').exists()
-  (root/'a.release').touch(); wait_for(lambda: (root/'c.started').exists())
-  assert not (root/'d.started').exists()
+  c = launch('build', 'c'); wait_for(lambda: (root/'c.started').exists())
+  d = launch('build', 'd'); wait_for(lambda: queue_size(1))
+  e = launch('build', 'e'); wait_for(lambda: queue_size(2))
+  assert not (root/'d.started').exists() and not (root/'e.started').exists()
+  (root/'a.release').touch(); wait_for(lambda: (root/'d.started').exists())
+  assert not (root/'e.started').exists()
   state = json.loads(subprocess.check_output([sys.executable,wrapper,'status'], env=env))
-  assert len([entry for entry in state['active'] if entry['resource'] in ('build','build-2')]) == 2
-  (root/'c.release').touch(); wait_for(lambda: (root/'d.started').exists())
-  (root/'b.release').touch(); (root/'d.release').touch()
+  assert len([entry for entry in state['active'] if entry['resource'] in ('build','build-2','build-3')]) == 3
+  (root/'c.release').touch(); wait_for(lambda: (root/'e.started').exists())
+  (root/'b.release').touch(); (root/'d.release').touch(); (root/'e.release').touch()
   for process in processes:
    out, err = process.communicate(timeout=6)
    assert process.returncode == 0, (out, err)
   records = [json.loads(line) for line in (root/'build-day.log').read_text().splitlines()]
-  assert records[0]['schema'] == 'build-day/1' and len(records) == 5
+  assert records[0]['schema'] == 'build-day/1' and len(records) == 6
   assert all(row['buildSeconds'] > 0 and row['queueSeconds'] >= 0 and len(row['loadStart']) == 3 for row in records[1:])
   assert max(row['queueSeconds'] for row in records[1:]) > 0
   nested = subprocess.run([sys.executable,wrapper,'build','--',sys.executable,wrapper,'build','--','node','--input-type=module','-e',guard],env=env,capture_output=True,text=True)

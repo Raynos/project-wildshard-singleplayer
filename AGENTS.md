@@ -115,7 +115,7 @@ file in `docs/` is: [docs/README.md](docs/README.md).
   capture as "iPhone 16 Pro".
 - **No vite dev servers**: `scripts/serve-build.sh`, started from your scratchpad. **One iOS Simulator**, through
   `scripts/sim-lane.sh`. **One local model at a time**, under the model lock.
-- **One full suite and up to two app builds machine-wide** (Jake, 2026-10-20, G547): use `python3 scripts/heavy-lane.py full-test|build -- <command>`; the push gate has queue priority, focused tests are unrestricted. Lanes never run the full suite: `full-test` refuses outside CI without `WS_FULL_SUITE=1` (SF74 W1).
+- **One full suite and up to three app builds machine-wide** (Jake, G620): use `python3 scripts/heavy-lane.py full-test|build -- <command>`; the push gate has queue priority, focused tests are unrestricted. Lanes never run the full suite: `full-test` refuses outside CI without `WS_FULL_SUITE=1` (SF74 W1). Pinned HEAD previews share one server per SHA across lanes; release your use with `serve-build.sh stop <port>`.
 - **Clean your scratchpad**: delete throwaways as soon as you have the result; never rename aside. What you keep goes in
   the repo.
 - **Disk: never copy the repo.** No `git archive | tar -x` exports, clones or worktrees. An exact-commit build or check runs

@@ -29,10 +29,10 @@ Each open game tab costs ~1.5 cores and ~1 GB for as long as it is open.
   when Jake asks for it (~3 cores per page). No `--disable-frame-rate-limit`. One Android emulator at a time, killed
   when the run ends.
 
-## One full suite and two app builds machine-wide (G547)
+## One full suite and three app builds machine-wide (G620)
 
 Ten simultaneous full suites pushed machine load above 150 and timed out real worker proofs. Python 3 and `flock`
-now provide one full-test lease and two shared app-build leases:
+now provide one full-test lease and three shared app-build leases (Jake, G620 supersedes G547's two):
 
 - `python3 scripts/heavy-lane.py full-test -- pnpm exec vitest run` (coverage and sharded full runs also take this lane).
   **Lanes don't run full suites** (SF74 W1): `full-test` and `check` (so `pnpm test`, `pnpm test:coverage`) refuse
@@ -56,7 +56,7 @@ self-managed serve commands. A nested or unknown shell wrapper that tries to ent
 heavy lease refuses before joining the slot queue. Release the outer lease and put heavy-lane inside build-mirror
 instead; no build capacity may be held while waiting for a mirror.
 
-The push gate has its **own `push-gate` lease** and consumes one of the two build slots (G547).
+The push gate has its **own `push-gate` lease** and consumes one of the three build slots (G620).
 One gate runs at a time and takes the next free build slot ahead of queued ordinary builds. Its descendants reuse
 the lease. Running older wrappers keep their original locks; an older gate reserves one build slot during migration.
 Each child receives a private legacy marker view in `WS_HEAVY_ROOT`; the shared queue remains in
@@ -107,11 +107,18 @@ sleeps, a `for` loop sleeping over 60 s in total and a bare `sleep` over 60 s (a
 Serve a build: `scripts/serve-build.sh [--head | --rev <sha>] [--shard <slug>] [--hours <h>] [--name <label>]` prints the
 URL; `scripts/serve-build.sh stop <port>` when done. `pnpm dev` runs it too. The hook blocks `vite` dev. The reaper stops a
 preview past its `--hours` (default 4), an unregistered one after 6 h and any dev server after 2 h.
+- **One pinned preview per SHA across lanes (G620).** `--head`/`--rev` resolve the full commit before queueing;
+  concurrent requests build once, then verify the registry and exact `/version.json` before sharing the URL.
+  The first request builds **all products**, so every later `--shard` subset shares it. The first request fixes the mode;
+  an incompatible mode fails clearly instead of serving different bytes under the same SHA. Every caller owns a use;
+  `stop <port>` / `stop all-mine` releases only that caller's use, and the last release stops it. Finish each sample and
+  release immediately. A shared-preview wait fails once after five minutes, naming lane, slot, PID, command, start and age.
 - **Proofs take the fast path by default** (Jake 2026-10-15, *"make each proof quick and cheap"*): `serve-build.sh` runs
   `gen.mjs --proof` (no derived docs, parallel generation) and `build-shardfiles.mjs --reuse`: a shard whose inputs are
   unchanged reuses its product, by content key, from the slot or the shared cache `~/.cache/wildshard/shardfiles`
   (`scripts/shardfile-cache.mjs`; the push gate's full build publishes every shard it builds there). `--shard <slug>`
-  builds only that shard's product (others stay only if still current, never stale); `--full` is the old full rebuild.
+  filters a working-tree build's products (others stay only if still current, never stale); pinned previews always build
+  all products for sharing. `--full` is the old full rebuild.
   A proof without a server: `node scripts/build-mirror.mjs run HEAD -- pnpm build:proof`. The push gate and CI still run
   the full `pnpm build`. The build log prints per-step seconds.
 - **Start previews from your session scratchpad, not the repo root.** Its "all mine" eviction keys on the caller's

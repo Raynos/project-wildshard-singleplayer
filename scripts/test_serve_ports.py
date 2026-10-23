@@ -1,5 +1,6 @@
 """Bash 3 preview reservation and post-build port conflict regressions."""
 import os
+import json
 from pathlib import Path
 import re
 import shutil
@@ -92,6 +93,12 @@ class PreviewTests(unittest.TestCase):
         source = Path(os.environ.get('X15_TEST_SCRIPT', ROOT / 'scripts/serve-build.sh'))
         shutil.copyfile(source, self.root / 'scripts/serve-build.sh')
         shutil.copyfile(HELPER, self.root / 'scripts/serve-port-lease.py')
+        shutil.copyfile(ROOT / 'scripts/serve-shared-preview.py', self.root / 'scripts/serve-shared-preview.py')
+        subprocess.run(['git', 'init', '-q', str(self.root)], check=True)
+        (self.root / 'source').write_text('pinned fixture')
+        subprocess.run(['git', '-C', str(self.root), 'add', 'source'], check=True)
+        subprocess.run(['git', '-C', str(self.root), '-c', 'user.name=fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'fixture'], check=True)
+        self.sha = subprocess.check_output(['git', '-C', str(self.root), 'rev-parse', 'HEAD'], text=True).strip()
         self.bin = self.root / 'bin'
         self.bin.mkdir()
         # Only generator/build work is stubbed. Bash, Node's detached spawn,
@@ -108,6 +115,8 @@ os.execv({sys.executable!r}, [{sys.executable!r}, *sys.argv[1:]])
         self.command('node', f'''#!{sys.executable}
 import os,sys
 if sys.argv[1] in ('scripts/gen.mjs','scripts/build-shardfiles.mjs'):
+    if os.environ.get('SERVE_SHARED_SHA') and sys.argv[1]=='scripts/build-shardfiles.mjs':
+        assert not any(arg.startswith('--shard') for arg in sys.argv), sys.argv
     sys.exit(0)
 if sys.argv[1].endswith('/build-mirror.mjs'):
     import pathlib
@@ -122,7 +131,7 @@ if sys.argv[1].endswith('/build-mirror.mjs'):
 os.execv({node!r}, [{node!r}, *sys.argv[1:]])
 ''')
         self.command('pnpm', f'''#!{sys.executable}
-import http.server,os,pathlib,re,sys,time
+import http.server,json,os,pathlib,re,sys,time
 args=sys.argv[1:]
 root=pathlib.Path(os.environ['FIXTURE_ROOT'])
 if args[:3] == ['exec','vite','build']:
@@ -130,6 +139,7 @@ if args[:3] == ['exec','vite','build']:
     out=pathlib.Path(re.search(r"outDir: '([^']+)'",config)[1])
     out.mkdir(parents=True)
     (out/'index.html').write_text('finished dist')
+    (out/'version.json').write_text(json.dumps({{'build':os.environ.get('SERVE_SHARED_SHA','working')[:7]+'-fixture'}}))
     with (root/'build-count').open('a') as f: f.write('build\\n')
     (root/'building').touch()
     while (root/'hold-build').exists(): time.sleep(0.02)
@@ -183,9 +193,9 @@ else:
                     connection.close()
         self.fail('No adjacent test ports')
 
-    def launch(self, port, *extra):
+    def launch(self, port, *extra, owner=None):
         process = subprocess.Popen(['/bin/bash', str(self.root / 'scripts/serve-build.sh'), '--port', str(port), *extra],
-            env=self.env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            env={**self.env, **({'SERVE_OWNER':owner} if owner else {})}, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         self.launches.append(process)
         return process
 
@@ -266,6 +276,79 @@ else:
         second_port, _, _ = self.finish(second)
         self.assertNotEqual(first_port, second_port)
         self.assertEqual(len((self.root / 'build-count').read_text().splitlines()), 2)
+
+    def test_pinned_lanes_share_one_build_and_release_only_their_use(self):
+        port = self.port()
+        first = self.launch(port, '--head', owner='lane-a')
+        second = self.launch(port + 1, '--rev', self.sha, owner='lane-b')
+        first_port, row, _ = self.finish(first)
+        second_port, _, _ = self.finish(second)
+        self.assertEqual(first_port, second_port)
+        self.assertEqual((self.root / 'build-count').read_text().splitlines(), ['build'])
+        subset_port, _, _ = self.finish(self.launch(port + 2, '--head', '--shard', 'fixture-a', owner='lane-b'))
+        self.assertEqual(subset_port, first_port)
+        state = json.loads((self.root / f'registry/.shared/{self.sha}.json').read_text())
+        self.assertEqual(state['owners'], ['lane-a', 'lane-b'])
+        def stop(owner, target):
+            return subprocess.run(['/bin/bash', str(self.root / 'scripts/serve-build.sh'), 'stop', target],
+                env={**self.env, 'SERVE_OWNER':owner}, capture_output=True, text=True, timeout=8)
+        foreign = stop('lane-c', str(first_port))
+        self.assertNotEqual(foreign.returncode, 0)
+        self.assertTrue(os.kill(int(row[0]), 0) is None)
+        released = stop('lane-a', 'all-mine')
+        self.assertEqual(released.returncode, 0, released.stderr)
+        self.assertIn('retained by lane-b', released.stdout)
+        self.assertTrue((self.root / f'registry/{first_port}').exists())
+        stopped = stop('lane-b', str(first_port))
+        self.assertEqual(stopped.returncode, 0, stopped.stderr)
+        self.assertFalse((self.root / f'registry/{first_port}').exists())
+        self.assertFalse((self.root / f'registry/.shared/{self.sha}.json').exists())
+
+    def test_failed_shared_build_is_not_retried_by_a_waiter(self):
+        self.env['FIXTURE_MIRROR_FAIL'] = '1'
+        first = self.launch(self.port(), '--head', owner='lane-a')
+        first.communicate(timeout=5)
+        self.assertEqual(first.returncode, 124)
+        second = self.launch(self.port(), '--head', owner='lane-b')
+        _, stderr = second.communicate(timeout=5)
+        self.assertNotEqual(second.returncode, 0)
+        self.assertIn('no automatic retry', stderr)
+        self.assertFalse((self.root / 'build-count').exists())
+
+    def test_pinned_reuse_covers_every_subset_and_refuses_wrong_mode_or_version(self):
+        port, row, _ = self.finish(self.launch(self.port(), '--head', '--shard', 'fixture-a'))
+        for extra in [('--shard', 'fixture-a'), ('--shard', 'fixture-b'), ()]:
+            reused, _, _ = self.finish(self.launch(port + 1, '--head', *extra))
+            self.assertEqual(reused, port)
+        for extra in [('--devserver', '--shard', 'fixture-a')]:
+            process = self.launch(port + 1, '--head', *extra)
+            _, stderr = process.communicate(timeout=5)
+            self.assertNotEqual(process.returncode, 0)
+            self.assertIn('incompatible mode/coverage', stderr)
+        (Path(row[2]) / 'dist/version.json').write_text('{"build":"wrong-fixture"}')
+        process = self.launch(port + 1, '--head', '--shard', 'fixture-a')
+        _, stderr = process.communicate(timeout=5)
+        self.assertNotEqual(process.returncode, 0)
+        self.assertIn('does not match pinned SHA', stderr)
+        self.assertEqual((self.root / 'build-count').read_text().splitlines(), ['build'])
+
+    def test_shared_wait_cap_names_holder_and_never_builds_again(self):
+        script = self.root / 'scripts/serve-shared-preview.py'
+        script.write_text(script.read_text().replace('WAIT_SECONDS = 300', 'WAIT_SECONDS = 1'))
+        (self.root / 'hold-build').touch()
+        first = self.launch(self.port(), '--head', owner='lane-holder')
+        deadline = time.monotonic() + 10
+        while not (self.root / 'building').exists():
+            if time.monotonic() > deadline: self.fail('Build fixture did not start')
+            time.sleep(.02)
+        second = self.launch(self.port() + 1, '--head', owner='lane-waiter')
+        _, stderr = second.communicate(timeout=5)
+        self.assertEqual(second.returncode, 124, stderr)
+        for value in ('5 min', 'lane=lane-holder', 'slot=preview:' + self.sha, 'pid=', 'age=', 'start=', 'command='):
+            self.assertIn(value, stderr)
+        self.assertEqual((self.root / 'build-count').read_text().splitlines(), ['build'])
+        (self.root / 'hold-build').unlink()
+        self.finish(first)
 
     def test_initial_busy_port_keeps_foreign_listener(self):
         port = self.port()

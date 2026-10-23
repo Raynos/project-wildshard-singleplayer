@@ -1,4 +1,4 @@
-"""Real mirror locks plus real two-slot heavy scheduling; no application builds."""
+"""Real mirror locks plus three-slot heavy scheduling; no application builds."""
 import json
 import os
 from pathlib import Path
@@ -114,6 +114,8 @@ class LeaseOrderTests(unittest.TestCase):
         self.assertIn('timed out after 5 min', err)
         for slot in ('check', 'check2', 'check3', 'check4', 'check5'):
             self.assertIn('slot=' + slot + ' pid=', err)
+        self.assertIn('lane=', err)
+        self.assertIn('age=', err)
         for process in commands:
             self.assertIn('pid=' + str(process.pid), err)
         (self.root / 'pool.go').touch()

@@ -6,7 +6,8 @@
 #        vite build → a private out dir → `vite preview` on a free port (4400–4999), detached. Prints the URL.
 #        --head   reserve preview room, then build HEAD in the shared mirror slot pool
 #        --rev    the same for any commit (a before / after pair, e.g. scripts/nine-sim-memory.mjs --rev=f9ca6490)
-#        --shard  build only these shards' products (a capture of one shard): every other shard keeps its product only
+#        --shard  filter a working-tree build; pinned HEAD/rev previews build all products for sharing (G620).
+#                 Every other shard in a working-tree build keeps its product only
 #                 while its content key still matches, else it is left out of the preview (never served stale)
 #        --full   the push gate's full rebuild (`pnpm gen` + every shardfile from scratch); default is the fast proof
 #                 build: `gen.mjs --proof` (no derived docs, parallel generation) and `build-shardfiles.mjs --reuse`
@@ -46,6 +47,13 @@ case "${1:-}" in
     for f in "$REG"/*; do
       [ -f "$f" ] || continue
       read -r pid exp out cwd name < "$f"
+      if [ "${SERVE_SHARED_STOP:-}" != 1 ] && { [ "$tgt" = "$(basename "$f")" ] || [ "$tgt" = all-mine ]; }; then
+        all_mine=0; [ "$tgt" = all-mine ] && all_mine=1
+        python3 "$REPO/scripts/serve-shared-preview.py" release "$REG" "$(basename "$f")" "$CALLER" "$all_mine" bash "$0" stop "$(basename "$f")"
+        shared_result=$?
+        [ "$shared_result" = 0 ] && continue
+        [ "$shared_result" = 3 ] || exit "$shared_result"
+      fi
       if [ "$tgt" = "$(basename "$f")" ] || { [ "$tgt" = "all-mine" ] && [ "$cwd" = "$CALLER" ]; }; then
         # New previews have PID == PGID. Retire their whole session, including pnpm/vite descendants.
         # Older registered previews share their launcher's group, so retain the legacy PID-only cleanup there.
@@ -80,6 +88,17 @@ while [ $# -gt 0 ]; do
     *) echo "serve-build.sh: unknown option $1" >&2; exit 64;;
   esac
 done
+# Resolve once before queueing. Later HEAD movement must not change a waiting
+# request's source; the mirror child receives the same full pinned SHA.
+if [ $HEAD_ONLY -eq 1 ]; then
+  REV="${SERVE_SHARED_SHA:-$(git -C "$REPO" rev-parse --verify "$REV^{commit}")}" || exit 1
+  if [ -z "${SERVE_SHARED_SHA:-}" ]; then
+    exec python3 "$REPO/scripts/serve-shared-preview.py" run "$REG" "$REV" "$MODE" "$CALLER" bash "$0" "${ARGS[@]}"
+  fi
+  # G620: the first pinned build contains every product, so every later lane's
+  # --shard subset shares it. Working-tree builds retain their explicit filter.
+  SHARDS=""
+fi
 # caps (E317 follow-up: one session held 26 previews registered for 8–12 h): --hours at most SERVE_MAX_HOURS (4), and at
 # most SERVE_MAX_LIVE (12) previews machine-wide. Over it: this caller's own oldest preview is stopped to make room; else
 # another's, but only one older than SERVE_RECYCLE_MIN (60) minutes — a preview someone is capturing on right now is never
@@ -182,6 +201,8 @@ while :; do
     read -r pid exp out cwd name < "$f"
     kill -0 "$pid" 2>/dev/null || { rm -f "$f"; continue; }
     n_live=$((n_live + 1))
+    # Shared previews retire on their last release, never during another lane's sample.
+    [ -f "$out/.shared-preview" ] && continue
     if [ "$cwd" = "$CALLER" ]; then
       if [ -z "$mine_exp" ] || [ "$exp" -lt "$mine_exp" ]; then mine="$(basename "$f")"; mine_exp="$exp"; fi
     else
@@ -202,7 +223,7 @@ while :; do
     for f in "$REG"/*; do
       [ -f "$f" ] || continue
       read -r pid exp out cwd name < "$f"
-      printf 'slot=preview:%s pid=%s owner=%s name=%s ' "$(basename "$f")" "$pid" "$cwd" "$name" >&2
+      printf 'slot=preview:%s pid=%s lane=%s age=%smin name=%s ' "$(basename "$f")" "$pid" "$cwd" "$(age_min "$pid")" "$name" >&2
       ps -p "$pid" -o command= -o lstart= >&2
     done
     exit 124

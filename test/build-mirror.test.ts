@@ -34,7 +34,7 @@ it('caps live slot and FIFO waits at five minutes, names holders and removes its
     const clock = vi.spyOn(Date, 'now').mockReturnValueOnce(now).mockReturnValueOnce(now).mockReturnValue(now + 300_000);
     try {
       expect(() => openMirror('HEAD', { repo, env })).toThrow(
-        new RegExp(`after 5 min.*slot=check pid=${pid} command="node owned-build.mjs" start=2026-10-22T15:00:00Z.*slot=check2.*slot=check3.*slot=check4.*slot=check5${queued ? '.*queue head' : ''}`, 'u'),
+        new RegExp(`after 5 min.*slot=check pid=${pid} lane=unknown age=[0-9.]+s command="node owned-build.mjs" start=2026-10-22T15:00:00Z.*slot=check2.*slot=check3.*slot=check4.*slot=check5${queued ? '.*queue head' : ''}`, 'u'),
       );
       expect(readdirSync(queue)).toEqual(queued ? [first] : []);
       expect(readFileSync(join(lock, 'owner'), 'utf8')).toBe(String(pid));

@@ -11,8 +11,8 @@ export function assertHeavyLease(resource, env = process.env) {
   const root = env.WS_HEAVY_ROOT ?? join(homedir(), '.wildshard-heavy-lanes');
   /** @type {unknown} */
   let lease;
-  // A build can own either physical build slot.
-  for (const slot of resource === 'build' ? ['build', 'build-2'] : [resource]) {
+  // A build can own any of the three physical build slots.
+  for (const slot of resource === 'build' ? ['build', 'build-2', 'build-3'] : [resource]) {
     try { lease = JSON.parse(readFileSync(join(root, `${slot}.active.json`), 'utf8')); } catch { continue; }
     if (lease !== null && typeof lease === 'object' && 'token' in lease && lease.token === env.WS_HEAVY_TOKEN) break;
   }
