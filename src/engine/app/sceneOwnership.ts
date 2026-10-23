@@ -2,12 +2,28 @@ import { BufferGeometry, Material, Texture, WebGLRenderTarget, Object3D, Instanc
 import { Scope, type Disposable3 } from './scope';
 import type { AssetService } from './assets';
 
-/** One capture-local walk: shared materials and uniforms are inspected once, without retaining resources afterward. */
-function resourceCollector(excludeNodes?: Pick<WeakSet<object>, 'has'>): { resources: Set<Disposable3>; visit: (value: unknown) => void } {
+/**
+ * Each material's reachable resources (itself, its textures, targets and nested materials), kept until the current task
+ * ends: a region's teardown releases its pieces one by one, and every piece's walk re-walked the same shared materials'
+ * whole property graphs (node materials' graphs are deep; G639: 400-750 ms frames leaving Nine Dragon at phone 4x). A
+ * material is not rewired while its owners tear down in one task, and the next task walks afresh.
+ */
+let materialWalks: WeakMap<Material, readonly Disposable3[]> | null = null;
+const isMaterial = (value: object): value is Material => value instanceof Material;
+function materialResources(material: Material): readonly Disposable3[] {
+  if (materialWalks === null) { const walks = new WeakMap<Material, readonly Disposable3[]>(); materialWalks = walks; queueMicrotask(() => { if (materialWalks === walks) materialWalks = null; }); }
+  let known = materialWalks.get(material);
+  if (known === undefined) { const walk = resourceCollector(undefined, material); walk.visit(material); known = [...walk.resources]; materialWalks.set(material, known); }
+  return known;
+}
+/** One capture-local walk: shared materials and uniforms are inspected once, without retaining resources afterward.
+ *  `walking`: the material this walk is for (walked here; any other material comes from `materialResources`). */
+function resourceCollector(excludeNodes?: Pick<WeakSet<object>, 'has'>, walking?: Material): { resources: Set<Disposable3>; visit: (value: unknown) => void } {
   const resources = new Set<Disposable3>(), visited = new Set<object>();
   const visit = (value: unknown): void => {
     if (typeof value !== 'object' || value === null || visited.has(value) || ArrayBuffer.isView(value)) return;
     visited.add(value);
+    if (isMaterial(value) && value !== walking && excludeNodes === undefined) { for (const resource of materialResources(value)) resources.add(resource); return; }
     if (value instanceof BufferGeometry || value instanceof Material || value instanceof Texture || value instanceof WebGLRenderTarget) {
       resources.add(value);
       if (value instanceof Texture || value instanceof BufferGeometry) return;
