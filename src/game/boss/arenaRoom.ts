@@ -57,7 +57,7 @@ import { CellField } from '../systems/cellField';
 import { ArenaFireView, ArenaWhirlsView } from './arenaFire';
 import { ArenaSceneView, CloudBody, type PatrolEncounterView } from './encounterView';
 import { ARENA_BURNT_PER_FRAME, ARENA_VIEW, arenaChainTell } from '@wildshard/format/arenaView';
-import {entryOwner} from '../shardfile/entryOwners';
+import {entryOwner, lateEntryOwner, presentEntryOwner} from '../shardfile/entryOwners';
 import { lendViewArray, lendViewCell, lendViewDraw, lendViewFrame, lendViewTell, lendViewValues } from '../shardfile/clientViewProgram';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { GroundTell } from '../Elite';
@@ -1195,24 +1195,38 @@ async function buildOpenArenaEncounter(ports: {readonly scope:Scope;readonly wea
   if (ctx === undefined || runtime === undefined || world === undefined || world === null || ctx.scope !== scope)
     throw new Error('World arena needs its original construction context');
   const product = ctx.product, game = world.game, player = world.player, sky = world.sky, root = game.scene, owner = game.levelScope;
-  const read = product.json, answer = ctx.answer, rig = entryOwner(scope, 'world-weather', stage.weather), point = entryOwner(scope, 'world-point', stage.anchor);
-  const storm = rig.storm, air = rig.weather, x = point?.x, y = point?.y, z = point?.z;
-  if (storm === null) throw new Error('World arena needs its original storm');
+  const read = product.json, answer = ctx.answer, point = entryOwner(scope, 'world-point', stage.anchor);
+  const x = point?.x, y = point?.y, z = point?.z, weatherLoan = lateEntryOwner(scope, 'world-weather', stage.weather);
+  let weather: { readonly rig: ReturnType<typeof weatherLoan>; readonly storm: WeatherReactions; readonly air: WeatherContinuation } | undefined;
   const live = (): void => {
     if (scope.disposed || scope.disposing || owner.disposed || owner.disposing) throw new Error('World arena owner left');
     if (ports.weatherContext !== ctx || ctx.scope !== scope || ctx.product !== product || product.json !== read || ctx.answer !== answer
       || ctx.game.runtime !== runtime || runtime.world !== world || world.game !== game || world.player !== player || world.sky !== sky
-      || game.scene !== root || game.levelScope !== owner || ports.context.sky !== sky || rig.storm !== storm || rig.weather !== air
-      || entryOwner(scope, 'world-weather', stage.weather) !== rig || entryOwner(scope, 'world-point', stage.anchor) !== point
+      || game.scene !== root || game.levelScope !== owner || ports.context.sky !== sky
+      || entryOwner(scope, 'world-point', stage.anchor) !== point
       || point?.x !== x || point?.y !== y || point?.z !== z) throw new Error('World arena owners changed');
   };
-  live();
-  const data = await readArenaScriptData(product, stage.files); live();
+  const weatherOwner = (): NonNullable<typeof weather> => {
+    live();
+    const rig = weatherLoan(), storm = rig.storm, air = rig.weather;
+    if (weather !== undefined && (weather.rig !== rig || weather.storm !== storm || weather.air !== air))
+      throw new Error('World arena owners changed');
+    if (storm === null) throw new Error('World arena needs its original storm');
+    weather ??= { rig, storm, air };
+    return weather;
+  };
+  const constructionLive = (): void => {
+    live();
+    if (weather !== undefined || presentEntryOwner(scope, 'world-weather', stage.weather) !== null) weatherOwner();
+  };
+  constructionLive();
+  const data = await readArenaScriptData(product, stage.files); constructionLive();
   // G639: the fight's programmes admit in their own build slices, into the same level-scope cache the encounter's
   // constructor reads (one Nalati world-hook frame held the read, both admissions and the views: 136 ms at phone 4x)
-  for (const program of [data.programs.attack, data.programs.wind]) { await buildYield(owner); live(); ReturnProgram.page(program, owner); }
-  await buildYield(owner); live();
-  const encounter = new ArenaRoomEncounter({kind:'open',world:{game,player,weather:storm,air,tieSpot:point},rows:data}); live();
-  ctx.answer('weather.storm-hold', held => Math.max(held, Number(encounter.engaged))); live();
+  for (const program of [data.programs.attack, data.programs.wind]) { await buildYield(owner); constructionLive(); ReturnProgram.page(program, owner); }
+  await buildYield(owner); constructionLive();
+  const encounter = new ArenaRoomEncounter({kind:'open',world:{game,player,
+    get weather() { return weatherOwner().storm; }, get air() { return weatherOwner().air; },tieSpot:point},rows:data}); constructionLive();
+  ctx.answer('weather.storm-hold', held => Math.max(held, Number(encounter.engaged))); constructionLive();
   return encounter;
 }

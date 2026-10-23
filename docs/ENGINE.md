@@ -11410,6 +11410,10 @@ publication without transferring disposal ownership. Transitive loans retain
 the original construction owner. Either scope ending drops the loan and its
 cleanup registrations; leaving an entered scope never disposes its world.
 A duplicate, invalid id, expired owner or cross-construction loan refuses.
+`lateEntryOwner(scope, kind, id)` delays the exact lookup until first use,
+then pins the original publication. Missing owners never fall back; either
+scope retiring or replacement of that loan refuses. The open arena uses this
+for storm and air without deferring its geometry or programme admission.
 The book owns no clocks, rule decisions, script continuations or saved state.
 
 ### Ranged-page entry preparation (G571)

@@ -97,9 +97,9 @@ test('the arena stage admits finite ids and files without a callback, phase or e
   expect(validateNamedJsonSchema(wire, new TextEncoder().encode(JSON.stringify(input)))).toEqual(input);
 });
 
-test('missing original context, weather, point or storm refuses before either named read', async () => {
-  for (const missing of ['context', 'weather', 'point', 'storm', 'sky', 'scope']) {
-    const f = fixture(missing === 'weather' || missing === 'point' ? { missing } : {}), foreign = new Scope('foreign-arena');
+test('missing original context, point or published storm refuses before either named read', async () => {
+  for (const missing of ['context', 'point', 'storm', 'sky', 'scope']) {
+    const f = fixture(missing === 'point' ? { missing } : {}), foreign = new Scope('foreign-arena');
     try {
       if (missing === 'context') { const ports = { ...f.ports }; delete ports.weatherContext; await expect(WorldAssembly.admit({ stages: [row] }, ports).next(row.id)).rejects.toThrow(); }
       else {
@@ -187,5 +187,37 @@ test('concrete original owners and the same point coordinates are rechecked afte
       expect(f.game.scene.children).toHaveLength(before); expect(f.events.census().answerers).toBe(0);
       expect(() => entryOwner(f.scope, 'arena-room', row.id)).toThrow('Missing live entry owner');
     } finally { f.close(); }
+  }
+});
+
+
+test('the arena constructs before weather publication and consumes the same late storm and air', async () => {
+  const restore = overrideTerrain({ heightAt: () => 0 }), f = fixture({ missing: 'weather' });
+  try {
+    await WorldAssembly.admit({ stages: [row] }, f.ports).next(row.id);
+    const owner = entryOwner(f.scope, 'arena-room', row.id);
+    expect(owner).toBeInstanceOf(ArenaRoomEncounter);
+    expect(() => owner.world.weather).toThrow('Missing live entry owner');
+    publishEntryOwner(f.scope, 'world-weather', row.weather, f.rig);
+    expect(owner.world.weather).toBe(f.rig.storm);
+    expect(owner.world.air).toBe(f.rig.weather);
+    f.scope.dispose();
+    expect(() => owner.world.weather).toThrow('owner left');
+  } finally { f.close(); restore(); }
+});
+
+test('late arena weather refuses changed storm or air and independently retired native scope', async () => {
+  for (const changed of ['storm', 'air', 'native'] as const) {
+    const restore = overrideTerrain({ heightAt: () => 0 }), native = new Scope('independent native'), f = fixture({ missing: 'weather', native });
+    try {
+      await WorldAssembly.admit({ stages: [row] }, f.ports).next(row.id);
+      const owner = entryOwner(f.scope, 'arena-room', row.id);
+      publishEntryOwner(f.scope, 'world-weather', row.weather, f.rig);
+      expect(owner.world.weather).toBe(f.rig.storm);
+      if (changed === 'storm') f.rig.storm = null;
+      else if (changed === 'air') Object.assign(f.rig, { weather: legacyDouble<ForestWeatherRig['weather']>({}) });
+      else native.dispose();
+      expect(() => owner.world.air).toThrow(changed === 'native' ? 'owner left' : 'owners changed');
+    } finally { f.close(); native.dispose(); restore(); }
   }
 });

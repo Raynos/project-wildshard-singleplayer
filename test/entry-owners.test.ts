@@ -5,7 +5,7 @@ import { fixedDraws } from '../src/game/models/fixedDraws';
 import { Scope } from '../src/engine/app/scope';
 import { CollectionCatalogue } from '../src/game/models/collectionDisplay';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
-import { entryOwner, lendEntryOwner, publishEntryOwner } from '../src/game/shardfile/entryOwners';
+import { entryOwner, lateEntryOwner, lendEntryOwner, publishEntryOwner } from '../src/game/shardfile/entryOwners';
 
 test('entry ids resolve only their concrete kind and exact construction owner', () => {
   const owner = new Scope('construction'), other = new Scope('another cell');
@@ -104,4 +104,30 @@ test('world metadata loans retain their original instances through re-entry', ()
     resident.dispose();
     expect(() => entryOwner(entered, 'site', 'hut')).toThrow('ended');
   } finally { resident.dispose(); }
+});
+
+
+test('a late loan waits for its exact kind and scope, and retains the original lifetime', () => {
+  const owner = new Scope('late construction'), other = new Scope('other construction');
+  const entered = owner.child('late entered'), object = new Group();
+  try {
+    const read = lateEntryOwner(entered, 'object', 'world.late');
+    expect(() => read()).toThrow('Missing live entry owner');
+    publishEntryOwner(other, 'object', 'world.late', new Group());
+    expect(() => read()).toThrow('Missing live entry owner');
+    publishEntryOwner(owner, 'object', 'world.late', object);
+    expect(() => read()).toThrow('Missing live entry owner');
+    lendEntryOwner(entered, owner, 'object', 'world.late');
+    expect(read()).toBe(object); expect(read()).toBe(object);
+    expect(() => publishEntryOwner(entered, 'object', 'world.late', new Group())).toThrow('Duplicate');
+    const retire = owner.disposeSteps(); retire.next();
+    expect(() => read()).toThrow(/ended|Missing live/u);
+    for (const step of retire) void step;
+  } finally { owner.dispose(); other.dispose(); }
+});
+
+test('a late loan cannot start after its borrower begins retirement', () => {
+  const owner = new Scope('late unconsumed'), read = lateEntryOwner(owner, 'object', 'world.late');
+  owner.dispose();
+  expect(() => read()).toThrow('ended');
 });

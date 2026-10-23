@@ -132,3 +132,16 @@ export function presentEntryOwner<K extends EntryOwnerKind>(scope: Scope, kind: 
 export function entryOwner<K extends EntryOwnerKind>(scope: Scope, kind: K, id: string): EntryOwnerTypes[K] {
   return loan(scope, kind, id).value;
 }
+
+/** Resolve only when consumed, then pin that exact publication for this scope.
+ * A missing publication may arrive later; a retired or replaced loan refuses. */
+export function lateEntryOwner<K extends EntryOwnerKind>(scope: Scope, kind: K, id: string): () => EntryOwnerTypes[K] {
+  check(scope, id);
+  let original: Loan<EntryOwnerTypes[K]> | undefined;
+  return () => {
+    const current = loan(scope, kind, id);
+    if (original !== undefined && current !== original) throw new Error(`Entry owner changed: ${kind}/${id}`);
+    original = current;
+    return current.value;
+  };
+}
