@@ -13,7 +13,7 @@ import { basinBody } from '../src/engine/world/water/body';
 import { readScalarChannel } from '../src/engine/world/scalarChannel';
 import layout from '../src/shards/nalati-grasslands/boot/layout.generated.json' with { type: 'json' };
 import { GROUND } from './fixtures/nalati-terrain';
-import nalati from '../src/shards/nalati-grasslands/manifest';
+import nalati from '../src/shards/nalati-grasslands/discovery.generated';
 
 const scalarBlocks=readNalatiScalarBlocks();
 const finite=v.pipe(v.number(),v.finite());

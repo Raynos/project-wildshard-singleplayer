@@ -12,7 +12,7 @@ if (recipe !== 'src/shards/nalati-grasslands/generators/waterStrips.ts') throw n
 const root = resolve(import.meta.dirname, '../..');
 const environment = installBakeEnvironment(root);
 try {
-  const { NALATI_GRASSLANDS } = await import('../../src/shards/nalati-grasslands/manifest.ts');
+  const { MANIFEST: NALATI_GRASSLANDS } = await import('../../src/shards/nalati-grasslands/discovery.generated.ts');
   await prepareNativeTerrain(NALATI_GRASSLANDS, { root, bytes: readFileSync(resolve(root, 'public/assets/baked/nalati-grasslands/terrain.bin')) });
   const [{ bakeWaterStrips }, { MELT_STREAM }, { RIVER }, { terrainHeight }, { CHUNK_HALF }] = await Promise.all([
     import(pathToFileURL(resolve(root, recipe)).href), import('../../src/shards/nalati-grasslands/generators/layout.ts'),

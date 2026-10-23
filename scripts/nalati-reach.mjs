@@ -131,7 +131,7 @@ if (mapFile) {
   const px = Number(arg('px') ?? 0.5);
   const W = Math.round((x1 - x0) / px), H = Math.round((z1 - z0) / px);
   const img = new Uint8Array(W * H * 3);
-  const { NALATI_GRASSLANDS } = await src('shards/nalati-grasslands/manifest.ts');
+  const { MANIFEST: NALATI_GRASSLANDS } = await src('shards/nalati-grasslands/discovery.generated.ts');
   const { readScalarLattice } = await src('engine/world/scalarChannel.ts');
   const policy = NALATI_GRASSLANDS.navmesh.ground, mask = NALATI_GRASSLANDS.scalarBlocks?.lattice(policy.wet)??readScalarLattice(policy.wet);
   const wet = (x,z) => mask(x,z) > policy.wetThreshold;

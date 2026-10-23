@@ -1,3 +1,5 @@
+import { parseManifestMetadata } from '../src/format/minimap';
+import metadata from '../src/shards/nalati-grasslands/manifest.json' with { type: 'json' };
 import { expect,test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the exact build-only manifest declaration fixture.
 import { resolve } from 'node:path';
@@ -32,4 +34,15 @@ test('both existing manifest consumers track the literal producer input',()=>{
   if(catalogue===null||typeof catalogue!=='object'||!('jobs' in catalogue)||!Array.isArray(catalogue.jobs))throw new Error('Missing generation catalogue');
   const jobs=catalogue.jobs.filter((row:unknown)=>row!==null&&typeof row==='object'&&'inputRoots' in row&&Array.isArray(row.inputRoots)&&row.inputRoots.includes('src/shards/nalati-grasslands/data/manifestRows.json'));
   expect(jobs).toHaveLength(2);
+});
+
+
+test('authored native entry keeps its exact compiled selection and refuses unknown fields',()=>{
+  const data=parseManifestMetadata(metadata),entry=data.bindings.entry;
+  expect(entry).toEqual({native:{module:'./runtime/index',export:'NalatiPlugin'},retainHomeRuntime:true,stagesOwner:'declared',
+    nativePlan:{phases:['world-bindings','kit','play'],features:['weather.forest','held.claims.install','taming.entry','arena-room.entry','elite.entry','quest.chapter-view']}});
+  expect(data.loadout).toEqual(original.loadout);expect(data.hud).toEqual(original.hud);expect(data.bag).toEqual(original.bag);
+  for(const nativePlan of [{phases:['play'],features:['unknown']},{phases:['play'],features:['weather.forest','weather.forest']},{phases:['play','play']}])
+    expect(()=>parseManifestMetadata({...metadata,bindings:{...metadata.bindings,entry:{...metadata.bindings.entry,nativePlan}}})).toThrow();
+  expect(()=>parseManifestMetadata({...metadata,bindings:{...metadata.bindings,groundRows:{...metadata.bindings.groundRows,execute:true}}})).toThrow();
 });

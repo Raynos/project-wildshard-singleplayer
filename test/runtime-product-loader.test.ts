@@ -1,6 +1,6 @@
 import {zlibSync} from 'fflate';
 import {ScalarLatticeBindings} from '../src/engine/world/scalarChannel';
-import scalarManifest from '../src/shards/nalati-grasslands/manifest';
+import scalarManifest from '../src/shards/nalati-grasslands/discovery.generated';
 // oxlint-disable-next-line import/no-nodejs-modules -- Actual inert image fixture exercises the admitted cost envelope.
 import { readFileSync } from 'node:fs';
 import { afterEach, expect, test, vi } from 'vitest';

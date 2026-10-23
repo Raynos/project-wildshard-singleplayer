@@ -8,7 +8,7 @@ import { bakedSamplers } from '../src/format/bakedTerrainSampling';
 import { GROUND } from './fixtures/nalati-terrain';
 import { readNalatiGeography } from './fixtures/nalati-geography';
 import { TERRAIN_ROWS } from '../src/shards/nalati-grasslands/boot/declaration.generated';
-import nalati from '../src/shards/nalati-grasslands/manifest';
+import nalati from '../src/shards/nalati-grasslands/discovery.generated';
 
 const geography=readNalatiGeography();
 

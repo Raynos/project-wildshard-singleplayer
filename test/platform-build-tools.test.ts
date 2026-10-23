@@ -97,7 +97,7 @@ it('keeps a sole runtime user charged until a second runtime reaches the generat
 });
 
 
-it.each(['blender-template','nine-dragon-stack','ink-cel-valley'])('registers %s discovery as generated without excluding its authored data',(slug)=>{
+it.each(['blender-template','nine-dragon-stack','ink-cel-valley','nalati-grasslands'])('registers %s discovery as generated without excluding its authored data',(slug)=>{
  const root=mkdtempSync(join('tmp/','platform-blender-discovery-'));
  const put=(path:string,source:string):void=>{const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,source);};
  try{

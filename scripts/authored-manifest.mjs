@@ -87,7 +87,7 @@ export function authoredManifestSource(root, slug, { generation = false, metadat
   const DECLARED = { ground: 'declaredGround', forestQueries: 'declaredForestQueries', pondClip: 'declaredPondClip' };
   const declared = Object.keys(DECLARED).filter(key => b[key]?.platform === 'declared' || (key === 'forestQueries' && b[key]?.platform === 'fixed'));
   const built = (key) => `${DECLARED[key]}(${value(b[key].rows)})`;
-  for (const key of ['runtimeCost', 'mapPalette', 'poses', 'forestQueries', 'pondClip']) if (b[key]) {
+  for (const key of ['runtimeCost', 'mapPalette', 'poses', 'forestQueries', 'pondClip', 'groundRows', 'groundColourSamples', 'surfaceSamples', 'forestMaskSamples', 'mapGroundSamples', 'navmesh']) if (b[key]) {
     if (key === 'forestQueries' && b[key].platform === 'fixed') { rows.push(`forestQueries: declaredForestQueries(${JSON.stringify(b[key])})`); continue; }
     if (declared.includes(key)) { rows.push(`${key}: ${built(key)}`); continue; }
     // Fixed palette JSON becomes a contextually checked literal, preserving tuple

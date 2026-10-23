@@ -1,9 +1,9 @@
 import { BufferGeometry, InstancedMesh, Material, type Matrix4, Mesh, Object3D } from 'three';
 import type { ModelBuildVisit, ModelPlacementVisitor } from '@wildshard/engine/models/model';
 import { poseOf } from '@wildshard/engine/models/colliders';
-import { NALATI_GRASSLANDS } from '../manifest';
+import { MANIFEST as NALATI_GRASSLANDS } from '../discovery.generated';
 import { captureScatterSource as captureDressLayerSource, type ScatterSource as DressLayerSource } from '@wildshard/engine/render/scatterInstances';
-import { visitAuthoredWorld, type AuthoredWorldOptions } from '../../../../scripts/bake/worldHost.mjs';
+import { visitAuthoredWorld } from '../../../../scripts/bake/worldHost.mjs';
 
 /** An exact owned copy of one decoded attribute, independent of later culling, mutation and host disposal. */
 export interface NalatiCapturedAttribute { itemSize: number; values: Float64Array }
@@ -138,7 +138,7 @@ export class NalatiCaptureInventory {
 /** Run Nalati's ordinary authored world through the one owned host, then retain only independent inventory data.
  * The shared environment supplies native preconfiguration/real terrain; settleModels awaits actual producer loads.
  */
-export async function captureNalatiAuthoredWorld(options: Omit<AuthoredWorldOptions, 'visitPlacement' | 'visit'> & {
+export async function captureNalatiAuthoredWorld(options: Omit<Parameters<typeof visitAuthoredWorld>[1], 'visitPlacement' | 'visit'> & {
   settleModels: () => Promise<void>;
 }): Promise<{ inventory: NalatiAuthoredInventory; native: Awaited<ReturnType<typeof visitAuthoredWorld>> }> {
   const { settleModels, ...host } = options, collector = new NalatiCaptureInventory();

@@ -152,7 +152,17 @@ function sourceDebtChanges(root, tree, parent, file, schema, roots) {
   const after = read(tree);
   if (!parent.has(file)) return [];
   const before = read(parent), failures = [];
-  for(const path of after.sources)if(!before.sources.includes(path))failures.push(`BINARY-JSON ${file}: app source exemption grew for ${path}`);
+  // A same-revision authored-manifest conversion changes source identity, not permission to import arbitrary generated code.
+  const discoveryMigration = path => {
+    const match = /^src\/shards\/([a-z_][a-z0-9_-]*)\/discovery\.generated\.ts$/u.exec(path), folder = match?.[1];
+    if (file !== 'lint/generated-import-debt.json' || folder === undefined) return false;
+    const base = `src/shards/${folder}/manifest`, catalogue = 'scripts/source-generation-outputs.json';
+    if (!parent.has(`${base}.ts`) || tree.has(`${base}.ts`) || parent.has(`${base}.json`) || !tree.has(`${base}.json`) || !tree.has(catalogue)) return false;
+    const outputs = JSON.parse(blobs(root, tree, [catalogue]).get(catalogue) ?? 'null');
+    return outputs?.schema === 'source-generation-outputs/1' && Array.isArray(outputs.producers?.['scripts/gen-shards.mjs'])
+      && outputs.producers['scripts/gen-shards.mjs'].includes(path);
+  };
+  for(const path of after.sources)if(!before.sources.includes(path)&&!discoveryMigration(path))failures.push(`BINARY-JSON ${file}: app source exemption grew for ${path}`);
   for (const [path, count] of Object.entries(after.files)) if (!Object.hasOwn(before.files, path) || count > (before.files[path] ?? 0)) failures.push(`BINARY-JSON ${file}: source debt allowance grew for ${path}`);
   return failures;
 }

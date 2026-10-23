@@ -4,7 +4,7 @@ import * as channels from '../src/engine/world/scalarChannel';
 import { defineShard,declaredGround,type ShardManifestRows } from '../src/game/shard/manifest';
 import { ScalarChannelSchema,ScalarLatticeSchema,type ScalarLatticeRows } from '../src/format/scalarChannel';
 import * as v from 'valibot';
-import nalati from '../src/shards/nalati-grasslands/manifest';
+import nalati from '../src/shards/nalati-grasslands/discovery.generated';
 import { readNalatiGeography } from './fixtures/nalati-geography';
 
 const geography=readNalatiGeography();

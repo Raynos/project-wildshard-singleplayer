@@ -51,7 +51,8 @@
       "src/shards/open-plots/discovery.open-plot-sky-harbor.generated.ts",
       "src/shards/open-plots/discovery.open-plot-sky-race.generated.ts",
       "src/shards/open-plots/discovery.open-plot-starfall-observatory.generated.ts",
-      "src/shards/open-plots/discovery.open-plot-thin-ice.generated.ts"
+      "src/shards/open-plots/discovery.open-plot-thin-ice.generated.ts",
+      "src/shards/nalati-grasslands/discovery.generated.ts"
     ],
     "src/shards/pine-hollow/generators/bake-grazers.mjs": [
       "src/shards/pine-hollow/data/grazers.generated.json"

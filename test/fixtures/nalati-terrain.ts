@@ -1,6 +1,6 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The fixture explicitly prepares the same declared binary samples as boot.
 import {readFileSync} from 'node:fs';
-import nalati from '../../src/shards/nalati-grasslands/manifest';
+import nalati from '../../src/shards/nalati-grasslands/discovery.generated';
 import type { ShardManifest,ChunkTerrain } from '../../src/game/shard/manifest';
 import type { MinimapPalette } from '../../src/engine/ui/Minimap';
 

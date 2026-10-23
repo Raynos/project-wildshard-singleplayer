@@ -1,3 +1,4 @@
+import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { postChainRows } from './postChain.ts';
 import { PANO_RIDGE_V } from './panoramaData.ts';
 import { manifestDeclaration } from '../../../../scripts/manifest-declaration.mjs';
@@ -44,10 +45,16 @@ for (const job of catalogue.jobs) for (const path of [...Object.keys(job.buildOu
 const ordered = Object.fromEntries(Object.keys(bytes).filter(path => !path.endsWith('.DS_Store')).sort().map(path => [path, bytes[path]]));
 const inventory = nalatiBootInventory(ordered);
 const writer = byteWriter(process.argv.includes('--check'), 'nalati-boot-metadata');
+writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/explore.generated.json'), jsonBytes({ art: [...Object.values(discovery.explore.art), ...discovery.extraArt, ...discovery.explore.compare.flatMap(({ live, image }) => [live, image])] }));
 writer.put(resolve(root, 'src/shards/nalati-grasslands/bootMetadata.generated.json'), jsonBytes({ assetFiles: inventory.assetFiles, postChain: postChainRows(), panoramaRidge: PANO_RIDGE_V }));
-const { captureProbes: _captureProbes, extraArt, ...fixed } = discovery;
+const { captureProbes, extraArt, ...fixed } = discovery;
+const terrain = readNativeTerrain(readFileSync(resolve(root, 'public/assets/baked/nalati-grasslands/terrain.bin')));
+const poses = Object.fromEntries(captureProbes.map(probe => [probe.name, {
+  probe, eye: [probe.x, terrain.heightAt(probe.x, probe.z) + 1.68, probe.z],
+  yaw: -probe.yaw * 180 / Math.PI, pitch: probe.pitch * 180 / Math.PI, mockup: '', frame: probe.name,
+}]));
 writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/declaration.generated.ts'), `${manifestDeclaration(root, 'nalati-grasslands', {
-  ...NALATI_MANIFEST_ROWS, ...fixed, budgets: NALATI_BUDGET_INPUTS, runtimeCost,
+  ...NALATI_MANIFEST_ROWS, ...fixed, poses, budgets: NALATI_BUDGET_INPUTS, runtimeCost,
   horizon: NALATI_HORIZON_V2,
   pois: NALATI_MAP.pois.map(p => ({ id: p.label.toLowerCase().replaceAll(' ', '-'), name: p.label.charAt(0) + p.label.slice(1).toLowerCase(), x: p.x, z: p.z, r: 24 })),
   minimap: { image: '/assets/nalati-grasslands/map/top.webp' },
@@ -63,6 +70,13 @@ export const TERRAIN_ROWS = {
   navmesh: { ground: { waterMargin: .25,wet: geography.channels.wet,wetThreshold: .5,trailClearance: 3.5 } },
 } satisfies Pick<import('@wildshard/game/shard/manifest').ShardManifestRows,
   'seed'|'spawn'|'groundRows'|'groundColourSamples'|'surfaceSamples'|'forestMaskSamples'|'mapGroundSamples'|'minimap'|'navmesh'>;
+
+export const BUDGETS = ROWS.budgets;
+export const BOOT_FILES = ROWS.boot.files, BOOT_SOURCES = ROWS.boot.sources, BOOT_LATE_READS = ROWS.boot.lateReads;
+export const BOOT_EXPLORE = ROWS.boot.explore;
+export const GROUND_ROWS = TERRAIN_ROWS.groundRows, GROUND_COLOUR = TERRAIN_ROWS.groundColourSamples, SURFACE = TERRAIN_ROWS.surfaceSamples;
+export const FOREST_MASK = TERRAIN_ROWS.forestMaskSamples, MAP_GROUND = TERRAIN_ROWS.mapGroundSamples;
+export const MAP_PALETTE = TERRAIN_ROWS.minimap.palette, NAVMESH = TERRAIN_ROWS.navmesh;
 `);
 // the painted ground (game/looks/painterlyLook paintedGroundPainter): the meadow, path, gravel, rock and snow tiles, the snow
 // line, the wet low ground and the glacier's ice, in a softly banded painterly material recoloured by the terrain graph

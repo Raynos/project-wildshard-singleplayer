@@ -8,7 +8,7 @@ import {ScalarLatticeBindings,readScalarLattice,readScalarChannel} from '../src/
 import {defineShard,prepareManifestScalarBlocks,type ShardManifestRows} from '../src/game/shard/manifest';
 import {absentShardProduct,type ShardProduct} from '../src/game/shardfile/shardProduct';
 import {readNamedBlob} from '../src/sdk/blobs';
-import nalati from '../src/shards/nalati-grasslands/manifest';
+import nalati from '../src/shards/nalati-grasslands/discovery.generated';
 import reference from './fixtures/nalati-geography-blocks.json' with {type:'json'};
 import {readNalatiScalarBlocks} from './fixtures/nalati-scalar-blocks';
 

@@ -12,6 +12,7 @@ export function manifestDeclaration(root, slug, rows, omitted) {
       if (!images.has(value)) images.set(value, `image${images.size}`);
       return images.get(value);
     }
+    if (Object.is(value, -0)) return '-0';
     if (typeof value === 'number' && !Number.isFinite(value)) {
       if (value === Infinity) return 'Infinity';
       throw new Error('Invalid manifest number');

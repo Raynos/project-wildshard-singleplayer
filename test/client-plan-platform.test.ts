@@ -144,7 +144,7 @@ test('compiled first-party runtime entry resolves only its declared constructor 
 });
 
 test('Nalati lazy admission keeps its native constructor and refuses undeclared entries', async () => {
-  const { default: manifest } = await import('../src/shards/nalati-grasslands/manifest');
+  const { default: manifest } = await import('../src/shards/nalati-grasslands/discovery.generated');
   const { default: Native } = await import('../src/shards/nalati-grasslands/runtime/index');
   const world = vi.spyOn(Native.prototype, 'world');
   try {

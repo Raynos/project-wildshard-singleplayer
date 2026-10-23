@@ -177,3 +177,21 @@ test('the binary CLI refuses missing range operands before any Git traversal', (
     expect(result.stderr).not.toContain('bad revision');
   }
 });
+
+
+test.each(['exact','unregistered','other-producer','kept-ts','missing-json','old-json','wrong-path'] as const)('discovery source migration requires the exact registered same-revision manifest conversion: %s', mode => fixture((root,git,put)=>{
+  const file='lint/generated-import-debt.json',folder='src/shards/orchard',discoveryPath=`${folder}/discovery.generated.ts`;
+  const debt=(sources:string[])=>JSON.stringify({schema:'no-generated-import/1',source,files:{},sources});
+  put(file,debt([]));put(`${folder}/manifest.ts`,'export default {};');
+  if(mode==='old-json')put(`${folder}/manifest.json`,'{}');
+  git('add','.');git('commit','-qm','native manifest');
+  if(mode!=='kept-ts')git('rm',`${folder}/manifest.ts`);
+  if(mode!=='missing-json')put(`${folder}/manifest.json`,'{}');
+  put('scripts/source-generation-outputs.json',JSON.stringify({schema:'source-generation-outputs/1',producers:{
+    [mode==='other-producer'?'scripts/other.mjs':'scripts/gen-shards.mjs']:mode==='unregistered'?[]:[discoveryPath],
+  }}));
+  put(file,debt([mode==='wrong-path'?`${folder}/other.generated.ts`:discoveryPath]));git('add','.');
+  const failures=checkBinaryRevision(root,':','HEAD',[file,'scripts/source-generation-outputs.json',`${folder}/manifest.ts`,`${folder}/manifest.json`]);
+  if(mode==='exact')expect(failures).toEqual([]);
+  else expect(failures.join(' ')).toContain('app source exemption grew');
+}));

@@ -1,0 +1,709 @@
+{
+  "uses": [
+    "dayCycle",
+    "weather",
+    "bosses",
+    "elites",
+    "spawns",
+    "quests",
+    "swim",
+    "hover",
+    "explore",
+    "practice",
+    "loot",
+    "feats"
+  ],
+  "api": 1,
+  "gridShardfile": "/shardfiles/nalati-grasslands/shard.json",
+  "entries": {
+    "legacy": true,
+    "shardfile": true
+  },
+  "loadout": {
+    "weapons": [
+      "bow",
+      "sabre",
+      "spear",
+      "rifle"
+    ],
+    "tools": [
+      "tool.hoverboard"
+    ],
+    "start": [
+      "bow",
+      "sabre",
+      "spear",
+      "tool.hoverboard"
+    ],
+    "held": "bow",
+    "loans": [
+      {
+        "id": "rifle",
+        "in": "practice"
+      }
+    ]
+  },
+  "bag": {
+    "tabs": [
+      "map",
+      "gear",
+      "finds",
+      "feats"
+    ],
+    "pack": {
+      "slots": 0
+    },
+    "skinsTitle": "Skins"
+  },
+  "kitLook": "painterly",
+  "fight": {
+    "input": {
+      "bufferMs": 120,
+      "coyoteMs": 100
+    },
+    "telegraphed": true
+  },
+  "creatures": {
+    "lowPoly": false,
+    "waitForModels": true,
+    "furRim": false,
+    "tintRange": 0.2,
+    "oneMaterial": false
+  },
+  "debugOptions": [],
+  "assetGlobs": [
+    "public/assets/nalati/**",
+    "public/assets/gpu/nalati/**",
+    "public/assets/music/nalati/**",
+    "public/assets/sfx/nalati-grasslands/**",
+    "public/assets/title/nalati-grasslands-portrait.jpg",
+    "public/assets/nalati-grasslands/map/**"
+  ],
+  "order": 3,
+  "status": "earlyAccess",
+  "name": "Nalati Grasslands",
+  "label": "(+4, \u22122)",
+  "treeCount": 1400,
+  "biome": "Alpine steppe",
+  "blurb": "SUPER EXPERIMENTAL \u2014 the Tian Shan steppe, painted: cross the braided Kunes, tame a steppe horse and hunt wolves from the saddle across the golden bowl of the Sky Grassland, break the Golden King in his kurgan, and ride out a storm to face the Storm Titan. Snow Lotus Valley waits in the snow ring. Built live, rough edges everywhere.",
+  "style": "painterly",
+  "tiers": {
+    "phone": {
+      "msaa": 2
+    },
+    "desktop": {
+      "msaa": 4
+    }
+  },
+  "hud": {
+    "dayBadge": true
+  },
+  "weapon": "custom",
+  "assets": {
+    "groundLayers": [
+      "leafy_grass",
+      "stony_dirt_path",
+      "rock_ground",
+      "forest_ground_04"
+    ],
+    "groundTints": [
+      [
+        0.7,
+        0.85,
+        0.5
+      ],
+      [
+        0.9,
+        0.84,
+        0.66
+      ],
+      [
+        0.7,
+        0.7,
+        0.72
+      ],
+      [
+        0.95,
+        0.95,
+        0.95
+      ]
+    ],
+    "slabRock": "rock_ground"
+  },
+  "spawns": [],
+  "sky": {
+    "hdri": "kloofendal_48d_partly_cloudy_puresky",
+    "painted": {
+      "zenith": [
+        0.1,
+        0.28,
+        0.85
+      ],
+      "horizon": [
+        0.62,
+        0.78,
+        0.98
+      ],
+      "ground": [
+        0.3,
+        0.36,
+        0.3
+      ],
+      "glow": [
+        0.5,
+        0.4,
+        0.25
+      ]
+    },
+    "sun": {
+      "azimuth": 250,
+      "elevation": 26
+    },
+    "sunColor": [
+      1,
+      0.85,
+      0.64
+    ],
+    "sunIntensity": 2.8,
+    "envIntensity": 0.6,
+    "bgIntensity": 1,
+    "fogSunColor": [
+      1,
+      0.88,
+      0.7
+    ],
+    "cloudSunColor": [
+      1,
+      0.93,
+      0.82
+    ],
+    "hemiSky": 10274047,
+    "hemiGround": 8025142,
+    "hemiIntensity": 0.5,
+    "planet": {
+      "azimuth": 205,
+      "elevation": 23,
+      "size": 26,
+      "tilt": 2,
+      "roll": -20
+    }
+  },
+  "atmosphere": {
+    "fogHeight": -30,
+    "fogHeightFalloff": 0.05,
+    "fogHeightDensity": 0.0006,
+    "fogDistDensity": 0.002,
+    "volumetricSunColor": [
+      1,
+      0.9,
+      0.72
+    ],
+    "volumetric": {
+      "height": -30,
+      "falloff": 0.06,
+      "density": 0.0009,
+      "strength": 0.35
+    }
+  },
+  "grade": {
+    "saturation": 0.1,
+    "brightness": 0,
+    "contrast": 0.15,
+    "bloomIntensity": 0.35,
+    "bloomThreshold": 0.86,
+    "shadowTint": [
+      0.9,
+      0.96,
+      1.1
+    ],
+    "highTint": [
+      1.05,
+      1.01,
+      0.94
+    ],
+    "lift": [
+      0,
+      0.004,
+      0.018
+    ],
+    "gain": [
+      1.02,
+      1.02,
+      1
+    ],
+    "gamma": 1
+  },
+  "audio": {
+    "catalogue": true,
+    "bed": "steppe",
+    "ambience": "ambience.nalati",
+    "score": "score.nalati",
+    "alertOnlyHostile": true
+  },
+  "boot": {
+    "precache": [],
+    "stagedWorld": true,
+    "bytes": {
+      "trees": "spruce bark"
+    },
+    "steps": {
+      "renderer": {
+        "label": "Renderer",
+        "weight": 0.3
+      },
+      "sky": {
+        "label": "Sky \u00b7 the painted panorama",
+        "weight": 2.5
+      },
+      "terrain": {
+        "label": "Steppe \u00b7 the bowl \u00b7 the snow ring",
+        "weight": 1.8
+      },
+      "cards": {
+        "label": "Spruce cards",
+        "weight": 0.1
+      },
+      "forest": {
+        "label": "Lone spruces",
+        "weight": 0.15
+      },
+      "edge": {
+        "label": "Kunes river \u00b7 cloud sea \u00b7 horizon",
+        "weight": 0.15
+      },
+      "grass": {
+        "label": "Grass rings \u00b7 painted clumps",
+        "weight": 0.5
+      },
+      "cabins": {
+        "label": "Yurts",
+        "weight": 0.05
+      },
+      "props": {
+        "label": "Camp \u00b7 kurgans \u00b7 herds \u00b7 the Storm Titan",
+        "weight": 8.5
+      },
+      "animals": {
+        "label": "Wolves \u00b7 horses \u00b7 sheep",
+        "weight": 0.1
+      },
+      "weapon": {
+        "label": "Recurve bow \u00b7 HUD",
+        "weight": 0.05
+      },
+      "shaders": {
+        "label": "Shaders",
+        "weight": 2.2
+      },
+      "firstFrame": {
+        "label": "First frame",
+        "weight": 0.5
+      }
+    }
+  },
+  "forest": {
+    "spacing": 4.2,
+    "densityFreq": 0.01,
+    "clearings": [
+      -2,
+      -1.5
+    ],
+    "maxSlope": 0.6,
+    "tintHue": 0.3,
+    "tintHueJitter": [
+      -0.06,
+      0.06
+    ],
+    "tintSat": [
+      0.05,
+      0.25
+    ],
+    "tintLight": [
+      0.8,
+      0.95
+    ],
+    "largeVariantChance": 0.15
+  },
+  "trees": {
+    "bark": "pine_bark",
+    "twigAtlas": "pine_tree_01",
+    "noun": "spruces",
+    "treeSet": "world/trees"
+  },
+  "card": {
+    "thumb": "/src/shards/nalati-grasslands/thumbs/nalati-grasslands.jpg",
+    "portrait": "/src/shards/nalati-grasslands/thumbs/nalati-grasslands-portrait.jpg",
+    "landscape": "/src/shards/nalati-grasslands/thumbs/nalati-grasslands-landscape.jpg"
+  },
+  "explore": {
+    "art": {
+      "world": "/src/shards/nalati-grasslands/explore/world-nalati-grasslands.webp",
+      "models": "/src/shards/nalati-grasslands/explore/models-nalati-grasslands.webp",
+      "sets": "/src/shards/nalati-grasslands/explore/sets-nalati-grasslands.webp",
+      "practice": "/src/shards/nalati-grasslands/explore/practice-nalati-grasslands.webp"
+    },
+    "compare": [
+      {
+        "id": "camp",
+        "label": "Camp",
+        "live": "/src/shards/nalati-grasslands/explore/compare/nalati-camp-live.jpg",
+        "image": "/src/shards/nalati-grasslands/explore/compare/nalati-camp-target.jpg",
+        "model": "",
+        "target": "art/nalati-grasslands/round-5-paintover/camp-po-phone.jpg"
+      },
+      {
+        "id": "rail",
+        "label": "River rail",
+        "live": "/src/shards/nalati-grasslands/explore/compare/nalati-rail-live.jpg",
+        "image": "/src/shards/nalati-grasslands/explore/compare/nalati-rail-target.jpg",
+        "model": "",
+        "target": "art/nalati-grasslands/round-5-paintover/rail-po-phone.jpg"
+      },
+      {
+        "id": "gully",
+        "label": "Gully",
+        "live": "/src/shards/nalati-grasslands/explore/compare/nalati-gully-live.jpg",
+        "image": "/src/shards/nalati-grasslands/explore/compare/nalati-gully-target.jpg",
+        "model": "",
+        "target": "art/nalati-grasslands/round-5-paintover/gully-po-phone.jpg"
+      }
+    ]
+  },
+  "slug": "nalati-grasslands",
+  "seed": 18970,
+  "spawn": {
+    "x": 0,
+    "z": 232,
+    "yaw": 0
+  },
+  "horizon": {
+    "cloudSea": true,
+    "rings": [
+      {
+        "r": 800,
+        "base": -95,
+        "floor": -95,
+        "color": [
+          0.16,
+          0.3,
+          0.06
+        ],
+        "top": [
+          0.36,
+          0.46,
+          0.11
+        ],
+        "snowLine": 2,
+        "haze": 0.06,
+        "bands": [
+          {
+            "azimuth": 0,
+            "spread": 60,
+            "height": 40,
+            "rough": 0.05
+          },
+          {
+            "azimuth": 300,
+            "spread": 45,
+            "height": 20,
+            "rough": 0
+          },
+          {
+            "azimuth": 90,
+            "spread": 45,
+            "height": 145,
+            "rough": 0.3
+          },
+          {
+            "azimuth": 140,
+            "spread": 30,
+            "height": 165,
+            "rough": 0.35
+          },
+          {
+            "azimuth": 190,
+            "spread": 40,
+            "height": 130,
+            "rough": 0.25
+          },
+          {
+            "azimuth": 240,
+            "spread": 25,
+            "height": 75,
+            "rough": 0.12
+          }
+        ]
+      },
+      {
+        "r": 1400,
+        "base": -150,
+        "floor": -150,
+        "color": [
+          0.08,
+          0.14,
+          0.06
+        ],
+        "top": [
+          0.22,
+          0.27,
+          0.13
+        ],
+        "snowLine": 0.9,
+        "haze": 0.12,
+        "bands": [
+          {
+            "azimuth": 20,
+            "spread": 50,
+            "height": 70,
+            "rough": 0.3
+          },
+          {
+            "azimuth": 290,
+            "spread": 50,
+            "height": 35,
+            "rough": 0.1
+          },
+          {
+            "azimuth": 95,
+            "spread": 40,
+            "height": 330,
+            "rough": 0.6
+          },
+          {
+            "azimuth": 150,
+            "spread": 40,
+            "height": 360,
+            "rough": 0.6
+          },
+          {
+            "azimuth": 205,
+            "spread": 35,
+            "height": 280,
+            "rough": 0.5
+          }
+        ]
+      }
+    ]
+  },
+  "minimap": {
+    "image": "/assets/nalati-grasslands/map/top.webp"
+  },
+  "runtimeEntry": "runtime/index.ts",
+  "bindings": {
+    "accent": "ember",
+    "budgets": {
+      "module": "./boot/declaration.generated",
+      "export": "BUDGETS"
+    },
+    "runtimeCost": {
+      "module": "./data/runtimeCost.json",
+      "export": "default"
+    },
+    "navigation": {
+      "module": "./data/navigation.generated.json",
+      "export": "default"
+    },
+    "poses": {
+      "module": "./boot/declaration.generated",
+      "export": "POSES"
+    },
+    "groundRows": {
+      "module": "./boot/declaration.generated",
+      "export": "GROUND_ROWS"
+    },
+    "groundColourSamples": {
+      "module": "./boot/declaration.generated",
+      "export": "GROUND_COLOUR"
+    },
+    "surfaceSamples": {
+      "module": "./boot/declaration.generated",
+      "export": "SURFACE"
+    },
+    "forestMaskSamples": {
+      "module": "./boot/declaration.generated",
+      "export": "FOREST_MASK"
+    },
+    "mapGroundSamples": {
+      "module": "./boot/declaration.generated",
+      "export": "MAP_GROUND"
+    },
+    "mapPalette": {
+      "module": "./boot/declaration.generated",
+      "export": "MAP_PALETTE"
+    },
+    "navmesh": {
+      "module": "./boot/declaration.generated",
+      "export": "NAVMESH"
+    },
+    "ktx2": {
+      "module": "./ktx2.generated"
+    },
+    "boot": {
+      "files": {
+        "module": "./boot/declaration.generated",
+        "export": "BOOT_FILES"
+      },
+      "sources": {
+        "module": "./boot/declaration.generated",
+        "export": "BOOT_SOURCES"
+      },
+      "lateReads": {
+        "module": "./boot/declaration.generated",
+        "export": "BOOT_LATE_READS"
+      },
+      "explore": {
+        "module": "./boot/explore.generated.json",
+        "export": "default"
+      }
+    },
+    "entry": {
+      "native": {
+        "module": "./runtime/index",
+        "export": "NalatiPlugin"
+      },
+      "retainHomeRuntime": true,
+      "stagesOwner": "declared",
+      "nativePlan": {
+        "phases": [
+          "world-bindings",
+          "kit",
+          "play"
+        ],
+        "features": [
+          "weather.forest",
+          "held.claims.install",
+          "taming.entry",
+          "arena-room.entry",
+          "elite.entry",
+          "quest.chapter-view"
+        ]
+      }
+    },
+    "render": {
+      "platform": "post",
+      "file": "look/post.json",
+      "field": []
+    }
+  },
+  "pois": [
+    {
+      "id": "nomad-camp",
+      "name": "Nomad camp",
+      "x": 88,
+      "z": 212,
+      "r": 24
+    },
+    {
+      "id": "sheep-pasture",
+      "name": "Sheep pasture",
+      "x": -120,
+      "z": 212,
+      "r": 24
+    },
+    {
+      "id": "bridge",
+      "name": "Bridge",
+      "x": 0,
+      "z": 172,
+      "r": 24
+    },
+    {
+      "id": "kunes-river",
+      "name": "Kunes river",
+      "x": 150,
+      "z": 170.69679046771836,
+      "r": 24
+    },
+    {
+      "id": "sky-road",
+      "name": "Sky road",
+      "x": 46,
+      "z": 128,
+      "r": 24
+    },
+    {
+      "id": "eagle-rock",
+      "name": "Eagle rock",
+      "x": 180,
+      "z": 85,
+      "r": 24
+    },
+    {
+      "id": "horse-plains",
+      "name": "Horse plains",
+      "x": 65,
+      "z": 36,
+      "r": 24
+    },
+    {
+      "id": "kokpar-field",
+      "name": "Kokpar field",
+      "x": -61,
+      "z": 36,
+      "r": 24
+    },
+    {
+      "id": "kurgan-field",
+      "name": "Kurgan field",
+      "x": -106,
+      "z": 83,
+      "r": 24
+    },
+    {
+      "id": "great-kurgan",
+      "name": "Great kurgan",
+      "x": -191,
+      "z": 75,
+      "r": 24
+    },
+    {
+      "id": "summer-camp",
+      "name": "Summer camp",
+      "x": -91,
+      "z": -26,
+      "r": 24
+    },
+    {
+      "id": "watchtower",
+      "name": "Watchtower",
+      "x": -208,
+      "z": -38,
+      "r": 24
+    },
+    {
+      "id": "wind-cairn",
+      "name": "Wind cairn",
+      "x": -30,
+      "z": -45,
+      "r": 24
+    },
+    {
+      "id": "glacier",
+      "name": "Glacier",
+      "x": -82,
+      "z": -81,
+      "r": 24
+    },
+    {
+      "id": "snow-leopard-cave",
+      "name": "Snow leopard cave",
+      "x": 138,
+      "z": -68,
+      "r": 24
+    },
+    {
+      "id": "the-crags",
+      "name": "The crags",
+      "x": -180,
+      "z": -115,
+      "r": 24
+    },
+    {
+      "id": "snow-lotus",
+      "name": "Snow lotus",
+      "x": 143,
+      "z": -136,
+      "r": 24
+    }
+  ]
+}

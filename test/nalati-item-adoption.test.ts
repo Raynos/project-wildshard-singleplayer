@@ -10,7 +10,7 @@ import { INPUT_CONTEXTS } from '../src/game/inputContexts';
 import { bindRuntimeEquipment } from '../src/game/plugin/headless';
 import { ItemCatalogue } from '../src/game/plugin/nativeItems';
 import source from '../src/shards/nalati-grasslands/shard.config';
-import { NALATI_GRASSLANDS as manifest } from '../src/shards/nalati-grasslands/manifest';
+import { MANIFEST as manifest } from '../src/shards/nalati-grasslands/discovery.generated';
 import items from '../src/shards/nalati-grasslands/data/items.json' with { type: 'json' };
 
 class NativeWeapon extends Weapon {

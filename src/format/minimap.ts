@@ -204,11 +204,15 @@ const pageBoot = v.strictObject({ platform: v.literal('page-mode'), rows: v.stri
 /** A constant density field; no executable forest recipe or species policy. */
 export const FixedForestQueriesSchema = v.strictObject({ platform: v.literal('fixed'), density: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(1)) });
 const transitionPlan = v.exactOptional(v.union([v.boolean(), v.strictObject({
+  features: v.exactOptional(v.pipe(v.array(v.picklist(['state.adventure', 'weather.forest', 'held.claims.install', 'taming.entry', 'arena-room.entry', 'elite.entry', 'quest.chapter-view'])), v.minLength(1), v.maxLength(64), v.check(rows => new Set(rows).size === rows.length, 'Unique native client features'))),
   phases: v.pipe(v.array(v.picklist(['world', 'world-bindings', 'kit', 'prepare-play', 'play'])), v.maxLength(5),
     v.check(rows => new Set(rows).size === rows.length, 'Unique native plan phases')),
 })]));
 const bindings = v.strictObject({
   accent: text, budgets: binding, runtimeCost: v.exactOptional(binding), navigation: v.exactOptional(binding),
+  // Finite sample declarations hydrate through defineShard in its original decode order.
+  groundRows: v.exactOptional(binding), groundColourSamples: v.exactOptional(binding), surfaceSamples: v.exactOptional(binding),
+  forestMaskSamples: v.exactOptional(binding), mapGroundSamples: v.exactOptional(binding), navmesh: v.exactOptional(binding),
   mapPalette: v.exactOptional(binding), poses: v.exactOptional(binding), audioCues: v.exactOptional(binding),
   boot: v.exactOptional(v.union([pageBoot, v.strictObject({files: binding, sources: binding, lateReads: v.exactOptional(binding), bakedUnread: v.exactOptional(binding), audio: v.exactOptional(binding), explore: v.exactOptional(v.strictObject({ module: v.pipe(bindingModule, v.regex(/\.json$/u)), export: v.literal('default') }))})])),
   forestQueries: v.exactOptional(v.union([binding, declared, FixedForestQueriesSchema])),
@@ -231,7 +235,7 @@ const bindings = v.strictObject({
     v.strictObject({ platform: v.literal('keyed'), channels: text, looks: binding, trim: binding, trimRow: bindingName }),
     // G599: a post-graph look read from a product file's row (game looks/postGraphLook `postGraphLook`): the file and the
     // field path to its row
-    v.strictObject({ platform: v.literal('post'), file: text, field: v.pipe(v.array(text), v.minLength(1), v.maxLength(8)) })])), load: v.exactOptional(moduleBinding),
+    v.strictObject({ platform: v.literal('post'), file: text, field: v.pipe(v.array(text), v.maxLength(8)) })])), load: v.exactOptional(moduleBinding),
   ktx2: v.exactOptional(v.union([pageBoot, moduleBinding, binding])), roster: v.exactOptional(v.union([v.strictObject({...binding.entries, call: v.boolean()}),
     // G601 C10: held arms' Explorer cards from a data file (game models/heldGear `heldArmsGear`)
     v.strictObject({ platform: v.literal('held'), rows: bindingModule })])),
@@ -252,7 +256,7 @@ export const ManifestMetadataSchema = v.strictObject({
   boundary: v.exactOptional(v.strictObject({visible: v.boolean()})),
   hoverSpeedClass: v.exactOptional(v.picklist(['shard', 'road'])),
   uses: v.exactOptional(v.pipe(v.array(v.picklist(['weather', 'dayCycle', 'bosses', 'elites', 'spawns', 'quests', 'swim', 'hover', 'explore', 'practice', 'coins', 'loot', 'compendium', 'feats', 'bag.pack'])), v.maxLength(64))),
-  loadout: v.exactOptional(v.strictObject({weapons: strings, tools: strings, start: strings, held: v.exactOptional(text), pickups: v.exactOptional(v.array(v.strictObject({id: text, at: text})))})),
+  loadout: v.exactOptional(v.strictObject({weapons: strings, tools: strings, start: strings, held: v.exactOptional(text), loans: v.exactOptional(v.pipe(v.array(v.strictObject({id: text, in: v.literal('practice')})), v.maxLength(256), v.check(rows => new Set(rows.map(row => row.id)).size === rows.length, 'Unique practice loans'))), pickups: v.exactOptional(v.array(v.strictObject({id: text, at: text})))})),
   species: v.exactOptional(strings), encounters: v.exactOptional(strings),
   fight: v.exactOptional(v.strictObject({maxHitDamage: v.exactOptional(number), capExempt: v.exactOptional(strings), attackers: v.exactOptional(v.union([number, v.literal('unbounded')])), telegraphed: v.exactOptional(v.boolean()),
     input: v.exactOptional(v.strictObject({bufferMs: number, coyoteMs: number}))})),
@@ -261,12 +265,12 @@ export const ManifestMetadataSchema = v.strictObject({
   tiers: v.exactOptional(v.strictObject({phone: v.exactOptional(tier), desktop: v.exactOptional(tier),
     grid: v.exactOptional(v.strictObject({phone: v.exactOptional(tier), desktop: v.exactOptional(tier)}))})),
   loot: v.exactOptional(v.strictObject({coins: v.exactOptional(v.boolean())})),
-  hud: v.exactOptional(v.strictObject({bands: v.pipe(v.array(v.picklist(['band.1', 'band.2', 'band.3', 'band.4', 'band.5', 'band.6'])), v.maxLength(6))})),
-  bag: v.exactOptional(v.strictObject({tabs: strings, pack: v.strictObject({slots: number, keeps: v.exactOptional(strings)})})),
+  hud: v.exactOptional(v.strictObject({dayBadge: v.exactOptional(v.boolean()), bands: v.exactOptional(v.pipe(v.array(v.picklist(['band.1', 'band.2', 'band.3', 'band.4', 'band.5', 'band.6'])), v.maxLength(6)))})),
+  bag: v.exactOptional(v.strictObject({skinsTitle: v.exactOptional(text), tabs: strings, pack: v.strictObject({slots: number, keeps: v.exactOptional(strings)})})),
   regionalSimCost: v.exactOptional(v.strictObject({residentMB: number, rev: text, device: text, evidence: text})),
   spawns: v.exactOptional(v.pipe(v.array(v.strictObject({kind: text, count: number, variants: v.exactOptional(strings),
     anchor: v.exactOptional(v.strictObject({x: number, z: number, rMin: number, rMax: number})), canopy: v.boolean(), trailBand: v.tuple([number, number])})), v.maxLength(256))),
-  audio: v.strictObject({ambience: text, score: text, catalogue:v.exactOptional(v.literal(true)), bed: v.exactOptional(text), samples: v.exactOptional(v.strictObject({loopGains: v.record(text, number), omitLoops: v.exactOptional(strings), omitShots: v.exactOptional(strings)}))}),
+  audio: v.strictObject({ambience: text, score: text, catalogue:v.exactOptional(v.literal(true)), alertOnlyHostile: v.exactOptional(v.boolean()), bed: v.exactOptional(text), samples: v.exactOptional(v.strictObject({loopGains: v.record(text, number), omitLoops: v.exactOptional(strings), omitShots: v.exactOptional(strings)}))}),
   api: v.literal(1), slug: v.pipe(text, v.regex(/^(?:_[a-z]+|[a-z][a-z0-9-]*)$/u)),
   order: number, status: v.picklist(['live', 'experimental', 'earlyAccess', 'hidden']), shardSelect: v.exactOptional(v.boolean()),
   name: text, label: text, seed: v.pipe(number, v.integer()),
@@ -294,7 +298,7 @@ export const ManifestMetadataSchema = v.strictObject({
   horizon: v.exactOptional(v.strictObject({ rings: v.pipe(v.array(ring), v.maxLength(32)), cloudSea: v.boolean() })),
   minimap: v.strictObject({ image, openWater: v.exactOptional(v.strictObject({level: number, deepDepth: number})), outside: v.exactOptional(text) }),
   pois: v.pipe(v.array(v.strictObject({ id: text, name: text, x: number, z: number, r: v.exactOptional(number) })), v.maxLength(256)),
-  explore: v.strictObject({ art, compare: v.exactOptional(v.array(v.strictObject({id: text, label: text, model: text, target: text, live: image, image}))) }),
+  explore: v.strictObject({ art, compare: v.exactOptional(v.array(v.strictObject({id: text, label: text, model: v.pipe(v.string(), v.maxLength(512)), target: text, live: image, image}))) }),
   captureProbes: v.exactOptional(v.array(v.strictObject({name: text, x: number, z: number, yaw: number, pitch: number}))),
   next: v.exactOptional(text), debugOptions: v.exactOptional(strings), bodyShadow: v.exactOptional(v.boolean()),
   ocean: v.exactOptional(v.strictObject({level: number, shallowColor: rgb, deepColor: rgb, deepDepth: number})),

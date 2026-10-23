@@ -14,6 +14,7 @@ import { parseManifestMetadata } from '@wildshard/format/minimap';
 import { ShardfileSchema } from '@wildshard/format/shardSchema';
 import { defineAuthoredShard } from '@wildshard/game/shard/manifest';
 import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
+import { MANIFEST as nalati } from '../src/shards/nalati-grasslands/discovery.generated';
 import { MANIFEST as sky } from '../src/shards/far-reach/discovery.generated';
 import { MANIFEST as signal } from '../src/shards/sunscar-dunes/discovery.generated';
 import { MANIFEST as template } from '../src/shards/_template/discovery.generated';
@@ -49,7 +50,7 @@ describe('authored JSON discovery', () => {
       expect(read).toThrow(/bounded generators directory/u);
     } finally { rmSync(scratch, {recursive: true}); }
   });
-  for (const manifest of [sky, signal, template, pine, driftwood, blender]) test(`${manifest.slug} composes typed native bindings and complete images`, () => {
+  for (const manifest of [sky, signal, template, pine, driftwood, blender, nalati]) test(`${manifest.slug} composes typed native bindings and complete images`, () => {
     const row = parseManifestMetadata(metadata(manifest.slug));
     expect(manifest.name).toBe(row.name); expect(manifest.spawn).toEqual(row.spawn);
     expect(manifest.bounds).toEqual(row.bounds); expect(manifest.sky).toEqual(row.sky);
