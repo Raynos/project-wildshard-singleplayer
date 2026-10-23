@@ -1,10 +1,11 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- validate the generated fixture at runtime without inferring its full JSON type
+import { readFileSync } from 'node:fs';
 import { Matrix4, Quaternion, Vector3 } from 'three';
 import { expect, test } from 'vitest';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { decodeFloorRecords } from '../src/shards/pine-hollow/generators/floorRows.mjs';
 import { output } from '../src/shards/pine-hollow/generators/output';
 import { parseFloorRows } from '../src/shards/pine-hollow/generators/sections';
-import floorRows from '../src/shards/pine-hollow/data/floorLayout.generated.json' with { type: 'json' };
 
 const UP = new Vector3(0, 1, 0), normal = new Vector3(), place = new Vector3(), size = new Vector3(), tilt = new Quaternion(), turn = new Quaternion();
 /** The frozen page composer, copied verbatim from the retired legacy undergrowth's `matrixOf`:
@@ -20,7 +21,7 @@ test('the named floor preserves all 22,250 shipping placements and refuses malfo
   const bytes = file === undefined ? undefined : output.assets.get(file.hash);
   if (bytes === undefined) throw new Error('Missing named floor');
   const rows = parseFloorRows(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
-  const source = parseFloorRows(floorRows);
+  const source = parseFloorRows(JSON.parse(readFileSync(new URL('../src/shards/pine-hollow/data/floorLayout.generated.json',import.meta.url),'utf8')));
   // Recorded from the actual shipping loadUnderPlacements at 238bcf425,
   // before moving its decoder: hash every value, tint, normal and array order.
   const facts = Object.fromEntries(Object.entries(source.layout).map(([kind, items]) => [kind, items.map(({ x, y, z, nx, ny, nz, rot, scale, r, g, b }) => ({ x, y, z, nx, ny, nz, rot, scale, r, g, b }))]));
