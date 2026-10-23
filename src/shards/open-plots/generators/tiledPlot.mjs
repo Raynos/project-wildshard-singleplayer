@@ -80,7 +80,8 @@ function poster(parts, palette, { centre, n, width, bottom, posts, offset = 0 })
   const face = (d, out) => {
     const sign = out ? 1 : -1, rr = (s) => s * sign;
     const p = parts.Poster;
-    const corners = [[at(rr(width / 2), bottom, d), [1, 1]], [at(rr(-width / 2), bottom, d), [0, 1]], [at(rr(-width / 2), top, d), [0, 0]], [at(rr(width / 2), top, d), [1, 0]]];
+    // u runs left to right as the face is seen from outside it (each face reads, not mirrored)
+    const corners = [[at(rr(width / 2), bottom, d), [0, 1]], [at(rr(-width / 2), bottom, d), [1, 1]], [at(rr(-width / 2), top, d), [1, 0]], [at(rr(width / 2), top, d), [0, 0]]];
     for (const [a, b, c] of [[0, 1, 2], [0, 2, 3]]) p.tri('Poster', corners[a][0], corners[b][0], corners[c][0], palette.picture, [corners[a][1], corners[b][1], corners[c][1]]);
   };
   face(depth / 2 + 0.02, true); face(-depth / 2 - 0.02, false);
@@ -120,7 +121,7 @@ async function tiledPlot(root, repo, layoutName) {
   buildLayout(grid, parts, palette, (r, c) => (r * 7 + c * 3) % 2);
   // the posters: the plaza's facing the south entry, one over each entry facing out to the road
   const { plaza, entry } = layout.posters;
-  poster(parts, palette, { centre: [plaza.x, plaza.z], n: [0, 0, -1], width: plaza.width, bottom: plaza.bottom, posts: plaza.width / 3 });
+  poster(parts, palette, { centre: [plaza.x, plaza.z], n: [0, 0, -1], width: plaza.width, bottom: plaza.bottom, posts: plaza.width / 3, offset: plaza.offset ?? 0 });
   for (const n of [[0, 0, 1], [0, 0, -1], [1, 0, 0], [-1, 0, 0]]) poster(parts, palette, { centre: [n[0] * entry.inset, n[2] * entry.inset], n, width: entry.width, bottom: entry.bottom, posts: entry.posts, offset: entry.offset });
   // the landmark: its near model as drawn, its far model in its texture's colours (far only, and the collider)
   const near = await readModel(resolve(repo, layout.landmark.near)), far = await readModel(resolve(repo, layout.landmark.far));

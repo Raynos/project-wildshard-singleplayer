@@ -47,9 +47,10 @@
     "image": "public/assets/open-plots/night-market/poster.webp",
     "plaza": {
       "x": 0,
-      "z": -34,
-      "width": 24,
-      "bottom": 3.5
+      "z": -40,
+      "width": 20,
+      "bottom": 2.5,
+      "offset": -22
     },
     "entry": {
       "inset": 247,

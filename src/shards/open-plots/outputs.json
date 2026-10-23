@@ -540,9 +540,9 @@
           {
             "id": "plaza-poster",
             "name": "Plaza poster",
-            "r": 14,
-            "x": 0,
-            "z": -34
+            "r": 12,
+            "x": -22,
+            "z": -40
           },
           {
             "id": "north-poster",
