@@ -10,6 +10,9 @@ import { TIME_ALLOW } from './wildshard-plugin.js';
 import { compareCounts, hardRules, requiredGuardRules } from '../scripts/guard-counts.mjs';
 import { legacyInventory, registeredLegacyFile } from '../scripts/legacy-shards.mjs';
 import { closedComponents, closingComponents } from '../scripts/check-closed-components.mjs';
+import { parseSync } from 'vite';
+import { pruneSchemaTypeAllowances } from './schema-types.mjs';
+import { SCHEMA_TYPE_RULE } from '../scripts/ratchet-approval.mjs';
 
 const REPO = fileURLToPath(new URL('../', import.meta.url));
 const NON_FILE = new Set(['allow', 'budgets', 'debugRows', 'closedComponents', 'closingComponents']);
@@ -181,6 +184,13 @@ function main() {
   if (mode === 'update') {
     const next = Object.fromEntries(Object.entries(baseline).filter(([key]) => NON_FILE.has(key)));
     for (const [key, files] of Object.entries(current)) next[key] = files;
+    if (next.allow?.[SCHEMA_TYPE_RULE] !== undefined) next.allow[SCHEMA_TYPE_RULE]=pruneSchemaTypeAllowances(next.allow[SCHEMA_TYPE_RULE], file=>{
+      const source=resolve(root,file);
+      if (!existsSync(source)) return null;
+      const parsed=parseSync(file,readFileSync(source,'utf8'));
+      if (parsed.errors.length>0) throw new Error(`Cannot parse format schema source: ${file}`);
+      return parsed.program;
+    },scopedPaths);
     save(baselineFile, next);
     console.log(`Ratchet lowered: ${baselineFile}`);
   } else console.log('Ratchet passed: no file count or Debug row count rose');

@@ -1,4 +1,5 @@
 import { clientPlanSchemaViolations } from './client-plan-boundary.mjs';
+import { explicitSchemaTypes } from './schema-types.mjs';
 // Wildshard's own oxlint rules (loaded by `jsPlugins` in .oxlintrc.json; oxlint's ESLint-compatible JS plugin API).
 //
 // wildshard/no-url-switch — Jake, 2026-09-25: "NO URL SWITCHES EVER, ALL VARIANTS IN THE DEBUG MENUS".
@@ -1086,6 +1087,7 @@ const plugin = {
   meta: { name: 'wildshard' },
   rules: {
     'no-client-plan-reflection': clientPlanReflection,
+    'explicit-schema-types': explicitSchemaTypes(shardfileDebt,pathOf),
     'no-reexport': noReexport,
     'shard-game-imports': shardGameImports,
     'shard-game-plugins': shardGamePlugins,

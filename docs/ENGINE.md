@@ -3080,6 +3080,7 @@ collision, and proves damage and quest completion without a renderer, DOM or act
 | `wildshard/shard-game-imports` | shard game imports outside `runtime/`, including type/dynamic/re-export and relative forms; only exact SF73 inventory-registered frozen files are exempt. Engine imports remain G143/SF62 transition debt. | shrink-only ratchet seeded at 233 measured sites; promote to hard only at zero |
 | `wildshard/legacy-npc-imports` | historical `figureRig`, `figureMotion` or `faceHeads` imports from any non-registered source, including primary runtime, relative/type/dynamic/re-export forms; preserves only the literal historical internal type dependency | hard; exact SF73 registered files only, never folder suffixes |
 | `wildshard/public-index` | a cross-layer import names a module the layer's package does not export (`@wildshard/engine/x/y` does not resolve at all; a relative path into another layer is refused too); a module the layer's `package.json` `exports` lists is public | ratchet (per file) |
+| `wildshard/explicit-schema-types` | an exported format schema or schema factory without an explicit declaration or return type; casts and `satisfies` do not substitute | G655 TD3 exact existing export identities plus per-file ceilings; every new identity starts at zero |
 | `wildshard/no-reexport` | `export … from` (or `export *`, or exporting an imported binding) of our own modules: no barrels; a third-party re-export (a bundler shim) passes | hard (`.oxlintrc.json`, E434) |
 | `wildshard/engine-words` | Wildshard vocabulary (shard names, species, items, the word "shard") in engine code; comments are not counted. A wire contract's field may keep the name `shard` (telemetry tags, reports, the harness probe, a model id) only as a property name or key, only in the files `lint/ratchet.json` `allow['wildshard/engine-words']` lists with the reason (E405, Jake). Engine copy says "level" and the game supplies its word (`s_level_word`) | hard (`.oxlintrc.json`, E405 LAYER-PURITY) |
 | `wildshard/shard-names` | the game names no particular shard: slugs, display names, camelCase forms, distinctive stems and shard-declared ids, from `lint/shard-words.generated.json`; comments and ordinary words (pine, driftwood) pass | hard (`.oxlintrc.json`, E405 LAYER-PURITY) |
@@ -3123,6 +3124,13 @@ Their `{count: true}` option emits all violations for census tooling, as configu
 raw `{rule, message, start, end}` diagnostics without applying migration debt; callers decide when a shard must be closed.
 Exact registered frozen sources keep their historical exemption. Each migration removes its now-unused ceilings;
 the new closed shard remains at zero.
+
+G655 TD3 records the existing untyped format schema exports as exact `file#export` identities
+in `allow['wildshard/explicit-schema-types']`, alongside numeric file ceilings. A new or renamed
+untyped export fails even if the file count is unchanged. An explicit schema value type or
+schema factory return type pays down the debt; the normal shrink-only update removes its
+identity allowance. The syntax-only visitor never creates a TypeScript program. Baseline
+initialization and any later identity addition require exact coordinator approval trailers.
 
 **The other checks a shard meets**
 

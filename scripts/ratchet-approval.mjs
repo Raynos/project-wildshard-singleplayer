@@ -1,20 +1,51 @@
+export const SCHEMA_TYPE_RULE = 'wildshard/explicit-schema-types';
+/** Validate identity paths before policy tools read any source. */
+export function schemaTypeIdentity(identity) {
+  const split=identity.lastIndexOf('#'),file=identity.slice(0,split),name=identity.slice(split+1);
+  if (!file.startsWith('src/format/') || !file.endsWith('.ts') || file.split('/').some(part=>!part || part==='.' || part==='..')
+    || !/^[$A-Z_a-z][$\w]*$/u.test(name)) throw new Error(`Invalid schema export identity: ${identity}`);
+  return {file,name};
+}
+
 // Policy increases require one exact coordinator approval per increased row.
-/** @param {Record<string, Record<string, number>>} before
- * @param {Record<string, Record<string, number>>} after @param {string} message */
+/** @param {Record<string, object>} before
+ * @param {Record<string, object>} after @param {string} message */
 export function ratchetApprovalFailures(before, after, message) {
   // The repository requires a blank line before the final attribution.
   const content = message.trimEnd().replace(/\n\nAssisted-by:[^\n]+$/u, '');
   const unfolded = content.replaceAll(/\n[ \t]+/gu, ' ');
   const footer = unfolded.split(/\n\s*\n/u).at(-1) ?? '';
   const approvals = unfolded.split('\n').filter(line => line.startsWith('Ratchet-Approved:'));
-  const expected = new Set();
+  const increases = new Map();
   for (const [rule, rows] of Object.entries(after)) {
     if (!rule.startsWith('wildshard/')) continue;
     for (const [file, count] of Object.entries(rows)) {
-      const delta = count - (before[rule]?.[file] ?? 0);
-      if (delta > 0) expected.add(`Ratchet-Approved: wildshard-new ${rule} ${file} +${delta}`);
+      /** @type {unknown} */
+      const previous=Object.hasOwn(before,rule) ? Reflect.get(before[rule],file) : 0;
+      const delta = count - (typeof previous==='number' ? previous : 0);
+      if (delta > 0) increases.set(`${rule} ${file}`,delta);
     }
   }
+  // A name swap at an unchanged file count is still newly admitted debt.
+  /** @param {object} policy */
+  const identities=policy=>{
+    /** @type {unknown} */
+    const allow=Reflect.get(policy,'allow');
+    if (allow===null || typeof allow!=='object') return {};
+    /** @type {unknown} */
+    const rows=Reflect.get(allow,SCHEMA_TYPE_RULE);
+    return rows!==null && typeof rows==='object' ? rows : {};
+  };
+  const beforeNames=identities(before),afterNames=identities(after);
+  const added=new Map();
+  for (const identity of Object.keys(afterNames)) if (!Object.hasOwn(beforeNames,identity)) {
+    const {file}=schemaTypeIdentity(identity);added.set(file,(added.get(file) ?? 0)+1);
+  }
+  for (const [file,count] of added) {
+    const key=`${SCHEMA_TYPE_RULE} ${file}`;
+    increases.set(key,Math.max(increases.get(key) ?? 0,count));
+  }
+  const expected=new Set([...increases].map(([key,count])=>`Ratchet-Approved: wildshard-new ${key} +${count}`));
   const failures = [];
   const seen = new Set();
   for (const line of approvals) {

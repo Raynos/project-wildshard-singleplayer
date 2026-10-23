@@ -132,6 +132,11 @@
   },
   "overrides": [
     {
+      // G655 TD3: exact existing exports burn down; new untyped schemas fail immediately.
+      "files": ["src/format/**"],
+      "rules": { "wildshard/explicit-schema-types": "error" }
+    },
+    {
       // E405 AG5: the engine loads under node's default strip-only TypeScript (bakes, manifests, gen scripts import
       // #engine), which has no parameter properties: declare the field and assign it in the constructor.
       "files": ["src/engine/**"],

@@ -7,6 +7,7 @@
     "restriction": "off", "style": "off", "nursery": "off"
   },
   "rules": {
+    "wildshard/explicit-schema-types": ["error", { "count": true }],
     "wildshard/layer": "error",
     "wildshard/runtime-commons": "error",
     "wildshard/runtime-standalone": ["error", { "count": true }],
