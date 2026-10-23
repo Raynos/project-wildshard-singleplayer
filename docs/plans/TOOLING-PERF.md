@@ -163,7 +163,7 @@ or is deleted;** no tooling commit breaks every commit unnoticed. 8. No wait ove
 
 | Row | What | Expected win | Size | Done when |
 |---|---|---|---|---|
-| H1 | Pre-commit materialises only staged files and the inputs a selected job reads; no snapshot when nothing under `src/ scripts/ test/ lint/` is staged; closed / ratchet only when `src/` or `lint/ratchet.json` is staged | docs commit ~5 s → < 1 s; source commits −2–4 s under load | S | a docs-only commit < 1.5 s and a 3-file commit < 3 s at load ≥ 25 |
+| H1 | Pre-commit materialises only staged files and the inputs a selected job reads; no snapshot when nothing under `src/ scripts/ test/ lint/` is staged; closed / ratchet only when `src/` or `lint/ratchet.json` is staged | docs-only commit 3.0 s measured at load ~30 (over 5 s at peaks) → < 1 s; source commits −2–4 s | S | a docs-only commit < 1.5 s and a 3-file commit < 3 s at load ≥ 25 |
 | H2 | **Tooling self-test on the real repo:** the gate runs `precommit-inputs` (dry run) and `push-loop --check` against the real index when `.githooks/`, `scripts/precommit*`, `push-*`, `live-prepush.py` or `commit.sh` change; lint rule `wildshard/exec-max-buffer` for `scripts/` | the c2ff69dd04 class stops at the gate | S | a fixture reintroducing the 1 MB buffer goes red in the gate |
 | H3 | Deferral is never silent: a staged ratchet or closed check that times out is recorded for the gate like typed lint (fix the early `return` in `defer()`) | closes d7255f9638's hole | XS | a timed-out ratchet with no source staged runs at the next tick |
 | H4 | commit-msg drops `check-lock.mjs` and `.github/lock.json` | one dead process per commit | XS | files gone |
