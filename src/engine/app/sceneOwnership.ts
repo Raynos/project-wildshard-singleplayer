@@ -3,7 +3,7 @@ import { Scope, type Disposable3 } from './scope';
 import type { AssetService } from './assets';
 
 /** One capture-local walk: shared materials and uniforms are inspected once, without retaining resources afterward. */
-function resourceCollector(excludeNodes?: ReadonlySet<object>): { resources: Set<Disposable3>; visit: (value: unknown) => void } {
+function resourceCollector(excludeNodes?: Pick<WeakSet<object>, 'has'>): { resources: Set<Disposable3>; visit: (value: unknown) => void } {
   const resources = new Set<Disposable3>(), visited = new Set<object>();
   const visit = (value: unknown): void => {
     if (typeof value !== 'object' || value === null || visited.has(value) || ArrayBuffer.isView(value)) return;
@@ -27,7 +27,7 @@ function resourceCollector(excludeNodes?: ReadonlySet<object>): { resources: Set
 }
 
 /** Walk resource containers, stopping at scene nodes so the whole scene is never mistaken for an asset. */
-export function containerResources(container: unknown, excludeNodes?: ReadonlySet<object>): Set<Disposable3> {
+export function containerResources(container: unknown, excludeNodes?: Pick<WeakSet<object>, 'has'>): Set<Disposable3> {
   const collector = resourceCollector(excludeNodes); collector.visit(container); return collector.resources;
 }
 interface DelegatedScene { scope: Scope; capture: () => void }
@@ -200,7 +200,12 @@ function* walkSceneResources(root: Object3D, owner: Scope | undefined, delegated
 }
 
 export class SceneOwnership {
-  private readonly engineNodes = new Set<Object3D>();
+  /** The page's own nodes, held weakly: a node retained with the page can still leave with a narrower owner. The camera's
+   *  subtree at the kit's retain holds the boot resident's held weapon, and a strong hold kept that weapon's material, and
+   *  through its lighting hooks the boot resident's whole world, for the page's life (live P0, Driftwood -> Sky Reach ->
+   *  Driftwood). `engineRefs` is the same census, walkable; refs to collected or forgotten nodes drop as it is walked. */
+  private readonly engineNodes = new WeakSet<Object3D>();
+  private readonly engineRefs = new Set<WeakRef<Object3D>>();
   private readonly nodeOwners = new WeakMap<Object3D, Scope>();
   private readonly acquired = new Set<Disposable3>();
   private readonly roots = new Set<Object3D>();
@@ -210,7 +215,7 @@ export class SceneOwnership {
   constructor(scene: Object3D, level: Scope, assets: AssetService) { this.scene = scene; this.level = level; this.assets = assets; }
   retain(root: Object3D, scope = this.level): void {
     const nodes: Object3D[] = [];
-    root.traverse((node) => { this.engineNodes.add(node); this.nodeOwners.set(node, scope); nodes.push(node); });
+    root.traverse((node) => { if (!this.engineNodes.has(node)) { this.engineNodes.add(node); this.engineRefs.add(new WeakRef(node)); } this.nodeOwners.set(node, scope); nodes.push(node); });
     // a retired owner's nodes leave the page's census with it (live P0: a retired grid region's nodes, and through their
     // materials the region, stayed in this set for the page's life)
     if (scope !== this.level) scope.onDispose(() => { for (const node of nodes) if (this.nodeOwners.get(node) === scope) this.engineNodes.delete(node); });
@@ -219,8 +224,14 @@ export class SceneOwnership {
   retainContainer(container: unknown, scope = this.level): void {
     for (const resource of containerResources(container, this.engineNodes)) this.acquire(resource, scope);
     // Shadow targets and bone textures are allocated lazily after the engine nodes were first retained.
-    for (const node of this.engineNodes) for (const key of ['geometry', 'material', 'customDepthMaterial', 'customDistanceMaterial', 'shadow', 'environment', 'background', 'skeleton']) {
+    for (const node of this.liveEngineNodes()) for (const key of ['geometry', 'material', 'customDepthMaterial', 'customDistanceMaterial', 'shadow', 'environment', 'background', 'skeleton']) {
       for (const resource of containerResources(Reflect.get(node, key))) this.acquire(resource, this.nodeOwners.get(node) ?? this.level);
+    }
+  }
+  private *liveEngineNodes(): Generator<Object3D> {
+    for (const ref of this.engineRefs) {
+      const node = ref.deref();
+      if (node === undefined || !this.engineNodes.has(node)) this.engineRefs.delete(ref); else yield node;
     }
   }
   retainedNodeCount(): number {
