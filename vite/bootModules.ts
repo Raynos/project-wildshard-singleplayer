@@ -4,6 +4,8 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { readModuleFiles } from '../src/engine/boot/download';
 import { bootProductTotals } from './bootProducts';
+import { homeExtraFiles } from './bootExtras';
+import { createHash } from 'node:crypto';
 
 /** Only imports actually scheduled by startSelected; title, recovery and error
  * branches elsewhere in the entry module are not home requirements. */
@@ -41,6 +43,7 @@ interface EmittedFile {
   readonly code?: string;
   readonly source?: string | Uint8Array;
   readonly imports?: readonly string[];
+  readonly originalFileNames?: readonly string[];
   readonly modules?: Readonly<Record<string, unknown>>;
 }
 type Bundle = Readonly<Record<string, EmittedFile | undefined>>;
@@ -75,11 +78,13 @@ export function bootModuleFiles(bundle: Bundle, roots: readonly string[]): reado
 /** Compiler-owned facts ride the existing shell, including offline launches.
  * No metadata fetch, speculative import or new service-worker install list. */
 export function bootModulesPlugin(): Plugin {
-  let root = process.cwd();
+  let root = process.cwd(), inlineLimit = 4096;
   return {
     name: 'wildshard-boot-module-files',
     configResolved(config) {
       root = config.root;
+      if (typeof config.build.assetsInlineLimit !== 'number') throw new Error('Boot inventory requires a numeric asset inline limit');
+      inlineLimit = config.build.assetsInlineLimit;
       if (config.build.cssCodeSplit) throw new Error('Boot module facts require the page stylesheet inventory');
     },
     generateBundle: { order: 'post', async handler(_options, bundle) {
@@ -96,7 +101,18 @@ export function bootModulesPlugin(): Plugin {
       if (html?.type !== 'asset' || typeof html.source !== 'string' || !html.source.includes('<head>')) throw new Error('Missing boot module document');
       const client = await this.resolve('./game/shardfile/client', entry);
       if (client === null || client.external !== false) throw new Error('Missing compiled client module');
-      const rows = { common: bootModuleFiles(bundle, ids), client: bootModuleFiles(bundle, [client.id]), products: bootProductTotals(root) };
+      const products = bootProductTotals(root), extras: Record<string, readonly [string, number, number, string]> = {};
+      for (const prefix of Object.keys(products)) {
+        const directory = prefix.split('/')[2];
+        if (directory === undefined) throw new Error('Missing boot home directory');
+        const files = homeExtraFiles(root, directory, bundle, inlineLimit);
+        if (files === null) continue;
+        const source = JSON.stringify(files), hash = createHash('sha256').update(source).digest('hex');
+        const name = `assets/boot-${directory}-${hash.slice(0, 8)}.json`;
+        this.emitFile({ type: 'asset', fileName: name, source });
+        extras[prefix] = [`/${name}`, Buffer.byteLength(source), files.reduce((sum, row) => sum + row[1], 0), hash];
+      }
+      const rows = { common: bootModuleFiles(bundle, ids), client: bootModuleFiles(bundle, [client.id]), products, extras };
       const json = JSON.stringify(rows).replaceAll('<', String.raw`\u003c`);
       html.source = html.source.replace('<head>', `<head><script type="application/json" id="boot-module-files">${json}</script>`);
     } },

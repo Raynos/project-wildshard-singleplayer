@@ -927,6 +927,24 @@ reserves only its selected manifest's product, before application modules run.
 Full file inventories and their original size/hash/schema admission stay in the
 selected product, rather than being inlined for every shard.
 
+`reserveDownloadBank(id, bytes)` returns the itemizer for that attempt's
+captured counters. It reserves a detached home file list's exact content total;
+its complete validated URL/size bank replaces the reservation atomically.
+Size mismatch, unsafe/duplicate URLs and overlapping declarations refuse before
+any file publishes. A newly opened observer cannot retarget the pending bank.
+The first-party compiled entry fetches only its own content-hashed, bounded
+art/model inventory, verifies its byte size and SHA-256, then itemizes it before
+product admission. Other homes' file lists stay out of the shell. A retired
+entry refuses before publication. This declares existing reads without adding
+model, image, audio or physics prefetches.
+
+Expected progress uses file-content sizes before HTTP compression, including
+content supplied by a cache. The network line uses observed transfers or
+explicitly labelled encoded-body hints. An unknown transfer size remains unknown;
+a decoded JS/CSS size never fills a missing wire receipt. Product binary sizes
+still refer to their original stored file encoding; HTTP compression is a
+separate transport layer.
+
 `observeDownloadAccounting(accounting)` adds a disposable page-activity observer
 without replacing the active boot attempt. Declarations, verified cache reads and
 worker receipts reach both; each observer keeps its own start time and receipt

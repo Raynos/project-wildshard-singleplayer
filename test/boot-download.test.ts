@@ -68,7 +68,7 @@ it('does not turn all-zero worker timings into cache hits or invent wire bytes f
     serverTiming: [{ name: 'ws-receipt', duration: 0 }, { name: 'ws-network', duration: 700 }] }));
   expect(accounting.snapshot()).toMatchObject({ networkBytes: 0, cachedBytes: 0, filesDone: 1, unclassifiedBytes: 700 });
   accounting.declare('/zero.bin', 800);
-  expect(accounting.snapshot()).toMatchObject({ pendingBytes: 0, unclassifiedBytes: 800, unclassifiedFiles: 1 });
+  expect(accounting.snapshot()).toMatchObject({ pendingBytes: 0, unclassifiedBytes: 700, unclassifiedFiles: 1 });
 });
 
 it('retains exact pending index sizes and resolves cache reads and late declarations', () => {
@@ -169,4 +169,28 @@ it('refuses changed, overlapping and invalid reserves without modifying the orig
   expect(() => accounting.reserve('/home/sub/', 10)).toThrow('Overlapping');
   expect(() => accounting.reserve('/', 500)).toThrow('Overlapping');
   expect(accounting.snapshot()).toMatchObject({ declaredBytes: 100, declaredDoneBytes: 0 });
+});
+
+it('itemizes detached banks atomically with exact totals and no duplicate or unsafe file publication', () => {
+  const accounting = new DownloadAccounting(base);
+  accounting.reserveBank('home', 30);
+  for (const rows of [[['/assets/a.glb', 10], ['/assets/b.glb', 10]], [['/assets/a.glb', 10], ['/assets/a.glb', 20]],
+    [['/assets/a.glb', 10], ['https://foreign.test/b.glb', 20]], [['/assets/a.glb', 10], ['/assets/../b.glb', 20]]]) {
+    expect(() => accounting.itemizeBank('home', rows)).toThrow();
+    expect(accounting.snapshot()).toMatchObject({ declaredBytes: 30, declaredFiles: 0, unitemizedBytes: 30 });
+  }
+  accounting.resource(timing('/assets/a.glb'));
+  accounting.itemizeBank('home', [['/assets/a.glb', 10], ['/assets/b.glb', 20]]);
+  expect(accounting.snapshot()).toMatchObject({ declaredBytes: 30, declaredDoneBytes: 10, declaredFiles: 2 });
+});
+
+
+it('keeps decoded module content separate from encoded body and wire receipts', () => {
+  const accounting = new DownloadAccounting(base);
+  accounting.declare('/assets/module.js', 1000);
+  accounting.resource(timing('/assets/module.js', { transferSize: 400, encodedBodySize: 100, decodedBodySize: 1000 }));
+  expect(accounting.snapshot()).toMatchObject({ declaredBytes: 1000, declaredDoneBytes: 1000, networkBytes: 400 });
+  accounting.declare('/assets/unsized.js', 2000);
+  accounting.resource(timing('/assets/unsized.js', { transferSize: 0, encodedBodySize: 0, workerStart: 1 }));
+  expect(accounting.snapshot()).toMatchObject({ declaredBytes: 3000, declaredDoneBytes: 3000, networkBytes: 400, unclassifiedBytes: 0, unclassifiedFiles: 1 });
 });

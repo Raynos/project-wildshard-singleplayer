@@ -21,10 +21,13 @@ export function loadingDownloadFraction(transfer: DownloadSnapshot, done: boolea
 /** Declared progress first (the fact line truncates), then the wire and the offline cache. WebKit sizes no service-worker
  * transfer: those count by their known body size, said once, never as a missing total. */
 export function loadingDownloadText(transfer: DownloadSnapshot): string {
-  const network = transfer.unclassifiedFiles > 0
-    ? `${formatMB(transfer.networkBytes + transfer.unclassifiedBytes)} network (${transfer.unclassifiedFiles} files by body size)` : `${formatMB(transfer.networkBytes)} network`;
+  const network = transfer.unclassifiedFiles > 0 && transfer.unclassifiedBytes === 0
+    ? `${formatMB(transfer.networkBytes)} network · ${transfer.unclassifiedFiles} transfers with unknown wire size`
+    : transfer.unclassifiedFiles > 0
+    ? `${formatMB(transfer.networkBytes + transfer.unclassifiedBytes)} network (${transfer.unclassifiedFiles} files by encoded body size)` : `${formatMB(transfer.networkBytes)} network`;
   const pending = transfer.unitemizedBytes === undefined ? '' : ` · ${formatMB(transfer.unitemizedBytes)} awaiting file index`;
-  return `${formatMB(transfer.declaredDoneBytes)} of ${formatMB(transfer.declaredBytes)} · ${transfer.declaredFilesDone} / ${transfer.declaredFiles} files${pending} · ${network} · ${formatMB(transfer.cachedBytes)} offline cache`;
+  if (transfer.declaredBytes === 0) return `Reading download inventory · ${network} · ${formatMB(transfer.cachedBytes)} offline cache`;
+  return `${formatMB(transfer.declaredDoneBytes)} of ${formatMB(transfer.declaredBytes)} content · ${transfer.declaredFilesDone} / ${transfer.declaredFiles} files${pending} · ${network} · ${formatMB(transfer.cachedBytes)} offline cache`;
 }
 
 /** The grid prefetch's own row: disk bytes against the set discovered so far (a finished run with every product read is 1). */

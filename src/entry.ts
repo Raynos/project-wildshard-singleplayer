@@ -2,8 +2,9 @@
 import './identity';
 import { startPageServices } from './pageServices';
 import { persistHomeScreen } from '@wildshard/engine/saves/runtime';
+import { waitFor } from '@wildshard/engine/boot/waits';
 import { declareModuleFiles } from '@wildshard/engine/boot/download';
-import { reserveHomeDownload } from './bootDownloads';
+import { reserveHomeDownload, prepareHomeExtras } from './bootDownloads';
 /**
  * The page's module entry. Everything the game imports statically is evaluated in ONE task when a module graph
  * runs: three.js plus the ~150 game modules at once was a 115–157 ms long task at 4× CPU before the first boot step
@@ -120,8 +121,6 @@ async function startSelected(): Promise<void> {
     if (typeof moduleRows !== 'object' || moduleRows === null || !Object.hasOwn(moduleRows, kind)) throw new Error('Missing boot module rows');
     declareModuleFiles(Reflect.get(moduleRows, kind));
   };
-  reserveHomeDownload(typeof moduleRows === 'object' && moduleRows !== null && 'products' in moduleRows ? moduleRows.products : undefined, game.shard.shardfile, document.baseURI);
-  modules('common');
   const { gridPrefetchStatus } = await retried(() => import('./game/grid/prefetch'));
   loading.setPrefetchSource(gridPrefetchStatus);
   loading.waiting('Preparing application services');
@@ -146,7 +145,14 @@ async function startSelected(): Promise<void> {
     const { shardEntry } = await retried(() => import('./game/shard/entryMode'));
     const { default: calibration } = await retried(() => import('./loadingCalibration.json'));
     const path = page.mode === 'grid' ? 'grid' : source !== null || shardEntry(game.shard) === 'shardfile' ? 'shardfile' : 'legacy';
+    // Publish every selected bank together before reading the descriptor.
+    if (source === null) reserveHomeDownload(typeof moduleRows === 'object' && moduleRows !== null && 'products' in moduleRows ? moduleRows.products : undefined, game.shard.shardfile, document.baseURI);
+    const extras = source === null && path === 'shardfile' ? prepareHomeExtras(
+      typeof moduleRows === 'object' && moduleRows !== null && 'extras' in moduleRows ? moduleRows.extras : undefined,
+      game.shard.shardfile, document.baseURI, entryScope) : null;
+    modules('common');
     if (path === 'shardfile') modules('client');
+    if (extras !== null) { loading.waiting('Reading selected download inventory'); await waitFor('Read selected download inventory', extras.read(), 'file'); }
     // Hybrid shardfile entries retain real TypeScript stages until their page is data-only.
     loading.setPath(loadingPath(path, game.shard.boot?.steps, path === 'shardfile' && source === null && game.shard.shardfile === undefined), calibration);
     const declaredIcons = ['lock', 'check', 'poi', 'you', 'map', 'pack', 'star', 'book', 'heart', 'pin', 'laurel', 'sword', 'glyph', 'coin', 'purse', 'crossbow', 'rifle', 'lever', 'longbow', 'grapple', 'horse'] as const;

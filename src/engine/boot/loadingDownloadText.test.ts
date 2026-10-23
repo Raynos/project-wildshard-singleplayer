@@ -16,12 +16,12 @@ it('the home track counts only the load\'s declared files and is full when the l
 });
 
 it('leads with the declared progress, then wire and offline cache', () => {
-  expect(loadingDownloadText(traffic)).toBe('1.50 MB of 2.00 MB · 3 / 4 files · 1.30 MB network · 2.00 MB offline cache');
+  expect(loadingDownloadText(traffic)).toBe('1.50 MB of 2.00 MB content · 3 / 4 files · 1.30 MB network · 2.00 MB offline cache');
 });
 
 it('counts Safari\'s unsized service-worker transfers by body size, never as a missing total', () => {
   const text = loadingDownloadText({ ...traffic, networkBytes: 0, unclassifiedFiles: 1133, unclassifiedBytes: 232_600_000 });
-  expect(text).toContain('232.6 MB network (1133 files by body size)');
+  expect(text).toContain('232.6 MB network (1133 files by encoded body size)');
   expect(text).not.toContain('unavailable');
   expect(text).not.toContain('0.00 MB network');
 });
@@ -37,4 +37,11 @@ it('the grid prefetch row reports disk progress against the set known so far, an
 
 it('labels reserved bytes without pretending their file count or receipt is known', () => {
   expect(loadingDownloadText({ ...traffic, unitemizedBytes: 500_000 })).toContain('3 / 4 files · 0.50 MB awaiting file index');
+});
+
+
+it('does not call an unknown wire size the decoded module body size', () => {
+  const text = loadingDownloadText({ ...traffic, networkBytes: 0, unclassifiedFiles: 2, unclassifiedBytes: 0 });
+  expect(text).toContain('2 transfers with unknown wire size');
+  expect(text).not.toContain('by encoded body size');
 });

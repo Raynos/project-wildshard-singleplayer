@@ -9,7 +9,7 @@ export interface DownloadSnapshot {
 }
 interface File { bytes: number; complete: boolean }
 export interface DownloadTiming {
-  name: string; startTime: number; transferSize: number; encodedBodySize: number;
+  name: string; startTime: number; transferSize: number; encodedBodySize: number; decodedBodySize?: number;
   workerStart: number; serverTiming: readonly { name: string; duration: number }[];
   responseEnd?: number; source?: 'worker';
 }
@@ -17,6 +17,7 @@ export interface DownloadTiming {
 export class DownloadAccounting {
   private readonly files = new Map<string, File>();
   private readonly groups = new Map<string, number>();
+  private readonly banks = new Map<string, number>();
   private readonly seen = new Set<string>();
   private readonly received = new Set<string>();
   private readonly cache = new Map<string, number>();
@@ -65,6 +66,21 @@ export class DownloadAccounting {
     if (known > bytes) throw new Error('Download reserve understates declared files');
     this.groups.set(key, bytes);
   }
+  /** A detached per-home file list is fetched once after selection. Its exact
+   * compiler total stays pending until the complete list replaces it atomically. */
+  reserveBank(id: string, bytes: number): void {
+    if (!Number.isSafeInteger(bytes) || bytes < 0 || this.banks.has(id)) throw new Error('Invalid download bank reserve');
+    this.banks.set(id, bytes);
+  }
+  itemizeBank(id: string, input: unknown): void {
+    const rows = readDownloadFiles(input), total = this.banks.get(id);
+    if (total === undefined || rows.reduce((sum, row) => sum + row[1], 0) !== total
+      || new Set(rows.map(row => this.url(row[0]))).size !== rows.length) throw new Error('Download bank total differs');
+    // No partial declaration if a malformed suffix or overlap was supplied.
+    if (rows.some(row => this.files.has(this.url(row[0])))) throw new Error('Download bank overlaps declared files');
+    this.banks.delete(id);
+    for (const [url, bytes] of rows) this.declare(url, bytes);
+  }
   /** Verified disk reads are separate from network receipts and credited once per immutable address. */
   cached(key: string, bytes: number, url?: string): void {
     if (!Number.isSafeInteger(bytes) || bytes < 0) throw new Error('Invalid cached byte receipt');
@@ -111,11 +127,12 @@ export class DownloadAccounting {
       // hides later declarations or manufactures a completed file/byte receipt.
       unitemizedBytes += Math.max(0, bytes - known);
     }
+    for (const bytes of this.banks.values()) unitemizedBytes += bytes;
     declaredBytes += unitemizedBytes; pendingBytes += unitemizedBytes;
     for (const bytes of this.cache.values()) cachedBytes += bytes;
     let unclassifiedBytes = 0;
     for (const receipt of this.unknown.values()) unclassifiedBytes += Math.max(receipt.bytes,
-      this.bodyHints.get(receipt.url) ?? 0, this.files.get(receipt.url)?.bytes ?? 0);
+      this.bodyHints.get(receipt.url) ?? 0);
     return { networkBytes: this.network, cachedBytes, pendingBytes, filesDone: this.completed + this.cache.size,
       filesTotal: this.completed + this.cache.size + pendingFiles, unclassifiedBytes, unclassifiedFiles: this.unknown.size,
       declaredBytes, declaredDoneBytes: declaredBytes - pendingBytes, declaredFiles: this.files.size, declaredFilesDone: this.files.size - pendingFiles, ...(unitemizedBytes === 0 ? {} : { unitemizedBytes }) };
@@ -164,10 +181,31 @@ export function observeDownloadAccounting(accounting: DownloadAccounting): () =>
   return () => { observers.delete(accounting); };
 }
 
-/** Expected wire size for a file this path will read; product indexes supply exact sizes. */
+/** Expected content-body bytes before HTTP compression, not measured wire size.
+ * Product indexes describe the encoded file itself; JS/CSS facts describe code. */
 export function declareDownloadFile(url: string, bytes: number): void { accountingTargets(accounting => { accounting.declare(url, bytes); }); }
 /** Reserve only a selected directory, never another home's bytes or completion. */
 export function reserveDownloadGroup(url: string, bytes: number): void { accountingTargets(accounting => { accounting.reserve(url, bytes); }); }
+/** Reserve and then itemize a compiler-owned per-home asset list. */
+export function reserveDownloadBank(id: string, bytes: number): (input: unknown) => void {
+  const targets: DownloadAccounting[] = [];
+  accountingTargets(accounting => { accounting.reserveBank(id, bytes); targets.push(accounting); });
+  return input => { for (const accounting of targets) accounting.itemizeBank(id, input); };
+}
+/** Detached compiler-owned URL/body-size rows, validated before publication. */
+export function readDownloadFiles(input: unknown): readonly (readonly [string, number])[] {
+  if (!Array.isArray(input) || input.length > 8192) throw new Error('Invalid download file bank');
+  const rows: [string, number][] = [];
+  for (const row of input) {
+    if (!Array.isArray(row) || row.length !== 2) throw new Error('Invalid download file row');
+    const url: unknown = row[0], bytes: unknown = row[1];
+    if (typeof url !== 'string' || !/^\/assets\/(?:[a-zA-Z0-9_.-]+\/)*[a-zA-Z0-9_.-]+$/u.test(url)
+      || url.split('/').some(part => part === '.' || part === '..')
+      || typeof bytes !== 'number' || !Number.isSafeInteger(bytes) || bytes < 0) throw new Error('Invalid download file row');
+    rows.push([url, bytes]);
+  }
+  return rows;
+}
 /** Detached compiler-owned URL/body-size rows; usable by the build and page. */
 export function readModuleFiles(input: unknown): readonly (readonly [string, number])[] {
   if (!Array.isArray(input) || input.length > 4096) throw new Error('Invalid boot module bank');
