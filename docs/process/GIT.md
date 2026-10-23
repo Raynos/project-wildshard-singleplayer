@@ -138,6 +138,12 @@ rewrite still needs Jake's approval.
   full-gate stamps are retired; current push verdicts and gate seconds live in `.git/push.log`. Required exact-SHA
   boot smoke retains WebKit rendering, every public shard, and the road into Signal. Production
   selects only a CI-green and smoke-green commit.
+- **CI fail-fast (G671 C4):** generation and product failures block their dependents. Type/lint and behaviour
+  matrices cancel sibling jobs on their first failure; behaviour stops at its first failed case. Long commands
+  observe only their exact run/attempt and stop their own process groups when a peer fails, retaining a red
+  workflow verdict. An unavailable peer observation is named and not retried; the original checks still run.
+  Failure annotations name the source/test file, and short-lived `ci-failures-*` artifacts contain only paths,
+  revision and job identity for the push gate's recently-red selection. No raw logs or secrets are published.
 - **Source checks:** pre-commit checks the pathspec's named files and refuses if they change during the check.
   The scheduled push gate checks immutable committed candidates in disposable source snapshots, preserving the
   shared working tree and index. Missing generated test inputs follow the explicit cache-miss rule above.

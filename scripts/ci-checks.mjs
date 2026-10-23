@@ -5,7 +5,51 @@
 //   node scripts/ci-checks.mjs ['<shell chain>' …]
 import { spawn, spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+import { pathToFileURL } from 'node:url';
 
+/** Run sibling checks as owned process groups. A first red stops the others;
+ * signals from the enclosing CI command also drain these groups.
+ * @param {string[]} commands
+ * @returns {Promise<{command:string, code:number, sec:number, out:string}[]>} */
+export async function runChecks(commands) {
+  /** @type {Set<import('node:child_process').ChildProcess>} */
+  const children = new Set();
+  let refused = false;
+  function stop() {
+    for (const child of children) if (child.pid !== undefined) {
+      try { process.kill(-child.pid, 'SIGTERM'); } catch { /* already exited */ }
+      const pid=child.pid;
+      setTimeout(() => { if (children.has(child)) { try { process.kill(-pid,'SIGKILL'); } catch { /* already exited */ } } },1000).unref();
+    }
+  }
+  const interrupted = () => { refused=true; stop(); };
+  process.once('SIGTERM', interrupted); process.once('SIGINT', interrupted);
+  try {
+    return await Promise.all(commands.map(command => new Promise(resolve => {
+      const started=Date.now();
+      const child=spawn('bash',['-c',command],{stdio:['ignore','pipe','pipe'],detached:true});
+      children.add(child);
+      /** @type {Buffer[]} */
+      const output=[];
+      child.stdout?.on('data',chunk => { output.push(chunk); });
+      child.stderr?.on('data',chunk => { output.push(chunk); });
+      child.on('error',error => { output.push(Buffer.from(String(error))); });
+      child.on('close',code => {
+        children.delete(child);
+        if (code!==0 && !refused) {
+          refused=true;
+          console.error(`::error::ci-checks: ${command} failed; stopping owned sibling checks`);
+          stop();
+        }
+        resolve({command,code:code??1,sec:(Date.now()-started)/1000,out:Buffer.concat(output).toString('utf8')});
+      });
+    })));
+  } finally {
+    process.removeListener('SIGTERM',interrupted); process.removeListener('SIGINT',interrupted);
+  }
+}
+
+async function main() {
 /** @type {{ scripts: Partial<Record<string, string>> }} */
 const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 const chain = pkg.scripts['test:checks'];
@@ -29,20 +73,7 @@ if (prepared) {
   console.log(`ci-checks: products ${((Date.now() - productsStarted) / 1000).toFixed(0)} s; running ${commands.length} in parallel`);
 }
 
-/** @param {string} command @returns {Promise<{ command: string, code: number, sec: number, out: string }>} */
-function run(command) {
-  const start = Date.now();
-  return new Promise((resolve) => {
-    const child = spawn('bash', ['-c', command], { stdio: ['ignore', 'pipe', 'pipe'] });
-    /** @type {Buffer[]} */
-    const out = [];
-    child.stdout.on('data', (chunk) => { out.push(chunk); });
-    child.stderr.on('data', (chunk) => { out.push(chunk); });
-    child.on('close', (code) => { resolve({ command, code: code ?? 1, sec: (Date.now() - start) / 1000, out: Buffer.concat(out).toString('utf8') }); });
-  });
-}
-
-const results = await Promise.all(commands.map(run));
+const results = await runChecks(commands);
 // Each command's output in one group, so parallel logs never interleave.
 for (const r of results) {
   console.log(`::group::${r.code === 0 ? '✓' : '✗'} ${r.command} (${r.sec.toFixed(0)} s)`);
@@ -54,3 +85,6 @@ const failed = results.filter((r) => r.code !== 0);
 for (const r of failed) console.log(`::error::ci-checks: ${r.command} exited ${r.code}`);
 console.log(`ci-checks: ${((Date.now() - t0) / 1000).toFixed(0)} s wall, ${failed.length} failed`);
 process.exit(failed.length === 0 ? 0 : 1);
+
+}
+if (process.argv[1] && import.meta.url===pathToFileURL(process.argv[1]).href) await main();
