@@ -41,6 +41,27 @@ test('sole-user platform contributions also fail the full inventory guard', () =
   expect(closedComponentFailures({}, { 'pine-hollow': ['C8'] })).toEqual(['pine-hollow: closed component inventory missing']);
 });
 
+test('erased JSON declarations stay zero while executable JSON-suffix files remain charged', () => {
+  const root = mkdtempSync(join(tmpdir(), 'closed-json-types-'));
+  const policy = { 'nalati-grasslands': ['C4', 'C9'] };
+  const put = (path: string, source: string): void => { mkdirSync(dirname(join(root, path)), { recursive: true }); writeFileSync(join(root, path), source); };
+  const contract = 'import type { Rows } from "./types";\ndeclare const rows: Rows;\nexport default rows;\n';
+  try {
+    for (const path of ['species/horse.d.json.ts', 'creatures/flock.d.json.ts', 'data/reins.d.json.ts'])
+      put(`src/shards/nalati-grasslands/${path}`, contract);
+    expect(closedComponentSources(root, policy)).toEqual([]);
+    const executable = 'src/shards/nalati-grasslands/creatures/extra.d.json.ts';
+    for (const source of [
+      'export const creature = 1;\n',
+      'declare const rows: unknown;\nexport default (() => rows);\n',
+      'import { Rows } from "./runtime";\ndeclare const rows: Rows;\nexport default rows;\n',
+    ]) {
+      put(executable, source);
+      expect(closedComponentSources(root, policy)).toEqual([expect.stringContaining('CLOSED C4')]);
+    }
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
 test('locks cannot be removed or changed into adjustable budgets', () => {
   const before = { 'pine-hollow': ['C8'] };
   expect(compareClosedComponents(before, { 'pine-hollow': ['C8', 'C3'] })).toEqual([]);

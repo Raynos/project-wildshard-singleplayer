@@ -53,6 +53,12 @@ with tempfile.TemporaryDirectory(dir=base/'tmp',prefix='staged-names-test-') as 
   (True,'import type {Alias} from "./m";',{'m.ts':'import type {Shape as Inner} from "./leaf"; export type {Inner as Alias};','leaf.ts':'export interface Shape {}'}),
   (True,'import {"__proto__" as value} from "./m";',{'m.ts':'export const __proto__ = 1;'}),
   (False,'import {"missing-name" as value} from "./m";',{'m.ts':'export const value = 1;'}),
+  (True,'import type {Shape} from "./m.mjs";',{'m.mjs':'export const runtime = 1;','m.d.mts':'export interface Shape {}'}),
+  (True,'import {type Shape} from "./m.js";',{'m.js':'export const runtime = 1;','m.d.ts':'export type Shape = number;'}),
+  (True,'import type {Shape} from "./m.cjs";',{'m.cjs':'exports.runtime = 1;','m.d.cts':'export interface Shape {}'}),
+  (False,'import {Shape} from "./m.mjs";',{'m.mjs':'export const runtime = 1;','m.d.mts':'export interface Shape {}'}),
+  (False,'import type {Missing} from "./m.mjs";',{'m.mjs':'export const Missing = 1;','m.d.mts':'export interface Shape {}'}),
+  (False,'import {type Missing} from "./m.js";',{'m.js':'export const Missing = 1;','m.d.ts':'export interface Shape {}'}),
  ]
  with source['import_reader']() as imports:
   for index,(passes,text,modules) in enumerate(cases):

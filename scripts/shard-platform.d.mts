@@ -36,6 +36,8 @@ export interface ShardLines {
 export interface ShardPlatformList { baseline: Record<string, number>; enforced: Record<string, number> }
 export interface MilestoneFlags { headless: boolean }
 export function codeLines(source: string, path?: string): number;
+/** AST-proven erased JSON module declarations; executable syntax stays custom. */
+export function jsonTypeContract(source: string, path: string): boolean;
 export function shardLines(root?: string, includeSources?: boolean): Record<string, ShardLines>;
 /** Strict output-only P4 measure; never falls back to an authoring closure. */
 export function outputShardLines(root?:string,includeSources?:boolean,products?:string,only?:string[]|null):Record<string,ShardLines>;

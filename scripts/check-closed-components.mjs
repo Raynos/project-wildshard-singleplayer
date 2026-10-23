@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import * as v from 'valibot';
 import { COMPONENTS, COMPONENT_SHARDS, componentInventory } from './shard-components.mjs';
-import { codeLines, declarationOnlyConfig, declarationOnlyManifest, shaderCodeLines, sourceProgressInventory } from './shard-platform.mjs';
+import { codeLines, declarationOnlyConfig, declarationOnlyManifest, jsonTypeContract, shaderCodeLines, sourceProgressInventory } from './shard-platform.mjs';
 import { discoverGeneration } from './generate.mjs';
 
 /** Closed component policy contains identities only: no adjustable line budgets.
@@ -83,7 +83,7 @@ export function closedComponentSources(root, input, closing = {}) {
     for (const path of globSync(`src/shards/${shard}/**/*.{ts,tsx,glsl}`, { cwd: root })) {
       if (generated.has(path) || /(?:\/generators\/|\.d\.ts$|\.(?:test|spec)\.tsx?$|\/test\/)/u.test(path)) continue;
       const source = readFileSync(resolve(root, path), 'utf8');
-      if (path.endsWith('/manifest.ts') && declarationOnlyManifest(source, path)
+      if (jsonTypeContract(source, path) || path.endsWith('/manifest.ts') && declarationOnlyManifest(source, path)
         || path.endsWith('/shard.config.ts') && declarationOnlyConfig(source, path)) continue;
       const shader = path.endsWith('.glsl'), lines = shader ? shaderCodeLines(source) : codeLines(source, path);
       if (lines > 0) sources.push({ path, kind: shader ? 'additional-glsl' : 'runtime-ts', lines });

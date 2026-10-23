@@ -162,7 +162,7 @@ function shaderText(value, name) {
 }
 // G571/G573: JSON module contracts erase completely. The unusual suffix is
 // not enough: executable statements under that name remain custom code.
-function jsonTypeContract(source, path) {
+export function jsonTypeContract(source, path) {
   if (!path.endsWith('.d.json.ts')) return false;
   const program = parseSync(path, source).program;
   const declared = new Set(program.body.flatMap(row => row.type === 'VariableDeclaration' && row.declare

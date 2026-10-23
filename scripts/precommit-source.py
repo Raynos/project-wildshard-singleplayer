@@ -78,7 +78,7 @@ lines.on('line',line=>{
    const binding=clause?.namedBindings;
    if(binding&&ts.isNamespaceImport(binding))locals[binding.name.text]={from,name:'*'};
    if(binding&&ts.isNamedImports(binding))for(const item of binding.elements){
-    const imported=(item.propertyName??item.name).text;locals[item.name.text]={from,name:imported};named.push({from,name:imported});
+    const imported=(item.propertyName??item.name).text;locals[item.name.text]={from,name:imported};named.push({from,name:imported,typeOnly:!!(clause?.isTypeOnly||item.isTypeOnly)});
    }
   }
   if(ts.isExportDeclaration(node)){
@@ -286,8 +286,14 @@ def check_staged_imports(blobs, files, staged_paths, imports):
                     generated.add(folder + '/discovery.generated.ts')
         return file in generated
     scripts = {'.ts', '.tsx', '.mts', '.cts', '.js', '.jsx', '.mjs', '.cjs'}
-    def target(source, value):
+    def target(source, value, type_only=False):
         candidates = relative_candidates(source, value)
+        if type_only and candidates:
+            base = candidates[0]
+            suffix = PurePosixPath(base).suffix
+            declarations = {'.js': ['.ts', '.tsx', '.d.ts'], '.mjs': ['.mts', '.d.mts'], '.cjs': ['.cts', '.d.cts']}
+            if suffix in declarations:
+                candidates = [base[:-len(suffix)] + extension for extension in declarations[suffix]] + candidates
         found = next((candidate for candidate in candidates if candidate in staged_paths), None)
         if found is None and not any(declared_output(candidate) for candidate in candidates):
             name = candidates[0] if candidates else value
@@ -344,7 +350,7 @@ def check_staged_imports(blobs, files, staged_paths, imports):
             value, symbol = binding['from'], binding['name']
             if not value.startswith('.') or '?' in value or '#' in value:
                 continue
-            dependency = target(file, value)
+            dependency = target(file, value, binding.get('typeOnly', False))
             if dependency is None:
                 continue
             origins = exported(dependency, symbol)
