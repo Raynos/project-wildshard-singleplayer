@@ -10,7 +10,8 @@
       ],
       "embedded": [
         {
-          "file": "behaviour/director.json"
+          "file": "behaviour/director.json",
+          "raw": true
         }
       ],
       "director": "data/director.json"

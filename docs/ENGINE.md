@@ -4055,6 +4055,12 @@ migrate; internal audio recipes import its types relatively.
 
 ### Native behaviour author builds (SF79 DS0.4)
 
+An `embedded` output may set `raw: true` to retain its module hash and an
+empty `bytes` field while the compiled Wasm remains in the declared assets
+directory. This applies on every project build and `--check`, so a later
+build cannot reintroduce inline transport after canonical generation.
+Omitted `raw` preserves the historical embedded representation.
+
 `@wildshard/sdk/buildBehaviour` defines `BehaviourBuildSchema`, `compileBehaviourModule(source, maximumPages)` and `buildBehaviourProject(project)`. A project may retain `behaviour/build.json` with source `.as` files, maximum pages, an immutable asset directory, JSON module bindings and optional embedded outputs for its trusted native plugin. `wildshard build <project>` generates these declared outputs before compiling the project; `wildshard build <project> --behaviour-only` regenerates just the modules; append `--check` to regenerate in memory and compare every declared output without writes. `bake-check --node-only --only=directors` checks all three native consumers. Every read and write stays inside the project. All modules compile before writes begin. There is no shard-name dispatch, runtime installation, or implicit source discovery. Driftwood, Nalati and Pine use the same retained compiler declaration; their Wasm and embedded bytes stay identical. Historical embedded notices remain unchanged for byte identity; the build descriptor and CLI are the current regeneration authority.
 
 ### Node scene authoring core (DS1.3)

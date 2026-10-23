@@ -21,7 +21,7 @@ export const BehaviourBuildSchema = v.strictObject({
     maximumPages: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(64)),
     assets: relativePath,
     bindings: v.array(jsonPath),
-    embedded: v.array(v.strictObject({ file: jsonPath, generated: v.optional(v.pipe(v.string(), v.maxLength(2048))) })),
+    embedded: v.array(v.strictObject({ file: jsonPath, generated: v.optional(v.pipe(v.string(), v.maxLength(2048))), raw: v.optional(v.boolean()) })),
   })), v.minLength(1), v.maxLength(64)),
 });
 
@@ -33,7 +33,8 @@ export async function compileBehaviourModule(source: string, maximumPages = 1, s
 
 /** Generate explicitly declared native modules before a project build. Missing declarations produce no writes.
  * Every source and output is confined to the project, and all modules compile before any output is published.
- * Historical embedded notices may be retained for byte identity; behaviour/build.json is the current regeneration authority. */
+ * Historical embedded notices may be retained for byte identity; behaviour/build.json is the current regeneration authority.
+ * An embedded row with raw:true writes only its hash and empty bytes; the module remains in its declared asset file. */
 export async function buildBehaviourProject(project: string, options: { check?: boolean } = {}): Promise<readonly string[]> {
   const root = realpathSync(project), descriptor = resolve(root, 'behaviour/build.json');
   if (!existsSync(descriptor)) return [];
@@ -65,7 +66,7 @@ export async function buildBehaviourProject(project: string, options: { check?: 
       const data = v.parse(v.record(v.string(), v.unknown()), JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(readBoundedFile(confined(path), 1_000_000))));
       put(path, json({ ...data, module: compiled.module }));
     }
-    for (const embedded of row.embedded) put(embedded.file, json({ ...(embedded.generated === undefined ? {} : { generated: embedded.generated }), module: compiled.module, bytes: Buffer.from(compiled.bytes).toString('base64') }));
+    for (const embedded of row.embedded) put(embedded.file, json({ ...(embedded.generated === undefined ? {} : { generated: embedded.generated }), module: compiled.module, bytes: embedded.raw === true ? '' : Buffer.from(compiled.bytes).toString('base64') }));
   }
   if (options.check === true) {
     for (const [path, bytes] of files) {

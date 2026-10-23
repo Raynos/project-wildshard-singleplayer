@@ -11,6 +11,7 @@
       "embedded": [
         {
           "file": "behaviour/director.json",
+          "raw": true,
           "generated": "DO NOT EDIT: behaviour/director.as -> scripts/bake/directorSource.ts (@wildshard/sdk/compileScript); regenerate with node scripts/bake/directors.mjs"
         }
       ],
