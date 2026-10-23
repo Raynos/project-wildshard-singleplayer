@@ -4,7 +4,6 @@ import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import source from '../src/shards/nalati-grasslands/data/species.generated.json' with {type:'json'};
 import { admittedSheepProduct } from './fake/admittedSheep';
 
 const encode=(value:unknown):Uint8Array=>new TextEncoder().encode(JSON.stringify(value));
@@ -29,7 +28,7 @@ test('species named-file admission precedes native catalogue allocation',async()
     expect(()=>nameBlob('actors/sheep.json','json',encode(payload),{jsonSchema:schema})).toThrow();
     await expect(product(payload).json('actors/sheep.json')).rejects.toThrow('refuses its schema');
   }
-  const view=source.presentation,first=view.lookBook.rows[0];if(first===undefined)throw new Error('Missing real species row');
+  const view=file.species,first=view.lookBook.rows[0];if(first===undefined)throw new Error('Missing real species row');
   for(const species of [
     {...view,packedBodies:{...view.packedBodies,attrs:[['position','f64',3,false]]}},
     {...view,lookBook:{...view.lookBook,rows:Array.from({length:257},()=>first)}},

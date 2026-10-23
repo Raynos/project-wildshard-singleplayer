@@ -1,10 +1,15 @@
-import { SpeciesActorsFileSchema } from '@wildshard/format/speciesBookRows';
+// oxlint-disable-next-line import/no-nodejs-modules -- admit the generated presentation without inferring its complete JSON type
+import { readFileSync } from 'node:fs';
+import { object, parse } from 'valibot';
+import { SpeciesActorsFileSchema, SpeciesPresentationSchema } from '@wildshard/format/speciesBookRows';
 import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { createShardProduct } from '../../src/game/shardfile/shardProduct';
 import { bakeSheepBody } from '../../src/shards/nalati-grasslands/generators/sheepBody';
-import species from '../../src/shards/nalati-grasslands/data/species.generated.json' with { type: 'json' };
+
+const species=parse(object({presentation:SpeciesPresentationSchema}),
+  JSON.parse(readFileSync('src/shards/nalati-grasslands/data/species.generated.json','utf8')));
 
 type SheepMetadata = Omit<ReturnType<typeof bakeSheepBody>, 'bytes' | 'parts'> & {
   readonly species: typeof species.presentation; readonly page: { readonly world: null; readonly specimen: null }; readonly parts: readonly string[];
