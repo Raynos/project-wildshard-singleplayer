@@ -15,12 +15,9 @@ import {Rng} from '../src/engine/core/rng';
 import {GroupBankV2} from '../src/engine/script/groupBankV2';
 import type {GroupBankValueV2} from '../src/format/scriptGroupBankV2';
 import {ReturnProgram} from '../src/game/population/returnProgram';
-import {parseGroupStepV2} from '../src/format/scriptGroupStepV2';
-import profile from '../src/shards/nalati-grasslands/data/herdGroup.json' with {type:'json'};
 import binding from '../src/shards/nalati-grasslands/data/herdGuest.json' with {type:'json'};
 import pasture from '../src/shards/nalati-grasslands/behaviour/pasture.generated.json' with {type:'json'};
 
-const rows=parseGroupStepV2(profile);
 const modes=['graze','drift','alert','flee','settle'],states=['watch','warn','display','charge','wheel','lead','beaten','ridden'];
 const savedSchema=v.looseObject({state:v.record(v.string(),v.unknown()),lead:v.nullable(v.string()),stallion:v.nullable(v.string()),ridden:v.nullable(v.string()),chargeTarget:v.nullable(v.string()),foals:v.array(v.string()),mothers:v.array(v.tuple([v.string(),v.string()]))});
 const saved=(herd:Pick<HerdBrain<AnimalSim>,'snapshot'>)=>v.parse(savedSchema,JSON.parse(herd.snapshot()));
@@ -60,9 +57,7 @@ function makeFixture<H extends FixtureHerd>(Owner:new(members:AnimalSim[],defini
  steer:(a,yaw,speed,turn)=>{log.push(['steer',a.entityId,yaw,speed,turn]);a.setMotion(yaw,speed,turn);if(mutate){a.position.x+=.5;herd.mode='alert';}},
  pathYaw:(a,x,z,every)=>{log.push(['path',a.entityId,x,z,every??0]);return Math.atan2(x-a.position.x,z-a.position.z)+.03;},confine:a=>{log.push(['confine',a.entityId]);}};
  for(const a of roster){const original=a.setMotion.bind(a);a.setMotion=(yaw,speed,turn)=>{log.push(['motion',a.entityId,yaw,speed,turn??2.5]);original(yaw,speed,turn);};}
- lendNalatiPasture(scope);const program=ReturnProgram.page(pasture,scope);if(program.prepareGroup===undefined||program.groupBindings===undefined)throw new Error('Missing selected herd capability');
- const runner={prepare:program.prepareGroup},codec=new GroupBankV2(rows.bank);
- return{roster,pending,threats,random,contextRandom,log,herd,ports,scope,ctx,runner,codec};
+ return{roster,pending,threats,random,contextRandom,log,herd,ports,scope,ctx};
 }
 const fixture=(mode:string,state:string,mutate=false,count=4)=>makeFixture(NativeHerd,mode,state,mutate,count);
 const oracleFixture=(mode:string,state:string,mutate=false,count=4)=>makeFixture(OriginalHerd,mode,state,mutate,count);
@@ -99,8 +94,10 @@ function execute(f:ReturnType<typeof fixture>,slot:number,asBody=false,signal='d
   default:throw new Error('Undeclared original native signal');
  }
 }
-test('all herd modes and ordinary guard states match original per-member effects and continuation',()=>{
- for(const mode of modes)for(const state of states.filter(value=>!['charge','ridden'].includes(value)))for(const slot of [0,1,2,3]){
+// Keep the full matrix; each mode gets its own bounded parity case. The
+// frozen TS oracle does not construct an unused WASM programme.
+test.each(modes)('%s: ordinary guard states match original per-member effects and continuation',mode=>{
+ for(const state of states.filter(value=>!['charge','ridden'].includes(value)))for(const slot of [0,1,2,3]){
   const old=oracleFixture(mode,state),next=fixture(mode,state);
   try{
    const actor=old.roster[slot];if(actor===undefined)throw new Error('Missing original actor');old.herd.drive(actor,old.ctx);execute(next,slot);
@@ -357,6 +354,7 @@ test('scalar publication validates roles and all original storage before any com
 function bindNativeGuest(f:ReturnType<typeof fixture>){
  const actors=new Map([...f.roster,...f.pending,...f.threats].map(actor=>[actor.entityId,actor]));
  const snapshot=saved(f.herd);snapshot.state['initialized']=false;f.herd.restore(JSON.stringify(snapshot));
+ lendNalatiPasture(f.scope);
  const selected=ReturnProgram.page(pasture,f.scope);if(selected.prepareGroup===undefined||selected.groupBindings===undefined)throw new Error('Missing selected herd');
  const program={groupBindings:selected.groupBindings,prepareGroup:selected.prepareGroup};
  f.herd.bindGuest(program,binding,
