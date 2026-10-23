@@ -1,14 +1,12 @@
 /**
- * Alive-looking neighbours (SHARD-PLATFORM SF25 render side, G66: *"Frozen, but alive-looking"*). A neighbour cell's
- * sim stays frozen, but what the player sees of it does not: each shardfile neighbour that declares `clientScripts`
- * gets its creatures drawn in its cell root (the SF9c skins, posed from their authored spawn or, once the cell's
- * regional host is admitted, from its frozen authoritative entity) and its own isolated client lane
- * (`createShardfileClientScripts`, sp-x5) stepped on the page's fixed tick. The lane sees only copied observations
- * (`frozen = true` while the traveller is in another frame); `ClientScriptViews` composes its frames on top of the
- * views and draws its particles. Nothing here writes a simulation: a frozen region's snapshot is untouched.
+ * A cell's client life (SHARD-PLATFORM SF25 render side): each shardfile cell that declares `clientScripts` gets its
+ * creatures drawn in its cell root (the SF9c skins, following its regional host's authoritative entities) and its own
+ * isolated client lane (`createShardfileClientScripts`, sp-x5) stepped on the page's fixed tick; `ClientScriptViews`
+ * composes its frames on top of the views and draws its particles. Nothing here writes a simulation.
  *
- * While the traveller is inside the cell the region is live: the views follow the sim's entities and their clips play
- * from the sim's state, and the module's idle output is the identity pose.
+ * Only while the traveller is inside the cell (G663, tile streaming T7: a neighbour is scene-graph level of detail, with
+ * no logic or runtime; it replaced G66's "frozen, but alive-looking" neighbours): a frozen cell's lane never steps and its
+ * creatures stay hidden, so a neighbour shows only its tiles.
  */
 import { Bone, Skeleton, SkinnedMesh, type Group, type Object3D, type Vector3 } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -30,7 +28,7 @@ export interface NeighbourLifePorts {
 /** One cell's readout. */
 export interface NeighbourLifeCell { readonly instance: string; readonly creatures: number; readonly frozen: boolean; readonly views: ClientScriptViewState; readonly failed: string | null }
 
-interface CreatureView { readonly id: string; readonly mesh: SkinnedMesh; readonly driver: SkinDriver; readonly spawn: { at: readonly [number, number, number]; yaw: number; scale: number }; readonly bodyY: number; t: number; phase: number; posed: boolean }
+interface CreatureView { readonly id: string; readonly mesh: SkinnedMesh; readonly driver: SkinDriver; readonly spawn: { at: readonly [number, number, number]; yaw: number; scale: number }; readonly bodyY: number; t: number; phase: number }
 interface CellLife {
   readonly cell: GridCell; readonly root: Group; readonly creatures: ReadonlyMap<string, CreatureView>;
   readonly scripts: ReturnType<typeof createShardfileClientScripts>; readonly views: ClientScriptViews; failed: string | null;
@@ -54,7 +52,7 @@ function skinMesh(skin: ClientSkin): { mesh: SkinnedMesh; bones: Record<string, 
   return { mesh, bones };
 }
 
-/** The page's alive-looking neighbours: one life per shardfile neighbour that declares client scripts; disposed with the scope. */
+/** The cells' client lives: one per shardfile cell that declares client scripts, alive only while entered; disposed with the scope. */
 export class NeighbourLife {
   private readonly ports: NeighbourLifePorts;
   private readonly cells = new Map<string, CellLife>();
@@ -79,7 +77,7 @@ export class NeighbourLife {
       const skin = look === undefined ? undefined : skins.get(look.id);
       if (spawn === undefined || species === undefined || skin === undefined) continue; // a non-skin look has no neighbour view yet
       const { mesh, bones } = skinMesh(skin), driver = new SkinDriver(skin, bones);
-      const view: CreatureView = { id, mesh, driver, spawn: { at: spawn.at, yaw: spawn.yaw, scale: spawn.scale }, bodyY: species.dims.bodyY * spawn.scale, t: (spawn.seed % 97) / 13, phase: 0, posed: false };
+      const view: CreatureView = { id, mesh, driver, spawn: { at: spawn.at, yaw: spawn.yaw, scale: spawn.scale }, bodyY: species.dims.bodyY * spawn.scale, t: (spawn.seed % 97) / 13, phase: 0 };
       mesh.position.set(spawn.at[0], spawn.at[1], spawn.at[2]); mesh.rotation.set(0, spawn.yaw, 0, 'YXZ'); mesh.scale.setScalar(spawn.scale);
       root.add(mesh); creatures.set(id, view);
     }
@@ -112,11 +110,11 @@ export class NeighbourLife {
     });
   }
 
-  /** The page's fixed step: every admitted life's lane advances on the page tick (its sim does not). */
+  /** The page's fixed step: the entered cell's lane advances on the page tick. */
   fixed(): void {
     const tick = this.tick++;
     for (const life of this.cells.values()) {
-      if (life.failed !== null) continue;
+      if (life.failed !== null || !this.ports.active(life.cell.instance)) continue; // G663: no neighbour logic
       try { life.scripts.step(tick); } catch (error) { life.failed = error instanceof Error ? error.message : String(error); life.views.restore(); }
     }
   }
@@ -126,15 +124,15 @@ export class NeighbourLife {
     for (const life of this.cells.values()) {
       life.views.restore();
       const region = this.ports.simulation(life.cell.instance), live = this.ports.active(life.cell.instance);
+      // G663: a frozen cell draws none of its creatures and composes no lane
+      if (!live) { for (const view of life.creatures.values()) view.mesh.visible = false; continue; }
       for (const view of life.creatures.values()) {
         const sim: AnimalSim | undefined = region?.host.entities.get(view.id);
-        if (sim !== undefined) { view.mesh.position.copy(sim.position); view.mesh.rotation.set(0, sim.yaw, 0, 'YXZ'); view.mesh.scale.setScalar(sim.scale); view.mesh.visible = sim.alive || live; }
-        if (live || !view.posed) {
-          view.t += live ? dt : 0; const speed = sim?.speed ?? 0, strafe = sim?.strafe ?? 0;
-          view.phase = (view.phase + dt * Math.hypot(speed, strafe) * 0.6) % 1;
-          view.driver.step({ dt: live ? dt : 0, t: view.t, alive: sim?.alive ?? true, flinch: 0, attack: sim?.attackPhase ?? -1, speed, strafe, scale: sim?.scale ?? view.spawn.scale, phase: view.phase, state: sim?.state ?? 'idle' });
-          view.posed = !live;
-        }
+        view.mesh.visible = true;
+        if (sim !== undefined) { view.mesh.position.copy(sim.position); view.mesh.rotation.set(0, sim.yaw, 0, 'YXZ'); view.mesh.scale.setScalar(sim.scale); }
+        view.t += dt; const speed = sim?.speed ?? 0, strafe = sim?.strafe ?? 0;
+        view.phase = (view.phase + dt * Math.hypot(speed, strafe) * 0.6) % 1;
+        view.driver.step({ dt, t: view.t, alive: sim?.alive ?? true, flinch: 0, attack: sim?.attackPhase ?? -1, speed, strafe, scale: sim?.scale ?? view.spawn.scale, phase: view.phase, state: sim?.state ?? 'idle' });
       }
       if (life.failed === null) life.views.apply(dt);
     }
