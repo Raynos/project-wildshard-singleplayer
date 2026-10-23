@@ -117,14 +117,15 @@ test.each(['inline','file'] as const)('packed dressing hulls register exact inde
   const packed=zlibSync(new Uint8Array(points.buffer));let encoded='';for(const byte of packed)encoded+=String.fromCodePoint(byte);
   const shape=new THREE.BoxGeometry(1,1,1);shape.clearGroups();const blocks:Uint8Array[]=[],layout=writeGeometry(shape,blocks,'packed-contact');shape.dispose();
   let modelEncoded='';for(const byte of zlibSync(join(blocks)))modelEncoded+=String.fromCodePoint(byte);
-  const scope=new Scope('packed-dressing'),registry=new WorldRegistry(),added=vi.spyOn(registry,'add'),ctx={} as ShardContext;
-  const product={hasFile:(name:string)=>name==='contacts.bin',file(name:string):Promise<Uint8Array>{expect(this).toBe(product);expect(name).toBe('contacts.bin');return Promise.resolve(packed);}};
-  Object.assign(ctx,{scope,root:new THREE.Group(),system:vi.fn(),app:{registry},product:mode==='file'?product:{},game:{runtime:{world:{sky:null}}}});
-  await SceneDressing.install(ctx,{name:'packed',catalogues:[],packs:{},geometry:{shape:{kind:'inline',data:btoa(modelEncoded),row:layout}},materials:{paint:{kind:'painterly',rim:.2,bands:.5}},layers:[],animations:[],
+  const scope=new Scope('packed-dressing'),registry=new WorldRegistry(),ctx={} as ShardContext,shardfile={spawn:{x:0,y:0,z:0},entryways:[]};
+  const product={shardfile,hasFile:(name:string)=>name==='contacts.bin',file(name:string):Promise<Uint8Array>{expect(this).toBe(product);expect(name).toBe('contacts.bin');return Promise.resolve(packed);}};
+  Object.assign(ctx,{scope,root:new THREE.Group(),system:vi.fn(),app:{registry},product:mode==='file'?product:{shardfile},game:{runtime:{world:{sky:null}}}});
+  const dressing=await SceneDressing.install(ctx,{name:'packed',catalogues:[],packs:{},geometry:{shape:{kind:'inline',data:btoa(modelEncoded),row:layout}},materials:{paint:{kind:'painterly',rim:.2,bands:.5}},layers:[],animations:[],
     staticModels:[{model:{id:'fixture/packed-contact',name:'Packed',file:'test/scene-dressing-rows.test.ts',category:'props',pipeline:'code',defaults:{}},geometry:'shape',material:'paint'}],
     statics:[{name:'contact',tris:12,geometry:{shape:'shape'},materials:{paint:'paint'},recipe:{version:1,root:'mesh',materials:[{kind:'port',id:'paint',source:'paint'}],nodes:[{kind:'mesh',id:'mesh',geometry:'shape',material:'paint',missing:'empty'}]},
       members:[{model:'fixture/packed-contact',draw:'single',placements:[{x:0,y:0,z:0}],boxes:[-.5,-.5,-.5,.5,.5,.5],contacts:{kind:'packed-hulls',...(mode==='file'?{file:'contacts.bin'}:{data:btoa(encoded)}),origins,surface:'rock'}}]}]});
-  const rows=added.mock.calls[0]?.[0].colliders??[],first=rows[0],second=rows[1];
+  // DR11: the colliders register by tile (the collider ring); the placement lists them all, in source order
+  const rows=dressing.placed[0]?.colliders??[],first=rows[0],second=rows[1];
   if(first?.kind!=='hull'||second?.kind!=='hull')throw new Error('Missing packed contacts');
   expect(rows).toEqual(origins.map(([x,y,z],i)=>({kind:'hull',x,y,z,points:points.slice(i*12,(i+1)*12),surface:'rock'})));
   expect(first.points.buffer).not.toBe(points.buffer);expect(first.points.buffer).not.toBe(second.points.buffer);

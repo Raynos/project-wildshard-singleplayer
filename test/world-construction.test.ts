@@ -108,10 +108,10 @@ test('leave across a stage stops before later checkpoints, stages or GPU release
   try{await expect(WorldAssembly.construct(WORLD_STAGES,f.ports)).rejects.toThrow('owner left');expect(f.events).not.toContainEqual(['stage','bridge.deck']);expect(f.release).not.toHaveBeenCalled();}finally{f.finish();}
 });
 
-test.each(['placed','scene-part','baked'] as const)('a missing %s GPU root refuses the whole release',async kind=>{
+// DR11: a place stage goes by tile, so an empty placed list names its stable root (no refusal); the other roots still refuse
+test.each(['scene-part','baked'] as const)('a missing %s GPU root refuses the whole release',async kind=>{
   const f=fixture(),data=structuredClone(WORLD_STAGES);
   if(data.construction.gpu===undefined)throw new Error('Fixture needs GPU roots');
-  if(kind==='placed')f.placed.get('boat')?.splice(0);
   if(kind==='scene-part')data.construction.gpu.roots.push({kind:'scene-part',as:'mesh',id:'missing.mesh'});
   if(kind==='baked')data.construction.gpu.roots.push({kind:'baked',id:'missing-baked'});
   try{await expect(WorldAssembly.construct(data,f.ports)).rejects.toThrow();expect(f.release).not.toHaveBeenCalled();}finally{f.finish();}

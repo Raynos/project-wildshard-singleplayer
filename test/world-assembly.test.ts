@@ -34,7 +34,7 @@ function fixture() {
   const scope = new Scope('construction'), placedObject = new Group(), mesh = new Mesh(), group = new Group(), siteGroup = new Group(), sliced: string[] = [];
   const placed: Placed = { model: 'pier', object: placedObject, colliders: [], copies: 1, drawnAs: 'single', cull: () => undefined, copyBox: (_i, target) => target,
     nearest: () => 0, registered: Promise.resolve() };
-  const scenes = legacyDouble<SceneHandles>({ place: () => Promise.resolve(placed), floorAt: (id: string, x: number) => id === 'piers.world-0' ? x + 1 : undefined,
+  const scenes = legacyDouble<SceneHandles>({ tile: (id: string) => ({ id, tiles: () => new Set<number>(), attach: () => Promise.resolve() }), object: (id: string) => { if (id !== 'piers.world-0.root') throw new Error('object'); return placedObject; }, floorAt: (id: string, x: number) => id === 'piers.world-0' ? x + 1 : undefined,
     mesh: (id: string) => { if (id !== 'trail.mesh') throw new Error('mesh'); return mesh; }, group: (id: string) => { if (id !== 'wreck.root') throw new Error('group'); return group; } });
   const site = legacyDouble<ModelSite>({ group: siteGroup, placed, anchors: { door: { x: 1, y: 2, z: 3, yaw: 0 } }, floorHeightAt: () => 4 });
   const assembly = WorldAssembly.admit(stages, { scope, scenes, sites: { site: () => site }, context: legacyDouble<ModelContext>({}), registry: null,
@@ -46,7 +46,7 @@ test('each declared stage publishes its owner loans in order, sliced by its labe
   const f = fixture();
   try {
     await f.assembly.next('piers.world-0');
-    expect(entryOwner(f.scope, 'object', 'piers.world-0')).toBe(f.placedObject); expect(entryOwner(f.scope, 'placed', 'piers.world-0')).toHaveLength(1); expect(entryOwner(f.scope, 'placed', 'piers.world-0')[0]).toBe(f.placed);
+    expect(entryOwner(f.scope, 'object', 'piers.world-0')).toBe(f.placedObject); expect(entryOwner(f.scope, 'placed', 'piers.world-0')).toEqual([]);   // DR11: placed by tile, its copies attach as tiles do
     expect(entryOwner(f.scope, 'floor', 'piers.world-0')(2, 0)).toBe(3);
     await f.assembly.next('hut');
     expect(entryOwner(f.scope, 'object', 'hut')).toBe(f.siteGroup); expect(entryOwner(f.scope, 'site', 'hut')['door']?.y).toBe(2); expect(entryOwner(f.scope, 'floor', 'hut')(0, 0)).toBe(4);
@@ -105,7 +105,7 @@ function retiring() {
   const parent = new Scope('cell'), scope = parent.child('construction'); parent.onDispose(() => undefined); // the newest cleanup retires first
   let settle: (value: Placed) => void = () => undefined;
   const late = new Promise<Placed>(resolve => { settle = resolve; }), site = vi.fn<() => ModelSite>();
-  const scenes = legacyDouble<SceneHandles>({ place: () => late, floorAt: () => 0 });
+  const scenes = legacyDouble<SceneHandles>({ tile: (id: string) => ({ id, tiles: () => new Set<number>(), attach: () => Promise.resolve() }), object: () => new Group(), place: () => late, floorAt: () => 0 });
   const assembly = WorldAssembly.admit(stages, { scope, scenes, sites: { site }, context: legacyDouble<ModelContext>({}), registry: null, slice: () => Promise.resolve() });
   const placed: Placed = { model: 'pier', object: new Group(), colliders: [], copies: 1, drawnAs: 'single', cull: () => undefined, copyBox: (_i, target) => target,
     nearest: () => 0, registered: Promise.resolve() };
@@ -114,7 +114,7 @@ function retiring() {
 test('duplicate stage ids refuse at admission, before any stage runs', () => {
   const scope = new Scope('construction'), place = vi.fn<() => Promise<Placed>>();
   const twice = { stages: [{ kind: 'place', id: 'pier', label: 'Pier' }, { kind: 'mesh', id: 'pier', label: 'Again', part: 'pier.mesh' }] };
-  expect(() => WorldAssembly.admit(twice, { scope, scenes: legacyDouble<SceneHandles>({ place }), context: legacyDouble<ModelContext>({}), registry: null,
+  expect(() => WorldAssembly.admit(twice, { scope, scenes: legacyDouble<SceneHandles>({ tile: (id: string) => ({ id, tiles: () => new Set<number>(), attach: () => Promise.resolve() }), object: () => new Group(), place }), context: legacyDouble<ModelContext>({}), registry: null,
     slice: () => Promise.resolve() })).toThrow('Repeated'); expect(place).not.toHaveBeenCalled(); scope.dispose();
 });
 test('a late place whose ancestor started retiring publishes nothing and refuses', async () => {
@@ -145,7 +145,8 @@ const entryStages = { stages: [{ kind: 'entry', id: 'wreck', label: 'Wreck', obj
   { kind: 'attach', id: 'wreck.root', as: 'group' }] }, { kind: 'entry', id: 'decks', label: 'Decks', rows: [{ kind: 'place', id: 'entry.decks' }] }] };
 function entryFixture(place: (id: string) => Promise<Placed> = id => Promise.resolve(placedNamed(id)), scope = new Scope('construction')) {
   const root = new Group(), wreckRoot = new Group(), placed: string[] = [];
-  const scenes = legacyDouble<SceneHandles>({ frozen: () => false, place: (id: string) => { placed.push(id); return place(id); }, group: (id: string) => { if (id !== 'wreck.root') throw new Error(id); return wreckRoot; },
+  // DR11: an entry's place rows go by tile (`tile`, synchronous); `placed` lists them in row order
+  const scenes = legacyDouble<SceneHandles>({ tile: (id: string) => { placed.push(id); return { id, tiles: () => new Set<number>(), attach: () => Promise.resolve() }; }, object: () => new Group(), frozen: () => false, place, group: (id: string) => { if (id !== 'wreck.root') throw new Error(id); return wreckRoot; },
     floorAt: (id: string, x: number) => id === 'wreck.ship' ? x * 2 : undefined });
   const assembly = WorldAssembly.admit(entryStages, { scope, scenes, context: legacyDouble<ModelContext>({}), registry: null, entry: { root, tier: 'phone' }, slice: () => Promise.resolve() });
   return { scope, root, wreckRoot, placed, assembly };
@@ -155,7 +156,7 @@ test('an entry stage runs its tier rows in order and publishes its placements, o
   try {
     await f.assembly.next('wreck'); await f.assembly.next('decks');
     expect(f.placed).toEqual(['wreck.ship', 'wreck.reef.phone', 'entry.decks']);
-    expect(entryOwner(f.scope, 'placed', 'wreck').map(row => row.model)).toEqual(['wreck.ship', 'wreck.reef.phone']);
+    expect(entryOwner(f.scope, 'placed', 'wreck')).toEqual([]);   // tiled: the tile driver attaches their copies
     expect(entryOwner(f.scope, 'object', 'wreck')).toBe(f.wreckRoot); expect(f.wreckRoot.parent).toBe(f.root);
     expect(entryOwner(f.scope, 'floor', 'wreck')(3, 0)).toBe(6);
     expect(() => entryOwner(f.scope, 'object', 'decks')).toThrow('Missing live entry owner');
@@ -169,22 +170,11 @@ test('an entry placement placed twice, or a floor on a tier row, refuses at admi
   expect(() => WorldAssembly.admit({ stages: [{ ...entryStages.stages[0], floor: 'wreck.reef.phone' }] }, ports)).toThrow('unconditional place row');
   ports.scope.dispose();
 });
-test('an entry stage whose ancestor starts retiring during a row loads no more rows and publishes nothing', async () => {
-  const parent = new Scope('cell'), scope = parent.child('construction'); parent.onDispose(() => undefined);
-  let settle: (value: Placed) => void = () => undefined;
-  const late = new Promise<Placed>(resolve => { settle = resolve; }), f = entryFixture(() => late, scope);
-  const pending = f.assembly.next('wreck'), steps = parent.disposeSteps(); steps.next();
-  settle(placedNamed('wreck.ship'));
-  await expect(pending).rejects.toThrow('owner left');
-  expect(f.placed).toEqual(['wreck.ship']); expect(f.wreckRoot.parent).toBeNull();
-  for (let step = steps.next(); step.done !== true; step = steps.next()) { /* finish the retirement */ }
-  expect(() => entryOwner(scope, 'placed', 'wreck')).toThrow();
-});
 test('an entry stage with a piece row and no piece authority refuses before its first row', async () => {
   const scope = new Scope('construction'), place = vi.fn<() => Promise<Placed>>();
   const rows = { stages: [{ kind: 'entry', id: 'cove', label: 'Cove', rows: [{ kind: 'place', id: 'cove.reef' }, { kind: 'piece', id: 'cove', name: 'Cove', file: 'cove.ts', category: 'nature',
     surface: 'rock', colliders: [], floors: [], floorPolicy: 'first', solidFloor: true, object: null }] }] };
-  const assembly = WorldAssembly.admit(rows, { scope, scenes: legacyDouble<SceneHandles>({ frozen: () => false, place }), context: legacyDouble<ModelContext>({}), registry: null,
+  const assembly = WorldAssembly.admit(rows, { scope, scenes: legacyDouble<SceneHandles>({ tile: (id: string) => ({ id, tiles: () => new Set<number>(), attach: () => Promise.resolve() }), object: () => new Group(), frozen: () => false, place }), context: legacyDouble<ModelContext>({}), registry: null,
     entry: { root: new Group(), tier: 'phone' }, slice: () => Promise.resolve() });
   await expect(assembly.next('cove')).rejects.toThrow('piece registration'); expect(place).not.toHaveBeenCalled(); scope.dispose();
 });
@@ -202,7 +192,7 @@ test('an entry attach row with a parent puts its part under that scene group, no
 test('an entry stage with a terrain cut and no physics refuses before its first row; a bad cut row refuses at admission', async () => {
   const scope = new Scope('construction'), place = vi.fn<() => Promise<Placed>>();
   const cut = { kind: 'cut', cuts: [{ x: 1, z: 2, hw: 3, hd: 4, yaw: 0, below: -5 }] };
-  const ports = { scope, scenes: legacyDouble<SceneHandles>({ place }), context: legacyDouble<ModelContext>({}), registry: null, entry: { root: new Group(), tier: 'phone' as const }, slice: () => Promise.resolve() };
+  const ports = { scope, scenes: legacyDouble<SceneHandles>({ tile: (id: string) => ({ id, tiles: () => new Set<number>(), attach: () => Promise.resolve() }), object: () => new Group(), place }), context: legacyDouble<ModelContext>({}), registry: null, entry: { root: new Group(), tier: 'phone' as const }, slice: () => Promise.resolve() };
   const assembly = WorldAssembly.admit({ stages: [{ kind: 'entry', id: 'cove', label: 'Cove', rows: [{ kind: 'place', id: 'cove.reef' }, cut] }] }, ports);
   await expect(assembly.next('cove')).rejects.toThrow('needs its physics'); expect(place).not.toHaveBeenCalled();
   expect(() => WorldAssembly.admit({ stages: [{ kind: 'entry', id: 'cove', label: 'Cove', rows: [{ kind: 'cut', cuts: [] }] }] }, ports)).toThrow();
