@@ -34,6 +34,9 @@ test('species named-file admission precedes native catalogue allocation',async()
     {...view,packedBodies:{...view.packedBodies,attrs:[['position','f64',3,false]]}},
     {...view,lookBook:{...view.lookBook,rows:Array.from({length:257},()=>first)}},
     {...view,lookBook:{...view.lookBook,rows:[{...first,material:{rim:'bright',bands:.8}}]}},
+    {...view,lookBook:{...view.lookBook,rows:[{...first,control:{kind:'callback',initialize:{flag:'ready',defaults:[]}}}]}},
+    {...view,lookBook:{...view.lookBook,rows:[{...first,control:{kind:'arena-room',initialize:{flag:'ready',defaults:[{field:'height',source:'height',value:2}]}}}]}},
+    {...view,lookBook:{...view.lookBook,rows:[{...first,control:{kind:'arena-room',initialize:{flag:'ready',defaults:[{field:'height',source:'value',value:'high'}]}}}]}},
   ]){
     expect(()=>nameBlob('actors/sheep.json','json',encode({...file,species}),{jsonSchema:schema})).toThrow();
     await expect(product({...file,species}).json('actors/sheep.json')).rejects.toThrow('refuses its schema');

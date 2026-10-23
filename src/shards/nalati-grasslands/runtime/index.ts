@@ -4,11 +4,9 @@ import { wildEnv } from '@wildshard/game/population/pageGroups';
 import poiLayout from '../boot/poiLayout.generated.json' with { type: 'json' };
 import { entryOwner, publishEntryOwner } from '@wildshard/game/shardfile/entryOwners';
 import type { SpeciesActorsFileRows } from '@wildshard/format/speciesBookRows';
-import { nalatiSpeciesCatalogue, prepareNalatiSpecies } from '../species/presentation';
-import { productSpeciesCatalogue } from '@wildshard/game/looks/speciesBook';
+import { productSpeciesCatalogue, type SpeciesCatalogue } from '@wildshard/game/looks/speciesBook';
 
 import { retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
-import { NALATI_DEFINITIONS } from '../species/definitions';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin } from '@wildshard/game/shard/plugin';
 import { enteredOwner, withOwner } from '@wildshard/engine/app/ownership';
@@ -27,13 +25,15 @@ function host(ctx: ShardContext) {
 
 export class NalatiPlugin extends ShardPlugin {
   private rt: Nalati | null = null;
+  private species: SpeciesCatalogue | null = null;
 
   override async world(ctx: ShardContext): Promise<void> {
     const { shell, world, step } = host(ctx);
     await step('cabins', () => undefined);
     const actorRows = await ctx.product.json<SpeciesActorsFileRows>('actors/sheep.json');
-    prepareNalatiSpecies(productSpeciesCatalogue(ctx.product, actorRows.species, await ctx.product.json('actors/species-looks.json'), NALATI_DEFINITIONS));
-    this.rt = await step('props', (progress) => buildNalatiWorld(world, ctx, progress));
+    const species = productSpeciesCatalogue(ctx.product, actorRows.species, await ctx.product.json('actors/species-looks.json'));
+    this.species = species;
+    this.rt = await step('props', (progress) => buildNalatiWorld(world, ctx, species, progress));
     const arsenal=HeldClaims.fromProductSlots(ctx.product,slots,'models/gear-book.json');
     await arsenal.prepareSlotSources(ctx);
     publishEntryOwner(ctx.scope, 'claims', 'nalati.arsenal', arsenal);
@@ -44,7 +44,8 @@ export class NalatiPlugin extends ShardPlugin {
 
   override kit(ctx: ShardContext): void {
     host(ctx);
-    nalatiSpeciesCatalogue().install(ctx.rows);
+    if (this.species === null) throw new Error('Species are not prepared');
+    this.species.install(ctx.rows);
   }
 
   override async play(ctx: ShardContext): Promise<void> {

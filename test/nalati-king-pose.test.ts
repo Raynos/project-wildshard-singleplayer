@@ -6,7 +6,7 @@ import { setTerrainHeight } from '../src/engine/world/terrainHeight';
 import { expect, test } from 'vitest';
 import type { AnimalRigContext } from '../src/engine/entities/animalRig';
 import { Rng } from '../src/engine/core/rng';
-import { nalatiSpeciesCatalogue } from '../src/shards/nalati-grasslands/species/presentation';
+import { nalatiSpeciesCatalogue } from './fake/nalatiSpecies';
 import { animateKing } from './fixtures/nalati-king-pose';
 import { legacyDouble } from './fake/FakeGame';
 import type { Animal } from '../src/engine/entities/AnimalView';

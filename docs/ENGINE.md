@@ -2776,6 +2776,18 @@ rest-body copy, while `look(kind)` resolves the registered rig when requested.
 The ordered `looks` getter follows the authored rows. Pine and Driftwood use
 this product section without installing another body cache.
 
+`productSpeciesCatalogue(product, data, lookRows)` constructs the admitted behaviour
+and packed look rows in their original order. A species may declare
+`control: {kind: 'arena-room', initialize: {flag, defaults}}`; the existing
+arena-room host lends its original brain for think, act and damage. Ordered
+finite defaults select a numeric value or the terrain height at that actor.
+The flag is set first; existing non-nullish memory survives, and height is
+read only when its field needs a default. Duplicate fields and a default for
+the flag refuse before binding. Control rows cannot also declare a projection,
+group, directed, guard or elite controller. No callback control table, body,
+clock, RNG or save owner is added. The entered plugin keeps the same catalogue
+through world construction and kit installation.
+
 **Weather reactions + keyed sky (G474/G477).** `look/keyed-sky` is an admitted
 platform section defined by `@wildshard/format/keyedSky`. The client-only
 `@wildshard/game/looks/keyedSky` consumes its image keys, preset frames,

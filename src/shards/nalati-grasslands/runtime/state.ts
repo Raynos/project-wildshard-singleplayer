@@ -26,7 +26,7 @@ import { installWorldUpdates } from '@wildshard/game/shardfile/worldUpdates';
 
 import type { HeldSlotKit } from '@wildshard/game/loadout/claims';
 import { TimedEncounters } from '@wildshard/game/boss/timedEncounters';
-import { nalatiSpeciesCatalogue } from '../species/presentation';
+import type { SpeciesCatalogue } from '@wildshard/game/looks/speciesBook';
 import { StealthController, type StealthController as Stealth, type StealthThreat } from '@wildshard/game/stealth/controller';
 import { enterClientRiding, type PageRidingView as Ride } from '@wildshard/game/riding/client';
 import { clientCosmeticFinishes } from '@wildshard/game/shardfile/clientCosmeticFinishes';
@@ -37,7 +37,7 @@ import { installCombatTargets, type CombatTargetOwner } from '@wildshard/game/sh
 /** The defining builders keep the published state and its consumers on one contract. */
 export type Nalati = Awaited<ReturnType<typeof buildNalatiState>>;
 
-async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin: ShardContext, progress?: StepProgress) {
+async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin: ShardContext, species: SpeciesCatalogue, progress?: StepProgress) {
   const { admission, worldUpdates, combatTargets: targetRows } = v.parse(v.object({ admission: v.unknown(), worldUpdates: v.unknown(), combatTargets: v.unknown() }), await plugin.product.json('sim/headless-boot.json'));
   const shapes = await WorldAssembly.prepareNative(prefix, plugin);
   const eliteProgram = ReturnProgram.page(admission, plugin.scope);
@@ -107,7 +107,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   let stealth: Stealth | null = null;
   const riderFigure = game.levelScope.own(shapes.handle('ghost-rider').copy()), captainFigure = game.levelScope.own(shapes.handle('ghost-captain').copy());
   const night = await TimedEncounters.install(plugin, { game, sky, player: ctx.player, forest: ctx.forest, sites: dressing.sites.get('balbals')?.sites ?? null, clock: weather.clock },
-    'combat/timed-encounters.json', { rider: riderFigure, captain: captainFigure, storm: riderFigure }, nalatiSpeciesCatalogue().program('balbal'));
+    'combat/timed-encounters.json', { rider: riderFigure, captain: captainFigure, storm: riderFigure }, species.program('balbal'));
   function eliteFrame() { return { patrolAvailable: true, herdAvailable: wildlife !== null, kills: night.riders.killsTonight,
     bonded: ride?.taming.phase === 'bonded', mount: ride?.taming.companion ?? null }; }
   let syncT = 0;

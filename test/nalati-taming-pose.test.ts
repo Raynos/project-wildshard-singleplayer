@@ -5,7 +5,7 @@ import { NativeCreaturePose } from '../src/game/plugin/animation';
 import { tamingPoses, NALATI_BODY_ROWS } from '../src/shards/nalati-grasslands/generators/bodies';
 import { bodyKey } from '../src/shards/nalati-grasslands/generators/bodyKey';
 import { bodySpecies } from '../src/shards/nalati-grasslands/generators/speciesRows';
-import { nalatiSpeciesCatalogue } from '../src/shards/nalati-grasslands/species/presentation';
+import { nalatiSpeciesCatalogue } from './fake/nalatiSpecies';
 import { NalatiTamingHorsePose } from './fixtures/nalati-taming-pose';
 
 const HORSE_SPECIES = bodySpecies('horse');

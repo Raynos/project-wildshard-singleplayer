@@ -68,12 +68,11 @@ for (let i = 0; i < DRIFTWOOD_SPECIES.length; i++) {
   const row = DRIFTWOOD_SPECIES[i], look = DRIFTWOOD_LOOKS[i];
   if (row !== undefined && look !== undefined) registerSpecies(speciesWithLook(row, look.kind === 'monkey' ? { ...look, animate: monkeyAnimate } : look));
 }
-const { nalatiSpeciesCatalogue, prepareNalatiSpecies } = await import('../src/shards/nalati-grasslands/species/presentation');
-const { NALATI_DEFINITIONS } = await import('../src/shards/nalati-grasslands/species/definitions');
+const { nalatiSpeciesCatalogue, prepareNalatiSpecies } = await import('./fake/nalatiSpecies');
 const speciesPresentation = (await import('../src/shards/nalati-grasslands/data/species.generated.json')).default;
-const { HullLookBook: NalatiHullBook } = await import('../src/game/looks/speciesBook');
-prepareNalatiSpecies(new NalatiHullBook(speciesPresentation.hullBook,
-  { file: name => name === 'actors/balbal-cracks.bin' ? Promise.resolve(Uint8Array.from(speciesPresentation.crackBytes)) : Promise.reject(new Error(`Unexpected product file ${name}`)) }).speciesCatalogue(parseSpeciesAdmission(SpeciesPresentationSchema,speciesPresentation.presentation), speciesPresentation.looks, NALATI_DEFINITIONS));
+const { productSpeciesCatalogue } = await import('../src/game/looks/speciesBook');
+prepareNalatiSpecies(productSpeciesCatalogue({section:()=>speciesPresentation.hullBook,
+  file: name => name === 'actors/balbal-cracks.bin' ? Promise.resolve(Uint8Array.from(speciesPresentation.crackBytes)) : Promise.reject(new Error(`Unexpected product file ${name}`)) },parseSpeciesAdmission(SpeciesPresentationSchema,speciesPresentation.presentation),speciesPresentation.looks));
 nalatiSpeciesCatalogue().register();
 // Production uses the packed-body host; preload its exact binary through its normal fetch port.
 const speciesBodies = (await import('../src/shards/nalati-grasslands/data/species.generated.json')).default.packedBodies;

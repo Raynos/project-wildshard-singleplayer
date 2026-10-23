@@ -17,6 +17,8 @@ import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import type { CombatTag } from '@wildshard/engine/combat/pipeline';
 import { CreatureStrikeSchema } from '@wildshard/format/creatures';
+import { ArenaRoomSpeciesControlSchema } from '@wildshard/format/speciesBookRows';
+import type { SpeciesDef } from '@wildshard/engine/entities/species/registry';
 import { parseBossProfile } from '@wildshard/format/bossProfiles';
 import type { ShardContext } from '../plugin/context';
 import type { FixedDraws } from '../models/fixedDraws';
@@ -504,6 +506,25 @@ export function arenaRoomViews(d: BossArenaRoom, tuning: { readonly reach: numbe
  * the shared fight's brain rather than installing a shard decision owner. */
 const arenaBrains = new WeakMap<Animal, PhasedBossBrain<Animal>>();
 export function arenaRoomBrain(actor: Animal): PhasedBossBrain<Animal> | undefined { return arenaBrains.get(actor); }
+
+/** Row-selected controls over the original arena brain; no other fight/body
+ * owner is installed. Nullish defaults retain authored order and lazy height. */
+export function arenaRoomSpeciesControl(input:unknown):Pick<SpeciesDef,'think'|'act'|'damageMul'>{
+  const rows=v.parse(ArenaRoomSpeciesControlSchema,input),initial=rows.initialize;
+  if(new Set(initial.defaults.map(row=>row.field)).size!==initial.defaults.length
+    ||initial.defaults.some(row=>row.field===initial.flag))throw new Error('Invalid arena species initialization');
+  return{
+    think:(actor,context)=>{
+      const memory=actor.mem;
+      if(memory[initial.flag]!==1){memory[initial.flag]=1;
+        for(const row of initial.defaults)memory[row.field]??=row.source==='height'?context.heightAt(actor.position.x,actor.position.z):row.value;
+      }
+      arenaRoomBrain(actor)?.think(actor,context);
+    },
+    act:(actor,context)=>{arenaRoomBrain(actor)?.act(actor,context);},
+    damageMul:(actor,point)=>arenaRoomBrain(actor)?.damageMul(actor,point)??1,
+  };
+}
 
 export const ArenaFightPageSchema = v.strictObject({
   profile: v.unknown(), body: rowId, identity: v.picklist(['runtime', 'declared']),

@@ -21,6 +21,15 @@ export const CreatureGuestSchema=v.pipe(v.unknown(),v.check(isJsonData),v.object
 export type CreatureGuestRows=v.InferOutput<typeof CreatureGuestSchema>;
 
 const text=v.pipe(v.string(),v.minLength(1),v.maxLength(4096)),number=v.pipe(v.number(),v.finite()),rgb=v.tuple([number,number,number]);
+/** A species borrows its existing arena-room brain; initialization is finite
+ * ordered data, before the same original think/act/damage slots. */
+export const ArenaRoomSpeciesControlSchema=v.strictObject({kind:v.literal('arena-room'),
+  initialize:v.strictObject({flag:key,defaults:v.pipe(v.array(v.variant('source',[
+    v.strictObject({field:key,source:v.literal('value'),value:number}),
+    v.strictObject({field:key,source:v.literal('height')}),
+  ])),v.maxLength(64))}),
+});
+export type ArenaRoomSpeciesControlRows=v.InferOutput<typeof ArenaRoomSpeciesControlSchema>;
 /** Build-only species catalogue admission. Native consumers import row types. */
 /** Packed body keys, rig contracts and painterly material measurements. */
 const book=v.object({slug:text,body:v.unknown(),poses:v.optional(v.record(text,v.unknown())),program:v.optional(v.unknown()),
@@ -29,7 +38,7 @@ const book=v.object({slug:text,body:v.unknown(),poses:v.optional(v.record(text,v
     rig:v.optional(v.picklist(['quadruped','custom'])),pose:v.optional(v.object({grazeNeck:number,gallopTail:number})),gait:v.optional(v.object({trot:number,gallop:number})),
     eyeGlow:v.optional(rgb),eyeGlowIntensity:v.optional(number),
     variants:v.record(text,v.object({body:text,tint:v.optional(v.record(text,rgb)),traits:v.optional(v.record(text,v.union([number,v.boolean()]))) })),
-    projection:v.exactOptional(ActorProjectionV2Schema),
+    projection:v.exactOptional(ActorProjectionV2Schema),control:v.exactOptional(ArenaRoomSpeciesControlSchema),
     group: v.optional(SpeciesGroupSchema), directed: v.optional(DirectedSpeciesSchema), guard: v.optional(v.literal(true)),
     /** a named elite: its think / act / damage are the elite page's (game/quest/elitePage) */
     elite: v.optional(v.literal(true)),

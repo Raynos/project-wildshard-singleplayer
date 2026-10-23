@@ -1118,6 +1118,19 @@
       "tick": "always",
       "lockable": true
     },
+    "control": {
+      "kind": "arena-room",
+      "initialize": {
+        "flag": "init",
+        "defaults": [
+          { "field": "pose", "source": "value", "value": 0 },
+          { "field": "rise", "source": "value", "value": 0 },
+          { "field": "cape", "source": "value", "value": 1 },
+          { "field": "crown", "source": "value", "value": 1 },
+          { "field": "floorY", "source": "height" }
+        ]
+      }
+    },
     "id": "look.nalati.golden-king",
     "family": "goldenKing",
     "rigContract": {
