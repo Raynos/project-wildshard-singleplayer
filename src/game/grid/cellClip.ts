@@ -239,6 +239,10 @@ export function cellClip(root: Object3D, half: number, scope: Scope): CellClip {
       let variant = patched.get(material);
       if (variant === undefined) {
         variant = material.clone(); ownedVariants.add(variant); copyShaderPatches(material, variant);
+        // G639: Material.copy carries no defines (only ShaderMaterial's does): the cascades' USE_CSM / CSM_CASCADES / CSM_FADE
+        // set on the source (Sky.setupMaterial) went missing, so a clipped piece drew unshadowed on a program of its own
+        // that linked on its first sight (161 ms of a Nalati look frame at phone 4x)
+        if (material.defines !== undefined) variant.defines = { ...variant.defines, ...material.defines };
         // Shared content keeps its original material. Animated colours and shader
         // uniform cells remain borrowed; the clip uniform belongs to this variant.
         for (const [key, value] of Object.entries(material)) if (value instanceof Color) Reflect.set(variant, key, value);
