@@ -1,11 +1,16 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- validate generated scatter rows without inferring the complete JSON type
+import { readFileSync } from 'node:fs';
+import { array, finite, number, object, parse, pipe, string } from 'valibot';
 import { expect, test } from 'vitest';
 import { parseWorldSceneModels } from '../src/format/worldSceneModels';
 import { parseWorldScenes } from '../src/format/worldScenes';
 import rows from '../src/shards/pine-hollow/data/props.json' with { type: 'json' };
-import baked from '../src/shards/pine-hollow/data/propScenes.generated.json' with { type: 'json' };
 import { output } from '../src/shards/pine-hollow/generators/output';
 import { MODEL_SCENES, SCENE_MODELS, SCENE_PLACEMENTS } from '../src/shards/pine-hollow/generators/sceneModelRows';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
+
+const baked=parse(object({groups:array(object({id:string(),matrices:array(pipe(number(),finite()))}))}),
+  JSON.parse(readFileSync('src/shards/pine-hollow/data/propScenes.generated.json','utf8')));
 
 test('admitted scene rows retain every scatter copy and native Float32 upload', () => {
   const file = output.namedFiles.find(row => row.name === 'models/world-scenes.json');
