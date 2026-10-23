@@ -96,7 +96,6 @@ export class ArenaScriptFight implements BossScript {
   private tellFrame: Readonly<Record<string,number>> = {};
   private arenaReady = false; private arenaShield = false; private refusalMask = 0;
   private readonly author: ReturnProgram;
-  private readonly rules: ReturnProgram;
   readonly life: ProjectedState;
   private readonly fightDraw: ReturnType<typeof installChannelPrograms>;
   private readonly viewRead = { fighting: 0, victoryT: -1, phase: 0, domeBroken: 0, open: 0, flash: 0 };
@@ -114,13 +113,11 @@ export class ArenaScriptFight implements BossScript {
       ||Object.keys(clocks.clear).length!==slots.length||slots.some(key=>!Object.hasOwn(clocks.clear,key)||!Object.is(clocks.clear[key],state[key])))throw new Error('Invalid encounter clock bank');
     this.author=ReturnProgram.page(this.data.programs.attack,ctx.game.levelScope);
     this.clocks=new ProjectedState(clocks.frame,this.author);
-    const fireLaw = ReturnProgram.page(this.data.programs.fire, ctx.game.levelScope);
-    this.field = new CellField(this.data.field, fireLaw, app.rng.stream('ai'));
-    this.boundary = { field: this.field,boundary: data.boundary,mask: 0 };
     const windLaw = ReturnProgram.page(this.data.programs.wind, ctx.game.levelScope);
-    this.rules = ReturnProgram.page(this.data.programs.rules, ctx.game.levelScope);
-    this.life = new ProjectedState(this.data.script.fight,this.rules);
-    this.support = new ProjectedState({...this.data.support,signal:'couple'},this.rules);
+    this.field = new CellField(this.data.field, windLaw, app.rng.stream('ai'));
+    this.boundary = { field: this.field,boundary: data.boundary,mask: 0 };
+    this.life = new ProjectedState(this.data.script.fight,this.author);
+    this.support = new ProjectedState({...this.data.support,signal:'couple'},this.author);
     this.body = arenaScriptCloud(scene, this.pose, data);
     this.fightDraw = installChannelPrograms(this.data.geometry.poses, this.data.view.group, new Map<string,unknown>([
       ['pose',this.pose],['alpha',this.body.alpha],['flash',this.body.flash],['fight',this.viewRead],
@@ -325,7 +322,7 @@ export class ArenaScriptFight implements BossScript {
       const lane = this.arena.tells('lane')[i];
       if (lane === undefined) continue;
       const rows=this.data.support,actors=rows.actors;if(actors===undefined)throw new Error('Missing support actor rows');
-      const law=new ProjectedState({initial:{...rows.member,theta:site.theta},parameters:rows.parameters,signals:rows.signals,signal:'member'},this.rules),player=this.host.player.position;
+      const law=new ProjectedState({initial:{...rows.member,theta:site.theta},parameters:rows.parameters,signals:rows.signals,signal:'member'},this.author),player=this.host.player.position;
       a.maxHp=actors.hp;a.hp=actors.hp;
       setEliteDamage(a,(body,point)=>law.event('damage',{x:point.x,z:point.z,px:player.x,pz:player.z,radius:body.scale})['alpha']??1);
       const r: SupportActor = { a,lane,law };

@@ -90,7 +90,7 @@ test.each([false,true])('arena script runs mounted phases, exposes its heart and
     instance: () => ({ material: new MeshBasicMaterial(), setParam: () => undefined }) });
   const weather = legacyDouble<Nalati['weather']>({ weather: legacyDouble<Nalati['weather']['weather']>({ flash: 0, raise: () => undefined,stormActive: true }),air: legacyDouble<Nalati['weather']['air']>({}) });
   const game = Object.assign(f.game.asGame(), { app,levelScope: scope });
-  const data = parseArenaScriptData({ arenaScript: titan.TITAN_HOST,arenaFire: fireView,programs },geometry);
+  const data = parseArenaScriptData({ arenaScript: titan.TITAN_HOST,arenaFire: fireView,programs:{attack:programs.attack,wind:programs.wind} },geometry);
   if (orchard) {
     data.definition.id = 'orchard-thunder'; data.definition.name = 'Orchard thunder';
     data.place.heartHp = 1300; data.script.fight.parameters['fullHp'] = 1300;
@@ -111,7 +111,9 @@ test.each([false,true])('arena script runs mounted phases, exposes its heart and
     expect(()=>new ArenaScriptEncounter({game,player:f.player,weather:weather.weather,air:weather.air,tieSpot:null},invalid)).toThrow('Invalid encounter clock bank');
   }
   expect(allocate).not.toHaveBeenCalled();expect(add).not.toHaveBeenCalled();allocate.mockRestore();add.mockRestore();
+  const intake=vi.spyOn(ReturnProgram,'page');
   const owner = new ArenaScriptEncounter({ game,player: f.player,weather: weather.weather,air: weather.air,tieSpot: null },data);
+  expect(intake.mock.calls).toStrictEqual([[data.programs.attack,scope],[data.programs.wind,scope]]);intake.mockRestore();
   const riders = new PatrolEncounterView({ patrol: night.patrol,motion: night.motion,view: parse(PatrolViewSchema,night.ride) },ReturnProgram.page(night.program,scope),
     { game,sky: f.sky,player: f.player,forest: f.forest,cues: new CueDirector(game,night.cues,scope),figures: { rider: figure,captain: figure,storm: figure } });
   riders.attachActors(f.manager); owner.riders = riders;
@@ -161,4 +163,13 @@ test.each([false,true])('arena script runs mounted phases, exposes its heart and
     expect(eliteDamageMul(support,f.player.position.clone().add(new Vector3(100,0,0)),direction)).toBe(1);
     fight.reset(0); expect(fight.inArena(f.player.position)).toBe(false); expect(fight.hp).toBe(data.place.heartHp);
   } finally { scope.dispose(); figure.dispose(); for (const material of materials.values()) material.dispose(); restore(); }
+});
+
+
+test('arena roles are full-row aliases and retired payload roles refuse',()=>{
+  expect(programs.attack).toStrictEqual(programs.rules);
+  expect(programs.wind).toStrictEqual(programs.fire);
+  const input={arenaScript:titan.TITAN_HOST,arenaFire:fireView,programs:{attack:programs.attack,wind:programs.wind}};
+  expect(Object.keys(parseArenaScriptData(input,geometry).programs)).toStrictEqual(['attack','wind']);
+  for(const key of ['fire','rules'])expect(()=>parseArenaScriptData({...input,programs:{...input.programs,[key]:programs.attack}},geometry)).toThrow('Invalid key');
 });

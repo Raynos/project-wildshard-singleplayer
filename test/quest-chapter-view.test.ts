@@ -91,7 +91,7 @@ function fixture() {
   const fight = new ArenaScriptEncounter({ game, player: f.player, tieSpot: null,
     weather: legacyDouble<ConstructorParameters<typeof ArenaScriptEncounter>[0]['weather']>({}),
     air: legacyDouble<ConstructorParameters<typeof ArenaScriptEncounter>[0]['air']>({}) },
-    parseArenaScriptData({ arenaScript: titan.TITAN_HOST, programs, arenaFire }, geometry));
+    parseArenaScriptData({ arenaScript: titan.TITAN_HOST, programs:{attack:programs.attack,wind:programs.wind}, arenaFire }, geometry));
   new Mount(legacyDouble<ConstructorParameters<typeof Mount>[0]>({ app, scope }), f.player, f.manager,
     { speeds: { walk: 1.8, trot: 4.5, canter: 8.5, gallop: 13 }, names: {}, thrownDamage: 7, thrownLabel: 'Thrown', restAt: { x: 3, z: 5 } });
   const carriedUpdate = vi.spyOn(CarriedQuestProp.prototype, 'update');

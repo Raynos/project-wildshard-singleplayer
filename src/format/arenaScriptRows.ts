@@ -31,7 +31,7 @@ const lines = v.strictObject({ kneels: label,grassFire: label,immuneDome: label,
  * admission checks bounded field, support and clock rows before allocation. */
 export const ArenaScriptRowsSchema = v.strictObject({
   script: ArenaScriptBossProfileSchema,clocks: ArenaEncounterSchema,field: CellFieldSchema,support: CoupledEncounterRowsSchema,whirls: ArenaWhirlsSchema,arenaFire: ArenaFireSchema,
-  programs: v.strictObject({ attack: ReturnProgramSchema,fire: ReturnProgramSchema,wind: ReturnProgramSchema,rules: ReturnProgramSchema }),
+  programs: v.strictObject({ attack: ReturnProgramSchema,wind: ReturnProgramSchema }),
   supportSites: v.pipe(v.array(v.strictObject({ x: finite,z: finite,theta: finite })),v.maxLength(8)),
   arena: v.strictObject({ center: point,body: point,anchor: point,ground: point }),place: v.strictObject({ arenaRadius: finite,heartHp: finite }),
   phases: v.pipe(v.array(v.strictObject({ at: finite,caption: v.string(),name: label })),v.maxLength(16)),

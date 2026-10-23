@@ -12223,7 +12223,11 @@ references are checked before allocating a program or scene resources. One
 existing `ProjectedState.step` samples the whole bank at its original slot;
 optional borrowed RNG is accepted with the complete retained state. Refusal
 preserves the accumulated sampling time. Native effects consume the accepted
-bank in their original order.
+bank in their original order. The arena payload declares only its two actual
+programs: `attack` owns both clock and lifecycle projections; `wind` owns both
+the cell field and whirlwind laws. Each is resolved once on the original scope.
+Retired `rules` and `fire` aliases refuse at admission; build-only witnesses
+retain the complete original descriptors and bytes.
 An optional schedule `outputs` list requires each named numeric result before
 prepared RNG or retained columns are published, including ephemeral channels.
 `ReturnProjectionV2` (game population/returnProjectionV2) captures actor zero
