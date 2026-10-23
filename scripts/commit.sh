@@ -18,7 +18,7 @@ for path in "$@"; do
   [ ! -d "$path" ] || { echo "commit.sh: name files, not directories: $path" >&2; exit 2; }
 done
 common="$(git rev-parse --path-format=absolute --git-common-dir)"
-# Advance untouched shared stages while holding Git's own index lock.
+# Advance untouched parent copies under the commit lock; stages use the index lock.
 align_shared_index() {
   python3 - "$@" <<'PYALIGN'
 import os, subprocess, sys
@@ -26,6 +26,61 @@ from pathlib import Path
 common, parent, landed, *paths = sys.argv[1:]
 env = dict(os.environ)
 env.pop("GIT_INDEX_FILE", None)
+def git(*args, **kwargs):
+    return subprocess.check_output(["git", *args], env=env, **kwargs)
+def tree(revision):
+    return {path: mode + b" " + oid + b" 0" for record in git("ls-tree", "-rz", revision, "--", *paths).split(b"\0") if record
+            for metadata, path in [record.split(b"\t", 1)] for mode, _, oid in [metadata.split()]}
+before, after = tree(parent), tree(landed)
+def contents(row):
+    return None if row is None else git("cat-file", "blob", row.split()[1].decode())
+def working(path):
+    if path.is_symlink() or any(part.is_symlink() for part in path.parents):
+        raise ValueError("symlink path")
+    if not path.exists():
+        return None
+    if not path.is_file():
+        raise ValueError("non-file path")
+    return path.read_bytes()
+advanced = 0
+for name in paths:
+    key, path = os.fsencode(name), Path(name)
+    previous, current = before.get(key), after.get(key)
+    if previous == current:
+        continue
+    temporary = None
+    try:
+        if any(row is not None and row.split()[0] not in (b"100644", b"100755") for row in (previous, current)):
+            raise ValueError("unsupported Git mode")
+        expected, desired = contents(previous), contents(current)
+        actual = working(path)
+        if actual == desired and (current is None or path.stat().st_mode & 0o777 == (0o755 if current.split()[0] == b"100755" else 0o644)):
+            continue
+        if actual != expected:
+            raise ValueError("local edits")
+        if desired is None:
+            # Recheck immediately before changing this exact declared path.
+            if working(path) != expected:
+                raise ValueError("concurrent edits")
+            path.unlink()
+        else:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            import tempfile
+            descriptor, temporary = tempfile.mkstemp(prefix=".commit-next-", dir=path.parent)
+            with os.fdopen(descriptor, "wb") as output:
+                output.write(desired)
+            os.chmod(temporary, 0o755 if current.split()[0] == b"100755" else 0o644)
+            if working(path) != expected:
+                raise ValueError("concurrent edits")
+            os.replace(temporary, path)
+        advanced += 1
+    except (OSError, ValueError) as error:
+        print(f"commit.sh: preserve working edits: {name} ({error})", file=sys.stderr)
+    finally:
+        if temporary is not None:
+            Path(temporary).unlink(missing_ok=True)
+if advanced:
+    print(f"commit.sh: advanced {advanced} untouched working paths")
 index = Path(common) / "index"
 lock = Path(str(index) + ".lock")
 try:
@@ -37,12 +92,6 @@ try:
     with handle:
         handle.write(index.read_bytes())
     env["GIT_INDEX_FILE"] = str(lock)
-    def git(*args, **kwargs):
-        return subprocess.check_output(["git", *args], env=env, **kwargs)
-    def tree(revision):
-        return {path: mode + b" " + oid + b" 0" for record in git("ls-tree", "-rz", revision, "--", *paths).split(b"\0") if record
-                for metadata, path in [record.split(b"\t", 1)] for mode, _, oid in [metadata.split()]}
-    before, after = tree(parent), tree(landed)
     staged = {}
     for record in git("ls-files", "--stage", "-z", "--", *paths).split(b"\0"):
         if record:

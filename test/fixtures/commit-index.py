@@ -66,7 +66,8 @@ with tempfile.TemporaryDirectory(dir=source / 'tmp', prefix='commit-test-') as t
     refused = subprocess.run(['scripts/commit.sh', '--patch', str(patch), 'fixture wrong scope', '--', 'peer.txt'],
                              cwd=root, env=env, capture_output=True)
     assert refused.returncode != 0 and git('rev-parse', 'HEAD') == head
-    subprocess.run(['scripts/commit.sh', '--patch', str(patch), 'fixture patch', '--', 'shared.txt'], cwd=root, env=env, check=True)
+    preserved = subprocess.run(['scripts/commit.sh', '--patch', str(patch), 'fixture patch', '--', 'shared.txt'], cwd=root, env=env, check=True, capture_output=True, text=True)
+    assert 'preserve working edits: shared.txt' in preserved.stderr
     assert git('show', 'HEAD:shared.txt') == 'own=ours\npeer=base'
     assert git('rev-parse', ':shared.txt') == git('rev-parse', 'HEAD:shared.txt')
     assert git('rev-parse', ':peer.txt') == peer
@@ -97,8 +98,18 @@ with tempfile.TemporaryDirectory(dir=source / 'tmp', prefix='commit-test-') as t
     subprocess.run(['scripts/commit.sh', '--patch', str(patch), 'fixture patch paths', '--', 'patch-new.txt', 'own.txt'], cwd=root, env=env, check=True)
     assert git('rev-parse', ':patch-new.txt') == git('rev-parse', 'HEAD:patch-new.txt')
     assert git('ls-files', '--', 'own.txt') == ''
-    assert (root / 'own.txt').read_text() == 'own change\n'
-    assert not (root / 'patch-new.txt').exists()
+    assert not (root / 'own.txt').exists()
+    assert (root / 'patch-new.txt').read_text() == 'added\n'
+    assert git('rev-parse', ':peer.txt') == peer
+    # An untouched working copy advances, while an edited sibling stays put.
+    put('clean.txt', 'before\n')
+    subprocess.run(['scripts/commit.sh', 'fixture clean base', '--', 'clean.txt'], cwd=root, env=env, check=True)
+    patch.write_text('--- a/clean.txt\n+++ b/clean.txt\n@@ -1 +1 @@\n-before\n+after\n')
+    subprocess.run(['scripts/commit.sh', '--patch', str(patch), 'fixture clean patch', '--', 'clean.txt'], cwd=root, env=env, check=True)
+    assert (root / 'clean.txt').read_text() == 'after\n'
+    assert git('diff', 'HEAD', '--', 'clean.txt') == ''
+    assert (root / 'shared.txt').read_bytes() == working
+    assert git('rev-parse', ':shared.txt') == foreign
     assert git('rev-parse', ':peer.txt') == peer
     # The storage check still reads this pathspec's staged object and refuses it.
     shutil.copy2(source / 'scripts/repo-size.mjs', root / 'scripts/repo-size.mjs')
@@ -114,5 +125,5 @@ with tempfile.TemporaryDirectory(dir=source / 'tmp', prefix='commit-test-') as t
     refused = subprocess.run(['scripts/commit.sh', 'fixture oversize', '--', 'oversized.txt'],
                               cwd=root, env=env, text=True, capture_output=True)
     assert refused.returncode != 0 and '1.00 MB blob cap' in refused.stderr + refused.stdout, refused
-    print(json.dumps({'pathspec': 'passed', 'patchIsolation': 'passed', 'concurrent': 'passed', 'storageRefusal': 'passed',
+    print(json.dumps({'pathspec': 'passed', 'workingAdvance': 'passed', 'patchIsolation': 'passed', 'concurrent': 'passed', 'storageRefusal': 'passed',
                       'commitSeconds': round(first_seconds, 3)}))
