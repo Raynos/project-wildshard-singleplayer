@@ -119,10 +119,22 @@ export class SceneDressing {
   private constructor(private readonly ctx: ShardContext, rows: SceneDressingRows) { this.group.name=rows.name;this.animations=rows.animations;this.motes=rows.motes;this.emitters=rows.emitters; }
 
   static async install(ctx: ShardContext, input: unknown): Promise<SceneDressing> {
-    const rows=v.parse(SceneDressingSchema,input), owner=new SceneDressing(ctx,rows);
+    const rows=v.parse(SceneDressingSchema,input);
     let products=books.get(ctx.scope);if(products===undefined){products=new WeakMap();books.set(ctx.scope,products);}
-    if(products.has(ctx.product)||ctx.scope.disposed)throw new Error('Scene dressing requires an unbound entered owner');
-    await owner.build(rows);products.set(ctx.product,owner);const installed=products;
+    if(products.has(ctx.product)||ctx.scope.disposed||ctx.scope.disposing)throw new Error('Scene dressing requires an unbound entered owner');
+    const files=new Map<string,Uint8Array>(),names=new Set([...rows.layers.map(row=>row.contacts),...rows.statics.flatMap(row=>row.members.map(member=>member.contacts))]
+      .flatMap(row=>!Array.isArray(row)&&'file'in row?[row.file]:[]));
+    if(names.size>0){
+      const scope=ctx.scope,product=ctx.product,read=product.file,hasFile=product.hasFile,game=ctx.game,runtime=game.runtime,world=runtime?.world;
+      const live=():void=>{
+        if(scope.disposed||scope.disposing||ctx.scope!==scope||ctx.product!==product||product.file!==read||product.hasFile!==hasFile
+          ||ctx.game!==game||game.runtime!==runtime||runtime?.world!==world)throw new Error('Scene contact file owner changed or retired');
+      };
+      live();for(const file of names)if(!hasFile.call(product,file))throw new Error(`Missing scene contact file ${file}`);
+      for(const file of names){live();const bytes=await read.call(product,file);live();files.set(file,bytes);}
+    }
+    const owner=new SceneDressing(ctx,rows);
+    await owner.build(rows,files);products.set(ctx.product,owner);const installed=products;
     ctx.scope.onDispose(()=>{if(installed.get(ctx.product)===owner)installed.delete(ctx.product);owner.instances?.dispose();for(const piece of owner.pieces.values())piece.object.removeFromParent();owner.group.removeFromParent();});
     ctx.system({id:'client.scene.dressing',phase:'update',after:['main.world'],before:['engine.creatures.update'],run:dt=>owner.update(dt)});
     return owner;
@@ -131,7 +143,7 @@ export class SceneDressing {
   /** every static's and site's placements by name (the named places' groups) */
   placedGroups(): Map<string,readonly Placed[]> { return new Map<string,readonly Placed[]>([...[...this.pieces].map(([name,piece])=>[name,piece.placed] as const),...[...this.sites].map(([name,row])=>[name,[row.placed]] as const)]); }
 
-  private async build(rows:SceneDressingRows): Promise<void> {
+  private async build(rows:SceneDressingRows,files:ReadonlyMap<string,Uint8Array>): Promise<void> {
     const {ctx}=this,world=ctx.game.runtime?.world;
     if(world===undefined||world===null)throw new Error('Scene dressing needs a world');
     for(const source of Object.values(rows.geometry))if(source.kind==='baked'&&!ctx.product.hasFile(source.address.file))throw new Error('Missing scene geometry address file');
@@ -193,7 +205,7 @@ export class SceneDressing {
       const poses=await timeClientPreparation(ctx.product.slug,`dressing.poses.${row.id}`,()=>sceneScatterPoses(ctx,row,pause));
       if(poses.length===0)return;
       const layer=scatterLayer(row.id,needGeometry(row.geometry),needMaterial(row.material),poses,row.far,row.castShadow,row.keepNear);this.layers.push(layer);this.group.add(layer.mesh);
-      const colliderRows=Array.isArray(row.contacts)?contacts(row.contacts):unpackHulls(row.contacts);
+      const colliderRows=Array.isArray(row.contacts)?contacts(row.contacts):unpackHulls(row.contacts,files);
       const registered=withOwner(ctx.scope,()=>place(needModel(row.model),poses.map(it=>({x:it.x,y:it.y,z:it.z})),{
         ctx:models,draw:'instanced',registry:ctx.app.registry,drawnInto:{object:layer.mesh,boxes:instanceBoxes(layer.mesh.geometry,poses),colliders:colliderRows},piece:{solidFloor:true,split:{every:150,yieldTask:pause}},
       }));await registered.registered;this.placed.push(registered);
@@ -208,7 +220,7 @@ export class SceneDressing {
       for(const member of row.members){
         const floors=readSceneFloors(member.floors),floor=(x:number,z:number):number|undefined=>{let top:number|undefined;for(const sample of floors){const height=sample(x,z);if(height!==undefined&&(top===undefined||height>top))top=height;}return top;};
         const registered=withOwner(ctx.scope,()=>place(needModel(member.model),member.placements.map(({matrix,heading,...pose})=>({...pose,...(heading===undefined?{}:{yaw:Math.atan2(...heading)}),...(matrix===undefined?{}:{matrix:new THREE.Matrix4().fromArray(matrix)})})),{
-          ctx:models,draw:member.draw,registry:ctx.app.registry,drawnInto:{object:made.root,boxes:Float32Array.from(member.boxes),colliders:Array.isArray(member.contacts)?contacts(member.contacts):unpackHulls(member.contacts)},piece:{solidFloor:true,...(floors.length===0?{}:{floor}),split:{every:150,yieldTask:pause}},
+          ctx:models,draw:member.draw,registry:ctx.app.registry,drawnInto:{object:made.root,boxes:Float32Array.from(member.boxes),colliders:Array.isArray(member.contacts)?contacts(member.contacts):unpackHulls(member.contacts,files)},piece:{solidFloor:true,...(floors.length===0?{}:{floor}),split:{every:150,yieldTask:pause}},
         }));await registered.registered;this.placed.push(registered);piece.placed.push(registered);await pause();
       }
       // G639 frame floor (Developer staticSets, default off): the piece's sibling meshes on one material draw as one
@@ -259,8 +271,10 @@ export class SceneDressing {
 }
 function meshObject(value:THREE.Object3D):value is THREE.Mesh{return value instanceof THREE.Mesh;}
 
-function unpackHulls(row:Exclude<SceneDressingRows['layers'][number]['contacts'],readonly unknown[]>):ReturnType<typeof contacts>{
-  const bytes=unzlibSync(base64Bytes(row.data)),view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);let at=0;
+function unpackHulls(row:Exclude<SceneDressingRows['layers'][number]['contacts'],readonly unknown[]>,files:ReadonlyMap<string,Uint8Array>):ReturnType<typeof contacts>{
+  const packed='data'in row?base64Bytes(row.data):files.get(row.file);
+  if(packed===undefined)throw new Error('Missing scene contact bytes');
+  const bytes=unzlibSync(packed),view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);let at=0;
   // Bound temporary number lanes without rebuilding the admission schema for every hull.
   const owned:ReturnType<typeof contacts>=[];
   for(let start=0;start<row.origins.length;start+=64){

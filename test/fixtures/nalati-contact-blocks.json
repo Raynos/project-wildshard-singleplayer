@@ -1,0 +1,56 @@
+[
+  {
+    "tier": "phone",
+    "key": "boulder",
+    "bytes": 395732,
+    "hash": "089670e338407f62675d698f6dd86b1b5d8b0c86c1531f197ff31f204a119a06",
+    "decoded": 429024,
+    "pointsHash": "642ae9c9f953a9ad42c38016668b53453f14bd235c8bc99314e28d058e29dd76",
+    "originsHash": "83a30aae6c8f217d62c81ad46b3e300f2aad8298d5a0756179ce42d0909eab97"
+  },
+  {
+    "tier": "phone",
+    "key": "boulder-tall",
+    "bytes": 111169,
+    "hash": "39c6b14fcb0ff128840ab566b16205c331896f32878795bb8eea6d7c22d4551e",
+    "decoded": 120888,
+    "pointsHash": "a5f56b0764aad56845eb1470d68c4827811dbb2a03fa4334da4eeb54bab18a7b",
+    "originsHash": "4078a71ea47ac2e4426a946d12e8c7b097829d2c77126f4f8278d94bab56feed"
+  },
+  {
+    "tier": "phone",
+    "key": "slab",
+    "bytes": 302656,
+    "hash": "c7df357c4bb9f13bf6dccda6ec8dcfde53dd178689da867b641769cac788d028",
+    "decoded": 327360,
+    "pointsHash": "28a2193c5d3f9948449d9dba8f3dc68d012d39c4ecd64852d53d509de2fbfda1",
+    "originsHash": "e1b9cd85afaff62e35809cba8910b172b112d28d0fdcb11a96730d175943d7ed"
+  },
+  {
+    "tier": "desktop",
+    "key": "boulder",
+    "bytes": 439036,
+    "hash": "8ac2108fc71f8715ea9bc92917a5afcd78d580f4726d2317b64d82e6e55130c4",
+    "decoded": 476112,
+    "pointsHash": "65527a03e7d8dece8d66c30339f9ac3f75d4a030322f2eb64e75bcd63f0d08e0",
+    "originsHash": "7ad11b85c52ecc88d62c368aaeb786bb6dde1b76e14e2d6a2dd657e06951f5d3"
+  },
+  {
+    "tier": "desktop",
+    "key": "boulder-tall",
+    "bytes": 123325,
+    "hash": "9ec094b897540742319290ff63899f62e54b15054c3eb098e9385eb7fecb530b",
+    "decoded": 134028,
+    "pointsHash": "3b4c59f150199cede4860565ea561550c4715ab4f5434a721f3e6ad7eb242923",
+    "originsHash": "d1606f9e5ac43d16c164614bbf1626175c71f2d61217d7c3dcb50efd88d01bae"
+  },
+  {
+    "tier": "desktop",
+    "key": "slab",
+    "bytes": 400837,
+    "hash": "37e62ca857687f9f708979e4619113cde15e8dfa9ab2479db93104d92f81a8e5",
+    "decoded": 433752,
+    "pointsHash": "82da123f2b227f7213aad6bed7f6acfc1aae5648ed0ca814c41151a778a6b0c0",
+    "originsHash": "34aa90eed9489b9ae6baa8baadee23dc37851ddb500b91146d7f6bf902053747"
+  }
+]

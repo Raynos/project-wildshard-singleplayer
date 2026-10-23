@@ -35,6 +35,7 @@ const meshes = [
   ['glacier-snout:world', glacier], ['glacier-snout:specimen', glacierSpecimen],
 ];
 const contacts = {};
+const sources=[],writer = byteWriter(process.argv.includes('--check'), 'nalati-poi-paint');
 for (const tier of ['phone', 'desktop']) {
   const layers = {};
   for (const [name, file, half, list] of [
@@ -55,8 +56,10 @@ for (const tier of ['phone', 'desktop']) {
       return hull;
     });
     const points = Float32Array.from(hulls.flatMap(hull => Array.from(hull.points)));
-    layers[name] = { origins: hulls.map(hull => [hull.x, hull.y, hull.z, hull.points.length]),
-      points: deflateSync(Buffer.from(points.buffer), { level: 9 }).toString('base64') };
+    const blockPath=`data/poi-contacts-${tier}-${name}.bin`,blobName=`models/contacts/${tier}-${name}.bin`;
+    writer.put(resolve(root,'src/shards/nalati-grasslands',blockPath),deflateSync(Buffer.from(points.buffer),{level:9}));
+    sources.push({name:blobName,kind:'bin',source:blockPath,options:{decoded:points.byteLength}});
+    layers[name] = { origins: hulls.map(hull => [hull.x, hull.y, hull.z, hull.points.length]),file:blobName };
     meshes.push([`dressing:${tier}:${name}`, geometry]);
     source.gltf.scene.traverse(child => { if (child instanceof THREE.Mesh) { child.geometry.dispose(); for (const mat of Array.isArray(child.material) ? child.material : [child.material]) mat.dispose(); } });
   }
@@ -64,7 +67,6 @@ for (const tier of ['phone', 'desktop']) {
 }
 let totalBytes = 0;
 const fingerprint = createHash('sha256');
-const writer = byteWriter(process.argv.includes('--check'), 'nalati-poi-paint');
 const rows = meshes.map(([key, geometry], index) => {
   const blocks = [], row = writeGeometry(geometry, blocks, key), bytes = join(blocks);
   totalBytes += bytes.length; fingerprint.update(bytes); geometry.dispose();
@@ -73,7 +75,7 @@ const rows = meshes.map(([key, geometry], index) => {
   return { key, geometry: row, data: deflateSync(bytes, { level: 9 }).toString('base64'), file };
 });
 const fingerprintHex = fingerprint.digest('hex');
-writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/poiPaint.json'), jsonBytes({ bin: fingerprintHex, bytes: totalBytes, rows, glacierSnout, contacts }));
-writer.put(resolve(root, 'src/shards/nalati-grasslands/data/poiPaint.json'), jsonBytes({ bin: fingerprintHex, bytes: totalBytes, rows, glacierSnout, contacts }));
+writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/poiPaint.json'), jsonBytes({ bin: fingerprintHex, bytes: totalBytes, rows, glacierSnout, contacts,sources }));
+writer.put(resolve(root, 'src/shards/nalati-grasslands/data/poiPaint.json'), jsonBytes({ bin: fingerprintHex, bytes: totalBytes, rows, glacierSnout, contacts,sources }));
 writer.finish();
 console.log(`${rows.length} fixed paint meshes, ${totalBytes} raw bytes`);

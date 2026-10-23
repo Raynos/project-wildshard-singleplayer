@@ -20200,7 +20200,13 @@
         "src/shards/nalati-grasslands/data/poi-shape-10.bin",
         "src/shards/nalati-grasslands/data/poi-shape-11.bin",
         "src/shards/nalati-grasslands/data/poi-shape-12.bin",
-        "src/shards/nalati-grasslands/data/poi-shape-13.bin"
+        "src/shards/nalati-grasslands/data/poi-shape-13.bin",
+        "src/shards/nalati-grasslands/data/poi-contacts-phone-boulder.bin",
+        "src/shards/nalati-grasslands/data/poi-contacts-phone-boulder-tall.bin",
+        "src/shards/nalati-grasslands/data/poi-contacts-phone-slab.bin",
+        "src/shards/nalati-grasslands/data/poi-contacts-desktop-boulder.bin",
+        "src/shards/nalati-grasslands/data/poi-contacts-desktop-boulder-tall.bin",
+        "src/shards/nalati-grasslands/data/poi-contacts-desktop-slab.bin"
       ],
       "platform": "darwin"
     },

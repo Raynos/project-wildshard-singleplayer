@@ -32,7 +32,11 @@ export const SceneFloorSchema=v.union([
   v.strictObject({rects:list(v.strictObject({x:finite,z:finite,hw:finite,hd:finite,y:finite,rot:v.exactOptional(finite),slope:v.exactOptional(finite),tilt:v.exactOptional(finite),profile:v.exactOptional(list(v.tuple([finite,finite,finite]),8))}),4096)}),
   v.strictObject({x:finite,z:finite,size:v.pipe(finite,v.minValue(0)),res:v.pipe(count,v.minValue(2)),data:v.pipe(v.string(),v.maxLength(1048576))}),
 ]);
-const contactSource = v.union([SceneDressingContactsSchema,v.strictObject({kind:v.literal('packed-hulls'),data:v.pipe(v.string(),v.maxLength(1048576)),origins:list(v.tuple([finite,finite,finite,count]),8192),surface:v.picklist(['rock','wood','stone','ground'])})]);
+const packedContacts={kind:v.literal('packed-hulls'),origins:list(v.tuple([finite,finite,finite,count]),8192),surface:v.picklist(['rock','wood','stone','ground'])};
+const contactSource = v.union([SceneDressingContactsSchema,
+  v.strictObject({...packedContacts,data:v.pipe(v.string(),v.maxLength(1048576))}),
+  v.strictObject({...packedContacts,file:id}),
+]);
 const pose = v.strictObject({x:finite,y:finite,z:finite,variant:v.exactOptional(id),yaw:v.exactOptional(finite),heading:v.exactOptional(v.tuple([finite,finite])),matrix:v.exactOptional(v.pipe(v.array(finite),v.length(16)))});
 /** Z2 client-only scatter/static/ambient projection; shader and model identities are declared data. */
 const sceneDressing = v.pipe(v.unknown(), v.check(isJsonData), v.strictObject({

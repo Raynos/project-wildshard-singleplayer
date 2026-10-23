@@ -34,12 +34,18 @@ const materialsSchema=v.record(text,SpecimenMaterialSchema);
 const specimensSchema=v.object({catalogue:SpecimenCatalogueSchema,packed:PackedSpecimenSchema,materials:materialsSchema,assets:v.record(text,SpecimenAssetSchema)});
 const profileSchema=v.object({catalogue:SpecimenCatalogueSchema,packed:PackedSpecimenSchema,life:v.array(v.object({kind:text,row:AmbientFlockSchema,perches:AmbientPerchesSchema}))});
 const coverSchema=v.object({phone:profileSchema,desktop:profileSchema,materials:materialsSchema,butterflies:v.object({phone:number,desktop:number}),hue:v.array(v.union([text,number])),raptors:number});
-const paintSchema=v.object({glacierSnout:v.object({x:number,y:number,z:number}),rows:v.array(v.object({key:text,data:text,geometry:SceneBakedGeometrySchema})),contacts:v.record(text,v.record(text,v.object({points:text,origins:v.array(v.tuple([number,number,number,number]))})))});
+const paintContact={origins:v.array(v.tuple([number,number,number,number]))};
+const paintSchema=v.object({glacierSnout:v.object({x:number,y:number,z:number}),rows:v.array(v.object({key:text,data:text,geometry:SceneBakedGeometrySchema})),contacts:v.record(text,v.record(text,v.union([
+  v.object({...paintContact,file:text}),v.object({...paintContact,points:text}),
+])))});
 // Shared authoring metadata is emitted alongside the runtime boot descriptors.
 const prepared=v.parse(preparedSchema,{...preparedInput,places:{rows:preparedInput.places.rows.filter(row=>['camp','bridge','roads','summerCamp','kurgans','eagleRock','cairn','crags','watchtower','dressing-statics','dressing-clutter','kokpar','outcrops'].includes(row.name))}});
 const scenes=v.parse(v.record(text,PrivateSceneSchema),scenesInput);
 const specimens=v.parse(specimensSchema,specimensInput);
 const paint=v.parse(paintSchema,paintInput);
+/** Exact raw contact files, read only by the SDK's normal named-file intake. */
+export const DRESSING_CONTACT_SOURCES=v.parse(v.array(v.object({name:text,kind:v.literal('bin'),source:text,
+  options:v.object({decoded:v.pipe(number,v.integer(),v.minValue(0))})})), 'sources'in paintInput?paintInput.sources:[]);
 const cover=v.parse(coverSchema,coverInput);
 // the places' anchors and the camp smoke's baked puffs (bake-place-runtime.mjs)
 const spot=v.object({x:number,y:number,z:number}),placed=v.parse(v.object({places:v.object({rows:v.array(v.object({name:text,
@@ -72,7 +78,7 @@ function compileDressingScene(tier:'phone'|'desktop') {
   materials['flower']={kind:'painterly',rim:.45,bands:.6,sway:.3};materials['reed']={kind:'painterly',rim:.5,bands:.6,sway:.1};
   const contacts=(name:string)=>{
     const row=Object.entries(paint.contacts[tier]??{}).find(([key])=>key===name)?.[1];if(row===undefined)throw new Error(`Missing dressing contacts ${name}`);
-    return{kind:'packed-hulls',data:row.points,origins:row.origins,surface:'rock'};
+    return{kind:'packed-hulls',...('file'in row?{file:row.file}:{data:row.points}),origins:row.origins,surface:'rock'};
   };
   const layers=[
     ...(['boulder','boulder-tall','slab'] as const).map(name=>({id:`nalati-dress-${name}`,model:id(name==='boulder-tall'?'boulder':name),geometry:name,material:name,file:`world/dressing-${name==='boulder-tall'?'boulder':name}.json`,binary:false,far:phone?.6:1,castShadow:true,keepNear:40,contacts:contacts(name),

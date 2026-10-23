@@ -95,7 +95,7 @@
     "src/shards/nalati-grasslands/generators/bake-elite-views.mjs": 1,
     "src/shards/nalati-grasslands/generators/bake-geography.mjs": 1,
     "src/shards/nalati-grasslands/generators/bake-kokpar.mjs": 1,
-    "src/shards/nalati-grasslands/generators/bake-poi-paint.mjs": 2,
+    "src/shards/nalati-grasslands/generators/bake-poi-paint.mjs": 1,
     "src/shards/nalati-grasslands/generators/bake-quest-prop.mjs": 1,
     "src/shards/nalati-grasslands/generators/bake-sign-atlases.mjs": 1,
     "src/shards/nalati-grasslands/generators/bake-storm-titan.mjs": 1,

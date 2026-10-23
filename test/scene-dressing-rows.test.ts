@@ -36,6 +36,7 @@ test('both Nalati tiers retain scatter policies, static contacts and GPU cloth b
     expect(crags?.recipe).toEqual(v.parse(PrivateSceneSchema,cragRows[tier].recipe));expect(cragMember?.placements).toEqual(cragRows[tier].placements);
     expect(cragMember?.boxes).toEqual(cragRows[tier].boxes);expect(cragMember?.contacts).toMatchObject({kind:'packed-hulls',surface:'rock'});
     if(cragMember!==undefined&&!Array.isArray(cragMember.contacts)){
+      if(!('data'in cragMember.contacts))throw new Error('Crag contacts retain their original inline source');
       const raw=unzlibSync(Uint8Array.from(atob(cragMember.contacts.data),c=>c.codePointAt(0)??0));
       expect(raw).toEqual(new Uint8Array(Float32Array.from(cragRows[tier].hulls.flatMap(row=>row.points)).buffer));
     }
@@ -110,18 +111,19 @@ test('uploaded dressing channels retire while picking and cloneable templates re
   }
 });
 
-test('packed dressing hulls register exact independent float lanes in source order',async()=>{
+test.each(['inline','file'] as const)('packed dressing hulls register exact independent float lanes in source order (%s)',async mode=>{
   const pattern=[-1,0,-1,1,0,-1,0,1,1,0,0,0,.25,0,-.5,1,0,-1,0,1,1,0,0,0];
   const points=Float32Array.from({length:67*12},(_,i)=>pattern[i%pattern.length]??0),origins=Array.from({length:67},(_,i)=>[i,i+1,i+2,12]);
-  let encoded='';for(const byte of zlibSync(new Uint8Array(points.buffer)))encoded+=String.fromCodePoint(byte);
+  const packed=zlibSync(new Uint8Array(points.buffer));let encoded='';for(const byte of packed)encoded+=String.fromCodePoint(byte);
   const shape=new THREE.BoxGeometry(1,1,1);shape.clearGroups();const blocks:Uint8Array[]=[],layout=writeGeometry(shape,blocks,'packed-contact');shape.dispose();
   let modelEncoded='';for(const byte of zlibSync(join(blocks)))modelEncoded+=String.fromCodePoint(byte);
   const scope=new Scope('packed-dressing'),registry=new WorldRegistry(),added=vi.spyOn(registry,'add'),ctx={} as ShardContext;
-  Object.assign(ctx,{scope,root:new THREE.Group(),system:vi.fn(),app:{registry},product:{},game:{runtime:{world:{sky:null}}}});
+  const product={hasFile:(name:string)=>name==='contacts.bin',file(name:string):Promise<Uint8Array>{expect(this).toBe(product);expect(name).toBe('contacts.bin');return Promise.resolve(packed);}};
+  Object.assign(ctx,{scope,root:new THREE.Group(),system:vi.fn(),app:{registry},product:mode==='file'?product:{},game:{runtime:{world:{sky:null}}}});
   await SceneDressing.install(ctx,{name:'packed',catalogues:[],packs:{},geometry:{shape:{kind:'inline',data:btoa(modelEncoded),row:layout}},materials:{paint:{kind:'painterly',rim:.2,bands:.5}},layers:[],animations:[],
     staticModels:[{model:{id:'fixture/packed-contact',name:'Packed',file:'test/scene-dressing-rows.test.ts',category:'props',pipeline:'code',defaults:{}},geometry:'shape',material:'paint'}],
     statics:[{name:'contact',tris:12,geometry:{shape:'shape'},materials:{paint:'paint'},recipe:{version:1,root:'mesh',materials:[{kind:'port',id:'paint',source:'paint'}],nodes:[{kind:'mesh',id:'mesh',geometry:'shape',material:'paint',missing:'empty'}]},
-      members:[{model:'fixture/packed-contact',draw:'single',placements:[{x:0,y:0,z:0}],boxes:[-.5,-.5,-.5,.5,.5,.5],contacts:{kind:'packed-hulls',data:btoa(encoded),origins,surface:'rock'}}]}]});
+      members:[{model:'fixture/packed-contact',draw:'single',placements:[{x:0,y:0,z:0}],boxes:[-.5,-.5,-.5,.5,.5,.5],contacts:{kind:'packed-hulls',...(mode==='file'?{file:'contacts.bin'}:{data:btoa(encoded)}),origins,surface:'rock'}}]}]});
   const rows=added.mock.calls[0]?.[0].colliders??[],first=rows[0],second=rows[1];
   if(first?.kind!=='hull'||second?.kind!=='hull')throw new Error('Missing packed contacts');
   expect(rows).toEqual(origins.map(([x,y,z],i)=>({kind:'hull',x,y,z,points:points.slice(i*12,(i+1)*12),surface:'rock'})));

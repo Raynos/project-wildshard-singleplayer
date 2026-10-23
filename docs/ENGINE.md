@@ -12053,6 +12053,15 @@ name} publishes the new construction Group before the stage walk; its scoped
 object loan is preflighted and lent with the completed stages. No empty book
 or extra intake substitutes for the original scene catalogue.
 
+SceneDressing packed-hulls contacts may name an admitted binary `file`
+instead of inline compressed `data`. The entered installer preflights all
+names, then reads each distinct file once through the concrete product
+before constructing any dressing. Scope, product, world and both file
+capabilities remain pinned across every read. The existing decoder consumes
+the same compressed bytes and preserves independent float32 point lanes,
+origin order and native registration; the temporary byte loan adds no
+registry, clock or persistence. Retiring ancestors refuse before reads.
+
 Native construction may also borrow installed water-surface and dressing
 owners through its original ShardContext. water-surface names an installed
 surface; dressing-piece names a static piece; dressing-anchor captures its
