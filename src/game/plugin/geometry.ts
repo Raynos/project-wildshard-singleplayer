@@ -1786,18 +1786,22 @@ class WholeGeometryAssembler {
         return { from: source.array, fromSize: source.itemSize, count: source.count, to: destination.array, toSize: destination.itemSize };
       });
       const seen = group.seen, vertices = row.vertices;
+      // Which listed vertices an earlier node (or an earlier entry of this list) already wrote, then one channel at a
+      // time: the per-vertex channel walk was ~0.4 s of a phone-4x Nine preparation. Writes and refusals are unchanged.
+      const shared = new Uint8Array(vertices.length);
       for (let local = 0; local < vertices.length; local++) {
         const vertex = vertices[local] ?? Number.NaN;
         if (!(vertex < seen.length)) throw new Error('Whole vertex ordinal outside source');
-        const shared = seen[vertex] === 1;
-        for (const { from, fromSize, count, to, toSize } of copies) {
-          if (local >= count) throw new Error('Whole channel layout differs');
-          const read = local * fromSize, write = vertex * toSize;
+        shared[local] = seen[vertex] ?? 0; seen[vertex] = 1;
+      }
+      for (const { from, fromSize, count, to, toSize } of copies) {
+        if (vertices.length > count) throw new Error('Whole channel layout differs');
+        for (let local = 0; local < vertices.length; local++) {
+          const read = local * fromSize, write = (vertices[local] ?? 0) * toSize;
           if (write + fromSize > to.length) throw new RangeError('Whole channel write outside source');
-          if (shared) for (let i = 0; i < fromSize; i++) if (!Object.is(from[read + i], to[write + i])) throw new Error('Whole shared vertex differs');
+          if (shared[local] === 1) for (let i = 0; i < fromSize; i++) if (!Object.is(from[read + i], to[write + i])) throw new Error('Whole shared vertex differs');
           for (let i = 0; i < fromSize; i++) to[write + i] = from[read + i] ?? 0;
         }
-        seen[vertex] = 1;
       }
       const index = input.getIndex()?.array ?? null, output = group.output.index?.array ?? null, done = group.triangles, triangles = row.triangles;
       for (let local = 0; local < triangles.length; local++) {
