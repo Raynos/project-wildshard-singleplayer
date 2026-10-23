@@ -23,6 +23,11 @@ export const coreMemoryTargets = Object.freeze([
   Object.freeze({shard: '_template', name: 'Template 1', limitBytes: 100 * 1048576}),
   Object.freeze({shard: 'blender-template', name: 'Template 2', limitBytes: 100 * 1048576}),
 ]);
+/** Scalar inventory only: no response bodies or Network-domain changes.
+ * @param {readonly {name: string}[]} [entries] */
+export function scriptResourceURLs(entries = performance.getEntriesByType('resource')) {
+  return [...new Set(entries.filter(row => /\.m?js$/iu.test(new URL(row.name).pathname)).map(row => row.name))];
+}
 const footprintBytes = v.pipe(v.number(), v.safeInteger(), v.minValue(0));
 const floorRows = v.array(v.object({shard: v.string(), errors: v.array(v.string()),
   samples: v.array(v.object({phase: v.string(), rendererBytes: footprintBytes, gpuBytes: footprintBytes}))}));
@@ -108,7 +113,8 @@ async function floors(page, context, browser, result) {
     return { phase, elapsedMs: Date.now() - started, ...await footprint(session), heap,
       workers: page.workers().map(worker => worker.url()),
       page: await page.evaluate(() => ({ prefetch: window.__ws_gridPrefetch?.() ?? null,
-        resources: performance.getEntriesByType('resource').length, href: location.href })) };
+        resources: performance.getEntriesByType('resource').length, href: location.href })),
+      scriptURLs: await page.evaluate(scriptResourceURLs) };
   };
   for (const second of [10, 60, 120]) {
     await page.waitForTimeout(Math.max(0, second * 1000 - (Date.now() - started)));

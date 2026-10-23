@@ -1,9 +1,16 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Refusals must occur before launching a memory browser.
 import { execFileSync } from 'node:child_process';
 import { expect, test } from 'vitest';
-import { coreMemorySummary, coreMemoryTargets, simulatorCoreFootprint } from '../scripts/shard-phone-memory.mjs';
+import { coreMemorySummary, coreMemoryTargets, scriptResourceURLs, simulatorCoreFootprint } from '../scripts/shard-phone-memory.mjs';
 
 const MiB = 1048576;
+test('script inventory keeps distinct complete JavaScript URLs only', () => {
+  const urls = ['https://example.test/main.js?v=1#entry', 'https://example.test/worker.mjs',
+    'https://example.test/CHUNK.JS', 'https://example.test/main.js?v=1#entry',
+    'https://example.test/style.css', 'https://example.test/card.png?name=module.js'];
+  expect(scriptResourceURLs(urls.map(name => ({name})))).toEqual(urls.slice(0, 3));
+  expect(scriptResourceURLs([])).toEqual([]);
+});
 const rows = () => coreMemoryTargets.map(target => ({shard: target.shard, errors: [],
   samples: [10, 60, 120].map(second => ({phase: `${second}s`, rendererBytes: target.limitBytes - 10 * MiB, gpuBytes: 10 * MiB}))}));
 
