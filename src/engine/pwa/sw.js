@@ -154,7 +154,7 @@ async function fillMissing(cache, urls, strict = false) {
 
 const BUNDLE_SET = new Set(BUNDLE);
 /** the hashed code a document names (its entry script, its stylesheet): `/assets/<name>-<hash>.js|css` */
-const CODE_REF_RE = /\/assets\/[^/"'?#\s]+-[\w-]{8}\.(?:js|css)/g;
+const CODE_REF_RE = /\/assets\/[^/"'?#\s]+-[\w-]{8}\.(?:js|css)(?=["'?#\s<>\\)]|$)/g;
 
 /**
  * The code files a document names that this worker's build does not hold: [] for this build's own index.html.

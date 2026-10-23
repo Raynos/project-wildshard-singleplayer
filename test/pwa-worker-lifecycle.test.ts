@@ -75,6 +75,19 @@ test('installation remains strict for its complete entry graph and never reads l
   expect(JSON.stringify(refused.installErrors[0])).toContain('unit-build');
 });
 
+test('boot JSON metadata cannot be mistaken for foreign JavaScript during installation', async () => {
+  const metadata = '/assets/boot-far-reach-a7d25c3a.json';
+  const f = fixture(url => Promise.resolve(new Response(url.endsWith('/index.html')
+    ? `<script type="application/json">{"extras":["${metadata}"]}</script><script src="${entry}"></script>` : 'exact bytes')));
+  await f.dispatch('install');
+  expect(f.installErrors).toEqual([]);
+  const foreign = '/assets/foreign-ffffffff.js';
+  const refused = fixture(url => Promise.resolve(new Response(url.endsWith('/index.html')
+    ? `<script type="application/json">{"extras":["${metadata}"]}</script><script src="${foreign}?v=1"></script>` : 'exact bytes')));
+  await expect(refused.dispatch('install')).rejects.toThrow(`install: /index.html is another build's (${foreign})`);
+  expect(refused.fetch).toHaveBeenCalledTimes(1);
+});
+
 test('background code is serial, yields its body to foreground reads, then supports offline access', async () => {
   vi.useFakeTimers(); vi.setSystemTime(1000);
   const signals: AbortSignal[] = []; let attempts = 0;
