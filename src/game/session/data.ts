@@ -17,6 +17,7 @@ import { beginLoading } from '@wildshard/engine/ui/Loading';
 import { gridPrefetchStatus } from '../grid/prefetch';
 import { currentPageMode } from '../grid/pageMode';
 import { resumeProgress, resumeScreen } from '@wildshard/engine/ui/Resume';
+import { NO_AUDIO } from '@wildshard/engine/audio/levelAudio';
 
 async function buildData(ctx: SessionContext) {
   const { manifest, stage, boot, session } = ctx;
@@ -39,7 +40,7 @@ async function buildData(ctx: SessionContext) {
   await stage('ktx2', () => prepareShardAssets(manifest, registerGpuFiles));
   loading.waiting('Preparing audio catalogue');
   const audioProfile = await stage('audio.preload', () => manifest.audio?.preload?.());
-  const files = bootFiles(manifest, undefined, audioProfile); // + the title / explore art and every audio file (project/archive/2026-09-23-preload-offline.md)
+  const files = bootFiles(manifest, undefined, audioProfile ?? NO_AUDIO); // Title/explore art and this profile's selected audio.
   useShardSteps(manifest.slug, manifest.boot?.steps, manifest.boot?.bytes); // the shard's own loading nouns + weights (src/engine/boot/steps.ts)
   const bootSteps: Record<string, number> = {}; // each step's wall ms (the host's timings: what a build / rebuild spends where)
   const plan = createBootPlan((view) => { loading.paint(view); resumeProgress(view.setup); for (const r of view.rows) if (r.state === 'ok') bootSteps[r.key] = Math.round(r.ms); }, { totals: declareTotals(files) });
@@ -59,8 +60,8 @@ async function buildData(ctx: SessionContext) {
   const packStreamed = pack ? streamPack(pack, plan, files) : Promise.resolve();
   const worldFetches = bootFetches(manifest, files).filter((p) => !packed.has(p));
   prefetch(worldFetches);
-  // then the title art and ALL audio (project/archive/2026-09-23-preload-offline.md), after the pack so they do not split the pipe with the
-  // world's files; the selected style + set are decoded as their bytes land — nothing is fetched after the bar.
+  // Then title art and selected profile audio, after the pack so they do not split the pipe with world files.
+  // Other styles remain with the worker's background prefetch inventory.
   // A level may hold extras behind its complete world file queue.
   const extrasBarrier = manifest.boot?.barrier === true
     ? Promise.all([packStreamed, ...worldFetches.map(whenPrefetched)]) : packStreamed;

@@ -3,8 +3,8 @@
  * … No cheating and background loading"): what the title menu, the Explore viewer and the audio used to fetch after
  * "playable" — found by the row-1 audit (headless request log, both shards) — is downloaded, counted and decoded here.
  *
- *  - `bootFiles(def)`       the boot manifest (src/engine/boot/manifest.ts) + the `music` / `sfx` sources (every file of every
- *                           style and set, src/engine/boot/audioFiles.ts) + the `art` source: every shard card's thumbnail and hero
+ *  - `bootFiles(def)`       the boot manifest (src/engine/boot/manifest.ts) + the profile's selected music/SFX, or its
+ *                           complete inventory for background prefetch when no profile is supplied, + every card's thumbnail and hero
  *                           stills (both orientations — the title swipes between cards and a phone can turn) and, on a shard
  *                           with the Explore viewer, its panel art. Bundled files with hashed URLs, sized from
  *                           src/game/shard/art.generated.ts (Vite copies them byte for byte).
@@ -16,14 +16,14 @@
  *                           Jake's phone 13.8 s on this step, one 10.8 s frame). On desktop the Explore panels are
  *                           decoded into <img>s that the viewer's own <img>s reuse; awaited by the 'menu' step, which also imports the lazy UI chunks
  *                           (Explore, Feedback) so opening them later makes no request.
- *  - `startAudioPreload()`  every audio file downloaded (the service worker caches each on its way in — a menu switch and an
- *                           offline launch read them from there), the selected music style (title + this shard's slot +
+ *  - `startAudioPreload()`  only selected profile audio downloaded (the worker caches each on its way in),
+ *                           the selected music style (title + this shard's slot +
  *                           stings) and sound-effect set decoded on an OfflineAudioContext as their bytes land; awaited by
  *                           the 'audio' step, which closes the `music` and `sfx` byte sources. On Pine Hollow its own
  *                           music (the selected style) and SFX set ride along (src/engine/boot/audioFiles.ts), and the set's
  *                           one-shots + barks are decoded here too (PineHollowSfx `decodePineShots`) — nothing of the
  *                           shard's sound is fetched after the bar (E44).
- *  - `startDeferredAudioPreload()`  Nine Dragon on phones: the same counted downloads and offline cache, with selected
+ *  - `startDeferredAudioPreload()`  the same selected counted downloads and offline cache, with selected
  *                           decoding serialized after the loader fades and the world starts (E246 memory A/B).
  */
 import { publicBytes } from './tables';
@@ -74,7 +74,12 @@ const audioPriority = new WeakMap<ChunkFiles, ReadonlySet<string>>();
 export function bootFiles(def: BootLevel, tex: TexMode = texMode(), profile?: LevelAudioProfile): ChunkFiles {
   const art = artFor(def);
   addBytes(art.bytes);
-  const audio = profile?.files() ?? bootAudioFiles(def.boot) ?? audioFiles();
+  const inventory = profile?.files() ?? bootAudioFiles(def.boot) ?? audioFiles();
+  const selected = profile === undefined ? undefined : new Set(profile.bootFiles(getMusicStyle()));
+  // Omitting a profile retains the complete inventory used by background shard prefetch.
+  const audio = selected === undefined ? inventory : {
+    music: inventory.music.filter(url => selected.has(url)), sfx: inventory.sfx.filter(url => selected.has(url)),
+  };
   const files = { ...chunkFiles(def, tex), art: art.urls, ...audio };
   const priority = profile?.priorityFiles?.();
   if (priority) audioPriority.set(files, new Set(priority));
@@ -161,15 +166,15 @@ const downloaded = new Set<string>();
 /** a level's decoded audio: its music bank, its SFX bank and its own audio profile's bank */
 export interface AudioBanks { music: StyleBank | undefined; sfx: SfxBank; profile?: LevelAudioBank }
 
-/** Nine Dragon's phone boot: count/cache every file, then decode the selected banks after the world starts. */
+/** Count/cache this profile's selected files, then decode its banks at the original boot/deferred boundary. */
 export function startDeferredAudioPreload(files: ChunkFiles, _def: BootLevel, profile?: LevelAudioProfile): Preload<void> & { readonly style: ReturnType<typeof getMusicStyle>; decode: () => Promise<AudioBanks> } {
   const style = getMusicStyle(), set = getSfxSet();
   // E357 G19: an asset-free level omits audio.preload (ENGINE §15)
   const selected = new Set((profile ?? NO_AUDIO).bootFiles(style));
-  const urls = [...new Set([...files.music, ...files.sfx])];
+  const urls = [...new Set([...files.music, ...files.sfx])].filter(url => selected.has(url));
   const c = counter(urls.length);
   // Keep only the selected compressed bytes until decode. That makes the post-bar decode work offline even if
-  // Cache Storage is unavailable; all other styles/sets remain in the service worker's offline cache.
+  // Cache Storage is unavailable; the background shard prefetch retains the complete other-style inventory.
   const selectedBytes = new Map<string, ArrayBuffer>();
   const downloads = urls.map(url => waitFor(`Read audio ${url}`, (async () => {
     try {
