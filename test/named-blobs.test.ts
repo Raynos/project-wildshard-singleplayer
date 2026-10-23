@@ -6,6 +6,7 @@ import { mkdirSync, mkdtempSync, writeFileSync, symlinkSync, rmSync } from 'node
 // oxlint-disable-next-line import/no-nodejs-modules -- The fixture owns a bounded temporary project directory.
 import { resolve } from 'node:path';
 import { nameBlob, emitNamedBlobs, readNamedBlob } from '../src/sdk/blobs';
+import { nameBlobBytes } from '../src/sdk/blobBytes';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { compileGltfSource } from '../src/sdk/bake/gltfSource';
 import { parseGlb } from '../src/sdk/assets';
@@ -28,10 +29,12 @@ test('declared named JSON schemas survive admission and reject malformed values'
   expect(() => nameBlob('data/bad.json', 'json', jsonBytes({ n: 'bad' }), { jsonSchema })).toThrow('refuses its schema');
   expect(() => nameBlob('data/bad.json', 'json', jsonBytes({}), { jsonSchema })).toThrow('refuses its schema');
   expect(() => nameBlob('data/raw.bin', 'bin', new Uint8Array([1]), { jsonSchema })).toThrow('JSON schema requires');
+  expect(() => nameBlobBytes('data/unchecked.json', 'json', jsonBytes({ n: 'bad' }), { jsonSchema })).toThrow('requires its validator');
 });
 
 test('named blobs derive hash paths/costs, own their bytes and refuse ambiguous or changed entries', () => {
   const source = Uint8Array.from(wasm), blob = nameBlob('behaviour/director.bin', 'bin', source, { critical: true });
+  expect(nameBlobBytes('behaviour/director.bin', 'bin', source, { critical: true })).toEqual(blob);
   source.fill(255);
   expect(blob.bytes).toEqual(wasm);
   expect(blob.file).toMatchObject({ name: 'behaviour/director.bin', path: `blobs/bin/${hashImmutableBytes(wasm)}.bin`, critical: true });

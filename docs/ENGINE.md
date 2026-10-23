@@ -8385,6 +8385,12 @@ fatal UTF-8 and JSON syntax, and the existing async consumer must parse
 the verified `product.file(name)` bytes with its strict defining schema.
 Textual glTF cannot enter as a JSON blob.
 
+`@wildshard/sdk/blobBytes.nameBlobBytes` is the shared byte-admission core.
+Binary-only Node producers avoid the schema compiler; a declared JSON schema
+requires a validator. The ordinary `nameBlob` API always supplies the defining
+validator. `schemaValidation` keeps the same canonical draft-07 policy with an
+explicit compiler dependency, which producer tools load only for schema use.
+
 `readNamedBlob(project, name, source, kind, options)` reads bounded local
 files after resolving symlinks within the project. Textual `.gltf` sources
 compile to a self-contained GLB through the existing SDK bake dependencies;

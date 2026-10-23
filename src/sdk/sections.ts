@@ -1,8 +1,9 @@
 import * as v from 'valibot';
 import { toJsonSchema, type JsonSchema } from '@valibot/to-json-schema';
 import Ajv from 'ajv';
-import { isJsonData, parseNamedJson } from '@wildshard/format/json';
+import { isJsonData } from '@wildshard/format/json';
 import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
+import { validateDefinedSchema, validateNamedJson } from './schemaValidation';
 
 /** Build-only custom content. Neither the Valibot parser nor author code enters the emitted product. */
 export interface DefinedSection<T = unknown> {
@@ -27,7 +28,6 @@ export interface EmittedSections {
 }
 
 const CUSTOM_NAME = /^custom\/[a-zA-Z][a-zA-Z0-9_-]{0,63}$/u;
-const DRAFT = 'http://json-schema.org/draft-07/schema#';
 
 function assertName(name: string): void {
   if (!CUSTOM_NAME.test(name)) throw new Error('Custom section name must be custom/<identifier>');
@@ -38,26 +38,14 @@ function assertName(name: string): void {
  * supplies defaults or removes properties. The on-disk validator uses this same path as the authoring API. */
 export function validateDefinedSection(schemaBytes: Uint8Array, value: unknown): unknown {
   if (!isJsonData(value)) throw new Error('Custom section value must be plain JSON');
-  return validateSchema(schemaBytes, value);
+  return validateDefinedSchema(schemaBytes, value, Ajv);
 }
 
 /** Validate serialized named JSON under its existing producer/reader byte bound.
  * The defining schema is independently bounded; no custom-section node cap is
  * imposed on a payload that was already emitted as a named file. */
 export function validateDefinedJson(schemaBytes: Uint8Array, bytes: Uint8Array): unknown {
-  return validateSchema(schemaBytes, parseNamedJson(bytes));
-}
-
-function validateSchema(schemaBytes: Uint8Array, value: unknown): unknown {
-  if (schemaBytes.length > 1_000_000) throw new Error('Custom section schema exceeds its byte limit');
-  const text = new TextDecoder('utf-8', { fatal: true }).decode(schemaBytes);
-  const schema: unknown = JSON.parse(text);
-  if (!isJsonData(schema) || typeof schema !== 'object' || schema === null || !('$schema' in schema) || schema.$schema !== DRAFT || encodeCanonicalJson(schema) !== text) throw new Error('Custom section schema must be canonical draft-07 JSON');
-  const validator = new Ajv({ allErrors: false, strictKeywords: true, unknownFormats: true, jsonPointers: true });
-  const validate = validator.compile(schema);
-  if (validate.$async === true) throw new Error('Custom section schemas cannot be asynchronous');
-  if (validate(value) !== true) throw new Error(`Custom section value refuses its schema: ${validator.errorsText(validate.errors)}`);
-  return value;
+  return validateNamedJson(schemaBytes, bytes, Ajv);
 }
 
 /** Declare a private section in data/. Values are parsed by Valibot and then checked against the emitted

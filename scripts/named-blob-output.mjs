@@ -1,17 +1,32 @@
 import { fileURLToPath } from 'node:url';
-import { nameBlob } from '@wildshard/sdk/blobs';
+import { createRequire } from 'node:module';
+import { nameBlobBytes } from '@wildshard/sdk/blobBytes';
+import { validateNamedJson } from '@wildshard/sdk/schemaValidation';
 import { byteWriter } from './bake-output.mjs';
+
+const requireSchema = createRequire(new URL('../src/sdk/package.json', import.meta.url));
+/** @param {Uint8Array} schemaBytes @param {Uint8Array} bytes */
+function validateJson(schemaBytes, bytes) {
+  const Ajv = /** @type {Parameters<typeof validateNamedJson>[2]} */ (requireSchema('ajv'));
+  return validateNamedJson(schemaBytes, bytes, Ajv);
+}
 
 /** Build-only bridge from a producer's exact bytes to author-project blob inputs.
  * Equal payloads have one canonical logical name; URL aliases never add a second index reference.
- * A bounded assets/ subdirectory isolates producer ownership when payloads also exist in another job. */
+ * A bounded assets/ subdirectory isolates producer ownership when payloads also exist in another job.
+ * @param {URL} project @param {string} label @param {string} [directory]
+ * @returns {ReturnType<import('./named-blob-output.d.mts').namedBlobOutput>} */
 export function namedBlobOutput(project, label, directory = 'assets') {
   if (!/^assets(?:\/[A-Za-z0-9_-]+)*$/u.test(directory) || directory.length > 120) throw new Error('Invalid blob source directory');
-  const writer = byteWriter(process.argv.includes('--check'), label), rows = new Map(), aliases = new Map();
+  const writer = byteWriter(process.argv.includes('--check'), label);
+  /** @type {Map<string,NonNullable<import('../src/sdk/projectOutput').ProjectOutput['blobs']>[number]>} */
+  const rows = new Map();
+  /** @type {Map<string,string>} */
+  const aliases = new Map();
   return {
     add(name, kind, bytes, url, script, jsonSchema) {
       const options = { ...(script === undefined ? {} : { script }), ...(jsonSchema === undefined ? {} : { jsonSchema }) };
-      const blob = nameBlob(name, kind, bytes, options), old = rows.get(blob.file.hash);
+      const blob = nameBlobBytes(name, kind, bytes, options, validateJson), old = rows.get(blob.file.hash);
       if (old !== undefined && old.kind !== kind) throw new Error('Blob source changes kind');
       if (old !== undefined && JSON.stringify(old.options?.script) !== JSON.stringify(blob.script)) throw new Error('Blob source changes script contract');
       if (old !== undefined && JSON.stringify(old.options?.jsonSchema) !== JSON.stringify(blob.file.jsonSchema)) throw new Error('Blob source changes JSON schema');

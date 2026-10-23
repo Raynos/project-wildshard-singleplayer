@@ -5,11 +5,34 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Author producers use file URLs for their explicit output root.
 import { pathToFileURL } from 'node:url';
+// oxlint-disable-next-line import/no-nodejs-modules -- A fresh producer process exposes eager CommonJS loads before any test imports.
+import { execFileSync } from 'node:child_process';
+import * as v from 'valibot';
 import { namedBlobOutput } from '../scripts/named-blob-output.mjs';
 import { compileScript } from '@wildshard/sdk/compileScript';
 import { scriptSource } from './script/fixture';
 import { prepareProjectOutput } from '../src/sdk/projectOutput';
 import { hashImmutableBytes } from '../src/sdk/immutable';
+
+test.each(['binary', 'schema'])('%s producer loads the CommonJS compiler only for an actual schema', kind => {
+  mkdirSync(resolve('tmp'), { recursive: true });
+  const project = mkdtempSync(resolve('tmp/blob-output-trace-')), receipt = resolve(project, 'reads.json');
+  try {
+    const bytes = kind === 'binary' ? new Uint8Array([1, 2, 3]) : new TextEncoder().encode('1');
+    const add = kind === 'binary' ? "output.add('world/test.bin','bin',new Uint8Array([1,2,3]));"
+      : "output.add('data/test.json','json',new TextEncoder().encode('1'),undefined,undefined,{$schema:'http://json-schema.org/draft-07/schema#',type:'number'});";
+    execFileSync(process.execPath, ['--import', './scripts/generation-recorder.mjs', '--import', './scripts/bake-loader.mjs', '--input-type=module', '-e',
+      `import {namedBlobOutput}from'./scripts/named-blob-output.mjs';const output=namedBlobOutput(new URL(${JSON.stringify(pathToFileURL(`${project}/`).href)}),'trace');${add}`],
+    { env: { ...process.env, WS_GENERATION_READ_RECEIPT: receipt }, maxBuffer: 16 * 1024 * 1024 });
+    const trace = v.parse(v.object({ inventory: v.array(v.string()), execution: v.array(v.string()), opaque: v.array(v.string()) }), JSON.parse(readFileSync(receipt, 'utf8')));
+    expect(trace.opaque).toEqual([]);
+    const commonjs = trace.inventory.filter(probe => probe.startsWith('R commonjs-'));
+    if (kind === 'binary') expect(commonjs).toEqual([]);
+    else expect(commonjs).toContain('R commonjs-resolution');
+    expect(trace.execution).not.toContain('src/sdk/sections.ts');
+    expect(new Uint8Array(readFileSync(resolve(project, 'assets', hashImmutableBytes(bytes))))).toEqual(bytes);
+  } finally { rmSync(project, { recursive: true }); }
+});
 
 test('producer blob sources own their bytes, collapse equal URL aliases and refuse conflicting names', () => {
   mkdirSync(resolve('tmp'), { recursive: true });

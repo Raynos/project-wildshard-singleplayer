@@ -123,6 +123,8 @@
     "./sections": "./sections.ts",
     "./platformSections": "./platformSections.ts",
     "./blobs": "./blobs.ts",
+    "./blobBytes": "./blobBytes.ts",
+    "./schemaValidation": "./schemaValidation.ts",
     "./outputProduct": "./outputProduct.ts",
     "./as/ws": "./as/ws.ts",
     "./as/wsV2": "./as/wsV2.ts",
@@ -617,6 +619,14 @@
       "./blobs": {
         "types": "./dist/types/sdk/blobs.d.ts",
         "default": "./dist/blobs.js"
+      },
+      "./blobBytes": {
+        "types": "./dist/types/sdk/blobBytes.d.ts",
+        "default": "./dist/blobBytes.js"
+      },
+      "./schemaValidation": {
+        "types": "./dist/types/sdk/schemaValidation.d.ts",
+        "default": "./dist/schemaValidation.js"
       },
       "./outputProduct": {
         "types": "./dist/types/sdk/outputProduct.d.ts",

@@ -1,10 +1,9 @@
 import type { ScriptContract } from '@wildshard/format/scriptContract';
 import type { JsonSchema } from '@valibot/to-json-schema';
-import { assetCost, type AssetCost } from '@wildshard/format/product';
-import { parseImageAsset } from '@wildshard/format/stillImage';
-import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
-import { outputBlobPath, type OutputFile } from '@wildshard/format/outputIndex';
-import { hashImmutableBytes, encodeCanonicalJson } from './immutable';
+import type { AssetCost } from '@wildshard/format/product';
+import type { OutputFile } from '@wildshard/format/outputIndex';
+import { encodeCanonicalJson } from './immutable';
+import { nameBlobBytes } from './blobBytes';
 import { validateDefinedJson } from './sections';
 import { compileGltfSource } from './bake/gltfSource';
 import { compressGlb } from './bake/glbCompression';
@@ -20,54 +19,13 @@ export interface NamedBlob { readonly file: OutputFile; readonly bytes: Uint8Arr
 /** The writer merges declarations into admission before emitting these immutable assets. */
 export interface EmittedBlobs { readonly files: readonly OutputFile[]; readonly assets: ReadonlyMap<string, Uint8Array> }
 
-const MAX_BYTES = 25_000_000;
-const logicalName = /^(?:[A-Za-z0-9_-][A-Za-z0-9_.-]*\/)*[A-Za-z0-9_-][A-Za-z0-9_.-]*$/u;
-const reference = /^(?:commons:)?[a-f0-9]{64}$/u;
-const kinds = new Set<NamedBlobKind>(['glb', 'ktx2', 'image', 'audio', 'wasm', 'bin', 'tile', 'json']);
-
-function assertName(name: string): void {
-  if (name.length > 240 || !logicalName.test(name) || name.split('/').some(part => part === '.' || part === '..')) throw new Error('Blob logical name must be a bounded relative path');
-}
-
-function isTextGltf(bytes: Uint8Array): boolean {
-  let json: unknown;
-  try { json = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)); }
-  catch { return false; }
-  return typeof json === 'object' && json !== null && 'asset' in json && typeof json.asset === 'object'
-    && json.asset !== null && 'version' in json.asset && json.asset.version === '2.0';
-}
-
-function extension(kind: NamedBlobKind, bytes: Uint8Array): string {
-  if (kind === 'image') return ({ 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp' })[parseImageAsset(bytes).mime];
-  if (kind === 'audio') return new TextDecoder().decode(bytes.subarray(0, 4)) === 'RIFF' ? 'wav' : 'm4a';
-  if (kind === 'tile') { decodeTerrainTile(bytes); return 'wtt'; }
-  return kind === 'bin' ? 'bin' : kind;
-}
-
 /** Admit actual bytes, hash their owned copy and attach a stable logical name. No author-provided hash or path is used.
  * Binary channel-specific and cross-reference admission still belongs to the section's defining reader/product build. */
 export function nameBlob(name: string, kind: NamedBlobKind, input: Uint8Array, options: BlobOptions = {}): NamedBlob {
-  assertName(name);
-  if (!kinds.has(kind)) throw new Error('Unsupported named blob kind');
-  if (input.length === 0 || input.length > MAX_BYTES) throw new Error('Blob exceeds its wire byte cap');
-  const bytes = Uint8Array.from(input), suffix = extension(kind, bytes);
-  if ((kind === 'bin' || kind === 'json') && isTextGltf(bytes)) throw new Error('Text glTF must compile to GLB, never a JSON or binary blob');
-  if (kind !== 'wasm' && options.script !== undefined) throw new Error('Script contract requires a Wasm blob');
-  if (options.jsonSchema !== undefined) {
-    if (kind !== 'json') throw new Error('JSON schema requires a named JSON blob');
-    validateDefinedJson(new TextEncoder().encode(encodeCanonicalJson(options.jsonSchema)), bytes);
-  }
-  const actual = assetCost(kind === 'bin' || kind === 'tile' ? 'binary' : kind, bytes, options.script);
-  const costs = { decoded: options.decoded ?? actual.decoded, gpu: options.gpu ?? actual.gpu, triangles: options.triangles ?? actual.triangles, draws: options.draws ?? actual.draws };
-  for (const key of ['decoded', 'gpu', 'triangles', 'draws'] as const) if (!Number.isSafeInteger(costs[key]) || costs[key] < actual[key]) throw new Error('Blob costs cannot understate actual bytes or geometry');
-  const dependencies = [...options.dependencies ?? []];
-  if (dependencies.some(hash => !reference.test(hash)) || new Set(dependencies).size !== dependencies.length || (options.critical !== undefined && typeof options.critical !== 'boolean')) throw new Error('Invalid blob dependencies or admission policy');
-  const hash = hashImmutableBytes(bytes);
-  const file: OutputFile = { name, path: `blobs/${kind}/${hash}.${suffix}`, kind, hash, compressed: bytes.length, ...costs, critical: options.critical ?? false, dependencies,
-    ...(options.jsonSchema === undefined ? {} : { jsonSchema: structuredClone(Object.fromEntries(Object.entries(options.jsonSchema))) }) };
-  outputBlobPath(file);
-  return { file, bytes, ...(options.script === undefined ? {} : { script: { ...options.script } }) };
+  return nameBlobBytes(name, kind, input, options, validateDefinedJson);
 }
+
+const MAX_BYTES = 25_000_000;
 
 /** Read only project-contained files. Textual .gltf sources compile with bounded local/embedded resources into GLB;
  * an escape (including through a symlink), remote URI or unsupported extension refuses before publication. */
