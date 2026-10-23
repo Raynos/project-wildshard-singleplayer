@@ -115,9 +115,8 @@ export function installEliteFeaturePage(game: Game, animals: AnimalManager, play
 
 /** External native allocation remains with its existing body owner. These rows
  * bind either a v1 fight slot or an AS-projected herd encounter to that body. */
-export type ExternalEliteRow = ExternalEliteData;
 export type ExternalEliteEffect = NativeEliteEffect | { readonly kind: 'page-bank'; readonly bank: { readonly validate: () => void; readonly operations: readonly (() => void)[] } }
-  | { readonly kind: 'request'; readonly row: ExternalEliteRow }
+  | { readonly kind: 'request'; readonly row: ExternalEliteData }
   | { readonly kind: 'retire'; readonly actor: Animal } | { readonly kind: 'support'; readonly count: number }
   | { readonly kind: 'record'; readonly species: string; readonly variant: string };
 type EncounterHerd = Pick<HerdBrain<Animal>, 'stallionState' | 'stallion' | 'leadAway'>;
@@ -140,7 +139,7 @@ export class ExternalElitePage implements EliteScript {
   private readonly from = new THREE.Vector3(); private readonly to = new THREE.Vector3();
   private observations: { available: boolean; kills: number; bonded: boolean; mount: Animal | null } = { available: false, kills: 0, bonded: false, mount: null };
   private eligible = false;
-  constructor(readonly row: ExternalEliteRow, private readonly services: { readonly game: Game; readonly animals: AnimalManager; readonly player: Player; readonly elites: Elites },
+  constructor(readonly row: ExternalEliteData, private readonly services: { readonly game: Game; readonly animals: AnimalManager; readonly player: Player; readonly elites: Elites },
     private readonly decisions: ReturnProgram, private readonly drop: THREE.Object3D, private readonly fight?: SpawnScriptRows, deferPresentation = false) {
     this.row = parseExternalElite(row); this.def = row.def;
     if (!deferPresentation) this.tellValue = new GroundTell(services.game.scene, 'lane', new THREE.Color(...row.tell));
