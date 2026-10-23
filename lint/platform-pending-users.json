@@ -1021,7 +1021,7 @@
       }
     },
     {
-      "module": "src/game/eliteSystem.ts",
+      "module": "src/format/eliteContinuation.ts",
       "export": "EliteCoreContinuationSchema",
       "shard": "nalati-grasslands",
       "plan": {
@@ -1032,7 +1032,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/eliteSystem.ts",
+      "module": "src/format/eliteContinuation.ts",
       "export": "EliteCoreContinuation",
       "shard": "nalati-grasslands",
       "plan": {

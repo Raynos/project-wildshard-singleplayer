@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest';
+import pendingRows from '../lint/platform-pending-users.json' with { type: 'json' };
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify retired receipts without touching the shared WIP ledger.
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { chargePlatformUsers, inlinePlatformPaths, inlinePlatformSpans, platformChargeback, recordPrivateCharge } from '../scripts/platform-chargebacks.mjs';
@@ -476,4 +477,23 @@ test('the open-arena projection remains charged after lifecycle convergence',()=
   for(const name of ['arenaBlockedAt','installArenaBoundary','arenaBoundaryBlocked'])expect(platformChargeback('src/game/riding/client.ts',name)).toBe('C4');
   expect(platformChargeback('src/game/boss/arenaRoom.ts','buildOpenArenaEncounter')).toBe('C9');
   expect(platformChargeback('src/game/boss/arenaRoom.ts','ArenaRoomEncounter')).toBeNull();
+});
+
+
+test('pending native continuation receipts name the actual defining schema and type', () => {
+  const names = ['EliteCoreContinuationSchema', 'EliteCoreContinuation'];
+  const rows = pendingRows.entries.filter(row => row.shard === 'nalati-grasslands' && 'export' in row && names.includes(row.export ?? ''));
+  expect(rows.map(row => ({ module: row.module, export: 'export' in row ? row.export : undefined, shard: row.shard }))).toEqual(
+    names.map(name => ({ module: 'src/format/eliteContinuation.ts', export: name, shard: 'nalati-grasslands' })),
+  );
+  mkdirSync('tmp', { recursive: true });
+  const root = mkdtempSync('tmp/native-continuation-receipts-');
+  try {
+    mkdirSync(`${root}/lint`); mkdirSync(`${root}/src/format`, { recursive: true }); mkdirSync(`${root}/docs/plans/shard-platform`, { recursive: true });
+    writeFileSync(`${root}/lint/platform-pending-users.json`, JSON.stringify({ schema: pendingRows.schema, entries: rows }));
+    writeFileSync(`${root}/src/format/eliteContinuation.ts`, readFileSync('src/format/eliteContinuation.ts', 'utf8'));
+    writeFileSync(`${root}/docs/ENGINE.md`, 'format/eliteContinuation');
+    writeFileSync(`${root}/docs/plans/shard-platform/open-x-queue.md`, '| W3 Nalati elite rule continuation (G441) | Nalati |');
+    expect(pendingPlatformUsers(root)).toEqual(rows);
+  } finally { rmSync(root, { recursive: true, force: true }); }
 });

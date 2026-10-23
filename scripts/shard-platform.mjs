@@ -568,7 +568,7 @@ function approvedFeature(entry) {
 }
 // G419: planned users are an explicit, temporary allowance, never actual import-graph users.
 const PendingUsers = v.strictObject({ schema:v.literal('platform-pending-users/1'), entries:v.pipe(v.array(v.strictObject({
-  module:v.pipe(producerPath,v.regex(/^src\/(?:engine|game|sdk)\//u)), export:v.optional(v.string()),
+  module:v.pipe(producerPath,v.regex(/^src\/(?:engine|game|sdk|format)\//u)), export:v.optional(v.string()),
   shard:v.exactOptional(v.picklist(['driftwood-isle','pine-hollow','nalati-grasslands','nine-dragon-stack'])),
   plan:v.exactOptional(v.strictObject({path:v.pipe(producerPath,v.regex(/^docs\/plans\//u)),row:v.string()})),
   documentation:v.pipe(producerPath,v.regex(/^docs\//u)), 'rechecked-by':v.exactOptional(v.literal('end of W3')),
