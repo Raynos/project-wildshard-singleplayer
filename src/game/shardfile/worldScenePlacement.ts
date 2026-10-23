@@ -176,12 +176,20 @@ export class WorldScenePlacement {
     requireLive(scope);
     const definition = this.catalogue.model(row.model), last = definition.lods?.at(-1);
     const { lods: _levels, ...base } = definition, model = last === undefined ? base : { ...base, build: last.build };
-    const tiles = row.poses.map(pose => tileKey(tileOf(pose.x, pose.z)));
+    const tiles = row.poses.map(pose => tileKey(tileOf(pose.x, pose.z))), id = `${row.piece?.id ?? definition.id}.coarse`;
+    // a model that builds a whole object draws `single` (one object per copy): its few copies hide by tile each frame
+    const single = row.draw === 'single';
     const placed = withOwner(scope, () => place(model, row.poses.map(posed), { ctx: sharedModelContext(world.sky, world.game), registry: world.registry,
-      draw: 'instanced', cull: { ...this.cullOptions(world.forest), cells: { size: TILE_SIZE, pad: COARSE_REACH }, test: i => !rendered(tiles[i] ?? -1) },
-      piece: { id: `${row.piece?.id ?? definition.id}.coarse`, collide: false } }));
+      draw: single ? 'single' : 'instanced', piece: { id, collide: false },
+      ...(single ? {} : { cull: { ...this.cullOptions(world.forest), cells: { size: TILE_SIZE, pad: COARSE_REACH }, test: (i: number) => !rendered(tiles[i] ?? -1) } }) }));
     placed.object.name = `${row.name ?? definition.id}.coarse`;
     await placed.registered;
+    if (!single) return;
+    const copies = row.poses.length === 1 ? [placed.object] : placed.object.children;
+    this.ctx.system({ id: `scene.${id}`, phase: 'update', run: () => {
+      if (scope.disposed) return;
+      copies.forEach((copy, i) => { copy.visible = !rendered(tiles[i] ?? -1); });
+    } });
   }
   private async prepareMaterials(sky: Parameters<typeof worldSceneSourceMaterial>[1]): Promise<void> {
     await Promise.all(this.sources.map(async source => {
