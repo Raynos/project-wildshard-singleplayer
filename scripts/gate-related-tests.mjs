@@ -160,7 +160,7 @@ if (isMain) {
   const products = JSON.parse(readFileSync(registryPath, 'utf8'));
   const live = process.argv.includes('--live');
   const required = live ? [] : [...new Set([...QUICK_TESTS, ...scriptScenarioTests(changed, scenarios), ...productReaderTests(changed, products).filter(test => existsSync(resolve(ROOT, test)))])];
-  const selection = live ? liveTestSelection(ROOT, [...new Set([...related, ...sources.filter(file => INCLUDED.test(file))])], products) : { run: related, deferred: [] };
+  const selection = live ? liveTestSelection(ROOT, [...new Set([...related, ...sources.filter(file => INCLUDED.test(file))])], products, changed) : { run: related, deferred: [] };
   for (const row of selection.deferred) console.error(`gate-related-tests: CI only ${row.test} (${row.reason})`);
   const allowed = new Set(selection.run);
   const eligible = related.filter(file => allowed.has(file));
