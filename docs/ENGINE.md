@@ -12214,6 +12214,16 @@ uses `ws_project`, the standard v2 field/output/RNG banks, and no guest imports.
 admitted entry for new project signals: the original source budget, handler and
 import-closure checks still run, while the legacy entry and witness remain
 unchanged. Appended canonical names retain every earlier binding id.
+Projection rows may declare `outputCapacity` (1–128); omission retains the
+original 32-row bank and exact descriptor. Capacity is admitted against the
+actual IO layout and accounted module bytes, never inferred from output.
+The arena clock frame names its retained columns, required output channels,
+landing columns, capacity parameter and complete reset values. Their finite
+references are checked before allocating a program or scene resources. One
+existing `ProjectedState.step` samples the whole bank at its original slot;
+optional borrowed RNG is accepted with the complete retained state. Refusal
+preserves the accumulated sampling time. Native effects consume the accepted
+bank in their original order.
 An optional schedule `outputs` list requires each named numeric result before
 prepared RNG or retained columns are published, including ephemeral channels.
 `ReturnProjectionV2` (game population/returnProjectionV2) captures actor zero

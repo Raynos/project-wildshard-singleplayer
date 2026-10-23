@@ -18,7 +18,7 @@ beforeAll(async()=>{
   const row=programs.attack.script;
   const ids=(values:Readonly<Record<string,string>>):Map<string,number>=>new Map(Object.values(values).sort().map((name,index)=>[name,index+1]));
   built=await compileReturnProjectionV2(row,{fields:ids(row.fields),signals:ids(row.signals),channels:ids(row.channels)},
-    readDecisionSources(new URL('../src/shards/nalati-grasslands/',import.meta.url).pathname),{asLineCeiling:2837,projectSource:'behaviour/titanSchedules.as'});
+    readDecisionSources(new URL('../src/shards/nalati-grasslands/',import.meta.url).pathname),{asLineCeiling:2837,projectSource:'behaviour/titanClockFrame.as',outputCapacity:96});
   const layout=returnProjectionV2Layout(1);
   const bytes=await compileScriptV2(`import * as core from './core';
     export function ws_abi():i32{return 2;}export function ws_io():i32{return 0;}
@@ -65,7 +65,7 @@ test('every original Titan signal preserves f64 outputs, candidate order and bor
     spearAim:.8,spearLock:.2,spearRadius:3,respawnDistance:16,rewardDistance:4,count:8,fullDraw:80,victoryT:-1,
     cx:4,cz:3,x:5,z:8,px:7,pz:9,cy:2,ax:1,az:2,theta:-1,lane:1,flank:2});
   const candidates=Array.from({length:8},(_,i)=>({...base,x:i+1,z:i-2,hit:Number(i%2===0),mode:i%4}));
-  for(const phase of [0,1,2])for(const mode of [0,1,2,3])for(const signal of built.candidate.signals.filter(name=>name!=='zzArenaSchedules')){
+  for(const phase of [0,1,2])for(const mode of [0,1,2,3])for(const signal of built.candidate.signals.filter(name=>!name.startsWith('zz'))){
     const frame={...base,phase,mode,t:1.75,elapsed:.15};
     expect(next.project(signal,frame,b,candidates),`${signal}/${phase}/${mode}`).toStrictEqual(old.project(signal,frame,a,candidates));
     expect(b.snapshot()).toStrictEqual(a.snapshot());
@@ -125,4 +125,36 @@ test('an alternate project entry retains captured source and handler admission',
   await expect(compileReturnProjectionV2(row,registries,sources,{asLineCeiling:2837,projectSource:'behaviour/missing.as'})).rejects.toThrow('Missing decision source');
   const escaped=new Map(sources);escaped.set('behaviour/escape.as',"import {run} from '../unowned';export function onSignal(signal:i32,value:f64,source:i32):void{run();}");
   await expect(compileReturnProjectionV2(row,registries,escaped,{asLineCeiling:2837,projectSource:'behaviour/escape.as'})).rejects.toThrow('Undeclared decision source import');
+},60000);
+
+
+test('projection output capacity is explicit, bounded and layout checked',()=>{
+  expect(hostile.outputCapacity).toBeUndefined();
+  expect(returnProjectionV2Layout(1)).toStrictEqual(returnProjectionV2Layout(1,1,32));
+  expect(programs.attack.v2.outputCapacity).toBe(96);
+  expect(()=>parseReturnProjectionV2({...programs.attack.v2,outputCapacity:32})).toThrow('Invalid projection declaration');
+  expect(()=>returnProjectionV2Layout(1,1,129)).toThrow('Invalid projection output capacity');
+  expect(()=>parseReturnProjectionV2({...hostile,outputCapacity:0})).toThrow();
+});
+
+test('sampling time and borrowed RNG survive a refused complete clock bank',()=>{
+  const random=new Rng(517),before=random.snapshot();
+  const state=new ProjectedState({initial:{value:0},signals:{step:'run'},outputs:['missing']},new ReturnProjectionV2(hostile));
+  expect(state.step(.04,{mode:6},random).dt).toBe(0);
+  expect(()=>state.step(.06,{mode:6},random)).toThrow('Missing required projection output');
+  expect(random.snapshot()).toStrictEqual(before);expect(state.state).toStrictEqual({value:0});
+  // A zero-delta retry must still reach the preserved 100-ms sample.
+  expect(()=>state.step(0,{mode:6},random)).toThrow('Missing required projection output');
+});
+
+
+test('omitted output capacity keeps the original default32 wire bytes',async()=>{
+  const row=programs.attack.script;
+  const ids=(values:Readonly<Record<string,string>>):Map<string,number>=>new Map(Object.values(values).sort().map((name,index)=>[name,index+1]));
+  const registries={fields:ids(row.fields),signals:ids(row.signals),channels:ids(row.channels)},sources=readDecisionSources(new URL('../src/shards/nalati-grasslands/',import.meta.url).pathname);
+  const implicit=await compileReturnProjectionV2(row,registries,sources,{asLineCeiling:2837});
+  const explicit=await compileReturnProjectionV2(row,registries,sources,{asLineCeiling:2837,outputCapacity:32});
+  expect(implicit.candidate.outputCapacity).toBeUndefined();
+  expect(explicit.candidate).toStrictEqual({...implicit.candidate,outputCapacity:32});
+  expect(explicit.legacy).toStrictEqual(implicit.legacy);
 },60000);

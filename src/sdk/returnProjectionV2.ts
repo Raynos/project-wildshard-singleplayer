@@ -10,7 +10,7 @@ import { v2CoreSource } from './as/wsV2';
 import { hashImmutableBytes } from './immutable';
 import { decisionBindingsPath } from './decisionScriptBindings';
 
-export async function compileReturnProjectionV2(input:unknown,registries:DecisionRegistries,authored:ReadonlyMap<string,string>,options:DecisionBuildOptions & {readonly projectSource?:string}):Promise<{
+export async function compileReturnProjectionV2(input:unknown,registries:DecisionRegistries,authored:ReadonlyMap<string,string>,options:DecisionBuildOptions & {readonly projectSource?:string;readonly outputCapacity?:number}):Promise<{
   readonly legacy:{readonly script:ReturnType<typeof parseDecisionScripts>[number];readonly bytes:string};readonly candidate:ReturnProjectionV2Rows;
 }> {
   const row=parseDecisionScripts([input])[0];
@@ -23,7 +23,7 @@ export async function compileReturnProjectionV2(input:unknown,registries:Decisio
   const selected=options.projectSource??row.source;
   if(selected!==row.source)await compileDecisionScripts([{...row,source:selected}],registries,authored,{...options,singleSignal:true});
   const fields=Object.values(row.fields).sort(),signals=Object.values(row.signals).sort(),channels=Object.values(row.channels).sort();
-  const layout=returnProjectionV2Layout(fields.length,row.pages),path=decisionBindingsPath(row);
+  const layout=returnProjectionV2Layout(fields.length,row.pages,options.outputCapacity),path=decisionBindingsPath(row);
   const lines=["import * as core from '../../sdk/as/wsV2';"];
   for(const [kind,namespace,names]of [['fields','Field',fields],['signals','Signal',signals],['channels','Channel',channels]] as const){
     lines.push(`export namespace ${namespace}{`,...Object.entries(row[kind]).map(([alias,name])=>`export const ${scriptV1Identifier(alias)}:i32=${names.indexOf(name)+1};`),'}');
@@ -45,6 +45,6 @@ export async function compileReturnProjectionV2(input:unknown,registries:Decisio
     export function ws_project(fuel:i32):i32{core.beginState();assert(core.beginBinding(0));onSignal(i32(core.parameter(0)),0,0);core.endBinding();return fuel;}`;
   const bytes=await compileScriptV2(source,{maximumPages:row.pages,ioBytes:layout.bytes,lane:'project',sources});
   const candidate=parseReturnProjectionV2({artifact:{abi:2,minor:0,compilerRevision:SCRIPT_V2_REVISIONS.compiler,admissionRevision:SCRIPT_V2_REVISIONS.admission,
-    hash:hashImmutableBytes(bytes),lane:'project',pages:row.pages,ioBytes:layout.bytes},fields,signals,channels,bytes:btoa(Array.from(bytes,byte=>String.fromCodePoint(byte)).join(''))});
+    hash:hashImmutableBytes(bytes),lane:'project',pages:row.pages,ioBytes:layout.bytes},fields,signals,channels,...(options.outputCapacity===undefined?{}:{outputCapacity:options.outputCapacity}),bytes:btoa(Array.from(bytes,byte=>String.fromCodePoint(byte)).join(''))});
   return {legacy:{script,bytes:btoa(Array.from(blob.bytes,byte=>String.fromCodePoint(byte)).join(''))},candidate};
 }

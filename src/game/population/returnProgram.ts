@@ -198,8 +198,8 @@ export class ProjectedState<S extends Record<string,number> = Record<string,numb
     if(this.row.signal===undefined)throw new Error('Missing projection signal');return this.event(this.row.signal,frame,random,candidates);
   }
   /** At most one decision each 100 ms; long frames produce no catch-up burst. */
-  step(dt:number,frame:Readonly<Record<string,number>>):{dt:number;values:Readonly<Record<string,number>>} {
+  step(dt:number,frame:Readonly<Record<string,number>>,random?:Rng):{dt:number;values:Readonly<Record<string,number>>} {
     this.elapsed+=dt;if(this.elapsed+1e-9<.1)return {dt:0,values:{}};
-    const step=this.elapsed;this.elapsed=0;return {dt:step,values:this.event('step',{...frame,dt:step})};
+    const step=this.elapsed,values=this.event('step',{...frame,dt:step},random);this.elapsed=0;return {dt:step,values};
   }
 }

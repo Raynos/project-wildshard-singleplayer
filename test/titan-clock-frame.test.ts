@@ -30,16 +30,31 @@ class ClockTrace {
     if(spear===undefined||chain===undefined)throw new Error('Missing frozen schedules');
     this.spear=new ProjectedState<Record<string,number>>(spear.law,program);
     this.chain=new ProjectedState<Record<string,number>>(chain.law,program);
-    this.joint=new ProjectedState<Record<string,number>>(TITAN_CLOCKS.schedule,program);
+    const initial:Record<string,number>={...TITAN_CLOCKS.frame.initial},retain:Record<string,string>={...TITAN_CLOCKS.frame.retain};
+    const unused=TITAN_CLOCKS.landings.slice(capacity).flatMap(row=>[row.on,row.t,row.x,row.z]);
+    for(const key of unused){delete initial[key];delete retain[key];}
+    this.joint=new ProjectedState<Record<string,number>>({...TITAN_CLOCKS.frame,initial,retain,outputs:TITAN_CLOCKS.frame.outputs.filter(key=>!unused.includes(key)),parameters:{...TITAN_CLOCKS.frame.parameters,every,zzzLandingCapacity:capacity}},program);
   }
-  reset():void{this.gate.reset();this.trail.reset();this.spear.reset();this.chain.reset();this.joint.reset();for(const law of this.landing)law.reset();}
+  reset():void{this.gate.reset();this.trail.reset();this.spear.reset();this.chain.reset();this.joint.reset();for(const law of this.landing)law.reset();this.joint.set(Object.fromEntries(Object.entries(TITAN_CLOCKS.clear).filter(([key])=>Object.hasOwn(this.joint.state,key))));}
   phase(mode:number,cd:number):void{this.spear.set({mode,cd});this.joint.set({mode,cd});}
-  victory():void{this.spear.set({mode:0});this.joint.set({mode:0});for(const law of this.landing)law.reset();}
+  victory():void{this.spear.set({mode:0});this.joint.set({mode:0});for(const law of this.landing)law.reset();this.joint.set(Object.fromEntries(Object.entries(TITAN_CLOCKS.clear).filter(([key])=>Object.hasOwn(this.joint.state,key))));}
   chainState(cd:number,left:number,t:number):void{this.chain.set({cd,chain:left,t});this.joint.set({zzChainCd:cd,zzChainLeft:left,zzChainT:t});}
   snapshot():unknown{return {spear:this.combined?columns(this.joint.state,['mode','t','cd','x','z']):this.spear.state,
     chain:this.combined?{cd:this.joint.value('zzChainCd'),chain:this.joint.value('zzChainLeft'),t:this.joint.value('zzChainT')}:this.chain.state,
-    trail:this.trail.state,landing:this.landing.map(law=>law.state),random:this.random.snapshot()};}
+    trail:this.combined?columns(this.joint.state,Object.keys(frozen.volley.trail.initial)):this.trail.state,landing:this.landing.map((law,i)=>this.combined?Object.fromEntries(['on','t','x','z'].map(key=>[key,this.joint.value(`zzzLanding${i}${key}`)])):law.state),random:this.random.snapshot()};}
   step(dt:number,frame:Readonly<Record<string,number>>):unknown{
+    if(this.combined){
+      const step=this.joint.step(dt,frame,this.random),v=step.values;
+      const effects:{id:string;index:number;values:Readonly<Record<string,number>>}[]=[];
+      if(step.dt===0)return {dt:0,effects};
+      if(v[TITAN_CLOCKS.spear]===1)effects.push({id:'spear',index:0,values:columns(v,spearKeys)});
+      for(const [index,row]of TITAN_CLOCKS.landings.slice(0,this.landing.length).entries()){
+        // The original loop records every active landing's output, even before impact.
+        if((frame['fighting']??0)>0&&frame['phase']===2&&(v[row.on]===1||v[row.strike]===1))effects.push({id:frozen.volley.launcher,index,
+          values:{mode:v[row.on]??0,t:v[row.t]??0,strike:v[row.strike]??0,hurt:v[row.hurt]??0,x:v[row.x]??0,z:v[row.z]??0,landing:1}});
+      }
+      return {dt:step.dt,effects};
+    }
     const step=this.gate.step(dt,frame);if(step.dt===0)return {dt:0,effects:[]};
     const gate=step.values,effects:{id:string;index:number;values:Readonly<Record<string,number>>}[]=[];
     const px=frame['px']??0,pz=frame['pz']??0;
@@ -48,11 +63,7 @@ class ClockTrace {
       const at=this.trail.event('pick',{index,x:px,z:pz}),landing=this.landing.find(law=>law.value('on')===0);
       landing?.reset({on:1,x:at['x']??px,z:at['z']??pz});
     };
-    if(this.combined){
-      const values:Readonly<Record<string,number>>=(gate['mask']??0)===0?{}:this.joint.project({...frame,dt:step.dt,count:this.trail.value('count'),zzMask:gate['mask']??0},this.random);
-      if(values[TITAN_CLOCKS.outputs.spear]===1)effects.push({id:'spear',index:0,values:columns(values,spearKeys)});
-      if(values[TITAN_CLOCKS.outputs.launch]===1)launch(values[TITAN_CLOCKS.outputs.index]??-1);
-    }else{
+    {
       // Original schedule order and shared-state reads, including post-spear mode.
       const clocks=new Map([['spear',this.spear],['chain',this.chain]]);
       for(const [index,row]of frozen.schedules.entries()){
@@ -90,7 +101,7 @@ test('every mask, phase and spear mode preserves ordered schedule state and RNG 
     const frame={phase,dt,count,px:-0,pz:0};let spear:Readonly<Record<string,number>>|undefined,volley:Readonly<Record<string,number>>|undefined;
     if((mask&1)!==0){spear=old.project('arenaSpear',{...frozen.schedules[0]?.law.parameters,...s,...frame,chainLeft:chain.chain},a);Object.assign(s,columns(spear,['mode','t','cd','x','z']));}
     if((mask&2)!==0){volley=old.project('arenaChain',{...chain,...frame,spearMode:s.mode},a);Object.assign(chain,{cd:volley['cd'],chain:volley['left'],t:volley['t']});}
-    const joint=new ProjectedState<Record<string,number>>(TITAN_CLOCKS.schedule,next);
+    const joint=new ProjectedState<Record<string,number>>({initial:{mode:0,t:0,cd:0,x:0,z:0,zzChainCd:0,zzChainLeft:0,zzChainT:0},parameters:frozen.schedules[0]?.law.parameters??{},signal:'zzArenaSchedules'},next);
     joint.set({mode,t:4,cd:-0,x:-0,z:0,zzChainCd:-0,zzChainLeft:1,zzChainT:0});
     const actual=joint.project({...frame,zzMask:mask},b);
     expect(columns(joint.state,['mode','t','cd','x','z'])).toStrictEqual(s);
@@ -102,7 +113,7 @@ test('every mask, phase and spear mode preserves ordered schedule state and RNG 
   }
 });
 
-test.each([{capacity:1,every:100},{capacity:8,every:.1}])('original irregular slots, resets, full/empty trail and first-free landings remain exact (%j)',({capacity,every})=>{
+test.each([{capacity:1,every:100},{capacity:2,every:.1},{capacity:8,every:.1}])('original irregular slots, resets, full/empty trail and first-free landings remain exact (%j)',({capacity,every})=>{
   const calls=vi.spyOn(ReturnProjectionV2.prototype,'prepare'),old=new ClockTrace(false,capacity,every),next=new ClockTrace(true,capacity,every);
   try{
     let launchAndLand=0,fullLaunches=0,emptyLaunches=0;
@@ -110,18 +121,34 @@ test.each([{capacity:1,every:100},{capacity:8,every:.1}])('original irregular sl
       if(tick===0||tick===180){old.reset();next.reset();old.chainState(0,0,0);next.chainState(0,0,0);}
       if(tick===80||tick===220){old.phase(3,0);next.phase(3,0);}
       if(tick===140){old.victory();next.victory();}
-      if(tick===250){for(const owner of [old,next]){owner.trail.set({count:12});for(const law of owner.landing)law.set({on:1,t:0,x:-0,z:2});owner.chainState(0,0,0);owner.phase(0,99);}}
+      if(tick===250){for(const owner of [old,next]){owner.trail.set({count:12});owner.joint.set({count:12});for(const [i,law]of owner.landing.entries()){law.set({on:1,t:0,x:-0,z:2});owner.joint.set({[`zzzLanding${i}on`]:1,[`zzzLanding${i}t`]:0,[`zzzLanding${i}x`]:-0,[`zzzLanding${i}z`]:2});}owner.chainState(0,0,0);owner.phase(0,99);}}
       const dt=[.016,.017,.067,.5,.03,.03,.04,.2,.9][tick%9]??.1;
       const frame={phase:tick<120||tick>=180?2:tick<150?1:0,fighting:Number(tick%31!==0),px:tick===0?-0:Math.sin(tick*.07)*40,pz:Math.cos(tick*.09)*20};
-      const full=next.landing.every(law=>law.value('on')===1);
+      const full=old.landing.every(law=>law.value('on')===1),beforeCount=old.trail.value('count');
       const expected=old.step(dt,frame);calls.mockClear();const actual=next.step(dt,frame);
       expect(actual,`effects at ${tick}`).toStrictEqual(expected);expect(next.snapshot(),`state at ${tick}`).toStrictEqual(old.snapshot());
-      const names=calls.mock.calls.map(args=>args[0]),pick=names.indexOf('arenaTrailPick'),land=names.indexOf('chainLand');
-      if(pick!==-1){if(full)fullLaunches++;if(next.trail.value('count')===0)emptyLaunches++;}
-      if(pick!==-1&&land!==-1){expect(pick).toBeLessThan(land);launchAndLand++;}
-      if(frame.fighting===0||frame.phase===1)expect(names).not.toContain('zzArenaSchedules');
+      const names=calls.mock.calls.map(args=>args[0]);
+      if(names.length>0){expect(names).toStrictEqual(['zzzArenaFrame']);
+        if(calls.mock.results[0]?.type==='return'&&calls.mock.results[0].value.values['zzChainStrike']===1){if(full)fullLaunches++;if(beforeCount===0&&every===100)emptyLaunches++;if(!full)launchAndLand++;}}
+
     }
     expect(launchAndLand).toBeGreaterThan(5);expect(fullLaunches).toBeGreaterThan(0);
     if(every===100)expect(emptyLaunches).toBeGreaterThan(0);
   }finally{calls.mockRestore();}
+});
+
+
+test('full frame preserves signed-zero samples and fractional trail-pick fallback',()=>{
+  for(const count of [0,5.5,12]){
+    const old=new ClockTrace(false,2,100),next=new ClockTrace(true,2,100);
+    old.trail.set({count});next.joint.set({count});old.chainState(0,0,0);next.chainState(0,0,0);
+    const frame={phase:2,fighting:1,px:-0,pz:-0};
+    expect(next.step(.6,frame)).toStrictEqual(old.step(.6,frame));
+    expect(next.snapshot()).toStrictEqual(old.snapshot());
+    expect(Object.is(next.joint.value('zzzLanding0x'),-0)).toBe(count!==12);
+  }
+  const old=new ClockTrace(false),next=new ClockTrace(true),frame={phase:2,fighting:1,px:-0,pz:-0};
+  old.chainState(0,0,0);next.chainState(0,0,0);
+  expect(next.step(.1,frame)).toStrictEqual(old.step(.1,frame));
+  expect(next.snapshot()).toStrictEqual(old.snapshot());expect(Object.is(next.joint.value('trailX0'),-0)).toBe(true);
 });

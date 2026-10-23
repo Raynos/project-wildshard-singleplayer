@@ -6,7 +6,6 @@ import { SpecimenAssetSchema } from './specimenCatalogue';
 
 const finite=v.pipe(v.number(),v.finite()),numbers=v.record(v.string(),finite);
 const count=v.pipe(finite,v.integer(),v.minValue(1),v.maxValue(64));
-const numeric=numbers;
 const pair=v.tuple([finite,finite]);
 /**
  * The sites a slot encounter wakes from (`name`'s statues): one instanced copy of the model's `variants[k]` at each
@@ -42,16 +41,14 @@ export const CoupledEncounterRowsSchema = v.strictObject({ initial: numbers, mem
   actors: v.optional(v.strictObject({ hp: v.pipe(finite, v.minValue(1)), memory: v.record(v.string(), v.string()) })),
   signals: v.strictObject({ couple: v.string(), member: v.string(), damage: v.string() }) });
 export const EncounterScheduleSchema = v.strictObject({ signal: v.string(), initial: numbers, parameters: numbers, retain: v.record(v.string(), v.string()),
-  outputs: v.exactOptional(v.pipe(v.array(v.pipe(v.string(),v.minLength(1),v.maxLength(512))),v.maxLength(32))) });
+  outputs: v.exactOptional(v.pipe(v.array(v.pipe(v.string(),v.minLength(1),v.maxLength(512))),v.maxLength(128))) });
 /** One admitted schedule owns attack selection and ordered numeric transitions;
  * projections observe shared health/phase inputs and publish one-shot effects.
  * Landing slots borrow a position history; no view or shard callback is stored. */
 export const ArenaEncounterSchema = v.strictObject({
-  gate: v.strictObject({ signal: v.string(), parameters: numeric }),
-  schedule: EncounterScheduleSchema, left: v.string(),
-  outputs: v.strictObject({ spear: v.string(), launch: v.string(), index: v.string() }),
-  volley: v.strictObject({ capacity: v.pipe(count, v.maxValue(8)),
-    landing: EncounterScheduleSchema, trail: v.strictObject({ initial:numbers,parameters:numbers,retain:v.record(v.string(),v.string()),signals:v.strictObject({step:v.string(),pick:v.string()}) }) }),
+  frame:v.strictObject({...v.omit(EncounterScheduleSchema,['signal']).entries,signals:v.strictObject({step:v.string()})}),
+  count:v.string(),left:v.string(),spear:v.string(),clear:numbers,
+  landings:v.pipe(v.array(v.strictObject({on:v.string(),t:v.string(),x:v.string(),z:v.string(),strike:v.string(),hurt:v.string()})),v.minLength(1),v.maxLength(8)),
 });
 export const ArenaWhirlsSchema = v.strictObject({
  laws: v.pipe(v.array(EncounterScheduleSchema), v.minLength(1), v.maxLength(8)), ease: finite, spin: finite, sink: finite, breathe: pair,

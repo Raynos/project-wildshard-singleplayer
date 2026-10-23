@@ -3,11 +3,21 @@ import { Signal, Field, Channel, Read, Do } from './generated/nalatiTitanCombine
 @inline function f(id:i32):f64{return Read.field(0,id);}
 @inline function put(id:i32,value:f64):void{Do.channel(id,value);}
 // Spear publishes before chain observes its new mode, at the original clock slot.
-export function onSignal(signal:i32,value:f64,source:i32):void{
-  if(signal!=Signal.zzArenaSchedules){original(signal,value,source);return;}
-  const dt=f(Field.dt),phase=f(Field.phase),mask=i32(f(Field.zzMask));
-  let mode=f(Field.mode),t=f(Field.t),cd=f(Field.cd),x=f(Field.x),z=f(Field.z),strike=0.0,stuck=0.0;
-  let chainCd=f(Field.zzChainCd),left=f(Field.zzChainLeft),chainT=f(Field.zzChainT),chainStrike=0.0;
+export let mode:f64=0;
+export let t:f64=0;
+export let cd:f64=0;
+export let x:f64=0;
+export let z:f64=0;
+export let strike:f64=0;
+export let stuck:f64=0;
+export let chainCd:f64=0;
+export let left:f64=0;
+export let chainT:f64=0;
+export let chainStrike:f64=0;
+export function runSchedule(mask:i32):void{
+  const dt=f(Field.dt),phase=f(Field.phase);
+  mode=f(Field.mode);t=f(Field.t);cd=f(Field.cd);x=f(Field.x);z=f(Field.z);strike=0;stuck=0;
+  chainCd=f(Field.zzChainCd);left=f(Field.zzChainLeft);chainT=f(Field.zzChainT);chainStrike=0;
   if((mask&1)!=0){
     t+=dt;
     if(mode==0){cd-=dt;if(cd<=0&&left==0){mode=1;t=0;x=f(Field.px);z=f(Field.pz);}}
@@ -22,10 +32,16 @@ export function onSignal(signal:i32,value:f64,source:i32):void{
     if(left==0&&chainCd<=0&&mode==0){left=7;chainT=0;}
     if(left>0){chainT-=dt;if(chainT<=0){chainT=.42;left--;chainStrike=1;if(left==0)chainCd=5+Read.random()*2;}}
   }
+  }
+export function publishSchedule(mask:i32,count:f64):void{
   put(Channel.mode,mode);put(Channel.t,t);put(Channel.cd,cd);put(Channel.x,x);put(Channel.z,z);
   put(Channel.strike,strike);put(Channel.stuck,stuck);
   const dx=f(Field.px)-x,dz=f(Field.pz)-z;
-  put(Channel.hurt,strike>0&&Math.sqrt(dx*dx+dz*dz)<f(Field.radius)?1:0);put(Channel.spread,strike>0&&phase==2?1:0);
+  put(Channel.hurt,strike>0&&Math.sqrt(dx*dx+dz*dz)<f(Field.radius)?1:0);put(Channel.spread,strike>0&&f(Field.phase)==2?1:0);
   put(Channel.zzChainCd,chainCd);put(Channel.zzChainLeft,left);put(Channel.zzChainT,chainT);
-  put(Channel.zzSpearActive,(mask&1)!=0?1:0);put(Channel.zzChainStrike,chainStrike);put(Channel.zzChainIndex,Math.max(0,f(Field.count)-5));
+  put(Channel.zzSpearActive,(mask&1)!=0?1:0);put(Channel.zzChainStrike,chainStrike);put(Channel.zzChainIndex,Math.max(0,count-5));
+}
+export function onSignal(signal:i32,value:f64,source:i32):void{
+  if(signal!=Signal.zzArenaSchedules){original(signal,value,source);return;}
+  const mask=i32(f(Field.zzMask));runSchedule(mask);publishSchedule(mask,f(Field.count));
 }

@@ -129,14 +129,14 @@ export const TITAN_CHAINS = { count: 8, law: { signal: 'chainLand',
 
 
 /** Boss-host clock contract: AS selects active attacks and their delayed tells. */
+const landingSlots=Array.from({length:TITAN_CHAINS.count},(_,i)=>Object.fromEntries(Object.entries(TITAN_CHAINS.law.initial).map(([key,value])=>[`zzzLanding${i}${key}`,value])));
+const clockInitial={...TITAN_SCHEDULES.spear.initial,zzChainCd:TITAN_SCHEDULES.chain.initial.cd,zzChainLeft:TITAN_SCHEDULES.chain.initial.chain,zzChainT:TITAN_SCHEDULES.chain.initial.t,...TITAN_TRAIL.initial,...Object.fromEntries(landingSlots.flatMap(Object.entries))};
 export const TITAN_CLOCKS = {
-  gate: { signal: 'arenaClocks', parameters: {} },
-  schedule: { signal: 'zzArenaSchedules', outputs: ['mode','t','cd','x','z','strike','stuck','hurt','spread','zzChainCd','zzChainLeft','zzChainT','zzSpearActive','zzChainStrike','zzChainIndex'],
-    initial: { ...TITAN_SCHEDULES.spear.initial, zzChainCd: TITAN_SCHEDULES.chain.initial.cd, zzChainLeft: TITAN_SCHEDULES.chain.initial.chain, zzChainT: TITAN_SCHEDULES.chain.initial.t },
-    parameters: TITAN_SCHEDULES.spear.parameters,
-    retain: { ...TITAN_SCHEDULES.spear.retain, zzChainCd: 'zzChainCd', zzChainLeft: 'zzChainLeft', zzChainT: 'zzChainT' } },
-  left: 'zzChainLeft', outputs: { spear: 'zzSpearActive', launch: 'zzChainStrike', index: 'zzChainIndex' },
-  volley: { capacity: TITAN_CHAINS.count, landing: TITAN_CHAINS.law, trail: TITAN_TRAIL },
+  frame:{initial:clockInitial,parameters:{...TITAN_SCHEDULES.spear.parameters,...TITAN_TRAIL.parameters,zzzLandSeconds:TITAN_CHAINS.law.parameters.land,zzzLandRadius:TITAN_CHAINS.law.parameters.radius,zzzLandingCapacity:TITAN_CHAINS.count},
+    retain:Object.fromEntries(Object.keys(clockInitial).map(key=>[key,key])),signals:{step:'zzzArenaFrame'},
+    outputs:[...Object.keys(clockInitial),'strike','stuck','hurt','spread','zzSpearActive','zzChainStrike','zzChainIndex',...landingSlots.flatMap((_,i)=>[`zzzLanding${i}strike`,`zzzLanding${i}hurt`])]},
+  count:'zzzLandingCapacity',left:'zzChainLeft',spear:'zzSpearActive',clear:Object.fromEntries(landingSlots.flatMap(Object.entries)),
+  landings:landingSlots.map((_,i)=>({on:`zzzLanding${i}on`,t:`zzzLanding${i}t`,x:`zzzLanding${i}x`,z:`zzzLanding${i}z`,strike:`zzzLanding${i}strike`,hurt:`zzzLanding${i}hurt`})),
 };
 
 /** Arena boss-script contract: retained lifecycle state is owned by G474. */

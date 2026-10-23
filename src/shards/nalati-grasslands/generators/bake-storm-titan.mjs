@@ -14,6 +14,9 @@ channels.push('count','elapsed',...Array.from({length:12},(_,i)=>[`trailX${i}`,`
 signals.push('arenaTrail','arenaTrailPick','zzArenaSchedules');
 fields.push('zzMask','zzChainCd','zzChainLeft','zzChainT');
 channels.push('zzChainCd','zzChainLeft','zzChainT','zzSpearActive','zzChainStrike','zzChainIndex');
+signals.push('zzzArenaFrame');
+fields.push('zzzLandSeconds','zzzLandRadius','zzzLandingCapacity',...Array.from({length:8},(_,i)=>['on','t','x','z'].map(key=>`zzzLanding${i}${key}`)).flat());
+channels.push(...Array.from({length:8},(_,i)=>['on','t','x','z','strike','hurt'].map(key=>`zzzLanding${i}${key}`)).flat());
 const aliases = names => Object.fromEntries(names.map(name => [name,name]));
 const registry = names => new Map([...names].sort((a,b) => a < b ? -1 : a > b ? 1 : 0).map((name,index) => [name,index+1]));
 const source = { id:'nalati.titan',abi:'1.0',side:'sim',module:`blobs/wasm/${'0'.repeat(64)}.wasm`,source:'behaviour/titan.as',
@@ -21,7 +24,7 @@ const source = { id:'nalati.titan',abi:'1.0',side:'sim',module:`blobs/wasm/${'0'
   reads:['field','random'],commands:['channel'],fields:aliases(fields),channels:aliases(channels),signals:aliases(signals) };
 const authored = readDecisionSources(fileURLToPath(new URL('../', import.meta.url)));
 const row={...source,id:'nalati.titan-combined',source:'behaviour/titanCombined.as'};
-const dual=await compileReturnProjectionV2(row,{fields:registry(fields),channels:registry(channels),signals:registry(signals)},authored,{asLineCeiling:2837,projectSource:'behaviour/titanSchedules.as'});
+const dual=await compileReturnProjectionV2(row,{fields:registry(fields),channels:registry(channels),signals:registry(signals)},authored,{asLineCeiling:2837,projectSource:'behaviour/titanClockFrame.as',outputCapacity:96});
 const program={...dual.legacy,v2:dual.candidate};
 const pastureText=['pastureWind','pasture','titanWind','titanFire'].map(name=>authored.get(`behaviour/${name}.as`)).join('\n');
 const names=prefix=>[...new Set([...pastureText.matchAll(new RegExp(`${prefix}\\.([A-Za-z0-9_]+)`,'g'))].map(match=>match[1]))];

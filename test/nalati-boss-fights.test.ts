@@ -98,6 +98,19 @@ test.each([false,true])('arena script runs mounted phases, exposes its heart and
     data.script.fight.parameters['rewardDistance'] = 6; data.view.reward.lift = 2;
     data.record = { kind: 'orchard-thunder',variant: 'elder' };
   }
+  const allocate=vi.spyOn(ReturnProgram,'page'),add=vi.spyOn(game.scene,'add');
+  for(const malformed of ['count','slot','output','alias','retain','clear','channel']){
+    const invalid=structuredClone(data);
+    if(malformed==='count')invalid.clocks.frame.parameters[invalid.clocks.count]=0;
+    if(malformed==='slot')delete invalid.clocks.frame.initial[invalid.clocks.left];
+    if(malformed==='output')invalid.clocks.frame.outputs=[];
+    if(malformed==='channel')invalid.clocks.frame.outputs=[...(invalid.clocks.frame.outputs??[]),'missing'];
+    if(malformed==='retain')invalid.clocks.frame.retain['hostile']='missing';
+    if(malformed==='clear'){const first=invalid.clocks.landings[0];if(first===undefined)throw new Error('Missing landing');delete invalid.clocks.clear[first.on];}
+    if(malformed==='alias'){const first=invalid.clocks.landings[0],second=invalid.clocks.landings[1];if(first===undefined||second===undefined)throw new Error('Missing landing rows');second.on=first.on;}
+    expect(()=>new ArenaScriptEncounter({game,player:f.player,weather:weather.weather,air:weather.air,tieSpot:null},invalid)).toThrow('Invalid encounter clock bank');
+  }
+  expect(allocate).not.toHaveBeenCalled();expect(add).not.toHaveBeenCalled();allocate.mockRestore();add.mockRestore();
   const owner = new ArenaScriptEncounter({ game,player: f.player,weather: weather.weather,air: weather.air,tieSpot: null },data);
   const riders = new PatrolEncounterView({ patrol: night.patrol,motion: night.motion,view: parse(PatrolViewSchema,night.ride) },ReturnProgram.page(night.program,scope),
     { game,sky: f.sky,player: f.player,forest: f.forest,cues: new CueDirector(game,night.cues,scope),figures: { rider: figure,captain: figure,storm: figure } });
@@ -110,7 +123,7 @@ test.each([false,true])('arena script runs mounted phases, exposes its heart and
   const e = encounter(data.definition, fight, f.player.position), direction = new Vector3(0, 0, -1);
   let support:Animal|null=null,supportChecked=false;
   try {
-    const chain=data.clocks.schedule;
+    const chain=data.clocks.frame;
     const initial=chain.initial['zzChainCd'];chain.initial['zzChainCd']=0;fight.reset(2);fight.begin(2);fight.body.setVisible(true);
     const raised=vi.spyOn(weather.weather,'raise'),random=app.rng.stream('ai'),before=random.snapshot();
     fight.update(.05,0,true);expect(random.snapshot()).toEqual(before);

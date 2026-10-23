@@ -37,7 +37,7 @@ export class ReturnProjectionV2 {
   private busy = false;
   constructor(input: unknown,private readonly owner?: Scope) {
     this.live();
-    this.row = parseReturnProjectionV2(input);this.layout = returnProjectionV2Layout(this.row.fields.length,this.row.artifact.pages);
+    this.row = parseReturnProjectionV2(input);this.layout = returnProjectionV2Layout(this.row.fields.length,this.row.artifact.pages,this.row.outputCapacity);
     const bytes = Uint8Array.from(atob(this.row.bytes),byte => byte.codePointAt(0) ?? 0);
     if (sha256(bytes) !== this.row.artifact.hash) throw new Error('Return projection hash mismatch');
     const admitted = admitScriptV2(bytes,{ lane: 'project',ioBytes: this.layout.bytes,compilerRevision: this.row.artifact.compilerRevision,admissionRevision: this.row.artifact.admissionRevision });

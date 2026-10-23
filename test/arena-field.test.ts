@@ -8,7 +8,7 @@ import { ProjectedState,ReturnProgram } from '../src/game/population/returnProgr
 import { Rng } from '../src/engine/core/rng';
 import program from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type: 'json' };
 import fight from '../src/shards/nalati-grasslands/data/stormTitanFight.generated.json' with { type: 'json' };
-import { TITAN_CLOCKS, TITAN_FIRE_FIELD } from '../src/shards/nalati-grasslands/generators/stormTitanFight';
+import { TITAN_TRAIL, TITAN_FIRE_FIELD } from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 
 test('mounted refusal borrows only its entered scope and releases on disposal', () => {
   const owner = new Scope('orchard-arena'),other = new Scope('outside');
@@ -86,7 +86,7 @@ test('the orchard field binds a different contact footprint and damage', () => {
 
 
 test('AS position history preserves native sample order, cadence and reset',()=>{
-  const row=TITAN_CLOCKS.volley.trail,history=new ProjectedState(row,ReturnProgram.page(program.attack));
+  const row=TITAN_TRAIL,history=new ProjectedState(row,ReturnProgram.page(program.attack));
   const points:{x:number;z:number}[]=[];let elapsed=0;
   for(let i=0;i<38;i++){
     const dt=i%3===0?.05:i===20?.35:.1,point={x:i*.237-3,z:i*i*.17};elapsed+=dt;
