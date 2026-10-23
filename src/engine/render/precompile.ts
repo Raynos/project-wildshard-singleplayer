@@ -352,11 +352,14 @@ export const LIVE_PRECOMPILE_SLICE_MS = 6;
  * An optional upload budget batches the isolated image uploads per drawn frame (op-hitch32). */
 export async function prepareSceneRoots(renderer: Renderer, camera: THREE.Camera, scene: THREE.Scene,
   target: THREE.WebGLRenderTarget | null, roots: readonly THREE.Object3D[], current: () => boolean, pause?: () => Promise<void>,
-  uploadBudget?: UploadBudget, scenePrograms = true): Promise<void> {
+  uploadBudget?: UploadBudget, scenePrograms = true, futureLighting?: THREE.Object3D): Promise<void> {
   await prepareSceneResources(roots, camera, current);
   // `scenePrograms` false: the roots' resources and exterior variants only (the boot's Shaders step builds what its first
   // frame draws, and the rest is warmed in play)
   const { jobs, materials } = !scenePrograms ? { jobs: [], materials: 0 } : sceneJobs(scene, target, 1, roots);
+  // a parked region's content compiles against the lights its first visible frame has (G639: a Nalati clip variant made
+  // during entry was prepared under the road's lights and linked again at its first lit draw, 134 ms)
+  if (futureLighting !== undefined) includeFutureLights(jobs, scene, futureLighting);
   // G639 frame floor: on a live page (a drawn-frame `pause`) the job building walks the scene (the exterior lights walk
   // the whole page) and each step takes a drawn frame of its own, and the compiles run in live slices: a streamed root's
   // or a clip variant's warm-up drew one 100 ms Nalati drive frame (job building, then a 12 ms-bound compile slice)

@@ -751,7 +751,7 @@ export class Game {
   /** Prepare newly streamed roots before exposure, using the allocated composer target.
    * Early boot retains ordinary whole-world preparation. Streamed views share the entered-frame
    * time bound, so a stalled draw/link rejects through their admission issue path. */
-  async warmSceneRoots(roots: readonly THREE.Object3D[], current: () => boolean): Promise<void> {
+  async warmSceneRoots(roots: readonly THREE.Object3D[], current: () => boolean, futureLighting?: THREE.Object3D): Promise<void> {
     const composer = this._composer;
     if (composer === null) return;
     const { prepareSceneRoots, waitForDrawnFrame, LIVE_UPLOAD_BUDGET } = await import('../render/precompile');
@@ -761,7 +761,7 @@ export class Game {
       // before play (no frame drawn yet) the boot's Shaders step builds what the first frame draws and the rest is warmed
       // in play: a region's own warm-up here keeps only its resources then
       await prepareSceneRoots(this.renderer, this.camera, this.rootScene, composer.inputBuffer, roots, live, pause,
-        LIVE_UPLOAD_BUDGET, this.frameCount > 0);
+        LIVE_UPLOAD_BUDGET, this.frameCount > 0, futureLighting);
     });
   }
 

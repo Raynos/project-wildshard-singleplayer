@@ -62,8 +62,9 @@ export interface RegionalViewRequest {
   readonly ground: Pick<PlayerFrameQueries, 'heightAt' | 'waterSurfaceAt'>;
   /** Subscribe the region's moving-piece poses to the fixed step's pre slot; returns the unsubscribe. */
   readonly fixedPre?: (run: () => void) => () => void;
-  /** the page's precompile for one draw: a clip variant made after the warm-up links here before it draws (`cellClip`) */
-  readonly prepare?: (node: Object3D) => Promise<void>;
+  /** the page's precompile for one draw, against this view's root's own lights: a clip variant made after the warm-up
+   *  links here before it draws (`cellClip`) */
+  readonly prepare?: (node: Object3D, root: Object3D) => Promise<void>;
 }
 
 /** Live counts a leak check compares against zero after leave. */
@@ -116,7 +117,7 @@ export function createRegionalView(request: RegionalViewRequest): RegionalView {
     movers.clear(); platforms.length = 0;
   });
   const prepare = request.prepare;
-  const containment = cellClip(root, CHUNK_HALF, scope, prepare === undefined ? {} : { prepare }); containment.sweep();
+  const containment = cellClip(root, CHUNK_HALF, scope, prepare === undefined ? {} : { prepare: (node) => prepare(node, root) }); containment.sweep();
   request.scene.add(root);
   // The neutral road has the page sun/fill, no regional point lights or cell PMREM. Prepare those exact keys before leaving.
   if (isScene(request.scene)) registerExteriorLighting(request.scene, scope, root, null);
