@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Hash the canonical local state, not global placement.
 import { createHash } from 'node:crypto';
-import source from '../../../src/shards/_template/shard.config.ts';
+import { TEMPLATE_SOURCE as source, templateAssets } from '../templateSource.ts';
 import { createShardfileSim, bindShardfileSim } from '../../../src/game/plugin/simulation.ts';
 import { loadRapier } from '../../../src/engine/physics/rapier.ts';
 import { createSimHost } from '../../../src/engine/sim.ts';
@@ -17,7 +17,7 @@ import { regionalState } from '../../../src/game/grid/state.ts';
 
 assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefined');
 const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
-const assets = new Map(source.files.map((file) => [file.hash, readFileSync(new URL(`../../../src/shards/_template/assets/${file.hash}`, import.meta.url))]));
+const assets = templateAssets();
 const assembly = new GridAssembly({ developer: false, devserver: false });
 const quest = { fact: () => { throw new Error('A frozen quest emitted a fact'); }, coins: () => { throw new Error('A frozen quest granted coins'); } };
 const template = () => createShardfileSim(source, assets, { rapier, quest });

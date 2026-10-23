@@ -4,5 +4,5 @@ import { execFileSync } from 'node:child_process';
 import { execPath } from 'node:process';
 
 export function nativeProof(name: 'boot' | 'headless' | 'replay' | 'ledger' | 'director'): string {
-  return execFileSync(execPath, ['--import', './scripts/sim-node-loader.mjs', 'test/proof/_template/run.mjs', name], { encoding: 'utf8', timeout: 60_000 });
+  return execFileSync(execPath, ['--experimental-transform-types', '--import', './scripts/sim-node-loader.mjs', 'test/proof/_template/run.mjs', name], { encoding: 'utf8', timeout: 60_000 });
 }

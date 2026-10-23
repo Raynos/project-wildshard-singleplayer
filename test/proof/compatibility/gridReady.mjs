@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare complete serialized region continuations.
 import { createHash } from 'node:crypto';
-import template from '../../../src/shards/_template/shard.config.ts';
+import { TEMPLATE_SOURCE as template, templateAssets as readTemplateAssets } from '../../fixtures/templateSource.ts';
 import catalogue from '../../../src/game/grid/singleplayer.json' with { type: 'json' };
 import { createShardfileSim } from '../../../src/game/plugin/simulation.ts';
 import { loadRapier } from '../../../src/engine/physics/rapier.ts';
@@ -47,7 +47,7 @@ export async function proveTrustedGridReady(source, mode = DEVELOPER) {
   const module = new URL('headless.ts', new URL(`src/shards/${slug}/${declared}`, ROOT)).href;
   const rapier = await loadRapier(readFileSync(new URL('public/assets/physics/rapier.wasm', ROOT)));
   const assets = new Map(source.files.map(file => [file.hash, bytes(slug, file.hash)]));
-  const templateAssets = new Map(template.files.map(file => [file.hash, bytes('_template', file.hash)]));
+  const templateAssets = readTemplateAssets();
   const assembly = new GridAssembly(mode, catalogue.grid), instance = assembly.cells.find(cell => cell.slug === slug)?.instance;
   assert.equal(typeof instance, 'string', `${slug} has no catalogue grid cell in this mode`);
   const allocator = new ResidencyAllocator();

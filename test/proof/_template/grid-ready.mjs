@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read immutable authored payloads, never a renderer.
 import { readFileSync } from 'node:fs';
-import source from '../../../src/shards/_template/shard.config.ts';
+import { TEMPLATE_SOURCE as source, templateAssets } from '../../fixtures/templateSource.ts';
 import catalogue from '../../../src/game/grid/singleplayer.json' with { type: 'json' };
 import { createShardfileSim, bindShardfileSim } from '../../../src/game/plugin/simulation.ts';
 import { loadRapier } from '../../../src/engine/physics/rapier.ts';
@@ -14,7 +14,7 @@ import { ResidencyAllocator } from '../../../src/game/grid/allocator.ts';
 
 assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefined');
 const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
-const assets = new Map(source.files.map((file) => [file.hash, readFileSync(new URL(`../../../src/shards/_template/assets/${file.hash}`, import.meta.url))]));
+const assets = templateAssets();
 const assembly = new GridAssembly({ developer: false, devserver: false }, { ...catalogue.grid,
   cells: catalogue.grid.cells.map((cell) => ({ instance: `template-proof-${cell.instance}`, slug: '_template', cell: cell.cell })), developer: [], devserver: [],
 });

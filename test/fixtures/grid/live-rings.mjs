@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the shipped physics binary and immutable admitted template assets.
 import { readFileSync } from 'node:fs';
 import { Vector3 } from 'three';
-import source from '../../../src/shards/_template/shard.config.ts';
+import { TEMPLATE_SOURCE as source, templateAssets } from '../templateSource.ts';
 import { createShardfileSim, bindShardfileSim } from '../../../src/game/plugin/simulation.ts';
 import { createSimHost } from '../../../src/engine/sim.ts';
 import { restoreSimHost, serializeSimSnapshot, decodeSimSnapshot } from '../../../src/engine/sim/snapshot.ts';
@@ -15,7 +15,7 @@ import { ResidencyAllocator } from '../../../src/game/grid/allocator.ts';
 import { PageResidency } from '../../../src/game/grid/pageResidency.ts';
 
 const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
-const assets = new Map(source.files.map((file) => [file.hash, readFileSync(new URL(`../../../src/shards/_template/assets/${file.hash}`, import.meta.url))]));
+const assets = templateAssets();
 const assembly = new GridAssembly({ developer: false, devserver: false }, TEMPLATE_WEST_GRID);
 const home = assembly.cell('driftwood-isle'), target = assembly.cell('template-2');
 const level = { version: 1, id: 'platform', seed: 1, ground: { size: 500, height: 0 }, player: { at: { x: 0, y: 0, z: 0 }, yaw: 0, speed: 30 }, entities: [], quests: [], weapon: { id: 'none', shape: { kind: 'point', radius: 0 }, windup: 0, active: 0, recover: 0, cooldown: 0, range: 0, damage: 0, tags: [] } };

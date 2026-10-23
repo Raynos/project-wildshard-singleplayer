@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read only admitted immutable template bytes and the shipped native engine.
 import { readFileSync } from 'node:fs';
 import { Vector3 } from 'three';
-import source from '../../../src/shards/_template/shard.config.ts';
+import { TEMPLATE_SOURCE as source, templateAssets } from '../templateSource.ts';
 import { loadRapier } from '../../../src/engine/physics/rapier.ts';
 import { SaveStore } from '../../../src/engine/saves/store.ts';
 import { createShardfileSim, bindShardfileSim } from '../../../src/game/plugin/simulation.ts';
@@ -24,7 +24,7 @@ class Storage {
   removeItem(key) { this.data.delete(key); }
 }
 const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
-const assets = new Map(source.files.map((file) => [file.hash, readFileSync(new URL(`../../../src/shards/_template/assets/${file.hash}`, import.meta.url))]));
+const assets = templateAssets();
 const local = new Storage(), store = new SaveStore({ local, session: null });
 const identity = { id: 'template-3', shard: '_template' }, other = { id: 'template-2', shard: '_template' };
 const durability = new GridRegionDurability(store, identity, source, []);
