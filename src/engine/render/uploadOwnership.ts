@@ -63,6 +63,11 @@ export class UploadOwnership {
   private readonly assets: AssetService;
   private drawOwner: Scope | null = null;
   private drawDepth = 0;
+  /** G639 frame floor: one generation per draw (nested draws get their own); a resource already observed in this draw is
+   *  not observed again (three asks for a material's and texture's properties several times a draw, ~0.6 ms a frame) */
+  private drawGen = 0;
+  private drawGens = 0;
+  private readonly observedIn = new WeakMap<object, number>();
   constructor(level: Scope, assets: AssetService) { this.level = level; this.assets = assets; }
   /** A snapshot of the live uploads (owned, and the unowned ones not yet collected). */
   resources(): ReadonlySet<object> {
@@ -85,6 +90,7 @@ export class UploadOwnership {
   observe(value: unknown): void {
     if (this.level.disposed || !isResource(value)) return;
     const resource = value;
+    if (this.drawDepth > 0) { if (this.observedIn.get(resource) === this.drawGen) return; this.observedIn.set(resource, this.drawGen); }
     const acquired = this.assets.isAcquired(resource);
     const consumer = this.drawOwner ?? (this.drawDepth > 0 ? this.level : this.hints.get(resource)?.deref() ?? null);
     if (acquired && consumer !== null) this.retainAsset(resource, consumer);
@@ -211,13 +217,13 @@ export class UploadOwnership {
     };
     const draw = renderer.renderBufferDirect.bind(renderer);
     renderer.renderBufferDirect = (camera, scene, geometry, material, object, group) => {
-      const prior = this.drawOwner; this.drawOwner = sceneObjectOwner(object);
-      this.drawDepth++;
+      const prior = this.drawOwner, priorGen = this.drawGen; this.drawOwner = sceneObjectOwner(object);
+      this.drawDepth++; this.drawGen = ++this.drawGens;
       try {
         // A batch must claim its private aggregate geometry/textures before renderer property reads observe them.
         this.observe(object); this.observe(geometry); this.observe(material);
         draw(camera, scene, geometry, material, object, group);
-      } finally { this.drawDepth--; this.drawOwner = prior; }
+      } finally { this.drawDepth--; this.drawOwner = prior; this.drawGen = priorGen; }
     };
     // Test doubles carry only the draw path.
     if (renderer.compile !== undefined) {
