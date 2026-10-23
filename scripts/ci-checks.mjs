@@ -31,8 +31,8 @@ export async function runChecks(commands) {
       children.add(child);
       /** @type {Buffer[]} */
       const output=[];
-      child.stdout?.on('data',chunk => { output.push(chunk); });
-      child.stderr?.on('data',chunk => { output.push(chunk); });
+      child.stdout.on('data',chunk => { output.push(chunk); });
+      child.stderr.on('data',chunk => { output.push(chunk); });
       child.on('error',error => { output.push(Buffer.from(String(error))); });
       child.on('close',code => {
         children.delete(child);
