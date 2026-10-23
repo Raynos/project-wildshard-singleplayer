@@ -127,3 +127,90 @@ Line check: C4 59+27+9+502+213+122+180+6 = 1,118. C9 22+280+127+33+37+252 = 751.
   - Realistic: Saturday 10-24 around 12:00 Cancun.
   - Best case: Friday 10-23 around 22:00.
   - If D2 stays unanswered, the elites alone can hold Nalati above zero.
+
+## Speed review (2026-10-23)
+
+Ruler at 07:38: Nalati 1,246 = C4 671 + C9 575 (was 1,877 at 22:27, 1,646 at 01:53). Both windows cut about
+**69 lines an hour**. Done since this plan was written: R1, R2 (balbal), R3, R4, R6, R8 and R9 (elites to 0), R11
+(taming), R13, part of R14 (-14), and R10a (group banks). R5/R7, R10b/c (landed, fallbacks kept), R10d/e, R12 and
+R15 are open.
+
+### Why it is slow
+
+1. **Few lanes on Nalati.** After Jake's G639 (02:20: "the priorities are still Nalati to zero and grid readiness")
+   Nalati commits fell from 10–20 an hour (18:00–01:00) to 5–8 (04:00–07:00), while tile, tooling and CI commits rose
+   to 25–33 an hour. Of 561 commits since 18:00, about 150 were Nalati. Right now only sp-x8 (herd hot path) builds
+   Nalati code; sp-x6 is stuck on the Titan; sp-x9, sp-x1, sp-x2 and three Opus lanes are on extras or grid.
+2. **The Titan waits on a second pick.** D1 was ruled at 23:20 (arena-room host variant). sp-x6's 846653fabf shared
+   the lifecycle (+95 platform lines, 0 credit) and two sized routes failed, so STATE now asks Jake again. 355 C4
+   lines (plus 24 C9 and 17 borrowed) sit behind that question: about 30 % of what is left.
+3. **Work done twice.** The herd and pack landed at 03:17 and 03:55, were rolled back at 04:28 (-1,024 lines, live
+   Nalati at 20–30 fps) and re-landed at 06:09 and 06:52: about 3.5 h of two lanes. They were re-landed with the TS
+   fallbacks kept, so they cut nothing, and C9 barely moved (582 to 575).
+4. **The deletions wait on one Simulator sample.** R10d and R10e (about 400 lines) are held until sp-x8's fix passes
+   sp-o3's combined sample, which needs the one Simulator and a green HEAD build. G415 says not to gate a port on
+   Simulator ms; the 217 ms frames are real, but deleting the fallbacks does not need to wait for the sample.
+5. **Red main most of the night.** The CI run on main was red about 10.7 of the 13.3 h from 18:05 to 07:25, in nine
+   windows; the longest were 00:00–02:40, 02:50–04:01 and 04:10–05:28. G620's 30-minute fix-forward-then-revert did
+   not hold. The causes were product-build hook timeouts, stale fixtures, and a generated-inputs reader landing before
+   its producer. Each red delays the HEAD preview that the next measurement needs.
+6. **Small slices on one lane, the entry left for last.** The elites took 10 commits of 6–69 lines over 4.7 h (fine,
+   but serial). The entry (R15, about 230 C9) is one 6 h row at the very end, though some pieces of it (the elites
+   bind block, the weather hook) already have hosts.
+7. **Rows with no owner.** R12 (weather clock, 33) has had Jake's D3 fallback since 23:58 and nobody on it. No lane
+   holds an up-to-date span list: the newest is sp-o4's from 22:14, and roughly 150 C4 and 85 C9 lines are not
+   attributed below.
+
+### What is left (estimates from the chargeback table and commit messages; R19 makes them exact)
+
+- **C4 671:** the Titan's OpenArenaProjection in game/boss/arenaRoom.ts 355; wildlife page copies about 160
+  (game/population/pageGroups.ts about 150, game/ambient/crowdPage.ts#readCrowdBody 10); entry 6; about 150 not
+  attributed (probably Nalati-only Titan fire and wildlife code the re-lands grew).
+- **C9 575:** entry about 230 (runtime/state.ts, runtime/index.ts, manifest.ts, plugin#ShardPlugin); wildlife
+  native copies about 235 (nativeManager, groupRuntime, homeKeeper, environment, nativeBake); the Titan install
+  arenaRoom#buildOpenArenaEncounter 24; about 85 not attributed.
+- **Borrowed, skipped by the ruler but still to go:** crowdRuntime prey joins 36, riding/client ArenaBoundary 17,
+  weather forest#installWeatherClock + worldAssembly#installAssemblyWeather 33.
+
+### Critical path
+
+| Step | Lines | Owner | Size | Waits on |
+|---|---:|---|---|---|
+| Herd hot-path fix (in flight) | 0 | Codex sp-x8 | ~2 h | nothing |
+| R10e: delete the native copies | ~235 C9 | Codex lane B | 4 h | the hot-path fix |
+| R10d: delete the page copies and crowd joins | ~200 C4 | Codex lane A | 3 h | the hot-path fix |
+| R16: Titan credited or ported | ~395 | Codex | 0.5 h after the pick, or 10–15 h for a full WASM route | Jake |
+| R15a–c entry slices and R12 weather | ~230 | Codex lane C | 5 h | nothing |
+| R20: unattributed remainder | ~235 | Codex | 3 h | R19 |
+| R15d: the final entry flip | ~40 | Codex | 2 h | all of the above |
+
+The path is the hot-path fix, then R10e, then R15d: about 8 h of rows, about 10–11 h with reds. The Titan is off the
+path only if Jake picks the one-user host.
+
+### New and changed rows
+
+| Row | What | Lines | Lane | Size | Done when | Depends on |
+|---|---|---:|---|---|---|---|
+| R16 (replaces R7) | Jake's pick on the Titan, from STATE: (a) list OpenArenaProjection, buildOpenArenaEncounter and ArenaBoundary as one one-user host for HOST-AUDIT (the G596 route, made after G597 withdrew lane-added hosts), credited in one chargeback commit; (b) a full WASM route; (c) leave it charged. **Recommended (a).** | ~395 | Codex sp-x6 | 0.5 h (a) | arenaRoom charges 0 to Nalati | Jake |
+| R10d (amended) | Delete the page copies and the crowdRuntime prey joins as soon as the hot-path fix lands. Land on types, lint and `vitest related` (G612); git is the fallback, a regression is fixed forward or reverted under G620. | ~200 | Codex lane A | 3 h | pageGroups, crowdPage, crowd joins charge 0 | hot-path fix |
+| R10e (amended) | The same for the native copies, in parallel with R10d (separate files). | ~235 | Codex lane B | 4 h | the five native files charge 0 | hot-path fix |
+| R17 | One combined Simulator sample on HEAD after R10d and R10e, not before. | 0 | Opus sp-o3 | 0.5 h | median and the 100 ms rule read on one preview | R10d, R10e |
+| R15a | Entry slice: the elites bind block in runtime/index.ts becomes a manifest feature row (the elites are already the engine feature). | ~25 | Codex lane C | 1.5 h | index.ts has no elite code | nothing |
+| R15b | Entry slice: the King, Titan and ride binds and their publishEntryOwner calls become arena-room and taming feature rows. | ~60 | Codex lane C | 2 h | index.ts has no boss or ride code | R16 for the Titan part |
+| R15c | Entry slice: the state.ts update loop and weapon handlers become declared world-update and stealth rows (rest of R14). | ~110 | Codex lane C | 2 h | state.ts holds wiring only | R10d/e for the wildlife reads |
+| R12 (owner now) | Weather clock: D3's fallback, the clock owners as Nalati AS rows. | 33 | Codex lane C | 2 h | forest and worldAssembly charge 0 | nothing |
+| R19 | The ruler run also writes each shard's span list (path, symbol, component, lines) next to ruler.json, so rows target real lines without a mirror run. | 0 | Codex sp-x1 | 0.5 h | the next ruler run has the list | nothing |
+| R20 | Cut the spans R19 shows that no row above covers. | ~235 | Codex | 3 h | none left outside R15d | R19 |
+| R15d (was R15) | The final flip to a compiled no-TS entry, as Nine did in 86af73733d. | ~40 | Codex | 2 h | Nalati 0; C4 and C9 locked | everything |
+
+**Lanes:** G639's order applied: three Codex lanes on Nalati (A, B, C) plus sp-x8 and sp-x6 until zero, taken from the
+extras (B5 no-binaries, T4, tile streaming). Every row left is non-graphical, so the Opus step-down (G605) is not the
+limit: only sp-o3's single sample needs an Opus lane. sp-x7 reverts any red older than 30 minutes (G620).
+
+### Estimate
+
+- **At today's rate** (about 69 lines an hour, one or two lanes, deletions held for the sample): the wildlife copies
+  are gone around 20:00 Friday, the entry around 02:00–04:00 Saturday, and Nalati stops at about 400 until the Titan
+  pick. With route (b), zero comes around Saturday 18:00–22:00 Cancun.
+- **With the rows above** and Jake's (a) this morning: about 150–200 lines an hour on the parallel rows; zero around
+  Friday 10-23 19:00 Cancun (best case 16:00).
