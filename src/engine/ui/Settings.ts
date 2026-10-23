@@ -120,7 +120,6 @@ export const OPTION_VALUES = {
   // ── E162: the old URL switches, now pause ▸ Settings ▸ Debug rows only (declared with their group in src/engine/ui/debugOptions.ts).
   // The first value is the default. A test / capture script sets one in the saved settings before the page loads ──
   memorySaver: ['off', 'on'],                          // SF22d: the engine memory cuts (src/engine/render/memorySaver.ts) — a reload; off everywhere by default, a Developer tool turns it on (G271)
-  distantTrees: ['variant', 'species'],                // G639 frame floor: the forest's far and impostor levels draw one shape a species, at each tree's height (game/models/treeSet.ts) — a reload; a look call for Jake
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
@@ -134,7 +133,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   touch: { def: 'auto', params: ['touch'], url: (q) => (q.has('touch') ? 'on' : null) },               // ?touch (any value) forces them, as before
   time: { def: 'live', params: ['tod', 'clock'], url: (q) => (q.has('tod') || q.has('clock') ? 'live' : null) }, // ?tod= / ?clock= run the clock from the URL's phase / speed
   weather: { def: 'live', params: ['weather'], url: (q) => q.get('weather') },                         // ?weather=rain: a held shower (captures)
-  memorySaver: DEBUG_ONLY, distantTrees: DEBUG_ONLY,
+  memorySaver: DEBUG_ONLY,
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 /** Diagnostic choices are ignored by the public build; their saved picks remain available in Developer mode. */
@@ -199,7 +198,7 @@ export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'
   const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
     tier: option('tier'), touch: option('touch'), time: option('time'),
     weather: option('weather'),
-    memorySaver: option('memorySaver'), distantTrees: option('distantTrees'),
+    memorySaver: option('memorySaver'),
   };
   const persist = (): void => {
     const picks: Partial<Record<string, string>> = {};
