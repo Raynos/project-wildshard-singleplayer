@@ -1,3 +1,4 @@
+import {SHAPE_BYTES} from './fixtures/nalatiShapes';
 import { parse } from 'valibot';
 import { MountedSpecimenSeatSchema } from '@wildshard/format/mountedSpecimenRows';
 import { expect, test } from 'vitest';
@@ -14,7 +15,7 @@ test('a marsh ferryman binds different joints and cue clocks without another cha
   const profile = { ...rows, mount: 'waist', figure: { ...rows.figure, root: 'ferryman', nodes: [
     { kind: 'group', id: 'ferryman', children: ['oar'] }, { kind: 'mesh', id: 'oar', geometry: 'oar', material: 'rider', missing: 'empty' },
   ] }, shapes: [{ ...oar, key: 'oar' }], gestures: [{ cue: 'rowing', clock: 'strokeT', duration: .45 }], clips: JSON.parse(JSON.stringify(rows.clips).replaceAll('"rider"', '"ferryman"').replaceAll('"arm"', '"oar"').replaceAll('crackT', 'strokeT')) as unknown };
-  const figure = new SeatedFigure(parse(MountedSpecimenSeatSchema,profile), scope);
+  const figure = new SeatedFigure(parse(MountedSpecimenSeatSchema,profile), scope,SHAPE_BYTES);
   const joint = new Bone(); joint.name = 'waist';
   figure.attach(legacyDouble<Animal>({ mesh: legacyDouble<Animal['mesh']>({ skeleton: new Skeleton([joint]) }) }));
   expect(joint.children).toContain(figure.root);

@@ -1,3 +1,4 @@
+import {prepareBinarySources,binarySourceBytes} from '../models/binarySource';
 import { base64Bytes } from '@wildshard/engine/core/deflate';
 import { floorAtRects } from '@wildshard/engine/physics/box';
 import { timeClientPreparation } from './preparationTiming';
@@ -134,15 +135,15 @@ export class SceneDressing {
     if(products.has(ctx.product)||ctx.scope.disposed||ctx.scope.disposing)throw new Error('Scene dressing requires an unbound entered owner');
     const files=new Map<string,Uint8Array>(),names=new Set([...rows.layers.map(row=>row.contacts),...rows.statics.flatMap(row=>row.members.map(member=>member.contacts))]
       .flatMap(row=>!Array.isArray(row)&&'file'in row?[row.file]:[]));
-    if(names.size>0){
-      const scope=ctx.scope,product=ctx.product,read=product.file,hasFile=product.hasFile,game=ctx.game,runtime=game.runtime,world=runtime?.world;
-      const live=():void=>{
-        if(scope.disposed||scope.disposing||ctx.scope!==scope||ctx.product!==product||product.file!==read||product.hasFile!==hasFile
-          ||ctx.game!==game||game.runtime!==runtime||runtime?.world!==world)throw new Error('Scene contact file owner changed or retired');
-      };
-      live();for(const file of names)if(!hasFile.call(product,file))throw new Error(`Missing scene contact file ${file}`);
-      for(const file of names){live();const bytes=await read.call(product,file);live();files.set(file,bytes);}
-    }
+    const scope=ctx.scope,product=ctx.product,read=product.file,hasFile=product.hasFile,game=ctx.game,runtime=game.runtime,preparedWorld=runtime?.world;
+    const live=():void=>{
+      if(scope.disposed||scope.disposing||ctx.scope!==scope||ctx.product!==product||product.file!==read||product.hasFile!==hasFile
+        ||ctx.game!==game||game.runtime!==runtime||runtime?.world!==preparedWorld)throw new Error('Scene contact file owner changed or retired');
+    };
+    live();for(const file of names)if(!hasFile.call(product,file))throw new Error(`Missing scene contact file ${file}`);
+    for(const file of names){live();const bytes=await read.call(product,file);live();files.set(file,bytes);}
+    const raw=await prepareBinarySources(product,Object.values(rows.geometry).flatMap(row=>row.kind==='file'?[{source:{file:row.file},bytes:bakedGeometryBytes(row.row)}]:[]),scope);
+    live();for(const [name,bytes] of raw)files.set(name,bytes);
     const owner=new SceneDressing(ctx,rows);
     await owner.build(rows,files);products.set(ctx.product,owner);const installed=products;
     // N2: the tiled colliders follow the player by tile (spawn and entries before controls), as an assembled world's do
@@ -185,14 +186,15 @@ export class SceneDressing {
         if(part===undefined)throw new Error('Missing scene packed shape');shape=part.geometry;
       }else{
         let raw:Uint8Array;
-        if(source.kind==='inline')raw=unzlibSync(base64Bytes(source.data));
+        if(source.kind==='file')raw=binarySourceBytes({file:source.file},files);
+        else if(source.kind==='inline')raw=unzlibSync(base64Bytes(source.data));
         else{let pending=bytes.get(source.url);if(pending===undefined){pending=fetchLaneBake(source.url);bytes.set(source.url,pending);}raw=await pending;}
         let offset=0;if(source.kind==='baked'){let pending=addresses.get(source.address.file);if(pending===undefined){pending=ctx.product.file(source.address.file);addresses.set(source.address.file,pending);}offset=readSceneGeometryAddress(await pending,source.address.word);}
         if(offset+bakedGeometryBytes(source.row)>raw.byteLength)throw new Error('Scene geometry address exceeds its source');
         const decoded=readBakedGeometry(raw,offset,source.row);
         shape=source.row.expand?await expandBakedGeometrySliced(decoded,workSlice()):decoded;
       }
-      if(source.kind==='inline'&&source.sphere!==undefined)shape.boundingSphere=new THREE.Sphere(new THREE.Vector3(...source.sphere.slice(0,3)),source.sphere[3]);
+      if((source.kind==='inline'||source.kind==='file')&&source.sphere!==undefined)shape.boundingSphere=new THREE.Sphere(new THREE.Vector3(...source.sphere.slice(0,3)),source.sphere[3]);
       geometry.set(key,shape);ctx.scope.own(shape);await pause();
     }
     });

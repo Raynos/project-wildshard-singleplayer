@@ -17,6 +17,7 @@ import { SceneDressingSchema } from '../src/format/sceneDressing';
 import { dressingScene } from '../src/shards/nalati-grasslands/generators/dressingScene';
 import { isJsonData } from '../src/format/json';
 import { readBakedGeometry } from '../src/game/plugin/geometry';
+import {legacyDouble} from './fake/FakeGame';
 
 const finite=v.pipe(v.number(),v.finite());
 const cragTier=v.object({recipe:PrivateSceneSchema,placements:v.array(v.unknown()),boxes:v.array(finite),
@@ -27,6 +28,23 @@ const prepared=v.parse(v.object({places:v.object({rows:v.array(v.object({name:v.
   JSON.parse(readFileSync('src/shards/nalati-grasslands/data/placeRuntime.generated.json','utf8')));
 
 const wire = (input:unknown):unknown => JSON.parse(encodeCanonicalJson(input));
+test.each(['world','retire','length']as const)('raw geometry refuses %s changes before any resource or system publication',async failure=>{
+  const inputShape=new THREE.BoxGeometry(1,2,1);inputShape.clearGroups();const blocks:Uint8Array[]=[],layout=writeGeometry(inputShape,blocks,'held');inputShape.dispose();
+  const parent=new Scope('raw.parent'),scope=parent.child('raw.entered'),root=new THREE.Group(),system=vi.fn<ShardContext['system']>();
+  type Runtime=NonNullable<ShardContext['game']['runtime']>;
+  const runtime=legacyDouble<Runtime>({world:legacyDouble<NonNullable<Runtime['world']>>({})}),owned=vi.spyOn(scope,'own');let finish:(bytes:Uint8Array)=>void=()=>undefined;
+  const held=new Promise<Uint8Array>(resolve=>{finish=resolve;}),read=vi.fn((name:string)=>name==='bad.bin'?Promise.resolve(new Uint8Array(1)):held);
+  const ctx=legacyDouble<ShardContext>({scope,root,system,app:legacyDouble<ShardContext['app']>({registry:new WorldRegistry()}),game:legacyDouble<ShardContext['game']>({runtime}),product:legacyDouble<ShardContext['product']>({file:read,hasFile:()=>true})});
+  const rows={name:'raw-orchard',catalogues:[],packs:{},geometry:{marker:{kind:'file',file:'held.bin',row:layout},
+    ...(failure==='length'?{bad:{kind:'file',file:'bad.bin',row:layout}}:{})},materials:{},layers:[],statics:[],animations:[]};
+  const pending=SceneDressing.install(ctx,rows);expect(read).toHaveBeenCalledTimes(1);expect(owned).not.toHaveBeenCalled();
+  if(failure==='world')runtime.world=legacyDouble<NonNullable<Runtime['world']>>({});
+  const retiring=failure==='retire'?parent.disposeSteps():undefined;retiring?.next();finish(join(blocks));
+  await expect(pending).rejects.toThrow(failure==='length'?'byte count':failure==='retire'?'retired':'owner changed');
+  expect(owned).not.toHaveBeenCalled();expect(system).not.toHaveBeenCalled();expect(root.children).toEqual([]);
+  if(retiring!==undefined)for(const _step of retiring){ /* finish the original sliced retirement */ }
+  parent.dispose();owned.mockRestore();
+});
 test('both Nalati tiers retain scatter policies, static contacts and GPU cloth buffers within JSON bounds',()=>{
   for(const tier of ['phone','desktop']as const){
     const input=wire(dressingScene(tier));expect(isJsonData(input)).toBe(true);
@@ -69,13 +87,13 @@ test('an unrelated orchard declares the same dressing contract without any nativ
   expect(()=>v.parse(SceneDressingSchema,{...row,build:()=>null})).toThrow();
 });
 
-test('the orchard fixture constructs and retires the shared client projection',async()=>{
+test.each(['inline','file']as const)('the orchard fixture constructs and retires the shared client projection (%s)',async mode=>{
   const shape=new THREE.BoxGeometry(1,2,1);shape.clearGroups();
   const blocks:Uint8Array[]=[],layout=writeGeometry(shape,blocks,'orchard');shape.dispose();
   let encoded='';for(const byte of zlibSync(join(blocks)))encoded+=String.fromCodePoint(byte);
   const scope=new Scope('orchard-row-fixture'),root=new THREE.Group(),camera=new THREE.PerspectiveCamera();
-  const system=vi.fn<ShardContext['system']>(),ctx={} as ShardContext;Object.assign(ctx,{system,scope,root,app:{registry:new WorldRegistry()},product:{},game:{runtime:{world:{sky:null,player:{position:new THREE.Vector3()},game:{camera}}}}});
-  const rows={name:'orchard',catalogues:[],packs:{},geometry:{marker:{kind:'inline',data:btoa(encoded),row:layout}},materials:{white:{kind:'painterly',rim:.2,bands:.5}},layers:[],animations:[],statics:[{name:'gate',tris:12,members:[],geometry:{shape:'marker'},materials:{paint:'white'},recipe:{version:1,root:'root',materials:[{kind:'port',id:'paint',source:'paint'}],nodes:[{kind:'group',id:'root',children:['marker']},{kind:'mesh',id:'marker',geometry:'shape',material:'paint',missing:'empty',position:[1,2,3]}]}}]};
+  const system=vi.fn<ShardContext['system']>(),ctx={} as ShardContext;Object.assign(ctx,{system,scope,root,app:{registry:new WorldRegistry()},product:mode==='file'?{file:()=>Promise.resolve(join(blocks)),hasFile:()=>true}:{},game:{runtime:{world:{sky:null,player:{position:new THREE.Vector3()},game:{camera}}}}});
+  const rows={name:'orchard',catalogues:[],packs:{},geometry:{marker:mode==='inline'?{kind:'inline',data:btoa(encoded),row:layout}:{kind:'file',file:'orchard.bin',row:layout}},materials:{white:{kind:'painterly',rim:.2,bands:.5}},layers:[],animations:[],statics:[{name:'gate',tris:12,members:[],geometry:{shape:'marker'},materials:{paint:'white'},recipe:{version:1,root:'root',materials:[{kind:'port',id:'paint',source:'paint'}],nodes:[{kind:'group',id:'root',children:['marker']},{kind:'mesh',id:'marker',geometry:'shape',material:'paint',missing:'empty',position:[1,2,3]}]}}]};
   const host=await SceneDressing.install(ctx,rows);expect(root.children).toContain(host.group);
   expect(host.group.getObjectByProperty('type','Mesh')?.position.toArray()).toEqual([1,2,3]);
   expect(host.stats().propTris).toBe(12);

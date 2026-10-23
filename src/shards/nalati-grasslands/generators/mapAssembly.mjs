@@ -14,7 +14,7 @@ const read = file => readMapJson(resolve(base, file));
 const pose = p => new Matrix4().compose(new Vector3(p.x, p.y, p.z), new Quaternion().setFromEuler(new Euler(p.pitch ?? p.tiltX ?? 0, p.rot ?? p.yaw ?? 0, p.roll ?? p.tiltZ ?? 0, 'YXZ')),
   new Vector3(p.sx ?? p.scale ?? p.s ?? 1, p.sy ?? p.scale ?? p.s ?? 1, p.sz ?? p.scale ?? p.s ?? 1));
 const asset = row => mapModel(resolve(root, `public${row.url}`), row.geometrySlot ?? 0);
-const painted = row => mapGeometry(new Uint8Array(inflateSync(Buffer.from(row.data, 'base64'))), 0, row.geometry);
+const painted = row => mapGeometry(new Uint8Array(readFileSync(resolve(base,row.file))),0,row.geometry);
 
 /** Read the declared prepared data, independent of incidental boot aliases. */
 export function readNalatiMapPlaces(directory = base) { return readMapJson(resolve(directory, 'data/placeRuntime.generated.json')); }

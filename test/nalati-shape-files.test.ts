@@ -1,3 +1,4 @@
+import {readBakedGeometry,expandBakedGeometry} from '../src/game/plugin/geometry';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native captured rows and binary byte witnesses.
 import {readFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The reference stores only original raw-byte hashes.
@@ -8,13 +9,13 @@ import {BufferAttribute} from 'three';
 import {readNamedBlob} from '../src/sdk/blobs';
 import {FixedDrawRowsSchema} from '../src/format/fixedDraws';
 import {SceneBakedGeometrySchema} from '../src/format/sceneDressing';
-import {inlineFixedDraw,productFixedDraws} from '../src/game/models/fixedDraws';
+import {productFixedDraws} from '../src/game/models/fixedDraws';
 import source from '../src/shards/nalati-grasslands/data/shapeBook.generated.json' with {type:'json'};
 import original from './fixtures/nalati-shape-blocks.json' with {type:'json'};
 
 const hash=(bytes:Uint8Array|string):string=>createHash('sha256').update(bytes).digest('hex');
 const rows=v.parse(FixedDrawRowsSchema,source.draws).filter(row=>'file'in row);
-const paint=v.parse(v.object({rows:v.array(v.object({key:v.string(),data:v.string(),geometry:SceneBakedGeometrySchema}))}),
+const paint=v.parse(v.object({rows:v.array(v.object({key:v.string(),name:v.string(),geometry:SceneBakedGeometrySchema}))}),
   JSON.parse(readFileSync('src/shards/nalati-grasslands/data/poiPaint.json','utf8')));
 const blobs=await Promise.all(source.sources.map(row=>readNamedBlob('src/shards/nalati-grasslands',row.name,row.source,'bin')));
 
@@ -36,7 +37,8 @@ test('the product owner restores every original painted shape through file intak
   }};
   const draws=await productFixedDraws(product,'models/shape-book.json');await draws.load();
   for(const row of paint.rows){
-    const before=inlineFixedDraw({slot:row.key,channels:[],inline:row.data,baked:row.geometry}),after=draws.handle(row.key).copy();
+    const bytes=blobs.find(blob=>blob.file.name===row.name)?.bytes;if(bytes===undefined)throw new Error('Missing raw original shape');
+    const decoded=readBakedGeometry(bytes,0,row.geometry),before=row.geometry.expand?expandBakedGeometry(decoded):decoded,after=draws.handle(row.key).copy();
     expect(Object.keys(after.attributes)).toEqual(Object.keys(before.attributes));
     for(const[name,attribute]of Object.entries(before.attributes)){
       const actual=after.getAttribute(name);

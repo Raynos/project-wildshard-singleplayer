@@ -1,3 +1,4 @@
+import { BinarySourceSchema } from '@wildshard/format/binarySource';
 import { NativeGroundFileSchema } from '@wildshard/format/nativePhysics';
 import { WorldAssemblySchema } from '@wildshard/format/worldAssembly';
 import { ReturnModulesSchema } from '@wildshard/format/scriptContract';
@@ -375,6 +376,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'scriptContract.ReturnModules': ReturnModulesSchema,
   'nativePhysics.NativeGroundFile': NativeGroundFileSchema,
   'worldAssembly.WorldAssembly': WorldAssemblySchema,
+  'binarySource.BinarySource': BinarySourceSchema,
  };
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();

@@ -250,10 +250,6 @@
       "base64Chars": 20268,
       "dataUris": 0
     },
-    "src/shards/nalati-grasslands/boot/poiPaint.json": {
-      "base64Chars": 207732,
-      "dataUris": 0
-    },
     "src/shards/nalati-grasslands/data/audio.generated.json": {
       "base64Chars": 48780,
       "dataUris": 0
@@ -284,10 +280,6 @@
     },
     "src/shards/nalati-grasslands/data/placeRuntime.generated.json": {
       "base64Chars": 20268,
-      "dataUris": 0
-    },
-    "src/shards/nalati-grasslands/data/poiPaint.json": {
-      "base64Chars": 207732,
       "dataUris": 0
     },
     "src/shards/nalati-grasslands/data/populationField.generated.json": {

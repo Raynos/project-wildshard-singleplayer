@@ -26,7 +26,7 @@ import type { TamingObservation } from './bindingTypes';
 import { Mount, enteredMount } from './mount';
 import { RidingControlsSchema, PageTamingBindingSchema, ClientRidingSessionSchema, cleanMountName, type RidingControls, type MountProfile } from '@wildshard/format/riding';
 import { MountedSpecimenSeatSchema, type MountedSpecimenSeatRows } from '@wildshard/format/mountedSpecimenRows';
-import { SeatedFigure } from './seatedFigure';
+import { SeatedFigure,prepareSeatedFigure } from './seatedFigure';
 import { playerModes } from '@wildshard/engine/player/modes';
 import { ReturnProgram } from '../population/returnProgram';
 import { RideHUD } from './hud';
@@ -284,7 +284,7 @@ export interface PageRidingView {
   readonly mounted: boolean; readonly reins: MountedReins; readonly raid: PagePastureRaid<CrowdDraw>;
   update: (dt: number) => void; late: (dt: number) => void; noteShot: (x: number, z: number) => void;
 }
-interface ClientRidingOwner extends WorldFrameOwner { readonly id: string | undefined; readonly rows: v.InferOutput<typeof ClientRidingSessionSchema>; readonly figure: MountedSpecimenSeatRows | null; view: PageRidingView | null }
+interface ClientRidingOwner extends WorldFrameOwner { readonly id: string | undefined; readonly rows: v.InferOutput<typeof ClientRidingSessionSchema>; readonly figure: MountedSpecimenSeatRows | null; readonly figureFiles:ReadonlyMap<string,Uint8Array>; view: PageRidingView | null }
 const clientSessions = new WeakMap<Scope, ClientRidingOwner>();
 /** Admit the client session before world wiring; body and equipment authorities
  * arrive through their native stages, never through authored callbacks. */
@@ -299,7 +299,8 @@ export async function installClientRiding(ctx: ShardContext, feature: ClientFeat
   available();
   const figure = rows.figure === undefined ? null : v.parse(MountedSpecimenSeatSchema, await read.call(product, rows.figure));
   available();
-  const owner: ClientRidingOwner = { id: feature.owner, rows, figure, view: null,
+  const figureFiles=figure===null?new Map<string,Uint8Array>():await prepareSeatedFigure(product,figure,scope);available();
+  const owner: ClientRidingOwner = { id: feature.owner, rows, figure, figureFiles, view: null,
     update(dt) { active(); if (clientSessions.get(scope) !== owner) throw new Error('Riding frame owner changed'); owner.view?.update(dt); },
     late(dt) { active(); if (clientSessions.get(scope) !== owner) throw new Error('Riding frame owner changed'); owner.view?.late(dt); },
   };
@@ -335,7 +336,7 @@ export function enterClientRiding(ctx: ShardContext, arsenal: HeldClaims): PageR
   ctx.scope.onDispose(() => { namer.close(); });
   const weaponMount = { speed: 0, yaw: 0 }, signals: string[] = [];
   // the raid's seated figure (its shepherd), gesturing on this frame's cue kinds
-  const figure = owner.figure === null ? null : new SeatedFigure(owner.figure, ctx.scope);
+  const figure = owner.figure === null ? null : new SeatedFigure(owner.figure, ctx.scope,owner.figureFiles);
   if (figure !== null && raid.shepherd !== null) figure.attach(raid.shepherd);
   const view: PageRidingView = {
     mount, taming, hud, interactable, reins, raid, get mounted() { return mount.mounted; },

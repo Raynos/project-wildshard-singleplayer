@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- compare the pre-conversion runtime's exact attribute bytes
 import { createHash } from 'node:crypto';
 import { describe, expect, it, vi } from 'vitest';
-import { SHAPES } from './fixtures/nalatiShapes';
+import { SHAPES,SHAPE_BYTES } from './fixtures/nalatiShapes';
 import { letteringMaterial } from '../src/game/looks/lettering';
 import atlases from '../src/shards/nalati-grasslands/data/signAtlases.json' with { type: 'json' };
 import { seatedFigureView } from '../src/game/riding/seatedFigure';
@@ -59,7 +59,7 @@ describe('Nalati fixed POI paint', () => {
   });
 
   it('keeps the two shepherd material slots and independent animated arm', () => {
-    const rider = seatedFigureView(MOUNTED_FIGURE).root, body = rider.children[0], arm = rider.children[1];
+    const rider = seatedFigureView(MOUNTED_FIGURE,undefined,SHAPE_BYTES).root, body = rider.children[0], arm = rider.children[1];
     if (!(arm instanceof Mesh)) throw new Error('Shepherd arm must remain a mesh');
     if (!(body instanceof Mesh)) throw new Error('Shepherd body must remain a mesh');
     expect(rider.children).toEqual([body, arm]);

@@ -283,7 +283,8 @@
     "./returnProjectionV2": "./returnProjectionV2.ts",
     "./actorProjectionV2": "./actorProjectionV2.ts",
     "./scriptGroupBankV2": "./scriptGroupBankV2.ts",
-    "./scriptGroupStepV2": "./scriptGroupStepV2.ts"
+    "./scriptGroupStepV2": "./scriptGroupStepV2.ts",
+    "./binarySource": "./binarySource.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

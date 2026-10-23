@@ -1,3 +1,4 @@
+import { BinaryFileSchema } from './binarySource';
 import { SceneInstancesSchema } from './sceneInstances';
 import * as v from 'valibot';
 import { isJsonData } from './json';
@@ -15,6 +16,7 @@ const geometry = v.variant('kind',[
   v.strictObject({kind:v.literal('asset'),row:SpecimenAssetSchema}),
   v.strictObject({kind:v.literal('baked'),url:id,address:v.strictObject({file:id,word:count}),row:SceneBakedGeometrySchema}),
   v.strictObject({kind:v.literal('inline'),data:v.pipe(v.string(),v.maxLength(1048576)),row:SceneBakedGeometrySchema,sphere:v.exactOptional(v.tuple([finite,finite,finite,finite]))}),
+  v.strictObject({kind:v.literal('file'),...BinaryFileSchema.entries,row:SceneBakedGeometrySchema,sphere:v.exactOptional(v.tuple([finite,finite,finite,finite]))}),
   v.strictObject({kind:v.literal('packed'),source:id,key:id}),
 ]);
 export const SceneScatterPoseSchema = v.strictObject({x:finite,y:finite,z:finite,yaw:finite,sx:finite,sy:finite,sz:finite,far:finite,r:finite,g:finite,b:finite,

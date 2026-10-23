@@ -1,3 +1,4 @@
+import {SHAPE_BYTES} from './fixtures/nalatiShapes';
 import { expect, test } from 'vitest';
 import { Bone, BufferGeometry, Group, Object3D } from 'three';
 import { mountedSpecimens, type MountedSpecimenPorts } from '../src/game/models/mountedSpecimen';
@@ -15,7 +16,7 @@ const define = (input: unknown, fixture: MountedSpecimenPorts): ReturnType<Retur
 function ports(file: unknown, bones: Record<string, Object3D>): { ports: MountedSpecimenPorts; calls: string[] } {
   const calls: string[] = [];
   return { calls, ports: {
-    product: slug => { calls.push(`product ${slug}`); return Promise.resolve({ json: name => { calls.push(`json ${name}`); return Promise.resolve(file); } }); },
+    product: slug => { calls.push(`product ${slug}`); return Promise.resolve({json:name=>{calls.push(`json ${name}`);return Promise.resolve(file);},file:name=>{const bytes=SHAPE_BYTES.get(name);if(bytes===undefined)throw new Error('Missing fixture raw shape');return Promise.resolve(bytes);}}); },
     rig: (_ctx, species, variant, tint) => { calls.push(`rig ${species}/${variant} ${tint}`); return { bones, mesh: new Group() }; },
     figure: (rows, own) => { calls.push(`figure ${rows.mount}`); own(seated); const root = new Object3D(); root.name = 'seated'; return { root }; },
   } };

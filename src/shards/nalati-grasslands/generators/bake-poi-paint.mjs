@@ -34,14 +34,16 @@ const meshes = [
   ['sign-labels:specimen', letteringGeometry([{ spots: boardSpots(0, 0, 0, defaults.boards), boards: defaults.boards }])],
   ['glacier-snout:world', glacier], ['glacier-snout:specimen', glacierSpecimen],
 ];
-const contacts = {};
-const sources=[],writer = byteWriter(process.argv.includes('--check'), 'nalati-poi-paint');
+// Shape conversion retains the native contact bake. Its explicit authoring mode is a separate physics change.
+const rebakeContacts=process.argv.includes('--rebake-contacts'),retained=read('poiContacts.json');
+const contacts=rebakeContacts?{}:retained.contacts;
+const sources=rebakeContacts?[]:retained.sources,writer = byteWriter(process.argv.includes('--check'), 'nalati-poi-paint');
 for (const tier of ['phone', 'desktop']) {
   const layers = {};
   for (const [name, file, half, list] of [
-    ['boulder', 'boulder-1', [1, 0.74, 1], read('dressing-boulder.generated.json').filter((_, i) => i % 3 !== 2)],
-    ['boulder-tall', 'boulder-2', [0.9, 0.95, 0.9], read('dressing-boulder.generated.json').filter((_, i) => i % 3 === 2)],
-    ['slab', 'boulder-3', [1.45, 0.5, 0.95], read('dressing-slab.generated.json')],
+    ['boulder', 'boulder-1', [1, 0.74, 1], rebakeContacts?read('dressing-boulder.generated.json').filter((_, i) => i % 3 !== 2):[]],
+    ['boulder-tall', 'boulder-2', [0.9, 0.95, 0.9], rebakeContacts?read('dressing-boulder.generated.json').filter((_, i) => i % 3 === 2):[]],
+    ['slab', 'boulder-3', [1.45, 0.5, 0.95], rebakeContacts?read('dressing-slab.generated.json'):[]],
   ]) {
     const source = await readSourceModel(readFileSync(resolve(root, `public/assets/nalati/baked/painted-models/${file}${tier === 'phone' ? '.phone' : ''}.glb`)));
     const mesh = source.gltf.scene.children.find(child => child instanceof THREE.Mesh);
@@ -49,6 +51,7 @@ for (const tier of ['phone', 'desktop']) {
     mesh.geometry.deleteAttribute('_paint_clone');
     mesh.geometry.computeBoundingBox();
     const geometry = fitRock({ geometry: mesh.geometry, box: mesh.geometry.boundingBox }, half);
+    if(rebakeContacts){
     const candidates = hullCandidates(geometry), matrix = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), p = new THREE.Vector3(), s = new THREE.Vector3();
     const hulls = list.filter(it => it.solid === true).map(it => {
       matrix.compose(p.set(it.x, it.y, it.z), q.setFromEuler(e.set(it.tiltX ?? 0, it.yaw, it.tiltZ ?? 0, 'YXZ')), s.set(it.sx, it.sy, it.sz));
@@ -60,10 +63,11 @@ for (const tier of ['phone', 'desktop']) {
     writer.put(resolve(root,'src/shards/nalati-grasslands',blockPath),deflateSync(Buffer.from(points.buffer),{level:9}));
     sources.push({name:blobName,kind:'bin',source:blockPath,options:{decoded:points.byteLength}});
     layers[name] = { origins: hulls.map(hull => [hull.x, hull.y, hull.z, hull.points.length]),file:blobName };
+    }
     meshes.push([`dressing:${tier}:${name}`, geometry]);
     source.gltf.scene.traverse(child => { if (child instanceof THREE.Mesh) { child.geometry.dispose(); for (const mat of Array.isArray(child.material) ? child.material : [child.material]) mat.dispose(); } });
   }
-  contacts[tier] = layers;
+  if(rebakeContacts)contacts[tier] = layers;
 }
 let totalBytes = 0;
 const fingerprint = createHash('sha256');
@@ -72,8 +76,17 @@ const rows = meshes.map(([key, geometry], index) => {
   totalBytes += bytes.length; fingerprint.update(bytes); geometry.dispose();
   const file = `data/poi-shape-${index}.bin`;
   writer.put(resolve(root, 'src/shards/nalati-grasslands', file), bytes);
-  return { key, geometry: row, data: deflateSync(bytes, { level: 9 }).toString('base64'), file };
+  let bounds;
+  if(key==='glacier-snout:world'){
+    const positions=row.attrs[0];if(positions?.[0]!=='position'||positions[1]!=='f32'||positions[2]!==3||positions[3])throw new Error('Glacier bounds require its first float32 position channel');
+    const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),box=new THREE.Box3(),point=new THREE.Vector3();
+    for(let i=0;i<row.count;i++)box.expandByPoint(point.set(view.getFloat32(i*12,true),view.getFloat32(i*12+4,true),view.getFloat32(i*12+8,true)));
+    bounds=[box.min.x,box.min.y,box.min.z,box.max.x,box.max.y,box.max.z];
+  }
+  const result={key,geometry:row,file,name:`models/shapes/paint-${index}.bin`};
+  if(bounds!==undefined)Object.assign(result,{bounds});return result;
 });
+if(rebakeContacts)writer.put(resolve(root,'src/shards/nalati-grasslands/data/poiContacts.json'),jsonBytes({contacts,sources}));
 const fingerprintHex = fingerprint.digest('hex');
 writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/poiPaint.json'), jsonBytes({ bin: fingerprintHex, bytes: totalBytes, rows, glacierSnout, contacts,sources }));
 writer.put(resolve(root, 'src/shards/nalati-grasslands/data/poiPaint.json'), jsonBytes({ bin: fingerprintHex, bytes: totalBytes, rows, glacierSnout, contacts,sources }));

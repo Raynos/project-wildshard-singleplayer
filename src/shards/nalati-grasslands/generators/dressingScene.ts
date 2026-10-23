@@ -8,7 +8,7 @@ import { NALATI_FAR_HERD_CHANNELS } from './clientMotion';
 import { POI_CLEARINGS } from './clearings';
 import { KOKPAR, KURGANS, SUMMER_YURTS } from './layout';
 import * as THREE from 'three';
-import { unzlibSync, zlibSync } from 'fflate';
+import { zlibSync } from 'fflate';
 import { SceneDressingSchema, SceneBakedGeometrySchema,SceneFloorSchema, SceneDressingContactsSchema, type SceneDressingRows } from '@wildshard/format/sceneDressing';
 import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { nameBlob } from '@wildshard/sdk/blobs';
@@ -35,7 +35,7 @@ const specimensSchema=v.object({catalogue:SpecimenCatalogueSchema,packed:PackedS
 const profileSchema=v.object({catalogue:SpecimenCatalogueSchema,packed:PackedSpecimenSchema,life:v.array(v.object({kind:text,row:AmbientFlockSchema,perches:AmbientPerchesSchema}))});
 const coverSchema=v.object({phone:profileSchema,desktop:profileSchema,materials:materialsSchema,butterflies:v.object({phone:number,desktop:number}),hue:v.array(v.union([text,number])),raptors:number});
 const paintContact={origins:v.array(v.tuple([number,number,number,number]))};
-const paintSchema=v.object({glacierSnout:v.object({x:number,y:number,z:number}),rows:v.array(v.object({key:text,data:text,geometry:SceneBakedGeometrySchema})),contacts:v.record(text,v.record(text,v.union([
+const paintSchema=v.object({glacierSnout:v.object({x:number,y:number,z:number}),rows:v.array(v.object({key:text,name:text,geometry:SceneBakedGeometrySchema,bounds:v.exactOptional(v.tuple([number,number,number,number,number,number]))})),contacts:v.record(text,v.record(text,v.union([
   v.object({...paintContact,file:text}),v.object({...paintContact,points:text}),
 ])))});
 // Shared authoring metadata is emitted alongside the runtime boot descriptors.
@@ -70,7 +70,7 @@ function compileDressingScene(tier:'phone'|'desktop') {
   const geometry:Record<string,unknown>={},materials:Record<string,unknown>={},addresses:number[]=[];
   const baked=(url:string,offset:number,row:v.InferOutput<typeof SceneBakedGeometrySchema>)=>({kind:'baked',url,address:{file:`world/dressing-addresses-${tier}.bin`,word:addresses.push(offset)-1},row});
   const shape=(key:string)=>{const row=prepared.dressing.rows.find(candidate=>candidate.key===key);if(row===undefined)throw new Error(`Missing dressing shape ${key}`);return baked('/assets/nalati/baked/dressing.bin',row.offset,row.geometry);};
-  const actor=(key:string)=>{const row=paint.rows.find(candidate=>candidate.key===key);if(row===undefined)throw new Error(`Missing dressing actor ${key}`);return{kind:'inline',data:row.data,row:row.geometry};};
+  const actor=(key:string)=>{const row=paint.rows.find(candidate=>candidate.key===key);if(row===undefined)throw new Error(`Missing dressing actor ${key}`);return{kind:'file',file:row.name,row:row.geometry};};
   for(const key of ['boulder','boulder-tall','slab'])geometry[key]=actor(`dressing:${tier}:${key}`);
   for(const [name,key]of [['stone','stone'],['juniper','juniper'],['rose',phone?'rose:lite':'rose'],['willow','willow'],['lupin',phone?'lupin:lite':'lupin'],['daisy','daisy'],['reed','reed']])if(name!==undefined&&key!==undefined)geometry[name]=shape(key);
   for(const [name,key]of [['boulder','boulder-1'],['boulder-tall','boulder-2'],['slab','boulder-3']] as const)materials[name]={kind:'asset',row:specimens.assets[key]};
@@ -97,7 +97,7 @@ function compileDressingScene(tier:'phone'|'desktop') {
     if(name==='roads'){
       // the signposts' painted lettering, between the posts and their wood (the atlas on the painterly material)
       const label=paint.rows.find(candidate=>candidate.key==='sign-labels:roads');if(label===undefined||root?.kind!=='group')throw new Error('Missing road lettering');
-      geometry['roads.lettering']={kind:'inline',data:label.data,row:label.geometry};materials['roads.lettering']={kind:'lettering',...atlases.roads,rim:.2};geo['lettering']='roads.lettering';mats['lettering']='roads.lettering';
+      geometry['roads.lettering']={kind:'file',file:label.name,row:label.geometry};materials['roads.lettering']={kind:'lettering',...atlases.roads,rim:.2};geo['lettering']='roads.lettering';mats['lettering']='roads.lettering';
       copied.materials.push({kind:'port',id:'lettering',source:'lettering'});copied.nodes.push({kind:'mesh',id:'lettering',name:'nalati-signs',geometry:'lettering',material:'lettering',missing:'empty',castShadow:false,receiveShadow:true,children:[]});root.children.splice(1,0,'lettering');
     }
     for(const [index,[,instance]]of row.instances.entries()){
@@ -200,12 +200,8 @@ function bowlScene(tier:'phone'|'desktop',geometry:Record<string,unknown>,materi
   const lotusScene=structuredClone(v.parse(PrivateSceneSchema,data.lotus.scene));lotusScene.nodes.push({kind:'group',id:'root',name:'nalati-snow-lotus',children:[lotusScene.root]});lotusScene.root='root';
   statics.push({name:'snowLotus',tris:data.lotus.poses.length*metrics.triangles['snow-lotus'],members:[putMember('nalati-grasslands/snow-lotus',data.lotus.member)],recipe:lotusScene,geometry:{model:'snow-lotus'},materials:{material:'snow-lotus'}});
   const fixed=paint.rows.find(row=>row.key==='glacier-snout:world'),specimen=paint.rows.find(row=>row.key==='glacier-snout:specimen');if(fixed===undefined||specimen===undefined)throw new Error('Missing glacier shapes');
-  geometry['glacier']={kind:'inline',data:fixed.data,row:fixed.geometry};geometry['glacier-specimen']={kind:'inline',data:specimen.data,row:specimen.geometry};
-  const raw=unzlibSync(Uint8Array.from(atob(fixed.data),c=>c.codePointAt(0)??0)),positions=fixed.geometry.attrs[0];
-  if(positions?.[0]!=='position'||positions[1]!=='f32'||positions[2]!==3||positions[3])throw new Error('Glacier bounds require its first float32 position channel');
-  const view=new DataView(raw.buffer,raw.byteOffset,raw.byteLength),box=new THREE.Box3(),point=new THREE.Vector3();
-  for(let i=0;i<fixed.geometry.count;i++)box.expandByPoint(point.set(view.getFloat32(i*12,true),view.getFloat32(i*12+4,true),view.getFloat32(i*12+8,true)));
-  const boxes=[box.min.x,box.min.y,box.min.z,box.max.x,box.max.y,box.max.z];
+  geometry['glacier']={kind:'file',file:fixed.name,row:fixed.geometry};geometry['glacier-specimen']={kind:'file',file:specimen.name,row:specimen.geometry};
+  const boxes=fixed.bounds?.slice();if(boxes===undefined)throw new Error('Missing captured glacier bounds');
   const staticModels=[{model:{id:'nalati-grasslands/glacier-snout',name:'Glacier snout',category:'nature',pipeline:'code',file:'src/shards/nalati-grasslands/generators/dressingScene.ts',surface:'ground',defaults:{}},geometry:'glacier-specimen',material:'poi'}];
   statics.push({name:'glacier',tris:fixed.geometry.indexCount/3,geometry:{shape:'glacier'},materials:{paint:'poi'},recipe:{version:1,root:'root',materials:[{kind:'port',id:'paint',source:'paint'}],nodes:[{kind:'mesh',id:'root',name:'nalati-glacier',geometry:'shape',material:'paint',missing:'empty',receiveShadow:true,castShadow:false}]},members:[{model:'nalati-grasslands/glacier-snout',draw:'single',placements:[paint.glacierSnout],boxes,contacts:[]}]});
   return{statics,staticModels,instances};
