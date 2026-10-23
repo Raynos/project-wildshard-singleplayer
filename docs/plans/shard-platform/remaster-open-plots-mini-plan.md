@@ -26,19 +26,19 @@ neighbour at 100 m, the road entry, top-down from 630 m, the plaza) in the round
 | 4 | Saltwind Lighthouse (new) | red-and-white lighthouse | `art/grid/round-51-five-new-plots/3-saltwind-lighthouse.jpg` |
 | 5 | Mushroom Hollow (new) | toadstool tower | `art/grid/round-51-five-new-plots/4-mushroom-hollow.jpg` |
 | 6 | Fossil Badlands (new) | dragon skeleton | `art/grid/round-51-five-new-plots/5-fossil-badlands.jpg` |
-| 7 | Showcase Template | glass-domed expo pavilion | round 52 (generating) |
-| 8 | Thin Ice | ice spire on a frozen lake | round 52 (generating) |
-| 9 | Sky Harbor | moored airship and mooring tower | round 52 (generating) |
-| 10 | Coral Drift | coral arch over a lagoon | round 52 (generating) |
-| 11 | Clockwork Canyon | brass clock tower with gears | round 52 (generating) |
-| 12 | Starfall Observatory | domed observatory and telescope | round 52 (generating) |
-| 13 | Alien Plain | glowing alien monolith | round 52 (generating) |
-| 14 | Desert Ruin | sandstone temple gateway | round 52 (generating) |
-| 15 | Sky Race | race start tower and ring gate | round 52 (generating) |
-| 16 | Frostline Peaks | snowy peak with lodge and ski lift | round 52 (generating) |
-| 17 | Ember Forge | dwarven forge furnace | round 52 (generating) |
-| 18 | Lantern Bayou | lantern-hung cypress tree | round 52 (generating) |
-| 19 | Mosslight Ruins | moss-glowing stone tower | round 52 (generating) |
+| 7 | Showcase Template | glass-domed expo pavilion | `art/grid/round-52-all-open-plots/07-showcase-template.jpg` |
+| 8 | Thin Ice | ice spire on a frozen lake | `art/grid/round-52-all-open-plots/08-thin-ice.jpg` |
+| 9 | Sky Harbor | moored airship and mooring tower | `art/grid/round-52-all-open-plots/09-sky-harbor.jpg` |
+| 10 | Coral Drift | coral arch over a lagoon | `art/grid/round-52-all-open-plots/10-coral-drift.jpg` |
+| 11 | Clockwork Canyon | brass clock tower with gears | `art/grid/round-52-all-open-plots/11-clockwork-canyon.jpg` |
+| 12 | Starfall Observatory | domed observatory and telescope | `art/grid/round-52-all-open-plots/12-starfall-observatory.jpg` |
+| 13 | Alien Plain | glowing alien monolith | `art/grid/round-52-all-open-plots/13-alien-plain.jpg` |
+| 14 | Desert Ruin | sandstone temple gateway | `art/grid/round-52-all-open-plots/14-desert-ruin.jpg` |
+| 15 | Sky Race | race start tower and ring gate | `art/grid/round-52-all-open-plots/15-sky-race.jpg` |
+| 16 | Frostline Peaks | snowy peak with lodge and ski lift | `art/grid/round-52-all-open-plots/16-frostline-peaks.jpg` |
+| 17 | Ember Forge | dwarven forge furnace | `art/grid/round-52-all-open-plots/17-ember-forge.jpg` |
+| 18 | Lantern Bayou | lantern-hung cypress tree | `art/grid/round-52-all-open-plots/18-lantern-bayou.jpg` |
+| 19 | Mosslight Ruins | moss-glowing stone tower | `art/grid/round-52-all-open-plots/19-mosslight-ruins.jpg` |
 
 The 19 grid cells use the 19 ideas once each (G629, G653).
 
