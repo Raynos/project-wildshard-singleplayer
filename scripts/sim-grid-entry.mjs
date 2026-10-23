@@ -139,6 +139,7 @@ const READ = `JSON.stringify({ origin: performance.timeOrigin, entry: window.__s
   tap: Number(sessionStorage.getItem('sim.tap')),
   title: !!document.querySelector('.ws-main-select'), pill: document.querySelector('.ws-update')?.textContent ?? null,
   error: document.querySelector('#wsstuck')?.textContent ?? document.querySelector('#wserr .msg')?.textContent ?? null,
+  recovery: (()=>{try{const d=JSON.parse(localStorage.getItem('wildshard.save.v2.device')||'{}').keys??{},s=JSON.parse(sessionStorage.getItem('wildshard.save.v2.session')||'{}').keys??{};return {end:d['life.lastEnd'],arrival:s.titleArrival,backup:d['titleArrival.once'],travel:s['travel.handoff'],grid:s['grid.recovery.once'],gridBackup:d['grid.recovery.once'],guard:d['grid.recovery.guard']};}catch(error){return {error:String(error)};}})(),
   worker: {controller: navigator.serviceWorker?.controller?.state ?? null, waiting: window.__ws_sw?.waiting?.state ?? null} })`;
 
 /** Raw 48 x 88 RGB frames of the video between two times (seconds), 30 fps. */
@@ -312,6 +313,10 @@ async function run(mode, index, target) {
           await gesture(`(() => {sessionStorage.setItem('sim.tap',String(performance.timeOrigin+performance.now()));document.querySelector('.ws-main-grid').click();return true;})()`);
           secondTapAt = Date.now();
           log(file, {ev: 'upgrade-second-tap', at: secondTapAt});
+        }
+        else if (upgradeFrom !== undefined && !secondTapDiagnostic && sample.title && new URL(sample.href).searchParams.has('v')) {
+          log(file, {ev: 'upgrade-first-entry-failed', href: sample.href, recovery: sample.recovery});
+          break;
         }
         if (shard !== undefined) {
           compiled = JSON.parse(await page.evaluate(`JSON.stringify({ href: location.href, origin: performance.timeOrigin, at: performance.now(), accuracy: window.__loadingAccuracy ?? null,
