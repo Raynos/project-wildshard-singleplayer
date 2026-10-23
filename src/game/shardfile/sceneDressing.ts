@@ -14,13 +14,13 @@ import { withOwner } from '@wildshard/engine/app/ownership';
 import { painterlyMaterial, painterlyUniforms } from '@wildshard/engine/world/painterly';
 import { wind } from '@wildshard/engine/world/steppeWind';
 import { Rng } from '@wildshard/engine/core/rng';
-import { buildYield } from '@wildshard/engine/core/workSlice';
+import { buildYield, workSlice } from '@wildshard/engine/core/workSlice';
 import { scatterLayer, instanceBoxes, type ScatterLayer, type ScatterPose } from '@wildshard/engine/render/scatterInstances';
 import { instancedQuad } from '@wildshard/engine/render/instancedGeometry';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
 import { createPackedSpecimens, defineSpecimenCatalogue, loadBoundSpecimen, loadSpecimenTexture, specimenMaterial } from '../models/specimenCatalogue';
-import { expandBakedGeometry, fetchLaneBake, readBakedGeometry, bakedGeometryBytes } from '../plugin/geometry';
+import { expandBakedGeometrySliced, fetchLaneBake, readBakedGeometry, bakedGeometryBytes } from '../plugin/geometry';
 import { createClientScene } from '../plugin/ui';
 import { AmbientWingField } from '../ambient/wingField';
 import { EncounterSites } from '../boss/encounterView';
@@ -160,7 +160,7 @@ export class SceneDressing {
         let offset=0;if(source.kind==='baked'){let pending=addresses.get(source.address.file);if(pending===undefined){pending=ctx.product.file(source.address.file);addresses.set(source.address.file,pending);}offset=readSceneGeometryAddress(await pending,source.address.word);}
         if(offset+bakedGeometryBytes(source.row)>raw.byteLength)throw new Error('Scene geometry address exceeds its source');
         const decoded=readBakedGeometry(raw,offset,source.row);
-        shape=source.row.expand?expandBakedGeometry(decoded):decoded;
+        shape=source.row.expand?await expandBakedGeometrySliced(decoded,workSlice()):decoded;
       }
       if(source.kind==='inline'&&source.sphere!==undefined)shape.boundingSphere=new THREE.Sphere(new THREE.Vector3(...source.sphere.slice(0,3)),source.sphere[3]);
       geometry.set(key,shape);ctx.scope.own(shape);await pause();

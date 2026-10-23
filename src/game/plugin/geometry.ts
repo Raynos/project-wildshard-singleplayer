@@ -4,7 +4,7 @@ import { unzlibSync } from 'fflate';
 import { type NativeAttributeSchema as WholeAttribute, NativeAttributesSchema as WholeNative, nativeWholeGeometry } from '@wildshard/engine/models/nativeGeometry';
 import { fetchDeflatedBytes, fetchLaneBytes, unshuffleLanes as restoreLanes } from '@wildshard/engine/core/deflate';
 import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
-import { workSlice } from '@wildshard/engine/core/workSlice';
+import { workSlice, type WorkSlice } from '@wildshard/engine/core/workSlice';
 import { defineSceneModels, type BakedModelMetadata } from '@wildshard/engine/models/model';
 import * as wholeV from 'valibot';
 import type { Scope as ResourceScope } from '@wildshard/engine/app/scope';
@@ -1249,11 +1249,38 @@ export function readBakedGeometry(bytes: Uint8Array, offset: number, row: BakedG
 /** A baked read expanded to one vertex per corner (a row's `expand`): the same positions, so the read's bounds carry over
  *  (G639: recomputing them over the expanded copy cost ~0.2 s of single Nalati entry frames). The read is disposed. */
 export function expandBakedGeometry(geometry: BufferGeometry): BufferGeometry {
-  const flat = geometry.toNonIndexed();
+  return carryBounds(geometry, geometry.toNonIndexed());
+}
+function carryBounds(geometry: BufferGeometry, flat: BufferGeometry): BufferGeometry {
   if (geometry.boundingBox === null) geometry.computeBoundingBox();
   flat.boundingBox = geometry.boundingBox; flat.boundingSphere = geometry.boundingSphere;
   geometry.dispose();
   return flat;
+}
+type BakedArray = Float32Array | Uint16Array | Uint32Array | Int8Array | Uint8Array;
+const sizedLike = (array: unknown, length: number): BakedArray | null => array instanceof Float32Array ? new Float32Array(length)
+  : array instanceof Uint16Array ? new Uint16Array(length) : array instanceof Uint32Array ? new Uint32Array(length)
+  : array instanceof Int8Array ? new Int8Array(length) : array instanceof Uint8Array ? new Uint8Array(length) : null;
+/** `expandBakedGeometry` with its corner copy taking turns with the frame (`slice`): the same arrays, attribute types and
+ *  bounds as three's `toNonIndexed` over a baked read (plain attributes, no groups or morphs; anything else expands at
+ *  once). G639: one large Nalati dressing shape's expansion was a ~130 ms cell-entry frame (Chromium phone 4x). */
+export async function expandBakedGeometrySliced(geometry: BufferGeometry, slice: WorkSlice): Promise<BufferGeometry> {
+  const index = geometry.getIndex(), attributes = Object.entries(geometry.attributes);
+  if (index === null || geometry.groups.length > 0 || Object.keys(geometry.morphAttributes).length > 0
+    || attributes.some(([, attribute]) => !(attribute instanceof BufferAttribute) || sizedLike(attribute.array, 0) === null)) return expandBakedGeometry(geometry);
+  const indices = index.array, flat = new BufferGeometry(), CHUNK = 4096;
+  for (const [name, attribute] of attributes) {
+    if (!(attribute instanceof BufferAttribute)) throw new Error('Baked expansion needs plain attributes');
+    const size = attribute.itemSize, from = attribute.array, to = sizedLike(from, indices.length * size);
+    if (to === null) throw new Error('Baked expansion needs a typed attribute');
+    for (let start = 0; start < indices.length; start += CHUNK) {
+      const end = Math.min(indices.length, start + CHUNK);
+      for (let i = start, out = start * size; i < end; i++) { const at = (indices[i] ?? 0) * size; for (let j = 0; j < size; j++) to[out++] = from[at + j] ?? 0; }
+      if (slice.due()) await slice.yield();
+    }
+    flat.setAttribute(name, new BufferAttribute(to, size, attribute.normalized));
+  }
+  return carryBounds(geometry, flat);
 }
 
 /** How long a packed body bake stays inflated after its last copy (ms): a spawn burst's copies share one inflate. */
