@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { ScalarChannelSchema } from './scalarChannel';
 
 const finite = v.pipe(v.number(), v.finite()), positive = v.pipe(finite, v.minValue(Number.MIN_VALUE));
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
@@ -11,7 +12,7 @@ export const NativeRidingSchema = v.strictObject({
   speeds: v.strictObject({ walk: positive, trot: positive, canter: positive, gallop: positive }),
   pose: v.strictObject({ gait: v.exactOptional(v.strictObject({ trot: finite, gallop: finite })),
     pose: v.exactOptional(v.strictObject({ grazeNeck: finite, gallopTail: finite })) }),
-  world: v.strictObject({ res: v.pipe(finite, v.integer(), v.minValue(2), v.maxValue(1024)), size: positive, water: finite, wet: channel, pond: channel }),
+  world: v.strictObject({ res: v.pipe(finite, v.integer(), v.minValue(2), v.maxValue(1024)), size: positive, water: finite, wet: channel, pond: v.union([channel,ScalarChannelSchema]) }),
   roads: v.exactOptional(v.pipe(v.array(v.pipe(v.array(v.tuple([finite, finite])), v.maxLength(1024))), v.maxLength(128))),
   thrownDamage: v.pipe(finite, v.minValue(0)), thrownLabel: v.string(), program: v.unknown(),
 });

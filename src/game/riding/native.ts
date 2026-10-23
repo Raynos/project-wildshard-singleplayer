@@ -1,8 +1,7 @@
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import { NativeRidingSchema } from '@wildshard/format/nativeRiding';
 import { nativeHerdCollection } from '../shardfile/groupRuntime';
-import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
-import { unzlibSync } from 'fflate';
+import { readScalarLattice } from '@wildshard/engine/world/scalarChannel';
 import { MountedBody, mountedMotorOptions, type MountedRider, type MountedWorld, type ReinsFrame } from '@wildshard/game/riding/physics';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
@@ -42,15 +41,10 @@ export function mountedPlayerOf(host: SimHost): NativeMountedPlayer | undefined 
 
 /** The page's native reins/body and gait phase under the host's single physics authority. The ordinary player driver
  * remains authoritative on foot. Companions, taming and the weapons are subsequent installs, never simulated here. */
-export function installMountedPlayer(host: SimHost, profile: unknown): NativeMountedPlayer {
+export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?: { readonly file: string; readonly bytes: Uint8Array }): NativeMountedPlayer {
   const rows = v.parse(NativeRidingSchema, profile), { herds } = nativeHerdCollection(host, rows.herds);
-  const mask = (encoded: string): ((x: number, z: number) => number) => {
-    const bytes = unzlibSync(Uint8Array.from(atob(encoded), value => value.codePointAt(0) ?? 0));
-    if (bytes.byteLength !== rows.world.res * rows.world.res * 4) throw new Error('Invalid riding terrain channel');
-    const values = new Float32Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 4);
-    if (values.some(value => !Number.isFinite(value))) throw new Error('Invalid riding terrain sample');
-    return bakedSamplers({ res: rows.world.res, size: rows.world.size, seed: 0, landscapeHash: 0, heights: values, splat: new Uint8Array(0), undergrowth: null }).heightAt;
-  };
+  const blocks = new Map(pondBlock === undefined ? [] : [[pondBlock.file,pondBlock.bytes]]);
+  const mask = (data: typeof rows.world.pond): ((x: number,z: number) => number) => readScalarLattice({ res: rows.world.res,size: rows.world.size,values: typeof data === 'string' ? { type: 'f32',count: rows.world.res*rows.world.res,data } : data },blocks);
   const wet = mask(rows.world.wet), pond = mask(rows.world.pond);
   const heightAt = (x: number, z: number): number => host.groundHeightAt(x, z);
   const waterLevel = (): number => rows.world.water;

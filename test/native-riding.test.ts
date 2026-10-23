@@ -10,7 +10,7 @@ import { zlibSync } from 'fflate';
 import { Vector3 } from 'three';
 import { createSimHost, type SimHost } from '@wildshard/engine/sim';
 import { loadRapier } from '@wildshard/engine/physics/rapier';
-import { restoreSimHost, snapshotSimHost } from '@wildshard/engine/sim/snapshot';
+import { restoreSimHost, snapshotSimHost, serializeSimSnapshot } from '@wildshard/engine/sim/snapshot';
 import { NativeGroupCollection as FixtureNativeGroups, nativeGroupCollection as fixtureGroup, nativeHerdCollection } from '@wildshard/game/shardfile/groupRuntime';
 import { Rng as FixtureRandom } from '@wildshard/engine/core/rng';
 import { nativeGroupBrain as fixtureBrain } from '@wildshard/format/groupBrains';
@@ -383,4 +383,31 @@ test('native shared cadence retains the original driver noise, terrain, dodge an
     expect(dodgeSeen).toBe(true);
     expect(actual.manager.noise.prev.y).toBe(0);
   } finally { actual.host.dispose(); original.host.dispose(); }
+});
+
+test('raw riding pond retains inline native capsule, effects and save continuation',async()=>{
+  const rapier=await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm'))),hosts=[false,true].map(raw=>{
+    const host=createSimHost({...SIM_LEVEL,quests:[]},{rapier});lendNalatiPasture(host.scope);herdService(host,rows.herds);
+    const block={file:'world/riding-pond.bin',bytes:zlibSync(new Uint8Array(16))};
+    const profile=raw?{...rows,world:{...rows.world,pond:{type:'f32',count:4,data:{file:block.file}}}}:rows;
+    const mounted=installMountedPlayer(host,profile,raw?block:undefined);expect(mounted.mount('boar:1')).toBe(true);return {host,mounted};
+  });
+  const original=hosts[0],raw=hosts[1];if(original===undefined||raw===undefined)throw new Error('Missing native comparison');
+  try{
+    const command={moveX:0,moveZ:0,yaw:0,commandVersion:1 as const,steer:{keyX:0,keyY:1,stickX:0,stickY:0}};
+    for(let tick=0;tick<90;tick++){for(const f of hosts)f.host.step(command);expect(serializeSimSnapshot(snapshotSimHost(raw.host))).toBe(serializeSimSnapshot(snapshotSimHost(original.host)));}
+    expect(raw.mounted.body.speed).toBeGreaterThan(0);raw.mounted.dismount();original.mounted.dismount();
+    expect(serializeSimSnapshot(snapshotSimHost(raw.host))).toBe(serializeSimSnapshot(snapshotSimHost(original.host)));
+  }finally{for(const f of hosts)f.host.dispose();}
+});
+
+test('malformed raw riding ponds refuse before mode, capsule or save ownership changes',async()=>{
+  const rapier=await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm'))),host=createSimHost({...SIM_LEVEL,quests:[]},{rapier});
+  try{
+    herdService(host,rows.herds);const before=serializeSimSnapshot(snapshotSimHost(host)),file='world/riding-pond.bin';
+    const profile={...rows,world:{...rows.world,pond:{type:'f32',count:4,data:{file}}}};
+    for(const block of [undefined,{file:'other.bin',bytes:zlibSync(new Uint8Array(16))},{file,bytes:zlibSync(new Uint8Array(20))}]){
+      expect(()=>installMountedPlayer(host,profile,block)).toThrow();expect(serializeSimSnapshot(snapshotSimHost(host))).toBe(before);expect(host.modes.current()).toBe('foot');
+    }
+  }finally{host.dispose();}
 });

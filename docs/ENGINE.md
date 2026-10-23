@@ -12493,7 +12493,12 @@ files remain outside TypeScript imports and configuration performs no IO.
 ScalarChannelRows.data also accepts {file}, a bounded relative .bin name.
 readScalarChannel(row, blocks) and readScalarLattice(row, blocks) borrow that
 named compressed block, retaining the same bounded inflate and native view.
-They perform no IO. Inline strings keep their original admission and decode.
+They perform no IO. Inline strings keep their original admission and decode. Native riding
+world.pond may declare a ScalarChannel row. NativePopulationField's optional
+fifth argument and installMountedPlayer's optional third argument lend the
+same named {file,bytes} block to readScalarLattice; native preparation reads
+it through its original product before installing either owner. Original
+inline profiles and all sampler, motor, RNG and snapshot laws remain intact.
 
 ScalarLatticeBindings is one definition's raw-block intake. lattice(rows,
 {min,max}?) declares a stable sampler; seal() closes the declaration set

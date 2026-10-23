@@ -543,6 +543,7 @@
         ]
       }
     },
+    {"name": "populationPond", "value": {"$call": [{"$ref": ["product", "file"]}, "data/geography-pond.bin"]}},
     {
       "name": "populationField",
       "value": {
@@ -575,7 +576,8 @@
               "bake",
               "tops"
             ]
-          }
+          },
+          {"file": "data/geography-pond.bin", "bytes": {"$ref": ["populationPond"]}}
         ]
       }
     },
@@ -1937,7 +1939,8 @@
                 }
               }
             ]
-          }
+          },
+          {"file": "data/geography-pond.bin", "bytes": {"$ref": ["populationPond"]}}
         ]
       }
     },
