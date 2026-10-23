@@ -13,7 +13,7 @@ import { v2CoreSource } from './as/wsV2';
 import { hashImmutableBytes } from './immutable';
 import { decisionBindingsPath } from './decisionScriptBindings';
 
-export async function compileReturnProjectionV2(input:unknown,registries:DecisionRegistries,authored:ReadonlyMap<string,string>,options:DecisionBuildOptions & {readonly projectSource?:string;readonly outputCapacity?:number;readonly worldActions?:boolean;readonly capture?:{readonly fields:readonly string[];readonly channels:readonly string[]};readonly groups?:{readonly rows:GroupStepRowsV2;readonly helpers:Readonly<Record<string,string>>}}):Promise<{
+export async function compileReturnProjectionV2(input:unknown,registries:DecisionRegistries,authored:ReadonlyMap<string,string>,options:DecisionBuildOptions & {readonly projectSource?:string;readonly outputCapacity?:number;readonly worldActions?:boolean;readonly additional?:{readonly fields:readonly string[];readonly signals:readonly string[];readonly channels:readonly string[]};readonly capture?:{readonly fields:readonly string[];readonly channels:readonly string[]};readonly groups?:{readonly rows:GroupStepRowsV2;readonly helpers:Readonly<Record<string,string>>}}):Promise<{
   readonly legacy:{readonly script:ReturnType<typeof parseDecisionScripts>[number];readonly bytes:string};readonly candidate:ReturnProjectionV2Rows;
 }> {
   const row=parseDecisionScripts([input])[0];
@@ -25,11 +25,18 @@ export async function compileReturnProjectionV2(input:unknown,registries:Decisio
   // handler and captured-import checks; it cannot replace the ABI1 witness.
   const selected=options.projectSource??row.source;
   const captured=await captureDecisionSources(authored,options);
-  const fields=Object.values(row.fields).sort(),signals=Object.values(row.signals).sort(),channels=Object.values(row.channels).sort();
+  const additional=options.additional;
+  const projectionNames=(kind:'fields'|'signals'|'channels'):string[]=>{
+    const base=Object.values(row[kind]).sort(),extra=[...(additional?.[kind]??[])];
+    if(extra.some((name,index)=>name<=(base.at(-1)??'')||index>0&&(extra[index-1]??'')>=name)
+      ||new Set([...Object.keys(row[kind]),...extra].map(scriptV1Identifier)).size!==Object.keys(row[kind]).length+extra.length)throw new Error('Invalid additional projection names');
+    return [...base,...extra];
+  };
+  const fields=projectionNames('fields'),signals=projectionNames('signals'),channels=projectionNames('channels');
   const groups=options.groups,layout=returnProjectionV2Layout(fields.length,row.pages,options.outputCapacity,groups?.rows),path=decisionBindingsPath(row);
   const lines=["import * as core from '../../sdk/as/wsV2';"];
   for(const [kind,namespace,names]of [['fields','Field',fields],['signals','Signal',signals],['channels','Channel',channels]] as const){
-    lines.push(`export namespace ${namespace}{`,...Object.entries(row[kind]).map(([alias,name])=>`export const ${scriptV1Identifier(alias)}:i32=${names.indexOf(name)+1};`),'}');
+    lines.push(`export namespace ${namespace}{`,...[...Object.entries(row[kind]),...(additional?.[kind]??[]).map(name=>[name,name])].map(([alias='',name=''])=>`export const ${scriptV1Identifier(alias)}:i32=${names.indexOf(name)+1};`),'}');
   }
   const capture=options.capture;
   const capturedIds=(kind:'fields'|'channels'):number[]=>{const names=capture?.[kind]??[];if(new Set(names).size!==names.length||names.some(name=>!Object.hasOwn(row[kind],name)))throw new Error('Undeclared projection capture');return names.map(name=>(kind==='fields'?fields:channels).indexOf(row[kind][name]??'')+1);};
@@ -48,7 +55,9 @@ export async function compileReturnProjectionV2(input:unknown,registries:Decisio
     ${capture===undefined?'':`static capture():void{capturing=true;for(let i:i32=0;i<${cf.length};i++)store<u32>(CF+usize(i)*16,0);for(let i:i32=0;i<${co.length};i++)store<u32>(CO+usize(i)*16,0);}
       static captured(id:i32,fallback:f64):f64{switch(id){${co.map((id,i)=>`case ${id}:return load<u32>(CO+${i*16})?load<f64>(CO+${i*16+8}):fallback;`).join('')}default:unreachable();}return fallback;}
       static release():void{capturing=false;}`}
-    ${options.worldActions===true?`static taming(op:i32,target:i32,a:f64=0,b:f64=0,c:f64=0,d:f64=0,e:f64=0,f:f64=0):void{core.taming(op,target,a,b,c,d,e,f);}`:''}
+    ${options.worldActions===true?`static ignite(target:i32,x:f64,z:f64):void{core.ignite(target,x,z);}
+    static dismount(target:i32,thrown:bool):void{core.dismount(target,thrown);}
+    static taming(op:i32,target:i32,a:f64=0,b:f64=0,c:f64=0,d:f64=0,e:f64=0,f:f64=0):void{core.taming(op,target,a,b,c,d,e,f);}`:''}
   }`);
   // The legacy compiler has already checked the entire source budget and the
   // selected entry's captured import closure. Supply only admitted author texts.
@@ -65,6 +74,6 @@ export async function compileReturnProjectionV2(input:unknown,registries:Decisio
     export function ws_project(fuel:i32):i32{core.beginState();assert(core.beginBinding(0));${groups===undefined?'':'if(core.count(2)>0)groupStep();else '}onSignal(i32(core.parameter(0)),0,0);core.endBinding();return fuel;}`;
   const bytes=await compileScriptV2(source,{maximumPages:row.pages,ioBytes:layout.bytes,lane:'project',sources});
   const candidate=parseReturnProjectionV2({artifact:{abi:2,minor:0,compilerRevision:SCRIPT_V2_REVISIONS.compiler,admissionRevision:SCRIPT_V2_REVISIONS.admission,
-    hash:hashImmutableBytes(bytes),lane:'project',pages:row.pages,ioBytes:layout.bytes},fields,signals,channels,...(options.outputCapacity===undefined?{}:{outputCapacity:options.outputCapacity}),bytes:btoa(Array.from(bytes,byte=>String.fromCodePoint(byte)).join('')),...(groups===undefined?{}:{groups:groups.rows})});
+    hash:hashImmutableBytes(bytes),lane:'project',pages:row.pages,ioBytes:layout.bytes},fields,signals,channels,...(additional===undefined?{}:{additional}),...(options.outputCapacity===undefined?{}:{outputCapacity:options.outputCapacity}),bytes:btoa(Array.from(bytes,byte=>String.fromCodePoint(byte)).join('')),...(groups===undefined?{}:{groups:groups.rows})});
   return {legacy:{script,bytes:btoa(Array.from(blob.bytes,byte=>String.fromCodePoint(byte)).join(''))},candidate};
 }

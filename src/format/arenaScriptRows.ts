@@ -19,7 +19,7 @@ export const ArenaScriptBossProfileSchema = v.strictObject({
     retainEvents: v.strictObject({
       step: v.strictObject({enter:arenaKey,mask:arenaKey,shield:arenaKey,show:arenaKey,active:arenaKey,arm:arenaKey,spread:arenaKey,weapon:arenaKey,dome:arenaKey}),
       tell: v.strictObject({chainRadius:arenaKey,chainAlpha:arenaKey,tell:arenaKey,ringRadius:arenaKey,ringAlpha:arenaKey,forkRadius:arenaKey,forkAlpha:arenaKey,bend:arenaKey,bendRate:arenaKey,raise:arenaKey,raiseRate:arenaKey,castL:arenaKey,struck:arenaKey,alpha:arenaKey}),
-      intro: v.strictObject({rise:arenaKey,kneel:arenaKey,alpha:arenaKey}),
+      intro: v.strictObject({rise:arenaKey,kneel:arenaKey,alpha:arenaKey}),introClock:v.strictObject({zzzzIntroT:arenaKey,zzzzIntroTick:arenaKey}),
     }),
   }),
 });
@@ -35,7 +35,7 @@ const lines = v.strictObject({ kneels: label,grassFire: label,immuneDome: label,
 /** Declared resources and effect bindings for an AS arena script. Named-file
  * admission checks bounded field, support and clock rows before allocation. */
 export const ArenaScriptRowsSchema = v.strictObject({
-  script: ArenaScriptBossProfileSchema,clocks: ArenaEncounterSchema,field: CellFieldSchema,support: CoupledEncounterRowsSchema,whirls: ArenaWhirlsSchema,arenaFire: ArenaFireSchema,
+  script: ArenaScriptBossProfileSchema,commands:v.strictObject({ignite:arenaKey,dismount:arenaKey}),clocks: ArenaEncounterSchema,field: CellFieldSchema,support: CoupledEncounterRowsSchema,whirls: ArenaWhirlsSchema,arenaFire: ArenaFireSchema,
   programs: v.strictObject({ attack: ReturnProgramSchema,wind: ReturnProgramSchema }),
   supportSites: v.pipe(v.array(v.strictObject({ x: finite,z: finite,theta: finite })),v.maxLength(8)),
   arena: v.strictObject({ center: point,body: point,anchor: point,ground: point }),place: v.strictObject({ arenaRadius: finite,heartHp: finite }),

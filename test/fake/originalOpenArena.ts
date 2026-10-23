@@ -1,5 +1,6 @@
+// Frozen native Storm Titan shell and projection before open/closed lifecycle convergence.
 import type { ArenaScriptData,ArenaScriptRows,ArenaScriptFightFile } from '@wildshard/format/arenaScriptRows';
-import { installEnteredRuntimeService } from '../shard/retainedHooks';
+import { installEnteredRuntimeService } from '../../src/game/shard/retainedHooks';
 /** Client projection of the G474 arena-script boss contract. Authored inputs
  * are rows; entered native owners supply rendering, health, riding and kit. */
 import * as THREE from 'three';
@@ -22,29 +23,24 @@ import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { modelContext, type ModelDef } from '@wildshard/engine/models/model';
 import { Rng } from '@wildshard/engine/core/rng';
-import type { ShardContext } from '../plugin/context';
-import { installChannelPrograms } from '../plugin/channelPrograms';
-import type { WeatherReactions } from '../weather/reactions';
-import type { ShardProduct } from '../shardfile/shardProduct';
-import { installBossEncounter, type Boss } from '../Boss';
-import { ProjectedState, ReturnProgram } from '../population/returnProgram';
-import { wildEnv } from '../population/pageGroups';
+import type { ShardContext } from '../../src/game/plugin/context';
+import { installChannelPrograms } from '../../src/game/plugin/channelPrograms';
+import type { WeatherReactions } from '../../src/game/weather/reactions';
+import type { ShardProduct } from '../../src/game/shardfile/shardProduct';
+import { installBossEncounter, type Boss } from '../../src/game/Boss';
+import { ProjectedState, ReturnProgram } from '../../src/game/population/returnProgram';
+import { wildEnv } from '../../src/game/population/pageGroups';
 import { setEliteDamage } from '@wildshard/engine/entities/eliteBrain';
-import { CellField } from '../systems/cellField';
-import { arenaBlockedAt, installArenaBoundary, type ArenaBoundary } from './arenaField';
-import { ArenaFireView, ArenaWhirlsView } from './arenaFire';
-import { ArenaSceneView, CloudBody, type PatrolEncounterView } from './encounterView';
-import { ARENA_BURNT_PER_FRAME, ARENA_VIEW, arenaChainTell, arenaFunnel } from '@wildshard/format/arenaView';
-import { publishEntryOwner } from '../shardfile/entryOwners';
-import { lendViewArray, lendViewCell, lendViewDraw, lendViewFrame, lendViewTell, lendViewValues } from '../shardfile/clientViewProgram';
-import type { Scope } from '@wildshard/engine/app/scope';
-import type { GroundTell } from '../Elite';
-import type { ArcWeaponPower } from '../weapons/arcPower';
-import type { HeldClaims, HeldSlotKit } from '../loadout/claims';
-import type { CosmeticFinishLocker } from '../loadout/cosmeticFinishes';
-import { enteredAdventurePersistence } from '../quest/chapterBindings';
-import { pageRidingMount, respawnPageMounted } from '../riding/client';
-import type { Mount } from '../riding/mount';
+import { CellField } from '../../src/game/systems/cellField';
+import { ArenaFireView, ArenaWhirlsView } from './originalArenaFire';
+import { ArenaSceneView, CloudBody, type PatrolEncounterView } from '../../src/game/boss/encounterView';
+import type { GroundTell } from '../../src/game/Elite';
+import type { ArcWeaponPower } from '../../src/game/weapons/arcPower';
+import type { HeldClaims, HeldSlotKit } from '../../src/game/loadout/claims';
+import type { CosmeticFinishLocker } from '../../src/game/loadout/cosmeticFinishes';
+import { enteredAdventurePersistence } from '../../src/game/quest/chapterBindings';
+import {pageRidingMount,respawnPageMounted,arenaBlockedAt,installArenaBoundary,type ArenaBoundary} from '../../src/game/riding/client';
+import type { Mount } from '../../src/game/riding/mount';
 
 /** Read schema-checked named products; no validator is imported into play. */
 export async function readArenaScriptData(product: Pick<ShardProduct,'json'>, files: { fight: string; geometry: string }): Promise<ArenaScriptData> {
@@ -84,15 +80,6 @@ export class ArenaScriptFight implements BossScript {
   private readonly field: CellField;
   private fireOn = false;
   private readonly fire: ArenaFireView;
-  /** the scorch decals' draw, the burnt-out cells not yet drawn, the frame's share of them, a reset the fire view has not
-   *  seen yet, and the fire view's slot (R6: behaviour/titanFireView draws the flames, smoke and scorch) */
-  private readonly scorch: THREE.InstancedMesh;
-  private readonly burntQueue: number[] = [];
-  private readonly burnt = new Float32Array(1 + ARENA_BURNT_PER_FRAME);
-  private fireClear = false;
-  private fireFrame: ((dt: number, time: number) => boolean) | null = null;
-  /** the whirl view's slot (R6: behaviour/titanWhirlsView draws the funnels and their debris) */
-  private whirlFrame: ((dt: number, time: number) => boolean) | null = null;
   private readonly chains: Chain[];
   private get chainLeft(): number { return this.clocks.value(this.data.clocks.left); }
   readonly clocks:ProjectedState;
@@ -109,11 +96,8 @@ export class ArenaScriptFight implements BossScript {
   readonly life: ProjectedState;
   private readonly fightDraw: ReturnType<typeof installChannelPrograms>;
   private readonly viewRead = { fighting: 0, victoryT: -1, phase: 0, domeBroken: 0, open: 0, flash: 0 };
-  /** Nalati zero R6: the tells and pose run in the fight's view module at its frame slot (format/arenaView), lent in the
-   *  entered encounter's bind; its cells are the eased pose and the aim's operands */
-  private view: { readonly frame: (dt: number, time: number) => void; readonly cells: Record<'bend' | 'raise' | 'castL' | 'struck' | 'alpha', { value: number }> } | null = null;
 
-  constructor(private readonly ctx: ArenaScriptWorld, private readonly host: ArenaScriptEncounter, data: ArenaScriptData) {
+  constructor(private readonly ctx: ArenaScriptWorld, private readonly host: OriginalOpenArenaEncounter, data: ArenaScriptData) {
     this.data = data; this.pose={...data.pose};
     const scene = ctx.game.scene;
     const clocks=this.data.clocks;
@@ -140,49 +124,11 @@ export class ArenaScriptFight implements BossScript {
     this.chains=clocks.landings.map((row,i)=>({tell:arena.tell('chain',i),row}));
     this.whirls = new ArenaWhirlsView(this.data.whirls, windLaw, [arena.mesh('funnel0'), arena.mesh('funnel1'), arena.mesh('funnel2')], arena.instances('debris'));
     this.fire = new ArenaFireView(scene, this.data.arenaFire, (TIER === 'phone' ? this.data.geometry.phone : this.data.geometry.desktop).flames);
-    this.scorch = arena.instances('scorch'); this.scorch.count = 0;
+    this.fire.attachScorch(arena.instances('scorch'));
     const target = data.view.target;
     this.heartTarget = { kind: data.definition.id,position: new THREE.Vector3(),alive: true,damageFor: () => target.damage,applyDamage: amount => this.hitHeart(amount) };
     this.heartHit = { animal: this.heartTarget,point: new THREE.Vector3(),distance: 0,headshot: false };
     this.heartLock = { kind: data.definition.id,position: new THREE.Vector3(),alive: true,lockable: true,lockRange: target.range,dims: { bodyY: 0,bodyRadius: target.closed } };
-  }
-
-  /** Lend the view module (format/arenaView) what it samples and writes, then the frame slot it runs at, for `scope`'s life. */
-  lendView(scope: Scope): void {
-    const { sources, cells: ids, tells } = ARENA_VIEW, pose = this.pose;
-    lendViewValues(scope, sources.life, field => this.life.value(field));
-    lendViewValues(scope, sources.clocks, field => this.clocks.value(field));
-    lendViewValues(scope, sources.pose, field => field === 'bend' ? pose.bend : field === 'raise' ? pose.raise : field === 'castL' ? pose.castL : Number.NaN);
-    lendViewValues(scope, sources.spear, field => field === 'x' ? this.spearAt.x : field === 'z' ? this.spearAt.z : Number.NaN);
-    const cells = { bend: { value: pose.bend }, raise: { value: pose.raise }, castL: { value: pose.castL }, struck: { value: 0 }, alpha: { value: 0 } };
-    for (const key of ['bend', 'raise', 'castL', 'struck', 'alpha'] as const) lendViewCell(scope, ids[key], cells[key]);
-    lendViewTell(scope, tells.spear, this.arena.tell('spear')); lendViewTell(scope, tells.fork, this.arena.tell('fork'));
-    for (const [i, chain] of this.chains.entries()) lendViewTell(scope, arenaChainTell(i), chain.tell);
-    const view = { frame: lendViewFrame(scope, ARENA_VIEW.slot).frame, cells };
-    // the grass fire: its field (modes, lifetimes, the ground under each cell, this frame's burnt-out cells), its values
-    // and its draws, at the fire's own slot
-    const fire = ARENA_VIEW.fire, field = this.field, ground = new Float32Array(field.length), smoke = this.data.arenaFire.cells?.smoke;
-    for (let c = 0; c < field.length; c++) ground[c] = heightAt(field.x(c), field.z(c));
-    const smokeRate = smoke === undefined ? 0 : TIER === 'phone' ? smoke[0] : smoke[1];
-    const values: Readonly<Record<string, () => number>> = { on: () => Number(this.fireOn), clear: () => Number(this.fireClear), windX: () => wind.dirX,
-      windZ: () => wind.dirZ, windSpeed: () => wind.speed, smokeCap: () => this.fire.smoke.instanceMatrix.count, smokeRate: () => smokeRate,
-      scorchCap: () => this.scorch.instanceMatrix.count };
-    lendViewValues(scope, fire.values, name => values[name]?.() ?? Number.NaN);
-    lendViewArray(scope, fire.arrays.modes, () => field.modeCells); lendViewArray(scope, fire.arrays.lifetimes, () => field.lifetimeCells);
-    lendViewArray(scope, fire.arrays.ground, () => ground); lendViewArray(scope, fire.arrays.burnt, () => this.burnt);
-    lendViewDraw(scope, fire.draws.flames, this.fire.flames); lendViewDraw(scope, fire.draws.smoke, this.fire.smoke); lendViewDraw(scope, fire.draws.scorch, this.scorch);
-    const fireFrame = lendViewFrame(scope, fire.slot).frame;
-    this.fireFrame = fireFrame; scope.onDispose(() => { if (this.fireFrame === fireFrame) this.fireFrame = null; });
-    // the whirlwinds: each one's ease, visibility and stand after its law (the ease and the gate stay here: they decide which
-    // laws step), its funnel and their debris, at the whirl slot
-    const whirls = ARENA_VIEW.whirls, fields = new Map<string, () => number>();
-    for (const [i, row] of this.whirls.drawn.entries()) for (const key of ['k', 'shown', 'x', 'y', 'z'] as const) fields.set(`${key}${String(i)}`, () => row[key]);
-    lendViewValues(scope, whirls.values, name => fields.get(name)?.() ?? Number.NaN);
-    for (const [i, funnel] of this.whirls.funnels.entries()) publishEntryOwner(scope, 'object', arenaFunnel(i), funnel);
-    lendViewDraw(scope, whirls.draws.debris, this.whirls.debris);
-    const whirlFrame = lendViewFrame(scope, whirls.slot).frame;
-    this.whirlFrame = whirlFrame; scope.onDispose(() => { if (this.whirlFrame === whirlFrame) this.whirlFrame = null; });
-    this.view = view; scope.onDispose(() => { if (this.view === view) this.view = null; });
   }
 
   // ── BossScript ──
@@ -281,18 +227,19 @@ export class ArenaScriptFight implements BossScript {
       if (this.life.value(this.data.script.fight.retainEvents.step.spread)===1 && step.dt>0) this.updateChains(step.values);
     }
     if (decision.dt>0) this.life.event('tell',{ t,mode: this.clocks.value('mode'),spearT: this.clocks.value('t'),chainLeft: this.chainLeft,bend: this.pose.bend,raise: this.pose.raise });
-    // the frame slot: the view module eases the pose and draws the spear, fork and chain rings (behaviour titanView);
-    // the aim's operands are captured here, before the whirls and the fire (a reset during their contact keeps them)
-    let struck = 0, alpha = 0;
-    const view = this.view;
-    if (view !== null) {
-      view.frame(dt, t); const c = view.cells;
-      this.pose.bend = c.bend.value; this.pose.raise = c.raise.value; this.pose.castL = c.castL.value; struck = c.struck.value; alpha = c.alpha.value;
-    }
+    const tell = this.life.state,slots=this.data.script.fight.retainEvents.tell,struck=tell[slots.struck],alpha=tell[slots.alpha];
+    this.pose.bend += ((tell[slots.bend] ?? this.pose.bend)-this.pose.bend)*Math.min(1,dt*(tell[slots.bendRate] ?? 0));
+    this.pose.raise += ((tell[slots.raise] ?? this.pose.raise)-this.pose.raise)*Math.min(1,dt*(tell[slots.raiseRate] ?? 0));
+    this.pose.castL += ((tell[slots.castL] ?? 0)-this.pose.castL)*Math.min(1,dt*4);
+    if (tell[slots.tell]===1) {
+      this.arena.tell('spear').ring(this.spearAt.x,this.spearAt.z,tell[slots.ringRadius] ?? 0,tell[slots.ringAlpha] ?? 0);
+      this.arena.tell('fork').ring(this.spearAt.x,this.spearAt.z,tell[slots.forkRadius] ?? 0,tell[slots.forkAlpha] ?? 0);
+    } else { this.arena.tell('spear').hide(); this.arena.tell('fork').hide(); }
+    for (const ring of this.chains) if (this.clocks.value(ring.row.on)===1) ring.tell.ring(this.clocks.value(ring.row.x),this.clocks.value(ring.row.z),tell[slots.chainRadius] ?? 0,tell[slots.chainAlpha] ?? 0);
     this.updateWhirls(dt, t, fighting && this.victoryT < 0, this.hazardDt);
     this.updateFire(dt, t, fighting && this.victoryT < 0, this.hazardDt);
     // the spear in his hand (raised) or stuck in the meadow
-    b.aim(struck===1 ? this.spearAt : null,b.visible ? alpha : 0);
+    b.aim(struck===1 ? this.spearAt : null,b.visible ? alpha ?? 0 : 0);
     b.update(t, this.ctx.game.camera);
   }
 
@@ -305,6 +252,7 @@ export class ArenaScriptFight implements BossScript {
     // the rain puts the fire out: every burning cell goes to black
     for (const cell of this.field.deactivate()) this.addScorch(cell);
     this.fireOn = false;
+    this.fire.out();
     this.whirls.arm(0);
   }
 
@@ -412,20 +360,17 @@ export class ArenaScriptFight implements BossScript {
 
   private ignite(x: number, z: number): void { this.field.activate(x, z); }
   private addScorch(c: number): void {
-    this.burntQueue.push(c);
+    this.fire.scorchCell(this.field, c);
     wildEnv.trample(this.field.x(c), this.field.z(c), this.data.tuning.cell * 0.6, 1, 0, 0);   // the grass burnt flat
   }
-  private clearFire(): void { this.field.clear(); this.burntQueue.length = 0; this.fireClear = true; this.fireOn = false; }
+  private clearFire(): void { this.field.clear(); this.fire.clear(); this.fireOn = false; }
 
   private updateFire(dt: number, t: number, live: boolean, thinkDt = 0): void {
-    this.fire.update(t, wind.dirX, wind.dirZ, wind.speed, this.body.fogColour, this.body.flash.value);
-    if (this.fireOn && live) for (const cell of this.field.update(dt, { wx: wind.dirX, wz: wind.dirZ })) this.addScorch(cell);
-    // the fire slot: the view module draws the smoke, the burning cells' flames and up to a frame's share of the burnt-out
-    // cells' scorch; what it has not run for (its lane's rate can skip a frame) waits for the frame it runs
-    const n = Math.min(ARENA_BURNT_PER_FRAME, this.burntQueue.length); this.burnt[0] = n;
-    for (let k = 0; k < n; k++) this.burnt[1 + k] = this.burntQueue[k] ?? 0;
-    if (this.fireFrame?.(dt, t) === true) { this.burntQueue.splice(0, n); this.fireClear = false; }
-    if (!this.fireOn || !live || thinkDt <= 0) return;
+    this.fire.update(dt, t, wind.dirX, wind.dirZ, wind.speed, this.body.fogColour, this.body.flash.value);
+    if (!this.fireOn) return;
+    if (live) for (const cell of this.field.update(dt, { wx: wind.dirX, wz: wind.dirZ })) this.addScorch(cell);
+    this.fire.drawField(this.field, dt, wind.dirX, wind.dirZ);
+    if (!live || thinkDt <= 0) return;
     // the player in fire: 8 / s; the horse panics near it
     const p = this.host.player.position;
     const contact = this.field.sense(thinkDt, p, { mounted: Number(this.host.mounted()) });
@@ -446,10 +391,8 @@ export class ArenaScriptFight implements BossScript {
 
   private updateWhirls(dt: number, t: number, live: boolean, thinkDt: number): void {
     const p = this.host.player.position;
-    const hits = this.whirls.update(dt, t, live, thinkDt, { wx: wind.dirX, wz: wind.dirZ, px: p.x, pz: p.z });
-    // the whirl slot: the view module draws the funnels and their debris where their laws put them
-    this.whirlFrame?.(dt, t);
-    for (const at of hits) if (this.host.contact('whirl', at, this.data.tuning.whirlDamage, this.data.lines.whirl)) this.host.throwRider();
+    for (const at of this.whirls.update(dt, t, live, thinkDt, { wx: wind.dirX, wz: wind.dirZ, px: p.x, pz: p.z }))
+      if (this.host.contact('whirl', at, this.data.tuning.whirlDamage, this.data.lines.whirl)) this.host.throwRider();
   }
 
   // ── a strike from the sky ──
@@ -473,7 +416,7 @@ export class ArenaScriptFight implements BossScript {
 
 /** The entered native owner supplies all effects. No authored function is an
  * argument to this constructor or to bind; resources remain with their owners. */
-export class ArenaScriptEncounter {
+export class OriginalOpenArenaEncounter {
   readonly fight: ArenaScriptFight;
   readonly spareLight: THREE.PointLight;
   boss: Boss | null = null; ui: BossBar | null = null;
@@ -550,7 +493,6 @@ export class ArenaScriptEncounter {
     this.boss = encounter.boss; this.ui = encounter.ui; runtime.interactables.push(this.prompt);
     if (encounter.boss.rewardTaken) kit.upgradeBlade('blade-reward',play.weapons,power);
     installArenaBoundary(ctx.scope,this.fight.boundary);
-    this.fight.lendView(ctx.scope);
     listenPage(ctx.scope,'keydown',event => { if (event instanceof KeyboardEvent && event.code === 'Enter') this.skipEnter = true; });
     listenPage(ctx.scope,'keyup',event => { if (event instanceof KeyboardEvent && event.code === 'Enter') this.skipEnter = false; });
     listenPage(ctx.scope,'pointerdown',() => { this.skipTouch = true; });

@@ -29,7 +29,7 @@ export function preflightIslandBook(product: ShardProduct, row: AssemblyRow): vo
   }
   if (row.library === undefined) {
     if (row.catalogue !== undefined || construction.root === undefined || construction.publish !== undefined || construction.cells !== undefined) throw new Error('Scene assembly requires its root without a library publication or cells');
-    if (assembly.stages.some(stage => stage.kind === 'site' || stage.kind === 'rope-deck' || stage.kind === 'rope-chain' || stage.kind === 'ambient-flock' || stage.kind === 'streamed-cover' || stage.kind === 'weather' || stage.kind === 'arena-script')) throw new Error('Scene assembly cannot construct a library or native encounter stage');
+    if (assembly.stages.some(stage => stage.kind === 'site' || stage.kind === 'rope-deck' || stage.kind === 'rope-chain' || stage.kind === 'ambient-flock' || stage.kind === 'streamed-cover' || stage.kind === 'weather' || stage.kind === 'arena-room')) throw new Error('Scene assembly cannot construct a library or native encounter stage');
     if (assembly.stages.some(stage => stage.kind === 'entry' && stage.rows.some(step => step.kind === 'piece' && step.active !== undefined))) throw new Error('Active pieces require their separate entered binding');
     return;
   }

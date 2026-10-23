@@ -26,7 +26,7 @@ function readProgram(input: unknown): Omit<v.InferOutput<typeof ReturnProgramSch
   if (row.v2 !== undefined) {
     const v2 = parseReturnProjectionV2(row.v2);
     if (Object.keys(script.params).length > 0 || script.reads.some(read => read !== 'field' && read !== 'random' && read !== 'radial')
-      || (['fields','signals','channels'] as const).some(kind => JSON.stringify(Object.values(script[kind]).sort()) !== JSON.stringify(v2[kind]))) throw new Error('Mismatched return projection declaration');
+      || (['fields','signals','channels'] as const).some(kind => JSON.stringify([...Object.values(script[kind]).sort(),...(v2.additional?.[kind]??[])]) !== JSON.stringify(v2[kind]))) throw new Error('Mismatched return projection declaration');
   }
   return {...row,script};
 }
@@ -38,6 +38,7 @@ function readProgram(input: unknown): Omit<v.InferOutput<typeof ReturnProgramSch
 export class ReturnProgram {
   private readonly module: DecisionModule | null = null;
   private readonly script: DecisionScriptRow;
+  private readonly signalNames:readonly string[];
   private readonly layout: ReturnType<typeof scriptV1Layout>;
   private observations: Readonly<Record<string, number>> = {};
   private candidates: readonly Readonly<Record<string, number>>[] = [];
@@ -52,7 +53,7 @@ export class ReturnProgram {
       || script.timers.length > 0 || script.on.length !== 1 || script.on[0] !== 'signal'
       || script.commands.some(command => command !== 'channel')
       || script.reads.some(read => !['field', 'random', 'groundHeight', 'radial'].includes(read))) throw new Error('Invalid return projection');
-    this.script = script; this.layout = scriptV1Layout(0, Object.keys(script.params).length);
+    this.script = script;this.signalNames=row.v2?.signals??Object.values(script.signals).sort(); this.layout = scriptV1Layout(0, Object.keys(script.params).length);
     const fields = Object.values(script.fields).sort();
     const bytes = Uint8Array.from(atob(row.bytes), byte => byte.codePointAt(0) ?? 0);
     if (`blobs/wasm/${sha256(bytes)}.wasm` !== script.module) throw new Error('Return module hash mismatch');
@@ -107,13 +108,13 @@ export class ReturnProgram {
     return program;
   }
   /** Detached declared names for resource preflight before allocating a module. */
-  static projectionBindings(input:unknown):{readonly script:Pick<DecisionScriptRow,'signals'|'channels'>} { const {script}=readProgram(input);return {script}; }
+  static projectionBindings(input:unknown):{readonly script:Pick<DecisionScriptRow,'fields'|'signals'|'channels'>} { const row=readProgram(input);return {script:row.v2===undefined?row.script:{fields:Object.fromEntries(row.v2.fields.map(name=>[name,name])),signals:Object.fromEntries(row.v2.signals.map(name=>[name,name])),channels:Object.fromEntries(row.v2.channels.map(name=>[name,name]))}}; }
   /** Built-in terrain owners share one admitted instance per module and scope. */
   static native(host: SimHost, input: unknown): ReturnProgram { return ReturnProgram.owned(host.scope, input, (x, z) => host.groundHeightAt(x, z)); }
   static page(input: unknown, owner?: Scope): ReturnProgram { return owner === undefined ? new ReturnProgram(input, terrainHeight) : ReturnProgram.owned(owner, input, terrainHeight); }
 
   /** Resolve only the admitted signal table for a same-call native barrier. */
-  signalName(id:number):string{const name=Number.isInteger(id)?Object.values(this.script.signals).sort()[id-1]:undefined;if(name===undefined)throw new Error('Unknown return signal');return name;}
+  signalName(id:number):string{const name=Number.isInteger(id)?this.signalNames[id-1]:undefined;if(name===undefined)throw new Error('Unknown return signal');return name;}
 
   /** A request is atomic with its borrowed stream. Refusals publish no channel
    * and restore the stream, including traps after one or more terrain retries. */
@@ -197,7 +198,7 @@ export class ProjectedState<S extends Record<string,number> = Record<string,numb
     const retain=row.retain??Object.fromEntries(Object.keys(row.initial).map(key=>[key,key]));
     const channels=program===undefined?null:new Set(Object.values(program.script.channels));
     const signals=program===undefined?null:new Set(Object.values(program.script.signals));
-    if(signals!==null&&[...Object.values(row.signals??{}),...(row.signal===undefined?[]:[row.signal])].some(signal=>!signals.has(signal)))throw new Error('Missing projection event');
+    if(signals!==null&&[...Object.values(row.signals??{}),...(row.signal===undefined?[]:[row.signals===undefined?row.signal:row.signals[row.signal]])].some(signal=>signal===undefined||!signals.has(signal)))throw new Error('Missing projection event');
     if(channels!==null&&row.outputs?.some(channel=>!channels.has(channel))===true)throw new Error('Missing projection channel');
     for(const [event,map]of Object.entries(row.retainEvents??{})){
       const signal=row.signals===undefined?event:row.signals[event];

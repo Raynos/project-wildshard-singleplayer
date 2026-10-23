@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { CombatTargetRowsSchema } from '@wildshard/format/targets';
 import type { RayTargets } from '@wildshard/engine/combat/targets';
-import type { ArenaScriptEncounter } from '../boss/arenaScript';
+import type { ArenaRoomEncounter } from '../boss/arenaRoom';
 import type { TimedEncounters } from '../boss/timedEncounters';
 import type { CrowdWeaponTarget, ForagerTargets } from './crowdRuntime';
 import type { ShardContext } from '../plugin/context';
@@ -11,7 +11,7 @@ import { installEnteredLevelService } from '../shard/retainedHooks';
 
 /** Borrow original native projections; rows never provide a callback or factory. */
 export type CombatTargetOwner = Pick<CrowdWeaponTarget<ForagerTargets>, 'raycast'>
-  | Pick<TimedEncounters, 'target'> | Pick<ArenaScriptEncounter, 'target' | 'lockTarget'>;
+  | Pick<TimedEncounters, 'target'> | Pick<ArenaRoomEncounter, 'target' | 'lockTarget'>;
 
 /** Register ordered native target refinements in the original entered lifetime.
  * All ids and methods resolve before registration. Every query checks the whole

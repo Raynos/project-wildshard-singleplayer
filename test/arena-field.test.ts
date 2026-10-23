@@ -1,8 +1,8 @@
+import { installArenaBoundary, arenaBoundaryBlocked } from '../src/game/riding/client';
 import { expect, test } from 'vitest';
 import { parse } from 'valibot';
 import { CellFieldSchema } from '../src/format/cellField';
 import { CellField } from '../src/game/systems/cellField';
-import { installArenaBoundary,arenaBoundaryBlocked } from '../src/game/boss/arenaField';
 import { Scope } from '../src/engine/app/scope';
 import { ProjectedState,ReturnProgram } from '../src/game/population/returnProgram';
 import { Rng } from '../src/engine/core/rng';

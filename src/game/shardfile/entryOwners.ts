@@ -1,7 +1,6 @@
 /** Client-only concrete loans between compiled entry capabilities. No shard
  * callbacks, reflected paths, clocks or continuation state live in this book. */
 import type { Object3D, Vector3 } from 'three';
-import type { ArenaScriptEncounter } from '../boss/arenaScript';
 import type { ArenaRoomEncounter } from '../boss/arenaRoom';
 import type { PageTamingOwner } from '../riding/client';
 import type { AdventurePersistence } from '../quest/persistence';
@@ -35,7 +34,6 @@ export interface EntryOwnerTypes {
   scenes: SceneHandles;
   'world-weather': ForestWeatherRig;
   'world-point': Vector3 | null;
-  'arena-script': ArenaScriptEncounter;
   'arena-room': ArenaRoomEncounter;
   taming: PageTamingOwner;
   adventure: AdventurePersistence;
@@ -73,7 +71,7 @@ function check(scope: Scope, id: string): void {
 function book(scope: Scope): Owners {
   let value = books.get(scope);
   if (value === undefined) {
-    value = { 'world-frame': new Map(), scenes: new Map(), 'world-weather': new Map(), 'world-point': new Map(), 'arena-script': new Map(), 'arena-room': new Map(), taming: new Map(), adventure: new Map(), buildings: new Map(), forest: new Map(), cave: new Map(), quest: new Map(), 'quest-reference': new Map(),
+    value = { 'world-frame': new Map(), scenes: new Map(), 'world-weather': new Map(), 'world-point': new Map(), 'arena-room': new Map(), taming: new Map(), adventure: new Map(), buildings: new Map(), forest: new Map(), cave: new Map(), quest: new Map(), 'quest-reference': new Map(),
       object: new Map(), placed: new Map(), site: new Map(), floor: new Map(), 'fixed-draws': new Map(), 'drawn-models': new Map(), chain: new Map(), 'rope-deck': new Map(), ambient: new Map(), 'ambient-draw': new Map(), collection: new Map(), claims: new Map(),
       animals: new Map(), sounds: new Map(), 'quest-spawns': new Map(), 'painted-world': new Map() };
     books.set(scope, value);

@@ -468,3 +468,11 @@ test('G621 D4 retires only the three already-approved chapter dependency overrid
   expect(native.get(`${combat}\0sourceMultiplier`)).toEqual(new Set(['nalati-grasslands']));
   expect(approvedG571Host(approvals, combat, 'sourceMultiplier')).toBe(false);
 });
+
+
+test('the open-arena projection remains charged after lifecycle convergence',()=>{
+  for(const name of ['OpenArenaProjection','arenaScriptCloud','readArenaScriptData'])expect(platformChargeback('src/game/boss/arenaRoom.ts',name)).toBe('C4');
+  for(const name of ['arenaBlockedAt','installArenaBoundary','arenaBoundaryBlocked'])expect(platformChargeback('src/game/riding/client.ts',name)).toBe('C4');
+  expect(platformChargeback('src/game/boss/arenaRoom.ts','buildOpenArenaEncounter')).toBe('C9');
+  expect(platformChargeback('src/game/boss/arenaRoom.ts','ArenaRoomEncounter')).toBeNull();
+});

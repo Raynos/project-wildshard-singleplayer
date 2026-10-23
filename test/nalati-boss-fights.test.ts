@@ -1,3 +1,4 @@
+import { arenaRoomFight, ArenaRoomEncounter } from '../src/game/boss/arenaRoom';
 import type { Animal } from '../src/engine/entities/AnimalView';
 import { eliteDamageMul } from '../src/engine/entities/eliteBrain';
 // @vitest-environment happy-dom
@@ -7,7 +8,6 @@ import type { ShardRuntime, ShardPlayHost } from '../src/game/shard/runtime';
 import type { ShardWorld } from '../src/game/shard/world';
 import type { HUD } from '../src/engine/ui/HUD';
 import { parseRuntimeSpawns } from '../src/format/runtimeSpawns';
-import { arenaRoomFight } from '../src/game/boss/arenaRoom';
 import NALATI_RUNTIME_SPAWNS from '../src/shards/nalati-grasslands/data/spawns.json' with { type: 'json' };
 import { expect, test,vi } from 'vitest';
 import { parse } from 'valibot';
@@ -18,7 +18,6 @@ import { silentBossPresentation } from '../src/engine/ai/phases';
 import { overrideTerrain } from './fake/terrain';
 import { Scope } from '../src/engine/app/scope';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
-import { ArenaScriptEncounter, type ArenaScriptFight } from '../src/game/boss/arenaScript';
 import { parseArenaScriptData } from '@wildshard/format/arenaScriptRows';
 import { PatrolEncounterView } from '../src/game/boss/encounterView';
 import { CueDirector } from '../src/game/audio/cueDirector';
@@ -133,13 +132,24 @@ test.each([false,true])('arena script runs mounted phases, exposes its heart and
     if(malformed==='retain')invalid.clocks.frame.retain['hostile']='missing';
     if(malformed==='clear'){const first=invalid.clocks.landings[0];if(first===undefined)throw new Error('Missing landing');delete invalid.clocks.clear[first.on];}
     if(malformed==='alias'){const first=invalid.clocks.landings[0],second=invalid.clocks.landings[1];if(first===undefined||second===undefined)throw new Error('Missing landing rows');second.on=first.on;}
-    expect(()=>new ArenaScriptEncounter({game,player:f.player,weather:weather.weather,air:weather.air,tieSpot:null},invalid)).toThrow('Invalid encounter clock bank');
+    expect(()=>new ArenaRoomEncounter({kind:'open',world:{game,player:f.player,weather:weather.weather,air:weather.air,tieSpot:null},rows:invalid})).toThrow('Invalid encounter clock bank');
   }
   const invalidSnapshot=structuredClone(data);invalidSnapshot.script.fight.retainEvents.tell.bend='missing';
-  expect(()=>new ArenaScriptEncounter({game,player:f.player,weather:weather.weather,air:weather.air,tieSpot:null},invalidSnapshot)).toThrow('Missing projection state slot');
+  expect(()=>new ArenaRoomEncounter({kind:'open',world:{game,player:f.player,weather:weather.weather,air:weather.air,tieSpot:null},rows:invalidSnapshot})).toThrow('Missing projection state slot');
+  for(const bad of ['intro-clock-channel','clock-event','support-slot','member-slot','whirl-slot','field-channel','field-signal']){
+    const invalid=structuredClone(data);
+    if(bad==='intro-clock-channel')invalid.script.fight.retainEvents.introClock.zzzzIntroTick='missing';
+    if(bad==='clock-event')invalid.clocks.frame.signals.step='missingEvent';
+    if(bad==='support-slot')invalid.support.initial['missing']=0;
+    if(bad==='member-slot')invalid.support.member['missing']=0;
+    if(bad==='whirl-slot'){const row=invalid.whirls.laws[0];if(row===undefined)throw new Error('Missing whirl');row.retain={missing:'missing'};}
+    if(bad==='field-channel')invalid.field.channels.lifetime='missingChannel';
+    if(bad==='field-signal')invalid.field.signals.activate='missingEvent';
+    expect(()=>new ArenaRoomEncounter({kind:'open',world:{game,player:f.player,weather:weather.weather,air:weather.air,tieSpot:null},rows:invalid})).toThrow();
+  }
   expect(allocate).not.toHaveBeenCalled();expect(add).not.toHaveBeenCalled();allocate.mockRestore();add.mockRestore();
   const intake=vi.spyOn(ReturnProgram,'page');
-  const owner = new ArenaScriptEncounter({ game,player: f.player,weather: weather.weather,air: weather.air,tieSpot: null },data);
+  const owner = new ArenaRoomEncounter({kind:'open',world:{ game,player: f.player,weather: weather.weather,air: weather.air,tieSpot: null },rows:data});
   expect(intake.mock.calls).toStrictEqual([[data.programs.attack,scope],[data.programs.wind,scope]]);intake.mockRestore();
   const riders = new PatrolEncounterView({ patrol: night.patrol,motion: night.motion,view: parse(PatrolViewSchema,night.ride) },ReturnProgram.page(night.program,scope),
     { game,sky: f.sky,player: f.player,forest: f.forest,cues: new CueDirector(game,night.cues,scope),figures: { rider: figure,captain: figure,storm: figure } });
@@ -147,7 +157,7 @@ test.each([false,true])('arena script runs mounted phases, exposes its heart and
   owner.mount = new Mount(legacyDouble<LevelContext>({ app,scope }),f.player,f.manager,
     { speeds: { walk: 1.8,trot: 4.5,canter: 8.5,gallop: 13 },names: {},thrownDamage: 7,thrownLabel: 'Thrown',restAt: { x: 3,z: 5 } });
   const horse = f.manager.spawn('horse',0,0,0); owner.mount.horse = horse;
-  const fight = owner.fight;
+  const fight = owner.openFight;
   adoptTitanView(fight, scope);
   f.player.position.set(world.CAIRN.x, 0, world.CAIRN.z + titan.TITAN_PLACE.centreZ); fight.tied = true;
   const e = encounter(data.definition, fight, f.player.position), direction = new Vector3(0, 0, -1);
@@ -211,3 +221,5 @@ test('arena roles are full-row aliases and retired payload roles refuse',()=>{
   expect(Object.keys(parseArenaScriptData(input,geometry).programs)).toStrictEqual(['attack','wind']);
   for(const key of ['fire','rules'])expect(()=>parseArenaScriptData({...input,programs:{...input.programs,[key]:programs.attack}},geometry)).toThrow('Invalid key');
 });
+
+type ArenaScriptFight=ArenaRoomEncounter['openFight'];

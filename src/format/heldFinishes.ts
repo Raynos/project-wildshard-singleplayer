@@ -20,7 +20,7 @@ const effect = v.pipe(text, v.regex(/^effect\./u)) as v.GenericSchema<`effect.${
 const CosmeticFinishBindSchema = v.strictObject({ claims: text,
   held: v.pipe(v.array(v.strictObject({ target: text, slot: text, part: v.picklist(['blade', 'arrows']) })), v.maxLength(16)),
   mounts: v.exactOptional(v.strictObject({ target: text, taming: text })),
-  facts: v.pipe(v.array(v.strictObject({ fact: text, owner: v.picklist(['arena-room', 'arena-script']), id: text })), v.maxLength(16)),
+  facts: v.pipe(v.array(v.strictObject({ fact: text, owner: v.picklist(['arena-room']), id: text })), v.maxLength(16)),
   restyle: v.exactOptional(v.strictObject({ target: text, slot: text, styles: v.pipe(v.array(text), v.minLength(1), v.maxLength(16)) })) });
 export type CosmeticFinishBind = v.InferOutput<typeof CosmeticFinishBindSchema>;
 /** Client-only cosmetic paint operations. Targets are bound object ids; no reflected paths or shard callbacks. */

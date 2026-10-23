@@ -18,7 +18,7 @@ beforeAll(async()=>{
   const row=programs.attack.script;
   const ids=(values:Readonly<Record<string,string>>):Map<string,number>=>new Map(Object.values(values).sort().map((name,index)=>[name,index+1]));
   built=await compileReturnProjectionV2(row,{fields:ids(row.fields),signals:ids(row.signals),channels:ids(row.channels)},
-    readDecisionSources(new URL('../src/shards/nalati-grasslands/',import.meta.url).pathname),{asLineCeiling:2837,projectSource:'behaviour/titanClockFrame.as',outputCapacity:96});
+    readDecisionSources(new URL('../src/shards/nalati-grasslands/',import.meta.url).pathname),{asLineCeiling:2837,projectSource:'behaviour/titanCommands.as',outputCapacity:96,worldActions:true,additional:programs.attack.v2.additional});
   const layout=returnProjectionV2Layout(1);
   const bytes=await compileScriptV2(`import * as core from './core';
     export function ws_abi():i32{return 2;}export function ws_io():i32{return 0;}

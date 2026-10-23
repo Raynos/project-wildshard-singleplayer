@@ -149,7 +149,7 @@
       "file": "world/weather.json"
     },
     {
-      "kind": "arena-script",
+      "kind": "arena-room",
       "id": "nalati.titan",
       "files": {
         "fight": "combat/titan-fight.json",

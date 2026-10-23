@@ -281,7 +281,7 @@
       },
       {
         "fact": "storm",
-        "owner": "arena-script",
+        "owner": "arena-room",
         "id": "fight"
       }
     ],

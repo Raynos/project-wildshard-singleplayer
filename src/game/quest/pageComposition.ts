@@ -3,7 +3,6 @@ import * as THREE from 'three';
 import type { QuestPageRows, ChapterViewRows } from '@wildshard/format/questPageComposition';
 import type { PageTamingOwner } from '../riding/client';
 import { ArenaRoomEncounter } from '../boss/arenaRoom';
-import { ArenaScriptEncounter } from '../boss/arenaScript';
 import { CarriedQuestProp } from './carriedProp';
 import { enteredAdventurePersistence, publishChapterFlags } from './chapterBindings';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
@@ -159,7 +158,7 @@ export async function prepareQuestPageComposition(ctx: ShardContext, input: Ques
  * callbacks, runtime object paths or a second saved-state book. */
 export interface ChapterViewOwners {
   readonly taming: PageTamingOwner | null; readonly arena: ArenaRoomEncounter;
-  readonly fight: ArenaScriptEncounter; readonly figures?: unknown;
+  readonly fight: ArenaRoomEncounter; readonly figures?: unknown;
 }
 export function installQuestPageComposition(ctx: ShardContext, input: { readonly chapterView: string; readonly story: string }, owners: ChapterViewOwners): Promise<Flags>;
 export function installQuestPageComposition(ctx: ShardContext, input: QuestPageRows): Promise<QuestPageComposition>;
@@ -168,7 +167,7 @@ export async function installQuestPageComposition(ctx: ShardContext, input: Ques
   if ('chapterView' in input) {
     const runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play;
     if (runtime === undefined || world === undefined || world === null || play === undefined || play === null || owners === undefined
-      || !(owners.arena instanceof ArenaRoomEncounter) || !(owners.fight instanceof ArenaScriptEncounter)) throw new Error('Chapter view requires its concrete entered owners');
+      || !(owners.arena instanceof ArenaRoomEncounter) || !(owners.fight instanceof ArenaRoomEncounter)) throw new Error('Chapter view requires its concrete entered owners');
     const product = ctx.product, ports = owners, { taming, arena, fight, figures } = ports;
     const live = (): void => { if (ports.taming !== taming || ports.arena !== arena || ports.fight !== fight || ports.figures !== figures
       || ctx.scope.disposed || ctx.scope.disposing || ctx.product !== product || ctx.game.runtime !== runtime
@@ -190,7 +189,7 @@ export async function installQuestPageComposition(ctx: ShardContext, input: Ques
     const project = (signal: string): void => { chapter.project(signal, { [rows.timeField]: now }); };
     const poll = (): void => {
       const observed = { 'taming.bonded': Number(taming?.phase === 'bonded'), 'taming.upgraded': Number(taming?.upgraded === true),
-        'arena.inside': Number(arena.inside), 'arena.tied': Number(fight.fight.tied) };
+        'arena.inside': Number(arena.inside), 'arena.tied': Number(fight.tied) };
       chapter.project(rows.signal, { [rows.timeField]: now, ...Object.fromEntries(Object.entries(rows.observations).map(([field, source]) => [field, observed[source]])) });
       if (now - pulseT > rows.pulse.interval) { pulseT = now; project(rows.pulse.signal); }
     };

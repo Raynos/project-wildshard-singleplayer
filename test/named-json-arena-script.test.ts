@@ -1,3 +1,4 @@
+import { readArenaScriptData } from '../src/game/boss/arenaRoom';
 import { expect,test } from 'vitest';
 import { ArenaScriptFightFileSchema,ArenaScriptGeometrySchema } from '@wildshard/format/arenaScriptRows';
 import { TimedEncountersSchema,CloudSpecimenSchema } from '@wildshard/format/encounterRows';
@@ -5,7 +6,6 @@ import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import { readArenaScriptData } from '../src/game/boss/arenaScript';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import titan from '../src/shards/nalati-grasslands/data/stormTitanFight.generated.json' with {type:'json'};
 import geometry from '../src/shards/nalati-grasslands/data/stormTitanGeometry.generated.json' with {type:'json'};

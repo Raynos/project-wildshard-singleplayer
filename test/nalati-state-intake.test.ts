@@ -6,7 +6,6 @@ import type { ShardWorld } from '../src/game/shard/world';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import type { ShardContext } from '../src/game/plugin/context';
 import type { ForestWeatherRig } from '../src/game/weather/forest';
-import type { ArenaScriptEncounter } from '../src/game/boss/arenaScript';
 import type { FixedDraws } from '../src/game/models/fixedDraws';
 import { WorldAssembly } from '../src/game/shardfile/worldAssembly';
 import { SceneDressing } from '../src/game/shardfile/sceneDressing';
@@ -38,7 +37,7 @@ test('the shipped fight envelope reaches the real state King intake with the sel
     sky:legacyDouble<NonNullable<ForestWeatherRig['sky']>>({clock:legacyDouble<NonNullable<ForestWeatherRig['sky']>['clock']>({}),
       look:legacyDouble<NonNullable<ForestWeatherRig['sky']>['look']>({}),dome:legacyDouble<NonNullable<ForestWeatherRig['sky']>['dome']>({})}),weather:legacyDouble<ForestWeatherRig['weather']>({})});
   publishEntryOwner(scope,'world-weather','nalati.weather',rig);
-  publishEntryOwner(scope,'arena-script','nalati.titan',legacyDouble<ArenaScriptEncounter>({}));
+  publishEntryOwner(scope,'arena-room','nalati.titan',legacyDouble<ArenaRoomEncounter>({}));
   publishEntryOwner(scope,'drawn-models','nalati.trophies',new Map());
   const stop=new Error('King intake reached');let selected:ReturnProgram|undefined;
   const draws:FixedDraws={ready:true,load:()=>Promise.resolve(),handle:()=>{throw new Error('Unrelated geometry intake');}};
@@ -55,3 +54,5 @@ test('the shipped fight envelope reaches the real state King intake with the sel
     expect(selected).toBe(ReturnProgram.page(fight.programs['attack'],scope));
   }finally{king.mockRestore();charge.mockRestore();dressing.mockRestore();construct.mockRestore();prepare.mockRestore();scope.dispose();}
 });
+
+type ArenaRoomEncounter=room.ArenaRoomEncounter;

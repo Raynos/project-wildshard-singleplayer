@@ -60,7 +60,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
 
   // ── Jel Ata the Storm Titan (B14; src/shards/nalati-grasslands/stormTitan.ts): the Wind Cairn's threshold (mounted, in a natural storm), the
   //    Titan beyond the south rim, the arena's wall / whirlwinds / riders / fire; the heart joins the Targets chain below ──
-  const titan = entryOwner(plugin.scope, 'arena-script', 'nalati.titan');
+  const titan = entryOwner(plugin.scope, 'arena-room', 'nalati.titan');
   updates.push((dt, t) => { titan.update(dt, t); });
 
   // ── the look (src/shards/nalati-grasslands/look/): ONE seamless 360° panorama on a sky dome — the painting is the sky, the clouds, the

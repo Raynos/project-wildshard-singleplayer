@@ -11160,7 +11160,7 @@ world-matrix writes keep their original view phase.
 - `game/population/mixedRoster`: Native mixed roster rows own policy selection, reserved slots, return gates, poses and volley continuation.
 
 - `game/population/nativeBake`: Strict readers bind admitted actor and physics bake rows to native population owners.
-- `game/boss/arenaScript`: Declared arena programs bind boss state, attacks, contacts and entered encounter services.
+- `game/boss/arenaRoom`: One row-selected open/closed encounter lifecycle binds native boss, reward, input and saved owners. Open-arena decisions remain in the selected AS projection; capture, native effects and inline views retain their original slots.
 
 ### Developer hover boost (G540)
 
@@ -11623,12 +11623,12 @@ second service book, body owner, decision clock or save is created.
 `game/quest/pageComposition.installQuestPageComposition(ctx,
 {chapterView, story}, owners)` reads the named admitted documents and returns
 the existing Flags. `ChapterViewOwners` borrows a concrete PageTamingOwner
-or null, ArenaRoomEncounter, ArenaScriptEncounter and admitted figure rows.
+or null, separate closed/open ArenaRoomEncounter owners and admitted figure rows.
 The defining `format/questPageComposition.ChapterViewSchema` supplies finite
 mounted/arena observations, update-system order, cadence and guest signal
 ids; the admitted guest retains the story decisions.
 The `quest.chapter-view` entry row names the admitted chapter and story files
-and concrete `arena-room`, `arena-script` and optional `taming` entry loans.
+and concrete `arena-room` and optional `taming` entry loans.
 It runs after native play, which retains its existing yields; the entry runner
 then performs its standard post-feature yield. Chapter content may carry the
 original FigureGroup rows in `figures`, or the legacy caller may supply
@@ -12326,6 +12326,13 @@ before allocation. A declared event snapshot requires every named output; it
 commits with the full retained bank and RNG at the original event call. Other
 events leave that snapshot untouched. Reset restores its declared initial
 values; it adds no clock, module, native effect or second snapshot owner.
+A selected return projection may declare bounded `additional` field, signal and
+channel names after the legacy sorted tables. Admission requires the exact
+legacy-plus-additional union, keeping every original name/id and ABI1 witness
+byte unchanged. The same scope/hash cache admits that complete descriptor.
+Arena ignition and dismount use its existing `prepareWorld` transaction at the
+original native barriers, borrowing only the original field or current mount;
+complete command/owner validation precedes acceptance and native application.
 An optional schedule `outputs` list requires each named numeric result before
 prepared RNG or retained columns are published, including ephemeral channels.
 `ReturnProjectionV2` (game population/returnProjectionV2) captures actor zero

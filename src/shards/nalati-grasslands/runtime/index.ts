@@ -83,8 +83,8 @@ export class NalatiPlugin extends ShardPlugin {
         patrol: rt.elitePatrol, wildlife, persistence });
     }); } catch (error) { eliteScope.dispose(); throw error; }
     await part();
-    ctx.scope.run(() => rt.titan.bind(ctx,kit,mounted,mounted.model('naizagai'),rt.skins));
-    publishEntryOwner(ctx.scope, 'arena-script', 'fight', rt.titan);
+    ctx.scope.run(() => rt.titan.bind(ctx,kit,mounted.model('naizagai'),{arsenal:mounted,locker:rt.skins}));
+    publishEntryOwner(ctx.scope, 'arena-room', 'fight', rt.titan);
     // Boss prewarming reserves its identity before the authored lairs materialize for strict restore.
     if (retainsRuntimeServices(ctx)) rt.elites.initialize(rt.eliteFrame());
     await part();

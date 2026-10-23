@@ -1,3 +1,4 @@
+import { type OpenArenaWorld, ArenaRoomEncounter } from '../src/game/boss/arenaRoom';
 // @vitest-environment happy-dom
 import { expect, test, vi, afterEach } from 'vitest';
 import * as v from 'valibot';
@@ -31,8 +32,6 @@ import type { QuestChapter } from '../src/game/quest/chapter';
 import * as chapterHost from '../src/game/quest/chapter';
 import * as questFigures from '../src/game/quest/figures';
 import * as bindings from '../src/game/quest/chapterBindings';
-import { ArenaRoomEncounter } from '../src/game/boss/arenaRoom';
-import { ArenaScriptEncounter } from '../src/game/boss/arenaScript';
 import type { PageTamingOwner } from '../src/game/riding/client';
 import { ChapterViewSchema, type ChapterViewRows } from '../src/format/questPageComposition';
 import { installQuestPageComposition } from '../src/game/quest/pageComposition';
@@ -88,10 +87,10 @@ function fixture() {
   const rows = v.parse(ChapterViewSchema, { npcs: content.npcs, places: content.places, program: guest.program, view });
   json.mockResolvedValueOnce({}).mockResolvedValueOnce(rows).mockResolvedValueOnce(carriedQuestRows);
   const arena = new ArenaRoomEncounter(bossArena(), { ...king, definition: king.encounter, program: programs.rules }, null);
-  const fight = new ArenaScriptEncounter({ game, player: f.player, tieSpot: null,
-    weather: legacyDouble<ConstructorParameters<typeof ArenaScriptEncounter>[0]['weather']>({}),
-    air: legacyDouble<ConstructorParameters<typeof ArenaScriptEncounter>[0]['air']>({}) },
-    parseArenaScriptData({ arenaScript: titan.TITAN_HOST, programs:{attack:programs.attack,wind:programs.wind}, arenaFire }, geometry));
+  const fight = new ArenaRoomEncounter({kind:'open',world:{ game, player: f.player, tieSpot: null,
+    weather: legacyDouble<OpenArenaWorld['weather']>({}),
+    air: legacyDouble<OpenArenaWorld['air']>({}) },rows:
+    parseArenaScriptData({ arenaScript: titan.TITAN_HOST, programs:{attack:programs.attack,wind:programs.wind}, arenaFire }, geometry)});
   new Mount(legacyDouble<ConstructorParameters<typeof Mount>[0]>({ app, scope }), f.player, f.manager,
     { speeds: { walk: 1.8, trot: 4.5, canter: 8.5, gallop: 13 }, names: {}, thrownDamage: 7, thrownLabel: 'Thrown', restAt: { x: 3, z: 5 } });
   const carriedUpdate = vi.spyOn(CarriedQuestProp.prototype, 'update');
@@ -140,7 +139,7 @@ test.each(['figures', 'taming', 'arena', 'fight'])('replacing %s during admissio
     if (slot === 'figures') f.owners.figures = { replaced: true };
     else if (slot === 'taming') f.owners.taming = legacyDouble<PageTamingOwner>({ phase: 'wild', upgraded: false });
     else if (slot === 'arena') f.owners.arena = new ArenaRoomEncounter(bossArena(), { ...king, definition: king.encounter, program: programs.rules }, null);
-    else f.owners.fight = new ArenaScriptEncounter(f.owners.fight.world, f.owners.fight.data);
+    else f.owners.fight = new ArenaRoomEncounter({kind:'open',world:f.owners.fight.world,rows: f.owners.fight.data});
     if (finish === undefined) throw new Error('Missing deferred admission');
     finish(f.rows);
     await expect(installing).rejects.toThrow('left during admission');
@@ -186,7 +185,7 @@ test('embedded original figures use the same admission and concrete entered loan
   v.parse(ChapterViewSchema, input);
   f.json.mockReset().mockResolvedValueOnce({}).mockResolvedValueOnce(input).mockResolvedValueOnce(carriedQuestRows);
   publishEntryOwner(f.scope, 'arena-room', 'chapter.arena', f.owners.arena);
-  publishEntryOwner(f.scope, 'arena-script', 'chapter.fight', f.owners.fight);
+  publishEntryOwner(f.scope, 'arena-room', 'chapter.fight', f.owners.fight);
   publishEntryOwner(f.scope, 'taming', 'chapter.taming', f.owners.taming);
   try {
     await installEntryChapterView(f.ctx, { kind: 'quest.chapter-view', chapterView: 'quests/content.json', story: 'quests/chapters.json',

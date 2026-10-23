@@ -145,17 +145,17 @@ const tellSnapshot={chainRadius:'tellchainRadius',chainAlpha:'tellchainAlpha',te
 const introSnapshot={rise:'introrise',kneel:'introkneel',alpha:'introalpha'};
 export const TITAN_SCRIPT = { kind: 'boss', pattern: 'arena-script', fight: {
   initial: { phase: 0, hp: TITAN_PLACE.heartHp, invuln: 0, fighting: 0, open: 0, victoryT: -1, tied: 0, sealed: 0, broke: 0, immuneT: 0, introBolt: 0, wall: 0,
-    ...Object.fromEntries([...Object.values(stepSnapshot),...Object.values(tellSnapshot),...Object.values(introSnapshot)].map(key=>[key,0])),tellraise:.2 },
+    ...Object.fromEntries([...Object.values(stepSnapshot),...Object.values(tellSnapshot),...Object.values(introSnapshot)].map(key=>[key,0])),tellraise:.2,zzzzIntroT:-1,zzzzIntroTick:0 },
   parameters: { fullHp: TITAN_PLACE.heartHp, fullDraw: TITAN_TUNING.fullDraw, fullDrawMul: TITAN_TUNING.fullDrawMul, rewardDistance: 3.5, respawnDistance: 16, storm: 0, engaged: 0, armed: 0, victory: 0, chainRadius: TITAN_TUNING.chainRadius,spearAim: TITAN_TUNING.spearAim, spearLock: TITAN_TUNING.spearLock, spearRadius: TITAN_TUNING.spearRadius },
   signals: { reset: 'bossReset', begin: 'bossBegin', phase: 'bossPhase', damage: 'bossDamage', step: 'bossStep', victory: 'bossVictory',
-    clamp: 'bossClamp', invulnerable: 'bossShield', seal: 'bossSeal', tied: 'bossTie', tie: 'tie', intro: 'bossIntro', support: 'bossSupport', point: 'bossPoint', tell: 'bossTell' },
+    clamp: 'bossClamp', invulnerable: 'bossShield', seal: 'bossSeal', tied: 'bossTie', tie: 'tie', intro: 'bossIntro', support: 'bossSupport', point: 'bossPoint', tell: 'bossTell',introClock:'zzzzIntroClock' },
   retain: Object.fromEntries(['phase','hp','invuln','fighting','open','victoryT','tied','sealed','broke','immuneT','introBolt','wall'].map(field => [field,field])),
-  retainEvents:{step:stepSnapshot,tell:tellSnapshot,intro:introSnapshot},
+  retainEvents:{step:stepSnapshot,tell:tellSnapshot,intro:introSnapshot,introClock:{zzzzIntroT:'zzzzIntroT',zzzzIntroTick:'zzzzIntroTick'}},
 } };
 
 /** G474 arena boss-script binding; native owners receive rows and resources. */
 export const TITAN_HOST = {
-  script: TITAN_SCRIPT,clocks: TITAN_CLOCKS,field: TITAN_FIRE_FIELD,support: TITAN_SUPPORT,whirls: TITAN_WHIRLS,
+  script: TITAN_SCRIPT,commands:{ignite:'zzzzIgnite',dismount:'zzzzDismount'},clocks: TITAN_CLOCKS,field: TITAN_FIRE_FIELD,support: TITAN_SUPPORT,whirls: TITAN_WHIRLS,
   supportSites: TITAN_SUPPORT_SITES,arena: { center: TITAN_ARENA.center,body: TITAN_ARENA.titan,anchor: { x: CAIRN.x,z: CAIRN.z+3 },ground: { x: CAIRN.x,z: CAIRN.z } },
   place: { arenaRadius: TITAN_PLACE.arenaRadius,heartHp: TITAN_PLACE.heartHp },phases: TITAN_PHASES,
   definition: TITAN_ENCOUNTER,reward: TITAN_REWARD,skin: TITAN_SKIN,tuning: TITAN_TUNING,boundary: TITAN_BOUNDARY,

@@ -1,3 +1,4 @@
+import { ArenaRoomEncounter, readArenaScriptData } from '../src/game/boss/arenaRoom';
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
@@ -11,7 +12,6 @@ import type { ShardRuntime } from '../src/game/shard/runtime';
 import type { ShardWorld } from '../src/game/shard/world';
 import type { ForestWeatherRig } from '../src/game/weather/forest';
 import type { SceneHandles } from '../src/game/shardfile/sceneHandles';
-import { ArenaScriptEncounter, readArenaScriptData } from '../src/game/boss/arenaScript';
 import { installWeatherReactions, nativeWeatherBundle } from '../src/game/weather/reactions';
 import { installWeatherContinuation } from '../src/game/weather/continuation';
 import { WorldAssembly, type WorldAssemblyPorts } from '../src/game/shardfile/worldAssembly';
@@ -34,7 +34,7 @@ import programs from '../src/shards/nalati-grasslands/behaviour/titan.generated.
 import weatherRows from '../src/shards/nalati-grasslands/data/weather.json' with { type: 'json' };
 import weatherProgram from '../src/shards/nalati-grasslands/behaviour/weather.generated.json' with { type: 'json' };
 
-const row = { kind: 'arena-script', id: 'meadow.titan', files: { fight: 'combat/titan-fight.json', geometry: 'combat/titan-geometry.json' },
+const row = { kind: 'arena-room', id: 'meadow.titan', files: { fight: 'combat/titan-fight.json', geometry: 'combat/titan-geometry.json' },
   weather: 'meadow.weather', anchor: 'meadow.cairn' };
 const fight = { arenaScript: titan.TITAN_HOST, arenaFire, programs:{attack:programs.attack,wind:programs.wind} };
 const fightSchema = namedJsonSchema(ArenaScriptFightFileSchema), geometrySchema = namedJsonSchema(ArenaScriptGeometrySchema);
@@ -107,7 +107,7 @@ test('missing original context, weather, point or storm refuses before either na
         await expect(WorldAssembly.admit({ stages: [row] }, f.ports).next(row.id)).rejects.toThrow();
       }
       expect(f.trace).toEqual([]); expect(f.events.census().answerers).toBe(0);
-      expect(() => entryOwner(f.scope, 'arena-script', row.id)).toThrow('Missing live entry owner');
+      expect(() => entryOwner(f.scope, 'arena-room', row.id)).toThrow('Missing live entry owner');
     } finally { f.close(); foreign.dispose(); }
   }
 });
@@ -117,26 +117,26 @@ test('the real original constructor, storm, air, point, AS state and random cont
   try {
     const data = await readArenaScriptData(baseline.product, row.files), storm = baseline.rig.storm;
     if (storm === null) throw new Error('Missing actual weather reactions');
-    const original = new ArenaScriptEncounter({ game: baseline.game, player: baseline.world.player, weather: storm, air: baseline.rig.weather, tieSpot: baseline.point }, data);
+    const original = new ArenaRoomEncounter({kind:'open',world:{ game: baseline.game, player: baseline.world.player, weather: storm, air: baseline.rig.weather, tieSpot: baseline.point },rows: data});
     const originalShapes = shapes(baseline.game.scene), after = random.snapshot(); random.restore(before);
     const f = fixture();
     try {
       const assembly = WorldAssembly.admit({ stages: [{ kind: 'group', id: 'weather-complete', label: 'Weather complete', part: 'weather' }, row,
         { kind: 'group', id: 'look', label: 'Look', part: 'look' }] }, f.ports);
       await assembly.next('weather-complete'); await assembly.next(row.id); await assembly.next('look');
-      const owner = entryOwner(f.scope, 'arena-script', row.id);
-      expect(owner).toBeInstanceOf(ArenaScriptEncounter); expect(owner.world.game).toBe(f.game); expect(owner.world.player).toBe(f.world.player);
+      const owner = entryOwner(f.scope, 'arena-room', row.id);
+      expect(owner).toBeInstanceOf(ArenaRoomEncounter); expect(owner.world.game).toBe(f.game); expect(owner.world.player).toBe(f.world.player);
       expect(owner.world.weather).toBe(f.rig.storm); expect(owner.world.air).toBe(f.rig.weather); expect(owner.world.tieSpot).toBe(f.point);
-      expect(owner.fight.cairnSpot()).toBe(f.point); expect(owner.data).toEqual(original.data);
-      expect(owner.fight.life.state).toEqual(original.fight.life.state); expect(owner.fight.pose).toEqual(original.fight.pose);
+      expect(owner.openFight.cairnSpot()).toBe(f.point); expect(owner.data).toEqual(original.data);
+      expect(owner.openFight.life.state).toEqual(original.openFight.life.state); expect(owner.openFight.pose).toEqual(original.openFight.pose);
       expect(shapes(f.game.scene)).toEqual(originalShapes); expect(random.snapshot()).toEqual(after);
       expect(f.trace).toEqual(['Weather complete', `read ${row.files.fight}`, `read ${row.files.geometry}`, 'answer weather.storm-hold', 'Look']);
       expect(owner.boss).toBeNull(); expect(owner.riders).toBeNull(); expect(owner.power).toBeNull();
       expect(f.events.ask('weather.storm-hold', 0.4)).toBe(0.4);
-      owner.boss = legacyDouble<NonNullable<ArenaScriptEncounter['boss']>>({ engaged: true });
+      owner.boss = legacyDouble<NonNullable<ArenaRoomEncounter['boss']>>({ engaged: true });
       expect(f.events.ask('weather.storm-hold', 0.4)).toBe(1);
       const entered = f.scope.child('arena-entered'); WorldAssembly.lend({ stages: [row] }, f.scope, entered);
-      expect(entryOwner(entered, 'arena-script', row.id)).toBe(owner); entered.dispose(); expect(entryOwner(f.scope, 'arena-script', row.id)).toBe(owner);
+      expect(entryOwner(entered, 'arena-room', row.id)).toBe(owner); entered.dispose(); expect(entryOwner(f.scope, 'arena-room', row.id)).toBe(owner);
       f.scope.dispose(); expect(f.events.census().answerers).toBe(0);
     } finally { f.close(); }
   } finally { baseline.close(); random.restore(before); restore(); }
@@ -146,8 +146,8 @@ test('a null original anchor retains the existing arena anchor fallback', async 
   const restore = overrideTerrain({ heightAt: () => 0 }), f = fixture({ point: null });
   try {
     await WorldAssembly.admit({ stages: [row] }, f.ports).next(row.id);
-    const owner = entryOwner(f.scope, 'arena-script', row.id), anchor = owner.data.arena.anchor;
-    expect(owner.world.tieSpot).toBeNull(); expect(owner.fight.cairnSpot()).toEqual(new Vector3(anchor.x, 0, anchor.z));
+    const owner = entryOwner(f.scope, 'arena-room', row.id), anchor = owner.data.arena.anchor;
+    expect(owner.world.tieSpot).toBeNull(); expect(owner.openFight.cairnSpot()).toEqual(new Vector3(anchor.x, 0, anchor.z));
   } finally { f.close(); restore(); }
 });
 
@@ -162,7 +162,7 @@ test('either held named read fences ancestor and independently retired native ow
       f.release(); await expect(work).rejects.toThrow('owner left');
       expect(f.game.scene.children).toHaveLength(children); expect(f.events.census().answerers).toBe(0); expect(random.snapshot()).toEqual(before);
       expect(f.trace).toEqual([`read ${row.files.fight}`, `read ${row.files.geometry}`]);
-      expect(() => entryOwner(f.scope, 'arena-script', row.id)).toThrow();
+      expect(() => entryOwner(f.scope, 'arena-room', row.id)).toThrow();
     } finally { for (const step of retirement) void step; parent.dispose(); native.dispose(); f.close(); }
   }
 });
@@ -183,7 +183,7 @@ test('concrete original owners and the same point coordinates are rechecked afte
       else Object.assign(f.ctx, { answer: () => { throw new Error('New answer must not register'); } });
       f.release(); await expect(work).rejects.toThrow('owners changed');
       expect(f.game.scene.children).toHaveLength(before); expect(f.events.census().answerers).toBe(0);
-      expect(() => entryOwner(f.scope, 'arena-script', row.id)).toThrow('Missing live entry owner');
+      expect(() => entryOwner(f.scope, 'arena-room', row.id)).toThrow('Missing live entry owner');
     } finally { f.close(); }
   }
 });
