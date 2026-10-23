@@ -19073,46 +19073,6 @@
       }
     },
     {
-      "id": "nalati-people-fallback",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-people-fallback.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./scripts/bake-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-people-fallback.mjs"
-      ],
-      "inputRoots": [
-        "src/engine",
-        "src/game",
-        "src/sdk",
-        "src/commons",
-        "src/shards/nalati-grasslands",
-        "scripts/bake-loader.mjs",
-        "scripts/bake-output.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/format/colourFunction.ts",
-        "src/format/json.ts",
-        "src/format/materialFamilies.ts",
-        "src/format/materialGraph.ts",
-        "src/format/materials.ts",
-        "src/format/paintedLook.ts",
-        "src/format/runtimeBinds.ts",
-        "src/shards/nalati-grasslands/species/horse.json",
-        "src/shards/nalati-grasslands/species/horse.d.json.ts",
-        "src/shards/nalati-grasslands/data/speciesRows.json"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/boot/peopleFallback.generated.json"
-      ],
-      "platform": "portable",
-      "buildOutputs": {
-        "src/shards/nalati-grasslands/boot/peopleFallback.generated.json": "6b01d0600f1cb151ac247083ec8b40f62772de7608aaca62bc058be250549c00"
-      }
-    },
-    {
       "id": "nalati-model-paint",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-model-paint.mjs",
