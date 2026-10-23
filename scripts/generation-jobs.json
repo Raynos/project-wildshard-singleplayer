@@ -517,12 +517,14 @@
       "outputs": [
         "src/shards/nalati-grasslands/data/species.generated.json",
         "public/assets/nalati/baked/bodies-e726016c96012cee10c1b352bca450cccda2dc387410a11732a26edab74235b6.bin",
-        "src/shards/nalati-grasslands/boot/speciesRows.generated.json"
+        "src/shards/nalati-grasslands/boot/speciesRows.generated.json",
+        "src/shards/nalati-grasslands/behaviour/held-weapons.generated.wasm"
       ],
       "buildTimeOutputs": [
         "src/shards/nalati-grasslands/data/species.generated.json",
         "public/assets/nalati/baked/bodies-e726016c96012cee10c1b352bca450cccda2dc387410a11732a26edab74235b6.bin",
-        "src/shards/nalati-grasslands/boot/speciesRows.generated.json"
+        "src/shards/nalati-grasslands/boot/speciesRows.generated.json",
+        "src/shards/nalati-grasslands/behaviour/held-weapons.generated.wasm"
       ],
       "platform": "portable",
       "catalogueDependencies": [

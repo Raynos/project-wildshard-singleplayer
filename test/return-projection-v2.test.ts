@@ -41,6 +41,8 @@ beforeAll(async()=>{
 test('Titan dual port retains exact public ABI1 bytes and admits a project-only candidate',()=>{
   expect(built.legacy).toStrictEqual({script:programs.attack.script,bytes:programs.attack.bytes});
   expect(built.candidate).toStrictEqual(programs.attack.v2);
+  expect(built.binary).toEqual(Uint8Array.from(atob(built.candidate.bytes),byte=>byte.codePointAt(0)??0));
+  expect(hashImmutableBytes(built.binary)).toBe(built.candidate.artifact.hash);
   expect(parseReturnProjectionV2(built.candidate).artifact.lane).toBe('project');
   expect(()=>new ReturnProjectionV2({...built.candidate,artifact:{...built.candidate.artifact,hash:'0'.repeat(64)}})).toThrow('hash mismatch');
   expect(()=>parseReturnProjectionV2({...built.candidate,fields:[...built.candidate.fields].reverse()})).toThrow();

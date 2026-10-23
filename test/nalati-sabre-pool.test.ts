@@ -14,7 +14,7 @@ import { parseItems } from '../src/format/items';
 import items from '../src/shards/nalati-grasslands/data/items.json' with { type: 'json' };
 import rows from '../src/shards/nalati-grasslands/data/sabre.generated.json' with { type: 'json' };
 
-const {polearm:_polearm,blade:_blade,programs:_programs,...weaponPower}=heldWeapons;
+const {polearm:_polearm,blade:_blade,programs:_programs,compiled:_compiled,...weaponPower}=heldWeapons;
 
 const blade = new BladeSet({file:loadout.blade.file,item:'weapon.sabre'});
 

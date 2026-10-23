@@ -1,3 +1,4 @@
+import { lendNalatiHeld } from './fixtures/nalati-return-modules';
 // oxlint-disable-next-line import/no-nodejs-modules -- validate generated species rows without inferring the complete JSON type
 import { readFileSync } from 'node:fs';
 import { Scope } from '../src/engine/app/scope';
@@ -22,7 +23,7 @@ const generated=parse(object({presentation:object({guest:CreatureGuestSchema,loo
   JSON.parse(readFileSync('src/shards/nalati-grasslands/data/species.generated.json','utf8')));
 
 let scope: Scope;
-beforeEach(() => { scope = new Scope('creature-guest.fixture'); scope.expose(app, 'levelScope', scope); });
+beforeEach(() => { scope = new Scope('creature-guest.fixture'); lendNalatiHeld(scope); scope.expose(app, 'levelScope', scope); });
 afterEach(() => { scope.dispose(); });
 
 function controls() {

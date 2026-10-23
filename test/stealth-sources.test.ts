@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import { lendNalatiHeld } from './fixtures/nalati-return-modules';
 import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import * as v from 'valibot';
@@ -59,6 +60,7 @@ function controllerFixture(){
  const f=fixture(),scope=new Scope('stealth-sources'),systems:Parameters<LevelContext['system']>[0][]=[];
  const ctx=legacyDouble<LevelContext>({scope,app:legacyDouble<LevelContext['app']>({input:legacyDouble<LevelContext['app']['input']>({push:vi.fn<()=>void>()})}),
   hud:legacyDouble<LevelContext['hud']>({disc:()=>document.createElement('button'),widget:vi.fn<()=>void>()}),inputContext:vi.fn<()=>void>(),answer:vi.fn<()=>void>(),system:row=>{systems.push(row);}});
+ lendNalatiHeld(scope);
  const controller=new StealthController(ctx,f.player,{...generated,observations:authored.observations});
  const events:string[]=[],update=vi.spyOn(controller,'update').mockImplementation(()=>{events.push('update');});
  const polearm={damageScale:0},kit=legacyDouble<HeldSlotKit>({polearm:id=>{expect(id).toBe('polearm');events.push('melee');return legacyDouble<ReturnType<HeldSlotKit['polearm']>>(polearm);}});

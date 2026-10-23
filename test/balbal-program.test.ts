@@ -1,6 +1,9 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- validate generated guest rows without inferring the complete JSON type
 import { readFileSync } from 'node:fs';
-import { afterEach,expect,test,vi } from 'vitest';
+import { afterEach,beforeEach,expect,test,vi } from 'vitest';
+import { Scope } from '../src/engine/app/scope';
+import { app } from '../src/engine/app/runtime';
+import { lendNalatiHeld } from './fixtures/nalati-return-modules';
 import { object, parse } from 'valibot';
 import { CreatureGuestSchema } from '../src/format/speciesBookRows';
 import { program } from './fixtures/projectedCreature';
@@ -9,7 +12,9 @@ import { ReturnProgram } from '../src/game/population/returnProgram';
 
 const generated=parse(object({presentation:object({guest:CreatureGuestSchema})}),JSON.parse(readFileSync('src/shards/nalati-grasslands/data/species.generated.json','utf8')));
 
-afterEach(()=>{vi.restoreAllMocks();});
+let scope:Scope;
+beforeEach(()=>{scope=new Scope('balbal-program');scope.expose(app,'levelScope',scope);lendNalatiHeld(scope);});
+afterEach(()=>{vi.restoreAllMocks();scope.dispose();});
 
 test('a strike refusal cannot publish a program or start a later encounter',()=>{
   const strikeRead=vi.spyOn(strikes,'strikeFromData').mockImplementation(()=>{throw new Error('Native strike refused');});
@@ -21,9 +26,9 @@ test('a strike refusal cannot publish a program or start a later encounter',()=>
 
 test('native strike binding precedes program allocation and is reused',()=>{
   const strikeRead=vi.spyOn(strikes,'strikeFromData'),programRead=vi.spyOn(ReturnProgram,'page');
-  program();program();
+  const first=program();expect(program()).toBe(first);
   expect(strikeRead).toHaveBeenCalledExactlyOnceWith(generated.presentation.guest.strike);
-  expect(programRead).toHaveBeenCalledTimes(2);
+  expect(programRead).toHaveBeenCalledOnce();
   expect(strikeRead.mock.invocationCallOrder[0]).toBeLessThan(programRead.mock.invocationCallOrder[0]??0);
 });
 

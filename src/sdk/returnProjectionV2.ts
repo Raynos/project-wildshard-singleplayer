@@ -1,7 +1,8 @@
 /** Dual compile stateless AS numeric rules. The candidate uses
  * ws_project and the defining v2 SDK, while the public v1 artifact is retained.
  * With `groups`, the same programme also serves group steps (ReturnProgram.prepareGroup): the selected project entry
- * exports groupStep() beside onSignal, and a call that lends group state runs it. */
+ * exports groupStep() beside onSignal, and a call that lends group state runs it.
+ * `binary` is the exact selected module for file producers; inline witnesses stay unchanged. */
 import { parseDecisionScripts,scriptV1Identifier } from '@wildshard/format/decisionScripts';
 import { parseReturnProjectionV2,returnProjectionV2Layout,type ReturnProjectionV2Rows } from '@wildshard/format/returnProjectionV2';
 import type { GroupStepRowsV2 } from '@wildshard/format/scriptGroupStepV2';
@@ -14,7 +15,7 @@ import { hashImmutableBytes } from './immutable';
 import { decisionBindingsPath } from './decisionScriptBindings';
 
 export async function compileReturnProjectionV2(input:unknown,registries:DecisionRegistries,authored:ReadonlyMap<string,string>,options:DecisionBuildOptions & {readonly projectSource?:string;readonly outputCapacity?:number;readonly worldActions?:boolean;readonly additional?:{readonly fields:readonly string[];readonly signals:readonly string[];readonly channels:readonly string[]};readonly capture?:{readonly fields:readonly string[];readonly channels:readonly string[]};readonly groups?:{readonly rows:GroupStepRowsV2;readonly helpers:Readonly<Record<string,string>>}}):Promise<{
-  readonly legacy:{readonly script:ReturnType<typeof parseDecisionScripts>[number];readonly bytes:string};readonly candidate:ReturnProjectionV2Rows;
+  readonly legacy:{readonly script:ReturnType<typeof parseDecisionScripts>[number];readonly bytes:string};readonly candidate:ReturnProjectionV2Rows;readonly binary:Uint8Array;
 }> {
   const row=parseDecisionScripts([input])[0];
   if(row?.side!=='sim'||row.state.length>0||row.tick!==null||row.timers.length>0||row.on.length!==1||row.on[0]!=='signal'
@@ -76,5 +77,5 @@ export async function compileReturnProjectionV2(input:unknown,registries:Decisio
   const bytes=await compileScriptV2(source,{maximumPages:row.pages,ioBytes:layout.bytes,lane:'project',sources});
   const candidate=parseReturnProjectionV2({artifact:{abi:2,minor:0,compilerRevision:SCRIPT_V2_REVISIONS.compiler,admissionRevision:SCRIPT_V2_REVISIONS.admission,
     hash:hashImmutableBytes(bytes),lane:'project',pages:row.pages,ioBytes:layout.bytes},fields,signals,channels,...(additional===undefined?{}:{additional}),...(options.outputCapacity===undefined?{}:{outputCapacity:options.outputCapacity}),bytes:btoa(Array.from(bytes,byte=>String.fromCodePoint(byte)).join('')),...(groups===undefined?{}:{groups:groups.rows})});
-  return {legacy:{script,bytes:btoa(Array.from(blob.bytes,byte=>String.fromCodePoint(byte)).join(''))},candidate};
+  return {legacy:{script,bytes:btoa(Array.from(blob.bytes,byte=>String.fromCodePoint(byte)).join(''))},candidate,binary:bytes};
 }

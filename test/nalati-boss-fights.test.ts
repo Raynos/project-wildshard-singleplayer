@@ -88,6 +88,7 @@ function encounter(def: Omit<BossDefinition, 'reward'>, script: BossScript, posi
 test('Golden King runs all phases, clears the real adds and reaches its single reward end state headlessly', () => {
   const restore = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 });
   const scope = new Scope('golden-king-headless');
+  lendNalatiPasture(scope);
   scope.expose(app, 'levelScope', scope);
   const f = manager(), dungeon = bossArena().build(true);
   Reflect.set(f.player, 'dash', () => undefined);

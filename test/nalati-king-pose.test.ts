@@ -1,3 +1,5 @@
+import { Scope } from '../src/engine/app/scope';
+import { lendNalatiHeld } from './fixtures/nalati-return-modules';
 // oxlint-disable-next-line import/no-nodejs-modules -- validate generated pose/program rows without inferring the full species JSON type
 import { readFileSync } from 'node:fs';
 import { object, parse, record, string } from 'valibot';
@@ -76,7 +78,8 @@ test('species channels drive the original joints without writing actor memory', 
 });
 
 test('balbal decisions rise, strike once, return and sink on the bounded guest tick', () => {
-  const program = ReturnProgram.page(speciesRows.program);
+  const scope=new Scope('balbal-pose');lendNalatiHeld(scope);
+  const program = ReturnProgram.page(speciesRows.program,scope);
   const fields: Record<string, number> = { bearing: 0, homeBearing: 0, homeOff: 0, hitOff: 0, dt: .1, field: 1, px: 0, py: 0, pz: 2, x: 0, ay: 0, z: 0, yaw: 0,
     st: 0, t: 0, cd: 0, rise: 0, emerge: 1, hit: 0, gone: 0, slamT: 0, state: 0, init: 0,
     homeX: 0, homeZ: 0, homeYaw: 0, calm: 0, dawn: 0, emergeT: 1.6, attack: -1,
@@ -103,7 +106,7 @@ test('balbal decisions rise, strike once, return and sink on the bounded guest t
       requestPresent: 1, legacyTag: 0, equipmentMatch: 0, piercingTag: piercing, ...observations })['damage'];
   };
   expect(damage({ rise: .2 })).toBe(.25); expect(damage({ range: 5 })).toBe(.5);
-  expect(damage({ piercing: 1, crack: 1, open: 1 })).toBe(3.125);
+  expect(damage({ piercing: 1, crack: 1, open: 1 })).toBe(3.125);scope.dispose();
 });
 
 test('packed species bodies lend owned indexed geometry for every family', () => {

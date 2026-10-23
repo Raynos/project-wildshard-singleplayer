@@ -66,7 +66,7 @@ const pastureProjection=pasture.v2;
 const admissionProjection=admission.v2;
 const programMemory = programs.reduce((sum, program) => sum + program.script.pages * 65536 * 2, programBytes)
   + atob(projection.bytes).length + projection.artifact.pages * 65536 * 2
-  + atob(heldProjection.bytes).length + heldProjection.artifact.pages * 65536 * 2
+  + heldWeapons.compiled.bytes + heldProjection.artifact.pages * 65536 * 2
   + atob(ridingProjection.bytes).length+ridingProjection.artifact.pages*65536*2
   + titanProgram.compiled.pasture.bytes+pastureProjection.artifact.pages*65536*2
   + atob(admissionProjection.bytes).length+admissionProjection.artifact.pages*65536*2;
@@ -77,7 +77,7 @@ export default parseShardfile({ ...base,
   navigation: navigation.navigation, terrain: queryTerrain.terrain, files: [...files, ...renderTiles.files].sort((a, b) => a.hash.localeCompare(b.hash)), critical: [...navigation.critical, ...queryTerrain.critical],
   tiles: renderTiles.tiles, props: renderTiles.props,
   serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + resident + programMemory },
-  budgets: { ...base.budgets, library: { ...base.budgets.library, resident: base.budgets.library.resident + viewMemory }, sim: { resident: files.reduce((sum, file) => sum + file.decoded + file.gpu, 0) + programMemory, compressed: files.reduce((sum, file) => sum + file.compressed, 0) + programBytes + atob(heldWeapons.program.v2.bytes).length + atob(ridingProjection.bytes).length+titanProgram.compiled.pasture.bytes+atob(admissionProjection.bytes).length } },
+  budgets: { ...base.budgets, library: { ...base.budgets.library, resident: base.budgets.library.resident + viewMemory }, sim: { resident: files.reduce((sum, file) => sum + file.decoded + file.gpu, 0) + programMemory, compressed: files.reduce((sum, file) => sum + file.compressed, 0) + programBytes + heldWeapons.compiled.bytes + atob(ridingProjection.bytes).length+titanProgram.compiled.pasture.bytes+atob(admissionProjection.bytes).length } },
   look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries({ ...lookGraphs, ...presentationGraphs, 'nalati-sky-dome': skyDome }).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
   accent: 'ember', runtime: { entry: 'runtime/index.ts', cost: NALATI_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'clientChannels', 'terrain', 'props'], spawns: NALATI_RUNTIME_SPAWNS },
   clientChannels: compactChannels([...Object.values(speciesData.poses).flatMap(pose => parseClientChannels(pose.programs)),...kingPose.programs,...herdChannels.clientChannels,...weatherChannels.clientChannels,...peopleChannels.clientChannels]),

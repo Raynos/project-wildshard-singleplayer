@@ -1,6 +1,8 @@
+import { heldModuleBytes, lendNalatiHeld } from './fixtures/nalati-return-modules';
+import { hashImmutableBytes } from '../src/sdk/immutable';
 // oxlint-disable-next-line import/no-nodejs-modules -- validate generated species rows without inferring the complete JSON type
 import { readFileSync } from 'node:fs';
-import { object, parse, strictObject } from 'valibot';
+import { boolean, literal, number, object, parse, strictObject, string } from 'valibot';
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
@@ -18,7 +20,7 @@ import held from '../src/shards/nalati-grasslands/data/heldWeapons.generated.jso
 import { scriptAdmissionRows, decisionModuleContracts } from '../src/format/scriptContract';
 import { ReturnProjectionV2Schema, parseReturnProjectionV2 } from '../src/format/returnProjectionV2';
 import stealth from '../src/shards/nalati-grasslands/data/stealth.generated.json' with { type: 'json' };
-import { nameBlob } from '../src/sdk/blobs';
+import { nameBlob, readNamedBlob } from '../src/sdk/blobs';
 import { NALATI_SCRIPT_SECTIONS } from '../src/shards/nalati-grasslands/generators/scriptInventory';
 
 const generated=parse(object({presentation:object({guest:CreatureGuestSchema}),
@@ -53,7 +55,7 @@ function fixture(memory: Record<string, number>) {
   return { body, context, trace, advance, snapshot, setAttack: (value: number): void => { phase = value; } };
 }
 function owner(): Scope {
-  const scope = new Scope('fixture.balbal-v2'); scope.expose(app, 'levelScope', scope); scope.expose(app, 'equipment', null); return scope;
+  const scope = new Scope('fixture.balbal-v2'); lendNalatiHeld(scope); scope.expose(app, 'levelScope', scope); scope.expose(app, 'equipment', null); return scope;
 }
 
 test('Balbal ABI2 preserves the frozen callback trace, twenty defaults and original memory continuation', () => {
@@ -104,18 +106,30 @@ test('ABI2 retains same-call native Wedge contact, reach refusal and both ordere
   } finally { scope.dispose(); }
 });
 
-test('the selected creature artifact is admitted in the complete emitted inventory and leaves held ABI1 intact', () => {
+test('the selected creature artifact is admitted in the complete emitted inventory and leaves held ABI1 intact', async () => {
   const row = parse(ReturnProgramSchema,generated.presentation.guest.program), candidate = parseReturnProjectionV2(row.v2);
   expect(row.script).toEqual(generated.program.script); expect(row.bytes).toBe(generated.program.bytes);
   expect(held.program.bytes).toBe(generated.program.bytes); expect(held.program.script).toEqual(generated.program.script);
-  const module = nameBlob('behaviour/nalati.held-weapons.wasm','wasm',Uint8Array.from(atob(candidate.bytes),byte => byte.codePointAt(0) ?? 0),
+  const module = nameBlob('behaviour/nalati.held-weapons.wasm','wasm',heldModuleBytes,
     { critical: true, script: { abi: 2, lane: 'project', pages: candidate.artifact.pages, ioBytes: candidate.artifact.ioBytes,
       compilerRevision: candidate.artifact.compilerRevision, admissionRevision: candidate.artifact.admissionRevision } });
+  expect(candidate.bytes).toBe('');
+  expect(held.compiled).toEqual({source:'behaviour/held-weapons.generated.wasm',bytes:19976,hash:'a35c2e6a3527a6e3509d7df83b76c203878bba6b806eb92ef03de1b963d316d5'});
+  expect(hashImmutableBytes(heldModuleBytes)).toBe(held.compiled.hash);
+  const original={...held.program,v2:{...held.program.v2,bytes:btoa(String.fromCodePoint(...heldModuleBytes))}};
+  expect(hashImmutableBytes(new TextEncoder().encode(JSON.stringify(original)))).toBe('94840973a5f44b945d143bff5b51ffab5992704113ca15a49c12f95a4e95945a');
   expect(held.program.v2).toEqual(row.v2); expect(stealth.program.v2).toEqual(row.v2);
   const rows = scriptAdmissionRows(NALATI_SCRIPT_SECTIONS);
   expect(new Set(rows.filter(item => item.side === 'sim').map(item => item.module)).size).toBe(8);
   expect(rows.some(item => item.module === module.file.path && item.abi === 2)).toBe(true);
   expect(decisionModuleContracts(rows,rows.map(item => item.module === module.file.path ? module.file : { kind: 'wasm', path: item.module, hash: item.module.slice(11,-5) })).get(candidate.artifact.hash)).toMatchObject({ abi:2,lane:'project' });
+  const { output }=await import('../src/shards/nalati-grasslands/generators/output');
+  const declaration=parse(object({name:string(),kind:literal('wasm'),source:string(),options:object({critical:boolean(),
+    script:object({abi:literal(2),lane:literal('project'),pages:number(),ioBytes:number(),compilerRevision:literal(1),admissionRevision:literal(1)})})}),
+    output.blobs.find(blob=>blob.name==='behaviour/nalati.held-weapons.wasm'));
+  const actual=await readNamedBlob('src/shards/nalati-grasslands',declaration.name,declaration.source,declaration.kind,declaration.options);
+  expect(actual.bytes).toEqual(heldModuleBytes);expect(actual.file).toEqual(module.file);
+  expect(actual.script).toEqual(module.script);
 });
 
 test('selected Balbal capture refuses missing fields and retired owners without native memory or effects', () => {
