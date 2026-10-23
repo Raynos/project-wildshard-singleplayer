@@ -20,8 +20,14 @@ test('live selection keeps units and leaves product builders to CI', () => {
   expect(liveTests(resolve('.'), [
     'test/fixtures/push-inputs/unit.ts', 'test/fixtures/push-inputs/builder.ts',
     'test/push-loop.test.ts', 'test/scripts/_template-boss.test.ts',
-  ], {})).toEqual(['test/fixtures/push-inputs/unit.ts']);
+  ], {})).toEqual(['test/fixtures/push-inputs/unit.ts', 'test/fixtures/push-inputs/builder.ts', 'test/scripts/_template-boss.test.ts']);
   expect(liveTests(resolve('.'), ['test/fixtures/push-inputs/unit.ts'], {
     'test/fixtures/push-inputs/unit.ts': ['_template'],
   })).toEqual([]);
+});
+
+test('live selection retains cheap guards and process fixture importers', () => {
+  const files = ['test/host-callbacks.test.ts', 'test/shardfile-boundaries.test.ts',
+    'test/audio-authoring.test.ts', 'test/nalati-spear-pool.test.ts'];
+  expect(liveTests(resolve('.'), files, {})).toEqual(files);
 });

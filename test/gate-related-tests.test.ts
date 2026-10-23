@@ -1,8 +1,18 @@
 import { expect, it } from 'vitest';
-import { capRelated, productReaderTests, scriptScenarioTests, QUICK_TESTS } from '../scripts/gate-related-tests.mjs';
+import { capRelated, productReaderTests, scriptScenarioTests, QUICK_TESTS, pushGuards, forceRerunTriggers } from '../scripts/gate-related-tests.mjs';
 
 const durations = new Map([['test/slow.test.ts', 40], ['test/cheap.test.ts', 1], ['test/mid.test.ts', 8], ['test/cover-grid.test.ts', 30]]);
 const related = [...durations.keys()];
+
+it('requires guards and limits forced reruns to root configuration', () => {
+  const fixed = ['test/host-callbacks.test.ts', 'test/shardfile-boundaries.test.ts',
+    'test/platform-chargebacks.test.ts', 'test/manifest-declarations.test.ts'];
+  expect(pushGuards([])).toEqual(fixed);
+  expect(pushGuards(['src/game/world.ts'])).toEqual(fixed);
+  for (const root of ['format', 'sdk']) expect(pushGuards([`src/${root}/package.json`]))
+    .toEqual(['test/schema-reference.test.ts', ...fixed]);
+  expect(forceRerunTriggers('/repo')).toEqual(['/repo/package.json', '/repo/{vitest,vite}.config.*']);
+});
 
 it('runs every related test file when the estimate fits the budget', () => {
   expect(capRelated(related, ['src/x.ts'], durations, 45, 4)).toEqual({ run: [...related].sort(), left: [] });

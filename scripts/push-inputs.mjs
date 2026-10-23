@@ -64,18 +64,19 @@ export function sourceWalker(root, runtimeOnly = false) {
 /** @param {string} root @param {readonly string[]} files @returns {string[]} */
 export function sourceInputs(root, files) { return sourceWalker(root)(files); }
 
-/** Live push tests cannot launch builders, browsers or other external jobs.
- * CI retains the full selection and its product edges.
- * @param {string} root @param {readonly string[]} tests @param {Record<string,string[]>} products
+// These fixtures deliberately own app builders or long-lived lane processes.
+// Importing a module which mentions spawn is not a reason to skip a test.
+const EXTERNAL_JOBS = new Set([
+  'test/build-mirror.test.ts', 'test/heavy-lane.test.ts',
+  'test/push-loop.test.ts', 'test/catalog-build.test.ts',
+  'test/ruler-product-failure.test.ts',
+]);
+
+/** Product readers still need CI's complete products; other process fixtures run.
+ * @param {string} _root @param {readonly string[]} tests @param {Record<string,string[]>} products
  * @returns {string[]} */
-export function liveTests(root, tests, products) {
-  const inputs = sourceWalker(root);
-  return tests.filter(test => !test.startsWith('test/scripts/') && !(products[test]?.length)
-    && inputs([test]).every(file => {
-      if (!/\.[cm]?[jt]sx?$/u.test(file)) return true;
-      const source = readFileSync(resolve(root, file), 'utf8');
-      return !/(?:child_process|\b(?:execFile|spawnSync|execSync)\s*\(|build-shardfiles|build-mirror|serve-build|scripts\/gen\.mjs)/u.test(source);
-    }));
+export function liveTests(_root, tests, products) {
+  return tests.filter(test => !EXTERNAL_JOBS.has(test) && !(products[test]?.length));
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename)) {

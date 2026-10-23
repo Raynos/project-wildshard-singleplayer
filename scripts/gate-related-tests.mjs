@@ -30,11 +30,33 @@ const STARTUP_SECONDS = 5;
 // unrelated source changes and a fully exhausted related-test budget.
 export const QUICK_TESTS = ['test/grid-reentry.test.ts'];
 
+/** Required push guards, including pushes without related sources.
+ * @param {readonly string[]} changed @returns {string[]} */
+export function pushGuards(changed) {
+  return [
+    ...(changed.some(file => /^src\/(?:format|sdk)\//u.test(file)) ? ['test/schema-reference.test.ts'] : []),
+    'test/host-callbacks.test.ts', 'test/shardfile-boundaries.test.ts',
+    'test/platform-chargebacks.test.ts', 'test/manifest-declarations.test.ts',
+  ];
+}
+
+/** Package export edits affect their importers, not every test in the repo.
+ * @param {string} root @returns {string[]} */
+export function forceRerunTriggers(root) {
+  return ['package.json', '{vitest,vite}.config.*'].map(file => resolve(root, file));
+}
+
 /** Last known duration in seconds per test file (relative path), from Vitest's results cache.
  * @returns {Map<string, number>} */
 function knownDurations() {
   /** @type {Map<string, number>} */
   const durations = new Map();
+  const measured = resolve(ROOT, 'test/durations.json');
+  if (existsSync(measured)) {
+    /** @type {Record<string, number>} */
+    const saved = JSON.parse(readFileSync(measured, 'utf8'));
+    for (const [file, seconds] of Object.entries(saved)) if (Number.isFinite(seconds) && seconds >= 0) durations.set(file, seconds);
+  }
   if (!existsSync(RESULTS)) return durations;
   try {
     /** @type {{ results?: [string, { duration?: number }][] }} */
@@ -124,7 +146,7 @@ if (isMain) {
   /** @type {string[]} */
   let related = [];
   if (sources.length > 0) {
-    const vitest = await createVitest({ root: ROOT, related: sources.map((file) => resolve(ROOT, file)), run: true, watch: false },
+    const vitest = await createVitest({ root: ROOT, related: sources.map((file) => resolve(ROOT, file)), run: true, watch: false, forceRerunTriggers: forceRerunTriggers(ROOT) },
       { logLevel: 'silent' });
     try {
       const specs = await vitest.getRelevantTestSpecifications();
@@ -144,5 +166,7 @@ if (isMain) {
   const walk = ((performance.now() - started) / 1000).toFixed(1);
   const over = left.length > 0 ? `; ${left.length} over the ${seconds}s budget run in CI only: ${left.join(' ')}` : '';
   console.error(`gate-related-tests: ${related.length} related + ${required.length} required product test files for ${sources.length} changed sources (${walk}s)${over}`);
+  const durations = knownDurations();
+  if (live) run.sort((a, b) => (durations.get(a) ?? 1) - (durations.get(b) ?? 1) || a.localeCompare(b));
   console.info(JSON.stringify(run));
 }
