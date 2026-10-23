@@ -15,6 +15,22 @@
    "value": 0.12,
    "min": 0,
    "max": 1
+  },
+  "firefly": {
+   "type": "colour",
+   "value": [
+    1,
+    1,
+    0.47
+   ]
+  },
+  "skyLantern": {
+   "type": "colour",
+   "value": [
+    1,
+    0.55,
+    0.2
+   ]
   }
  },
  "nodes": {
@@ -151,11 +167,448 @@
     "lit",
     "flick"
    ]
+  },
+  "vg": {
+   "op": "swizzle",
+   "in": [
+    "vc"
+   ],
+   "mask": "y"
+  },
+  "vg300": {
+   "op": "mul",
+   "in": [
+    "vg",
+    300
+   ]
+  },
+  "mover0": {
+   "op": "sub",
+   "in": [
+    1,
+    "vg300"
+   ]
+  },
+  "mover": {
+   "op": "saturate",
+   "in": [
+    "mover0"
+   ]
+  },
+  "seed": {
+   "op": "swizzle",
+   "in": [
+    "vc"
+   ],
+   "mask": "x"
+  },
+  "lantern0": {
+   "op": "sub",
+   "in": [
+    "seed",
+    0.5
+   ]
+  },
+  "lantern1": {
+   "op": "mul",
+   "in": [
+    "lantern0",
+    1000
+   ]
+  },
+  "lantern": {
+   "op": "saturate",
+   "in": [
+    "lantern1"
+   ]
+  },
+  "p6": {
+   "op": "mul",
+   "in": [
+    "seed",
+    6.2832
+   ]
+  },
+  "fax": {
+   "op": "mul",
+   "in": [
+    "t",
+    0.7
+   ]
+  },
+  "fbx": {
+   "op": "mul",
+   "in": [
+    "p6",
+    3
+   ]
+  },
+  "fcx": {
+   "op": "add",
+   "in": [
+    "fax",
+    "fbx"
+   ]
+  },
+  "fsx": {
+   "op": "sin",
+   "in": [
+    "fcx"
+   ]
+  },
+  "fox": {
+   "op": "mul",
+   "in": [
+    "fsx",
+    0.8
+   ]
+  },
+  "fay": {
+   "op": "mul",
+   "in": [
+    "t",
+    1.1
+   ]
+  },
+  "fby": {
+   "op": "mul",
+   "in": [
+    "p6",
+    5
+   ]
+  },
+  "fcy": {
+   "op": "add",
+   "in": [
+    "fay",
+    "fby"
+   ]
+  },
+  "fsy": {
+   "op": "sin",
+   "in": [
+    "fcy"
+   ]
+  },
+  "foy": {
+   "op": "mul",
+   "in": [
+    "fsy",
+    0.35
+   ]
+  },
+  "faz": {
+   "op": "mul",
+   "in": [
+    "t",
+    0.6
+   ]
+  },
+  "fbz": {
+   "op": "mul",
+   "in": [
+    "p6",
+    7
+   ]
+  },
+  "fcz": {
+   "op": "add",
+   "in": [
+    "faz",
+    "fbz"
+   ]
+  },
+  "fsz": {
+   "op": "cos",
+   "in": [
+    "fcz"
+   ]
+  },
+  "foz": {
+   "op": "mul",
+   "in": [
+    "fsz",
+    0.8
+   ]
+  },
+  "fOff": {
+   "op": "combine",
+   "in": [
+    "fox",
+    "foy",
+    "foz"
+   ]
+  },
+  "fap": {
+   "op": "mul",
+   "in": [
+    "t",
+    2.3
+   ]
+  },
+  "fbp": {
+   "op": "mul",
+   "in": [
+    "p6",
+    11
+   ]
+  },
+  "fcp": {
+   "op": "add",
+   "in": [
+    "fap",
+    "fbp"
+   ]
+  },
+  "fsp": {
+   "op": "sin",
+   "in": [
+    "fcp"
+   ]
+  },
+  "fsp2": {
+   "op": "mul",
+   "in": [
+    "fsp",
+    1.6
+   ]
+  },
+  "fsp3": {
+   "op": "sub",
+   "in": [
+    "fsp2",
+    0.4
+   ]
+  },
+  "fPulse": {
+   "op": "saturate",
+   "in": [
+    "fsp3"
+   ]
+  },
+  "fColour": {
+   "op": "param",
+   "param": "firefly"
+  },
+  "fLit": {
+   "op": "mul",
+   "in": [
+    "fLit0",
+    "intensity"
+   ]
+  },
+  "lay": {
+   "op": "mul",
+   "in": [
+    "t",
+    0.35
+   ]
+  },
+  "lby": {
+   "op": "mul",
+   "in": [
+    "p6",
+    4
+   ]
+  },
+  "lcy": {
+   "op": "add",
+   "in": [
+    "lay",
+    "lby"
+   ]
+  },
+  "lsy": {
+   "op": "sin",
+   "in": [
+    "lcy"
+   ]
+  },
+  "loy": {
+   "op": "mul",
+   "in": [
+    "lsy",
+    1.4
+   ]
+  },
+  "lax": {
+   "op": "mul",
+   "in": [
+    "t",
+    0.12
+   ]
+  },
+  "lbx": {
+   "op": "mul",
+   "in": [
+    "p6",
+    9
+   ]
+  },
+  "lcx": {
+   "op": "add",
+   "in": [
+    "lax",
+    "lbx"
+   ]
+  },
+  "lsx": {
+   "op": "sin",
+   "in": [
+    "lcx"
+   ]
+  },
+  "lox": {
+   "op": "mul",
+   "in": [
+    "lsx",
+    2.0
+   ]
+  },
+  "laz": {
+   "op": "mul",
+   "in": [
+    "t",
+    0.1
+   ]
+  },
+  "lbz": {
+   "op": "mul",
+   "in": [
+    "p6",
+    5
+   ]
+  },
+  "lcz": {
+   "op": "add",
+   "in": [
+    "laz",
+    "lbz"
+   ]
+  },
+  "lsz": {
+   "op": "cos",
+   "in": [
+    "lcz"
+   ]
+  },
+  "loz": {
+   "op": "mul",
+   "in": [
+    "lsz",
+    2.0
+   ]
+  },
+  "lOff": {
+   "op": "combine",
+   "in": [
+    "lox",
+    "loy",
+    "loz"
+   ]
+  },
+  "lColour": {
+   "op": "param",
+   "param": "skyLantern"
+  },
+  "lLit": {
+   "op": "mul",
+   "in": [
+    "lLit0",
+    "intensity"
+   ]
+  },
+  "dOff": {
+   "op": "sub",
+   "in": [
+    "lOff",
+    "fOff"
+   ]
+  },
+  "kOff": {
+   "op": "mul",
+   "in": [
+    "dOff",
+    "lantern"
+   ]
+  },
+  "mOff": {
+   "op": "add",
+   "in": [
+    "fOff",
+    "kOff"
+   ]
+  },
+  "offset": {
+   "op": "mul",
+   "in": [
+    "mOff",
+    "mover"
+   ]
+  },
+  "dLit": {
+   "op": "sub",
+   "in": [
+    "lLit",
+    "fLit"
+   ]
+  },
+  "kLit": {
+   "op": "mul",
+   "in": [
+    "dLit",
+    "lantern"
+   ]
+  },
+  "mLit": {
+   "op": "add",
+   "in": [
+    "fLit",
+    "kLit"
+   ]
+  },
+  "dOut": {
+   "op": "sub",
+   "in": [
+    "mLit",
+    "out"
+   ]
+  },
+  "mixOut": {
+   "op": "mul",
+   "in": [
+    "dOut",
+    "mover"
+   ]
+  },
+  "final": {
+   "op": "add",
+   "in": [
+    "out",
+    "mixOut"
+   ]
+  },
+  "fLit0": {
+   "op": "mul",
+   "in": [
+    "fColour",
+    "fPulse"
+   ]
+  },
+  "lLit0": {
+   "op": "mul",
+   "in": [
+    "lColour",
+    "flick"
+   ]
   }
  },
  "stages": {
+  "vertex.offset": {
+   "offset": "offset"
+  },
   "surface": {
-   "colour": "out"
+   "colour": "final"
   }
  }
 }

@@ -162,6 +162,20 @@ function upward(w, a, b, c, colours) {
   const winding = (b[2] - a[2]) * (c[0] - a[0]) - (b[0] - a[0]) * (c[2] - a[2]);
   if (winding >= 0) w.triColours('Pool', a, b, c, colours); else w.triColours('Pool', a, c, b, [colours[0], colours[2], colours[1]]);
 }
+/** NM10: the moving lights draw in the Glow part, marked by a vertex colour with no green or blue (no lantern, window,
+ *  awning or bulb colour has that) and seeded by its red: a firefly in [0, 0.5), a sky lantern in [0.5, 1). The glow
+ *  graph moves and lights them; the same seeds every bake. */
+let seeds = 0;
+const nextSeed = () => { seeds++; return (seeds * 0.6180339887) % 1; };
+/** A small tetrahedron of the Glow part about (x, y, z), `size` its half-width, `seed` its marked colour's red. */
+function mover(w, x, y, z, size, seed) {
+  const c = [seed, 0, 0], top = [x, y + size * 1.4, z], a = [x - size, y - size, z - size], b = [x + size, y - size, z - size], d = [x, y - size, z + size * 1.4];
+  w.tri('Glow', top, b, a, c); w.tri('Glow', top, d, b, c); w.tri('Glow', top, a, d, c); w.tri('Glow', a, b, d, c);
+}
+/** A firefly: a 7 cm mover the glow graph wanders (+-0.8 m) and blinks green. */
+function firefly(w, x, y, z) { mover(w, x, y, z, 0.07, nextSeed() * 0.5); }
+/** A floating sky lantern: a 0.5 m mover the glow graph bobs and drifts (+-2 m), lit orange. */
+function skyLantern(w, x, y, z) { mover(w, x, y, z, 0.35, 0.5 + nextSeed() * 0.5); }
 /** A lantern on a post (post in Kit, the lantern lit) and its pool of light. */
 function lantern(w, x, z, p, height = 2.8) {
   w.sides('Kit', [x - 0.09, 0, z - 0.09], [x + 0.09, height, z + 0.09], p.wood);
@@ -224,6 +238,8 @@ function garden(w, p, variant) {
       w.solid([cx - 8.6, 0, cz - 8.6], [cx + 8.6, 0.6, cz + 8.6]);
       continue;
     }
+    // NM10: fireflies over the lawn
+    firefly(w, x0 + (x1 - x0) * 0.6, 1.2, z0 + (z1 - z0) * 0.55); firefly(w, x0 + (x1 - x0) * 0.25, 1.8, z0 + (z1 - z0) * 0.2);
     const spots = index % 2 === 0 ? [[0.3, 0.3], [0.72, 0.4], [0.45, 0.75]] : [[0.3, 0.68], [0.7, 0.7], [0.55, 0.28]];
     for (const [i, [u, v]] of spots.entries()) {
       const x = x0 + (x1 - x0) * u, z = z0 + (z1 - z0) * v, size = 6 + i;
@@ -354,6 +370,8 @@ function plaza(w, p) {
   }
   w.box('Kit', [-27, 0, 19], [-19, 0.8, 27], p.stone, p.lawn); w.solid([-27, 0, 19], [-19, 0.8, 27]);
   tree(w, -23, 23, 6.5, p, 1);
+  // NM10: a few sky lanterns floating over the plaza
+  for (const [x, y, z] of [[-14, 22, -8], [6, 31, 12], [16, 40, -18]]) skyLantern(w, x, y, z);
 }
 
 /** The far stand-in per tile (<= 40 triangles): its ground and the blocks that read from far away. */

@@ -16,7 +16,8 @@ const look = { ...source.look, materials: { ...source.look.materials,
 const { why: _why, ...tiledMaterials } = source.tiledMaterials;
 /** G641: a tiled plot's look adds the kit's materials (generators/tiledPlot.mjs) */
 // NM10: the lanterns, windows and their light pools flicker a little, each on its own phase (world position), unlit as the
-// emissive family drew them (glow x2.4 +-12 %, pool additive x1.2 +-8 %)
+// emissive family drew them (glow x2.4 +-12 %, pool additive x1.2 +-8 %); the glow also moves and lights the marked
+// fireflies and sky lanterns (kit.mjs `mover`)
 const tiledLook = { ...look, materials: { ...look.materials, ...tiledMaterials,
   glow: { family: 'graph', graph: glowFlicker }, pool: { family: 'graph', graph: poolFlicker } } };
 
