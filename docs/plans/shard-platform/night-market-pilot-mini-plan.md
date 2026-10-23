@@ -4,6 +4,36 @@ Jake, 2026-10-23: *"we need to make a mini plan of how to build it"*. Read at HE
 `art/grid/round-45-night-market-billboards/` (m1 100 m over the neighbour, m2 road entry, m3 top-down 630 m, m4 plaza);
 round 46 is coming and is the capture target. The plan adds one SDK flag and otherwise stays data plus generator, with no runtime code.
 
+
+## Pilot brief for the overnight lane (2026-10-23, for Jake's review)
+
+Everything below this brief is the detailed build reference; where they disagree, this brief wins.
+
+- **Target look:** `art/grid/round-49-night-market-billboards-2x2/` (take B layout, G633) — match it from the four views
+  (100 m above the neighbour, road entry, top-down, plaza).
+- **Tiles:** an exact 8 × 8 grid of 62.5 m tiles (one per streaming tile, G626/G638); four **bespoke Night Market tile
+  types** (courtyard houses, stall row, canal with bridge, garden), code-built by small JS builders, ~2 draws each; the
+  centre 2 × 2 is the plaza. Layout is a data file Jake can edit (letters per tile).
+- **Landmark:** the Hunyuan3D 2.1 pagoda gate from the trial (`art/grid/round-48-landmark-trial/`; Jake: "doesn't look
+  bad"), unless the TRELLIS.2 side-by-side comes out clearly better (G632) — scaled to ~45–60 m, 15k triangles near /
+  2.5k far, opaque and painted; box colliders on pillars and bases.
+- **Billboards (G633):** five real posters — the large one on the plaza, one at each of the four road entries — each with
+  a hero picture of the finished Night Market, the name **NIGHT MARKET** and the invitation **BUILD THIS SHARD**, lit,
+  readable from the road and from 100 m up (textured boards).
+- **Removed:** the hologram, plinth, rim, sign, corner beacons and **beams** (G637: beams go on every plot).
+- **Where Jake finds it:**
+  1. **SHARD SELECT:** the pilot gets its own card ("NIGHT MARKET · OPEN PLOT PILOT", Developer) so he can enter it
+     directly.
+  2. **Infinite Wildshard:** it replaces the Night Market cell(s); following the road from Driftwood leads to it.
+  3. **World map / minimap:** its top-down reads completely differently from every other open plot (tiles, canals, the
+     plaza and gate in its own palette, painted into the map from the generator) — part of done.
+- **Scope:** Night Market only; every other open plot keeps its hologram until Jake has checked the pilot (G633 D4).
+- **Who and when:** one Opus lane, overnight, after the live P0s; rows NM0–NM6 below (NM0 SDK far option, NM1 tiles,
+  NM2 landmark, NM3 billboards, NM4 wiring + SHARD SELECT card + map colours, NM5 near view, NM6 capture).
+- **Done when:** deployed to live; a 9-angle in-game capture board (round 38 cameras) next to the round 49 mockup;
+  frame floor and memory reading on the phone tier; physics walk 0 stuck; Jake checks it in SHARD SELECT, on the grid
+  and on the map.
+
 ## 1. How it's built today
 
 - `src/shards/open-plots/` is a data-only source shard. `outputs.json` has 14 idea rows, each emitting `open-plot-<idea>`, and 19 grid cells use them.
