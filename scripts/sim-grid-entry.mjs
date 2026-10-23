@@ -4,6 +4,7 @@
 //   scripts/sim-lane.sh run --max 45 wildshard-iphone node scripts/sim-grid-entry.mjs --base=<url> | --rev=<sha>
 //     [--runs=3] [--modes=cold,warm] [--out=tmp/sim-grid-entry/<label>] [--keep-video]
 //     [--shard=sunscar-dunes] selects the explicit compiled card, never legacy.
+//     [--upgrade-from=<old-origin>] installs the old worker, switches this same origin to the new build, then taps grid.
 //     [--core-memory=menu|all] reads independent Developer-on floors at 10/60/120s, no Network capture or GC.
 // --base drives a served build or live; --rev serves that commit (scripts/serve-build.sh --rev) and stops it after.
 // Each run: Safari terminated; a cold run clears the worker, every cache and the prefetch markers (a warm run keeps
@@ -40,6 +41,8 @@ function quiet(action) {
 }
 const shard = args.shard;
 const coreMemory = args['core-memory'];
+const upgradeFrom = args['upgrade-from'];
+if (upgradeFrom !== undefined && (coreMemory !== undefined || shard !== undefined || args.runs !== '1' || args.modes !== 'warm' || !['http:', 'https:'].includes(new URL(upgradeFrom).protocol))) throw new Error('Upgrade observation requires one warm grid run and an HTTP origin');
 if (coreMemory !== undefined && (!['menu', 'all'].includes(coreMemory) || shard !== undefined)) throw new Error('Expected --core-memory=menu|all without --shard');
 if (coreMemory !== undefined && ((args.runs !== undefined && args.runs !== '1') || (args.modes !== undefined && args.modes !== 'cold'))) throw new Error('Core floors require exactly one cold reading per target');
 if (shard !== undefined) loadingShardName(shard);
@@ -64,7 +67,9 @@ const served = args.rev === undefined ? null : serve(args.rev);
 const upstream = served?.url ?? (args.base ?? '').replace(/\/$/u, '');
 // The existing independent HTTP observer injects a first-HTML recorder only.
 // Asset and worker bytes pass through unchanged. Grid recordings keep their URL.
-const transport = shard === undefined ? null : await observeTransport(upstream, { recorder: accuracyRecorder });
+let oldDeployment = upgradeFrom !== undefined;
+const transport = upgradeFrom !== undefined ? await observeTransport(() => oldDeployment ? upgradeFrom : upstream)
+  : shard === undefined ? null : await observeTransport(upstream, { recorder: accuracyRecorder });
 const BASE = (transport?.base ?? upstream).replace(/\/$/u, '');
 const sock = execFileSync('xcrun', ['simctl', 'getenv', udid, 'RWI_LISTEN_SOCKET'], { encoding: 'utf8' }).trim();
 const proxy = spawn('ios_webkit_debug_proxy', ['-s', `unix:${sock}`, '-c', 'null:9221,:9232-9240'], { stdio: 'ignore' });
@@ -129,7 +134,10 @@ const WATCH = `window.__simEntry ??= (() => {
 })(); 1`;
 const READ = `JSON.stringify({ origin: performance.timeOrigin, entry: window.__simEntry ?? null, reveal: window.__wsReveal ?? null,
   fcp: performance.getEntriesByType('paint').find(e => e.name === 'first-contentful-paint')?.startTime ?? null, href: location.href,
-  tap: Number(sessionStorage.getItem('sim.tap')) })`;
+  tap: Number(sessionStorage.getItem('sim.tap')),
+  title: !!document.querySelector('.ws-main-select'), pill: document.querySelector('.ws-update')?.textContent ?? null,
+  error: document.querySelector('#wsstuck')?.textContent ?? document.querySelector('#wserr .msg')?.textContent ?? null,
+  worker: {controller: navigator.serviceWorker?.controller?.state ?? null, waiting: window.__ws_sw?.waiting?.state ?? null} })`;
 
 /** Raw 48 x 88 RGB frames of the video between two times (seconds), 30 fps. */
 function frames(video, from, to) {
@@ -237,7 +245,7 @@ async function run(mode, index, target) {
   let sample = null, compiled = null;
   try {
     await sleep(1000);
-    const setup = shard === undefined ? '' : [
+    const setup = shard === undefined && upgradeFrom === undefined ? '' : [
       saveFixtureCode({ scope: 'device', key: 'devMode', data: true }),
       saveFixtureCode({ scope: 'device', key: 'debug.global.legacyShardButtons', data: 'on' }),
       saveFixtureCode({ scope: 'global', key: 'settings', merge: true, data: { volume: 0, tier: 'phone' } }),
@@ -249,6 +257,23 @@ async function run(mode, index, target) {
     if (shard === undefined && !await page.evaluate(`!!document.querySelector('.ws-main-grid')`)) {
       await gesture(`document.querySelector('.ws-main-dev').click(); 1`); await sleep(1500);
       try { await page.evaluate('1'); } catch { await connect(`${BASE}/`); }
+    }
+    if (upgradeFrom !== undefined) {
+      if (!await until(`navigator.serviceWorker.controller !== null`, 180000)) throw new Error('Old deployment worker never controlled the title');
+      const oldWorker = await settle(`async () => window.__ws_sw?.version() ?? null`);
+      const oldVersion = await (await fetch(new URL('version.json', upgradeFrom), {cache: 'no-store'})).json();
+      if (typeof oldWorker?.build !== 'string' || typeof oldVersion.build !== 'string' || !oldWorker.build.startsWith(`${oldVersion.build}-`)) throw new Error('Old controlling worker does not match the deployed build');
+      log(file, {ev: 'upgrade-old-controller', worker: oldWorker.build, version: oldVersion});
+      oldDeployment = false;
+      const nextVersion = await (await fetch(new URL('version.json', upstream), {cache: 'no-store'})).json();
+      if (nextVersion.build === oldVersion.build) throw new Error('Upgrade observation requires different builds');
+      log(file, {ev: 'upgrade-switch', version: nextVersion});
+      await page.evaluate(`document.dispatchEvent(new Event('visibilitychange'));true`);
+      const update = await settle(`async () => {const reg=await navigator.serviceWorker.getRegistration();if(!reg)throw Error('Missing old registration');await reg.update();return {waiting:reg.waiting?.state??null,installing:reg.installing?.state??null};}`);
+      if (typeof update !== 'object' || update === null) throw new Error(`Upgrade update check failed: ${String(update)}`);
+      const beforeTap = await settle(`async () => window.__ws_sw?.version() ?? null`);
+      if (beforeTap?.build !== oldWorker.build) throw new Error('Old controller changed before the grid tap');
+      log(file, {ev: 'upgrade-before-tap', worker: beforeTap.build, update});
     }
     let button = '.ws-main-grid';
     if (shard !== undefined) {
@@ -262,6 +287,12 @@ async function run(mode, index, target) {
     }
     if (!await until(`(() => { const b = document.querySelector('${button}'); return !!b && b.getClientRects().length > 0; })()`, 30000)) throw new Error('Missing real entry control');
     await sleep(6000);
+    if (upgradeFrom !== undefined) {
+      const candidate = await settle(`async () => {const reg=await navigator.serviceWorker.getRegistration();const w=reg?.waiting;if(!w)return null;return new Promise(resolve=>{const ch=new MessageChannel();const timer=setTimeout(()=>{ch.port1.close();ch.port2.close();resolve(null)},5000);ch.port1.onmessage=e=>{clearTimeout(timer);ch.port1.close();ch.port2.close();resolve(e.data.build??null)};w.postMessage({type:'BUILD'},[ch.port2]);});}`);
+      const nextVersion = await (await fetch(new URL('version.json', upstream), {cache: 'no-store'})).json();
+      if (typeof candidate !== 'string' || !candidate.startsWith(`${nextVersion.build}-`)) throw new Error('New deployment worker is not waiting before the grid tap');
+      log(file, {ev: 'upgrade-waiting', build: candidate});
+    }
     await gesture(`(() => { sessionStorage.setItem('sim.tap', String(performance.timeOrigin + performance.now())); setTimeout(() => document.querySelector('${button}').click(), 0); return true; })()`);
     const tapAt = Date.now(); log(file, { ev: 'tap', at: tapAt });
     await sleep(300);

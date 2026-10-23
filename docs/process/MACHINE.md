@@ -164,6 +164,14 @@ renderer + GPU totals against G658 M1's 50/100 MiB targets and fails if a floor
 is over target or unavailable. It retains 10/60/120-second samples and the
 post-sample scalar owner ledger; cache-clear diagnostics cannot pass a floor.
 
+For a cross-deploy warm grid refusal, use that same official reader with
+`--upgrade-from=<old-deploy-origin> --runs=1 --modes=warm` and the new
+`--rev=<sha>`. It verifies the old worker controls the title, switches the
+same local origin to the new build, checks for the new worker, and taps the
+grid without adopting via the pill. Exact script/worker responses stay
+unchanged; URL, title, error, pill and controller states ride the existing
+poll log. An absent or changed old controller refuses the reading.
+
 C2's WebKit comparison uses the same official Simulator reader:
 `scripts/sim-lane.sh run --max 20 wildshard-iphone node scripts/sim-grid-entry.mjs
 --rev=<main-sha> --core-memory=all --out=tmp/core-floors/<label>`. It reads menu,

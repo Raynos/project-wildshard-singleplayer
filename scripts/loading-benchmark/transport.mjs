@@ -1,5 +1,6 @@
 // Observe served asset bytes unchanged; optional HTML recorder fixtures retain both content hashes.
 import http from 'node:http';
+import https from 'node:https';
 import { createHash } from 'node:crypto';
 import { createGunzip, createBrotliDecompress, createInflate } from 'node:zlib';
 
@@ -30,14 +31,15 @@ export async function observeTransport(upstream, fixture = {}) {
       response.writeHead(200, { 'content-type': 'text/html', 'cache-control': 'no-store' });
       response.end(fixture.start); return;
     }
-    const target = new URL(request.url ?? '/', upstream);
+    const target = new URL(request.url ?? '/', typeof upstream === 'function' ? upstream() : upstream);
+    if (target.protocol !== 'http:' && target.protocol !== 'https:') { response.writeHead(502); response.end(); return; }
     const inject = fixture.recorder !== undefined && (target.pathname === '/' || target.pathname === '/index.html');
     const requestHeaders = { ...request.headers, host: target.host };
     if (inject) {
       requestHeaders['accept-encoding'] = 'identity';
       delete requestHeaders['if-none-match']; delete requestHeaders['if-modified-since'];
     }
-    const forwarded = http.request(target, { method: request.method, headers: requestHeaders }, incoming => {
+    const forwarded = (target.protocol === 'https:' ? https : http).request(target, { method: request.method, headers: requestHeaders }, incoming => {
       // Fixed-length replies preserve the upstream wire length; unknown lengths use chunked framing.
       const headers = { ...incoming.headers, connection: 'close' };
       delete headers['keep-alive'];
