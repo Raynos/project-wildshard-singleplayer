@@ -1,3 +1,4 @@
+import { ActorProjectionV2,type ActorProjectionOwner } from '../population/actorProjectionV2';
 import type { ReturnProgram } from '../population/returnProgram';
 import type { Rng } from '@wildshard/engine/core/rng';
 import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
@@ -15,6 +16,7 @@ import { CrowdDraw as Flock, type CrowdBody as FlockBody } from '@wildshard/game
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import { productRiggedHulls } from '../looks/riggedHulls';
+import type { Scope } from '@wildshard/engine/app/scope';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { wildEnv } from '@wildshard/game/population/pageGroups';
 
@@ -40,7 +42,7 @@ export interface PageCrowdViews {
   advance: (view: Flock, index: number, speed: number, player: Vector3, dt: number, time: number, step: PreparedCrowds['advance']) => void;
 }
 interface GuardBinding { readonly row: v.InferOutput<typeof CrowdGuardSchema>; readonly flock: CrowdTargets;
-  readonly wolves: readonly Animal[]; readonly author: ReturnProgram; readonly random: Rng }
+  readonly projection?:ActorProjectionV2;readonly owner?:ActorProjectionOwner;readonly wolves: readonly Animal[]; readonly author: ReturnProgram; readonly random: Rng }
 const guards = new WeakMap<Animal, GuardBinding>();
 const stragglerPoint = new Vector3();
 
@@ -54,11 +56,12 @@ const PageCrowdsSchema = v.strictObject({ slug: v.string(), hull: v.nullable(v.s
 /** Client-only native crowd/view roster. All placement, bounds, materials and
  * hull identities are admitted rows; it borrows the installed terrain and
  * perception authorities without an author factory or frame callback. */
-export function createPageCrowds(sky: SkyRig, seed: number, body: FlockBody, input: unknown, dogWolves: readonly Animal[] = []): PageCrowdViews {
+export function createPageCrowds(sky: SkyRig, seed: number, body: FlockBody, input: unknown, dogWolves: readonly Animal[] = [],scope:Scope|undefined=app.levelScope??undefined): PageCrowdViews {
   const data = v.parse(PageCrowdsSchema, input);
   const rows = data.rows.map(row => parseFlock({ ...row, seed: seed + row.seed }));
   if (data.guard?.states.some(state => !ANIMAL_STATES.some(value => value === state)) === true) throw new Error('Invalid crowd guardian states');
   if (data.bounds[0] >= data.bounds[1] || data.bounds[2] >= data.bounds[3]) throw new Error('Invalid crowd placement bounds');
+  let projection:ActorProjectionV2|undefined,projectionAuthor:ReturnProgram|undefined;
   const views = new Map<string, Flock>(), observations = new Map<string, CrowdObservation>();
   const runtime = prepareDeclaredCrowds(rows, { flock: row => {
     const observation: CrowdObservation = { player: new Vector3(), playerSpeed: 0, wolves: dogWolves, dog: null };
@@ -78,7 +81,13 @@ export function createPageCrowds(sky: SkyRig, seed: number, body: FlockBody, inp
   return { runtime, guardian: (actor, index, author, random) => {
     const row = rows[index], view = row === undefined ? undefined : views.get(row.id);
     if (view === undefined || data.guard === undefined) throw new Error('Unbound crowd guardian');
-    guards.set(actor, { row: data.guard, flock: view, wolves: dogWolves, author, random });
+    if(data.guard.projection!==undefined){
+      // Borrow the exact original descriptor supplied by the wildlife owner.
+      if(projectionAuthor!==undefined&&projectionAuthor!==author)throw new Error('Replaced crowd projection programme');
+      projection??=new ActorProjectionV2('crowd.guard',{program:author.declaration,step:data.guard.projection});projectionAuthor=author;
+    }
+    if(projection!==undefined&&scope===undefined)throw new Error('Missing crowd projection scope');
+    guards.set(actor, { row: data.guard, flock: view, wolves: dogWolves, author, random,...(projection===undefined||scope===undefined?{}:{projection,owner:{scope,group:rows[index]?.id??'crowd.guard',slot:0,identity:actor.entityId,random,crowd:{owner:view,point:stragglerPoint},rosters:new Map([['threats',dogWolves]])}}) });
   }, factory: (options, index) => {
     const row = rows[index], policy = row === undefined ? undefined : runtime.policies.get(row.id);
     if (row === undefined || policy === undefined || views.has(row.id) || row.x !== options.x || row.z !== options.z
@@ -98,6 +107,10 @@ export function createPageCrowds(sky: SkyRig, seed: number, body: FlockBody, inp
 export function thinkCrowdGuard(actor: Animal, context: ThinkCtx): void {
   const bound = guards.get(actor);
   if (bound === undefined || !actor.alive) { actor.setMotion(actor.yaw, 0, 1); return; }
+  if(bound.projection!==undefined){
+    if(bound.owner===undefined)throw new Error('Missing crowd projection owner');
+    bound.projection.step(actor,context,bound.owner);return;
+  }
   const { row, flock, author } = bound, point = actor.position, memory = actor.mem;
   const previous = memory[row.clock], dt = previous === undefined ? context.dt : context.t - previous;
   if (previous !== undefined && dt < row.every - 1e-9) return;

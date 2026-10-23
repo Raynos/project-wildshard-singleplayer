@@ -2,7 +2,6 @@ import {expect,test,vi} from 'vitest';
 import {Vector3} from 'three';
 import {ActorProjectionV2,type ActorProjectionContext} from '../src/game/population/actorProjectionV2';
 import {ActorProjectionV2Schema,parseActorProjectionV2} from '../src/format/actorProjectionV2';
-import {ReturnProgram} from '../src/game/population/returnProgram';
 import {createSimHost} from '../src/engine/sim';
 import {loadRapier} from '../src/engine/physics/rapier';
 import type {AnimalSim} from '../src/engine/entities/AnimalSim';
@@ -51,7 +50,8 @@ test('admission refuses executables, accessors, unknown selectors and missing de
   const schema=namedJsonSchema(ActorProjectionV2Schema),bytes=new TextEncoder().encode(JSON.stringify(input));
   expect(validateNamedJsonSchema(schema,bytes)).toStrictEqual(input);
   const f=await fixture(),binding=new ActorProjectionV2('reed',input),before=f.a.snapshot();
-  const project=vi.spyOn(ReturnProgram.prototype,'project').mockReturnValue({});
+  const nativeProgramme=binding.program(f.host.scope);if(nativeProgramme.prepare===undefined)throw new Error('Missing ABI2 preparation');
+  const project=vi.spyOn(nativeProgramme,'prepare').mockReturnValue({values:{},accept:()=>undefined});
   try{expect(()=>binding.step(f.a,f.context,{scope:f.host.scope,group:'reeds',slot:0,identity:f.a.entityId})).toThrow('scalar');expect(f.a.snapshot()).toStrictEqual(before);}
   finally{project.mockRestore();f.host.scope.dispose();}
 });

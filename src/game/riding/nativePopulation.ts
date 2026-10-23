@@ -52,7 +52,7 @@ export interface NativePopulationConfig {
   packKind: string; dogKind: string; eliteKinds: readonly string[]; motorKinds: readonly string[]; retiredY: number;
   variants: readonly { kind: string; rows: readonly { id: string; scale: readonly [number, number] }[] }[];
   flocks: readonly { row: unknown; dog: boolean }[]; forager: { row: unknown; seed: number };
-  frame: NativeWildlifeRows; driver: { dispatch: string; dogDecision: string; stragglerDistance: number };
+  frame: NativeWildlifeRows; driver: { dispatch: string; dogDecision: string; stragglerDistance: number;projection?:unknown };
   companion: { id: string; kind: string; variant: string; wildKinds: readonly string[] };
   shepherdOffset: readonly [number, number]; raidVariants: readonly string[];
 }

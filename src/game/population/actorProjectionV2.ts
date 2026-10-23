@@ -9,6 +9,8 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { StrikeRunner } from '@wildshard/engine/ai/strikes';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { ReturnProgram } from './returnProgram';
+import type { Rng } from '@wildshard/engine/core/rng';
+import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import type { Vector3 } from 'three';
 
 /** Original native actor authority, lent at its existing decision slot. Group
@@ -17,8 +19,11 @@ import type { Vector3 } from 'three';
 export type ActorProjectionContext<A extends AnimalSim> = Pick<ThinkCtx,'dt'|'t'|'player'|'calm'|'hurt'|'sound'|'playerSpeed'> & {
   steer:(actor:A,yaw:number,speed:number,turn:number)=>void;
   reach:(actor:A)=>boolean;
+  pathYaw?:(actor:A,x:number,z:number,every:number)=>number;
+  confine?:(actor:A)=>void;
 };
-export interface ActorProjectionOwner extends Pick<V2ColumnOwners,'scope'|'environment'|'clock'|'weather'|'herds'|'taming'|'mount'> {
+export interface ActorProjectionOwner extends Pick<V2ColumnOwners,'scope'|'environment'|'clock'|'weather'|'herds'|'taming'|'mount'|'crowd'|'rosters'> {
+  readonly random?:Rng;
   readonly observed?:V2ColumnOwners['observed'];
   readonly group:string;
   readonly slot:number;
@@ -37,6 +42,7 @@ export class ActorProjectionV2 {
   private readonly contacts=new StrikeRunner();
   private readonly strikes=new Map<Operation,ReturnType<typeof strikeFromData>>();
   private scope:Scope|null=null;
+  private programme:{scope:Scope;value:ReturnProgram}|null=null;
   private columns:readonly ObservationColumnsV2[]=[];
   readonly binding:Pick<SpeciesDef,'kind'|'think'|'damageMul'>;
   constructor(kind:string,input:unknown){
@@ -61,7 +67,13 @@ export class ActorProjectionV2 {
       if(operation.length!==undefined&&strike.shape.kind!=='wedge')throw new Error('Scaled contact requires wedge');
       this.strikes.set(operation,strike);
     }
-    return ReturnProgram.page(this.rows.program,scope);
+    if(scope===undefined)return ReturnProgram.page(this.rows.program);
+    if(scope.disposed||scope.disposing)throw new Error('Actor projection owner disposed');
+    if(this.programme?.scope!==scope){
+      const value=ReturnProgram.page(this.rows.program,scope);this.programme={scope,value};
+      scope.onDispose(()=>{if(this.programme?.scope===scope)this.programme=null;});
+    }
+    return this.programme.value;
   }
   private captureOwners<A extends AnimalSim>(actor:A,context:ActorProjectionContext<A>|undefined,hit?:Vector3,request?:DamageRequest,owner?:ActorProjectionOwner):V2ColumnOwners{
     const scope=owner?.scope??app.levelScope;
@@ -92,9 +104,14 @@ export class ActorProjectionV2 {
   step<A extends AnimalSim>(actor:A,context:ActorProjectionContext<A>,owner?:ActorProjectionOwner):void{
     const row=this.rows.step;
     if(row===undefined)return;
-    const owners=this.captureOwners(actor,context,undefined,undefined,owner),previous=actor.mem[row.clock],dt=previous===undefined?context.dt:context.t-previous;
-    if(previous!==undefined&&dt<row.every-1e-9)return;
-    const answer=this.program(owners.scope).project(row.signal,this.observations(0,{...owners,dt}));
+    const scope=owner?.scope??app.levelScope;if(scope===null||scope.disposed||scope.disposing)throw new Error('Actor projection owner disposed');
+    // The original cadence guard precedes scope/column allocation and ALL live
+    // sampling. Only this actor's declared columns are captured when due.
+    const previous=actor.mem[row.clock],elapsed=previous===undefined?context.dt:context.t-previous;
+    if(previous!==undefined&&elapsed<row.every-1e-9)return;
+    const dt=row.dt==='context'?context.dt:elapsed,owners=this.captureOwners(actor,context,undefined,undefined,owner);
+    const programme=this.program(owners.scope);if(programme.prepare===undefined)throw new Error('Missing actor projection preparation');
+    const prepared=programme.prepare(row.signal,this.observations(0,{...owners,dt}),owner?.random),answer=prepared.values;
     const scalar=(value:Scalar):number=>number(value.kind==='constant'?value.value:value.kind==='channel'?answer[value.name]:value.kind==='time'?context.t:context.player[value.axis]);
     const condition=(when:{channel:string;
       equal:number}):boolean=>number(answer[when.channel])===when.equal;
@@ -121,6 +138,8 @@ export class ActorProjectionV2 {
         pin(context,'sound');
       }
       if(operation.kind==='sound')pin(context,'sound');
+      if(operation.kind==='navigate'){pin(actor,'setMotion');pin(context,'steer');pin(context,'pathYaw');}
+      if(operation.kind==='confine')pin(context,'confine');
     }
     const live=():void=>{
       if(owners.scope.disposed||owners.scope.disposing)throw new Error('Actor projection owner disposed');
@@ -130,9 +149,9 @@ export class ActorProjectionV2 {
       const enabled=!('when' in operation)||condition(operation.when);
       switch(operation.kind){
         case 'memory': {
-          const value=scalar(operation.value);
+          const value=operation.optional===true&&operation.value.kind==='channel'&&answer[operation.value.name]===undefined?undefined:scalar(operation.value);
           return ()=>{
-            actor.mem[operation.key]=value;
+            if(value!==undefined)actor.mem[operation.key]=value;
           };
         }
         case 'position': {
@@ -140,6 +159,23 @@ export class ActorProjectionV2 {
           return ()=>{
             actor.position[operation.axis]=value;
           };
+        }
+        case 'look-position':{
+          const x=scalar(operation.x),y=scalar(operation.y),z=scalar(operation.z),weight=scalar(operation.weight);
+          return ()=>{actor.lookTarget.set(x,y,z);actor.lookWeight=weight;};
+        }
+        case 'navigate':{
+          const x=scalar(operation.x),z=scalar(operation.z),yaw=scalar(operation.yaw),speed=scalar(operation.speed),turn=scalar(operation.turn),path=scalar(operation.path);
+          const pathYaw=context.pathYaw;
+          if(pathYaw===undefined)throw new Error('Missing actor projection navigation');
+          return ()=>{const heading=path>0?pathYaw.call(context,actor,x,z,path):yaw;live();if(path<0)actor.setMotion(heading,speed,turn);else context.steer(actor,heading,speed,turn);};
+        }
+        case 'confine':{
+          const confine=context.confine;if(confine===undefined)throw new Error('Missing actor projection confinement');
+          return ()=>{confine.call(context,actor);};
+        }
+        case 'sound-position':{
+          const emit=scalar(operation.value);return ()=>{if(emit!==0)app.events.emit('creature.sound',{cue:operation.cue,x:actor.position.x,y:terrainHeight(actor.position.x,actor.position.z)+operation.height,z:actor.position.z});};
         }
         case 'look': {
           const value=scalar(operation.weight);
@@ -204,6 +240,7 @@ export class ActorProjectionV2 {
         default:throw new Error('Unknown actor projection operation');
       }
     });
+    live();prepared.accept();
     for(const operation of operations){
       if(owners.scope.disposed||owners.scope.disposing)throw new Error('Actor projection owner disposed');
       if(actor.mem!==memory||actor.position!==position||actor.lookTarget!==look||context.player!==player||pins.some(valid=>!valid()))throw new Error('Replaced actor projection native owner');

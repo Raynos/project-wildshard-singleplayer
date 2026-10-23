@@ -38,7 +38,7 @@ export class PageWildlife<T extends CrowdTargets = CrowdTargets> {
   private readonly motion: ProjectedMotionSample; private readonly predatorBodies: Animal[] = [];
   constructor(private readonly animals: AnimalManager,input: unknown, programmeScope?:Scope) {
     this.rows = v.parse(WildlifePopulationSchema,input); const row = this.rows;
-    this.placement = ReturnProgram.page(row.admission); this.pastureAuthor = ReturnProgram.page(row.pasture,programmeScope);
+    this.placement = ReturnProgram.page(row.admission,programmeScope); this.pastureAuthor = ReturnProgram.page(row.pasture,programmeScope);
     this.population = new PagePopulationPlanner(animals,this.placement,new Rng(row.random),{ begin: 'begin',spot: 'spot',accept: 'accept',yaw: 'yaw' });
     this.groups = new PageGroups(animals,this.flocks,row.groups); this.targets = new CrowdRoster(animals.animals,this.flocks,row.groups.prey);
     this.weaponTarget=new CrowdWeaponTarget(this.targets,row.combat);
@@ -138,7 +138,7 @@ export async function installClientWildlife(ctx: ShardContext, feature: ClientFe
   const body = await readCrowdBody(ctx.product, feature.crowd);
   ctx.scope.own(body.geometry);
   const page = v.parse(v.object({ page: v.object({ world: v.unknown() }) }), await ctx.product.json(feature.crowd.json));
-  const predators: Animal[] = [], crowds = createPageCrowds(world.sky, world.chunk.seed, body, page.page.world, predators);
+  const predators: Animal[] = [], crowds = createPageCrowds(world.sky, world.chunk.seed, body, page.page.world, predators,world.game.levelScope);
   const foragers = rows.foragers?.view === undefined ? null : await prepareForagerDraw(ctx, rows);
   const owner: { wildlife: PageWildlife<CrowdDraw> | null } = { wildlife: null };
   let draw: ForagerDraw | null = null;

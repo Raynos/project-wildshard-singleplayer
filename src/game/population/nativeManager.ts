@@ -1,5 +1,6 @@
 import type { NativeGroupCollection } from '../shardfile/groupRuntime';
 import * as v from 'valibot';
+import { ActorProjectionV2,type ActorProjectionOwner } from './actorProjectionV2';
 import { ForagerPopulation } from '@wildshard/engine/ai/ambientForager';
 import { GrassField } from '../systems/looks/grassField';
 import { TrampleField } from '../systems/looks/trample';
@@ -99,7 +100,7 @@ export class NativeManager {
 /** The single shard supplies dispatch roles and guest ids; clocks and concrete
  * actor, group, hunt, token and elite owners belong to the game. */
 export interface NativeDriverRows {
-  tokens: string; program: unknown; packKind: string; dogKind: string; eliteKinds: readonly string[]; dispatch: string; dogDecision: string; stragglerDistance: number;
+  tokens: string; program: unknown; packKind: string; dogKind: string; eliteKinds: readonly string[]; dispatch: string; dogDecision: string; stragglerDistance: number;projection?:unknown;
 }
 /** Manager decisions and native body continuation. Contexts allocate only when
  * a concrete actor joins; restored and newly bonded actors keep the same owner. */
@@ -108,6 +109,7 @@ export class NativePopulationDriver {
   private readonly author: ReturnProgram;
   private readonly tokens: WeakMap<AnimalSim, AggressionDirector<AnimalSim>>;
   private readonly sheep = new Vector3();
+  private readonly projection:ActorProjectionV2|undefined;
   private readonly route = { elite: 0, wolf: 0, dog: 0, held: 0 };
   private readonly missing = new Error('Missing native population context');
   private dodgeCd = 0;
@@ -118,6 +120,7 @@ export class NativePopulationDriver {
     const tokens = groups.tokens; if (!groups.owns(host) || tokens === undefined || tokens.id !== rows.tokens || !(tokens.owners instanceof WeakMap)) throw new Error('Missing native manager tokens'); this.tokens = tokens.owners;
     if (bodies.length > 64 || flocks.length > 4) throw new Error('Native population driver capacity exceeded');
     this.author = ReturnProgram.native(host, rows.program);
+    this.projection=rows.projection===undefined?undefined:new ActorProjectionV2(rows.dogKind,{program:rows.program,step:rows.projection});
     for (const actor of bodies) this.admit(actor);
     host.useBodyStep({ before: (_id, body, dt) => {
       const actor = this.bodies.find(candidate => candidate === body); if (actor === undefined || actor.hidden || !actor.alive || actor.stunned || actor.kind === rows.dogKind) return;
@@ -133,7 +136,8 @@ export class NativePopulationDriver {
   private makeContext(actor: HuntBody) {
     const { observation } = createNativeSpeciesContext({ host: this.host, hunt: this.hunt, rng: this.rng,
       world: null, heightAt: (x, z) => this.host.groundHeightAt(x, z), waterLevel: 0 }, actor, null);
-    return { ...observation, claim: (a: AnimalSim): boolean => {
+    const projection:{owner?:ActorProjectionOwner}={};
+    return { ...observation, projection, claim: (a: AnimalSim): boolean => {
       const director = this.tokens.get(a); if (director !== undefined && !(director instanceof AggressionDirector)) throw this.missing; return director?.take(a) ?? true;
     }, pathYaw: (a: AnimalSim, x: number, z: number, every = 1): number => this.hunt.pathYawFor(this.required(a), x, z, every),
       steer: (a: AnimalSim, yaw: number, speed: number, turn: number): void => { this.hunt.steerAny(this.required(a), yaw, speed, turn); },
@@ -151,6 +155,13 @@ export class NativePopulationDriver {
   private dog(actor: HuntBody, dt: number): void {
     const flock = this.flocks.find(row => row.dog === actor);
     if (flock === undefined) { actor.setMotion(actor.yaw, 0, 1); return; }
+    if(this.projection!==undefined){
+      actor.mem['dogThinkAt']=this.host.clock.now;
+      const context=this.context(actor,dt);
+      if(context.projection.owner?.crowd?.owner!==flock)context.projection.owner={scope:this.host.scope,group:'crowd.guard',slot:0,identity:actor.entityId,random:this.host.rng.stream('ai'),
+        crowd:{owner:flock,point:this.sheep},rosters:new Map([['threats',this.wolves]])};
+      this.projection.step(actor,context,context.projection.owner);return;
+    }
     let nearest: FlockThreat | null = null, distance = Infinity;
     for (const wolf of this.wolves) { const d = Math.hypot(wolf.position.x - flock.cx, wolf.position.z - flock.cz); if (wolf.alive && d < distance) { distance = d; nearest = wolf; } }
     const straggler = flock.straggler(this.rows.stragglerDistance); if (straggler >= 0) flock.positions(straggler, this.sheep);

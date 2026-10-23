@@ -12497,6 +12497,29 @@ cross-group queries and group continuation remain separate work on the same
 H4 vocabulary; this primitive does not claim to execute those group ticks.
 
 
+
+The same H4 actor projection also binds crowd guardians on their original page
+and native owners. `ActorProjectionStepV2Schema` names the per-call columns and
+ordered operations independently of the admitted programme. `step.dt:context`
+uses the caller's original scheduled dt; omission uses elapsed actor-clock
+seconds. The cadence skip precedes column construction and live capture. Only
+the due actor's declared columns are read: crowd centre/straggler fields share
+one straggler query, and nearest-roster fields share one ordered live scan per
+roster. Strict horizontal comparisons keep first-live ties and current poses.
+The crowd owner lends its original scratch point, retaining absent-straggler
+coordinates rather than inventing a new saved value.
+
+`ActorProjectionOwner` may lend the original RNG, crowd and ordered threat
+rosters. Navigation calls the same native pathYaw/steer/setMotion ports using
+the original positive/zero/negative path convention; look-position, confine
+and positioned sound are finite ordered operations. Optional memory outputs
+leave an absent channel untouched. The complete output/native-port bank is
+prepared before accepting the borrowed RNG. No second body, clock or save is
+created. `ReturnProgram.declaration` exposes its same deeply frozen admitted
+rows; the projector keeps only the scoped original programme loan, avoiding
+per-step descriptor admission. Page wildlife and guard projections borrow the
+same original world scope and selected admission instance.
+
 ### H4 group continuation bank codec
 
 GroupBankV2 (engine/script/groupBankV2) admits finite

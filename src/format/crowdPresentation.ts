@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { ActorProjectionStepV2Schema } from './actorProjectionV2';
 
 const number = v.pipe(v.number(), v.finite()), positive = v.pipe(number,v.minValue(0));
 const triple = v.tuple([number,number,number]);
@@ -21,4 +22,5 @@ export const CrowdGuardSchema = v.strictObject({ signal: v.string(), clock: v.st
   every: v.pipe(number, v.minValue(.1), v.maxValue(10)), straggler: positive, bark: v.string(), soundHeight: number,
   memory: v.strictObject({ bark: v.string(), rest: v.string(), snarl: v.string(), low: v.string() }),
   states: v.pipe(v.array(v.string()), v.minLength(1), v.maxLength(16)),
+  projection:v.exactOptional(ActorProjectionStepV2Schema),
 });

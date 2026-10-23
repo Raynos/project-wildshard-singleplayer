@@ -893,6 +893,22 @@ original group continuation; they are not silently implemented as synchronous
 imports or as a second per-member clock.
 
 
+
+H4 actor steps support explicit caller-dt rows as well as elapsed-clock rows.
+Cadence checks precede all observation capture. Crowd and nearest-roster
+columns are finite selectors over borrowed native owners; each due capture
+queries a declared straggler distance once and scans each requested ordered
+roster once, sharing the results across its scalar columns. Dead candidates
+are skipped, horizontal distance is strict, and first-live ties are retained.
+No whole-world frame is captured. A borrowed scratch point retains the
+original absent-straggler observation law.
+
+Actor navigation, look-position, confinement and positioned sound remain
+ordered synchronous native operations. The original RNG is accepted only
+after the complete output/port preflight. Optional memory channels do not
+overwrite absent outputs. Page and native rows may differ in original dt,
+timestamp and sound ownership while running the same selected AS law.
+
 ### H4 group-bank continuation values
 
 Group-bank rows use the existing kind 2/3 original/candidate f64 columns. A

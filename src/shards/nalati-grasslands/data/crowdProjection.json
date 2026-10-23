@@ -1,0 +1,302 @@
+{
+  "signal": "dog",
+  "clock": "dogThinkAt",
+  "every": 0.1,
+  "columns": [
+    {
+      "name": "px",
+      "id": 1,
+      "source": {
+        "kind": "actor",
+        "field": "x"
+      }
+    },
+    {
+      "name": "py",
+      "id": 2,
+      "source": {
+        "kind": "actor",
+        "field": "y"
+      }
+    },
+    {
+      "name": "pz",
+      "id": 3,
+      "source": {
+        "kind": "actor",
+        "field": "z"
+      }
+    },
+    {
+      "name": "cx",
+      "id": 4,
+      "source": {
+        "kind": "crowd",
+        "field": "cx",
+        "distance": 12
+      }
+    },
+    {
+      "name": "cz",
+      "id": 5,
+      "source": {
+        "kind": "crowd",
+        "field": "cz",
+        "distance": 12
+      }
+    },
+    {
+      "name": "dt",
+      "id": 6,
+      "source": {
+        "kind": "time",
+        "field": "dt"
+      }
+    },
+    {
+      "name": "bark",
+      "id": 7,
+      "source": {
+        "kind": "memory",
+        "key": "barkT",
+        "default": {
+          "value": 0
+        }
+      }
+    },
+    {
+      "name": "rest",
+      "id": 8,
+      "source": {
+        "kind": "memory",
+        "key": "rest",
+        "default": {
+          "value": 0
+        }
+      }
+    },
+    {
+      "name": "wolf",
+      "id": 9,
+      "source": {
+        "kind": "nearest",
+        "roster": "threats",
+        "at": "crowd",
+        "field": "present"
+      }
+    },
+    {
+      "name": "distance",
+      "id": 10,
+      "source": {
+        "kind": "nearest",
+        "roster": "threats",
+        "at": "crowd",
+        "field": "distance"
+      }
+    },
+    {
+      "name": "wx",
+      "id": 11,
+      "source": {
+        "kind": "nearest",
+        "roster": "threats",
+        "at": "crowd",
+        "field": "x"
+      }
+    },
+    {
+      "name": "wy",
+      "id": 12,
+      "source": {
+        "kind": "nearest",
+        "roster": "threats",
+        "at": "crowd",
+        "field": "y"
+      }
+    },
+    {
+      "name": "wz",
+      "id": 13,
+      "source": {
+        "kind": "nearest",
+        "roster": "threats",
+        "at": "crowd",
+        "field": "z"
+      }
+    },
+    {
+      "name": "straggler",
+      "id": 14,
+      "source": {
+        "kind": "crowd",
+        "field": "present",
+        "distance": 12
+      }
+    },
+    {
+      "name": "sx",
+      "id": 15,
+      "source": {
+        "kind": "crowd",
+        "field": "x",
+        "distance": 12
+      }
+    },
+    {
+      "name": "sy",
+      "id": 16,
+      "source": {
+        "kind": "crowd",
+        "field": "y",
+        "distance": 12
+      }
+    },
+    {
+      "name": "sz",
+      "id": 17,
+      "source": {
+        "kind": "crowd",
+        "field": "z",
+        "distance": 12
+      }
+    },
+    {
+      "name": "playerX",
+      "id": 18,
+      "source": {
+        "kind": "player-position",
+        "axis": "x"
+      }
+    },
+    {
+      "name": "playerY",
+      "id": 19,
+      "source": {
+        "kind": "player-position",
+        "axis": "y"
+      }
+    },
+    {
+      "name": "playerZ",
+      "id": 20,
+      "source": {
+        "kind": "player-position",
+        "axis": "z"
+      }
+    }
+  ],
+  "operations": [
+    {
+      "kind": "memory",
+      "key": "dogThinkAt",
+      "value": {
+        "kind": "time"
+      }
+    },
+    {
+      "kind": "memory",
+      "key": "barkT",
+      "value": {
+        "kind": "channel",
+        "name": "bark"
+      }
+    },
+    {
+      "kind": "memory",
+      "key": "snarl",
+      "value": {
+        "kind": "channel",
+        "name": "snarl"
+      }
+    },
+    {
+      "kind": "memory",
+      "key": "low",
+      "value": {
+        "kind": "channel",
+        "name": "low"
+      }
+    },
+    {
+      "kind": "memory",
+      "key": "rest",
+      "value": {
+        "kind": "channel",
+        "name": "rest"
+      },
+      "optional": true
+    },
+    {
+      "kind": "state",
+      "value": {
+        "kind": "channel",
+        "name": "state"
+      },
+      "states": [
+        "idle",
+        "alert",
+        "stalk",
+        "wander"
+      ]
+    },
+    {
+      "kind": "look-position",
+      "x": {
+        "kind": "channel",
+        "name": "lookX"
+      },
+      "y": {
+        "kind": "channel",
+        "name": "lookY"
+      },
+      "z": {
+        "kind": "channel",
+        "name": "lookZ"
+      },
+      "weight": {
+        "kind": "channel",
+        "name": "look"
+      }
+    },
+    {
+      "kind": "navigate",
+      "x": {
+        "kind": "channel",
+        "name": "x"
+      },
+      "z": {
+        "kind": "channel",
+        "name": "z"
+      },
+      "yaw": {
+        "kind": "channel",
+        "name": "yaw"
+      },
+      "speed": {
+        "kind": "channel",
+        "name": "speed"
+      },
+      "turn": {
+        "kind": "channel",
+        "name": "turn"
+      },
+      "path": {
+        "kind": "channel",
+        "name": "path"
+      }
+    },
+    {
+      "kind": "sound-position",
+      "value": {
+        "kind": "channel",
+        "name": "emit"
+      },
+      "cue": "dog_bark",
+      "height": 0.6
+    },
+    {
+      "kind": "confine"
+    }
+  ]
+}

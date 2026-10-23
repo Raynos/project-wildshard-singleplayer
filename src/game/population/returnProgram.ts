@@ -36,6 +36,8 @@ function readProgram(input: unknown): Omit<v.InferOutput<typeof ReturnProgramSch
  * continuation; the guest can read numeric observations and publish channels.
  * There is no scheduler, actor mutation, timer or private persistent state. */
 export class ReturnProgram {
+  /** The same frozen admitted rows, for a native binding over this owner. */
+  readonly declaration:ReturnType<typeof readProgram>;
   private readonly module: DecisionModule | null = null;
   private readonly script: DecisionScriptRow;
   private readonly signalNames:readonly string[];
@@ -49,6 +51,8 @@ export class ReturnProgram {
   readonly prepareGroup?:NonNullable<NumericProjection['prepareGroup']>;
   private constructor(input: unknown, floor: (x: number, z: number) => number,owner?: Scope) {
     const row = readProgram(input),script = row.script;
+    const freeze=(value:unknown):void=>{if(typeof value!=='object'||value===null||Object.isFrozen(value))return;for(const child of Object.values(value))freeze(child);Object.freeze(value);};
+    freeze(row);this.declaration=row;
     if (script.state.length > 0 || script.tick !== null
       || script.timers.length > 0 || script.on.length !== 1 || script.on[0] !== 'signal'
       || script.commands.some(command => command !== 'channel')

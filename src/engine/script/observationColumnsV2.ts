@@ -37,6 +37,12 @@ export interface V2ActorColumnSlot<A extends AnimalSim = AnimalSim> {
   readonly group: string; readonly slot: number; readonly identity: string;
   readonly actor: A | null;
 }
+export interface V2CrowdColumns {
+  readonly cx:number;readonly cz:number;
+  readonly straggler:(distance:number)=>number;
+  readonly positions:(index:number,out:Vector3)=>void;
+}
+export interface V2RosterColumn {readonly alive:boolean;readonly position:Readonly<{x:number;y:number;z:number}>}
 type Herd = Pick<GrazerBrain<AnimalSim>,'cx' | 'cz' | 'trust' | 'alert' | 'stallionState' | 'mode' | 'stallion'>;
 /** These are concrete borrowed owners, resolved by the existing actor authority
  * before capture. This resolver never allocates, adopts or indexes a body. */
@@ -44,6 +50,8 @@ export interface V2ColumnOwners<A extends AnimalSim = AnimalSim> {
   readonly scope: Scope; readonly self: V2ActorColumnSlot<A>;
   readonly player: { readonly position: Readonly<{ x: number; y?: number; z: number }> };
   readonly observed: ReadonlyMap<number,AnimalSim>;
+  readonly crowd?:{readonly owner:V2CrowdColumns;readonly point:Vector3};
+  readonly rosters?:ReadonlyMap<string,readonly V2RosterColumn[]>;
   readonly references?: ReadonlyMap<string,V2ReferenceColumn | null>;
   readonly t: number; readonly dt: number;
   readonly context?: {readonly calm:boolean;readonly playerSpeed:number};
@@ -98,10 +106,15 @@ export class ObservationColumnsV2 {
     const herds = owners.herds ?? [];
     if (herds.length > 64 || new Set(herds.map(row => JSON.stringify([row.group,row.slot]))).size !== herds.length) throw new Error('Ambiguous observation herd loan');
     const referencePins: (() => boolean)[] = [];
+    const crowds=new Map<number,number>(),nearest=new Map<string,{body:V2RosterColumn|null;distance:number}>();
+    const crowd=owners.crowd;
+    const crowdPins=crowd===undefined?undefined:{straggler:crowd.owner.straggler,positions:crowd.owner.positions};
     const sensePins:{owner:V2SenseColumns;field:'visibility'|'hearing'|'downwind';callable:unknown;player:Vector3}[]=[];
     // Resolve the complete suffix before invoking any native grass query.
     const prepared = this.rows.map(row => {
       const source = row.source;
+      if(source.kind==='crowd'||source.kind==='nearest')need(crowd,'crowd');
+      if(source.kind==='nearest')need(owners.rosters?.get(source.roster),'roster');
       if (source.kind === 'environment' || source.kind === 'grass' || source.kind === 'player' || source.kind === 'wind') need(owners.environment,'environment');
       if(source.kind==='sense'){
         const owner=need(owners.senses,'senses');need(owners.context,'sense context');
@@ -144,6 +157,7 @@ export class ObservationColumnsV2 {
     };
     const live=():void=>{
       if(this.scope.disposed||this.scope.disposing||owners.self.actor!==actor||referencePins.some(pin=>!pin()))throw new Error('Retired observation owner');
+      if(crowd!==undefined&&(owners.crowd!==crowd||crowd.owner.straggler!==crowdPins?.straggler||crowd.owner.positions!==crowdPins.positions))throw new Error('Replaced observation crowd owner');
       for(const pin of sensePins)if(owners.senses!==pin.owner||pin.owner.player!==pin.player
         ||owners.player.position!==pin.player||Reflect.get(pin.owner,pin.field)!==pin.callable)throw new Error('Replaced native sense owner');
     };
@@ -151,6 +165,26 @@ export class ObservationColumnsV2 {
       live();
       const source = row.source;let value: number;
       switch (source.kind) {
+        case 'crowd': {
+          const loan=need(crowd,'crowd');
+          if(source.field==='cx'||source.field==='cz')value=loan.owner[source.field];
+          else {
+            let index=crowds.get(source.distance);
+            if(index===undefined){index=loan.owner.straggler(source.distance);live();if(index>=0)loan.owner.positions(index,loan.point);live();crowds.set(source.distance,index);}
+            value=source.field==='present'?Number(index>=0):loan.point[source.field];
+          }
+          break;
+        }
+        case 'nearest': {
+          let selected=nearest.get(source.roster);
+          if(selected===undefined){
+            const origin=need(crowd,'crowd').owner,roster=need(owners.rosters?.get(source.roster),'roster');
+            let body:V2RosterColumn|null=null,distance=Infinity;
+            for(const candidate of roster){const d=Math.hypot(candidate.position.x-origin.cx,candidate.position.z-origin.cz);if(candidate.alive&&d<distance){body=candidate;distance=d;}}
+            selected={body,distance:body===null?0:distance};nearest.set(source.roster,selected);
+          }
+          value=source.field==='present'?Number(selected.body!==null):source.field==='distance'?selected.distance:selected.body?.position[source.field]??0;break;
+        }
         case 'memory': {
           const fallback=source.default,body=need(actor??undefined,'self');
           value=body.mem[source.key]??(fallback.when!==undefined&&body.mem[fallback.when.field]===fallback.when.equal?fallback.when.value:

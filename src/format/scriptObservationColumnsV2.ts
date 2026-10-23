@@ -9,6 +9,8 @@ const memoryDefault = v.strictObject({value:finite,source:v.exactOptional(v.pick
 const point = v.variant('kind',[v.strictObject({kind:v.picklist(['self','player','hit'])}),
   v.strictObject({kind:v.literal('memory'),x:key,z:key,fallback:v.picklist(['self','zero'])})]);
 const source = v.variant('kind',[
+  v.strictObject({kind:v.literal('crowd'),field:v.picklist(['cx','cz','present','x','y','z']),distance:v.pipe(finite,v.minValue(0))}),
+  v.strictObject({kind:v.literal('nearest'),roster:key,at:v.literal('crowd'),field:v.picklist(['present','distance','x','y','z'])}),
   v.strictObject({ kind: v.literal('player'),field: v.picklist(['crouched','forwardX','forwardZ','mounted','healthShare']) }),
   v.strictObject({ kind: v.literal('wind'),field: v.picklist(['x','z','strength']) }),
   v.strictObject({ kind: v.literal('environment'),field: v.picklist(['light','storm']) }),
