@@ -79,3 +79,11 @@ test('raw witnesses retain hash and ABI1 admission before selected construction'
 test('binary witnesses add no executable to the complete return and spawn inventory',()=>{
   expect(new Set(scriptAdmissionRows(NALATI_SCRIPT_SECTIONS).map(row=>row.module)).size).toBe(8);
 });
+
+test('every witness dependency stays in the critical cohort with its executable',async()=>{
+  const {output}=await import('../src/shards/nalati-grasslands/generators/output');
+  for(const name of ['titan','pasture','held','riding']){
+    const row=output.blobs.find(file=>file.name===`behaviour/${name}-witness.bin`);
+    expect(row,`${name} witness must not become a render-library root`).toMatchObject({kind:'bin',options:{critical:true}});
+  }
+});
