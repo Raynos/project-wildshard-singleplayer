@@ -1,3 +1,5 @@
+import {PACK_PROFILE} from './packGroup.ts';
+import {groupBankWidthV2} from '@wildshard/format/scriptGroupBankV2';
 import herdRows from '../data/herdGroup.json' with {type:'json'};
 import {groupBankSourceV2} from '@wildshard/sdk/as/groupBankV2';
 import {groupStepSourceV2} from '@wildshard/sdk/as/groupStepV2';
@@ -28,7 +30,7 @@ const source = { id:'nalati.titan',abi:'1.0',side:'sim',module:`blobs/wasm/${'0'
   reads:['field','random'],commands:['channel'],fields:aliases(fields),channels:aliases(channels),signals:aliases(signals) };
 const authored = readDecisionSources(fileURLToPath(new URL('../', import.meta.url)));
 const row={...source,id:'nalati.titan-combined',source:'behaviour/titanCombined.as'};
-const dual=await compileReturnProjectionV2(row,{fields:registry(fields),channels:registry(channels),signals:registry(signals)},authored,{asLineCeiling:2837,projectSource:'behaviour/titanCommands.as',outputCapacity:96,worldActions:true,additional:{fields:['zzzzIntroT',...Object.keys(fight.titanWhirlGate(8).law.initial).sort()],signals:['zzzzDismount','zzzzIgnite','zzzzIntroClock','zzzzWhirlArm','zzzzWhirlGate'],channels:['zzzzIntroT','zzzzIntroTick',...Object.keys(fight.titanWhirlGate(8).law.initial).sort()]}});
+const dual=await compileReturnProjectionV2(row,{fields:registry(fields),channels:registry(channels),signals:registry(signals)},authored,{asLineCeiling:3184,projectSource:'behaviour/titanCommands.as',outputCapacity:96,worldActions:true,additional:{fields:['zzzzIntroT',...Object.keys(fight.titanWhirlGate(8).law.initial).sort()],signals:['zzzzDismount','zzzzIgnite','zzzzIntroClock','zzzzWhirlArm','zzzzWhirlGate'],channels:['zzzzIntroT','zzzzIntroTick',...Object.keys(fight.titanWhirlGate(8).law.initial).sort()]}});
 const program={...dual.legacy,v2:dual.candidate};
 const pastureText=['pastureWind','pasture','titanWind','titanFire'].map(name=>authored.get(`behaviour/${name}.as`)).join('\n');
 const names=prefix=>[...new Set([...pastureText.matchAll(new RegExp(`${prefix}\\.([A-Za-z0-9_]+)`,'g'))].map(match=>match[1]))];
@@ -36,8 +38,8 @@ const pf=names('Field'),pc=names('Channel'),ps=names('Signal');
 const pastureSource={...source,id:'nalati.pasture-wind',source:'behaviour/pastureWind.as',reads:['field','random','radial'],fields:aliases(pf),channels:aliases(pc),signals:aliases(ps)};
 // R10b: the shared pasture programme (wind, fire, pasture; the pack and herd group profiles join it) selected as ABI v2 with
 // its exact ABI1 witness kept (test/nalati-pasture-v2.test.ts: every signal answers as the witness)
-const herd=parseGroupStepV2(herdRows);
-const pastureDual=await compileReturnProjectionV2(pastureSource,{fields:registry(pf),channels:registry(pc),signals:registry(ps)},authored,{asLineCeiling:2837,projectSource:'behaviour/pastureProject.as',groups:{rows:herd,helpers:{'sdk/as/groupBankV2.herd.ts':groupBankSourceV2(0,herd.bank.length),'sdk/as/groupStepV2.herd.ts':groupStepSourceV2(herd.columns.length,herd.members)}}});
+const herd=parseGroupStepV2(herdRows),groups=parseGroupStepV2({...herd,profiles:[PACK_PROFILE]});
+const pastureDual=await compileReturnProjectionV2(pastureSource,{fields:registry(pf),channels:registry(pc),signals:registry(ps)},authored,{asLineCeiling:3184,projectSource:'behaviour/pastureProject.as',groups:{rows:groups,helpers:{'sdk/as/groupBankV2.herd.ts':groupBankSourceV2(0,herd.bank.length),'sdk/as/groupBankV2.pack.ts':groupBankSourceV2(0,PACK_PROFILE.bank.reduce((sum,field)=>sum+groupBankWidthV2(field),0)),'sdk/as/groupStepV2.pack.ts':groupStepSourceV2(PACK_PROFILE.columns.length,PACK_PROFILE.members),'sdk/as/groupStepV2.herd.ts':groupStepSourceV2(herd.columns.length,herd.members)}}});
 // The selected artifact stays binary; JSON retains only its descriptor and original ABI1 witness.
 const pastureBytes=Uint8Array.from(atob(pastureDual.candidate.bytes),byte=>byte.codePointAt(0)??0);
 const wind={...pastureDual.legacy,v2:{...pastureDual.candidate,bytes:''}};

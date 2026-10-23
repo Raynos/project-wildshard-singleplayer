@@ -1,3 +1,4 @@
+import packBinding from '../data/packGuest.json' with {type:'json'};
 import herdBinding from '../data/herdGuest.json' with {type:'json'};
 import * as v from 'valibot';
 import { NativeGroupRowsSchema,PageGroupRowsSchema,PopulationKnockdownSchema } from '@wildshard/format/creatures';
@@ -30,7 +31,7 @@ export const nalatiNativeGroupRows = v.parse(NativeGroupRowsSchema, {
   owned: boot.roster.bodies.filter(body => body.kind === 'horse' && body.herd === -1).map(body => body.id),
   contacts: { pack: contacts.wolf, herd: contacts.stallion },
   steps: [
-    { kind: 'group', row: { ...brains.pack, members: herd(0), home: [den.x,den.z] }, adopt: null },
+    { kind: 'group', row: { ...brains.pack, members: herd(0), home: [den.x,den.z] }, adopt: null,guest:{program:pasture,binding:packBinding} },
     { kind: 'group', row: { ...brains.herd, members: herd(1) }, adopt: null,guest:{program:pasture,binding:herdBinding} },
     { kind: 'delay', program: admission, signal: 'firstRaid', channel: 'time' },
     { kind: 'group', row: { ...brains.herd, members: lair }, adopt,guest:{program:pasture,binding:herdBinding} },
@@ -45,7 +46,7 @@ for(const place of places.rows)for(const row of place.colliders){
   if(nativeShelters.some(([x,z])=>Math.abs(x-row.x)<.1&&Math.abs(z-row.z)<.1))continue;
   nativeShelters.push([row.x,row.z,row.hw/.93]);
 }
-const groupAssembly = { ...assembly,constants: { ...assembly.constants,nativeShelters,nativeKnockdown,groupRows: nalatiNativeGroupRows,groupAdmission: admission,nativeField,pageGroups: v.parse(PageGroupRowsSchema,{ guest:{program:pasture,binding:herdBinding},pack: { ...brains.pack,members: ['group.member'],home: [0,0] },herd: { ...brains.herd,members: ['group.member'] },contacts: { pack: contacts.wolf,herd: contacts.stallion },effects:{notices:[{signal:'howl',text:'A wolf howls — the pack has your scent',every:60},{signal:'stampede',text:'Stampede!',every:20},{signal:'pack-driven-off',text:'The stallion drives the wolves off',every:30},{signal:'stallion-beaten',text:'The stallion gives ground',every:30}],knockdown:{...nativeKnockdown,text:'Knocked down!',every:4}},world: nativeField.world,wind: { x: -.8,z: .6,strength: .5 },prey: 'sheep',damage: admission }),nativeDayClock: nalatiDayClockRow() } };
+const groupAssembly = { ...assembly,constants: { ...assembly.constants,nativeShelters,nativeKnockdown,groupRows: nalatiNativeGroupRows,groupAdmission: admission,nativeField,pageGroups: v.parse(PageGroupRowsSchema,{ packGuest:{program:pasture,binding:{...packBinding,parameters:{boundsHalf:nativeField.world.size/2}}},guest:{program:pasture,binding:herdBinding},pack: { ...brains.pack,members: ['group.member'],home: [0,0] },herd: { ...brains.herd,members: ['group.member'] },contacts: { pack: contacts.wolf,herd: contacts.stallion },effects:{notices:[{signal:'howl',text:'A wolf howls — the pack has your scent',every:60},{signal:'stampede',text:'Stampede!',every:20},{signal:'pack-driven-off',text:'The stallion drives the wolves off',every:30},{signal:'stallion-beaten',text:'The stallion gives ground',every:30}],knockdown:{...nativeKnockdown,text:'Knocked down!',every:4}},world: nativeField.world,wind: { x: -.8,z: .6,strength: .5 },prey: 'sheep',damage: admission }),nativeDayClock: nalatiDayClockRow() } };
 
 const forager = v.parse(v.object({ population: v.object({ forager: v.object({ row: ForagerPopulationSchema }) }) }),riding).population.forager.row;
 const pageWildlife = v.parse(WildlifePopulationSchema,{ combat:{kind:'sheep',damage:100},pastureActor: { kind: 'horse',variant: 'camp-bay',label: "Shepherd's horse",raiders: ['grey','tawny','scout'],cues: { start: { text: 'Wolves are raiding the flock — the shepherd rides out',sound: null },taken: { text: 'The wolves took a sheep',sound: null },drivenOff: { text: 'The shepherd drove the wolves off',sound: null },crack: { text: '',sound: 'wolf_yelp' } } },seed: nativeField.seed,random: nativeField.seed ^ 0x3a17,groups: groupAssembly.constants.pageGroups,admission,pasture,

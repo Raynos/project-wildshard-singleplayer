@@ -22,7 +22,7 @@ export class PackBrain<A extends AnimalSim> extends StalkerBrain<A> {
   /** A deferred group shares admitted native tuning and service owners. It has
    * fresh membership, clocks and role state, initialized on the same stream. */
   sibling(members: A[], x: number, z: number): PackBrain<A> {
-    const next = new PackBrain(members, x, z, this.siblingSpec, this.siblingPorts); next.initialize(); return next;
+    const next = new PackBrain(members, x, z, this.siblingSpec, this.siblingPorts); this.bindSibling(next); next.initialize(); return next;
   }
   /** Preserve the original string continuation while the shared core owns every clock and role. */
   override snapshot(): string { return this.snapshotPack(); }

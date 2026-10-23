@@ -22,7 +22,7 @@ const row={id:'nalati.kokpar',abi:'1.0',side:'sim',module:`blobs/wasm/${'0'.repe
  params:{clues:quest.clueFlags.length,elites:quest.featherElites.length,feathers:quest.featherFlags.length,homeX:k.x,homeZ:k.z,fieldRadius:Math.max(k.rx,k.rz)+22,goal0X:goals[0].x,goal0Z:goals[0].z,goal1X:goals[1].x,goal1Z:goals[1].z},
  reads:['field'],commands:['channel'],fields:aliases(fields),channels:aliases(channels),signals:aliases(signals)};
 const built=await compileDecisionScripts([row],{fields:registry(fields),channels:registry(channels),signals:registry(signals)},
- readDecisionSources(fileURLToPath(new URL('../',import.meta.url))),{asLineCeiling:2837,singleSignal:true});
+ readDecisionSources(fileURLToPath(new URL('../',import.meta.url))),{asLineCeiling:3184,singleSignal:true});
 const script=built.rows.at(0),blob=built.blobs.at(0);
 if(script===undefined||blob===undefined)throw new Error('Missing kokpar program');
 const course=await buildCourseProgram('oval',{courseRadius:OVAL.radius,courseWidth:OVAL.width,courseLine:LINE_X,

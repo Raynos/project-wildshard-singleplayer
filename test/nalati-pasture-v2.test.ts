@@ -13,7 +13,7 @@ beforeAll(async () => {
   const row = programs.wind.script;
   const ids = (values: Readonly<Record<string, string>>): Map<string, number> => new Map(Object.values(values).sort().map((name, index) => [name, index + 1]));
   built = await compileReturnProjectionV2(row, { fields: ids(row.fields), signals: ids(row.signals), channels: ids(row.channels) },
-    readDecisionSources(new URL('../src/shards/nalati-grasslands/', import.meta.url).pathname), { asLineCeiling: 2837 });
+    readDecisionSources(new URL('../src/shards/nalati-grasslands/', import.meta.url).pathname), { asLineCeiling: 3184 });
 }, 300_000);
 
 test('the pasture programme keeps its exact ABI1 witness, shared by wind, fire and pasture', () => {

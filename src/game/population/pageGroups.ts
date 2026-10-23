@@ -235,7 +235,16 @@ export class PageGroups {
     const members = ids.map(id => this.actor(id)), row = { ...this.packRow,members: [...ids],home: [x,z] as [number,number] };
     const ports: PackPorts<Animal> = { ...this.common(),register: (actor,director) => { app.aggression.register(actor,director); },
       bite: (actor,context,radius) => { this.contact(actor,context,radius,false); },preyIdentity: prey => this.targets.identity(prey),resolvePrey: id => this.targets.resolve(id) };
-    const pack = new PackBrain(members,x,z,row,ports); pack.initialize();
+    const pack = new PackBrain(members,x,z,row,ports);
+    const guest=this.rows.packGuest;
+    if(guest!==undefined){
+      const owner=this.groupOwner;if(owner===undefined)throw new Error('Pack guest requires its original world owner');
+      const program=ReturnProgram.page(guest.program,owner.scope);
+      if(program.prepareGroup===undefined||program.groupBindings===undefined)throw new Error('Missing pack group capability');
+      pack.bindGuest({groupBindings:program.groupBindings,prepareGroup:program.prepareGroup},guest.binding,
+        {scope:owner.scope,group:`pack.${this.packs.length}`,handle:100+this.packs.length,roster:()=>this.herds.flatMap(herd=>herd.foals)});
+    }
+    pack.initialize();
     pack.findPrey = (px,pz,radius) => nearestPopulationActor(this.herds.flatMap(herd => herd.foals),px,pz,radius);
     this.packs.push(pack); for (const actor of members) { renderedPacks.set(actor,pack); } return pack;
   }

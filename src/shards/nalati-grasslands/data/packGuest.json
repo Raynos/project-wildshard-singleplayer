@@ -1,0 +1,37 @@
+{
+  "profile": "pack",
+  "parameters": {
+    "boundsHalf": 250
+  },
+  "resume": {
+    "field": "pc",
+    "values": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      20,
+      21,
+      22,
+      23
+    ],
+    "segments": 64
+  },
+  "capture": {
+    "common": [
+      "c00.alive",
+      "c12.lunge",
+      "c28.x",
+      "c30.z"
+    ],
+    "slots": [],
+    "references": []
+  }
+}

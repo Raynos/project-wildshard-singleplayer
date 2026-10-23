@@ -5,6 +5,15 @@ import { HuntingStalkerCore, type HuntConfig, type HuntPorts } from './huntPatte
 import type { AggressionDirector } from './director';
 import type { Rng } from '../core/rng';
 import type { SimValue } from '../sim';
+import { isJsonData } from '@wildshard/format/json';
+import type { Scope } from '../app/scope';
+import type { GroupGuestBindingsV2, GroupGuestFrameV2, GroupGuestProjectionV2, GroupGuestPublicationV2 } from './GroupBrain';
+import { GroupBankV2 } from '../script/groupBankV2';
+import type { GroupStepNativeResultV2, GroupStepReferenceV2 } from '../script/groupStepV2';
+import type { V2ColumnOwners } from '../script/observationColumnsV2';
+import type { GroupBankValueV2 } from '@wildshard/format/scriptGroupBankV2';
+import { GroupGuestBindingSchema, type GroupGuestBindingRows } from '@wildshard/format/groupBrains';
+
 
 /** The real pack controller is owned and snapshotted by its group host, not copied into the elite. */
 export type HowlerPack<A extends AnimalSim> = Pick<StalkerBrain<A>, 'homeX' | 'homeZ' | 'phase' | 'awareness' | 'scare'>;
@@ -703,9 +712,147 @@ export class StalkerBrain<A extends AnimalSim> extends HuntingStalkerCore<A> {
   private bites = 0;
   private scared = false;
 
+  // ── R10b: the pack's law as the owner's group program on GroupBrain's shared loop. A bound pack runs every original call
+  // (initialize on the shared stream, tick at the group's slot, drive at each wolf's on the context stream) as segments of
+  // its profile; its own fields stay the truth (captured into the bank per call, the candidate committed back). ──
+  private packGuest: {
+    readonly program: GroupGuestProjectionV2; readonly prepare: GroupGuestProjectionV2['prepareGroup']; readonly bindings: GroupGuestBindingsV2;
+    readonly scope: Scope; readonly group: string; readonly handle: number; readonly rows: GroupGuestBindingRows; readonly codec: GroupBankV2;
+    readonly results: readonly string[]; readonly roster: () => readonly A[];
+    readonly buffers:{readonly bank:Float64Array;readonly captured:Record<string,GroupBankValueV2>}[];
+  } | undefined;
+  private packCall: { readonly signal: string; readonly context: CirclingPackContext<A>; readonly bank: Float64Array;
+    readonly references: GroupStepReferenceV2<A>[]; readonly random: Rng;readonly captured:Record<string,GroupBankValueV2>;readonly slot:number|undefined } | undefined;
+  private packDepth=0;
+  /** Select the pack profile (the binding rows: profile, resume) on the SAME admitted programme; `roster` lends the bodies
+   *  findPrey picks from (the nearest request's roster). Scope, bodies and random streams stay the original owners'. */
+  bindGuest(program: GroupGuestProjectionV2, input: unknown, loans: { readonly scope: Scope; readonly group: string; readonly handle: number;
+    readonly roster: () => readonly A[] }): void { this.requirePack();
+    if(!isJsonData(input))throw new Error('Pack guest binding requires JSON rows');
+    const bindings = program.groupBindings, rows = v.parse(GroupGuestBindingSchema, structuredClone(input));
+    if (this.packGuest !== undefined || this.initialized || loans.scope.disposed || loans.scope.disposing || loans.group.length === 0
+      || !Number.isSafeInteger(loans.handle) || loans.handle < 1 || bindings === undefined || typeof program.prepareGroup !== 'function') throw new Error('Invalid pack guest binding');
+    const shape = rows.profile === 'main' ? bindings : bindings.profiles?.find(row => row.id === rows.profile);
+    if(Object.keys(rows.parameters).length!==1||!Number.isFinite(rows.parameters['boundsHalf'])||(rows.parameters['boundsHalf']??0)<=0)throw new Error('Missing pack bounds parameter');
+    const signals = ['init', 'tick', ...this.members.map((_, slot) => `drive.${slot}`), ...this.members.map((_, slot) => `body.${slot}`)];
+    if (shape === undefined || this.members.length > shape.members || signals.some(name => !shape.signals.includes(name))
+      || !shape.bank.some(row => row.name === rows.resume.field && row.kind === 'number')) throw new Error('Incompatible pack guest profile');
+    if(rows.capture!==undefined&&(rows.capture.slots.length>0||rows.capture.references.length>0||new Set(rows.capture.common).size!==rows.capture.common.length||rows.capture.common.some(name=>!shape.columns.some(column=>column.name===name))))throw new Error('Invalid pack capture declaration');
+    const results = shape.columns.flatMap(row => row.source.kind === 'result' ? [row.source.channel] : []);
+    const guest:NonNullable<StalkerBrain<A>['packGuest']> = { program, prepare: program.prepareGroup, bindings, scope: loans.scope, group: loans.group, handle: loans.handle,
+      rows, codec: new GroupBankV2(shape.bank), results, roster: loans.roster, buffers:[] };
+    const references=this.packReferences(guest),values={...this.packValues(guest,references),pc:0,ret:0,try:0,candX:0,candZ:0,hit:0,spotX:0,spotZ:0,claim:0};
+    guest.buffers.push({bank:guest.codec.encode(values,guest.group,references),captured:values});this.packGuest=guest;
+  }
+  private siblings=0;
+  protected bindSibling(next:StalkerBrain<A>):void{
+    const guest=this.packGuest;if(guest===undefined)return;
+    this.siblings++;
+    next.bindGuest(guest.program,guest.rows,{scope:guest.scope,group:`${guest.group}.${this.siblings}`,handle:guest.handle*100+this.siblings,roster:guest.roster});
+  }
+  /** Run one original call on the bound program; false when unbound (the TS law runs). */
+  private packValues(guest:NonNullable<StalkerBrain<A>['packGuest']>,references:readonly GroupStepReferenceV2<A>[]):Record<string,GroupBankValueV2>{
+    const wire = (prey: CirclingPackPrey | null): string | null => prey === null ? null : references.find(row => row.body === prey)?.wire ?? null;
+    return { ...guest.rows.parameters, initialized: this.initialized, time: this.groupTime === -Infinity ? null : this.groupTime,
+      phase: this.phase, awareness: this.awareness, homeX: this.homeX, homeZ: this.homeZ, phaseT: this.phaseT, roamX: this.roamX, roamZ: this.roamZ,
+      roamT: this.roamT, nextTokenT: this.nextTokenT, boldT: this.boldT, calmT: this.calmT, hpStart: this.hpStart, halfDone: this.halfDone,
+      deadSeen: this.deadSeen, shadowDur: this.shadowDur, howled: this.howled, bites: this.bites, scared: this.scared,
+      alpha: this.alpha === null ? 0 : this.members.indexOf(this.alpha) + 1, prey: wire(this.prey), pendingPrey: wire(this.pendingPrey),
+ };
+  }
+  private syncPackCall(call:NonNullable<StalkerBrain<A>['packCall']>,guest:NonNullable<StalkerBrain<A>['packGuest']>):void{
+    const references=this.packReferences(guest);call.references.splice(0,call.references.length,...references);
+    const values=this.packValues(guest,references),changed:Record<string,GroupBankValueV2>={};
+    for(const[key,value]of Object.entries(values))if(key==='prey'||key==='pendingPrey'||!Object.is(value,call.captured[key]))changed[key]=value;
+    guest.codec.update(call.bank,changed,guest.group,references);Object.assign(call.captured,values);
+  }
+  private runPack(signal:string,context:CirclingPackContext<A>,random:Rng,slot?:number):boolean{
+    const guest=this.packGuest;if(guest===undefined)return false;
+    if(guest.scope.disposed||guest.scope.disposing||guest.program.prepareGroup!==guest.prepare||guest.program.groupBindings!==guest.bindings)throw new Error('Replaced pack guest binding');
+    const references=this.packReferences(guest),values={...this.packValues(guest,references),pc:0,ret:0,try:0,candX:0,candZ:0,hit:0,spotX:0,spotZ:0,claim:0};
+    let buffer=guest.buffers[this.packDepth];
+    if(buffer===undefined){buffer={bank:guest.codec.encode(values,guest.group,references),captured:{...values}};guest.buffers[this.packDepth]=buffer;}
+    else{
+      const changed:Record<string,GroupBankValueV2>={};
+      for(const[key,value]of Object.entries(values))if(key==='prey'||key==='pendingPrey'||!Object.is(value,buffer.captured[key]))changed[key]=value;
+      guest.codec.update(buffer.bank,changed,guest.group,references);Object.assign(buffer.captured,values);
+    }
+    const previous=this.packCall;
+    this.packCall={signal,context,bank:buffer.bank,captured:buffer.captured,references,random,slot};this.packDepth++;
+    try{this.runGuest(guest.program);}finally{this.packDepth--;this.packCall=previous;}
+    return true;
+  }
+  /** members 1..n, then the roster's bodies, then the prey and pending prey when outside it (crowd prey by pose) */
+  private packReferences(guest: NonNullable<StalkerBrain<A>['packGuest']>): GroupStepReferenceV2<A>[] {
+    const rows: GroupStepReferenceV2<A>[] = this.members.map((body, slot) => ({ group: guest.group, slot, identity: body.entityId, wire: body.entityId, handle: slot + 1, body }));
+    for (const body of guest.roster()) if (!this.members.includes(body)) rows.push({ group: `${guest.group}:prey`, slot: rows.length, identity: body.entityId, wire: body.entityId, handle: rows.length + 1, body });
+    for (const prey of [this.prey, this.pendingPrey]) if (prey !== null && !rows.some(row => row.body === prey)) {
+      const identity = this.packPorts.preyIdentity?.(prey); if (identity === undefined) throw new Error('Missing pack prey identity');
+      rows.push({ group: `${guest.group}:prey`, slot: rows.length, identity, wire: identity, handle: rows.length + 1, body: prey, pose: true });
+    }
+    return rows;
+  }
+  protected override captureGuest(replies: readonly GroupStepNativeResultV2[]): GroupGuestFrameV2<A> {
+    const call = this.packCall, guest = this.packGuest;
+    if (call === undefined || guest === undefined) throw new Error('Missing pack guest call');
+    if(guest.scope.disposed||guest.scope.disposing||guest.program.prepareGroup!==guest.prepare||guest.program.groupBindings!==guest.bindings)throw new Error('Replaced pack guest owner');
+    // the environment's grass is a method of its owner: lent bound
+    this.syncPackCall(call,guest);
+    const { context, references } = call, env = this.packPorts.environment(), grass = (x: number, z: number): number => env.grassHeightAt(x, z);
+    const results = this.members.map(() => Object.fromEntries(guest.results.map(channel => [channel, 0])));
+    for (const reply of replies) for (const [slot, row] of results.entries()) if (reply.member === undefined || reply.member.slot === slot) row[reply.channel] = reply.value;
+    const ref = (prey: CirclingPackPrey | null): { identity: string; handle: number; body: CirclingPackPrey } | null => {
+      const row = prey === null ? undefined : references.find(value => value.body === prey); return row === undefined ? null : { identity: row.identity, handle: row.handle, body: row.body };
+    };
+    const lent = new Map([['prey', ref(this.prey)], ['pending', ref(this.pendingPrey)]]);
+    const members: V2ColumnOwners<A>[] = this.members.map((actor, slot) => ({ scope: guest.scope, self: { group: guest.group, slot, identity: actor.entityId, actor },
+      player: { position: context.player }, observed: new Map(), t: context.t, dt: context.dt, context,
+      environment: { playerCrouched: false, playerFwdX: env.playerFwdX, playerFwdZ: env.playerFwdZ, playerMounted: env.playerMounted,
+        playerHealth01: env.playerHealth01, light: 1, storm: false, wind: { x: 0, z: 0, strength: 0 }, grassHeightAt: grass },
+      references: lent, results: results[slot] ?? {} }));
+    const roster = references.filter(row => row.group === `${guest.group}:prey` && row.pose !== true);
+    return { input: { group: guest.group, handle: guest.handle, profile: guest.rows.profile, signal: call.signal, tick: 0, state: call.bank, members, references, random: call.random,
+      ...(guest.rows.capture===undefined||call.slot===undefined?{}:{capture:{common:guest.rows.capture.common,slots:[...new Set([0,call.slot])]}}) },
+      native: { scope: guest.scope, members, references, rosters: new Map([['foals', roster]]), group: { kind: 'pack', owner: this },
+        contexts: members.map(() => context), ground: { normalY: (x, z) => this.packPorts.normalY(x, z) }, grass: { grassHeightAt: grass } },
+      resume: guest.rows.resume };
+  }
+  protected override prepareGuestCommit(frame: GroupGuestFrameV2<A>, values: Readonly<Record<string, GroupBankValueV2>>): GroupGuestPublicationV2 {
+    const call = this.packCall;
+    if (call === undefined || frame.input.state !== call.bank) throw new Error('Foreign pack guest publication');
+    const body = (value: GroupBankValueV2 | undefined): CirclingPackPrey | null => {
+      if (value === null || value === undefined) return null;
+      const row = call.references.find(reference => reference.wire === value); if (row === undefined) throw new Error('Unresolved pack guest prey'); return row.body;
+    };
+    const number = (name: string): number => { const value = values[name]; if (typeof value !== 'number' || !Number.isFinite(value)) throw new Error(`Invalid pack guest ${name}`); return value; };
+    const flag = (name: string): boolean => { const value = values[name]; if (typeof value !== 'boolean') throw new Error(`Invalid pack guest ${name}`); return value; };
+    const phase = values['phase'], time = values['time'], alpha = number('alpha');
+    if (typeof phase !== 'string' || !(['roam', 'shadow', 'encircle', 'regroup', 'break'] as const).some(name => name === phase)
+      || (time !== null && typeof time !== 'number') || !Number.isInteger(alpha) || alpha < 0 || alpha > this.members.length) throw new Error('Invalid pack guest state');
+    const next = { initialized: flag('initialized'), awareness: number('awareness'), homeX: number('homeX'), homeZ: number('homeZ'), phaseT: number('phaseT'),
+      roamX: number('roamX'), roamZ: number('roamZ'), roamT: number('roamT'), nextTokenT: number('nextTokenT'), boldT: number('boldT'), calmT: number('calmT'),
+      hpStart: number('hpStart'), halfDone: flag('halfDone'), deadSeen: number('deadSeen'), shadowDur: number('shadowDur'), howled: flag('howled'),
+      bites: number('bites'), scared: flag('scared') };
+    const prey = body(values['prey']), pendingPrey = body(values['pendingPrey']), leader = alpha === 0 ? null : this.members[alpha - 1] ?? null;
+    const validate = (): void => { if (this.packCall !== call) throw new Error('Replaced pack guest call'); };
+    return { validate, commit: () => {
+      validate();
+      this.phase = phase === 'roam' || phase === 'shadow' || phase === 'encircle' || phase === 'regroup' ? phase : 'break';
+      Object.assign(this, next); this.groupTime = time ?? -Infinity; this.prey = prey; this.pendingPrey = pendingPrey; this.alpha = leader;
+      Object.assign(call.captured,values);
+    } };
+  }
+
+
   /** Perform the shipping setup draws exactly once after every group/controller preflight succeeds; never run a decision or body. */
   initialize(): void { this.requirePack();
     if (this.initialized) throw new Error('Pack already initialized');
+    if (this.packGuest !== undefined) {
+      const rng = this.packPorts.sharedRng(), zero = new Vector3();
+      this.runPack('init', { dt: 0, t: 0, player: zero, playerSpeed: 0, calm: true, rng, sound: () => undefined, claim: () => false,
+        steer: () => undefined, pathYaw: () => 0 }, rng);
+      return;
+    }
     let small: A | null = null;
     for (const actor of this.members) if (small === null || actor.scale < small.scale) small = actor;
     for (const w of this.members) {
@@ -800,6 +947,8 @@ export class StalkerBrain<A extends AnimalSim> extends HuntingStalkerCore<A> {
   /** the pack-level tick: senses, phase changes, the attack token (once per AI tick, whichever wolf thinks first) */
   tick(c: CirclingPackContext<A>): void { this.requirePack();
     if (!this.initialized) throw new Error('Pack is not initialized');
+    if(this.packGuest!==undefined&&Math.abs(c.t-this.groupTime)<1e-8)return;
+    if (this.runPack('tick', c, c.rng)) return;
     const dt = this.groupDelta(c.t, c.dt);
     if (dt <= 0) return;
     this.phaseT += dt; this.boldT = Math.max(0, this.boldT - dt); this.calmT = Math.max(0, this.calmT - dt);
@@ -917,6 +1066,8 @@ export class StalkerBrain<A extends AnimalSim> extends HuntingStalkerCore<A> {
   /** steer one wolf for this tick (after `tick`) */
   drive(a: A, c: CirclingPackContext<A>, body = false): void { this.requirePack();
     if (!this.initialized) throw new Error('Pack is not initialized');
+    if(this.packGuest!==undefined&&body!==(this.phase==='encircle'&&(a.mem['lunge']??0)!==0))return;
+    if (this.runPack(`${body ? 'body' : 'drive'}.${this.members.indexOf(a)}`, c, c.rng,this.members.indexOf(a))) return;
     const m = a.mem;
     const committed = this.phase === 'encircle' && (m['lunge'] ?? 0) !== 0;
     if (body !== committed) return;

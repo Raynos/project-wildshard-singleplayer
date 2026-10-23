@@ -13077,3 +13077,16 @@ capability; a direct unowned group invocation refuses before capture. Page and
 native consumers lend their original world/host scope to the same selected
 programme. The native herd's TS fallback remains until the phone fps sample
 passes; this activation claims no fallback deletion or component closure.
+
+### Original pack group projection (G600 R10b)
+
+StalkerBrain.bindGuest borrows the existing scoped GroupGuestProjectionV2,
+finite GroupGuestBindingRows and ordered prey roster before initialize.
+The native owner keeps its original snapshot, body/contact services and both
+random streams. Repeated group instants and inactive body slots return before
+capture. Each nested native call reuses its own depth bank; GroupBankV2.update
+patches changed native fields and references at each original result barrier.
+Selected captures keep other members' declared common columns while refreshing
+the active member and context slot. Steering and bite results resume before
+the original pose, grass and mounted reads. Unbound packs retain their native
+law until the required performance comparison accepts its removal.

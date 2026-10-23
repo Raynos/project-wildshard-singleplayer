@@ -15,9 +15,9 @@ const source={id:'nalati.admission',abi:'1.0',side:'sim',module:`blobs/wasm/${'0
 const authored=readDecisionSources(fileURLToPath(new URL('../',import.meta.url))),registries={fields:registry(fields),channels:registry(channels),signals:registry(signals)};
 // Keep the original full-handler ABI1 witness byte-for-byte; the dual compiler's
 // single-signal legacy optimization is not the shipping admission witness.
-const original=await compileDecisionScripts([source],registries,authored,{asLineCeiling:2837});
+const original=await compileDecisionScripts([source],registries,authored,{asLineCeiling:3184});
 const script=original.rows.at(0),blob=original.blobs.at(0);if(script===undefined||blob===undefined)throw new Error('Missing native admission witness');
-const dual=await compileReturnProjectionV2(source,registries,authored,{asLineCeiling:2837});
+const dual=await compileReturnProjectionV2(source,registries,authored,{asLineCeiling:3184});
 const bytes=`${JSON.stringify({script,bytes:Buffer.from(blob.bytes).toString('base64'),v2:dual.candidate},null,2)}\n`;
 const target=new URL('../behaviour/admission.generated.json',import.meta.url);
 if(process.argv.includes('--check')){if(readFileSync(target,'utf8')!==bytes)throw new Error('Native admission program is stale');}
