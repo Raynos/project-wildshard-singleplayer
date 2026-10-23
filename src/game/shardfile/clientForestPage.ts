@@ -21,10 +21,10 @@ import type { ShardContext } from '../plugin/context';
 import { pageModeCap } from '../shard/pagePolicy';
 import { PosedDraw } from '../looks/posedInstances';
 import { rangedPage } from '../loadout/rangedPage';
-import { installForestWeather } from '../weather/forest';
+import { forestWeatherOwner, installForestWeather } from '../weather/forest';
 import { installPageLife } from '../population/pageLife';
 import { CaveInterior } from './caveInterior';
-import { entryOwner, publishEntryOwner } from './entryOwners';
+import { entryOwner, presentEntryOwner, publishEntryOwner } from './entryOwners';
 import { placeForestPageModels, prepareForestPage, prepareForestPageLooks } from './forestPage';
 import { lendLooks } from './lentLooks';
 import { punchPageTerrain } from './pagePreparation';
@@ -92,11 +92,24 @@ export async function enterClientForestPage(ctx: ShardContext, row: ForestPageRo
   for (let i = 0; i < Math.min(rows.length, spots.max); i++) { const spot = rows[i]; if (spot !== undefined) ambience.addSpot({ zone: spots.zone, ...spot, fade: spots.fade }); }
 }
 
-/** The page's whole weather. */
-export async function installClientForestWeather(ctx: ShardContext, file: string, ports: ForestPagePorts = FOREST_PAGE_PORTS): Promise<void> {
+/** The page's whole weather, optionally lent by its data-selected concrete id.
+ * Publication keeps the original runtime scope and both resource owners; the
+ * weather host alone builds, updates and disposes the borrowed rig. */
+export async function installClientForestWeather(ctx: ShardContext, file: string, ports: ForestPagePorts = FOREST_PAGE_PORTS, owner?: string): Promise<void> {
   if (ended(ctx)) return;
-  const rows = await ctx.product.json(file); if (ended(ctx)) return;
-  await ports.installForestWeather(ctx, rows);
+  const live = owner === undefined ? (): void => undefined : forestWeatherOwner(ctx);
+  const unpublished = (): void => {
+    if (owner !== undefined && (presentEntryOwner(ctx.scope, 'world-weather', owner) !== null || presentEntryOwner(ctx.scope, 'object', owner) !== null))
+      throw new Error('Weather owner is already published');
+  };
+  live(); unpublished();
+  const rows = await ctx.product.json(file); live(); if (ended(ctx)) return;
+  const rig = await ports.installForestWeather(ctx, rows); live(); if (ended(ctx)) return;
+  if (owner === undefined) return;
+  if (rig === null) throw new Error('Weather publication requires its original clocked sky');
+  unpublished();
+  ports.publishEntryOwner(ctx.scope, 'world-weather', owner, rig);
+  ports.publishEntryOwner(ctx.scope, 'object', owner, rig.group);
 }
 
 /** The page's ambient life, on the ranged page's compendium state and sounds: the ranged page is resolved after the read

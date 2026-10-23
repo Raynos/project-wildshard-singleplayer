@@ -12003,12 +12003,16 @@ Original product, scopes, native loans and callable identities are pinned;
 replacement or retirement refuses before subsequent publication. These rows
 add no clock, persistence or ownership of borrowed resources.
 
-`installAssemblyWeather(ports, stage)` runs the defining weather handler at
-an existing native construction boundary. Its ports are the original scope,
-ShardContext and sky; the finite stage names its id and admitted page file.
-It reads that page, retains every weather-owner fence and publishes the same
-world-weather rig. It creates no assembly, scene intake or progress slice.
-The helper remains charged to its sole user.
+`weather.forest` runs the existing forest-weather host at play rank 40,
+after world construction and before page life or arena entry. Pine and
+Nalati supply the same finite weather rows. An optional `owner` id lends
+the resulting original rig as `world-weather` and its group as `object`
+in the runtime's original scope. The publication retains the exact product,
+read functions, world, sky, scene and native level scope across every await.
+The host remains the sole clock, update and resource owner. There is no
+assembly weather stage or alternate dispatcher. Late arena, painted-world,
+encounter and elite readers consume these loans after publication; panorama
+and static capture still construct before boot shader warmup.
 
 ### Native world construction checkpoints
 

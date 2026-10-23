@@ -1,28 +1,25 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import * as v from 'valibot';
-import { Group, Scene, Mesh, MeshBasicMaterial, BufferGeometry, Vector3 } from 'three';
-import { WorldRegistry } from '../src/engine/world/registry';
+import { Group, Scene, Mesh, MeshBasicMaterial, BufferGeometry } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { legacyDouble } from './fake/FakeGame';
 import type { ShardContext } from '../src/game/plugin/context';
-import type { ModelContext } from '../src/engine/models/model';
 import type { ForestWeatherRig } from '../src/game/weather/forest';
-import type { SceneHandles } from '../src/game/shardfile/sceneHandles';
-import { WorldAssembly, installAssemblyWeather, type WorldAssemblyPorts } from '../src/game/shardfile/worldAssembly';
+import { installClientForestWeather } from '../src/game/shardfile/clientForestPage';
+import { CLIENT_FEATURES } from '../src/game/shardfile/clientPlan';
+import { ClientPlanSchema } from '../src/format/clientPlan';
 import { WorldAssemblySchema } from '../src/format/worldAssembly';
 import { publishEntryOwner, entryOwner, lendEntryOwner } from '../src/game/shardfile/entryOwners';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
-import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
-import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 import { ClientChannels } from '../src/sdk/clientChannels';
 import { parseClientChannels } from '../src/format/clientChannels';
 import { DayCycle } from '../src/engine/world/dayCycle';
 import { WeatherContinuation } from '../src/engine/world/weatherContinuation';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
 
-const row = { kind: 'weather', id: 'meadow.weather', file: 'world/weather.json' } as const;
+const row = { kind: 'weather.forest', owner: 'meadow.weather', file: 'world/forest-weather.json' } as const;
 const policy = { files: { program: 'weather/program.json' }, mode: 'live', debug: 'meadow.weather', heldPhase: 0,
   system: { id: 'meadow.weather', after: [], before: [] } };
 function fixture(parent?: Scope) {
@@ -37,82 +34,74 @@ function fixture(parent?: Scope) {
   const product = createShardProduct({ slug: source.identity.slug, revision: 1, shardfile: source, sections: new Map(),
     files: new Map([[row.file, { hash: 'weather', url: 'weather' }]]), read: async () => { trace.push('read weather'); return new TextEncoder().encode(JSON.stringify(await result)); } });
   const ctx = legacyDouble<ShardContext>({ scope, product, game: legacyDouble<ShardContext['game']>({ runtime }) });
-  const ports: WorldAssemblyPorts = { scope, weatherContext: ctx, scenes: legacyDouble<SceneHandles>({ group: () => new Group() }),
-    context: legacyDouble<ModelContext>({ sky }), registry: null, slice: label => { trace.push(label); return Promise.resolve(); } };
-  return { scope, ports, ctx, runtime, world, product, trace, settle };
+  return { scope, ctx, runtime, world, product, trace, settle };
 }
 
-test('weather is a finite ordered stage with no authored progress, callback or phase knob', () => {
-  const rows = { stages: [row] };
-  expect(v.parse(WorldAssemblySchema, rows)).toEqual(rows);
-  for (const extra of [{ label: 'extra progress' }, { phase: 'world' }, { run: 'install' }, { page: ['path'] }])
-    expect(() => v.parse(WorldAssemblySchema, { stages: [{ ...row, ...extra }] })).toThrow();
-  const schema = namedJsonSchema(WorldAssemblySchema);
-  expect(validateNamedJsonSchema(schema, new TextEncoder().encode(JSON.stringify(rows)))).toEqual(rows);
+
+const install = (ctx: ShardContext): Promise<void> => installClientForestWeather(ctx, row.file, undefined, row.owner);
+
+test('weather is the existing strict play feature and the assembly stage is retired', () => {
+  const rows = { version: 1, features: [row] };
+  expect(v.parse(ClientPlanSchema, rows)).toEqual(rows);
+  for (const extra of [{ phase: 'world' }, { run: 'install' }, { page: ['path'] }, { owner: '../weather' }])
+    expect(() => v.parse(ClientPlanSchema, { version: 1, features: [{ ...row, ...extra }] })).toThrow();
+  expect(v.safeParse(WorldAssemblySchema, { stages: [{ kind: 'weather', id: row.owner, file: row.file }] }).success).toBe(false);
+  expect([CLIENT_FEATURES['weather.forest'].phase, CLIENT_FEATURES['weather.forest'].rank]).toEqual(['play', 40]);
 });
 
-test('weather refuses a missing or wrong-scope native context before the first file read', async () => {
-  const f = fixture(), other = new Scope('foreign-weather');
+test('weather publication refuses a missing native world before the first file read', async () => {
+  const f = fixture();
   try {
-    expect(() => WorldAssembly.admit({ stages: [row, row] }, f.ports)).toThrow('Repeated world assembly owner');
-    const missing = { ...f.ports }; delete missing.weatherContext;
-    await expect(WorldAssembly.admit({ stages: [row] }, missing).next(row.id)).rejects.toThrow('original construction context');
-    Object.assign(f.ctx, { scope: other });
-    await expect(WorldAssembly.admit({ stages: [row] }, f.ports).next(row.id)).rejects.toThrow('original construction context');
-    expect(f.trace).toEqual([]);
-  } finally { f.scope.dispose(); other.dispose(); }
+    f.runtime.world = null;
+    await expect(install(f.ctx)).rejects.toThrow('Weather requires its world'); expect(f.trace).toEqual([]);
+  } finally { f.scope.dispose(); }
 });
 
-test('the held page read rejects replaced original product and world owners before publication', async () => {
-  for (const changed of ['product', 'runtime', 'world', 'sky', 'context']) {
-    const f = fixture();
+test('the held feature read fences every original context, product and native owner', async () => {
+  for (const changed of ['product', 'runtime', 'world', 'sky', 'scene', 'scope', 'native']) {
+    const f = fixture(), foreign = new Scope('foreign-weather'), work = install(f.ctx);
     try {
-      const stage = WorldAssembly.admit({ stages: [row] }, f.ports), work = stage.next(row.id);
       expect(f.trace).toEqual(['read weather']);
       if (changed === 'product') Object.assign(f.ctx, { product: { ...f.product } });
       else if (changed === 'runtime') Object.assign(f.ctx.game, { runtime: { ...f.runtime } });
-      else if (changed === 'world') Object.assign(f.runtime, { world: { ...f.world } });
+      else if (changed === 'world') f.runtime.world = { ...f.world };
       else if (changed === 'sky') Object.assign(f.world, { sky: {} });
-      else Object.assign(f.ports, { weatherContext: { ...f.ctx } });
-      f.settle({ page: policy }); await expect(work).rejects.toThrow('owners changed');
-      expect(() => entryOwner(f.scope, 'world-weather', row.id)).toThrow('Missing live entry owner');
-    } finally { f.scope.dispose(); }
+      else if (changed === 'scene') Object.assign(f.world.game, { scene: new Scene() });
+      else if (changed === 'scope') Object.assign(f.ctx, { scope: foreign });
+      else Object.assign(f.world.game, { levelScope: foreign });
+      f.settle(policy); await expect(work).rejects.toThrow('owner left or changed');
+      expect(() => entryOwner(f.scope, 'world-weather', row.owner)).toThrow('Missing live entry owner');
+    } finally { f.scope.dispose(); foreign.dispose(); }
   }
 });
 
 test('ancestor retirement during the held weather read publishes no owner or progress', async () => {
-  const parent = new Scope('weather-parent'), f = fixture(parent);
-  const work = WorldAssembly.admit({ stages: [row] }, f.ports).next(row.id);
+  const parent = new Scope('weather-parent'), f = fixture(parent), work = install(f.ctx);
   parent.onDispose(() => undefined); const retirement = parent.disposeSteps(); retirement.next();
   try {
-    expect(f.scope.disposed).toBe(false); expect(f.scope.disposing).toBe(true);
-    f.settle({ page: policy }); await expect(work).rejects.toThrow('owner left'); expect(f.trace).toEqual(['read weather']);
+    expect(f.scope.disposing).toBe(true); f.settle(policy);
+    await expect(work).rejects.toThrow('owner left or changed'); expect(f.trace).toEqual(['read weather']);
   } finally { for (const step of retirement) void step; parent.dispose(); }
 });
 
-test('weather reads exactly page after Dressing and refuses a missing clock before any extra progress or encounter', async () => {
-  const f = fixture(), stages = [{ kind: 'group', id: 'dressing', label: 'Dressing', part: 'dressing' }, row,
-    { kind: 'group', id: 'titan', label: 'Titan', part: 'titan' }];
+test('an explicitly published weather row requires a clock without extra progress', async () => {
+  const f = fixture();
   try {
-    const assembly = WorldAssembly.admit({ stages }, f.ports);
-    await assembly.next('dressing'); const work = assembly.next(row.id); f.settle({ page: policy, ignored: 'the original page wrapper is not strict' });
-    await expect(work).rejects.toThrow('original clocked sky');
-    expect(f.trace).toEqual(['Dressing', 'read weather']);
-    expect(() => entryOwner(f.scope, 'world-weather', row.id)).toThrow('Missing live entry owner');
-    expect(() => entryOwner(f.scope, 'object', 'titan')).toThrow('Missing live entry owner');
+    const work = install(f.ctx); f.settle(policy);
+    await expect(work).rejects.toThrow('original clocked sky'); expect(f.trace).toEqual(['read weather']);
+    expect(() => entryOwner(f.scope, 'world-weather', row.owner)).toThrow('Missing live entry owner');
   } finally { f.scope.dispose(); }
 });
 
-test('the typed loan lends the original weather rig and retires without disposing borrowed services', () => {
-  const construction = new Scope('weather-construction'), entered = construction.child('weather-entered'), setMode = vi.fn((): void => { /* Borrowers never call this service. */ });
+test('the typed loan retains original weather and never disposes borrowed services', () => {
+  const construction = new Scope('weather-construction'), entered = construction.child('weather-entered'), setMode = vi.fn((): void => undefined);
   const rig = legacyDouble<ForestWeatherRig>({ group: new Group(), setMode });
   try {
-    publishEntryOwner(construction, 'world-weather', row.id, rig); lendEntryOwner(entered, construction, 'world-weather', row.id);
-    expect(entryOwner(entered, 'world-weather', row.id)).toBe(rig);
-    entered.dispose(); expect(entryOwner(construction, 'world-weather', row.id)).toBe(rig); expect(setMode).not.toHaveBeenCalled();
-    const next = construction.child('weather-reentered'); lendEntryOwner(next, construction, 'world-weather', row.id);
-    expect(entryOwner(next, 'world-weather', row.id)).toBe(rig); construction.dispose();
-    expect(() => entryOwner(next, 'world-weather', row.id)).toThrow('ended'); expect(setMode).not.toHaveBeenCalled();
+    publishEntryOwner(construction, 'world-weather', row.owner, rig); lendEntryOwner(entered, construction, 'world-weather', row.owner);
+    expect(entryOwner(entered, 'world-weather', row.owner)).toBe(rig); entered.dispose();
+    expect(entryOwner(construction, 'world-weather', row.owner)).toBe(rig); expect(setMode).not.toHaveBeenCalled();
+    const next = construction.child('weather-reentered'); lendEntryOwner(next, construction, 'world-weather', row.owner);
+    construction.dispose(); expect(() => entryOwner(next, 'world-weather', row.owner)).toThrow('ended'); expect(setMode).not.toHaveBeenCalled();
   } finally { construction.dispose(); }
 });
 
@@ -136,7 +125,7 @@ function clockedFixture(hold?: 'sky' | 'program', parent?: Scope, nativeOwner?: 
     return Object.assign(dag.build(), { numeric: { group, outputs: [{ property: 'value', target: 'look', path: ['keyIntensity'] }] } });
   }));
   const source = emptyShardfile({ slug: 'clocked-weather', name: 'Weather', author: 'Fixture', revision: 1, seed: 1 }); source.clientChannels = channels;
-  const rows = { ...policy, sky: skyRows }, values = new Map<string, unknown>([[row.file, { page: rows }], [skyRows.file, skyFile], [policy.files.program, program]]);
+  const rows = { ...policy, sky: skyRows }, values = new Map<string, unknown>([[row.file, rows], [skyRows.file, skyFile], [policy.files.program, program]]);
   let release: () => void = () => { throw new Error('No held weather file'); };
   let reached: () => void = () => { throw new Error('No held read notification'); };
   const reading = new Promise<void>(resolve => { reached = resolve; });
@@ -157,136 +146,73 @@ function clockedFixture(hold?: 'sky' | 'program', parent?: Scope, nativeOwner?: 
     app: legacyDouble<ShardContext['app']>({ params: new URLSearchParams() }),
     system: spec => { registrations.push(spec.id); }, debug: legacyDouble<ShardContext['debug']>({ expose: (id, value) => { exposed.set(id, value); } }) });
   lendLooks(scope, { materials: new Map([['weather.dome', material]]), setParam: () => undefined, setTexture: () => undefined, bindMeshMap: () => material });
-  const ports: WorldAssemblyPorts = { scope, weatherContext: ctx, scenes: legacyDouble<SceneHandles>({ group: () => new Group() }),
-    context: legacyDouble<ModelContext>({ sky }), registry: null, slice: label => { trace.push(label); return Promise.resolve(); } };
-  return { scope, ctx, runtime, world, scene, trace, registrations, exposed, ports, release, reading, close(): void { scope.dispose(); shape.dispose(); material.dispose(); } };
+  return { scope, ctx, runtime, world, scene, trace, registrations, exposed, release, reading, close(): void { scope.dispose(); shape.dispose(); material.dispose(); } };
 }
 
-test('real clocked weather installs between Dressing and Titan with one original rig, clock and typed loan', async () => {
+
+test('real clocked weather runs through play rank40 with the same rig, clock and object loan', async () => {
   const f = clockedFixture();
   try {
-    const assembly = WorldAssembly.admit({ stages: [{ kind: 'group', id: 'dressing', label: 'Dressing', part: 'dressing' }, row,
-      { kind: 'group', id: 'titan', label: 'Titan', part: 'titan' }] }, f.ports);
-    await assembly.next('dressing'); await assembly.next(row.id); await assembly.next('titan');
-    const rig = entryOwner(f.scope, 'world-weather', row.id), entered = f.scope.child('weather-entry');
+    await CLIENT_FEATURES['weather.forest'].install(f.ctx, row, f.scope);
+    const rig = entryOwner(f.scope, 'world-weather', row.owner), entered = f.scope.child('weather-entry');
     expect(rig.sky?.clock).toBeInstanceOf(DayCycle); expect(rig.weather).toBeInstanceOf(WeatherContinuation);
-    expect(rig.sky?.clock.phase).toBe(0.5); expect(f.exposed.get(policy.debug)).toMatchObject({ clock: rig.sky?.clock, weather: rig.weather, group: rig.group });
+    expect(rig.sky?.clock.phase).toBe(.5); expect(entryOwner(f.scope, 'object', row.owner)).toBe(rig.group);
+    expect(f.exposed.get(policy.debug)).toMatchObject({ clock: rig.sky?.clock, weather: rig.weather, group: rig.group });
     expect(f.registrations).toEqual(['weather.clock', policy.system.id]);
-    expect(f.trace).toEqual(['Dressing', `read ${row.file}`, 'read weather/sky.json', `read ${policy.files.program}`, 'Titan']);
-    WorldAssembly.lend({ stages: [row] }, f.scope, entered); expect(entryOwner(entered, 'world-weather', row.id)).toBe(rig);
-    entered.dispose(); expect(entryOwner(f.scope, 'world-weather', row.id)).toBe(rig);
+    expect(f.trace).toEqual([`read ${row.file}`, 'read weather/sky.json', `read ${policy.files.program}`]);
+    lendEntryOwner(entered, f.scope, 'world-weather', row.owner); expect(entryOwner(entered, 'world-weather', row.owner)).toBe(rig);
+    entered.dispose(); expect(entryOwner(f.scope, 'world-weather', row.owner)).toBe(rig);
   } finally { f.close(); }
 });
 
-test('real inner sky and program reads fence ancestor retirement before late geometry or registration', async () => {
+test('real inner sky and program reads fence ancestor retirement before geometry or registration', async () => {
   for (const held of ['sky', 'program'] as const) {
-    const parent = new Scope('clocked-parent'), f = clockedFixture(held, parent);
-    const work = WorldAssembly.admit({ stages: [row] }, f.ports).next(row.id);
-    await f.reading;
-    parent.onDispose(() => undefined); const retirement = parent.disposeSteps(); retirement.next();
+    const parent = new Scope('clocked-parent'), f = clockedFixture(held, parent), work = install(f.ctx);
+    await f.reading; parent.onDispose(() => undefined); const retirement = parent.disposeSteps(); retirement.next();
     const children = f.scene.children.length;
     try {
       f.release(); await expect(work).rejects.toThrow('owner left or changed');
       expect(f.registrations).toEqual([]); expect(f.exposed.size).toBe(0); expect(f.scene.children).toHaveLength(children);
-      expect(() => entryOwner(f.scope, 'world-weather', row.id)).toThrow('ended');
+      expect(() => entryOwner(f.scope, 'world-weather', row.owner)).toThrow('ended');
     } finally { for (const step of retirement) void step; parent.dispose(); f.close(); }
   }
 });
 
-test('replacing the concrete native owner during an inner read registers nothing on the new owner', async () => {
+test('a concrete native world replaced during either inner read registers nothing', async () => {
   for (const held of ['sky', 'program'] as const) {
-    const f = clockedFixture(held), { runtime, world } = f;
-    const work = WorldAssembly.admit({ stages: [row] }, f.ports).next(row.id);
-    await f.reading;
-    const children = f.scene.children.length;
+    const f = clockedFixture(held), { world } = f, work = install(f.ctx);
+    await f.reading; const children = f.scene.children.length;
     try {
-      runtime.world = { ...world }; f.release();
-      await expect(work).rejects.toThrow('owner left or changed');
+      f.runtime.world = { ...world }; f.release(); await expect(work).rejects.toThrow('owner left or changed');
       expect(f.registrations).toEqual([]); expect(f.exposed.size).toBe(0); expect(f.scene.children).toHaveLength(children);
-      expect(() => entryOwner(f.scope, 'world-weather', row.id)).toThrow('Missing live entry owner');
-    } finally { runtime.world = world; f.close(); }
+      expect(() => entryOwner(f.scope, 'world-weather', row.owner)).toThrow('Missing live entry owner');
+    } finally { f.runtime.world = world; f.close(); }
   }
 });
 
-test('an independently retired native level owner refuses late weather while the context scope stays live', async () => {
+test('an independently retired native level refuses publication while context scope stays live', async () => {
   for (const held of ['sky', 'program'] as const) for (const state of ['disposing', 'disposed']) {
-    const native = new Scope('native-weather'), f = clockedFixture(held, undefined, native);
-    const work = WorldAssembly.admit({ stages: [row] }, f.ports).next(row.id);
-    await f.reading;
-    native.onDispose(() => undefined); const retirement = native.disposeSteps(); retirement.next();
+    const native = new Scope('native-weather'), f = clockedFixture(held, undefined, native), work = install(f.ctx);
+    await f.reading; native.onDispose(() => undefined); const retirement = native.disposeSteps(); retirement.next();
     if (state === 'disposed') for (const step of retirement) void step;
     const children = f.scene.children.length;
     try {
-      expect(f.scope.disposed || f.scope.disposing).toBe(false);
-      f.release(); await expect(work).rejects.toThrow('owner left or changed');
+      expect(f.scope.disposed || f.scope.disposing).toBe(false); f.release(); await expect(work).rejects.toThrow('owner left or changed');
       expect(f.registrations).toEqual([]); expect(f.exposed.size).toBe(0); expect(f.scene.children).toHaveLength(children);
-      expect(() => entryOwner(f.scope, 'world-weather', row.id)).toThrow('Missing live entry owner');
+      expect(() => entryOwner(f.scope, 'world-weather', row.owner)).toThrow('Missing live entry owner');
     } finally { for (const step of retirement) void step; native.dispose(); f.close(); }
   }
 });
 
 
-test('native weather uses the same admitted handler without a scene intake or additional slice', async () => {
-  const f = clockedFixture();
-  try {
-    f.trace.push('Dressing');
-    await installAssemblyWeather({ scope: f.scope, weatherContext: f.ctx, context: { sky: f.world.sky } }, row);
-    const rig = entryOwner(f.scope, 'world-weather', row.id);
-    f.trace.push('Titan');
-    expect(rig.sky?.clock).toBeInstanceOf(DayCycle);
-    expect(rig.weather).toBeInstanceOf(WeatherContinuation);
-    expect(f.exposed.get(policy.debug)).toMatchObject({ clock: rig.sky?.clock, weather: rig.weather, group: rig.group });
-    expect(f.registrations).toEqual(['weather.clock', policy.system.id]);
-    expect(f.trace).toEqual(['Dressing', `read ${row.file}`, 'read weather/sky.json', `read ${policy.files.program}`, 'Titan']);
-  } finally { f.close(); }
-});
-
-test('native weather keeps real inner read retirement fences with only its actual weather ports', async () => {
-  for (const held of ['sky', 'program'] as const) {
-    const native = new Scope('native direct weather'), f = clockedFixture(held, undefined, native);
-    const work = installAssemblyWeather({ scope: f.scope, weatherContext: f.ctx, context: { sky: f.world.sky } }, row);
-    await f.reading;
-    native.onDispose(() => undefined); const retirement = native.disposeSteps(); retirement.next();
-    const children = f.scene.children.length;
+test('a repeated weather or object publication refuses before another resource intake', async () => {
+  for (const kind of ['world-weather', 'object'] as const) {
+    const f = clockedFixture();
     try {
-      f.release(); await expect(work).rejects.toThrow('owner left or changed');
-      expect(f.registrations).toEqual([]); expect(f.exposed.size).toBe(0); expect(f.scene.children).toHaveLength(children);
-      expect(() => entryOwner(f.scope, 'world-weather', row.id)).toThrow('Missing live entry owner');
-    } finally { for (const step of retirement) void step; native.dispose(); f.close(); }
+      if (kind === 'object') publishEntryOwner(f.scope, kind, row.owner, new Group());
+      else publishEntryOwner(f.scope, kind, row.owner, legacyDouble<ForestWeatherRig>({}));
+      await expect(install(f.ctx)).rejects.toThrow('already published');
+      expect(f.trace).toEqual([]); expect(f.registrations).toEqual([]);
+    } finally { f.close(); }
   }
-});
-
-
-test('native checkpoint construction keeps the real weather at its original boundary without scenes or GPU release', async () => {
-  const f = clockedFixture(), position = new Vector3();
-  Object.assign(f.world.game, { renderer: legacyDouble<typeof f.world.game.renderer>({}), registrationScope: f.scope, tier: 'phone' });
-  Object.assign(f.world, { registry: new WorldRegistry(), physics: legacyDouble<typeof f.world.physics>({}), player: legacyDouble<typeof f.world.player>({ position }) });
-  Object.assign(f.runtime, { viewer: () => position });
-  const rows = { construction: { seed: 1, progress: { kind: 'checkpoints', total: 7, finish: 'World services', budgetMs: 0 },
-    groups: [{ name: 'weather', object: row.id }], checkpoints: [{ stage: row.id, at: 'after', actions: [{ kind: 'progress', done: 5, label: 'Dressing' }, { kind: 'slice' }] }] }, stages: [row] };
-  try {
-    const groups = await WorldAssembly.construct(rows, { runtime: f.runtime, native: f.ctx, product: f.ctx.product, scope: f.scope, baked: new Map(),
-      progress: { set: (done, total, label) => { f.trace.push(`${String(done)}/${String(total)} ${String(label)}`); }, detail: () => undefined } });
-    const rig = entryOwner(f.scope, 'world-weather', row.id);
-    expect(groups).toEqual({ weather: rig.group }); expect(groups['weather']).toBe(rig.group);
-    expect(entryOwner(f.scope, 'object', row.id)).toBe(rig.group);
-    expect(f.trace).toEqual([`read ${row.file}`, 'read weather/sky.json', `read ${policy.files.program}`, '5/7 Dressing']);
-    expect(f.registrations).toEqual(['weather.clock', policy.system.id]);
-  } finally { f.close(); }
-});
-
-test('native construction refuses missing contexts, bad group suffixes and accessor rows before any read', async () => {
-  const f = clockedFixture(), position = new Vector3();
-  Object.assign(f.world, { registry: new WorldRegistry(), physics: legacyDouble<typeof f.world.physics>({}), player: legacyDouble<typeof f.world.player>({ position }) });
-  Object.assign(f.runtime, { viewer: () => position });
-  const rows = { construction: { seed: 1, progress: { kind: 'checkpoints', total: 7, finish: 'World services', budgetMs: 0 },
-    checkpoints: [], groups: [{ name: 'weather', object: 'missing' }] }, stages: [row] };
-  const ports = { runtime: f.runtime, native: f.ctx, product: f.ctx.product, scope: f.scope, baked: new Map() };
-  let getters = 0;
-  try {
-    await expect(WorldAssembly.construct(rows, { runtime: f.runtime, product: f.ctx.product, scope: f.scope, baked: new Map() })).rejects.toThrow('original native context');
-    await expect(WorldAssembly.construct(rows, ports)).rejects.toThrow('declared object loans');
-    await expect(WorldAssembly.construct({ get stages() { getters++; return [row]; } }, ports)).rejects.toThrow('plain JSON');
-    expect(getters).toBe(0); expect(f.trace).toEqual([]); expect(f.registrations).toEqual([]);
-  } finally { f.close(); }
 });

@@ -112,7 +112,7 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     install: async (ctx, row) => {
       if (row.kind !== 'weather.forest') throw new Error('Invalid forest weather feature');
       const { installClientForestWeather } = await import('./clientForestPage');
-      await installClientForestWeather(ctx, row.file);
+      await installClientForestWeather(ctx, row.file, undefined, row.owner);
     } },
   'page.life': { phase: 'play', rank: 65, lifetime: 'entered', sections: [],
     install: async (ctx, row) => {

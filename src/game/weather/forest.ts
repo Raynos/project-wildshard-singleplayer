@@ -50,7 +50,7 @@ export interface ForestWeatherRig {
   setMode: (mode: string, at?: number) => void;
 }
 /** Keep the actual construction owners across every asynchronous intake. */
-function forestWeatherOwner(ctx: ShardContext): () => void {
+export function forestWeatherOwner(ctx: ShardContext): () => void {
   const scope = ctx.scope, product = ctx.product, runtime = ctx.game.runtime, world = runtime?.world;
   if (runtime === undefined || world === undefined || world === null) throw new Error('Weather requires its world');
   const game = world.game, sky = world.sky, root = game.scene, owner = game.levelScope, file = product.file, json = product.json;

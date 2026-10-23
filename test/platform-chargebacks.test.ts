@@ -280,13 +280,9 @@ test('retired crowd geometry intake no longer claims a private reader', () => {
   expect(platformChargeback('src/game/models/fixedDraws.ts', 'fixedDraws')).toBeNull();
 });
 
-test('ordered weather dispatch retains its actual Nalati-only C9 owner', () => {
-  const path = 'src/game/shardfile/worldAssembly.ts', name = 'installAssemblyWeather', both = new Set(['nalati-grasslands', 'driftwood-isle']);
-  const modules = new Map([[path, both]]), bindings = new Map([[`${path}\0${name}`, both], [`${path}\0WorldAssembly`, both]]);
-  chargePlatformUsers(modules, bindings);
-  expect(platformChargeback(path, name)).toBe('C9');
-  expect(bindings.get(`${path}\0${name}`)).toEqual(new Set(['nalati-grasslands']));
-  expect(bindings.get(`${path}\0WorldAssembly`)).toEqual(both);
+test('retired assembly weather has no private chargeback', () => {
+  expect(platformChargeback('src/game/shardfile/worldAssembly.ts', 'installAssemblyWeather')).toBeNull();
+  expect(platformChargeback('src/game/shardfile/clientForestPage.ts', 'installClientForestWeather')).toBeNull();
 });
 
 test('ordered arena script construction retains its actual Nalati-only C9 owner', () => {
@@ -559,7 +555,7 @@ test('G667 case 1 credits only the listed herd and pack host',()=>{
     expect(approvedG571Host(approvals,path,'unreviewed')).toBe(false);
   }
   expect(approvedG571Host(approvals,'src/game/shardfile/worldAssembly.ts','installAssemblyWeather')).toBe(false);
-  expect(platformChargeback('src/game/shardfile/worldAssembly.ts','installAssemblyWeather')).toBe('C9');
+  expect(platformChargeback('src/game/shardfile/worldAssembly.ts','installAssemblyWeather')).toBeNull();
 });
 
 

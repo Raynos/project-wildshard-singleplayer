@@ -42,8 +42,6 @@ export const WorldAssemblyStageSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('painted-world'), id, world: id, weather: id,
     groups: v.pipe(v.array(v.strictObject({ name: id, object: id })), v.maxLength(16)),
     casters: v.pipe(v.array(id), v.maxLength(16)), forest: v.boolean() }),
-  /** The weather occupies its exact ordered boundary without an extra progress slice. */
-  v.strictObject({ kind: v.literal('weather'), id, file: id }),
   v.strictObject({ kind: v.literal('arena-room'), id, files: v.strictObject({ fight: id, geometry: id }), weather: id, anchor: id }),
   v.strictObject({ kind: v.literal('place'), id, label }),
   v.strictObject({ kind: v.literal('streamed-cover'), id, label, rows: StreamedCoverSchema, file: v.pipe(id, v.regex(/\.json$/)), placement: id,

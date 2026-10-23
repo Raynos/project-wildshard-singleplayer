@@ -9,7 +9,7 @@ const modules = new Map([
 /** @type {Map<string,Map<string,import('./shard-components.mjs').Component>>} */
 // G665 R16: the listed open-arena host (including its boundary) is credited.
 const declarations = new Map([
-  ['src/game/shardfile/worldAssembly.ts', new Map([['installAssemblyWeather', 'C9'], ['installAssemblyArenaScript', 'C9']])],
+  ['src/game/shardfile/worldAssembly.ts', new Map([['installAssemblyArenaScript', 'C9']])],
   ['src/game/looks/speciesBook.ts',new Map(['SpeciesLookBook','packedRows'].map(name=>[name,'C1']))],
   ['src/game/practice/course.ts', new Map(['MountedCourseEntry', 'GrappleCourseEntry', 'MountEntryRows', 'GrappleEntryRows'].map(name => [name, 'C6']))],
   ['src/game/boss/encounterView.ts', new Map(['SlotEncounterView','PatrolEncounterView'].map(name=>[name,'C4']))],

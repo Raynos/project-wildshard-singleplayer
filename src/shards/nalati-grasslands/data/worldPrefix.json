@@ -98,10 +98,6 @@
         "object": "dressing"
       },
       {
-        "name": "weather",
-        "object": "nalati.weather"
-      },
-      {
         "name": "skyV2",
         "object": "nalati.painted"
       }
@@ -142,11 +138,6 @@
       "kind": "dressing",
       "id": "dressing",
       "bindSets": true
-    },
-    {
-      "kind": "weather",
-      "id": "nalati.weather",
-      "file": "world/weather.json"
     },
     {
       "kind": "arena-room",
