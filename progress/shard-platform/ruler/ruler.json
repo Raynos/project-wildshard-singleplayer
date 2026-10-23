@@ -1,18 +1,18 @@
 {
  "schema": "shard-platform-ruler/1",
  "command": "node scripts/shard-platform.mjs --json --source-progress",
- "revision": "682cc1a56fbd637bd305cbaa401c4253b870278a",
- "committedAt": "2026-10-23T21:19:47.000Z",
- "measuredAt": "2026-10-23T21:22:30.823Z",
+ "revision": "892e654d8d15cfe8a309efa591d938eae5518e9a",
+ "committedAt": "2026-10-23T22:18:16.000Z",
+ "measuredAt": "2026-10-23T22:21:15.485Z",
  "basis": "source",
  "plan": {
-  "lower": 0.9995205049871527,
-  "upper": 0.9995205049871527
+  "lower": 1,
+  "upper": 1
  },
  "m3": {
-  "cut": 98775,
+  "cut": 98854,
   "mustGo": 98854,
-  "fraction": 0.9992008416452546
+  "fraction": 1
  },
  "productFailures": {},
  "m2": {
@@ -45,15 +45,15 @@
     "criteria": {
      "bakedTiles": {
       "verdict": "pass",
-      "evidence": "index sha256:cb8b1fa79f8b791180dea839d621bcc2d1bc7c3b0db010f7016c035317310f6b, validation sha256:7abcab8634ceacd2cfb94cb96f06a79b235755b8842e7c06f40c2ae3354da1f4: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
+      "evidence": "index sha256:7eada70828f56c907e37369c5786d4103852a8dc15ce42279b01a2da2d32d3fa, validation sha256:399701a1925aca25d64532ef4d5033d1a1a72778b612db3ac2b06256f38b6c3d: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
      },
      "edgeProfile": {
       "verdict": "pass",
-      "evidence": "index sha256:cb8b1fa79f8b791180dea839d621bcc2d1bc7c3b0db010f7016c035317310f6b, validation sha256:7abcab8634ceacd2cfb94cb96f06a79b235755b8842e7c06f40c2ae3354da1f4: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
+      "evidence": "index sha256:7eada70828f56c907e37369c5786d4103852a8dc15ce42279b01a2da2d32d3fa, validation sha256:399701a1925aca25d64532ef4d5033d1a1a72778b612db3ac2b06256f38b6c3d: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
      },
      "fourEntryways": {
       "verdict": "pass",
-      "evidence": "index sha256:cb8b1fa79f8b791180dea839d621bcc2d1bc7c3b0db010f7016c035317310f6b, validation sha256:7abcab8634ceacd2cfb94cb96f06a79b235755b8842e7c06f40c2ae3354da1f4: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
+      "evidence": "index sha256:7eada70828f56c907e37369c5786d4103852a8dc15ce42279b01a2da2d32d3fa, validation sha256:399701a1925aca25d64532ef4d5033d1a1a72778b612db3ac2b06256f38b6c3d: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
      },
      "memory": {
       "verdict": "pass",
@@ -61,7 +61,7 @@
      },
      "hudAccent": {
       "verdict": "pass",
-      "evidence": "index sha256:cb8b1fa79f8b791180dea839d621bcc2d1bc7c3b0db010f7016c035317310f6b, validation sha256:7abcab8634ceacd2cfb94cb96f06a79b235755b8842e7c06f40c2ae3354da1f4: Declared palette accent: sand"
+      "evidence": "index sha256:7eada70828f56c907e37369c5786d4103852a8dc15ce42279b01a2da2d32d3fa, validation sha256:399701a1925aca25d64532ef4d5033d1a1a72778b612db3ac2b06256f38b6c3d: Declared palette accent: sand"
      },
      "oneFrameLooks": {
       "verdict": "pass",
@@ -74,15 +74,15 @@
     "criteria": {
      "bakedTiles": {
       "verdict": "pass",
-      "evidence": "index sha256:f4f319aee54d34df047e4b81517afb4526af8acd0bb9608f1165a89646a2e62a, validation sha256:1a971cc41d7a7ba755ee945c4d4457909e23bd7028e6d1a97ab04b32d35d28bf: 44 L0 / 56 baked render tiles; referenced immutable bytes admitted"
+      "evidence": "index sha256:89eb71751b9d45d1a6f2166114192ea0ffe0b74b8593a3e6ec1186ce0e8d16b1, validation sha256:f538feb1f12cc18d28a8c3c91220c58b4b9036cd43a2164d7eab5ade26cfb368: 44 L0 / 56 baked render tiles; referenced immutable bytes admitted"
      },
      "edgeProfile": {
       "verdict": "pass",
-      "evidence": "index sha256:f4f319aee54d34df047e4b81517afb4526af8acd0bb9608f1165a89646a2e62a, validation sha256:1a971cc41d7a7ba755ee945c4d4457909e23bd7028e6d1a97ab04b32d35d28bf: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
+      "evidence": "index sha256:89eb71751b9d45d1a6f2166114192ea0ffe0b74b8593a3e6ec1186ce0e8d16b1, validation sha256:f538feb1f12cc18d28a8c3c91220c58b4b9036cd43a2164d7eab5ade26cfb368: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
      },
      "fourEntryways": {
       "verdict": "pass",
-      "evidence": "index sha256:f4f319aee54d34df047e4b81517afb4526af8acd0bb9608f1165a89646a2e62a, validation sha256:1a971cc41d7a7ba755ee945c4d4457909e23bd7028e6d1a97ab04b32d35d28bf: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
+      "evidence": "index sha256:89eb71751b9d45d1a6f2166114192ea0ffe0b74b8593a3e6ec1186ce0e8d16b1, validation sha256:f538feb1f12cc18d28a8c3c91220c58b4b9036cd43a2164d7eab5ade26cfb368: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
      },
      "memory": {
       "verdict": "pass",
@@ -90,7 +90,7 @@
      },
      "hudAccent": {
       "verdict": "pass",
-      "evidence": "index sha256:f4f319aee54d34df047e4b81517afb4526af8acd0bb9608f1165a89646a2e62a, validation sha256:1a971cc41d7a7ba755ee945c4d4457909e23bd7028e6d1a97ab04b32d35d28bf: Declared palette accent: teal"
+      "evidence": "index sha256:89eb71751b9d45d1a6f2166114192ea0ffe0b74b8593a3e6ec1186ce0e8d16b1, validation sha256:f538feb1f12cc18d28a8c3c91220c58b4b9036cd43a2164d7eab5ade26cfb368: Declared palette accent: teal"
      },
      "oneFrameLooks": {
       "verdict": "pass",
@@ -103,15 +103,15 @@
     "criteria": {
      "bakedTiles": {
       "verdict": "pass",
-      "evidence": "index sha256:19b44f7711fee9ef09c0662d887b6c4ac7eda2c928b34142b24f7b3f4c39acdf, validation sha256:4677a70e35460bb6374208eb969ce3bc58e170facc1b528ad31350bdec175226: 17 L0 / 17 baked render tiles; referenced immutable bytes admitted"
+      "evidence": "index sha256:5aecf1c12afbc20fcbc37d8dfe2dfd10f284fed17f5cc8997b6d65c58716084e, validation sha256:d3b730444c58683cbb74678a052064daff7a363ac1aabfd5e3d315dcdb1fe920: 17 L0 / 17 baked render tiles; referenced immutable bytes admitted"
      },
      "edgeProfile": {
       "verdict": "pass",
-      "evidence": "index sha256:19b44f7711fee9ef09c0662d887b6c4ac7eda2c928b34142b24f7b3f4c39acdf, validation sha256:4677a70e35460bb6374208eb969ce3bc58e170facc1b528ad31350bdec175226: Four admitted edge profiles; samples N/E/S/W 256/256/256/256"
+      "evidence": "index sha256:5aecf1c12afbc20fcbc37d8dfe2dfd10f284fed17f5cc8997b6d65c58716084e, validation sha256:d3b730444c58683cbb74678a052064daff7a363ac1aabfd5e3d315dcdb1fe920: Four admitted edge profiles; samples N/E/S/W 256/256/256/256"
      },
      "fourEntryways": {
       "verdict": "pass",
-      "evidence": "index sha256:19b44f7711fee9ef09c0662d887b6c4ac7eda2c928b34142b24f7b3f4c39acdf, validation sha256:4677a70e35460bb6374208eb969ce3bc58e170facc1b528ad31350bdec175226: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
+      "evidence": "index sha256:5aecf1c12afbc20fcbc37d8dfe2dfd10f284fed17f5cc8997b6d65c58716084e, validation sha256:d3b730444c58683cbb74678a052064daff7a363ac1aabfd5e3d315dcdb1fe920: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
      },
      "memory": {
       "verdict": "pass",
@@ -119,7 +119,7 @@
      },
      "hudAccent": {
       "verdict": "pass",
-      "evidence": "index sha256:19b44f7711fee9ef09c0662d887b6c4ac7eda2c928b34142b24f7b3f4c39acdf, validation sha256:4677a70e35460bb6374208eb969ce3bc58e170facc1b528ad31350bdec175226: Declared palette accent: marigold"
+      "evidence": "index sha256:5aecf1c12afbc20fcbc37d8dfe2dfd10f284fed17f5cc8997b6d65c58716084e, validation sha256:d3b730444c58683cbb74678a052064daff7a363ac1aabfd5e3d315dcdb1fe920: Declared palette accent: marigold"
      },
      "oneFrameLooks": {
       "verdict": "pass",
@@ -132,15 +132,15 @@
     "criteria": {
      "bakedTiles": {
       "verdict": "pass",
-      "evidence": "index sha256:1ec98608f9b02c360078caed22b2f7891ed63c8f0144238b1ab4ebbcb1ac4ecc, validation sha256:f3aba6688e42631aaa0361f516679288a2d494537bf3a4d9806e260e5e03e768: 22 L0 / 22 baked render tiles; referenced immutable bytes admitted"
+      "evidence": "index sha256:2482fd4e102f1d7b5e15d4abdef68acae7a587be40c93c1a5aba16dd9b54c746, validation sha256:aac9c78d8c6f0f8c01b585d48c9df89d1adcd766af90e412a40369b246a4b0f8: 22 L0 / 22 baked render tiles; referenced immutable bytes admitted"
      },
      "edgeProfile": {
       "verdict": "pass",
-      "evidence": "index sha256:1ec98608f9b02c360078caed22b2f7891ed63c8f0144238b1ab4ebbcb1ac4ecc, validation sha256:f3aba6688e42631aaa0361f516679288a2d494537bf3a4d9806e260e5e03e768: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
+      "evidence": "index sha256:2482fd4e102f1d7b5e15d4abdef68acae7a587be40c93c1a5aba16dd9b54c746, validation sha256:aac9c78d8c6f0f8c01b585d48c9df89d1adcd766af90e412a40369b246a4b0f8: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
      },
      "fourEntryways": {
       "verdict": "pass",
-      "evidence": "index sha256:1ec98608f9b02c360078caed22b2f7891ed63c8f0144238b1ab4ebbcb1ac4ecc, validation sha256:f3aba6688e42631aaa0361f516679288a2d494537bf3a4d9806e260e5e03e768: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
+      "evidence": "index sha256:2482fd4e102f1d7b5e15d4abdef68acae7a587be40c93c1a5aba16dd9b54c746, validation sha256:aac9c78d8c6f0f8c01b585d48c9df89d1adcd766af90e412a40369b246a4b0f8: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
      },
      "memory": {
       "verdict": "pass",
@@ -148,7 +148,7 @@
      },
      "hudAccent": {
       "verdict": "pass",
-      "evidence": "index sha256:1ec98608f9b02c360078caed22b2f7891ed63c8f0144238b1ab4ebbcb1ac4ecc, validation sha256:f3aba6688e42631aaa0361f516679288a2d494537bf3a4d9806e260e5e03e768: Declared palette accent: pink"
+      "evidence": "index sha256:2482fd4e102f1d7b5e15d4abdef68acae7a587be40c93c1a5aba16dd9b54c746, validation sha256:aac9c78d8c6f0f8c01b585d48c9df89d1adcd766af90e412a40369b246a4b0f8: Declared palette accent: pink"
      },
      "oneFrameLooks": {
       "verdict": "pass",
@@ -161,15 +161,15 @@
     "criteria": {
      "bakedTiles": {
       "verdict": "pass",
-      "evidence": "index sha256:e7e107de28f03d92f5d59fd220f4b40203b53ab65def540168a244148ae4c9fc, validation sha256:07be04bd1d1be07be9eaae4684904fa1cd1b4a2efc1382d1eeaaf8d210bf665f: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
+      "evidence": "index sha256:f2eef97df8f03aad9c08d77207bf558965c86feac7b2137a27d415e9bbdf0cf3, validation sha256:008b2ce5ebc8eefda3727be8714ad14f79f4267b34d450a3b19b3f52e1c9a79f: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
      },
      "edgeProfile": {
       "verdict": "pass",
-      "evidence": "index sha256:e7e107de28f03d92f5d59fd220f4b40203b53ab65def540168a244148ae4c9fc, validation sha256:07be04bd1d1be07be9eaae4684904fa1cd1b4a2efc1382d1eeaaf8d210bf665f: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
+      "evidence": "index sha256:f2eef97df8f03aad9c08d77207bf558965c86feac7b2137a27d415e9bbdf0cf3, validation sha256:008b2ce5ebc8eefda3727be8714ad14f79f4267b34d450a3b19b3f52e1c9a79f: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
      },
      "fourEntryways": {
       "verdict": "pass",
-      "evidence": "index sha256:e7e107de28f03d92f5d59fd220f4b40203b53ab65def540168a244148ae4c9fc, validation sha256:07be04bd1d1be07be9eaae4684904fa1cd1b4a2efc1382d1eeaaf8d210bf665f: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
+      "evidence": "index sha256:f2eef97df8f03aad9c08d77207bf558965c86feac7b2137a27d415e9bbdf0cf3, validation sha256:008b2ce5ebc8eefda3727be8714ad14f79f4267b34d450a3b19b3f52e1c9a79f: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
      },
      "memory": {
       "verdict": "pass",
@@ -177,7 +177,7 @@
      },
      "hudAccent": {
       "verdict": "pass",
-      "evidence": "index sha256:e7e107de28f03d92f5d59fd220f4b40203b53ab65def540168a244148ae4c9fc, validation sha256:07be04bd1d1be07be9eaae4684904fa1cd1b4a2efc1382d1eeaaf8d210bf665f: Declared palette accent: ember"
+      "evidence": "index sha256:f2eef97df8f03aad9c08d77207bf558965c86feac7b2137a27d415e9bbdf0cf3, validation sha256:008b2ce5ebc8eefda3727be8714ad14f79f4267b34d450a3b19b3f52e1c9a79f: Declared palette accent: ember"
      },
      "oneFrameLooks": {
       "verdict": "pass",
@@ -190,15 +190,15 @@
     "criteria": {
      "bakedTiles": {
       "verdict": "pass",
-      "evidence": "index sha256:9bb53617171a1aa0259b49ce03d3a4ebd6afa17c8ad2faea2ce8374e851be581, validation sha256:4708892a33e73accbd2e1ad57be63043d5523dcb0286e2622ed692d14dabd750: 64 L0 / 64 baked render tiles; referenced immutable bytes admitted"
+      "evidence": "index sha256:4e91194b8e41d179f7a54cff3998db803f39c68d489b697184bc9c01a356884d, validation sha256:fc7ebd179a6cb6687daad377952d827abece8936b553104ba74e087687b1cf83: 64 L0 / 64 baked render tiles; referenced immutable bytes admitted"
      },
      "edgeProfile": {
       "verdict": "pass",
-      "evidence": "index sha256:9bb53617171a1aa0259b49ce03d3a4ebd6afa17c8ad2faea2ce8374e851be581, validation sha256:4708892a33e73accbd2e1ad57be63043d5523dcb0286e2622ed692d14dabd750: Four admitted edge profiles; samples N/E/S/W 256/256/256/256"
+      "evidence": "index sha256:4e91194b8e41d179f7a54cff3998db803f39c68d489b697184bc9c01a356884d, validation sha256:fc7ebd179a6cb6687daad377952d827abece8936b553104ba74e087687b1cf83: Four admitted edge profiles; samples N/E/S/W 256/256/256/256"
      },
      "fourEntryways": {
       "verdict": "pass",
-      "evidence": "index sha256:9bb53617171a1aa0259b49ce03d3a4ebd6afa17c8ad2faea2ce8374e851be581, validation sha256:4708892a33e73accbd2e1ad57be63043d5523dcb0286e2622ed692d14dabd750: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
+      "evidence": "index sha256:4e91194b8e41d179f7a54cff3998db803f39c68d489b697184bc9c01a356884d, validation sha256:fc7ebd179a6cb6687daad377952d827abece8936b553104ba74e087687b1cf83: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
      },
      "memory": {
       "verdict": "pass",
@@ -206,7 +206,7 @@
      },
      "hudAccent": {
       "verdict": "pass",
-      "evidence": "index sha256:9bb53617171a1aa0259b49ce03d3a4ebd6afa17c8ad2faea2ce8374e851be581, validation sha256:4708892a33e73accbd2e1ad57be63043d5523dcb0286e2622ed692d14dabd750: Declared palette accent: ember"
+      "evidence": "index sha256:4e91194b8e41d179f7a54cff3998db803f39c68d489b697184bc9c01a356884d, validation sha256:fc7ebd179a6cb6687daad377952d827abece8936b553104ba74e087687b1cf83: Declared palette accent: ember"
      },
      "oneFrameLooks": {
       "verdict": "pass",
@@ -219,15 +219,15 @@
     "criteria": {
      "bakedTiles": {
       "verdict": "pass",
-      "evidence": "index sha256:ac8438ff60dc2054233c3cf9ddbeb0c812fd7442564cc4d5fed819b7b29025f7, validation sha256:b55e975be55b599e13adb6ff18dcafeb13b0bceba962c6aaabb5784903d9a201: 34 L0 / 34 baked render tiles; referenced immutable bytes admitted"
+      "evidence": "index sha256:5d9e5f2dbdf8839a81fdaa2626fd5633de0a7aea18eeba2b373a0f291e5cef77, validation sha256:320f1311fb88d1849bdedf91670d955e969170d453bdaef28590782810844fcd: 34 L0 / 34 baked render tiles; referenced immutable bytes admitted"
      },
      "edgeProfile": {
       "verdict": "pass",
-      "evidence": "index sha256:ac8438ff60dc2054233c3cf9ddbeb0c812fd7442564cc4d5fed819b7b29025f7, validation sha256:b55e975be55b599e13adb6ff18dcafeb13b0bceba962c6aaabb5784903d9a201: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
+      "evidence": "index sha256:5d9e5f2dbdf8839a81fdaa2626fd5633de0a7aea18eeba2b373a0f291e5cef77, validation sha256:320f1311fb88d1849bdedf91670d955e969170d453bdaef28590782810844fcd: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
      },
      "fourEntryways": {
       "verdict": "pass",
-      "evidence": "index sha256:ac8438ff60dc2054233c3cf9ddbeb0c812fd7442564cc4d5fed819b7b29025f7, validation sha256:b55e975be55b599e13adb6ff18dcafeb13b0bceba962c6aaabb5784903d9a201: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
+      "evidence": "index sha256:5d9e5f2dbdf8839a81fdaa2626fd5633de0a7aea18eeba2b373a0f291e5cef77, validation sha256:320f1311fb88d1849bdedf91670d955e969170d453bdaef28590782810844fcd: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
      },
      "memory": {
       "verdict": "pass",
@@ -235,7 +235,7 @@
      },
      "hudAccent": {
       "verdict": "pass",
-      "evidence": "index sha256:ac8438ff60dc2054233c3cf9ddbeb0c812fd7442564cc4d5fed819b7b29025f7, validation sha256:b55e975be55b599e13adb6ff18dcafeb13b0bceba962c6aaabb5784903d9a201: Declared palette accent: iris"
+      "evidence": "index sha256:5d9e5f2dbdf8839a81fdaa2626fd5633de0a7aea18eeba2b373a0f291e5cef77, validation sha256:320f1311fb88d1849bdedf91670d955e969170d453bdaef28590782810844fcd: Declared palette accent: iris"
      },
      "oneFrameLooks": {
       "verdict": "pass",
@@ -248,15 +248,15 @@
     "criteria": {
      "bakedTiles": {
       "verdict": "pass",
-      "evidence": "index sha256:5437fa437a2d36932753968da54c98750d158a202962dbd14ab57faf4a913887, validation sha256:d7477920d2497b6a877d3fb2766287bc443a7ac76a888b4442b3eeb9eae00410: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
+      "evidence": "index sha256:11a758e8d5bb186c0cc700e4632ccef3351bbe8d2356873751c13f306132db4f, validation sha256:08a2ae5786c661b10eb07bff09a906a3a29861a0747229328f6911d68f47ae73: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
      },
      "edgeProfile": {
       "verdict": "pass",
-      "evidence": "index sha256:5437fa437a2d36932753968da54c98750d158a202962dbd14ab57faf4a913887, validation sha256:d7477920d2497b6a877d3fb2766287bc443a7ac76a888b4442b3eeb9eae00410: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
+      "evidence": "index sha256:11a758e8d5bb186c0cc700e4632ccef3351bbe8d2356873751c13f306132db4f, validation sha256:08a2ae5786c661b10eb07bff09a906a3a29861a0747229328f6911d68f47ae73: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
      },
      "fourEntryways": {
       "verdict": "pass",
-      "evidence": "index sha256:5437fa437a2d36932753968da54c98750d158a202962dbd14ab57faf4a913887, validation sha256:d7477920d2497b6a877d3fb2766287bc443a7ac76a888b4442b3eeb9eae00410: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
+      "evidence": "index sha256:11a758e8d5bb186c0cc700e4632ccef3351bbe8d2356873751c13f306132db4f, validation sha256:08a2ae5786c661b10eb07bff09a906a3a29861a0747229328f6911d68f47ae73: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
      },
      "memory": {
       "verdict": "pass",
@@ -264,7 +264,7 @@
      },
      "hudAccent": {
       "verdict": "pass",
-      "evidence": "index sha256:5437fa437a2d36932753968da54c98750d158a202962dbd14ab57faf4a913887, validation sha256:d7477920d2497b6a877d3fb2766287bc443a7ac76a888b4442b3eeb9eae00410: Declared palette accent: lime"
+      "evidence": "index sha256:11a758e8d5bb186c0cc700e4632ccef3351bbe8d2356873751c13f306132db4f, validation sha256:08a2ae5786c661b10eb07bff09a906a3a29861a0747229328f6911d68f47ae73: Declared palette accent: lime"
      },
      "oneFrameLooks": {
       "verdict": "pass",
@@ -277,15 +277,15 @@
     "criteria": {
      "bakedTiles": {
       "verdict": "pass",
-      "evidence": "index sha256:70c189fc3a72b692fbe7aa3f1015325c8ec93e94d0f63cd3869f83140315aaff, validation sha256:10ceb7c423824203ec3efc760b5bd314c0994a633f7832e580032f2f61ffaf81: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
+      "evidence": "index sha256:d2cc157e73f7dfe6388e858d51765954b0106bc9295f6de94579adfd6c94c45e, validation sha256:c4e553e6e8403e0789fe29f1b7b3873abbb2a8510011170d595ac8abb3ae549c: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
      },
      "edgeProfile": {
       "verdict": "pass",
-      "evidence": "index sha256:70c189fc3a72b692fbe7aa3f1015325c8ec93e94d0f63cd3869f83140315aaff, validation sha256:10ceb7c423824203ec3efc760b5bd314c0994a633f7832e580032f2f61ffaf81: Four admitted edge profiles; samples N/E/S/W 256/256/256/256"
+      "evidence": "index sha256:d2cc157e73f7dfe6388e858d51765954b0106bc9295f6de94579adfd6c94c45e, validation sha256:c4e553e6e8403e0789fe29f1b7b3873abbb2a8510011170d595ac8abb3ae549c: Four admitted edge profiles; samples N/E/S/W 256/256/256/256"
      },
      "fourEntryways": {
       "verdict": "pass",
-      "evidence": "index sha256:70c189fc3a72b692fbe7aa3f1015325c8ec93e94d0f63cd3869f83140315aaff, validation sha256:10ceb7c423824203ec3efc760b5bd314c0994a633f7832e580032f2f61ffaf81: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
+      "evidence": "index sha256:d2cc157e73f7dfe6388e858d51765954b0106bc9295f6de94579adfd6c94c45e, validation sha256:c4e553e6e8403e0789fe29f1b7b3873abbb2a8510011170d595ac8abb3ae549c: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
      },
      "memory": {
       "verdict": "pass",
@@ -293,7 +293,7 @@
      },
      "hudAccent": {
       "verdict": "pass",
-      "evidence": "index sha256:70c189fc3a72b692fbe7aa3f1015325c8ec93e94d0f63cd3869f83140315aaff, validation sha256:10ceb7c423824203ec3efc760b5bd314c0994a633f7832e580032f2f61ffaf81: Declared palette accent: moss"
+      "evidence": "index sha256:d2cc157e73f7dfe6388e858d51765954b0106bc9295f6de94579adfd6c94c45e, validation sha256:c4e553e6e8403e0789fe29f1b7b3873abbb2a8510011170d595ac8abb3ae549c: Declared palette accent: moss"
      },
      "oneFrameLooks": {
       "verdict": "pass",
@@ -306,15 +306,15 @@
     "criteria": {
      "bakedTiles": {
       "verdict": "pass",
-      "evidence": "index sha256:80ccf169133032dbc26b53fe6dc6027690718c6fcf062a8152a2eb54687187ec, validation sha256:3d5dd2d5ecfd0f85c95da525253a543b693b47a4bef3c9ec318ae1a42d14c9f1: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
+      "evidence": "index sha256:ef85e4e53c1187bc159ab1659c7971e738099a2a63b62a812142c72b6970387f, validation sha256:8a0a3d6b8d8d0769a8ce85233d6fa6520ceab30bffce317f1baa5c2a97db1c3e: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
      },
      "edgeProfile": {
       "verdict": "pass",
-      "evidence": "index sha256:80ccf169133032dbc26b53fe6dc6027690718c6fcf062a8152a2eb54687187ec, validation sha256:3d5dd2d5ecfd0f85c95da525253a543b693b47a4bef3c9ec318ae1a42d14c9f1: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
+      "evidence": "index sha256:ef85e4e53c1187bc159ab1659c7971e738099a2a63b62a812142c72b6970387f, validation sha256:8a0a3d6b8d8d0769a8ce85233d6fa6520ceab30bffce317f1baa5c2a97db1c3e: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
      },
      "fourEntryways": {
       "verdict": "pass",
-      "evidence": "index sha256:80ccf169133032dbc26b53fe6dc6027690718c6fcf062a8152a2eb54687187ec, validation sha256:3d5dd2d5ecfd0f85c95da525253a543b693b47a4bef3c9ec318ae1a42d14c9f1: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
+      "evidence": "index sha256:ef85e4e53c1187bc159ab1659c7971e738099a2a63b62a812142c72b6970387f, validation sha256:8a0a3d6b8d8d0769a8ce85233d6fa6520ceab30bffce317f1baa5c2a97db1c3e: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
      },
      "memory": {
       "verdict": "pass",
@@ -322,7 +322,7 @@
      },
      "hudAccent": {
       "verdict": "pass",
-      "evidence": "index sha256:80ccf169133032dbc26b53fe6dc6027690718c6fcf062a8152a2eb54687187ec, validation sha256:3d5dd2d5ecfd0f85c95da525253a543b693b47a4bef3c9ec318ae1a42d14c9f1: Declared palette accent: orchid"
+      "evidence": "index sha256:ef85e4e53c1187bc159ab1659c7971e738099a2a63b62a812142c72b6970387f, validation sha256:8a0a3d6b8d8d0769a8ce85233d6fa6520ceab30bffce317f1baa5c2a97db1c3e: Declared palette accent: orchid"
      },
      "oneFrameLooks": {
       "verdict": "pass",
@@ -335,15 +335,15 @@
     "criteria": {
      "bakedTiles": {
       "verdict": "pass",
-      "evidence": "index sha256:fe422c133c35ea1244a58905316fcc05622fbde59cd005e61ad51672b419b8f5, validation sha256:703e9dc1dcd55d67511413e47853e6514892c9850cc89468f8d650a6859d6f6a: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
+      "evidence": "index sha256:04f1e4af211c7dfbcac0fa27298105eeb48f4bff384178c051d6cffe7337396b, validation sha256:d99de4c135708f9a0705bb1d5f80d21c6c4ec31d4451f7af7d2766ed3c002ea6: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
      },
      "edgeProfile": {
       "verdict": "pass",
-      "evidence": "index sha256:fe422c133c35ea1244a58905316fcc05622fbde59cd005e61ad51672b419b8f5, validation sha256:703e9dc1dcd55d67511413e47853e6514892c9850cc89468f8d650a6859d6f6a: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
+      "evidence": "index sha256:04f1e4af211c7dfbcac0fa27298105eeb48f4bff384178c051d6cffe7337396b, validation sha256:d99de4c135708f9a0705bb1d5f80d21c6c4ec31d4451f7af7d2766ed3c002ea6: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
      },
      "fourEntryways": {
       "verdict": "pass",
-      "evidence": "index sha256:fe422c133c35ea1244a58905316fcc05622fbde59cd005e61ad51672b419b8f5, validation sha256:703e9dc1dcd55d67511413e47853e6514892c9850cc89468f8d650a6859d6f6a: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
+      "evidence": "index sha256:04f1e4af211c7dfbcac0fa27298105eeb48f4bff384178c051d6cffe7337396b, validation sha256:d99de4c135708f9a0705bb1d5f80d21c6c4ec31d4451f7af7d2766ed3c002ea6: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
      },
      "memory": {
       "verdict": "pass",
@@ -351,7 +351,7 @@
      },
      "hudAccent": {
       "verdict": "pass",
-      "evidence": "index sha256:fe422c133c35ea1244a58905316fcc05622fbde59cd005e61ad51672b419b8f5, validation sha256:703e9dc1dcd55d67511413e47853e6514892c9850cc89468f8d650a6859d6f6a: Declared palette accent: pink"
+      "evidence": "index sha256:04f1e4af211c7dfbcac0fa27298105eeb48f4bff384178c051d6cffe7337396b, validation sha256:d99de4c135708f9a0705bb1d5f80d21c6c4ec31d4451f7af7d2766ed3c002ea6: Declared palette accent: pink"
      },
      "oneFrameLooks": {
       "verdict": "pass",
@@ -364,15 +364,15 @@
     "criteria": {
      "bakedTiles": {
       "verdict": "pass",
-      "evidence": "index sha256:944534b8313c5d9e0231cc89ed266baacd27253aa4876e2ebd7ee5cf62d85750, validation sha256:1711a918a81970a3d85112ea8ef42fa265d7c1064161e158a34535795a332ff6: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
+      "evidence": "index sha256:c3fa6b8a8d4234e2d378e4b64a24761feef6f375f6646542337f8aaa7a858a79, validation sha256:0f7a143f6162b4fae2d40a5256c6e0264b5736cd26be7472938f460f1ffd115a: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
      },
      "edgeProfile": {
       "verdict": "pass",
-      "evidence": "index sha256:944534b8313c5d9e0231cc89ed266baacd27253aa4876e2ebd7ee5cf62d85750, validation sha256:1711a918a81970a3d85112ea8ef42fa265d7c1064161e158a34535795a332ff6: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
+      "evidence": "index sha256:c3fa6b8a8d4234e2d378e4b64a24761feef6f375f6646542337f8aaa7a858a79, validation sha256:0f7a143f6162b4fae2d40a5256c6e0264b5736cd26be7472938f460f1ffd115a: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
      },
      "fourEntryways": {
       "verdict": "pass",
-      "evidence": "index sha256:944534b8313c5d9e0231cc89ed266baacd27253aa4876e2ebd7ee5cf62d85750, validation sha256:1711a918a81970a3d85112ea8ef42fa265d7c1064161e158a34535795a332ff6: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
+      "evidence": "index sha256:c3fa6b8a8d4234e2d378e4b64a24761feef6f375f6646542337f8aaa7a858a79, validation sha256:0f7a143f6162b4fae2d40a5256c6e0264b5736cd26be7472938f460f1ffd115a: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
      },
      "memory": {
       "verdict": "pass",
@@ -380,7 +380,7 @@
      },
      "hudAccent": {
       "verdict": "pass",
-      "evidence": "index sha256:944534b8313c5d9e0231cc89ed266baacd27253aa4876e2ebd7ee5cf62d85750, validation sha256:1711a918a81970a3d85112ea8ef42fa265d7c1064161e158a34535795a332ff6: Declared palette accent: coral"
+      "evidence": "index sha256:c3fa6b8a8d4234e2d378e4b64a24761feef6f375f6646542337f8aaa7a858a79, validation sha256:0f7a143f6162b4fae2d40a5256c6e0264b5736cd26be7472938f460f1ffd115a: Declared palette accent: coral"
      },
      "oneFrameLooks": {
       "verdict": "pass",
@@ -393,15 +393,15 @@
     "criteria": {
      "bakedTiles": {
       "verdict": "pass",
-      "evidence": "index sha256:31eec03a01e0bc2405e6e467dad5a510b8275be00458f18e4afd6a0cb80266fc, validation sha256:90e6e3f696183c14a0a7e4a8c3316e4315f168bc42e6ff5678f5fd16825ccc7f: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
+      "evidence": "index sha256:23017325dc2cb738510b4c75e2f610b6310d76e5eeec7adfe3f3e0bb79e39311, validation sha256:a7fd9675e0b48801578281c4d7bcef9860aa7374165efd9404147d6e94715bbc: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
      },
      "edgeProfile": {
       "verdict": "pass",
-      "evidence": "index sha256:31eec03a01e0bc2405e6e467dad5a510b8275be00458f18e4afd6a0cb80266fc, validation sha256:90e6e3f696183c14a0a7e4a8c3316e4315f168bc42e6ff5678f5fd16825ccc7f: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
+      "evidence": "index sha256:23017325dc2cb738510b4c75e2f610b6310d76e5eeec7adfe3f3e0bb79e39311, validation sha256:a7fd9675e0b48801578281c4d7bcef9860aa7374165efd9404147d6e94715bbc: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
      },
      "fourEntryways": {
       "verdict": "pass",
-      "evidence": "index sha256:31eec03a01e0bc2405e6e467dad5a510b8275be00458f18e4afd6a0cb80266fc, validation sha256:90e6e3f696183c14a0a7e4a8c3316e4315f168bc42e6ff5678f5fd16825ccc7f: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
+      "evidence": "index sha256:23017325dc2cb738510b4c75e2f610b6310d76e5eeec7adfe3f3e0bb79e39311, validation sha256:a7fd9675e0b48801578281c4d7bcef9860aa7374165efd9404147d6e94715bbc: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
      },
      "memory": {
       "verdict": "pass",
@@ -409,7 +409,7 @@
      },
      "hudAccent": {
       "verdict": "pass",
-      "evidence": "index sha256:31eec03a01e0bc2405e6e467dad5a510b8275be00458f18e4afd6a0cb80266fc, validation sha256:90e6e3f696183c14a0a7e4a8c3316e4315f168bc42e6ff5678f5fd16825ccc7f: Declared palette accent: mint"
+      "evidence": "index sha256:23017325dc2cb738510b4c75e2f610b6310d76e5eeec7adfe3f3e0bb79e39311, validation sha256:a7fd9675e0b48801578281c4d7bcef9860aa7374165efd9404147d6e94715bbc: Declared palette accent: mint"
      },
      "oneFrameLooks": {
       "verdict": "pass",
@@ -422,15 +422,15 @@
     "criteria": {
      "bakedTiles": {
       "verdict": "pass",
-      "evidence": "index sha256:28c04b1cce3b80f6d7afee3e86da613b0a03b359742a1d1198450eb4657f0ca9, validation sha256:21291717bd2601789a054ae9c295777fcb8200ab62bc7e1251c82b946a6615f5: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
+      "evidence": "index sha256:fdc9ffc43d4bf1379d564334e90d48e26636b9f724a2280943fb9a25f4690c5b, validation sha256:656caa06e3eb0920985592c4d735d4cb540f769cae177f7651348524e95144d0: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
      },
      "edgeProfile": {
       "verdict": "pass",
-      "evidence": "index sha256:28c04b1cce3b80f6d7afee3e86da613b0a03b359742a1d1198450eb4657f0ca9, validation sha256:21291717bd2601789a054ae9c295777fcb8200ab62bc7e1251c82b946a6615f5: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
+      "evidence": "index sha256:fdc9ffc43d4bf1379d564334e90d48e26636b9f724a2280943fb9a25f4690c5b, validation sha256:656caa06e3eb0920985592c4d735d4cb540f769cae177f7651348524e95144d0: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
      },
      "fourEntryways": {
       "verdict": "pass",
-      "evidence": "index sha256:28c04b1cce3b80f6d7afee3e86da613b0a03b359742a1d1198450eb4657f0ca9, validation sha256:21291717bd2601789a054ae9c295777fcb8200ab62bc7e1251c82b946a6615f5: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
+      "evidence": "index sha256:fdc9ffc43d4bf1379d564334e90d48e26636b9f724a2280943fb9a25f4690c5b, validation sha256:656caa06e3eb0920985592c4d735d4cb540f769cae177f7651348524e95144d0: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
      },
      "memory": {
       "verdict": "pass",
@@ -438,7 +438,7 @@
      },
      "hudAccent": {
       "verdict": "pass",
-      "evidence": "index sha256:28c04b1cce3b80f6d7afee3e86da613b0a03b359742a1d1198450eb4657f0ca9, validation sha256:21291717bd2601789a054ae9c295777fcb8200ab62bc7e1251c82b946a6615f5: Declared palette accent: sand"
+      "evidence": "index sha256:fdc9ffc43d4bf1379d564334e90d48e26636b9f724a2280943fb9a25f4690c5b, validation sha256:656caa06e3eb0920985592c4d735d4cb540f769cae177f7651348524e95144d0: Declared palette accent: sand"
      },
      "oneFrameLooks": {
       "verdict": "pass",
@@ -451,15 +451,15 @@
     "criteria": {
      "bakedTiles": {
       "verdict": "pass",
-      "evidence": "index sha256:1eeb845bb472a6d86c5b19ec08b6048717442db7085dbeaaf7c4309d4cac3830, validation sha256:2acbce340b0ddee2f9ca72fa0307ba5a620cc2a0d88f98599dfa9b37ae482216: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
+      "evidence": "index sha256:9a48a47e9e92547108b398f16335ac93552153091b6c39586b12224c300433ae, validation sha256:eebdcc34175ce41036c052447c2cb39428120ebb2dc70c40149bb70449f5c53b: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
      },
      "edgeProfile": {
       "verdict": "pass",
-      "evidence": "index sha256:1eeb845bb472a6d86c5b19ec08b6048717442db7085dbeaaf7c4309d4cac3830, validation sha256:2acbce340b0ddee2f9ca72fa0307ba5a620cc2a0d88f98599dfa9b37ae482216: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
+      "evidence": "index sha256:9a48a47e9e92547108b398f16335ac93552153091b6c39586b12224c300433ae, validation sha256:eebdcc34175ce41036c052447c2cb39428120ebb2dc70c40149bb70449f5c53b: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
      },
      "fourEntryways": {
       "verdict": "pass",
-      "evidence": "index sha256:1eeb845bb472a6d86c5b19ec08b6048717442db7085dbeaaf7c4309d4cac3830, validation sha256:2acbce340b0ddee2f9ca72fa0307ba5a620cc2a0d88f98599dfa9b37ae482216: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
+      "evidence": "index sha256:9a48a47e9e92547108b398f16335ac93552153091b6c39586b12224c300433ae, validation sha256:eebdcc34175ce41036c052447c2cb39428120ebb2dc70c40149bb70449f5c53b: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
      },
      "memory": {
       "verdict": "pass",
@@ -467,7 +467,7 @@
      },
      "hudAccent": {
       "verdict": "pass",
-      "evidence": "index sha256:1eeb845bb472a6d86c5b19ec08b6048717442db7085dbeaaf7c4309d4cac3830, validation sha256:2acbce340b0ddee2f9ca72fa0307ba5a620cc2a0d88f98599dfa9b37ae482216: Declared palette accent: lilac"
+      "evidence": "index sha256:9a48a47e9e92547108b398f16335ac93552153091b6c39586b12224c300433ae, validation sha256:eebdcc34175ce41036c052447c2cb39428120ebb2dc70c40149bb70449f5c53b: Declared palette accent: lilac"
      },
      "oneFrameLooks": {
       "verdict": "pass",
@@ -480,15 +480,15 @@
     "criteria": {
      "bakedTiles": {
       "verdict": "pass",
-      "evidence": "index sha256:ebf2b6baced7ff52d0089f7a1b175e20e02137c900a6e1a8602da7f416490487, validation sha256:33d029b14241dd6a35803d32172022bfd585e660d8709b2ada05791fc3158460: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
+      "evidence": "index sha256:af9e69860e36f5a31725c0c7fc30b830cce1f67d1308b630d3066eba68eba51c, validation sha256:4a26cf2193ede05baca23c5cb57a3da8089f65dfed3a3ae643be720d116b9584: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
      },
      "edgeProfile": {
       "verdict": "pass",
-      "evidence": "index sha256:ebf2b6baced7ff52d0089f7a1b175e20e02137c900a6e1a8602da7f416490487, validation sha256:33d029b14241dd6a35803d32172022bfd585e660d8709b2ada05791fc3158460: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
+      "evidence": "index sha256:af9e69860e36f5a31725c0c7fc30b830cce1f67d1308b630d3066eba68eba51c, validation sha256:4a26cf2193ede05baca23c5cb57a3da8089f65dfed3a3ae643be720d116b9584: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
      },
      "fourEntryways": {
       "verdict": "pass",
-      "evidence": "index sha256:ebf2b6baced7ff52d0089f7a1b175e20e02137c900a6e1a8602da7f416490487, validation sha256:33d029b14241dd6a35803d32172022bfd585e660d8709b2ada05791fc3158460: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
+      "evidence": "index sha256:af9e69860e36f5a31725c0c7fc30b830cce1f67d1308b630d3066eba68eba51c, validation sha256:4a26cf2193ede05baca23c5cb57a3da8089f65dfed3a3ae643be720d116b9584: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
      },
      "memory": {
       "verdict": "pass",
@@ -496,7 +496,7 @@
      },
      "hudAccent": {
       "verdict": "pass",
-      "evidence": "index sha256:ebf2b6baced7ff52d0089f7a1b175e20e02137c900a6e1a8602da7f416490487, validation sha256:33d029b14241dd6a35803d32172022bfd585e660d8709b2ada05791fc3158460: Declared palette accent: marigold"
+      "evidence": "index sha256:af9e69860e36f5a31725c0c7fc30b830cce1f67d1308b630d3066eba68eba51c, validation sha256:4a26cf2193ede05baca23c5cb57a3da8089f65dfed3a3ae643be720d116b9584: Declared palette accent: marigold"
      },
      "oneFrameLooks": {
       "verdict": "pass",
@@ -509,15 +509,15 @@
     "criteria": {
      "bakedTiles": {
       "verdict": "pass",
-      "evidence": "index sha256:b6cf0f18df95f35bd2e3c5f30ef493a008d32addf7cfc0feac9a0d03539c48ef, validation sha256:007e367c34e964317bf848c872a2cf200b80bb1269caa3fedff22f0a9edd9006: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
+      "evidence": "index sha256:d1e3c5347487938fcee1c79b9fa4a00f2ff634ecf9cc41052d043fb650862474, validation sha256:7d5b7bd6e43434da4c225450703bf3710a1023d10c84d5aec0b2e859daffcd00: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
      },
      "edgeProfile": {
       "verdict": "pass",
-      "evidence": "index sha256:b6cf0f18df95f35bd2e3c5f30ef493a008d32addf7cfc0feac9a0d03539c48ef, validation sha256:007e367c34e964317bf848c872a2cf200b80bb1269caa3fedff22f0a9edd9006: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
+      "evidence": "index sha256:d1e3c5347487938fcee1c79b9fa4a00f2ff634ecf9cc41052d043fb650862474, validation sha256:7d5b7bd6e43434da4c225450703bf3710a1023d10c84d5aec0b2e859daffcd00: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
      },
      "fourEntryways": {
       "verdict": "pass",
-      "evidence": "index sha256:b6cf0f18df95f35bd2e3c5f30ef493a008d32addf7cfc0feac9a0d03539c48ef, validation sha256:007e367c34e964317bf848c872a2cf200b80bb1269caa3fedff22f0a9edd9006: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
+      "evidence": "index sha256:d1e3c5347487938fcee1c79b9fa4a00f2ff634ecf9cc41052d043fb650862474, validation sha256:7d5b7bd6e43434da4c225450703bf3710a1023d10c84d5aec0b2e859daffcd00: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
      },
      "memory": {
       "verdict": "pass",
@@ -525,7 +525,7 @@
      },
      "hudAccent": {
       "verdict": "pass",
-      "evidence": "index sha256:b6cf0f18df95f35bd2e3c5f30ef493a008d32addf7cfc0feac9a0d03539c48ef, validation sha256:007e367c34e964317bf848c872a2cf200b80bb1269caa3fedff22f0a9edd9006: Declared palette accent: ember"
+      "evidence": "index sha256:d1e3c5347487938fcee1c79b9fa4a00f2ff634ecf9cc41052d043fb650862474, validation sha256:7d5b7bd6e43434da4c225450703bf3710a1023d10c84d5aec0b2e859daffcd00: Declared palette accent: ember"
      },
      "oneFrameLooks": {
       "verdict": "pass",
@@ -538,15 +538,15 @@
     "criteria": {
      "bakedTiles": {
       "verdict": "pass",
-      "evidence": "index sha256:76c96769cd7c73d33c12131a1aadd068a90a8e4fc11df921b48b9fea111a91c2, validation sha256:65068ef7ad331f11155eafb7185ab2600be070b1bf3bfdd1f0f0fe2e96c2741e: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
+      "evidence": "index sha256:9c191308862c5a540128db693803b46b6f63972678485399d04cc19996eb09e5, validation sha256:44b8549cfe430c4231205fce07d40933947f647d95dc2d4e361b37735b3865e8: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
      },
      "edgeProfile": {
       "verdict": "pass",
-      "evidence": "index sha256:76c96769cd7c73d33c12131a1aadd068a90a8e4fc11df921b48b9fea111a91c2, validation sha256:65068ef7ad331f11155eafb7185ab2600be070b1bf3bfdd1f0f0fe2e96c2741e: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
+      "evidence": "index sha256:9c191308862c5a540128db693803b46b6f63972678485399d04cc19996eb09e5, validation sha256:44b8549cfe430c4231205fce07d40933947f647d95dc2d4e361b37735b3865e8: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
      },
      "fourEntryways": {
       "verdict": "pass",
-      "evidence": "index sha256:76c96769cd7c73d33c12131a1aadd068a90a8e4fc11df921b48b9fea111a91c2, validation sha256:65068ef7ad331f11155eafb7185ab2600be070b1bf3bfdd1f0f0fe2e96c2741e: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
+      "evidence": "index sha256:9c191308862c5a540128db693803b46b6f63972678485399d04cc19996eb09e5, validation sha256:44b8549cfe430c4231205fce07d40933947f647d95dc2d4e361b37735b3865e8: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
      },
      "memory": {
       "verdict": "pass",
@@ -554,7 +554,7 @@
      },
      "hudAccent": {
       "verdict": "pass",
-      "evidence": "index sha256:76c96769cd7c73d33c12131a1aadd068a90a8e4fc11df921b48b9fea111a91c2, validation sha256:65068ef7ad331f11155eafb7185ab2600be070b1bf3bfdd1f0f0fe2e96c2741e: Declared palette accent: moss"
+      "evidence": "index sha256:9c191308862c5a540128db693803b46b6f63972678485399d04cc19996eb09e5, validation sha256:44b8549cfe430c4231205fce07d40933947f647d95dc2d4e361b37735b3865e8: Declared palette accent: moss"
      },
      "oneFrameLooks": {
       "verdict": "pass",
@@ -567,15 +567,15 @@
     "criteria": {
      "bakedTiles": {
       "verdict": "pass",
-      "evidence": "index sha256:fae7153e8b218b7e9b4ce2e63dd8b17ee20a10d0247632c7c2547e3d17480341, validation sha256:76a0294626764dfb988212e1f17a10cc987699ec2127afff4b78b65df954f03e: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
+      "evidence": "index sha256:77493cdac848678b22db6a668e5c58bb46cb437dae798df05016893ffbb29746, validation sha256:719a71f3f0d97c97920f53f57454dcb0bd161e846aa53b2c0e405bfd7decc3b9: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
      },
      "edgeProfile": {
       "verdict": "pass",
-      "evidence": "index sha256:fae7153e8b218b7e9b4ce2e63dd8b17ee20a10d0247632c7c2547e3d17480341, validation sha256:76a0294626764dfb988212e1f17a10cc987699ec2127afff4b78b65df954f03e: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
+      "evidence": "index sha256:77493cdac848678b22db6a668e5c58bb46cb437dae798df05016893ffbb29746, validation sha256:719a71f3f0d97c97920f53f57454dcb0bd161e846aa53b2c0e405bfd7decc3b9: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
      },
      "fourEntryways": {
       "verdict": "pass",
-      "evidence": "index sha256:fae7153e8b218b7e9b4ce2e63dd8b17ee20a10d0247632c7c2547e3d17480341, validation sha256:76a0294626764dfb988212e1f17a10cc987699ec2127afff4b78b65df954f03e: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
+      "evidence": "index sha256:77493cdac848678b22db6a668e5c58bb46cb437dae798df05016893ffbb29746, validation sha256:719a71f3f0d97c97920f53f57454dcb0bd161e846aa53b2c0e405bfd7decc3b9: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
      },
      "memory": {
       "verdict": "pass",
@@ -583,7 +583,7 @@
      },
      "hudAccent": {
       "verdict": "pass",
-      "evidence": "index sha256:fae7153e8b218b7e9b4ce2e63dd8b17ee20a10d0247632c7c2547e3d17480341, validation sha256:76a0294626764dfb988212e1f17a10cc987699ec2127afff4b78b65df954f03e: Declared palette accent: tangerine"
+      "evidence": "index sha256:77493cdac848678b22db6a668e5c58bb46cb437dae798df05016893ffbb29746, validation sha256:719a71f3f0d97c97920f53f57454dcb0bd161e846aa53b2c0e405bfd7decc3b9: Declared palette accent: tangerine"
      },
      "oneFrameLooks": {
       "verdict": "pass",
@@ -596,15 +596,15 @@
     "criteria": {
      "bakedTiles": {
       "verdict": "pass",
-      "evidence": "index sha256:0df6b777077d4f88452e8d91627ac6409d7af2cf3e09950dd7ac213bd4af9007, validation sha256:067312ca17ed0ef824d5aad1cc7647d72b99523ce4fdb6b19642036699533d48: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
+      "evidence": "index sha256:dac64ab1617be520b85276cd4147667f8c9be45b3cf07206291581f184641586, validation sha256:ac57022d2016b5e66d125bc36fe2d0e43123e2c9d966138717e54b47cd82f8ac: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
      },
      "edgeProfile": {
       "verdict": "pass",
-      "evidence": "index sha256:0df6b777077d4f88452e8d91627ac6409d7af2cf3e09950dd7ac213bd4af9007, validation sha256:067312ca17ed0ef824d5aad1cc7647d72b99523ce4fdb6b19642036699533d48: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
+      "evidence": "index sha256:dac64ab1617be520b85276cd4147667f8c9be45b3cf07206291581f184641586, validation sha256:ac57022d2016b5e66d125bc36fe2d0e43123e2c9d966138717e54b47cd82f8ac: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
      },
      "fourEntryways": {
       "verdict": "pass",
-      "evidence": "index sha256:0df6b777077d4f88452e8d91627ac6409d7af2cf3e09950dd7ac213bd4af9007, validation sha256:067312ca17ed0ef824d5aad1cc7647d72b99523ce4fdb6b19642036699533d48: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
+      "evidence": "index sha256:dac64ab1617be520b85276cd4147667f8c9be45b3cf07206291581f184641586, validation sha256:ac57022d2016b5e66d125bc36fe2d0e43123e2c9d966138717e54b47cd82f8ac: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
      },
      "memory": {
       "verdict": "pass",
@@ -612,7 +612,7 @@
      },
      "hudAccent": {
       "verdict": "pass",
-      "evidence": "index sha256:0df6b777077d4f88452e8d91627ac6409d7af2cf3e09950dd7ac213bd4af9007, validation sha256:067312ca17ed0ef824d5aad1cc7647d72b99523ce4fdb6b19642036699533d48: Declared palette accent: periwinkle"
+      "evidence": "index sha256:dac64ab1617be520b85276cd4147667f8c9be45b3cf07206291581f184641586, validation sha256:ac57022d2016b5e66d125bc36fe2d0e43123e2c9d966138717e54b47cd82f8ac: Declared palette accent: periwinkle"
      },
      "oneFrameLooks": {
       "verdict": "pass",
@@ -625,15 +625,15 @@
     "criteria": {
      "bakedTiles": {
       "verdict": "pass",
-      "evidence": "index sha256:1dcaca4e1b4ad6e1942e37151fa91c8556e24e427daf2f4256abfcd876f343ce, validation sha256:ae49d968cf98646cbb21e0a06766fbd1f48b7fa5b374384aac6b84ef8d2e52b1: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
+      "evidence": "index sha256:270dc14631ac0ccc1baa1bbf8a14fd951e5e24b4a1152eabc5aac5eb2083a45c, validation sha256:38f0ebaceff5e9ccddd9aca721e9cbee017f1289f8512ad6d34078fa41666ee4: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
      },
      "edgeProfile": {
       "verdict": "pass",
-      "evidence": "index sha256:1dcaca4e1b4ad6e1942e37151fa91c8556e24e427daf2f4256abfcd876f343ce, validation sha256:ae49d968cf98646cbb21e0a06766fbd1f48b7fa5b374384aac6b84ef8d2e52b1: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
+      "evidence": "index sha256:270dc14631ac0ccc1baa1bbf8a14fd951e5e24b4a1152eabc5aac5eb2083a45c, validation sha256:38f0ebaceff5e9ccddd9aca721e9cbee017f1289f8512ad6d34078fa41666ee4: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
      },
      "fourEntryways": {
       "verdict": "pass",
-      "evidence": "index sha256:1dcaca4e1b4ad6e1942e37151fa91c8556e24e427daf2f4256abfcd876f343ce, validation sha256:ae49d968cf98646cbb21e0a06766fbd1f48b7fa5b374384aac6b84ef8d2e52b1: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
+      "evidence": "index sha256:270dc14631ac0ccc1baa1bbf8a14fd951e5e24b4a1152eabc5aac5eb2083a45c, validation sha256:38f0ebaceff5e9ccddd9aca721e9cbee017f1289f8512ad6d34078fa41666ee4: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
      },
      "memory": {
       "verdict": "pass",
@@ -641,7 +641,7 @@
      },
      "hudAccent": {
       "verdict": "pass",
-      "evidence": "index sha256:1dcaca4e1b4ad6e1942e37151fa91c8556e24e427daf2f4256abfcd876f343ce, validation sha256:ae49d968cf98646cbb21e0a06766fbd1f48b7fa5b374384aac6b84ef8d2e52b1: Declared palette accent: azure"
+      "evidence": "index sha256:270dc14631ac0ccc1baa1bbf8a14fd951e5e24b4a1152eabc5aac5eb2083a45c, validation sha256:38f0ebaceff5e9ccddd9aca721e9cbee017f1289f8512ad6d34078fa41666ee4: Declared palette accent: azure"
      },
      "oneFrameLooks": {
       "verdict": "pass",
@@ -654,15 +654,15 @@
     "criteria": {
      "bakedTiles": {
       "verdict": "pass",
-      "evidence": "index sha256:32cd4b2ba74e3d2a2fdcbd9f2265e46bd4d3b282a0764ce44ea8ee836e946371, validation sha256:920c880e4a3206ecda183f089af3a0be3d25f692523697e0187c5bc511e4f278: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
+      "evidence": "index sha256:3a9e82aa41e3681dc302e2b0ccf8b50803dffde02558816a1f5d8bd228df1471, validation sha256:99c050b25df01a64330d294c23c4faac300d5ec6420ed3d8624d24026219e705: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
      },
      "edgeProfile": {
       "verdict": "pass",
-      "evidence": "index sha256:32cd4b2ba74e3d2a2fdcbd9f2265e46bd4d3b282a0764ce44ea8ee836e946371, validation sha256:920c880e4a3206ecda183f089af3a0be3d25f692523697e0187c5bc511e4f278: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
+      "evidence": "index sha256:3a9e82aa41e3681dc302e2b0ccf8b50803dffde02558816a1f5d8bd228df1471, validation sha256:99c050b25df01a64330d294c23c4faac300d5ec6420ed3d8624d24026219e705: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
      },
      "fourEntryways": {
       "verdict": "pass",
-      "evidence": "index sha256:32cd4b2ba74e3d2a2fdcbd9f2265e46bd4d3b282a0764ce44ea8ee836e946371, validation sha256:920c880e4a3206ecda183f089af3a0be3d25f692523697e0187c5bc511e4f278: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
+      "evidence": "index sha256:3a9e82aa41e3681dc302e2b0ccf8b50803dffde02558816a1f5d8bd228df1471, validation sha256:99c050b25df01a64330d294c23c4faac300d5ec6420ed3d8624d24026219e705: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
      },
      "memory": {
       "verdict": "pass",
@@ -670,7 +670,7 @@
      },
      "hudAccent": {
       "verdict": "pass",
-      "evidence": "index sha256:32cd4b2ba74e3d2a2fdcbd9f2265e46bd4d3b282a0764ce44ea8ee836e946371, validation sha256:920c880e4a3206ecda183f089af3a0be3d25f692523697e0187c5bc511e4f278: Declared palette accent: teal"
+      "evidence": "index sha256:3a9e82aa41e3681dc302e2b0ccf8b50803dffde02558816a1f5d8bd228df1471, validation sha256:99c050b25df01a64330d294c23c4faac300d5ec6420ed3d8624d24026219e705: Declared palette accent: teal"
      },
      "oneFrameLooks": {
       "verdict": "pass",
@@ -683,15 +683,15 @@
     "criteria": {
      "bakedTiles": {
       "verdict": "pass",
-      "evidence": "index sha256:86a33a0a64ccdecb53f8b6af73d856478fe67959ff2076dff69df31b00649f37, validation sha256:134c9db28881e94651c2b672240f8f1f3830f4ad76d7426c22a169f2ebb1956e: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
+      "evidence": "index sha256:f2bb835186b3d0117e5b385ddd666294bf8aeb861743c83ac730aad70479896e, validation sha256:145e5d56a2b070957ab50fc45896e25e19b872cd77f4e43be36573dedec0d600: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
      },
      "edgeProfile": {
       "verdict": "pass",
-      "evidence": "index sha256:86a33a0a64ccdecb53f8b6af73d856478fe67959ff2076dff69df31b00649f37, validation sha256:134c9db28881e94651c2b672240f8f1f3830f4ad76d7426c22a169f2ebb1956e: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
+      "evidence": "index sha256:f2bb835186b3d0117e5b385ddd666294bf8aeb861743c83ac730aad70479896e, validation sha256:145e5d56a2b070957ab50fc45896e25e19b872cd77f4e43be36573dedec0d600: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
      },
      "fourEntryways": {
       "verdict": "pass",
-      "evidence": "index sha256:86a33a0a64ccdecb53f8b6af73d856478fe67959ff2076dff69df31b00649f37, validation sha256:134c9db28881e94651c2b672240f8f1f3830f4ad76d7426c22a169f2ebb1956e: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
+      "evidence": "index sha256:f2bb835186b3d0117e5b385ddd666294bf8aeb861743c83ac730aad70479896e, validation sha256:145e5d56a2b070957ab50fc45896e25e19b872cd77f4e43be36573dedec0d600: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
      },
      "memory": {
       "verdict": "pass",
@@ -699,7 +699,7 @@
      },
      "hudAccent": {
       "verdict": "pass",
-      "evidence": "index sha256:86a33a0a64ccdecb53f8b6af73d856478fe67959ff2076dff69df31b00649f37, validation sha256:134c9db28881e94651c2b672240f8f1f3830f4ad76d7426c22a169f2ebb1956e: Declared palette accent: iris"
+      "evidence": "index sha256:f2bb835186b3d0117e5b385ddd666294bf8aeb861743c83ac730aad70479896e, validation sha256:145e5d56a2b070957ab50fc45896e25e19b872cd77f4e43be36573dedec0d600: Declared palette accent: iris"
      },
      "oneFrameLooks": {
       "verdict": "pass",
@@ -712,15 +712,15 @@
     "criteria": {
      "bakedTiles": {
       "verdict": "pass",
-      "evidence": "index sha256:482d8e0654e79549ea9e21b31a87fcdcf8715d0cc5113c47ed903515fc7c7a7b, validation sha256:e309f8e4983c7486c398b60c634e06607dd8931da6ced420a898a5509884459d: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
+      "evidence": "index sha256:d46103d2ab458ec5136d17e36c343bd82911c02b38d92c267dd9eb75a036d147, validation sha256:e43952453d7caede3273e138f1359744df2742631d155c147cdf0fae2ccc8a11: 64 L0 / 80 baked render tiles; referenced immutable bytes admitted"
      },
      "edgeProfile": {
       "verdict": "pass",
-      "evidence": "index sha256:482d8e0654e79549ea9e21b31a87fcdcf8715d0cc5113c47ed903515fc7c7a7b, validation sha256:e309f8e4983c7486c398b60c634e06607dd8931da6ced420a898a5509884459d: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
+      "evidence": "index sha256:d46103d2ab458ec5136d17e36c343bd82911c02b38d92c267dd9eb75a036d147, validation sha256:e43952453d7caede3273e138f1359744df2742631d155c147cdf0fae2ccc8a11: Four admitted edge profiles; samples N/E/S/W 257/257/257/257"
      },
      "fourEntryways": {
       "verdict": "pass",
-      "evidence": "index sha256:482d8e0654e79549ea9e21b31a87fcdcf8715d0cc5113c47ed903515fc7c7a7b, validation sha256:e309f8e4983c7486c398b60c634e06607dd8931da6ced420a898a5509884459d: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
+      "evidence": "index sha256:d46103d2ab458ec5136d17e36c343bd82911c02b38d92c267dd9eb75a036d147, validation sha256:e43952453d7caede3273e138f1359744df2742631d155c147cdf0fae2ccc8a11: 4 unique midpoint entries at y=0; 8m width, 15m asphalt depth; full terrain/mesh/socket landings, prop/collider and water clearance admitted"
      },
      "memory": {
       "verdict": "pass",
@@ -728,7 +728,7 @@
      },
      "hudAccent": {
       "verdict": "pass",
-      "evidence": "index sha256:482d8e0654e79549ea9e21b31a87fcdcf8715d0cc5113c47ed903515fc7c7a7b, validation sha256:e309f8e4983c7486c398b60c634e06607dd8931da6ced420a898a5509884459d: Declared palette accent: cornflower"
+      "evidence": "index sha256:d46103d2ab458ec5136d17e36c343bd82911c02b38d92c267dd9eb75a036d147, validation sha256:e43952453d7caede3273e138f1359744df2742631d155c147cdf0fae2ccc8a11: Declared palette accent: cornflower"
      },
      "oneFrameLooks": {
       "verdict": "pass",
@@ -749,28 +749,28 @@
    "wave": "W1",
    "revision": "adb48b6a08619986f16a3c2e304c4db5610df932",
    "customCut": 4999,
-   "platformGrowth": 80552,
-   "netCut": -75553,
+   "platformGrowth": 80767,
+   "netCut": -75768,
    "layers": {
     "engine": {
      "before": 67206,
-     "after": 83419,
-     "growth": 16213
+     "after": 83526,
+     "growth": 16320
     },
     "game": {
      "before": 33346,
-     "after": 83972,
-     "growth": 50626
+     "after": 84059,
+     "growth": 50713
     },
     "format": {
      "before": 7102,
-     "after": 17392,
-     "growth": 10290
+     "after": 17410,
+     "growth": 10308
     },
     "sdk": {
      "before": 7240,
-     "after": 10663,
-     "growth": 3423
+     "after": 10666,
+     "growth": 3426
     }
    }
   },
@@ -778,28 +778,28 @@
    "wave": "W2",
    "revision": "68e72579516106c8307cb72e1ec1b91d3b7f649e",
    "customCut": 41011,
-   "platformGrowth": 76988,
-   "netCut": -35977,
+   "platformGrowth": 77203,
+   "netCut": -36192,
    "layers": {
     "engine": {
      "before": 67897,
-     "after": 83419,
-     "growth": 15522
+     "after": 83526,
+     "growth": 15629
     },
     "game": {
      "before": 35276,
-     "after": 83972,
-     "growth": 48696
+     "after": 84059,
+     "growth": 48783
     },
     "format": {
      "before": 7749,
-     "after": 17392,
-     "growth": 9643
+     "after": 17410,
+     "growth": 9661
     },
     "sdk": {
      "before": 7536,
-     "after": 10663,
-     "growth": 3127
+     "after": 10666,
+     "growth": 3130
     }
    }
   }
@@ -886,12 +886,12 @@
    }
   },
   "C9": {
-   "closed": false,
-   "state": "open",
+   "closed": true,
+   "state": "closed",
    "lines": {
     "pine-hollow": 0,
     "driftwood-isle": 0,
-    "nalati-grasslands": 79,
+    "nalati-grasslands": 0,
     "nine-dragon-stack": 0
    }
   }
@@ -1119,10 +1119,10 @@
      }
     },
     "C9": {
-     "closed": false,
-     "state": "open",
+     "closed": true,
+     "state": "closed",
      "lines": {
-      "nalati-grasslands": 79,
+      "nalati-grasslands": 0,
       "nine-dragon-stack": 0
      }
     }
@@ -1224,9 +1224,9 @@
    "name": "Nalati",
    "wave": "W3",
    "goal": 0,
-   "custom": 79,
+   "custom": 0,
    "legacy": 28370,
-   "pct": 0.3,
+   "pct": 0,
    "grid": "pass",
    "criteria": {
     "bakedTiles": "pass",
@@ -1272,15 +1272,12 @@
   "pastel-plain"
  ],
  "wave": {
-  "id": "W3",
-  "label": "W3 · Nalati + Nine to zero",
+  "id": "NEXT",
+  "label": "NEXT",
   "until": null,
   "goal": 0,
-  "shards": [
-   "nalati-grasslands",
-   "nine-dragon-stack"
-  ],
-  "pct": 99.8
+  "shards": [],
+  "pct": 0
  },
  "waves": [
   {
@@ -1308,7 +1305,7 @@
     "nalati-grasslands": 72.21008107155446,
     "nine-dragon-stack": 56.321349059731894
    },
-   "endedAt": null
+   "endedAt": "2026-10-23T22:21:15.485Z"
   },
   {
    "id": "NEXT",
@@ -2766,6 +2763,19 @@
     "nalati-grasslands": 0.2784631653154741,
     "nine-dragon-stack": 0
    }
+  },
+  {
+   "revision": "892e654d8d15cfe8a309efa591d938eae5518e9a",
+   "at": "2026-10-23T22:18:16.000Z",
+   "basis": "source",
+   "shards": {
+    "pine-hollow": 0,
+    "driftwood-isle": 0,
+    "far-reach": 0,
+    "sunscar-dunes": 0,
+    "nalati-grasslands": 0,
+    "nine-dragon-stack": 0
+   }
   }
  ],
  "events": [
@@ -2844,6 +2854,10 @@
   {
    "at": "2026-10-22T14:13:22.034Z",
    "label": "G567: W3 reopens toward zero custom"
+  },
+  {
+   "at": "2026-10-23T22:21:15.485Z",
+   "label": "W3 closes"
   }
  ]
 }
