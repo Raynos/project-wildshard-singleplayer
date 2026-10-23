@@ -4,6 +4,7 @@ import { Color, MeshBasicMaterial, Scene, Vector3, BoxGeometry, BufferGeometry, 
 import { ArenaFightPageSchema, ArenaRoomEncounter, ArenaRoomPortal, BossArenaRoom, arenaRoomViews } from '../src/game/boss/arenaRoom';
 import { ArenaFireView } from '../src/game/boss/arenaFire';
 import { arenaFireView } from './fake/arenaViews';
+import { ArenaFireSchema } from '../src/format/encounterRows';
 import { AnimalGroup } from '../src/engine/entities/animalMatrices';
 import { BossEncounterDefinitionSchema } from '../src/format/bossEncounter';
 import * as v from 'valibot';
@@ -56,9 +57,9 @@ test('second-shard fire rows bound capacity, own graph ids, expire and reset', (
  lendLooks(scope, { materials: new Map(['reed-flame','reed-smoke'].map(id => [id, new MeshBasicMaterial()])),
   setParam: id => { ids.push(id); }, setTexture: () => undefined, bindMeshMap: () => { throw new Error('Unused'); } });
  try {
-  const rows = { flameLook: 'reed-flame', smokeLook: 'reed-smoke', flameCount: 2, smokeCount: [3,4], smokeDetail: [0,0],
+  const rows = v.parse(ArenaFireSchema, { flameLook: 'reed-flame', smokeLook: 'reed-smoke', flameCount: 2, smokeCount: [3,4], smokeDetail: [0,0],
    front: [.5,.3], heat: [.2,.8], flameWidth: .8, life: [.2,0], rise: [1,0], radius: [.5,0], expansion: [2,0],
-   cells: { burn: 1, scatter: 0, sink: 0, size: 1, smoke: [1000,1000], scorch: { jitter: 0, lift: .1, scale: [1,0] } } };
+   cells: { burn: 1, scatter: 0, sink: 0, size: 1, smoke: [1000,1000], scorch: { jitter: 0, lift: .1, scale: [1,0] } } });
   const fire = new ArenaFireView(scene, rows, new BufferGeometry().copy(new BoxGeometry()).toJSON());
   // R6: the drawing is the fire view module over a 2 x 2 field of 1 m cells, all four burning
   const field = { x: 0, z: 0, width: 2, depth: 2, cell: 1, states: { idle: 0, active: 1 } };

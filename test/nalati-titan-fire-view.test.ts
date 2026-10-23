@@ -27,7 +27,7 @@ test('the fire module draws the original flames, rolls smoke, appends scorch and
   for (let c = 0; c < cells; c++) ground[c] = 2 + (c % field.width) * .05;
   const values: Record<string, number> = { on: 1, clear: 0, windX: 1, windZ: 0, windSpeed: 6, smokeCap: 90, smokeRate: fireView.cells.smoke[0] ?? 0, scorchCap: cells };
   const flames = instanced(fireView.flameCount), smoke = instanced(90), scorch = new InstancedMesh(new BoxGeometry(), new MeshBasicMaterial(), cells); scorch.count = 0;
-  const draws = new Map([[fire.draws.flames, flames], [fire.draws.smoke, smoke], [fire.draws.scorch, scorch]]);
+  const draws = new Map<string, InstancedMesh>([[fire.draws.flames, flames], [fire.draws.smoke, smoke], [fire.draws.scorch, scorch]]);
   const arrays = new Map<string, ArrayLike<number>>([[fire.arrays.modes, modes], [fire.arrays.lifetimes, lifetimes], [fire.arrays.ground, ground], [fire.arrays.burnt, burnt]]);
   const scope = new Scope('titan-fire');
   const program = viewProgram(module, rows, { scope, player: { position: new Vector3(), velocity: new Vector3(), yaw: 0 }, camera: new PerspectiveCamera(),
