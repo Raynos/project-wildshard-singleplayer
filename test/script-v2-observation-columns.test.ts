@@ -150,3 +150,28 @@ test('declared metadata is immutable and preflights without sampling live owners
     expect(f.query).toHaveBeenCalledExactlyOnceWith(4,7);
   } finally { f.host.dispose(); }
 });
+
+test('compiled numeric scalar readers stay fresh and match the detached column API',async()=>{
+ const f=await fixture();
+ const rows=[{id:1,name:'x',source:{kind:'actor',field:'x'}},{id:2,name:'aw',source:{kind:'memory',key:'aw',default:{value:0}}},
+  {id:3,name:'valid',source:{kind:'actor',field:'lastHitValid'}},{id:4,name:'yaw',source:{kind:'actor',field:'yaw'}}];
+ const reader=new ObservationColumnsV2(rows,f.host.scope);
+ try{
+  for(const x of [-0,9,17]){f.actor.position.x=x;f.actor.mem['aw']=x;
+   const expected=Float64Array.from(reader.capture(f.owners),row=>row.value),generic=vi.spyOn(reader,'capture');
+   expect(reader.captureNumeric(f.owners)).toStrictEqual(expected);expect(generic).not.toHaveBeenCalled();generic.mockRestore();
+  }
+  f.host.scope.dispose();expect(()=>reader.captureNumeric(f.owners)).toThrow('Retired');
+ }finally{f.host.dispose();}
+});
+
+test('selected point readers skip unrelated grass and fence replacement at the native read',async()=>{
+ const f=await fixture(),reader=new ObservationColumnsV2([{id:1,name:'x',source:{kind:'actor',field:'x'}},
+  {id:2,name:'grass',source:{kind:'grass',at:'self'}}],f.host.scope);
+ try{
+  const selected=reader.captureNumeric(f.owners,[true,false]);expect(selected[0]).toBe(4);expect(Number.isNaN(selected[1])).toBe(true);expect(f.query).not.toHaveBeenCalled();
+  expect(reader.captureNumeric(f.owners)[1]).toBe(11);
+  f.query.mockImplementationOnce(()=>{f.environment.grassHeightAt=()=>7;return 1;});
+  expect(()=>reader.captureNumeric(f.owners)).toThrow('grass owner');
+ }finally{f.host.dispose();}
+});

@@ -264,6 +264,12 @@ export function installNativeGroupRows(host: SimHost, input: unknown, grid: Bake
         chargeContact: (body,context,radius) => { contact(body,context,radius,true); },
         scarePack: (body,radius) => { const pack = packOf.get(body); if (pack === undefined) return false; pack.scare(body.position.x,body.position.z,radius); return true; },
         onKnockdown: (x,z,strength) => { environment.onKnockdown(x,z,strength); } });
+      if(step.guest!==undefined){
+        const program=ReturnProgram.native(host,step.guest.program);
+        if(program.prepareGroup===undefined||program.groupBindings===undefined)throw new Error('Missing native herd group capability');
+        herd.bindGuest({groupBindings:program.groupBindings,prepareGroup:program.prepareGroup},step.guest.binding,
+          {scope:host.scope,group:row.id,handle:herds.length+1,player:host.player.position,actors:host.entities});
+      }
       herd.initialize(); herd.findThreat = (x,z,radius) => nearestPopulationActor(wolves,x,z,radius);
       if (step.adopt !== null) herd.adoptStallion(actor(step.adopt)); herds.push(herd);
     }

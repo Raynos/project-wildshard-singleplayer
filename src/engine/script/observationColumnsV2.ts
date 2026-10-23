@@ -77,21 +77,132 @@ function need<T>(value: T | undefined,kind: string): T { if (value === undefined
 
 type Immutable<T> = T extends object ? { readonly [Key in keyof T]: Immutable<T[Key]> } : T;
 
+/** Compile common scalar and point readers once. Queries retain their native
+ * receiver and per-capture fences; every reader samples the current owner. */
+function scalarReader(source: Immutable<ObservationColumnV2['source']>): ((owners: V2ColumnOwners) => number) | undefined {
+  switch (source.kind) {
+    case 'memory': return owners => {
+      const body=need(owners.self.actor??undefined,'self'), fallback=source.default;
+      let value=body.mem[source.key]??(fallback.when!==undefined&&body.mem[fallback.when.field]===fallback.when.equal?fallback.when.value:
+        fallback.source===undefined?fallback.value:fallback.source==='yaw'?body.yaw:body.position[fallback.source]);
+      if(source.encoding!==undefined){
+        if(value!==-Infinity&&!Number.isFinite(value))throw new Error('Invalid encoded memory value');
+        value=source.encoding.part==='valid'?Number(value!==-Infinity):value===-Infinity?0:value;
+      }
+      return value;
+    };
+    case 'memory-present': return owners=>Number(source.keys.every(key=>owners.self.actor?.mem[key]!==undefined));
+    case 'actor-state': return owners=>source.states.indexOf(need(owners.self.actor??undefined,'self').state);
+    case 'result': return owners=>need(owners.results?.[source.channel],'projection result');
+    case 'reference': return owners=>{
+      const loan=need(need(owners.references,'reference').get(source.binding),'reference binding');
+      if(loan===null)return 0;
+      if(source.field==='present')return 1;
+      if(source.field==='handle')return loan.handle;
+      if(source.field==='x'||source.field==='y'||source.field==='z')return loan.body.position[source.field];
+      return Number(loan.body[source.field]);
+    };
+    case 'actor': return owners=>{
+      const actor=owners.self.actor, field=source.field;
+      if(actor===null)return field==='attackPhase'?-1:0;
+      if(field==='lastHitValid'||field==='lastHitSeconds'){
+        const stamp=actor.lastHitT;
+        if(stamp!==-Infinity&&!Number.isFinite(stamp))throw new Error('Invalid actor hit stamp');
+        return field==='lastHitValid'?Number(stamp!==-Infinity):stamp===-Infinity?0:stamp;
+      }
+      if(field==='modSpeed')return actor.mods.speed;
+      if(field==='x'||field==='y'||field==='z')return actor.position[field];
+      if(field==='hpShare'){if(actor.maxHp<=0)throw new Error('Invalid actor maximum health');return actor.hp/actor.maxHp;}
+      return Number(actor[field]);
+    };
+    case 'player': return owners=>{
+      const env=need(owners.environment,'environment');
+      switch(source.field){case 'crouched':return Number(env.playerCrouched);case 'forwardX':return env.playerFwdX;case 'forwardZ':return env.playerFwdZ;
+        case 'mounted':return Number(env.playerMounted);case 'healthShare':return env.playerHealth01;default:throw new Error('Unknown player column');}
+    };
+    case 'environment': return owners=>Number(need(owners.environment,'environment')[source.field]);
+    case 'wind':return owners=>need(owners.environment,'environment').wind[source.field];
+    case 'grass':return owners=>{
+      const point=source.at==='self'?owners.self.actor?.position:owners.player.position;
+      return point===undefined?0:need(owners.environment,'environment').grassHeightAt(finite(point.x),finite(point.z));
+    };
+    case 'time': return owners=>{const value=owners[source.field];if(source.field==='dt'&&value<0)throw new Error('Negative observation dt');return value;};
+    case 'player-position': return owners=>need(owners.player.position[source.axis],'player position');
+    case 'context': return owners=>Number(need(owners.context,'context')[source.field]);
+    case 'bearing': case 'clock': case 'crowd': case 'distance-xz': case 'equipment':
+    case 'heading-component': case 'heading-offset': case 'herd': case 'herd-state': case 'hit': case 'mount': case 'nearest':
+    case 'request': case 'request-tags': case 'sense': case 'taming': case 'weather': return undefined;
+    default: throw new Error('Unknown observation source');
+  }
+}
+
 /** Detached columns at the original decision slot. No scheduler, body/RNG/save
  * owner or cached world frame lives here. In particular, keeper grass at:self
  * is sampled at the ACTOR, while an absent actor retains the original zero. */
 export class ObservationColumnsV2 {
   private readonly rows: readonly Immutable<ObservationColumnV2>[];
   private readonly scope: Scope;
+  private readonly scalars: readonly ((owners: V2ColumnOwners) => number)[] | undefined;
+  private readonly referenceNames: readonly string[];
   constructor(input: unknown,scope: Scope) {
     this.scope = scope;
     const rows = parseObservationColumnsV2(input);
     freeze(rows);
     this.rows = Object.freeze(rows);
+    const readers=this.rows.map(row=>scalarReader(row.source));
+    this.scalars=readers.every(reader=>reader!==undefined)?readers:undefined;
+    this.referenceNames=[...new Set(this.rows.flatMap(row=>row.source.kind==='reference'?[row.source.binding]:[]))];
   }
   /** The same immutable admitted metadata, without sampling any live owner.
    * Reading declarations does not capture a frame or grant a live owner loan. */
   get declaredColumns(): readonly Immutable<ObservationColumnV2>[] { return this.rows; }
+  /** Detached numeric columns in declaration order. Scalar readers are
+   * compiled once; no per-column records, selector walk or sorting on a group
+   * segment. Query-bearing declarations retain the full ordered capture path. */
+  captureNumeric(owners: V2ColumnOwners, selected?:readonly boolean[]): Float64Array {
+    if(selected!==undefined&&selected.length!==this.rows.length)throw new Error('Invalid observation selection');
+    if(this.scalars===undefined){
+      if(selected!==undefined)throw new Error('Selected capture requires scalar columns');
+      return Float64Array.from(this.capture(owners),row=>row.value);
+    }
+    const self=owners.self,actor=self.actor;
+    const environment=owners.environment,grass=environment?.grassHeightAt,queries:{at:'self'|'player';point:Readonly<{x:number;z:number}>|undefined}[]=[];
+    for(const[index,row]of this.rows.entries())if(selected?.[index]!==false){
+      const kind=row.source.kind;
+      if(kind==='grass'||kind==='player'||kind==='environment'||kind==='wind')need(environment,'environment');
+      if(row.source.kind==='grass')queries.push({at:row.source.at,point:row.source.at==='self'?actor?.position:owners.player.position});
+    }
+    const live=():void=>{
+      if(owners.scope!==this.scope||this.scope.disposed||this.scope.disposing||owners.self!==self||self.actor!==actor
+        ||actor!==null&&actor.entityId!==self.identity)throw new Error('Retired observation owner');
+      if(queries.length>0&&(owners.environment!==environment||environment?.grassHeightAt!==grass
+        ||queries.some(query=>(query.at==='self'?actor?.position:owners.player.position)!==query.point)))throw new Error('Replaced observation grass owner');
+    };
+    live();
+    if(owners.observed.size>256||self.group.length===0||!Number.isInteger(self.slot)||self.slot<0
+      ||actor===null&&self.identity!=='')throw new Error('Stale observation actor slot');
+    const observed=new Set<AnimalSim>();
+    for(const[handle,body]of owners.observed){
+      if(!Number.isInteger(handle)||handle<1||handle>0x7fffffff||observed.has(body)||body.entityId.length===0)throw new Error('Invalid observed actor identity');
+      observed.add(body);
+    }
+    const owner=owners.references;
+    if((owner?.size??0)>128)throw new Error('Observation reference capacity');
+    const refs=this.referenceNames.map(name=>{
+      const loan=need(need(owner,'reference').get(name),'reference binding');
+      if(loan!==null&&(loan.identity.length===0||!Number.isInteger(loan.handle)||loan.handle<1||loan.handle>0x7fffffff
+        ||typeof loan.body.alive!=='boolean'))throw new Error('Invalid observation reference loan');
+      return {name,loan,body:loan?.body,identity:loan?.identity,handle:loan?.handle};
+    });
+    const values=new Float64Array(this.scalars.length);
+    for(const[index,read]of this.scalars.entries()){live();values[index]=selected?.[index]===false?Number.NaN:finite(read(owners));}
+    live();
+    if(owners.references!==owner||refs.some(pin=>{
+      const loan=owner?.get(pin.name);
+      return loan!==pin.loan||loan?.body!==pin.body||loan?.identity!==pin.identity||loan?.handle!==pin.handle;
+    }))throw new Error('Retired observation owner');
+    return values;
+  }
   capture(owners: V2ColumnOwners): readonly { readonly name: string; readonly id: number; readonly value: number }[] {
     if (owners.scope !== this.scope || this.scope.disposed || this.scope.disposing) throw new Error('Retired observation owner');
     const self = owners.self, actor = self.actor;

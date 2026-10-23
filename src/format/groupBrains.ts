@@ -1,5 +1,8 @@
 import * as v from 'valibot';
 
+/** Built-in guarded group states shared by its wire rows and native owner. */
+export const GUARDED_STALLION_STATES = ['watch', 'warn', 'display', 'charge', 'wheel', 'lead', 'beaten', 'ridden'] as const;
+
 const id = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.:-]*$/u), v.maxLength(128));
 const cue = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9_.:-]*$/u), v.maxLength(128));
 const finite = v.pipe(v.number(), v.finite());
@@ -70,3 +73,13 @@ export function groupBrainRules(groups: readonly { id: string; members: readonly
   }
   return errors;
 }
+
+const guestName = v.pipe(v.string(),v.minLength(1),v.maxLength(128));
+export const GroupGuestBindingSchema = v.strictObject({profile:guestName,capture:v.exactOptional(v.strictObject({common:v.pipe(v.array(guestName),v.maxLength(128)),slots:v.pipe(v.array(guestName),v.maxLength(16)),references:v.pipe(v.array(guestName),v.maxLength(16))})),parameters:v.record(guestName,v.pipe(v.number(),v.finite())),
+  resume:v.strictObject({field:guestName,values:v.pipe(v.array(v.pipe(v.number(),v.integer(),v.minValue(0))),v.minLength(1),v.maxLength(512),
+    v.check(values=>values.includes(0)&&new Set(values).size===values.length)),segments:v.pipe(v.number(),v.integer(),v.minValue(1),v.maxValue(512))})});
+/** Shared finite binding into an already-selected group profile. */
+export type GroupGuestBindingRows = v.InferOutput<typeof GroupGuestBindingSchema>;
+export const GuardedHerdGuestSchema = v.strictObject({...GroupGuestBindingSchema.entries,references:v.exactOptional(v.record(guestName,guestName))});
+/** Finite binding into an already-admitted group profile; no owner or callback is authored. */
+export type GuardedHerdGuestRows = v.InferOutput<typeof GuardedHerdGuestSchema>;

@@ -3,7 +3,7 @@ import { ReturnProgramSchema } from './namedJsonContracts';
 import { NativeRidingSchema } from './nativeRiding';
 import { isJsonData } from './json';
 import { StalkerSchema, GuardianPatternsSchema, SkirmisherSchema, GuardianSchema, PerchHunterSchema, ScriptBrainSchema } from './brains';
-import { GroupBrainSchema, groupBrainRules } from './groupBrains';
+import { GroupBrainSchema, groupBrainRules, GuardedHerdGuestSchema, GroupGuestBindingSchema } from './groupBrains';
 import { RamGrazerSchema, ChallengeGrazerSchema, GrazerSchema } from './grazers';
 import { DiverSchema, OrbitDiverSchema, PatrolDiverSchema, BurstFlyerSchema } from './flyers';
 
@@ -117,13 +117,16 @@ export type CreatureStrikes = v.InferOutput<typeof CreatureStrikesSchema>;
 /** Read an entire actors/strikes section before resolving decision handles. */
 export function readCreatureStrikes(input: unknown): CreatureStrikes { return v.parse(CreatureStrikesSchema, input); }
 
+/** An admitted programme and finite group binding; no callback or second owner. */
+const groupGuest=v.strictObject({program:ReturnProgramSchema,binding:GuardedHerdGuestSchema});
+
 /** Ordered native group setup. A delay projection can consume its own declared
  * entropy between groups; adoption names a real actor outside the initial herd. */
 export const NativeGroupRowsSchema = v.strictObject({
   id, herds: id, tokens: id, bounds: v.tuple([coord, coord, coord, coord]), owned: v.pipe(v.array(id), v.maxLength(64)),
   contacts: v.strictObject({ pack: CreatureStrikeSchema, herd: CreatureStrikeSchema }),
   steps: v.pipe(v.array(v.variant('kind', [
-    v.strictObject({ kind: v.literal('group'), row: GroupBrainSchema, adopt: v.nullable(id) }),
+    v.strictObject({ kind: v.literal('group'), row: GroupBrainSchema, adopt: v.nullable(id), guest:v.exactOptional(groupGuest) }),
     v.strictObject({ kind: v.literal('delay'), program: ReturnProgramSchema, signal: v.pipe(v.string(), v.minLength(1), v.maxLength(128)), channel: id }),
   ])), v.maxLength(17)),
 });
@@ -140,5 +143,5 @@ export const PopulationEffectsSchema = v.strictObject({
 export const PageGroupRowsSchema = v.strictObject({
   pack: GroupBrainSchema,herd: GroupBrainSchema,contacts: v.strictObject({ pack: CreatureStrikeSchema,herd: CreatureStrikeSchema }),
   world: NativeRidingSchema.entries.world,wind: v.strictObject({ x: finite,z: finite,strength: finite }),
-  prey: id,damage: ReturnProgramSchema,effects:v.exactOptional(PopulationEffectsSchema),
+  prey: id,damage: ReturnProgramSchema,packGuest:v.exactOptional(v.strictObject({program:ReturnProgramSchema,binding:GroupGuestBindingSchema})),guest:v.exactOptional(groupGuest),effects:v.exactOptional(PopulationEffectsSchema),
 });

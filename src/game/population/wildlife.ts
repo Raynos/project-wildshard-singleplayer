@@ -36,11 +36,11 @@ export class PageWildlife<T extends CrowdTargets = CrowdTargets> {
   private readonly weaponTarget: CrowdWeaponTarget<T>;
   private readonly targets: CrowdRoster<T>; private readonly relations: PopulationRelations;
   private readonly motion: ProjectedMotionSample; private readonly predatorBodies: Animal[] = [];
-  constructor(private readonly animals: AnimalManager,input: unknown, programmeScope?:Scope) {
+  constructor(private readonly animals: AnimalManager,input: unknown, programmeScope?:Scope, groupPlayer?:Vector3) {
     this.rows = v.parse(WildlifePopulationSchema,input); const row = this.rows;
     this.placement = ReturnProgram.page(row.admission,programmeScope); this.pastureAuthor = ReturnProgram.page(row.pasture,programmeScope);
     this.population = new PagePopulationPlanner(animals,this.placement,new Rng(row.random),{ begin: 'begin',spot: 'spot',accept: 'accept',yaw: 'yaw' });
-    this.groups = new PageGroups(animals,this.flocks,row.groups); this.targets = new CrowdRoster(animals.animals,this.flocks,row.groups.prey);
+    this.groups = new PageGroups(animals,this.flocks,row.groups,programmeScope===undefined||groupPlayer===undefined?undefined:{scope:programmeScope,player:groupPlayer}); this.targets = new CrowdRoster(animals.animals,this.flocks,row.groups.prey);
     this.weaponTarget=new CrowdWeaponTarget(this.targets,row.combat);
     this.relations = new PopulationRelations(this.placement,{ packs: this.groups.packs,herds: this.groups.herds,crowds: this.flocks },row.relations);
     this.motion = new ProjectedMotionSample(this.placement,'speed');
@@ -154,7 +154,7 @@ export async function installClientWildlife(ctx: ShardContext, feature: ClientFe
     started = true;
     animals.wetAt = (x, z) => wildEnv.wetAt(x, z);
     animals.navSteer = feature.navSteer;
-    const population = new PageWildlife<CrowdDraw>(animals, rows,world.game.levelScope);
+    const population = new PageWildlife<CrowdDraw>(animals, rows,world.game.levelScope,world.player.position);
     for (const step of population.buildSteps()) {
       ensureActive();
       if (step.kind === 'crowd') {

@@ -1,0 +1,1427 @@
+{
+  "bank": [
+    {
+      "name": "alert",
+      "kind": "number"
+    },
+    {
+      "name": "alertOwned",
+      "kind": "boolean"
+    },
+    {
+      "name": "aliX",
+      "kind": "number"
+    },
+    {
+      "name": "aliZ",
+      "kind": "number"
+    },
+    {
+      "name": "beaten",
+      "kind": "boolean"
+    },
+    {
+      "name": "beatenHandle",
+      "kind": "number"
+    },
+    {
+      "name": "beatenT",
+      "kind": "number"
+    },
+    {
+      "name": "bendIndex",
+      "kind": "number"
+    },
+    {
+      "name": "bolt",
+      "kind": "boolean"
+    },
+    {
+      "name": "chargeCd",
+      "kind": "number"
+    },
+    {
+      "name": "chargeTarget",
+      "kind": "reference",
+      "own": false
+    },
+    {
+      "name": "contactDistance",
+      "kind": "number"
+    },
+    {
+      "name": "contactReference",
+      "kind": "number"
+    },
+    {
+      "name": "contactX",
+      "kind": "number"
+    },
+    {
+      "name": "contactZ",
+      "kind": "number"
+    },
+    {
+      "name": "cx",
+      "kind": "number"
+    },
+    {
+      "name": "cz",
+      "kind": "number"
+    },
+    {
+      "name": "fleeFromX",
+      "kind": "number"
+    },
+    {
+      "name": "fleeFromZ",
+      "kind": "number"
+    },
+    {
+      "name": "fleeLen",
+      "kind": "number"
+    },
+    {
+      "name": "fleeRun",
+      "kind": "number"
+    },
+    {
+      "name": "fleeX",
+      "kind": "number"
+    },
+    {
+      "name": "fleeZ",
+      "kind": "number"
+    },
+    {
+      "name": "flightReturn",
+      "kind": "number"
+    },
+    {
+      "name": "flightStampede",
+      "kind": "boolean"
+    },
+    {
+      "name": "groupTime",
+      "kind": "number"
+    },
+    {
+      "name": "groupTimePresent",
+      "kind": "boolean"
+    },
+    {
+      "name": "headUp",
+      "kind": "number"
+    },
+    {
+      "name": "initialized",
+      "kind": "boolean"
+    },
+    {
+      "name": "knockCd",
+      "kind": "number"
+    },
+    {
+      "name": "lead",
+      "kind": "reference",
+      "own": true
+    },
+    {
+      "name": "maxAw",
+      "kind": "number"
+    },
+    {
+      "name": "mode",
+      "kind": "enum",
+      "values": [
+        "graze",
+        "drift",
+        "alert",
+        "flee",
+        "settle"
+      ]
+    },
+    {
+      "name": "modeT",
+      "kind": "number"
+    },
+    {
+      "name": "moved",
+      "kind": "number"
+    },
+    {
+      "name": "passCommitted",
+      "kind": "number"
+    },
+    {
+      "name": "pathNext",
+      "kind": "number"
+    },
+    {
+      "name": "pathSpeed",
+      "kind": "number"
+    },
+    {
+      "name": "pathTurn",
+      "kind": "number"
+    },
+    {
+      "name": "pickHandle",
+      "kind": "number"
+    },
+    {
+      "name": "pickIndex",
+      "kind": "number"
+    },
+    {
+      "name": "pickReturn",
+      "kind": "number"
+    },
+    {
+      "name": "pickX",
+      "kind": "number"
+    },
+    {
+      "name": "pickZ",
+      "kind": "number"
+    },
+    {
+      "name": "planSpeed",
+      "kind": "number"
+    },
+    {
+      "name": "ridden",
+      "kind": "reference",
+      "own": true
+    },
+    {
+      "name": "sT",
+      "kind": "number"
+    },
+    {
+      "name": "senseAw",
+      "kind": "number"
+    },
+    {
+      "name": "senseBearing",
+      "kind": "number"
+    },
+    {
+      "name": "senseDistance",
+      "kind": "number"
+    },
+    {
+      "name": "senseRate",
+      "kind": "number"
+    },
+    {
+      "name": "senseSlot",
+      "kind": "number"
+    },
+    {
+      "name": "sepX",
+      "kind": "number"
+    },
+    {
+      "name": "sepZ",
+      "kind": "number"
+    },
+    {
+      "name": "spotT",
+      "kind": "number"
+    },
+    {
+      "name": "spotX",
+      "kind": "number"
+    },
+    {
+      "name": "spotZ",
+      "kind": "number"
+    },
+    {
+      "name": "stallion",
+      "kind": "reference",
+      "own": true
+    },
+    {
+      "name": "stallionState",
+      "kind": "enum",
+      "values": [
+        "watch",
+        "warn",
+        "display",
+        "charge",
+        "wheel",
+        "lead",
+        "beaten",
+        "ridden"
+      ]
+    },
+    {
+      "name": "stallionTick",
+      "kind": "number"
+    },
+    {
+      "name": "stampeding",
+      "kind": "boolean"
+    },
+    {
+      "name": "standingDistance",
+      "kind": "number"
+    },
+    {
+      "name": "stateRequested",
+      "kind": "number"
+    },
+    {
+      "name": "stateReturn",
+      "kind": "number"
+    },
+    {
+      "name": "tickDt",
+      "kind": "number"
+    },
+    {
+      "name": "tickStallion",
+      "kind": "number"
+    },
+    {
+      "name": "tickThreat",
+      "kind": "number"
+    },
+    {
+      "name": "trampleNext",
+      "kind": "number"
+    },
+    {
+      "name": "trampleTarget",
+      "kind": "number"
+    },
+    {
+      "name": "trust",
+      "kind": "number"
+    },
+    {
+      "name": "vx",
+      "kind": "number"
+    },
+    {
+      "name": "vz",
+      "kind": "number"
+    },
+    {
+      "name": "continuation",
+      "kind": "number"
+    },
+    {
+      "name": "context.alertThreshold",
+      "kind": "number"
+    },
+    {
+      "name": "context.argHandle",
+      "kind": "number"
+    },
+    {
+      "name": "context.argX",
+      "kind": "number"
+    },
+    {
+      "name": "context.argZ",
+      "kind": "number"
+    },
+    {
+      "name": "context.argument",
+      "kind": "number"
+    },
+    {
+      "name": "context.calm",
+      "kind": "number"
+    },
+    {
+      "name": "context.charge",
+      "kind": "number"
+    },
+    {
+      "name": "context.cone",
+      "kind": "number"
+    },
+    {
+      "name": "context.dt",
+      "kind": "number"
+    },
+    {
+      "name": "context.flightMax",
+      "kind": "number"
+    },
+    {
+      "name": "context.flightMin",
+      "kind": "number"
+    },
+    {
+      "name": "context.gallop",
+      "kind": "number"
+    },
+    {
+      "name": "context.grazingSight",
+      "kind": "number"
+    },
+    {
+      "name": "context.maxX",
+      "kind": "number"
+    },
+    {
+      "name": "context.maxZ",
+      "kind": "number"
+    },
+    {
+      "name": "context.minX",
+      "kind": "number"
+    },
+    {
+      "name": "context.minZ",
+      "kind": "number"
+    },
+    {
+      "name": "context.neigh",
+      "kind": "number"
+    },
+    {
+      "name": "context.packDrivenOff",
+      "kind": "number"
+    },
+    {
+      "name": "context.playerSpeed",
+      "kind": "number"
+    },
+    {
+      "name": "context.px",
+      "kind": "number"
+    },
+    {
+      "name": "context.py",
+      "kind": "number"
+    },
+    {
+      "name": "context.pz",
+      "kind": "number"
+    },
+    {
+      "name": "context.reply",
+      "kind": "number"
+    },
+    {
+      "name": "context.sight",
+      "kind": "number"
+    },
+    {
+      "name": "context.snort",
+      "kind": "number"
+    },
+    {
+      "name": "context.squeal",
+      "kind": "number"
+    },
+    {
+      "name": "context.stallionBeaten",
+      "kind": "number"
+    },
+    {
+      "name": "context.stallionDisplay",
+      "kind": "number"
+    },
+    {
+      "name": "context.stampede",
+      "kind": "number"
+    },
+    {
+      "name": "context.targetAlive",
+      "kind": "number"
+    },
+    {
+      "name": "context.targetHandle",
+      "kind": "number"
+    },
+    {
+      "name": "context.targetX",
+      "kind": "number"
+    },
+    {
+      "name": "context.targetZ",
+      "kind": "number"
+    },
+    {
+      "name": "context.threatX",
+      "kind": "number"
+    },
+    {
+      "name": "context.threatY",
+      "kind": "number"
+    },
+    {
+      "name": "context.threatZ",
+      "kind": "number"
+    },
+    {
+      "name": "context.time",
+      "kind": "number"
+    },
+    {
+      "name": "context.trot",
+      "kind": "number"
+    },
+    {
+      "name": "context.walk",
+      "kind": "number"
+    },
+    {
+      "name": "slot",
+      "kind": "number",
+      "integer": true,
+      "min": 0,
+      "max": 15
+    },
+    {
+      "name": "body",
+      "kind": "boolean"
+    }
+  ],
+  "columns": [
+    {
+      "name": "alarm",
+      "id": 1,
+      "source": {
+        "kind": "memory",
+        "key": "alarm",
+        "default": {
+          "value": 0
+        }
+      }
+    },
+    {
+      "name": "alarmT",
+      "id": 2,
+      "source": {
+        "kind": "memory",
+        "key": "alarmT",
+        "default": {
+          "value": 0
+        }
+      }
+    },
+    {
+      "name": "alive",
+      "id": 3,
+      "source": {
+        "kind": "actor",
+        "field": "alive"
+      }
+    },
+    {
+      "name": "aw",
+      "id": 4,
+      "source": {
+        "kind": "memory",
+        "key": "aw",
+        "default": {
+          "value": 0
+        }
+      }
+    },
+    {
+      "name": "contactAlive",
+      "id": 5,
+      "source": {
+        "kind": "reference",
+        "binding": "contact",
+        "field": "alive"
+      }
+    },
+    {
+      "name": "contactX",
+      "id": 6,
+      "source": {
+        "kind": "reference",
+        "binding": "contact",
+        "field": "x"
+      }
+    },
+    {
+      "name": "contactY",
+      "id": 7,
+      "source": {
+        "kind": "reference",
+        "binding": "contact",
+        "field": "y"
+      }
+    },
+    {
+      "name": "contactZ",
+      "id": 8,
+      "source": {
+        "kind": "reference",
+        "binding": "contact",
+        "field": "z"
+      }
+    },
+    {
+      "name": "foal",
+      "id": 9,
+      "source": {
+        "kind": "result",
+        "channel": "foal"
+      }
+    },
+    {
+      "name": "grazing",
+      "id": 10,
+      "source": {
+        "kind": "actor-state",
+        "states": [
+          "_other",
+          "graze"
+        ]
+      }
+    },
+    {
+      "name": "gs",
+      "id": 11,
+      "source": {
+        "kind": "memory",
+        "key": "gs",
+        "default": {
+          "value": 0
+        }
+      }
+    },
+    {
+      "name": "gt",
+      "id": 12,
+      "source": {
+        "kind": "memory",
+        "key": "gt",
+        "default": {
+          "value": 0
+        }
+      }
+    },
+    {
+      "name": "gtPresent",
+      "id": 13,
+      "source": {
+        "kind": "memory-present",
+        "keys": [
+          "gt"
+        ]
+      }
+    },
+    {
+      "name": "gyaw",
+      "id": 14,
+      "source": {
+        "kind": "memory",
+        "key": "gyaw",
+        "default": {
+          "value": 0
+        }
+      }
+    },
+    {
+      "name": "gyawPresent",
+      "id": 15,
+      "source": {
+        "kind": "memory-present",
+        "keys": [
+          "gyaw"
+        ]
+      }
+    },
+    {
+      "name": "handle",
+      "id": 16,
+      "source": {
+        "kind": "reference",
+        "binding": "self",
+        "field": "handle"
+      }
+    },
+    {
+      "name": "headUp",
+      "id": 17,
+      "source": {
+        "kind": "memory",
+        "key": "headUp",
+        "default": {
+          "value": 0
+        }
+      }
+    },
+    {
+      "name": "hitP",
+      "id": 18,
+      "source": {
+        "kind": "memory",
+        "key": "hitP",
+        "default": {
+          "value": 0
+        }
+      }
+    },
+    {
+      "name": "hitT",
+      "id": 19,
+      "source": {
+        "kind": "memory",
+        "key": "hitT",
+        "default": {
+          "value": 0
+        },
+        "encoding": {
+          "kind": "negative-infinity",
+          "part": "value"
+        }
+      }
+    },
+    {
+      "name": "hitTPresent",
+      "id": 20,
+      "source": {
+        "kind": "memory-present",
+        "keys": [
+          "hitT"
+        ]
+      }
+    },
+    {
+      "name": "hitTValid",
+      "id": 21,
+      "source": {
+        "kind": "memory",
+        "key": "hitT",
+        "default": {
+          "value": 0
+        },
+        "encoding": {
+          "kind": "negative-infinity",
+          "part": "valid"
+        }
+      }
+    },
+    {
+      "name": "hp",
+      "id": 22,
+      "source": {
+        "kind": "actor",
+        "field": "hp"
+      }
+    },
+    {
+      "name": "kick",
+      "id": 23,
+      "source": {
+        "kind": "memory",
+        "key": "kick",
+        "default": {
+          "value": 0
+        }
+      }
+    },
+    {
+      "name": "kicks",
+      "id": 24,
+      "source": {
+        "kind": "memory",
+        "key": "kicks",
+        "default": {
+          "value": 0
+        }
+      }
+    },
+    {
+      "name": "lastHitSeconds",
+      "id": 25,
+      "source": {
+        "kind": "actor",
+        "field": "lastHitSeconds"
+      }
+    },
+    {
+      "name": "lastHitValid",
+      "id": 26,
+      "source": {
+        "kind": "actor",
+        "field": "lastHitValid"
+      }
+    },
+    {
+      "name": "maxHp",
+      "id": 27,
+      "source": {
+        "kind": "actor",
+        "field": "maxHp"
+      }
+    },
+    {
+      "name": "mother",
+      "id": 28,
+      "source": {
+        "kind": "result",
+        "channel": "mother"
+      }
+    },
+    {
+      "name": "pin",
+      "id": 29,
+      "source": {
+        "kind": "memory",
+        "key": "pin",
+        "default": {
+          "value": 0
+        }
+      }
+    },
+    {
+      "name": "rear",
+      "id": 30,
+      "source": {
+        "kind": "memory",
+        "key": "rear",
+        "default": {
+          "value": 0
+        }
+      }
+    },
+    {
+      "name": "reply",
+      "id": 31,
+      "source": {
+        "kind": "result",
+        "channel": "reply"
+      }
+    },
+    {
+      "name": "ridden",
+      "id": 32,
+      "source": {
+        "kind": "memory",
+        "key": "ridden",
+        "default": {
+          "value": 0
+        }
+      }
+    },
+    {
+      "name": "scale",
+      "id": 33,
+      "source": {
+        "kind": "actor",
+        "field": "scale"
+      }
+    },
+    {
+      "name": "seed",
+      "id": 34,
+      "source": {
+        "kind": "actor",
+        "field": "seed"
+      }
+    },
+    {
+      "name": "snT",
+      "id": 35,
+      "source": {
+        "kind": "memory",
+        "key": "snT",
+        "default": {
+          "value": 0
+        }
+      }
+    },
+    {
+      "name": "speed",
+      "id": 36,
+      "source": {
+        "kind": "actor",
+        "field": "speed"
+      }
+    },
+    {
+      "name": "speedMod",
+      "id": 37,
+      "source": {
+        "kind": "actor",
+        "field": "modSpeed"
+      }
+    },
+    {
+      "name": "stamp",
+      "id": 38,
+      "source": {
+        "kind": "memory",
+        "key": "stamp",
+        "default": {
+          "value": 0
+        }
+      }
+    },
+    {
+      "name": "targetAlive",
+      "id": 39,
+      "source": {
+        "kind": "reference",
+        "binding": "target",
+        "field": "alive"
+      }
+    },
+    {
+      "name": "targetHandle",
+      "id": 40,
+      "source": {
+        "kind": "reference",
+        "binding": "target",
+        "field": "handle"
+      }
+    },
+    {
+      "name": "targetX",
+      "id": 41,
+      "source": {
+        "kind": "reference",
+        "binding": "target",
+        "field": "x"
+      }
+    },
+    {
+      "name": "targetY",
+      "id": 42,
+      "source": {
+        "kind": "reference",
+        "binding": "target",
+        "field": "y"
+      }
+    },
+    {
+      "name": "targetZ",
+      "id": 43,
+      "source": {
+        "kind": "reference",
+        "binding": "target",
+        "field": "z"
+      }
+    },
+    {
+      "name": "threatX",
+      "id": 44,
+      "source": {
+        "kind": "reference",
+        "binding": "threat",
+        "field": "x"
+      }
+    },
+    {
+      "name": "threatY",
+      "id": 45,
+      "source": {
+        "kind": "reference",
+        "binding": "threat",
+        "field": "y"
+      }
+    },
+    {
+      "name": "threatZ",
+      "id": 46,
+      "source": {
+        "kind": "reference",
+        "binding": "threat",
+        "field": "z"
+      }
+    },
+    {
+      "name": "toss",
+      "id": 47,
+      "source": {
+        "kind": "memory",
+        "key": "toss",
+        "default": {
+          "value": 0
+        }
+      }
+    },
+    {
+      "name": "x",
+      "id": 48,
+      "source": {
+        "kind": "actor",
+        "field": "x"
+      }
+    },
+    {
+      "name": "y",
+      "id": 49,
+      "source": {
+        "kind": "actor",
+        "field": "y"
+      }
+    },
+    {
+      "name": "yaw",
+      "id": 50,
+      "source": {
+        "kind": "actor",
+        "field": "yaw"
+      }
+    },
+    {
+      "name": "z",
+      "id": 51,
+      "source": {
+        "kind": "actor",
+        "field": "z"
+      }
+    }
+  ],
+  "members": 16,
+  "signals": [
+    "drive",
+    "tick",
+    "initialize",
+    "stampede",
+    "leadAway",
+    "addTrust",
+    "setRidden",
+    "adopt",
+    "release",
+    "disturb"
+  ],
+  "actions": [
+    {
+      "id": 1,
+      "words": 2,
+      "member": 0,
+      "native": {
+        "kind": "state",
+        "states": [
+          "graze",
+          "wander",
+          "alert",
+          "flee",
+          "charge"
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "words": 1,
+      "native": {
+        "kind": "append-member"
+      },
+      "reference": {
+        "word": 0
+      }
+    },
+    {
+      "id": 3,
+      "words": 2,
+      "member": 0,
+      "native": {
+        "kind": "contact"
+      }
+    },
+    {
+      "id": 4,
+      "words": 1,
+      "member": 0,
+      "native": {
+        "kind": "confine"
+      }
+    },
+    {
+      "id": 5,
+      "words": 4,
+      "native": {
+        "kind": "damage"
+      },
+      "reference": {
+        "word": 0
+      }
+    },
+    {
+      "id": 6,
+      "words": 1,
+      "member": 0,
+      "native": {
+        "kind": "downwind",
+        "channel": "reply"
+      }
+    },
+    {
+      "id": 7,
+      "words": 0,
+      "native": {
+        "kind": "environment",
+        "field": "playerCrouched",
+        "channel": "reply"
+      }
+    },
+    {
+      "id": 8,
+      "words": 0,
+      "native": {
+        "kind": "environment",
+        "field": "playerMounted",
+        "channel": "reply"
+      }
+    },
+    {
+      "id": 9,
+      "words": 3,
+      "native": {
+        "kind": "event",
+        "events": [
+          "pack-driven-off",
+          "stampede",
+          "stallion-display",
+          "stallion-beaten"
+        ]
+      }
+    },
+    {
+      "id": 10,
+      "words": 3,
+      "native": {
+        "kind": "nearest-group",
+        "channel": "reply"
+      }
+    },
+    {
+      "id": 11,
+      "words": 2,
+      "native": {
+        "kind": "health"
+      },
+      "reference": {
+        "word": 0
+      }
+    },
+    {
+      "id": 12,
+      "words": 1,
+      "member": 0,
+      "native": {
+        "kind": "hearing",
+        "channel": "reply",
+        "radii": [
+          4,
+          8,
+          15,
+          30
+        ]
+      }
+    },
+    {
+      "id": 13,
+      "words": 2,
+      "member": 0,
+      "native": {
+        "kind": "hurt"
+      }
+    },
+    {
+      "id": 14,
+      "words": 3,
+      "native": {
+        "kind": "knockdown"
+      }
+    },
+    {
+      "id": 15,
+      "words": 4,
+      "member": 0,
+      "native": {
+        "kind": "look-position"
+      }
+    },
+    {
+      "id": 16,
+      "words": 2,
+      "member": 0,
+      "native": {
+        "kind": "look-weight"
+      }
+    },
+    {
+      "id": 17,
+      "words": 4,
+      "member": 0,
+      "native": {
+        "kind": "motion"
+      }
+    },
+    {
+      "id": 18,
+      "words": 2,
+      "native": {
+        "kind": "normal",
+        "channel": "reply"
+      }
+    },
+    {
+      "id": 19,
+      "words": 1,
+      "native": {
+        "kind": "notify-beaten"
+      },
+      "reference": {
+        "word": 0
+      }
+    },
+    {
+      "id": 20,
+      "words": 1,
+      "native": {
+        "kind": "notify-flight"
+      }
+    },
+    {
+      "id": 21,
+      "words": 1,
+      "native": {
+        "kind": "notify-state",
+        "states": [
+          "watch",
+          "warn",
+          "display",
+          "charge",
+          "wheel",
+          "lead",
+          "beaten",
+          "ridden"
+        ]
+      }
+    },
+    {
+      "id": 22,
+      "words": 2,
+      "member": 0,
+      "native": {
+        "kind": "pass-through"
+      }
+    },
+    {
+      "id": 23,
+      "words": 4,
+      "member": 0,
+      "native": {
+        "kind": "path",
+        "channel": "reply"
+      }
+    },
+    {
+      "id": 24,
+      "words": 2,
+      "native": {
+        "kind": "scare",
+        "channel": "reply"
+      },
+      "reference": {
+        "word": 0
+      }
+    },
+    {
+      "id": 25,
+      "words": 2,
+      "member": 0,
+      "native": {
+        "kind": "sound",
+        "cues": [
+          "snort",
+          "neigh",
+          "squeal"
+        ]
+      }
+    },
+    {
+      "id": 26,
+      "words": 4,
+      "native": {
+        "kind": "stagger"
+      },
+      "reference": {
+        "word": 0
+      }
+    },
+    {
+      "id": 27,
+      "words": 4,
+      "member": 0,
+      "native": {
+        "kind": "steer"
+      }
+    },
+    {
+      "id": 28,
+      "words": 1,
+      "member": 0,
+      "native": {
+        "kind": "visibility",
+        "channel": "reply"
+      }
+    },
+    {
+      "id": 100,
+      "words": 2,
+      "member": 0,
+      "native": {
+        "kind": "memory",
+        "key": "alarm"
+      }
+    },
+    {
+      "id": 101,
+      "words": 2,
+      "member": 0,
+      "native": {
+        "kind": "memory",
+        "key": "alarmT"
+      }
+    },
+    {
+      "id": 103,
+      "words": 2,
+      "member": 0,
+      "native": {
+        "kind": "memory",
+        "key": "aw"
+      }
+    },
+    {
+      "id": 110,
+      "words": 2,
+      "member": 0,
+      "native": {
+        "kind": "memory",
+        "key": "gs"
+      }
+    },
+    {
+      "id": 111,
+      "words": 2,
+      "member": 0,
+      "native": {
+        "kind": "memory",
+        "key": "gt"
+      }
+    },
+    {
+      "id": 113,
+      "words": 2,
+      "member": 0,
+      "native": {
+        "kind": "memory",
+        "key": "gyaw"
+      }
+    },
+    {
+      "id": 116,
+      "words": 2,
+      "member": 0,
+      "native": {
+        "kind": "memory",
+        "key": "headUp"
+      }
+    },
+    {
+      "id": 117,
+      "words": 2,
+      "member": 0,
+      "native": {
+        "kind": "memory",
+        "key": "hitP"
+      }
+    },
+    {
+      "id": 118,
+      "words": 2,
+      "member": 0,
+      "native": {
+        "kind": "memory",
+        "key": "hitT"
+      }
+    },
+    {
+      "id": 122,
+      "words": 2,
+      "member": 0,
+      "native": {
+        "kind": "memory",
+        "key": "kick"
+      }
+    },
+    {
+      "id": 123,
+      "words": 2,
+      "member": 0,
+      "native": {
+        "kind": "memory",
+        "key": "kicks"
+      }
+    },
+    {
+      "id": 128,
+      "words": 2,
+      "member": 0,
+      "native": {
+        "kind": "memory",
+        "key": "pin"
+      }
+    },
+    {
+      "id": 129,
+      "words": 2,
+      "member": 0,
+      "native": {
+        "kind": "memory",
+        "key": "rear"
+      }
+    },
+    {
+      "id": 131,
+      "words": 2,
+      "member": 0,
+      "native": {
+        "kind": "memory",
+        "key": "ridden"
+      }
+    },
+    {
+      "id": 134,
+      "words": 2,
+      "member": 0,
+      "native": {
+        "kind": "memory",
+        "key": "snT"
+      }
+    },
+    {
+      "id": 137,
+      "words": 2,
+      "member": 0,
+      "native": {
+        "kind": "memory",
+        "key": "stamp"
+      }
+    },
+    {
+      "id": 146,
+      "words": 2,
+      "member": 0,
+      "native": {
+        "kind": "memory",
+        "key": "toss"
+      }
+    }
+  ],
+  "outputs": 128,
+  "pages": 1,
+  "fuel": 400000,
+  "randomStreams": 2
+}

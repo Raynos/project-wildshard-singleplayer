@@ -17,16 +17,16 @@ function integer(value: number, min: number, max: number): number {
 function references(input: readonly GroupBankReferenceV2[]): ReadonlyMap<number, GroupBankReferenceV2> {
   if (input.length > 1024) throw new Error('Group reference capacity');
   const result = new Map<number, GroupBankReferenceV2>();
-  const wires = new Set<string>(), identities = new Set<string>(), slots = new Set<string>();
+  const wires = new Set<string>(), identities = new Set<string>(), slots = new Map<string,Set<number>>();
   for (const row of input) {
     integer(row.handle, 1, 0x7fffffff);
     integer(row.slot, 0, 4095);
-    const slot = JSON.stringify([row.group, row.slot]);
+    const groupSlots=slots.get(row.group)??new Set<number>();
     if (row.group.length === 0 || row.identity.length === 0 || row.wire.length === 0
-      || result.has(row.handle) || wires.has(row.wire) || identities.has(row.identity) || slots.has(slot))
+      || result.has(row.handle) || wires.has(row.wire) || identities.has(row.identity) || groupSlots.has(row.slot))
       throw new Error('Ambiguous group reference loan');
     result.set(row.handle, Object.freeze({ ...row }));
-    wires.add(row.wire); identities.add(row.identity); slots.add(slot);
+    wires.add(row.wire); identities.add(row.identity); groupSlots.add(row.slot);slots.set(row.group,groupSlots);
   }
   return result;
 }
@@ -46,17 +46,26 @@ function ownValues(input: Readonly<Record<string, GroupBankValueV2>>, names: rea
 export class GroupBankV2 {
   private readonly fields: readonly GroupBankFieldV2[];
   readonly width: number;
+  private referenceLoan: {readonly source:readonly GroupBankReferenceV2[];readonly group:string;
+    readonly rows:readonly GroupBankReferenceV2[];readonly byHandle:ReadonlyMap<number,GroupBankReferenceV2>;readonly byWire:ReadonlyMap<string,GroupBankReferenceV2>} | undefined;
+  private readonly offsets = new Map<string, {readonly row: GroupBankFieldV2; readonly offset: number}>();
   constructor(input: unknown) {
     this.fields = structuredClone(parseGroupBankV2(input));
-    this.width = this.fields.reduce((sum, row) => sum + groupBankWidthV2(row), 0);
+    let width=0;
+    for(const row of this.fields){this.offsets.set(row.name,{row,offset:width});width+=groupBankWidthV2(row);}
+    this.width=width;
   }
   private loan(input: readonly GroupBankReferenceV2[], group: string): {
     readonly byHandle: ReadonlyMap<number, GroupBankReferenceV2>;
     readonly byWire: ReadonlyMap<string, GroupBankReferenceV2>;
   } {
     if (group.length === 0) throw new Error('Missing group identity');
-    const byHandle = references(input);
-    return { byHandle, byWire: new Map([...byHandle.values()].map(row => [row.wire, row])) };
+    const prior=this.referenceLoan;
+    if(prior?.source===input&&prior.group===group&&prior.rows.length===input.length
+      &&prior.rows.every((pin,index)=>{const row=input[index];return row!==undefined&&row.group===pin.group&&row.slot===pin.slot
+        &&row.identity===pin.identity&&row.wire===pin.wire&&row.handle===pin.handle;}))return prior;
+    const byHandle=references(input),byWire=new Map([...byHandle.values()].map(row=>[row.wire,row]));
+    const loan={source:input,group,rows:[...byHandle.values()],byHandle,byWire};this.referenceLoan=loan;return loan;
   }
   encode(input: Readonly<Record<string, GroupBankValueV2>>, group: string,
     roster: readonly GroupBankReferenceV2[]): Float64Array {
@@ -113,6 +122,49 @@ export class GroupBankV2 {
       offset += groupBankWidthV2(row);
     }
     return bank;
+  }
+  /** Update only named input slots in the SAME scratch bank. All changed
+   * values and reference loans validate before the first write. Omitted slots
+   * keep the accepted candidate; this is not a second continuation or save. */
+  update(bank: Float64Array, changes: Readonly<Record<string,GroupBankValueV2>>, group: string,
+    roster: readonly GroupBankReferenceV2[]): void {
+    if(bank.length!==this.width)throw new Error('Group bank width mismatch');
+    const prototype:unknown=Object.getPrototypeOf(changes);
+    if(prototype!==Object.prototype&&prototype!==null)throw new Error('Invalid group bank record');
+    const {byWire}=this.loan(roster,group),next:{offset:number;values:number[]}[]=[];
+    for(const key of Reflect.ownKeys(changes)){
+      const plan=typeof key==='string'?this.offsets.get(key):undefined,descriptor=Object.getOwnPropertyDescriptor(changes,key);
+      if(plan===undefined||descriptor===undefined||!Object.hasOwn(descriptor,'value'))throw new Error('Unexpected group bank field or accessor');
+      const value:unknown=descriptor.value,row=plan.row,values:number[]=[];
+      const reference=(wire:string):number=>{
+        const loan=byWire.get(wire);
+        if(loan===undefined||(row.kind!=='reference'&&row.kind!=='references')||row.own===true&&loan.group!==group)throw new Error('Unresolved group reference');
+        return loan.handle;
+      };
+      switch(row.kind){
+        case 'number':
+          if(typeof value!=='number'||!Number.isFinite(value)||row.integer===true&&!Number.isInteger(value)
+            ||row.min!==undefined&&value<row.min||row.max!==undefined&&value>row.max)throw new Error('Group field outside bound');
+          values.push(value);break;
+        case 'boolean':if(typeof value!=='boolean')throw new Error('Invalid boolean group field');values.push(Number(value));break;
+        case 'enum':{
+          const index=typeof value==='string'?row.values.indexOf(value):-1;
+          if(index<0)throw new Error('Unknown group enum');values.push(index);break;
+        }
+        case 'reference':if(value!==null&&typeof value!=='string')throw new Error('Invalid group reference');values.push(value===null?0:reference(value));break;
+        case 'nullable-number':
+          if(value!==null&&typeof value!=='number')throw new Error('Invalid nullable group field');values.push(value===null?0:1,value===null?0:finite(value));break;
+        case 'references':{
+          if(!Array.isArray(value)||value.length>row.capacity||new Set(value).size!==value.length)throw new Error('Invalid ordered group references');
+          values.push(value.length);
+          for(const wire of value){if(typeof wire!=='string')throw new Error('Invalid ordered group reference');values.push(reference(wire));}
+          while(values.length<=row.capacity)values.push(0);break;
+        }
+        default:throw new Error('Unknown group bank field');
+      }
+      next.push({offset:plan.offset,values});
+    }
+    for(const {offset,values}of next)for(const[index,value]of values.entries())if(!Object.is(bank[offset+index],value))bank[offset+index]=value;
   }
   decode(bank: ArrayLike<number>, group: string, roster: readonly GroupBankReferenceV2[]): Readonly<Record<string, GroupBankValueV2>> {
     if (bank.length !== this.width) throw new Error('Group bank width mismatch');

@@ -3,6 +3,7 @@ import { Scope } from '../src/engine/app/scope';
 import { Rng } from '../src/engine/core/rng';
 import { ScriptModuleV2 } from '../src/engine/script/moduleV2';
 import { GroupStepV2 } from '../src/engine/script/groupStepV2';
+import {ReturnProjectionV2} from '../src/game/population/returnProjectionV2';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { parseGroupStepV2 } from '../src/format/scriptGroupStepV2';
 import { parseReturnProjectionV2, returnProjectionV2Layout } from '../src/format/returnProjectionV2';
@@ -73,7 +74,10 @@ test('full group metadata participates in cache identity before any second insta
     changed.v2.groups = { ...groups, signals: ['different'] };
     expect(() => ReturnProgram.page(changed, owner)).toThrow('Shared return declaration changed');
     expect(ReturnProgram.page(descriptor, owner)).toBe(programme);
-    expect(() => ReturnProgram.page(descriptor)).toThrow('entered scope');
+    const unowned=ReturnProgram.page(descriptor),random=new Rng(43),oracle=new Rng(43);
+    expect(unowned.project('run',{value:3},random)).toStrictEqual({out:3+oracle.next()});
+    expect(unowned.prepareGroup).toBeUndefined();
+    expect(()=>new ReturnProjectionV2(descriptor.v2).prepareGroup({group:'first',handle:1,signal:'advance',tick:0,state:Float64Array.of(0),members:[],references:[]})).toThrow('entered scope');
     expect(() => parseReturnProjectionV2({ ...descriptor.v2, groups: { ...groups, pages: 2 } })).toThrow('pages');
   } finally { owner.dispose(); }
 });

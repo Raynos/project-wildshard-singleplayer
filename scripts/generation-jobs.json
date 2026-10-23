@@ -1288,7 +1288,8 @@
         "src/shards/nalati-grasslands/behaviour/pastureWind.as",
         "src/sdk/decisionScriptBindings.ts",
         "src/format/scriptAbiV1.ts",
-        "src/format/decisionScripts.ts"
+        "src/format/decisionScripts.ts",
+        "src/shards/nalati-grasslands/data/herdGroup.json"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/stormTitanFight.generated.json",

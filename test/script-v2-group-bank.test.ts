@@ -149,3 +149,14 @@ test('metadata admission is strict and emits the same finite named schema', () =
   const schema = namedJsonSchema(GroupBankV2Schema);
   expect(validateNamedJsonSchema(schema, new TextEncoder().encode(JSON.stringify(fields)))).toStrictEqual(fields);
 });
+
+test('incremental updates keep one bank and validate the whole changed suffix before any write',()=>{
+ const codec=new GroupBankV2(fields),loans=[...roster,external],bank=codec.encode(record(),'first',loans),same=bank;
+ codec.update(bank,{strength:17,phase:'rest',held:['body:0']},'first',loans);
+ expect(bank).toBe(same);expect(codec.decode(bank,'first',loans)).toStrictEqual({...record(),strength:17,phase:'rest',held:['body:0']});
+ const before=bank.slice();let reads=0;
+ for(const changes of [{strength:20,lead:external.wire},{strength:20,get phase(){reads++;return 'rest';}},{strength:Number.NaN}]){
+  expect(()=>codec.update(bank,changes,'first',loans)).toThrow();expect(bank).toStrictEqual(before);
+ }
+ expect(reads).toBe(0);codec.update(bank,{strength:-0},'first',loans);expect(Object.is(codec.decode(bank,'first',loans)['strength'],-0)).toBe(true);
+});

@@ -6,11 +6,10 @@ import { Vector3 } from 'three';
 import type { GroupBankReferenceV2, GroupBankValueV2 } from '@wildshard/format/scriptGroupBankV2';
 import { admitScriptV2 } from '@wildshard/format/scriptAdmissionV2';
 import { prepareV2Rng } from '@wildshard/format/scriptRngV2';
-import { writeV2Frame, validateV2Frame, layoutV2, type V2FrameAuthority, type V2Layout } from '@wildshard/format/scriptWireV2';
+import { writeV2Frame, validateV2Frame, layoutV2, relativeTickV2, type V2FrameAuthority, type V2Layout } from '@wildshard/format/scriptWireV2';
 import type { V2QueryBinding } from '@wildshard/format/scriptQueriesV2';
 import { GroupBankV2 } from './groupBankV2';
 import { ObservationColumnsV2, type V2ColumnOwners, type V2ActorColumnSlot } from './observationColumnsV2';
-import { prepareV2Observations } from './observationsV2';
 import { ScriptModuleV2 } from './moduleV2';
 import type { QueryRingV2 } from './queriesV2';
 import type { Scope } from '../app/scope';
@@ -19,7 +18,8 @@ import type { Rng, RngState } from '../core/rng';
 import type { AggressionDirector, AggressionService } from '../ai/director';
 import type { Events } from '../events/events';
 import type { CirclingPackPrey, CirclingPackContext, StalkerBrain } from '../ai/stalker';
-import { GUARDED_STALLION_STATES, type GuardedHerdContext, type GrazerBrain } from '../ai/grazer';
+import type { GuardedHerdContext, GrazerBrain } from '../ai/grazer';
+import { GUARDED_STALLION_STATES } from '@wildshard/format/groupBrains';
 
 export type GroupStepReferenceV2<A extends AnimalSim = AnimalSim> = GroupBankReferenceV2 & (
   | { readonly body: A; readonly pose?: never }
@@ -63,6 +63,7 @@ export class GroupStepV2 {
     this.profiles = [this.rows, ...(this.rows.profiles ?? [])].map((rows, index) => ({
       id: index === 0 ? 'main' : this.rows.profiles?.[index - 1]?.id,
       rows, bank: new GroupBankV2(rows.bank), columns: new ObservationColumnsV2(rows.columns, scope),
+      order: rows.columns.map((row,column)=>({name:row.name,index:column})).sort((a,b)=>a.name<b.name?-1:a.name>b.name?1:0).map(row=>row.index),
     }));
     const source = Uint8Array.from(bytes), admitted = admitScriptV2(source, { lane: 'project', ioBytes: this.layout.bytes });
     if (admitted.io !== 0 || admitted.initialPages !== this.rows.pages) throw new Error('Group step module layout mismatch');
@@ -80,6 +81,7 @@ export class GroupStepV2 {
   prepare(input: {
     readonly group: string; readonly handle: number; readonly signal: string; readonly tick: number; readonly profile?: string;
     readonly state: Float64Array; readonly members: readonly V2ColumnOwners[];
+    readonly capture?: {readonly common:readonly string[];readonly slots:readonly number[]};
     readonly references: readonly GroupStepReferenceV2[]; readonly random?: Rng; readonly contextRandom?: Rng;
     readonly queries?: { readonly ring: QueryRingV2; readonly binding: V2QueryBinding };
   }): {
@@ -114,6 +116,10 @@ export class GroupStepV2 {
         throw new Error('Foreign group member reference');
       const identities = input.members.filter(owners => owners.self.actor !== null).map(owners => owners.self.identity);
       if (new Set(identities).size !== identities.length) throw new Error('Duplicate group body loan');
+      const selection=input.capture,common=selection?.common.slice(),captureSlots=selection?.slots.slice();
+      if(selection!==undefined&&(selection.common.length>128||selection.slots.length>16||selection.common.some(name=>!profile.rows.columns.some(row=>row.name===name))
+        ||selection.slots.some(slot=>!Number.isInteger(slot)||slot<0||slot>=input.members.length)))throw new Error('Invalid group capture selection');
+      const selected=selection===undefined?undefined:profile.rows.columns.map(row=>selection.common.includes(row.name));
       const members = input.members.map((owners, slot) => {
         if (owners.scope !== this.scope || owners.self.group !== input.group || owners.self.slot !== slot) throw new Error('Foreign group member loan');
         const referenceOwner = owners.references, references = referenceOwner === undefined ? [] : [...referenceOwner].map(([name, loan]) => {
@@ -121,11 +127,8 @@ export class GroupStepV2 {
             throw new Error('Foreign observed group reference');
           return { name, loan, body: loan?.body, identity: loan?.identity, handle: loan?.handle };
         });
-        return { source: owners, self: Object.freeze({ ...owners.self }), referenceOwner, references, values: profile.columns.capture(owners) };
+        return { source: owners, self: Object.freeze({ ...owners.self }), referenceOwner, references, values: profile.columns.captureNumeric(owners,selection?.slots.includes(slot)===true?undefined:selected) };
       });
-      const fields = members.flatMap((member, slot) => [...member.values].sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0).map((row, column) => ({
-        name: `${String(slot).padStart(2, '0')}/${row.name}`, id: slot * profile.rows.columns.length + column + 1, value: row.value,
-      })));
       if (originalState.some((value, index) => !Object.is(value, input.state[index]))
         || input.references.length !== refs.length || refs.some((row, index) => !sameReference(input.references[index], row))) throw new Error('Group state or reference changed during capture');
       const random = input.random, contextRandom = input.contextRandom;
@@ -145,20 +148,38 @@ export class GroupStepV2 {
       const queryOperations = binding === undefined ? [] : [...binding.operations];
       const delivery = input.queries?.ring.delivery(input.tick, new Map([[input.group, binding ?? { identity: input.group,
         handle: input.handle, observed: new Map(), operations: new Set() }]]), new Set([input.group]));
-      const observations = prepareV2Observations(this.layout, input.tick, { bindings: [{
-        identity: input.group, handle: input.handle, self: 0, player: 0, observed: new Set(), enabled: true, due: true,
-        divisor: 6, fuel: this.rows.fuel, previousTick: input.tick, currentTick: input.tick, state: Array.from(originalState),
-        parameters: [{ name: 'a.signal', value: signal }, { name: 'b.members', value: members.length },
-          ...(this.rows.profiles === undefined ? [] : [{ name: 'c.profile', value: profileIndex }])], fields,
-        sample: { atTick: input.tick, target: 0 },
-      }], players: [], edges: [], events: [], actions: new Set(), eventKinds: new Set() });
-      const counts = new Map(observations.counts), extra = delivery?.banks ?? [];
+      const parameters=this.rows.profiles===undefined?2:3, fieldCount=members.length*profile.order.length;
+      const counts=new Map([[1,1],[2,originalState.length],[4,parameters],[5,1],[6,fieldCount]]);
+      const extra = delivery?.banks ?? [];
       for (const bank of extra) counts.set(bank.kind, bank.count);
       counts.set(21, rng.count);
       let authority: V2FrameAuthority | undefined;
       const candidate = this.module.project(this.rows.fuel, view => {
         authority = writeV2Frame(view, this.layout, { lane: 2, module: 1, sequence: 0, tick: input.tick, due: 1 }, counts);
-        observations.write(view);
+        // The group layout is fixed at admission. Write detached numeric
+        // columns directly; no per-member names, sorting or generic batch.
+        const at=(kind:number):number=>{
+          const region=this.layout.regions[kind-1];
+          if(region===undefined)throw new Error('Missing group input region');
+          return this.layout.io+region.offset;
+        };
+        const b=at(1),o=at(5),p=at(4),f=at(6),state=at(2);
+        new Uint8Array(view.buffer,view.byteOffset+b,64).fill(0);
+        new Uint8Array(view.buffer,view.byteOffset+o,96).fill(0);
+        const stamp=relativeTickV2(input.tick,Math.floor(input.tick/2**30)*2**30);
+        const bindingWords=[input.handle,0,0,3,0,originalState.length,0,parameters,0,0,fieldCount,6];
+        for(const[index,value]of bindingWords.entries())view.setUint32(b+index*4,value,true);
+        view.setInt32(b+48,stamp,true);view.setInt32(b+52,stamp,true);view.setUint32(b+56,this.rows.fuel,true);
+        view.setUint32(o,input.handle,true);view.setInt32(o+16,stamp,true);
+        for(let index=0;index<originalState.length;index++)view.setFloat64(state+index*8,originalState[index]??0,true);
+        view.setFloat64(p,signal,true);view.setFloat64(p+8,members.length,true);
+        if(parameters===3)view.setFloat64(p+16,profileIndex,true);
+        let field=0;
+        for(const member of members)for(const column of profile.order){
+          const value=member.values[column];
+          if(value===undefined||value===Infinity||value===-Infinity)throw new Error('Invalid group observation column');
+          const offset=f+field*16,present=!Number.isNaN(value);view.setUint32(offset,field+1,true);view.setUint32(offset+4,Number(present),true);view.setFloat64(offset+8,present?value:0,true);field++;
+        }
         for (const bank of [...extra, { kind: 21, count: rng.count, bytes: rng.bytes }]) {
           const region = this.layout.regions[bank.kind - 1];
           if (region === undefined || bank.bytes.length !== bank.count * region.stride || bank.count > region.capacity) throw new Error('Group input bank capacity');
@@ -206,6 +227,9 @@ export class GroupStepV2 {
           || binding !== undefined && (binding.observed.size !== queryObserved.length || binding.operations.size !== queryOperations.length
             || queryObserved.some(([key, value]) => binding.observed.get(key) !== value) || queryOperations.some(op => !binding.operations.has(op))))
           throw new Error('Changed group continuation owner');
+        if(input.capture!==selection||selection!==undefined&&(common===undefined||captureSlots===undefined
+          ||selection.common.length!==common.length||selection.slots.length!==captureSlots.length
+          ||common.some((name,index)=>selection.common[index]!==name)||captureSlots.some((slot,index)=>selection.slots[index]!==slot)))throw new Error('Changed group capture selection');
         candidate.prepared.validate(); candidate.query?.validate();
         if (input.members.length !== members.length || members.some((member, slot) => {
           const owners = input.members[slot];

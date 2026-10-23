@@ -184,3 +184,14 @@ test('one executable serves different finite group profiles with exact original 
     expect(() => parseGroupStepV2({ ...declarations, profiles: [{ ...declarations.profiles?.[0], id: 'main' }] })).toThrow('profile');
   } finally { scope.dispose(); }
 });
+
+test('an omitted numeric column is absent rather than a previous segment value',()=>{
+ const f=fixture();
+ try{
+  f.runner.prepare(f.input).accept();const before=f.state.slice(),rng=f.random.snapshot();
+  expect(()=>f.runner.prepare({...f.input,capture:{common:['a.alive'],slots:[]}})).toThrow();
+  expect(f.state).toStrictEqual(before);expect(f.random.snapshot()).toStrictEqual(rng);
+  const capture={common:['a.alive','z.position'],slots:[]},ready=f.runner.prepare({...f.input,capture});
+  capture.common.pop();expect(()=>ready.accept()).toThrow('capture selection');expect(f.state).toStrictEqual(before);
+ }finally{f.root.dispose();}
+});

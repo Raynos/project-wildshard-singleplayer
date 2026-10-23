@@ -13020,3 +13020,40 @@ entered Scope. View rows name each field alias/object id and the values/draw/fra
 loans; admission checks the complete inventory before publication. The frame
 runs after the original ordered law/ground loop and before returned contacts,
 without registering a system. Ending the entered scope removes only its loans.
+
+### Original-slot group execution and incremental inputs (R10)
+
+GroupBrain's protected captureGuest(replies), prepareGuestCommit(frame, values)
+and runGuest(program) compose the existing ReturnProgram.prepareGroup and
+native operation bank at one original synchronous call. Each native barrier
+captures fresh owners before the next segment. The original codec validates
+before state/RNG acceptance and commits only original scalar/role fields before
+native effects. A throwing native effect retains that accepted prefix, as the
+original owner does; no replay, rollback, clock or save envelope is introduced.
+GroupGuestBindingSchema in format/groupBrains admits profile, parameters and a
+bounded resume field/value set. Its optional capture row names common columns,
+bank fields holding focus slots and bank fields holding focus reference handles.
+These names resolve only against the admitted profile, never object paths.
+
+GroupBankV2.update(bank, changes, group, references) validates the complete
+changed suffix before writing only changed slots into the SAME scratch array.
+Omitted slots retain the candidate. Original codecs remain the save authority.
+Per-depth scratch buffers avoid aliasing a reentrant native call. The codec can
+reuse a reference index only while every original loan field still matches;
+replacement, reordering and role changes re-admit the index.
+
+ObservationColumnsV2.captureNumeric samples admitted scalar/point readers in
+declaration order. Readers are compiled once; native grass keeps its original
+receiver, point and callable fences. GroupStepV2 writes these detached numeric
+columns directly in its fixed layout, without rebuilding named observations or
+sorting fields at every segment. Optional input.capture selects common columns
+plus full focus slots. Other columns are ABI-absent, never stale values: reading
+one traps before state/RNG publication. Read selection is pinned through accept.
+All samples remain fresh after native effects; no world-frame cache is added.
+
+A grouped ReturnProgram exposes the SAME frozen groupBindings descriptor.
+Unowned numeric-only callers keep numeric projection but receive no prepareGroup
+capability; a direct unowned group invocation refuses before capture. Page and
+native consumers lend their original world/host scope to the same selected
+programme. The native herd's TS fallback remains until the phone fps sample
+passes; this activation claims no fallback deletion or component closure.
