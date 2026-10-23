@@ -1,6 +1,6 @@
 import { Object3D } from 'three';
 import { parseClientChannelInputs, parseClientChannels, type ClientChannelProgram, type ClientChannelProperty } from '@wildshard/format/clientChannels';
-import { checkBorrowedOwnerPath, resolveBorrowedOwner } from './borrowed';
+import { checkBorrowedOwnerPath, resolveBorrowedValue } from './borrowed';
 
 /** Detached coordinate outputs for a private geometry kernel. */
 export interface ClientTubeFrame { readonly fromX: number; readonly fromY: number; readonly fromZ: number;
@@ -210,7 +210,7 @@ export function bindClientChannelInputs(input: unknown, owners: ReadonlyMap<stri
     // the row's path is checked once here; every later read resolves it
     checkBorrowedOwnerPath(row);
     const read = (): number => {
-      const field = resolveBorrowedOwner(owners, row), value = field?.value;
+      const value = resolveBorrowedValue(owners, row);
       if (typeof value !== 'number' || !Number.isFinite(value) || Math.abs(value) > 1e12) throw new Error(`Invalid numeric input ${row.input}`);
       return value;
     };

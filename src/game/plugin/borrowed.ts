@@ -20,6 +20,18 @@ export function readBorrowedOwner(owners: ReadonlyMap<string, unknown>, row: Bor
 
 /** `readBorrowedOwner` for a row whose path `checkBorrowedOwnerPath` already accepted: a per-frame read checks its path once. */
 export function resolveBorrowedOwner(owners: ReadonlyMap<string, unknown>, row: BorrowedOwnerPath): BorrowedOwnerValue | null {
+  const receiver = borrowedReceiver(owners, row); if (receiver === null) return null;
+  const key = String(row.path.at(-1));
+  return { receiver, key, value: receiver[key] };
+}
+/** `resolveBorrowedOwner`'s value alone (undefined where it is null), with no result object: a numeric input read every
+ *  frame (G639: a sky's and every posed animal's channel inputs) */
+export function resolveBorrowedValue(owners: ReadonlyMap<string, unknown>, row: BorrowedOwnerPath): unknown {
+  const receiver = borrowedReceiver(owners, row);
+  return receiver === null ? undefined : receiver[String(row.path.at(-1))];
+}
+/** The object holding the path's last field (null where an optional path meets a null owner or intermediate). */
+function borrowedReceiver(owners: ReadonlyMap<string, unknown>, row: BorrowedOwnerPath): Record<string, unknown> | null {
   if (!owners.has(row.owner)) throw new Error(`Missing borrowed owner ${row.owner}`);
   let receiver = owners.get(row.owner);
   for (let index = 0; index < row.path.length; index++) {
@@ -28,11 +40,12 @@ export function resolveBorrowedOwner(owners: ReadonlyMap<string, unknown>, row: 
       throw new Error(`Missing borrowed field ${row.owner}`);
     }
     if (!borrowedRecord(receiver)) throw new Error('Borrowed path must traverse objects');
-    const key = String(row.path[index]), value = receiver[key], last = index === row.path.length - 1;
-    // A class method may be inherited; fields and intermediate objects must belong to the supplied instance.
-    if (!Object.hasOwn(receiver, key) && !(last && typeof value === 'function')) throw new Error(`Missing borrowed field ${key}`);
-    if (last) return { receiver, key, value };
-    receiver = value;
+    const key = String(row.path[index]), last = index === row.path.length - 1;
+    // A class method may be inherited; fields and intermediate objects must belong to the supplied instance. The last
+    // field is read by the caller alone (an own getter runs once a read)
+    if (!Object.hasOwn(receiver, key) && !(last && typeof receiver[key] === 'function')) throw new Error(`Missing borrowed field ${key}`);
+    if (last) return receiver;
+    receiver = receiver[key];
   }
   throw new Error('Invalid borrowed owner path');
 }

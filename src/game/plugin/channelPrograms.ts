@@ -36,17 +36,20 @@ export function installChannelPrograms(input:unknown,group:string,owners:Readonl
   const binding=row.numeric;if(binding===undefined)throw new Error('Missing numeric channel metadata');
   const lane=admittedClientChannels(row),inputs=bindClientChannelInputs(binding.inputs,owners,new Set(lane.reads));
   const ports=lane.bindNumeric(binding.outputs,owners),restoreOnly=lane.bindNumeric(binding.restoreOnly.map(({property,target,path,nullable})=>({property,target,path,restore:true,nullable:nullable??false})),owners),values:number[]=Array.from({length:lane.reads.length},()=>0);
-  return {lane,inputs,ports,restoreOnly,values,observation:{time:0,delta:0,values}};
+  // each read's bound input (undefined: it comes from the observation), looked up once
+  const readers=lane.reads.map(id=>inputs.get(id));
+  return {lane,inputs,readers,ports,restoreOnly,values,observation:{time:0,delta:0,values}};
  });
  const ids=Object.freeze(selected.map(row=>row.id));
  return Object.freeze({ids,
   evaluate:(observation:ChannelProgramObservation):void=>{
    const external=observation.values,isVector=vector(external);
    // Snapshot every borrowed read before any field is published, including cross-program dependencies.
-   for(const {lane,inputs,values} of lanes){
+   for(const {lane,inputs,readers,values} of lanes){
     if(isVector&&(inputs.size>0||external.length!==values.length))throw new Error('Numeric channel vector differs from its declared reads');
-    for(const [index,id] of lane.reads.entries()){
-     const read=inputs.get(id),value=read===undefined?isVector?external[index]:Object.hasOwn(external,id)?external[id]:undefined:read();
+    const reads=lane.reads;
+    for(let index=0;index<reads.length;index++){
+     const id=reads[index]??'',read=readers[index],value=read===undefined?isVector?external[index]:Object.hasOwn(external,id)?external[id]:undefined:read();
      if(value===undefined||!Number.isFinite(value)||Math.abs(value)>1e12)throw new Error(`Missing or invalid channel observation: ${id}`);
      values[index]=value;
     }
