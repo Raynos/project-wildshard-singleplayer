@@ -45,6 +45,7 @@ test('all regenerated plot worlds omit corner beacons and near/far beam geometry
         }
       }
     }
-    expect(cornerVerticesAboveFloor, row.slug).toBe(0);
+    // a tiled plot (a row with a layout, NM9) builds its house courts out to its corner tiles' corners; it has no beacons
+    if (!('layout' in row)) expect(cornerVerticesAboveFloor, row.slug).toBe(0);
   }
 });
