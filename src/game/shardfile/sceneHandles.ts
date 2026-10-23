@@ -8,6 +8,7 @@ import { WorldScenePlacement } from './worldScenePlacement';
 import { WorldSceneBatch } from './worldSceneBatch';
 import { WorldSceneWeldAssembly } from './worldSceneWeld';
 import type { TileContent } from './tileContent';
+import type { Scope } from '@wildshard/engine/app/scope';
 
 type NativePart = BufferGeometry | Material | Object3D;
 type Handle = NativePart | Texture | Vector3 | number | WorldScenePlacement | WorldSceneBatch | WorldSceneWeldAssembly | readonly ColliderDesc[];
@@ -61,9 +62,10 @@ export class SceneHandles {
   }
   /**
    * Tile streaming T3: placement `id` by tile instead of whole: its stable container (published as `<id>.root`, empty until
-   * tiles attach) and a TileContent the streamer drives; `tiled()` lists every element taken this way, in order.
+   * tiles attach) and a TileContent the streamer drives; `tiled()` lists every element taken this way, in order. `coarse`
+   * (a landmark, T11): beyond the render ring its copies draw as a coarse stand-in, so the skyline survives.
    */
-  tile(id: string): TileContent {
+  tile(id: string, options: { readonly coarse?: boolean } = {}): TileContent {
     const value = this.value(id);
     if (!(value instanceof WorldScenePlacement)) throw new Error(`Expected scene placement: ${id}`);
     if (this.has(`${id}.root`)) throw new Error(`Scene placement ${id} is already placed`);
@@ -73,7 +75,8 @@ export class SceneHandles {
     this.publish(`${id}.root`, container ?? this.object(part ?? id));
     // its draws follow the render ring, its colliders (from the same per-tile build) the collider ring (T3, D2 B)
     const content: TileContent = { id, tiles: () => value.tiles(), attach: async (tile, scope) => { await value.attach(tile, scope, container); },
-      attachColliders: (tile, scope) => value.attachColliders(tile, scope) };
+      attachColliders: (tile, scope) => value.attachColliders(tile, scope),
+      ...(options.coarse === true ? { coarse: (scope: Scope, rendered: (tile: number) => boolean) => value.coarse(scope, rendered) } : {}) };
     this.tileContents.push(content);
     return content;
   }

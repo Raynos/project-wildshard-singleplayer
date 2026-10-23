@@ -97,10 +97,11 @@ export async function prepareForestPage(ctx: ShardContext, input: unknown): Prom
     finish: async () => { if (finished) throw new Error('Forest page already finished'); finished = true;
       await step('props', async () => {
         // tile streaming P5 (Debug ▸ Tile residency 5 x 5 / 3 x 3): a landmark placement goes by tile (its draws on the
-        // render ring, its colliders on the collider ring); the props stay whole (their colliders are the page's `props`)
+        // render ring, its colliders on the collider ring, a coarse stand-in beyond the ring: T11, the skyline); the props stay
+        // whole (their colliders are the page's `props`)
         const tiled = tileResidencyRadius() < 8;
         for (const mark of rows.landmarks) if (mark.tier === undefined || mark.tier === TIER) {
-          if ('place' in mark) { if (tiled) resources.tile(mark.place); else await resources.place(mark.place); } else resources.object(mark.object);
+          if ('place' in mark) { if (tiled) resources.tile(mark.place, { coarse: true }); else await resources.place(mark.place); } else resources.object(mark.object);
           await macrotask();
         }
         for (const id of rows.props) contacts.push(...(await resources.place(id)).colliders);

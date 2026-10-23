@@ -24,6 +24,9 @@ export interface TileContent {
   readonly attach: (tile: number, scope: Scope) => Promise<void>;
   /** the tile's colliders alone, when the element can register them apart from its draws (the collider ring, D2 B) */
   readonly attachColliders?: (tile: number, scope: Scope) => Promise<void>;
+  /** T11: a coarse stand-in of the element for the whole cell, kept under `scope`, leaving out the tiles `rendered` says the
+   *  render ring draws in full (a landmark's skyline beyond the ring) */
+  readonly coarse?: (scope: Scope, rendered: (tile: number) => boolean) => Promise<void>;
 }
 
 const TILES = TILES_PER_SIDE * TILES_PER_SIDE;

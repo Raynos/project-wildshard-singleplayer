@@ -15,11 +15,14 @@ import type { WorldScenePlacementRow } from '@wildshard/format/worldScenePlaceme
 import type { ShardContext } from '../plugin/context';
 import type { defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
 import type { SceneHandles } from './sceneHandles';
-import { bucketByTile, colliderTileKeys, SharedTileBuilds } from './tileContent';
+import { bucketByTile, colliderTileKeys, SharedTileBuilds, tileKey } from './tileContent';
+import { TILE_SIZE, tileOf } from './tileOrder';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 
 /** The collider rows a scene placement may author (`readColliderRows`). */
 const COLLIDER_ROWS = { kinds: ['box', 'treads', 'hull', 'capsule', 'ball', 'trimesh'], surfaces: ['sand', 'wetSand', 'grass', 'rock', 'planks', 'stone', 'water', 'wood', 'metal', 'flesh', 'shell', 'ground', 'edge', 'felt', 'earth'] } as const;
+/** T11: how far a landmark copy reaches from its origin, the pad of its coarse stand-in's cull cells (a crag band's span). */
+const COARSE_REACH = 60;
 /** A collider-only piece's anchor (T3): the middle of its colliders' points. */
 export function anchorOf(rows: readonly ColliderDesc[]): Vector3 {
   const at = new Vector3();
@@ -129,17 +132,9 @@ export class WorldScenePlacement {
     const boxes = row.drawnInto === undefined ? undefined : copies === null ? row.drawnInto.boxes : copies.flatMap(index => row.drawnInto?.boxes.slice(index * 6, index * 6 + 6) ?? []);
     const borrowed = row.drawnInto === undefined ? undefined : this.handles?.object(row.drawnInto.part);
     if (row.drawnInto !== undefined && borrowed === undefined) throw new Error('Scene placement needs its named part owner');
-    await Promise.all(this.sources.map(async source => {
-      if (this.materials.has(source.id)) return;
-      const material = await worldSceneSourceMaterial(source, world.sky, this.owner);
-      this.materials.set(source.id, material);
-    }));
+    await this.prepareMaterials(world.sky);
     requireLive(owner);
-    const { far, minAngular, view, ...policy } = row.cull ?? {};
-    const cull: CullOptions = { ...policy,
-      ...(far === undefined ? {} : { far: typeof far === 'number' ? far : far[TIER] }),
-      ...(minAngular === undefined ? {} : { minAngular: typeof minAngular === 'number' ? minAngular : minAngular[TIER] }),
-      ...(view === undefined ? {} : { view: world.forest }) };
+    const cull = this.cullOptions(world.forest);
     const definition = this.catalogue.model(row.model);
     const preplaced = row.colliders === undefined ? undefined : readColliderRows(row.colliders, COLLIDER_ROWS)
       // Keep the authored descriptor's field order as well as its typed lanes; exact native parity hashes both.
@@ -166,5 +161,40 @@ export class WorldScenePlacement {
     await placed.registered;
     await buildYield(owner);
     return placed;
+  }
+  /**
+   * T11 (the shard's skyline survives 3 x 3 / 5 x 5): a coarse stand-in of every copy, one instanced set at the model's
+   * last LOD (its own parts without one), its cells culled as the row's copies and the copies `rendered` says the render
+   * ring draws in full left out. A piece with no colliders (the collider ring has them), kept until `scope` ends. A
+   * placement drawn into a set has none (the set draws it whole).
+   */
+  async coarse(scope: Scope, rendered: (tile: number) => boolean): Promise<void> {
+    const world = this.ctx.game.runtime?.world, row = this.row;
+    if (world === undefined || world === null || scope.disposed) throw new Error('Scene placement needs its resident world');
+    if (row.drawnInto !== undefined) return;
+    await this.prepareMaterials(world.sky);
+    requireLive(scope);
+    const definition = this.catalogue.model(row.model), last = definition.lods?.at(-1);
+    const { lods: _levels, ...base } = definition, model = last === undefined ? base : { ...base, build: last.build };
+    const tiles = row.poses.map(pose => tileKey(tileOf(pose.x, pose.z)));
+    const placed = withOwner(scope, () => place(model, row.poses.map(posed), { ctx: sharedModelContext(world.sky, world.game), registry: world.registry,
+      draw: 'instanced', cull: { ...this.cullOptions(world.forest), cells: { size: TILE_SIZE, pad: COARSE_REACH }, test: i => !rendered(tiles[i] ?? -1) },
+      piece: { id: `${row.piece?.id ?? definition.id}.coarse`, collide: false } }));
+    placed.object.name = `${row.name ?? definition.id}.coarse`;
+    await placed.registered;
+  }
+  private async prepareMaterials(sky: Parameters<typeof worldSceneSourceMaterial>[1]): Promise<void> {
+    await Promise.all(this.sources.map(async source => {
+      if (this.materials.has(source.id)) return;
+      const material = await worldSceneSourceMaterial(source, sky, this.owner);
+      this.materials.set(source.id, material);
+    }));
+  }
+  private cullOptions(forest: CullOptions['view']): CullOptions {
+    const { far, minAngular, view, ...policy } = this.row.cull ?? {};
+    return { ...policy,
+      ...(far === undefined ? {} : { far: typeof far === 'number' ? far : far[TIER] }),
+      ...(minAngular === undefined ? {} : { minAngular: typeof minAngular === 'number' ? minAngular : minAngular[TIER] }),
+      ...(view === undefined || forest === undefined ? {} : { view: forest }) };
   }
 }

@@ -23,6 +23,7 @@ export class TileDriver {
   private readonly attached: Record<Layer, Map<number, Scope>> = { render: new Map(), colliders: new Map() };
   private readonly failed = new Set<string>();
   private centre: CellTile | null = null;
+  private renderRing: ReadonlySet<number> = new Set();
   private busy = false;
   constructor(private readonly scope: Scope, private readonly contents: readonly TileContent[], private readonly radius: () => number,
     private readonly pause: () => Promise<void>) {}
@@ -38,12 +39,21 @@ export class TileDriver {
     }
   }
 
+  /** T11: centre the rings on (`x`, `z`) before the first step, then build every content's coarse stand-in (the skyline
+   *  beyond the render ring), each leaving out the tiles the render ring draws as it moves. */
+  async coarse(x: number, z: number): Promise<void> {
+    this.centre = followTile(null, x, z); this.renderRing = ring(this.centre, this.radius());
+    const scope = this.scope.child('tiles:coarse');
+    for (const content of this.contents) await content.coarse?.(scope, tile => this.renderRing.has(tile));
+  }
+
   /** Once a frame with the player's cell-local position: retire the tiles outside the rings, then start the nearest wanted
    *  tile not yet attached (colliders first), one at a time. */
   step(x: number, z: number): void {
     if (this.scope.disposed || this.scope.disposing) return;
     const centre = this.centre = followTile(this.centre, x, z), radius = this.radius();
     const wanted: Record<Layer, Set<number>> = { render: ring(centre, radius), colliders: ring(centre, Math.min(radius, 1)) };
+    this.renderRing = wanted.render;
     for (const layer of ['render', 'colliders'] as const) for (const [key, tile] of this.attached[layer]) {
       if (wanted[layer].has(key)) continue;
       this.attached[layer].delete(key); tile.dispose();
@@ -98,7 +108,9 @@ export async function residentTiles(resident: Scope, contents: readonly TileCont
   started.add(resident);
   const radius = tileResidencyRadius(), driver = new TileDriver(resident, contents, () => radius, () => buildYield(resident)), order = tileOrder(spawn, entryways);
   await driver.require(tileKeys(radius >= 8 ? order.tiles : order.tiles.filter(tile => order.rank(tile) === 0)));
-  if (radius < 8) drivers.set(resident, driver);
+  if (radius >= 8) return;
+  await driver.coarse(spawn.x, spawn.z);
+  drivers.set(resident, driver);
 }
 /** T4: once a frame while a world is entered, its resident's tiles follow the player's cell-local position (nothing when
  *  the whole cell is resident). */
