@@ -30,13 +30,28 @@ function cut(input: readonly Vertex[], axis: number, boundary: number, greater: 
   return output;
 }
 
+function outsideFirstCuts(positions: Float64Array, a: number, b: number, c: number, bounds: readonly [number, number, number, number]): boolean {
+  const ax = positions[a * 3] ?? Number.NaN, bx = positions[b * 3] ?? Number.NaN, cx = positions[c * 3] ?? Number.NaN;
+  const insideMin = ax >= bounds[0] && bx >= bounds[0] && cx >= bounds[0];
+  if (ax < bounds[0] && bx < bounds[0] && cx < bounds[0]) return true;
+  if (insideMin && ax > bounds[1] && bx > bounds[1] && cx > bounds[1]) return true;
+  // Only inspect z when both earlier x cuts leave every original vertex intact.
+  // Otherwise their rounded intersections must still go through the old clipper.
+  if (!insideMin || ax > bounds[1] || bx > bounds[1] || cx > bounds[1]) return false;
+  const az = positions[a * 3 + 2] ?? Number.NaN, bz = positions[b * 3 + 2] ?? Number.NaN, cz = positions[c * 3 + 2] ?? Number.NaN;
+  if (az < bounds[2] && bz < bounds[2] && cz < bounds[2]) return true;
+  return az >= bounds[2] && bz >= bounds[2] && cz >= bounds[2] && az > bounds[3] && bz > bounds[3] && cz > bounds[3];
+}
+
 /** Clip every authored vertex channel to one tile, preserving vertical faces and both bridge layers.
  * This is offline render geometry clipping; the independent WMC1 baker remains the collision authority. */
 export function worldGeometry(source: WorldPrimitive, bounds?: readonly [number, number, number, number], transform?: readonly number[]): BufferGeometry {
   const rows = channels(source), output = rows.map(() => [] as number[]), matrix = transform === undefined ? null : new Matrix4().fromArray(transform);
   const vertex = (index: number): Vertex => rows.flatMap(row => Array.from(row.data.subarray(index * row.width, (index + 1) * row.width)));
   for (let i = 0; i < source.indices.length; i += 3) {
-    let polygon = [vertex(source.indices[i] ?? 0), vertex(source.indices[i + 1] ?? 0), vertex(source.indices[i + 2] ?? 0)];
+    const ai = source.indices[i] ?? 0, bi = source.indices[i + 1] ?? 0, ci = source.indices[i + 2] ?? 0;
+    if (bounds !== undefined && outsideFirstCuts(source.positions, ai, bi, ci, bounds)) continue;
+    let polygon = [vertex(ai), vertex(bi), vertex(ci)];
     if (bounds !== undefined) for (const [axis, boundary, greater] of [[0, bounds[0], true], [0, bounds[1], false], [2, bounds[2], true], [2, bounds[3], false]] as const) polygon = cut(polygon, axis, boundary, greater);
     for (let at = 1; at + 1 < polygon.length; at++) {
       const a = polygon[0], b = polygon[at], c = polygon[at + 1];
