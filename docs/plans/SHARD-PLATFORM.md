@@ -51,7 +51,7 @@ plan? … what is in scope … and what do we all have to complete to be done?"*
 | [grid-crossing](shard-platform/grid-crossing-mini-plan.md) | G579–G581 | **open**: T1 warm neighbour on; T2–T6 to < 5 s shard to shard |
 | [loading-speed](shard-platform/loading-speed-mini-plan.md) (folds in [loading](shard-platform/loading-mini-plan.md), G618) | G543, G554, G618, G619, G622 | **open**: tap → controls < 5 s warm, < 15 s cold; M1 baseline next |
 | [shared-waits](shard-platform/shared-waits-mini-plan.md) | G666 | **open**: SW1–SW6; reading refreshed ~10:45 and ~16:45 Cancun; D1, D2, D3 ruled by G670; D4 (red-main revert) needs pick |
-| [debug-rows](shard-platform/debug-rows-mini-plan.md) | G669 | **open**: 27 rows → 14 SHIP, 13 DELETE, 0 KEEP (G672); DR1–DR19 incl. the Settings page apply button; Memory saver needs Jake |
+| [debug-rows](shard-platform/debug-rows-mini-plan.md) | G669 | **open**: 27 rows → 14 SHIP, 11 DELETE, 2 in the Developer section (G672, G673); DR1–DR19 incl. the Settings page apply button; Memory saver needs Jake |
 | [open-plots](shard-platform/open-plots-mini-plan.md) redesign + [night-market-pilot](shard-platform/night-market-pilot-mini-plan.md) + [remaster-open-plots](shard-platform/remaster-open-plots-mini-plan.md) (mockups only until the pilot is approved, G660) | G546, G607, G608, G616, G617, G621, G623, G629, G632 | **open**: Night Market pilot (code-built 62.5 m tiles, Hunyuan3D 2.1 / TRELLIS.2 landmark, five billboards) target = round 47 take B (G633); bespoke tiles per idea; billboards with hero image + name + invitation |
 | [build-speed](shard-platform/build-speed-mini-plan.md), CI speed | G547, G548, G584, G609, G620 | build done; **CI open**: ≤ 10 min, green main (fix forward 30 min, then revert) |
 | [fail-fast](shard-platform/fail-fast-mini-plan.md) | G610, G612, G620 | **done** (F1–F9) |
@@ -518,7 +518,7 @@ line to Jake at each milestone.
 Everything in [`shard-platform/`](shard-platform/), beside this file:
 
 - [STATE.md](shard-platform/STATE.md): the live status, calls for Jake and the fleet (coordinator only, ≤ 3 KB).
-- [decisions.md](shard-platform/decisions.md): every decision G1–G672+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
+- [decisions.md](shard-platform/decisions.md): every decision G1–G673+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
 - [rows.md](shard-platform/rows.md): §4 in full, Part A and Part B, with done-whens and evidence.
 - [contracts.md](shard-platform/contracts.md): §3 in full (determinism, caps, the grid, versioning, a shard project).
 - [history.md](shard-platform/history.md): the long State line, the council-time baseline (old §2), the pre-G291 measure and the 2026-10-04 Handoff.
