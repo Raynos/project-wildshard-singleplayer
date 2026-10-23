@@ -1,7 +1,6 @@
 import * as v from 'valibot';
 import { isJsonData } from '@wildshard/format/json';
-import { EncounterScheduleSchema } from '@wildshard/format/encounterRows';
-import { ProjectedState, ReturnProgram } from '../population/returnProgram';
+import { ReturnProgram } from '../population/returnProgram';
 import { Vector3 } from 'three';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost, SimValue } from '@wildshard/engine/sim';
@@ -63,19 +62,39 @@ export interface EliteEncounterSpec {
 }
 
 const herdPoint=v.tuple([finite,finite,finite]);
-const HerdProjectionRows=v.pipe(v.unknown(),v.check(isJsonData),v.strictObject({law:EncounterScheduleSchema,states:v.pipe(v.record(v.string(),finite),v.check(rows=>Object.keys(rows).length<=16))}));
+const HerdProjectionRows=v.pipe(v.unknown(),v.check(isJsonData),v.strictObject({signal:v.pipe(v.string(),v.minLength(1),v.maxLength(128)),states:v.pipe(v.record(v.string(),finite),v.check(rows=>Object.keys(rows).length<=16))}));
 const HerdProjectionSaved=v.strictObject({laneT:finite,runT:finite,lastState:v.string(),elapsed:v.optional(finite,0),laneFrom:herdPoint,laneTo:herdPoint});
-/** Decode the historical native wire before mutating its existing numeric owner. */
-function restoreProjected(law:ProjectedState,input:unknown):string{
-  const {laneT,runT,lastState,elapsed,laneFrom:[fromX,fromY,fromZ],laneTo:[toX,toY,toZ]}=v.parse(HerdProjectionSaved,input);
-  law.set({laneT,runT,fromX,fromY,fromZ,toX,toY,toZ});law.restoreSamplingTime(elapsed);return lastState;
+/** Numeric native herd encounter observation. Bodies and rewards remain with
+ * the existing encounter authority; no content callback or actor port enters. */
+export interface HerdEliteFrame {
+  state:string;phase2:boolean;engaged:boolean;bonded:boolean;same:boolean;health:number;
+  at:readonly [number,number,number];player:readonly [number,number,number];
 }
-function snapshotProjected(law:ProjectedState,lastState:string):v.InferOutput<typeof HerdProjectionSaved>{
-  return{laneT:law.value('laneT'),runT:law.value('runT'),lastState,elapsed:law.samplingTime,laneFrom:[law.value('fromX'),law.value('fromY'),law.value('fromZ')],laneTo:[law.value('toX'),law.value('toY'),law.value('toZ')]};
+/** Renderer-free ten-Hz guest projection. Rows name the admitted event and herd
+ * states; effects are plain commands and the historical continuation is kept. */
+export class HerdEliteProjection {
+  private readonly rows;
+  private state:v.InferOutput<typeof HerdProjectionSaved>={laneT:0,runT:0,lastState:'',elapsed:0,laneFrom:[0,0,0],laneTo:[0,0,0]};
+  private readonly effects={signature:false,lead:false,adopt:false};
+  constructor(input:unknown,private readonly program:ReturnProgram){
+    if(!(program instanceof ReturnProgram)||Object.getPrototypeOf(program)!==ReturnProgram.prototype)throw new Error('Missing native encounter programme');
+    this.rows=v.parse(HerdProjectionRows,input);
+  }
+  advance(dt:number,frame:HerdEliteFrame):Readonly<{signature:boolean;lead:boolean;adopt:boolean}>{
+    const state=this.state,effects=this.effects;effects.signature=false;effects.lead=false;effects.adopt=false;
+    state.elapsed+=dt;if(state.elapsed+1e-9<.1)return effects;
+    const result=this.program.project(this.rows.signal,{dt:state.elapsed,state:this.rows.states[frame.state]??0,previousState:this.rows.states[state.lastState]??0,
+      laneT:state.laneT,runT:state.runT,phase2:Number(frame.phase2),engaged:Number(frame.engaged),bonded:Number(frame.bonded),same:Number(frame.same),health:frame.health});
+    state.elapsed=0;state.lastState=frame.state;state.laneT=result['laneT']??state.laneT;state.runT=result['runT']??state.runT;
+    if(result['capture']===1){state.laneFrom=[...frame.at];state.laneTo=[...frame.player];}
+    effects.signature=result['signature']===1;effects.lead=result['lead']===1;effects.adopt=result['adopt']===1;return effects;
+  }
+  snapshot():v.InferOutput<typeof HerdProjectionSaved>{return structuredClone(this.state);}
+  restore(input:unknown):void{this.state=v.parse(HerdProjectionSaved,input);}
 }
 
-interface Member { readonly row: EliteEncounterRow; animal: AnimalSim | null; phase2: boolean; pack: PackBrain<AnimalSim> | null; adopted: boolean; detached: boolean; lastState:string;
-  readonly controller: StalkerBrain<AnimalSim> | ProjectedState; readonly validate: (value: unknown) => void }
+interface Member { readonly row: EliteEncounterRow; animal: AnimalSim | null; phase2: boolean; pack: PackBrain<AnimalSim> | null; adopted: boolean; detached: boolean;
+  readonly controller: StalkerBrain<AnimalSim> | HerdEliteProjection; readonly validate: (value: unknown) => void }
 
 /** Install ordered named encounters on EliteCore. Shared ownership covers spawn/adoption, script/keeper continuation,
  * pack rebind, root effects and declared permanent detachment. Controllers retain fight decisions and clocks.
@@ -98,8 +117,8 @@ export function installEliteEncounters(host: SimHost, spec: EliteEncounterSpec):
   const nativeScripts: EliteCoreScript<AnimalSim>[] = [];
   for (const row of rows) {
     if (ports === undefined) throw new Error('Encounter rows need native body authority');
-    const def = row.def,projected=row.keeper==='herd'?v.parse(HerdProjectionRows,ports.keepers.herd.rows):null;
-    const live: { animal: AnimalSim | null; phase2: boolean; pack: PackBrain<AnimalSim> | null; adopted: boolean; detached: boolean;lastState:string } = { animal: null, phase2: false, pack: null, adopted: false, detached: false,lastState:'' };
+    const def = row.def;
+    const live: { animal: AnimalSim | null; phase2: boolean; pack: PackBrain<AnimalSim> | null; adopted: boolean; detached: boolean } = { animal: null, phase2: false, pack: null, adopted: false, detached: false };
     let striking: AnimalSim | null = null;
     const hit = { source: 'env' as const, sourceTags: [`elite.${def.id}`, 'feel.blow', 'cover.checked'] as `${string}.${string}`[], target: host.player.health,
       amount: 0, point: head, dir, cause: { kind: row.member.kind, label: '' } };
@@ -119,13 +138,13 @@ export function installEliteEncounters(host: SimHost, spec: EliteEncounterSpec):
       opened: silent, growl: silent };
     const howlerPorts = { ...common, pack: () => live.pack, environment: ports.environment, random: () => host.rng.stream('ai').next(), rings: tells,
       hurt, regrouped: silent, interrupted: silent, closed: silent, howl: silent };
-    const create = (): StalkerBrain<AnimalSim> | ProjectedState => {
+    const create = (): StalkerBrain<AnimalSim> | HerdEliteProjection => {
       if (row.keeper === 'pouncer') return new StalkerBrain({ pattern: 'pouncer',spec: ports.keepers.pouncer,ports: pouncerPorts });
       if (row.keeper === 'howler') return new StalkerBrain({ pattern: 'howler',spec: ports.keepers.howler,ports: howlerPorts });
-      if(projected===null)throw new Error('Missing projected encounter rows');return new ProjectedState({...projected.law,signals:{step:projected.law.signal}},ReturnProgram.native(host,ports.keepers.herd.program));
+      const herd=ports.keepers.herd;return new HerdEliteProjection(herd.rows,ReturnProgram.native(host,herd.program));
     };
     const controller = create();
-    const member: Member = Object.assign(live, { row, controller, validate: (value: unknown): void => { const trial=create();if(trial instanceof ProjectedState)restoreProjected(trial,value);else trial.restore(value); } });
+    const member: Member = Object.assign(live, { row, controller, validate: (value: unknown): void => { create().restore(value); } });
     members.push(member);
     const bind = (a: AnimalSim): void => {
       if (!('think' in controller)) return;
@@ -156,7 +175,7 @@ export function installEliteEncounters(host: SimHost, spec: EliteEncounterSpec):
         if (row.member.source === 'herd') return;
         if (a !== null) { ports.bindings.brains.delete(a); ports.retire(a); } member.animal = null;
       },
-      reset: () => { member.phase2 = false; if (controller instanceof StalkerBrain) controller.reset(member.animal); },
+      reset: () => { member.phase2 = false; if ('reset' in controller) controller.reset(member.animal); },
       enterPhase2: () => { member.phase2 = true; if (row.keeper === 'howler' && 'think' in controller) controller.enterPhase2(member.animal); },
       trophy: silent,
       ...(row.brokenState === undefined ? {} : { broken: () => ports.herd()?.stallionState === row.brokenState }),
@@ -166,12 +185,10 @@ export function installEliteEncounters(host: SimHost, spec: EliteEncounterSpec):
         else {
           const animal=member.animal,herd=member.detached?null:ports.herd();if(animal===null||herd===null)return;
           const taming=ports.taming?.(),at=animal.position,player=host.player.position;
-          const codec=projected?.states;if(codec===undefined)throw new Error('Missing projected encounter codec');
-          const {dt:due,values:effects}=controller.step(dt,{state:codec[herd.stallionState]??0,previousState:codec[member.lastState]??0,phase2:Number(member.phase2),engaged:Number(engaged),bonded:Number(taming?.phase==='bonded'),same:Number(herd.stallion===animal),health:animal.hp/animal.maxHp,x:at.x,y:at.y,z:at.z,px:player.x,py:player.y,pz:player.z});
-          if(due>0)member.lastState=herd.stallionState;
-          if(effects['signature']===1)signature();if(effects['lead']===1)herd.leadAway(player.x,player.z);
+          const effects=controller.advance(dt,{state:herd.stallionState,phase2:member.phase2,engaged,bonded:taming?.phase==='bonded',same:herd.stallion===animal,health:animal.hp/animal.maxHp,at:[at.x,at.y,at.z],player:[player.x,player.y,player.z]});
+          if(effects.signature)signature();if(effects.lead)herd.leadAway(player.x,player.z);
           const adopted=taming?.tulpar;
-          if(effects['adopt']===1&&adopted!==undefined&&adopted!==null){
+          if(effects.adopt&&adopted!==undefined&&adopted!==null){
             const action=row.onAdopted;if(action===undefined||member.detached||host.entities.get(adopted.entityId)!==adopted||adopted.variant!==action.variant)throw new Error('Adopted encounter reward has no native owner');
             adopted.scale=action.scale;core.won(def.id);member.detached=true;
           }
@@ -192,7 +209,7 @@ export function installEliteEncounters(host: SimHost, spec: EliteEncounterSpec):
     snapshot: () => {
       const saved: Record<string, SimValue> = { version: spec.version, ...core.snapshot() };
       if (wire.detached !== undefined && members.some(m => m.detached)) saved[wire.detached] = true;
-      for (const m of members) saved[m.row.snapshot] = { animal: m.animal?.entityId ?? null, phase2: m.phase2, keeper: m.controller instanceof ProjectedState?snapshotProjected(m.controller,m.lastState):m.controller.snapshot(),
+      for (const m of members) saved[m.row.snapshot] = { animal: m.animal?.entityId ?? null, phase2: m.phase2, keeper: m.controller.snapshot(),
         ...(m.row.pack === undefined ? {} : { pack: m.pack === null ? null : ports?.packs().indexOf(m.pack) ?? -1 }) };
       return saved;
     },
@@ -218,7 +235,7 @@ export function installEliteEncounters(host: SimHost, spec: EliteEncounterSpec):
       commitCore();
       if (ports !== undefined) { ports.bindings.brains.clear(); ports.bindings.pinned.clear(); }
       for (const { m, s, a, detached, pack } of bound) {
-        if(m.controller instanceof ProjectedState)m.lastState=restoreProjected(m.controller,s.keeper);else m.controller.restore(s.keeper); m.animal = a; m.phase2 = s.phase2; m.pack = pack; m.adopted = true; m.detached = detached;
+        m.controller.restore(s.keeper); m.animal = a; m.phase2 = s.phase2; m.pack = pack; m.adopted = true; m.detached = detached;
         pin(a, core.entry(m.row.def.id)?.state === 'engaged'); if (a !== null) rebinders.get(m)?.(a);
       }
     },

@@ -197,9 +197,6 @@ export class ProjectedState<S extends Record<string,number> = Record<string,numb
   project(frame:Readonly<Record<string,number>>,random?:Rng,candidates:readonly Readonly<Record<string,number>>[]=[]):Readonly<Record<string,number>> {
     if(this.row.signal===undefined)throw new Error('Missing projection signal');return this.event(this.row.signal,frame,random,candidates);
   }
-  /** Existing partial sampling interval, for adapters retaining historical wires. */
-  get samplingTime():number{return this.elapsed;}
-  restoreSamplingTime(value:number):void{if(!Number.isFinite(value))throw new Error('Invalid projection sampling time');this.elapsed=value;}
   /** At most one decision each 100 ms; long frames produce no catch-up burst. */
   step(dt:number,frame:Readonly<Record<string,number>>,random?:Rng):{dt:number;values:Readonly<Record<string,number>>} {
     this.elapsed+=dt;if(this.elapsed+1e-9<.1)return {dt:0,values:{}};

@@ -1,4 +1,3 @@
-import { compileReturnProjectionV2 } from '@wildshard/sdk/returnProjectionV2';
 import { compileDecisionScripts, readDecisionSources } from '@wildshard/sdk/buildDecisionScripts';
 import { fileURLToPath } from 'node:url';
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -21,10 +20,3 @@ const target=new URL('../behaviour/admission.generated.json',import.meta.url);
 if(process.argv.includes('--check')){if(readFileSync(target,'utf8')!==bytes)throw new Error('Native admission program is stale');}
 else writeFileSync(target,bytes);
 console.info(`nalati-admission: ${built.lines}/${built.ceiling} authored AS lines`);
-
-const groupFields=['dt','state','previousState','laneT','runT','fromX','fromY','fromZ','toX','toY','toZ','phase2','engaged','bonded','same','health','x','y','z','px','py','pz','brokenState'];
-const groupChannels=['laneT','runT','previousState','fromX','fromY','fromZ','toX','toY','toZ','capture','signature','lead','adopt','fraction','broken'];
-const groupSource={...source,id:'nalati.elite-group',source:'behaviour/eliteGroup.as',reads:['field'],fields:aliases(groupFields),channels:aliases(groupChannels),signals:aliases(['argymaqFrame'])};
-const group=await compileReturnProjectionV2(groupSource,{fields:registry(groupFields),channels:registry(groupChannels),signals:registry(['argymaqFrame'])},readDecisionSources(fileURLToPath(new URL('../',import.meta.url))),{asLineCeiling:2837});
-const groupBytes=`${JSON.stringify({...group.legacy,v2:group.candidate},null,2)}\n`,groupTarget=new URL('../behaviour/eliteGroup.generated.json',import.meta.url);
-if(process.argv.includes('--check')){if(readFileSync(groupTarget,'utf8')!==groupBytes)throw new Error('Elite group programme is stale');}else writeFileSync(groupTarget,groupBytes);

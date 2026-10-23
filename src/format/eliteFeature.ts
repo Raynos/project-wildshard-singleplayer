@@ -1,5 +1,4 @@
 import * as v from 'valibot';
-import { EncounterScheduleSchema } from './encounterRows';
 import { isJsonData } from './json';
 import { parseSpawnScript, type SpawnScriptRows } from './spawnScripts';
 
@@ -89,7 +88,7 @@ const externalCommon = { def: definition, tell: v.tuple([finite, finite, finite]
  * native actor and herd adoption occurs through the existing owner. */
 export const ExternalEliteSchema = v.variant('mode', [
   v.strictObject({ ...externalCommon, mode: v.literal('script'), spawn: v.strictObject({ source: v.literal('rider'), variant: v.picklist(['rider', 'captain']), yaw: finite }) }),
-  v.strictObject({ ...externalCommon, mode: v.literal('herd'), projection:EncounterScheduleSchema, spawn: v.strictObject({ source: v.literal('herd'), kind: id, variant: id, yaw: finite,
+  v.strictObject({ ...externalCommon, mode: v.literal('herd'), spawn: v.strictObject({ source: v.literal('herd'), kind: id, variant: id, yaw: finite,
     offset: v.tuple([finite, finite]), mares: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(256)), foals: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(256)), stallion: v.boolean(), color: v.tuple([finite, finite, finite]) }) }),
 ]);
 export type ExternalEliteData = v.InferOutput<typeof ExternalEliteSchema>;

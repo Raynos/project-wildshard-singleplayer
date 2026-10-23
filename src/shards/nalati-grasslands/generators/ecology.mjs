@@ -1,4 +1,3 @@
-import eliteGroupLaw from '../data/eliteGroup.json' with {type:'json'};
 import qyran from '../data/qyranProfile.json' with { type: 'json' };
 import aqbars from '../data/aqbarsProfile.json' with { type: 'json' };
 import kokbori from '../data/kokboriProfile.json' with { type: 'json' };
@@ -40,7 +39,7 @@ export function ecologyRows() {
     { def: elites['qara-batyr'], mode: 'script', tell: [.35, 1.6, 1.9], step: 'eliteAux', ready: 'eliteAux', damage: 'eliteDamage', broken: '',
       states: {}, adopted: { scale: 1, kind: '', variant: '', feed: '' }, spawn: { source: 'rider', variant: 'captain', yaw: 0 },
       cues: { signature: { signature: true }, squeal: { voice: 'horse_squeal' }, opened: { feed: 'He passes — his back is OPEN' } } },
-    { def: elites.argymaq, mode: 'herd', projection:eliteGroupLaw, tell: [2.4, .9, .35], step: 'argymaqTick', ready: '', damage: '', broken: 'beaten',
+    { def: elites.argymaq, mode: 'herd', tell: [2.4, .9, .35], step: 'argymaqTick', ready: '', damage: '', broken: 'beaten',
       states: { display: 1, charge: 2, beaten: 3 }, adopted: { scale: 1.3, kind: author.argymaq, variant: 'stallion', feed: 'Argymaq is yours — the best horse in Nalati' },
       spawn: { source: 'herd', kind: author.argymaq, variant: 'stallion', yaw: 0, offset: [-8, 6], mares: 8, foals: 1, stallion: false, color: [.62, .64, .72] }, cues: {} },
   ];

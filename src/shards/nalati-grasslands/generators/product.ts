@@ -1,4 +1,3 @@
-import groupProgram from '../behaviour/eliteGroup.generated.json' with {type:'json'};
 import { parseClientChannels } from '@wildshard/format/clientChannels';
 import NALATI_FEATS from '../data/feats.json' with {type:'json'};
 import ridingPrograms from '../behaviour/riding.generated.json' with { type: 'json' };
@@ -52,13 +51,13 @@ const files = [...navigation.files, ...queryTerrain.files].sort((a, b) => a.hash
 // M2 (G518): the ground's baked L0 render tiles (generators/bake-render-tiles.mjs), bound by the runtime: the painted
 // ground draws them in its own material behind the Debug row groundTiles; the files stay out of the sim budgets below
 const resident = files.reduce((sum, file) => sum + file.decoded, 0);
-const programs = [heldWeapons.program,stealth.program,speciesData.program,weatherDecision,kokpar.program,kokpar.course, admission, groupProgram, pasture, ...Object.values(titanProgram), ridingPrograms.approach, ridingPrograms.breaking, ridingPrograms.riding, charge];
+const programs = [heldWeapons.program,stealth.program,speciesData.program,weatherDecision,kokpar.program,kokpar.course, admission, pasture, ...Object.values(titanProgram), ridingPrograms.approach, ridingPrograms.breaking, ridingPrograms.riding, charge];
 const programBytes = programs.filter((program,index,all)=>all.findIndex(entry=>entry.script.module===program.script.module)===index).reduce((sum, program) => sum + atob(program.bytes).length, 0);
 // Retain the legacy witness allowance and account for the one selected v2
 // module, shared by attack/rules in the original construction scope.
-const projections = [titanProgram.attack.v2,groupProgram.v2];
+const projection = titanProgram.attack.v2;
 const programMemory = programs.reduce((sum, program) => sum + program.script.pages * 65536 * 2, programBytes)
-  + projections.reduce((sum,projection)=>sum+atob(projection.bytes).length+projection.artifact.pages*65536*2,0);
+  + atob(projection.bytes).length + projection.artifact.pages * 65536 * 2;
 // the creature view module (behaviour/creatureViews.as): its live and last-good pages on the client
 const viewMemory = creatureViews.pages * 65536 * 2;
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.

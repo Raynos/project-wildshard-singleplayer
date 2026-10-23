@@ -10018,13 +10018,6 @@ gates and six-attempt land placement are Driftwood's behaviour/returns.as.
 numeric guest channels and event aliases. Its state/reset operations do not
 invoke rules; `restart` resets then requests the guest's reset event, and
 `step` requests at most one decision per 100 ms without catch-up bursts.
-Its samplingTime getter and restoreSamplingTime operation expose only the
-existing partial interval; finite historical values, including signed zero,
-round-trip without a guest call. A refused step retains its accumulated
-interval until a successful projection. Declared elite group rows select the
-same ABI2 projection on page and native owners; the native adapter preserves
-its historical raw state string and exact f64 capture coordinates in the same
-save envelope. Presentation, bodies, rewards and effect order stay external.
 Nalati's actual arena clocks and Nine's actual grapple course share this
 renderer-free owner. Bodies, field grids and presentation remain external.
 

@@ -3,7 +3,7 @@ import { NativeEliteController } from '@wildshard/engine/ai/view/eliteController
 import type { DeclaredEliteEntry, EliteEntryLoans } from '@wildshard/engine/ai/view/eliteEntry';
 import { ObservationColumnsV2, type V2EnvironmentColumns } from '@wildshard/engine/script/observationColumnsV2';
 import { parseEliteEntryPageRows } from '@wildshard/format/eliteEntryRows';
-import { ReturnProgram } from './population/returnProgram';
+import type { ReturnProgram } from './population/returnProgram';
 import type { SpawnScriptRows } from '@wildshard/format/spawnScripts';
 import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';
 import type { PouncerLedge } from '@wildshard/engine/ai/stalker';
@@ -192,9 +192,8 @@ export class Elites {
       if (model === undefined || (row.mode === 'script' && owners.fight === undefined)) throw new Error('Missing declared borrowed elite model or fight');
       return { row, model };
     }) : [];
-    const projection=rows.projectionProgram===undefined?program.value:ReturnProgram.page(rows.projectionProgram,entered.scope);
     const controllers = owners.controllers ?? selected.map(({ row, model }) => new ExternalElitePage(row,
-      { game, player, animals, elites: this, spawnOwners: { scope: entered.scope, environment: owners.environment, clock: owners.clock, weather: owners.weather } }, row.mode==='herd'?projection:program.value, model, row.mode === 'script' ? owners.fight : undefined, true));
+      { game, player, animals, elites: this, spawnOwners: { scope: entered.scope, environment: owners.environment, clock: owners.clock, weather: owners.weather } }, program.value, model, row.mode === 'script' ? owners.fight : undefined, true));
     if (controllers.length !== rows.borrowed.length || controllers.some((controller, index) => !(controller instanceof ExternalElitePage)
       || controller.def.id !== rows.borrowed[index]?.def.id) || new Set(controllers).size !== controllers.length) throw new Error('Foreign declared borrowed elite controller');
     const emptyActors = new Map<number, Animal>();
