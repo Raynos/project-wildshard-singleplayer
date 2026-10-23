@@ -679,7 +679,7 @@ export class GridSession {
     if (this.live !== null) throw new Error('The grid session already has its live crossing');
     if (this.host.residency === undefined) throw new Error('Grid session requires the early page residency owner');
     this.live = new LiveGridSession({ assembly: this.assembly, home: this.home, physics: this.host.physics, scope: this.host.scope, walls: this.walls, strips: this.strips, allocator: this.allocator,
-      residency: this.host.residency.home(), tiles: this.clientTiles,
+      residency: this.host.residency.home(), ...(tileResidencyRadius() >= 8 ? {} : { tiles: this.clientTiles }),
       neighbourEdges: (cell, origin) => neighbourEdges(cell, { origin }), rimEdges: (origin) => rimEdges(this.assembly, { origin }) }, page);
     return this.live;
   }
