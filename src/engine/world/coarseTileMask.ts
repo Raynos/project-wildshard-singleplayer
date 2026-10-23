@@ -6,7 +6,7 @@
  * Equal surfaces share one material across tiles (`installDeclaredProps`), so each coarse tile draws with its own variant
  * (`familyVariant`: the family's patches and key kept) carrying its own mask uniforms; the shared material is never patched.
  */
-import { GLSL3, Mesh, Uniform, Vector2, Vector4, type Material, type Matrix4, type Object3D } from 'three';
+import { GLSL3, Mesh, Uniform, Vector2, Vector4, type Material, type Object3D } from 'three';
 import { patchShader, PATCH_ORDER } from '../render/shaderPatches';
 import { familyVariant } from '../render/families/registry';
 import { applyNodeCoarseMask } from '../render/nodeCoarseMask';
@@ -19,24 +19,13 @@ const COARSE_SIZE = 125;
 function isMesh(object: Object3D): object is Mesh { return object instanceof Mesh; }
 
 /**
- * The world x / z of coarse tile `x`, `z`'s cell-local −x −z corner under its root's world matrix (written to `out`). The
- * mask's shaders compare world positions with it; a cell away from the render origin (every neighbour) sits translated,
- * so a cell-local origin put every fragment of a tile in one quadrant: the tile hid all of itself or none (round 38).
- */
-export function coarseMaskOrigin(world: Matrix4, x: number, z: number, out: Vector2): Vector2 {
-  const lx = -CHUNK_HALF + x * COARSE_SIZE, lz = -CHUNK_HALF + z * COARSE_SIZE, e = world.elements;
-  return out.set(e[0] * lx + e[8] * lz + e[12], e[2] * lx + e[10] * lz + e[14]);
-}
-
-/**
  * Mask a coarse tile's props by quadrant in one draw per mesh; returns the updater for the hidden quadrants.
  * `root` holds the props of coarse tile `x`, `z` (0..3, cell-local). The updater hides the quadrants in its set
- * (0 = −x −z, 1 = +x −z, 2 = −x +z, 3 = +x +z); all four hide the root. The patches go with `scope`. The origin follows the
- * root's world matrix before each draw (a render-origin shift moves the cell).
+ * (0 = −x −z, 1 = +x −z, 2 = −x +z, 3 = +x +z); all four hide the root. The patches go with `scope`.
  */
 export function coarseTileMask(root: Object3D, x: number, z: number, scope: Scope): (excluded: ReadonlySet<number>) => void {
   if (![x, z].every((n) => Number.isInteger(n) && n >= 0 && n < (CHUNK_HALF * 2) / COARSE_SIZE)) throw new Error('coarse tile mask: tile coordinates are 0..3');
-  const origin = new Uniform(coarseMaskOrigin(root.matrixWorld, x, z, new Vector2())), mask = new Uniform(new Vector4());
+  const origin = new Uniform(new Vector2(-CHUNK_HALF + x * COARSE_SIZE, -CHUNK_HALF + z * COARSE_SIZE)), mask = new Uniform(new Vector4());
   const half = (COARSE_SIZE / 2).toFixed(2);
   const own = new Map<Material, Material>();
   const variant = (shared: Material): Material => {
@@ -49,13 +38,9 @@ export function coarseTileMask(root: Object3D, x: number, z: number, scope: Scop
   root.traverse((object) => {
     if (!isMesh(object)) return;
     object.castShadow = false;
-    const before = object.material, draw: unknown = Reflect.get(object, 'onBeforeRender');
-    if (typeof draw !== 'function') throw new Error('coarse tile mask: a mesh without its draw hook');
+    const before = object.material;
     object.material = Array.isArray(before) ? before.map(variant) : variant(before);
-    object.onBeforeRender = function onBeforeRender(this: Object3D, ...args: Parameters<Object3D['onBeforeRender']>): void {
-      coarseMaskOrigin(root.matrixWorld, x, z, origin.value); Reflect.apply(draw, this, args);
-    };
-    scope.onDispose(() => { object.material = before; Reflect.set(object, 'onBeforeRender', draw); });
+    scope.onDispose(() => { object.material = before; });
   });
   for (const material of own.values()) {
     // Node shaders have no classic chunk anchors; the loaded backend owns their mask.
