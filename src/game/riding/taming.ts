@@ -15,6 +15,14 @@ const Saved = v.strictObject({ version: v.literal(3), phase: v.picklist(['wild',
   clock: v.pipe(finite, v.minValue(0), v.maxValue(.1)), prev: v.nullable(v.tuple([finite, finite, finite])) });
 
 type SavedTaming=v.InferOutput<typeof Saved>;
+/** a taming key in the programme's camelCase (`zz_h_dot` -> `zzHDot`), made once per key (G639: every probe frame ran the
+ *  regex over every frame and candidate key) */
+const camelKeys = new Map<string, string>();
+function camel(key: string): string {
+  let named = camelKeys.get(key);
+  if (named === undefined) { named = key.replaceAll(/_([A-Za-z0-9])/g, (_match, next: string) => next.toUpperCase()); if (camelKeys.size < 4096) camelKeys.set(key, named); }
+  return named;
+}
 /** Native observations and historical continuation around the admitted taming
  * guest. Bodies, mounts, herds, entropy and scopes remain their actual owners. */
 export class TamingSession<A extends TamingHorse,H extends TamingHerd<A>> {
@@ -62,8 +70,8 @@ export class TamingSession<A extends TamingHorse,H extends TamingHerd<A>> {
       const candidates=observed.candidates.map((row,index)=>Object.assign(row,{zz_h_actor:id(observed.ids[index]??null)}));
       const targets=new Map<number,V2ActionTarget>([[1,{identity:'service',kind:'taming'}],[2,{identity:'mount',kind:'mount'}],...Array.from({length:8},(_,i):[number,V2ActionTarget]=>[16+i,{identity:`herd:${String(i)}`,kind:'taming-herd'}]),...actors.map((a,i):[number,V2ActionTarget]=>[64+i,{identity:a.entityId,kind:'taming-actor'}])]);
       const binding:V2ActionBinding={identity:'taming',handle:1,targets,operations:new Set(readOnly?[]:Object.values(V2_ACTION_OPS).filter(op=>op===23||op>=26)),maxCommands:32,bounds:{coordinate:Number.MAX_VALUE,velocity:0}};
-      const prepared:PreparedProjectionV2=this.project(signal.replaceAll(/_([A-Za-z0-9])/g,(_match,next:string)=>next.toUpperCase()),Object.fromEntries(Object.entries(frame).map(([key,value])=>[key.replaceAll(/_([A-Za-z0-9])/g,(_match,next:string)=>next.toUpperCase()),value])),new Map([[1,binding]]),candidates.map(row=>Object.fromEntries(Object.entries(row).map(([key,value])=>[key.replaceAll(/_([A-Za-z0-9])/g,(_match,next:string)=>next.toUpperCase()),value]))));
-      result=prepared.values;const number=(key:string):number=>{const value=result[`zz_${key}`.replaceAll(/_([A-Za-z0-9])/g,(_match,next:string)=>next.toUpperCase())];if(value===undefined||!Number.isFinite(value))throw new Error('Missing taming continuation output');return value;};
+      const prepared:PreparedProjectionV2=this.project(camel(signal),Object.fromEntries(Object.entries(frame).map(([key,value])=>[camel(key),value])),new Map([[1,binding]]),candidates.map(row=>Object.fromEntries(Object.entries(row).map(([key,value])=>[camel(key),value]))));
+      result=prepared.values;const number=(key:string):number=>{const value=result[camel(`zz_${key}`)];if(value===undefined||!Number.isFinite(value))throw new Error('Missing taming continuation output');return value;};
       const bit=(key:string):number=>{const value=number(key);if(value!==0&&value!==1)throw new Error('Invalid taming flag');return value;};
       const nextSignal=number('next'),nextCapture=number('capture'),nextPresent=bit('present'),nextUpgrade=bit('upgrade');bit('accept');
       if(!Number.isInteger(nextCapture)||nextCapture<0||nextCapture>3)throw new Error('Invalid taming capture');
