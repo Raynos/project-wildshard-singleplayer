@@ -1,13 +1,13 @@
 import { Group, type Object3D } from 'three';
 import { expect, test } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
+import { Scope, disposalErrorMessages } from '../src/engine/app/scope';
 import { TileStreamer } from '../src/engine/world/tileStreamer';
 import { emptyShardfile } from '../src/sdk/author';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { TileDecoder } from '../src/game/grid/tileDecoder';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
-import { clientRingCatalogue, clientRingPorts, clientTileRegistration, type ClientRingInstance } from '../src/game/shardfile/clientRings';
+import { standaloneClientTiles, clientRingCatalogue, clientRingPorts, clientTileRegistration, type ClientRingInstance } from '../src/game/shardfile/clientRings';
 import type { Shardfile } from '../src/format/shardSchema';
 
 function isGroup(object: Object3D): object is Group { return object instanceof Group; }
@@ -111,6 +111,81 @@ test('pending retirement refuses readiness, restores ownership and cannot publis
     expect(f.entered.root.children).toHaveLength(0); expect(f.instances.get('home')?.root).toBe(f.neighbour.root);
     const closed = new Scope('closed'); closed.dispose();
     await expect(f.registration.enter('home', f.entered, closed, camera)).rejects.toThrow('owner left');
+  } finally { f.scope.dispose(); }
+  expect(f.pins()).toBe(0); expect(f.allocator.entries()).toHaveLength(0);
+});
+
+test('standalone publication uses the same leased ports, then advances only from its late callback', async () => {
+  const f = fixture(), library = { tiles: new Map<string, Object3D>(), panels: new Map<string, Object3D>(), models: new Map<string, Object3D>(), far: null, disposeTile: () => undefined };
+  let late: (() => void) | undefined, pauses = 0;
+  try {
+    const world = await standaloneClientTiles(f.entered, f.scope, {
+      instance: 'solo', budget: { reserve: claim => f.allocator.reserve(claim), now: () => 0 }, start: camera, radius: () => 1,
+      library: () => Promise.resolve(library), viewer: () => camera, frame: run => { late = run; },
+      pause: () => { if (++pauses > 300) throw new Error('Fixture failed to settle'); return Promise.resolve(); },
+    });
+    expect(pauses).toBeGreaterThan(0); expect(world.props).toBe(library); expect(world.fine.size).toBe(9);
+    expect(f.coverage(f.entered.root)).toEqual(Array.from({ length: 64 }, () => 1));
+    expect(f.allocator.entries().filter(row => row.category === 'l1')).toHaveLength(16);
+    if (late === undefined) throw new Error('Missing standalone frame callback');
+    for (let frame = 0; frame < 25; frame++) { late(); await Promise.resolve(); }
+    f.scope.dispose(); late(); expect(f.entered.root.children).toHaveLength(0);
+  } finally { f.scope.dispose(); }
+  expect(f.pins()).toBe(0); expect(f.allocator.entries()).toHaveLength(0);
+});
+
+test('standalone budget refusal fails immediately and releases its half-built owner', async () => {
+  const f = fixture(), baseline = f.scope.census;
+  let pauses = 0, libraryClosed = false;
+  try {
+    await expect(standaloneClientTiles(f.entered, f.scope, {
+      instance: 'solo', budget: { reserve: () => null, now: () => 0 }, start: camera, radius: () => 1,
+      library: owner => { owner.onDispose(() => { libraryClosed = true; }); return Promise.resolve(null); },
+      viewer: () => camera, frame: () => { throw new Error('Failed owner must not register a frame'); },
+      pause: () => { pauses++; return Promise.resolve(); },
+    })).rejects.toThrow('Home tile residency admission deferred');
+    expect(pauses).toBe(1); expect(libraryClosed).toBe(true); expect(f.scope.census).toEqual(baseline);
+  } finally { f.scope.dispose(); }
+  expect(f.pins()).toBe(0); expect(f.allocator.entries()).toHaveLength(0);
+});
+
+test('standalone parent retirement during loading forbids later publication or frame registration', async () => {
+  const f = fixture();
+  try {
+    await expect(standaloneClientTiles(f.entered, f.scope, {
+      instance: 'solo', budget: { reserve: claim => f.allocator.reserve(claim), now: () => 0 }, start: camera, radius: () => 1,
+      library: () => Promise.resolve(null), viewer: () => camera,
+      frame: () => { throw new Error('Retired owner must not register a frame'); },
+      pause: () => { f.scope.dispose(); return Promise.resolve(); },
+    })).rejects.toThrow('Standalone tile owner left');
+    expect(f.entered.root.children).toHaveLength(0);
+  } finally { f.scope.dispose(); }
+  expect(f.pins()).toBe(0); expect(f.allocator.entries()).toHaveLength(0);
+});
+
+test('standalone failure preserves its original error and cleanup diagnostics', async () => {
+  const f = fixture();
+  try {
+    const error: unknown = await standaloneClientTiles(f.entered, f.scope, {
+      instance: 'solo', budget: f.allocator, start: camera, radius: () => 1, viewer: () => camera,
+      library: owner => { owner.onDispose(() => { throw new Error('Fixture cleanup refused'); }); return Promise.reject(new Error('Fixture library refused')); },
+      frame: () => { throw new Error('Failed owner must not register a frame'); }, pause: () => Promise.resolve(),
+    }).catch((failure: unknown) => failure);
+    expect(error).toBeInstanceOf(AggregateError);
+    expect(disposalErrorMessages(error)).toEqual(['Fixture library refused', 'Fixture cleanup refused']);
+  } finally { f.scope.dispose(); }
+  expect(f.pins()).toBe(0); expect(f.allocator.entries()).toHaveLength(0);
+});
+
+test('invalid standalone instance data releases the construction scope before library work', async () => {
+  const f = fixture(), baseline = f.scope.census;
+  try {
+    await expect(standaloneClientTiles(f.entered, f.scope, {
+      instance: '', budget: f.allocator, start: camera, radius: () => 1, viewer: () => camera,
+      library: () => { throw new Error('Invalid instance must not build a library'); },
+      frame: () => { throw new Error('Invalid instance must not register a frame'); }, pause: () => Promise.resolve(),
+    })).rejects.toThrow('Invalid ring cells');
+    expect(f.scope.census).toEqual(baseline);
   } finally { f.scope.dispose(); }
   expect(f.pins()).toBe(0); expect(f.allocator.entries()).toHaveLength(0);
 });

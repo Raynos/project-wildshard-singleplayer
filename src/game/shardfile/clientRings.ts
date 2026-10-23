@@ -10,10 +10,10 @@
  */
 import { Group, type Object3D } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { type TileStreamer, type TileRequirement, scopedTilePorts, type RingCatalogue, type RingPorts, type RingTile } from '@wildshard/engine/world/tileStreamer';
-import type { TileDecoder } from '../grid/tileDecoder';
+import { TileStreamer, type TileStreamBudget, type TileRequirement, scopedTilePorts, type RingCatalogue, type RingPorts, type RingTile } from '@wildshard/engine/world/tileStreamer';
+import { TileDecoder } from '../grid/tileDecoder';
 import type { ClientAssets } from './clientAssets';
-import { prepareClientTile, type ResidentTile } from './clientWorld';
+import { type clientWorld, prepareClientTile, type ClientWorldViews, type ResidentTile } from './clientWorld';
 import type { ClientTileViews } from './clientViews';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { tileOrder } from './tileOrder';
@@ -132,4 +132,41 @@ export function clientTileRegistration(instances: Map<string, ClientRingInstance
       } catch (error) { release(); throw error; }
     },
   };
+}
+
+/** SHARD SELECT uses the same tile ports/registration and one page-owned scheduler. Initial publication advances
+ * through the caller's cooperative loading yield; after readiness the caller's late phase alone steps the scheduler. */
+export async function standaloneClientTiles(entry: ClientRingInstance, parent: Scope, ports: {
+  readonly instance: string; readonly budget: TileStreamBudget; readonly start: { readonly x: number; readonly z: number };
+  readonly radius: () => number; readonly library: (scope: Scope) => Promise<Awaited<ReturnType<ClientWorldViews['library']>> | null>;
+  readonly viewer: () => { readonly x: number; readonly z: number }; readonly pause: () => Promise<void>;
+  readonly frame: (step: () => void) => void;
+}): Promise<Awaited<ReturnType<typeof clientWorld>>> {
+  if (parent.disposed || parent.disposing) throw new Error('Standalone tile owner left');
+  const scope = parent.child('standalone-tiles'), instances = new Map<string, ClientRingInstance>(), decoder = new TileDecoder();
+  scope.onDispose(() => { decoder.dispose(); });
+  try {
+    const streamer = new TileStreamer([{ instance: ports.instance, origin: { x: 0, z: 0 } }], ports.budget,
+      clientRingCatalogue(instances), clientRingPorts(instances, { scope, decoder }));
+    // Separate cleanups still run if construction or an earlier disposal reports an error.
+    scope.onDispose(() => { streamer.dispose(); });
+    const registration = clientTileRegistration(instances, streamer, ports.radius);
+    scope.onDispose(() => { registration.dispose(); });
+    const props = await ports.library(scope), loading = registration.enter(ports.instance, entry, scope, ports.start);
+    let settled = false;
+    const pending = (): boolean => !settled;
+    void loading.then(() => { settled = true; return undefined; }, () => { settled = true; return undefined; });
+    while (pending()) {
+      await ports.pause();
+      if (scope.disposed || scope.disposing) throw new Error('Standalone tile owner left');
+      streamer.step({ ...ports.start, vx: 0, vz: 0 });
+      if (streamer.stats().refused > 0) throw new Error('Home tile residency admission deferred');
+    }
+    const world = await loading;
+    ports.frame(() => { if (!scope.disposed && !scope.disposing) { const at = ports.viewer(); streamer.step({ x: at.x, z: at.z, vx: 0, vz: 0 }); } });
+    return { props, refresh: world.refresh, get fine() { return world.fine; } };
+  } catch (error) {
+    try { scope.dispose(); } catch (cleanup) { throw new AggregateError([error, cleanup], 'Standalone tile work and cleanup failed', { cause: cleanup }); }
+    throw error;
+  }
 }
