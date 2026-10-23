@@ -48,3 +48,24 @@ it('ends a scoped cell step immediately when fading without a boot-plan view', a
     expect(loading.scope.disposed).toBe(true);
   } finally { loading.scope.dispose(); }
 });
+
+it('repaints the facts of a step at most every 200 ms while its clock moves every frame, and a new step at once', () => {
+  const loading = new Loading({ id: 'test', name: 'Test' }, { scoped: true });
+  const foot = (): string => loading.root.querySelector('[data-el="foot"]')?.textContent ?? '';
+  const clock = (): string => loading.root.querySelector('[data-el="clock"]')?.textContent ?? '';
+  try {
+    loading.setPath({ id: 'cell', steps: [{ key: 'audio', label: 'Audio', weight: 1 }, { key: 'enter', label: 'Enter', weight: 1 }] });
+    loading.scopedStep('audio', 'Clips 1 / 3');
+    now = 200; vi.advanceTimersByTime(32);
+    expect(foot()).toContain('Clips 1 / 3');
+    const before = clock();
+    loading.scopedStep('audio', 'Clips 2 / 3');
+    now = 300; vi.advanceTimersByTime(32);
+    expect(foot()).toContain('Clips 1 / 3'); expect(clock()).not.toBe(before);
+    now = 420; vi.advanceTimersByTime(32);
+    expect(foot()).toContain('Clips 2 / 3');
+    loading.scopedStep('enter', 'Activating');
+    now = 430; vi.advanceTimersByTime(32);
+    expect(foot()).toContain('Activating');
+  } finally { loading.scope.dispose(); }
+});

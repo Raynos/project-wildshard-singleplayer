@@ -42,7 +42,7 @@ export interface LoadingAdmission {
   phase: string; detail: string; bytesRead: number; bytesTotal: number; filesDone: number; filesTotal: number;
 }
 /** The loading panel's repaint cadence while a step runs (20 Hz: the clock's tenths still tick); done and errors paint at once. */
-const PAINT_MS = 50;
+const PAINT_MS = 200;
 let currentLoading: { id: string; loading: Loading } | null = null;
 /** the loading screen: the download and set-up bars, the boot steps' rows, the tier and the diagnostics */
 export class Loading {
@@ -329,13 +329,15 @@ export class Loading {
     if (this.view) this.lastFrameStep = `${this.view.label}${this.view.detail ? `: ${this.view.detail}` : ''}`;
     else if (this.admission) this.lastFrameStep = this.admission.detail;
     if (now - this.lastDiagnosticAt > 250) { this.paintDiagnostics(); this.lastDiagnosticAt = now; }
-    // SF67: within a step the clock, bars and rows repaint at most PAINT_MS apart, not every frame: each repaint is a style,
-    // layout and paint of the panel (~3 ms a frame at 4x CPU, ~1.2 s of a Nalati load). A new step paints on its first frame.
+    // the clock is one text node, written only when its tenth of a second changes: it moves every frame
+    const s = (now - this.t0) / 1000;
+    set(this.els.clock, engineString('s_c0951c6055b1', [String(Math.floor(s / 60)).padStart(2, '0'), (s % 60).toFixed(1).padStart(4, '0')]));
+    // SF67 / G622: within a step the bars, rows and facts repaint at most PAINT_MS apart, not every frame: each repaint
+    // snapshots the timeline, the waits and every declared file, then styles, lays out and paints the panel (~180 ms of a
+    // grid Home region at 50 ms apart). A new step paints on its first frame; done and errors paint at once.
     const step = this.view?.step ?? this.admission?.phase ?? '';
     if (step === this.lastPaintStep && now - this.lastPaintAt < PAINT_MS) return;
     this.lastPaintAt = now; this.lastPaintStep = step;
-    const s = (now - this.t0) / 1000;
-    set(this.els.clock, engineString('s_c0951c6055b1', [String(Math.floor(s / 60)).padStart(2, '0'), (s % 60).toFixed(1).padStart(4, '0')]));
     // Easing continues through a quiet wait without needing another producer event.
     if (this.view !== null) this.view = { ...this.view, setup: this.setupProgress() };
     this.dirty = true;
