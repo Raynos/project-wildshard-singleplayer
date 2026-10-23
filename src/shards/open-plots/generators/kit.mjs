@@ -103,6 +103,14 @@ function writer(parts, centre, turns) {
     quad(part, [x1, y0, z1], [x1, y0, z0], [x1, y1, z0], [x1, y1, z1], colour);
     quad(part, [x0, y0, z0], [x0, y0, z1], [x0, y1, z1], [x0, y1, z0], colour);
   };
+  /** `box`'s four sides only, for a box whose top is always covered (a post under its lantern, a trunk inside its crown,
+   *  a wall under its roof's closed underside): NM12, the triangles the court greens and canal glow add come back here */
+  const sides = (part, [x0, y0, z0], [x1, y1, z1], colour) => {
+    quad(part, [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1], colour);
+    quad(part, [x1, y0, z0], [x0, y0, z0], [x0, y1, z0], [x1, y1, z0], colour);
+    quad(part, [x1, y0, z1], [x1, y0, z0], [x1, y1, z0], [x1, y1, z1], colour);
+    quad(part, [x0, y0, z0], [x0, y0, z1], [x0, y1, z1], [x0, y1, z0], colour);
+  };
   /** an up-facing rectangle at height y */
   const floor = (part, x0, z0, x1, z1, y, colour) => quad(part, [x0, y, z0], [x0, y, z1], [x1, y, z1], [x1, y, z0], colour);
   /** a collision box (tile-local, turned) */
@@ -110,7 +118,7 @@ function writer(parts, centre, turns) {
     const a = turn(min), b = turn(max);
     parts.solid.box('Solid', [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.min(a[2], b[2])], [Math.max(a[0], b[0]), Math.max(a[1], b[1]), Math.max(a[2], b[2])]);
   };
-  return { tri, triColours, quad, box, floor, solid };
+  return { tri, triColours, quad, box, sides, floor, solid };
 }
 
 /** An n-sided frustum about (x, z) from radius r0 at y0 to r1 at y1 (r1 0: a cone), capped. */
@@ -149,15 +157,20 @@ export function pool(w, x, z, radius, colour, y = 0.08) {
     w.triColours('Pool', [x, y, z], [x + radius * Math.sin(a0), y, z + radius * Math.cos(a0)], [x + radius * Math.sin(a1), y, z + radius * Math.cos(a1)], [colour, [0, 0, 0], [0, 0, 0]]);
   }
 }
+/** A flat Pool triangle facing up (the additive Pool draws its front faces), its corners re-ordered when they wind down. */
+function upward(w, a, b, c, colours) {
+  const winding = (b[2] - a[2]) * (c[0] - a[0]) - (b[0] - a[0]) * (c[2] - a[2]);
+  if (winding >= 0) w.triColours('Pool', a, b, c, colours); else w.triColours('Pool', a, c, b, [colours[0], colours[2], colours[1]]);
+}
 /** A lantern on a post (post in Kit, the lantern lit) and its pool of light. */
 function lantern(w, x, z, p, height = 2.8) {
-  w.box('Kit', [x - 0.09, 0, z - 0.09], [x + 0.09, height, z + 0.09], p.wood);
+  w.sides('Kit', [x - 0.09, 0, z - 0.09], [x + 0.09, height, z + 0.09], p.wood);
   w.box('Glow', [x - 0.3, height, z - 0.3], [x + 0.3, height + 0.75, z + 0.3], p.lantern, p.lantern);
   pool(w, x, z, 4.5, p.pool);
 }
 /** A low-poly tree: trunk and a faceted crown (two hexagonal cones back to back). */
 function tree(w, x, z, size, p, spin) {
-  w.box('Kit', [x - 0.25, 0, z - 0.25], [x + 0.25, size * 0.45, z + 0.25], p.trunk);
+  w.sides('Kit', [x - 0.25, 0, z - 0.25], [x + 0.25, size * 0.45, z + 0.25], p.trunk);
   frustum(w, 'Kit', x, z, 6, size * 0.42, 0, size * 0.62, size * 1.1, p.foliage, spin);
   frustum(w, 'Kit', x, z, 6, size * 0.42, 0, size * 0.62, size * 0.32, p.foliageDark, spin);
   w.solid([x - 0.3, 0, z - 0.3], [x + 0.3, 3, z + 0.3]);
@@ -171,7 +184,7 @@ function house(w, p, variant) {
     ? [[-24, 24, 8, 26], [-26, -12, -24, 6], [12, 26, -24, 6]]
     : [[-24, 24, 11, 26], [-25, -11, -24, 9], [11, 25, -24, 9], [-7, 7, -26, -18]];
   for (const [x0, x1, z0, z1] of blocks) {
-    w.box('Kit', [x0, 0, z0], [x1, wall, z1], p.wall);
+    w.sides('Kit', [x0, 0, z0], [x1, wall, z1], p.wall);
     hipRoof(w, x0 - 1.2, x1 + 1.2, z0 - 1.2, z1 + 1.2, wall, roof, p.roof, p.wood);
     w.solid([x0, 0, z0], [x1, wall + roof, z1]);
     // lit windows on the court-facing walls (one quad each, a hair off the wall)
@@ -188,6 +201,12 @@ function house(w, p, variant) {
   for (const x of [-9, 9]) lantern(w, x, -24, p);
   tree(w, 0, -6, 7, p, 0.3);
   w.floor('Kit', -12, -26, 12, 8, 0.04, p.court);
+  // NM12: a lawn in the court and a young tree on it (the mockup's green courts; clear of the mouth block and lanterns): a
+  // trunk and one cone, half a full tree's triangles (the T8 tile caps are shrink-only)
+  w.floor('Kit', -9, -16, 9, 2, 0.05, p.lawn);
+  w.sides('Kit', [5.75, 0, -11.25], [6.25, 2, -10.75], p.trunk);
+  frustum(w, 'Kit', 6, -11, 6, 2, 0, 2.6, 5.2, p.foliage, 1.2);
+  w.solid([5.7, 0, -11.3], [6.3, 2, -10.7]);
 }
 /** G garden: four lawns between cross paths, trees, a pond in the south-east lawn, lanterns along the paths. */
 function garden(w, p, variant) {
@@ -264,6 +283,13 @@ function canal(w, p, type) {
     ? [[-half, HALF, -half, -HALF], [half, -HALF, half, HALF]]
     : [[-half, half, -half, -HALF], [HALF, half, -half, half], [half, -HALF, half, -half], [half, -half, HALF, -half]];
   for (const [xa, za, xb, zb] of walls) w.quad('Kit', [xa, -depth, za], [xb, -depth, zb], [xb, 0, zb], [xa, 0, za], p.stone);
+  // NM12: the canals' light at night, a blue glow on the water along each wall (the additive Pool: bright at the wall,
+  // black 2.5 m in), so the canals read from the road and from 100 m up as in the mockup
+  if (p.canalGlow !== undefined) for (const [xa, za, xb, zb] of walls) {
+    const nx = xa === xb ? -Math.sign(xa) : 0, nz = xa === xb ? 0 : -Math.sign(za), y = -depth + 0.06, k = 2.5, c = p.canalGlow, o = [0, 0, 0];
+    upward(w, [xa, y, za], [xb, y, zb], [xb + nx * k, y, zb + nz * k], [c, c, o]);
+    upward(w, [xa, y, za], [xb + nx * k, y, zb + nz * k], [xa + nx * k, y, za + nz * k], [c, o, o]);
+  }
   // rims along the inner banks (never across a border: the lanes cross on the bridges)
   const rimRuns = type === 'C'
     ? [[-half - rim, -INNER, -half, INNER], [half, -INNER, half + rim, INNER]]

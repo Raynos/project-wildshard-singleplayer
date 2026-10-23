@@ -41,7 +41,7 @@
     "bulbRed": "#ff4a3a",
     "gatePool": "#c2361c",
     "pavingAlt": "#353c51",
-    "laneAlt": "#434c67"
+    "laneAlt": "#434c67", "canalGlow": "#1f7fff"
   },
   "landmark": {
     "near": "public/assets/open-plots/night-market/landmark.glb",
