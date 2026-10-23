@@ -148,7 +148,6 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
 
   titan.riders = night.riders;    // B14: the Titan's storm riders ride the same rig
   updates.push((dt, t) => { if (!practiceRoom.open) night.update(dt, t); });   // no night riders shooting up at a practice room (E321)
-  updates.push(dt => { ride?.update(dt); });
   // ── wearable skins (B15; src/shards/nalati-grasslands/weapons/nalatiSkins.ts): the elites' drops (mirrored from elites.skins once a second) and the
   //    Titan's saddle, painted on the kit and on the horse you ride / your bonded horse ──
 
@@ -161,10 +160,10 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   // ── sound (B16 audio): wraps attachAnimals / bindPlay / wildEnv.onEvent for the creatures and the kit — src/shards/nalati-grasslands/sound.ts ──
   updates.push(dt=>{const clock=weather.clock;plugin.app.events.emit('audio.scene-frame',{delta:dt,inputs:{wind:wind.speed,gust:wind.gustAt(player.position.x,player.position.z),sun:clock.sunElevation,dark:Number(clock.dayPhase==='dusk'||clock.dayPhase==='night'),storm:Number(weather.weather.stormActive),inside:Number(nalati.boss.inside),engaged:Number(nalati.titan.engaged)}});});
 
-  const ids = ['pois', 'weather.fx', 'titan', 'look', 'elites', 'boss', 'wildlife', 'stealth', 'night', 'ride', 'skins', 'sound'];
+  const ids = ['pois', 'weather.fx', 'titan', 'look', 'elites', 'boss', 'wildlife', 'stealth', 'night', 'skins', 'sound'];
   let previous = 'main.world';
   if (updates.length !== ids.length) throw new Error('Nalati update registration lacks an id');
-  for (let index = 0; index < 12; index++) {
+  for (let index = 0; index < 11; index++) {
     const name = ids[index], run = updates[index];
     if (name === undefined || run === undefined) throw new Error('Nalati update registration lacks an id');
     const id = `shard.nalati.${name}`;
@@ -172,7 +171,6 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
     else if (name !== 'wildlife') plugin.system({ id, phase: 'update', after: [previous], before: ['engine.creatures.update'], run });
     previous = id;
   }
-  plugin.system({ id: 'shard.nalati.reins', phase: 'late', run: (dt) => { ride?.late(dt); } });
   plugin.on('weapon.fired', () => { stealth?.noteShot(); if(playKit!==null)playKit.polearm('polearm').damageScale=stealth?.sneakMultiplier()??1; wildEnv.lastShotT = plugin.app.clock.now; });
   // A landing arrow or javelin, preserving the original exclusion around the player.
   plugin.on('weapon.impact', ({ point }) => {

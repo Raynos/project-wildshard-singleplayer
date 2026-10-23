@@ -3,8 +3,9 @@ import { isJsonData } from './json';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const order = { system: id, before: v.pipe(v.array(id), v.maxLength(16)), after: v.exactOptional(v.pipe(v.array(id), v.maxLength(16))) };
-/** Native owner/registration glue only. Rows never contain a clock, phase, math law or callback. */
+/** Native owner/registration glue only. Rows never contain a clock, math law or callback. */
 export const WorldUpdatesSchema = v.pipe(v.unknown(), v.check(isJsonData, 'World updates require plain JSON data'), v.array(v.variant('kind', [
+  v.strictObject({ kind: v.literal('entered-owner'), ...order, owner: id, phase: v.picklist(['update', 'late']) }),
   v.strictObject({ kind: v.literal('wind'), ...order }),
   v.strictObject({ kind: v.literal('painted-world'), ...order, world: id, weather: id }),
   v.strictObject({ kind: v.literal('rope-deck'), ...order, deck: id, chain: id }),

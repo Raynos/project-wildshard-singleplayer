@@ -26,8 +26,12 @@ import type { SceneHandles } from './sceneHandles';
 import type { LivingBuildings } from './livingBuildings';
 import type { PainterlyWorld } from '../looks/postGraphLook';
 
+/** Existing entered owners expose their two native frame slots without another clock or saved state. */
+export interface WorldFrameOwner { readonly update: (dt: number, time: number) => void; readonly late: (dt: number, time: number) => void }
+
 /** A kind names a concrete platform owner, never an arbitrary shard result. */
 export interface EntryOwnerTypes {
+  'world-frame': WorldFrameOwner;
   scenes: SceneHandles;
   'world-weather': ForestWeatherRig;
   'world-point': Vector3 | null;
@@ -69,7 +73,7 @@ function check(scope: Scope, id: string): void {
 function book(scope: Scope): Owners {
   let value = books.get(scope);
   if (value === undefined) {
-    value = { scenes: new Map(), 'world-weather': new Map(), 'world-point': new Map(), 'arena-script': new Map(), 'arena-room': new Map(), taming: new Map(), adventure: new Map(), buildings: new Map(), forest: new Map(), cave: new Map(), quest: new Map(), 'quest-reference': new Map(),
+    value = { 'world-frame': new Map(), scenes: new Map(), 'world-weather': new Map(), 'world-point': new Map(), 'arena-script': new Map(), 'arena-room': new Map(), taming: new Map(), adventure: new Map(), buildings: new Map(), forest: new Map(), cave: new Map(), quest: new Map(), 'quest-reference': new Map(),
       object: new Map(), placed: new Map(), site: new Map(), floor: new Map(), 'fixed-draws': new Map(), 'drawn-models': new Map(), chain: new Map(), 'rope-deck': new Map(), ambient: new Map(), 'ambient-draw': new Map(), collection: new Map(), claims: new Map(),
       animals: new Map(), sounds: new Map(), 'quest-spawns': new Map(), 'painted-world': new Map() };
     books.set(scope, value);

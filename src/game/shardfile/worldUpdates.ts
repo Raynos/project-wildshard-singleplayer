@@ -25,8 +25,15 @@ export function installWorldUpdates(ctx: ShardContext, input: unknown): void {
   if (new Set(rows.map(row => row.system)).size !== rows.length) throw new Error('Repeated world update system');
   const checks: (() => boolean)[] = [];
   const updates = rows.map(row => {
-    let run: (dt: number) => void;
-    if (row.kind === 'wind') run = dt => { updateWind(dt); };
+    let run: (dt: number, time: number) => void;
+    if (row.kind === 'entered-owner') {
+      const owner = entryOwner(scope, 'world-frame', row.owner), update = owner.update, late = owner.late;
+      if (typeof update !== 'function' || typeof late !== 'function') throw new Error('Invalid world frame owner');
+      const same = (): boolean => entryOwner(scope, 'world-frame', row.owner) === owner && owner.update === update && owner.late === late;
+      checks.push(same);
+      const frame = row.phase === 'update' ? update : late;
+      run = (dt, time) => { live(); if (!same()) throw new Error('World frame owner changed'); frame.call(owner, dt, time); };
+    } else if (row.kind === 'wind') run = dt => { updateWind(dt); };
     else if (row.kind === 'rope-deck') {
       const deck = entryOwner(scope, 'rope-deck', row.deck), chain = entryOwner(scope, 'chain', row.chain);
       checks.push(() => entryOwner(scope, 'rope-deck', row.deck) === deck && entryOwner(scope, 'chain', row.chain) === chain);
@@ -45,7 +52,7 @@ export function installWorldUpdates(ctx: ShardContext, input: unknown): void {
       checks.push(() => entryOwner(scope, 'buildings', row.owner) === life);
       run = dt => { life.update(dt); };
     }
-    const system = { id: row.system, phase: 'update' as const, before: [...row.before], run };
+    const system = { id: row.system, phase: row.kind === 'entered-owner' ? row.phase : 'update' as const, before: [...row.before], run };
     return row.after === undefined ? system : Object.assign(system, { after: [...row.after] });
   });
   live(); if (checks.some(check => !check())) throw new Error('World update loans changed');

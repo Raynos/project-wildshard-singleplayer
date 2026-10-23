@@ -1,6 +1,7 @@
 import type { ShardContext } from '../plugin/context';
 import { installEnteredLevelService } from '../shard/retainedHooks';
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
+import { publishEntryOwner, presentEntryOwner, type WorldFrameOwner } from '../shardfile/entryOwners';
 import { DataPanel } from '../ui/dataPanels';
 import { enteredAdventurePersistence } from '../quest/chapterBindings';
 import type { HeldClaims } from '../loadout/claims';
@@ -284,17 +285,28 @@ export interface PageRidingView {
   readonly mounted: boolean; readonly reins: MountedReins; readonly raid: PagePastureRaid<CrowdDraw>;
   update: (dt: number) => void; late: (dt: number) => void; noteShot: (x: number, z: number) => void;
 }
-const clientSessions = new WeakMap<Scope, { readonly rows: v.InferOutput<typeof ClientRidingSessionSchema>; readonly figure: MountedSpecimenSeatRows | null; view: PageRidingView | null }>();
+interface ClientRidingOwner extends WorldFrameOwner { readonly rows: v.InferOutput<typeof ClientRidingSessionSchema>; readonly figure: MountedSpecimenSeatRows | null; view: PageRidingView | null }
+const clientSessions = new WeakMap<Scope, ClientRidingOwner>();
 /** Admit the client session before world wiring; body and equipment authorities
  * arrive through their native stages, never through authored callbacks. */
 export async function installClientRiding(ctx: ShardContext, feature: ClientFeatureRow): Promise<void> {
-  if (feature.kind !== 'riding.session' || ctx.scope.disposed || clientSessions.has(ctx.scope)) throw new Error('Invalid riding feature owner');
-  const active = (): void => { if (ctx.scope.disposed) throw new Error('Riding owner left during admission'); };
-  const rows = v.parse(ClientRidingSessionSchema, await ctx.product.json(feature.file));
-  const figure = rows.figure === undefined ? null : v.parse(MountedSpecimenSeatSchema, await ctx.product.json(rows.figure));
-  active();
-  clientSessions.set(ctx.scope, { rows, figure, view: null });
-  ctx.scope.onDispose(() => { clientSessions.delete(ctx.scope); });
+  const scope = ctx.scope, product = ctx.product;
+  if (feature.kind !== 'riding.session' || scope.disposed || scope.disposing || clientSessions.has(scope)) throw new Error('Invalid riding feature owner');
+  const active = (): void => { if (scope.disposed || scope.disposing || ctx.scope !== scope || ctx.product !== product) throw new Error('Riding owner left during admission'); };
+  const read = product.json;
+  const available = (): void => { active(); if (product.json !== read || clientSessions.has(scope) || (feature.owner !== undefined && presentEntryOwner(scope, 'world-frame', feature.owner) !== null)) throw new Error('Riding admission owner changed or already published'); };
+  available();
+  const rows = v.parse(ClientRidingSessionSchema, await read.call(product, feature.file));
+  available();
+  const figure = rows.figure === undefined ? null : v.parse(MountedSpecimenSeatSchema, await read.call(product, rows.figure));
+  available();
+  const owner: ClientRidingOwner = { rows, figure, view: null,
+    update(dt) { active(); if (clientSessions.get(scope) !== owner) throw new Error('Riding frame owner changed'); owner.view?.update(dt); },
+    late(dt) { active(); if (clientSessions.get(scope) !== owner) throw new Error('Riding frame owner changed'); owner.view?.late(dt); },
+  };
+  clientSessions.set(scope, owner);
+  if (feature.owner !== undefined) publishEntryOwner(scope, 'world-frame', feature.owner, owner);
+  scope.onDispose(() => { clientSessions.delete(scope); });
 }
 /** Enter after native animals and equipment exist. The plan supplies all labels,
  * guest rows and resource ids; the page resolves its own concrete authorities. */

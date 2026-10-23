@@ -11406,6 +11406,11 @@ world context. The entered grapple capability retains its kit-only admission.
 
 `enterClientRiding(ctx, claims)` borrows `claims.pageKit(ctx)`: the exact kit
 built in that construction scope, or null before build and during retirement.
+A `riding.session` feature may name its published frame `owner`. This lends the
+same installed session record; its frame slots remain inert until the original
+play-time entry supplies the view. The record adds no clock, body, equipment or
+continuation owner and refuses retired or replaced scope/product authority.
+
 There is no second global kit book. Product metadata, original blade/polearm
 sets and the specimen catalogue survive entry retirement; native preparation,
 construction, reward upgrades and mount/refill loans keep their original
@@ -11789,8 +11794,11 @@ and installs installWorldUpdates at the entered world-bindings boundary, rank
 -10, before runtime hooks and movers. Each row selects one existing native
 primitive: wind, an awake rope-deck interpolation over the original chain,
 construction-owned toon following, or LivingBuildings.update. Rows declare the
-original system id and before list; authored phases, callbacks and property
-paths refuse. Every original loan and toon/lighting identity preflights before
+original system id and before list. An `entered-owner` row names a `world-frame`
+loan and one closed native phase (`update` or `late`); both method identities
+preflight before registration and are checked again before every invocation.
+The owner receives the existing system's delta/time with its original receiver.
+Arbitrary phases, callbacks and property paths refuse. Every original loan and toon/lighting identity preflights before
 registration. The bound construction scope selects the toon book across
 re-entry; entered system ownership does not dispose any borrowed native owner.
 

@@ -10,5 +10,25 @@
     ],
     "world": "nalati.painted",
     "weather": "nalati.weather"
+  },
+  {
+    "kind": "entered-owner",
+    "owner": "nalati.riding",
+    "phase": "update",
+    "system": "shard.nalati.ride",
+    "after": [
+      "shard.nalati.night"
+    ],
+    "before": [
+      "shard.nalati.skins",
+      "engine.creatures.update"
+    ]
+  },
+  {
+    "kind": "entered-owner",
+    "owner": "nalati.riding",
+    "phase": "late",
+    "system": "shard.nalati.reins",
+    "before": []
   }
 ]

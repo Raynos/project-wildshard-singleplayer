@@ -3,7 +3,7 @@ import * as v from 'valibot';
 import { MeshBasicMaterial, Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { withOwner } from '../src/engine/app/ownership';
-import type { SystemSpec } from '../src/engine/app/systems';
+import { sortSystems, type SystemSpec } from '../src/engine/app/systems';
 import { ToonLook } from '../src/engine/render/families/toon';
 import { updateWind, windUniforms } from '../src/engine/world/wind';
 import type { RopeChain } from '../src/engine/physics/ropeChain';
@@ -200,4 +200,61 @@ test('a missing painted suffix or accessor row registers no earlier native updat
     expect(() => installWorldUpdates(f.ctx, [{ get kind() { return getter(); }, system: 'getter', before: [] }])).toThrow('plain JSON');
     expect(getter).not.toHaveBeenCalled(); expect(f.systems).toEqual([]);
   } finally { f.finish(); }
+});
+
+
+test('entered frame rows preserve native phases, order, receiver and page time', () => {
+  const f = fixture(), calls: unknown[] = [];
+  const owner = { update(dt: number, time: number) { expect(this).toBe(owner); calls.push(['update', dt, time]); },
+    late(dt: number, time: number) { expect(this).toBe(owner); calls.push(['late', dt, time]); } };
+  try {
+    publishEntryOwner(f.construction, 'world-frame', 'courier', owner);
+    lendEntryOwner(f.scope, f.construction, 'world-frame', 'courier');
+    installWorldUpdates(f.ctx, [
+      { kind: 'entered-owner', owner: 'courier', phase: 'update', system: 'courier.frame', after: ['courier.observe'], before: ['courier.paint'] },
+      { kind: 'entered-owner', owner: 'courier', phase: 'late', system: 'courier.pose', before: [] },
+    ]);
+    expect(f.systems.map(({ id, phase, before, after }) => ({ id, phase, before, after }))).toEqual([
+      { id: 'courier.frame', phase: 'update', before: ['courier.paint'], after: ['courier.observe'] },
+      { id: 'courier.pose', phase: 'late', before: [], after: undefined },
+    ]);
+    expect(calls).toEqual([]);
+    for (const time of [1234.5, 1234.5 + 600]) for (const system of f.systems) system.run(-0, time);
+    expect(calls).toEqual([['update', -0, 1234.5], ['late', -0, 1234.5], ['update', -0, 1834.5], ['late', -0, 1834.5]]);
+    const run = f.systems[0]?.run;
+    owner.late = () => { throw new Error('foreign'); };
+    expect(() => run?.(1, 7)).toThrow('World frame owner changed'); expect(calls).toHaveLength(4);
+  } finally { f.finish(); }
+});
+
+test('entered frame banks refuse missing suffixes, arbitrary dispatch and retiring owners before effects', () => {
+  const f = fixture(), update = vi.fn<(dt: number, time: number) => void>(), late = vi.fn<(dt: number, time: number) => void>();
+  const row = { kind: 'entered-owner', owner: 'courier', phase: 'update', system: 'courier.frame', before: [] };
+  try {
+    expect(() => installWorldUpdates(f.ctx, [{ kind: 'wind', system: 'wind', before: [] }, row])).toThrow('Missing live entry owner');
+    expect(f.systems).toEqual([]);
+    publishEntryOwner(f.construction, 'world-frame', 'courier', { update, late });
+    lendEntryOwner(f.scope, f.construction, 'world-frame', 'courier');
+    for (const bad of [{ ...row, phase: 'physics' }, { ...row, method: 'update' }, { ...row, run: update }])
+      expect(() => installWorldUpdates(f.ctx, [bad])).toThrow();
+    expect(f.systems).toEqual([]); expect(update).not.toHaveBeenCalled();
+    installWorldUpdates(f.ctx, [row]); const run = f.systems[0]?.run;
+    f.construction.dispose();
+    expect(() => run?.(1, 9)).toThrow('owner'); expect(update).not.toHaveBeenCalled(); expect(late).not.toHaveBeenCalled();
+  } finally { f.finish(); }
+});
+
+
+test('earlier owner-row registration preserves the original native update graph', () => {
+  const ids = ['pois', 'weather.fx', 'titan', 'look', 'elites', 'boss', 'wildlife', 'stealth', 'night', 'ride', 'skins', 'sound'];
+  const original: SystemSpec[] = [], adopted: SystemSpec[] = [], run = (): void => undefined;
+  let previous = 'main.world';
+  for (const name of ids) {
+    const id = `shard.fixture.${name}`, system = { id, phase: 'update' as const, after: [previous], before: ['engine.creatures.update'], run };
+    original.push(system);
+    if (name === 'look') adopted.push(system, { id: 'shard.fixture.ride', phase: 'update', after: ['shard.fixture.night'], before: ['shard.fixture.skins', 'engine.creatures.update'], run });
+    else if (name !== 'ride') adopted.push(name === 'skins' ? { ...system, after: ['shard.fixture.night'] } : system);
+    previous = id;
+  }
+  expect(sortSystems(adopted).map(system => system.id)).toEqual(sortSystems(original).map(system => system.id));
 });
