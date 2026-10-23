@@ -1,4 +1,7 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- admit generated grass rows without inferring their complete JSON type
+import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
+import * as v from 'valibot';
 import { Scope } from '../src/engine/app/scope';
 import { WorldAssembly, type WorldAssemblyPorts } from '../src/game/shardfile/worldAssembly';
 import type { ShardContext } from '../src/game/plugin/context';
@@ -13,8 +16,11 @@ import type { ForestWeatherRig } from '../src/game/weather/forest';
 import { legacyDouble } from './fake/FakeGame';
 import paintedTextures from '../src/shards/nalati-grasslands/data/paintedTextures.generated.json' with { type: 'json' };
 import specimenData from '../src/shards/nalati-grasslands/data/specimens.generated.json' with { type: 'json' };
-import grassRows from '../src/shards/nalati-grasslands/data/grass.generated.json' with { type: 'json' };
+import { GrassPresentationSchema } from '../src/format/fieldPresentation';
 import capture from '../src/shards/nalati-grasslands/data/staticCapture.json' with { type: 'json' };
+
+const grassRows=v.parse(GrassPresentationSchema,
+  JSON.parse(readFileSync('src/shards/nalati-grasslands/data/grass.generated.json','utf8')));
 
 // An orchard world (the stages' fixture level): its own fixed-draw library and a painted world borrowing the first
 // level's ground and blade rows.
