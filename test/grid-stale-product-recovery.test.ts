@@ -3,7 +3,7 @@ import { SaveStore } from '../src/engine/saves/store';
 import { installSaveEnvironment, saveEnvironment } from '../src/engine/saves/environment';
 import { markReload, type LastEnd } from '../src/engine/boot/lastEnd';
 import { consumeTitleArrival, pendingTitleArrival, setTitleArrival } from '../src/engine/boot/titleArrival';
-import { GridAssembly } from '../src/game/grid/assembly';
+import { GridAssembly, type GridCell } from '../src/game/grid/assembly';
 import { pageGridIntents } from '../src/game/grid/intent';
 import { bootPageMode, clearGridRecovery, consumeGridRecovery, gridRecoveryLoop } from '../src/game/grid/pageEntry';
 import { travelService, travelSlot } from '../src/game/travel/travel';
@@ -18,7 +18,7 @@ class Storage {
   key(index: number): string | null { return [...this.data.keys()][index] ?? null; }
 }
 const assembly = new GridAssembly({ developer: true, devserver: false });
-const home = (() => {
+const home: GridCell = (() => {
   const cell = assembly.at(0, 0);
   if (cell === undefined) throw new Error('Missing actual grid home');
   return cell;
