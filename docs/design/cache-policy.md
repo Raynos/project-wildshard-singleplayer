@@ -162,6 +162,27 @@ iOS Safari, so the only defence is a resident set that is small and cheap to ref
 
 ## Verified
 
+2026-10-23, U1–U3, iPhone 17 Pro Simulator, phone tier, DPR 2:
+an older `e314f1f2a` deployment updated to `ff45b6a24` in 9,512 ms
+tap-to-title. The navigation reached the origin after 8,020 ms while the
+install fetched the entire changed code inventory. Another transition
+failed to reach the title within 90 s after a module-import recovery;
+the failing module URL was not captured. This was not the 25 s boot
+watchdog, and the intermittent module failure did not reproduce in the
+instrumented diagnostic or corrected run.
+
+With `e69de24d5d`, the complete static entry graph plus CSS was 26 files /
+812,766 bytes, instead of installing the full 18,485,589-byte code
+inventory. The corrected transition reached the new title in 1,559 ms:
+902 ms to pagehide and 655 ms from the new document to title. There were
+no boot error reports, failed requests or recovery navigation. The old
+source came from its immutable Vercel deployment and the corrected source
+from an exact local production preview, through one local origin. This
+proves the install queue removal, not a production-network latency gain.
+The preview, Simulator connection and proxy were stopped after sampling.
+Focused worker tests additionally retain offline lazy-code reads after
+background warming and foreground cancellation of speculative reads.
+
 2026-09-17, `pnpm build && vite preview --port 4174`, headless Chromium via `agent-browser`, build
 `0b33061-mu6cvxgj-76c689979d`, `?nolock=1`:
 
