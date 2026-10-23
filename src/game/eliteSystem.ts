@@ -148,6 +148,9 @@ export class EliteCore<S extends EliteCoreScript> {
     this.saved = persistence.read(slug);
   }
 
+  /** Original concrete player loan, for identity admission before registration. */
+  get player(): EliteCoreHost['player'] { return this.host.player; }
+
   add(script: S): EliteCoreEntry<S> {
     const s = this.saved[script.def.id] ?? { timer: 0, discovered: false, skinTaken: false, kills: 0, retired: false };
     this.saved[script.def.id] = s;

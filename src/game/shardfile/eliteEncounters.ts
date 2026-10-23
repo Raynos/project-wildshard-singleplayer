@@ -6,7 +6,7 @@ import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import { NativeEliteKernels, type NativeEliteKernelLoans } from '@wildshard/engine/ai/eliteKernels';
 import type { StalkerBrain } from '@wildshard/engine/ai/stalker';
 import type { PackBrain } from '@wildshard/engine/ai/pack';
-import { EliteCore, EliteCoreContinuationSchema, memoryElitePersistence, type EliteCoreDef, type EliteCoreScript } from '../eliteSystem';
+import { EliteCore, EliteCoreContinuationSchema, type EliteCoreDef, type EliteCoreScript } from '../eliteSystem';
 
 const silent = (): void => undefined;
 const finite = v.pipe(v.number(), v.finite());
@@ -48,8 +48,7 @@ export interface EliteEncounterPorts {
 /** Both wire layouts retain their existing adapter IDs, versions and field names. Upgrades explicitly name retired fields. */
 export interface EliteEncounterSpec {
   readonly step: string; readonly version: number;
-  readonly conditions: { readonly mode: 'weights'; readonly dusk: () => number; readonly night: () => number }
-    | { readonly mode: 'phase'; readonly phase: () => string; readonly storm: () => boolean };
+  readonly core: EliteCore<EliteCoreScript<AnimalSim>>;
   readonly rows?: readonly EliteEncounterRow[];
   readonly ports?: EliteEncounterPorts;
   readonly wire: { readonly detached?: string };
@@ -97,13 +96,8 @@ export function installEliteEncounters(host: SimHost, spec: EliteEncounterSpec):
   readonly core: EliteCore<EliteCoreScript<AnimalSim>>; readonly scripts: readonly EliteCoreScript<AnimalSim>[];
   readonly initialize: () => void;
 } {
-  const conditions = spec.conditions;
-  const core = new EliteCore<EliteCoreScript<AnimalSim>>({ player: host.player, condition: rule => {
-    if (rule === 'always') return true;
-    if (conditions.mode === 'weights') return rule === 'dusk' ? conditions.dusk() > 0.5 : rule === 'night' && conditions.night() > 0.5;
-    const phase = conditions.phase();
-    return rule === 'storm' ? conditions.storm() : rule === 'night' ? phase === 'night' : phase === 'dusk' || phase === 'night';
-  } }, {}, host.level.id, memoryElitePersistence());
+  const core = spec.core;
+  if (!(core instanceof EliteCore) || Object.getPrototypeOf(core) !== EliteCore.prototype || core.player !== host.player || core.entries.length > 0) throw new Error('Foreign or populated native elite core');
   const rebinders = new WeakMap<Member, (a: AnimalSim) => void>();
   const ports = spec.ports, rows = spec.rows ?? [], members: Member[] = [];
   const pin = (a: AnimalSim | null, engaged: boolean): void => { if (a === null || ports === undefined) return; if (engaged) ports.bindings.pinned.add(a); else ports.bindings.pinned.delete(a); };

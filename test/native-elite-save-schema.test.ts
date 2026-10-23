@@ -1,3 +1,4 @@
+import { nativeEliteCore } from './fixtures/nativeEliteCore';
 import {expect,test} from 'vitest';
 import * as v from 'valibot';
 import {installEliteEncounters,eliteBindings,type EliteEncounterPorts,type EliteEncounterRow} from '../src/game/shardfile/eliteEncounters';
@@ -19,7 +20,7 @@ test('native member admission preserves strict pack fields and original continua
   const ports=legacyDouble<EliteEncounterPorts>({bindings:eliteBindings(),keepers:{herd:{rows:{},program:{}}},packs:()=>[],
     kernels:{rows:fixture.rows,contacts:fixture.loans.contacts,strikes:fixture.loans.strikes,terrain:fixture.loans.terrain,
       environment:fixture.loans.environment,ledges:[]}});
-  installEliteEncounters(host,{step:'marsh.elites',version:1,conditions:{mode:'phase',phase:()=> 'day',storm:()=>false},rows,ports,wire:{}});
+  installEliteEncounters(host,{step:'marsh.elites',version:1,core:nativeEliteCore(host),rows,ports,wire:{}});
   if(adapter===undefined)throw new Error('Missing original native save adapter');
   const savedAdapter=adapter;
   const save=savedAdapter.snapshot();

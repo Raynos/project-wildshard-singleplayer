@@ -70,6 +70,10 @@
     ],
     "@wildshard/format/terrainTileBytes": [
       "decodeTerrainTile"
+    ],
+    "@wildshard/game/eliteSystem": [
+      "EliteCore",
+      "memoryElitePersistence"
     ]
   },
   "constants": {
@@ -957,6 +961,298 @@
       }
     },
     {
+      "name": "eliteRuleProgram",
+      "value": {
+        "$call": [
+          {
+            "$ref": [
+              "@wildshard/game/population/returnProgram",
+              "ReturnProgram",
+              "native"
+            ]
+          },
+          {
+            "$ref": [
+              "host"
+            ]
+          },
+          {
+            "$ref": [
+              "boot",
+              "admission"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "eliteRuleCodes",
+      "value": {
+        "$new": [
+          {
+            "$ref": [
+              "assembly",
+              "Map"
+            ]
+          },
+          [
+            [
+              "always",
+              {
+                "rule": 0,
+                "phase": false,
+                "storm": false
+              }
+            ],
+            [
+              "storm",
+              {
+                "rule": 1,
+                "phase": true,
+                "storm": true
+              }
+            ],
+            [
+              "night",
+              {
+                "rule": 2,
+                "phase": true,
+                "storm": false
+              }
+            ],
+            [
+              "dusk",
+              {
+                "rule": 3,
+                "phase": true,
+                "storm": false
+              }
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "name": "elitePhaseCodes",
+      "value": {
+        "$new": [
+          {
+            "$ref": [
+              "assembly",
+              "Map"
+            ]
+          },
+          [
+            [
+              "dawn",
+              0
+            ],
+            [
+              "day",
+              0
+            ],
+            [
+              "golden",
+              0
+            ],
+            [
+              "dusk",
+              1
+            ],
+            [
+              "night",
+              2
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "name": "eliteStormCodes",
+      "value": {
+        "$new": [
+          {
+            "$ref": [
+              "assembly",
+              "Map"
+            ]
+          },
+          [
+            [
+              false,
+              0
+            ],
+            [
+              true,
+              1
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "name": "eliteCore",
+      "value": {
+        "$new": [
+          {
+            "$ref": [
+              "@wildshard/game/eliteSystem",
+              "EliteCore"
+            ]
+          },
+          {
+            "player": {
+              "$ref": [
+                "host",
+                "player"
+              ]
+            },
+            "condition": {
+              "$fn": {
+                "$call": [
+                  {
+                    "$fn": {
+                      "$call": [
+                        {
+                          "$fn": {
+                            "$eq": [
+                              {
+                                "$ref": [
+                                  "args",
+                                  0,
+                                  "accept"
+                                ]
+                              },
+                              1
+                            ]
+                          }
+                        },
+                        {
+                          "$call": [
+                            {
+                              "$ref": [
+                                "eliteRuleProgram",
+                                "project"
+                              ]
+                            },
+                            "eliteRule",
+                            {
+                              "rule": {
+                                "$ref": [
+                                  "args",
+                                  0,
+                                  "rule"
+                                ]
+                              },
+                              "phase": {
+                                "$if": [
+                                  {
+                                    "$ref": [
+                                      "args",
+                                      0,
+                                      "phase"
+                                    ]
+                                  },
+                                  {
+                                    "$coalesce": [
+                                      {
+                                        "$call": [
+                                          {
+                                            "$ref": [
+                                              "elitePhaseCodes",
+                                              "get"
+                                            ]
+                                          },
+                                          {
+                                            "$ref": [
+                                              "clock",
+                                              "dayPhase"
+                                            ]
+                                          }
+                                        ]
+                                      },
+                                      0
+                                    ]
+                                  },
+                                  0
+                                ]
+                              },
+                              "storm": {
+                                "$if": [
+                                  {
+                                    "$ref": [
+                                      "args",
+                                      0,
+                                      "storm"
+                                    ]
+                                  },
+                                  {
+                                    "$call": [
+                                      {
+                                        "$ref": [
+                                          "eliteStormCodes",
+                                          "get"
+                                        ]
+                                      },
+                                      {
+                                        "$ref": [
+                                          "env",
+                                          "storm"
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  0
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "$call": [
+                      {
+                        "$ref": [
+                          "eliteRuleCodes",
+                          "get"
+                        ]
+                      },
+                      {
+                        "$ref": [
+                          "args",
+                          0
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          {},
+          {
+            "$ref": [
+              "host",
+              "level",
+              "id"
+            ]
+          },
+          {
+            "$call": [
+              {
+                "$ref": [
+                  "@wildshard/game/eliteSystem",
+                  "memoryElitePersistence"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
       "name": "elites",
       "value": {
         "$call": [
@@ -976,25 +1272,6 @@
             "version": 1,
             "wire": {
               "detached": "argDetached"
-            },
-            "conditions": {
-              "mode": "phase",
-              "phase": {
-                "$fn": {
-                  "$ref": [
-                    "clock",
-                    "dayPhase"
-                  ]
-                }
-              },
-              "storm": {
-                "$fn": {
-                  "$ref": [
-                    "env",
-                    "storm"
-                  ]
-                }
-              }
             },
             "rows": [
               {
@@ -1520,6 +1797,11 @@
                   ]
                 }
               }
+            },
+            "core": {
+              "$ref": [
+                "eliteCore"
+              ]
             }
           }
         ]

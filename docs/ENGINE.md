@@ -10777,6 +10777,15 @@ Both preserve named variants and resolve main/rival identities through the
 concrete body authority. Restores validate every binding and strike before
 commit; a quiet re-save preserves the validated historical wire.
 
+`EliteCore.player` exposes its original concrete player for loan admission.
+The native encounter installer borrows that same empty Core and refuses a
+foreign player or a populated roster before registration. Native construction
+rows wire its existing condition hook to the admitted `eliteRule` guest on
+the same scoped return program. Each invocation samples fresh declared
+observations at its original slot: the unconditional rule reads neither
+phase nor storm; the storm rule reads phase then storm; phase rules read
+only phase. There is no frame cache, extra clock or new persistence owner.
+
 `engine/ai/eliteKernels.NativeEliteKernels` admits a bounded ordered bank of
 native stalker profile, contact-selection and knockdown rows. It constructs
 the original kernels over concrete SimHost, terrain/environment, lifecycle,

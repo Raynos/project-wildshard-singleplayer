@@ -1,3 +1,4 @@
+import { nativeEliteCore } from './fixtures/nativeEliteCore';
 import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import * as reach from '../src/engine/ai/reach';
@@ -33,7 +34,7 @@ function encounter(pattern: 'pouncer' | 'howler', original: boolean) {
     strikes: NALATI_STRIKES, swipeDamage: 14,
     strike: (strike, actor, target, hit, ports) => f.loans.contacts.contact(strike, { actor, target, hit, canReach: ports.reach }),
     knock: { duration: 1, dash: (x, z, _strength, out) => { const length = Math.hypot(x, z) || 1; out.x = x / length * 9; out.z = z / length * 9; } },
-  }) }) : installEliteEncounters(f.host, { ...spec, rows: [{ ...nativeRow, keeper: 'kernel' } satisfies EliteEncounterRow],
+  }) }) : installEliteEncounters(f.host, { ...spec, core: nativeEliteCore(f.host), rows: [{ ...nativeRow, keeper: 'kernel' } satisfies EliteEncounterRow],
     ports: legacyDouble<EliteEncounterPorts>({ ...common, keepers: { herd: { rows: {}, program: {} } }, kernels: {
       ...f.loans, rows: f.rows.filter(candidate => candidate.profile.pattern === pattern),
     } }),
