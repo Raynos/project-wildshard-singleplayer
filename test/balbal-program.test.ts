@@ -1,10 +1,13 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- validate generated guest rows without inferring the complete JSON type
+import { readFileSync } from 'node:fs';
 import { afterEach,expect,test,vi } from 'vitest';
-import { parse } from 'valibot';
+import { object, parse } from 'valibot';
 import { CreatureGuestSchema } from '../src/format/speciesBookRows';
 import { program } from './fixtures/projectedCreature';
 import * as strikes from '../src/engine/ai/strikeRows';
 import { ReturnProgram } from '../src/game/population/returnProgram';
-import generated from '../src/shards/nalati-grasslands/data/species.generated.json' with {type:'json'};
+
+const generated=parse(object({presentation:object({guest:CreatureGuestSchema})}),JSON.parse(readFileSync('src/shards/nalati-grasslands/data/species.generated.json','utf8')));
 
 afterEach(()=>{vi.restoreAllMocks();});
 
