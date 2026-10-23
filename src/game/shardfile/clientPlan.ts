@@ -326,7 +326,7 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     install: (ctx, row) => { if (row.kind === 'audio.cues' && row.stage === 'world') installClientCues(ctx, row); },
     play: { rank: 30, install: (ctx, row) => { if (row.kind === 'audio.cues' && row.stage !== 'world') installClientCues(ctx, row); } } },
   'fx.trail': { phase: 'play', rank: 90, lifetime: 'entered', sections: ['world/scenes'], install: installClientTrails },
-  'debug.expose': { phase: 'play', phaseFor: row => row.kind === 'debug.expose' && (row.objects !== undefined || row.source !== undefined) ? 'world-bindings' : 'play', rank: 100, lifetime: 'entered', sections: [], install: (ctx, row) => {
+  'debug.expose': { phase: 'play', phaseFor: row => row.kind === 'debug.expose' && row.source?.kind !== 'world-weather' && (row.objects !== undefined || row.source !== undefined) ? 'world-bindings' : 'play', rank: 100, lifetime: 'entered', sections: [], install: (ctx, row) => {
     if (row.kind !== 'debug.expose' || ctx.scope.disposed || ctx.scope.disposing || ctx.game.runtime === undefined) throw new Error('Client debug feature requires its runtime');
     if (row.source !== undefined) {
       const source=row.source;

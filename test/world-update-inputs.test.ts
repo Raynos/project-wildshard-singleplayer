@@ -36,7 +36,7 @@ function fixture(weatherReady=true){
  const sky=legacyDouble<PaintedSky>({clock}),weather=legacyDouble<ForestWeatherRig>({sky,storm:legacyDouble<NonNullable<ForestWeatherRig['storm']>>({get stormActive(){return storm;}})});
  if(weatherReady)publishEntryOwner(scope,'world-weather','nalati.weather',weather);
  const arena=legacyDouble<ArenaRoomEncounter>({get inside(){return inside;}}),fight=legacyDouble<ArenaRoomEncounter>({get engaged(){return engaged;}});
- const elite=legacyDouble<DeclaredEliteEntry>({skins:new Set(['first','second'])}),arenas=new Map([['arena',arena],['fight',fight]]),elites=new Map([['elites',elite]]);
+ const elite=legacyDouble<DeclaredEliteEntry>({skins:new Set(['first','second'])}),arenas=new Map([['nalati.king',arena],['nalati.titan',fight]]),elites=new Map([['nalati.elites',elite]]);
  publishBoundPersistence(scope,legacyDouble<AdventurePersistence>({cosmetics:{read:()=>({owned:[],worn:{}}),write:()=>true}}));
  installClientCosmeticFinishes(ctx);
  const finishes=clientCosmeticFinishes(ctx),originalOwn=finishes.locker.own.bind(finishes.locker),calls:string[]=[];
@@ -71,14 +71,14 @@ test('skin grants retain original initial tick, reset cadence, set order and fra
 });
 test('missing suffix loans refuse before any system or event publication',()=>{
  const f=fixture();
- try{f.arenas.delete('fight');expect(()=>installWorldUpdates(f.ctx,frameRows,{arenas:f.arenas,elites:f.elites})).toThrow('Missing audio arena');expect(f.systems).toEqual([]);expect(f.calls).toEqual([]);expect(f.emit).not.toHaveBeenCalled();}finally{f.finish();}
+ try{f.arenas.delete('nalati.titan');expect(()=>installWorldUpdates(f.ctx,frameRows,{arenas:f.arenas,elites:f.elites})).toThrow('Missing audio arena');expect(f.systems).toEqual([]);expect(f.calls).toEqual([]);expect(f.emit).not.toHaveBeenCalled();}finally{f.finish();}
 });
 test('a replaced native loan refuses before the corresponding effect',()=>{
  const f=fixture();
  try{
-  installWorldUpdates(f.ctx,frameRows,{arenas:f.arenas,elites:f.elites});f.arenas.set('fight',legacyDouble<ArenaRoomEncounter>({engaged:false}));
+  installWorldUpdates(f.ctx,frameRows,{arenas:f.arenas,elites:f.elites});f.arenas.set('nalati.titan',legacyDouble<ArenaRoomEncounter>({engaged:false}));
   expect(()=>f.systems.find(row=>row.id==='shard.nalati.sound')?.run(.1,2)).toThrow('Audio frame owner changed');expect(f.emit).not.toHaveBeenCalled();
-  f.elites.set('elites',legacyDouble<DeclaredEliteEntry>({skins:new Set()}));
+  f.elites.set('nalati.elites',legacyDouble<DeclaredEliteEntry>({skins:new Set()}));
   expect(()=>f.systems.find(row=>row.id==='shard.nalati.skins')?.run(.1,2)).toThrow('Cosmetic grant owner changed');expect(f.calls).toEqual([]);
  }finally{f.finish();}
 });

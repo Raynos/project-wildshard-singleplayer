@@ -12191,8 +12191,9 @@ retain identical ray/aim ordering and the same mutable wildlife-readiness
 book. Entire data admission and native owner resolution precede events.
 
 `debug.expose.source` selects one original runtime object, SceneDressing,
-timed riders or world-weather loan at world-bindings. It cannot be mixed
-with the existing objects list. Values retain their native identities; no
+timed riders or world-weather loan. Weather diagnostics run at play rank
+100 after weather.forest publishes at rank 40; other concrete sources run
+at world-bindings. Sources cannot be mixed with the existing objects list. Values retain their native identities; no
 resource, scene or callback owner is synthesized. The weather source is
 the original ForestWeatherRig, not a cached diagnostic component facade.
 

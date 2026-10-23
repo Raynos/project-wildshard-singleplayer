@@ -60,7 +60,7 @@ test('declared debug sources expose the original native owners without a facade 
  const cases=[{source:{kind:'runtime-object',id:'state'},value:state},{source:{kind:'timed-riders',owner:'orchard.night'},value:f.riders},{source:{kind:'dressing'},value:dressing},{source:{kind:'world-weather',owner:'orchard.weather'},value:weather}];
  try{for(const entry of cases){
   const row=parseClientPlan({version:1,features:[{kind:'debug.expose',name:'fixture',source:entry.source}]}).features[0];if(row?.kind!=='debug.expose')throw new Error('Missing debug row');
-  expect(CLIENT_FEATURES['debug.expose'].phaseFor?.(row)).toBe('world-bindings');
+  expect(CLIENT_FEATURES['debug.expose'].phaseFor?.(row)).toBe(entry.source.kind==='world-weather'?'play':'world-bindings');
   await CLIENT_FEATURES['debug.expose'].install(f.ctx,row,f.scope);expect(f.expose.mock.calls.at(-1)?.[1]).toBe(entry.value);
  }
  expect(()=>parseClientPlan({version:1,features:[{kind:'debug.expose',name:'invalid',objects:['state'],source:{kind:'dressing'}}]})).toThrow('one concrete source');
