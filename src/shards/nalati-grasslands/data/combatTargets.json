@@ -1,0 +1,4 @@
+{
+  "ray": { "sources": ["night", "titan"], "requires": "population.wildlife", "result": "copy" },
+  "aim": { "exclude": [{ "field": "hidden", "equals": 1 }, { "field": "owned", "equals": 1 }], "append": ["titan"] }
+}

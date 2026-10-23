@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { isJsonData } from './json';
 import { hookRules, type ShardHooks } from './hooks';
 import type { StateSchema } from './state';
 import type { ShardScriptBindings } from './scripts';
@@ -33,3 +34,13 @@ export function targetRules(targets: ShardTargets, shard: { state: v.InferOutput
   if (fields.length > 0 && shard.sim.scripts.length === 0) errors.push('item projections require declared state lane');
   return errors;
 }
+
+/** Ordered native ray and aim projections. Owners are concrete entered loans;
+ * declarations contain only ids, memory exclusions and readiness policy. */
+export const CombatTargetRowsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Combat targets require plain JSON data'), v.strictObject({
+  ray: v.exactOptional(v.strictObject({ sources: v.pipe(v.array(id), v.maxLength(32), v.check(ids => new Set(ids).size === ids.length)),
+    result: v.picklist(['copy', 'in-place']), requires: v.exactOptional(v.literal('population.wildlife')) })),
+  aim: v.exactOptional(v.strictObject({ exclude: v.pipe(v.array(v.strictObject({ field: id, equals: finite })), v.maxLength(16)),
+    append: v.pipe(v.array(id), v.maxLength(32), v.check(ids => new Set(ids).size === ids.length)) })),
+}), v.check(row => row.ray !== undefined || row.aim !== undefined));
+export type CombatTargetRows = v.InferOutput<typeof CombatTargetRowsSchema>;

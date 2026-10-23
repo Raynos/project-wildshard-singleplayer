@@ -2071,6 +2071,14 @@ binds it to the player motor. Damage metadata does not automatically call this v
 app.player?.impulse(new THREE.Vector3(6, 3, 0)); // gust east and up, without a damage hit
 ```
 
+`@wildshard/game/shardfile/clientTargets` defines `installCombatTargets(ctx, rows, owners, population?)`.
+`CombatTargetRowsSchema` in `@wildshard/format/targets` admits ordered ray owner ids, copy or in-place request
+publication, an optional original wildlife readiness loan, and aim memory exclusions plus lock targets. `owners`
+borrows the original crowd, encounter and arena projections; the full bank resolves before entered registrations,
+and scopes, owner identities and callable identities are checked before and between native calls. Existing ray
+reducers retain their registration order. `clientWildlifeState(ctx)` in `@wildshard/game/population/wildlife`
+lends that feature's original mutable readiness object; it creates no population, frame state or clock.
+
 **Custom weapon targets.** `app.combat.targets()` returns scoped `CombatTarget` ports for creatures, or only the
 training dummies while the Practice Arena is open. Each port has `actor`, world `position`, live `hittable`, its
 raycast `target` identity, `hurt(req)` (a `DamageRequest` without `target`) and optional `impulse(velocity)`.

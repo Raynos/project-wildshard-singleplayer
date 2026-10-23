@@ -1,6 +1,6 @@
 import { entryOwner } from '@wildshard/game/shardfile/entryOwners';
 import { readSpawnScript } from '@wildshard/game/population/spawnScript';
-import { clientWildlife, type PageWildlife } from '@wildshard/game/population/wildlife';
+import { clientWildlife, clientWildlifeState, type PageWildlife } from '@wildshard/game/population/wildlife';
 import type { CrowdDraw as Flock } from '@wildshard/game/ambient/crowdDraw';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import { wildEnv } from '@wildshard/game/population/pageGroups';
@@ -31,7 +31,8 @@ import { nalatiSpeciesCatalogue } from '../species/presentation';
 import { StealthController, type StealthController as Stealth, type StealthThreat } from '@wildshard/game/stealth/controller';
 import { enterClientRiding, type PageRidingView as Ride } from '@wildshard/game/riding/client';
 import { clientCosmeticFinishes } from '@wildshard/game/shardfile/clientCosmeticFinishes';
-import type { RayTargets } from '@wildshard/engine/combat/targets';
+import { installCombatTargets, type CombatTargetOwner } from '@wildshard/game/shardfile/clientTargets';
+import targetRows from '../data/combatTargets.json' with { type: 'json' };
 
 
 
@@ -177,15 +178,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
     wildlife.disturb(point.x, point.z);
     ride?.noteShot(point.x, point.z);
   });
-  plugin.answer('combat.targets.ray', (request: RayTargets): RayTargets => ({ ...request,
-    hit: wildlife === null ? request.hit : titan.target(request.origin,request.dir,request.maxDist,
-      night.target(request.origin,request.dir,request.maxDist,request.hit)) }));
-  plugin.answer('combat.aimTargets', (list) => {
-    const filtered = list.filter((a) => !('mem' in a) || typeof a.mem !== 'object' || a.mem === null || (!('hidden' in a.mem) || a.mem.hidden !== 1) && (!('owned' in a.mem) || a.mem.owned !== 1));
-    const heart = titan.lockTarget();
-    if (heart !== null) filtered.push(heart);
-    return filtered;
-  });
+  installCombatTargets(plugin, targetRows, new Map<string, CombatTargetOwner>([['night', night], ['titan', titan]]), clientWildlifeState(plugin));
   plugin.debug.expose('nalati', nalati);
   plugin.debug.expose('nalati.ghosts', night.riders);
   plugin.debug.expose('nalati.dressing', dressing);

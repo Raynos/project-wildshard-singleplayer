@@ -119,12 +119,14 @@ export class PageWildlife<T extends CrowdTargets = CrowdTargets> {
 
 const clientPopulations = new WeakMap<Scope, { wildlife: PageWildlife<CrowdDraw> | null }>();
 /** Borrow the actual population assembled by the declared animal stage. */
-export function clientWildlife(ctx: Pick<ShardContext, 'scope'>): PageWildlife<CrowdDraw> | null {
+export function clientWildlifeState(ctx: Pick<ShardContext, 'scope'>): { readonly wildlife: PageWildlife<CrowdDraw> | null } {
   if (ctx.scope.disposed) throw new Error('Wildlife owner is disposed');
   const owner = clientPopulations.get(ctx.scope);
   if (owner === undefined) throw new Error('Wildlife feature is not installed');
-  return owner.wildlife;
+  return owner;
 }
+/** The original population, null until its native animal stage completes. */
+export function clientWildlife(ctx: Pick<ShardContext, 'scope'>): PageWildlife<CrowdDraw> | null { return clientWildlifeState(ctx).wildlife; }
 /** Client-only lifecycle adapter for the existing population host. Admitted
  * files select geometry and population rows; native owners retain all clocks. */
 export async function installClientWildlife(ctx: ShardContext, feature: ClientFeatureRow): Promise<void> {

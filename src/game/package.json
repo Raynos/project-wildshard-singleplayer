@@ -296,7 +296,8 @@
     "./systems/cellField": "./systems/cellField.ts",
     "./quest/continuation": "./quest/continuation.ts",
     "./shard/pageBoot": "./shard/pageBoot.ts",
-    "./population/actorProjectionV2": "./population/actorProjectionV2.ts"
+    "./population/actorProjectionV2": "./population/actorProjectionV2.ts",
+    "./shardfile/clientTargets": "./shardfile/clientTargets.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*",

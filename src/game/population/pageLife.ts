@@ -11,7 +11,7 @@ import { CameraFX } from '@wildshard/engine/player/CameraFX';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { smoothstep } from '@wildshard/engine/core/noise';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import type { RayTargets } from '@wildshard/engine/combat/targets';
+import { installCombatTargets } from '../shardfile/clientTargets';
 import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
 import { ForagerPopulation } from '@wildshard/engine/ai/ambientForager';
 import { installEnteredRuntimeObserver, installEnteredRuntimeService, retainsRuntimeServices } from '../shard/retainedHooks';
@@ -143,12 +143,8 @@ export async function installPageLife(ctx: ShardContext, input: unknown, journal
   const foragers=data.foragers.map(row=>({row,population:new ForagerPopulation(row.row,data.seed,world.forest.trees).roam(reader),pose:newPose(row.model)}));
   const weaponTargets = foragers.flatMap(({ row, population }) => row.combat === undefined ? []
     : [new CrowdWeaponTarget(new CrowdRoster([], [new ForagerTargets(population, row.combat, row.scale)]), row.combat.target)]);
-  if (weaponTargets.length > 0) installEnteredRuntimeService(ctx, scope => {
-    app.events.answer('combat.targets.ray', (request: RayTargets): RayTargets => {
-      for (const target of weaponTargets) request.hit = target.raycast(request.origin, request.dir, request.maxDist, request.hit);
-      return request;
-    }, scope);
-  });
+  if (weaponTargets.length > 0) installCombatTargets(ctx, { ray: { result: 'in-place', sources: weaponTargets.map((_, index) => `crowd.${index}`) } },
+    new Map(weaponTargets.map((target, index) => [`crowd.${index}`, target])));
   const pose=newPose(0),lane=(bird:AmbientGroup['birds'][number],value:AmbientGroup['row']['channels'][0][number]):number=>typeof value==='number'?value:bird[value];
   const drawFlock=(flock:AmbientGroup):void=>{
     if(wild===null)return;const [a,b]=flock.row.channels;
