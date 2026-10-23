@@ -8,7 +8,8 @@ import rows from '../src/shards/nine-dragon-stack/world/install.generated.json' 
 import caps from '../src/shards/nine-dragon-stack/data/deckCaps.generated.json' with { type: 'json' };
 import stair from '../src/shards/nine-dragon-stack/world/stairPlan.generated.json' with { type: 'json' };
 import { fragmentFloor as authoredFloor } from '../src/shards/nine-dragon-stack/generators/fragmentFloor';
-import { WorldRowsSchema } from '../src/shards/nine-dragon-stack/generators/sections';
+import { LayoutRowsSchema, WorldRowsSchema } from '../src/shards/nine-dragon-stack/generators/sections';
+import { reviveLayout } from '../src/shards/nine-dragon-stack/generators/layoutProjection';
 import { floorAtRects } from '../src/engine/physics/box';
 import { stairFloor } from '../src/shards/nine-dragon-stack/generators/stairPlan';
 import { BoxGeometry, InstancedMesh, MeshBasicMaterial, type Object3D, PerspectiveCamera } from 'three';
@@ -90,9 +91,9 @@ test('lantern sway seed follows the instance pose through native LOD packing', (
 });
 
 test('facade window packets preserve bounded native channels', async () => {
-  const [{ facadeWindowBlobs }, { default: layout }] = await Promise.all([
-    import('../src/shards/nine-dragon-stack/generators/facadeWindows'), import('../src/shards/nine-dragon-stack/data/layout.generated.json'),
-  ]);
+  const { facadeWindowBlobs } = await import('../src/shards/nine-dragon-stack/generators/facadeWindows');
+  const layout = v.parse(v.object({ rows: LayoutRowsSchema, records: v.array(v.pipe(v.number(), v.finite())) }),
+    JSON.parse(readFileSync('src/shards/nine-dragon-stack/data/layout.generated.json', 'utf8'), reviveLayout));
   const c = layout.rows.counts, start = (c.walkers + c.sitters + c.lanterns + c.acs) * 16
     + c.hooks * 3 + c.hookMounts * 6 + c.steam * 3 + c.pieces * 19;
   let windows = 0;
