@@ -1,10 +1,10 @@
 {
   "$doc": "What production and the native OTA channel serve (E357 decision 32). Moved only by scripts/deploy-pin.mjs set (at a milestone; decision 103: the lead moves it when the gate is green) or rollback. mode: pinned (during GAME-NORMALIZATION) | newest-green (gpu-gate-green main) | newest-ci-green (the newest main whose push CI passed; Jake 2026-10-02).",
-  "mode": "pinned",
+  "mode": "newest-ci-green",
   "sha": "e314f1f2acbd9a53af4b189282af46c270a8ee7a",
   "milestone": "post-Z4 hotfix-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback",
   "gate": "grandfathered",
-  "go": "Coordinator HOLD: f8e8bac446 herd-on-pasture causes about 5 fps Nalati. Keep verified live e314f1f2ac until a performance repair or revert is included in a CI plus exact-smoke green release. No rollback deployment; this pin holds the actual current production build.",
-  "set": "2026-10-23T09:06:29.410Z",
+  "go": "P0 release proven: bda4ecdf1414f90b87c8d44fbf274bb190294d03 CI 39939315935 SUCCESS and exact five-leg smoke 39941583772 SUCCESS. It contains acd4ca9d5c herd rollback, 445ab27451 crash fixes, c3de94e718 Pine repair, 411836e571 pure native projection, backdrop and Nine placeholder fixes. Coordinator accepted rollback quiet phone sample at 09:35Z. Lift the perf hold and release immediately.",
+  "set": "2026-10-23T11:07:46.908Z",
   "by": "E357 lead"
 }
