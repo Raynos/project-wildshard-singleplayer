@@ -115,7 +115,7 @@ export interface NativePopulation {
   readonly scare: (x: number, z: number, radius?: number) => void;
   readonly raid: NativePastureRaid<AnimalSim, PackBrain<AnimalSim>>; readonly marmots: ForagerPopulation;
   readonly spawnElite: (kind: string, x: number, z: number, yaw: number, variant: string) => HuntBody;
-  readonly retireElite: (actor: AnimalSim) => void;
+  readonly bondedHorseIds: () => readonly string[]; readonly retireElite: (actor: AnimalSim) => void;
   readonly spawnElitePack: (x: number, z: number, variants: readonly string[]) => PackBrain<AnimalSim>; readonly retirePack: (pack: PackBrain<AnimalSim>) => void;
 }
 const POP_BODY_MAX = 64, POP_GROUP_MAX = 8, POP_FLOCK_MAX = 4;
@@ -343,7 +343,7 @@ export function installNativePopulation(host: SimHost, hunt: StalkerBrain<HuntBo
   });
   // Match the original adapter insertion order: fixed controllers first, actors materialized later.
   restoreRoster(); reinstalling = false;
-  const out = { hunt, rng, bodies, flocks, raid, marmots, spawnElite, retireElite, spawnElitePack, retirePack, scare: wildScare };
+  const out = { hunt, rng, bodies, flocks, raid, marmots, spawnElite, retireElite, spawnElitePack, retirePack, bondedHorseIds: (): readonly string[] => bonded.map(row => row.body.id), scare: wildScare };
   nativePopulations.set(host, out);
   return out;
 }
