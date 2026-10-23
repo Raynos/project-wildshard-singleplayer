@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 import type { Rng } from '@wildshard/engine/core/rng';
 import { log, tris } from '@wildshard/engine/world/geometryKit';
-import type { ColorLike } from '@wildshard/engine/world/lowpolyKit';
+import type { AddOpts, ColorLike, LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
 
 const tmpColor = new THREE.Color();
 const asColor = (c: ColorLike): THREE.Color => (typeof c === 'string' ? tmpColor.set(c) : c);
@@ -23,6 +23,17 @@ export const openEnded = (parts: Part[]): Part[] => parts.map(([g, c]) => {
   if (idx !== null && g.groups.length >= 2 && side !== undefined) { g.setIndex(Array.from(idx.array.slice(side.start, side.start + side.count))); g.clearGroups(); }
   return [g, c];
 });
+const triangles = (g: THREE.BufferGeometry): number => (g.getIndex()?.count ?? g.getAttribute('position').count) / 3;
+/** `kit.add` each part with its stem caps dropped (openEnded), then burn the jitter draws the caps took, so every later
+ * draw of the kit's rng (placements, sizes, colours) lands where it did with the caps (T8); `opts` is read per part. */
+export function addOpenEnded(kit: LowPolyKit, parts: Part[], opts: AddOpts | (() => AddOpts)): void {
+  for (const part of parts) {
+    const before = triangles(part[0]), [open] = openEnded([part]);
+    if (open === undefined) continue;
+    kit.add(open[0], open[1], typeof opts === 'function' ? opts() : opts);
+    for (let t = before - triangles(open[0]); t > 0; t--) kit.rng.next();
+  }
+}
 
 export const PLANT = {
   leaf: '#4f8f34', leafB: '#63a63c', leafDark: '#3c7430', leafLight: '#7fbf4a', stem: '#5b7a34',
