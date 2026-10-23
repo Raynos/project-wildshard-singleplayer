@@ -88,10 +88,10 @@ export class EliteBar {
   show(name: string, epithet: string): void {
     this.name.textContent = name; this.epithet.textContent = epithet;
     this.frac = this.lagFrac = 1; this.write();
-    this.bar.classList.remove('broken');
+    this.bar.classList.remove('broken'); this.flags.clear();
     this.bar.classList.add('show');
   }
-  hide(): void { this.bar.classList.remove('show', 'pinned', 'offscreen', 'beat', 'broken', 'occluded', 'dim'); this.mode = 'head'; }
+  hide(): void { this.bar.classList.remove('show', 'pinned', 'offscreen', 'beat', 'broken', 'occluded', 'dim'); this.flags.clear(); this.mode = 'head'; }
 
   /** Park separately mounted minimap marks while their resident encounter is inactive. */
   setActive(on: boolean): void {
@@ -103,12 +103,12 @@ export class EliteBar {
     const f = Math.max(0, Math.min(1, frac));
     if (Math.abs(f - this.frac) > 1e-4) { if (f < this.frac) this.lagT = 0.5; this.frac = f; if (f > this.lagFrac) this.lagFrac = f; this.write(); }
     if (mode !== this.mode) { this.mode = mode; this.bar.classList.toggle('pinned', mode === 'pinned'); if (mode === 'pinned') this.ban.classList.remove('show'); }
-    this.bar.classList.toggle('beat', beat);
-    this.bar.classList.toggle('broken', broken);
+    this.flag('beat', beat);
+    this.flag('broken', broken);
     // over its head but out of sight (a wall between): the world-anchored name fades out rather than show through it
-    this.bar.classList.toggle('occluded', occluded && mode === 'head');
+    this.flag('occluded', occluded && mode === 'head');
     // (classList.remove writes the class attribute even when neither is there — toggle(…, false) does not)
-    if (mode === 'pinned' || head === null) { this.barTf(''); this.bar.classList.toggle('offscreen', false); this.bar.classList.toggle('dim', false); return; }
+    if (mode === 'pinned' || head === null) { this.barTf(''); this.flag('offscreen', false); this.flag('dim', false); return; }
     // over its head: project; off screen → clamp to the edge, the arrow points at it
     _v.copy(head).project(camera);
     const w = innerWidth, h = innerHeight;
@@ -124,16 +124,19 @@ export class EliteBar {
       if (behind && Math.abs(dx) < 1 && Math.abs(dy) < 1) y = h - m;
       ang = Math.atan2(dy, dx);
     }
-    this.bar.classList.toggle('offscreen', !inside);
+    this.flag('offscreen', !inside);
     // under the toast column (ToastStack): the world-anchored name steps back (the bar's box: 250 × ~64 above the point)
     const T = toastArea, hw = inside ? 125 : 85;
-    this.bar.classList.toggle('dim', T.bottom > T.top && x + hw > T.left && x - hw < T.right && y > T.top && y - 64 < T.bottom);
+    this.flag('dim', T.bottom > T.top && x + hw > T.left && x - hw < T.right && y > T.top && y - 64 < T.bottom);
     const at = `rotate(${ang.toFixed(3)}rad)`;
     if (at !== this.arrowLast) { this.arrowLast = at; this.arrow.style.transform = at; }
     this.barTf(`translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`);
   }
   // E142 aggro-perf: set() runs every frame of a fight — only a changed transform is written (the pinned bar wrote '' a frame)
   private barLast = ''; private arrowLast = '';
+  /** the per-frame classes as last written (G639: five DOM toggles a frame on every visible bar); show/hide forget them */
+  private readonly flags = new Map<string, boolean>();
+  private flag(name: string, on: boolean): void { if (this.flags.get(name) !== on) { this.flags.set(name, on); this.bar.classList.toggle(name, on); } }
   private barTf(tf: string): void { if (tf !== this.barLast) { this.barLast = tf; this.bar.style.transform = tf; } }
   private write(): void { this.fill.style.transform = `scaleX(${this.frac.toFixed(4)})`; this.lag.style.transform = `scaleX(${this.lagFrac.toFixed(4)})`; }
 
