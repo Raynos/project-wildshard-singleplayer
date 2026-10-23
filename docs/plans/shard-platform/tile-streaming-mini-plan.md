@@ -335,7 +335,7 @@ over 100 ms after controls; Pine↔DW crossing at peak ≤ 1.2 GB.
 | N1 | Painted ground on the streamer: its existing 64 L0 tiles + 16 new L1 (U2); the painterly ground material becomes a material row (painted-terrain family); delete the one-mesh path, the all-at-once tile path and the `groundTiles` row when Jake picks (T5's row) | `painterlyLook.ts:46-88`, `bake-render-tiles.mjs` | Opus | 1 d | memory drop measured; no frame over 100 ms |
 | N2 | `WorldAssembly` and `SceneDressing` bucketed per tile, with their colliders in tile scopes | `worldAssembly.ts`, `sceneDressing.ts` | Codex + Opus | 1.5 d | physics walk 0 stuck; the Titan and the King unchanged |
 
-## 5. Decisions for Jake (option 1 Skip)
+## 5. Decisions (decided G652: tonight first extra; D-S1 A bake splat tiles; D-S2 A DW → Pine → T7 → Nalati; D-S3 A delete the whole-shard Terrain build)
 
 - **D-S1 · Pine's ground.**
   - **A, recommended:** bake 64 + 16 splat tiles from its heightfield and splat, with the boreal shader as a material
