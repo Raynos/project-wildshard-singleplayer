@@ -14,17 +14,17 @@ export function declareClientModules(kinds: readonly string[]): void {
   if (typeof bank !== 'object' || bank === null) throw new Error('Missing optional client module inventory');
   const files = readModuleFiles(Reflect.get(bank, 'files')), groups: unknown = Reflect.get(bank, 'groups');
   if (typeof groups !== 'object' || groups === null) throw new Error('Missing client module groups');
-  const selected: (readonly [string, number])[] = [];
+  const selected = new Map<number, readonly [string, number]>();
   for (const kind of new Set(kinds)) {
     const rows: unknown = Reflect.get(groups, kind);
     if (!Object.hasOwn(groups, kind) || !Array.isArray(rows) || rows.length > 4096) throw new Error('Missing selected client module group');
     for (const index of rows) {
       if (typeof index !== 'number' || !Number.isSafeInteger(index)) throw new Error('Invalid selected client module index');
       const file = files[index]; if (file === undefined) throw new Error('Missing selected client module file');
-      selected.push(file);
+      selected.set(index, file);
     }
   }
-  declareModuleFiles(selected);
+  declareModuleFiles([...selected.values()]);
 }
 /** Use the original parsed rows; a debug reader borrows dressing only when named. */
 export function declareClientPlanModules(plan: {readonly features: readonly ClientFeatureRow[]}): void {

@@ -32,3 +32,17 @@ test('an invalid suffix or missing selected group publishes no prefix', () => {
     expect(accounting.snapshot()).toMatchObject({declaredBytes:0,declaredFiles:0,networkBytes:0});
   } finally { dispose(); }
 });
+
+test('overlapping selected graphs publish their bounded file union once', () => {
+  const files = Array.from({length:1024}, (_, index) => [`/assets/part-${index}.js`,index+1]);
+  const indices = files.map((_, index) => index);
+  const kinds = Array.from({length:8}, (_, index) => `feature.${index}`);
+  bank({files,groups:{...Object.fromEntries(kinds.map(kind => [kind,indices])),bad:[files.length]}});
+  const accounting = new DownloadAccounting('https://fixture.invalid/'), dispose = installDownloadAccounting(accounting);
+  try {
+    expect(() => declareClientModules([...kinds,'bad'])).toThrow('Missing selected client module file');
+    expect(accounting.snapshot()).toMatchObject({declaredFiles:0,declaredBytes:0,networkBytes:0,cachedBytes:0});
+    declareClientModules(kinds);
+    expect(accounting.snapshot()).toMatchObject({declaredFiles:1024,declaredBytes:524800,networkBytes:0,cachedBytes:0});
+  } finally { dispose(); }
+});
