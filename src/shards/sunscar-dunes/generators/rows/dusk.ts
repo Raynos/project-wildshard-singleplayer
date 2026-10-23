@@ -5,13 +5,15 @@
  * (`look/render.ts` on the platform dusk look). The why of each number is in the council rounds the comments name.
  */
 
-/** The key light's dimming (E407: a slower fall through the middle steps, still monotonic; the sun drops fast once the quest starts). */
-export const KEY_DIM = { base: 1, terms: [{ gain: -0.95, pow: 0.7 }] } as const;
+/** The key light's dimming (E407: a slower fall through the middle steps, still monotonic; the sun drops fast once the quest starts).
+ *  Pick 2 (Jake, 2026-10-23 09:38: 'everything feels dark and washed out'): the quest-end deep dusk keeps 30 % of the key
+ *  (was 5 %), the same falling shape, so the late dunes keep their light and contrast at the same dusk mood. */
+export const KEY_DIM = { base: 1, terms: [{ gain: -0.7, pow: 0.7 }] } as const;
 /**
- * The sky fill (round 24: it falls by a third after the logbook's step, a global dusk term; round 12: no bump at dusk 0.5,
- * B's sand is lifted in the sand material instead; a floor: the late views keep warm brown sand).
+ * The sky fill (round 24: it falls after the logbook's step, a global dusk term, by a fifth since pick 2 (was a third);
+ * round 12: no bump at dusk 0.5, B's sand is lifted in the sand material instead; a floor: the late views keep warm brown sand).
  */
-export const FILL = { base: 1, terms: [{ gain: 0.05, pow: 1 }], times: { base: 1, terms: [{ gain: -0.35, ramp: [0.6, 0.3] }] } } as const;
+export const FILL = { base: 1, terms: [{ gain: 0.05, pow: 1 }], times: { base: 1, terms: [{ gain: -0.2, ramp: [0.6, 0.3] }] } } as const;
 /** The fog's sun-side tint (row 10 at a third; round 26: brighter toward the glow as the land darkens, never dimmed late). */
 export const FOG_SUN = { scale: 0.35, base: 1, terms: [{ gain: 2.5, linear: [0.2, 0.5] }] } as const;
 /** The far ranges' haze (round 21b: full at the sunset step, falling to 15 % by the late waymarks). */
