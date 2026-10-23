@@ -147,6 +147,12 @@ it('refuses a stale tracked output pin before restore and accepts the fresh matc
   const job={id:'fixture-pin',shard:'alpha',entry,command:[entry],inputRoots:[entry],outputs:[output],buildOutputs:{[output]:old},platform:'portable' as const};
   const catalogue=(value:unknown):void=>put(root,'scripts/generation-jobs.json',JSON.stringify({schema:'generation-jobs/1',notice:'DO NOT EDIT fixture',jobs:[value]}));
   catalogue(job);
+  const inventory=resolve(root,'tree-files.json');put(root,'tree-files.json',JSON.stringify({root,files:[]}));
+  vi.stubEnv('WS_GENERATION_TREE_FILES',inventory);vi.stubEnv('WS_GENERATION_TREE_ROOT',root);
+  const untracked=await generateShardJob(root,job,{cacheDir:resolve(root,'cache'),restore:true,forceCompare:true});
+  try{expect(untracked.hashes[output]).toBe(fresh);expect(readFileSync(resolve(root,output),'utf8')).toBe('new merged topology');}
+  finally{untracked.release();}
+  put(root,output,'old committed topology');put(root,'tree-files.json',JSON.stringify({root,files:[output]}));
   await expect(generateShardJob(root,job,{cacheDir:resolve(root,'cache'),restore:true,forceCompare:true}))
     .rejects.toThrow(`Pinned generation output differs: fixture-pin ${output}; expected ${old}, generated ${fresh}`);
   expect(readFileSync(resolve(root,output),'utf8')).toBe('old committed topology');

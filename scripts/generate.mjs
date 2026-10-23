@@ -288,7 +288,11 @@ export async function generateShardJob(root,descriptor,options={}) {
   },job.entry);
   if(projected!==catalogueProjection(root,job,catalog))throw new Error(`Catalogue changed during generation: ${job.id}`);
   try {
-    for(const [file,expected] of Object.entries(job.buildOutputs))if(result.hashes[file]!==expected)
+    const pins=Object.entries(job.buildOutputs);
+    // A restored pinned output is retained only when committed: non-restored
+    // outputs cannot share its path (discovery rejects duplicate producers).
+    const committed=pins.length===0?new Set():options.preparation?.retained??committedGenerationFiles(root);
+    for(const [file,expected] of pins)if(committed.has(file)&&result.hashes[file]!==expected)
       throw new Error(`Pinned generation output differs: ${job.id} ${file}; expected ${expected}, generated ${result.hashes[file]}. Regenerate and commit the output with its buildOutputs pin.`);
     if(result.hit) for (const file of job.outputs) if (file.endsWith('.json')) guard(file, readFileSync(resolve(result.directory,file)));
   }
