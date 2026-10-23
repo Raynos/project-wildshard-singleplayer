@@ -289,8 +289,8 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       if (terrain.groundBound) frame.run(app, () => { resampleTerrain(host.physics); });
       terrain.group.traverse((node: Object3D) => { const material: unknown = node instanceof Mesh ? node.material : null; if (isMaterial(material)) sky.setupMaterial(material); });
       scene.add(terrain.group);
-      // Debug ▸ Ground tiles (P1): a splat ground draws from its props tiles; the region's whole native ground mesh hides
-      if (splatGroundDrawn(request.admitted.source.props)) terrain.group.visible = false;
+      // Debug ▸ Ground tiles (P1/P2): a splat ground draws from its props tiles; the region's whole native ground mesh retires
+      if (splatGroundDrawn(request.admitted.source.props)) terrain.retireMesh();
       const trees = level.trees?.factory;
       const factory = typeof trees === 'function' ? await (await trees())(game.renderer, sky) : new TreeFactory(game.renderer).buildEmpty();
       await ports.pause();

@@ -264,8 +264,8 @@ export class ShardfileClient {
       }) : await clientWorld(this.source, this.assets, { scope: ctx.scope, x: start.x, z: start.z,
         ...(this.bindings.residency !== undefined && this.source.runtime === null ? { residency: { allocator, owner: this.bindings.instance } } : {}), views });
     const tiles = this.worldTiles;
-    // Debug ▸ Ground tiles (P1): a splat ground draws from its props tiles; the world's whole native ground mesh hides
-    if (splatGroundDrawn(this.source.props)) world.terrain.group.visible = false;
+    // Debug ▸ Ground tiles (P1/P2): a splat ground draws from its props tiles; the world's whole native ground mesh retires
+    if (splatGroundDrawn(this.source.props)) world.terrain.retireMesh();
     this.followViewer(ctx, runtime, tiles, presentation, start);
     if (this.mode === 'presentation') { ctx.debug.expose('shardfileResidency', { tiles, allocator, mode: 'presentation', workers: false }); return; }
     // SF59 step 4: the shard's own post stack (Debug ▸ Look ▸ "Graph materials", default off); in the grid it fades with its

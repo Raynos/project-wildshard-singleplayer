@@ -343,6 +343,29 @@ export class Terrain {
    * it, so a terrain collider sampled before the painter ran must be resampled (`resampleTerrain`).
    */
   groundBound = false;
+  /** the whole ground's layer arrays (`build`), disposed when the mesh retires */
+  private layers: SplatLayers | null = null;
+  private retired = false;
+  /**
+   * Tile streaming P2 (G652): the whole drawn ground retires once its tiles draw it: its mesh, slab and layer arrays are
+   * disposed, and an empty invisible mesh (a structure world's) keeps the canopy, punch and wear calls working. The
+   * heightfield (physics, `heightAt`) is untouched; the slab's shared rock textures stay. Once.
+   */
+  retireMesh(): void {
+    if (this.retired) return;
+    this.retired = true;
+    for (const child of this.group.children.slice()) { // a copy: each removal shortens the list
+      child.removeFromParent();
+      child.traverse((o) => {
+        if (!(o instanceof THREE.Mesh)) return;
+        const geometry: unknown = o.geometry, material: unknown = o.material;
+        if (geometry instanceof THREE.BufferGeometry) geometry.dispose();
+        for (const m of Array.isArray(material) ? material : [material]) if (m instanceof THREE.Material) m.dispose();
+      });
+    }
+    if (this.layers !== null) { this.layers.map.dispose(); this.layers.normalMap.dispose(); this.layers.armMap.dispose(); this.layers = null; }
+    this.buildNone();
+  }
   /** Bake a 0..1 canopy-density map (from Forest) into a per-vertex attribute → ambient darkening under trees. */
   applyCanopy(tex: THREE.DataTexture): void {
     if (this.builtMesh === undefined) return;
@@ -411,6 +434,7 @@ export class Terrain {
     const steps = terrainChunkSteps(captured.field), slice = workSlice();
     let step = steps.next();
     while (step.done !== true) { if (slice.due()) await slice.yield(); step = steps.next(); }
+    this.layers = layers;
     this.mesh = new THREE.Mesh(step.value, this.buildMaterial(layers, assets));
     this.mesh.receiveShadow = true;
     this.mesh.castShadow = false;
