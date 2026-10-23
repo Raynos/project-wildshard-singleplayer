@@ -1972,8 +1972,11 @@ share one page-wide decode slot, including direct `parseAsync` calls. Completion
 or failure releases the slot without retaining the decoded scene.
 The browser pauses between spent construction slices so cached decodes leave
 task boundaries for frames/uploads; renderer-free Node parsing does not wait.
-`parseBytesAsync(bytes, path)` borrows immutable product bytes until completion,
-taking the parser copy only after its slot opens (including subarray views).
+`parseBytesAsync(bytes, path)` borrows immutable product bytes until completion.
+A complete GLB over a whole ordinary ArrayBuffer lends that wire buffer after its
+slot opens; Three still copies its binary chunk before decoding private geometry.
+Subarray views, shared buffers and non-GLB inputs take the original parser copy
+after acquiring the same slot. Private scenes and geometry remain with each caller.
 
 `ClipName` is `idle · walk · run · attack · hit · die · turn · swim · fly`, optionally with `.suffix`. A raw
 `new AnimationMixer` outside `src/engine/anim` is a lint error (`wildshard/no-raw-animation-mixer`). The template's blob

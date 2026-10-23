@@ -1,7 +1,14 @@
-import { FileLoader } from 'three';
+import { BoxGeometry, BufferGeometry, FileLoader, Material, Mesh, MeshStandardMaterial, type Object3D } from 'three';
+import { staticGlb } from '../src/sdk/bake/glb';
 import { afterEach, expect, it, vi } from 'vitest';
 import { createRigLoader } from '@wildshard/engine/anim/rig';
 import * as clock from '../src/engine/core/clock';
+
+function isMesh(node: Object3D): node is Mesh {
+  if (!(node instanceof Mesh)) return false;
+  const geometry: unknown = node.geometry, material: unknown = node.material;
+  return geometry instanceof BufferGeometry && (material instanceof Material || Array.isArray(material) && material.every(value => value instanceof Material));
+}
 
 const document = JSON.stringify({ asset: { version: '2.0' }, scene: 0, scenes: [{ nodes: [] }], nodes: [] });
 afterEach(() => { vi.restoreAllMocks(); });
@@ -82,4 +89,51 @@ it('copies an immutable byte view only after acquiring its decode slot', async (
     expect(copy).toHaveBeenCalledWith(view);
     expect(view).toEqual(original);
   } finally { release?.(); await active; await queued; }
+});
+
+
+it('borrows a complete immutable GLB while every parse keeps private geometry', async () => {
+  const geometry = new BoxGeometry(), material = new MeshStandardMaterial();
+  const wire = staticGlb([{ geometry, material }]), expected = wire.slice();
+  const copy = vi.spyOn(Uint8Array, 'from');
+  const files = await Promise.all([createRigLoader().parseBytesAsync(wire, ''), createRigLoader().parseBytesAsync(wire, '')]);
+  const meshes = files.map(file => {
+    const found: Mesh[] = [];
+    file.scene.traverse(node => { if (isMesh(node)) found.push(node); });
+    const first = found[0];
+    if (first === undefined || !(first.geometry instanceof BufferGeometry)) throw new Error('Missing decoded fixture geometry');
+    return first;
+  });
+  try {
+    expect(copy.mock.calls.some(([input]) => input === wire)).toBe(false);
+    expect(wire).toEqual(expected);
+    const first = meshes[0], second = meshes[1];
+    if (first === undefined || second === undefined) throw new Error('Missing independent parses');
+    const a = first.geometry.getAttribute('position'), b = second.geometry.getAttribute('position');
+    expect(a.array).toEqual(b.array);
+    expect(a.array.buffer).not.toBe(wire.buffer);
+    expect(a.array.buffer).not.toBe(b.array.buffer);
+    const before = b.getX(0);
+    a.setX(0, 99); wire.fill(0);
+    expect(b.getX(0)).toBe(before);
+  } finally {
+    for (const mesh of meshes) { mesh.geometry.dispose(); for (const value of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) value.dispose(); }
+    geometry.dispose(); material.dispose();
+  }
+});
+
+it.each(['shared', 'offset'] as const)('copies %s GLB storage before the parser owns its binary data', async storage => {
+  const geometry = new BoxGeometry(), material = new MeshStandardMaterial();
+  const original = staticGlb([{ geometry, material }]);
+  const shared = storage === 'shared' ? new Uint8Array(new SharedArrayBuffer(original.byteLength)) : new Uint8Array(original.byteLength + 8).subarray(4, original.byteLength + 4);
+  shared.set(original);
+  const copy = vi.spyOn(Uint8Array, 'from');
+  const file = await createRigLoader().parseBytesAsync(shared, '');
+  try {
+    expect(copy.mock.calls.some(([input]) => input === shared)).toBe(true);
+    expect(shared).toEqual(original);
+  } finally {
+    file.scene.traverse(node => { if (isMesh(node)) { node.geometry.dispose(); for (const value of Array.isArray(node.material) ? node.material : [node.material]) value.dispose(); } });
+    geometry.dispose(); material.dispose();
+  }
 });

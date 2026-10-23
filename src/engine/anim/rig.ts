@@ -30,8 +30,8 @@ export interface RigRef { url: string; contract: RigContract; bake: RigBake }
 // meshopt/image/geometry allocations share this page-wide decode slot.
 let decodeTail: Promise<void> = Promise.resolve();
 let decodeSlice: WorkSlice | undefined;
-/** The shared loader can defer an immutable byte view's parser copy until a
- * decode slot is available, so parallel product reads do not queue wire copies. */
+/** The shared loader defers immutable bytes until its decode slot. Complete GLBs
+ * lend their wire buffer: Three copies the BIN chunk before decoding geometry. */
 export interface RigLoader extends GLTFLoader {
   parseBytesAsync: (bytes: Uint8Array, path: string) => Promise<GLTF>;
 }
@@ -40,7 +40,14 @@ class BoundedRigLoader extends GLTFLoader implements RigLoader {
     this.parseSource(() => data, path, onLoad, onError);
   }
   parseBytesAsync(bytes: Uint8Array, path: string): Promise<GLTF> {
-    return new Promise((resolve, reject) => { this.parseSource(() => Uint8Array.from(bytes).buffer, path, resolve, reject); });
+    return new Promise((resolve, reject) => { this.parseSource(() => {
+      const buffer = bytes.buffer;
+      if (buffer instanceof ArrayBuffer && bytes.byteOffset === 0 && bytes.byteLength === buffer.byteLength && bytes.byteLength >= 12) {
+        const header = new DataView(buffer);
+        if (header.getUint32(0, true) === 0x46546c67 && header.getUint32(4, true) === 2 && header.getUint32(8, true) === bytes.byteLength) return buffer;
+      }
+      return Uint8Array.from(bytes).buffer;
+    }, path, resolve, reject); });
   }
   private parseSource(read: () => Parameters<GLTFLoader['parse']>[0], path: string, onLoad: (file: GLTF) => void, onError?: Parameters<GLTFLoader['parse']>[3]): void {
     const parsed = decodeTail.then(async () => {
