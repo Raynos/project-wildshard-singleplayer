@@ -19,16 +19,20 @@ import type { CatalogueParams as TrailParams } from '../src/shards/driftwood-isl
 import campData from '../src/shards/nalati-grasslands/data/specimens.generated.json' with { type: 'json' };
 import trailRows from '../src/shards/driftwood-isle/data/trailCatalogue.json' with { type: 'json' };
 
-import preparedPlaces from '../src/shards/nalati-grasslands/boot/placeRuntime.generated.json' with { type: 'json' };
+import { SceneFloorSchema } from '../src/format/sceneDressing';
 import sourcePlaces from '../src/shards/nalati-grasslands/data/places.json' with { type: 'json' };
 import layout from '../src/shards/nalati-grasslands/boot/layout.generated.json' with { type: 'json' };
 import { readSceneFloors } from '../src/game/shardfile/sceneDressing';
-import type { MemberRow } from '../src/shards/nalati-grasslands/data/placeTypes';
 import { deckFloor, torFloor, type PlaceRow } from '../src/shards/nalati-grasslands/generators/placeRows';
 import { cragLedgeFloor, leopardCaveFloor, kurganEntranceFloor } from '../src/shards/nalati-grasslands/generators/placement';
 import { pathRampDescs } from '../src/engine/physics/paths';
 import { bakedSamplers } from '../src/format/bakedTerrainSampling';
 import { parseBakedTerrain } from '../src/format/bakedTerrainBytes';
+
+const memberSchema=v.object({solid:v.array(v.unknown()),descs:v.array(v.unknown()),floors:v.array(SceneFloorSchema)});
+const preparedPlaces=v.parse(v.object({places:v.object({rows:v.array(v.object({name:v.string(),colliders:v.array(v.unknown()),
+  members:v.array(v.tuple([v.string(),memberSchema]))}))})}),
+  JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/placeRuntime.generated.json','utf8')));
 
 const trailCatalogue = defineSpecimenCatalogue<TrailParams>(trailRows);
 const trail = { fencePost: trailCatalogue.model('fencePost'), signpost: trailCatalogue.model('signpost'), plankStep: trailCatalogue.model('plankStep') };
@@ -161,7 +165,7 @@ describe('declared specimen catalogue', () => {
 
 it('retains every POI collider and path-ramp descriptor after floor baking', () => {
   const original = v.parse(v.custom<readonly PlaceRow[]>(Array.isArray), sourcePlaces.rows);
-  const prepared = preparedPlaces.places.rows as readonly { readonly name: string; readonly colliders: readonly unknown[]; readonly members: readonly (readonly [string, MemberRow])[] }[];
+  const prepared = preparedPlaces.places.rows;
   const before = original.flatMap(row => row.members.flatMap(([, member]) => member.floors.map(f => 'kind' in f ? f.kind === 'ledge' ? cragLedgeFloor(f) : f.kind === 'cave' ? leopardCaveFloor(f) : kurganEntranceFloor(f) : 'slabs' in f ? torFloor(f) : deckFloor(f))));
   const after = prepared.flatMap(row => row.members.flatMap(([, member]) => readSceneFloors(member.floors)));
   for (const row of original) {

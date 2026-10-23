@@ -1,5 +1,6 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- validate generated dressing fixtures without inferring their complete JSON types
+import { readFileSync } from 'node:fs';
 import { PrivateSceneSchema } from '../src/format/clientChannels';
-import cragRows from '../src/shards/nalati-grasslands/boot/cragRock.generated.json';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
@@ -16,7 +17,14 @@ import { SceneDressingSchema } from '../src/format/sceneDressing';
 import { dressingScene } from '../src/shards/nalati-grasslands/generators/dressingScene';
 import { isJsonData } from '../src/format/json';
 import { readBakedGeometry } from '../src/game/plugin/geometry';
-import prepared from '../src/shards/nalati-grasslands/data/placeRuntime.generated.json';
+
+const finite=v.pipe(v.number(),v.finite());
+const cragTier=v.object({recipe:PrivateSceneSchema,placements:v.array(v.unknown()),boxes:v.array(finite),
+  hulls:v.array(v.object({points:v.array(finite)}))});
+const cragRows=v.parse(v.object({phone:cragTier,desktop:cragTier}),
+  JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/cragRock.generated.json','utf8')));
+const prepared=v.parse(v.object({places:v.object({rows:v.array(v.object({name:v.string(),members:v.array(v.unknown())}))})}),
+  JSON.parse(readFileSync('src/shards/nalati-grasslands/data/placeRuntime.generated.json','utf8')));
 
 const wire = (input:unknown):unknown => JSON.parse(encodeCanonicalJson(input));
 test('both Nalati tiers retain scatter policies, static contacts and GPU cloth buffers within JSON bounds',()=>{
