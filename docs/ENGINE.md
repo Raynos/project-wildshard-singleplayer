@@ -12575,3 +12575,22 @@ another RNG draw. Point results may be lent through member-zero/group input
 columns. There is no saved result outbox, query replay, new cadence or clock.
 This finite result subset does not yet apply group motion/contact effects or
 activate any shipping pack/herd descriptor.
+
+### Borrowing two original group RNG streams (H4, G621 R10a)
+
+A group declaration may explicitly set randomStreams:2. Omitted declarations
+retain their original one-stream layout. GroupStep.prepare borrows random as
+stream 1 and optional contextRandom as stream 2 in the existing RNG banks.
+These names grant no global stream: the native caller passes the actual owner
+used at that original call slot. A pack may pass its context stream to random
+for tick/drive and its shared initialization stream for a separate init call.
+A herd may lend both distinct original owners during one group call.
+
+The second loan requires the explicit two-stream declaration and a first loan;
+aliasing both names to one Rng refuses. Each original continuation, callable and
+identity is captured and validated before either advances. The complete state,
+query and both RNG candidates pass preflight together; acceptance restores both
+original owners once. Rejected output, stale draws, replacement or ancestor
+retirement publishes neither bank nor the other RNG. The native JSON codecs
+remain with the original group/population owners; there is no combined RNG save,
+new random stream, replay, clock or selected executable created by this API.

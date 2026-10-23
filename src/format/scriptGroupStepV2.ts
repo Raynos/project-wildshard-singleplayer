@@ -43,6 +43,7 @@ export interface GroupStepRowsV2 extends GroupStepShapeV2 {
   outputs: number;
   pages: number;
   fuel: number;
+  randomStreams?: 2;
   queries?: { pending: number; scalars: number };
 }
 const shape = {
@@ -59,6 +60,7 @@ export const GroupStepV2Schema: v.GenericSchema<GroupStepRowsV2> = v.strictObjec
   outputs: v.pipe(natural, v.minValue(1), v.maxValue(512)),
   pages: v.pipe(natural, v.minValue(1), v.maxValue(4)),
   fuel: v.pipe(natural, v.minValue(1), v.maxValue(400000)),
+  randomStreams: v.exactOptional(v.literal(2)),
   queries: v.exactOptional(v.strictObject({ pending: v.pipe(natural, v.maxValue(64)), scalars: v.pipe(natural, v.maxValue(1024)) })),
 });
 export function groupStepLayoutV2(rows: GroupStepRowsV2): V2Layout {
@@ -67,7 +69,7 @@ export function groupStepLayoutV2(rows: GroupStepRowsV2): V2Layout {
   const fields = Math.max(...profiles.map(profile => profile.columns.length * profile.members));
   return layoutV2(0, rows.pages, new Map([[1, 1], [2, width], [3, width], [4, rows.profiles === undefined ? 2 : 3], [5, 1],
     [6, fields], [10, rows.outputs], [11, (rows.queries?.pending ?? 0) * 7],
-    [12, rows.queries?.pending ?? 0], [13, rows.queries?.scalars ?? 0], [21, 1], [22, 1]]));
+    [12, rows.queries?.pending ?? 0], [13, rows.queries?.scalars ?? 0], [21, rows.randomStreams ?? 1], [22, rows.randomStreams ?? 1]]));
 }
 /** Columns are flattened by member slot then lexicographic column name.
  * Authored per-member IDs do not share a namespace with these flat IDs. */

@@ -66,7 +66,7 @@ export class GroupStepV2 {
   prepare(input: {
     readonly group: string; readonly handle: number; readonly signal: string; readonly tick: number; readonly profile?: string;
     readonly state: Float64Array; readonly members: readonly V2ColumnOwners[];
-    readonly references: readonly GroupStepReferenceV2[]; readonly random?: Rng;
+    readonly references: readonly GroupStepReferenceV2[]; readonly random?: Rng; readonly contextRandom?: Rng;
     readonly queries?: { readonly ring: QueryRingV2; readonly binding: V2QueryBinding };
   }): {
     readonly operations: readonly GroupStepOperationV2[];
@@ -112,12 +112,15 @@ export class GroupStepV2 {
           return current?.body !== row.body || current.group !== row.group || current.slot !== row.slot
             || current.identity !== row.identity || current.wire !== row.wire || current.handle !== row.handle;
         })) throw new Error('Group state or reference changed during capture');
-      const random = input.random, before = random?.snapshot();
-      const restore: unknown = random === undefined ? undefined : Reflect.get(random, 'restore');
-      const snapshot: unknown = random === undefined ? undefined : Reflect.get(random, 'snapshot');
-      const nextRandom: unknown = random === undefined ? undefined : Reflect.get(random, 'next');
-      const rng = prepareV2Rng(this.layout, before === undefined ? [] : [{ binding: input.handle, stream: 1, algorithm: 1,
-        state: [before.state, before.initial, Number(before.scrambledFork), 0, 0, 0] }]);
+      const random = input.random, contextRandom = input.contextRandom;
+      if (contextRandom !== undefined && (this.rows.randomStreams !== 2 || random === undefined || contextRandom === random))
+        throw new Error('Undeclared or aliased group RNG streams');
+      const randoms = [random, contextRandom].flatMap((owner, index) => owner === undefined ? [] : [{
+        owner, stream: index + 1, before: owner.snapshot(), restore: Reflect.get(owner, 'restore'),
+        snapshot: Reflect.get(owner, 'snapshot'), next: Reflect.get(owner, 'next'),
+      }]);
+      const rng = prepareV2Rng(this.layout, randoms.map(loan => ({ binding: input.handle, stream: loan.stream, algorithm: 1,
+        state: [loan.before.state, loan.before.initial, Number(loan.before.scrambledFork), 0, 0, 0] })));
       const binding = input.queries?.binding;
       if (binding !== undefined && (binding.identity !== input.group || binding.handle !== input.handle
         || binding.observed.size !== refs.length || refs.some(row => binding.observed.get(row.handle) !== row.identity))) throw new Error('Foreign group query loan');
@@ -175,7 +178,7 @@ export class GroupStepV2 {
         const queries = actual[10] ?? 0;
         if (queries !== 0 && input.queries === undefined) throw new Error('Missing group query authority');
         const query = input.queries?.ring.prepareFrame(view, queries, input.tick, new Map(binding === undefined ? [] : [[input.handle, binding]]), delivery?.consumed ?? []);
-        const next = rng.readCandidate(view, actual[21] ?? 0, new Set([input.handle]))[0];
+        const next = rng.readCandidate(view, actual[21] ?? 0, new Set([input.handle]));
         return { prepared, operations: Object.freeze(operations), query, next };
       }).value;
       let accepted = false;
@@ -183,7 +186,7 @@ export class GroupStepV2 {
         this.live();
         if (accepted || revision !== this.revision) throw new Error('Group step already accepted or superseded');
         if (input.group !== envelope.group || input.handle !== envelope.handle || input.signal !== envelope.signal
-          || input.tick !== envelope.tick || input.profile !== envelope.profile || input.state !== stateOwner || input.random !== random || input.queries !== queryLoan
+          || input.tick !== envelope.tick || input.profile !== envelope.profile || input.state !== stateOwner || input.random !== random || input.contextRandom !== contextRandom || input.queries !== queryLoan
           || binding !== undefined && (binding.observed.size !== queryObserved.length || binding.operations.size !== queryOperations.length
             || queryObserved.some(([key, value]) => binding.observed.get(key) !== value) || queryOperations.some(op => !binding.operations.has(op))))
           throw new Error('Changed group continuation owner');
@@ -194,12 +197,17 @@ export class GroupStepV2 {
             || owners.self.group !== member.self.group || owners.self.slot !== member.self.slot || owners.self.identity !== member.self.identity
             || member.self.actor !== null && member.self.actor.entityId !== member.self.identity;
         }) || input.references.length !== refs.length || refs.some((row, index) => input.references[index]?.body !== row.body || row.body.entityId !== row.identity)) throw new Error('Changed group body loan');
-        if (random !== undefined && (Reflect.get(random, 'restore') !== restore || Reflect.get(random, 'snapshot') !== snapshot || Reflect.get(random, 'next') !== nextRandom || before === undefined
-          || !sameRng(before, random.snapshot()) || candidate.next === undefined)) throw new Error('Changed group RNG owner');
+        if (randoms.some(loan => Reflect.get(loan.owner, 'restore') !== loan.restore || Reflect.get(loan.owner, 'snapshot') !== loan.snapshot
+          || Reflect.get(loan.owner, 'next') !== loan.next || !sameRng(loan.before, loan.owner.snapshot())
+          || !candidate.next.some(row => row.stream === loan.stream))) throw new Error('Changed group RNG owner');
       };
       const accept = (): void => {
         validate(); candidate.query?.(); candidate.prepared.accept();
-        if (random !== undefined && before !== undefined && candidate.next !== undefined) random.restore({ ...before, state: candidate.next.state[0] });
+        for (const loan of randoms) {
+          const next = candidate.next.find(row => row.stream === loan.stream);
+          if (next === undefined) throw new Error('Missing group RNG candidate');
+          loan.owner.restore({ ...loan.before, state: next.state[0] });
+        }
         accepted = true; this.revision++;
       };
       return { operations: candidate.operations, validate, accept, prepareNative: owners => {
