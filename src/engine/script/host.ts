@@ -129,6 +129,13 @@ function snapshot(state: ModuleState): ScriptSnapshot {
   return { memory: new Uint8Array(current.memory.buffer).slice(), globals };
 }
 function clone(s: ScriptSnapshot): ScriptSnapshot { return { memory: s.memory.slice(), globals: new Map(s.globals) }; }
+/** Keep the JSON byte array detached without allocating a typed-array iterator
+ * result per byte or repeatedly growing the output backing store. */
+function checkpointMemory(source: Uint8Array): number[] {
+  const memory: number[] = []; memory.length = source.length;
+  for (let index = 0; index < source.length; index++) memory[index] = source[index] ?? 0;
+  return memory;
+}
 /** One module instance per host; every call carries its current entity handle in IN[3]. */
 export class ScriptHost {
   readonly world: ScriptWorld;
@@ -229,7 +236,7 @@ export class ScriptHost {
   checkpoint(): ScriptHostState {
     if (this.active) throw new Error('Active script checkpoint');
     return { tick: this.tick, used: { ...this.used }, pending: this.pending.map((e) => ({ ...e })), modules: [...this.modules].map(([name, state]) => ({
-      name, memory: Array.from(state.good.memory), globals: [...state.good.globals].map(([key, value]) => ({ name: key, type: typeof value === 'bigint' ? 'bigint' as const : 'number' as const, value: String(value) })), failures: state.failures, disabled: state.disabled,
+      name, memory: checkpointMemory(state.good.memory), globals: [...state.good.globals].map(([key, value]) => ({ name: key, type: typeof value === 'bigint' ? 'bigint' as const : 'number' as const, value: String(value) })), failures: state.failures, disabled: state.disabled,
     })) };
   }
   /** Validate every module before publishing; reuse equal-sized memories without running initialization, queries or author functions. */
