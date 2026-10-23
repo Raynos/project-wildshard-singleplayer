@@ -3,7 +3,7 @@ import { type Audio as LevelAudio, Audio } from '@wildshard/engine/audio/Audio';
 import { type Music as LevelMusic, Music } from '@wildshard/engine/audio/Music';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import { toLevelSpec } from '../shard/spec';
-import { gridLevel } from '../grid/session';
+import { gridLevel } from '../grid/pageMode';
 import { gridPageShellLevel } from '../grid/pageShell';
 import type * as THREE from 'three';
 import type { dataStage } from './data';

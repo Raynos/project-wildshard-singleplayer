@@ -120,7 +120,7 @@ async function startSelected(): Promise<void> {
   const loading = beginLoading({ id: game.shard.slug, name: game.shard.name, trace: game.shard.boot?.phone?.trace === true });
   const moduleText = document.getElementById('boot-module-files')?.textContent;
   const moduleRows: unknown = moduleText === undefined ? undefined : JSON.parse(moduleText);
-  const modules = (kind: 'common' | 'client'): void => {
+  const modules = (kind: 'common' | 'client' | 'grid'): void => {
     if (moduleRows === undefined) return; // Source/dev documents have no emitted chunk inventory.
     if (typeof moduleRows !== 'object' || moduleRows === null || !Object.hasOwn(moduleRows, kind)) throw new Error('Missing boot module rows');
     declareModuleFiles(Reflect.get(moduleRows, kind));
@@ -156,6 +156,7 @@ async function startSelected(): Promise<void> {
       game.shard.shardfile, document.baseURI, entryScope) : null;
     modules('common');
     if (path === 'shardfile') modules('client');
+    if (path === 'grid') modules('grid');
     if (extras !== null) { loading.waiting('Reading selected download inventory'); await waitFor('Read selected download inventory', extras.read(), 'file'); }
     // Hybrid shardfile entries retain real TypeScript stages until their page is data-only.
     loading.setPath(loadingPath(path, game.shard.boot?.steps, path === 'shardfile' && source === null && game.shard.shardfile === undefined), calibration);

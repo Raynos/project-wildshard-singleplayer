@@ -10920,6 +10920,14 @@ landing. No module path in a client plan selects JavaScript.
 page mode for cold tier rows without a constructor callback. Only page boot
 sets this mode through the internal `setPageMode` function.
 
+The same leaf exports `gridLevel(spec)` for standalone bootstrap: shard mode
+returns the original spec; grid mode yields walls and an authored horizon to
+the platform without mutating the input. `grid/session.gridLevel` retains its
+existing API as a delegate. Session construction imports `GridSession` only
+inside the grid assembly step and rechecks its original level scope afterward.
+The boot compiler declares this grid module closure before a grid load;
+standalone loads neither request it nor count it as required download bytes.
+
 The unused `ViewFieldHost` fallback was retired with Z9 (G484/G486).
 `view.field` 105 stays reserved; the eased weather table is the primary
 presentation path and does not run a view guest.

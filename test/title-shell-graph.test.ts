@@ -22,6 +22,7 @@ function titleGraph(entries: readonly string[]): string[] {
         if (clause?.phaseModifier === ts.SyntaxKind.TypeKeyword || (clause?.name === undefined && bindings !== undefined && ts.isNamedImports(bindings) && bindings.elements.length > 0 && bindings.elements.every(row => row.isTypeOnly))) continue;
       } else if (node.isTypeOnly || (node.exportClause !== undefined && ts.isNamedExports(node.exportClause) && node.exportClause.elements.length > 0 && node.exportClause.elements.every(row => row.isTypeOnly))) continue;
       const name = node.moduleSpecifier.text;
+      if (/\?(?:raw|url)$/u.test(name)) continue; // Vite data imports do not execute a JavaScript module.
       if (/^three(?:\/|$)/u.test(name)) { seen.add(name); continue; }
       const target = ts.resolveModuleName(name, file, options, ts.sys).resolvedModule?.resolvedFileName;
       if (target === undefined && (name.startsWith('.') || name.startsWith('@wildshard/')) && !/\.(?:css|png|jpe?g|webp|svg|hdr)(?:\?|$)/u.test(name)) throw new Error(`Unresolved title import: ${file}: ${name}`);
@@ -35,4 +36,9 @@ function titleGraph(entries: readonly string[]): string[] {
 test('cold title, recovery, navigation and prefetch stay off the world graph', () => {
   const files = titleGraph(['src/entry.ts', 'src/engine/ui/StartTitle.ts', 'src/game/mainMenu.ts', 'src/game/grid/pageEntry.ts', 'src/game/travel/travel.ts']);
   expect(files.filter(file => /src\/engine\/(?:app\/(?:app|runtime)\.ts|render\/|world\/|anim\/|physics\/)|src\/game\/(?:looks\/|shardfile\/(?:product|runtimeProduct)\.ts)|src\/shards\/|^three(?:\/|$)/u.test(file))).toEqual([]);
+});
+
+test('standalone session bootstrap leaves grid construction behind its assembly import', () => {
+  const files = titleGraph(['src/game/session/session.ts', 'src/game/shardfile/client.ts']);
+  expect(files.filter(file => /src\/game\/grid\/(?:session|liveSession|roadLookPlatform|roadCull|crossing)\.ts$/u.test(file))).toEqual([]);
 });

@@ -21,6 +21,7 @@
  *   veil (`gridLevel`), the bounds' horizontal check reads `grid`; fall recovery stays.
  */
 import { platformInputs } from './platformInputs';
+import { gridLevel as levelForGrid } from './pageMode';
 import { cellClip } from './cellClip';
 import { BufferGeometry, Group, Mesh, Vector3, type Material, type Object3D } from 'three';
 import { createRigLoader } from '@wildshard/engine/anim/rig';
@@ -44,7 +45,7 @@ import { generatePlatform, generatePlatformSliced, type GeneratedStrip, type Pla
 import { GridAssembly, type GridCell } from './assembly';
 import { neighbourEdges } from './readinessEdges';
 import { DEVSERVER, gridMode } from './menu';
-import { gridCells, pageGridInstance, pageMode } from '../plugin/context';
+import { gridCells, pageGridInstance } from '../plugin/context';
 import type { ResidencyAllocator } from './allocator';
 import type { PageResidency } from './pageResidency';
 import { PlatformRenderResidency } from './renderResidency';
@@ -106,8 +107,7 @@ declare const __BUILD_ID__: string; // vite.config.ts define; absent under Node
  * infinity stay. The standalone path is unchanged.
  */
 export function gridLevel(spec: LevelSpec): LevelSpec {
-  if (pageMode() !== 'grid') return spec;
-  return { ...spec, boundary: { ...spec.boundary, visible: false, walls: false }, ...(spec.horizon === undefined ? {} : { horizon: { rings: [], cloudSea: false } }) };
+  return levelForGrid(spec);
 }
 
 /** What the session reads from the page: the player's feet in the home frame, the scene, the world, the fixed step. */

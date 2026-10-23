@@ -3,8 +3,16 @@
  * 'shard'. A leaf module, so what reads it at a shard's boot (a reload variant's grid default, G180) does not pull the
  * grid's own closure in; grid/boot.ts `pageMode()` reads the same value.
  */
+import type { LevelSpec } from '@wildshard/engine/level/spec';
+
 export type PageMode = 'grid' | 'shard';
 let mode: PageMode = 'shard';
 export function currentPageMode(): PageMode { return mode; }
 /** @internal grid/boot.ts bootPageMode only */
 export function setPageMode(next: PageMode): void { mode = next; }
+
+/** Grid-owned walls and horizon yield to the platform; standalone keeps the original spec identity. */
+export function gridLevel(spec: LevelSpec): LevelSpec {
+  if (currentPageMode() !== 'grid') return spec;
+  return { ...spec, boundary: { ...spec.boundary, visible: false, walls: false }, ...(spec.horizon === undefined ? {} : { horizon: { rings: [], cloudSea: false } }) };
+}

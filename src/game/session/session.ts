@@ -41,7 +41,7 @@ import { installProductGround, installProductSampling } from '../shardfile/produ
 import { installProductNavigation } from '../shardfile/productNavigation';
 import { loadManifestProduct, manifestAdmittedSource } from '../shardfile/runtimeProduct';
 import { absentShardProduct } from '../shardfile/shardProduct';
-import { gridLevel } from '../grid/session';
+import { gridLevel } from '../grid/pageMode';
 import type { PageResidency } from '../grid/pageResidency';
 import type { MemoryAdmission } from '@wildshard/format/product';
 import { gridPageShell, gridPageShellLevel, selectGridPageShell, GridPageShellPlugin, useOwnedGridHome } from '../grid/pageShell';

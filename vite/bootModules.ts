@@ -101,6 +101,8 @@ export function bootModulesPlugin(): Plugin {
       if (html?.type !== 'asset' || typeof html.source !== 'string' || !html.source.includes('<head>')) throw new Error('Missing boot module document');
       const client = await this.resolve('./game/shardfile/client', entry);
       if (client === null || client.external !== false) throw new Error('Missing compiled client module');
+      const grid = await this.resolve('./game/grid/session', entry);
+      if (grid === null || grid.external !== false) throw new Error('Missing grid session module');
       const products = bootProductTotals(root), extras: Record<string, readonly [string, number, number, string]> = {};
       for (const prefix of Object.keys(products)) {
         const directory = prefix.split('/')[2];
@@ -112,7 +114,7 @@ export function bootModulesPlugin(): Plugin {
         this.emitFile({ type: 'asset', fileName: name, source });
         extras[prefix] = [`/${name}`, Buffer.byteLength(source), files.reduce((sum, row) => sum + row[1], 0), hash];
       }
-      const rows = { common: bootModuleFiles(bundle, ids), client: bootModuleFiles(bundle, [client.id]), products, extras };
+      const rows = { common: bootModuleFiles(bundle, ids), client: bootModuleFiles(bundle, [client.id]), grid: bootModuleFiles(bundle, [grid.id]), products, extras };
       const json = JSON.stringify(rows).replaceAll('<', String.raw`\u003c`);
       html.source = html.source.replace('<head>', `<head><script type="application/json" id="boot-module-files">${json}</script>`);
     } },

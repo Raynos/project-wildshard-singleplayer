@@ -45,9 +45,11 @@ test('the actual Vite plugin emits exact module body sizes into the existing doc
   const root = mkdtempSync(resolve('tmp/vite-boot-modules/case-'));
   try {
     mkdirSync(resolve(root, 'src/game/shardfile'), { recursive: true });
+    mkdirSync(resolve(root, 'src/game/grid'), { recursive: true });
     writeFileSync(resolve(root, 'index.html'), '<html><head></head><body><script type="module" src="/src/entry.ts"></script></body></html>');
     writeFileSync(resolve(root, 'src/entry.ts'), `
       window.optionalClient = () => import('./game/shardfile/client');
+      window.optionalGrid = () => import('./game/grid/session');
       window.title = () => import('./title');
       async function startSelected() { return (await import('./first')).value; }
       void startSelected().then(value => { window.value = value; });
@@ -56,6 +58,7 @@ test('the actual Vite plugin emits exact module body sizes into the existing doc
     writeFileSync(resolve(root, 'src/main.css'), 'body { color: red; }');
     writeFileSync(resolve(root, 'src/title.ts'), 'export const title = "optional title";');
     writeFileSync(resolve(root, 'src/game/shardfile/client.ts'), 'export const client = "compiled client";');
+    writeFileSync(resolve(root, 'src/game/grid/session.ts'), 'export const grid = "grid session";');
     const result = await build({ root, configFile: false, logLevel: 'silent', plugins: [bootModulesPlugin()],
       build: { write: false, minify: false, cssCodeSplit: false } });
     if (Array.isArray(result) || !('output' in result)) throw new Error('Expected one generated bundle');
@@ -64,7 +67,7 @@ test('the actual Vite plugin emits exact module body sizes into the existing doc
     const match = /<script type="application\/json" id="boot-module-files">([^<]+)<\/script>/u.exec(html.source);
     if (match?.[1] === undefined) throw new Error('Missing emitted module facts');
     const rows: unknown = JSON.parse(match[1]);
-    if (typeof rows !== 'object' || rows === null || !('common' in rows) || !('client' in rows) || !('products' in rows)) throw new Error('Missing banks');
+    if (typeof rows !== 'object' || rows === null || !('common' in rows) || !('client' in rows) || !('grid' in rows) || !('products' in rows)) throw new Error('Missing banks');
     const expected = (stems: readonly string[]): [string, number][] => result.output.filter(file => stems.some(stem => file.fileName.includes(stem)) || file.fileName.endsWith('.css')).map((file): [string, number] => {
       const bytes = file.type === 'chunk' ? file.code : file.source;
       return [`/${file.fileName}`, typeof bytes === 'string' ? new TextEncoder().encode(bytes).byteLength : bytes.byteLength];
@@ -72,6 +75,7 @@ test('the actual Vite plugin emits exact module body sizes into the existing doc
     expect(rows.products).toEqual({});
     expect(rows.common).toEqual(expected(['/first-', '/index-']));
     expect(rows.client).toEqual(expected(['/client-']));
+    expect(rows.grid).toEqual(expected(['/session-']));
     expect(JSON.stringify(rows)).not.toContain('/title-');
     expect(readFileSync(resolve(root, 'index.html'), 'utf8')).not.toContain('boot-module-files');
   } finally { rmSync(root, { recursive: true, force: true }); }

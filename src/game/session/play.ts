@@ -30,6 +30,7 @@ import { app } from '@wildshard/engine/app/runtime';
 import { beginExploreEntry, recordBootCheckpoint } from '@wildshard/engine/boot/bootTrace';
 import { startMenuPreload } from '@wildshard/engine/boot/extras';
 import { macrotask } from '@wildshard/engine/boot/plan';
+import { waitFor } from '@wildshard/engine/boot/waits';
 import { loadExplore, loadFeedback as loadFeedbackModule } from '@wildshard/engine/boot/runtime';
 import { CombatCues } from '@wildshard/engine/combat/cues';
 import { EffectService } from '@wildshard/engine/combat/effects/EffectService';
@@ -77,7 +78,6 @@ import { findShard } from '../shard/registry';
 import { accentHex, hudAccent, onHudAccent, setHudAccent } from './hudAccent';
 import { firstPartyInstance } from '../grid/instances';
 import { installSavesSettings } from '../savesSettings';
-import { GridSession } from '../grid/session';
 import type { LiveGridSession } from '../grid/liveSession';
 import { pickInteractable } from '@wildshard/engine/world/interact/Interactables';
 import { terrainDatum } from '@wildshard/engine/world/terrainHeight';
@@ -101,7 +101,11 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   const keepAlive = new KeepAlive();
   await macrotask();
   // SF21a / the grid client: EXPERIMENTAL Wildshard's 3 × 3 around this home cell (deck, soft walls, neighbours' far proxies)
-  const grid = await step('assembly', p => pageMode() === 'grid' ? GridSession.create({ scene: game.rootScene, physics: world.physics, scope: game.levelScope, feet: () => player.position, renderer: game.renderer,
+  const grid = await step('assembly', async p => {
+    if (pageMode() !== 'grid') return null;
+    const { GridSession } = await waitFor('Read grid session module', import('../grid/session'), 'file');
+    if (game.levelScope.disposed) throw new Error('Grid owner retired while loading its session');
+    return GridSession.create({ scene: game.rootScene, physics: world.physics, scope: game.levelScope, feet: () => player.position, renderer: game.renderer,
     // G371: the near tier plans from the drawn eye (a free / hero camera gets the cells it is over)
     eye: () => ({ x: game.camera.position.x - player.position.x, z: game.camera.position.z - player.position.z }),
     prepareTile: (tile) => game.warmSceneRoots([tile.group], () => !tile.scope.disposed),
@@ -120,7 +124,8 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
         renderer.setRenderTarget(game.composer.inputBuffer);
         try { renderer.compile(object, game.camera, game.rootScene); } finally { renderer.setRenderTarget(prev); }
       } }; },
-      onLate: (fn) => { game.onLate(fn, 'game.grid.frame'); } } }, p) : null);
+      onLate: (fn) => { game.onLate(fn, 'game.grid.frame'); } } }, p);
+  });
   if (grid === null) installShardHoverSpeed(player, game.levelScope, manifest.hoverSpeedClass);
   await step('menu', async (p) => { // the cards' art in memory before the title builds its deck (showIntro below)
     // + the practice room's dummies when this boot lands in it (a travel in arena mode): full on its first frame (E291). Any
