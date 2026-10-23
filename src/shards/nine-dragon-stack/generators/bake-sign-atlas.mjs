@@ -8,6 +8,8 @@ import { byteWriter, outputHash } from '../../../../scripts/bake-output.mjs';
 import { readImagePixels } from '../../../../src/sdk/bake/image.ts';
 
 const root = resolve(import.meta.dirname, '../../../..');
+const writer = byteWriter(process.argv.includes('--check'), 'nine-sign-atlas');
+const outputData = resolve(root, 'src/shards/nine-dragon-stack/data');
 const entry = process.env.NINE_SIGN_ENTRY ?? resolve(import.meta.dirname, 'signAtlasPage.ts');
 const result = await build({ configFile: false, logLevel: 'silent', publicDir: false, root,
   build: { write: false, target: 'esnext', minify: false,
@@ -20,7 +22,7 @@ const fixed = JSON.parse(readFileSync(resolve(root, 'src/shards/nine-dragon-stac
 const calls = [...layout.rows.signs, ...fixed.signs];
 
 // Single-level lossless R8/RGBA8 KTX2. Both retain the old bottom-up raster and GPU mip law.
-async function ktx(png, mono) {
+async function ktx(png, mono, file) {
   const image = await readImagePixels(Buffer.from(png.split(',')[1], 'base64'), { flipY: true });
   const pixels = mono ? Uint8Array.from({ length: image.width * image.height }, (_, i) => image.pixels[i * 4]) : image.pixels;
   const packed = zstdCompressSync(pixels, { params: { [constants.ZSTD_c_compressionLevel]: 19 } });
@@ -33,7 +35,8 @@ async function ktx(png, mono) {
     const at = 132 + channel * 16; view.setUint16(at, channel * 8, true); out[at + 2] = 7; out[at + 3] = channel === 3 ? 15 : channel; view.setUint32(at + 12, 255, true);
   }
   out.set(packed, offset);
-  return { packed: Buffer.from(out).toString('base64'), bytes: pixels.length, pixelHash: outputHash(pixels) };
+  writer.put(resolve(outputData, file), out);
+  return { packed: file, bytes: pixels.length, pixelHash: outputHash(pixels) };
 }
 
 const browser = await webkit.launch({ headless: true }), tiers = {};
@@ -43,11 +46,18 @@ try {
   await page.addScriptTag({ content: code });
   for (const tier of ['phone', 'desktop']) {
     const { mono, colour, ...row } = await page.evaluate(input => window.bakeNineSigns(input.tier, input.calls), { tier, calls });
-    tiers[tier] = { ...row, mono: await ktx(mono, true), colour: await ktx(colour, false) };
+    const chunks = []; let byteOffset = 0;
+    const pack = encoded => { const bytes = Buffer.from(encoded, 'base64'), range = { byteOffset, byteLength: bytes.length }; chunks.push(bytes); byteOffset += bytes.length; return range; };
+    for (const geometry of Object.values(row.geometries)) {
+      for (const attribute of Object.values(geometry.attributes)) attribute.data = pack(attribute.data);
+      geometry.index = pack(geometry.index);
+    }
+    const buffer = `signAtlas-${tier}.bin`;
+    writer.put(resolve(outputData, buffer), Buffer.concat(chunks));
+    tiers[tier] = { ...row, mono: await ktx(mono, true, `signAtlas-${tier}-mono.ktx2`), colour: await ktx(colour, false, `signAtlas-${tier}-colour.ktx2`), buffer };
     console.log(`Nine ${tier}: ${Object.keys(row.cells).length} cells, ${row.placed.length} signs, ${Object.keys(row.keys).length} specimens; R8 ${tiers[tier].mono.pixelHash}, RGBA8 ${tiers[tier].colour.pixelHash}`);
   }
 } finally { await browser.close(); }
-const writer = byteWriter(process.argv.includes('--check'), 'nine-sign-atlas');
 writer.put(resolve(root, process.env.NINE_SIGN_OUTPUT ?? 'src/shards/nine-dragon-stack/data/signAtlas.generated.json'),
   Buffer.from(`${JSON.stringify(tiers, (_key, value) => typeof value === 'number' && Object.is(value, -0) ? '-0' : value)}\n`));
 writer.finish();

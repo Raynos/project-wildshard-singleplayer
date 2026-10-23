@@ -31,9 +31,9 @@ test('paint retains all compressed chunks byte for byte outside JSON',()=>{
   expect(bytes.length).toBe(baseline.paint.length);expect(hash(bytes)).toBe(baseline.paint.hash);
 });
 
-test('cast declarations bundle without file services; the SDK reads the declared sources later',async()=>{
+test.each(['castSources','signAtlasSources'])('%s declarations bundle without file services; SDK reads later',async entry=>{
   const built=await build({configFile:false,publicDir:false,logLevel:'silent',build:{write:false,minify:false,
-    lib:{entry:'src/shards/nine-dragon-stack/generators/castSources.ts',formats:['es']},rolldownOptions:{external:[/^node:/u]}}});
+    lib:{entry:`src/shards/nine-dragon-stack/generators/${entry}.ts`,formats:['es']},rolldownOptions:{external:[/^node:/u]}}});
   const outputs=(Array.isArray(built)?built:[built]).flatMap(bundle=>'output' in bundle?bundle.output:[]),chunks=outputs.filter(row=>row.type==='chunk');
   expect(chunks).toHaveLength(1);
   for(const chunk of chunks)expect(()=>assertConfigBoundary([...chunk.imports,...chunk.dynamicImports])).not.toThrow();

@@ -1,6 +1,6 @@
 import { addWindowNodes, windowStep } from './facadeWindowRecipe';
 import { MOVER_REST, MOVER_STAGES } from './moversView';
-import { SIGN_POOL_LIBRARIES, SIGN_ATLAS_BLOBS } from './signAtlasSources';
+import { SIGN_POOL_LIBRARIES, SIGN_ATLAS_ROWS } from './signAtlasSources';
 import signTextures from '../data/signTextureSources.json' with { type: 'json' };
 import signRows from '../data/signView.json' with { type: 'json' };
 import { CAST_LIBRARIES, CAST_WELD, castBlobs, CAST_MATERIALS, castLibrary } from './castSources';
@@ -9,7 +9,7 @@ import lodRows from '../data/lod.json' with { type: 'json' };
 import hookRows from '../data/hookSpecimen.json' with { type: 'json' };
 import hookBounds from '../data/hookBounds.json' with { type: 'json' };
 import { parseWorldSceneWeld } from '@wildshard/format/worldSceneWeld';
-import { LayoutRowsSchema, SignAtlasSchema } from './sections';
+import { LayoutRowsSchema } from './sections';
 import { portalLookRows } from './portalLook';
 // Nine Dragon's models on the shared world-scene host (G465): the Explorer catalogue (data/explorerModels.json) plus the
 // code-built specimens the page placed itself (the brush figures, the banyan and what stands at its foot, the paper
@@ -46,8 +46,7 @@ const json = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.strin
 
 // The sign atlas (generators/signAtlasOutput.ts): its parts' pool libraries, its prepared sign keys and its copies (one
 // atlas per tier; both tiers hang the same signs and name the same parts)
-const signAtlas = v.parse(SignAtlasSchema, JSON.parse(new TextDecoder().decode(SIGN_ATLAS_BLOBS.find(row => row.file.name === 'signs/atlas-phone.json')?.bytes),
-  (_key, value: unknown) => value === '-0' ? -0 : value));
+const signAtlas = SIGN_ATLAS_ROWS.phone;
 const signLibrary = new Map(SIGN_POOL_LIBRARIES.flatMap(row => (row.files[0]?.parts ?? []).map(part => [part, row.id] as const)));
 /** a draw of one sign-atlas part on a lent neon look */
 function signDraw(id: string, part: string, material: string, renderOrder = 0) {
@@ -200,7 +199,7 @@ const cardSteps = (['open', 'capped'] as const).map(caps => {
 });
 const CARD_BLOBS = [...cardFiles].map(([text, file]) => nameBlob(file, 'json', new TextEncoder().encode(text)));
 const portalLook = portalLookRows();
-export const NINE_SCENE_BLOBS: NamedBlob[] = [...SIGN_ATLAS_BLOBS, ...castBlobs(), ...portalLook.blobs, nameBlob('models/world-scenes.json', 'json', json(catalogue)), nameBlob('world/scenes/dressing.json', 'json', json(recipe)),
+export const NINE_SCENE_BLOBS: NamedBlob[] = [...castBlobs(), ...portalLook.blobs, nameBlob('models/world-scenes.json', 'json', json(catalogue)), nameBlob('world/scenes/dressing.json', 'json', json(recipe)),
   nameBlob('world/scenes/cards.json', 'json', json(empty)), ...SHAPE_BLOBS, ...CARD_BLOBS];
 // the painted surfaces' texture array (data/paint.json), the canopy's leaf atlas and the scroll screen, lent to their looks
 const painted = Object.entries(architectureGraphs()).flatMap(([id, graph]) => graph.params !== undefined && 'uPaint' in graph.params ? [id] : []);

@@ -16,14 +16,15 @@ import rows from '../data/signAtlas.generated.json' with { type: 'json' };
 
 const specimenKey = (p: SignModelParams): string => `${signRows.model.key}:${p.style}:${p.text}:${p.color}:${p.ink ?? ''}:${String(p.vertical)}:${p.size}:${String(p.blade)}`;
 const vector = (values: readonly (string | number)[]): Vector3 => new Vector3(Number(values[0]), Number(values[1]), Number(values[2]));
-const bytes = (value: string): Uint8Array => Uint8Array.from(atob(value), char => char.codePointAt(0) ?? 0);
+type ReadSignBytes = (file: string) => Uint8Array;
+const slice = (buffer: Uint8Array, row: { byteOffset: number; byteLength: number }): Uint8Array => buffer.slice(row.byteOffset, row.byteOffset + row.byteLength);
 const json = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value, (_key, entry: unknown) =>
   typeof entry === 'number' && Object.is(entry, -0) ? '-0' : entry));
 const signJson = (value: unknown): Uint8Array => json(v.parse(SignAtlasSchema, JSON.parse(JSON.stringify(value), (_key, entry: unknown) => entry === '-0' ? -0 : entry)));
 export const SIGN_CHANNELS = [{ name: 'aTint', source: '_tint', width: 3 }, { name: 'aNeon', source: '_neon', width: 4 }];
 
-function textureBlob(tier: string, name: 'mono' | 'colour', row: { packed: string; bytes: number }): NamedBlob {
-  const data = bytes(row.packed), header = new DataView(data.buffer, data.byteOffset, data.byteLength);
+function textureBlob(tier: string, name: 'mono' | 'colour', row: { packed: string; bytes: number }, read: ReadSignBytes): NamedBlob {
+  const data = read(row.packed), header = new DataView(data.buffer, data.byteOffset, data.byteLength);
   let width = header.getUint32(20, true), height = header.getUint32(24, true), gpu = 0;
   for (;;) {
     gpu += width * height * (name === 'mono' ? 1 : 4);
@@ -34,9 +35,9 @@ function textureBlob(tier: string, name: 'mono' | 'colour', row: { packed: strin
 }
 
 /** Ordinary RG8 KTX2; the existing texture reader owns decompression. */
-function glyphTexture(tier: string, field: { size: number; packed: readonly string[] }): NamedBlob {
+function glyphTexture(tier: string, field: { size: number; packed: readonly string[] }, read: ReadSignBytes): NamedBlob {
   const pixels = new Uint8Array(field.size * field.size * 2);
-  field.packed.forEach((part, i) => pixels.set(unzlibSync(bytes(part)), i * 2_097_152));
+  field.packed.forEach((part, i) => pixels.set(unzlibSync(read(part)), i * 2_097_152));
   const packed = zstdCompressSync(pixels), offset = 168, data = new Uint8Array(offset + packed.length), view = new DataView(data.buffer);
   data.set([171, 75, 84, 88, 32, 50, 48, 187, 13, 10, 26, 10]);
   [16, 1, field.size, field.size, 0, 0, 1, 1, 2, 104, 60].forEach((n, i) => view.setUint32(12 + i * 4, n, true));
@@ -49,9 +50,9 @@ function glyphTexture(tier: string, field: { size: number; packed: readonly stri
 }
 
 /** Standard exact rest pools and lossless KTX2 textures, admitted by the existing named-file writer. */
-export function signAtlasBlobs(): NamedBlob[] {
+export function signAtlasBlobs(read: ReadSignBytes): NamedBlob[] {
   const blobs = Object.entries(rows).flatMap(([tier, row]) => {
-    const material = new MeshStandardMaterial();
+    const material = new MeshStandardMaterial(), buffer = read(row.buffer);
     const field = tier === 'phone' ? glyphs.phone : glyphs.desktop;
     const atlas = { layout: field.layout, rect: (ch: string) => {
       const rects: Readonly<Record<string, { u0: number; v0: number; u1: number; v1: number }>> = field.rects;
@@ -75,8 +76,8 @@ export function signAtlasBlobs(): NamedBlob[] {
     const channels: { name: string; source: string; width: number; parts?: string[] }[] = [...SIGN_CHANNELS];
     const primitives = Object.entries(row.geometries).map(([name, source]) => {
       const geometry = new BufferGeometry();
-      for (const [channel, attribute] of Object.entries(source.attributes)) geometry.setAttribute(channel, new BufferAttribute(new Float32Array(bytes(attribute.data).buffer), attribute.width));
-      geometry.setIndex(new BufferAttribute(new Uint32Array(bytes(source.index).buffer), 1));
+      for (const [channel, attribute] of Object.entries(source.attributes)) geometry.setAttribute(channel, new BufferAttribute(new Float32Array(slice(buffer, attribute.data).buffer), attribute.width));
+      geometry.setIndex(new BufferAttribute(new Uint32Array(slice(buffer, source.index).buffer), 1));
       return { name, geometry, material, customAttributes: { _TINT: 'aTint', _NEON: 'aNeon' },
         extras: { restBox: null, restSphere: source.sphere, restGroups: [] } };
     });
@@ -107,7 +108,7 @@ export function signAtlasBlobs(): NamedBlob[] {
     return pools.map(pool => pool.blob).concat([
       nameBlob(`signs/atlas-${tier}.json`, 'json', signJson({ keys, glyphLayout: field.layout, neonLights: neon.emitters.map(({ at, color, ...rest }) => Object.assign(rest, { at: at.toArray(), color: color.toArray() })), copies: signCopies(placed, signRows.model), lights: row.lights,
         pools: pools.map(({ name, parts }) => ({ name, parts })), channels })),
-      ...(['mono', 'colour'] as const).map(name => textureBlob(tier, name, row[name])), glyphTexture(tier, field),
+      ...(['mono', 'colour'] as const).map(name => textureBlob(tier, name, row[name], read)), glyphTexture(tier, field, read),
     ]);
   });
   return [...new Map(blobs.map(blob => [blob.file.hash, blob])).values()];

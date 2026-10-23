@@ -16,7 +16,7 @@ const result = await build({
 const code = (Array.isArray(result) ? result : [result]).flatMap(b => 'output' in b ? b.output : []).find(c => c.type === 'chunk')?.code;
 if (code === undefined) throw new Error('Nine glyph page failed to bundle');
 const browser = await webkit.launch({ headless: true });
-const tiers = {}, proof = {};
+const tiers = {}, proof = {}, writer = byteWriter(process.argv.includes('--check'), 'nine-glyphs');
 try {
   const context = await browser.newContext(devices['iPhone 16 Pro']);
   const page = await context.newPage();
@@ -36,11 +36,15 @@ try {
       proof[tier] = { size: before.size, pixelHash: outputHash(Buffer.from(before.base64, 'base64')), rectHash: outputHash(jsonBytes(before.rects, 0).subarray(0, -1)) };
       console.log(`Nine ${tier}: exact original runtime pixels and metrics (zero tolerance)`);
     }
-    tiers[tier] = { ...row, pixelHash: outputHash(data) };
+    const packed = row.packed.map((part, i) => {
+      const file = `glyphs-${tier}-${i}.bin`;
+      writer.put(resolve(root, 'src/shards/nine-dragon-stack/data', file), Buffer.from(part, 'base64'));
+      return file;
+    });
+    tiers[tier] = { ...row, packed, pixelHash: outputHash(data) };
     console.log(`Nine ${tier}: ${row.size}x${row.size} RG8, ${data.length} decoded, ${row.packed.reduce((sum, part) => sum + Buffer.from(part, 'base64').length, 0)} wire, ${tiers[tier].pixelHash}`);
   }
 } finally { await browser.close(); }
-const writer = byteWriter(process.argv.includes('--check'), 'nine-glyphs');
 writer.put(resolve(root, 'src/shards/nine-dragon-stack/data/glyphs.generated.json'), jsonBytes(tiers, 0));
 writer.finish();
 

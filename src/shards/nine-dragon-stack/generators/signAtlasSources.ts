@@ -1,13 +1,15 @@
 import * as v from 'valibot';
 import { SignAtlasSchema } from './sections';
-import { signAtlasBlobs } from './signAtlasOutput';
+import source from '../data/signSources.generated.json' with { type: 'json' };
 
-/** The original pools and channel rows, selected before the shared reader allocates geometry. */
-export const SIGN_ATLAS_BLOBS = signAtlasBlobs();
+/** Binary source paths are read by the SDK after the declaration has loaded. */
+export const SIGN_ATLAS_SOURCES = v.parse(v.array(v.object({ name: v.string(), kind: v.picklist(['glb', 'ktx2', 'json']), source: v.string(),
+  options: v.object({ decoded: v.number(), gpu: v.number(), triangles: v.number(), draws: v.number(), critical: v.boolean(), dependencies: v.array(v.string()) }) })), source.sources);
+/** The same admitted metadata used by the offline product builder. */
+export const SIGN_ATLAS_ROWS = v.parse(v.object({ phone: SignAtlasSchema, desktop: SignAtlasSchema }),
+  JSON.parse(JSON.stringify(source.rows), (_key, value: unknown) => value === '-0' ? -0 : value));
 const tierFiles = (['phone', 'desktop'] as const).map(tier => {
-  const blob = SIGN_ATLAS_BLOBS.find(row => row.file.name === `signs/atlas-${tier}.json`);
-  if (blob === undefined) throw new Error(`Missing Nine sign sources for ${tier}`);
-  const rows = v.parse(SignAtlasSchema, JSON.parse(new TextDecoder().decode(blob.bytes), (_key, value: unknown) => value === '-0' ? -0 : value));
+  const rows = SIGN_ATLAS_ROWS[tier];
   return rows.pools.map(pool => ({ file: pool.name, tier, parts: pool.parts, channels: rows.channels.flatMap(row => {
     const parts = row.parts?.filter(part => pool.parts.includes(part));
     return parts?.length === 0 ? [] : [{ ...row, ...(parts === undefined ? {} : { parts }) }];

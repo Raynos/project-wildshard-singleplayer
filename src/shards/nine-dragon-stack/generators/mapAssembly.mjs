@@ -24,17 +24,18 @@ const cast = async name => {
   const tinted = tintAbove(geometry, dye[1]); geometry.dispose(); return tinted;
 };
 const frame = (values, at) => new Matrix4().fromArray(values, at);
-function atlasGeometry(source) {
+function atlasGeometry(source, bytes) {
   const geometry = new BufferGeometry();
   for (const [key, name] of [['position', 'position'], ['aTint', 'color']]) {
     const attribute = source.attributes[key]; if (attribute === undefined) continue;
-    geometry.setAttribute(name, new Float32BufferAttribute(new Float32Array(Uint8Array.from(Buffer.from(attribute.data, 'base64')).buffer), attribute.width));
+    geometry.setAttribute(name, new Float32BufferAttribute(new Float32Array(bytes.slice(attribute.data.byteOffset, attribute.data.byteOffset + attribute.data.byteLength).buffer), attribute.width));
   }
-  geometry.setIndex(Array.from(new Uint32Array(Uint8Array.from(Buffer.from(source.index, 'base64')).buffer)));
+  geometry.setIndex(Array.from(new Uint32Array(bytes.slice(source.index.byteOffset, source.index.byteOffset + source.index.byteLength).buffer)));
   return geometry;
 }
 
 export async function nineMapAssembly() {
+  const atlas = read('data/signAtlas.generated.json').desktop, atlasBytes = new Uint8Array(readFileSync(resolve(base, 'data', atlas.buffer)));
   const assembly = new MapAssembly(), layout = withPortableMath(() => nineLayoutSource()), { rows, records } = layout;
   const world = await worldRows(rows, records, url => new Uint8Array(readFileSync(resolve(root, `public${url}`))));
   const recipes = new Map(specimenRecipes(banyanOut.plan?.lumps ?? []));
@@ -87,7 +88,7 @@ export async function nineMapAssembly() {
   for (const [i, p] of MOVER_REST.entries()) {
     const id = MOVER_STAGES[i], matrix = new Matrix4().makeRotationY(p.yaw).setPosition(p.x, p.y, p.z);
     assembly.add(`mover:${id}`, specimen(i === 0 ? 'mover:train' : i === 1 ? 'mover:gondola' : 'mover:drone'), [matrix]);
-    if (i > 1) assembly.add(`mover-signs:${id}`, atlasGeometry(read('data/signAtlas.generated.json').desktop.geometries.drone), [matrix]);
+    if (i > 1) assembly.add(`mover-signs:${id}`, atlasGeometry(atlas.geometries.drone, atlasBytes), [matrix]);
   }
   const portals = portalPlanRows();
   assembly.add('portal-rings', new TorusGeometry(portals.ring.r, portals.ring.tube, 8, 48), [...portals.decks, portals.square].map(p =>
@@ -95,8 +96,7 @@ export async function nineMapAssembly() {
   // The ordinary atlas's world geometry includes lightboxes and lamps. The
   // depth-off tubes, mist, steam, streaks and portal swirls are omitted by
   // the browser height pass as well; the sky and screen are above the cut.
-  const atlas = read('data/signAtlas.generated.json').desktop;
-  assembly.add('signs', atlasGeometry(atlas.geometries.world));
+  assembly.add('signs', atlasGeometry(atlas.geometries.world, atlasBytes));
   const glyphs = read('data/glyphs.generated.json').desktop, sign = read('data/signView.json');
   const field = { layout: glyphs.layout, rect: ch => { const rect = glyphs.rects[ch]; if (rect === undefined) throw new Error(`Missing map glyph ${ch}`); return rect; } };
   const neon = new NeonText(sign.model.tubeGain, field);

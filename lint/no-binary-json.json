@@ -386,16 +386,8 @@
       "base64Chars": 13048,
       "dataUris": 0
     },
-    "src/shards/nine-dragon-stack/data/glyphs.generated.json": {
-      "base64Chars": 2037504,
-      "dataUris": 0
-    },
     "src/shards/nine-dragon-stack/data/lightSpill.generated.json": {
       "base64Chars": 52097036,
-      "dataUris": 0
-    },
-    "src/shards/nine-dragon-stack/data/signAtlas.generated.json": {
-      "base64Chars": 1115724,
       "dataUris": 0
     },
     "src/shards/pastel-plain/.wildshard/product/shard.json": {

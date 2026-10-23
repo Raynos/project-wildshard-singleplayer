@@ -1,7 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Exact independent pre-conversion runtime reference hashes.
 import { createHash } from 'node:crypto';
-// oxlint-disable-next-line import/no-nodejs-modules -- Node-only binary byte proofs use explicit buffer ownership.
-import { Buffer } from 'node:buffer';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the retained lossless KTX2 payload before browser decoding.
 import { zstdDecompressSync, zstdCompressSync } from 'node:zlib';
 import { expect, test } from 'vitest';
@@ -14,13 +12,16 @@ import { rawKtx2, bakeSignalSand } from '../../src/shards/sunscar-dunes/generato
 import { signAtlasBlobs } from '../../src/shards/nine-dragon-stack/generators/signAtlasOutput';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the original atlas bytes without a generated JSON type program.
 import { readFileSync } from 'node:fs';
+import { nineSignBlobs } from '../fixtures/nine-sign-blobs';
+import binaryReference from '../fixtures/nine-sign-binary.json' with { type: 'json' };
 import reference from '../fixtures/nine-sign-atlas.json' with { type: 'json' };
 
 const finite=v.pipe(v.number(),v.finite());
-const atlasTier=v.object({cells:v.record(v.string(),v.unknown()),placed:v.array(v.unknown()),lights:v.array(v.unknown()),
+const range=v.object({byteOffset:finite,byteLength:finite});
+const atlasTier=v.object({buffer:v.string(),cells:v.record(v.string(),v.unknown()),placed:v.array(v.unknown()),lights:v.array(v.unknown()),
   keys:v.record(v.string(),v.string()),mono:v.object({packed:v.string(),bytes:finite}),colour:v.object({packed:v.string(),bytes:finite}),
-  geometries:v.record(v.string(),v.object({attributes:v.record(v.string(),v.object({width:finite,data:v.string()})),
-    index:v.string(),sphere:v.nullable(v.array(finite))}))});
+  geometries:v.record(v.string(),v.object({attributes:v.record(v.string(),v.object({width:finite,data:range})),
+    index:range,sphere:v.nullable(v.array(finite))}))});
 const atlas=(()=>{
   const value:unknown=JSON.parse(readFileSync('src/shards/nine-dragon-stack/data/signAtlas.generated.json','utf8'));
   v.assert(v.object({phone:atlasTier,desktop:atlasTier}),value);return value;
@@ -28,12 +29,19 @@ const atlas=(()=>{
 
 const hash = (bytes: Uint8Array | string): string => createHash('sha256').update(bytes).digest('hex');
 const digest = (value: unknown): string => hash(JSON.stringify(value));
-const blobs = signAtlasBlobs();
+const read = (file: string): Uint8Array => new Uint8Array(readFileSync(`src/shards/nine-dragon-stack/data/${file}`));
+const blobs = await nineSignBlobs();
+const slice = (bytes: Uint8Array, row: { byteOffset: number; byteLength: number }): Uint8Array => bytes.slice(row.byteOffset, row.byteOffset + row.byteLength);
+
+test('portable sign assembly retains every original named byte and cost', () => {
+  expect(blobs.map(row => row.file)).toStrictEqual(binaryReference.files);
+  expect(signAtlasBlobs(read).map(row => row.file)).toStrictEqual(binaryReference.files);
+});
 
 test.each(['phone', 'desktop'] as const)('%s retains original WebKit pixels, cells, placements and spill', tier => {
   const row = atlas[tier], before = reference[tier];
   for (const name of ['mono', 'colour'] as const) {
-    const bytes = Buffer.from(row[name].packed, 'base64'), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const bytes = read(row[name].packed), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
     const offset = Number(view.getBigUint64(80, true)), size = Number(view.getBigUint64(88, true));
     const pixels = zstdDecompressSync(bytes.subarray(offset, offset + size));
     expect(view.getUint32(12, true)).toBe(name === 'mono' ? 9 : 43);
@@ -49,7 +57,7 @@ test.each(['phone', 'desktop'] as const)('%s retains original WebKit pixels, cel
 });
 
 test.each(['phone', 'desktop'] as const)('%s restores all 401 original buffers through the existing pool host', async tier => {
-  const rows = atlas[tier], before: Readonly<Record<string, string>> = reference[tier].geometry;
+  const rows = atlas[tier], before: Readonly<Record<string, string>> = binaryReference.geometry[tier], binary = read(rows.buffer);
   const metadata = blobs.find(blob => blob.file.name === `signs/atlas-${tier}.json`);
   if (metadata === undefined) throw new Error('Missing sign metadata');
   const { pools, channels } = v.parse(v.object({ pools: v.array(v.object({ name: v.string() })),
@@ -67,7 +75,7 @@ test.each(['phone', 'desktop'] as const)('%s restores all 401 original buffers t
     async () => (await readSourceModel(blob.bytes)).gltf);
     await library.preload();
     for (const [name, original] of parts) {
-      expect(digest(original)).toBe(before[name]);
+      expect(digest({attributes:Object.fromEntries(Object.entries(original.attributes).map(([key, a]) => [key,{width:a.width,data:hash(slice(binary,a.data))}])),index:hash(slice(binary,original.index)),sphere:original.sphere})).toBe(before[name]);
       const geometry = library.geometry(name, { borrow: true });
       if (geometry === null) throw new Error(`Missing restored sign ${name}`);
       expect(Object.keys(geometry.attributes).sort()).toEqual(Object.keys(original.attributes).sort());
@@ -75,12 +83,12 @@ test.each(['phone', 'desktop'] as const)('%s restores all 401 original buffers t
         const actual = geometry.getAttribute(channel);
         if (!(actual instanceof BufferAttribute)) throw new Error('Unexpected sign storage');
         expect(actual.array).toBeInstanceOf(Float32Array); expect(actual.itemSize).toBe(attribute.width); expect(actual.normalized).toBe(false);
-        expect(Buffer.from(actual.array.buffer, actual.array.byteOffset, actual.array.byteLength).toString('base64')).toBe(attribute.data);
+        expect(new Uint8Array(actual.array.buffer, actual.array.byteOffset, actual.array.byteLength)).toEqual(slice(binary, attribute.data));
       }
       const index = geometry.index;
       if (index === null) throw new Error('Missing sign index');
       expect(index.array).toBeInstanceOf(Uint32Array);
-      expect(Buffer.from(index.array.buffer, index.array.byteOffset, index.array.byteLength).toString('base64')).toBe(original.index);
+      expect(new Uint8Array(index.array.buffer, index.array.byteOffset, index.array.byteLength)).toEqual(slice(binary, original.index));
       expect(geometry.boundingBox).toBeNull();
       expect(geometry.boundingSphere === null ? null : [...geometry.boundingSphere.center, geometry.boundingSphere.radius]).toEqual(original.sphere);
     }

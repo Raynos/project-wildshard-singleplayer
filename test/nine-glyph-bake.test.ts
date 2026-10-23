@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
 import { DataTexture, RGFormat, UnsignedByteType } from 'three';
+import { nineSignBlobs } from './fixtures/nine-sign-blobs';
 import { output } from '../src/shards/nine-dragon-stack/generators/output';
 import baseline from './fixtures/nine-glyphs.json' with { type: 'json' };
 import { FONT_CHARS, WORDS } from '../src/shards/nine-dragon-stack/generators/words';
@@ -21,8 +22,11 @@ const glyphs=(()=>{
   v.assert(v.object({phone:glyphTier,desktop:glyphTier}),value);return value;
 })();
 
+const signs = await nineSignBlobs();
 function blob(name: string): Uint8Array {
   const row = output.namedFiles.find(file => file.name === name), bytes = row === undefined ? undefined : output.assets.get(row.hash);
+  const sign = signs.find(entry => entry.file.name === name);
+  if (sign !== undefined) return sign.bytes;
   if (bytes === undefined) throw new Error(`Missing admitted Nine glyph blob ${name}`);
   return bytes;
 }
@@ -84,7 +88,7 @@ for (const tier of ['phone', 'desktop'] as const) {
     expect(field.layout).toEqual(GLYPH_LAYOUT[tier]); expect(field.chars).toBe(FONT_CHARS); expect(field.words).toEqual(WORDS);
     const rects = Object.fromEntries(Array.from(FONT_CHARS, char => [char, field.rect(char)]));
     expect(await hash(new TextEncoder().encode(JSON.stringify(rects)))).toBe(before.rectHash);
-    const wire = output.namedFiles.find(file => file.name === `signs/glyphs-${tier}.ktx2`);
+    const wire = signs.find(entry => entry.file.name === `signs/glyphs-${tier}.ktx2`)?.file;
     expect(wire?.decoded).toBe(before.size * before.size * 2);
     expect(wire?.compressed).toBeLessThan(1_000_000);
     expect(field.texture.format).toBe(RGFormat); expect(field.texture.type).toBe(UnsignedByteType);
