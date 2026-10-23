@@ -20134,7 +20134,9 @@
         "src/game"
       ],
       "outputs": [
-        "src/shards/nine-dragon-stack/data/heldDecals.generated.json"
+        "src/shards/nine-dragon-stack/data/heldDecals.generated.json",
+        "src/shards/nine-dragon-stack/assets/af1d80c86f41a8e66c4949645f9ed42cd563888a02b930410be46f06f5528242",
+        "src/shards/nine-dragon-stack/assets/5616ef471c7572f8ce43fe4bba8e167ce7f4ab0b5985d2003018454d17b6e634"
       ],
       "platform": "darwin",
       "browser": true,

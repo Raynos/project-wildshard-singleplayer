@@ -1,0 +1,38 @@
+{
+  "phone": {
+    "width": 1024,
+    "height": 512,
+    "file": {
+      "name": "looks/jian-decal-phone.png",
+      "path": "blobs/image/af1d80c86f41a8e66c4949645f9ed42cd563888a02b930410be46f06f5528242.png",
+      "kind": "image",
+      "hash": "af1d80c86f41a8e66c4949645f9ed42cd563888a02b930410be46f06f5528242",
+      "compressed": 98653,
+      "decoded": 2491764,
+      "gpu": 2097152,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    },
+    "pixelHash": "73449f7b62c2fb231c168ff663593bd3c2a99ec0320c22b09694bc4609e66bf6"
+  },
+  "desktop": {
+    "width": 2048,
+    "height": 1024,
+    "file": {
+      "name": "looks/jian-decal-desktop.png",
+      "path": "blobs/image/5616ef471c7572f8ce43fe4bba8e167ce7f4ab0b5985d2003018454d17b6e634.png",
+      "kind": "image",
+      "hash": "5616ef471c7572f8ce43fe4bba8e167ce7f4ab0b5985d2003018454d17b6e634",
+      "compressed": 270663,
+      "decoded": 9471260,
+      "gpu": 8388608,
+      "triangles": 0,
+      "draws": 0,
+      "critical": false,
+      "dependencies": []
+    },
+    "pixelHash": "2745c2b938b4c6923e60e8dbab99fe5fc649b8607993a13fd2e1c3ae48b334a5"
+  }
+}

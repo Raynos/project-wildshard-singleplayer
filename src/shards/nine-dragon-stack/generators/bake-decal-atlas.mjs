@@ -12,6 +12,7 @@ const result = await build({ configFile: false, logLevel: 'silent', publicDir: f
     rolldownOptions: { treeshake: { moduleSideEffects: false }, output: { codeSplitting: false } } } });
 const code = (Array.isArray(result) ? result : [result]).flatMap(bundle => 'output' in bundle ? bundle.output : []).find(chunk => chunk.type === 'chunk')?.code;
 if (code === undefined) throw new Error('Decal painter failed to bundle');
+const writer = byteWriter(process.argv.includes('--check'), 'nine-decal-atlas');
 const browser = await webkit.launch({ headless: true }), rows = {};
 try {
   const context = await browser.newContext(devices['iPhone 16 Pro']), page = await context.newPage();
@@ -23,10 +24,11 @@ try {
     const bytes = Buffer.from(raster.png.split(',')[1], 'base64'), original = Buffer.from(raster.rgba, 'base64');
     const image = await readImagePixels(bytes);
     if (image.width !== raster.width || image.height !== raster.height || !Buffer.from(image.pixels).equals(original)) throw new Error(`Decal PNG changes ${tier} reference pixels`);
-    rows[tier] = { width: raster.width, height: raster.height, png: bytes.toString('base64') };
+    const png = `assets/${outputHash(bytes)}`;
+    writer.put(resolve(root, 'src/shards/nine-dragon-stack', png), bytes);
+    rows[tier] = { width: raster.width, height: raster.height, png };
     console.log(`Nine ${tier} decal: ${raster.width}x${raster.height}, ${bytes.length} bytes, exact RGBA ${outputHash(original)}`);
   }
 } finally { await browser.close(); }
-const writer = byteWriter(process.argv.includes('--check'), 'nine-decal-atlas');
 writer.put(resolve(root, 'src/shards/nine-dragon-stack/data/heldDecals.generated.json'), jsonBytes(rows));
 writer.finish();
