@@ -8,6 +8,7 @@ import { expect, test } from 'vitest';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { snapshotSimHost, restoreSimHost, serializeSimSnapshot, decodeSimSnapshot } from '../src/engine/sim/snapshot';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
+import { builtProduct } from './fixtures/builtProduct';
 import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { createShardfileSim, bindShardfileSim } from '../src/game/plugin/simulation';
 import { createTrustedHeadlessResident } from '../src/sdk/headlessRuntime';
@@ -24,11 +25,11 @@ const entries: Partial<Record<string, string>> = {
 // All ten live products are tested; sealed legacy products are never grid destinations.
 // Renderer-owned kit parts have a separate mandatory quick check (Pine King).
 for (const slug of shards) test(`${slug}: evict and re-enter with kit, held items and quest progress`, async () => {
-  const product = await loadHeadlessProduct(`out/${slug}`), shard = product.shardfile;
+  const directory = builtProduct(slug), product = await loadHeadlessProduct(directory), shard = product.shardfile;
   const descriptor = outputDescriptor(shard);
   if (descriptor === undefined) throw new Error('Missing admitted product inventory');
   const assets = new Map(descriptor.index.files.map(file => [file.commons === true ? `commons:${file.hash}` : file.hash,
-    Uint8Array.from(readFileSync(`out/${slug}/${file.path}`))]));
+    Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   const entry = slug === 'driftwood-isle' || slug === 'nine-dragon-stack' || slug === 'nalati-grasslands'
     ? generateHeadlessModuleMap(resolve('.'), slug) : entries[slug];

@@ -7,6 +7,7 @@ import * as rosters from '../src/engine/ai/eliteRoster';
 import { createSimHost } from '../src/engine/sim';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
+import { builtProduct } from './fixtures/builtProduct';
 import { nalatiNativeAssets } from './proof/nalati-grasslands/nativeAssets';
 import source from '../src/shards/nalati-grasslands/shard.config';
 import { NALATI_STRIKES, sampleStrike } from './fixtures/nalati-strikes';
@@ -18,7 +19,7 @@ test('Nalati admitted elite contacts retain every original shape and cover refus
   const { prepareHeadlessRuntime } = await import('./fixtures/nalati-headless');
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   const plan = await prepareHeadlessRuntime({ shard: source, assets: nalatiNativeAssets(source), rapier,
-    product: await loadHeadlessProduct('out/nalati-grasslands') });
+    product: await loadHeadlessProduct(builtProduct('nalati-grasslands')) });
   const host = createSimHost(plan.level, { ...plan.ports, rapier });
   try {
     plan.install(host, { restoring: false, commands: () => [], emit: () => undefined });

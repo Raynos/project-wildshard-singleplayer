@@ -1,21 +1,18 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Headless behaviour runs the real authored product bytes.
 import { readFileSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- Native fixtures require the official format-2 outputs before workers start.
-import { execFileSync } from 'node:child_process';
-// oxlint-disable-next-line import/no-nodejs-modules -- Run the official writer with the same Node binary as the test worker.
-import { env, execPath } from 'node:process';
 // oxlint-disable-next-line import/no-nodejs-modules -- The trusted worker entry is a local platform-selected file.
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- No network or browser enters the authoritative simulation.
 import { pathToFileURL } from 'node:url';
 import { QuestState } from '../src/engine/quest/core';
 import { Flags } from '../src/engine/world/interact/flags';
-import { afterAll, beforeAll, expect, it, vi } from 'vitest';
+import { afterAll, expect, it, vi } from 'vitest';
 import { parseShardfile } from '../src/format/shardSchema';
 import { decodeSimSnapshot } from '../src/engine/sim/snapshot';
 import { HeadlessSimulation } from '../src/sdk/headless';
 import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
+import { builtProduct } from './fixtures/builtProduct';
 import { productHeadlessSections } from '../src/sdk/headlessSections';
 import { generateHeadlessModuleMap } from '../scripts/check-headless-assemblies.mjs';
 import { TEMPLATE_SOURCE as template } from './fixtures/templateSource';
@@ -43,19 +40,12 @@ const trustedEntries: Partial<Record<string, string>> = {
   'pine-hollow': 'test/fixtures/pine-headless.ts',
 };
 
-beforeAll(() => {
-  const built = env['WS_TEST_PRODUCTS_SHA'];
-  if (built === undefined || !/^[a-f0-9]{40}$/u.test(built) || built !== env['VERCEL_GIT_COMMIT_SHA']) {
-    execFileSync(execPath, ['scripts/build-shardfiles.mjs', '--reuse'], { stdio: 'inherit' });
-  }
-}, 120_000);
-
 // Compatibility means a living headless shard, never a historical fingerprint or replay suffix.
 for (const [slug, _input, trusted] of cases) it.concurrent(`${slug}: boots and advances a living headless simulation`, async () => {
-  const product = await loadHeadlessProduct(`out/${slug}`), source = product.shardfile;
+  const directory = builtProduct(slug), product = await loadHeadlessProduct(directory), source = product.shardfile;
   const descriptor = outputDescriptor(source); if (descriptor === undefined) throw new Error('Missing admitted headless inventory');
   const assets = new Map(descriptor.index.files.map(file => [file.commons === true ? `commons:${file.hash}` : file.hash,
-    Uint8Array.from(readFileSync(`out/${slug}/${file.path}`))]));
+    Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
   const entry = slug === 'nine-dragon-stack' || slug === 'driftwood-isle' || slug === 'nalati-grasslands' ? generateHeadlessModuleMap(resolve('.'), slug) : trustedEntries[slug];
   if (trusted && entry === undefined) throw new Error('Missing declared trusted entry');
   const sim = await HeadlessSimulation.create(source, assets, undefined, { deadline: 'advisory',

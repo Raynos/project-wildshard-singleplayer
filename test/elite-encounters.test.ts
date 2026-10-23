@@ -6,6 +6,7 @@ import { createSimHost, type SimHost, type SimValue } from '../src/engine/sim';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
+import { builtProduct } from './fixtures/builtProduct';
 import { installCableModes } from '../src/engine/player/modes';
 import { createNativeCombatFrame } from '../src/game/plugin/nativeItems';
 import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
@@ -17,9 +18,9 @@ const Value: v.GenericSchema<SimValue> = v.lazy(() => v.union([v.null(), v.boole
 const object = v.record(v.string(), v.unknown());
 for (const [slug, prepare, step] of [['pine-hollow', pinePlan, 'pine.elites'], ['nalati-grasslands', nalatiPlan, 'nalati.elites']] as const) {
   test(`${slug}: encounter wire resumes fights and refuses malformed bindings quietly`, async () => {
-    const product = await loadHeadlessProduct(`out/${slug}`), descriptor = outputDescriptor(product.shardfile);
+    const directory = builtProduct(slug), product = await loadHeadlessProduct(directory), descriptor = outputDescriptor(product.shardfile);
     if (descriptor === undefined) throw new Error('Missing product inventory');
-    const assets = new Map(descriptor.index.files.map(file => [file.commons === true ? `commons:${file.hash}` : file.hash, Uint8Array.from(readFileSync(`out/${slug}/${file.path}`))]));
+    const assets = new Map(descriptor.index.files.map(file => [file.commons === true ? `commons:${file.hash}` : file.hash, Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
     const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
     const plan = await prepare({ shard: product.shardfile, assets, rapier, product }), ports = { ...plan.ports, rapier };
     const context = { combat: createNativeCombatFrame(), commands: () => [], emit: () => undefined }, host = createSimHost(plan.level, ports);

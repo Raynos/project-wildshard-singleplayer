@@ -21,6 +21,66 @@ import { productFolder, shardOutputs } from './shard-outputs.mjs';
 import { shardfileValidationRevision } from './shardfile-validation-revision.mjs';
 import { runShardBuild, runShardBuildPool } from './shard-build-pool.mjs';
 
+/** Exact closed-runtime copy admission shared by the builder and read-only product consumers.
+ * @param {string} root @param {string} project */
+function runtimeCopyIssues(root, project) {
+  const issues = [];
+  /** @type {Set<string>} */
+  const executable = new Set();
+  const walk = directory => {
+    if (!existsSync(directory)) return;
+    for (const file of readdirSync(directory, { withFileTypes: true })) {
+      const path = resolve(directory, file.name);
+      if (file.isDirectory()) walk(path);
+      else if (file.name.endsWith('.ts')) {
+        if (!file.name.endsWith('.d.ts')) executable.add(path);
+        for (const issue of shardfileBoundaryViolations(root, path.slice(root.length + 1), readFileSync(path, 'utf8')).filter(row => row.rule === 'runtime-standalone')) issues.push({ file: path.slice(project.length + 1), message: issue.message });
+      }
+    }
+  };
+  walk(resolve(project, 'runtime'));
+  if (executable.size > 0 && !existsSync(resolve(project, 'runtime/index.ts'))) issues.push({ file: 'runtime/index.ts', message: 'Closed runtime requires its compiled index entry' });
+  return issues;
+}
+/** @param {string} root @param {string|undefined} output
+ * @param {{image:string,tilesHash:string}|undefined} map @param {boolean} copy */
+function productFlags(root, output, map, copy) {
+  return [...(copy ? ['--copy-runtime'] : []), ...(map === undefined ? [] : [`--map=${resolve(root, 'public', map.image.slice(1))}`, `--map-tiles-hash=${map.tilesHash}`]), ...(output === undefined ? [] : [`--output=${output}`])];
+}
+/** @param {string} root @param {string} name @param {string[]} flags
+ * @param {string} toolchain @param {string} cacheRoot */
+function productRecipe(root, name, flags, toolchain, cacheRoot) {
+  const normalized = flags.map(flag=>flag.replace(root,'<root>'));
+  const recipe = [name,...normalized,toolchain];
+  const receipts = resolve(cacheRoot,'.inputs-v2',name,createHash('sha256').update(JSON.stringify(recipe)).digest('hex'));
+  return { normalized, recipe, receipts };
+}
+/** Locate a normal build's product without generating, publishing or touching cache entries.
+ * CI consumes its exact build output. Local callers require a matching sealed input receipt.
+ * The caller still admits the returned product's complete bytes through its normal loader.
+ * @param {string} sourceRoot @param {string} name
+ * @param {{cacheRoot?:string,env?:NodeJS.ProcessEnv}} [options] */
+export function readBuiltShardfile(sourceRoot, name, { cacheRoot = shardfileCacheRoot(), env = process.env } = {}) {
+  if (!/^[a-z0-9_-]+$/u.test(name)) throw new Error('Invalid built product name');
+  const root = resolve(sourceRoot);
+  const destination = resolve(root, 'out', name), built = env.WS_TEST_PRODUCTS_SHA;
+  if (built !== undefined && /^[a-f0-9]{40}$/u.test(built) && built === env.VERCEL_GIT_COMMIT_SHA
+    && existsSync(resolve(destination, 'shard.json'))) return destination;
+  const folder = productFolder(root, name), project = resolve(root, 'src/shards', folder);
+  const output = name === folder ? undefined : name;
+  const stamp = output === undefined ? mapStampPath(project) : resolve(project, `look/map.${output}.baked.json`);
+  const map = existsSync(stamp) ? JSON.parse(readFileSync(stamp, 'utf8')) : undefined;
+  const flags = productFlags(root, output, map, runtimeCopyIssues(root, project).length === 0);
+  const memo = new InputHashMemo(root);
+  const toolchain = `${productToolchainKey(root,memo)}:${shardfileValidationRevision(root)}`;
+  const { recipe, receipts } = productRecipe(root, name, flags, toolchain, cacheRoot);
+  const key = matchingProductInputKey(root, receipts, recipe, memo);
+  if (key !== undefined) for (const directory of [destination, resolve(cacheRoot, name, key)]) {
+    if (readBuildKey(directory) === key && existsSync(resolve(directory, 'shard.json'))) return directory;
+  }
+  throw new Error(`Missing current product ${name}; run: node scripts/build-shardfiles.mjs --reuse --shard=${name}`);
+}
+
 // --reuse (fast proofs: serve-build.sh, `pnpm build:proof`): a shard whose inputs are unchanged keeps its product, from
 // the slot or the shared content-keyed cache (scripts/shardfile-cache.mjs). The plain `pnpm build` (the push gate)
 // rebuilds every shard into a fresh folder. CI may explicitly reuse exact input receipts, then fully validates each hit.
@@ -50,24 +110,9 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
   /** @type {Map<string,Promise<void>>} */
   const folderPreparation=new Map();
   const runtimeIssues = project => {
-    const previous=runtimeChecks.get(project);if(previous!==undefined)return previous;
-    const issues = [];
-    /** @type {Set<string>} */
-    const executable = new Set();
-    const walk = directory => {
-      if (!existsSync(directory)) return;
-      for (const file of readdirSync(directory, { withFileTypes: true })) {
-        const path = resolve(directory, file.name);
-        if (file.isDirectory()) walk(path);
-        else if (file.name.endsWith('.ts')) {
-          if (!file.name.endsWith('.d.ts')) executable.add(path);
-          for (const issue of shardfileBoundaryViolations(root, path.slice(root.length + 1), readFileSync(path, 'utf8')).filter(row => row.rule === 'runtime-standalone')) issues.push({ file: path.slice(project.length + 1), message: issue.message });
-        }
-      }
-    };
-    walk(resolve(project, 'runtime'));
-    if (executable.size > 0 && !existsSync(resolve(project, 'runtime/index.ts'))) issues.push({ file: 'runtime/index.ts', message: 'Closed runtime requires its compiled index entry' });
-    runtimeChecks.set(project,issues);return issues;
+    let issues = runtimeChecks.get(project);
+    if (issues === undefined) { issues = runtimeCopyIssues(root, project); runtimeChecks.set(project, issues); }
+    return issues;
   };
   const folders = readdirSync(projects, { withFileTypes: true }).filter(entry => entry.isDirectory() && !Object.hasOwn(frozen.shards, entry.name) && existsSync(resolve(projects, entry.name, 'shard.config.ts'))).map(entry => entry.name).sort((a, b) => a.localeCompare(b));
   // SF88g: a folder with declared outputs (scripts/shard-outputs.mjs) builds one product per output, each to out/<slug>
@@ -117,14 +162,12 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
     if (map !== undefined) await verifyMapPixels(resolve(root, 'public', map.image.slice(1)), map.pixelHash);
     const issues = catalog || copyRuntime === 'closed' ? runtimeIssues(project) : [];
     runtimeReport.push({ slug: name, runtime: issues.length > 0 ? 'source' : 'output', issues });
-    const flags = [...(copyRuntime === true || (catalog || copyRuntime === 'closed') && issues.length === 0 ? ['--copy-runtime'] : []), ...(map === undefined ? [] : [`--map=${resolve(root, 'public', map.image.slice(1))}`, `--map-tiles-hash=${map.tilesHash}`]), ...(output === undefined ? [] : [`--output=${output}`])];
+    const flags = productFlags(root, output, map, copyRuntime === true || (catalog || copyRuntime === 'closed') && issues.length === 0);
     // --no-placeholders (G348): a first-party product keeps its own bytes; its near / far views come from the repo bakes
     // until the grid reads a shardfile's `near`. The CLI's default baked a near row into Signal Dunes' product, whose play
     // stage then never ran (677bd1cf1: "Shardfile requires the normal play stage", the page held at 82 %).
     const destination = resolve(root, 'out', name);
-    const normalized = flags.map(flag=>flag.replace(root,'<root>'));
-    const recipe = [name,...normalized,toolchain];
-    const receipts = resolve(shardfileCacheRoot(),'.inputs-v2',name,createHash('sha256').update(JSON.stringify(recipe)).digest('hex'));
+    const { normalized, recipe, receipts } = productRecipe(root, name, flags, toolchain, shardfileCacheRoot());
     const currentKey = () => recorded ? matchingProductInputKey(root,receipts,recipe,inputHashes) : shardfileKey(files ?? new Map(),name,folders.filter(other=>other!==folder),normalized);
     const key = currentKey();
     if (!strict && only !== undefined && !only.includes(name)) {

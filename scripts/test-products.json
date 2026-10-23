@@ -76,6 +76,12 @@
   "test/nalati-headless-assembly.test.ts": [
     "nalati-grasslands"
   ],
+  "test/native-ground-assembly.test.ts": [
+    "nalati-grasslands"
+  ],
+  "test/nalati-strike-assembly.test.ts": [
+    "nalati-grasslands"
+  ],
   "test/shard-headless.test.ts": [
     "_template",
     "pastel-plain",

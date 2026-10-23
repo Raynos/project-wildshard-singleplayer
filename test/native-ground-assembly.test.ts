@@ -9,6 +9,7 @@ import * as v from 'valibot';
 import { generateHeadlessModuleMap } from '../scripts/check-headless-assemblies.mjs';
 import { prepareHeadlessAssembly,type HeadlessAssemblyModules } from '../src/sdk/headlessAssembly';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
+import { builtProduct } from './fixtures/builtProduct';
 import type { ShardProduct } from '../src/game/shardfile/shardProduct';
 import * as population from '../src/game/population/environment';
 import { decodeTerrainTile } from '../src/format/terrainTileBytes';
@@ -41,7 +42,7 @@ test('declared sampling rows retain the original native checkpoint and restore s
   const call = v.parse(v.strictObject({ $call: v.tuple([v.unknown(),v.unknown(),v.unknown()]) }),grid.value).$call;
   expect(call[2]).toEqual({ resolution: 256,size: 500,seed: { $ref: ['shard','identity','seed'] } });
   const { '@wildshard/format/terrainTileBytes': _decoder,...modules } = metadata.modules;
-  const product = await loadHeadlessProduct('out/nalati-grasslands'),rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
+  const product = await loadHeadlessProduct(builtProduct('nalati-grasslands')),rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   const emitted: unknown = JSON.parse(new TextDecoder().decode(await product.file('sim/headless-assembly.json')));
   const original = v.parse(v.looseObject({ prepare: v.array(v.object({ name: v.string(),value: v.unknown() })) }),emitted);
   const candidateRows = { ...original,modules: metadata.modules,prepare: original.prepare.map(row => row.name === 'grid' ? grid : row) };
