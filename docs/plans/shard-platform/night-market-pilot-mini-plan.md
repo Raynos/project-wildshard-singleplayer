@@ -11,9 +11,7 @@ Everything below this brief is the detailed build reference; where they disagree
 
 - **Target look:** `art/grid/round-49-night-market-billboards-2x2/` (take B layout, G633) — match it from the four views
   (100 m above the neighbour, road entry, top-down, plaza).
-- **Tiles:** an exact 8 × 8 grid of 62.5 m tiles (one per streaming tile, G626/G638); four **bespoke Night Market tile
-  types** (courtyard houses, stall row, canal with bridge, garden), code-built by small JS builders, ~2 draws each; the
-  centre 2 × 2 is the plaza. Layout is a data file Jake can edit (letters per tile).
+- **Tiles (G641, supersedes "four types"):** an exact 8 × 8 grid of 62.5 m tiles; a **7-tile kit**, rotation only: H house court, G garden, S stall row, C canal straight, L canal corner, N entry forecourt, P plaza quarter (H and G with 2 seeded variants each); every tile edge is paved or canal, canal edges meet canal edges, each canal tile builds half an 8 m arched bridge where a lane crosses it. **Layout B, the moat ring** (H16 G8 S12 C12 L4 N8 P4), from `art/grid/round-50-night-market-tiles/05-mockup-b-grid.jpg` (layout map in `03-layouts-board.jpg`); the data file holds 8 strings of letter + rotation pairs. Code-built by small JS builders, ~2 draws each; ~7.25 h. Round 49 stays the style reference.
 - **Landmark:** the Hunyuan3D 2.1 pagoda gate from the trial (`art/grid/round-48-landmark-trial/`; Jake: "doesn't look
   bad"), unless the TRELLIS.2 side-by-side comes out clearly better (G632) — scaled to ~45–60 m, 15k triangles near /
   2.5k far, opaque and painted; box colliders on pillars and bases.
