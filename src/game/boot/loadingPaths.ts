@@ -26,7 +26,7 @@ export function loadingPath(id: LoadingPathId, own?: Readonly<Record<string, { l
   const actual = BOOT_STEPS.filter(key => selected.has(key)).map(key => ({ key, label: own?.[key]?.label ?? STEP_INFO[key].label, weight: STEP_INFO[key].weight }));
   return { id, steps: [...early, ...actual, ...shared,
     // the home cell's admission runs admission, region world and equipment a second time: declared, so the total holds
-    ...(id === 'grid' ? [step('home', 'Home region', ['crossing']), step('homePrograms', 'Home region shader preparation'),
+    ...(id === 'grid' ? [step('home', 'Home region', ['crossing']), step('homePrograms', 'Home region shader preparation'), step('road', 'Road system'),
       ...[admission, world, loadout].map(row => repeatedStep(row, 2))] : [])],
     ignored: BOOT_STEPS.filter(key => !selected.has(key)) };
 }

@@ -24,6 +24,7 @@ it('partitions nested stages and gaps into the exact loading wall time', () => {
 it('uses actual path rows and keeps unnamed work visible', () => {
   const path = loadingPath('grid');
   expect(path.steps.map(row => row.key)).toContain('home');
+  expect(path.steps.find(row => row.key === 'road')?.label).toBe('Road system');
   expect(path.steps.map(row => row.key)).not.toEqual(expect.arrayContaining(['terrain', 'forest', 'physics']));
   let clock = 0;
   const timeline = new LoadingTimeline(path, 0, () => clock);
