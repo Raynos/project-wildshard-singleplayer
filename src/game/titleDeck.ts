@@ -25,7 +25,7 @@ import { listenDom, listenTap } from '@wildshard/engine/input/dom';
  * test/title-deck.test.ts keeps each card's name, label (the def's `biome`), badge and art equal to its ShardManifest.
  */
 import { shards } from './shard/list';
-import { ordinaryShardManifests } from './shard/legacy';
+import { legacyShardFor, ordinaryShardManifests } from './shard/legacy';
 import type { ShardSlug } from './shard/slugs.generated';
 import type { ShardEntries, ShardEntryMode, ShardManifest } from './shard/manifest';
 import { chooseShardEntry, defaultEntry, hasEntry, shardEntries } from './shard/entryMode';
@@ -74,14 +74,15 @@ const sessionRefusals: RefusedShard = (slug) => pageShardRefusals().read(slug);
 /** Developer mode reveals hidden levels after every player-facing card. */
 export function titleCards(showHidden = isDev(), upgradeNeeded: UpgradeNeeded = noUpgrades, refused: RefusedShard = sessionRefusals): readonly TitleCard[] {
   const hidden = (m: ShardManifest): boolean => m.status === 'hidden' || m.slug.startsWith('_');
-  const ordinary = ordinaryShardManifests(shards()).filter(m => m.shardSelect !== false);
+  const registered = shards(), ordinary = ordinaryShardManifests(registered).filter(m => m.shardSelect !== false);
   const visible = ordinary.filter((m) => !hidden(m));
   const manifests = showHidden ? [...visible, ...ordinary.filter(hidden)] : visible;
   return manifests.map((m): TitleCard => {
+    const entries = shardEntries(m);
     const card: TitleCard = {
     slug: m.slug, name: m.name, label: m.biome,
     thumbnail: m.card.thumb, heroPortrait: m.card.portrait, heroLandscape: m.card.landscape,
-    entries: shardEntries(m),
+    entries: { ...entries, legacy: entries.legacy || legacyShardFor(registered, m.slug) !== undefined },
     };
     const ported = PORT_SHARES[m.slug];
     if (ported !== undefined) card.ported = ported;

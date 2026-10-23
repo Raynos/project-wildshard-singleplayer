@@ -16,7 +16,6 @@ import { outputDescriptor } from './outputDescriptor';
 import { ktx2TranscodeSupport } from '@wildshard/engine/core/ktx2';
 import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { readProductDescriptor, browserContentHash, browserProductCache, type AdmittedProduct, type ProductOptions } from './product';
-import { bindRuntimeTerrain, type RuntimeTerrain, type RuntimeTerrainPorts } from './runtimeWorld';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { runtimeBoundWorldFiles } from '../plugin/headless';
 import { clientMaterials } from './clientMaterials';
@@ -258,12 +257,6 @@ export function runtimeProduct(source: Shardfile): RuntimeProduct {
   const published = declaration !== undefined && outputDescriptor(declaration) !== undefined ? declaration : source;
   return ownedRuntimeProduct(published, new ClientAssets(published, new Map(), browserShardfileOptions(productBase(slug), true)),
     refs => Promise.resolve([...refs]));
-}
-
-/** Bind a runtime's declared terrain tiles from its product reader (`runtimeProduct`) under `scope`; see `bindRuntimeTerrain`. */
-export function bindRuntimeProductTerrain(scope: Scope, source: Shardfile, ports: Omit<RuntimeTerrainPorts, 'assets'>): Promise<RuntimeTerrain> {
-  const product = runtimeProduct(source);
-  return bindRuntimeTerrain({ scope }, product.source, { ...ports, assets: product.assets });
 }
 
 /**

@@ -25,9 +25,8 @@ import * as v from 'valibot';
  *   Its Wasm roots remain verified product files and never create a data-client host.
  * - `clientChannels`: copied clock/state observations and bounded straight-line numeric expressions; the runtime
  *   binds private visual targets, never authoritative state or player objects.
- * - `terrain` (G227, "the shardfile is the bake"): the compiled 62.5 m terrain tiles and their critical collider. The data
- *   client draws and collides none of them; the runtime binds them (`bindRuntimeTerrain`, ./runtimeWorld.ts), streaming the
- *   admitted tiles through the shardfile's residency in place of its code-built ground. The edge rows stay platform data.
+ * - `terrain`: a trusted runtime owns the terrain queries and draw construction. The data client omits those rows;
+ *   unbound drawn tiles use the page's shared tile streamer. Edge rows remain platform data.
  * - `loot`: the trusted runtime consumes the original economy rows; only the secondary data client omits them.
  * - `props` (G227): the compiled props section (tiles, library models, panels, far proxy), bound the same way; the
  *   runtime keeps the behaviour of the pieces it dresses.

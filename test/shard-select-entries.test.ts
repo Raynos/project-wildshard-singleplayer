@@ -2,6 +2,8 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { setDev } from '../src/engine/core/devMode';
 import { authoredRows } from '../src/engine/ui/authoredDebugRows';
+import { shardEntryManifest } from '../src/game/shard/legacy';
+import type { ShardManifest } from '../src/game/shard/manifest';
 import { installShards, shards } from '../src/game/shard/list';
 import { shardEntry, type ShardEntryChoices } from '../src/game/shard/entryMode';
 import { buildTitleDeck, titleCards, type TitleCard } from '../src/game/titleDeck';
@@ -144,3 +146,42 @@ test('shared title actions toggle once per tap and disabled entry buttons stay i
   expect(entered).toHaveBeenCalledTimes(1);
   built.dispose();
 });
+
+test('every retained Legacy button resolves and boots its original plugin and look modules', async () => {
+  const manifests = [...SHARDS, ...LEGACY_SHARDS];
+  installShards(manifests); setDev(true);
+  const cards = titleCards(true), selected: ShardManifest[] = [];
+  const built = buildTitleDeck({ cards, active: null, onEnter: (choice, mode) => {
+    const manifest = shardEntryManifest(manifests, choice.slug, mode ?? 'legacy');
+    if (manifest === undefined) throw new Error('Missing selected manifest');
+    selected.push(manifest);
+  }, onExplore: () => undefined, onSettings: () => undefined, mode: () => ({ developer: true, devserver: true }) });
+  document.body.append(built.root);
+  const option = [...authoredRows].find(optionRow => optionRow.id === 'legacyShardButtons');
+  if (option === undefined) throw new Error('Missing Legacy shard buttons');
+  option.set('on');
+
+  try {
+    for (const copy of LEGACY_SHARDS) {
+      const primary = copy.slug.slice(0, -'-legacy'.length);
+      const index = cards.findIndex(choice => choice.slug === primary);
+      expect(index, copy.slug).toBeGreaterThanOrEqual(0);
+      built.select(index, false);
+      const button = built.root.querySelector<HTMLButtonElement>('.ws-menu-play');
+      expect(button?.disabled, copy.slug).toBe(false); button?.click();
+      expect(selected.at(-1), copy.slug).toBe(copy);
+      if (copy.load === undefined || copy.render === undefined) throw new Error('Frozen boot loader missing');
+      const loaded = await copy.load();
+      const Plugin = loaded.default, plugin = new Plugin();
+      expect(typeof plugin.world, copy.slug).toBe('function');
+      // Frozen render loaders predate products and consume no arguments.
+      const look: unknown = await Reflect.apply(copy.render, undefined, []);
+      expect(look, copy.slug).toBeTypeOf('object');
+      if (typeof look === 'object' && look !== null) {
+        const dispose: unknown = Reflect.get(look, 'dispose');
+        if (typeof dispose === 'function') Reflect.apply(dispose, look, []);
+      }
+    }
+    expect(selected).toEqual(LEGACY_SHARDS);
+  } finally { option.set('off'); installShards([]); }
+}, 60_000); // Six real lazy plugin/look graphs compile once; no world, renderer or network double.

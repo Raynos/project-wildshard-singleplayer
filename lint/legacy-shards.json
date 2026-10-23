@@ -1178,17 +1178,16 @@
         "look/cube.ts": "0f592fd49db84041591153061de39e8efd10949676e9af4fb753832c564f9f92",
         "look/dusk.ts": "5f0d17a878b08f9332d3cce7db5387d96b32c3ff734a59ab64920f0912f7ff87",
         "look/families.ts": "d7e255c982d2f9ebfbf623f6a835d0186ba8755c286c0bf096170ccbff164e5d",
-        "look/groundTiles.ts": "f296c4d1025c254c0d504ec78444435cea94da548d8023ed224d38708a89199c",
         "look/light.ts": "608700f316b985a2d6c28fab386ef1a946a0cc92efcf7b7d6819f785e727aa65",
         "look/map.baked.json": "bcc8c08265ab66b30e82a591b7d79a6f05327063951cbde619f679306af64697",
         "look/map.json": "fe714154b961c2e3deb78ad44601abf921226804eb1726987cfe49b71be6ff7a",
         "look/minimap.ts": "3ec80e75b18520df4cffb011dc098606b8f6f9318e448452e11a8a12b364c296",
         "look/painted.ts": "5c849dcd58383ecbdf59e88a9d188d898dbc947ced68ec8474ce3563a5f8157b",
-        "look/render.ts": "705ee8b789aa178cc0024f77cc57a5702ddb71fbe03dd5fb34bf08075809f8c9",
+        "look/render.ts": "998ab9f53a550f54220a88ef258ac4e054fe3cc1d79369971525f0cca7fe6a95",
         "look/sky.ts": "0dadf850efbe01a83e3678b595915cae316defceb76e48f9122f00f5b409fdd4",
         "manifest.ts": "2f760561233be2d22a8a2f21a998fd4a072d4cb9f49cdb3059f9a330ff175e74",
         "models/gear.ts": "aa6d0d89b506348a09c9c7c5497ca8b2beadf555c8162e9d21beaa7c8b8469cd",
-        "plugin.ts": "7f21b0ca8c7f7b1e07e17c53efdb7fc544b5c12bc07ea025265ce237b0a3cd5e",
+        "plugin.ts": "0e93456cab9f5b30ff50b898b88a4ec860e0d5ad47ba4c3877aa000148dfb6ac",
         "quest/install.ts": "8b2d600b06877b1b62e743afe7f1b29ad218e9c30e43d0ab2340af42ed662c23",
         "quest/scout.ts": "53076e0a046198b1ef107650f96a780a01fcef8a351daed3120953e4f91520ac",
         "quests/brazierFlag.ts": "efa7d1b67d5d28c3f379fa1c198304b1ec52ca8f9b4a4f245922c7fb10c359c4",
@@ -1251,15 +1250,15 @@
           "current": "2f760561233be2d22a8a2f21a998fd4a072d4cb9f49cdb3059f9a330ff175e74",
           "reason": "Restore the frozen custom _JOINTS/_WEIGHTS skitterer rig after 02e371386 rewrote the primary rig as a standard skinned GLB; only the legacy URL and its asset declaration change."
         },
-        "look/groundTiles.ts": {
-          "original": "b0c40afd28321535af7eb1021079bfb30ae4dce387470b391829dc0617257002",
-          "current": "f296c4d1025c254c0d504ec78444435cea94da548d8023ed224d38708a89199c",
-          "reason": "G669 DR16 explicitly retires the legacy director/AI/debug branches and ships the selected Pine memory trim. Preserve original legacy clocks, combat, crowd bodies and save ownership."
-        },
         "plugin.ts": {
           "original": "4f6ccb1da2110866669383ce86dbc879d854f0aa05bf66f2a421ad07ba3ab373",
-          "current": "7f21b0ca8c7f7b1e07e17c53efdb7fc544b5c12bc07ea025265ce237b0a3cd5e",
-          "reason": "G669 DR16 explicitly retires the legacy director/AI/debug branches and ships the selected Pine memory trim. Preserve original legacy clocks, combat, crowd bodies and save ownership."
+          "current": "0e93456cab9f5b30ff50b898b88a4ec860e0d5ad47ba4c3877aa000148dfb6ac",
+          "reason": "G669 DR10 losing groundTiles()===false branch removal for S2; retain code-built sand, original legacy menu entry and gameplay."
+        },
+        "look/render.ts": {
+          "original": "705ee8b789aa178cc0024f77cc57a5702ddb71fbe03dd5fb34bf08075809f8c9",
+          "current": "998ab9f53a550f54220a88ef258ac4e054fe3cc1d79369971525f0cca7fe6a95",
+          "reason": "G669 DR10 losing groundTiles()===false branch removal for S2; retain code-built sand, original legacy menu entry and gameplay."
         }
       }
     },
