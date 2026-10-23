@@ -2,8 +2,7 @@
 // One persistent, incrementally synced copy of a commit, for builds and gates that must not read the shared working
 // tree. It replaces every per-run `git archive | tar -x` export.
 //
-//   node scripts/build-mirror.mjs run <rev> [--slot name] [--full] -- <command...>   sync, then run <command> in it
-//   node scripts/build-mirror.mjs sync <rev> [--slot name] [--full]                  sync and print the mirror path
+// The run command is private to serve-build re-execution; the ruler imports openMirror.
 //   node scripts/build-mirror.mjs status
 //
 // The mirror is a work tree with its own index (GIT_INDEX_FILE), so `read-tree -u` rewrites only the files that differ
@@ -16,7 +15,7 @@
 // node_modules is linked by link-node-modules.mjs (E432): @wildshard/* resolves to the mirror's own sources.
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, renameSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { join, resolve, relative, sep } from 'node:path';
 import { linkNodeModules } from './link-node-modules.mjs';
 import { assertHeavyLease } from './heavy-lane-lease.mjs';
 import { InputHashMemo } from './bake-input-hashes.mjs';
@@ -25,6 +24,64 @@ const REPO = resolve(import.meta.dirname, '..');
 const EXCLUDED = new Set(['art', 'progress', 'sources']);
 const LOCK_WAIT_MS = 5 * 60_000;
 const sleep = (ms) => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+
+/** G612/G670: temporary probes own no build-mirror capacity.
+ * @param {string} path @param {string} [repo] */
+export function scratchCaller(path, repo = REPO) {
+  const absolute = existsSync(path) ? realpathSync(path) : resolve(path), local = relative(repo, absolute);
+  return [local === 'tmp', local.startsWith(`tmp${sep}`), absolute === '/tmp',
+    absolute === '/private/tmp', absolute.startsWith('/tmp/'), absolute.startsWith('/private/tmp/')].some(Boolean);
+}
+
+/** Refuse before queueing or creating a mirror. Inspect the script operand of
+ * interpreter ancestors as well as this process, so changing cwd cannot hide a
+ * temporary Python/shell/Node caller. Output directories are not caller scripts. */
+export function assertMirrorCaller() {
+  if (scratchCaller(process.cwd()) || process.argv[1] && scratchCaller(process.argv[1])) {
+    throw new Error('G612/G670: mirrors refuse callers under tmp/; run the official preview or ruler from the checkout');
+  }
+  let pid = process.ppid;
+  for (let depth = 0; pid > 1 && depth < 12; depth++) {
+    const result = spawnSync('ps', ['-p', String(pid), '-o', 'ppid=', '-o', 'command='], { encoding: 'utf8' });
+    if (result.status !== 0) break;
+    const match = /^\s*(\d+)\s+(.+)$/u.exec(result.stdout.trim());
+    if (match === null) break;
+    const parts = match[2].split(/\s+/u), interpreter = parts[0]?.split('/').at(-1) ?? '';
+    const operand = /^(?:node|python(?:3(?:\.\d+)?)?|bash|sh|zsh)$/u.test(interpreter)
+      ? parts.slice(1).find(part => !part.startsWith('-')) : undefined;
+    const script = operand !== undefined && /\.(?:mjs|cjs|js|ts|py|sh)$/u.test(operand) ? operand : undefined;
+    let directory;
+    // Absolute script paths need no cwd lookup. Inspect the immediate caller
+    // and resolve relative script operands in their actual process directory.
+    if (depth === 0 || script !== undefined && !script.startsWith('/')) {
+      try { directory = realpathSync(`/proc/${pid}/cwd`); }
+      catch {
+        const cwd = spawnSync('lsof', ['-b', '-w', '-a', '-p', String(pid), '-d', 'cwd', '-Fn'], { encoding: 'utf8', timeout: 1000 });
+        directory = cwd.status === 0 ? cwd.stdout.split('\n').find(line => line.startsWith('n'))?.slice(1) : undefined;
+      }
+    }
+    if ((depth === 0 || script !== undefined && !script.startsWith('/')) && directory === undefined) {
+      throw new Error('G670: cannot verify mirror caller cwd; refusing before queueing');
+    }
+    if (directory !== undefined && scratchCaller(directory)) throw new Error('G612/G670: mirrors refuse a caller cwd under tmp/');
+    if (script !== undefined && scratchCaller(resolve(directory ?? process.cwd(), script))) {
+      throw new Error('G612/G670: mirrors refuse a caller script under tmp/; land the change and use the official preview or ruler');
+    }
+    pid = Number(match[1]);
+  }
+}
+
+/** Only commits reachable from main are build inputs; historical main commits
+ * remain available for bisects. Bare trees and unlanded commit objects refuse.
+ * @param {string} rev @param {string} [repo] */
+export function mainMirrorRevision(rev, repo = REPO) {
+  const candidate = spawnSync('git', ['rev-parse', '--verify', '--quiet', `${rev}^{commit}`], { cwd: repo, encoding: 'utf8' });
+  const sha = candidate.status === 0 ? candidate.stdout.trim() : '';
+  if (!sha || spawnSync('git', ['merge-base', '--is-ancestor', sha, 'refs/heads/main'], { cwd: repo }).status !== 0) {
+    throw new Error(`G612: build mirrors accept only landed main commits; ${rev} is not an ancestor of main. Run types, lint and focused tests in the working tree.`);
+  }
+  return sha;
+}
 
 export function mirrorRoot(env = process.env, repo = REPO) {
   return resolve(env.WILDSHARD_BUILD_MIRROR ?? join(repo, 'tmp', 'build-mirror'));
@@ -143,6 +200,8 @@ const CHECK_SLOTS = ['check', 'check2', 'check3', 'check4', 'check5'];
 const MIRROR_SLOTS = new Set(['ruler', ...CHECK_SLOTS]);
 
 export function openMirror(rev, { repo = REPO, slot = 'check', full = false, env = process.env, linkModules = true } = {}) {
+  assertMirrorCaller();
+  const sha = mainMirrorRevision(rev, repo);
   if (!MIRROR_SLOTS.has(slot)) throw new Error(`build-mirror: invalid slot ${slot}; use ruler or pooled check..check5`);
   // Unknown shell wrappers cannot be hoisted by heavy-lane. Refuse before queueing,
   // so an owner never waits for a mirror while consuming capacity its preview needs.
@@ -173,10 +232,6 @@ export function openMirror(rev, { repo = REPO, slot = 'check', full = false, env
   process.once('exit', release);
   try {
     mkdirSync(dir, { recursive: true });
-    // A commit, or a bare tree (the pre-commit check syncs `git write-tree` of the staged index).
-    const commit = spawnSync('git', ['rev-parse', '--verify', '--quiet', `${rev}^{commit}`], { cwd: repo, encoding: 'utf8' });
-    const sha = commit.status === 0 ? commit.stdout.trim()
-      : execFileSync('git', ['rev-parse', '--verify', `${rev}^{tree}`], { cwd: repo, encoding: 'utf8' }).trim();
     const gitEnv = { ...env, GIT_INDEX_FILE: join(root, 'index') };
     const git = (args, options = {}) => execFileSync('git', ['--work-tree', dir, ...args], { cwd: repo, env: gitEnv, maxBuffer: 1 << 28, ...options });
     const previous = generatedGroups(dir).flat();
@@ -279,23 +334,21 @@ if (isMain) {
       const at = existsSync(join(root, name, 'HEAD')) ? readFileSync(join(root, name, 'HEAD'), 'utf8').trim() : '-';
       console.info(`${name}\t${at}\t${existsSync(join(root, `${name}.lock`)) ? 'locked' : 'free'}`);
     }
-  } else if (action === 'run' && /^(pnpm|npm|yarn|bun)$/.test(command[0] ?? '') &&
-      command.slice(1).some((a) => /^(i|install|add|ci|update|up|remove|rm|prune)$/.test(a))) {
-    // The mirror's node_modules entries are links into the checkout's: an install here rewrites the checkout's.
-    console.error('build-mirror: refusing a package install in the mirror; install in the checkout.');
-    process.exit(2);
-  } else if (action === 'sync' || (action === 'run' && command.length > 0)) {
-    const { dir, sha, release } = openMirror(rev, { slot, full });
-    if (action === 'sync') {
-      release();
-      console.info(dir);
-    } else {
-      const result = spawnSync(command[0], command.slice(1), { cwd: dir, stdio: 'inherit', env: { ...process.env, VERCEL_GIT_COMMIT_SHA: sha } });
-      release();
-      process.exit(result.status ?? 1);
+  } else if (action === 'authorize') {
+    assertMirrorCaller();
+    console.info(mainMirrorRevision(rev));
+  } else if (action === 'run') {
+    assertMirrorCaller();
+    if (command[0] !== 'bash' || command[1] !== resolve(REPO, 'scripts/serve-build.sh')) {
+      throw new Error('G612: build-mirror run is reserved for serve-build re-execution; use types, lint and focused tests in the working tree');
     }
+    mainMirrorRevision(rev);
+    const { dir, sha, release } = openMirror(rev, { slot, full });
+    const result = spawnSync(command[0], command.slice(1), { cwd: dir, stdio: 'inherit', env: { ...process.env, VERCEL_GIT_COMMIT_SHA: sha } });
+    release();
+    process.exit(result.status ?? 1);
   } else {
-    console.error('usage: build-mirror.mjs run <rev> [--slot name] [--full] -- <command...> | sync <rev> [--slot name] [--full] | status');
+    console.error('usage: build-mirror.mjs status | authorize <main-rev>; run is private to serve-build');
     process.exit(2);
   }
 }

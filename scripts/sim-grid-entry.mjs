@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // G622 M1: the iOS Simulator grid-entry recording (round 40's method, art/grid/round-40-sim-grid-entry/) as a script.
-// Run it inside the Simulator lane, in a quiet window:
+// Run it inside the Simulator lane; each official reading owns its quiet window:
 //   scripts/sim-lane.sh run --max 45 wildshard-iphone node scripts/sim-grid-entry.mjs --base=<url> | --rev=<sha>
 //     [--runs=3] [--modes=cold,warm] [--out=tmp/sim-grid-entry/<label>] [--keep-video]
 // --base drives a served build or live; --rev serves that commit (scripts/serve-build.sh --rev) and stops it after.
@@ -23,17 +23,22 @@ const args = Object.fromEntries(process.argv.slice(2).map(arg => /^--([^=]+)(?:=
 const udid = process.env.SIM_UDID;
 if (udid === undefined || udid === '') throw new Error('Run under scripts/sim-lane.sh run (it sets SIM_UDID)');
 if ((args.base === undefined) === (args.rev === undefined)) throw new Error('Pass exactly one of --base=<url> or --rev=<sha>');
+/** The official reader is the only quiet owner; builds happen before take. */
+function quiet(action) {
+  const result = spawnSync('python3', [resolvePath(REPO, 'scripts/sim-quiet.py'), action, String(process.pid)], { cwd: REPO, encoding: 'utf8' });
+  if (result.status !== 0) { const message=result.stderr.trim();throw new Error(message.length===0?'Simulator quiet refused':message); }
+}
+quiet('verify');
 const runs = Number(args.runs ?? 3), modes = (args.modes ?? 'cold,warm').split(','), keepVideo = args['keep-video'] === '1';
 const out = resolvePath(REPO, args.out ?? `tmp/sim-grid-entry/${args.rev ?? 'base'}`);
 mkdirSync(out, { recursive: true });
 
 /** Serve a commit for the run; the preview is stopped when the script ends. */
 function serve(rev) {
-  const scratch = resolvePath(out, 'serve'); mkdirSync(scratch, { recursive: true });
-  const result = spawnSync('bash', [resolvePath(REPO, 'scripts/serve-build.sh'), '--rev', rev, '--hours', '2', '--name', 'sim-grid-entry'], { cwd: scratch, encoding: 'utf8' });
+  const result = spawnSync('bash', [resolvePath(REPO, 'scripts/serve-build.sh'), '--rev', rev, '--hours', '2', '--name', 'sim-grid-entry'], { cwd: REPO, encoding: 'utf8' });
   const url = result.stdout.split('\n').findLast(line => /^https?:/u.test(line));
   if (url === undefined) throw new Error(`serve-build failed: ${result.stderr.slice(-800)}`);
-  return { url: url.replace(/\/$/u, ''), stop: () => { spawnSync('bash', [resolvePath(REPO, 'scripts/serve-build.sh'), 'stop', new URL(url).port], { cwd: scratch, stdio: 'ignore' }); } };
+  return { url: url.replace(/\/$/u, ''), stop: () => { spawnSync('bash', [resolvePath(REPO, 'scripts/serve-build.sh'), 'stop', new URL(url).port], { cwd: REPO, stdio: 'ignore' }); } };
 }
 
 const served = args.rev === undefined ? null : serve(args.rev);
@@ -201,8 +206,10 @@ const median = values => { const sorted = values.filter(value => typeof value ==
 const results = [];
 try {
   for (const mode of modes) for (let index = 1; index <= runs; index++) {
+    quiet('take');
     try { results.push(await run(mode, index)); }
     catch (error) { results.push({ mode, run: index, error: String(error) }); }
+    finally { quiet('release'); }
     const last = results.at(-1); console.info(JSON.stringify(last).slice(0, 600));
   }
 } finally { page?.close(); proxy.kill(); served?.stop(); }

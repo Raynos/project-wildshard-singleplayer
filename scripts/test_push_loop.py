@@ -74,12 +74,12 @@ class PushLoop(unittest.TestCase):
             self.assertEqual(json.loads(busy.stdout)['status'], 'busy')
         resumed = subprocess.run(command, cwd=self.root, env=env, capture_output=True, text=True, timeout=3)
         self.assertEqual(resumed.returncode, 0, resumed.stderr)
-        self.assertEqual(json.loads(resumed.stdout)['status'], 'quiet')
+        self.assertEqual(json.loads(resumed.stdout)['status'], 'idle')
         self.assertEqual(self.git('rev-parse', 'origin/main'), self.base)
 
     def test_quiet_sample_defers_checks_and_upload_then_resumes(self):
         tip = self.commit('src/good.ts')
-        self.put('.git/quiet', '{"owner":"fixture-sample"}')
+        self.put('.git/quiet', json.dumps({'schema':1,'kind':'simulator-reading','script':'scripts/sim-grid-entry.mjs','owner':'fixture-sample','pid':os.getpid()}))
         checks, uploads = [], []
         def checker(*args):
             checks.append(args)
@@ -87,7 +87,8 @@ class PushLoop(unittest.TestCase):
         def upload(*args):
             uploads.append(args)
             return 0
-        result = PUSH['tick'](self.root, checker=checker, uploader=upload)
+        with patch.dict(PUSH['QUIET']['quiet_marker_active'].__globals__, {'official_simulator': lambda pid, repo: pid == os.getpid()}):
+            result = PUSH['tick'](self.root, checker=checker, uploader=upload)
         self.assertEqual(result, {'status': 'quiet', 'tip': tip})
         self.assertEqual(checks, [])
         self.assertEqual(uploads, [])
@@ -98,13 +99,14 @@ class PushLoop(unittest.TestCase):
 
     def test_quiet_ends_at_ten_minutes_or_owner_death(self):
         path = self.root / '.git/quiet'
-        self.put('.git/quiet', json.dumps({'owner': 'fixture-sample', 'pid': os.getpid()}))
+        self.put('.git/quiet', json.dumps({'schema':1,'kind':'simulator-reading','script':'scripts/sim-grid-entry.mjs','owner':'fixture-sample','pid':os.getpid()}))
         started = path.stat().st_mtime
-        self.assertTrue(PUSH['quiet_active'](path, started + 599.9))
-        self.assertFalse(PUSH['quiet_active'](path, started + 600))
+        with patch.dict(PUSH['QUIET']['quiet_marker_active'].__globals__, {'official_simulator': lambda pid, repo: pid == os.getpid()}):
+            self.assertTrue(PUSH['quiet_active'](path, started + 599.9))
+            self.assertFalse(PUSH['quiet_active'](path, started + 600))
         with subprocess.Popen([sys.executable, '-c', 'pass']) as owner:
             owner.wait(timeout=3)
-        self.put('.git/quiet', json.dumps({'owner': 'fixture-sample', 'pid': owner.pid}))
+        self.put('.git/quiet', json.dumps({'schema':1,'kind':'simulator-reading','script':'scripts/sim-grid-entry.mjs','owner':'fixture-sample','pid':owner.pid}))
         self.assertFalse(PUSH['quiet_active'](path))
         tip = self.commit('src/after-dead-owner.ts')
         result = PUSH['tick'](self.root, checker=lambda *_: {'ok': True, 'output': ''}, uploader=lambda *_: 0)

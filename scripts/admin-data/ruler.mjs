@@ -18,6 +18,7 @@ import { pathToFileURL } from 'node:url';
 import * as v from 'valibot';
 import { writePortShares } from '../gen-port-shares.mjs';
 import { writeRulerSpans } from './ruler-spans.mjs';
+import { openMirror } from '../build-mirror.mjs';
 
 export const RULER_PATH = 'progress/shard-platform/ruler/ruler.json';
 export const RULER_CHART = 'progress/shard-platform/ruler/custom-vs-hours.jpg';
@@ -248,8 +249,12 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
   // Take the mirror first, then the build lease. The CLI prepares all ten
   // verified products (including _template) before reading section inventory.
   // G562: this child-only marker preserves ruler QoS without changing ordinary lane builds.
-  const out = execFileSync(process.execPath, [resolve(repo, 'scripts/build-mirror.mjs'), 'run', revision, '--slot', process.env.WS_RULER_SLOT ?? 'ruler', '--', 'python3', 'scripts/heavy-lane.py', 'build', '--', ...RULER_COMMAND.split(' ')],
-    { cwd: repo, env: { ...process.env, WS_HEAVY_RULER: '1' }, maxBuffer: 256 << 20, stdio: ['ignore', 'pipe', 'inherit'] }).toString('utf8');
+  const mirror = openMirror(revision, { slot: process.env.WS_RULER_SLOT ?? 'ruler' });
+  let out;
+  try {
+    out = execFileSync('python3', ['scripts/heavy-lane.py', 'build', '--', ...RULER_COMMAND.split(' ')],
+      { cwd: mirror.dir, env: { ...process.env, WS_HEAVY_RULER: '1', VERCEL_GIT_COMMIT_SHA: mirror.sha }, maxBuffer: 256 << 20, stdio: ['ignore', 'pipe', 'inherit'] }).toString('utf8');
+  } finally { mirror.release(); }
   const start = out.search(/^\{/mu);
   if (start === -1) throw new Error(`Ruler: ${RULER_COMMAND} printed no JSON`);
   const file = resolve(repo, RULER_PATH);

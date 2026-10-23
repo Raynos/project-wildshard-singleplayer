@@ -113,7 +113,7 @@ file in `docs/` is: [docs/README.md](docs/README.md).
 - **At most 4 game browsers machine-wide**: every Playwright script through `scripts/browser-lane.sh`, every new
   agent-browser session after `scripts/browser-lane.sh wait`; close it before you report. Mute every test browser;
   capture as "iPhone 16 Pro".
-- **No vite dev servers**: `scripts/serve-build.sh`, started from your scratchpad. **One iOS Simulator**, through
+- **No vite dev servers**: `scripts/serve-build.sh`, started from the checkout (G670). **One iOS Simulator**, through
   `scripts/sim-lane.sh`. **One local model at a time**, under the model lock.
 - **One full suite and up to three app builds machine-wide** (Jake, G620): use `python3 scripts/heavy-lane.py full-test|build -- <command>`; the push gate has queue priority, focused tests are unrestricted. Lanes never run the full suite: `full-test` refuses outside CI without `WS_FULL_SUITE=1` (SF74 W1). Pinned HEAD previews share one server per SHA across lanes; release your use with `serve-build.sh stop <port>`.
 - **Clean your scratchpad**: delete throwaways as soon as you have the result; never rename aside. What you keep goes in

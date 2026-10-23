@@ -96,6 +96,9 @@ done
 # request's source; the mirror child receives the same full pinned SHA.
 if [ $HEAD_ONLY -eq 1 ]; then
   REV="${SERVE_SHARED_SHA:-$(git -C "$REPO" rev-parse --verify "$REV^{commit}")}" || exit 1
+  if [ -z "${SERVE_IN_MIRROR:-}" ]; then
+    node "$REPO/scripts/build-mirror.mjs" authorize "$REV" >/dev/null || exit 2
+  fi
   if [ -z "${SERVE_SHARED_SHA:-}" ]; then
     exec python3 "$REPO/scripts/serve-shared-preview.py" run "$REG" "$REV" "$MODE" "$CALLER" bash "$0" "${ARGS[@]}"
   fi

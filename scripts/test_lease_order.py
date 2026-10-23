@@ -23,7 +23,7 @@ class LeaseOrderTests(unittest.TestCase):
         self.addCleanup(self.stop)
         self.repo = self.root / 'repo'
         self.repo.mkdir()
-        subprocess.run(['git', 'init', '-q', str(self.repo)], check=True)
+        subprocess.run(['git', 'init', '-q', '-b', 'main', str(self.repo)], check=True)
         (self.repo / 'input').write_text('tiny committed fixture')
         subprocess.run(['git', '-C', str(self.repo), 'add', 'input'], check=True)
         subprocess.run(['git', '-C', str(self.repo), '-c', 'user.name=fixture',
@@ -34,14 +34,7 @@ class LeaseOrderTests(unittest.TestCase):
             WILDSHARD_BUILD_MIRROR=str(self.root / 'mirrors'), FIXTURE_ROOT=str(self.root))
         self.worker = self.root / 'worker.py'
         self.worker.write_text("import json,os,pathlib,sys\nroot=pathlib.Path(os.environ['FIXTURE_ROOT'])\nassert os.environ['WS_HEAVY_TOKEN']\nmarker=json.loads((pathlib.Path(os.environ['WS_HEAVY_ROOT'])/'build.active.json').read_text())\nassert marker['token']==os.environ['WS_HEAVY_TOKEN']\n(root/(sys.argv[1]+'.built')).touch()\n")
-        self.mirror = self.root / 'build-mirror.mjs'
-        self.mirror.write_text("import {openMirror} from " + json.dumps((ROOT / 'scripts/build-mirror.mjs').as_uri()) + ";\n"
-            "import {existsSync,writeFileSync} from 'node:fs';import{join}from'node:path';import{spawnSync}from'node:child_process';\n"
-            "const args=process.argv.slice(2),root=process.env.FIXTURE_ROOT;\n"
-            "const mirror=openMirror(args[1],{repo:join(root,'repo'),slot:process.env.FIXTURE_SLOT??'ruler',linkModules:false});\n"
-            "try{if(process.env.ROLE==='preview'){writeFileSync(join(root,'preview.locked'),'');const until=Date.now()+12000;while(!existsSync(join(root,'preview.go'))){if(Date.now()>until)throw Error('preview timed out');Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,10);}}\n"
-            "if(process.env.ROLE==='pool'){writeFileSync(join(root,'pool-'+process.pid+'.locked'),mirror.dir);const until=Date.now()+12000;while(!existsSync(join(root,'pool.go'))){if(Date.now()>until)throw Error('pool timed out');Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,10);}}\n"
-            "const split=args.indexOf('--'),cmd=args.slice(split+1);const child=spawnSync(cmd[0],cmd.slice(1),{cwd:mirror.dir,env:process.env,stdio:'inherit'});process.exitCode=child.status??1;}finally{mirror.release();}\n")
+        self.mirror = ROOT / 'test/fixtures/build-mirror.mjs'
 
     def stop(self):
         for process in self.processes:

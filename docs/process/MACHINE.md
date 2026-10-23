@@ -59,6 +59,13 @@ no-emit check. The command propagates compiler failures, including cached ones.
 **Per slice (G568, G612): types, lint and focused tests must pass before landing.** No batch checks, exact-commit mirror checks or checks
 on unlanded commit objects. Land small source changes; the push gate, CI and exact-SHA boot smoke own the full gate.
 
+**G612/G670 mirror admission:** only commits reachable from `main` are accepted,
+including historical main commits for bisects. Bare trees and unlanded commits
+refuse before queueing. CLI `run` is private to serve-build re-execution; the
+ruler imports `openMirror`, borrowing its slot before its original build lease.
+Caller cwd and script paths under `tmp/` refuse. Use the working tree for types,
+lint and focused tests.
+
 **Lock order: mirror slot, then heavy lease.** Run serve-build directly; it requests its build
 leases inside the mirror. The heavy wrapper hoists an explicit mirror command outside its lease and delegates
 self-managed serve commands. A nested or unknown shell wrapper that tries to enter a mirror while holding a
@@ -90,16 +97,19 @@ recorded PID and command to diagnose a stuck owner, and never kill another lane'
 
 ## Measurement quiet windows (SF74 W14)
 
-Before every command, check `test -e .git/quiet`. While another lane owns that file, **read and edit only**:
-no Vitest (focused tests included), tsc / strict typechecks, oxlint, builds, bakes, generators, clean rooms,
-browsers, Simulator, previews or captures. Commits whose hooks start that work also wait.
-A quiet window ends on the owner's **BOTH-surface release**, after ten minutes, or when its recorded owner PID dies
-(G612). The push loop ignores expired/dead-owner markers. A legacy marker naming only an owner still expires at
-ten minutes. Never extend a hold by leaving its marker behind.
+**G670: only the official Simulator reader takes quiet.** Run
+`scripts/sim-lane.sh run --max 45 wildshard-iphone node scripts/sim-grid-entry.mjs --base=<url>`
+(or its `--rev=<main-sha>` form) from the checkout. It builds before taking quiet,
+then `scripts/sim-quiet.py` drains the current push tick and owns one marker per
+reading, released in `finally`. Caller PID, actual script and cwd are verified;
+`tmp/` callers and copied Simulator flags refuse. Chromium captures and ad-hoc
+wrappers cannot take a quiet window.
 
-The quiet owner must wait for an existing push to finish before sampling: check the authoritative push lock,
-the parent pusher and its snapshot / regeneration descendants. Auto-push checks quiet before starting a push;
-an already-running snapshot may finish several gate rounds. Never kill or bypass another lane's job.
+Before CPU work, `python3 scripts/sim-quiet.py status` reports the active official
+reading. During it, **read and edit only**: no tests, typechecks, lint, builds,
+bakes, generators, browsers, captures or hook-running commits. The marker expires
+after ten minutes or reader death. The push loop ignores forged, legacy, expired
+and dead-owner markers. Never kill another lane's active job or extend a hold.
 
 ## Long proofs: start detached, don't poll (SF74 W5)
 
@@ -129,9 +139,8 @@ preview past its `--hours` (default 4), an unregistered one after 6 h and any de
   filters a working-tree build's products (others stay only if still current, never stale); pinned previews always build
   all products for sharing. `--full` is the old full rebuild.
   The push gate and CI run the full `pnpm build`. The build log prints per-step seconds.
-- **Start previews from your session scratchpad, not the repo root.** Its "all mine" eviction keys on the caller's
-  folder, so repo-root previews get killed or reused by other agents. Read `/version.json` on your port before each
-  capture batch.
+- **Start previews from the checkout (G670).** Caller cwd and script paths under `tmp/` refuse. Preview ownership
+  uses the existing session identity; output files may still live under `tmp/`. Read `/version.json` before capture.
 - Each preview starts in its own session; its registered PID is also its PGID. `serve-build.sh stop <port>` and expiry
   reap that whole owned process group, including pnpm/vite descendants. The registry, expiry and preview log stay the same.
 

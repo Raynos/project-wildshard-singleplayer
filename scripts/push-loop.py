@@ -155,28 +155,12 @@ def refusal_signature(output):
     return re.sub(r'\d+(?:\.\d+)?(?:ms|s)\b', '<time>', plain)
 
 
+QUIET = runpy.run_path(str(Path(__file__).with_name('sim-quiet.py')))
+
+
 def quiet_active(path, now=None):
-    """G612: markers cannot hold pushes beyond ten minutes or a dead owner."""
-    try:
-        age = (time.time() if now is None else now) - path.stat().st_mtime
-        if age < 0 or age >= 600:
-            return False
-        marker = json.loads(path.read_text())
-        pid = marker.get('pid', marker.get('ownerPid'))
-        # Legacy markers named the lane only. They retain the ten-minute cap.
-        if pid is None:
-            return True
-        if not isinstance(pid, int) or isinstance(pid, bool) or pid <= 0:
-            return False
-        try:
-            os.kill(pid, 0)
-        except ProcessLookupError:
-            return False
-        except PermissionError:
-            pass
-        return True
-    except (OSError, ValueError, AttributeError):
-        return False
+    """G670: only the live official Simulator reader can defer pushes."""
+    return QUIET['quiet_marker_active'](path, now)
 
 
 def tick(root, checker=check_committed, uploader=None, notify=ping):

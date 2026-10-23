@@ -7,14 +7,15 @@ import { dirname, join, resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- The mirror root comes from the fixture's environment.
 import { env as processEnv, pid } from 'node:process';
 import { afterEach, expect, it, vi } from 'vitest';
-import { openMirror } from '../scripts/build-mirror.mjs';
+import { openMirror,mainMirrorRevision,scratchCaller } from '../scripts/build-mirror.mjs';
 import { InputHashMemo } from '../scripts/bake-input-hashes.mjs';
 
 const owned: string[] = [];
 afterEach(() => { for (const dir of owned.splice(0)) rmSync(dir, { recursive: true, force: true }); });
 
 it('caps live slot and FIFO waits at five minutes, names holders and removes its ticket', () => {
-  const { repo, env } = fixture();
+  const { repo, env,commit } = fixture();
+  commit({'input':'owned fixture'});
   const root = env['WILDSHARD_BUILD_MIRROR'] ?? '';
   const lock = join(root, 'check.lock');
   const queue = join(root, 'checks.queue');
@@ -52,7 +53,7 @@ function fixture(): { repo: string; commit: (files: Record<string, string | null
   mkdirSync(join(repo, 'node_modules', '@wildshard'), { recursive: true });
   writeFileSync(join(repo, '.gitignore'), 'node_modules\ndist/\n');
   const git = (...args: string[]): string => execFileSync('git', args, { cwd: repo, encoding: 'utf8' }).trim();
-  git('init', '-q');
+  git('init', '-q','-b','main');
   git('config', 'user.email', 'test@example.invalid');
   git('config', 'user.name', 'test');
   const commit = (files: Record<string, string | null>): string => {
@@ -325,4 +326,37 @@ it('invalidates a producer whose output disappears while its snapshot is being h
     expect(existsSync(join(env['WILDSHARD_BUILD_MIRROR'] ?? '', 'check.lock'))).toBe(false);
     expect(readFileSync(join(repo, 'assets/retained'), 'utf8')).toBe('authored');
   } finally { racing.mockRestore(); }
+});
+
+
+it('refuses unlanded commits and bare trees before taking any slot, retaining old main bisects',()=>{
+  const {repo,commit,env}=fixture();const first=commit({'src/owner':'old'});commit({'src/owner':'new'});
+  expect(mainMirrorRevision(first,repo)).toBe(first);
+  const tree=execFileSync('git',['rev-parse','HEAD^{tree}'],{cwd:repo,encoding:'utf8'}).trim();
+  const detached=execFileSync('git',['commit-tree',tree,'-p',first,'-m','not on main'],{cwd:repo,encoding:'utf8'}).trim();
+  for(const revision of [tree,detached,'missing-revision']){
+    expect(()=>openMirror(revision,{repo,env})).toThrow('G612');
+    expect(existsSync(env['WILDSHARD_BUILD_MIRROR']??'')).toBe(false);
+  }
+  const historical=openMirror(first,{repo,env});historical.release();expect(readFileSync(join(historical.dir,'src/owner'),'utf8')).toBe('old');
+});
+
+it('recognizes scratch callers without confusing retained output arguments with callers',()=>{
+  expect(scratchCaller(resolve('tmp/probe.py'))).toBe(true);expect(scratchCaller('/private/tmp/probe.sh')).toBe(true);
+  expect(scratchCaller(resolve('scripts/serve-build.sh'))).toBe(false);expect(scratchCaller(resolve('test/build-mirror.test.ts'))).toBe(false);
+});
+
+
+it('refuses temporary wrapper scripts even after they switch their child cwd to the checkout',()=>{
+  const {repo}=fixture(),base=dirname(repo),root=resolve('.');
+  const wrapper=join(base,'probe.py');
+  writeFileSync(wrapper,`import subprocess,sys\nr=subprocess.run(['node',${JSON.stringify(join(root,'scripts/build-mirror.mjs'))},'authorize','HEAD'],cwd=${JSON.stringify(root)})\nsys.exit(r.returncode)\n`);
+  const result=spawnSync('python3',[wrapper],{cwd:base,encoding:'utf8'});
+  expect(result.status).not.toBe(0);expect(result.stderr).toContain('G612/G670');
+});
+
+it('refuses generic mirror CLI commands without executing them',()=>{
+  const result=spawnSync(processEnv['NODE']??'node',[resolve('scripts/build-mirror.mjs'),'run','HEAD','--','node','-e','throw new Error("must not execute")'],{encoding:'utf8'});
+  expect(result.status).not.toBe(0);expect(result.stderr).toContain('reserved for serve-build');
+  expect(result.stderr).not.toContain('Error: must not execute');
 });
