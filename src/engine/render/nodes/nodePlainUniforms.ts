@@ -1,8 +1,7 @@
 /**
  * The node materials' uniforms as plain program uniforms (SHARD-PLATFORM, the iOS Simulator frame gate).
  *
- * three's GLSL node builder declares every non-texture uniform of a node program in std140 blocks (`nodeUniformBuffers.ts`
- * binds them). WebKit draws WebGL through ANGLE's Metal back-end, which passes a stage's uniform blocks to Metal in an
+ * three's GLSL node builder declares every non-texture uniform of a node program in std140 blocks. WebKit draws WebGL through ANGLE's Metal back-end, which passes a stage's uniform blocks to Metal in an
  * argument buffer and encodes that buffer again on every draw whose pipeline or block bindings moved: one
  * `setArgumentBuffer` plus one `setBuffer` per block, per stage. In the iOS Simulator each of those is a synchronous XPC
  * round trip to the host's Metal driver, so Nine's ~130 graph draws (4 blocks each) spent ~20 ms of a 33 ms frame waiting
@@ -16,14 +15,16 @@
  */
 
 import { Color, Matrix3, Matrix4, Vector2, Vector3, Vector4 } from 'three';
-import type { BlockGroup } from './nodeUniformBuffers';
 
 /** the WebGL 2 calls the plain uniforms make (a context, or a test's recorder) */
 export type PlainUniformGl = Pick<WebGL2RenderingContext, 'ACTIVE_UNIFORMS' | 'getProgramParameter' | 'getActiveUniform' | 'getUniformLocation'
   | 'uniform1fv' | 'uniform2fv' | 'uniform3fv' | 'uniform4fv' | 'uniform1iv' | 'uniform2iv' | 'uniform3iv' | 'uniform4iv'
   | 'uniform1uiv' | 'uniform2uiv' | 'uniform3uiv' | 'uniform4uiv' | 'uniformMatrix2fv' | 'uniformMatrix3fv' | 'uniformMatrix4fv'>;
 
+/** one uniform as a group holds it: three's `Uniform` / a node's `NodeUniform` (its `value` read live) */
 interface BlockUniform { readonly value: unknown }
+/** a uniform group as the node handler builds it (three's `UniformsGroup`) */
+export interface BlockGroup { readonly name: string; readonly uniforms: readonly (BlockUniform | readonly BlockUniform[])[] }
 const members = (entry: BlockGroup['uniforms'][number]): readonly BlockUniform[] => 'value' in entry ? [entry] : entry;
 
 const BLOCK = /(?:layout\s*\(\s*std140\s*\)\s*)?uniform\s+(\w+)\s*\{([^{}]*)\}\s*;/gu;
@@ -95,7 +96,7 @@ interface Slot extends Images { readonly comps: number; fresh: boolean }
 interface Bound { readonly slots: readonly { readonly uniform: BlockUniform; readonly slot: Slot }[]; pass: number }
 interface Program { readonly slots: ReadonlyMap<string, Slot>; readonly groups: WeakMap<BlockGroup, Bound> }
 
-/** three's groups whose uniforms only move at a render or frame update (as `nodeUniformBuffers.ts` PASS_GROUPS) */
+/** three's groups whose uniforms only move at a render or frame update */
 const PASS_GROUPS: ReadonlySet<string> = new Set(['render', 'frame']);
 
 const isObject = (v: unknown): v is object => typeof v === 'object' && v !== null;

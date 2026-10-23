@@ -173,7 +173,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   opt('distantTrees', 'look', engineString('s_distant_trees'), [['variant', engineString('s_distant_trees_variant')], ['species', engineString('s_distant_trees_species')]], { reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_distant_trees_note') }),
   opt('fixedShadowSamples', 'perf', engineString('s_fixed_shadow_samples'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_fixed_shadow_samples_note') }),
   opt('programShare', 'perf', engineString('s_program_share'), [['off', engineString('s_program_share_off')], ['on', engineString('s_program_share_on')]], { purpose: 'developer', reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_program_share_note') }),
-  opt('graphUniforms', 'perf', engineString('s_graph_uniforms'), [['plain', engineString('s_graph_uniforms_plain')], ['blocks', engineString('s_graph_uniforms_blocks')]], { purpose: 'developer', reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_graph_uniforms_note') }),
 
   // ── Loading & memory ──
   opt('memorySaver', 'loading', engineString('s_memory_saver'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { purpose: 'developer', reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_memory_saver_note') }),

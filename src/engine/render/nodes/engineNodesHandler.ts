@@ -67,8 +67,7 @@ import { worldTime } from '../../core/time';
 import { setting } from '../../ui/Settings';
 import type { Renderer } from '../renderer';
 import type { ProgramLike } from '../../boot/perflog';
-import { NodeUniformBuffers, type BlockGroup } from './nodeUniformBuffers';
-import { NodePlainUniforms } from './nodePlainUniforms';
+import { NodePlainUniforms, type BlockGroup } from './nodePlainUniforms';
 import { installNodeCoarseMask, type NodeCoarseMask } from '../nodeCoarseMask';
 import { installNodeLayerFrame, layerFrameOf, type NodeLayerFrameInstaller } from '../nodeLayerFrame';
 import { bindGraphAttributeDefaults, copyGraphAttributeDefaults, prepareGraphAttributeDefaults } from './graphAttributes';
@@ -399,9 +398,9 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   private readonly sharedCode = new Map<string, string>();
   private real: Renderer | null = null;
   private warnedLevelFog = false;
-  /** the node programs' uniforms, sent per draw: plain program uniforms (`nodePlainUniforms.ts`), or the std140 blocks
-   *  (`nodeUniformBuffers.ts`) under the `graphUniforms` Developer tool; null without a WebGL 2 context */
-  private blocks: NodePlainUniforms | NodeUniformBuffers | null = null;
+  /** the node programs' uniforms, sent per draw as plain program uniforms (`nodePlainUniforms.ts`); null without a WebGL 2
+   *  context */
+  private blocks: NodePlainUniforms | null = null;
   /** builds of each material not yet paired with their programs (see `onUpdateProgram`) */
   private readonly pendingBuilds = new WeakMap<object, PendingBuild[]>();
   private readonly objectVariants = new NodeProgramVariants();
@@ -607,7 +606,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     // precompile's shadow jobs compile the variant this handler's shadow draws use (sp-o289)
     registerShadowDepthResolver(renderer, (source, depthStock) => this.shadowDepthOf(source, depthStock));
     const gl: unknown = renderer.getContext();
-    if (typeof WebGL2RenderingContext !== 'undefined' && gl instanceof WebGL2RenderingContext) this.blocks = setting('graphUniforms') === 'blocks' ? new NodeUniformBuffers(gl) : new NodePlainUniforms(gl);
+    if (typeof WebGL2RenderingContext !== 'undefined' && gl instanceof WebGL2RenderingContext) this.blocks = new NodePlainUniforms(gl);
     // the stock key reads the renderer's tone mapping and output space whatever is bound; the engine's follows the target
     const proxy: unknown = Reflect.get(this, 'renderer');
     if (typeof proxy === 'object' && proxy !== null) {
@@ -796,7 +795,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const updateNodes: unknown = typeof builder === 'object' && builder !== null ? Reflect.get(builder, 'updateNodes') : undefined;
     const uniformsGroups = classicModelUniform(parameters, internals(this).collectUniformsGroups(builder).filter(isBlockGroup));
     stableBufferNames(builder, parameters, uniformsGroups);
-    if (this.blocks instanceof NodePlainUniforms) this.blocks.declare(parameters, uniformsGroups.filter(isBlockGroup));
+    this.blocks?.declare(parameters, uniformsGroups.filter(isBlockGroup));
     pending.push({ uniformsGroups, updateNodes,
       uniforms: parameters.uniforms, programs, slot: programs instanceof Map ? programs.size : -1 });
     // A cold precompile may never draw. Retain only the stock fallback's runtime
@@ -917,8 +916,8 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   }
 
   /**
-   * Bind the uniform blocks of `material`'s program (`program`, else the program it last drew with) through the engine's
-   * per-draw binding (`nodeUniformBuffers.ts`) and leave the classic renderer none of them: its global binding point
+   * Bind the uniform groups of `material`'s program (`program`, else the program it last drew with) through the engine's
+   * per-draw plain uniforms (`nodePlainUniforms.ts`) and leave the classic renderer none of them: its global binding point
    * per group runs out after a dozen node programs.
    */
   private drawEntry(material: THREE.Material, program: unknown): DrawEntry | undefined {
@@ -948,11 +947,9 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const linked = draw?.linked ?? null;
     if (draw === undefined || linked === null) return;
     // the node frame's render id is the camera pass the draw's updates just ran in (`textureUpdates.ts`)
-    if (blocks instanceof NodePlainUniforms) {
-      // Plain uniforms go to the current program: send them once setProgram has put this draw's program in use.
-      this.hookPlainUniforms(draw.program);
-      this.pendingPlain = { program: draw.program, linked, groups: draw.groups, pass: this.frame.renderId };
-    } else blocks.bind(linked, draw.groups, this.frame.renderId);
+    // Plain uniforms go to the current program: send them once setProgram has put this draw's program in use.
+    this.hookPlainUniforms(draw.program);
+    this.pendingPlain = { program: draw.program, linked, groups: draw.groups, pass: this.frame.renderId };
   }
 
   /**
@@ -976,7 +973,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   /** `program` is in use: send the pending draw's plain uniforms if they belong to it */
   private flushPlainUniforms(program: object): void {
     const pending = this.pendingPlain, blocks = this.blocks;
-    if (pending === null || pending.program !== program || !(blocks instanceof NodePlainUniforms)) return;
+    if (pending === null || pending.program !== program || blocks === null) return;
     this.pendingPlain = null;
     blocks.bind(pending.linked, pending.groups, pending.pass);
   }

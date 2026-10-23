@@ -1,6 +1,6 @@
 import type { WebGLProgramParametersWithUniforms } from 'three';
 import { modelWorldMatrix } from 'three/tsl';
-import type { BlockGroup } from './nodeUniformBuffers';
+import type { BlockGroup } from './nodePlainUniforms';
 
 const members = (entry: BlockGroup['uniforms'][number]): readonly { readonly value: unknown }[] => 'value' in entry ? [entry] : entry;
 
