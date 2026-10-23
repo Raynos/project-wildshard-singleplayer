@@ -142,16 +142,8 @@
       "base64Chars": 533320,
       "dataUris": 0
     },
-    "src/shards/driftwood-isle/behaviour/bridgeSway.generated.json": {
-      "base64Chars": 4036,
-      "dataUris": 0
-    },
     "src/shards/driftwood-isle/behaviour/director.json": {
       "base64Chars": 1904,
-      "dataUris": 0
-    },
-    "src/shards/driftwood-isle/behaviour/returns.generated.json": {
-      "base64Chars": 8988,
       "dataUris": 0
     },
     "src/shards/driftwood-isle/boot/modelCatalogue.generated.json": {

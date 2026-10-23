@@ -66,7 +66,8 @@ const { DRIFTWOOD_SPECIES } = await import('./fake/driftwoodSpecies');
 const { MONKEY_CLIPS } = await import('../src/shards/driftwood-isle/generators/monkeyClips');
 const { PerchBodyBinding } = await import('@wildshard/game/population/perchBody');
 const { RETURN_PROGRAM } = await import('../src/shards/driftwood-isle/generators/returnProgram');
-const monkeyAnimate = new PerchBodyBinding({ clips: MONKEY_CLIPS, program: RETURN_PROGRAM, perch: perchRows.perch }, new Scope('fixture.monkey')).animate;
+const {lendDriftwoodReturns}=await import('./fixtures/driftwood-return-modules');
+const monkeyAnimate = new PerchBodyBinding({ clips: MONKEY_CLIPS, program: RETURN_PROGRAM, perch: perchRows.perch }, lendDriftwoodReturns(new Scope('fixture.monkey'))).animate;
 for (let i = 0; i < DRIFTWOOD_SPECIES.length; i++) {
   const row = DRIFTWOOD_SPECIES[i], look = DRIFTWOOD_LOOKS[i];
   if (row !== undefined && look !== undefined) registerSpecies(speciesWithLook(row, look.kind === 'monkey' ? { ...look, animate: monkeyAnimate } : look));

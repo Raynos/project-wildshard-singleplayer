@@ -1,3 +1,4 @@
+import {lendDriftwoodReturns} from './fixtures/driftwood-return-modules';
 import { DRIFTWOOD_NATIVE_QUEST } from '../src/shards/driftwood-isle/generators/nativeQuest';
 import { parseNativeQuestComposition } from '../src/format/nativeQuestComposition';
 import * as v from 'valibot';
@@ -45,6 +46,7 @@ test('an orchard quest resolves native services by ids and restores carried rewa
   const counters = parseAchievementCounterData({ feats: [], flags: [], prefix: 'orchard', floorTotals: false, validateTotals: false, write: 'each' });
   const props = { floors: [], drops: [{ id: rows.keyDrop.id, kind: rows.keyDrop.kind }], gates: [] };
   const install = (host: ReturnType<typeof createSimHost>, saved?: ReturnType<typeof snapshotSimHost>) => {
+    lendDriftwoodReturns(host.scope);
     const population = installMixedPopulation(host, orchardPopulation(), saved); installCableModes(host.scope, [mode], host.flags).bindNative(host);
     const frame = createNativeCombatFrame(); const equipment = installNativeItems(host, frame, { kind: 'swept', items: source.items.rows, policy: { ...swords, step: rows.equipment } });
     let commands = [{ actorId: rows.actor, value: 1 }];

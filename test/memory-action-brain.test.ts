@@ -1,3 +1,4 @@
+import {lendDriftwoodReturns} from './fixtures/driftwood-return-modules';
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { AnimalSim } from '../src/engine/entities/AnimalSim';
@@ -46,7 +47,7 @@ test('monkey rows select one existing bite or coconut owner and retain restored 
       expect(thrower).toBe(a); expect(from.y).toBeCloseTo(a.position.y + .95 * a.scale);
       expect(to.y).toBeCloseTo(target.y + .9); effects.push('throw');
     } } };
-  const owner = new Scope('perch.fixture');
+  const owner = lendDriftwoodReturns(new Scope('perch.fixture'));
   const binding = new PerchBodyBinding({ clips: [], program: RETURN_PROGRAM, perch: perchRows.perch }, owner);
   const brains = speciesBrains(DRIFTWOOD_ENEMY_PROGRAM.species, DRIFTWOOD_ENEMY_PROGRAM.strikes, DRIFTWOOD_ENEMY_PROGRAM.modules);
   const brain = bindPerchBody(a, context, brains.decision('monkey', a), DRIFTWOOD_STRIKES.bite, binding.guest, binding.row);

@@ -1,3 +1,4 @@
+import {lendDriftwoodReturns} from './fixtures/driftwood-return-modules';
 import { installMixedPopulation } from '../src/game/population/mixedRoster';
 import { orchardPopulation } from './fixtures/mixed-population';
 // oxlint-disable-next-line import/no-nodejs-modules -- Real Rapier exercises the native host.
@@ -14,6 +15,7 @@ test('mixed orchard roster replaces the practice slot and restores its reserved 
   const level = { ...SIM_LEVEL, entities: [] }, host = createSimHost(level, { rapier: R });
   let restored: ReturnType<typeof createSimHost> | undefined;
   try {
+    lendDriftwoodReturns(host.scope);
     const population = installMixedPopulation(host, input), first = population.bodies()[0]?.actor;
     if (first === null || first === undefined) throw new Error('Missing orchard practice body');
     first.alive = false; first.hp = 0; host.player.position.set(-10, 0, -10);
@@ -26,6 +28,7 @@ test('mixed orchard roster replaces the practice slot and restores its reserved 
     population.publishPoses();
     const saved = snapshotSimHost(host);
     restored = restoreSimHost(level, { rapier: R }, saved, owner => {
+      lendDriftwoodReturns(owner.scope);
       const resumed = installMixedPopulation(owner, orchardPopulation(), saved); resumed.settle();
       expect(resumed.bodies().map(row => row.id)).toEqual(['creature:1']);
       expect(resumed.captain()?.entityId).toBe('creature:2');

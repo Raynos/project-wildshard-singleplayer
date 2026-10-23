@@ -1,10 +1,15 @@
-import { expect, test } from 'vitest';
+import {Scope} from '../src/engine/app/scope';
+import {lendDriftwoodReturns} from './fixtures/driftwood-return-modules';
+import { afterEach, expect, test } from 'vitest';
 import { RespawnQueue } from '../src/game/population/respawn';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { RETURN_PROGRAM } from '../src/shards/driftwood-isle/generators/returnProgram';
 import { Rng } from '../src/engine/core/rng';
 import { setTerrainHeight } from '../src/engine/world/terrainHeight';
 import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';
+
+const owners:Scope[]=[];afterEach(()=>{for(const owner of owners.splice(0))owner.dispose();});
+function returns():ReturnProgram {const owner=lendDriftwoodReturns(new Scope('return fixture'));owners.push(owner);return ReturnProgram.page(RETURN_PROGRAM,owner);}
 
 test('respawns retain rolled delays, night and distance gates, reverse order and entry identity', () => {
   const queue = new RespawnQueue({ crab: { delay: { min: 2, max: 6 } }, sailor: { delay: { min: 1, max: 1 }, night: true } }, 60);
@@ -49,7 +54,7 @@ test('forward traversal removes adjacent due entries and retains ineligible entr
 });
 
 test('v1 returns preserve queue identity, exact boundary gates and fixed-delay draws', () => {
-  const script = ReturnProgram.page(RETURN_PROGRAM), rng = new Rng(42), control = new Rng(42);
+  const script = returns(), rng = new Rng(42), control = new Rng(42);
   const queue = new RespawnQueue({ shorebird: { delay: { min: 2, max: 6 } }, otter: { delay: { min: 1, max: 1 }, night: true } }, 60, undefined, script);
   const first = queue.add('shorebird', 'grey', 3, 0, 0, 10, rng.next());
   expect(first?.due).toBe(10 + 2 + 4 * control.next());
@@ -62,7 +67,7 @@ test('v1 returns preserve queue identity, exact boundary gates and fixed-delay d
 });
 
 test('v1 placement retries preserve spawn-stream order and saved queue objects', () => {
-  const rng = new Rng(91), control = new Rng(91), queue = new RespawnQueue({ otter: { delay: { min: 0, max: 0 } } }, 0, undefined, ReturnProgram.page(RETURN_PROGRAM));
+  const rng = new Rng(91), control = new Rng(91), queue = new RespawnQueue({ otter: { delay: { min: 0, max: 0 } } }, 0, undefined, returns());
   const entry = queue.add('otter', 'brown', 2, 10, 20, 0, .5);
   if (entry === null) throw new Error('Missing return entry');
   try {

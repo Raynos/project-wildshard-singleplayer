@@ -6,7 +6,8 @@ import { ReturnGate } from '../src/game/population/respawn';
 import { manager as realManager } from './fake/manager';
 import { speciesDef } from '../src/engine/entities/species/registry';
 import { Scope } from '../src/engine/app/scope';
-import program from '../src/shards/driftwood-isle/behaviour/returns.generated.json';
+import {RETURN_PROGRAM as program} from '../src/shards/driftwood-isle/generators/returnProgram';
+import {lendDriftwoodReturns} from './fixtures/driftwood-return-modules';
 import { overrideTerrain } from './fake/terrain';
 
 test('materializes ordered groups through the manager and retires only owned actors', () => {
@@ -47,7 +48,7 @@ test('materializes ordered groups through the manager and retires only owned act
 
 test('salt-marsh page rows retain actual AI, herd order, training refills and ownership', () => {
   const restore = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 });
-  const scope = new Scope('marsh.groups'), fixture = realManager(), animals = fixture.manager;
+  const scope = lendDriftwoodReturns(new Scope('marsh.groups')), fixture = realManager(), animals = fixture.manager;
   const groups = new PageActorGroups(animals, { program, law: { signal: 'practice', initial: { dead: 0 }, parameters: { delay: 2, away: 5 }, retain: { dead: 'dead' } } }, scope), variant = speciesDef('boar').variants[0]?.id;
   if (variant === undefined) throw new Error('Missing fixture species');
   const foreign = animals.spawn('boar', -10, -10, 0, variant);
@@ -80,7 +81,7 @@ test('native corpse gates keep the original fade clock while the player returns 
 
 test('a training death between samples never borrows live frame time', () => {
   const restore = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 });
-  const scope = new Scope('marsh.clock'), animals = realManager().manager, variant = speciesDef('boar').variants[0]?.id;
+  const scope = lendDriftwoodReturns(new Scope('marsh.clock')), animals = realManager().manager, variant = speciesDef('boar').variants[0]?.id;
   if (variant === undefined) throw new Error('Missing fixture species');
   const groups = new PageActorGroups(animals, { program, law: { signal: 'practice', initial: { dead: 0 }, parameters: { delay: 2, away: 5 }, retain: { dead: 'dead' } } }, scope);
   try {

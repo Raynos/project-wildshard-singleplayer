@@ -1,3 +1,4 @@
+import {Scope} from '../src/engine/app/scope';
 import { fixtureNativeRoster } from './fixtures/native-roster';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import program from '../src/shards/pine-hollow/behaviour/life.generated.json' with { type: 'json' };
@@ -147,9 +148,11 @@ test('native shelter resolves its actual roster and weather without ports, prese
 
 test('projected sites preserve source ties, range admission, exact perch choices and shared RNG rollback', async () => {
   const { projectedSite } = await import('../src/game/population/projectedSites');
-  const { default: returns } = await import('../src/shards/driftwood-isle/behaviour/returns.generated.json');
+  const { RETURN_PROGRAM: returns } = await import('../src/shards/driftwood-isle/generators/returnProgram');
+  const {lendDriftwoodReturns}=await import('./fixtures/driftwood-return-modules');
+  const owner=lendDriftwoodReturns(new Scope('perch sites'));
   const { selectCreatureSites } = await import('../src/game/plugin/brain');
-  const guest = ReturnProgram.page(returns), rng = new Rng(317), original = new Rng(317);
+  const guest = ReturnProgram.page(returns,owner), rng = new Rng(317), original = new Rng(317);
   const points = Array.from({ length: 36 }, (_, i) => ({ x: i - 18, z: i % 7, occupied: i % 3 === 0 ? 1 : 0 }));
   for (const minimum of [0, 3, 8]) for (const maximum of [12, 30]) {
     const origin = { x: 2, z: 1 }, away = { x: -4, z: 3 };
@@ -168,11 +171,11 @@ test('projected sites preserve source ties, range admission, exact perch choices
     observations: { heightBias: 0, height: 0, coverBias: 0, cover: 0 } })?.index).toBe(0);
   expect(() => projectedSite(same, shelter, { signal: 'shelterScore', limit: 1, origin: { x: 0, z: 0 }, minimum: 0, maximum: 3,
     observations: {} })).toThrow('Invalid projected site');
+  owner.dispose();
 });
 
 
-test('return guests share one module per live owner and refuse declaration drift', async () => {
-  const { Scope } = await import('../src/engine/app/scope');
+test('return guests share one module per live owner and refuse declaration drift', () => {
   const owner = new Scope('fixture.projections');
   const first = ReturnProgram.page(program, owner);
   expect(ReturnProgram.page(structuredClone(program), owner)).toBe(first);

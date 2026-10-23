@@ -1,4 +1,5 @@
 import { compileDecisionScripts, readDecisionSources } from '@wildshard/sdk/buildDecisionScripts';
+import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { fileURLToPath } from 'node:url';
 import { readFileSync, writeFileSync } from 'node:fs';
 
@@ -14,9 +15,11 @@ const built = await compileDecisionScripts([source],{fields:registry(names),chan
   readDecisionSources(fileURLToPath(new URL('../',import.meta.url))),{asLineCeiling:1716});
 const script=built.rows.at(0),blob=built.blobs.at(0);
 if(script===undefined||blob===undefined)throw new Error('Missing return program');
-const bytes = `${JSON.stringify({script,bytes:Buffer.from(blob.bytes).toString('base64')},null,2)}\n`;
+const hash=hashImmutableBytes(blob.bytes),wasm=new URL('../behaviour/returns.generated.wasm',import.meta.url);
+const bytes = `${JSON.stringify({script,bytes:'',compiled:{source:'behaviour/returns.generated.wasm',bytes:blob.bytes.length,hash}},null,2)}\n`;
 const target = new URL('../behaviour/returns.generated.json',import.meta.url);
 if(process.argv.includes('--check')) {
   if(readFileSync(target,'utf8')!==bytes)throw new Error('Return program is stale');
-} else writeFileSync(target,bytes);
+  if(!readFileSync(wasm).equals(Buffer.from(blob.bytes)))throw new Error('Return binary is stale');
+} else {writeFileSync(wasm,blob.bytes);writeFileSync(target,bytes);}
 console.info(`driftwood-returns: ${built.lines}/${built.ceiling} authored AS lines`);

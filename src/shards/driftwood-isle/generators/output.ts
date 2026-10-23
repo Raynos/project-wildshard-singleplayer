@@ -89,7 +89,7 @@ import type { PlatformDataSectionName } from '@wildshard/format/platformDataSect
 import { DRIFTWOOD_SPECIES_PROGRAMS } from './speciesPrograms';
 import * as v from 'valibot';
 import {SECTIONS,WIRE_SCHEMAS,FixedGeometryGroupsSchema} from './sectionSchemas.generated';
-import { emitNamedBlobs, nameBlob as nameBinaryBlob } from '@wildshard/sdk/blobs';
+import { emitNamedBlobs } from '@wildshard/sdk/blobs';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { parseAchievementCounterData } from '@wildshard/format/achievementCounters';
 import { DRIFTWOOD_FEAT_COUNTERS } from './questInventory';
@@ -115,9 +115,9 @@ const counterRows = { ...DRIFTWOOD_FEAT_COUNTERS, feats: DRIFTWOOD_FEAT_COUNTERS
 const nativeFeats = parseAchievementCounterData(counterRows).feats.filter(row => row.kind === undefined);
 const nativeCounters = parseAchievementCounterData({ ...counterRows, feats: nativeFeats, flags: nativeFeats.map(feat => DRIFTWOOD_FEAT_COUNTERS.flags.find(row => row.id === feat.id) ?? { id: feat.id, method: 'count', value: { constant: 0 } }), write: 'each' });
 const sceneBytes = (value: unknown): Uint8Array => new TextEncoder().encode(encodeCanonicalJson(parseWorldScene(value)));
-const BRIDGE_SWAY_WASM = nameBinaryBlob('views/bridge-sway.wasm', 'wasm', Uint8Array.from(atob(bridgeSwayModule.bytes), character => character.codePointAt(0) ?? 0),
-    { critical: true, script: { abi: 2, lane: 'view', pages: 1, ioBytes: 4096,
-      compilerRevision: SCRIPT_V2_REVISIONS.compiler, admissionRevision: SCRIPT_V2_REVISIONS.admission } });
+const BRIDGE_SWAY_WASM = {name:'views/bridge-sway.wasm',kind:'wasm' as const,source:bridgeSwayModule.compiled.source,options:
+  {critical:true,script:{abi:2 as const,lane:'view' as const,pages:1,ioBytes:4096,
+    compilerRevision:SCRIPT_V2_REVISIONS.compiler,admissionRevision:SCRIPT_V2_REVISIONS.admission}}};
 const placements = emitNamedBlobs([nameBlob('quests/page-composition.json', 'json', new TextEncoder().encode(encodeCanonicalJson(v.parse(QuestPageCompositionSchema, { ...pageComposition, frames: questFrames, events: questEvents, deaths: questDeaths.page, entryResources: { world: driftwoodQuestWorld(), figures: driftwoodQuestFigures(), continuation: driftwoodQuestContinuation() } })))), nameBlob('actors/projection.json', 'json', new TextEncoder().encode(encodeCanonicalJson(populationProjectionRows()))), nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_LIFE))),
 
   nameBlob('world/cover-composition.json', 'json', new TextEncoder().encode(JSON.stringify(parse(CoverCompositionSchema, coverComposition)))),
@@ -131,8 +131,6 @@ const placements = emitNamedBlobs([nameBlob('quests/page-composition.json', 'jso
   ...(['phone', 'desktop'] as const).flatMap(tier => (['palms', 'hibiscus'] as const).map(kind => nameBlob(`world/foliage/${kind}-${tier}.json`, 'json', new TextEncoder().encode(JSON.stringify({ ...foliage.placements[tier][kind], poses: uprightPoses(foliage.placements[tier][kind].poses), id: `foliage.${kind === 'palms' ? 'palms' : 'bushes'}.${tier}` }))))),
 
 
-  RETURN_WASM,
-  BRIDGE_SWAY_WASM,
   nameBlob('sim/returns.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...ecology, program: RETURN_PROGRAM, water: DECLARED_SEA.level, fixed: ['sailor'], step: 'shard.driftwood-isle.installEcology' }))),
   nameBlob('people/catalogue.json', 'json', new TextEncoder().encode(encodeCanonicalJson(FIGURE_CATALOGUE))),
   nameBlob('scenes/rocks.json', 'json', new TextEncoder().encode(encodeCanonicalJson(rocks.scene))),
@@ -164,7 +162,7 @@ const placements = emitNamedBlobs([nameBlob('quests/page-composition.json', 'jso
   nameBlob('sim/keeper.json', 'json', new TextEncoder().encode(encodeCanonicalJson(keeperRows(placed))))]);
 /** The island's fauna looks over its packed creature bodies (`look/hull-book`; data/creatureBodies.generated.json). */
 function hullBook(): unknown { const { fauna, ...body } = creatureBodies; return { ...fauna, body }; }
-export const output = { ...DRIFTWOOD_OUTPUT, blobs: [...DRIFTWOOD_OUTPUT.blobs, ...SCENE_MODEL_BLOBS, ...driftwoodPhysicsSources()], platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['explore/catalogue', EXPLORER_CATALOGUE],['look/toon', TOON_LOOK], ['look/hull-book', hullBook()], ['view/modules', [{ id: 'driftwood.bridge-sway', module: BRIDGE_SWAY_WASM.file.path, side: 'view', ...BRIDGE_SWAY_WASM.script }]], ['client/plan', { ...clientPlan, features: [...driftwoodCatalogueFeatures(clientPlan.features), {kind:'world.assembly',library:'driftwood.island',catalogue:'models/world-scenes.json',rows:WORLD_STAGES}, { kind: 'world.updates', rows: driftwoodWorldUpdates() }, { kind: 'view.program', id: 'bridge-sway', rows: driftwoodBridgeSway(), module: 'views/bridge-sway.wasm' }, { kind: 'world.movers', ...driftwoodMoverOwners() }, { kind: 'world.baked', rows: [BAKED_COVE] }, { kind: 'world.water', rows: [OCEAN_WATER_ROW] }, { kind: 'world.sets', rows: placeSetRows() }] }], ['world/scenes', WORLD_SCENES], ['held/arms', HELD_ARMS], ['ui/strings', strings], ['ui/completion', completionRows()], ['actors/species-programs', DRIFTWOOD_SPECIES_PROGRAMS], ['actors/return-scripts', [RETURN_PROGRAM.script]], ['sim/scripts', [...CAPTAIN_DECISION, ...BARREL_DECISION]], ['sim/bodies', BARREL_BODIES], ['actors/moves', CAPTAIN_MOVES], ['actors/strikes', CAPTAIN_STRIKES], ['world/targets',CAPTAIN_TARGETS]])), namedFiles: placements.files, assets: placements.assets, custom };
+export const output = { ...DRIFTWOOD_OUTPUT, blobs: [RETURN_WASM,BRIDGE_SWAY_WASM,...DRIFTWOOD_OUTPUT.blobs, ...SCENE_MODEL_BLOBS, ...driftwoodPhysicsSources()], platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['explore/catalogue', EXPLORER_CATALOGUE],['look/toon', TOON_LOOK], ['look/hull-book', hullBook()], ['view/modules', [{ id: 'driftwood.bridge-sway', module: `blobs/wasm/${bridgeSwayModule.compiled.hash}.wasm`, side: 'view', ...BRIDGE_SWAY_WASM.options.script }]], ['client/plan', { ...clientPlan, features: [...driftwoodCatalogueFeatures(clientPlan.features), {kind:'world.assembly',library:'driftwood.island',catalogue:'models/world-scenes.json',rows:WORLD_STAGES}, { kind: 'world.updates', rows: driftwoodWorldUpdates() }, { kind: 'view.program', id: 'bridge-sway', rows: driftwoodBridgeSway(), module: 'views/bridge-sway.wasm' }, { kind: 'world.movers', ...driftwoodMoverOwners() }, { kind: 'world.baked', rows: [BAKED_COVE] }, { kind: 'world.water', rows: [OCEAN_WATER_ROW] }, { kind: 'world.sets', rows: placeSetRows() }] }], ['world/scenes', WORLD_SCENES], ['held/arms', HELD_ARMS], ['ui/strings', strings], ['ui/completion', completionRows()], ['actors/species-programs', DRIFTWOOD_SPECIES_PROGRAMS], ['actors/return-scripts', [RETURN_PROGRAM.script]], ['sim/scripts', [...CAPTAIN_DECISION, ...BARREL_DECISION]], ['sim/bodies', BARREL_BODIES], ['actors/moves', CAPTAIN_MOVES], ['actors/strikes', CAPTAIN_STRIKES], ['world/targets',CAPTAIN_TARGETS]])), namedFiles: placements.files, assets: placements.assets, custom };
 
 /** Root-mapped platform data is admitted before the canonical output writer. */
 export const sections = { 'world/movers': { movers: MOVERS }, 'state/modes': { modes: DRIFTWOOD_MODES } };
