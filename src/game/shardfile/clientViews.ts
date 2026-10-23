@@ -90,7 +90,8 @@ export function clientTileViews(ports: ViewPorts): ClientTileViews {
       const root = installed.tiles.get(key); if (root === undefined) return null;
       // P1 draws: a drawn splat ground's tiles merge, the fine tiles on its material, a coarse tile's meshes by material with
       // the fine tiles over it left out (in place of the coarse tile mask), so the ground keeps one draw per material
-      const ground = ports.ground ?? null, parent = root.parent ?? scene;
+      // the ring's own root: each install wraps its tile in its own group, so the tiles share only `scene`
+      const ground = ports.ground ?? null, parent = scene;
       if (ground !== null) {
         const meshes: Mesh[] = []; root.traverse((object) => { if (isMesh(object)) meshes.push(object); });
         if (row.lod === 1) {
