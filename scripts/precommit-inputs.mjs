@@ -79,6 +79,10 @@ export async function precommitInputs(root = resolve(import.meta.dirname, '..'),
       if (existsSync(resolve(tree, policy))) {
         const baseline = execFileSync('git', ['show', `HEAD:${policy}`], { cwd: root, encoding: 'utf8', maxBuffer: 1 << 30 });
         writeFileSync(resolve(tree, '.commit-baseline-ratchet.json'), baseline);
+        const sections = 'lint/custom-sections.json';
+        if (execFileSync('git', ['ls-tree', '--name-only', 'HEAD', sections], { cwd: root, encoding: 'utf8' }).trim() === sections)
+          writeFileSync(resolve(tree, '.commit-baseline-custom-sections.json'),
+            execFileSync('git', ['show', `HEAD:${sections}`], { cwd: root, encoding: 'utf8', maxBuffer: 1 << 30 }));
       }
       const stagedWorker = resolve(tree, 'scripts/precommit-checks.mjs');
       const worker = existsSync(stagedWorker) ? stagedWorker : resolve(import.meta.dirname, 'precommit-checks.mjs');

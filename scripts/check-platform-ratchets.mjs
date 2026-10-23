@@ -218,15 +218,16 @@ function retiredClassCeilings(trees) {
   return credit;
 }
 
-/** Explicit immutable trees permit proven verbatim moves; every other policy allowance remains shrink-only. */
-export function comparePlatformList(list, baselineFile, candidateFile, trees) {
+/** Explicit immutable trees permit proven verbatim moves; every other policy allowance remains shrink-only.
+ * Without trees, `sections` carries the predecessor and candidate custom-section policies (pre-commit). */
+export function comparePlatformList(list, baselineFile, candidateFile, trees, sections) {
   if (list === 'lint/ratchet.json' || list === CUSTOM_SECTION_POLICY) {
     const read=file=>existsSync(file)?JSON.parse(readFileSync(file,'utf8')):undefined;
     const locks = list === 'lint/ratchet.json' ? compareClosedComponents(read(baselineFile)?.closedComponents, read(candidateFile)?.closedComponents, read(baselineFile)?.closingComponents, read(candidateFile)?.closingComponents) : [];
     if(trees!==undefined)return compareCustomSections(read(resolve(trees.baselineRoot,'lint/ratchet.json'))?.budgets??{},
       read(resolve(trees.candidateRoot,'lint/ratchet.json'))?.budgets??{},read(resolve(trees.baselineRoot,CUSTOM_SECTION_POLICY)),read(resolve(trees.candidateRoot,CUSTOM_SECTION_POLICY))).concat(locks);
     if(list===CUSTOM_SECTION_POLICY)return ['custom-section policy comparison requires immutable trees'];
-    return compareCustomSections(read(baselineFile)?.budgets??{},read(candidateFile)?.budgets??{},undefined,undefined).concat(locks);
+    return compareCustomSections(read(baselineFile)?.budgets??{},read(candidateFile)?.budgets??{},sections?.before,sections?.after).concat(locks);
   }
   if (list === CLASS_MOVE_LIST) {
     const before = existsSync(baselineFile) ? JSON.parse(readFileSync(baselineFile, 'utf8')).moves : {};
