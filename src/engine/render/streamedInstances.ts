@@ -36,14 +36,18 @@ export class CellWindow<T> {
   }
 
   /** Whether cell (cx, cz) is built. */
-  has(cx: number, cz: number): boolean { return this.cells.has(`${cx},${cz}`); }
+  has(cx: number, cz: number): boolean { const key = `${cx},${cz}`; return this.cells.has(key) || this.borrowed.has(key); }
+  /** authored cells read since the last `clear` (they count as built without entering the cache) */
+  private readonly borrowed = new Set<string>();
 
-  /** Read a cached or authored cell; unknown cells remain absent until explicitly published. */
+  /** Read a cached or authored cell; unknown cells remain absent until explicitly published. An authored cell is read in
+   *  place (G639: copying each into the 96-cell cache evicted and re-inserted hundreds of a scatter's cells every frame). */
   get(cx: number, cz: number): T | undefined {
     const key = `${cx},${cz}`, hit = this.cells.get(key);
     if (hit !== undefined) return hit;
-    const made = this.source.get(key);
-    return made === undefined ? undefined : this.set(cx, cz, made);
+    const authored = this.source.get(key);
+    if (authored !== undefined) this.borrowed.add(key);
+    return authored;
   }
 
   /** Publish one prepared cell and retain the existing oldest-first eviction policy. */
@@ -56,10 +60,17 @@ export class CellWindow<T> {
   }
 
   /** Drop every built cell. */
-  clear(): void { this.cells.clear(); }
+  clear(): void { this.cells.clear(); this.borrowed.clear(); }
 
-  /** The cells within `r` m of (px, pz) as [cx, cz, squared distance to the cell], nearest first. */
-  within(px: number, pz: number, r: number): [number, number, number][] {
+  private last: { px: number; pz: number; r: number; out: readonly [number, number, number][] } | null = null;
+  /** The cells within `r` m of (px, pz) as [cx, cz, squared distance to the cell], nearest first. The same query as the
+   *  last one returns its list again (a viewer standing still asks every frame); read it, never change it. */
+  within(px: number, pz: number, r: number): readonly [number, number, number][] {
+    const last = this.last;
+    if (last?.px === px && last.pz === pz && last.r === r) return last.out;
+    const out = this.query(px, pz, r); this.last = { px, pz, r, out }; return out;
+  }
+  private query(px: number, pz: number, r: number): [number, number, number][] {
     const c = this.size, out: [number, number, number][] = [];
     for (let cz = Math.floor((pz - r) / c); cz <= Math.floor((pz + r) / c); cz++) for (let cx = Math.floor((px - r) / c); cx <= Math.floor((px + r) / c); cx++) {
       const dx = Math.max(0, cx * c - px, px - (cx + 1) * c), dz = Math.max(0, cz * c - pz, pz - (cz + 1) * c);
