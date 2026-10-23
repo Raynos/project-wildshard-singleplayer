@@ -56,7 +56,7 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
 - **Production ships the newest CI-green `main`** (Jake, 2026-10-02: "fix the deploy, whatever it takes"). The hourly
   or manual release reads `.github/deploy-pin.json`: mode `newest-ci-green` picks the newest main commit whose push
   `deploy` run (typecheck, lint, test, build) passed **and whose exact SHA has `boot-smoke = success`**. The separate
-  `.github/workflows/boot-smoke.yml` follows successful main push CI (or an explicit SHA dispatch), reuses that exact
+  `.github/workflows/boot-smoke.yml` is explicitly dispatched by the successful push CI job (or by an operator), reuses that exact
   successful main push run's `boot-dist` artifact, and drives every public primary shard to entered, unpaused page-ready
   with ten live gameplay frames. Push CI archives its actual web dist with its full commit, run ID and tar checksum.
   Smoke verifies that provenance and the version stamp before sharing the same bytes with all six browser legs;
@@ -92,8 +92,9 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   release refreshes candidates and statuses every 30 seconds for at most 20 minutes, then refuses with the unresolved
   SHA. Neither waiting nor a free hourly slot can select an unproven candidate. Terminal failed proofs can be skipped
   for an older proven build. The hourly cadence and manual dispatch limit stay unchanged.
-  Smoke runs following manual/scheduled releases are intentionally skipped (only push CI or explicit smoke dispatch
-  runs the proof), so inspect the run event as well as its SHA. An explicit emergency rollback may instead return to any SHA
+  Manual/scheduled releases and pull requests never dispatch smoke. The automatic proof waits up to five minutes
+  for its exact parent CI aggregate to close successfully before reading its artifact; no per-job exception applies.
+  An explicit emergency rollback may instead return to any SHA
   proven previously live in production, even before the smoke existed: verified `production-live` status or a
   successful historical release job's exact full pin plus matching production-version reading. Pin history alone
   is insufficient. The OTA reader enforces the same proof. `force`

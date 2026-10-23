@@ -1,10 +1,6 @@
 # Release gate, deliberately outside push CI: macOS queueing must not extend its critical path.
 name: boot-smoke
 on:
-  workflow_run:
-    workflows: [deploy]
-    types: [completed]
-    branches: [main]
   workflow_dispatch:
     inputs:
       sha:
@@ -15,17 +11,20 @@ on:
         description: Explicit exact push run (all 16 jobs must pass if its aggregate is stuck)
         type: string
         required: false
+      automatic:
+        description: Successful push CI dispatch (wait for its exact aggregate)
+        type: boolean
+        default: false
 permissions:
   contents: read
   actions: read
   statuses: write
 jobs:
   build:
-    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.event == 'push' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository)
     # Automatic proofs coalesce while queued; explicit SHA dispatches keep
     # their own group and always build the requested commit.
     concurrency:
-      group: boot-smoke-build-${{ github.event_name == 'workflow_run' && 'main' || inputs.sha || github.sha }}
+      group: boot-smoke-build-${{ inputs.automatic && 'main' || inputs.sha || github.sha }}
       cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -36,7 +35,7 @@ jobs:
         id: tested
         env:
           GH_TOKEN: ${{ github.token }}
-          REF: ${{ inputs.sha || github.event.workflow_run.head_sha || github.sha }}
+          REF: ${{ inputs.sha || github.sha }}
         run: echo "sha=$(gh api "repos/$GITHUB_REPOSITORY/commits/$REF" --jq .sha)" >> "$GITHUB_OUTPUT"
       - name: Mark exact-SHA proof pending
         env:
@@ -50,7 +49,7 @@ jobs:
         with:
           node-version: 24
       - uses: actions/checkout@v4
-        if: github.event_name == 'workflow_dispatch' && inputs.source_run != ''
+        if: ${{ !inputs.automatic && inputs.source_run != '' }}
         with:
           sparse-checkout: scripts/deploy-pin.mjs
           sparse-checkout-cone-mode: false
@@ -59,8 +58,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TESTED_SHA: ${{ steps.tested.outputs.sha }}
-          SOURCE_RUN: ${{ inputs.source_run || github.event.workflow_run.id }}
-          JOB_PROOF_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.source_run || '' }}
+          SOURCE_RUN: ${{ inputs.source_run }}
+          AUTOMATIC: ${{ inputs.automatic }}
+          JOB_PROOF_RUN: ${{ !inputs.automatic && inputs.source_run || '' }}
         run: |
           run_id="$SOURCE_RUN"
           if [ -z "$run_id" ]; then
@@ -70,6 +70,11 @@ jobs:
           fi
           test -n "$run_id" || { echo '::error::No successful exact-SHA main push build'; exit 1; }
           case "$run_id" in *[!0-9]*) echo '::error::Invalid source run identity'; exit 1 ;; esac
+          if [ "$AUTOMATIC" = true ]; then
+            # Dispatch returns before the parent aggregate closes. Never
+            # download its artifact until that exact run succeeds.
+            timeout 300s gh run watch "$run_id" --repo "$GITHUB_REPOSITORY" --exit-status --interval 5
+          fi
           gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run_id" > source-run.json
           node --input-type=module <<'NODE'
           import { readFileSync } from 'node:fs';
@@ -127,7 +132,7 @@ jobs:
       matrix:
         part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer]
     concurrency:
-      group: boot-smoke-${{ matrix.part }}-${{ github.event_name == 'workflow_run' && 'main' || inputs.sha || github.sha }}
+      group: boot-smoke-${{ matrix.part }}-${{ inputs.automatic && 'main' || inputs.sha || github.sha }}
       cancel-in-progress: false
     runs-on: macos-15
     timeout-minutes: 20
@@ -138,7 +143,7 @@ jobs:
           GIT_CONFIG_KEY_0: http.version
           GIT_CONFIG_VALUE_0: HTTP/1.1
         with:
-          ref: ${{ inputs.sha || github.event.workflow_run.head_sha || github.sha }}
+          ref: ${{ inputs.sha || github.sha }}
           filter: blob:none
           sparse-checkout: |
             /*
@@ -230,7 +235,7 @@ jobs:
         id: tested
         env:
           GH_TOKEN: ${{ github.token }}
-          REF: ${{ inputs.sha || github.event.workflow_run.head_sha || github.sha }}
+          REF: ${{ inputs.sha || github.sha }}
         run: echo "sha=$(gh api "repos/$GITHUB_REPOSITORY/commits/$REF" --jq .sha)" >> "$GITHUB_OUTPUT"
       - name: Publish exact-SHA proof outcome
         env:
@@ -254,7 +259,7 @@ jobs:
     # is queued or running, and only when production does not already serve the proven SHA (a no-op release would burn the
     # hour). Otherwise it does nothing: the :17 cron, the backstop or an agent's hand dispatch picks the pin up.
     needs: [boot-smoke, verdict]
-    if: github.event_name == 'workflow_run' && needs.boot-smoke.result == 'success' && needs.verdict.result == 'success'
+    if: inputs.automatic && needs.boot-smoke.result == 'success' && needs.verdict.result == 'success'
     concurrency:
       group: boot-smoke-release
       cancel-in-progress: false

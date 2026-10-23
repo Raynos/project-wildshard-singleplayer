@@ -339,7 +339,7 @@ jobs:
         run: |
           zstd -d --rm generated-inputs.tar.zst
           python3 scripts/ci-products.py unpack-generated
-      - run: python3 scripts/ci-fail-fast.py -- pnpm run docs
+      - run: python3 scripts/ci-fail-fast.py -- pnpm docs
       - name: Publish exact failure paths
         if: failure()
         uses: actions/upload-artifact@v4
@@ -554,3 +554,21 @@ jobs:
           path: tmp/ci-failures/*.json
           if-no-files-found: ignore
           retention-days: 2
+
+  dispatch-boot-smoke:
+    # All push checks must pass; release/PR runs never create skipped smoke runs.
+    needs: [build-and-deploy, typecheck-lint, derived-docs, generated-inputs, products, behaviour]
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - name: Dispatch the exact successful push proof
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh workflow run boot-smoke.yml --ref main \
+            -f sha="$GITHUB_SHA" -f source_run="$GITHUB_RUN_ID" -f automatic=true
