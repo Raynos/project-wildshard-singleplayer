@@ -14,9 +14,19 @@ const rgb = v.tuple([finite, finite, finite]);
 const range = v.tuple([finite, finite]);
 const tag = v.pipe(text, v.regex(/\./u)) as v.GenericSchema<`${string}.${string}`>;
 const effect = v.pipe(text, v.regex(/^effect\./u)) as v.GenericSchema<`effect.${string}`>;
+/** A frame's bound paint targets: held parts from a claims owner's live kit (a blade's model, a bow's arrows), the ridden and
+ *  bonded mounts, facts from encounter owners whose power applies, and one held bow restyled to its selected finish. Owner
+ *  ids name entry-owner loans; no paths or callbacks. */
+const CosmeticFinishBindSchema = v.strictObject({ claims: text,
+  held: v.pipe(v.array(v.strictObject({ target: text, slot: text, part: v.picklist(['blade', 'arrows']) })), v.maxLength(16)),
+  mounts: v.exactOptional(v.strictObject({ target: text, taming: text })),
+  facts: v.pipe(v.array(v.strictObject({ fact: text, owner: v.picklist(['arena-room', 'arena-script']), id: text })), v.maxLength(16)),
+  restyle: v.exactOptional(v.strictObject({ target: text, slot: text, styles: v.pipe(v.array(text), v.minLength(1), v.maxLength(16)) })) });
+export type CosmeticFinishBind = v.InferOutput<typeof CosmeticFinishBindSchema>;
 /** Client-only cosmetic paint operations. Targets are bound object ids; no reflected paths or shard callbacks. */
 export const CosmeticFinishesSchema = v.pipe(v.strictObject({
   menu:v.exactOptional(v.strictObject({title:text})),
+  bind: v.exactOptional(CosmeticFinishBindSchema),
   cards: v.pipe(v.array(v.strictObject({ id: text, name: text, blurb: text, lockedBlurb: text, icon: CatalogueIconSchema })), v.maxLength(128)),
   skins: v.pipe(v.array(v.strictObject({ id: text, slot: text, name: text, blurb: text, effect, grant: tag })), v.maxLength(128)),
   paints: v.pipe(v.array(v.strictObject({ target: text, slot: text, material: v.picklist(['standard', 'lambert']),
@@ -33,6 +43,8 @@ export const CosmeticFinishesSchema = v.pipe(v.strictObject({
   return ids.size === rows.skins.length && new Set(rows.skins.map(row => row.effect)).size === ids.size
     && rows.cards.length === ids.size && new Set(rows.cards.map(row => row.id)).size === ids.size && rows.cards.every(row => ids.has(row.id))
     && new Set(rows.paints.map(row => row.target)).size === rows.paints.length
+    && (rows.bind === undefined || [...rows.bind.held.map(row => row.target), ...rows.bind.mounts === undefined ? [] : [rows.bind.mounts.target],
+      ...rows.bind.restyle === undefined ? [] : [rows.bind.restyle.target]].every(target => rows.paints.some(row => row.target === target)))
     && rows.paints.every(row => row.choices.every(choice => (choice.skin === undefined || rows.skins.some(skin => skin.id === choice.skin && skin.slot === row.slot))
       && (choice.repaint === undefined || choice.repaint.vertex.ramp[0] > 0 && choice.repaint.vertex.ramp[2] > 0 && choice.repaint.atlas.ramp[1] > 0 && choice.repaint.atlas.outerRamp[1] > 0)));
 }, 'Unique cosmetic identities, complete cards and valid paint references'));

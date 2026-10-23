@@ -3,7 +3,10 @@ import { wind } from '@wildshard/engine/world/steppeWind';
 import type { BowProfile as PlatformBowProfile } from '@wildshard/engine/combat/view/bowProfile';
 
 /** The starter view recipes keep their existing repaint vocabulary. */
-export type BowStyle = 'recurve' | 'golden' | 'sky-wolf';
+const BOW_STYLES = ['recurve', 'golden', 'sky-wolf'] as const;
+export type BowStyle = typeof BOW_STYLES[number];
+/** Whether a declared row names one of those repaint styles. */
+export function isBowStyle(value: string): value is BowStyle { return BOW_STYLES.some(entry => entry === value); }
 /** The starter bow profile accepts those same trusted view strategies. */
 export type BowProfile = PlatformBowProfile<BowStyle>;
 

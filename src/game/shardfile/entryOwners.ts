@@ -105,6 +105,12 @@ export function lendEntryOwner(scope: Scope, source: Scope, kind: EntryOwnerKind
   if (scope === source || !scope.belongsTo(value.owner)) throw new Error('Entry loan requires its construction ancestor');
   publish(scope, kind, id, value);
 }
+/** `entryOwner`, or null while that row id is not (or no longer) published in the scope. */
+export function presentEntryOwner<K extends EntryOwnerKind>(scope: Scope, kind: K, id: string): EntryOwnerTypes[K] | null {
+  check(scope, id);
+  const value = books.get(scope)?.[kind].get(id);
+  return value === undefined || value.owner.disposed || value.owner.disposing ? null : value.value;
+}
 /** Resolve a row id in one exact owner scope; there is no ambient/global fallback. */
 export function entryOwner<K extends EntryOwnerKind>(scope: Scope, kind: K, id: string): EntryOwnerTypes[K] {
   return loan(scope, kind, id).value;

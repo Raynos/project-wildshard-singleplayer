@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
 import { BoxGeometry, Color, Group, Mesh, MeshLambertMaterial, MeshStandardMaterial } from 'three';
-import { CosmeticFinishLocker, CosmeticFinishPainter } from '../src/game/loadout/cosmeticFinishes';
+import { CosmeticFinishLocker, CosmeticFinishPainter, paintBoundFinishes } from '../src/game/loadout/cosmeticFinishes';
+import type { CosmeticFinishBind } from '../src/format/heldFinishes';
 import { parsePlatformDataSection } from '../src/format/platformDataSections';
 import rows from '../src/shards/nalati-grasslands/data/skinFinishes.json';
 import { patchShader, PATCH_ORDER } from '../src/engine/render/shaderPatches';
@@ -48,4 +49,41 @@ test('invalid references and reflected/executable finish fields refuse at admiss
   expect(() => new CosmeticFinishLocker('fixture',{...rows,paints:[{...rows.paints[0],owner:'page',path:'blade'}]},save())).toThrow();
   expect(() => new CosmeticFinishLocker('fixture',{...rows,paints:[{...rows.paints[0],choices:[{skin:'missing'}]}]},save())).toThrow();
   expect(() => parsePlatformDataSection('held/finishes',{order:[],rows:{},cards:[],extras:{},cosmetics:{...rows,paints:[{...rows.paints[0],choices:[()=>true]}]}})).toThrow();
+});
+
+test('bound finishes paint the current held parts, mounts and applied facts, then restyle the bound bow', () => {
+  // an orchard fixture: a pruner blade, a sling's stones as 'arrows', one mule, a festival fact, and the sling restyled
+  const bind: CosmeticFinishBind = { claims:'orchard.kit', held:[{target:'pruner',slot:'pruner',part:'blade'},{target:'stones',slot:'sling',part:'arrows'}],
+    mounts:{target:'mules',taming:'mule'}, facts:[{fact:'festival',owner:'arena-room',id:'fair'}],
+    restyle:{target:'sling',slot:'sling',styles:['plain','gilded']} };
+  const profile = { cards: [{id:'pearl', name:'Pearl', blurb:'Light', lockedBlurb:'Win', icon:'sword'}],
+    skins: [{id:'pearl',slot:'tool',name:'Pearl',blurb:'Light',effect:'effect.pearl',grant:'cosmetic.pearl'}],
+    paints: [{target:'pruner',slot:'tool',material:'standard',choices:[{skin:'pearl',color:[.2,.4,.6]}]},
+      {target:'stones',slot:'tool',material:'standard',choices:[{fact:'festival',color:[.9,.1,.1]}]},
+      {target:'mules',slot:'tool',material:'standard',choices:[{fact:'festival',color:[.1,.9,.1]}]},
+      {target:'sling',slot:'tool',material:'standard',choices:[{fact:'festival',finish:'gilded'}]}],
+    bind };
+  const locker = new CosmeticFinishLocker('orchard-fixture', profile, save()), painter = new CosmeticFinishPainter(locker);
+  const part = () => new Mesh(new BoxGeometry(), new MeshStandardMaterial({ color: 0x302010 }));
+  const blade = part(), stones = part(), mule = part(), styles: string[] = [];
+  const sling = { arrows: { mesh: stones } };
+  const kit = { blade: (slot: string) => { expect(slot).toBe('pruner'); return { model: blade }; }, bow: (slot: string) => { expect(slot).toBe('sling'); return sling; } };
+  let fair = false;
+  let worn = 'plain';
+  const sources = { kit, mounts: [mule], applied: (owner: string, id: string) => owner === 'arena-room' && id === 'fair' && fair,
+    restyle: (slot: string, style: string) => { expect(slot).toBe('sling'); if (worn !== style) { worn = style; styles.push(style); } } };
+  locker.own('pearl'); paintBoundFinishes(painter, bind, sources);
+  expect(blade.material.color).toEqual(new Color(.2,.4,.6)); expect(stones.material.color).toEqual(new Color(0x302010)); expect(styles).toEqual([]);
+  fair = true; paintBoundFinishes(painter, bind, sources);
+  expect(stones.material.color).toEqual(new Color(.9,.1,.1)); expect(mule.material.color).toEqual(new Color(.1,.9,.1)); expect(styles).toEqual(['gilded']);
+  paintBoundFinishes(painter, bind, sources); expect(styles).toEqual(['gilded']);
+  painter.dispose();
+});
+
+test('bound targets must name declared paints; unknown owners or parts refuse', () => {
+  const bind = rows.bind;
+  expect(bind.claims).toBe('nalati.arsenal');
+  for (const broken of [{ ...bind, held: [{ target: 'missing', slot: 'blade', part: 'blade' }] }, { ...bind, held: [{ ...bind.held[0], part: 'scabbard' }] },
+    { ...bind, facts: [{ fact: 'golden', owner: 'page', id: 'arena' }] }, { ...bind, restyle: { ...bind.restyle, target: 'missing' } }, { ...bind, callback: 'paint' }])
+    expect(() => new CosmeticFinishLocker('fixture', { ...rows, bind: broken }, save())).toThrow();
 });

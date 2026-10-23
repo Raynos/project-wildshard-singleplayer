@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import * as v from 'valibot';
-import { CosmeticFinishesSchema, type CosmeticFinishesRows } from '@wildshard/format/heldFinishes';
+import { CosmeticFinishesSchema, type CosmeticFinishBind, type CosmeticFinishesRows } from '@wildshard/format/heldFinishes';
 import { EffectService, selectEffectGrants } from '@wildshard/engine/combat/effects/EffectService';
 import type { EffectTarget } from '@wildshard/engine/combat/effects/types';
 import { wearSkin } from '@wildshard/engine/models/gear';
@@ -34,6 +34,24 @@ export class CosmeticFinishLocker extends CosmeticsLocker<string, Skin> {
 export interface CosmeticFinishTargets {
   readonly objects: ReadonlyMap<string, readonly THREE.Object3D[]>;
   readonly facts: ReadonlySet<string>;
+}
+
+/** What one bound frame reads: the live kit's held parts, the ridden and bonded mounts, and whether an encounter's power applies. */
+export interface CosmeticFinishSources {
+  readonly kit: { blade: (slot: string) => { readonly model: THREE.Object3D }; bow: (slot: string) => { readonly arrows: { readonly mesh: THREE.Object3D } } };
+  /** restyle the bound held bow to a declared style (a no-op when it already wears it) */
+  readonly restyle: (slot: string, style: string) => void;
+  readonly mounts: readonly THREE.Object3D[];
+  readonly applied: (owner: CosmeticFinishBind['facts'][number]['owner'], id: string) => boolean;
+}
+/** One frame of the declared bindings (`bind`): its targets painted from the current kit, mounts and facts, then the bound
+ *  bow restyled to its selected finish. Nothing is cached between frames (an upgraded weapon is read anew). */
+export function paintBoundFinishes(painter: CosmeticFinishPainter, bind: CosmeticFinishBind, sources: CosmeticFinishSources): void {
+  const objects = new Map<string, readonly THREE.Object3D[]>(bind.held.map(row => [row.target, [row.part === 'arrows' ? sources.kit.bow(row.slot).arrows.mesh : sources.kit.blade(row.slot).model]]));
+  if (bind.mounts !== undefined) objects.set(bind.mounts.target, sources.mounts);
+  painter.update({ objects, facts: new Set(bind.facts.filter(row => sources.applied(row.owner, row.id)).map(row => row.fact)) });
+  const restyle = bind.restyle, chosen = restyle === undefined ? undefined : painter.selectedFinishes.get(restyle.target);
+  if (restyle !== undefined && chosen !== undefined && restyle.styles.includes(chosen)) sources.restyle(restyle.slot, chosen);
 }
 
 /** Client-only reversible material, vertex-colour and atlas projection for the loadout finish catalogue. */

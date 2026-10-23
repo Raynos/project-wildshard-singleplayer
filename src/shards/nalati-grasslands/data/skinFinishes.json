@@ -254,5 +254,45 @@
   ],
   "menu": {
     "title": "Skins"
+  },
+  "bind": {
+    "claims": "nalati.arsenal",
+    "held": [
+      {
+        "target": "blade",
+        "slot": "blade",
+        "part": "blade"
+      },
+      {
+        "target": "arrows",
+        "slot": "bow",
+        "part": "arrows"
+      }
+    ],
+    "mounts": {
+      "target": "mounts",
+      "taming": "riding"
+    },
+    "facts": [
+      {
+        "fact": "golden",
+        "owner": "arena-room",
+        "id": "arena"
+      },
+      {
+        "fact": "storm",
+        "owner": "arena-script",
+        "id": "fight"
+      }
+    ],
+    "restyle": {
+      "target": "bow",
+      "slot": "bow",
+      "styles": [
+        "recurve",
+        "golden",
+        "sky-wolf"
+      ]
+    }
   }
 }
