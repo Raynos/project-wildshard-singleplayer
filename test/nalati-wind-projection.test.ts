@@ -1,9 +1,15 @@
-import { expect,test } from 'vitest';
+import {Scope} from '../src/engine/app/scope';
+import {lendNalatiPasture} from './fixtures/nalati-return-modules';
+import { expect, test, beforeEach, afterEach } from 'vitest';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import programs from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with {type:'json'};
 
+let programmeScope:Scope;
+beforeEach(()=>{programmeScope=new Scope('original-pasture-fixture');lendNalatiPasture(programmeScope);});
+afterEach(()=>{programmeScope.dispose();});
+
 test('packed wind preserves the existing native trajectory and hit clock',()=>{
-  const law=ReturnProgram.page(programs.wind);
+  const law=ReturnProgram.page(programs.wind,programmeScope);
   for(const start of [0,177.2,100000]){
     let expected={x:17,z:-6,vx:0,vz:0,cd:.3};const actual={...expected};
     for(let i=0;i<160;i++){

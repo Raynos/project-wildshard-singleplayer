@@ -1,7 +1,13 @@
-import { expect, test } from 'vitest';
+import {Scope} from '../src/engine/app/scope';
+import {lendNalatiPasture} from './fixtures/nalati-return-modules';
+import { expect, test, beforeEach, afterEach } from 'vitest';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { Rng } from '../src/engine/core/rng';
 import program from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type: 'json' };
+
+let programmeScope:Scope;
+beforeEach(()=>{programmeScope=new Scope('original-pasture-fixture');lendNalatiPasture(programmeScope);});
+afterEach(()=>{programmeScope.dispose();});
 
 function originalSpear(s: Record<string, number>, random: Rng): Record<string, number> {
   const n = (key: string): number => { const value = s[key]; if (value === undefined) throw new Error('Missing frozen input'); return value; };
@@ -62,7 +68,7 @@ test('chain storms schedule seven tells and land only inside their contact radiu
 
 
 test('fire decisions expire cells, preserve burnt neighbours and stay within the v1 fuel budget', () => {
-  const fire = ReturnProgram.page(program.fire), rng = new Rng(506);
+  const fire = ReturnProgram.page(program.fire,programmeScope), rng = new Rng(506);
   const neighbours = [[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]].map(([x,z]) => ({ x: x ?? 0, z: z ?? 0, mode: 2 }));
   expect(fire.project('fire', { dt: .1, burn: 2, spread: 1, count: 8, wx: 1, wz: 0 }, rng, neighbours)).toEqual({ burn: 1.9, mask: 0 });
   expect(fire.project('fire', { dt: .1, burn: .05, spread: 1, count: 8, wx: 1, wz: 0 }, rng, neighbours)).toEqual({ burn: -.05, mask: 0 });
@@ -87,7 +93,7 @@ test('rider coupling removes dead slots once and commits a single live charge', 
 });
 
 test('the native world receives bounded wind positions and doorway decisions', () => {
-  const wind = ReturnProgram.page(program.wind), rules = ReturnProgram.page(program.rules);
+  const wind = ReturnProgram.page(program.wind,programmeScope), rules = ReturnProgram.page(program.rules);
   const w = wind.project('whirl', { dt: .1, t: 2, index: 0, x: 100, z: 0, vx: 0, vz: 0, cx: 0, cz: 0, radius: 68, wx: 1, wz: 0, cd: 0, hit: 1, px: 0, pz: 0, flank: 3.2, open: 1 });
   expect(Math.hypot(w['x'] ?? 0,w['z'] ?? 0)).toBeCloseTo(60);
   for(const [x,z]of [[33,19],[-51,27],[.2,-.7],[100,100]]){const row=wind.project('whirl',{dt:.1,t:2,index:1,x:x??0,z:z??0,vx:0,vz:0,cx:0,cz:0,radius:68,wx:1,wz:0,cd:0,hit:1,px:0,pz:0,flank:3.2,open:1});expect(Math.hypot(row['x']??0,row['z']??0)).toBeLessThanOrEqual(60.0000001);}

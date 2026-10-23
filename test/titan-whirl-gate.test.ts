@@ -1,3 +1,4 @@
+import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 import {parse} from 'valibot';
 import {ArenaWhirlsSchema} from '../src/format/encounterRows';
 import {expect,test,vi} from 'vitest';
@@ -15,6 +16,7 @@ function trace(original:boolean,ease:number,count:number):unknown[]{
   const restore=overrideTerrain({heightAt:(x,z)=>{calls.push(['ground',x,z]);return x*.03-z*.01;},normalAt:()=>[0,1,0]});
   const rows=parse(ArenaWhirlsSchema,{...TITAN_WHIRLS,ease,view:titanWhirlView(count),gate:titanWhirlGate(count),laws:TITAN_WHIRLS.laws.slice(0,count)});
   const funnels=rows.laws.map(()=>new Group()),geometry=new BoxGeometry(),material=new MeshBasicMaterial(),debris=new InstancedMesh(geometry,material,count*rows.debris.count);
+  lendNalatiPasture(scope);
   const wind=ReturnProgram.page(programmes.wind,scope),law=wind.project.bind(wind);
   vi.spyOn(wind,'project').mockImplementation((signal,frame,random,candidates)=>{calls.push(['law',signal,{...frame}]);return law(signal,frame,random,candidates);});
   const view=original?new OriginalWhirls(rows,wind,funnels,debris):new ArenaWhirlsView(rows,wind,funnels,debris,ReturnProgram.page(programmes.attack,scope),scope);
@@ -87,6 +89,7 @@ function reentrant(original:boolean,where:'law'|'ground',operation:'reset'|'arm'
   const scope=new Scope('titan.whirl-reentrant'),calls:unknown[]=[],snapshots:unknown[]=[];
   const rows=parse(ArenaWhirlsSchema,{...TITAN_WHIRLS,gate:titanWhirlGate(3)}),funnels=rows.laws.map(()=>new Group());
   const geometry=new BoxGeometry(),material=new MeshBasicMaterial(),debris=new InstancedMesh(geometry,material,3*rows.debris.count);
+  lendNalatiPasture(scope);
   const wind=ReturnProgram.page(programmes.wind,scope),project=wind.project.bind(wind);
   let view:OriginalWhirls|ArenaWhirlsView|null=null,armed=false;
   const interrupt=(slot:string):void=>{if(armed&&slot===where){armed=false;calls.push([operation]);if(operation==='reset')view?.reset();else view?.arm(2);}};

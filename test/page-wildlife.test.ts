@@ -1,3 +1,4 @@
+import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 import { App } from '../src/engine/app/app';
 import { RetainedRuntimeHooks } from '../src/game/shard/retainedHooks';
 import { app } from '../src/engine/app/runtime';
@@ -22,8 +23,9 @@ import { legacyDouble } from './fake/FakeGame';
 import { headlessAssembly } from '../src/shards/nalati-grasslands/generators/nativeGroups';
 
 test('orchard population emits crowd work between native groups and mount placement', () => {
-  const previous=app.levelScope,previousHealth=wildEnv.playerHealth01,scope=new Scope('orchard.health');app.levelScope=scope;
-  const health=new PlayerHealth(app.events,{now:()=>0,dodging:()=>false,dodgeGuard:()=>false,position:()=>new Vector3()});app.registerPlayer(health,scope);health.attributes.health=40;
+  const previous=app.levelScope,previousHealth=wildEnv.playerHealth01,scope=new Scope('orchard.health');app.levelScope=scope;lendNalatiPasture(scope);
+  const playerPoint=new Vector3();
+  const health=new PlayerHealth(app.events,{now:()=>0,dodging:()=>false,dodgeGuard:()=>false,position:()=>playerPoint});app.registerPlayer(health,scope);health.attributes.health=40;
   try{
   setTerrainHeight(() => 0); setTerrainPlacement(() => [0,1,0],() => -1000);
   const source = headlessAssembly.constants.pageWildlife,bodies: Animal[] = [],herds: AnimalManager['herds'] = [];
@@ -31,14 +33,14 @@ test('orchard population emits crowd work between native groups and mount placem
     addHerd: (kind,x,z) => { herds.push({ kind,cx: x,cz: z,members: [] }); return herds.length-1; },
     spawn: (kind,x,z,yaw,variant) => {
       const position = new Vector3(x,0,z),body = legacyDouble<Animal>({ entityId: `orchard:${String(bodies.length)}`,kind,variant: typeof variant === 'string' ? variant : 'plain',position,yaw,
-        herd: -1,seed: .5,setMotion: () => undefined,scale: 1,mem: {},lastHitT: -Infinity,maxHp: 100,hp: 100,alive: true,speed: 0,
+        herd: -1,seed: .5,setMotion: () => undefined,scale: 1,mem: {},lastHitT: -Infinity,maxHp: 100,hp: 100,alive: true,speed: 0,attackPhase: -1,stunned: false,mods: {speed:1,chargeDist:1,damageTaken:1,chargeDamage:5,relentless:false},
         place: (px,pz,heading) => { position.set(px,0,pz); body.yaw = heading; } }); bodies.push(body); return body;
     } });
   const rows = { ...source,pastureActor: { ...source.pastureActor,kind: 'deer',variant: 'tame',label: 'Orchard rider',raiders: ['elder','russet'],cues: { ...source.pastureActor.cues,start: { text: 'Orchard raid',sound: null } } },kinds: { predator: 'boar',mount: 'deer',guardian: 'hound',guardianVariant: 'black' },coats: ['russet'],young: ['fawn','pale-fawn'],leader: 'antlered',
     groups: { ...source.groups,pack: { ...source.groups.pack,id: 'orchard.pack' },herd: { ...source.groups.herd,id: 'orchard.herd' } },
     packs: [{ x: 1,z: 1,variants: ['elder'] }],herds: [],flocks: [{ x: 4,z: 4,count: 24,dog: false,range: 12 }],
     mountables: [{ x: 8,z: 8,yaw: 0,variant: 'tame' }],foragers: null };
-  const population = new PageWildlife(manager,rows),build = population.buildSteps();
+  const population = new PageWildlife(manager,rows,scope,playerPoint),build = population.buildSteps();
   expect(build.next().value).toEqual({ kind: 'pause' }); expect(bodies.map(body => body.kind)).toEqual(['boar']);
   const command = build.next().value; if (command?.kind !== 'crowd') throw new Error('Missing explicit crowd work');
   expect(command.index).toBe(0); expect(bodies).toHaveLength(1);

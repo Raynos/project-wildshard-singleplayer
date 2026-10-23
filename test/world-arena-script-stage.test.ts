@@ -1,3 +1,4 @@
+import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 import { ArenaRoomEncounter, readArenaScriptData } from '../src/game/boss/arenaRoom';
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
@@ -43,6 +44,7 @@ function fixture(options: { held?: 'fight' | 'geometry'; parent?: Scope; native?
   mockCanvas();
   const scope = options.parent?.child('world-arena') ?? new Scope('world-arena'), f = fakeWorld(), trace: string[] = [], events = new Events();
   const game = Object.assign(f.game.asGame(), { app, levelScope: options.native ?? scope });
+  lendNalatiPasture(game.levelScope);
   const world = legacyDouble<ShardWorld>({ game, sky: f.sky, player: f.player }), runtime = legacyDouble<ShardRuntime>({ world });
   const bundle = nativeWeatherBundle({ weather: weatherRows, reactions: weatherProgram }, []);
   const storm = installWeatherReactions(installWeatherContinuation({ seed: 19 }, bundle.weather, { phase: 0 }, undefined), { ...bundle.reactions, points: [] }, { scope });

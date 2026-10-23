@@ -1,3 +1,4 @@
+import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 import { createShardProduct, type ShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { expect, test, vi } from 'vitest';
@@ -23,7 +24,7 @@ const feature = parseClientPlan({ version: 1, features: [{ kind: 'population.wil
 
 test('declared wildlife waits for animals, owns one frame and retires its hook', async () => {
   if (feature?.kind !== 'population.wildlife') throw new Error('Missing feature');
-  const scope = new Scope('orchard.wildlife');scope.expose(app,'levelScope',scope);
+  const scope = new Scope('orchard.wildlife');scope.expose(app,'levelScope',scope);lendNalatiPasture(scope);
   const application = new App(), baseline=application.events.census().answerers, systems: Parameters<ShardContext['system']>[0][] = [], geometry = new BufferGeometry();
   const native = legacyDouble<PreparedCrowds>({ policies: new Map(), advance: vi.fn<PreparedCrowds['advance']>() });
   const body = { geometry, pivots: [], parts: [] };

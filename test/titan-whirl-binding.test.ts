@@ -1,3 +1,4 @@
+import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 import {expect,test,vi} from 'vitest';
 import {parse} from 'valibot';
 import {BoxGeometry,Group,InstancedMesh,MeshBasicMaterial,PerspectiveCamera,Vector3} from 'three';
@@ -30,6 +31,7 @@ function context(parent:Scope,name:string):ReturnType<typeof shardContext>{
 }
 
 function quarry(owner:Scope):{view:ArenaWhirlsView;rows:ArenaWhirlsRows;funnels:Group[];debris:InstancedMesh;dispose:()=>void}{
+  lendNalatiPasture(owner);
   const laws=[-8,8].map(x=>({signal:'whirl',initial:{x,z:0,vx:0,vz:0,cd:0},parameters:{cx:0,cz:0,radius:40,flank:2},retain:{x:'x',z:'z',vx:'vx',vz:'vz',cd:'cd'}}));
   const rows=parse(ArenaWhirlsSchema,{laws,gate:titanWhirlGate(2),ease:4,spin:2,sink:.2,breathe:[.1,1],
     debris:{count:3,climb:.5,turn:1,step:2,radius:[.5,2],height:6,axis:[0,1,0],roll:1,scale:[.5,.25,2]},

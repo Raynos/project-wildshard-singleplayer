@@ -1,4 +1,5 @@
-import { beforeAll,expect,test } from 'vitest';
+import {lendNalatiPasture} from './fixtures/nalati-return-modules';
+import { beforeAll, expect, test, beforeEach, afterEach } from 'vitest';
 import { parse } from 'valibot';
 import { CellFieldSchema,type CellFieldRows } from '../src/format/cellField';
 import { CellField } from '../src/game/systems/cellField';
@@ -12,6 +13,10 @@ import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
 import { applyV2WorldActions } from '../src/game/shardfile/worldActionsV2';
 import { TITAN_FIRE_FIELD } from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 import program from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type: 'json' };
+
+let programmeScope:Scope;
+beforeEach(()=>{programmeScope=new Scope('original-pasture-fixture');lendNalatiPasture(programmeScope);});
+afterEach(()=>{programmeScope.dispose();});
 
 const irrigation: CellFieldRows = { x: 10,z: 20,width: 3,depth: 1,cell: 2,
   observations: { duration: .35 },states: { idle: 4,active: 7,spent: 9 },
@@ -53,8 +58,8 @@ test('unrelated compiled irrigation law uses its own state codes/channels and de
 
 test('original real Titan guest preserves field state, changed order, contact results and RNG exactly', () => {
   const rows = parse(CellFieldSchema,TITAN_FIRE_FIELD), actualRandom = new Rng(681), originalRandom = new Rng(681);
-  const field = new CellField(rows,ReturnProgram.page(program.fire),actualRandom);
-  const old = new OriginalArenaField({ ...rows,signals: { ignite: rows.signals.activate,step: rows.signals.step,clock: rows.signals.clock } },ReturnProgram.page(program.fire),originalRandom);
+  const field = new CellField(rows,ReturnProgram.page(program.fire,programmeScope),actualRandom);
+  const old = new OriginalArenaField({ ...rows,signals: { ignite: rows.signals.activate,step: rows.signals.step,clock: rows.signals.clock } },ReturnProgram.page(program.fire,programmeScope),originalRandom);
   let sample = 91;
   for (let tick = 0; tick < 160; tick++) {
     sample = (Math.imul(sample,1664525)+1013904223) >>> 0;

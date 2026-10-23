@@ -1,3 +1,4 @@
+import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 import { afterEach, expect, test } from 'vitest';
 import { parse } from 'valibot';
 import { ArenaWhirlsSchema,ArenaFireSchema,ArenaSceneSchema } from '../src/format/encounterRows';
@@ -80,7 +81,8 @@ const devils = {view:titanWhirlView(2), gate:titanWhirlGate(2), laws: [devil(-8)
 test('a second shard\'s dust devils ease in only while armed and live, spin their funnels and climb their debris', () => {
   restore = overrideTerrain({ heightAt: () => 3, normalAt: () => [0, 1, 0] });
   const funnels = [new Group(), new Group()], debris = new InstancedMesh(new BoxGeometry(), new MeshBasicMaterial(), 6), scope = new Scope('quarry');
-  const rows = parse(ArenaWhirlsSchema, devils), view = new ArenaWhirlsView(rows, ReturnProgram.page(program.wind), funnels, debris,ReturnProgram.page(program.attack),scope);
+  lendNalatiPasture(scope);
+  const rows = parse(ArenaWhirlsSchema, devils), view = new ArenaWhirlsView(rows, ReturnProgram.page(program.wind,scope), funnels, debris,ReturnProgram.page(program.attack),scope);
   // R6: the funnels' and the debris' drawing is the whirl view module (behaviour/titanWhirlsView), at the fight's slot
   const draw = arenaWhirlsView(scope, rows, funnels, debris, view.drawn);
   try {
@@ -96,7 +98,7 @@ test('a second shard\'s dust devils ease in only while armed and live, spin thei
     for (let i = 0; i < 40; i++) { view.update(0.1, 1 + i * 0.1, false, 0, { wx: 1, wz: 0, px: 0, pz: 30 }); draw.frame(0.1, 1 + i * 0.1); }
     expect(funnels[1]?.visible).toBe(false); expect(debris.count).toBe(0);
     view.reset(); expect(debris.count).toBe(0);
-    expect(() => new ArenaWhirlsView(rows, ReturnProgram.page(program.wind), [new Group()], debris,ReturnProgram.page(program.attack),scope)).toThrow('funnel');
+    expect(() => new ArenaWhirlsView(rows, ReturnProgram.page(program.wind,scope), [new Group()], debris,ReturnProgram.page(program.attack),scope)).toThrow('funnel');
   } finally { scope.dispose(); }
 });
 

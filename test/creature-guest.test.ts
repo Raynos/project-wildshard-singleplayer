@@ -87,7 +87,10 @@ test('omitted script defaults retain the exact admitted look declaration',()=>{
 });
 
 test('wire defaults preserve every existing Titan program and module',()=>{
-  for(const program of Object.values(titan)) {
+  const {compiled,...programmes}=titan;
+  expect(compiled.pasture.hash).toBe(titan.wind.v2.artifact.hash);
+  expect(Object.keys(programmes).sort()).toEqual(['attack','fire','rules','wind']);
+  for(const program of Object.values(programmes)) {
     const wire=wireProgram(program);
     expect(parseDecisionScripts([wire.script])).toEqual(parseDecisionScripts([program.script]));
     expect(wire.bytes).toBe(program.bytes);

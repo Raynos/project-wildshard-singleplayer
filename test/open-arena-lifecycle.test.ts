@@ -1,3 +1,4 @@
+import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 // @vitest-environment happy-dom
 import {expect,test,vi} from 'vitest';
 import {MeshBasicMaterial,Vector3,Group} from 'three';
@@ -29,6 +30,7 @@ function run(original:boolean):{trace:unknown[];input:unknown[];ownerScope:boole
   mockCanvas();
   const construction=new Scope('open-arena.construction'),entered=construction.child('entered'),trace:unknown[]=[],input:unknown[]=[];
   const restore=overrideTerrain({heightAt:()=>0,normalAt:()=>[0,1,0],waterLevel:()=>-100});
+  lendNalatiPasture(construction);
   const f=manager(),game=Object.assign(f.game.asGame(),{app,levelScope:construction,sky:f.sky});
   const materials=new Map(['nalati-titan-cloud','nalati-titan-flame','nalati-titan-smoke'].map(id=>[id,new MeshBasicMaterial()]));
   lendLooks(construction,{materials,setParam:()=>undefined,setTexture:()=>undefined,bindMeshMap:()=>{throw new Error('Unexpected mapped material');}});
