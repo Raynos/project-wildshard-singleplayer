@@ -7,6 +7,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { browserPool } from './pool.mjs';
 import { serve } from './serve.mjs';
 import { saveFixture } from '../debug-settings.mjs';
+import { captureBootFrame } from './black-frame.mjs';
 import { gridFloorDocumentIdentity, runFloorGridRoute, gridFloorWitnessFailures } from '../frame-floor-grid.mjs';
 
 /** A locked experimental card is not a public gameplay entry. Its direct chunk
@@ -144,8 +145,9 @@ export function verifyBootSignalRoad(witness) {
 }
 
 /** Keep the existing home deadline and give this additional mandatory crossing its own unchanged 90-second budget.
- * @param {import('playwright').Page} page @param {string[]} faults */
-async function bootSignalRoad(page, faults) {
+ * @param {import('playwright').Page} page @param {string[]} faults
+ * @param {import('./black-frame.mjs').BootFrameSample[]} frames */
+async function bootSignalRoad(page, faults, frames) {
   const deadline = Date.now() + 90000;
   const plan = bootSignalRoadPlan((await page.evaluate(bootObservation)).grid);
   const documentOrigin = await page.evaluate(gridFloorDocumentIdentity);
@@ -161,6 +163,7 @@ async function bootSignalRoad(page, faults) {
   verifyBootSignalRoad(result.witness);
   const initial = await page.evaluate(bootObservation);
   await until(page, faults, async () => { const observed = await page.evaluate(bootObservation); return observed.ready && observed.frame >= initial.frame + 10; }, 'Signal ten live gameplay frames', deadline);
+  await captureBootFrame(page, 'grid Signal road entry', deadline, frames);
   return result.witness;
 }
 
@@ -219,6 +222,7 @@ export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle
   page.on('framenavigated', frame => {
     if (gridNavigationIntent && frame === page.mainFrame()) gridNavigationObserved = true;
   });
+  /** @type {import('./black-frame.mjs').BootFrameSample[]} */ const frames = [];
   /** @type {string[]} */ const faults = [];
   /** @type {unknown[]} */ const reports = [];
   let lifecycleReports = 0;
@@ -250,6 +254,7 @@ export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle
     await page.goto(url.href, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await until(page, faults, async () => await page.locator('.ws-main-logo').isVisible() && !(await page.locator('.ws-load').isVisible()), 'rendered usable title', deadline);
     phases.titleMs = Date.now() - started;
+    await captureBootFrame(page, 'title', deadline, frames);
     if (mode !== 'grid') {
       await page.locator('.ws-main-select').click();
       // Admission enables the entry asynchronously. Developer cases prove the primary SHARDFILE,
@@ -261,7 +266,8 @@ export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle
           return admission.admitted;
         }, 'Developer-off Nine public-policy hydration and initial draw', deadline);
         const observation = await page.evaluate(bootObservation), admission = await page.evaluate(publicPolicyAdmission, observation);
-        const result = { mode, phases, admission, telemetryPosts, lifecycleReports, gridNavigationObserved,
+        await captureBootFrame(page, 'SHARD SELECT', deadline, frames);
+        const result = { mode, phases, frames, admission, telemetryPosts, lifecycleReports, gridNavigationObserved,
           elapsedMs: Date.now() - started, ...observation, faults, reports };
         if (!admission.admitted || faults.length > 0 || reports.length > 0) throw new Error(JSON.stringify(result));
         writeFileSync(join(out, `${receipt}.json`), `${JSON.stringify(result, null, 2)}\n`);
@@ -271,6 +277,7 @@ export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle
       await play.waitFor();
       await until(page, faults, async () => await play.isEnabled() || (await shardfile.isVisible() && await shardfile.isEnabled()), 'available shard entry', deadline);
       const viaShardfile = await shardfile.isVisible() && await shardfile.isEnabled();
+      await captureBootFrame(page, 'SHARD SELECT', deadline, frames);
       phases.entryMs = Date.now() - started;
       deadline = Date.now() + 90000;
       await (viaShardfile ? shardfile : play).click();
@@ -316,8 +323,9 @@ export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle
     await until(page, faults, async () => (await page.evaluate(bootObservation)).frame >= initial.frame + 10, 'ten live gameplay frames', deadline);
     gameplayFrames.final = (await page.evaluate(bootObservation)).frame;
     phases.framesCompleteMs = Date.now() - started;
-    const road = mode === 'grid' ? await bootSignalRoad(page, faults) : null;
-    const result = { mode, phases, gameplayFrames, road, telemetryPosts, lifecycleReports, gridNavigationObserved, elapsedMs: Date.now() - started, ...await page.evaluate(bootObservation), faults, reports };
+    await captureBootFrame(page, mode === 'grid' ? 'grid HOME' : `${shard} gameplay`, deadline, frames);
+    const road = mode === 'grid' ? await bootSignalRoad(page, faults, frames) : null;
+    const result = { mode, phases, frames, gameplayFrames, road, telemetryPosts, lifecycleReports, gridNavigationObserved, elapsedMs: Date.now() - started, ...await page.evaluate(bootObservation), faults, reports };
     if (faults.length > 0 || result.fatal.length > 0) throw new Error(JSON.stringify(result));
     writeFileSync(join(out, `${receipt}.json`), `${JSON.stringify(result, null, 2)}\n`);
     return result;
@@ -326,7 +334,7 @@ export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle
     const observation = await page.evaluate(bootObservation).catch(() => null);
     gameplayFrames.final = observation?.frame ?? null;
     phases.failedMs = Date.now() - started;
-    writeFileSync(join(out, `${receipt}.json`), `${JSON.stringify({ mode, phases, gameplayFrames, elapsedMs: Date.now() - started, faults, reports, lifecycleReports, gridNavigationObserved, error: String(error), observation }, null, 2)}\n`);
+    writeFileSync(join(out, `${receipt}.json`), `${JSON.stringify({ mode, phases, frames, gameplayFrames, elapsedMs: Date.now() - started, faults, reports, lifecycleReports, gridNavigationObserved, error: String(error), observation }, null, 2)}\n`);
     throw error;
   } finally { await context.close(); }
 }

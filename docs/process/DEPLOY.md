@@ -163,3 +163,10 @@ It waits for every real card canvas, rejects build/asset/page errors, missing or
 at-least-90%-near-black thumbnails, and records each model identity. Explicit
 empty catalogues are reported separately. It uses the same verified boot-dist;
 no model, light, material, scene or frame is injected or re-rendered for proof.
+
+G671 V1: the public, Developer and grid boot legs also inspect composited phone
+screenshots at the usable title, SHARD SELECT, settled gameplay, grid HOME and
+the real Signal road entry. A frame with at least 90% near-black sampled pixels
+fails with its checkpoint identity; labelled pixel statistics remain in the
+existing receipt, including failures. Sampling stays within the original boot
+deadlines and never requests another game draw or changes the scene.
