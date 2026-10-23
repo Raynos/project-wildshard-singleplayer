@@ -222,10 +222,6 @@
       "base64Chars": 5652,
       "dataUris": 0
     },
-    "src/shards/sunscar-dunes/behaviour/skitterer.json": {
-      "base64Chars": 6400,
-      "dataUris": 0
-    },
     "test/fixtures/originalBalbalRows.json": {
       "base64Chars": 52932,
       "dataUris": 0
