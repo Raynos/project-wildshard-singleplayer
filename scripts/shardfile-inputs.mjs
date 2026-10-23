@@ -12,7 +12,7 @@ import http2 from 'node:http2';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { channel } from 'node:diagnostics_channel';
 import { createHash } from 'node:crypto';
-import { registerHooks, syncBuiltinESMExports } from 'node:module';
+import { isBuiltin, registerHooks, syncBuiltinESMExports } from 'node:module';
 import { basename, dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as v from 'valibot';
@@ -132,10 +132,17 @@ export function installInputRecorder() {
     // require.resolve and Node's ESM error hints inspect candidates without
     // executing their bodies. Retain every filename and package manifest for
     // resolution; actual CommonJS module loads below bind raw source bytes.
-    if(scope?.traceOnly===true&&context.conditions.includes('require'))scope.inventory?.add('R commonjs-resolution');
-    try {return next(specifier,context);}
+    try {
+      const result=next(specifier,context);
+      // A real builtin resolves within the keyed Node runtime, without any
+      // staged filename candidates. Redirecting hooks still retain the fence.
+      if(scope?.traceOnly===true&&context.conditions.includes('require')&&
+        !(isBuiltin(specifier)&&isBuiltin(result.url)))scope.inventory?.add('R commonjs-resolution');
+      return result;
+    }
     catch(error){
       if(scope?.traceOnly===true) {
+        if(context.conditions.includes('require'))scope.inventory?.add('R commonjs-resolution');
         // File/relative failures also bind nearby resolution candidates (and
         // directory-import suggestions). Bare resolution stays conservative.
         let candidate;

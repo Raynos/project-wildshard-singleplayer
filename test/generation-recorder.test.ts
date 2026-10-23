@@ -44,9 +44,14 @@ it.each([
 ])('retains an inventory fence for filesystem probes: %s',source=>{
   const {child,read}=fixture(source);expect(child.status,child.stderr).toBe(0);expect(read().inventory.length).toBeGreaterThan(0);
 });
-it('retains CommonJS resolution inventory without treating a builtin as source execution',()=>{
-  const {child,read}=fixture("import{createRequire}from'node:module';createRequire(import.meta.url)('node:fs');");
-  expect(child.status,child.stderr).toBe(0);expect(read().inventory).toContain('R commonjs-resolution');expect(read().opaque).toEqual([]);
+it.each(['fs','node:fs'])('keeps builtin %s resolution independent of staged filenames',name=>{
+  const {child,read}=fixture(`import{createRequire}from'node:module';createRequire(import.meta.url)(${JSON.stringify(name)});`);
+  expect(child.status,child.stderr).toBe(0);expect(read().inventory).not.toContain('R commonjs-resolution');expect(read().opaque).toEqual([]);
+});
+it('keeps builtin-looking imports redirected to a real file conservative',()=>{
+  const source=`import{createRequire,registerHooks}from'node:module';registerHooks({resolve(specifier,context,next){if(specifier==='node:path'&&context.parentURL===import.meta.url)return{url:new URL('./used.mjs',import.meta.url).href,shortCircuit:true};return next(specifier,context);}});const{startGenerationInputTrace}=await import(${JSON.stringify(resolve('scripts/shardfile-inputs.mjs'))});startGenerationInputTrace(process.cwd(),process.env.WS_GENERATION_READ_RECEIPT);createRequire(import.meta.url)('node:path');`;
+  const {child,read}=fixture(source,false);expect(child.status,child.stderr).toBe(0);
+  expect(read().inventory).toContain('R commonjs-resolution');
 });
 it('records raw CommonJS and required JSON through synchronous load hooks',()=>{
   const {child,read}=fixture("import fs from'node:fs';import{createRequire}from'node:module';fs.writeFileSync('rows.json','{\"value\":1}');fs.writeFileSync('nested.cjs',\"module.exports=require('./rows.json');\");createRequire(import.meta.url)('./nested.cjs');");

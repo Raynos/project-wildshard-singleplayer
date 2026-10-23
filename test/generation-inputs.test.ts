@@ -290,6 +290,15 @@ it('retains all upstream hashes behind unmodeled probes and opaque child work',a
   expect((await child.upstream({'used.bin':'first','unused.bin':'new'})).hit).toBe(false);
   expect(await child.upstream({'used.bin':'second','unused.bin':'new'})).toMatchObject({hit:false,text:'second'});
 });
+it.each(['fs','node:fs'])('does not re-key builtin %s for unread upstream bytes',async name=>{
+  const output='src/shards/alpha/data/output.txt';
+  const reader=upstreamFixture(`import{createRequire}from'node:module';const require=createRequire(import.meta.url);require(${JSON.stringify(name)}).writeFileSync('${output}',require.resolve(${JSON.stringify(name)}));`);
+  const first=await reader.upstream({'unread.bin':'first'});
+  expect(first).toMatchObject({hit:false,text:name});
+  expect(await reader.upstream({'unread.bin':'changed'})).toEqual({...first,hit:true});
+  put(reader.root,'src/sdk/new-unread.ts','// A builtin cannot resolve this file.');
+  expect(await reader.upstream({'unread.bin':'changed'})).toEqual({...first,hit:true});
+});
 it('fences recursive directory reads by their staged subtree',async()=>{
   const {root,run}=fixture("import fs from 'node:fs';fs.writeFileSync('src/shards/alpha/data/output.txt',JSON.stringify(fs.readdirSync('src/sdk/list',{recursive:true}).sort()));");
   put(root,'src/sdk/list/first.mjs','export const first=1;');
