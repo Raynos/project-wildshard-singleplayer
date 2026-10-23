@@ -75,8 +75,12 @@ export class AssetResidencyBridge implements AssetPort {
     if (!consumer.reusable && consumer.retired && consumer.users.size === 0) consumer.evict?.();
   }
   private prepareEviction(identity: object): ResidencyEviction | null {
-    const entry = this.allocations.get(identity), consumers = entry === undefined ? [] : [...entry.consumers];
-    if (consumers.length === 0 || consumers.some(consumer => !consumer.reusable || consumer.active || consumer.evict === undefined)) return null;
+    // G639: asked once per eviction candidate (a burst of idle builds on an entry over target): check the set in place and
+    // copy it only for an eviction that will happen
+    const entry = this.allocations.get(identity);
+    if (entry === undefined || entry.consumers.size === 0) return null;
+    for (const consumer of entry.consumers) if (!consumer.reusable || consumer.active || consumer.evict === undefined) return null;
+    const consumers = [...entry.consumers];
     return { commit: () => {
       for (const consumer of consumers) if (consumer.evict?.() !== true) throw new Error('Retained cache eviction refused');
     }, abort: () => undefined };
