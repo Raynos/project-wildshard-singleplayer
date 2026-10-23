@@ -42,28 +42,41 @@ if (args.join(' ') === 'exec oxlint --debug files') {
     expect(run(true).status).toBe(7);
     expect(readFileSync(calls, 'utf8').match(/--batch--/gu)).toHaveLength(1);
     expect(readFileSync(calls, 'utf8')).toContain('source 1024.ts');
-    const partitioned: string[] = [];
     const compare = (a: string, b: string): number => a < b ? -1 : a > b ? 1 : 0;
     const sortedFiles = [...files].sort(compare);
-    for (const part of [1, 2, 3, 4]) {
-      writeFileSync(calls, '');
-      const result = run(false, [`--shard=${part}/4`]);
-      expect(result.status, result.stderr.toString()).toBe(0);
-      const actual = readFileSync(calls, 'utf8').split('\n').filter(line => line.length > 0 && line !== '--batch--');
-      expect(readFileSync(calls,'utf8').match(/--batch--/gu)).toHaveLength(1);
-      expect(actual).toEqual(sortedFiles.filter((_, index) => index % 4 === part - 1));
-      partitioned.push(...actual);
+    for (const total of [4, 5]) {
+      const partitioned: string[] = [];
+      for (let part = 1; part <= total; part++) {
+        writeFileSync(calls, '');
+        const result = run(false, [`--shard=${part}/${total}`]);
+        expect(result.status, result.stderr.toString()).toBe(0);
+        const actual = readFileSync(calls, 'utf8').split('\n').filter(line => line.length > 0 && line !== '--batch--');
+        expect(readFileSync(calls,'utf8').match(/--batch--/gu)).toHaveLength(1);
+        expect(actual).toEqual(sortedFiles.filter((_, index) => index % total === part - 1));
+        partitioned.push(...actual);
+      }
+      expect(new Set(partitioned).size).toBe(files.length);
+      expect([...partitioned].sort(compare)).toEqual(sortedFiles);
     }
-    expect(new Set(partitioned).size).toBe(files.length);
-    expect([...partitioned].sort(compare)).toEqual(sortedFiles);
     writeFileSync(calls,'');
     expect(run(false,['--shard=1/1']).status).toBe(0);
     expect(readFileSync(calls,'utf8').match(/--batch--/gu)).toHaveLength(1);
     for (const invalid of ['--shard=0/4', '--shard=5/4', '--shard=1/0', '--shard=bad']) {
       expect(run(false, [invalid]).status).toBe(2);
     }
-    expect([1, 2, 3, 4].map(part => run(true, [`--shard=${part}/4`]).status ?? -1).sort((a, b) => a - b)).toEqual([0, 0, 0, 7]);
+    expect([1, 2, 3, 4, 5].map(part => run(true, [`--shard=${part}/5`]).status ?? -1).sort((a, b) => a - b)).toEqual([0, 0, 0, 0, 7]);
     writeFileSync(selection, 'missing-lint-source.ts');
     expect(run(false).status).toBe(1);
   } finally { rmSync(fixture, { recursive: true, force: true }); }
+});
+
+test('CI runs all five typed partitions beside one types and fast job', () => {
+  const workflow = readFileSync('.github/workflows/deploy.yml', 'utf8');
+  const job = workflow.split('\n  typecheck-lint:')[1]?.split('\n  generated-inputs:')[0] ?? '';
+  expect(job).toContain('shard: [types, fast, 1, 2, 3, 4, 5]');
+  expect(job).toContain("if: matrix.shard != 'types' && matrix.shard != 'fast'");
+  expect(job).toMatch(/\/usr\/bin\/time -v pnpm run lint:typed --shard=\$\{\{ matrix.shard \}\}\/5/u);
+  expect(job).toContain('run: pnpm run lint:fast');
+  expect(job.match(/pnpm exec tsc --noEmit\n/gu)).toHaveLength(1);
+  expect(job).toContain('python3 scripts/ci-products.py unpack-generated');
 });

@@ -236,11 +236,11 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    # Run types, fast lint and one complete typed-lint program from verified inputs.
+    # Run types and fast lint once; bound each typed runner to one fifth.
     strategy:
       fail-fast: false
       matrix:
-        shard: [types, fast, typed]
+        shard: [types, fast, 1, 2, 3, 4, 5]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -285,9 +285,9 @@ jobs:
         if: matrix.shard == 'fast'
         run: pnpm run lint:fast
       - name: Typed lint
-        if: matrix.shard == 'typed'
-        # The complete rule set, including the two deferred whole-program rules.
-        run: pnpm run lint:typed
+        if: matrix.shard != 'types' && matrix.shard != 'fast'
+        # Same complete rules on disjoint partitions; record actual Linux peak RSS.
+        run: /usr/bin/time -v pnpm run lint:typed --shard=${{ matrix.shard }}/5
 
   # Types and lint need generated inputs, while behaviour and web builds also
   # need products. Publish the first dependency before compiling all products.
