@@ -123,7 +123,10 @@ if sys.argv[1] in ('scripts/gen.mjs','scripts/build-shardfiles.mjs'):
         assert not any(arg.startswith('--shard') for arg in sys.argv), sys.argv
     sys.exit(0)
 if sys.argv[1].endswith('/build-mirror.mjs'):
-    import pathlib
+    import pathlib,re
+    if sys.argv[2]=='authorize':
+        assert len(sys.argv)==4 and re.fullmatch('[0-9a-f]{{40}}',sys.argv[3]), sys.argv
+        sys.exit(0) # Admission has no slot/reservation; the real guard has its own tests.
     root=pathlib.Path(os.environ['FIXTURE_ROOT'])
     rows=list((root/'registry').glob('[0-9]*'))
     assert len(rows)==1 and rows[0].read_text().split()[0]==str(os.getppid()), rows
