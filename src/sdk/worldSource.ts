@@ -38,6 +38,10 @@ export const WorldSourceSchema = v.pipe(v.unknown(), v.check(plainWorldData, 'wo
   /** NM0 (Night Market pilot): `add` (default) builds the far proxy from every static, undrawn and far-only node; `replace`
    *  from the far-only nodes alone (a world of many small pieces whose own simplification cannot reach the far budget) */
   farMode: v.optional(v.picklist(['add', 'replace']), 'add'),
+  /** NM5 (Night Market pilot): the world's own near view, baked from its coarse (L1) tiles over a flat floor, so a cell
+   *  seen from the road draws its tiles in vertex colours instead of its far proxy (colour maps are not sampled: a
+   *  textured surface carries its picture's colours in its vertex colours, which its own textured material ignores) */
+  near: v.optional(v.literal('coarse')),
 }), v.check((source) => source.farMode === 'add' || source.far !== undefined, 'farMode replace needs a far prefix'), v.check((source) => {
   const nodes = [...Object.keys(source.objects), ...source.interactive.map((row) => row.node)];
   const ids = [...Object.values(source.objects), ...source.interactive.map((row) => row.id)];

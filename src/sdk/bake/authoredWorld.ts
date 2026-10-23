@@ -13,6 +13,7 @@ import { staticGlb, type GlbPrimitive } from './glb';
 import { simplifyWorldPrimitive } from './worldLod';
 import { bakeWorldCollision } from './worldCollision';
 import { WorldBakeRows } from './worldRows';
+import { coarseNearView } from './placeholders';
 
 /** In-memory authored-world result; the project loader reads source bytes and the build writes only the product. */
 export interface AuthoredWorldProduct { shard: Shardfile; assets: Map<string, Uint8Array> }
@@ -151,6 +152,8 @@ export async function bakeAuthoredWorld(input: unknown, bytes: Uint8Array): Prom
       props: { ...baked.props, panels, far: farFile.hash }, library: [...new Set([...oldLibrary, ...library])], critical: [...new Set([...oldCritical, ...baked.critical])],
       meshCollision: { version: 1, tiles: collision.tiles.map(({ x, z, file }) => ({ x, z, file })), panels: panelCollision },
       far: { bounds: { min: farBox.min.toArray(), max: farBox.max.toArray() }, files: [farFile.hash], compressed: farFile.compressed, decoded: farFile.decoded, gpu: farFile.gpu, triangles: farFile.triangles, draws: farFile.draws }, edge: edges(world) });
+    // NM5: its own near view from its coarse tiles (a first-party product builds with no placeholders)
+    if (authored.near === 'coarse') return { shard: await coarseNearView(shard, baked.assets), assets: baked.assets };
     return { shard, assets: baked.assets };
   } finally { catalogue.dispose(); geometry.forEach(part => part.dispose()); }
 }

@@ -65,6 +65,13 @@ function sampler(image) {
   };
 }
 
+/** A picture's mean colour (linear RGB). */
+async function meanColour(file) {
+  const image = await readImagePixels(readFileSync(file)), sum = [0, 0, 0], n = image.width * image.height;
+  for (let i = 0; i < n; i++) for (let k = 0; k < 3; k++) sum[k] += toLinear((image.pixels[i * 4 + k] ?? 0) / 255);
+  return sum.map(c => c / n);
+}
+
 /** A poster board: the picture on both faces of a framed board on two posts, lamps over its face; `n` faces out, `offset`
  *  moves it along its face (an entry's board stands beside the lane: an entry's footprint stays clear above the road). */
 function poster(parts, palette, { centre, n, width, bottom, posts, offset = 0 }) {
@@ -74,7 +81,7 @@ function poster(parts, palette, { centre, n, width, bottom, posts, offset = 0 })
     const sign = out ? 1 : -1, rr = (s) => s * sign;
     const p = parts.Poster;
     const corners = [[at(rr(width / 2), bottom, d), [1, 1]], [at(rr(-width / 2), bottom, d), [0, 1]], [at(rr(-width / 2), top, d), [0, 0]], [at(rr(width / 2), top, d), [1, 0]]];
-    for (const [a, b, c] of [[0, 1, 2], [0, 2, 3]]) p.tri('Poster', corners[a][0], corners[b][0], corners[c][0], [1, 1, 1], [corners[a][1], corners[b][1], corners[c][1]]);
+    for (const [a, b, c] of [[0, 1, 2], [0, 2, 3]]) p.tri('Poster', corners[a][0], corners[b][0], corners[c][0], palette.picture, [corners[a][1], corners[b][1], corners[c][1]]);
   };
   face(depth / 2 + 0.02, true); face(-depth / 2 - 0.02, false);
   const box = (part, s0, y0, d0, s1, y1, d1, colour) => {
@@ -93,6 +100,8 @@ function poster(parts, palette, { centre, n, width, bottom, posts, offset = 0 })
 async function tiledPlot(root, repo, layoutName) {
   const layout = JSON.parse(readFileSync(resolve(root, 'data/layouts', `${layoutName}.json`), 'utf8'));
   const palette = Object.fromEntries(Object.entries(layout.palette).map(([key, hex]) => [key, linear(hex)]));
+  // NM5: the posters' faces carry their picture's mean colour (the Poster material draws the picture alone), for the near view
+  palette.picture = await meanColour(resolve(repo, layout.posters.image));
   const grid = parseLayout(layout.rows), parts = { Paving: new Soup(), Kit: new Soup(), Glow: new Soup(), Poster: new Soup(), far: new Soup(), solid: new Soup() };
   // the plot's ground: the outer ring, then each tile's paving inside it (the lanes a shade lighter, the canals open)
   for (const [x0, z0, x1, z1] of [[-250, RING, 250, 250], [-250, -250, 250, -RING], [-250, -RING, -RING, RING], [RING, -RING, 250, RING]]) {
@@ -117,9 +126,10 @@ async function tiledPlot(root, repo, layoutName) {
   const near = await readModel(resolve(repo, layout.landmark.near)), far = await readModel(resolve(repo, layout.landmark.far));
   const placed = stand(near.corners, layout.landmark.height, layout.landmark.turn, near.corners);
   const farPlaced = stand(far.corners, layout.landmark.height, layout.landmark.turn, far.corners);
-  const nearImage = await readImagePixels(near.image), farImage = await readImagePixels(far.image), colourOf = sampler(farImage);
+  const nearImage = await readImagePixels(near.image), farImage = await readImagePixels(far.image), colourOf = sampler(farImage), nearColourOf = sampler(nearImage);
+  // NM5: its vertex colours are its texture's (the Landmark material draws the texture alone), for the near view and the map
   const landmark = { positions: [], normals: [], colours: [], uvs: [] };
-  for (const c of placed) { landmark.positions.push(...c.p); landmark.normals.push(...c.n); landmark.colours.push(1, 1, 1); landmark.uvs.push(...c.uv); }
+  for (const c of placed) { landmark.positions.push(...c.p); landmark.normals.push(...c.n); landmark.colours.push(...nearColourOf(c.uv)); landmark.uvs.push(...c.uv); }
   const farLandmark = { positions: [], colours: [] };
   for (const c of farPlaced) { farLandmark.positions.push(...c.p); farLandmark.colours.push(...colourOf(c.uv)); }
   for (let i = 0; i < farPlaced.length; i += 3) {

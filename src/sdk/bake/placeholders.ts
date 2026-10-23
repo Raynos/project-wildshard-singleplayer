@@ -504,6 +504,17 @@ async function authoredFarImpostor(shard: Shardfile, assets: Map<string, Uint8Ar
   return { ...shard, files: [...shard.files, file], far: next };
 }
 
+/** G380 / NM5: a world with no height field's near view from its own coarse tiles (`shardfileWorld`) over a flat floor
+ *  under them; unchanged when it has none. */
+export async function coarseNearView(shard: Shardfile, assets: Map<string, Uint8Array>): Promise<Shardfile> {
+  const prototypes = await shardfileWorld(shard, assets);
+  if (prototypes.length === 0) return shard;
+  const baked = await bakeNearPlaceholder({ grid: null, look: shardfileLook(shard), prototypes, residentBytes: Math.min(NEAR_BAKE.residentBytes, NEAR_PLACEHOLDER_LIMITS.contentBytes) });
+  const file = baked.manifest.file;
+  assets.set(file.hash, baked.bytes);
+  return { ...shard, files: shard.files.some(row => row.hash === file.hash) ? shard.files : [...shard.files, file], near: { version: 1, terrain: [], content: [file.hash] } };
+}
+
 /**
  * G348: `wildshard build`'s placeholders for any shardfile with a terrain: its far proxy when it ships none, and its near
  * placeholder (one render-only GLB in `near.content`) when it declares none, both from its own terrain collider, its own
@@ -513,16 +524,9 @@ async function authoredFarImpostor(shard: Shardfile, assets: Map<string, Uint8Ar
 export async function projectPlaceholders(project: Shardfile, assets: Map<string, Uint8Array>): Promise<Shardfile> {
   const shard = await authoredFarImpostor(project, assets);
   const collider = shard.terrain === null ? undefined : assets.get(shard.terrain.collider);
-  if (shard.terrain === null && shard.near === undefined) {
-    // G380: a world with no height field (an authored mesh world, which ships its own far) gets its near view from its
-    // coarse tiles alone, over a flat floor under them; none when it has no coarse tile meshes
-    const prototypes = await shardfileWorld(shard, assets);
-    if (prototypes.length === 0) return shard;
-    const baked = await bakeNearPlaceholder({ grid: null, look: shardfileLook(shard), prototypes, residentBytes: Math.min(NEAR_BAKE.residentBytes, NEAR_PLACEHOLDER_LIMITS.contentBytes) });
-    const file = baked.manifest.file;
-    assets.set(file.hash, baked.bytes);
-    return { ...shard, files: shard.files.some(row => row.hash === file.hash) ? shard.files : [...shard.files, file], near: { version: 1, terrain: [], content: [file.hash] } };
-  }
+  // G380: a world with no height field (an authored mesh world, which ships its own far) gets its near view from its
+  // coarse tiles alone, over a flat floor under them; none when it has no coarse tile meshes
+  if (shard.terrain === null && shard.near === undefined) return coarseNearView(shard, assets);
   if (collider === undefined || (shard.far !== null && shard.near !== undefined)) return shard;
   const grid = colliderGrid(collider), look = shardfileLook(shard), files = [...shard.files];
   let far = shard.far, near = shard.near;

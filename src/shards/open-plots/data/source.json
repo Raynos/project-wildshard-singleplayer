@@ -247,7 +247,7 @@
     ]
   },
   "tiledMaterials": {
-    "why": "G641: the materials a tiled plot (an idea row with a layout, generators/tiledPlot.mjs) adds to the look: the kit's lit vertex colours, its lanterns and windows, and the landmark's own texture.",
+    "why": "G641: the materials a tiled plot (an idea row with a layout, generators/tiledPlot.mjs) adds to the look: the kit's lit vertex colours, its lanterns and windows, and the landmark's own texture. The landmark draws its own texture alone: its vertex colours carry that texture's colours for the views that sample no texture (the near view, the map).",
     "kit": {
       "family": "pbr",
       "colour": [
@@ -299,7 +299,7 @@
       "normalScale": 1,
       "occlusion": 1,
       "envStrength": 1,
-      "vertexColours": true,
+      "vertexColours": false,
       "faceted": false,
       "doubleSided": false,
       "alphaCutoff": 0,

@@ -20,7 +20,8 @@ function project(row: { readonly slug: string; readonly idea: string; readonly n
   const identity = { slug: row.slug, name: `Open Plot · ${row.name}`, author: source.author, revision: source.revision, seed: source.seed };
   // G641: a row with a layout is a tiled plot; its far proxy is its far-only stand-ins alone (NM0's farMode 'replace')
   if (row.layout !== undefined) return { ...emptyShardfile(identity), identity, accent: row.accent, spawn: source.spawn, look: tiledLook,
-    world: { glb: `assets/${row.idea}/world.glb`, colliders: 'nodes:collide_', far: 'far_', farMode: 'replace',
+    // NM5: its own near view from its coarse tiles, so the road sees the tiles instead of the far proxy
+    world: { glb: `assets/${row.idea}/world.glb`, colliders: 'nodes:collide_', far: 'far_', farMode: 'replace', near: 'coarse',
       materials: { Paving: 'kit', Kit: 'kit', Glow: 'glow', Landmark: 'landmark', Poster: 'billboard' } },
   };
   return { ...emptyShardfile(identity), identity, accent: row.accent, spawn: source.spawn, look,
