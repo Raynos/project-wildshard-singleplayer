@@ -9,11 +9,26 @@ import { layoutV2, type V2Layout } from './scriptWireV2';
 const natural = v.pipe(v.number(), v.integer(), v.minValue(0));
 const word = v.pipe(natural, v.maxValue(3));
 const name = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
+/** Native result requests remain op25 records. They are executed only by the
+ * original scoped owners after the complete result bank is preflighted. */
+export type GroupStepNativeV2 =
+  | { kind: 'grass'; channel: string }
+  | { kind: 'normal'; channel: string }
+  | { kind: 'visibility'; channel: string }
+  | { kind: 'downwind'; channel: string }
+  | { kind: 'claim'; channel: string }
+  | { kind: 'hearing'; channel: string; radii: readonly [number, number, number, number] };
+const radius = v.pipe(v.number(), v.finite(), v.minValue(0));
+const nativeSchema: v.GenericSchema<GroupStepNativeV2> = v.variant('kind', [
+  v.strictObject({ kind: v.picklist(['grass', 'normal', 'visibility', 'downwind', 'claim']), channel: name }),
+  v.strictObject({ kind: v.literal('hearing'), channel: name, radii: v.strictTuple([radius, radius, radius, radius]) }),
+]);
 export interface GroupStepActionV2 {
   id: number;
   words: number;
   member?: number;
   reference?: { word: number; own?: boolean; nullable?: boolean };
+  native?: GroupStepNativeV2;
 }
 export interface GroupStepShapeV2 {
   bank: GroupBankFieldV2[];
@@ -35,7 +50,7 @@ const shape = {
   members: v.pipe(natural, v.minValue(1), v.maxValue(16)),
   signals: v.pipe(v.array(name), v.minLength(1), v.maxLength(64)),
   actions: v.pipe(v.array(v.strictObject({ id: v.pipe(natural, v.minValue(1), v.maxValue(65535)),
-    words: v.pipe(natural, v.maxValue(4)), member: v.exactOptional(word),
+    words: v.pipe(natural, v.maxValue(4)), member: v.exactOptional(word), native: v.exactOptional(nativeSchema),
     reference: v.exactOptional(v.strictObject({ word, own: v.exactOptional(v.boolean()), nullable: v.exactOptional(v.boolean()) })) })), v.maxLength(128)),
 };
 const profileSchema: v.GenericSchema<GroupStepProfileV2> = v.strictObject({ id: name, ...shape });
@@ -80,6 +95,11 @@ export function parseGroupStepV2(input: unknown): GroupStepRowsV2 {
     for (const row of profile.actions) {
       if (row.member !== undefined && row.member >= row.words || row.reference !== undefined && row.reference.word >= row.words
         || row.member !== undefined && row.reference?.word === row.member) throw new Error('Invalid group action operands');
+      if (row.native !== undefined) {
+        const point = row.native.kind === 'grass' || row.native.kind === 'normal';
+        if (row.words !== (point ? 2 : 1) || row.member !== (point ? undefined : 0) || row.reference !== undefined)
+          throw new Error('Invalid native group result operands');
+      }
     }
   }
   groupStepLayoutV2(rows);

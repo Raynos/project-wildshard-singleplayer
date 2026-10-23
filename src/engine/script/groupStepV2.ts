@@ -1,7 +1,7 @@
 /** One reusable AS group executable over the original group's borrowed bank.
  * Calls happen at the original native slot. There is no tick loop, body/RNG/save
  * owner, action dispatcher or per-group module instance in this transport. */
-import { parseGroupStepV2, groupStepLayoutV2 } from '@wildshard/format/scriptGroupStepV2';
+import { parseGroupStepV2, groupStepLayoutV2, type GroupStepNativeV2 } from '@wildshard/format/scriptGroupStepV2';
 import type { GroupBankReferenceV2 } from '@wildshard/format/scriptGroupBankV2';
 import { admitScriptV2 } from '@wildshard/format/scriptAdmissionV2';
 import { prepareV2Rng } from '@wildshard/format/scriptRngV2';
@@ -15,6 +15,8 @@ import type { QueryRingV2 } from './queriesV2';
 import type { Scope } from '../app/scope';
 import type { AnimalSim } from '../entities/AnimalSim';
 import type { Rng, RngState } from '../core/rng';
+import type { AggressionDirector, AggressionService } from '../ai/director';
+import type { Events } from '../events/events';
 
 export interface GroupStepReferenceV2 extends GroupBankReferenceV2 { readonly body: AnimalSim }
 export interface GroupStepOperationV2 {
@@ -22,6 +24,7 @@ export interface GroupStepOperationV2 {
   readonly values: readonly number[];
   readonly member?: V2ActorColumnSlot;
   readonly reference?: GroupStepReferenceV2;
+  readonly native?: Readonly<GroupStepNativeV2>;
 }
 function sameRng(a: RngState, b: RngState): boolean {
   return a.version === b.version && a.state === b.state && a.initial === b.initial && a.scrambledFork === b.scrambledFork;
@@ -65,7 +68,15 @@ export class GroupStepV2 {
     readonly state: Float64Array; readonly members: readonly V2ColumnOwners[];
     readonly references: readonly GroupStepReferenceV2[]; readonly random?: Rng;
     readonly queries?: { readonly ring: QueryRingV2; readonly binding: V2QueryBinding };
-  }): { readonly operations: readonly GroupStepOperationV2[]; readonly validate: () => void; readonly accept: () => void } {
+  }): {
+    readonly operations: readonly GroupStepOperationV2[];
+    readonly validate: () => void;
+    readonly accept: () => void;
+    readonly prepareNative: (owners: GroupStepNativeOwnersV2) => {
+      readonly validate: () => void;
+      readonly accept: () => readonly GroupStepNativeResultV2[];
+    };
+  } {
     this.live();
     if (this.busy) throw new Error('Reentrant group step');
     this.busy = true;
@@ -158,7 +169,8 @@ export class GroupStepV2 {
             || (handle === 0 ? action.reference.nullable !== true : reference === undefined)
             || reference !== undefined && action.reference.own === true && reference.group !== input.group)) throw new Error('Unknown group operation reference');
           operations.push(Object.freeze({ id, values: Object.freeze(values.slice(0, action.words)),
-            ...(member === undefined ? {} : { member }), ...(reference === undefined ? {} : { reference }) }));
+            ...(member === undefined ? {} : { member }), ...(reference === undefined ? {} : { reference }),
+            ...(action.native === undefined ? {} : { native: freezeNative(action.native) }) }));
         }
         const queries = actual[10] ?? 0;
         if (queries !== 0 && input.queries === undefined) throw new Error('Missing group query authority');
@@ -185,11 +197,201 @@ export class GroupStepV2 {
         if (random !== undefined && (Reflect.get(random, 'restore') !== restore || Reflect.get(random, 'snapshot') !== snapshot || Reflect.get(random, 'next') !== nextRandom || before === undefined
           || !sameRng(before, random.snapshot()) || candidate.next === undefined)) throw new Error('Changed group RNG owner');
       };
-      return { operations: candidate.operations, validate, accept: () => {
+      const accept = (): void => {
         validate(); candidate.query?.(); candidate.prepared.accept();
         if (random !== undefined && before !== undefined && candidate.next !== undefined) random.restore({ ...before, state: candidate.next.state[0] });
         accepted = true; this.revision++;
+      };
+      return { operations: candidate.operations, validate, accept, prepareNative: owners => {
+        if (owners.scope !== this.scope || owners.members !== input.members) throw new Error('Foreign native group result scope');
+        const native = prepareGroupNativeV2(candidate.operations, owners);
+        const validateNative = (): void => { validate();native.validate(); };
+        return { validate: validateNative, accept: () => {
+          validateNative();accept();return native.run();
+        } };
       } };
     } finally { this.busy = false; }
   }
+}
+
+function freezeNative(input: GroupStepNativeV2): Readonly<GroupStepNativeV2> {
+  const row = structuredClone(input);
+  if (row.kind === 'hearing') Object.freeze(row.radii);
+  return Object.freeze(row);
+}
+
+/** Concrete original authorities for same-call result barriers. No native
+ * operation is selected by a callback, object path or content identifier. */
+export interface GroupStepNativeOwnersV2 {
+  readonly scope: Scope;
+  readonly members: readonly V2ColumnOwners[];
+  readonly ground?: { readonly normalY: (x: number, z: number) => number };
+  readonly grass?: { readonly grassHeightAt: (x: number, z: number) => number };
+  readonly aggression?: {
+    readonly kind: 'events';
+    readonly service: AggressionService;
+    readonly events: Events;
+    readonly director: AggressionDirector<AnimalSim>;
+  } | {
+    readonly kind: 'tokens';
+    readonly owners: WeakMap<AnimalSim, AggressionDirector<AnimalSim>>;
+    readonly director: AggressionDirector<AnimalSim>;
+  };
+}
+export interface GroupStepNativeResultV2 {
+  readonly channel: string;
+  readonly value: number;
+  readonly member?: V2ActorColumnSlot;
+}
+
+/** Prepare a result-only segment without sampling or changing any native
+ * owner. The original group accepts its candidate before run(), then feeds
+ * these transient results into source:result columns and resumes at the SAME
+ * call slot. A different operation in the bank refuses before any prefix. */
+export function prepareGroupNativeV2(operations: readonly GroupStepOperationV2[], owners: GroupStepNativeOwnersV2): {
+  readonly validate: () => void;
+  readonly run: () => readonly GroupStepNativeResultV2[];
+} {
+  const scope = owners.scope, sources = owners.members.slice();
+  const pins: (() => boolean)[] = [];
+  const live = (): void => {
+    if (owners.scope !== scope || scope.disposed || scope.disposing
+      || owners.members.length !== sources.length || sources.some((row, index) => owners.members[index] !== row)
+      || pins.some(pin => !pin())) throw new Error('Retired or replaced native group result owner');
+  };
+  live();
+  if (operations.length > 512 || sources.length > 16) throw new Error('Native group result capacity');
+  let used = false;
+  const channels = new Set<string>();
+  const prepared = operations.map(operation => {
+    const request = operation.native;
+    if (request === undefined || request.channel.length === 0 || request.channel.length > 128
+      || operation.reference !== undefined || operation.values.some(value => !Number.isFinite(value)))
+      throw new Error('Missing or invalid native group result declaration');
+    const point = request.kind === 'grass' || request.kind === 'normal';
+    if (operation.values.length !== (point ? 2 : 1)) throw new Error('Native group result arity');
+    const member = operation.member;
+    const channel = JSON.stringify([member?.slot ?? null, request.channel]);
+    if (channels.has(channel)) throw new Error('Duplicate native group result channel');
+    channels.add(channel);
+    const source = member === undefined ? undefined : sources[member.slot];
+    if (point ? member !== undefined : member === undefined || source === undefined
+      || !Number.isInteger(member.slot) || member.slot < 0 || operation.values[0] !== member.slot
+      || source.scope !== scope || source.self.actor !== member.actor || member.actor === null
+      || source.self.identity !== member.identity || source.self.group !== member.group
+      || source.self.slot !== member.slot || member.actor.entityId !== member.identity)
+      throw new Error('Foreign native group result member');
+    if (member !== undefined && source !== undefined) {
+      const body = member.actor;
+      pins.push(() => source.scope === scope && source.self.actor === body && source.self.group === member.group
+        && source.self.slot === member.slot && source.self.identity === member.identity
+        && body !== null && body.entityId === member.identity);
+    }
+    let invoke: () => number;
+    switch (request.kind) {
+      case 'grass': {
+        const owner = owners.grass, x = operation.values[0], z = operation.values[1];
+        if (owner === undefined || typeof owner.grassHeightAt !== 'function' || x === undefined || z === undefined)
+          throw new Error('Missing native grass owner');
+        const sample = owner.grassHeightAt;
+        pins.push(() => owners.grass === owner && owner.grassHeightAt === sample);
+        invoke = () => sample.call(owner, x, z);
+        break;
+      }
+      case 'normal': {
+        const owner = owners.ground, x = operation.values[0], z = operation.values[1];
+        if (owner === undefined || typeof owner.normalY !== 'function' || x === undefined || z === undefined)
+          throw new Error('Missing native ground owner');
+        const sample = owner.normalY;
+        pins.push(() => owners.ground === owner && owner.normalY === sample);
+        invoke = () => {
+          const result = sample.call(owner, x, z);
+          if (result < -1 || result > 1) throw new Error('Invalid native ground normal');
+          return result;
+        };
+        break;
+      }
+      case 'visibility': case 'hearing': case 'downwind': {
+        const owner = source?.senses, context = source?.context, body = member?.actor;
+        if (source === undefined || owner === undefined || context === undefined || body === undefined || body === null
+          || owner.player !== source.player.position || !Number.isFinite(context.playerSpeed) || !Number.isFinite(source.t))
+          throw new Error('Missing native group sense owner');
+        const player = owner.player, speed = context.playerSpeed, time = source.t;
+        const finitePose = (): boolean => [body.position.x, body.position.z, player.x, player.y, player.z].every(Number.isFinite);
+        if (!finitePose()) throw new Error('Invalid native sense position');
+        pins.push(finitePose);
+        pins.push(() => source.senses === owner && source.context === context && source.player.position === player
+          && owner.player === player && Object.is(context.playerSpeed, speed) && Object.is(source.t, time));
+        if (request.kind === 'visibility') {
+          const sample = owner.visibility;
+          if (typeof sample !== 'function') throw new Error('Missing native visibility owner');
+          pins.push(() => owner.visibility === sample);
+          invoke = () => sample.call(owner, body.position.x, body.position.z, player, speed, time);
+        } else if (request.kind === 'downwind') {
+          const sample = owner.downwind;
+          if (typeof sample !== 'function') throw new Error('Missing native downwind owner');
+          pins.push(() => owner.downwind === sample);
+          invoke = () => {
+            const result = sample.call(owner, body.position.x, body.position.z, player);
+            if (typeof result !== 'boolean') throw new Error('Invalid native downwind result');
+            return Number(result);
+          };
+        } else {
+          const sample = owner.hearing, radii = request.radii;
+          if (typeof sample !== 'function' || radii.some(value => !Number.isFinite(value) || value < 0))
+            throw new Error('Invalid native hearing owner or radii');
+          const copied = structuredClone(radii);
+          pins.push(() => owner.hearing === sample && radii.every((value, index) => Object.is(value, copied[index])));
+          invoke = () => sample.call(owner, copied, player, speed);
+        }
+        break;
+      }
+      case 'claim': {
+        const loan = owners.aggression, body = member?.actor;
+        if (loan === undefined || body === undefined || body === null) throw new Error('Missing native aggression owner');
+        const director = loan.director, take: unknown = Reflect.get(director, 'take');
+        if (typeof take !== 'function') throw new Error('Invalid native aggression director');
+        pins.push(() => owners.aggression === loan && loan.director === director && director.take === take);
+        if (loan.kind === 'events') {
+          const { service, events } = loan, register: unknown = Reflect.get(service, 'register'), ask: unknown = Reflect.get(events, 'ask');
+          if (typeof register !== 'function' || typeof ask !== 'function') throw new Error('Invalid native aggression owner');
+          pins.push(() => loan.service === service && loan.events === events && service.register === register && events.ask === ask);
+          invoke = () => {
+            service.register(body, director);
+            const result = events.ask('ai.claim', body);
+            if (typeof result !== 'boolean') throw new Error('Invalid native aggression result');
+            return Number(result);
+          };
+        } else {
+          const tokens = loan.owners, get: unknown = Reflect.get(tokens, 'get'), set: unknown = Reflect.get(tokens, 'set');
+          if (typeof get !== 'function' || typeof set !== 'function') throw new Error('Invalid native token owner');
+          pins.push(() => loan.owners === tokens && tokens.get === get && tokens.set === set);
+          invoke = () => {
+            tokens.set(body, director);
+            const result = tokens.get(body)?.take(body) ?? true;
+            if (typeof result !== 'boolean') throw new Error('Invalid native token result');
+            return Number(result);
+          };
+        }
+        break;
+      }
+      default: throw new Error('Unknown native group result operation');
+    }
+    return { channel: request.channel, member, invoke };
+  });
+  const validate = (): void => {
+    live();
+    if (used) throw new Error('Native group result segment already consumed');
+  };
+  validate();
+  return { validate, run: () => {
+    validate();used = true;
+    const result = prepared.map(operation => {
+      live();
+      const value = operation.invoke();
+      if (!Number.isFinite(value)) throw new Error('Non-finite native group result');
+      return Object.freeze({ channel: operation.channel, value, ...(operation.member === undefined ? {} : { member: operation.member }) });
+    });
+    live();return Object.freeze(result);
+  } };
 }

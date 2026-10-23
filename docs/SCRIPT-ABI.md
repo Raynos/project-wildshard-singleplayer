@@ -1085,3 +1085,35 @@ from the original body. These are finite samples, not setters. All sense
 owners and suffix requirements are resolved before calling any sense; scope,
 member, player and callable identity are checked during and after capture.
 Retirement or replacement refuses publication of the detached column bank.
+
+### Same-call native group result segments (H4, G621 R10a)
+
+A group action may declare native result metadata with a finite kind and a
+channel. Grass and normal consume exactly x/z; visibility, downwind, hearing
+and claim consume exactly the declared member slot at operand zero. Hearing
+also admits four ordered finite nonnegative radii. References, spare operands
+and reflected method names are refused. Existing actions without this metadata
+retain their original operation/save representation.
+
+A prepared group call exposes prepareNative(originalOwners). This prepares a
+result-only bank against the SAME entered scope and original ordered member
+loans. It rejects a mixed undeclared suffix before accepting bank/RNG state or
+executing a native prefix. Its accept validates everything, accepts the group
+candidate once, then executes the native operations once in emitted order.
+Scope, member, player, service and callable identity are fenced per operation.
+
+Point results use the original ground.normalY or grass.grassHeightAt owner.
+Conditional senses invoke only the emitted member and original native sensing
+functions, using its current x/z, original player, speed and time in seconds.
+No eager all-member sensing occurs. Claim borrows the original group director:
+the page route performs AggressionService.register then Events.ask(ai.claim),
+and the native route uses the original token WeakMap set/get/take sequence.
+Neither route installs a new token authority or changes registration lifetime.
+
+Results are detached finite {channel,value,member?} rows, valid only for this
+call. The original native caller feeds them into existing source:result columns
+and resumes the SAME selected programme at the original decision slot before
+another RNG draw. Point results may be lent through member-zero/group input
+columns. There is no saved result outbox, query replay, new cadence or clock.
+This finite result subset does not yet apply group motion/contact effects or
+activate any shipping pack/herd descriptor.
