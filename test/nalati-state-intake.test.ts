@@ -8,6 +8,9 @@ import { NALATI_WEATHER_PAGE } from '../src/shards/nalati-grasslands/generators/
 import { expect,test,vi } from 'vitest';
 import * as v from 'valibot';
 import { Scope } from '../src/engine/app/scope';
+import {WorldAssemblySchema} from '../src/format/worldAssembly';
+import {Vector3} from 'three';
+import type {Physics} from '../src/engine/physics/Physics';
 import type { ShardWorld } from '../src/game/shard/world';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import type { ShardContext } from '../src/game/plugin/context';
@@ -41,8 +44,8 @@ test('the shipped King intake retains its attack owner before weather is publish
   expect(parseHeldSlots(await product.json('held/slots.json'))).toEqual(parseHeldSlots(slotRows));
   const fight=v.parse(v.object({programs:v.record(v.string(),v.unknown())}),await product.json('combat/titan-fight.json'));
   expect(Object.keys(fight.programs)).toStrictEqual(['attack','wind']);
-  const scope=new Scope('state-intake'),f=fakeWorld(),game=Object.assign(f.game.asGame(),{levelScope:scope});
-  const world=legacyDouble<ShardWorld>({game,sky:f.sky,player:f.player,forest:f.forest}),runtime=legacyDouble<ShardRuntime>({world});
+  const scope=new Scope('state-intake'),f=fakeWorld(),game=Object.assign(f.game.asGame(),{levelScope:scope,tier:'desktop' as const});
+  const world=legacyDouble<ShardWorld>({game,sky:f.sky,player:f.player,forest:f.forest,registry:f.registry,physics:legacyDouble<Physics>({})}),runtime=legacyDouble<ShardRuntime>({world,viewer:()=>new Vector3()});
   const plugin=legacyDouble<ShardContext>({scope,product,game:legacyDouble<ShardContext['game']>({runtime})});
   ReturnProgram.lendModules(scope,emitted.assets,v.parse(ReturnModulesSchema,product.section('actors/return-scripts')));
   publishEntryOwner(scope,'arena-room','nalati.titan',legacyDouble<ArenaRoomEncounter>({}));
@@ -50,7 +53,8 @@ test('the shipped King intake retains its attack owner before weather is publish
   const stop=new Error('King intake reached');let selected:ReturnProgram|undefined;
   const draws:FixedDraws={ready:true,load:()=>Promise.resolve(),handle:()=>{throw new Error('Unrelated geometry intake');}};
   const prepare=vi.spyOn(WorldAssembly,'prepareNative').mockResolvedValue(draws);
-  const construct=vi.spyOn(WorldAssembly,'construct').mockResolvedValue({});
+  const realConstruct=WorldAssembly.construct.bind(WorldAssembly);
+  const construct=vi.spyOn(WorldAssembly,'construct').mockImplementation((input,ports)=>v.parse(WorldAssemblySchema,input).stages.some(stage=>stage.kind==='arena-room'&&'mode' in stage)?realConstruct(input,ports):Promise.resolve({}));
   const dressing=vi.spyOn(SceneDressing,'current').mockReturnValue(legacyDouble<SceneDressing>({pieces:new Map()}));
   const charge=vi.spyOn(spawn,'readSpawnScript').mockResolvedValue(parseSpawnScript(chargeRows));
   const king=vi.spyOn(room,'buildArenaRoomEncounter').mockImplementation((_ctx,_rows,input)=>{

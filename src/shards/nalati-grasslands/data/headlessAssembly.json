@@ -280,6 +280,20 @@
         6,
         9
       ]
+    },
+    "kingAssembly": {
+      "stages": [
+        {
+          "kind": "arena-room",
+          "mode": "room",
+          "id": "nalati.king",
+          "file": "combat/room-entry.json",
+          "entrance": {
+            "part": "kurgans",
+            "anchor": "entrance"
+          }
+        }
+      ]
     }
   },
   "prepare": [

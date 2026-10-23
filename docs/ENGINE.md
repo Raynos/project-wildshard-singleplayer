@@ -12169,6 +12169,14 @@ caller's current native boundary, borrowing the original world and loaded draws.
 It adds no progress calls, prelude reads, implicit slices or GPU-root releases;
 construction and native scopes and concrete product/world owners stay fenced.
 
+An `arena-room` stage may instead declare `mode: 'room'`, one JSON `file`
+containing `{room, encounter}`, and an `entrance: {part, anchor}` from the
+original SceneDressing. It calls the existing room builder with the original
+context, loaded draws and actual anchor, then publishes the same encounter
+and dungeon group as `arena-room` and `object` loans under the stage id.
+Both publication slots and the original world, reader and scopes are checked
+before reads and after construction; the existing open-arena row is unchanged.
+
 WorldAssemblySchema may declare construction checkpoints around its existing
 ordered stages. WorldAssembly.construct(input, WorldConstructionPorts) walks
 those stages once, preserving the caller's concrete IslandLibrary, scene and

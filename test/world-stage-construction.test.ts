@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { BufferAttribute, BufferGeometry, Material, Mesh, Scene, Vector3, type WebGLRenderer } from 'three';
+import { BufferAttribute, BufferGeometry, Group, Material, Mesh, Scene, Vector3, type WebGLRenderer } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import type { Game } from '../src/engine/core/Game';
 import type { Player } from '../src/engine/player/Player';
@@ -12,8 +12,11 @@ import type { FixedDraws } from '../src/game/models/fixedDraws';
 import type { ShardContext } from '../src/game/plugin/context';
 import type { ShardWorld } from '../src/game/shard/world';
 import type { ShardRuntime } from '../src/game/shard/runtime';
-import type { ShardProduct } from '../src/game/shardfile/shardProduct';
+import { createShardProduct, type ShardProduct } from '../src/game/shardfile/shardProduct';
 import { entryOwner } from '../src/game/shardfile/entryOwners';
+import { SceneDressing } from '../src/game/shardfile/sceneDressing';
+import * as arena from '../src/game/boss/arenaRoom';
+import { emptyShardfile } from '../src/sdk/author';
 import { WorldAssembly, type WorldConstructionPorts } from '../src/game/shardfile/worldAssembly';
 import { legacyDouble } from './fake/FakeGame';
 
@@ -118,4 +121,55 @@ test('ancestor sliced retirement refuses while the construction child itself is 
     await expect(WorldAssembly.construct(stages, f.ports)).rejects.toThrow('owner left or changed');
     expect(f.events).toEqual([]);
   } finally { for (const step of retirement) void step; }
+});
+
+
+const roomRows={stages:[{kind:'arena-room',mode:'room',id:'orchard.room',file:'combat/room.json',entrance:{part:'garden',anchor:'entrance'}}]};
+function roomFixture(){
+  const f=fixture(),ctx=f.ports.native;if(ctx===undefined)throw new Error('Missing native context');
+  const source=emptyShardfile({slug:'orchard-room',name:'Room',author:'Fixture',revision:1,seed:1});
+  const data={room:{id:'orchard.layout'},encounter:{definition:{id:'orchard.boss'},reward:'fruit',program:{id:'orchard.attack'}}};
+  const bytes=new TextEncoder().encode(JSON.stringify(data)),reads:string[]=[];
+  let afterRead=():void=>undefined;
+  const product=createShardProduct({slug:source.identity.slug,revision:1,shardfile:source,sections:new Map(),
+    files:new Map([['combat/room.json',{hash:'room',url:'/room'}]]),read:hash=>{reads.push(hash);afterRead();return Promise.resolve(bytes);}});
+  Object.assign(f.contextSurface,{product});
+  const entrance={x:4,y:2,z:7,r:.8,facing:.6};
+  const piece=legacyDouble<NonNullable<ReturnType<SceneDressing['pieces']['get']>>>({anchors:{entrance:[entrance]}});
+  const dressing=legacyDouble<SceneDressing>({pieces:new Map([['garden',piece]])});
+  const borrowed=vi.spyOn(SceneDressing,'current').mockReturnValue(dressing),group=new Group();
+  // Promise resolution inspects this proxy; all actual class reads remain strict.
+  const encounter=new Proxy(legacyDouble<arena.ArenaRoomEncounter>({dungeon:legacyDouble<arena.ArenaRoomEncounter['dungeon']>({group})}),{get(target,key,receiver):unknown{return key==='then'?undefined:Reflect.get(target,key,receiver);}});
+  const build=vi.spyOn(arena,'buildArenaRoomEncounter').mockResolvedValue(encounter);
+  return{...f,ctx,product,data,reads,entrance,encounter,group,build,borrowed,ports:{...f.ports,product},afterRead:(run:()=>void)=>{afterRead=run;}};
+}
+
+test('a room stage passes the original fight, draws and facing before publishing the same controller and group',async()=>{
+  const f=roomFixture();
+  try{
+    await WorldAssembly.construct(roomRows,f.ports);
+    expect(f.reads).toEqual(['room']);
+    expect(f.build).toHaveBeenCalledTimes(1);const call=f.build.mock.calls[0];if(call===undefined)throw new Error('Missing room build');
+    expect(call[0]).toBe(f.ctx);expect(call[1]).toEqual(f.data.room);
+    expect(call[2]).toEqual(f.data.encounter);
+    expect(call[3]).toBe(f.draws);expect(call[4]).toBe(f.entrance);
+    expect(entryOwner(f.scope,'arena-room','orchard.room')).toBe(f.encounter);
+    expect(entryOwner(f.scope,'object','orchard.room')).toBe(f.group);
+    const entered=f.scope.child('room-entry');WorldAssembly.lend(roomRows,f.scope,entered);
+    expect(entryOwner(entered,'arena-room','orchard.room')).toBe(f.encounter);
+    expect(entryOwner(entered,'object','orchard.room')).toBe(f.group);
+    await expect(WorldAssembly.construct(roomRows,f.ports)).rejects.toThrow('already published');
+    expect(f.reads).toEqual(['room']);expect(f.build).toHaveBeenCalledTimes(1);
+  }finally{f.build.mockRestore();f.borrowed.mockRestore();f.parent.dispose();}
+});
+
+test('room read replacement and sliced native retirement refuse before the original builder',async()=>{
+  for(const change of ['world','owner'] as const){
+    const f=roomFixture();
+    try{
+      f.afterRead(()=>{if(change==='world')Object.assign(f.runtimeSurface,{world:legacyDouble<ShardWorld>({})});else f.native.dispose();});
+      await expect(WorldAssembly.construct(roomRows,f.ports)).rejects.toThrow('owner changed');
+      expect(f.build).not.toHaveBeenCalled();expect(()=>entryOwner(f.scope,'arena-room','orchard.room')).toThrow('Missing live entry owner');
+    }finally{f.build.mockRestore();f.borrowed.mockRestore();f.parent.dispose();}
+  }
 });

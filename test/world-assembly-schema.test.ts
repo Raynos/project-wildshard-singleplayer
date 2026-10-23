@@ -19,3 +19,13 @@ test('assembly emission does not grant a bridge to a foreign custom predicate', 
   const foreign = v.pipe(v.strictObject({id: v.string()}), v.check(row => row.id.length > 0));
   expect(() => namedJsonSchema(foreign)).toThrow('check');
 });
+
+
+test('arena room variants retain the original open wire and refuse mixed room resources',()=>{
+  const open={kind:'arena-room',id:'orchard.open',files:{fight:'fight.json',geometry:'geometry.json'},weather:'weather',anchor:'tie'};
+  const room={kind:'arena-room',mode:'room',id:'orchard.room',file:'fight.json',entrance:{part:'garden',anchor:'entry'}};
+  expect(v.parse(WorldAssemblySchema,{stages:[open]})).toEqual({stages:[open]});
+  expect(v.parse(WorldAssemblySchema,{stages:[room]})).toEqual({stages:[room]});
+  expect(()=>v.parse(WorldAssemblySchema,{stages:[{...open,...room}]})).toThrow();
+  expect(()=>v.parse(WorldAssemblySchema,{stages:[{...room,mode:'anything'}]})).toThrow();
+});

@@ -34,7 +34,7 @@ import { sharedModelContext, type ModelContext } from '@wildshard/engine/models/
 import type { ModelSite } from '@wildshard/engine/models/place';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import { WorldAssemblySchema, type WorldAssemblyStage, type WorldConstructionRows } from '@wildshard/format/worldAssembly';
-import { publishEntryOwner, entryOwner, lendEntryOwner } from './entryOwners';
+import { publishEntryOwner, entryOwner, lendEntryOwner, presentEntryOwner } from './entryOwners';
 import { WorldEntry, type WorldEntryPorts } from './worldEntry';
 import { timeClientPreparation } from './preparationTiming';
 import type { SceneHandles } from './sceneHandles';
@@ -322,7 +322,29 @@ export class WorldAssembly {
         get scene() { return game.scene; }, get sky() { return world.sky; }, get forest() { return world.forest.group; },
         get daySaturation() { return game.level.grade.saturation; } }, stage); return;
     }
-    if (stage.kind === 'arena-room') { this.at++; const encounter=await buildArenaRoomEncounter({kind:'open',ports:this.ports,rows:stage});live();publishEntryOwner(this.ports.scope,'arena-room',stage.id,encounter); return; }
+    if (stage.kind === 'arena-room') {
+      this.at++;
+      if ('mode' in stage) {
+        const ctx = this.ports.weatherContext, draws = this.ports.draws;
+        if (ctx === undefined || draws === undefined || !draws.ready) throw new Error('Room construction needs its original context and draws');
+        const runtime = ctx.game.runtime, world = runtime?.world, product = ctx.product, read = product.json, dressing = SceneDressing.current(ctx);
+        if (world === undefined || world === null) throw new Error('Room construction needs its original world');
+        const game = world.game, scene = game.scene, owner = game.levelScope;
+        const unchanged = (): void => { live(); if (owner.disposed || owner.disposing || this.ports.weatherContext !== ctx || this.ports.draws !== draws
+          || ctx.scope !== scope || ctx.product !== product || product.json !== read || ctx.game.runtime !== runtime || runtime?.world !== world
+          || world.game !== game || game.scene !== scene || game.levelScope !== owner || SceneDressing.current(ctx) !== dressing) throw new Error('Room construction owner changed'); };
+        unchanged();
+        const vacant = (): void => { if (presentEntryOwner(scope, 'arena-room', stage.id) !== null || presentEntryOwner(scope, 'object', stage.id) !== null) throw new Error('Room construction loan is already published'); };
+        vacant();
+        const data = v.parse(v.strictObject({room:v.unknown(),encounter:v.unknown()}), await product.json<unknown>(stage.file)); unchanged();
+        const entrance = dressing.pieces.get(stage.entrance.part)?.anchors[stage.entrance.anchor]?.[0] ?? null;
+        const encounter = await buildArenaRoomEncounter(ctx, data.room, data.encounter, draws, entrance); unchanged(); vacant();
+        publishEntryOwner(scope, 'arena-room', stage.id, encounter); publishEntryOwner(scope, 'object', stage.id, encounter.dungeon.group);
+      } else {
+        const encounter = await buildArenaRoomEncounter({kind:'open',ports:this.ports,rows:stage}); live(); publishEntryOwner(scope,'arena-room',stage.id,encounter);
+      }
+      return;
+    }
     if (scenes === undefined) throw new Error('World scene stage needs its original scene handles');
     const lifeRow = stage.kind === 'site' ? stage.life : undefined;
     const lifePorts = lifeRow === undefined ? undefined : (() => {
@@ -468,7 +490,7 @@ function admitted(input: unknown): readonly WorldAssemblyStage[] {
 /** The loan kinds a stage publishes, from its declaration alone. */
 function loanKinds(stage: WorldAssemblyStage): readonly ('object' | 'placed' | 'site' | 'floor' | 'rope-deck' | 'chain' | 'buildings' | 'ambient-draw' | 'ambient' | 'world-weather' | 'arena-room' | 'fixed-draws' | 'drawn-models' | 'world-point' | 'painted-world')[] {
   if (stage.kind === 'dressing-anchor') return ['world-point'];
-  if (stage.kind === 'arena-room') return ['arena-room'];
+  if (stage.kind === 'arena-room') return 'mode' in stage ? ['arena-room', 'object'] : ['arena-room'];
   if (stage.kind === 'painted-world') return ['painted-world', 'object'];
   if (stage.kind === 'fixed-draws') return ['fixed-draws'];
   if (stage.kind === 'drawn-models') return ['drawn-models'];

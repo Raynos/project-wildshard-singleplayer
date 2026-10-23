@@ -1,4 +1,4 @@
-import { entryOwner, lateEntryOwner, presentEntryOwner, publishEntryOwner } from '@wildshard/game/shardfile/entryOwners';
+import { entryOwner, lateEntryOwner, presentEntryOwner } from '@wildshard/game/shardfile/entryOwners';
 import { clientWildlife, clientWildlifeState } from '@wildshard/game/population/wildlife';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardRuntime } from '@wildshard/game/shard/runtime';
@@ -11,7 +11,6 @@ import { slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 
 
 import { SceneDressing } from '@wildshard/game/shardfile/sceneDressing';
-import { buildArenaRoomEncounter } from '@wildshard/game/boss/arenaRoom';
 import { WorldAssembly } from '@wildshard/game/shardfile/worldAssembly';
 import prefix from '../data/worldPrefix.json' with { type: 'json' };
 import { installClientTimedEncounters } from '@wildshard/game/shardfile/clientTimedEncounters';
@@ -39,7 +38,6 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   if (runtime === undefined || runtime.world !== ctx) throw new Error('Missing original world construction owner');
   const groups = await WorldAssembly.construct(prefix, { runtime, native: plugin, product: plugin.product, scope: plugin.scope, draws: shapes, baked: new Map(), ...(progress === undefined ? {} : { progress }) });
   const dressing = SceneDressing.current(plugin);
-  const anchors = (place: string, name: string) => dressing.pieces.get(place)?.anchors[name] ?? [];
   const weatherLoan = lateEntryOwner(plugin.scope, 'world-weather', 'nalati.weather');
   const resolveWeather = () => {
     const rig = weatherLoan(), storm = rig.storm, painted = rig.sky;
@@ -55,7 +53,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   updates.push((dt, t) => { titan.update(dt, t); });
 
   // ── named elites (elites agent, B12): the five lairs, their spawn rules on the clock / the storm — src/shards/nalati-grasslands/elites.ts ──
-  const { constants: { trophies, timedEntry, eliteEntry } } = await plugin.product.json<{ constants: { trophies: unknown; timedEntry: unknown; eliteEntry: unknown } }>('sim/headless-assembly.json');
+  const { constants: { trophies, timedEntry, kingAssembly, eliteEntry } } = await plugin.product.json<{ constants: { trophies: unknown; timedEntry: unknown; kingAssembly: unknown; eliteEntry: unknown } }>('sim/headless-assembly.json');
   // the lairs' trophies: drawn from the shape book at this slot (data/worldTrophies.json, a drawn-models stage)
   await WorldAssembly.construct(trophies, { runtime, native: plugin, product: plugin.product, scope: plugin.scope, draws: shapes, baked: new Map() });
   const eliteOwner = await installClientEliteConstruction(plugin, eliteEntry);
@@ -73,10 +71,9 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   // ── weapons (bow agent B2, sabre agent B3): main.ts hands out `ShardManifest.weapon`; the Nalati kit hooks in here ──
 
   // ── the great kurgan + the Golden King (boss agent, B13): the dungeon interior, the doors, the boss fight — src/shards/nalati-grasslands/kurganBoss.ts ──
-  const kingRows = v.parse(v.object({ king: v.record(v.string(),v.unknown()), arenaRoom: v.unknown(), programs: v.object({ attack: v.unknown() }) }), await plugin.product.json('combat/titan-fight.json'));
-  const boss = await buildArenaRoomEncounter(plugin,kingRows.arenaRoom,{ ...kingRows.king,definition: kingRows.king['encounter'],program: kingRows.programs.attack },shapes,anchors('kurgans', 'entrance')[0] ?? null);
-  publishEntryOwner(plugin.scope, 'arena-room', 'nalati.king', boss);
-  groups['kurgan'] = boss.dungeon.group;
+  await WorldAssembly.construct(kingAssembly, { runtime, native: plugin, product: plugin.product, scope: plugin.scope, draws: shapes, baked: new Map() });
+  const boss = entryOwner(plugin.scope, 'arena-room', 'nalati.king');
+  groups['kurgan'] = entryOwner(plugin.scope, 'object', 'nalati.king');
   updates.push((dt, t) => boss.update(dt, t));
   plugin.answer('weather.indoors', inside => Math.max(inside, Number(boss.inside))); // weather agent (B10): no lightning / rain in the dungeon, and no storm starts during the fight
   await slice(total - 1, total, 'Dungeon and weather');

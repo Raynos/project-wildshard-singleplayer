@@ -43,6 +43,7 @@ export const WorldAssemblyStageSchema = v.variant('kind', [
     groups: v.pipe(v.array(v.strictObject({ name: id, object: id })), v.maxLength(16)),
     casters: v.pipe(v.array(id), v.maxLength(16)), forest: v.boolean() }),
   v.strictObject({ kind: v.literal('arena-room'), id, files: v.strictObject({ fight: id, geometry: id }), weather: id, anchor: id }),
+  v.strictObject({ kind: v.literal('arena-room'), mode: v.literal('room'), id, file: id, entrance: v.strictObject({ part: id, anchor: id }) }),
   v.strictObject({ kind: v.literal('place'), id, label }),
   v.strictObject({ kind: v.literal('streamed-cover'), id, label, rows: StreamedCoverSchema, file: v.pipe(id, v.regex(/\.json$/)), placement: id,
     draws: v.pipe(v.record(id, id), v.maxEntries(64)), object: id, system: id }),
