@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { CellWindow } from './streamedInstances';
 import { smoothstep } from '../core/noise';
 
 /** Client-only bounded scatter drawing. Placement, colour, range and collision ownership remain authored data. */
@@ -45,13 +44,39 @@ export function scatterLayer(name: string, geometry: THREE.BufferGeometry, mater
     transform.compose(point.set(it.x, it.y, it.z), rotation.setFromEuler(angles.set(it.tiltX ?? 0, it.yaw, it.tiltZ ?? 0, 'YXZ')), scale.set(it.sx, it.sy, it.sz)).toArray(matrices, i * 16);
     colours.set([it.r, it.g, it.b], i * 3); spheres.set([it.x, it.y, it.z, (geometry.boundingSphere?.radius ?? 1) * Math.max(it.sx, it.sy, it.sz)], i * 4); ranges[i] = it.far * farScale;
   });
-  const buckets = new Map<string, number[]>();
-  list.forEach((it, i) => { const key = `${Math.floor(it.x / 24)},${Math.floor(it.z / 24)}`, entries = buckets.get(key) ?? []; entries.push(i); buckets.set(key, entries); });
-  const cells = new CellWindow(24, [...buckets].map(([key, value]) => { const [x, z] = key.split(','); return { cx: Number(x), cz: Number(z), value }; }));
+  // 24 m cells, each with the box round its instances' spheres and the xz bounds of their centres: a cell wholly past
+  // keepNear and outside the frustum skips its instances in one test (G639: per-instance sphere tests and string-keyed
+  // cell reads were ~2 ms of a Nalati look frame at phone 4x). Cells list in the old window's order, nearest first.
+  const buckets = new Map<string, { cx: number; cz: number; members: number[] }>();
+  list.forEach((it, i) => {
+    const cx = Math.floor(it.x / 24), cz = Math.floor(it.z / 24), key = `${cx},${cz}`, bucket = buckets.get(key);
+    if (bucket === undefined) buckets.set(key, { cx, cz, members: [i] }); else bucket.members.push(i);
+  });
+  const cells = [...buckets.values()].sort((a, b) => a.cz - b.cz || a.cx - b.cx).map(({ cx, cz, members }) => {
+    const box = new THREE.Box3();
+    let x0 = Infinity, z0 = Infinity, x1 = -Infinity, z1 = -Infinity;
+    for (const i of members) {
+      const x = spheres[i * 4] ?? 0, y = spheres[i * 4 + 1] ?? 0, z = spheres[i * 4 + 2] ?? 0, r = spheres[i * 4 + 3] ?? 1;
+      box.expandByPoint(point.set(x - r, y - r, z - r)).expandByPoint(point.set(x + r, y + r, z + r));
+      x0 = Math.min(x0, x); z0 = Math.min(z0, z); x1 = Math.max(x1, x); z1 = Math.max(z1, z);
+    }
+    return { cx, cz, members: Int32Array.from(members), box, x0, z0, x1, z1, d2: 0 };
+  });
+  const near: (typeof cells)[number][] = [];
   const reach = ranges.reduce((far, value) => Math.max(far, value), 0);
   const cull = (frustum: THREE.Frustum, viewer: THREE.Vector3): void => {
     let n = 0;
-    for (const [x, z] of cells.within(viewer.x, viewer.z, reach)) for (const i of cells.get(x, z) ?? []) {
+    near.length = 0;
+    for (const cell of cells) {
+      const dx = Math.max(0, cell.cx * 24 - viewer.x, viewer.x - (cell.cx + 1) * 24), dz = Math.max(0, cell.cz * 24 - viewer.z, viewer.z - (cell.cz + 1) * 24);
+      cell.d2 = dx * dx + dz * dz;
+      if (cell.d2 > reach * reach) continue;
+      const ex = Math.max(0, cell.x0 - viewer.x, viewer.x - cell.x1), ez = Math.max(0, cell.z0 - viewer.z, viewer.z - cell.z1);
+      if (ex * ex + ez * ez > keepNear * keepNear && !frustum.intersectsBox(cell.box)) continue;
+      near.push(cell);
+    }
+    near.sort((a, b) => a.d2 - b.d2);
+    for (const cell of near) for (const i of cell.members) {
       const far = ranges[i] ?? 0, d2 = ((spheres[i * 4] ?? 0) - viewer.x) ** 2 + ((spheres[i * 4 + 2] ?? 0) - viewer.z) ** 2;
       if (d2 > far * far) continue;
       sphere.center.set(spheres[i * 4] ?? 0, spheres[i * 4 + 1] ?? 0, spheres[i * 4 + 2] ?? 0); sphere.radius = spheres[i * 4 + 3] ?? 1;
