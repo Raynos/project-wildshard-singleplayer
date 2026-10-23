@@ -251,6 +251,32 @@ went 94 → 112 GB.
   (d609db4b36, `scripts/generation-node-cache.mjs`). The portable cache uses relative paths, so it should stay bounded.
   The main folder is the one to watch.
 
+## 10. 2026-10-23 04:47 check: the Vitest `$TMPDIR` leak is back, via lane-private configs (OPEN)
+
+The boot purge was at **212k files**, up 45k in 4 h and closing on the 250k investigation line. `$TMPDIR` alone held
+146k.
+
+- **There are 192 nanoid-named `ssr/` and `client/` dirs in `$TMPDIR`, with 56k files in total** (finding 1's
+  signature). By creation day: 2 dirs on 10-20, 19 on 10-21, **89 on 10-22 (25k files), and 48 on 10-23 by 04:42 (25k
+  files)**.
+- **Writer, caught live:** a watcher listed the vitest processes alive each time a new dir appeared (05:07:52, 05:07:58,
+  05:20:57). Every hit included a `pnpm exec vitest run --config tmp/o28/vitest.<name>.mjs` run, using `warm`, `t7` and
+  `pgp`. Lane **o28** has written **20 private configs** (`tmp/o28/vitest.*.mjs`, from 10-22 23:21 on), and **none of
+  them imports `../../vitest.config` or `vitestTmpRoot`**. They are bare
+  `{ resolve: { alias: rapierAlias }, test: { include: [...] } }` objects, so Vitest 5.0.1 roots its tmp dirs in the
+  real `$TMPDIR` again. Runs through the repo config (`vitest related …`, `scripts/vitest-push*.config.ts`, which spread
+  `base`) keep the plugin.
+- **Fix:**
+  1. Make the redirect independent of which config a run loads. Options: a repo `vitest` wrapper or package script that
+     sets `TMPDIR=./tmp/vitest/<pid>` before Vitest starts, or a guard (lint or pre-run) that rejects a Vitest config not
+     built from `vitest.config.ts`.
+  2. Tell lanes to build ad-hoc configs as `{ ...base, test: { ...base.test, include } }`, as
+     `scripts/vitest-push-guards.config.ts` does.
+  3. Belt and braces: have the sweep (`boot-temp-warn.sh` / dotfiles `cleanup-temp`) delete nanoid-named
+     `ssr/`/`client/` dirs in `$TMPDIR` older than 1 h.
+- Also growing: `$TMPDIR/node-compile-cache/v24.18.1-arm64-…` went 13.6k → 27.3k files in a day. In `/private/tmp`,
+  `claude-501/bash-edit-diff` holds 61k files in 12 dirs; that is Claude Code's own scratch, not a lane's.
+
 ## Decisions (Jake, 2026-10-15)
 
 - **Boot-purge warning: 500,000 files.**
