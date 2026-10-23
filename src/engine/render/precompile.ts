@@ -951,7 +951,6 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     const capped = isolateImageUploads && programCount(renderer) - programsAtFrame >= programsPerFrame();
     if (performance.now() - tFrame > heldBudget(sliceMs) || capped || i === jobs.length - 1) {
       if (isolateImageUploads) settleOne();
-      // oxlint-disable-next-line eslint/no-useless-assignment -- read by the next iteration's guard; oxlint's flow analysis loses the loop back-edge across the try/finally above
       await pause(); tFrame = performance.now(); programsAtFrame = programCount(renderer);
     }
   }
