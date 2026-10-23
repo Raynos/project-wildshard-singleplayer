@@ -20,12 +20,17 @@ function arrival(ready = false) {
   const controls = document.createElement('button'); controls.textContent = 'MOVE'; hudRoot.append(controls);
   const weapons = { enabled: true, visible: true, setEnabled(on: boolean): void { this.enabled = on; } };
   const viewmodel = { visible: true };
+  const canvas = document.createElement('canvas'); document.body.append(canvas);
   let late: () => void = () => { throw new Error('Missing late callback'); };
-  const active = installGridReveal({ scope, camera: new PerspectiveCamera(), hudRoot, home: 'Driftwood Isle',
+  const active = installGridReveal({ scope, camera: new PerspectiveCamera(), hudRoot, canvas, home: 'Driftwood Isle',
     onLate: fn => { late = () => { fn(1 / 30); }; }, ringsReady: () => ready, homeSimReady: () => ready,
     weapons, viewmodel, entered: () => true });
+  // round 40: before the first gated frame the canvas holds no frame of this world and the HUD has nothing over it
+  expect(hudRoot.classList.contains('ws-grid-revealing')).toBe(true);
+  expect(canvas.style.visibility).toBe('hidden');
   late();
   expect(hudRoot.classList.contains('ws-grid-revealing')).toBe(true);
+  expect(canvas.style.visibility).toBe('');
   const released = (): void => {
     expect(active()).toBe(false);
     expect(hudRoot.classList.contains('ws-grid-revealing')).toBe(false);

@@ -31,6 +31,8 @@ export interface GridRevealHost {
   readonly camera: PerspectiveCamera;
   /** the page's #hud root (the reveal hides the HUD under it with a class while it runs) */
   readonly hudRoot: HTMLElement;
+  /** the renderer's canvas: hidden until the reveal's first frame draws */
+  readonly canvas: HTMLElement;
   /** the page's late phase, registered after the player's camera */
   readonly onLate: (fn: (dt: number) => void) => void;
   /** the home shard's name for the caption */
@@ -87,6 +89,7 @@ export function installGridReveal(host: GridRevealHost): () => boolean {
   };
   const begin = (at: number): void => {
     started = at;
+    host.canvas.style.visibility = ''; // this frame draws the sky pose (the late phase runs before the render)
     host.weapons.setEnabled(false); host.weapons.visible = false;
     viewmodelWas = host.viewmodel.visible;
     host.hudRoot.classList.add('ws-grid-revealing');
@@ -106,7 +109,15 @@ export function installGridReveal(host: GridRevealHost): () => boolean {
     // Capture keeps its deterministic clock; live play has a wall-time backstop.
     if (app.clock.mode === 'live') scope.timeout(PATH_S * 1000 + CEILING_MS, () => { ceiling = true; end(now()); });
   };
-  scope.onDispose(() => { if (live && started >= 0) { live = false; host.hudRoot.classList.remove('ws-grid-revealing'); host.viewmodel.visible = viewmodelWas; } });
+  scope.onDispose(() => {
+    host.canvas.style.visibility = '';
+    if (live && started < 0) host.hudRoot.classList.remove('ws-grid-revealing');
+    if (live && started >= 0) { live = false; host.hudRoot.classList.remove('ws-grid-revealing'); host.viewmodel.visible = viewmodelWas; }
+  });
+  // From the loader's end until the first gated frame (gameplay ready), nothing of this world has been drawn: the canvas
+  // still holds the loading steps' warm-up draws. Both it and the HUD stay hidden until `begin` (round 40: a 0.4 s frame
+  // of the HUD over broken orange and blue triangles on the phone).
+  host.hudRoot.classList.add('ws-grid-revealing'); host.canvas.style.visibility = 'hidden';
   const release = (): void => { if (live && started >= 0) end(now()); };
   // A pause menu must be visible and usable rather than hidden beneath arrival.
   scope.listen(window, 'ws-menu', release);
