@@ -9,14 +9,13 @@ import * as lowPolyKit from '@wildshard/engine/world/lowpolyKit';
 import { driftwoodFixedProduct } from './fixtures/driftwoodFixedProduct';
 import * as runtimeProduct from '../src/game/shardfile/runtimeProduct';
 import { loadFixedGeometry, fixedGeometryReady, fixedDraw, fixedGeometryGroups, COLLECTIONS } from './fixtures/driftwoodLegacyAssets';
-import { sites, captainHat, sailclothCape, tradeCounter, trader as traderCard } from './fixtures/driftwoodLegacyCatalogue';
+import { siteRows, sites, captainHat, sailclothCape, tradeCounter, trader as traderCard } from './fixtures/driftwoodLegacyCatalogue';
 import { bindWorldSceneModelSources } from '../src/game/models/worldSceneCatalogue';
 import { parseWorldSceneModels } from '../src/format/worldSceneModels';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 import { Scope } from '../src/engine/app/scope';
 import native from '../src/shards/driftwood-isle/data/nativeSpecimens.generated.json' with { type: 'json' };
 import cargo from '../src/shards/driftwood-isle/data/cargoScenes.generated.json' with { type: 'json' };
-import boot from '../src/shards/driftwood-isle/boot/modelCatalogue.generated.json' with { type: 'json' };
 import { kitFigureCard } from '../src/game/models/kitFigureCard';
 import { castawayFigure } from './fixtures/driftwoodCastawayOracle';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
@@ -72,7 +71,7 @@ it('matches the original warm cards for every authored geometry and variant', as
     const intake = createOwnedGeometry(row.file, row.attributes); await intake.load(await product.file(row.file));
     geometries.set(JSON.stringify([library, row.id]), intake.take());
   }
-  bindWorldSceneModelSources(ctx, 'driftwood-isle', { catalogue: parseWorldSceneModels(boot.siteCatalogue), geometries, materials: new Map([['still', material], ['kit', material]]) }, owner);
+  bindWorldSceneModelSources(ctx, 'driftwood-isle', { catalogue: parseWorldSceneModels(siteRows), geometries, materials: new Map([['still', material], ['kit', material]]) }, owner);
   async function check<P extends object>(def: ModelDef<P>, allBorrowed = true): Promise<void> {
     // The parent oracle explicitly preloads the same warm-world templates; the new cards use their roster preparation.
     await (def.id === castaway.id ? def.prepare?.() : (def.prepare ?? loadFixedGeometry)());
