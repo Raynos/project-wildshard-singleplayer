@@ -47,10 +47,12 @@ export class ReturnProjectionV2 {
   private readonly groups:GroupStepV2|null=null;
   /** each actor's declared field column names (`actor/name`), made once */
   private readonly columns: string[][] = [];
-  constructor(input: unknown,private readonly owner?: Scope) {
+  constructor(input: unknown,private readonly owner?: Scope,raw?:Uint8Array) {
     this.live();
     this.row = parseReturnProjectionV2(input);this.layout = returnProjectionV2Layout(this.row.fields.length,this.row.artifact.pages,this.row.outputCapacity,this.row.groups);
-    const bytes = Uint8Array.from(atob(this.row.bytes),byte => byte.codePointAt(0) ?? 0);
+    if(raw!==undefined&&(this.row.bytes!==''||owner===undefined))throw new Error('Raw return module requires its original owner');
+    if(this.row.bytes===''&&raw===undefined)throw new Error('Missing admitted raw return module loan');
+    const bytes = raw===undefined?Uint8Array.from(atob(this.row.bytes),byte => byte.codePointAt(0) ?? 0):Uint8Array.from(raw);
     if (sha256(bytes) !== this.row.artifact.hash) throw new Error('Return projection hash mismatch');
     const admitted = admitScriptV2(bytes,{ lane: 'project',ioBytes: this.layout.bytes,compilerRevision: this.row.artifact.compilerRevision,admissionRevision: this.row.artifact.admissionRevision });
     if (admitted.initialPages !== this.row.artifact.pages || admitted.io !== this.layout.io) throw new Error('Return projection layout mismatch');

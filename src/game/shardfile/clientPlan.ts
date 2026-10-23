@@ -1,3 +1,4 @@
+import { prepareClientReturnModules } from './clientReturnModules';
 import { preflightIslandBook } from './islandBook';
 import { installClientAdventurePersistence } from '../quest/persistence';
 import { timeClientPreparation } from './preparationTiming';
@@ -399,6 +400,7 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
 }
 /** Run a platform-ordered phase with bounded frame-budget pauses. Resident scene construction is cached by its host. */
 export async function installClientPhase(ctx: ShardContext, plan: AdmittedClientPlan, phase: ClientPhase, resident: Scope, lifetime?: 'resident' | 'entered'): Promise<void> {
+  if(lifetime!=='resident'&&(phase==='world'||phase==='kit'))await prepareClientReturnModules(ctx);
   const rows = plan.features.flatMap(row => {
     const feature = CLIENT_FEATURES[row.kind];
     if (lifetime !== undefined && feature.lifetime !== lifetime) return [];

@@ -1,3 +1,4 @@
+import { ReturnProgram } from '../population/returnProgram';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { parseNativeLoadoutRow, type NativeLoadoutRowSchema } from '@wildshard/format/nativeItems';
 import { borrowedDecisionAuthority } from '../shardfile/borrowedDecisions';
@@ -5,7 +6,7 @@ import { ShardDecisions } from '../shardfile/decisions';
 import { WorldTargetHost } from '../shardfile/worldTargets';
 import { outputDescriptor } from '../shardfile/outputDescriptor';
 import { parseWorldTargets, worldTargetRules } from '@wildshard/format/worldTargets';
-import { decisionScriptsFromSections } from '@wildshard/format/scriptContract';
+import { ReturnModulesSchema, decisionScriptsFromSections } from '@wildshard/format/scriptContract';
 import { prepareNativePopulation, type NativePopulationRows } from '../shardfile/bossRow';
 import { parseQuestWorldReactions, type QuestWorldReactionsData } from '@wildshard/format/questInteractions';
 import { installQuestGraph, type QuestGraphPorts } from './quests';
@@ -163,6 +164,10 @@ export async function prepareRuntimeWorld(shard: Shardfile, assets: ReadonlyMap<
   const actors = policy.sources === 'actors+bosses' ? (() => { const rows = readRuntimeWorldMetadata(baked, true); return [...rows.actors, ...rows.bosses]; })() : readRuntimeWorldMetadata(baked).actors;
   const population = prepareNativePopulation(policy.seed === 'identity' ? { ...policy.rows, seed: shard.identity.seed } : policy.rows, actors, policy.owner);
   return { level: trustedLevel(shard, player, recipe.ground), ports: { ground: false, heightAt }, install: (host, context) => {
+    if(sections.has('actors/return-scripts')){
+      const returns=v.parse(ReturnModulesSchema,sections.get('actors/return-scripts'));
+      if(returns.some(candidate=>candidate.abi===2))ReturnProgram.lendModules(host.scope,assets,returns);
+    }
     const restoring = context.restoring;
     if (!restoring) addBakedWorld(host, pieces, terrain?.bytes);
     if (recipe.floor === 'solids') host.setFloorQuery((x, z, fromY, maxDrop) => floorBelow(host.physics, x, z, fromY, maxDrop));

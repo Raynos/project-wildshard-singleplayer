@@ -22,6 +22,7 @@ export interface ClientNativeBook {
   decisions: SpeciesDecisionAuthority | null;
   capture: ((name: string) => void) | null;
   readonly presentations: Map<string, CueDirector>;
+  returnModules:Promise<void>|null;
   readonly decisionAssets: Map<string, Uint8Array>;
 }
 const owners = new WeakMap<Scope, WeakMap<ShardProduct, ClientNativeBook>>();
@@ -33,7 +34,7 @@ export function clientNativeBook(ctx: ShardContext): ClientNativeBook {
   if (products === undefined) { products = new WeakMap(); owners.set(ctx.scope, products); }
   const previous = products.get(ctx.product); if (previous !== undefined) return previous;
   const book: ClientNativeBook = { held: null, brains: null, catalogue: null, population: null, quest: null,
-    fight: null, page: null, stages: null, decisions: null, capture: null, presentations: new Map(), decisionAssets: new Map() };
+    fight: null, page: null, stages: null, decisions: null, capture: null, presentations: new Map(), returnModules:null, decisionAssets: new Map() };
   products.set(ctx.product, book);
   ctx.scope.onDispose(() => { book.decisionAssets.clear(); book.presentations.clear(); products.delete(ctx.product); });
   return book;

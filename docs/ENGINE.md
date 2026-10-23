@@ -12461,6 +12461,18 @@ product transport. These rows grant byte admission only: no scheduler, binding,
 clock or guest query is installed. Missing declarations still refuse; admission
 never infers an ABI from module bytes.
 
+`ReturnProgram.lendModules(scope, assets, rows)` lends the original hash-keyed
+asset map and explicit return-module inventory to its living scope. Child
+scopes borrow that same loan. An empty selected v2 `bytes` field resolves only
+its declared artifact hash; missing, foreign or mismatched modules refuse
+before instantiation. SHA, fixed pages, I/O, instrumentation and revisions
+remain mandatory. Inline descriptors and the ABI1 witness retain their exact
+wire and admission. Native world installation lends its existing input map;
+the page prelude populates the existing native book through verified logical
+files and lends it to the construction scope and the actual level scope,
+including sibling scopes. No second module registry or population is created.
+The original scope retires loans and cached instances together.
+
 StealthRows optionally declares ordered native observation sources: bounded
 pack/herd rosters, alert thresholds, pack phases, mount/ownership exclusions,
 nearest-threat count and a held melee slot. StealthController.updateSources

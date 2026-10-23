@@ -10,13 +10,39 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { SimHost } from '@wildshard/engine/sim';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import * as v from 'valibot';
-import { admitScriptContract } from '@wildshard/format/scriptContract';
+import { ReturnModulesSchema, type ReturnModuleRow, admitScriptContract } from '@wildshard/format/scriptContract';
 import { sha256 } from '../plugin/moduleHash';
 import { isJsonData } from '@wildshard/format/json';
 import { parseReturnProjectionV2 } from '@wildshard/format/returnProjectionV2';
 import { ReturnProjectionV2,type PreparedProjectionV2 } from './returnProjectionV2';
 
-const scoped = new WeakMap<Scope, Map<string, { declaration: string; program: ReturnProgram }>>();
+type RawReturnRow = Extract<ReturnModuleRow,{abi:2}>;
+interface ReturnOwnerBook {
+  readonly instances: Map<string,{declaration:string;program:ReturnProgram}>;
+  loan?: {readonly assets:ReadonlyMap<string,Uint8Array>;readonly rows:ReadonlyMap<string,RawReturnRow>};
+}
+// One book, including loans and instances, retired by its original scope.
+const scoped = new Map<Scope,ReturnOwnerBook>();
+function ownerBook(owner:Scope):ReturnOwnerBook {
+  if(owner.disposed||owner.disposing)throw new Error('Return owner disposed');
+  const previous=scoped.get(owner);if(previous!==undefined)return previous;
+  const book:ReturnOwnerBook={instances:new Map()};scoped.set(owner,book);
+  owner.onDispose(()=>{book.instances.clear();delete book.loan;scoped.delete(owner);});
+  return book;
+}
+function rawModule(owner:Scope|undefined,row:ReturnType<typeof readProgram>):Uint8Array|undefined {
+  if(row.v2?.bytes!=='')return undefined;
+  if(owner===undefined||owner.disposed||owner.disposing)throw new Error('Raw return module requires a living owner');
+  let lender:Scope|undefined,book:ReturnOwnerBook|undefined;
+  for(const [scope,candidate]of scoped)if(candidate.loan!==undefined&&owner.belongsTo(scope)
+    &&!scope.disposed&&!scope.disposing&&(lender===undefined||scope.belongsTo(lender))){lender=scope;book=candidate;}
+  const loan=book?.loan,artifact=row.v2.artifact,contract=loan?.rows.get(artifact.hash);
+  if(loan===undefined||contract===undefined)throw new Error('Missing admitted raw return module loan');
+  if(contract.pages!==artifact.pages||contract.ioBytes!==artifact.ioBytes)throw new Error('Raw return module contract mismatch');
+  const bytes:unknown=Map.prototype.get.call(loan.assets,artifact.hash);
+  if(!(bytes instanceof Uint8Array)||sha256(bytes)!==artifact.hash)throw new Error('Raw return module hash mismatch');
+  return bytes;
+}
 
 /** Detach the closed descriptor before consulting a scope's admitted modules.
  * A declared v2 projection never falls back to legacy bytes on refusal. */
@@ -52,7 +78,7 @@ export class ReturnProgram {
   /** The same immutable admitted descriptor used by this selected instance. */
   readonly groupBindings?:GroupGuestBindingsV2;
   readonly prepareGroup?:NonNullable<NumericProjection['prepareGroup']>;
-  private constructor(input: unknown, floor: (x: number, z: number) => number,owner?: Scope) {
+  private constructor(input: unknown, floor: (x: number, z: number) => number,owner?: Scope,raw?:Uint8Array) {
     const row = readProgram(input),script = row.script;
     const freeze=(value:unknown):void=>{if(typeof value!=='object'||value===null||Object.isFrozen(value))return;for(const child of Object.values(value))freeze(child);Object.freeze(value);};
     freeze(row);this.declaration=row;
@@ -67,7 +93,7 @@ export class ReturnProgram {
     if (owner?.disposed === true || owner?.disposing === true) throw new Error('Return owner disposed');
     admitScriptContract(bytes, { abi: 1, pages: script.pages });
     if (row.v2 !== undefined) {
-      const projection = new ReturnProjectionV2(row.v2,owner);
+      const projection = new ReturnProjectionV2(row.v2,owner,raw);
       this.prepare = projection.prepare.bind(projection);
       if(projection.groupBindings!==undefined)this.groupBindings=projection.groupBindings;
       if(row.v2.groups!==undefined&&owner!==undefined)this.prepareGroup=projection.prepareGroup.bind(projection);
@@ -103,17 +129,33 @@ export class ReturnProgram {
     // Alias identity follows sorted names; wire object property order is immaterial.
     const named = Object.fromEntries([...SCRIPT_V1_REFERENCE_KINDS, 'params' as const].map(key =>
       [key, Object.fromEntries(Object.entries(script[key] ?? {}).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0))]));
-    const declaration = JSON.stringify({ script: decisionScriptContract({ ...script, ...named }), bytes: row.bytes,...(row.v2 === undefined ? {} : {v2:row.v2}) }), modules = scoped.get(owner) ?? new Map<string, { declaration: string; program: ReturnProgram }>();
+    const declaration = JSON.stringify({ script: decisionScriptContract({ ...script, ...named }), bytes: row.bytes,...(row.v2 === undefined ? {} : {v2:row.v2}) }), modules = ownerBook(owner).instances;
+    const raw=rawModule(owner,row);
     const key = row.v2 === undefined ? `1:${script.module}` : `2:${row.v2.artifact.hash}`;
     const previous = modules.get(key);
     if (previous !== undefined) {
       if (previous.declaration !== declaration) throw new Error('Shared return declaration changed');
       return previous.program;
     }
-    const program = owner.run(() => new ReturnProgram(row, floor,owner));
-    modules.set(key, { declaration, program }); scoped.set(owner, modules);
-    owner.onDispose(() => { modules.delete(key); });
+    const program = owner.run(() => new ReturnProgram(row, floor,owner,raw));
+    modules.set(key, { declaration, program });
     return program;
+  }
+  /** Lend the original admitted asset map to its actual runtime scope. Child
+   * scopes borrow it; unrelated scopes cannot. No byte or state copy is kept. */
+  static lendModules(owner:Scope,assets:ReadonlyMap<string,Uint8Array>,input:readonly ReturnModuleRow[]):void {
+    if(!(assets instanceof Map))throw new Error('Return modules require the original asset map');
+    const rows=v.parse(ReturnModulesSchema,input),selected=new Map<string,RawReturnRow>();
+    for(const row of rows)if(row.abi===2){
+      const hash=row.module.slice('blobs/wasm/'.length,-'.wasm'.length),previous=selected.get(hash);
+      if(previous!==undefined&&JSON.stringify(previous)!==JSON.stringify(row))throw new Error('Conflicting raw return module declarations');
+      const bytes:unknown=Map.prototype.get.call(assets,hash);
+      if(!(bytes instanceof Uint8Array)||sha256(bytes)!==hash)throw new Error('Raw return module hash mismatch');
+      admitScriptContract(bytes,{abi:2,lane:row.lane,pages:row.pages,ioBytes:row.ioBytes,compilerRevision:row.compilerRevision,admissionRevision:row.admissionRevision});selected.set(hash,row);
+    }
+    const book=ownerBook(owner),previous=book.loan;
+    if(previous!==undefined&&(previous.assets!==assets||JSON.stringify([...previous.rows])!==JSON.stringify([...selected])))throw new Error('Raw return module loan changed');
+    book.loan={assets,rows:selected};
   }
   /** Detached declared names for resource preflight before allocating a module. */
   static projectionBindings(input:unknown):{readonly script:Pick<DecisionScriptRow,'fields'|'signals'|'channels'>} { const row=readProgram(input);return {script:row.v2===undefined?row.script:{fields:Object.fromEntries(row.v2.fields.map(name=>[name,name])),signals:Object.fromEntries(row.v2.signals.map(name=>[name,name])),channels:Object.fromEntries(row.v2.channels.map(name=>[name,name]))}}; }
