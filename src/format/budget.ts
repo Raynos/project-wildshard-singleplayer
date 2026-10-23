@@ -114,39 +114,49 @@ export function* worstContentCostSteps(shard: Shardfile, commons = 0): Generator
   const steps: number[] = []; for (let v = -280; v <= 280; v += GRID_STEP) steps.push(v);
   const n = steps.length, at = (xi: number, zi: number): number => xi * n + zi;
   const square = (lo: number, hi: number, v: number): number => { const d = Math.max(lo - v, v - hi, 0); return d * d; };
-  // one pair of scratch rows for every near() call of the scan (it ran once per tile and synthetic neighbour tile,
-  // building four arrays each time); the same cells visit in the same order
-  const dx = new Float64Array(n), dz = new Float64Array(n);
+  // One scratch row shared by every near() call. Cells retain their original
+  // column/row order; circular cross-sections avoid rejected inner-loop cells.
+  const dx = new Float64Array(n);
   // Only the index window within the radius of a box (one step of margin; the exact test below decides) is visited: a
   // tile far off this grid costs a few comparisons, not n x n.
   const reach = Math.sqrt(RADIUS2), first = steps[0] ?? 0;
   const below = (v: number): number => Math.max(0, Math.floor((v - reach - first) / GRID_STEP) - 1);
   const above = (v: number): number => Math.min(n - 1, Math.ceil((v + reach - first) / GRID_STEP) + 1);
-  const near = (x0: number, z0: number, x1: number, z1: number, each: (cell: number) => void): void => {
+  const near = (x0: number, z0: number, x1: number, z1: number, cells: Float64Array | Uint8Array, add: number, set = false): void => {
     const xa = below(x0), xb = above(x1), za = below(z0), zb = above(z1);
     for (let i = xa; i <= xb; i++) dx[i] = square(x0, x1, steps[i] ?? 0);
-    for (let i = za; i <= zb; i++) dz[i] = square(z0, z1, steps[i] ?? 0);
     for (let xi = xa; xi <= xb; xi++) {
       const ex = dx[xi] ?? 0; if (ex > RADIUS2) continue;
-      for (let zi = za; zi <= zb; zi++) { const ez = dz[zi] ?? 0; if (ez <= RADIUS2 && ex + ez <= RADIUS2) each(at(xi, zi)); }
+      // A box's circular cross-section is one contiguous interval in z.
+      // Round outwards with one grid step, then use the original predicate
+      // at both ends so floating-point boundary membership stays exact.
+      const radius = Math.sqrt(RADIUS2 - ex);
+      let lo = Math.max(za, Math.ceil((z0 - radius - first) / GRID_STEP) - 1);
+      let hi = Math.min(zb, Math.floor((z1 + radius - first) / GRID_STEP) + 1);
+      while (lo <= hi && ex + square(z0, z1, steps[lo] ?? 0) > RADIUS2) lo++;
+      while (hi >= lo && ex + square(z0, z1, steps[hi] ?? 0) > RADIUS2) hi--;
+      if (lo > hi) continue;
+      const start = at(xi, lo), end = at(xi, hi) + 1;
+      if (set) cells.fill(add, start, end);
+      else for (let cell = start; cell < end; cell++) cells[cell] = (cells[cell] ?? 0) + add;
     }
   };
   const ownL0 = new Float64Array(n * n).fill(8 * C.l0.resident), ownActive = new Uint8Array(n * n);
   for (const tile of shard.tiles) if (tile.lod === 0) {
     const bounds = tile.drawBounds ?? tile.bounds, bytes = tile.decoded + tile.gpu;
-    near(bounds.min[0], bounds.min[2], bounds.max[0], bounds.max[2], cell => { ownL0[cell] = (ownL0[cell] ?? 0) + bytes; });
+    near(bounds.min[0], bounds.min[2], bounds.max[0], bounds.max[2], ownL0, bytes);
     yield;
   }
-  near(-250, -250, 250, 250, cell => { ownActive[cell] = 1; });
+  near(-250, -250, 250, 250, ownActive, 1, true);
   const cellOf = function* cellOf([cx, cz]: readonly [number, number]): Generator<void, { l0: Uint8Array; active: Uint8Array }> {
     const id = `${cx},${cz}`, known = syntheticCells.get(id); if (known !== undefined) return known;
     const made = { l0: new Uint8Array(n * n), active: new Uint8Array(n * n) };
     for (let i = 0; i < 64; i++) {
       const x0 = cx - 250 + (i % 8) * 62.5, z0 = cz - 250 + Math.floor(i / 8) * 62.5;
-      near(x0, z0, x0 + 62.5, z0 + 62.5, cell => { made.l0[cell] = (made.l0[cell] ?? 0) + 1; });
+      near(x0, z0, x0 + 62.5, z0 + 62.5, made.l0, 1);
       yield;
     }
-    near(cx - 250, cz - 250, cx + 250, cz + 250, cell => { made.active[cell] = 1; });
+    near(cx - 250, cz - 250, cx + 250, cz + 250, made.active, 1, true);
     syntheticCells.set(id, made); return made;
   };
   let worstAccounted = Number.NEGATIVE_INFINITY;

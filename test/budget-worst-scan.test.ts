@@ -36,3 +36,21 @@ test('the worst-disc scan in steps pauses between rows and finds the same locati
   expect(pauses).toBeGreaterThan(1);
   expect(worstContentCost(source, 2 * MB)).toEqual(step.value);
 });
+
+test.each([-1e-10, 0, 1e-10])('worst-disc intervals preserve tangent draw bounds (%s)', epsilon => {
+  const source = shard(0, 20);
+  const radius = 150 + Math.SQRT2 * 2.5;
+  source.tiles = [
+    { x: radius + epsilon, z: -30, size: 0.25, cost: 70 * MB },
+    { x: -radius + epsilon, z: 30, size: 4.75, cost: 90 * MB },
+    { x: -800, z: -800, size: 2, cost: 800 * MB },
+  ].map(({ x, z, size, cost }) => ({ lod: 0, x: 0, z: 0,
+    bounds: { min: [-250, 0, -250], max: [250, 10, 250] },
+    drawBounds: { min: [x, 0, z], max: [x + size, 10, z + size] },
+    geometricError: 0, files: [], compressed: 0, decoded: cost, gpu: 0, triangles: 0, draws: 0 }));
+  const worst = worstContentCost(source), [wx, wz] = worst.location;
+  let best = 0;
+  for (let x = -280; x <= 280; x += 5) for (let z = -280; z <= 280; z += 5) best = Math.max(best, nearbyContentCost(source, x, z).playing);
+  expect(worst.playing).toBe(best);
+  expect(nearbyContentCost(source, wx, wz)).toEqual(worst);
+});
