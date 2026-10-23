@@ -4,6 +4,8 @@ export interface DownloadSnapshot {
   filesDone: number; filesTotal: number; unclassifiedBytes: number; unclassifiedFiles: number;
   /** the files this load declared (exact index sizes) and how much of them has arrived, from the wire or the cache */
   declaredBytes: number; declaredDoneBytes: number; declaredFiles: number; declaredFilesDone: number;
+  /** Compiler-known bytes whose individual file declarations have not arrived yet. */
+  unitemizedBytes?: number;
 }
 interface File { bytes: number; complete: boolean }
 export interface DownloadTiming {
@@ -14,6 +16,7 @@ export interface DownloadTiming {
 /** One loading attempt owns its declarations and receipts; no body tees or retained payloads. */
 export class DownloadAccounting {
   private readonly files = new Map<string, File>();
+  private readonly groups = new Map<string, number>();
   private readonly seen = new Set<string>();
   private readonly received = new Set<string>();
   private readonly cache = new Map<string, number>();
@@ -44,6 +47,23 @@ export class DownloadAccounting {
       if (addresses === undefined) { addresses = new Set(); this.addressed.set(hash, addresses); }
       addresses.add(declared);
     }
+  }
+  /** Reserve an exact compiler-known directory total before its index is read.
+   * File declarations replace the reserve byte for byte; only receipts credit completion. */
+  reserve(input: string, bytes: number): void {
+    const url = new URL(input, this.base);
+    if (!Number.isSafeInteger(bytes) || bytes < 0 || url.origin !== new URL(this.base).origin
+      || url.search !== '' || url.hash !== '' || !url.pathname.endsWith('/')) throw new Error('Invalid download reserve');
+    const key = url.href, previous = this.groups.get(key);
+    if (previous !== undefined) {
+      if (previous !== bytes) throw new Error('Changed download reserve');
+      return;
+    }
+    for (const other of this.groups.keys()) if (key.startsWith(other) || other.startsWith(key)) throw new Error('Overlapping download reserves');
+    let known = 0;
+    for (const [name, file] of this.files) if (name.startsWith(key)) known += file.bytes;
+    if (known > bytes) throw new Error('Download reserve understates declared files');
+    this.groups.set(key, bytes);
   }
   /** Verified disk reads are separate from network receipts and credited once per immutable address. */
   cached(key: string, bytes: number, url?: string): void {
@@ -83,13 +103,22 @@ export class DownloadAccounting {
   snapshot(): DownloadSnapshot {
     let pendingBytes = 0, pendingFiles = 0, cachedBytes = this.browserCache, declaredBytes = 0;
     for (const file of this.files.values()) { declaredBytes += file.bytes; if (!file.complete) { pendingBytes += file.bytes; pendingFiles++; } }
+    let unitemizedBytes = 0;
+    for (const [prefix, bytes] of this.groups) {
+      let known = 0;
+      for (const [name, file] of this.files) if (name.startsWith(prefix)) known += file.bytes;
+      // An unexpected extra file remains visible as real growth; a reserve never
+      // hides later declarations or manufactures a completed file/byte receipt.
+      unitemizedBytes += Math.max(0, bytes - known);
+    }
+    declaredBytes += unitemizedBytes; pendingBytes += unitemizedBytes;
     for (const bytes of this.cache.values()) cachedBytes += bytes;
     let unclassifiedBytes = 0;
     for (const receipt of this.unknown.values()) unclassifiedBytes += Math.max(receipt.bytes,
       this.bodyHints.get(receipt.url) ?? 0, this.files.get(receipt.url)?.bytes ?? 0);
     return { networkBytes: this.network, cachedBytes, pendingBytes, filesDone: this.completed + this.cache.size,
       filesTotal: this.completed + this.cache.size + pendingFiles, unclassifiedBytes, unclassifiedFiles: this.unknown.size,
-      declaredBytes, declaredDoneBytes: declaredBytes - pendingBytes, declaredFiles: this.files.size, declaredFilesDone: this.files.size - pendingFiles };
+      declaredBytes, declaredDoneBytes: declaredBytes - pendingBytes, declaredFiles: this.files.size, declaredFilesDone: this.files.size - pendingFiles, ...(unitemizedBytes === 0 ? {} : { unitemizedBytes }) };
   }
 }
 let active: DownloadAccounting | undefined;
@@ -137,6 +166,8 @@ export function observeDownloadAccounting(accounting: DownloadAccounting): () =>
 
 /** Expected wire size for a file this path will read; product indexes supply exact sizes. */
 export function declareDownloadFile(url: string, bytes: number): void { accountingTargets(accounting => { accounting.declare(url, bytes); }); }
+/** Reserve only a selected directory, never another home's bytes or completion. */
+export function reserveDownloadGroup(url: string, bytes: number): void { accountingTargets(accounting => { accounting.reserve(url, bytes); }); }
 /** Detached compiler-owned URL/body-size rows; usable by the build and page. */
 export function readModuleFiles(input: unknown): readonly (readonly [string, number])[] {
   if (!Array.isArray(input) || input.length > 4096) throw new Error('Invalid boot module bank');

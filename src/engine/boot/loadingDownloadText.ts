@@ -23,7 +23,8 @@ export function loadingDownloadFraction(transfer: DownloadSnapshot, done: boolea
 export function loadingDownloadText(transfer: DownloadSnapshot): string {
   const network = transfer.unclassifiedFiles > 0
     ? `${formatMB(transfer.networkBytes + transfer.unclassifiedBytes)} network (${transfer.unclassifiedFiles} files by body size)` : `${formatMB(transfer.networkBytes)} network`;
-  return `${formatMB(transfer.declaredDoneBytes)} of ${formatMB(transfer.declaredBytes)} · ${transfer.declaredFilesDone} / ${transfer.declaredFiles} files · ${network} · ${formatMB(transfer.cachedBytes)} offline cache`;
+  const pending = transfer.unitemizedBytes === undefined ? '' : ` · ${formatMB(transfer.unitemizedBytes)} awaiting file index`;
+  return `${formatMB(transfer.declaredDoneBytes)} of ${formatMB(transfer.declaredBytes)} · ${transfer.declaredFilesDone} / ${transfer.declaredFiles} files${pending} · ${network} · ${formatMB(transfer.cachedBytes)} offline cache`;
 }
 
 /** The grid prefetch's own row: disk bytes against the set discovered so far (a finished run with every product read is 1). */

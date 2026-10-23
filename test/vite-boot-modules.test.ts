@@ -64,11 +64,12 @@ test('the actual Vite plugin emits exact module body sizes into the existing doc
     const match = /<script type="application\/json" id="boot-module-files">([^<]+)<\/script>/u.exec(html.source);
     if (match?.[1] === undefined) throw new Error('Missing emitted module facts');
     const rows: unknown = JSON.parse(match[1]);
-    if (typeof rows !== 'object' || rows === null || !('common' in rows) || !('client' in rows)) throw new Error('Missing banks');
+    if (typeof rows !== 'object' || rows === null || !('common' in rows) || !('client' in rows) || !('products' in rows)) throw new Error('Missing banks');
     const expected = (stems: readonly string[]): [string, number][] => result.output.filter(file => stems.some(stem => file.fileName.includes(stem)) || file.fileName.endsWith('.css')).map((file): [string, number] => {
       const bytes = file.type === 'chunk' ? file.code : file.source;
       return [`/${file.fileName}`, typeof bytes === 'string' ? new TextEncoder().encode(bytes).byteLength : bytes.byteLength];
     }).sort(([left], [right]) => left.localeCompare(right));
+    expect(rows.products).toEqual({});
     expect(rows.common).toEqual(expected(['/first-', '/index-']));
     expect(rows.client).toEqual(expected(['/client-']));
     expect(JSON.stringify(rows)).not.toContain('/title-');

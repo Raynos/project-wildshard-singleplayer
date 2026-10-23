@@ -34,3 +34,7 @@ it('the grid prefetch row reports disk progress against the set known so far, an
   expect(loadingPrefetchFraction(cached)).toBeLessThan(1);
   expect(loadingPrefetchFraction({ ...cached, phase: 'done' })).toBe(1);
 });
+
+it('labels reserved bytes without pretending their file count or receipt is known', () => {
+  expect(loadingDownloadText({ ...traffic, unitemizedBytes: 500_000 })).toContain('3 / 4 files · 0.50 MB awaiting file index');
+});

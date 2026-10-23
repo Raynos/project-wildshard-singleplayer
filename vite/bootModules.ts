@@ -3,6 +3,7 @@ import ts from '@typescript/typescript6';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { readModuleFiles } from '../src/engine/boot/download';
+import { bootProductTotals } from './bootProducts';
 
 /** Only imports actually scheduled by startSelected; title, recovery and error
  * branches elsewhere in the entry module are not home requirements. */
@@ -95,7 +96,7 @@ export function bootModulesPlugin(): Plugin {
       if (html.type !== 'asset' || typeof html.source !== 'string' || !html.source.includes('<head>')) throw new Error('Missing boot module document');
       const client = await this.resolve('./game/shardfile/client', entry);
       if (client === null || client.external !== false) throw new Error('Missing compiled client module');
-      const rows = { common: bootModuleFiles(bundle, ids), client: bootModuleFiles(bundle, [client.id]) };
+      const rows = { common: bootModuleFiles(bundle, ids), client: bootModuleFiles(bundle, [client.id]), products: bootProductTotals(root) };
       const json = JSON.stringify(rows).replaceAll('<', String.raw`\u003c`);
       html.source = html.source.replace('<head>', `<head><script type="application/json" id="boot-module-files">${json}</script>`);
     } },

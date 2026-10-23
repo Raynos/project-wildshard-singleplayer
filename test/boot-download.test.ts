@@ -140,3 +140,33 @@ it('replays navigation-time worker receipts once and excludes the previous docum
     expect(accounting.snapshot()).toMatchObject({ networkBytes: 1300, filesDone: 1 });
   } finally { dispose(); }
 });
+
+
+it('replaces reserved bytes with files without an extra total or invented completion', () => {
+  const accounting = new DownloadAccounting(base);
+  accounting.reserve('/home/', 100);
+  accounting.declare('/early.js', 10);
+  accounting.resource(timing('/home/index.json'));
+  accounting.declare('/home/index.json', 20);
+  expect(accounting.snapshot()).toMatchObject({ declaredBytes: 110, declaredDoneBytes: 20, pendingBytes: 90, unitemizedBytes: 80 });
+  accounting.declare('/home/body.bin', 80);
+  expect(accounting.snapshot()).toMatchObject({ declaredBytes: 110, declaredDoneBytes: 20, pendingBytes: 90 });
+  accounting.resource(timing('/home/body.bin'));
+  expect(accounting.snapshot()).toMatchObject({ declaredBytes: 110, declaredDoneBytes: 100, pendingBytes: 10 });
+  // Unexpected real work grows the total; the reserve cannot conceal it.
+  accounting.declare('/home/extra.bin', 25);
+  expect(accounting.snapshot().declaredBytes).toBe(135);
+});
+it('refuses changed, overlapping and invalid reserves without modifying the original', () => {
+  const accounting = new DownloadAccounting(base);
+  for (const [url, bytes] of [['/home', 10], ['https://other.test/home/', 10], ['/home/?v=x', 10], ['/home/', -1], ['/home/', 1.5]] as const) {
+    expect(() => accounting.reserve(url, bytes)).toThrow('Invalid download reserve');
+  }
+  accounting.declare('/home/index.json', 20);
+  expect(() => accounting.reserve('/home/', 19)).toThrow('understates');
+  accounting.reserve('/home/', 100); accounting.reserve('/home/', 100);
+  expect(() => accounting.reserve('/home/', 101)).toThrow('Changed');
+  expect(() => accounting.reserve('/home/sub/', 10)).toThrow('Overlapping');
+  expect(() => accounting.reserve('/', 500)).toThrow('Overlapping');
+  expect(accounting.snapshot()).toMatchObject({ declaredBytes: 100, declaredDoneBytes: 0 });
+});

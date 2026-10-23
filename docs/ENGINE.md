@@ -916,6 +916,17 @@ chunk and the single extracted stylesheet are included. This needs no metadata
 request or worker install expansion. Per-home lazy roots remain a separate
 inventory requirement.
 
+`reserveDownloadGroup(directoryUrl, bytes)` reserves an exact compiler-known
+same-origin directory total before its index is read. Its individual file
+declarations replace that reservation byte for byte. Unitemized bytes stay
+pending and are labelled as awaiting the file index; only original network or
+verified-cache receipts credit completion. Changed or overlapping reservations
+refuse. Unexpected additional files remain visible as growth. The page shell
+carries two sizes per first-party home (index and complete product); the entry
+reserves only its selected manifest's product, before application modules run.
+Full file inventories and their original size/hash/schema admission stay in the
+selected product, rather than being inlined for every shard.
+
 `observeDownloadAccounting(accounting)` adds a disposable page-activity observer
 without replacing the active boot attempt. Declarations, verified cache reads and
 worker receipts reach both; each observer keeps its own start time and receipt
