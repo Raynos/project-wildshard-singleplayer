@@ -17,7 +17,7 @@ import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
 import { MANIFEST as sky } from '../src/shards/far-reach/discovery.generated';
 import { MANIFEST as signal } from '../src/shards/sunscar-dunes/discovery.generated';
 import { MANIFEST as template } from '../src/shards/_template/discovery.generated';
-import templateProduct from '../src/shards/_template/shard.config';
+import { TEMPLATE_SOURCE as templateProduct } from './fixtures/templateSource';
 import { MANIFEST as pine } from '../src/shards/pine-hollow/discovery.generated';
 import { MANIFEST as blender } from '../src/shards/blender-template/discovery.generated';
 import { MANIFEST as driftwood } from '../src/shards/driftwood-isle/discovery.generated';

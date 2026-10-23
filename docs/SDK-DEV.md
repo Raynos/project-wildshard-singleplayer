@@ -62,8 +62,9 @@ for native steps. Independent callers receive detached outputs; hits verify
 the manifest and every file hash. A corrupt entry fails rather than silently
 regenerating. Product receipts include step keys and traced source/input
 identities, never cache paths or cache-file timestamps. The template's terrain
-and props build consumes this path; its legacy declaration and other job
-outputs remain until their direct readers migrate in subsequent GR1 slices.
+and props build consumes this path through its executable default entry. Native
+fixtures call the producers; browser boards read the built product. The obsolete
+standalone product-report job is retired; map and script jobs migrate next.
 
 In this repository, `scripts/serve-build.sh --devserver` builds the game in
 that mode and serves the resulting build. Without that flag it uses production

@@ -4,9 +4,7 @@ import { emptyShardfile } from '../../../src/sdk/author';
 import { numericScriptEntityId } from '../../../src/game/plugin/simulation';
 // oxlint-disable-next-line import/no-nodejs-modules -- Hash admitted worker fixture bytes without loading author build tooling.
 import { createHash } from 'node:crypto';
-// oxlint-disable-next-line import/no-nodejs-modules -- Read the real template's committed, already admitted asset fixture.
-import { readFileSync } from 'node:fs';
-import template from '../../../src/shards/_template/shard.config';
+import { TEMPLATE_SOURCE as template, templateAssets } from '../templateSource';
 
 function check(value: boolean, message: string): void { if (!value) throw new Error(message); }
 /** Native Node fixture: imports only bundled installed-style JavaScript, with no Vitest loader or workspace aliases. */
@@ -31,7 +29,7 @@ export async function run(mode: string, bytes: number[]): Promise<object> {
   }
   if (mode === 'measure') {
     const source = structuredClone(template); source.serverBudget.tickMicros = 16_666;
-    const sim = await HeadlessSimulation.create(source, new Map(source.files.map(file => [file.hash, new Uint8Array(readFileSync(`src/shards/_template/assets/${file.hash}`))])));
+    const sim = await HeadlessSimulation.create(source, templateAssets());
     try {
       const times: number[] = [];
       for (let i = 0; i < 120; i++) { await sim.step(); times.push(sim.lastTickMicros); }
@@ -40,7 +38,7 @@ export async function run(mode: string, bytes: number[]): Promise<object> {
     } finally { await sim.dispose(); }
   }
   if (mode === 'template') {
-    const sim = await HeadlessSimulation.create(template, new Map(template.files.map(file => [file.hash, new Uint8Array(readFileSync(`src/shards/_template/assets/${file.hash}`))])));
+    const sim = await HeadlessSimulation.create(template, templateAssets());
     let committed = sim.checkpoint;
     try {
       for (let i = 0; i < 60; i++) committed = await sim.step();

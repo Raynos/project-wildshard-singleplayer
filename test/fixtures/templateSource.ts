@@ -7,7 +7,7 @@ import { templateProduct } from '../../src/shards/_template/generators/product';
 import { templatePropRows } from '../../src/shards/_template/generators/props';
 
 const { assets: terrain, ...rows } = templateTerrain(), props = templatePropRows(), generated = new Map([...terrain, ...props.assets]);
-/** Native tests consume producer rows and bytes; other readers still need the product module's legacy default. */
+/** Native tests consume the same producer rows and bytes as the executable build entry. */
 export const TEMPLATE_SOURCE = templateProduct(rows, props);
 /** Preserve independently owned input bytes for each admission. Other producers migrate in subsequent GR1 slices. */
 export function templateAssets(): Map<string, Uint8Array> {

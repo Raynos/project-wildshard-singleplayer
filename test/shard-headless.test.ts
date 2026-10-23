@@ -18,7 +18,7 @@ import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { productHeadlessSections } from '../src/sdk/headlessSections';
 import { generateHeadlessModuleMap } from '../scripts/check-headless-assemblies.mjs';
-import template from '../src/shards/_template/shard.config';
+import { TEMPLATE_SOURCE as template } from './fixtures/templateSource';
 import pastel from '../src/shards/pastel-plain/shard.config';
 import driftwood from '../src/shards/driftwood-isle/shard.config';
 import pine from '../src/shards/pine-hollow/shard.config';

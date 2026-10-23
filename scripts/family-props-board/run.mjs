@@ -4,22 +4,23 @@
 // shard's assets on one local port, opens one muted headless Chromium on Metal as the iPhone 16 Pro, draws each row
 // BEFORE / AFTER / REFERENCE (board.js) and composes one portrait board (PIL, JPEG ≤ 500 KB).
 //
-//   scripts/browser-lane.sh node scripts/family-props-board/run.mjs [--out=<jpg>] [--scratch=<dir>]
+//   scripts/browser-lane.sh node scripts/family-props-board/run.mjs [--out=<jpg>] [--scratch=<dir>] [--product=out/_template]
 //
 // Prints one JSON line per row: AFTER vs REFERENCE and BEFORE vs REFERENCE pixel differences (mean / max per channel
 // on 0–255, % of pixels off by > 8) and the SF10a precompile reading for AFTER (programs the first draw built: 0 = none).
 import { createServer } from 'node:http';
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
-import { extname, join, resolve as resolvePath } from 'node:path';
+import { extname, join, sep, resolve as resolvePath } from 'node:path';
 
 const { chromium, devices } = await import('playwright');
 const ROOT = resolvePath(new URL('../..', import.meta.url).pathname);
 const argv = process.argv.slice(2);
 const flag = (name, d) => { const a = argv.find((x) => x.startsWith(`--${name}=`)); return a ? a.slice(name.length + 3) : d; };
 const OUT = resolvePath(ROOT, flag('out', 'progress/shard-platform/sf9b-props/board.jpg'));
-const SCRATCH = resolvePath(flag('scratch', `/private/tmp/claude-501/sp-builders/sf9b-props/board-${process.pid}`));
-const DIST = join(SCRATCH, 'dist'), ASSETS = join(ROOT, 'src/shards/_template/assets');
+const SCRATCH = resolvePath(flag('scratch', `tmp/family-props-board/board-${process.pid}`));
+const DIST = join(SCRATCH, 'dist'), PRODUCT = resolvePath(ROOT, flag('product', 'out/_template'));
+if (!existsSync(join(PRODUCT, 'shard.json'))) throw new Error('Build the Template product before running this board');
 mkdirSync(SCRATCH, { recursive: true });
 
 const { build } = await import('vite');
@@ -32,8 +33,9 @@ await build({
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json', '.wasm': 'application/wasm' };
 const server = createServer((req, res) => {
   const path = decodeURIComponent((req.url ?? '/').split('?')[0] ?? '/');
-  const file = path.startsWith('/template-assets/') ? join(ASSETS, path.slice('/template-assets/'.length)) : join(DIST, path === '/' ? 'index.html' : path);
-  if (!(file.startsWith(DIST) || file.startsWith(ASSETS)) || !existsSync(file) || !statSync(file).isFile()) { res.writeHead(404); res.end(); return; }
+  const root = path.startsWith('/template-product/') ? PRODUCT : DIST;
+  const file = resolvePath(root, path.startsWith('/template-product/') ? path.slice('/template-product/'.length) : path === '/' ? 'index.html' : `.${path}`);
+  if (!file.startsWith(root + sep) || !existsSync(file) || !statSync(file).isFile()) { res.writeHead(404); res.end(); return; }
   res.writeHead(200, { 'content-type': TYPES[extname(file)] ?? 'application/octet-stream' });
   res.end(readFileSync(file));
 });

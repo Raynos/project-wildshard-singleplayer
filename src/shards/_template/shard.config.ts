@@ -1,5 +1,4 @@
-// oxlint-disable-next-line unicorn/prefer-export-from -- E434 forbids re-export barrels.
-import product, { templateProduct } from './generators/product';
+import { templateProduct } from './generators/product';
 import { templateTerrain } from './generators/terrain';
 import { templatePropRows } from './generators/props';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
@@ -20,8 +19,8 @@ export async function generate(ctx: ProjectGenerationContext): Promise<Shardfile
   return shard;
 }
 
-// oxlint-disable-next-line import/no-default-export -- Preserve direct declaration readers during GR1 migration.
-export default product;
+// oxlint-disable-next-line import/no-default-export -- The documented author entry is the generation program.
+export default generate;
 
 /** Explicit standalone AssemblyScript policy, consumed only by the author build. */
 export const buildOptions = { ...BUILD_OPTIONS };

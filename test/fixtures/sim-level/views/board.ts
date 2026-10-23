@@ -11,7 +11,12 @@ import { ClientAssets } from '../../../../src/game/shardfile/clientAssets';
 import layout from '../../../../src/shards/_template/data/layout.json' with { type: 'json' };
 import { poolMask } from '../../../../src/shards/_template/generators/world';
 import { templateProps } from '../../../../src/shards/_template/generators/templatePropsSource';
-import source from '../../../../src/shards/_template/shard.config';
+import { readProductDescriptor, browserContentHash } from '../../../../src/game/shardfile/product';
+import { outputBlobUrl } from '../../../../src/game/shardfile/outputDescriptor';
+
+// Serve this compiled view fixture beside the built Template product.
+const productBase = new URL('./shard.json', location.href).href;
+const source = await readProductDescriptor({ base: productBase, offline: false, firstParty: true, fetch: url => fetch(url), hash: browserContentHash });
 
 const scene = new Scene(), renderer = new WebGLRenderer({ antialias: true }); renderer.setPixelRatio(2); renderer.setSize(innerWidth, innerHeight);
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = PCFSoftShadowMap; document.body.append(renderer.domElement);
@@ -39,7 +44,7 @@ today.add(ground, legacy.original); scene.add(today);
 
 // views: the admitted template shardfile through the loader's render side
 const views = new Group(), scope = new Scope('sf15a.views-board'); scene.add(views);
-const assets = new Map(await Promise.all(source.files.map(async (file) => [file.hash, new Uint8Array(await (await fetch(`./${file.hash}`)).arrayBuffer())] as const)));
+const assets = new Map(await Promise.all(source.files.map(async (file) => [file.hash, new Uint8Array(await (await fetch(outputBlobUrl(source, file.hash, productBase))).arrayBuffer())] as const)));
 const hash = async (bytes: Uint8Array): Promise<string> => [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes.slice()))].map((b) => b.toString(16).padStart(2, '0')).join('');
 const reader = new ClientAssets(source, assets, { base: new URL('./shard.json', location.href).href, offline: false, firstParty: true, fetch: (url) => fetch(url), hash });
 const look = await clientMaterials(source, assets, renderer, scope);

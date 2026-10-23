@@ -25,7 +25,11 @@ import { defineWorldSceneCatalogue } from '../../src/game/models/worldSceneCatal
 import modelCatalogue from '../../src/shards/driftwood-isle/boot/modelCatalogue.generated.json';
 import layout from '../../src/shards/_template/data/layout.json' with { type: 'json' };
 import { poolMask } from '../../src/shards/_template/generators/world';
-import source from '../../src/shards/_template/shard.config';
+import { readProductDescriptor, browserContentHash } from '../../src/game/shardfile/product';
+import { outputBlobUrl } from '../../src/game/shardfile/outputDescriptor';
+
+const productBase = new URL('template-product/shard.json', location.href).href;
+const source = await readProductDescriptor({ base: productBase, offline: false, firstParty: true, fetch: url => fetch(url), hash: browserContentHash });
 
 const sites = defineWorldSceneCatalogue(modelCatalogue.siteCatalogue);
 const boat = sites.model('boat');
@@ -221,7 +225,7 @@ async function pool() {
   for (const row of near) {
     const tile = source.terrain?.tiles.find((t) => t.lod === row.lod && t.x === row.x && t.z === row.z);
     if (tile === undefined) continue;
-    const bytes = new Uint8Array(await (await fetch(`./template-assets/${tile.file}`)).arrayBuffer());
+    const bytes = new Uint8Array(await (await fetch(outputBlobUrl(source, tile.file, productBase))).arrayBuffer());
     installTerrainTile(bytes, { root: before, scope, material: smooth, shadow: true });
     installTerrainTile(bytes, { root: after, scope, material: faceted, shadow: true });
   }

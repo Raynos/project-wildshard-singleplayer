@@ -2,9 +2,7 @@ import TEMPLATE_DIRECTORS from '../data/director.json' with { type: 'json' };
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile, type Shardfile } from '@wildshard/sdk/shardfile';
 import type { templateTerrain } from './terrain';
-import legacyTerrain from '../data/terrain.json' with { type: 'json' };
 import door from '../behaviour/door.json' with { type: 'json' };
-import legacyProps from '../data/props.json' with { type: 'json' };
 import type { BakedProps } from '@wildshard/sdk/bake/props';
 import hooks from '../behaviour/hooks.json' with { type: 'json' };
 import rows from '../data/rows.json' with { type: 'json' };
@@ -36,7 +34,7 @@ const TEMPLATE_SKIN_COST = TEMPLATE_SKIN_FILES.reduce((sum, file) => ({ resident
 const { hash: CLIENT_IDLE_HASH, bytes: CLIENT_IDLE_BYTES, resident: CLIENT_IDLE_RESIDENT } = idle.module;
 const TEMPLATE_ROWS = parseRows(rows);
 /** Assemble the original authored product from this build's terrain rows. */
-export function templateProduct(terrain: typeof legacyTerrain | Omit<ReturnType<typeof templateTerrain>, 'assets'>, props: typeof legacyProps | BakedProps = legacyProps): Shardfile {
+export function templateProduct(terrain: Omit<ReturnType<typeof templateTerrain>, 'assets'>, props: BakedProps): Shardfile {
 // Keep generated door positions and the shared teaching text authoritative.
 const TEMPLATE_UI = [{ ...ui.marker, label: text.hut, at: terrain.sites.door }, ui.oil, ui.jump,
   { ...ui.notes, tab: { ...ui.notes.tab, title: text.notes }, paragraphs: [text.note] }, ...ENCOUNTERS.ui];
@@ -72,6 +70,3 @@ return parseShardfile(JSON.parse(JSON.stringify({ ...base, accent: 'sand', manif
   sim: { ...base.sim, scriptTickDivisor: 1, scripts: [door.hash, itemModule], bindings: [{ module: door.hash, entity: playerHandle, actorId: 'actor.player', kind: 'server' }] },
 })));
 }
-
-// oxlint-disable-next-line import/no-default-export -- Legacy direct consumers migrate separately from the build entry.
-export default templateProduct(legacyTerrain);
