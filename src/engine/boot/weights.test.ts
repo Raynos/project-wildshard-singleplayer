@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { blendLoadingTimings, loadingExpectations, loadingFraction, loadingTimingKey } from '../src/engine/boot/weights';
+import { blendLoadingTimings, loadingExpectations, loadingFraction, loadingTimingKey } from './weights';
 
 it('weights admission by measured time and keeps an overrunning stage below completion', () => {
   const expected = { admission: 9000, world: 1000 };

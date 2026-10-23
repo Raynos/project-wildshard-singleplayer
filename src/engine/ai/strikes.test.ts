@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { StrikeRunner, type StrikeActor, type StrikeSpec } from '../src/engine/ai/strikes';
+import { StrikeRunner, type StrikeActor, type StrikeSpec } from './strikes';
 
 it('lets owners query overlap without cover, damage or continuation effects', () => {
   const runner = new StrikeRunner();

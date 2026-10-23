@@ -14,6 +14,6 @@ export default defineConfig({
   // Reuse transformed code in CI; each test still executes in its isolated worker.
   test: { fsModuleCache: Boolean(process.env.CI ?? process.env.GITHUB_ACTIONS), maxWorkers: vitestMaxWorkers(), testTimeout: 30_000, environment: 'node',
     sequence: { sequencer: DurationSequencer },
-    include: ['test/**/*.test.ts', 'admin/test/**/*.test.ts', 'drafts/test/**/*.test.ts'],
+    include: ['src/**/*.test.ts', 'test/**/*.test.ts', 'admin/test/**/*.test.ts', 'drafts/test/**/*.test.ts'],
     setupFiles: ['test/setup.ts'], restoreMocks: true },
 });

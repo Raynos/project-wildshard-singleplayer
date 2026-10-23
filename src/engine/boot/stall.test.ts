@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { LoadingStall } from '../src/engine/boot/stall';
+import { LoadingStall } from './stall';
 
 it('shows a ten-second quiet interval and resets only for a new progress signature', () => {
   const stall = new LoadingStall(0);

@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { WaitRegistry } from '../src/engine/boot/waits';
+import { WaitRegistry } from './waits';
 
 it('reports duplicate concurrent labels with independent ages and clears settled work', async () => {
   let clock = 0;

@@ -30,7 +30,7 @@ test('push behaviour matrix covers the complete current test discovery exactly o
  const total=Number(/vitest run --shard=\$\{\{ matrix.shard \}\}\/(\d+)/u.exec(behaviour)?.[1]);
  expect(matrix).toEqual(Array.from({length:16},(_,i)=>i+1));
  expect(total).toBe(matrix?.length);
- const paths=['test','admin/test','drafts/test'].flatMap(root=>readdirSync(root,{recursive:true,encoding:'utf8'})
+ const paths=['src','test','admin/test','drafts/test'].flatMap(root=>readdirSync(root,{recursive:true,encoding:'utf8'})
   .filter(file=>file.endsWith('.test.ts')).map(file=>`${root}/${file.replaceAll('\\','/')}`));
  const parts=packShards(paths,readDurations('.')??new Map(),total);
  const selected=matrix?.flatMap(index=>parts[index-1]??[]);

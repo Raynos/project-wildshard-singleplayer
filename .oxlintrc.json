@@ -164,7 +164,7 @@
     },
     {
       // E422: tests drive real modules through their seams; no module mocks or reloads (lint/wildshard-plugin.js)
-      "files": ["test/**", "api-tests/**", "drafts/test/**", "admin/test/**"],
+      "files": ["src/**/*.test.ts", "test/**", "api-tests/**", "drafts/test/**", "admin/test/**"],
       "rules": { "wildshard/no-module-mock": "error" }
     },
     {

@@ -141,6 +141,9 @@ rewrite still needs Jake's approval.
 - **Source checks:** pre-commit checks the pathspec's named files and refuses if they change during the check.
   The scheduled push gate checks immutable committed candidates in disposable source snapshots, preserving the
   shared working tree and index. Missing generated test inputs follow the explicit cache-miss rule above.
+- **Unit and integration tests live beside their source (G645)** and are checked by that layer's TypeScript project.
+  Regression, end-to-end and scenario tests keep their separate test project. Vitest discovery, duration sharding,
+  related-test selection and the no-module-mock rule cover both locations.
 - **Disk-reading tests declare their products** in `scripts/test-products.json`.
   The related-test walk retains their author-source edges; CI
   verifies/rebuilds selected products with `--reuse --shard=…`. The scheduled local

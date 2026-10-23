@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { spatialAudio } from '../src/engine/audio/util';
+import { spatialAudio } from './util';
 
 const ear = { x: 10, y: 2, z: -4 };
 

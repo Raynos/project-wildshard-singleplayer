@@ -21,7 +21,7 @@ const ROOT = process.cwd();
 const RESULTS = resolve(ROOT, 'node_modules/.vite/vitest/da39a3ee5e6b4b0d3255bfef95601890afd80709/results.json');
 const TEST_FILE = /\.(?:test|spec)\.[cm]?[jt]sx?$/u;
 // vitest.config.ts `include`.
-const INCLUDED = /^(?:admin\/|drafts\/)?test\/.+\.test\.ts$/u;
+const INCLUDED = /^(?:src\/|(?:admin\/|drafts\/)?test\/).+\.test\.ts$/u;
 // Measured in the gate mirror (2026-10-15): the 115-file suite's module loads add ~0.5 s a file to the cached test
 // durations, and Vitest's startup with the import-graph walk takes ~5 s.
 const LOAD_SECONDS = 0.5;
