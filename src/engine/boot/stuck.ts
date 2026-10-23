@@ -77,7 +77,7 @@ async function dropPoisonedShell(): Promise<void> {
   if (name === null || !(await caches.has(name))) return;
   const immutable = await caches.open('ws-immutable');
   const doc = await (await caches.open(name)).match(new URL('/index.html', location.origin).href, { ignoreVary: true });
-  const refs = doc ? (await doc.text()).match(/\/assets\/[^/"'?#\s]+-[\w-]{8}\.js/g) ?? [] : [];
+  const refs = doc ? (await doc.text()).match(/\/assets\/[^/"'?#\s]+-[\w-]{8}\.js(?=["'?#\s<>\\)]|$)/g) ?? [] : [];
   const missing = await Promise.all(refs.map(async (r) => (await immutable.match(new URL(r, location.origin).href, { ignoreVary: true })) === undefined));
   if (!doc || missing.includes(true)) await caches.delete(name);
 }
