@@ -21,7 +21,6 @@ import { loadSpecimenTexture } from '../models/specimenCatalogue';
 import { createClientScene } from '../plugin/ui';
 import { lentLook, setLentParam, setLentTexture } from '../shardfile/lentLooks';
 import { loadFirstPartyProduct, runtimeProduct } from '../shardfile/runtimeProduct';
-import { setting } from '@wildshard/engine/ui/Settings';
 import type { StaticCaptureUniforms } from './staticCapture';
 import { GroundMerge } from '../shardfile/groundMerge';
 import { TILE_RING } from '../shardfile/tileDriver';
@@ -36,7 +35,7 @@ const shapeId = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9-]*$/u));
  * by the product's `colour` function (look/colour-functions) and shaded by the static bake. Its meshes are the product's
  * `shapes` (world/terrain/<id>.glb), stood by the `recipe` (a world scene in a product JSON file's key); `mesh` is the
  * one the terrain answers for. With `tiles` the level's runtime-bound L0 props tiles are that mesh cut at the tile seams
- * (every painted channel kept): behind the Debug row `groundTiles` (default off) they draw in its place, in its material.
+ * (every painted channel kept): they draw in its place, in its material (G669 DR10).
  */
 export const PaintedGroundSchema = v.strictObject({ surface: v.unknown(), layers: v.pipe(v.array(shapeId), v.minLength(1), v.maxLength(8)),
   material: v.strictObject({ bands: finite, rim: finite, shade: finite }), colour: shapeId,
@@ -71,7 +70,7 @@ export function paintedGroundPainter(slug: string, input: unknown, tiles: unknow
     const ground = scene.parts.get(rows.mesh);
     if (!isGroundMesh(ground) || !rows.shapes.every(id => isGroundMesh(scene.parts.get(id)))) throw new Error('Missing named ground mesh');
     terrain.material = material; terrain.mesh = ground;
-    const groundTiles = rows.tiles === true && setting('groundTiles') === 'on' ? (product.shardfile.props?.tiles ?? []).filter(row => row.lod === 0) : [];
+    const groundTiles = rows.tiles === true ? (product.shardfile.props?.tiles ?? []).filter(row => row.lod === 0) : [];
     if (groundTiles.length > 0) {
       // tile streaming N1a: the tiles draw as one merged mesh (the terrain's mesh, its flags kept) and only the player's
       // 5 x 5 of them stays loaded, followed from the merged mesh's own draws

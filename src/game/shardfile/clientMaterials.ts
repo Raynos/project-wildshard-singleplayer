@@ -29,7 +29,7 @@ import { SKIN_LOOK_RECIPE } from '@wildshard/format/skins';
 import type { PropSurfaceBinding } from '@wildshard/engine/world/declaredProps';
 import { propMaterialTextureRefs, propMaterialsOf } from '@wildshard/format/propMaterials';
 import { propSurfaces } from './clientPropMaterials';
-import { hiddenSplatSurface, splatGroundDrawn, splatSurface, withSplatSurface } from './clientSplatTerrain';
+import { splatSurface, withSplatSurface } from './clientSplatTerrain';
 import { TIER } from '@wildshard/engine/core/tier';
 import { splatTerrainOf, splatTextureRefs } from '@wildshard/format/splatTerrain';
 
@@ -130,9 +130,9 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
   const sampledMaterials = graphsOn ? shard.look.materials : Object.fromEntries(Object.entries(shard.look.materials).filter(([, entry]) => entry.family !== 'graph' || 'preset' in entry));
   const textures = new Map<string, Texture>(), uses = new Map<string, 'colour' | 'data'>();
   const named = shard.props === null ? undefined : propMaterialsOf(shard.props);
-  const splat = shard.props === null ? undefined : splatTerrainOf(shard.props), splatOn = splatGroundDrawn(shard.props);
-  const refs = new Set([...materialTextureRefs(sampledMaterials), ...graphFileTextureRefs(sampledMaterials, (hash) => assets.get(hash)), ...(shard.props?.textures.map((entry) => entry.colour) ?? []), ...propMaterialTextureRefs(named), ...splatOn ? splatTextureRefs(splat, TIER) : []]);
-  const splatRefs = new Set(splatOn ? splatTextureRefs(splat, TIER) : []);
+  const splat = shard.props === null ? undefined : splatTerrainOf(shard.props);
+  const refs = new Set([...materialTextureRefs(sampledMaterials), ...graphFileTextureRefs(sampledMaterials, (hash) => assets.get(hash)), ...(shard.props?.textures.map((entry) => entry.colour) ?? []), ...propMaterialTextureRefs(named), ...(splat === undefined ? [] : splatTextureRefs(splat, TIER))]);
+  const splatRefs = new Set(splat === undefined ? [] : splatTextureRefs(splat, TIER));
   if (refs.size > 0) {
     const loader = detectKtx2Support(new KTX2Loader().setTranscoderPath(BASIS_PATH), renderer);
     scope.onDispose(() => { loader.dispose(); });
@@ -209,7 +209,7 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
   };
   const propNamed = named === undefined ? null : propSurfaces(named, { look: shard.look.materials, catalogue: materials, compile, texture: resolveTexture });
   // G227: the splat terrain's tile primitives draw with the live terrain's splat material, every other name as before
-  const splatDrawn = splat === undefined ? null : !splatOn ? { binding: hiddenSplatSurface(scope) } : splatSurface(splat, { scope, anisotropy: Math.min(16, renderer.capabilities.getMaxAnisotropy()), texture: (ref) => { const texture = textures.get(ref); if (texture === undefined) throw new Error('Unresolved admitted splat layer'); return texture; } });
+  const splatDrawn = splat === undefined ? null : splatSurface(splat, { scope, anisotropy: Math.min(16, renderer.capabilities.getMaxAnisotropy()), texture: (ref) => { const texture = textures.get(ref); if (texture === undefined) throw new Error('Unresolved admitted splat layer'); return texture; } });
   const surfaces = splat === undefined || splatDrawn === null ? propNamed : withSplatSurface({ name: splat.material, binding: splatDrawn.binding }, propNamed);
   // a further entry (an exported skin's binding, SF16) compiles on the same looks, compiler and admitted textures, scope-owned
   const bindMeshMap = (id: string, map: Texture | Material): Material => {

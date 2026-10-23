@@ -13,8 +13,6 @@ export const ENGINE_STRINGS = {
   "s_memory_saver": "Memory saver",
   "s_memory_saver_note": "SF22d · E435: frees image and mesh copies once on the GPU, drops the shadow map's colour texture, half-size bloom luminance, one composer depth buffer. Reloads",
   "s_fixed_shadow_samples": "Fixed shadow samples",
-  "s_ground_tiles": "Ground from tiles",
-  "s_ground_tiles_note": "G518 · E435: a painted or splat ground draws its baked 62.5 m tiles instead of its one mesh (same triangles and paint; a splat ground streams them by distance, far tiles simplified). Off until a phone reading; reloads",
   "s_fixed_shadow_samples_note": "G437 · E435: remove fixed depth-texture flip updates. Off while horizon differences are reviewed; reloads",
   "s_distant_trees": "Distant trees",
   "s_distant_trees_variant": "Per variant · as before",

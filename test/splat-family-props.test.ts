@@ -52,22 +52,19 @@ test('a phone layer set draws on the phone; desktop draws layers; admission sees
   expect(splatTextureRefs(SPLAT, 'phone')).toEqual(splatTextureRefs(SPLAT));
 });
 
-test('a trusted runtime streams its bound splat ground: primary files only, while the Debug row draws it', async () => {
+test('a trusted runtime streams its bound splat ground: primary files only', async () => {
   const { withSplatGround, splatGroundFiles } = await import('../src/game/shardfile/clientSplatTerrain');
-  const { overrideSetting } = await import('../src/engine/ui/Settings');
   const file = (n: number, kind = 'glb') => ({ hash: h(n), kind, compressed: 1, decoded: 1, gpu: 1, triangles: 1, draws: 1, dependencies: [], critical: false });
   const props = { version: 1 as const, family: 'pbr', tiles: [{ lod: 0 as const, x: 0, z: 0, file: h(99), additionalFiles: [h(98)] }], panels: [], models: [], far: null, colliders: [], textures: [], splat: SPLAT };
   const full = { props, tiles: [{ lod: 0, x: 0, z: 0, files: [h(99), h(98)] }], files: [file(99), file(98), ...splatTextureRefs(SPLAT).map(ref => Object.assign(file(0, 'ktx2'), { hash: ref }))], library: splatTextureRefs(SPLAT) };
   const data = { props: { ...props, tiles: [] }, tiles: [], files: [], library: [] };
   type Source = Parameters<typeof withSplatGround>[0];
   const cast = (value: object): Source => value as Source; // a partial fixture of the fields read
-  expect(withSplatGround(cast(data), cast(full))).toBe(cast(data)); // the row off: unchanged
-  overrideSetting('groundTiles', 'on');
-  try {
+  {
     const drawn = withSplatGround(cast(data), cast(full));
     expect(drawn.props?.tiles).toEqual([{ lod: 0, x: 0, z: 0, file: h(99) }]); // never the runtime's timber
     expect(drawn.tiles).toEqual([{ lod: 0, x: 0, z: 0, files: [h(99)] }]);
     expect(drawn.files.map(row => row.hash)).toEqual([h(99), ...splatTextureRefs(SPLAT)]);
     expect([...splatGroundFiles(drawn)].sort()).toEqual([h(99), ...splatTextureRefs(SPLAT)].sort());
-  } finally { overrideSetting('groundTiles', null); }
+  }
 });

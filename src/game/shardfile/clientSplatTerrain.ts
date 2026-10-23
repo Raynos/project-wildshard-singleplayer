@@ -8,13 +8,12 @@
  *
  * The source layer textures are never uploaded: their mips are copied into the arrays, then released.
  */
-import { CompressedArrayTexture, CompressedTexture, LinearFilter, LinearMipmapLinearFilter, MeshBasicMaterial, NoColorSpace, RepeatWrapping, SRGBColorSpace, type Material, type Texture } from 'three';
+import { CompressedArrayTexture, CompressedTexture, LinearFilter, LinearMipmapLinearFilter, NoColorSpace, RepeatWrapping, SRGBColorSpace, type Material, type Texture } from 'three';
 import { layerArrayMips } from '@wildshard/engine/core/ktx2';
 import { splatTerrainMaterial, type SplatLayers } from '@wildshard/engine/world/Terrain';
 import type { PropSurfaceBinding } from '@wildshard/engine/world/declaredProps';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { TIER } from '@wildshard/engine/core/tier';
-import { setting } from '@wildshard/engine/ui/Settings';
 import { SPLAT_CHANNELS, SPLAT_ROLES, splatLayers, splatTerrainOf, splatTextureRefs, type SplatRole, type SplatTerrain } from '@wildshard/format/splatTerrain';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
@@ -58,12 +57,11 @@ export function splatSurface(splat: SplatTerrain, ports: { scope: Scope; texture
 }
 
 /**
- * Whether a shard's splat ground draws from its tiles (pause ▸ Settings ▸ Debug ▸ Ground tiles, G518, tile streaming P1):
- * on, its props tiles' ground primitives draw and the world hides its whole native ground mesh; off (the default until a
- * phone reading), the whole mesh draws as before and the ground primitives never do.
+ * Whether a shard's splat ground draws from its tiles (G518, tile streaming P1; G669 DR10: always, for a shard that declares
+ * one): its props tiles' ground primitives draw and the world hides its whole native ground mesh.
  */
 export function splatGroundDrawn(props: object | null): boolean {
-  return props !== null && splatTerrainOf(props) !== undefined && setting('groundTiles') === 'on';
+  return props !== null && splatTerrainOf(props) !== undefined;
 }
 /** The files a declared splat ground streams: each props tile's primary (ground) GLB and every layer file (empty without one). */
 export function splatGroundFiles(source: Pick<Shardfile, 'props'>): Set<string> {
@@ -88,12 +86,6 @@ export function withSplatGround(data: Shardfile, full: Shardfile): Shardfile {
       ...[...ground].filter(([at]) => !data.tiles.some(row => key(row) === at)).map(([, row]) => row)],
     files: [...data.files, ...full.files.filter(file => (primary.has(file.hash) || layers.has(file.hash)) && !known.has(file.hash))],
     library: [...data.library, ...full.library.filter(ref => layers.has(ref) && !shared.has(ref))] };
-}
-
-/** The splat material name's binding while the ground tiles are off: its primitives load but never draw (no layer textures). */
-export function hiddenSplatSurface(scope: Scope): PropSurfaceBinding {
-  const material = scope.own(new MeshBasicMaterial({ visible: false }));
-  return { material, maps: NO_MAPS, compiled: true };
 }
 
 /** Put the splat material name in front of a named-material resolver (or the one-family path's absence of one). */
