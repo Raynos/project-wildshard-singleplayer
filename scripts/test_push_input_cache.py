@@ -65,6 +65,10 @@ class PushInputCache(unittest.TestCase):
                  'trees': {'src': ['src/base.ts']}, 'outputs': {'src/value.generated.json': digest}}
         discovery = b'export default {seed:42};\n'
         saved['inputs']['src/shards/fixture/discovery.generated.ts'] = hashlib.sha256(discovery).hexdigest()
+        asset = b'intrinsic asset bytes'
+        asset_digest = hashlib.sha256(asset).hexdigest()
+        asset_name = 'src/shards/fixture/assets/' + asset_digest
+        saved['inputs'][asset_name] = asset_digest
         phase = generated / '.cache/generation-phase.json'
         phase.parent.mkdir()
         encoded = json.dumps(saved, ensure_ascii=False, separators=(',', ':'))
@@ -74,6 +78,9 @@ class PushInputCache(unittest.TestCase):
         discovery_path = generated / 'src/shards/fixture/discovery.generated.ts'
         discovery_path.parent.mkdir(parents=True)
         discovery_path.write_bytes(discovery)
+        asset_path = generated / asset_name
+        asset_path.parent.mkdir(parents=True)
+        asset_path.write_bytes(asset)
         post_bytes = b'export const post = true;\n'
         post_digest = hashlib.sha256(post_bytes).hexdigest()
         post_blobs = generated / '.cache/push-post-blobs'
@@ -96,6 +103,10 @@ class PushInputCache(unittest.TestCase):
             post_file.write_text(json.dumps({**post, 'seal': hashlib.sha256(encoded.encode()).hexdigest()}))
         seal_post()
         self.assertEqual(CACHE['publish'](self.root, tip, generated), 3)
+        asset_path.write_bytes(b'corrupt addressed asset')
+        with self.assertRaisesRegex(ValueError, 'input changed'):
+            CACHE['publish'](self.root, tip, generated)
+        asset_path.write_bytes(asset)
         post['revision'] = 'f' * 40
         seal_post()
         with self.assertRaisesRegex(ValueError, 'post-generation proof'):

@@ -12,8 +12,9 @@ import time
 
 TEXT = {'.ts', '.tsx', '.mts', '.cts', '.js', '.mjs', '.cjs', '.json', '.jsonc',
         '.yaml', '.yml', '.css', '.glsl', '.frag', '.vert', '.wgsl', '.as', '.py', '.sh', '.md', '.html'}
-ROOTS = {'src', 'scripts', 'test', 'lint', 'vite', 'admin', 'api', 'drafts', 'site', 'docs', 'budgets', '.githooks'}
-TOOLS = ['gate-related-tests.mjs', 'push-inputs.mjs', 'test-products.json']
+ROOTS = {'src', 'scripts', 'test', 'lint', 'vite', 'admin', 'api', 'drafts', 'site', 'docs', 'budgets', '.githooks', '.github'}
+TOOLS = ['gate-related-tests.mjs', 'push-inputs.mjs', 'push-checks.mjs', 'test-products.json']
+CONFIGS = ['vitest-push.config.ts', 'vitest-push-guards.config.ts']
 
 
 def source_file(name):
@@ -99,7 +100,8 @@ def committed_source(repo, revision, tooling_revision, deadline):
         listed = command(repo, ['git', 'ls-tree', '-rz', revision], deadline, capture_output=True).stdout
         records = [row for row in listed.split(b'\0') if row]
         entries = [row.split(b'\t', 1) for row in records]
-        entries = [(header.split(), name.decode()) for header, name in entries if source_file(name.decode())]
+        entries = [(header.split(), name.decode()) for header, name in entries if source_file(name.decode())
+                   or name.startswith(b'test/fixtures/')]
         entries = [(header, name) for header, name in entries if header[1] == b'blob' and header[0] != b'120000']
         raw = command(repo, ['git', 'cat-file', '--batch'], deadline, input=b''.join(
             header[2] + b'\n' for header, _ in entries), capture_output=True).stdout
@@ -135,14 +137,55 @@ def committed_source(repo, revision, tooling_revision, deadline):
                 target.write_bytes(data)
         outputs(repo, tree, records, deadline, assets)
         cache = runpy.run_path(str(Path(__file__).with_name('push_input_cache.py')))
-        available = cache['restore'](repo, tree, records, deadline)
+        input_deadline = min(deadline, time.monotonic() + 8)
+        available = cache['restore'](repo, tree, records, input_deadline)
         available = available and not missing_generated(tree)
-        (tree / '.push-types.json').write_text(json.dumps({'available': available}))
+        test_revision = cache['restore_tests'](repo, tree, records, input_deadline)
+        # Runtime setup has two explicit disk preloads plus native physics.
+        # Supply tracked bytes from Git, never from the shared working tree.
+        bootstrap = {'public/assets/nalati/baked/places.bin', 'public/assets/physics/rapier.wasm'}
+        species = tree / 'src/shards/nalati-grasslands/data/species.generated.json'
+        if species.exists():
+            packed = json.loads(species.read_text()).get('packedBodies', {}).get('file')
+            if isinstance(packed, str) and packed.startswith('/assets/') and '..' not in PurePosixPath(packed).parts:
+                bootstrap.add('public' + packed)
+        for name in bootstrap:
+            if name in blobs and not (tree / name).exists():
+                data = command(repo, ['git', 'cat-file', 'blob', blobs[name].decode()], deadline, capture_output=True).stdout
+                target = tree / name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(data)
+        tests_available = test_revision is not None
+        # Vitest's real module graph includes literal raster/binary imports.
+        # Read their tracked Git blobs; never substitute shared-tree assets.
+        imported_assets = set()
+        for folder in ['src', 'test', 'admin', 'drafts']:
+            for path in (tree / folder).rglob('*'):
+                if path.suffix not in {'.ts', '.tsx', '.mts', '.js', '.mjs'}:
+                    continue
+                for value in re.findall(r'''(?:from\s+|import\s*\(\s*|import\s*)["']([^"']+\.(?:png|jpe?g|webp|svg|hdr|glb|bin|wasm)(?:\?[^"']*)?)["']''', path.read_text()):
+                    value = value.split('?', 1)[0]
+                    name = value[1:] if value.startswith('/src/') else os.path.normpath(str(path.relative_to(tree).parent / value))
+                    if not name.startswith('../') and not PurePosixPath(name).is_absolute():
+                        imported_assets.add(name)
+        for name in imported_assets:
+            if name in blobs and not (tree / name).exists():
+                data = command(repo, ['git', 'cat-file', 'blob', blobs[name].decode()], deadline, capture_output=True).stdout
+                target = tree / name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(data)
+        (tree / '.push-tracked.json').write_text(json.dumps(list(blobs)))
+        (tree / '.push-types.json').write_text(json.dumps({
+            'available': available, 'testsAvailable': tests_available, 'testRevision': test_revision}))
         tools = tree / '.push-tools'
         tools.mkdir()
         for name in [*TOOLS, 'link-node-modules.mjs']:
             data = command(repo, ['git', 'show', tooling_revision + ':scripts/' + name], deadline,
                            capture_output=True).stdout
             (tools / name).write_bytes(data)
+        for name in CONFIGS:
+            data = command(repo, ['git', 'show', tooling_revision + ':scripts/' + name], deadline,
+                           capture_output=True).stdout
+            (tree / 'scripts' / name).write_bytes(data)
         command(tree, ['node', str(tools / 'link-node-modules.mjs'), str(repo), str(tree)], deadline)
         yield tree, tools

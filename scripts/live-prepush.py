@@ -58,25 +58,51 @@ def failure_paths(output):
     return sorted(set(re.findall(r'(?<![\w])((?:src|scripts|test|admin|api|drafts|lint|vite)/[^\s():\x1b]+\.(?:json|[cm]?[jt]sx?|py|sh))\b', plain)))
 
 
-def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_available=True):
+def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_available=True,
+          tests_available=None, test_revision=None, deleted=(), typed_files=()):
     files = changed(root, base, tip) if files is None else files
     tools = root / 'scripts' if tools is None else tools
     result = {'ok': False, 'phase': 'working-tree', 'files': [], 'output': ''}
     result['types'] = 'pre-commit'
-    if not types_available:
-        result['output'] = 'No matching generated test inputs: related tests defer to the full CI gate.'
+    tests_available = types_available if tests_available is None else tests_available
+    if test_revision:
+        result['output'] = 'Verified generated test inputs: ' + test_revision
+        if not types_available:
+            result['output'] += ' (previous generation; not current type proof)'
+    if not tests_available:
+        result['output'] += '\nNo verified generated test inputs: related tests defer to the full CI gate.'
     before = snapshot(root, files)
     (root / 'tmp').mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='live-prepush-', dir=root / 'tmp') as temporary:
         listing = Path(temporary) / 'changed.json'
         listing.write_text(json.dumps(files))
         env = dict(os.environ, WS_VITEST_MAX_WORKERS='4', WS_LIVE_PREPUSH='1', NO_COLOR='1')
-        # Vitest setup imports generated boot/species rows, even for pure tests.
-        # A cache miss cannot run that setup or attribute its missing files to a
-        # source commit. The full CI gate prepares and checks those inputs.
-        # Selection also consumes the same budget; it never prepares products.
+        def refused(rc, output):
+            failed = re.search(r'(?:FAIL\s+|failed\s*\(|Tests\s+\d+ failed|Test Files\s+\d+ failed|error\[|\berror [\w-]+[(/])', ANSI.sub('', output))
+            return rc != 0 and (rc != 124 or failed)
+
+        # Mandatory cheap guards precede optional related tests, including when
+        # current generated declarations are unavailable. No app setup runs.
+        removed = Path(temporary) / 'deleted.json'
+        removed.write_text(json.dumps(list(deleted)))
+        if deleted:
+            rc, output = runner(['node', str(tools / 'push-checks.mjs'), 'deleted', str(removed)], root, deadline, env)
+            if rc:
+                result.update(phase='deleted-paths', output=output, files=failure_paths(output))
+                return result
+        guards = ['test/host-callbacks.test.ts', 'test/shardfile-boundaries.test.ts',
+                  'test/platform-chargebacks.test.ts', 'test/manifest-declarations.test.ts']
+        if any(name.startswith(('src/format/', 'src/sdk/')) for name in files):
+            guards.insert(0, 'test/schema-reference.test.ts')
+        rc, output = runner(['pnpm', 'exec', 'vitest', 'run', '--config',
+                             'scripts/vitest-push-guards.config.ts', *guards], root, deadline, env)
+        if rc:
+            # The required guards cannot silently become optional at the cap.
+            result.update(phase='guards', output=output, files=failure_paths(output))
+            return result
+        result['output'] += '\nRequired guards passed: ' + ', '.join(guards)
         left = deadline - time.monotonic()
-        if types_available and left > 2:
+        if tests_available and left > 2:
             rc, output = runner(['node', str(tools / 'gate-related-tests.mjs'), str(listing),
                                  '--live', '--budget=' + str(max(0, left - 2))], root, deadline, env)
             if rc not in (0, 124):
@@ -84,15 +110,54 @@ def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_a
                 return result
             if rc == 0:
                 tests = json.loads(output.strip().splitlines()[-1])
+                tests = [test for test in tests if test not in guards]
+                result['output'] += '\n' + output
                 if tests:
-                    rc, output = runner(['pnpm', 'exec', 'vitest', 'run', *tests], root, deadline, env)
+                    rc, output = runner(['pnpm', 'exec', 'vitest', 'run', '--config',
+                                         'scripts/vitest-push.config.ts', *tests], root, deadline, env)
                     # An actual refusal remains red, even if the clock then expires.
-                    failed = re.search(r'(?:FAIL\s+|failed\s*\(|Tests\s+\d+ failed|Test Files\s+\d+ failed)', ANSI.sub('', output))
-                    if rc != 0 and (rc != 124 or failed):
+                    if refused(rc, output):
                         result.update(phase='tests', output=output, files=failure_paths(output))
                         return result
                     if rc == 124:
-                        result['output'] += '\nRelated tests reached the ceiling; remainder runs in CI'
+                        result['output'] += '\nRelated tests reached the ceiling; CI owns unfinished work from: ' + ', '.join(tests)
+                    else:
+                        result['output'] += '\nRelated tests passed: ' + ', '.join(tests)
+            else:
+                result['output'] += '\nRelated selection reached the ceiling; remaining related tests run in CI'
+        # Spend the remaining budget on changed source and its typed importers.
+        # Previous generated inputs are deliberately insufficient for this step.
+        if types_available and deadline - time.monotonic() > 1:
+            rc, output = runner(['node', str(tools / 'push-checks.mjs'), 'importers', str(listing)], root, deadline, env)
+            if rc not in (0, 124):
+                result.update(phase='importers', output=output, files=failure_paths(output))
+                return result
+            lint = list(typed_files)
+            if rc == 0:
+                lint = list(dict.fromkeys([*lint, *json.loads(output.strip().splitlines()[-1])]))
+            else:
+                result['output'] += '\nImporter selection reached the ceiling; typed importers run in CI'
+            if lint and deadline - time.monotonic() > 1:
+                for start in range(0, len(lint), 16):
+                    remainder = lint[start:]
+                    rc, output = runner(['pnpm', 'exec', 'oxlint', '--type-check', '--type-aware',
+                                         '-c', '.oxlintrc.json', *remainder[:16]], root, deadline, env)
+                    if refused(rc, output):
+                        result.update(phase='typed-check', output=output,
+                                      files=failure_paths(output) or remainder[:16])
+                        return result
+                    if rc == 124:
+                        result['output'] += '\nTyped lint reached the ceiling; CI owns: ' + ', '.join(remainder)
+                        break
+                else:
+                    result['output'] += '\nTyped importer lint passed: ' + ', '.join(lint)
+                    result['types'] = 'pre-commit+importers'
+            elif lint:
+                result['output'] += '\nPush budget exhausted; typed lint runs in CI: ' + ', '.join(lint)
+        elif not types_available:
+            result['output'] += '\nTyped importers require exact generated inputs; CI owns this remainder'
+        else:
+            result['output'] += '\nPush budget exhausted before typed importer selection; CI owns importers of: ' + ', '.join(files)
         if before != snapshot(root, files):
             result.update(phase='working-tree', output='Inputs changed during checks; retry next minute')
             return result

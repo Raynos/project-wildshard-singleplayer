@@ -56,7 +56,14 @@ def phase_outputs(repo, revision, generated, records, deadline=None):
         post_table = name in {'src/game/bag/starter.generated.ts', 'src/game/systems/effects/starter.generated.ts',
                               'src/game/systems/viewmodel/clips.generated.ts', 'src/game/weapons/starter.generated.ts'} or (
             name.startswith('src/shards/') and (name.endswith('/.wildshard/build-policy.json') or name.endswith('/discovery.generated.ts')))
-        if name not in saved['outputs'] and not post_table:
+        # Intrinsic producer assets are named by their complete content hash,
+        # rather than a fixed catalogue path. Admit only that exact address;
+        # ordinary untracked source/data inputs remain forbidden.
+        address = re.fullmatch(r'(?:[\w.-]+-)?([0-9a-f]{64})(?:\.(?:bin|glb|ktx2|png|webp|jpg))?', Path(name).name)
+        intrinsic = '..' not in Path(name).parts and (
+            re.match(r'^src/shards/[a-z0-9_-]+/assets/', name) is not None or name.startswith('public/assets/')) and (
+                address is not None and address.group(1) == digest)
+        if name not in saved['outputs'] and not post_table and not intrinsic:
             raise ValueError('Undeclared generation phase input: ' + name)
         if hashlib.sha256((generated / name).read_bytes()).hexdigest() != digest:
             raise ValueError('Generation phase input changed: ' + name)

@@ -33,21 +33,18 @@ def deferred_types(root, base, tip):
 def check_committed(root, base, tip, deadline):
     try:
         with SOURCE['committed_source'](root, tip, git(root, 'rev-parse', 'main'), deadline) as (tree, tools):
-            available = json.loads((tree / '.push-types.json').read_text())['available']
+            inputs = json.loads((tree / '.push-types.json').read_text())
+            available = inputs['available']
             deferred = deferred_types(root, base, tip)
-            if deferred and available:
-                rc, output = LIVE['run'](['node', str(tree / 'scripts/gen-shard-words.mjs')], tree, deadline)
-                if rc:
-                    return {'ok': False, 'phase': 'lint-tables',
-                            'files': LIVE['failure_paths'](output), 'output': output}
-                rc, output = LIVE['run'](['pnpm', 'exec', 'oxlint', '--type-check', '--type-aware',
-                                         '-c', '.oxlintrc.json', *deferred], tree, deadline)
-                if rc:
-                    return {'ok': False, 'phase': 'typed-check',
-                            'files': LIVE['failure_paths'](output) or deferred, 'output': output}
-            result = LIVE['check'](tree, base, tip, deadline, files=LIVE['changed'](root, base, tip), tools=tools, types_available=available)
+            deleted = git(root, 'diff', '--name-only', '--diff-filter=D', '--no-renames', base, tip).splitlines()
+            result = LIVE['check'](tree, base, tip, deadline, files=LIVE['changed'](root, base, tip),
+                                   runner=LIVE['run'],
+                                   tools=tools, types_available=available,
+                                   tests_available=inputs.get('testsAvailable', available),
+                                   test_revision=inputs.get('testRevision'), deleted=deleted, typed_files=deferred)
             if deferred:
-                result['types'] = 'pre-commit+deferred' if available else 'ci-cache-miss'
+                if not available:
+                    result['types'] = 'ci-cache-miss'
                 if not available:
                     result['output'] += '\nDeferred typed checks lack verified generated inputs; full CI owns: ' + ', '.join(deferred)
             if not result['ok'] and result['files']:

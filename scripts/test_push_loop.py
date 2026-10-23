@@ -14,9 +14,10 @@ from contextlib import contextmanager
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
-PUSH = runpy.run_path(str(ROOT / 'scripts/push-loop.py'))
+TOOL_ROOT = Path(os.environ.get('WS_PUSH_TOOL_ROOT', ROOT / 'scripts'))
+PUSH = runpy.run_path(str(TOOL_ROOT / 'push-loop.py'))
 LIVE = PUSH['LIVE']
-CACHE = runpy.run_path(str(ROOT / 'scripts/push_input_cache.py'))
+CACHE = runpy.run_path(str(TOOL_ROOT / 'push_input_cache.py'))
 TOOLS = runpy.run_path(str(ROOT / 'scripts/sp-tools.py'))
 
 
@@ -119,18 +120,23 @@ class PushLoop(unittest.TestCase):
         result = PUSH['tick'](self.root, checker=lambda *_: {'ok': True, 'output': ''}, uploader=lambda *_: 0)
         self.assertEqual(result['status'], 'pushed')
 
-    def test_pre_push_runs_only_related_tests(self):
+    def test_push_prioritizes_guards_related_then_importer_lint(self):
         tip = self.commit('src/good.ts')
         commands = []
         def runner(command, *_):
             commands.append(command)
-            return 0, '["test/unit.test.ts"]' if '--live' in command else ''
+            if '--live' in command:
+                return 0, '["test/unit.test.ts"]'
+            if 'importers' in command:
+                return 0, '["src/good.ts"]'
+            return 0, ''
         result = LIVE['check'](self.root, self.base, tip, time.monotonic() + 45, runner)
         self.assertTrue(result['ok'])
-        self.assertEqual([command[0] for command in commands], ['node', 'pnpm'])
-        self.assertIn('vitest', commands[1])
-        self.assertFalse(any('oxlint' in command or 'types' in command for command in commands))
-        self.assertEqual(result['types'], 'pre-commit')
+        self.assertEqual([command[0] for command in commands], ['pnpm', 'node', 'pnpm', 'node', 'pnpm'])
+        self.assertIn('scripts/vitest-push-guards.config.ts', commands[0])
+        self.assertIn('scripts/vitest-push.config.ts', commands[2])
+        self.assertIn('oxlint', commands[-1])
+        self.assertEqual(result['types'], 'pre-commit+importers')
 
     def test_edit_during_tests_cannot_earn_a_pass(self):
         tip = self.commit('src/good.ts')
@@ -146,10 +152,12 @@ class PushLoop(unittest.TestCase):
         self.assertLess(time.monotonic() - start, 2)
 
     def test_committed_source_ignores_working_and_index_edits(self):
-        for name in [*PUSH['SOURCE']['TOOLS'], 'link-node-modules.mjs']:
+        for name in [*PUSH['SOURCE']['TOOLS'], *PUSH['SOURCE'].get('CONFIGS', []), 'link-node-modules.mjs']:
             self.put('scripts/' + name, '// committed tool\n')
         self.put('src/data.json', '{"state":"committed"}')
         self.put('src/other.ts', 'export const original = true;')
+        self.put('src/asset.ts', "import image from './image.png'; export {image};")
+        self.put('src/image.png', 'committed-binary')
         tip = self.commit('src/entry.ts')
         self.put('src/other.ts', 'half written foreign WIP')
         self.put('src/data.json', '{"state":"staged WIP"}')
@@ -159,6 +167,7 @@ class PushLoop(unittest.TestCase):
             self.assertEqual((tree / 'src/other.ts').read_text(), 'export const original = true;')
             self.assertEqual((tree / 'src/data.json').read_text(), '{"state":"committed"}')
             self.assertEqual((tools / 'push-inputs.mjs').read_text(), '// committed tool\n')
+            self.assertEqual((tree / 'src/image.png').read_text(), 'committed-binary')
         self.assertEqual((self.root / 'src/other.ts').read_text(), 'half written foreign WIP')
         self.assertEqual((self.root / '.git/index').read_bytes(), index)
 
@@ -168,7 +177,9 @@ class PushLoop(unittest.TestCase):
             def runner(command, *_):
                 if '--live' in command:
                     return 0, '["test/unit.test.ts"]'
-                return (124, output) if 'vitest' in command else (0, '')
+                if 'importers' in command:
+                    return 0, '[]'
+                return (124, output) if 'scripts/vitest-push.config.ts' in command else (0, '')
             self.assertEqual(LIVE['check'](self.root, self.base, tip, time.monotonic() + 45, runner)['ok'], expected)
 
     def test_prefix_upload_keeps_red_suffix_main_and_index(self):
@@ -236,7 +247,7 @@ class PushLoop(unittest.TestCase):
         self.put('.git/push-deferred-types.json', json.dumps({'src/good.ts': ['wrong blob']}))
         self.assertEqual(PUSH['deferred_types'](self.root, self.base, tip), [])
 
-    def test_deferred_type_refusal_blocks_the_push_before_related_tests(self):
+    def test_deferred_type_refusal_blocks_after_required_guards(self):
         tip = self.commit('src/good.ts')
         blob = self.git('rev-parse', tip + ':src/good.ts')
         self.put('.git/push-deferred-types.json', json.dumps({'src/good.ts': [blob]}))
@@ -247,16 +258,17 @@ class PushLoop(unittest.TestCase):
         calls = []
         def runner(command, *_):
             calls.append(command)
-            if command[0] == 'node':
-                return 0, ''
-            return 1, 'src/good.ts:1:1 error typescript(TS2322)'
+            if 'oxlint' in command:
+                return 1, 'src/good.ts:1:1 error typescript(TS2322)'
+            return 0, '[]' if command[0] == 'node' else ''
         with patch.dict(PUSH['SOURCE'], committed_source=prepared), patch.dict(LIVE, run=runner):
             result = PUSH['check_committed'](self.root, self.base, tip, time.monotonic() + 45)
         self.assertFalse(result['ok'])
         self.assertEqual(result['phase'], 'typed-check')
-        self.assertEqual(calls, [['node', str(self.root / 'scripts/gen-shard-words.mjs')],
-                                ['pnpm', 'exec', 'oxlint', '--type-check', '--type-aware',
-                                 '-c', '.oxlintrc.json', 'src/good.ts']])
+        self.assertIn('scripts/vitest-push-guards.config.ts', calls[0])
+        self.assertEqual(next(command for command in calls if 'oxlint' in command),
+                         ['pnpm', 'exec', 'oxlint', '--type-check', '--type-aware',
+                          '-c', '.oxlintrc.json', 'src/good.ts'])
 
     def test_deferred_types_with_missing_generated_inputs_stay_with_ci(self):
         tip = self.commit('src/good.ts')
@@ -273,7 +285,8 @@ class PushLoop(unittest.TestCase):
         self.assertTrue(result['ok'])
         self.assertEqual(result['types'], 'ci-cache-miss')
         self.assertIn('full CI owns: src/good.ts', result['output'])
-        self.assertEqual(calls, [])
+        self.assertEqual(len(calls), 1)
+        self.assertIn('scripts/vitest-push-guards.config.ts', calls[0][0])
 
     def test_missing_discovery_prevents_a_partial_cache_from_enabling_types(self):
         self.put('src/shards/fixture/world/build.ts', "import manifest from '../discovery.generated';\nexport const seed = manifest.seed;\n")
@@ -330,7 +343,50 @@ class PushLoop(unittest.TestCase):
         self.assertTrue(result['ok'])
         self.assertEqual(result['types'], 'pre-commit')
         self.assertIn('related tests defer', result['output'])
-        self.assertEqual(commands, [])
+        self.assertEqual(len(commands), 1)
+        self.assertIn('scripts/vitest-push-guards.config.ts', commands[0][0])
+
+    def test_prior_verified_inputs_enable_tests_but_never_typed_lint(self):
+        tip = self.commit('src/good.ts')
+        commands = []
+        def runner(command, *_):
+            commands.append(command)
+            return 0, '["test/unit.test.ts"]' if '--live' in command else ''
+        result = LIVE['check'](self.root, self.base, tip, time.monotonic() + 45,
+                               runner=runner, types_available=False, tests_available=True, test_revision=self.base)
+        self.assertTrue(result['ok'])
+        self.assertEqual([command[0] for command in commands], ['pnpm', 'node', 'pnpm'])
+        self.assertIn('previous generation; not current type proof', result['output'])
+        self.assertIn('Typed importers require exact', result['output'])
+
+    def test_shared_budget_reaches_importer_lint_and_reports_unfinished_files(self):
+        tip = self.commit('src/good.ts')
+        clock = [100.0]
+        commands = []
+        def runner(command, root, deadline, env):
+            self.assertEqual(deadline, 145)
+            self.assertLess(clock[0], deadline)
+            commands.append(command)
+            if 'scripts/vitest-push-guards.config.ts' in command:
+                clock[0] += 7
+            elif '--live' in command:
+                clock[0] += 3
+                return 0, '["test/unit.test.ts"]'
+            elif 'scripts/vitest-push.config.ts' in command:
+                clock[0] += 20
+            elif 'importers' in command:
+                clock[0] += 1
+                return 0, '["src/good.ts", "src/importer.ts"]'
+            elif 'oxlint' in command:
+                clock[0] = deadline
+                return 124, 'unfinished typed check'
+            return 0, ''
+        with patch.object(time, 'monotonic', side_effect=lambda: clock[0]):
+            result = LIVE['check'](self.root, self.base, tip, 145, runner=runner)
+        self.assertTrue(result['ok'])
+        self.assertEqual(clock[0], 145)
+        self.assertIn('CI owns: src/good.ts, src/importer.ts', result['output'])
+        self.assertIn('oxlint', commands[-1])
 
 
 if __name__ == '__main__':
