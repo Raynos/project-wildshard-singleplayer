@@ -1,7 +1,15 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Owned child-process diagnostic fixture.
+import {mkdirSync,mkdtempSync,rmSync,writeFileSync} from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Owned fixture paths.
+import {resolve as resolvePath} from 'node:path';
 import { afterEach, expect, test, vi } from 'vitest';
-import { runShardBuildPool } from '../scripts/shard-build-pool.mjs';
+import { runShardBuild, runShardBuildPool } from '../scripts/shard-build-pool.mjs';
 
-afterEach(() => { vi.useRealTimers(); });
+const owned: string[] = [];
+afterEach(() => {
+  vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllEnvs();
+  for (const root of owned.splice(0)) rmSync(root,{recursive:true,force:true});
+});
 
 test('bounds active builds at six and drains every product', async () => {
   vi.useFakeTimers();
@@ -36,4 +44,25 @@ test('aborts owned builds, starts no queued work and drains failures', async () 
   await refusal;
   expect(started).toEqual([0,1,2,3,4,5]);
   expect(aborted).toEqual(started); expect(active).toBe(0);
+});
+
+test('retains a bounded failing child stderr tail with its product identity', async () => {
+  mkdirSync('tmp',{recursive:true});
+  const root=mkdtempSync(resolvePath('tmp/shard-pool-diagnostics-')); owned.push(root);
+  const hook=resolvePath(root,'child.mjs');
+  // Replace only author work; exercise the real spawn, stderr and exit path.
+  const source=String.raw`process.stderr.write('discarded prefix'+ 'x'.repeat(9000)+'\nNative fixture refusal\n');process.exitCode=1;`;
+  writeFileSync(hook,`import {registerHooks} from 'node:module';registerHooks({load(url,context,next){if(url.endsWith('/scripts/wildshard.mjs'))return {format:'module',shortCircuit:true,source:${JSON.stringify(source)}};return next(url,context);}});`);
+  vi.stubEnv('NODE_OPTIONS',`${process.env['NODE_OPTIONS']??''} --import ${hook}`);
+  const forwarded=vi.spyOn(process.stderr,'write').mockImplementation(()=>true);
+  let failure: unknown;
+  try { await runShardBuild(['build','fixture/project','fixture/out'],new AbortController().signal); }
+  catch (error) { failure=error; }
+  expect(failure).toBeInstanceOf(Error);
+  if (!(failure instanceof Error)) throw new Error('Missing child failure');
+  expect(failure.message).toContain('Shard build exited 1 (fixture/project)');
+  expect(failure.message).toContain('Native fixture refusal');
+  expect(failure.message).not.toContain('discarded prefix');
+  expect(failure.message.length).toBeLessThan(8500);
+  expect(forwarded.mock.calls.map(call=>String(call[0])).join('')).toContain('discarded prefix');
 });
