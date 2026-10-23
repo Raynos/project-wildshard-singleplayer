@@ -1,5 +1,8 @@
 import { outputPlatformPayloads } from '../src/sdk/outputProduct';
 import { ForestWeatherSchema } from '../src/format/forestWeather';
+import {parseHeldSlots} from '../src/format/heldArms';
+// oxlint-disable-next-line import/no-nodejs-modules -- Compare emitted slot metadata with its exact generated authoring input.
+import {readFileSync} from 'node:fs';
 import { NALATI_WEATHER_PAGE } from '../src/shards/nalati-grasslands/generators/weatherPage';
 // @vitest-environment happy-dom
 import { expect,test,vi } from 'vitest';
@@ -35,6 +38,8 @@ test('the shipped King intake retains its attack owner before weather is publish
   const plan=v.parse(v.object({features:v.array(v.object({kind:v.string(),file:v.exactOptional(v.string()),owner:v.exactOptional(v.string()),hud:v.exactOptional(v.literal(true))}))}),product.section('client/plan'));
   expect(plan.features.filter(row=>row.kind==='weather.forest')).toEqual([{kind:'weather.forest',file:'world/forest-weather.json',owner:'nalati.weather',hud:true}]);
   expect(await product.json('world/forest-weather.json')).toEqual(v.parse(ForestWeatherSchema,NALATI_WEATHER_PAGE));
+  const slotRows:unknown=JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/mountedLoadout.generated.json','utf8'));
+  expect(parseHeldSlots(await product.json('held/slots.json'))).toEqual(parseHeldSlots(slotRows));
   const fight=v.parse(v.object({programs:v.record(v.string(),v.unknown())}),await product.json('combat/titan-fight.json'));
   expect(Object.keys(fight.programs)).toStrictEqual(['attack','wind']);
   const scope=new Scope('state-intake'),f=fakeWorld(),game=Object.assign(f.game.asGame(),{levelScope:scope});

@@ -10856,6 +10856,9 @@ The compiled registry in `src/game/shardfile/clientPlan.ts` owns the order:
 `clientSceneHandles(product, resident)` reads Z2's typed resident results.
 Debug exposes actual native owner references and the admitted capture actions;
 rows cannot traverse or invoke reflected objects.
+An `objects` key list on `debug.expose` exposes live getters from the existing
+runtime object map at world-bindings rank 100. It preserves the original map
+and runtime identities; an omitted list keeps the original play-time exposure.
 There is no dynamic loader, condition, loop or TS hook in a plan.
 
 `species.program` accepts either its original `library` source or the approved
@@ -11667,7 +11670,8 @@ kind-only `population.product-creatures` at -20, and
 `held.claims.install {claims}` at -10, before ordinary path/catalogue rows.
 Admission requires exactly one matching preparation/installation pair if
 either is present, plus the fixed admitted `actors/creature-install.json`
-for product creatures. Rows cannot supply a file override, rank or callback.
+for product creatures. Native source rows name admitted slot/catalogue files; phases and ranks
+remain compiled. No row supplies a callback.
 
 Preparation uses the existing HeldClaims owner and publishes its concrete
 `claims` loan only after the await and owner-retirement check. Installation
@@ -11699,7 +11703,11 @@ kit rank -10. Omitted preparation retains the original matching kit-prepare
 row and held/arms admission. World preparation instead borrows the concrete
 claims loan prepared at the existing world slot, refuses a repeated kit
 prepare, and validates its pinned product, id and live source readiness before
-registration. Installation uses the current entered context, never the saved
+registration. Optional `held.claims.prepare.source:{slots,library}` reads its
+admitted slot file and prepares the same product-pinned HeldClaims at
+world-bindings rank -30. The slot id must match before native preparation;
+kit preparation is skipped. Omitted source keeps the existing kit phase.
+Installation uses the current entered context, never the saved
 world context. The entered grapple capability retains its kit-only admission.
 
 `enterClientRiding(ctx, claims)` borrows `claims.pageKit(ctx)`: the exact kit

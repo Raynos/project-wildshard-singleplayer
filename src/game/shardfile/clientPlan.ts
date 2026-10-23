@@ -53,6 +53,7 @@ import { installEnteredRuntimeService, retainsRuntimeServices } from '../shard/r
 export type ClientPhase = 'world' | 'world-bindings' | 'kit' | 'prepare-play' | 'play';
 interface ClientFeature {
   readonly phase: ClientPhase;
+  readonly phaseFor?: (row: ClientFeatureRow) => ClientPhase;
   readonly rank: number;
   readonly rankFor?: (row: ClientFeatureRow) => number;
   readonly lifetime: 'resident' | 'entered';
@@ -209,10 +210,10 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     if (!custom(row.source)) throw new Error('Invalid quest spawn source');
     publishEntryOwner(ctx.scope, 'quest-spawns', row.id, await installDeclaredQuestSpawns(ctx, { ...row, source: row.source }));
   } },
-  'held.claims.prepare': { phase: 'kit', rank: -30, lifetime: 'entered', sections: ['held/arms'], install: async (ctx, row) => {
+  'held.claims.prepare': { phase: 'kit', phaseFor: row => row.kind === 'held.claims.prepare' && row.source !== undefined ? 'world-bindings' : 'kit', rank: -30, lifetime: 'entered', sections: ['held/arms'], install: async (ctx, row) => {
     if (row.kind !== 'held.claims.prepare') throw new Error('Invalid claims preparation feature');
     const { prepareHeldClaimsEntry } = await import('./heldClaimsEntry');
-    await prepareHeldClaimsEntry(ctx, row.id);
+    await prepareHeldClaimsEntry(ctx, row.id, row.source);
   } },
   'population.hull-book': { phase: 'kit', rank: -25, lifetime: 'entered', sections: ['actors/species-programs', 'explore/catalogue'], install: async ctx => {
     const { prepareDeclaredHullBookKit } = await import('../models/socketRigCreature');
@@ -310,9 +311,14 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     install: (ctx, row) => { if (row.kind === 'audio.cues' && row.stage === 'world') installClientCues(ctx, row); },
     play: { rank: 30, install: (ctx, row) => { if (row.kind === 'audio.cues' && row.stage !== 'world') installClientCues(ctx, row); } } },
   'fx.trail': { phase: 'play', rank: 90, lifetime: 'entered', sections: ['world/scenes'], install: installClientTrails },
-  'debug.expose': { phase: 'play', rank: 100, lifetime: 'entered', sections: [], install: (ctx, row) => {
+  'debug.expose': { phase: 'play', phaseFor: row => row.kind === 'debug.expose' && row.objects !== undefined ? 'world-bindings' : 'play', rank: 100, lifetime: 'entered', sections: [], install: (ctx, row) => {
     if (row.kind !== 'debug.expose' || ctx.game.runtime === undefined) throw new Error('Client debug feature requires its runtime');
-    if (hasDeclaredClientPage(ctx.product.shardfile)) {
+    if (row.objects !== undefined) {
+      const runtime = ctx.game.runtime, objects = runtime.objects;
+      ctx.debug.expose(row.name, Object.defineProperties({}, Object.fromEntries(row.objects.map(key => [key, {enumerable: true, get: () => {
+        if (ctx.game.runtime !== runtime || runtime.objects !== objects) throw new Error('Debug object owner changed'); return objects[key];
+      }}]))));
+    } else if (hasDeclaredClientPage(ctx.product.shardfile)) {
       const book = clientNativeBook(ctx); ctx.debug.expose(row.name, Object.assign(book, { stage: book.capture }));
     } else ctx.debug.expose(row.name, ctx.game.runtime);
   } },
@@ -347,9 +353,10 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
     }
     const prepare = plan.features.find(row => row.kind === 'held.claims.prepare'), install = plan.features.find(row => row.kind === 'held.claims.install');
     if(install?.preparation==='world'){
-      if(prepare!==undefined)throw new Error('World-prepared held claims cannot repeat kit preparation');
+      if(prepare!==undefined&&(prepare.source===undefined||prepare.id!==install.claims))throw new Error('World-prepared held claims cannot repeat kit preparation');
     } else if((prepare!==undefined||install!==undefined)&&(prepare===undefined||install===undefined||prepare.id!==install.claims))throw new Error('Held claims require one matching preparation and installation');
     if(install!==undefined&&install.preparation!=='world')product.section('held/arms');
+    if(prepare?.source!==undefined&&(install?.preparation!=='world'||!product.hasFile(prepare.source.slots)||!product.hasFile(prepare.source.library)))throw new Error('Held slot preparation requires its declared world sources');
     if (plan.features.some(row => row.kind === 'population.product-creatures')) {
       if (!product.hasFile('actors/creature-install.json')) throw new Error('Product creatures require their admitted install rows');
       // Compatibility owners already live in the admitted product; they are not new client feature schemas.
@@ -421,7 +428,7 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
         product.section(row.source);
         if (!plan.features.some(owner => owner.kind === 'quest.composition' && owner.id === row.quest && owner.equipment?.animals === row.animals && owner.equipment.sounds === row.sounds)) throw new Error('Quest spawns require their declared composition owners');
       }
-      const required = row.kind === 'species.program' && row.catalogue !== undefined ? ['look/hull-book'] as const : row.kind === 'content.catalogue' && !(row.finishes || row.effects.includes('finishes')) ? [] : CLIENT_FEATURES[row.kind].sections;
+      const required = row.kind === 'held.claims.prepare' && row.source !== undefined ? [] : row.kind === 'species.program' && row.catalogue !== undefined ? ['look/hull-book'] as const : row.kind === 'content.catalogue' && !(row.finishes || row.effects.includes('finishes')) ? [] : CLIENT_FEATURES[row.kind].sections;
       for (const name of required) {
         if (!product.has(name)) throw new Error(`Missing feature section ${name}`);
         product.section(name); // A listed stream section is not an admitted boot dependency.
@@ -438,7 +445,7 @@ export async function installClientPhase(ctx: ShardContext, plan: AdmittedClient
   const rows = plan.features.flatMap(row => {
     const feature = CLIENT_FEATURES[row.kind];
     if (lifetime !== undefined && feature.lifetime !== lifetime) return [];
-    return [...(feature.phase === phase ? [{ row, rank: feature.rankFor?.(row) ?? feature.rank, install: feature.install }] : []),
+    return [...((feature.phaseFor?.(row) ?? feature.phase) === phase ? [{ row, rank: feature.rankFor?.(row) ?? feature.rank, install: feature.install }] : []),
       ...(phase === 'world' && feature.world?.when(row) === true ? [{ row, ...feature.world }] : []),
       ...(phase === 'play' && feature.play !== undefined ? [{ row, ...feature.play }] : []),
       ...(phase === 'prepare-play' && feature.preparePlay !== undefined && (feature.preparePlay.when?.(row) ?? true) ? [{ row, ...feature.preparePlay }] : [])];

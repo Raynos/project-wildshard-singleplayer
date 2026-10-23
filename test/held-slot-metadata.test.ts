@@ -1,5 +1,8 @@
 import {afterEach,expect,test,vi} from 'vitest';
 import {HeldClaims} from '../src/game/loadout/claims';
+import {prepareHeldClaimsEntry,installHeldClaimsEntry} from '../src/game/shardfile/heldClaimsEntry';
+import {entryOwner} from '../src/game/shardfile/entryOwners';
+import {CLIENT_FEATURES} from '../src/game/shardfile/clientPlan';
 import {Scope} from '../src/engine/app/scope';
 import type {ShardContext} from '../src/game/plugin/context';
 import type {ShardRuntime} from '../src/game/shard/runtime';
@@ -19,11 +22,12 @@ const file='models/gear-book.json';
 const book={rows:[{key:'reward',model:{id:'fixture/reward',name:'Reward',file:'fixture.ts',category:'gear',pipeline:'code',defaults:{}},source:{kind:'packed'}}],
   packed:{bin:'/assets/fixture/gear.bin',bytes:0,rows:[{key:'reward',parts:[]}]},materials:{}};
 afterEach(()=>{vi.restoreAllMocks();});
-function fixture(){
+function fixture(slotInput?:unknown){
   const parent=new Scope('metadata-parent'),scope=parent.child('metadata-entry'),events:string[]=[];
   const source={...emptyShardfile({slug:'metadata-fixture',name:'Metadata fixture',author:'Fixture',revision:1,seed:1}),items:parseItems(items)};
-  const read=vi.fn(()=>{events.push('book');return Promise.resolve(new TextEncoder().encode(JSON.stringify(book)));});
+  const read=vi.fn((hash:string)=>{events.push(hash==='slots'?'slots':'book');return Promise.resolve(new TextEncoder().encode(JSON.stringify(hash==='slots'?slotInput:book)));});
   const files=new Map([file,'weapons/blade.json','weapons/polearm.json'].map(name=>[name,{hash:'a'.repeat(64),url:`/fixture/${name}`} ]));
+  if(slotInput!==undefined)files.set('held/slots.json',{hash:'slots',url:'/fixture/slots'});
   const product=createShardProduct({slug:source.identity.slug,revision:1,shardfile:source,sections:new Map(),files,read});
   const held=HeldClaims.fromProductSlots(product,declaration,file),blade=held.blade('blade'),polearm=held.polearm('polearm');
   const bladePrepare=vi.spyOn(blade,'prepare').mockImplementation(()=>{events.push('blade');return Promise.resolve();});
@@ -131,4 +135,30 @@ test('the pinned declaration cannot be changed through its public metadata view'
     const source=blade.source;expect(()=>{source.file='weapons/replaced.json';}).toThrow(TypeError);
     expect(f.read).not.toHaveBeenCalled();expect(f.bladePrepare).not.toHaveBeenCalled();expect(f.polearmPrepare).not.toHaveBeenCalled();
   } finally {f.parent.dispose();}
+});
+
+
+test('declared world preparation reads slot metadata then retains the original source and kit order',async()=>{
+  const f=fixture(declaration),source={slots:'held/slots.json',library:file};
+  try{
+    const feature=CLIENT_FEATURES['held.claims.prepare'];
+    expect(feature.phaseFor?.({kind:'held.claims.prepare',id:declaration.id,source})).toBe('world-bindings');
+    expect(feature.phaseFor?.({kind:'held.claims.prepare',id:declaration.id})).toBe('kit');
+    await prepareHeldClaimsEntry(f.ctx,declaration.id,source);
+    expect(entryOwner(f.scope,'claims',declaration.id)).toBe(f.held);
+    expect(f.events).toEqual(['slots','blade','polearm','book','packed:/assets/fixture/gear.bin']);
+    expect(f.weapon).not.toHaveBeenCalled();
+    installHeldClaimsEntry(f.ctx,declaration.id,'world');
+    expect(f.weapon).toHaveBeenCalledOnce();
+    f.scope.dispose();expect(()=>entryOwner(f.scope,'claims',declaration.id)).toThrow('ended');
+  }finally{f.parent.dispose();}
+});
+
+test('a mismatched declared slot identity refuses before native source preparation or publication',async()=>{
+  const f=fixture({...declaration,id:'foreign-kit'});
+  try{
+    await expect(prepareHeldClaimsEntry(f.ctx,declaration.id,{slots:'held/slots.json',library:file})).rejects.toThrow('identity differs');
+    expect(f.events).toEqual(['slots']);expect(f.bladePrepare).not.toHaveBeenCalled();expect(f.polearmPrepare).not.toHaveBeenCalled();
+    expect(()=>entryOwner(f.scope,'claims',declaration.id)).toThrow('Missing live entry owner');
+  }finally{f.parent.dispose();}
 });

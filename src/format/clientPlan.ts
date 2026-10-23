@@ -83,7 +83,7 @@ export const ClientFeatureSchema = v.variant('kind', [
     frame: v.strictObject({ id, after: v.pipe(v.array(id), v.maxLength(16)), before: v.pipe(v.array(id), v.maxLength(16)) }) }),
   v.strictObject({ kind: v.literal('practice.course'), course: v.picklist(['horse', 'grapple']),
     title: label, blurb: label, icon: v.pipe(v.string(), v.minLength(1), v.maxLength(4096)), art: label, file: label }),
-  v.strictObject({ kind: v.literal('held.claims.prepare'), id }),
+  v.strictObject({ kind: v.literal('held.claims.prepare'), id, source: v.exactOptional(v.strictObject({ slots: label, library: label })) }),
   v.strictObject({ kind: v.literal('population.product-creatures') }),
   v.strictObject({ kind: v.literal('population.hull-book') }),
   v.strictObject({ kind: v.literal('held.claims.install'), claims: id, preparation: v.exactOptional(v.picklist(['kit','world'])) }),
@@ -123,7 +123,7 @@ export const ClientFeatureSchema = v.variant('kind', [
   ClientHeldBossSchema, ClientSpawnedBossSchema, ClientPlayerEnterSchema, ClientBossTelegraphSchema,
   v.strictObject({ kind: v.literal('light.emitters'), rows: LightEmittersSchema }),
   v.strictObject({ kind: v.literal('weather.fields'), rows: EasedFieldsSchema, quest: id }),
-  v.strictObject({ kind: v.literal('debug.expose'), name: id }),
+  v.strictObject({ kind: v.literal('debug.expose'), name: id, objects: v.exactOptional(v.pipe(v.array(id), v.minLength(1), v.maxLength(16), v.check(keys => new Set(keys).size === keys.length, 'Unique debug object keys'))) }),
 ]);
 /** Rows are unordered. Phase, rank and lifetime belong exclusively to the compiled registry. */
 export const ClientPlanSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Client plan requires plain JSON'), v.strictObject({ version: v.literal(1), features: v.pipe(v.array(ClientFeatureSchema), v.maxLength(64)) }),

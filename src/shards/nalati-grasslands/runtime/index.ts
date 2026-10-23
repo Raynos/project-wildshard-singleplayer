@@ -1,11 +1,9 @@
-import { entryOwner, publishEntryOwner } from '@wildshard/game/shardfile/entryOwners';
+import { entryOwner } from '@wildshard/game/shardfile/entryOwners';
 
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin } from '@wildshard/game/shard/plugin';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { buildNalatiWorld, type Nalati } from './state';
-import { HeldClaims } from '@wildshard/game/loadout/claims';
-import slots from '../boot/mountedLoadout.generated.json' with { type:'json' };
 
 function host(ctx: ShardContext) {
   const shell = ctx.game.runtime;
@@ -23,12 +21,8 @@ export class NalatiPlugin extends ShardPlugin {
     await step('cabins', () => undefined);
     const species = entryOwner(ctx.scope, 'species', 'nalati.species');
     this.rt = await step('props', (progress) => buildNalatiWorld(world, ctx, species, progress));
-    const arsenal=HeldClaims.fromProductSlots(ctx.product,slots,'models/gear-book.json');
-    await arsenal.prepareSlotSources(ctx);
-    publishEntryOwner(ctx.scope, 'claims', 'nalati.arsenal', arsenal);
     shell.objects['nalati'] = this.rt;
     // the probe's `shard` handles (E405 AG25), read when the probe installs (ride and wildlife arrive in later hooks)
-    ctx.debug.expose(`harness.shard.${ctx.manifest.slug}`, Object.defineProperties({}, Object.fromEntries(['nalati', 'ride', 'wildlife'].map((key) => [key, { enumerable: true, get: () => shell.objects[key] }]))));
   }
 
   override async play(ctx: ShardContext): Promise<void> {

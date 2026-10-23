@@ -581,3 +581,25 @@ test('compiled arena phase binds open before room independent of author row orde
   }finally{f.ctx.scope.dispose();}
  }}finally{install.mockRestore();}
 });
+
+
+test('declared debug objects retain live getters at the original post-world boundary',async()=>{
+  const f=context(),feature=clientPhases.CLIENT_FEATURES['debug.expose'];
+  const row={kind:'debug.expose',name:'harness.shard.fixture',objects:['home','vehicle']} as const;
+  const parsed=parseClientPlan({version:1,features:[row]}).features[0];
+  if(parsed?.kind!=='debug.expose')throw new Error('Missing debug row');
+  try{
+    Object.assign(f.runtime,{objects:{}});
+    expect(feature.phaseFor?.(parsed)).toBe('world-bindings');
+    await feature.install(f.ctx,parsed,f.ctx.scope);
+    const exposed=f.expose.mock.calls[0]?.[1];
+    if(exposed===null||typeof exposed!=='object')throw new Error('Missing debug object');
+    const runtime=f.ctx.game.runtime;if(runtime===undefined)throw new Error('Missing native runtime');
+    const value={ready:true};runtime.objects['vehicle']=value;
+    expect(Reflect.get(exposed,'vehicle')).toBe(value);
+    expect(Reflect.get(exposed,'home')).toBeUndefined();
+    expect(Object.keys(exposed)).toEqual(['home','vehicle']);
+    Object.assign(f.ctx.game,{runtime:{...runtime,objects:{}}});
+    expect(():unknown=>Reflect.get(exposed,'vehicle')).toThrow('owner changed');
+  }finally{f.ctx.scope.dispose();}
+});
