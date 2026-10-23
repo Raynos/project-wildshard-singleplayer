@@ -143,6 +143,11 @@ The existing `scripts/shard-phone-memory.mjs` accepts `--floor --pin=<sha>`
 with a shard, `menu` or `select` target. It samples libproc footprint, V8 heap,
 prefetch payload counters and worker URLs at 10/60/120 seconds without forced
 GC. Service workers are blocked for the Chromium core-memory comparison.
+Core template floors enable the existing device Legacy shard buttons fixture
+so the reader can require the explicit SHARDFILE button, with no LEGACY fallback.
+A single template reading accepts `--floor --compiled --pin=<sha>` under the
+same contract; it does not repeat valid menu/selector floors. Menu and selector
+fixtures retain the ordinary single-button deck.
 Detailed allocator trees follow the acceptance samples; parent and child sizes
 are not additive. `bytes` is effective ownership attribution, while `sizeBytes`
 and `allocatedObjectsBytes` retain the allocator's reported size and live

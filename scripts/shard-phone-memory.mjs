@@ -5,6 +5,7 @@
 // --floor samples at 10/60/120 s without forced GC, then diagnoses HTTP-cache retention.
 // It also accepts menu or select as the target, with the real Developer prefetch on.
 // Use core --floor --pin=<sha> for all four independent milestone floors.
+// A single --floor --compiled --pin=<sha> target uses the same explicit compiled-entry contract.
 import { spawnSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
@@ -23,6 +24,8 @@ export const coreMemoryTargets = Object.freeze([
   Object.freeze({shard: '_template', name: 'Template 1', limitBytes: 100 * 1048576}),
   Object.freeze({shard: 'blender-template', name: 'Template 2', limitBytes: 100 * 1048576}),
 ]);
+/** Existing Developer-tools fixture: expose the explicit compiled button, never fall back to LEGACY. */
+export const compiledFloorSave = Object.freeze({scope: 'device', key: 'debug.global.legacyShardButtons', data: 'on'});
 /** Scalar inventory only: no response bodies or Network-domain changes.
  * @param {readonly {name: string}[]} [entries] */
 export function scriptResourceURLs(entries = performance.getEntriesByType('resource')) {
@@ -133,10 +136,11 @@ async function measureTarget(base, shard, label, out, pin, floor, requireCompile
 const title = shard === 'menu' || shard === 'select';
 const memoryBrowser = await launchMemoryBrowser(['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', '--enable-precise-memory-info']);
 const {browser} = memoryBrowser;
-const result = { label, shard, base, pin, floor, inspectorResponseBodyBytes: 0, samples: [], errors: [] };
+const result = { label, shard, base, pin, floor, compiledEntryRequired: requireCompiled && !title, inspectorResponseBodyBytes: 0, samples: [], errors: [] };
 try {
   const context = await browser.newContext({ ...devices['iPhone 16 Pro'], serviceWorkers: floor ? 'block' : 'allow' });
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
+  if (requireCompiled && !title) await saveFixture(context, compiledFloorSave);
   await saveFixture(context, { scope: 'global', key: 'settings', merge: true, data: { tier: 'phone', fps: 'auto', volume: 0 } });
   await saveFixture(context, { scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } });
   await context.addInitScript(() => { window.__wildshardHarness = { seed: 357, capture: null }; });
@@ -194,18 +198,19 @@ return result;
 }
 
 async function main() {
-  const [base, shard, label, out] = process.argv.slice(2), floor = process.argv.includes('--floor');
+  const [base, shard, label, out] = process.argv.slice(2), floor = process.argv.includes('--floor'), compiled = process.argv.includes('--compiled');
   const pin = process.argv.find(arg => arg.startsWith('--pin='))?.slice(6);
   if (!base || !shard || !label || !out || !out.endsWith('.json')) throw new Error('Expected <preview URL> <shard|menu|select|core> <label> <out.json>');
   if (['menu', 'select', 'core'].includes(shard) && !floor) throw new Error('Menu/core targets require --floor');
   if (shard === 'core' && pin === undefined) throw new Error('Core floors require --pin=<full-sha>');
+  if (compiled && (!floor || pin === undefined || ['menu', 'select'].includes(shard))) throw new Error('Compiled floor requires a shard, --floor and --pin=<full-sha>');
   if (pin !== undefined) {
     if (!/^[a-f0-9]{40}$/u.test(pin)) throw new Error('Expected exact served source pin');
     const version = await (await fetch(new URL('/version.json', base))).json();
     if (!version.build?.startsWith(pin.slice(0, 7))) throw new Error('Served source differs from pin');
   }
   if (shard !== 'core') {
-    const result = await measureTarget(base, shard, label, out, pin, floor);
+    const result = await measureTarget(base, shard, label, out, pin, floor, compiled);
     writeFileSync(out, `${JSON.stringify(result, null, 2)}\n`); console.log(JSON.stringify(result));
     if (result.errors.length > 0) process.exitCode = 1;
     return;

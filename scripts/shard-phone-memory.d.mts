@@ -1,5 +1,7 @@
 /** Independent Chromium floors, with the G658 M1 steady-state MiB targets. */
 export const coreMemoryTargets: readonly Readonly<{shard: string; name: string; limitBytes: number}>[];
+/** Existing device fixture exposing the explicit SHARDFILE button for compiled-only floors. */
+export const compiledFloorSave: Readonly<{scope: 'device'; key: 'debug.global.legacyShardButtons'; data: 'on'}>;
 /** Distinct loaded script URLs, without fetching or retaining response bodies. */
 export function scriptResourceURLs(entries?: readonly {name: string}[]): string[];
 /** Compare the original 120-second renderer+GPU reading; missing/errors fail as unknown. */

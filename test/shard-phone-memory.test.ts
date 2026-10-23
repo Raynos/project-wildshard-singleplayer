@@ -60,6 +60,12 @@ test('core command requires the floor protocol and source pin before any browser
   }
 });
 
+test('single compiled floors require their protocol and exact pin before any browser', () => {
+  for (const flags of [[], ['--floor']]) expect(() => execFileSync('node', [
+    'scripts/shard-phone-memory.mjs', 'http://127.0.0.1:1', '_template', 'fixture', 'tmp/unused-core.json', '--compiled', ...flags,
+  ], {encoding: 'utf8', stdio: 'pipe'})).toThrow('Compiled floor requires');
+});
+
 test('Simulator footprint sums original process identities and keeps GPU separate', () => {
   const webContent = [{pid: 12, startAbstime: 100, physicalFootprintBytes: 120 * MiB},
     {pid: 13, startAbstime: 101, physicalFootprintBytes: 20 * MiB}];
