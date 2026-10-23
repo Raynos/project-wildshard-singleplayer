@@ -5,9 +5,10 @@ import { withOwner } from '@wildshard/engine/app/ownership';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { TIER } from '@wildshard/engine/core/tier';
 import { buildYield } from '@wildshard/engine/core/workSlice';
+import { slicer } from '@wildshard/engine/boot/plan';
 import { sharedModelContext } from '@wildshard/engine/models/model';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
-import { place, type Placed } from '@wildshard/engine/models/place';
+import { place, placeSliced, type Placed } from '@wildshard/engine/models/place';
 import type { CullOptions } from '@wildshard/engine/models/cull';
 import type { WorldScenesSection } from '@wildshard/format/worldScenes';
 import { worldSceneSourceMaterial } from './worldSceneMaterials';
@@ -30,7 +31,7 @@ export function anchorOf(rows: readonly ColliderDesc[]): Vector3 {
   return at.divideScalar(Math.max(1, rows.length));
 }
 
-function requireLive(owner: Scope): void { if (owner.disposed) throw new Error('Scene placement owner is disposed'); }
+function requireLive(owner: Scope): void { if (owner.disposed || owner.disposing) throw new Error('Scene placement owner is disposed'); }
 /** An authored copy as the model placer takes it: its fields, its tint and its pose matrix. */
 function posed(authored: WorldScenePlacementRow['poses'][number]) {
   const tint = authored.color === undefined ? {} : { color: new Color(authored.color[0], authored.color[1], authored.color[2]) };
@@ -142,7 +143,8 @@ export class WorldScenePlacement {
       .map((shape, i) => { const ordered = {}; return Object.assign(ordered, row.colliders?.[i], shape); });
     const definition = this.catalogue.model(row.model);
     const pieceId = row.piece === undefined || tile === undefined ? row.piece?.id : `${row.piece.id}.t${tile}`;
-    const placed = withOwner(owner, () => place(row.colliders === undefined ? definition : { ...definition, colliders: () => [] },
+    const slice = slicer();
+    const placed = await withOwner(owner, () => placeSliced(row.colliders === undefined ? definition : { ...definition, colliders: () => [] },
       poses.map(posed),
       // E271 / E272: no multi-draw anywhere; a 'batched' row draws instanced (a graph look on a multi-draw batch did not compile)
       { ctx: sharedModelContext(world.sky, world.game), registry: world.registry, draw: row.draw === 'batched' ? 'instanced' : row.draw,
@@ -154,7 +156,9 @@ export class WorldScenePlacement {
           ...(row.piece?.solidFloor === undefined ? {} : { solidFloor: row.piece.solidFloor }),
           ...(row.piece?.follows === undefined ? {} : { follows: row.piece.follows }),
           ...(row.piece?.floors === undefined ? {} : { floor: this.floorAt.bind(this) }),
-          ...(row.piece?.split === undefined ? {} : { split: { every: row.piece.split, yieldTask: () => buildYield(owner) } }) } }) }));
+          ...(row.piece?.split === undefined ? {} : { split: { every: row.piece.split, yieldTask: () => buildYield(owner) } }) } }) },
+      () => { requireLive(owner); const pause = slice.due(); return pause === null ? null : pause.then(() => requireLive(owner)); }));
+    requireLive(owner);
     if (row.name !== undefined) {
       placed.object.name = row.name;
       const base = placed.object instanceof InstancedMesh ? placed.object : placed.object.children.find(child => child instanceof InstancedMesh);
