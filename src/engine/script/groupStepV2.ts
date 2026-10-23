@@ -2,7 +2,7 @@
  * Calls happen at the original native slot. There is no tick loop, body/RNG/save
  * owner, action dispatcher or per-group module instance in this transport. */
 import { parseGroupStepV2, groupStepLayoutV2, groupNativeWordsV2, type GroupStepNativeV2 } from '@wildshard/format/scriptGroupStepV2';
-import type { GroupBankReferenceV2 } from '@wildshard/format/scriptGroupBankV2';
+import type { GroupBankReferenceV2, GroupBankValueV2 } from '@wildshard/format/scriptGroupBankV2';
 import { admitScriptV2 } from '@wildshard/format/scriptAdmissionV2';
 import { prepareV2Rng } from '@wildshard/format/scriptRngV2';
 import { writeV2Frame, validateV2Frame, layoutV2, type V2FrameAuthority, type V2Layout } from '@wildshard/format/scriptWireV2';
@@ -82,6 +82,7 @@ export class GroupStepV2 {
     readonly queries?: { readonly ring: QueryRingV2; readonly binding: V2QueryBinding };
   }): {
     readonly operations: readonly GroupStepOperationV2[];
+    readonly values: Readonly<Record<string,GroupBankValueV2>>;
     readonly validate: () => void;
     readonly accept: () => void;
     readonly prepareNative: (owners: GroupStepNativeOwnersV2) => {
@@ -228,7 +229,7 @@ export class GroupStepV2 {
         }
         accepted = true; this.revision++;
       };
-      return { operations: candidate.operations, validate, accept, prepareNative: owners => {
+      return { operations: candidate.operations, values: candidate.prepared.values, validate, accept, prepareNative: owners => {
         if (owners.scope !== this.scope || owners.members !== input.members
           || owners.references !== undefined && owners.references !== input.references) throw new Error('Foreign native group result scope');
         const native = prepareGroupNativeV2(candidate.operations, owners);

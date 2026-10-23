@@ -68,6 +68,9 @@ test('real AS sees sixteen stable ordered slots and detached original native ope
     const before = f.state.slice(), saved = JSON.stringify(f.bodies.map(body => body.snapshot()));
     const ready = f.runner.prepare(f.input);
     expect(f.state).toStrictEqual(before);
+    expect(ready.values).toStrictEqual({ held: 32768, sum: 120, target: 'other/member', random: 0, reply: 0 });
+    expect(Object.isFrozen(ready.values)).toBe(true);expect(Reflect.set(ready.values, 'sum', 999)).toBe(false);
+    expect(f.state).toStrictEqual(before);
     expect(ready.operations.map(op => op.id)).toStrictEqual([1, 2]);
     expect(ready.operations[0]?.member?.actor).toBe(f.bodies[15]);
     expect(ready.operations[1]?.reference?.body).toBe(f.other);

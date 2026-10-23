@@ -12667,3 +12667,19 @@ when valid is zero (requiring positive-zero value). Without encoding it uses
 [slot,value]. This retains the original memory and snapshot bytes while the
 AS bank remains finite; no field name or species-specific sentinel is hidden
 in the transport.
+
+### Preflighting the original native group codec (H4, G621 R10a)
+
+GroupStep.prepare exposes readonly values: the SAME frozen decoded record
+already prepared by GroupBankV2. It contains original reference wire strings,
+enums, booleans and finite numbers before the original numeric bank changes.
+There is no second decode, copy, continuation or publication in this getter.
+
+The original group codec preflights this record before any bank/RNG acceptance.
+For native field publication that must precede effects, compose the standalone
+prepareGroupNativeV2(ready.operations,originalOwners): validate the group,
+original codec and complete native bank, accept the group, publish the original
+codec fields without callbacks, then run the prepared native bank in emitted
+order. The convenience ready.prepareNative().accept() drains immediately after
+group acceptance; it does not invent a native-codec commit callback or reorder
+that original publication slot.
