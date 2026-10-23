@@ -572,6 +572,7 @@
           "play"
         ],
         "features": [
+          "world.assembly",
           "state.adventure",
           "species.program",
           "weather.forest",

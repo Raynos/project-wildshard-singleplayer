@@ -3,7 +3,6 @@ import { clientWildlife, clientWildlifeState } from '@wildshard/game/population/
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardRuntime } from '@wildshard/game/shard/runtime';
 import * as v from 'valibot';
-import { slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 
 
 
@@ -11,8 +10,6 @@ import { slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 
 
 import { SceneDressing } from '@wildshard/game/shardfile/sceneDressing';
-import { WorldAssembly } from '@wildshard/game/shardfile/worldAssembly';
-import prefix from '../data/worldPrefix.json' with { type: 'json' };
 import { installClientTimedEncounters } from '@wildshard/game/shardfile/clientTimedEncounters';
 import { installClientEliteConstruction } from '@wildshard/game/shardfile/clientEliteConstruction';
 import { installWorldUpdates } from '@wildshard/game/shardfile/worldUpdates';
@@ -26,17 +23,12 @@ import { installCombatTargets, type CombatTargetOwner } from '@wildshard/game/sh
 /** The defining builders keep the published state and its consumers on one contract. */
 export type Nalati = Awaited<ReturnType<typeof buildNalatiState>>;
 
-async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin: ShardContext, progress?: StepProgress) {
+async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin: ShardContext) {
+  if (plugin.game.runtime?.world !== ctx) throw new Error('Missing original world construction owner');
   const { worldUpdates, combatTargets: targetRows } = v.parse(v.object({ worldUpdates: v.unknown(), combatTargets: v.unknown() }), await plugin.product.json('sim/headless-boot.json'));
-  const shapes = await WorldAssembly.prepareNative(prefix, plugin);
-  const slice = slicer(0, progress);
-  const total = 7;
-  progress?.set(0, total, 'Preparing world builders');
   const { practiceRoom } = await import('@wildshard/engine/core/practiceRoom');
   const updates: ((dt: number, t: number) => void)[] = [];
-  const runtime = plugin.game.runtime;
-  if (runtime === undefined || runtime.world !== ctx) throw new Error('Missing original world construction owner');
-  const groups = await WorldAssembly.construct(prefix, { runtime, native: plugin, product: plugin.product, scope: plugin.scope, draws: shapes, baked: new Map(), ...(progress === undefined ? {} : { progress }) });
+  const groups = entryOwner(plugin.scope, 'world-groups', 'nalati.world');
   const dressing = SceneDressing.current(plugin);
   const weatherLoan = lateEntryOwner(plugin.scope, 'world-weather', 'nalati.weather');
   const resolveWeather = () => {
@@ -53,9 +45,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   updates.push((dt, t) => { titan.update(dt, t); });
 
   // ── named elites (elites agent, B12): the five lairs, their spawn rules on the clock / the storm — src/shards/nalati-grasslands/elites.ts ──
-  const { constants: { trophies, timedEntry, kingAssembly, eliteEntry } } = await plugin.product.json<{ constants: { trophies: unknown; timedEntry: unknown; kingAssembly: unknown; eliteEntry: unknown } }>('sim/headless-assembly.json');
-  // the lairs' trophies: drawn from the shape book at this slot (data/worldTrophies.json, a drawn-models stage)
-  await WorldAssembly.construct(trophies, { runtime, native: plugin, product: plugin.product, scope: plugin.scope, draws: shapes, baked: new Map() });
+  const { constants: { timedEntry, eliteEntry } } = await plugin.product.json<{ constants: { timedEntry: unknown; eliteEntry: unknown } }>('sim/headless-assembly.json');
   const eliteOwner = await installClientEliteConstruction(plugin, eliteEntry);
   const { entry: elites, rows: eliteRows, models: drops, fight: charge, ledges: eliteLedges } = eliteOwner;
   const eliteProgram = eliteOwner.program.value;
@@ -71,12 +61,9 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   // ── weapons (bow agent B2, sabre agent B3): main.ts hands out `ShardManifest.weapon`; the Nalati kit hooks in here ──
 
   // ── the great kurgan + the Golden King (boss agent, B13): the dungeon interior, the doors, the boss fight — src/shards/nalati-grasslands/kurganBoss.ts ──
-  await WorldAssembly.construct(kingAssembly, { runtime, native: plugin, product: plugin.product, scope: plugin.scope, draws: shapes, baked: new Map() });
   const boss = entryOwner(plugin.scope, 'arena-room', 'nalati.king');
-  groups['kurgan'] = entryOwner(plugin.scope, 'object', 'nalati.king');
   updates.push((dt, t) => boss.update(dt, t));
   plugin.answer('weather.indoors', inside => Math.max(inside, Number(boss.inside))); // weather agent (B10): no lightning / rain in the dungeon, and no storm starts during the fight
-  await slice(total - 1, total, 'Dungeon and weather');
 
   // ── creatures (creatures agent, B4): Wildlife over main's AnimalManager, fed the grass, the wind, the water, the player ──
   const night = await installClientTimedEncounters(plugin, timedEntry);
@@ -109,7 +96,6 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   plugin.debug.expose('nalati', nalati);
   plugin.debug.expose('nalati.ghosts', night.riders);
   plugin.debug.expose('nalati.dressing', dressing);
-  await slice(total, total, 'World services');
   return nalati;
 }
 

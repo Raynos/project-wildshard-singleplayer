@@ -14,7 +14,7 @@ import { runtimeLookMaterials } from './runtimeProduct';
 import { lendLooks } from './lentLooks';
 import { installWorldScenes } from './worldScenes';
 import { residentBakedTiles } from './bakedTiles';
-import { publishEntryOwner, lendEntryOwner, entryOwner } from './entryOwners';
+import { publishEntryOwner, lendEntryOwner, entryOwner, presentEntryOwner } from './entryOwners';
 import { timeClientPreparation } from './preparationTiming';
 import { followResidentTiles, residentTiles } from './tileDriver';
 
@@ -25,6 +25,20 @@ const residents = new WeakMap<IslandLibrary<unknown> | ShardProduct, {
 /** Construction remains on its original bound owner; entered reads borrow only
  * after it completes. Leaving an entry never cancels a still-live resident. */
 export async function installClientWorldAssembly(ctx: ShardContext, row: Extract<ClientFeatureRow, { kind: 'world.assembly' }>): Promise<void> {
+  if (row.native !== undefined) {
+    preflightIslandBook(ctx.product, row);
+    const {product, scope} = ctx, runtime = ctx.game.runtime, world = runtime?.world, step = runtime?.step, id = row.native.groups;
+    if (runtime === undefined || world === undefined || world === null || step === undefined || step === null) throw new Error('Native assembly requires its counted world');
+    const game = world.game, construction = game.levelScope, read = product.json, file = product.file;
+    const live = (): void => { if (scope.disposed || scope.disposing || construction.disposed || construction.disposing || ctx.scope !== scope || ctx.product !== product || product.json !== read || product.file !== file || ctx.game.runtime !== runtime || runtime.world !== world || runtime.step !== step || world.game !== game || game.levelScope !== construction) throw new Error('Native assembly owner left or changed'); };
+    live(); if (presentEntryOwner(scope, 'world-groups', id) !== null) throw new Error('Native assembly already constructed');
+    await step('cabins', () => undefined); live();
+    const groups = await step('props', async progress => {
+      live(); const draws = await scope.run(() => WorldAssembly.prepareNative(row.rows, ctx)); live();
+      const result = await scope.run(() => WorldAssembly.construct(row.rows, {runtime, native: ctx, product, scope, draws, baked: new Map(), progress})); live(); return result;
+    });
+    live(); publishEntryOwner(scope, 'world-groups', id, groups); return;
+  }
   const { product, scope } = ctx, runtime = ctx.game.runtime, resident = boundResidentWorldScope(scope);
   if (runtime?.world === undefined || runtime.world === null) throw new Error('Island assembly needs its native world');
   const world = runtime.world, progress = buildProgress(ctx), source = product.shardfile, sceneRows = product.section('world/scenes'), cube = ctx.cube;

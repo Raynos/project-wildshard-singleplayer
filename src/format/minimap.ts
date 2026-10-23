@@ -204,7 +204,7 @@ const pageBoot = v.strictObject({ platform: v.literal('page-mode'), rows: v.stri
 /** A constant density field; no executable forest recipe or species policy. */
 export const FixedForestQueriesSchema = v.strictObject({ platform: v.literal('fixed'), density: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(1)) });
 const transitionPlan = v.exactOptional(v.union([v.boolean(), v.strictObject({
-  features: v.exactOptional(v.pipe(v.array(v.picklist(['state.adventure', 'species.program', 'weather.forest', 'held.claims.prepare','held.claims.install','debug.expose', 'taming.entry', 'arena-room.entry', 'elite.entry', 'quest.chapter-view', 'stealth.entry'])), v.minLength(1), v.maxLength(64), v.check(rows => new Set(rows).size === rows.length, 'Unique native client features'))),
+  features: v.exactOptional(v.pipe(v.array(v.picklist(['world.assembly', 'state.adventure', 'species.program', 'weather.forest', 'held.claims.prepare','held.claims.install','debug.expose', 'taming.entry', 'arena-room.entry', 'elite.entry', 'quest.chapter-view', 'stealth.entry'])), v.minLength(1), v.maxLength(64), v.check(rows => new Set(rows).size === rows.length, 'Unique native client features'))),
   phases: v.pipe(v.array(v.picklist(['world', 'world-bindings', 'kit', 'prepare-play', 'play'])), v.maxLength(5),
     v.check(rows => new Set(rows).size === rows.length, 'Unique native plan phases')),
 })]));

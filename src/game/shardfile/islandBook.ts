@@ -19,6 +19,12 @@ const books = new WeakMap<ShardProduct, Map<string, {
 /** Whole-plan preflight; only already-admitted section values and file names. */
 export function preflightIslandBook(product: ShardProduct, row: AssemblyRow): void {
   const assembly = v.parse(WorldAssemblySchema, row.rows), construction = assembly.construction;
+  if (row.native !== undefined) {
+    if (construction?.prelude === undefined || construction.progress.kind !== 'checkpoints' || construction.root !== undefined || construction.cells !== undefined || construction.publish !== undefined) throw new Error('Native assembly requires its original prelude and checkpoints');
+    const files = [construction.prelude.draws, ...assembly.stages.flatMap(stage => stage.kind === 'arena-room' ? 'mode' in stage ? [stage.file] : [stage.files.fight, stage.files.geometry] : [])];
+    if (files.some(file => !product.hasFile(file))) throw new Error('Native assembly names no admitted product file');
+    return;
+  }
   if (construction?.looks === undefined) throw new Error('World assembly requires construction looks');
   for (const look of [...construction.looks.unbound, ...construction.looks.bound]) {
     if (product.shardfile.look.materials[look] === undefined) throw new Error(`World assembly names no look: ${look}`);

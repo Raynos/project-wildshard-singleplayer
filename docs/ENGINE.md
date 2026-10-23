@@ -12177,6 +12177,14 @@ and dungeon group as `arena-room` and `object` loans under the stage id.
 Both publication slots and the original world, reader and scopes are checked
 before reads and after construction; the existing open-arena row is unchanged.
 
+The existing `world.assembly` feature also accepts `native: {groups: id}`.
+It requires native prelude/checkpoint rows, keeps the original counted
+`cabins` and `props` steps, prepares the same fixed draws and constructs on
+the original context and scope. Its `world-groups` loan is the original
+constructor result, including declared group aliases; it creates no second
+scene, registry or group owner. Native and library/entered-piece routes are
+mutually exclusive. Later feature phases retain their own completion work.
+
 WorldAssemblySchema may declare construction checkpoints around its existing
 ordered stages. WorldAssembly.construct(input, WorldConstructionPorts) walks
 those stages once, preserving the caller's concrete IslandLibrary, scene and

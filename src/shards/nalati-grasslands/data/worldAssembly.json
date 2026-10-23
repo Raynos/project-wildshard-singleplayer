@@ -1,12 +1,15 @@
 {
   "construction": {
-    "prelude": { "draws": "models/shape-book.json" },
+    "prelude": {
+      "draws": "models/shape-book.json"
+    },
     "seed": 18970,
     "progress": {
       "kind": "checkpoints",
-      "total": 7,
-      "finish": "World services",
-      "budgetMs": 0
+      "total": 6,
+      "finish": "World assembly",
+      "budgetMs": 0,
+      "start": "Preparing world builders"
     },
     "checkpoints": [
       {
@@ -78,6 +81,20 @@
             "kind": "slice"
           }
         ]
+      },
+      {
+        "stage": "nalati.king",
+        "at": "after",
+        "actions": [
+          {
+            "kind": "progress",
+            "done": 6,
+            "label": "Dungeon"
+          },
+          {
+            "kind": "slice"
+          }
+        ]
       }
     ],
     "groups": [
@@ -100,6 +117,10 @@
       {
         "name": "skyV2",
         "object": "nalati.painted"
+      },
+      {
+        "name": "kurgan",
+        "object": "nalati.king"
       }
     ]
   },
@@ -174,6 +195,47 @@
       ],
       "casters": [],
       "forest": true
+    },
+    {
+      "kind": "drawn-models",
+      "id": "nalati.trophies",
+      "look": {
+        "painterly": {
+          "rim": 0.6
+        }
+      },
+      "models": [
+        {
+          "id": "aqbars",
+          "draw": "trophy:aqbars"
+        },
+        {
+          "id": "kokbori",
+          "draw": "trophy:kokbori"
+        },
+        {
+          "id": "qyran",
+          "draw": "trophy:qyran"
+        },
+        {
+          "id": "qara-batyr",
+          "draw": "trophy:qara-batyr"
+        },
+        {
+          "id": "argymaq",
+          "draw": "trophy:argymaq"
+        }
+      ]
+    },
+    {
+      "kind": "arena-room",
+      "mode": "room",
+      "id": "nalati.king",
+      "file": "combat/room-entry.json",
+      "entrance": {
+        "part": "kurgans",
+        "anchor": "entrance"
+      }
     }
   ]
 }
