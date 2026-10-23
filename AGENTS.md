@@ -72,7 +72,7 @@ file in `docs/` is: [docs/README.md](docs/README.md).
   `shard-sandbox`, `no-level-identity`, `no-shard-branch`, the `no-raw-*` rules, the ratchet (`lint/ratchet.json`), the
   layout check and the pre-commit runner. Never disable one; fix the code.
 - ENGINE.md is the public API: document new APIs in source and its manual sections. Builders commit source only;
-  the API tables and export index are build outputs of `pnpm gen` (gitignored, SF74 W13); the pusher regenerates
+  the API tables and export index are build outputs of `pnpm docs` (gitignored, SF74 W13); the pusher regenerates
   graph counts and debt from clean HEAD (SF6b; GIT.md). A new shard starts from `src/shards/_template/` per SHARDS.md.
 - **The E357 lock** is lifted (GAME-NORMALIZATION archived 2026-10-01; `.github/lock.json` `"locked": false`).
 

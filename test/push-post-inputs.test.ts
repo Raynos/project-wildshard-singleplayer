@@ -16,6 +16,7 @@ test('only completed stable generation seals post tables and lint words', () => 
     put('lint/ask-ids.json', '["E2"]');
     put('src/shards/fixture/discovery.generated.ts', 'export default {};');
     put('lint/shard-words.generated.json', '{}');
+    put('lint/host-catalogue.generated.json', '{"staleDocs":true}');
     put('.cache/generation-phase.json', '{"seal":"phase-proof"}');
     finish();
     const saved = parse(object({ phase: string(), revision: string(), outputs: record(string(), string()) }),

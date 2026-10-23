@@ -8,8 +8,6 @@ import { genStarterWeapons } from './gen-starter-weapons.mjs';
 import { genStarterBag } from './gen-starter-bag.mjs';
 import { genStarterEffects } from './gen-starter-effects.mjs';
 import { genDecisionPolicies } from './gen-decision-policy.mjs';
-import { writeGeneratorInventory } from './generator-inventory.mjs';
-import { execFileSync } from 'node:child_process';
 import { quietCli } from './quiet-cli.mjs';
 import { beginPushInputs } from './push-post-inputs.mjs';
 
@@ -17,11 +15,9 @@ quietCli('gen');
 const publishPushInputs = beginPushInputs(`${import.meta.dirname}/..`);
 
 const buildInputs = process.argv.includes('--build-inputs');
-// --proof (fast proofs: serve-build.sh, `pnpm build:proof`): the game's build inputs only, with the pre-commit's parallel
-// generation; the derived docs (API docs, WebGPU inventory, scripts/README.md, generator inventory) are skipped.
+// --proof remains a build-input alias. Derived documentation belongs to pnpm docs.
 const proof = process.argv.includes('--proof');
-// CI keeps all derived outputs while using the existing four-producer scheduler.
-// --parallel changes concurrency only; --proof/--build-inputs still select output sets.
+/** @param {string} name @param {()=>unknown} run */
 async function step(name, run) {
   const started = performance.now();
   try { return await run(); }
@@ -59,18 +55,5 @@ await step('budgets', () => genBudgetDerivations(undefined, process.argv.include
 await step('shards', () => genShards(undefined, false, false, shard));
 // E486: SHARD SELECT's PORTED badges read the committed src/game/shard/portShares.json, which the plan ruler writes with
 // ruler.json (scripts/gen-port-shares.mjs) and pre-commit keeps in step; gen has no port-shares step.
-// SF74 W13 (G281): the API surface, docs/api/*.md and the export index are build outputs, gitignored (~1.6 s).
-// Commit-time inputs (scripts/precommit-inputs.mjs) keep only src/public outputs, so they skip these docs.
-if (!buildInputs && !proof) {
-  const { writeApiDocs } = await import('./gen-api.mjs');
-  writeApiDocs();
-  const { writeHostCatalogue } = await import('./gen-host-catalogue.mjs');
-  await step('host-catalogue', () => writeHostCatalogue());
-  execFileSync(process.execPath, ['scripts/webgpu-inventory.mjs'], {cwd: `${import.meta.dirname}/..`, stdio: 'inherit'});
-}
-
-// G405: derived documentation is fresh build output, never commit payload.
-if (!buildInputs && !proof) execFileSync(process.execPath, ['scripts/normalize/liveness.mjs', '--readme'], {cwd: `${import.meta.dirname}/..`, stdio: 'inherit'});
-if (!proof) await step('generator-inventory', () => writeGeneratorInventory(`${import.meta.dirname}/..`));
 try { publishPushInputs(); }
 catch (error) { console.warn(`push-inputs: completed cache unavailable: ${error instanceof Error ? error.message : String(error)}`); }

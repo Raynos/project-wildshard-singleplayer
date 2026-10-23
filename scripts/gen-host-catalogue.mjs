@@ -95,7 +95,7 @@ export function renderHostCatalogue(catalogue) {
   return `${lines.join('\n')}\n`;
 }
 
-/** pnpm gen publishes both the JSON retained in deploy trees and the human-readable generated page. */
+/** pnpm docs publishes both the JSON retained in deploy trees and the human-readable generated page. */
 export function writeHostCatalogue(root = ROOT) {
   const catalogue = hostCatalogue(root);
   const outputs = { 'lint/host-catalogue.generated.json': `${JSON.stringify(catalogue, null, 2)}\n`, 'docs/api/HOSTS.md': renderHostCatalogue(catalogue) };

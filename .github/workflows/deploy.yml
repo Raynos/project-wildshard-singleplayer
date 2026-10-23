@@ -311,6 +311,44 @@ jobs:
           if-no-files-found: ignore
           retention-days: 2
 
+  # Documentation consumes completed game inputs without extending their job.
+  derived-docs:
+    needs: generated-inputs
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout: |
+            /*
+            !/progress/
+            !/art/
+            !/sources/
+          sparse-checkout-cone-mode: false
+      - uses: pnpm/action-setup@v4
+        with: {version: 10}
+      - uses: actions/setup-node@v4
+        with: {node-version: 24, cache: pnpm}
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        with:
+          name: generated-inputs
+      - name: Verify and restore exact-run generated inputs
+        run: |
+          zstd -d --rm generated-inputs.tar.zst
+          python3 scripts/ci-products.py unpack-generated
+      - run: python3 scripts/ci-fail-fast.py -- pnpm docs
+      - name: Publish exact failure paths
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-failures-docs
+          path: tmp/ci-failures/*.json
+          if-no-files-found: ignore
+          retention-days: 2
+
   # Types and lint need generated inputs, while behaviour and web builds also
   # need products. Publish the first dependency before compiling all products.
   generated-inputs:

@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "gen": "node scripts/gen.mjs",
+    "docs": "node scripts/docs.mjs",
     "dev": "bash scripts/serve-build.sh",
     "prebuild": "node scripts/check-css.mjs",
     "build": "python3 scripts/heavy-lane.py build -- bash -c 'pnpm gen && tsc --noEmit && node scripts/build-shardfiles.mjs && vite build && node scripts/check-devserver.mjs dist'",

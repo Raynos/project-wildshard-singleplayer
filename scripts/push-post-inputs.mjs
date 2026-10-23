@@ -35,7 +35,9 @@ export function beginPushInputs(inputRoot, fixture) {
     const outputs = {};
     for (const folder of ['src', 'lint']) {
       if (!existsSync(resolve(root, folder))) continue;
-      for (const file of readdirSync(resolve(root, folder), { recursive: true })) {
+      for (const file of readdirSync(resolve(root, folder), { recursive: true, encoding: 'utf8' })) {
+        // Derived documentation can survive a prior full gen in a reused slot.
+        if (folder === 'lint' && file === 'host-catalogue.generated.json') continue;
         if (!file.split('/').includes('node_modules') && /\.generated\.(?:ts|mts|json)$/u.test(file)) {
           const name = `${folder}/${file}`;
           if (!tracked.files.includes(name)) {
