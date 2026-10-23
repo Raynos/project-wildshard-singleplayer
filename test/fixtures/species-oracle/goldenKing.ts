@@ -9,7 +9,7 @@ import type { ThinkCtx } from '../../../src/engine/entities/species/registry';
 import type { Player } from '../../../src/engine/player/Player';
 import * as THREE from 'three';
 import { GOLDEN_KING, bindGoldenKing } from './goldenKingControl';
-import { BALBAL as KURGAN_BALBAL } from '../../../src/shards/nalati-grasslands/species/balbal';
+import { BALBAL as KURGAN_BALBAL } from '../originalBalbal';
 import type { BossArenaRoom } from '../../../src/game/boss/arenaRoom';
 import { DUNGEON, CH, COFFIN, PEDESTAL, NICHES, STREAMS, CHECKPOINT } from '../../../src/shards/nalati-grasslands/generators/kurganLayout';
 import type { BossScript } from '../../../src/engine/ai/BossBrain';
