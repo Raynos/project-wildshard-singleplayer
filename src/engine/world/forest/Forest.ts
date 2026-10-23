@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import type { ColliderDesc } from '../registry';
-import { CHUNK_HALF, CHUNK_SIZE } from '../../core/config';
-import { placeForestSteps, TreeGrid, treeGridOf, type TreeInstance } from './placement';
+import { canopyMapOf, placeForestSteps, TreeGrid, treeGridOf, type TreeInstance } from './placement';
 import { type TreeFactory, forestFade } from '../TreeFactory';
 import { updateWind } from '../wind';
 import type { SkyRig as Sky } from '../skyRig';
@@ -231,19 +230,7 @@ export class Forest {
 
   /** where the trees go: src/engine/world/forest/placement.ts (pure, shared with the build's placement bake) */
   private buildCanopyMap() {
-    const N = 256, data = new Float32Array(N * N);
-    const toCell = (v: number) => ((v + CHUNK_HALF) / CHUNK_SIZE) * N;
-    for (const t of this.trees) {
-      const r = (t.height * 0.16) / (CHUNK_SIZE / N); // crown radius in cells
-      const cx = toCell(t.x), cz = toCell(t.z);
-      const R = Math.ceil(r + 1);
-      for (let j = -R; j <= R; j++) for (let i = -R; i <= R; i++) {
-        const x = Math.round(cx) + i, z = Math.round(cz) + j;
-        if (x < 0 || z < 0 || x >= N || z >= N) continue;
-        const d = Math.hypot(x - cx, z - cz) / r;
-        if (d < 1) data[z * N + x] = Math.min(1, (data[z * N + x] ?? 0) + (1 - d * d) * 0.7);
-      }
-    }
+    const N = 256, data = canopyMapOf(this.trees, N);
     const tex = new THREE.DataTexture(data, N, N, THREE.RedFormat, THREE.FloatType);
     tex.magFilter = tex.minFilter = THREE.LinearFilter;
     tex.needsUpdate = true;

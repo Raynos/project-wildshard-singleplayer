@@ -15,7 +15,7 @@ import type { TreeSpec } from '../../level/data';
  * placement checksum and the tests run instead.
  */
 import * as THREE from 'three';
-import { CHUNK_HALF, TREE_COUNT, SEED } from '../../core/config';
+import { CHUNK_HALF, CHUNK_SIZE, TREE_COUNT, SEED } from '../../core/config';
 import { Rng } from '../../core/rng';
 import { Noise2D, smoothstep, lerp } from '../../core/noise';
 import { heightAt, normalAt, splatAt, trailDistance, cabinMask, inChunk, pondMask, waterLevel, POND } from '../Heightfield';
@@ -24,6 +24,28 @@ import type { TreeSpecies, SpeciesWeights, TreeSpeciesTraits, TreeSetVariant } f
 
 
 export interface TreeInstance { x: number; y: number; z: number; r: number; variant: number; scale: number; rot: number; height: number; tint: THREE.Color; species?: TreeSpecies | undefined }
+
+/**
+ * The soft canopy density over the chunk (`n` x `n` cells, row-major, z rows): each tree's crown as a disc of radius
+ * 0.16 x its height, summed and capped at 1. The ground darkens and grass thins by it; the forest builds it at runtime and
+ * a tiled ground bakes it into a per-vertex channel (G227 `_CANOPY`). Pure: the same trees give the same map.
+ */
+export function canopyMapOf(trees: readonly Pick<TreeInstance, 'x' | 'z' | 'height'>[], n = 256): Float32Array {
+  const data = new Float32Array(n * n);
+  const toCell = (v: number): number => ((v + CHUNK_HALF) / CHUNK_SIZE) * n;
+  for (const t of trees) {
+    const r = (t.height * 0.16) / (CHUNK_SIZE / n); // crown radius in cells
+    const cx = toCell(t.x), cz = toCell(t.z);
+    const R = Math.ceil(r + 1);
+    for (let j = -R; j <= R; j++) for (let i = -R; i <= R; i++) {
+      const x = Math.round(cx) + i, z = Math.round(cz) + j;
+      if (x < 0 || z < 0 || x >= n || z >= n) continue;
+      const d = Math.hypot(x - cx, z - cz) / r;
+      if (d < 1) data[z * n + x] = Math.min(1, (data[z * n + x] ?? 0) + (1 - d * d) * 0.7);
+    }
+  }
+  return data;
+}
 
 /** What placement needs of a variant (TreeFactory's variants carry these; the build's bakes pass them from the specs). */
 export interface PlantSpec { trunkRadius: number; height: number; species?: TreeSpecies | undefined; collider?: number | undefined }
