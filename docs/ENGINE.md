@@ -8379,6 +8379,11 @@ Browser descriptor caches use the v2 namespace and evict the old one;
 immutable content-addressed asset caches retain valid shared bytes.
 Normalized in-memory Shardfile inputs remain the current host API.
 
+`format/outputIndex.parseOutputDescriptorIndex(input)` checks bounded plain
+JSON before detecting a disk index, returning null for an in-memory model.
+Its index branch shares the strict inventory parser with `parseOutputIndex`,
+so descriptor admission needs only one plain-data walk before parsing.
+
 ### G454 host callbacks and catalogue
 
 `wildshard/no-shard-host-callback` resolves play-code calls into engine,

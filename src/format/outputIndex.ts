@@ -83,6 +83,15 @@ export function isOutputIndex(input: unknown): boolean { return typeof input ===
 /** Parse the supported major and refuse duplicate, escaping or noncanonical inventory paths. */
 export function parseOutputIndex(input: unknown): OutputIndex {
   if (!isJsonDataWithFileSchemas(input)) throw new Error('Output index must contain plain JSON only');
+  return parseOutputIndexRows(input);
+}
+/** Check plain data before detecting the disk envelope; legacy models return null.
+ * Index admission shares this single bounded walk with its strict inventory parse. */
+export function parseOutputDescriptorIndex(input: unknown): OutputIndex | null {
+  if (!isJsonDataWithFileSchemas(input)) throw new Error('Shardfile descriptor requires bounded plain JSON');
+  return isOutputIndex(input) ? parseOutputIndexRows(input) : null;
+}
+function parseOutputIndexRows(input: unknown): OutputIndex {
   const index = v.parse(OutputIndexSchema, input), paths = new Set(['shard.json', 'validation.json']), names = new Set<string>();
   if (index.sections.reduce((total, entry) => total + entry.bytes, 0) > limits.sourceBytes) throw new Error('Output sections exceed the source byte cap');
   for (const entry of [...index.sections, ...index.schemas, ...index.files, ...index.runtime?.files ?? []]) {

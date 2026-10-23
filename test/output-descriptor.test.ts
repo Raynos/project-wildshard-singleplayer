@@ -277,3 +277,29 @@ test('concurrent products serialize painted custom schema phases', async () => {
   }
   expect(pauses).toBeGreaterThan(4);
 });
+
+
+test('descriptor envelope detection refuses getters before reading format or starting reads', async () => {
+  let calls = 0;
+  const input = Object.defineProperty({}, 'format', { enumerable: true, get() { calls++; return 'wildshard.shardfile'; } });
+  await expect(resolveOutputDescriptor(input, { offline: false, hash, read: () => { calls++; throw new Error('Unexpected read'); } })).rejects.toThrow('bounded plain JSON');
+  expect(calls).toBe(0);
+});
+
+test('descriptor index admission retains every inventory refusal before any section read', async () => {
+  const { index } = fixture(); let reads = 0;
+  const reader = { offline: false, hash, read: () => { reads++; throw new Error('Unexpected read'); } };
+  const first = index.sections[0]; if (first === undefined) throw new Error('Missing section');
+  for (const input of [
+    { ...index, formatVersion: 3 },
+    { ...index, sections: [...index.sections, first] },
+    { ...index, sections: [{ ...first, path: '../escape.json' }] },
+    { ...index, schemas: [{ path: 'schemas/orphan.json', hash: first.hash, bytes: 2 }] },
+  ]) {
+    expect(() => parseOutputIndex(input)).toThrow();
+    await expect(resolveOutputDescriptor(input, reader)).rejects.toThrow();
+  }
+  expect(reads).toBe(0);
+  const legacy = { legacy: [1, 'text', null, false] };
+  expect(await resolveOutputDescriptor(legacy, reader)).toBe(legacy);
+});

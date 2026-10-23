@@ -44,3 +44,14 @@ test('placed prop XZ bytes cannot escape through omitted or forged draw bounds',
     expect(() => validatePropDrawBounds(source, new Map([[file, staticGlb([{ geometry, material }])]]))).toThrow('Prop exceeds cell draw bounds');
   } finally { geometry.dispose(); material.dispose(); }
 });
+
+
+test('scalar arrays preserve nested bounds paths and canonical-data refusals', () => {
+  const values = [null, true, 'text', 12, [0, { extent: { x0: -1, x1: 251, z0: -1, z1: 1 } }]];
+  expect(() => assertCellBounds({ values }, 'scene')).toThrow('Out-of-cell bounds: scene.values[4][1].extent');
+  for (const bad of [Number.NaN, Infinity, -0, undefined]) {
+    expect(() => assertCellBounds({ values: [1, 2, bad, { bounds: box }] })).toThrow('plain JSON');
+  }
+  const sparse = [box]; sparse.length = 3;
+  expect(() => assertCellBounds(sparse)).toThrow('plain JSON');
+});

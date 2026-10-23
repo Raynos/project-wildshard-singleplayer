@@ -10,13 +10,13 @@ const coordinates = (value: unknown): value is [number, number, number] => Array
 export function assertCellBounds(input: unknown, section = 'shardfile'): void {
   if (!isJsonData(input)) throw new Error('Cell bounds require plain JSON data');
   const visit = (value: unknown, path: string): void => {
-    if (Array.isArray(value)) { for (let i = 0; i < value.length; i++) visit(value[i], `${path}[${i}]`); return; }
+    if (Array.isArray(value)) { for (let i = 0; i < value.length; i++) { const child: unknown = value[i]; if (typeof child === 'object' && child !== null) visit(child, `${path}[${i}]`); } return; }
     if (!record(value)) return;
     const min = value['min'], max = value['max'];
     if (coordinates(min) && coordinates(max) && (min.some((n, axis) => n > (max[axis] ?? -Infinity)) || min[0] < -WIRE_CELL.half || max[0] > WIRE_CELL.half || min[2] < -WIRE_CELL.half || max[2] > WIRE_CELL.half || min[1] < -WIRE_CELL.below || max[1] > WIRE_CELL.above)) throw new Error(`Out-of-cell bounds: ${path}`);
     const rect = [value['x0'], value['x1'], value['z0'], value['z1']];
     if (rect.every((n): n is number => typeof n === 'number' && Number.isFinite(n)) && (rect.some(n => Math.abs(n) > WIRE_CELL.half) || (rect[0] ?? 0) > (rect[1] ?? 0) || (rect[2] ?? 0) > (rect[3] ?? 0))) throw new Error(`Out-of-cell bounds: ${path}`);
-    for (const [key, child] of Object.entries(value)) visit(child, `${path}.${key}`);
+    for (const [key, child] of Object.entries(value)) if (typeof child === 'object' && child !== null) visit(child, `${path}.${key}`);
   };
   visit(input, section);
 }
