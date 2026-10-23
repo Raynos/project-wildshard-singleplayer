@@ -96,7 +96,13 @@ iPhone's GPU process reading once.
 Order: C1 and C3 first (the menu), then C4 and C6, with C5 behind Jake's pick. C2 follows C1. C7 goes last, once D1 sets
 the target.
 
-## 5. Decisions for Jake (option 1 is always Skip)
+## 5. Decisions (decided G658)
+
+**M1: target 100 MB per template and 50 MB for the menu / SHARD SELECT** (Jake). **M2:** the crash line counts all of WebContent + the GPU process, plus one iPhone GPU reading. **M3:** keep the prefetch, fixed by C1. **M4:** a post-processing variant sheet.
+
+**Path to 100 MB (row C8, spike):** today's ~261 MB Simulator template: the held Blink buffer (−55, C4), the resource cache (−23, C4), post-processing at half or off on templates (−27 to −53, C5), title / shard code not loaded (C3, part of the 33–59 MB heap and 12.7 MB of JS) reach ~120–150 MB. Below that, measure the irreducible floor first: an empty Safari page, a page with only a WebGL context, and three.js alone, in the Simulator; then trim HUD / DOM, malloc and pools against it. Menu 50 MB: no three.js, WebGL or shard code on the title at all (C3).
+
+### Original options
 
 - **D1 Core floor budget.** Skip / **A a template entered from SHARD SELECT ≤ 300 MB (Simulator WebContent + GPU), and the
   menu / SHARD SELECT ≤ 150 MB even with the prefetch running (rec; that's today's template floor, held)** / B 400 MB /

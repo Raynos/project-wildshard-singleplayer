@@ -47,4 +47,4 @@ JSON: full 10.3 s / 8 GB. Full typed + full JS plugin in one run: 180 s / 12.7 G
 1. **The 2 heavy JS rules: DECIDED (G642)** — rewrite them to use only oxlint's AST (no TypeScript program); until then they run only in `lint:typed`. Also: all generated files excluded from lint (G642).
 2. **Push-gate `lint:fast` scope: DECIDED (G655)** — the whole repo, 6–10 s.
 3. **Generated JSON: DECIDED (G643)** — excluded from the type program entirely (`unknown` + schema parse), no companion declarations.
-4. **`--type-check` in `lint:typed`:** leave out, keep tsc as the type check (recommended).
+4. **`--type-check` in `lint:typed`: DECIDED (G657)** — left out; tsc stays the type check.

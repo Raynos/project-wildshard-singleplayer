@@ -248,7 +248,7 @@ or is deleted;** no tooling commit breaks every commit unnoticed. 8. No wait ove
 4.1 coordinator as a launchd script → D7; 4.2 session hygiene, 4.3 budget pacing, 4.4 state batching (partly done), 5.1
 one-page AGENTS.md, 5.3 receipts, 5.4 budget estimate kept as written; 5.2 lint trim → the oxlint plan (speed) and L1–L4.
 
-## Decisions for Jake
+## Decisions (decided G657: D1 push → verdict; D2 incremental gen; D3 KEEP HOURLY — fix the schedule and backstop; D4 ruler + 2; D5 no paid runners; D6 boot-smoke legs; D7 drop 4.1; D8 revive useful, delete rest)
 
 1. **D1 What "CI ≤ 10 min" measures:** push → covering verdict, median (recommended) / the run's own wall time.
 2. **D2 Where the gate gets generated inputs:** incremental gen from the shared per-producer cache once the gen plan lands (recommended; no new service) / download CI's outputs by input hash / leave those checks to CI.
