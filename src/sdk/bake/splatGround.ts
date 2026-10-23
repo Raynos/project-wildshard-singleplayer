@@ -29,7 +29,18 @@ export interface SplatGroundTile { tile: NativeLatticeTile; bytes: Uint8Array; c
 /** A drawn opening's triangle test (world corners a, b, c), as `punchPageTerrain` applies it. */
 export type SplatGroundHole = (ax: number, ay: number, az: number, bx: number, by: number, bz: number, cx: number, cy: number, cz: number) => boolean;
 /** The tiles' material name (the `props.splat` row binds it) and the L1 simplification (`simplifyNativeLatticeTile`). */
-export interface SplatGroundOptions { readonly material: string; readonly lod1: { readonly targetRatio: number; readonly maxErrorMetres: number } }
+/** Splat weights (layer i = channel i). */
+export type SplatWeights = readonly [number, number, number, number];
+/**
+ * The tiles' material name (the `props.splat` row binds it), the L1 simplification (`simplifyNativeLatticeTile`) and, for a
+ * coarse tier the rings can draw without the splat layers (a coarse tile may not depend on the library the layers live
+ * in), `coarse`: L1 tiles then carry vertex colours (`colourAt` over each vertex's height, slope, splat weights and canopy)
+ * in their own material name, which the props family draws, and no splat channels.
+ */
+export interface SplatGroundOptions {
+  readonly material: string; readonly lod1: { readonly targetRatio: number; readonly maxErrorMetres: number };
+  readonly coarse?: { readonly material: string; readonly colourAt: (h: number, slope: number, splat: SplatWeights, canopy: number) => readonly [number, number, number] };
+}
 
 /** The live chunk's ground over the committed bake, `canopy` (a 256² density, `canopyMapOf`) as a channel, the openings cut. */
 export function splatGroundSource(bytes: Uint8Array, canopy: ArrayLike<number>, hole?: SplatGroundHole): NativeLatticeSource {
@@ -64,19 +75,43 @@ export async function bakeSplatGround(source: NativeLatticeSource, options: Spla
   for (const tile of sliceNativeLattice(source, 1)) lod1.push(await simplifyNativeLatticeTile(tile, options.lod1.targetRatio, options.lod1.maxErrorMetres));
   const material = new MeshStandardMaterial({ color: 0xffffff, metalness: 0, roughness: 1 });
   material.name = options.material;
+  const coarse = options.coarse === undefined ? null : new MeshStandardMaterial({ color: 0xffffff, metalness: 0, roughness: 1, vertexColors: true });
+  if (coarse !== null && options.coarse !== undefined) coarse.name = options.coarse.material;
   try {
     return [...sliceNativeLattice(source, 0).map(tile => ({ tile, errorMetres: 0 })), ...lod1].map(({ tile, errorMetres }) => {
       const geometry = new BufferGeometry();
       let bytes: Uint8Array;
       try {
         geometry.setAttribute('position', new Float32BufferAttribute(tile.positions, 3));
-        for (const [name, channel] of Object.entries(tile.attributes)) geometry.setAttribute(name, new Float32BufferAttribute(channel.values, channel.itemSize));
         geometry.setIndex(new BufferAttribute(tile.indices, 1));
-        bytes = staticGlb([{ geometry, material, castShadow: false, customAttributes: CUSTOM }], `${options.material}.l${String(tile.lod)}.${String(tile.x)}.${String(tile.z)}`);
+        if (tile.lod === 1 && coarse !== null && options.coarse !== undefined) {
+          geometry.setAttribute('normal', new Float32BufferAttribute(channelOf(tile, 'normal', 3), 3));
+          geometry.setAttribute('color', new Float32BufferAttribute(coarseColours(tile, options.coarse.colourAt), 3));
+          bytes = staticGlb([{ geometry, material: coarse, castShadow: false }], `${options.coarse.material}.l1.${String(tile.x)}.${String(tile.z)}`);
+        } else {
+          for (const [name, channel] of Object.entries(tile.attributes)) geometry.setAttribute(name, new Float32BufferAttribute(channel.values, channel.itemSize));
+          bytes = staticGlb([{ geometry, material, castShadow: false, customAttributes: CUSTOM }], `${options.material}.l${String(tile.lod)}.${String(tile.x)}.${String(tile.z)}`);
+        }
       } finally { geometry.dispose(); }
       return { tile, bytes, cost: parseGlb(bytes), geometricError: errorMetres };
     });
-  } finally { material.dispose(); }
+  } finally { material.dispose(); coarse?.dispose(); }
+}
+
+function channelOf(tile: NativeLatticeTile, name: string, width: number): Float64Array {
+  const channel = tile.attributes[name];
+  if (channel?.itemSize !== width) throw new Error(`Splat ground tile lost channel ${name}`);
+  return channel.values;
+}
+/** A coarse tile's vertex colours: `colourAt` over each vertex's height, slope (1 - normal y), splat weights and canopy. */
+function coarseColours(tile: NativeLatticeTile, colourAt: NonNullable<SplatGroundOptions['coarse']>['colourAt']): Float32Array {
+  const normal = channelOf(tile, 'normal', 3), splat = channelOf(tile, 'splat', 4), canopy = channelOf(tile, 'canopy', 1), n = tile.positions.length / 3;
+  const out = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) {
+    const rgb = colourAt(tile.positions[i * 3 + 1] ?? 0, 1 - (normal[i * 3 + 1] ?? 1), [splat[i * 4] ?? 0, splat[i * 4 + 1] ?? 0, splat[i * 4 + 2] ?? 0, splat[i * 4 + 3] ?? 0], canopy[i] ?? 0);
+    out.set(rgb, i * 3);
+  }
+  return out;
 }
 
 /**

@@ -4,10 +4,19 @@
  * a metre: the far ring's 125 m tiles are seen from 125 m out.
  */
 import type { SplatGroundOptions } from '@wildshard/sdk/bake/splatGround';
+import { groundRgb } from './farLook';
 
 /** The material name the ground primitives carry; Pine's `props.splat` row binds it. */
 export const PINE_GROUND_MATERIAL = 'pine.ground';
-export const PINE_GROUND: SplatGroundOptions = { material: PINE_GROUND_MATERIAL, lod1: { targetRatio: 0.25, maxErrorMetres: 1 } };
+/** The coarse (L1) ground's material: drawn by the props family with baked vertex colours, no splat layers (a coarse tile
+ *  may not depend on the library they live in): the far proxy's ground colour, darkened under the canopy, dark water. */
+export const PINE_GROUND_FAR = 'pine.ground.far';
+export const PINE_GROUND: SplatGroundOptions = { material: PINE_GROUND_MATERIAL, lod1: { targetRatio: 0.25, maxErrorMetres: 1 },
+  coarse: { material: PINE_GROUND_FAR, colourAt: (h, _slope, splat, canopy) => {
+    if (h < -3.2) return [0.03, 0.06, 0.07];
+    const [r, g, b] = groundRgb(splat), shade = 1 - 0.45 * Math.min(1, canopy);
+    return [r * shade, g * shade, b * shade];
+  } } };
 
 interface Cost { compressed: number; decoded: number; gpu: number; triangles: number; draws: number }
 interface FileRow extends Cost { hash: string; kind: string; dependencies: string[]; critical: boolean }
@@ -22,7 +31,7 @@ export interface PineGroundRows {
 
 const lodOf = (lod: number): 0 | 1 => { if (lod !== 0 && lod !== 1) throw new Error('A ground tile is L0 or L1'); return lod; };
 /**
- * The product's props and tile content with the ground joined: every one of the 64 L0 tiles draws its ground GLB first (the
+ * The product's props and tile content with the ground joined: every one of the 80 tiles draws its ground GLB first (the
  * props tile `file`), the props already on that tile (Pine's timber) after it (`additionalFiles`); the tile rows carry both
  * files with their bounds unioned and their costs summed, the ground GLBs and layer KTX2s join the files, and the layer KTX2s
  * join the library: one shard-wide copy that admission charges to the library budget, never to each tile's closure.
@@ -31,12 +40,9 @@ export function withPineGround<P extends { tiles: readonly PropsTile[] }, S exte
   props: P, shardfile: S, ground: PineGroundRows): { props: P & { splat: unknown; tiles: PropsTile[] }; shardfile: S & { tiles: TileRow[]; files: FileRow[]; library: string[] } } {
   const key = (row: { lod: number; x: number; z: number }): string => `${String(row.lod)}/${String(row.x)}/${String(row.z)}`;
   const propsTiles = new Map(props.tiles.map(row => [key(row), row])), contentTiles = new Map(shardfile.tiles.map(row => [key(row), row]));
-  // L0 only: a coarse (L1) tile may not depend on the library, and a splat GLB must declare every layer it draws with; the
-  // far ring's ground needs its own coarse surface (the baked L1 GLBs wait for it)
-  const near = ground.tiles.filter(row => row.lod === 0);
-  const covered = new Set(near.map(key));
+  const covered = new Set(ground.tiles.map(key));
   for (const row of props.tiles) if (!covered.has(key(row))) throw new Error(`Pine props tile ${key(row)} has no ground tile`);
-  const tiles = near.map(row => {
+  const tiles = ground.tiles.map(row => {
     const prior = propsTiles.get(key(row)), content = contentTiles.get(key(row)), file = row.file;
     const extra = prior === undefined ? [] : [prior.file, ...prior.additionalFiles ?? []];
     const propsTile: PropsTile = { lod: lodOf(row.lod), x: row.x, z: row.z, file: file.hash, ...(extra.length === 0 ? {} : { additionalFiles: extra }) };
@@ -47,6 +53,6 @@ export function withPineGround<P extends { tiles: readonly PropsTile[] }, S exte
     return { propsTile, tile };
   });
   return { props: { ...props, splat: ground.splat, tiles: tiles.map(row => row.propsTile) },
-    shardfile: { ...shardfile, tiles: tiles.map(row => row.tile), files: [...shardfile.files, ...near.map(row => row.file), ...ground.textures],
+    shardfile: { ...shardfile, tiles: tiles.map(row => row.tile), files: [...shardfile.files, ...ground.tiles.map(row => row.file), ...ground.textures],
       library: [...shardfile.library, ...ground.textures.map(file => file.hash)] } };
 }

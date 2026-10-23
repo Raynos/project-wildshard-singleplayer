@@ -41,11 +41,12 @@ const roles = (set) => ({ colour: set.colour.map(layerFile), normal: set.normal.
 const layers = roles(paths.desktop), phone = roles(paths.phone);
 const splat = { material: PINE_GROUND.material, layers, ...(JSON.stringify(phone) === JSON.stringify(layers) ? {} : { phone }),
   tints: ground.tints, boreal: ground.boreal };
+// the L0 splat tiles draw with the layers; the coarse L1 tiles carry their own colours and depend on nothing
 const dependencies = [...textures.keys()];
 const rows = tiles.map(({ tile, bytes, cost, geometricError }) => {
   const ref = hash(bytes); writeFileSync(resolve(out, ref), bytes);
   return { lod: tile.lod, x: tile.x, z: tile.z, bounds: tile.bounds, geometricError,
-    file: { hash: ref, kind: 'glb', compressed: bytes.length, ...cost, dependencies, critical: false } };
+    file: { hash: ref, kind: 'glb', compressed: bytes.length, ...cost, dependencies: tile.lod === 0 ? dependencies : [], critical: false } };
 });
 writeFileSync(resolve(root, 'src/shards/pine-hollow/data/groundTiles.json'), `${JSON.stringify({ splat, tiles: rows, textures: [...textures.values()] })}\n`);
 console.info(JSON.stringify({ tiles: rows.length, l0: rows.filter(r => r.lod === 0).reduce((n, r) => n + r.file.compressed, 0),
