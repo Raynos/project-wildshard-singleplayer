@@ -14,7 +14,6 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin } from '@wildshard/game/shard/plugin';
 import { enteredOwner, withOwner } from '@wildshard/engine/app/ownership';
 import { macrotask } from '@wildshard/engine/boot/plan';
-import { grassBaseHeightAt } from '@wildshard/game/systems/looks/grassField';
 import { buildNalatiWorld, type Nalati } from './state';
 import { HeldClaims } from '@wildshard/game/loadout/claims';
 import slots from '../boot/mountedLoadout.generated.json' with { type:'json' };
@@ -41,9 +40,7 @@ export class NalatiPlugin extends ShardPlugin {
     publishEntryOwner(ctx.scope, 'claims', 'nalati.arsenal', arsenal);
     shell.objects['nalati'] = this.rt;
     // the probe's `shard` handles (E405 AG25), read when the probe installs (ride and wildlife arrive in later hooks)
-    // `coats`: the baked coats' source (scripts/bake-coats.mjs --shard=nalati-grasslands); `grassBase`: the grass before
-    // trampling the senses read (the authored physics rows sample it for the renderer-free field's check)
-    ctx.debug.expose(`harness.shard.${ctx.manifest.slug}`, Object.defineProperties({ grassBase: (x: number, z: number) => grassBaseHeightAt(x, z) }, Object.fromEntries(['nalati', 'ride', 'wildlife'].map((key) => [key, { enumerable: true, get: () => shell.objects[key] }]))));
+    ctx.debug.expose(`harness.shard.${ctx.manifest.slug}`, Object.defineProperties({}, Object.fromEntries(['nalati', 'ride', 'wildlife'].map((key) => [key, { enumerable: true, get: () => shell.objects[key] }]))));
   }
 
   override kit(ctx: ShardContext): void {
