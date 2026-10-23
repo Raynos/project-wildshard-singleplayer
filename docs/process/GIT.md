@@ -46,12 +46,15 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   Tool source lives in `scripts/`; disposable tool logs live in `tmp/sp-tools/`. The pane inherits the current
   tool environment without version-pinned Codex PATH entries.
   Never run `git push` or start the retired carrier/full local push gate.
-- **The local push gate has a 45-second ceiling and checks committed source only.** Whole-repo fast lint runs
-  before focused guards and related tests (G655 LD2), even without generated inputs. Typed lint stays scoped to
-  changed files and importers; completed typed checks are not repeated. Foreign working/staged edits
-  never enter the candidate; no generation, build, product or mirror job runs here. A matching verified cache
-  supplies generated test inputs; missing inputs defer those tests to CI openly. **CI is the full gate**,
-  including complete types, generation, build and tests. sp-x7 remains release owner and checks every 15 minutes.
+- **The local push gate has a 45-second ceiling and no source preparation (G675).** Binary-JSON, storage,
+  architecture/closed-component policy, deleted-path and ratchet checks read exact Git objects. Fast lint checks
+  changed files only when their transitive literal imports, lint policy and configuration match the candidate;
+  changed or unavailable inputs print `DEFERRED TO CI` and have a `deferred` P3 step, never a green result.
+  Rules use the existing oxlint parser and rule implementations; policy vocabulary is read from static committed
+  declarations in memory. Three small checker modules and temporary configuration are the only tool files copied;
+  no checkout, generated asset, source tree, generator, build, mirror or persistent snapshot cache is prepared.
+  Typed lint and all test execution belong to CI, which remains the full gate. A mandatory guard timeout fails;
+  it never uploads unchecked source. P3 records each phase and explicit CI ownership in `.git/push.log`.
 - **A red commit is ejected back to its lane; the checked green prefix can still push.** The loop attributes the
   refusal, checks the prefix within the same budget, pushes that prefix and sends the owner a Herdr message beginning
   `[push-loop]`, naming the phase, offending SHA and `tmp/push-loop/current.log`. The offending commit and its suffix

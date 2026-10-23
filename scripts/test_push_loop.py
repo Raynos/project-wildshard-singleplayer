@@ -15,7 +15,10 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 TOOL_ROOT = Path(os.environ.get('WS_PUSH_TOOL_ROOT', ROOT / 'scripts'))
-PUSH = runpy.run_path(str(TOOL_ROOT / 'push-loop.py'))
+PUSH = {'__file__': str(TOOL_ROOT / 'push-loop.py'), '__name__': 'push_loop_fixture'}
+exec(compile(Path(os.environ.get('WS_SW8_CANDIDATE', TOOL_ROOT / 'push-loop.py')).read_text(),
+             str(TOOL_ROOT / 'push-loop.py'), 'exec'), PUSH)
+SOURCE = runpy.run_path(str(TOOL_ROOT / 'push-source.py'))
 LIVE = PUSH['LIVE']
 RESTORE_RUNTIME = runpy.run_path(str(TOOL_ROOT / 'runtime_input_copies.py'))['restore_runtime_inputs']
 CACHE = runpy.run_path(str(TOOL_ROOT / 'push_input_cache.py'))
@@ -227,7 +230,7 @@ class PushLoop(unittest.TestCase):
         self.assertLess(time.monotonic() - start, 2)
 
     def test_committed_source_ignores_working_and_index_edits(self):
-        for name in [*PUSH['SOURCE']['TOOLS'], *PUSH['SOURCE'].get('CONFIGS', []), 'link-node-modules.mjs']:
+        for name in [*SOURCE['TOOLS'], *SOURCE.get('CONFIGS', []), 'link-node-modules.mjs']:
             self.put('scripts/' + name, '// committed tool\n')
         self.put('scripts/runtime_input_copies.py', (TOOL_ROOT / 'runtime_input_copies.py').read_text())
         self.put('scripts/copied-runtime-inputs.json', '{"version":1,"copies":[]}')
@@ -278,7 +281,7 @@ readFileSync('../public/assets/native/untracked.bin');
                 tool['restore_tests'] = stale_inputs
             return tool
         with patch.object(runpy, 'run_path', side_effect=older_generation), \
-                PUSH['SOURCE']['committed_source'](self.root, tip, tip, time.monotonic() + 10) as (tree, tools):
+                SOURCE['committed_source'](self.root, tip, tip, time.monotonic() + 10) as (tree, tools):
             self.assertEqual((tree / 'src/other.ts').read_text(), 'export const original = true;')
             self.assertEqual((tree / 'src/data.json').read_text(), '{"state":"committed"}')
             self.assertEqual((tools / 'push-inputs.mjs').read_text(), '// committed tool\n')
@@ -293,10 +296,10 @@ readFileSync('../public/assets/native/untracked.bin');
         self.assertEqual((self.root / '.git/index').read_bytes(), index)
 
     def test_copied_fast_lint_executes_exact_committed_tool_dependencies(self):
-        for name in [*PUSH['SOURCE']['TOOLS'], *PUSH['SOURCE']['CONFIGS']]:
+        for name in [*SOURCE['TOOLS'], *SOURCE['CONFIGS']]:
             self.put('scripts/' + name, '// unused copied tool\n')
         exact = {}
-        for name in [*PUSH['SOURCE']['FAST_LINT_TOOLS'], 'link-node-modules.mjs']:
+        for name in [*SOURCE['FAST_LINT_TOOLS'], 'link-node-modules.mjs']:
             exact[name] = ((TOOL_ROOT / name).read_text() if name == 'lint-fast.mjs' else
                            subprocess.check_output(['git', 'show', 'HEAD:scripts/' + name], cwd=ROOT, text=True))
             self.put('scripts/' + name, exact[name])
@@ -309,7 +312,7 @@ readFileSync('../public/assets/native/untracked.bin');
         tip = self.commit('src/changed.ts')
         self.put('scripts/lint-fast.mjs', 'throw Error("foreign working tool");\n')
         subprocess.run(['node', str(TOOL_ROOT / 'link-node-modules.mjs'), str(ROOT), str(self.root)], check=True)
-        with PUSH['SOURCE']['committed_source'](self.root, tip, tip, time.monotonic() + 30) as (tree, tools):
+        with SOURCE['committed_source'](self.root, tip, tip, time.monotonic() + 30) as (tree, tools):
             for name, source in exact.items():
                 self.assertEqual((tools / name).read_text(), source)
             result = subprocess.run(['node', str(tools / 'lint-fast.mjs')], cwd=tree,
@@ -328,7 +331,7 @@ readFileSync('../public/assets/native/untracked.bin');
         self.put(path, json.dumps({'data': 'a' * 1024}))
         bad = self.commit('src/binary.ts')
         self.put(path, '{}')  # A dirty working file cannot hide a committed asset.
-        with patch.dict(PUSH['SOURCE'], committed_source=lambda *_: self.fail('source preparation ran')):
+        with patch.dict(PUSH, fast_tools=lambda *_: self.fail('tools read before binary refusal')):
             result = PUSH['check_committed'](self.root, baseline, bad, time.monotonic() + 45)
         self.assertFalse(result['ok'])
         self.assertEqual(result['phase'], 'binary-json')
@@ -340,11 +343,11 @@ readFileSync('../public/assets/native/untracked.bin');
         clean = self.commit('src/clean.ts')
         self.assertFalse(PUSH['check_binary_json'](self.root, baseline, clean, time.monotonic() + 45)['ok'])
 
-    def test_binary_json_budget_defers_only_without_an_observed_refusal(self):
+    def test_binary_json_budget_never_accepts_an_unchecked_candidate(self):
         self.put('scripts/no-binary-json.mjs', (TOOL_ROOT / 'no-binary-json.mjs').read_text())
         self.put('lint/no-binary-json.json', json.dumps({'schema': 'no-binary-json/1', 'source': self.base, 'files': {}}))
         tip = self.commit('src/policy.ts')
-        for output, accepted in [('still running', True), ('BINARY-JSON public/new.json: binary', False)]:
+        for output, accepted in [('still running', False), ('BINARY-JSON public/new.json: binary', False)]:
             with patch.dict(LIVE, run=lambda *_: (124, output)):
                 result = PUSH['check_binary_json'](self.root, self.base, tip, time.monotonic() + 45)
             self.assertEqual(result['ok'], accepted)
@@ -353,45 +356,40 @@ readFileSync('../public/assets/native/untracked.bin');
         self.assertFalse(PUSH['check_binary_json'](self.root, tip, deleted, time.monotonic() + 45)['ok'])
 
     def test_source_command_accepts_soft_preparation_deadline(self):
-        result = PUSH['SOURCE']['command'](self.root, [sys.executable, '-c', 'print("exact")'],
+        result = SOURCE['command'](self.root, [sys.executable, '-c', 'print("exact")'],
                                            float('inf'), capture_output=True, text=True)
         self.assertEqual(result.stdout.strip(), 'exact')
 
-    def test_preparation_finishes_after_soft_budget_and_pushes_with_ci_deferral(self):
-        tip = self.commit('src/slow-preparation.ts')
-        clock = [100.0]
-        checks, uploads, cleanups = [], [], []
+    def test_gate_runs_fast_phases_without_source_preparation_or_typed_work(self):
+        tip = self.commit('src/good.ts')
+        calls, cleanups = [], []
         @contextmanager
-        def prepared(root, revision, tooling, deadline):
-            self.assertEqual(deadline, float('inf'))
+        def prepared(root, revision, deadline):
             self.assertEqual(revision, tip)
-            clock[0] += 46
             try:
-                yield self.root, self.root / 'scripts'
+                yield self.root / 'scripts'
             finally:
-                clock[0] += 3
                 cleanups.append(revision)
-        with patch.dict(PUSH['SOURCE'], committed_source=prepared), \
-                patch.object(time, 'monotonic', side_effect=lambda: clock[0]), \
-                patch.dict(LIVE, check=lambda *args, **kwargs: checks.append(args)):
-            result = PUSH['tick'](self.root, uploader=lambda revision, env: uploads.append(revision) or 0)
-        self.assertEqual(result['status'], 'pushed')
-        self.assertEqual(result['types'], 'ci-budget')
-        self.assertIn('46.00 seconds', result['output'])
-        self.assertIn('defer to full CI', result['output'])
-        self.assertEqual(checks, [])
-        self.assertEqual(uploads, [tip])
+        def runner(command, root, deadline, env):
+            calls.append(command[5])
+            self.assertEqual(root, self.root)
+            self.assertGreater(deadline, time.monotonic())
+            self.assertIn('WS_GIT_CHECK_DEADLINE', env)
+            return 0, 'DEFERRED TO CI fast-lint src/good.ts' if command[5] == 'fast-lint' else 'passed'
+        with patch.dict(PUSH, fast_tools=prepared), patch.dict(LIVE, run=runner):
+            result = PUSH['check_committed'](self.root, self.base, tip, time.monotonic() + 45)
+        self.assertTrue(result['ok'])
+        self.assertEqual(result['types'], 'ci')
+        self.assertEqual(calls, ['storage', 'fast-lint', 'guards', 'ratchet'])
         self.assertEqual(cleanups, [tip])
         steps = {row['step']: row for row in result['steps']}
-        self.assertEqual(steps['source-prepare']['seconds'], 46)
-        self.assertEqual(steps['source-cleanup']['seconds'], 3)
-        self.assertEqual(result['gateSeconds'], 49)
-        self.assertEqual(result['gateOtherSeconds'], 0)
-        for name in LIVE['CHECK_STEPS']:
-            self.assertEqual(steps[name]['status'], 'skipped')
-            self.assertEqual(steps[name]['reason'], 'budget')
-            self.assertEqual(steps[name]['seconds'], 0)
-        self.assertTrue(all(row['candidate'] == tip for row in result['steps']))
+        self.assertNotIn('source-prepare', steps)
+        self.assertNotIn('source-cleanup', steps)
+        self.assertEqual(steps['fast-lint']['status'], 'deferred')
+        for phase in ['typed-lint', 'related-tests']:
+            self.assertEqual(steps[phase]['status'], 'skipped')
+            self.assertEqual(steps[phase]['reason'], 'ci-G675')
+        self.assertEqual(steps['deleted-paths']['reason'], 'no-deletions')
 
     def test_step_timings_cover_policy_recent_related_and_typed_work_once(self):
         tip = self.commit('src/timed.ts')
@@ -478,15 +476,17 @@ readFileSync('../public/assets/native/untracked.bin');
             self.assertEqual(result['files'], ['src/unchanged.ts'])
             self.assertEqual(calls, [['node', str(self.root / 'scripts/lint-fast.mjs')]])
 
-    def test_preparation_errors_are_not_accepted_as_budget_deferrals(self):
+    def test_checker_input_errors_are_never_accepted_as_ci_deferrals(self):
         tip = self.commit('src/good.ts')
         @contextmanager
         def invalid(*_):
-            raise ValueError('Invalid committed input hash')
+            raise OSError('Missing committed checker blob')
             yield
-        with patch.dict(PUSH['SOURCE'], committed_source=invalid):
-            with self.assertRaisesRegex(ValueError, 'Invalid committed input hash'):
-                PUSH['check_committed'](self.root, self.base, tip, time.monotonic() + 45)
+        with patch.dict(PUSH, fast_tools=invalid):
+            result = PUSH['check_committed'](self.root, self.base, tip, time.monotonic() + 45)
+        self.assertFalse(result['ok'])
+        self.assertEqual(result['phase'], 'tool-inputs')
+        self.assertIn('Missing committed checker blob', result['output'])
 
     def test_timed_out_tests_defer_but_observed_failures_stay_red(self):
         tip = self.commit('src/good.ts')
@@ -569,52 +569,42 @@ readFileSync('../public/assets/native/untracked.bin');
         self.put('.git/push-deferred-types.json', json.dumps({'src/good.ts': ['wrong blob']}))
         self.assertEqual(PUSH['deferred_types'](self.root, self.base, tip), [])
 
-    def test_deferred_type_refusal_blocks_after_required_guards(self):
+    def test_deferred_types_stay_in_ci_even_with_generated_cache(self):
         tip = self.commit('src/good.ts')
         blob = self.git('rev-parse', tip + ':src/good.ts')
         self.put('.git/push-deferred-types.json', json.dumps({'src/good.ts': [blob]}))
         self.put('.push-types.json', '{"available":true}')
         @contextmanager
         def prepared(*_):
-            yield self.root, self.root / 'scripts'
+            yield self.root / 'scripts'
         calls = []
-        def runner(command, *_):
-            calls.append(command)
-            if 'oxlint' in command:
-                return 1, 'src/good.ts:1:1 error typescript(TS2322)'
-            return 0, '[]' if command[0] == 'node' else ''
-        with patch.dict(PUSH['SOURCE'], committed_source=prepared), patch.dict(LIVE, run=runner):
+        with patch.dict(PUSH, fast_tools=prepared), patch.dict(LIVE, run=lambda *args: calls.append(args[0]) or (0, '')):
             result = PUSH['check_committed'](self.root, self.base, tip, time.monotonic() + 45)
-        self.assertFalse(result['ok'])
-        self.assertEqual(result['phase'], 'typed-check')
-        self.assertIn('scripts/vitest-push-guards.config.ts', next(command for command in calls if 'vitest' in command))
-        self.assertEqual(next(command for command in calls if 'oxlint' in command),
-                         ['pnpm', 'exec', 'oxlint', '--type-aware',
-                          '-c', '.oxlintrc.json', 'src/good.ts'])
+        self.assertTrue(result['ok'])
+        self.assertEqual(result['types'], 'ci')
+        self.assertEqual([command[5] for command in calls], ['storage', 'fast-lint', 'guards', 'ratchet'])
+        self.assertFalse(any('oxlint' in command or 'vitest' in command for command in calls))
 
-    def test_policy_only_deferral_runs_before_optional_gate_work(self):
+    def test_policy_guards_refuse_before_ratchet_or_upload(self):
         tip = self.commit('lint/ratchet.json')
         blob = self.git('rev-parse', tip + ':lint/ratchet.json')
         self.put('.git/push-deferred-policy.json', json.dumps({'lint/ratchet.json': [blob]}))
         self.put('lint/ratchet.json', 'foreign WIP')
         self.assertEqual(PUSH['deferred_policy'](self.root, self.base, tip), ['lint/ratchet.json'])
         self.assertEqual(PUSH['deferred_types'](self.root, self.base, tip), [])
-        self.put('.push-types.json', '{"available":false}')
         @contextmanager
         def prepared(*_):
-            yield self.root, self.root / 'scripts'
+            yield self.root / 'scripts'
         calls = []
         def runner(command, *_):
-            calls.append(command)
-            if command[1].endswith('check-closed-components.mjs'):
-                return 1, 'CLOSED C9 has custom lines'
-            return 0, '[]'
-        with patch.dict(PUSH['SOURCE'], committed_source=prepared), patch.dict(LIVE, run=runner):
+            calls.append(command[5])
+            return (1, 'CLOSED C9 has custom lines') if command[5] == 'guards' else (0, '')
+        with patch.dict(PUSH, fast_tools=prepared), patch.dict(LIVE, run=runner):
             result = PUSH['check_committed'](self.root, self.base, tip, time.monotonic() + 45)
         self.assertFalse(result['ok'])
-        self.assertEqual(result['phase'], 'closed-components')
-        self.assertEqual(calls[-1][-1], '--source-only')
-        self.assertFalse(any('vitest' in command for command in calls))
+        self.assertEqual(result['phase'], 'guards')
+        self.assertEqual(calls, ['storage', 'fast-lint', 'guards'])
+        self.assertEqual(next(row for row in result['steps'] if row['step']=='ratchet')['reason'], 'prior-refusal')
         self.put('.git/push-deferred-policy.json', json.dumps({'lint/ratchet.json': ['wrong blob']}))
         self.assertEqual(PUSH['deferred_policy'](self.root, self.base, tip), [])
 
@@ -626,31 +616,28 @@ readFileSync('../public/assets/native/untracked.bin');
         self.assertFalse(result['ok'])
         self.assertEqual(result['phase'], 'ratchet')
 
-    def test_deferred_types_with_missing_generated_inputs_stay_with_ci(self):
+    def test_mandatory_guard_timeout_fails_instead_of_deferring_to_ci(self):
         tip = self.commit('src/good.ts')
-        blob = self.git('rev-parse', tip + ':src/good.ts')
-        self.put('.git/push-deferred-types.json', json.dumps({'src/good.ts': [blob]}))
-        self.put('.push-types.json', '{"available":false}')
         @contextmanager
         def prepared(*_):
-            yield self.root, self.root / 'scripts'
+            yield self.root / 'scripts'
         calls = []
-        with patch.dict(PUSH['SOURCE'], committed_source=prepared), \
-             patch.dict(LIVE, run=lambda *args: calls.append(args) or (0, '')):
+        def runner(command, *_):
+            calls.append(command[5])
+            return (124, 'pre-push budget exhausted') if command[5] == 'guards' else (0, '')
+        with patch.dict(PUSH, fast_tools=prepared), patch.dict(LIVE, run=runner):
             result = PUSH['check_committed'](self.root, self.base, tip, time.monotonic() + 45)
-        self.assertTrue(result['ok'])
-        self.assertEqual(result['types'], 'ci-cache-miss')
-        self.assertIn('full CI owns: src/good.ts', result['output'])
-        self.assertEqual(len(calls), 2)
-        self.assertEqual(calls[0][0], ['node', str(self.root / 'scripts/lint-fast.mjs')])
-        self.assertIn('scripts/vitest-push-guards.config.ts', calls[1][0])
+        self.assertFalse(result['ok'])
+        self.assertEqual(result['phase'], 'guards')
+        self.assertEqual(calls, ['storage', 'fast-lint', 'guards'])
+        self.assertEqual(next(row for row in result['steps'] if row['step']=='guards')['status'], 'budget')
 
     def test_missing_discovery_prevents_a_partial_cache_from_enabling_types(self):
         self.put('src/shards/fixture/world/build.ts', "import manifest from '../discovery.generated';\nexport const seed = manifest.seed;\n")
-        missing = PUSH['SOURCE']['missing_generated'](self.root)
+        missing = SOURCE['missing_generated'](self.root)
         self.assertEqual(missing, ['src/shards/fixture/discovery.generated'])
         self.put('src/shards/fixture/discovery.generated.ts', 'export default {seed: 42};\n')
-        self.assertEqual(PUSH['SOURCE']['missing_generated'](self.root), [])
+        self.assertEqual(SOURCE['missing_generated'](self.root), [])
 
     def test_generation_phase_cache_rejects_changed_inputs_and_corrupt_outputs(self):
         tip = self.git('rev-parse', 'HEAD')

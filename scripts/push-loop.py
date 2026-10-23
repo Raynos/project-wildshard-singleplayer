@@ -14,8 +14,6 @@ import time
 from contextlib import contextmanager
 
 LIVE = runpy.run_path(str(Path(__file__).with_name('live-prepush.py')))
-SOURCE = runpy.run_path(str(Path(__file__).with_name('push-source.py')))
-RECENT = runpy.run_path(str(Path(__file__).with_name('recent-ci-tests.py')))
 git = LIVE['git']
 
 
@@ -62,91 +60,73 @@ def check_binary_json(root, base, tip, deadline):
         checker.write_text(script.stdout)
         rc, output = LIVE['run'](['node', str(checker), '--range', base, tip], root, deadline)
     if rc == 124 and 'BINARY-JSON ' not in output:
-        return {'ok': True, 'budget': True, 'output': output + '\nBinary JSON check reached the local budget; defer to full CI.\n'}
+        return {'ok': False, 'budget': True, 'files': [], 'output': output + '\nBinary JSON check exceeded the local budget; upload refused.\n'}
     if rc != 0:
         paths = sorted(set(re.findall(r'^BINARY-JSON ([^\n:]+):', output, re.M)))
         return {'ok': False, 'phase': 'binary-json', 'files': paths, 'output': output}
     return {'ok': True, 'output': output}
 
 
+FAST_TOOLS = ('committed-fast-checks.mjs', 'git-source-view.mjs', 'git-rule-counts.mjs')
+
+
 @contextmanager
-def measured_source(manager, steps):
-    """Separate materialisation and cleanup without counting checks twice."""
-    started = time.monotonic()
-    cleanup_started = None
-    try:
-        with manager as value:
-            steps.row('source-prepare').update(seconds=round(time.monotonic()-started, 4), status='passed')
-            steps.row('source-prepare').pop('reason', None)
-            try:
-                yield value
-            finally:
-                cleanup_started = time.monotonic()
-    finally:
-        name = 'source-prepare' if cleanup_started is None else 'source-cleanup'
-        row = steps.row(name)
-        row.update(seconds=round(time.monotonic()-(started if cleanup_started is None else cleanup_started), 4),
-                   status='error' if sys.exc_info()[0] is not None else 'passed')
-        row.pop('reason', None)
+def fast_tools(root, revision, deadline):
+    """Only three checker modules, not a source tree, cache or generated input."""
+    (root / 'tmp').mkdir(exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=root / 'tmp', prefix='push-tools-') as owned:
+        folder = Path(owned)
+        for name in FAST_TOOLS:
+            left = deadline - time.monotonic()
+            if left <= 0:
+                raise TimeoutError('Exact checker inputs exceeded the local budget')
+            source = subprocess.check_output(['git', 'show', revision + ':scripts/' + name], cwd=root, timeout=min(10, left))
+            (folder / name).write_bytes(source)
+        yield folder
 
 
 def check_committed(root, base, tip, deadline):
-    steps = LIVE['GateSteps'](('binary-json', 'recent-refresh', 'source-prepare', 'source-inputs',
-                               'failure-inputs', 'source-cleanup'))
-    def report(result, skipped='not-reached'):
-        checks = result.get('steps')
-        if checks is None:
-            pending = LIVE['GateSteps'](LIVE['CHECK_STEPS'])
-            pending.skip(LIVE['CHECK_STEPS'], skipped)
-            checks = pending.rows
-        result['steps'] = steps.rows + checks
-        return result
-
+    names = ('binary-json', 'tool-inputs', 'storage', 'fast-lint', 'guards', 'deleted-paths', 'ratchet',
+             'typed-lint', 'related-tests')
+    steps = LIVE['GateSteps'](names)
+    steps.skip(('typed-lint', 'related-tests'), 'ci-G675')
+    result = {'ok': False, 'phase': 'binary-json', 'files': [], 'output': '', 'types': 'ci', 'steps': steps.rows}
     with steps.measure('binary-json') as row:
         binary = check_binary_json(root, base, tip, deadline)
         row['status'] = 'budget' if binary.get('budget') else 'passed' if binary['ok'] else 'failed'
-    if not binary['ok']:
-        return report(binary)
-    with steps.measure('recent-refresh') as row:
-        recent, recent_note = RECENT['refresh'](root, min(deadline,time.monotonic()+5))
-        row.update(status='completed', note=recent_note.strip())
-    policy = deferred_policy(root, base, tip)
-    preparation_started = time.monotonic()
+    result['output'] = binary['output']
+    if not binary['ok'] or binary.get('budget'):
+        result.update(phase='binary-json', files=binary.get('files', []))
+        return result
+    files = LIVE['changed'](root, base, tip)
+    removed = git(root, 'diff', '--name-only', '--diff-filter=D', '--no-renames', base, tip).splitlines()
     try:
-        # The local check budget is soft; exact source preparation must finish.
-        with measured_source(SOURCE['committed_source'](root, tip, git(root, 'rev-parse', 'main'), float('inf')), steps) as (tree, tools):
-            if time.monotonic() >= deadline:
-                steps.skip(('source-inputs', 'failure-inputs'), 'budget')
-                return report({'ok': True, 'phase': 'preparation-deferred', 'files': [], 'types': 'ci-budget',
-                        'output': binary['output'] + 'Exact committed source preparation completed in %.2f seconds. '
-                                  'Local check budget exhausted; deleted-path/inventory guards, related tests '
-                                  'and remaining typed checks defer to full CI.' % (time.monotonic() - preparation_started)
-                                  + (' Deferred pre-commit policy checks remain queued: ' + ', '.join(policy) if policy else '')}, 'budget')
-            with steps.measure('source-inputs'):
-                inputs = json.loads((tree / '.push-types.json').read_text())
-                available = inputs['available']
-                deferred = deferred_types(root, base, tip)
-                deleted = git(root, 'diff', '--name-only', '--diff-filter=D', '--no-renames', base, tip).splitlines()
-            result = LIVE['check'](tree, base, tip, deadline, files=LIVE['changed'](root, base, tip),
-                                   runner=LIVE['run'],
-                                   tools=tools, types_available=available,
-                                   tests_available=inputs.get('testsAvailable', available),
-                                   test_revision=inputs.get('testRevision'), deleted=deleted, typed_files=deferred, recent_tests=recent,
-                                   policy_checks=bool(policy))
-            if deferred:
-                if not available:
-                    result['types'] = 'ci-cache-miss'
-                if not available:
-                    result['output'] += '\nDeferred typed checks lack verified generated inputs; full CI owns: ' + ', '.join(deferred)
-            if not result['ok'] and result['files']:
-                rc, output = steps.run('failure-inputs', LIVE['run'], ['node', str(tools / 'push-inputs.mjs'), *result['files']], tree, deadline)
-                result['inputs'] = json.loads(output) if rc == 0 else []
-            else:
-                steps.skip(('failure-inputs',), 'no-failure')
-            result['output'] = binary['output'] + recent_note + '\n' + result['output']
-            return report(result)
-    except (TimeoutError, subprocess.TimeoutExpired):
-        return report({'ok': False, 'phase': 'preparation', 'files': [], 'output': 'Committed check exceeded 45 seconds'})
+        with steps.measure('tool-inputs'):
+            tools = fast_tools(root, git(root, 'rev-parse', 'main'), deadline)
+            folder = tools.__enter__()
+        try:
+            env = dict(os.environ, WS_GIT_CHECK_DEADLINE=str(int((time.time() + max(0, deadline-time.monotonic())) * 1000)))
+            for phase in ('storage', 'fast-lint', 'guards', 'deleted-paths', 'ratchet'):
+                if phase == 'deleted-paths' and not removed:
+                    steps.skip((phase,), 'no-deletions')
+                    continue
+                command = ['node', str(folder / 'committed-fast-checks.mjs'), str(root), base, tip, phase,
+                           json.dumps(removed if phase == 'deleted-paths' else files)]
+                rc, output = steps.run(phase, LIVE['run'], command, root, deadline, env)
+                result['output'] += '\n' + output
+                if not rc and 'DEFERRED TO CI' in output:
+                    steps.row(phase).update(status='deferred', reason='inputs-do-not-match-tip')
+                if rc:
+                    result.update(phase=phase, files=LIVE['failure_paths'](output))
+                    steps.skip(names, 'prior-refusal' if rc != 124 else 'budget-failed')
+                    return result
+        finally:
+            tools.__exit__(None, None, None)
+    except (OSError, subprocess.SubprocessError) as error:
+        result.update(phase='tool-inputs', output=result['output'] + '\nExact checker inputs failed: ' + str(error))
+        return result
+    result.update(ok=True, phase='passed', output=result['output'] + '\nTyped lint and all test execution belong to CI (G675).')
+    return result
 
 
 def load(path, fallback):
@@ -189,7 +169,7 @@ def offender(root, base, tip, files, deadline):
     left = deadline - time.monotonic()
     if not files or left <= 0:
         return None
-    # The checker expanded dependencies in the committed source snapshot.
+    # Diagnostics name exact committed inputs, never loose working files.
     inputs = files
     if not inputs:
         return None
@@ -222,7 +202,7 @@ def tick(root, checker=check_committed, uploader=None, notify=ping):
     if quiet_active(common / 'quiet'):
         return {'status': 'quiet', 'tip': git(root, 'rev-parse', 'main')}
     started = time.monotonic()
-    # Reaping the snapshot is part of the 45-second ceiling too.
+    # Fast checks and attribution share the same 45-second ceiling.
     deadline = started + LIVE['LIMIT'] - 2
     pending_notice = None
     attempts = []
