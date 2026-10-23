@@ -7850,6 +7850,10 @@ registration, initialization and update pin the same host, Core, scope, clock,
 rows, group arrays, native owners and callable identities. `initialize()` and
 `bindPopulation(owner)` retain their original late assembly slots. Borrowed
 controllers retain their decisions, adoption effects and historical save wire.
+The deeply readonly `NativeEliteRosterRows` and concrete `NativeEliteRosterLoans`
+types expose this same admitted contract to compiled lenders. Game declarations
+derive shared definition, save-field, group and binding types from that contract;
+borrowed member policy remains with its original lender.
 
 `engine/ai/eliteLifecycle.NativeEliteLifecycle` drives native boot adoption,
 allocated respawn, initial memory, pack placement/home assignment, retirement,

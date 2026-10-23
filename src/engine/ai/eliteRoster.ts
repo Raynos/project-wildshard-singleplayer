@@ -16,7 +16,9 @@ const rowSchema = v.object({ ...EliteContinuationRowsSchema.entries.rows.item.en
 const rowsSchema = v.strictObject({ step: HandleIdSchema, version: finite, wire: EliteContinuationRowsSchema.entries.wire,
   rows: v.pipe(v.array(rowSchema), v.minLength(1), v.maxLength(64)), roles: v.array(v.picklist(['native', 'borrowed'])), kernels: v.unknown() });
 type Definition = v.InferOutput<typeof definition>;
-type RosterRows = v.InferOutput<typeof rowsSchema>;
+type ReadonlyRows<T> = T extends object ? { readonly [K in keyof T]: ReadonlyRows<T[K]> } : T;
+/** Canonical admitted native roster declaration; reused by compiled lenders. */
+export type NativeEliteRosterRows = ReadonlyRows<v.InferOutput<typeof rowsSchema>>;
 /** The original Core consumes the same scripts and member objects. */
 export interface NativeEliteScript {
   readonly def: Definition; readonly animal: AnimalSim | null;
@@ -31,7 +33,8 @@ export interface NativeEliteRosterCore extends EliteContinuationCore {
 }
 /** Original mutable state, including the raw declared row used by its lender. */
 export interface NativeEliteMember extends EliteContinuationMember { readonly row: { readonly def: Definition } }
-interface Loans {
+/** Original concrete loans for compiled roster construction. */
+export interface NativeEliteRosterLoans {
   readonly host: SimHost; readonly core: NativeEliteRosterCore;
   readonly bindings: { readonly brains: NativeEliteKernelLoans['brains']; readonly pinned: Set<AnimalSim> };
   readonly kernel?: Omit<NativeEliteKernelLoans, 'scope' | 'host' | 'lifecycle' | 'brains'>;
@@ -47,16 +50,16 @@ function scriptMethods(script: NativeEliteScript): readonly unknown[] {
  * Borrowed controllers are lent at their original row position, never made by
  * an authored factory. They retain all decisions and continuation authority. */
 export class NativeEliteRoster {
-  private readonly input: RosterRows; private readonly rows: RosterRows['rows']; private readonly roles: RosterRows['roles']; private readonly rowOwner: RosterRows['rows']; private readonly roleOwner: RosterRows['roles'];
-  private readonly host: SimHost; private readonly scope: SimHost['scope']; private readonly clock: SimHost['clock']; private readonly core: NativeEliteRosterCore; private readonly entries: NativeEliteRosterCore['entries']; private readonly bindings: Loans['bindings'];
-  private readonly kernelOwner: Loans['kernel']; private readonly groups: Loans['groups']; private readonly kernels: NativeEliteKernels | null; private readonly lifecycle: NativeEliteLifecycle | null;
-  private readonly brains: Loans['bindings']['brains']; private readonly pinned: Set<AnimalSim>; private readonly packs: EliteContinuationGroups['packs'] | undefined; private readonly guards: EliteContinuationGroups['herds'] | undefined;
+  private readonly input: NativeEliteRosterRows; private readonly rows: NativeEliteRosterRows['rows']; private readonly roles: NativeEliteRosterRows['roles']; private readonly rowOwner: NativeEliteRosterRows['rows']; private readonly roleOwner: NativeEliteRosterRows['roles'];
+  private readonly host: SimHost; private readonly scope: SimHost['scope']; private readonly clock: SimHost['clock']; private readonly core: NativeEliteRosterCore; private readonly entries: NativeEliteRosterCore['entries']; private readonly bindings: NativeEliteRosterLoans['bindings'];
+  private readonly kernelOwner: NativeEliteRosterLoans['kernel']; private readonly groups: NativeEliteRosterLoans['groups']; private readonly kernels: NativeEliteKernels | null; private readonly lifecycle: NativeEliteLifecycle | null;
+  private readonly brains: NativeEliteRosterLoans['bindings']['brains']; private readonly pinned: Set<AnimalSim>; private readonly packs: EliteContinuationGroups['packs'] | undefined; private readonly guards: EliteContinuationGroups['herds'] | undefined;
   private readonly borrowedGroups: readonly (EliteContinuationGroups['herds'][number] | undefined)[]; private readonly kernelLoans: readonly unknown[];
-  private readonly calls: readonly unknown[]; private readonly loans: Loans;
+  private readonly calls: readonly unknown[]; private readonly loans: NativeEliteRosterLoans;
   private readonly members: NativeEliteMember[] = []; private readonly prepared: NativeEliteScript[] = [];
   private readonly borrowed: { member: NativeEliteMember; script: NativeEliteScript; controller: EliteContinuationMember['controller']; calls: readonly unknown[]; continuation: readonly unknown[] }[] = [];
   private installed = false;
-  constructor(input: unknown, loans: Loans) {
+  constructor(input: unknown, loans: NativeEliteRosterLoans) {
     if (!isJsonData(input)) throw new Error('Elite roster requires plain JSON rows');
     if (!v.is(rowsSchema, input)) throw new Error('Invalid elite roster rows');
     this.input = input; this.rows = [...input.rows]; this.roles = [...input.roles]; this.rowOwner = input.rows; this.roleOwner = input.roles; this.loans = loans;

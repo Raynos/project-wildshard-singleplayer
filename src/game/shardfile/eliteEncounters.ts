@@ -1,56 +1,44 @@
 import * as v from 'valibot';
 import { isJsonData } from '@wildshard/format/json';
 import { ReturnProgram } from '../population/returnProgram';
-import type { EliteContinuationGroups } from '@wildshard/engine/ai/eliteContinuation';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost } from '@wildshard/engine/sim';
-import type { NativeEliteKernelLoans } from '@wildshard/engine/ai/eliteKernels';
 import type { NativeElitePopulation } from '@wildshard/engine/ai/eliteLifecycle';
-import { NativeEliteRoster } from '@wildshard/engine/ai/eliteRoster';
-import type { PackBrain } from '@wildshard/engine/ai/pack';
-import { EliteCore, type EliteCoreDef, type EliteCoreScript } from '../eliteSystem';
+import { NativeEliteRoster, type NativeEliteRosterRows, type NativeEliteRosterLoans, type NativeEliteMember } from '@wildshard/engine/ai/eliteRoster';
+import { EliteCore, type EliteCoreScript } from '../eliteSystem';
 
 const silent = (): void => undefined;
 const finite = v.pipe(v.number(), v.finite());
 
 /** Manager-owned elite pins and decision bindings; the manager retains its single body-step installer. */
-export interface EliteBindings {
-  readonly pinned: Set<AnimalSim>;
-  readonly absent: Set<AnimalSim>;
-  readonly brains: NativeEliteKernelLoans['brains'];
-}
+export type EliteBindings = NativeEliteRosterLoans['bindings'] & { readonly absent: Set<AnimalSim> };
 /** Allocate per simulation, never at module import. */
 export function eliteBindings(): EliteBindings { return { pinned: new Set(), absent: new Set(), brains: new Map() }; }
 
 interface Herd { readonly stallionState: string; readonly stallion: AnimalSim | null; readonly leadAway: (x: number, z: number) => void }
 type HerdTaming = () => {readonly phase:string;readonly tulpar:AnimalSim|null}|null;
 /** A member's identity, adoption and save key are author data. Pack ordering is checked against the owner's actor IDs. */
-export interface EliteEncounterRow {
-  readonly def: EliteCoreDef;
-  readonly keeper: 'kernel' | 'herd'; readonly snapshot: string;
+export interface EliteEncounterRow extends Pick<NativeEliteRosterRows['rows'][number], 'def' | 'snapshot' | 'continuation'> {
+  readonly keeper: 'kernel' | 'herd';
   readonly member: { readonly kind: string; readonly variant: string; readonly source: 'boot' | 'spawn' | 'herd'; readonly yaw: number; readonly memory?: Readonly<Record<string, number>> };
   readonly pack?: { readonly offset: readonly [number, number]; readonly variants: readonly string[]; readonly kind: string; readonly idPrefix: string };
-  readonly continuation?: { readonly borrowed?: { readonly group: number; readonly role: 'guard' }; readonly detachable?: true };
   readonly brokenState?: string;
   readonly onAdopted?: { readonly action: 'win-and-detach'; readonly variant: string; readonly scale: number };
 }
 /** The manager and group owner retain all allocation, RNG, environment and taming authority. */
-export interface EliteEncounterPorts {
+export interface EliteEncounterPorts extends Pick<NativeEliteRosterLoans, 'groups'> {
   readonly bindings: EliteBindings;
-  readonly groups?: EliteContinuationGroups;
   readonly herd: () => Herd | null;
   readonly taming?: HerdTaming;
   readonly keepers: { readonly herd: { readonly rows: unknown; readonly program: unknown } };
   /** Original concrete kernel owners; spawn/pack/save authorities stay here. */
-  readonly kernels?: Omit<NativeEliteKernelLoans, 'scope' | 'host' | 'lifecycle' | 'brains'> & { readonly rows: unknown };
+  readonly kernels?: NonNullable<NativeEliteRosterLoans['kernel']> & { readonly rows: unknown };
 }
 /** Both wire layouts retain their existing adapter IDs, versions and field names. Upgrades explicitly name retired fields. */
-export interface EliteEncounterSpec {
-  readonly step: string; readonly version: number;
+export interface EliteEncounterSpec extends Readonly<Pick<NativeEliteRosterRows, 'step' | 'version' | 'wire'>> {
   readonly core: EliteCore<EliteCoreScript<AnimalSim>>;
   readonly rows?: readonly EliteEncounterRow[];
   readonly ports?: EliteEncounterPorts;
-  readonly wire: { readonly detached?: string };
 }
 
 const herdPoint=v.tuple([finite,finite,finite]);
@@ -86,8 +74,7 @@ export class HerdEliteProjection {
   restore(input:unknown):void{this.prepareRestore(input)();}
 }
 
-interface Member { readonly row: EliteEncounterRow; animal: AnimalSim | null; phase2: boolean; pack: PackBrain<AnimalSim> | null; adopted: boolean; detached: boolean;
-  readonly controller: HerdEliteProjection }
+interface Member extends NativeEliteMember { readonly row: EliteEncounterRow; readonly controller: HerdEliteProjection }
 
 /** Install ordered named encounters on EliteCore. Shared ownership covers spawn/adoption, script/keeper continuation,
  * pack rebind, root effects and declared permanent detachment. Controllers retain fight decisions and clocks.

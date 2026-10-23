@@ -1,12 +1,24 @@
-import { expect, test, vi } from 'vitest';
-import { NativeEliteRoster, type NativeEliteScript } from '../src/engine/ai/eliteRoster';
+import { expect, expectTypeOf, test, vi } from 'vitest';
+import { NativeEliteRoster, type NativeEliteRosterRows, type NativeEliteScript } from '../src/engine/ai/eliteRoster';
 import { NativeEliteLifecycle } from '../src/engine/ai/eliteLifecycle';
 import type { SimHost } from '../src/engine/sim';
-import { eliteBindings, HerdEliteProjection } from '../src/game/shardfile/eliteEncounters';
+import { eliteBindings, HerdEliteProjection, type EliteEncounterRow, type EliteEncounterSpec } from '../src/game/shardfile/eliteEncounters';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';
 import { nativeEliteCore } from './fixtures/nativeEliteCore';
 import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type: 'json' };
+import type { EliteCoreDef } from '../src/game/eliteSystem';
+
+test('canonical roster declarations retain the original readonly public definition and wire', () => {
+  expectTypeOf<NativeEliteRosterRows['rows'][number]['def']>().toEqualTypeOf<EliteCoreDef>();
+  expectTypeOf<Pick<EliteEncounterRow, 'def' | 'snapshot' | 'continuation'>>().toEqualTypeOf<{
+    readonly def: EliteCoreDef; readonly snapshot: string;
+    readonly continuation?: { readonly borrowed?: { readonly group: number; readonly role: 'guard' }; readonly detachable?: true };
+  }>();
+  expectTypeOf<Pick<EliteEncounterSpec, 'step' | 'version' | 'wire'>>().toEqualTypeOf<{
+    readonly step: string; readonly version: number; readonly wire: { readonly detached?: string };
+  }>();
+});
 
 function method<O extends object, K extends keyof O>(owner: O, key: K): O[K] { return owner[key]; }
 function fixture() {
