@@ -14,7 +14,7 @@ const { capture, ...quest } = parsePersistedQuestPage(page);
 /** Build-only lowering removes the old borrowed methods and owner paths. */
 const calls = { finish: { finish: true }, raise: { mover: 'far.winch.bridge', command: 3 } } as const;
 export const SKY_CLIENT_PLAN = parseClientPlan({ version: 1, features: [
-  { kind: 'strings.register' }, { kind: 'world.scenes', graphs: 'required' }, { kind: 'motion.channels', rows: SKY_SCENE_MOTION },
+  { kind: 'strings.register' }, { kind: 'world.scenes' }, { kind: 'motion.channels', rows: SKY_SCENE_MOTION },
   { kind: 'player.enter', bounds: SKY_RUNTIME_BOOT.bounds, columns: { enabledMode: 'board' } },
   { kind: 'held.melee', item: FAN_ID, stage: 'kit', targets: 'scan', composed: true, stowedMode: 'board',
     finish: { part: 'silk', look: 'fan-silk', image: 'leaf', library: 'sky' } },

@@ -274,9 +274,9 @@ test('an orchard installs painterly setup and its frame update from an unordered
 });
 
 
-test('a trusted runtime honors required graph rows before allocating presentation', async () => {
+test('a trusted runtime draws its graphs before allocating presentation', async () => {
   const f=context();f.source.look.materials['orchard-water']=parseFamilyMaterial({family:'pbr'});
-  f.sections.set('client/plan',{version:1,features:[{kind:'world.scenes',graphs:'required'}]});
+  f.sections.set('client/plan',{version:1,features:[{kind:'world.scenes'}]});
   Object.assign(f.runtime,{world:{game:{renderer:{}}}});
   Object.assign(f.ctx,{tiers:{knobs:vi.fn()}});
   const assets=new ClientAssets(f.source,new Map(),browserShardfileOptions('https://example.invalid/'));
@@ -287,7 +287,7 @@ test('a trusted runtime honors required graph rows before allocating presentatio
   const textures=vi.spyOn(textureCapabilities,'ktx2TranscodeSupport').mockReturnValue({astc:false,bc7:false});
   try{
     await expect(client.world(f.ctx)).rejects.toThrow('Reached graph allocation');
-    expect(compile.mock.calls[0]?.[4]).toMatchObject({trustedGraphs:true,graphs:true});
+    expect(compile.mock.calls[0]?.[4]).toMatchObject({trustedGraphs:true}); expect(compile.mock.calls[0]?.[4]?.graphs).not.toBe(false);
   }finally{compile.mockRestore();textures.mockRestore();f.ctx.scope.dispose();}
 });
 

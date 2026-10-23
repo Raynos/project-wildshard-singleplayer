@@ -20,7 +20,6 @@ import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { GraphLiteral } from '@wildshard/format/materialGraph';
 import type { LookInstance } from './lentLooks';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import { setting } from '@wildshard/engine/ui/Settings';
 import { buildYield } from '@wildshard/engine/core/workSlice';
 import { loadGraphCompiler, bindGraphMeshMap } from '@wildshard/engine/render/graphBackend';
 import { curvedParams, graphFileTextureRefs, materialTextureRefs } from '@wildshard/format/materials';
@@ -99,8 +98,8 @@ function carriesGraph(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>)
  * `bindMeshMap(id, map)` borrows a mesh map for one already compiled catalogue entry, without recompiling its graph.
  * `tick` advances the family looks' clocks and moves the graph materials' bound params; `graphs.bind` hands the graph
  * params their live sources (the frame owner's hour, the shard state). A `family: "graph"` entry compiles through the
- * lazy graph back-end only while Settings ▸ Debug ▸ Look ▸ "Graph materials" is on (`options.graphs` overrides the row);
- * otherwise it falls back to its family preset (`clientGraphs.ts`). `outline` is the mesh-level hook the views call wherever
+ * lazy graph back-end (`options.graphs: false`, a renderer-free caller's, draws it as its family preset instead:
+ * `clientGraphs.ts`). `outline` is the mesh-level hook the views call wherever
  * they bind a catalogue material: a compiled graph that declares `stages.outline` adds its hull as each mesh's second draw
  * (scope-owned with the material); every other material attaches nothing. `surfaces` (SF55) resolves a props GLB material
  * name to its base material and texture slots when the props declare named materials (`clientPropMaterials.ts`); null
@@ -126,8 +125,8 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
   /** the splat ground's material while its tiles draw (Debug ▸ Ground tiles), which the tile views merge (`groundMerge`) */
   ground?: Material | null;
 }> {
-  // a look that declares its graphs required (SF88e) draws them on every path: standalone, regional and grid near
-  const graphsOn = shard.look.graphs === 'required' || (options.graphs ?? setting('graphMaterials') === 'on');
+  // every shard draws its declared graphs on every path: standalone, regional and grid near (G669 DR12)
+  const graphsOn = options.graphs ?? true;
   const sampledMaterials = graphsOn ? shard.look.materials : Object.fromEntries(Object.entries(shard.look.materials).filter(([, entry]) => entry.family !== 'graph' || 'preset' in entry));
   const textures = new Map<string, Texture>(), uses = new Map<string, 'colour' | 'data'>();
   const named = shard.props === null ? undefined : propMaterialsOf(shard.props);

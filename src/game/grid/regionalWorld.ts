@@ -1,7 +1,4 @@
-import { outputDescriptor } from '../shardfile/outputDescriptor';
 import { clientPageGround } from '../shardfile/clientGround';
-import { parseClientPlan } from '@wildshard/format/clientPlan';
-import { setting } from '@wildshard/engine/ui/Settings';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { bindSceneSourceLooks } from '../shardfile/sceneSources';
 import { bindPaintedMaterialMaps } from '../looks/paintedLook';
@@ -151,8 +148,7 @@ async function regionalPresentation(admitted: AdmittedProduct, start: { readonly
   const assets = runtimeProduct(full).assets, collider = terrain === null ? undefined : await assets.read(terrain.collider);
   if (scope.disposed) throw new Error('Regional world left while reading its presentation collider');
   // a runtime-bound host field keeps its declared default for the look's curves until the runtime answers (bindState)
-  const plan = parseClientPlan(outputDescriptor(full)?.sections.get('client/plan'));
-  const presentation = await clientMaterials({ ...data, state: full.state }, assets.retained, renderer, scope, { trustedGraphs: true, graphs: plan.features.some(row => row.kind === 'world.scenes' && row.graphs === 'required') || setting('graphMaterials') === 'on' });
+  const presentation = await clientMaterials({ ...data, state: full.state }, assets.retained, renderer, scope, { trustedGraphs: true });
   if (terrain !== null) {
     const material = presentation.materials.get(terrain.family);
     if (material === undefined) throw new Error('Regional terrain requires its admitted family material');

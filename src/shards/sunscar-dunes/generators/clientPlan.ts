@@ -14,7 +14,7 @@ const calls = new Map<string, unknown>([['dusk', { settle: 'weather.fields' }], 
   ...[0, 1, 2].flatMap(i => [`pour.${String(i)}`, `light.${String(i)}`].map(action => [action, { action }] as const))]);
 /** The original saved checkpoints invoke accepted page rules and native motion. */
 export const SIGNAL_CLIENT_PLAN = parseClientPlan({ version: 1, features: [
-  { kind: 'strings.register' }, { kind: 'world.scenes', graphs: 'debug' }, { kind: 'motion.channels', rows: SIGNAL_SCENE_MOTION },
+  { kind: 'strings.register' }, { kind: 'world.scenes' }, { kind: 'motion.channels', rows: SIGNAL_SCENE_MOTION },
   { kind: 'player.enter', pitch: -0.1 },
   { kind: 'light.emitters', rows: SIGNAL_EMITTERS },
   { kind: 'weather.fields', rows: SIGNAL_WEATHER_FIELDS, quest: quest.id },

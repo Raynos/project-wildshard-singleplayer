@@ -166,7 +166,6 @@
       }
     }
   ],
-  "graphs": "required",
   "grade": {
     "exposure": 0,
     "saturation": 1,
