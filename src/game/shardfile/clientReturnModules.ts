@@ -9,7 +9,7 @@ import { clientNativeBook } from './clientNativeBook';
 export async function prepareClientReturnModules(ctx:ShardContext):Promise<void> {
   if(!ctx.product.has('actors/return-scripts'))return;
   const rows=v.parse(ReturnModulesSchema,ctx.product.section('actors/return-scripts'));
-  if(!rows.some(row=>row.abi===2))return;
+  if(rows.length===0)return;
   const book=clientNativeBook(ctx);
   book.returnModules??=(async()=>{
     await ReturnProgram.prepareModules(ctx.product,book.decisionAssets,rows);

@@ -16,7 +16,7 @@ import viewmodelUniforms from '../data/viewmodelUniforms.json' with { type: 'jso
 import filamentRows from '../data/filament.json' with { type: 'json' };
 import lightRows from '../data/light.json' with { type: 'json' };
 import { filamentGeometry } from './filamentGeometry';
-import { grappleCourseScene } from './courseScene';
+import { grappleCourseScene, NINE_PRACTICE_MODULE } from './courseScene';
 import course from '../data/grappleCourse.json' with { type: 'json' };
 import * as v from 'valibot';
 import { GraphArmsSchema } from '@wildshard/format/graphArmsRows';
@@ -53,9 +53,10 @@ const halo = buildHalo();
 /** Original float32 channels and material settings; the live halo shaders stay in fpArms. */
 const viewmodel = buildViewmodelParts();
 // the movers view module (behaviour/movers.as, bake-movers-view.mjs), run by the client plan's view.program
-const MOVERS_WASM = nameBlob('views/movers.wasm', 'wasm', Uint8Array.from(atob(moversModule.bytes), character => character.codePointAt(0) ?? 0),
-  { critical: true, script: { abi: 2, lane: 'view', pages: 1, ioBytes: 4096, compilerRevision: SCRIPT_V2_REVISIONS.compiler, admissionRevision: SCRIPT_V2_REVISIONS.admission } });
-const emitted = emitNamedBlobs([MOVERS_WASM].concat(NINE_SCENE_BLOBS, LAYOUT_PLACEMENT_BLOBS, lightVolumeBlobs(), layoutBlobs(), facadeWindowBlobs(), [
+const MOVERS_WASM = {name:'views/movers.wasm',kind:'wasm' as const,source:moversModule.compiled.source,options:
+  { critical: true, script: { abi: 2 as const, lane: 'view' as const, pages: 1, ioBytes: 4096, compilerRevision: SCRIPT_V2_REVISIONS.compiler, admissionRevision: SCRIPT_V2_REVISIONS.admission } }};
+const PRACTICE_WASM={name:'behaviour/practice.wasm',kind:'wasm' as const,source:NINE_PRACTICE_MODULE.source,options:{critical:true,script:{abi:1 as const,pages:NINE_PRACTICE_MODULE.script.pages}}};
+const emitted = emitNamedBlobs(NINE_SCENE_BLOBS.concat(LAYOUT_PLACEMENT_BLOBS, lightVolumeBlobs(), layoutBlobs(), facadeWindowBlobs(), [
   nameBlob('looks/silk-weave.r8', 'bin', silkWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
   nameBlob('looks/plain-weave.r8', 'bin', plainWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
   nameBlob('geometry/fixed-kits.json', 'json', json({ practice: parseFixedRows({ ...fixedKits, lantern, practice: grappleCourseScene(course) }).practice }),{jsonSchema:namedJsonSchema(FixedPracticeFileSchema)}),
@@ -66,5 +67,5 @@ const emitted = emitNamedBlobs([MOVERS_WASM].concat(NINE_SCENE_BLOBS, LAYOUT_PLA
   nameBlob('weapons/jian-halo.json', 'json', json({ geometry: { ...halo.geo.toJSON(), uuid: '96d3a000-0000-4000-8000-000000000001' }, material: { ...halo.mat.toJSON(), uuid: '96d3a000-0000-4000-8000-000000000002' } })),
 ]));
 
-export const output = { blobs: [{name:"practice/card.webp",kind:"image",source:"explore/playground-grapple.webp"},...CAST_BINARY_SOURCES,...SIGN_ATLAS_SOURCES,...Object.entries(heldDecals).map(([tier,row])=>({name:`looks/jian-decal-${tier}.png`,kind:'image' as const,source:row.png}))], namedFiles: emitted.files, assets: new Map([...emitted.assets, ...heldGraphFiles.assets]),
-  platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['ui/strings', strings], ['world/scenes', { ...NINE_WORLD_SCENES, entry: nineWorldEntry() }], ['held/arms', heldPrimary], ['view/modules', [{ id: 'nine.movers', module: MOVERS_WASM.file.path, side: 'view', ...MOVERS_WASM.script }]], ['client/plan', {version:1,features:[practiceCard, {kind:'strings.register'}, {kind:'world.assembly', rows: nineWorldAssembly(), entered: { root: 'nine.root', blocks: ['pieces'] }}, {kind:'view.program', id:'movers', rows: nineMoversView(), module: 'views/movers.wasm'}, {kind:'world.runtime-hooks',overhead:[],bounds:{x:[-250,250],z:[-250,250],outer:{maxAbsXZ:200,floor:-20}}}, {kind:'held.claims.prepare',id:'held.primary'}, {kind:'held.claims.install',claims:'held.primary'}, {kind:'held.claims.enter',claims:'held.primary',grapple:{item:'tool.fei-zhua',source:'sim/headless-constants.json',presentation:'weapons/jian-row.json'}}, {kind:'portal.ride',source:'sim/headless-constants.json'}]}]])) };
+export const output = { blobs: [MOVERS_WASM,PRACTICE_WASM,{name:"practice/card.webp",kind:"image",source:"explore/playground-grapple.webp"},...CAST_BINARY_SOURCES,...SIGN_ATLAS_SOURCES,...Object.entries(heldDecals).map(([tier,row])=>({name:`looks/jian-decal-${tier}.png`,kind:'image' as const,source:row.png}))], namedFiles: emitted.files, assets: new Map([...emitted.assets, ...heldGraphFiles.assets]),
+  platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['ui/strings', strings], ['world/scenes', { ...NINE_WORLD_SCENES, entry: nineWorldEntry() }], ['held/arms', heldPrimary], ['actors/return-scripts',[NINE_PRACTICE_MODULE.script]], ['view/modules', [{ id: 'nine.movers', module: `blobs/wasm/${moversModule.compiled.hash}.wasm`, side: 'view', ...MOVERS_WASM.options.script }]], ['client/plan', {version:1,features:[practiceCard, {kind:'strings.register'}, {kind:'world.assembly', rows: nineWorldAssembly(), entered: { root: 'nine.root', blocks: ['pieces'] }}, {kind:'view.program', id:'movers', rows: nineMoversView(), module: 'views/movers.wasm'}, {kind:'world.runtime-hooks',overhead:[],bounds:{x:[-250,250],z:[-250,250],outer:{maxAbsXZ:200,floor:-20}}}, {kind:'held.claims.prepare',id:'held.primary'}, {kind:'held.claims.install',claims:'held.primary'}, {kind:'held.claims.enter',claims:'held.primary',grapple:{item:'tool.fei-zhua',source:'sim/headless-constants.json',presentation:'weapons/jian-row.json'}}, {kind:'portal.ride',source:'sim/headless-constants.json'}]}]])) };

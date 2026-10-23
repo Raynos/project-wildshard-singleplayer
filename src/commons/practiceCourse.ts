@@ -5,8 +5,8 @@ import { Buffer } from 'node:buffer';
 import { compileDecisionScripts } from '@wildshard/sdk/buildDecisionScripts';
 import type { DecisionScriptRow } from '@wildshard/format/decisionScripts';
 
-/** One bounded course law; values configure its oval or checkpoint observations. */
-export async function buildCourseProgram(kind: 'oval' | 'checkpoints', parameters: Readonly<Record<string, number>> = {}): Promise<{ script: DecisionScriptRow; bytes: string }> {
+/** One bounded course law; raw authoring returns the existing compiled binary instead of encoding it. Legacy defaults stay exact. */
+export async function buildCourseProgram(kind: 'oval' | 'checkpoints', parameters: Readonly<Record<string, number>> = {}, raw=false): Promise<{ script: DecisionScriptRow; bytes: string; readonly binary?:Uint8Array }> {
   const padFields = Array.from({ length: 11 }, (_, index) => ['Depth','Eligible','Pitch','StartPitch','StartYaw','Top','Width','X','Yaw','Z'].map(key => `pad${String(index).padStart(2,'0')}${key}`)).flat();
   const state = ['lap','started','running','half','best','last','prevX','phase','elapsed','checkpoint','visited'];
   const fields = [...state,'now','x','y','z','mounted','grounded','startPad','finishPad','padCount','fallY','lowest','courseX','courseY','courseZ','courseTime','courseMounted',...padFields];
@@ -22,5 +22,5 @@ export async function buildCourseProgram(kind: 'oval' | 'checkpoints', parameter
   const built = await compileDecisionScripts([row], { fields:registry(fields),channels:registry(channels),signals:registry(signals) },
     new Map([[source,readFileSync(new URL('scripts/course.as',import.meta.url),'utf8')]]), { asLineCeiling:256,singleSignal:true });
   const script=built.rows[0],blob=built.blobs[0];if(script===undefined||blob===undefined)throw new Error('Missing shared course program');
-  return { script,bytes:Buffer.from(blob.bytes).toString('base64') };
+  return raw?{script,bytes:'',binary:blob.bytes}:{ script,bytes:Buffer.from(blob.bytes).toString('base64') };
 }

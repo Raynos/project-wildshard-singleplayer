@@ -1,6 +1,6 @@
 import { practiceFrame } from '../src/shards/nine-dragon-stack/generators/practiceFrame';
 // @vitest-environment happy-dom
-import PRACTICE_PROGRAM from '../src/shards/nine-dragon-stack/behaviour/practice.generated.json' with {type:'json'};
+import {ninePracticeRows as PRACTICE_PROGRAM,lendNinePractice} from './fixtures/nine-practice-modules';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native traversal uses the shipped physics binary.
 import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
@@ -93,6 +93,7 @@ test('shared course preserves original native tool, checkpoint HUD and clock ord
   const trace:unknown[]=[];let now=0;
   const timer=vi.spyOn(performance,'now').mockImplementation(()=>{trace.push('clock');return ++now*1000;});
   const scope = new Scope('quarry.practice'), previous = app.levelScope, state = app.state;
+  lendNinePractice(scope);
   app.levelScope = scope;
   const tool = new GrappleTool(legacyDouble<ShardContext>({ scope }), { equipment: { ...SWORD_WOOD, id: 'tool.quarry-claw' },
     profile: quarry, presentation: legacyDouble<GrappleRows>({}), hooks: [] });

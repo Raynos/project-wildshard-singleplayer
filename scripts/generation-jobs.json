@@ -119,10 +119,12 @@
         "src/commons/scripts/course.as"
       ],
       "outputs": [
-        "src/shards/nine-dragon-stack/behaviour/practice.generated.json"
+        "src/shards/nine-dragon-stack/behaviour/practice.generated.json",
+        "src/shards/nine-dragon-stack/behaviour/practice.generated.wasm"
       ],
       "buildTimeOutputs": [
-        "src/shards/nine-dragon-stack/behaviour/practice.generated.json"
+        "src/shards/nine-dragon-stack/behaviour/practice.generated.json",
+        "src/shards/nine-dragon-stack/behaviour/practice.generated.wasm"
       ],
       "platform": "portable"
     },
@@ -12168,11 +12170,13 @@
         "src/shards/nine-dragon-stack/generators/bake-movers-view.mjs"
       ],
       "outputs": [
-        "src/shards/nine-dragon-stack/behaviour/movers.generated.json"
+        "src/shards/nine-dragon-stack/behaviour/movers.generated.json",
+        "src/shards/nine-dragon-stack/behaviour/movers.generated.wasm"
       ],
       "platform": "portable",
       "buildTimeOutputs": [
-        "src/shards/nine-dragon-stack/behaviour/movers.generated.json"
+        "src/shards/nine-dragon-stack/behaviour/movers.generated.json",
+        "src/shards/nine-dragon-stack/behaviour/movers.generated.wasm"
       ]
     },
     {

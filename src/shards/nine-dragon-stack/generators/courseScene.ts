@@ -1,9 +1,13 @@
 import { practiceFrame } from './practiceFrame';
-import PRACTICE_PROGRAM from '../behaviour/practice.generated.json' with {type:'json'};
+import practiceInput from '../behaviour/practice.generated.json' with {type:'json'};
 import * as THREE from 'three';
 import { CourseKit as DevKit, courseLabel as devLabel, captureCourse } from '@wildshard/sdk/bake/practiceCourse';
 import type { HookPracticeLayout, PracticeScene } from '@wildshard/format/practiceCourseRows';
 import type course from '../data/grappleCourse.json';
+
+const {compiled,...PRACTICE_PROGRAM}=practiceInput;
+/** Same course executable and fixed-page contract; the product owns the raw source intake. */
+export const NINE_PRACTICE_MODULE={script:PRACTICE_PROGRAM.script,...compiled};
 
 type ColliderDesc = PracticeScene['colliders'][number];
 type RoomMap = PracticeScene['map'];

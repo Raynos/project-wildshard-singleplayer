@@ -34,7 +34,7 @@ const NINE_LEDGER = parseLedgerRules(ledgerRows);
 // installs under those ids (world/install.ts), so its ride (world/portalRide.ts) is the format's checked transfer.
 const base = emptyShardfile({ slug: 'nine-dragon-stack', name: 'Nine Dragon Stack', author: 'Wildshard', revision: 1, seed: 0x9d2a });
 const library = new Set([...world.shardfile.library, ...heldGraphFiles.library]), charged = [...world.shardfile.files.filter(file => library.has(file.hash)), ...heldGraphFiles.files];
-const courseBytes=atob(courseProgram.bytes).length, courseMemory=courseBytes+courseProgram.script.pages*65536*2;
+const courseBytes=courseProgram.compiled.bytes, courseMemory=courseBytes+courseProgram.script.pages*65536*2;
 const navigationResident = navigation.files.reduce((sum, file) => sum + file.decoded, 0);
 // the movers view module's memory (behaviour/movers.as, its pages twice: the client lane's image and its rewind copy)
 const viewMemory = moversModule.pages * 65536 * 2;

@@ -1,11 +1,15 @@
-import { expect,test } from 'vitest';
+import { afterEach,expect,test } from 'vitest';
 import { ProjectedState, ReturnProgram } from '@wildshard/game/population/returnProgram';
-import program from '../src/shards/nine-dragon-stack/behaviour/practice.generated.json' with {type:'json'};
+import {ninePracticeRows as program,lendNinePractice} from './fixtures/nine-practice-modules';
+import {Scope} from '../src/engine/app/scope';
 import course from '../src/shards/nine-dragon-stack/data/grappleCourse.json' with {type:'json'};
 import { practiceFrame } from '../src/shards/nine-dragon-stack/generators/practiceFrame';
 
+const owners:Scope[]=[];afterEach(()=>{for(const owner of owners.splice(0))owner.dispose();});
+
 function scenario(): { sample:(signal:string,values?:Readonly<Record<string,number>>)=>Readonly<Record<string,number>>; snapshot:()=>Record<string,number>; restore:(value:Record<string,number>)=>void } {
-  const guest=ReturnProgram.page(program),start=course.pads.findIndex(pad=>pad.id===course.run.from);
+  const owner=new Scope('nine.practice-law');owners.push(owner);lendNinePractice(owner);
+  const guest=ReturnProgram.page(program,owner),start=course.pads.findIndex(pad=>pad.id===course.run.from);
   const from=course.pads[start];if(from===undefined)throw new Error('Missing real start pad');
   const host=new ProjectedState({initial:{phase:0,started:0,elapsed:0,best:-1,checkpoint:start,visited:0}},guest);
   // The guest now finds the pad from the position, so samples carry the baked course frame and a grounded flag.

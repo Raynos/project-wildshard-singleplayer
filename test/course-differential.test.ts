@@ -1,6 +1,6 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Compile frozen predecessor laws as independent differential oracles.
 import { readFileSync } from 'node:fs';
-import { beforeAll, expect, test, vi } from 'vitest';
+import { afterEach, beforeAll, expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';
 import { parseDecisionScripts } from '../src/format/decisionScripts';
@@ -9,13 +9,15 @@ import { NumericCourse } from '../src/game/practice/numericCourse';
 import { Scope } from '../src/engine/app/scope';
 import type { PlaygroundHost } from '../src/engine/practice/playground/Playground';
 import { horseCourseRows } from '../src/shards/nalati-grasslands/generators/courseScene';
-import hookProgram from '../src/shards/nine-dragon-stack/behaviour/practice.generated.json' with { type:'json' };
+import {ninePracticeRows as hookProgram,ninePracticeBytes,lendNinePractice} from './fixtures/nine-practice-modules';
 import hookRows from '../src/shards/nine-dragon-stack/data/grappleCourse.json' with { type:'json' };
 import { practiceFrame } from '../src/shards/nine-dragon-stack/generators/practiceFrame';
 import { legacyDouble } from './fake/FakeGame';
 
 const initial={lap:0,started:0,running:0,half:0,best:-1,last:-1,prevX:0,phase:0,elapsed:0,checkpoint:0,visited:0};
 const horse=horseCourseRows();
+const owners:Scope[]=[];afterEach(()=>{for(const owner of owners.splice(0))owner.dispose();});
+function checkpoints(scope?:Scope):ReturnProgram {const owner=scope??new Scope('checkpoint differential');if(scope===undefined)owners.push(owner);lendNinePractice(owner);return ReturnProgram.page(hookProgram,owner);}
 let ovalOracle:ReturnProgram,checkpointOracle:ReturnProgram;
 async function original(input:{script:unknown;bytes:string},kind:'oval'|'checkpoints'):Promise<ReturnProgram> {
   const script=parseDecisionScripts([input.script])[0];if(script===undefined)throw new Error('Missing course script');
@@ -49,7 +51,7 @@ test('shared oval law preserves every predecessor scalar over laps, falls, reset
 });
 
 test('shared checkpoint law preserves all original edges, grounded probes, falls, finish and restart state',()=>{
-  const old=new ProjectedState({initial:{...initial}},checkpointOracle),next=new ProjectedState({initial:{...initial}},ReturnProgram.page(hookProgram)),fixed=practiceFrame(hookRows);
+  const old=new ProjectedState({initial:{...initial}},checkpointOracle),next=new ProjectedState({initial:{...initial}},checkpoints()),fixed=practiceFrame(hookRows);
   const event=(signal:string,now:number,x:number,y:number,z:number,grounded:number):void=>{
     const frame={...fixed,now,x,y,z,grounded},a=old.event(signal,frame),b=next.event(signal,frame);
     same(b,a);
@@ -78,7 +80,7 @@ test('numeric presenter keeps original native reset coordinates, velocity policy
     const args=spawn.mock.calls[0];if(args===undefined)throw new Error('No native reset');
     [px,pz,yaw,3000].forEach((value,index)=>{expect(Object.is(args[index],value)).toBe(true);});
     expect(Object.is(player.pitch,horse.riderPitch)).toBe(true);expect(velocity.toArray()).toEqual([1,2,3]);
-    const hook=new NumericCourse(host,{x:11,y:3000,z:-9},{frame:practiceFrame(hookRows),sampleEpsilon:1e-9},ReturnProgram.page(hookProgram,scope.child('checkpoint room')));
+    const hook=new NumericCourse(host,{x:11,y:3000,z:-9},{frame:practiceFrame(hookRows),sampleEpsilon:1e-9},checkpoints(scope.child('checkpoint room')));
     hook.reset();expect(velocity.toArray()).toEqual([0,0,0]);
     const project=vi.spyOn(ReturnProgram.prototype,'project');try {
       for(let index=0;index<60;index++)run.step(1/60,{now:index/60,mounted:0});expect(project).toHaveBeenCalledTimes(8);
@@ -89,12 +91,12 @@ test('numeric presenter keeps original native reset coordinates, velocity policy
 
 
 test('both real courses use identical compiled code with separately admitted parameters',()=>{
-  expect(horse.program.bytes).toBe(hookProgram.bytes);
+  expect(Uint8Array.from(atob(horse.program.bytes),value=>value.codePointAt(0)??0)).toEqual(ninePracticeBytes);
   const scope=new Scope('two admitted rooms'),position=new Vector3(0,3000,0),player=legacyDouble<PlaygroundHost['player']>({position,velocity:new Vector3(),onGround:true,pitch:0,spawn:()=>undefined});
   const host=legacyDouble<PlaygroundHost>({player});
   try{
     const a=new NumericCourse(host,{...horse.fieldAt,y:3000},horse,ReturnProgram.page(horse.program,scope.child('oval')));
-    const b=new NumericCourse(host,{x:0,y:3000,z:0},{frame:practiceFrame(hookRows),sampleEpsilon:1e-9},ReturnProgram.page(hookProgram,scope.child('checkpoints')));
+    const b=new NumericCourse(host,{x:0,y:3000,z:0},{frame:practiceFrame(hookRows),sampleEpsilon:1e-9},checkpoints(scope.child('checkpoints')));
     a.reset();b.reset();expect(a.state.running).toBe(0);expect(b.state.phase).toBe(0);
     expect(a.step(.1,{now:1,mounted:0})).toHaveProperty('courseFell');expect(b.step(.1,{now:1})).toHaveProperty('pad');
   }finally{scope.dispose();}

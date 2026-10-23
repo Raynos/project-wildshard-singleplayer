@@ -1,13 +1,17 @@
-import { expect, test } from 'vitest';
+import { afterEach, expect, test } from 'vitest';
 import type { HookPracticeRow } from '../src/format/practiceCourseRows';
 import { isJsonData } from '../src/format/json';
 import { ProjectedState, ReturnProgram } from '../src/game/population/returnProgram';
 import { practiceFrame } from '../src/shards/nine-dragon-stack/generators/practiceFrame';
 import course from '../src/shards/nine-dragon-stack/data/grappleCourse.json' with { type: 'json' };
-import program from '../src/shards/nine-dragon-stack/behaviour/practice.generated.json' with { type: 'json' };
+import {ninePracticeRows as program,lendNinePractice} from './fixtures/nine-practice-modules';
+import {Scope} from '../src/engine/app/scope';
+
+const owners:Scope[]=[];afterEach(()=>{for(const owner of owners.splice(0))owner.dispose();});
 
 function guest(row: HookPracticeRow = course) {
-  const law = new ProjectedState({ initial: { phase: 0, started: 0, elapsed: 0, best: -1, checkpoint: 0, visited: 0 } }, ReturnProgram.page(program));
+  const owner=new Scope('nine.practice-guest');owners.push(owner);lendNinePractice(owner);
+  const law = new ProjectedState({ initial: { phase: 0, started: 0, elapsed: 0, best: -1, checkpoint: 0, visited: 0 } }, ReturnProgram.page(program,owner));
   const frame = practiceFrame(row);
   return { law, event: (signal: string, x: number, y: number, z: number, grounded = true, now = 10) => law.event(signal, { ...frame, x, y, z, grounded: Number(grounded), now }) };
 }
