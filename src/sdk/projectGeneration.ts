@@ -1,0 +1,102 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Build programs cache immutable outputs outside the source tree.
+import { existsSync, mkdirSync, mkdtempSync, realpathSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- The cache belongs to this user's author tools.
+import { homedir } from 'node:os';
+// oxlint-disable-next-line import/no-nodejs-modules -- Explicit inputs stay inside the author project.
+import { basename, isAbsolute, resolve, sep } from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- Product receipts observe keys without depending on cache paths.
+import { channel } from 'node:diagnostics_channel';
+// oxlint-disable-next-line import/no-nodejs-modules -- Native output keys include the original runtime and host.
+import process from 'node:process';
+import * as v from 'valibot';
+import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
+import { readBoundedFile } from './sourceReader';
+
+const hash = v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u));
+const Manifest = v.strictObject({ key: hash, files: v.pipe(v.array(v.strictObject({ name: v.string(), hash, bytes: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(256_000_000)) })), v.maxLength(4096)) });
+const keys = channel('wildshard.generation-key');
+const text = new TextEncoder();
+
+/** An immutable step returns named byte files, including JSON metadata when needed. */
+export interface ProjectGenerationStep {
+  readonly id: string;
+  readonly inputs?: readonly string[];
+  readonly native?: boolean;
+}
+/** Build-only capabilities. No cache filename or intermediate source file enters a product. */
+export interface ProjectGenerationContext {
+  cached: (step: ProjectGenerationStep, generate: (inputs: ReadonlyMap<string, Uint8Array>) => ReadonlyMap<string, Uint8Array> | Promise<ReadonlyMap<string, Uint8Array>>) => Promise<ReadonlyMap<string, Uint8Array>>;
+  asset: (bytes: Uint8Array) => string;
+}
+/** Build entries are trusted functions; their returned declaration still crosses normal shardfile admission. */
+export function isProjectGenerator(input: unknown): input is (ctx: ProjectGenerationContext) => unknown { return typeof input === 'function'; }
+function name(value: string): void {
+  if (value.length === 0 || isAbsolute(value) || value.includes('\\') || value.split('/').some(part => part === '' || part === '.' || part === '..')) throw new Error('Invalid generation file name');
+}
+function detached(files: ReadonlyMap<string, Uint8Array>): Map<string, Uint8Array> {
+  if (files.size > 4096) throw new Error('Too many generation files');
+  return new Map([...files].map(([file, bytes]) => {
+    name(file);
+    if (!(bytes instanceof Uint8Array) || bytes.byteLength > 256_000_000) throw new Error('Invalid generation bytes');
+    return [file, new Uint8Array(bytes)];
+  }));
+}
+/** The complete bundled program is a conservative import-closure key. Source edits invalidate every step in that program.
+ * Explicit input bytes are read on hits too, so the normal product receipt captures their current identity. */
+export function createProjectGeneration(project: string, programHash: string, assets: Map<string, Uint8Array>, cacheRoot = resolve(homedir(), '.cache/wildshard/gen')): ProjectGenerationContext {
+  v.parse(hash, programHash);
+  const root = realpathSync(project), pending = new Map<string, Promise<ReadonlyMap<string, Uint8Array>>>();
+  return {
+    asset(bytes) {
+      if (!(bytes instanceof Uint8Array) || bytes.byteLength > 256_000_000) throw new Error('Invalid generation asset bytes');
+      const copy = new Uint8Array(bytes), key = hashImmutableBytes(copy); assets.set(key, copy); return key;
+    },
+    async cached(step, generate) {
+      if (!/^[a-z0-9][a-z0-9-]{0,79}$/u.test(step.id)) throw new Error('Invalid generation step id');
+      const inputs = new Map<string, Uint8Array>();
+      for (const file of step.inputs ?? []) {
+        name(file);
+        if (inputs.has(file)) throw new Error('Duplicate generation input');
+        const path = realpathSync(resolve(root, file));
+        if (!path.startsWith(root + sep)) throw new Error('Generation input escaped the project');
+        inputs.set(file, readBoundedFile(path, 256_000_000));
+      }
+      const key = hashImmutableBytes(text.encode(encodeCanonicalJson({ version: 1, programHash, id: step.id, node: process.version,
+        native: step.native === true ? [process.platform, process.arch] : null,
+        inputs: [...inputs].map(([file, bytes]) => [file, hashImmutableBytes(bytes)]).sort(([a], [b]) => String(a).localeCompare(String(b))) })));
+      keys.publish({ key });
+      let work = pending.get(key);
+      if (work === undefined) {
+        work = (async () => {
+          const directory = resolve(cacheRoot, basename(root), step.id, key), index = resolve(directory, 'index.json');
+          if (existsSync(index)) {
+            const manifest = v.parse(Manifest, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(readBoundedFile(index, 1_000_000))));
+            if (manifest.key !== key) throw new Error('Generation cache key mismatch');
+            const files = new Map<string, Uint8Array>();
+            for (const row of manifest.files) {
+              name(row.name);
+              if (files.has(row.name)) throw new Error('Duplicate generation cache file');
+              const bytes = readBoundedFile(resolve(directory, row.hash), row.bytes);
+              if (bytes.byteLength !== row.bytes || hashImmutableBytes(bytes) !== row.hash) throw new Error('Generation cache byte mismatch');
+              files.set(row.name, bytes);
+            }
+            return files;
+          }
+          const files = detached(await generate(detached(inputs))), parent = resolve(directory, '..');
+          mkdirSync(parent, { recursive: true });
+          const temporary = mkdtempSync(resolve(parent, '.writing-'));
+          try {
+            const rows = [...files].map(([file, bytes]) => ({ name: file, hash: hashImmutableBytes(bytes), bytes: bytes.byteLength }));
+            for (const bytes of files.values()) writeFileSync(resolve(temporary, hashImmutableBytes(bytes)), bytes);
+            writeFileSync(resolve(temporary, 'index.json'), encodeCanonicalJson({ key, files: rows }));
+            try { renameSync(temporary, directory); }
+            catch (error) { if (!(error instanceof Error && 'code' in error && (error.code === 'EEXIST' || error.code === 'ENOTEMPTY'))) throw error; }
+          } finally { rmSync(temporary, { recursive: true, force: true }); }
+          return files;
+        })();
+        pending.set(key, work);
+      }
+      return detached(await work);
+    },
+  };
+}

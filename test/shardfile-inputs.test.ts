@@ -14,6 +14,7 @@ import { InputHashMemo } from '../scripts/bake-input-hashes.mjs';
 import { build } from '../scripts/shardfile-vite.mjs';
 import {build as buildCompiler} from 'vite';
 import * as v from 'valibot';
+import { createProjectGeneration } from '../src/sdk/projectGeneration';
 
 const owned: string[] = [];
 afterEach(() => { for (const root of owned.splice(0)) rmSync(root, { recursive: true, force: true }); });
@@ -25,6 +26,20 @@ function fixture(): string {
   writeFileSync(resolve(root,'src/engine/used.ts'),'export const value=1;\n');
   writeFileSync(resolve(root,'asset.txt'),'asset'); return root;
 }
+it('receipts include step keys and explicit inputs without depending on cached files', async () => {
+  const root=fixture(), receipt=resolve(root,'receipt.json'), cache=resolve(root,'.cache'), memo=new InputHashMemo(root);
+  await captureProductInputs(root,receipt,async()=>{
+    const ctx=createProjectGeneration(root,'a'.repeat(64),new Map(),cache);
+    await ctx.cached({id:'fixture',inputs:['asset.txt']},inputs=>inputs);
+    recordBundle({output:[]});
+  });
+  const rows=v.parse(v.object({inputs:v.array(v.string())}),JSON.parse(readFileSync(receipt,'utf8')));
+  expect(rows.inputs.some(entry=>/^G [a-f0-9]{64}$/u.test(entry))).toBe(true);
+  expect(rows.inputs.some(entry=>entry.includes('.cache'))).toBe(false);
+  const key=productInputKey(root,receipt,[],memo); expect(key).toMatch(/^[a-f0-9]{64}$/u);
+  rmSync(cache,{recursive:true}); expect(productInputKey(root,receipt,[],memo)).toBe(key);
+  writeFileSync(resolve(root,'asset.txt'),'changed'); expect(productInputKey(root,receipt,[],memo)).toBeUndefined();
+});
 it('keys native-bundled modules, sync and async reads, negative probes and real directory inventories only', async () => {
   const root = fixture(), receipt = resolve(root,'receipt.json'), memo = new InputHashMemo(root);
   await captureProductInputs(root,receipt,async () => {

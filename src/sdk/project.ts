@@ -1,6 +1,7 @@
 import { mergeProjectSections } from './projectSections';
 import { writeNewProject } from './newProject';
 import { assertConfigBoundary } from './configBoundary';
+import { createProjectGeneration, isProjectGenerator } from './projectGeneration';
 // oxlint-disable-next-line import/no-nodejs-modules -- The author CLI verifies and writes local build products.
 import { cpSync, existsSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve source assets inside the author project.
@@ -47,7 +48,7 @@ export function validateProject(input: unknown, assets: ReadonlyMap<string, Uint
   return admitProduct(source, assets, projectPerformancePolicy(project, source), scripts);
 }
 
-async function authorModule(project: string, file: string): Promise<Record<string, unknown>> {
+async function authorModule(project: string, file: string): Promise<{ exports: Record<string, unknown>; hash: string }> {
   // The compiled declaration executes here; only its returned data is emitted.
   // Source-text inspection still enters the recorder's exact-content guard.
   const result = await build({ configFile: false, logLevel: 'silent', plugins: [{name:'wildshard-author-execution',api:{wildshardInputIdentity:'execution'}}], build: { write: false, minify: false, lib: { entry: resolve(project, file), formats: ['es'], fileName: 'config' }, rolldownOptions: { external: [/^node:/u, 'assemblyscript/dist/asc.js'] } } });
@@ -59,7 +60,7 @@ async function authorModule(project: string, file: string): Promise<Record<strin
   assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports]);
   const loaded: unknown = await import(`data:text/javascript;base64,${Buffer.from(chunk.code).toString('base64')}`);
   if (typeof loaded !== 'object' || loaded === null) throw new Error('Author module has no exports');
-  return Object.fromEntries(Object.entries(loaded));
+  return { exports: Object.fromEntries(Object.entries(loaded)), hash: contentHash(new TextEncoder().encode(chunk.code)) };
 }
 
 /** SF88g: one declared output of a source folder that emits several products (`outputs` in shard.config.ts, keyed by slug). */
@@ -70,11 +71,14 @@ function outputDeclaration(loaded: Record<string, unknown>, output: string): unk
 }
 
 async function projectModule(project: string, decisionLegacyLines?: number, selected?: string): Promise<{ shard: Shardfile; commons: unknown; baked: ReadonlyMap<string, Uint8Array>; output: PreparedProjectOutput; mirrors: readonly RuntimeMirror[] }> {
-  const loaded = await authorModule(project, 'shard.config.ts');
+  const program = await authorModule(project, 'shard.config.ts'), loaded = program.exports;
   if (!('default' in loaded)) throw new Error('config has no default export');
-  let declaration: unknown = selected === undefined ? loaded['default'] : outputDeclaration(loaded, selected);
+  if ('generate' in loaded && typeof loaded['generate'] !== 'function') throw new Error('config generate export must be a build function');
+  let declaration: unknown = selected === undefined ? loaded['generate'] ?? loaded['default'] : outputDeclaration(loaded, selected);
   let shard: Shardfile;
   const baked = new Map<string, Uint8Array>(), root = realpathSync(project);
+  if (isProjectGenerator(declaration)) declaration = await declaration(createProjectGeneration(project,
+    contentHash(new TextEncoder().encode(canonicalJson({ program: program.hash, output: selected ?? null }))), baked));
   const sourcePath = (path: string): string => {
     const resolved = realpathSync(resolve(root, path));
     if (!resolved.startsWith(`${root}${sep}`)) throw new Error('Authored source resolves outside the author project'); return resolved;
@@ -91,7 +95,7 @@ async function projectModule(project: string, decisionLegacyLines?: number, sele
     for (const [hash, bytes] of product.assets) baked.set(hash, bytes);
   } else shard = parseShardfile(declaration);
   checkProjectRuntime(project, projectPerformancePolicy(project, shard));
-  const sidecar = existsSync(resolve(project, 'generators/output.ts')) ? await authorModule(project, 'generators/output.ts') : undefined;
+  const sidecar = existsSync(resolve(project, 'generators/output.ts')) ? (await authorModule(project, 'generators/output.ts')).exports : undefined;
   if (sidecar !== undefined && ('output' in loaded || !('output' in sidecar))) throw new Error('Output sidecar requires one unambiguous output export');
   shard = mergeProjectSections(shard, sidecar?.['sections']);
   const output = await prepareProjectOutput(project, sidecar === undefined ? loaded['output'] : sidecar['output'], { source: shard, options: projectDecisionOptions(loaded['buildOptions'], projectDecisionBudget(project, decisionLegacyLines)) });

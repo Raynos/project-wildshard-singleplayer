@@ -45,6 +45,26 @@ copying the client (`buildProject`'s third argument, `{client:null}`), for a
 repository that already builds its own normal game bundle. The immutable
 shard data/asset product is the same format in both modes.
 
+GR1 build programs may export a default function, or a named `generate(ctx)`
+while direct readers still use the default declaration. The SDK invokes it
+before ordinary shardfile admission. `ProjectGenerationContext` is defined in
+`@wildshard/sdk/projectGeneration`: `ctx.asset(bytes)` detaches and registers
+content-addressed bytes, and `ctx.cached({id, inputs?, native?}, generate)`
+returns named byte files. The step receives detached declared input bytes;
+JSON metadata is encoded as a file alongside binary outputs, never as base64.
+Inputs must resolve within the author project. Generators use these
+capabilities for I/O rather than importing filesystem modules into the entry.
+
+The cache lives at `~/.cache/wildshard/gen/<folder>/<step>/<key>/`. Keys include
+the complete bundled entry (a conservative superset of each step's import
+closure), selected output, explicit input hashes, the Node version, and platform/architecture
+for native steps. Independent callers receive detached outputs; hits verify
+the manifest and every file hash. A corrupt entry fails rather than silently
+regenerating. Product receipts include step keys and traced source/input
+identities, never cache paths or cache-file timestamps. The template's terrain
+build consumes this path; its legacy declaration and other job outputs remain
+until their direct readers migrate in subsequent GR1 slices.
+
 In this repository, `scripts/serve-build.sh --devserver` builds the game in
 that mode and serves the resulting build. Without that flag it uses production
 mode. There is no Vite development server. `__DEVSERVER__` is a build define,

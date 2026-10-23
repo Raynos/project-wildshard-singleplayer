@@ -1,7 +1,8 @@
 import TEMPLATE_DIRECTORS from '../data/director.json' with { type: 'json' };
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { parseShardfile } from '@wildshard/sdk/shardfile';
-import terrain from '../data/terrain.json' with { type: 'json' };
+import { parseShardfile, type Shardfile } from '@wildshard/sdk/shardfile';
+import type { templateTerrain } from './terrain';
+import legacyTerrain from '../data/terrain.json' with { type: 'json' };
 import door from '../behaviour/door.json' with { type: 'json' };
 import props from '../data/props.json' with { type: 'json' };
 import hooks from '../behaviour/hooks.json' with { type: 'json' };
@@ -33,6 +34,8 @@ const TEMPLATE_SKIN_COST = TEMPLATE_SKIN_FILES.reduce((sum, file) => ({ resident
 // The idle reserve retains three pairs of Wasm pages and six particle slots.
 const { hash: CLIENT_IDLE_HASH, bytes: CLIENT_IDLE_BYTES, resident: CLIENT_IDLE_RESIDENT } = idle.module;
 const TEMPLATE_ROWS = parseRows(rows);
+/** Assemble the original authored product from this build's terrain rows. */
+export function templateProduct(terrain: typeof legacyTerrain | Omit<ReturnType<typeof templateTerrain>, 'assets'>): Shardfile {
 // Keep generated door positions and the shared teaching text authoritative.
 const TEMPLATE_UI = [{ ...ui.marker, label: text.hut, at: terrain.sites.door }, ui.oil, ui.jump,
   { ...ui.notes, tab: { ...ui.notes.tab, title: text.notes }, paragraphs: [text.note] }, ...ENCOUNTERS.ui];
@@ -55,8 +58,9 @@ const tiles = terrain.tiles.map((tile) => {
 // follow, changes these numbers.
 const TERRAIN_DRAW = { shadow: { cast: true, receive: true }, follow: 5 } as const;
 // This declaration is the live source; the manifest supplies only picker metadata.
-// oxlint-disable-next-line import/no-default-export -- The root config imports this author-only declaration.
-export default parseShardfile({ ...base, accent: 'sand', manifest: CARD,
+// Retain the old producer's JSON boundary, including signed-zero normalization.
+// oxlint-disable-next-line unicorn/prefer-structured-clone -- JSON wire normalization, not cloning: structuredClone retains forbidden signed zero.
+return parseShardfile(JSON.parse(JSON.stringify({ ...base, accent: 'sand', manifest: CARD,
   budgets: { library: { resident: 100_000 + TEMPLATE_SKIN_COST.resident + CLIENT_IDLE_RESIDENT + 2_633_280, compressed: 100_000 + CLIENT_IDLE_BYTES + TEMPLATE_SKIN_COST.compressed }, sim: { resident: 16_000_000, compressed: 1_000_000 - boss.compressed }, overlap: 0 },
   serverBudget: { ...base.serverBudget, tickMicros: 5_000, memory: 16_000_000 },
   look: TEMPLATE_LOOK, spawn: SPAWN, rows: { ...TEMPLATE_ROWS, looks: TEMPLATE_SKIN_LOOKS }, plumbing: TEMPLATE_PLUMBING, ui: TEMPLATE_UI,
@@ -65,4 +69,8 @@ export default parseShardfile({ ...base, accent: 'sand', manifest: CARD,
   critical: [...terrain.critical, door.hash, itemModule], water: TEMPLATE_WATER, creatures: CREATURES, encounters: ENCOUNTERS.encounters,
   quests: TEMPLATE_QUESTS, directors: TEMPLATE_DIRECTORS, ledger: TEMPLATE_LEDGER, audio: TEMPLATE_AUDIO, state: hooks.state, hooks: hooks.hooks,
   sim: { ...base.sim, scriptTickDivisor: 1, scripts: [door.hash, itemModule], bindings: [{ module: door.hash, entity: playerHandle, actorId: 'actor.player', kind: 'server' }] },
-});
+})));
+}
+
+// oxlint-disable-next-line import/no-default-export -- Legacy direct consumers migrate separately from the build entry.
+export default templateProduct(legacyTerrain);

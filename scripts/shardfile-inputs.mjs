@@ -10,6 +10,7 @@ import http from 'node:http';
 import https from 'node:https';
 import http2 from 'node:http2';
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { channel } from 'node:diagnostics_channel';
 import { createHash } from 'node:crypto';
 import { registerHooks, syncBuiltinESMExports } from 'node:module';
 import { basename, dirname, isAbsolute, relative, resolve, sep } from 'node:path';
@@ -20,9 +21,9 @@ import {functionSource} from './function-source.mjs';
 
 const raw = { read:fs.readFileSync, stat:fs.lstatSync, list:fs.readdirSync, real:fs.realpathSync.native, write:fs.writeFileSync, mkdir:fs.mkdirSync, rename:fs.renameSync };
 const digest = (/** @type {string|Uint8Array} */ bytes) => createHash('sha256').update(bytes).digest('hex');
-const schema = 'shardfile-inputs/4', modules = new Set([import.meta.filename,resolve(import.meta.dirname,'bake-input-hashes.mjs'),resolve(import.meta.dirname,'compiler-code.mjs'),resolve(import.meta.dirname,'function-source.mjs')]);
+const schema = 'shardfile-inputs/5', modules = new Set([import.meta.filename,resolve(import.meta.dirname,'bake-input-hashes.mjs'),resolve(import.meta.dirname,'compiler-code.mjs'),resolve(import.meta.dirname,'function-source.mjs')]);
 const code=/\.[cm]?[jt]sx?$/u;
-const Receipt = v.strictObject({schema:v.literal(schema),node:v.string(),inputs:v.pipe(v.array(v.pipe(v.string(),v.regex(/^[FDMP] /u))),v.minLength(1)),values:v.record(v.string(),v.string()),seal:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))});
+const Receipt = v.strictObject({schema:v.literal(schema),node:v.string(),inputs:v.pipe(v.array(v.pipe(v.string(),v.regex(/^(?:[FDMP] .+|G [a-f0-9]{64})$/u))),v.minLength(1)),values:v.record(v.string(),v.string()),seal:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))});
 /** @type {AsyncLocalStorage<{root:string,reads:Map<string,string>,writes:Set<string>,bundles:number,invalid:string[],observing:boolean,traceOnly?:boolean,opaque?:Set<string>}>} */
 const scopes = new AsyncLocalStorage();
 /** @type {ReturnType<typeof scopes.getStore>} */
@@ -30,6 +31,14 @@ let generationScope;
 /** @type {'F'|'M'} */
 let moduleKind='M';
 const inputScope=()=>scopes.getStore() ?? generationScope;
+// SDK steps publish content identities. Their source closure and explicit input
+// reads are traced normally; cache location and cache hits are not inputs.
+channel('wildshard.generation-key').subscribe(message=>{
+  const scope=inputScope();
+  if(scope===undefined)return;
+  const row=v.parse(v.strictObject({key:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))}),message);
+  scope.reads.set(`G ${row.key}`,row.key);
+});
 let installed = false;
 /** @param {unknown} target */
 function localPath(target) {
@@ -48,6 +57,7 @@ function inside(root, path) {
 /** Current exact bytes, directory inventory, link target or negative existence.
  * @param {string} root @param {string} entry @param {import('./bake-input-hashes.mjs').InputHashMemo} [memo] */
 function value(root, entry, memo) {
+  if(entry.startsWith('G '))return entry.slice(2);
   const kind = entry.slice(0,1), file = entry.slice(2), at = resolve(root,file);
   try {
     const stat = raw.stat(at,{throwIfNoEntry:false});
@@ -239,7 +249,7 @@ export function productInputKey(root,receipt,args,memo) {
     if(memo.root!==raw.real(root))return undefined;
     const saved = v.parse(Receipt,JSON.parse(raw.read(receipt,'utf8')));
     if (saved.node !== process.version
-      || saved.inputs.some(entry=> inside(root,resolve(root,entry.slice(2))) !== entry.slice(2))
+      || saved.inputs.some(entry=> !entry.startsWith('G ') && inside(root,resolve(root,entry.slice(2))) !== entry.slice(2))
       || new Set(saved.inputs).size !== saved.inputs.length || Object.keys(saved.values).length !== saved.inputs.length
       || saved.seal !== digest(JSON.stringify({schema:saved.schema,node:saved.node,inputs:saved.inputs,values:saved.values}))) return undefined;
     for (const entry of saved.inputs) {
@@ -248,7 +258,7 @@ export function productInputKey(root,receipt,args,memo) {
       // hash memo checks type, containment and fresh stats itself; avoid doing
       // those same filesystem checks once more in value(). Any type change
       // refuses this receipt through the enclosing miss-on-error boundary.
-      const current=/^[a-f0-9]{64}$/u.test(expected) ? memo.hash(entry.slice(2)) : value(root,entry,memo);
+      const current=entry.startsWith('G ') ? value(root,entry,memo) : /^[a-f0-9]{64}$/u.test(expected) ? memo.hash(entry.slice(2)) : value(root,entry,memo);
       if(expected!==current)return undefined;
     }
     return digest(JSON.stringify({schema,node:process.version,platform:process.platform,arch:process.arch,args,inputs:saved.inputs.map(entry=>[entry,saved.values[entry]])}));
