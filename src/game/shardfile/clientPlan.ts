@@ -147,6 +147,16 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     const { bindEnteredClientPlaceSets } = await import('./clientPlaceSets');
     await bindEnteredClientPlaceSets(ctx, row);
   } },
+  'taming.entry': { phase: 'play', rank: 70, lifetime: 'entered', sections: [], install: async (ctx, row) => {
+    if (row.kind !== 'taming.entry') throw new Error('Invalid taming entry feature');
+    const { installTamingEntry } = await import('./clientEntryBinds');
+    installTamingEntry(ctx, row);
+  } },
+  'arena-room.entry': { phase: 'play', rank: 80, lifetime: 'entered', sections: [], install: async (ctx, row) => {
+    if (row.kind !== 'arena-room.entry') throw new Error('Invalid arena room entry feature');
+    const { installArenaRoomEntry } = await import('./clientEntryBinds');
+    installArenaRoomEntry(ctx, row);
+  } },
   'elite.entry': { phase: 'play', rank: 100, lifetime: 'entered', sections: [], install: async (ctx, row) => {
     if (row.kind !== 'elite.entry') throw new Error('Invalid elite entry feature');
     const { installClientEliteEntry } = await import('./clientEliteEntry');

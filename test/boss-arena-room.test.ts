@@ -1,5 +1,12 @@
+import { installArenaRoomEntry } from '../src/game/shardfile/clientEntryBinds';
+import { entryOwner, publishEntryOwner } from '../src/game/shardfile/entryOwners';
+import { HeldClaims, type HeldSlotKit } from '../src/game/loadout/claims';
+import type { ShardContext } from '../src/game/plugin/context';
+import type { ModelDef } from '../src/engine/models/model';
+import { currentOwner } from '../src/engine/app/ownership';
+import { legacyDouble } from './fake/FakeGame';
 // @vitest-environment happy-dom
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { Color, MeshBasicMaterial, Scene, Vector3, BoxGeometry, BufferGeometry, PlaneGeometry, Float32BufferAttribute, PerspectiveCamera, Group, InstancedMesh } from 'three';
 import { ArenaFightPageSchema, ArenaRoomEncounter, ArenaRoomPortal, BossArenaRoom, arenaRoomViews } from '../src/game/boss/arenaRoom';
 import { ArenaFireView } from '../src/game/boss/arenaFire';
@@ -93,6 +100,26 @@ test('the reed vault portal owns fade, isolation, floor recovery and exit placem
   client: { light: { colour: 0x88bb77,drop: 5 },prewarm: { kind: 'reed-guard',variant: 'green' },system: 'marsh.warden.power',debugZ: 9 } },entrance);
  await encounter.buildSliced({ scene: game.scene,registry: new WorldRegistry() });
  expect(encounter.spareLight.position.toArray()).toEqual([30,15,40]); expect(game.scene.children).toContain(room.group);
+ // The declaration borrows this actual world-built room; it never reconstructs it.
+ const entryScope=new Scope('reed.entry'),ctx=legacyDouble<ShardContext>({scope:entryScope});
+ const claims=HeldClaims.fromSlots({version:1,id:'reed.kit',slots:[{id:'blade',kind:'blade',item:'weapon.blade',source:{kind:'passes',file:'blade.json'}}],
+  registration:['blade'],equipment:{primary:'blade',extras:[]},selection:{unlock:[]},mount:[],refills:[],upgrades:[]});
+ const kit=legacyDouble<HeldSlotKit>({}),reward=legacyDouble<ModelDef<object>>({id:'reed/reward'}),seen:unknown[]=[];
+ const bind=vi.spyOn(encounter,'bind').mockImplementation((actual,held,model)=>{seen.push(actual,held,model,currentOwner());});
+ const pageKit=vi.spyOn(claims,'pageKit').mockReturnValue(null),model=vi.spyOn(claims,'model').mockReturnValue(reward);
+ const entry={kind:'arena-room.entry' as const,owner:'reed.room',claims:'reed.kit',reward:'reedBow',publish:'reed.vault'};
+ try{
+  expect(()=>installArenaRoomEntry(ctx,entry)).toThrow('Missing live entry owner');
+  publishEntryOwner(entryScope,'arena-room',entry.owner,encounter);publishEntryOwner(entryScope,'claims',entry.claims,claims);
+  expect(()=>installArenaRoomEntry(ctx,entry)).toThrow('unbound original kit');expect(model).not.toHaveBeenCalled();
+  pageKit.mockReturnValue(kit);installArenaRoomEntry(ctx,entry);
+  expect(seen).toHaveLength(4);expect(seen[0]).toBe(ctx);expect(seen[1]).toBe(kit);expect(seen[2]).toBe(reward);expect(seen[3]).toBe(entryScope);expect(model).toHaveBeenCalledWith('reedBow');
+  expect(entryOwner(entryScope,'arena-room',entry.publish)).toBe(encounter);
+  expect(()=>installArenaRoomEntry(ctx,entry)).toThrow('unbound original kit');expect(bind).toHaveBeenCalledTimes(1);
+  entryScope.dispose();expect(()=>entryOwner(entryScope,'arena-room',entry.publish)).toThrow('scope has ended');
+  expect(game.scene.children).toContain(room.group);
+ }finally{entryScope.dispose();bind.mockRestore();pageKit.mockRestore();model.mockRestore();}
+
  const portal = new ArenaRoomPortal({ game,animals,player },room,portalRows,ReturnProgram.page(titan.rules),entrance);
  portal.update(.1,0); expect(portal.inside).toBe(false);
  portal.update(.1,.1); expect(portal.inside).toBe(false);

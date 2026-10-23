@@ -284,7 +284,7 @@ export interface PageRidingView {
   readonly mounted: boolean; readonly reins: MountedReins; readonly raid: PagePastureRaid<CrowdDraw>;
   update: (dt: number) => void; late: (dt: number) => void; noteShot: (x: number, z: number) => void;
 }
-interface ClientRidingOwner extends WorldFrameOwner { readonly rows: v.InferOutput<typeof ClientRidingSessionSchema>; readonly figure: MountedSpecimenSeatRows | null; view: PageRidingView | null }
+interface ClientRidingOwner extends WorldFrameOwner { readonly id: string | undefined; readonly rows: v.InferOutput<typeof ClientRidingSessionSchema>; readonly figure: MountedSpecimenSeatRows | null; view: PageRidingView | null }
 const clientSessions = new WeakMap<Scope, ClientRidingOwner>();
 /** Admit the client session before world wiring; body and equipment authorities
  * arrive through their native stages, never through authored callbacks. */
@@ -299,7 +299,7 @@ export async function installClientRiding(ctx: ShardContext, feature: ClientFeat
   available();
   const figure = rows.figure === undefined ? null : v.parse(MountedSpecimenSeatSchema, await read.call(product, rows.figure));
   available();
-  const owner: ClientRidingOwner = { rows, figure, view: null,
+  const owner: ClientRidingOwner = { id: feature.owner, rows, figure, view: null,
     update(dt) { active(); if (clientSessions.get(scope) !== owner) throw new Error('Riding frame owner changed'); owner.view?.update(dt); },
     late(dt) { active(); if (clientSessions.get(scope) !== owner) throw new Error('Riding frame owner changed'); owner.view?.late(dt); },
   };
@@ -312,7 +312,7 @@ export async function installClientRiding(ctx: ShardContext, feature: ClientFeat
 export function enterClientRiding(ctx: ShardContext, arsenal: HeldClaims): PageRidingView {
   const owner = clientSessions.get(ctx.scope), runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play;
   if (owner === undefined || ctx.scope.disposed || runtime === undefined || world === undefined || world === null || play === undefined || play === null) throw new Error('Riding feature is not ready');
-  if (owner.view !== null) throw new Error('Riding feature is already entered');
+  if (owner.view !== null || owner.id !== undefined && presentEntryOwner(ctx.scope, 'riding-view', owner.id) !== null) throw new Error('Riding feature is already entered');
   const population = clientWildlife(ctx); if (population === null) throw new Error('Riding requires built wildlife');
   const { rows } = owner, persistence = enteredAdventurePersistence(ctx.scope), kit = arsenal.pageKit(ctx);
   if (kit === null) throw new Error('Riding requires its built equipment owner');
@@ -368,7 +368,9 @@ export function enterClientRiding(ctx: ShardContext, arsenal: HeldClaims): PageR
   };
   ctx.on('player.died', () => { if (mount.mounted) mount.dismount(); });
   ctx.on('player.respawned', () => { kit.refill(); });
-  owner.view = view; return view;
+  owner.view = view;
+  if (owner.id !== undefined) publishEntryOwner(ctx.scope, 'riding-view', owner.id, view);
+  return view;
 }
 
 /** Native arena/riding refusal; storage and its numeric law live in CellField. */

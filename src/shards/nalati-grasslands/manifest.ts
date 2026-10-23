@@ -19,7 +19,7 @@ export const NALATI_GRASSLANDS: ShardManifest = {
   load: async () => {
     const { default: Runtime } = await import('./runtime/index');
     return (await import('@wildshard/game/shard/declaredEntry')).declaredRuntimeEntry(Runtime, Runtime,
-      { entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'declared', nativePlan: { phases: ['world-bindings', 'kit', 'play'], features: ['held.claims.install', 'elite.entry', 'quest.chapter-view'] } });
+      { entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'declared', nativePlan: { phases: ['world-bindings', 'kit', 'play'], features: ['held.claims.install', 'taming.entry', 'arena-room.entry', 'elite.entry', 'quest.chapter-view'] } });
   },
   trustedRuntime: { get slug() { return NALATI_GRASSLANDS.slug; }, entry: 'runtime/index.ts' },
   ktx2: () => import('./ktx2.generated'),

@@ -13160,3 +13160,10 @@ optional taming owner. It uses the original level scope, programme, models,
 clock and patrol; the entered child owns presentation and releases it on exit.
 Retained homes initialize only after boss identity prewarming, before chapter
 presentation. Rows carry ids only, with no runtime path or callback.
+
+The `taming.entry` feature publishes the original prepared riding view's
+taming authority and interactable, optionally lending that same view to a
+runtime object slot. `arena-room.entry` binds the original room encounter
+with the original claims kit and reward model. Their play ranks precede
+elite and chapter presentation. Neither feature constructs a replacement
+mount, encounter, clock or save owner; open-arena equipment stays separate.

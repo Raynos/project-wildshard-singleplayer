@@ -1,3 +1,7 @@
+import { installTamingEntry } from '../src/game/shardfile/clientEntryBinds';
+import { entryOwner, publishEntryOwner } from '../src/game/shardfile/entryOwners';
+import { parseClientPlan } from '../src/format/clientPlan';
+import type { ShardRuntime } from '../src/game/shard/runtime';
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import {tamingRig} from './fixtures/tamingServices';
@@ -156,7 +160,19 @@ test('full orchard riding session owns its native mount and data prompts', () =>
   expect(() => createPageRiding(ctx, f.player, f.animals, f.camera, rows, { ...owners, herds: [imposter] })).toThrow('Invalid rendered riding herds');
   expect(input.contexts).toEqual([]); expect(f.slots).toEqual([]);
   const session = createPageRiding(ctx, f.player, f.animals, f.camera, rows, owners);
+  const runtime=legacyDouble<ShardRuntime>({interactables:[],objects:{}});
+  const entered=legacyDouble<ShardContext>({scope:f.scope,game:legacyDouble<ShardContext['game']>({runtime})});
+  const entry={kind:'taming.entry' as const,riding:'orchard.riding',publish:'orchard.taming',object:'companion'};
   try {
+    expect(()=>installTamingEntry(entered,entry)).toThrow('Missing live entry owner');
+    expect(runtime.interactables).toEqual([]);
+    publishEntryOwner(f.scope,'riding-view',entry.riding,session);
+    installTamingEntry(entered,entry);
+    expect(entryOwner(f.scope,'taming',entry.publish)).toBe(session.taming);
+    expect(runtime.objects[entry.object]).toBe(session);
+    expect(runtime.interactables).toEqual([session.interactable]);
+    expect(()=>installTamingEntry(entered,entry)).toThrow('already published');
+    expect(runtime.interactables).toEqual([session.interactable]);
     f.camera.position.set(3, 1.5, 6.15); session.update(.1, false, false, false);
     expect(session.interactable.label).toBe('Name Orchard mule'); session.interactable.onInteract();
     expect(session.drainEvents()).toEqual([{ kind: 'name', actor: f.actor.entityId, current: 'Orchard mule' }]);
@@ -176,6 +192,8 @@ test('full orchard riding session owns its native mount and data prompts', () =>
     expect(()=>parse(RidingControlsSchema,{...controls,run:()=>undefined})).toThrow();
   } finally { session.mount.dismount(); f.scope.dispose(); }
   expect(input.contexts).toEqual([]);expect(input.has('orchard.saddle')).toBe(false);expect(input.bindings.table.rows).toEqual([]);
+  expect(runtime.interactables).toEqual([]);expect(Object.hasOwn(runtime.objects,entry.object)).toBe(false);
+  expect(()=>entryOwner(f.scope,'taming',entry.publish)).toThrow('scope has ended');
 });
 
 
@@ -239,4 +257,13 @@ test('shared controller retains the original mounted HUD, fall/reset and clock c
     }finally{status.mockRestore();time.mockRestore();timer.mockRestore();course.exit();f.scope.dispose();pageApp.levelScope=previousScope;pageApp.setState(previousState);}
   }
   expect(traces[1]).toEqual(traces[0]);expect(traces[0]?.some(row=>Array.isArray(row)&&row[0]==='toast')).toBe(true);
+});
+
+
+test('room and taming entry rows refuse executable and reflected suffixes',()=>{
+  const rows=[{kind:'arena-room.entry',owner:'orchard.vault',claims:'orchard.kit',reward:'reedBow',publish:'vault'},
+    {kind:'taming.entry',riding:'orchard.riding',publish:'companion',object:'companion'}];
+  expect(parseClientPlan({version:1,features:rows}).features).toEqual(rows);
+  for(const row of rows)for(const suffix of [{module:'runtime/entry.ts'},{owner:()=>null},{path:['owners','mount']}])
+    expect(()=>parseClientPlan({version:1,features:[{...row,...suffix}]})).toThrow();
 });

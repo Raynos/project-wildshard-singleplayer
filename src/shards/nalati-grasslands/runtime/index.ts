@@ -59,13 +59,8 @@ export class NalatiPlugin extends ShardPlugin {
     if (wildlife === null) throw new Error('Nalati creatures have not been built');
     owned(() => { rt.bindPlay(kit); });
     await part();
-    const ride = rt.ride;
-    if (ride !== null) { shell.interactables.push(ride.interactable); publishEntryOwner(ctx.scope, 'taming', 'riding', ride.taming); }
-    Object.assign(shell.objects, { wildlife, ride });
+    Object.assign(shell.objects, { wildlife });
     ctx.on('weather.changed', (state) => { hud.setWeather(state); });
-    await part();
-    ctx.scope.run(() => rt.boss.bind(ctx,kit,mounted.model('goldenBow')));
-    publishEntryOwner(ctx.scope, 'arena-room', 'arena', rt.boss);
     await part();
     ctx.scope.run(() => rt.titan.bind(ctx,kit,mounted.model('naizagai'),{arsenal:mounted,locker:rt.skins}));
     publishEntryOwner(ctx.scope, 'arena-room', 'fight', rt.titan);
