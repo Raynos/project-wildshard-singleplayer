@@ -111,6 +111,9 @@ export function cellClip(root: Object3D, half: number, scope: Scope): CellClip {
   // An instanced draw's bounds walk every copy: keep them while its copies, count and geometry are the ones last walked
   // (the construction sweep's walk then serves the activation and first-draw checks).
   const instanceWalks = new WeakMap<object, { readonly geometry: unknown; readonly version: number; readonly count: number }>();
+  // G639 frame floor: culled draws whose last check was decided by their declared envelope alone (every copy they may show),
+  // so a change of which copies they draw (the culler's per-frame count and matrix uploads) cannot change it
+  const enveloped = new WeakSet<Draw>();
   let meshes = 0, checked = 0, checking = false, submitting = false;
   let flush = (): void => undefined;
   let validate = (_node: Draw, _submitted: boolean, _view?: Camera): void => undefined;
@@ -164,8 +167,9 @@ export function cellClip(root: Object3D, half: number, scope: Scope): CellClip {
       if (Array.isArray(current) ? current.some(material => !held.has(material)) : !held.has(current)) unclip(node);
     }
     if (!node.geometry.hasAttribute('position') || node.geometry.getAttribute('position').count === 0) return;
-    const declared = node instanceof InstancedMesh && !node.castShadow ? instanceEnvelope(node) : undefined;
+    const declared = node instanceof InstancedMesh ? instanceEnvelope(node) : undefined;
     const copiesBox = declared === undefined || declared.isEmpty() ? undefined : declared;
+    enveloped.delete(node);
     if (node instanceof Sprite) {
       const scale = node.getWorldScale(new Vector3());
       const radius = Math.hypot(Math.max(Math.abs(node.center.x), Math.abs(1 - node.center.x)) * scale.x,
@@ -187,10 +191,12 @@ export function cellClip(root: Object3D, half: number, scope: Scope): CellClip {
         projectBounds(local, submittedWorld, box);
         box.union(projectBounds(local, node.matrixWorld, alternate));
       }
-    } else if (copiesBox !== undefined) {
+    } else if (copiesBox !== undefined && (!node.castShadow || within(projectBounds(copiesBox, node.matrixWorld, box)))) {
       // a culled draw's declared envelope over every copy it may show: one decision whichever copies are drawn (none yet
-      // at entry), so its clipped program is prepared with the cell. A caster keeps its copies' test: crossing, it is refused.
-      projectBounds(copiesBox, node.matrixWorld, box);
+      // at entry), so its clipped program is prepared with the cell. A caster whose envelope crosses keeps its copies' test
+      // below (crossing, it is refused); inside, every copy it may draw is inside.
+      if (!node.castShadow) projectBounds(copiesBox, node.matrixWorld, box);
+      enveloped.add(node);
     } else if (node instanceof InstancedMesh && node.count === 0) {
       return;
     } else if (node instanceof InstancedMesh || node instanceof BatchedMesh) {
@@ -436,7 +442,7 @@ export function cellClip(root: Object3D, half: number, scope: Scope): CellClip {
             if (version !== undefined) contentUndo.push(onCellField(version, 'version', () => { skinBounds.delete(node); mark(node); }));
           }
         }
-        if (node instanceof InstancedMesh) contentUndo.push(onCellField(node.instanceMatrix, 'version', () => { mark(node); }));
+        if (node instanceof InstancedMesh) contentUndo.push(onCellField(node.instanceMatrix, 'version', () => { if (!enveloped.has(node)) mark(node); }));
         const morph = node instanceof Mesh ? node.morphTargetInfluences : undefined;
         if (morph !== undefined) for (let i = 0; i < morph.length; i++) contentUndo.push(onCellField(morph, String(i), () => { mark(node); }));
         if (Array.isArray(node.material)) for (let i = 0; i < node.material.length; i++) contentUndo.push(onCellField(node.material, String(i), () => { mark(node); }));
@@ -448,7 +454,10 @@ export function cellClip(root: Object3D, half: number, scope: Scope): CellClip {
         checking = true; try { unclip(node); } finally { checking = false; }
         bind(); mark(node);
       }));
-      for (const key of ['castShadow', 'count', 'instanceMatrix', 'morphTargetInfluences']) if (Object.hasOwn(node, key)) undo.push(onCellField(node, key, () => { if (!checking) { bind(); mark(node); } }));
+      // a count or caster change rebinds nothing (only a replaced instanceMatrix / morphTargetInfluences array does); an
+      // enveloped draw's count is a culler's per-frame copy choice
+      for (const key of ['castShadow', 'count']) if (Object.hasOwn(node, key)) undo.push(onCellField(node, key, () => { if (!checking && !(key === 'count' && enveloped.has(node))) mark(node); }));
+      for (const key of ['instanceMatrix', 'morphTargetInfluences']) if (Object.hasOwn(node, key)) undo.push(onCellField(node, key, () => { if (!checking) { bind(); mark(node); } }));
       if (isSkin(node)) {
         let prior = new Float32Array();
         undo.push(onCellMethods(node.skeleton, ['update'], () => {

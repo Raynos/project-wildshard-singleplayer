@@ -70,6 +70,27 @@ test('an empty culled level is clipped by its declared envelope at admission, wh
   } finally { scope.dispose(); material.dispose(); geometry.dispose(); }
 });
 
+test('a culled caster inside its envelope skips copy checks; a crossing envelope keeps its copies test', () => {
+  const scope = new Scope('caster-envelope'), root = new Group(), material = new MeshStandardMaterial(), geometry = new BoxGeometry(2, 2, 2);
+  try {
+    const inside = new InstancedMesh(geometry, material, 2), crossing = new InstancedMesh(geometry, material, 2);
+    inside.castShadow = true; crossing.castShadow = true; inside.count = 0; crossing.count = 0;
+    setInstanceEnvelope(inside, new Box3(new Vector3(-10, -1, -10), new Vector3(10, 1, 10)));
+    setInstanceEnvelope(crossing, new Box3(new Vector3(-1, -1, -1), new Vector3(256, 1, 1)));
+    root.add(inside, crossing); const guard = cellClip(root, 250, scope); guard.sweep();
+    expect(inside.visible).toBe(true); expect(crossing.visible).toBe(true); expect(guard.state().refused).toBe(0);
+    // the culler's per-frame copy choice: the inside draw queues nothing, the crossing one is checked by its copies
+    inside.count = 2; inside.instanceMatrix.needsUpdate = true; expect(guard.changed()).toBe(false);
+    crossing.count = 1; crossing.instanceMatrix.needsUpdate = true; expect(guard.changed()).toBe(true);
+    guard.update(); expect(crossing.visible).toBe(true);
+    crossing.setMatrixAt(0, new Matrix4().makeTranslation(251, 0, 0)); crossing.instanceMatrix.needsUpdate = true;
+    guard.update(); expect(crossing.visible).toBe(false); expect(guard.state().refused).toBe(1);
+    // a pose change still rechecks the enveloped draw
+    inside.position.x = 245; expect(guard.changed()).toBe(true); guard.update(); expect(inside.visible).toBe(true); // envelope crosses, copies inside
+    inside.position.x = 251; guard.update(); expect(inside.visible).toBe(false);
+  } finally { scope.dispose(); material.dispose(); geometry.dispose(); }
+});
+
 test('moving a cell root cannot move its admitted fence or the authored-grid audit boundary', () => {
   const scope = new Scope('fixed-origin'), root = new Group(), geometry = new BoxGeometry(1, 1, 1), material = new MeshBasicMaterial();
   root.name = 'grid-cell:home'; const mesh = new Mesh(geometry, material); root.add(mesh);
