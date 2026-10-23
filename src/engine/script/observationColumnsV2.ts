@@ -144,6 +144,7 @@ export class ObservationColumnsV2 {
   private readonly scope: Scope;
   private readonly scalars: readonly ((owners: V2ColumnOwners) => number)[] | undefined;
   private readonly referenceNames: readonly string[];
+  private readonly environmentColumns: readonly { readonly index: number; readonly grass?: 'self' | 'player' }[];
   constructor(input: unknown,scope: Scope) {
     this.scope = scope;
     const rows = parseObservationColumnsV2(input);
@@ -151,6 +152,10 @@ export class ObservationColumnsV2 {
     this.rows = Object.freeze(rows);
     const readers=this.rows.map(row=>scalarReader(row.source));
     this.scalars=readers.every(reader=>reader!==undefined)?readers:undefined;
+    this.environmentColumns=this.rows.flatMap((row,index)=>{
+      const source=row.source;
+      return source.kind==='grass'?[{index,grass:source.at}]:source.kind==='player'||source.kind==='environment'||source.kind==='wind'?[{index}]:[];
+    });
     this.referenceNames=[...new Set(this.rows.flatMap(row=>row.source.kind==='reference'?[row.source.binding]:[]))];
   }
   /** The same immutable admitted metadata, without sampling any live owner.
@@ -167,10 +172,9 @@ export class ObservationColumnsV2 {
     }
     const self=owners.self,actor=self.actor;
     const environment=owners.environment,grass=environment?.grassHeightAt,queries:{at:'self'|'player';point:Readonly<{x:number;z:number}>|undefined}[]=[];
-    for(const[index,row]of this.rows.entries())if(selected?.[index]!==false){
-      const kind=row.source.kind;
-      if(kind==='grass'||kind==='player'||kind==='environment'||kind==='wind')need(environment,'environment');
-      if(row.source.kind==='grass')queries.push({at:row.source.at,point:row.source.at==='self'?actor?.position:owners.player.position});
+    for(const row of this.environmentColumns)if(selected?.[row.index]!==false){
+      need(environment,'environment');
+      if(row.grass!==undefined)queries.push({at:row.grass,point:row.grass==='self'?actor?.position:owners.player.position});
     }
     const live=():void=>{
       if(owners.scope!==this.scope||this.scope.disposed||this.scope.disposing||owners.self!==self||self.actor!==actor
@@ -196,9 +200,10 @@ export class ObservationColumnsV2 {
     });
     const values=new Float64Array(this.scalars.length);
     if(selected!==undefined)values.fill(Number.NaN);
-    for(const[index,read]of this.scalars.entries()){
-      if(selected?.[index]===false)continue;
-      live();values[index]=finite(read(owners));
+    let index=0;
+    for(const read of this.scalars){
+      const column=index++;if(selected?.[column]===false)continue;
+      live();values[column]=finite(read(owners));
     }
     live();
     if(owners.references!==owner||refs.some(pin=>{

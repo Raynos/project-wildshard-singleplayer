@@ -187,3 +187,21 @@ test('a selected scalar read fences only real reads while retaining final retire
   f.host.scope.dispose();expect(()=>reader.captureNumeric(f.owners,selection.map(()=>false))).toThrow('Retired');
  }finally{f.host.dispose();}
 });
+
+
+test('compiled environment preflight refuses a missing suffix before scalar reads',async()=>{
+ const f=await fixture(),reader=new ObservationColumnsV2([
+  {id:1,name:'memory',source:{kind:'memory',key:'probe',default:{value:0}}},
+  {id:2,name:'wind',source:{kind:'wind',field:'x'}},
+  {id:3,name:'grass',source:{kind:'grass',at:'self'}},
+ ],f.host.scope);
+ let reads=0;Object.defineProperty(f.actor.mem,'probe',{get:()=>{reads++;return -0;}});
+ const {environment:_environment,...missing}=f.owners;
+ try{
+  expect(()=>reader.captureNumeric(missing)).toThrow('environment');expect(reads).toBe(0);expect(f.query).not.toHaveBeenCalled();
+  const selected=reader.captureNumeric(missing,[true,false,false]);expect(Object.is(selected[0],-0)).toBe(true);
+  expect(Number.isNaN(selected[1])&&Number.isNaN(selected[2])).toBe(true);expect(reads).toBe(1);expect(f.query).not.toHaveBeenCalled();
+  const full=reader.captureNumeric(f.owners);expect(Object.is(full[0],-0)).toBe(true);expect(full[1]).toBe(.8);expect(full[2]).toBe(11);
+  expect(reads).toBe(2);expect(f.query).toHaveBeenCalledExactlyOnceWith(4,7);
+ }finally{f.host.dispose();}
+});
