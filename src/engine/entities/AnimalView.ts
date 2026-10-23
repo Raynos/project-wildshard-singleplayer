@@ -361,6 +361,9 @@ constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1, entityI
   /** the last update left the skeleton's pose as it was (the far LOD): the animals' group may keep its bones' world
    *  matrices while the root stands still too (src/engine/entities/animalMatrices.ts) */
   poseFrozen = false;
+  /** counts the updates that may pose the bones (only `update` poses them): the animals' group compares a pose only when it
+   *  moved on since the group last saw it */
+  poseVersion = 0;
 
   /** true while a stagger holds it: the manager skips its think, it neither steers nor walks */
 
@@ -390,7 +393,7 @@ constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1, entityI
 
   /** Integrate motion and animate. `t` = global seconds; `near` = within animation LOD range. */
   update(dt: number, t: number, near: boolean): void {
-    this.poseFrozen = false;
+    this.poseFrozen = false; this.poseVersion++;
     if (this.flash > 0) { this.flash = Math.max(0, this.flash - dt / FLASH_T); this.applyFlash(); }
     if (this.ragdoll !== null) { this.updateRagdoll(this.ragdoll, dt, t, near); return; }
     if (this.externalSimulation === null) this.stepMotion(dt); else this.readSimulationPose();

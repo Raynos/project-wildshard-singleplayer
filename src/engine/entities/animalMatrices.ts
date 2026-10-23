@@ -30,9 +30,12 @@ import * as THREE from 'three';
  * which `updateMatrixWorld` still computes for hidden objects. Anything attached under a bone later (a stuck bolt)
  * shows its bone chain again (the childadded watch below). ~1.2–2.5 ms of main thread a frame at Pine's spawn / cabin.
  */
-/** what the group needs of an animal (src/engine/entities/Animal.ts) */
-export interface MatrixOwner { readonly mesh: THREE.Object3D; readonly poseFrozen: boolean; readonly lastHitT: number }
-interface Keep { root: Float64Array; parent: Float64Array; dirty: boolean; hitT: number; pose: Float64Array }
+/** what the group needs of an animal (src/engine/entities/Animal.ts). `poseVersion` counts the animal's pose updates (its
+ *  bones are posed only there): a version the group has seen with its recorded pose needs no comparison (G639: the
+ *  comparison walk was 3.1 ms of Pine's frame at phone 4x, mostly animals the body rates had not ticked) */
+export interface MatrixOwner { readonly mesh: THREE.Object3D; readonly poseFrozen: boolean; readonly lastHitT: number; readonly poseVersion?: number }
+/** `version`: the animal's poseVersion when its bones last matched `pose` (-1: none proved) */
+interface Keep { root: Float64Array; parent: Float64Array; dirty: boolean; hitT: number; pose: Float64Array; version: number }
 
 function same(a: ArrayLike<number>, b: Float64Array): boolean {
   for (let i = 0; i < 16; i++) if (a[i] !== b[i]) return false;
@@ -155,13 +158,17 @@ export class AnimalGroup extends THREE.Group {
       let k = this.keep.get(a);
       if (k !== undefined) {
         if (c.matrixAutoUpdate) c.updateMatrix();
-        if (!k.dirty && k.hitT === a.lastHitT && same(c.matrix.elements, k.root) && same(pw, k.parent) && (a.poseFrozen || poseUnchanged(c, k.pose))) { skipped++; continue; }
+        if (!k.dirty && k.hitT === a.lastHitT && same(c.matrix.elements, k.root) && same(pw, k.parent)) {
+          const proved = a.poseVersion !== undefined && a.poseVersion === k.version;
+          if (a.poseFrozen || proved) { skipped++; continue; }
+          if (poseUnchanged(c, k.pose)) { k.version = a.poseVersion ?? -1; skipped++; continue; }
+        }
       }
       c.updateMatrixWorld(down);
       updated++;
-      if (k === undefined) { k = { root: new Float64Array(16), parent: new Float64Array(16), dirty: false, hitT: 0, pose: new Float64Array(0) }; this.keep.set(a, k); }
+      if (k === undefined) { k = { root: new Float64Array(16), parent: new Float64Array(16), dirty: false, hitT: 0, pose: new Float64Array(0), version: -1 }; this.keep.set(a, k); }
       k.root.set(c.matrix.elements); k.parent.set(pw); k.dirty = false; k.hitT = a.lastHitT;
-      if (!a.poseFrozen) recordPose(c, k);
+      if (!a.poseFrozen) { recordPose(c, k); k.version = a.poseVersion ?? -1; } else k.version = -1;
     }
     this.last.skipped = skipped; this.last.updated = updated;
   }
