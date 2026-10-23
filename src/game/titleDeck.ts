@@ -13,7 +13,8 @@ import { listenDom } from '@wildshard/engine/input/dom';
  *
  * A horizontal carousel of shard cards over the selected card's hero art (portrait / landscape by the viewport), dots
  * under it, ENTER WORLD and EXPLORE WORLD, and the main menu's SETTINGS. A swipe steps one card; the centred card is the
- * selection. Hero art loads for the selected card only; a neighbour's warms when a swipe or a dot press starts toward it.
+ * selection. Hero art loads for the selected card only; a neighbour's warms when a swipe or a dot press starts toward it,
+ * and the card's thumbnail fills the backdrop until its hero paints.
  *
  * SF21a (G79 / G88): the Wildshard main menu (src/game/mainMenu.ts) sits over this deck; its SHARD SELECT opens it, unchanged
  * (G58 / G64), and its INFINITE WILDSHARD boots the grid. What ENTER WORLD may enter is §3.3's table. A card whose shardfile
@@ -286,7 +287,9 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     if (c === undefined) return;
     cardEls.forEach((e, i) => { e.classList.toggle('selected', i === index); });
     dots.forEach((d, i) => { d.classList.toggle('on', i === index); });
-    hero.style.backgroundImage = `url('${heroUrl(c)}')`;
+    // the card's own thumbnail (already on screen in the card) under the hero: until the hero's bytes arrive and decode
+    // (a phone network, a busy page), the backdrop is the card's picture, never black (Jake's Pine Hollow, ab93dccfe)
+    hero.style.backgroundImage = `url('${heroUrl(c)}'), url('${c.thumbnail}')`;
     hero.classList.add('show');
     hint.textContent = hintFor(c, index === activeIndex, mode());
     play.disabled = !canEnter(c, mode()) && c.draft === null;

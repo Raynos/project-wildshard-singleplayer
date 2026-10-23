@@ -90,3 +90,15 @@ test('SHARD SELECT omits every open plot in public and Developer while retaining
   expect(shards()).toHaveLength(SHARDS.length + LEGACY_SHARDS.length);
   installShards([]);
 });
+
+test('the backdrop is the hero over the card\'s own thumbnail, so a late hero never leaves it black', () => {
+  installShards([]);
+  const art = (slug: TitleCard['slug']): TitleCard => Object.assign(card(slug, true), { thumbnail: `/thumbs/${slug}.jpg`, heroPortrait: `/heroes/${slug}-portrait.jpg`, heroLandscape: `/heroes/${slug}-landscape.jpg` });
+  const cards = [art('driftwood-isle'), art('pine-hollow')];
+  const built = buildTitleDeck({ cards, active: null, onEnter: () => undefined, onExplore: () => undefined, onSettings: () => undefined, mode: () => ({ developer: true, devserver: true }) });
+  document.body.append(built.root);
+  vi.stubGlobal('innerWidth', 402); vi.stubGlobal('innerHeight', 874);
+  built.select(1, false);
+  const hero = built.root.querySelector<HTMLElement>('.ws-menu-hero');
+  expect(hero?.style.backgroundImage.replaceAll('"', "'")).toBe("url('/heroes/pine-hollow-portrait.jpg'), url('/thumbs/pine-hollow.jpg')");
+});
