@@ -1,9 +1,11 @@
+import { parse } from 'valibot';
+import { createModelLibrary } from '@wildshard/game/plugin/geometry';
 import * as THREE from 'three';
 import type { BowStyle } from '@wildshard/game/weapons/starterBowProfile';
-import { heldBowArrow, heldBowDisplay, loadHeldBow } from '@wildshard/game/weapons/heldLauncher';
+import { heldBowArrow, heldBowDisplay, bindHeldBow } from '@wildshard/game/weapons/heldLauncher';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { heldFirearmDisplay } from '@wildshard/game/plugin/heldFirearm';
-import { parseHeldFirearmRows } from '@wildshard/format/weaponProfiles';
+import { HeldBowFileSchema, parseHeldFirearmRows } from '@wildshard/format/weaponProfiles';
 import { buildSabre } from './sabre';
 import { buildJavelin, buildSpear } from './spear';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
@@ -20,6 +22,24 @@ import { defineModel, type ModelContext, type ModelDef, type ModelPart } from '@
  * drawing the held ones; each card is a separate build by the weapon's own builder on its own materials, put back in the
  * normal queue (the viewmodel factories make theirs transparent for the depth-clear trick; src/engine/models/gear.ts says why).
  */
+const bowLoads = new Map<string, Promise<ReturnType<typeof bindHeldBow>>>();
+/** A baked bow from its rows file (a shard's bake writes it: the pool GLB's url, parts and paint channels, and the bow's
+ *  rows), fetched once per url, parsed strictly (an unknown or missing field refuses) and its parts preloaded. */
+function loadHeldBow(url: string): Promise<ReturnType<typeof bindHeldBow>> {
+  const known = bowLoads.get(url);
+  if (known !== undefined) return known;
+  const load = (async () => {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Held bow: ${url} did not load`);
+    const json: unknown = await response.json(), { pool, ...definition } = parse(HeldBowFileSchema, json);
+    const library = createModelLibrary({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, aoFloor: 1, hdLooks: {}, geometryPools: [pool] }, `[held bow ${url}]`);
+    await library.preload();
+    return bindHeldBow(definition, library);
+  })();
+  bowLoads.set(url, load);
+  return load;
+}
+
 const RECURVE = '/assets/nalati/baked/recurve-pool.json';
 type JavelinSpearDraws = ReturnType<typeof buildSpear>;
 

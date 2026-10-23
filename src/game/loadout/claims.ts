@@ -19,7 +19,7 @@ import { heldArmsGear } from '../models/heldGear';
 import { HeldView } from '../systems/viewmodel/heldView';
 import { SWORD_WOOD, SWORD_IRON } from '../weapons/starterMeleeProfile';
 import { Sword } from '../weapons/Sword';
-import { MeleeWeaponProfileSchema, FirearmWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
+import { type HeldBowFileRows, MeleeWeaponProfileSchema, FirearmWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
 import type { SwordWorld } from '@wildshard/engine/combat/view/melee';
 import type { Targets, TargetAnimal } from '@wildshard/engine/combat/types';
 import { GrappleTool, grappleGuard } from '../grapple/tool';
@@ -33,7 +33,7 @@ import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService
 import { BladeSet } from '../weapons/mountedBlade';
 import { PolearmSet, type HeldPolearmWorld } from '../weapons/heldPolearm';
 import { Bow } from '../weapons/Bow';
-import { loadHeldBow } from '../weapons/heldLauncher';
+import { bindHeldBow } from '../weapons/heldLauncher';
 import { HeldFirearm, type HeldFirearmProfile, type HeldFirearmView, type HeldFirearmRows } from '../plugin/heldFirearm';
 import type { BowVariantRows } from '@wildshard/format/bowVariantRows';
 import { equipmentActorOwner } from './actors';
@@ -43,7 +43,7 @@ import type { ArcWeaponPower } from '../weapons/arcPower';
 import type { ShardProduct } from '../shardfile/shardProduct';
 import { SpecimenBookSchema } from '@wildshard/format/specimenCatalogue';
 import { defineSpecimenCatalogue } from '../models/specimenCatalogue';
-import { fetchLaneBake } from '../plugin/geometry';
+import { createModelLibrary, fetchLaneBake } from '../plugin/geometry';
 import type { ModelDef } from '@wildshard/engine/models/model';
 
 type EquipmentBuilder = NonNullable<NonNullable<ShardContext['game']['runtime']>['buildEquipment']>;
@@ -131,7 +131,7 @@ class ChargedBowSlot {
 
 type PassBlade = InstanceType<BladeSet['Weapon']>;
 type SlotPolearm = InstanceType<PolearmSet['Weapon']>;
-type SlotBowProfile = Awaited<ReturnType<typeof loadHeldBow>>['profile'];
+type SlotBowProfile = ReturnType<typeof bindHeldBow>['profile'];
 type BuiltSlot = {kind:'starter';weapon:Sword}|{kind:'blade';weapon:PassBlade;source:BladeSet}
   |{kind:'polearm';weapon:SlotPolearm}|{kind:'bow';weapon:Bow;profile:SlotBowProfile}
   |{kind:'firearm';weapon:HeldFirearm};
@@ -264,6 +264,7 @@ interface SlotMetadata {
   readonly readJson:ShardProduct['json'];
   readonly resolveUrl:ShardProduct['url'];
   catalogue:SlotCatalogue|null;
+  readonly bows:Map<string,Promise<ReturnType<typeof bindHeldBow>>>;
   loaded:boolean;
   preparing:boolean;
   ready:{readonly scope:Scope}|null;
@@ -321,7 +322,7 @@ export class HeldClaims {
   static fromProductSlots(product:ShardProduct,input:unknown,file:string):HeldClaims {
     const rows=parseHeldSlots(input),declaration=JSON.stringify(rows);
     const names=[file,...rows.slots.flatMap(row=>row.kind==='blade'?(row.source.kind==='passes'?[row.source.file]:row.source.framing===undefined?[]:[row.source.framing])
-      :row.kind==='bow'?[]:row.kind==='tool'?[row.source,row.presentation]:[row.file])];
+      :row.kind==='tool'?[row.source,row.presentation]:[row.file])];
     if(names.some(name=>!product.hasFile(name)))throw new Error('Missing held source file');
     const files=[...new Set(names)].map(name=>({name,url:product.url(name)}));
     let owners=productSlots.get(product);
@@ -332,7 +333,7 @@ export class HeldClaims {
       previous.checkSlotMetadata(kept);return previous;
     }
     const held=HeldClaims.fromSlots(rows);freezeSlotRows(held.slots);
-    held.metadata={product,source:product.shardfile,items:product.shardfile.items,files,file,declaration,readFile:product.file,readJson:product.json,resolveUrl:product.url,catalogue:null,loaded:false,preparing:false,ready:null,sources:null};
+    held.metadata={product,source:product.shardfile,items:product.shardfile.items,files,file,declaration,readFile:product.file,readJson:product.json,resolveUrl:product.url,catalogue:null,bows:new Map(),loaded:false,preparing:false,ready:null,sources:null};
     if(owners===undefined){owners=new Map();productSlots.set(product,owners);}
     owners.set(rows.id,held);return held;
   }
@@ -380,6 +381,17 @@ export class HeldClaims {
     this.checkSlotMetadata(metadata);return catalogue.model(key);
   }
 
+  /** Original pool/profile memo belongs to the pinned product metadata, not an
+   * entered body. A retired consumer still refuses before native allocation. */
+  private loadBow(product:ShardProduct,file:string):Promise<ReturnType<typeof bindHeldBow>> {
+    const known=this.metadata?.bows.get(file);if(known!==undefined)return known;
+    const read=(async()=>{
+      const url=product.url(file),{pool,...definition}=await product.json<HeldBowFileRows>(file);
+      if(this.metadata!==null)this.checkSlotMetadata(this.metadata);
+      const library=createModelLibrary({meshes:[],meshUrls:{},hd:[],hdUrls:{},aoFloor:1,hdLooks:{},geometryPools:[pool]},`[held bow ${url}]`);
+      await library.preload();if(this.metadata!==null)this.checkSlotMetadata(this.metadata);return bindHeldBow(definition,library);
+    })();this.metadata?.bows.set(file,read);return read;
+  }
   /** Original metadata owners, prepared explicitly at the caller's existing phase. */
   blade(id:string):BladeSet {const owner=this.blades.get(id);if(owner===undefined)throw new Error('Unknown held blade source');return owner;}
   polearm(id:string):PolearmSet {const owner=this.polearms.get(id);if(owner===undefined)throw new Error('Unknown held polearm source');return owner;}
@@ -447,7 +459,7 @@ export class HeldClaims {
       }
       if(row.kind==='blade'&&row.source.kind==='passes')this.blade(id).profile();
       if(row.kind==='polearm')this.polearm(id).profile();
-      if(row.kind==='firearm'&&!ctx.product.hasFile(row.file))throw new Error('Missing held firearm file');
+      if((row.kind==='firearm'||row.kind==='bow')&&!ctx.product.hasFile(row.file))throw new Error('Missing held ranged file');
       if(row.kind==='tool'&&(!ctx.product.hasFile(row.source)||!ctx.product.hasFile(row.presentation)))throw new Error('Missing held tool file');
       if(row.kind==='blade'&&row.source.kind==='starter'&&row.source.framing!==undefined&&!ctx.product.hasFile(row.source.framing))throw new Error('Missing held primary framing');
       if(row.kind==='blade'&&row.source.kind==='starter'){
@@ -488,7 +500,7 @@ export class HeldClaims {
           }
         } else if(row.kind==='polearm')built.set(row.id,{kind:'polearm',weapon:new (this.polearm(row.id).Weapon)(world,targets,{allowUnlocked})});
         else if(row.kind==='bow'){
-          const {profile}=await loadHeldBow(row.file);check();
+          const {profile}=await this.loadBow(ctx.product,row.file);check();
           built.set(row.id,{kind:'bow',profile,weapon:new Bow(world,targets,{row:catalogue.equipment(row.item),profile,allowUnlocked})});
         } else {
           const data=await ctx.product.json<{feel:Pick<HeldFirearmProfile,'ads'>;view:HeldFirearmView;rows:HeldFirearmRows}>(row.file);check();

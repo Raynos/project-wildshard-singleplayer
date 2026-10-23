@@ -263,3 +263,9 @@ export const HeldBowRowsSchema = v.strictObject({
 
 /** Complete held-bow binding; executable view strategies belong to the shared host. */
 export const HeldBowDefinitionSchema = v.strictObject({ base: HeldBowBaseSchema, bow: HeldBowRowsSchema });
+/** The same named-pool document admitted before an entered bow reads it. */
+const heldBowPoolNames = v.pipe(v.array(v.pipe(v.string(), v.maxLength(256))), v.maxLength(32));
+const HeldBowPoolSchema = v.strictObject({ url: v.pipe(v.string(), v.maxLength(512)), parts: heldBowPoolNames, channels: v.exactOptional(v.pipe(v.array(v.strictObject({
+  name: v.string(), source: v.string(), width: v.picklist([1, 2, 3, 4]), parts: v.exactOptional(heldBowPoolNames) })), v.maxLength(8))) });
+export const HeldBowFileSchema = v.strictObject({ pool: HeldBowPoolSchema, bow: HeldBowRowsSchema, base: HeldBowBaseSchema });
+export type HeldBowFileRows = v.InferOutput<typeof HeldBowFileSchema>;

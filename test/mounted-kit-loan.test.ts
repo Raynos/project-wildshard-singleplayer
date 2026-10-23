@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import * as plan from '../src/engine/boot/plan';
-import * as launcher from '../src/game/weapons/heldLauncher';
+import * as launcher from './fixtures/originalHeldBowLoader';
 import type { Targets } from '../src/engine/combat/types';
 import { MountedArsenal, type MountedLoadout } from './fixtures/originalMountedArsenal';
 import * as nativeItems from '../src/game/plugin/headless';

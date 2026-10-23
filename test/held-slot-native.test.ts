@@ -20,6 +20,9 @@ import * as native from '../src/game/plugin/headless';
 import * as bowBinding from '../src/game/weapons/Bow';
 import * as firearmBinding from '../src/game/plugin/heldFirearm';
 import * as launcher from '../src/game/weapons/heldLauncher';
+import * as rawLoader from './fixtures/originalHeldBowLoader';
+import * as geometry from '../src/game/plugin/geometry';
+import bowPage from '../public/assets/nalati/baked/recurve-pool.json' with { type:'json' };
 import * as plan from '../src/engine/boot/plan';
 import type { ArcWeaponPower } from '../src/game/weapons/arcPower';
 import items from '../src/shards/nalati-grasslands/data/items.json' with { type:'json' };
@@ -28,7 +31,7 @@ import loadout from '../src/shards/nalati-grasslands/data/loadout.json' with { t
 const original={...loadout,variants:{bow:{id:'weapon.golden-bow',name:'Golden Bow'},blade:{id:'weapon.naizagai',name:'Naizagai'}}};
 function slots(){return parseHeldSlots({version:1,id:'native-kit',bindAt:'equipment',pause:true,
   slots:[{id:'blade',kind:'blade',item:loadout.blade.item,source:{kind:'passes',file:loadout.blade.file}},
-    {id:'polearm',kind:'polearm',...loadout.polearm},{id:'bow',kind:'bow',...loadout.bow},{id:'firearm',kind:'firearm',...loadout.page.firearm}],
+    {id:'polearm',kind:'polearm',...loadout.polearm},{id:'bow',kind:'bow',...loadout.bow,file:'weapons/bow-page.json'},{id:'firearm',kind:'firearm',...loadout.page.firearm}],
   registration:['bow','blade','polearm','firearm'],equipment:{primary:'blade',rifle:'firearm',extras:['bow','polearm'],order:['bow','blade','polearm']},
   selection:{initial:'bow',unlock:['bow','polearm']},mount:['blade','polearm','bow'],
   refills:[{slot:'polearm',kind:'fill-capacity'},{slot:'bow',kind:'add-magazine'}],
@@ -81,20 +84,25 @@ function fixture(mode:'original'|'slots'){
     events.push(`firearm:${row.id}`);return legacyDouble<InstanceType<typeof firearmBinding.HeldFirearm>>({row,id,meta:row.meta});
   }
   vi.spyOn(firearmBinding,'HeldFirearm').mockImplementation(legacyDouble<typeof firearmBinding.HeldFirearm>(Object.assign(makeFirearm,{prototype:firearmBinding.HeldFirearm.prototype})));
-  type BowRead=Awaited<ReturnType<typeof launcher.loadHeldBow>>;
-  vi.spyOn(launcher,'loadHeldBow').mockImplementation(()=>{events.push('bow:read');return Promise.resolve({profile:legacyDouble<BowRead['profile']>({}),rows:legacyDouble<BowRead['rows']>({}),model:{}});});
+  type BowRead=ReturnType<typeof launcher.bindHeldBow>;
+  const bow={profile:legacyDouble<BowRead['profile']>({}),rows:legacyDouble<BowRead['rows']>({}),model:{}};
+  vi.spyOn(rawLoader,'loadHeldBow').mockImplementation(()=>{events.push('bow:read');return Promise.resolve(bow);});
+  vi.spyOn(geometry,'createModelLibrary').mockReturnValue(legacyDouble<ReturnType<typeof geometry.createModelLibrary>>({preload:()=>Promise.resolve()}));
+  vi.spyOn(launcher,'bindHeldBow').mockReturnValue(bow);
+  const bowBytes=new TextEncoder().encode(JSON.stringify(bowPage));
+  const bowRead=vi.fn(()=>{events.push('bow:read');return Promise.resolve(bowBytes);});
   vi.spyOn(plan,'macrotask').mockImplementation(()=>{events.push('pause');return Promise.resolve();});
   const bind=vi.spyOn(native,'bindRuntimeEquipment').mockReturnValue(legacyDouble<ReturnType<typeof native.bindRuntimeEquipment>>({}));
   const bytes=new TextEncoder().encode(JSON.stringify({feel:{},view:{},rows:{}}));
   const read=vi.fn(()=>{events.push('firearm:read');return Promise.resolve(bytes);});
   const product=createShardProduct({slug:source.identity.slug,revision:1,shardfile:source,sections:new Map(),
-    files:new Map([[loadout.page.firearm.file,{hash:'a'.repeat(64),url:'/firearm.json'}]]),read});
+    files:new Map([[loadout.page.firearm.file,{hash:'a'.repeat(64),url:'/firearm.json'}],['weapons/bow-page.json',{hash:'b'.repeat(64),url:'/bow.json'}]]),read:hash=>hash==='b'.repeat(64)?bowRead():read()});
   const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(),world=legacyDouble<NonNullable<ShardRuntime['world']>>({game:legacyDouble<NonNullable<ShardRuntime['world']>['game']>({scene,camera})}),runtime=legacyDouble<ShardRuntime>({world});
   const ctx=legacyDouble<ShardContext>({scope,product,app:legacyDouble<ShardContext['app']>({equipment:null}),
     game:legacyDouble<ShardContext['game']>({runtime}),rows:legacyDouble<ShardContext['rows']>({weapon:rows=>{
       if('id' in rows)registered.push(rows.id);else for(const row of rows)registered.push(row.id);
     }})});
-  return {parent,scope,source,owner,blade,polearm,ctx,runtime,events,registered,read,bind,bows,blades,mounts,powerBoundary,bytes,scene,camera};
+  return {parent,scope,source,owner,blade,polearm,ctx,runtime,events,registered,read,bowRead,bind,bows,blades,mounts,powerBoundary,bytes,scene,camera};
 }
 
 async function run(mode:'original'|'slots'){
@@ -244,13 +252,12 @@ test.each([0,1,2])('the live slot builder stops at native yield %s before a late
 
 test('the live slot builder refuses after a suspended bow read before bow or firearm allocation',async()=>{
   const f=fixture('slots'),at=deferred<undefined>();
-  type BowRead=Awaited<ReturnType<typeof launcher.loadHeldBow>>;
-  const file=deferred<BowRead>();vi.spyOn(launcher,'loadHeldBow').mockImplementation(()=>{at.resolve(undefined);return file.promise;});
+  const file=deferred<Uint8Array<ArrayBuffer>>();f.bowRead.mockImplementation(()=>{at.resolve(undefined);return file.promise;});
   try{
     f.owner.installPage(f.ctx);const builder=f.runtime.buildEquipment;if(builder===undefined)throw new Error('Missing live slot builder');
     const pending=builder(legacyDouble<Targets>({}),false),refusal=expect(pending).rejects.toThrow(/was replaced/u);
     await at.promise;f.runtime.world=legacyDouble<NonNullable<ShardRuntime['world']>>({});
-    file.resolve({rows:legacyDouble<BowRead['rows']>({}),model:{},profile:legacyDouble<BowRead['profile']>({})});await refusal;
+    file.resolve(new TextEncoder().encode(JSON.stringify(bowPage)));await refusal;
     expect(f.bows).toHaveLength(0);expect(f.read).not.toHaveBeenCalled();expect(f.bind).not.toHaveBeenCalled();expect(f.owner.pageKit(f.ctx)).toBeNull();
   }finally{f.parent.dispose();}
 });

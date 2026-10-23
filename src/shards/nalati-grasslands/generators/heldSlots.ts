@@ -11,7 +11,7 @@ export function heldSlotRows(input:unknown,power:unknown):HeldSlotsRows {
   const order=page.order.map(id=>id==='sabre'?'blade':id==='spear'?'polearm':id==='rifle'?'firearm':id);
   return parseHeldSlots({version:1,id:'nalati.arsenal',bindAt:'equipment',pause:true,
     slots:[{id:'blade',kind:'blade',item:rows.blade.item,source:{kind:'passes',file:rows.blade.file}},
-      {id:'polearm',kind:'polearm',...rows.polearm},{id:'bow',kind:'bow',...rows.bow},{id:'firearm',kind:'firearm',...page.firearm}],
+      {id:'polearm',kind:'polearm',...rows.polearm},{id:'bow',kind:'bow',item:rows.bow.item,file:'weapons/bow-page.json'},{id:'firearm',kind:'firearm',...page.firearm}],
     registration:['bow','blade','polearm','firearm'],equipment:{primary:'blade',rifle:'firearm',extras:['bow','polearm'],order},
     selection:{unlock:['bow','polearm'],initial:rows.initial},mount:['blade','polearm','bow'],
     refills:[{slot:'polearm',kind:'fill-capacity'},{slot:'bow',kind:'add-magazine'}],

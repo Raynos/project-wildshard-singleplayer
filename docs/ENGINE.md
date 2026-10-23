@@ -4419,11 +4419,18 @@ a colour channel on the stave, the first the base: `Bow.setStyle` swaps the chan
 borrows its named parts and returns `{ rows, model, profile }`. `base` follows
 `HeldBowBaseSchema` (`@wildshard/format/weaponProfiles`); a null mounted gait bound
 becomes infinity. It creates no mesh, clock or save. Pine compiles its original
-longbow binding into `custom/handsPool.heldBow`; Nalati emits its recurve binding
-beside the bake. `loadHeldBow(url)` fetches that file once per url
-(`{ pool: { url, parts, channels }, base, bow }`), parses it strictly and preloads
-the pool before using the same binder. `HeldBowDefinitionSchema` and
-`HeldBowRowsSchema` in `@wildshard/format/weaponProfiles` expose those data boundaries.
+longbow binding into `custom/handsPool.heldBow`. A held slot names an admitted
+product bow file: `{ pool: { url, parts, channels }, base, bow }` under the
+strict HeldBowFileSchema in format/weaponProfiles. At the original bow
+construction slot, HeldClaims reads Product.json, preloads the original
+model library and calls the same binder. Its existing product metadata owns
+the lazy pool/profile promise; cold admission never preloads it. Preparation
+and native construction keep separate lifetimes, with source identity checked
+across both reads and native allocation fenced by the entered owner.
+The raw file fetch/parser/cache is build-only; the game exports only binding
+and view functions. HeldBowDefinitionSchema and HeldBowRowsSchema retain the
+original constructor validation. Named bytes, paint channels and borrowed
+Float32 geometry remain unchanged.
 `heldBowDisplay(sky, rows, model, paint?)` / `heldBowArrow` are the Model Explorer cards.
 Users: Pine's longbow; Nalati's recurve with its Golden Bow and Sky-Wolf paints (generators/recurvePool.ts).
 

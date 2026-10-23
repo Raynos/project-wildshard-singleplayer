@@ -22,8 +22,8 @@ import { wind as steppeWind } from '@wildshard/engine/world/steppeWind';
 import { WIND_DIR, windGustAt } from '@wildshard/engine/world/wind';
 import * as v from 'valibot';
 import { heldFirearmParts, heldGrip, placeHeldFist, type HeldFirearmHands, type HeldFirearmModel, type HeldModelRows } from '../plugin/heldFirearm';
-import { createModelLibrary, type ModelLibrary } from '../plugin/geometry';
-import { HeldBowBaseSchema, HeldBowRowsSchema, HeldBowDefinitionSchema } from '@wildshard/format/weaponProfiles';
+import type { ModelLibrary } from '../plugin/geometry';
+import { type HeldBowRowsSchema, HeldBowDefinitionSchema } from '@wildshard/format/weaponProfiles';
 import { createClientScene } from '../plugin/ui';
 import { HeldPlayback } from '../plugin/weaponFamily';
 
@@ -355,10 +355,10 @@ export class HeldLauncher<P extends HeldLauncherProfile = HeldLauncherProfile> e
  * parts are borrowed from `model.geometry` by `rows.parts` (the stave carries the left fist; never mutated or disposed).
  * Materials are the viewmodels' lit rows or painterly ones; the wind is a gust row or the steppe's wind; `styles` names a
  * colour channel on the stave per paint (the first the base), which `setStyle` swaps in.
- * A baked rows file loads with `loadHeldBow(url)`.
+ * The entered slot owner reads its admitted definition and lends the native pool.
  *
- *   const { rows, model } = await loadHeldBow(url);
- *   new Bow(world, targets, { row, profile: heldBowProfile(BASE, rows, model) });
+ *   const { profile } = bindHeldBow(definition, preparedLibrary);
+ *   new Bow(world, targets, { row, profile });
  */
 const finite = v.pipe(v.number(), v.finite());
 /** The stave's look as the bake serialised it (the numbers the bend reads; its colours stay in the bake). */
@@ -370,10 +370,6 @@ const ArrowLookSchema = v.looseObject({ length: finite });
 type HeldBowRows = v.InferOutput<typeof HeldBowRowsSchema>;
 type HeldBowPoseRow = HeldBowRows['poses']['rest'];
 type HeldBowMaterialRow = HeldBowRows['materials']['bow'];
-const names = v.pipe(v.array(v.pipe(v.string(), v.maxLength(256))), v.maxLength(32));
-const PoolSchema = v.strictObject({ url: v.pipe(v.string(), v.maxLength(512)), parts: names, channels: v.exactOptional(v.pipe(v.array(v.strictObject({
-  name: v.string(), source: v.string(), width: v.picklist([1, 2, 3, 4]), parts: v.exactOptional(names) })), v.maxLength(8))) });
-const HeldBowFileSchema = v.strictObject({ pool: PoolSchema, bow: HeldBowRowsSchema, base: HeldBowBaseSchema });
 /** Borrow named bow parts and construct its profile from admitted data. No mesh or clock is allocated here. */
 export function bindHeldBow(input: unknown, library: Pick<ModelLibrary<never, never>, 'geometry'>): { readonly rows: HeldBowRows; readonly model: HeldFirearmModel; readonly profile: BowProfile } {
   const { bow: rows, base } = v.parse(HeldBowDefinitionSchema, input);
@@ -382,23 +378,6 @@ export function bindHeldBow(input: unknown, library: Pick<ModelLibrary<never, ne
   const profile = heldBowProfile({ ...values, ...(parent === undefined ? {} : { parent: parent as NonNullable<BowProfile['parent']> }),
     ...(mounted === undefined ? {} : { mounted: { ...mounted, gaits: mounted.gaits.map(({ below, spread }) => ({ below: below ?? Infinity, spread })) } }) }, rows, model);
   return { rows, model, profile };
-}
-const bowLoads = new Map<string, Promise<ReturnType<typeof bindHeldBow>>>();
-/** A baked bow from its rows file (a shard's bake writes it: the pool GLB's url, parts and paint channels, and the bow's
- *  rows), fetched once per url, parsed strictly (an unknown or missing field refuses) and its parts preloaded. */
-export function loadHeldBow(url: string): Promise<ReturnType<typeof bindHeldBow>> {
-  const known = bowLoads.get(url);
-  if (known !== undefined) return known;
-  const load = (async () => {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`Held bow: ${url} did not load`);
-    const json: unknown = await response.json(), { pool, ...definition } = v.parse(HeldBowFileSchema, json);
-    const library = createModelLibrary({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, aoFloor: 1, hdLooks: {}, geometryPools: [pool] }, `[held bow ${url}]`);
-    await library.preload();
-    return bindHeldBow(definition, library);
-  })();
-  bowLoads.set(url, load);
-  return load;
 }
 /** The profile's numbers: all but what the rows build (the view, arrow, wind, poses, the arrow's rest and length). */
 export type HeldBowBase = Omit<BowProfile, 'build' | 'arrow' | 'wind' | 'poses' | 'arrowX' | 'arrowY' | 'arrowLength'>;

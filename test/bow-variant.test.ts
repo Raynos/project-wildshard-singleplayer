@@ -20,6 +20,8 @@ import type {EquipmentService} from '../src/engine/combat/EquipmentService';
 import type {Bow} from '../src/game/weapons/Bow';
 import * as native from '../src/game/plugin/headless';
 import * as launcher from '../src/game/weapons/heldLauncher';
+import * as geometry from '../src/game/plugin/geometry';
+import bowPage from '../public/assets/nalati/baked/recurve-pool.json' with {type:'json'};
 import rows from '../src/shards/nalati-grasslands/boot/bowVariant.generated.json' with {type:'json'};
 import items from '../src/shards/nalati-grasslands/data/items.json' with {type:'json'};
 
@@ -37,13 +39,13 @@ function bow(targets:Targets):Bow{
   Object.assign(value,{targets,row:new ItemCatalogue(items).equipment('weapon.bow'),drawSpeedScale:1,carrierVelocity:new THREE.Vector3(),damageMultiplier:()=>2,
     carryMountState:()=>undefined,arrows:{predict:(_o:THREE.Vector3,_v:THREE.Vector3,points:Float32Array)=>{points.set([0,0,-10,0,0,-20]);return 2;}}});return value;
 }
-function slotRows(power:unknown=rows){return {version:1,id:'bow-kit',slots:[{id:'bow',kind:'bow',item:'weapon.bow',file:'/bow.json'}],
+function slotRows(power:unknown=rows){return {version:1,id:'bow-kit',slots:[{id:'bow',kind:'bow',item:'weapon.bow',file:'weapons/bow-page.json'}],
   registration:['bow'],equipment:{primary:'bow',extras:[]},selection:{unlock:[]},mount:[],refills:[],
   upgrades:[{id:'reward',slot:'bow',kind:'bow',replacement:{item:rows.id,name:rows.name},power:{kind:'charged-pierce',rows:power}}]};}
 async function kit(scope:Scope,targets:ReturnType<typeof owner>['targets'],input:unknown=slotRows()){
   const source={...emptyShardfile({slug:'orchard',name:'Orchard',author:'Fixture',revision:1,seed:1}),items:parseItems(items)};
   const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(),world=legacyDouble<NonNullable<ShardRuntime['world']>>({game:legacyDouble<NonNullable<ShardRuntime['world']>['game']>({scene,camera})});
-  const runtime=legacyDouble<ShardRuntime>({world}),product=createShardProduct({slug:'orchard',revision:1,shardfile:source,sections:new Map(),files:new Map(),read:()=>Promise.reject(new Error('Unexpected file read'))});
+  const runtime=legacyDouble<ShardRuntime>({world}),product=createShardProduct({slug:'orchard',revision:1,shardfile:source,sections:new Map(),files:new Map([['weapons/bow-page.json',{hash:'b'.repeat(64),url:'/bow.json'}]]),read:()=>Promise.resolve(new TextEncoder().encode(JSON.stringify(bowPage)))});
   const ctx=legacyDouble<ShardContext>({scope,product,app:legacyDouble<ShardContext['app']>({equipment:null}),game:legacyDouble<ShardContext['game']>({runtime}),rows:legacyDouble<ShardContext['rows']>({weapon:()=>undefined})});
   const held=HeldClaims.fromSlots(input);held.installPage(ctx);
   const builder=runtime.buildEquipment;if(builder===undefined)throw new Error('Missing bow slot factory');
@@ -57,8 +59,9 @@ function setup(){
   function build(...args:ConstructorParameters<typeof NativeBow>):Bow{const weapon=bow(args[1]??{raycast:()=>null});weapon.row=args[2].row;return weapon;}
   vi.spyOn(bowBinding,'Bow').mockImplementation(legacyDouble<typeof NativeBow>(Object.assign(build,{prototype:NativeBow.prototype})));
   vi.spyOn(native,'bindRuntimeEquipment').mockReturnValue(legacyDouble<ReturnType<typeof native.bindRuntimeEquipment>>({}));
-  type BowRead=Awaited<ReturnType<typeof launcher.loadHeldBow>>;
-  vi.spyOn(launcher,'loadHeldBow').mockResolvedValue({profile:legacyDouble<BowRead['profile']>({}),rows:legacyDouble<BowRead['rows']>({}),model:{}});
+  type BowRead=ReturnType<typeof launcher.bindHeldBow>;
+  vi.spyOn(geometry,'createModelLibrary').mockReturnValue(legacyDouble<ReturnType<typeof geometry.createModelLibrary>>({preload:()=>Promise.resolve()}));
+  vi.spyOn(launcher,'bindHeldBow').mockReturnValue({profile:legacyDouble<BowRead['profile']>({}),rows:legacyDouble<BowRead['rows']>({}),model:{}});
 }
 
 test('the slot variant keeps composition, upgrade idempotence and delayed secondary contact',async()=>{

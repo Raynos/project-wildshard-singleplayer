@@ -16,7 +16,7 @@ import { macrotask } from '@wildshard/engine/boot/plan';
 import { BladeSet } from '../../src/game/weapons/mountedBlade';
 import { PolearmSet, type HeldPolearmWorld } from '../../src/game/weapons/heldPolearm';
 import { Bow } from '../../src/game/weapons/Bow';
-import { loadHeldBow } from '../../src/game/weapons/heldLauncher';
+import { loadHeldBow } from './originalHeldBowLoader';
 import { ItemCatalogue } from '../../src/game/plugin/nativeItems';
 import type { ArcWeaponPower } from '../../src/game/weapons/arcPower';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
