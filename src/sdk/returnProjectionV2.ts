@@ -1,4 +1,4 @@
-/** Dual compile an unchanged stateless AS decision closure. The candidate uses
+/** Dual compile stateless AS numeric rules. The candidate uses
  * ws_project and the defining v2 SDK, while the public v1 artifact is retained. */
 import { parseDecisionScripts,scriptV1Identifier } from '@wildshard/format/decisionScripts';
 import { parseReturnProjectionV2,returnProjectionV2Layout,type ReturnProjectionV2Rows } from '@wildshard/format/returnProjectionV2';
@@ -10,7 +10,7 @@ import { v2CoreSource } from './as/wsV2';
 import { hashImmutableBytes } from './immutable';
 import { decisionBindingsPath } from './decisionScriptBindings';
 
-export async function compileReturnProjectionV2(input:unknown,registries:DecisionRegistries,authored:ReadonlyMap<string,string>,options:DecisionBuildOptions):Promise<{
+export async function compileReturnProjectionV2(input:unknown,registries:DecisionRegistries,authored:ReadonlyMap<string,string>,options:DecisionBuildOptions & {readonly projectSource?:string}):Promise<{
   readonly legacy:{readonly script:ReturnType<typeof parseDecisionScripts>[number];readonly bytes:string};readonly candidate:ReturnProjectionV2Rows;
 }> {
   const row=parseDecisionScripts([input])[0];
@@ -18,6 +18,10 @@ export async function compileReturnProjectionV2(input:unknown,registries:Decisio
     ||row.reads.some(read=>read!=='field'&&read!=='random')||row.commands.some(command=>command!=='channel')||Object.keys(row.params).length>0)throw new Error('Not a numeric return projection');
   const old=await compileDecisionScripts([row],registries,authored,{...options,singleSignal:true}),script=old.rows[0],blob=old.blobs[0];
   if(script===undefined||blob===undefined)throw new Error('Missing legacy projection');
+  // An additive project entry is admitted through the original source budget,
+  // handler and captured-import checks; it cannot replace the ABI1 witness.
+  const selected=options.projectSource??row.source;
+  if(selected!==row.source)await compileDecisionScripts([{...row,source:selected}],registries,authored,{...options,singleSignal:true});
   const fields=Object.values(row.fields).sort(),signals=Object.values(row.signals).sort(),channels=Object.values(row.channels).sort();
   const layout=returnProjectionV2Layout(fields.length,row.pages),path=decisionBindingsPath(row);
   const lines=["import * as core from '../../sdk/as/wsV2';"];
@@ -30,10 +34,10 @@ export async function compileReturnProjectionV2(input:unknown,registries:Decisio
   }
   export class Do{static channel(id:i32,value:f64):void{assert(id>0&&id<=${channels.length});core.pageOutput(id,value);}}`);
   // The legacy compiler has already checked the entire source budget and the
-  // entry's captured import closure. Supply those exact texts to both wrappers.
+  // selected entry's captured import closure. Supply only admitted author texts.
   const sources:Record<string,string>={[path]:lines.join('\n'),'sdk/as/wsV2.ts':v2CoreSource(0)};
   for(const [name,text]of authored)sources[`${name.slice(0,-3)}.ts`]=text;
-  const source=`import {onSignal} from './${row.source.slice(0,-3)}';
+  const source=`import {onSignal} from './${selected.slice(0,-3)}';
     import * as core from './sdk/as/wsV2';
     export function ws_abi():i32{return 2;}
     export function ws_io():i32{return 0;}

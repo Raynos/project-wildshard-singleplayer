@@ -41,16 +41,16 @@ export const EncounterSlotsSchema = v.strictObject({
 export const CoupledEncounterRowsSchema = v.strictObject({ initial: numbers, member: numbers, commit: numbers, parameters: numbers,
   actors: v.optional(v.strictObject({ hp: v.pipe(finite, v.minValue(1)), memory: v.record(v.string(), v.string()) })),
   signals: v.strictObject({ couple: v.string(), member: v.string(), damage: v.string() }) });
-export const EncounterScheduleSchema = v.strictObject({ signal: v.string(), initial: numbers, parameters: numbers, retain: v.record(v.string(), v.string()) });
-const schedule = v.strictObject({ id: v.string(), law: EncounterScheduleSchema });
-/** A bounded set of authored clocks. The AS gate chooses which clocks advance;
+export const EncounterScheduleSchema = v.strictObject({ signal: v.string(), initial: numbers, parameters: numbers, retain: v.record(v.string(), v.string()),
+  outputs: v.exactOptional(v.pipe(v.array(v.pipe(v.string(),v.minLength(1),v.maxLength(512))),v.maxLength(32))) });
+/** One admitted schedule owns attack selection and ordered numeric transitions;
  * projections observe shared health/phase inputs and publish one-shot effects.
  * Landing slots borrow a position history; no view or shard callback is stored. */
 export const ArenaEncounterSchema = v.strictObject({
   gate: v.strictObject({ signal: v.string(), parameters: numeric }),
-  schedules: v.pipe(v.array(schedule), v.maxLength(16)),
-  shared: v.record(v.string(), v.strictObject({ clock: v.string(), slot: v.string() })),
-  volley: v.strictObject({ launcher: v.string(), capacity: v.pipe(count, v.maxValue(8)),
+  schedule: EncounterScheduleSchema, left: v.string(),
+  outputs: v.strictObject({ spear: v.string(), launch: v.string(), index: v.string() }),
+  volley: v.strictObject({ capacity: v.pipe(count, v.maxValue(8)),
     landing: EncounterScheduleSchema, trail: v.strictObject({ initial:numbers,parameters:numbers,retain:v.record(v.string(),v.string()),signals:v.strictObject({step:v.string(),pick:v.string()}) }) }),
 });
 export const ArenaWhirlsSchema = v.strictObject({

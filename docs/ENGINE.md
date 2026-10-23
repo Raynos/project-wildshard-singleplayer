@@ -12195,7 +12195,12 @@ The original Elites owner resolves page loans through bindDeclaredEntry, retaini
 
 `compileReturnProjectionV2` (SDK returnProjectionV2) dual-compiles the same
 admitted event-only AS closure. Its legacy artifact is unchanged; its candidate
-uses `ws_project`, the standard v2 field/output/RNG banks, and no guest imports.
+uses `ws_project`, the standard v2 field/output/RNG banks, and no guest imports. Optional build-only `projectSource` selects a separately
+admitted entry for new project signals: the original source budget, handler and
+import-closure checks still run, while the legacy entry and witness remain
+unchanged. Appended canonical names retain every earlier binding id.
+An optional schedule `outputs` list requires each named numeric result before
+prepared RNG or retained columns are published, including ephemeral channels.
 `ReturnProjectionV2` (game population/returnProjectionV2) captures actor zero
 and up to eight ordered candidate frames at the caller's existing decision slot.
 Missing numeric fields refuse only when read. It installs no scheduler or native

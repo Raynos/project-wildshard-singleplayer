@@ -18,7 +18,7 @@ beforeAll(async()=>{
   const row=programs.attack.script;
   const ids=(values:Readonly<Record<string,string>>):Map<string,number>=>new Map(Object.values(values).sort().map((name,index)=>[name,index+1]));
   built=await compileReturnProjectionV2(row,{fields:ids(row.fields),signals:ids(row.signals),channels:ids(row.channels)},
-    readDecisionSources(new URL('../src/shards/nalati-grasslands/',import.meta.url).pathname),{asLineCeiling:2837});
+    readDecisionSources(new URL('../src/shards/nalati-grasslands/',import.meta.url).pathname),{asLineCeiling:2837,projectSource:'behaviour/titanSchedules.as'});
   const layout=returnProjectionV2Layout(1);
   const bytes=await compileScriptV2(`import * as core from './core';
     export function ws_abi():i32{return 2;}export function ws_io():i32{return 0;}
@@ -58,14 +58,14 @@ test('the full hostile output bank refuses atomically and rewinds for the next c
   expect(()=>parseReturnProjectionV2(getter)).toThrow('JSON data');expect(reads).toBe(0);
 });
 
-test('every Titan signal preserves f64 outputs, candidate order and borrowed RNG',()=>{
+test('every original Titan signal preserves f64 outputs, candidate order and borrowed RNG',()=>{
   const old=ReturnProgram.page(built.legacy),next=ReturnProgram.page(programs.attack),a=new Rng(735),b=new Rng(735);
   const base=Object.fromEntries(built.candidate.fields.map(name=>[name,0]));
   Object.assign(base,{dt:.1,radius:30,capacity:12,every:.1,fullHp:2600,fullDrawMul:2,share:1,bodyX:20,bodyZ:10,
     spearAim:.8,spearLock:.2,spearRadius:3,respawnDistance:16,rewardDistance:4,count:8,fullDraw:80,victoryT:-1,
     cx:4,cz:3,x:5,z:8,px:7,pz:9,cy:2,ax:1,az:2,theta:-1,lane:1,flank:2});
   const candidates=Array.from({length:8},(_,i)=>({...base,x:i+1,z:i-2,hit:Number(i%2===0),mode:i%4}));
-  for(const phase of [0,1,2])for(const mode of [0,1,2,3])for(const signal of built.candidate.signals){
+  for(const phase of [0,1,2])for(const mode of [0,1,2,3])for(const signal of built.candidate.signals.filter(name=>name!=='zzArenaSchedules')){
     const frame={...base,phase,mode,t:1.75,elapsed:.15};
     expect(next.project(signal,frame,b,candidates),`${signal}/${phase}/${mode}`).toStrictEqual(old.project(signal,frame,a,candidates));
     expect(b.snapshot()).toStrictEqual(a.snapshot());
@@ -108,3 +108,21 @@ test('a rejected retained state does not publish candidate RNG or mutate continu
   expect(()=>state.project(frame,random)).toThrow('Invalid projection state');
   expect(random.snapshot()).toStrictEqual(before);expect(state.state).toStrictEqual({cd:0});
 });
+
+
+test('required ephemeral outputs refuse before prepared RNG or retained state publication',()=>{
+  const random=new Rng(517),state=new ProjectedState({initial:{value:0},signal:'run',outputs:['missing']},new ReturnProjectionV2(hostile));
+  const before=random.snapshot();
+  expect(()=>state.project({mode:6},random)).toThrow('Missing required projection output');
+  expect(random.snapshot()).toStrictEqual(before);expect(state.state).toStrictEqual({value:0});
+});
+
+test('an alternate project entry retains captured source and handler admission',async()=>{
+  const row=programs.attack.script;
+  const ids=(values:Readonly<Record<string,string>>):Map<string,number>=>new Map(Object.values(values).sort().map((name,index)=>[name,index+1]));
+  const registries={fields:ids(row.fields),signals:ids(row.signals),channels:ids(row.channels)};
+  const sources=readDecisionSources(new URL('../src/shards/nalati-grasslands/',import.meta.url).pathname);
+  await expect(compileReturnProjectionV2(row,registries,sources,{asLineCeiling:2837,projectSource:'behaviour/missing.as'})).rejects.toThrow('Missing decision source');
+  const escaped=new Map(sources);escaped.set('behaviour/escape.as',"import {run} from '../unowned';export function onSignal(signal:i32,value:f64,source:i32):void{run();}");
+  await expect(compileReturnProjectionV2(row,registries,escaped,{asLineCeiling:2837,projectSource:'behaviour/escape.as'})).rejects.toThrow('Undeclared decision source import');
+},60000);

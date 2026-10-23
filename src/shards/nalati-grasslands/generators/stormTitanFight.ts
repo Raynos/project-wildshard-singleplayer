@@ -131,10 +131,12 @@ export const TITAN_CHAINS = { count: 8, law: { signal: 'chainLand',
 /** Boss-host clock contract: AS selects active attacks and their delayed tells. */
 export const TITAN_CLOCKS = {
   gate: { signal: 'arenaClocks', parameters: {} },
-  shared: { spearMode: { clock: 'spear', slot: 'mode' }, chainLeft: { clock: 'chain', slot: 'chain' } },
-  schedules: [{ id: 'spear', law: { ...TITAN_SCHEDULES.spear, signal: 'arenaSpear' } },
-    { id: 'chain', law: { ...TITAN_SCHEDULES.chain, signal: 'arenaChain' } }],
-  volley: { launcher: 'chain', capacity: TITAN_CHAINS.count, landing: TITAN_CHAINS.law, trail: TITAN_TRAIL },
+  schedule: { signal: 'zzArenaSchedules', outputs: ['mode','t','cd','x','z','strike','stuck','hurt','spread','zzChainCd','zzChainLeft','zzChainT','zzSpearActive','zzChainStrike','zzChainIndex'],
+    initial: { ...TITAN_SCHEDULES.spear.initial, zzChainCd: TITAN_SCHEDULES.chain.initial.cd, zzChainLeft: TITAN_SCHEDULES.chain.initial.chain, zzChainT: TITAN_SCHEDULES.chain.initial.t },
+    parameters: TITAN_SCHEDULES.spear.parameters,
+    retain: { ...TITAN_SCHEDULES.spear.retain, zzChainCd: 'zzChainCd', zzChainLeft: 'zzChainLeft', zzChainT: 'zzChainT' } },
+  left: 'zzChainLeft', outputs: { spear: 'zzSpearActive', launch: 'zzChainStrike', index: 'zzChainIndex' },
+  volley: { capacity: TITAN_CHAINS.count, landing: TITAN_CHAINS.law, trail: TITAN_TRAIL },
 };
 
 /** Arena boss-script contract: retained lifecycle state is owned by G474. */

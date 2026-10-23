@@ -11,7 +11,9 @@ const channels = ['chainRadius','chainAlpha','tell','ringRadius','ringAlpha','fo
 const signals = ['bossTell','bossSupport','bossPoint','bossReset','bossBegin','bossPhase','bossClamp','bossShield','bossSeal','bossTie','bossVictory','bossDamage','bossIntro','bossStep','arenaClocks','arenaSpear','arenaChain','fieldContact','spearResolve','phaseEntry','arenaState','tie','supportDamage','fieldClock','fieldIgnite','spear','rider','chain','chainLand','fire','ignite','couple','whirl','heart','boundary','kingDoor','fireContact','riderDamage'];
 fields.push('capacity','every','elapsed',...Array.from({length:12},(_,i)=>[`trailX${i}`,`trailZ${i}`]).flat());
 channels.push('count','elapsed',...Array.from({length:12},(_,i)=>[`trailX${i}`,`trailZ${i}`]).flat());
-signals.push('arenaTrail','arenaTrailPick');
+signals.push('arenaTrail','arenaTrailPick','zzArenaSchedules');
+fields.push('zzMask','zzChainCd','zzChainLeft','zzChainT');
+channels.push('zzChainCd','zzChainLeft','zzChainT','zzSpearActive','zzChainStrike','zzChainIndex');
 const aliases = names => Object.fromEntries(names.map(name => [name,name]));
 const registry = names => new Map([...names].sort((a,b) => a < b ? -1 : a > b ? 1 : 0).map((name,index) => [name,index+1]));
 const source = { id:'nalati.titan',abi:'1.0',side:'sim',module:`blobs/wasm/${'0'.repeat(64)}.wasm`,source:'behaviour/titan.as',
@@ -19,7 +21,7 @@ const source = { id:'nalati.titan',abi:'1.0',side:'sim',module:`blobs/wasm/${'0'
   reads:['field','random'],commands:['channel'],fields:aliases(fields),channels:aliases(channels),signals:aliases(signals) };
 const authored = readDecisionSources(fileURLToPath(new URL('../', import.meta.url)));
 const row={...source,id:'nalati.titan-combined',source:'behaviour/titanCombined.as'};
-const dual=await compileReturnProjectionV2(row,{fields:registry(fields),channels:registry(channels),signals:registry(signals)},authored,{asLineCeiling:2837});
+const dual=await compileReturnProjectionV2(row,{fields:registry(fields),channels:registry(channels),signals:registry(signals)},authored,{asLineCeiling:2837,projectSource:'behaviour/titanSchedules.as'});
 const program={...dual.legacy,v2:dual.candidate};
 const pastureText=['pastureWind','pasture','titanWind','titanFire'].map(name=>authored.get(`behaviour/${name}.as`)).join('\n');
 const names=prefix=>[...new Set([...pastureText.matchAll(new RegExp(`${prefix}\\.([A-Za-z0-9_]+)`,'g'))].map(match=>match[1]))];

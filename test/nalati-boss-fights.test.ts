@@ -110,8 +110,8 @@ test.each([false,true])('arena script runs mounted phases, exposes its heart and
   const e = encounter(data.definition, fight, f.player.position), direction = new Vector3(0, 0, -1);
   let support:Animal|null=null,supportChecked=false;
   try {
-    const chain=data.clocks.schedules.find(row=>row.id===data.clocks.volley.launcher);if(chain===undefined)throw new Error('Missing real chain clock');
-    const initial=chain.law.initial['cd'];chain.law.initial['cd']=0;fight.reset(2);fight.begin(2);fight.body.setVisible(true);
+    const chain=data.clocks.schedule;
+    const initial=chain.initial['zzChainCd'];chain.initial['zzChainCd']=0;fight.reset(2);fight.begin(2);fight.body.setVisible(true);
     const raised=vi.spyOn(weather.weather,'raise'),random=app.rng.stream('ai'),before=random.snapshot();
     fight.update(.05,0,true);expect(random.snapshot()).toEqual(before);
     fight.update(.05,.05,true);const paused=random.snapshot();fight.update(1,1,false);expect(random.snapshot()).toEqual(paused);
@@ -119,7 +119,7 @@ test.each([false,true])('arena script runs mounted phases, exposes its heart and
     expect(raised).toHaveBeenCalledTimes(7);raised.mockClear();fight.reset(0);
     for(let i=0;i<20;i++)fight.update(.1,8+i*.1,false);
     expect(raised).not.toHaveBeenCalled();raised.mockRestore();
-    if(initial===undefined)throw new Error('Missing native chain cooldown');chain.law.initial['cd']=initial;
+    if(initial===undefined)throw new Error('Missing native chain cooldown');chain.initial['zzChainCd']=initial;
     fight.reset(0);
     e.brain.arm();
     for (let frame = 0; frame < 12000 && e.brain.state !== 'victory'; frame++) {

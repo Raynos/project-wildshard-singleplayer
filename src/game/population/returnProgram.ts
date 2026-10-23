@@ -172,7 +172,7 @@ export class ProjectedState<S extends Record<string,number> = Record<string,numb
   private elapsed=0;
   private readonly retain:Readonly<Record<string,string>>;
   constructor(private readonly row:{ readonly initial:S; readonly parameters?:Readonly<Record<string,number>>;
-    readonly retain?:Readonly<Record<string,string>>; readonly signals?:Readonly<Record<string,string>>; readonly signal?:string },
+    readonly retain?:Readonly<Record<string,string>>; readonly outputs?:readonly string[]; readonly signals?:Readonly<Record<string,string>>; readonly signal?:string },
     private readonly program:NumericProjection) {
     this.state={...row.initial};this.retain=row.retain??Object.fromEntries(Object.keys(row.initial).map(key=>[key,key]));
     if(Object.values(this.retain).some(key=>!Object.hasOwn(row.initial,key)))throw new Error('Missing projection state slot');
@@ -189,6 +189,7 @@ export class ProjectedState<S extends Record<string,number> = Record<string,numb
     const signal=this.row.signals===undefined?event:this.row.signals[event];if(signal===undefined)throw new Error('Missing projection event');
     const input={...this.row.parameters,...this.state,...frame},prepared=this.program.prepare?.(signal,input,random,candidates);
     const out=prepared?.values??this.program.project(signal,input,random,candidates),next:Record<string,number>={};
+    if(this.row.outputs?.some(key=>!Number.isFinite(out[key]))===true)throw new Error('Missing required projection output');
     for(const [channel,slot]of Object.entries(this.retain)){const value=out[channel];if(value!==undefined)next[slot]=value;}
     if(Object.entries(next).some(([key,value])=>!Object.hasOwn(this.row.initial,key)||!Number.isFinite(value)))throw new Error('Invalid projection state');
     prepared?.accept();this.set(next);return out;

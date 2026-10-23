@@ -56,7 +56,7 @@ export function arenaScriptCloud(scene: THREE.Scene, state: Readonly<Record<stri
 export interface ArenaScriptWorld { readonly game: Game; readonly player: Player; readonly weather: WeatherReactions; readonly air: WeatherContinuation; readonly tieSpot: THREE.Vector3 | null }
 interface SupportActor { readonly a: Animal; readonly lane: GroundTell; readonly law: ProjectedState }
 interface Chain { readonly tell: GroundTell; readonly law: ProjectedState }
-interface ArenaClockEffect { readonly id:string; readonly index:number; readonly values:Readonly<Record<string,number>> }
+interface ArenaClockEffect { readonly index:number; readonly values:Readonly<Record<string,number>> }
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _ray = new THREE.Ray(), _sph = new THREE.Sphere(), _hitP = new THREE.Vector3();
 export class ArenaScriptFight implements BossScript {
   private readonly data: ArenaScriptData;
@@ -71,8 +71,6 @@ export class ArenaScriptFight implements BossScript {
   private get open(): boolean { return this.life.value('open')===1; }
   private get victoryT(): number { return this.life.value('victoryT'); }
   // the spear
-  private readonly spearLaw: ProjectedState;
-  private readonly chainLaw: ProjectedState;
   private readonly spearAt = new THREE.Vector3();
   // phase II
   private stormRiders: SupportActor[] = [];
@@ -84,8 +82,8 @@ export class ArenaScriptFight implements BossScript {
   private fireOn = false;
   private readonly fire: ArenaFireView;
   private readonly chains: Chain[];
-  private get chainLeft(): number { return this.chainLaw.value('chain'); }
-  private readonly clocks:ReadonlyMap<string,ProjectedState>;
+  private get chainLeft(): number { return this.clocks.value(this.data.clocks.left); }
+  private readonly clocks:ProjectedState;
   private readonly clockGate:ProjectedState;
   private readonly trail:ProjectedState;
   private readonly clockRandom=app.rng.stream('ai');
@@ -111,12 +109,9 @@ export class ArenaScriptFight implements BossScript {
     const scene = ctx.game.scene;
     this.author = ReturnProgram.page(this.data.programs.attack, ctx.game.levelScope);
     const clocks=this.data.clocks;
-    if(new Set(clocks.schedules.map(row=>row.id)).size!==clocks.schedules.length)throw new Error('Duplicate arena clock');
-    this.clocks=new Map(clocks.schedules.map(row=>[row.id,new ProjectedState(row.law,this.author)]));
-    if(!this.clocks.has(clocks.volley.launcher))throw new Error('Missing arena launcher');
+    this.clocks=new ProjectedState(clocks.schedule,this.author);
     this.clockGate=new ProjectedState({initial:{},parameters:clocks.gate.parameters,signals:{step:clocks.gate.signal}},this.author);
     this.trail=new ProjectedState(clocks.volley.trail,this.author);
-    this.spearLaw=this.clock('spear');this.chainLaw=this.clock('chain');
     const fireLaw = ReturnProgram.page(this.data.programs.fire, ctx.game.levelScope);
     this.field = new CellField(this.data.field, fireLaw, app.rng.stream('ai'));
     this.boundary = { field: this.field,boundary: data.boundary,mask: 0 };
@@ -163,7 +158,7 @@ export class ArenaScriptFight implements BossScript {
   cairnSpot(): THREE.Vector3 { return this.ctx.tieSpot ?? new THREE.Vector3(this.data.arena.anchor.x, heightAt(this.data.arena.anchor.x, this.data.arena.anchor.z), this.data.arena.anchor.z); }
 
   reset(phase: number): void {
-    this.life.restart({ phase,share: this.data.phases[phase]?.at ?? 1,tied: Number(this.tied),sealed: Number(this.sealed) }); this.clockGate.reset();this.trail.reset();for(const clock of this.clocks.values())clock.reset(); this.introT = -1;
+    this.life.restart({ phase,share: this.data.phases[phase]?.at ?? 1,tied: Number(this.tied),sealed: Number(this.sealed) }); this.clockGate.reset();this.trail.reset();this.clocks.reset(); this.introT = -1;
     for (const key of Object.keys(this.frame)) delete this.frame[key];
     this.tellFrame = {}; this.boundaryEffect = null; this.hazardDt = 0;
     this.arenaReady = false; this.arenaShield = false; this.refusalMask = 0; this.boundary.mask = 0;
@@ -198,7 +193,7 @@ export class ArenaScriptFight implements BossScript {
     this.phaseEffects(this.life.event('phase',{ phase }));
   }
   private phaseEffects(row: Readonly<Record<string,number>>): void {
-    this.spearLaw.set({ mode: row['mode'] ?? 0, cd: row['cd'] ?? 0 }); this.arena.tell('spear').hide(); this.arena.tell('fork').hide(); this.body.aim(null, 0);
+    this.clocks.set({ mode: row['mode'] ?? 0, cd: row['cd'] ?? 0 }); this.arena.tell('spear').hide(); this.arena.tell('fork').hide(); this.body.aim(null, 0);
     this.pose.bend = this.data.pose.bend; this.pose.raise = this.data.pose.raise; this.pose.rise = row['rise'] ?? this.pose.rise;
     this.whirls.arm(row['mask'] ?? 0);
     if (row['arm'] === 1) { this.domeBroken = false; this.spawnRiders(); } else this.clearRiders();
@@ -215,7 +210,7 @@ export class ArenaScriptFight implements BossScript {
     const b = this.body, p = this.host.player.position;
     const boss = this.host.boss, center = this.data.arena.center;
     const decision = this.life.step(dt,{ px: p.x,pz: p.z,cx: center.x,cz: center.z,radius: this.data.place.arenaRadius,
-      mounted: Number(this.host.mounted()),fighting: Number(fighting),mode: this.spearLaw.value('mode'),
+      mounted: Number(this.host.mounted()),fighting: Number(fighting),mode: this.clocks.value('mode'),
       engaged: Number(this.host.engaged),storm: Number(this.ctx.weather.stormActive),armed: Number(boss?.state==='armed'),victory: Number(boss?.state==='victory') });
     this.hazardDt = decision.dt;
     if (decision.dt>0) {
@@ -234,11 +229,11 @@ export class ArenaScriptFight implements BossScript {
     b.part(this.data.view.dome).visible = b.visible && this.frame['dome']===1;
     if (this.frame['active']===1 && this.fighting) {
       const step = this.updateClocks(dt, { phase: this.phase, fighting: Number(fighting), px: p.x, pz: p.z }, p);
-      if (this.frame['weapon']===1) this.updateSpear(step.effects.find(effect => effect.id === 'spear')?.values);
+      if (this.frame['weapon']===1) this.updateSpear(step.spear);
       if (this.frame['arm']===1 && step.dt>0) this.updateRiders(step.dt);
       if (this.frame['spread']===1) this.updateChains(step.effects);
     }
-    if (decision.dt>0) this.tellFrame = this.life.event('tell',{ t,mode: this.spearLaw.value('mode'),spearT: this.spearLaw.value('t'),chainLeft: this.chainLeft,bend: this.pose.bend,raise: this.pose.raise });
+    if (decision.dt>0) this.tellFrame = this.life.event('tell',{ t,mode: this.clocks.value('mode'),spearT: this.clocks.value('t'),chainLeft: this.chainLeft,bend: this.pose.bend,raise: this.pose.raise });
     const tell = this.tellFrame;
     this.pose.bend += ((tell['bend'] ?? this.pose.bend)-this.pose.bend)*Math.min(1,dt*(tell['bendRate'] ?? 0));
     this.pose.raise += ((tell['raise'] ?? this.pose.raise)-this.pose.raise)*Math.min(1,dt*(tell['raiseRate'] ?? 0));
@@ -257,7 +252,7 @@ export class ArenaScriptFight implements BossScript {
 
   victory(): void {
     this.life.event('victory');
-    this.spearLaw.set({ mode: 0 }); this.arena.tell('spear').hide(); this.arena.tell('fork').hide();
+    this.clocks.set({ mode: 0 }); this.arena.tell('spear').hide(); this.arena.tell('fork').hide();
     for (const c of this.chains) { c.law.reset(); c.tell.hide(); }
     for (const l of this.arena.tells('lane')) l.hide();
     this.clearRiders();
@@ -294,7 +289,7 @@ export class ArenaScriptFight implements BossScript {
   }
 
   private hitHeart(amount: number): boolean {
-    const answer = this.life.event('damage',{ amount,mode: this.spearLaw.value('mode') });
+    const answer = this.life.event('damage',{ amount,mode: this.clocks.value('mode') });
     if (answer['show']===1) this.host.toast(this.data.immuneLines[answer['index'] ?? 0] ?? '');
     if (answer['flash']===1) this.body.flash.value = 1;
     return this.dead;
@@ -305,7 +300,7 @@ export class ArenaScriptFight implements BossScript {
   private updateSpear(answer: Readonly<Record<string, number>> | undefined): void {
     if (answer !== undefined) {
       const n = (key: string): number => { const value = answer[key]; if (value === undefined) throw new Error('Missing attack decision'); return value; };
-      this.spearAt.x = this.spearLaw.value('x'); this.spearAt.z = this.spearLaw.value('z');
+      this.spearAt.x = this.clocks.value('x'); this.spearAt.z = this.clocks.value('z');
       if (n('strike') === 1) {
         this.spearAt.y = heightAt(this.spearAt.x, this.spearAt.z); this.bolt(this.spearAt.x, this.spearAt.z);
         if (n('hurt') === 1 && this.host.contact('spear', this.spearAt, this.data.tuning.spearDamage, this.data.lines.spear)) this.host.throwRider();
@@ -392,26 +387,21 @@ export class ArenaScriptFight implements BossScript {
     if ((contact['speed'] ?? 0) < 0) this.host.horseSteed(contact['speed'] ?? 0);
   }
 
-  private clock(id:string):ProjectedState{const clock=this.clocks.get(id);if(clock===undefined)throw new Error('Missing arena clock');return clock;}
   /** Existing continuations use the actual chain/tell roster; no second landing array or timer. */
-  private updateClocks(dt:number,frame:Readonly<Record<string,number>>,position:{readonly x:number;readonly z:number}):{dt:number;effects:readonly ArenaClockEffect[]}{
-    const step=this.clockGate.step(dt,frame);if(step.dt===0)return {dt:0,effects:[]};
+  private updateClocks(dt:number,frame:Readonly<Record<string,number>>,position:{readonly x:number;readonly z:number}):{dt:number;spear:Readonly<Record<string,number>>|undefined;effects:readonly ArenaClockEffect[]}{
+    const step=this.clockGate.step(dt,frame);if(step.dt===0)return {dt:0,spear:undefined,effects:[]};
     const rows=this.data.clocks,gate=step.values,effects:ArenaClockEffect[]=[];
     if(gate['active']===1)this.trail.event('step',{dt:step.dt,x:position.x,z:position.z});
-    for(const [index,row]of rows.schedules.entries()){
-      if(((gate['mask']??0)&(1<<index))===0)continue;
-      const shared:Record<string,number>={};for(const [name,source]of Object.entries(rows.shared))shared[name]=this.clock(source.clock).value(source.slot);
-      const values=this.clock(row.id).project({...shared,...frame,dt:step.dt,count:this.trail.value('count')},this.clockRandom);effects.push({id:row.id,index,values});
-      if(row.id===rows.volley.launcher&&values['strike']===1){
-        const at=this.trail.event('pick',{index:values['index']??-1,x:position.x,z:position.z}),landing=this.chains.find(chain=>chain.law.value('on')===0)?.law;
-        landing?.reset({on:1,x:at['x']??position.x,z:at['z']??position.z});
-      }
+    const values:Readonly<Record<string,number>>=(gate['mask']??0)===0?{}:this.clocks.project({...frame,dt:step.dt,count:this.trail.value('count'),zzMask:gate['mask']??0},this.clockRandom);
+    if(values[rows.outputs.launch]===1){
+      const at=this.trail.event('pick',{index:values[rows.outputs.index]??-1,x:position.x,z:position.z}),landing=this.chains.find(chain=>chain.law.value('on')===0)?.law;
+      landing?.reset({on:1,x:at['x']??position.x,z:at['z']??position.z});
     }
     if(gate['land']===1)for(const [index,chain]of this.chains.entries()){
       const clock=chain.law;if(clock.value('on')!==1)continue;const x=clock.value('x'),z=clock.value('z');
-      effects.push({id:rows.volley.launcher,index,values:{...clock.project({...frame,dt:step.dt},this.clockRandom),x,z,landing:1}});
+      effects.push({index,values:{...clock.project({...frame,dt:step.dt},this.clockRandom),x,z,landing:1}});
     }
-    return {dt:step.dt,effects};
+    return {dt:step.dt,spear:values[rows.outputs.spear]===1?values:undefined,effects};
   }
   private updateChains(effects: readonly ArenaClockEffect[]): void {
     const p = this.host.player.position;
