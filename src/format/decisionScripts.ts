@@ -11,12 +11,13 @@ const aliases = v.pipe(v.record(local, id), v.check(value => Object.keys(value).
 const unique = (values: readonly unknown[]): boolean => new Set(values).size === values.length;
 const readNames = [...keys(SCRIPT_V1_READS), ...keys(SCRIPT_V1_LISTS)];
 const state = v.strictObject({ name: local, type: v.picklist(['bool', 'i32', 'f64']), default: v.union([v.boolean(), finite]),
-  scope: v.picklist(['binding', 'actor', 'player', 'local']), min: v.exactOptional(finite), max: v.exactOptional(finite) });
+  scope: v.picklist(['binding', 'actor', 'player']), min: v.exactOptional(finite), max: v.exactOptional(finite) });
 /** Named ids that must resolve in another platform section. Timers are binding-local names. */
 export const SCRIPT_V1_REFERENCE_KINDS = ['actors', 'moves', 'strikes', 'cues', 'fields', 'flags', 'zones', 'spots', 'targets', 'spawns', 'signals', 'facts', 'rewards', 'channels', 'impulses', 'weather', 'bodies', 'colliders'] as const;
 export type ScriptV1ReferenceKind = typeof SCRIPT_V1_REFERENCE_KINDS[number];
 const row = v.strictObject({
-  id, abi: v.literal('1.0'), side: v.picklist(['sim', 'view']),
+  // per-frame view is the v2 view lane's (view/modules, client view.program); a v1 script is simulation only
+  id, abi: v.literal('1.0'), side: v.literal('sim'),
   module: v.pipe(v.string(), v.regex(/^blobs\/wasm\/[a-f0-9]{64}\.wasm$/u)),
   source: v.pipe(v.string(), v.maxLength(256), v.regex(/^behaviour\/(?:[A-Za-z0-9_-][A-Za-z0-9_.-]*\/)*[A-Za-z0-9_-][A-Za-z0-9_.-]*\.as$/u),
     v.check(value => !value.split('/').includes('generated'), 'authored script source, not generated glue')),
@@ -56,18 +57,14 @@ function validNames(names: readonly string[]): boolean {
 /** Row-local checks, independent of any renderer, module execution or source-code evaluator. */
 export function decisionScriptRowRules(script: DecisionScriptRow): string[] {
   const errors: string[] = [];
-  if ('spawnGroup' in script.binding && (script.side !== 'sim' || Object.keys(script.actors).length === 0 || script.state.some(slot => slot.scope !== 'actor')))
+  if ('spawnGroup' in script.binding && (Object.keys(script.actors).length === 0 || script.state.some(slot => slot.scope !== 'actor')))
     errors.push('spawn groups declare members and actor-scoped simulation state');
   if ((script.tick !== null) !== script.on.includes('tick')) errors.push('tick subscription has a declared 1/2/5/10 Hz rate');
-  if (script.side === 'sim' && (script.on.some(name => SCRIPT_V1_EVENTS[name] >= 30) || script.commands.some(name => SCRIPT_V1_COMMANDS[name] >= 100))) errors.push('simulation script uses only simulation ops');
-  const viewEvents = new Set(['start', 'tick', 'timer', 'stop', 'flag', 'field', 'cue', 'channel']);
-  const viewReads = new Set(['x', 'y', 'z', 'yaw', 'field', 'flag', 'playerFlag', 'random', 'distance', 'bearing']);
-  if (script.side === 'view' && (script.on.some(name => !viewEvents.has(name)) || script.commands.some(name => SCRIPT_V1_COMMANDS[name] < 100) || script.reads.some(name => !viewReads.has(name)))) errors.push('view script uses only replicated reads and view ops');
+  if (script.on.some(name => SCRIPT_V1_EVENTS[name] >= 30) || script.commands.some(name => SCRIPT_V1_COMMANDS[name] >= 100)) errors.push('simulation script uses only simulation ops');
   for (const names of [...SCRIPT_V1_REFERENCE_KINDS.map(kind => Object.keys(script[kind] ?? {})), script.timers, script.state.map(slot => slot.name), Object.keys(script.params)]) {
     if (!validNames(names)) errors.push('unique nonreserved generated binding names');
   }
   for (const slot of script.state) {
-    if ((slot.scope === 'local') !== (script.side === 'view')) errors.push('view state is local; simulation state is durable');
     if (slot.type === 'bool') {
       if (typeof slot.default !== 'boolean' || slot.min !== undefined || slot.max !== undefined) errors.push('typed script state defaults and bounds');
     } else {

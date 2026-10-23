@@ -12,7 +12,7 @@ import { outputDescriptor } from '../shardfile/outputDescriptor';
 export function installNativeBodyScripts(host: SimHost, shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, restoring: boolean,
   sections: ReadonlyMap<string, unknown> = outputDescriptor(shard)?.sections ?? new Map()): void {
   const declared = sections.get('sim/bodies');
-  const rows = parseDecisionScripts(sections.get('sim/scripts') ?? []).filter(row => row.side === 'sim' && 'shard' in row.binding && Object.keys(row.bodies ?? {}).length > 0);
+  const rows = parseDecisionScripts(sections.get('sim/scripts') ?? []).filter(row => 'shard' in row.binding && Object.keys(row.bodies ?? {}).length > 0);
   if (declared === undefined || rows.length === 0) return;
   const bodies = DeclaredBodyOps.native(host, declared), before: (() => void)[] = [], after: (() => void)[] = [];
   const runtime: DecisionRuntime = { scope: host.scope, events: host.events, get physics() { return host.physics; }, groundHeightAt: (x, z) => host.groundHeightAt(x, z),

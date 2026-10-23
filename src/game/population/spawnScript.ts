@@ -121,11 +121,7 @@ export class SpawnScript {
     this.v2Columns = selected === undefined || v2Owners === undefined ? undefined : new ObservationColumnsV2(selected.columns,v2Owners.scope);
     const scripts: DecisionScript[] = [];
     for (const row of actorDecisionRows(rows.script)) {
-      const state: DecisionScript['state'][number][] = [];
-      for (const slot of row.state) {
-        if (slot.scope === 'local') throw new Error('Local spawn state');
-        state.push({ ...slot, scope: slot.scope });
-      }
+      const state: DecisionScript['state'][number][] = [...row.state];
       scripts.push({ ...row, ids: decisionBindingMap(row, registries).ids, state,
         reads: row.reads.filter((name): name is ScriptV1ReadName => Object.hasOwn(SCRIPT_V1_READS, name)),
         lists: row.reads.filter((name): name is ScriptV1ListName => Object.hasOwn(SCRIPT_V1_LISTS, name)),

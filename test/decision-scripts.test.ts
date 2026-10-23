@@ -52,10 +52,8 @@ it('enforces side capabilities and durable/local typed state ranges', () => {
   ]) expect(() => parseDecisionScripts([{ ...raw, state }])).toThrow();
   expect(() => parseDecisionScripts([{ ...raw, on: ['cue'] }])).toThrow();
   expect(() => parseDecisionScripts([{ ...raw, commands: ['view.sound'] }])).toThrow();
-  const view = { ...raw, side: 'view', on: ['start', 'cue'], commands: ['view.sound'], reads: ['field'], state: [{ name: 'phase', type: 'f64', default: 0, scope: 'local' }] };
-  expect(parseDecisionScripts([view])[0]?.side).toBe('view');
-  expect(() => parseDecisionScripts([{ ...view, reads: ['playersWithin'] }])).toThrow();
-  expect(() => parseDecisionScripts([{ ...view, state: [slot] }])).toThrow();
+  // per-frame view is the v2 view lane's: a v1 view script or a view-local state slot is refused
+  expect(() => parseDecisionScripts([{ ...raw, side: 'view', on: ['start', 'cue'], commands: ['view.sound'], reads: ['field'], state: [{ name: 'phase', type: 'f64', default: 0, scope: 'local' }] }])).toThrow();
 });
 
 it('rejects generated-name collisions and reserved names before the bindings compiler', () => {

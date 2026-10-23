@@ -44,7 +44,7 @@ export class ReturnProgram {
   readonly prepare?: NonNullable<NumericProjection['prepare']>;
   private constructor(input: unknown, floor: (x: number, z: number) => number,owner?: Scope) {
     const row = readProgram(input),script = row.script;
-    if (script.side !== 'sim' || script.state.length > 0 || script.tick !== null
+    if (script.state.length > 0 || script.tick !== null
       || script.timers.length > 0 || script.on.length !== 1 || script.on[0] !== 'signal'
       || script.commands.some(command => command !== 'channel')
       || script.reads.some(read => !['field', 'random', 'groundHeight', 'radial'].includes(read))) throw new Error('Invalid return projection');

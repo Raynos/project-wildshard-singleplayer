@@ -561,7 +561,7 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
     }
     installDeclaredBrains(host, shard.creatures.spawns.filter((spawn) => spawn.brain === null || (!custom.has(spawn.brain) && !groupIds.has(spawn.brain))), shard.creatures.brains.filter((brain) => brain.kind !== 'script'), ports.brains ?? dataPorts?.brains);
     dataPorts?.install();
-    const decisionRows = decisionScriptsFromSections(ports.sections).filter(row => row.side === 'sim');
+    const decisionRows = decisionScriptsFromSections(ports.sections);
     const decisionActors = new Set(decisionRows.flatMap(row => Object.values(row.actors)));
     const decisionEncounters = new Set(shard.encounters.filter(row => decisionActors.has(row.entity)).map(row => row.id));
     const encounters = installDeclaredEncounters(host, shard.encounters, ports.encounters ?? (() => ({ saved: { defeated: false, rewardTaken: false, kills: 0 }, persist: () => undefined, reward: () => undefined })), ports.hud, decisionEncounters);

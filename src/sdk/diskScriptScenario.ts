@@ -23,7 +23,7 @@ export async function readDiskScriptScenario(slug: string, id: string, options: 
   const product = await loadHeadlessProduct(directory), shard = product.shardfile, descriptor = outputDescriptor(shard);
   if (descriptor === undefined) throw new Error('Missing admitted scenario descriptor');
   const { index, sections } = descriptor;
-  const rows = decisionScriptsFromSections(sections).filter(row => row.side === 'sim');
+  const rows = decisionScriptsFromSections(sections);
   const row = rows.find(value => value.id === id), ordinal = rows.findIndex(value => value.id === id);
   if (row === undefined) throw new Error(`Missing simulation scenario script ${id}`);
   const moves = parseActorMoves(sections.get('actors/moves') ?? []), targets = sections.get('world/targets');
@@ -31,10 +31,7 @@ export async function readDiskScriptScenario(slug: string, id: string, options: 
   const nativeActors = shard.runtime === null && nativePlan !== undefined ? nativeRuntimeActorIds(nativePlan) : [];
   const registries = buildDecisionRegistries(shard, moves, targets === undefined ? undefined : parseWorldTargets(targets), readCreatureStrikes(sections.get('actors/strikes') ?? []), rows, nativeActors);
   const map = decisionBindingMap(row, registries), handles = Object.values(map.ids.actors ?? {});
-  const script: DecisionScript = { ...row, ids: map.ids, state: row.state.map(slot => {
-    if (slot.scope === 'local') throw new Error('Simulation scenario cannot use local-only slots');
-    return { ...slot, scope: slot.scope };
-  }), reads: row.reads.filter((name): name is ScriptV1ReadName => Object.hasOwn(SCRIPT_V1_READS, name)),
+  const script: DecisionScript = { ...row, ids: map.ids, state: [...row.state], reads: row.reads.filter((name): name is ScriptV1ReadName => Object.hasOwn(SCRIPT_V1_READS, name)),
     lists: row.reads.filter((name): name is ScriptV1ListName => Object.hasOwn(SCRIPT_V1_LISTS, name)) };
   const file = index.files.find(value => value.kind === 'wasm' && value.path === row.module);
   if (file?.name === undefined) throw new Error('Scenario module requires an admitted logical blob name');

@@ -53,7 +53,7 @@ export function nativeDecisionAuthority(source: Shardfile, assets: ReadonlyMap<s
 export function prepareProductDecisionMemories(ctx: ShardContext): Promise<void> {
   const descriptor = outputDescriptor(ctx.product.shardfile);
   if (descriptor === undefined) return Promise.reject(new Error('Decision memories require a verified product'));
-  return waitFor('Prepare decision Wasm memories', prepareDecisionMemories(scriptAdmissionRows(descriptor.sections).filter(row => row.side === 'sim').map(row => row.pages), ctx.scope), 'wasm');
+  return waitFor('Prepare decision Wasm memories', prepareDecisionMemories(scriptAdmissionRows(descriptor.sections).map(row => row.pages), ctx.scope), 'wasm');
 }
 
 /** Prepare flag-free species guests before the page builds its bodies. All physics, contacts and fixed ticks

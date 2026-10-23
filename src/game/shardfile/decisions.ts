@@ -105,7 +105,7 @@ export class ShardDecisions {
     encounters: ReadonlyMap<string, DecisionEncounter>, quest: DeclaredQuests | undefined, movers?: MoverRuntime, facts?: QuestDataPorts['fact'], restoring = false,
     navigation?: Pick<Navmesh, 'closestWalkable' | 'findPath'>, onDisabled?: ShardScriptPorts['onDisabled'], bodyOps?: DeclaredBodyOps) {
     this.sim = sim; this.bodies = bodyOps; this.source = source; this.encounters = encounters; this.quest = quest; this.movers = movers; this.fact = facts; this.navigation = navigation;
-    const declared = parseDecisionScripts(sections.get('sim/scripts') ?? []).filter(row => row.side === 'sim');
+    const declared = parseDecisionScripts(sections.get('sim/scripts') ?? []);
     this.rows = declared.flatMap(actorDecisionRows); this.spawnGroups = decisionSpawnGroups(source, declared);
     this.moves = parseActorMoves(sections.get('actors/moves') ?? []);
     const nativeStrikes = readCreatureStrikes(sections.get('actors/strikes') ?? []);
@@ -152,10 +152,7 @@ export class ShardDecisions {
       if (self > 0 && !actorIds.includes(self)) throw new Error('Decision encounter does not own its actor');
       const bytes = requireValue(assets.get(row.module.slice('blobs/wasm/'.length, -'.wasm'.length)), 'module bytes');
       admitScriptContract(bytes, { abi: 1, pages: row.pages }); modules.set(row.module, bytes);
-      scripts.push({ ...row, state: row.state.map(slot => {
-        if (slot.scope === 'local') throw new Error('Simulation state cannot be view-local');
-        return { ...slot, scope: slot.scope };
-      }), ids: map.ids, reads: row.reads.filter(readName), lists: row.reads.filter(listName) });
+      scripts.push({ ...row, state: [...row.state], ids: map.ids, reads: row.reads.filter(readName), lists: row.reads.filter(listName) });
       return { id: index + 1, script: row.id, self, actors: actorIds, instance: 0 };
     });
     const world: DecisionWorld = { player: DECISION_PLAYER_HANDLE, read: (op, a, b, context) => this.read(op, a, b, context), list: (op, a, b, out) => this.list(op, a, b, out),

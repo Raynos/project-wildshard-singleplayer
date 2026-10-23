@@ -21,7 +21,7 @@ export async function calibrationScripts(owner: Scope): Promise<CalibrationScrip
     const seen = new Set<string>();
     for (const script of parseDecisionScripts(product.section('sim/scripts'))) {
       const file = descriptor.index.files.find(item => item.kind === 'wasm' && item.path === script.module);
-      if (script.side !== 'sim' || seen.has(script.module) || file?.name === undefined) continue;
+      if (seen.has(script.module) || file?.name === undefined) continue;
       seen.add(script.module);
       rows.push({ product: slug, script: script.id, module: script.module, bytes: await product.file(file.name), states: script.state.length, params: Object.keys(script.params).length });
     }
