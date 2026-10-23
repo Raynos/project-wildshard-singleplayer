@@ -1,35 +1,31 @@
 # SHARD-PLATFORM — State (wildshard-new; ≤ 3 KB)
 
-**Order:** live reds + the P0 phone entry → Nalati COMPONENT BY COMPONENT (G613: lock each in its last cut; C4 + C9
-last) → CI speed (G609) → the rest. G612 D5: land on types/lint/focused tests only. D3: 5-min waits fail, no retry.
+**Order:** live P0s → loading plan (G619/G622/G626, P0) → Nalati zero (G621, no open picks, run overnight) → open
+plots (G617/G621B/G623) → CI speed. G612 D5: land on types/lint + vitest related. G620: red main = 30 min fix-forward,
+then sp-x7 reverts. D3: 5-min waits fail, no retry.
 
-**Census (official 6c80f62227, sp-x1):** every shard 0 except Nalati and open plots (20 local, unclassified).
-Nalati C4 1,118 (arenaScript 483, eliteEncounters 213, pageGroups 134, elitePage 122, balbal 59), C6 8, C9 826
-(state 145, nativeManager 109, binding 96+29, groupRuntime 92, index 80, shared manifest 74). Its C1 47 / C2 186 /
-C8 156 "regrowth" is a census-harness error (ruler slot lost Nine/Pine/DW generated discovery, so shared exports
-looked Nalati-only); sp-x1 corrects the count + adds a missing-discovery refusal. Locks stand.
+**Live:** 92bba7c1ba (since 04:13Z; P0 entry fixes). Open live P0s from Jake's iPhone: DW -> Sky -> DW crash (sp-o3,
+with the O18 leak-after-unload fix: ~120 MB ArrayBuffer + ~50 MB heap per round trip); Nine black grid placeholder +
+memory-strip % bug (sp-o5); SHARD SELECT black backdrop (sp-o2, after R1). sp-x7 releases each fix at once.
 
-**Routes:** C6 + balbal -> sp-x9 H4 actor binding (502d55f73b shared ABI2 module, 8 scripts). C4: Titan -> sp-x6
-life/tell snapshot + sp-o4 view (~-11); elites: two routes measured net-0, no honest cut yet; L5 pack/herd sims ->
-sp-o4 pure AS module, needs a group step from sp-x9. C9: taming -> sp-x8 (AS on v2 world actions; G415 tolerance).
+**Loading plan** (loading-speed-mini-plan.md; < 5 s warm / < 15 s cold): M1 dd2f3010a1 (local HEAD: controls 12.2
+cold / 12.0 warm, worst 96 ms; live baseline next, sp-o4). Done: C1 9336ce0d6e + 3bceedea2a, G618 99f142d942,
+2416aec1a4, 962ac115e8, R1 dddad396cb (3 s skippable reveal), T1 96c34b4f33 (tap paint). Open: P2 sp-o4, H3 tile
+streaming G626 sp-o1, H2 sp-x1, A1 sp-o3 (after crash), S1 sp-o5 (after placeholder), H4/S2 sp-x2, G627 push gate
+sp-x2. Road start deleted (G619, abc3e8ff16).
 
-**Grid-ready:** DW + PINE (b9d191e259) + NINE latched (G598 done). Cold first crossing ~200-267 ms at 4x is mostly
-GC/native (e0d24f014b allocation cuts; harness now samples grid.current()). Nine->Nalati 283 ms frame: sp-o5 GC trace.
+**Nalati** (official 6c80f62227 corrected: 1,877; since then R4 -9, R13 -37, R2 -68): C1-C3 / C5-C8 CLOSED + locked
+(C6 e41ab532a1). Open C4 ~1,050, C9 ~714. Rows: R10a group step sp-x9 (critical) -> R10b pack sp-o4 / R10c herd
+sp-x8; R11 taming sp-x8; R5/R7 Titan sp-x6 (D1 King arena variant), R6 view sp-o4; R8 elites sp-x1 (D2), R9 view
+sp-o3 (slice 85ae215c7a); R3 sp-x9; R12 weather 33 folds into R15 (no duplicate, no AS law); R14/R15 LB sp-x8.
 
-**P0 (Jake's phone):** live ab93dccfe0 pinned (sp-x7). Floor 0ea6fb46f0 (fixes: f7b3e4b66d quest bind, a672369245
-King rules, f112d6c62f + 0ea6fb46f0 tests, 8c5189879b tuple); release on CI + exact smoke. Chromium 4x region start
-~13.0 s tap->play (shaders after play, home warm-up first-frame only, CSM chunking a128352530). ROAD START
-70e0bbd4bd + 53b57e917b (Debug row 'Start of play', default region): tap->play 5.0 s; tap->inside home 21.5 s vs
-13.0 s, as the home builds at in-play budget; sp-o1 raising that one build's budget. Node-build reuse 92bba7c1ba
-(sp-o3, default-off, on/off reading next).
+**Grid-ready:** DW + PINE + NINE latched. Open rows: Nine->Nalati 283 ms quiet-only frame (unattributed); GL program
+sharing (sp-o5, S1).
 
-**Lanes (5 Opus at Claude weekly 35 %; 5 Codex + sp-x7):** sp-x2 CI speed (16 behaviour partitions 4341449733,
-model max 146 s; f84 wall 16m17); sp-o2 themed ground (Night Market holes fixed 401a2821ea).
+**Lanes (5 Opus at Claude weekly 38 %; 5 Codex + sp-x7).** Working tree: 699 stale files synced 03:5x;
+scripts/generation-jobs.json + src/format/package.json still stale (hook-blocked restore; Jake's `!` line), so the
+broad 'vitest related' is blocked in the working tree; lanes note it in commits.
 
-**For wildshard-v (Jake pick):** start new players on the ROAD (play in ~5 s, home ready later) instead of in the
-home region (~13 s)? sp-o1's final numbers come with the faster home build; yes/no. The audio question is dropped
-(no gain measured).
-
-**Hazard:** 40+ stale working copies; land only own hunks from HEAD. Mirror slots clear generated outputs (c007).
+**For wildshard-v:** nothing pending from the coordinator; Jake's picks so far are all routed (G616-G627).
 
 **Rules:** G605 Opus steps (50 % 3, 70 % 2, 80 % 1, 90 % 0). G492; never herdr wildshard-v; no net-0 moves (G571).
