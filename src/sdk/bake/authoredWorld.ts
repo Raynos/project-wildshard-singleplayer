@@ -113,7 +113,8 @@ export async function bakeAuthoredWorld(input: unknown, bytes: Uint8Array): Prom
     // The far proxy is an independently measured vertex-colour approximation, one draw and no interactive panels.
     // additive graph surfaces (a hologram) are light without a far silhouette; the world's far-only nodes (its source's
     // `far` prefix) stand in for them here (G608)
-    const light = new Set(world.materials.flatMap((row, index) => { const entry = materials[row.id]; return entry?.family === 'graph' && 'graph' in entry && entry.graph.effectState?.blend === 'additive' ? [index] : []; }));
+    const light = new Set(world.materials.flatMap((row, index) => { const entry = materials[row.id];
+      return (entry?.family === 'graph' && 'graph' in entry && entry.graph.effectState?.blend === 'additive') || (entry?.family === 'emissive' && entry.blend === 'additive') ? [index] : []; }));
     const farRows = await Promise.all(farSources(world, light, authored.farMode).map(row => simplifyWorldPrimitive(row, 0.1, 2)));
     const farParts = farRows.map(row => {
       const part = worldGeometry(row.primitive), colour = world.materials[row.primitive.material]?.colour ?? [1, 1, 1];
@@ -153,7 +154,9 @@ export async function bakeAuthoredWorld(input: unknown, bytes: Uint8Array): Prom
       meshCollision: { version: 1, tiles: collision.tiles.map(({ x, z, file }) => ({ x, z, file })), panels: panelCollision },
       far: { bounds: { min: farBox.min.toArray(), max: farBox.max.toArray() }, files: [farFile.hash], compressed: farFile.compressed, decoded: farFile.decoded, gpu: farFile.gpu, triangles: farFile.triangles, draws: farFile.draws }, edge: edges(world) });
     // NM5: its own near view from its coarse tiles (a first-party product builds with no placeholders)
-    if (authored.near === 'coarse') return { shard: await coarseNearView(shard, baked.assets), assets: baked.assets };
+    // its additive light (pools, glows over what is behind them) has no vertex-colour form: the near view leaves it out
+    const lightNames = new Set(world.materials.flatMap((row, index) => light.has(index) ? [row.name, row.id] : []));
+    if (authored.near === 'coarse') return { shard: await coarseNearView(shard, baked.assets, name => lightNames.has(name)), assets: baked.assets };
     return { shard, assets: baked.assets };
   } finally { catalogue.dispose(); geometry.forEach(part => part.dispose()); }
 }

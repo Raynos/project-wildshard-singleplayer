@@ -14,7 +14,7 @@ import { Document, NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { MeshoptDecoder } from 'meshoptimizer';
 import { readImagePixels, writeImagePixels } from '@wildshard/sdk/bake/image';
-import { buildLayout, parseLayout, paving, Soup } from './kit.mjs';
+import { buildLayout, parseLayout, paving, pool, Soup } from './kit.mjs';
 
 /** sRGB hex to linear RGB */
 const linear = (hex) => [1, 3, 5].map(at => { const c = Number.parseInt(hex.slice(at, at + 2), 16) / 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; });
@@ -103,7 +103,7 @@ async function tiledPlot(root, repo, layoutName) {
   const palette = Object.fromEntries(Object.entries(layout.palette).map(([key, hex]) => [key, linear(hex)]));
   // NM5: the posters' faces carry their picture's mean colour (the Poster material draws the picture alone), for the near view
   palette.picture = await meanColour(resolve(repo, layout.posters.image));
-  const grid = parseLayout(layout.rows), parts = { Paving: new Soup(), Kit: new Soup(), Glow: new Soup(), Poster: new Soup(), far: new Soup(), solid: new Soup() };
+  const grid = parseLayout(layout.rows), parts = { Paving: new Soup(), Kit: new Soup(), Glow: new Soup(), Pool: new Soup(), Poster: new Soup(), far: new Soup(), solid: new Soup() };
   // the plot's ground: the outer ring, then each tile's paving inside it (the lanes a shade lighter, the canals open)
   for (const [x0, z0, x1, z1] of [[-250, RING, 250, 250], [-250, -250, 250, -RING], [-250, -RING, -RING, RING], [RING, -RING, 250, RING]]) {
     parts.Paving.quad('Paving', [x0, 0, z0], [x0, 0, z1], [x1, 0, z1], [x1, 0, z0], [1, 1, 1]);
@@ -123,6 +123,10 @@ async function tiledPlot(root, repo, layoutName) {
   const { plaza, entry } = layout.posters;
   poster(parts, palette, { centre: [plaza.x, plaza.z], n: [0, 0, -1], width: plaza.width, bottom: plaza.bottom, posts: plaza.width / 3, offset: plaza.offset ?? 0 });
   for (const n of [[0, 0, 1], [0, 0, -1], [1, 0, 0], [-1, 0, 0]]) poster(parts, palette, { centre: [n[0] * entry.inset, n[2] * entry.inset], n, width: entry.width, bottom: entry.bottom, posts: entry.posts, offset: entry.offset });
+  // NM7: the gate uplit: warm pools round its feet and one wide one under it (the Pool material adds their light)
+  const lit = { Pool: parts.Pool }, plotWriter = { triColours: (part, a, b, c, colours) => lit[part].triColours(part, [a, b, c], colours) };
+  pool(plotWriter, 0, 0, 30, palette.gatePool, 0.09);
+  for (let i = 0; i < 6; i++) { const a = (i + 0.5) / 6 * Math.PI * 2; pool(plotWriter, 16 * Math.sin(a), 16 * Math.cos(a), 10, palette.gatePool, 0.1); }
   // the landmark: its near model as drawn, its far model in its texture's colours (far only, and the collider)
   const near = await readModel(resolve(repo, layout.landmark.near)), far = await readModel(resolve(repo, layout.landmark.far));
   const placed = stand(near.corners, layout.landmark.height, layout.landmark.turn, near.corners);
@@ -151,6 +155,7 @@ export async function writeTiledWorld(root, repo, idea) {
     Paving: doc.createMaterial('Paving').setBaseColorFactor([...linear(JSON.parse(readFileSync(resolve(root, 'data/layouts', `${idea.layout}.json`), 'utf8')).palette.ring), 1]).setRoughnessFactor(1).setMetallicFactor(0),
     Kit: doc.createMaterial('Kit').setBaseColorFactor([1, 1, 1, 1]).setRoughnessFactor(0.9).setMetallicFactor(0),
     Glow: doc.createMaterial('Glow').setBaseColorFactor([1, 1, 1, 1]).setMetallicFactor(0),
+    Pool: doc.createMaterial('Pool').setBaseColorFactor([1, 1, 1, 1]).setMetallicFactor(0),
     Landmark: doc.createMaterial('Landmark').setBaseColorFactor([1, 1, 1, 1]).setRoughnessFactor(0.8).setMetallicFactor(0).setBaseColorTexture(await texture('landmark', nearImage)),
     Poster: doc.createMaterial('Poster').setBaseColorFactor([1, 1, 1, 1]).setMetallicFactor(0).setBaseColorTexture(await texture('poster', await readImagePixels(readFileSync(posterFile)))),
   };
@@ -175,6 +180,7 @@ export async function writeTiledWorld(root, repo, idea) {
   node('ws_terrain_floor', parts.Paving.part('Paving'), materials.Paving);
   node('draw_kit', parts.Kit.part('Kit'), materials.Kit);
   node('draw_glow', parts.Glow.part('Glow'), materials.Glow);
+  node('draw_pool', parts.Pool.part('Pool'), materials.Pool, { normals: false });
   node('draw_poster', parts.Poster.part('Poster'), materials.Poster, { uv: true });
   node('draw_landmark', landmark, materials.Landmark, { uv: true });
   // the far proxy's own nodes (far only): the tiles' stand-ins and boards, the landmark's far model
@@ -185,5 +191,5 @@ export async function writeTiledWorld(root, repo, idea) {
   mkdirSync(out, { recursive: true });
   writeFileSync(resolve(out, 'world.glb'), bytes);
   const count = (soup, name) => soup.part(name).positions.length / 9;
-  console.info(`open-plots: ${idea.slug} world.glb ${bytes.length} bytes, tiled ${idea.layout}: kit ${count(parts.Kit, 'Kit')} glow ${count(parts.Glow, 'Glow')} landmark ${landmark.positions.length / 9} far ${count(parts.far, 'far') + farLandmark.positions.length / 9} triangles`);
+  console.info(`open-plots: ${idea.slug} world.glb ${bytes.length} bytes, tiled ${idea.layout}: kit ${count(parts.Kit, 'Kit')} glow ${count(parts.Glow, 'Glow')} pool ${count(parts.Pool, 'Pool')} landmark ${landmark.positions.length / 9} far ${count(parts.far, 'far') + farLandmark.positions.length / 9} triangles`);
 }

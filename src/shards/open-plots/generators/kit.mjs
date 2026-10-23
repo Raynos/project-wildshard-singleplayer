@@ -22,6 +22,11 @@ export class Soup {
     const p = this.part(name), e1 = sub(b, a), e2 = sub(c, a), n = normalize(cross(e1, e2));
     for (const [i, v] of [a, b, c].entries()) { p.positions.push(...v); p.normals.push(...n); p.colours.push(...colour); p.uvs.push(...(uv === null ? [0, 0] : uv[i])); }
   }
+  /** a triangle with a colour per corner (a light pool's falloff) @param {string} name @param {number[][]} corners @param {number[][]} colours */
+  triColours(name, [a, b, c], colours) {
+    const p = this.part(name), n = normalize(cross(sub(b, a), sub(c, a)));
+    for (const [i, v] of [a, b, c].entries()) { p.positions.push(...v); p.normals.push(...n); p.colours.push(...(colours[i] ?? [0, 0, 0])); p.uvs.push(0, 0); }
+  }
   /** @param {string} name @param {number[]} a @param {number[]} b @param {number[]} c @param {number[]} d @param {number[]} [colour] @param {number[][] | null} [uv] */
   quad(name, a, b, c, d, colour, uv = null) { this.tri(name, a, b, c, colour, uv === null ? null : [uv[0], uv[1], uv[2]]); this.tri(name, a, c, d, colour, uv === null ? null : [uv[0], uv[2], uv[3]]); }
   /** an axis-aligned box from min to max, every face outward */
@@ -86,6 +91,7 @@ function writer(parts, centre, turns) {
     return [centre[0] + px, y, centre[1] + pz];
   };
   const tri = (part, a, b, c, colour) => parts[part].tri(part, turn(a), turn(b), turn(c), colour);
+  const triColours = (part, a, b, c, colours) => parts[part].triColours(part, [turn(a), turn(b), turn(c)], colours);
   const quad = (part, a, b, c, d, colour) => { tri(part, a, b, c, colour); tri(part, a, c, d, colour); };
   /** an axis-aligned box, every face outward; `open` leaves out the bottom */
   const box = (part, [x0, y0, z0], [x1, y1, z1], colour, top = colour, open = true) => {
@@ -103,7 +109,7 @@ function writer(parts, centre, turns) {
     const a = turn(min), b = turn(max);
     parts.solid.box('Solid', [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.min(a[2], b[2])], [Math.max(a[0], b[0]), Math.max(a[1], b[1]), Math.max(a[2], b[2])]);
   };
-  return { tri, quad, box, floor, solid };
+  return { tri, triColours, quad, box, floor, solid };
 }
 
 /** An n-sided frustum about (x, z) from radius r0 at y0 to r1 at y1 (r1 0: a cone), capped. */
@@ -134,10 +140,19 @@ function hipRoof(w, x0, x1, z0, z1, h, rise, colour, under) {
   }
   w.quad('Kit', [x0, h, z0], [x1, h, z0], [x1, h, z1], [x0, h, z1], under);
 }
-/** A lantern on a post (post in Kit, the lantern lit). */
+/** NM7: a pool of warm light on the ground (the additive Pool material: its colour fades to black at the rim, so it adds
+ *  light and nothing else), an octagon fan just above the paving */
+export function pool(w, x, z, radius, colour, y = 0.08) {
+  for (let i = 0; i < 8; i++) {
+    const a0 = i / 8 * Math.PI * 2, a1 = (i + 1) / 8 * Math.PI * 2;
+    w.triColours('Pool', [x, y, z], [x + radius * Math.sin(a0), y, z + radius * Math.cos(a0)], [x + radius * Math.sin(a1), y, z + radius * Math.cos(a1)], [colour, [0, 0, 0], [0, 0, 0]]);
+  }
+}
+/** A lantern on a post (post in Kit, the lantern lit) and its pool of light. */
 function lantern(w, x, z, p, height = 2.8) {
   w.box('Kit', [x - 0.09, 0, z - 0.09], [x + 0.09, height, z + 0.09], p.wood);
   w.box('Glow', [x - 0.3, height, z - 0.3], [x + 0.3, height + 0.75, z + 0.3], p.lantern, p.lantern);
+  pool(w, x, z, 4.5, p.pool);
 }
 /** A low-poly tree: trunk and a faceted crown (two hexagonal cones back to back). */
 function tree(w, x, z, size, p, spin) {
@@ -206,6 +221,10 @@ function stalls(w, p) {
     w.tri('Kit', [x0 - 0.6, h, z - 4.6], [xm, ridge, z - 4.6], [x1 + 0.6, h, z - 4.6], p.stallDark);
     w.tri('Kit', [x1 + 0.6, h, z + 4.6], [xm, ridge, z + 4.6], [x0 - 0.6, h, z + 4.6], p.stallDark);
     w.box('Glow', [x1 - 0.2, 2.2, z - 0.25], [x1 + 0.3, 2.7, z + 0.25], p.lantern, p.lantern);
+    // NM7: the awning lit from within (its underside glows warm) and a lantern string along its open eave
+    w.quad('Glow', [x0 - 0.4, h - 0.05, z - 4.4], [x1 + 0.4, h - 0.05, z - 4.4], [x1 + 0.4, h - 0.05, z + 4.4], [x0 - 0.4, h - 0.05, z + 4.4], p.awning);
+    for (const dz of [-3.3, -1.1, 1.1, 3.3]) w.box('Glow', [x1 + 0.35, h - 0.55, z + dz - 0.18], [x1 + 0.7, h - 0.15, z + dz + 0.18], p.lantern, p.lantern);
+    pool(w, x1 + 2, z, 5.5, p.pool);
     w.solid([x0 + 1, 0, z - 3.6], [x1 - 2, 1.1, z + 3.6]);
     lantern(w, -12, z + 5.5, p);
   }
@@ -309,6 +328,30 @@ export function buildLayout(grid, parts, p, seed) {
     const w = writer(parts, centre, turns), build = BUILDERS[type];
     build(w, p, type === 'C' || type === 'L' ? type : seed(r, c));
     farTile(w, p, type);
+    // NM7: string lights over the lanes between tiles (each tile strings its north and east seams when they are inside the
+    // plot), on posts at the lane crossings' corners
+    const plot = writer(parts, centre, 0); // the seams run in plot axes, whatever the tile's turn
+    if (r > 0) stringLights(plot, p, 0);
+    if (c < 7) stringLights(plot, p, 1);
+  }
+}
+
+/** The lane on a tile's north (side 0) or east (side 1) seam: two strings of bulbs 3 m either side of the seam, sagging
+ *  between posts at the crossings' corners, the bulbs alternating gold and red (Glow, merged into the tile's glow draw). */
+function stringLights(w, p, side) {
+  const along = (u, off, y) => (side === 0 ? [u, y, HALF + off] : [HALF + off, y, -u]);
+  const ends = [-HALF + 4, HALF - 4], top = 6.2, sag = 1.4, step = 2.5, bulb = 0.16;
+  for (const off of [-3, 3]) {
+    for (const u of ends) {
+      const [x, , z] = along(u, off, 0);
+      w.box('Kit', [x - 0.12, 0, z - 0.12], [x + 0.12, top + 0.3, z + 0.12], p.wood);
+      w.solid([x - 0.15, 0, z - 0.15], [x + 0.15, top, z + 0.15]);
+    }
+    const span = ends[1] - ends[0], count = Math.floor(span / step);
+    for (let i = 1; i < count; i++) {
+      const t = i / count, u = ends[0] + span * t, y = top - sag * 4 * t * (1 - t), [x, , z] = along(u, off, y);
+      w.box('Glow', [x - bulb, y - bulb, z - bulb], [x + bulb, y + bulb, z + bulb], i % 2 === 0 ? p.lantern : p.bulbRed, i % 2 === 0 ? p.lantern : p.bulbRed);
+    }
   }
 }
 

@@ -22,7 +22,7 @@ function project(row: { readonly slug: string; readonly idea: string; readonly n
   if (row.layout !== undefined) return { ...emptyShardfile(identity), identity, accent: row.accent, spawn: source.spawn, look: tiledLook,
     // NM5: its own near view from its coarse tiles, so the road sees the tiles instead of the far proxy
     world: { glb: `assets/${row.idea}/world.glb`, colliders: 'nodes:collide_', far: 'far_', farMode: 'replace', near: 'coarse',
-      materials: { Paving: 'kit', Kit: 'kit', Glow: 'glow', Landmark: 'landmark', Poster: 'billboard' } },
+      materials: { Paving: 'kit', Kit: 'kit', Glow: 'glow', Pool: 'pool', Landmark: 'landmark', Poster: 'billboard' } },
   };
   return { ...emptyShardfile(identity), identity, accent: row.accent, spawn: source.spawn, look,
     // G608: the `far_` stand-ins draw only in the far proxy

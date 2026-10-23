@@ -245,7 +245,7 @@
     ]
   },
   "tiledMaterials": {
-    "why": "G641: the materials a tiled plot (an idea row with a layout, generators/tiledPlot.mjs) adds to the look: the kit's lit vertex colours, its lanterns and windows, and the landmark's own texture. The landmark draws its own texture alone: its vertex colours carry that texture's colours for the views that sample no texture (the near view, the map).",
+    "why": "G641: the materials a tiled plot (an idea row with a layout, generators/tiledPlot.mjs) adds to the look: the kit's lit vertex colours, its lanterns and windows, and the landmark's own texture. The landmark draws its own texture alone: its vertex colours carry that texture's colours for the views that sample no texture (the near view, the map). NM7: pool is the warm light under every lantern and round the gate, added over the paving (its colour falls to black at the rim); glow runs brighter so lanterns, string lights and awnings read as lit.",
     "kit": {
       "family": "pbr",
       "colour": [
@@ -277,7 +277,7 @@
         1,
         1
       ],
-      "intensity": 1.6,
+      "intensity": 2.4,
       "vertexColours": true
     },
     "landmark": {
@@ -303,6 +303,17 @@
       "alphaCutoff": 0,
       "ground": null,
       "measure": null
+    },
+    "pool": {
+      "family": "emissive",
+      "colour": [
+        1,
+        1,
+        1
+      ],
+      "intensity": 1.2,
+      "vertexColours": true,
+      "blend": "additive"
     }
   }
 }

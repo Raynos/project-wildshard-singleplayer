@@ -434,7 +434,7 @@ function tileSurfaces(shard: Shardfile): (name: string) => (colour: readonly num
  * A shardfile's drawn static world as near-placeholder prototypes: every mesh of its coarse (L1) tiles' GLBs, each
  * primitive one prototype at its node's world matrix, coloured as the shard's own catalogue draws it (`tileSurfaces`).
  */
-export async function shardfileWorld(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>): Promise<NearPrototype[]> {
+export async function shardfileWorld(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, skip: (material: string) => boolean = () => false): Promise<NearPrototype[]> {
   const glbs = new Set(shard.files.filter(file => file.kind === 'glb').map(file => file.hash)), io = new NodeIO(), out: NearPrototype[] = [], surfaceOf = tileSurfaces(shard);
   for (const tile of shard.tiles) {
     if (tile.lod !== 1) continue;
@@ -447,7 +447,7 @@ export async function shardfileWorld(shard: Shardfile, assets: ReadonlyMap<strin
         const matrix = Array.from(node.getWorldMatrix());
         for (const [i, primitive] of mesh.listPrimitives().entries()) {
           const position = primitive.getAttribute('POSITION'), indices = primitive.getIndices(), colour = primitive.getAttribute('COLOR_0'), uv = primitive.getAttribute('TEXCOORD_0');
-          if (position === null || primitive.getMode() !== 4) continue;
+          if (position === null || primitive.getMode() !== 4 || skip(primitive.getMaterial()?.getName() ?? '')) continue;
           const material = primitive.getMaterial(), surface = surfaceOf(material?.getName() ?? ''), factor = material?.getBaseColorFactor() ?? [1, 1, 1, 1];
           const count = position.getCount(), p = [0, 0, 0], c = [1, 1, 1, 1], t = [0, 0];
           const positions = new Float32Array(count * 3), colours = new Float32Array(count * 3);
@@ -506,8 +506,8 @@ async function authoredFarImpostor(shard: Shardfile, assets: Map<string, Uint8Ar
 
 /** G380 / NM5: a world with no height field's near view from its own coarse tiles (`shardfileWorld`) over a flat floor
  *  under them; unchanged when it has none. */
-export async function coarseNearView(shard: Shardfile, assets: Map<string, Uint8Array>): Promise<Shardfile> {
-  const prototypes = await shardfileWorld(shard, assets);
+export async function coarseNearView(shard: Shardfile, assets: Map<string, Uint8Array>, skip?: (material: string) => boolean): Promise<Shardfile> {
+  const prototypes = await shardfileWorld(shard, assets, skip);
   if (prototypes.length === 0) return shard;
   const baked = await bakeNearPlaceholder({ grid: null, look: shardfileLook(shard), prototypes, residentBytes: Math.min(NEAR_BAKE.residentBytes, NEAR_PLACEHOLDER_LIMITS.contentBytes) });
   const file = baked.manifest.file;

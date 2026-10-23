@@ -60,8 +60,8 @@ export async function prepareDataMaps(root,only) {await createDataMapPreparation
  * already world-space in the authored products; no second placement law exists.
  * SF88g: `output` paints one declared output of the folder (scripts/shard-outputs.mjs) from its own `glbs`, into
  * public/assets/<output>/map/top.webp with its stamp at look/map.<output>.baked.json. An output's own row in the map
- * settings' `outputs` (G633: a tiled open plot) gives its `style` (else the folder's) and an `exclude` node-name prefix
- * its glbs leave out (its collision boxes stand over its roofs). */
+ * settings' `outputs` (G633: a tiled open plot) gives its `style` (else the folder's) and `exclude`, node-name prefixes
+ * its glbs leave out (its collision boxes stand over its roofs; its additive light pools are no ground). */
 export async function paintDataMap(root, slug, { output, glbs, sources } = {}) {
   const { decodeTerrainTile } = await import('../src/format/terrainTileBytes.ts');
   const dir = resolve(root, 'src/shards', slug), settings = json(mapSettingsPath(dir));
@@ -89,7 +89,7 @@ export async function paintDataMap(root, slug, { output, glbs, sources } = {}) {
     for (const panel of props.panels.filter(entry => entry.visible !== false)) await raster.glb(source(`assets/${panel.file}`));
   }
   const own = output === undefined ? undefined : settings.outputs?.[output];
-  const exclude = own?.exclude, drawn = exclude === undefined ? undefined : node => !node.getName().startsWith(exclude);
+  const exclude = own?.exclude === undefined ? [] : [own.exclude].flat(), drawn = exclude.length === 0 ? undefined : node => !exclude.some(prefix => node.getName().startsWith(prefix));
   for (const file of glbs ?? painter.glbs ?? []) await raster.glb(source(file), undefined, drawn);
   if (painter.scenes !== undefined) {
     const { paintMapScenes } = await import('./map-scenes.mjs');
