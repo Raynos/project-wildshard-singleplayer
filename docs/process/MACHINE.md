@@ -144,7 +144,10 @@ with a shard, `menu` or `select` target. It samples libproc footprint, V8 heap,
 prefetch payload counters and worker URLs at 10/60/120 seconds without forced
 GC. Service workers are blocked for the Chromium core-memory comparison.
 Detailed allocator trees follow the acceptance samples; parent and child sizes
-are not additive. A subsequent HTTP-cache clear is a labelled diagnostic only,
+are not additive. `bytes` is effective ownership attribution, while `sizeBytes`
+and `allocatedObjectsBytes` retain the allocator's reported size and live
+objects. Effective size alone cannot measure retained partition buffers.
+A subsequent HTTP-cache clear is a labelled diagnostic only,
 leaving CacheStorage intact. Run it through `browser-lane.sh`, then stop its
 owned preview. These are Chromium readings, never inferred Safari/phone RAM.
 

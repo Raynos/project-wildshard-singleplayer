@@ -35,6 +35,8 @@ export function chromiumProcessPeaks(events) {
 }
 
 /** Allocator trees retain their paths: parent and child sizes are not additive.
+ * Ownership attribution can move bytes away from a partition: keep its raw
+ * size and live object bytes separately from the effective attributed size.
  * @param {readonly unknown[]} events */
 export function chromiumAllocatorBytes(events) {
   const names = new Map();
@@ -50,11 +52,17 @@ export function chromiumAllocatorBytes(events) {
     if (role !== 'Renderer') continue;
     const entries = [];
     for (const [path, allocator] of Object.entries(parsed.output.args.dumps.allocators)) {
-      const amount = v.safeParse(bytes, allocator.attrs.effective_size ?? allocator.attrs.size);
-      if (!amount.success) continue;
-      const value = Number.parseInt(amount.output.value, 16);
-      if (!Number.isSafeInteger(value) || value < 0) throw new Error('Invalid allocator size');
-      entries.push({ path, bytes: value });
+      const read = value => {
+        const amount = v.safeParse(bytes, value); if (!amount.success) return undefined;
+        const number = Number.parseInt(amount.output.value, 16);
+        if (!Number.isSafeInteger(number) || number < 0) throw new Error('Invalid allocator size');
+        return number;
+      };
+      const effective = read(allocator.attrs.effective_size ?? allocator.attrs.size);
+      if (effective === undefined) continue;
+      const size = read(allocator.attrs.size), allocated = read(allocator.attrs.allocated_objects_size);
+      entries.push({ path, bytes: effective, ...(size === undefined ? {} : { sizeBytes: size }),
+        ...(allocated === undefined ? {} : { allocatedObjectsBytes: allocated }) });
     }
     rows.push({ pid: parsed.output.pid, role, entries });
   }
