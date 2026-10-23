@@ -1049,6 +1049,34 @@
       }
     },
     {
+      "shard": "pine-hollow",
+      "criterion": "oneFrameLooks",
+      "source": "f84c97e85e0e5d2ccb39b87cacd08cea6bcab67a",
+      "measurement": {
+        "when": "2026-10-23T02:22:09.525Z",
+        "surface": "chromium",
+        "metrics": {
+          "grid-pine-hollow-road-entry-drive.frames": 1062,
+          "grid-pine-hollow-road-entry-drive.maxMs": 150,
+          "grid-pine-hollow-road-entry-drive.p95Ms": 66.69999999999709,
+          "grid-pine-hollow-road-entry-drive.medianFps": 29.940119760484258,
+          "grid-pine-hollow-road-entry-drive.skipped": 0,
+          "grid-pine-hollow-road-entry.frames": 124,
+          "grid-pine-hollow-road-entry.maxMs": 66.70000000001164,
+          "grid-pine-hollow-road-entry.p95Ms": 66.69999999999709,
+          "grid-pine-hollow-road-entry.medianFps": 20,
+          "grid-pine-hollow-road-entry.skipped": 0,
+          "grid-pine-hollow-road-entry-travel.frames": 352,
+          "grid-pine-hollow-road-entry-travel.maxMs": 133.29999999998836,
+          "grid-pine-hollow-road-entry-travel.p95Ms": 50.09999999999127,
+          "grid-pine-hollow-road-entry-travel.medianFps": 29.940119760484258,
+          "grid-pine-hollow-road-entry-travel.skipped": 0
+        }
+      },
+      "latchedAt": "2026-10-23T02:25:35.375Z",
+      "quiet": false
+    },
+    {
       "shard": "sunscar-dunes",
       "criterion": "memory",
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
