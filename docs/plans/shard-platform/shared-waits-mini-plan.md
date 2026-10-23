@@ -74,8 +74,8 @@ After SW1, re-read the build leases: if more than five 5-minute timeouts a day r
 - **D1** quiet windows only for official Simulator readings (SW2).
 - **D2** TOOLING-PERF H1 un-parked as a SHARD-PLATFORM extra (SW4); the rest of TOOLING-PERF stays parked.
 - **D3** lanes follow rules by guardrails, not reminders (SW7).
-- **D4** what enforces G620's 30-minute revert (sp-x7 at 30 min vs locking main to fixes while red): skipped, `needs pick`.
-  SW3 stays as written meanwhile.
+- **D4** (G674): no reverts, fix forward only (Jake: *"reverts sound like a mess"*). SW3 becomes fix-forward speed: the
+  owner fixes, and G671's C4, P1 and S3 shorten red windows.
 
 | Row | What | Owner | Size | Done when |
 |---|---|---|---|---|

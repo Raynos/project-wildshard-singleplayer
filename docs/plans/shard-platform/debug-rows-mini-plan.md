@@ -108,7 +108,7 @@ Pure improvements with evidence come first:
 | **DR14** | `measurePlain` → dev map: delete `measurePlain.ts`, `setMeasurePlain`, the `plainVariant` field and its 3 data flags, and the strings | Opus | S |
 | **DR15** | `pineScore` → auto: delete Pine's `debugPin`, the format field, `CatalogueScore.pin` and the row in `plugin/audio.ts`, plus the legacy Pine score row | Codex | S |
 | **DR16** | Legacy rows: delete `shardDirectors` (`directorClient.ts` and the legacy Script branches in the DW finale, Pine clock and Nalati raid / crowd), `ai.brains` (`DebugOverlay.ts`), `pineMemoryTrim` → on, the now-unused `runtimeVariantEnabled`, and `prepareHybridShard`'s dead `debug` parameter. Signal's legacy row goes with LD6 | Codex | M |
-| **DR17** | `memorySaver` → on, once Jake confirms (see below): drop the off path and the Developer fence. If he says keep it off, DR17 instead deletes `memorySaver.ts` and its ~16 call sites (~330 lines) | Opus | S |
+| **DR17** | `memorySaver` → on (G674, Jake: on for everyone): drop the off path and the Developer fence. If he says keep it off, DR17 instead deletes `memorySaver.ts` and its ~16 call sites (~330 lines) | Opus | S |
 
 ## Survivors: the Developer section (G672, G673)
 
