@@ -3,20 +3,26 @@ import { beforeAll, expect, test } from 'vitest';
 import { execFileSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Only an exact committed product receipt skips the official producer.
 import { env, execPath } from 'node:process';
-import { scenario as diskScenario } from '@wildshard/sdk/scriptScenario';
+import { scenario as diskScenario,type DiskScriptScenario } from '@wildshard/sdk/scriptScenario';
 
-beforeAll(() => {
+let prepared:readonly [DiskScriptScenario,DiskScriptScenario]|undefined;
+
+beforeAll(async () => {
   const built = env['WS_TEST_PRODUCTS_SHA'];
   if (built === undefined || !/^[a-f0-9]{40}$/u.test(built) || built !== env['VERCEL_GIT_COMMIT_SHA']) {
-    execFileSync(execPath, ['scripts/build-shardfiles.mjs', '--reuse'], { stdio: 'inherit' });
+    execFileSync(execPath, ['scripts/build-shardfiles.mjs', '--reuse', '--shard=far-reach'], { stdio: 'inherit' });
   }
-}, 120_000);
-
-test('Roc published guest chooses three phases and resumes without replaying gameplay', async () => {
+  // Disk admission and independent host allocation are fixture preparation.
+  // The unchanged two-second body measures every gameplay/save/restore step.
   const create = () => diskScenario('far-reach', 'far.roc.decision', { seed: 6417,
     actors: [{ id: 'roc', at: [13, 55, -196] }], players: [{ id: 101, at: [0, 44, -196] }],
   });
-  const roc = await create();
+  prepared=[await create(),await create()];
+}, 120_000);
+
+test('Roc published guest chooses three phases and resumes without replaying gameplay', () => {
+  if(prepared===undefined)throw new Error('Missing admitted Roc fixtures');
+  const [roc,resumed]=prepared;
   roc.send('start'); expect(roc.commands()).toEqual([['move', 'roc', 'takeoff', 101]]);
   roc.send('start'); expect(roc.commands()).toEqual([]);
   roc.send('move.done', 'roc', 'takeoff', true);
@@ -36,7 +42,7 @@ test('Roc published guest chooses three phases and resumes without replaying gam
   expect(roc.commands()).toEqual([['move', 'roc', 'orbitLow'], ['timer', 'beat', 1.2]]);
   roc.advance(1.2); expect(roc.commands()).toEqual([['move', 'roc', 'stalkLow', 101]]);
   roc.send('move.done', 'roc', 'stalkLow', true); expect(roc.commands()).toEqual([['strike', 'roc', 'sweep', 101]]);
-  const saved = roc.save(), resumed = await create(); resumed.restore(structuredClone(saved));
+  const saved = roc.save(); resumed.restore(structuredClone(saved));
   expect(resumed.host.metrics()[0]?.calls).toBe(0);
   for (const owner of [roc, resumed]) { owner.send('strike.done', 'roc', 'sweep', true); owner.advance(1.2); }
   expect(resumed.commands()).toEqual(roc.commands()); expect(resumed.state()).toEqual(roc.state()); expect(resumed.save()).toEqual(roc.save());
