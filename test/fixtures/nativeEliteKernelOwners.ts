@@ -1,3 +1,4 @@
+import {lendNalatiAdmission} from './nalati-return-modules';
 import { vi } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../../src/engine/app/scope';
@@ -11,6 +12,7 @@ import { NALATI_STRIKES } from './nalati-strikes';
 import ecology from '../../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
 
 export function nativeKernelOwners(scope = new Scope('native-elites')) {
+  lendNalatiAdmission(scope);
   const rng = new RngService(19), health = legacyDouble<SimHost['player']['health']>({});
   const hit = vi.fn(), dash = vi.fn(), signature = vi.fn();
   const host = legacyDouble<SimHost>({ scope, entities: new Map(), clock: legacyDouble<SimHost['clock']>({ now: 0 }), hasStep: () => false, level: legacyDouble<SimHost['level']>({ id: 'marsh' }),

@@ -469,13 +469,16 @@
         "src/shards/nalati-grasslands/generators/bake-admission.mjs",
         "src/sdk/decisionScriptBindings.ts",
         "src/format/scriptAbiV1.ts",
-        "src/format/decisionScripts.ts"
+        "src/format/decisionScripts.ts",
+        "scripts/bake-output.mjs"
       ],
       "outputs": [
-        "src/shards/nalati-grasslands/behaviour/admission.generated.json"
+        "src/shards/nalati-grasslands/behaviour/admission.generated.json",
+        "src/shards/nalati-grasslands/behaviour/admission.generated.wasm"
       ],
       "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/behaviour/admission.generated.json"
+        "src/shards/nalati-grasslands/behaviour/admission.generated.json",
+        "src/shards/nalati-grasslands/behaviour/admission.generated.wasm"
       ],
       "platform": "portable"
     },

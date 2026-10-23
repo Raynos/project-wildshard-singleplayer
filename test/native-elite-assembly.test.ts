@@ -1,3 +1,4 @@
+import {admissionNative,admission} from './fixtures/nalati-return-modules';
 import { expect, test, vi } from 'vitest';
 import { checkedHeadlessAssembly, prepareHeadlessAssembly } from '../src/sdk/headlessAssembly';
 import { emptyShardfile } from '../src/sdk/author';
@@ -10,7 +11,6 @@ import type { Rapier } from '../src/engine/physics/rapier';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import assembly from '../src/shards/nalati-grasslands/data/headlessAssembly.json' with { type: 'json' };
 import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
-import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type: 'json' };
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';
 import { nativeEliteCore } from './fixtures/nativeEliteCore';
 import { legacyDouble } from './fake/FakeGame';
@@ -46,11 +46,11 @@ test('actual native elite declarations construct, bind and install the same engi
     const shard = emptyShardfile({ slug: 'quarry', name: 'Quarry', author: 'Test', revision: 1, seed: 1 });
     const product = createShardProduct({ slug: 'quarry', revision: 1, shardfile: shard, sections: new Map(), files: new Map([['sim/headless-assembly.json', { hash: 'rows', url: 'rows' }]]), read: () => Promise.resolve(new TextEncoder().encode(JSON.stringify(declaration))) });
     const plan = await prepareHeadlessAssembly({ shard, product, assets: new Map(), rapier: legacyDouble<Rapier>({}) }, modules);
-    const before = f.host.rng.snapshot(), program = ReturnProgram.native(f.host, admission);
+    const before = f.host.rng.snapshot(), program = admissionNative(f.host);
     plan.install(f.host, { restoring: true, commands: () => [], emit: () => undefined });
     expect(order).toEqual(['native:aqbars','native:kokbori','projected:2','add:aqbars','add:kokbori','add:argymaq','step']);
     expect(projected).toHaveBeenCalledExactlyOnceWith(2, program, core); expect(init).not.toHaveBeenCalled();
-    expect(ReturnProgram.native(f.host, admission)).toBe(program); expect(f.host.rng.snapshot()).toEqual(before);
+    expect(admissionNative(f.host)).toBe(program); expect(f.host.rng.snapshot()).toEqual(before);
     expect(core.entries.map(entry => entry.script.def.id)).toEqual(['aqbars','kokbori','argymaq']);
   } finally { f.scope.dispose(); }
 });

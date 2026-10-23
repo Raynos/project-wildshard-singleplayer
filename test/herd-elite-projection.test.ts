@@ -1,13 +1,12 @@
+import {admissionPage} from './fixtures/nalati-return-modules';
 import {expect,test} from 'vitest';
 import {Scope} from '../src/engine/app/scope';
-import {ReturnProgram} from '../src/game/population/returnProgram';
 import {NativeEliteProjection,type NativeEliteFrame} from '../src/engine/ai/eliteRoster';
-import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with {type:'json'};
 
 const rows={bondedState:'bonded',signal:'argymaqTick',states:{flaunt:1,rush:2,yield:3}};
 const frame:NativeEliteFrame={state:'flaunt',phase2:false,engaged:true,bonded:false,same:true,health:1,at:[1,2,3],player:[4,5,6]};
 test('orchard herd encounter rows preserve cadence, native commands and the historical continuation',()=>{
-  const scope=new Scope('orchard.herd-elite'),program=ReturnProgram.page(admission,scope);
+  const scope=new Scope('orchard.herd-elite'),program=admissionPage(scope);
   const law=new NativeEliteProjection(rows,program,scope),restored=new NativeEliteProjection(rows,program,scope);
   try{
     expect(law.advance(.05,frame)).toEqual({signature:false,lead:false,adopt:false});restored.restore(law.snapshot());
@@ -26,7 +25,7 @@ test('orchard herd encounter rows preserve cadence, native commands and the hist
 
 
 test('native projection refuses accessor rows before invoking their values', () => {
-  const scope = new Scope('quarry.projection'), program = ReturnProgram.page(admission, scope); let reads = 0;
+  const scope = new Scope('quarry.projection'), program = admissionPage(scope); let reads = 0;
   try {
     expect(() => new NativeEliteProjection({ ...rows, get signal() { reads++; return rows.signal; } }, program, scope)).toThrow('plain JSON');
     expect(reads).toBe(0);

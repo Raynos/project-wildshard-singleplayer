@@ -1,3 +1,4 @@
+import {admissionPage,admission} from './fixtures/nalati-return-modules';
 import {parse} from 'valibot';
 import {ActorProjectionStepV2Schema} from '../src/format/actorProjectionV2';
 import {bindOriginalPageGuard,originalPageGuard,type OriginalGuardBinding} from './fixtures/originalPageGuard';
@@ -11,7 +12,6 @@ import type { Animal } from '../src/engine/entities/AnimalView';
 import type { ThinkCtx } from '../src/engine/entities/species/registry';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { Rng } from '../src/engine/core/rng';
-import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type: 'json' };
 import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { createPageCrowds, thinkCrowdGuard } from '../src/game/ambient/crowdPage';
@@ -53,7 +53,7 @@ test('an unrelated marsh crowd uses its own bounds, identity, material and nativ
     expect(() => crowds.factory({ x: 0, z: 0, count: 3, seed: 22, range: 20 }, 0)).toThrow('roster');
     const draw = crowds.factory({ x: 12, z: -25, count: 3, seed: 22, range: 20 }, 0);
     const actor = legacyDouble<Animal>({ entityId:'marsh.guard',alive: true, position: new Vector3(12, 0, -25), mem: {}, lookTarget: new Vector3(), lookWeight: 0, state: 'idle', yaw: 0, setMotion: () => undefined });
-    crowds.guardian(actor, 0, ReturnProgram.page(admission,scope), new Rng(4));
+    crowds.guardian(actor, 0, admissionPage(scope), new Rng(4));
     const frame = legacyDouble<ThinkCtx>({ dt: .1, t: 1, player: new Vector3(), pathYaw: () => 0, steer: () => undefined, confine: () => undefined });
     thinkCrowdGuard(actor, frame); expect(actor.mem['marsh.guardClock']).toBe(1); expect(Number.isFinite(actor.mem['marsh.bark'])).toBe(true);
     frame.t = 1.1; thinkCrowdGuard(actor, frame); expect(actor.mem['marsh.guardClock']).toBe(1);
@@ -90,7 +90,7 @@ test('entered page rows reuse the original admission owner and keep guard cadenc
       const data={...world,guard:{projection:projectedRows(oldGuard)}};
       const crowds=createPageCrowds(sky,5,body,data,[wolf],scope),draw=crowds.factory({x:0,z:0,count:3,seed:22,range:20},0);draws.push(draw);
       const random=new Rng(31);randoms.push(random);
-      const programme=index===0?ReturnProgram.page({script:admission.script,bytes:admission.bytes}):ReturnProgram.page(admission,scope);
+      const programme=index===0?ReturnProgram.page({script:admission.script,bytes:admission.bytes}):admissionPage(scope);
       if(index===0)bindOriginalPageGuard(actor,{row:oldGuard,flock:draw,wolves:[wolf],author:programme,random});else crowds.guardian(actor,0,programme,random);
       if(index===1)expect(new ActorProjectionV2('guard',{program:admission,step:guardProjection}).program(scope)).toBe(programme);
       frames.push(legacyDouble<ThinkCtx>({dt:1/60,t:0,player:new Vector3(9,2,4),pathYaw:(_actor:Animal,x:number,z:number,period=1)=>{trace.push(['path',x,z,period]);return .3;},

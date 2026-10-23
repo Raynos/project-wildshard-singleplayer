@@ -75,7 +75,7 @@ test('declared wildlife waits for animals, owns one frame and retires its hook',
     await expect(build(animals)).rejects.toThrow('unavailable');
     await expect(installClientWildlife(ctx, feature)).rejects.toThrow('owner');
     scope.dispose();expect(disposed).toHaveBeenCalledOnce();application.events.ask('combat.targets.ray',request);expect(hits).toEqual([]); expect(hooks.animalsBuilt).toBeUndefined(); expect(() => clientWildlife(ctx)).toThrow('disposed');
-    const entered=new Scope('orchard.reentry');
+    const entered=new Scope('orchard.reentry');lendNalatiPasture(entered);
     try{
       const next=legacyDouble<ShardContext>({...ctx,scope:entered,answer:(name,handler)=>{application.events.answer(name,handler,entered);}});
       await installClientWildlife(next,feature);
@@ -100,6 +100,7 @@ test('wildlife retains joint/bound guards and refuses retired fixed-draw intake'
   const metadata={...original.metadata,draws:original.metadata.draws.map(row=>({...row,slot:feature.crowd.binary,file:feature.crowd.binary}))};
   const encode=(value:unknown):Uint8Array=>new TextEncoder().encode(JSON.stringify(value));
   const create=(owner:Scope,body:typeof metadata,readBody:()=>Promise<Uint8Array>):ShardContext=>{
+    lendNalatiPasture(owner);
     const identity={slug:'orchard',name:'Orchard',author:'Fixture',revision:1,seed:7};
     const product=createShardProduct({slug:identity.slug,revision:1,shardfile:emptyShardfile(identity),sections:new Map(),
       files:new Map([[feature.file,{hash:'population',url:'/population'}],[feature.crowd.json,{hash:'crowd',url:'/crowd'}],[feature.crowd.binary,{hash:'body',url:'/body'}]]),

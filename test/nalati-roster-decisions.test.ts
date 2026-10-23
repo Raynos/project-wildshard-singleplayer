@@ -1,9 +1,10 @@
+import {admissionPage} from './fixtures/nalati-return-modules';
 import { expect, test } from 'vitest';
-import { ReturnProgram } from '../src/game/population/returnProgram';
-import { Rng } from '../src/engine/core/rng';
-import program from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with {type:'json'};
 
-const author = () => ReturnProgram.page(program);
+import { Rng } from '../src/engine/core/rng';
+
+
+const author = () => admissionPage();
 test('native alarm decisions retain strict radii and capped awareness', () => {
   const a = author();
   expect(a.project('whistle', { x: 0, z: 0, px: 29, pz: 0, awareness: .9 })).toEqual({ accept: 1, awareness: 1 });

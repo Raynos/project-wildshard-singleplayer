@@ -1,3 +1,4 @@
+import {admissionNative} from './fixtures/nalati-return-modules';
 import { expect, test, vi } from 'vitest';
 import { NativeEliteContinuation, type EliteContinuationMember } from '../src/engine/ai/eliteContinuation';
 import { nativeEliteBindings as eliteBindings, NativeEliteProjection } from '../src/engine/ai/eliteRoster';
@@ -8,11 +9,11 @@ import brainRows from '../src/shards/nalati-grasslands/data/brains.json' with { 
 import { HerdBrain, type HerdPorts } from '../src/engine/ai/herd';
 import type { AnimalSim } from '../src/engine/entities/AnimalSim';
 import type { EliteContinuationRows } from '../src/format/eliteContinuation';
-import { ReturnProgram } from '../src/game/population/returnProgram';
+
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';
 import { nativeEliteCore } from './fixtures/nativeEliteCore';
 import { legacyDouble } from './fake/FakeGame';
-import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type: 'json' };
+
 
 function fixture(withPack = false) {
   const f = nativeKernelOwners(), other = nativeKernelOwners(), bindings = eliteBindings(), core = nativeEliteCore(f.host);
@@ -44,7 +45,7 @@ function fixture(withPack = false) {
     const first = members[0], row = rows[0]; if (first === undefined || row === undefined) throw new Error('Missing member');
     groups.packs.push(pack); first.pack = pack; row.pack = { variants: [other.actor.variant], kind: other.actor.kind, idPrefix: 'body:' };
   }
-  const projection = new NativeEliteProjection({ signal: 'argymaqTick', states: { display: 1 }, bondedState: 'bonded' }, ReturnProgram.native(f.host, admission), f.scope);
+  const projection = new NativeEliteProjection({ signal: 'argymaqTick', states: { display: 1 }, bondedState: 'bonded' }, admissionNative(f.host), f.scope);
   const member = { animal: actor, phase2: false, pack: null, adopted: true, detached: false, controller: projection };
   add(member, 'quarry.borrowed');
   rows.push({ def: { id: 'quarry.borrowed' }, snapshot: 'borrowed', member: { kind: actor.kind, variant: actor.variant }, continuation: { borrowed: { group: 0, role: 'guard' }, detachable: true } });

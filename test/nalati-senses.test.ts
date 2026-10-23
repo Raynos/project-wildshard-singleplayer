@@ -1,3 +1,4 @@
+import {admissionPage,admission} from './fixtures/nalati-return-modules';
 import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
@@ -5,8 +6,7 @@ import { GrassField } from '../src/game/systems/looks/grassField';
 import { TrampleField } from '../src/game/systems/looks/trample';
 import { NativeWildEnvironment } from '../src/game/population/nativeManager';
 import { PageWildEnvironment } from '../src/game/population/pageGroups';
-import { ReturnProgram } from '../src/game/population/returnProgram';
-import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type: 'json' };
+
 import brains from '../src/shards/nalati-grasslands/data/brains.json' with { type: 'json' };
 import strikes from '../src/shards/nalati-grasslands/data/strikeProfiles.generated.json' with { type: 'json' };
 import { zlibSync } from 'fflate';
@@ -31,7 +31,7 @@ function priorDownwind(env: Senses, x: number, z: number, player: Vector3): bool
 }
 
 test('native and page probes preserve the original sensory boundaries in Nalati AS', () => {
-  const scope = new Scope('senses'), author = ReturnProgram.page(admission,scope);
+  const scope = new Scope('senses'), author = admissionPage(scope);
   const field = new GrassField({ seed: 19, half: 16, heightAt: () => 0, normalAt: () => [0,1,0], splatAt: () => [1,0,0,0],
     trailDistance: () => Infinity, cabinMask: () => 0, pondMask: () => 0, waterLevel: () => -100, paint: () => false, layout: null });
   const native = new NativeWildEnvironment(field,new TrampleField(),{ wind: { x: -.8,z: .6,strength: .5 },flatten: .85 },author);

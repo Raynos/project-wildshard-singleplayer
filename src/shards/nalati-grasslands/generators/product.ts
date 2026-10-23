@@ -69,7 +69,7 @@ const programMemory = programs.reduce((sum, program) => sum + program.script.pag
   + heldWeapons.compiled.bytes + heldProjection.artifact.pages * 65536 * 2
   + ridingPrograms.compiled.bytes+ridingProjection.artifact.pages*65536*2
   + titanProgram.compiled.pasture.bytes+pastureProjection.artifact.pages*65536*2
-  + atob(admissionProjection.bytes).length+admissionProjection.artifact.pages*65536*2;
+  + admission.compiled.bytes+admissionProjection.artifact.pages*65536*2;
 // the creature, elite and Titan view modules (behaviour/creatureViews.as, eliteViews.as, titanView.as, titanFireView.as, titanWhirlsView.as): their live and last-good pages on the client
 const viewMemory = (creatureViews.pages + eliteViews.pages + titanView.pages + titanFireView.pages + titanWhirlsView.pages) * 65536 * 2;
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
@@ -77,7 +77,7 @@ export default parseShardfile({ ...base,
   navigation: navigation.navigation, terrain: queryTerrain.terrain, files: [...files, ...renderTiles.files].sort((a, b) => a.hash.localeCompare(b.hash)), critical: [...navigation.critical, ...queryTerrain.critical],
   tiles: renderTiles.tiles, props: renderTiles.props,
   serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + resident + programMemory },
-  budgets: { ...base.budgets, library: { ...base.budgets.library, resident: base.budgets.library.resident + viewMemory }, sim: { resident: files.reduce((sum, file) => sum + file.decoded + file.gpu, 0) + programMemory, compressed: files.reduce((sum, file) => sum + file.compressed, 0) + programBytes + heldWeapons.compiled.bytes + ridingPrograms.compiled.bytes+titanProgram.compiled.pasture.bytes+atob(admissionProjection.bytes).length } },
+  budgets: { ...base.budgets, library: { ...base.budgets.library, resident: base.budgets.library.resident + viewMemory }, sim: { resident: files.reduce((sum, file) => sum + file.decoded + file.gpu, 0) + programMemory, compressed: files.reduce((sum, file) => sum + file.compressed, 0) + programBytes + heldWeapons.compiled.bytes + ridingPrograms.compiled.bytes+titanProgram.compiled.pasture.bytes+admission.compiled.bytes } },
   look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries({ ...lookGraphs, ...presentationGraphs, 'nalati-sky-dome': skyDome }).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
   accent: 'ember', runtime: { entry: 'runtime/index.ts', cost: NALATI_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'clientChannels', 'terrain', 'props'], spawns: NALATI_RUNTIME_SPAWNS },
   clientChannels: compactChannels([...Object.values(speciesData.poses).flatMap(pose => parseClientChannels(pose.programs)),...kingPose.programs,...herdChannels.clientChannels,...weatherChannels.clientChannels,...peopleChannels.clientChannels]),

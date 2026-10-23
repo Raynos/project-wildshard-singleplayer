@@ -1,7 +1,7 @@
 import { compileReturnProjectionV2 } from '@wildshard/sdk/returnProjectionV2';
 import { compileDecisionScripts, readDecisionSources } from '@wildshard/sdk/buildDecisionScripts';
 import { fileURLToPath } from 'node:url';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { byteWriter,jsonBytes } from '../../../../scripts/bake-output.mjs';
 
 const fields=['tx','tz','ready','threshold','turn','yaw','look','scale','x','z','radius','normal','height','water','wet','clash','coats','mares','foals','stallion','index','start',
   'elite','packs','groups','variants','bodies','bonds','px','py','pz','cx','cz','dt','bark','rest','wolf','distance','wx','wy','wz','straggler','sx','sy','sz','playerX','playerY','playerZ','elites','retired','dormant','unique','herd','expected','id','initial','nextId','variant','speed','awareness','owned','health','held','dog','state','previousState','laneT','runT','phase2','engaged','bonded','same','rule','phase','storm','kills','line','mode','crouched','elapsed','light','count','strength','dot'];
@@ -18,8 +18,9 @@ const authored=readDecisionSources(fileURLToPath(new URL('../',import.meta.url))
 const original=await compileDecisionScripts([source],registries,authored,{asLineCeiling:3184});
 const script=original.rows.at(0),blob=original.blobs.at(0);if(script===undefined||blob===undefined)throw new Error('Missing native admission witness');
 const dual=await compileReturnProjectionV2(source,registries,authored,{asLineCeiling:3184});
-const bytes=`${JSON.stringify({script,bytes:Buffer.from(blob.bytes).toString('base64'),v2:dual.candidate},null,2)}\n`;
-const target=new URL('../behaviour/admission.generated.json',import.meta.url);
-if(process.argv.includes('--check')){if(readFileSync(target,'utf8')!==bytes)throw new Error('Native admission program is stale');}
-else writeFileSync(target,bytes);
+const compiled={source:'behaviour/admission.generated.wasm',bytes:dual.binary.length,hash:dual.candidate.artifact.hash};
+const writer=byteWriter(process.argv.includes('--check'),'nalati-admission');
+writer.put(fileURLToPath(new URL('../behaviour/admission.generated.wasm',import.meta.url)),dual.binary);
+writer.put(fileURLToPath(new URL('../behaviour/admission.generated.json',import.meta.url)),jsonBytes({script,bytes:Buffer.from(blob.bytes).toString('base64'),v2:{...dual.candidate,bytes:''},compiled}));
+writer.finish();
 console.info('nalati-admission: selected ABI2 projection; original ABI1 witness retained');

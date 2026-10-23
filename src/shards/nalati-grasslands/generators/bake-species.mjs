@@ -1,7 +1,7 @@
 import { resolve } from 'node:path';
 import * as v from 'valibot';
 import speciesRows from '../data/speciesRows.json' with {type:'json'};
-import admission from '../behaviour/admission.generated.json' with { type: 'json' };
+import admissionInput from '../behaviour/admission.generated.json' with { type: 'json' };
 import SPECIES_LOOK_ROWS from '../data/speciesLooks.json' with { type: 'json' };
 import strikes from '../data/strikeProfiles.generated.json' with { type: 'json' };
 import kingPose from '../data/goldenKingPose.generated.json' with { type: 'json' };
@@ -19,6 +19,7 @@ import { CreatureGuestSchema } from '@wildshard/format/speciesBookRows';
 import { wireProgram } from './returnProgramRows.ts';
 import { actorProjection } from './actorProjection.ts';
 
+const {compiled:_admissionCompiled,...admission}=admissionInput;
 const authored=readDecisionSources(fileURLToPath(new URL('../',import.meta.url)));
 // The existing weak-point row bounds move with their build-time admission.
 const finite=v.pipe(v.number(),v.finite());

@@ -17,8 +17,9 @@ import boot from '../data/headlessBoot.json' with { type: 'json' };
 import ecology from '../data/ecology.generated.json' with { type: 'json' };
 import brains from '../data/brains.json' with { type: 'json' };
 import contacts from '../data/strikeProfiles.generated.json' with { type: 'json' };
-import admission from '../behaviour/admission.generated.json' with { type: 'json' };
+import admissionInput from '../behaviour/admission.generated.json' with { type: 'json' };
 
+const {compiled:_admissionCompiled,...admission}=admissionInput;
 const herd = (index: number): string[] => {
   const row = boot.roster.herds[index]; if (row === undefined) throw new Error('Missing authored herd');
   return row.members.map(body => body.id);

@@ -1,9 +1,9 @@
+import {admissionPage} from './fixtures/nalati-return-modules';
 import { expect, test } from 'vitest';
-import { ReturnProgram, ProjectedMotionSample } from '../src/game/population/returnProgram';
-import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type: 'json' };
+import { ProjectedMotionSample } from '../src/game/population/returnProgram';
 
 test('AS owns named-elite gates, captain support and herd display/adoption decisions', () => {
-  const policy = ReturnProgram.page(admission);
+  const policy = admissionPage();
   for (let rule = 0; rule < 4; rule++) for (let phase = 0; phase < 3; phase++) for (const storm of [0, 1]) {
     expect(policy.project('eliteRule', { rule, phase, storm })['accept']).toBe(Number(rule === 0 || rule === 1 && storm === 1 || rule === 2 && phase === 2 || rule === 3 && phase >= 1));
   }
@@ -20,7 +20,7 @@ test('AS owns named-elite gates, captain support and herd display/adoption decis
 });
 
 test('motion observations hold their scalar between ten-Hz AS projections', () => {
-  const motion = new ProjectedMotionSample(ReturnProgram.page(admission), 'speed');
+  const motion = new ProjectedMotionSample(admissionPage(), 'speed');
   expect(motion.update(.05, 0, 0)).toBe(0);
   expect(motion.update(.05, 1, 0)).toBeCloseTo(6);
   expect(motion.update(.05, 2, 0)).toBeCloseTo(6);

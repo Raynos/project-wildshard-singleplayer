@@ -1,4 +1,4 @@
-import { lendNalatiHeld } from './fixtures/nalati-return-modules';
+import {lendNalatiHeld,admission as sourceAdmission} from './fixtures/nalati-return-modules';
 // oxlint-disable-next-line import/no-nodejs-modules -- validate generated species rows without inferring the complete JSON type
 import { readFileSync } from 'node:fs';
 import { Scope } from '../src/engine/app/scope';
@@ -14,7 +14,6 @@ import { legacyDouble } from './fake/FakeGame';
 import { wireProgram } from '../src/shards/nalati-grasslands/generators/returnProgramRows';
 import titan from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type:'json' };
 import { parseDecisionScripts } from '../src/format/decisionScripts';
-import sourceAdmission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type:'json' };
 import { CreatureGuestSchema } from '../src/format/speciesBookRows';
 import { ReturnProgramSchema } from '../src/format/namedJsonContracts';
 import rows from '../src/shards/nalati-grasslands/data/speciesRows.json' with { type:'json' };

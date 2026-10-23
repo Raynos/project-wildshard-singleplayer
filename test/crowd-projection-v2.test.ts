@@ -1,3 +1,4 @@
+import {lendNalatiAdmission,admission} from './fixtures/nalati-return-modules';
 import {ReturnProjectionV2} from '../src/game/population/returnProjectionV2';
 import {expect,test,vi} from 'vitest';
 import {Vector3} from 'three';
@@ -8,7 +9,6 @@ import {ObservationColumnsV2} from '../src/engine/script/observationColumnsV2';
 import {ActorProjectionV2,type ActorProjectionContext,type ActorProjectionOwner} from '../src/game/population/actorProjectionV2';
 import {ReturnProgram} from '../src/game/population/returnProgram';
 import {SIM_LEVEL} from './fixtures/sim-level/level';
-import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with {type:'json'};
 import page from '../src/shards/nalati-grasslands/data/crowdProjection.json' with {type:'json'};
 import native from '../src/shards/nalati-grasslands/data/crowdNativeProjection.json' with {type:'json'};
 import {OriginalNativeGuard} from './fixtures/originalNativeGuard';
@@ -16,6 +16,7 @@ import {legacyDouble} from './fake/FakeGame';
 
 function fixture(step:unknown=page){
   const scope=new Scope('crowd-test'),first=SIM_LEVEL.entities[0];if(first===undefined)throw new Error('Missing guard');
+  lendNalatiAdmission(scope);
   const actor=new AnimalSim(first.spec,first.seed,first.scale,'guard',{heightAt:()=>0,random:()=>.5});
   actor.position.set(7,2,3);
   const random=new Rng(37),calls:unknown[][]=[];

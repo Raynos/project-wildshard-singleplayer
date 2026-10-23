@@ -1,3 +1,4 @@
+import {admissionPage} from './fixtures/nalati-return-modules';
 import { Window } from 'happy-dom';
 import { installClientEliteEntry } from '../src/game/shardfile/clientEliteEntry';
 import { publishEntryOwner } from '../src/game/shardfile/entryOwners';
@@ -18,8 +19,8 @@ import { EncounterRegistry } from '../src/engine/ai/encounters';
 import { Elites, type EliteDeclaredEntryOwners } from '../src/game/Elite';
 import { app } from '../src/engine/app/runtime';
 import type { AdventurePersistence } from '../src/game/quest/persistence';
-import { ReturnProgram } from '../src/game/population/returnProgram';
-import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type: 'json' };
+import type { ReturnProgram } from '../src/game/population/returnProgram';
+
 import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
 import { parseExternalElite } from '../src/format/eliteFeature';
 import { StrikeRunner } from '../src/engine/ai/strikes';
@@ -427,7 +428,7 @@ test('the original admitted condition guest keeps its exact six-frame night tran
   if (condition === undefined || loan === undefined || observed === undefined) throw new Error('Missing condition owner');
   condition.signal = 'eliteRule'; condition.observations = [{ field: 'rule', value: 2 }];
   try {
-    const plan = prepareEliteEntry(f.input, { ...f.loans, programs: [{ id: loan.id, owner: f.construction, program: ReturnProgram.page(admission, f.construction) }] });
+    const plan = prepareEliteEntry(f.input, { ...f.loans, programs: [{ id: loan.id, owner: f.construction, program: admissionPage(f.construction) }] });
     plan.updateConditions(0); expect(plan.holds('always')).toBe(false);
     f.entered.expose(observed.owners.clock, 'dayPhase', 'night');
     for (let frame = 0; frame < 5; frame++) plan.updateConditions(1 / 60);

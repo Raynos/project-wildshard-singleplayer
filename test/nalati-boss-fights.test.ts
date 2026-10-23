@@ -124,6 +124,7 @@ test.each([false,true])('arena script runs mounted phases, exposes its heart and
   lendLooks(scope, { materials, setParam: () => undefined, setTexture: () => undefined, bindMeshMap: () => { throw new Error('No mapped materials in this fight'); },
     instance: () => ({ material: new MeshBasicMaterial(), setParam: () => undefined }) });
   const weather = legacyDouble<Nalati['weather']>({ weather: legacyDouble<Nalati['weather']['weather']>({ flash: 0, raise: () => undefined,stormActive: true }),air: legacyDouble<Nalati['weather']['air']>({}) });
+  scope.expose(app,'levelScope',scope);
   const game = Object.assign(f.game.asGame(), { app,levelScope: scope });
   lendNalatiPasture(scope);
   const data = parseArenaScriptData({ arenaScript: titan.TITAN_HOST,arenaFire: fireView,programs:{attack:programs.attack,wind:programs.wind} },geometry);

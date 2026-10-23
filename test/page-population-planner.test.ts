@@ -1,3 +1,4 @@
+import {admissionPage,admission} from './fixtures/nalati-return-modules';
 import { PopulationRelations } from '../src/game/population/relations';
 import { setTerrainHeight, setTerrainPlacement } from '../src/engine/world/terrainHeight';
 import { afterEach, expect, test } from 'vitest';
@@ -8,12 +9,11 @@ import { Scope } from '../src/engine/app/scope';
 import { zlibSync } from 'fflate';
 import brains from '../src/shards/nalati-grasslands/data/brains.json' with { type: 'json' };
 import strikes from '../src/shards/nalati-grasslands/data/strikeProfiles.generated.json' with { type: 'json' };
-import { ReturnProgram } from '../src/game/population/returnProgram';
+
 import { Rng } from '../src/engine/core/rng';
 import type { Animal } from '../src/engine/entities/AnimalView';
 import type { AnimalManager } from '../src/engine/entities/AnimalManager';
 import { legacyDouble } from './fake/FakeGame';
-import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type: 'json' };
 
 afterEach(() => { setTerrainHeight(() => 0); setTerrainPlacement(() => [0, 1, 0], () => -1000); });
 
@@ -29,7 +29,7 @@ test('marsh page groups resolve native ids, adoption and water from rows without
     wind: { x: 0,z: 1,strength: .5 },prey: 'marsh',damage: admission };
   const scope = new Scope('marsh');
   try {
-    wildEnv.enter(scope,rows,ReturnProgram.page(admission,scope)); const groups = new PageGroups(manager,[],rows),pack = groups.pack([scout.entityId],0,0),herd = groups.herd([kid.entityId]);
+    wildEnv.enter(scope,rows,admissionPage(scope)); const groups = new PageGroups(manager,[],rows),pack = groups.pack([scout.entityId],0,0),herd = groups.herd([kid.entityId]);
     herd.adoptStallion(buck);
     expect(renderedPackOf(scout)).toBe(pack); expect(renderedHerdOf(kid)).toBe(herd); expect(renderedHerdOf(buck)).toBe(herd);
     expect(pack.findPrey?.(0,0,10)).toBe(kid); expect(herd.findThreat?.(3,0,10)).toBe(scout);
@@ -49,7 +49,7 @@ test('an unrelated marsh roster uses guest member plans and preserves group allo
       const body = legacyDouble<Animal>({ kind, variant, position, yaw, herd: -1,
         place: (px, pz, heading) => { position.set(px, 2, pz); body.yaw = heading; } }); bodies.push(body); return body;
     } });
-  const random = new Rng(90), planner = new PagePopulationPlanner(manager, ReturnProgram.page(admission), random,
+  const random = new Rng(90), planner = new PagePopulationPlanner(manager, admissionPage(), random,
     { begin: 'begin', spot: 'spot', accept: 'accept', yaw: 'yaw' });
   const result = planner.planned({ kind: 'marsh-deer', x: 12, z: 18, variants: ['reed', 'russet', 'fawn', 'pale-fawn', 'antlered'],
     observations: { mares: 2, foals: 1, stallion: 1, coats: 2 }, start: 'herdStart', member: 'herdMember', offset: 'foal' });
@@ -70,7 +70,7 @@ test('marsh groups apply AS alert and range gates to their original owners', () 
   const pack = { members: [body], awareness: .1, scare: (_x: number, _z: number, radius: number) => { scares.push(radius); } };
   const herd = { members: [body], cx: 100, cz: 0, stampeding: true,
     disturb: (x: number) => { disturbances.push(x); }, stampede: (x: number) => { stampedes.push(x); } };
-  const relations = new PopulationRelations(ReturnProgram.page(admission), { packs: [pack], herds: [herd], crowds: [] },
+  const relations = new PopulationRelations(admissionPage(), { packs: [pack], herds: [herd], crowds: [] },
     { alert: 'whistle', range: 'scare', packRadius: 7, disturbRadius: 12, disturbSeconds: 2, scareSeconds: 3 });
   expect(nearestPopulationActor([body], 2, 0, 3)).toBe(body);
   expect(nearestPopulationActor([body], 2, 0, 2)).toBeNull();

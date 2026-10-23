@@ -1,12 +1,12 @@
+import {admissionNative} from './fixtures/nalati-return-modules';
 import { expect, expectTypeOf, test, vi } from 'vitest';
 import { NativeEliteRoster, NativeEliteProjection, type NativeEliteRosterRows, type NativeEliteScript } from '../src/engine/ai/eliteRoster';
 import { NativeEliteLifecycle } from '../src/engine/ai/eliteLifecycle';
 import type { SimHost } from '../src/engine/sim';
 import { eliteBindings, type EliteEncounterRow, type EliteEncounterSpec } from './fixtures/nativeEliteEncounters';
-import { ReturnProgram } from '../src/game/population/returnProgram';
+
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';
 import { nativeEliteCore } from './fixtures/nativeEliteCore';
-import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type: 'json' };
 import type { EliteCoreDef } from '../src/game/eliteSystem';
 
 test('canonical roster declarations retain the original readonly public definition and wire', () => {
@@ -41,7 +41,7 @@ function fixture() {
   const loans = { host: f.host, core, bindings, kernel: f.loans };
   const borrowed = () => {
     order.push('borrowed'); const row = rows[1]; if (row === undefined) throw new Error('Missing borrowed row');
-    const controller = new NativeEliteProjection({ signal: 'argymaqTick', states: { display: 1 }, bondedState: 'bonded' }, ReturnProgram.native(f.host, admission), f.scope);
+    const controller = new NativeEliteProjection({ signal: 'argymaqTick', states: { display: 1 }, bondedState: 'bonded' }, admissionNative(f.host), f.scope);
     const member = { row, controller, animal: null, phase2: false, pack: null, adopted: false, detached: false };
     const script: NativeEliteScript = { def: row.def, get animal() { return member.animal; },
       spawn: vi.fn<() => void>(), despawn: vi.fn<() => void>(), reset: vi.fn<() => void>(), enterPhase2: vi.fn<() => void>(), trophy: vi.fn<() => void>(), tick: vi.fn<NativeEliteScript['tick']>() };

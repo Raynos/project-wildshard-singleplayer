@@ -1,5 +1,5 @@
-import {lendNalatiPasture} from './fixtures/nalati-return-modules';
-import { ReturnProgram } from '../src/game/population/returnProgram';
+import {admission,admissionNative,lendNalatiAdmission,lendNalatiPasture} from './fixtures/nalati-return-modules';
+
 import { PackBrain as FixturePack, type PackPrey } from '@wildshard/engine/ai/pack';
 import { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { HuntBody } from '@wildshard/engine/ai/hunt';
@@ -69,7 +69,6 @@ test('G478 orchard fixture owns companion allocation, retirement and native tami
   const { BondedMountRoster } = await import('@wildshard/game/riding/roster');
   const { installNativeTaming } = await import('@wildshard/game/riding/nativeTaming');
   const { SPECIES_POSES } = await import('../src/shards/nalati-grasslands/generators/speciesPoses');
-  const { default: admission } = await import('../src/shards/nalati-grasslands/behaviour/admission.generated.json');
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
   const host = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier });
   const sample = SIM_LEVEL.entities[0]; if (sample === undefined) throw new Error('Missing native fixture recipe');
@@ -78,6 +77,7 @@ test('G478 orchard fixture owns companion allocation, retirement and native tami
   herdService(host, 'orchard.herds');
   const service = { host, id: 'orchard.actors', identities: new NativeActors<HuntBody>('creature', 64), random, hunt, bodies, sight, retired, flocks: [] };
   const companionRows: ConstructorParameters<typeof BondedMountRoster>[1] = { id: 'orchard.companions', services: service.id, herds: 'orchard.herds', kind: 'boar', variant: 'boar', wildKinds: ['boar'], specs: [sample.spec], scale: [1, 1], spawnY: 10, program: admission };
+  lendNalatiAdmission(host.scope);
   const roster = new BondedMountRoster(host, companionRows, service);
   expect(() => new BondedMountRoster(host, companionRows, service)).toThrow('Duplicate bonded mount roster');
   expect(() => new BondedMountRoster(host, { ...companionRows, id: 'orchard.other' }, { ...service })).toThrow('Duplicate mount roster owner');
@@ -110,7 +110,6 @@ test('orchard native manager drives the admitted roster at ten Hz across body fr
   const { NativeManager, NativePopulationDriver } = await import('@wildshard/game/population/nativeManager');
   const { createNativeCreatureRoster } = await import('@wildshard/game/shardfile/homeKeeper');
   const { nativeEliteBindings: eliteBindings } = await import('@wildshard/engine/ai/eliteRoster');
-  const { default: admission } = await import('../src/shards/nalati-grasslands/behaviour/admission.generated.json');
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
   const host = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier }), random = new Rng(71);
   const sample = SIM_LEVEL.entities[0]; if (sample === undefined) throw new Error('Missing orchard actor');
@@ -120,6 +119,7 @@ test('orchard native manager drives the admitted roster at ten Hz across body fr
   const actor = intake.arrive(slot); intake.remember(slot);
   const manager = new NativeManager(host, hunt, random, { limit: 64, sightSlots: 1, initialSight: false });
   const groups = herdService(host, 'unused.herds', 'fixture.driver', { id: 'orchard.tokens', owners: new WeakMap() });
+  lendNalatiAdmission(host.scope);
   const makeDriver = (id = 'orchard.tokens', ownerHost = host): InstanceType<typeof NativePopulationDriver> => new NativePopulationDriver(ownerHost, manager, hunt, random, [actor], new Map(), new Map(), eliteBindings(), [], [],
     { tokens: id, program: admission, packKind: 'boar', dogKind: 'collie', eliteKinds: [], dispatch: 'dispatch' }, groups);
   expect(() => makeDriver('foreign.tokens')).toThrow('Missing native manager tokens');
@@ -174,7 +174,6 @@ test('orchard wildlife frame continues real foragers and tramples through numeri
   const { NativeWildlifeFrame, NativeWildEnvironment } = await import('@wildshard/game/population/nativeManager');
   const { GrassField } = await import('@wildshard/game/systems/looks/grassField');
   const { TrampleField } = await import('@wildshard/game/systems/looks/trample');
-  const { default: admission } = await import('../src/shards/nalati-grasslands/behaviour/admission.generated.json');
   const { default: foragerRow } = await import('../src/shards/nalati-grasslands/creatures/marmotForager.json');
   const { overrideTerrain } = await import('./fake/terrain');
   const v = await import('valibot');
@@ -186,11 +185,11 @@ test('orchard wildlife frame continues real foragers and tramples through numeri
   const population = new ForagerPopulation(v.parse(ForagerPopulationSchema, { ...foragerRow, id: 'orchard.foragers', count: 4, place: { ...foragerRow.place, size: [2, 2] } }), 41);
   population.colonies([{ x: 5, z: 5 }]);
   const trample = new TrampleField(), wolves: HuntBody[] = [], signals: string[] = [];
-  const frame = new NativeWildlifeFrame(host, ReturnProgram.native(host, admission), [actor], [], wolves, [], [], [], population, trample,
+  const frame = new NativeWildlifeFrame(host, admissionNative(host), [actor], [], wolves, [], [], [], population, trample,
     { speed: 'speed', alert: 'whistle', range: 'scare', packRadius: 20, scareSeconds: 6, scareRadius: 60, foragerRunSpeed: 5,
       trample: { kinds: { boar: .5 }, minSpeed: .6, range: 80, fullSpeed: 6 }, knockdown: { speed: 7, min: .4, max: 1.5, seconds: .28 } });
   const field = new GrassField({ seed: 9, half: 16, heightAt: () => 0, normalAt: () => [0, 1, 0], splatAt: () => [1, 0, 0, 0], trailDistance: () => Infinity, cabinMask: () => 0, pondMask: () => 0, waterLevel: () => -100, paint: () => false, layout: null });
-  const environment = new NativeWildEnvironment(field, trample, { wind: { x: 1, z: 0, strength: .3 }, flatten: .5 }, ReturnProgram.native(host,admission));
+  const environment = new NativeWildEnvironment(field, trample, { wind: { x: 1, z: 0, strength: .3 }, flatten: .5 }, admissionNative(host));
   expect(() => environment.onEvent('scare', 0, 0)).toThrow('Unbound'); environment.bind(host, frame);
   host.events.on('creature.signal', event => { signals.push(event.name); }, host.scope);
   host.onStep('orchard.wildlife', dt => { trample.update(dt, host.player.position); frame.update(dt, false); });
@@ -254,7 +253,6 @@ test('orchard fixture installs the complete native population through data rows'
   const { ForagerPopulationSchema } = await import('@wildshard/format/ambientLife');
   const { BOAR } = await import('@wildshard/game/systems/species/boar');
   const { default: brains } = await import('../src/shards/nalati-grasslands/data/brains.json');
-  const { default: admission } = await import('../src/shards/nalati-grasslands/behaviour/admission.generated.json');
   const { default: pasture } = await import('../src/shards/nalati-grasslands/behaviour/pasture.generated.json');
   const { default: foragerRow } = await import('../src/shards/nalati-grasslands/creatures/marmotForager.json');
   const v = await import('valibot');
@@ -270,7 +268,7 @@ test('orchard fixture installs the complete native population through data rows'
     preyIdentity: target => ids.get(target) ?? '', resolvePrey: id => prey.get(id) ?? null }); pack.initialize();
   const field = new GrassField({ seed: 9, half: 16, heightAt: () => 0, normalAt: () => [0, 1, 0], splatAt: () => [1, 0, 0, 0], trailDistance: () => Infinity,
     cabinMask: () => 0, pondMask: () => 0, waterLevel: () => -100, paint: () => false, layout: null });
-  const environment = new NativeWildEnvironment(field, new TrampleField(), { wind: { x: 1, z: 0, strength: .3 }, flatten: .5 }, ReturnProgram.native(host,admission));
+  const environment = new NativeWildEnvironment(field, new TrampleField(), { wind: { x: 1, z: 0, strength: .3 }, flatten: .5 }, admissionNative(host));
   new NativeGroupCollection(host, [pack], [], new Map([[actor.entityId, actor]]), prey, ids, [actor], new WeakMap(), { id: 'orchard.groups', firstRaid: 14, environment }, { id: 'orchard.tokens', owners: new WeakMap() });
   herdService(host, 'orchard.herds');
   const foragers = new ForagerPopulation(v.parse(ForagerPopulationSchema, { ...foragerRow, id: 'orchard.foragers', count: 4, place: { ...foragerRow.place, size: [2, 2] } }), 41); foragers.colonies([{ x: 5, z: 5 }]);
@@ -345,11 +343,11 @@ test('native shared cadence retains the original driver noise, terrain, dodge an
   const { OriginalNativePopulationDriver } = await import('./fixtures/original-native-driver');
   const { createNativeCreatureRoster } = await import('@wildshard/game/shardfile/homeKeeper');
   const { nativeEliteBindings } = await import('@wildshard/engine/ai/eliteRoster');
-  const admission: unknown = JSON.parse(readFileSync('src/shards/nalati-grasslands/behaviour/admission.generated.json', 'utf8'));
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
   const sample = SIM_LEVEL.entities[0]; if (sample === undefined) throw new Error('Missing original driver actor');
   const make = (Driver: typeof NativePopulationDriver | typeof OriginalNativePopulationDriver) => {
     const host = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier }), random = new FixtureRandom(71);
+    lendNalatiAdmission(host.scope);
     const { hunt, services } = fixtureNativeRoster(host, random);
     const intake = createNativeCreatureRoster(host, { specs: [sample.spec], variants: new Map(), rng: random, services, hunted: 'every', spawnY: 10 });
     const slot = intake.body('orchard.boar', sample.spec.kind, sample.spec.variant, -1, { x: 2, z: 3 }, 0, [1, 1]);

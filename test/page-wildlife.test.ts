@@ -77,7 +77,7 @@ test.each([false,true])('orchard group admission restores observations across re
   const rows={...headlessAssembly.constants.pageGroups,wind:{x:1,z:0,strength:.25}},base=legacyDouble<ShardContext>({scope,app:new App()});
   const hooks=retained?new RetainedRuntimeHooks(base,{deferActivation:true}):null,ctx=hooks?.context??base;
   try{
-    bindPageGroups(ctx,rows);if(hooks!==null){expect(wildEnv.wind).toBe(previous);hooks.activate();}
+    lendNalatiPasture(scope);bindPageGroups(ctx,rows);if(hooks!==null){expect(wildEnv.wind).toBe(previous);hooks.activate();}
     expect(wildEnv.wind).toEqual(rows.wind);expect(wildEnv.wind).not.toBe(previous);
     if(hooks!==null){wildEnv.wind.strength=.7;hooks.deactivate();expect(wildEnv.wind).toBe(previous);hooks.activate();expect(wildEnv.wind.strength).toBe(.7);}
     expect(()=>bindPageGroups(ctx,{...rows,install:()=>undefined})).toThrow();
@@ -94,7 +94,7 @@ test('orchard population rows own notice cooldowns and native knockback effects 
   const ctx=legacyDouble<ShardContext>({scope,app:application,game:legacyDouble<ShardContext['game']>({runtime})});
   const rows={...headlessAssembly.constants.pageGroups,effects:{notices:[{signal:'grunt',text:'Boars nearby',every:2}],knockdown:{speed:4,min:.25,max:2,seconds:.5,text:'Fallen',every:1}}};
   try{
-    bindPageGroups(ctx,rows);
+    lendNalatiPasture(scope);bindPageGroups(ctx,rows);
     application.events.emit('creature.signal',{name:'grunt',x:0,z:0});application.events.emit('creature.signal',{name:'grunt',x:0,z:0});
     application.events.emit('creature.signal',{name:'howl',x:0,z:0});application.events.flush('update');expect(toast.mock.calls).toEqual([['Boars nearby']]);
     application.clock.tick(2);application.events.emit('creature.signal',{name:'grunt',x:0,z:0});application.events.flush('update');expect(toast).toHaveBeenCalledTimes(2);

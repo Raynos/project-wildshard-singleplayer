@@ -1,3 +1,4 @@
+import {admissionNative,admission} from './fixtures/nalati-return-modules';
 import { expect, test } from 'vitest';
 import { checkedHeadlessAssembly, prepareHeadlessAssembly } from '../src/sdk/headlessAssembly';
 import { emptyShardfile } from '../src/sdk/author';
@@ -10,7 +11,6 @@ import type { Rapier } from '../src/engine/physics/rapier';
 import { legacyDouble } from './fake/FakeGame';
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';
 import { nativeEliteCore } from './fixtures/nativeEliteCore';
-import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type: 'json' };
 import assembly from '../src/shards/nalati-grasslands/data/headlessAssembly.json' with { type: 'json' };
 
 const ref = (...path: readonly (string | number)[]) => ({ $ref: path });
@@ -36,7 +36,7 @@ test('actual native condition rows reuse the original AS owner and preserve ever
   for (const phase of ['dawn', 'day', 'golden', 'dusk', 'night', 'unobserved']) for (const storm of [false, true]) for (const rule of ['always', 'storm', 'night', 'dusk'] satisfies EliteCoreRule[]) {
     const f = nativeKernelOwners(), before = f.host.rng.snapshot(); state.phase = 'day'; state.storm = false; reads.length = 0;
     try {
-      const program = ReturnProgram.native(f.host, admission);
+      const program = admissionNative(f.host);
       plan.install(f.host, { restoring: false, commands: () => [], emit: () => undefined });
       const core = captured.pop(); if (core === undefined) throw new Error('Missing actual declared core');
       expect(core.player).toBe(f.host.player); expect(reads).toEqual([]);
@@ -50,7 +50,7 @@ test('actual native condition rows reuse the original AS owner and preserve ever
         expect(spawns).toBe(Number(accepted));
         expect(reads).toEqual(rule === 'always' ? [] : rule === 'storm' ? ['phase', 'storm'] : ['phase']);
       }
-      expect(ReturnProgram.native(f.host, admission)).toBe(program); expect(f.host.rng.snapshot()).toEqual(before);
+      expect(admissionNative(f.host)).toBe(program); expect(f.host.rng.snapshot()).toEqual(before);
       expect(core.snapshot().clocks).toEqual({ saveT: 0, lastDusk: false });
     } finally { f.scope.dispose(); }
   }

@@ -191,7 +191,7 @@
       "dataUris": 0
     },
     "src/shards/nalati-grasslands/behaviour/admission.generated.json": {
-      "base64Chars": 49704,
+      "base64Chars": 28708,
       "dataUris": 0
     },
     "src/shards/nalati-grasslands/behaviour/creatureViews.generated.json": {
@@ -315,7 +315,7 @@
       "dataUris": 0
     },
     "src/shards/nalati-grasslands/data/species.generated.json": {
-      "base64Chars": 208968,
+      "base64Chars": 187972,
       "dataUris": 0
     },
     "src/shards/nalati-grasslands/data/stealth.generated.json": {

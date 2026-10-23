@@ -1,15 +1,15 @@
+import {admissionNative,admission} from './fixtures/nalati-return-modules';
 import { expect, test, vi } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import type { SimHost } from '../src/engine/sim';
 import type { AnimalSim } from '../src/engine/entities/AnimalSim';
 import { HerdBrain, type HerdPorts } from '../src/engine/ai/herd';
 import { nativeEliteBindings as eliteBindings, NativeEliteRoster, type NativeEliteBond } from '../src/engine/ai/eliteRoster';
-import { ReturnProgram } from '../src/game/population/returnProgram';
+
 import { installEliteEncounters as originalInstall, type EliteEncounterPorts as OriginalPorts } from './fixtures/originalEliteEncounters';
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';
 import { nativeEliteCore } from './fixtures/nativeEliteCore';
 import { legacyDouble } from './fake/FakeGame';
-import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type: 'json' };
 
 const profile = { signal: 'argymaqTick', states: { display: 1, charge: 2, beaten: 3 }, bondedState: 'bonded', brokenState: 'beaten', adoption: { variant: 'reward', scale: 1.3 } };
 function fixture(original = false) {
@@ -27,7 +27,7 @@ function fixture(original = false) {
   const row = { def: { id: 'quarry.borrowed', rule: 'always' as const, lair: { x: 0, z: 0, r: 1 }, awareR: 10, engageR: 3, leashR: 20, respawnMin: 1 }, snapshot: 'borrowed',
     member: { kind: f.actor.kind, variant: 'guard', source: 'herd' as const, yaw: 0 }, continuation: { borrowed: { group: 0, role: 'guard' as const }, detachable: true as const } };
   const input = { step: 'quarry.elites', version: 1, wire: { detached: 'detached' }, rows: [row], roles: ['borrowed'] as const, kernels: [], projections: { [row.def.id]: profile } };
-  const groups = { packs: [], herds: [group] }, program = ReturnProgram.native(f.host, admission);
+  const groups = { packs: [], herds: [group] }, program = admissionNative(f.host);
   const core = original ? originalInstall(f.host, { step: input.step, version: 1, wire: input.wire, conditions: { mode: 'phase', phase: () => 'day', storm: () => false },
     rows: [{ ...row, keeper: 'herd', brokenState: profile.brokenState, onAdopted: { action: 'win-and-detach', ...profile.adoption } }],
     ports: legacyDouble<OriginalPorts>({ bindings, ledges: [], heightAt: () => 0, environment: () => f.loans.environment, herd: () => group, taming: () => ({ phase: bond.phase, tulpar: bond.companion }),
@@ -62,7 +62,7 @@ test('projected native binding matches the frozen original keeper, wire, RNG and
     }
     expect(next.events.some(event => Array.isArray(event) && event[0] === 'lead')).toBe(true);
     expect(next.events).toContainEqual(['won', 'quarry.borrowed', 1.3]);
-    expect(next.reward.scale).toBe(old.reward.scale); expect(ReturnProgram.native(next.host, admission)).toBe(next.program);
+    expect(next.reward.scale).toBe(old.reward.scale); expect(admissionNative(next.host)).toBe(next.program);
   } finally { old.scope.dispose(); next.scope.dispose(); }
 });
 

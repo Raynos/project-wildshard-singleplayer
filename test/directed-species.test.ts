@@ -1,17 +1,23 @@
-import { expect, test } from 'vitest';
+import {Scope} from '../src/engine/app/scope';
+import {app} from '../src/engine/app/runtime';
+import {lendNalatiAdmission,admission} from './fixtures/nalati-return-modules';
+import { afterEach, expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import type { Animal } from '../src/engine/entities/AnimalView';
 import type { ThinkCtx } from '../src/engine/entities/species/registry';
 import { DirectedSpecies } from '../src/game/population/directedSpecies';
-import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type: 'json' };
 import { legacyDouble } from './fake/FakeGame';
 import { riderGeometry } from '../src/shards/nalati-grasslands/generators/ghostFigure';
 import { SHAPES } from './fixtures/nalatiShapes';
+
+const scopes:Scope[]=[];
+afterEach(()=>{for(const scope of scopes.splice(0))scope.dispose();});
 
 test('a marsh courier projects its own target memory, cadence and hit rules through the existing guest', () => {
   const row = { signal: 'steer', clock: 'courier.clock', every: .1, target: ['guide.x', 'guide.z'], motion: ['guide.speed', 'guide.turn'],
     speed: 3, turn: 1.8, threshold: 5, stopDistance: 1.2, look: .4, states: ['wander', 'flee'],
     damage: { signal: 'riderDamage', player: ['eye.x', 'eye.z'], radius: 2, scale: 1.4, elite: false } };
+  const scope=new Scope('directed.fixture');scopes.push(scope);lendNalatiAdmission(scope);scope.expose(app,'levelScope',scope);
   const binding = new DirectedSpecies(row, admission).binding, motions: number[][] = [];
   const actor = legacyDouble<Animal>({ position: new Vector3(4, 0, 8), yaw: .3, state: 'idle',
     mem: { 'guide.x': 7, 'guide.z': 12, 'guide.speed': 6, 'eye.x': 0, 'eye.z': 0 }, lookTarget: new Vector3(), lookWeight: 0,

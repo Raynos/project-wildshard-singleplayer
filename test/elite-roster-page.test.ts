@@ -1,3 +1,4 @@
+import {admissionPage} from './fixtures/nalati-return-modules';
 import { expect, test } from 'vitest';
 import { Group, Scene, PerspectiveCamera, Vector3, SkinnedMesh, MeshLambertMaterial } from 'three';
 import { Scope } from '../src/engine/app/scope';
@@ -16,12 +17,11 @@ import type { DayCycleClock } from '../src/engine/world/dayCycle';
 import type { AdventurePersistence } from '../src/game/quest/persistence';
 import type { PageWildlife } from '../src/game/population/wildlife';
 import { Elites } from '../src/game/Elite';
-import { ReturnProgram } from '../src/game/population/returnProgram';
+
 import { PageWildEnvironment } from '../src/game/population/pageGroups';
 import { ELITE_CONDITION_COLUMNS } from '../src/format/eliteEntryRows';
 import { legacyDouble } from './fake/FakeGame';
 import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
-import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type: 'json' };
 import { parseExternalElite } from '../src/format/eliteFeature';
 import { strike } from '../src/sdk/species';
 import strikes from '../src/shards/nalati-grasslands/data/strikeProfiles.generated.json' with { type: 'json' };
@@ -49,7 +49,7 @@ test('a marsh roster binds its own herd, drop and identities without author call
     presentation: { [row.def.id]: { prompt: `Take the ${row.def.drop.skinName} ${row.def.drop.weapon} skin`,
       toast: `${row.def.drop.skinName} ${row.def.drop.weapon} skin — ${row.def.drop.blurb}`, hum: true, sting: { banner: .8, phase2: 1, kill: 'chunk' } } },
     strikes: [], fallbackStrike: strike(strikes.captain), prewarm: [] };
-  const guest = ReturnProgram.page(admission), models = new Map([[row.def.id, new Group()]]);
+  const guest = admissionPage(), models = new Map([[row.def.id, new Group()]]);
   try {
     expect(() => new DeclaredEliteEntry({ ...rows.entry, entries: [...rows.entry.entries, ...rows.entry.entries] }, construction)).toThrow('identities');
     const entry = new DeclaredEliteEntry(rows.entry, construction);

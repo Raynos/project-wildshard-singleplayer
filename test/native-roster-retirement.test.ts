@@ -1,4 +1,4 @@
-import {lendNalatiPasture} from './fixtures/nalati-return-modules';
+import {admissionPage,lendNalatiPasture} from './fixtures/nalati-return-modules';
 import {Scope} from '../src/engine/app/scope';
 import pasture from '../src/shards/nalati-grasslands/behaviour/pasture.generated.json' with { type: 'json' };
 import { fixtureNativeRoster } from './fixtures/native-roster';
@@ -9,7 +9,7 @@ import { Rng } from '../src/engine/core/rng';
 import { HuntBrain, type HuntBody } from '../src/engine/ai/hunt';
 import { NativeManager } from '../src/game/population/nativeManager';
 import { ReturnProgram } from '../src/game/population/returnProgram';
-import admission from '../src/shards/nalati-grasslands/behaviour/admission.generated.json' with { type: 'json' };
+
 import { BOAR } from '../src/game/systems/species/boar';
 import { Vector3 } from 'three';
 import { loadRapier } from '../src/engine/physics/rapier';
@@ -144,7 +144,7 @@ test('native admission attaches existing actors and preserves release ordering',
 });
 
 test('AS admission preserves placement draws and ordered herd recipes', () => {
-  const program = ReturnProgram.page(admission), rng = new Rng(2907), oracle = new Rng(2907);
+  const program = admissionPage(), rng = new Rng(2907), oracle = new Rng(2907);
   expect(program.project('begin', {})).toEqual({ attempts: 40 });
   for (let i = 0; i < 80; i++) {
     const angle = oracle.range(0, Math.PI * 2), distance = Math.sqrt(oracle.next()) * 8;
@@ -194,7 +194,7 @@ test('native roster rows refuse fabricated, foreign and disposed services before
 
 
 test('AS sheepdog retains guard, fetch and rest behaviour on the 10 Hz decision step', () => {
-  const program = ReturnProgram.page(admission), rng = new Rng(241), oracle = new Rng(241);
+  const program = admissionPage(), rng = new Rng(241), oracle = new Rng(241);
   const observed = { px: 0, py: 0, pz: 0, cx: 0, cz: 0, dt: 0.1, bark: 0, rest: 0,
     wolf: 1, distance: 20, wx: 20, wy: 2, wz: 0, straggler: 0, sx: 0, sy: 0, sz: 0,
     playerX: 2, playerY: 0, playerZ: 0 };
