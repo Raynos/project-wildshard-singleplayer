@@ -1,3 +1,6 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- validate generated species rows without inferring the complete JSON type
+import { readFileSync } from 'node:fs';
+import { object, parse, strictObject } from 'valibot';
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
@@ -9,13 +12,18 @@ import { ReturnProgram } from '../src/game/population/returnProgram';
 import { BALBAL_SPECIES } from './fixtures/projectedCreature';
 import { BALBAL_SPECIES as ORIGINAL } from './fixtures/originalBalbal';
 import { legacyDouble } from './fake/FakeGame';
-import generated from '../src/shards/nalati-grasslands/data/species.generated.json' with { type: 'json' };
+import { CreatureGuestSchema } from '../src/format/speciesBookRows';
+import { ReturnProgramSchema } from '../src/format/namedJsonContracts';
 import held from '../src/shards/nalati-grasslands/data/heldWeapons.generated.json' with { type: 'json' };
 import { scriptAdmissionRows, decisionModuleContracts } from '../src/format/scriptContract';
-import { parseReturnProjectionV2 } from '../src/format/returnProjectionV2';
+import { ReturnProjectionV2Schema, parseReturnProjectionV2 } from '../src/format/returnProjectionV2';
 import stealth from '../src/shards/nalati-grasslands/data/stealth.generated.json' with { type: 'json' };
 import { nameBlob } from '../src/sdk/blobs';
 import { NALATI_SCRIPT_SECTIONS } from '../src/shards/nalati-grasslands/generators/scriptInventory';
+
+const generated=parse(object({presentation:object({guest:CreatureGuestSchema}),
+  program:strictObject({...ReturnProgramSchema.entries,v2:ReturnProjectionV2Schema})}),
+  JSON.parse(readFileSync('src/shards/nalati-grasslands/data/species.generated.json','utf8')));
 
 function controls(row: typeof BALBAL_SPECIES): Required<Pick<typeof row, 'think' | 'damageMul'>> {
   if (row.think === undefined || row.damageMul === undefined) throw new Error('Missing native creature binding');
@@ -97,7 +105,7 @@ test('ABI2 retains same-call native Wedge contact, reach refusal and both ordere
 });
 
 test('the selected creature artifact is admitted in the complete emitted inventory and leaves held ABI1 intact', () => {
-  const row = generated.presentation.guest.program, candidate = parseReturnProjectionV2(row.v2);
+  const row = parse(ReturnProgramSchema,generated.presentation.guest.program), candidate = parseReturnProjectionV2(row.v2);
   expect(row.script).toEqual(generated.program.script); expect(row.bytes).toBe(generated.program.bytes);
   expect(held.program.bytes).toBe(generated.program.bytes); expect(held.program.script).toEqual(generated.program.script);
   const module = nameBlob('behaviour/nalati.held-weapons.wasm','wasm',Uint8Array.from(atob(candidate.bytes),byte => byte.codePointAt(0) ?? 0),
