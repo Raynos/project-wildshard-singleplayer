@@ -55,8 +55,6 @@
     },
     "shardfile/sim-in-runtime": {},
     "wildshard/explicit-schema-types": {
-      "src/format/accent.ts#AccentSchema": "G655 TD3: existing untyped export; remove when annotated",
-      "src/format/achievementCounters.ts#AchievementCounterDataSchema": "G655 TD3: existing untyped export; remove when annotated",
       "src/format/actorMoves.ts#ActorMoveSchema": "G655 TD3: existing untyped export; remove when annotated",
       "src/format/ambientLife.ts#ForagerPolicySchema": "G655 TD3: existing untyped export; remove when annotated",
       "src/format/ambientLife.ts#ForagerPopulationSchema": "G655 TD3: existing untyped export; remove when annotated",
@@ -582,8 +580,6 @@
       "src/format/traversal.ts#TraversalSchema": "G655 TD3: existing untyped export; remove when annotated",
       "src/format/treeSetRows.ts#TreeSetSchema": "G655 TD3: existing untyped export; remove when annotated",
       "src/format/ui.ts#UiSchema": "G655 TD3: existing untyped export; remove when annotated",
-      "src/format/uniformRows.ts#UniformRowSchema": "G655 TD3: existing untyped export; remove when annotated",
-      "src/format/uniformRows.ts#UniformRowsSchema": "G655 TD3: existing untyped export; remove when annotated",
       "src/format/vertexWear.ts#VertexWearSchema": "G655 TD3: existing untyped export; remove when annotated",
       "src/format/viewProgram.ts#ViewProgramSchema": "G655 TD3: existing untyped export; remove when annotated",
       "src/format/voicePatches.ts#VoicePatchesSchema": "G655 TD3: existing untyped export; remove when annotated",
@@ -2934,8 +2930,6 @@
     }
   },
   "wildshard/explicit-schema-types": {
-    "src/format/accent.ts": 1,
-    "src/format/achievementCounters.ts": 1,
     "src/format/actorMoves.ts": 1,
     "src/format/ambientLife.ts": 7,
     "src/format/arenaScriptRows.ts": 4,
@@ -3128,7 +3122,6 @@
     "src/format/traversal.ts": 1,
     "src/format/treeSetRows.ts": 1,
     "src/format/ui.ts": 1,
-    "src/format/uniformRows.ts": 2,
     "src/format/vertexWear.ts": 1,
     "src/format/viewProgram.ts": 1,
     "src/format/voicePatches.ts": 1,
