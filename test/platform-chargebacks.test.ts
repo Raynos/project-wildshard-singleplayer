@@ -396,7 +396,7 @@ test('G615 credits only timed encounters and its selected slot and patrol views'
   expect(approvedG571Host(approvals, 'src/game/boss/timedEncounters.ts')).toBe(true);
   for (const name of ['SlotEncounterView', 'PatrolEncounterView']) expect(approvedG571Host(approvals, path, name)).toBe(true);
   expect(approvedG571Host(approvals, path)).toBe(false);
-  for (const name of ['CloudBody', 'ArenaSceneView', 'EncounterSites', 'PatrolActor', 'SlotViewActor']) expect(approvedG571Host(approvals, path, name)).toBe(false);
+  for (const name of ['CloudBody', 'ArenaSceneView', 'EncounterSites']) expect(approvedG571Host(approvals, path, name)).toBe(false);
   expect(platformChargeback(path, 'PatrolEncounterView')).toBe('C4');
 });
 
@@ -420,4 +420,23 @@ test('G520 re-score: Pine\'s page life runs the crowd weapon target and roster r
   // the roster's prey joins charge Nalati inside the declaration Pine shares
   const charges = new Map<string, { path: string; name: string; lines: number }[]>([['nalati-grasslands', []]]), row = { path, name: 'CrowdRoster', lines: 17 };
   expect(recordPrivateCharge(charges, undefined, row)).toBe(true); expect(charges.get('nalati-grasslands')).toEqual([row]);
+});
+
+
+test('G615 encounter views include only their eight named concrete helper types', () => {
+  const path = 'src/game/boss/encounterView.ts', shared = new Set(['nalati-grasslands', 'pine-hollow']);
+  const names = ['SlotViewActor', 'SlotSiteChange', 'Awake', 'PatrolViewActor', 'PatrolHit', 'Rider', 'PatrolActor', 'PatrolActorRoster'];
+  const modules = new Map([[path, shared]]), bindings = new Map(names.map(name => [`${path}\0${name}`, shared]));
+  chargePlatformUsers(modules, bindings);
+  const approvals = g571HostApprovals('.');
+  for (const name of names) {
+    expect(platformChargeback(path, name)).toBeNull();
+    expect(bindings.get(`${path}\0${name}`)).toEqual(shared);
+    expect(approvedG571Host(approvals, path, name)).toBe(true);
+  }
+  expect(approvedG571Host(approvals, path)).toBe(false);
+  for (const name of ['EncounterSite', 'EncounterSites', 'CloudBody', 'lookParam']) expect(approvedG571Host(approvals, path, name)).toBe(false);
+  expect(platformChargeback(path, 'SlotEncounterView')).toBe('C4');
+  expect(platformChargeback(path, 'PatrolEncounterView')).toBe('C4');
+  expect(modules.get(path)).toEqual(shared);
 });

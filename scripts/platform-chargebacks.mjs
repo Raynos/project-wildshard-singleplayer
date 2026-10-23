@@ -12,7 +12,7 @@ const declarations = new Map([
   ['src/game/shardfile/worldAssembly.ts', new Map([['installAssemblyWeather', 'C9'], ['installAssemblyArenaScript', 'C9']])],
   ['src/game/looks/speciesBook.ts',new Map(['SpeciesLookBook','packedRows'].map(name=>[name,'C1']))],
   ['src/game/practice/course.ts', new Map(['MountedCourseEntry', 'GrappleCourseEntry', 'MountEntryRows', 'GrappleEntryRows'].map(name => [name, 'C6']))],
-  ['src/game/boss/encounterView.ts', new Map(['SlotEncounterView','SlotViewActor','SlotSiteChange','Awake','PatrolEncounterView','PatrolViewActor','PatrolHit','Rider','PatrolActor','PatrolActorRoster'].map(name=>[name,'C4']))],
+  ['src/game/boss/encounterView.ts', new Map(['SlotEncounterView','PatrolEncounterView'].map(name=>[name,'C4']))],
   ['src/game/population/pageGroups.ts', new Map([
     'point', 'whole', 'PagePopulationPlanner',
     'PageWildEnvironment', 'wildEnv', 'bindPageGroups',
