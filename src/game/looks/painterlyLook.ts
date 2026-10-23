@@ -23,6 +23,10 @@ import { lentLook, setLentParam, setLentTexture } from '../shardfile/lentLooks';
 import { loadFirstPartyProduct, runtimeProduct } from '../shardfile/runtimeProduct';
 import { setting } from '@wildshard/engine/ui/Settings';
 import type { StaticCaptureUniforms } from './staticCapture';
+import { GroundMerge } from '../shardfile/groundMerge';
+import { tileResidencyRadius } from '../shardfile/tileDriver';
+import { followTile, ring, tileKey } from '../shardfile/tileContent';
+import type { CellTile } from '../shardfile/tileOrder';
 
 const finite = v.pipe(v.number(), v.finite());
 const shapeId = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9-]*$/u));
@@ -45,7 +49,7 @@ const SpecimenTilesSchema = v.record(v.string(), v.looseObject({ texture: v.opti
 /** The level's painted ground from its rows over its specimen materials' `tiles`, shaded by the static capture's `bake`. */
 export function paintedGroundPainter(slug: string, input: unknown, tiles: unknown, bake: StaticCaptureUniforms): TerrainPainter {
   const rows = v.parse(PaintedGroundSchema, input), surface = parsePaintedTerrain(rows.surface), materials = v.parse(SpecimenTilesSchema, tiles);
-  return { build: async (terrain, field) => {
+  return { build: async (terrain, field, scope) => {
     const [, textures, product] = await Promise.all([field.ready(), Promise.all(rows.layers.map(name => {
       const texture = materials[name]?.texture; if (texture === undefined) throw new Error(`Missing painted tile ${name}`); return loadSpecimenTexture(texture);
     })), loadFirstPartyProduct(slug)]);
@@ -69,16 +73,39 @@ export function paintedGroundPainter(slug: string, input: unknown, tiles: unknow
     terrain.material = material; terrain.mesh = ground;
     const groundTiles = rows.tiles === true && setting('groundTiles') === 'on' ? (product.shardfile.props?.tiles ?? []).filter(row => row.lod === 0) : [];
     if (groundTiles.length > 0) {
-      const assets = runtimeProduct(product.shardfile).assets, parent = ground.parent;
+      // tile streaming N1a: the tiles draw as one merged mesh (the terrain's mesh, its flags kept) and, with Tile residency
+      // 5 x 5 / 3 x 3, only the player's ring of them stays loaded, followed from the merged mesh's own draws
+      const assets = runtimeProduct(product.shardfile).assets, parent = ground.parent === scene.root ? terrain.group : ground.parent;
       if (parent === null) throw new Error('Painted ground mesh has no parent');
-      for (const row of groundTiles) {
+      const radius = tileResidencyRadius(), loaded = new Map<number, Scope>(), at = new Vector3();
+      // the merged mesh's draws report where the player looks from; the ring follower takes over once it exists
+      const follower = { at: (_x: number, _z: number): void => undefined };
+      const merge = new GroundMerge(parent, material, ground.name, (mesh) => {
+        mesh.castShadow = ground.castShadow; mesh.receiveShadow = ground.receiveShadow; mesh.renderOrder = ground.renderOrder; terrain.mesh = mesh;
+        if (radius < 8) mesh.onBeforeRender = (_renderer, _scene, camera) => { camera.getWorldPosition(at); parent.worldToLocal(at); follower.at(at.x, at.z); };
+      });
+      const load = async (row: (typeof groundTiles)[number]): Promise<void> => {
+        const key = tileKey({ i: row.x, j: row.z }); if (loaded.has(key) || scope.disposed) return;
+        const tileScope = scope.child(`painted.ground.t${String(key)}`); loaded.set(key, tileScope);
         const owned = createOwnedGeometry(`${slug} ground ${String(row.x)}.${String(row.z)}`);
         await owned.load(await assets.read(row.file));
         const geometry = owned.take(); geometry.computeBoundingSphere();
-        const tile = new Mesh(geometry, material);
-        tile.name = `${ground.name}.${String(row.x)}.${String(row.z)}`; tile.castShadow = ground.castShadow; tile.receiveShadow = ground.receiveShadow; tile.renderOrder = ground.renderOrder;
-        parent.add(tile); terrain.mesh = tile;
-      }
+        if (tileScope.disposed) { geometry.dispose(); return; }
+        tileScope.onDispose(() => { geometry.dispose(); });
+        merge.add(new Mesh(geometry, material), tileScope);
+      };
+      const loadLater = async (row: (typeof groundTiles)[number]): Promise<void> => {
+        try { await load(row); } catch (error: unknown) { console.warn('[painted ground] tile failed to load', error); }
+      };
+      let centre: CellTile | null = null;
+      follower.at = (x, z) => {
+        const next = followTile(centre, x, z);
+        if (centre !== null && next.i === centre.i && next.j === centre.j) return;
+        centre = next; const keys = ring(next, radius);
+        for (const [key, tileScope] of loaded) if (!keys.has(key)) { loaded.delete(key); tileScope.dispose(); }
+        for (const row of groundTiles) if (keys.has(tileKey({ i: row.x, j: row.z }))) void loadLater(row);
+      };
+      for (const row of groundTiles) await load(row);
       ground.removeFromParent(); ground.geometry.dispose();
     }
     // These owned ground draws never clone or rewrite vertex channels again.

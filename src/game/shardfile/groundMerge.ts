@@ -21,7 +21,8 @@ export class GroundMerge {
   private readonly members = new Map<Mesh, Member>();
   private merged: Mesh | null = null;
   private queued = false;
-  constructor(private readonly parent: Object3D, private readonly material: Material, private readonly name: string) {}
+  /** `onRebuild`: each new merged mesh, before it draws (its shadow flags, render order or a terrain's mesh slot) */
+  constructor(private readonly parent: Object3D, private readonly material: Material, private readonly name: string, private readonly onRebuild?: (mesh: Mesh) => void) {}
 
   /** The tile's ground `mesh` joins (hidden itself) until `scope` ends; `coarse` (its coarse tile) returns the quadrant setter. */
   add(mesh: Mesh, scope: Scope, coarse?: { readonly x: number; readonly z: number }): (hidden: ReadonlySet<number>) => void {
@@ -81,6 +82,7 @@ export class GroundMerge {
     geometry.computeBoundingSphere();
     const mesh = new Mesh(geometry, this.material);
     mesh.name = this.name; mesh.castShadow = false; mesh.receiveShadow = true;
+    this.onRebuild?.(mesh);
     this.parent.add(mesh); this.merged = mesh;
   }
 }
