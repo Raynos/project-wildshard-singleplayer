@@ -22,7 +22,8 @@ function guestRows():CreatureGuestRows{
   if(row.states.some(state=>!ANIMAL_STATES.some(value=>value===state)))throw new Error('Unknown creature state');
   admitted=row;return row;
 }
-function program():ReturnProgram{return ReturnProgram.page(guestRows().program,app.levelScope??undefined);}
+/** Bind the original native strike before publishing the shared program. */
+export function program():ReturnProgram{nativeStrike();return ReturnProgram.page(guestRows().program,app.levelScope??undefined);}
 function nativeStrike():ReturnType<typeof strikeFromData>{strike??=strikeFromData(guestRows().strike);return strike;}
   /** A geometric observation shared by damage and local hit presentation. */
 function weakPoint(actor:Animal,point:THREE.Vector3):boolean{
@@ -60,9 +61,6 @@ function damage(actor:Animal,point:THREE.Vector3,_direction:THREE.Vector3,reques
     return v.parse(v.pipe(v.number(),v.finite()),program().project('damage',{field:actor.mem['field']??0,rise:actor.mem['rise']??1,open:actor.mem['open']??0,
       range:Math.hypot(point.x-(actor.mem[row.playerKeys[0]]??0),point.z-(actor.mem[row.playerKeys[1]]??0)),piercing:Number(piercing),crack:Number(weakPoint(actor,point))})['damage']);
   }
-const nativeGuest={weakPoint,program,binding:{think,damageMul:damage}};
-/** Borrow the actual balbal's numeric guest observations and contact binding. */
-export function creatureGuest():typeof nativeGuest{guestRows();nativeStrike();return nativeGuest;}
 /** The balbals' page controls; their body, rig, look, cracks and frame are the look book's rows. */
 export const BALBAL_SPECIES: Pick<SpeciesDef, 'kind' | 'think' | 'damageMul'> = {
   kind: BALBAL,

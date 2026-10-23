@@ -28,7 +28,7 @@ import { installWorldUpdates } from '@wildshard/game/shardfile/worldUpdates';
 
 import type { HeldSlotKit } from '@wildshard/game/loadout/claims';
 import { TimedEncounters } from '@wildshard/game/boss/timedEncounters';
-import { creatureGuest } from '../species/balbal';
+import { program as balbalProgram } from '../species/balbal';
 import { StealthController, type StealthController as Stealth, type StealthThreat } from '@wildshard/game/stealth/controller';
 import { enterClientRiding, type PageRidingView as Ride } from '@wildshard/game/riding/client';
 import type { CosmeticFinishPainter } from '@wildshard/game/loadout/cosmeticFinishes';
@@ -111,7 +111,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   let stealth: Stealth | null = null;
   const riderFigure = game.levelScope.own(shapes.handle('ghost-rider').copy()), captainFigure = game.levelScope.own(shapes.handle('ghost-captain').copy());
   const night = await TimedEncounters.install(plugin, { game, sky, player: ctx.player, forest: ctx.forest, sites: dressing.sites.get('balbals')?.sites ?? null, clock: weather.clock },
-    'combat/timed-encounters.json', { rider: riderFigure, captain: captainFigure, storm: riderFigure }, creatureGuest().program());
+    'combat/timed-encounters.json', { rider: riderFigure, captain: captainFigure, storm: riderFigure }, balbalProgram());
   function eliteFrame() { return { patrolAvailable: true, herdAvailable: wildlife !== null, kills: night.riders.killsTonight,
     bonded: ride?.taming.phase === 'bonded', mount: ride?.taming.companion ?? null }; }
   let painter: CosmeticFinishPainter | null = null, syncT = 0;
