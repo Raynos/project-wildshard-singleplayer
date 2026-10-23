@@ -881,7 +881,10 @@ export class Game {
     const nodesBefore = nodeStats();
     // O14: the entering owner's camera models (a cell's weapons) go with it, so the road's exterior frame never draws them
     const leaving = this.viewmodel.staged(owner);
-    await warmComposerFrame(composer, this.renderer, () => precompileLevel(this, progress, { chunkCasters: false, current, owner, futureLighting, isolateImageUploads, onStage,
+    // the boot's entry (no frame drawn yet): the Shaders step builds what the first frame draws and the rest is warmed in
+    // play (Debug ▸ Shaders before play), so the entered root's scene programs and whole-root draws wait for them
+    const bootDrawn = this.frameCount === 0 && setting('bootShaders') === 'drawn';
+    await warmComposerFrame(composer, this.renderer, () => precompileLevel(this, progress, { chunkCasters: false, current, owner, futureLighting, isolateImageUploads, onStage, drawnOnly: bootDrawn,
       ...(leaving === undefined ? {} : { leaving: [leaving] }), ...(sliceMs === undefined ? {} : { sliceMs }),
       ...(futureEnvironment === null ? {} : { futureEnvironment }), ...(pause === undefined ? {} : { pause }), ...(uploadBudget === undefined ? {} : { uploadBudget }) }), current);
     onStage('shaders-and-composer', diagnosticNow() - shaderStart, 1);
@@ -903,7 +906,7 @@ export class Game {
     }
     // op-hitch31: a parked root's first draws (pipelines, buffers) were the entry frame's whole cost (Sky Reach 900 ms
     // desktop, up to 1011 ms Simulator, in `activate`); draw it a few objects a frame into a 1×1 scissor first.
-    if (futureRoot !== undefined && futureRoot !== this.rootScene && !futureRoot.visible) {
+    if (futureRoot !== undefined && futureRoot !== this.rootScene && !futureRoot.visible && !bootDrawn) {
       enter('parked-draws');
       const start = diagnosticNow();
       // Tiny already-linked draws can share the bounded construction slice. Each draw restores every flag
