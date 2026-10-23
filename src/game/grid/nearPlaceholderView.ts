@@ -97,6 +97,11 @@ export class NearPlaceholders {
   /** True while the cell's near view is drawn and owns the cell (round 3: the rings stop refining it to its L1 / L0 tiles). */
   owns(instance: string): boolean { const slot = this.slots.get(instance); return slot?.ready === true && slot.owns; }
 
+  /** Live P0 (Jake, ab93dccfe): true once the cell's shard turned out to have no near view. Its own L1 / L0 tiles are pieces
+   *  of its world drawn in its own looks, which only its entered world lights (Nine's night city drew huge black blocks at its
+   *  gate), so the rings keep its far proxy instead, as for a near view that owns the cell. */
+  absent(instance: string): boolean { return this.missing.has(instance); }
+
   state(): NearPlaceholderState {
     let bytes = 0;
     const cells: NearPlaceholderState['cells'][number][] = [...this.slots.values()].map(s => {

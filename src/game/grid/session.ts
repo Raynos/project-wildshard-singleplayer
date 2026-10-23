@@ -546,9 +546,10 @@ export class GridSession {
     const tiles = neighbourTiles(host.scope, async (tile) => { await host.prepareTile?.(tile); }), tileCost = clientRingCatalogue(tiles.instances);
     // G342 round 3: a cell whose near view draws and carries its own world owns it whole (its dense
     // ground over the cell), so the rings stop refining it to its own L1 / L0 tiles, which would mask the near view near
-    // the road (round 3's first A = B); a terrain-only near view (the template, its world in its tiles) keeps them
+    // the road (round 3's first A = B); a terrain-only near view (the template, its world in its tiles) keeps them; a cell
+    // with no near view at all keeps its far proxy (its tiles draw in looks only its entered world lights)
     this.rings = new RenderRings(this.neighbours, this.allocator, (id, level, x, z) => (level === 'far' ? this.costs.get(id) ?? this.declaredFar.get(id) ?? 1_600_000
-      : this.near.owns(id) ? null : tileCost(id, level, x, z)),
+      : this.near.owns(id) || this.near.absent(id) ? null : tileCost(id, level, x, z)),
       levelPorts<FarPrepared, PreparedRingTile>(farPorts, tiles.ports), { farRadius: FAR_RING.reach });
     this.admitNeighbour = host.renderer === undefined ? undefined : this.tileAdmission(host.renderer, roots, tiles.instances);
     host.scope.onDispose(() => {
@@ -718,7 +719,7 @@ export class GridSession {
   private viewStep(): void {
     const at = this.last ?? this.world(), speed = Math.hypot(this.velocity.x, this.velocity.z), clamp = speed > 60 ? 60 / speed : 1; // a respawn's jump is not a velocity
     this.rings.step({ x: at.x, z: at.z, vx: this.velocity.x * clamp, vz: this.velocity.z * clamp });
-    for (const cell of this.neighbours) if (this.near.owns(cell.instance)) this.rings.retireRefinement(cell.instance);
+    for (const cell of this.neighbours) if (this.near.owns(cell.instance) || this.near.absent(cell.instance)) this.rings.retireRefinement(cell.instance);
     this.stepCellLoading();
     this.shimmer.step();
     const active = this.live === null ? this.home.instance : this.live.live.current();
