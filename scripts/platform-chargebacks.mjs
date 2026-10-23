@@ -7,9 +7,8 @@ const modules = new Map([
   ['src/game/models/mountedSpecimen.ts', 'C1'],
 ]);
 /** @type {Map<string,Map<string,import('./shard-components.mjs').Component>>} */
+// G665 R16: the listed open-arena host (including its boundary) is credited.
 const declarations = new Map([
-  ['src/game/boss/arenaRoom.ts',new Map([...['OpenArenaWorld','SupportActor','Chain','_openV','arenaScriptCloud','readArenaScriptData','OpenArenaProjection'].map(name=>[name,'C4']),['buildOpenArenaEncounter','C9']])],
-  ['src/game/riding/client.ts',new Map(['ArenaBoundary','boundaries','arenaBlockedAt','installArenaBoundary','arenaBoundaryBlocked'].map(name=>[name,'C4']))],
   ['src/game/shardfile/worldAssembly.ts', new Map([['installAssemblyWeather', 'C9'], ['installAssemblyArenaScript', 'C9']])],
   ['src/game/looks/speciesBook.ts',new Map(['SpeciesLookBook','packedRows'].map(name=>[name,'C1']))],
   ['src/game/practice/course.ts', new Map(['MountedCourseEntry', 'GrappleCourseEntry', 'MountEntryRows', 'GrappleEntryRows'].map(name => [name, 'C6']))],

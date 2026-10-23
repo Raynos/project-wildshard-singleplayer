@@ -16,7 +16,7 @@ test('optional shared dispatch does not invent another arena or keeper user', ()
     [`${groups}\0PageGroups`, both], [`${groups}\0FixedPageSpawnTable`, both]]);
   chargePlatformUsers(modules, bindings);
   expect(modules.get(arena)).toEqual(both);
-  expect([...bindings.get(`${arena}\0OpenArenaProjection`)??[]]).toEqual(['nalati-grasslands']);
+  expect(bindings.get(`${arena}\0OpenArenaProjection`)).toEqual(both);
   expect([...bindings.get(`${groups}\0PageGroups`) ?? []]).toEqual(['nalati-grasslands']);
   expect(bindings.get(`${phase}\0bossFight`)).toEqual(both);
   expect(bindings.get(`${groups}\0FixedPageSpawnTable`)).toEqual(both);
@@ -25,7 +25,7 @@ test('optional shared dispatch does not invent another arena or keeper user', ()
 });
 
 test('a non-shard sole user maps to its reviewed owner or reports its excluded lines', () => {
-  const arena = { path: 'src/game/boss/arenaRoom.ts',name:'OpenArenaProjection', lines: 514 };
+  const arena = { path: 'src/game/boss/encounterView.ts',name:'SlotEncounterView', lines: 514 };
   const charges = new Map<string, { path: string; lines: number; name?: string }[]>([['nalati-grasslands', []]]);
   const reports: string[] = [], report = (line: string) => { reports.push(line); };
   expect(recordPrivateCharge(charges, 'fixture-only-user', arena, report)).toBe(true);
@@ -120,14 +120,14 @@ test('the real Pine and Driftwood Explorer dispatcher no longer has a sole-user 
   }
   // Dispatch credit does not waive a private intake or presentation owner.
   expect(platformChargeback('src/engine/models/geometrySources.ts', 'registerPackedGeometrySource')).toBeNull();
-  expect(platformChargeback('src/game/boss/arenaRoom.ts','OpenArenaProjection')).toBe('C4');
+  expect(platformChargeback('src/game/boss/arenaRoom.ts','OpenArenaProjection')).toBeNull();
 });
 
 test('day-one feature credit cannot erase a G520 chargeback', () => {
-  const path = 'src/game/boss/arenaRoom.ts';
+  const path = 'src/game/boss/encounterView.ts';
   const allowance: PendingPlatformUser = { module: path, documentation: 'docs/HOST-BAR.md',
     approvedFeature: { name: 'painterly look host', decision: { path: 'docs/plans/shard-platform/decisions.md', row: 'G478' } } };
-  const painterly = { path, name: 'OpenArenaProjection', exported: true, lines: 40 };
+  const painterly = { path, name: 'SlotEncounterView', exported: true, lines: 40 };
   const rows = [painterly,
     { path, name: 'ElitePageRows', exported: true, lines: 80 }];
   const result = partitionPendingPlatformUsers('nalati-grasslands', [], rows, [allowance]);
@@ -144,7 +144,7 @@ test('day-one feature credit cannot erase a G520 chargeback', () => {
 test('chargebacks retain their exact component after guest admission', () => {
   const sources = [
     { path: 'src/game/models/mountedSpecimen.ts', kind: 'sole-module', lines: 27 },
-    { path: 'src/game/boss/arenaRoom.ts', name: 'OpenArenaProjection', kind: 'sole-export', lines: 40 },
+    { path: 'src/game/boss/encounterView.ts', name: 'SlotEncounterView', kind: 'sole-export', lines: 40 },
   ] as const;
   const inventory = componentInventory('.', 'nalati-grasslands', [...sources], 67);
   expect(inventory.counts.C2).toBe(0);
@@ -394,7 +394,7 @@ test('G615 credits only timed encounters and its selected slot and patrol views'
 test('retired arsenal and variant modules leave no standalone item charge',()=>{
   expect(platformChargeback('src/game/loadout/mounted.ts')).toBeNull();
   expect(platformChargeback('src/game/weapons/bowVariant.ts')).toBeNull();
-  expect(platformChargeback('src/game/boss/arenaRoom.ts','OpenArenaProjection')).toBe('C4');
+  expect(platformChargeback('src/game/boss/arenaRoom.ts','OpenArenaProjection')).toBeNull();
 });
 
 test('G520 re-score: Pine\'s page life runs the crowd weapon target and roster ray; only Nalati\'s prey joins stay charged', () => {
@@ -460,11 +460,29 @@ test('G621 D4 retires only the three already-approved chapter dependency overrid
 });
 
 
-test('the open-arena projection remains charged after lifecycle convergence',()=>{
-  for(const name of ['OpenArenaProjection','arenaScriptCloud','readArenaScriptData'])expect(platformChargeback('src/game/boss/arenaRoom.ts',name)).toBe('C4');
-  for(const name of ['arenaBlockedAt','installArenaBoundary','arenaBoundaryBlocked'])expect(platformChargeback('src/game/riding/client.ts',name)).toBe('C4');
-  expect(platformChargeback('src/game/boss/arenaRoom.ts','buildOpenArenaEncounter')).toBe('C9');
-  expect(platformChargeback('src/game/boss/arenaRoom.ts','ArenaRoomEncounter')).toBeNull();
+test('G665 credits only the complete listed open-arena host',()=>{
+  const rows = [
+    ['src/game/boss/arenaRoom.ts',['OpenArenaProjection','buildOpenArenaEncounter','OpenArenaWorld','SupportActor','Chain','_openV','_openW','_openRAY','_openSPH','_openHITP','arenaScriptCloud','readArenaScriptData']],
+    ['src/game/riding/client.ts',['ArenaBoundary','boundaries','arenaBlockedAt','installArenaBoundary','arenaBoundaryBlocked']],
+  ] as const;
+  const shared=new Set(['nalati-grasslands','pine-hollow']),approvals=g571HostApprovals('.');
+  const modules=new Map(rows.map(([path])=>[path,shared]));
+  const bindings=new Map(rows.flatMap(([path,names])=>names.map(name=>[`${path}\0${name}`,shared] as const)));
+  chargePlatformUsers(modules,bindings);
+  for(const [path,names]of rows){
+    expect(modules.get(path)).toBe(shared);
+    expect(approvedG571Host(approvals,path)).toBe(false);
+    for(const name of names){
+      expect(platformChargeback(path,name)).toBeNull();
+      expect(approvedG571Host(approvals,path,name)).toBe(true);
+      expect(bindings.get(`${path}\0${name}`)).toBe(shared);
+    }
+    expect(approvedG571Host(approvals,path,'unreviewed')).toBe(false);
+  }
+  expect(approvedG571Host(approvals,'src/game/boss/arenaRoom.ts','ArenaRoomEncounter')).toBe(false);
+  expect(approvedG571Host(approvals,'src/game/riding/client.ts','installClientRiding')).toBe(false);
+  expect(platformChargeback('src/game/shardfile/worldAssembly.ts','installAssemblyArenaScript')).toBe('C9');
+  expect(platformChargeback('src/game/boss/arenaScript.ts')).toBe('C4');
 });
 
 
