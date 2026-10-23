@@ -35,7 +35,10 @@ export const WorldSourceSchema = v.pipe(v.unknown(), v.check(plainWorldData, 'wo
   /** G608: nodes under this name prefix fill only the far proxy (a light's stand-in at a distance, as a hologram's):
    *  never a tile, a collider or an edge sample */
   far: v.optional(name),
-}), v.check((source) => {
+  /** NM0 (Night Market pilot): `add` (default) builds the far proxy from every static, undrawn and far-only node; `replace`
+   *  from the far-only nodes alone (a world of many small pieces whose own simplification cannot reach the far budget) */
+  farMode: v.optional(v.picklist(['add', 'replace']), 'add'),
+}), v.check((source) => source.farMode === 'add' || source.far !== undefined, 'farMode replace needs a far prefix'), v.check((source) => {
   const nodes = [...Object.keys(source.objects), ...source.interactive.map((row) => row.node)];
   const ids = [...Object.values(source.objects), ...source.interactive.map((row) => row.id)];
   return new Set(nodes).size === nodes.length && new Set(ids).size === ids.length && new Set(source.interactive.map((row) => row.colliderId)).size === source.interactive.length;

@@ -45,6 +45,12 @@ function edges(world: NormalizedWorld): Shardfile['edge'] {
   } finally { meshes.forEach(mesh => mesh.geometry.dispose()); material.dispose(); }
 }
 
+/** The far proxy's source rows: every static, undrawn and far-only node (`add`), or the far-only nodes alone (`replace`, NM0);
+ *  never an additive light surface (`light`: material indices). */
+export function farSources(world: Pick<NormalizedWorld, 'static' | 'undrawn' | 'far'>, light: ReadonlySet<number>, mode: 'add' | 'replace'): WorldPrimitive[] {
+  return (mode === 'replace' ? world.far : [...world.static, ...world.undrawn, ...world.far]).filter(row => !light.has(row.material));
+}
+
 /** Build a static authored GLB through the pinned texture/LOD tools and the normal render/collision row packers.
  * The default config is a compiled declaration plus `world`; this build-only key is removed before format parsing.
  * Existing compiled world sections refuse rather than being silently replaced. No repository bake script is needed. */
@@ -107,7 +113,7 @@ export async function bakeAuthoredWorld(input: unknown, bytes: Uint8Array): Prom
     // additive graph surfaces (a hologram) are light without a far silhouette; the world's far-only nodes (its source's
     // `far` prefix) stand in for them here (G608)
     const light = new Set(world.materials.flatMap((row, index) => { const entry = materials[row.id]; return entry?.family === 'graph' && 'graph' in entry && entry.graph.effectState?.blend === 'additive' ? [index] : []; }));
-    const farRows = await Promise.all([...world.static, ...world.undrawn, ...world.far].filter(row => !light.has(row.material)).map(row => simplifyWorldPrimitive(row, 0.1, 2)));
+    const farRows = await Promise.all(farSources(world, light, authored.farMode).map(row => simplifyWorldPrimitive(row, 0.1, 2)));
     const farParts = farRows.map(row => {
       const part = worldGeometry(row.primitive), colour = world.materials[row.primitive.material]?.colour ?? [1, 1, 1];
       const n = part.getAttribute('position').count, values: number[] = [], original = part.hasAttribute('color') ? part.getAttribute('color') : null;
