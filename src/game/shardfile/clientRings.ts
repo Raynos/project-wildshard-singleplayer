@@ -48,17 +48,18 @@ export function clientRingCatalogue(instances: ReadonlyMap<string, { readonly so
 export function clientRingPorts(instances: ReadonlyMap<string, ClientRingInstance>, ports: { scope: Scope; decoder: TileDecoder;
   /** Prepare the detached, fully built tile before publication; rejection retires only this tile's scope. */
   prepare?: (tile: PreparedRingTile) => Promise<void> }): RingPorts<PreparedRingTile> {
+  const active = new Map<string, Scope>();
   const prepare = async (tile: RingTile, instance: ClientRingInstance, scope: Scope, group: Group): Promise<PreparedRingTile> => {
     const key = lodKey(tile); if (key === null) throw new Error('shardfile rings: far proxies are the far view\'s (SF23)');
     const tiles: ResidentTile[] = [], { source, assets, views } = instance;
     const admitted = async (file: string): Promise<Uint8Array> => {
       scope.onDispose(assets.lease([file]));
-      const bytes = await assets.read(file); if (scope.disposed) throw new Error('shardfile rings: tile dropped while reading');
+      const bytes = await assets.read(file); if (scope.disposed || scope.disposing) throw new Error('shardfile rings: tile dropped while reading');
       return bytes;
     };
     const terrain = source.terrain?.tiles.find((row) => `${row.lod}/${row.x}/${row.z}` === key);
     if (terrain !== undefined) {
-      const data = await ports.decoder.decode(await admitted(terrain.file)); if (scope.disposed) throw new Error('shardfile rings: tile dropped while decoding');
+      const data = await ports.decoder.decode(await admitted(terrain.file)); if (scope.disposed || scope.disposing) throw new Error('shardfile rings: tile dropped while decoding');
       tiles.push(views.terrain(data, group, scope, false));
     }
     const props = source.props, row = props?.tiles.find((candidate) => `${candidate.lod}/${candidate.x}/${candidate.z}` === key);
@@ -71,22 +72,31 @@ export function clientRingPorts(instances: ReadonlyMap<string, ClientRingInstanc
     return { scope, group, tiles, root: instance.root };
   };
   const run = async (tile: RingTile, report: (result: PreparedRingTile | Error) => void): Promise<void> => {
+    if (ports.scope.disposed || ports.scope.disposing) { report(new Error('shardfile rings: tile owner left')); return; }
+    if (active.has(tile.key)) { report(new Error('shardfile rings: tile already preparing or resident')); return; }
     const instance = instances.get(tile.instance); if (instance === undefined) { report(new Error(`shardfile rings: unknown instance ${tile.instance}`)); return; }
     const scope = ports.scope.child(`ring:${tile.key}`), group = new Group(); group.name = `ring:${tile.key}`;
-    scope.onDispose(() => { group.removeFromParent(); });
+    active.set(tile.key, scope);
+    scope.onDispose(() => {
+      group.removeFromParent();
+      if (active.get(tile.key) === scope) active.delete(tile.key);
+    });
     let result: PreparedRingTile | Error;
     try {
       result = await prepare(tile, instance, scope, group);
       await ports.prepare?.(result);
-      if (scope.disposed) throw new Error('shardfile rings: tile dropped during preparation');
+      if (scope.disposed || scope.disposing) throw new Error('shardfile rings: tile dropped during preparation');
     }
     catch (error) { scope.dispose(); result = error instanceof Error ? error : new Error(String(error)); }
     report(result);
   };
   return {
     fetch: (tile, report) => { void run(tile, report); },
+    // The allocator releases this tile immediately; its construction must retire
+    // at the same boundary, even while a read/decode/prepare promise is pending.
+    cancel: (tile) => { active.get(tile.key)?.dispose(); },
     upload: (_tile, prepared): RingView => {
-      if (prepared.scope.disposed) throw new Error('shardfile rings: uploading a disposed tile');
+      if (prepared.scope.disposed || prepared.scope.disposing) throw new Error('shardfile rings: uploading a disposed tile');
       prepared.root.add(prepared.group);
       return {
         mask: (excluded) => { for (const tile of prepared.tiles) tile.mask(excluded); },
