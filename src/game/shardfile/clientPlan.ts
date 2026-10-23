@@ -1,43 +1,21 @@
 import { entryOwner as declaredOwner } from './entryOwners';
 import { prepareClientReturnModules } from './clientReturnModules';
 import { preflightIslandBook } from './islandBook';
-import { installClientAdventurePersistence } from '../quest/persistence';
 import { enteredAdventurePersistence } from '../quest/chapterBindings';
 import { timeClientPreparation } from './preparationTiming';
-import { installPracticeCourse } from '../practice/registration';
 import { runtimeLookMaterials } from './runtimeProduct';
 import { hasLentLook, lendLooks } from './lentLooks';
-import { installClientMeadow } from './clientMeadow';
-import { installClientPathRamps } from './pagePreparation';
-import { installClientRiding } from '../riding/client';
-import { clientWildlife, installClientWildlife } from '../population/wildlife';
-import { installClientFinds } from './clientFinds';
 import { TIER } from '@wildshard/engine/core/tier';
 import { SceneDressing } from './sceneDressing';
-import { installClientPlaceSets } from './clientPlaceSets';
-import { installClientCatalogue } from './clientCatalogue';
 import { Color } from 'three';
 import { syncPainterlySun,updatePainterly,setPainterlyLook,painterlyUniforms } from '@wildshard/engine/world/painterly';
 import { wind } from '@wildshard/engine/world/steppeWind';
 import { windUniforms } from '@wildshard/engine/world/TreeFactory';
-import { installClientAudioScene, enterClientAudioScene } from '../audio/sceneDirector';
-import { installClientWaterSurfaces } from './clientWaterSurfaces';
-import { installClientBakedTiles } from './bakedTiles';
-import { installClientCosmeticFinishes } from './clientCosmeticFinishes';
-import { installHeldRangedFeel } from '../plugin/heldEquipment';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { installClientCues } from './clientCues';
-import { installClientTrails } from './clientTrails';
 import { clientNativeBook } from './clientNativeBook';
 import { installWeatherFields } from './weatherFields';
 import { installSceneMotion } from './sceneMotion';
-import { installClientHeldMelee, enterClientHeldMelee } from './clientHeldMelee';
-import { installClientSpeciesProgram, prepareClientSpeciesCatalogue } from './clientSpeciesProgram';
-import { installClientQuestPage, finishClientQuestPage } from './clientQuestPage';
-import { installClientPopulation } from './clientPopulation';
-import { installClientBossFight } from './clientBossFight';
-import { installClientBossTelegraph } from './clientBossTelegraph';
-import { installClientPlayerEnter, enterClientPlayer } from './clientPlayerEnter';
 import type { PlatformSectionName } from '@wildshard/format/sections';
 import { installLightEmitters } from './lightEmitters';
 import { buildYield } from '@wildshard/engine/core/workSlice';
@@ -66,12 +44,21 @@ interface ClientFeature {
   readonly world?: { readonly rank: number; readonly when: (row: ClientFeatureRow) => boolean; readonly install: ClientFeature['install'] };
   readonly preparePlay?: { readonly rank: number; readonly install: ClientFeature['install']; readonly when?: (row: ClientFeatureRow) => boolean };
 }
+/** Keep optional feature graphs cold until their original ordered phase.
+ * The module can finish loading after eviction; refuse before invoking it. */
+function loadFeature(load: () => Promise<ClientFeature['install']>): ClientFeature['install'] {
+  return async (ctx, row, resident) => {
+    const scope = ctx.scope, product = ctx.product, install = await load();
+    if (ctx.scope !== scope || ctx.product !== product || scope.disposed || scope.disposing || resident.disposed || resident.disposing) throw new Error('Client feature owner is disposed');
+    await install(ctx, row, resident);
+  };
+}
 /** Compiled-in client-only registry. Adding a kind requires its strict format schema and a reviewed platform host. */
 export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>> = {
   'content.catalogue': { phase: 'kit', rank: 15, lifetime: 'entered',
     // Item/quest/journal envelopes are root data; finishes are streamed separately.
-    sections: ['held/finishes'], install: installClientCatalogue },
-  'state.adventure': { phase: 'world', rank: 5, lifetime: 'entered', needsWorldLooks: false, sections: [], install: installClientAdventurePersistence,
+    sections: ['held/finishes'], install: loadFeature(async () => (await import('./clientCatalogue')).installClientCatalogue) },
+  'state.adventure': { phase: 'world', rank: 5, lifetime: 'entered', needsWorldLooks: false, sections: [], install: loadFeature(async () => (await import('../quest/persistence')).installClientAdventurePersistence),
     preparePlay: { rank: -100, when: row => row.kind === 'state.adventure' && row.progress === true, install: (ctx, row) => {
       if (row.kind !== 'state.adventure' || row.progress !== true) throw new Error('Invalid adventure progress feature');
       const play = ctx.game.runtime?.play;
@@ -83,7 +70,7 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     const { installClientWorldAssembly } = await import('./clientWorldAssembly');
     await installClientWorldAssembly(ctx, row);
   } },
-  'world.meadow': { phase: 'world', rank: 46, lifetime: 'entered', sections: [], install: installClientMeadow },
+  'world.meadow': { phase: 'world', rank: 46, lifetime: 'entered', sections: [], install: loadFeature(async () => (await import('./clientMeadow')).installClientMeadow) },
   // Construction and entered lending finish before these fixed owner bindings.
   // Rows cannot choose this boundary or move it after the shell captures hooks.
   'world.ambient-life': { phase: 'world-bindings', rank: 20, lifetime: 'entered', sections: [], install: async (ctx, row) => {
@@ -246,8 +233,8 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     const { installDeclaredPortalRide } = await import('./portalRideBinding');
     await installDeclaredPortalRide(ctx, row.source);
   } },
-  'world.paths': { phase: 'kit', rank: 0, lifetime: 'entered', sections: [], install: installClientPathRamps },
-  'riding.session': { phase: 'world', rank: 49, lifetime: 'entered', sections: [], install: installClientRiding },
+  'world.paths': { phase: 'kit', rank: 0, lifetime: 'entered', sections: [], install: loadFeature(async () => (await import('./pagePreparation')).installClientPathRamps) },
+  'riding.session': { phase: 'world', rank: 49, lifetime: 'entered', sections: [], install: loadFeature(async () => (await import('../riding/client')).installClientRiding) },
   'stealth.entry': { phase: 'prepare-play', rank: 0, lifetime: 'entered', sections: ['player/stealth'], install: async (ctx, row) => {
     if (row.kind !== 'stealth.entry') throw new Error('Invalid stealth entry feature');
     const { installClientStealthEntry } = await import('./clientStealthEntry');
@@ -263,19 +250,20 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     const { installClientTimedEncounters } = await import('./clientTimedEncounters');
     await installClientTimedEncounters(ctx, row);
   } },
-  'practice.course': { phase: 'play', rank: 100, lifetime: 'entered', sections: [], install: installPracticeCourse },
-  'population.wildlife': { phase: 'world', rank: 49, lifetime: 'entered', sections: [], install: installClientWildlife,
-    play: { rank: 120, install: (ctx, row) => {
+  'practice.course': { phase: 'play', rank: 100, lifetime: 'entered', sections: [], install: loadFeature(async () => (await import('../practice/registration')).installPracticeCourse) },
+  'population.wildlife': { phase: 'world', rank: 49, lifetime: 'entered', sections: [], install: loadFeature(async () => (await import('../population/wildlife')).installClientWildlife),
+    play: { rank: 120, install: async (ctx, row) => {
       if (row.kind !== 'population.wildlife') throw new Error('Invalid wildlife publication');
       if (row.publish === undefined) return;
+      const { clientWildlife } = await import('../population/wildlife');
       const runtime = ctx.game.runtime;
       if (ctx.scope.disposed || ctx.scope.disposing || runtime === undefined || runtime.world === null || runtime.step === null || runtime.play === null) throw new Error('Wildlife publication requires its entered world and play owner');
       const wildlife = clientWildlife(ctx); if (wildlife === null) throw new Error('Wildlife has not been built');
       ctx.scope.expose(runtime.objects, row.publish, wildlife);
     } } },
-  'world.water': {phase:'world',rank:42,lifetime:'entered',sections:[],install:installClientWaterSurfaces},
-  'world.baked': { phase: 'world', rank: 43, lifetime: 'resident', sections: [], install: installClientBakedTiles },
-  'audio.scene': {phase:'world',rank:48,lifetime:'entered',sections:[],install:installClientAudioScene,play:{rank:30,install:enterClientAudioScene}},
+  'world.water': {phase:'world',rank:42,lifetime:'entered',sections:[],install: loadFeature(async () => (await import('./clientWaterSurfaces')).installClientWaterSurfaces)},
+  'world.baked': { phase: 'world', rank: 43, lifetime: 'resident', sections: [], install: loadFeature(async () => (await import('./bakedTiles')).installClientBakedTiles) },
+  'audio.scene': {phase:'world',rank:48,lifetime:'entered',sections:[],install: loadFeature(async () => (await import('../audio/sceneDirector')).installClientAudioScene),play:{rank:30,install: loadFeature(async () => (await import('../audio/sceneDirector')).enterClientAudioScene)}},
   'look.painterly': {phase:'world',rank:10,lifetime:'entered',sections:[],install:(ctx,row)=>{
     if(row.kind!=='look.painterly')throw new Error('Invalid painterly feature');
     const world=ctx.game.runtime?.world;if(world===undefined||world===null)throw new Error('Painterly look requires its world');
@@ -283,7 +271,7 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     if(retainsRuntimeServices(ctx))installEnteredRuntimeService(ctx,apply);else apply();
     ctx.system({id:'client.painterly',phase:'update',after:['main.world'],before:['engine.creatures.update'],run:dt=>{updatePainterly(dt);painterlyUniforms.uPWind.value.set(wind.dirX,wind.dirZ,windUniforms.uWindStrength.value);}});
   }},
-  'world.sets': {phase:'world',rank:47,lifetime:'entered',sections:[],install:installClientPlaceSets},
+  'world.sets': {phase:'world',rank:47,lifetime:'entered',sections:[],install: loadFeature(async () => (await import('./clientPlaceSets')).installClientPlaceSets)},
   'strings.register': { phase: 'world', rank: 0, lifetime: 'entered', sections: ['ui/strings'], needsWorldLooks: false,
     install: ctx => {
       const rows = ctx.product.section('ui/strings');
@@ -310,21 +298,21 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
       installSceneMotion(ctx, row.rows, clientSceneHandles(ctx.product, resident));
     } },
   // after quest.chapter-view: the finds borrow the quest it binds
-  'bag.finds': {phase:'play',rank:120,lifetime:'entered',sections:[],install:installClientFinds},
-  'held.cosmetics': {phase:'kit',rank:30,lifetime:'entered',sections:['held/finishes'],install:installClientCosmeticFinishes},
-  'held.ranged-feel': {phase:'play',rank:30,lifetime:'entered',sections:[],install:installHeldRangedFeel},
-  'held.melee': { phase: 'kit', rank: 10, lifetime: 'entered', sections: ['look/painted'], install: installClientHeldMelee,
-    play: { rank: 20, install: enterClientHeldMelee } },
-  'player.enter': { phase: 'world', rank: 50, lifetime: 'entered', sections: [], install: installClientPlayerEnter,
-    play: { rank: 25, install: enterClientPlayer } },
-  'species.program': { phase: 'kit', rank: 20, rankFor: row => row.kind === 'species.program' && row.catalogue !== undefined ? -40 : 20, lifetime: 'entered', needsWorldLooks: false, sections: ['actors/species-programs', 'sim/scripts', 'sim/runtime-plan'], install: installClientSpeciesProgram,
-    world: { rank: 10, when: row => row.kind === 'species.program' && row.catalogue !== undefined, install: prepareClientSpeciesCatalogue } },
-  'quest.page': { phase: 'play', rank: 10, lifetime: 'entered', sections: ['world/scenes', 'world/targets', 'look/painted'], install: installClientQuestPage,
-    play: { rank: 80, install: finishClientQuestPage } },
-  'boss.spawned': { phase: 'play', rank: 50, lifetime: 'entered', sections: ['sim/runtime-plan'], install: installClientBossFight },
-  'population.homes': { phase: 'play', rank: 60, lifetime: 'entered', sections: ['sim/runtime-plan', 'sim/scripts'], install: installClientPopulation },
-  'boss.held': { phase: 'play', rank: 70, lifetime: 'entered', sections: ['sim/runtime-plan'], install: installClientBossFight },
-  'boss.telegraph': { phase: 'play', rank: 75, lifetime: 'entered', sections: ['sim/runtime-plan', 'actors/strikes'], install: installClientBossTelegraph },
+  'bag.finds': {phase:'play',rank:120,lifetime:'entered',sections:[],install: loadFeature(async () => (await import('./clientFinds')).installClientFinds)},
+  'held.cosmetics': {phase:'kit',rank:30,lifetime:'entered',sections:['held/finishes'],install: loadFeature(async () => (await import('./clientCosmeticFinishes')).installClientCosmeticFinishes)},
+  'held.ranged-feel': {phase:'play',rank:30,lifetime:'entered',sections:[],install: loadFeature(async () => (await import('../plugin/heldEquipment')).installHeldRangedFeel)},
+  'held.melee': { phase: 'kit', rank: 10, lifetime: 'entered', sections: ['look/painted'], install: loadFeature(async () => (await import('./clientHeldMelee')).installClientHeldMelee),
+    play: { rank: 20, install: loadFeature(async () => (await import('./clientHeldMelee')).enterClientHeldMelee) } },
+  'player.enter': { phase: 'world', rank: 50, lifetime: 'entered', sections: [], install: loadFeature(async () => (await import('./clientPlayerEnter')).installClientPlayerEnter),
+    play: { rank: 25, install: loadFeature(async () => (await import('./clientPlayerEnter')).enterClientPlayer) } },
+  'species.program': { phase: 'kit', rank: 20, rankFor: row => row.kind === 'species.program' && row.catalogue !== undefined ? -40 : 20, lifetime: 'entered', needsWorldLooks: false, sections: ['actors/species-programs', 'sim/scripts', 'sim/runtime-plan'], install: loadFeature(async () => (await import('./clientSpeciesProgram')).installClientSpeciesProgram),
+    world: { rank: 10, when: row => row.kind === 'species.program' && row.catalogue !== undefined, install: loadFeature(async () => (await import('./clientSpeciesProgram')).prepareClientSpeciesCatalogue) } },
+  'quest.page': { phase: 'play', rank: 10, lifetime: 'entered', sections: ['world/scenes', 'world/targets', 'look/painted'], install: loadFeature(async () => (await import('./clientQuestPage')).installClientQuestPage),
+    play: { rank: 80, install: loadFeature(async () => (await import('./clientQuestPage')).finishClientQuestPage) } },
+  'boss.spawned': { phase: 'play', rank: 50, lifetime: 'entered', sections: ['sim/runtime-plan'], install: loadFeature(async () => (await import('./clientBossFight')).installClientBossFight) },
+  'population.homes': { phase: 'play', rank: 60, lifetime: 'entered', sections: ['sim/runtime-plan', 'sim/scripts'], install: loadFeature(async () => (await import('./clientPopulation')).installClientPopulation) },
+  'boss.held': { phase: 'play', rank: 70, lifetime: 'entered', sections: ['sim/runtime-plan'], install: loadFeature(async () => (await import('./clientBossFight')).installClientBossFight) },
+  'boss.telegraph': { phase: 'play', rank: 75, lifetime: 'entered', sections: ['sim/runtime-plan', 'actors/strikes'], install: loadFeature(async () => (await import('./clientBossTelegraph')).installClientBossTelegraph) },
   'weather.fields': { phase: 'play', rank: 40, lifetime: 'entered', sections: [],
     install: (ctx, row) => {
       if (row.kind !== 'weather.fields') throw new Error('Invalid weather feature');
@@ -333,7 +321,7 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
   'audio.cues': { phase: 'world', rank: 48, lifetime: 'entered', sections: ['world/scenes'],
     install: (ctx, row) => { if (row.kind === 'audio.cues' && row.stage === 'world') installClientCues(ctx, row); },
     play: { rank: 30, install: (ctx, row) => { if (row.kind === 'audio.cues' && row.stage !== 'world') installClientCues(ctx, row); } } },
-  'fx.trail': { phase: 'play', rank: 90, lifetime: 'entered', sections: ['world/scenes'], install: installClientTrails },
+  'fx.trail': { phase: 'play', rank: 90, lifetime: 'entered', sections: ['world/scenes'], install: loadFeature(async () => (await import('./clientTrails')).installClientTrails) },
   'debug.expose': { phase: 'play', phaseFor: row => row.kind === 'debug.expose' && row.source?.kind !== 'world-weather' && (row.objects !== undefined || row.source !== undefined) ? 'world-bindings' : 'play', rank: 100, lifetime: 'entered', sections: [], install: (ctx, row) => {
     if (row.kind !== 'debug.expose' || ctx.scope.disposed || ctx.scope.disposing || ctx.game.runtime === undefined) throw new Error('Client debug feature requires its runtime');
     if (row.source !== undefined) {

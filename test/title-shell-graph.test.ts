@@ -42,3 +42,8 @@ test('standalone session bootstrap leaves grid construction behind its assembly 
   const files = titleGraph(['src/game/session/session.ts', 'src/game/shardfile/client.ts']);
   expect(files.filter(file => /src\/game\/grid\/(?:session|liveSession|roadLookPlatform|roadCull|crossing)\.ts$/u.test(file))).toEqual([]);
 });
+
+test('client phase admission keeps unused feature constructors outside its static graph', () => {
+  const files = titleGraph(['src/game/session/session.ts', 'src/game/shardfile/client.ts']);
+  expect(files.filter(file => /src\/game\/shardfile\/(?:clientCatalogue|clientMeadow|clientHeldMelee|clientSpeciesProgram|clientQuestPage|clientPopulation|clientBossFight|clientBossTelegraph|clientPlayerEnter)\.ts$/u.test(file))).toEqual([]);
+});
