@@ -246,6 +246,25 @@
       }
     },
     {
+      "shard": "nalati-grasslands",
+      "criterion": "memory",
+      "source": "51eff148be93ed1fbadc17e2d503b285cc2dfbfa",
+      "measurement": {
+        "when": "2026-10-23T05:42:52.180Z",
+        "surface": "chromium",
+        "metrics": {
+          "samples": 296,
+          "playingPeakBytes": 223332667,
+          "loadingPeakBytes": 223332667,
+          "browserProcessPeakBytes": 978586624,
+          "rendererProcessPeakBytes": 1941903360,
+          "gpuProcessPeakBytes": 1130498048
+        }
+      },
+      "latchedAt": "2026-10-23T07:18:15.979Z",
+      "quiet": false
+    },
+    {
       "shard": "nine-dragon-stack",
       "criterion": "memory",
       "source": "87d5978c0b43378f16a6c73a57b18f7f7becf8fe",
