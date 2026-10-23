@@ -27,5 +27,9 @@ const RESERVED = new Set(['cyan', 'road', 'hud-cyan', ROAD_ACCENT]);
 const isAccentId = (value: string): value is AccentId => Object.hasOwn(ACCENTS, value);
 
 /** The shardfile field: a palette id; the road's cyan is refused by name or hex. */
-export const AccentSchema: v.GenericSchema<string, AccentId> = v.pipe(v.string(), v.check((value) => !RESERVED.has(value.toLowerCase()), 'The HUD cyan is reserved for the road and the safe zone; pick one of the 20 accents'),
+export const AccentSchema: v.SchemaWithPipe<readonly [
+  v.StringSchema<undefined>,
+  v.CheckAction<string, 'The HUD cyan is reserved for the road and the safe zone; pick one of the 20 accents'>,
+  v.CustomSchema<AccentId, v.ErrorMessage<v.CustomIssue> | undefined>,
+]> = v.pipe(v.string(), v.check((value) => !RESERVED.has(value.toLowerCase()), 'The HUD cyan is reserved for the road and the safe zone; pick one of the 20 accents'),
   v.custom<AccentId>((value) => typeof value === 'string' && isAccentId(value), 'Not one of the 20 HUD accents (art/hud/round-20-accent-palette/README.md)'));
