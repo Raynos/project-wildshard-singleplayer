@@ -388,7 +388,9 @@ function stringLights(w, p, side, centre) {
     for (let i = 1; i < count; i++) {
       const t = i / count, u = ends[0] + span * t, y = top - sag * 4 * t * (1 - t), [x, , z] = along(u, off, y);
       if (clear(x, z)) continue;
-      w.box('Glow', [x - bulb, y - bulb, z - bulb], [x + bulb, y + bulb, z + bulb], i % 2 === 0 ? p.lantern : p.bulbRed, i % 2 === 0 ? p.lantern : p.bulbRed);
+      // a bulb is a small tetrahedron: closed, seen from every side, 4 triangles (a box was 10)
+      const colour = i % 2 === 0 ? p.lantern : p.bulbRed, apex = [x, y + bulb * 1.4, z], a = [x - bulb, y - bulb, z - bulb], b = [x + bulb, y - bulb, z - bulb], c = [x, y - bulb, z + bulb * 1.4];
+      w.tri('Glow', apex, b, a, colour); w.tri('Glow', apex, c, b, colour); w.tri('Glow', apex, a, c, colour); w.tri('Glow', a, b, c, colour);
     }
   }
 }

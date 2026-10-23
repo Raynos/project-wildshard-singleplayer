@@ -108,8 +108,8 @@ async function tiledPlot(root, repo, layoutName) {
   for (const [x0, z0, x1, z1] of [[-250, RING, 250, 250], [-250, -250, 250, -RING], [-250, -RING, -RING, RING], [RING, -RING, 250, RING]]) {
     parts.Paving.quad('Paving', [x0, 0, z0], [x0, 0, z1], [x1, 0, z1], [x1, 0, z0], [1, 1, 1]);
   }
-  // NM8: the paving in 5 m slabs on the plot's grid, two shades in a checker (the lanes their own pair), as the mockup's stone
-  const SLAB = 5, cut = (a0, a1) => { const out = [a0]; for (let v = Math.ceil(a0 / SLAB) * SLAB; v < a1; v += SLAB) if (v > a0) out.push(v); out.push(a1); return out; };
+  // NM8: the paving in 10 m slabs on the plot's grid, two shades in a checker (the lanes their own pair), as the mockup's stone
+  const SLAB = 10, cut = (a0, a1) => { const out = [a0]; for (let v = Math.ceil(a0 / SLAB) * SLAB; v < a1; v += SLAB) if (v > a0) out.push(v); out.push(a1); return out; };
   for (const [x0, z0, x1, z1, lane] of paving(grid, RING)) {
     const xs = cut(x0, x1), zs = cut(z0, z1);
     for (let i = 0; i + 1 < xs.length; i++) for (let k = 0; k + 1 < zs.length; k++) {
