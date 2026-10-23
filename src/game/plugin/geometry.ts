@@ -1796,8 +1796,20 @@ class WholeGeometryAssembler {
       }
       for (const { from, fromSize, count, to, toSize } of copies) {
         if (vertices.length > count) throw new Error('Whole channel layout differs');
+        // Ordinals arrive as start/length runs: a run of new vertices in the same element type is one block copy.
+        const block = fromSize === toSize && from.constructor === to.constructor;
         for (let local = 0; local < vertices.length; local++) {
-          const read = local * fromSize, write = (vertices[local] ?? 0) * toSize;
+          const start = vertices[local] ?? 0;
+          if (block && shared[local] === 0) {
+            let end = local + 1;
+            while (end < vertices.length && shared[end] === 0 && vertices[end] === start + end - local) end++;
+            if (end - local > 1 && end * fromSize <= from.length) {
+              if ((start + end - local) * toSize > to.length) throw new RangeError('Whole channel write outside source');
+              to.set(from.subarray(local * fromSize, end * fromSize), start * toSize);
+              local = end - 1; continue;
+            }
+          }
+          const read = local * fromSize, write = start * toSize;
           if (write + fromSize > to.length) throw new RangeError('Whole channel write outside source');
           if (shared[local] === 1) for (let i = 0; i < fromSize; i++) if (!Object.is(from[read + i], to[write + i])) throw new Error('Whole shared vertex differs');
           for (let i = 0; i < fromSize; i++) to[write + i] = from[read + i] ?? 0;
