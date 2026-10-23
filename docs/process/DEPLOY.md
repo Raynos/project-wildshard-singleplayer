@@ -139,6 +139,12 @@ release pin selection, proof checks, Vercel functions and live verification
 remain unchanged. Every TypeScript project runs once, with all lint partitions
 and all ten complete behaviour partitions retained.
 
+C6: push/PR checks build the additional native bundle only when its entry,
+native-only modules, HTML/Vite transform or build toolchain changes. The complete
+push range or PR base-to-merge range is checked, including deleted paths; an
+unknown initial base builds conservatively. Shared game changes retain the web
+build and normal tests. Releases always retain the native build.
+
 
 G609: generation publishes a separate SHA/run/checksum-bound generated-inputs
 artifact. Typecheck/lint jobs need only that artifact and start while the

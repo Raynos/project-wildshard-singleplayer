@@ -162,8 +162,21 @@ jobs:
 
       # A CI-green release pin skips the steps that used to run `pnpm gen` first, and the generated sources are out of
       # git (SF74 W13), so generate them here (~1 s); 21:25 / 21:45 UTC 2026-10-09 failed on portShares.generated.
+      - name: Detect native-only build inputs
+        id: native-inputs
+        if: env.DEPLOY != 'true' && steps.live.outputs.skip != 'true'
+        env:
+          NATIVE_BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
+        run: |
+          if [ -z "$NATIVE_BASE" ] || [[ "$NATIVE_BASE" =~ ^0+$ ]]; then
+            echo 'needed=true' >> "$GITHUB_OUTPUT"
+          else
+            git cat-file -e "$NATIVE_BASE^{commit}" || git fetch --no-tags --depth=1 origin "$NATIVE_BASE"
+            git diff --name-only -z "$NATIVE_BASE" HEAD > "$RUNNER_TEMP/native-paths"
+            echo "needed=$(node scripts/native-build-inputs.mjs < "$RUNNER_TEMP/native-paths")" >> "$GITHUB_OUTPUT"
+          fi
       - name: Native web build
-        if: steps.live.outputs.skip != 'true'
+        if: steps.live.outputs.skip != 'true' && (env.DEPLOY == 'true' || steps.native-inputs.outputs.needed == 'true')
         run: |
           if [ "$DEPLOY" = 'true' ]; then pnpm gen; fi
           python3 scripts/ci-fail-fast.py -- pnpm run build:native
