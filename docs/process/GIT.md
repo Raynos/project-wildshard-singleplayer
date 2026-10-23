@@ -144,6 +144,11 @@ rewrite still needs Jake's approval.
   workflow verdict. An unavailable peer observation is named and not retried; the original checks still run.
   Failure annotations name the source/test file, and short-lived `ci-failures-*` artifacts contain only paths,
   revision and job identity for the push gate's recently-red selection. No raw logs or secrets are published.
+- **Recently red first (G671 P1):** the existing push loop observes one newest unseen failed push CI run per tick,
+  using exact run/SHA failure artifacts or older failed-job logs. Cache only safe test paths for 24 hours;
+  unavailable reads are named, not silently counted as green. Within the same 45-second ceiling, run eligible
+  recently-red tests after mandatory guards and before related tests, then omit successful repeats. Missing
+  verified inputs still defer to CI. No new watcher or schedule is installed.
 - **Source checks:** pre-commit checks the pathspec's named files and refuses if they change during the check.
   The scheduled push gate checks immutable committed candidates in disposable source snapshots, preserving the
   shared working tree and index. Missing generated test inputs follow the explicit cache-miss rule above.

@@ -83,7 +83,7 @@ def selection_paths(path, output):
 
 
 def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_available=True,
-          tests_available=None, test_revision=None, deleted=(), typed_files=()):
+          tests_available=None, test_revision=None, deleted=(), typed_files=(), recent_tests=()):
     files = changed(root, base, tip) if files is None else files
     tools = root / 'scripts' if tools is None else tools
     result = {'ok': False, 'phase': 'working-tree', 'files': [], 'output': ''}
@@ -145,6 +145,41 @@ def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_a
             result.update(phase='guards', output=output, files=failure_paths(output))
             return result
         result['output'] += '\nRequired guards passed: ' + ', '.join(guards)
+        recent_done = []
+        recent = [name for name in dict.fromkeys(recent_tests) if name not in guards
+                  and '..' not in name.split('/') and re.fullmatch(r'(?:src/|(?:admin/|drafts/)?test/)[\w./-]+\.test\.ts',name)
+                  and (root/name).is_file()]
+        if tests_available and recent and deadline-time.monotonic()>2:
+            recent_listing = Path(temporary)/'recent.json'
+            recent_listing.write_text(json.dumps(recent))
+            recent_selected = Path(temporary)/'recent-selected.json'
+            rc, output = runner(['node',str(tools/'gate-related-tests.mjs'),str(recent_listing),
+                '--live','--recent-only','--budget='+str(max(0,deadline-time.monotonic()-2)),
+                '--output='+str(recent_selected)],root,deadline,env)
+            if rc not in (0,124):
+                result.update(phase='recent-selection',output=output,files=failure_paths(output));return result
+            if rc==0:
+                try:
+                    selected_recent=selection_paths(recent_selected,output)
+                except (ValueError,OSError) as error:
+                    result.update(phase='recent-selection',output='Invalid recent selector output: '+str(error),files=[]);return result
+                # Refuse selector drift rather than running any arbitrary path.
+                if any(name not in recent for name in selected_recent):
+                    result.update(phase='recent-selection',output='Foreign recent selector path',files=[]);return result
+                if selected_recent:
+                    rc, output=runner(['pnpm','exec','vitest','run','--config','scripts/vitest-push.config.ts',
+                                      *selected_recent],root,deadline,env)
+                    if refused(rc,output):
+                        result.update(phase='recent-tests',output=output,files=failure_paths(output));return result
+                    if rc==0:
+                        recent_done=selected_recent
+                        result['output']+='\nRecently red tests passed before related: '+', '.join(recent_done)
+                    else:
+                        result['output']+='\nRecently red tests reached the ceiling; CI owns unfinished tests'
+            else:
+                result['output']+='\nRecently red selection reached the ceiling; CI owns unfinished selection'
+        elif recent:
+            result['output']+='\nRecently red tests need verified inputs/budget; CI owns: '+', '.join(recent)
         left = deadline - time.monotonic()
         if tests_available and left > 2:
             selected = Path(temporary) / 'selected.json'
@@ -159,7 +194,7 @@ def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_a
                 except (ValueError, OSError) as error:
                     result.update(phase='selection', output=f'Invalid related selector output: {error}\n{output}', files=[])
                     return result
-                tests = [test for test in tests if test not in guards]
+                tests = [test for test in tests if test not in guards and test not in recent_done]
                 result['output'] += '\n' + output
                 if tests:
                     rc, output = runner(['pnpm', 'exec', 'vitest', 'run', '--config',

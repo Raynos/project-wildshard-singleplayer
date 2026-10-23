@@ -653,6 +653,40 @@ readFileSync('../public/assets/native/untracked.bin');
         self.assertIn('oxlint', commands[-1])
 
 
+    def test_recent_phase_precedes_related_and_does_not_repeat_successes(self):
+        self.put('test/recent.test.ts','export {}')
+        tip=self.commit('src/new.ts')
+        calls=[]
+        def runner(command, *_):
+            calls.append(command)
+            if '--recent-only' in command:
+                return 0,'["test/recent.test.ts"]'
+            if any('gate-related-tests.mjs' in value for value in command):
+                return 0,'["test/recent.test.ts","test/related.test.ts"]'
+            return 0,'[]'
+        result=LIVE['check'](self.root,self.base,tip,time.monotonic()+45,runner=runner,recent_tests=['test/recent.test.ts'])
+        self.assertTrue(result['ok'],result)
+        tests=[command for command in calls if command[:4]==['pnpm','exec','vitest','run']]
+        self.assertIn('test/recent.test.ts',tests[1]);self.assertNotIn('test/related.test.ts',tests[1])
+        self.assertIn('test/related.test.ts',tests[2]);self.assertNotIn('test/recent.test.ts',tests[2])
+
+    def test_recent_failure_blocks_before_related_and_refuses_path_drift(self):
+        self.put('test/recent.test.ts','export {}');tip=self.commit('src/new.ts')
+        for drift in (False,True):
+            calls=[]
+            def runner(command,*_):
+                calls.append(command)
+                if '--recent-only' in command:
+                    return 0,'["test/foreign.test.ts"]' if drift else '["test/recent.test.ts"]'
+                if 'test/recent.test.ts' in command:
+                    return 1,'FAIL test/recent.test.ts > actual'
+                return 0,'[]'
+            result=LIVE['check'](self.root,self.base,tip,time.monotonic()+45,runner=runner,recent_tests=['test/recent.test.ts'])
+            self.assertFalse(result['ok']);self.assertEqual(result['phase'],'recent-selection' if drift else 'recent-tests')
+            self.assertEqual(sum(any('gate-related-tests.mjs' in value for value in command) for command in calls),1)
+
+
+
 class RuntimeCopies(unittest.TestCase):
     def setUp(self):
         (ROOT / 'tmp').mkdir(exist_ok=True)

@@ -145,7 +145,9 @@ if (isMain) {
   const sources = changed.filter((file) => existsSync(resolve(ROOT, file)));
   /** @type {string[]} */
   let related = [];
-  if (sources.length > 0) {
+  const recentOnly=process.argv.includes('--recent-only');
+  if (recentOnly) related=sources.filter(file => INCLUDED.test(file));
+  else if (sources.length > 0) {
     const vitest = await createVitest({ root: ROOT, related: sources.map((file) => resolve(ROOT, file)), run: true, watch: false, forceRerunTriggers: forceRerunTriggers(ROOT) },
       { logLevel: 'silent' });
     try {

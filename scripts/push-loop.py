@@ -14,6 +14,7 @@ import time
 
 LIVE = runpy.run_path(str(Path(__file__).with_name('live-prepush.py')))
 SOURCE = runpy.run_path(str(Path(__file__).with_name('push-source.py')))
+RECENT = runpy.run_path(str(Path(__file__).with_name('recent-ci-tests.py')))
 git = LIVE['git']
 
 
@@ -63,6 +64,7 @@ def check_committed(root, base, tip, deadline):
     binary = check_binary_json(root, base, tip, deadline)
     if not binary['ok']:
         return binary
+    recent, recent_note = RECENT['refresh'](root, min(deadline,time.monotonic()+5))
     preparation_started = time.monotonic()
     try:
         # The local check budget is soft; exact source preparation must finish.
@@ -80,7 +82,7 @@ def check_committed(root, base, tip, deadline):
                                    runner=LIVE['run'],
                                    tools=tools, types_available=available,
                                    tests_available=inputs.get('testsAvailable', available),
-                                   test_revision=inputs.get('testRevision'), deleted=deleted, typed_files=deferred)
+                                   test_revision=inputs.get('testRevision'), deleted=deleted, typed_files=deferred, recent_tests=recent)
             if deferred:
                 if not available:
                     result['types'] = 'ci-cache-miss'
@@ -89,7 +91,7 @@ def check_committed(root, base, tip, deadline):
             if not result['ok'] and result['files']:
                 rc, output = LIVE['run'](['node', str(tools / 'push-inputs.mjs'), *result['files']], tree, deadline)
                 result['inputs'] = json.loads(output) if rc == 0 else []
-            result['output'] = binary['output'] + result['output']
+            result['output'] = binary['output'] + recent_note + '\n' + result['output']
             return result
     except (TimeoutError, subprocess.TimeoutExpired):
         return {'ok': False, 'phase': 'preparation', 'files': [], 'output': 'Committed check exceeded 45 seconds'}
