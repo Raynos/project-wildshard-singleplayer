@@ -14,6 +14,11 @@ Different committed bytes or generated hashes refuse the build. Other jobs remai
 Nine Dragon's layout/specimens pilot is Darwin-normative: Linux retains those files and reports that
 its bit-exact comparison is unavailable. Native witness jobs run on Linux too, with separate OS/architecture keys.
 
+Generation defaults to logical CPU count minus four, clamped to 1–4 producers (G668). Every ordinary/proof mode uses
+that default. `node scripts/gen.mjs --parallel=N` requests 1–4 explicitly; CI pins `--parallel=4`. The legacy bare
+`--parallel` remains an explicit four-job request. Audited long jobs run first when ready; original catalogue
+read/write conflicts still govern admission, and equal/unknown costs retain catalogue ties.
+
 Run one declared job with `node scripts/generate.mjs --job=nine-layout`. Add `--compare` to force fresh generation and
 compare both the existing cache and every committed output. `--restore` may materialize absent outputs after the same
 checks; it never overwrites different committed bytes. The pilot keeps stamp seeds because its schema imports them;

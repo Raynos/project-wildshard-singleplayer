@@ -161,3 +161,21 @@ it('refuses a stale tracked output pin before restore and accepts the fresh matc
   try{expect(result.hashes[output]).toBe(fresh);expect(readFileSync(resolve(root,output),'utf8')).toBe('new merged topology');}
   finally{result.release();}
 });
+
+
+it('starts the longest ready job while preserving catalogue producer edges', async () => {
+  mkdirSync('tmp',{recursive:true});const root=mkdtempSync(resolve('tmp/generation-order-'));owned.push(root);
+  const first='src/shards/alpha/data/first.json',last='src/shards/alpha/data/last.json',other='src/shards/beta/data/other.json';
+  const descriptor=(id:string,shard:string,output:string,inputs:string[])=>({id,shard,entry:`src/shards/${shard}/generators/bake-${id}.mjs`,command:[`src/shards/${shard}/generators/bake-${id}.mjs`],inputRoots:[`src/shards/${shard}/generators/bake-${id}.mjs`,...inputs],outputs:[output],buildTimeOutputs:[output],platform:'portable' as const});
+  const short=descriptor('short','alpha',first,[]),long=descriptor('nine-layout','alpha',last,[first]),independent=descriptor('open-plots-world','beta',other,[]);
+  const jobs=[short,long,independent];
+  put(root,short.entry,`import fs from 'node:fs';fs.writeFileSync('${first}','{"first":true}');`);
+  put(root,long.entry,`import fs from 'node:fs';fs.writeFileSync('${last}',JSON.stringify({seen:JSON.parse(fs.readFileSync('${first}','utf8')).first}));`);
+  put(root,independent.entry,`import fs from 'node:fs';fs.writeFileSync('${other}','{}');`);
+  put(root,'scripts/generation-jobs.json',JSON.stringify({schema:'generation-jobs/1',notice:'DO NOT EDIT fixture',jobs}));
+  const log=vi.spyOn(console,'info').mockImplementation(()=>{ /* Capture completed serial work. */ });
+  await prepareGeneration(root,{cacheDir:resolve(root,'cache'),concurrency:1});
+  expect(log.mock.calls.filter(row=>String(row[0]).includes('admitted build outputs,')).map(row=>String(row[0]).split(',')[0]))
+    .toEqual(['generate: open-plots-world','generate: short','generate: nine-layout']);
+  expect(JSON.parse(readFileSync(resolve(root,last),'utf8'))).toEqual({seen:true});
+});

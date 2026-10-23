@@ -386,7 +386,7 @@ jobs:
             ~/.cache/wildshard/compiler-code/1
           key: generation-v1-${{ runner.os }}-node24-${{ steps.inputs.outputs.tree }}
           restore-keys: generation-v1-${{ runner.os }}-node24-
-      - run: python3 scripts/ci-fail-fast.py -- node scripts/gen.mjs --parallel
+      - run: python3 scripts/ci-fail-fast.py -- node scripts/gen.mjs --parallel=4
       - run: node scripts/no-binary-json.mjs --all
       # Keep this isolated runner's newest reusable version of each producer.
       # The shared Mac keeps its ordinary retention and live-reader protection.

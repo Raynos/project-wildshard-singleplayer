@@ -3,6 +3,7 @@ import { genShards, refreshDiscovery } from './gen-shards.mjs';
 import { genBudgetDerivations } from './gen-budget-derivations.mjs';
 import { genAskIds } from './gen-ask-ids.mjs';
 import { prepareGeneration } from './generate.mjs';
+import { generationConcurrency } from './generation-scheduling.mjs';
 import { genStarterArmClips } from './gen-starter-arm-clips.mjs';
 import { genStarterWeapons } from './gen-starter-weapons.mjs';
 import { genStarterBag } from './gen-starter-bag.mjs';
@@ -15,8 +16,8 @@ quietCli('gen');
 const publishPushInputs = beginPushInputs(`${import.meta.dirname}/..`);
 
 const buildInputs = process.argv.includes('--build-inputs');
-// --proof remains a build-input alias. Derived documentation belongs to pnpm docs.
-const proof = process.argv.includes('--proof');
+// --proof remains a build-input alias. All modes share the CPU-based default.
+const concurrency = generationConcurrency();
 /** @param {string} name @param {()=>unknown} run */
 async function step(name, run) {
   const started = performance.now();
@@ -35,7 +36,7 @@ await step('starter-effects', () => genStarterEffects());
 // the phase invalidates its negative inventories in the next CI job.
 await step('decision-policies', () => genDecisionPolicies(`${import.meta.dirname}/..`));
 // G292 admitted outputs are ready before asset sizes, versions and shard packing read them.
-await step('generation', () => prepareGeneration(`${import.meta.dirname}/..`, { concurrency: buildInputs || proof || process.argv.includes('--parallel') ? 4 : 1 }));
+await step('generation', () => prepareGeneration(`${import.meta.dirname}/..`, { concurrency }));
 await import('./bake-loader.mjs');
 // DS1.1: structural wire schemas are small deterministic authoring outputs, never committed.
 const { writeFormatJsonSchemas } = await import('./gen-format-schema.mjs');
