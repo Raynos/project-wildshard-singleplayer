@@ -9,6 +9,7 @@ import { writeFileSync } from 'node:fs';
 import { chromium, devices } from 'playwright';
 import { saveFixture } from './debug-settings.mjs';
 import { chromiumProcessPeaks, chromiumAllocatorBytes } from './grid-ready-memory.mjs';
+import { loadingCardIndex } from './loading-benchmark/catalogue.mjs';
 
 const [base, shard, label, out] = process.argv.slice(2);
 const floor = process.argv.includes('--floor'), title = shard === 'menu' || shard === 'select';
@@ -81,12 +82,24 @@ try {
   await context.route('**/api/errors', route => route.fulfill({ status: 204, body: '' }));
   const page = await context.newPage(); page.setDefaultTimeout(240000);
   page.on('pageerror', error => { result.errors.push(error.message); });
-  if (title) {
+  if (floor) {
     await page.goto(`${base}?sw=0`, { waitUntil: 'domcontentloaded' });
     await page.locator('.ws-main').waitFor({ state: 'visible' });
-    if (shard === 'select') { await page.locator('.ws-main-select').click(); await page.locator('.ws-title-stack[data-screen="select"]').waitFor(); }
+    if (shard !== 'menu') {
+      await page.locator('.ws-main-select').click(); await page.locator('.ws-title-stack[data-screen="select"]').waitFor();
+      if (shard !== 'select') {
+        const titles = await page.locator('.ws-menu-card b').allTextContents(), selected = loadingCardIndex(titles, shard);
+        await page.locator(`.ws-menu-dots i[data-i="${selected}"]`).click();
+        await page.locator(`.ws-menu-card.selected[data-i="${selected}"]`).waitFor();
+        const compiled = page.locator('.ws-menu-shardfile');
+        await (await compiled.isVisible() ? compiled : page.locator('.ws-menu-play')).click();
+        await page.waitForURL(url => url.searchParams.get('chunk') === shard);
+      }
+    }
   } else {
   await page.goto(`${base}?chunk=${shard}&mute=1&skipintro=1&nolock=1&sw=0`, { waitUntil: 'domcontentloaded' });
+  }
+  if (!title) {
   await page.waitForFunction(() => Boolean(document.querySelector('#wserr .msg')?.textContent) || (!document.querySelector('.ws-load') && Boolean(window.__wildshard?.world?.game)));
   const failure = await page.evaluate(() => document.querySelector('#wserr .msg')?.textContent ?? null);
   if (failure) throw new Error(failure);
