@@ -1,4 +1,3 @@
-import { jsonSlot } from '../saves/slots';
 import { musicManifests } from '../boot/tables';
 import { parseManifest, shipped, type MusicManifest, type SlotAudio, type StemSting, type BossPhase, type StyleBank } from './Stems';
 import type { Audio } from './Audio';
@@ -171,31 +170,22 @@ export class SetScore<Scene> implements ScoreSource {
 const residentCatalogueScores=new WeakMap<Music,Map<string,CatalogueScore>>();
 
 export class CatalogueScore implements ScoreSource {
-  /** Resolve a declared reload pin, preserving device-over-legacy precedence and invalid-value refusal. */
-  static pin(profile:AudioMusicProfile):string|undefined {
-    const pin=profile.lifecycle?.debugPin;if(pin===undefined)return undefined;
-    const saved=jsonSlot(pin.storage,'device').read(),legacy=jsonSlot('settings','global').read();
-    const value=saved??(pin.legacy!==undefined&&legacy!==null&&typeof legacy==='object'&&!Array.isArray(legacy)?legacy[pin.legacy]:undefined);
-    return pin.choices.find(choice=>choice.value===value)?.value??pin.initial;
-  }
-  private deckSting:StemSting|undefined;
   /** Reuse an authored resident score only when its lifecycle explicitly declares that policy. */
-  static get(music:Music,profile:AudioMusicProfile,pin?:()=>string,scope?:Scope,rebind=true):CatalogueScore {
+  static get(music:Music,profile:AudioMusicProfile,scope?:Scope,rebind=true):CatalogueScore {
     const policy=profile.lifecycle;if(policy===undefined)throw new Error('Missing score lifecycle');
     const existing=policy.persistent?residentCatalogueScores.get(music)?.get(profile.id):undefined;
     if(existing!==undefined){if(rebind)existing.bindProfile(profile);return existing;}
-    const source=new CatalogueScore(music,profile,scope),selected=pin===undefined?CatalogueScore.pin(profile):pin(),initial=selected===undefined?undefined:policy.pins[selected];
-    if(initial?.scene!==undefined)source.sceneName=initial.scene;if(initial?.phase!==undefined)source.phase=initial.phase;source.deckSting=initial?.sting;
+    const source=new CatalogueScore(music,profile,scope);
     const bank=music.residentBank();if(bank!==undefined)source.useStyleBank(bank);
     if(policy.persistent){music.setScore(profile.id,source);let sources=residentCatalogueScores.get(music);if(sources===undefined){sources=new Map();residentCatalogueScores.set(music,sources);}sources.set(profile.id,source);}
     return source;
   }
-  /** Bind banks and teardown in the original entered order; a caller can install its Debug row before registration. */
-  static install(audio:Pick<Audio,'onLevelBank'>,music:Music,scope:Scope,profile:AudioMusicProfile,options:{pin?:()=>string;beforeBind?:()=>void}={}):CatalogueScore {
+  /** Bind banks and teardown in the original entered order. */
+  static install(audio:Pick<Audio,'onLevelBank'>,music:Music,scope:Scope,profile:AudioMusicProfile):CatalogueScore {
     const policy=profile.lifecycle;if(policy===undefined)throw new Error('Missing score lifecycle');
-    const source=CatalogueScore.get(music,profile,options.pin,policy.persistent?undefined:scope);
+    const source=CatalogueScore.get(music,profile,policy.persistent?undefined:scope);
     if(policy.persistent)source.attach(scope);
-    options.beforeBind?.();scope.onDispose(music.setScore(profile.id,source));
+    scope.onDispose(music.setScore(profile.id,source));
     audio.onLevelBank(bank=>{if(bank.title!==undefined)source.useStyleBank(bank.title);},scope);
     if(policy.dispose)scope.onDispose(()=>{source.dispose();});
     return source;
@@ -205,7 +195,6 @@ export class CatalogueScore implements ScoreSource {
   setBossPhase(phase:BossPhase):void {if(phase===this.phase)return;this.phase=phase;this.logChange(`phase:${phase}`);this.music.refreshScore();}
   combat(intensity:number):void {this.music.combat(intensity);}
   playSting(name:'chunk'|'death'|'pickup'):void {this.music.sting(name);}
-  onDeck(slot:string):void {const policy=this.profile.lifecycle?.deckSting,name=this.deckSting;if(policy===undefined||name===undefined||slot===policy.exceptSlot)return;this.deckSting=undefined;this.scope?.timeout(policy.delay*1000,()=>{this.music.sting(name);});}
 
   protected readonly music: Pick<Music,'genre'|'state'|'refreshScore'|'combat'|'sting'>;
   protected profile: AudioMusicProfile;

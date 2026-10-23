@@ -34,8 +34,8 @@ export function declaredGameplay(rows:{gameplay?:NonNullable<AudioData['gameplay
 } {
   const policy=requireAudioProfile(rows.gameplay,'gameplay bindings');
   const profile=policy.score?requireAudioProfile(rows.music,'gameplay score'):undefined;
-  const score=profile===undefined?undefined:CatalogueScore.get(ports.music,profile,undefined,undefined,false);
-  const owners={...ports.owners,ambience:ports.ambience,camera:ports.camera,score,pin:{value:profile===undefined?false:CatalogueScore.pin(profile)!=='auto'}};
+  const score=profile===undefined?undefined:CatalogueScore.get(ports.music,profile,undefined,false);
+  const owners={...ports.owners,ambience:ports.ambience,camera:ports.camera,score};
   const read=(ref:Reference):unknown=>{
     if(!Object.hasOwn(owners,ref.owner))throw new Error(`Missing audio gameplay owner: ${ref.owner}`);
     let value:unknown=Reflect.get(owners,ref.owner);

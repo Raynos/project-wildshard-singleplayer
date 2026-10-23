@@ -8,7 +8,6 @@ import { swordEvents } from '../weapons/Sword';
 import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
 import type { DeclaredGameplayPorts } from '@wildshard/engine/audio/declaredGameplay';
 import { installDeclaredAudio } from '@wildshard/engine/audio/declared';
-import { CatalogueScore } from '@wildshard/engine/audio/SetScore';
 import type { Music } from '@wildshard/engine/audio/Music';
 import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
 import { createCueRouter } from '@wildshard/engine/audio/cueRouting';
@@ -116,17 +115,13 @@ export function installDeclaredCombatCues(audio: Audio, cues: CombatCues, scope:
 }
 
 
-/** Install declared score banks with the resident catalogue's entered-scope policy and existing reload pin. */
+/** Install declared score banks with the resident catalogue's entered-scope policy. */
 export function installRuntimeScore(context:ShardContext,audio:Audio,music:Music):void {
   const rows=runtimeAudio(context,context.product.shardfile.audio),profile=rows.music;
   if(profile?.lifecycle===undefined)throw new Error('Missing declared score lifecycle');
-  const retained=profile.lifecycle.persistent&&retainsRuntimeServices(context),pin=profile.lifecycle.debugPin;
-  let registerDebug=true;
+  const retained=profile.lifecycle.persistent&&retainsRuntimeServices(context);
   const install=(scope:Scope):void=>{
-    const score=installDeclaredAudio(rows,{audio,music,scope,beforeBind:()=>{
-      if(registerDebug&&pin!==undefined)context.debugRow({...pin,group:'audio',initial:CatalogueScore.pin(profile)??pin.initial,reload:true,change:()=>undefined});
-    }},'score');
-    registerDebug=false;
+    const score=installDeclaredAudio(rows,{audio,music,scope},'score');
     if(retained){const bank=music.residentBank();if(bank!==undefined)score.useStyleBank(bank);}
   };
   if(profile.lifecycle.persistent)installEnteredRuntimeService(context,install);else install(context.scope);

@@ -31,40 +31,26 @@ function mixer(){
  vi.spyOn(audio,'onLevelBank').mockImplementation((_listener,scope)=>{order.push('bank');scope.onDispose(()=>{order.push('bank.off');});});
  return {audio,music,order,active:()=>active};
 }
-it('keeps device-over-legacy score pins, invalid-value defaults and phase/sting rows',()=>{
+it('starts automatically despite retired saved scene and sting overrides',()=>{
  expect(()=>formatJsonSchema(AudioDataSchema)).not.toThrow();
  const profile=pine.music;if(profile===undefined)throw new Error('Missing score');
  const device=jsonSlot('debug.plugin.pine-hollow.pineScore','device'),settings=jsonSlot('settings','global');
  const original=device.read(),legacy=settings.read();
  try{
-  device.write(null);settings.write({pineScore:'boss-2'});expect(CatalogueScore.pin(profile)).toBe('boss-2');
-  const {music}=mixer(),score=CatalogueScore.get(music,profile);
-  expect(score.sceneName).toBe('boss');expect(score.phase).toBe(2);
-  device.write('night');expect(CatalogueScore.pin(profile)).toBe('night');
-  device.write('invalid');expect(CatalogueScore.pin(profile)).toBe('auto');
-  expect(CatalogueScore.pin(island.music??profile)).toBeUndefined();
-  expect(()=>parseAudioData({...pine,music:{...profile,lifecycle:{...profile.lifecycle,debugPin:{...profile.lifecycle?.debugPin,initial:'missing'}}}})).toThrow();
+  settings.write({pineScore:'boss-2'});
+  for(const pick of ['night','boss-3','dawn']){
+   device.write(pick);const {music}=mixer(),score=CatalogueScore.get(music,profile);
+   expect(score.sceneName).toBe('day');expect(score.phase).toBe(1);
+   score.setScene('night');expect(score.sceneName).toBe('night');
+   score.setScene('boss');score.setBossPhase(3);expect(score.phase).toBe(3);
+  }
+  expect(()=>parseAudioData({...pine,music:{...profile,lifecycle:{...profile.lifecycle,debugPin:{}}}})).toThrow();
  }finally{device.write(original);settings.write(legacy);}
-});
-it('keeps the pinned sting delayed on the entered scope and cancels it on leave',()=>{
- const device=jsonSlot('debug.plugin.pine-hollow.pineScore','device'),original=device.read();
- vi.useFakeTimers();
- const scope=new Scope('score.sting');
- try{
-  device.write('dawn');const {audio,music}=mixer(),sting=vi.spyOn(music,'sting').mockImplementation(()=>{/* Playback remains native. */});
-  const score=installDeclaredAudio(pine,{audio,music,scope},'score');
-  score.onDeck('title');vi.advanceTimersByTime(2100);expect(sting).not.toHaveBeenCalled();
-  score.onDeck('pine');vi.advanceTimersByTime(1999);expect(sting).not.toHaveBeenCalled();
-  vi.advanceTimersByTime(1);expect(sting).toHaveBeenCalledExactlyOnceWith('dawn');
-  const again=mixer(),cancel=new Scope('score.cancel'),pending=installDeclaredAudio(pine,{audio:again.audio,music:again.music,scope:cancel},'score');
-  const cancelled=vi.spyOn(again.music,'sting').mockImplementation(()=>{/* Cancelled native playback. */});
-  pending.onDeck('pine');cancel.dispose();vi.advanceTimersByTime(2100);expect(cancelled).not.toHaveBeenCalled();
- }finally{scope.dispose();device.write(original);vi.useRealTimers();}
 });
 it('installs the native bank in the same order and keeps persistent state across entered scopes',()=>{
  const {audio,music,order,active}=mixer(),first=new Scope('score.first');
- const score=installDeclaredAudio(pine,{audio,music,scope:first,beforeBind:()=>{order.push('before');}},'score');
- expect(order).toEqual(['bind','before','bind','bank']);expect(active()).toBe(score);
+ const score=installDeclaredAudio(pine,{audio,music,scope:first},'score');
+ expect(order).toEqual(['bind','bind','bank']);expect(active()).toBe(score);
  score.setScene('boss');score.setBossPhase(3);
  const dispose=vi.spyOn(score,'dispose');first.dispose();expect(active()).toBeUndefined();expect(dispose).not.toHaveBeenCalled();
  const second=new Scope('score.second');
@@ -76,7 +62,7 @@ it('installs the native bank in the same order and keeps persistent state across
  const free=vi.spyOn(fresh,'dispose');ordinary.dispose();expect(free).toHaveBeenCalledOnce();
  const next=new Scope('score.next');expect(installDeclaredAudio(island,{audio,music,scope:next},'score')).not.toBe(fresh);next.dispose();
 });
-it('defers a retained score until entry and registers its existing reload choice only once',()=>{
+it('defers a retained score until entry without registering a scene override',()=>{
  const {audio,music,active}=mixer(),scope=new Scope('score.home'),app=new App(),debug=vi.fn<(row:DebugRowSpec)=>()=>void>(()=>()=>{/* Resident choice cleanup. */});
  const level=createLevelInstallation(app,scope,{debugRow:debug},()=>({set:()=>{/* No loading UI. */},detail:()=>{/* No loading UI. */}}));
  const source=emptyShardfile({slug:'template',name:'Score',author:'Wildshard',revision:1,seed:1});
@@ -85,13 +71,12 @@ it('defers a retained score until entry and registers its existing reload choice
  const retained=new RetainedRuntimeHooks(context,{deferActivation:true});
  try{
   installRuntimeScore(retained.context,audio,music);expect(active()).toBeUndefined();expect(debug).not.toHaveBeenCalled();
-  retained.activate();const score=active();expect(score).toBeInstanceOf(CatalogueScore);expect(debug).toHaveBeenCalledOnce();
-  expect(debug.mock.lastCall?.[0]).toMatchObject({id:'pineScore',initial:'auto',reload:true,choices:pine.music?.lifecycle?.debugPin?.choices});
-  retained.deactivate();expect(active()).toBeUndefined();retained.activate();expect(active()).toBe(score);expect(debug).toHaveBeenCalledOnce();
+  retained.activate();const score=active();expect(score).toBeInstanceOf(CatalogueScore);expect(debug).not.toHaveBeenCalled();
+  retained.deactivate();expect(active()).toBeUndefined();retained.activate();expect(active()).toBe(score);expect(debug).not.toHaveBeenCalled();
   const ordinary=mixer(),bank=vi.spyOn(ordinary.music,'residentBank');
   const other=new RetainedRuntimeHooks({...context,game:{...context.game,declaredAudio:island}},{deferActivation:true});
   installRuntimeScore(other.context,ordinary.audio,ordinary.music);
   expect(ordinary.active()).toBeInstanceOf(CatalogueScore);expect(bank).toHaveBeenCalledOnce();
-  expect(debug).toHaveBeenCalledOnce();
+  expect(debug).not.toHaveBeenCalled();
  }finally{scope.dispose();}
 });

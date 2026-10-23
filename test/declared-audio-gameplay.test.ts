@@ -77,9 +77,9 @@ it('replays native dusk/hum/ambience order against the original adapters without
 });
 it('preserves score hysteresis, engagement and deer transitions, point identity and entered teardown',()=>{
   const old=fixture(),next=fixture(),profile=requireAudioProfile(pine.music,'music');
-  const score=CatalogueScore.get(old.ports.music,profile,undefined,undefined,false),row=structuredClone(requireAudioProfile(pine.observations?.[0],'observer'));
+  const score=CatalogueScore.get(old.ports.music,profile,undefined,false),row=structuredClone(requireAudioProfile(pine.observations?.[0],'observer'));
   const engaged=row.inputs.find(input=>input.id==='engaged');if(engaged===undefined)throw new Error('engaged');engaged.path=[];engaged.op='truth';delete engaged.value;
-  const original:ReturnType<typeof createAudioObserver>=createAudioObserver(row,{inputs:new Map<string,()=>unknown>([['clock',()=>old.sky.dayNight],['pinned',()=>false],['score',()=>score],['engaged',()=>old.elites.focus?.state==='engaged'],['listener',()=>old.ports.camera.position]]),
+  const original:ReturnType<typeof createAudioObserver>=createAudioObserver(row,{inputs:new Map<string,()=>unknown>([['clock',()=>old.sky.dayNight],['score',()=>score],['engaged',()=>old.elites.focus?.state==='engaged'],['listener',()=>old.ports.camera.position]]),
     writers:new Map([['ambience.night',(v:number)=>{old.ports.ambience.night=v;}]]),entities:{animals:()=>[old.deer]},
     commands:new Map([['clock.change',()=>{/* separate log contract */}],['elite.change',()=>{/* separate log contract */}],['score.scene',()=>{score.setScene(original.state('night')!==0?'night':'day');}],['combat',()=>old.ports.music.combat(.8)],['deer.snort',(_dt:number,_t:number,event:{entity?:AudioObservationEntity})=>{if(event.entity===undefined)throw new Error('actor');old.ports.ambience.sfx.shot('deer_snort',{at:event.entity.position});}]])});
   const controller=installDeclaredAudio(pine,next.ports,'gameplay');
@@ -88,7 +88,7 @@ it('preserves score hysteresis, engagement and deer transitions, point identity 
     t+=1.1;old.sky.dayNight.night=next.sky.dayNight.night=night;old.elites.focus=next.elites.focus=t>2?{state:'engaged'}:null;
     old.deer.state=next.deer.state=t>2?'alert':'idle';original.run(.21,t);controller.systems[0]?.run(.21,t);
     expect(controller.value('audio','night')).toBe(original.state('night'));
-    expect(CatalogueScore.get(next.ports.music,profile,undefined,undefined,false).sceneName).toBe(score.sceneName);
+    expect(CatalogueScore.get(next.ports.music,profile,undefined,false).sceneName).toBe(score.sceneName);
     expect(next.trace).toEqual(old.trace);
   }
   const scope=new Scope('entered.audio');controller.enter(scope,true);next.door(true);next.door(false);scope.dispose();next.door(true);

@@ -79,7 +79,7 @@ export async function installRoamingCombat(context: ShardContext, input: unknown
     lockInput: on => { session.lockInput(on); }, respawn: (position, yaw) => { player.spawn(position.x, position.z, yaw); player.pitch = 0; loadout.onPlayerDeath(); launcher.addBolts(slots.pouch.capacity - launcher.state.bolts); },
     skipHeld: () => context.app.input.held('skip') || context.app.input.held('jump') || context.app.input.held('use') || context.app.input.held('confirm'),
     toast: ctx.toast, feed: ctx.feed, pickupHum: on => { audio.pickupHum(on); },
-    score: () => CatalogueScore.get(music, requireAudioProfile(source.audio.music, rows.score), undefined, undefined, false), ambientScene: () => night() ? rows.nightScene : rows.dayScene, scorePhase: owner => owner.phase,
+    score: () => CatalogueScore.get(music, requireAudioProfile(source.audio.music, rows.score), undefined, false), ambientScene: () => night() ? rows.nightScene : rows.dayScene, scorePhase: owner => owner.phase,
     advance: (boss, owner, dt, time) => {
       const p = rows.projection.encounter, d = Math.hypot(player.position.x - p.profile.fight.origin.x, player.position.z - p.profile.fight.origin.z);
       if (boss.state === 'dormant') { if (night() && d < p.presence.enter) { owner.setPresent(true); boss.arm(); } }

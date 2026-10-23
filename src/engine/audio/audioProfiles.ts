@@ -1,4 +1,4 @@
-import type { AudioMusic, AudioSampleMix, AudioAmbienceLifecycle, AudioScorePin, AudioObservationSystem, AudioAmbienceRouting, AudioNodeRow, AudioOneShotSchedule, AudioPhraseProgram, SynthBedGraph, AudioMixExpr, AudioMixRecipe } from '@wildshard/format/audioProfiles';
+import type { AudioMusic, AudioSampleMix, AudioAmbienceLifecycle, AudioObservationSystem, AudioAmbienceRouting, AudioNodeRow, AudioOneShotSchedule, AudioPhraseProgram, SynthBedGraph, AudioMixExpr, AudioMixRecipe } from '@wildshard/format/audioProfiles';
 import type { ScoreSelection } from './scoreSelection';
 
 /** Same-byte platform sample catalogue; gains apply to admitted named loops. */
@@ -8,7 +8,7 @@ export interface AudioMusicProfile {
   setPlayback?:AudioMusic['setPlayback'];
   setCatalogue?:AudioMusic['setCatalogue'];
   id: string; base: string; slots: readonly string[]; bootSlots: readonly string[]; synthLead: 'pluck' | 'marimba'; minFade: number;
-  lifecycle?:{persistent:boolean;dispose:boolean;logChanges:boolean;debugPin?:AudioScorePin;bossScene?:string;deckSting?:{exceptSlot:string;delay:number};pins:Readonly<Record<string,{scene?:string;phase?:1|2|3;sting?:'chunk'|'death'|'pickup'|'dawn'}>>};
+  lifecycle?:{persistent:boolean;dispose:boolean;logChanges:boolean;bossScene?:string};
   source: { dir: string; manifestKey: string } | null; sets: Readonly<Record<string, string>>;
   selection: readonly ScoreSelection[]; selectMode: 'first' | 'all';
   /** Declared cache/decode policy, preserving slot fallback or an entire boot bank. */

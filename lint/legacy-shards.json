@@ -362,10 +362,10 @@
         "runtime/audio/entered.ts": "9477732624cf1d24f0c02174aea880236632739bf03126ede213b395e06c4264",
         "runtime/audio/files.ts": "f1fcd55ce35bfb284ba09b924476144c090998f361eee401cf19a73903d2bfdc",
         "runtime/audio/profile.ts": "5ce6bbae52e07e2e313c33ec3a529a9403c4a7c528fa800e50bdc1385b771d55",
-        "runtime/audio/score.ts": "d19bbee744bb4c281693c31dad77db52a50f295c072a87de640d58eb6458a12e",
+        "runtime/audio/score.ts": "d94341921e9b82c4582710ee1b51994d92a8b9e7a64dd488de9af140c44c5720",
         "runtime/audio/sfx.ts": "e437dd364f1420f33059ba8f4aa5b596864d9e1ef14fe91e886aa6948dee42e9",
         "runtime/audio/synth.ts": "81f34d6495b2603f0bd5239c0cdeab63b465f2e4782c38deb256d0d95722c1aa",
-        "runtime/audio/wiring.ts": "7ac2f7f6f377064b1b1a1b366f326a2acf6b56518b7ad5c31091615ef36c16d4",
+        "runtime/audio/wiring.ts": "8f83b4ebd3d1565675b3440c4795b4b719bef8fd3610d4115a44cc9f38345033",
         "runtime/baked.ts": "40d1363f3c5240e9b5e0a9d87d592f1480bc3bb7c15f6722d71af2cf7ecfd20c",
         "runtime/combatService.ts": "693eae6afc1c270d59c5a53e5e873f010e8b6a02deeb93d9e202a4168eca136c",
         "runtime/elites.ts": "885270d50e994fb0b2e4cd7070d7d8f0fcecb335deb129ee30f452c8f0a90356",
@@ -374,7 +374,7 @@
         "runtime/fauna.ts": "367368d258d4632743a6a3996f68b744e6df102b9e120716f6fc10d5dcc87027",
         "runtime/headless.ts": "e2d0a15165ae2e5bd5437168404f186f209462fecf7753c7e394a39d039c1d07",
         "runtime/herds.ts": "8b4c6a98ee4685a8d7383e57b3a8ab9a9370a2952a2aac55a929b6bf07cdf884",
-        "runtime/index.ts": "0bb3b1c4702b6398217fafb9b66f17e11d14b4cc439ec2e8ba5f72b6bc4a1a1b",
+        "runtime/index.ts": "1605111784e1a5036d2bc65c5bfb5265e9f203384944288bde0474c6ece126b2",
         "runtime/items.ts": "d70f4162dbcb2630433e827d8ed1945ed098083718f8e4523034c1bb818431b7",
         "runtime/king.ts": "0d381daa2a2769a221968ba214c23f443c66890d47ceafd1d5c2374787365e10",
         "runtime/kingLifetime.ts": "2122cbdf7e8cf00ac7d4a545e3f9f19a649ef6c0a886c38cb86b9e57cf9274b0",
@@ -542,6 +542,21 @@
           "original": "90d97a0fa98f8190a2cb86c1a57bd91d5e7f71cfe43b891371a60949aa8d6ddd",
           "current": "ac9c8ff232e31f57d799839be60e695145dfd46fbb1fceca7395915d85c9f75c",
           "reason": "G486 compatibility: preserve original seven tier values and sealed callers while the engine removes shard knobs; import-only redirects, no body changes."
+        },
+        "runtime/audio/score.ts": {
+          "original": "d19bbee744bb4c281693c31dad77db52a50f295c072a87de640d58eb6458a12e",
+          "current": "d94341921e9b82c4582710ee1b51994d92a8b9e7a64dd488de9af140c44c5720",
+          "reason": "G669 DR15 explicitly retires the Pine score comparison in both entries. Remove its callback, saved pin and delayed audition sting; automatic day/night and native boss/reward audio keep their existing lifetimes."
+        },
+        "runtime/audio/wiring.ts": {
+          "original": "7ac2f7f6f377064b1b1a1b366f326a2acf6b56518b7ad5c31091615ef36c16d4",
+          "current": "8f83b4ebd3d1565675b3440c4795b4b719bef8fd3610d4115a44cc9f38345033",
+          "reason": "G669 DR15 explicitly retires the Pine score comparison in both entries. Remove its callback, saved pin and delayed audition sting; automatic day/night and native boss/reward audio keep their existing lifetimes."
+        },
+        "runtime/index.ts": {
+          "original": "0bb3b1c4702b6398217fafb9b66f17e11d14b4cc439ec2e8ba5f72b6bc4a1a1b",
+          "current": "1605111784e1a5036d2bc65c5bfb5265e9f203384944288bde0474c6ece126b2",
+          "reason": "G669 DR15 explicitly retires the Pine score comparison in both entries. Remove its callback, saved pin and delayed audition sting; automatic day/night and native boss/reward audio keep their existing lifetimes."
         }
       }
     },

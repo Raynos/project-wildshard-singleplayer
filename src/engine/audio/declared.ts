@@ -38,7 +38,7 @@ export interface DeclaredAudioPorts {
   } | undefined;
 }
 /** Native score owners supplied by the mixer; the declaration supplies all content policy. */
-export interface DeclaredScorePorts {audio:Pick<Audio,'onLevelBank'>;music:Music;scope:Scope;beforeBind?:()=>void}
+export interface DeclaredScorePorts {audio:Pick<Audio,'onLevelBank'>;music:Music;scope:Scope}
 function scorePorts(ports:DeclaredAudioPorts|{audio:DeclaredBankAudio;scope:Scope}|DeclaredScorePorts|DeclaredAmbiencePorts|DeclaredGameplayPorts):ports is DeclaredScorePorts {
   return 'music' in ports&&'residentBank' in ports.music&&'onLevelBank' in ports.audio;
 }
@@ -58,7 +58,7 @@ export function installDeclaredAudio(data:DeclaredAudioData,ports:DeclaredAudioP
   if(phase==='ambience'){if(!('sea' in ports))throw new Error('Missing ambience ports');return new DeclaredAmbience(data,ports);}
   if(phase==='score'){
     if(!scorePorts(ports)||data.music===undefined)throw new Error('Missing declared score ports or profile');
-    return CatalogueScore.install(ports.audio,ports.music,ports.scope,data.music,'beforeBind' in ports?{beforeBind:ports.beforeBind}:{});
+    return CatalogueScore.install(ports.audio,ports.music,ports.scope,data.music);
   }
   if(ports.scope===undefined)throw new Error('Missing audio scope');
   if(phase==='voices'){

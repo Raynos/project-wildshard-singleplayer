@@ -9309,11 +9309,8 @@ ordinary catalogues keep their level scope. Detaching a persistent score release
 its entered decks/listener without resetting scene or boss phase. The music deck
 continues to own its playback, crossfades and bar-grid clock.
 
-An optional `music.lifecycle.debugPin` carries an existing reload comparison's
-choices, saved device key and legacy settings member. `CatalogueScore.pin`
-resolves device before legacy, refuses an unknown value to the declared default,
-and initializes the existing scene/phase/sting rows. The platform registers the
-comparison once before score binding; shards supply no selection callback.
+Scores start in their automatic day scene; gameplay observations and boss
+commands select later scenes and phases. Saved audition pins are ignored.
 Pine and Driftwood both use this installer; their lifecycle and catalogue rows
 remain the source of their differences.
 

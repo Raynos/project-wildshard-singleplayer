@@ -401,8 +401,7 @@
       "lifecycle": {
         "dispose": true,
         "logChanges": false,
-        "persistent": false,
-        "pins": {}
+        "persistent": false
       },
       "minFade": 0,
       "selectMode": "first",
