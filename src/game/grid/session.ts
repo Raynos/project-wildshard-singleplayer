@@ -686,14 +686,16 @@ export class GridSession {
 
   /** Ring prelink: once a crossing's lighting is in place, every resident neighbour view (far proxies, L1 / L0 ring tiles)
    *  links the programs that lighting needs through the page's own precompile (`prepareView`), in the background: a tile
-   *  first drawn after it never links on its first frame (the 150 ms cove-pools frame), and nothing waits on it. */
+   *  first drawn after it never links on its first frame (the 150 ms cove-pools frame), and nothing waits on it. The road's
+   *  own roots (deck, boulevard, void) go too: their road-lit variants, compiled with the page's environment, are ready
+   *  before the first leave (G639: Driftwood's first road frame linked seven programs, up to 1 s under load). */
   private prelinkViews(): void {
     const prepare = this.host.prepareView, scope = this.host.scope;
     if (prepare === undefined || scope.disposed) return;
-    const warm = async (root: Group): Promise<void> => {
+    const warm = async (root: Object3D): Promise<void> => {
       try { await prepare(root, () => !scope.disposed && root.parent !== null); } catch (error: unknown) { console.warn('[grid] neighbour view prelink stopped', error); }
     };
-    for (const root of this.viewRoots.values()) void warm(root);
+    for (const root of [...this.viewRoots.values(), ...this.roadRoots]) void warm(root);
   }
   /** G107 / SF66: a cell's admitted baked map once loaded, retaining the home's full raster size. */
   mapImage(instance: string): HTMLCanvasElement | ImageBitmap | null { return this.mapImages.image(this.assembly.cell(instance).slug); }

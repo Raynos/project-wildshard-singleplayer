@@ -136,7 +136,10 @@ function exteriorJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, sh
   const state = leaving.length === 0 ? registered : { environment: registered.environment, roots: new Set([...registered.roots, ...leaving]) };
   const target = new THREE.Scene();
   const lights = new CompileLights();
-  target.fog = scene.fog; target.environment = state.environment;
+  // the road draws with the page's own environment (a layer swaps a cell's in only while it renders, `BackdropLayer.apply`):
+  // with none declared, the live page environment keys the exterior variant (G639: a null one keyed Driftwood's road
+  // programs without the page PMREM, so they all linked on the first road frame)
+  target.fog = scene.fog; target.environment = state.environment ?? scene.environment;
   const visit = (object: THREE.Object3D): void => {
     if (!object.visible || state.roots.has(object)) return;
     if (object instanceof THREE.Light) target.add(lights.copy(object));
