@@ -143,19 +143,16 @@ test('compiled first-party runtime entry resolves only its declared constructor 
   const Entry = entry.default; new Entry(); expect(world).not.toHaveBeenCalled();
 });
 
-test('Nalati lazy admission keeps its native constructor and refuses undeclared entries', async () => {
+test('Nalati lazy admission selects the compiled plan without a trusted TS resolver or eager effects', async () => {
   const { default: manifest } = await import('../src/shards/nalati-grasslands/discovery.generated');
-  const { default: Native } = await import('../src/shards/nalati-grasslands/runtime/index');
-  const world = vi.spyOn(Native.prototype, 'world');
+  const install = vi.spyOn(clientPhases, 'installClientPhase');
   try {
     const first = await manifest.load?.(), second = await manifest.load?.();
-    if (first?.resolveTrustedRuntime === undefined || second?.resolveTrustedRuntime === undefined)
-      throw new Error('Nalati did not lend its trusted entry resolver');
-    expect(first.resolveTrustedRuntime('runtime/index.ts')).toBe(Native);
-    expect(second.resolveTrustedRuntime('runtime/index.ts')).toBe(Native);
-    expect(() => first.resolveTrustedRuntime?.('runtime/foreign.ts')).toThrow('Unknown compiled runtime entry');
-    const Entry = first.default; new Entry(); expect(world).not.toHaveBeenCalled();
-  } finally { world.mockRestore(); }
+    if (first === undefined || second === undefined) throw new Error('Missing compiled entry');
+    expect('resolveTrustedRuntime' in first).toBe(false); expect('resolveTrustedRuntime' in second).toBe(false);
+    expect(manifest.clientPlanRuntime).toBe(true); expect(manifest.trustedRuntime).toBeUndefined();
+    const Entry = first.default; new Entry(); expect(install).not.toHaveBeenCalled();
+  } finally { install.mockRestore(); }
 });
 
 test.each([true, false])('standalone native plan policy preserves hooks and their scope: %s', async nativePlan => {

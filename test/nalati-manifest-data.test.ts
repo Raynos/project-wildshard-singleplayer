@@ -59,12 +59,17 @@ test('cold boot metadata publishes canonical discovery for terrain and commit sn
 });
 
 
-test('authored native entry keeps its exact compiled selection and refuses unknown fields',()=>{
+test('authored declared entry keeps its exact platform and refuses unknown fields',()=>{
   const data=parseManifestMetadata(metadata),entry=data.bindings.entry;
-  expect(entry).toEqual({native:{module:'./runtime/index',export:'NalatiPlugin'},retainHomeRuntime:true,stagesOwner:'declared',
-    nativePlan:{phases:['world','world-bindings','kit','prepare-play','play'],features:['combat.targets','world.updates','world.assembly','state.adventure','species.program','weather.forest','held.claims.prepare','held.claims.install','debug.expose','taming.entry','arena-room.entry','elite.entry','stealth.entry','elite.construct','timed.encounters','quest.chapter-view']}});
+  expect(entry).toEqual({platform:'client-plan',retainHomeRuntime:true,stagesOwner:'declared'});
   expect(data.loadout).toEqual(original.loadout);expect(data.hud).toEqual(original.hud);expect(data.bag).toEqual(original.bag);
+  const nativeEntry={native:{module:'./runtime/index',export:'NalatiPlugin'},retainHomeRuntime:true,stagesOwner:'declared'};
+  const withEntry=(value:unknown)=>({...metadata,bindings:{...metadata.bindings,entry:value}});
+  // Native transitions remain strict even though this shard now selects all declared features.
+  expect(parseManifestMetadata(withEntry(nativeEntry)).bindings.entry).toEqual(nativeEntry);
   for(const nativePlan of [{phases:['play'],features:['unknown']},{phases:['play'],features:['weather.forest','weather.forest']},{phases:['play','play']}])
-    expect(()=>parseManifestMetadata({...metadata,bindings:{...metadata.bindings,entry:{...metadata.bindings.entry,nativePlan}}})).toThrow();
+    expect(()=>parseManifestMetadata(withEntry({...nativeEntry,nativePlan}))).toThrow();
+  for(const invalid of [{...entry,platform:'unknown'},{...entry,nativePlan:true},{...entry,execute:true}])
+    expect(()=>parseManifestMetadata(withEntry(invalid))).toThrow();
   expect(()=>parseManifestMetadata({...metadata,bindings:{...metadata.bindings,groundRows:{...metadata.bindings.groundRows,execute:true}}})).toThrow();
 });

@@ -119,9 +119,9 @@ async function chapters() {
   const c5 = await chipText();
   check('chapters: the third feather → 2/4 │ THE CAIRN', /2\/4/.test(c5) && /THE CAIRN/i.test(c5), c5);
   // the strip tied at the cairn (the titan's own `tied`, which the cairn's prompt sets in a storm)
-  await q(`window.__wildshard.world.nalati.titan.fight.tied = true`);
+  await q(`window.__wildshard.shard['nalati.titan'].openFight.tied = true`);
   await sleep(1200);
-  await q(`window.__wildshard.world.nalati.titan.fight.tied = false`);
+  await q(`window.__wildshard.shard['nalati.titan'].openFight.tied = false`);
   const c6 = await chipText();
   check('chapters: the strip tied → 3/4 │ THE CAIRN', /3\/4/.test(c6) && /THE CAIRN/i.test(c6), c6);
   await saveStores(['storm-titan'], []);

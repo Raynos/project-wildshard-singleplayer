@@ -11,9 +11,9 @@ export function eliteEntryProbeFrame(probe: {
   if (probe.app.state !== 'play' || world === undefined) throw new Error('No entered play world');
   const { frame: frames, calls } = world.game.renderer.info.render;
   if (frames <= 0 || calls <= 0) throw new Error('No rendered play frame');
-  const owner = probe.shard['nalati'];
-  if (owner === null || typeof owner !== 'object' || !('elites' in owner)) throw new Error('Missing authored elite exposure');
-  const entry: unknown = owner.elites;
+  const owner = probe.shard['nalati.elites'];
+  if (owner === null || typeof owner !== 'object' || !('entry' in owner)) throw new Error('Missing authored elite exposure');
+  const entry: unknown = owner.entry;
   if (entry === null || typeof entry !== 'object' || !('scripts' in entry) || !Array.isArray(entry.scripts)) throw new Error('Missing entered elite controllers');
   const scripts: readonly unknown[] = entry.scripts;
   const ids = scripts.map(script => {

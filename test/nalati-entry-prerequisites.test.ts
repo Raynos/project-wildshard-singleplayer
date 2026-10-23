@@ -4,39 +4,53 @@ import { Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import type { ShardContext } from '../src/game/plugin/context';
 import type { ShardRuntime } from '../src/game/shard/runtime';
-import { NalatiPlugin } from '../src/shards/nalati-grasslands/runtime/index';
+import { CLIENT_FEATURES } from '../src/game/shardfile/clientPlan';
+import * as population from '../src/game/population/wildlife';
+import { parseClientPlan } from '../src/format/clientPlan';
 import { legacyDouble } from './fake/FakeGame';
 
+const row = parseClientPlan({version:1,features:[{kind:'population.wildlife',publish:'wildlife',file:'actors/wildlife.json',
+  crowd:{json:'actors/crowd.json',binary:'actors/crowd.bin'},navSteer:true,frame:{id:'orchard.wildlife',after:[],before:[]}}]}).features[0];
 function context(runtime: ShardRuntime | undefined) {
-  const scope = new Scope('native Nalati prerequisite');
+  const scope = new Scope('declared wildlife prerequisite');
   const game = legacyDouble<ShardContext['game']>({});
   Object.defineProperty(game, 'runtime', { get: () => runtime });
-  const json = vi.fn(() => Promise.reject(new Error('No content read before native world admission')));
+  const json = vi.fn(() => Promise.reject(new Error('No content read before world admission')));
   const species = vi.fn<ShardContext['rows']['species']>(), speciesLook = vi.fn<ShardContext['rows']['speciesLook']>();
   const ctx = legacyDouble<ShardContext>({ scope, game,
-    product: legacyDouble<ShardContext['product']>({ json }),
-    rows: legacyDouble<ShardContext['rows']>({ species, speciesLook }) });
+    product: legacyDouble<ShardContext['product']>({ json }), rows: legacyDouble<ShardContext['rows']>({ species, speciesLook }) });
   return { scope, ctx, json, species, speciesLook };
 }
-
-function makeRuntime(world: ShardRuntime['world'], step: ShardRuntime['step']): ShardRuntime {
-  return { world, step, play: null, interactables: [], overhead: [], hooks: {}, objects: {},
-    viewer: () => new Vector3(), horizonVeil: null };
+function makeRuntime(world: ShardRuntime['world'], step: ShardRuntime['step'], play: ShardRuntime['play']): ShardRuntime {
+  return { world, step, play, interactables: [], overhead: [], hooks: {}, objects: {}, viewer: () => new Vector3(), horizonVeil: null };
 }
 
-test('every native entry hook refuses missing world prerequisites before reads or row registration', async () => {
-  const stepped = vi.fn();
-  const step: NonNullable<ShardRuntime['step']> = () => { stepped(); return Promise.reject(new Error('No boot step before native world admission')); };
-  const cases = [undefined, makeRuntime(null, step), makeRuntime(legacyDouble<NonNullable<ShardRuntime['world']>>({}), null)];
-  for (const owner of cases) {
-    const f = context(owner), native = new NalatiPlugin();
-    try {
-      const message = owner === undefined ? 'requires its world host' : 'requires counted world steps';
-      expect(()=>native.world(f.ctx)).toThrow(message);
-      expect('kit' in native).toBe(false);
-      await expect(native.play(f.ctx)).rejects.toThrow(message);
-      expect(f.json).not.toHaveBeenCalled(); expect(f.species).not.toHaveBeenCalled(); expect(f.speciesLook).not.toHaveBeenCalled();
-      expect(stepped).not.toHaveBeenCalled();
-    } finally { f.scope.dispose(); }
-  }
+test('declared publication refuses missing entered prerequisites before reads or wildlife lookup', () => {
+  if(row?.kind!=='population.wildlife')throw new Error('Missing wildlife row');
+  const install=CLIENT_FEATURES['population.wildlife'].play?.install;if(install===undefined)throw new Error('Missing publication slot');
+  const stepped=vi.fn(),step:NonNullable<ShardRuntime['step']>=()=>{stepped();return Promise.reject(new Error('Unexpected boot step'));};
+  const world=legacyDouble<NonNullable<ShardRuntime['world']>>({}),play=legacyDouble<NonNullable<ShardRuntime['play']>>({});
+  const capture=vi.spyOn(population,'clientWildlife');
+  try{for(const owner of [undefined,makeRuntime(null,step,play),makeRuntime(world,null,play),makeRuntime(world,step,null)]){
+    const f=context(owner);try{
+      expect(()=>install(f.ctx,row,f.scope)).toThrow('entered world and play owner');
+      expect(f.json).not.toHaveBeenCalled();expect(f.species).not.toHaveBeenCalled();expect(f.speciesLook).not.toHaveBeenCalled();
+      expect(capture).not.toHaveBeenCalled();expect(stepped).not.toHaveBeenCalled();
+    }finally{f.scope.dispose();}
+  }}finally{capture.mockRestore();}
+});
+
+test('publication keeps the original wildlife identity after chapter view and retires only its alias', async () => {
+  if(row?.kind!=='population.wildlife')throw new Error('Missing wildlife row');
+  const feature=CLIENT_FEATURES['population.wildlife'].play;if(feature===undefined)throw new Error('Missing publication slot');
+  const runtime=makeRuntime(legacyDouble<NonNullable<ShardRuntime['world']>>({}),()=>Promise.reject(new Error('Unexpected boot step')),legacyDouble<NonNullable<ShardRuntime['play']>>({}));
+  const f=context(runtime),wildlife=legacyDouble<NonNullable<ReturnType<typeof population.clientWildlife>>>({}),capture=vi.spyOn(population,'clientWildlife').mockReturnValue(null);
+  try{
+    expect(feature.rank).toBeGreaterThan(CLIENT_FEATURES['quest.chapter-view'].rank);
+    expect(()=>feature.install(f.ctx,row,f.scope)).toThrow('not been built');expect(runtime.objects).toEqual({});
+    capture.mockReturnValue(wildlife);await feature.install(f.ctx,row,f.scope);
+    expect(capture.mock.calls.at(-1)?.[0]).toBe(f.ctx);expect(runtime.objects['wildlife']).toBe(wildlife);
+    f.scope.dispose();expect(runtime.objects['wildlife']).toBeUndefined();
+    capture.mockClear();expect(()=>feature.install(f.ctx,row,f.scope)).toThrow('entered world and play owner');expect(capture).not.toHaveBeenCalled();
+  }finally{capture.mockRestore();f.scope.dispose();}
 });

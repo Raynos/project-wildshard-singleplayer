@@ -76,8 +76,9 @@ export const ClientFeatureSchema = v.variant('kind', [
     quest: v.exactOptional(id) }),
   v.strictObject({ kind: v.literal('world.paths'), rows: PagePathRampSchema }),
   v.strictObject({ kind: v.literal('world.dressing') }),
+  // Optional publish borrows the built wildlife at the platform play slot, after chapter views.
   v.strictObject({ kind: v.literal('population.wildlife'), file: label,
-    crowd: v.strictObject({ json: label, binary: label }), navSteer: v.boolean(),
+    crowd: v.strictObject({ json: label, binary: label }), navSteer: v.boolean(), publish: v.exactOptional(id),
     frame: v.strictObject({ id, after: v.pipe(v.array(id), v.maxLength(16)), before: v.pipe(v.array(id), v.maxLength(16)) }) }),
   v.strictObject({kind:v.literal('world.sets'),rows:v.pipe(v.array(v.strictObject({place:label,id:label,name:label,file:label,pois:v.optional(v.pipe(v.array(label),v.maxLength(128),v.check(names=>new Set(names).size===names.length)),[]),x:finite,z:finite,r:v.pipe(finite,v.minValue(0)),mode:v.exactOptional(v.picklist(['centre','bounds']))})),v.maxLength(128),v.check(rows=>new Set(rows.map(row=>row.id)).size===rows.length))}),
   v.strictObject({ kind: v.literal('riding.session'), file: label, owner: v.exactOptional(id) }),
@@ -134,6 +135,7 @@ export const ClientFeatureSchema = v.variant('kind', [
     source:v.exactOptional(v.variant('kind',[
       v.strictObject({kind:v.literal('runtime-object'),id}),v.strictObject({kind:v.literal('dressing')}),
       v.strictObject({kind:v.literal('timed-riders'),owner:id}),v.strictObject({kind:v.literal('world-weather'),owner:id}),
+      v.strictObject({kind:v.literal('arena-room'),owner:id}),v.strictObject({kind:v.literal('elite-entry'),owner:id}),
     ])) }),v.check(row=>row.objects===undefined||row.source===undefined,'Debug exposure requires one concrete source')),
 ]);
 /** Rows are unordered. Phase, rank and lifetime belong exclusively to the compiled registry. */

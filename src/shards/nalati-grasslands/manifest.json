@@ -488,7 +488,6 @@
   "minimap": {
     "image": "/assets/nalati-grasslands/map/top.webp"
   },
-  "runtimeEntry": "runtime/index.ts",
   "bindings": {
     "accent": "ember",
     "budgets": {
@@ -557,39 +556,9 @@
       }
     },
     "entry": {
-      "native": {
-        "module": "./runtime/index",
-        "export": "NalatiPlugin"
-      },
+      "platform": "client-plan",
       "retainHomeRuntime": true,
-      "stagesOwner": "declared",
-      "nativePlan": {
-        "phases": [
-          "world",
-          "world-bindings",
-          "kit",
-          "prepare-play",
-          "play"
-        ],
-        "features": [
-          "combat.targets",
-          "world.updates",
-          "world.assembly",
-          "state.adventure",
-          "species.program",
-          "weather.forest",
-          "held.claims.prepare",
-          "held.claims.install",
-          "debug.expose",
-          "taming.entry",
-          "arena-room.entry",
-          "elite.entry",
-          "stealth.entry",
-          "elite.construct",
-          "timed.encounters",
-          "quest.chapter-view"
-        ]
-      }
+      "stagesOwner": "declared"
     },
     "render": {
       "platform": "post",

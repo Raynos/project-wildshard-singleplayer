@@ -6,7 +6,7 @@ import {Events} from '../src/engine/events/events';
 import {CLIENT_FEATURES} from '../src/game/shardfile/clientPlan';
 import {parseClientPlan} from '../src/format/clientPlan';
 import {installCombatTargets} from '../src/game/shardfile/clientTargets';
-import {publishEntryOwner} from '../src/game/shardfile/entryOwners';
+import {publishEntryOwner,type EliteEntryConstruction} from '../src/game/shardfile/entryOwners';
 import type {ShardContext} from '../src/game/plugin/context';
 import type {ShardRuntime} from '../src/game/shard/runtime';
 import type {TimedEncounters} from '../src/game/boss/timedEncounters';
@@ -57,7 +57,8 @@ test('readiness borrows the original mutable population book before invoking tar
 test('declared debug sources expose the original native owners without a facade or another resource owner',async()=>{
  const f=fixture(),dressing=legacyDouble<SceneDressing>({}),weather=legacyDouble<ForestWeatherRig>({}),current=vi.spyOn(SceneDressing,'current').mockReturnValue(dressing),state={ready:true};
  f.objects['state']=state;publishEntryOwner(f.scope,'world-weather','orchard.weather',weather);
- const cases=[{source:{kind:'runtime-object',id:'state'},value:state},{source:{kind:'timed-riders',owner:'orchard.night'},value:f.riders},{source:{kind:'dressing'},value:dressing},{source:{kind:'world-weather',owner:'orchard.weather'},value:weather}];
+ const elites=legacyDouble<EliteEntryConstruction>({});publishEntryOwner(f.scope,'elite-entry','orchard.elites',elites);
+ const cases=[{source:{kind:'arena-room',owner:'orchard.arena'},value:f.arena},{source:{kind:'elite-entry',owner:'orchard.elites'},value:elites},{source:{kind:'runtime-object',id:'state'},value:state},{source:{kind:'timed-riders',owner:'orchard.night'},value:f.riders},{source:{kind:'dressing'},value:dressing},{source:{kind:'world-weather',owner:'orchard.weather'},value:weather}];
  try{for(const entry of cases){
   const row=parseClientPlan({version:1,features:[{kind:'debug.expose',name:'fixture',source:entry.source}]}).features[0];if(row?.kind!=='debug.expose')throw new Error('Missing debug row');
   expect(CLIENT_FEATURES['debug.expose'].phaseFor?.(row)).toBe(entry.source.kind==='world-weather'?'play':'world-bindings');

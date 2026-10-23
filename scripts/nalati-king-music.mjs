@@ -2,7 +2,7 @@
 // nalati-king-music.mjs — NALATI-FINISH B3 (E302) evidence: the Golden King's music plays in a real browser, not only in
 // test/steppe-score.test.ts. ONE muted headless browser (--mute-audio, &mute=1, audio.muted) boots Nalati at the kurgan's
 // chamber door (the harness params boss=golden-king + bossGod) and reads the live audio graph:
-//   · the score's scene (nalati.boss.inside → music.setSteppe({ boss: 'king' })) and the slot it asks for (steppe-king);
+//   · the score's scene (declared nalati.boss.inside → music.setSteppe({ boss: 'king' })) and the slot it asks for (steppe-king);
 //   · the slot decoded on demand (SteppeScore.log: the decode ms), its calm / tension buffers (duration, channels, RMS);
 //   · the deck on the air (Music.deck: its slot, start time vs the AudioContext clock, the context running) and a tap on the
 //     stem bus (an AnalyserNode: the RMS actually flowing out of the deck; the master is disconnected, so nothing is heard);
@@ -34,7 +34,7 @@ const probe = () => page.evaluate(() => {
   const buf = (b) => (b ? { duration: Number(b.duration.toFixed(3)), channels: b.numberOfChannels, sampleRate: b.sampleRate, ...rms(b) } : null);
   const king = st.slots.get('steppe-king');
   return {
-    inside: w.nalati?.boss?.inside ?? null,
+    inside: window.__wildshard.shard['nalati.boss']?.inside ?? null,
     scene: { ...st.scene }, target: st.target(), resident: st.resident, pending: st.pending, decodeLog: st.log,
     kingSpec: king ? { calm: king.spec.calm, tension: king.spec.tension, bpm: king.spec.bpm, loopStart: king.spec.loopStart, loopEnd: king.spec.loopEnd } : null,
     kingCalm: buf(king?.calm), kingTension: buf(king?.tension),

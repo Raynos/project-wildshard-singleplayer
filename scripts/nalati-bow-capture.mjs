@@ -43,10 +43,10 @@ try {
     return { page, errors };
   };
   const bowState = (page) => page.evaluate(() => {
-    const w = window.__wildshard?.world, b = w.nalati?.kit?.bow ?? w.weapons.get('bow');
+    const w = window.__wildshard?.world, b = w.weapons.get('bow');
     const kb = w.weapons.current;
     const r = (v) => Math.round(v * 100) / 100;
-    return { draw: r(kb.charge ?? 0), quiver: kb.state.ammo, aim: [w.weapons.adsHeld, w.nalati?.kit?.bow?.aimOn === true, r(w.game.camera.fov) < 60].some(Boolean), fov: r(w.game.camera.fov), stuck: b?.stuckCount ?? null, fire: document.querySelector('.ws-touch-attack')?.className.replace('ws-touch-attack', '').trim() ?? '' };
+    return { draw: r(kb.charge ?? 0), quiver: kb.state.ammo, aim: [w.weapons.adsHeld, b?.aimOn === true, r(w.game.camera.fov) < 60].some(Boolean), fov: r(w.game.camera.fov), stuck: b?.stuckCount ?? null, fire: document.querySelector('.ws-touch-attack')?.className.replace('ws-touch-attack', '').trim() ?? '' };
   });
   const shoot = async (page, name, kind, errors, note = '') => {
     const buf = await page.screenshot({ type: 'jpeg', quality: 70 });

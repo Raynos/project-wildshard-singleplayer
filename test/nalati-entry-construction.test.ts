@@ -8,17 +8,24 @@ import {createShardProduct} from '../src/game/shardfile/shardProduct';
 import {outputPlatformPayloads} from '../src/sdk/outputProduct';
 import {readProjectAssets} from '../src/sdk/project';
 
-test('the native plan constructs the original elite and night owners once after assembly',async()=>{
+test('the declared plan constructs the original elite and night owners once after assembly',async()=>{
   const emitted=await readProjectAssets('src/shards/nalati-grasslands');
   const files=new Map((emitted.output.namedFiles??[]).flatMap(file=>file.name===undefined?[]:[[file.name,{...file,url:file.path}] as const]));
   const product=createShardProduct({slug:emitted.shard.identity.slug,revision:emitted.shard.identity.revision,shardfile:emitted.shard,
     sections:outputPlatformPayloads(emitted.output.platform,['client/plan']),files,
     read:hash=>{const bytes=emitted.assets.get(hash);if(bytes===undefined)throw new Error('Missing admitted constructor input');return Promise.resolve(bytes);}});
   const plan=parseClientPlan(product.section('client/plan')),entry=parseManifestMetadata(metadata).bindings.entry;
-  if(entry===undefined||!('native' in entry))throw new Error('Missing native entry');
-  const selection=entry.nativePlan;
-  if(typeof selection!=='object'||selection.features===undefined)throw new Error('Missing native feature selection');
-  const nativeKinds=new Set<string>(selection.features),selected=plan.features.filter(row=>nativeKinds.has(row.kind));
+  expect(entry).toEqual({platform:'client-plan',retainHomeRuntime:true,stagesOwner:'declared'});
+  const runtime=product.shardfile.runtime;
+  if(runtime===null||'entry' in runtime)throw new Error('Missing declared runtime');
+  expect(runtime.kind).toBe('client-plan');
+  const selected=plan.features;
+  expect(selected.find(row=>row.kind==='population.wildlife')).toMatchObject({publish:'wildlife'});
+  const debug=selected.filter(row=>row.kind==='debug.expose');
+  expect(debug.find(row=>row.name==='harness.shard.nalati-grasslands')).toMatchObject({objects:['ride','wildlife']});
+  expect(debug.some(row=>row.name==='nalati')).toBe(false);
+  for(const [name,kind,owner] of [['nalati.boss','arena-room','nalati.king'],['nalati.titan','arena-room','nalati.titan'],['nalati.elites','elite-entry','nalati.elites']])
+    expect(debug.find(row=>row.name===name)).toMatchObject({source:{kind,owner}});
   const constructors=selected.filter(row=>row.kind==='elite.construct'||row.kind==='timed.encounters');
   const {constants}=v.parse(v.object({constants:v.object({eliteEntry:v.unknown(),timedEntry:v.unknown()})}),await product.json('sim/headless-assembly.json'));
   expect(constructors).toEqual([constants.eliteEntry,constants.timedEntry]);
