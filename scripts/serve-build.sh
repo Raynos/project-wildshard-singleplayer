@@ -49,12 +49,16 @@ case "${1:-}" in
       read -r pid exp out cwd name < "$f"
       if [ "${SERVE_SHARED_STOP:-}" != 1 ] && { [ "$tgt" = "$(basename "$f")" ] || [ "$tgt" = all-mine ]; }; then
         all_mine=0; [ "$tgt" = all-mine ] && all_mine=1
-        python3 "$REPO/scripts/serve-shared-preview.py" release "$REG" "$(basename "$f")" "$CALLER" "$all_mine" bash "$0" stop "$(basename "$f")"
+        SERVE_STOP_OBSERVED_PID="$pid" SERVE_STOP_OBSERVED_OUT="$out" python3 "$REPO/scripts/serve-shared-preview.py" release "$REG" "$(basename "$f")" "$CALLER" "$all_mine" bash "$0" stop "$(basename "$f")"
         shared_result=$?
         [ "$shared_result" = 0 ] && continue
-        [ "$shared_result" = 3 ] || exit "$shared_result"
+        exit "$shared_result"
       fi
       if [ "$tgt" = "$(basename "$f")" ] || { [ "$tgt" = "all-mine" ] && [ "$cwd" = "$CALLER" ]; }; then
+        if [ -n "${SERVE_STOP_PID:-}" ] && { [ "$pid" != "$SERVE_STOP_PID" ] || [ "$out" != "$SERVE_STOP_OUT" ]; }; then
+          echo 'serve-build: preview registry owner changed; refusing teardown' >&2
+          exit 1
+        fi
         # New previews have PID == PGID. Retire their whole session, including pnpm/vite descendants.
         # Older registered previews share their launcher's group, so retain the legacy PID-only cleanup there.
         if [ "$(ps -o pgid= -p "$pid" 2>/dev/null | tr -d ' ')" = "$pid" ]; then
@@ -183,6 +187,10 @@ reserve_port() { # caller holds the registry lock; the OS lease stays held after
 }
 publish_reservation() { # atomic rows cannot be mistaken for dead, partially written owners
   local entry="$REG/.entry-$PORT-$$"
+  if [ -n "${SERVE_SHARED_SHA:-}" ]; then
+    mkdir -p "$BASE/$stamp" || return
+    printf '%s\n' "$SERVE_SHARED_SHA" > "$BASE/$stamp/.shared-preview" || return
+  fi
   printf '%s %s %s %s %s\n' "$1" "$2" "$BASE/$stamp" "$CALLER" "$3" > "$entry" || return
   mv "$entry" "$REG/$PORT"
 }
@@ -278,7 +286,7 @@ GEN_ARGS="--proof"; SHARDFILE_ARGS="--reuse"
   'step() { local s=$SECONDS; "$@" || return; echo "serve-build step $1 $2: $((SECONDS - s))s"; }
    step node scripts/gen.mjs $3 && step node scripts/build-shardfiles.mjs $4 && step pnpm exec vite build --mode "$1" --config "$2"' \
   bash "$MODE" "$CFG" "$GEN_ARGS" "$SHARDFILE_ARGS" ) > "$BASE/$stamp/build.log" 2>&1 \
-  || { tail -30 "$BASE/$stamp/build.log" >&2; exit 1; }
+  || { echo "serve-build: build failed; stderr/stdout tail from $BASE/$stamp/build.log:" >&2; tail -60 "$BASE/$stamp/build.log" >&2; exit 1; }
 grep -h '^serve-build step\|^wildshard build: .* in \|^heavy-lane: acquired' "$BASE/$stamp/build.log" | sed 's/^/serve-build: /' >&2
 # public/ by symlink (vite preview follows them): an entry the build didn't write is linked whole; a folder both have
 # (assets/: the build's JS chunks + public's models) is merged one level down, recursively; a file the build wrote wins

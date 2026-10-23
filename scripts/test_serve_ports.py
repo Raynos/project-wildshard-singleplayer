@@ -1,4 +1,7 @@
 """Bash 3 preview reservation and post-build port conflict regressions."""
+import contextlib
+import importlib.util
+import io
 import os
 import json
 from pathlib import Path
@@ -11,8 +14,9 @@ import sys
 import tempfile
 import time
 import unittest
+from unittest.mock import patch
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(os.environ.get('X15_TEST_ROOT', Path(__file__).resolve().parent.parent))
 HELPER = ROOT / 'scripts/serve-port-lease.py'
 
 
@@ -93,7 +97,7 @@ class PreviewTests(unittest.TestCase):
         source = Path(os.environ.get('X15_TEST_SCRIPT', ROOT / 'scripts/serve-build.sh'))
         shutil.copyfile(source, self.root / 'scripts/serve-build.sh')
         shutil.copyfile(HELPER, self.root / 'scripts/serve-port-lease.py')
-        shutil.copyfile(ROOT / 'scripts/serve-shared-preview.py', self.root / 'scripts/serve-shared-preview.py')
+        shutil.copyfile(os.environ.get('X15_TEST_SHARED', ROOT / 'scripts/serve-shared-preview.py'), self.root / 'scripts/serve-shared-preview.py')
         subprocess.run(['git', 'init', '-q', str(self.root)], check=True)
         (self.root / 'source').write_text('pinned fixture')
         subprocess.run(['git', '-C', str(self.root), 'add', 'source'], check=True)
@@ -350,6 +354,19 @@ else:
         (self.root / 'hold-build').unlink()
         self.finish(first)
 
+    def test_shared_marker_protects_the_building_reservation(self):
+        (self.root / 'hold-build').touch()
+        process = self.launch(self.port(), '--head')
+        deadline = time.monotonic() + 10
+        while not (self.root / 'building').exists():
+            if time.monotonic() > deadline: self.fail('Build fixture did not start')
+            time.sleep(.02)
+        row = next((self.root / 'registry').glob('[0-9]*')).read_text().split()
+        self.assertEqual((Path(row[2]) / '.shared-preview').read_text().strip(), self.sha)
+        self.assertFalse((Path(row[2]) / 'dist/version.json').exists() and process.poll() is not None)
+        (self.root / 'hold-build').unlink()
+        self.finish(process)
+
     def test_initial_busy_port_keeps_foreign_listener(self):
         port = self.port()
         with socket.socket() as occupier:
@@ -390,6 +407,91 @@ else:
             self.assertFalse((self.root / f'registry/{port}').exists())
             self.assertEqual(occupier.getsockname()[1], port)
         self.assertEqual((self.root / 'build-count').read_text(), 'build\n')
+
+
+class SharedReleaseTests(unittest.TestCase):
+    def setUp(self):
+        spec = importlib.util.spec_from_file_location('shared_preview', os.environ.get('X15_TEST_SHARED', ROOT / 'scripts/serve-shared-preview.py'))
+        self.module = importlib.util.module_from_spec(spec); spec.loader.exec_module(self.module)
+        self.temp = tempfile.TemporaryDirectory(dir=ROOT / 'tmp', prefix='shared-release-test-')
+        self.addCleanup(self.temp.cleanup)
+        self.registry = Path(self.temp.name)
+        self.out = self.registry / 'out'; self.out.mkdir()
+        self.port = '24001'; self.sha = 'a' * 40
+        self.row = f'{os.getpid()} 9999999999 {self.out} lane-a fixture\n'
+        (self.registry / self.port).write_text(self.row)
+        (self.registry / '.shared').mkdir()
+        self.path = self.registry / '.shared' / (self.sha + '.json')
+
+    def shared(self):
+        (self.out / '.shared-preview').write_text(self.sha)
+        self.module.write(self.path, dict(status='ready', port=int(self.port), owners=['lane-a'],
+            owner='lane-a', pid=os.getpid(), out=str(self.out), sha=self.sha, started=time.time()))
+
+    def test_failure_forwards_both_streams_and_reprints_the_stderr_tail(self):
+        stdout = io.StringIO(); stderr = io.StringIO()
+        command = [sys.executable, '-c', 'import sys;print("source failure stdout");print("compiler diagnostic stderr",file=sys.stderr);sys.exit(7)']
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            self.assertEqual(self.module.run(self.registry, self.sha, 'production', 'lane-a', command), 7)
+        self.assertIn('source failure stdout', stderr.getvalue())
+        self.assertIn('compiler diagnostic stderr', stderr.getvalue())
+        self.assertIn('child failed (7); stderr tail:', stderr.getvalue())
+        self.assertEqual(self.module.read(self.path)['status'], 'failed')
+
+    def test_stop_is_bound_to_the_row_bash_observed_even_for_the_same_lane(self):
+        self.shared()
+        with patch.dict(os.environ, {'SERVE_STOP_OBSERVED_PID': '12345', 'SERVE_STOP_OBSERVED_OUT': str(self.out)}), patch.object(self.module.subprocess, 'run') as child:
+            self.assertEqual(self.module.release(self.registry, self.port, 'lane-a', False, ['unused']), 0)
+            child.assert_not_called()
+        self.assertEqual((self.registry / self.port).read_text(), self.row)
+        self.assertTrue(self.path.exists())
+
+    def test_changed_shared_state_never_falls_back_to_legacy_teardown(self):
+        self.shared()
+        @contextlib.contextmanager
+        def changed(_path):
+            state = self.module.read(self.path); state['port'] = 24002
+            self.module.write(self.path, state)
+            yield
+        with patch.object(self.module, 'lock', changed), patch.object(self.module.subprocess, 'run') as child:
+            self.assertEqual(self.module.release(self.registry, self.port, 'lane-a', False, ['unused']), 0)
+            child.assert_not_called()
+        self.assertEqual((self.registry / self.port).read_text(), self.row)
+
+    def test_teardown_holds_port_lease_and_passes_exact_registry_identity(self):
+        self.shared()
+        def stopped(_command, **kwargs):
+            self.assertEqual(kwargs['env']['SERVE_STOP_PID'], str(os.getpid()))
+            self.assertEqual(kwargs['env']['SERVE_STOP_OUT'], str(self.out))
+            with (self.registry / ('.port-' + self.port + '.lock')).open('a+') as lease:
+                with self.assertRaises(BlockingIOError):
+                    self.module.fcntl.flock(lease, self.module.fcntl.LOCK_EX | self.module.fcntl.LOCK_NB)
+            return subprocess.CompletedProcess([], 0)
+        with patch.object(self.module.subprocess, 'run', stopped):
+            self.assertEqual(self.module.release(self.registry, self.port, 'lane-a', False, ['unused']), 0)
+        self.assertFalse(self.path.exists())
+
+    def test_busy_build_reservation_and_missing_shared_record_refuse_teardown(self):
+        self.shared()
+        with (self.registry / ('.port-' + self.port + '.lock')).open('a+') as lease:
+            self.module.fcntl.flock(lease, self.module.fcntl.LOCK_EX)
+            with patch.object(self.module.subprocess, 'run') as child:
+                with self.assertRaisesRegex(ValueError, 'reservation still owns'):
+                    self.module.release(self.registry, self.port, 'lane-a', False, ['unused'])
+                child.assert_not_called()
+        self.path.unlink()
+        with self.assertRaisesRegex(ValueError, 'not ready for release'):
+            self.module.release(self.registry, self.port, 'lane-a', False, ['unused'])
+
+    def test_foreign_borrower_and_replaced_registry_cannot_stop_the_preview(self):
+        self.shared()
+        with patch.object(self.module.subprocess, 'run') as child:
+            with self.assertRaisesRegex(ValueError, 'Caller lane-b.*borrowers=lane-a'):
+                self.module.release(self.registry, self.port, 'lane-b', False, ['unused'])
+            (self.registry / self.port).write_text(self.row.replace(str(os.getpid()), '12345', 1))
+            with self.assertRaisesRegex(ValueError, 'replaced shared preview'):
+                self.module.release(self.registry, self.port, 'lane-a', False, ['unused'])
+            child.assert_not_called()
 
 
 if __name__ == '__main__':

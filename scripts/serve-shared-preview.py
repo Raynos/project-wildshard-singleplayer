@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """One pinned preview per SHA; concurrent lanes borrow it until their last release."""
+from collections import deque
 import contextlib
 from datetime import datetime, timezone
 import fcntl
@@ -12,6 +13,7 @@ import signal
 import subprocess
 import sys
 import time
+import threading
 import urllib.request
 
 WAIT_SECONDS = 300
@@ -99,14 +101,26 @@ def run(registry, sha, mode, owner, command):
                      owners=[owner], pid=os.getpid(), started=time.time(), command=shlex.join(command))
         write(path, state)
         env = dict(os.environ, SERVE_SHARED_SHA=sha)
-        child = subprocess.Popen(command, env=env, stdout=subprocess.PIPE, text=True, start_new_session=True)
+        child = subprocess.Popen(command, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, start_new_session=True)
+        errors = deque(maxlen=60)
+        def forward_errors():
+            for line in child.stderr:
+                errors.append(line); sys.stderr.write(line); sys.stderr.flush()
+        forwarding = threading.Thread(target=forward_errors, daemon=True)
+        forwarding.start()
         def interrupted(_signum, _frame):
             raise KeyboardInterrupt
         signal.signal(signal.SIGTERM, interrupted)
         signal.signal(signal.SIGINT, interrupted)
         try:
-            output, _ = child.communicate()
+            output = child.stdout.read()
+            child.wait(); forwarding.join()
+            child.stdout.close(); child.stderr.close()
             if child.returncode != 0:
+                print('serve-build: child failed (%s); stderr tail:' % child.returncode, file=sys.stderr)
+                print(''.join(errors).rstrip() or '(no stderr emitted)', file=sys.stderr)
+                if output.strip():
+                    print('serve-build: child stdout tail:\n' + '\n'.join(output.splitlines()[-60:]), file=sys.stderr)
                 state['status'] = 'failed'; write(path, state)
                 return child.returncode if child.returncode > 0 else 128 - child.returncode
             urls = re.findall(r'^http://127\.0\.0\.1:(\d+)/$', output, re.MULTILINE)
@@ -128,34 +142,72 @@ def run(registry, sha, mode, owner, command):
             raise
 
 
+def retire(registry, port, observed, command):
+    """Bind teardown to one registry row while excluding port reassignment."""
+    with (registry / ('.port-%s.lock' % port)).open('a+') as lease:
+        try:
+            fcntl.flock(lease, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            raise ValueError('Preview reservation still owns port %s; refusing teardown: %s' % (port, observed.strip()))
+        entry = registry / port
+        if not entry.exists() or entry.read_text() != observed:
+            print('serve-build: preview :%s changed before release; no teardown' % port)
+            return 0
+        row = observed.split(maxsplit=4)
+        env = dict(os.environ, SERVE_SHARED_STOP='1', SERVE_STOP_PID=row[0], SERVE_STOP_OUT=row[2])
+        return subprocess.run(command, env=env, check=False).returncode
+
+
 def release(registry, port, owner, all_mine, command):
-    for path in (registry / '.shared').glob('*.json'):
-        state = read(path)
-        if state.get('status') != 'ready' or str(state.get('port')) != port:
-            continue
+    entry = registry / port
+    try:
+        observed = entry.read_text()
+    except FileNotFoundError:
+        return 0  # Already released; never fall through to a stale Bash row.
+    row = observed.split(maxsplit=4)
+    if len(row) < 5:
+        raise ValueError('Malformed preview registry row')
+    expected_pid = os.environ.get('SERVE_STOP_OBSERVED_PID')
+    if expected_pid is not None and (row[0] != expected_pid or row[2] != os.environ.get('SERVE_STOP_OBSERVED_OUT')):
+        print('serve-build: preview changed since stop was requested; no teardown')
+        return 0
+    marker = Path(row[2]) / '.shared-preview'
+    if marker.exists():
+        sha = marker.read_text().strip()
+        if re.fullmatch('[a-f0-9]{40}', sha) is None:
+            raise ValueError('Invalid shared preview marker; refusing legacy teardown')
+        paths = [registry / '.shared' / (sha + '.json')]
+    else:
+        paths = [path for path in (registry / '.shared').glob('*.json')
+                 if str(read(path).get('port')) == port]
+    for path in paths:
         with lock(path):
             state = read(path)
-            if str(state.get('port')) != port or state.get('status') != 'ready':
-                return 3
+            if state.get('status') != 'ready':
+                raise ValueError('Shared preview is not ready for release; ' + holder(state))
+            if str(state.get('port')) != port:
+                print('serve-build: shared preview changed before release; no teardown')
+                return 0
             if owner not in state['owners']:
                 if all_mine:
                     return 0
-                raise ValueError('Caller does not hold this shared preview; ' + holder(state))
-            state['owners'].remove(owner)
-            if state['owners']:
-                write(path, state)
-                print('serve-build: released :%s; retained by %s' % (port, ', '.join(state['owners'])))
-                return 0
-            # Hold the SHA lock until the existing stop path has retired the
-            # preview. A new borrower can never join between last release and kill.
-            row = (registry / port).read_text().split(maxsplit=4)
+                raise ValueError('Caller %s does not hold this shared preview; borrowers=%s; %s' %
+                                 (owner, ','.join(state['owners']), holder(state)))
             if int(row[0]) != state['pid'] or row[2] != state['out']:
                 raise ValueError('Refuse to stop a replaced shared preview owner')
-            result = subprocess.run(command, env=dict(os.environ, SERVE_SHARED_STOP='1'), check=False)
-            if result.returncode == 0:
+            remaining = [name for name in state['owners'] if name != owner]
+            if remaining:
+                state['owners'] = remaining
+                write(path, state)
+                print('serve-build: released :%s; retained by %s' % (port, ', '.join(remaining)))
+                return 0
+            result = retire(registry, port, observed, command)
+            if result == 0:
                 path.unlink()
-            return result.returncode
-    return 3  # Legacy/working-tree preview: the caller retains its existing stop path.
+            return result
+    if all_mine and row[3] != owner:
+        return 0
+    return retire(registry, port, observed, command)
 
 
 def main():
