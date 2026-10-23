@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./ai/eliteLifecycle": "./ai/eliteLifecycle.ts",
     "./ai/eliteContinuation": "./ai/eliteContinuation.ts",
     "./boot/shell": "./boot/shell.ts",
     "./fx/groundTell": "./fx/groundTell.ts",

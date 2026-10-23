@@ -6,6 +6,7 @@ import type { AnimalSim } from '../entities/AnimalSim';
 import { GrazerBrain } from './grazer';
 import { StalkerBrain } from './stalker';
 import type { PackBrain } from './pack';
+import type { NativeEliteLifecycle } from './eliteLifecycle';
 import { NativeEliteKernels, type NativeEliteKernelLoans } from './eliteKernels';
 
 function method<O extends object>(owner: O, key: keyof O): unknown { return owner[key]; }
@@ -29,14 +30,14 @@ export interface EliteContinuationGroups {
 export interface EliteContinuationLoans {
   readonly host: SimHost; readonly core: EliteContinuationCore; readonly members: readonly EliteContinuationMember[];
   readonly bindings: { readonly brains: NativeEliteKernelLoans['brains']; readonly pinned: Set<AnimalSim> };
-  readonly kernels: NativeEliteKernels | null; readonly groups?: EliteContinuationGroups;
+  readonly kernels: NativeEliteKernels | null; readonly lifecycle?: NativeEliteLifecycle; readonly groups?: EliteContinuationGroups;
 }
 /** Row-controlled save envelope over the original native lifecycle, bodies and groups.
  * Whole-bank admission finishes before the first state, Map or Set mutation. */
 export class NativeEliteContinuation {
   private readonly rows; private readonly envelope;
   private readonly host; private readonly scope; private readonly core; private readonly members;
-  private readonly bindings; private readonly brains; private readonly pinned; private readonly groups; private readonly kernels;
+  private readonly lifecycle; private readonly bindings; private readonly brains; private readonly pinned; private readonly groups; private readonly kernels;
   private readonly controllers; private readonly methods: readonly unknown[]; private readonly entries; private readonly entryOwner; private readonly memberOwner; private readonly scripts; private readonly packs; private readonly guards; private readonly borrowedGroups;
   private readonly loans: EliteContinuationLoans;
   constructor(input: unknown, loans: EliteContinuationLoans) {
@@ -44,7 +45,7 @@ export class NativeEliteContinuation {
     if (!isJsonData(input)) throw new Error('Elite continuation requires plain JSON rows');
     this.rows = v.parse(EliteContinuationRowsSchema, input);
     const { host, core, members, bindings, kernels, groups } = loans;
-    this.host = host; this.scope = host.scope; this.core = core; this.members = [...members]; this.entries = [...core.entries];
+    this.lifecycle = loans.lifecycle; this.host = host; this.scope = host.scope; this.core = core; this.members = [...members]; this.entries = [...core.entries];
     this.bindings = bindings; this.brains = bindings.brains; this.pinned = bindings.pinned; this.groups = groups; this.kernels = kernels;
     this.controllers = members.map(member => member.controller); this.entryOwner = core.entries; this.memberOwner = members; this.scripts = core.entries.map(entry => entry.script); this.packs = groups?.packs; this.guards = groups?.herds; this.borrowedGroups = this.rows.rows.map(row => row.continuation?.borrowed === undefined ? undefined : groups?.herds[row.continuation.borrowed.group]);
     this.methods = this.callables();
@@ -60,12 +61,12 @@ export class NativeEliteContinuation {
   }
   private callables(): readonly unknown[] {
     return [method(this.core, 'snapshot'), method(this.core, 'prepareRestore'), method(this.brains, 'clear'), method(this.brains, 'set'), method(this.pinned, 'clear'), method(this.pinned, 'add'), method(this.pinned, 'delete'),
-      ...(this.kernels === null ? [] : [method(this.kernels, 'bind'), method(this.kernels, 'validateController')]), ...this.controllers.flatMap(controller => [method(controller, 'snapshot'), method(controller, 'prepareRestore')])];
+      ...(this.lifecycle === undefined ? [] : [method(this.lifecycle, 'validate')]), ...(this.kernels === null ? [] : [method(this.kernels, 'bind'), method(this.kernels, 'validateController')]), ...this.controllers.flatMap(controller => [method(controller, 'snapshot'), method(controller, 'prepareRestore')])];
   }
   private validate(): void {
-    const loans = this.loans; this.kernels?.validate();
+    const loans = this.loans; this.kernels?.validate(); this.lifecycle?.validate();
     if (this.scope.disposed || this.scope.disposing || this.host.scope !== this.scope || loans.host !== this.host || loans.core !== this.core
-      || loans.bindings !== this.bindings || this.bindings.brains !== this.brains || this.bindings.pinned !== this.pinned || loans.groups !== this.groups || loans.kernels !== this.kernels
+      || loans.bindings !== this.bindings || this.bindings.brains !== this.brains || this.bindings.pinned !== this.pinned || loans.groups !== this.groups || loans.kernels !== this.kernels || loans.lifecycle !== this.lifecycle
       || this.rows.rows.some((row, i) => row.continuation?.borrowed !== undefined && this.guards?.[row.continuation.borrowed.group] !== this.borrowedGroups[i])
       || this.groups?.packs !== this.packs || this.groups?.herds !== this.guards || loans.members !== this.memberOwner || loans.members.length !== this.members.length || this.members.some((member, i) => loans.members[i] !== member || member.controller !== this.controllers[i])
       || this.core.entries !== this.entryOwner || this.core.entries.length !== this.entries.length || this.entries.some((entry, i) => this.core.entries[i] !== entry || entry.script !== this.scripts[i] || entry.script.def.id !== this.rows.rows[i]?.def.id)

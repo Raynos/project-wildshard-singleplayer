@@ -5,6 +5,7 @@ import { NativeEliteContinuation, type EliteContinuationGroups } from '@wildshar
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost } from '@wildshard/engine/sim';
 import { NativeEliteKernels, type NativeEliteKernelLoans } from '@wildshard/engine/ai/eliteKernels';
+import { NativeEliteLifecycle, type NativeElitePopulation } from '@wildshard/engine/ai/eliteLifecycle';
 import type { StalkerBrain } from '@wildshard/engine/ai/stalker';
 import type { PackBrain } from '@wildshard/engine/ai/pack';
 import { EliteCore, type EliteCoreDef, type EliteCoreScript } from '../eliteSystem';
@@ -35,11 +36,7 @@ export interface EliteEncounterRow {
 }
 /** The manager and group owner retain all allocation, RNG, environment and taming authority. */
 export interface EliteEncounterPorts {
-  readonly bindings: EliteBindings; readonly bodies: () => readonly AnimalSim[];
-  readonly spawn: (kind: string, x: number, z: number, yaw: number, variant: string) => AnimalSim;
-  readonly retire: (a: AnimalSim) => void;
-  readonly spawnPack: (x: number, z: number, variants: readonly string[]) => PackBrain<AnimalSim>;
-  readonly retirePack: (pack: PackBrain<AnimalSim>) => void;
+  readonly bindings: EliteBindings;
   readonly groups?: EliteContinuationGroups;
   readonly herd: () => Herd | null;
   readonly taming?: HerdTaming;
@@ -97,66 +94,45 @@ interface Member { readonly row: EliteEncounterRow; animal: AnimalSim | null; ph
  * Restore validates the complete roster, all controller payloads and identity bindings before it commits any state. */
 export function installEliteEncounters(host: SimHost, spec: EliteEncounterSpec): {
   readonly core: EliteCore<EliteCoreScript<AnimalSim>>; readonly scripts: readonly EliteCoreScript<AnimalSim>[];
-  readonly initialize: () => void;
+  readonly initialize: () => void; readonly bindPopulation: (population: NativeElitePopulation) => void;
 } {
   const core = spec.core;
   if (!(core instanceof EliteCore) || Object.getPrototypeOf(core) !== EliteCore.prototype || core.player !== host.player || core.entries.length > 0) throw new Error('Foreign or populated native elite core');
   const ports = spec.ports, rows = spec.rows ?? [], members: Member[] = [];
-  const pin = (a: AnimalSim | null, engaged: boolean): void => { if (a === null || ports === undefined) return; if (engaged) ports.bindings.pinned.add(a); else ports.bindings.pinned.delete(a); };
   const kernels = ports?.kernels === undefined ? null : new NativeEliteKernels(ports.kernels.rows, {
     ...ports.kernels, host, scope: host.scope, lifecycle: core, brains: ports.bindings.brains,
   });
   const nativeIds = rows.filter(row => row.keeper !== 'herd').map(row => row.def.id);
   if (nativeIds.length !== (kernels?.declaredRows.length ?? 0) || nativeIds.some(id => !kernels?.declaredRows.some(row => row.id === id))) throw new Error('Incomplete native elite kernels');
+  const lifecycle = kernels === null || ports === undefined ? null : new NativeEliteLifecycle(rows.filter(row => row.keeper === 'kernel'), { host, kernels, bindings: ports.bindings });
   const nativeScripts: EliteCoreScript<AnimalSim>[] = [];
   for (const row of rows) {
     if (ports === undefined) throw new Error('Encounter rows need native body authority');
     const def = row.def;
     const signature = (): void => { core.signature(def.id); };
     const live: { animal: AnimalSim | null; phase2: boolean; pack: PackBrain<AnimalSim> | null; adopted: boolean; detached: boolean } = { animal: null, phase2: false, pack: null, adopted: false, detached: false };
-    const create = (): StalkerBrain<AnimalSim> | HerdEliteProjection => {
-      if (row.keeper !== 'herd') { if (kernels === null) throw new Error('Missing native elite kernels'); return kernels.create(def.id, live); }
-      const herd=ports.keepers.herd;return new HerdEliteProjection(herd.rows,ReturnProgram.native(host,herd.program));
-    };
-    const controller = create();
-    const member: Member = Object.assign(live, { row, controller });
-    members.push(member);
-    const bind = (a: AnimalSim): void => {
-      if (!('think' in controller)) return;
-      if (kernels === null) throw new Error('Missing native elite kernels'); kernels.bind(def.id, controller, live, a);
-    };
+    if (row.keeper === 'kernel') {
+      if (lifecycle === null) throw new Error('Missing native elite lifecycle');
+      const { controller, script } = lifecycle.create(def, live);
+      members.push(Object.assign(live, { row, controller })); nativeScripts.push(script); continue;
+    }
+    const herdRows = ports.keepers.herd, controller = new HerdEliteProjection(herdRows.rows, ReturnProgram.native(host, herdRows.program));
+    const member: Member = Object.assign(live, { row, controller }); members.push(member);
     const script: EliteCoreScript<AnimalSim> = {
       def, get animal() { return member.animal; },
       spawn: () => {
-        if (row.member.source === 'herd') {
-          const a = ports.herd()?.stallion;
-          if (a === undefined || a === null || !a.alive || member.animal !== null) throw new Error('Encounter herd respawn is not hosted');
-          member.animal = a; return;
-        }
-        const boot = row.member.source === 'boot' && !member.adopted ? ports.bodies().find(a => a.kind === row.member.kind && a.variant === row.member.variant) : undefined;
-        member.adopted = true;
-        const a = boot ?? ports.spawn(row.member.kind, def.lair.x, def.lair.z, row.member.yaw, row.member.variant);
-        member.animal = a; a.herd = -1;
-        for (const [key, value] of Object.entries(row.member.memory ?? {})) a.mem[key] = value;
-        if ('spawned' in controller) controller.spawned(a);
-        bind(a);
-        if (row.pack !== undefined) { member.pack = ports.spawnPack(def.lair.x + row.pack.offset[0], def.lair.z + row.pack.offset[1], row.pack.variants); member.pack.homeX = def.lair.x; member.pack.homeZ = def.lair.z; }
+        const actor = ports.herd()?.stallion;
+        if (actor === undefined || actor === null || !actor.alive || member.animal !== null) throw new Error('Encounter herd respawn is not hosted');
+        member.animal = actor;
       },
-      despawn: () => {
-        if ('disposeTell' in controller) controller.disposeTell();
-        if (member.pack !== null) ports.retirePack(member.pack); member.pack = null;
-        const a = member.animal; pin(a, false);
-        if (row.member.source === 'herd') return;
-        if (a !== null) { ports.bindings.brains.delete(a); ports.retire(a); } member.animal = null;
-      },
-      reset: () => { member.phase2 = false; if ('reset' in controller) controller.reset(member.animal); },
-      enterPhase2: () => { member.phase2 = true; if ('think' in controller) { if (kernels === null) throw new Error('Missing native elite kernels'); kernels.enterPhase2(def.id, controller, live); } },
+      despawn: () => { if (member.animal !== null) ports.bindings.pinned.delete(member.animal); },
+      reset: () => { member.phase2 = false; },
+      enterPhase2: () => { member.phase2 = true; },
       trophy: silent,
       ...(row.brokenState === undefined ? {} : { broken: () => ports.herd()?.stallionState === row.brokenState }),
-      tick: (dt, t, engaged, leashing) => {
-        pin(member.animal, engaged);
-        if ('think' in controller) controller.advance(member.animal, dt, t, engaged, leashing);
-        else {
+      tick: (dt, _t, engaged, _leashing) => {
+        if (member.animal !== null) { if (engaged) ports.bindings.pinned.add(member.animal); else ports.bindings.pinned.delete(member.animal); }
+        {
           const animal=member.animal,herd=member.detached?null:ports.herd();if(animal===null||herd===null)return;
           const taming=ports.taming?.(),at=animal.position,player=host.player.position;
           const effects=controller.advance(dt,{state:herd.stallionState,phase2:member.phase2,engaged,bonded:taming?.phase==='bonded',same:herd.stallion===animal,health:animal.hp/animal.maxHp,at:[at.x,at.y,at.z],player:[player.x,player.y,player.z]});
@@ -175,7 +151,7 @@ export function installEliteEncounters(host: SimHost, spec: EliteEncounterSpec):
   if (scripts.length === 0 || new Set(scripts.map(s => s.def.id)).size !== scripts.length) throw new Error('Invalid encounter roster');
   scripts.forEach(s => { core.add(s); });
   const continuation = new NativeEliteContinuation({ version: spec.version, wire: spec.wire, rows },
-    { host, core, members, bindings: ports?.bindings ?? eliteBindings(), kernels, ...(ports?.groups === undefined ? {} : { groups: ports.groups }) });
+    { host, core, members, bindings: ports?.bindings ?? eliteBindings(), kernels, ...(lifecycle === null ? {} : { lifecycle }), ...(ports?.groups === undefined ? {} : { groups: ports.groups }) });
   host.onStep(spec.step, dt => { core.update(dt, host.clock.now); }, continuation);
-  return { core, scripts, initialize: () => { core.initialize(); } };
+  return { core, scripts, initialize: () => { lifecycle?.validate(); core.initialize(); }, bindPopulation: population => { lifecycle?.bindPopulation(population); } };
 }

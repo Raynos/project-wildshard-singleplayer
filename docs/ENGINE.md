@@ -7825,6 +7825,19 @@ respawn rules remain each row's `def`; `eliteBindings()` lends the original pins
 and decision/act bindings to the manager's one body step. Adoption validates the
 same native reward before applying its scale, win and detach operations.
 
+`engine/ai/eliteLifecycle.NativeEliteLifecycle` drives native boot adoption,
+allocated respawn, initial memory, pack placement/home assignment, retirement,
+reset and kernel advancement from rows over the original mutable member. The
+concrete `NativeElitePopulation` loan retains its original body array, allocator,
+pack records and RNG. `bindPopulation(owner)` checks its exact `host`, scope and
+callable receivers; a duplicate binding refuses. The native assembly binds the
+same installed population immediately before the original initialize branch,
+including restored boots. The game population exposes its original `host` for
+this admission; no owner is reconstructed. Initialization and whole-bank save
+preparation recheck this loan. A replaced owner at a native callback barrier
+refuses before the next lifecycle operation. Borrowed-group policy and adoption
+remain on their original controller; no clock, save wire or body step is added.
+
 `engine/ai/eliteContinuation.NativeEliteContinuation` admits versioned member
 save rows over the SAME Core, members, controllers, SimHost and native group
 arrays. `continuation.borrowed: {group, role: 'guard'}` resolves the original

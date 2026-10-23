@@ -1415,85 +1415,6 @@
                   ]
                 }
               },
-              "spawnPack": {
-                "$fn": {
-                  "$call": [
-                    {
-                      "$ref": [
-                        "creatures",
-                        "spawnElitePack"
-                      ]
-                    },
-                    {
-                      "$ref": [
-                        "args",
-                        0
-                      ]
-                    },
-                    {
-                      "$ref": [
-                        "args",
-                        1
-                      ]
-                    },
-                    {
-                      "$ref": [
-                        "args",
-                        2
-                      ]
-                    }
-                  ]
-                }
-              },
-              "retirePack": {
-                "$fn": {
-                  "$call": [
-                    {
-                      "$ref": [
-                        "creatures",
-                        "retirePack"
-                      ]
-                    },
-                    {
-                      "$ref": [
-                        "args",
-                        0
-                      ]
-                    }
-                  ]
-                }
-              },
-              "bodies": {
-                "$fn": {
-                  "$coalesce": [
-                    {
-                      "$ref": [
-                        "creatures",
-                        "bodies"
-                      ]
-                    },
-                    {
-                      "$call": [
-                        {
-                          "$ref": [
-                            "bodies",
-                            "map"
-                          ]
-                        },
-                        {
-                          "$fn": {
-                            "$ref": [
-                              "args",
-                              0,
-                              "actor"
-                            ]
-                          }
-                        }
-                      ]
-                    }
-                  ]
-                }
-              },
               "herd": {
                 "$fn": {
                   "$coalesce": [
@@ -1505,66 +1426,6 @@
                       ]
                     },
                     null
-                  ]
-                }
-              },
-              "spawn": {
-                "$fn": {
-                  "$call": [
-                    {
-                      "$ref": [
-                        "creatures",
-                        "spawnElite"
-                      ]
-                    },
-                    {
-                      "$ref": [
-                        "args",
-                        0
-                      ]
-                    },
-                    {
-                      "$ref": [
-                        "args",
-                        1
-                      ]
-                    },
-                    {
-                      "$ref": [
-                        "args",
-                        2
-                      ]
-                    },
-                    {
-                      "$ref": [
-                        "args",
-                        3
-                      ]
-                    },
-                    {
-                      "$ref": [
-                        "args",
-                        4
-                      ]
-                    }
-                  ]
-                }
-              },
-              "retire": {
-                "$fn": {
-                  "$call": [
-                    {
-                      "$ref": [
-                        "creatures",
-                        "retireElite"
-                      ]
-                    },
-                    {
-                      "$ref": [
-                        "args",
-                        0
-                      ]
-                    }
                   ]
                 }
               },
@@ -2069,28 +1930,47 @@
     {
       "name": "initialize",
       "value": {
-        "$if": [
-          {
-            "$not": {
-              "$ref": [
-                "context",
-                "restoring"
-              ]
-            }
-          },
+        "$sequence": [
           {
             "$call": [
               {
                 "$ref": [
                   "elites",
-                  "initialize"
+                  "bindPopulation"
+                ]
+              },
+              {
+                "$ref": [
+                  "creatures"
                 ]
               }
             ]
           },
           {
-            "$ref": [
-              "absent"
+            "$if": [
+              {
+                "$not": {
+                  "$ref": [
+                    "context",
+                    "restoring"
+                  ]
+                }
+              },
+              {
+                "$call": [
+                  {
+                    "$ref": [
+                      "elites",
+                      "initialize"
+                    ]
+                  }
+                ]
+              },
+              {
+                "$ref": [
+                  "absent"
+                ]
+              }
             ]
           }
         ]

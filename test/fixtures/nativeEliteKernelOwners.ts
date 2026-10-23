@@ -10,8 +10,8 @@ import { legacyDouble } from '../fake/FakeGame';
 import { NALATI_STRIKES } from './nalati-strikes';
 import ecology from '../../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
 
-export function nativeKernelOwners() {
-  const scope = new Scope('native-elites'), rng = new RngService(19), health = legacyDouble<SimHost['player']['health']>({});
+export function nativeKernelOwners(scope = new Scope('native-elites')) {
+  const rng = new RngService(19), health = legacyDouble<SimHost['player']['health']>({});
   const hit = vi.fn(), dash = vi.fn(), signature = vi.fn();
   const host = legacyDouble<SimHost>({ scope, entities: new Map(), level: legacyDouble<SimHost['level']>({ id: 'marsh' }),
     player: legacyDouble<SimHost['player']>({ position: new Vector3(0, 0, .5), health }), physics: legacyDouble<SimHost['physics']>({}),
