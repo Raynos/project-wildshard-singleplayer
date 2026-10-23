@@ -9,5 +9,5 @@
     "tsBuildInfoFile": ".tsc-layers/shards.tsbuildinfo"
   },
   "references": [{ "path": "./tsconfig.engine.json" }, { "path": "./tsconfig.game.json" }, { "path": "./tsconfig.sdk.json" }, { "path": "./tsconfig.commons.json" }],
-  "include": ["src/shards", "src/shards/**/*.json", "src/engine/**/*.d.ts", "src/game/**/*.merge.d.ts"]
+  "include": ["src/shards", "src/shards/**/*.json", "public/assets/nalati/baked/recurve-pool.json", "src/engine/**/*.d.ts", "src/game/**/*.merge.d.ts"]
 }
