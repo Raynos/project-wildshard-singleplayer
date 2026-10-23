@@ -319,6 +319,12 @@ async function run(mode, index, target) {
   } finally {
     recorder.kill('SIGINT'); await new Promise(resolve => { recorder.once('exit', resolve); setTimeout(resolve, 15000); });
   }
+  if (upgradeFrom !== undefined) {
+    const controller = await settle(`async () => {const w=navigator.serviceWorker.controller;if(!w)return null;return new Promise(resolve=>{const ch=new MessageChannel();const timer=setTimeout(()=>{ch.port1.close();ch.port2.close();resolve(null)},5000);ch.port1.onmessage=e=>{clearTimeout(timer);ch.port1.close();ch.port2.close();resolve(e.data.build??null)};w.postMessage({type:'BUILD'},[ch.port2]);});}`);
+    const nextVersion = await (await fetch(new URL('version.json', upstream), {cache: 'no-store'})).json();
+    log(file, {ev: 'upgrade-final-controller', build: controller, href: sample?.href ?? null});
+    if (typeof controller !== 'string' || !controller.startsWith(`${nextVersion.build}-`)) throw new Error('New deployment worker did not take control of the grid entry');
+  }
   if (shard !== undefined) {
     if (compiled === null || !compiled.ready) throw new Error(`${label}: compiled entry never reached controls`);
     requireCompiledEntry(compiled.href, shard, compiled.accuracy);

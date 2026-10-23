@@ -176,6 +176,8 @@ Rejected installers report their exact build and error to the existing page
 before preserving the rejection; the reader retains those diagnostics.
 Failures and response metadata survive cleanup. An absent or changed old
 controller refuses the reading.
+After entry, the controller's BUILD reply must match the new deployment;
+an installed waiting worker alone cannot pass the update proof.
 
 C2's WebKit comparison uses the same official Simulator reader:
 `scripts/sim-lane.sh run --max 20 wildshard-iphone node scripts/sim-grid-entry.mjs
