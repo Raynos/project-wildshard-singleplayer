@@ -16,7 +16,7 @@ const declarations = new Map([
   ['src/game/boss/encounterView.ts', new Map(['SlotEncounterView','SlotViewActor','SlotSiteChange','Awake','PatrolEncounterView','PatrolViewActor','PatrolHit','Rider','PatrolActor','PatrolActorRoster'].map(name=>[name,'C4']))],
   ['src/game/population/pageGroups.ts', new Map([
     'point', 'whole', 'PagePopulationPlanner',
-    'nearestPopulationActor', 'PageWildEnvironment', 'wildEnv', 'bindPageGroups',
+    'PageWildEnvironment', 'wildEnv', 'bindPageGroups',
     'renderedPacks', 'renderedHerds', 'renderedDamage', 'renderedPackOf',
     'renderedHerdOf', 'observeHerdDamage', 'PageGroups',
   ].map(name => [name, 'C4']))],

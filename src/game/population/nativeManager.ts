@@ -269,33 +269,44 @@ export class NativeWildlifeFrame {
 
 /** Native grass and weather observations are a concrete game service. Content
  * supplies numeric defaults; signal and knockdown effects bind only game owners. */
-export class NativeWildEnvironment {
-  readonly wind: { x: number; z: number; strength: number };
+/** G600 L5: the grass-cover senses an entered page and a native world share: the player's state as the senses read it
+ *  and the admitted senses guest's visibility, downwind and hearing over the owner's grass heights and wind. */
+export abstract class WildSenses {
+  abstract readonly wind: { readonly x: number; readonly z: number; readonly strength: number };
   playerFwdX = 0; playerFwdZ = -1; playerCrouched = false; playerMounted = false; playerHealth01 = 1;
   lastShotT = -1e9; light = 1; storm = false;
+  /** the admitted senses guest (null before an owner binds one) */
+  protected abstract senses(): ReturnProgram | null;
+  abstract grassStandingAt(x: number, z: number): number;
+  abstract grassHeightAt(x: number, z: number): number;
+  /** Standard grass-cover senses over this world's concrete field owners. */
+  visibility(x: number, z: number, player: Vector3, speed: number, now: number): number {
+    const dx = x-player.x, dz = z-player.z, distance = Math.hypot(dx,dz) || 1;
+    const samples = [1.5,3,5].filter(step => step <= distance).map(step => ({ height: this.grassHeightAt(player.x+dx/distance*step,player.z+dz/distance*step) }));
+    return v.parse(v.number(), this.senses()?.project('visibility', { height: this.grassStandingAt(player.x,player.z), crouched: Number(this.playerCrouched), speed, elapsed: now-this.lastShotT, light: this.light, count: samples.length }, undefined, samples)['fraction']);
+  }
+  downwind(x: number, z: number, player: Vector3): boolean {
+    const dx = x-player.x, dz = z-player.z;
+    return this.senses()?.project('downwind', { distance: Math.hypot(dx,dz), strength: this.wind.strength, dot: dx*this.wind.x+dz*this.wind.z })['accept'] === 1;
+  }
+  hearing(radii: readonly [number,number,number,number], player: Vector3, speed: number): number {
+    return v.parse(v.number(), this.senses()?.project('hearing', { speed, height: this.grassStandingAt(player.x,player.z), storm: Number(this.storm) }, undefined, radii.map(radius => ({ radius })))['radius']);
+  }
+}
+export class NativeWildEnvironment extends WildSenses {
+  readonly wind: { x: number; z: number; strength: number };
   private host: SimHost | null = null;
   private frame: NativeWildlifeFrame | null = null;
   constructor(readonly field: GrassField, readonly trampleField: TrampleField, private readonly rows: { wind: { x: number; z: number; strength: number }; flatten: number }, private readonly author: ReturnProgram) {
+    super();
     if (!(field instanceof GrassField) || !(trampleField instanceof TrampleField)) throw new Error('Invalid native grass owners'); this.wind = { ...rows.wind };
   }
+  protected senses(): ReturnProgram { return this.author; }
   bind(host: SimHost, frame: NativeWildlifeFrame): void {
     if (this.host !== null || !(frame instanceof NativeWildlifeFrame)) throw new Error('Invalid native world binding'); this.host = host; this.frame = frame;
   }
   grassStandingAt(x: number, z: number): number { return this.field.baseHeightAt(x,z); }
   grassHeightAt(x: number, z: number): number { return this.field.baseHeightAt(x,z)*(1-this.rows.flatten*this.trampleField.amountAt(x,z)); }
-  /** Standard grass-cover senses over this world's concrete field owners. */
-  visibility(x: number, z: number, player: Vector3, speed: number, now: number): number {
-    const dx = x-player.x, dz = z-player.z, distance = Math.hypot(dx,dz) || 1;
-    const samples = [1.5,3,5].filter(step => step <= distance).map(step => ({ height: this.grassHeightAt(player.x+dx/distance*step,player.z+dz/distance*step) }));
-    return v.parse(v.number(), this.author.project('visibility', { height: this.grassStandingAt(player.x,player.z), crouched: Number(this.playerCrouched), speed, elapsed: now-this.lastShotT, light: this.light, count: samples.length }, undefined, samples)['fraction']);
-  }
-  downwind(x: number, z: number, player: Vector3): boolean {
-    const dx = x-player.x, dz = z-player.z;
-    return this.author.project('downwind', { distance: Math.hypot(dx,dz), strength: this.wind.strength, dot: dx*this.wind.x+dz*this.wind.z })['accept'] === 1;
-  }
-  hearing(radii: readonly [number,number,number,number], player: Vector3, speed: number): number {
-    return v.parse(v.number(), this.author.project('hearing', { speed, height: this.grassStandingAt(player.x,player.z), storm: Number(this.storm) }, undefined, radii.map(radius => ({ radius })))['radius']);
-  }
   trample(x: number, z: number, radius: number, strength: number, vx: number, vz: number): void { this.trampleField.push(x,z,radius,strength,vx,vz); }
   onEvent(name: string, x: number, z: number): void {
     if (this.host === null) throw new Error('Unbound native world signal'); this.host.events.emit('creature.signal', { name,x,z });

@@ -1,4 +1,4 @@
-import { NativeWildEnvironment } from '../population/nativeManager';
+import { NativeWildEnvironment, type WildSenses } from '../population/nativeManager';
 import { ReturnProgram } from '../population/returnProgram';
 import { bakedSamplers, type BakedGrid } from '@wildshard/engine/world/BakedTerrain';
 import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
@@ -137,6 +137,43 @@ export function prepareDeclaredGroupBrains(host: SimHost, declarations: readonly
   } };
 }
 
+/** G600 L5: the nearest live body in an ordered roster within `radius` (ties keep source order); page and native groups. */
+export function nearestPopulationActor<A extends AnimalSim>(bodies: readonly A[], x: number, z: number, radius: number): A | null {
+  let selected: A | null = null, distance = radius;
+  for (const body of bodies) if (body.alive) { const next = Math.hypot(body.position.x-x,body.position.z-z); if (next < distance) { distance = next; selected = body; } }
+  return selected;
+}
+/** G600 L5: the senses ports a pack and a herd share, over one owner's senses, random stream, bounds and ground normal. */
+export interface SharedGroupPorts<E> {
+  readonly sharedRng: () => Rng; readonly environment: () => E;
+  readonly visibility: (x: number, z: number, player: Vector3, speed: number, time: number) => number;
+  readonly hearing: (radii: readonly [number, number, number, number], player: Vector3, speed: number) => number;
+  readonly downwind: (x: number, z: number, player: Vector3) => boolean;
+  readonly inBounds: (x: number, z: number, margin?: number) => boolean; readonly normalY: (x: number, z: number) => number;
+  readonly onEvent: (name: string, x: number, z: number) => void;
+}
+export function sharedGroupPorts<E extends WildSenses & { onEvent: (name: string, x: number, z: number) => void }>(environment: E,
+  world: { readonly rng: () => Rng; readonly inBounds: (x: number, z: number, margin: number) => boolean; readonly normalY: (x: number, z: number) => number }): SharedGroupPorts<E> {
+  return { sharedRng: world.rng, environment: () => environment,
+    visibility: (x: number,z: number,player: Vector3,speed: number,time: number) => environment.visibility(x,z,player,speed,time),
+    hearing: (radii: readonly [number,number,number,number],player: Vector3,speed: number) => environment.hearing(radii,player,speed),
+    downwind: (x: number,z: number,player: Vector3) => environment.downwind(x,z,player),
+    inBounds: (x: number,z: number,margin = 0) => world.inBounds(x,z,margin), normalY: world.normalY,
+    onEvent: (name: string,x: number,z: number) => { environment.onEvent(name,x,z); } };
+}
+/** G600 L5: a group's bite / charge contact from its declared strike rows, with the context's own reach and hurt authority. */
+export function groupContact(rows: { readonly pack: Parameters<typeof strikeFromData>[0]; readonly herd: Parameters<typeof strikeFromData>[0] }): (body: AnimalSim, context: { player: Vector3 }, radius: number, herd: boolean) => void {
+  const strikes = new StrikeRunner(), packStrike = strikeFromData(rows.pack), herdStrike = strikeFromData(rows.herd);
+  interface Contact { player: Vector3; reach: (body: AnimalSim) => boolean; hurt: (damage: number) => void }
+  const hasContact = (context: { player: Vector3 }): context is Contact => 'reach' in context && typeof context.reach === 'function' && 'hurt' in context && typeof context.hurt === 'function';
+  return (body, context, radius, herd) => {
+    if (!hasContact(context)) throw new Error('Missing group contact authority');
+    const { reach, hurt } = context;
+    strikes.contact({ ...herd ? herdStrike : packStrike, shape: { kind: 'point', radius, exclusive: true } }, {
+      actor: body, target: context.player, canReach: () => reach(body), hit: () => { hurt(body.mods.chargeDamage); } });
+  };
+}
+
 const collections = new WeakMap<SimHost, Map<string, NativeGroupCollection>>();
 /** Resolve the admitted herd controllers and their live numeric wind together. */
 export function nativeHerdCollection(host: SimHost, id: string): { herds: readonly HerdBrain<AnimalSim>[]; wind: { x: number; z: number; strength: number } } {
@@ -210,25 +247,9 @@ export function installNativeGroupRows(host: SimHost, input: unknown, grid: Bake
   for (const [id,body] of actors) ids.set(body, `actor:${id}`);
   const packs: PackBrain<AnimalSim>[] = [], herds: HerdBrain<AnimalSim>[] = [], wolves: AnimalSim[] = [];
   const packOf = new WeakMap<AnimalSim,PackBrain<AnimalSim>>(), tokens = new WeakMap<AnimalSim,Parameters<PackPorts<AnimalSim>['register']>[1]>();
-  const nearest = (bodies: readonly AnimalSim[], x: number, z: number, radius: number): AnimalSim | null => {
-    let best: AnimalSim | null = null, distance = radius;
-    for (const body of bodies) { const d = Math.hypot(body.position.x-x,body.position.z-z); if (body.alive && d < distance) { best = body; distance = d; } } return best;
-  };
-  const shared = { sharedRng: () => host.rng.stream('ai'), environment: () => environment,
-    visibility: (x: number,z: number,player: Vector3,speed: number,time: number) => environment.visibility(x,z,player,speed,time),
-    hearing: (radii: readonly [number,number,number,number],player: Vector3,speed: number) => environment.hearing(radii,player,speed),
-    downwind: (x: number,z: number,player: Vector3) => environment.downwind(x,z,player),
-    inBounds: (x: number,z: number,margin = 0) => x >= rows.bounds[0]+margin && x <= rows.bounds[1]-margin && z >= rows.bounds[2]+margin && z <= rows.bounds[3]-margin,
-    normalY: (x: number,z: number) => sample.normalAt(x,z)[1], onEvent: (name: string,x: number,z: number) => { environment.onEvent(name,x,z); } };
-  const strikes = new StrikeRunner(), packStrike = strikeFromData(rows.contacts.pack), herdStrike = strikeFromData(rows.contacts.herd);
-  interface Contact { player: Vector3; reach: (body: AnimalSim) => boolean; hurt: (damage: number) => void }
-  const hasContact = (context: { player: Vector3 }): context is Contact => 'reach' in context && typeof context.reach === 'function' && 'hurt' in context && typeof context.hurt === 'function';
-  const contact = (body: AnimalSim, context: { player: Vector3 }, radius: number, herd: boolean): void => {
-    if (!hasContact(context)) throw new Error('Missing native contact authority');
-    const { reach, hurt } = context;
-    strikes.contact({ ...herd ? herdStrike : packStrike, shape: { kind: 'point', radius, exclusive: true } }, {
-      actor: body, target: context.player, canReach: () => reach(body), hit: () => { hurt(body.mods.chargeDamage); } });
-  };
+  const shared = sharedGroupPorts(environment, { rng: () => host.rng.stream('ai'), normalY: (x, z) => sample.normalAt(x,z)[1],
+    inBounds: (x, z, margin) => x >= rows.bounds[0]+margin && x <= rows.bounds[1]-margin && z >= rows.bounds[2]+margin && z <= rows.bounds[3]-margin });
+  const contact = groupContact(rows.contacts);
   let firstRaid = 0;
   for (const id of rows.owned) actor(id).mem['owned'] = 1;
   for (const step of rows.steps) {
@@ -239,7 +260,7 @@ export function installNativeGroupRows(host: SimHost, input: unknown, grid: Bake
         register: (body,director) => { tokens.set(body,director); }, bite: (body,context,radius) => { contact(body,context,radius,false); },
         preyIdentity: target => { const id = ids.get(target); if (id === undefined) throw new Error('Missing native prey identity'); return id; },
         resolvePrey: id => id.startsWith('actor:') ? actors.get(id.slice(6)) ?? null : prey.get(id) ?? null });
-      pack.initialize(); pack.findPrey = (x,z,radius) => nearest(herds.flatMap(herd => herd.foals),x,z,radius);
+      pack.initialize(); pack.findPrey = (x,z,radius) => nearestPopulationActor(herds.flatMap(herd => herd.foals),x,z,radius);
       packs.push(pack); wolves.push(...bodies); for (const body of bodies) packOf.set(body,pack);
     } else {
       const herd = new HerdBrain(bodies,row,{ ...shared, resolveActor: id => actors.get(id) ?? null,
@@ -247,7 +268,7 @@ export function installNativeGroupRows(host: SimHost, input: unknown, grid: Bake
         chargeContact: (body,context,radius) => { contact(body,context,radius,true); },
         scarePack: (body,radius) => { const pack = packOf.get(body); if (pack === undefined) return false; pack.scare(body.position.x,body.position.z,radius); return true; },
         onKnockdown: (x,z,strength) => { environment.onKnockdown(x,z,strength); } });
-      herd.initialize(); herd.findThreat = (x,z,radius) => nearest(wolves,x,z,radius);
+      herd.initialize(); herd.findThreat = (x,z,radius) => nearestPopulationActor(wolves,x,z,radius);
       if (step.adopt !== null) herd.adoptStallion(actor(step.adopt)); herds.push(herd);
     }
   }

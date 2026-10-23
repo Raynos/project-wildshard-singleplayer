@@ -4,8 +4,6 @@ import { PackBrain, type PackPorts } from '@wildshard/engine/ai/pack';
 import { HerdBrain } from '@wildshard/engine/ai/herd';
 import { CrowdRoster, type CrowdTargets } from '../shardfile/crowdRuntime';
 import { app } from '@wildshard/engine/app/runtime';
-import { StrikeRunner } from '@wildshard/engine/ai/strikes';
-import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { nativeGroupBrain } from '@wildshard/format/groupBrains';
 import { PageGroupRowsSchema } from '@wildshard/format/creatures';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
@@ -17,10 +15,11 @@ import type { Rng } from '@wildshard/engine/core/rng';
 import { knockdownVelocity } from './relations';
 import { ReturnProgram, ProjectedState } from './returnProgram';
 import { createCreatureSpawner, type CreatureSpawnRow } from '../plugin/brain';
+import { WildSenses } from './nativeManager';
+import { groupContact, nearestPopulationActor, sharedGroupPorts } from '../shardfile/groupRuntime';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { terrainHeight, terrainNormal, terrainWaterLevel } from '@wildshard/engine/world/terrainHeight';
-import type { Vector3 } from 'three';
 import type { PopulationProjectionRows } from '@wildshard/format/populationProjection';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { EncounterRegistry, SpawnContext, SpawnEntry, SpawnPoint, Spawner } from '@wildshard/engine/ai/encounters';
@@ -148,23 +147,12 @@ export class PagePopulationPlanner {
   private member(actor: Animal, herd: number): Animal { actor.herd = herd; this.animals.herds[herd]?.members.push(actor); return actor; }
 }
 
-/** Nearest live body in a native ordered roster; ties preserve source order. */
-export function nearestPopulationActor(actors: readonly Animal[], x: number, z: number, radius: number): Animal | null {
-  let selected: Animal | null = null, distance = radius;
-  for (const actor of actors) if (actor.alive) {
-    const next = Math.hypot(actor.position.x - x, actor.position.z - z);
-    if (next < distance) { distance = next; selected = actor; }
-  }
-  return selected;
-}
-
 /** Client-only observations over the installed native grass and terrain. A scope
  * lends numeric weather/player state and a baked wet mask; no query hook binds. */
-export class PageWildEnvironment {
+export class PageWildEnvironment extends WildSenses {
   wind = { x: 0,z: -1,strength: 0 };
-  playerFwdX = 0; playerFwdZ = -1; playerCrouched = false; playerMounted = false; playerHealth01 = 1;
-  lastShotT = -1e9; light = 1; storm = false;
   private author: ReturnProgram | null = null;
+  protected senses(): ReturnProgram | null { return this.author; }
   private wet: ((x: number,z: number) => number) | null = null;
   private readonly states = new WeakMap<object,PropertyDescriptorMap>();
   enter(scope: Scope, input: unknown, author: ReturnProgram): void {
@@ -186,19 +174,6 @@ export class PageWildEnvironment {
   wetAt(x: number,z: number): boolean { return (this.wet?.(x,z) ?? 0) > .5; }
   onEvent(name: string,x: number,z: number): void { app.events.emit('creature.signal',{ name,x,z }); }
   onKnockdown(x: number,z: number,strength: number): void { app.events.emit('creature.knockdown',{ x,z,strength }); }
-  visibility(x: number, z: number, player: Vector3, speed: number, now: number): number {
-    const dx = x-player.x, dz = z-player.z, distance = Math.hypot(dx,dz) || 1;
-    const samples = [1.5,3,5].filter(step => step <= distance).map(step => ({ height: this.grassHeightAt(player.x+dx/distance*step,player.z+dz/distance*step) }));
-    return v.parse(v.number(), this.author?.project('visibility', { height: this.grassStandingAt(player.x,player.z), crouched: Number(this.playerCrouched), speed, elapsed: now-this.lastShotT, light: this.light, count: samples.length }, undefined, samples)['fraction']);
-  }
-  downwind(x: number, z: number, player: Vector3): boolean {
-    const dx = x-player.x, dz = z-player.z;
-    return this.author?.project('downwind', { distance: Math.hypot(dx,dz), strength: this.wind.strength, dot: dx*this.wind.x+dz*this.wind.z })['accept'] === 1;
-  }
-  hearing(radii: readonly [number,number,number,number], player: Vector3, speed: number): number {
-    return v.parse(v.number(), this.author?.project('hearing', { speed, height: this.grassStandingAt(player.x,player.z), storm: Number(this.storm) }, undefined, radii.map(radius => ({ radius })))['radius']);
-  }
-
 }
 /** The entered page's observation surface; construction installs no service. */
 export const wildEnv = new PageWildEnvironment();
@@ -240,30 +215,20 @@ export class PageGroups {
   readonly packs: PackBrain<Animal>[] = []; readonly herds: HerdBrain<Animal>[] = [];
   private readonly packRow; readonly herdRow;
   private readonly targets: CrowdRoster<CrowdTargets>;
-  private readonly strikes = new StrikeRunner();
   private readonly rows: v.InferOutput<typeof PageGroupRowsSchema>;
+  private readonly contact: ReturnType<typeof groupContact>;
   constructor(private readonly animals: AnimalManager, crowds: readonly CrowdTargets[], input: unknown) {
     this.rows = v.parse(PageGroupRowsSchema,input);
     const pack = nativeGroupBrain(this.rows.pack),herd = nativeGroupBrain(this.rows.herd);
     if (pack.kind !== 'pack' || herd.kind !== 'herd') throw new Error('Invalid rendered group presets');
     this.packRow = pack; this.herdRow = herd;
-    this.targets = new CrowdRoster(animals.animals,crowds,this.rows.prey);
+    this.targets = new CrowdRoster(animals.animals,crowds,this.rows.prey); this.contact = groupContact(this.rows.contacts);
   }
   private actor(id: string): Animal { const actor = this.animals.animals.find(body => body.entityId === id); if (actor === undefined) throw new Error('Missing rendered group actor'); return actor; }
   private common() {
-    return { sharedRng: () => app.rng.stream('ai'),environment: () => wildEnv,
-      visibility: (x: number,z: number,player: Vector3,speed: number,time: number) => wildEnv.visibility(x,z,player,speed,time),
-      hearing: (radii: readonly [number,number,number,number],player: Vector3,speed: number) => wildEnv.hearing(radii,player,speed),
-      downwind: (x: number,z: number,player: Vector3) => wildEnv.downwind(x,z,player),
-      inBounds: (x: number,z: number,margin = 0) => Math.abs(x) <= this.rows.world.size/2-margin && Math.abs(z) <= this.rows.world.size/2-margin,
-      normalY: (x: number,z: number) => terrainNormal(x,z)[1],onEvent: (name: string,x: number,z: number) => { wildEnv.onEvent(name,x,z); } };
-  }
-  private contact(actor: Animal,context: { player: Vector3 },radius: number,herd: boolean): void {
-    interface Contact { player: Vector3; reach: (actor: Animal) => boolean; hurt: (damage: number) => void }
-    const admitted = (value: { player: Vector3 }): value is Contact => 'reach' in value && typeof value.reach === 'function' && 'hurt' in value && typeof value.hurt === 'function';
-    if (!admitted(context)) throw new Error('Missing rendered contact authority');
-    const row = strikeFromData(herd ? this.rows.contacts.herd : this.rows.contacts.pack);
-    this.strikes.contact({ ...row,shape: { kind: 'point',radius,exclusive: true } },{ actor,target: context.player,canReach: () => context.reach(actor),hit: () => { context.hurt(actor.mods.chargeDamage); } });
+    const half = this.rows.world.size/2;
+    return sharedGroupPorts(wildEnv, { rng: () => app.rng.stream('ai'), normalY: (x, z) => terrainNormal(x,z)[1],
+      inBounds: (x, z, margin) => Math.abs(x) <= half-margin && Math.abs(z) <= half-margin });
   }
   pack(ids: readonly string[],x: number,z: number): PackBrain<Animal> {
     const members = ids.map(id => this.actor(id)), row = { ...this.packRow,members: [...ids],home: [x,z] as [number,number] };
