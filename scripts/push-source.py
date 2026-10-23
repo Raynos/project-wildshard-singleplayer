@@ -25,7 +25,8 @@ def source_file(name):
 
 
 def command(root, args, deadline, **options):
-    return subprocess.run(args, cwd=root, check=True, timeout=max(.01, deadline - time.monotonic()), **options)
+    timeout = None if deadline == float('inf') else max(.01, deadline - time.monotonic())
+    return subprocess.run(args, cwd=root, check=True, timeout=timeout, **options)
 
 
 def outputs(repo, tree, records, deadline, assets=()):
@@ -189,7 +190,7 @@ def committed_source(repo, revision, tooling_revision, deadline):
                         candidates.add('public' + value)
                     imported_assets.update(name for name in candidates if name in blobs)
         for name in imported_assets:
-            if name in blobs and not (tree / name).exists():
+            if name in blobs and (not source_file(name) or not (tree / name).exists()):
                 data = command(repo, ['git', 'cat-file', 'blob', blobs[name].decode()], deadline, capture_output=True).stdout
                 target = tree / name
                 target.parent.mkdir(parents=True, exist_ok=True)

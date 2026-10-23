@@ -260,7 +260,22 @@ readFileSync('../public/assets/native/untracked.bin');
         self.put('src/data.json', '{"state":"staged WIP"}')
         self.git('add', '--', 'src/data.json')
         index = (self.root / '.git/index').read_bytes()
-        with PUSH['SOURCE']['committed_source'](self.root, tip, tip, time.monotonic() + 10) as (tree, tools):
+        load_tool = runpy.run_path
+        def older_generation(path):
+            tool = load_tool(path)
+            if Path(path).name == 'push_input_cache.py':
+                restore = tool['restore_tests']
+                def stale_inputs(repo, tree, records, deadline):
+                    revision = restore(repo, tree, records, deadline)
+                    for name in native:
+                        target = tree / name
+                        target.parent.mkdir(parents=True, exist_ok=True)
+                        target.write_bytes(b'older verified generated asset')
+                    return revision
+                tool['restore_tests'] = stale_inputs
+            return tool
+        with patch.object(runpy, 'run_path', side_effect=older_generation), \
+                PUSH['SOURCE']['committed_source'](self.root, tip, tip, time.monotonic() + 10) as (tree, tools):
             self.assertEqual((tree / 'src/other.ts').read_text(), 'export const original = true;')
             self.assertEqual((tree / 'src/data.json').read_text(), '{"state":"committed"}')
             self.assertEqual((tools / 'push-inputs.mjs').read_text(), '// committed tool\n')
@@ -273,6 +288,59 @@ readFileSync('../public/assets/native/untracked.bin');
         for name in native:
             self.assertEqual((self.root / name).read_bytes(), b'foreign working input')
         self.assertEqual((self.root / '.git/index').read_bytes(), index)
+
+    def test_source_command_accepts_soft_preparation_deadline(self):
+        result = PUSH['SOURCE']['command'](self.root, [sys.executable, '-c', 'print("exact")'],
+                                           float('inf'), capture_output=True, text=True)
+        self.assertEqual(result.stdout.strip(), 'exact')
+
+    def test_preparation_finishes_after_soft_budget_and_pushes_with_ci_deferral(self):
+        tip = self.commit('src/slow-preparation.ts')
+        clock = [100.0]
+        checks, uploads, cleanups = [], [], []
+        @contextmanager
+        def prepared(root, revision, tooling, deadline):
+            self.assertEqual(deadline, float('inf'))
+            self.assertEqual(revision, tip)
+            clock[0] += 46
+            try:
+                yield self.root, self.root / 'scripts'
+            finally:
+                cleanups.append(revision)
+        with patch.dict(PUSH['SOURCE'], committed_source=prepared), \
+                patch.object(time, 'monotonic', side_effect=lambda: clock[0]), \
+                patch.dict(LIVE, check=lambda *args, **kwargs: checks.append(args)):
+            result = PUSH['tick'](self.root, uploader=lambda revision, env: uploads.append(revision) or 0)
+        self.assertEqual(result['status'], 'pushed')
+        self.assertEqual(result['types'], 'ci-budget')
+        self.assertIn('46.00 seconds', result['output'])
+        self.assertIn('defer to full CI', result['output'])
+        self.assertEqual(checks, [])
+        self.assertEqual(uploads, [tip])
+        self.assertEqual(cleanups, [tip])
+
+    def test_guard_budget_defers_only_without_observed_failures(self):
+        tip = self.commit('src/good.ts')
+        for deleted in [(), ('src/gone.ts',)]:
+            for output, accepted in [('still running', True), ('FAIL test/guard.test.ts assertion', False),
+                                     ('CLOSED C1 regrew', False), ('src/a.ts: deleted path src/gone.ts', False)]:
+                with self.subTest(deleted=deleted, output=output):
+                    result = LIVE['check'](self.root, self.base, tip, time.monotonic() + 45,
+                                           runner=lambda *_: (124, output), deleted=deleted)
+                    self.assertEqual(result['ok'], accepted)
+                    if accepted:
+                        self.assertEqual(result['types'], 'ci-budget')
+                        self.assertIn('defer to full CI', result['output'])
+
+    def test_preparation_errors_are_not_accepted_as_budget_deferrals(self):
+        tip = self.commit('src/good.ts')
+        @contextmanager
+        def invalid(*_):
+            raise ValueError('Invalid committed input hash')
+            yield
+        with patch.dict(PUSH['SOURCE'], committed_source=invalid):
+            with self.assertRaisesRegex(ValueError, 'Invalid committed input hash'):
+                PUSH['check_committed'](self.root, self.base, tip, time.monotonic() + 45)
 
     def test_timed_out_tests_defer_but_observed_failures_stay_red(self):
         tip = self.commit('src/good.ts')
