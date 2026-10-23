@@ -1,4 +1,6 @@
 import {grassBlock} from './fixtures/nalatiGrass';
+// oxlint-disable-next-line import/no-nodejs-modules -- Pin every retained geography field after retiring unused rasters.
+import {createHash} from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the committed native lattice.
 import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
@@ -20,7 +22,7 @@ import * as authoredLayout from '../src/shards/nalati-grasslands/generators/layo
 import * as authoredPlaces from '../src/shards/nalati-grasslands/generators/poiLayout';
 import * as authoredClearings from '../src/shards/nalati-grasslands/generators/clearings';
 import { riverZAt, riverHalfAt } from '../src/shards/nalati-grasslands/generators/edgeRecipe';
-import { TERRAIN, snowValleyX, snowValleyHalf, snowValleyFloor, inPoiClearing, inSpruceClearing } from '../src/shards/nalati-grasslands/generators/terrainRecipe';
+import { TERRAIN, zoneAt, snowValleyX, snowValleyHalf, snowValleyFloor, inPoiClearing, inSpruceClearing } from '../src/shards/nalati-grasslands/generators/terrainRecipe';
 import { parseBakedTerrain } from '../src/format/bakedTerrainBytes';
 import { bakedSamplers } from '../src/format/bakedTerrainSampling';
 import { installDeclaredBakedTerrain } from '../src/engine/world/bakedTerrainField';
@@ -28,9 +30,9 @@ import { GROUND,forestMask } from './fixtures/nalati-terrain';
 import { readScalarLattice } from '../src/engine/world/scalarChannel';
 
 const finite=v.pipe(v.number(),v.finite());
-const geography=v.parse(v.object({res:finite,size:finite,seed:finite,channels:v.object({wet:ScalarLatticeSchema,
-  valley:ScalarLatticeSchema,bowl:ScalarLatticeSchema,snow:ScalarLatticeSchema})}),
-  JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/geography.generated.json','utf8')));
+const geographyInput:unknown=JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/geography.generated.json','utf8'));
+const geography=v.parse(v.object({res:finite,size:finite,seed:finite,channels:v.object({wet:ScalarLatticeSchema})}),
+  geographyInput);
 const originalTier=GrassPresentationSchema.entries.phone;
 const grassTierSchema=v.object({...originalTier.entries,cards:v.object({...originalTier.entries.cards.entries,
   across:v.pipe(finite,v.integer(),v.minValue(1))})});
@@ -76,13 +78,8 @@ test('all native terrain heights, including every edge, retain their bake', () =
 });
 
 test('baked geography keeps bounded masks and complementary zones', () => {
-  const zones = (['valley', 'bowl', 'snow'] as const).map(id => {
-    const bytes = unzlibSync(Uint8Array.from(atob(geography.channels[id].values.data), value => value.codePointAt(0) ?? 0));
-    return bakedSamplers({ res: geography.res, size: geography.size, seed: geography.seed, landscapeHash: 0,
-      heights: new Float32Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 4), splat: new Uint8Array(0), undergrowth: null }).heightAt;
-  });
   for (let z = -250; z <= 250; z += 10) for (let x = -250; x <= 250; x += 10) {
-    expect(zones.reduce((sum, sample) => sum + sample(x, z), 0)).toBeCloseTo(1, 6);
+    expect(zoneAt(x,z).reduce((sum, value) => sum + value, 0)).toBeCloseTo(1, 6);
     for (const mask of [forestMask(x, z), wetMask(x, z), bound.pondMask(x, z)]) {
       expect(mask).toBeGreaterThanOrEqual(0); expect(mask).toBeLessThanOrEqual(1);
     }
@@ -123,4 +120,8 @@ test('compacted pose literals preserve arithmetic and private recurrence', () =>
   const bad = new ClientChannels('pose.invalid'); bad.constant(0); bad.output('value', bad.constant(-0));
   const invalid = compactChannels([{ ...bad.build(), numeric: { group: 'test', outputs: [{ property: 'value', target: 'root', path: ['value'] }] } }]);
   expect(isJsonData(invalid)).toBe(false);
+});
+
+test('geography keeps every retained field byte-exact without unused debug rasters',()=>{
+  expect(createHash('sha256').update(JSON.stringify(geographyInput)).digest('hex')).toBe('cc368832c88faf94cbfe1f27052758472d1401a194df337acfafc2048714f9b8');
 });

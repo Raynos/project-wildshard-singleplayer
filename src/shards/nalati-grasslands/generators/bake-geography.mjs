@@ -5,7 +5,7 @@ import * as v from 'valibot';
 import { ScalarLatticeSchema,ScalarTripletSchema } from '@wildshard/format/scalarChannel';
 import { GroundRowsSchema } from '@wildshard/format/terrain';
 import NALATI_GRASS_LAYOUT from '../data/grassFieldLayout.json' with { type: 'json' };
-import { SEED, TERRAIN, RIVER, SPAWN, groundColor, surfaceAt, zoneAt, riverMask, brookMask, loneSpruceMask, inSpruceClearing, edgeBermAt } from './terrainRecipe.ts';
+import { SEED, TERRAIN, RIVER, SPAWN, groundColor, surfaceAt, riverMask, brookMask, loneSpruceMask, inSpruceClearing, edgeBermAt } from './terrainRecipe.ts';
 import { edgeSpruceMask } from './edgeRecipe.ts';
 import { nalatiWetAt } from './wetRecipe.ts';
 import { NALATI_MINIMAP } from './minimapRecipe.ts';
@@ -13,15 +13,15 @@ import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
 
 const res = 256, size = 500;
 const forestMask = (x, z) => inSpruceClearing(x, z) ? 0 : Math.max(loneSpruceMask(x, z), edgeSpruceMask(x, z, edgeBermAt(x, z)));
-const names = ['pond', 'wet', 'forest', 'valley', 'bowl', 'snow', 'red', 'green', 'blue', 'gravel', 'rock', 'ice', 'mapRed', 'mapGreen', 'mapBlue'];
+const names = ['pond', 'wet', 'forest', 'red', 'green', 'blue', 'gravel', 'rock', 'ice', 'mapRed', 'mapGreen', 'mapBlue'];
 const arrays = Object.fromEntries(names.map(name => [name, new Float32Array(res * res)]));
 const rgb = [0, 0, 0], map = [0, 0, 0];
 for (let j = 0; j < res; j++) for (let i = 0; i < res; i++) {
   const x = -size / 2 + i * size / (res - 1), z = -size / 2 + j * size / (res - 1), k = j * res + i;
   const h = TERRAIN.heightAt(x, z), slope = 1 - TERRAIN.normalAt(x, z)[1], forest = forestMask(x, z);
-  const zones = zoneAt(x, z), surface = surfaceAt(x, z, h, slope);
+  const surface = surfaceAt(x, z, h, slope);
   groundColor(x, z, h, slope, TERRAIN, rgb); NALATI_MINIMAP.ground(x, z, h, slope, forest, map);
-  const values = [Math.max(riverMask(x, z), brookMask(x, z)), Number(nalatiWetAt(x, z)), forest, ...zones, ...rgb, ...surface, ...map];
+  const values = [Math.max(riverMask(x, z), brookMask(x, z)), Number(nalatiWetAt(x, z)), forest, ...rgb, ...surface, ...map];
   names.forEach((name, channel) => { arrays[name][k] = values[channel]; });
 }
 const encode = array => Buffer.from(zlibSync(new Uint8Array(array.buffer))).toString('base64');

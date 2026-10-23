@@ -12,7 +12,7 @@ import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
 import { forestMask,groundColor,surfaceAt,NALATI_MINIMAP,GROUND } from './fixtures/nalati-terrain';
 
 const finite=v.pipe(v.number(),v.finite());
-const channelsSchema=v.object({wet:ScalarLatticeSchema,forest:ScalarLatticeSchema,valley:ScalarLatticeSchema,bowl:ScalarLatticeSchema,snow:ScalarLatticeSchema,mapRed:ScalarLatticeSchema,mapGreen:ScalarLatticeSchema,mapBlue:ScalarLatticeSchema});
+const channelsSchema=v.object({wet:ScalarLatticeSchema,forest:ScalarLatticeSchema,mapRed:ScalarLatticeSchema,mapGreen:ScalarLatticeSchema,mapBlue:ScalarLatticeSchema});
 const geography=v.parse(v.object({res:finite,size:finite,seed:finite,pigment:ScalarTripletSchema,surface:ScalarTripletSchema,channels:channelsSchema}),
   JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/geography.generated.json','utf8')));
 
