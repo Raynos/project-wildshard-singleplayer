@@ -4898,7 +4898,7 @@ remains a separate G318 change, requiring the complete product fixtures.
 ### Runtime-owned admission transports (G384)
 
 Product admission reserves the complete product before immutable reads. At
-most four transport slots overlap, and each completed size/hash check lets
+most sixteen transport slots overlap, and each completed size/hash check lets
 that slot read the next indexed file. The first refusal stops new reads;
 all started reads settle before the earliest authored refusal returns.
 Asset-map and cache publication happen only after every read succeeds.
@@ -4918,6 +4918,20 @@ size. Stale, oversized or unavailable URL hints fall through to normal
 transport. `ProductOptions.cachedResponse(url, hash, maximum)` supplies
 optional section and blob hints, including released-library rereads;
 consumers retain size/hash verification after a content-cache miss.
+`ProductCache.verifiedAsset` and `ProductOptions.verifiedResponse` are trusted
+transport ports returning exclusively owned bytes already checked against
+the requested SHA-256. Admission and resident rereads still enforce the exact
+declared size; they reuse those bytes without another copy or digest. Each
+trusted port replaces its corresponding raw asset hint: a miss continues
+to the next cache or network, rather than reading the same cache twice.
+Raw hints and network bytes retain independent hashing and an owned copy;
+a transferred worker failure uses the retained source for page fallback.
+The browser URL-cache reader hashes through the same content worker and
+falls through on a corrupt hint. Cache lookup, hash and durable-publication
+waits name their file; whole-bank validation and persistence pins stay intact.
+`prepareContentHash()` explicitly starts the page-owned worker with loader
+transport, with the existing idle retirement and unsupported-worker fallback.
+It installs nothing on module import.
 `OutputDescriptorReader.cached(hash, path, maximum)` receives the declared
 path and bound so the same checks cover split custom schemas and sections.
 Verified cache bytes are reported separately from network transport; this

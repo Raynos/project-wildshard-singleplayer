@@ -29,7 +29,7 @@ export interface CachedProduct { source: unknown; firstParty: boolean; validatio
 export interface ProductCache {
   product: (key: string) => Promise<CachedProduct | null>;
   asset: (base: string, hash: string) => Promise<Uint8Array | null>;
-  /** Trusted content-cache read that already checked SHA-256; absent keeps raw/legacy cache verification. */
+  /** Trusted content-cache read returning owned SHA-256-checked bytes; replaces raw asset reads when present. */
   verifiedAsset?: (hash: string) => Promise<Uint8Array | null>;
   /** Checked durable presence without transferring a discarded asset to the page. */
   verifiedPresent?: (hash: string, bytes: number) => Promise<boolean>;
@@ -61,6 +61,8 @@ export interface ProductOptions {
   base: string; cache?: ProductCache; offline: boolean; firstParty: boolean;
   /** Optional URL-cache hint for sections and blobs; readers still verify declared sizes and hashes. */
   cachedResponse?: (url: string, hash: string, maximum: number) => Promise<Uint8Array | null>;
+  /** Trusted URL-cache read returning owned checked bytes; replaces raw URL hints for asset reads when present. */
+  verifiedResponse?: (url: string, hash: string, maximum: number) => Promise<Uint8Array | null>;
   fetch: (url: string) => Promise<Response>;
   hash: (bytes: Uint8Array) => Promise<string>;
   /** Optional off-page hash of an asset's owned copy (transferred and returned with its digest); where it rejects, the
@@ -222,7 +224,7 @@ export async function browserContentHash(bytes: Uint8Array): Promise<string> {
   return [...digest].map((byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 /** Validate a visited format-2 product again, including cached Wasm.
- * Refill at most four immutable read slots after verification. A refusal stops
+ * Refill at most sixteen immutable read slots after verification. A refusal stops
  * new reads and drains started work before authored-order refusal or publication. */
 export function admitProduct(input: unknown, options: ProductOptions): Promise<AdmittedProduct> {
   return waitFor('Admit product', admitProductWork(input, options), 'admission');
@@ -238,7 +240,7 @@ async function cacheRows<T>(rows: readonly T[], batch: boolean, work: (row: T) =
 async function admitProductWork(input: unknown, options: ProductOptions): Promise<AdmittedProduct> {
   const base = new URL('.', options.base).href;
   options.progress?.({ phase: 'cache-read', detail: 'Checking visited product', bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0 });
-  const visited = await options.cache?.product(base);
+  const visited = await waitFor('Read visited product cache', Promise.resolve(options.cache?.product(base)), 'file');
   if (visited !== null && visited !== undefined) preflightShardfile(visited);
   const cached = options.offline ? visited : null;
   if (cached !== null && cached !== undefined && !isOutputIndex(cached.source)) throw new Error('Cached shardfile requires a format-2 rebuild');
@@ -252,7 +254,7 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
   preflightAssetGraph(source);
   await options.pause?.();
   const revisionKey = validationRevision();
-  const sourceHash = revisionKey === null ? '' : await options.hash(validationSourceBytes(source));
+  const sourceHash = revisionKey === null ? '' : await waitFor('Hash product validation source', options.hash(validationSourceBytes(source)), 'worker');
   const built = outputDescriptor(source)?.receipt;
   if (built !== undefined && sourceHash !== built.sourceHash) throw new Error('Built shardfile changed after verification');
   // A build receipt is pinned inside this client, never fetched from data.
@@ -278,7 +280,7 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
   options.reserve?.(source);
   await options.pause?.();
   const refs = [...source.files.map((file) => ({ ref: file.hash, cap: file.compressed })), ...source.requires.commons.map((hash) => ({ ref: `commons:${hash}`, cap: source.requires.commonsWire[hash] ?? 0 }))];
-  // Reserve the complete product first, then overlap at most four immutable transports. Validation and
+  // Reserve the complete product first, then overlap at most sixteen immutable transports. Validation and
   // publication retain authored order; all started reads settle before a failure returns or writes cache.
   const unique = new Map<string, number>();
   for (const { ref, cap } of refs) {
@@ -300,8 +302,11 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
   progress('assets', 'Reading immutable assets');
   const load = async ([hash, cap]: [string, number]): Promise<Uint8Array> => {
     const url = outputBlobUrl(source, ownFiles.has(hash) ? hash : `commons:${hash}`, base);
-    let bytes = await options.cache?.asset(base, hash)
-      ?? await options.cachedResponse?.(url, hash, cap);
+    const verified = await waitFor(`Verified cache ${hash.slice(0, 12)}`, (async () =>
+      await options.cache?.verifiedAsset?.(hash) ?? await options.verifiedResponse?.(url, hash, cap))(), 'file');
+    let bytes = verified ?? await waitFor(`Cache ${hash.slice(0, 12)}`, (async () =>
+      (options.cache?.verifiedAsset === undefined ? await options.cache?.asset(base, hash) : null)
+        ?? (options.verifiedResponse === undefined ? await options.cachedResponse?.(url, hash, cap) : null))(), 'file');
     const fromCache = bytes !== null && bytes !== undefined;
     if (bytes === null || bytes === undefined) {
       if (options.offline) throw new Error('Visited shardfile has an incomplete offline cache');
@@ -310,13 +315,18 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
     } else { bytesRead += bytes.length; progress('assets', `Cached ${hash.slice(0, 12)}`); }
     if (bytes.length !== cap) throw new Error('Shardfile asset wire size differs from declaration');
     progress('hash', `Verifying ${hash.slice(0, 12)}`);
-    let owned: Uint8Array = Uint8Array.from(bytes), actual: string;
-    if (options.hashOwned === undefined) actual = await options.hash(owned);
+    let owned: Uint8Array;
+    if (verified !== null && verified !== undefined) owned = verified;
     else {
-      try { ({ hash: actual, bytes: owned } = await options.hashOwned(owned)); }
-      catch { owned = Uint8Array.from(bytes); actual = await options.hash(owned); }
+      owned = new Uint8Array(bytes);
+      let actual: string;
+      if (options.hashOwned === undefined) actual = await waitFor(`Hash ${hash.slice(0, 12)}`, options.hash(owned), 'worker');
+      else {
+        try { ({ hash: actual, bytes: owned } = await waitFor(`Hash ${hash.slice(0, 12)}`, options.hashOwned(owned), 'worker')); }
+        catch { owned = new Uint8Array(bytes); actual = await waitFor(`Hash ${hash.slice(0, 12)} fallback`, options.hash(owned), 'worker'); }
+      }
+      if (actual !== hash) throw new Error('Shardfile asset hash mismatch');
     }
-    if (actual !== hash) throw new Error('Shardfile asset hash mismatch');
     if (fromCache) { verifiedCached.add(hash); recordCachedDownload(hash, bytes.length, url); }
     filesDone++; progress('assets', `Verified ${filesDone} / ${addresses.length} files`);
     return owned;
@@ -332,9 +342,9 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
       catch (error: unknown) { results[index] = { ok: false, error }; failed = true; }
     }
   };
-  // Backfill one of the same four transports as soon as its verification ends.
+  // Backfill one of the same sixteen transports as soon as its verification ends.
   // On failure, stop launching and drain every started read before refusing.
-  await Promise.all(Array.from({ length: Math.min(4, addresses.length) }, readNext));
+  await Promise.all(Array.from({ length: Math.min(16, addresses.length) }, readNext));
   for (const [index, address] of addresses.entries()) {
     const result = results[index];
     if (result === undefined) throw new Error('Missing asset read result');
@@ -367,14 +377,15 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
     const sectionFiles = descriptor === undefined ? [] : [...descriptor.index.sections, ...descriptor.index.schemas];
     const release = cache.pin?.([...assets.keys()].map((ref) => ref.replace(/^commons:/u, '')).concat(sectionFiles.map(section => section.hash)));
     try {
-      let complete = descriptor?.cacheStored === undefined ? descriptor?.cached ?? true : await descriptor.cacheStored;
+      let complete = descriptor?.cacheStored === undefined ? descriptor?.cached ?? true : await waitFor('Persist product sections', descriptor.cacheStored, 'file');
       await cacheRows([...assets], options.cacheBatch === true, async ([ref, bytes]) => {
         const hash = ref.replace(/^commons:/u, '');
         if (verifiedCached.has(hash)) return; // Exact cached bytes were already admitted; avoid rewriting the same immutable file.
-        progress('cache', `Saving ${ref.slice(0, 12)}`); if (await cache.putAsset(base, hash, bytes) === false) complete = false;
+        progress('cache', `Saving ${ref.slice(0, 12)}`);
+        if (!await waitFor(`Save ${hash.slice(0, 12)}`, (async () => await cache.putAsset(base, hash, bytes) !== false)(), 'file')) complete = false;
       });
-      const present = async (hash: string, bytes: number): Promise<boolean> => cache.verifiedPresent === undefined
-        ? await cache.asset(base, hash) !== null : cache.verifiedPresent(hash, bytes);
+      const present = (hash: string, bytes: number): Promise<boolean> => waitFor(`Check saved ${hash.slice(0, 12)}`, (async () => cache.verifiedPresent === undefined
+        ? await cache.asset(base, hash) !== null : cache.verifiedPresent(hash, bytes))(), 'file');
       await cacheRows([...assets], options.cacheBatch === true, async ([ref, bytes]) => {
         const hash = ref.replace(/^commons:/u, ''); progress('cache', `Checking saved ${ref.slice(0, 12)}`);
         if (await present(hash, bytes.length)) return;

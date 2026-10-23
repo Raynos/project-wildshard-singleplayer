@@ -28,13 +28,15 @@ export class ClientAssets {
     if (outputDescriptor(this.source) !== undefined) declareDownloadFile(outputBlobUrl(this.source, ref, base), cap);
     // a trusted content-cache read already checked its SHA-256 (ContentCache.get): no page re-hash (~150 ms of a
     // phone-tier home region); every other read is checked here, off the page where a worker can
-    const verified = await this.options.cache?.verifiedAsset?.(hash);
+    const url = outputDescriptor(this.source) === undefined ? undefined : outputBlobUrl(this.source, ref, base);
+    const verified = await this.options.cache?.verifiedAsset?.(hash)
+      ?? (url === undefined ? undefined : await this.options.verifiedResponse?.(url, hash, cap));
     if (verified !== null && verified !== undefined) {
       if (verified.length !== cap) throw new Error('Resident tile hash or size mismatch');
       return verified;
     }
-    let bytes = await this.options.cache?.asset(base, hash), downloaded = false;
-    if ((bytes === null || bytes === undefined) && outputDescriptor(this.source) !== undefined) {
+    let bytes = this.options.cache?.verifiedAsset === undefined ? await this.options.cache?.asset(base, hash) : null, downloaded = false;
+    if ((bytes === null || bytes === undefined) && url !== undefined && this.options.verifiedResponse === undefined) {
       bytes = await this.options.cachedResponse?.(outputBlobUrl(this.source, ref, base), hash, cap);
     }
     if (bytes === null || bytes === undefined) {
@@ -58,7 +60,7 @@ export class ClientAssets {
   /** SHA-256 of `bytes` off the page (an owned copy through `hashOwned`), else on the page. */
   private async hashOf(bytes: Uint8Array): Promise<string> {
     const hashOwned = this.options.hashOwned;
-    if (hashOwned !== undefined) { try { return (await hashOwned(Uint8Array.from(bytes))).hash; } catch { /* the page hashes it */ } }
+    if (hashOwned !== undefined) { try { return (await hashOwned(new Uint8Array(bytes))).hash; } catch { /* the page hashes it */ } }
     return this.options.hash(bytes);
   }
   /** Bind legacy catalogue identities to the admitted library, never to their old network URLs.

@@ -25,7 +25,7 @@ import type { ShardContext } from '../plugin/context';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { cachedTransport } from './cachedTransport';
 import { recordCachedDownload } from '@wildshard/engine/boot/download';
-import { hashOwnedBytes } from '@wildshard/engine/boot/contentHash';
+import { hashOwnedBytes, prepareContentHash } from '@wildshard/engine/boot/contentHash';
 
 /**
  * The trusted runtime's product reader (SHARD-PLATFORM M3 tiles-swap, G227, E435): the same `ClientAssets` in both modes,
@@ -66,6 +66,7 @@ async function staleRecovery(): Promise<void> {
 
 /** Browser connectivity and visited-product storage feed the same admission path as headless validation. */
 export function browserShardfileOptions(base: string, firstParty = false): ProductOptions {
+  prepareContentHash();
   const quality = Object.fromEntries(Object.entries(TIER_CONFIG).filter((entry): entry is [string, number | boolean] => entry[0].includes('.') && (typeof entry[1] === 'number' || typeof entry[1] === 'boolean')));
   const indexed = firstParty && builtIndexes !== null && typeof caches !== 'undefined' ? builtIndexes : undefined;
   return { base, firstParty, tier: TIER, quality, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: browserContentHash, hashOwned: hashOwnedBytes,
@@ -77,7 +78,9 @@ export function browserShardfileOptions(base: string, firstParty = false): Produ
       return fetch(url);
     })(), 'file'),
     ...(indexed === undefined ? {} : { cachedResponse: async (url: string, hash: string, maximum: number) =>
-      (await cachedTransport(caches, url, maximum, browserContentHash, actual => actual === hash))?.bytes ?? null }),
+      (await cachedTransport(caches, url, maximum, browserContentHash, actual => actual === hash))?.bytes ?? null,
+    verifiedResponse: async (url: string, hash: string, maximum: number) =>
+      (await cachedTransport(caches, url, maximum, browserContentHash, actual => actual === hash, hashOwnedBytes))?.bytes ?? null }),
     pause: pauseDescriptor, cacheBatch: true,
     ...(firstParty && builtIndexes !== null ? { built: { indexes: builtIndexes, stale: staleRecovery } } : {}),
     ...(typeof caches === 'undefined' ? {} : { cache: browserProductCache(caches) }),

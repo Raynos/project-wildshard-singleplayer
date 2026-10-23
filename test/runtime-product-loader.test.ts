@@ -22,6 +22,7 @@ import metadata from '../src/shards/far-reach/manifest.json';
 import { parseManifestMetadata } from '../src/format/minimap';
 import { parseImageAsset } from '../src/format/stillImage';
 import { Scope } from '../src/engine/app/scope';
+import { bootWaits } from '../src/engine/boot/waits';
 
 const scopes: Scope[] = [];
 afterEach(() => { for (const scope of scopes.splice(0)) scope.dispose(); Reflect.deleteProperty(globalThis, '__SHARDFILE_VALIDATOR__'); Reflect.deleteProperty(globalThis, '__SHARDFILE_VERDICTS__'); });
@@ -107,6 +108,62 @@ test('admission hashes an asset off the page where it can, on the page when that
   expect((await admitProduct(f.index, { ...f.options, hashOwned: failed })).assets.get(f.ref)).toEqual(f.blob);
   const wrong = (owned: Uint8Array) => Promise.resolve({ hash: hashImmutableBytes(new Uint8Array([9])), bytes: owned });
   await expect(admitProduct(f.index, { ...f.options, hashOwned: wrong })).rejects.toThrow('hash mismatch');
+});
+
+test.each(['content', 'url'])('trusted %s bytes are hashed once and retain exact size refusal for admission and rereads', async kind => {
+  const f = fixture(); trust(f.receipt);
+  const source = await readProductDescriptor(f.options), held = new Uint8Array(f.blob);
+  const asset = vi.fn(() => Promise.resolve(null)), verified = vi.fn(() => Promise.resolve(held));
+  const hash = vi.fn(f.options.hash), hashOwned = vi.fn((wire: Uint8Array) => Promise.resolve({ bytes: wire, hash: f.ref }));
+  const options: ProductOptions = { ...f.options, hash, hashOwned,
+    ...(kind === 'content' ? { cache: { product: () => Promise.resolve(null), asset, verifiedAsset: verified,
+      putAsset: () => Promise.resolve(true), putProduct: () => Promise.resolve(), verifiedPresent: () => Promise.resolve(true) } }
+      : { verifiedResponse: verified }),
+  };
+  const admitted = await admitProduct(source, options);
+  expect(admitted.assets.get(f.ref)).toBe(held);
+  expect(hash.mock.calls.filter(([wire]) => wire.length === f.blob.length)).toHaveLength(0);
+  expect(hashOwned).not.toHaveBeenCalled(); expect(asset).not.toHaveBeenCalled();
+  const reader = new ClientAssets(admitted.source, new Map(), options);
+  expect(await reader.read(f.ref)).toBe(held);
+  verified.mockImplementation(() => Promise.resolve(new Uint8Array([1])));
+  await expect(admitProduct(source, options)).rejects.toThrow('wire size');
+  await expect(reader.read(f.ref)).rejects.toThrow('size mismatch');
+});
+
+test('raw cache bytes remain isolated from a transferred failed hash and expose pending file/hash waits', async () => {
+  const f = fixture(); trust(f.receipt); const source = await readProductDescriptor(f.options);
+  let resolveCache: ((wire: Uint8Array) => void) | undefined, rejectHash: ((error: Error) => void) | undefined;
+  const cached = new Promise<Uint8Array>(resolve => { resolveCache = resolve; });
+  const hashed = new Promise<{ bytes: Uint8Array; hash: string }>((_resolve, reject) => { rejectHash = reject; });
+  const cache: ProductCache = { product: () => Promise.resolve(null), asset: () => cached,
+    putAsset: () => Promise.resolve(true), putProduct: () => Promise.resolve(), verifiedPresent: () => Promise.resolve(true) };
+  const hashOwned = (wire: Uint8Array) => { structuredClone(wire, { transfer: [wire.buffer] }); return hashed; };
+  const pending = admitProduct(source, { ...f.options, cache, hashOwned });
+  try {
+    await vi.waitFor(() => { expect(bootWaits().some(row => row.label === `Cache ${f.ref.slice(0, 12)}`)).toBe(true); });
+    resolveCache?.(f.blob);
+    await vi.waitFor(() => { expect(bootWaits().some(row => row.label === `Hash ${f.ref.slice(0, 12)}`)).toBe(true); });
+    expect(f.blob).toEqual(new Uint8Array([1, 2, 3]));
+  } finally { resolveCache?.(f.blob); rejectHash?.(new Error('Transferred worker failed')); }
+  expect((await pending).assets.get(f.ref)).toEqual(f.blob);
+  expect(bootWaits()).toHaveLength(0);
+});
+
+test('a trusted cache miss falls through once to network and keeps offline refusal without re-reading raw caches', async () => {
+  const f = fixture(); trust(f.receipt); const source = await readProductDescriptor(f.options);
+  const verified = vi.fn(() => Promise.resolve(null)), raw = vi.fn(() => Promise.reject(new Error('Duplicate raw cache read')));
+  const fetch = vi.fn(f.options.fetch);
+  const options: ProductOptions = { ...f.options, fetch, verifiedResponse: verified, cachedResponse: raw,
+    cache: { product: () => Promise.resolve(null), asset: raw, verifiedAsset: verified, putAsset: () => Promise.resolve(true),
+      putProduct: () => Promise.resolve(), verifiedPresent: () => Promise.resolve(true) },
+  };
+  const admitted = await admitProduct(source, options);
+  expect(admitted.assets.get(f.ref)).toEqual(f.blob); expect(verified).toHaveBeenCalledTimes(2);
+  expect(fetch).toHaveBeenCalledOnce(); expect(raw).not.toHaveBeenCalled();
+  const reader = new ClientAssets(admitted.source, new Map(), { ...options, offline: true });
+  await expect(reader.read(f.ref)).rejects.toThrow('Missing cached resident tile');
+  expect(verified).toHaveBeenCalledTimes(4); expect(fetch).toHaveBeenCalledOnce(); expect(raw).not.toHaveBeenCalled();
 });
 
 test('the pinned index keeps custom admission and shares a facade until its last lease ends', async () => {
@@ -499,17 +556,17 @@ test.each(['manifest', 'journal'])('%s URL images retain pixels/wire and protect
 });
 
 
-function admissionWindowFixture() {
+function admissionWindowFixture(extraCount = 7) {
   const extra = new Map<string, Uint8Array>();
   const names = new Map<string, string>();
   const f = fixture(false, source => {
-    for (let i = 1; i <= 7; i++) {
+    for (let i = 1; i <= extraCount; i++) {
       const wire = new Uint8Array([i, 12, 24]), hash = hashImmutableBytes(wire);
       source.files.push({ hash, kind: 'binary', compressed: wire.length, decoded: wire.length,
         gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false });
       source.library.push(hash); extra.set(hash, wire); names.set(hash, `models/window-${i}.bin`);
     }
-    source.budgets.library = { compressed: 24, resident: 24 };
+    source.budgets.library = { compressed: 3 * (extraCount + 1), resident: 3 * (extraCount + 1) };
     return new Map();
   }, names);
   for (const [hash, wire] of extra) f.wires.set(`blobs/bin/${hash}.bin`, wire);
@@ -518,7 +575,7 @@ function admissionWindowFixture() {
 }
 
 test('admission refills a free transport slot while the oldest asset remains pending', async () => {
-  const f = admissionWindowFixture(), original = f.options.fetch;
+  const f = admissionWindowFixture(23), original = f.options.fetch;
   let release: (() => void) | undefined, active = 0, peak = 0;
   const gate = new Promise<void>(resolve => { release = resolve; }), started: string[] = [];
   const pending = admitProduct(f.index, { ...f.options, fetch: async url => {
@@ -528,16 +585,16 @@ test('admission refills a free transport slot while the oldest asset remains pen
     finally { active--; }
   } });
   try {
-    await vi.waitFor(() => { expect(started.length).toBeGreaterThan(4); });
-    expect(peak).toBeLessThanOrEqual(4);
+    await vi.waitFor(() => { expect(started.length).toBeGreaterThan(16); });
+    expect(peak).toBe(16);
     expect(active).toBe(1);
   } finally { release?.(); await pending; }
   const product = await pending;
-  expect(product.assets.size).toBe(8); expect(started).toHaveLength(8);
+  expect(product.assets.size).toBe(24); expect(started).toHaveLength(24);
 });
 
 test('admission stops launching on refusal and drains before its authored error or publication', async () => {
-  const f = admissionWindowFixture(), original = f.options.fetch;
+  const f = admissionWindowFixture(23), original = f.options.fetch;
   let release: (() => void) | undefined, finished = false;
   const gate = new Promise<void>(resolve => { release = resolve; }), started: string[] = [];
   const putAsset = vi.fn(() => Promise.resolve(true)), putProduct = vi.fn(() => Promise.resolve());
@@ -560,13 +617,13 @@ test('admission stops launching on refusal and drains before its authored error 
     finally { finished = true; }
   })();
   try {
-    await vi.waitFor(() => { expect(started).toHaveLength(4); });
+    await vi.waitFor(() => { expect(started).toHaveLength(16); });
     await new Promise<void>(resolve => { setTimeout(resolve, 0); });
-    expect(finished).toBe(false); expect(started).toHaveLength(4);
+    expect(finished).toBe(false); expect(started).toHaveLength(16);
     expect(putAsset).not.toHaveBeenCalled(); expect(putProduct).not.toHaveBeenCalled();
   } finally { release?.(); await pending; }
   expect(await pending).toBe('First authored refusal');
-  expect(started).toHaveLength(4); expect(putAsset).not.toHaveBeenCalled(); expect(putProduct).not.toHaveBeenCalled();
+  expect(started).toHaveLength(16); expect(putAsset).not.toHaveBeenCalled(); expect(putProduct).not.toHaveBeenCalled();
 });
 
 test.each([false, true])('cache publication keeps pins and complete checks with batching=%s', async cacheBatch => {

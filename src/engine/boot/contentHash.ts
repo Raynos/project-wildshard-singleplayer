@@ -46,6 +46,18 @@ function start(): Worker {
   } catch (error) { owner.dispose(); failed = true; throw error; }
 }
 
+/** Start the page-owned hasher alongside loader transport; unsupported workers retain the ordinary hash fallback. */
+export function prepareContentHash(): void {
+  if (failed || typeof Worker !== 'function') return;
+  try {
+    start();
+    if (pending.size === 0 && scope !== null) {
+      idle?.dispose(); const owner = scope.child('idle'); idle = owner;
+      owner.timeout(30_000, () => { if (pending.size === 0) stop(new Error('Content hasher idle'), false); });
+    }
+  } catch { /* start already retires its failed owner; hashing falls back on the page. */ }
+}
+
 /**
  * SHA-256 of `bytes` (lowercase hex) in one page-owned worker: `bytes` is transferred there and back, so the digest's
  * input copy runs off the page's thread (a Pine asset's main-thread digest was 99 ms of one drawn frame at 4x CPU).
