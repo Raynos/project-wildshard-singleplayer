@@ -34,6 +34,7 @@ import { harnessPins } from '../app/identity';
 import { applyKtx2Probe, ktx2ProbeResult, linearAstcSurvives } from '../render/ktx2Probe';
 import { workSlice } from './workSlice';
 import { TIER } from './tier';
+import { unsupercompressKtx2 } from './ktx2Zstd';
 
 /** where vite/basis.ts copies three's transcoder: versioned by three's revision, so the SW / HTTP caches never mix two */
 export const BASIS_PATH = `/basis/r${THREE.REVISION}/`;
@@ -45,6 +46,17 @@ function createLoader(): KTX2Loader {
   const made = new KTX2Loader().setTranscoderPath(BASIS_PATH);
   // Basis workers retain separate Wasm heaps; phone reads stay parallel, transcodes do not.
   made.workerPool = new ScopedWorkerPool(pageScope, TIER === 'phone' ? 1 : 4);
+  // G639 frame floor: a raw-texel zstd file's levels decode in a worker first (ktx2Zstd.ts), not in three's parse on the
+  // page's thread; an unready loader still throws at once, as three's own parse does
+  const parse = made.parse.bind(made);
+  made.parse = (buffer, onLoad, onError): void => {
+    if (made.workerConfig === null) { parse(buffer, onLoad, onError); return; }
+    const run = async (): Promise<void> => {
+      const plain = await unsupercompressKtx2(buffer);
+      try { parse(plain, onLoad, onError); } catch (error: unknown) { if (onError !== undefined) onError(error); else throw error; }
+    };
+    void run();
+  };
   return made;
 }
 /**
