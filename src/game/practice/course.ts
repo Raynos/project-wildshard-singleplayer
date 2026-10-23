@@ -47,18 +47,12 @@ class MountedCourseEntry implements CourseEntry {
 
 
   enter():void {
-    const horse=this.horse??this.spawnHorse();horse.hidden=false;horse.mesh.visible=true;
+    const horse=this.horse??=this.host.animals.spawn(this.rows.actor.kind, this.room.origin.x + this.rows.start.x, this.room.origin.z + this.rows.start.z, this.rows.start.yaw, this.rows.actor.variant);horse.hidden=false;horse.mesh.visible=true;
     this.mount.addMountable(horse.entityId,this.rows.actor.name);this.mount.setRoads([this.road]);
   }
   exit():void {
     const mount=this.mount,horse=this.horse;
     if(horse!==null){if(mount.horse===horse)mount.dismount();mount.removeMountable(horse.entityId);mount.setRoads(null);horse.hidden=true;horse.mesh.visible=false;}
-  }
-  /** the saddled horse, spawned once through the shard's AnimalManager (its rig, its sounds, its hit tests) */
-  private spawnHorse(): Animal {
-    const a = this.host.animals.spawn(this.rows.actor.kind, this.room.origin.x + this.rows.start.x, this.room.origin.z + this.rows.start.z, this.rows.start.yaw, this.rows.actor.variant);
-    this.horse = a;
-    return a;
   }
 
   /** stand the horse on the field at (x, z): the field is PLAYGROUND_Y up, the terrain under it is not its ground */
