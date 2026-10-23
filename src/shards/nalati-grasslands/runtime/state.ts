@@ -37,7 +37,6 @@ import type { RayTargets } from '@wildshard/engine/combat/targets';
 
 /** The defining builders keep the published state and its consumers on one contract. */
 export type Nalati = Awaited<ReturnType<typeof buildNalatiState>>;
-export type NalatiWeather = Nalati['weather'];
 
 async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin: ShardContext, progress?: StepProgress) {
   const { admission, worldUpdates } = v.parse(v.object({ admission: v.unknown(), worldUpdates: v.unknown() }), await plugin.product.json('sim/headless-boot.json'));

@@ -490,11 +490,10 @@ export function createNativeCreatureRoster<B extends NativeCreatureSlot>(host: S
 
 /** A deferred actor's exact placement and memory-adoption checkpoint. */
 export interface NativeDeferredSpawn { id: string; variant: string; seed: number; scale: number; at: [number, number, number]; yaw: number; adopted: RngState & { version: 1 } }
-type NativeIntake = ReturnType<typeof createNativeCreatureRoster<NativeCreatureSlot>>;
 /** Existing manager-owned deferred actors use the same identity allocator,
  * stream and native admission as boot actors. No factory callback is accepted. */
 export class NativeDeferredRoster {
-  constructor(private readonly host: SimHost, private readonly intake: NativeIntake, private readonly hunt: StalkerBrain<HuntBody>, private readonly rng: Rng,
+  constructor(private readonly host: SimHost, private readonly intake: ReturnType<typeof createNativeCreatureRoster<NativeCreatureSlot>>, private readonly hunt: StalkerBrain<HuntBody>, private readonly rng: Rng,
     private readonly bodies: HuntBody[], private readonly sight: (boolean | null | undefined)[], private readonly retired: Set<string>,
     private readonly absent: Set<AnimalSim>, private readonly rows: { limit: number; spawnY: number; motorKinds: readonly string[]; retiredY: number }) {
     if (nativeRosters.get(intake) !== host || !(hunt instanceof StalkerBrain) || !(rng instanceof Rng) || rows.limit < 1 || rows.limit > 1024

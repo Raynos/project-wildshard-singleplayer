@@ -27,7 +27,7 @@ import { Mount } from '../src/game/riding/mount';
 import type { LevelContext } from '../src/engine/level/context';
 import night from '../src/shards/nalati-grasslands/data/night.generated.json' with { type: 'json' };
 import { bossArena } from './fake/bossArena';
-import type { NalatiWeather } from '../src/shards/nalati-grasslands/runtime/state';
+import type { Nalati } from '../src/shards/nalati-grasslands/runtime/state';
 import fireView from '../src/shards/nalati-grasslands/data/arenaFire.json' with { type: 'json' };
 import titan from '../src/shards/nalati-grasslands/data/stormTitanFight.generated.json' with { type: 'json' };
 import geometry from '../src/shards/nalati-grasslands/data/stormTitanGeometry.generated.json' with { type: 'json' };
@@ -88,7 +88,7 @@ test.each([false,true])('arena script runs mounted phases, exposes its heart and
   Object.assign(f.player,{ velocity: new Vector3(),setBodyEnabled: () => undefined });
   lendLooks(scope, { materials, setParam: () => undefined, setTexture: () => undefined, bindMeshMap: () => { throw new Error('No mapped materials in this fight'); },
     instance: () => ({ material: new MeshBasicMaterial(), setParam: () => undefined }) });
-  const weather = legacyDouble<NalatiWeather>({ weather: legacyDouble<NalatiWeather['weather']>({ flash: 0, raise: () => undefined,stormActive: true }),air: legacyDouble<NalatiWeather['air']>({}) });
+  const weather = legacyDouble<Nalati['weather']>({ weather: legacyDouble<Nalati['weather']['weather']>({ flash: 0, raise: () => undefined,stormActive: true }),air: legacyDouble<Nalati['weather']['air']>({}) });
   const game = Object.assign(f.game.asGame(), { app,levelScope: scope });
   const data = parseArenaScriptData({ arenaScript: titan.TITAN_HOST,arenaFire: fireView,programs },geometry);
   if (orchard) {
