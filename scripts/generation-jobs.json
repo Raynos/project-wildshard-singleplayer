@@ -21176,6 +21176,7 @@
         "src/sdk/bake/image.ts",
         "src/sdk/bake/worldImage.ts",
         "src/shards/open-plots/shard.config.ts",
+        "src/shards/open-plots/generators/product.ts",
         "src/shards/open-plots/data/source.json",
         "src/shards/open-plots/data/plot.json",
         "src/format/accent.ts",
