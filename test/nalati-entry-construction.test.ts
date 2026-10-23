@@ -3,6 +3,8 @@ import * as v from 'valibot';
 import metadata from '../src/shards/nalati-grasslands/manifest.json' with {type:'json'};
 import {parseManifestMetadata} from '../src/format/minimap';
 import {parseClientPlan} from '../src/format/clientPlan';
+import {ForestWeatherSchema} from '../src/format/forestWeather';
+import {ArenaScriptFightFileSchema} from '../src/format/arenaScriptRows';
 import {CLIENT_FEATURES} from '../src/game/shardfile/clientPlan';
 import {createShardProduct} from '../src/game/shardfile/shardProduct';
 import {outputPlatformPayloads} from '../src/sdk/outputProduct';
@@ -24,7 +26,18 @@ test('the declared plan constructs the original elite and night owners once afte
   const debug=selected.filter(row=>row.kind==='debug.expose');
   expect(debug.find(row=>row.name==='harness.shard.nalati-grasslands')).toMatchObject({objects:['ride','wildlife']});
   expect(debug.some(row=>row.name==='nalati')).toBe(false);
-  for(const [name,kind,owner] of [['nalati.boss','arena-room','nalati.king'],['nalati.titan','arena-room','nalati.titan'],['nalati.elites','elite-entry','nalati.elites']])
+  const weather=selected.find(row=>row.kind==='weather.forest');
+  if(weather===undefined)throw new Error('Missing declared weather owner');
+  const weatherRows=v.parse(ForestWeatherSchema,await product.json(weather.file));
+  expect(weatherRows.debug).toBe('nalati.weather');
+  expect(debug.some(row=>row.name===weatherRows.debug)).toBe(false);
+  const assembly=selected.find(row=>row.kind==='world.assembly');
+  const titan=assembly?.rows.stages.find(row=>row.kind==='arena-room'&&'files' in row);
+  if(titan?.kind!=='arena-room'||!('files' in titan))throw new Error('Missing declared open arena');
+  const fight=v.parse(ArenaScriptFightFileSchema,await product.json(titan.files.fight));
+  expect(fight.arenaScript.view.debug).toBe('nalati.titan');
+  expect(debug.some(row=>row.name===fight.arenaScript.view.debug)).toBe(false);
+  for(const [name,kind,owner] of [['nalati.boss','arena-room','nalati.king'],['nalati.elites','elite-entry','nalati.elites']])
     expect(debug.find(row=>row.name===name)).toMatchObject({source:{kind,owner}});
   const constructors=selected.filter(row=>row.kind==='elite.construct'||row.kind==='timed.encounters');
   const {constants}=v.parse(v.object({constants:v.object({eliteEntry:v.unknown(),timedEntry:v.unknown()})}),await product.json('sim/headless-assembly.json'));
