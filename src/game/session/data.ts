@@ -15,6 +15,7 @@ import { startViewmodelTextures } from '@wildshard/engine/combat/view/ranged';
 import { TIER } from '@wildshard/engine/core/tier';
 import { beginLoading } from '@wildshard/engine/ui/Loading';
 import { gridPrefetchStatus } from '../grid/prefetch';
+import { currentPageMode } from '../grid/pageMode';
 import { resumeProgress, resumeScreen } from '@wildshard/engine/ui/Resume';
 
 async function buildData(ctx: SessionContext) {
@@ -66,7 +67,9 @@ async function buildData(ctx: SessionContext) {
   prefetchAfter(extraFetches(files), extrasBarrier);
   // High-peak builds may defer extras decoding until their later loading steps.
   const deferExtras = manifest.boot?.phone?.deferExtras === true && TIER === 'phone';
-  const menuLoad = deferExtras ? null : startMenuPreload(files, manifest);
+  // The grid never shows the title deck: its cards keep their URLs (decoded if a menu ever opens) and the Explore
+  // controls load when opened, so a grid entry does not decode every card's art (round 40: the phone froze 10-14 s)
+  const menuLoad = deferExtras || currentPageMode() === 'grid' ? null : startMenuPreload(files, manifest);
   const audioLoad = deferExtras ? null : startAudioPreload(files, manifest, audioProfile);
   const deferredAudio = deferExtras ? startDeferredAudioPreload(files, manifest, audioProfile) : null;
   void startViewmodelTextures(manifest.boot?.viewmodelSets ?? false); // the crossbow's + rifle's textures, drawn in a worker while the world builds

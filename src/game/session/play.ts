@@ -126,7 +126,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     // + the practice room's dummies when this boot lands in it (a travel in arena mode): full on its first frame (E291). Any
     // other boot loads them when the room opens, in every mode (G187: −33.6 MB of GL on Pine; SF47 made it the only path).
     const practice = isDev() && session.arrival?.mode === 'arena' ? arena.preload() : null;
-    await (menuLoad ?? startMenuPreload(files, chunk)).wait(p);
+    if (pageMode() !== 'grid') await (menuLoad ?? startMenuPreload(files, chunk)).wait(p); // the grid has no title deck (data.ts)
     await practice; // the grid's streaming is covered by its entry reveal (G98, below), not the loading screen
   });
   const { audio, music } = prepareAudio();
