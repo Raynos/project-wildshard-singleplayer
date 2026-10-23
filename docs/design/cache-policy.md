@@ -29,6 +29,16 @@ files that must always check freshness.
 
 ## The service worker's three caches (`src/engine/pwa/sw.js`)
 
+Installation strictly caches the shell, every static dependency of its
+emitted entry chunks, and extracted CSS. The complete content URL inventory
+still governs document identity and pruning. Lazy code is verified by
+`fetchWhole` on demand. After `ws:ready`, `WARM_CODE` fills the remaining code
+serially at low priority; any foreground request aborts the speculative body
+and postpones warming until a quiet interval. Cache hits are retained without
+another download. Same-build controller replacement also waits for page-ready,
+so it cannot interrupt that document's boot module graph. Existing static
+asset migration and offline product admission remain unchanged.
+
 They expire on three different clocks, which is why there are three:
 
 | cache | holds | expires |

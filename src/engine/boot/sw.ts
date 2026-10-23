@@ -78,6 +78,24 @@ if (sw !== null) {
   replayDownloads();
 }
 
+let pageReady = false, sameBuild: ServiceWorker | null = null;
+function warmCode(): void {
+  if (!pageReady || !swAllowed()) return;
+  if (sameBuild !== null) {
+    const candidate = sameBuild; sameBuild = null;
+    if (candidate.state === 'installed') {
+      // oxlint-disable-next-line unicorn/require-post-message-target-origin -- ServiceWorker.postMessage has no targetOrigin parameter.
+      candidate.postMessage({ type: 'SKIP_WAITING' });
+    }
+  }
+  // Only after the title/boot is usable; the worker yields to every real read.
+  sw?.controller?.postMessage({ type: 'WARM_CODE' });
+}
+if (sw !== null) {
+  pageScope.listen(document, 'ws:ready', () => { pageReady = true; warmCode(); });
+  pageScope.listen(sw, 'controllerchange', warmCode);
+}
+
 // declared ahead of the functions that read it (they only run after registration; `boot()` is hoisted)
 const api: WsSw = { ready: boot(), waiting: null, adopt, version };
 
@@ -100,8 +118,10 @@ function announce(w: ServiceWorker): void {
     const build = await buildOf(w);
     if (w.state === 'redundant') return;
     if (build?.startsWith(`${__BUILD_ID__}-`) === true) {
-      // oxlint-disable-next-line unicorn/require-post-message-target-origin -- ServiceWorker.postMessage has no targetOrigin parameter (that is Window.postMessage)
-      w.postMessage({ type: 'SKIP_WAITING' });
+      // Do not replace the old controller in the middle of this document's
+      // dynamic module graph. The existing usable-page signal ends that work.
+      sameBuild = w;
+      warmCode();
       return;
     }
     api.waiting = w;
@@ -113,10 +133,11 @@ function announce(w: ServiceWorker): void {
 function buildOf(w: ServiceWorker): Promise<string | null> {
   return new Promise<string | null>((resolve) => {
     const ch = new MessageChannel();
-    const timer = pageScope.timeout(CAP_MS, () => resolve(null));
+    const finish = (build: string | null): void => { ch.port1.close(); ch.port2.close(); resolve(build); };
+    const timer = pageScope.timeout(CAP_MS, () => { finish(null); });
     ch.port1.onmessage = (e: MessageEvent<{ build?: unknown }>) => {
       pageScope.cancelTimer(timer);
-      resolve(typeof e.data.build === 'string' ? e.data.build : null);
+      finish(typeof e.data.build === 'string' ? e.data.build : null);
     };
     w.postMessage({ type: 'BUILD' }, [ch.port2]);
   });

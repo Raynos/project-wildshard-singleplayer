@@ -4,7 +4,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { join, resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { preview } from 'vite';
-import { pwaPlugin, workerScripts } from '../vite/pwa-plugin';
+import { pwaPlugin, workerInstallFiles, workerScripts } from '../vite/pwa-plugin';
 
 test('worker bootstrap names exact core bytes and changes for same-length edits', () => {
   const first = workerScripts('self.version = "first";'), next = workerScripts('self.version = "other";');
@@ -14,6 +14,19 @@ test('worker bootstrap names exact core bytes and changes for same-length edits'
   expect(next.fileName).not.toBe(first.fileName);
   expect(next.bootstrap).not.toBe(first.bootstrap);
   expect(workerScripts('self.version = "first";')).toEqual(first);
+});
+
+test('install includes every static entry dependency and CSS, leaving lazy code for the usable page', () => {
+  const bundle = {
+    'assets/entry.js': { type: 'chunk', isEntry: true, imports: ['assets/shared.js'] },
+    'assets/shared.js': { type: 'chunk', imports: ['assets/leaf.js'] },
+    'assets/leaf.js': { type: 'chunk', imports: ['assets/shared.js'] },
+    'assets/lazy.js': { type: 'chunk', imports: ['assets/shared.js'] },
+    'assets/style.css': { type: 'asset' },
+    'assets/card.jpg': { type: 'asset' },
+  };
+  expect(workerInstallFiles(bundle)).toEqual(['/assets/entry.js', '/assets/leaf.js', '/assets/shared.js', '/assets/style.css']);
+  expect(() => workerInstallFiles({ ...bundle, 'assets/entry.js': { type: 'chunk', isEntry: true, imports: ['missing.js'] } })).toThrow('Missing worker install dependency');
 });
 
 test('worker updates revalidate unchanged bytes and fetch a changed script in full', async () => {

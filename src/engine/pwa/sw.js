@@ -9,8 +9,8 @@ import { workerScope } from '../app/workerScope.js';
  *   __ASSET_ID__  a hash of the public/assets (+ basis, fonts) files' content alone (E160: it was list + sizes), so the
  *                 static cache survives a JS-only deploy, and any byte change names a new one.
  *   __BUNDLE__    the emitted /assets/<name>-<hash>.* paths of this build — the worker's only name for the
- *                 content-addressed set (gauntlet had load-manifest.json for this); precached at install,
- *                 and `activate` PRUNES the immutable cache to it.
+ *                 content-addressed set (gauntlet had load-manifest.json for this); `activate` PRUNES the immutable
+ *                 cache to it. __INSTALL__ is its static entry graph plus CSS; only that subset blocks installation.
  *   __FONTS__     the self-hosted /fonts/*.woff2 — precached at install (the first visit's CSS fetched them before
  *                 this worker controlled the page, so without this an offline launch had no type).
  *
@@ -34,10 +34,10 @@ import { workerScope } from '../app/workerScope.js';
  *   ws-shell-<build>        the few KB that change every build: index.html, manifest.webmanifest,
  *                           asset-index.json.
  *
- *   install   precache the critical shell, then the bundle's code, both strict: a failed shell, an index.html that
+ *   install   precache the critical shell, then its static entry code and CSS, both strict: a failed shell, an index.html that
  *             names another build's code, or a code file the host no longer serves fails the install, so the old
  *             worker keeps serving (E144). Icons and fonts are tolerant; everything only what is missing; hashed
- *             images on use.
+ *             images on use. After page-ready, warm lazy code serially at low priority, yielding to real reads.
  *   activate  carry the previous ws-static-* entries that are still current BY CONTENT into the new static cache and
  *             drop everything /asset-manifest.json no longer names (E160 / E161, gcStatic below), drop stale
  *             ws-shell/ws-static caches, prune (never wipe) the immutable cache, claim.
@@ -64,6 +64,8 @@ const BUILD = '__BUILD_ID__';
 const ASSETS = '__ASSET_ID__';
 /** @type {string[]} */
 const BUNDLE = JSON.parse('__BUNDLE__');
+/** @type {string[]} */
+const INSTALL = JSON.parse('__INSTALL__');
 /** @type {string[]} */
 const FONTS = JSON.parse('__FONTS__');
 const SHELL = `ws-shell-${BUILD}`;
@@ -202,9 +204,10 @@ workerScope.listen(self, 'install', (event) => {
       // the host, so this is served by the HTTP cache, not the network, when the page just fetched it.
       // Code and styles only: the hashed images (every shard's hero stills, portrait AND landscape, ~2 MB) are cached
       // by cacheFirst when the menu actually shows one — a phone never shows the landscape set (ask P5, cold bytes).
-      // STRICT (E144): a code file that cannot be fetched (the host moved on to a newer deploy mid-install) fails the
-      // install. A worker missing its own main chunk must never become the one that serves the document.
-      await fillMissing(await caches.open(IMMUTABLE_CACHE), BUNDLE.filter((p) => !IMAGE_RE.test(p)), true);
+      // STRICT (E144): every static entry dependency and extracted stylesheet
+      // must exist before this worker can serve its document. Lazy shard code
+      // is verified on demand, then warmed after the title is usable.
+      await fillMissing(await caches.open(IMMUTABLE_CACHE), INSTALL, true);
       await fillMissing(await caches.open(STATIC), [...STATIC_OPTIONAL, ...FONTS]);
     })(),
   );
@@ -323,10 +326,40 @@ async function pruneImmutable() {
   }
 }
 
+let warming = null, warmAbort = null, foregroundAt = 0;
+/** A title-ready page requests one low-priority code read at a time. A real
+ * request aborts that speculative body before entering the foreground path. */
+async function warmBundle() {
+  if (warming !== null) { await warming; return; }
+  const run = async () => {
+    const cache = await caches.open(IMMUTABLE_CACHE);
+    for (const path of BUNDLE.filter(p => !IMAGE_RE.test(p))) {
+      if (await cache.match(abs(path), MATCH_OPTS)) continue;
+      let complete = false;
+      while (!complete) {
+        while (Date.now() - foregroundAt < 500) await sleep(100);
+        if (await cache.match(abs(path), MATCH_OPTS)) break;
+        const controller = new AbortController(); warmAbort = controller;
+        try {
+          const response = await fetch(abs(path), { priority: 'low', signal: controller.signal });
+          if (!response.ok) return; // Unavailable/offline code is never published as a successful warm.
+          await cache.put(abs(path), response);
+          complete = true;
+        } catch {
+          if (!controller.signal.aborted) return;
+        } finally { if (warmAbort === controller) warmAbort = null; }
+      }
+    }
+  };
+  warming = run();
+  try { await warming; } finally { warming = null; }
+}
+
 workerScope.listen(self, 'message', (event) => {
   const data = event.data;
   if (!data) return;
   if (data.type === 'SKIP_WAITING') self.skipWaiting();
+  else if (data.type === 'WARM_CODE') event.waitUntil(warmBundle());
   // A replacement document can start listening after install fetches finish.
   // Replay the browser's existing bounded timing buffer; live/replayed entries
   // share the same identity in the page accounting. Do not grow that buffer.
@@ -421,6 +454,8 @@ workerScope.listen(self, 'fetch', (event) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return; // Google Fonts: untouched
+  foregroundAt = Date.now();
+  warmAbort?.abort();
   if (url.searchParams.get('sw') === '0') return; // the bench measures the network, not the cache
   if (url.pathname === '/version.json') return; // network-only: the build pill must see the server
   const isDoc = req.mode === 'navigate' || url.pathname === '/' || url.pathname === '/index.html';
@@ -482,7 +517,7 @@ async function documentResponse(event, req, url) {
 
 /** the files a boot cannot survive losing: the hashed JS and CSS (fetchWhole) */
 const CODE_RE = /^\/assets\/[^/]+-[\w-]{8}\.(?:js|css)$/;
-const sleep = (ms) => new Promise((resolve) => { workerScope.timeout(ms, resolve); });
+function sleep(ms) { return new Promise((resolve) => { workerScope.timeout(ms, resolve); }); }
 
 /** Report provenance through Resource Timing, without reading or copying the response body. */
 function transportReceipt(response, cached = false) {

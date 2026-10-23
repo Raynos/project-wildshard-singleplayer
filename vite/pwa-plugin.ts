@@ -11,7 +11,8 @@
  *   __ASSET_ID__  a hash of the public/assets (+ basis, fonts) files' CONTENT alone (E160: it was list + sizes), so the
  *                 static cache survives a JS-only deploy, and any byte change to the art names a new one (activate
  *                 then keeps, by content hash, every entry that is still current — src/engine/pwa/sw.js).
- *   __BUNDLE__    the emitted `/assets/<name>-<hash>.*` paths: precached at install, and the prune list.
+ *   __BUNDLE__    every emitted content URL: the cache identity/prune list, warmed after the page is usable.
+ *   __INSTALL__   the complete static entry graph and CSS, strictly cached at install. Lazy code stays off that path.
  *   __FONTS__     the self-hosted `/fonts/*.woff2`: precached at install, so an offline launch has its type even though
  *                 the first visit's CSS asked for them before the worker controlled the page (project/archive/2026-09-23-preload-offline.md).
  *
@@ -53,6 +54,25 @@ export function workerScripts(core: string): { fileName: string; bootstrap: stri
   return { fileName, bootstrap: `importScripts(${JSON.stringify(`/${fileName}`)});\n` };
 }
 
+/** Install the complete static entry graph, not every lazy shard chunk.
+ * CSS remains critical even when the bundler extracts it from the import graph. */
+export function workerInstallFiles(bundle: Readonly<Record<string, {
+  readonly type: string; readonly isEntry?: boolean; readonly imports?: readonly string[];
+} | undefined>>): string[] {
+  const files = new Set<string>();
+  const visit = (name: string): void => {
+    if (files.has(name)) return;
+    const item = bundle[name];
+    if (item === undefined) throw new Error(`Missing worker install dependency: ${name}`);
+    files.add(name);
+    for (const dependency of item.imports ?? []) visit(dependency);
+  };
+  for (const [name, item] of Object.entries(bundle)) {
+    if ((item?.type === 'chunk' && item.isEntry === true) || name.endsWith('.css')) visit(name);
+  }
+  return [...files].sort().map(name => `/${name}`);
+}
+
 /**
  * `vercel.json` `source` → RegExp. Only the forms the file uses: literal paths and `(.*)` groups
  * (Vercel's path-to-regexp escapes everything else, `.` included).
@@ -73,8 +93,8 @@ export function pwaPlugin(buildId: string): Plugin {
   let root = process.cwd();
   const swSource = () => `${readFileSync(join(root, 'src/engine/app/workerScope.js'), 'utf8').replaceAll(/^export /gm, '')}\n${readFileSync(join(root, 'src/engine/pwa/sw.js'), 'utf8').replace("import { workerScope } from '../app/workerScope.js';\n", '')}`;
   const fonts = (): string[] => { const dir = join(root, 'public', 'fonts'); return existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith('.woff2')).sort().map((f) => `/fonts/${f}`) : []; };
-  const stamp = (src: string, build: string, assets: string, bundle: string[]) =>
-    src.replaceAll('__BUILD_ID__', build).replaceAll('__ASSET_ID__', assets).replace("'__BUNDLE__'", JSON.stringify(JSON.stringify(bundle))).replace("'__FONTS__'", JSON.stringify(JSON.stringify(fonts()))).replace('__PRODUCT_CACHE__', PRODUCT_CACHE_NAME);
+  const stamp = (src: string, build: string, assets: string, bundle: string[], install: string[]) =>
+    src.replaceAll('__BUILD_ID__', build).replaceAll('__ASSET_ID__', assets).replace("'__BUNDLE__'", JSON.stringify(JSON.stringify(bundle))).replace("'__INSTALL__'", JSON.stringify(JSON.stringify(install))).replace("'__FONTS__'", JSON.stringify(JSON.stringify(fonts()))).replace('__PRODUCT_CACHE__', PRODUCT_CACHE_NAME);
   return {
     name: 'wildshard-pwa',
     configResolved(c) {
@@ -91,7 +111,7 @@ export function pwaPlugin(buildId: string): Plugin {
         .map(([name, item]) => `${name}:${item.type === 'chunk' ? Buffer.byteLength(item.code) : Buffer.byteLength(item.source)}`);
       const build = `${buildId}-${contentStamp([...emitted, ...assetRows])}`;
       const hashed = Object.keys(bundle).filter((name) => /^assets\/[^/]+-[\w-]{8}\.\w+$/.test(name)).map((name) => `/${name}`).sort();
-      const core = stamp(src, build, assets, hashed), scripts = workerScripts(core);
+      const core = stamp(src, build, assets, hashed, workerInstallFiles(bundle)), scripts = workerScripts(core);
       this.emitFile({ type: 'asset', fileName: scripts.fileName, source: core });
       this.emitFile({ type: 'asset', fileName: 'sw.js', source: scripts.bootstrap });
       this.info(`sw.js emitted (ws-shell-${build}, ws-static-${assets}, ws-immutable: ${hashed.length} files)`);
@@ -126,7 +146,7 @@ export function pwaPlugin(buildId: string): Plugin {
           return;
         }
         res.setHeader('Content-Type', 'text/javascript');
-        res.end(stamp(swSource(), `dev-${buildId}`, 'dev', []));
+        res.end(stamp(swSource(), `dev-${buildId}`, 'dev', [], []));
       });
     },
   };
