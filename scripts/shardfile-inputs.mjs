@@ -80,7 +80,7 @@ function note(kind, target) {
   const scope = inputScope();
   if(scope===undefined)return;
   const path=localPath(target);
-  if(scope.traceOnly&&(kind==='P'||kind==='D'||kind==='I')) {
+  if(scope.traceOnly&&(kind==='P'||kind==='D'||kind==='L'||kind==='I')) {
     const bounded=path===undefined?'unknown':relative(scope.root,path).split(sep).join('/');
     scope.inventory?.add(`${kind} ${bounded===''?'.':bounded}`);
   }
@@ -200,7 +200,15 @@ export function installInputRecorder() {
     for (const name of names) {
       const original = table[name]; if (typeof original !== 'function') continue;
       /** @this {unknown} @param {...unknown} args */
-      const traced = function traced(...args) { note(kind,args[0]); if (name === 'copyFileSync' || name === 'cpSync' || name === 'copyFile' || name === 'cp') note('W',args[1]); return Reflect.apply(original,this,args); };
+      const traced = function traced(...args) {
+        // Default/encoding-only directory calls cannot see descendants. Options
+        // objects stay conservative without evaluating user getters or proxies.
+        // Product receipts retain their existing D identity.
+        const shallow=kind==='D'&&inputScope()?.traceOnly===true&&(args[1]===undefined||typeof args[1]==='string'||typeof args[1]==='function');
+        note(shallow?'L':kind,args[0]);
+        if (name === 'copyFileSync' || name === 'cpSync' || name === 'copyFile' || name === 'cp') note('W',args[1]);
+        return Reflect.apply(original,this,args);
+      };
       Object.defineProperties(traced,Object.getOwnPropertyDescriptors(original)); table[name] = traced;
     }
   };

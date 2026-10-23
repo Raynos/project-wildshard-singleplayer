@@ -299,6 +299,30 @@ it.each(['fs','node:fs'])('does not re-key builtin %s for unread upstream bytes'
   put(reader.root,'src/sdk/new-unread.ts','// A builtin cannot resolve this file.');
   expect(await reader.upstream({'unread.bin':'changed'})).toEqual({...first,hit:true});
 });
+it.each([
+  "fs.readdirSync('src')",
+  "fs.readdirSync('src','utf8')",
+  "await fs.promises.readdir('src')",
+  "await new Promise((resolve,reject)=>fs.readdir('src',(error,names)=>error?reject(error):resolve(names)))",
+])('does not re-key a shallow directory read for nested additions: %s',async list=>{
+  const {root,job,run}=fixture(`import fs from 'node:fs';fs.writeFileSync('src/shards/alpha/data/output.txt',JSON.stringify((${list}).sort()));`);
+  job.inputRoots=['src'];
+  const first=await run();expect(first.hit).toBe(false);
+  put(root,'src/sdk/nested/unread.mjs','export const unused=1;');
+  expect(await run()).toEqual({...first,hit:true});
+  put(root,'src/new-package/unused.mjs','export const unused=2;');
+  const changed=await run();expect(changed.hit).toBe(false);expect(changed.text).toContain('new-package');
+});
+it('keeps shallow opendir entry types exact without reading descendants',async()=>{
+  const {root,run}=fixture("import fs from 'node:fs';const dir=fs.opendirSync('src/sdk/list'),rows=[];for(let entry;(entry=dir.readSync())!==null;)rows.push([entry.name,entry.isDirectory()]);dir.closeSync();fs.writeFileSync('src/shards/alpha/data/output.txt',JSON.stringify(rows));");
+  put(root,'src/sdk/list/child','first');
+  expect(await run()).toMatchObject({hit:false,text:'[["child",false]]'});
+  rmSync(resolve(root,'src/sdk/list/child'));
+  put(root,'src/sdk/list/child/first.mjs','export const unused=1;');
+  const directory=await run();expect(directory).toMatchObject({hit:false,text:'[["child",true]]'});
+  put(root,'src/sdk/list/child/second.mjs','export const unused=2;');
+  expect(await run()).toEqual({...directory,hit:true});
+});
 it('fences recursive directory reads by their staged subtree',async()=>{
   const {root,run}=fixture("import fs from 'node:fs';fs.writeFileSync('src/shards/alpha/data/output.txt',JSON.stringify(fs.readdirSync('src/sdk/list',{recursive:true}).sort()));");
   put(root,'src/sdk/list/first.mjs','export const first=1;');
@@ -326,6 +350,7 @@ it('binds failed file resolution to nearby candidates instead of unrelated trees
 });
 it.each([
   "import fs from 'node:fs';fs.writeFileSync('src/shards/alpha/data/output.txt',String(fs.existsSync('node_modules/valibot')));",
+  "import fs from 'node:fs';fs.writeFileSync('src/shards/alpha/data/output.txt',JSON.stringify(fs.readdirSync('src/sdk')));",
   "import fs from 'node:fs';try{await import('fixture-absent-package');}catch{}fs.writeFileSync('src/shards/alpha/data/output.txt','absent');",
 ])('keeps dependency-link and bare-resolution probes conservative: %s',async source=>{
   const {root,run}=fixture(source);await run();expect((await run()).hit).toBe(true);

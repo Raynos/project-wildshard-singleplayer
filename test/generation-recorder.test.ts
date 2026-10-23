@@ -48,10 +48,33 @@ it.each(['fs','node:fs'])('keeps builtin %s resolution independent of staged fil
   const {child,read}=fixture(`import{createRequire}from'node:module';createRequire(import.meta.url)(${JSON.stringify(name)});`);
   expect(child.status,child.stderr).toBe(0);expect(read().inventory).not.toContain('R commonjs-resolution');expect(read().opaque).toEqual([]);
 });
+it.each([
+  ["fs.readdirSync('listed')",'L'],
+  ["fs.readdirSync('listed','utf8')",'L'],
+  ["await fs.promises.readdir('listed')",'L'],
+  ["await new Promise((resolve,reject)=>fs.readdir('listed',(error,names)=>error?reject(error):resolve(names)))",'L'],
+  ["const dir=fs.opendirSync('listed');dir.closeSync()",'L'],
+  ["const dir=await fs.promises.opendir('listed');await dir.close()",'L'],
+  ["fs.readdirSync('listed',{})",'D'],
+  ["fs.readdirSync('listed',{recursive:true})",'D'],
+  ["await fs.promises.readdir('listed',{recursive:true})",'D'],
+])('records the directory scope of %s', (call,kind)=>{
+  const {child,read}=fixture(`import fs from 'node:fs';fs.mkdirSync('listed');${call};`);
+  expect(child.status,child.stderr).toBe(0);
+  expect(read().inventory).toContain(`${kind} listed`);
+  expect(read().inventory).not.toContain(`${kind==='L'?'D':'L'} listed`);
+});
 it('keeps builtin-looking imports redirected to a real file conservative',()=>{
   const source=`import{createRequire,registerHooks}from'node:module';registerHooks({resolve(specifier,context,next){if(specifier==='node:path'&&context.parentURL===import.meta.url)return{url:new URL('./used.mjs',import.meta.url).href,shortCircuit:true};return next(specifier,context);}});const{startGenerationInputTrace}=await import(${JSON.stringify(resolve('scripts/shardfile-inputs.mjs'))});startGenerationInputTrace(process.cwd(),process.env.WS_GENERATION_READ_RECEIPT);createRequire(import.meta.url)('node:path');`;
   const {child,read}=fixture(source,false);expect(child.status,child.stderr).toBe(0);
   expect(read().inventory).toContain('R commonjs-resolution');
+});
+it('does not inspect directory option getters before the filesystem does',()=>{
+  const source="import fs from 'node:fs';fs.mkdirSync('listed/nested',{recursive:true});fs.writeFileSync('listed/nested/file.txt','value');let calls=0;const options={get recursive(){calls++;return calls===1;}};console.log(JSON.stringify({names:fs.readdirSync('listed',options),calls}));";
+  const plain=fixture(source,false),traced=fixture(source);
+  expect(plain.child.status,plain.child.stderr).toBe(0);expect(traced.child.status,traced.child.stderr).toBe(0);
+  expect(traced.child.stdout).toBe(plain.child.stdout);
+  expect(traced.read().inventory).toContain('D listed');
 });
 it('records raw CommonJS and required JSON through synchronous load hooks',()=>{
   const {child,read}=fixture("import fs from'node:fs';import{createRequire}from'node:module';fs.writeFileSync('rows.json','{\"value\":1}');fs.writeFileSync('nested.cjs',\"module.exports=require('./rows.json');\");createRequire(import.meta.url)('./nested.cjs');");

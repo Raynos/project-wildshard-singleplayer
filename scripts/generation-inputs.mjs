@@ -71,10 +71,10 @@ function stageProbeView(staged,outputs) {
   const linked=[...directories].filter(file=>/^src\/[^/]+$/u.test(file)).map(file=>`${file}/node_modules`);
   /** @param {string} kind @param {string} file */
   return (kind,file)=>{
-    if(!['P','D','F'].includes(kind)||!v.safeParse(path,file).success||file.split('/').some(part=>['node_modules','.git','.cache','.wildshard','tmp','out'].includes(part)))return undefined;
+    if(!['P','D','L','F'].includes(kind)||!v.safeParse(path,file).success||file.split('/').some(part=>['node_modules','.git','.cache','.wildshard','tmp','out'].includes(part)))return undefined;
     if(!files.has(file)&&!roots.has(file.split('/').at(0)??''))return undefined;
-    const directory=directories.has(file),scan=kind==='D'||kind==='F'&&directory;
-    if(scan&&linked.some(folder=>folder.startsWith(`${file}/`)))return undefined;
+    const directory=directories.has(file),shallow=kind==='L',scan=kind==='D'||kind==='F'&&directory;
+    if((scan||shallow)&&linked.some(folder=>shallow?dirname(folder)===file:folder.startsWith(`${file}/`)))return undefined;
     /** @type {[string,string][]} */
     const chain=[];
     const parts=file.split('/');
@@ -82,9 +82,10 @@ function stageProbeView(staged,outputs) {
       const prefix=parts.slice(0,count).join('/');
       chain.push([prefix,files.has(prefix)?'file':directories.has(prefix)?'directory':'absent']);
     }
-    // Include descendants for both ordinary and recursive directory readers;
-    // the latter bypass repeated calls to the public filesystem wrappers.
-    return JSON.stringify({chain,...(scan?{entries:entries.filter(name=>name.startsWith(`${file}/`))}:{})});
+    // Default readdir/opendir bind immediate names and types. Recursive or
+    // unknown-option readers can bypass repeated public filesystem wrappers.
+    return JSON.stringify({chain,...(shallow?{children:entries.filter(name=>dirname(name)===file).map(name=>[name,files.has(name)?'file':'directory'])}
+      :scan?{entries:entries.filter(name=>name.startsWith(`${file}/`))}:{})});
   };
 }
 /** @param {v.InferOutput<typeof Trace>} trace @param {import('./generation-cache.mjs').GenerationJob} job
