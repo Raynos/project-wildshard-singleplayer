@@ -9,10 +9,12 @@ import { setting } from '../ui/Settings';
  * every child's world matrix again too: Nalati's look window spent ~2.6 ms a frame on that walk at phone 4x, for pieces that
  * never move. `holdStaticMatrices` brings a subtree up to date once and turns its nodes' auto update off, so the walk only
  * visits them. A node that does move after all (code that sets its pose without being a registered mover) is caught by a
- * check every `CHECK_FRAMES` frames: its matrix is brought up to date, its auto update comes back for good, and it is
+ * check every step for its first `EAGER_STEPS`, then every `CHECK_FRAMES`: its matrix is brought up to date, its auto update comes back for good, and it is
  * reported once. `verify` freezes nothing and only reports the nodes that would have moved.
  */
 const CHECK_FRAMES = 30;
+/** steps after the hold checked every time: a node that animates from the start (a mill's hub) lags one step, not 30 */
+const EAGER_STEPS = 120;
 interface Held { readonly node: Object3D; readonly pose: Float64Array }
 const pose = (node: Object3D, out: Float64Array): Float64Array => {
   const p = node.position, q = node.quaternion, s = node.scale;
@@ -40,9 +42,9 @@ export function holdStaticMatrices(root: Object3D, scope: Scope, frame: (check: 
   if (options.subtree === false) hold(root); else root.traverse(hold);
   if (mode === 'on') for (const row of held) row.node.matrixAutoUpdate = false;
   scope.onDispose(() => { if (mode === 'on') for (const row of held) row.node.matrixAutoUpdate = true; held.length = 0; });
-  let frames = 0;
+  let frames = 0, steps = 0;
   frame(() => {
-    if (++frames < CHECK_FRAMES) return;
+    if (++steps > EAGER_STEPS && ++frames < CHECK_FRAMES) return;
     frames = 0;
     for (let i = held.length - 1; i >= 0; i--) {
       const row = held[i]; if (row === undefined || !moved(row)) continue;
