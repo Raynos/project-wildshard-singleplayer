@@ -4,7 +4,7 @@
 //   scripts/sim-lane.sh run --max 45 wildshard-iphone node scripts/sim-grid-entry.mjs --base=<url> | --rev=<sha>
 //     [--runs=3] [--modes=cold,warm] [--out=tmp/sim-grid-entry/<label>] [--keep-video]
 //     [--shard=sunscar-dunes] selects the explicit compiled card, never legacy.
-//     [--core-memory=menu] reads Developer-on menu WebContent/GPU at 10/60/120s, no Network capture or GC.
+//     [--core-memory=menu|all] reads independent Developer-on floors at 10/60/120s, no Network capture or GC.
 // --base drives a served build or live; --rev serves that commit (scripts/serve-build.sh --rev) and stops it after.
 // Each run: Safari terminated; a cold run clears the worker, every cache and the prefetch markers (a warm run keeps
 // them); the title; Developer on; six seconds on the menu (its prefetch starts 4 s in); tap INFINITE WILDSHARD; record
@@ -24,7 +24,7 @@ import { accuracyRecorder } from './loading-benchmark/accuracy-data.mjs';
 import { requireCompiledEntry, downloadEvidence, transportEvidence } from './loading-benchmark/sim-shard.mjs';
 import { cachedBodyEvidence } from './loading-benchmark/cache-bodies.mjs';
 import { saveFixtureCode } from './debug-settings.mjs';
-import { readSimulatorCoreFootprint } from './shard-phone-memory.mjs';
+import { readSimulatorCoreFootprint, coreMemoryTargets, coreMemorySummary, compiledFloorSave, scriptResourceURLs } from './shard-phone-memory.mjs';
 import { pageMemoryAttributionExpression } from './memory-report-snapshot.mjs';
 
 const REPO = resolvePath(import.meta.dirname, '..');
@@ -40,7 +40,8 @@ function quiet(action) {
 }
 const shard = args.shard;
 const coreMemory = args['core-memory'];
-if (coreMemory !== undefined && (coreMemory !== 'menu' || shard !== undefined)) throw new Error('Expected --core-memory=menu without --shard');
+if (coreMemory !== undefined && (!['menu', 'all'].includes(coreMemory) || shard !== undefined)) throw new Error('Expected --core-memory=menu|all without --shard');
+if (coreMemory !== undefined && ((args.runs !== undefined && args.runs !== '1') || (args.modes !== undefined && args.modes !== 'cold'))) throw new Error('Core floors require exactly one cold reading per target');
 if (shard !== undefined) loadingShardName(shard);
 if (shard !== undefined && args.base !== undefined && new URL(args.base).protocol !== 'http:') throw new Error('Compiled byte observation requires a local HTTP served build');
 quiet('verify');
@@ -156,8 +157,9 @@ function brokenFrames(video, loaderEnd, revealStart) {
 
 function log(file, row) { appendFileSync(file, `${JSON.stringify({ t: Date.now(), ...row })}\n`); }
 
-async function runCoreMemory(mode, index) {
-  if (mode !== 'cold') throw new Error('Core menu reading requires a cold Safari process');
+async function runCoreMemory(mode, index, target) {
+  if (mode !== 'cold') throw new Error('Core floor reading requires a cold Safari process');
+  const template = target !== 'menu' && target !== 'select';
   try { execFileSync('xcrun', ['simctl', 'terminate', udid, 'com.apple.mobilesafari'], {stdio: 'ignore'}); } catch { /* Not running. */ }
   await sleep(2000);
   execFileSync('xcrun', ['simctl', 'openurl', udid, `${BASE}/version.json`]);
@@ -170,13 +172,30 @@ async function runCoreMemory(mode, index) {
     const http=await fetch('/clear-cache.json?sw=0',{cache:'no-store'}).then(response=>response.status);
     return {serviceWorkers:regs.length,caches:keys.length,markers,http};
   }`);
-  if (reset === null || typeof reset !== 'object') throw new Error(`Core menu reset failed: ${String(reset)}`);
+  if (reset === null || typeof reset !== 'object') throw new Error(`Core floor reset failed: ${String(reset)}`);
   const setup = [saveFixtureCode({scope: 'device', key: 'devMode', data: true}),
+    saveFixtureCode({...compiledFloorSave, data: template ? 'on' : 'off'}),
     saveFixtureCode({scope: 'global', key: 'settings', merge: true, data: {tier: 'phone', volume: 0}}),
     saveFixtureCode({scope: 'global', key: 'gfx', data: {dpr: '2', aa: 'auto'}})].join(';');
   await page.evaluate(`${setup};setTimeout(() => location.replace('/?sw=0'), 50);true`);
   await sleep(800); await connect(`${BASE}/`);
   if (!await until(`!!document.querySelector('.ws-main')?.getClientRects().length && !!document.querySelector('.ws-main-grid') && !!document.querySelector('.ws-main-select')`, 180000)) throw new Error('Developer menu never became ready');
+  if (target !== 'menu') {
+    await gesture(`document.querySelector('.ws-main-select').click(); true`);
+    if (!await until(`!!document.querySelector('.ws-title-stack[data-screen="select"]')?.getClientRects().length`, 30000)) throw new Error('SHARD SELECT never became ready');
+    if (template) {
+      const titles = JSON.parse(await page.evaluate(`JSON.stringify([...document.querySelectorAll('.ws-menu-card b')].map(row => row.textContent ?? ''))`));
+      const selected = loadingCardIndex(titles, target);
+      await gesture(`document.querySelector('.ws-menu-dots i[data-i="${selected}"]').click(); true`);
+      if (!await until(`document.querySelector('.ws-menu-card.selected')?.dataset.i === '${selected}'`, 30000)) throw new Error('Requested core template not selected');
+      if (!await until(`(() => { const b=document.querySelector('.ws-menu-shardfile');return !!b && !b.disabled && b.getClientRects().length>0; })()`, 30000)) throw new Error('Missing compiled core template entry');
+      await gesture(`setTimeout(() => document.querySelector('.ws-menu-shardfile').click(), 0);true`);
+      await sleep(800); await connect(`${BASE}/`);
+      if (!await until(`(() => {const w=window.__wildshard?.world;const failure=document.querySelector('#wserr .msg')?.textContent;return !!failure || (new URL(location.href).searchParams.get('chunk')===${JSON.stringify(target)} && !!w?.hud.entered && !w.hud.paused && w.game.frameGate() && !document.querySelector('.ws-load'));})()`, 240000)) throw new Error('Compiled core template never reached controls');
+      const failure=await page.evaluate(`document.querySelector('#wserr .msg')?.textContent ?? null`);
+      if (failure) throw new Error(`Compiled core template failed: ${failure}`);
+    }
+  }
   const started = Date.now(), samples = [];
   // The inspector transport uses Runtime only: never enable Network or capture bodies.
   for (const second of [10, 60, 120]) {
@@ -185,14 +204,15 @@ async function runCoreMemory(mode, index) {
       page: JSON.parse(await page.evaluate(`JSON.stringify({href:location.href,prefetch:window.__ws_gridPrefetch?.()??null,resources:performance.getEntriesByType('resource').length})`))});
   }
   const attribution = await page.evaluate(`(() => {const api=window.__wildshard;return ${pageMemoryAttributionExpression};})()`);
-  const result = {mode, run: index, shard: 'menu', protocol: 'webkit-core-menu/1', version, reset, samples, attribution,
+  const result = {mode, run: index, shard: target, protocol: 'webkit-core-floor/1', version, reset, samples, attribution, errors: [], compiledEntryRequired: template,
+    scriptURLs: JSON.parse(await page.evaluate(`JSON.stringify((${scriptResourceURLs.toString()})())`)),
     inspectorResponseBodyBytes: 0, forcedGC: false, scope: 'all WebContent and GPU processes under the owned Simulator launchd; not phone GPU evidence'};
-  writeFileSync(resolvePath(out, `${mode}-${index}.json`), `${JSON.stringify(result, null, 1)}\n`);
+  writeFileSync(resolvePath(out, `${target}-${mode}-${index}.json`), `${JSON.stringify(result, null, 1)}\n`);
   return result;
 }
 
-async function run(mode, index) {
-  if (coreMemory !== undefined) return runCoreMemory(mode, index);
+async function run(mode, index, target) {
+  if (coreMemory !== undefined) return runCoreMemory(mode, index, target);
   const label = `${mode}-${index}`, file = resolvePath(out, `${label}.jsonl`), video = resolvePath(out, `${label}.mp4`);
   rmSync(file, { force: true });
   try { execFileSync('xcrun', ['simctl', 'terminate', udid, 'com.apple.mobilesafari'], { stdio: 'ignore' }); } catch { /* not running */ }
@@ -303,10 +323,13 @@ async function run(mode, index) {
 const median = values => { const sorted = values.filter(value => typeof value === 'number').sort((a, b) => a - b); return sorted.length === 0 ? null : sorted[Math.floor((sorted.length - 1) / 2)]; };
 const results = [];
 try {
-  for (const { mode, index } of modes.flatMap(visit => Array.from({ length: runs }, (_, at) => ({ mode: visit, index: at + 1 })))) {
+  const visits = coreMemory === undefined
+    ? modes.flatMap(visit => Array.from({ length: runs }, (_, at) => ({mode: visit, index: at + 1, target: undefined})))
+    : (coreMemory === 'all' ? coreMemoryTargets : coreMemoryTargets.filter(row => row.shard === 'menu')).map(row => ({mode: 'cold', index: 1, target: row.shard}));
+  for (const { mode, index, target } of visits) {
     quiet('take');
-    try { results.push(await run(mode, index)); }
-    catch (error) { results.push({ mode, run: index, error: String(error) }); break; }
+    try { results.push(await run(mode, index, target)); }
+    catch (error) { results.push({ mode, run: index, shard: target, error: String(error) }); break; }
     finally { quiet('release'); }
     const last = results.at(-1); console.info(JSON.stringify(last).slice(0, 600));
   }
@@ -317,9 +340,14 @@ try {
 }
 
 if (coreMemory !== undefined) {
-  const summary = {coreMemory, base: BASE, rev: args.rev ?? null, at: new Date().toISOString(), results};
+  const summary = {coreMemory, base: BASE, rev: args.rev ?? null, at: new Date().toISOString(), results,
+    ...(coreMemory === 'all' ? {floors: coreMemorySummary(results.filter(row => row.error === undefined))} : {})};
   writeFileSync(resolvePath(out, 'summary.json'), `${JSON.stringify(summary, null, 1)}\n`);
-  for (const row of results) for (const sample of row.samples ?? []) console.info(`WebKit menu ${sample.phase}: WebContent ${(sample.rendererBytes / 1048576).toFixed(1)} MiB, GPU ${(sample.gpuBytes / 1048576).toFixed(1)} MiB`);
+  for (const row of results) for (const sample of row.samples ?? []) console.info(`WebKit ${row.shard} ${sample.phase}: WebContent ${(sample.rendererBytes / 1048576).toFixed(1)} MiB, GPU ${(sample.gpuBytes / 1048576).toFixed(1)} MiB`);
+  if (summary.floors !== undefined) {
+    for (const row of summary.floors) console.info(`WebKit ${row.name}: ${row.totalBytes === null ? 'unknown' : `${(row.totalBytes / 1048576).toFixed(1)} MiB`} / ${row.limitBytes / 1048576} MiB: ${row.passed ? 'PASS' : 'FAIL'}`);
+    if (summary.floors.some(row => !row.passed)) process.exitCode = 1;
+  }
 } else {
 const summary = { shard: shard ?? null, base: BASE, rev: args.rev ?? null, at: new Date().toISOString(), modes: Object.fromEntries(modes.map(mode => {
   const rows = results.filter(row => row.mode === mode && row.error === undefined);
@@ -334,6 +362,6 @@ const summary = { shard: shard ?? null, base: BASE, rev: args.rev ?? null, at: n
 })) };
 writeFileSync(resolvePath(out, 'summary.json'), `${JSON.stringify(summary, null, 1)}\n`);
 for (const [mode, row] of Object.entries(summary.modes)) console.info(`${mode}: ${row.runs} runs (${row.failed} failed) · loader ${row.loaderPaintMs} ms · loader end ${row.loaderEndMs} · reveal ${row.revealStartMs} · controls ${row.controlsMs} ms · worst frame after controls ${row.worstFrameAfterControlsMs} ms · step total grew ${row.stepTotalGrew} · download drops ${row.downloadDrops} · broken frames ${row.brokenFrames}`);
-console.info(`summary: ${resolvePath(out, 'summary.json')}`);
 }
+console.info(`summary: ${resolvePath(out, 'summary.json')}`);
 if (results.some(row => row.error !== undefined)) process.exitCode = 1;

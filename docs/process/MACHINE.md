@@ -164,11 +164,15 @@ renderer + GPU totals against G658 M1's 50/100 MiB targets and fails if a floor
 is over target or unavailable. It retains 10/60/120-second samples and the
 post-sample scalar owner ledger; cache-clear diagnostics cannot pass a floor.
 
-C2's WebKit menu comparison uses the same official Simulator reader:
-`scripts/sim-lane.sh run --max 12 wildshard-iphone node scripts/sim-grid-entry.mjs
---rev=<main-sha> --core-memory=menu --out=tmp/core-menu/<label>` (one cold run by
-default). It preserves that reader's quiet/proxy/Safari/preview cleanup. Developer
-and prefetch stay on; samples at 10/60/120 seconds use the watchdog's native
+C2's WebKit comparison uses the same official Simulator reader:
+`scripts/sim-lane.sh run --max 20 wildshard-iphone node scripts/sim-grid-entry.mjs
+--rev=<main-sha> --core-memory=all --out=tmp/core-floors/<label>`. It reads menu,
+SHARD SELECT and both explicit compiled templates once, in fresh cold Safari
+processes, and reports M1's 50/100 MiB combined targets. `--core-memory=menu`
+retains the single-menu comparison. One preview and proxy serve the cohort;
+each floor starts Safari fresh and owns the original quiet window. A failure
+stops the cohort; the original finally cleanup closes Safari, proxy and preview.
+Developer and prefetch stay on; samples at 10/60/120 seconds use the watchdog's native
 WebContent and GPU process identities below the owned Simulator's launchd. No
 Inspector Network capture, forced GC or phone-GPU inference is involved.
 

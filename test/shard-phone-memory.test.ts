@@ -66,6 +66,15 @@ test('single compiled floors require their protocol and exact pin before any bro
   ], {encoding: 'utf8', stdio: 'pipe'})).toThrow('Compiled floor requires');
 });
 
+test('official WebKit core floors refuse mixed entry modes or duplicate readings before Simulator access', () => {
+  const run = (flags: readonly string[]): string => execFileSync('node', ['scripts/sim-grid-entry.mjs', '--base=http://127.0.0.1:1', ...flags],
+    {encoding: 'utf8', stdio: 'pipe', env: {...process.env, SIM_UDID: 'no-device-opened'}});
+  expect(() => run(['--core-memory=all', '--shard=_template'])).toThrow('Expected --core-memory');
+  expect(() => run(['--core-memory=unknown'])).toThrow('Expected --core-memory');
+  expect(() => run(['--core-memory=all', '--runs=2'])).toThrow('exactly one cold reading');
+  expect(() => run(['--core-memory=all', '--modes=cold,warm'])).toThrow('exactly one cold reading');
+});
+
 test('Simulator footprint sums original process identities and keeps GPU separate', () => {
   const webContent = [{pid: 12, startAbstime: 100, physicalFootprintBytes: 120 * MiB},
     {pid: 13, startAbstime: 101, physicalFootprintBytes: 20 * MiB}];
