@@ -19,7 +19,7 @@ import { PrefetchQuota } from '@wildshard/engine/boot/prefetchQuota';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { outputBlobPath, parseOutputIndex } from '@wildshard/format/outputIndex';
 import { findShard } from '../shard/registry';
-import type { ProductCache } from '../shardfile/product';
+import type { ProductCache, ProductOptions } from '../shardfile/product';
 import { browserShardfileOptions } from '../shardfile/runtimeProduct';
 import type { GridAssembly } from './assembly';
 
@@ -105,18 +105,27 @@ class GridPrefetch {
     this.status.knownFiles += rows.length; this.status.knownBytes += rows.reduce((sum, row) => sum + row.bytes, 0);
     let next = 0;
     const lane = async (): Promise<void> => {
-      for (let row = rows[next++]; row !== undefined && this.status.reason === null; row = rows[next++]) await this.file(row, base, { holds, keepAsset }, quota, options.hash);
+      for (let row = rows[next++]; row !== undefined && this.status.reason === null; row = rows[next++]) await this.file(row, base, { holds, keepAsset }, quota, options.hash, options.hashOwned);
     };
     await Promise.all(Array.from({ length: CONCURRENCY }, lane));
   }
-  private async file(row: Row, base: string, cache: PrefetchCache, quota: PrefetchQuota, hash: (bytes: Uint8Array) => Promise<string>): Promise<void> {
+  /** Each file's digest runs in the page's hash worker (the bytes go there and back); the page digests only when no
+   *  worker can. Hashing every prefetched file on the page was 617 ms of Pine's grid entry at 4x CPU (G639). */
+  private async file(row: Row, base: string, cache: PrefetchCache, quota: PrefetchQuota, hash: (bytes: Uint8Array) => Promise<string>,
+    hashOwned: ProductOptions['hashOwned']): Promise<void> {
     if (await cache.holds(row.hash, row.bytes)) { this.status.presentFiles++; this.status.presentBytes += row.bytes; return; }
     const reservation = await quota.reserve(row.bytes);
     if (reservation === null) { this.stop('storage quota', 'quota'); return; }
     let stored = 0;
     try {
-      const bytes = await read(new URL(row.path, base).href, row.bytes);
-      if (bytes.length !== row.bytes || await hash(bytes) !== row.hash) throw new Error('Prefetched file differs from its index');
+      const url = new URL(row.path, base).href;
+      let bytes = await read(url, row.bytes), actual: string | undefined;
+      if (bytes.length !== row.bytes) throw new Error('Prefetched file differs from its index');
+      if (hashOwned !== undefined) {
+        try { ({ hash: actual, bytes } = await hashOwned(bytes)); }
+        catch { if (bytes.byteLength !== row.bytes) bytes = await read(url, row.bytes); } // a failed transfer: read it again
+      }
+      if (bytes.length !== row.bytes || (actual ?? await hash(bytes)) !== row.hash) throw new Error('Prefetched file differs from its index');
       if (await cache.keepAsset(row.hash, bytes)) stored = bytes.length; else this.stop('content cache full', 'quota');
     } finally { reservation.finish(stored); }
     if (stored > 0) { this.status.storedFiles++; this.status.storedBytes += stored; }
