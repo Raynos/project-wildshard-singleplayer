@@ -72,6 +72,7 @@ test('the real title panel stages a quality pick and reloads only once on Apply'
     expect(reload).not.toHaveBeenCalled(); expect(document.querySelector('.ws-reload')).toBeNull();
     const apply = root.querySelector<HTMLButtonElement>('.ws-gmenu-btn.resume');
     if (apply === null) throw new Error('missing Apply');
+    expect(apply.closest('.ws-gmenu-panel')).toBeNull();
     expect(apply.hidden).toBe(false); expect(apply.textContent).toMatch(/Apply.*reload.*1/i);
     tap(apply); expect(reload).toHaveBeenCalledTimes(1);
     tap(originalChoice); expect(apply.hidden).toBe(true);

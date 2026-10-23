@@ -262,6 +262,7 @@ export class GameMenu {
 
   /** pause ▸ Settings ▸ Debug, the grouped registry (E162; the title's Settings mounts the same one, E172) */
   private debug: DebugMenu | null = null;
+  private paintPendingReload = (): void => undefined;
   private developerTools: DebugMenu | null = null;
 
   /** the Debug rows' readouts (Shards in memory, E155; debugOptions.ts DEBUG_READOUTS) — only while this menu is open on
@@ -311,7 +312,7 @@ export class GameMenu {
   }
   select(want: MenuTab): void {
     const tab = this.land(want);
-    this._tab = tab;
+    this._tab = tab; this.paintPendingReload();
     for (const b of this.tabBar.children) (b as HTMLElement).classList.toggle('active', (b as HTMLElement).dataset['tab'] === tab);
     for (const [id, p] of Object.entries(this.panels)) p?.classList.toggle('active', id === tab);
     this.hint.textContent = this.hintFor(tab);
@@ -482,15 +483,17 @@ export class GameMenu {
     // DEBUG (E162): every variant, taste toggle and developer aid, grouped — declared once in src/engine/ui/debugOptions.ts and
     // rendered by src/engine/ui/DebugMenu.ts (collapsible groups, only the rows that apply to this shard, a filter). Shards in
     // memory carries the on-device readout (E155 / E159): refreshed only while this menu is open on Settings
+    const actions = el('ws-gmenu-reload-actions');
     const apply = document.createElement('button'); apply.type = 'button'; apply.className = 'ws-gmenu-btn resume';
     const paintPending = (): void => {
       const count = (this.debug?.pendingReload() ?? 0) + (this.developerTools?.pendingReload() ?? 0);
-      apply.hidden = count === 0; apply.textContent = engineString('s_settings_apply_reload_count', [count]);
+      actions.hidden = count === 0 || this._tab !== 'settings'; apply.hidden = count === 0; apply.textContent = engineString('s_settings_apply_reload_count', [count]);
     };
     this.debug = buildDebugMenu(dbg, { onPick: paintPending });
     this.developerTools = buildDebugMenu(tools, { purpose: 'developer', onPick: paintPending });
     listenTap(this.scope, apply, () => { this.debug?.applyPending(); this.developerTools?.applyPending(); reloadWithPicks('pause settings: apply & reload'); });
-    paintPending(); cats.pane.append(apply);
+    this.paintPendingReload = paintPending;
+    paintPending(); actions.append(apply); this.hint.before(actions);
     // Review is not debug (E140): playtesters unlock notes with it, so it stays in Settings, with the Developer switch
     const review = [this.buildReview(), ...devSwitchRows()];
     p.append(...review); cats.tag('review', ...review);

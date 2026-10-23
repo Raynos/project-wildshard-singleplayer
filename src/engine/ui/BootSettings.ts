@@ -88,6 +88,7 @@ function build(): HTMLElement {
   const running = el('ws-gmenu-note');
   running.textContent = engineString('s_a348737554c0', [TIER]);
   const status = el('ws-gmenu-note');
+  const actions = el('ws-gmenu-reload-actions');
   const apply = el('ws-gmenu-btn resume', engineString('s_aa22d01f58bf'), 'button') as HTMLButtonElement; apply.type = 'button';
   const paints: (() => void)[] = [];
   const repaint = (): void => {
@@ -96,7 +97,7 @@ function build(): HTMLElement {
     if (gfxPrefs.aa !== BOOT_GFX.aa) pending.push(engineString('s_c77c3af22c64'));
     const count = pending.length + (debug?.pendingReload() ?? 0) + (developerTools?.pendingReload() ?? 0);
     status.textContent = count > 0 ? engineString('s_settings_pending', [count]) : engineString('s_937833a58685');
-    apply.hidden = count === 0;
+    actions.hidden = count === 0; apply.hidden = count === 0;
     apply.textContent = engineString('s_settings_apply_reload_count', [count]);
   };
 
@@ -140,7 +141,7 @@ function build(): HTMLElement {
   // the agents' screenshot URLs carry params that win over the saved picks for that load: say so
   const overridden = BOOT_OPTIONS.filter((k) => settingFromUrl(k));
   if (overridden.length > 0) p.append(words('ws-gmenu-note', engineString('s_7537bbaf9c47', [overridden.map((k) => `${optionLabel(k)} (?${settingParams(k).join(' / ?')})`).join(', ')])));
-  p.append(status, apply);
+  p.append(status); actions.append(apply); body.after(actions);
   // credits (E64 — Jake: "get that music attribution out of here and move it to a dedicated credits page"): the title used to
   // print them under the cards; they live here now, and in the pause menu ▸ Settings ▸ Audio next to the pickers
   p.append(el('ws-gmenu-label', engineString('s_2a6b24ad2872')), ...[MUSIC_CREDIT, sfxCredit(getSfxSet())].filter((t) => t !== '').map((t) => words('ws-gmenu-note', t)));

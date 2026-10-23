@@ -154,6 +154,9 @@
 .ws-gmenu .ws-gmenu-btn.exit { color: var(--ws-cyan); }
 .ws-gmenu .ws-gmenu-btn:active { background: rgba(143, 227, 255, 0.28); }
 .ws-gmenu .ws-gmenu-btn[hidden] { display: none; }
+.ws-gmenu .ws-gmenu-reload-actions { flex: none; padding: 6px 16px 0; }
+.ws-gmenu .ws-gmenu-reload-actions[hidden] { display: none; }
+.ws-gmenu .ws-gmenu-reload-actions .ws-gmenu-btn { min-height: 44px; margin-bottom: 0; }
 .ws-gmenu .ws-gmenu-btn, .ws-gmenu .ws-gmenu-segbtn, .ws-gmenu .ws-gmenu-switch { touch-action: manipulation; }
 .ws-gmenu .ws-gmenu-rule { flex: none; height: 1px; margin: 4px 0 8px; background: rgba(143, 227, 255, 0.18); }
 .ws-gmenu .ws-gmenu-switch, .ws-gmenu .ws-gmenu-row { flex: none; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; width: 100%; margin-bottom: 6px; padding: 10px 12px; appearance: none; -webkit-appearance: none; background: rgba(143, 227, 255, 0.05); border: 1px solid rgba(143, 227, 255, 0.22); color: var(--ws-text); font-family: var(--ws-mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; }
