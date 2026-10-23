@@ -65,6 +65,13 @@ export function homeExtraFiles(root: string, directory: string, bundle: Bundle, 
   if (field(manifest, 'explore') !== undefined) for (const url of Object.values(object(field(object(field(manifest, 'explore')), 'art') ?? {}))) urls.push(text(url));
   const boot = object(field(manifest, 'boot') ?? {});
   for (const url of array(field(boot, 'precache') ?? [])) urls.push(text(url));
+  const painted = section('look/painted');
+  if (painted !== undefined) {
+    const sky = object(field(object(field(object(painted), 'look')), 'sky'));
+    if (field(sky, 'kind') === 'strips') {
+      for (const strip of array(field(object(field(sky, 'row')), 'strips'))) urls.push(text(field(object(strip), 'url')));
+    }
+  }
   const scenes = section('world/scenes');
   if (scenes !== undefined) for (const value of array(field(object(scenes), 'libraries'))) {
     const row = object(value);
