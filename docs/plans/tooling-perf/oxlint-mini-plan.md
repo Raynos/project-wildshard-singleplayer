@@ -1,6 +1,6 @@
 # oxlint speed: mini plan (TOOLING-PERF, G634/G636)
 
-**State:** `draft` 2026-10-23 — benchmark done (plan-agent subagent, mirror slot at 6f6add1, 5,799 lint files, 18-core Mac
+**State:** `open` 2026-10-23 — **to the builder (G647)**; D2/D4 build on the recommended option until Jake picks. Benchmark done (plan-agent subagent, mirror slot at 6f6add1, 5,799 lint files, 18-core Mac
 shared with lanes, ±30 % noise); decisions D1–D4 wait for Jake. Rows R1–R3 match decisions he already made (G634: fast
 lint always, pre-commit fast only; G636: pre-commit cheap parallel set).
 

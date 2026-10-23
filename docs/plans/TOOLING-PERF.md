@@ -40,14 +40,11 @@ Filled from the TypeScript benchmark (program composition, generated files, proj
 incremental per workspace), the oxlint benchmark (fast vs typed commands, expensive rules, pre-commit), the CI red-causes
 audit and the 4-hour impact audit ([pipeline impact audit](https://claude.ai/artifact/DmiASsv71UjtkEeac8p9pH)).
 
-## Mini plans inside this plan (G634)
+## Separate plans it links to (G647, not merged)
 
-- **TypeScript speed** — benchmark running (TS 7.0.2 already: 62.6 s / 10.2 GB full; incremental re-checks nearly
-  everything; shards project 4,755 files / 2.57 M lines, mostly generated). Becomes `tooling-perf/typescript-mini-plan.md`
-  with Jake's picks: generated data out of the type program, per-workspace project references + real incremental,
-  isolatedDeclarations / explicit boundary types (**approved, G644**: add the engine's 786 explicit types and turn it on, then the other layers), the 7 TS2589 sites, generated JSON never read (G643).
-- **oxlint speed** — benchmark running (typed full lint 47 s / 12.7 GB; a 1-file typed run 4.1 s / 3.1 GB; 5 files 5.1 s).
-  Becomes `tooling-perf/oxlint-mini-plan.md`: `lint:fast` (no types) always — pre-commit on affected files (G636) and the
-  push gate; `lint:typed` at the push gate (changed files + importers) and CI; expensive rules dropped or moved to CI.
-- **`pnpm gen` speed** (Jake, 2026-10-23: *"a separate mini plan, audit, benchmarks, pnpm gen"*) — benchmark running (gen took 134 / 312 / 775 s in mirror slots; 229 generated JSON = 106 MB, 86 generated .ts). Becomes `tooling-perf/gen-mini-plan.md`: per-job input-hash cache shared across slots and CI, parallel jobs, drop unread outputs, typed .d.json.ts next to big JSON. Targets: warm no-change ≤ 5 s, one-shard change ≤ 20 s, cold ≤ 90 s.
-- **CI / push gate / pre-commit** — decided (G609, G610/G612, G620, G627, G628, G636); building under SHARD-PLATFORM now.
+- [TypeScript speed](tooling-perf/typescript-mini-plan.md) and its [quick wins](tooling-perf/typescript-quick-wins-mini-plan.md) — open, the builder builds them now.
+- [oxlint speed](tooling-perf/oxlint-mini-plan.md) — open, the builder builds it now.
+- `pnpm gen` speed — benchmark running; becomes `tooling-perf/gen-mini-plan.md`.
+- CI / push gate / pre-commit — decided (G609, G610/G612, G620, G627, G628, G636); building under SHARD-PLATFORM.
+
+TOOLING-PERF itself is the bigger saga: CI ≤ 10 min, caches by input hash, test layout, machine leases; rows drafted below.
