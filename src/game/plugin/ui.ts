@@ -36,7 +36,7 @@ import { InteractionRules } from '../quest/interactionRows';
 import { parseQuestPageInteractions, type QuestPageInteractionsData } from '@wildshard/format/questInteractions';
 import { QuestRewardBeat, type QuestRewardSpec, type QuestRewardPlayer } from '../quest/reward';
 import { createLevelInstallation } from '@wildshard/engine/level/installation';
-import { type ShardContext, pageGridInstance, type PageMode, sourceManifest } from './context';
+import { type ShardContext, pageGridInstance, type PageMode, sourceManifest, compiledPageBoot } from './context';
 import type { BossDefinition, BossSaved, BossScript } from '@wildshard/engine/ai/BossBrain';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { BossBar } from '@wildshard/engine/ui/BossBar';
@@ -1655,6 +1655,7 @@ export async function installManifestShardfile(manifest: ShardManifest, provided
   // First-party declared pages keep their authored scalar level presentation and boot inventory.
   // The admitted client owns ground, navigation and all executable stages; no shard loader survives.
   const page: ShardManifest = hasDeclaredClientPage(source) ? { ...manifest,
+    boot: compiledPageBoot(manifest.boot, client.boot),
     ground: clientPageGround(source, admitted.assets), spawns: [],
     ...(client.navigation === undefined ? {} : { navigation: client.navigation }),
     ...(client.render === undefined ? {} : { render: client.render }),

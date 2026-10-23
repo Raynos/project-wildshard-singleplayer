@@ -208,6 +208,13 @@ export async function prepareTrustedRuntime(declaration: RuntimeDeclaration, slu
   return (await match.load()).default;
 }
 
+/** A fully declared page reads world bytes through its admitted product, not
+ * the authored predecessor's eager pack inventory. Preserve other boot policy. */
+export function compiledPageBoot(authored: ShardManifest['boot'], compiled: ShardManifest['boot']): NonNullable<ShardManifest['boot']> {
+  if (compiled?.sources === undefined) throw new Error('Compiled page has no admitted boot sources');
+  return { ...authored, files: compiled.files, sources: compiled.sources };
+}
+
 /** Pure catalogue/level mapping from parsed data and already admitted immutable image bytes.
  * No fetch, browser decode, world allocation or service installation occurs here. Absent presentation keeps the empty card.
  * The caller owns asset admission and the library lease; the returned hooks enter the ordinary session later. */

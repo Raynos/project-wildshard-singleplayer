@@ -3202,6 +3202,14 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 `prepareHybridShard` accepts an explicit first-party `stagesOwner: "runtime"` transition when the native runtime installs all admitted world, kit and play declarations (including its movers). Product validation, immutable-byte admission and residency run before native hooks. The data plugin is not constructed, so it registers no duplicate simulation, equipment or handoff. The default remains declared stages; outside products cannot select runtime stage ownership. This is a trusted composition port, not a shardfile-authored escape from admission.
 
 
+`compiledPageBoot(authored, compiled)` in `@wildshard/game/plugin/context`
+borrows the admitted client's exact file/source inventory while retaining
+authored boot policy (steps, phone settings, audio and Explore). Only the
+fully declared-page branch uses it after product admission; legacy and
+hybrid paths retain their own inventories. Missing compiled sources refuse.
+This prevents eager predecessor packs beside the compiled product. Demanded
+files still use the original transport/cache and missing-pack fallback.
+
 **Data-only catalogue cards.** `@wildshard/game/plugin/context` defines `sourceManifest(source, admittedAssets?)`: pure identity/accent/presentation mapping with no fetch, decode or install. `@wildshard/game/shardfile/presentation` defines the exact `PresentationSchema` and `presentationCard`; `@wildshard/game/shardfile/stillImage` defines `parseStillImage`, `stillImageUrl` and `STILL_IMAGE_LIMITS`. Local charged image hashes resolve only from admitted bounded PNG/JPEG/WebP bytes to inert MIME-sniffed data URLs. The full loader uses these fields when present and preserves existing cards otherwise. SDK `assetCost("image", bytes)` uses the same parser and residency law.
 
 Device admission projects image encoding costs through `urlImageLibrarySource`.
