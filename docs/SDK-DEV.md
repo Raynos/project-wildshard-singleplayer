@@ -66,6 +66,15 @@ and props build consumes this path through its executable default entry. Native
 fixtures call the producers; browser boards read the built product. The obsolete
 standalone product-report job is retired; map and script jobs migrate next.
 
+`ctx.compileScript(source, options)` calls the SAME SDK portable compiler,
+including its existing structural instrumentation and page bounds. Use it inside
+`ctx.cached` with the `.as` files declared as inputs. Cache key version 2 also
+includes the bundled SDK compiler implementation and actual installed
+AssemblyScript/Binaryen dependency bytes (including standard library sources).
+That conservative compiler identity is captured once per immutable CLI process,
+so even a geometry-only step invalidates when these tools change. The entry's
+filesystem/compiler import fence remains unchanged: compilers are injected.
+
 In this repository, `scripts/serve-build.sh --devserver` builds the game in
 that mode and serves the resulting build. Without that flag it uses production
 mode. There is no Vite development server. `__DEVSERVER__` is a build define,
