@@ -55,6 +55,8 @@ function encounter(def: Omit<BossDefinition, 'reward'>, script: BossScript, posi
 
 test('Golden King runs all phases, clears the real adds and reaches its single reward end state headlessly', () => {
   const restore = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 });
+  const scope = new Scope('golden-king-headless');
+  scope.expose(app, 'levelScope', scope);
   const f = manager(), dungeon = bossArena().build(true);
   Reflect.set(f.player, 'dash', () => undefined);
   f.player.position.set(layout.DUNGEON.x, layout.DUNGEON.y, layout.DUNGEON.z + 5);
@@ -78,7 +80,7 @@ test('Golden King runs all phases, clears the real adds and reaches its single r
     expect(e.brain.state).toBe('victory'); expect(e.trace).toEqual(['intro:0','fight:0','beat:1','fight:1','beat:2','fight:2','victory:2']);
     expect(e.saved).toEqual({ defeated: true, rewardTaken: false, kills: 1 }); expect(e.rewards).toBe(1);
     expect(fight.body()?.alive).toBe(false); expect(fight.phased.adds().filter(a => a.alive)).toHaveLength(0);
-  } finally { restore(); }
+  } finally { scope.dispose(); restore(); }
 });
 
 test.each([false,true])('arena script runs mounted phases, exposes its heart and wins (orchard fixture %s)', orchard => {

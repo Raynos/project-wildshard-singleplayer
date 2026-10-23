@@ -17,8 +17,16 @@ const field = v.variant('kind', [
   v.strictObject({ ...base, kind: v.literal('references'), own: v.exactOptional(v.boolean()),
     capacity: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(16)) }),
 ]);
-export const GroupBankV2Schema = v.pipe(v.array(field), v.minLength(1), v.maxLength(128));
-export type GroupBankFieldV2 = v.InferOutput<typeof field>;
+/** Explicit output types bound schema inference at this transport boundary. */
+export type GroupBankFieldV2 =
+  | { name: string; kind: 'number'; integer?: boolean; min?: number; max?: number }
+  | { name: string; kind: 'boolean' }
+  | { name: string; kind: 'enum'; values: string[] }
+  | { name: string; kind: 'nullable-number' }
+  | { name: string; kind: 'reference'; own?: boolean }
+  | { name: string; kind: 'references'; own?: boolean; capacity: number };
+export const GroupBankV2Schema: v.GenericSchema<GroupBankFieldV2[]> =
+  v.pipe(v.array(field), v.minLength(1), v.maxLength(128));
 /** A native, scoped reference loan gives the existing wire id an explicit
  * handle. Neither a species name nor a hash can manufacture this identity. */
 export interface GroupBankReferenceV2 {

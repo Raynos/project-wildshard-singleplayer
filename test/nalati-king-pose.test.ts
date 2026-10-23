@@ -90,7 +90,11 @@ test('balbal decisions rise, strike once, return and sink on the bounded guest t
   fields['dawn'] = 1; tick(); expect(fields['st']).toBe(5);
   for (let i = 0; i < 31; i++) tick();
   expect(fields['gone']).toBe(1); expect(fields['rise']).toBe(0);
-  const damage = (overrides: Record<string, number>) => program.project('damage', { field: 1, rise: 1, open: 0, range: 0, piercing: 0, crack: 0, ...overrides })['damage'];
+  const damage = (overrides: Record<string, number>) => {
+    const { piercing = 0, ...observations } = overrides;
+    return program.project('damage', { field: 1, rise: 1, open: 0, range: 0, crack: 0,
+      requestPresent: 1, legacyTag: 0, equipmentMatch: 0, piercingTag: piercing, ...observations })['damage'];
+  };
   expect(damage({ rise: .2 })).toBe(.25); expect(damage({ range: 5 })).toBe(.5);
   expect(damage({ piercing: 1, crack: 1, open: 1 })).toBe(3.125);
 });

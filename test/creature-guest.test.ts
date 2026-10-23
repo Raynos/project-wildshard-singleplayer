@@ -1,5 +1,7 @@
+import { Scope } from '../src/engine/app/scope';
+import { app } from '../src/engine/app/runtime';
 import { array,number,parse,tuple } from 'valibot';
-import { expect,test } from 'vitest';
+import { afterEach,beforeEach,expect,test } from 'vitest';
 import { Vector3 } from 'three';
 import { BALBAL_SPECIES } from './fixtures/projectedCreature';
 import type { Animal } from '../src/engine/entities/AnimalView';
@@ -13,6 +15,10 @@ import sourceAdmission from '../src/shards/nalati-grasslands/behaviour/admission
 import { CreatureGuestSchema } from '../src/format/speciesBookRows';
 import generated from '../src/shards/nalati-grasslands/data/species.generated.json' with { type:'json' };
 import rows from '../src/shards/nalati-grasslands/data/speciesRows.json' with { type:'json' };
+
+let scope: Scope;
+beforeEach(() => { scope = new Scope('creature-guest.fixture'); scope.expose(app, 'levelScope', scope); });
+afterEach(() => { scope.dispose(); });
 
 function controls() {
   const { think,damageMul }=BALBAL_SPECIES;

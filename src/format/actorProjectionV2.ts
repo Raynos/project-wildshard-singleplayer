@@ -1,9 +1,34 @@
 import * as v from 'valibot';
 import { parseDecisionScripts } from './decisionScripts';
 import { isJsonData } from './json';
-import { ObservationColumnsV2Schema } from './scriptObservationColumnsV2';
+import { ObservationColumnsV2Schema,type ObservationColumnV2 } from './scriptObservationColumnsV2';
 import { ReturnProgramSchema } from './namedJsonContracts';
 import { CreatureStrikeSchema } from './creatures';
+
+
+/** Named output boundaries keep nested Valibot schema inference out of every
+ * species, product and JSON-schema caller. Runtime grammar is unchanged. */
+type ProjectionScalarV2 = { kind: 'channel'; name: string } | { kind: 'constant'; value: number }
+  | { kind: 'time' } | { kind: 'player'; axis: 'x' | 'y' | 'z' };
+interface ProjectionConditionV2 { channel: string; equal: number }
+type ProjectionOperationV2 =
+  | { kind: 'memory'; key: string; value: ProjectionScalarV2 }
+  | { kind: 'position'; axis: 'x' | 'y' | 'z'; value: ProjectionScalarV2 }
+  | { kind: 'look'; weight: ProjectionScalarV2 }
+  | { kind: 'state'; value: ProjectionScalarV2; states: string[] }
+  | { kind: 'attack'; when: ProjectionConditionV2; seconds: number }
+  | { kind: 'motion'; when: ProjectionConditionV2; yaw: ProjectionScalarV2;
+      speed: ProjectionScalarV2; turn: ProjectionScalarV2; path?: ProjectionConditionV2 }
+  | { kind: 'cancel'; when: ProjectionConditionV2 }
+  | { kind: 'contact'; when: ProjectionConditionV2; strike: v.InferOutput<typeof CreatureStrikeSchema>;
+      damage: ProjectionScalarV2; length?: [number, number, number]; sound?: string }
+  | { kind: 'sound'; value: ProjectionScalarV2; sounds: string[] };
+interface ProjectionRequestV2 { signal: string; columns: ObservationColumnV2[] }
+export interface ActorProjectionV2Rows {
+  program: v.InferOutput<typeof ReturnProgramSchema>;
+  step?: ProjectionRequestV2 & { clock: string; every: number; operations: ProjectionOperationV2[] };
+  damage?: { requests: ProjectionRequestV2[]; result: string };
+}
 
 const key = v.pipe(v.string(),v.minLength(1),v.maxLength(128),v.regex(/^(?!(?:__proto__|prototype|constructor)$).+$/));
 const finite = v.pipe(v.number(),v.finite());
@@ -29,13 +54,12 @@ v.strictObject({kind:v.literal('sound'),value:scalar,sounds:v.pipe(v.array(v.str
 const requestSchema = v.strictObject({signal:key,columns:ObservationColumnsV2Schema});
 /** H4 finite actor projection. Rows select native columns and ordered operations;
 * the AS projection owns policy. Continuation remains in the lent actor/group. */
-export const ActorProjectionV2Schema = v.strictObject({
+export const ActorProjectionV2Schema: v.GenericSchema<ActorProjectionV2Rows> = v.strictObject({
   program:ReturnProgramSchema,
   step:v.exactOptional(v.strictObject({signal:key,clock:key,every:v.pipe(finite,v.minValue(0)),
     columns:ObservationColumnsV2Schema,operations:v.pipe(v.array(operationSchema),v.maxLength(128))})),
   damage:v.exactOptional(v.strictObject({requests:v.pipe(v.array(requestSchema),v.minLength(1),v.maxLength(8)),result:key})),
 });
-export type ActorProjectionV2Rows = v.InferOutput<typeof ActorProjectionV2Schema>;
 export function parseActorProjectionV2(input:unknown):ActorProjectionV2Rows {
   if(!isJsonData(input))throw new Error('Actor projection requires JSON rows');
   const rows=v.parse(ActorProjectionV2Schema,input);
