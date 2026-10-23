@@ -260,6 +260,8 @@ export class GridSession {
   private readonly neighbours: readonly GridCell[];
   private readonly clientTiles: ClientTileRegistration;
   private readonly costs = new Map<string, number>();
+  /** each neighbour cell's view root (its far proxy and ring tiles hang here) */
+  private readonly viewRoots = new Map<string, Group>();
   /** each shardfile neighbour's declared far bytes, read at start: its far ring charge until the proxy loads (then `costs`) */
   private readonly declaredFar = new Map<string, number>();
   /** G107 / SF66: each shard's baked map, downscaled once and shared by all its copies. */
@@ -456,7 +458,7 @@ export class GridSession {
     waterExtent.uWaterHalf.value = CHUNK_HALF;
     host.scope.onDispose(() => { waterExtent.uWaterHalf.value = WATER_UNBOUNDED; });
     // neighbours: the far ring through the one allocator; each cell's root sits at its render origin
-    const roots = new Map<string, Group>();
+    const roots = this.viewRoots;
     for (const cell of this.neighbours) {
       // G164: a shard whose whole world is shifted vertically at runtime (its terrain field's `datum`, Driftwood's hybrid row)
       // shows its baked far proxy shifted by the same amount, as its own bake installs; absent, the root sits at road height
@@ -675,11 +677,22 @@ export class GridSession {
     if (this.live !== null) throw new Error('The grid session already has its live crossing');
     if (this.host.residency === undefined) throw new Error('Grid session requires the early page residency owner');
     this.live = new LiveGridSession({ assembly: this.assembly, home: this.home, physics: this.host.physics, scope: this.host.scope, walls: this.walls, strips: this.strips, allocator: this.allocator,
-      residency: this.host.residency.home(), tiles: this.clientTiles,
+      residency: this.host.residency.home(), tiles: this.clientTiles, lightingSettled: () => { this.prelinkViews(); },
       neighbourEdges: (cell, origin) => neighbourEdges(cell, { origin }), rimEdges: (origin) => rimEdges(this.assembly, { origin }) }, page);
     return this.live;
   }
 
+  /** Ring prelink: once a crossing's lighting is in place, every resident neighbour view (far proxies, L1 / L0 ring tiles)
+   *  links the programs that lighting needs through the page's own precompile (`prepareView`), in the background: a tile
+   *  first drawn after it never links on its first frame (the 150 ms cove-pools frame), and nothing waits on it. */
+  private prelinkViews(): void {
+    const prepare = this.host.prepareView, scope = this.host.scope;
+    if (prepare === undefined || scope.disposed) return;
+    const warm = async (root: Group): Promise<void> => {
+      try { await prepare(root, () => !scope.disposed && root.parent !== null); } catch (error: unknown) { console.warn('[grid] neighbour view prelink stopped', error); }
+    };
+    for (const root of this.viewRoots.values()) void warm(root);
+  }
   /** G107 / SF66: a cell's admitted baked map once loaded, retaining the home's full raster size. */
   mapImage(instance: string): HTMLCanvasElement | ImageBitmap | null { return this.mapImages.image(this.assembly.cell(instance).slug); }
   /** the neighbours' baked maps held now (bytes), for the memory readouts */

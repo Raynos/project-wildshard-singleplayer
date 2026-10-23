@@ -129,6 +129,9 @@ export interface LiveGridPage {
 export interface LiveGridSessionPorts {
   /** Borrow the page render scheduler when an entered data region replaces neighbour views. */
   readonly tiles?: ClientTileRegistration;
+  /** Told once the lighting a crossing changes is in place (an entered runtime's activation settled, or the road again
+   *  after a leave), so resident neighbour views can link the programs that lighting needs before they first draw. */
+  readonly lightingSettled?: () => void;
   readonly residency: HomeResidencyClaim;
   readonly assembly: GridAssembly; readonly home: GridCell; readonly physics: Physics; readonly scope: Scope;
   readonly walls: ReadinessWalls; readonly strips: readonly CollisionStrip[]; readonly allocator: ResidencyAllocator;
@@ -232,13 +235,16 @@ export class LiveGridSession {
     this.hybrid = new HybridRuntimeSession(this.runtimeResidents, this.runtimeEntries, scope, { pause: yieldGridConstruction });
     scope.onDispose(gridCells.onLeave(() => { this.hybrid.leave(); }));
     scope.onDispose(gridCells.onEnter(cell => {
-      if (!this.runtimeResidents.has(cell.instance)) return;
+      if (!this.runtimeResidents.has(cell.instance)) { ports.lightingSettled?.(); return; }
       this.startedRuntimes.add(cell.instance);
       const activation = this.hybrid.enter(cell);
       this.activation = activation;
-      const report = async (): Promise<void> => { try { await activation; } catch (error) { console.error('Regional runtime entry failed', error); } };
+      const report = async (): Promise<void> => {
+        try { await activation; ports.lightingSettled?.(); } catch (error) { console.error('Regional runtime entry failed', error); }
+      };
       void report();
     }));
+    scope.onDispose(gridCells.onLeave(() => { ports.lightingSettled?.(); }));
     const transferScope = scope.child('grid.transfer.home');
     this.roadWallet = new GridWallet(page.saves, { id: home.instance, shard: home.slug });
     this.road = new RoadRecovery(assembly);
