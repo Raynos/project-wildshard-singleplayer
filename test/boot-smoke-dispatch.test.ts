@@ -46,6 +46,7 @@ test('only a fully successful push dispatches all six exact-artifact smoke legs'
   expect(dispatch).toContain('needs: [build-and-deploy, typecheck-lint, derived-docs, generated-inputs, products, behaviour]');
   expect(dispatch).toContain("if: github.event_name == 'push'");
   expect(dispatch).toContain('-f sha="$GITHUB_SHA" -f source_run="$GITHUB_RUN_ID" -f automatic=true');
+  expect(deploy).toContain('run: python3 scripts/ci-fail-fast.py -- pnpm run docs');
   expect(smoke).not.toMatch(/^ {2}workflow_run:/mu);
   expect(smoke).toContain('part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer]');
   expect(smoke).toContain('needs: [build, boot-smoke]');
