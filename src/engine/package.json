@@ -464,6 +464,7 @@
     "./render/scatterInstances": "./render/scatterInstances.ts",
     "./models/geometryPack": "./models/geometryPack.ts",
     "./render/drawGuards": "./render/drawGuards.ts",
-    "./script/ownedSimBatchV2": "./script/ownedSimBatchV2.ts"
+    "./script/ownedSimBatchV2": "./script/ownedSimBatchV2.ts",
+    "./script/groupBankV2": "./script/groupBankV2.ts"
   }
 }

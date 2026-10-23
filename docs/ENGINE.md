@@ -12318,3 +12318,29 @@ Nalati's stone-guardian callback is the first adoption; L5 pack/herd member
 drives use the same primitive next. Group decisions, ordered member banks,
 cross-group queries and group continuation remain separate work on the same
 H4 vocabulary; this primitive does not claim to execute those group ticks.
+
+
+### H4 group continuation bank codec
+
+GroupBankV2 (engine/script/groupBankV2) admits finite
+format/scriptGroupBankV2 rows for numbers, booleans, enum codes, nullable
+numbers and native wire references. The original group supplies the bank and
+assembles its existing JSON envelope. encode/decode retain declared field and
+reference-list order; nullable time uses presence plus a finite value. A native
+reference loan is {group, slot, identity, wire, handle}; zero is null. Its handle
+is supplied by the existing owner, never derived from a kind or hash. Decoding
+a wire identity grants no body authority: the original resolver still owns it.
+
+prepare(originalBank, candidate, group, referenceLoans, scope) validates the
+whole candidate before publication and returns values, validate and accept.
+Compose validate with the original owner's native operations and RNG preflight;
+accept updates only that same bank once. Changed banks, reordered/replaced
+reference slots and ancestor retirement refuse. No scheduler, body, RNG stream,
+actor book or save envelope is created.
+
+The build-time groupBankSourceV2 helper reads the current candidate state in a
+single group binding. Its claim/release functions operate on a sixteen-member
+held mask, so a second claim observes the first in the SAME call. The original
+group director remains the native owner and its existing codec publishes that
+mask. This codec/helper is not the production group runner, member-operation
+application or H5 query extension; those remain separate transport work.

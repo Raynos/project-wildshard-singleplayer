@@ -880,3 +880,21 @@ This is distinct from SimBatchV2's staged actor commands. Group decisions that
 need AS-chosen queries must use the bounded H5 request/reply protocol and their
 original group continuation; they are not silently implemented as synchronous
 imports or as a second per-member clock.
+
+
+### H4 group-bank continuation values
+
+Group-bank rows use the existing kind 2/3 original/candidate f64 columns. A
+nullable finite number occupies a presence word plus a value (positive zero
+when absent); booleans and enums use finite integer codes. Reference words are
+explicit native-loan handles, zero for null, with group/slot/stable identity and
+original wire spelling pinned outside Wasm. Ordered lists store count followed
+by bounded handles and positive-zero unused words. They preserve dead-member
+slots and original list order; only the existing owner despawns a slot.
+
+Group candidate publication validates the complete typed bank and original
+scope/reference loans first. It adds no saved clock or second continuation.
+The AS claim helper reads and updates the same candidate bank, using the
+original director's bounded held-member mask. It does not import a claim
+callback or allocate tokens in another owner. Module admission and the active
+module count are unchanged by this codec/helper prerequisite.
