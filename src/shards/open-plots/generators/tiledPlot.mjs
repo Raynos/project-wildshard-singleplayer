@@ -128,6 +128,9 @@ async function tiledPlot(root, repo, layoutName) {
   }
   // the tiles; H and G pick their variant from the tile's place
   buildLayout(grid, parts, palette, (r, c) => (r * 7 + c * 3) % 2);
+  // a pool at the plot's edge (an entry forecourt's lanterns) keeps to the cell: its rim (black, it adds nothing) stops at it
+  const pools = parts.Pool.part('Pool').positions, EDGE = 249.5;
+  for (let i = 0; i < pools.length; i += 3) for (const k of [0, 2]) pools[i + k] = Math.max(-EDGE, Math.min(EDGE, pools[i + k] ?? 0));
   // the posters: the plaza's facing the south entry, one over each entry facing out to the road
   const { plaza, entry } = layout.posters;
   poster(parts, palette, { centre: [plaza.x, plaza.z], n: [0, 0, -1], width: plaza.width, bottom: plaza.bottom, posts: plaza.width / 3, offset: plaza.offset ?? 0 });
