@@ -1,8 +1,9 @@
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
-import { Color, MeshBasicMaterial, Scene, Vector3, BoxGeometry, BufferGeometry, PlaneGeometry, Float32BufferAttribute, PerspectiveCamera, Group } from 'three';
+import { Color, MeshBasicMaterial, Scene, Vector3, BoxGeometry, BufferGeometry, PlaneGeometry, Float32BufferAttribute, PerspectiveCamera, Group, InstancedMesh } from 'three';
 import { ArenaFightPageSchema, ArenaRoomEncounter, ArenaRoomPortal, BossArenaRoom, arenaRoomViews } from '../src/game/boss/arenaRoom';
 import { ArenaFireView } from '../src/game/boss/arenaFire';
+import { arenaFireView } from './fake/arenaViews';
 import { AnimalGroup } from '../src/engine/entities/animalMatrices';
 import { BossEncounterDefinitionSchema } from '../src/format/bossEncounter';
 import * as v from 'valibot';
@@ -55,14 +56,21 @@ test('second-shard fire rows bound capacity, own graph ids, expire and reset', (
  lendLooks(scope, { materials: new Map(['reed-flame','reed-smoke'].map(id => [id, new MeshBasicMaterial()])),
   setParam: id => { ids.push(id); }, setTexture: () => undefined, bindMeshMap: () => { throw new Error('Unused'); } });
  try {
-  const fire = new ArenaFireView(scene, { flameLook: 'reed-flame', smokeLook: 'reed-smoke', flameCount: 2, smokeCount: [3,4], smokeDetail: [0,0],
-   front: [.5,.3], heat: [.2,.8], flameWidth: .8, life: [.2,0], rise: [1,0], radius: [.5,0], expansion: [2,0] }, new BufferGeometry().copy(new BoxGeometry()).toJSON());
-  fire.begin(); for (let i=0;i<4;i++) fire.flame(i,0,0,i,1,1,1); fire.end(); expect(fire.flames.count).toBe(2);
-  fire.puff(0,0,0,1); fire.update(.05,1,1,0,2,new Color('white'),0); expect(fire.smoke.count).toBe(1);
+  const rows = { flameLook: 'reed-flame', smokeLook: 'reed-smoke', flameCount: 2, smokeCount: [3,4], smokeDetail: [0,0],
+   front: [.5,.3], heat: [.2,.8], flameWidth: .8, life: [.2,0], rise: [1,0], radius: [.5,0], expansion: [2,0],
+   cells: { burn: 1, scatter: 0, sink: 0, size: 1, smoke: [1000,1000], scorch: { jitter: 0, lift: .1, scale: [1,0] } } };
+  const fire = new ArenaFireView(scene, rows, new BufferGeometry().copy(new BoxGeometry()).toJSON());
+  // R6: the drawing is the fire view module over a 2 x 2 field of 1 m cells, all four burning
+  const field = { x: 0, z: 0, width: 2, depth: 2, cell: 1, states: { idle: 0, active: 1 } };
+  const scorch = new InstancedMesh(new BoxGeometry(), new MeshBasicMaterial(), 4), fireView = arenaFireView(scope, field, rows, { flames: fire.flames, smoke: fire.smoke, scorch });
+  fireView.modes.fill(1); fireView.lifetimes.fill(1); fireView.values['smokeRate'] = 1000;
+  fireView.program.frame(.05,1); expect(fire.flames.count).toBe(2);
+  fire.update(1,1,0,2,new Color('white'),0); fireView.program.frame(.05,1.05);
+  expect(fire.smoke.count).toBeGreaterThan(0); expect(fire.smoke.count).toBeLessThanOrEqual(fire.smoke.instanceMatrix.count);
   expect(new Set(ids)).toEqual(new Set(['reed-flame','reed-smoke']));
-  fire.out(); expect(fire.flames.count).toBe(0); expect(fire.smoke.count).toBe(1);
-  fire.update(.3,1.3,1,0,2,new Color('white'),0); expect(fire.smoke.count).toBe(0);
-  fire.puff(0,0,0,1); fire.clear(); fire.update(.01,1.4,0,0,0,new Color('white'),0); expect(fire.smoke.count).toBe(0);
+  fireView.values['on'] = 0; fireView.program.frame(.01,1.06); expect(fire.flames.count).toBe(0); expect(fire.smoke.count).toBeGreaterThan(0);
+  fireView.program.frame(.3,1.36); expect(fire.smoke.count).toBe(0);
+  fireView.values['on'] = 1; fireView.program.frame(.05,1.4); fireView.values['clear'] = 1; fireView.values['on'] = 0; fireView.program.frame(.01,1.41); expect(fire.smoke.count).toBe(0);
  } finally { scope.dispose(); }
 });
 

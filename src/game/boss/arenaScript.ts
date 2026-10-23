@@ -165,7 +165,8 @@ export class ArenaScriptFight implements BossScript {
     for (let c = 0; c < field.length; c++) ground[c] = heightAt(field.x(c), field.z(c));
     const smokeRate = smoke === undefined ? 0 : TIER === 'phone' ? smoke[0] : smoke[1];
     const values: Readonly<Record<string, () => number>> = { on: () => Number(this.fireOn), clear: () => Number(this.fireClear), windX: () => wind.dirX,
-      windZ: () => wind.dirZ, windSpeed: () => wind.speed, smokeCap: () => this.fire.smoke.instanceMatrix.count, smokeRate: () => smokeRate };
+      windZ: () => wind.dirZ, windSpeed: () => wind.speed, smokeCap: () => this.fire.smoke.instanceMatrix.count, smokeRate: () => smokeRate,
+      scorchCap: () => this.scorch.instanceMatrix.count };
     lendViewValues(scope, fire.values, name => values[name]?.() ?? Number.NaN);
     lendViewArray(scope, fire.arrays.modes, () => field.modeCells); lendViewArray(scope, fire.arrays.lifetimes, () => field.lifetimeCells);
     lendViewArray(scope, fire.arrays.ground, () => ground); lendViewArray(scope, fire.arrays.burnt, () => this.burnt);

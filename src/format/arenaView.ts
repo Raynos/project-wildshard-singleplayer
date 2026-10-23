@@ -15,7 +15,7 @@ export const ARENA_VIEW = {
   /** the grass fire's own slot (its field steps first): values (on, a reset's clear, the wind, the tier's smoke copies and
    *  rate), the field's arrays (cell modes, lifetimes, the ground under each cell, then this frame's burnt-out cells: a
    *  count and cell indices) and the instanced draws it writes (flames, smoke, scorch decals) */
-  fire: { slot: 'arena.fire', values: 'arena.fire', fields: ['on', 'clear', 'windX', 'windZ', 'windSpeed', 'smokeCap', 'smokeRate'],
+  fire: { slot: 'arena.fire', values: 'arena.fire', fields: ['on', 'clear', 'windX', 'windZ', 'windSpeed', 'smokeCap', 'smokeRate', 'scorchCap'],
     arrays: { modes: 'arena.field.modes', lifetimes: 'arena.field.lifetimes', ground: 'arena.field.ground', burnt: 'arena.field.burnt' },
     draws: { flames: 'arena.flames', smoke: 'arena.smoke', scorch: 'arena.scorch' } },
   /** the whirlwinds' own slot (after their laws): per whirlwind i the values k{i}, shown{i}, x{i}, y{i} (the ground) and

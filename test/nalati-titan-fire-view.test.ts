@@ -25,7 +25,7 @@ test('the fire module draws the original flames, rolls smoke, appends scorch and
   const module = await compileScriptV2(source, { lane: 'view', ioBytes: rows.budget.ioBytes, maximumPages: rows.budget.pages });
   const modes = new Float32Array(cells).fill(field.states.idle), lifetimes = new Float32Array(cells), ground = new Float32Array(cells), burnt = new Float32Array(1 + ARENA_BURNT_PER_FRAME);
   for (let c = 0; c < cells; c++) ground[c] = 2 + (c % field.width) * .05;
-  const values: Record<string, number> = { on: 1, clear: 0, windX: 1, windZ: 0, windSpeed: 6, smokeCap: 90, smokeRate: fireView.cells.smoke[0] ?? 0 };
+  const values: Record<string, number> = { on: 1, clear: 0, windX: 1, windZ: 0, windSpeed: 6, smokeCap: 90, smokeRate: fireView.cells.smoke[0] ?? 0, scorchCap: cells };
   const flames = instanced(fireView.flameCount), smoke = instanced(90), scorch = new InstancedMesh(new BoxGeometry(), new MeshBasicMaterial(), cells); scorch.count = 0;
   const draws = new Map([[fire.draws.flames, flames], [fire.draws.smoke, smoke], [fire.draws.scorch, scorch]]);
   const arrays = new Map<string, ArrayLike<number>>([[fire.arrays.modes, modes], [fire.arrays.lifetimes, lifetimes], [fire.arrays.ground, ground], [fire.arrays.burnt, burnt]]);

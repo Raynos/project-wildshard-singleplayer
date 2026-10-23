@@ -1,9 +1,10 @@
 // Nalati zero R6: the Storm Titan's whirlwinds' funnels and debris as a SCRIPT-ABI v2 view module (lane 3), moved out of
 // game/boss/arenaFire.ts (ArenaWhirlsView.update's drawing). It runs at the fight's whirl slot, after each whirlwind's
 // ease, visibility gate, law and ground (which stay with the fight: they decide which laws step). Samples
-// (generators/titanWhirlsView.ts): per whirlwind its ease k, visible (0 / 1), x, ground y and z; the clock; then the
-// funnel's sink, spin and breathe and the debris spiral's constants. Transforms: each funnel's matrix (on the ground less
-// the sink, turning at the spin while it shows, breathing). Batch (kind 24): the visible whirlwinds' debris, packed.
+// (generators/titanWhirlsView.ts): the clock, the funnel's sink, spin and breathe, the debris spiral's constants and the
+// whirlwind count (up to 8), then per whirlwind its ease k, visible (0 / 1), x, ground y and z. Transforms: each funnel's
+// matrix (on the ground less the sink, turning at the spin while it shows, breathing). Batch (kind 24): the visible
+// whirlwinds' debris, packed.
 
 const IO: i32 = 1024;
 const HEADER: i32 = 128;
@@ -11,15 +12,14 @@ const ENTRY: i32 = 24;
 const SAMPLE_DIRECTORY: i32 = 15;
 const TRANSFORMS: i32 = 17;
 const BATCHES: i32 = 24;
-const WHIRLS: i32 = 3;
+const MOST: i32 = 8;
 
-let spin0: f64 = 0;
-let spin1: f64 = 0;
-let spin2: f64 = 0;
+// each whirlwind's funnel turn (f64), advanced while it shows
+const SPINS: usize = memory.data(MOST * 8);
 
 export function ws_abi(): i32 { return 2; }
 export function ws_io(): i32 { return IO; }
-export function ws_init(lo: i32, hi: i32, fuel: i32): i32 { spin0 = 0; spin1 = 0; spin2 = 0; return fuel; }
+export function ws_init(lo: i32, hi: i32, fuel: i32): i32 { for (let i: i32 = 0; i < MOST; i++) store<f64>(SPINS + <usize>(i * 8), 0); return fuel; }
 
 function entry(kind: i32): i32 { return IO + HEADER + (kind - 1) * ENTRY; }
 function region(kind: i32): i32 { return IO + load<i32>(entry(kind) + 4); }
@@ -32,13 +32,11 @@ function compose(at: i32, px: f64, py: f64, pz: f64, qx: f64, qy: f64, qz: f64, 
   store<f32>(at + 32, <f32>((xz + wy) * sz)); store<f32>(at + 36, <f32>((yz - wx) * sz)); store<f32>(at + 40, <f32>((1 - (xx + yy)) * sz)); store<f32>(at + 44, 0);
   store<f32>(at + 48, <f32>px); store<f32>(at + 52, <f32>py); store<f32>(at + 56, <f32>pz); store<f32>(at + 60, 1);
 }
-function spinOf(i: i32): f64 { return i == 0 ? spin0 : i == 1 ? spin1 : spin2; }
-function setSpin(i: i32, value: f64): void { if (i == 0) spin0 = value; else if (i == 1) spin1 = value; else spin2 = value; }
 
 export function ws_view(dt: f64, alpha: f64, fuel: i32): i32 {
   const stamp = region(SAMPLE_DIRECTORY);
   if (load<i32>(stamp + 4) == 0) return fuel;
-  const c = IO + load<i32>(stamp + 20), constants = c + WHIRLS * 40;
+  const constants = IO + load<i32>(stamp + 20), whirls = <i32>Math.min(<f64>MOST, load<f64>(constants + 152)), c = constants + 160;
   const t = load<f64>(constants), sink = load<f64>(constants + 8), spin = load<f64>(constants + 16), breathe0 = load<f64>(constants + 24), breathe1 = load<f64>(constants + 32);
   const count = <i32>load<f64>(constants + 40), climb = load<f64>(constants + 48), turn = load<f64>(constants + 56), step = load<f64>(constants + 64);
   const radius0 = load<f64>(constants + 72), radius1 = load<f64>(constants + 80), height = load<f64>(constants + 88);
@@ -46,13 +44,13 @@ export function ws_view(dt: f64, alpha: f64, fuel: i32): i32 {
   const scale0 = load<f64>(constants + 128), scale1 = load<f64>(constants + 136), scale2 = <i32>load<f64>(constants + 144);
   const transforms = region(TRANSFORMS), debris = region(BATCHES);
   let n: i32 = 0, changed: i32 = 0;
-  for (let i: i32 = 0; i < WHIRLS; i++) {
+  for (let i: i32 = 0; i < whirls; i++) {
     const at = c + i * 40, k = load<f64>(at), shown = load<f64>(at + 8) == 1, x = load<f64>(at + 16), y = load<f64>(at + 24), z = load<f64>(at + 32);
     const record = transforms + i * 80;
     store<u32>(record, 0); store<u32>(record + 4, i); store<u32>(record + 8, 0); store<u32>(record + 12, shown ? 1 : 0);
     if (!shown) continue;
     // the funnel: on the ground less the sink, turning at the spin while it shows, breathing
-    const angle = spinOf(i) + dt * spin; setSpin(i, angle);
+    const angle = load<f64>(SPINS + <usize>(i * 8)) + dt * spin; store<f64>(SPINS + <usize>(i * 8), angle);
     compose(record + 16, x, y - sink, z, 0, Math.sin(angle / 2), 0, Math.cos(angle / 2), k, k * (1 + breathe0 * Math.sin(t * breathe1 + <f64>i)), k);
     changed++;
     // its debris climbing the spiral, each piece rolling about the axis
@@ -64,7 +62,7 @@ export function ws_view(dt: f64, alpha: f64, fuel: i32): i32 {
       n++;
     }
   }
-  store<i32>(entry(TRANSFORMS) + 16, WHIRLS); store<i32>(IO + 72, changed);
+  store<i32>(entry(TRANSFORMS) + 16, whirls); store<i32>(IO + 72, changed);
   store<u32>(debris, n); store<u32>(debris + 4, 0); store<u32>(debris + 8, n);
   return fuel;
 }

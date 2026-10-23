@@ -5,10 +5,10 @@ import { BoxGeometry, BufferGeometry, Color, Group, InstancedMesh, Matrix4, Mesh
 import { parsePrivateScene } from '../src/format/clientChannels';
 import { ArenaSceneView } from '../src/game/boss/encounterView';
 import { Scope } from '../src/engine/app/scope';
-import { Rng } from '../src/engine/core/rng';
 import { overrideTerrain } from './fake/terrain';
-import { CellField } from '../src/game/systems/cellField';
 import { ArenaFireView, ArenaWhirlsView } from '../src/game/boss/arenaFire';
+import { arenaFireView, arenaWhirlsView } from './fake/arenaViews';
+import { fireViewRows } from '../src/shards/nalati-grasslands/generators/titanFireView';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
 import program from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type: 'json' };
@@ -29,42 +29,44 @@ function burning() {
   const scope = new Scope('reed-marsh'), scene = new Scene();
   lendLooks(scope, { materials: new Map(['reed-flame', 'reed-smoke'].map(id => [id, new MeshBasicMaterial()])),
     setParam: () => undefined, setTexture: () => undefined, bindMeshMap: () => { throw new Error('Unused'); } });
-  const fire = new ArenaFireView(scene, parse(ArenaFireSchema,reeds), new BufferGeometry().copy(new BoxGeometry()).toJSON());
-  const field = new CellField(marsh, ReturnProgram.page(program.fire), new Rng(7)), scorch = new InstancedMesh(new BoxGeometry(), new MeshBasicMaterial(), 2);
-  fire.attachScorch(scorch);
-  return { fire, field, scorch, scope };
+  const rows = parse(ArenaFireSchema, reeds), fire = new ArenaFireView(scene, rows, new BufferGeometry().copy(new BoxGeometry()).toJSON());
+  const scorch = new InstancedMesh(new BoxGeometry(), new MeshBasicMaterial(), 2); scorch.count = 0;
+  // R6: the fire's drawing is its view module (behaviour/titanFireView), driven here over the marsh's field and the reeds
+  const view = arenaFireView(scope, marsh, rows, { flames: fire.flames, smoke: fire.smoke, scorch });
+  view.ground.fill(1); view.values['smokeRate'] = reeds.cells.smoke[0] ?? 0; view.values['windX'] = 1;
+  return { fire, view, scorch, scope };
 }
 
 test('a second shard\'s burning cells draw as flames on its bank with smoke rolling off', () => {
-  const { fire, field, scope } = burning();
+  const { fire, view, scope } = burning();
   try {
-    field.activate(11, 21); field.activate(15, 21);
-    fire.drawField(field, 0.1, 1, 0);
-    expect(fire.flames.count).toBe(2); expect(fire.smoke.count).toBe(0);
+    // (11, 21) and (15, 21): cells 0 and 2 of the 3 x 2 field, burning their whole second
+    for (const cell of [0, 2]) { view.modes[cell] = marsh.states.active; view.lifetimes[cell] = reeds.cells.burn; }
+    expect(view.program.frame(0.1, 0)).toBe(true);
+    expect(fire.flames.count).toBe(2);
     const at = new Vector3().setFromMatrixPosition(new Matrix4().fromArray(fire.flames.instanceMatrix.array, 0));
-    expect(at.toArray()).toEqual([11, 0.75, 21]);
-    fire.update(0.01, 0, 0, 0, 0, new Color('white'), 0);
+    expect(at.x).toBeCloseTo(11, 5); expect(at.y).toBeCloseTo(0.75, 5); expect(at.z).toBeCloseTo(21, 5);
+    fire.update(0, 0, 0, 0, new Color('white'), 0); view.program.frame(0.01, 0.1);
     expect(fire.smoke.count).toBeGreaterThan(0);
-    fire.out(); expect(fire.flames.count).toBe(0);
+    view.values['on'] = 0; view.program.frame(0.01, 0.11); expect(fire.flames.count).toBe(0);
   } finally { scope.dispose(); }
 });
 
 test('burnt-out cells leave a bounded scorch that a reset clears', () => {
-  const { fire, field, scorch, scope } = burning();
+  const { view, scorch, scope } = burning();
   try {
-    for (const cell of [0, 1, 2]) fire.scorchCell(field, cell);
+    view.burnt.set([3, 0, 1, 2]); view.program.frame(0.1, 0);
     expect(scorch.count).toBe(2);
     const at = new Vector3().setFromMatrixPosition(new Matrix4().fromArray(scorch.instanceMatrix.array, 16));
     expect(at.toArray().map(n => Math.round(n * 1000) / 1000)).toEqual([13, 1.1, 21]);
-    fire.clear(); expect(scorch.count).toBe(0);
+    view.burnt[0] = 0; view.values['clear'] = 1; view.program.frame(0.1, 0.1); expect(scorch.count).toBe(0);
   } finally { scope.dispose(); }
 });
 
 test('a fire without cell rows refuses to draw a field', () => {
-  const { field, scope } = burning(), { cells: _cells, ...plain } = reeds;
+  const { scope } = burning(), { cells: _cells, ...plain } = reeds;
   try {
-    const fire = new ArenaFireView(new Scene(), parse(ArenaFireSchema,plain), new BufferGeometry().copy(new BoxGeometry()).toJSON());
-    expect(() => { fire.drawField(field, 0.1, 0, 0); }).toThrow('cell rows');
+    expect(() => fireViewRows(marsh, parse(ArenaFireSchema, plain))).toThrow('cell rows');
   } finally { scope.dispose(); }
 });
 
@@ -76,20 +78,25 @@ const devils = { laws: [devil(-8), devil(8)], ease: 4, spin: 2, sink: 0.2, breat
 
 test('a second shard\'s dust devils ease in only while armed and live, spin their funnels and climb their debris', () => {
   restore = overrideTerrain({ heightAt: () => 3, normalAt: () => [0, 1, 0] });
-  const funnels = [new Group(), new Group()], debris = new InstancedMesh(new BoxGeometry(), new MeshBasicMaterial(), 6);
-  const view = new ArenaWhirlsView(parse(ArenaWhirlsSchema, devils), ReturnProgram.page(program.wind), funnels, debris);
-  view.update(0.1, 0, true, 0, { wx: 1, wz: 0, px: 0, pz: 30 });
-  expect(funnels.every(funnel => !funnel.visible)).toBe(true); expect(debris.count).toBe(0);
-  view.arm(0b10);
-  for (let i = 0; i < 10; i++) view.update(0.1, i * 0.1, true, 0, { wx: 1, wz: 0, px: 0, pz: 30 });
-  expect(funnels[0]?.visible).toBe(false); expect(funnels[1]?.visible).toBe(true);
-  expect(funnels[1]?.position.toArray()).toEqual([8, 2.8, 0]); expect(debris.count).toBe(3);
-  const first = new Vector3().setFromMatrixPosition(new Matrix4().fromArray(debris.instanceMatrix.array, 0));
-  expect(first.y).toBeGreaterThanOrEqual(3); expect(first.y).toBeLessThanOrEqual(9);
-  for (let i = 0; i < 40; i++) view.update(0.1, 1 + i * 0.1, false, 0, { wx: 1, wz: 0, px: 0, pz: 30 });
-  expect(funnels[1]?.visible).toBe(false);
-  view.reset(); expect(debris.count).toBe(0);
-  expect(() => new ArenaWhirlsView(parse(ArenaWhirlsSchema, devils), ReturnProgram.page(program.wind), [new Group()], debris)).toThrow('funnel');
+  const funnels = [new Group(), new Group()], debris = new InstancedMesh(new BoxGeometry(), new MeshBasicMaterial(), 6), scope = new Scope('quarry');
+  const rows = parse(ArenaWhirlsSchema, devils), view = new ArenaWhirlsView(rows, ReturnProgram.page(program.wind), funnels, debris);
+  // R6: the funnels' and the debris' drawing is the whirl view module (behaviour/titanWhirlsView), at the fight's slot
+  const draw = arenaWhirlsView(scope, rows, funnels, debris, view.drawn);
+  try {
+    view.update(0.1, 0, true, 0, { wx: 1, wz: 0, px: 0, pz: 30 }); draw.frame(0.1, 0);
+    expect(funnels.every(funnel => !funnel.visible)).toBe(true); expect(debris.count).toBe(0);
+    view.arm(0b10);
+    for (let i = 0; i < 10; i++) { view.update(0.1, i * 0.1, true, 0, { wx: 1, wz: 0, px: 0, pz: 30 }); draw.frame(0.1, i * 0.1); }
+    expect(funnels[0]?.visible).toBe(false); expect(funnels[1]?.visible).toBe(true);
+    const [fx = 0, fy = 0, fz = 0] = funnels[1]?.position.toArray() ?? [];
+    expect(fx).toBeCloseTo(8, 5); expect(fy).toBeCloseTo(2.8, 5); expect(fz).toBeCloseTo(0, 5); expect(debris.count).toBe(3);
+    const first = new Vector3().setFromMatrixPosition(new Matrix4().fromArray(debris.instanceMatrix.array, 0));
+    expect(first.y).toBeGreaterThanOrEqual(3); expect(first.y).toBeLessThanOrEqual(9);
+    for (let i = 0; i < 40; i++) { view.update(0.1, 1 + i * 0.1, false, 0, { wx: 1, wz: 0, px: 0, pz: 30 }); draw.frame(0.1, 1 + i * 0.1); }
+    expect(funnels[1]?.visible).toBe(false); expect(debris.count).toBe(0);
+    view.reset(); expect(debris.count).toBe(0);
+    expect(() => new ArenaWhirlsView(rows, ReturnProgram.page(program.wind), [new Group()], debris)).toThrow('funnel');
+  } finally { scope.dispose(); }
 });
 
 // The quarry's own dressing (the arena scene's fixture second user): a dust curtain that rises with its seal, a lit spoil

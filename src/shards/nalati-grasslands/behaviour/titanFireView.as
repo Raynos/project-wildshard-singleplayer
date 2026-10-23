@@ -3,7 +3,8 @@
 // fire slot. Samples (generators/titanFireView.ts): on, clear, wind x / z / speed, the clock, the tier's smoke copies
 // and rate, then the field's and the look's constants. Arrays (kind 23): the field's cell modes, their lifetimes, the
 // ground under each cell, and this frame's burnt-out cells (a count, then cell indices). Batches (kind 24): the
-// flames (heat, front, seed per copy), the smoke (age, glow, seed) and the scorch decals (appended as cells burn out).
+// flames (heat, front, seed per copy), the smoke (age, glow, seed) and the scorch decals (appended as cells burn out),
+// their capacities the last samples (the scorch also capped by its draw's copies).
 // The smoke keeps rising after the fire is out; a reset (clear) takes the flames, the smoke and the scorch.
 
 const IO: i32 = 1024;
@@ -12,7 +13,6 @@ const ENTRY: i32 = 24;
 const SAMPLE_DIRECTORY: i32 = 15;
 const ARRAYS: i32 = 23;
 const BATCHES: i32 = 24;
-const FLAMES: i32 = 420;
 const SMOKE: i32 = 200;
 const SCORCH: i32 = 64;
 const PUFF: i32 = 13;
@@ -56,11 +56,11 @@ function groundAt(ground: i32, width: i32, depth: i32, a: i32, b: i32): f64 {
   const i = a < 0 ? 0 : a >= width ? width - 1 : a, j = b < 0 ? 0 : b >= depth ? depth - 1 : b;
   return <f64>load<f32>(ground + (j * width + i) * 4);
 }
-/** a batch record: its header, then `capacity` matrices, then `capacity` attribute items of `size` */
-function batch(index: i32): i32 {
+/** a batch record: its header, then `capacity` matrices, then `capacity` attribute items (3 for the flames and the smoke) */
+function batch(index: i32, flameCapacity: i32, smokeCapacity: i32): i32 {
   let at = region(BATCHES);
-  if (index > 0) at += (4 + FLAMES * 19) * 4;
-  if (index > 1) at += (4 + SMOKE * 19) * 4;
+  if (index > 0) at += (4 + flameCapacity * 19) * 4;
+  if (index > 1) at += (4 + smokeCapacity * 19) * 4;
   return at;
 }
 
@@ -70,15 +70,17 @@ export function ws_view(dt: f64, alpha: f64, fuel: i32): i32 {
   const c = IO + load<i32>(stamp + 20);
   const on = load<f64>(c) == 1, clear = load<f64>(c + 8) == 1;
   const windX = load<f64>(c + 16), windZ = load<f64>(c + 24), windSpeed = load<f64>(c + 32), t = load<f64>(c + 40);
-  const smokeCap = <i32>Math.min(<f64>SMOKE, load<f64>(c + 48)), smokeRate = load<f64>(c + 56);
+  const smokeRate = load<f64>(c + 56);
   const x0 = load<f64>(c + 64), z0 = load<f64>(c + 72), cell = load<f64>(c + 80), width = <i32>load<f64>(c + 88), depth = <i32>load<f64>(c + 96);
   const idle = load<f64>(c + 104), active = load<f64>(c + 112), burn = load<f64>(c + 120), scatter = load<f64>(c + 128), sink = load<f64>(c + 136), size = load<f64>(c + 144);
   const front0 = load<f64>(c + 152), front1 = load<f64>(c + 160), heat0 = load<f64>(c + 168), heat1 = load<f64>(c + 176), flameWidth = load<f64>(c + 184);
   const life0 = load<f64>(c + 192), life1 = load<f64>(c + 200), rise0 = load<f64>(c + 208), rise1 = load<f64>(c + 216);
   const radius0 = load<f64>(c + 224), radius1 = load<f64>(c + 232), expansion0 = load<f64>(c + 240), expansion1 = load<f64>(c + 248);
   const jitter = load<f64>(c + 256), lift = load<f64>(c + 264), scale0 = load<f64>(c + 272), scale1 = load<f64>(c + 280);
+  const flameCapacity = <i32>load<f64>(c + 288), smokeCapacity = <i32>load<f64>(c + 296), scorchCap = <i32>load<f64>(c + 304);
+  const smokeCap = <i32>Math.min(Math.min(<f64>SMOKE, load<f64>(c + 48)), <f64>smokeCapacity);
   const cells = width * depth, modes = region(ARRAYS), lifetimes = modes + cells * 4, ground = lifetimes + cells * 4, events = ground + cells * 4;
-  const flames = batch(0), smoke = batch(1), scorch = batch(2);
+  const flames = batch(0, flameCapacity, smokeCapacity), smoke = batch(1, flameCapacity, smokeCapacity), scorch = batch(2, flameCapacity, smokeCapacity);
   if (clear) {
     for (let i: i32 = 0; i < SMOKE; i++) store<f64>(POOL + <usize>((i * PUFF + 12) * 8), 0);
     scorched = 0; store<u32>(scorch, 0);
@@ -96,7 +98,7 @@ export function ws_view(dt: f64, alpha: f64, fuel: i32): i32 {
     store<f64>(p, x); store<f64>(p + 8, y); store<f64>(p + 16, z);
     const r = load<f64>(p + 64) + (load<f64>(p + 72) - load<f64>(p + 64)) * Math.sqrt(age), half = (load<f64>(p + 88) * 6.28 + t * 0.2) / 2;
     compose(smoke + 16 + n * 64, x, y, z, 0, Math.sin(half), 0, Math.cos(half), r, r * 0.85, r);
-    const item = smoke + 16 + SMOKE * 64 + n * 12;
+    const item = smoke + 16 + smokeCapacity * 64 + n * 12;
     store<f32>(item, <f32>age); store<f32>(item + 4, <f32>load<f64>(p + 80)); store<f32>(item + 8, <f32>load<f64>(p + 88));
     n++;
   }
@@ -113,14 +115,14 @@ export function ws_view(dt: f64, alpha: f64, fuel: i32): i32 {
       const i = <i32>Math.floor((x + windX * cell - x0) / cell), j = <i32>Math.floor((z + windZ * cell - z0) / cell);
       const downwind = i < 0 || j < 0 || i >= width || j >= depth ? -1 : j * width + i;
       const front: f64 = downwind >= 0 && <f64>load<f32>(modes + downwind * 4) == idle ? 1 : 0;
-      if (f < FLAMES) {
+      if (f < flameCapacity) {
         const k = size * (front0 + front1 * front) * (heat0 + heat1 * heat), half = <f64>cellIndex * 0.7 / 2;
         compose(flames + 16 + f * 64, x + Math.sin(<f64>cellIndex * 3.1) * scatter, y, z + Math.cos(<f64>cellIndex * 2.3) * scatter, 0, Math.sin(half), 0, Math.cos(half), k * flameWidth, k, k * flameWidth);
-        const item = flames + 16 + FLAMES * 64 + f * 12, fraction = <f64>cellIndex * 0.618;
+        const item = flames + 16 + flameCapacity * 64 + f * 12, fraction = <f64>cellIndex * 0.618;
         store<f32>(item, <f32>heat); store<f32>(item + 4, <f32>front); store<f32>(item + 8, <f32>(fraction - Math.floor(fraction)));
         f++;
       }
-      if (random() < dt * smokeRate * (0.4 + heat)) {
+      if (smokeCap > 0 && random() < dt * smokeRate * (0.4 + heat)) {
         const p = POOL + <usize>(next * PUFF * 8);
         next = (next + 1) % smokeCap;
         store<f64>(p, x + (random() - 0.5) * 2); store<f64>(p + 8, y + 1.2); store<f64>(p + 16, z + (random() - 0.5) * 2);
@@ -135,7 +137,8 @@ export function ws_view(dt: f64, alpha: f64, fuel: i32): i32 {
   const burnt = <i32>Math.min(<f64>SCORCH, <f64>load<f32>(events));
   let written: i32 = 0;
   const first = scorched;
-  for (let e: i32 = 0; e < burnt && scorched < cells; e++) {
+  const scorchLimit = <i32>Math.min(<f64>cells, <f64>scorchCap);
+  for (let e: i32 = 0; e < burnt && scorched < scorchLimit; e++) {
     const index = <i32>load<f32>(events + 4 + e * 4);
     if (index < 0 || index >= cells) continue;
     const i = index % width, j = index / width;
