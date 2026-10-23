@@ -118,7 +118,7 @@ export function createRegionalView(request: RegionalViewRequest): RegionalView {
   // The neutral road has the page sun/fill, no regional point lights or cell PMREM. Prepare those exact keys before leaving.
   if (isScene(request.scene)) registerExteriorLighting(request.scene, scope, root, null);
   root.updateMatrixWorld(true);
-  // G639 frame floor (Developer `staticMatrices`, default off): the root and every piece that is not a mover leave the
+  // G639 / G669 frame floor: the root and every piece that is not a mover leave the
   // per-frame matrix walk; a node that moves after all is caught by its check (run with the movers) and returns to it
   const checks = new Set<() => void>();
   const checked = (owner: Scope) => (check: () => void): void => { checks.add(check); owner.onDispose(() => { checks.delete(check); }); };
