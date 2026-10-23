@@ -1,8 +1,8 @@
 # Generators spike and redesign: mini plan (TOOLING-PERF, G648/G650)
 
-**State:** `draft` 2026-10-23 — a plan-agent subagent spikes it (starts when a subagent slot frees); rows and decisions
-follow from its findings. Separate from the [gen speed plan](gen-mini-plan.md) (caching and timing) and the
-[TypeScript plan](typescript-mini-plan.md).
+**State:** `draft` 2026-10-23 — spike done (static read of the catalogue, the scheduler and every entry's import
+closure; no timings). The rows and decisions below wait on Jake's picks. Separate from the [gen speed plan](gen-mini-plan.md)
+(caching and timing), the [TypeScript plan](typescript-mini-plan.md) and [no binaries in JSON](no-binaries-in-json-mini-plan.md).
 
 Jake, 2026-10-23: *"It sounds completely fucked that the generators are reading the generated output of other generators.
 Like, can't I just import the TypeScript and like call functions? … I feel like each generator should be a standalone
@@ -11,27 +11,136 @@ that like tries to generate everything at once. That's not like 20 generator pro
 must import each other's temporary outputs in the correct order … what is this dependency hell? Why are they doing imported
 files? Why can't they import the source code?"*
 
-## What we know
+G650 (Jake): *"Writing generated JSON files into the data directory of the shard … we need a complete redesign of how
+generators work and the source code of shard files work and the data and the generators."* Binaries stay out of JSON (G649).
 
-- `pnpm gen` writes 318 `*.generated.json` into `src/shards/<slug>/data/` (git-ignored); ~189 generator `.ts` files
-  statically import other generators' outputs (Pine 65, Sunscar 30, Sky 28, Driftwood 28, Nalati 21, Nine 17).
-- Example chain: `nine-dragon-stack/generators/bake-casts.mjs` writes `castHook.generated.json` (29 MB, base64 GLBs) →
-  `castSources.ts` imports it → `worldScenes.ts` → `build-shardfiles` packs `public/shardfiles/<slug>/`.
-- The importing makes TypeScript and typed lint read ~250 MB of baked data (about half the time and 4+ GB, G643).
+## Findings
 
-G650 (Jake): *"Writing generated JSON files into the data directory of the shard … we need a complete redesign of how generators work and the source code of shard files work and the data and the generators."* Binaries stay out of JSON (G649).
+**1. The real graph.** `pnpm gen` (`scripts/gen.mjs`) runs, in a fixed sequence: four starter tables and decision policies,
+then the **generation phase**, then format schemas, `gen-shards` (discovery, closures), boot tables, budgets, `gen-shards`
+again, and the API docs and inventories. The generation phase is **264 jobs** declared by hand in
+`scripts/generation-jobs.json` (22,465 lines): Pine 60, Nalati 47, Far Reach 47, Driftwood 41, Nine 27, Sunscar 23,
+templates and small shards 14, shared `scripts/bake-*` 5. They write **3,040 files**: 2,476 under `src/` (343
+`*.generated.*`, 133 other JSON and TS, ~2,000 hash-named blobs in `src/shards/*/assets/` and `.wildshard/`) and 564 under
+`public/` (420 GLB).
+- **How the order is decided:** catalogue row order. `prepareGeneration` (`scripts/generate.mjs`) starts a row only when
+  no earlier unfinished row writes a path the row declares as input. Each row runs as its own Node process in a copied
+  temp tree, cached by content hash in `~/.cache/wildshard/generate` (3.9 GB). Inputs are declared by hand, and most rows
+  declare whole folders (`src/engine`, `src/game`, `src/sdk`, `src/shards/<slug>`). The declared graph therefore has 2,152
+  edges, 1,878 of them whole-folder, so nearly every row waits on every earlier row of its shard.
+- **What really flows** (each entry's static import closure): 91 jobs import another job's output: **196 job→job edges
+  over 123 files, longest chain 5** (Driftwood: trail font → fixed models → island dressing → pier scenes → specimen
+  catalogue; Nalati 3, Pine 4, Far Reach 4, Nine 2). Only 1 real edge crosses shards (`shared-pickups` reads Pine's
+  `spots.generated.json`). 8 edges point at a producer *later* in the catalogue (e.g. `siteCatalogue.ts` imports
+  `nativeSpecimens.generated.json`: consumer row 188, producer row 263). At least 14 generator files also `readFileSync`
+  outputs outside the import graph.
+- **The bigger fan-in is the shard program itself.** `wildshard build` already evaluates each shard in one Node process
+  (`shard.config.ts` → `generators/product.ts`, plus `generators/output.ts`). That closure imports **239 outputs of 167
+  jobs, ~184 MB** (Nine 97 MB, Nalati 37, Pine 25, Driftwood 23). On top of that, **266 test files** and 7 runtime files
+  import outputs directly.
+- **Edges that exist only because a step was cached to a file:** nearly all of them. **90 jobs** are literally
+  `src/sdk/bake/json.mjs <file> <exportedFunction> <out>`: the function already exists. For example, `trailFont.ts`
+  exports `trailFontFacts()` (a 5×7 block font), and `trailsideModels.ts` imports its JSON instead of calling it. 75 more
+  are script→JSON jobs, and 92 are asset bakes writing GLB / bin. **Only 7 jobs need a tool outside Node:** 6 Darwin canvas
+  renders in a browser (Nine glyphs / sign / decal atlases, Nalati sign atlases, Sky textures, Pine painted) and
+  ImageMagick for Pine's HDRI keys (Nalati POI paint is Darwin-only for float bytes, not for a tool). Blender, TRELLIS / Hunyuan and KTX2 encoding are not in `pnpm gen` at all;
+  their GLB / KTX2 files are committed inputs. gltf-transform and three.js are plain JS.
 
-## The spike answers
+**Root cause:** the shard program was never allowed to call its generators. SP5 kept `generators/` out of the runtime, so
+every step was made a subprocess that writes JSON beside the code. Consumers then `import … with { type: 'json' }`, so
+outputs had to sit under `src/`. That put a hand-ordered catalogue, a cache per file and ~250 MB of data inside
+TypeScript's view (G643).
 
-1. The real graph: every generator, what it reads and writes, the order `pnpm gen` / `gen-api.mjs` runs them, and why
-   (costly bakes cached as files? GLB / image / model steps that can't run in-process? historic accident?).
-2. For each file-to-file edge: could the consumer import the producer's TypeScript and call a function instead? What
-   breaks (cost, cache, determinism, native tools like Blender / gltf-transform / KTX2)?
-3. Which outputs are binaries in JSON (base64 GLBs) and which are real data.
-4. Options, sized: (A) one generator program per shard: source in, shardfile out, in-process calls, a content-hash cache
-   only around the truly expensive steps (writing binaries as `.glb`/`.bin` in a cache directory outside `src/`);
-   (B) one program for the whole repo; (C) keep the files but move them out of `src/` and read them at run time.
-5. A redesign of the shard folder: what is source (authored data, code), what is generated, and where generated output and caches live (never under `src/`).
-6. A lint ban: no import of a `*.generated.*` file from `src/` or `test/` (and no generated file under `src/`).
+**2. Can the consumer import the producer and call it?**
 
-## Rows (to be drafted from the spike)
+| Edge type | Jobs (consumed by others) | Call in-process? | What blocks it |
+|---|---|---|---|
+| function → JSON (`json.mjs`) | 90 (34) | yes, today | nothing; most are cheap pure functions |
+| script → JSON | 75 (15) | yes, after the script's body becomes an exported function | the same |
+| asset bake (GLB / bin out) | 92 (34) | yes; the costly ones go behind a content-hash cache returning bytes | cold cost (the gen plan measures it), memory in one process, process-wide installs (`installShards` in `generation-level.mjs`, portable Math), so one process **per shard**, not per repo |
+| browser / ImageMagick | 7 (2) | no | needs a browser (machine cap of 4) or `magick`: stays a separate asset tool with committed binary output |
+
+Determinism does not change: 49 `native` jobs only add the host's platform and arch to the cache key (float output differs
+between hosts), and an in-process call keeps that key. Node vs browser: generators are Node-only already, and the runtime
+gets everything from the shardfile, never from `generators/`.
+
+**3. Binaries in JSON vs real data** (459 generated JSON under `src/`, 318 MB): **44 are base64** (151 MB: `lightSpill` 52,
+`paintArray` 47, `castHook` 29, `poiPaint` 2.9 ×2, `physics` 2.5 / 2.0 / 1.2, `signAtlas` 2.3, `glyphs` 2.0, `grass` /
+`geography` 1.5). **19 are number arrays standing in for bytes** (101 MB of vertex / layout data: Driftwood `mapAssembly`
+28.7, `modelCatalogue` 18.2, `rockScenes` 17.7, Nalati `mapAssembly` 9.1, Nine `layout` 6.8): G649 bans these too.
+**396 are real data** (66 MB; biggest Pine `floorLayout` 11.2, Nalati `dressing-stone` 6.3, `species` 5.8). The ~2,000
+blobs in `src/shards/*/assets/` (~980 MB locally) are binaries under `src/` as well.
+
+**4. Options**
+- **A. One program per shard (recommended).** The program already exists: `wildshard build <shard>` (one process per
+  shard via `runShardBuildPool`). Each job becomes an exported function that `product.ts` / `output.ts` imports and calls.
+  An SDK `cached(step, inputs, fn)` wraps only the costly steps. Its key is the step module's import-closure hash
+  (`scripts/function-source.mjs` / the loader receipt already do this) plus the declared input files plus the host for
+  `native`. It stores `.glb` / `.bin` / `.json` in `~/.cache/wildshard/gen/<slug>/`. The product receipt (`shardfile-cache`)
+  stays the whole-shard cache. **Deletes:** the 22k-line catalogue, `generate.mjs` and ~1,500 lines of `generation-*.mjs` /
+  `bake-input-hashes` / `gen-shards` closure passes, 27 `*.d.json.ts` type shims, ~120 `.gitignore` lines and every
+  `*.generated.*` under `src/shards`. **Risks:** a cold shard runs its steps one after another (mitigate: shards run in
+  parallel, costly steps are cached, independent steps run in parallel inside the shard). The product receipt must key on
+  `cached` keys, not cache files. 266 tests move. **Size:** XL in total, one L lane-task per shard.
+- **B. One program for the repo.** It is A plus one process holding all shards. Process-wide installs collide, memory is
+  the sum of six closures (Nine alone loads 616 modules), and nothing runs in parallel. What it adds (one entry point) is
+  just A's driver. Rejected.
+- **C. Keep the files, move them out of `src/`, read them at run time.** S–M, and it gives the quick G643 win. But it keeps
+  the 264 subprocesses, the hand order, the hand-declared roots and the cache per file, and it loses types. That is the
+  dependency hell in a new folder. Rejected; A's lint ratchet gives the TypeScript win shard by shard.
+
+**5. Shard folder after the redesign.** Source only under `src/shards/<slug>/`:
+- `shard.config.ts`: the program entry, source in → shardfile out.
+- `generators/`: pure build-time functions (inputs → rows / bytes). They do I/O only through `ctx.cached` and `ctx.asset`,
+  and the runtime never imports them.
+- `data/`: authored rows only (hand-edited JSON / TS, committed).
+- `runtime/`, `behaviour/` (`.as`), `look/`, `models/`, `blender/` (`.py`), `audio/`, as today.
+
+Generated output, never under `src/`:
+- `out/<slug>/`: the shardfile product. Its content-addressed files replace `public/assets/<slug>/baked/` and
+  `src/shards/*/assets/`.
+- `~/.cache/wildshard/gen/<slug>/`: the step cache.
+
+Committed authored binaries (TRELLIS / Hunyuan / Blender GLBs, HDRIs, the 7 browser / ImageMagick outputs per D2) stay
+in `public/assets/<slug>/` as real `.glb` / `.png` / `.ktx2` / `.bin`. App-wide tables (`src/game/**/*.generated.ts`,
+`discovery.generated.ts`, boot tables) become build-time virtual modules (D4).
+
+**6. Lint bans.**
+- `wildshard/no-generated-import`: no import specifier matching `.generated.`, or naming a path a step writes, from `src/`
+  or `test/`. It uses a shrinking burn-down list (today: ~200 generator files, 266 tests, 7 runtime files).
+- `scripts/check-paths.mjs` adds a check: after `pnpm gen`, `git status --ignored src` lists nothing. No file under `src/`
+  is generated, and `.gitignore`'s `src/**/*.generated.*` becomes this ban.
+- `ktx2.generated.ts` (committed) is renamed to `ktx2.ts` as authored data, or moves into the product.
+
+## Rows (per shard: biggest win first, Nine as pilot)
+
+| Row | What | Size | Done when |
+|---|---|---|---|
+| GR0 | The two bans (§6) with burn-down lists; new offenders refused in pre-commit / CI | S | a new `*.generated.*` import or file under `src/` cannot land |
+| GR1 | SDK `ctx.cached` / `ctx.asset` (§4 A key), cache in `~/.cache/wildshard/gen`, product receipt keys on cached keys; `_template` rebuilt in the new form | M | `_template` and `pastel-plain` build with no job rows and no generated file under `src/` |
+| GR2 | `pnpm gen` becomes: app tables, then one `wildshard build` per shard in parallel (heavy-lane); `--shard=` | S | `pnpm gen` runs without `generate.mjs` for converted shards |
+| GR3 | **Nine** (27 jobs): calls replace imports; `castHook` / `lightSpill` / `paintArray` become cached `.glb` / `.bin` (closes B4); atlases per D2; its tests call functions | L | 0 Nine rows in the catalogue, 0 `*.generated.*` under its folder, product validates, boot smoke green |
+| GR4 | **Sunscar** (23 jobs) | M | same bar |
+| GR5 | **Far Reach** (47) | L | same bar |
+| GR6 | **Nalati** (47; 69 product imports, `poiPaint` / `grass` / `geography`) | L | same bar |
+| GR7 | **Driftwood** (41; chain of 5, `rockScenes` / `mapAssembly` number arrays) | L | same bar |
+| GR8 | **Pine** (60; HDRI keys and painted per D2) | XL | same bar |
+| GR9 | Small shards (ink-cel, blender-template, open-plots) and the 5 shared `scripts/bake-*` (pickups, textures, terrain, schemas) as game functions | M | catalogue empty |
+| GR10 | Runtime: the 7 runtime / plugin imports of outputs read shardfile sections | M | no runtime file imports a step output |
+| GR11 | App tables to virtual modules (D4): starter tables, slugs, discovery, boot tables, budgets | M | no `*.generated.*` anywhere under `src/` |
+| GR12 | Delete `generation-jobs.json`, `generate.mjs`, the `generation-*` helpers, the `*.d.json.ts` shims and the generated `.gitignore` lines; burn-down lists empty | M | the files are gone and both bans have no exceptions |
+
+GR0–GR2 first, then one shard at a time, each an independent lane-task that lands in small commits. The gen plan's timings
+pick which steps get `cached`.
+
+## Decisions for Jake
+
+1. **Design:** A (one program per shard, the shardfile build calling its generators), B, or C? **Recommend A.**
+2. **The 7 browser / ImageMagick steps:** committed real binaries in `public/assets/<slug>/`, rebuilt by a separate
+   `pnpm assets <slug>` with a staleness check, or run inside gen with a browser in CI? **Recommend committed binaries.**
+3. **Tests that read outputs (266):** call the functions (cached), or read the built `out/<slug>` product?
+   **Recommend calling the functions; only whole-product tests read `out/<slug>`.**
+4. **App-wide tables:** Vite virtual modules with a hand-written `.d.ts`, or files in `out/gen/` behind an import alias?
+   **Recommend virtual modules.**
+5. **Pilot shard:** Nine (biggest base64 and TypeScript win, every kind of step) or Sunscar (smallest)?
+   **Recommend Nine.**
