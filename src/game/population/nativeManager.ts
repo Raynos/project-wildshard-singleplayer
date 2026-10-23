@@ -113,6 +113,7 @@ export class NativePopulationDriver {
   private readonly route = { elite: 0, wolf: 0, dog: 0, held: 0 };
   private readonly missing = new Error('Missing native population context');
   private dodgeCd = 0;
+  private readonly policy = { state: 'owned' as const, decide: (dt: number, actor: HuntBody): void => { this.decide(actor, dt); }, sample: (actor: HuntBody): void => { actor.sampleTerrain(); } };
   private readonly cadence;
   constructor(private readonly host: SimHost, private readonly manager: NativeManager, private readonly hunt: StalkerBrain<HuntBody>, private readonly rng: Rng,
     private readonly bodies: HuntBody[], private readonly packs: ReadonlyMap<AnimalSim, PackBrain<AnimalSim>>,
@@ -127,7 +128,7 @@ export class NativePopulationDriver {
       actor: actor => actor.harnessHold || actor.hidden ? null : actor, id: actor => actor.entityId,
       player: host.player.position, noise: manager.noise, sight: manager.sight,
       reach: actor => canReach(actor, host.player.position, host.physics), brainDt: (id, urgent) => this.takeStep(id, urgent === true),
-      policy: actor => { const context = this.contexts.get(actor); if (context === undefined) throw this.missing; return context.policy; }, beforeDecisions: () => {
+      policy: () => this.policy, beforeDecisions: () => {
         const dodged = host.playerDodge.cd > this.dodgeCd; this.dodgeCd = host.playerDodge.cd;
         if (dodged) for (const actor of bodies) if (actor.alive && !actor.harnessHold && !actor.hidden && (actor.aggressive || hunt.sensed(actor))) this.cadence.wake(actor);
       } });
@@ -146,7 +147,7 @@ export class NativePopulationDriver {
     const { observation } = createNativeSpeciesContext({ host: this.host, hunt: this.hunt, rng: this.rng,
       world: null, heightAt: (x, z) => this.host.groundHeightAt(x, z), waterLevel: 0 }, actor, null);
     const projection:{owner?:ActorProjectionOwner}={};
-    return { ...observation, projection, policy: { state: 'owned' as const, decide: (dt: number): void => { this.decide(actor, dt); }, sample: (): void => { actor.sampleTerrain(); } }, claim: (a: AnimalSim): boolean => {
+    return { ...observation, projection, claim: (a: AnimalSim): boolean => {
       const director = this.tokens.get(a); if (director !== undefined && !(director instanceof AggressionDirector)) throw this.missing; return director?.take(a) ?? true;
     }, pathYaw: (a: AnimalSim, x: number, z: number, every = 1): number => this.hunt.pathYawFor(this.required(a), x, z, every),
       steer: (a: AnimalSim, yaw: number, speed: number, turn: number): void => { this.hunt.steerAny(this.required(a), yaw, speed, turn); },

@@ -6237,6 +6237,9 @@ dead/stunned handling. Its optional `sample()` runs before due ordinary
 decisions only, preserving wake-time observation order. Caller noise/sight
 records, snapshot envelopes, clocks,
 policy/charge/body phases and RNG streams remain with their owners.
+Owned policy callbacks receive the original roster actor: `sample(actor)`
+and `decide(dt, actor)`. One stable policy can handle late roster additions
+without requiring an observation context before its own decision gate.
 
 `bindMeshMap(id, originalMaterial)` and model-library
 `mappedLook(id, originalMaterial)` borrow the original colour/bump and

@@ -238,6 +238,8 @@ export class StalkerBrain<A extends AnimalSim> extends HuntingStalkerCore<A> {
    * request one urgent decision; interrupt wakes precede the ordinary decision.
    * A policy with state:'owned' keeps its own dead/stunned checks. Its sample
    * runs only before a due normal decision, never on an interrupt wake.
+   * Both callbacks receive the original roster actor, allowing one policy
+   * to serve newly joined bodies without constructing their observations.
    * This driver owns no save state, actor, clock, body step or random stream.
    */
   bindRoster<B>(ports: {
@@ -248,7 +250,7 @@ export class StalkerBrain<A extends AnimalSim> extends HuntingStalkerCore<A> {
     readonly noise: { seen: boolean; prev: Vector3; speed: number };
     readonly reach: (actor: A, player: Vector3) => boolean;
     readonly brainDt: (id: string, urgent?: boolean) => number;
-    readonly policy?: (body: B) => { readonly decide: (dt: number) => void; readonly state?: 'owned'; readonly sample?: () => void } | null;
+    readonly policy?: (body: B) => { readonly decide: (dt: number, actor: A) => void; readonly state?: 'owned'; readonly sample?: (actor: A) => void } | null;
     readonly herd?: (body: B) => number;
     readonly beforeDecisions?: () => void;
   }): {
@@ -262,10 +264,10 @@ export class StalkerBrain<A extends AnimalSim> extends HuntingStalkerCore<A> {
     const run = (body: B, actor: A, dt: number): void => {
       const policy = ports.policy?.(body) ?? null;
       if (policy === null) { this.think(actor, dt, player, false, noise.speed); return; }
-      if (policy.state === 'owned') { policy.decide(dt); return; }
+      if (policy.state === 'owned') { policy.decide(dt, actor); return; }
       if (!actor.alive) { actor.lookWeight = 0; return; }
       if (actor.stunned) { actor.setMotion(actor.yaw, 0, 1); actor.setStrafe(0); actor.lookTarget.copy(player); actor.lookWeight = 1; return; }
-      policy.decide(dt);
+      policy.decide(dt, actor);
       const index = ports.herd?.(body), herd = index === undefined ? undefined : this.herds[index];
       if (herd !== undefined) this.updateHerd(herd);
     };
@@ -296,7 +298,7 @@ export class StalkerBrain<A extends AnimalSim> extends HuntingStalkerCore<A> {
             sight[i] = clear;
           }
           const dt = ports.brainDt(ports.id(body), ports.order === 'combined' ? urgent : undefined);
-          if (dt > 0) { ports.policy?.(body)?.sample?.(); run(body, actor, dt); }
+          if (dt > 0) { ports.policy?.(body)?.sample?.(actor); run(body, actor, dt); }
         }
       },
       wake,

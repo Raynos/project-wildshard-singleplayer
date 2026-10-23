@@ -107,7 +107,7 @@ function stallion(i:i32):void{
  }
  flags(i,f);
 }
-export function planDrive():void{
+export function planDrive(first:i32):void{
  // The entire fixed input/output span is checked once, rather than walking
  // the ABI directory again for every pair in the boid sum. No pointer survives
  // this synchronous projection and the host validates the complete bank.
@@ -115,9 +115,8 @@ export function planDrive():void{
  inputBase=core.row(6,0);outputBase=core.row(3,0);
  for(let i=0;i<count*51;i++){const at=inputBase+usize(i)*16;assert(load<i32>(at)==i+1&&load<i32>(at+4)==1);}
  const st=role(S.stallion),ridden=role(S.ridden);
- for(let i=0;i<16;i++){
+ for(let i=first;i<Math.min(count,first+8);i++){
   for(let k=0;k<24;k++)w(i,k,0);w(i,P.lookWeight,-1);w(i,P.sound,-1);
-  if(i>=Read.members())continue;
   if(m(i,M.alive)!=0&&i!=ridden&&m(i,M.ridden)!=1){if(i==st)stallion(i);else ordinary(i);}
   for(let part=0;part<8;part++)core.pageOutput(200+part,i,r(part*3),r(part*3+1),r(part*3+2));
  }

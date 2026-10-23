@@ -520,3 +520,28 @@ test('locomotion parts preflight the complete member suffix before a plan publis
   const retired=prepareGroupNativeV2(operations,owners);f.scope.dispose();expect(()=>retired.run()).toThrow(/Retired|disposed/);
  }finally{f.scope.dispose();}
 });
+
+test.each(modes)('%s: a full roster plans within the admitted invocation budget',mode=>{
+ for(const state of states){
+  const f=fixture(mode,state,false,16);const original=f.herd.snapshot();bindNativeGuest(f);f.herd.restore(original);
+  try{f.herd.tick(f.ctx);for(const actor of f.roster)f.herd.drive(actor,f.ctx);expect(f.roster.every(actor=>Number.isFinite(actor.desiredSpeed))).toBe(true);}
+  finally{f.scope.dispose();}
+ }
+},30_000);
+
+test.each(modes)('%s: a dense moving roster plans within the admitted invocation budget',mode=>{
+ for(const state of states){
+  const f=fixture(mode,state,false,16);f.roster.forEach((actor,index)=>{actor.position.set(index*.1,0,index*.1);actor.speed=5;});
+  const original=f.herd.snapshot();bindNativeGuest(f);f.herd.restore(original);
+  try{f.herd.tick(f.ctx);for(const actor of f.roster)f.herd.drive(actor,f.ctx);expect(f.roster.every(actor=>Number.isFinite(actor.desiredSpeed))).toBe(true);}
+  finally{f.scope.dispose();}
+ }
+},30_000);
+
+test('a final warning guard keeps boolean scratch valid after its timed sound plan',()=>{
+ const f=fixture('graze','warn',false,16),guard=f.roster.splice(2,1)[0];if(guard===undefined)throw new Error('Missing guard');f.roster.push(guard);
+ f.ctx.calm=true;f.ctx.player.copy(guard.position).add(new Vector3(25,0,0));guard.mem['snT']=0;
+ const original=f.herd.snapshot();bindNativeGuest(f);f.herd.restore(original);
+ try{f.herd.tick(f.ctx);expect(f.herd.stallionState).toBe('warn');f.herd.drive(guard,f.ctx);expect(guard.mem['snT']).toBeGreaterThan(1);expect(f.log.some(row=>row[0]==='sound'&&row[1]==='snort')).toBe(true);}
+ finally{f.scope.dispose();}
+});

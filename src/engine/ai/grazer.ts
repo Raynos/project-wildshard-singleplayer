@@ -484,7 +484,7 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
       references:new Map([...named,['self',references.find(row => row.body === actor) ?? null],['target',target],['threat',threat]]),
       results:{...this.captureHerdGuestRoles(actor),reply:call.reply}}));
     const selection=binding.rows.capture,slots=new Set<number>([0,call.slot]);
-    if(call.signal==='tick'&&retained[binding.rows.resume.field]===170)for(let index=0;index<members.length;index++)slots.add(index);
+    if(call.signal==='tick'&&(retained[binding.rows.resume.field]===170||retained[binding.rows.resume.field]===171))for(let index=0;index<members.length;index++)slots.add(index);
     if(selection!==undefined){
       for(const name of selection.slots){const value=retained[name];if(typeof value==='number'&&Number.isInteger(value)&&value>=0&&value<members.length)slots.add(value);}
       for(const name of selection.references){

@@ -80,3 +80,11 @@ test('a policy-owned state gate samples only a normal decision, after wake and b
   due = false; cadence.decide(); expect(events).toHaveLength(3);
   body.alive = false; due = true; cadence.decide(); expect(events.slice(3)).toEqual(['terrain', 'stunned']);
 });
+
+test('one owned policy receives the original actor for late roster additions',()=>{
+ const brain=new ObservedBrain(),first=actor(),late=actor(),bodies=[first],samples:AnimalSim[]=[],decisions:AnimalSim[]=[];
+ const policy={state:'owned' as const,sample:(body:AnimalSim):void=>{samples.push(body);},decide:(_dt:number,body:AnimalSim):void=>{decisions.push(body);}};
+ const cadence=brain.bindRoster({limit:2,order:'combined',at:index=>bodies[index],actor:body=>body,id:body=>body.entityId,
+  player:new Vector3(),noise:{seen:false,prev:new Vector3(),speed:0},sight:[],reach:()=>true,brainDt:()=>.1,policy:()=>policy});
+ cadence.decide();bodies.push(late);cadence.decide();expect(samples).toEqual([first,first,late]);expect(decisions).toEqual(samples);
+});
