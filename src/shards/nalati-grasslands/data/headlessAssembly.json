@@ -76,6 +76,21 @@
     ]
   },
   "constants": {
+    "eliteEntry": {
+      "kind": "elite.construct",
+      "owner": "nalati.elites",
+      "file": "sim/headless-assembly.json",
+      "admission": "sim/headless-boot.json",
+      "fight": "nalati.qara-charge",
+      "models": "nalati.trophies",
+      "program": "elite.rules",
+      "weather": "nalati.weather",
+      "night": "nalati.night",
+      "ledges": {
+        "part": "crags",
+        "anchor": "ledges"
+      }
+    },
     "timedEntry": {
       "kind": "timed.encounters",
       "owner": "nalati.night",

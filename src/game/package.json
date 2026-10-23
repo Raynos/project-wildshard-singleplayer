@@ -291,6 +291,7 @@
     "./quest/bodyOps": "./quest/bodyOps.ts",
     "./shardfile/entryOwners": "./shardfile/entryOwners.ts",
     "./shardfile/clientTimedEncounters": "./shardfile/clientTimedEncounters.ts",
+    "./shardfile/clientEliteConstruction": "./shardfile/clientEliteConstruction.ts",
     "./shardfile/worldActionsV2": "./shardfile/worldActionsV2.ts",
     "./systems/cellField": "./systems/cellField.ts",
     "./quest/continuation": "./quest/continuation.ts",

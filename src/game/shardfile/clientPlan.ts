@@ -248,6 +248,11 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     const { installClientStealthEntry } = await import('./clientStealthEntry');
     installClientStealthEntry(ctx, row);
   } },
+  'elite.construct': { phase: 'world', rank: 75, lifetime: 'entered', sections: [], install: async (ctx, row) => {
+    if (row.kind !== 'elite.construct') throw new Error('Invalid elite construction feature');
+    const { installClientEliteConstruction } = await import('./clientEliteConstruction');
+    await installClientEliteConstruction(ctx, row);
+  } },
   'timed.encounters': { phase: 'world', rank: 80, lifetime: 'entered', sections: [], install: async (ctx, row) => {
     if (row.kind !== 'timed.encounters') throw new Error('Invalid timed encounter feature');
     const { installClientTimedEncounters } = await import('./clientTimedEncounters');

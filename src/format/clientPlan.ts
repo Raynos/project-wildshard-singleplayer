@@ -81,6 +81,8 @@ export const ClientFeatureSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('stealth.entry'), owner: id, claims: id, riding: id, night: id, bow: id, melee: id,
     impactExclusion: v.pipe(finite, v.minValue(0)), debugRiding: v.exactOptional(id),
     frame: v.strictObject({ id, after: v.pipe(v.array(id), v.maxLength(16)), before: v.pipe(v.array(id), v.maxLength(16)) }) }),
+  v.strictObject({ kind: v.literal('elite.construct'), owner: id, file: label, admission: label, fight: id, models: id, program: id, weather: id, night: id,
+    ledges: v.strictObject({part: id, anchor: id}) }),
   v.strictObject({ kind: v.literal('timed.encounters'), owner: id, file: label, draws: id, species: id, guest: id, weather: id,
     sites: v.exactOptional(id), figures: v.strictObject({rider: id, captain: id, storm: v.picklist(['rider', 'captain'])}) }),
   v.strictObject({ kind: v.literal('practice.course'), course: v.picklist(['horse', 'grapple']),

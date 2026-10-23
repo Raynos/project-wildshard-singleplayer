@@ -1,8 +1,5 @@
 import { entryOwner, lateEntryOwner, presentEntryOwner, publishEntryOwner } from '@wildshard/game/shardfile/entryOwners';
-import { readSpawnScript } from '@wildshard/game/population/spawnScript';
 import { clientWildlife, clientWildlifeState } from '@wildshard/game/population/wildlife';
-import { ReturnProgram } from '@wildshard/game/population/returnProgram';
-import { wildEnv } from '@wildshard/game/population/pageGroups';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardRuntime } from '@wildshard/game/shard/runtime';
 import * as v from 'valibot';
@@ -15,11 +12,10 @@ import { slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 
 import { SceneDressing } from '@wildshard/game/shardfile/sceneDressing';
 import { buildArenaRoomEncounter } from '@wildshard/game/boss/arenaRoom';
-import { DeclaredEliteEntry } from '@wildshard/engine/ai/view/eliteEntry';
-import { parseEliteEntryPageRows } from '@wildshard/format/eliteEntryRows';
 import { WorldAssembly } from '@wildshard/game/shardfile/worldAssembly';
 import prefix from '../data/worldPrefix.json' with { type: 'json' };
 import { installClientTimedEncounters } from '@wildshard/game/shardfile/clientTimedEncounters';
+import { installClientEliteConstruction } from '@wildshard/game/shardfile/clientEliteConstruction';
 import { installWorldUpdates } from '@wildshard/game/shardfile/worldUpdates';
 
 
@@ -32,10 +28,8 @@ import { installCombatTargets, type CombatTargetOwner } from '@wildshard/game/sh
 export type Nalati = Awaited<ReturnType<typeof buildNalatiState>>;
 
 async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin: ShardContext, progress?: StepProgress) {
-  const { admission, worldUpdates, combatTargets: targetRows } = v.parse(v.object({ admission: v.unknown(), worldUpdates: v.unknown(), combatTargets: v.unknown() }), await plugin.product.json('sim/headless-boot.json'));
+  const { worldUpdates, combatTargets: targetRows } = v.parse(v.object({ worldUpdates: v.unknown(), combatTargets: v.unknown() }), await plugin.product.json('sim/headless-boot.json'));
   const shapes = await WorldAssembly.prepareNative(prefix, plugin);
-  const eliteProgram = ReturnProgram.page(admission, plugin.scope);
-  const { game } = ctx;
   const slice = slicer(0, progress);
   const total = 7;
   progress?.set(0, total, 'Preparing world builders');
@@ -61,14 +55,12 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   updates.push((dt, t) => { titan.update(dt, t); });
 
   // ── named elites (elites agent, B12): the five lairs, their spawn rules on the clock / the storm — src/shards/nalati-grasslands/elites.ts ──
-  const charge = await readSpawnScript(plugin.product, 'nalati.qara-charge');
-  const { constants: { pageElites: eliteInput, trophies, timedEntry } } = await plugin.product.json<{ constants: { pageElites: unknown; trophies: unknown; timedEntry: unknown } }>('sim/headless-assembly.json');
-  const eliteRows = parseEliteEntryPageRows(eliteInput);
+  const { constants: { trophies, timedEntry, eliteEntry } } = await plugin.product.json<{ constants: { trophies: unknown; timedEntry: unknown; eliteEntry: unknown } }>('sim/headless-assembly.json');
   // the lairs' trophies: drawn from the shape book at this slot (data/worldTrophies.json, a drawn-models stage)
   await WorldAssembly.construct(trophies, { runtime, native: plugin, product: plugin.product, scope: plugin.scope, draws: shapes, baked: new Map() });
-  const drops = entryOwner(plugin.scope, 'drawn-models', 'nalati.trophies');
-  const eliteLedges = anchors('crags', 'ledges');
-  const elites = new DeclaredEliteEntry(eliteRows.entry, game.levelScope);
+  const eliteOwner = await installClientEliteConstruction(plugin, eliteEntry);
+  const { entry: elites, rows: eliteRows, models: drops, fight: charge, ledges: eliteLedges } = eliteOwner;
+  const eliteProgram = eliteOwner.program.value;
   updates.push((dt, t) => {
     if (titan.engaged) { elites.bar?.hide(); return; }   // one boss bar at a time: the elites stand down while the Titan fights
     if (practiceRoom.open) { elites.bar?.hide(); return; }   // a practice room over the steppe: no banner, no bar, no lair found from 3 km up (E321)
@@ -121,12 +113,6 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   plugin.debug.expose('nalati.ghosts', night.riders);
   plugin.debug.expose('nalati.dressing', dressing);
   await slice(total, total, 'World services');
-  publishEntryOwner(plugin.scope, 'elite-entry', 'nalati.elites', {
-    entry: elites, rows: eliteRows, construction: game.levelScope, models: drops, population: clientWildlifeState(plugin),
-    program: { id: 'elite.rules', scope: game.levelScope, value: eliteProgram }, fight: charge,
-    environment: wildEnv, get clock() { return readWeather().clock; }, get weather() { return readWeather().weather; },
-    ledges: eliteLedges, patrol: night.riders,
-  });
   return nalati;
 }
 

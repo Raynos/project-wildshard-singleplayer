@@ -13386,6 +13386,15 @@ entered scope. Fired/impact handlers retain the prior multiplier, exact
 boundary and roster order; retirement removes listeners and restores only
 its own bow wrapper. No new body, clock, save owner or Debug row is added.
 
+The G677 `elite.construct` feature parses the existing entry rows on the
+original level scope and publishes the original trophies, admission programme,
+charge catalogue, population and ledges. Weather and night patrol resolve
+late from their original entered loans; retirement or replacement refuses.
+Construction only parses/freezes rows: bodies, RNG, UI and programme execution
+remain in the original `elite.entry` play binding. Its world rank is 75,
+between declared assembly (70) and timed encounters (80); native state keeps
+the original slot until that assembly transition lands.
+
 The G677 `timed.encounters` constructor names its original fixed draws,
 species programme, optional dressing sites, figure slots and weather loan.
 It copies rider and captain once on the original level scope and aliases
