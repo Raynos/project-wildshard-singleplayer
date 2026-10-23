@@ -1,0 +1,64 @@
+diff --git a/src/shards/driftwood-isle/generators/cove.ts b/src/shards/driftwood-isle/generators/cove.ts
+index 7a937a83dc..37fbe632fa 100644
+--- a/src/shards/driftwood-isle/generators/cove.ts
++++ b/src/shards/driftwood-isle/generators/cove.ts
+@@ -40,7 +40,7 @@ export function coveGeometry(spec: CoveSpec, heightAt: (x: number, z: number) =>
+       const old = rock(r, 1, rng, squash, 0.28), m = m4(x, y, z, rng.range(0, 6.28));
+       for (let i = old.getAttribute('position').count / 3; i > 0; i--) rng.next();
+       old.dispose();
+-      const g = rockGeometry(r, rockRng, { squash, palette: REEF_ROCK, moss: top === C.moss ? 0.8 : 0.3, ground: -0.2 * r });
++      const g = rockGeometry(r, rockRng, { squash, palette: REEF_ROCK, moss: top === C.moss ? 0.8 : 0.3, ground: -0.2 * r, detail: -1 });
+       g.applyMatrix4(m); smoothRocks.push(g);
+       g.computeBoundingBox(); placements.push({ m, r, squash, moss: top === C.moss ? 0.8 : 0.3, box: g.boundingBox?.clone() ?? new THREE.Box3() });
+     };
+diff --git a/src/shards/driftwood-isle/generators/shrine.ts b/src/shards/driftwood-isle/generators/shrine.ts
+index 343ebb7590..b10c85c191 100644
+--- a/src/shards/driftwood-isle/generators/shrine.ts
++++ b/src/shards/driftwood-isle/generators/shrine.ts
+@@ -23,7 +23,7 @@
+  */
+ import * as THREE from 'three';
+ import { SEED } from '@wildshard/engine/core/config';
+-import type { Rng } from '@wildshard/engine/core/rng';
++import { Rng } from '@wildshard/engine/core/rng';
+ import { siteFloor, type BoxSpec as Collider, type FloorRect } from '@wildshard/engine/physics/box';
+ import { rock, tris } from '@wildshard/engine/world/geometryKit';
+ import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
+@@ -237,7 +237,11 @@ export class ShrineBuilder {
+       const lx = Math.cos(a) * (POOL.rx + 0.75), lz = POOL.z + Math.sin(a) * (POOL.rz + 0.75);
+       if (Math.abs(lx) < POOL.causeway + 0.2) continue;
+       const [x, z] = this.W(lx, lz);
+-      kit.addTopped(rock(r, 1, rng, 0.6, 0.25), rng.next() < 0.5 ? C.stone : C.stoneB, C.moss, { matrix: new THREE.Matrix4().makeTranslation(x, Math.max(this.ground(x, z), wy) + r * 0.1, z), minY: 0.6, jitter: 0.08 });
++      // T8 LOD variant: a 20-face rim rock; the 80-face rock's draws are burnt so the rest of the shrine stays put
++      const full = rock(r, 1, rng, 0.6, 0.25), lite = rock(r, 0, new Rng(k + 0x5e1), 0.6, 0.25);
++      full.dispose();
++      kit.addTopped(lite, rng.next() < 0.5 ? C.stone : C.stoneB, C.moss, { matrix: new THREE.Matrix4().makeTranslation(x, Math.max(this.ground(x, z), wy) + r * 0.1, z), minY: 0.6, jitter: 0.08 });
++      for (let t = 60; t > 0; t--) rng.next();
+     }
+     for (let lz = POOL.z - POOL.rz - 0.5; lz < POOL.z + POOL.rz + 0.6; lz += 0.85) {
+       const [x, z] = this.W(rng.range(-0.08, 0.08), lz);
+@@ -282,7 +286,10 @@ export class ShrineBuilder {
+       if ((lx / (POOL.rx + 1)) ** 2 + ((lz - POOL.z) / (POOL.rz + 1)) ** 2 < 1) continue;      // the pool
+       const [x, z] = this.W(lx, lz), m = new THREE.Matrix4().compose(new THREE.Vector3(x, this.ground(x, z) - 0.05, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, rng.range(0, 6), 0)), new THREE.Vector3(1, 1, 1));
+       const kind = i % 3, s = rng.range(1.1, 2.4) * (r > 13 ? 1.3 : 1);
+-      addOpenEnded(kit, kind === 0 ? broadClump(rng, s) : kind === 1 ? fern(rng, s * 0.9) : hibiscusBush(rng, s * 0.8), { matrix: m, jitter: 0.1 });
++      const clump = kind === 0 ? broadClump(rng, s) : kind === 1 ? fern(rng, s * 0.9) : hibiscusBush(rng, s * 0.8);
++      // T8 LOD variant: every fourth clump left out; its jitter draws are burnt so the rest of the shrine stays put
++      if (i % 4 === 3) { for (const [g] of clump) { for (let t = (g.index?.count ?? g.getAttribute('position').count) / 3; t > 0; t--) rng.next(); g.dispose(); } continue; }
++      addOpenEnded(kit, clump, { matrix: m, jitter: 0.1 });
+     }
+     TIERS.forEach((t, i) => {
+       if (i === 2) return;
+diff --git a/src/shards/driftwood-isle/generators/wreckSite.ts b/src/shards/driftwood-isle/generators/wreckSite.ts
+index a2d6401d45..7dc2f6ae90 100644
+--- a/src/shards/driftwood-isle/generators/wreckSite.ts
++++ b/src/shards/driftwood-isle/generators/wreckSite.ts
+@@ -109,7 +109,7 @@ export function wreckSite(spec: WreckSpec, heightAt: (x: number, z: number) => n
+         const mossy = rng.next() < 0.6, m = wm(x, y + r * 0.2, z, rng.range(0, 6));
+         for (let i = old.getAttribute('position').count / 3; i > 0; i--) rng.next();
+         old.dispose();
+-        const g = rockGeometry(r, rockRng, { squash: 0.62, palette: REEF_ROCK, moss: mossy ? 0.9 : 0.5, ground: -0.2 * r });
++        const g = rockGeometry(r, rockRng, { squash: 0.62, palette: REEF_ROCK, moss: mossy ? 0.9 : 0.5, ground: -0.2 * r, detail: -1 });
+         g.applyMatrix4(m); reef.push(g);
+         g.computeBoundingBox(); reefCopies.push({ m, r, moss: mossy ? 0.9 : 0.5, box: g.boundingBox?.clone() ?? new THREE.Box3() });
+         if (r > 0.9) colliders.push({ x, z, hw: r * 0.8, hd: r * 0.8, rot: 0, yTop: y + r * 0.7, yBottom: y - 2 });
