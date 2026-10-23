@@ -1,6 +1,7 @@
 import { prepareClientReturnModules } from './clientReturnModules';
 import { preflightIslandBook } from './islandBook';
 import { installClientAdventurePersistence } from '../quest/persistence';
+import { enteredAdventurePersistence } from '../quest/chapterBindings';
 import { timeClientPreparation } from './preparationTiming';
 import { installPracticeCourse } from '../practice/registration';
 import { runtimeLookMaterials } from './runtimeProduct';
@@ -59,14 +60,20 @@ interface ClientFeature {
   readonly needsWorldLooks?: false;
   readonly install: (ctx: ShardContext, row: ClientFeatureRow, resident: Scope) => Promise<void> | void;
   readonly play?: { readonly rank: number; readonly install: ClientFeature['install'] };
-  readonly preparePlay?: { readonly rank: number; readonly install: ClientFeature['install'] };
+  readonly preparePlay?: { readonly rank: number; readonly install: ClientFeature['install']; readonly when?: (row: ClientFeatureRow) => boolean };
 }
 /** Compiled-in client-only registry. Adding a kind requires its strict format schema and a reviewed platform host. */
 export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>> = {
   'content.catalogue': { phase: 'kit', rank: 15, lifetime: 'entered',
     // Item/quest/journal envelopes are root data; finishes are streamed separately.
     sections: ['held/finishes'], install: installClientCatalogue },
-  'state.adventure': { phase: 'world', rank: 5, lifetime: 'entered', sections: [], install: installClientAdventurePersistence },
+  'state.adventure': { phase: 'world', rank: 5, lifetime: 'entered', needsWorldLooks: false, sections: [], install: installClientAdventurePersistence,
+    preparePlay: { rank: -100, when: row => row.kind === 'state.adventure' && row.progress === true, install: (ctx, row) => {
+      if (row.kind !== 'state.adventure' || row.progress !== true) throw new Error('Invalid adventure progress feature');
+      const play = ctx.game.runtime?.play;
+      if (play === undefined || play === null) throw new Error('Adventure progress requires its play owner');
+      enteredAdventurePersistence(ctx.scope).bindProgress(play.progress);
+    } } },
   'world.assembly': { phase: 'world', rank: 70, lifetime: 'entered', needsWorldLooks: false, sections: ['world/scenes'], install: async (ctx, row) => {
     if (row.kind !== 'world.assembly') throw new Error('Invalid world assembly feature');
     const { installClientWorldAssembly } = await import('./clientWorldAssembly');
@@ -111,6 +118,11 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
   'weather.forest': { phase: 'play', rank: 40, lifetime: 'entered', sections: [],
     install: async (ctx, row) => {
       if (row.kind !== 'weather.forest') throw new Error('Invalid forest weather feature');
+      if (row.hud === true) {
+        const play = ctx.game.runtime?.play;
+        if (play === undefined || play === null) throw new Error('Weather HUD requires its play owner');
+        ctx.on('weather.changed', state => { if (ctx.game.runtime?.play !== play) throw new Error('Weather HUD owner changed'); play.hud.setWeather(state); });
+      }
       const { installClientForestWeather } = await import('./clientForestPage');
       await installClientForestWeather(ctx, row.file, undefined, row.owner);
     } },
@@ -418,7 +430,7 @@ export async function installClientPhase(ctx: ShardContext, plan: AdmittedClient
     if (lifetime !== undefined && feature.lifetime !== lifetime) return [];
     return [...(feature.phase === phase ? [{ row, rank: feature.rank, install: feature.install }] : []),
       ...(phase === 'play' && feature.play !== undefined ? [{ row, ...feature.play }] : []),
-      ...(phase === 'prepare-play' && feature.preparePlay !== undefined ? [{ row, ...feature.preparePlay }] : [])];
+      ...(phase === 'prepare-play' && feature.preparePlay !== undefined && (feature.preparePlay.when?.(row) ?? true) ? [{ row, ...feature.preparePlay }] : [])];
   }).sort((a, b) => a.rank - b.rank || phaseKey(a.row).localeCompare(phaseKey(b.row)));
   // The platform's look phase precedes every entered world step, including
   // trusted runtimes whose data client intentionally skips presentation. A

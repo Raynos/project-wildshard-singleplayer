@@ -32,8 +32,8 @@ test('the shipped King intake retains its attack owner before weather is publish
   const files=new Map((emitted.output.namedFiles??[]).flatMap(file=>file.name===undefined?[]:[[file.name,{...file,url:file.path}] as const]));
   const product=createShardProduct({slug:emitted.shard.identity.slug,revision:emitted.shard.identity.revision,shardfile:emitted.shard,sections:outputPlatformPayloads(emitted.output.platform,['client/plan','actors/return-scripts']),files,
     read:hash=>{const bytes=emitted.assets.get(hash);if(bytes===undefined)throw new Error('Missing shipped named bytes');return Promise.resolve(bytes);}});
-  const plan=v.parse(v.object({features:v.array(v.object({kind:v.string(),file:v.exactOptional(v.string()),owner:v.exactOptional(v.string())}))}),product.section('client/plan'));
-  expect(plan.features.filter(row=>row.kind==='weather.forest')).toEqual([{kind:'weather.forest',file:'world/forest-weather.json',owner:'nalati.weather'}]);
+  const plan=v.parse(v.object({features:v.array(v.object({kind:v.string(),file:v.exactOptional(v.string()),owner:v.exactOptional(v.string()),hud:v.exactOptional(v.literal(true))}))}),product.section('client/plan'));
+  expect(plan.features.filter(row=>row.kind==='weather.forest')).toEqual([{kind:'weather.forest',file:'world/forest-weather.json',owner:'nalati.weather',hud:true}]);
   expect(await product.json('world/forest-weather.json')).toEqual(v.parse(ForestWeatherSchema,NALATI_WEATHER_PAGE));
   const fight=v.parse(v.object({programs:v.record(v.string(),v.unknown())}),await product.json('combat/titan-fight.json'));
   expect(Object.keys(fight.programs)).toStrictEqual(['attack','wind']);

@@ -565,11 +565,14 @@
       "stagesOwner": "declared",
       "nativePlan": {
         "phases": [
+          "world",
           "world-bindings",
           "kit",
+          "prepare-play",
           "play"
         ],
         "features": [
+          "state.adventure",
           "weather.forest",
           "held.claims.install",
           "taming.entry",

@@ -18,6 +18,8 @@ import { parseClientChannels } from '../src/format/clientChannels';
 import { DayCycle } from '../src/engine/world/dayCycle';
 import { WeatherContinuation } from '../src/engine/world/weatherContinuation';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
+import { Events } from '../src/engine/events/events';
+import type { WeatherHUD } from '../src/engine/ui/HUD';
 
 const row = { kind: 'weather.forest', owner: 'meadow.weather', file: 'world/forest-weather.json' } as const;
 const policy = { files: { program: 'weather/program.json' }, mode: 'live', debug: 'meadow.weather', heldPhase: 0,
@@ -39,6 +41,25 @@ function fixture(parent?: Scope) {
 
 
 const install = (ctx: ShardContext): Promise<void> => installClientForestWeather(ctx, row.file, undefined, row.owner);
+
+test('declared weather HUD binds before weather reads and keeps the original play owner', async () => {
+  const f = clockedFixture(), events = new Events(), setWeather = vi.fn<(state: WeatherHUD) => void>(() => undefined);
+  f.runtime.play = legacyDouble<NonNullable<typeof f.runtime.play>>({hud: legacyDouble<NonNullable<typeof f.runtime.play>['hud']>({setWeather})});
+  const original = f.runtime.play;
+  const on: ShardContext['on'] = (name, run) => { f.trace.push('bind HUD'); events.on(name, run, f.scope); };
+  Object.assign(f.ctx, {on});
+  const weather = {chip: null, getLow: true};
+  try {
+    await CLIENT_FEATURES['weather.forest'].install(f.ctx, {...row, hud: true}, f.scope);
+    expect(f.trace[0]).toBe('bind HUD');
+    events.emit('weather.changed', weather); events.flush('update'); expect(setWeather).toHaveBeenCalledExactlyOnceWith(weather);
+    f.runtime.play = null;
+    events.emit('weather.changed', weather); expect(() => events.flush('update')).toThrow('HUD owner changed');
+    expect(setWeather).toHaveBeenCalledTimes(1);
+    f.runtime.play = original; f.scope.dispose();
+    events.emit('weather.changed', weather); events.flush('update'); expect(setWeather).toHaveBeenCalledTimes(1);
+  } finally { f.close(); }
+});
 
 test('weather is the existing strict play feature and the assembly stage is retired', () => {
   const rows = { version: 1, features: [row] };

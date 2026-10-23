@@ -46,9 +46,6 @@ export class NalatiPlugin extends ShardPlugin {
   override async play(ctx: ShardContext): Promise<void> {
     const { shell } = host(ctx), h = shell.play, rt = this.rt, mounted = entryOwner(ctx.scope, 'claims', 'nalati.arsenal'), kit = mounted.pageKit(ctx);
     if (h === null || rt === null || kit === null) throw new Error('Nalati gameplay requires its world, equipment and UI');
-    const { hud, progress } = h;
-    const persistence = entryOwner(ctx.scope, 'adventure', 'progress');
-    persistence.bindProgress(progress);
     // SF67: the play installation a part a task (the ride, the bosses, the elites, the camp people were one ~290 ms task at
     // 4x CPU). What ran before the first yield (the King's binding, the ride, the ride's director) runs under the owner the
     // call began with, as it did.
@@ -60,7 +57,6 @@ export class NalatiPlugin extends ShardPlugin {
     owned(() => { rt.bindPlay(kit); });
     await part();
     Object.assign(shell.objects, { wildlife });
-    ctx.on('weather.changed', (state) => { hud.setWeather(state); });
     await part();
   }
 }

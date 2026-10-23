@@ -11849,6 +11849,9 @@ The figure payload is admitted once and never taken from dialogue rows.
 The optional `state.adventure.id` publishes its original AdventurePersistence
 under that concrete entered-service id. A live scope and unchanged product and
 world are required across admission; no second persistence owner is created.
+With `progress:true`, its existing owner binds the original play progress ledger
+in prepare-play before plugin play. This metadata-only feature does not prepare
+world look materials. Omitted progress keeps its original phase behavior.
 `Elites.bindDeclaredEntry` may omit explicit `controllers`: its admitted
 `borrowed` rows then construct the engine's BorrowedElite
 (engine/ai/view/eliteEntry) with the supplied models, decision program and,
@@ -12117,7 +12120,9 @@ add no clock, persistence or ownership of borrowed resources.
 
 `weather.forest` runs the existing forest-weather host at play rank 40,
 after world construction and before page life or arena entry. Pine and
-Nalati supply the same finite weather rows. An optional `owner` id lends
+Nalati supply the same finite weather rows. Optional `hud:true` subscribes the
+original play HUD before weather admission, with entered-scope teardown and a
+play-owner identity fence. An optional `owner` id lends
 the resulting original rig as `world-weather` and its group as `object`
 in the runtime's original scope. The publication retains the exact product,
 read functions, world, sky, scene and native level scope across every await.

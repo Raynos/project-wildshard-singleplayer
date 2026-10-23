@@ -12,6 +12,7 @@ import { legacyAdventureNames,legacyAdventureCosmetics,legacyAdventureBond } fro
 import { bindAdventurePersistence, installClientAdventurePersistence } from '../src/game/quest/persistence';
 import source from '../src/shards/nalati-grasslands/shard.config';
 import rows from '../src/shards/nalati-grasslands/data/persistence.generated.json' with { type: 'json' };
+import { CLIENT_FEATURES } from '../src/game/shardfile/clientPlan';
 
 test('Nalati adopts old saves, replays stable feat identities and reloads only declared records', () => {
   const slug = source.identity.slug, instance = 'declared-nalati-old-save';
@@ -87,4 +88,26 @@ test('replacing the persistence world during admission publishes no saved owner'
     expect(() => entryOwner(scope, 'adventure', 'saved')).toThrow();
     expect(() => enteredAdventurePersistence(scope)).toThrow('not entered');
   } finally { read.mockRestore(); scope.dispose(); }
+});
+
+test('declared progress binds the original saved owner before plugin play and refuses retirement', async () => {
+  const scope = new Scope('adventure-progress'), trace: string[] = [];
+  const progress = legacyDouble<NonNullable<ShardRuntime['play']>['progress']>({bindLedger: () => { trace.push('bind ledger'); }});
+  const runtime = legacyDouble<ShardRuntime>({play: legacyDouble<NonNullable<ShardRuntime['play']>>({progress})});
+  const ctx = legacyDouble<ShardContext>({scope, game: legacyDouble<ShardContext['game']>({runtime})});
+  const owner = bindAdventurePersistence({app, scope}, source, rows, 'progress-feature');
+  const feature = CLIENT_FEATURES['state.adventure'].preparePlay;
+  if (feature === undefined) throw new Error('Missing progress phase');
+  try {
+    expect(CLIENT_FEATURES['state.adventure'].needsWorldLooks).toBe(false);
+    expect(feature.rank).toBe(-100);
+    expect(feature.when?.({kind: 'state.adventure', file: 'quests/persistence.json'})).toBe(false);
+    const row = {kind: 'state.adventure', file: 'quests/persistence.json', id: 'progress', progress: true} as const;
+    expect(feature.when?.(row)).toBe(true);
+    await feature.install(ctx, row, scope); trace.push('plugin play');
+    expect(trace).toEqual(['bind ledger', 'plugin play']);
+    expect(enteredAdventurePersistence(scope)).toBe(owner);
+    scope.dispose(); expect(() => feature.install(ctx, row, scope)).toThrow('not entered');
+    expect(trace).toEqual(['bind ledger', 'plugin play']);
+  } finally { scope.dispose(); }
 });
