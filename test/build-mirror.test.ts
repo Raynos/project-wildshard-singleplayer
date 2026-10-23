@@ -8,6 +8,7 @@ import { dirname, join, resolve } from 'node:path';
 import { env as processEnv, pid } from 'node:process';
 import { afterEach, expect, it, vi } from 'vitest';
 import { openMirror } from '../scripts/build-mirror.mjs';
+import { InputHashMemo } from '../scripts/bake-input-hashes.mjs';
 
 const owned: string[] = [];
 afterEach(() => { for (const dir of owned.splice(0)) rmSync(dir, { recursive: true, force: true }); });
@@ -289,4 +290,39 @@ it('discards complete legacy generated groups without a slot baseline', () => {
   const next = openMirror(sha, { repo, env });
   try { expect(existsSync(join(next.dir, 'dist/rows.json'))).toBe(false); }
   finally { next.release(); }
+});
+
+
+it('invalidates a producer whose output disappears while its snapshot is being hashed', () => {
+  const { repo, commit, env } = fixture();
+  const first = 'dist/rows.generated.json', second = 'dist/companion.generated.json', connected = 'dist/connected.generated.json', unrelated = 'dist/unrelated.json';
+  const sha = commit({ 'scripts/generation-jobs.json': JSON.stringify({ jobs: [
+    { buildTimeOutputs: [first, connected] },
+    { buildTimeOutputs: [first, second, 'assets/retained'] }, { buildTimeOutputs: [unrelated] },
+  ] }), 'assets/retained': 'authored' });
+  const one = openMirror(sha, { repo, env });
+  mkdirSync(join(one.dir, 'dist'), { recursive: true });
+  for (const file of [first, second, connected, unrelated]) writeFileSync(join(one.dir, file), 'verified output');
+  one.release();
+  const original = new InputHashMemo(one.dir), hash = original.hash.bind(original);
+  let calls = 0, removed = false;
+  const racing = vi.spyOn(InputHashMemo.prototype, 'hash').mockImplementation((path: string, fresh = false) => {
+    // Two producer groups check the baseline before the new snapshot hashes it.
+    if (path === first && ++calls === 3) { rmSync(join(one.dir, second)); removed = true; }
+    return hash(path, fresh);
+  });
+  try {
+    const next = openMirror(sha, { repo, env });
+    try {
+      expect(removed).toBe(true);
+      expect(existsSync(join(next.dir, first))).toBe(false); expect(existsSync(join(next.dir, second))).toBe(false);
+      expect(existsSync(join(next.dir, connected))).toBe(false);
+      expect(readFileSync(join(next.dir, 'assets/retained'), 'utf8')).toBe('authored');
+      expect(readFileSync(join(next.dir, unrelated), 'utf8')).toBe('verified output');
+      const saved: unknown = JSON.parse(readFileSync(join(dirname(next.dir), 'generated-outputs.json'), 'utf8'));
+      expect(saved).toEqual({ schema: 1, root: next.dir, outputs: { [unrelated]: hash(unrelated) } });
+    } finally { next.release(); }
+    expect(existsSync(join(env['WILDSHARD_BUILD_MIRROR'] ?? '', 'check.lock'))).toBe(false);
+    expect(readFileSync(join(repo, 'assets/retained'), 'utf8')).toBe('authored');
+  } finally { racing.mockRestore(); }
 });

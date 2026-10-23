@@ -213,7 +213,25 @@ export function openMirror(rev, { repo = REPO, slot = 'check', full = false, env
     };
     for (const outputs of groups) if (overlaid || outputs.some(file => !existsSync(join(dir, file)) || !tracked.has(file) && (accepted[file] === undefined || currentHash(file) !== accepted[file]))) clear(outputs);
     const save = () => {
-      const outputs = Object.fromEntries([...generated].filter(file => !tracked.has(file) && existsSync(join(dir, file))).map(file => [file, hashes.hash(file)]));
+      // A producer left from an interrupted owner may still remove an output
+      // between presence and hashing. Such a job is unproven, never reusable.
+      /** @type {Record<string,string|undefined>} */
+      const outputs = {};
+      for (const file of generated) if (!tracked.has(file) && existsSync(join(dir, file))) {
+        const digest = currentHash(file);
+        if (digest !== undefined) outputs[file] = digest;
+      }
+      // Outputs shared by two producers connect their invalidation. Iterate
+      // until no surviving receipt points at a group cleared by another.
+      /** @type {boolean} */
+      let changed;
+      do {
+        changed = false;
+        for (const group of groups) if (group.some(file => !existsSync(join(dir, file)) || !tracked.has(file) && outputs[file] === undefined)) {
+          clear(group);
+          for (const file of group) if (Object.hasOwn(outputs, file)) { delete outputs[file]; changed = true; }
+        }
+      } while (changed);
       const temporary = `${stateFile}.${process.pid}.tmp`;
       try { writeFileSync(temporary, JSON.stringify({ schema: 1, root: realpathSync(dir), outputs })); renameSync(temporary, stateFile); }
       finally { rmSync(temporary, { force: true }); hashes.flush(); }
