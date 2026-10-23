@@ -7,6 +7,8 @@ import { cpSync, existsSync, readFileSync, realpathSync, writeFileSync } from 'n
 import { resolve, sep } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Encode a compiled config as a Node module URL.
 import { Buffer } from 'node:buffer';
+// oxlint-disable-next-line import/no-nodejs-modules -- Build phase diagnostics belong only to the CI compiler process.
+import process from 'node:process';
 import { build } from 'vite';
 import { parseShardfile, type Shardfile } from './shardfile';
 import { preflightAssetGraph, offlineMemoryAdmission } from "@wildshard/format/product";
@@ -149,15 +151,24 @@ export function projectAssets(project: string, shard: Shardfile, layout: 'projec
  * terrain gains its far / near placeholders when `placeholders` is set (the CLI's default).
  */
 export async function buildProject(project: string, output?: string, options: { decisionLegacyLines?: number; output?: string; outputFormat?: 2; manifest?: ProjectManifestSource; copyRuntime?: boolean; runtimeCheck?: RuntimeCopyOptions['check']; devserver?: boolean; client?: string | null; map?: ProjectMap; placeholders?: boolean; admit?: (shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse', sections: ReadonlyMap<string, unknown>) => Promise<void> } = {}): Promise<Shardfile> {
-  await buildBehaviourProject(project);
+  let phaseStarted = performance.now();
+  const phase = (name: string): void => {
+    const now = performance.now();
+    if (process.env['GITHUB_ACTIONS'] === 'true') console.info(`author timing: ${JSON.stringify({ pid: process.pid, phase: name, product: options.output ?? project, seconds: Number(((now - phaseStarted) / 1000).toFixed(3)) })}`);
+    phaseStarted = performance.now();
+  };
+  await buildBehaviourProject(project); phase('behaviour-compile');
   const loaded = await readProjectAssets(project, options.map, options.manifest, options), assets = loaded.assets;
+  phase('project-read');
   // G348: a shardfile with a terrain gets its far and near placeholders from its own terrain, tiles and look (`wildshard
   // build` asks for them; the first-party product builds keep theirs in the repo bake until the grid reads `near`)
   // a static import: the author CLI must bundle to one module (scripts/wildshard.mjs); the bakers' closure stays
   // renderer-free (the Node sim proofs import this module under the renderer-denying loader)
   const shard = validateProject(options.placeholders === true ? await projectPlaceholders(loaded.shard, assets) : loaded.shard, assets, project, outputScriptAdmissionRows(loaded.output.platform));
+  phase('asset-admission');
   // The decision rows travel with the moves they bind, so a headless admission resolves the same registries as the build.
   await options.admit?.(shard, assets, projectPerformancePolicy(project, shard), outputPlatformPayloads(loaded.output.platform));
+  phase('simulation-admission');
   const destination = output ?? resolve(project, 'public/shardfiles', shard.identity.slug);
   const clientPlan = shard.runtime !== null && !('entry' in shard.runtime);
   if (options.copyRuntime === true || clientPlan) {
@@ -170,7 +181,9 @@ export async function buildProject(project: string, output?: string, options: { 
     const runtime = options.copyRuntime === true || clientPlan ? writeRuntimeFiles(project, destination, { check: options.runtimeCheck ?? (() => []), clientPlan }) : undefined;
     if (runtime !== undefined && (shard.runtime === null || !('entry' in shard.runtime)) !== (runtime.entry === undefined)) throw new Error('Copied runtime and trusted runtime declaration must agree');
     descriptor = writeOutputProduct(shard, assets, destination, { ...loaded.output, ...(runtime === undefined ? {} : { runtime }) });
+    phase('product-write');
     if (runtime !== undefined) await proveRuntimeData(destination, descriptor, loaded.mirrors);
+    phase('runtime-proof');
   } catch (error) { clearOutputProduct(destination); throw error; }
   const directory = import.meta.dirname;
   const clientFolder = options.devserver === true ? 'client-devserver' : 'client';
