@@ -150,11 +150,17 @@ export function cellClip(root: Object3D, half: number, scope: Scope, options: Ce
   let meshes = 0, checked = 0, checking = false, submitting = false;
   let flush = (): void => undefined;
   let validate = (_node: Draw, _submitted: boolean, _view?: Camera): void => undefined;
+  // Skins drawn on free placeholder bones, in no tree (a far herd's page: the herd writes its members' poses into its bone
+  // matrices): no bone changes can be followed, so each submission is checked from its uploaded pose, and the guard never
+  // re-poses it (its skeleton's update would write the placeholders' pose over the herd's). A bone in another tree (another
+  // cell's) is still refused below.
+  const borrowedSkins = new WeakSet<Draw>();
+  const borrowsBones = (node: SkinnedMesh): boolean => node.skeleton.bones.some((bone) => bone.parent === null);
   const boneOwned = (node: Object3D): boolean => { for (let parent = node.parent; parent !== null && parent !== root; parent = parent.parent) if (parent instanceof Bone) return true; return false; };
   const customDraw = (node: Draw): boolean => node.onBeforeRender !== Object3D.prototype.onBeforeRender;
   const gate = (node: Draw): void => {
     if (gates.has(node)) return;
-    const attached = boneOwned(node);
+    const attached = boneOwned(node) || borrowedSkins.has(node);
     const admitCellDraw: DrawGuard = (view, _scene, geometry, material) => {
       if (geometry !== node.geometry) return false;
       const moved = dirty.size > 0 || attached;
@@ -209,7 +215,7 @@ export function cellClip(root: Object3D, half: number, scope: Scope, options: Ce
         Math.max(Math.abs(node.center.y), Math.abs(1 - node.center.y)) * scale.y);
       box.setFromCenterAndSize(node.getWorldPosition(new Vector3()), new Vector3(radius * 2, radius * 2, radius * 2));
     } else if (isSkin(node)) {
-      if (!submitted) {
+      if (!submitted && !borrowedSkins.has(node)) {
         node.updateMatrixWorld(true);
         const bones = new Set<Object3D>(node.skeleton.bones);
         for (const bone of bones) if (!(bone.parent instanceof Bone) || !bones.has(bone.parent)) bone.updateWorldMatrix(true, true);
@@ -493,6 +499,9 @@ export function cellClip(root: Object3D, half: number, scope: Scope, options: Ce
       // enveloped draw's count is a culler's per-frame copy choice
       for (const key of ['castShadow', 'count']) if (Object.hasOwn(node, key)) undo.push(onCellField(node, key, () => { if (!checking && !(key === 'count' && enveloped.has(node))) mark(node); }));
       for (const key of ['instanceMatrix', 'morphTargetInfluences']) if (Object.hasOwn(node, key)) undo.push(onCellField(node, key, () => { if (!checking) { bind(); mark(node); } }));
+      // G639 (it threw here: the throw left Pine's whole grid animal system switched off, its herds frozen and undrawn by
+      // the far herd, 106 + 100 draws of 20-bone rigs a desktop frame)
+      if (isSkin(node) && borrowsBones(node)) borrowedSkins.add(node);
       if (isSkin(node)) {
         let prior = new Float32Array();
         undo.push(onCellMethods(node.skeleton, ['update'], () => {
@@ -519,6 +528,7 @@ export function cellClip(root: Object3D, half: number, scope: Scope, options: Ce
           const held = list; held.add(node);
           undo.push(() => { held.delete(node); if (held.size === 0) dependents.delete(dependency); });
         }
+        if (parent === null && bone.parent === null) continue; // a free placeholder: checked from its uploaded pose (`borrowedSkins`)
         if (parent === null) { node.visible = false; throw new Error('Cell skin borrows bones outside its cell'); }
       }
       bind();

@@ -225,6 +225,34 @@ test('a bone pose can cross the edge without changing its mesh transform or geom
   } finally { scope.dispose(); mesh.skeleton.dispose(); geometry.dispose(); material.dispose(); }
 });
 
+test('a skin on bones outside the cell (a far herd page) is admitted by its uploaded pose, never thrown on or re-posed', () => {
+  const scope = new Scope('borrowed-skin'), root = new Group(), geometry = new BoxGeometry(2, 2, 2), material = new MeshBasicMaterial();
+  const count = geometry.getAttribute('position').count, weights = new Float32Array(count * 4);
+  for (let i = 0; i < count; i++) weights[i * 4] = 1;
+  geometry.setAttribute('skinIndex', new Uint16BufferAttribute(new Uint16Array(count * 4), 4));
+  geometry.setAttribute('skinWeight', new Float32BufferAttribute(weights, 4));
+  const outside = new Bone(), mesh = new SkinnedMesh(geometry, material);
+  mesh.bind(new Skeleton([outside]), new Matrix4());
+  const guard = cellClip(root, 250, scope); guard.sweep();
+  try {
+    // the herd writes its members' pose into the page's bone matrices itself (identity: the copy at the cell's centre)
+    mesh.skeleton.boneMatrices?.set(new Matrix4().elements);
+    expect(() => { root.add(mesh); }).not.toThrow();
+    expect(mesh.visible).toBe(true);
+    const uploaded = [...mesh.skeleton.boneMatrices ?? []];
+    let draws = 0;
+    const renderer = { renderBufferDirect: vi.fn<Renderer['renderBufferDirect']>(() => { draws++; }), shadowMap: { render: vi.fn<Renderer['shadowMap']['render']>() } }; installShadowMaterialOwnership(renderer, new AssetService(), scope);
+    renderer.renderBufferDirect(new PerspectiveCamera(), new Scene(), geometry, material, mesh, { start: 0, count: Infinity });
+    expect(draws).toBe(1); expect(mesh.material).toBe(material);
+    expect([...mesh.skeleton.boneMatrices ?? []]).toEqual(uploaded); // not re-posed from the placeholder bone
+    // a member moved across the edge: the next submission is clipped from the uploaded pose
+    mesh.skeleton.boneMatrices?.set(new Matrix4().makeTranslation(251, 0, 0).elements);
+    if (mesh.skeleton.boneTexture !== null) mesh.skeleton.boneTexture.needsUpdate = true;
+    renderer.renderBufferDirect(new PerspectiveCamera(), new Scene(), geometry, material, mesh, { start: 0, count: Infinity });
+    expect(mesh.material).not.toBe(material);
+  } finally { scope.dispose(); mesh.skeleton.dispose(); geometry.dispose(); material.dispose(); }
+});
+
 test('replacing a position attribute with version zero invalidates its old bounds', () => {
   const scope = new Scope('attribute'), root = new Group(), geometry = new BoxGeometry(2, 2, 2), material = new MeshBasicMaterial();
   const mesh = new Mesh(geometry, material); root.add(mesh);
