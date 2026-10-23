@@ -11,7 +11,9 @@ test('only completed stable generation seals post tables and lint words', () => 
   const put = (name: string, value: string): void => { const path = resolve(root, name); mkdirSync(resolve(path, '..'), { recursive: true }); writeFileSync(path, value); };
   try {
     put('src/author.ts', 'export const value = 1;');
-    const finish = beginPushInputs(root, { revision: 'a'.repeat(40), files: ['src/author.ts'] });
+    put('lint/ask-ids.json', '[]');
+    const finish = beginPushInputs(root, { revision: 'a'.repeat(40), files: ['src/author.ts', 'lint/ask-ids.json'] });
+    put('lint/ask-ids.json', '["E2"]');
     put('src/shards/fixture/discovery.generated.ts', 'export default {};');
     put('lint/shard-words.generated.json', '{}');
     put('.cache/generation-phase.json', '{"seal":"phase-proof"}');

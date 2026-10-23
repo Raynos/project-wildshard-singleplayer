@@ -74,9 +74,9 @@ def phase_outputs(repo, revision, generated, records, deadline=None):
             raise ValueError('Invalid post-generation proof')
         def source(name):
             return (name.startswith(('src/', 'scripts/', 'lint/', 'vite/', 'budgets/')) or '/' not in name) and (
-                re.search(r'\.(?:[cm]?[jt]sx?|jsonc?|yaml|yml|as|py|sh|html|css|wgsl|glsl)$', name) is not None) and '.generated.' not in name
+                re.search(r'\.(?:[cm]?[jt]sx?|jsonc?|yaml|yml|as|py|sh|html|css|wgsl|glsl)$', name) is not None) and '.generated.' not in name and name != 'lint/ask-ids.json'
         expected = {name for name in tracked if source(name)}
-        if set(post['inputs']) != expected:
+        if not expected.issubset(post['inputs']) or not set(post['inputs']).issubset(tracked):
             raise ValueError('Post-generation input inventory differs')
         raw = subprocess.check_output(['git', 'cat-file', '--batch'], cwd=repo,
                                       input=b''.join(tracked[name] + b'\n' for name in post['inputs']),
@@ -92,7 +92,9 @@ def phase_outputs(repo, revision, generated, records, deadline=None):
         for name, digest in post['outputs'].items():
             if not name.startswith(('src/', 'lint/')) or '..' in Path(name).parts or '.generated.' not in name:
                 raise ValueError('Invalid post-generation output path')
-            if hashlib.sha256((generated / '.cache/push-post-blobs' / digest).read_bytes()).hexdigest() != digest:
+            blob = generated / '.cache/push-post-blobs' / digest
+            data = blob.read_bytes() if blob.exists() else (generated / name).read_bytes()
+            if hashlib.sha256(data).hexdigest() != digest:
                 raise ValueError('Post-generation output changed: ' + name)
         tables.update(post['outputs'])
     return {**saved['outputs'], **tables}

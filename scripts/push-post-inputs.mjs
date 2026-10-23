@@ -8,7 +8,8 @@ import { resolve } from 'node:path';
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 /** @param {string} file */
 export const postInputSource = file => /^(?:(?:src|scripts|lint|vite|budgets)\/|[^/]+$)/u.test(file)
-  && /\.(?:[cm]?[jt]sx?|jsonc?|yaml|yml|as|py|sh|html|css|wgsl|glsl)$/u.test(file) && !file.includes('.generated.');
+  && /\.(?:[cm]?[jt]sx?|jsonc?|yaml|yml|as|py|sh|html|css|wgsl|glsl)$/u.test(file) && !file.includes('.generated.')
+  && file !== 'lint/ask-ids.json'; // genAskIds rewrites this separate, tracked inventory output.
 
 /** Capture committed source before generation, then seal completed tables.
  * No evidence is created for loose working-tree generation.
