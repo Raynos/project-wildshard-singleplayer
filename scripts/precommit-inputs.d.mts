@@ -1,1 +1,1 @@
-export function precommitInputs(root?: string, executable?: string): void;
+export function precommitInputs(root?: string, executable?: string): Promise<void>;
