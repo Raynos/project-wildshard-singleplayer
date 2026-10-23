@@ -6,6 +6,7 @@ import { QuestState } from '../src/engine/quest/core';
 import { Owned } from '../src/game/loot/Owned';
 import { publishBoundQuest } from '../src/game/quest/boundState';
 import { installClientFinds } from '../src/game/shardfile/clientFinds';
+import { CLIENT_FEATURES } from '../src/game/shardfile/clientPlan';
 import { parseClientPlan } from '../src/format/clientPlan';
 import type { ShardContext } from '../src/game/plugin/context';
 import type { ShardRuntime } from '../src/game/shard/runtime';
@@ -32,4 +33,11 @@ test('orchard finds render the native quest flags without authored view/read hoo
     expect(runtime.hooks.questFlags?.()).toContain('orchard.apple');
     expect(()=>parseClientPlan({version:1,features:[{...feature,render:()=>undefined}]})).toThrow();
   }finally{scope.dispose();}
+});
+
+// P0 (f84c97e85e boot smoke, Nalati level.play): the finds borrow the quest the chapter view binds, so they install after it
+test('finds install after the chapter view that binds their quest',()=>{
+  const finds=CLIENT_FEATURES['bag.finds'],chapter=CLIENT_FEATURES['quest.chapter-view'];
+  expect(finds.phase).toBe(chapter.phase);
+  expect(finds.rank).toBeGreaterThan(chapter.rank);
 });

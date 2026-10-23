@@ -255,7 +255,8 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
       if (row.kind !== 'motion.channels') throw new Error('Invalid scene motion feature');
       installSceneMotion(ctx, row.rows, clientSceneHandles(ctx.product, resident));
     } },
-  'bag.finds': {phase:'play',rank:95,lifetime:'entered',sections:[],install:installClientFinds},
+  // after quest.chapter-view: the finds borrow the quest it binds
+  'bag.finds': {phase:'play',rank:120,lifetime:'entered',sections:[],install:installClientFinds},
   'held.cosmetics': {phase:'kit',rank:30,lifetime:'entered',sections:['held/finishes'],install:installClientCosmeticFinishes},
   'held.ranged-feel': {phase:'play',rank:30,lifetime:'entered',sections:[],install:installHeldRangedFeel},
   'held.melee': { phase: 'kit', rank: 10, lifetime: 'entered', sections: ['look/painted'], install: installClientHeldMelee,
