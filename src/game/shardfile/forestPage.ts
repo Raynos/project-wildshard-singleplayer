@@ -30,8 +30,9 @@ import { lendLooks, setLentParam } from './lentLooks';
 import type { SceneHandles } from './sceneHandles';
 import type { ShardContext } from '../plugin/context';
 import { tileResidencyRadius } from './tileDriver';
-import { followTile, ring, tileKey } from './tileContent';
+import { bucketByTile, followTile, ring, tileKey } from './tileContent';
 import { tileOf, type CellTile } from './tileOrder';
+import { withOwner } from '@wildshard/engine/app/ownership';
 
 export interface LivingPage {
   readonly resources: SceneHandles; readonly life: LivingBuildings; readonly group: Group;
@@ -166,17 +167,30 @@ export async function placeForestPageModels(ctx: ShardContext, id: string): Prom
       const pls = forest.trees.map((t): Placement<TreeSetParams> => { const variant = variants[t.variant]?.id; if (variant === undefined) throw new Error('Forest tree variant out of range');
         return { x: t.x, y: t.y, z: t.z, variant, color: t.tint, params: { height: t.height, r: t.r, scale: t.scale },
           matrix: new Matrix4().compose(at.set(t.x, t.y, t.z), q.setFromAxisAngle(up, t.rot), sc.set(t.scale, t.scale, t.scale)) }; });
-      await placeSliced(trees.model, pls, { ctx: models, draw: forest.path, registry, piece: { id: trees.model.id }, sortObjects: false,
+      // tile streaming P3 (Debug ▸ Tile residency 5 x 5 / 3 x 3): only the trees of the tiles around the viewer draw, and
+      // only the 3 x 3's trunks collide (one piece per tile, its scope ending as the viewer leaves); whole: as before
+      const radius = tileResidencyRadius(), tiled = radius < 8;
+      await placeSliced(tiled ? { ...trees.model, colliders: () => [] } : trees.model, pls, { ctx: models, draw: forest.path, registry, piece: { id: trees.model.id }, sortObjects: false,
         cull: { view: forest, test: forest.keeps, from: 'origin', flat: true }, parent: forest.group }, due);
-      // tile streaming P3 (Debug ▸ Tile residency 5 x 5 / 3 x 3): only the trees of the tiles around the viewer draw
-      const radius = tileResidencyRadius();
-      if (radius < 8) {
+      if (tiled) {
+        // one capsule per tree, in the trees' order: bucket the trees, index the capsules
+        const trunks = forest.colliderDescs(), byTile = bucketByTile(forest.trees, tree => tree), colliding = new Map<number, Scope>();
         let centre: CellTile | null = null, resident = (_x: number, _z: number): boolean => true;
+        const collide = (wanted: ReadonlySet<number>): void => {
+          for (const [key, scope] of colliding) if (!wanted.has(key)) { colliding.delete(key); scope.dispose(); }
+          for (const key of wanted) {
+            const rows = byTile.get(key); if (rows === undefined || colliding.has(key) || ctx.scope.disposed) continue;
+            const scope = ctx.scope.child(`forest.trunks.t${String(key)}`); colliding.set(key, scope);
+            withOwner(scope, () => registry.add({ id: `${trees.model.id}.trunks.t${String(key)}`, name: 'Forest', category: 'nature', file: 'src/engine/world/forest/Forest.ts',
+              surface: 'wood', colliders: rows.flatMap(i => trunks[i] ?? []) }));
+          }
+        };
         forest.setResidency(viewer => {
           const next = followTile(centre, viewer.x, viewer.z);
           if (centre === null || next.i !== centre.i || next.j !== centre.j) {
             centre = next; const keys = ring(next, radius);
             resident = (x, z) => keys.has(tileKey(tileOf(x, z)));
+            collide(ring(next, Math.min(radius, 1)));
           }
           return resident;
         });
