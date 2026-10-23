@@ -9,6 +9,7 @@ import { prepareForagerDraw, type ForagerDraw } from '../ambient/foragerDraw';
 import { pageRidingMounted } from '../riding/mount';
 import { PopulationRelations } from './relations';
 import * as v from 'valibot';
+import type { RayTargets } from '@wildshard/engine/combat/targets';
 import type { TargetHit } from '@wildshard/engine/combat/types';
 import { Vector3 } from 'three';
 import { WildlifePopulationSchema } from '@wildshard/format/wildlifePopulation';
@@ -140,6 +141,10 @@ export async function installClientWildlife(ctx: ShardContext, feature: ClientFe
   const owner: { wildlife: PageWildlife<CrowdDraw> | null } = { wildlife: null };
   let draw: ForagerDraw | null = null;
   clientPopulations.set(ctx.scope, owner);
+  // Registered at feature install, before later state reducers. The same
+  // mutable owner is empty until animalsBuilt and retires with this scope.
+  ctx.answer('combat.targets.ray',(request:RayTargets):RayTargets=>({...request,
+    hit:owner.wildlife===null?request.hit:owner.wildlife.raycastWeapon(request.origin,request.dir,request.maxDist,request.hit)}));
   let started = false;
   const ensureActive = (): void => { if (ctx.scope.disposed) throw new Error('Wildlife owner left during construction'); };
   const build = async (animals: AnimalManager): Promise<void> => {

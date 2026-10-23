@@ -1,6 +1,5 @@
 import { Elites } from '@wildshard/game/Elite';
 import { EliteBar } from '@wildshard/engine/ui/EliteBar';
-import { StrikeRunner } from '@wildshard/engine/ai/strikes';
 import { wildEnv } from '@wildshard/game/population/pageGroups';
 import poiLayout from '../boot/poiLayout.generated.json' with { type: 'json' };
 import { entryOwner, publishEntryOwner } from '@wildshard/game/shardfile/entryOwners';
@@ -81,7 +80,7 @@ export class NalatiPlugin extends ShardPlugin {
         entered: { scope: eliteScope, interactables: shell.interactables, hud, audio, music }, game, player, body: 'animals', animals,
         models: rt.eliteDrops, program: { id: 'elite.rules', scope: game.levelScope, value: rt.eliteProgram }, fight: rt.eliteCharge,
         environment: wildEnv, clock: rt.weather.clock, weather: rt.weather.weather, ledges: rt.eliteLedges, rock: poiLayout.EAGLE_ROCK,
-        patrol: rt.elitePatrol, wildlife, persistence, contacts: new StrikeRunner() });
+        patrol: rt.elitePatrol, wildlife, persistence });
     }); } catch (error) { eliteScope.dispose(); throw error; }
     await part();
     ctx.scope.run(() => rt.titan.bind(ctx,kit,mounted,mounted.model('naizagai'),rt.skins));

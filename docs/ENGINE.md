@@ -12269,3 +12269,16 @@ body owner's 10 Hz callback still captures memory defaults, clock/player
 keys and native Math.hypot/Wedge contact at their original slots; ABI2 adds
 no clock, body or save owner. Selected bytes and live/reset memory are
 accounted separately. This selection does not retire the callback adapter.
+
+
+Elites.bindDeclaredEntry accepts an optional concrete contacts loan. When it is
+omitted, the existing owner creates one StrikeRunner after row/owner preflight
+at the original valid bind slot and lends that same instance to effect-service
+preflight and entered output application. An explicit original loan is reused.
+
+The declared wildlife feature registers combat.targets.ray at feature install,
+before later state reducers. Its scoped reducer borrows the same mutable
+population owner: it is a no-op before animalsBuilt, then preserves the incoming
+hit through the original wildlife target query. State retains its null gate
+and applies night then Titan after that reducer. Disposal removes the listener;
+re-entry installs a fresh listener at the same feature boundary.

@@ -179,7 +179,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   });
   plugin.answer('combat.targets.ray', (request: RayTargets): RayTargets => ({ ...request,
     hit: wildlife === null ? request.hit : titan.target(request.origin,request.dir,request.maxDist,
-      night.target(request.origin,request.dir,request.maxDist,wildlife.raycastWeapon(request.origin,request.dir,request.maxDist,request.hit))) }));
+      night.target(request.origin,request.dir,request.maxDist,request.hit)) }));
   plugin.answer('combat.aimTargets', (list) => {
     const filtered = list.filter((a) => !('mem' in a) || typeof a.mem !== 'object' || a.mem === null || (!('hidden' in a.mem) || a.mem.hidden !== 1) && (!('owned' in a.mem) || a.mem.owned !== 1));
     const heart = titan.lockTarget();

@@ -357,10 +357,14 @@ function originalOwnerFixture() {
   return { f, entry, elites, rows, owners };
 }
 
-test('original Elites owner binds engine-selected native controllers without a replacement roster or save authority', () => {
+test.each(['explicit','default'])('original Elites owner binds engine-selected native controllers with %s contacts', mode => {
   const { f, entry, elites, rows, owners } = originalOwnerFixture();
   try {
-    f.entered.run(() => elites.bindDeclaredEntry(entry, rows, owners));
+    const bound=vi.spyOn(elites,'bindEnteredPresentation');
+    const {contacts,...defaults}=owners;
+    f.entered.run(() => elites.bindDeclaredEntry(entry, rows, mode==='default'?defaults:owners));
+    const actual=bound.mock.calls[0]?.[2]?.loans.contacts;
+    expect(actual).toBeInstanceOf(StrikeRunner);if(mode==='explicit')expect(actual).toBe(contacts);
     expect(entry.scripts).toHaveLength(1); expect(entry.scripts[0]).toBeInstanceOf(NativeEliteController);
     expect(elites.entries[0]?.script === entry.scripts[0]).toBe(true);
     expect(app.encounters.runtime(f.def.id) === entry.scripts[0]).toBe(true);

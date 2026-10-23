@@ -14,7 +14,7 @@ import type { AdventurePersistence } from './quest/persistence';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Game } from '@wildshard/engine/core/Game';
 import type { Player } from '@wildshard/engine/player/Player';
-import type { StrikeRunner } from '@wildshard/engine/ai/strikes';
+import { StrikeRunner } from '@wildshard/engine/ai/strikes';
 import { canReach } from '@wildshard/engine/ai/reach';
 import { strikeFromData, type StrikeData } from '@wildshard/engine/ai/strikeRows';
 import { app } from '@wildshard/engine/app/runtime';
@@ -185,8 +185,9 @@ export class Elites {
       || game.levelScope !== construction || this.host.player !== player || this.host.scene !== game.scene || this.host.camera !== game.camera
       || this.persistence !== owners.persistence.elites || JSON.stringify(rows.entry) !== JSON.stringify(entry.rows) || !this.scope.belongsTo(entered.scope)
       || Object.keys(rows.presentation).length !== rows.entry.entries.length || rows.entry.entries.some(row => !Object.hasOwn(rows.presentation, row.id))) throw new Error('Foreign declared elite entry owner');
+    const contacts=owners.contacts??new StrikeRunner();
     preflightEliteEffectServices(rows.actions, { game, player, animals, environment: owners.environment, hud: entered.hud, audio: entered.audio,
-      persistence: owners.persistence, contacts: owners.contacts, patrol: owners.patrol, wildlife: owners.wildlife });
+      persistence: owners.persistence, contacts, patrol: owners.patrol, wildlife: owners.wildlife });
     const selected = owners.controllers === undefined ? rows.borrowed.map(row => {
       const model = models.get(row.def.id);
       if (model === undefined || (row.mode === 'script' && owners.fight === undefined)) throw new Error('Missing declared borrowed elite model or fight');
@@ -210,7 +211,7 @@ export class Elites {
     const outputs: ElitePageOutputLoans<T> = { construction, entered: entered.scope, game,
       controllers: entry.scripts.map(owner => owner instanceof NativeEliteController ? { kind: 'keeper', owner } : { kind: 'external', owner }),
       patrol: owners.patrol, wildlife: owners.wildlife, animals, environment: owners.environment, player,
-      hud: entered.hud, audio: entered.audio, persistence: owners.persistence, contacts: owners.contacts,
+      hud: entered.hud, audio: entered.audio, persistence: owners.persistence, contacts,
       strikes: rows.strikes, fallbackStrike: rows.fallbackStrike };
     this.bindEnteredPresentation(entered, rows.presentation, { actions: rows.actions, loans: outputs });
     if (rows.debug !== undefined) construction.onDispose(app.debug.scopedExpose(rows.debug, { scripts: entry.scripts, elites: this, bar: this.bar }));
@@ -457,7 +458,7 @@ export interface EliteDeclaredEntryOwners<T extends CrowdTargets = CrowdTargets>
   readonly clock: DayCycleClock; readonly weather: { readonly stormActive: boolean };
   readonly ledges: readonly PouncerLedge[]; readonly rock: { readonly x: number; readonly z: number; readonly top: number };
   readonly patrol: PatrolEncounterView | null; readonly wildlife: PageWildlife<T> | null;
-  readonly persistence: AdventurePersistence; readonly contacts: StrikeRunner;
+  readonly persistence: AdventurePersistence; readonly contacts?: StrikeRunner;
 }
 /** Existing entered owners lent to the effect application. None is authored
  * content, an additional body registry, clock, continuation or installer. */
