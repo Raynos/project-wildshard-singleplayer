@@ -45,7 +45,7 @@ audit and the 4-hour impact audit ([pipeline impact audit](https://claude.ai/art
 - **TypeScript speed** — benchmark running (TS 7.0.2 already: 62.6 s / 10.2 GB full; incremental re-checks nearly
   everything; shards project 4,755 files / 2.57 M lines, mostly generated). Becomes `tooling-perf/typescript-mini-plan.md`
   with Jake's picks: generated data out of the type program, per-workspace project references + real incremental,
-  isolatedDeclarations / explicit boundary types, the 7 TS2589 sites.
+  isolatedDeclarations / explicit boundary types (**approved, G644**: add the engine's 786 explicit types and turn it on, then the other layers), the 7 TS2589 sites, generated JSON never read (G643).
 - **oxlint speed** — benchmark running (typed full lint 47 s / 12.7 GB; a 1-file typed run 4.1 s / 3.1 GB; 5 files 5.1 s).
   Becomes `tooling-perf/oxlint-mini-plan.md`: `lint:fast` (no types) always — pre-commit on affected files (G636) and the
   push gate; `lint:typed` at the push gate (changed files + importers) and CI; expensive rules dropped or moved to CI.
