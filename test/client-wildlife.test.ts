@@ -34,7 +34,7 @@ test('declared wildlife waits for animals, owns one frame and retires its hook',
   const rows = { ...headlessAssembly.constants.pageWildlife, packs: [], herds: [], flocks: [], mountables: [], foragers: null };
   const hooks: ShardRuntime['hooks'] = {};
   const runtime = legacyDouble<ShardRuntime>({ hooks, world: legacyDouble<NonNullable<ShardRuntime['world']>>({
-    game: legacyDouble<NonNullable<ShardRuntime['world']>['game']>({ scene: new Scene() }),
+    game: legacyDouble<NonNullable<ShardRuntime['world']>['game']>({ scene: new Scene(),levelScope:scope }),
     sky: legacyDouble<NonNullable<ShardRuntime['world']>['sky']>({}), chunk: legacyDouble<NonNullable<ShardRuntime['world']>['chunk']>({ seed: 7 }),
     player: legacyDouble<Player>({ position: new Vector3(), yaw: .4, crouching: true }) }) });
   const readJson = vi.fn<ShardProduct['file']>().mockResolvedValueOnce(new TextEncoder().encode(JSON.stringify(rows))).mockResolvedValueOnce(new TextEncoder().encode(JSON.stringify({ page: { world: {} } })));
@@ -49,6 +49,7 @@ test('declared wildlife waits for animals, owns one frame and retires its hook',
     application.events.answer('combat.targets.ray',value=>{hits.push('prior');return value;},scope);
     const ray=vi.spyOn(PageWildlife.prototype,'raycastWeapon').mockImplementation((_origin,_direction,_maximum,prior)=>{hits.push('wildlife');return prior;});
     await installClientWildlife(ctx, feature);
+    expect(vi.mocked(crowdPage.createPageCrowds).mock.calls[0]?.[5]).toBe(scope);
     application.events.answer('combat.targets.ray',value=>{hits.push('night');return value;},scope);
     application.events.answer('combat.targets.ray',value=>{hits.push('titan');return value;},scope);
     application.events.ask('combat.targets.ray',request);expect(hits).toEqual(['prior','night','titan']);hits.length=0;
