@@ -296,7 +296,7 @@ export async function generateShardJob(root,descriptor,options={}) {
     : await runObservedGeneration(root,cacheJob,{
       inputHashes,...(options.cacheDir===undefined?{}:{cacheDir:options.cacheDir}),...(options.forceCompare===undefined?{}:{forceCompare:options.forceCompare}),generate,
     },job.entry,catalog,[...Object.keys(stageHashes),catalog,...(policy===undefined?[]:[BINARY_JSON_POLICY]),...external.map(source=>source.path)]);
-  if(options.determinism)return {...result,retention:generationRetention(result.directory,job.outputs,coldSeconds)};
+  if(options.determinism)return {...result,retention:generationRetention(result.directory,job.outputs,null)};
   if(projected!==catalogueProjection(root,job,catalog))throw new Error(`Catalogue changed during generation: ${job.id}`);
   try {
     if(policy!==jsonOutputPolicy(root,job.outputs))throw new Error(`JSON output policy changed during generation: ${job.id}`);

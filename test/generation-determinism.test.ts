@@ -28,6 +28,7 @@ test('audits fresh processes in the same stage, resets seeds/incidental files an
     expect(actual).toMatchObject({ n: 5, old: false });
     expect(readFileSync(resolve(f.root, f.output), 'utf8')).toBe('{"n":4}');
     expect(existsSync(cacheDir)).toBe(false);
+    expect(result.retention.every(row => row.coldSeconds === null)).toBe(true);
     expect(readdirSync(resolve(f.root, 'tmp'))).toEqual([result.directory.split('/').at(-1)]);
   } finally { result.release(); }
   expect(readdirSync(resolve(f.root, 'tmp'))).toEqual([]);
