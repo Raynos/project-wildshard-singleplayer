@@ -33,7 +33,8 @@ import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve as resolvePath } from 'node:path';
-import { chromium, devices } from 'playwright';
+import { devices } from 'playwright';
+import { launchMemoryBrowser } from './chromium-memory-browser.mjs';
 import { saveFixture } from './debug-settings.mjs';
 import { gridFloorDocumentIdentity } from './frame-floor-grid.mjs';
 
@@ -176,7 +177,8 @@ async function capture(base) {
     device: 'iPhone 16 Pro', developer: true, renderScale: 2, canvasOnly: true, muted: true,
     clock: 'live', method: 'look28 entry/pose; camera held, no scene, lighting, quality or material changes', shots: [] };
   const save = () => writeFileSync(join(out, 'capture.json'), `${JSON.stringify(report, null, 2)}\n`);
-  const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+  const memoryBrowser = await launchMemoryBrowser(['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist']);
+  const {browser} = memoryBrowser;
   try {
     for (const mode of ['grid', 'driftwood-isle', 'pine-hollow']) {
       requireNoQuiet();
@@ -251,7 +253,7 @@ async function capture(base) {
         }
       } finally { await context.close(); }
     }
-  } finally { await browser.close(); save(); }
+  } finally { await memoryBrowser.close(); save(); }
   if (report.shots.length !== 8 || report.shots.some(shot => !shot.complete)) throw new Error('Incomplete hero set; inspect capture.json');
 }
 
@@ -309,7 +311,8 @@ async function captureAerial(base) {
     noViewmodel: true, junction: plan.junction, surrounding: plan.surrounding,
     roadLighting: 'Shipping ROAD_SKY is fixed low dawn; requested Debug time picks do not rewrite that look', shots: [] };
   const save = () => writeFileSync(join(out, 'capture.json'), `${JSON.stringify(report, null, 2)}\n`);
-  const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', '--enable-precise-memory-info'] });
+  const memoryBrowser = await launchMemoryBrowser(['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', '--enable-precise-memory-info']);
+  const {browser} = memoryBrowser;
   try {
     for (const session of sessions) {
       requireNoQuiet();
@@ -414,7 +417,7 @@ async function captureAerial(base) {
         }
       } finally { await context.close(); }
     }
-  } finally { await browser.close(); save(); }
+  } finally { await memoryBrowser.close(); save(); }
   report.shots.sort((a, b) => plan.poses.findIndex(p => p.id === a.id) - plan.poses.findIndex(p => p.id === b.id)); save();
   if (report.shots.length !== expected || report.shots.some(shot => !shot.complete)) throw new Error('Incomplete aerial set; inspect capture.json');
 }

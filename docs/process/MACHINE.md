@@ -151,6 +151,19 @@ A subsequent HTTP-cache clear is a labelled diagnostic only,
 leaving CacheStorage intact. Run it through `browser-lane.sh`, then stop its
 owned preview. These are Chromium readings, never inferred Safari/phone RAM.
 
+Chromium process-memory tools (`shard-phone-memory`, `grid-ready-chromium`,
+`load-mem-probe`, `capture-main-menu-hero`, and `crossroads-rig/desktop-probe`)
+use `chromium-memory-browser.mjs`. Its public CDP transport caps response-body
+capture at zero for EVERY `Network.enable`, including Playwright's page and
+worker sessions. Network events, cache controls and actual app/cache bodies
+stay unchanged. Memory runs do not need Inspector's retained response bodies.
+The core-memory plan's Chromium readings at `965b2bd1d6` (menu, selector and
+templates), earlier grid process totals, and the old hero/load/desktop native
+footprints were exposed to Inspector retention. Its desktop default is 200 MB;
+the actual inflation depends on captured responses. Do not subtract 200 MB
+from historical results or label those changes as game memory savings.
+WebKit and Simulator readings are unaffected by this Chromium correction.
+
 Before CPU work, `python3 scripts/sim-quiet.py status` reports the active official
 reading. During it, **read and edit only**: no tests, typechecks, lint, builds,
 bakes, generators, browsers, captures or hook-running commits. The marker expires

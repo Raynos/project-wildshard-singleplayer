@@ -3,7 +3,8 @@
 // scripts/browser-lane.sh --max 15 node scripts/grid-ready-chromium.mjs --base=URL --pin=SHA --out=DIR
 import {mkdirSync,writeFileSync} from 'node:fs';
 import {resolve as resolvePath} from 'node:path';
-import {chromium,devices} from 'playwright';
+import {devices} from 'playwright';
+import {launchMemoryBrowser} from './chromium-memory-browser.mjs';
 import {saveFixture,harnessPins} from './debug-settings.mjs';
 import {frameFloorSettingsCode} from './frame-floor-settings.mjs';
 import {gridFloorPlans,gridFloorDeclaredPlan,gridFloorDocumentIdentity,stageFloorGrid,driveFloorGrid,gridFloorWitnessFailures,floorGridEntryRoute} from './frame-floor-grid.mjs';
@@ -17,15 +18,16 @@ if(slugs.length===0||slugs.some(slug=>!/^[a-z_-]+$/u.test(slug))||new Set(slugs)
 const version=await(await fetch(new URL('/version.json',base))).json();
 if(!version.build?.startsWith(pin.slice(0,7)))throw new Error('Served SHA differs');
 mkdirSync(out,{recursive:true});
-const browser=await chromium.launch({headless:true,args:['--mute-audio','--use-angle=metal','--ignore-gpu-blocklist']});
+const memoryBrowser=await launchMemoryBrowser(['--mute-audio','--use-angle=metal','--ignore-gpu-blocklist']);
+const {browser}=memoryBrowser;
 const {defaultBrowserType:_engine,...phone}=devices['iPhone 16 Pro'];
 const profiling=arg('profile','0')==='1';
-const receipt={schema:1,source:pin,protocol:{profiler:profiling,glObserver:'off',quiet:!profiling&&arg('quiet','0')==='1',
+const receipt={schema:1,source:pin,protocol:{profiler:profiling,glObserver:'off',inspectorResponseBodyBytes:0,quiet:!profiling&&arg('quiet','0')==='1',
   memory:'Residency sampled every 250 ms; CDP detailed private-footprint dumps outside timed windows, no forced GC. Page process totals informational.',
   timing:'Live clock, drawn-frame cadence, real held-input road entry and leave; one declared road seed per independent case. No layout or cap changes.'},runs:[]};
 let failed=false;
 const interruption={on:false};
-process.once('SIGTERM',()=>{interruption.on=true;void browser.close();});
+process.once('SIGTERM',()=>{interruption.on=true;void memoryBrowser.close();});
 try {
  const session=await browser.newBrowserCDPSession(),context=await browser.newContext(phone),page=await context.newPage();
  let errors=[];
@@ -160,7 +162,7 @@ try {
    console.info(JSON.stringify({slug,instance,complete:run.complete,errors,memory:memorySummary,rows:scene.rows}));
   }
  }
-}finally{await browser.close();}
+}finally{await memoryBrowser.close();}
 if(failed)throw new Error('Grid readiness finding; see per-shard receipts');
 
 /** Serialized browser observer: sparse residency snapshots and live drawn-frame intervals, no GL hooks. */

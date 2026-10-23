@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { harnessPinCode } from './debug-settings.mjs';
+import { launchMemoryBrowser } from './chromium-memory-browser.mjs';
 // load-mem-probe.mjs — where a shard's LOAD memory goes, on the desktop (NALATI-FINISH B8, E302). Indicative only: the
 // acceptance number is the iPhone's Web Inspector reading (scripts/webkit-mem-reading.mjs, docs/audits/).
 //
@@ -26,7 +27,7 @@ import { spawn, execSync } from 'node:child_process';
 import { mkdirSync, writeFileSync, createWriteStream } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
 
-const { chromium, webkit, devices } = await import('playwright');
+const { webkit, devices } = await import('playwright');
 const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
 const argv = process.argv.slice(2);
 const flag = (name, d) => { const a = argv.find((x) => x.startsWith(`--${name}=`)); return a ? a.slice(name.length + 3) : d; };
@@ -107,7 +108,8 @@ const texScript = (tex) => harnessPinCode({ textures: tex });
 
 const WK = ENGINE === 'webkit';
 const wkBefore = WK ? new Set([...wkPids('WebContent'), ...wkPids('GPU')]) : new Set();
-const browser = WK ? await webkit.launch() : await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', '--enable-precise-memory-info', ...(JSFLAGS === '' ? [] : [`--js-flags=${JSFLAGS}`])] });
+const memoryBrowser = WK ? undefined : await launchMemoryBrowser(['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', '--enable-precise-memory-info', ...(JSFLAGS === '' ? [] : [`--js-flags=${JSFLAGS}`])]);
+const browser = memoryBrowser === undefined ? await webkit.launch() : memoryBrowser.browser;
 const heap = [];
 const native = [];
 const state = { polling: true, stopSampler: () => { /* none yet */ } };
@@ -242,5 +244,5 @@ try {
 } finally {
   state.polling = false;
   state.stopSampler();
-  await browser.close();
+  await (memoryBrowser === undefined ? browser.close() : memoryBrowser.close());
 }

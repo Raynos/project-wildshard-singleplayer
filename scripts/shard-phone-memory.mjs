@@ -6,7 +6,8 @@
 // It also accepts menu or select as the target, with the real Developer prefetch on.
 import { spawnSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
-import { chromium, devices } from 'playwright';
+import { devices } from 'playwright';
+import { launchMemoryBrowser } from './chromium-memory-browser.mjs';
 import { saveFixture } from './debug-settings.mjs';
 import { chromiumProcessPeaks, chromiumAllocatorBytes } from './grid-ready-memory.mjs';
 import { loadingCardIndex } from './loading-benchmark/catalogue.mjs';
@@ -30,8 +31,9 @@ for p in sys.argv[1:]:
     out[p] = u.phys_footprint if lib.proc_pid_rusage(int(p), 0, ctypes.byref(u)) == 0 else None
 print(json.dumps(out))
 `;
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', '--enable-precise-memory-info'] });
-const result = { label, shard, base, pin, floor, samples: [], errors: [] };
+const memoryBrowser = await launchMemoryBrowser(['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', '--enable-precise-memory-info']);
+const {browser} = memoryBrowser;
+const result = { label, shard, base, pin, floor, inspectorResponseBodyBytes: 0, samples: [], errors: [] };
 async function footprint(session) {
   const info = await session.send('SystemInfo.getProcessInfo');
   const pids = info.processInfo.filter(row => row.type === 'renderer' || row.type === 'GPU');
@@ -127,5 +129,5 @@ try {
   }
   await page.screenshot({ path: out.replace(/\.json$/u, '.jpg'), type: 'jpeg', quality: 70 });
 } catch (error) { result.errors.push(String(error)); }
-finally { await browser.close(); writeFileSync(out, `${JSON.stringify(result, null, 2)}\n`); console.log(JSON.stringify(result)); }
+finally { await memoryBrowser.close(); writeFileSync(out, `${JSON.stringify(result, null, 2)}\n`); console.log(JSON.stringify(result)); }
 if (result.errors.length > 0) process.exitCode = 1;

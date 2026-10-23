@@ -17,8 +17,9 @@ import { spawn } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { GL_INIT } from '../parity/glbytes.mjs';
 import { deviceSavePicks, saveFixture } from '../debug-settings.mjs';
+import { launchMemoryBrowser } from '../chromium-memory-browser.mjs';
 
-const { chromium, devices } = await import('playwright');
+const { devices } = await import('playwright');
 const argv = process.argv.slice(2);
 const flag = (name, d) => { const a = argv.find((x) => x.startsWith(`--${name}=`)); return a ? a.slice(name.length + 3) : d; };
 const flags = (name) => argv.filter((x) => x.startsWith(`--${name}=`)).map((x) => x.slice(name.length + 3));
@@ -49,7 +50,8 @@ while True:
 `;
 
 async function probe(target) {
-  const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', '--enable-precise-memory-info'] });
+  const memoryBrowser = await launchMemoryBrowser(['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', '--enable-precise-memory-info']);
+  const {browser} = memoryBrowser;
   const native = [], heap = [], marks = [];
   const state = { polling: true };
   let sampler = null;
@@ -141,7 +143,7 @@ async function probe(target) {
   } finally {
     state.polling = false;
     sampler?.kill();
-    await browser.close();
+    await memoryBrowser.close();
   }
 }
 
