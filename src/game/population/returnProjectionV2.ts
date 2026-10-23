@@ -6,6 +6,7 @@ import { admitScriptV2 } from '@wildshard/format/scriptAdmissionV2';
 import { writeV2Frame,validateV2Frame,type V2FrameAuthority } from '@wildshard/format/scriptWireV2';
 import type { Rng,RngState } from '@wildshard/engine/core/rng';
 import { sha256 } from '../plugin/moduleHash';
+import { GroupStepV2 } from '@wildshard/engine/script/groupStepV2';
 import { ScriptModuleV2 } from '@wildshard/engine/script/moduleV2';
 import { prepareV2Observations } from '@wildshard/engine/script/observationsV2';
 import {readV2WorldActions,type V2WorldAction,type V2ActionBinding} from '@wildshard/format/scriptActionsV2';
@@ -36,15 +37,18 @@ export class ReturnProjectionV2 {
   private readonly layout;
   private readonly module: ScriptModuleV2;
   private busy = false;
+  private readonly groups:GroupStepV2|null=null;
   constructor(input: unknown,private readonly owner?: Scope) {
     this.live();
-    this.row = parseReturnProjectionV2(input);this.layout = returnProjectionV2Layout(this.row.fields.length,this.row.artifact.pages,this.row.outputCapacity);
+    this.row = parseReturnProjectionV2(input);this.layout = returnProjectionV2Layout(this.row.fields.length,this.row.artifact.pages,this.row.outputCapacity,this.row.groups);
+    if(this.row.groups!==undefined&&owner===undefined)throw new Error('Group projection requires an entered scope');
     const bytes = Uint8Array.from(atob(this.row.bytes),byte => byte.codePointAt(0) ?? 0);
     if (sha256(bytes) !== this.row.artifact.hash) throw new Error('Return projection hash mismatch');
     const admitted = admitScriptV2(bytes,{ lane: 'project',ioBytes: this.layout.bytes,compilerRevision: this.row.artifact.compilerRevision,admissionRevision: this.row.artifact.admissionRevision });
     if (admitted.initialPages !== this.row.artifact.pages || admitted.io !== this.layout.io) throw new Error('Return projection layout mismatch');
     this.module = new ScriptModuleV2(bytes,{ seed: [0,0],initFuel: 400000,output: [],ioBytes: this.layout.bytes });
     if (this.module.io !== this.layout.io) throw new Error('Return projection IO mismatch');
+    if(this.row.groups!==undefined&&owner!==undefined)this.groups=new GroupStepV2(bytes,this.row.groups,owner,{module:this.module,layout:this.layout});
     this.live();
   }
   private live(): void { if (this.owner?.disposed === true || this.owner?.disposing === true) throw new Error('Return owner disposed'); }
@@ -79,6 +83,8 @@ export class ReturnProjectionV2 {
         if (authority === undefined) throw new Error('Missing projection authority');
         const actual = validateV2Frame(view,layout,authority),bank = layout.regions[9],values: Record<string,number> = {};
         if (bank === undefined) throw new Error('Missing projection output bank');
+        if(actual[2]!==0||(actual[10]??0)!==0)throw new Error('Unexpected numeric projection state or queries');
+        if((actual[9]??0)>(this.row.outputCapacity??32))throw new Error('Return projection output quota');
         const world:number[]=[];
         for (let index = 0; index < (actual[9] ?? 0); index++) {
           const at = layout.io+bank.offset+index*64,name = this.row.channels[view.getUint32(at+8,true)-1],value = view.getFloat64(at+16,true);
@@ -104,6 +110,15 @@ export class ReturnProjectionV2 {
         accepted = true;
       } };
     } finally { this.busy = false; }
+  }
+  /** Borrow the SAME selected instance. Group bodies, bank, RNG and operation
+   * application remain with the original native owner at its original slot. */
+  prepareGroup(input:Parameters<GroupStepV2['prepare']>[0]):ReturnType<GroupStepV2['prepare']>{
+    this.live();
+    if(this.busy)throw new Error('Reentrant return projection');
+    if(this.groups===null)throw new Error('Missing group projection declaration');
+    this.busy=true;
+    try{return this.groups.prepare(input);}finally{this.busy=false;}
   }
   project(signal: string,observations: Readonly<Record<string,number>>,random?: Rng,candidates: readonly Readonly<Record<string,number>>[] = []): Readonly<Record<string,number>> {
     const result = this.prepare(signal,observations,random,candidates);result.accept();return result.values;

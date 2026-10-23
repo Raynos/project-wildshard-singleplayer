@@ -13,6 +13,8 @@ export class ScriptModuleV2 {
   readonly memory: WebAssembly.Memory;
   readonly io: number;
   private readonly instance: WebAssembly.Instance;
+  private readonly source: Uint8Array;
+  private readonly ioBytes: number;
   private readonly image: Uint8Array;
   private readonly globals: readonly { global: WebAssembly.Global; value: number | bigint }[];
   private readonly columns: readonly FloatColumnV2[];
@@ -27,6 +29,7 @@ export class ScriptModuleV2 {
     if (options.seed.some(value => !Number.isInteger(value) || value < 0 || value > 0xffffffff)) throw new Error('Invalid v2 seed words');
     const source = Uint8Array.from(bytes), admitted = admitScriptV2(source,options.ioBytes === undefined ? {} : { ioBytes: options.ioBytes });
     if (admitted.lane === 'view') throw new Error('Stateless v2 host refuses the persistent view lane');
+    this.source=source;this.ioBytes=admitted.ioBytes;
     this.lane = admitted.lane; this.io = admitted.io; this.memory = new WebAssembly.Memory({ initial: admitted.initialPages,maximum: admitted.maximumPages });
     observeWasmMemory(this.memory,{ owner: 'engine/script',asset: 'v2/module' });
     this.instance = new WebAssembly.Instance(new WebAssembly.Module(source),{ env: { memory: this.memory } });
@@ -41,6 +44,12 @@ export class ScriptModuleV2 {
       if ((typeof value !== 'number' && typeof value !== 'bigint') || (typeof value === 'number' && !Number.isFinite(value))) throw new Error('Invalid v2 initialized global');
       return { global,value };
     });
+  }
+  /** Typed native loan of this exact admitted image and IO envelope. It does
+   * not instantiate, initialize, cache or expose mutable guest memory. */
+  owns(bytes: Uint8Array,io: number,ioBytes: number): boolean {
+    return this.io===io&&this.ioBytes===ioBytes&&bytes.length===this.source.length
+      &&bytes.every((value,index)=>value===this.source[index]);
   }
   private rewind(): void {
     new Uint8Array(this.memory.buffer).set(this.image);

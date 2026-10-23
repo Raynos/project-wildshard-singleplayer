@@ -4,6 +4,7 @@ import { scriptV1Layout, SCRIPT_V1_EVENTS, SCRIPT_V1_COMMANDS } from '@wildshard
 import { decisionScriptContract, parseDecisionScripts, SCRIPT_V1_REFERENCE_KINDS, type DecisionScriptRow } from '@wildshard/format/decisionScripts';
 import type {V2ActionBinding} from '@wildshard/format/scriptActionsV2';
 import type { Rng } from '@wildshard/engine/core/rng';
+import type { GroupStepV2 } from '@wildshard/engine/script/groupStepV2';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { SimHost } from '@wildshard/engine/sim';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
@@ -44,6 +45,7 @@ export class ReturnProgram {
   private active = false;
   readonly prepareWorld?: (signal:string,observations:Readonly<Record<string,number>>,bindings:ReadonlyMap<number,V2ActionBinding>,candidates?:readonly Readonly<Record<string,number>>[],random?:Rng)=>PreparedProjectionV2;
   readonly prepare?: NonNullable<NumericProjection['prepare']>;
+  readonly prepareGroup?:NonNullable<NumericProjection['prepareGroup']>;
   private constructor(input: unknown, floor: (x: number, z: number) => number,owner?: Scope) {
     const row = readProgram(input),script = row.script;
     if (script.state.length > 0 || script.tick !== null
@@ -59,6 +61,7 @@ export class ReturnProgram {
     if (row.v2 !== undefined) {
       const projection = new ReturnProjectionV2(row.v2,owner);
       this.prepare = projection.prepare.bind(projection);
+      if(row.v2.groups!==undefined)this.prepareGroup=projection.prepareGroup.bind(projection);
       this.prepareWorld=(signal,observations,bindings,candidates,random)=>projection.prepare(signal,observations,random,candidates??[],bindings);
       return;
     }
@@ -166,6 +169,7 @@ export class ProjectedMotionSample {
 /** Numeric projections retain the existing caller's decision slots. A v2
  * transport prepares its RNG candidate until retained columns also validate. */
 export interface NumericProjection {
+  readonly prepareGroup?:(input:Parameters<GroupStepV2['prepare']>[0])=>ReturnType<GroupStepV2['prepare']>;
   readonly project:(signal:string,observations:Readonly<Record<string,number>>,random?:Rng,candidates?:readonly Readonly<Record<string,number>>[])=>Readonly<Record<string,number>>;
   readonly prepareWorld?: (signal:string,observations:Readonly<Record<string,number>>,bindings:ReadonlyMap<number,V2ActionBinding>,candidates?:readonly Readonly<Record<string,number>>[],random?:Rng)=>PreparedProjectionV2;
   readonly prepare?:(signal:string,observations:Readonly<Record<string,number>>,random?:Rng,candidates?:readonly Readonly<Record<string,number>>[])=>{

@@ -12487,3 +12487,33 @@ transport does not independently publish a shipping module or replace the
 existing programme owner. Shared legacy numeric projections and group calls
 must borrow the SAME selected instance and common descriptor when adopted;
 a matching hash alone is not permission for parallel runtime caches.
+
+### Same-programme group loan (H4, G621 R10a)
+
+A selected ReturnProjectionV2 descriptor may include groups, the admitted
+GroupStepV2 declaration and its finite profiles. returnProjectionV2Layout
+combines the numeric frame's capacities with the group maximums. The complete
+immutable descriptor, including every profile, participates in the existing
+ReturnProgram cache equality check. A conflicting declaration for an already
+owned hash refuses before another instance can be constructed.
+
+ReturnProgram.prepareGroup exists only for an explicitly selected group
+programme. It borrows the SAME ReturnProjectionV2 ScriptModuleV2 instance and
+entered scope used by project/prepareWorld. The original programme remains the
+module owner; there is no second cache, initialization, clock or save owner.
+GroupStepV2's optional native shared loan validates the exact executable bytes
+and IO reservation with ScriptModuleV2.owns before reuse. This is a native
+construction loan, not an authored object or callback route.
+
+The common guest entry branches on input state count: numeric projections
+have no state bank, while a group call carries its exact original bank width.
+Each branch still enforces its own output quota and operation rights. Numeric
+calls refuse group-state/query output; group calls refuse undeclared operations
+or an over-quota bank even when the common physical bank is larger. Captures
+cannot reenter the other side of the shared programme. Existing descriptors
+without groups keep their original layout, compiler bytes and v1 behavior.
+
+This API enables a coherent shared executable selection; it does not itself
+activate pack/herd laws or change shipping admission rows. The producer must
+supply the SAME complete selected descriptor to every numeric/group consumer,
+preserve the inline ABI1 witness and prove the original numeric outputs/RNG.

@@ -5,7 +5,7 @@ import { parseGroupStepV2, groupStepLayoutV2 } from '@wildshard/format/scriptGro
 import type { GroupBankReferenceV2 } from '@wildshard/format/scriptGroupBankV2';
 import { admitScriptV2 } from '@wildshard/format/scriptAdmissionV2';
 import { prepareV2Rng } from '@wildshard/format/scriptRngV2';
-import { writeV2Frame, validateV2Frame, type V2FrameAuthority } from '@wildshard/format/scriptWireV2';
+import { writeV2Frame, validateV2Frame, layoutV2, type V2FrameAuthority, type V2Layout } from '@wildshard/format/scriptWireV2';
 import type { V2QueryBinding } from '@wildshard/format/scriptQueriesV2';
 import { GroupBankV2 } from './groupBankV2';
 import { ObservationColumnsV2, type V2ColumnOwners, type V2ActorColumnSlot } from './observationColumnsV2';
@@ -34,18 +34,22 @@ export class GroupStepV2 {
   private busy = false;
   private revision = 0;
   private readonly scope: Scope;
-  constructor(bytes: Uint8Array, input: unknown, scope: Scope) {
+  constructor(bytes: Uint8Array, input: unknown, scope: Scope, shared?: { readonly module: ScriptModuleV2; readonly layout: V2Layout }) {
     this.scope = scope;
     this.live();
     this.rows = structuredClone(parseGroupStepV2(input));
-    this.layout = groupStepLayoutV2(this.rows);
+    const minimum=groupStepLayoutV2(this.rows);
+    this.layout=shared===undefined?minimum:layoutV2(0,this.rows.pages,new Map(shared.layout.regions.map(row=>[row.kind,row.capacity])));
+    if(shared!==undefined&&(this.layout.bytes!==shared.layout.bytes||this.layout.io!==shared.layout.io||this.layout.pages!==shared.layout.pages
+      ||minimum.regions.some(row=>(this.layout.regions[row.kind-1]?.capacity??-1)<row.capacity)
+      ||!shared.module.owns(bytes,this.layout.io,this.layout.bytes)))throw new Error('Foreign shared group executable');
     this.profiles = [this.rows, ...(this.rows.profiles ?? [])].map((rows, index) => ({
       id: index === 0 ? 'main' : this.rows.profiles?.[index - 1]?.id,
       rows, bank: new GroupBankV2(rows.bank), columns: new ObservationColumnsV2(rows.columns, scope),
     }));
     const source = Uint8Array.from(bytes), admitted = admitScriptV2(source, { lane: 'project', ioBytes: this.layout.bytes });
     if (admitted.io !== 0 || admitted.initialPages !== this.rows.pages) throw new Error('Group step module layout mismatch');
-    this.module = new ScriptModuleV2(source, { seed: [0, 0], initFuel: this.rows.fuel, ioBytes: this.layout.bytes, output: [] });
+    this.module = shared?.module ?? new ScriptModuleV2(source, { seed: [0, 0], initFuel: this.rows.fuel, ioBytes: this.layout.bytes, output: [] });
     this.live();
   }
   private live(): void {
@@ -133,7 +137,7 @@ export class GroupStepV2 {
       }, view => {
         if (authority === undefined) throw new Error('Missing group frame authority');
         const actual = validateV2Frame(view, this.layout, authority), state = this.layout.regions[2], actions = this.layout.regions[9];
-        if (state === undefined || actions === undefined || actual[2] !== profile.bank.width) throw new Error('Incomplete group candidate');
+        if (state === undefined || actions === undefined || actual[2] !== profile.bank.width || (actual[9] ?? 0) > this.rows.outputs) throw new Error('Incomplete group candidate');
         const bank = Float64Array.from({ length: profile.bank.width }, (_, index) => view.getFloat64(this.layout.io + state.offset + index * 8, true));
         const prepared = profile.bank.prepare(input.state, bank, input.group, input.references, this.scope);
         const operations: GroupStepOperationV2[] = [];
