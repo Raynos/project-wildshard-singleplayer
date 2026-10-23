@@ -1,5 +1,5 @@
 import { BufferGeometry, Material, Texture, WebGLRenderTarget, Object3D, InstancedMesh, BatchedMesh } from 'three';
-import type { Scope, Disposable3 } from './scope';
+import { Scope, type Disposable3 } from './scope';
 import type { AssetService } from './assets';
 
 /** One capture-local walk: shared materials and uniforms are inspected once, without retaining resources afterward. */
@@ -32,7 +32,23 @@ export function containerResources(container: unknown, excludeNodes?: ReadonlySe
 }
 interface DelegatedScene { scope: Scope; capture: () => void }
 const delegatedScenes = new WeakMap<Object3D, DelegatedScene>();
-const resourceOwners = new WeakMap<object, Scope>();
+/**
+ * Each owned resource's owner, held weakly. A resource can outlive its owner (a cached or shared geometry reused by the
+ * next visit), and a strong back-reference kept the owner's closed scope, and through its registries that visit's whole
+ * world, alive for the resource's life: every retired grid region stayed resident (live P0, Driftwood -> Sky Reach ->
+ * Driftwood on the phone; O18). Read through `ownerOf`: while the scope object lives it is returned as before (closed or
+ * closing included); once collected, the owner reads as one closed scope.
+ */
+const resourceOwners = new WeakMap<object, WeakRef<Scope>>();
+let collectedOwner: Scope | null = null;
+function ownerOf(resource: object): Scope | undefined {
+  const ref = resourceOwners.get(resource);
+  if (ref === undefined) return undefined;
+  const owner = ref.deref();
+  if (owner !== undefined) return owner;
+  if (collectedOwner === null) { collectedOwner = new Scope('collected-owner'); collectedOwner.dispose(); }
+  return collectedOwner;
+}
 const textureLeases = new WeakMap<object, Set<Scope>>();
 const resourceKeys = new WeakMap<object, string>();
 let nextResourceKey = 0;
@@ -46,7 +62,7 @@ function resourceKey(resource: object): string {
 }
 
 /** Explicit owner of a captured scene resource; renderer observers keep counting it but never free it again. */
-export function sceneResourceOwner(resource: object): Scope | null { return resourceOwners.get(resource) ?? null; }
+export function sceneResourceOwner(resource: object): Scope | null { return ownerOf(resource) ?? null; }
 
 const standIns = new WeakMap<Object3D, { source: Object3D; owner: Scope | null }>();
 /** A detached copy drawn or compiled in place of `source` (the shader warm-up's stand-ins, SF57) uploads for `source`'s
@@ -69,7 +85,7 @@ export function sceneObjectOwner(node: Object3D): Scope | null {
 export function ownSceneResource(resource: Disposable3, scope: Scope, assets?: Pick<AssetService, 'acquireResource'>): void {
   const releaseAsset = assets?.acquireResource(resource);
   if (releaseAsset !== undefined && releaseAsset !== null) { scope.onDispose(releaseAsset); return; }
-  const owner = resourceOwners.get(resource);
+  const owner = ownerOf(resource);
   // A final tree capture runs after this scope's resource cleanups. Its existing ownership still prevents a second
   // native disposal; only newly discovered resources need immediate capture on the already-closing scope.
   if (!(resource instanceof Texture)) {
@@ -95,7 +111,7 @@ export function ownSceneResource(resource: Disposable3, scope: Scope, assets?: P
     users.delete(scope);
     const next = users.values().next();
     if (!next.done) {
-      if (resourceOwners.get(resource) === scope) markResourceOwner(resource, next.value);
+      if (ownerOf(resource) === scope) markResourceOwner(resource, next.value);
       return false;
     }
     return true;
@@ -108,12 +124,12 @@ export function ownSceneResource(resource: Disposable3, scope: Scope, assets?: P
 }
 
 function markResourceOwner(resource: Disposable3, scope: Scope): void {
-  resourceOwners.set(resource, scope);
+  resourceOwners.set(resource, new WeakRef(scope));
   if (resource instanceof BatchedMesh) {
     // The batch frees these private allocations itself; renderer observations must not free them separately.
     for (const key of ['geometry', '_matricesTexture', '_indirectTexture', '_colorsTexture']) {
       const part: unknown = Reflect.get(resource, key);
-      if (part instanceof BufferGeometry || part instanceof Texture) resourceOwners.set(part, scope);
+      if (part instanceof BufferGeometry || part instanceof Texture) resourceOwners.set(part, new WeakRef(scope));
     }
   }
 }

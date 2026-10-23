@@ -48,8 +48,9 @@ export class UploadOwnership {
   private readonly tracked = new WeakSet<Resource>();
   private collected = 0;
   /** A compiled object's samplers and geometry, with that object's owner: their own upload (the warm-up's texture pass,
-   *  a later draw) is attributed to it when no drawn owner is known then. A hint never observes a resource by itself. */
-  private readonly hints = new WeakMap<Resource, Scope>();
+   *  a later draw) is attributed to it when no drawn owner is known then. A hint never observes a resource by itself, and
+   *  never keeps its owner alive: a cached resource outlives the region that first drew it (live P0; O18). */
+  private readonly hints = new WeakMap<Resource, WeakRef<Scope>>();
   private readonly acquisitions = new WeakMap<Resource, WeakSet<Scope>>();
   /** Resources whose dispose is being dispatched now: three's own dispose handler looks them up after ours ran
    *  (deallocateTexture / deallocateMaterial call properties.get), which is not an upload. Cleared after the task. */
@@ -85,7 +86,7 @@ export class UploadOwnership {
     if (this.level.disposed || !isResource(value)) return;
     const resource = value;
     const acquired = this.assets.isAcquired(resource);
-    const consumer = this.drawOwner ?? (this.drawDepth > 0 ? this.level : this.hints.get(resource) ?? null);
+    const consumer = this.drawOwner ?? (this.drawDepth > 0 ? this.level : this.hints.get(resource)?.deref() ?? null);
     if (acquired && consumer !== null) this.retainAsset(resource, consumer);
     // Uniform samplers and lazily allocated targets need not be reachable from the material's public properties.
     // Their actual draw still identifies the subtree owner, even if an asynchronous build uploaded them earlier.
@@ -101,7 +102,7 @@ export class UploadOwnership {
         // retire that new allocation; adopt it into this live renderer lifetime before the property lookup.
         ownSceneResource(resource, this.level);
       } else if (sceneResourceOwner(resource) === null) {
-        const hint = this.hints.get(resource);
+        const hint = this.hints.get(resource)?.deref();
         if (hint !== undefined && !hint.disposed) ownSceneResource(resource, hint);
       }
     }
@@ -194,10 +195,10 @@ export class UploadOwnership {
           for (const r of materialUploads(m)) if (r !== m) {
             if (r instanceof Texture && !this.assets.isAcquired(r)) ownSceneResource(r, owner);
             this.retainAsset(r, owner);
-            if (sceneResourceOwner(r) === null) this.hints.set(r, owner);
+            if (sceneResourceOwner(r) === null) this.hints.set(r, new WeakRef(owner));
           }
         }
-        if (isResource(geometry) && sceneResourceOwner(geometry) === null) this.hints.set(geometry, owner);
+        if (isResource(geometry) && sceneResourceOwner(geometry) === null) this.hints.set(geometry, new WeakRef(owner));
       } finally { this.drawOwner = prior; }
     });
   }

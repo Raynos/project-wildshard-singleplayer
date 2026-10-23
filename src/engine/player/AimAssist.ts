@@ -104,6 +104,8 @@ export class AimAssist {
       if (angle > cone) continue;
       if (!best || angle / cone < best.angle / best.radius) best = { target: t, dist, angle, yawTo, pitchTo, radius: cone, wy, wp, hasVel };
     }
+    // a target gone from the list (a retired region's animals) keeps no bearing, nor the world it points into (live P0)
+    for (const [target, bearing] of this.bearings) if (bearing.t !== this.clock) this.bearings.delete(target);
 
     if (best) {
       // 1. friction: full strength at the centre, none at the edge
