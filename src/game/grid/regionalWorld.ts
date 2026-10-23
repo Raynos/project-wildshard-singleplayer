@@ -305,7 +305,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       const light = ports.light !== undefined ? ports.light : sky instanceof SkyRig ? regionLightSwap(() => holdPageLight({ sky, game }), () => { applyLevelLight({ sky, scene }, level); }) : null;
       const foundation: RegionalRuntimeFoundation = {
         // O20: its world retires as steps inside its runtime's sliced retirement (a crossing's), never as one cleanup
-        region: { host, dispose: () => { resident.dispose(); }, retire: () => resident.disposeSteps() },
+        region: { host, dispose: () => { resident.dispose(); }, retire: () => resident.disposeSteps(), ghostRoots: [resident] },
         ground,
         world: view => {
           if (world !== null) throw new Error('Regional world is already composed');

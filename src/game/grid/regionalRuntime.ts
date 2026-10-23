@@ -379,7 +379,8 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
       return { resident, get warmPreparation() {
         const trace = request.page.world.game.entryPreparation;
         return !scope.disposed && trace?.root === view.root.uuid ? trace : null;
-      }, region: { ...foundation.region, dispose: () => { scope.dispose(); }, retire: () => retireRegion(view.root, scope) }, queries: view.queries, checkpoint,
+      }, region: { ...foundation.region, dispose: () => { scope.dispose(); }, retire: () => retireRegion(view.root, scope),
+        ghostRoots: [...foundation.region.ghostRoots ?? [], scope, view.root] }, queries: view.queries, checkpoint,
         aimAnimals: () => localPlay?.animals.animals ?? [],
         interactables: () => localRuntime?.interactables ?? [],
         park: () => { if (!parked) { parked = true; freezeParkedMatrices(view.root); } },

@@ -6,6 +6,7 @@ import { TraversalReadiness, readinessModel, type ReadinessBundle, type Readines
 import type { ReadinessWalls } from '@wildshard/engine/physics/readinessWalls';
 import { CHUNK_HALF, ENTRY_WIDTH } from '@wildshard/engine/core/config';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
+import { GhostWorlds, type GhostRegion } from './ghosts';
 import { WORK_SLICE_MS, workSlice } from '@wildshard/engine/core/workSlice';
 import type { DisposeStep } from '@wildshard/engine/app/scope';
 import type { GridAssembly, GridCell, GridPoint } from './assembly';
@@ -16,6 +17,9 @@ import type { HomeResidencyClaim } from './pageResidency';
 
 /** An owned region has authored colliders and logical player state, but no second traveller capsule. */
 export interface LiveGridRegion { host: SimHost; dispose: () => void;
+  /** M6 (G628): what should be collected once the region retires (its scope, its view root, its world); absent watches the
+   *  region itself (`GhostWorlds`) */
+  ghostRoots?: readonly object[];
   /** O20: the same disposal as steps (`Scope.disposeSteps`), so a retirement after a crossing spreads over frames */
   retire?: () => Generator<DisposeStep, void>;
   /** Opaque runtimes own logical checkpoints; native shardfile hosts use the exact codec below. */
@@ -90,6 +94,8 @@ export interface LiveGridState {
   retirements?: readonly Retirement[];
   /** O20: regions still retiring in steps (out of `residents`, their claims still held) */
   retiring?: readonly string[];
+  /** M6 (G628): ghost worlds (retired regions still alive 30 s on) and every retired region not yet collected */
+  ghosts?: { readonly count: number; readonly regions: readonly GhostRegion[] };
 }
 /** O20: one region retirement: its checkpoint, its disposal's whole span, and for a sliced one its steps and slowest step */
 export interface Retirement { instance: string; checkpointMs: number; disposeMs: number; steps?: number; workMs?: number; slowestStepMs?: number; slowestStep?: string; failed?: boolean }
@@ -155,6 +161,7 @@ export class LiveGridHost {
   private readonly cacheLease: ResidencyLease | undefined;
   private readonly requests = new Map<string, Promise<void>>();
   private readonly retirements: Retirement[] = [];
+  private readonly ghosts = new GhostWorlds();
   private readonly retiring = new Map<string, RetiringRegion>();
   private readonly products = new Map<string, LiveGridAdmission>();
   private readonly productRequests = new Map<string, Promise<LiveGridAdmission>>();
@@ -599,7 +606,7 @@ export class LiveGridHost {
       if (closed) return; closed = true;
       this.ports.keepPrograms?.(instance);
       const disposeStart = diagnosticNow();
-      try { resident.region.dispose(); this.noteRetirement({ instance, checkpointMs, disposeMs: diagnosticNow() - disposeStart }); }
+      try { resident.region.dispose(); this.noteRetirement({ instance, checkpointMs, disposeMs: diagnosticNow() - disposeStart }); this.ghosts.retired(instance, resident.region.ghostRoots ?? [resident.region]); }
       catch (error) {
         resident.evicting = false; resident.disposalFailed = true; resident.lease.update({ needed: true });
         this.readiness.invalidate(instance); this.issues.set(`cleanup:${instance}`, error instanceof Error ? error.message : String(error)); return;
@@ -625,6 +632,7 @@ export class LiveGridHost {
     const checkpointMs = diagnosticNow() - checkpointStart;
     this.ports.keepPrograms?.(instance);
     resident.evicting = true; this.residents.delete(instance); this.readiness.invalidate(instance);
+    this.ghosts.retired(instance, resident.region.ghostRoots ?? [resident.region]);
     const record: RetiringRegion = { instance, resident, steps: retire(), checkpointMs, start: diagnosticNow(), count: 0, workMs: 0, slowestMs: 0, slowest: '', done: false };
     this.retiring.set(instance, record);
     this.sequence = this.settle(Promise.all([this.sequence, this.drainRetirement(record)]).then(() => undefined));
@@ -702,7 +710,7 @@ export class LiveGridHost {
     } };
   }
   /** Read-only crossing evidence and failures for the real grid physics harness. */
-  state(): LiveGridState { return { current: this.active, worldFeet: this.worldFeet(), crossings: this.crossings, transitions: this.transitions.map((row) => ({ ...row })), residents: [...this.residents.keys()].sort(), pending: [...new Set([...this.requests.keys(), ...this.productRequests.keys()])].sort(), issues: Object.fromEntries(this.issues), gameplayReady: this.active === null || this.ports.gameplayReady(this.active), retirements: this.retirements.map(row => ({ ...row })), retiring: [...this.retiring.keys()], continuations: this.ports.continuations === 'durable' ? { entries: 0, storedChars: 0, capacityChars: 0, claimedBytes: 0 } : { ...this.saved.state(), claimedBytes: this.disposed ? 0 : GRID_CONTINUATION_CACHE_BYTES } }; }
+  state(): LiveGridState { return { current: this.active, worldFeet: this.worldFeet(), crossings: this.crossings, transitions: this.transitions.map((row) => ({ ...row })), residents: [...this.residents.keys()].sort(), pending: [...new Set([...this.requests.keys(), ...this.productRequests.keys()])].sort(), issues: Object.fromEntries(this.issues), gameplayReady: this.active === null || this.ports.gameplayReady(this.active), retirements: this.retirements.map(row => ({ ...row })), retiring: [...this.retiring.keys()], ghosts: { count: this.ghosts.count(), regions: this.ghosts.regions() }, continuations: this.ports.continuations === 'durable' ? { entries: 0, storedChars: 0, capacityChars: 0, claimedBytes: 0 } : { ...this.saved.state(), claimedBytes: this.disposed ? 0 : GRID_CONTINUATION_CACHE_BYTES } }; }
   /** Return the traveller to its page world before retiring regions. Failed disposals keep their full claims
    * and can be retried; the neutral highway disposer never owns the page physics or latest traveller motor. */
   dispose(): void {
