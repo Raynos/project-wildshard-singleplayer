@@ -6,7 +6,7 @@ import { installCableModes } from '@wildshard/engine/player/modes';
 import { createNativeCombatFrame, type NativeCombatFrame } from '@wildshard/game/plugin/nativeItems';
 import { prepareRuntimePlan, ledgerPorts, pickCommands, type NativeSweptMeleeInput } from '@wildshard/game/plugin/simulation';
 import { createSimHost, type SimHost, type SimHostPorts, type SimLevel } from '@wildshard/engine/sim';
-import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
+import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHostBytes, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import type { Rapier } from '@wildshard/engine/physics/rapier';
 import type { Shardfile } from './shardfile';
 import { simPlayerCommand, type HeadlessCommand, type HeadlessEffect } from './tickProtocol';
@@ -220,7 +220,7 @@ export async function createTrustedHeadlessAdapter(preparation: HeadlessRuntimeI
   const resident = await createTrustedHeadlessResident(preparation, entry, snapshot), { host } = resident;
   return {
     step: input => { resident.step(input); },
-    commit: () => ({ tick: host.state.tick, snapshot: serializeSimSnapshot(snapshotSimHost(host)), effects: [...resident.effects] }),
+    commit: () => ({ tick: host.state.tick, snapshot: serializeSimSnapshot(snapshotSimHostBytes(host)), effects: [...resident.effects] }),
     finish: () => ({ ticks: host.state.tick, lanes: 0, steps: 0 }),
     dispose: () => { resident.dispose(); },
   };
