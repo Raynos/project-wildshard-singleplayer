@@ -13,7 +13,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { scopedTilePorts, type RingCatalogue, type RingPorts, type RingTile } from '@wildshard/engine/world/tileStreamer';
 import type { TileDecoder } from '../grid/tileDecoder';
 import type { ClientAssets } from './clientAssets';
-import type { ResidentTile } from './clientWorld';
+import { prepareClientTile, type ResidentTile } from './clientWorld';
 import type { ClientTileViews } from './clientViews';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
@@ -50,24 +50,14 @@ export function clientRingPorts(instances: ReadonlyMap<string, ClientRingInstanc
   prepare?: (tile: PreparedRingTile) => Promise<void> }): RingPorts<PreparedRingTile> {
   const prepare = async (tile: RingTile, instance: ClientRingInstance, scope: Scope, group: Group): Promise<PreparedRingTile> => {
     const key = lodKey(tile); if (key === null) throw new Error('shardfile rings: far proxies are the far view\'s (SF23)');
-    const tiles: ResidentTile[] = [], { source, assets, views } = instance;
-    const admitted = async (file: string): Promise<Uint8Array> => {
-      scope.onDispose(assets.lease([file]));
-      const bytes = await assets.read(file); if (scope.disposed || scope.disposing) throw new Error('shardfile rings: tile dropped while reading');
-      return bytes;
-    };
-    const terrain = source.terrain?.tiles.find((row) => `${row.lod}/${row.x}/${row.z}` === key);
-    if (terrain !== undefined) {
-      const data = await ports.decoder.decode(await admitted(terrain.file)); if (scope.disposed || scope.disposing) throw new Error('shardfile rings: tile dropped while decoding');
-      tiles.push(views.terrain(data, group, scope, false));
-    }
-    const props = source.props, row = props?.tiles.find((candidate) => `${candidate.lod}/${candidate.x}/${candidate.z}` === key);
-    if (props !== null && row !== undefined) {
-      const additional = new Map<string, Uint8Array>();
-      for (const hash of row.additionalFiles ?? []) additional.set(hash, await admitted(hash));
-      const resident = await views.props(props, key, await admitted(row.file), group, scope, additional);
-      if (resident !== null) tiles.push(resident);
-    }
+    const { source, assets, views } = instance;
+    const tiles = await prepareClientTile(source, assets, key, scope, {
+      terrain: async (bytes, owner) => {
+        const data = await ports.decoder.decode(bytes); if (owner.disposed || owner.disposing) throw new Error('shardfile rings: tile dropped while decoding');
+        return views.terrain(data, group, owner, false);
+      },
+      props: (props, address, bytes, owner, additional) => views.props(props, address, bytes, group, owner, additional),
+    });
     return { scope, group, tiles, root: instance.root };
   };
   return scopedTilePorts(ports.scope, async (tile, scope) => {

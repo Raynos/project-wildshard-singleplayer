@@ -14,17 +14,19 @@ function fixture() {
   const assets = new ClientAssets(source, new Map(), { base: 'https://example.invalid/', offline: true, firstParty: true,
     fetch: () => Promise.reject(new Error('No fixture network')), hash: () => Promise.reject(new Error('No fixture hashing')) });
   const waiting: { scope: Scope; finish: () => void }[] = [];
+  let preparedReady: () => void = () => undefined;
   let resources = 0;
   const ports = clientRingPorts(new Map([['home', { source, assets, root, views: {
     terrain: () => { throw new Error('No fixture terrain'); }, props: () => Promise.resolve(null), panels: () => Promise.resolve(new Map()),
   } }]]), { scope, decoder, prepare: prepared => {
     const geometry = prepared.scope.own(new BufferGeometry()); resources++;
     geometry.addEventListener('dispose', () => { resources--; });
-    return new Promise<void>(resolve => { waiting.push({ scope: prepared.scope, finish: resolve }); });
+    return new Promise<void>(resolve => { waiting.push({ scope: prepared.scope, finish: resolve }); preparedReady(); });
   } });
   const start = async () => {
+    const ready = new Promise<void>(resolve => { preparedReady = resolve; });
     const result = new Promise<PreparedRingTile | Error>(resolve => { ports.fetch(tile, resolve); });
-    await Promise.resolve();
+    await ready;
     const gate = waiting.shift(); if (gate === undefined) throw new Error('Missing preparation gate');
     return { result, ...gate };
   };

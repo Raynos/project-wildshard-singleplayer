@@ -14,10 +14,32 @@ export interface ClientWorldViews {
   library: (props: NonNullable<Shardfile['props']>, assets: ReadonlyMap<string, Uint8Array>, scope: Scope) => Promise<InstalledProps>;
   props: (props: NonNullable<Shardfile['props']>, key: string, bytes: Uint8Array, scope: Scope, additional?: ReadonlyMap<string, Uint8Array>) => Promise<ResidentTile | null>;
 }
+/** Prepare one admitted tile for either an entered world or detached ring publication. All dependencies stay
+ * pinned through the supplied tile scope; every asynchronous read/installer must finish before that scope retires. */
+export async function prepareClientTile(source: Shardfile, assets: ClientAssets, key: string, scope: Scope,
+  views: { terrain: (bytes: Uint8Array, scope: Scope, shadow: boolean) => ResidentTile | Promise<ResidentTile>; props: ClientWorldViews['props'] }, shadow = false): Promise<ResidentTile[]> {
+  const active = (): void => { if (scope.disposed || scope.disposing) throw new Error('Tile unloaded while reading'); };
+  active();
+  const ground = source.terrain?.tiles.find(row => `${row.lod}/${row.x}/${row.z}` === key);
+  const props = source.props, row = props?.tiles.find(tile => `${tile.lod}/${tile.x}/${tile.z}` === key);
+  if (ground !== undefined) scope.onDispose(assets.lease([ground.file]));
+  if (row !== undefined) scope.onDispose(assets.lease([row.file, ...row.additionalFiles ?? []]));
+  const read = async (file: string): Promise<Uint8Array> => { active(); const bytes = await assets.read(file); active(); return bytes; };
+  const terrain = ground === undefined ? null : await views.terrain(await read(ground.file), scope, shadow);
+  active();
+  let model: ResidentTile | null = null;
+  if (props !== null && row !== undefined) {
+    const bytes = await read(row.file), additional = new Map<string, Uint8Array>();
+    for (const file of row.additionalFiles ?? []) additional.set(file, await read(file));
+    model = await views.props(props, key, bytes, scope, additional);
+    active();
+  }
+  return [terrain, model].filter((tile): tile is ResidentTile => tile !== null);
+}
 /** One lifetime owns coarse proxies, bounded fine residency and the named prop library. */
 export async function clientWorld(source: Shardfile, assets: ClientAssets, ports: { scope: Scope; views: ClientWorldViews; x: number; z: number; residency?: { allocator: ResidencyAllocator; owner: string } }): Promise<{ props: InstalledProps | null; refresh: (x: number, z: number) => Promise<void>; fine: ReadonlySet<string> }> {
   const tileLifetime = ports.scope.child('shardfile-tiles');
-  const fine = new Map<string, Scope>(), fineTiles = new Map<string, ResidentTile[]>(), coarse = new Map<string, ResidentTile>(), coarseProps = new Map<string, ResidentTile>(), terrainRows = new Map(source.terrain?.tiles.map((tile) => [`${tile.lod}/${tile.x}/${tile.z}`, tile]));
+  const fine = new Map<string, Scope>(), fineTiles = new Map<string, ResidentTile[]>(), coarse = new Map<string, ResidentTile[]>(), terrainRows = new Map(source.terrain?.tiles.map((tile) => [`${tile.lod}/${tile.x}/${tile.z}`, tile]));
   // Admission already verified each combined terrain/props row against its exact immutable dependency costs.
   // Reserve before either view allocates; coarse coverage stays needed, fine claims live only with their tile scope.
   const reserve = (key: string, scope: Scope): boolean => {
@@ -31,21 +53,7 @@ export async function clientWorld(source: Shardfile, assets: ClientAssets, ports
     if (lease === null) return false;
     scope.onDispose(() => { lease.release(); }); return true;
   };
-  const terrain = async (key: string, scope: Scope, shadow: boolean): Promise<ResidentTile | null> => {
-    const row = terrainRows.get(key); if (row === undefined) return null;
-    scope.onDispose(assets.lease([row.file]));
-    const bytes = await assets.read(row.file); if (scope.disposed) throw new Error('Tile unloaded while reading');
-    return ports.views.terrain(bytes, scope, shadow);
-  };
   const props = source.props === null ? null : await ports.views.library(source.props, assets.retained, ports.scope);
-  const tileProps = async (key: string, scope: Scope): Promise<ResidentTile | null> => {
-    const row = source.props?.tiles.find((tile) => `${tile.lod}/${tile.x}/${tile.z}` === key); if (row === undefined || source.props === null) return null;
-    scope.onDispose(assets.lease([row.file, ...row.additionalFiles ?? []]));
-    const bytes = await assets.read(row.file); if (scope.disposed) throw new Error('Prop tile unloaded while reading');
-    const additional = new Map<string, Uint8Array>();
-    for (const hash of row.additionalFiles ?? []) additional.set(hash, await assets.read(hash));
-    return ports.views.props(source.props, key, bytes, scope, additional);
-  };
   // SF67: cached tile reads resolve in microtasks, so the home tiles once installed in one 0.2-0.45 s task; the loop now ends
   // its task each ~30 ms (the same tiles in the same order)
   const slice = slicer();
@@ -53,9 +61,9 @@ export async function clientWorld(source: Shardfile, assets: ClientAssets, ports
     await slice();
     const key = `1/${x}/${z}`, scope = tileLifetime.child(key);
     if (!reserve(key, scope)) throw new Error('Home coarse tile residency admission deferred');
-    const mesh = await terrain(key, scope, false); if (mesh !== null) coarse.set(key, mesh);
-    const proxy = await tileProps(key, scope);
-    if (proxy !== null) { proxy.shadow(false); coarseProps.set(key, proxy); }
+    const tiles = await prepareClientTile(source, assets, key, scope, ports.views);
+    for (const tile of tiles) tile.shadow(false);
+    coarse.set(key, tiles);
   } } catch (error) { tileLifetime.dispose(); throw error; }
   // A coarse tile hides (masks) exactly the quadrants a resident fine tile draws, so the floor never has a hole.
   const remask = (): void => {
@@ -66,8 +74,7 @@ export async function clientWorld(source: Shardfile, assets: ClientAssets, ports
       const parent = `1/${Math.floor(tileX / 2)}/${Math.floor(tileZ / 2)}`, mask = masks.get(parent) ?? new Set<number>();
       mask.add(tileX % 2 + tileZ % 2 * 2); masks.set(parent, mask);
     }
-    for (const [key, tile] of coarse) tile.mask(masks.get(key) ?? new Set());
-    for (const [key, tile] of coarseProps) tile.mask(masks.get(key) ?? new Set());
+    for (const [key, tiles] of coarse) for (const tile of tiles) tile.mask(masks.get(key) ?? new Set());
   };
   let chain = Promise.resolve();
   const refresh = (x: number, z: number): Promise<void> => {
@@ -83,7 +90,7 @@ export async function clientWorld(source: Shardfile, assets: ClientAssets, ports
         await slice();
         const scope = tileLifetime.child(key);
         if (!reserve(key, scope)) { scope.dispose(); continue; }
-        try { const tiles = [await terrain(key, scope, selection.shadows.has(key)), await tileProps(key, scope)].filter((tile): tile is ResidentTile => tile !== null); if (scope.disposed) return undefined; fineTiles.set(key, tiles); fine.set(key, scope); remask(); }
+        try { const tiles = await prepareClientTile(source, assets, key, scope, ports.views, selection.shadows.has(key)); if (scope.disposed) return undefined; fineTiles.set(key, tiles); fine.set(key, scope); remask(); }
         catch (error) { scope.dispose(); throw error; }
       }
       for (const [key, scope] of fine) if (!selection.fine.has(key)) { scope.dispose(); fine.delete(key); fineTiles.delete(key); }
