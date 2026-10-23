@@ -2,7 +2,7 @@ import { BufferGeometry, InstancedMesh, Mesh, Object3D, SkinnedMesh, type Materi
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 /**
- * Static sibling meshes as one draw (G639 frame floor; Developer row `staticSets`, default off).
+ * Static sibling meshes as one draw (G639 frame floor; scene dressing always merges, DR7 / G669).
  *
  * A placed static piece (a camp, a run of fences, a set of crags) is often built as several sibling meshes that share one
  * material: each costs a draw (~100 µs of script a draw at phone 4x) for no difference on screen. `mergeStaticSiblings`

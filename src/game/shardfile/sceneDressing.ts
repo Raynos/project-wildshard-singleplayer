@@ -20,7 +20,6 @@ import { instancedQuad } from '@wildshard/engine/render/instancedGeometry';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
 import { mergeStaticSiblings } from '@wildshard/engine/models/staticSets';
-import { setting } from '@wildshard/engine/ui/Settings';
 import { createPackedSpecimens, defineSpecimenCatalogue, loadBoundSpecimen, loadSpecimenTexture, specimenMaterial } from '../models/specimenCatalogue';
 import { expandBakedGeometrySliced, fetchLaneBake, readBakedGeometry, bakedGeometryBytes } from '../plugin/geometry';
 import { createClientScene } from '../plugin/ui';
@@ -241,8 +240,8 @@ export class SceneDressing {
         }));await registered.registered;this.placed.push(registered);piece.placed.push(registered);
         if(tiled)this.byTile(`${row.name}.${String(row.members.indexOf(member))}`,needModel(member.model),registered.colliders);await pause();
       }
-      // G639 frame floor (Developer staticSets, default off): the piece's sibling meshes on one material draw as one
-      if(setting('staticSets')==='on')for(const merged of mergeStaticSiblings(made.root).geometries){ctx.scope.own(merged);gpuOnlyAttributes(merged,'scene.dressing');}
+      // G639 frame floor (DR7, G669: always on): the piece's sibling meshes on one material draw as one
+      for(const merged of mergeStaticSiblings(made.root).geometries){ctx.scope.own(merged);gpuOnlyAttributes(merged,'scene.dressing');}
       this.props.push(...made.root.children.filter(meshObject));
     }
     });
