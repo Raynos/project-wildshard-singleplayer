@@ -379,7 +379,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
       return { resident, get warmPreparation() {
         const trace = request.page.world.game.entryPreparation;
         return !scope.disposed && trace?.root === view.root.uuid ? trace : null;
-      }, region: { ...foundation.region, dispose: () => { scope.dispose(); }, retire: () => retireRegion(view.root, scope),
+      }, region: { ...foundation.region, dispose: () => { scope.dispose(); const cut = severTree(view.root); while (cut.next().done !== true) { /* whole */ } }, retire: () => retireRegion(view.root, scope),
         ghostRoots: [...foundation.region.ghostRoots ?? [], scope, view.root] }, queries: view.queries, checkpoint,
         aimAnimals: () => localPlay?.animals.animals ?? [],
         interactables: () => localRuntime?.interactables ?? [],
@@ -404,6 +404,22 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
 function* retireRegion(root: Object3D, scope: Scope): Generator<DisposeStep, void> {
   root.visible = false;
   yield* scope.disposeSteps();
+  const cut = severTree(root);
+  while (cut.next().done !== true) yield { scope: scope.name, kind: 'nodes' };
+}
+
+/** Live P0 (Driftwood -> Sky Reach -> Driftwood on the phone): after a region's disposal, cut its scene tree apart, a few
+ *  hundred nodes a step. One node something page-wide still names (a lamp a cached program's lighting reads, a hooked
+ *  mesh) then keeps only itself, never the retired world under its parents. */
+function* severTree(root: Object3D): Generator<undefined, void> {
+  const stack: Object3D[] = [root];
+  for (let count = 1; stack.length > 0; count++) {
+    const node = stack.pop();
+    if (node === undefined) break;
+    stack.push(...node.children);
+    node.clear();
+    if (count % 256 === 0) yield;
+  }
 }
 
 /** SF57: a creature's border constraint built outside the admission closure. V8 gives every closure of one scope that

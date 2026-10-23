@@ -219,6 +219,13 @@ export class HeldView {
     return looks.materials;
   }
 
+  /** a draw hook's dressing loan while it is still lent. Hooks hold it weakly: the arms are page-wide and outlive the shard
+   *  that lent the looks (live P0: they kept a retired Driftwood's graphs, and through them its scope, alive) */
+  private lent(dressed: WeakRef<Loan>): Loan | null {
+    const loan = dressed.deref();
+    return loan !== undefined && this.loans.includes(loan) ? loan : null;
+  }
+
   private loan(): Loan {
     const loan = this.loans.at(-1);
     if (loan === undefined) throw new Error('Held view: no looks prepared (prepare the context before dressing arms)');
@@ -241,14 +248,22 @@ export class HeldView {
       set(ids[kind], 'bladeDq', [node?.scale.x ?? 1, node?.position.y ?? 0]);
       set(ids[kind], 'bladeBase', rig.meta.swords[kind]?.bladeBase ?? L.bladeBase);
     }
-    const lightDir = sky.csm.lightDirection; // the one vector the day / night clock copies the sun (or the moon) into
-    const sunward = [0, 0, 0];
-    const frame = (): void => {
+    // the one vector the day / night clock copies the sun (or the moon) into
+    const frame = this.armsFrame(new WeakRef(loan), sky.csm.lightDirection);
+    this.dressMeshes(rig, mesh => this.materialById(mesh.name === 'sword_iron' ? ids.iron : mesh.name === 'sword_wood' ? ids.wood : ids.arms), frame, true);
+  }
+  /** the arms' draw hook (made here, outside `dressToon`, whose context holds its loan): the look's light follow and the
+   *  shadow lookup toward the light, through the dressing loan while it is still lent */
+  private armsFrame(dressed: WeakRef<Loan>, lightDir: Vector3): () => void {
+    const L = this.toon, ids = L.materials, sunward = [0, 0, 0];
+    return () => {
+      const loan = this.lent(dressed);
+      if (loan === null) return;
       followLight(loan);
+      const set = loan.looks.setParam;
       sunward[0] = -lightDir.x * L.sunward; sunward[1] = -lightDir.y * L.sunward; sunward[2] = -lightDir.z * L.sunward;
       set(ids.arms, 'sunward', sunward); set(ids.wood, 'sunward', sunward); set(ids.iron, 'sunward', sunward);
     };
-    this.dressMeshes(rig, mesh => this.materialById(mesh.name === 'sword_iron' ? ids.iron : mesh.name === 'sword_wood' ? ids.wood : ids.arms), frame, true);
   }
 
   /** every toon arm mesh in its look, receiving shadow; the arms (not the blades) run `frame` as they draw. `held` blades
@@ -269,22 +284,24 @@ export class HeldView {
     const n = new Vector3(0, 1, 0), plane = [0, 1, 0];
     const waterY = rig.meta.water?.y ?? S.waterY;
     const q = new Quaternion(), up = new Vector3();
-    let set: Looks['setParam'] | null = null;
+    let dressed: WeakRef<Loan> | null = null; // the swim look's loan, held weakly (see `lent`)
     rig.weapon(null);
     return {
       root: rig.root,
       setup: () => {
         const loan = this.loan(), m = this.materialById(id);
-        set = loan.looks.setParam;
-        set(id, 'waterD', S.startD);
-        this.dressMeshes(rig, () => m, () => { followLight(loan); }, false);
+        loan.looks.setParam(id, 'waterD', S.startD);
+        const weak = new WeakRef(loan); dressed = weak;
+        this.dressMeshes(rig, () => m, () => { const current = this.lent(weak); if (current !== null) followLight(current); }, false);
       },
       update: (dt, s: { stroke: number; phase: number; camera: PerspectiveCamera; eyeAbove: number }) => {
         const k = vmScale(s.camera.fov);
         rig.root.scale.set(k, k, 1);
         rig.root.position.set(0, 0, 0);
         rig.swim(dt, s.stroke, s.phase);
-        if (set === null) return;
+        const loan = dressed === null ? null : this.lent(dressed);
+        if (loan === null) return;
+        const set = loan.looks.setParam;
         // the water plane in view space: the world's up turned into the camera (a third of the pitch: the arms are held to
         // the surface, not to the head), through the hands at the height the clips were framed on (scaled by the
         // projection), and tipped up toward the eye so the forearms in the lower corners ride above it — every point under

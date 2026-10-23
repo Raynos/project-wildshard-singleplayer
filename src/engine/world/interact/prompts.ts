@@ -10,12 +10,16 @@ export interface PromptSight { readonly slack: number; readonly body?: unknown }
 /** Unspecified targets may meet their own surface within this many metres of the prompt. */
 export const PROMPT_SIGHT_SLACK = 0.5;
 const sights = new WeakMap<PromptTarget, PromptSight>();
+/** The one `sight` getter every prompt shares. V8 keeps a defined accessor in the shared hidden-class transition tree, so a
+ *  per-prompt closure there outlived its prompt and kept a retired region's door, its building owner and that visit's world
+ *  alive (live P0); this function captures nothing. */
+function sightOf(this: PromptTarget): PromptSight | undefined { return sights.get(this); }
 
 /** Attach actual native owner identity without retaining a retired prompt. */
 export function setPromptSight(target: PromptTarget, sight: PromptSight): void {
   sights.set(target, sight);
   // Trusted native captures read the association from the actual prompt, rather than infer an owner from geometry.
-  if (!Object.hasOwn(target, 'sight')) Object.defineProperty(target, 'sight', { get: () => sights.get(target) });
+  if (!Object.hasOwn(target, 'sight')) Object.defineProperty(target, 'sight', { get: sightOf });
 }
 
 /** A clear native segment, or its first hit is the target itself. A missing boot world retains distance-only picking. */
