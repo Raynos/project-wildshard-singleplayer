@@ -614,7 +614,7 @@ test('a cold pool card under a retiring cell reads nothing more and publishes no
   } finally { file.mockRestore(); product.mockRestore(); cell.dispose(); context.scope.dispose(); material.dispose(); }
 });
 
-function placementReads() {
+function placementReads(holdCatalogue = false) {
   const context = fixture(), started: number[] = [], geometry: string[] = [];
   const rows = section(), encode = (value: unknown) => new TextEncoder().encode(JSON.stringify(value));
   const draw = { id: 'face', library: 'shapes', model: 'stone', material: 'paint', sphere: [0, 0, 0, 3] };
@@ -629,9 +629,12 @@ function placementReads() {
     }, fail: (error: Error) => { if (rejectRead === undefined) throw new Error('Missing placement rejecter'); rejectRead(error); } };
   });
   const file = context.product.file.bind(context.product), has = context.product.hasFile.bind(context.product);
+  let catalogueReady: (bytes: Uint8Array) => void = () => undefined;
+  const catalogueRead = new Promise<Uint8Array>(resolve => { catalogueReady = resolve; }), metadata: string[] = [];
   vi.spyOn(context.product, 'hasFile').mockImplementation(name => name === 'models/catalogue.json' || /^scenes\/p[0-4]\.json$/u.test(name) || has(name));
   vi.spyOn(context.product, 'file').mockImplementation(name => {
-    if (name === 'models/catalogue.json') return Promise.resolve(encode(catalogue));
+    metadata.push(name);
+    if (name === 'models/catalogue.json') return holdCatalogue ? catalogueRead : Promise.resolve(encode(catalogue));
     const match = /^scenes\/p([0-4])\.json$/u.exec(name);
     if (match !== null) {
       const index = Number(match[1]), read = pending[index];
@@ -640,16 +643,29 @@ function placementReads() {
     if (name.endsWith('.glb')) geometry.push(name); return file(name);
   });
   const input = parseWorldScenes({ ...rows, catalogue: 'models/catalogue.json', placements: pending.map((_, index) => ({ id: `marker-${index}`, file: `scenes/p${index}.json` })) });
-  return { context, started, geometry, pending, input };
+  return { context, started, geometry, pending, input, metadata, releaseCatalogue: () => { catalogueReady(encode(catalogue)); } };
 }
 
-test('placement reads overlap only four and retain original scene construction', async () => {
+test('catalogue, recipes and placements share the upfront read pool while the catalogue is held', async () => {
+  const f = placementReads(true);
+  try {
+    const installing = installWorldScenes(f.context, f.input);
+    await vi.waitFor(() => { expect(f.started).toEqual([0, 1, 2, 3, 4]); });
+    expect(f.metadata).toContain('scenes/open.json'); expect(f.metadata).toContain('scenes/cell.json');
+    expect(f.geometry).toEqual([]);
+    for (let index = 0; index < 5; index++) f.pending[index]?.release(index);
+    f.releaseCatalogue(); await installing;
+    expect(f.metadata.filter(file => file === 'scenes/open.json')).toHaveLength(1);
+  } finally { f.releaseCatalogue(); vi.restoreAllMocks(); f.context.scope.dispose(); }
+});
+
+test('placement reads overlap up front and retain original scene construction', async () => {
   const f = placementReads();
   try {
     const installing = installWorldScenes(f.context, f.input);
-    await vi.waitFor(() => { expect(f.started).toEqual([0, 1, 2, 3]); });
+    await vi.waitFor(() => { expect(f.started).toEqual([0, 1, 2, 3, 4]); });
     for (const index of [3, 2, 1]) f.pending[index]?.release(index);
-    await Promise.resolve(); expect(f.started).toHaveLength(4); expect(f.geometry).toEqual([]);
+    await Promise.resolve(); expect(f.started).toHaveLength(5); expect(f.geometry).toEqual([]);
     f.pending[0]?.release(0);
     await vi.waitFor(() => { expect(f.started).toEqual([0, 1, 2, 3, 4]); });
     f.pending[4]?.release(4);
@@ -661,17 +677,17 @@ test('placement reads overlap only four and retain original scene construction',
   } finally { vi.restoreAllMocks(); f.context.scope.dispose(); }
 });
 
-test('a failed read window drains and refuses in authored order before geometry or the next window', async () => {
+test('speculative reads drain and retain the earlier authored parse refusal before geometry', async () => {
   const f = placementReads(); let ended = false;
   try {
     const installing = installWorldScenes(f.context, f.input);
     const refusal = (async () => { try { await installing; return undefined; } catch (error) { return error; } finally { ended = true; } })();
-    await vi.waitFor(() => { expect(f.started).toHaveLength(4); });
+    await vi.waitFor(() => { expect(f.started).toHaveLength(5); });
     f.pending[1]?.fail(new Error('later transport failed')); f.pending[0]?.release(0, 'wrong-id');
     await Promise.resolve(); expect(ended).toBe(false); expect(f.geometry).toEqual([]);
-    f.pending[2]?.release(2); f.pending[3]?.release(3);
+    f.pending[2]?.release(2); f.pending[3]?.release(3); f.pending[4]?.release(4);
     expect(await refusal).toEqual(new Error('Scene placement blob identity differs'));
-    expect(f.started).toEqual([0, 1, 2, 3]); expect(f.geometry).toEqual([]);
+    expect(f.started).toEqual([0, 1, 2, 3, 4]); expect(f.geometry).toEqual([]);
   } finally { vi.restoreAllMocks(); f.context.scope.dispose(); }
 });
 
@@ -679,13 +695,13 @@ test.each(['disposed', 'disposing'] as const)('placement reads do not allocate a
   const f = placementReads();
   try {
     const installing = installWorldScenes(f.context, f.input), refusal = (async () => { try { await installing; return undefined; } catch (error) { return error; } })();
-    await vi.waitFor(() => { expect(f.started).toHaveLength(4); });
+    await vi.waitFor(() => { expect(f.started).toHaveLength(5); });
     const steps = f.context.scope.disposeSteps();
     if (state === 'disposed') { Array.from(steps); }
     else { steps.next(); expect(f.context.scope.disposing).toBe(true); }
-    for (let index = 0; index < 4; index++) f.pending[index]?.release(index);
+    for (let index = 0; index < 5; index++) f.pending[index]?.release(index);
     expect(await refusal).toEqual(new Error('Scene placement owner is disposed'));
-    expect(f.started).toEqual([0, 1, 2, 3]); expect(f.geometry).toEqual([]);
+    expect(f.started).toEqual([0, 1, 2, 3, 4]); expect(f.geometry).toEqual([]);
   } finally { vi.restoreAllMocks(); f.context.scope.dispose(); }
 });
 

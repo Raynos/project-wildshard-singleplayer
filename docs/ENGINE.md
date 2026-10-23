@@ -10174,7 +10174,13 @@ resident scope and product. The optional resident defaults to the context scope;
 worlds pass their static world's owner. Re-entry returns
 the same handles. Disposal removes its scene parts, owned materials and geometry,
 and any registered pieces. Failed construction disposes partial results and can
-retry. Nothing installs on import.
+retry. Nothing installs on import. Metadata admission starts one bounded pool
+of at most sixteen verified named reads: catalogue, frozen graphs, recipes and
+instance packets precede placement references in their emitted order. Parsing,
+identity checks and scene publication keep the original authored order. A read
+failure stops queued work; every started read settles before rejection. Both
+context and resident lifetimes and the original product/read callable are
+pinned, and metadata byte results are released before geometry allocation.
 
 The existing Developer Grid shader warm-up budget option overlaps at most
 four verified placement-file reads per settled window. Parsing, reference
