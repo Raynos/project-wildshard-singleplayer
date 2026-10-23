@@ -1,4 +1,4 @@
-import {lendNalatiAdmission,admission} from './fixtures/nalati-return-modules';
+import {lendNalatiAdmission,admission,admissionLegacy} from './fixtures/nalati-return-modules';
 import {ReturnProjectionV2} from '../src/game/population/returnProjectionV2';
 import {expect,test,vi} from 'vitest';
 import {Vector3} from 'three';
@@ -110,7 +110,7 @@ test('the original native callback and ABI2 rows keep RNG, JSON continuation and
   const oracle=new OriginalNativeGuard({clock,player:{position:g.context.player},rng:{stream:()=>g.random}},
     {pathYawFor:(_actor,x,z,every)=>{g.calls.push(['path',x,z,every]);return .25;},
       steerAny:(_actor,yaw,speed,turn)=>{g.calls.push(['steer',yaw,speed,turn]);},confine:()=>{g.calls.push(['confine']);}},
-    [{...g.flock,dog:g.actor}],g.wolves,{dogDecision:'dog',stragglerDistance:12},ReturnProgram.page({script:admission.script,bytes:admission.bytes}));
+    [{...g.flock,dog:g.actor}],g.wolves,{dogDecision:'dog',stragglerDistance:12},ReturnProgram.page(admissionLegacy));
   const near=(a:unknown,b:unknown):void=>{
     if(typeof a==='number'&&typeof b==='number'){expect(a).toBeCloseTo(b,11);return;}
     if(Array.isArray(a)&&Array.isArray(b)){expect(a.length).toBe(b.length);a.forEach((value,index)=>near(value,b[index]));return;}

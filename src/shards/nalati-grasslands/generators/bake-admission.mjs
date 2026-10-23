@@ -18,9 +18,10 @@ const authored=readDecisionSources(fileURLToPath(new URL('../',import.meta.url))
 const original=await compileDecisionScripts([source],registries,authored,{asLineCeiling:3184});
 const script=original.rows.at(0),blob=original.blobs.at(0);if(script===undefined||blob===undefined)throw new Error('Missing native admission witness');
 const dual=await compileReturnProjectionV2(source,registries,authored,{asLineCeiling:3184});
-const compiled={source:'behaviour/admission.generated.wasm',bytes:dual.binary.length,hash:dual.candidate.artifact.hash};
+const compiled={witnessBytes:blob.bytes.length,source:'behaviour/admission.generated.wasm',bytes:dual.binary.length,hash:dual.candidate.artifact.hash};
 const writer=byteWriter(process.argv.includes('--check'),'nalati-admission');
 writer.put(fileURLToPath(new URL('../behaviour/admission.generated.wasm',import.meta.url)),dual.binary);
-writer.put(fileURLToPath(new URL('../behaviour/admission.generated.json',import.meta.url)),jsonBytes({script,bytes:Buffer.from(blob.bytes).toString('base64'),v2:{...dual.candidate,bytes:''},compiled}));
+writer.put(fileURLToPath(new URL('../behaviour/admission-witness.generated.bin',import.meta.url)),blob.bytes);
+writer.put(fileURLToPath(new URL('../behaviour/admission.generated.json',import.meta.url)),jsonBytes({script,bytes:'',v2:{...dual.candidate,bytes:''},compiled}));
 writer.finish();
 console.info('nalati-admission: selected ABI2 projection; original ABI1 witness retained');

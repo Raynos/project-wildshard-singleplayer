@@ -474,11 +474,13 @@
       ],
       "outputs": [
         "src/shards/nalati-grasslands/behaviour/admission.generated.json",
-        "src/shards/nalati-grasslands/behaviour/admission.generated.wasm"
+        "src/shards/nalati-grasslands/behaviour/admission.generated.wasm",
+        "src/shards/nalati-grasslands/behaviour/admission-witness.generated.bin"
       ],
       "buildTimeOutputs": [
         "src/shards/nalati-grasslands/behaviour/admission.generated.json",
-        "src/shards/nalati-grasslands/behaviour/admission.generated.wasm"
+        "src/shards/nalati-grasslands/behaviour/admission.generated.wasm",
+        "src/shards/nalati-grasslands/behaviour/admission-witness.generated.bin"
       ],
       "platform": "portable"
     },

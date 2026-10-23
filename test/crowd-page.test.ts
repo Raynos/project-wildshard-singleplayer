@@ -1,4 +1,4 @@
-import {admissionPage,admission} from './fixtures/nalati-return-modules';
+import {admissionPage,admission,admissionLegacy} from './fixtures/nalati-return-modules';
 import {parse} from 'valibot';
 import {ActorProjectionStepV2Schema} from '../src/format/actorProjectionV2';
 import {bindOriginalPageGuard,originalPageGuard,type OriginalGuardBinding} from './fixtures/originalPageGuard';
@@ -90,7 +90,7 @@ test('entered page rows reuse the original admission owner and keep guard cadenc
       const data={...world,guard:{projection:projectedRows(oldGuard)}};
       const crowds=createPageCrowds(sky,5,body,data,[wolf],scope),draw=crowds.factory({x:0,z:0,count:3,seed:22,range:20},0);draws.push(draw);
       const random=new Rng(31);randoms.push(random);
-      const programme=index===0?ReturnProgram.page({script:admission.script,bytes:admission.bytes}):admissionPage(scope);
+      const programme=index===0?ReturnProgram.page(admissionLegacy):admissionPage(scope);
       if(index===0)bindOriginalPageGuard(actor,{row:oldGuard,flock:draw,wolves:[wolf],author:programme,random});else crowds.guardian(actor,0,programme,random);
       if(index===1)expect(new ActorProjectionV2('guard',{program:admission,step:guardProjection}).program(scope)).toBe(programme);
       frames.push(legacyDouble<ThinkCtx>({dt:1/60,t:0,player:new Vector3(9,2,4),pathYaw:(_actor:Animal,x:number,z:number,period=1)=>{trace.push(['path',x,z,period]);return .3;},

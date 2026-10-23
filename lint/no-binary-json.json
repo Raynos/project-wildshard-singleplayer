@@ -178,10 +178,6 @@
       "base64Chars": 1114312,
       "dataUris": 0
     },
-    "src/shards/nalati-grasslands/behaviour/admission.generated.json": {
-      "base64Chars": 28708,
-      "dataUris": 0
-    },
     "src/shards/nalati-grasslands/behaviour/director.generated.json": {
       "base64Chars": 2028,
       "dataUris": 0
@@ -216,10 +212,6 @@
     },
     "src/shards/nalati-grasslands/data/questProp.generated.json": {
       "base64Chars": 11564,
-      "dataUris": 0
-    },
-    "src/shards/nalati-grasslands/data/species.generated.json": {
-      "base64Chars": 28708,
       "dataUris": 0
     },
     "src/shards/nine-dragon-stack/behaviour/movers.generated.json": {
