@@ -274,6 +274,11 @@ The boot purge was at **212k files**, up 45k in 4 h and closing on the 250k inve
      `scripts/vitest-push-guards.config.ts` does.
   3. Belt and braces: have the sweep (`boot-temp-warn.sh` / dotfiles `cleanup-temp`) delete nanoid-named
      `ssr/`/`client/` dirs in `$TMPDIR` older than 1 h.
+- **08:47 follow-up: the boot purge is at 263k (over 250k).** Vitest dirs went 192 → **255**, and their files 56k →
+  **96k**: about 10k files an hour, so the purge reaches 500k in about a day at this rate. o28 had **27** private
+  configs by 08:12, the newest `vitest.cc.mjs`. Other lanes do the same: `tmp/sp-x6-pack` (7), `sp-x6-support-bank`,
+  `sp-x6-whirl-gate`, `sp-x8-elite-projection` and `r10b` (1 each). Only 11 of the 38 lane configs build on the repo
+  config. No commit since 04:47 changes `vitest.config.ts`, `scripts/vitest-tmp.ts` or the sweep.
 - Also growing: `$TMPDIR/node-compile-cache/v24.18.1-arm64-…` went 13.6k → 27.3k files in a day. In `/private/tmp`,
   `claude-501/bash-edit-diff` holds 61k files in 12 dirs; that is Claude Code's own scratch, not a lane's.
 
