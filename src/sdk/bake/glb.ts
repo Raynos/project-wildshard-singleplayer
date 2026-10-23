@@ -1,4 +1,4 @@
-import { BufferAttribute, Float16BufferAttribute, Matrix4, type Color, MeshBasicMaterial, MeshStandardMaterial, Quaternion, Vector3, Group, Mesh, type Material, type Object3D, BufferGeometry, Euler } from 'three';
+import { BufferAttribute, Float16BufferAttribute, Matrix4, type Color, type InterleavedBufferAttribute, MeshBasicMaterial, MeshStandardMaterial, Quaternion, Vector3, Group, Mesh, type Material, type Object3D, BufferGeometry, Euler } from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { parseGlb } from '../assets';
 import { parsePrivateScene, compileTubeCurve, type TubeCurveProfile, type TubeCurveFrame, type PrivateScene } from '@wildshard/format/clientChannels';
@@ -132,16 +132,20 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
   }
   const chunks: Uint8Array[] = [], views: Json[] = [], accessors: Json[] = [], meshes: Json[] = [], nodes: Json[] = [], materials: Json[] = [];
   let offset = 0;
-  const accessor = (values: readonly number[], width: number, type: string, integer = false, bounds = false, short = false): number => {
-    if (values.length === 0 || values.length % width !== 0) throw new Error('Invalid GLB attribute');
+  const accessor = (values: readonly number[] | BufferAttribute | InterleavedBufferAttribute, width: number, type: string, integer = false, bounds = false, short = false): number => {
+    // Read through Three's channel API, including normalized, half and interleaved
+    // attributes, without first allocating a boxed copy of every component.
+    const length = 'length' in values ? values.length : values.count * width;
+    const read = 'length' in values ? (i: number) => values[i] : (i: number) => values.getComponent(Math.floor(i / width), i % width);
+    if (length === 0 || length % width !== 0) throw new Error('Invalid GLB attribute');
     // Validate, encode and collect component bounds in one ordered pass. Bounds
     // retain the unrounded source values, while the wire keeps its old storage.
     const minima: number[] = bounds ? Array.from({ length: width }, () => Infinity) : [];
     const maxima: number[] = bounds ? Array.from({ length: width }, () => -Infinity) : [];
     // a 16-bit index's view is padded to 4 bytes so every later view stays aligned
-    const size = short ? 2 : 4, bytes = new Uint8Array(Math.ceil(values.length * size / 4) * 4), v = new DataView(bytes.buffer);
-    for (let i = 0; i < values.length; i++) {
-      const n = values[i];
+    const size = short ? 2 : 4, bytes = new Uint8Array(Math.ceil(length * size / 4) * 4), v = new DataView(bytes.buffer);
+    for (let i = 0; i < length; i++) {
+      const n = read(i);
       if (n === undefined || !Number.isFinite(n)) throw new Error('Invalid GLB attribute');
       if (short) v.setUint16(i * 2, n, true);
       else if (integer) v.setUint32(i * 4, n, true);
@@ -152,8 +156,8 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
         maxima[component] = Math.max(maxima[component] ?? -Infinity, n);
       }
     }
-    const view = views.length; views.push({ buffer: 0, byteOffset: offset, byteLength: values.length * size }); chunks.push(bytes); offset += bytes.length;
-    const a: Record<string, Json> = { bufferView: view, componentType: short ? 5123 : integer ? 5125 : 5126, count: values.length / width, type };
+    const view = views.length; views.push({ buffer: 0, byteOffset: offset, byteLength: length * size }); chunks.push(bytes); offset += bytes.length;
+    const a: Record<string, Json> = { bufferView: view, componentType: short ? 5123 : integer ? 5125 : 5126, count: length / width, type };
     if (bounds) { a['min'] = minima; a['max'] = maxima; }
     accessors.push(a); return accessors.length - 1;
   };
@@ -190,7 +194,7 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
       // retain the original vec4 as an application accessor below, never misdeclare the portable semantic.
       if (nativeAttributes === true && key === 'normal' && a.itemSize === 4 && a.count === p.count) continue;
       if (a.itemSize !== width || a.count !== p.count || (key === 'color' && width !== 3 && width !== 4)) throw new Error('Mismatched GLB attributes');
-      attributes[semantic] = accessor(Array.from({ length: a.count * width }, (_, i) => a.getComponent(Math.floor(i / width), i % width)), width, `VEC${width}`, false, key === 'position');
+      attributes[semantic] = accessor(a, width, `VEC${width}`, false, key === 'position');
     }
     const custom = Object.entries(customAttributes).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
     if (custom.length > 16) throw new Error('GLB custom attribute cap');
@@ -198,7 +202,7 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
       if (!/^_[A-Z][A-Z0-9_]{0,63}$/.test(semantic) || !geometry.hasAttribute(channel)) throw new Error(`Invalid GLB custom attribute ${semantic}`);
       const a = geometry.getAttribute(channel), width = a.itemSize;
       if (!Number.isInteger(width) || width < 1 || width > 4 || a.count !== p.count) throw new Error(`Mismatched GLB custom attribute ${semantic}`);
-      attributes[semantic] = accessor(Array.from({ length: a.count * width }, (_, i) => a.getComponent(Math.floor(i / width), i % width)), width, width === 1 ? 'SCALAR' : `VEC${width}`);
+      attributes[semantic] = accessor(a, width, width === 1 ? 'SCALAR' : `VEC${width}`);
     }
     const native: Record<string, Json> = {};
     if (nativeAttributes === true) {

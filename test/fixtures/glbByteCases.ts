@@ -1,4 +1,4 @@
-import {BufferAttribute,BufferGeometry,Color,Float16BufferAttribute,Matrix4,MeshBasicMaterial,MeshStandardMaterial} from 'three';
+import {BufferAttribute,BufferGeometry,Color,Float16BufferAttribute,InterleavedBuffer,InterleavedBufferAttribute,Matrix4,MeshBasicMaterial,MeshStandardMaterial} from 'three';
 import type {GlbPrimitive} from '../../src/sdk/bake/glb';
 
 /** Wire fixtures cover ordinary float coercion and all distinct accessor storage paths. */
@@ -19,11 +19,16 @@ export function glbByteCases():readonly {name:string;parts:readonly GlbPrimitive
  indexed.setAttribute('uv',new BufferAttribute(new Float32Array([0,0,1,0,0,1]),2));
  indexed.setAttribute('tangent',new BufferAttribute(new Float32Array([1,0,0,1,1,0,0,-1,1,0,0,1]),4));
  indexed.setIndex(new BufferAttribute(new Uint32Array([1,2,0]),1));
+ const interleaved=new BufferGeometry(), interleavedRows=new InterleavedBuffer(Float32Array.of(-0,0,0,0,0,1,1,0,0,0,0,1,0,1,0,0,0,1),6);
+ interleaved.setAttribute('position',new InterleavedBufferAttribute(interleavedRows,3,0));
+ interleaved.setAttribute('normal',new InterleavedBufferAttribute(interleavedRows,3,3));
+ interleaved.setAttribute('pair',new InterleavedBufferAttribute(new InterleavedBuffer(Uint8Array.of(99,0,255,99,127,63,99,255,0),3),2,1,true));
  const instances=[new Matrix4().makeTranslation(4,2,1),new Matrix4().makeScale(2,3,4)];
  return [
   {name:'source-floats',parts:[{name:'float_values',geometry:plain,material:new MeshStandardMaterial(),customAttributes:{_CUSTOM:'custom'},transform:new Matrix4().makeTranslation(1,2,3)}]},
   {name:'compact-native',parts:[{name:'native_values',geometry:native,material:new MeshStandardMaterial({vertexColors:true}),nativeAttributes:true,compactIndex:true,customAttributes:{_PAIR:'pair',_TAG:'tag'}}]},
   {name:'trs-instances',parts:[{name:'trs_values',geometry:indexed,material:new MeshBasicMaterial(),instances,instanceColours:[new Color(0.25,0.5,0.75),new Color(1,0,0)]}]},
+  {name:'interleaved',parts:[{name:'interleaved_values',geometry:interleaved,material:new MeshStandardMaterial(),compactIndex:true,customAttributes:{_PAIR:'pair'}}]},
   {name:'matrix-instances',parts:[{name:'matrix_values',geometry:indexed.clone(),material:new MeshStandardMaterial(),instances,exactInstances:true,nativeAttributes:true}]},
  ];
 }
