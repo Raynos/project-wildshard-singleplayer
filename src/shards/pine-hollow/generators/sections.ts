@@ -1,3 +1,4 @@
+import { NativeGroundFileSchema } from '@wildshard/format/nativePhysics';
 import { HullSpeciesSchema } from '@wildshard/format/speciesLooks';
 import { RoamingBossProfileSchema } from '@wildshard/format/bossProfiles';
 import { BuildingLifeLookSchema } from '@wildshard/format/buildings';
@@ -211,7 +212,7 @@ const physicsTriple = v.tuple([finite, finite, finite]);
 const kingHit = v.strictObject({ head: physicsTriple, body: v.tuple([physicsTriple, physicsTriple]), fore: v.tuple([physicsTriple, physicsTriple]), ribs: physicsTriple, radius: v.pipe(finite, v.minValue(0.001)) });
 const shelterTree = v.tuple([finite, finite, v.pipe(finite, v.minValue(0)), v.pipe(finite, v.minValue(0)), v.pipe(finite, v.minValue(0), v.maxValue(1))]);
 export const PinePhysicsSchema = v.object({ version: v.literal(1),
- ground: v.strictObject({ rows: finite, cols: finite, heights: v.string(), friction: finite, groups: finite, scale: v.strictObject(point), at: v.strictObject(point) }),
+ ground: v.strictObject({ rows: finite, cols: finite, heights: v.union([v.string(), NativeGroundFileSchema]), friction: finite, groups: finite, scale: v.strictObject(point), at: v.strictObject(point) }),
  solids: v.array(v.unknown()),
  actors: v.array(v.strictObject({ ...physicsBody, herd: finite, scripted: v.boolean() })), parked: v.array(v.strictObject(physicsBody)),
  trees: v.array(v.tuple([finite, finite, v.pipe(finite, v.minValue(0))])), herds: v.array(v.strictObject({ kind: v.string(), members: v.array(v.string()) })), kingHit, shelterTrees: v.array(shelterTree),

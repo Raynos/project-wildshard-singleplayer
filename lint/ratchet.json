@@ -821,7 +821,8 @@
     "src/shards/nalati-grasslands/generators/titanFireView.ts": 2,
     "src/shards/nalati-grasslands/generators/bake-titan-fire-view.mjs": 1,
     "src/shards/nalati-grasslands/generators/titanWhirlsView.ts": 2,
-    "src/shards/nalati-grasslands/generators/bake-titan-whirls-view.mjs": 1
+    "src/shards/nalati-grasslands/generators/bake-titan-whirls-view.mjs": 1,
+    "src/shards/pine-hollow/generators/sections.ts": 10
   },
   "wildshard/no-build-time-import": {
     "src/shards/_template/quests/adventure.ts": 1,

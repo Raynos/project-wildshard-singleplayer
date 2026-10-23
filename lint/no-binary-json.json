@@ -382,14 +382,6 @@
       "base64Chars": 5652,
       "dataUris": 0
     },
-    "src/shards/pine-hollow/data/physics.generated.json": {
-      "base64Chars": 765384,
-      "dataUris": 0
-    },
-    "src/shards/pine-hollow/data/physicsRows.json": {
-      "base64Chars": 765384,
-      "dataUris": 0
-    },
     "src/shards/sunscar-dunes/behaviour/skitterer.json": {
       "base64Chars": 6400,
       "dataUris": 0

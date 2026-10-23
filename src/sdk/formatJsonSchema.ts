@@ -1,3 +1,4 @@
+import { NativeGroundFileSchema } from '@wildshard/format/nativePhysics';
 import { WorldAssemblySchema } from '@wildshard/format/worldAssembly';
 import { ReturnModulesSchema } from '@wildshard/format/scriptContract';
 import { BowVariantSchema } from '@wildshard/format/bowVariantRows';
@@ -372,6 +373,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'scalarChannel.ScalarTriplet': ScalarTripletSchema,
   'returnProjectionV2.ReturnProjectionV2': ReturnProjectionV2Schema,
   'scriptContract.ReturnModules': ReturnModulesSchema,
+  'nativePhysics.NativeGroundFile': NativeGroundFileSchema,
   'worldAssembly.WorldAssembly': WorldAssemblySchema,
  };
 const wireChecks = new Map<object, string>();

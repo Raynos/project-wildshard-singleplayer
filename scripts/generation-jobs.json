@@ -8053,14 +8053,16 @@
         "src/shards/pine-hollow/generators/physics.ts",
         "src/format",
         "src/shards/pine-hollow/generators/sections.ts",
-        "src/shards/pine-hollow/data/terrainBindings.json"
+        "src/shards/pine-hollow/data/terrainBindings.json",
+        "src/shards/pine-hollow/data/physics-ground.bin",
+        "src/shards/pine-hollow/data/physics-colliders.bin"
       ],
       "outputs": [
         "src/shards/pine-hollow/data/physics.generated.json"
       ],
       "platform": "portable",
       "buildOutputs": {
-        "src/shards/pine-hollow/data/physics.generated.json": "e332691153953a5eb472d58817d3d1246adb87be6838ddd965230159bbdd8d8f"
+        "src/shards/pine-hollow/data/physics.generated.json": "8f44d50182fa1cf7584c5311d7f3269add61f74d5ed12cb82dd1c734cd31520a"
       },
       "seedOutputs": []
     },

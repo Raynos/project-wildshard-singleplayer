@@ -62,7 +62,7 @@ test('native format intake retains original body, collider and lattice facts and
   if (actor === undefined) throw new Error('Missing native fixture');
   expect(v.parse(nativeBodySchema('segments'), actor.spec)).toEqual(actor.spec);
   expect(solid).toEqual(rawSolid);
-  expect(v.parse(nativeGroundRecordSchema(256), pine.ground)).toEqual(pine.ground);
+  expect(v.parse(nativeGroundRecordSchema(256,true), pine.ground)).toEqual(pine.ground);
   expect(() => v.parse(nativeColliderRecordSchema([1, 2, 6, 9], 'piece'), { ...solid, owner: 'foreign' })).toThrow();
-  expect(() => v.parse(nativeGroundRecordSchema(128), pine.ground)).toThrow();
+  expect(() => v.parse(nativeGroundRecordSchema(128,true), pine.ground)).toThrow();
 });

@@ -214,10 +214,13 @@
     { "name": "shelterRows", "value": { "$call": [{ "$ref": ["assembly", "json"] }, { "$ref": ["product"] }, "actors/shelter.json"] } },
     { "name": "rosterRows", "value": { "$call": [{ "$ref": ["assembly", "json"] }, { "$ref": ["product"] }, "actors/roster.json"] } },
     { "name": "physicsRows", "value": { "$call": [{ "$ref": ["assembly", "json"] }, { "$ref": ["product"] }, "data/physics.generated.json"] } },
+    { "name": "physicsGround", "value": { "$call": [{ "$ref": ["product", "file"] }, "data/physics-ground.bin"] } },
+    { "name": "physicsColliders", "value": { "$call": [{ "$ref": ["product", "file"] }, "data/physics-colliders.bin"] } },
     { "name": "bakeReader", "value": { "$call": [{ "$ref": ["@wildshard/game/population/nativeBake", "createNativeBakeReader"] }, { "$ref": ["physicsRows"] }, {
       "label": "Pine", "resolution": { "$ref": ["constants", "terrain", "res"] }, "size": { "$ref": ["constants", "terrain", "size"] },
       "parked": true, "rig": "segments", "shapes": [1, 2, 6, 9], "provenance": "piece"
-    }] } },
+    }, { "file": "data/physics-ground.bin", "bytes": { "$ref": ["physicsGround"] } },
+    [{ "file": "data/physics-colliders.bin", "bytes": { "$ref": ["physicsColliders"] } }]] } },
     { "name": "bake", "value": { "$call": [{ "$ref": ["assembly", "merge"] }, {
       "kingHit": { "$ref": ["physicsRows", "kingHit"] }, "shelterTrees": { "$ref": ["physicsRows", "shelterTrees"] }
     }, { "$call": [{ "$ref": ["bakeReader", "read"] }] }] } },

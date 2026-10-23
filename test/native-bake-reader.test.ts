@@ -1,7 +1,7 @@
 import { nativeColliderRecordSchema } from '../src/format/nativePhysics';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { createNativeBakeReader, nativeBakeBytes, nativeBakeFloats, type NativePhysicsBake, type NativeBakeReader } from '../src/game/population/nativeBake';
+import { createNativeBakeReader, nativeBakeBytes, type NativePhysicsBake, type NativeBakeReader } from '../src/game/population/nativeBake';
 import { prepareHeadlessAssembly } from '../src/sdk/headlessAssembly';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
@@ -47,17 +47,19 @@ test('the Pine assembly retains memoized buffers and privately owned native meta
   const declaration = { ...assembly, modules: {
     '@wildshard/game/population/nativeBake': ['createNativeBakeReader'], 'src/game/bakeFixture': ['capture'],
   }, constants: { terrain },
-  prepare: assembly.prepare.filter(row => ['physicsRows', 'bakeReader', 'bake'].includes(row.name)),
+  prepare: assembly.prepare.filter(row => ['physicsRows', 'physicsGround', 'physicsColliders', 'bakeReader', 'bake'].includes(row.name)),
   install: [{ name: 'capture', value: { $call: [ref('src/game/bakeFixture', 'capture'), ref('bake'), ref('bakeReader')] } }],
   level: { speed: 5, lift: .1, ground: { size: 500, height: 0 } }, ports: { ground: false, heightAt: { $fn: 0 } },
   entries: { $fn: { lanes: 0, steps: 0 } } };
   const bytes = new Map([['sim/headless-assembly.json', new TextEncoder().encode(JSON.stringify(declaration))],
-    ['data/physics.generated.json', new TextEncoder().encode(JSON.stringify(baked))]]);
+    ['data/physics.generated.json', new TextEncoder().encode(JSON.stringify(baked))],
+    ['data/physics-ground.bin', new Uint8Array(readFileSync('src/shards/pine-hollow/data/physics-ground.bin'))],
+    ['data/physics-colliders.bin', new Uint8Array(readFileSync('src/shards/pine-hollow/data/physics-colliders.bin'))]]);
   const shard = emptyShardfile({ slug: 'bake-fixture', name: 'Bake fixture', author: 'Test', revision: 1, seed: 1337 });
   const product = createShardProduct({ slug: shard.identity.slug, revision: 1, shardfile: shard, sections: new Map(),
     files: new Map([...bytes.keys()].map(path => [path, { hash: path, url: path }])),
     read: path => { const value = bytes.get(path); if (value === undefined) throw new Error('Missing native fixture'); return Promise.resolve(value); } });
-  const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
+  const rapier = await loadRapier(readFileSync(new URL('../node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm',import.meta.url)));
   const modules = { '@wildshard/game/population/nativeBake': { createNativeBakeReader }, 'src/game/bakeFixture': { capture } };
   const first = await prepareHeadlessAssembly({ shard, product, assets: new Map(), rapier }, modules);
   const other = await prepareHeadlessAssembly({ shard, product, assets: new Map(), rapier }, modules);
@@ -74,7 +76,7 @@ test('the Pine assembly retains memoized buffers and privately owned native meta
   expect(reader.read().ground.heights).toBe(value.ground.heights);
   expect(independent.value.ground.heights).toEqual(value.ground.heights);
   expect(independent.value.ground.heights.buffer).not.toBe(value.ground.heights.buffer);
-  expect(value.ground.heights).toEqual(nativeBakeFloats(baked.ground.heights));
+  expect(new Uint8Array(value.ground.heights.buffer)).toEqual(new Uint8Array(readFileSync('src/shards/pine-hollow/data/physics-ground.bin')));
   expect(value.kingHit).toEqual(baked.kingHit); expect(value.shelterTrees).toEqual(baked.shelterTrees);
   expect(value.kingHit).not.toBe(baked.kingHit); expect(value.shelterTrees).not.toBe(baked.shelterTrees);
   expect(independent.value.kingHit).not.toBe(value.kingHit); expect(independent.value.shelterTrees).not.toBe(value.shelterTrees);
@@ -84,7 +86,7 @@ test('the Pine assembly retains memoized buffers and privately owned native meta
   expect(value.solids).toHaveLength(baked.solids.length);
   baked.solids.forEach((row, i) => {
     const solid = value.solids[i]; if (solid === undefined) throw new Error('Missing captured solid');
-    const capturedSolid = v.parse(nativeColliderRecordSchema([1,2,6,9],'piece'), row);
+    const capturedSolid = v.parse(nativeColliderRecordSchema([1,2,6,9],'piece',true), row);
     expect(solid).toEqual(reader.solid(row));
     expect(solid.at).toEqual(capturedSolid.at); expect(solid.rot).toEqual(capturedSolid.rot);
   });
@@ -134,4 +136,8 @@ test('named physics admission keeps the original bytes and every body field', as
   expect(validateNamedJsonSchema(schema, published.bytes)).toEqual(baked);
   const invalid = new TextEncoder().encode(JSON.stringify({ ...baked, kingHit: { ...baked.kingHit, radius: 0 } }));
   expect(() => validateNamedJsonSchema(schema, invalid)).toThrow();
+  for(const heights of [{file:'../floor.bin'},{file:'floor.json'},{file:'floor.bin',extra:1}]) {
+    const bad = new TextEncoder().encode(JSON.stringify({...baked,ground:{...baked.ground,heights}}));
+    expect(()=>validateNamedJsonSchema(schema,bad)).toThrow();
+  }
 });

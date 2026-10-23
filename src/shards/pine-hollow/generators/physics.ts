@@ -18,8 +18,23 @@ export function pinePhysics(): Record<string, unknown> {
     shelterTrees: rows.shelterTrees, pieces: rows.pieces, solids: rows.solids };
   v.parse(PinePhysicsSchema, payload);
   for (const actor of [...rows.actors, ...rows.parked]) v.parse(nativeBodySchema('segments'), actor.spec);
-  const solid = nativeColliderRecordSchema([1, 2, 6, 9], 'piece');
+  const solid = nativeColliderRecordSchema([1, 2, 6, 9], 'piece', true);
   for (const row of rows.solids) v.parse(solid, row);
   if (rows.ground.rows !== PINE_TERRAIN.res - 1 || rows.ground.cols !== PINE_TERRAIN.res - 1) throw new Error('Pine physics: divergent native lattice');
   return payload;
+}
+
+/** Original floor and hull buffers through the existing named binary intake. */
+export function pinePhysicsSources(): { name: string; kind: 'bin'; source: string; options: { decoded: number } }[] {
+  const colliders = new Map<string, number>();
+  for (const solid of v.parse(v.array(nativeColliderRecordSchema([1, 2, 6, 9], 'piece', true)), rows.solids)) {
+    for (const range of [solid.vertices, solid.indices]) {
+      if (range === undefined) continue;
+      if (typeof range === 'string') throw new Error('Pine physics requires admitted raw collider ranges');
+      colliders.set(range.file, Math.max(colliders.get(range.file) ?? 0, range.byteOffset + range.byteLength));
+    }
+  }
+  const file = rows.ground.heights.file;
+  return [{ name: file, kind: 'bin', source: file, options: { decoded: (rows.ground.rows + 1) * (rows.ground.cols + 1) * 4 } },
+    ...Array.from(colliders, ([name, decoded]) => ({ name, kind: 'bin' as const, source: name, options: { decoded } }))];
 }

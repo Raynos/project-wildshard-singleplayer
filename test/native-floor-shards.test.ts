@@ -8,12 +8,15 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 
 for (const slug of ['driftwood-isle','pine-hollow']) test(`${slug} retains all floor bytes and values through inline and raw intake`, () => {
   const source:unknown=JSON.parse(readFileSync(`src/shards/${slug}/data/physics.generated.json`,'utf8'));
-  const row=v.parse(v.object({ground:nativeGroundRecordSchema(256)}),source).ground;
-  const original=nativeBakeFloats(row.heights), bytes=new Uint8Array(original.buffer);
-  const inline=nativeBakeGround(row,256,500,slug);
+  const row=v.parse(v.object({ground:nativeGroundRecordSchema(256,true)}),source).ground;
+  const original=typeof row.heights==='string' ? nativeBakeFloats(row.heights)
+    : new Float32Array(Uint8Array.from(readFileSync(`src/shards/${slug}/${row.heights.file}`)).buffer);
+  const bytes=new Uint8Array(original.buffer);
+  const inline=nativeBakeGround(row,256,500,slug,typeof row.heights==='string' ? undefined : {file:row.heights.file,bytes});
   const file='data/floor.bin';
   const raw=nativeBakeGround({...row,heights:{file}},256,500,slug,{file,bytes});
   expect(original).toHaveLength(65536);
+  if(slug==='pine-hollow') expect(hashImmutableBytes(bytes)).toBe('baf2636f4cd6668e9104241c91a265734f1c34f915832184809f7e0e50de1acd');
   for (const current of [inline,raw]) {
     expect(hashImmutableBytes(new Uint8Array(current.heights.buffer))).toBe(hashImmutableBytes(bytes));
     expect(original.every((value,index)=>Object.is(value,current.heights[index]))).toBe(true);
