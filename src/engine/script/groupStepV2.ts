@@ -107,7 +107,7 @@ export class GroupStepV2 {
       if (signal === 0 || input.group.length === 0 || input.members.length > profile.rows.members
         || !Number.isInteger(input.handle) || input.handle < 1 || input.handle > 0x7fffffff) throw new Error('Invalid group step input');
       const originalState = input.state.slice();
-      profile.bank.decode(originalState, input.group, input.references);
+      profile.bank.validate(originalState, input.group, input.references);
       const refs = input.references.map(row => {
         if (!validReference(row)) throw new Error('Foreign group reference body');
         return Object.freeze({ ...row });

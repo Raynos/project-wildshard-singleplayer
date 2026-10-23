@@ -166,31 +166,35 @@ export class GroupBankV2 {
     }
     for(const {offset,values}of next)for(const[index,value]of values.entries())if(!Object.is(bank[offset+index],value))bank[offset+index]=value;
   }
-  decode(bank: ArrayLike<number>, group: string, roster: readonly GroupBankReferenceV2[]): Readonly<Record<string, GroupBankValueV2>> {
+  private read(bank: ArrayLike<number>, group: string, roster: readonly GroupBankReferenceV2[],
+    result?: Record<string,GroupBankValueV2>): void {
     if (bank.length !== this.width) throw new Error('Group bank width mismatch');
-    const { byHandle } = this.loan(roster, group), result: Record<string, GroupBankValueV2> = {};
+    const { byHandle } = this.loan(roster, group);
+    const reference = (handle:number,row:GroupBankFieldV2):string => {
+      const found=byHandle.get(integer(handle,1,0x7fffffff));
+      if(found===undefined||(row.kind!=='reference'&&row.kind!=='references')
+        ||row.own===true&&found.group!==group)throw new Error('Unresolved group reference');
+      return found.wire;
+    };
     let offset = 0;
     for (const row of this.fields) {
       const value = bank[offset];
       if (value === undefined) throw new Error('Missing group bank value');
       finite(value);
-      const reference = (handle: number): string => {
-        const found = byHandle.get(integer(handle, 1, 0x7fffffff));
-        if (found === undefined || row.kind !== 'reference' && row.kind !== 'references'
-          || row.own === true && found.group !== group) throw new Error('Unresolved group reference');
-        return found.wire;
-      };
       switch (row.kind) {
         case 'number':
           if (row.integer === true && !Number.isInteger(value) || row.min !== undefined && value < row.min
             || row.max !== undefined && value > row.max) throw new Error('Group field outside bound');
-          result[row.name] = value;
+          if(result!==undefined) result[row.name] = value;
           break;
-        case 'boolean': result[row.name] = integer(value, 0, 1) === 1; break;
+        case 'boolean': {
+          const flag=integer(value,0,1)===1;
+          if(result!==undefined)result[row.name]=flag;break;
+        }
         case 'enum': {
           const selected = row.values[integer(value, 0, row.values.length - 1)];
           if (selected === undefined) throw new Error('Missing group enum');
-          result[row.name] = selected;
+          if(result!==undefined) result[row.name] = selected;
           break;
         }
         case 'nullable-number': {
@@ -198,27 +202,38 @@ export class GroupBankV2 {
           if (number === undefined) throw new Error('Missing nullable group number');
           finite(number);
           if (integer(value, 0, 1) === 0 && !Object.is(number, 0)) throw new Error('Nonzero absent group value');
-          result[row.name] = value === 0 ? null : number;
+          if(result!==undefined) result[row.name] = value === 0 ? null : number;
           break;
         }
-        case 'reference': result[row.name] = value === 0 ? null : reference(value); break;
+        case 'reference': {
+          const wire=value===0?null:reference(value,row);
+          if(result!==undefined)result[row.name]=wire;break;
+        }
         case 'references': {
           const count = integer(value, 0, row.capacity), values: string[] = [];
           for (let index = 0; index < row.capacity; index++) {
             const handle = bank[offset + index + 1];
             if (handle === undefined) throw new Error('Missing ordered group reference');
-            if (index < count) values.push(reference(handle));
+            if (index < count) values.push(reference(handle,row));
             else if (!Object.is(handle, 0)) throw new Error('Nonzero unused group reference');
           }
           if (new Set(values).size !== values.length) throw new Error('Duplicate ordered group reference');
-          result[row.name] = Object.freeze(values);
+          if(result!==undefined) result[row.name] = Object.freeze(values);
           break;
         }
         default: throw new Error('Unknown group bank field');
       }
       offset += groupBankWidthV2(row);
     }
-    return Object.freeze(result);
+  }
+
+  /** Check the same complete bank without allocating a discarded snapshot. */
+  validate(bank:ArrayLike<number>,group:string,roster:readonly GroupBankReferenceV2[]):void {
+    this.read(bank,group,roster);
+  }
+  decode(bank:ArrayLike<number>,group:string,roster:readonly GroupBankReferenceV2[]):Readonly<Record<string,GroupBankValueV2>> {
+    const result:Record<string,GroupBankValueV2>={};
+    this.read(bank,group,roster,result);return Object.freeze(result);
   }
 
   /** Validate a complete detached candidate, then borrow one publication into
@@ -231,7 +246,7 @@ export class GroupBankV2 {
       readonly accept: () => void;
     } {
     if (candidate.length !== this.width || bank.length !== this.width || scope.disposed || scope.disposing) throw new Error('Retired group bank owner');
-    this.decode(bank, group, roster);
+    this.validate(bank, group, roster);
     const before = bank.slice(), next = Float64Array.from(candidate);
     const values = this.decode(next, group, roster);
     const pins = roster.map(row => ({ source: row, group: row.group, slot: row.slot,

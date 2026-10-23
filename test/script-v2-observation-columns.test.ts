@@ -175,3 +175,15 @@ test('selected point readers skip unrelated grass and fence replacement at the n
   expect(()=>reader.captureNumeric(f.owners)).toThrow('grass owner');
  }finally{f.host.dispose();}
 });
+
+
+test('a selected scalar read fences only real reads while retaining final retirement checks',async()=>{
+ const f=await fixture(),reader=new ObservationColumnsV2(Array.from({length:64},(_,index)=>({id:index+1,name:`x${index}`,source:{kind:'actor',field:'x'}})),f.host.scope);
+ let reads=0;Object.defineProperty(f.owners.self,'actor',{get:()=>{reads++;return f.actor;}});
+ const selection=Array.from({length:64},(_,index)=>index===0);
+ try{
+  const first=reader.captureNumeric(f.owners,selection);expect(first[0]).toBe(4);expect(Number.isNaN(first[63])).toBe(true);expect(reads).toBeLessThanOrEqual(8);
+  f.actor.position.x=12;reads=0;expect(reader.captureNumeric(f.owners,selection)[0]).toBe(12);expect(reads).toBeLessThanOrEqual(8);
+  f.host.scope.dispose();expect(()=>reader.captureNumeric(f.owners,selection.map(()=>false))).toThrow('Retired');
+ }finally{f.host.dispose();}
+});

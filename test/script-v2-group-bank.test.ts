@@ -160,3 +160,17 @@ test('incremental updates keep one bank and validate the whole changed suffix be
  }
  expect(reads).toBe(0);codec.update(bank,{strength:-0},'first',loans);expect(Object.is(codec.decode(bank,'first',loans)['strength'],-0)).toBe(true);
 });
+
+
+test('validation checks every original wire kind without building a decoded record',()=>{
+ const codec=new GroupBankV2(fields),loans=[...roster,external],bank=codec.encode(record(),'first',loans);
+ codec.validate(bank,'first',loans);
+ expect(codec.decode(bank,'first',loans)).toStrictEqual(record());
+ const changes:readonly (readonly [number,number])[]=[[0,2],[2,2],[3,9],[4,99],[5,404],[6,17],[7,0],[40,Infinity]];
+ for(const[offset,value]of changes){
+  const malformed=bank.slice();malformed[offset]=value;const before=malformed.slice();
+  expect(()=>codec.validate(malformed,'first',loans)).toThrow();
+  expect(()=>codec.decode(malformed,'first',loans)).toThrow();
+  expect(malformed).toStrictEqual(before);
+ }
+});

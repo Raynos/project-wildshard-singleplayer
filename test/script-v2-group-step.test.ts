@@ -1,9 +1,10 @@
-import { beforeAll, expect, test } from 'vitest';
+import { beforeAll, expect, test, vi } from 'vitest';
 import { AnimalSim } from '../src/engine/entities/AnimalSim';
 import { Scope } from '../src/engine/app/scope';
 import { Rng } from '../src/engine/core/rng';
 import { GroupBankV2 } from '../src/engine/script/groupBankV2';
 import { GroupStepV2 } from '../src/engine/script/groupStepV2';
+import { ObservationColumnsV2 } from '../src/engine/script/observationColumnsV2';
 import { QueryRingV2 } from '../src/engine/script/queriesV2';
 import { parseGroupStepV2, groupStepColumnV2, groupStepLayoutV2 } from '../src/format/scriptGroupStepV2';
 import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
@@ -194,4 +195,16 @@ test('an omitted numeric column is absent rather than a previous segment value',
   const capture={common:['a.alive','z.position'],slots:[]},ready=f.runner.prepare({...f.input,capture});
   capture.common.pop();expect(()=>ready.accept()).toThrow('capture selection');expect(f.state).toStrictEqual(before);
  }finally{f.root.dispose();}
+});
+
+
+test('a real group step decodes only its published candidate and rejects bad input before capture',()=>{
+ const f=fixture(),decode=vi.spyOn(GroupBankV2.prototype,'decode'),capture=vi.spyOn(ObservationColumnsV2.prototype,'captureNumeric');
+ try{
+  const ready=f.runner.prepare(f.input);
+  expect(decode).toHaveBeenCalledTimes(1);expect(ready.values['sum']).toBe(120);
+  decode.mockClear();capture.mockClear();f.state[0]=70000;
+  expect(()=>f.runner.prepare(f.input)).toThrow('outside bound');
+  expect(decode).not.toHaveBeenCalled();expect(capture).not.toHaveBeenCalled();
+ }finally{decode.mockRestore();capture.mockRestore();f.root.dispose();}
 });

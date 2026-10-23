@@ -195,7 +195,11 @@ export class ObservationColumnsV2 {
       return {name,loan,body:loan?.body,identity:loan?.identity,handle:loan?.handle};
     });
     const values=new Float64Array(this.scalars.length);
-    for(const[index,read]of this.scalars.entries()){live();values[index]=selected?.[index]===false?Number.NaN:finite(read(owners));}
+    if(selected!==undefined)values.fill(Number.NaN);
+    for(const[index,read]of this.scalars.entries()){
+      if(selected?.[index]===false)continue;
+      live();values[index]=finite(read(owners));
+    }
     live();
     if(owners.references!==owner||refs.some(pin=>{
       const loan=owner?.get(pin.name);

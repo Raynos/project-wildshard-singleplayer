@@ -12587,6 +12587,10 @@ reference loan is {group, slot, identity, wire, handle}; zero is null. Its handl
 is supplied by the existing owner, never derived from a kind or hash. Decoding
 a wire identity grants no body authority: the original resolver still owns it.
 
+validate(bank, group, referenceLoans) performs the same complete wire checks
+without constructing a decoded record. The group runner uses this for its
+original input; only the candidate produces the detached values record.
+
 prepare(originalBank, candidate, group, referenceLoans, scope) validates the
 whole candidate before publication and returns values, validate and accept.
 Compose validate with the original owner's native operations and RNG preflight;
