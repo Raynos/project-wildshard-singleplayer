@@ -129,7 +129,8 @@ def committed_source(repo, revision, tooling_revision, deadline):
                 if target.startswith('public/') and '..' not in PurePosixPath(target).parts:
                     assets.add(target)
         blobs = {name.decode(): header.split()[2] for header, name in
-                 (row.split(b'\t', 1) for row in records)}
+                 (row.split(b'\t', 1) for row in records)
+                 if header.split()[1] == b'blob' and header.split()[0] in (b'100644', b'100755')}
         for name in assets:
             if name in blobs and not (tree / name).exists():
                 data = command(repo, ['git', 'cat-file', 'blob', blobs[name].decode()], deadline, capture_output=True).stdout
@@ -169,18 +170,24 @@ def committed_source(repo, revision, tooling_revision, deadline):
             repo, tree, json.loads(runtime_tools['copied-runtime-inputs.json']), deadline)
         print('push-source: restored %d content-verified copied runtime inputs' % copied, flush=True)
         tests_available = test_revision is not None
-        # Vitest's real module graph includes literal raster/binary imports.
-        # Read their tracked Git blobs; never substitute shared-tree assets.
+        # Native tests also read tracked files through fs/new URL rather than
+        # module imports. Only exact literal matches in the tip's Git inventory
+        # are materialised; loose working bytes and unrelated assets stay out.
         imported_assets = set()
-        for folder in ['src', 'test', 'admin', 'drafts']:
+        for folder in ['src', 'test', 'admin', 'drafts', 'scripts', 'vite', 'api']:
             for path in (tree / folder).rglob('*'):
-                if path.suffix not in {'.ts', '.tsx', '.mts', '.js', '.mjs'}:
+                if path.suffix not in {'.ts', '.tsx', '.mts', '.cts', '.js', '.mjs', '.cjs', '.py', '.sh'}:
                     continue
-                for value in re.findall(r'''(?:from\s+|import\s*\(\s*|import\s*)["']([^"']+\.(?:png|jpe?g|webp|svg|hdr|glb|bin|wasm)(?:\?[^"']*)?)["']''', path.read_text()):
+                for value in re.findall(r"""["'`]([^"'`\r\n]+)["'`]""", path.read_text()):
+                    if '${' in value or '/' not in value:
+                        continue
                     value = value.split('?', 1)[0]
-                    name = value[1:] if value.startswith('/src/') else os.path.normpath(str(path.relative_to(tree).parent / value))
-                    if not name.startswith('../') and not PurePosixPath(name).is_absolute():
-                        imported_assets.add(name)
+                    candidates = {value, os.path.normpath(str(path.relative_to(tree).parent / value))}
+                    if value.startswith('/src/'):
+                        candidates.add(value[1:])
+                    elif value.startswith('/assets/'):
+                        candidates.add('public' + value)
+                    imported_assets.update(name for name in candidates if name in blobs)
         for name in imported_assets:
             if name in blobs and not (tree / name).exists():
                 data = command(repo, ['git', 'cat-file', 'blob', blobs[name].decode()], deadline, capture_output=True).stdout

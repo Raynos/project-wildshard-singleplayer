@@ -233,7 +233,29 @@ class PushLoop(unittest.TestCase):
         self.put('src/other.ts', 'export const original = true;')
         self.put('src/asset.ts', "import image from './image.png'; export {image};")
         self.put('src/image.png', 'committed-binary')
+        self.put('test/native-input.test.ts', """
+import {readFileSync} from 'node:fs';
+readFileSync(new URL('../public/assets/baked/example/terrain.bin', import.meta.url));
+readFileSync('public/assets/native/rows.dat');
+readFileSync(`../public/assets/native/template.bin`);
+const url = '/assets/native/image.png';
+readFileSync('../public/assets/native/untracked.bin');
+""")
+        native = {
+            'public/assets/baked/example/terrain.bin': b'\x00committed-terrain\xff',
+            'public/assets/native/rows.dat': b'\x01committed-rows',
+            'public/assets/native/template.bin': b'\x02committed-template',
+            'public/assets/native/image.png': b'\x03committed-image',
+        }
+        for name, data in native.items():
+            path = self.root / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(data)
+        self.put('public/assets/native/unrelated.bin', 'unrelated tracked input')
         tip = self.commit('src/entry.ts')
+        for name in native:
+            (self.root / name).write_bytes(b'foreign working input')
+        self.put('public/assets/native/untracked.bin', 'untracked input')
         self.put('src/other.ts', 'half written foreign WIP')
         self.put('src/data.json', '{"state":"staged WIP"}')
         self.git('add', '--', 'src/data.json')
@@ -243,7 +265,13 @@ class PushLoop(unittest.TestCase):
             self.assertEqual((tree / 'src/data.json').read_text(), '{"state":"committed"}')
             self.assertEqual((tools / 'push-inputs.mjs').read_text(), '// committed tool\n')
             self.assertEqual((tree / 'src/image.png').read_text(), 'committed-binary')
+            for name, data in native.items():
+                self.assertEqual((tree / name).read_bytes(), data)
+            self.assertFalse((tree / 'public/assets/native/unrelated.bin').exists())
+            self.assertFalse((tree / 'public/assets/native/untracked.bin').exists())
         self.assertEqual((self.root / 'src/other.ts').read_text(), 'half written foreign WIP')
+        for name in native:
+            self.assertEqual((self.root / name).read_bytes(), b'foreign working input')
         self.assertEqual((self.root / '.git/index').read_bytes(), index)
 
     def test_timed_out_tests_defer_but_observed_failures_stay_red(self):
