@@ -3,7 +3,7 @@ import { saves } from '@wildshard/engine/saves/runtime';
 import type { SaveStore } from '@wildshard/engine/saves/store';
 import { progressSave } from './saves';
 import { ordinaryShardManifests } from './shard/legacy';
-import { shards as installedShards } from './shard/list';
+import { titleManifests } from './shard/titleList';
 import type { ShardSlug } from './shard/slugs.generated';
 
 const count = v.pipe(v.number(), v.finite(), v.integer(), v.minValue(0));
@@ -37,7 +37,7 @@ export function summaryStore(store: SaveStore, read: (slug: string) => SummaryPr
   const current = (): WildshardSummary => {
     const saved = slot.peek();
     if (saved !== null) return saved;
-    const rebuilt = buildSummary(ordinaryShardManifests(installedShards()).filter((shard) => shard.status !== 'hidden'), read); slot.write(rebuilt); return rebuilt;
+    const rebuilt = buildSummary(ordinaryShardManifests(titleManifests()).filter((shard) => shard.status !== 'hidden'), read); slot.write(rebuilt); return rebuilt;
   };
   return {
     read: current,

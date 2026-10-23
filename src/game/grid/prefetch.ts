@@ -17,9 +17,11 @@
 import { PrefetchQuota, PrefetchBytes } from '@wildshard/engine/boot/prefetchQuota';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { outputBlobPath, parseOutputIndex } from '@wildshard/format/outputIndex';
-import { findShard } from '../shard/registry';
+import { findTitleManifest } from '../shard/titleList';
 import type { ProductCache, ProductOptions } from '../shardfile/product';
-import { browserShardfileOptions } from '../shardfile/runtimeProduct';
+import { browserContentStore, contentHash } from '../shardfile/contentStore';
+import { hashOwnedBytes, prepareContentHash } from '@wildshard/engine/boot/contentHash';
+import { builtIndexHashes } from '@wildshard/format/builtIndexes';
 import type { GridAssembly } from './assembly';
 
 /** Files in flight at once: the page's own reads keep most of the pipe. */
@@ -108,13 +110,16 @@ class GridPrefetch {
     if (this.status.reason === null) this.status.phase = 'done';
   }
   private async product(id: string, quota: PrefetchQuota): Promise<void> {
-    const manifest = findShard(id), descriptor = manifest?.shardfile ?? manifest?.gridShardfile;
+    const manifest = findTitleManifest(id), descriptor = manifest?.shardfile ?? manifest?.gridShardfile;
     if (descriptor === undefined) return;
-    const url = new URL(descriptor, location.href), base = new URL('.', url).href, options = browserShardfileOptions(base, true);
-    const holds = options.cache?.holds, keepAsset = options.cache?.keepAsset;
-    if (holds === undefined || keepAsset === undefined) { this.stop('no content cache'); return; }
+    const url = new URL(descriptor, location.href), base = new URL('.', url).href;
+    prepareContentHash();
+    if (typeof caches === 'undefined') { this.stop('no content cache'); return; }
+    const content = browserContentStore(caches), indexes = import.meta.env.DEV ? null : builtIndexHashes();
+    const holds: PrefetchCache['holds'] = (hash, size) => content.holds(hash, size);
+    const keepAsset: PrefetchCache['keepAsset'] = (hash, body) => content.put(hash, body, true);
     const bytes = await readGridPrefetch(url.href, limits.sourceBytes);
-    if (options.built !== undefined && !options.built.indexes.has(await options.hash(bytes))) { this.stop('a newer deployment'); return; }
+    if (indexes !== null && !indexes.has(await contentHash(bytes))) { this.stop('a newer deployment'); return; }
     const index = parseOutputIndex(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
     const listed: Row[] = [...index.sections, ...index.schemas, ...index.files.map(file => ({ path: outputBlobPath(file), hash: file.hash, bytes: file.compressed }))];
     // a commons blob or a shared section is listed by several products: count and store it once
@@ -122,7 +127,7 @@ class GridPrefetch {
     this.status.knownFiles += rows.length; this.status.knownBytes += rows.reduce((sum, row) => sum + row.bytes, 0);
     let next = 0;
     const lane = async (): Promise<void> => {
-      for (let row = rows[next++]; row !== undefined && this.status.reason === null; row = rows[next++]) await this.file(row, base, { holds, keepAsset }, quota, options.hash, options.hashOwned);
+      for (let row = rows[next++]; row !== undefined && this.status.reason === null; row = rows[next++]) await this.file(row, base, { holds, keepAsset }, quota, contentHash, hashOwnedBytes);
     };
     await Promise.all(Array.from({ length: CONCURRENCY }, lane));
   }

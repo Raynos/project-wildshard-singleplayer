@@ -15,7 +15,7 @@ import type { MapExtras, MapExtraImage, MapExtraLabel, MapExtraRect } from '@wil
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { GridAssembly, GridCell, GridSide } from './assembly';
-import type { GridCellEvents } from '../plugin/context';
+import type { GridCellEvents } from './cellEvents';
 import { GAP_HALF, RAIL_OFFSET, ROAD_HALF } from './roadLayout';
 
 /** On the road the neighbours' terrain shows at this opacity (G107: "faded ~50 %"). */

@@ -16,8 +16,8 @@ import { lastEnd } from '@wildshard/engine/boot/lastEnd';
 import { setDev } from '@wildshard/engine/core/devMode';
 import { buildTitleDeck, titleCards, type TitleDeck, type TitleDeckOptions } from './titleDeck';
 import { DEVSERVER, gridEntryShown, gridMode, menuMode } from './grid/menu';
-import { GridAssembly } from './grid/assembly';
-import { gridPrefetchOrder, startGridPrefetch } from './grid/prefetch';
+import { titlePrefetchOrder } from './grid/titleOrder';
+import { startGridPrefetch } from './grid/prefetch';
 import { pageScope } from '@wildshard/engine/app/resources';
 import { dropGridIntent, enterGrid, gridRecoveryLoop } from './grid/pageEntry';
 
@@ -149,7 +149,7 @@ export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
   if (gridCard instanceof HTMLButtonElement) deck.onTap(gridCard, () => { if (gridEntryShown(mode())) onGrid(); });
   // G554: from the menu, Infinite Wildshard's whole known set downloads to disk in the background (crossroads outward),
   // after the title's first frames and taps; the grid's own loading later moves its home cell to the front
-  if (grid) pageScope.timeout(MENU_PREFETCH_DELAY_MS, () => { startGridPrefetch(gridPrefetchOrder(new GridAssembly(gridMode(DEVSERVER)), { x: 0, z: 0 })); });
+  if (grid) pageScope.timeout(MENU_PREFETCH_DELAY_MS, () => { startGridPrefetch(titlePrefetchOrder(gridMode(DEVSERVER))); });
   deck.onTap(required(main, '.ws-main-settings', HTMLButtonElement), () => { opts.onSettings(); });
   // E483 (Jake: "a better dev toggle … without having to go to the settings page"; E140's ask): the same live switch as
   // Settings ▸ Developer. Both title paths rebuild on the change (StartTitle / HUD `onDev`) on this screen, so the menu, the

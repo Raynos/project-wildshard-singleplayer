@@ -1,3 +1,4 @@
+import { pageGridCells } from '../grid/cellEvents';
 import * as v from "valibot";
 import type { HomeResidencyClaim, PageResidency } from '../grid/pageResidency';
 import { currentPageMode } from '../grid/pageMode';
@@ -23,43 +24,9 @@ import { absentShardProduct, type ShardProduct } from '../shardfile/shardProduct
 
 /** The page's chosen entry mode. */
 export type PageMode = 'grid' | 'shard';
-/** A grid cell by its stable catalogue instance id (SF14: `driftwood-isle`, `template-1` …; never the cell coordinates). */
+/** A stable catalogue cell identity, independent of its current placement. */
 export interface GridCellRef { readonly instance: string; readonly slug: string }
-/**
- * The seam for inside-cell enter / leave notifications (SF46's hybrid runtime activation consumes them; the grid client
- * produces them). Today's home-cell boot enters its one cell at boot and never leaves it; the grid client calls
- * `enter` / `leave` as the player's frame crosses cell interiors. A late subscriber hears `enter` for the current cell.
- */
-export class GridCellEvents {
-  private current: GridCellRef | null = null;
-  private readonly entered = new Set<(cell: GridCellRef) => void>();
-  private readonly left = new Set<(cell: GridCellRef) => void>();
-  /** the cell interior the player is in now (null on a strip, the highway, or outside the grid) */
-  get cell(): GridCellRef | null { return this.current; }
-  /** producer: the player entered a cell interior (leaving the previous one first) */
-  enter(cell: GridCellRef): void {
-    if (this.current?.instance === cell.instance) return;
-    if (this.current !== null) this.leave();
-    this.current = cell;
-    for (const fn of this.entered) fn(cell);
-  }
-  /** producer: the player left the current cell interior */
-  leave(): void {
-    const was = this.current;
-    if (was === null) return;
-    this.current = null;
-    for (const fn of this.left) fn(was);
-  }
-  /** consumer: returns the unsubscribe */
-  onEnter(fn: (cell: GridCellRef) => void): () => void {
-    this.entered.add(fn);
-    if (this.current !== null) fn(this.current);
-    return () => { this.entered.delete(fn); };
-  }
-  onLeave(fn: (cell: GridCellRef) => void): () => void { this.left.add(fn); return () => { this.left.delete(fn); }; }
-}
-/** this page's cell events (grid mode only ever enters cells) */
-export const gridCells = new GridCellEvents();
+export const gridCells = pageGridCells;
 
 /** The home cell's restored simulation as its client hands it over (sp-x5's `onSimulation`, SF15a): the existing driver's gate and its durable save. */
 export interface GridHomeSimulation { readonly setActive: (active: boolean) => void; readonly checkpoint: () => boolean; readonly disposed: () => boolean; readonly residency?: HomeResidencyClaim; readonly suppressCheckpoint?: () => void }

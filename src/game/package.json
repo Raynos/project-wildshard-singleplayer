@@ -198,6 +198,7 @@
     "./systems/npc/faceHeads": "./systems/npc/faceHeads.ts",
     "./systems/items/lash": "./systems/items/lash.ts",
     "./quest/interactionRows": "./quest/interactionRows.ts",
+    "./shard/titleList": "./shard/titleList.ts",
     "./shard/list": "./shard/list.ts",
     "./plugin/geometry": "./plugin/geometry.ts",
     "./plugin/quests": "./plugin/quests.ts",

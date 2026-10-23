@@ -9,9 +9,9 @@ import { SHARDFILE_VERSION, shardfileRevision } from '@wildshard/format/version'
 import { isOutputIndex } from '@wildshard/format/outputIndex';
 
 import { acceptValidatedCost, preflightDeclaredCosts, validateShardfileAssets } from '@wildshard/format/assetAdmission';
-import { ContentCache } from '@wildshard/engine/boot/contentCache';
 import { PRODUCT_CACHE_NAME } from '@wildshard/engine/pwa/cacheNames';
 import { ContentCacheWorker } from '@wildshard/engine/boot/contentCacheWorker';
+import { browserContentStore, contentHash } from './contentStore';
 import { preflightShardfile } from '@wildshard/format/preflight';
 
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
@@ -221,13 +221,8 @@ export async function readProductInput(input: unknown, options: ProductOptions):
   return source;
 }
 
-/** SHA-256 over an owned ArrayBuffer, usable by WebKit without Node or SDK dependencies. */
-export async function browserContentHash(bytes: Uint8Array): Promise<string> {
-  const input = bytes.buffer instanceof ArrayBuffer && bytes.byteOffset === 0 && bytes.byteLength === bytes.buffer.byteLength
-    ? bytes.buffer : Uint8Array.from(bytes).buffer;
-  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', input));
-  return [...digest].map((byte) => byte.toString(16).padStart(2, '0')).join('');
-}
+/** The shared browser digest, available before product admission loads. */
+export function browserContentHash(bytes: Uint8Array): Promise<string> { return contentHash(bytes); }
 /** Validate a visited format-2 product again, including cached Wasm.
  * Refill at most sixteen immutable read slots after verification. A refusal stops
  * new reads and drains started work before authored-order refusal or publication. */
@@ -407,31 +402,11 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
   await options.pause?.();
   return { source, assets, cached: cached !== null && cached !== undefined, ...(options.firstParty ? { releaseTransport: transportRelease(source, assets, options) } : {}), ...(options.firstParty ? {} : { instance: await externalShardInstance(base, source.identity.slug, options.hash) }) };
 }
-const browserContentStores = new WeakMap<Pick<CacheStorage, 'open'>, ContentCache | ContentCacheWorker>();
-const retiredProductStores = new WeakSet();
-async function retireDescriptorCache(storage: Partial<Pick<CacheStorage, 'delete'>>): Promise<void> {
-  try { await storage.delete?.('ws-shardfile-products-v0'); }
-  catch (error) { console.warn('[shardfile] old descriptor cache eviction failed', error); }
-}
-
 /** Browser Cache Storage retains exact hash bytes separately from the last completely admitted visited product. */
 export function browserProductCache(storage: Pick<CacheStorage, 'open'> & Partial<Pick<CacheStorage, 'delete'>>): ProductCache {
-  if (!retiredProductStores.has(storage)) {
-    retiredProductStores.add(storage);
-    void retireDescriptorCache(storage);
-  }
   const open = () => storage.open(PRODUCT_CACHE_NAME);
   const productUrl = (base: string) => new URL('__visited_shardfile__', base).href;
-  let content = browserContentStores.get(storage);
-  if (content === undefined) {
-    const fallback = new ContentCache({ storage, origin: location.origin, hash: browserContentHash, estimate: () => navigator.storage.estimate(), pagehide: window });
-    // Injected stores keep their exact ports; only the real page CacheStorage
-    // belongs to the worker. All product wrappers share one writer/fallback.
-    content = typeof caches !== 'undefined' && storage === caches && typeof CacheStorage !== 'undefined' && storage instanceof CacheStorage && typeof Worker !== 'undefined'
-      ? new ContentCacheWorker(fallback, { pagehide: window }) : fallback;
-    browserContentStores.set(storage, content);
-  }
-  const ownedContent = content;
+  const ownedContent = browserContentStore(storage);
   return {
     product: async (base) => {
       const response = await (await open()).match(productUrl(base)); if (response === undefined) return null;

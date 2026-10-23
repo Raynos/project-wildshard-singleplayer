@@ -1,3 +1,4 @@
+import type { GridCellEvents } from '../grid/cellEvents';
 import { enterDeclaredAudioPhase } from '../audio/sceneDirector';
 import { admitClientPlan, installClientPhase, type ClientPhase } from './clientPlan';
 import { bindResidentWorldScope, boundResidentWorldScope, residentWorldScope } from './hybridPresentation';
@@ -6,7 +7,7 @@ import { ownerTask, withOwner } from '@wildshard/engine/app/ownership';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { createLevelInstallation, type LevelInstallation } from '@wildshard/engine/level/installation';
-import { shardContext, type ShardContext, gridCells, gridHomeSim, pageGridInstance, type GridCellEvents, type GridCellRef, ShardPlugin, prepareTrustedRuntime, type TrustedRuntimeEntry } from '../plugin/context';
+import { shardContext, type ShardContext, gridCells, gridHomeSim, pageGridInstance, type GridCellRef, ShardPlugin, prepareTrustedRuntime, type TrustedRuntimeEntry } from '../plugin/context';
 
 import type { ShardRuntime } from '../shard/runtime';
 import { bindScopedRuntime, createScopedRuntimeBinding, type ScopedRuntimeBinding } from '../shard/scopedRuntime';

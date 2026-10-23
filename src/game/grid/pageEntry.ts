@@ -8,8 +8,9 @@ import { pageGridIntents } from './intent';
 import { DEVSERVER, gridMode, type MenuMode } from './menu';
 import { gridRecovery, recoveryCatalogue, type GridRecoveryRecord } from './recovery';
 import { setPageMode } from './pageMode';
-import { gridCells, type PageMode } from '../plugin/context';
-import { findShard } from '../shard/registry';
+import { pageGridCells as gridCells } from './cellEvents';
+import type { PageMode } from '../plugin/context';
+import { findTitleManifest } from '../shard/titleList';
 import { chooseShardEntry } from '../shard/entryMode';
 import { travel } from '../travel/travel';
 
@@ -40,7 +41,7 @@ let navigating: Scope | null = null;
 export function enterGrid(): void {
   if (navigating !== null && !navigating.disposed) return;
   const home = gridHome();
-  const target = findShard(home.slug);
+  const target = findTitleManifest(home.slug);
   if (target === undefined) throw new Error(`The grid's home cell names no shard: ${home.slug}`);
   navigating = beginNavigationShell(target.name, pageScope, () => {
     // A deliberate new player attempt starts a new guard window; automatic reloads cannot clear it.

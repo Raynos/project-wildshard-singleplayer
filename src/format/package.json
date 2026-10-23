@@ -199,6 +199,7 @@
     "./entryLanding": "./entryLanding.ts",
     "./portalFloor": "./portalFloor.ts",
     "./compendiumSketches": "./compendiumSketches.ts",
+    "./builtIndexes": "./builtIndexes.ts",
     "./product": "./product.ts",
     "./liftApproach": "./liftApproach.ts",
     "./surfaceLooks": "./surfaceLooks.ts",

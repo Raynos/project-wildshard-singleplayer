@@ -3,8 +3,7 @@ import { saves } from '@wildshard/engine/saves/runtime';
 import { markUnload } from '@wildshard/engine/boot/lastEnd';
 import { freshPageArrival, setTitleArrival } from '@wildshard/engine/boot/titleArrival';
 import type { SaveSlot } from '@wildshard/engine/saves/store';
-import { chunkUrl, findShard } from '../shard/registry';
-import { shards } from '../shard/list';
+import { findTitleManifest, titleManifests } from '../shard/titleList';
 import { shardEntry } from '../shard/entryMode';
 import { shardEntryManifest } from '../shard/legacy';
 import type { ShardSlug } from '../shard/slugs.generated';
@@ -19,7 +18,7 @@ export interface TravelHandoff {
   arrive: SpawnPose | null; carry: readonly { id: ItemId; count: number }[]; at: number;
 }
 const finite = v.pipe(v.number(), v.finite());
-const slug = v.custom<ShardSlug>((value) => typeof value === 'string' && shards().map((entry) => entry.slug).includes(value as ShardSlug));
+const slug = v.custom<ShardSlug>((value) => typeof value === 'string' && titleManifests().map((entry) => entry.slug).includes(value as ShardSlug));
 const item = v.custom<ItemId>((value) => typeof value === 'string' && isItemId(value));
 const schema: v.GenericSchema<unknown, TravelHandoff | null> = v.nullable(v.object({
   v: v.literal(1), from: v.nullable(slug), to: slug, mode: v.picklist(['enter', 'explore', 'arena']),
@@ -62,8 +61,9 @@ export function bindTravelInventory(source: TravelSource): () => void {
   return () => { if (running === source) running = null; };
 }
 const service = travelService({ source: () => running, slot: travelSlot(), now: () => Date.now(), navigate: (request) => {
-  setTitleArrival({ slug: request.to, mode: request.mode, name: findShard(request.to)?.name ?? request.to });
-  const url = new URL(chunkUrl(request.to));
+  setTitleArrival({ slug: request.to, mode: request.mode, name: findTitleManifest(request.to)?.name ?? request.to });
+  const url = new URL(location.href);
+  url.searchParams.set('chunk', request.to);
   for (const name of ['at', 'glreload', 'x', 'z', 'yaw', 'pitch', 'explore', 'cam', 'model', 'skipintro', 'tour', 'quest', 'drop']) url.searchParams.delete(name);
   if (request.mode === 'explore') url.searchParams.set('explore', 'hub');
   // Replacing releases WebKit's previous page rather than parking its heap in the back/forward cache.
@@ -71,9 +71,9 @@ const service = travelService({ source: () => running, slot: travelSlot(), now: 
   location.replace(url.toString());
 } });
 export function travel(request: TravelRequest): void {
-  const manifest = findShard(request.to);
+  const manifest = findTitleManifest(request.to);
   if (manifest === undefined) return;
-  const target = request.mode === 'enter' ? shardEntryManifest(shards(), request.to, shardEntry(manifest)) : manifest;
+  const target = request.mode === 'enter' ? shardEntryManifest(titleManifests(), request.to, shardEntry(manifest)) : manifest;
   if (target !== undefined) service.travel({ ...request, to: target.slug });
 }
 export function consumeTravelHandoff(to: ShardSlug): TravelHandoff | null { return service.consume(to); }

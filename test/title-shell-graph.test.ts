@@ -20,10 +20,11 @@ function titleGraph(entries: readonly string[]): string[] {
       if (ts.isImportDeclaration(node)) {
         const clause = node.importClause, bindings = clause?.namedBindings;
         if (clause?.phaseModifier === ts.SyntaxKind.TypeKeyword || (clause?.name === undefined && bindings !== undefined && ts.isNamedImports(bindings) && bindings.elements.length > 0 && bindings.elements.every(row => row.isTypeOnly))) continue;
-      } else if (node.isTypeOnly) continue;
+      } else if (node.isTypeOnly || (node.exportClause !== undefined && ts.isNamedExports(node.exportClause) && node.exportClause.elements.length > 0 && node.exportClause.elements.every(row => row.isTypeOnly))) continue;
       const name = node.moduleSpecifier.text;
       if (/^three(?:\/|$)/u.test(name)) { seen.add(name); continue; }
       const target = ts.resolveModuleName(name, file, options, ts.sys).resolvedModule?.resolvedFileName;
+      if (target === undefined && (name.startsWith('.') || name.startsWith('@wildshard/')) && !/\.(?:css|png|jpe?g|webp|svg|hdr)(?:\?|$)/u.test(name)) throw new Error(`Unresolved title import: ${file}: ${name}`);
       if (target !== undefined && !target.includes('/node_modules/') && !target.endsWith('.d.ts')) visit(target);
     }
   };
@@ -31,7 +32,7 @@ function titleGraph(entries: readonly string[]): string[] {
   return [...seen];
 }
 
-test('title widgets and saved summaries do not initialize the app or renderer', () => {
-  const files = titleGraph(['src/engine/ui/StartTitle.ts', 'src/game/titleDeck.ts', 'src/game/summary.ts']);
-  expect(files.filter(file => /src\/engine\/(?:app\/(?:app|runtime)\.ts|render\/|world\/)|src\/shards\/|^three(?:\/|$)/u.test(file))).toEqual([]);
+test('cold title, recovery, navigation and prefetch stay off the world graph', () => {
+  const files = titleGraph(['src/entry.ts', 'src/engine/ui/StartTitle.ts', 'src/game/mainMenu.ts', 'src/game/grid/pageEntry.ts', 'src/game/travel/travel.ts']);
+  expect(files.filter(file => /src\/engine\/(?:app\/(?:app|runtime)\.ts|render\/|world\/|anim\/|physics\/)|src\/game\/(?:looks\/|shardfile\/(?:product|runtimeProduct)\.ts)|src\/shards\/|^three(?:\/|$)/u.test(file))).toEqual([]);
 });

@@ -24,10 +24,10 @@ import { listenDom, listenTap } from '@wildshard/engine/input/dom';
  * Cards use the generated, node-safe manifests; world builders remain lazy.
  * test/title-deck.test.ts keeps each card's name, label (the def's `biome`), badge and art equal to its ShardManifest.
  */
-import { shards } from './shard/list';
+import { titleManifests, type TitleManifest } from './shard/titleList';
 import { legacyShardFor, ordinaryShardManifests } from './shard/legacy';
 import type { ShardSlug } from './shard/slugs.generated';
-import type { ShardEntries, ShardEntryMode, ShardManifest } from './shard/manifest';
+import type { ShardEntries, ShardEntryMode } from './shard/manifest';
 import { chooseShardEntry, defaultEntry, hasEntry, shardEntries } from './shard/entryMode';
 import { installLegacyButtonsRow, legacyButtons, onLegacyButtons } from './shard/legacyButtons';
 import { PORT_SHARES } from './shard/portShares';
@@ -73,8 +73,8 @@ const sessionRefusals: RefusedShard = (slug) => pageShardRefusals().read(slug);
 
 /** Developer mode reveals hidden levels after every player-facing card. */
 export function titleCards(showHidden = isDev(), upgradeNeeded: UpgradeNeeded = noUpgrades, refused: RefusedShard = sessionRefusals): readonly TitleCard[] {
-  const hidden = (m: ShardManifest): boolean => m.status === 'hidden' || m.slug.startsWith('_');
-  const registered = shards(), ordinary = ordinaryShardManifests(registered).filter(m => m.shardSelect !== false);
+  const hidden = (m: TitleManifest): boolean => m.status === 'hidden' || m.slug.startsWith('_');
+  const registered = titleManifests(), ordinary = ordinaryShardManifests(registered).filter(m => m.shardSelect !== false);
   const visible = ordinary.filter((m) => !hidden(m));
   const manifests = showHidden ? [...visible, ...ordinary.filter(hidden)] : visible;
   return manifests.map((m): TitleCard => {
@@ -251,7 +251,7 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
   summary.className = 'ws-title-summary';
   summary.setAttribute('aria-label', GAME_STRINGS.summary.label);
   const paintSummary = (card: DeckEntry): void => {
-    const view = summaryView(readSummary(), shards());
+    const view = summaryView(readSummary(), titleManifests());
     const lines = new Map(view.lines.map((entry) => [entry.slug, entry] as const));
     const line = lines.get(card.slug);
     const selected = document.createElement('div'); selected.className = 'ws-title-summary-line';

@@ -583,6 +583,14 @@ are the row types; `EngineRows` is the verb set.
 
 **Identity and the title deck**
 
+The cold title consumes `virtual:wildshard-title`: the build compiles only
+discovery labels, entry choices, descriptor URLs and card image imports. Full
+shard discovery and renderer services load for world boot (or the Settings tap),
+not to draw the deck. `game/shard/titleList` installs these metadata rows;
+loaded-world callers can use the full installed list. Grid prefetch takes its
+order from placement data and shares `shardfile/contentStore` with admission:
+one storage-keyed worker/fallback, the same hashes and durable writes.
+
 | Field | Meaning |
 |---|---|
 | `api: 1` | the plugin API version; a mismatch fails before any asset loads |

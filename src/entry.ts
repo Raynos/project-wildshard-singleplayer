@@ -1,5 +1,7 @@
 // oxlint-disable-next-line import/no-unassigned-import -- evaluated for its effect: the app identity is installed before any other module body runs (E414)
 import './identity';
+import { TITLE_MANIFESTS } from 'virtual:wildshard-title';
+import { installTitleManifests } from '@wildshard/game/shard/titleList';
 import { startPageServices } from './pageServices';
 import { persistHomeScreen } from '@wildshard/engine/saves/runtime';
 import { waitFor } from '@wildshard/engine/boot/waits';
@@ -31,6 +33,7 @@ const entryScope = new Scope('entry');
 const task = (): Promise<void> => new Promise((resolve) => { entryScope.timeout(0, resolve); });
 /** The plain home URL paints only the title. No renderer, world, or Three.js is imported until a shard is chosen. */
 startPageServices();
+installTitleManifests(TITLE_MANIFESTS);
 persistHomeScreen();
 const search = new URLSearchParams(location.search);
 // Do not depend on the sibling sw.ts module finishing first; both entry points share the same consumed record.
@@ -68,7 +71,6 @@ async function enterPage(): Promise<unknown> {
   })();
 }
 async function showPageTitle(): Promise<void> {
-  await retried(() => import('./shardList')); // the shard list before the deck reads it (AG4)
   const [{ showStartTitle }, { buildTitleMenu, installGridTitle }, { travel }] = await retried(() => Promise.all([import('./engine/ui/StartTitle'), import('./game/mainMenu'), import('./game/travel/travel')]));
   // SF21a: a tap or validated recovery selects a grid; unrecorded process loss returns to title
   const grid = installGridTitle();
@@ -81,7 +83,9 @@ async function showPageTitle(): Promise<void> {
       onExplore: (card) => { travel({ to: card.slug, mode: 'explore' }); },
       onGrid: grid.onGrid,
       ...(grid.screen === undefined ? {} : { screen: grid.screen }),
-      onSettings: settings, ...(lines === '' ? {} : { notice: lines }),
+      // Settings' level-specific debug predicates initialize only after this tap.
+      onSettings: () => { void retried(() => import('./shardList')).then(settings); },
+      ...(lines === '' ? {} : { notice: lines }),
     });
   });
 }
