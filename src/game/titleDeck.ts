@@ -205,6 +205,20 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
   installLegacyButtonsRow(); // G531: Settings ▸ Debug offers it from the title on
   const mode = opts.mode ?? menuMode;
   const scope = app.engineScope.child('title-deck');
+  // iOS can cancel the synthesized click after a small touch movement. Answer
+  // pointerup immediately, while keeping keyboard clicks and suppressing its paired click.
+  const onTap = (el: HTMLElement, fn: () => void): void => {
+    let pointerAt = -Infinity;
+    listenDom(scope, el, 'pointerup', (ev) => {
+      if (ev.button !== 0 || (el instanceof HTMLButtonElement && el.disabled)) return;
+      ev.stopPropagation(); pointerAt = ev.timeStamp; fn();
+    });
+    listenDom(scope, el, 'click', (ev) => {
+      ev.stopPropagation();
+      if (ev.detail > 0 && ev.timeStamp - pointerAt < 500) return;
+      fn();
+    });
+  };
   const { cards } = opts;
   const entries: readonly DeckEntry[] = [...cards.map(fromShard), ...DRAFT_TITLES.map(fromDraft)];
   const activeIndex = entries.map((card): string => card.slug).indexOf(opts.active ?? '');
@@ -355,13 +369,13 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
   listenDom(scope, list, 'pointerup', endDrag); listenDom(scope, list, 'pointercancel', endDrag);
   cardEls.forEach((e, i) => { listenDom(scope, e, 'click', (ev) => { ev.stopPropagation(); if (i !== index && performance.now() - swipedAt > 400) select(i); }); });
   dots.forEach((d, i) => { listenDom(scope, d, 'click', (ev) => { ev.stopPropagation(); select(i); }); });
-  listenDom(scope, required(root, '.ws-menu-play'), 'click', (ev) => {
-    ev.stopPropagation(); const c = entries[index];
+  onTap(required(root, '.ws-menu-play'), () => {
+    const c = entries[index];
     if (c !== undefined && dualEntry(c, mode())) enterAs(c, 'legacy'); else activate();
   });
-  listenDom(scope, shardfile, 'click', (ev) => { ev.stopPropagation(); const c = entries[index]; if (c !== undefined && dualEntry(c, mode())) enterAs(c, 'shardfile'); });
-  listenDom(scope, required(root, '.ws-menu-explore'), 'click', (ev) => { ev.stopPropagation(); const c = entries[index]; if (c?.shard && canExplore(c, mode())) opts.onExplore(c.shard); });
-  listenDom(scope, required(root, '.ws-menu-settings'), 'click', (ev) => { ev.stopPropagation(); opts.onSettings(); });
+  onTap(shardfile, () => { const c = entries[index]; if (c !== undefined && dualEntry(c, mode())) enterAs(c, 'shardfile'); });
+  onTap(required(root, '.ws-menu-explore'), () => { const c = entries[index]; if (c?.shard && canExplore(c, mode())) opts.onExplore(c.shard); });
+  onTap(required(root, '.ws-menu-settings'), opts.onSettings);
 
   // hero art is ~0.2–0.3 MB a file and every card has two (portrait + landscape): only the selected card's, in the
   // orientation on screen, loads with the deck. A neighbour's loads when a swipe or a dot press starts toward it, so the
@@ -392,6 +406,6 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     select, activate,
     start: () => { place(index, 0, false); scope.raf(() => { place(index, 0, false); }); },
     dispose: () => { scope.dispose(); },
-    onTap: (el, fn) => { listenDom(scope, el, 'click', (ev) => { ev.stopPropagation(); fn(); }); },
+    onTap,
   };
 }

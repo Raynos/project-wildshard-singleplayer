@@ -14,7 +14,7 @@
 .ws-main .ws-main-logo { font-family: var(--ws-display); font-weight: 700; font-size: 44px; line-height: 1; letter-spacing: 0.16em; text-transform: uppercase; color: #eaf8ff; text-shadow: 0 0 18px rgba(143, 227, 255, 0.45), 0 4px 24px rgba(0, 0, 0, 0.55); }
 .ws-main .ws-main-logo::after { content: ''; display: block; width: 52px; height: 3px; margin-top: 10px; background: var(--ws-cyan); box-shadow: 0 0 10px var(--ws-cyan); }
 .ws-main .ws-main-notice { box-sizing: border-box; max-width: min(440px, calc(100vw - 32px)); margin-top: 22px; padding: 10px 12px; border: 1px solid rgba(255, 181, 71, 0.55); background: rgba(13, 27, 38, 0.9); color: #f3e5cd; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35); font: 11px/1.5 var(--ws-mono); white-space: pre-line; }
-.ws-main .ws-main-foot { display: flex; flex-direction: column; align-items: center; gap: 22px; padding: 0 16px calc(env(safe-area-inset-bottom, 0px) + 40px); }
+.ws-main .ws-main-foot { display: flex; flex-direction: column; align-items: center; gap: 22px; padding: 0 16px calc(env(safe-area-inset-bottom, 0px) + 60px); }
 /* G341 (Jake's pick of G338): a portrait screen shows the landscape hero as a band across the middle on the plain menu
    background, the logo and WHAT'S NEW above it, the cards and SETTINGS below it, no scrim over the image; the band takes the
    room between them. A landscape screen keeps the full-bleed hero with the cards over it. */
@@ -41,12 +41,12 @@
 .ws-main .ws-main-grid b { max-width: 9em; }
 .ws-main .ws-main-card:hover, .ws-main .ws-main-card:focus-visible { outline: none; background: rgba(14, 34, 52, 0.9); border-color: var(--ws-cyan); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), 0 0 28px rgba(143, 227, 255, 0.3); }
 .ws-main .ws-main-card:active, .ws-main .ws-main-card[aria-busy="true"] { background: rgba(22, 48, 70, 0.92); }
-.ws-main .ws-main-settings { min-width: 150px; padding: 10px 22px; appearance: none; -webkit-appearance: none; background: rgba(9, 22, 36, 0.86); border: 1px solid var(--ws-cyan-line); outline: 1px solid rgba(143, 227, 255, 0.18); outline-offset: 3px; font-family: var(--ws-mono); font-size: 12px; letter-spacing: 0.24em; text-indent: 0.24em; text-transform: uppercase; color: var(--ws-cyan); cursor: pointer; pointer-events: auto; -webkit-tap-highlight-color: transparent; }
+.ws-main .ws-main-settings { min-width: 150px; min-height: 44px; box-sizing: border-box; touch-action: manipulation; padding: 10px 22px; appearance: none; -webkit-appearance: none; background: rgba(9, 22, 36, 0.86); border: 1px solid var(--ws-cyan-line); outline: 1px solid rgba(143, 227, 255, 0.18); outline-offset: 3px; font-family: var(--ws-mono); font-size: 12px; letter-spacing: 0.24em; text-indent: 0.24em; text-transform: uppercase; color: var(--ws-cyan); cursor: pointer; pointer-events: auto; -webkit-tap-highlight-color: transparent; }
 .ws-main .ws-main-settings:focus-visible { border-color: var(--ws-cyan); }
 /* E483: SETTINGS and the compact DEV switch share one row; the switch wears SETTINGS' frame and a small track whose knob
    slides right and turns amber (the DEVELOPER tags' colour) when Developer is on */
 .ws-main .ws-main-row { display: flex; align-items: center; justify-content: center; gap: 12px; }
-.ws-main .ws-main-dev { display: inline-flex; align-items: center; gap: 9px; padding: 10px 14px 10px 12px; appearance: none; -webkit-appearance: none; background: rgba(9, 22, 36, 0.86); border: 1px solid var(--ws-cyan-line); outline: 1px solid rgba(143, 227, 255, 0.18); outline-offset: 3px; font-family: var(--ws-mono); font-size: 12px; letter-spacing: 0.24em; color: rgba(189, 238, 255, 0.6); cursor: pointer; pointer-events: auto; -webkit-tap-highlight-color: transparent; }
+.ws-main .ws-main-dev { min-width: 44px; min-height: 44px; box-sizing: border-box; touch-action: manipulation; display: inline-flex; align-items: center; gap: 9px; padding: 10px 14px 10px 12px; appearance: none; -webkit-appearance: none; background: rgba(9, 22, 36, 0.86); border: 1px solid var(--ws-cyan-line); outline: 1px solid rgba(143, 227, 255, 0.18); outline-offset: 3px; font-family: var(--ws-mono); font-size: 12px; letter-spacing: 0.24em; color: rgba(189, 238, 255, 0.6); cursor: pointer; pointer-events: auto; -webkit-tap-highlight-color: transparent; }
 .ws-main .ws-main-dev-track { position: relative; flex: none; width: 24px; height: 12px; border: 1px solid rgba(143, 227, 255, 0.45); border-radius: 7px; }
 .ws-main .ws-main-dev-track::after { content: ''; position: absolute; left: 2px; top: 2px; width: 6px; height: 6px; border-radius: 50%; background: rgba(189, 238, 255, 0.55); transition: transform 0.15s ease, background 0.15s ease; }
 .ws-main .ws-main-dev.on { color: var(--ws-amber); border-color: var(--ws-amber); outline-color: rgba(255, 181, 71, 0.25); }
@@ -86,7 +86,7 @@
 @media (orientation: landscape) and (max-height: 500px) {
   .ws-main .ws-main-head { padding: calc(10px + env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-left, 0px)) 0; }
   .ws-main .ws-main-logo { font-size: 28px; }
-  .ws-main .ws-main-foot { gap: 10px; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); }
+  .ws-main .ws-main-foot { gap: 10px; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 40px); }
   .ws-main .ws-main-cards { width: min(520px, 100%); }
   .ws-main .ws-main-card, .ws-main .ws-main-cards.one .ws-main-card { aspect-ratio: auto; height: 34vh; gap: 8px; }
   .ws-main .ws-main-icon svg { width: 60px; height: 45px; }

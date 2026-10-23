@@ -19,7 +19,7 @@
 .ws-menu .ws-wordmark::after { content: ''; display: block; width: 34px; height: 2px; margin-top: 10px; background: var(--ws-cyan); box-shadow: 0 0 10px var(--ws-cyan); }
 .ws-menu .ws-menu-recovery { box-sizing: border-box; max-width: min(440px, calc(100vw - 32px)); margin-top: 24px; padding: 10px 12px; border: 1px solid rgba(255, 181, 71, 0.55); background: rgba(13, 27, 38, 0.9); color: #f3e5cd; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35); font: 11px/1.5 var(--ws-mono); white-space: pre-line; }
 /* deck: carousel + dots + enter + sound, centred in the lower half */
-.ws-menu .ws-menu-deck { --card-w: 420px; --card-gap: 18px; display: flex; flex-direction: column; align-items: center; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 26px); } /* E146: clear of the iOS home-swipe edge, never on it */
+.ws-menu .ws-menu-deck { --card-w: 420px; --card-gap: 18px; display: flex; flex-direction: column; align-items: center; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 46px); } /* E146: clear of the iOS home-swipe edge, never on it */
 .ws-menu-cards { position: relative; width: 100%; padding: 12px 0; overflow: hidden; touch-action: none; cursor: grab; }
 .ws-menu-deck-track { display: flex; gap: var(--card-gap); will-change: transform; }
 .ws-menu-cards::-webkit-scrollbar { display: none; }
@@ -47,7 +47,7 @@
 .ws-menu-dots i.on { background: var(--ws-cyan); box-shadow: 0 0 8px var(--ws-cyan); }
 /* ENTER WORLD / EXPLORE WORLD: two compact buttons side by side under the deck (EXPLORE hides off Driftwood) */
 .ws-menu-modes { display: flex; gap: 10px; margin-top: 16px; width: var(--card-w); }
-.ws-menu-mode { flex: 1 1 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 0; padding: 10px 10px 9px; background: rgba(143, 227, 255, 0.1); border: 1px solid var(--ws-cyan); color: #fff; cursor: pointer; pointer-events: auto; font-family: var(--ws-display); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 24px rgba(143, 227, 255, 0.22), inset 0 0 18px rgba(143, 227, 255, 0.08); transition: background 0.2s, box-shadow 0.2s, border-color 0.2s, color 0.2s; -webkit-tap-highlight-color: transparent; }
+.ws-menu-mode { min-height: 44px; touch-action: manipulation; flex: 1 1 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 0; padding: 10px 10px 9px; background: rgba(143, 227, 255, 0.1); border: 1px solid var(--ws-cyan); color: #fff; cursor: pointer; pointer-events: auto; font-family: var(--ws-display); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 24px rgba(143, 227, 255, 0.22), inset 0 0 18px rgba(143, 227, 255, 0.08); transition: background 0.2s, box-shadow 0.2s, border-color 0.2s, color 0.2s; -webkit-tap-highlight-color: transparent; }
 .ws-menu-mode .ws-menu-mode-glyph { display: flex; color: var(--ws-cyan); }
 .ws-menu-mode .ws-menu-mode-glyph svg { width: 20px; height: 20px; }
 .ws-menu-mode b { font-weight: 700; font-size: 19px; letter-spacing: 0.2em; text-transform: uppercase; line-height: 1; white-space: nowrap; }
@@ -62,7 +62,7 @@
 .ws-menu .ws-menu-row { display: flex; justify-content: center; gap: 22px; margin-top: 16px; }
 /* DEV (E140): SOUND's sibling — the same text + square; a button, so its chrome is reset. The padding / negative margin
    give it a ~40 px tall tap target without moving the row */
-.ws-menu .ws-menu-settings { padding: 3px 9px; appearance: none; -webkit-appearance: none; background: rgba(143, 227, 255, 0.06); border: 1px solid var(--ws-cyan-line); font-family: var(--ws-mono); font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ws-cyan); pointer-events: auto; cursor: pointer; flex: none; white-space: nowrap; } /* main menu ▸ Settings (src/engine/ui/BootSettings.ts, E55) */
+.ws-menu .ws-menu-settings { min-width: 44px; min-height: 44px; box-sizing: border-box; touch-action: manipulation; padding: 3px 9px; appearance: none; -webkit-appearance: none; background: rgba(143, 227, 255, 0.06); border: 1px solid var(--ws-cyan-line); font-family: var(--ws-mono); font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ws-cyan); pointer-events: auto; cursor: pointer; flex: none; white-space: nowrap; } /* main menu ▸ Settings (src/engine/ui/BootSettings.ts, E55) */
 
 /* ─── title screen on a phone-width viewport: the deck fills the lower third, world above ─── */
 @media (max-width: 700px) {
@@ -72,7 +72,7 @@
   .ws-menu .ws-wordmark b { display: block; font-size: 26px; letter-spacing: 0.12em; margin-top: 3px; }
   .ws-menu .ws-wordmark::after { width: 26px; margin-top: 6px; }
   .ws-menu .ws-menu-recovery { margin-top: 36px; font-size: 10px; line-height: 1.45; }
-  .ws-menu .ws-menu-deck { --card-w: 70vw; --card-gap: 12px; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 40px); } /* E175: +20px on top of E146 — SETTINGS sat too close to the iOS app-switcher edge */
+  .ws-menu .ws-menu-deck { --card-w: 70vw; --card-gap: 12px; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 60px); } /* E175: +20px on top of E146 — SETTINGS sat too close to the iOS app-switcher edge */
   .ws-menu-cards { padding-top: 10px; padding-bottom: 10px; }
   .ws-menu-card .ws-menu-card-img { margin: 5px; }
   .ws-menu-card .ws-menu-card-tag { font-size: 8px; padding: 2px 6px; right: 6px; top: 6px; }
@@ -96,7 +96,7 @@
   .ws-menu .ws-wordmark { font-size: 12px; letter-spacing: 0.3em; }
   .ws-menu .ws-wordmark b { font-size: 24px; }
   .ws-menu .ws-wordmark::after { margin-top: 5px; }
-  .ws-menu .ws-menu-deck { --card-w: calc((100vh - 255px) * 16 / 9 + 12px); --card-gap: 14px; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 34px); } /* E175: +20px, as portrait */
+  .ws-menu .ws-menu-deck { --card-w: calc((100vh - 255px) * 16 / 9 + 12px); --card-gap: 14px; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 54px); } /* E175: +20px, as portrait */
   .ws-menu-cards { padding-top: 6px; padding-bottom: 6px; }
   .ws-menu-card b { font-size: 17px; padding-top: 5px; }
   .ws-menu-card small { font-size: 9px; padding: 2px 10px 7px; }

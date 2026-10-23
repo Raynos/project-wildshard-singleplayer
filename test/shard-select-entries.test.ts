@@ -102,3 +102,45 @@ test('the backdrop is the hero over the card\'s own thumbnail, so a late hero ne
   const hero = built.root.querySelector<HTMLElement>('.ws-menu-hero');
   expect(hero?.style.backgroundImage.replaceAll('"', "'")).toBe("url('/heroes/pine-hollow-portrait.jpg'), url('/thumbs/pine-hollow.jpg')");
 });
+
+
+test('Settings responds on pointerup once, keeps keyboard click, and retires its listeners', () => {
+  const settings = vi.fn<() => void>();
+  const built = buildTitleDeck({ cards: CARDS, active: null, onEnter: () => undefined,
+    onExplore: () => undefined, onSettings: settings, mode: () => ({ developer: true, devserver: true }) });
+  const button = built.root.querySelector<HTMLButtonElement>('.ws-menu-settings');
+  if (button === null) throw new Error('missing Settings');
+  button.dispatchEvent(new PointerEvent('pointerup', { button: 0, bubbles: true }));
+  expect(settings).toHaveBeenCalledTimes(1);
+  button.dispatchEvent(new MouseEvent('click', { detail: 1, bubbles: true }));
+  expect(settings).toHaveBeenCalledTimes(1);
+  button.click(); // Keyboard and assistive-technology clicks have no pointer detail.
+  expect(settings).toHaveBeenCalledTimes(2);
+  built.dispose();
+  button.dispatchEvent(new PointerEvent('pointerup', { button: 0 }));
+  button.click();
+  expect(settings).toHaveBeenCalledTimes(2);
+});
+
+test('shared title actions toggle once per tap and disabled entry buttons stay inert', () => {
+  const entered = vi.fn<() => void>(), toggled = vi.fn<() => void>();
+  const built = buildTitleDeck({ cards: CARDS, active: null, onEnter: entered,
+    onExplore: () => undefined, onSettings: () => undefined, mode: () => ({ developer: true, devserver: true }) });
+  const toggle = document.createElement('button');
+  built.onTap(toggle, toggled);
+  toggle.dispatchEvent(new PointerEvent('pointerup', { button: 0 }));
+  toggle.dispatchEvent(new MouseEvent('click', { detail: 1 }));
+  expect(toggled).toHaveBeenCalledTimes(1);
+  toggle.dispatchEvent(new PointerEvent('pointerup', { button: 2 }));
+  expect(toggled).toHaveBeenCalledTimes(1);
+  const playButton = built.root.querySelector<HTMLButtonElement>('.ws-menu-play');
+  if (playButton === null) throw new Error('missing entry button');
+  playButton.disabled = true;
+  playButton.dispatchEvent(new PointerEvent('pointerup', { button: 0 }));
+  expect(entered).not.toHaveBeenCalled();
+  playButton.disabled = false;
+  playButton.dispatchEvent(new PointerEvent('pointerup', { button: 0 }));
+  playButton.dispatchEvent(new MouseEvent('click', { detail: 1 }));
+  expect(entered).toHaveBeenCalledTimes(1);
+  built.dispose();
+});
