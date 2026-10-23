@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { loadRapier } from '@wildshard/engine/physics/rapier';
 import { proveAuthoredGrid, createShardfileSim, bindShardfileSim, type ShardfileSimulation } from '@wildshard/game/plugin/simulation';
-import { snapshotSimHost, serializeSimSnapshot, decodeSimSnapshot, restoreSimHost } from '@wildshard/engine/sim/snapshot';
+import { snapshotSimHostBytes, serializeSimSnapshot, decodeSimSnapshot, restoreSimHost } from '@wildshard/engine/sim/snapshot';
 
 import type { SimCommand } from '@wildshard/engine/sim';
 import { parseShardfile } from '../shardfile';
@@ -78,7 +78,7 @@ await runTickWorker(async raw => {
       if (sim.decisions?.host.metrics().some(row => row.refusals > 0 || row.disabled)) throw new Error('Headless decision call failed');
       // A sleeping lane retains its last counters; report only fuel consumed by this completed global tick.
       const fuelUsed = script?.tick === sim.host.state.tick ? script.used.fuel : 0;
-      return { tick: sim.host.state.tick, snapshot: serializeSimSnapshot(snapshotSimHost(sim.host)), effects, fuelUsed: fuelUsed + decisionFuel, scriptMicros, ...(sim.decisions === undefined ? {} : { decisions: sim.decisions.publication() }) };
+      return { tick: sim.host.state.tick, snapshot: serializeSimSnapshot(snapshotSimHostBytes(sim.host)), effects, fuelUsed: fuelUsed + decisionFuel, scriptMicros, ...(sim.decisions === undefined ? {} : { decisions: sim.decisions.publication() }) };
     },
     authorProof: plan => proveAuthoredGrid(shard, payload.assets, ports,
       { ticks: plan.tape.length, checkpointTick: plan.checkpointTick, requiredFacts: plan.requiredFacts },
