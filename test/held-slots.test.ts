@@ -3,7 +3,13 @@ import { HeldSlotsSchema, parseHeldSlots } from '../src/format/heldArms';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import arms from '../src/shards/driftwood-isle/data/heldArms.json' with { type: 'json' };
 import primary from '../src/shards/nine-dragon-stack/data/heldPrimary.json' with { type: 'json' };
-import loadout from '../src/shards/nalati-grasslands/boot/mountedLoadout.generated.json' with { type: 'json' };
+import authored from '../src/shards/nalati-grasslands/data/loadout.json' with { type: 'json' };
+import rewards from '../src/shards/nalati-grasslands/data/legendaryWeapons.json' with { type: 'json' };
+
+const loadout = { ...authored, variants: {
+  bow: { id: `weapon.${rewards.goldenBow.id}`, name: rewards.goldenBow.name },
+  blade: { id: `weapon.${rewards.naizagai.id}`, name: rewards.naizagai.name },
+} };
 
 function mounted() {
   const firearm = loadout.page.firearm;
