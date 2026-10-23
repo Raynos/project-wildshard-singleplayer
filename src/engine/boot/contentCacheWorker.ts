@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import { Scope } from '../app/scope';
 import type { ContentCache } from './contentCache';
+import { ContentCacheQueue, isCacheRead } from './contentCacheQueue';
 import { waitFor } from './waits';
 import { CONTENT_CACHE_WIRE_CAP, CacheCommandSchema, CacheReplySchema, validCacheValue, type CacheCommand, type CacheOperation, type CacheValue } from './contentCacheProtocol';
 
@@ -27,7 +28,7 @@ export class ContentCacheWorker {
   private readonly leases = new Map<number, Lease>();
   private idle: Timer | undefined;
   private closing: Promise<void> | undefined;
-  private fallbackTail = Promise.resolve();
+  private readonly fallbackQueue = new ContentCacheQueue();
   private readonly requestMs: number;
   private readonly idleMs: number;
   private readonly lifeMs: number;
@@ -71,10 +72,7 @@ export class ContentCacheWorker {
     }
   }
   private queueFallback(operation: CacheOperation): Promise<CacheValue> {
-    const result = this.fallbackTail.then(() => this.onFallback(operation));
-    // A refused write must not prevent subsequent checked operations.
-    this.fallbackTail = result.then(() => undefined, () => undefined);
-    return result;
+    return this.fallbackQueue.run(operation.op, () => this.onFallback(operation));
   }
   private failover(): void {
     if (this.failed) return;
@@ -116,7 +114,7 @@ export class ContentCacheWorker {
   }
   private requestWork(operation: CacheOperation): Promise<CacheValue> {
     const id = ++this.sequence, command = v.parse(CacheCommandSchema, { id, ...operation });
-    if (this.closing !== undefined) return this.closing.then(() => this.queueFallback(command));
+    if (this.closing !== undefined && !isCacheRead(command.op)) return this.closing.then(() => this.queueFallback(command));
     this.start();
     if (this.failed) return this.queueFallback(command);
     this.scope.cancelTimer(this.idle);
@@ -125,14 +123,19 @@ export class ContentCacheWorker {
       this.pump();
     });
   }
-  private canPost(): boolean { return !this.failed && this.pending.size < 64; }
+  private canPost(command: CacheCommand): boolean {
+    if (this.failed || this.pending.size >= 64) return false;
+    // Reserve one posted slot for reads so a full prefetch backlog cannot hide the worker's read bypass.
+    return isCacheRead(command.op) || [...this.pending.values()].filter(row => !isCacheRead(row.command.op)).length < 63;
+  }
   private pump(): void {
     if (this.pumping || this.failed || this.worker === undefined) return;
     const send = this.worker.postMessage.bind(this.worker);
     this.pumping = true;
     try {
       for (const [id, row] of this.deferred) {
-        if (!this.canPost()) break;
+        if (this.pending.size >= 64) break;
+        if (!this.canPost(row.command)) continue;
         this.deferred.delete(id);
         // Queue time consumes no request deadline; only posted worker work does.
         const timer = this.scope.timeout(this.requestMs, () => { this.failover(); });

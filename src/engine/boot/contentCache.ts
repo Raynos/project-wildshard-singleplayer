@@ -45,6 +45,7 @@ export class ContentCache {
   private readonly entries: number;
   private readonly reserve: number;
   private cache: Pick<Cache, 'match' | 'put' | 'delete' | 'keys'> | undefined;
+  private opening: Promise<Pick<Cache, 'match' | 'put' | 'delete' | 'keys'>> | undefined;
   private index: Record<string, Entry> = {};
   private readonly lru = new Map<string, Entry>();
   private totalBytes = 0;
@@ -70,11 +71,18 @@ export class ContentCache {
     if (!Number.isSafeInteger(now) || now < 0) throw new Error('Invalid cache clock');
     this.clock = Math.max(now, this.clock + 1); return this.clock;
   }
-  private serial<T>(run: () => Promise<T>): Promise<T> {
+  private serial<T>(run: () => T | Promise<T>): Promise<T> {
     const result = this.tail.then(run); this.tail = result.then(() => undefined, () => undefined); return result;
   }
-  private async open(): Promise<Pick<Cache, 'match' | 'put' | 'delete' | 'keys'>> {
-    if (this.cache !== undefined) return this.cache;
+  private open(): Promise<Pick<Cache, 'match' | 'put' | 'delete' | 'keys'>> {
+    if (this.cache !== undefined) return Promise.resolve(this.cache);
+    if (this.opening !== undefined) return this.opening;
+    const pending = this.initialize();
+    this.opening = pending;
+    void pending.catch(() => { if (this.opening === pending) this.opening = undefined; });
+    return pending;
+  }
+  private async initialize(): Promise<Pick<Cache, 'match' | 'put' | 'delete' | 'keys'>> {
     const cache = await this.ports.storage.open(CONTENT_CACHE_NAME);
     const index = await cache.match(new URL('index', this.root).href);
     if (index !== undefined) {
@@ -101,10 +109,9 @@ export class ContentCache {
       this.lru.set(hash, entry); this.totalBytes += entry.bytes;
       this.clock = Math.max(this.clock, entry.used);
     }
-    this.cache = cache;
     const budget = await this.budget();
     while (this.statsNow().bytes > budget || this.statsNow().entries > this.entries) if (!await this.evict(cache, '')) break;
-    await this.metadata(cache); return cache;
+    await this.metadata(cache); this.cache = cache; return cache;
   }
   private statsNow(): ContentCacheStats { return { entries: this.lru.size, bytes: this.totalBytes }; }
   private remember(hash: string, entry: Entry): void {
@@ -160,19 +167,34 @@ export class ContentCache {
     if (!Number.isFinite(usage) || usage < 0) return this.maximum;
     return Math.max(0, Math.min(this.maximum, Math.floor(estimate.quota / 4), this.statsNow().bytes + Math.floor(estimate.quota - usage - this.reserve)));
   }
-  /** Reads return owned bytes and recheck their hash; corrupt or browser-evicted entries become misses. */
-  get(hash: string): Promise<Uint8Array | null> {
+  /** Reads bypass writes and return owned, hash-checked bytes. LRU repairs join the write queue. */
+  async get(hash: string): Promise<Uint8Array | null> {
     const key = this.key(hash);
-    return this.serial(async () => {
-      const cache = await this.open().catch(() => undefined); if (cache === undefined) return null;
-      const response = await cache.match(key);
-      if (response === undefined) { if (this.index[hash] !== undefined) { this.forget(hash); this.metadataChanged(); } return null; }
-      let bytes: Uint8Array;
-      try { bytes = await read(response, MAX_FILE); }
-      catch { await cache.delete(key); this.forget(hash); this.metadataChanged(); return null; }
-      if (await this.ports.hash(bytes) !== hash) { await cache.delete(key); this.forget(hash); this.metadataChanged(); return null; }
-      this.remember(hash, { bytes: bytes.length, used: this.used() }); this.metadataChanged(); return bytes;
-    });
+    const cache = await this.open().catch(() => undefined); if (cache === undefined) return null;
+    const response = await cache.match(key);
+    if (response === undefined && this.index[hash] === undefined) return null;
+    let bytes: Uint8Array | undefined;
+    try { if (response !== undefined) bytes = await read(response, MAX_FILE); }
+    catch { bytes = undefined; }
+    if (bytes === undefined || await this.ports.hash(bytes) !== hash) { this.repair(hash, cache); return null; }
+    const length = bytes.length;
+    void this.serial(() => {
+      // An intervening eviction must not be resurrected by an older read.
+      if (this.index[hash] !== undefined) { this.remember(hash, { bytes: length, used: this.used() }); this.metadataChanged(); }
+    }).catch(() => undefined);
+    return bytes;
+  }
+  private repair(hash: string, cache: Pick<Cache, 'match' | 'delete'>): void {
+    void this.serial(async () => {
+      // Recheck after pending writes: an old miss/corrupt response cannot erase a new durable put.
+      const key = this.key(hash), response = await cache.match(key);
+      if (response !== undefined) {
+        try { if (await this.ports.hash(await read(response, MAX_FILE)) === hash) return; }
+        catch { /* Invalid disk bytes are removed below. */ }
+        await cache.delete(key);
+      }
+      this.forget(hash); this.metadataChanged();
+    }).catch(() => undefined);
   }
   /** Refuses mismatched bytes. Unavailable disk capacity returns false while an online load can still continue.
    * `keep` (a prefetch, G554) never evicts anything to make room: it stores what fits and returns false otherwise. */
@@ -197,9 +219,9 @@ export class ContentCache {
     });
   }
   /** The index alone says the address is stored with this size: no read, no re-hash (a prefetch's skip check). */
-  holds(hash: string, bytes: number): Promise<boolean> {
+  async holds(hash: string, bytes: number): Promise<boolean> {
     this.key(hash);
-    return this.serial(async () => { await this.open().catch(() => undefined); return this.index[hash]?.bytes === bytes; });
+    await this.open().catch(() => undefined); return this.index[hash]?.bytes === bytes;
   }
   /** One network read per concurrent immutable address; offline misses never try the network. */
   async load(hash: string, download: () => Promise<Uint8Array>, offline = false): Promise<Uint8Array> {
@@ -218,6 +240,6 @@ export class ContentCache {
     let released = false;
     return () => { if (released) return; released = true; for (const hash of unique) { const remaining = (this.pinned.get(hash) ?? 1) - 1; if (remaining === 0) this.pinned.delete(hash); else this.pinned.set(hash, remaining); } };
   }
-  /** Persistent disk accounting, excluding the small LRU index and all decoded render allocations. */
-  stats(): Promise<ContentCacheStats> { return this.serial(async () => { await this.open(); return this.statsNow(); }); }
+  /** Last published disk accounting; flush first to include pending mutations and read repairs. */
+  async stats(): Promise<ContentCacheStats> { await this.open(); return this.statsNow(); }
 }

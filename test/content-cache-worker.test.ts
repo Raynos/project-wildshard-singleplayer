@@ -74,6 +74,30 @@ test('more than 64 operations stay on one worker with only 64 posted', async () 
   expect(fallback.stats).not.toHaveBeenCalled();
 });
 
+test('a full prefetch backlog reserves a posted slot for foreground reads', async () => {
+  const { worker, client } = fixture();
+  const writes = Array.from({ length: 70 }, () => client.put('a'.repeat(64), Uint8Array.of(1), true));
+  expect(worker.sent).toHaveLength(63);
+  const read = client.get('b'.repeat(64));
+  expect(worker.sent).toHaveLength(64);
+  expect(worker.sent[63]?.op).toBe('get');
+  worker.reply(63);
+  expect(await read).toBeNull();
+  expect(worker.replied.size).toBe(1); // No prefetch write has completed.
+  worker.drain(); await Promise.all(writes);
+});
+
+test('reads still reach the worker while close waits for its ordered flush', async () => {
+  const { worker, client } = fixture();
+  const write = client.put('a'.repeat(64), Uint8Array.of(1), true), closing = client.close();
+  const read = client.get('b'.repeat(64));
+  expect(worker.sent.map(command => command.op)).toEqual(['put', 'flush', 'get']);
+  worker.reply(2);
+  expect(await read).toBeNull();
+  expect(worker.terminated).toBe(false);
+  worker.drain(); await write; await closing;
+});
+
 test('a queued request starts its deadline only when posted', async () => {
   vi.useFakeTimers();
   const { worker, fallback, client } = fixture();
@@ -98,6 +122,28 @@ test('worker failure replays posted and deferred reads in FIFO order', async () 
   expect(worker.terminated).toBe(true);
   expect(await Promise.all(requests)).toEqual(hashes.map(() => null));
   expect(fallback.get.mock.calls.map(([hash]) => hash)).toEqual(hashes);
+});
+
+test('fallback reads bypass a blocked prefetch put while flush stays ordered', async () => {
+  const { worker, fallback, client } = fixture();
+  const initial = client.stats(); worker.reply(0); await initial;
+  worker.dispatchEvent(new Event('error')); // Use the same dispatch policy after worker failure.
+  let release = (): void => { throw new Error('Missing write gate'); };
+  let started = (): void => { throw new Error('Missing write signal'); };
+  const blocked = new Promise<boolean>(resolve => { release = () => { resolve(true); }; });
+  const writing = new Promise<void>(resolve => { started = resolve; });
+  fallback.put.mockImplementation(() => { started(); return blocked; });
+  fallback.get.mockResolvedValue(Uint8Array.of(1));
+  const pending = client.put('a'.repeat(64), Uint8Array.of(2), true); await writing;
+  const flushed = client.flush();
+  try {
+    expect(await client.get('b'.repeat(64))).toEqual(Uint8Array.of(1));
+    expect(await client.has('b'.repeat(64), 1)).toBe(true);
+    expect(await client.holds('b'.repeat(64), 1)).toBe(false);
+    expect(await client.stats()).toEqual({ bytes: 0, entries: 0 });
+    expect(fallback.flush).not.toHaveBeenCalled();
+  } finally { release(); await pending; await flushed; }
+  expect(fallback.flush).toHaveBeenCalledOnce();
 });
 
 test('a queued put snapshots caller bytes and keeps its buffer attached', async () => {

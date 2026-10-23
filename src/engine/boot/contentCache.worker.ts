@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { ContentCache } from './contentCache';
+import { ContentCacheQueue } from './contentCacheQueue';
 import { CacheCommandSchema, type CacheCommand, type CacheValue } from './contentCacheProtocol';
 
 const cache = new ContentCache({ storage: caches, origin: self.location.origin,
@@ -25,11 +26,10 @@ async function perform(command: CacheCommand): Promise<CacheValue> {
     default: throw new Error('Unknown cache operation');
   }
 }
-// One queue installs pins before following puts and flushes completed writes.
-let tail = Promise.resolve();
+const queue = new ContentCacheQueue();
 self.onmessage = (event: MessageEvent<unknown>): void => {
   const command = v.parse(CacheCommandSchema, event.data);
-  tail = tail.then(async () => {
+  void queue.run(command.op, async () => {
     try {
       const value = await perform(command);
       const transfer = value instanceof Uint8Array && value.buffer instanceof ArrayBuffer ? [value.buffer] : [];

@@ -5,12 +5,12 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 const stores: ContentCache[] = [];
 afterEach(async () => { for (const store of stores.splice(0)) await store.flush(); });
 
-function fixture(limits: { maxBytes?: number; maxEntries?: number } = {}): { open: () => ContentCache; disk: Map<string, Response>; writes: string[]; key: (hash: string) => string } {
+function fixture(limits: { maxBytes?: number; maxEntries?: number } = {}, beforePut?: (key: string) => Promise<void>): { open: () => ContentCache; disk: Map<string, Response>; writes: string[]; key: (hash: string) => string } {
   const disk = new Map<string, Response>(), writes: string[] = [], root = 'https://cache.test/__ws_content__/v0/';
   const url = (input: RequestInfo | URL): string => input instanceof Request ? input.url : String(input);
   const cache = {
     match: (input: RequestInfo | URL) => Promise.resolve(disk.get(url(input))?.clone()),
-    put: (input: RequestInfo | URL, response: Response) => { const key = url(input); writes.push(key); disk.set(key, response.clone()); return Promise.resolve(); },
+    put: async (input: RequestInfo | URL, response: Response) => { const key = url(input); await beforePut?.(key); writes.push(key); disk.set(key, response.clone()); },
     delete: (input: RequestInfo | URL) => Promise.resolve(disk.delete(url(input))),
     keys: () => Promise.resolve([...disk.keys()].map(key => new Request(key))),
   };
@@ -47,9 +47,8 @@ test('stale indexes recover durable blobs and batch corruption or eviction remov
   const before = ports.writes.length;
   ports.disk.set(ports.key(hash), new Response(new Uint8Array([9])));
   expect(await reopened.get(hash)).toBeNull();
-  expect(await reopened.stats()).toEqual({ bytes: 0, entries: 0 });
-  expect(ports.writes).toHaveLength(before);
   await reopened.flush();
+  expect(await reopened.stats()).toEqual({ bytes: 0, entries: 0 });
   expect(ports.writes).toHaveLength(before + 1);
 });
 
@@ -80,6 +79,7 @@ test('a verified read repairs stale byte totals and browser eviction removes the
   expect(await reopened.stats()).toEqual({ bytes: 2, entries: 1 });
   ports.disk.delete(ports.key(hash));
   expect(await reopened.get(hash)).toBeNull();
+  await reopened.flush();
   expect(await reopened.stats()).toEqual({ bytes: 0, entries: 0 });
 });
 
@@ -110,4 +110,48 @@ test('G554: a prefetch keep write never evicts and holds reads only the index', 
   expect(await store.holds(third, 2)).toBe(false); expect(await store.holds(first, 3)).toBe(false);
   expect(await store.put(third, three)).toBe(true); // an ordinary admission write still evicts the oldest
   expect(await store.holds(first, 2)).toBe(false);
+});
+
+test('verified cache reads bypass a blocked durable prefetch write', async () => {
+  const one = Uint8Array.of(1, 2), two = Uint8Array.of(3, 4), first = hashImmutableBytes(one), second = hashImmutableBytes(two);
+  let release = (): void => { throw new Error('Missing write gate'); };
+  let started = (): void => { throw new Error('Missing write signal'); };
+  const blocked = new Promise<void>(resolve => { release = resolve; }), writing = new Promise<void>(resolve => { started = resolve; });
+  const ports = fixture({}, key => { if (key.endsWith(second)) { started(); return blocked; } return Promise.resolve(); });
+  const store = ports.open(); await store.put(first, one);
+  const pending = store.put(second, two, true); await writing;
+  try {
+    expect(await store.get(first)).toEqual(one);
+    expect(await store.holds(first, one.length)).toBe(true);
+    expect(await store.stats()).toEqual({ bytes: 2, entries: 1 });
+    expect(ports.disk.has(ports.key(second))).toBe(false);
+  } finally { release(); await pending; }
+  await store.flush();
+  expect(await store.stats()).toEqual({ bytes: 4, entries: 2 });
+});
+
+test('a corrupt read cannot erase the valid write it bypassed', async () => {
+  const bytes = Uint8Array.of(5, 6), hash = hashImmutableBytes(bytes);
+  let block = false;
+  let release = (): void => { throw new Error('Missing write gate'); };
+  let started = (): void => { throw new Error('Missing write signal'); };
+  const blocked = new Promise<void>(resolve => { release = resolve; }), writing = new Promise<void>(resolve => { started = resolve; });
+  const ports = fixture({}, key => { if (block && key.endsWith(hash)) { started(); return blocked; } return Promise.resolve(); });
+  const store = ports.open(); await store.put(hash, bytes);
+  ports.disk.set(ports.key(hash), new Response(Uint8Array.of(9))); block = true;
+  const pending = store.put(hash, bytes); await writing;
+  try { expect(await store.get(hash)).toBeNull(); }
+  finally { release(); await pending; }
+  await store.flush();
+  expect(await store.get(hash)).toEqual(bytes);
+  expect(await store.stats()).toEqual({ bytes: 2, entries: 1 });
+});
+
+test('concurrent first reads share one complete disk recovery', async () => {
+  const ports = fixture(), store = ports.open(), bytes = Uint8Array.of(8), hash = hashImmutableBytes(bytes);
+  await store.put(hash, bytes); await store.flush();
+  const reopened = ports.open(), before = ports.writes.length;
+  expect(await Promise.all([reopened.get(hash), reopened.get(hash), reopened.holds(hash, 1)])).toEqual([bytes, bytes, true]);
+  expect(ports.writes).toHaveLength(before + 1);
+  expect(await reopened.stats()).toEqual({ bytes: 1, entries: 1 });
 });
