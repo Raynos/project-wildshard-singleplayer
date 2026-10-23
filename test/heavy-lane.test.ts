@@ -151,7 +151,7 @@ print(json.dumps(True))
   expect(JSON.parse(result)).toBe(true);
 });
 
-test('ruler launches keep normal QoS while lane builds use utility', () => {
+test('foreground builds keep normal QoS and background builds yield', () => {
   const result = execFileSync('python3', ['-c', `
 import json, runpy
 from unittest.mock import patch
@@ -160,12 +160,32 @@ launch = module['launch_command']
 command = ['node', 'fixture.mjs']
 with patch.object(module['shutil'], 'which', return_value='/usr/bin/taskpolicy'):
  assert launch('build', command, {'WS_HEAVY_RULER':'1'}) == command
- assert launch('build', command, {}) == ['taskpolicy', '-c', 'utility', *command]
- assert launch('build', command, {'WS_HEAVY_RULER':'0'}) == ['taskpolicy', '-c', 'utility', *command]
+ assert launch('build', command, {}) == command
+ assert launch('check', command, {}) == command
+ assert launch('build', command, {'WS_HEAVY_RULER':'0'}) == command
+ assert launch('build', command, {'WS_HEAVY_BACKGROUND':'1'}) == ['taskpolicy', '-c', 'utility', *command]
+ assert launch('build', command, {'WS_HEAVY_BACKGROUND':'1','WS_HEAVY_RULER':'1'}) == command
  assert launch('full-test', command, {'WS_HEAVY_RULER':'1'}) == ['taskpolicy', '-c', 'utility', 'nice', '-n', '10', *command]
 with patch.object(module['shutil'], 'which', return_value=None):
  assert launch('build', command, {}) == command
 print(json.dumps(True))
 `], { encoding: 'utf8' });
+  expect(JSON.parse(result)).toBe(true);
+});
+
+
+test('the background CLI flag reaches its owned build child', () => {
+  const result = execFileSync('python3', ['-c', `
+import json, os, pathlib, subprocess, sys, tempfile
+repo = pathlib.Path.cwd()
+with tempfile.TemporaryDirectory(prefix='background-build-test-', dir=repo/'tmp') as temporary:
+ root = pathlib.Path(temporary)
+ env = {key:value for key,value in os.environ.items() if not key.startswith('WS_HEAVY_')}
+ env['WS_HEAVY_ROOT'] = str(root/'leases')
+ command = [sys.executable,str(repo/'scripts/heavy-lane.py'),'build','--background','--',sys.executable,'-c',"import os; print(os.environ.get('WS_HEAVY_BACKGROUND'))"]
+ child = subprocess.run(command,env=env,capture_output=True,text=True,check=True)
+ assert child.stdout.strip()=='1', child.stdout+child.stderr
+print(json.dumps(True))
+`], { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
   expect(JSON.parse(result)).toBe(true);
 });

@@ -308,9 +308,9 @@ def mirror_first(command, wrapper):
 
 
 def launch_command(kind, command, env):
-    """G562: marked ruler builds keep normal QoS; other lanes yield to playtests."""
+    """G668: foreground gen/build callers keep normal QoS; background work yields."""
     launch = command if 'build' in RESOURCES[kind] else ['nice', '-n', '10', *command]
-    normal = kind == 'build' and env.get('WS_HEAVY_RULER') == '1'
+    normal = 'build' in RESOURCES[kind] and (env.get('WS_HEAVY_BACKGROUND') != '1' or env.get('WS_HEAVY_RULER') == '1')
     if not normal and shutil.which('taskpolicy'):
         launch = ['taskpolicy', '-c', 'utility', *launch]
     return launch
@@ -326,11 +326,14 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('kind', choices=[*RESOURCES, 'status'])
     parser.add_argument('--quiet', action='store_true', help='log output; print only a verdict or failing tail')
+    parser.add_argument('--background', action='store_true', help='yield unattended generation/builds with utility QoS')
     parser.add_argument('--max', type=float, default=30, help='owned command timeout in minutes; queue time is separate')
     argv = sys.argv[1:]
     separator = argv.index('--') if '--' in argv else len(argv)
     command = argv[separator + 1:]
     args = parser.parse_args(argv[:separator])
+    if args.background:
+        os.environ['WS_HEAVY_BACKGROUND'] = '1'
     root = Path(os.environ.get('WS_HEAVY_SCHEDULER_ROOT', os.environ.get('WS_HEAVY_ROOT', str(Path.home() / '.wildshard-heavy-lanes')))).resolve()
     root.mkdir(parents=True, exist_ok=True)
     if args.kind == 'status':
@@ -356,7 +359,7 @@ def main():
             # This is the actual app build inside an existing gate/build lease, not another lease.
             started, load, code = time.time(), load_average(), 127
             try:
-                code = subprocess.call(command, env=env, pass_fds=inherited_fds())
+                code = subprocess.call(launch_command(args.kind, command, env), env=env, pass_fds=inherited_fds())
             finally:
                 record_build(root, started, started, load, code, inherited_lease=True)
             return code if code >= 0 else 128 - code
