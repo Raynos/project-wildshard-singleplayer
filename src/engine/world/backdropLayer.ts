@@ -247,6 +247,9 @@ export class BackdropLayer {
     this.origin = options.origin ?? ((): Vector3 => zero);
     this.base = options.base === true;
     this.scope = (options.owner ?? resourceScope()).child('BackdropLayer');
+    // the owner's end is the layer's: its domes leave the page scene and the rig forgets it (live P0: a retired grid
+    // region's dome stayed in the page scene and the rig's layers, holding that region's graphs and world)
+    this.scope.onDispose(() => { this.dispose(); });
     this.assets = options.assets ?? { isAcquired: () => false };
     ownSceneTree(this.holder, this.scope, this.assets);
     const real = host.targets;

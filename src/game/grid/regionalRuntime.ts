@@ -379,7 +379,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
       return { resident, get warmPreparation() {
         const trace = request.page.world.game.entryPreparation;
         return !scope.disposed && trace?.root === view.root.uuid ? trace : null;
-      }, region: { ...foundation.region, dispose: () => { scope.dispose(); const cut = severTree(view.root); while (cut.next().done !== true) { /* whole */ } }, retire: () => retireRegion(view.root, scope),
+      }, region: { ...foundation.region, dispose: () => { const nodes = treeNodes(view.root); scope.dispose(); const cut = severNodes(nodes); while (cut.next().done !== true) { /* whole */ } }, retire: () => retireRegion(view.root, scope),
         ghostRoots: [...foundation.region.ghostRoots ?? [], scope, view.root] }, queries: view.queries, checkpoint,
         aimAnimals: () => localPlay?.animals.animals ?? [],
         interactables: () => localRuntime?.interactables ?? [],
@@ -403,22 +403,29 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
  *  step frees), then its scope's cleanups run as `Scope.disposeSteps` yields them. */
 function* retireRegion(root: Object3D, scope: Scope): Generator<DisposeStep, void> {
   root.visible = false;
+  // its nodes as it stood: its cleanups detach groups (a lamp group) before the cut, which must still reach them
+  const nodes = treeNodes(root);
   yield* scope.disposeSteps();
-  const cut = severTree(root);
+  const cut = severNodes(nodes);
   while (cut.next().done !== true) yield { scope: scope.name, kind: 'nodes' };
 }
 
-/** Live P0 (Driftwood -> Sky Reach -> Driftwood on the phone): after a region's disposal, cut its scene tree apart, a few
- *  hundred nodes a step. One node something page-wide still names (a lamp a cached program's lighting reads, a hooked
- *  mesh) then keeps only itself, never the retired world under its parents. */
-function* severTree(root: Object3D): Generator<undefined, void> {
-  const stack: Object3D[] = [root];
-  for (let count = 1; stack.length > 0; count++) {
-    const node = stack.pop();
-    if (node === undefined) break;
-    stack.push(...node.children);
-    node.clear();
-    if (count % 256 === 0) yield;
+/** every node of `root`'s tree, root first */
+function treeNodes(root: Object3D): Object3D[] {
+  const nodes: Object3D[] = [];
+  root.traverse(node => { nodes.push(node); });
+  return nodes;
+}
+
+/** Live P0 (Driftwood -> Sky Reach -> Driftwood on the phone): after a region's disposal, cut its nodes apart, a few
+ *  hundred a step. One node something page-wide still names (a lamp a cached program's lighting reads, a hooked mesh)
+ *  then keeps only itself, never the retired world under its parents. */
+function* severNodes(nodes: readonly Object3D[]): Generator<undefined, void> {
+  for (let i = 0; i < nodes.length; i++) {
+    const node = nodes[i];
+    if (node === undefined) continue;
+    node.removeFromParent(); node.clear();
+    if ((i + 1) % 256 === 0) yield;
   }
 }
 
