@@ -9,6 +9,7 @@ import { Window } from 'happy-dom';
 import { Group, PerspectiveCamera, Scene, Vector3, SkinnedMesh, MeshLambertMaterial } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { createSimHost } from '../src/engine/sim';
+import { Physics } from '../src/engine/physics/Physics';
 import { CharacterMotor } from '../src/engine/physics/CharacterMotor';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { fixtureBytes } from './fixtures/nativeBytes';
@@ -130,6 +131,37 @@ test('missing/null actor suffix and foreign controller refuse the whole native b
     expect(() => f.elites.prepareV2Outputs([], [])).toThrow(/Foreign/);
     expect(f.trace).toEqual([]);
   } finally { f.root.dispose(); }
+});
+
+test('a grid entry binds its live native frame after construction without retiring the elite output owner', async () => {
+  const f = fixture(), liveFrame = f.root.child('destination.live');
+  const rapier = await loadRapier(Uint8Array.from(fixtureBytes(new URL('../public/assets/physics/rapier.wasm', import.meta.url))));
+  const physics = new Physics(rapier);
+  try {
+    f.bind();
+    // Build-ahead borrows level services without switching the page motor's
+    // physics. The grid sets that destination frame only on actual entry.
+    liveFrame.expose(app, 'levelScope', liveFrame); app.bindPlayerServices(f.entered, liveFrame);
+    liveFrame.expose(app, 'physics', physics);
+    const bank = f.elites.prepareV2Outputs(parseEliteOutputBank(f.actions, [{ action: 1, values: [] }], 0), []);
+    bank.validate(); bank.operations[0]?.();
+    expect(f.trace).toEqual([['feed', 'Original feed']]);
+  } finally { f.root.dispose(); physics.dispose(); }
+});
+
+test.each(['physics', 'player'] as const)('a prepared entered bank refuses a later %s replacement before any prefix effect', async field => {
+  const f = fixture(), liveFrame = f.root.child('destination.live');
+  const rapier = await loadRapier(Uint8Array.from(fixtureBytes(new URL('../public/assets/physics/rapier.wasm', import.meta.url))));
+  const physics = new Physics(rapier);
+  try {
+    liveFrame.expose(app, 'physics', physics); f.bind();
+    const bank = f.elites.prepareV2Outputs(parseEliteOutputBank(f.actions, [{ action: 1, values: [] }, { action: 4, values: [] }], 0), []);
+    if (field === 'physics') liveFrame.expose(app, 'physics', null);
+    else app.registerPlayer(legacyDouble<PlayerHealth>({}), f.entered);
+    expect(() => bank.validate()).toThrow('Retired or replaced elite output owner');
+    for (const apply of bank.operations) expect(apply).toThrow('Retired or replaced elite output owner');
+    expect(f.trace).toEqual([]);
+  } finally { f.root.dispose(); physics.dispose(); }
 });
 
 test('same-object service replacement and a real sliced ancestor retirement fence prepared effects', () => {

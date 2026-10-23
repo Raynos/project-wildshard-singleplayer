@@ -238,7 +238,7 @@ export class Elites {
     }
     Object.freeze(actions);
     const initial = prepareElitePageOutputs(actions, [], loans, []);
-    const validate = (): void => { if (this.entered?.actions !== actions) throw new Error('Replaced elite output binding'); identity(); initial.validate(); };
+    const validate = (): void => { if (this.entered?.actions !== actions) throw new Error('Replaced elite output binding'); identity(); initial.validateOwners(); };
     const prepare: EliteOutputPrepare = (bank, actors) => {
       validate();
       const prepared = prepareElitePageOutputs(actions, bank.map(row => ({ action: row.id, values: row.values })), loans, actors);
@@ -499,7 +499,7 @@ function preflightEliteEffectServices<T extends CrowdTargets>(actions: readonly 
  * actor/world/elite branch has passed validation. Actor pointers are captured
  * once here, so an earlier adoption cannot retarget a later emitted contact. */
 function prepareElitePageOutputs<T extends CrowdTargets>(actions: readonly EliteOutputAction[], input: unknown,
-  loans: ElitePageOutputLoans<T>, actors: readonly (Animal | null)[]): { readonly validate: () => void; readonly operations: readonly (() => void)[] } {
+  loans: ElitePageOutputLoans<T>, actors: readonly (Animal | null)[]): { readonly validate: () => void; readonly validateOwners: () => void; readonly operations: readonly (() => void)[] } {
   const { construction, entered, game, controllers, patrol, wildlife, animals, environment, player, hud, audio, persistence, contacts, strikes, fallbackStrike } = loans;
   const bank = parseEliteOutputBank(parseEliteOutputActions(actions, controllers.length), input, actors.length);
   preflightEliteEffectServices(actions, loans);
@@ -512,14 +512,21 @@ function prepareElitePageOutputs<T extends CrowdTargets>(actions: readonly Elite
     ...controllers.flatMap(loan => [method(loan.owner, 'row'), method(loan.owner, 'def'),
       loan.kind === 'external' ? method(loan.owner, 'adopt') : undefined, loan.kind === 'external' ? method(loan.owner, 'support') : undefined])];
   const methods = nativeMethods();
-  const live = (): void => {
+  const liveOwners = (): void => {
     if (!(construction instanceof Scope) || !(entered instanceof Scope) || construction.disposed || construction.disposing || entered.disposed || entered.disposing
-      || game.levelScope !== level || game.app !== app || app.player !== health || app.physics !== physics || app.combat !== combat
+      || game.levelScope !== level || game.app !== app || app.combat !== combat
       || loans.construction !== construction || loans.entered !== entered || loans.game !== game || loans.controllers !== controllers
       || loans.patrol !== patrol || loans.wildlife !== wildlife || loans.animals !== animals || loans.environment !== environment || loans.player !== player
       || loans.hud !== hud || loans.audio !== audio || loans.persistence !== persistence || loans.contacts !== contacts || loans.strikes !== strikes || loans.fallbackStrike !== fallbackStrike
       || controls.length !== controllers.length || controls.some((loan, index) => controllers[index] !== loan || loan.kind !== tags[index] || loan.owner !== controllerOwners[index])
       || bodies.length !== actors.length || bodies.some((actor, index) => actors[index] !== actor) || nativeMethods().some((value, index) => value !== methods[index])) throw new Error('Retired or replaced elite output owner');
+  };
+  // A retained entry may bind during build-ahead, before the page switches
+  // its active physics/player frame. Pin that ambient pair per actual bank;
+  // concrete loans, methods and scope ownership remain pinned for its lifetime.
+  const live = (): void => {
+    liveOwners();
+    if (app.player !== health || app.physics !== physics) throw new Error('Retired or replaced elite output owner');
   };
   live();
   if (new Set(controllerOwners).size !== controllerOwners.length || new Set(bodies.filter(actor => actor !== null)).size !== bodies.filter(actor => actor !== null).length
@@ -583,7 +590,7 @@ function prepareElitePageOutputs<T extends CrowdTargets>(actions: readonly Elite
     }
     prepared.push(() => { live(); apply(); });
   }
-  return { validate: live, operations: prepared };
+  return { validate: live, validateOwners: liveOwners, operations: prepared };
 }
 
 /** Native kernels already chose these events. Match only admitted finite action
