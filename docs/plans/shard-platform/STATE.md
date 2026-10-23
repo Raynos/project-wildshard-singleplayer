@@ -7,17 +7,18 @@ TOOLING-PERF (G668), Night Market, tile streaming, no-binaries.
 King fixture in 969b88c9d9) closed by 19:00Z. Release = the first fully green CI + exact six-leg smoke incl. grid
 (hang fix 9ee919dc14 proven). SW8 gate: 55 s → 8-34 s; budget overruns now defer to CI (aa1994c3a6).
 
-**(2) Nalati.** Titan + G667 listed, weather ported. Left: the entry (R15c/R15d) plus pick 1 below.
+**(2) Nalati: 225 counted lines, stalled since 10:20 (my call, wrong).** I held the entry (state.ts 139, index.ts 57,
+manifest.ts 25) behind pick 1 and spent lanes on extras. Fixed 15:00 local: sp-o3 on state.ts (R15c), sp-x6 on index.ts +
+manifest.ts (R15d, Nine-style compiled entry); every commit names its counted spans; one-user pieces get listed, not held.
 
 **(3) Frame floor.** Nalati (sp-o3, 9 landings): look max 200 → 67 ms (30 fps), its own frames all < 200 ms; drive
-max 250-350 ms left = sp-o4's sync shader link + precompile slice. Pine wrappers 4.4 → 2.95 ms/f, look/travel p95
-67 → 50 ms. Template-2 leave 417-700 → 133 ms; ring prelink proven; x5 memory flat. S2 tile streaming -277 TS
-(c2a06d82e6). sp-o4: DW 1,067 ms crossing (7 programs linked at draw + weapons), then Nalati's last two frames.
+max 250-350 ms left = sp-o4's sync shader link + precompile slice. Pine p95 67 → 50 ms. Template-2 leave → 133 ms;
+S2 tile streaming -277 TS (c2a06d82e6). sp-o4: DW 1,067 ms crossing (7 programs linked at draw + weapons), then Nalati's last two frames.
 sp-o3: frame census of Nine, Sky, Signal, template.
 
 **Loading/memory:** cold Signal Dunes tap → controls 6.78 → 5.29 s; cold wire 17.05 → 15.07 MB (legacy packs and card
-art cut). C1 prefetch capped at 23.6 MiB but a ~203 MiB native buffer stays; one decisive diagnostic (DevTools
-network never enabled) decides app vs inspector.
+art cut). C1: the '218 MB prefetch holder' is a MEASUREMENT ARTIFACT: Chromium DevTools' network response bank (with Network never
+enabled the buffer is 10 MiB, not 216). Past Chromium memory readings were inflated by up to ~200 MB; tools being fixed.
 
 **Tooling / no-binaries:** G668 gen warm 53-67 s → 2.70 s (G1-G5, G6 in progress; G10 determinism 195 of 267 jobs match,
 0 differences). B5 today ≈ -10 M chars incl. Nine 52 M orphan; poiPaint shared raw intake (+57 of 160 approved TS).
