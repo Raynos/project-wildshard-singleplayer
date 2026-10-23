@@ -7,7 +7,7 @@ import { clientRingPorts, type PreparedRingTile } from '../src/game/shardfile/cl
 import type { RingTile } from '../src/engine/world/tileStreamer';
 import { TileDecoder } from '../src/game/grid/tileDecoder';
 
-const tile: RingTile = { key: 'home:l0/0/0', instance: 'home', level: 'l0', x: 0, z: 0 };
+const tile: RingTile = { key: 'home:l0/0/0', instance: 'home', type: 'level', level: 'l0', x: 0, z: 0 };
 function fixture() {
   const source = emptyShardfile({ slug: 'scope-fixture', name: 'Scope', author: 'Test', revision: 1, seed: 1 });
   const scope = new Scope('region'), root = new Group(), decoder = new TileDecoder();

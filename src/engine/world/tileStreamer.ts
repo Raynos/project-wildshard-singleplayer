@@ -1,5 +1,5 @@
 /**
- * Render streaming rings for the grid (SHARD-PLATFORM SF18b). From the camera's world position and velocity, every
+ * Render streaming rings for declared level, road and junction rectangles (SF18b/S1). From the camera's world position and velocity, every
  * fixed step picks the tiles the view wants: L0 (62.5 m) to 150 m plus a lookahead of speed × readiness time along the
  * heading, L1 (125 m) to 400 m, and one far proxy per shard in a bounded ring (`CONTENT_CAPS.farCount` charges of
  * `CONTENT_CAPS.far.resident` bytes each, spent on the proxies' own bytes, nearest first).
@@ -37,14 +37,25 @@ export interface TileStreamBudget {
     readonly owner: string; readonly distance: number; readonly needed: boolean; readonly evictSync: () => void }) => TileStreamLease | null;
 }
 
-/** A placed shard instance; `origin` is its cell centre in world metres (GridAssembly's GridCell fits). */
-export interface RingCell { readonly instance: string; readonly origin: { readonly x: number; readonly z: number } }
-/** far = the whole shard; l1 = 4 × 4 per cell; l0 = 8 × 8 per cell. */
+export type TileKind = 'level' | 'road' | 'junction';
+/** A placed rectangle centred on `origin` (world metres). Omitted extent retains the 500 m shard lattice.
+ * Instance ids are unique across all kinds; catalogue/view adapters may dispatch by the explicit kind. */
+export interface RingCell {
+  readonly instance: string; readonly origin: { readonly x: number; readonly z: number }; readonly type?: TileKind;
+  readonly extent?: { readonly width: number; readonly depth: number };
+}
+interface LayoutCell extends RingCell {
+  readonly type: TileKind; readonly extent: { readonly width: number; readonly depth: number };
+  readonly columns: Readonly<Record<RingLevel, number>>; readonly rows: Readonly<Record<RingLevel, number>>;
+}
+/** Cell-local bounds clipped to its declared rectangle, in metres. */
+export interface TileRectangle { readonly minX: number; readonly minZ: number; readonly maxX: number; readonly maxZ: number }
+/** far covers the declared rectangle; l1/l0 use up to 4 × 4 / 8 × 8 clipped squares. */
 export type RingLevel = 'far' | 'l1' | 'l0';
-/** One streamable tile; x / z are cell-local tile indices from the cell's −x −z corner (0 for far). */
-export interface RingTile { readonly key: string; readonly instance: string; readonly level: RingLevel; readonly x: number; readonly z: number }
+/** One streamable tile; x/z start at the rectangle's −x/−z corner (0 for far). */
+export interface RingTile { readonly key: string; readonly instance: string; readonly type: TileKind; readonly level: RingLevel; readonly x: number; readonly z: number }
 /** What a cell's tiles cost resident (decoded + GPU bytes); null = the shard has no such tile (its parent keeps drawing). */
-export type RingCatalogue = (instance: string, level: RingLevel, x: number, z: number) => number | null;
+export type RingCatalogue = (instance: string, level: RingLevel, x: number, z: number, type?: TileKind) => number | null;
 /** The renderer's handle on an uploaded tile. Quadrants 0..3 for an L1 tile, regions 0..15 (x + 4z) for a far proxy. */
 export interface RingView { mask: (excluded: ReadonlySet<number>) => void; shadow: (enabled: boolean) => void; dispose: () => void }
 /**
@@ -124,9 +135,12 @@ interface Slot<D> { tile: RingTile; readonly parent: string | null; state: State
 
 function key(instance: string, level: RingLevel, x: number, z: number): string { return level === 'far' ? `${instance}:far` : `${instance}:${level}/${x}/${z}`; }
 /** Distance from a cell-local point to a tile's square (0 inside). */
-function rectDistance(lx: number, lz: number, level: RingLevel, x: number, z: number): number {
-  const size = SIZE[level], minX = -CHUNK_HALF + x * size, minZ = -CHUNK_HALF + z * size;
-  return Math.hypot(Math.max(minX - lx, 0, lx - minX - size), Math.max(minZ - lz, 0, lz - minZ - size));
+function rectDistance(lx: number, lz: number, level: RingLevel, x: number, z: number, cell: LayoutCell): number {
+  const width = cell.extent.width, depth = cell.extent.depth;
+  const sizeX = level === 'far' ? width : SIZE[level], sizeZ = level === 'far' ? depth : SIZE[level];
+  const minX = -width / 2 + x * sizeX, minZ = -depth / 2 + z * sizeZ;
+  const maxX = Math.min(width / 2, minX + sizeX), maxZ = Math.min(depth / 2, minZ + sizeZ);
+  return Math.hypot(Math.max(minX - lx, 0, lx - maxX), Math.max(minZ - lz, 0, lz - maxZ));
 }
 function parentOf(tile: { instance: string; level: RingLevel; x: number; z: number }): string | null {
   if (tile.level === 'far') return null;
@@ -140,7 +154,8 @@ export class TileStreamer<D> {
   private readonly requirements = new Set<Requirement>();
   private readonly completed: { tile: RingTile; lease: TileStreamLease; result: D | Error }[] = [];
   private readonly retryAt = new Map<string, number>();
-  private readonly cells: readonly RingCell[];
+  private readonly cells: readonly LayoutCell[];
+  private readonly byInstance = new Map<string, LayoutCell>();
   private readonly budget: TileStreamBudget;
   private readonly now: () => number;
   private readonly catalogue: RingCatalogue;
@@ -150,13 +165,23 @@ export class TileStreamer<D> {
   private refused = 0;
   private evictions = 0;
   private uploads = 0;
-  private visibleCells: readonly RingCell[] = [];
+  private visibleCells: readonly LayoutCell[] = [];
   private farPlanned: FarPlan = { budget: 0, charged: 0, wanted: [], omitted: [] };
   private disposed = false;
 
   constructor(cells: readonly RingCell[], budget: TileStreamBudget, catalogue: RingCatalogue, ports: RingPorts<D>, options: RingOptions = {}) {
     if (new Set(cells.map((c) => c.instance)).size !== cells.length || cells.some((c) => c.instance.length === 0 || !Number.isFinite(c.origin.x) || !Number.isFinite(c.origin.z))) throw new RangeError('Invalid ring cells');
-    this.cells = [...cells].sort((a, b) => a.instance.localeCompare(b.instance)); this.budget = budget; this.now = budget.now ?? diagnosticNow; this.catalogue = catalogue; this.ports = ports;
+    this.cells = cells.map<LayoutCell>(cell => {
+      const width = cell.extent === undefined ? CHUNK_HALF * 2 : cell.extent.width;
+      const depth = cell.extent === undefined ? CHUNK_HALF * 2 : cell.extent.depth;
+      if (![width, depth].every(value => Number.isFinite(value) && value > 0 && value <= CHUNK_HALF * 2)
+        || cell.type !== undefined && !['level', 'road', 'junction'].includes(cell.type)) throw new RangeError('Invalid tile rectangle');
+      return { ...cell, type: cell.type ?? 'level', extent: { width, depth },
+        columns: { far: 1, l1: Math.ceil(width / C.l1.size), l0: Math.ceil(width / C.l0.size) },
+        rows: { far: 1, l1: Math.ceil(depth / C.l1.size), l0: Math.ceil(depth / C.l0.size) } };
+    }).sort((a, b) => a.instance.localeCompare(b.instance));
+    for (const cell of this.cells) this.byInstance.set(cell.instance, cell);
+    this.budget = budget; this.now = budget.now ?? diagnosticNow; this.catalogue = catalogue; this.ports = ports;
     const viewDistance = options.viewDistance ?? 1.5 * C.pitch, farPrefetch = options.farPrefetch ?? 435;
     this.options = { readinessSeconds: 4, viewDistance, farPrefetch, farRadius: viewDistance + farPrefetch, farCount: C.farCount, uploadsPerFrame: 2, uploadBytesPerFrame: 8 * 1_000_000, maxInFlight: 8, ...options, uploadMsPerFrame: options.uploadMsPerFrame ?? 12,
       residentCaps: { l1: C.l1Count, l0: C.l0Count, ...options.residentCaps } };
@@ -170,9 +195,9 @@ export class TileStreamer<D> {
    * Releasing a pending requirement rejects it; a failed prerequisite rejects and releases its dependants. */
   require(instance: string, keys: Iterable<number>): TileRequirement {
     if (this.disposed) throw new Error('Tile streamer is disposed');
-    this.cell(instance);
+    const cell = this.cell(instance);
     const tiles = [...new Set(keys)].map(value => {
-      if (!Number.isInteger(value) || value < 0 || value >= 64) throw new RangeError('Invalid required tile key');
+      if (!Number.isInteger(value) || value < 0 || value >= 64 || value % 8 >= cell.columns.l0 || Math.floor(value / 8) >= cell.rows.l0) throw new RangeError('Invalid required tile key');
       return this.tile(instance, 'l0', value % 8, Math.floor(value / 8));
     });
     let resolveReady: () => void = () => undefined, rejectReady: (error: Error) => void = () => undefined;
@@ -198,7 +223,7 @@ export class TileStreamer<D> {
 
   private resolveRequirements(): void {
     for (const requirement of this.requirements) {
-      if (requirement.settled || !requirement.tiles.every(tile => this.catalogue(tile.instance, tile.level, tile.x, tile.z) === null
+      if (requirement.settled || !requirement.tiles.every(tile => this.bytes(tile.instance, tile.level, tile.x, tile.z) === null
         || this.slots.get(tile.key)?.state === 'uploaded')) continue;
       requirement.settled = true; requirement.resolve();
     }
@@ -220,14 +245,14 @@ export class TileStreamer<D> {
   /** The visible cells `ready()` still waits on (a readout: the reveal's diagnostics and the drive tests). */
   waiting(): readonly RingWait[] {
     return this.visibleCells.filter((cell) => !this.drawn(cell)).map((cell) => ({ instance: cell.instance,
-      far: this.catalogue(cell.instance, 'far', 0, 0) === null ? 'none' : this.slots.get(key(cell.instance, 'far', 0, 0))?.state ?? 'unrequested' }));
+      far: this.bytes(cell.instance, 'far', 0, 0) === null ? 'none' : this.slots.get(key(cell.instance, 'far', 0, 0))?.state ?? 'unrequested' }));
   }
   /** The far ring's last plan (budget, charges, proxies left out). */
   farPlan(): FarPlan { return this.farPlanned; }
-  private drawn(cell: RingCell): boolean {
-    const up = (level: RingLevel, x: number, z: number): boolean | null => this.catalogue(cell.instance, level, x, z) === null ? null : this.slots.get(key(cell.instance, level, x, z))?.state === 'uploaded';
+  private drawn(cell: LayoutCell): boolean {
+    const up = (level: RingLevel, x: number, z: number): boolean | null => this.bytes(cell.instance, level, x, z) === null ? null : this.slots.get(key(cell.instance, level, x, z))?.state === 'uploaded';
     const far = up('far', 0, 0); if (far === true) return true;
-    for (let z = 0; z < 8; z++) for (let x = 0; x < 8; x++) {
+    for (let z = 0; z < cell.rows.l0; z++) for (let x = 0; x < cell.columns.l0; x++) {
       const levels = [up('l1', Math.floor(x / 2), Math.floor(z / 2)), up('l0', x, z), far];
       if (levels.includes(true) || levels.every((level) => level === null)) continue;
       return false;
@@ -283,16 +308,30 @@ export class TileStreamer<D> {
 
   private distance(tile: RingTile, camera: RingCamera): number {
     const cell = this.cell(tile.instance);
-    return rectDistance(camera.x - cell.origin.x, camera.z - cell.origin.z, tile.level, tile.x, tile.z);
+    return rectDistance(camera.x - cell.origin.x, camera.z - cell.origin.z, tile.level, tile.x, tile.z, cell);
   }
-  private cell(instance: string): RingCell { const cell = this.cells.find((c) => c.instance === instance); if (cell === undefined) throw new Error(`Unknown ring cell ${instance}`); return cell; }
-  private tile(instance: string, level: RingLevel, x: number, z: number): RingTile { return { key: key(instance, level, x, z), instance, level, x, z }; }
+  private cell(instance: string): LayoutCell { const cell = this.byInstance.get(instance); if (cell === undefined) throw new Error(`Unknown ring cell ${instance}`); return cell; }
+  private tile(instance: string, level: RingLevel, x: number, z: number): RingTile { return { key: key(instance, level, x, z), instance, type: this.cell(instance).type, level, x, z }; }
+
+  /** Cell-local bounds of an admitted tile. Outside-rectangle indices refuse. */
+  bounds(tile: Pick<RingTile, 'instance' | 'level' | 'x' | 'z'>): TileRectangle {
+    const cell = this.cell(tile.instance), { level, x, z } = tile;
+    if (!Object.hasOwn(SIZE, level) || !Number.isInteger(x) || !Number.isInteger(z)
+      || x < 0 || z < 0 || x >= cell.columns[level] || z >= cell.rows[level]) throw new RangeError('Tile outside rectangle');
+    const sizeX = level === 'far' ? cell.extent.width : SIZE[level], sizeZ = level === 'far' ? cell.extent.depth : SIZE[level];
+    const minX = -cell.extent.width / 2 + x * sizeX, minZ = -cell.extent.depth / 2 + z * sizeZ;
+    return { minX, minZ, maxX: Math.min(cell.extent.width / 2, minX + sizeX), maxZ: Math.min(cell.extent.depth / 2, minZ + sizeZ) };
+  }
+
+  private bytes(instance: string, level: RingLevel, x: number, z: number): number | null {
+    return this.catalogue(instance, level, x, z, this.cell(instance).type);
+  }
 
   /** The wanted tiles with their distances, parents included. */
   private desired(camera: RingCamera): Map<string, { tile: RingTile; distance: number }> {
     const want = new Map<string, { tile: RingTile; distance: number }>();
-    const add = (tile: RingTile, distance: number): void => { if (this.catalogue(tile.instance, tile.level, tile.x, tile.z) !== null && !want.has(tile.key)) want.set(tile.key, { tile, distance }); };
-    const cellDistance = (cell: RingCell): number => rectDistance(camera.x - cell.origin.x, camera.z - cell.origin.z, 'far', 0, 0);
+    const add = (tile: RingTile, distance: number): void => { if (this.bytes(tile.instance, tile.level, tile.x, tile.z) !== null && !want.has(tile.key)) want.set(tile.key, { tile, distance }); };
+    const cellDistance = (cell: LayoutCell): number => rectDistance(camera.x - cell.origin.x, camera.z - cell.origin.z, 'far', 0, 0, cell);
     const ranked = this.cells.map((cell) => ({ cell, d: cellDistance(cell) })).sort((a, b) => a.d - b.d || a.cell.instance.localeCompare(b.cell.instance));
     this.visibleCells = ranked.filter((r) => r.d <= this.options.viewDistance).map((r) => r.cell);
     // the far ring: nearest first while the proxies' own bytes fit its budget; a cell with no far proxy keeps the old
@@ -301,21 +340,21 @@ export class TileStreamer<D> {
     const wanted: FarCharge[] = [], omitted: FarCharge[] = [];
     for (const { cell, d } of ranked) {
       if (d > this.options.farRadius) break;
-      const bytes = this.catalogue(cell.instance, 'far', 0, 0);
+      const bytes = this.bytes(cell.instance, 'far', 0, 0);
       if (bytes !== null) {
         if (farBytes + bytes > this.farBudget()) { omitted.push({ instance: cell.instance, bytes, visible: d <= this.options.viewDistance }); continue; }
         farBytes += bytes; wanted.push({ instance: cell.instance, bytes, visible: d <= this.options.viewDistance }); add(this.tile(cell.instance, 'far', 0, 0), d); continue;
       }
       if (d > this.options.viewDistance + this.options.farPrefetch || ++coarse > this.options.farCount) continue;
-      for (let z = 0; z < 4; z++) for (let x = 0; x < 4; x++) add(this.tile(cell.instance, 'l1', x, z), rectDistance(camera.x - cell.origin.x, camera.z - cell.origin.z, 'l1', x, z));
+      for (let z = 0; z < cell.rows.l1; z++) for (let x = 0; x < cell.columns.l1; x++) add(this.tile(cell.instance, 'l1', x, z), rectDistance(camera.x - cell.origin.x, camera.z - cell.origin.z, 'l1', x, z, cell));
     }
     this.farPlanned = { budget: this.farBudget(), charged: farBytes, wanted, omitted };
     const l1: { tile: RingTile; d: number }[] = [], l0: { tile: RingTile; d: number }[] = [];
     for (const { cell, d } of ranked) {
       if (d > L1_RADIUS) continue;
       const lx = camera.x - cell.origin.x, lz = camera.z - cell.origin.z;
-      for (let z = 0; z < 4; z++) for (let x = 0; x < 4; x++) { const td = rectDistance(lx, lz, 'l1', x, z); if (td <= L1_RADIUS) l1.push({ tile: this.tile(cell.instance, 'l1', x, z), d: td }); }
-      for (let z = 0; z < 8; z++) for (let x = 0; x < 8; x++) { const td = rectDistance(lx, lz, 'l0', x, z); if (td <= L0_RADIUS) l0.push({ tile: this.tile(cell.instance, 'l0', x, z), d: td }); }
+      for (let z = 0; z < cell.rows.l1; z++) for (let x = 0; x < cell.columns.l1; x++) { const td = rectDistance(lx, lz, 'l1', x, z, cell); if (td <= L1_RADIUS) l1.push({ tile: this.tile(cell.instance, 'l1', x, z), d: td }); }
+      for (let z = 0; z < cell.rows.l0; z++) for (let x = 0; x < cell.columns.l0; x++) { const td = rectDistance(lx, lz, 'l0', x, z, cell); if (td <= L0_RADIUS) l0.push({ tile: this.tile(cell.instance, 'l0', x, z), d: td }); }
     }
     const order = (a: { tile: RingTile; d: number }, b: { tile: RingTile; d: number }): number => a.d - b.d || a.tile.key.localeCompare(b.tile.key);
     l0.sort(order); l1.sort(order);
@@ -328,21 +367,21 @@ export class TileStreamer<D> {
         const px = camera.x + camera.vx / speed * s, pz = camera.z + camera.vz / speed * s;
         for (const { cell } of ranked) {
           const lx = px - cell.origin.x, lz = pz - cell.origin.z;
-          if (Math.abs(lx) >= CHUNK_HALF || Math.abs(lz) >= CHUNK_HALF) continue;
-          const tile = this.tile(cell.instance, 'l0', Math.floor((lx + CHUNK_HALF) / C.l0.size), Math.floor((lz + CHUNK_HALF) / C.l0.size));
+          if (Math.abs(lx) >= cell.extent.width / 2 || Math.abs(lz) >= cell.extent.depth / 2) continue;
+          const tile = this.tile(cell.instance, 'l0', Math.floor((lx + cell.extent.width / 2) / C.l0.size), Math.floor((lz + cell.extent.depth / 2) / C.l0.size));
           if (!seen.has(tile.key) && slots > 0) { seen.add(tile.key); slots--; fine.push({ tile, d: this.distance(tile, camera) }); }
         }
       }
     }
     // Pins may exceed the ordinary view's count cap, but still require real budget admission.
-    for (const { tile } of this.pins.values()) if (this.catalogue(tile.instance, tile.level, tile.x, tile.z) !== null
+    for (const { tile } of this.pins.values()) if (this.bytes(tile.instance, tile.level, tile.x, tile.z) !== null
       && !fine.some(row => row.tile.key === tile.key)) fine.push({ tile, d: this.distance(tile, camera) });
     for (const { tile, d } of l1.slice(0, C.l1Count)) add(tile, d);
     // a wanted child always wants its parents (the cap never strands an L0 tile without its L1)
     for (const { tile, d } of fine) {
       const cell = this.cell(tile.instance), x = Math.floor(tile.x / 2), z = Math.floor(tile.z / 2);
-      if (this.catalogue(tile.instance, 'far', 0, 0) !== null && !want.has(key(tile.instance, 'far', 0, 0))) add(this.tile(tile.instance, 'far', 0, 0), cellDistance(cell));
-      add(this.tile(tile.instance, 'l1', x, z), rectDistance(camera.x - cell.origin.x, camera.z - cell.origin.z, 'l1', x, z));
+      if (this.bytes(tile.instance, 'far', 0, 0) !== null && !want.has(key(tile.instance, 'far', 0, 0))) add(this.tile(tile.instance, 'far', 0, 0), cellDistance(cell));
+      add(this.tile(tile.instance, 'l1', x, z), rectDistance(camera.x - cell.origin.x, camera.z - cell.origin.z, 'l1', x, z, cell));
       add(tile, d);
     }
     return want;
@@ -382,7 +421,7 @@ export class TileStreamer<D> {
 
   /** Whether the catalogue has the parent tile at all (a shard without a far proxy starts at L1). */
   private exists(child: RingTile): boolean {
-    return child.level === 'l1' ? this.catalogue(child.instance, 'far', 0, 0) !== null : this.catalogue(child.instance, 'l1', Math.floor(child.x / 2), Math.floor(child.z / 2)) !== null;
+    return child.level === 'l1' ? this.bytes(child.instance, 'far', 0, 0) !== null : this.bytes(child.instance, 'l1', Math.floor(child.x / 2), Math.floor(child.z / 2)) !== null;
   }
 
   private hasChildren(tile: RingTile): boolean {
@@ -400,7 +439,7 @@ export class TileStreamer<D> {
       if (inFlight >= this.options.maxInFlight) break;
       const parentKey = parentOf(tile), parent = parentKey === null ? undefined : this.slots.get(parentKey);
       if (parentKey !== null && this.exists(tile) && parent?.state !== 'uploaded') continue;
-      const bytes = this.catalogue(tile.instance, tile.level, tile.x, tile.z); if (bytes === null) continue;
+      const bytes = this.bytes(tile.instance, tile.level, tile.x, tile.z); if (bytes === null) continue;
       const lease = this.budget.reserve({ id: `render:${tile.key}`, category: tile.level, bytes, owner: tile.instance, distance, needed: true, evictSync: () => { this.evicted(tile.key); } });
       if (lease === null) { this.refused++; this.retryAt.set(tile.key, this.frame + 15); continue; }
       const slot: Slot<D> = { tile, parent: parentKey, state: 'fetching', lease, unholdParent: parent?.lease.hold() ?? ((): void => undefined), view: null, data: null, bytes, distance, masked: '', shadow: false };
@@ -434,7 +473,7 @@ export class TileStreamer<D> {
       slot.data = null; slot.state = 'uploaded';
       count++; bytes += slot.bytes; this.uploads++;
       // a far proxy's own bytes are known once it has loaded (the catalogue charged a full slot before): charge those
-      const actual = slot.tile.level === 'far' ? this.catalogue(slot.tile.instance, 'far', 0, 0) : null;
+      const actual = slot.tile.level === 'far' ? this.bytes(slot.tile.instance, 'far', 0, 0) : null;
       if (actual !== null && actual < slot.bytes) { slot.lease.shrink(actual); slot.bytes = actual; }
       const parent = slot.parent; if (parent !== null) this.remask(parent);
     }

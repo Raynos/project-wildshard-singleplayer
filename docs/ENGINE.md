@@ -12897,7 +12897,14 @@ requirements share pins; releasing one cannot remove another's demand.
 Empty catalogue tiles need no publication. A failed prerequisite, pending
 release or streamer disposal rejects readiness and releases that demand.
 This promises render publication, not a runtime or collider admission.
-Rectangular road/junction tiles remain an S1 extension. Neighbours supply scene LOD only;
+Cells may declare `type: level | road | junction` and a centred `extent`
+with finite positive width/depth up to 500 m. Omitted extents retain the
+500 m lattice; kinds do not infer dimensions or install logic. L0
+and L1 squares clip to the rectangle edge; `bounds(tile)` returns that
+cell-local rectangle. Catalogue adapters also receive the optional kind.
+Instance ids remain unique across kinds, preserving existing tile keys.
+Required keys retain the eight-column stride (`z * 8 + x`); indices outside
+the declared rectangle refuse before pinning. Neighbours supply scene LOD only;
 this renderer never builds a whole world or installs shard runtime logic.
 
 ### Synchronous group guest adoption (G621 R10b/R10c)
