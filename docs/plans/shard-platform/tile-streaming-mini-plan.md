@@ -131,6 +131,7 @@ Code read only. Nothing built or run.
 | T8 | Every shard on tiles (Nalati, Pine, Nine, Sky, Sunscar, open plots, template): bake checks, the four over-cap DW tiles split | shard generators | Codex | 3 d | grid-ready latches hold; 5 × 5 census per shard | T3 |
 | T9 | Lattice: B (keep 55 m, road tile types: in T2) or A (62.5 m gap, pitch 562.5, seams, junction canvas, proofs re-recorded) | strips, roadLook, roadLayout, config | Codex | 0 / 2 d | per D1 | T2 |
 | T10 | Milestone: M1 Simulator recording + soak; delete the whole-shard path when Jake picks; Jake's iPhone check (G558) | — | coordinator | — | Sim < 5 s warm / < 15 s cold; Jake's word | all |
+| T11 | Far landmarks survive the ring: authored landmarks beyond the N×N ring (Pine crag spires, waterfall) draw a coarse stand-in from their LOD / impostor in the coarse ring, evicted only at its edge (found by sp-o1 at 5 × 5, 10-23) | tile residency, landmark LODs | Opus sp-o1 | 0.5–1 d | Pine spawn view at 5 × 5 shows the spires and waterfall | T2 |
 
 Order: T0 + T1 + T2 at once → T3 (DW) + T4 + T5 = **the first playable slice on Driftwood (SHARD SELECT, then the grid
 home)** → T6, T7 (the memory fix on crossings) → T8 → T9 → T10.

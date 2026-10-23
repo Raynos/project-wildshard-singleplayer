@@ -214,3 +214,38 @@ limit: only sp-o3's single sample needs an Opus lane. sp-x7 reverts any red olde
   pick. With route (b), zero comes around Saturday 18:00–22:00 Cancun.
 - **With the rows above** and Jake's (a) this morning: about 150–200 lines an hour on the parallel rows; zero around
   Friday 10-23 19:00 Cancun (best case 16:00).
+
+### R10d / R10e sized (2026-10-23 13:40–14:00Z, sp-x1 and sp-x8; replaces the blanket estimates above)
+
+After the herd hot-path fix (dc8dbcafcc) the page and native copies are **not dead duplicates**: the herd and pack
+decisions already run in AS, and what stays charged is live wiring (placement and spawn, environment, effects,
+construction and member wiring, prey references, native driver, deferred roster, field). First cuts: 18c6dbc17f
+(initializer, net -4), 7485f396d1 (shared Stalker roster, net -4), aaa2baf0c7 (stock bake reader, -3).
+
+| Row | Piece → existing 2+-user owner | TS removed | TS added (est.) | Hours | Lane |
+|---|---|---:|---:|---:|---|
+| R10d-1 | Crowd body / prey refs (page 36 + native 10) → FlockBrain loans + one stable reference codec | 46 | 35–55 | 4–6 | sp-x1 |
+| R10d-2 | Group factories / rendered joins (page 45 + native 46) → GroupBrain row construction | 91 | 80–115 | 5–7 | sp-x1 (+ sp-x8 native diff) |
+| R10d-3 | Environment (page 27 + native 20) → WildSenses / field rows | 47 | 40–60 | 4–6 | sp-x1 |
+| R10d-4 | Crowd geometry → fixedDraws named geometry (+ animated sphere override) | 10 | 12–18 | 2–3 | sp-x2 |
+| R10d-5 | Page effects / damage → AS cooldown/result rows (+ 20–35 AS) | 25 | 30–45 | 3–4 | sp-x2 (first) |
+| R10d-6 | Placement / spawn → admission AS with a GroupStepNativeV2 spawn result op (+ 70–110 AS) | 41 | 90–140 | 8–12 | after its own sizing |
+| R10e-1 | Population reader → named Product.json metadata + assembly.merge | 9 | 12–20 (producer) | 2–3 | sp-x8 |
+| R10e-2 | Deferred roster → createNativeCreatureRoster deferred row | 39 | 42–60 | 4–6 | sp-x8 |
+| R10e-3 | Field → GrassField + scalar readers, pure prepare kernel first | 22 | 35–55 | 4–6 | sp-x8 |
+| R10e-4 | Driver → finite native profile in StalkerBrain.bindRoster + ActorProjectionV2 | 98 | 150–220 | 8–12 | sp-x8 |
+| R10e-5 | Collection / install → GroupBrain / SimHost setup (with R10d-2) | ~98 | 90–140 | 6–10 | sp-x8 |
+
+**Ruling (wildshard-new, G621 D2 / G571):** each row deletes the Nalati sections outright and adopts an owner two or
+more shards already use; total TS growth is reported in the commit, never hidden by a move or relabel. Order is the
+table order per lane. R17 (one Simulator sample) stays after R10d and R10e.
+
+**Second-user check (14:10Z):** before a row is written, its owner must have a second non-empty shipped user (a
+real shard's data or code). R10d-1 failed it (FlockBrain's only crowd data is Nalati's: -33 C4 / +17 total, draft
+dropped), so rows like it join the Titan (R16) on Jake's HOST-AUDIT pick list instead of landing as credit. Also on that list: R10d-5's
+signal/knockdown → HUD toast/dash effect adapter (only Nalati would use it; sp-x2's census, 14:15Z). R10d-4 passes:
+fixedDraws ships Driftwood's fixed layouts.
+
+**Estimate:** about 520 charged lines go for roughly 530–880 TS added, **50–75 lane-hours** across sp-x1 and sp-x8
+(not ~7). With R15/R20 on lane C and the Titan pick, Nalati zero moves from Friday 19:00 to about **Sunday–Monday**
+Cancun at two wildlife lanes, about Sunday with sp-x2 as the third (from 14:05Z, after R15a/R15b).
