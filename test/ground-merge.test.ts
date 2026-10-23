@@ -41,3 +41,20 @@ test('a coarse tile leaves out the quadrants fine tiles cover', async () => {
   expect(merge.mesh).toBeNull();
   scope.dispose();
 });
+
+test('tiles draw one mesh per 250 m block; a change rebuilds only its block', async () => {
+  const parent = new THREE.Group(), merge = new GroundMerge(parent, new THREE.MeshBasicMaterial(), 'ground.fine');
+  const a = new Scope('a'), b = new Scope('b'), c = new Scope('c');
+  merge.add(tile(-250, -250), a); merge.add(tile(10, -250), b); await settle();
+  expect(merge.meshes).toHaveLength(2); expect(parent.children).toHaveLength(2);
+  const [west, east] = merge.meshes;
+  merge.add(tile(-125, -250), c); await settle();                // joins the west block
+  expect(merge.meshes).toHaveLength(2);
+  expect(merge.meshes).toContain(east);                           // the east block kept its mesh
+  expect(merge.meshes).not.toContain(west);
+  expect(merge.meshes.map(mesh => mesh.geometry.getIndex()?.count ?? 0).sort((x, y) => x - y)).toEqual([6, 12]);
+  b.dispose(); await settle();
+  expect(merge.meshes).toHaveLength(1); expect(merge.size).toBe(2);
+  a.dispose(); c.dispose(); await settle();
+  expect(merge.meshes).toHaveLength(0); expect(parent.children).toHaveLength(0);
+});
