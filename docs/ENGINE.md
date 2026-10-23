@@ -12688,3 +12688,20 @@ codec fields without callbacks, then run the prepared native bank in emitted
 order. The convenience ready.prepareNative().accept() drains immediately after
 group acceptance; it does not invent a native-codec commit callback or reorder
 that original publication slot.
+
+### Original native group steering context (H4, G621 R10a)
+
+Native rows steer and path consume [member,yaw,speed,turn] and
+[member,x,z,period] respectively; confine consumes [member]. Path declares a
+result channel. The native contexts loan is the original per-member population
+context array, aligned with the original observation owners. It must retain the
+same context, player vector, RNG, time/delta and concrete methods through apply.
+Missing confinement or a foreign context refuses before any operation prefix.
+
+The prepared bank calls the original context methods with their original
+receiver and emitted actor. Original native steering, hunt path cache and
+confinement therefore retain their own continuation and wrappers. Reentry that
+changes a current actor does not retarget later operations; method replacement
+or entered-scope retirement prevents their execution. These rows introduce no
+path cache, body, random stream, clock or saved owner. Contact and group
+notifications remain separate native authorities.

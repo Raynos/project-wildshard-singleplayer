@@ -17,7 +17,8 @@ import { ANIMAL_STATES, type AnimalSim } from '../entities/AnimalSim';
 import type { Rng, RngState } from '../core/rng';
 import type { AggressionDirector, AggressionService } from '../ai/director';
 import type { Events } from '../events/events';
-import type { CirclingPackPrey } from '../ai/stalker';
+import type { CirclingPackPrey, CirclingPackContext } from '../ai/stalker';
+import type { GuardedHerdContext } from '../ai/grazer';
 
 export type GroupStepReferenceV2 = GroupBankReferenceV2 & (
   | { readonly body: AnimalSim; readonly pose?: never }
@@ -249,11 +250,16 @@ function freezeNative(input: GroupStepNativeV2): Readonly<GroupStepNativeV2> {
   return Object.freeze(row);
 }
 
+/** The original per-call population context. No callback is supplied by an
+ * authored row; confinement remains optional only on the pack context type. */
+export type GroupStepContextV2 = GuardedHerdContext<AnimalSim>
+  | (CirclingPackContext<AnimalSim> & { readonly confine?: (actor: AnimalSim) => void });
 /** Concrete original authorities for same-call result barriers. No native
  * operation is selected by a callback, object path or content identifier. */
 export interface GroupStepNativeOwnersV2 {
   readonly scope: Scope;
   readonly members: readonly V2ColumnOwners[];
+  readonly contexts?: readonly GroupStepContextV2[];
   readonly references?: readonly GroupStepReferenceV2[];
   readonly rosters?: ReadonlyMap<string, readonly GroupStepReferenceV2[]>;
   readonly ground?: { readonly normalY: (x: number, z: number) => number };
@@ -371,6 +377,37 @@ export function prepareGroupNativeV2(operations: readonly GroupStepOperationV2[]
         if (typeof set !== 'function') throw new Error('Invalid native motion callable');
         pins.push(() => body.setMotion === set);
         invoke = () => { body.setMotion(yaw,speed,turn);return undefined; };
+        break;
+      }
+      case 'steer': case 'path': case 'confine': {
+        const contexts = owners.contexts, context = member === undefined ? undefined : contexts?.[member.slot], body = member?.actor;
+        if (member === undefined || source === undefined || contexts === undefined || contexts.length !== sources.length || context === undefined || body === undefined || body === null
+          || context !== source.context || context.player !== source.player.position || !Number.isFinite(context.dt) || !Number.isFinite(context.t)
+          || context.dt !== source.dt || context.t !== source.t) throw new Error('Missing or foreign native group context');
+        const player = context.player, random = context.rng, time = context.t, dt = context.dt;
+        pins.push(() => owners.contexts === contexts && contexts.length === sources.length && contexts[member.slot] === context
+          && source.context === context && context.player === player && source.player.position === player && context.rng === random
+          && Object.is(context.t,time) && Object.is(source.t,time) && Object.is(context.dt,dt) && Object.is(source.dt,dt));
+        if (request.kind === 'confine') {
+          const confine = context.confine;
+          if (typeof confine !== 'function') throw new Error('Missing native group confinement');
+          pins.push(() => context.confine === confine);
+          invoke = () => { confine.call(context,body);return undefined; };
+        } else {
+          const a = operation.values[1], b = operation.values[2], c = operation.values[3];
+          if (a === undefined || b === undefined || c === undefined) throw new Error('Missing native group steering operands');
+          if (request.kind === 'path') {
+            const path = context.pathYaw;
+            if (typeof path !== 'function') throw new Error('Missing native group path owner');
+            pins.push(() => context.pathYaw === path);
+            invoke = () => path.call(context,body,a,b,c);
+          } else {
+            const steer = context.steer;
+            if (typeof steer !== 'function') throw new Error('Missing native group steering owner');
+            pins.push(() => context.steer === steer);
+            invoke = () => { steer.call(context,body,a,b,c);return undefined; };
+          }
+        }
         break;
       }
       case 'grass': {

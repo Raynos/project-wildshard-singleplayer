@@ -20,7 +20,8 @@ export type GroupStepNativeV2 =
   | { kind: 'nearest'; channel: string; roster: string }
   | { kind: 'memory'; key: string; encoding?: 'negative-infinity' }
   | { kind: 'state'; states: readonly string[] }
-  | { kind: 'motion' | 'look-position' | 'look-weight' }
+  | { kind: 'motion' | 'look-position' | 'look-weight' | 'steer' | 'confine' }
+  | { kind: 'path'; channel: string }
   | { kind: 'hearing'; channel: string; radii: readonly [number, number, number, number] };
 const radius = v.pipe(v.number(), v.finite(), v.minValue(0));
 const memoryKey = v.pipe(name,v.regex(/^(?!(?:__proto__|prototype|constructor)$).+$/));
@@ -28,7 +29,8 @@ const nativeSchema: v.GenericSchema<GroupStepNativeV2> = v.variant('kind', [
   v.strictObject({ kind: v.picklist(['grass', 'normal', 'visibility', 'downwind', 'claim']), channel: name }),
   v.strictObject({ kind: v.literal('memory'),key:memoryKey,encoding:v.exactOptional(v.literal('negative-infinity')) }),
   v.strictObject({ kind: v.literal('state'),states:v.pipe(v.array(name),v.minLength(1),v.maxLength(64)) }),
-  v.strictObject({ kind: v.picklist(['motion','look-position','look-weight']) }),
+  v.strictObject({ kind: v.picklist(['motion','look-position','look-weight','steer','confine']) }),
+  v.strictObject({ kind: v.literal('path'), channel: name }),
   v.strictObject({ kind: v.literal('nearest'), channel: name, roster: name }),
   v.strictObject({ kind: v.literal('hearing'), channel: name, radii: v.strictTuple([radius, radius, radius, radius]) }),
 ]);
@@ -79,8 +81,8 @@ export function groupNativeWordsV2(row: GroupStepNativeV2): number {
     case 'nearest': return 3;
     case 'grass': case 'normal': case 'state': case 'look-weight': return 2;
     case 'memory': return row.encoding === undefined ? 2 : 3;
-    case 'motion': case 'look-position': return 4;
-    case 'visibility': case 'hearing': case 'downwind': case 'claim': return 1;
+    case 'motion': case 'look-position': case 'steer': case 'path': return 4;
+    case 'visibility': case 'hearing': case 'downwind': case 'claim': case 'confine': return 1;
     default: throw new Error('Unknown native group operation');
   }
 }
