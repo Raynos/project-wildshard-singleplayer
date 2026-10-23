@@ -11,7 +11,7 @@ export interface V2BindingInput {
   readonly observed: ReadonlySet<number>; readonly enabled: boolean; readonly due: boolean;
   readonly divisor: 2 | 6; readonly fuel: number; readonly previousTick: number; readonly currentTick: number;
   readonly state: readonly number[]; readonly parameters: readonly { readonly name: string; readonly value: number }[];
-  readonly fields: readonly { readonly name: string; readonly id: number; readonly value?: number }[];
+  readonly fields: readonly { readonly name: string; readonly id: number; readonly value?: number | undefined }[];
   readonly sample: Sample & { readonly target: number; readonly groundY?: number; readonly walk?: Pair; readonly lineOfSight?: boolean };
 }
 export interface V2PlayerInput extends Sample {

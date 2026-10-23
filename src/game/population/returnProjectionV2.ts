@@ -23,15 +23,16 @@ function snapshotFrame(input: unknown): Readonly<Record<string,number>> {
   if (typeof input !== 'object' || input === null) throw new Error('Invalid return observation frame');
   const prototype: unknown = Object.getPrototypeOf(input);
   if (prototype !== Object.prototype && prototype !== null) throw new Error('Invalid return observation frame');
-  const values: [string,number][] = [];
+  const values: Record<string,number> = {};
   for (const key of Reflect.ownKeys(input)) {
     const descriptor = Object.getOwnPropertyDescriptor(input,key);
-    if (typeof key !== 'string' || descriptor === undefined || !Object.hasOwn(descriptor,'value')) throw new Error('Invalid return observation frame');
+    // a '__proto__' key would set the copy's prototype instead of a value
+    if (typeof key !== 'string' || key === '__proto__' || descriptor === undefined || !Object.hasOwn(descriptor,'value')) throw new Error('Invalid return observation frame');
     const value: unknown = descriptor.value;
     if (typeof value !== 'number' || !Number.isFinite(value)) throw new Error('Invalid return observation frame');
-    values.push([key,value]);
+    values[key] = value;
   }
-  return Object.fromEntries(values);
+  return values;
 }
 /** Freeze the already-admitted owned descriptor; readers borrow it unchanged. */
 function freezeGroups(value:unknown):void {
@@ -39,6 +40,7 @@ function freezeGroups(value:unknown):void {
   for(const child of Object.values(value))freezeGroups(child);
   Object.freeze(value);
 }
+interface FieldColumn { readonly actor: number; readonly field: string; readonly name: string; readonly id: number; value: number | undefined }
 export class ReturnProjectionV2 {
   private readonly row;
   private readonly layout;
@@ -46,8 +48,8 @@ export class ReturnProjectionV2 {
   private busy = false;
   private readonly groups:GroupStepV2|null=null;
   /** per actor count: every actor's declared field columns (`actor/name`) in the observation writer's name order, made
-   *  once, so the writer takes them without a sort */
-  private readonly columns: { readonly actor: number; readonly index: number; readonly name: string; readonly field: string }[][] = [];
+   *  once, so the writer takes them without a sort; each call refills their values (the writer copies them at once) */
+  private readonly columns: FieldColumn[][] = [];
   constructor(input: unknown,private readonly owner?: Scope,raw?:Uint8Array) {
     this.live();
     this.row = parseReturnProjectionV2(input);this.layout = returnProjectionV2Layout(this.row.fields.length,this.row.artifact.pages,this.row.outputCapacity,this.row.groups);
@@ -77,12 +79,10 @@ export class ReturnProjectionV2 {
     this.live();
     const rng = prepareV2Rng(layout,before === undefined ? [] : [{ binding: 1,stream: 1,algorithm: 1,
       state: [before.state,before.initial,Number(before.scrambledFork),0,0,0] }]);
-    const columns = this.columns[candidates.length] ??= Array.from({ length: candidates.length+1 },(_,actor) => this.row.fields.map((field,index) => ({ actor,index,field,name: `${String(actor)}/${field}` })))
+    const fields = this.columns[candidates.length] ??= Array.from({ length: candidates.length+1 },(_,actor) => this.row.fields.map((field,index): FieldColumn =>
+      ({ actor,field,name: `${String(actor)}/${field}`,id: actor*this.row.fields.length+index+1,value: undefined })))
       .flat().sort((a,b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
-    const fields = columns.map(({ actor,index,field,name }) => {
-      const value = frames[actor]?.[field],id = actor*this.row.fields.length+index+1;
-      return value === undefined ? { name,id } : { name,id,value };
-    });
+    for (const column of fields) column.value = frames[column.actor]?.[column.field];
     const input = prepareV2Observations(layout,0,{ bindings: [{ identity: 'projection',handle: 1,self: 1,player: 0,observed: new Set([1]),enabled: true,due: true,
       divisor: 6,fuel: 400000,previousTick: 0,currentTick: 0,state: [],parameters: [{ name: 'signal',value: signalId }],fields,sample: { atTick: 0,target: 0 } }],
     players: [],edges: [],events: [],actions: new Set(),eventKinds: new Set() });
