@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- All writes are confined to an owned temporary policy fixture.
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The guard compares actual immutable Node source trees.
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exact frozen fixture identity uses the policy's SHA256.
@@ -7,8 +7,27 @@ import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve only the owned fixture trees.
 import { join } from 'node:path';
 import { expect, test } from 'vitest';
-import { runtimePerformanceSites } from '../lint/runtime-performance.mjs';
+import * as v from 'valibot';
+import { runtimePerformanceSites, frozenRuntimePerformanceViolations } from '../lint/runtime-performance.mjs';
 import { comparePlatformList } from '../scripts/check-platform-ratchets.mjs';
+import { legacyInventory } from '../scripts/legacy-shards.mjs';
+
+test('retired Nalati primaries leave exact frozen runtime debt intact', () => {
+  const policy = v.parse(v.object({ sites: v.record(v.string(), v.object({ count: v.number(), row: v.string() })) }),
+    JSON.parse(readFileSync('lint/runtime-performance.json', 'utf8')));
+  const frozen = legacyInventory(process.cwd()).shards['nalati-grasslands-legacy'];
+  if (frozen === undefined) throw new Error('Missing reviewed Nalati frozen inventory');
+  for (const relative of ['runtime/state.ts', 'runtime/index.ts']) {
+    const file = `src/shards/nalati-grasslands-legacy/${relative}`;
+    const primary = `src/shards/nalati-grasslands/${relative}`;
+    const digest = frozen.files[relative];
+    if (digest === undefined) throw new Error('Missing exact frozen source digest');
+    const source = readFileSync(file, 'utf8');
+    expect(Object.keys(policy.sites).some(key => key.startsWith(`${primary}:`))).toBe(false);
+    expect(frozenRuntimePerformanceViolations(source, file, primary, digest, policy.sites)).toEqual([]);
+    expect(frozenRuntimePerformanceViolations(`${source}\nchanged();`, file, primary, digest, policy.sites).length).toBeGreaterThan(0);
+  }
+});
 
 test('rekeys real edited or moved sites without new kind or row allowance', () => {
   const root = mkdtempSync(join(tmpdir(), 'runtime-rekey-'));

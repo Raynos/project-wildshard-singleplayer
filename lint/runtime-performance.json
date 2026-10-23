@@ -2,6 +2,30 @@
   "about": "SF62 reviewed transition debt. Re-key an edited or moved function only to a lint-confirmed site by retiring real predecessor allowance of the same kind and row; total count per kind and row never grows. Deleted sites drop; no new allowances.",
   "baselineAt": "fadcee06196f345f706aa9f7e01a3bb027968a20",
   "sites": {
+    "src/shards/nalati-grasslands-legacy/runtime/state.ts:raw-render:ae8dedf219ccd850aedd82b38eaafe641af6681d4ee858b0ac59710d4ee8ed86": {
+      "count": 6,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands-legacy/runtime/state.ts:raw-render:26ac04d3c61192df7c8aef1624f65c27f8fcc32c97f81124161fc5085d275655": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands-legacy/runtime/state.ts:unbounded-loop:4abed363ae244317352edfebe398eec0c499413ade0b6d129060ce40ee2ad6e0": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands-legacy/runtime/state.ts:unbounded-loop:109deae63a5ac2be7ed0adaa310ec0dc45bbe49460bff05e6971ab80e8a78fa5": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands-legacy/runtime/index.ts:frame-allocation:55c6e8158e1d823c528db44bee4e1a88ad02a1327de70e8ca24955de0e91df5d": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands-legacy/runtime/index.ts:raw-render:ae8dedf219ccd850aedd82b38eaafe641af6681d4ee858b0ac59710d4ee8ed86": {
+      "count": 1,
+      "row": "SF48"
+    },
     "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:d107e1a57ecc0cb08b745166a6d3c35eaa9add78f53ff246fa03a122f8738550": {
       "count": 1,
       "row": "SF46"
