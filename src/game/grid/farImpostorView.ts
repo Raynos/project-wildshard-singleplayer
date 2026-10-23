@@ -11,6 +11,7 @@ import { Box3, DataTexture, LinearFilter, Mesh, PlaneGeometry, RGBAFormat, Shade
 import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
 import type { FarImpostor } from '@wildshard/format/shardSections';
 import type { FarImpostorDecodeReply, FarImpostorDecodeRequest } from './farImpostorPack';
+import { GRID_HAZE } from './farProxy';
 
 /** A decoded impostor: its row and its packed texels. */
 export interface FarImpostorData { readonly row: FarImpostor; readonly texels: Uint16Array; readonly width: number; readonly height: number }
@@ -58,6 +59,7 @@ uniform vec2 uGrid;
 varying vec2 vUv;
 varying vec4 vTiles;
 varying float vMix;
+varying float vFarDepth;
 void main() {
   vec3 centre = (modelMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
   vec2 d = cameraPosition.xz - centre.xz;
@@ -68,6 +70,7 @@ void main() {
   vTiles = vec4(mod(i0, uGrid.x), floor(i0 / uGrid.x), mod(i1, uGrid.x), floor(i1 / uGrid.x));
   vUv = vec2(position.x + 0.5, position.y);
   vec4 mv = viewMatrix * vec4(world, 1.0);
+  vFarDepth = -mv.z;
   gl_Position = projectionMatrix * mv;
 }`;
 const fragment = /* glsl */ `
@@ -75,6 +78,8 @@ uniform sampler2D uAtlas;
 uniform vec2 uGrid;
 uniform float uRange;
 uniform float uBand;
+uniform vec3 farHazeColour;
+varying float vFarDepth;
 varying vec2 vUv;
 varying vec4 vTiles;
 varying float vMix;
@@ -88,6 +93,8 @@ void main() {
   gl_FragColor = vec4(farDecode((c0.rgb * w0 + c1.rgb * w1) / w) * uRange, 1.0);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
+  // G631: the grid's one mild haze, as its proxy's (farView.ts)
+  gl_FragColor.rgb = mix(gl_FragColor.rgb, farHazeColour, smoothstep(${GRID_HAZE.near.toFixed(1)}, ${GRID_HAZE.far.toFixed(1)}, vFarDepth) * ${GRID_HAZE.max.toFixed(2)});
 }`;
 
 /** A drawn impostor: its mesh and the band share it draws at. */
@@ -102,7 +109,7 @@ export function installFarImpostor(root: Object3D, data: FarImpostorData, decora
   const material = new ShaderMaterial({
     vertexShader: vertex, fragmentShader: fragment, fog: false, lights: false,
     uniforms: { uAtlas: { value: texture }, uGrid: { value: [row.cols, rows] }, uFrame: { value: [row.width, row.bottom, row.top, row.views] }, uRange: { value: row.range },
-      uBand: { value: 0 } },
+      uBand: { value: 0 }, farHazeColour: GRID_HAZE.colour },
   });
   material.name = 'far-impostor';
   decorate?.(material);

@@ -6,8 +6,8 @@
  * - **One clock, one sky, one sun**: the home look's backdrop is the world clock and draws the one dome and key light;
  *   the engine chain's tone mapping, bloom and vignette stay on.
  * - **The owner's air on everything**: before the scene draws, the scene fog's colour is the owner's air (the home
- *   look's live fog, a neighbour owner's declared haze, the neutral road air, by the owners' weights); far proxies draw
- *   unhazed (G607: render everything, every cell near and clear to the 6 km far plane).
+ *   look's live fog, a neighbour owner's declared haze, the neutral road air, by the owners' weights); every far proxy,
+ *   near view and impostor hazes mildly toward it (G631, `GRID_HAZE`), all drawn to the 6 km far plane (G607).
  * - **The owner's grade on every pixel**: the home look's grade effects (saturation, contrast, split tone, the learned
  *   LUT) fade with the home's weight (their blend opacity), and one small effect appended to the engine's one colour
  *   pass applies the rest of the frame's grade (a neighbour owner's declared exposure / saturation / contrast / tint,
@@ -47,7 +47,7 @@ import { LUT_SIZE } from '@wildshard/engine/render/lut';
 import { CAMERA_FOV } from '@wildshard/engine/core/config';
 import type { LookCellPost } from '@wildshard/engine/render/look';
 import { RoadSky, type RoadSkyPage } from './roadSky';
-import { FAR_RING } from './farProxy';
+import { FAR_RING, GRID_HAZE } from './farProxy';
 import { bindFrameLook, type FrameLookContribution, type FramePost, type FrameSkyLayer, type RegionChain, type RegionPost } from './frameLook';
 import { NEUTRAL_GRADE, ROAD_SKY, dominantOwner, frameFog, frameGrade, frameOwners, type FrameCell, type FullGrade, type RegionGrade, type RegionWeights } from './frameModel';
 
@@ -772,6 +772,7 @@ export class GridFrame {
     }
     const [r, g, b] = frameFog(this.weights, home, hazes, ROAD_SKY.air);
     this.air.setRGB(r, g, b);
+    GRID_HAZE.colour.value.copy(this.air).convertLinearToSRGB(); // G631: every far material hazes toward the owner's air
     if (live !== null) { live.copy(this.air); this.written.copy(this.air); }
     this.roadSky.frame(this.host.camera.getWorldPosition(this.eye), this.air);
   }

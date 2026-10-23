@@ -13,6 +13,7 @@
  * outward (faceted) normals and flagged in TEXCOORD_0.y (1 lip, 2 foot), so the renderer draws strata on it; the short inner skirts that
  * hide the cracks between regions keep the ground's colour. Node-safe; no three.js.
  */
+import { Color } from 'three';
 import { CHUNK_HALF, CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { GRID_RADIUS } from '@wildshard/format/contentBounds';
 
@@ -20,8 +21,15 @@ import { GRID_RADIUS } from '@wildshard/format/contentBounds';
 export type FarRgb = readonly [number, number, number];
 /** The material family a proxy draws with; each shard keeps its own style. */
 export type FarFamily = 'toon' | 'painterly' | 'pbr';
-/** A shard's declared air: the colour the one frame's fog takes while the shard owns it (G607: no distance haze on a proxy). */
+/** A shard's declared air: the colour the one frame's fog takes while the shard owns it. */
 export interface FarHaze { readonly colour: FarRgb }
+/**
+ * G631 (Jake, on G607's render-everything): one mild distance haze over the whole grid. Every far proxy, near view and
+ * impostor fades toward the frame's air from `near` to `far` metres of view depth, at most `max`; tuned on the shipped
+ * 10-13 hero (public/assets/title/main-crossroads-square.jpg), every cell still drawn to the 6 km far plane. `colour` is
+ * the air in sRGB (mixed after the output conversion), one uniform every far material shares, written by the grid frame.
+ */
+export const GRID_HAZE = { near: 600, far: 4500, max: 0.35, colour: { value: new Color(1, 1, 1) } } as const;
 /**
  * A shard's far look, authored in its folder and read only at bake time. `colourAt` gets cell-local metres, the height,
  * the slope (1 − n.y) and the normalised splat weights (the shard's own four channels).

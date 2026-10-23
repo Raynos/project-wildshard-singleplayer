@@ -6,7 +6,7 @@
  *
  * - **The dome**: one camera-centred shader dome, no textures (`ROAD_SKY`): a dawn gradient whose horizon is the frame's air
  *   (so far proxies haze into it), a thin cyan horizon line and a faint cyan grid round the horizon that echoes the HUD and
- *   the VR void. Unlit, fogless, depth-tested (all geometry stays in front), one draw while visible, drawn over the page's
+ *   the VR void; below the horizon, the void's blue-violet (G630). Unlit, fogless, depth-tested (all geometry stays in front), one draw while visible, drawn over the page's
  *   sky pieces (render order −20 … −10) and under every region's own sky (−9.9 … −9.1) and every world transparent (≥ 0).
  * - **The key light**: a low warm dawn sun, its fill, its fog in-scatter and its environment intensity, which the road owns
  *   instead of keeping the page's (the home shard's) sun.
@@ -94,6 +94,7 @@ export class RoadSky {
   private readonly uniforms = {
     uAir: { value: new Color(...ROAD_SKY.air) }, uMid: { value: new Color(...ROAD_SKY.mid) }, uZenith: { value: new Color(...ROAD_SKY.zenith) },
     uLine: { value: new Color(...ROAD_SKY.line) }, uGrid: { value: new Color(...ROAD_SKY.grid) }, uGridStrength: { value: ROAD_SKY.gridStrength },
+    uVoid: { value: new Color(...ROAD_SKY.void) },
     uSunDir: { value: roadSunDir(ROAD_SKY.sun.azimuth, ROAD_SKY.sun.elevation) }, uGlow: { value: new Color(...ROAD_SKY.sun.glow) },
   };
   private host: RoadSkyHost | null = null;
@@ -116,7 +117,7 @@ export class RoadSky {
         void main() { vDir = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
       fragmentShader: /* glsl */`
         uniform vec3 uAir; uniform vec3 uMid; uniform vec3 uZenith; uniform vec3 uLine; uniform vec3 uGrid; uniform float uGridStrength;
-        uniform vec3 uSunDir; uniform vec3 uGlow;
+        uniform vec3 uSunDir; uniform vec3 uGlow; uniform vec3 uVoid;
         varying vec3 vDir;
         void main() {
           vec3 d = normalize(vDir);
@@ -140,7 +141,8 @@ export class RoadSky {
           float fh = max(fwidth(h), 1e-5), off = abs(h - 0.008);
           float line = 1.0 - smoothstep(0.5 * fh, 1.5 * fh + 0.0008, off);
           col += uLine * (0.9 * line + 0.22 * exp(-off * 70.0));
-          gl_FragColor = vec4(h < 0.0 ? uAir : col, 1.0);
+          // G630: below the horizon (past the grid floor, inside the 6 km far plane) the void's blue-violet, from the air
+          gl_FragColor = vec4(h < 0.0 ? mix(uAir, uVoid, smoothstep(0.0, 0.03, -h)) : col, 1.0);
         }`,
     });
     this.mesh = new Mesh(new SphereGeometry(RADIUS, 48, 24), this.material);

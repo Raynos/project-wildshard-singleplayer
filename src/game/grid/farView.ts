@@ -1,7 +1,7 @@
 /**
  * Drawing a far proxy (SHARD-PLATFORM SF23): one mesh, one draw, its 16 regions hidden by a vertex-shader mask when the
- * render rings refine them (`RingView.mask`, regions x + 4z), and a distance haze of its own toward the shard's haze
- * colour. The material follows the shard's family: `toon` faceted Lambert (flat normals), `painterly` smooth Lambert,
+ * render rings refine them (`RingView.mask`, regions x + 4z), and the grid's one mild distance haze toward the frame's air
+ * (G631, `GRID_HAZE`). The material follows the shard's family: `toon` faceted Lambert (flat normals), `painterly` smooth Lambert,
  * `pbr` rough standard. The region rides in TEXCOORD_0.x (the baked GLB's only spare channel; `farProxy.ts`) and the
  * boundary-face flag in TEXCOORD_0.y (G222: 1 lip, 2 foot), where the material lays rock strata over the shard's cliff
  * palette.
@@ -10,7 +10,7 @@ import { DataTexture, LinearFilter, LinearMipmapLinearFilter, Mesh, MeshLambertM
 import { patchShader } from '@wildshard/engine/render/shaderPatches';
 import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
-import type { FarLookRuntime } from './farProxy';
+import { GRID_HAZE, type FarLookRuntime } from './farProxy';
 import { installFarImpostor, type FarImpostorData } from './farImpostorView';
 
 /**
@@ -81,9 +81,9 @@ export interface FarProxyView {
 /** The family material with the region mask patched in; `uniforms.farMask` holds 16 flags. */
 export function farProxyMaterial(look: FarLookRuntime, positionalMask = false, grain = false): { material: MeshLambertMaterial | MeshStandardMaterial; setMask: (excluded: ReadonlySet<number>) => void; setBand: (share: number) => void } {
   const material = look.family === 'pbr' ? new MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0 }) : new MeshLambertMaterial({ vertexColors: true, flatShading: look.family === 'toon' });
-  material.fog = false; // a home shard's near fog would hide its neighbours (G607: and nothing hazes it)
+  material.fog = false; // a home shard's near fog would hide its neighbours; the grid's own haze below (G631)
   const mask = new Float32Array(16);
-  const uniforms = { farMask: { value: mask }, farBand: { value: 0 },
+  const uniforms = { farMask: { value: mask }, farBand: { value: 0 }, farHazeColour: GRID_HAZE.colour,
     ...(grain ? { farGrain: { value: nearGrainTexture() }, farGrainFade: { value: new Vector2(...NEAR_GRAIN.fade) } } : {}) };
   const f = (n: number): string => n.toFixed(2);
   const [flatA, flatB] = NEAR_GRAIN.flat, [steepAlong, steepUp, steepFine] = NEAR_GRAIN.steep;
@@ -109,7 +109,7 @@ export function farProxyMaterial(look: FarLookRuntime, positionalMask = false, g
         + (grain ? '\nvFarGrainP = position;\nvFarGrainN = normal;' : ''))
       .replace('#include <project_vertex>', `#include <project_vertex>\nvFarDepth = -mvPosition.z;${positionalMask ? '' : '\nif (farMask[int(uv.x + 0.5)] > 0.5) gl_Position = vec4(0.0, 0.0, 2.0, 1.0);'}`);
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', `#include <common>\nuniform float farBand;\nvarying float vFarDepth;\nvarying float vFarCliff;\nvarying vec2 vFarStrata;\nfloat farHash(float n) { return fract(sin(n * 127.1 + 311.7) * 43758.5453); }${positionalMask ? '\nuniform float farMask[16];' : ''}${grain ? '\nuniform sampler2D farGrain;\nuniform vec2 farGrainFade;\nvarying vec3 vFarGrainP;\nvarying vec3 vFarGrainN;' : ''}`)
+      .replace('#include <common>', `#include <common>\nuniform float farBand;\nuniform vec3 farHazeColour;\nvarying float vFarDepth;\nvarying float vFarCliff;\nvarying vec2 vFarStrata;\nfloat farHash(float n) { return fract(sin(n * 127.1 + 311.7) * 43758.5453); }${positionalMask ? '\nuniform float farMask[16];' : ''}${grain ? '\nuniform sampler2D farGrain;\nuniform vec2 farGrainFade;\nvarying vec3 vFarGrainP;\nvarying vec3 vFarGrainN;' : ''}`)
       // G539: the share of the band its impostor draws (the complementary screen-door dither, farImpostorView.ts)
       .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>\nif (fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715)))) < farBand) discard;${positionalMask
         ? `\nvec2 farCell = clamp(floor((vFarStrata + ${f(CHUNK_HALF)}) / ${f(CHUNK_HALF / 2)}), vec2(0.0), vec2(3.0));\nif (farMask[int(farCell.x + 4.0 * farCell.y)] > 0.5) discard;` : ''}`)
@@ -123,7 +123,7 @@ if (vFarCliff > 0.5) {
   diffuseColor.rgb *= mix(k, 1.0, smoothstep(${f(FAR_STRATA.fade[0])}, ${f(FAR_STRATA.fade[1])}, vFarDepth));
 }${grainFragment}`)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>\nif (vFarCliff > 0.5) totalEmissiveRadiance += diffuseColor.rgb * ${f(FAR_CLIFF_FLOOR)};`)
-      .replace('#include <fog_fragment>', '#include <fog_fragment>\ngl_FragColor.a = 1.0;');
+      .replace('#include <fog_fragment>', `#include <fog_fragment>\ngl_FragColor.rgb = mix(gl_FragColor.rgb, farHazeColour, smoothstep(${f(GRID_HAZE.near)}, ${f(GRID_HAZE.far)}, vFarDepth) * ${f(GRID_HAZE.max)});\ngl_FragColor.a = 1.0;`);
   }, { key: `sf23-far-${look.family}${positionalMask ? '-position' : ''}${grain ? '-grain' : ''}` });
   return { material, setMask: (excluded) => { for (let r = 0; r < 16; r++) mask[r] = excluded.has(r) ? 1 : 0; }, setBand: (share) => { uniforms.farBand.value = share; } };
 }
