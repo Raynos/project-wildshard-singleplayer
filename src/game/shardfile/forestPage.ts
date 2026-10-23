@@ -29,7 +29,7 @@ import { timeClientPreparation } from './preparationTiming';
 import { lendLooks, setLentParam } from './lentLooks';
 import type { SceneHandles } from './sceneHandles';
 import type { ShardContext } from '../plugin/context';
-import { followResidentTiles, residentTiles, tileResidencyRadius } from './tileDriver';
+import { followResidentTiles, residentTiles, TILE_RING } from './tileDriver';
 import { bucketByTile, followTile, ring, tileKey } from './tileContent';
 import { tileOf, type CellTile } from './tileOrder';
 import { withOwner } from '@wildshard/engine/app/ownership';
@@ -96,12 +96,10 @@ export async function prepareForestPage(ctx: ShardContext, input: unknown): Prom
   const page: ForestPage = { rows, resources, cabins, ...carpet, streams, props,
     finish: async () => { if (finished) throw new Error('Forest page already finished'); finished = true;
       await step('props', async () => {
-        // tile streaming P5 (Debug ▸ Tile residency 5 x 5 / 3 x 3): a landmark placement goes by tile (its draws on the
-        // render ring, its colliders on the collider ring, a coarse stand-in beyond the ring: T11, the skyline); the props stay
-        // whole (their colliders are the page's `props`)
-        const tiled = tileResidencyRadius() < 8;
+        // tile streaming P5: a landmark placement goes by tile (its draws on the render ring, its colliders on the collider
+        // ring, a coarse stand-in beyond the ring: T11, the skyline); the props stay whole (their colliders are the page's `props`)
         for (const mark of rows.landmarks) if (mark.tier === undefined || mark.tier === TIER) {
-          if ('place' in mark) { if (tiled) resources.tile(mark.place, { coarse: true }); else await resources.place(mark.place); } else resources.object(mark.object);
+          if ('place' in mark) resources.tile(mark.place, { coarse: true }); else resources.object(mark.object);
           await macrotask();
         }
         for (const id of rows.props) contacts.push(...(await resources.place(id)).colliders);
@@ -169,9 +167,8 @@ export async function placeForestPageModels(ctx: ShardContext, id: string): Prom
   const page = forestPage(ctx.scope, id), due = slicer(page.rows.sliceMs).due, h = forestFieldModels(ctx, id), { forest, registry } = h, under = page.under;
   const models = sharedModelContext(h.sky, h), trees = treeSetModel(ctx.product.section('world/trees'));
   const variants = trees.model.variants; if (variants === undefined) throw new Error('Forest model requires its variants');
-  // tile streaming P3/P4 (Debug ▸ Tile residency 5 x 5 / 3 x 3): the trees and the floor cover keep to the tiles around the
-  // viewer (the trees' follower moves the ring); whole: as before
-  const radius = tileResidencyRadius(), tiled = radius < 8, residency = { resident: (_x: number, _z: number): boolean => true };
+  // tile streaming P3/P4: the trees and the floor cover keep to the tiles around the viewer (the trees' follower moves the ring)
+  const radius = TILE_RING, residency = { resident: (_x: number, _z: number): boolean => true };
   if (forest !== null && forest.trees.length > 0) {
     if (forest.drawer !== 'model' || forest.factory.variants.length !== variants.length) {
       const own = forest.drawer === 'model'; forest.drawItself();
@@ -184,9 +181,9 @@ export async function placeForestPageModels(ctx: ShardContext, id: string): Prom
           matrix: new Matrix4().compose(at.set(t.x, t.y, t.z), q.setFromAxisAngle(up, t.rot), sc.set(t.scale, t.scale, t.scale)) }; });
       // P3: only the trees of the tiles around the viewer draw, and only the 3 x 3's trunks collide (one piece per tile, its
       // scope ending as the viewer leaves)
-      await placeSliced(tiled ? { ...trees.model, colliders: () => [] } : trees.model, pls, { ctx: models, draw: forest.path, registry, piece: { id: trees.model.id }, sortObjects: false,
+      await placeSliced({ ...trees.model, colliders: () => [] }, pls, { ctx: models, draw: forest.path, registry, piece: { id: trees.model.id }, sortObjects: false,
         cull: { view: forest, test: forest.keeps, from: 'origin', flat: true }, parent: forest.group }, due);
-      if (tiled) {
+      {
         // one capsule per tree, in the trees' order: bucket the trees, index the capsules
         const trunks = forest.colliderDescs(), byTile = bucketByTile(forest.trees, tree => tree), colliding = new Map<number, Scope>();
         let centre: CellTile | null = null;
@@ -217,7 +214,7 @@ export async function placeForestPageModels(ctx: ShardContext, id: string): Prom
     const items = under.layout[kind.id] ?? []; if (items.length === 0) continue;
     const model = groundModel(kind, under);
     // P4: the cover keeps to the trees' ring (after its own cell and range tests)
-    const kept = tiled ? { test: (i: number): boolean => { const it = items[i]; return it === undefined || residency.resident(it.x, it.z); } } : {};
+    const kept = { test: (i: number): boolean => { const it = items[i]; return it === undefined || residency.resident(it.x, it.z); } };
     await placeSliced(model, items.map((it) => ({ x: it.x, y: it.y, z: it.z, matrix: new Matrix4().fromArray(it.matrix), color: new Color(it.r, it.g, it.b) })),
       { ctx: models, draw: 'instanced', registry, piece: { id: model.id }, cull: { ...cull, ...kept }, parent: under.group }, due);
   }

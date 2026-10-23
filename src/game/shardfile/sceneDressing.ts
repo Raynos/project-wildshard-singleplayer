@@ -32,7 +32,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { anchorOf } from './worldScenePlacement';
 import { colliderTileKeys, type TileContent } from './tileContent';
-import { followResidentTiles, residentTiles, tileResidencyRadius } from './tileDriver';
+import { followResidentTiles, residentTiles } from './tileDriver';
 import type { ShardContext } from '../plugin/context';
 
 /** N2: a tile's dressing colliders register this many a task (Rapier hulls: ~1 ms each on the phone) */
@@ -119,8 +119,8 @@ export class SceneDressing {
   private time = 0;
   private instances:SceneInstanceFields|undefined;
   private wings: AmbientWingField | undefined;
-  /** N2 (Debug ▸ Tile residency 3 x 3 / 5 x 5): each placement's colliders by every tile they reach, registered on the
-   *  collider ring (`colliderTiles`) while its draws stay whole; empty for a whole cell */
+  /** N2: each placement's colliders by every tile they reach, registered on the collider ring (`colliderTiles`) while its
+   *  draws stay whole */
   private readonly colliderGroups: { readonly key: string; readonly model: ModelDef<object>; readonly byTile: Map<number, ColliderDesc[]> }[] = [];
   private follow: (() => void) | null = null;
   private readonly animations:SceneDressingRows['animations'];
@@ -166,7 +166,7 @@ export class SceneDressing {
     for(const row of rows.layers)if(!ctx.product.hasFile(row.file))throw new Error('Missing scene scatter file');
     const looks=[...Object.values(rows.materials).flatMap(row=>row.kind==='look'||row.kind==='mapped'?[row.look]:[]),...(rows.motes===undefined?[]:[rows.motes.look])];
     const missing=looks.filter(id=>!hasLentLook(id));if(missing.length>0)lendLooks(ctx.scope,await runtimeLookMaterials({scope:ctx.scope,game:ctx.game},ctx.product.shardfile,true,missing));
-    const sky=world.sky, models=modelContext(sky), pause=()=>buildYield(ctx.scope), tiled=tileResidencyRadius()<8;
+    const sky=world.sky, models=modelContext(sky), pause=()=>buildYield(ctx.scope);
     const definitions=new Map<string,ModelDef<object>>();
     for(const source of rows.catalogues){
       const pack='pack'in source?rows.packs[source.pack]:{rows:source.packed,materials:source.materials};if(pack===undefined)throw new Error('Missing catalogue pack');
@@ -223,8 +223,8 @@ export class SceneDressing {
       const layer=scatterLayer(row.id,needGeometry(row.geometry),needMaterial(row.material),poses,row.far,row.castShadow,row.keepNear);this.layers.push(layer);this.group.add(layer.mesh);
       const colliderRows=Array.isArray(row.contacts)?contacts(row.contacts):unpackHulls(row.contacts,files);
       const registered=withOwner(ctx.scope,()=>place(needModel(row.model),poses.map(it=>({x:it.x,y:it.y,z:it.z})),{
-        ctx:models,draw:'instanced',registry:ctx.app.registry,drawnInto:{object:layer.mesh,boxes:instanceBoxes(layer.mesh.geometry,poses),colliders:colliderRows},piece:{solidFloor:true,...(tiled?{collide:false as const}:{}),split:{every:150,yieldTask:pause}},
-      }));await registered.registered;this.placed.push(registered);if(tiled)this.byTile(row.id,needModel(row.model),registered.colliders);
+        ctx:models,draw:'instanced',registry:ctx.app.registry,drawnInto:{object:layer.mesh,boxes:instanceBoxes(layer.mesh.geometry,poses),colliders:colliderRows},piece:{solidFloor:true,collide:false,split:{every:150,yieldTask:pause}},
+      }));await registered.registered;this.placed.push(registered);this.byTile(row.id,needModel(row.model),registered.colliders);
       });await pause();
     }
     });
@@ -236,9 +236,9 @@ export class SceneDressing {
       for(const member of row.members){
         const floors=readSceneFloors(member.floors),floor=(x:number,z:number):number|undefined=>{let top:number|undefined;for(const sample of floors){const height=sample(x,z);if(height!==undefined&&(top===undefined||height>top))top=height;}return top;};
         const registered=withOwner(ctx.scope,()=>place(needModel(member.model),member.placements.map(({matrix,heading,...pose})=>({...pose,...(heading===undefined?{}:{yaw:Math.atan2(...heading)}),...(matrix===undefined?{}:{matrix:new THREE.Matrix4().fromArray(matrix)})})),{
-          ctx:models,draw:member.draw,registry:ctx.app.registry,drawnInto:{object:made.root,boxes:Float32Array.from(member.boxes),colliders:Array.isArray(member.contacts)?contacts(member.contacts):unpackHulls(member.contacts,files)},piece:{solidFloor:true,...(floors.length===0?{}:{floor}),...(tiled?{collide:false as const}:{}),split:{every:150,yieldTask:pause}},
+          ctx:models,draw:member.draw,registry:ctx.app.registry,drawnInto:{object:made.root,boxes:Float32Array.from(member.boxes),colliders:Array.isArray(member.contacts)?contacts(member.contacts):unpackHulls(member.contacts,files)},piece:{solidFloor:true,...(floors.length===0?{}:{floor}),collide:false,split:{every:150,yieldTask:pause}},
         }));await registered.registered;this.placed.push(registered);piece.placed.push(registered);
-        if(tiled)this.byTile(`${row.name}.${String(row.members.indexOf(member))}`,needModel(member.model),registered.colliders);await pause();
+        this.byTile(`${row.name}.${String(row.members.indexOf(member))}`,needModel(member.model),registered.colliders);await pause();
       }
       // G639 frame floor (DR7, G669: always on): the piece's sibling meshes on one material draw as one
       for(const merged of mergeStaticSiblings(made.root).geometries){ctx.scope.own(merged);gpuOnlyAttributes(merged,'scene.dressing');}

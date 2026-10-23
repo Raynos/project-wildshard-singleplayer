@@ -37,7 +37,6 @@ import { hasLentLook, lentLook, lentMappedLook, lendLooks, sceneMaterial } from 
 import { runtimeLookMaterials } from './runtimeProduct';
 import { loadingUnits } from '@wildshard/engine/boot/waits';
 import { timeClientPreparation } from './preparationTiming';
-import { tileResidencyRadius } from './tileDriver';
 import { tiledMesh } from './tiledMesh';
 
 function instances3(value: unknown): value is InstancedMesh { return value instanceof InstancedMesh; }
@@ -460,10 +459,8 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       const prefix = [step.id, instance.id].filter(Boolean).join('.');
       handles.publish(`${prefix}.root`, made.root);
       // T3: by tile, a merged part spanning tiles draws only the resident tiles' triangles (still one draw)
-      if (tileResidencyRadius() < 8) {
-        made.root.updateMatrixWorld(true);
-        for (const [name, part] of made.parts) if (mesh3(part)) { const content = tiledMesh(`${prefix}.${name}`, part, part.matrixWorld); if (content !== null) handles.addTiled(content); }
-      }
+      made.root.updateMatrixWorld(true);
+      for (const [name, part] of made.parts) if (mesh3(part)) { const content = tiledMesh(`${prefix}.${name}`, part, part.matrixWorld); if (content !== null) handles.addTiled(content); }
       for (const [id, values] of sources.collections) handles.publishMaterials(`${prefix}.${id}`, values);
       const registered = new Map<string, { root: Object3D; colliders: ColliderDesc[] }>();
       const position = instance.position ?? [0, 0, 0], rotation = instance.rotation ?? [0, 0, 0];

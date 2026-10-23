@@ -60,7 +60,7 @@ import { createShardfileClientScripts } from './clientScripts';
 import { installClientWater } from './clientWater';
 import { clientWorld } from './clientWorld';
 import { standaloneClientTiles } from './clientRings';
-import { tileResidencyRadius } from './tileDriver';
+import { TILE_RING } from './tileDriver';
 import { buildYield } from '@wildshard/engine/core/workSlice';
 import { clientSimStep } from './clientStep';
 import { clientScene, projectItemFields, handledItemInputs } from './clientItems';
@@ -255,9 +255,9 @@ export class ShardfileClient {
     const start = nativeWorld ? ctx.manifest.spawn : this.source.spawn;
     const collider = nativeWorld && this.source.terrain !== null ? await this.assets.read(this.source.terrain.collider) : undefined;
     const views = clientViews({ root: ctx.root, terrain: this.source.terrain?.family ?? null, terrainShadow: this.source.terrain?.shadow, terrainOrder: this.source.terrain?.order, ...presentation, ...(collider === undefined ? {} : { lattice: decodeTerrainTile(collider) }) });
-    this.worldTiles = ctx.cube === null && this.source.runtime === null && tileResidencyRadius() < 8
+    this.worldTiles = ctx.cube === null && this.source.runtime === null
       ? await standaloneClientTiles({ source: this.source, assets: this.assets, root: ctx.root, views: views.tiles }, ctx.scope, {
-        instance: this.bindings.instance, budget: allocator, radius: tileResidencyRadius, start,
+        instance: this.bindings.instance, budget: allocator, radius: () => TILE_RING, start,
         library: owner => this.source.props === null ? Promise.resolve(null) : views.library(this.source.props, this.assets.retained, owner),
         viewer: () => runtime.viewer(), pause: () => buildYield(ctx.scope),
         frame: run => { ctx.system({ id: 'game.shardfile.tiles', phase: 'late', run }); },

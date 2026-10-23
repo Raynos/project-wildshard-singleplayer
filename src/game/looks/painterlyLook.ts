@@ -24,7 +24,7 @@ import { loadFirstPartyProduct, runtimeProduct } from '../shardfile/runtimeProdu
 import { setting } from '@wildshard/engine/ui/Settings';
 import type { StaticCaptureUniforms } from './staticCapture';
 import { GroundMerge } from '../shardfile/groundMerge';
-import { tileResidencyRadius } from '../shardfile/tileDriver';
+import { TILE_RING } from '../shardfile/tileDriver';
 import { followTile, ring, tileKey } from '../shardfile/tileContent';
 import type { CellTile } from '../shardfile/tileOrder';
 
@@ -73,16 +73,16 @@ export function paintedGroundPainter(slug: string, input: unknown, tiles: unknow
     terrain.material = material; terrain.mesh = ground;
     const groundTiles = rows.tiles === true && setting('groundTiles') === 'on' ? (product.shardfile.props?.tiles ?? []).filter(row => row.lod === 0) : [];
     if (groundTiles.length > 0) {
-      // tile streaming N1a: the tiles draw as one merged mesh (the terrain's mesh, its flags kept) and, with Tile residency
-      // 5 x 5 / 3 x 3, only the player's ring of them stays loaded, followed from the merged mesh's own draws
+      // tile streaming N1a: the tiles draw as one merged mesh (the terrain's mesh, its flags kept) and only the player's
+      // 5 x 5 of them stays loaded, followed from the merged mesh's own draws
       const assets = runtimeProduct(product.shardfile).assets, parent = ground.parent === scene.root ? terrain.group : ground.parent;
       if (parent === null) throw new Error('Painted ground mesh has no parent');
-      const radius = tileResidencyRadius(), loaded = new Map<number, Scope>(), at = new Vector3();
+      const radius = TILE_RING, loaded = new Map<number, Scope>(), at = new Vector3();
       // the merged mesh's draws report where the player looks from; the ring follower takes over once it exists
       const follower = { at: (_x: number, _z: number): void => undefined };
       const merge = new GroundMerge(parent, material, ground.name, (mesh) => {
         mesh.castShadow = ground.castShadow; mesh.receiveShadow = ground.receiveShadow; mesh.renderOrder = ground.renderOrder; terrain.mesh = mesh;
-        if (radius < 8) mesh.onBeforeRender = (_renderer, _scene, camera) => { camera.getWorldPosition(at); parent.worldToLocal(at); follower.at(at.x, at.z); };
+        mesh.onBeforeRender = (_renderer, _scene, camera) => { camera.getWorldPosition(at); parent.worldToLocal(at); follower.at(at.x, at.z); };
       });
       const load = async (row: (typeof groundTiles)[number]): Promise<void> => {
         const key = tileKey({ i: row.x, j: row.z }); if (loaded.has(key) || scope.disposed) return;

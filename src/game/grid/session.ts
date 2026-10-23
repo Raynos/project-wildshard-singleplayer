@@ -90,7 +90,7 @@ import { leaseMapImage } from '../shardfile/mapImage';
 import { crossingSaveStatus, installBorderShimmer, type BorderShimmerState, type CrossingSaveStatus } from './borderShimmer';
 import { GAME_STRINGS } from '../strings';
 import { GridCellWaitingError, classifyRefusal, pageShardRefusals, refusalReason, type ShardRefusal } from './refusal';
-import { tileResidencyRadius } from '../shardfile/tileDriver';
+import { TILE_RING } from '../shardfile/tileDriver';
 import { CellLoading, type CellLoadingInput } from './cellLoading';
 import { CellScreen, facingEdge } from './cellScreens';
 
@@ -553,7 +553,7 @@ export class GridSession {
     this.rings = new TileStreamer(this.neighbours, this.allocator, (id, level, x, z) => (level === 'far' ? this.costs.get(id) ?? this.declaredFar.get(id) ?? 1_600_000
       : this.placeholderBlocksTiles(id) ? null : tileCost(id, level, x, z)),
       levelPorts<FarPrepared, PreparedRingTile>(farPorts, tiles.ports), { farRadius: FAR_RING.reach });
-    this.clientTiles = clientTileRegistration(tiles.instances, this.rings, tileResidencyRadius);
+    this.clientTiles = clientTileRegistration(tiles.instances, this.rings, () => TILE_RING);
     this.admitNeighbour = host.renderer === undefined ? undefined : this.tileAdmission(host.renderer, roots);
     host.scope.onDispose(() => {
       this.clientTiles.dispose(); this.rings.dispose();
@@ -679,7 +679,7 @@ export class GridSession {
     if (this.live !== null) throw new Error('The grid session already has its live crossing');
     if (this.host.residency === undefined) throw new Error('Grid session requires the early page residency owner');
     this.live = new LiveGridSession({ assembly: this.assembly, home: this.home, physics: this.host.physics, scope: this.host.scope, walls: this.walls, strips: this.strips, allocator: this.allocator,
-      residency: this.host.residency.home(), ...(tileResidencyRadius() >= 8 ? {} : { tiles: this.clientTiles }),
+      residency: this.host.residency.home(), tiles: this.clientTiles,
       neighbourEdges: (cell, origin) => neighbourEdges(cell, { origin }), rimEdges: (origin) => rimEdges(this.assembly, { origin }) }, page);
     return this.live;
   }

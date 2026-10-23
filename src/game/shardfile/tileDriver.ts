@@ -4,16 +4,15 @@
  * geometry, instance ranges, colliders); render tiles fill a ring of `radius` tiles around the player's tile, collider
  * tiles the 3 x 3 inside it (D2 B).
  *
- *   const driver = new TileDriver(scope, handles.tiled(), () => tileResidencyRadius(), () => buildYield(scope));
+ *   const driver = new TileDriver(scope, handles.tiled(), () => TILE_RING, () => buildYield(scope));
  *   await driver.require(order.tiles.filter(tile => order.rank(tile) === 0).map(tileKey));   // before controls
  *   ctx.system({ id, phase: 'update', run: () => { driver.step(local.x, local.z); } });       // the rest, nearest first
  *
  * One tile attaches at a time; a tile that fails stays out (it is reported once, never retried in a loop). A radius of
- * 8 or more is the whole cell: every tile attached, as a world without streaming builds today.
+ * 8 or more is the whole cell: every tile attached.
  */
 import type { Scope } from '@wildshard/engine/app/scope';
 import { buildYield } from '@wildshard/engine/core/workSlice';
-import { setting } from '@wildshard/engine/ui/Settings';
 import { followTile, ring, tileKey, type TileContent } from './tileContent';
 import { tileOf, tileOrder, type CellTile, type TileEntryway } from './tileOrder';
 
@@ -92,19 +91,15 @@ export class TileDriver {
 /** The tile keys of `tiles` (a tile order's rank-0 list, say). */
 export const tileKeys = (tiles: readonly CellTile[]): number[] => tiles.map(tileKey);
 
-/** pause ▸ Settings ▸ Debug ▸ Tile residency (T5): the render ring's radius in tiles (8 or more: the whole cell). */
-export function tileResidencyRadius(): number { const value = setting('tileResidency'); return value === '3x3' ? 1 : value === '5x5' ? 2 : 8; }
-
-/** T6: the ring creatures stay awake in, whichever render ring ships: the 5 x 5, or the render ring when it is smaller. */
-export function creatureRing(): number { return Math.min(tileResidencyRadius(), 2); }
+/** The render ring's radius in tiles (G669 DR11: the 5 x 5 around the player's tile; its colliders the 3 x 3 inside). */
+export const TILE_RING = 2;
 
 /**
  * T6: the render ring as a viewer-following test (a creature manager's residency, `AnimalManager.setResidency`): given the
  * viewer's cell-local position, whether (x, z) lies in the ring of `radius` tiles around the viewer's tile, the tile followed
- * with the same hysteresis as the tile driver's. Null for a whole cell (nothing sleeps).
+ * with the same hysteresis as the tile driver's.
  */
-export function followRing(radius = tileResidencyRadius()): ((viewer: { readonly x: number; readonly z: number }) => (x: number, z: number) => boolean) | null {
-  if (radius >= 8) return null;
+export function followRing(radius = TILE_RING): (viewer: { readonly x: number; readonly z: number }) => (x: number, z: number) => boolean {
   let centre: CellTile | null = null, resident = (_x: number, _z: number): boolean => true;
   return viewer => {
     const next = followTile(centre, viewer.x, viewer.z);
@@ -118,23 +113,20 @@ export function followRing(radius = tileResidencyRadius()): ((viewer: { readonly
 
 const drivers = new WeakMap<Scope, TileDriver>(), started = new WeakSet<Scope>();
 /**
- * T4: a resident world's tiled content attached before its player has controls: every tile for the whole cell (as
- * today), else the spawn's and the entries' (rank 0, `tileOrder`) and a driver kept on the resident for its entries to
- * follow the player with (`followResidentTiles`). Once per resident (a re-entry keeps its tiles); nothing tiled: nothing
- * to do.
+ * T4: a resident world's tiled content attached before its player has controls: the spawn's and the entries' tiles
+ * (rank 0, `tileOrder`), the coarse stand-ins (T11), and a driver kept on the resident for its entries to follow the player
+ * with (`followResidentTiles`). Once per resident (a re-entry keeps its tiles); nothing tiled: nothing to do.
  */
 export async function residentTiles(resident: Scope, contents: readonly TileContent[], spawn: { readonly x: number; readonly z: number },
   entryways: readonly TileEntryway[]): Promise<void> {
   if (contents.length === 0 || started.has(resident)) return;
   started.add(resident);
-  const radius = tileResidencyRadius(), driver = new TileDriver(resident, contents, () => radius, () => buildYield(resident)), order = tileOrder(spawn, entryways);
-  await driver.require(tileKeys(radius >= 8 ? order.tiles : order.tiles.filter(tile => order.rank(tile) === 0)));
-  if (radius >= 8) return;
+  const driver = new TileDriver(resident, contents, () => TILE_RING, () => buildYield(resident)), order = tileOrder(spawn, entryways);
+  await driver.require(tileKeys(order.tiles.filter(tile => order.rank(tile) === 0)));
   await driver.coarse(spawn.x, spawn.z);
   drivers.set(resident, driver);
 }
-/** T4: once a frame while a world is entered, its resident's tiles follow the player's cell-local position (nothing when
- *  the whole cell is resident). */
+/** T4: once a frame while a world is entered, its resident's tiles follow the player's cell-local position. */
 export function followResidentTiles(resident: Scope, position: () => { readonly x: number; readonly z: number }): (() => void) | null {
   const driver = drivers.get(resident);
   if (driver === undefined) return null;

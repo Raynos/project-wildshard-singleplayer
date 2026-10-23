@@ -4,8 +4,6 @@ import { bindClientPlaceSets } from './clientPlaceSets';
 import { installFixedDrawsStage, installPaintedReseedStage, installPaintedWorldStage } from './paintedWorldStages';
 import {buildArenaRoomEncounter} from '../boss/arenaRoom';
 import type { ShardContext } from '../plugin/context';
-import { installForestWeather } from '../weather/forest';
-import { ForestWeatherSchema } from '@wildshard/format/forestWeather';
 import { TIER } from '@wildshard/engine/core/tier';
 import { gpuOnlyTrees } from '@wildshard/engine/core/gpuOnly';
 import { macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
@@ -37,7 +35,6 @@ import type { ModelSite } from '@wildshard/engine/models/place';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import { WorldAssemblySchema, type WorldAssemblyStage, type WorldConstructionRows } from '@wildshard/format/worldAssembly';
 import { publishEntryOwner, entryOwner, lendEntryOwner } from './entryOwners';
-import { tileResidencyRadius } from './tileDriver';
 import { WorldEntry, type WorldEntryPorts } from './worldEntry';
 import { timeClientPreparation } from './preparationTiming';
 import type { SceneHandles } from './sceneHandles';
@@ -103,28 +100,6 @@ function installDrawnModels(ports: Pick<WorldAssemblyPorts, 'scope' | 'draws' | 
   publishEntryOwner(scope, 'drawn-models', stage.id, models);
 }
 
-/** Ordered weather admission stays separately charged to its actual users. */
-export async function installAssemblyWeather(ports: Pick<WorldAssemblyPorts, 'scope' | 'weatherContext'> & { readonly context: Pick<ModelContext, 'sky'> }, stage: Extract<WorldAssemblyStage, { kind: 'weather' }>): Promise<void> {
-  const scope = ports.scope;
-  const ctx = ports.weatherContext, product = ctx?.product, runtime = ctx?.game.runtime, world = runtime?.world;
-  if (ctx === undefined || product === undefined || runtime === undefined || world === undefined || world === null || ctx.scope !== scope)
-    throw new Error('World weather needs its original construction context');
-  const game = world.game, sky = world.sky, root = game.scene, read = product.json;
-  const unchanged = (): void => {
-    if (scope.disposed || scope.disposing) throw new Error('World assembly owner left');
-    if (ports.weatherContext !== ctx || ctx.scope !== scope || ctx.product !== product || product.json !== read
-      || ctx.game.runtime !== runtime || runtime.world !== world || world.game !== game || world.sky !== sky
-      || game.scene !== root || ports.context.sky !== sky) throw new Error('World weather owners changed');
-  };
-  unchanged();
-  const data = await product.json(stage.file); unchanged();
-  const rows = v.parse(v.object({ page: ForestWeatherSchema }), data).page;
-  const rig = await installForestWeather(ctx, rows); unchanged();
-  if (rig === null) throw new Error('World weather needs its original clocked sky');
-  publishEntryOwner(scope, 'world-weather', stage.id, rig);
-  publishEntryOwner(scope, 'object', stage.id, rig.group);
-}
-
 /** G571: an admitted world assembly (format/worldAssembly), run stage by stage in its declared order. Client-only. */
 export class WorldAssembly {
   /** Resolve the declared native metadata prelude before the caller creates programs or reports progress.
@@ -152,7 +127,7 @@ export class WorldAssembly {
   static async construct(input: unknown, ports: WorldConstructionPorts): Promise<Record<string, Object3D>> {
     const parsed = v.parse(WorldAssemblySchema, input), rows = parsed.construction, stages = admitted(input);
     const native = ports.native;
-    if (stages.some(stage => ['water-surface','dressing-piece','dressing-anchor','dressing','weather','arena-room','painted-reseed','painted-world'].includes(stage.kind)) && native === undefined) throw new Error('World construction needs its original native context');
+    if (stages.some(stage => ['water-surface','dressing-piece','dressing-anchor','dressing','arena-room','painted-reseed','painted-world'].includes(stage.kind)) && native === undefined) throw new Error('World construction needs its original native context');
     const { runtime, scope, product, library, scenes, baked } = ports, world = runtime.world;
     if (native !== undefined && (native.scope !== scope || native.product !== product || native.game.runtime !== runtime)) throw new Error('World construction native owners changed');
     if (world === null) throw new Error('World construction needs its native world');
@@ -269,9 +244,7 @@ export class WorldAssembly {
       if (ref.kind === 'placed') {
         const [placed] = entryOwner(scope, 'placed', ref.id);
         // T3: a stage placed by tile has only its stable root now (the tiles it attaches later keep their CPU copies)
-        if (placed === undefined && tileResidencyRadius() < 8) return entryOwner(scope, 'object', ref.id);
-        if (placed === undefined) throw new Error(`World GPU root placed nothing: ${ref.id}`);
-        return placed.object;
+        return placed === undefined ? entryOwner(scope, 'object', ref.id) : placed.object;
       }
       if (ref.kind === 'baked') { const value = baked.get(ref.id); if (value === undefined) throw new Error(`Missing baked world ${ref.id}`); return value.group; }
       if (scenes === undefined) throw new Error('World GPU scene root needs its scene handles');
@@ -349,7 +322,6 @@ export class WorldAssembly {
         get scene() { return game.scene; }, get sky() { return world.sky; }, get forest() { return world.forest.group; },
         get daySaturation() { return game.level.grade.saturation; } }, stage); return;
     }
-    if (stage.kind === 'weather') { this.at++; await installAssemblyWeather(this.ports, stage); return; }
     if (stage.kind === 'arena-room') { this.at++; const encounter=await buildArenaRoomEncounter({kind:'open',ports:this.ports,rows:stage});live();publishEntryOwner(this.ports.scope,'arena-room',stage.id,encounter); return; }
     if (scenes === undefined) throw new Error('World scene stage needs its original scene handles');
     const lifeRow = stage.kind === 'site' ? stage.life : undefined;
@@ -413,16 +385,11 @@ export class WorldAssembly {
       const deck = entryOwner(scope, 'rope-deck', stage.deck), chain = new RopeChain(physics, deck.chainSpec());
       fixed.onFixed('post', () => { chain.capture(); }, stage.capture);
       publishEntryOwner(scope, 'chain', stage.id, chain);
-    } else if (stage.kind === 'place' && tileResidencyRadius() < 8) {
+    } else if (stage.kind === 'place') {
       // tile streaming T3: by tile, its stable root now and its copies as the tile driver attaches them (T4); it places
       // nothing whole: a GPU root naming it takes the stable root alone
       const content = scenes.tile(stage.id);
       publishEntryOwner(scope, 'object', stage.id, scenes.object(`${content.id}.root`)); publishEntryOwner(scope, 'placed', stage.id, []);
-      publishEntryOwner(scope, 'floor', stage.id, (x, z) => scenes.floorAt(stage.id, x, z));
-    } else if (stage.kind === 'place') {
-      const placed = await scenes.place(stage.id);
-      live();
-      publishEntryOwner(scope, 'object', stage.id, placed.object); publishEntryOwner(scope, 'placed', stage.id, [placed]);
       publishEntryOwner(scope, 'floor', stage.id, (x, z) => scenes.floorAt(stage.id, x, z));
     } else if (stage.kind === 'site') {
       const sites = this.ports.sites; if (sites === undefined) throw new Error('World assembly site needs its catalogue');
@@ -436,7 +403,7 @@ export class WorldAssembly {
       const entry = WorldEntry.admit({ blocks: { [stage.id]: stage.rows } }, { ...ports, scenes, fence: live });
       await entry.run(stage.id);
       live();
-      publishEntryOwner(scope, 'placed', stage.id, entry.placedIn(stage.id));
+      publishEntryOwner(scope, 'placed', stage.id, []);   // its places go by tile (the tile driver attaches them)
       const object = stage.object, floor = stage.floor;
       if (object !== undefined) publishEntryOwner(scope, 'object', stage.id, object.as === 'group' ? scenes.group(object.part) : object.as === 'mesh' ? scenes.mesh(object.part) : scenes.object(object.part));
       if (floor !== undefined) publishEntryOwner(scope, 'floor', stage.id, (x, z) => scenes.floorAt(floor, x, z));
@@ -503,7 +470,6 @@ function loanKinds(stage: WorldAssemblyStage): readonly ('object' | 'placed' | '
   if (stage.kind === 'dressing-anchor') return ['world-point'];
   if (stage.kind === 'arena-room') return ['arena-room'];
   if (stage.kind === 'painted-world') return ['painted-world', 'object'];
-  if (stage.kind === 'weather') return ['world-weather', 'object'];
   if (stage.kind === 'fixed-draws') return ['fixed-draws'];
   if (stage.kind === 'drawn-models') return ['drawn-models'];
   if (stage.kind === 'painted-reseed') return [];

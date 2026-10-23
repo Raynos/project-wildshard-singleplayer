@@ -11,7 +11,7 @@ function frozenGraph(restored: { count: number }): WorldSceneWeldAssembly {
   return Object.assign(graph, { assemble: () => { restored.count++; return Promise.resolve(new Object3D()); } });
 }
 
-test('an entry place row restores a declared frozen graph once and lists only its placements', async () => {
+test('an entry place row restores a declared frozen graph once', async () => {
   const handles = new SceneHandles(), restored = { count: 0 }, root = new Group(), deck = new Object3D();
   handles.publish('orchard.fabric', frozenGraph(restored)); handles.publish('orchard.deck', deck);
   expect(handles.frozen('orchard.fabric')).toBe(true); expect(handles.frozen('orchard.deck')).toBe(false); expect(handles.frozen('orchard.none')).toBe(false);
@@ -22,8 +22,6 @@ test('an entry place row restores a declared frozen graph once and lists only it
   await entry.run('kits');
   expect(restored.count).toBe(1);
   expect(deck.parent).toBe(root);
-  expect(entry.placedIn('kits')).toEqual([]);
-  expect(() => entry.placed('orchard.fabric')).toThrow('has not placed');
   await expect(entry.run('again')).rejects.toThrow('placed orchard.fabric twice');
   expect(restored.count).toBe(1);
 });

@@ -1,12 +1,9 @@
 import { expect, test } from 'vitest';
-import { creatureRing, followRing } from '../src/game/shardfile/tileDriver';
+import { followRing } from '../src/game/shardfile/tileDriver';
 
 // Tile streaming T6: the creature ring follows the viewer's tile; an animal outside it sleeps.
 test('the creature ring keeps the 5 x 5 around the viewer and follows a jump', () => {
-  expect(followRing(8)).toBeNull();                       // a whole-cell ring: nothing sleeps
-  expect(creatureRing()).toBe(2);                          // whichever render ring ships (whole by default), creatures keep the 5 x 5
-  const follow = followRing(2);
-  if (follow === null) throw new Error('a 5 x 5 ring follows');
+  const follow = followRing();                            // the 5 x 5
   const atSpawn = follow({ x: 0, z: -235 });
   expect(atSpawn(0, -200)).toBe(true);                    // the viewer's own tile
   expect(atSpawn(100, -120)).toBe(true);                  // two tiles out

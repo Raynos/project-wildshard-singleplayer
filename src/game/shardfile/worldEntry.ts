@@ -1,7 +1,6 @@
 import { Group, type Object3D } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { grappleGuard } from '../grapple/tool';
-import type { Placed } from '@wildshard/engine/models/place';
 import type { Piece } from '@wildshard/engine/world/registry';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { floorAtRects } from '@wildshard/engine/physics/box';
@@ -10,7 +9,6 @@ import type { Physics } from '@wildshard/engine/physics/Physics';
 import { parseWorldEntry, type WorldEntryRows, type WorldEntryStep } from '@wildshard/format/worldEntry';
 import type { SceneHandles } from './sceneHandles';
 import { lentLook } from './lentLooks';
-import { tileResidencyRadius } from './tileDriver';
 
 /** What a world entry runs against: the admitted scene handles, the world root it attaches under, and the build's facts. */
 export interface WorldEntryPorts {
@@ -37,7 +35,6 @@ export interface WorldEntryPorts {
  * Users: Driftwood Isle, Nine Dragon Stack.
  */
 export class WorldEntry {
-  private readonly placements = new Map<string, Placed>();
   private readonly restored = new Set<string>();
   /** T3: the placements this build took by tile (the tile driver attaches their copies) */
   private readonly tiled = new Set<string>();
@@ -63,19 +60,6 @@ export class WorldEntry {
     for (const row of rows) if (this.applies(row)) { this.live(); await this.step(row); this.live(); }
   }
 
-  /** The placement a `place` row loaded. */
-  placed(id: string): Placed {
-    const placed = this.placements.get(id);
-    if (placed === undefined) throw new Error(`World entry has not placed ${id}`);
-    return placed;
-  }
-
-  /** The placements one block's `place` rows loaded, in row order (rows another tier or variant skipped are absent). */
-  placedIn(block: string): Placed[] {
-    if (!this.ran.has(block)) throw new Error(`World entry block has not run: ${block}`);
-    return (this.rows.blocks[block] ?? []).flatMap(row => row.kind === 'place' && this.applies(row) && !this.restored.has(row.id) && !this.tiled.has(row.id) ? [this.placed(row.id)] : []);
-  }
-
   private live(): void {
     if (this.ports.scope?.disposed === true || this.ports.scope?.disposing === true) throw new Error('World entry owner ended');
     this.ports.fence?.();
@@ -92,13 +76,11 @@ export class WorldEntry {
       return this.ports.scenes;
     };
     if (row.kind === 'place') {
-      if (this.placements.has(row.id) || this.restored.has(row.id)) throw new Error(`World entry placed ${row.id} twice`);
+      if (this.tiled.has(row.id) || this.restored.has(row.id)) throw new Error(`World entry placed ${row.id} twice`);
       const handles = scenes();
       if (handles.frozen(row.id)) { await handles.assemble(row.id); this.restored.add(row.id); return; }
-      // tile streaming T3: under a tile residency (pause > Settings > Debug) a placement goes by tile; the resident's tile
-      // driver attaches its copies (T4)
-      if (tileResidencyRadius() < 8) { handles.tile(row.id); this.tiled.add(row.id); return; }
-      this.placements.set(row.id, await handles.place(row.id));
+      // tile streaming T3: a placement goes by tile; the resident's tile driver attaches its copies (T4)
+      handles.tile(row.id); this.tiled.add(row.id);
       return;
     }
     // plain state keys only (format/worldEntry MaterialStateSchema): assigned as Material.setValues assigns them
@@ -124,7 +106,7 @@ export class WorldEntry {
     }
     const object = row.as === 'group' ? scenes().group(row.id) : row.as === 'mesh' ? scenes().mesh(row.id) : scenes().object(row.id);
     if (row.name !== undefined) object.name = row.name;
-    if (row.nameAfter !== undefined) object.name = this.tiled.has(row.nameAfter) ? scenes().placementModel(row.nameAfter) : this.placed(row.nameAfter).model;
+    if (row.nameAfter !== undefined) object.name = scenes().placementModel(row.nameAfter);
     if (row.castShadow !== undefined) object.castShadow = row.castShadow;
     if (row.userData !== undefined) Object.assign(object.userData, row.userData);
     (row.parent === undefined ? root : scenes().group(row.parent)).add(object);
