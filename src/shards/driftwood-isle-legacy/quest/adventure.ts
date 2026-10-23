@@ -241,7 +241,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   if (w.gulls) installGullGuide({ game: w.game, player: w.player, hud: w.hud, gulls: w.gulls }, places, flags);
   adventure.complete = installComplete(adventure, w, w.progress);   // before the finale: its reward hands over to the card
   const captain = bindRuntimeBoss(ctx, declaration, 'driftwood.captain', undefined, { identity: 'runtime' });
-  adventure.finale = await installFinale(adventure, { ...w, spawnCaptain: captain.spawn }, ctx);
+  adventure.finale = installFinale(adventure, { ...w, spawnCaptain: captain.spawn }, ctx);
   adventure.ecology = installEcology(w, (x, z) => heightAt(x, z) > OCEAN.level + 0.15);
 
   // ── A7: the rope bridge sways under you — a slow roll + a little dip on the camera while your feet are on its planks ──

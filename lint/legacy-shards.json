@@ -106,7 +106,7 @@
         "quest/Places.ts": "983f12eea99ddb91e7cd1e5981c1609291a15a4bc108ed642fbdb94200cc724a",
         "quest/Spine.ts": "3ee2ec2fe3e79a249eac6c8ba55e4388fc1649a5a7b9947baf40b34286944def",
         "quest/TraderStall.ts": "5e8b60d35aad45e8174c17282e4a354a50c6d4b8b4670a61390a6ea23e2150aa",
-        "quest/adventure.ts": "a3e2ba42456ff279244d16aec9c0600456186c0f4a0a1b460de8f4ee979a9750",
+        "quest/adventure.ts": "c4f03aa961f8ffa863c4b32d52129a8baa6c1c736d29a7233893f4c704d778dd",
         "quest/facts.ts": "a14156ff7f7f0b6a83e2c1f7fe230db303251eefebd347234e8bb0fa816d2e7f",
         "quest/guards.ts": "c2a6a453d1de990836281956e5dd02a3990a42a3654073e3704bb871d6bdd111",
         "quest/gullGuide.ts": "99ad85863e626f10daa2f7eb8a8f8491bd01a958230829da7ec9aaf90f6292ab",
@@ -214,6 +214,11 @@
           "original": "9c0b47e30bac704ef297cf5f1ab557f0ced609ac5f57870ea66da56aa7107b02",
           "current": "01eddd04b80b669fc5a5c984271f39f56957758fcbd672034717494cefe9dfb3",
           "reason": "G669 DR16 explicitly retires the legacy director/AI/debug branches and ships the selected Pine memory trim. Preserve original legacy clocks, combat, crowd bodies and save ownership."
+        },
+        "quest/adventure.ts": {
+          "original": "a3e2ba42456ff279244d16aec9c0600456186c0f4a0a1b460de8f4ee979a9750",
+          "current": "c4f03aa961f8ffa863c4b32d52129a8baa6c1c736d29a7233893f4c704d778dd",
+          "reason": "G620: remove stale await after DR16 synchronous finale selection; strict build compatibility only"
         }
       }
     },
