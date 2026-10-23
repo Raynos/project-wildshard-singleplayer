@@ -284,7 +284,9 @@ test('orchard fixture installs the complete native population through data rows'
     expect(nativePopulationOf(host)).toBe(owner); expect(owner.bodies).toEqual([actor]);
     for (let i = 0; i < 12; i++) host.step({ moveX: 0, moveZ: 0, yaw: 0 });
     expect(owner.marmots.rows).toHaveLength(2); expect(owner.raid.raids).toBe(0); expect(host.adapters.has('orchard.population')).toBe(true);
-    const bound = owner.spawnBondedHorse(2, 3, 0, false); expect(bound.entityId).toBe('creature:1'); owner.retireBondedHorse(bound);
+    const { bondedMountRoster } = await import('@wildshard/game/riding/roster');
+    const companions = bondedMountRoster(host, 'orchard.companion'), bound = companions.spawn(2, 3, 0, false);
+    expect(bound.entityId).toBe('creature:1'); companions.retire(bound.entityId);
     expect(owner.bodies).toEqual([actor]); expect(host.entities.has(bound.entityId)).toBe(false);
     expect(() => owner.spawnElite('foreign', 0, 0, 0, 'boar')).toThrow('Foreign');
   } finally { host.dispose(); }

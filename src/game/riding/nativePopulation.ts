@@ -115,9 +115,7 @@ export interface NativePopulation {
   readonly scare: (x: number, z: number, radius?: number) => void;
   readonly raid: NativePastureRaid<AnimalSim, PackBrain<AnimalSim>>; readonly marmots: ForagerPopulation;
   readonly spawnElite: (kind: string, x: number, z: number, yaw: number, variant: string) => HuntBody;
-  readonly spawnBondedHorse: (x: number, z: number, yaw: number, upgraded: boolean) => HuntBody;
-  readonly retireBondedHorse: (actor: AnimalSim) => void; readonly hideTamedStallion: (actor: AnimalSim) => void;
-  readonly bondedHorseIds: () => readonly string[]; readonly retireElite: (actor: AnimalSim) => void;
+  readonly retireElite: (actor: AnimalSim) => void;
   readonly spawnElitePack: (x: number, z: number, variants: readonly string[]) => PackBrain<AnimalSim>; readonly retirePack: (pack: PackBrain<AnimalSim>) => void;
 }
 const POP_BODY_MAX = 64, POP_GROUP_MAX = 8, POP_FLOCK_MAX = 4;
@@ -236,9 +234,6 @@ export function installNativePopulation(host: SimHost, hunt: StalkerBrain<HuntBo
     const body = rollBody(kind, variant, x, z, yaw);
     const a = makeBody(body, kind, -1); eliteSpawns.push({ kind, body }); return a;
   };
-  const spawnBondedHorse = (x: number, z: number, yaw: number, upgraded: boolean): HuntBody => mountRoster.spawn(x, z, yaw, upgraded);
-  const hideTamedStallion = (actor: AnimalSim): void => { mountRoster.hide(actor.entityId); };
-  const retireBondedHorse = (actor: AnimalSim): void => { mountRoster.retire(actor.entityId); };
   const retireElite = (a: AnimalSim): void => {
     if (!cfg.eliteKinds.includes(a.kind)) throw new Error('Invalid native population elite retirement');
     deferred.release(a.entityId, 'retire');
@@ -306,7 +301,7 @@ export function installNativePopulation(host: SimHost, hunt: StalkerBrain<HuntBo
     eliteSpawns.push(...saved.elites); bonded.push(...saved.bonded ?? []);
     const hidden = saved.hiddenStallions ?? [];
     if (new Set(hidden).size !== hidden.length) throw new Error('Duplicate native population tamed stallion');
-    for (let i = 0; i < 2; i++) { const id = hidden[i]; if (id === undefined) break; const actor = host.entities.get(id); if (actor === undefined) throw new Error('Missing tamed native population stallion'); hideTamedStallion(actor); }
+    for (let i = 0; i < 2; i++) { const id = hidden[i]; if (id === undefined) break; const actor = host.entities.get(id); if (actor === undefined) throw new Error('Missing tamed native population stallion'); mountRoster.hide(actor.entityId); }
   };
   const firstFlock = flocks[0] ?? null;
   const horse = bodies.find(a => a.kind === cfg.companion.kind && a.herd === -1 && firstFlock !== null
@@ -348,7 +343,7 @@ export function installNativePopulation(host: SimHost, hunt: StalkerBrain<HuntBo
   });
   // Match the original adapter insertion order: fixed controllers first, actors materialized later.
   restoreRoster(); reinstalling = false;
-  const out = { hunt, rng, bodies, flocks, raid, marmots, spawnElite, retireElite, spawnElitePack, retirePack, spawnBondedHorse, retireBondedHorse, hideTamedStallion, bondedHorseIds: (): readonly string[] => bonded.map(row => row.body.id), scare: wildScare };
+  const out = { hunt, rng, bodies, flocks, raid, marmots, spawnElite, retireElite, spawnElitePack, retirePack, scare: wildScare };
   nativePopulations.set(host, out);
   return out;
 }
