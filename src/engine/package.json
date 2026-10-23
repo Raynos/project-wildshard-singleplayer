@@ -213,6 +213,7 @@
     "./models/live": "./models/live.ts",
     "./models/model": "./models/model.ts",
     "./models/place": "./models/place.ts",
+    "./models/staticSets": "./models/staticSets.ts",
     "./models/roster": "./models/roster.ts",
     "./models/sets": "./models/sets.ts",
     "./models/slots": "./models/slots.ts",

@@ -19,6 +19,8 @@ import { scatterLayer, instanceBoxes, type ScatterLayer, type ScatterPose } from
 import { instancedQuad } from '@wildshard/engine/render/instancedGeometry';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
+import { mergeStaticSiblings } from '@wildshard/engine/models/staticSets';
+import { setting } from '@wildshard/engine/ui/Settings';
 import { createPackedSpecimens, defineSpecimenCatalogue, loadBoundSpecimen, loadSpecimenTexture, specimenMaterial } from '../models/specimenCatalogue';
 import { expandBakedGeometrySliced, fetchLaneBake, readBakedGeometry, bakedGeometryBytes } from '../plugin/geometry';
 import { createClientScene } from '../plugin/ui';
@@ -202,13 +204,16 @@ export class SceneDressing {
     for(const row of rows.statics){
       const made=createClientScene(row.recipe,{geometry:new Map(Object.entries(row.geometry).map(([key,id])=>[key,needGeometry(id)])),materials:new Map(Object.entries(row.materials).map(([key,id])=>[key,needMaterial(id)]))});
       const piece={name:row.name,object:made.root,tris:row.tris,placed:[] as Placed[],anchors:row.anchors};this.pieces.set(row.name,piece);
-      this.group.add(made.root);this.props.push(...made.root.children.filter(meshObject));this.propTris+=row.tris;
+      this.group.add(made.root);this.propTris+=row.tris;
       for(const member of row.members){
         const floors=readSceneFloors(member.floors),floor=(x:number,z:number):number|undefined=>{let top:number|undefined;for(const sample of floors){const height=sample(x,z);if(height!==undefined&&(top===undefined||height>top))top=height;}return top;};
         const registered=withOwner(ctx.scope,()=>place(needModel(member.model),member.placements.map(({matrix,heading,...pose})=>({...pose,...(heading===undefined?{}:{yaw:Math.atan2(...heading)}),...(matrix===undefined?{}:{matrix:new THREE.Matrix4().fromArray(matrix)})})),{
           ctx:models,draw:member.draw,registry:ctx.app.registry,drawnInto:{object:made.root,boxes:Float32Array.from(member.boxes),colliders:Array.isArray(member.contacts)?contacts(member.contacts):unpackHulls(member.contacts)},piece:{solidFloor:true,...(floors.length===0?{}:{floor}),split:{every:150,yieldTask:pause}},
         }));await registered.registered;this.placed.push(registered);piece.placed.push(registered);await pause();
       }
+      // G639 frame floor (Developer staticSets, default off): the piece's sibling meshes on one material draw as one
+      if(setting('staticSets')==='on')for(const merged of mergeStaticSiblings(made.root).geometries){ctx.scope.own(merged);gpuOnlyAttributes(merged,'scene.dressing');}
+      this.props.push(...made.root.children.filter(meshObject));
     }
     });
     for(const row of rows.sites){
