@@ -23,7 +23,8 @@ test('all regenerated plot worlds omit corner beacons and near/far beam geometry
   for (const row of declared.outputs) {
     const bytes = new Uint8Array(await readFile(resolve('src/shards/open-plots/assets', row.idea, 'world.glb')));
     const doc = await io.readBinary(bytes), nodes = doc.getRoot().listNodes(), names = nodes.map(node => node.getName());
-    expect(names, row.slug).toContain('far_hologram');
+    // G641: a tiled plot (a row with a layout) stands its landmark and its tiles in the far proxy instead of a hologram
+    for (const name of 'layout' in row ? ['far_landmark', 'far_tiles'] : ['far_hologram']) expect(names, row.slug).toContain(name);
     expect(names, row.slug).toContain('ws_terrain_floor');
     expect(names, row.slug).toContain('collide_plot');
     expect(names.some(name => /beam|beacon/iu.test(name)), row.slug).toBe(false);

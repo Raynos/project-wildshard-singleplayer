@@ -245,5 +245,66 @@
         }
       }
     ]
+  },
+  "tiledMaterials": {
+    "why": "G641: the materials a tiled plot (an idea row with a layout, generators/tiledPlot.mjs) adds to the look: the kit's lit vertex colours, its lanterns and windows, and the landmark's own texture.",
+    "kit": {
+      "family": "pbr",
+      "colour": [
+        1,
+        1,
+        1
+      ],
+      "roughness": 0.9,
+      "metalness": 0,
+      "maps": {
+        "colour": null,
+        "normal": null,
+        "orm": null
+      },
+      "normalScale": 1,
+      "occlusion": 1,
+      "envStrength": 1,
+      "vertexColours": true,
+      "faceted": false,
+      "doubleSided": false,
+      "alphaCutoff": 0,
+      "ground": null,
+      "measure": null
+    },
+    "glow": {
+      "family": "emissive",
+      "colour": [
+        1,
+        1,
+        1
+      ],
+      "intensity": 1.6,
+      "vertexColours": true
+    },
+    "landmark": {
+      "family": "pbr",
+      "colour": [
+        1,
+        1,
+        1
+      ],
+      "roughness": 0.8,
+      "metalness": 0,
+      "maps": {
+        "colour": null,
+        "normal": null,
+        "orm": null
+      },
+      "normalScale": 1,
+      "occlusion": 1,
+      "envStrength": 1,
+      "vertexColours": true,
+      "faceted": false,
+      "doubleSided": false,
+      "alphaCutoff": 0,
+      "ground": null,
+      "measure": null
+    }
   }
 }

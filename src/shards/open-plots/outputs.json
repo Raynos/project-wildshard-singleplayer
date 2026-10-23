@@ -545,7 +545,8 @@
             "z": 26
           }
         ]
-      }
+      },
+      "layout": "night-market"
     },
     {
       "slug": "open-plot-sky-race",

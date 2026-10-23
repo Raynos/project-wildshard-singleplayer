@@ -16,6 +16,8 @@ import { MeshoptDecoder, MeshoptSimplifier } from 'meshoptimizer';
 import { readImagePixels, writeImagePixels } from '@wildshard/sdk/bake/image';
 import { paintDataMap } from '../../../../scripts/bake-data-maps.mjs';
 import { ACCENTS } from '@wildshard/format/accent';
+import { Soup } from './kit.mjs';
+import { writeTiledWorld } from './tiledPlot.mjs';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const REPO = resolve(ROOT, '../../..');
@@ -36,29 +38,6 @@ const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 const normalize = (a) => { const l = Math.hypot(...a) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
 const yawPoint = (p, yaw, at) => [at[0] + p[0] * Math.cos(yaw) + p[2] * Math.sin(yaw), at[1] + p[1], at[2] - p[0] * Math.sin(yaw) + p[2] * Math.cos(yaw)];
-
-/** Plain triangle soup builder: positions, normals, colours, uvs, by material. */
-class Soup {
-  constructor() { this.parts = new Map(); }
-  part(name) { let p = this.parts.get(name); if (p === undefined) { p = { positions: [], normals: [], colours: [], uvs: [] }; this.parts.set(name, p); } return p; }
-  /** @param {string} name @param {number[]} a @param {number[]} b @param {number[]} c @param {number[]} [colour] @param {number[][] | null} [uv] */
-  tri(name, a, b, c, colour = [1, 1, 1], uv = null) {
-    const p = this.part(name), e1 = sub(b, a), e2 = sub(c, a), n = normalize(cross(e1, e2));
-    for (const [i, v] of [a, b, c].entries()) { p.positions.push(...v); p.normals.push(...n); p.colours.push(...colour); p.uvs.push(...(uv === null ? [0, 0] : uv[i])); }
-  }
-  /** @param {string} name @param {number[]} a @param {number[]} b @param {number[]} c @param {number[]} d @param {number[]} [colour] @param {number[][] | null} [uv] */
-  quad(name, a, b, c, d, colour, uv = null) { this.tri(name, a, b, c, colour, uv === null ? null : [uv[0], uv[1], uv[2]]); this.tri(name, a, c, d, colour, uv === null ? null : [uv[0], uv[2], uv[3]]); }
-  /** an axis-aligned box from min to max, every face outward */
-  box(name, min, max, colour) {
-    const [x0, y0, z0] = min, [x1, y1, z1] = max;
-    this.quad(name, [x0, y1, z0], [x0, y1, z1], [x1, y1, z1], [x1, y1, z0], colour);
-    this.quad(name, [x0, y0, z0], [x1, y0, z0], [x1, y0, z1], [x0, y0, z1], colour);
-    this.quad(name, [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1], colour);
-    this.quad(name, [x1, y0, z0], [x0, y0, z0], [x0, y1, z0], [x1, y1, z0], colour);
-    this.quad(name, [x1, y0, z1], [x1, y0, z0], [x1, y1, z0], [x1, y1, z1], colour);
-    this.quad(name, [x0, y0, z0], [x0, y0, z1], [x0, y1, z1], [x0, y1, z0], colour);
-  }
-}
 
 /**
  * Make the generated mesh's winding consistent (image-to-3D output mixes it): walk each island across its two-face edges,
@@ -260,5 +239,6 @@ async function writeWorld(idea, { soup, assets, kerbs, far }) {
 }
 
 // One world per idea row, then each output's data map from its own world (every world first: the map hash reads them all).
-for (const idea of ideas) await writeWorld(idea, await plot(idea));
+// G641: an idea row with a layout is a tiled plot (kit.mjs, tiledPlot.mjs); the rest keep the hologram showroom
+for (const idea of ideas) await (idea.layout === undefined ? writeWorld(idea, await plot(idea)) : writeTiledWorld(ROOT, REPO, idea));
 for (const idea of ideas) await paintDataMap(REPO, 'open-plots', { output: idea.slug, glbs: [`assets/${idea.idea}/world.glb`] });

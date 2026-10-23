@@ -11,9 +11,18 @@ import hologram from '../data/hologram.graph.json' with { type: 'json' };
 const look = { ...source.look, materials: { ...source.look.materials,
   hologram: { family: 'graph', graph: hologram } } };
 
+const { why: _why, ...tiledMaterials } = source.tiledMaterials;
+/** G641: a tiled plot's look adds the kit's materials (generators/tiledPlot.mjs) */
+const tiledLook = { ...look, materials: { ...look.materials, ...tiledMaterials } };
+
 /** One idea row's output (validated whole by the build's parseShardfile; SF88g: one per idea). */
-function project(row: { readonly slug: string; readonly idea: string; readonly name: string; readonly accent: string }) {
+function project(row: { readonly slug: string; readonly idea: string; readonly name: string; readonly accent: string; readonly layout?: string }) {
   const identity = { slug: row.slug, name: `Open Plot · ${row.name}`, author: source.author, revision: source.revision, seed: source.seed };
+  // G641: a row with a layout is a tiled plot; its far proxy is its far-only stand-ins alone (NM0's farMode 'replace')
+  if (row.layout !== undefined) return { ...emptyShardfile(identity), identity, accent: row.accent, spawn: source.spawn, look: tiledLook,
+    world: { glb: `assets/${row.idea}/world.glb`, colliders: 'nodes:collide_', far: 'far_', farMode: 'replace',
+      materials: { Paving: 'kit', Kit: 'kit', Glow: 'glow', Landmark: 'landmark', Poster: 'billboard' } },
+  };
   return { ...emptyShardfile(identity), identity, accent: row.accent, spawn: source.spawn, look,
     // G608: the `far_` stand-ins draw only in the far proxy
     world: { glb: `assets/${row.idea}/world.glb`, colliders: 'nodes:collide_', far: 'far_',
