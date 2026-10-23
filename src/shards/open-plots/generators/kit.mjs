@@ -165,10 +165,11 @@ function tree(w, x, z, size, p, spin) {
 
 /** H house court: a hall across the north, two wings, a court open to the south with its tree; `variant` turns the roofs. */
 function house(w, p, variant) {
-  const wall = 4.6, roof = variant === 0 ? 4.2 : 3.2;
+  // NM9: taller, fuller courts so the gate stands in a dense town rather than over tiny sparse houses
+  const wall = 6.2, roof = variant === 0 ? 5.2 : 4.2;
   const blocks = variant === 0
-    ? [[-22, 22, 9, 24], [-24, -13, -22, 6], [13, 24, -22, 6]]
-    : [[-22, 22, 12, 24], [-23, -12, -22, 9], [12, 23, -22, 9], [-6, 6, -24, -18]];
+    ? [[-24, 24, 8, 26], [-26, -12, -24, 6], [12, 26, -24, 6]]
+    : [[-24, 24, 11, 26], [-25, -11, -24, 9], [11, 25, -24, 9], [-7, 7, -26, -18]];
   for (const [x0, x1, z0, z1] of blocks) {
     w.box('Kit', [x0, 0, z0], [x1, wall, z1], p.wall);
     hipRoof(w, x0 - 1.2, x1 + 1.2, z0 - 1.2, z1 + 1.2, wall, roof, p.roof, p.wood);
@@ -205,31 +206,47 @@ function garden(w, p, variant) {
       continue;
     }
     const spots = index % 2 === 0 ? [[0.3, 0.3], [0.72, 0.4], [0.45, 0.75]] : [[0.3, 0.68], [0.7, 0.7], [0.55, 0.28]];
-    for (const [i, [u, v]] of spots.entries()) tree(w, x0 + (x1 - x0) * u, z0 + (z1 - z0) * v, 6 + i, p, i * 0.7 + index);
+    for (const [i, [u, v]] of spots.entries()) {
+      const x = x0 + (x1 - x0) * u, z = z0 + (z1 - z0) * v, size = 6 + i;
+      tree(w, x, z, size, p, i * 0.7 + index);
+      // NM9: a lantern hung under each crown and its pool
+      w.box('Glow', [x + 0.8, size * 0.5, z - 0.3], [x + 1.4, size * 0.5 + 0.7, z + 0.3], p.lantern, p.lantern);
+      pool(w, x + 1.1, z, 4, p.pool);
+    }
   }
   for (const [x, z] of [[-1.6, 12], [1.6, -12], [12, 1.6], [-12, -1.6]]) lantern(w, x, z, p, 2.2);
 }
-/** S stall row: five red stalls along the west side facing east, lanterns before them, crates on the open paving. */
+/** S stall row (NM9: the mockup's density): two rows of five red stalls facing each other across the tile's aisle, each
+ *  awning lit with lanterns along its eave, and food carts with lanterns down the aisle. */
 function stalls(w, p) {
-  for (let i = 0; i < 5; i++) {
-    const z = -22 + i * 11, x0 = -26, x1 = -16;
-    w.box('Kit', [x0 + 1, 0, z - 3.6], [x1 - 2, 1.1, z + 3.6], p.wood);
-    for (const [x, zz] of [[x0, z - 4], [x1, z - 4], [x0, z + 4], [x1, z + 4]]) w.box('Kit', [x - 0.15, 0, zz - 0.15], [x + 0.15, 3, zz + 0.15], p.wood);
-    // a gable roof, red, its ridge north-south
-    const h = 3, ridge = 4.6, xm = (x0 + x1) / 2;
-    w.quad('Kit', [x0 - 0.6, h, z + 4.6], [xm, ridge, z + 4.6], [xm, ridge, z - 4.6], [x0 - 0.6, h, z - 4.6], p.stall);
-    w.quad('Kit', [x1 + 0.6, h, z - 4.6], [xm, ridge, z - 4.6], [xm, ridge, z + 4.6], [x1 + 0.6, h, z + 4.6], p.stall);
-    w.tri('Kit', [x0 - 0.6, h, z - 4.6], [xm, ridge, z - 4.6], [x1 + 0.6, h, z - 4.6], p.stallDark);
-    w.tri('Kit', [x1 + 0.6, h, z + 4.6], [xm, ridge, z + 4.6], [x0 - 0.6, h, z + 4.6], p.stallDark);
-    w.box('Glow', [x1 - 0.2, 2.2, z - 0.25], [x1 + 0.3, 2.7, z + 0.25], p.lantern, p.lantern);
-    // NM7: the awning lit from within (its underside glows warm) and a lantern string along its open eave
-    w.quad('Glow', [x0 - 0.4, h - 0.05, z - 4.4], [x1 + 0.4, h - 0.05, z - 4.4], [x1 + 0.4, h - 0.05, z + 4.4], [x0 - 0.4, h - 0.05, z + 4.4], p.awning);
-    for (const dz of [-3.3, -1.1, 1.1, 3.3]) w.box('Glow', [x1 + 0.35, h - 0.55, z + dz - 0.18], [x1 + 0.7, h - 0.15, z + dz + 0.18], p.lantern, p.lantern);
-    pool(w, x1 + 2, z, 5.5, p.pool);
-    w.solid([x0 + 1, 0, z - 3.6], [x1 - 2, 1.1, z + 3.6]);
-    lantern(w, -12, z + 5.5, p);
+  for (const side of [-1, 1]) for (let i = 0; i < 5; i++) {
+    const z = -22 + i * 11, outer = side * 27, inner = side * 15;
+    const x0 = Math.min(outer, inner), x1 = Math.max(outer, inner), front = inner, out = -side;
+    // the counter, the posts and a red gable roof with its ridge north-south
+    w.box('Kit', [Math.min(front + side * 1.5, outer - side * 1), 0, z - 4], [Math.max(front + side * 1.5, outer - side * 1), 1.2, z + 4], p.wood);
+    for (const [x, zz] of [[x0, z - 4.6], [x1, z - 4.6], [x0, z + 4.6], [x1, z + 4.6]]) w.box('Kit', [x - 0.18, 0, zz - 0.18], [x + 0.18, 3.6, zz + 0.18], p.wood);
+    const h = 3.6, ridge = 5.6, xm = (x0 + x1) / 2;
+    w.quad('Kit', [x0 - 0.7, h, z + 5.2], [xm, ridge, z + 5.2], [xm, ridge, z - 5.2], [x0 - 0.7, h, z - 5.2], p.stall);
+    w.quad('Kit', [x1 + 0.7, h, z - 5.2], [xm, ridge, z - 5.2], [xm, ridge, z + 5.2], [x1 + 0.7, h, z + 5.2], p.stall);
+    w.tri('Kit', [x0 - 0.7, h, z - 5.2], [xm, ridge, z - 5.2], [x1 + 0.7, h, z - 5.2], p.stallDark);
+    w.tri('Kit', [x1 + 0.7, h, z + 5.2], [xm, ridge, z + 5.2], [x0 - 0.7, h, z + 5.2], p.stallDark);
+    // NM7: the awning lit from within and a lantern string along its open eave, a pool of light before it
+    w.quad('Glow', [x0 - 0.5, h - 0.05, z - 5], [x1 + 0.5, h - 0.05, z - 5], [x1 + 0.5, h - 0.05, z + 5], [x0 - 0.5, h - 0.05, z + 5], p.awning);
+    const eave = front + out * 0.9;
+    for (const dz of [-3.9, -1.3, 1.3, 3.9]) w.box('Glow', [eave - 0.18, h - 0.6, z + dz - 0.2], [eave + 0.18, h - 0.15, z + dz + 0.2], p.lantern, p.lantern);
+    pool(w, front + out * 3, z, 6, p.pool);
+    w.solid([x0, 0, z - 4.6], [x1, 1.2, z + 4.6]);
   }
-  for (const [x, z] of [[4, -16], [10, 2], [6, 18]]) { w.box('Kit', [x - 1, 0, z - 1], [x + 1, 1.2, z + 1], p.crate); w.solid([x - 1, 0, z - 1], [x + 1, 1.2, z + 1]); }
+  // the aisle: food carts with a lantern each, staggered either side of the middle
+  for (let i = 0; i < 4; i++) {
+    const z = -16.5 + i * 11, x = i % 2 === 0 ? -4 : 4;
+    w.box('Kit', [x - 1.4, 0.4, z - 0.9], [x + 1.4, 1.3, z + 0.9], p.crate);
+    w.box('Kit', [x - 1.5, 2.3, z - 1.1], [x + 1.5, 2.5, z + 1.1], p.stall);
+    for (const dx of [-1.3, 1.3]) w.box('Kit', [x + dx - 0.08, 0, z - 0.08], [x + dx + 0.08, 2.3, z + 0.08], p.wood);
+    w.box('Glow', [x - 0.25, 1.5, z - 0.25], [x + 0.25, 2.1, z + 0.25], p.lantern, p.lantern);
+    pool(w, x, z, 4, p.pool);
+    w.solid([x - 1.4, 0, z - 0.9], [x + 1.4, 1.3, z + 0.9]);
+  }
 }
 /** The water region of a canal tile at rotation 0, as rectangles (x0, z0, x1, z1); `C` runs north-south, `L` south to east. */
 function waterOf(type) {
@@ -291,6 +308,15 @@ function forecourt(w, p) {
   for (let i = 1; i < 6; i++) tree(w, -18 + i * 7, -24, 4.2, p, i + 3);
   for (let i = 0; i < 6; i++) { const a = Math.PI + (i + 0.5) / 6 * Math.PI / 2, r = 26; lantern(w, HALF + r * Math.cos(a), HALF + r * Math.sin(a), p, 2.6); }
   w.floor('Kit', -22, -22, 27, 27, 0.03, p.forecourt);
+  // NM9: a little market of kiosks on the forecourt's open paving, clear of the entry corner
+  for (const [x, z] of [[-12, -12], [-2, -12], [8, -12], [-12, -2], [-12, 8], [-2, -2]]) {
+    w.box('Kit', [x - 2, 0, z - 2], [x + 2, 1.1, z + 2], p.wood);
+    for (const [dx, dz] of [[-2.2, -2.2], [2.2, -2.2], [-2.2, 2.2], [2.2, 2.2]]) w.box('Kit', [x + dx - 0.12, 0, z + dz - 0.12], [x + dx + 0.12, 3, z + dz + 0.12], p.wood);
+    frustum(w, 'Kit', x, z, 4, 3.6, 0, 3, 4.6, p.stall, Math.PI / 4);
+    w.box('Glow', [x - 0.25, 2.2, z - 0.25], [x + 0.25, 2.8, z + 0.25], p.lantern, p.lantern);
+    pool(w, x, z, 4.5, p.pool);
+    w.solid([x - 2, 0, z - 2], [x + 2, 1.1, z + 2]);
+  }
 }
 /** P plaza quarter: the plaza's paving with rings of lanterns about its centre corner (south-east), a planter far from it. */
 function plaza(w, p) {
@@ -310,7 +336,7 @@ function farTile(w, p, type) {
   w.floor('far', -HALF, -HALF, HALF, HALF, 0, ground);
   if (type === 'H') { w.box('far', [-22, 0, 9], [22, 8, 24], p.roof); w.box('far', [-24, 0, -22], [24, 7, 6], p.roof); }
   if (type === 'G') { w.box('far', [-20, 0, 6], [20, 7, 20], p.foliage); w.box('far', [-20, 0, -20], [0, 7, -6], p.foliage); }
-  if (type === 'S') w.box('far', [-26, 0, -26], [-16, 4.6, 26], p.stall);
+  if (type === 'S') { w.box('far', [-27, 0, -27], [-15, 5.6, 27], p.stall); w.box('far', [15, 0, -27], [27, 5.6, 27], p.stall); }
   if (type === 'C' || type === 'L') for (const [x0, z0, x1, z1] of waterOf(type)) w.floor('far', x0, z0, x1, z1, 0.05, p.water);
   if (type === 'N') { w.box('far', [-26, 0, -26], [-22, 4, 20], p.foliage); w.box('far', [-26, 0, -26], [20, 4, -22], p.foliage); }
 }
@@ -347,6 +373,12 @@ function stringLights(w, p, side) {
       const [x, , z] = along(u, off, 0);
       w.box('Kit', [x - 0.12, 0, z - 0.12], [x + 0.12, top + 0.3, z + 0.12], p.wood);
       w.solid([x - 0.15, 0, z - 0.15], [x + 0.15, top, z + 0.15]);
+      // NM9: a red banner with a gold head on each post, hung across the lane so it reads down it and from above
+      const [ax, , az] = along(u + 0.5, off, 0), [bx, , bz] = along(u - 0.5, off, 0), y0 = 2.8, y1 = 5.4;
+      for (const [a, b] of [[[ax, az], [bx, bz]], [[bx, bz], [ax, az]]]) {
+        w.quad('Kit', [a[0], y0, a[1]], [b[0], y0, b[1]], [b[0], y1, b[1]], [a[0], y1, a[1]], p.stall);
+        w.quad('Kit', [a[0], y1, a[1]], [b[0], y1, b[1]], [b[0], y1 + 0.35, b[1]], [a[0], y1 + 0.35, a[1]], p.lantern);
+      }
     }
     const span = ends[1] - ends[0], count = Math.floor(span / step);
     for (let i = 1; i < count; i++) {
