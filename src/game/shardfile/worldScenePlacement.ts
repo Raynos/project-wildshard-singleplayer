@@ -63,6 +63,8 @@ export class WorldScenePlacement {
     const placed = await this.build(copies, scope, tile);
     if (scope.disposed || this.row.drawnInto !== undefined) return placed;
     if (container === null) throw new Error('Scene placement by tile needs its container');
+    // the container stands where the registry parents a placed object (the world), so its tiles draw where a whole one would
+    if (container.parent === null && placed.object.parent !== null) placed.object.parent.add(container);
     container.add(placed.object); scope.onDispose(() => { placed.object.removeFromParent(); });
     return placed;
   }
