@@ -48,4 +48,15 @@ describe('generation cache prune (G430)', () => {
     expect(empty.keptEntries).toBe(0);
     expect(empty.deleted).toHaveLength(2);
   });
+
+  it('reclaims only proven dead producer locks before applying retention', () => {
+    const root = freshCache(), old = entry(root, 'old-job', 1, 30);
+    mkdirSync(`${old}.lock`);
+    writeFileSync(join(`${old}.lock`, 'owner.json'), JSON.stringify({ pid: 1073741823 }));
+    expect(pruneGenerationCache(root, { dryRun: true }).locked).toBe(1);
+    expect(existsSync(old)).toBe(true);
+    expect(pruneGenerationCache(root).deleted).toHaveLength(1);
+    expect(existsSync(old)).toBe(false);
+    expect(existsSync(`${old}.lock`)).toBe(false);
+  });
 });

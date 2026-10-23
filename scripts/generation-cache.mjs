@@ -239,6 +239,7 @@ export function pruneGenerationCache(cacheDir, options = {}) {
     if (!lstatSync(jobDir).isDirectory()) continue;
     const names = readdirSync(jobDir);
     for (const child of names) {
+      if (!dryRun && /^[0-9a-f]{64}\.lock$/u.test(child) && abandoned(resolve(jobDir, child))) reclaim(resolve(jobDir, child));
       const match = EVICTING.exec(child);
       if (match !== null && !dryRun && !alive(Number(match[1]))) rmSync(resolve(jobDir, child), { recursive: true, force: true });
     }
@@ -246,7 +247,7 @@ export function pruneGenerationCache(cacheDir, options = {}) {
       const path = resolve(jobDir, key);
       try {
         const stat = lstatSync(path);
-        return stat.isDirectory() ? [{ key, path, mtimeMs: stat.mtimeMs, locked: names.includes(`${key}.lock`) ? true : liveReaders(path) }] : [];
+        return stat.isDirectory() ? [{ key, path, mtimeMs: stat.mtimeMs, locked: existsSync(`${path}.lock`) ? true : liveReaders(path) }] : [];
       } catch { return []; }
     }).sort((a, b) => b.mtimeMs - a.mtimeMs);
     entries.forEach(entry => {
