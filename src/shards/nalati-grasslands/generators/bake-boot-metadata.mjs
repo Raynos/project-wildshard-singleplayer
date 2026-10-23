@@ -4,7 +4,7 @@ import { manifestDeclaration } from '../../../../scripts/manifest-declaration.mj
 import paintedTextures from '../data/paintedTextures.json' with { type: 'json' };
 import discovery from '../data/discovery.json' with { type: 'json' };
 import { NALATI_MAP, SNOW_LINE, GLACIER } from './layout.ts';
-import { NALATI_MANIFEST_ROWS } from './manifestRows.ts';
+import NALATI_MANIFEST_ROWS from '../data/manifestRows.json' with { type: 'json' };
 import budgetInputs from '../data/budgetInputs.json' with { type: 'json' };
 import ceilings from '../data/budgetCeilings.json' with { type: 'json' };
 import { NALATI_HORIZON_V2 } from './horizon.ts';

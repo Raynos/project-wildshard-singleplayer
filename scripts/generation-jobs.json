@@ -432,7 +432,7 @@
         "src/shards/nalati-grasslands/generators/postChain.ts",
         "src/shards/nalati-grasslands/generators/panoramaData.ts",
         "src/shards/nalati-grasslands/generators/bootInventory.ts",
-        "src/shards/nalati-grasslands/generators/manifestRows.ts",
+        "src/shards/nalati-grasslands/data/manifestRows.json",
         "src/shards/nalati-grasslands/data/budgetInputs.json",
         "src/shards/nalati-grasslands/generators/horizon.ts",
         "src/shards/nalati-grasslands/generators/bootFiles.ts",
@@ -1633,7 +1633,7 @@
         "src/shards/nalati-grasslands/behaviour",
         "src/sdk",
         "src/shards/nalati-grasslands/generators/skyPresentation.ts",
-        "src/shards/nalati-grasslands/generators/manifestRows.ts",
+        "src/shards/nalati-grasslands/data/manifestRows.json",
         "src/shards/nalati-grasslands/data/skyTypes.d.ts"
       ],
       "outputs": [

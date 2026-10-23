@@ -1,12 +1,17 @@
+import * as v from 'valibot';
+import { ManifestMetadataSchema } from '@wildshard/format/minimap';
 import { Color } from 'three';
 import type { SkyRows, SkySchema } from '../data/skyTypes';
-import { NALATI_MANIFEST_ROWS } from './manifestRows';
+import NALATI_MANIFEST_ROWS from '../data/manifestRows.json' with { type: 'json' };
 import { visualPack, type VisualRow } from './weatherFxChannels';
 import type { ClientChannelProgram } from '@wildshard/format/clientChannels';
 
 /** Numeric day keys and their live-preset field layout, built before admission. */
 export function skyRows(): SkyRows {
- const {sky:S,grade:G,atmosphere:A}=NALATI_MANIFEST_ROWS,P=S.painted,vs=A.volumetric.strength;
+ const {sky:S,grade:G,atmosphere:A}=v.parse(v.pick(ManifestMetadataSchema,['sky','grade','atmosphere']), {sky:NALATI_MANIFEST_ROWS.sky,grade:NALATI_MANIFEST_ROWS.grade,atmosphere:NALATI_MANIFEST_ROWS.atmosphere});
+ const P=S.painted,volume=A.volumetric;
+ if(P===undefined||volume===undefined)throw new Error('Missing painted sky metadata');
+ const vs=volume.strength;
  const rgbOf=(c:Color):[number,number,number]=>[c.r,c.g,c.b];
  const day: SkyRows['day'] = {
       el: 14,

@@ -1,5 +1,5 @@
 import type { DayClockRow } from '@wildshard/format/dayCycle';
-import { NALATI_MANIFEST_ROWS } from './manifestRows';
+import NALATI_MANIFEST_ROWS from '../data/manifestRows.json' with { type: 'json' };
 
 /** The page and native clock's initial sun alignment, resolved from the authored manifest at build time. */
 export function nalatiDayClockRow(): DayClockRow {
