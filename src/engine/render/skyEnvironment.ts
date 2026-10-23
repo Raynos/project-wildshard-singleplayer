@@ -1,4 +1,5 @@
-import { PMREMGenerator, Vector3, WebGLRenderer, WebGLRenderTarget, type Camera, type Scene, type Texture } from 'three';
+import { Vector3, WebGLRenderer, WebGLRenderTarget, type Camera, type PMREMGenerator, type Scene, type Texture } from 'three';
+import { tierPmremCube, tierPmremGenerator } from './pmremSize';
 
 /**
  * A day clock's sky as the scene's image-based light (SHARD-PLATFORM W2 C2; Pine Hollow's keyed sky and Driftwood's faceted
@@ -46,7 +47,7 @@ const ORIGIN = new Vector3();
 const targetBytes = (t: { readonly width: number; readonly height: number; readonly depthBuffer: boolean }): number => t.width * t.height * (t.depthBuffer ? 12 : 8);
 /** one of PMREM's cube-UV atlases at cube size `size` (3·max(size, 112) × 4·size) */
 const atlasBytes = (size: number, depth: boolean): number => 3 * Math.max(size, 16 * 7) * 4 * size * (depth ? 12 : 8);
-const cubeSize = (source: SkyEnvironmentSource): number => (source.kind === 'equirect' ? source.target.width / 4 : source.size);
+const cubeSize = (source: SkyEnvironmentSource): number => tierPmremCube(source.kind === 'equirect' ? source.target.width / 4 : source.size);
 
 /** run one PMREM step, then PMREMGenerator._cleanup's target reset (its own restores a module-level target from its last whole run) */
 function inPlace(renderer: WebGLRenderer, cube: WebGLRenderTarget, atlas: boolean, run: () => void): void {
@@ -88,7 +89,7 @@ export function refreshSkyEnvironment(gen: PMREMGenerator, source: SkyEnvironmen
     return gen.fromEquirectangular(source.target.texture, cube);
   }
   if (cube === null || !canStepSkyEnvironment(gen)) {
-    const rt = gen.fromScene(source.scene, 0, source.near, source.far, { size: source.size });
+    const rt = gen.fromScene(source.scene, 0, source.near, source.far, { size: cubeSize(source) });
     cube?.dispose();
     return rt;
   }
@@ -158,7 +159,7 @@ export class SkyEnvironment {
     this.timer = 0;
     this.step = -1;
     if (this.how.ready?.() === false) return;
-    this.gen ??= new PMREMGenerator(this.renderer);
+    this.gen ??= tierPmremGenerator(this.renderer);
     this.set(refreshSkyEnvironment(this.gen, this.source, this.cube));
   }
 

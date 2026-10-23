@@ -15,6 +15,7 @@ import { CLOUD_FIELD_URL, skyHorizonColor } from '../boot/bakedApi';
 import { bakedSkyUrls, loadBakedSky as loadSkyPair } from './BakedSky';
 import { macrotask } from '../boot/plan';
 import { loadLUT } from './lut';
+import { tierPmremGenerator } from '../render/pmremSize';
 import type { LookupTexture } from 'postprocessing';
 
 export const PLANET_DIST = 1700;
@@ -134,7 +135,7 @@ export class SkyBackdropView {
   rebuildEnvironment(): void {
     const hdr = this.scene.background;
     if (!(hdr instanceof THREE.Texture)) return;
-    const pmrem = new THREE.PMREMGenerator(this.renderer);
+    const pmrem = tierPmremGenerator(this.renderer);
     this.scene.environment = pmrem.fromEquirectangular(hdr).texture;
     pmrem.dispose();
   }
@@ -412,7 +413,7 @@ async function pmremOf(renderer: Renderer, hdr: THREE.Texture, live: () => boole
   // three tasks, not one 130 ms one at 4x CPU: the PMREM program compile, the 2048x1024 half-float upload, then the
   // cube-UV render + blur passes. WebKit additionally prepares the exact offscreen variants and
   // paints between their original draws; the output and desktop factory calls are unchanged.
-  const pmrem = new THREE.PMREMGenerator(renderer);
+  const pmrem = tierPmremGenerator(renderer);
   pmrem.compileEquirectangularShader();
   await macrotask();
   renderer.initTexture(hdr);
@@ -420,7 +421,7 @@ async function pmremOf(renderer: Renderer, hdr: THREE.Texture, live: () => boole
   const prepared: { generator: THREE.PMREMGenerator | null } = { generator: null };
   try {
     return await prepareOffscreenBuild(renderer, commands => {
-      prepared.generator = commands === renderer ? pmrem : new THREE.PMREMGenerator(commands);
+      prepared.generator = commands === renderer ? pmrem : tierPmremGenerator(commands);
       return prepared.generator.fromEquirectangular(hdr);
     }, live, { webKitOnly: true });
   } finally { prepared.generator?.dispose(); if (prepared.generator !== pmrem) pmrem.dispose(); }

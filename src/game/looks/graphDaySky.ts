@@ -7,6 +7,7 @@ import type { DayCycle } from '@wildshard/engine/world/dayCycle';
 import { admittedChannelTable, installChannelPrograms } from '@wildshard/game/plugin/channelPrograms';
 import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
 import * as THREE from 'three';
+import { tierPmremCube, tierPmremGenerator } from '@wildshard/engine/render/pmremSize';
 
 /**
  * A day sky drawn on material graphs, as a backdrop (SHARD-PLATFORM W2 C2; Pine Hollow's keyed sky and Driftwood's
@@ -164,8 +165,8 @@ export function graphDaySkyBackdrop<K>(spec: GraphDaySkySpec<K>): SkyBackdropFac
       const prepared: { generator: THREE.PMREMGenerator | null } = { generator: null };
       try {
         const first = await prepareOffscreenBuild(renderer, (commands) => {
-          prepared.generator = new THREE.PMREMGenerator(commands);
-          return prepared.generator.fromScene(source.scene, 0, source.near, source.far, { size: source.size });
+          prepared.generator = tierPmremGenerator(commands);
+          return prepared.generator.fromScene(source.scene, 0, source.near, source.far, { size: tierPmremCube(source.size) });
         }, () => !owner.disposed, { webKitOnly: true });
         env.adopt(prepared.generator, first);
       } catch (error) { prepared.generator?.dispose(); throw error; }
