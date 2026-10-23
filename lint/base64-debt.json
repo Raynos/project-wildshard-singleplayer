@@ -123,7 +123,6 @@
     "src/shards/nine-dragon-stack/generators/signAtlasPage.ts": 1,
     "src/shards/pine-hollow-legacy/runtime/baked.ts": 1,
     "src/shards/pine-hollow/generators/bake-contracts.mjs": 1,
-    "src/shards/pine-hollow/generators/bake-elite-behaviours.mjs": 1,
     "src/shards/pine-hollow/generators/bake-geography.mjs": 1,
     "src/shards/pine-hollow/generators/bake-life.mjs": 1,
     "src/shards/pine-hollow/generators/bake-pine-clock-director.mjs": 1,

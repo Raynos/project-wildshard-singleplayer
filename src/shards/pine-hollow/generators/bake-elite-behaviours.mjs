@@ -13,7 +13,7 @@ for (const fight of ELITE_FEATURE_ROWS.fights) {
   const rows = parseEliteFeature({ ...ELITE_FEATURE_ROWS, fights: [fight] }).fights[0];
   const built = await compileDecisionScripts([rows.program.script], spawnScriptRegistries(rows.program), sources, { asLineCeiling: 2130 });
   const script = built.rows[0], blob = built.blobs[0];
-  fights.push({ ...fight, program: { ...fight.program, script, bytes: Buffer.from(blob.bytes).toString('base64') } });
+  fights.push({ ...fight, program: { ...fight.program, script, bytes: '' } });
   if (!process.argv.includes('--check')) writeFileSync(resolve(root, project, 'assets', blob.file.hash), blob.bytes);
 }
 const path = resolve(root, project, 'behaviour/elites.generated.json'), output = `${JSON.stringify(parseEliteFeature({ ...ELITE_FEATURE_ROWS, fights }), null, 2)}\n`;

@@ -30,7 +30,13 @@ async function fixture() {
     bake: { actors: [], parked, herds: [] } }, { version: 1, environment: 'fixture.habitat', step: 'pine.roster', seed: 1368, bodyCount: 0, limit: 512,
     scripted: 'sidestep', encounter: 'test', poseKinds: [], spawn: { x: 0, z: 0 }, fauna: [], identities: [], ordinary: {}, reserves: [], homes: [] });
   const day = new DayCycle(keyedSkyDaySpec(PINE_SKY)); await day.set(PINE_SKY.phases.night);
-  const feature = installNativeEliteFeature(host, day, data); feature.initialize();
+  // Reconstruct the original inline native oracle from the same named raw guests.
+  const admitted = structuredClone(data);
+  for (const fight of admitted.fights) {
+    const hash = fight.program.script.module.slice('blobs/wasm/'.length, -'.wasm'.length);
+    fight.program.bytes = readFileSync(`src/shards/pine-hollow/assets/${hash}`).toString('base64');
+  }
+  const feature = installNativeEliteFeature(host, day, admitted); feature.initialize();
   return { host, feature };
 }
 
