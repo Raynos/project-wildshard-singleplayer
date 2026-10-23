@@ -76,6 +76,8 @@ test('official WebKit core floors refuse mixed entry modes or duplicate readings
 });
 
 test('upgrade observation refuses unrelated or repeated Simulator scenarios before device access', () => {
+  expect(() => execFileSync('node', ['scripts/sim-grid-entry.mjs', '--base=http://127.0.0.1:1', '--upgrade-second-tap=1'],
+    { encoding: 'utf8', stdio: 'pipe', env: {...process.env, SIM_UDID: 'no-device-opened'} })).toThrow('Second tap diagnostic requires');
   for (const flags of [[], ['--runs=2', '--modes=warm'], ['--runs=1', '--modes=cold'], ['--runs=1', '--modes=warm', '--shard=_template']]) {
     expect(() => execFileSync('node', ['scripts/sim-grid-entry.mjs', '--base=http://127.0.0.1:1', '--upgrade-from=https://example.test', ...flags],
       {encoding: 'utf8', stdio: 'pipe', env: {...process.env, SIM_UDID: 'no-device-opened'}})).toThrow('one warm grid run');

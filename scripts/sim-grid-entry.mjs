@@ -42,6 +42,8 @@ function quiet(action) {
 const shard = args.shard;
 const coreMemory = args['core-memory'];
 const upgradeFrom = args['upgrade-from'];
+const secondTapDiagnostic = args['upgrade-second-tap'] === '1';
+if (args['upgrade-second-tap'] !== undefined && (args['upgrade-second-tap'] !== '1' || upgradeFrom === undefined)) throw new Error('Second tap diagnostic requires --upgrade-from and value 1');
 if (upgradeFrom !== undefined && (coreMemory !== undefined || shard !== undefined || args.runs !== '1' || args.modes !== 'warm' || !['http:', 'https:'].includes(new URL(upgradeFrom).protocol))) throw new Error('Upgrade observation requires one warm grid run and an HTTP origin');
 if (coreMemory !== undefined && (!['menu', 'all'].includes(coreMemory) || shard !== undefined)) throw new Error('Expected --core-memory=menu|all without --shard');
 if (coreMemory !== undefined && ((args.runs !== undefined && args.runs !== '1') || (args.modes !== undefined && args.modes !== 'cold'))) throw new Error('Core floors require exactly one cold reading per target');
@@ -242,7 +244,7 @@ async function run(mode, index, target) {
     const on = data => { if (/Recording started/iu.test(String(data))) resolve(Date.now()); };
     recorder.stdout.on('data', on); recorder.stderr.on('data', on); setTimeout(() => { resolve(Date.now()); }, 8000);
   });
-  let sample = null, compiled = null;
+  let sample = null, compiled = null, secondTapAt = null;
   try {
     await sleep(1000);
     const setup = shard === undefined && upgradeFrom === undefined ? '' : [
@@ -305,6 +307,12 @@ async function run(mode, index, target) {
         await page.evaluate(WATCH);
         sample = JSON.parse(await page.evaluate(READ));
         log(file, { ev: 'poll', ...sample });
+        if (secondTapDiagnostic && secondTapAt === null && sample.title && new URL(sample.href).searchParams.has('v')) {
+          log(file, {ev: 'upgrade-first-entry-failed', href: sample.href, worker: sample.worker});
+          await gesture(`(() => {sessionStorage.setItem('sim.tap',String(performance.timeOrigin+performance.now()));document.querySelector('.ws-main-grid').click();return true;})()`);
+          secondTapAt = Date.now();
+          log(file, {ev: 'upgrade-second-tap', at: secondTapAt});
+        }
         if (shard !== undefined) {
           compiled = JSON.parse(await page.evaluate(`JSON.stringify({ href: location.href, origin: performance.timeOrigin, at: performance.now(), accuracy: window.__loadingAccuracy ?? null,
             ready: !!window.__wildshard?.world?.hud.entered && !window.__wildshard.world.hud.paused && window.__wildshard.world.game.frameGate() && ![...document.querySelectorAll('.ws-load')].some(panel => getComputedStyle(panel).display !== 'none' && Number(getComputedStyle(panel).opacity) > .05),
@@ -320,10 +328,10 @@ async function run(mode, index, target) {
     recorder.kill('SIGINT'); await new Promise(resolve => { recorder.once('exit', resolve); setTimeout(resolve, 15000); });
   }
   if (upgradeFrom !== undefined) {
-    const controller = await settle(`async () => {const w=navigator.serviceWorker.controller;if(!w)return null;return new Promise(resolve=>{const ch=new MessageChannel();const timer=setTimeout(()=>{ch.port1.close();ch.port2.close();resolve(null)},5000);ch.port1.onmessage=e=>{clearTimeout(timer);ch.port1.close();ch.port2.close();resolve(e.data.build??null)};w.postMessage({type:'BUILD'},[ch.port2]);});}`);
+    const controller = await settle(`async () => {const w=navigator.serviceWorker.controller;if(!w)return null;return new Promise(resolve=>{const ch=new MessageChannel();const timer=setTimeout(()=>{ch.port1.close();ch.port2.close();resolve(null)},5000);ch.port1.onmessage=e=>{clearTimeout(timer);ch.port1.close();ch.port2.close();resolve(e.data)};w.postMessage({type:'BUILD'},[ch.port2]);});}`);
     const nextVersion = await (await fetch(new URL('version.json', upstream), {cache: 'no-store'})).json();
-    log(file, {ev: 'upgrade-final-controller', build: controller, href: sample?.href ?? null});
-    if (typeof controller !== 'string' || !controller.startsWith(`${nextVersion.build}-`)) throw new Error('New deployment worker did not take control of the grid entry');
+    log(file, {ev: 'upgrade-final-controller', controller, href: sample?.href ?? null});
+    if (typeof controller?.build !== 'string' || !controller.build.startsWith(`${nextVersion.build}-`)) throw new Error('New deployment worker did not take control of the grid entry');
   }
   if (shard !== undefined) {
     if (compiled === null || !compiled.ready) throw new Error(`${label}: compiled entry never reached controls`);
@@ -356,6 +364,10 @@ async function run(mode, index, target) {
   result.brokenFrames = result.loaderEndMs === null ? null : brokenFrames(video, videoAt(result.loaderEndMs), videoAt(result.revealStartMs));
   if (!keepVideo) rmSync(video, { force: true });
   writeFileSync(resolvePath(out, `${label}.json`), `${JSON.stringify(result, null, 1)}\n`);
+  if (secondTapAt !== null) {
+    writeFileSync(resolvePath(out, `${label}-second-tap.json`), `${JSON.stringify({secondTapAt, ...result}, null, 1)}\n`);
+    throw new Error('First grid entry returned to title; second-tap diagnostics cannot pass the original entry');
+  }
   return result;
 }
 

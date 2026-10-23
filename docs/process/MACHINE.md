@@ -178,6 +178,10 @@ Failures and response metadata survive cleanup. An absent or changed old
 controller refuses the reading.
 After entry, the controller's BUILD reply must match the new deployment;
 an installed waiting worker alone cannot pass the update proof.
+For the release diagnostic only, `--upgrade-second-tap=1` taps again when
+the first entry recovers to a title with `v`. Its separate result cannot
+pass the original failed entry. BUILD includes the bounded activation stage
+so a responsive controller is not confused with completed activation.
 
 C2's WebKit comparison uses the same official Simulator reader:
 `scripts/sim-lane.sh run --max 20 wildshard-iphone node scripts/sim-grid-entry.mjs

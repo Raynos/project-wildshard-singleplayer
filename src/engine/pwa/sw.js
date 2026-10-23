@@ -227,16 +227,24 @@ workerScope.listen(self, 'install', (event) => {
   );
 });
 
+let activationStage = 'waiting';
 workerScope.listen(self, 'activate', (event) => {
   event.waitUntil(
     (async () => {
+      activationStage = 'manifest';
       const named = await assetManifest(); // null offline: nothing is dropped that cannot be verified
+      activationStage = 'migration';
       await migrateStatic(named);
+      activationStage = 'static-gc';
       await gcStatic(named);
+      activationStage = 'cache-gc';
       for (const k of await caches.keys()) if (k.startsWith('ws-') && !KEEP.includes(k)) { gc.caches++; await caches.delete(k); }
+      activationStage = 'code-gc';
       await pruneImmutable();
       if (gc.entries > 0 || gc.caches > 0) console.info(`[sw] gc: freed ${(gc.bytes / 1048576).toFixed(2)} MB in ${gc.entries} entries + ${gc.caches} old caches; kept ${gc.kept} (${gc.migrated} carried over, ${gc.hashed} verified by hash)`);
+      activationStage = 'claim';
       await self.clients.claim();
+      activationStage = 'complete';
     })(),
   );
 });
@@ -382,7 +390,7 @@ workerScope.listen(self, 'message', (event) => {
     timings: performance.getEntriesByType('resource').map(entry => entry.toJSON()),
   })));
   else if (data.type === 'VERSION') event.waitUntil(reply(event, version()));
-  else if (data.type === 'BUILD') event.waitUntil(reply(event, Promise.resolve({ type: 'BUILD', build: BUILD })));
+  else if (data.type === 'BUILD') event.waitUntil(reply(event, Promise.resolve({ type: 'BUILD', build: BUILD, activationStage })));
   else if (data.type === 'PREFETCH' && typeof data.url === 'string') event.waitUntil(reply(event, prefetchOne(data.url)));
   else if (data.type === 'STORE' && typeof data.url === 'string' && data.blob instanceof Blob) event.waitUntil(reply(event, storeOne(data.url, data.blob)));
 });

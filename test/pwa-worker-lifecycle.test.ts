@@ -8,6 +8,7 @@ const base = 'https://worker.test/';
 const entry = '/assets/entry-aaaaaaaa.js', dependency = '/assets/shared-bbbbbbbb.js', css = '/assets/style-cccccccc.css';
 const lazy = '/assets/lazy-dddddddd.js', later = '/assets/later-eeeeeeee.js';
 interface WorkerEvent {
+  readonly source?: { postMessage: (value: unknown) => void };
   readonly data?: { type: string };
   readonly request?: Request;
   waitUntil: (work: Promise<unknown>) => void;
@@ -26,6 +27,7 @@ class StoredCache {
 function fixture(read?: (url: string, init?: RequestInit) => Promise<Response>) {
   const listeners = new Map<string, ((event: WorkerEvent) => void)[]>(), books = new Map<string, StoredCache>();
   const installErrors: unknown[] = [];
+  const replies: unknown[] = [];
   const open = (name: string): Promise<StoredCache> => {
     let cache = books.get(name); if (cache === undefined) { cache = new StoredCache(); books.set(name, cache); } return Promise.resolve(cache);
   };
@@ -53,10 +55,10 @@ function fixture(read?: (url: string, init?: RequestInit) => Promise<Response>) 
   runInNewContext(`${owner}\n${worker}`, { self, caches, fetch, URL, Request, Response, Headers, AbortController, setTimeout, clearTimeout, Date, console });
   const dispatch = async (kind: string, payload: Pick<WorkerEvent, 'data' | 'request'> = {}): Promise<void> => {
     const pending: Promise<unknown>[] = [];
-    for (const listener of listeners.get(kind) ?? []) listener({ ...payload, waitUntil: work => { pending.push(work); }, respondWith: work => { pending.push(work); } });
+    for (const listener of listeners.get(kind) ?? []) listener({ ...payload, source: { postMessage: (value: unknown) => { replies.push(value); } }, waitUntil: work => { pending.push(work); }, respondWith: work => { pending.push(work); } });
     await Promise.all(pending);
   };
-  return { fetch, open, dispatch, navigator, installErrors };
+  return { fetch, open, dispatch, navigator, installErrors, replies };
 }
 afterEach(() => { vi.useRealTimers(); });
 
@@ -86,6 +88,17 @@ test('boot JSON metadata cannot be mistaken for foreign JavaScript during instal
     ? `<script type="application/json">{"extras":["${metadata}"]}</script><script src="${foreign}?v=1"></script>` : 'exact bytes')));
   await expect(refused.dispatch('install')).rejects.toThrow(`install: /index.html is another build's (${foreign})`);
   expect(refused.fetch).toHaveBeenCalledTimes(1);
+});
+
+test('the existing BUILD reply distinguishes waiting from completed activation', async () => {
+  const f = fixture();
+  await f.dispatch('message', { data: { type: 'BUILD' } });
+  await f.dispatch('activate');
+  await f.dispatch('message', { data: { type: 'BUILD' } });
+  expect(f.replies).toEqual([
+    { type: 'BUILD', build: 'unit-build', activationStage: 'waiting' },
+    { type: 'BUILD', build: 'unit-build', activationStage: 'complete' },
+  ]);
 });
 
 test('background code is serial, yields its body to foreground reads, then supports offline access', async () => {
