@@ -84,11 +84,14 @@ accepts a positive integer); CI keeps its runner default. Owned heavy commands r
 nested wrappers. Waiting is logged separately from the E454 gate time. Do not start a nested build inside a
 full-test lease; request `check` up front when one ordinary command needs both resources (`gate` is push priority).
 
-For 24 hours from the first observed build, the wrapper writes queue seconds, build seconds, exit code and start/end
+The wrapper continuously writes queue seconds, build seconds, exit code and start/end
 load averages to one report-only `~/.wildshard-heavy-lanes/build-day.log` (or `WS_HEAVY_ROOT/build-day.log`). Nested
-builds are labelled `inherited`; they take no additional slot. An expired log stops collecting automatically, and
-logging errors never change the build's result. After a needed capture, close the owned preview immediately;
+builds are labelled `inherited`; they take no additional slot. Logging errors never change the build's result.
+After a needed capture, close the owned preview immediately;
 previews hold mirror slots for minutes, not hours.
+`python3 scripts/agent-time.py --hours 12` prints the read-only shared-waits table,
+including current push logs, transcript waits, CI windows, machine state and usage.
+Unavailable external readings are named rather than reported as zero.
 
 The default owned-command deadline is 30 minutes (`--max <minutes>`); queue time is separate. Signals and deadlines
 stop only the wrapper's own process group. The command inherits the lock descriptors, so killing a wrapper cannot

@@ -58,7 +58,7 @@ test('two checks waiting on a mirror leave build capacity for its preview', () =
   expect(result.status, result.stderr).toBe(0);
 }, 30000);
 
-test('three build slots queue FIFO, inherit leases and report one day', () => {
+test('three build slots queue FIFO, inherit leases and keep reporting', () => {
   const result = execFileSync('python3', ['-c', `
 import json, os, pathlib, subprocess, sys, tempfile, time
 repo = pathlib.Path.cwd()
@@ -119,7 +119,9 @@ with tempfile.TemporaryDirectory(prefix='capacity-test-', dir=repo / 'tmp') as t
   before = (root/'build-day.log').read_text()
   final = subprocess.run([sys.executable,wrapper,'build','--','node','--input-type=module','-e',guard],env=env,capture_output=True,text=True)
   assert final.returncode == 0, final.stderr
-  assert (root/'build-day.log').read_text() == before
+  after = [json.loads(line) for line in (root/'build-day.log').read_text().splitlines()]
+  assert len(after) == len(records)+1 and after[-1]['exitCode'] == 0
+  assert (root/'build-day.log').read_text().startswith(before)
   (root/'build-day.log').write_text('[]')
   report_only = subprocess.run([sys.executable,wrapper,'build','--','node','--input-type=module','-e',guard],env=env,capture_output=True,text=True)
   assert report_only.returncode == 0 and 'observation unavailable' in report_only.stderr

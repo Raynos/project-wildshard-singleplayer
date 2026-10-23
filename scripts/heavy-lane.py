@@ -232,18 +232,17 @@ def inherited_fds():
 
 
 def record_build(root, queued, started, load, code, inherited_lease=False):
-    """One report-only log, for 24 hours from the first observation. Never change the command verdict."""
+    """Continuous report-only log. Never change the command verdict."""
     try:
         ended = time.time()
         with scheduler(root):
             path = root / 'build-day.log'
             if not path.exists():
-                path.write_text(json.dumps({'schema': 'build-day/1', 'startedAt': started,
-                                            'expiresAt': started + 86400}) + '\n')
+                path.write_text(json.dumps({'schema': 'build-day/1', 'startedAt': started}) + '\n')
             with path.open() as stream:
                 header = json.loads(stream.readline())
-            if ended > header['expiresAt']:
-                return
+            if not isinstance(header, dict) or header.get('schema') != 'build-day/1':
+                raise ValueError('invalid build observation header')
             with path.open('a') as stream:
                 stream.write(json.dumps({'startedAt': started, 'endedAt': ended,
                     'queueSeconds': started - queued, 'buildSeconds': ended - started,

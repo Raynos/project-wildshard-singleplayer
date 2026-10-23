@@ -1,0 +1,86 @@
+"""Read-only SW5 report parsers: clocks, live logs and absent external inputs."""
+import contextlib
+import io
+import datetime as dt
+import json
+from pathlib import Path
+import runpy
+import tempfile
+import unittest
+from unittest.mock import patch
+
+API = runpy.run_path(str(Path(__file__).with_name('agent-time.py')))
+
+
+class AgentTimeTests(unittest.TestCase):
+    def test_live_push_log_parses_offsets_and_ignores_bad_rows(self):
+        with tempfile.TemporaryDirectory(dir='tmp') as directory:
+            path = Path(directory)/'push.log'
+            path.write_text('bad\n2026-10-23T01:00:00-0500 {"status":"quiet"}\n'
+                            '2026-10-23T06:00:01Z {"status":"pushed","gateSeconds":42}\n')
+            since = dt.datetime(2026,10,23,6,tzinfo=dt.timezone.utc).timestamp()
+            rows = API['push_rows'](path, since)
+            self.assertEqual([row['status'] for row in rows], ['quiet','pushed'])
+            self.assertEqual(rows[1]['at']-rows[0]['at'], 1)
+            self.assertEqual(API['push_rows'](path, since+1), [rows[1]])
+
+    def test_ci_cancelled_runs_do_not_close_or_open_red_windows(self):
+        def row(seconds, conclusion, event='push'):
+            return dict(updatedAt=dt.datetime.fromtimestamp(seconds, dt.timezone.utc).isoformat(),
+                        conclusion=conclusion,event=event,status='completed')
+        rows = [row(80,'failure'),row(110,'cancelled'),row(120,'success','schedule'),
+                row(130,'failure'),row(140,'success'),row(170,'failure')]
+        self.assertEqual(API['ci_windows'](rows,100,200), [40,30])
+        self.assertEqual(API['ci_windows']([row(80,'success'),row(150,'cancelled')],100,200), [])
+
+    def test_publication_latency_uses_main_ancestry_not_nearest_timestamp(self):
+        commits = [dict(sha='old',at=10),dict(sha='new',at=20),dict(sha='ejected',at=30)]
+        pushes = [dict(status='red',at=30,tip='new'),dict(status='pushed',at=40,tip='old'),dict(status='pushed',at=50,tip='new')]
+        self.assertEqual(API['publication_seconds'](pushes,commits,{'new':0,'old':1}), [30,30])
+
+    def test_nested_tool_results_capture_waits_without_prompt_commands(self):
+        reading={'timeouts':API['Counter'](),'queueSeconds':[]}
+        API['observe_output'](reading, json.dumps({'content':[{'type':'text','text':
+            'heavy-lane: timed out after 5 min waiting\nheavy-lane: acquired build after 76.5s queue'}]}))
+        self.assertEqual(reading['timeouts'], {'heavy-lane':1})
+        self.assertEqual(reading['queueSeconds'], [76.5])
+
+    def test_claude_mirror_hours_and_codex_project_filter(self):
+        cut=dt.datetime(2026,1,1,tzinfo=dt.timezone.utc)
+        with tempfile.TemporaryDirectory(dir='tmp') as directory:
+            root=Path(directory);claude=root/'claude';claude.mkdir()
+            entries=[{'timestamp':'2026-10-23T00:00:00Z','type':'assistant','message':{'content':[
+                {'type':'tool_use','id':'a','name':'Bash','input':{'command':'node scripts/build-mirror.mjs run HEAD'}}]}},
+                {'timestamp':'2026-10-23T00:01:00Z','type':'user','message':{'content':[
+                {'type':'tool_result','tool_use_id':'a','content':'heavy-lane: acquired build after 61s queue'}]}}]
+            (claude/'lane.jsonl').write_text('\n'.join(map(json.dumps,entries)))
+            reading={'commands':{},'timeouts':API['Counter'](),'queueSeconds':[],'opusMirrorHours':0}
+            API['claude'](cut,str(claude),reading)
+            self.assertAlmostEqual(reading['opusMirrorHours'],1/60)
+            self.assertEqual(reading['queueSeconds'],[61])
+            session=root/'2026/10/23';session.mkdir(parents=True)
+            (session/'lane.jsonl').write_text(json.dumps({'type':'session_meta','payload':{'cwd':'/other'}}))
+            self.assertEqual(API['codex'](cut,str(root),repo='/ours')[2],0)
+
+    def test_reading_prints_every_resource_even_when_external_sources_fail(self):
+        report=API['print_reading']
+        reading={'timeouts':API['Counter'](),'queueSeconds':[],'opusMirrorHours':0}
+        with tempfile.TemporaryDirectory(dir='tmp') as directory:
+            output=io.StringIO()
+            with patch.dict(report.__globals__,{'command':lambda *args,**kwargs: ('','unavailable fixture'),
+                    'json_command':lambda *args: (None,'unavailable fixture'),
+                    'file_count':lambda *args: 'unavailable'}), contextlib.redirect_stdout(output):
+                report(directory,2000000000,reading)
+            for name in ('Push gate','CI / red main','Build mirror','Heavy builds','Five-minute waits',
+                         'Full-test lane','Simulator / browsers','Commit lock / tree','Generated inputs','Machine','Budgets'):
+                self.assertIn('| '+name+' |',output.getvalue())
+            self.assertIn('unavailable fixture',output.getvalue())
+
+    def test_external_failure_is_named_and_never_retried(self):
+        command=API['json_command']
+        with patch.dict(command.__globals__,{'command':lambda *args: ('','gh exited 1')}):
+            self.assertEqual(command(['gh']), (None,'gh exited 1'))
+
+
+if __name__ == '__main__':
+    unittest.main()
