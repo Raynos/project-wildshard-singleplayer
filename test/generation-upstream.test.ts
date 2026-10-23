@@ -136,3 +136,22 @@ it('names the job and exact changed input while refusing an unproven copied stag
     .rejects.toThrow('Generation inputs changed while copying fixture-copy: source.txt (expected ');
   expect(existsSync(resolve(root,output))).toBe(false);
 });
+
+
+it('refuses a stale tracked output pin before restore and accepts the fresh matching producer',async()=>{
+  mkdirSync('tmp',{recursive:true});const root=mkdtempSync(resolve('tmp/generation-pin-'));owned.push(root);
+  const entry='src/shards/alpha/generators/bake-pin.mjs',output='public/assets/alpha/mesh.bin';
+  put(root,output,'old committed topology');put(root,'expected.bin','new merged topology');
+  const memo=new InputHashMemo(root),old=memo.hash(output),fresh=memo.hash('expected.bin');
+  put(root,entry,`import fs from 'node:fs';fs.writeFileSync('${output}','new merged topology');`);
+  const job={id:'fixture-pin',shard:'alpha',entry,command:[entry],inputRoots:[entry],outputs:[output],buildOutputs:{[output]:old},platform:'portable' as const};
+  const catalogue=(value:unknown):void=>put(root,'scripts/generation-jobs.json',JSON.stringify({schema:'generation-jobs/1',notice:'DO NOT EDIT fixture',jobs:[value]}));
+  catalogue(job);
+  await expect(generateShardJob(root,job,{cacheDir:resolve(root,'cache'),restore:true,forceCompare:true}))
+    .rejects.toThrow(`Pinned generation output differs: fixture-pin ${output}; expected ${old}, generated ${fresh}`);
+  expect(readFileSync(resolve(root,output),'utf8')).toBe('old committed topology');
+  const corrected={...job,buildOutputs:{[output]:fresh}};catalogue(corrected);
+  const result=await generateShardJob(root,corrected,{cacheDir:resolve(root,'cache'),restore:true,forceCompare:true});
+  try{expect(result.hashes[output]).toBe(fresh);expect(readFileSync(resolve(root,output),'utf8')).toBe('new merged topology');}
+  finally{result.release();}
+});
