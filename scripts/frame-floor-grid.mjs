@@ -1,4 +1,6 @@
 import { CHUNK_HALF, ENTRY_ASPHALT } from '@wildshard/engine/core/config';
+/** a home exit socket's centre from its cell centre (metres): the socket floor sits at the highway level */
+const EXIT = CHUNK_HALF - ENTRY_ASPHALT / 2;
 
 /** Browser-serialized reader: format 2 moves the original entryway rows into world/edge.
  * Verify that one declared section rather than treating its absent root field as a flat road. */
@@ -179,7 +181,9 @@ export function gridFloorPlans(state, scenario, options = {}) {
       .sort((a, b) => a.instance.localeCompare(b.instance))[0];
     if (!peer) throw new Error('Grid floor has no template');
     const p = origin(peer), dx = Math.sign(p.x - h.x), dz = Math.sign(p.z - h.z);
-    const start = dz === 0 ? { x: h.x + dx * 230, z: h.z } : { x: h.x, z: h.z + dz * 230 };
+    // leave from home's exit socket (its floor is the highway level): Driftwood's sea bed just inside its north socket lies
+    // 0.8 m under the socket's edge, so a start at 230 m hovered into that ledge and the route timed out at waypoint 0
+    const start = dz === 0 ? { x: h.x + dx * EXIT, z: h.z } : { x: h.x, z: h.z + dz * EXIT };
     const end = dx === 0 ? { x: p.x, z: p.z - dz * 230 } : { x: p.x - dx * 230, z: p.z };
     // Corners have no diagonal entrance: use the two midpoint turn-ins and their crossroads.
     const road = dx !== 0 && dz !== 0 ? [{ x: h.x, z: (h.z + p.z) / 2 },
@@ -193,7 +197,7 @@ export function gridFloorPlans(state, scenario, options = {}) {
     const p = origin(pine), n = origin(nalati);
     if (p.x !== h.x || p.z <= h.z || n.z !== h.z || n.x <= h.x) throw new Error('Unexpected Developer travel layout');
     const road = { x: (h.x + n.x) / 2, z: (h.z + p.z) / 2 };
-    plans.push({ name: 'pine-interior', from: home.instance, to: pine.instance, start: { x: h.x, z: h.z + 230 },
+    plans.push({ name: 'pine-interior', from: home.instance, to: pine.instance, start: { x: h.x, z: h.z + EXIT },
       waypoints: [{ x: p.x, z: p.z - 230 }], requiredResidents: [pine.instance], retiredResidents: [home.instance] },
     { name: 'nalati-interior', from: pine.instance, to: nalati.instance,
       waypoints: [{ x: p.x, z: road.z }, road, { x: road.x, z: n.z }, { x: n.x - 230, z: n.z }],
