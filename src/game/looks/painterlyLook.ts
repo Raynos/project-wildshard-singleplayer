@@ -70,10 +70,12 @@ export function paintedGroundPainter(slug: string, input: unknown, tiles: unknow
     const ground = scene.parts.get(rows.mesh);
     if (!isGroundMesh(ground) || !rows.shapes.every(id => isGroundMesh(scene.parts.get(id)))) throw new Error('Missing named ground mesh');
     terrain.material = material; terrain.mesh = ground;
-    const groundTiles = rows.tiles === true ? (product.shardfile.props?.tiles ?? []).filter(row => row.lod === 0) : [];
+    const tileRows = rows.tiles === true ? product.shardfile.props?.tiles ?? [] : [];
+    const groundTiles = tileRows.filter(row => row.lod === 0), coarseTiles = tileRows.filter(row => row.lod === 1);
     if (groundTiles.length > 0) {
       // tile streaming N1a: the tiles draw as one merged mesh (the terrain's mesh, its flags kept) and only the player's
-      // 5 x 5 of them stays loaded, followed from the merged mesh's own draws
+      // 5 x 5 of them stays loaded, followed from the merged mesh's own draws; N1b: the 16 L1 tiles stay loaded beyond it,
+      // each leaving out the quadrants its drawn L0 tiles cover
       const assets = runtimeProduct(product.shardfile).assets, parent = ground.parent === scene.root ? terrain.group : ground.parent;
       if (parent === null) throw new Error('Painted ground mesh has no parent');
       const radius = TILE_RING, loaded = new Map<number, Scope>(), at = new Vector3();
@@ -83,15 +85,29 @@ export function paintedGroundPainter(slug: string, input: unknown, tiles: unknow
         mesh.castShadow = ground.castShadow; mesh.receiveShadow = ground.receiveShadow; mesh.renderOrder = ground.renderOrder; terrain.mesh = mesh;
         mesh.onBeforeRender = (_renderer, _scene, camera) => { camera.getWorldPosition(at); parent.worldToLocal(at); follower.at(at.x, at.z); };
       });
+      // N1b: an L0 tile covers its coarse quadrant once it is merged (drawn), never while it is only wanted
+      const drawn = new Set<number>(), coarse: { readonly x: number; readonly z: number; readonly hide: (hidden: ReadonlySet<number>) => void }[] = [];
+      const cover = (): void => {
+        for (const tile of coarse) {
+          const hidden = new Set<number>();
+          for (let q = 0; q < 4; q++) if (drawn.has(tileKey({ i: 2 * tile.x + (q & 1), j: 2 * tile.z + (q >> 1) }))) hidden.add(q);
+          tile.hide(hidden);
+        }
+      };
+      const read = async (row: (typeof groundTiles)[number], owner: Scope): Promise<Mesh | null> => {
+        const owned = createOwnedGeometry(`${slug} ground l${String(row.lod)} ${String(row.x)}.${String(row.z)}`);
+        await owned.load(await assets.read(row.file));
+        const geometry = owned.take(); geometry.computeBoundingSphere();
+        if (owner.disposed) { geometry.dispose(); return null; }
+        owner.onDispose(() => { geometry.dispose(); });
+        return new Mesh(geometry, material);
+      };
       const load = async (row: (typeof groundTiles)[number]): Promise<void> => {
         const key = tileKey({ i: row.x, j: row.z }); if (loaded.has(key) || scope.disposed) return;
         const tileScope = scope.child(`painted.ground.t${String(key)}`); loaded.set(key, tileScope);
-        const owned = createOwnedGeometry(`${slug} ground ${String(row.x)}.${String(row.z)}`);
-        await owned.load(await assets.read(row.file));
-        const geometry = owned.take(); geometry.computeBoundingSphere();
-        if (tileScope.disposed) { geometry.dispose(); return; }
-        tileScope.onDispose(() => { geometry.dispose(); });
-        merge.add(new Mesh(geometry, material), tileScope);
+        const mesh = await read(row, tileScope); if (mesh === null) return;
+        merge.add(mesh, tileScope);
+        drawn.add(key); cover(); tileScope.onDispose(() => { drawn.delete(key); cover(); });
       };
       const loadLater = async (row: (typeof groundTiles)[number]): Promise<void> => {
         try { await load(row); } catch (error: unknown) { console.warn('[painted ground] tile failed to load', error); }
@@ -105,6 +121,11 @@ export function paintedGroundPainter(slug: string, input: unknown, tiles: unknow
         for (const row of groundTiles) if (keys.has(tileKey({ i: row.x, j: row.z }))) void loadLater(row);
       };
       for (const row of groundTiles) await load(row);
+      for (const row of coarseTiles) {
+        const owner = scope.child(`painted.ground.l1.${String(row.x)}.${String(row.z)}`), mesh = await read(row, owner);
+        if (mesh !== null) coarse.push({ x: row.x, z: row.z, hide: merge.add(mesh, owner, { x: row.x, z: row.z }) });
+      }
+      cover();
       ground.removeFromParent(); ground.geometry.dispose();
     }
     // These owned ground draws never clone or rewrite vertex channels again.
