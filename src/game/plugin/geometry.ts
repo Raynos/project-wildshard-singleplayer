@@ -1829,7 +1829,8 @@ export async function readWholeGeometry(scope: ResourceScope, source: Shardfile 
   };
   try {
     for (const [index, hash] of hashes.entries()) {
-      for (let ahead = index; ahead < index + WHOLE_READ_AHEAD; ahead++) readAt(ahead);
+      // started, not awaited here: each read already carries a catch, and its error surfaces where this loop awaits it
+      for (let ahead = index; ahead < index + WHOLE_READ_AHEAD; ahead++) void readAt(ahead);
       const pending = readAt(index); if (pending === undefined) throw new Error('Whole geometry read missing');
       const bytes = await pending; reads.delete(index);
       const gltf = await createRigLoader().parseBytesAsync(bytes, ''), cleanup: (() => void)[] = [];
