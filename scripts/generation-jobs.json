@@ -11986,11 +11986,13 @@
         "src/shards/nalati-grasslands/generators/bake-creature-views.mjs"
       ],
       "outputs": [
-        "src/shards/nalati-grasslands/behaviour/creatureViews.generated.json"
+        "src/shards/nalati-grasslands/behaviour/creatureViews.generated.json",
+        "src/shards/nalati-grasslands/behaviour/creatureViews.generated.wasm"
       ],
       "platform": "portable",
       "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/behaviour/creatureViews.generated.json"
+        "src/shards/nalati-grasslands/behaviour/creatureViews.generated.json",
+        "src/shards/nalati-grasslands/behaviour/creatureViews.generated.wasm"
       ]
     },
     {
@@ -12012,11 +12014,13 @@
         "src/shards/nalati-grasslands/generators/bake-elite-views.mjs"
       ],
       "outputs": [
-        "src/shards/nalati-grasslands/behaviour/eliteViews.generated.json"
+        "src/shards/nalati-grasslands/behaviour/eliteViews.generated.json",
+        "src/shards/nalati-grasslands/behaviour/eliteViews.generated.wasm"
       ],
       "platform": "portable",
       "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/behaviour/eliteViews.generated.json"
+        "src/shards/nalati-grasslands/behaviour/eliteViews.generated.json",
+        "src/shards/nalati-grasslands/behaviour/eliteViews.generated.wasm"
       ]
     },
     {
@@ -12038,11 +12042,13 @@
         "src/shards/nalati-grasslands/generators/bake-titan-view.mjs"
       ],
       "outputs": [
-        "src/shards/nalati-grasslands/behaviour/titanView.generated.json"
+        "src/shards/nalati-grasslands/behaviour/titanView.generated.json",
+        "src/shards/nalati-grasslands/behaviour/titanView.generated.wasm"
       ],
       "platform": "portable",
       "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/behaviour/titanView.generated.json"
+        "src/shards/nalati-grasslands/behaviour/titanView.generated.json",
+        "src/shards/nalati-grasslands/behaviour/titanView.generated.wasm"
       ]
     },
     {
@@ -12064,11 +12070,13 @@
         "src/shards/nalati-grasslands/generators/bake-titan-fire-view.mjs"
       ],
       "outputs": [
-        "src/shards/nalati-grasslands/behaviour/titanFireView.generated.json"
+        "src/shards/nalati-grasslands/behaviour/titanFireView.generated.json",
+        "src/shards/nalati-grasslands/behaviour/titanFireView.generated.wasm"
       ],
       "platform": "portable",
       "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/behaviour/titanFireView.generated.json"
+        "src/shards/nalati-grasslands/behaviour/titanFireView.generated.json",
+        "src/shards/nalati-grasslands/behaviour/titanFireView.generated.wasm"
       ]
     },
     {
@@ -12090,11 +12098,13 @@
         "src/shards/nalati-grasslands/generators/bake-titan-whirls-view.mjs"
       ],
       "outputs": [
-        "src/shards/nalati-grasslands/behaviour/titanWhirlsView.generated.json"
+        "src/shards/nalati-grasslands/behaviour/titanWhirlsView.generated.json",
+        "src/shards/nalati-grasslands/behaviour/titanWhirlsView.generated.wasm"
       ],
       "platform": "portable",
       "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/behaviour/titanWhirlsView.generated.json"
+        "src/shards/nalati-grasslands/behaviour/titanWhirlsView.generated.json",
+        "src/shards/nalati-grasslands/behaviour/titanWhirlsView.generated.wasm"
       ]
     },
     {

@@ -1,3 +1,5 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Read the same generated raw view module as the product.
+import {readFileSync} from 'node:fs';
 import { PerspectiveCamera, Vector3, type InstancedMesh, type Object3D } from 'three';
 import type { Scope } from '../../src/engine/app/scope';
 import { viewProgram, type ViewProgram } from '../../src/engine/script/viewProgram';
@@ -8,7 +10,7 @@ import fireModule from '../../src/shards/nalati-grasslands/behaviour/titanFireVi
 import whirlsModule from '../../src/shards/nalati-grasslands/behaviour/titanWhirlsView.generated.json' with { type: 'json' };
 
 /** A generated view module's bytes, as the product carries them (a happy-dom Response cannot feed a runtime compile). */
-const bytesOf = (module: { readonly bytes: string }): Uint8Array => Uint8Array.from(atob(module.bytes), byte => byte.codePointAt(0) ?? 0);
+const bytesOf = (module: { readonly source: string }): Uint8Array => Uint8Array.from(readFileSync(`src/shards/nalati-grasslands/${module.source}`));
 const player = { position: new Vector3(), velocity: new Vector3(), yaw: 0 };
 
 /** The arena fire view module (R6) over any cell field and fire look: the arrays and values the test drives, and its program. */
