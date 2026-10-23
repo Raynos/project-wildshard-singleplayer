@@ -905,6 +905,17 @@ ratio, including 100 percent when all declared files arrive. It does not
 hide a late dependency behind a maximum-so-far value or a 99.9 percent cap.
 Lazy module coverage still requires the selected build dependency graph.
 
+`readModuleFiles(input)` admits detached compiler-owned `/assets/` JavaScript
+and CSS URL/body-size tuples before any declaration publishes.
+`declareModuleFiles(input)` supplies those facts to the existing download
+accounting; it creates no network or cache receipt. The web build embeds the
+actual startup static chunk closure and the separately selected compiled-client
+closure in the existing HTML. Shared chunks count once; optional dynamic
+imports and referenced image URLs are not assumed to be downloads. The entry
+chunk and the single extracted stylesheet are included. This needs no metadata
+request or worker install expansion. Per-home lazy roots remain a separate
+inventory requirement.
+
 `observeDownloadAccounting(accounting)` adds a disposable page-activity observer
 without replacing the active boot attempt. Declarations, verified cache reads and
 worker receipts reach both; each observer keeps its own start time and receipt

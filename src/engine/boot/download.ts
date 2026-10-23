@@ -137,6 +137,24 @@ export function observeDownloadAccounting(accounting: DownloadAccounting): () =>
 
 /** Expected wire size for a file this path will read; product indexes supply exact sizes. */
 export function declareDownloadFile(url: string, bytes: number): void { accountingTargets(accounting => { accounting.declare(url, bytes); }); }
+/** Detached compiler-owned URL/body-size rows; usable by the build and page. */
+export function readModuleFiles(input: unknown): readonly (readonly [string, number])[] {
+  if (!Array.isArray(input) || input.length > 4096) throw new Error('Invalid boot module bank');
+  const files: [string, number][] = [];
+  for (const row of input) {
+    if (!Array.isArray(row) || row.length !== 2) throw new Error('Invalid boot module file');
+    const url: unknown = row[0], bytes: unknown = row[1];
+    if (typeof url !== 'string' || !/^\/assets\/[a-zA-Z0-9_.-]+\.(?:js|css)$/u.test(url)
+      || typeof bytes !== 'number' || !Number.isSafeInteger(bytes) || bytes < 0) throw new Error('Invalid boot module file');
+    files.push([url, bytes]);
+  }
+  return files;
+}
+/** Admit a compiler-owned static module bank completely before publishing its
+ * declarations. These are body sizes, never invented network/cache receipts. */
+export function declareModuleFiles(input: unknown): void {
+  for (const [url, bytes] of readModuleFiles(input)) declareDownloadFile(url, bytes);
+}
 /** Verified immutable cache reads stay separate from downloaded bytes. */
 export function recordCachedDownload(key: string, bytes: number, url?: string): void { accountingTargets(accounting => { accounting.cached(key, bytes, url); }); }
 /** Actual body reads reset the stall timer without mislabelling decoded bytes as network transport. */

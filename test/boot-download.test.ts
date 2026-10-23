@@ -1,10 +1,27 @@
 import { expect, it } from 'vitest';
-import { DownloadAccounting, type DownloadTiming, installDownloadAccounting, receiveWorkerDownloads, observeDownloadAccounting, currentDownloadAccounting, declareDownloadFile, recordCachedDownload } from '../src/engine/boot/download';
+import { DownloadAccounting, type DownloadTiming, installDownloadAccounting, receiveWorkerDownloads, observeDownloadAccounting, currentDownloadAccounting, declareDownloadFile, declareModuleFiles, recordCachedDownload } from '../src/engine/boot/download';
 
 const base = 'https://game.test/';
 const timing = (name: string, extra: Partial<DownloadTiming> = {}): DownloadTiming => ({
   name: new URL(name, base).href, startTime: 1, transferSize: 1300, encodedBodySize: 1000,
   workerStart: 0, serverTiming: [], ...extra,
+});
+
+it('declares static module bodies once, with no network credit and no prefix on an invalid suffix', () => {
+  const accounting = new DownloadAccounting(base), dispose = installDownloadAccounting(accounting);
+  try {
+    for (const invalid of [null, [['/assets/first.js', 4], ['https://foreign.test/late.js', 2]],
+      [['/assets/first.js', 4], ['/assets/late.js', -1]], [['/assets/first.js', 4], ['/assets/late.js', 1.5]],
+      [['/assets/first.js', 4], ['/assets/../late.js', 1]], [['/assets/first.js', 4, 'extra']]]) {
+      expect(() => declareModuleFiles(invalid)).toThrow('Invalid boot module');
+      expect(accounting.snapshot()).toMatchObject({ declaredFiles: 0, declaredBytes: 0 });
+    }
+    accounting.resource(timing('/assets/shared.js'));
+    const before = accounting.snapshot().networkBytes;
+    declareModuleFiles([['/assets/shared.js', 10], ['/assets/first.js', 4], ['/assets/page.css', 3]]);
+    declareModuleFiles([['/assets/shared.js', 10]]);
+    expect(accounting.snapshot()).toMatchObject({ declaredFiles: 3, declaredBytes: 17, declaredDoneBytes: 10, networkBytes: before });
+  } finally { dispose(); }
 });
 
 it('mid-play observation receives cache and worker activity without taking over the boot', () => {

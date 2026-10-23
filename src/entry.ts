@@ -1,7 +1,8 @@
 // oxlint-disable-next-line import/no-unassigned-import -- evaluated for its effect: the app identity is installed before any other module body runs (E414)
 import './identity';
 import { startPageServices } from './pageServices';
-import { persistHomeScreen } from './engine/saves/runtime';
+import { persistHomeScreen } from '@wildshard/engine/saves/runtime';
+import { declareModuleFiles } from '@wildshard/engine/boot/download';
 /**
  * The page's module entry. Everything the game imports statically is evaluated in ONE task when a module graph
  * runs: three.js plus the ~150 game modules at once was a 115–157 ms long task at 4× CPU before the first boot step
@@ -17,9 +18,9 @@ import { persistHomeScreen } from './engine/saves/runtime';
  * iOS26.5 keeps a failed module URL errored (L7 Simulator proof): SW network retries must finish the body before
  * WebKit sees it. A module that fetched fine but threw is not run twice: the engine keeps it errored and rethrows at once.
  */
-import { guardBoot } from './engine/boot/stuck';
-import { inspectPreviousBoot, previousBootLine, previousBootLevel } from './engine/boot/bootTrace';
-import { Scope } from './engine/app/scope';
+import { guardBoot } from '@wildshard/engine/boot/stuck';
+import { inspectPreviousBoot, previousBootLine, previousBootLevel } from '@wildshard/engine/boot/bootTrace';
+import { Scope } from '@wildshard/engine/app/scope';
 import { retried } from './engine/boot/retry';
 import { bootRoute } from './bootRoute';
 import { lastEnd } from './engine/boot/lastEnd';
@@ -111,6 +112,14 @@ async function startSelected(): Promise<void> {
   const { game } = await retried(() => import('./game/shard/registry'));
   const { beginLoading } = await retried(() => import('@wildshard/engine/ui/Loading'));
   const loading = beginLoading({ id: game.shard.slug, name: game.shard.name, trace: game.shard.boot?.phone?.trace === true });
+  const moduleText = document.getElementById('boot-module-files')?.textContent;
+  const moduleRows: unknown = moduleText === undefined ? undefined : JSON.parse(moduleText);
+  const modules = (kind: 'common' | 'client'): void => {
+    if (moduleRows === undefined) return; // Source/dev documents have no emitted chunk inventory.
+    if (typeof moduleRows !== 'object' || moduleRows === null || !Object.hasOwn(moduleRows, kind)) throw new Error('Missing boot module rows');
+    declareModuleFiles(Reflect.get(moduleRows, kind));
+  };
+  modules('common');
   const { gridPrefetchStatus } = await retried(() => import('./game/grid/prefetch'));
   loading.setPrefetchSource(gridPrefetchStatus);
   loading.waiting('Preparing application services');
@@ -135,6 +144,7 @@ async function startSelected(): Promise<void> {
     const { shardEntry } = await retried(() => import('./game/shard/entryMode'));
     const { default: calibration } = await retried(() => import('./loadingCalibration.json'));
     const path = page.mode === 'grid' ? 'grid' : source !== null || shardEntry(game.shard) === 'shardfile' ? 'shardfile' : 'legacy';
+    if (path === 'shardfile') modules('client');
     // Hybrid shardfile entries retain real TypeScript stages until their page is data-only.
     loading.setPath(loadingPath(path, game.shard.boot?.steps, path === 'shardfile' && source === null && game.shard.shardfile === undefined), calibration);
     const declaredIcons = ['lock', 'check', 'poi', 'you', 'map', 'pack', 'star', 'book', 'heart', 'pin', 'laurel', 'sword', 'glyph', 'coin', 'purse', 'crossbow', 'rifle', 'lever', 'longbow', 'grapple', 'horse'] as const;
