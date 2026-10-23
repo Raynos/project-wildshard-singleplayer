@@ -178,6 +178,10 @@ Failures and response metadata survive cleanup. An absent or changed old
 controller refuses the reading.
 After entry, the controller's BUILD reply must match the new deployment;
 an installed waiting worker alone cannot pass the update proof.
+The official polls retain actual entered/paused HUD state and the single
+`wildshard.grid.entry-policy` performance mark (reason, checkpoint presence,
+initial-entry policy, grid and arrival mode), without copying save contents.
+
 For the release diagnostic only, `--upgrade-second-tap=1` taps again when
 the first entry recovers to a title with `v`. Its separate result cannot
 pass the original failed entry. BUILD includes the bounded activation stage

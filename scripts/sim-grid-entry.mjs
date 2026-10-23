@@ -139,6 +139,8 @@ const READ = `JSON.stringify({ origin: performance.timeOrigin, entry: window.__s
   tap: Number(sessionStorage.getItem('sim.tap')),
   title: !!document.querySelector('.ws-main-select'), pill: document.querySelector('.ws-update')?.textContent ?? null,
   error: document.querySelector('#wsstuck')?.textContent ?? document.querySelector('#wserr .msg')?.textContent ?? null,
+  world: (()=>{const w=window.__wildshard?.world;return w?{entered:w.hud?.entered??null,paused:w.hud?.paused??null}:null;})(),
+  bootEntry: performance.getEntriesByName('wildshard.grid.entry-policy', 'mark').at(-1)?.detail ?? null,
   recovery: (()=>{try{const d=JSON.parse(localStorage.getItem('wildshard.save.v2.device')||'{}').keys??{},s=JSON.parse(sessionStorage.getItem('wildshard.save.v2.session')||'{}').keys??{};return {end:d['life.lastEnd'],arrival:s.titleArrival,backup:d['titleArrival.once'],travel:s['travel.handoff'],grid:s['grid.recovery.once'],gridBackup:d['grid.recovery.once'],guard:d['grid.recovery.guard']};}catch(error){return {error:String(error)};}})(),
   worker: {controller: navigator.serviceWorker?.controller?.state ?? null, waiting: window.__ws_sw?.waiting?.state ?? null} })`;
 

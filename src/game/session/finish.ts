@@ -104,6 +104,10 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   if (typeof finishPlan !== 'function') throw new Error('Boot plan cannot finish');
   Reflect.apply(finishPlan, plan, []); // throws unless both tracks are exactly 1
   releaseByteCounter();
+  if (resuming) performance.mark('wildshard.grid.entry-policy', { detail: {
+    reason: ctx.session.recovery?.reason ?? 'url', saved: ctx.session.recovery?.saved !== undefined,
+    continuing: ctx.continuingGridEntry, grid: ctx.grid !== null, arrival: arrival?.mode ?? 'none',
+  } });
   // G325: an arrival enters at once, but its AudioContext waits for the player's first tap (`installAudioUnlock`)
   // an app switch that takes the GPU (iOS): hold the loop, restore in place or reload where the player stood (E54)
   if (resuming && !ctx.continuingGridEntry) hud.setPaused(true); // A live recovery needs RESUME; a pre-entry update retains the original tap.
