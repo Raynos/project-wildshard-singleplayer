@@ -17303,6 +17303,7 @@
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
         "src/engine",
+        "budgets/desktop-reference.json",
         "src/game",
         "src/sdk",
         "src/format",
