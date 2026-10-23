@@ -1,6 +1,6 @@
 import type { Plugin } from 'vite';
 import ts from '@typescript/typescript6';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { readModuleFiles } from '../src/engine/boot/download';
 import { bootProductTotals } from './bootProducts';
@@ -37,6 +37,22 @@ export function startupImports(source: string): string[] {
   };
   visit(selected);
   return [...imports];
+}
+
+function literalImports(node: ts.Node): string[] {
+  const rows = new Set<string>();
+  const visit = (entry: ts.Node): void => {
+    if (ts.isCallExpression(entry) && entry.expression.kind === ts.SyntaxKind.ImportKeyword) {
+      const [source] = entry.arguments;
+      if (source === undefined || !ts.isStringLiteral(source)) throw new Error('Boot module requires a literal import');
+      rows.add(source.text);
+    }
+    ts.forEachChild(entry, visit);
+  };
+  visit(node); return [...rows];
+}
+function sourceImports(file: string): readonly string[] {
+  return existsSync(file) ? literalImports(ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true)) : [];
 }
 
 interface EmittedFile {
@@ -104,6 +120,15 @@ export function bootModulesPlugin(): Plugin {
       if (client === null || client.external !== false) throw new Error('Missing compiled client module');
       const grid = await this.resolve('./game/grid/session', entry);
       if (grid === null || grid.external !== false) throw new Error('Missing grid session module');
+      const gridRoots = [grid.id];
+      for (const file of ['src/game/session/play.ts', 'src/game/session/loadout.ts']) {
+        const importer = resolve(root, file);
+        for (const request of sourceImports(importer).filter(name => name.startsWith('../grid/'))) {
+          const dependency = await this.resolve(request, importer);
+          if (dependency === null || dependency.external !== false) throw new Error('Missing grid boot module');
+          gridRoots.push(dependency.id);
+        }
+      }
       const products = bootProductTotals(root), extras: Record<string, readonly [string, number, number, string]> = {};
       for (const prefix of Object.keys(products)) {
         const directory = prefix.split('/')[2];
@@ -123,7 +148,7 @@ export function bootModulesPlugin(): Plugin {
         if(catalogue===null||catalogue.external!==false)throw new Error('Missing full discovery module');
         catalogueFiles=bootModuleFiles(bundle,[catalogue.id]);
       }
-      const rows = { common: bootModuleFiles(bundle, ids), client: bootModuleFiles(bundle, [client.id]), grid: bootModuleFiles(bundle, [grid.id]), selection:selected, catalogue:catalogueFiles, products, extras };
+      const rows = { common: bootModuleFiles(bundle, ids), client: bootModuleFiles(bundle, [client.id]), grid: bootModuleFiles(bundle, gridRoots), selection:selected, catalogue:catalogueFiles, products, extras };
       const json = JSON.stringify(rows).replaceAll('<', String.raw`\u003c`);
       html.source = html.source.replace('<head>', `<head><script type="application/json" id="boot-module-files">${json}</script>`);
     } },

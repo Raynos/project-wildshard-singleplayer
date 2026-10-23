@@ -52,3 +52,8 @@ test('selected discovery composition has no static shard or complete-list depend
   const files=titleGraph(['src/shardSelection.ts']);
   expect(files.filter(file=>/src\/(?:shards\/|shardList\.ts$|shards\.generated\.ts$)/u.test(file))).toEqual([]);
 });
+
+test('standalone sessions leave grid presentation and equipment behind grid-only imports', () => {
+  const files = titleGraph(['src/game/session/session.ts']);
+  expect(files.filter(file => /src\/game\/grid\/(?:reveal|gridHud|budgetOverlay|budgetPoints|memoryRows|minimapBlend|enteredEquipment)\.ts$/u.test(file))).toEqual([]);
+});

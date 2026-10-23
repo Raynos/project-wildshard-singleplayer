@@ -68,12 +68,8 @@ import { PlayerHurt } from '@wildshard/engine/ui/playerHurt';
 import { onReview, queuedCount, quickNote } from '@wildshard/engine/ui/review';
 import { installBounds } from '@wildshard/engine/world/bounds';
 import { gridCells, gridHomeSim, pageMode } from '../plugin/context';
-import { installGridReveal } from '../grid/reveal';
-import { installGridHud } from '../grid/gridHud';
-import { installBudgetOverlay } from '../grid/budgetOverlay';
 import { installMemoryWarning, residentOverLimit } from '../grid/memoryWarning';
 import { ACCENTS } from '@wildshard/format/accent';
-import { installMinimapBlend } from '../grid/minimapBlend';
 import { installShardHoverSpeed } from '../grid/rules';
 import { findShard } from '../shard/registry';
 import { accentHex, hudAccent, onHudAccent, setHudAccent } from './hudAccent';
@@ -503,6 +499,10 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   // the grid's player-facing moments: G98's sky-down reveal to the pier (G622 D1: 3 s, any touch or key takes over), then
   // G78's SAFE ZONE + dimmed ATTACK on the road, G82 / G105's title card on entering a shard, G97's speed look (gridHud.ts)
   if (grid !== null) {
+    const [{ installGridReveal }, { installGridHud }, { installBudgetOverlay }, { installMinimapBlend }] = await Promise.all([
+      import('../grid/reveal'), import('../grid/gridHud'), import('../grid/budgetOverlay'), import('../grid/minimapBlend'),
+    ]);
+    if (game.levelScope.disposed || game.levelScope.disposing) throw new Error('Grid owner retired while loading presentation');
     const revealing = session.recovery === undefined || initialGridReload(session.recovery) ? installGridReveal({ scope: game.levelScope, camera: game.camera, hudRoot: hud.root, canvas: game.renderer.domElement, onLate: (fn) => { game.onLate(fn, 'game.grid.reveal'); },
       home: chunk.name, ringsReady: () => grid.ringsReady(), homeSimReady: () => !gridHomeSim.pending, weapons, viewmodel: game.viewmodel, entered: () => hud.entered }) : () => false;
     const gridHud = installGridHud({ scope: game.levelScope, hudRoot: hud.root, camera: game.camera, cells: gridCells,

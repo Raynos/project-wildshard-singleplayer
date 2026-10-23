@@ -4,7 +4,6 @@ import type { Weapon } from '@wildshard/engine/combat/Weapon';
 import { weaponInputContext } from '@wildshard/engine/input/gameplay';
 import { type TrainingArena as Arena, TrainingArena } from '@wildshard/engine/practice/TrainingArena';
 import type { DiscSpot } from '@wildshard/engine/ui/hudSlots';
-import { EnteredEquipment } from '../grid/enteredEquipment';
 import { GAME_STRINGS } from '../strings';
 import { titleCards } from '../titleDeck';
 import { buildTitleMenu } from '../mainMenu';
@@ -80,7 +79,11 @@ async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) {
       bind: (action, run, scope, allowed) => { app.input.bind(action, run, scope, allowed ?? (() => roadEquipment.current.enabled)); },
     } } satisfies NonNullable<ConstructorParameters<typeof EquipmentService>[1]>),
     ...(authoredKit.order === undefined ? {} : { order: [...authoredKit.order] }) });
-  const enteredEquipment = ctx.session.ownedGridHome === true ? new EnteredEquipment(roadEquipment) : undefined;
+  const enteredEquipment = ctx.session.ownedGridHome === true ? await (async () => {
+    const { EnteredEquipment } = await import('../grid/enteredEquipment');
+    if (game.levelScope.disposed || game.levelScope.disposing) throw new Error('Grid owner retired while loading equipment');
+    return new EnteredEquipment(roadEquipment);
+  })() : undefined;
   const weapons = enteredEquipment?.service ?? roadEquipment;
   for (const w of [...(rifle ? [rifle] : []), ...(authoredKit.extras ?? []), ...(longbow ? [longbow] : [])]) weapons.add(w, { locked: true });
   weaponInputContext(weapons, game.levelScope);
