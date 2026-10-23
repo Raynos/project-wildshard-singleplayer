@@ -1,9 +1,27 @@
 import * as v from 'valibot';
 
 const finite = v.pipe(v.number(), v.finite());
-const trackSchema = v.strictObject({ bone: v.pipe(v.string(), v.maxLength(64)), property: v.picklist(['position', 'rotation', 'scale', 'quaternion']), axis: v.picklist(['x', 'y', 'z']), order: v.picklist(['XYZ', 'YXZ', 'ZXY', 'ZYX', 'YZX', 'XZY']), values: v.pipe(v.array(finite), v.maxLength(300000)) });
+// Copy bounded sample tables once; per-number schema datasets otherwise dominate skin admission allocations.
+function samples(minimum: number, maximum: number) {
+  return v.pipe(v.unknown(), v.rawTransform(({ dataset, addIssue, NEVER }): number[] => {
+    const input = dataset.value;
+    if (!Array.isArray(input) || input.length < minimum || input.length > maximum) {
+      addIssue({ message: 'Skin sample array outside cap' }); return NEVER;
+    }
+    const length = input.length, output: number[] = []; output.length = length;
+    for (let index = 0; index < length; index++) {
+      const value: unknown = input[index];
+      if (typeof value !== 'number' || !Number.isFinite(value)) {
+        addIssue({ message: 'Skin sample must be finite', path: [{ type: 'array', origin: 'value', input, key: index, value }] }); return NEVER;
+      }
+      output[index] = value;
+    }
+    return output;
+  }));
+}
+const trackSchema = v.strictObject({ bone: v.pipe(v.string(), v.maxLength(64)), property: v.picklist(['position', 'rotation', 'scale', 'quaternion']), axis: v.picklist(['x', 'y', 'z']), order: v.picklist(['XYZ', 'YXZ', 'ZXY', 'ZYX', 'YZX', 'XZY']), values: samples(0, 300000) });
 /** Independent sampled clocks supplement a base clip; optional phase tables preserve coupled gait and breath. */
-export const SkinPoseLayerSchema = v.strictObject({ id: v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128)), period: v.pipe(finite, v.minValue(0.01), v.maxValue(120)), times: v.pipe(v.array(finite), v.minLength(2), v.maxLength(4097)), phasePeriod: v.pipe(finite, v.minValue(0.01), v.maxValue(120)), phaseSteps: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(64)), tracks: v.pipe(v.array(trackSchema), v.maxLength(128)) });
+export const SkinPoseLayerSchema = v.strictObject({ id: v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128)), period: v.pipe(finite, v.minValue(0.01), v.maxValue(120)), times: samples(2, 4097), phasePeriod: v.pipe(finite, v.minValue(0.01), v.maxValue(120)), phaseSteps: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(64)), tracks: v.pipe(v.array(trackSchema), v.maxLength(128)) });
 /** Callback-free pose samples, bounded and owned by the skin binding. */
 export type SkinPoseLayer = v.InferOutput<typeof SkinPoseLayerSchema>;
 /** Validate table sizes, periodic endpoints and joint references before compiling float buffers. */
