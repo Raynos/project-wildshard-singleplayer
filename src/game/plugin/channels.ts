@@ -31,13 +31,22 @@ export interface ClientChannelLane {
 }
 /** A lane over a program its caller has just admitted with `parseClientChannels` (G639: a table installed group by group
  *  re-validated every row it had parsed; Nalati's entry spent 0.3-0.65 s frames in it). Its arrays are copied, never kept. */
+/** each expression's operand slots (-1: none); a frozen node list's are made once and shared by every lane over it (G639:
+ *  a herd's first pose frame made them once per body), never written */
+const operandTables = new WeakMap<object, { readonly a: Int32Array; readonly b: Int32Array }>();
+function operandsOf(nodes: ClientChannelProgram['nodes']): { readonly a: Int32Array; readonly b: Int32Array } {
+  const known = operandTables.get(nodes); if (known !== undefined) return known;
+  const made = { a: Int32Array.from(nodes, node => 'a' in node ? node.a : -1), b: Int32Array.from(nodes, node => 'b' in node ? node.b : -1) };
+  if (Object.isFrozen(nodes)) operandTables.set(nodes, made);
+  return made;
+}
 export function admittedClientChannels(program: ClientChannelProgram): ClientChannelLane {
   // a frozen (admitted, shared) table is read in place; any other caller's arrays are copied
   const nodes = Object.isFrozen(program.nodes) ? program.nodes : structuredClone(program.nodes), scratch = new Float64Array(nodes.length), published = new Float64Array(nodes.length), reads = new Float64Array(program.reads.length);
   const slots = program.locals !== undefined && Object.isFrozen(program.locals) ? program.locals : structuredClone(program.locals ?? []), locals = new Float64Array(slots.length), previous = new Float64Array(slots.length), next = new Float64Array(slots.length);
   let initialized = false;
   // each expression's operand slots, read once (-1: none), so the evaluator never asks a node which fields it has
-  const operandA = Int32Array.from(nodes, node => 'a' in node ? node.a : -1), operandB = Int32Array.from(nodes, node => 'b' in node ? node.b : -1);
+  const { a: operandA, b: operandB } = operandsOf(nodes);
   const frame: Partial<Record<ClientChannelProperty, number>> = {};
   for (const channel of program.channels) Object.defineProperty(frame, channel.property, { enumerable: true, get: () => published[channel.value] });
   Object.freeze(frame);
