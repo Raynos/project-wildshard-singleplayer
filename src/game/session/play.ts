@@ -513,11 +513,11 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     const slugCount = new Map<string, number>();
     for (const cell of grid.assembly.cells) slugCount.set(cell.slug, (slugCount.get(cell.slug) ?? 0) + 1);
     const cellName = new Map(grid.assembly.cells.map((cell) => { const name = findShard(cell.slug)?.name ?? cell.slug; return [cell.instance, (slugCount.get(cell.slug) ?? 0) > 1 ? `${name} ${cell.cell[0]},${cell.cell[1]}` : name]; }));
-    const cellCost = new Map(grid.assembly.cells.map((cell) => [cell.instance, findShard(cell.slug)?.runtimeCost] as const));
     const memory = session.memory;
     const budget = installBudgetOverlay({ scope: game.levelScope, hudRoot: hud.root, allocator: grid.allocator, name: (owner) => cellName.get(owner) ?? owner, shard: (owner) => cellName.has(owner),
-      measuredMB: (owner) => { const cost = cellCost.get(owner); return cost === undefined ? null : cost.webContentMB + cost.glMB; },
       ...(memory === undefined ? {} : { overLimit: () => residentOverLimit(memory) }) });
+    // G628 M7: the strip's trend reads the headline at each cell entry
+    game.levelScope.onDispose(gridCells.onEnter(() => { budget.crossed(); }));
     game.levelScope.onDispose(app.debug.scopedExpose('gridBudget', budget));
     game.levelScope.onDispose(app.debug.scopedExpose('gridHud', { state: gridHud, minimap: () => { const o = blend(); return { baseAlpha: o.baseAlpha ?? 1, images: o.images.map((m) => ({ x: m.x, z: m.z, alpha: m.alpha })), labels: o.labels.map((l) => l.text) }; } }));
   }

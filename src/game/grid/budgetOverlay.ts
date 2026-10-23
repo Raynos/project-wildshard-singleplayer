@@ -1,34 +1,38 @@
 /**
- * The points budget overlay (SHARD-PLATFORM SF38, G30): Developer mode only, grid pages only. One line under the top bar,
- * in plain words ("MEMORY · ALL LOADED 2331 MB · PINE HOLLOW 114% OF LIMIT · 1370 / 1200 MB · 3 SHARDS OK · SHARED 113 MB").
- * G556: each shard is scored against its own 1.2 GB playing / 1.8 GB loading limit (red over it) and its §3.2 category
- * budget (amber over it); the page total is information only, with no cap and no tone. A tap expands the raw bytes per category (library, L0 / L1 tiles, sim, road, far, commons, product and the
- * overlap allowance), each shard's tiles and the heaviest tiles. The numbers are `budgetPoints.ts` over the one live
- * residency allocator (SF18b / G144), read once a second, never per frame.
+ * The memory strip (SHARD-PLATFORM SF38 / G30, rebuilt by G628's memory-strip rows M1 / M3 / M5 / M7): Developer mode only,
+ * grid pages only. One line under the top bar: the page's memory headline against the phone's crash line, in plain words
+ * ("MEM ≈1.46 GB / 2.05 · 3 WORLDS · +440 MB SINCE START"), its colour the danger band (amber from 1.5 GB, red from
+ * 1.75 GB: D1, against the 17 Pro's ~2.05 GB WebContent jetsam line), and one red line per loaded shard over its own limit
+ * (M4, `memoryWarning.ts`). The headline is the larger of the cost model (`allocator.cost().playing`) and what this page
+ * measured (M5, D2): the native WebContent + GL reading when a harness lent one, else the engine base plus the observed GPU
+ * storage and RAM. A tap expands the parts that add up to the model (M2's `budgetBreakdown`), the trend (M7: the headline
+ * at each cell entry, the first and the last six), each world's shard limit alone and the observed allocations. Read
+ * once a second, never per frame.
  *
  * Costs nothing when off: no element and no timer exist until the Developer switch is on; switching it off stops the
- * timer and hides the strip. Text is authored with `textContent` only. Players never see it (no URL switch, E162).
+ * timer and hides the strip (the trend still records each entry: one allocator read). Text is authored with
+ * `textContent` only. Players never see it (no URL switch, E162).
  */
 import type { Scope } from '@wildshard/engine/app/scope';
+import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { isDev, onDev } from '@wildshard/engine/core/devMode';
 import { mountUi } from '@wildshard/engine/ui/ownership';
 import { memoryAttribution, type MemorySnapshot } from '@wildshard/engine/core/memoryAttribution';
 import type { ResidencyAllocator } from './allocator';
-import { BUDGET_CATEGORIES, megabytes, PLATFORM_OWNER, readBudgetPoints, tone as scoreTone, type BudgetCategory, type BudgetPoints, type BudgetShard, type PointsTone } from './budgetPoints';
+import { budgetBreakdown, megabytes, PLATFORM_OWNER, readBudgetPoints, type BudgetPoints, type PointsTone } from './budgetPoints';
 import { memoryRows, type MemoryGrouping, type MemorySort } from './memoryRows';
 import './budgetOverlay.css';
 
-/** Developer tooling text (not player-facing; never localized). */
-const TEXT = {
-  title: 'MEMORY', ok: 'SHARDS OK', platform: 'SHARED', crossroads: 'ALL LOADED', limit: 'OF LIMIT', loading: 'LOAD', road: 'ROAD', tiles: 'TILES', worst: 'WORST', measured: 'MEASURED',
-  category: { library: 'LIBRARY', l0: 'L0 TILES', l1: 'L1 TILES', sim: 'SIM', road: 'ROAD', far: 'FAR', commons: 'COMMONS', product: 'PRODUCT' } satisfies Record<BudgetCategory, string>,
-  overlap: 'OVERLAP', base: 'ENGINE BASE', factor: 'RESIDENT ×', accounted: 'ACCOUNTED', playing: 'PLAYING',
-  info: 'PAGE TOTAL · INFORMATION ONLY: THE LIMITS ARE PER SHARD',
-} as const;
+/** D1: the headline turns amber at this many bytes (decimal, MB = 10^6) */
+export const MEMORY_AMBER = 1.5e9;
+/** D1: and red at this many */
+export const MEMORY_RED = 1.75e9;
+/** the iPhone 17 Pro's WebContent jetsam line (~2.05 GB): what the headline is read against */
+export const CRASH_LINE = 2.05e9;
+/** M7: how many entries after the first the trend keeps */
+export const TREND_KEPT = 6;
 /** How often the strip re-reads the allocator while it shows. */
 export const BUDGET_REFRESH_MS = 1000;
-/** How many of the heaviest tiles the expanded view lists. */
-const WORST_TILES = 6;
 
 export interface BudgetOverlayHost {
   readonly scope: Scope;
@@ -36,9 +40,7 @@ export interface BudgetOverlayHost {
   readonly allocator: Pick<ResidencyAllocator, 'entries' | 'cost'>;
   /** an owner (a cell instance) to its shard's display name; the platform is the road */
   readonly name: (owner: string) => string;
-  /** the owner's reviewed standalone measurement (MB), when its shard has one */
-  readonly measuredMB?: (owner: string) => number | null;
-  /** whether an owner is a shard with a budget (a cell instance); others are page-wide (the road, the platform's sims) */
+  /** whether an owner is a shard with a limit (a cell instance); others are page-wide (the road, the platform's sims) */
   readonly shard?: (owner: string) => boolean;
   /** Existing allocation identities, not another admission ledger. Null native readings remain unavailable. */
   readonly memory?: () => MemorySnapshot;
@@ -48,90 +50,77 @@ export interface BudgetOverlayHost {
 export interface BudgetOverlay {
   /** the last scored table (null until Developer mode first shows the strip) */
   readonly state: () => BudgetPoints | null;
+  /** the last headline (null until Developer mode first shows the strip) */
+  readonly headline: () => MemoryHeadline | null;
+  /** the trend: the headline at the first entry, then at the last {@link TREND_KEPT} (bytes) */
+  readonly trend: () => readonly number[];
   /** re-read the allocator now (the timer does this every {@link BUDGET_REFRESH_MS}) */
   readonly refresh: () => void;
-  /** expand or collapse the raw numbers (the tap) */
+  /** expand or collapse the breakdown (the tap) */
   readonly toggle: () => void;
+  /** M7: a cell was entered; the trend records the headline now */
+  readonly crossed: () => void;
+}
+
+/** M1 / M5: the page's memory headline, the larger of the cost model and the page's own measurement. */
+export interface MemoryHeadline {
+  readonly bytes: number; readonly tone: PointsTone;
+  /** the cost model's playing bytes */
+  readonly model: number;
+  /** the native reading, else the engine base + observed GPU storage and RAM; null when nothing was observed */
+  readonly measured: number | null;
+  /** which of the two the headline is */
+  readonly source: 'model' | 'native' | 'observed';
+}
+export function memoryTone(bytes: number): PointsTone { return bytes >= MEMORY_RED ? 'red' : bytes >= MEMORY_AMBER ? 'amber' : 'green'; }
+export function memoryHeadline(model: number, snapshot: MemorySnapshot | null, engineBase: number): MemoryHeadline {
+  const native = snapshot?.measured ?? null, observed = snapshot === null ? 0 : snapshot.totals.gpu + snapshot.totals.ram;
+  const measured = native !== null ? native.webContentBytes + native.labelledGpuBytes : observed > 0 ? engineBase + observed : null;
+  const bytes = Math.max(model, measured ?? 0);
+  return { bytes, tone: memoryTone(bytes), model, measured, source: measured === null || measured <= model ? 'model' : native !== null ? 'native' : 'observed' };
 }
 
 const MB = (bytes: number): string => `${megabytes(bytes)} MB`;
+const GB = (bytes: number): string => (bytes / 1e9).toFixed(2);
 function el(tag: string, className: string, text?: string): HTMLElement {
   const node = document.createElement(tag); node.className = className;
   if (text !== undefined) node.textContent = text;
   return node;
 }
-/** G556: red only over the shard's own limit; its category budget warns amber at most. */
-export function shardTone(shard: BudgetShard): PointsTone | null {
-  if (shard.limit === null || shard.tone === null) return shard.tone;
-  if (shard.limit.tone === 'red') return 'red';
-  return shard.limit.tone === 'amber' || shard.tone !== 'green' ? 'amber' : 'green';
-}
 /** A `data-*` attribute: the tone for the stylesheet, raw bytes for tests and captures. */
 function data(node: HTMLElement, name: string, value: string | number): void { node.setAttribute(`data-${name}`, String(value)); }
-function scored(className: string, text: string, tone: PointsTone | null): HTMLElement {
-  const node = el('span', className, text); data(node, 'tone', tone ?? 'none'); return node;
-}
 function row(label: string, value: string, tone: PointsTone | null = null): HTMLElement {
   const line = el('div', 'ws-grid-budget-row'); data(line, 'tone', tone ?? 'none');
   line.append(el('span', 'ws-grid-budget-k', label), el('span', 'ws-grid-budget-v', value));
   return line;
 }
-
-/** The footprint the attribution is graded against (SF64): the native WC + labelled GL reading when a harness lent one, else
- * the allocator's Simulator-calibrated playing envelope (engine base + resident factor × accounted + overlap). `named` is
- * observed storage with an owner; `remainder` is everything else, labelled-unattributed storage plus RAM nobody observed. */
-export interface MemoryFootprint {
-  readonly bytes: number; readonly source: 'native' | 'calibrated';
-  readonly gpu: number; readonly ram: number; readonly remainder: number; readonly share: number;
-}
-/** The target share of the footprint without an owner (SF64 proof: < 10 %). */
-export const UNATTRIBUTED_TARGET = 0.1;
-export function memoryFootprint(snapshot: MemorySnapshot, calibrated: number): MemoryFootprint {
-  const measured = snapshot.measured;
-  const bytes = measured === null ? calibrated : measured.webContentBytes + measured.labelledGpuBytes;
-  const gpu = snapshot.totals.gpu - snapshot.unattributed.gpu, ram = snapshot.totals.ram - snapshot.unattributed.ram;
-  // capacity rows (WASM, decoded audio) can exceed what a calibrated envelope predicts: the named part is clamped, never negative remainder
-  const shown = Math.min(bytes, gpu + ram), scale = gpu + ram > 0 ? shown / (gpu + ram) : 0;
-  const remainder = Math.max(0, bytes - shown);
-  return { bytes, source: measured === null ? 'calibrated' : 'native', gpu: Math.round(gpu * scale), ram: Math.round(ram * scale), remainder, share: bytes > 0 ? remainder / bytes : 0 };
-}
-/** The page footprint gauge: owned GPU, owned RAM and the unattributed remainder as one stacked bar (no cap, G556). */
-function footprintGauge(foot: MemoryFootprint): HTMLElement {
-  const span = Math.max(1, foot.bytes), pct = (bytes: number): string => `${(bytes / span * 100).toFixed(2)}%`;
-  const box = el('div', 'ws-grid-budget-gauge'); data(box, 'source', foot.source); data(box, 'footprint-bytes', foot.bytes);
-  const tone: PointsTone = foot.share < UNATTRIBUTED_TARGET ? 'green' : foot.share < 2 * UNATTRIBUTED_TARGET ? 'amber' : 'red';
-  box.append(row(foot.source === 'native' ? 'FOOTPRINT · NATIVE WC + GL' : 'FOOTPRINT · SIMULATOR-CALIBRATED', MB(foot.bytes)));
-  const bar = el('div', 'ws-grid-budget-gauge-bar');
-  for (const [name, bytes] of [['gpu', foot.gpu], ['ram', foot.ram], ['remainder', foot.remainder]] as const) {
-    const part = el('span', `ws-grid-budget-gauge-${name}`); part.style.width = pct(bytes); data(part, 'bytes', bytes); bar.append(part);
-  }
-  box.append(bar, el('p', 'ws-grid-budget-memory-note', `▮ GPU OWNED ${MB(foot.gpu)} · ▮ RAM OWNED ${MB(foot.ram)} · ▯ NO OWNER ${MB(foot.remainder)}`));
-  const share = row('NO OWNER (OF FOOTPRINT)', `${(foot.share * 100).toFixed(1)}% · TARGET < ${UNATTRIBUTED_TARGET * 100}%`, tone);
-  data(share, 'unattributed-share', foot.share.toFixed(4)); box.append(share);
-  return box;
+function section(title: string, ...rows: HTMLElement[]): HTMLElement {
+  const sec = el('section', 'ws-grid-budget-sec'); sec.append(el('h4', 'ws-grid-budget-h', title), ...rows); return sec;
 }
 
-/** Install the overlay on a grid page; everything leaves with the scope. */
+/** Install the strip on a grid page; everything leaves with the scope. */
 export function installBudgetOverlay(host: BudgetOverlayHost): BudgetOverlay {
   const { scope } = host;
   let root: HTMLElement | null = null, bar: HTMLElement | null = null, detail: HTMLElement | null = null;
-  let timer: ReturnType<typeof setInterval> | 0 = 0, expanded = false, last: BudgetPoints | null = null, signature = '';
+  let timer: ReturnType<typeof setInterval> | 0 = 0, expanded = false, last: BudgetPoints | null = null, head: MemoryHeadline | null = null, signature = '';
   let group: MemoryGrouping = 'owner', sort: MemorySort = 'total';
   let allocationScope: Scope | null = null;
-  const label = (owner: string): string => (owner === PLATFORM_OWNER ? TEXT.road : host.name(owner));
+  const trend: number[] = [];
+  const label = (owner: string): string => (owner === PLATFORM_OWNER ? 'ROAD' : host.name(owner));
+  const snapshot = (accounted: number): MemorySnapshot => host.memory?.() ?? memoryAttribution.snapshot(accounted);
+  const read = (cost: ReturnType<BudgetOverlayHost['allocator']['cost']>, memory: MemorySnapshot | null): MemoryHeadline =>
+    memoryHeadline(cost.playing, memory, cost.input.engineBase ?? CONTENT_CAPS.engineBase);
 
-  const memorySection = (snapshot: MemorySnapshot, calibrated: number): HTMLElement => {
+  const memorySection = (memory: MemorySnapshot): HTMLElement => {
     allocationScope?.dispose();
     const entered = scope.child('ui.budget-memory'); allocationScope = entered;
-    const sec = el('section', 'ws-grid-budget-sec'); data(sec, 'memory', 'observed');
-    sec.append(el('h4', 'ws-grid-budget-h', 'GPU / RAM · OBSERVED STORAGE'),
-      row('GPU', MB(snapshot.totals.gpu)), row('RAM STORAGE / CAPACITY', MB(snapshot.totals.ram)),
-      row('UNATTRIBUTED GPU', MB(snapshot.unattributed.gpu)), row('UNATTRIBUTED RAM STORAGE', MB(snapshot.unattributed.ram)));
-    const measured = snapshot.measured;
+    const sec = section('SEEN ON THIS PAGE · OBSERVED STORAGE', row('GPU', MB(memory.totals.gpu)), row('RAM STORAGE / CAPACITY', MB(memory.totals.ram)),
+      row('UNATTRIBUTED GPU', MB(memory.unattributed.gpu)), row('UNATTRIBUTED RAM STORAGE', MB(memory.unattributed.ram)));
+    data(sec, 'memory', 'observed');
+    const measured = memory.measured;
     sec.append(row('NATIVE WC + LABELLED GL', measured === null ? 'NOT SAMPLED' : MB(measured.webContentBytes + measured.labelledGpuBytes)));
     if (measured !== null) sec.append(el('p', 'ws-grid-budget-memory-note', `${new Date(measured.sampledAt).toISOString()} · ${measured.source}`));
-    sec.append(footprintGauge(memoryFootprint(snapshot, calibrated)));
-    sec.append(el('p', 'ws-grid-budget-memory-note', 'GPU is allocated storage. RAM is live storage / capacity, not physical footprint. Neither is added to WebContent. Native unobserved RAM remains unknown.'));
+    sec.append(el('p', 'ws-grid-budget-memory-note', 'GPU is allocated storage. RAM is live storage / capacity, not physical footprint. Native unobserved RAM remains unknown.'));
     const controls = el('div', 'ws-grid-budget-tools');
     const pick = (name: string, choices: readonly (readonly [string, string])[], value: string, changed: (value: string) => void): void => {
       const select = document.createElement('select'); select.className = 'ws-grid-budget-choice'; select.setAttribute('aria-label', name);
@@ -143,7 +132,7 @@ export function installBudgetOverlay(host: BudgetOverlayHost): BudgetOverlay {
       sort = value === 'gpu' || value === 'ram' || value === 'name' ? value : 'total';
     });
     sec.append(controls);
-    const projection = memoryRows(snapshot, group, sort);
+    const projection = memoryRows(memory, group, sort);
     for (const allocation of projection.rows) {
       const line = row(allocation.asset.length === 0 ? allocation.owner : `${allocation.owner}\n${allocation.asset}`, `GPU ${MB(allocation.gpu)} · RAM ${MB(allocation.ram)}`);
       line.classList.add('ws-grid-budget-allocation');
@@ -160,65 +149,57 @@ export function installBudgetOverlay(host: BudgetOverlayHost): BudgetOverlay {
     entered.listen(sec, 'click', event => { event.stopPropagation(); });
     return sec;
   };
-  const paint = (points: BudgetPoints, memory: MemorySnapshot | null): void => {
+  const paint = (points: BudgetPoints, headline: MemoryHeadline, parts: ReturnType<typeof budgetBreakdown>, memory: MemorySnapshot | null,
+    over: readonly { readonly owner: string; readonly overBytes: number }[]): void => {
     if (bar === null || detail === null) return;
-    const { crossroads } = points;
-    // plain words (playtest round 2): "ALL LOADED 2331 MB" (G556: information only), each shard as "% OF LIMIT" and the same playing envelope
-    const head = scored('ws-grid-budget-x', `${TEXT.crossroads} ${Math.round(crossroads.playing / 1e6)} MB`, null);
-    data(head, 'playing', crossroads.playing); data(head, 'accounted', crossroads.accounted);
-    // collapsed, the line names only the shards over a warning line; green shards and page-wide owners are counted
-    const chip = (shard: BudgetShard, shown: boolean): HTMLElement => {
-      const { limit } = shard, name = label(shard.owner).toUpperCase();
-      const node = scored('ws-grid-budget-chip', shard.points === null || limit === null ? `${name} ${megabytes(shard.total)} MB`
-        : `${name} ${limit.playingPoints}% ${TEXT.limit} · ${Math.round(limit.playing / 1e6)} / ${Math.round(limit.playingCap / 1e6)} MB`, shardTone(shard));
-      data(node, 'owner', shard.owner); data(node, 'bytes', shard.total); if (limit !== null) data(node, 'limit-playing', limit.playing);
-      node.hidden = !shown; return node;
-    };
-    const warned = (shard: BudgetShard): boolean => { const t = shardTone(shard); return t === 'amber' || t === 'red'; };
-    const green = points.shards.filter((shard) => shardTone(shard) === 'green').length;
-    const page = points.shards.filter((shard) => shard.budget === null).reduce((sum, shard) => sum + shard.total, 0);
-    bar.replaceChildren(el('b', 'ws-grid-budget-title', TEXT.title), head, ...points.shards.map((shard) => chip(shard, expanded || warned(shard))),
-      ...(expanded ? [] : [scored('ws-grid-budget-chip', `${green} ${TEXT.ok}`, 'green'), scored('ws-grid-budget-chip', `${TEXT.platform} ${megabytes(page)} MB`, null)]));
-    if (!expanded) { allocationScope?.dispose(); allocationScope = null; detail.replaceChildren(); return; }
-    const cross = el('section', 'ws-grid-budget-sec');
-    cross.append(el('h4', 'ws-grid-budget-h', TEXT.crossroads),
-      ...BUDGET_CATEGORIES.map((category) => { const line = row(TEXT.category[category], MB(crossroads.bytes[category])); data(line, 'category', category); data(line, 'bytes', crossroads.bytes[category]); return line; }),
-      row(TEXT.accounted, MB(crossroads.accounted)), row(TEXT.factor, String(crossroads.residentFactor)), row(TEXT.base, MB(crossroads.engineBase)), row(TEXT.overlap, MB(crossroads.overlap)),
-      row(TEXT.playing, MB(crossroads.playing)), row(TEXT.loading, MB(crossroads.loading)), el('p', 'ws-grid-budget-memory-note', TEXT.info));
-    const shards = points.shards.map((shard) => {
-      const sec = el('section', 'ws-grid-budget-sec'); data(sec, 'owner', shard.owner);
-      const heading = shard.budget === null ? `${label(shard.owner)} · ${MB(shard.total)}` : `${label(shard.owner)} · ${shard.points ?? 0} · ${megabytes(shard.total)}/${megabytes(shard.budget)} MB`;
-      const h = el('h4', 'ws-grid-budget-h', heading); data(h, 'tone', shardTone(shard) ?? 'none');
-      sec.append(h, ...BUDGET_CATEGORIES.filter((category) => shard.bytes[category] > 0).map((category) => {
-        const line = row(TEXT.category[category], MB(shard.bytes[category])); data(line, 'category', category); data(line, 'bytes', shard.bytes[category]); return line;
-      }));
-      if (shard.tiles.count > 0) sec.append(row(TEXT.tiles, `${shard.tiles.count} · ${shard.tiles.green}/${shard.tiles.amber}/${shard.tiles.red} · ${TEXT.worst.toLowerCase()} ${shard.tiles.worst}`));
-      const { limit } = shard;
-      if (limit !== null) sec.append(row(TEXT.playing, `${MB(limit.playing)} / ${megabytes(limit.playingCap)} · ${limit.playingPoints}`, scoreTone(limit.playingPoints)),
-        row(TEXT.loading, `${MB(limit.loading)} / ${megabytes(limit.loadingCap)} · ${limit.loadingPoints}`, scoreTone(limit.loadingPoints)));
-      if (shard.measuredMB !== null) sec.append(row(TEXT.measured, `${shard.measuredMB.toFixed(1)} MB`));
-      return sec;
+    const worlds = parts.worlds.length, start = trend[0];
+    const since = start === undefined ? '' : ` · ${headline.bytes >= start ? '+' : '−'}${Math.round(Math.abs(headline.bytes - start) / 1e6)} MB SINCE START`;
+    const line = el('span', 'ws-grid-budget-x', `MEM ≈${GB(headline.bytes)} GB / ${GB(CRASH_LINE)} · ${worlds} ${worlds === 1 ? 'WORLD' : 'WORLDS'}${since}`);
+    data(line, 'tone', headline.tone); data(line, 'bytes', headline.bytes); data(line, 'source', headline.source);
+    const lines = over.map(({ owner, overBytes }) => {
+      const node = el('span', 'ws-grid-budget-over', `${label(owner).toUpperCase()} OVER ITS LIMIT · +${MB(overBytes)}`);
+      data(node, 'tone', 'red'); data(node, 'owner', owner); data(node, 'over-bytes', overBytes); return node;
     });
-    const worst = el('section', 'ws-grid-budget-sec');
-    worst.append(el('h4', 'ws-grid-budget-h', `${TEXT.worst} ${TEXT.tiles}`),
-      ...points.tiles.slice(0, WORST_TILES).map((tile) => row(tile.id, `${megabytes(tile.bytes)}/${megabytes(tile.budget)} · ${tile.points}`, tile.tone)));
-    detail.replaceChildren(cross, ...(memory === null ? [] : [memorySection(memory, crossroads.playing)]), ...shards, ...(points.tiles.length > 0 ? [worst] : []));
+    bar.replaceChildren(line, ...lines);
+    if (!expanded) { allocationScope?.dispose(); allocationScope = null; detail.replaceChildren(); return; }
+    const total = section(`MEMORY ≈${GB(headline.bytes)} GB OF ~${GB(CRASH_LINE)} GB CRASH LINE`,
+      row('MODEL (CLAIMS)', MB(headline.model), headline.source === 'model' ? headline.tone : null),
+      row('MEASURED', headline.measured === null ? 'NOTHING OBSERVED' : MB(headline.measured), headline.source === 'model' ? null : headline.tone));
+    const owned = section('WORLDS · OWN BYTES (THESE ADD UP)', ...parts.worlds.map(world => { const r = row(label(world.owner), MB(world.bytes)); data(r, 'world', world.owner); return r; }));
+    const shared = section('SHARED', ...parts.shared.map(part => row(part.label.toUpperCase(), MB(part.bytes))),
+      row(`OTHER CELLS · ${parts.cells.count}`, MB(parts.cells.bytes)));
+    const kept = section('TREND · AT EACH ENTRY', row(trend.length === 0 ? 'NO ENTRY YET' : `${trend.map(GB).join(' → ')} GB`, ''));
+    const resident = new Set(parts.worlds.map(world => world.owner).concat(over.map(o => o.owner)));
+    const limits = section(`SHARD LIMITS · EACH ALONE, ${GB(CONTENT_CAPS.playing)} GB`, ...points.shards.flatMap(shard => {
+      const { limit } = shard; if (limit === null || !resident.has(shard.owner)) return [];
+      const r = row(label(shard.owner).toUpperCase(), `${limit.playingPoints}% · ${Math.round(limit.playing / 1e6)} / ${Math.round(limit.playingCap / 1e6)} MB`, limit.tone);
+      data(r, 'owner', shard.owner); data(r, 'limit-playing', limit.playing); return [r];
+    }));
+    detail.replaceChildren(total, owned, shared, kept, limits, ...(memory === null ? [] : [memorySection(memory)]));
   };
 
   function refresh(): void {
     if (root === null || scope.disposed) return;
-    const cost = host.allocator.cost(), entries = host.allocator.entries();
-    const memory = expanded ? host.memory?.() ?? memoryAttribution.snapshot(cost.accounted) : null;
-    // repaint only when the table changed (bytes or membership) or the view did: the timer is otherwise a cheap read
-    const next = `${cost.accounted}|${entries.length}|${String(expanded)}|${group}|${sort}|${memory === null ? '' : JSON.stringify(memory)}`;
+    const cost = host.allocator.cost(), entries = host.allocator.entries(), memory = snapshot(cost.accounted), over = host.overLimit?.() ?? [];
+    // repaint only when the table, the observed totals, the over-limit lines or the view changed: the timer is otherwise a cheap read
+    const shown = expanded ? JSON.stringify(memory) : `${memory.totals.gpu}|${memory.totals.ram}|${memory.measured?.sampledAt ?? ''}`;
+    const next = `${cost.accounted}|${entries.length}|${String(expanded)}|${group}|${sort}|${trend.length}|${JSON.stringify(over)}|${shown}`;
     if (next === signature && last !== null) return;
     signature = next;
-    last = readBudgetPoints({ entries: () => entries, cost: () => cost }, { name: label, ...(host.measuredMB === undefined ? {} : { measuredMB: host.measuredMB }), ...(host.shard === undefined ? {} : { shard: host.shard }) });
-    paint(last, memory);
+    last = readBudgetPoints({ entries: () => entries, cost: () => cost }, { name: label, ...(host.shard === undefined ? {} : { shard: host.shard }) });
+    head = read(cost, memory);
+    paint(last, head, budgetBreakdown(entries, cost), expanded ? memory : null, over);
   }
   const toggle = (): void => {
     if (root === null || detail === null) return;
     expanded = !expanded; root.setAttribute('aria-expanded', String(expanded)); detail.hidden = !expanded;
+    refresh();
+  };
+  const crossed = (): void => {
+    if (scope.disposed) return;
+    const cost = host.allocator.cost();
+    trend.push(read(cost, isDev() ? snapshot(cost.accounted) : null).bytes);
+    if (trend.length > TREND_KEPT + 1) trend.splice(1, 1);
     refresh();
   };
   const build = (): void => {
@@ -240,5 +221,5 @@ export function installBudgetOverlay(host: BudgetOverlayHost): BudgetOverlay {
   };
   sync(isDev());
   scope.onDispose(onDev(sync));
-  return { state: () => last, refresh, toggle };
+  return { state: () => last, headline: () => head, trend: () => trend, refresh, toggle, crossed };
 }

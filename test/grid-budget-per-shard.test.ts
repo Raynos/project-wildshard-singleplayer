@@ -4,7 +4,6 @@ import { contentCost, type ContentCostInput } from '../src/format/contentCost';
 import { ResidencyAllocator, type ResidencyEntry } from '../src/game/grid/allocator';
 import { MemoryAdmission } from '../src/format/product';
 import { budgetPoints, shardLimit } from '../src/game/grid/budgetPoints';
-import { shardTone } from '../src/game/grid/budgetOverlay';
 
 const entry = (owner: string, bytes: number): ResidencyEntry =>
   ({ id: `sim:${owner}`, category: 'sim', bytes, owner, distance: 0, needed: true, refs: 1, holds: 0, accountedBytes: bytes });
@@ -19,11 +18,8 @@ test('G556: each shard is scored against its own limit; the page total has no ca
   const light = byOwner.get('a'), heavy = byOwner.get('heavy');
   expect(light?.limit).toEqual(shardLimit(400_000_000, input));
   expect(light?.limit?.tone).toBe('green');
-  // over its category budget, under its own limit: amber, never red
-  expect(light?.tone).toBe('red');
-  expect(light === undefined ? null : shardTone(light)).toBe('amber');
   expect(heavy?.limit?.playing).toBeGreaterThan(CONTENT_CAPS.playing);
-  expect(heavy === undefined ? null : shardTone(heavy)).toBe('red');
+  expect(heavy?.limit?.tone).toBe('red');
 });
 
 test('G556: enforce mode refuses a claim only when its owner alone is over the limit, never on the page total', () => {
