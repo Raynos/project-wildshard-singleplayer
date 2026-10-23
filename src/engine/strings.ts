@@ -218,7 +218,7 @@ export const ENGINE_STRINGS = {
   "s_a9fadf880555": "<span class=\"ws-load-row-label\"></span><span class=\"ws-load-row-detail\"></span><span class=\"ws-load-row-ms\"></span>",
   "s_783b614ae363": "⟦0⟧ · ⟦1⟧×⟦2⟧ · ⟦3⟧ cores⟦4⟧",
   "s_8a8de823d5ed": "?",
-  "s_5c75b0e90774": " · offline cache",
+  "s_5c75b0e90774": " · worker ready",
   "s_8779ab060e33": "<b>⟦0⟧</b><span></span>",
   "s_7bb37df5cb36": "›",
   "s_5b2adc2f66ea": "<i></i><i></i><i></i><i></i><b></b>",

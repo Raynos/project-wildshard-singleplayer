@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { WaitRegistry } from './waits';
+import { loadingStepWaits, WaitRegistry } from './waits';
 
 it('reports duplicate concurrent labels with independent ages and clears settled work', async () => {
   let clock = 0;
@@ -26,4 +26,18 @@ it('preserves a rejection and removes its waiting entry', async () => {
   const error = new Error('Worker failed');
   await expect(registry.waitFor('Cache worker', Promise.reject(error), 'worker')).rejects.toBe(error);
   expect(registry.snapshot()).toEqual([]);
+});
+
+it('selects the displayed step over older foreign music, then its nested work, without borrowing unrelated waits', async () => {
+  const registry = new WaitRegistry();
+  let finish = (): void => { throw new Error('Uninitialized resolver'); };
+  const work = new Promise<void>(resolve => { finish = resolve; });
+  const running = [registry.waitFor('Other music', work, 'file', 'audioFiles'),
+    registry.waitFor('Current geometry', work, 'file', 'renderer'),
+    registry.waitFor('Current terrain', work, 'file', 'world')];
+  expect(loadingStepWaits(registry.snapshot(), 'world', 'renderer').map(wait => wait.label)).toEqual(['Current terrain']);
+  expect(loadingStepWaits(registry.snapshot(), 'loadout', 'renderer').map(wait => wait.label)).toEqual(['Current geometry']);
+  expect(loadingStepWaits(registry.snapshot(), 'shaders', 'shaders')).toEqual([]);
+  expect(loadingStepWaits(registry.snapshot(), 'world', 'world', Symbol('next-attempt'))).toEqual([]);
+  finish(); await Promise.all(running);
 });

@@ -30,3 +30,8 @@ export function blendLoadingTimings(previous: LoadingTimings, measured: LoadingT
   }));
 }
 export const loadingTimingKey = (key: LoadingTimingKey): string => `boot.path.times:${key.tier}:${key.path}:${key.identity}`;
+
+/** The player sees the same two tracks as Developer: equal shares of actual download and weighted setup completion. */
+export function combinedLoadingFraction(download: number, setup: number): number {
+  return (Math.max(0, Math.min(1, download)) + Math.max(0, Math.min(1, setup))) / 2;
+}

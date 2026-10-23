@@ -3,6 +3,8 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { Loading } from '../src/engine/ui/Loading';
 import type { ProgressView } from '../src/engine/boot/plan';
 import { declareDownloadFile, recordCachedDownload } from '../src/engine/boot/download';
+import { currentLoadingTimeline } from '../src/engine/boot/timeline';
+import { waitFor } from '../src/engine/boot/waits';
 
 let now = 100;
 beforeEach(() => {
@@ -16,6 +18,48 @@ beforeEach(() => {
 });
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); document.body.replaceChildren(); });
 
+it('shows a controlling worker instead of assuming an offline cache from the API handle', () => {
+  const descriptor = Object.getOwnPropertyDescriptor(navigator, 'serviceWorker');
+  const old = window.__ws_sw;
+  Reflect.set(window, '__ws_sw', {});
+  try {
+    Object.defineProperty(navigator, 'serviceWorker', { configurable: true, value: { controller: null } });
+    const noController = new Loading({ id: 'worker', name: 'Worker' }, { scoped: true });
+    expect(noController.root.querySelector('[data-el="tier"]')?.textContent).not.toMatch(/worker ready|offline cache/);
+    noController.scope.dispose();
+    Object.defineProperty(navigator, 'serviceWorker', { configurable: true, value: { controller: {} } });
+    const controlled = new Loading({ id: 'worker', name: 'Worker' }, { scoped: true });
+    expect(controlled.root.querySelector('[data-el="tier"]')?.textContent).toContain('worker ready');
+    controlled.scope.dispose();
+  } finally {
+    Reflect.set(window, '__ws_sw', old);
+    if (descriptor === undefined) Reflect.deleteProperty(navigator, 'serviceWorker');
+    else Object.defineProperty(navigator, 'serviceWorker', descriptor);
+  }
+});
+
+it('keeps another step\'s music out of the actual visible world footer', async () => {
+  const loading = new Loading({ id: 'dunes', name: 'Dunes' });
+  let finish = (): void => { throw new Error('Uninitialized resolver'); };
+  const work = new Promise<void>(resolve => { finish = resolve; });
+  try {
+    loading.setPath({ id: 'shardfile', steps: [{ key: 'modules', label: 'Modules', weight: 1 },
+      { key: 'audioFiles', label: 'Selected audio', weight: 1 }, { key: 'world', label: 'World', weight: 1 }] });
+    loading.endAdmission();
+    const timeline = currentLoadingTimeline();
+    if (timeline === undefined) throw new Error('Missing loading timeline');
+    const music = timeline.begin('audioFiles');
+    const foreign = waitFor('Pine music', work, 'file');
+    music.end();
+    const world = timeline.begin('world');
+    const own = waitFor('Dunes terrain', work, 'file');
+    now = 400; vi.advanceTimersByTime(32);
+    expect(loading.root.dataset['waiting']).toBe('Dunes terrain');
+    expect(loading.root.querySelector('[data-el="foot"]')?.textContent).not.toContain('Pine music');
+    world.end(); finish(); await Promise.all([foreign, own]);
+  } finally { finish(); loading.scope.dispose(); }
+});
+
 it('shows the actual declared ratio when a late dependency is discovered, without a 99 percent cap', () => {
   const loading = new Loading({ id: 'test', name: 'Test' }, { scoped: true });
   const view: ProgressView = { download: 0, setup: 0, done: false, error: null, step: 'audio', label: 'Audio', detail: '',
@@ -28,6 +72,8 @@ it('shows the actual declared ratio when a late dependency is discovered, withou
     declareDownloadFile('/assets/later.bin', 30);
     loading.paint(view);
     expect(loading.root.dataset['download']).toBe('25');
+    now = 400; vi.advanceTimersByTime(32);
+    expect(loading.root.querySelector<HTMLElement>('[data-el="bar"]')?.style.width).toBe('12.5%');
     recordCachedDownload('later', 30, '/assets/later.bin');
     loading.paint(view);
     expect(loading.root.dataset['download']).toBe('100');

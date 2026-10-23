@@ -941,10 +941,15 @@ and the accuracy checker refuses acceptance while any remain.
 
 `waitFor(label, promise, kind?)` in `@wildshard/engine/boot/waits` observes an
 already-started promise and unregisters it on either outcome. `bootWaits()`
-returns live labels, kinds and monotonic ages. Product admission and file reads,
-cache/texture workers, Wasm preparation and shader linking use this registry;
-Loading displays the active dependency and files in flight without changing
-ownership, scheduling or concurrency. Synchronous work remains a reported stage.
+returns live labels, kinds, monotonic ages and the originating loading step.
+Waits carry their timeline's non-serialized attempt identity. `loadingStepWaits`
+selects the displayed step, then its nested current work, from that same
+attempt; unrelated page music never supplies the footer. Product admission,
+file reads, workers, Wasm and shader linking retain their original scheduling.
+Synchronous work remains a reported stage. The tier line says "worker ready"
+only when a service worker controls this page; it does not claim cached files.
+The player bar combines equal shares of the same actual Download and weighted
+Setup fractions shown separately in Developer, during admission and setup.
 
 `Loading.setPath({id, steps, ignored?}, calibrations?)` accepts a data-only step
 vocabulary and measured baseline tables supplied by the composition root.

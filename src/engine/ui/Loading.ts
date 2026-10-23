@@ -2,7 +2,7 @@ import { uiScope, mountUi } from './ownership';
 import { engineString } from '../strings';
 import { saveStorage } from '../saves/slots';
 import { formatMB, type ProgressView } from '../boot/plan';
-import { bootWaits } from '../boot/waits';
+import { bootWaits, loadingStepWaits } from '../boot/waits';
 import { TIER } from '../core/tier';
 import { loadShellTemplate } from '../boot/shell';
 import { appIdentity } from '../app/identity';
@@ -11,7 +11,7 @@ import { DownloadAccounting, installDownloadAccounting, observeDownloadAccountin
 import { loadingDownloadText, loadingDownloadFraction, loadingPrefetchFraction, loadingPrefetchText, type LoadingPrefetchSnapshot } from '../boot/loadingDownloadText';
 import { LoadingTimeline, installLoadingTimeline, type LoadingPath, type LoadingRow, type LoadingGap } from '../boot/timeline';
 import { LoadingStall } from '../boot/stall';
-import { loadingExpectations, loadingFraction, type LoadingTimings, type LoadingTimingKey, type LoadingCalibration } from '../boot/weights';
+import { combinedLoadingFraction, loadingExpectations, loadingFraction, type LoadingTimings, type LoadingTimingKey, type LoadingCalibration } from '../boot/weights';
 import { loadPathTimings, savePathTimings } from '../boot/pathTiming';
 import './loading.css';
 
@@ -24,7 +24,7 @@ const savedStorage = saveStorage('session');
  * an elapsed clock, and one row per step with its wall ms and live detail. Bytes and completed work come
  * from the producer; unknown totals and waits stay explicit. `done()` fades it out and resolves when it is gone.
  *
- * Players (E140, the user's 4a) see only the shard's display name, one bar weighted by measured stage time and a short line;
+ * Players (E140, the user's 4a) see only the shard's display name, one bar combining actual downloads and measured setup time and a short line;
  * the tracks, the step log, the tier line and "Loading chunk · <slug>" are developer mode's (`<html data-dev>`, set by
  * index.html before the first paint — src/engine/core/devMode.ts; loading.css does the hiding).
  */
@@ -117,7 +117,7 @@ export class Loading {
     const el = (key: ElKey): HTMLElement => { const e = this.root.querySelector<HTMLElement>(`[data-el="${key}"]`); if (!e) throw new Error(`Loading: no [data-el="${key}"]`); return e; };
     this.els = { slug: el('slug'), tier: el('tier'), clock: el('clock'), dlFact: el('dlFact'), dlPct: el('dlPct'), dlBar: el('dlBar'), pfRow: el('pfRow'), pfFact: el('pfFact'), pfPct: el('pfPct'), suFact: el('suFact'), suPct: el('suPct'), suBar: el('suBar'), rows: el('rows'), foot: el('foot'), bar: el('bar'), line: el('line'), diagnostics: el('diagnostics') };
     this.els.slug.textContent = chunk.name;
-    this.els.tier.textContent = engineString('s_783b614ae363', [TIER, Math.round(innerWidth * devicePixelRatio), Math.round(innerHeight * devicePixelRatio), nav.hardwareConcurrency ?? engineString('s_8a8de823d5ed'), window.__ws_sw ? engineString('s_5c75b0e90774') : '']);
+    this.els.tier.textContent = engineString('s_783b614ae363', [TIER, Math.round(innerWidth * devicePixelRatio), Math.round(innerHeight * devicePixelRatio), nav.hardwareConcurrency ?? engineString('s_8a8de823d5ed'), navigator.serviceWorker?.controller ? engineString('s_5c75b0e90774') : '']);
     const key = 'loadAttempt';
     let attempt = 1;
     try {
@@ -219,7 +219,7 @@ export class Loading {
     this.dirty = false;
     // the tier line once a frame, not on every published view (it reads the viewport, which may rotate)
     const hardware: { hardwareConcurrency?: number | undefined } = navigator;
-    set(this.els.tier, engineString('s_783b614ae363', [TIER, Math.round(innerWidth * devicePixelRatio), Math.round(innerHeight * devicePixelRatio), hardware.hardwareConcurrency ?? engineString('s_8a8de823d5ed'), window.__ws_sw ? engineString('s_5c75b0e90774') : '']));
+    set(this.els.tier, engineString('s_783b614ae363', [TIER, Math.round(innerWidth * devicePixelRatio), Math.round(innerHeight * devicePixelRatio), hardware.hardwareConcurrency ?? engineString('s_8a8de823d5ed'), navigator.serviceWorker?.controller ? engineString('s_5c75b0e90774') : '']));
     const pct = (f: number): string => String(Math.floor(f * 100));
     setData(this.root, 'setup', pct(v.setup));
     set(this.els.dlPct, pct(v.download));
@@ -227,8 +227,8 @@ export class Loading {
     const dl = `${(v.download * 100).toFixed(1)}%`, su = `${(v.setup * 100).toFixed(1)}%`;
     if (this.els.dlBar.style.width !== dl) this.els.dlBar.style.width = dl;
     if (this.els.suBar.style.width !== su) this.els.suBar.style.width = su;
-    // Admission and setup share the measured stage clock; completion alone grants 100.
-    const all = v.setup, allW = `${(all * 100).toFixed(1)}%`;
+    // Both phases use the same two-track model; neither can complete the player bar alone.
+    const all = combinedLoadingFraction(v.download, v.setup), allW = `${(all * 100).toFixed(1)}%`;
     if (this.els.bar.style.width !== allW) this.els.bar.style.width = allW;
     set(this.els.line, this.finished ? engineString('s_5fa7aac5375c') : engineString('s_bf5e849564ae', [v.worldBytesReady ? 'Building the world' : engineString('s_37b345555d7e'), pct(all)]));
     this.paintDownloads(v.done);
@@ -245,7 +245,7 @@ export class Loading {
     setData(this.root, 'setup', String(Math.floor(setup * 100)));
     set(this.els.dlPct, String(Math.floor(download * 100))); set(this.els.suPct, String(Math.floor(setup * 100)));
     this.els.dlBar.style.width = `${download * 100}%`; this.els.suBar.style.width = `${setup * 100}%`;
-    this.els.bar.style.width = `${setup * 100}%`;
+    this.els.bar.style.width = `${combinedLoadingFraction(download, setup) * 100}%`;
     set(this.els.suFact, p.detail); set(this.els.line, p.detail);
     this.paintRows(timeline);
   }
@@ -343,7 +343,8 @@ export class Loading {
 
   private paintWaiting(timeline: TimelineSnapshot): void {
     if (this.view?.error || this.failedReason !== null) return;
-    const pending = this.scoped ? [] : bootWaits(), files = pending.filter(wait => wait.kind === 'file');
+    const pending = this.scoped ? [] : loadingStepWaits(bootWaits(), timeline.display, timeline.current, this.timeline.waitOwner);
+    const files = pending.filter(wait => wait.kind === 'file');
     const wait = files[0] ?? pending.find(row => row.kind !== 'admission') ?? pending[0];
     const transfer = this.downloads.snapshot();
     const current = timeline.rows.find(row => row.key === timeline.display);

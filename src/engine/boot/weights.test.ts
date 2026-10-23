@@ -1,5 +1,11 @@
 import { expect, it } from 'vitest';
-import { blendLoadingTimings, loadingExpectations, loadingFraction, loadingTimingKey } from './weights';
+import { blendLoadingTimings, combinedLoadingFraction, loadingExpectations, loadingFraction, loadingTimingKey } from './weights';
+
+it('combines the same download and setup tracks for players without either hiding unfinished work', () => {
+  expect(combinedLoadingFraction(1, 0.2)).toBe(0.6);
+  expect(combinedLoadingFraction(0.2, 1)).toBe(0.6);
+  expect(combinedLoadingFraction(1, 1)).toBe(1);
+});
 
 it('weights admission by measured time and keeps an overrunning stage below completion', () => {
   const expected = { admission: 9000, world: 1000 };
