@@ -25,6 +25,8 @@ import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissio
 import { cachedTransport } from './cachedTransport';
 import { recordCachedDownload } from '@wildshard/engine/boot/download';
 import { hashOwnedBytes, prepareContentHash } from '@wildshard/engine/boot/contentHash';
+import { ContentCacheWorker } from '@wildshard/engine/boot/contentCacheWorker';
+import { browserContentStore } from './contentStore';
 
 /**
  * The trusted runtime's product reader (SHARD-PLATFORM M3 tiles-swap, G227, E435): the same `ClientAssets` in both modes,
@@ -68,6 +70,13 @@ export function browserShardfileOptions(base: string, firstParty = false): Produ
   prepareContentHash();
   const quality = Object.fromEntries(Object.entries(TIER_CONFIG).filter((entry): entry is [string, number | boolean] => entry[0].includes('.') && (typeof entry[1] === 'number' || typeof entry[1] === 'boolean')));
   const indexed = firstParty && builtIndexes !== null && typeof caches !== 'undefined' ? builtIndexes : undefined;
+  // G639: a phone-4x Nine drive spent ~2 s of its page thread fetching, streaming, hashing and copying the product's
+  // blobs into the content cache; the cache's worker does all of it and hands the page the verified body.
+  const content = typeof caches === 'undefined' ? undefined : browserContentStore(caches);
+  const transport = content instanceof ContentCacheWorker ? async (url: string, hash: string, bytes: number) => {
+    const sent = await content.fetchVerified(new URL(url, base).href, hash, bytes, { reply: 'bytes', urlCache: indexed !== undefined });
+    return sent === null || sent.fetched === null ? null : { bytes: sent.fetched, cached: sent.cached, stored: sent.stored };
+  } : undefined;
   return { base, firstParty, tier: TIER, quality, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: browserContentHash, hashOwned: hashOwnedBytes,
     fetch: url => waitFor(`Read ${new URL(url, base).pathname}`, (async () => {
       if (indexed !== undefined && new URL(url, base).pathname.endsWith('/shard.json')) {
@@ -80,6 +89,7 @@ export function browserShardfileOptions(base: string, firstParty = false): Produ
       (await cachedTransport(caches, url, maximum, browserContentHash, actual => actual === hash))?.bytes ?? null,
     verifiedResponse: async (url: string, hash: string, maximum: number) =>
       (await cachedTransport(caches, url, maximum, browserContentHash, actual => actual === hash, hashOwnedBytes))?.bytes ?? null }),
+    ...(transport === undefined ? {} : { transport }),
     pause: pauseDescriptor, cacheBatch: true,
     ...(firstParty && builtIndexes !== null ? { built: { indexes: builtIndexes, stale: staleRecovery } } : {}),
     ...(typeof caches === 'undefined' ? {} : { cache: browserProductCache(caches) }),

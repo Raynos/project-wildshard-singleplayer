@@ -324,3 +324,28 @@ test('descriptor index admission retains every inventory refusal before any sect
   const legacy = { legacy: [1, 'text', null, false] };
   expect(await resolveOutputDescriptor(legacy, reader)).toBe(legacy);
 });
+
+test('an off-page transport supplies verified stored blobs without a page read or second write', async () => {
+  const { wires, index } = fixture(true), store = cacheStore(), file = index.files[0];
+  if (file === undefined) throw new Error('Missing blob');
+  const writes: string[] = [], pageReads: string[] = [];
+  const cache: ProductCache = { ...store.cache, putAsset: (productBase, ref, wire) => { writes.push(ref); return store.cache.putAsset(productBase, ref, wire); } };
+  const page = options(wires, cache);
+  const opts: ProductOptions = { ...page, fetch: url => { pageReads.push(url); return page.fetch(url); },
+    transport: (url, address, bytes) => {
+      const wire = wires.get(url.slice(base.length));
+      if (wire === undefined || wire.length !== bytes) throw new Error('Unexpected transport read');
+      store.bytes.set(address, Uint8Array.from(wire)); // the worker stored it
+      return Promise.resolve({ bytes: Uint8Array.from(wire), cached: false, stored: true });
+    } };
+  const admitted = await admitProduct(await readProductDescriptor(opts), opts);
+  expect(admitted.assets.get(file.hash)).toEqual(new Uint8Array([1, 2, 3]));
+  expect(pageReads.some(url => url.endsWith(file.path))).toBe(false);
+  expect(writes).not.toContain(file.hash);
+  // No live worker: the page reads, hashes and writes it as before.
+  const fallback: ProductOptions = { ...opts, transport: () => Promise.resolve(null) }, cold = cacheStore();
+  const again = await admitProduct(await readProductDescriptor(fallback), { ...fallback, cache: cold.cache });
+  expect(again.assets.get(file.hash)).toEqual(new Uint8Array([1, 2, 3]));
+  expect(cold.bytes.get(file.hash)).toEqual(new Uint8Array([1, 2, 3]));
+  expect(pageReads.some(url => url.endsWith(file.path))).toBe(true);
+});

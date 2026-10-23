@@ -3,7 +3,8 @@ import { Scope } from '../app/scope';
 import type { ContentCache } from './contentCache';
 import { ContentCacheQueue, isCacheRead } from './contentCacheQueue';
 import { waitFor } from './waits';
-import { CONTENT_CACHE_WIRE_CAP, CacheCommandSchema, CacheReplySchema, validCacheValue, type CacheCommand, type CacheOperation, type CacheValue } from './contentCacheProtocol';
+import { receiveWorkerDownloads } from './download';
+import { CONTENT_CACHE_WIRE_CAP, CacheCommandSchema, CacheReplySchema, validCacheValue, type CacheCommand, type CacheOperation, type CacheValue, type FetchedContent } from './contentCacheProtocol';
 
 export interface CacheWorkerPort extends EventTarget {
   postMessage: (message: unknown) => void;
@@ -68,6 +69,7 @@ export class ContentCacheWorker {
         this.leases.get(operation.lease)?.release?.(); this.leases.delete(operation.lease);
         return null;
       }
+      case 'fetch': return null; // the caller reads it on the page
       default: throw new Error('Unknown cache operation');
     }
   }
@@ -127,22 +129,24 @@ export class ContentCacheWorker {
       this.pump();
     });
   }
-  private canPost(command: CacheCommand): boolean {
-    if (this.failed || this.pending.size >= 64) return false;
-    // Reserve one posted slot for reads so a full prefetch backlog cannot hide the worker's read bypass.
-    return isCacheRead(command.op) || [...this.pending.values()].filter(row => !isCacheRead(row.command.op)).length < 63;
-  }
   private pump(): void {
     if (this.pumping || this.failed || this.worker === undefined) return;
     const send = this.worker.postMessage.bind(this.worker);
     this.pumping = true;
+    // Reserve one posted slot for reads so a full prefetch backlog cannot hide the worker's read bypass. Counted once a
+    // pump: re-counting the posted writes for every queued row was ~200 ms of a phone-4x Nine drive.
+    let writes = 0;
+    for (const row of this.pending.values()) if (!isCacheRead(row.command.op)) writes++;
     try {
       for (const [id, row] of this.deferred) {
         if (this.pending.size >= 64) break;
-        if (!this.canPost(row.command)) continue;
+        const read = isCacheRead(row.command.op);
+        if (!read && writes >= 63) continue;
         this.deferred.delete(id);
-        // Queue time consumes no request deadline; only posted worker work does.
-        const timer = this.scope.timeout(this.requestMs, () => { this.failover(`${row.command.op} took over ${String(this.requestMs)} ms`); });
+        if (!read) writes++;
+        // Queue time consumes no request deadline; only posted worker work does. A network read gets longer.
+        const ms = row.command.op === 'fetch' ? this.requestMs * 8 : this.requestMs;
+        const timer = this.scope.timeout(ms, () => { this.failover(`${row.command.op} took over ${String(ms)} ms`); });
         this.pending.set(id, { ...row, timer });
         try { send(row.command); } catch { this.failover('post failed'); }
       }
@@ -172,6 +176,19 @@ export class ContentCacheWorker {
     if (typeof value === 'boolean') return value;
     throw new Error('Invalid cache write result');
   }
+  /** Read `url` (exactly `bytes` long, SHA-256 `hash`) in the worker: it streams, verifies and stores the file, then
+   *  transfers the body (`reply: 'bytes'`) or only says whether it was stored. The page reads no stream, hashes nothing and
+   *  copies nothing. `urlCache`: try the URL cache first, as the page's verified transport does. Null without a live
+   *  worker (failed, retired, closing): the caller reads it on the page. */
+  async fetchVerified(url: string, hash: string, bytes: number, options: { reply: 'bytes' | 'stored'; keep?: boolean; urlCache?: boolean }): Promise<FetchedContent | null> {
+    if (this.failed || this.closing !== undefined) return null;
+    const value = await this.request({ op: 'fetch', url, hash, bytes, reply: options.reply,
+      ...(options.keep === true ? { keep: true } : {}), ...(options.urlCache === true ? { urlCache: true } : {}) }, true);
+    if (value === null) return null;
+    if (typeof value !== 'object' || !('fetched' in value) || (options.reply === 'bytes' && value.fetched?.length !== bytes)) throw new Error('Invalid cache read result');
+    if (value.timing !== null) receiveWorkerDownloads({ type: 'WS_WORKER_DOWNLOAD', origin: value.origin, timings: [value.timing] }, performance.timeOrigin);
+    return value;
+  }
   pin(hashes: Iterable<string>): () => void {
     const rows = [...new Set(hashes)], lease = ++this.sequence;
     v.parse(CacheCommandSchema, { id: lease, op: 'pin', lease, hashes: rows });
@@ -186,7 +203,7 @@ export class ContentCacheWorker {
   }
   async stats(): Promise<{ bytes: number; entries: number }> {
     const value = await this.request({ op: 'stats' });
-    if (typeof value === 'object' && value !== null && !(value instanceof Uint8Array)) return value;
+    if (typeof value === 'object' && value !== null && !(value instanceof Uint8Array) && !('fetched' in value)) return value;
     throw new Error('Invalid cache accounting result');
   }
   async flush(): Promise<void> { await this.request({ op: 'flush' }); }

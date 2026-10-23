@@ -21,6 +21,7 @@ import { findTitleManifest } from '../shard/titleList';
 import type { ProductCache, ProductOptions } from '../shardfile/product';
 import { browserContentStore, contentHash } from '../shardfile/contentStore';
 import { hashOwnedBytes, prepareContentHash } from '@wildshard/engine/boot/contentHash';
+import { ContentCacheWorker } from '@wildshard/engine/boot/contentCacheWorker';
 import { builtIndexHashes } from '@wildshard/format/builtIndexes';
 import type { GridAssembly } from './assembly';
 
@@ -45,7 +46,10 @@ export interface GridPrefetchStatus {
   readonly inFlightBytes: number; readonly peakInFlightBytes: number; readonly limitInFlightBytes: number;
 }
 interface Row { readonly path: string; readonly hash: string; readonly bytes: number }
-type PrefetchCache = Required<Pick<ProductCache, 'holds' | 'keepAsset'>>;
+type PrefetchCache = Required<Pick<ProductCache, 'holds' | 'keepAsset'>> & {
+  /** The whole file in the content cache's worker (read, verified, kept): whether it was stored, null where no worker can. */
+  readonly fetchKeep?: (url: string, hash: string, bytes: number) => Promise<boolean | null>;
+};
 
 /** The verified disk cache owns persistence; HTTP must not retain a second body. */
 export async function readGridPrefetch(url: string, maximum: number, fetcher: typeof fetch = fetch): Promise<Uint8Array> {
@@ -118,6 +122,9 @@ class GridPrefetch {
     const content = browserContentStore(caches), indexes = import.meta.env.DEV ? null : builtIndexHashes();
     const holds: PrefetchCache['holds'] = (hash, size) => content.holds(hash, size);
     const keepAsset: PrefetchCache['keepAsset'] = (hash, body) => content.put(hash, body, true);
+    // The page never sees a prefetched body: the worker reads, verifies and keeps it (G639).
+    const fetchKeep = content instanceof ContentCacheWorker ? async (file: string, hash: string, size: number): Promise<boolean | null> =>
+      (await content.fetchVerified(file, hash, size, { reply: 'stored', keep: true }))?.stored ?? null : undefined;
     const bytes = await readGridPrefetch(url.href, limits.sourceBytes);
     if (indexes !== null && !indexes.has(await contentHash(bytes))) { this.stop('a newer deployment'); return; }
     const index = parseOutputIndex(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
@@ -127,7 +134,7 @@ class GridPrefetch {
     this.status.knownFiles += rows.length; this.status.knownBytes += rows.reduce((sum, row) => sum + row.bytes, 0);
     let next = 0;
     const lane = async (): Promise<void> => {
-      for (let row = rows[next++]; row !== undefined && this.status.reason === null; row = rows[next++]) await this.file(row, base, { holds, keepAsset }, quota, contentHash, hashOwnedBytes);
+      for (let row = rows[next++]; row !== undefined && this.status.reason === null; row = rows[next++]) await this.file(row, base, { holds, keepAsset, ...(fetchKeep === undefined ? {} : { fetchKeep }) }, quota, contentHash, hashOwnedBytes);
     };
     await Promise.all(Array.from({ length: CONCURRENCY }, lane));
   }
@@ -143,6 +150,8 @@ class GridPrefetch {
       release = await this.memory.reserve(row.bytes);
       if (this.status.reason !== null) return;
       const url = new URL(row.path, base).href;
+      const kept = await cache.fetchKeep?.(url, row.hash, row.bytes) ?? null;
+      if (kept !== null) { if (kept) stored = row.bytes; else this.stop('content cache full', 'quota'); return; }
       bytes = await readGridPrefetch(url, row.bytes);
       let actual: string | undefined;
       if (bytes.length !== row.bytes) throw new Error('Prefetched file differs from its index');

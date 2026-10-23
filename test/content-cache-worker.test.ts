@@ -3,6 +3,7 @@ import * as v from 'valibot';
 import { ContentCacheWorker } from '../src/engine/boot/contentCacheWorker';
 import { CacheCommandSchema, type CacheCommand, type CacheValue } from '../src/engine/boot/contentCacheProtocol';
 import { bootWaits } from '../src/engine/boot/waits';
+import { DownloadAccounting, installDownloadAccounting } from '../src/engine/boot/download';
 
 function replyValue(command: CacheCommand): CacheValue {
   switch (command.op) {
@@ -10,6 +11,8 @@ function replyValue(command: CacheCommand): CacheValue {
     case 'has': case 'holds': case 'put': return true;
     case 'stats': return { bytes: 0, entries: 0 };
     case 'flush': case 'pin': case 'release': return null;
+    case 'fetch': return { fetched: command.reply === 'bytes' ? new Uint8Array(command.bytes).fill(7) : null, stored: true, cached: false, origin: performance.timeOrigin,
+      timing: { name: command.url, startTime: 1, responseEnd: 2, transferSize: command.bytes, encodedBodySize: command.bytes } };
     default: throw new Error('Unknown cache fixture operation');
   }
 }
@@ -233,4 +236,42 @@ test('failover installs queued live leases before writes and replays their relea
     ...unpin.mock.invocationCallOrder, ...fallback.flush.mock.invocationCallOrder];
   expect(order).toHaveLength(4);
   expect(order).toEqual([...order].sort((left, right) => left - right));
+});
+
+test('a worker read transfers its verified body, credits its download and is no boot wait', async () => {
+  const { worker, client } = fixture();
+  const accounting = new DownloadAccounting('https://example.test/'), restore = installDownloadAccounting(accounting);
+  try {
+    const url = 'https://example.test/shardfiles/a/blobs/x.bin';
+    accounting.declare(url, 3);
+    const read = client.fetchVerified(url, 'a'.repeat(64), 3, { reply: 'bytes', urlCache: true });
+    expect(worker.sent).toEqual([expect.objectContaining({ op: 'fetch', url, bytes: 3, reply: 'bytes', urlCache: true })]);
+    expect(bootWaits().some(wait => wait.label.includes('fetch'))).toBe(false);
+    worker.reply(0);
+    const sent = await read;
+    expect(sent?.fetched).toEqual(Uint8Array.of(7, 7, 7));
+    expect(sent?.stored).toBe(true);
+    expect(accounting.snapshot()).toMatchObject({ declaredFilesDone: 1, networkBytes: 3 });
+  } finally { restore(); }
+});
+
+test('worker reads never queue behind the posted write cap', async () => {
+  const { worker, client } = fixture();
+  const writes = Array.from({ length: 70 }, () => client.put('a'.repeat(64), Uint8Array.of(1), true));
+  expect(worker.sent).toHaveLength(63);
+  const read = client.get('b'.repeat(64)), kept = client.fetchVerified('https://example.test/x', 'c'.repeat(64), 1, { reply: 'stored', keep: true });
+  expect(worker.sent.map(command => command.op).slice(62)).toEqual(['put', 'get']); // the read takes the reserved slot; the fetch waits as a write
+  worker.drain();
+  expect(await read).toBeNull();
+  expect((await kept)?.fetched).toBeNull();
+  await Promise.all(writes);
+});
+
+test('without a live worker a read is left to the page', async () => {
+  const { worker, fallback, client } = fixture();
+  const posted = client.fetchVerified('https://example.test/x', 'a'.repeat(64), 1, { reply: 'bytes' });
+  worker.dispatchEvent(new Event('error'));
+  expect(await posted).toBeNull(); // replayed: the fallback has no network read of its own
+  expect(await client.fetchVerified('https://example.test/y', 'b'.repeat(64), 1, { reply: 'bytes' })).toBeNull();
+  expect(fallback.put).not.toHaveBeenCalled();
 });

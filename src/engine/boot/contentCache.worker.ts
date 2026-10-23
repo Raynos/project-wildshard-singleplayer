@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { ContentCache } from './contentCache';
 import { ContentCacheQueue } from './contentCacheQueue';
-import { CacheCommandSchema, type CacheCommand, type CacheValue } from './contentCacheProtocol';
+import { CacheCommandSchema, type CacheCommand, type CacheValue, type FetchedContent } from './contentCacheProtocol';
 
 const cache = new ContentCache({ storage: caches, origin: self.location.origin,
   hash: async bytes => {
@@ -11,6 +11,62 @@ const cache = new ContentCache({ storage: caches, origin: self.location.origin,
   }, estimate: () => navigator.storage.estimate(),
 });
 const leases = new Map<number, () => void>();
+type FetchCommand = Extract<CacheCommand, { op: 'fetch' }>;
+/** A body of at most `maximum` bytes, read whole into one owned buffer (it may be transferred to the page). */
+async function bounded(response: Response, maximum: number): Promise<Uint8Array<ArrayBuffer>> {
+  if (!response.ok) throw new Error(`Read failed: ${response.url}`);
+  if (response.body === null) return new Uint8Array();
+  const reader = response.body.getReader(), chunks: Uint8Array[] = [];
+  let length = 0;
+  try {
+    for (;;) {
+      const part = await reader.read(); if (part.done) break;
+      length += part.value.byteLength;
+      if (length > maximum) throw new Error('Read exceeds its declared size');
+      chunks.push(part.value);
+    }
+  } catch (error) { await reader.cancel().catch(() => undefined); throw error; }
+  finally { reader.releaseLock(); }
+  const bytes = new Uint8Array(length); let at = 0;
+  for (const chunk of chunks) { bytes.set(chunk, at); at += chunk.byteLength; }
+  return bytes;
+}
+/** The network receipt of `url`: the browser's own when it recorded one, else this read's clock and body size. */
+function timing(url: string, startTime: number, length: number): FetchedContent['timing'] {
+  const entries = performance.getEntriesByName(url, 'resource'), entry = entries[entries.length - 1];
+  // Receipts are read as soon as their body lands; a full buffer would drop later ones.
+  if (performance.getEntriesByType('resource').length > 200) performance.clearResourceTimings();
+  if (entry instanceof PerformanceResourceTiming && entry.startTime >= startTime) return { name: url, startTime: entry.startTime,
+    responseEnd: entry.responseEnd, transferSize: entry.transferSize, encodedBodySize: entry.encodedBodySize };
+  return { name: url, startTime, responseEnd: performance.now(), transferSize: length, encodedBodySize: length };
+}
+/** Read, verify and store one immutable file without the page touching its stream, hash or store copy (G639). The URL
+ * cache is a hint like the page's (cachedTransport); the content cache's put re-hashes the bytes and refuses a mismatch. */
+async function fetchVerified(command: FetchCommand): Promise<FetchedContent> {
+  const url = new URL(command.url);
+  if (url.origin !== self.location.origin) throw new Error('Cache reads stay on this origin');
+  let body: Uint8Array<ArrayBuffer> | null = null, cached = false, receipt: FetchedContent['timing'] = null;
+  if (command.urlCache === true) {
+    try {
+      const response = await caches.match(url.href);
+      if (response !== undefined) { body = await bounded(response, command.bytes); cached = body.length === command.bytes; if (!cached) body = null; }
+    } catch { body = null; } // An evicted or stale URL cache falls through to the network.
+  }
+  if (body === null) {
+    const startTime = performance.now();
+    body = await bounded(await fetch(url.href, command.keep === true ? { cache: 'no-store' } : undefined), command.bytes);
+    receipt = timing(url.href, startTime, body.length);
+  }
+  if (body.length !== command.bytes) throw new Error('Read differs from its declared size');
+  let stored: boolean;
+  try { stored = await cache.put(command.hash, body, command.keep === true); }
+  catch (error) {
+    // A stale URL cache entry is only a hint: read the network once before refusing.
+    if (!cached) throw error;
+    return fetchVerified({ ...command, urlCache: false });
+  }
+  return { fetched: command.reply === 'bytes' ? body : null, stored, cached, origin: performance.timeOrigin, timing: receipt };
+}
 async function perform(command: CacheCommand): Promise<CacheValue> {
   switch (command.op) {
     case 'get': return cache.get(command.hash);
@@ -23,6 +79,7 @@ async function perform(command: CacheCommand): Promise<CacheValue> {
       if (leases.has(command.lease)) throw new Error('Duplicate cache lease');
       leases.set(command.lease, cache.pin(command.hashes)); return null;
     case 'release': leases.get(command.lease)?.(); leases.delete(command.lease); return null;
+    case 'fetch': return fetchVerified(command);
     default: throw new Error('Unknown cache operation');
   }
 }
@@ -32,7 +89,8 @@ self.onmessage = (event: MessageEvent<unknown>): void => {
   void queue.run(command.op, async () => {
     try {
       const value = await perform(command);
-      const transfer = value instanceof Uint8Array && value.buffer instanceof ArrayBuffer ? [value.buffer] : [];
+      const bytes = value instanceof Uint8Array ? value : typeof value === 'object' && value !== null && 'fetched' in value ? value.fetched : null;
+      const transfer = bytes !== null && bytes.buffer instanceof ArrayBuffer ? [bytes.buffer] : [];
       self.postMessage({ id: command.id, ok: true, value }, { transfer });
     } catch (error: unknown) {
       self.postMessage({ id: command.id, ok: false, error: (error instanceof Error ? error.message : String(error)).slice(0, 2048) }, { transfer: [] });

@@ -64,6 +64,9 @@ export interface ProductOptions {
   /** Trusted URL-cache read returning owned checked bytes; replaces raw URL hints for asset reads when present. */
   verifiedResponse?: (url: string, hash: string, maximum: number) => Promise<Uint8Array | null>;
   fetch: (url: string) => Promise<Response>;
+  /** Optional off-page asset read (the content-cache worker): the URL cache when trusted, else the network, verified
+   *  against `hash` and stored, its body transferred to the page. Null where no worker can; the page then reads it. */
+  transport?: (url: string, hash: string, bytes: number) => Promise<{ bytes: Uint8Array; cached: boolean; stored: boolean } | null>;
   hash: (bytes: Uint8Array) => Promise<string>;
   /** Optional off-page hash of an asset's owned copy (transferred and returned with its digest); where it rejects, the
    *  copy is made again and `hash` checks it on the page. */
@@ -293,8 +296,16 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
   // one lookup set: a product's own files against its commons (a per-asset scan of every file was quadratic in its size)
   const ownFiles = new Set(source.files.map(file => file.hash));
   for (const [hash, cap] of addresses) declareDownloadFile(outputBlobUrl(source, ownFiles.has(hash) ? hash : `commons:${hash}`, base), cap);
-  const verifiedCached = new Set<string>();
+  const verifiedCached = new Set<string>(), transported = new Set<string>();
   let bytesRead = 0, filesDone = 0;
+  // The worker's read stands in for the page's URL-cache hint and network read; without one the page does both.
+  const offPage = async (url: string, hash: string, cap: number): Promise<Uint8Array | null | undefined> => {
+    const sent = options.transport === undefined || options.offline ? null : await options.transport(url, hash, cap);
+    if (sent === null) return options.verifiedResponse?.(url, hash, cap);
+    if (!sent.cached) transported.add(hash);
+    if (sent.stored) verifiedCached.add(hash); // durable now: no second write, and a later miss is repaired from these bytes
+    return sent.bytes;
+  };
   const bytesTotal = addresses.reduce((total, [, cap]) => total + cap, 0);
   const progress = (phase: ProductProgress['phase'], detail: string): void => {
     options.progress?.({ phase, detail, bytesRead, bytesTotal, filesDone, filesTotal: addresses.length });
@@ -302,8 +313,8 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
   progress('assets', 'Reading immutable assets');
   const load = async ([hash, cap]: [string, number]): Promise<Uint8Array> => {
     const url = outputBlobUrl(source, ownFiles.has(hash) ? hash : `commons:${hash}`, base);
-    const verified = await waitFor(`Verified cache ${hash.slice(0, 12)}`, (async () =>
-      await options.cache?.verifiedAsset?.(hash) ?? await options.verifiedResponse?.(url, hash, cap))(), 'file');
+    const verified = await waitFor(`${options.transport === undefined ? 'Verified cache' : 'Read'} ${hash.slice(0, 12)}`, (async () =>
+      await options.cache?.verifiedAsset?.(hash) ?? await offPage(url, hash, cap))(), 'file');
     let bytes = verified ?? await waitFor(`Cache ${hash.slice(0, 12)}`, (async () =>
       (options.cache?.verifiedAsset === undefined ? await options.cache?.asset(base, hash) : null)
         ?? (options.verifiedResponse === undefined ? await options.cachedResponse?.(url, hash, cap) : null))(), 'file');
@@ -327,7 +338,8 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
       }
       if (actual !== hash) throw new Error('Shardfile asset hash mismatch');
     }
-    if (fromCache) { verifiedCached.add(hash); recordCachedDownload(hash, bytes.length, url); }
+    if (transported.has(hash)) noteDownloadRead(bytes.length);
+    else if (fromCache) { verifiedCached.add(hash); recordCachedDownload(hash, bytes.length, url); }
     filesDone++; progress('assets', `Verified ${filesDone} / ${addresses.length} files`);
     return owned;
   };
