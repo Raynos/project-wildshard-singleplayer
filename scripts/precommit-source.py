@@ -67,34 +67,71 @@ def import_reader():
     program = """const ts=require(process.argv[1]);
 const lines=require('node:readline').createInterface({input:process.stdin});
 lines.on('line',line=>{
- const [name,text,includeTypes]=JSON.parse(line),source=ts.createSourceFile(name,text,ts.ScriptTarget.Latest,true),imports=[];
+ const [name,text]=JSON.parse(line),source=ts.createSourceFile(name,text,ts.ScriptTarget.Latest,true),imports=[],named=[],locals=Object.create(null),exports=Object.create(null),stars=[];
+ const names=node=>ts.isIdentifier(node)?[node.text]:ts.isObjectBindingPattern(node)||ts.isArrayBindingPattern(node)?node.elements.flatMap(e=>ts.isBindingElement(e)?names(e.name):[]):[];
+ const module=node=>node.moduleSpecifier&&ts.isStringLiteral(node.moduleSpecifier)?node.moduleSpecifier.text:undefined;
+ const modifiers=node=>node.modifiers?.map(m=>m.kind)??[];
+ for(const node of source.statements){
+  if(ts.isImportDeclaration(node)&&module(node)){
+   const from=module(node),clause=node.importClause;
+   if(clause?.name)locals[clause.name.text]={from,name:'default'};
+   const binding=clause?.namedBindings;
+   if(binding&&ts.isNamespaceImport(binding))locals[binding.name.text]={from,name:'*'};
+   if(binding&&ts.isNamedImports(binding))for(const item of binding.elements){
+    const imported=(item.propertyName??item.name).text;locals[item.name.text]={from,name:imported};named.push({from,name:imported});
+   }
+  }
+  if(ts.isExportDeclaration(node)){
+   const from=module(node),clause=node.exportClause;
+   if(!clause&&from)stars.push(from);
+   else if(clause&&ts.isNamespaceExport(clause))exports[clause.name.text]={from,name:'*'};
+   else if(clause&&ts.isNamedExports(clause))for(const item of clause.elements){
+    const imported=(item.propertyName??item.name).text;exports[item.name.text]=from?{from,name:imported}:{local:imported};
+    if(from)named.push({from,name:imported});
+   }
+  }
+  const declared=ts.isVariableStatement(node)?node.declarationList.declarations.flatMap(d=>names(d.name)):
+   (ts.isFunctionDeclaration(node)||ts.isClassDeclaration(node)||ts.isInterfaceDeclaration(node)||ts.isTypeAliasDeclaration(node)||ts.isEnumDeclaration(node)||ts.isModuleDeclaration(node))&&node.name?[node.name.text]:[];
+  for(const local of declared){locals[local]={own:local};if(modifiers(node).includes(ts.SyntaxKind.ExportKeyword)&&!modifiers(node).includes(ts.SyntaxKind.DefaultKeyword))exports[local]={local};}
+  if(modifiers(node).includes(ts.SyntaxKind.DefaultKeyword))exports.default=declared.length?{local:declared[0]}:{own:'default'};
+  if(ts.isExportAssignment(node)&&!node.isExportEquals)exports.default={own:'default'};
+ }
  function visit(node){
   if(ts.isImportTypeNode(node)){
-   if(includeTypes&&ts.isLiteralTypeNode(node.argument)&&ts.isStringLiteral(node.argument.literal))imports.push(node.argument.literal.text);
+   if(ts.isLiteralTypeNode(node.argument)&&ts.isStringLiteral(node.argument.literal)){
+    imports.push([node.argument.literal.text,true]);
+    if(node.qualifier){let first=node.qualifier;while(ts.isQualifiedName(first))first=first.left;named.push({from:node.argument.literal.text,name:first.text});}
+   }
    return;
   }
   if(ts.isImportEqualsDeclaration(node)&&ts.isExternalModuleReference(node.moduleReference)&&node.moduleReference.expression&&ts.isStringLiteral(node.moduleReference.expression)){
-   if(includeTypes||!node.isTypeOnly)imports.push(node.moduleReference.expression.text);
+   imports.push([node.moduleReference.expression.text,node.isTypeOnly]);
   }
   if(ts.isImportDeclaration(node)||ts.isExportDeclaration(node)){
-   if(!includeTypes&&(node.isTypeOnly||node.importClause?.isTypeOnly))return;
-   if(node.moduleSpecifier&&ts.isStringLiteral(node.moduleSpecifier))imports.push(node.moduleSpecifier.text);
+   if(node.moduleSpecifier&&ts.isStringLiteral(node.moduleSpecifier))imports.push([node.moduleSpecifier.text,!!(node.isTypeOnly||node.importClause?.isTypeOnly)]);
   }
   if(ts.isCallExpression(node)&&(node.expression.kind===ts.SyntaxKind.ImportKeyword||ts.isIdentifier(node.expression)&&node.expression.text==='require')){
-   const arg=node.arguments[0];if(arg&&ts.isStringLiteral(arg))imports.push(arg.text);
+   const arg=node.arguments[0];if(arg&&ts.isStringLiteral(arg))imports.push([arg.text,false]);
   }
   ts.forEachChild(node,visit);
  }
- visit(source);process.stdout.write(JSON.stringify(imports)+'\\n');
+ visit(source);process.stdout.write(JSON.stringify({imports,named,locals,exports,stars})+'\\n');
 });"""
     process = subprocess.Popen(['node', '-e', program, str(library)], stdin=subprocess.PIPE,
                                stdout=subprocess.PIPE, text=True)
-    def read(name, text, include_types=False):
-        process.stdin.write(json.dumps([name, text, include_types]) + '\n'); process.stdin.flush()
+    parsed = {}
+    def describe(name, text):
+        if name in parsed:
+            return parsed[name]
+        process.stdin.write(json.dumps([name, text]) + '\n'); process.stdin.flush()
         line = process.stdout.readline()
         if not line:
             raise ValueError('Staged import parser exited without a result')
-        return set(json.loads(line))
+        parsed[name] = json.loads(line)
+        return parsed[name]
+    def read(name, text, include_types=False):
+        return {value for value, type_only in describe(name, text)['imports'] if include_types or not type_only}
+    read.describe = describe
     try:
         yield read
     finally:
@@ -248,16 +285,72 @@ def check_staged_imports(blobs, files, staged_paths, imports):
                 else:
                     generated.add(folder + '/discovery.generated.ts')
         return file in generated
+    scripts = {'.ts', '.tsx', '.mts', '.cts', '.js', '.jsx', '.mjs', '.cjs'}
+    def target(source, value):
+        candidates = relative_candidates(source, value)
+        found = next((candidate for candidate in candidates if candidate in staged_paths), None)
+        if found is None and not any(declared_output(candidate) for candidate in candidates):
+            name = candidates[0] if candidates else value
+            raise ValueError(f'MISSING STAGED MODULE {source}: {value} -> {name} is untracked or absent in the staged tree')
+        return found
+    def exported(file, symbol, visiting=frozenset()):
+        """Resolve only export edges, not a whole TS program or a loose file.
+
+        None means an external/generated/asset edge is outside this source
+        check. Sets identify original declarations, so repeated star paths to
+        one declaration pass, distinct ambiguous star exports do not.
+        Type exports are names too; value/type usage diagnostics stay with tsc.
+        """
+        key = (file, symbol)
+        if key in visiting:
+            return set()
+        if file not in blobs or PurePosixPath(file).suffix not in scripts:
+            return None
+        row = imports.describe(file, blobs[file].decode('utf8'))
+        visiting = visiting | {key}
+        def follow(binding):
+            if 'own' in binding:
+                return {(file, binding['own'])}
+            if 'local' in binding:
+                local = row['locals'].get(binding['local'])
+                return follow(local) if local is not None else set()
+            value = binding['from']
+            if not value.startswith('.'):
+                return None
+            dependency = target(file, value)
+            if dependency is None:
+                return None
+            return {(dependency, '*')} if binding['name'] == '*' else exported(dependency, binding['name'], visiting)
+        if symbol in row['exports']:
+            return follow(row['exports'][symbol])
+        # `export *` never forwards a default export.
+        if symbol == 'default':
+            return set()
+        origins = set()
+        for value in row['stars']:
+            result = follow({'from': value, 'name': symbol})
+            if result is None:
+                return None
+            origins.update(result)
+        return origins
     for file in files:
         if file not in blobs or PurePosixPath(file).suffix not in {'.ts', '.tsx', '.mts', '.cts', '.js', '.jsx', '.mjs', '.cjs'}:
             continue
         for value in sorted(imports(file, blobs[file].decode('utf8'), True)):
             if not value.startswith('.'):
                 continue
-            candidates = relative_candidates(file, value)
-            if not any(candidate in staged_paths for candidate in candidates) and not any(declared_output(candidate) for candidate in candidates):
-                target = candidates[0] if candidates else value
-                raise ValueError(f'MISSING STAGED MODULE {file}: {value} -> {target} is untracked or absent in the staged tree')
+            target(file, value)
+        for binding in imports.describe(file, blobs[file].decode('utf8'))['named']:
+            value, symbol = binding['from'], binding['name']
+            if not value.startswith('.') or '?' in value or '#' in value:
+                continue
+            dependency = target(file, value)
+            if dependency is None:
+                continue
+            origins = exported(dependency, symbol)
+            if origins is not None and len(origins) != 1:
+                reason = 'ambiguous' if origins else 'not exported'
+                raise ValueError(f'MISSING STAGED EXPORT {file}: {symbol} from {value} ({dependency}) is {reason} in the staged tree')
 
 
 def staged_source(repo, tree, deadline, revision=None, specification=None):

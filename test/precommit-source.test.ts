@@ -19,6 +19,12 @@ test('selected source retains exact imports, predecessor, assets, deleted reader
   expect(output).toContain('13 staged import guard regressions passed');
 });
 
+test('named imports resolve aliases, types and re-exports using staged module bytes', () => {
+  const output = execFileSync('python3', ['test/fixtures/precommit-named-exports.py',
+    sourcePath ?? resolve('scripts/precommit-source.py')], { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
+  expect(output).toContain('29 named-export syntax cases and 2 real-index cases passed');
+});
+
 test('docs-only commits make no source snapshot or lint worker', async () => {
   mkdirSync('tmp', { recursive: true });
   const root = mkdtempSync(resolve('tmp/docs-hook-'));
