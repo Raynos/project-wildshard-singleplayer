@@ -110,6 +110,19 @@ reading, released in `finally`. Caller PID, actual script and cwd are verified;
 `tmp/` callers and copied Simulator flags refuse. Chromium captures and ad-hoc
 wrappers cannot take a quiet window.
 
+For a compiled home reading, add `--shard=sunscar-dunes --runs=1` to the
+same official command. It selects the explicit compiled card and refuses a
+legacy or different shard route. A local HTTP served build is required for
+that mode's independent byte observer. The existing observer injects its
+recorder into the first HTML, preserving asset/worker response bytes and
+recording both HTML hashes. Per-run output retains loading rows, resource
+and worker receipts, declared-byte changes, percentage drops and named
+performance measures. Missing counters stay missing; a successful capture
+alone does not pass the loading budgets. Controls are observed at 500 ms
+intervals. Grid-only reveal/frame checks stay unavailable in compiled mode.
+Any failed run stops the cohort and returns failure, with no automatic retry.
+The reader closes Safari, its proxy and any preview it opened in `finally`.
+
 Before CPU work, `python3 scripts/sim-quiet.py status` reports the active official
 reading. During it, **read and edit only**: no tests, typechecks, lint, builds,
 bakes, generators, browsers, captures or hook-running commits. The marker expires
