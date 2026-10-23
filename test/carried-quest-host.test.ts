@@ -1,3 +1,4 @@
+import {lendNalatiKokpar} from './fixtures/nalati-return-modules';
 import {expect,it,vi} from 'vitest';
 import * as THREE from 'three';
 import {Scope} from '../src/engine/app/scope';
@@ -17,6 +18,7 @@ import {carriedQuestRows} from '../src/shards/nalati-grasslands/generators/carri
 function fixture(){
   const construction=new Scope('delivery construction'),scope=new Scope('delivery entered'),sky:unknown=Object.create(SkyRig.prototype),quest:unknown=Object.create(QuestState.prototype);
   if(!(sky instanceof SkyRig)||!(quest instanceof QuestState))throw new Error('Fixture concrete owners missing');
+  lendNalatiKokpar(scope);
   Reflect.set(sky,'csm',{lights:[]});Reflect.set(sky,'sunDir',new THREE.Vector3(0,1,0));vi.spyOn(sky,'setupMaterial').mockImplementation(()=>undefined);
   vi.spyOn(terrain,'terrainHeight').mockImplementation((x,z)=>x*.001+z*.002);
   const player={position:new THREE.Vector3(4,0,6),velocity:new THREE.Vector3(2,0,0),yaw:.4},events:string[]=[],flags=new Flags('orchard-delivery');
@@ -66,7 +68,7 @@ it('keeps construction and entered lifetime independent, refusing sliced retirem
   for(const retire of ['construction','entered'] as const){
     const f=fixture(),parent=new Scope('retiring parent');try{
       const child=new Scope('entered child',parent);
-      if(retire==='entered'){Object.assign(f.ctx,{scope:child});publishBoundQuest(child,f.quest);}
+      if(retire==='entered'){Object.assign(f.ctx,{scope:child});publishBoundQuest(child,f.quest);lendNalatiKokpar(child);}
       const prop=retire==='construction'?child.run(()=>new CarriedQuestProp(f.ctx,f.rows)):f.create();
       parent.onDispose(()=>undefined);const steps=parent.disposeSteps();steps.next();
       expect(child.disposing).toBe(true);expect(()=>prop.update(.1)).toThrow('owner changed');expect(f.events).toEqual([]);
