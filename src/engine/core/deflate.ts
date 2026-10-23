@@ -28,6 +28,14 @@ export async function fetchDeflatedBytes(url: string): Promise<Uint8Array> {
   }
 }
 
+/** Base64 text as bytes (an inline block): one pass over the decoded text, never a mapper call per byte (G639: Nalati's grass
+ *  maps spent ~60 ms of one grid-entry frame in `Uint8Array.from(atob(text), …)`). */
+export function base64Bytes(text: string): Uint8Array<ArrayBuffer> {
+  const binary = atob(text), out = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) out[i] = binary.codePointAt(i) ?? 0;
+  return out;
+}
+
 /** Restore a range of four-byte words from their four byte lanes into a distinct complete buffer. */
 export function unshuffleLanes(lanes: Uint8Array, out = new Uint8Array(lanes.length), wordStart = 0, wordEnd = lanes.length / 4): Uint8Array {
   if (lanes.length % 4 !== 0) throw new Error('unshuffleLanes: not whole words');

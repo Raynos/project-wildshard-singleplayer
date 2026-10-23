@@ -1,5 +1,5 @@
 import { Object3D } from 'three';
-import { parseClientChannelInputs, parseClientChannels, type ClientChannelProperty } from '@wildshard/format/clientChannels';
+import { parseClientChannelInputs, parseClientChannels, type ClientChannelProgram, type ClientChannelProperty } from '@wildshard/format/clientChannels';
 import { checkBorrowedOwnerPath, resolveBorrowedOwner } from './borrowed';
 
 /** Detached coordinate outputs for a private geometry kernel. */
@@ -20,11 +20,18 @@ export interface ClientChannelObservation { readonly time: number; readonly delt
 /** Read-only visual output; property getters expose no writable storage or authoritative object. */
 export type ClientChannelFrame = Readonly<Partial<Record<ClientChannelProperty, number>>>;
 /** A capability-limited numeric lane; it has no state setter, physics port, event writer or player reference. */
-export function createClientChannels(input: unknown): {
+export function createClientChannels(input: unknown): ClientChannelLane {
+  const program = parseClientChannels([input])[0]; if (program === undefined) throw new Error('Missing client channel program');
+  return admittedClientChannels(program);
+}
+/** A numeric lane. */
+export interface ClientChannelLane {
   readonly reads: readonly string[]; readonly frame: ClientChannelFrame; readonly geometry?: ClientTubeFrame; readonly connectors?: readonly ClientConnectorFrame[]; evaluate: (observation: ClientChannelObservation) => void;
   bindNumeric: (rows: readonly ClientNumericPortRow[], targets: ReadonlyMap<string, unknown>) => ClientNumericPorts;
-} {
-  const program = parseClientChannels([input])[0]; if (program === undefined) throw new Error('Missing client channel program');
+}
+/** A lane over a program its caller has just admitted with `parseClientChannels` (G639: a table installed group by group
+ *  re-validated every row it had parsed; Nalati's entry spent 0.3-0.65 s frames in it). Its arrays are copied, never kept. */
+export function admittedClientChannels(program: ClientChannelProgram): ClientChannelLane {
   const nodes = structuredClone(program.nodes), scratch = new Float64Array(nodes.length), published = new Float64Array(nodes.length), reads = new Float64Array(program.reads.length);
   const slots = structuredClone(program.locals ?? []), locals = new Float64Array(slots.length), previous = new Float64Array(slots.length), next = new Float64Array(slots.length);
   let initialized = false;

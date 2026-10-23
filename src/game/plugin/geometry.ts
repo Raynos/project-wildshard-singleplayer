@@ -1246,6 +1246,16 @@ export function readBakedGeometry(bytes: Uint8Array, offset: number, row: BakedG
   return g;
 }
 
+/** A baked read expanded to one vertex per corner (a row's `expand`): the same positions, so the read's bounds carry over
+ *  (G639: recomputing them over the expanded copy cost ~0.2 s of single Nalati entry frames). The read is disposed. */
+export function expandBakedGeometry(geometry: BufferGeometry): BufferGeometry {
+  const flat = geometry.toNonIndexed();
+  if (geometry.boundingBox === null) geometry.computeBoundingBox();
+  flat.boundingBox = geometry.boundingBox; flat.boundingSphere = geometry.boundingSphere;
+  geometry.dispose();
+  return flat;
+}
+
 /** How long a packed body bake stays inflated after its last copy (ms): a spawn burst's copies share one inflate. */
 const DECODED_HOLD_MS = 2000;
 /** A packed body catalogue: load its compressed source once, then lend fresh owned parts per spawn. */
@@ -1254,6 +1264,13 @@ export interface PackedCreatureBodies {
   copy: (kind: string, variant: string) => AnimalSpecies;
   /** Bind inert look rows; a missing body family or numeric pose refuses admission. */
   looks: (input: unknown) => { all: readonly SpeciesLook[]; get: (kind: string) => SpeciesLook };
+}
+
+/** zlib bytes inflated by the platform's stream decoder (off the script's own work), or in script where it has none. */
+async function inflateStream(bytes: Uint8Array): Promise<Uint8Array> {
+  if (typeof DecompressionStream === 'undefined') return unzlibSync(bytes);
+  const inflating = new Blob([bytes.slice()]).stream().pipeThrough(new DecompressionStream('deflate'));
+  return new Uint8Array(await new Response(inflating).arrayBuffer());
 }
 
 /**
@@ -1300,7 +1317,12 @@ export function packedCreatureBodies(input: unknown, decode: (bytes: Uint8Array)
     return decoded;
   };
   const catalogue: PackedCreatureBodies = {
-    preload: () => { loading ??= fetchBuildFile(bake.file).then(bytes => { compressed = bytes; return undefined; }); return loading; },
+    // G639: the bake is inflated as it loads, by the platform's stream decoder where it can (a Nalati entry spent ~0.13 s of
+    // one frame inflating 8.7 MB in script at its first spawn); it is held until the first burst's copies are done
+    preload: () => {
+      loading ??= fetchBuildFile(bake.file).then(async bytes => { compressed = bytes; if (decode === unzlibSync) decoded ??= await inflateStream(bytes); return undefined; });
+      return loading;
+    },
     looks: lookInput => {
       const book = wholeV.parse(PackedCreatureLooksSchema, lookInput);
       if (new Set(book.rows.map(row => row.id)).size !== book.rows.length || new Set(book.rows.map(row => row.kind)).size !== book.rows.length) throw new Error('Duplicate packed creature look');

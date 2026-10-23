@@ -1,3 +1,4 @@
+import { base64Bytes } from '@wildshard/engine/core/deflate';
 import * as v from 'valibot';
 import { GrassPresentationSchema, type GrassPresentationRows } from '@wildshard/format/fieldPresentation';
 import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
@@ -28,7 +29,7 @@ import { lentLook, setLentParam, setLentTexture } from '../shardfile/lentLooks';
 
 const MAX_TILES = 256;
 type InstancedBufferGeometry = THREE.InstancedBufferGeometry;
-const decode = (encoded: string): Uint8Array<ArrayBuffer> => unzlibSync(Uint8Array.from(atob(encoded), value => value.codePointAt(0) ?? 0));
+const decode = (encoded: string): Uint8Array<ArrayBuffer> => unzlibSync(base64Bytes(encoded));
 /** Admit the declared instanced drawing buffers. */
 function geometries(encoded: string, look: string): InstancedBufferGeometry[] {
   const input: unknown = JSON.parse(new TextDecoder().decode(decode(encoded)));

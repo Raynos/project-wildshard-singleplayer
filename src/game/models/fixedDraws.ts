@@ -1,3 +1,4 @@
+import { base64Bytes } from '@wildshard/engine/core/deflate';
 import { FixedDrawRowsSchema } from '@wildshard/format/fixedDraws';
 import * as v from 'valibot';
 import { unzlibSync } from 'fflate';
@@ -5,7 +6,7 @@ import type { BufferGeometry } from 'three';
 import { createOwnedGeometry, type OwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import type { ShardProduct } from '../shardfile/shardProduct';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { bakedGeometryBytes, fetchLaneBake, readBakedGeometry, type readWholeGeometry } from '../plugin/geometry';
+import { bakedGeometryBytes, expandBakedGeometry, fetchLaneBake, readBakedGeometry, type readWholeGeometry } from '../plugin/geometry';
 import { timeClientPreparation } from '../shardfile/preparationTiming';
 
 /** One loaded library of fixed draws (see fixedDraws). */
@@ -28,17 +29,14 @@ export type LaneBakeReader = (url: string) => Promise<Uint8Array>;
 function bakedDraw(slot: string, baked: BakedRow, channels: FixedDrawRow['channels'], bytes: Uint8Array): BufferGeometry {
   if (bytes.byteLength !== bakedGeometryBytes(baked)) throw new Error(`Baked fixed draw byte count differs: ${slot}`);
   let geometry = readBakedGeometry(bytes, 0, baked);
-  if (baked.expand) {
-    const flat = geometry.toNonIndexed(); geometry.dispose(); geometry = flat;
-    geometry.computeBoundingBox(); geometry.computeBoundingSphere();
-  }
+  if (baked.expand) geometry = expandBakedGeometry(geometry);
   for (const [from, to] of channels) {
     if (!geometry.hasAttribute(from)) { geometry.dispose(); throw new Error(`Baked fixed draw is missing ${from}: ${slot}`); }
     geometry.setAttribute(to, geometry.getAttribute(from)); geometry.deleteAttribute(from);
   }
   return geometry;
 }
-const inflate = (data: string): Uint8Array => unzlibSync(Uint8Array.from(atob(data), c => c.codePointAt(0) ?? 0));
+const inflate = (data: string): Uint8Array => unzlibSync(base64Bytes(data));
 /** A block inside a lane bake: exactly its own bytes from the row's offset. */
 function laneBlock(slot: string, baked: BakedRow, bytes: Uint8Array, offset: number): Uint8Array {
   const end = offset + bakedGeometryBytes(baked);

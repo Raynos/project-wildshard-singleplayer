@@ -4,9 +4,8 @@ import type { OffscreenPass, SkyBackdrop, SkyBackdropContext, SkyBackdropFactory
 import { prepareOffscreenBuild } from '@wildshard/engine/render/offscreenBuild';
 import { SkyEnvironment, type SkyEnvironmentRefresh, type SkyEnvironmentSource } from '@wildshard/engine/render/skyEnvironment';
 import type { DayCycle } from '@wildshard/engine/world/dayCycle';
-import { installChannelPrograms } from '@wildshard/game/plugin/channelPrograms';
+import { admittedChannelTable, installChannelPrograms } from '@wildshard/game/plugin/channelPrograms';
 import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
-import { parseClientChannels } from '@wildshard/format/clientChannels';
 import * as THREE from 'three';
 
 /**
@@ -109,7 +108,7 @@ export function graphParamRoots(rows: unknown, group: string, ids: readonly stri
   roots: Map<string, Record<string, number | Record<string, number>>>; push: (looks: Pick<DaySkyGraphs, 'setParam'>) => void;
 } {
   const roots = new Map<string, Record<string, number | Record<string, number>>>(), sizes = new Map<string, Map<string, number>>();
-  for (const row of parseClientChannels(rows)) for (const out of row.numeric?.group === group ? row.numeric.outputs : []) {
+  for (const row of admittedChannelTable(rows)) for (const out of row.numeric?.group === group ? row.numeric.outputs : []) {
     const [param, axis] = out.path;
     if (!ids.includes(out.target) || param === undefined) continue;
     const root = roots.get(out.target) ?? {}, size = sizes.get(out.target) ?? new Map<string, number>();

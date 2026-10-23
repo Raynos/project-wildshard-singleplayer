@@ -1,3 +1,4 @@
+import { base64Bytes } from '@wildshard/engine/core/deflate';
 import { floorAtRects } from '@wildshard/engine/physics/box';
 import { timeClientPreparation } from './preparationTiming';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
@@ -19,7 +20,7 @@ import { instancedQuad } from '@wildshard/engine/render/instancedGeometry';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
 import { createPackedSpecimens, defineSpecimenCatalogue, loadBoundSpecimen, loadSpecimenTexture, specimenMaterial } from '../models/specimenCatalogue';
-import { fetchLaneBake, readBakedGeometry, bakedGeometryBytes } from '../plugin/geometry';
+import { expandBakedGeometry, fetchLaneBake, readBakedGeometry, bakedGeometryBytes } from '../plugin/geometry';
 import { createClientScene } from '../plugin/ui';
 import { AmbientWingField } from '../ambient/wingField';
 import { EncounterSites } from '../boss/encounterView';
@@ -36,7 +37,7 @@ const contacts = (input: readonly unknown[]) => readColliderRows(input, {kinds:[
 export function readSceneFloors(input:unknown):((x:number,z:number)=>number|undefined)[]{
   return v.parse(v.array(SceneFloorSchema),input).map(row=>{
     if('rects'in row)return(x,z)=>floorAtRects(row.rects,x,z,'highest');
-    const raw=unzlibSync(Uint8Array.from(atob(row.data),c=>c.codePointAt(0)??0));
+    const raw=unzlibSync(base64Bytes(row.data));
     if(raw.byteLength!==row.res*row.res*4)throw new Error('Floor sample byte count differs');
     const heights=new Float32Array(raw.buffer,raw.byteOffset,raw.byteLength/4);
     const sample=bakedSamplers({res:row.res,size:row.size,heights,splat:new Uint8Array(0),undergrowth:null,seed:0,landscapeHash:0}).heightAt;
@@ -154,12 +155,12 @@ export class SceneDressing {
         if(part===undefined)throw new Error('Missing scene packed shape');shape=part.geometry;
       }else{
         let raw:Uint8Array;
-        if(source.kind==='inline')raw=unzlibSync(Uint8Array.from(atob(source.data),c=>c.codePointAt(0)??0));
+        if(source.kind==='inline')raw=unzlibSync(base64Bytes(source.data));
         else{let pending=bytes.get(source.url);if(pending===undefined){pending=fetchLaneBake(source.url);bytes.set(source.url,pending);}raw=await pending;}
         let offset=0;if(source.kind==='baked'){let pending=addresses.get(source.address.file);if(pending===undefined){pending=ctx.product.file(source.address.file);addresses.set(source.address.file,pending);}offset=readSceneGeometryAddress(await pending,source.address.word);}
         if(offset+bakedGeometryBytes(source.row)>raw.byteLength)throw new Error('Scene geometry address exceeds its source');
         const decoded=readBakedGeometry(raw,offset,source.row);
-        if(source.row.expand){shape=decoded.toNonIndexed();decoded.dispose();shape.computeBoundingBox();shape.computeBoundingSphere();}else shape=decoded;
+        shape=source.row.expand?expandBakedGeometry(decoded):decoded;
       }
       if(source.kind==='inline'&&source.sphere!==undefined)shape.boundingSphere=new THREE.Sphere(new THREE.Vector3(...source.sphere.slice(0,3)),source.sphere[3]);
       geometry.set(key,shape);ctx.scope.own(shape);await pause();
@@ -254,7 +255,7 @@ export class SceneDressing {
 function meshObject(value:THREE.Object3D):value is THREE.Mesh{return value instanceof THREE.Mesh;}
 
 function unpackHulls(row:Exclude<SceneDressingRows['layers'][number]['contacts'],readonly unknown[]>):ReturnType<typeof contacts>{
-  const bytes=unzlibSync(Uint8Array.from(atob(row.data),c=>c.codePointAt(0)??0)),view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);let at=0;
+  const bytes=unzlibSync(base64Bytes(row.data)),view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);let at=0;
   // Bound temporary number lanes without rebuilding the admission schema for every hull.
   const owned:ReturnType<typeof contacts>=[];
   for(let start=0;start<row.origins.length;start+=64){

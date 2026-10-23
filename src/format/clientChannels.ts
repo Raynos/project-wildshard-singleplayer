@@ -122,8 +122,10 @@ function uniqueConnectorSlots(rows: readonly v.InferOutput<typeof baseProgram>[]
   }
   return true;
 }
-/** A straight-line DAG: every reference names an earlier node, never a loop, call or recursive expression. */
-const structureProgram = v.pipe(baseProgram, v.check(row => (row.channels.length > 0 || row.geometry !== undefined || row.connectors !== undefined)
+/** A straight-line DAG: every reference names an earlier node, never a loop, call or recursive expression. The rules over an
+ *  already-shaped program (its base fields); the schemas call it directly, never re-parsing. */
+function structureOk(row: v.InferOutput<typeof baseProgram>): boolean {
+  return (row.channels.length > 0 || row.geometry !== undefined || row.connectors !== undefined)
   && (row.geometry === undefined || [...row.geometry.from, ...row.geometry.to, row.geometry.extent, row.geometry.wave].every(value => value < row.nodes.length))
   && (row.connectors ?? []).every(pose => [...pose.from, ...pose.to, ...(pose.at ?? []), ...pose.scale,
     pose.enabled, ...(pose.cache === undefined ? [] : [pose.cache])].every(value => value < row.nodes.length))
@@ -141,25 +143,30 @@ const structureProgram = v.pipe(baseProgram, v.check(row => (row.channels.length
     if (value.op === 'read') return value.index < row.reads.length;
     if (value.op === 'select') return value.test < at && value.yes < at && value.no < at;
     return (!('c' in value) || value.c < at) && (!('a' in value) || value.a < at) && (!('b' in value) || value.b < at);
-  }), 'unique visual channels and reads; backward-only nodes and bounded private slots'));
+  });
+}
 /** Preserve the generic channel wire, including its existing private owner loans. */
 export const ClientChannelProgramSchema: v.GenericSchema<v.InferInput<typeof program>, ClientChannelProgram> = v.pipe(program,
   v.check(row => {
     const { numeric, ...base } = row;
-    return v.safeParse(structureProgram, base).success && (numeric === undefined
+    return structureOk(base) && (numeric === undefined
       || numeric.outputs.every(output => row.channels.some(channel => channel.property === output.property))
       && numeric.inputs.every(input => row.reads.includes(input.input)));
   }, 'unique visual channels and reads; backward-only nodes and bounded private slots'));
 /** Admitted visual programs; aggregate caps apply before any expression storage is allocated. */
 export const ClientChannelsSchema: v.GenericSchema<v.InferInput<typeof ClientChannelProgramSchema>[], ClientChannelProgram[]> = v.pipe(v.array(ClientChannelProgramSchema), v.maxLength(CLIENT_CHANNEL_LIMITS.programs),
-  v.check(rows => new Set(rows.map(row => row.id)).size === rows.length
+  v.check(rows => listOk(rows), 'unique bounded client channel programs'));
+/** The aggregate rules over admitted rows: unique ids and prompts, disjoint connector slots, bounded totals. */
+function listOk(rows: readonly ClientChannelProgram[]): boolean {
+  return new Set(rows.map(row => row.id)).size === rows.length
     && new Set(rows.flatMap(row => row.prompt === undefined ? [] : [row.prompt.id])).size === rows.filter(row => row.prompt !== undefined).length
     && uniqueConnectorSlots(rows)
     && rows.filter(row => row.prompt !== undefined).length <= CLIENT_CHANNEL_LIMITS.prompts
     && rows.reduce((sum, row) => sum + (row.connectors ?? []).reduce((total, pose) => total + (pose.instances?.capacity ?? 1), 0), 0) <= 8192
     && rows.reduce((sum, row) => sum + row.nodes.length, 0) <= CLIENT_CHANNEL_LIMITS.totalNodes
     && rows.reduce((sum, row) => sum + (row.locals?.length ?? 0), 0) <= CLIENT_CHANNEL_LIMITS.totalLocals
-    && rows.reduce((sum, row) => sum + row.channels.length, 0) <= CLIENT_CHANNEL_LIMITS.totalChannels, 'unique bounded client channel programs'));
+    && rows.reduce((sum, row) => sum + row.channels.length, 0) <= CLIENT_CHANNEL_LIMITS.totalChannels;
+}
 /** Visual property identity, never an authoritative player or shared field. */
 export type ClientChannelProperty = v.InferOutput<typeof ClientChannelPropertySchema>;
 /** Strictly parse detached author data before the trusted view owner binds it. */
@@ -375,7 +382,7 @@ const poseNumeric = v.strictObject({ group: name, outputs: v.pipe(v.array(numeri
 });
 const poseProgram = v.pipe(v.strictObject({ id: name, ...programFields, numeric: poseNumeric }), v.check(row => {
   const { numeric, ...base } = row;
-  return v.safeParse(structureProgram, base).success
+  return structureOk(base)
     && numeric.outputs.every(output => row.channels.some(channel => channel.property === output.property))
     && numeric.inputs.length === row.reads.length && numeric.inputs.every(input => row.reads.includes(input.input));
 }, 'bounded typed creature pose program'));

@@ -1,3 +1,4 @@
+import { base64Bytes } from '@wildshard/engine/core/deflate';
 import { SpecimenCatalogueSchema, PackedSpecimenSchema, SpecimenMaterialSchema, PickupCatalogueSchema, assertSpecimenJson as jsonData } from '@wildshard/format/specimenCatalogue';
 import { unzlibSync } from 'fflate';
 import * as THREE from 'three';
@@ -13,7 +14,7 @@ import { createOwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { painterlyMaterial, painterlyKnobs } from '@wildshard/engine/world/painterly';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
-import { bakedGeometryBytes, readBakedGeometry, fetchLaneBake, type BakedGeometryRow } from '../plugin/geometry';
+import { expandBakedGeometry, bakedGeometryBytes, readBakedGeometry, fetchLaneBake, type BakedGeometryRow } from '../plugin/geometry';
 import { pickup } from '@wildshard/engine/models/interact';
 import { interactParts } from '@wildshard/engine/world/interact/kit';
 import { registerPickupLook, type PickupPart } from '@wildshard/engine/world/interact/types';
@@ -31,7 +32,7 @@ export function installPickupCatalogue(input: unknown): void {
   const geometry = (key: string, seed: number): THREE.BufferGeometry => {
     const row = rows.geometries.find(candidate => candidate.key === key && candidate.seed === seed);
     if (row === undefined) throw new Error(`No prepared pickup geometry: ${key}:${seed}`);
-    const compressed = Uint8Array.from(atob(row.data), character => character.codePointAt(0) ?? 0);
+    const compressed = base64Bytes(row.data);
     const bytes = unzlibSync(compressed);
     if (bytes.length !== bakedGeometryBytes(row.geometry)) throw new Error(`Invalid prepared pickup bytes: ${key}:${seed}`);
     return readBakedGeometry(bytes, 0, row.geometry);
@@ -239,7 +240,7 @@ export function createPackedSpecimens(input: unknown): {
       for (let i = 0; i < index; i++) first += bake.rows[i]?.parts.length ?? 0;
       return row.parts.map((part, i) => {
         let geometry = readBakedGeometry(loaded.bytes, loaded.offsets[first + i] ?? 0, part.geometry);
-        if (part.geometry.expand) { const flat = geometry.toNonIndexed(); geometry.dispose(); geometry = flat; geometry.computeBoundingBox(); geometry.computeBoundingSphere(); }
+        if (part.geometry.expand) geometry = expandBakedGeometry(geometry);
         const material = Object.hasOwn(materialRows, part.material) ? materialRows[part.material] : undefined;
         if (material === undefined) throw new Error(`Missing specimen material: ${part.material}`);
         return { geometry, material: specimenMaterial(ctx.sky, material) };
@@ -266,10 +267,9 @@ export function defineSpecimenCatalogue<Params extends { readonly [K in keyof Pa
       const source = row.source.kind==='selection'?row.source.variants.find(candidate=>parameterKey(candidate.params)===parameterKey(params))?.source:row.source;
       if(source===undefined)throw new Error(`No authored specimen: ${row.model.id}`);
       if(source.kind==='inline'){
-        const decodedBytes=unzlibSync(Uint8Array.from(atob(source.data),character=>character.codePointAt(0)??0));
+        const decodedBytes=unzlibSync(base64Bytes(source.data));
         if(decodedBytes.length!==bakedGeometryBytes(source.geometry))throw new Error('Inline specimen byte count differs');
-        const decoded=readBakedGeometry(decodedBytes,0,source.geometry),geometry=source.geometry.expand?decoded.toNonIndexed():decoded;
-        if(geometry!==decoded){decoded.dispose();geometry.computeBoundingBox();geometry.computeBoundingSphere();}
+        const decoded=readBakedGeometry(decodedBytes,0,source.geometry),geometry=source.geometry.expand?expandBakedGeometry(decoded):decoded;
         const part={geometry,material:specimenMaterial(ctx.sky,source.material),castShadow:true,receiveShadow:true};
         queueMicrotask(()=>{announceModelReady(row.model.id);});
         return source.representation==='parts'?[part]:new THREE.Group().add(Object.assign(new THREE.Mesh(part.geometry,part.material),{castShadow:true,receiveShadow:true}));

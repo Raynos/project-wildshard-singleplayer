@@ -1,8 +1,8 @@
 import * as poseSchema from 'valibot';
-import { NumericPoseSchema, type NumericPoseInputSchema, parseClientChannels } from '@wildshard/format/clientChannels';
+import { NumericPoseSchema, type NumericPoseInputSchema, parseClientChannels, type ClientChannelProgram } from '@wildshard/format/clientChannels';
 import type { AnimalRigContext, AnimalRigJoint } from '@wildshard/engine/entities/animalRig';
 import { lookAngles, squashBody } from '@wildshard/engine/entities/species/rigs';
-import {createClientChannels,bindClientChannelInputs} from './channels';
+import {admittedClientChannels,bindClientChannelInputs} from './channels';
 
 /** Copied values may be an existing common read vector or a named observation for independently authored DAGs. */
 export interface ChannelProgramObservation {readonly time:number;readonly delta:number;readonly values:readonly number[]|Readonly<Record<string,number>>}
@@ -16,15 +16,24 @@ function poseMemory(memory: Readonly<Record<string, number>>, name: string): num
   if (typeof value !== 'number') throw new Error('Creature pose memory must be numeric');
   return value;
 }
+/** G639: one admission per channel table: a page installs one table group by group (Nalati's sky, weather, figures, its
+ *  crowd), and each install parsed the whole table again (0.3-0.65 s frames in its grid entry). The admitted rows are
+ *  only read (each lane copies its arrays). */
+const tables=new WeakMap<object,readonly ClientChannelProgram[]>();
+export function admittedChannelTable(input:unknown):readonly ClientChannelProgram[]{
+ if(typeof input!=='object'||input===null)return parseClientChannels(input);
+ let rows=tables.get(input);if(rows===undefined){rows=parseClientChannels(input);tables.set(input,rows);}
+ return rows;
+}
 /** One bounded group of the existing visual DAG owner; supplied owners expose only explicitly declared numeric fields. */
 export function installChannelPrograms(input:unknown,group:string,owners:ReadonlyMap<string,unknown>):{
  evaluate:(observation:ChannelProgramObservation)=>void;capture:()=>()=>void;readonly ids:readonly string[]
 }{
- const selected=parseClientChannels(input).filter(row=>row.numeric?.group===group);
+ const selected=admittedChannelTable(input).filter(row=>row.numeric?.group===group);
  if(selected.length===0)throw new Error(`Missing numeric channel group: ${group}`);
  const lanes=selected.map(row=>{
   const binding=row.numeric;if(binding===undefined)throw new Error('Missing numeric channel metadata');
-  const lane=createClientChannels(row),inputs=bindClientChannelInputs(binding.inputs,owners,new Set(lane.reads));
+  const lane=admittedClientChannels(row),inputs=bindClientChannelInputs(binding.inputs,owners,new Set(lane.reads));
   const ports=lane.bindNumeric(binding.outputs,owners),restoreOnly=lane.bindNumeric(binding.restoreOnly.map(({property,target,path,nullable})=>({property,target,path,restore:true,nullable:nullable??false})),owners),values:number[]=Array.from({length:lane.reads.length},()=>0);
   return {lane,inputs,ports,restoreOnly,values,observation:{time:0,delta:0,values}};
  });
