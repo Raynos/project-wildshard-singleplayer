@@ -1,4 +1,5 @@
 import * as poseSchema from 'valibot';
+import type { Euler } from 'three';
 import { NumericPoseSchema, type NumericPoseInputSchema, parseClientChannels, type ClientChannelProgram } from '@wildshard/format/clientChannels';
 import type { AnimalRigContext, AnimalRigJoint } from '@wildshard/engine/entities/animalRig';
 import { lookAngles, squashBody } from '@wildshard/engine/entities/species/rigs';
@@ -62,6 +63,8 @@ export function installChannelPrograms(input:unknown,group:string,owners:Readonl
  });
 }
 
+/** A bone rotation's pending axes (see numericCreaturePose). */
+interface Turn { readonly euler: Euler; x: number; y: number; z: number; dirty: boolean }
 /** Numeric pose rows on existing joints. Each rig lends its frame and transforms to the existing channel evaluator;
  * optional bones are skipped, and no actor memory, clock, random stream or continuation is added. */
 export function numericCreaturePose(poseData: unknown): (ctx: AnimalRigContext) => void {
@@ -105,7 +108,7 @@ export function numericCreaturePose(poseData: unknown): (ctx: AnimalRigContext) 
     inputs: readonly poseSchema.InferOutput<typeof NumericPoseInputSchema>[]; joints: ReadonlyMap<string, AnimalRigJoint>;
     memory: Record<string, number | undefined>;
     observation: { time: number; delta: number; values: Record<string, number> };
-    lane: ReturnType<typeof installChannelPrograms> | null;
+    lane: ReturnType<typeof installChannelPrograms> | null; turns: readonly Turn[];
   }>();
   return c => {
     if ((row.alive !== undefined && row.alive !== c.alive)
@@ -128,8 +131,19 @@ export function numericCreaturePose(poseData: unknown): (ctx: AnimalRigContext) 
         get y() { return source.y; }, set y(value: number) { source.y = value; },
         get z() { return source.z; }, set z(value: number) { source.z = value; },
       });
+      // a programme writes a rotation an axis at a time and every Euler write recomputes the bone's quaternion: the axes
+      // gather here and land as one Euler.set a bone after the lane runs (G639: setFromEuler, ~0.14 ms a Nalati look frame)
+      const turns: Turn[] = [], turned = (euler: Euler) => {
+        const turn: Turn = { euler, x: 0, y: 0, z: 0, dirty: false }; turns.push(turn);
+        const start = (): void => { if (!turn.dirty) { turn.x = euler.x; turn.y = euler.y; turn.z = euler.z; turn.dirty = true; } };
+        return {
+          get x() { return turn.dirty ? turn.x : euler.x; }, set x(value: number) { start(); turn.x = value; },
+          get y() { return turn.dirty ? turn.y : euler.y; }, set y(value: number) { start(); turn.y = value; },
+          get z() { return turn.dirty ? turn.z : euler.z; }, set z(value: number) { start(); turn.z = value; },
+        };
+      };
       const look = { yaw: 0, pitch: 0 }, owners = new Map<string, unknown>(Object.entries(c.bones).map(([name, bone]) => [
-        `joint.${name.replaceAll('_', '.')}`, { position: fields(bone.position), rotation: fields(bone.rotation), scale: fields(bone.scale) },
+        `joint.${name.replaceAll('_', '.')}`, { position: fields(bone.position), rotation: turned(bone.rotation), scale: fields(bone.scale) },
       ]));
       const scalars: Record<string, number> = Object.fromEntries(row.scalars.map((scalar, i) => [scalar.name, scalarValues[i] ?? Number.NaN]));
       const joints = new Map(Object.entries(c.bones).map(([name, joint]) => [name.replaceAll('_', '.'), joint]));
@@ -141,7 +155,7 @@ export function numericCreaturePose(poseData: unknown): (ctx: AnimalRigContext) 
       });
       const detached = detach(programs);
       rig = { look, scalars, joints, memory: {}, inputs: detached.inputs, observation: { time: c.t, delta: c.dt, values: {} },
-        lane: programs.length === 0 ? null : installChannelPrograms(detached.table, row.group, owners) };
+        lane: programs.length === 0 ? null : installChannelPrograms(detached.table, row.group, owners), turns };
       rigs.set(c.bones, rig);
     }
     row.scalars.forEach((scalar, i) => { rig.scalars[scalar.name] = scalarValues[i] ?? Number.NaN; });
@@ -164,6 +178,7 @@ export function numericCreaturePose(poseData: unknown): (ctx: AnimalRigContext) 
     }
     rig.observation.time = c.t; rig.observation.delta = c.dt;
     rig.lane?.evaluate(rig.observation);
+    for (const turn of rig.turns) if (turn.dirty) { turn.dirty = false; turn.euler.set(turn.x, turn.y, turn.z); }
     const body = row.squash === undefined ? undefined : c.bones[row.squash];
     if (body !== undefined) squashBody(body, c.flinch);
   };
