@@ -44,11 +44,21 @@ function boundedJsonData(value: unknown, separateSchemas: boolean): boolean {
   return visit(value, 0, 'index');
 }
 
+/**
+ * Any token that may decode to -0 (a negative zero, or a negative number underflowing through a 3-digit negative exponent)
+ * or to ±Infinity (a 2-digit positive exponent, or a run of 100 digits): conservative, so a match only means the reviver
+ * checks the parse (a string holding such text matches too, and costs only that).
+ */
+const MAYBE_NOT_CANONICAL = /-0(?:\.0*)?(?:[eE][+-]?\d+)?(?![\d.])|[eE]\+?\d{2}|[eE]-\d{3}|\d{100}/u;
 /** Decode an already byte-bounded named payload. JSON.parse supplies only plain
  * data; reject the numeric values JSON can decode but cannot preserve. The
  * defining schema owns the payload's shape and bounds, without a new node cap. */
 export function parseNamedJson(bytes: Uint8Array): unknown {
-  return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes), (_key: string, value: unknown): unknown => {
+  const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+  // G639: a reviver puts every value through a script call (Nalati's grid entry spent ~70 ms of one frame on one file);
+  // text with no token that can decode to -0 or overflow parses without one
+  if (!MAYBE_NOT_CANONICAL.test(text)) return JSON.parse(text);
+  return JSON.parse(text, (_key: string, value: unknown): unknown => {
     if (typeof value === 'number' && (!Number.isFinite(value) || Object.is(value, -0))) throw new Error('Named JSON requires finite canonical numbers');
     return value;
   });
