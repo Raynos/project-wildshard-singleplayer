@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { ItemCatalogue } from '../src/game/plugin/nativeItems';
+import { ItemCatalogue } from '../src/game/loadout/itemCatalogue';
 import { parseItems } from '../src/format/items';
 import PINE_ITEMS from '../src/shards/pine-hollow/data/items.generated.json' with { type: 'json' };
 import DRIFTWOOD_SWORDS from '../src/shards/driftwood-isle/data/items.generated.json' with { type: 'json' };

@@ -1,6 +1,6 @@
 import ARM_STYLE from '../data/armsStyle.json' with {type:'json'};
 import items from '../data/items.json' with { type: 'json' };
-import { ItemCatalogue } from '@wildshard/game/plugin/nativeItems';
+import { ItemCatalogue } from '@wildshard/game/loadout/itemCatalogue';
 import { MeleeWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
 import * as schema from 'valibot';
 import * as THREE from 'three';

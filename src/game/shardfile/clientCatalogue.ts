@@ -6,7 +6,7 @@ import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import type { ShardContext } from '../plugin/context';
 import { HeldFinishes } from '../loadout/finishes';
 import { heldFinishEffect, STARTER_EFFECTS } from '../loadout/effects';
-import { ItemCatalogue } from '../plugin/nativeItems';
+import { ItemCatalogue } from '../loadout/itemCatalogue';
 import { declaredProductCompendium } from '../shard/declaredRows';
 
 /** Kit-only catalogue registration from admitted ids. Preparation stays with

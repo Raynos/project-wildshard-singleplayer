@@ -110,6 +110,7 @@
     "./plugin/channelPrograms": "./plugin/channelPrograms.ts",
     "./shard/declaredRows": "./shard/declaredRows.ts",
     "./plugin/nativeItems": "./plugin/nativeItems.ts",
+    "./loadout/itemCatalogue": "./loadout/itemCatalogue.ts",
     "./shardfile/nativePlan": "./shardfile/nativePlan.ts",
     "./shardfile/worldTargets": "./shardfile/worldTargets.ts",
     "./shardfile/decisions": "./shardfile/decisions.ts",

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { ItemCatalogue } from '../src/game/plugin/nativeItems';
+import { ItemCatalogue } from '../src/game/loadout/itemCatalogue';
 import { parseItems } from '../src/format/items';
 import { wetFlight } from '../src/engine/combat/ammo';
 import weatherProgram from '../src/shards/pine-hollow/data/weather.json' with { type: 'json' };

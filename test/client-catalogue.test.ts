@@ -9,7 +9,7 @@ import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { installClientCatalogue } from '../src/game/shardfile/clientCatalogue';
 import type { ShardContext } from '../src/game/plugin/context';
-import { ItemCatalogue } from '../src/game/plugin/nativeItems';
+import { ItemCatalogue } from '../src/game/loadout/itemCatalogue';
 import { HeldFinishes } from '../src/game/loadout/finishes';
 import source from '../src/shards/pine-hollow/shard.config';
 import { STARTER_EFFECTS } from '../src/game/loadout/effects';

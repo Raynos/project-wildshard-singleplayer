@@ -72,3 +72,9 @@ test('selected catalogue and status bindings leave quest presentation cold', () 
   const files = titleGraph(['src/game/shardfile/clientCatalogue.ts', 'src/sdk/runtime/effects.ts']);
   expect(files.filter(file => /src\/game\/(?:plugin\/ui|quest\/chapter)\.ts$/u.test(file))).toEqual([]);
 });
+
+
+test('item catalogue metadata does not import native item or projectile owners', () => {
+  const files = titleGraph(['src/game/loadout/itemCatalogue.ts']);
+  expect(files.filter(file => /src\/(?:game\/plugin\/(?:nativeItems|simulation)|engine\/combat\/)|^three(?:\/|$)/u.test(file))).toEqual([]);
+});

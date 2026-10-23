@@ -9,7 +9,7 @@ import {bindEquipmentActors,equipmentActorOwner} from '../src/game/loadout/actor
 import {AnimalManager} from '../src/engine/entities/AnimalManager';
 import {Animal} from '../src/engine/entities/AnimalView';
 import {Scope} from '../src/engine/app/scope';
-import {ItemCatalogue} from '../src/game/plugin/nativeItems';
+import { ItemCatalogue } from '../src/game/loadout/itemCatalogue';
 import {createShardProduct} from '../src/game/shardfile/shardProduct';
 import {emptyShardfile} from '../src/sdk/author';
 import {parseItems} from '../src/format/items';

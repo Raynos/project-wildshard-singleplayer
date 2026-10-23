@@ -1,7 +1,8 @@
 import { simMismatchError } from '../../fake/simMismatch';
 import { installCableModes } from '../../../src/engine/player/modes';
 import { outputDescriptor } from '../../../src/game/shardfile/outputDescriptor';
-import { createNativeCombatFrame, ItemCatalogue, type NativeCombatFrame } from '../../../src/game/plugin/nativeItems';
+import { createNativeCombatFrame, type NativeCombatFrame } from '../../../src/game/plugin/nativeItems';
+import { ItemCatalogue } from '../../../src/game/loadout/itemCatalogue';
 // oxlint-disable-next-line import/no-nodejs-modules -- The witness reads Pine's native bakes and the native physics module.
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Committed gameplay checkpoints are compressed native save wires.

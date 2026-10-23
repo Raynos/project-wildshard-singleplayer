@@ -1,5 +1,5 @@
 import items from '../data/items.json' with { type: 'json' };
-import { ItemCatalogue } from '@wildshard/game/plugin/nativeItems';
+import { ItemCatalogue } from '@wildshard/game/loadout/itemCatalogue';
 import { ThrownWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
 import * as schema from 'valibot';
 import { lin } from '@wildshard/engine/math/color';

@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import * as schema from 'valibot';
 import { MeleeWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
 import { createModelLibrary } from '@wildshard/game/plugin/geometry';
-import { ItemCatalogue } from '@wildshard/game/plugin/nativeItems';
+import { ItemCatalogue } from '@wildshard/game/loadout/itemCatalogue';
 import { SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';

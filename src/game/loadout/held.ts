@@ -11,7 +11,7 @@ import { listenPage } from '@wildshard/engine/input/dom';
 import type { ShardContext } from '../plugin/context';
 import { installEnteredRuntimeService } from '../shard/retainedHooks';
 import { bindRuntimeState } from '../plugin/headless';
-import { ItemCatalogue } from '../plugin/nativeItems';
+import { ItemCatalogue } from '../loadout/itemCatalogue';
 import { runtimeAudio, sharedWeaponVoices } from '../plugin/audio';
 import { PLAIN_BOLT, HeldLauncher, type HeldBolt } from '../weapons/heldLauncher';
 import { AmmoPouch } from './pouch';

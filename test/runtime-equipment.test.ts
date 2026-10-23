@@ -20,7 +20,8 @@ import { PINE_NATIVE_LOADOUT } from './fixtures/weapon-oracle/nativeLoadout';
 import { NativeHeldAmmunition } from '../src/game/loadout/nativeAmmunition';
 import loadoutRows from '../src/shards/pine-hollow/data/loadout.json' with { type: 'json' };
 import driftwood from '../src/shards/driftwood-isle/shard.config';
-import { createNativeCombatFrame, installNativeItems, ItemCatalogue } from '../src/game/plugin/nativeItems';
+import { createNativeCombatFrame, installNativeItems } from '../src/game/plugin/nativeItems';
+import { ItemCatalogue } from '../src/game/loadout/itemCatalogue';
 import { parseItems } from '../src/format/items';
 
 class NativeWeapon extends Weapon {

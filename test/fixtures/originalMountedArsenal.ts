@@ -17,7 +17,7 @@ import { BladeSet } from '../../src/game/weapons/mountedBlade';
 import { PolearmSet, type HeldPolearmWorld } from '../../src/game/weapons/heldPolearm';
 import { Bow } from '../../src/game/weapons/Bow';
 import { loadHeldBow } from './originalHeldBowLoader';
-import { ItemCatalogue } from '../../src/game/plugin/nativeItems';
+import { ItemCatalogue } from '../../src/game/loadout/itemCatalogue';
 import type { ArcWeaponPower } from '../../src/game/weapons/arcPower';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
 import type { Targets, TargetAnimal } from '@wildshard/engine/combat/types';

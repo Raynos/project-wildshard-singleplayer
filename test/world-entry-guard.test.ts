@@ -9,7 +9,7 @@ import { GrappleTool, grappleGuard } from '../src/game/grapple/tool';
 import type { GrappleSim } from '../src/game/grapple/sim';
 import type { ShardContext } from '../src/game/plugin/context';
 import { parseGrappleProfile, type GrappleRows } from '../src/format/grapple';
-import { ItemCatalogue } from '../src/game/plugin/nativeItems';
+import { ItemCatalogue } from '../src/game/loadout/itemCatalogue';
 import { nineWorldEntry } from '../src/shards/nine-dragon-stack/generators/worldEntry';
 import { nineWorldInstallRows } from '../src/shards/nine-dragon-stack/generators/physicsPlacements';
 import items from '../src/shards/nine-dragon-stack/data/items.json' with { type: 'json' };

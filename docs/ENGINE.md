@@ -9472,7 +9472,7 @@ commands select later scenes and phases. Saved audition pins are ignored.
 Pine and Driftwood both use this installer; their lifecycle and catalogue rows
 remain the source of their differences.
 
-`new ItemCatalogue(items).ammunition(id)` in `game/plugin/nativeItems` reads the
+`new ItemCatalogue(items).ammunition(id)` in `game/loadout/itemCatalogue` reads the
 admitted ranged ammunition as page `AmmoRow` values and bounded target-damage
 coefficients. Optional presentation declares labels and pouch capacity; missing
 presentation refuses. Native flight remains additive in rain; page rows retain
@@ -9686,7 +9686,7 @@ the shipping discovery imports no generator and never falls back to source.
 `combat/items.loadout.inventory` carries the bounded saved-pack policy consumed
 by `@wildshard/game/inventoryLaw.NativeInventory`: ordered kinds, slot/count
 bounds, quantity and snapshot modes, and the existing refusal message. The
-public `new ItemCatalogue(items).inventory` from `@wildshard/game/plugin/nativeItems` admits
+public `new ItemCatalogue(items).inventory` from `@wildshard/game/loadout/itemCatalogue` admits
 that data without a fallback. Callers keep their original save envelopes and
 use `nativeInventorySchema(policy)` before restoration; the shared stacking
 and trade laws remain the sole inventory state owner. Missing policy, repeated
@@ -11503,7 +11503,7 @@ callback supplies selection, damage, retirement or lifetime.
 
 ### Shared item metadata admission (G516)
 
-`ItemCatalogue` in `game/plugin/nativeItems` admits a `combat/items` payload
+`ItemCatalogue` in `game/loadout/itemCatalogue` admits a `combat/items` payload
 once. Its `equipment(id)`, `ammunition(id)` and `inventory` reads replace
 the three standalone reader facades. Kit registration reuses the same
 catalogue for all equipment and ammunition rows. Native inventory remains

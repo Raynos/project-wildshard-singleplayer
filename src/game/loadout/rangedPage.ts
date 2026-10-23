@@ -12,7 +12,7 @@ import { RangedPageSchema, type RangedPageRows } from '@wildshard/format/rangedP
 import { forestPage } from '../shardfile/forestPage';
 import { HeldFinishes } from './finishes';
 import { installHeldLoadout, type HeldLoadout } from './held';
-import { ItemCatalogue } from '../plugin/nativeItems';
+import { ItemCatalogue } from '../loadout/itemCatalogue';
 import { ClaimedPickupRoster } from '../loot/runtime';
 import { HeldLauncher } from '../weapons/heldLauncher';
 import { HeldFirearm } from '../plugin/heldFirearm';

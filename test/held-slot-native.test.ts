@@ -15,7 +15,7 @@ import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { parseItems } from '../src/format/items';
 import { parseHeldSlots } from '../src/format/heldArms';
-import { ItemCatalogue } from '../src/game/plugin/nativeItems';
+import { ItemCatalogue } from '../src/game/loadout/itemCatalogue';
 import { legacyDouble } from './fake/FakeGame';
 import * as native from '../src/game/plugin/headless';
 import * as bowBinding from '../src/game/weapons/Bow';

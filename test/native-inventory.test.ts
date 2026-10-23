@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { NativeInventory } from '../src/game/inventoryLaw';
-import { ItemCatalogue } from '../src/game/plugin/nativeItems';
+import { ItemCatalogue } from '../src/game/loadout/itemCatalogue';
 import PINE from '../src/shards/pine-hollow/data/items.generated.json' with { type: 'json' };
 import DRIFTWOOD from '../src/shards/driftwood-isle/data/items.generated.json' with { type: 'json' };
 

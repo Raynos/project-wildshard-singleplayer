@@ -14,7 +14,7 @@ import type { ShardContext } from '../plugin/context';
 import { createOwnedGeometry, type OwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { createClientScene } from '../plugin/scene';
 import { bindRuntimeEquipment, bindRuntimeItems, sameRuntimeProfile } from '../plugin/headless';
-import { ItemCatalogue } from '../plugin/nativeItems';
+import { ItemCatalogue } from '../loadout/itemCatalogue';
 import { heldArmsGear } from '../models/heldGear';
 import { HeldView } from '../systems/viewmodel/heldView';
 import { SWORD_WOOD, SWORD_IRON } from '../weapons/starterMeleeProfile';
