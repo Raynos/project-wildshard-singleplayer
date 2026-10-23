@@ -13386,6 +13386,16 @@ entered scope. Fired/impact handlers retain the prior multiplier, exact
 boundary and roster order; retirement removes listeners and restores only
 its own bow wrapper. No new body, clock, save owner or Debug row is added.
 
+The G677 `timed.encounters` constructor names its original fixed draws,
+species programme, optional dressing sites, figure slots and weather loan.
+It copies rider and captain once on the original level scope and aliases
+one for storm riders. The existing `TimedEncounters` host borrows its cue
+presentation and resolves the original clock only on update. Named-file
+admission checks both entered and level lifetimes before construction;
+clock/sky replacement and retirement refuse before publication or update.
+The native constructor remains at its original slot until world assembly
+moves to the declared phase; no extra watcher or clock is installed.
+
 The `taming.entry` feature publishes the original prepared riding view's
 taming authority and interactable, optionally lending that same view to a
 runtime object slot. `arena-room.entry` binds the original room encounter

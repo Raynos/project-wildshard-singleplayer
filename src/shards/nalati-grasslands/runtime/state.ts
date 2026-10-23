@@ -19,11 +19,10 @@ import { DeclaredEliteEntry } from '@wildshard/engine/ai/view/eliteEntry';
 import { parseEliteEntryPageRows } from '@wildshard/format/eliteEntryRows';
 import { WorldAssembly } from '@wildshard/game/shardfile/worldAssembly';
 import prefix from '../data/worldPrefix.json' with { type: 'json' };
+import { installClientTimedEncounters } from '@wildshard/game/shardfile/clientTimedEncounters';
 import { installWorldUpdates } from '@wildshard/game/shardfile/worldUpdates';
 
 
-import { TimedEncounters } from '@wildshard/game/boss/timedEncounters';
-import type { SpeciesCatalogue } from '@wildshard/game/looks/speciesBook';
 import { clientCosmeticFinishes } from '@wildshard/game/shardfile/clientCosmeticFinishes';
 import { installCombatTargets, type CombatTargetOwner } from '@wildshard/game/shardfile/clientTargets';
 
@@ -32,11 +31,11 @@ import { installCombatTargets, type CombatTargetOwner } from '@wildshard/game/sh
 /** The defining builders keep the published state and its consumers on one contract. */
 export type Nalati = Awaited<ReturnType<typeof buildNalatiState>>;
 
-async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin: ShardContext, species: SpeciesCatalogue, progress?: StepProgress) {
+async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin: ShardContext, progress?: StepProgress) {
   const { admission, worldUpdates, combatTargets: targetRows } = v.parse(v.object({ admission: v.unknown(), worldUpdates: v.unknown(), combatTargets: v.unknown() }), await plugin.product.json('sim/headless-boot.json'));
   const shapes = await WorldAssembly.prepareNative(prefix, plugin);
   const eliteProgram = ReturnProgram.page(admission, plugin.scope);
-  const { game, sky } = ctx;
+  const { game } = ctx;
   const slice = slicer(0, progress);
   const total = 7;
   progress?.set(0, total, 'Preparing world builders');
@@ -63,7 +62,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
 
   // ── named elites (elites agent, B12): the five lairs, their spawn rules on the clock / the storm — src/shards/nalati-grasslands/elites.ts ──
   const charge = await readSpawnScript(plugin.product, 'nalati.qara-charge');
-  const { constants: { pageElites: eliteInput, trophies } } = await plugin.product.json<{ constants: { pageElites: unknown; trophies: unknown } }>('sim/headless-assembly.json');
+  const { constants: { pageElites: eliteInput, trophies, timedEntry } } = await plugin.product.json<{ constants: { pageElites: unknown; trophies: unknown; timedEntry: unknown } }>('sim/headless-assembly.json');
   const eliteRows = parseEliteEntryPageRows(eliteInput);
   // the lairs' trophies: drawn from the shape book at this slot (data/worldTrophies.json, a drawn-models stage)
   await WorldAssembly.construct(trophies, { runtime, native: plugin, product: plugin.product, scope: plugin.scope, draws: shapes, baked: new Map() });
@@ -91,10 +90,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   await slice(total - 1, total, 'Dungeon and weather');
 
   // ── creatures (creatures agent, B4): Wildlife over main's AnimalManager, fed the grass, the wind, the water, the player ──
-  const riderFigure = game.levelScope.own(shapes.handle('ghost-rider').copy()), captainFigure = game.levelScope.own(shapes.handle('ghost-captain').copy());
-  const night = await TimedEncounters.install(plugin, { game, sky, player: ctx.player, forest: ctx.forest, sites: dressing.sites.get('balbals')?.sites ?? null, get clock() { return readWeather().clock; } },
-    'combat/timed-encounters.json', { rider: riderFigure, captain: captainFigure, storm: riderFigure }, species.program('balbal'));
-  publishEntryOwner(plugin.scope, 'timed-encounters', 'nalati.night', night);
+  const night = await installClientTimedEncounters(plugin, timedEntry);
   function eliteFrame() { const ride = presentEntryOwner(plugin.scope, 'riding-play', 'nalati.riding'); return { patrolAvailable: true, herdAvailable: clientWildlife(plugin) !== null, kills: night.riders.killsTonight,
     bonded: ride?.taming.phase === 'bonded', mount: ride?.taming.companion ?? null }; }
   const nalati = {

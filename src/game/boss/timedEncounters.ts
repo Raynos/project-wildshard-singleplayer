@@ -41,10 +41,17 @@ export class TimedEncounters {
   /** Borrow declared presentation owners while the encounter keeps its clock. */
   static async install(owner: ShardContext, ctx: TimedEncounterContext, file: string,
     figures: Readonly<Record<string, BufferGeometry>>, guest: ReturnProgram): Promise<TimedEncounters> {
+    const scope = owner.scope, construction = ctx.game.levelScope, product = owner.product;
+    const live = (): void => {
+      if (scope.disposed || scope.disposing || construction.disposed || construction.disposing || owner.scope !== scope
+        || owner.product !== product || ctx.game.levelScope !== construction) throw new Error('Encounter owner left during admission');
+    };
+    live();
     const input = await owner.product.json<TimedEncountersRows>(file);
+    live();
     const presentation = CueDirector.entered(owner,input.presentation);
     if (presentation === undefined) throw new Error('Missing declared encounter presentation');
-    return new TimedEncounters(ctx, input, figures, guest, presentation);
+    return scope.run(() => new TimedEncounters(ctx, input, figures, guest, presentation));
   }
   update(dt: number, time: number): void {
     const { ctx, rows } = this, player = ctx.player;

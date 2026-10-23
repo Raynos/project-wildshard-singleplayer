@@ -26,7 +26,6 @@ import { readProjectAssets } from '../src/sdk/project';
 import { buildNalatiWorld } from '../src/shards/nalati-grasslands/runtime/state';
 import { fakeWorld } from './fake/world';
 import { legacyDouble } from './fake/FakeGame';
-import { nalatiSpeciesCatalogue } from './fake/nalatiSpecies';
 
 // Run the real state function and its independent King intake. Unrelated world
 // construction and charge intake keep their own native/product oracles.
@@ -58,7 +57,7 @@ test('the shipped King intake retains its attack owner before weather is publish
     const row=v.parse(v.object({program:v.unknown()}),input);selected=ReturnProgram.page(row.program,scope);throw stop;
   });
   try{
-    await expect(buildNalatiWorld(world,plugin,nalatiSpeciesCatalogue())).rejects.toBe(stop);
+    await expect(buildNalatiWorld(world,plugin)).rejects.toBe(stop);
     expect(king).toHaveBeenCalledTimes(1);
     expect(selected).toBe(ReturnProgram.page(fight.programs['attack'],scope));
   }finally{king.mockRestore();charge.mockRestore();dressing.mockRestore();construct.mockRestore();prepare.mockRestore();scope.dispose();}

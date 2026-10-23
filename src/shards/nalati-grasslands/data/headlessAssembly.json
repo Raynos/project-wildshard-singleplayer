@@ -76,6 +76,21 @@
     ]
   },
   "constants": {
+    "timedEntry": {
+      "kind": "timed.encounters",
+      "owner": "nalati.night",
+      "file": "combat/timed-encounters.json",
+      "draws": "shapes",
+      "species": "nalati.species",
+      "guest": "balbal",
+      "weather": "nalati.weather",
+      "sites": "balbals",
+      "figures": {
+        "rider": "ghost-rider",
+        "captain": "ghost-captain",
+        "storm": "rider"
+      }
+    },
     "nativeTaming": {
       "step": "nalati.taming",
       "herds": "nalati.herds",

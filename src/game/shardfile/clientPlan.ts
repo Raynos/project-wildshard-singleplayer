@@ -248,6 +248,11 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     const { installClientStealthEntry } = await import('./clientStealthEntry');
     installClientStealthEntry(ctx, row);
   } },
+  'timed.encounters': { phase: 'world', rank: 80, lifetime: 'entered', sections: [], install: async (ctx, row) => {
+    if (row.kind !== 'timed.encounters') throw new Error('Invalid timed encounter feature');
+    const { installClientTimedEncounters } = await import('./clientTimedEncounters');
+    await installClientTimedEncounters(ctx, row);
+  } },
   'practice.course': { phase: 'play', rank: 100, lifetime: 'entered', sections: [], install: installPracticeCourse },
   'population.wildlife': { phase: 'world', rank: 49, lifetime: 'entered', sections: [], install: installClientWildlife },
   'world.water': {phase:'world',rank:42,lifetime:'entered',sections:[],install:installClientWaterSurfaces},

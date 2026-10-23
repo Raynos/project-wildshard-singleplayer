@@ -19,8 +19,7 @@ export class NalatiPlugin extends ShardPlugin {
   override async world(ctx: ShardContext): Promise<void> {
     const { shell, world, step } = host(ctx);
     await step('cabins', () => undefined);
-    const species = entryOwner(ctx.scope, 'species', 'nalati.species');
-    this.rt = await step('props', (progress) => buildNalatiWorld(world, ctx, species, progress));
+    this.rt = await step('props', (progress) => buildNalatiWorld(world, ctx, progress));
     shell.objects['nalati'] = this.rt;
     // the probe's `shard` handles (E405 AG25), read when the probe installs (ride and wildlife arrive in later hooks)
   }
