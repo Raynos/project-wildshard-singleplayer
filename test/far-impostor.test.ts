@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
+import { assetCost } from '../src/format/product';
 import { FarSchema } from '../src/format/shardSections';
 import { bakeFarPlaceholder } from '../src/sdk/bake/placeholders';
 import { FAR_IMPOSTOR_BAKE } from '../src/sdk/bake/farImpostor';
@@ -27,7 +28,10 @@ test('the far bake ships an admitted impostor image', async () => {
     expect(covered).toBeGreaterThan(tw * th * 0.2); expect(covered).toBeLessThan(tw * th);
   }
   expect(new Set([...data].filter((_, i) => i % 4 === 3))).toEqual(new Set([0, 255]));
-  expect(far.gpu).toBe(baked.manifest.file.gpu + FAR_IMPOSTOR_BAKE.cols * tw * rows * th * 2);
+  const imageCost = assetCost('image', baked.impostor);
+  expect(baked.manifest.impostorFile).toMatchObject(imageCost);
+  expect(far.decoded).toBe(baked.manifest.file.decoded + imageCost.decoded);
+  expect(far.gpu).toBe(baked.manifest.file.gpu + imageCost.gpu);
   // deterministic
   expect((await bakeFarPlaceholder(grid, look)).impostor).toEqual(baked.impostor);
 });

@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { BufferGeometry, Material, Mesh, type Object3D } from 'three';
 import { expect, it } from 'vitest';
 import { assembleWholeGeometryViews } from '../src/game/plugin/geometry';
+import { projectPlaceholders } from '../src/sdk/bake/placeholders';
 import { validateShardfileAssets } from '../src/format/assetAdmission';
 import { contentHash, readProjectAssets } from '../src/sdk/project';
 import { outputScriptAdmissionRows } from '../src/sdk/outputProduct';
@@ -47,4 +48,9 @@ it('admits the real generated ground, tile and library assets for the trusted wo
   expect(validateShardfileAssets(loaded.shard, loaded.assets, contentHash, undefined, undefined, outputScriptAdmissionRows(loaded.output.platform))).toEqual(loaded.shard);
   expect(source.runtime?.binds).toContain('props');
   expect(source.runtime?.binds).toContain('terrain');
+});
+
+it('refuses the CLI far bake when its actual image envelope exceeds the cap', async () => {
+  const loaded = await readProjectAssets('src/shards/driftwood-isle');
+  await expect(projectPlaceholders(loaded.shard, loaded.assets)).rejects.toThrow('Far proxy exceeds content caps');
 });

@@ -120,7 +120,8 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
     const contract = contracts.get(f.hash) ?? { abi: 0 as const };
     const actual = assetCost(f.kind, bytes, f.kind === 'wasm' ? contract : undefined);
     if (f.kind === 'wasm') admissions.set(f.hash, admitScriptContract(bytes, contract));
-    if (actual.decoded > f.decoded || actual.gpu > f.gpu || actual.triangles > f.triangles || actual.draws > f.draws) throw new Error('asset cost declaration understated');
+    const understated = (['decoded', 'gpu', 'triangles', 'draws'] as const).filter(key => actual[key] > f[key]);
+    if (understated.length > 0) throw new Error(`asset cost declaration understated: ${f.hash} (${f.kind}); ${understated.map(key => `${key} ${f[key]} < ${actual[key]}`).join(', ')}`);
     if ((propMaterials !== undefined || s.props?.splat !== undefined) && propModels.has(f.hash)) {
       checkTileMaterialNames(propMaterials, s.props?.splat, bytes);
       // Every GLB carries its own used slots; a dependency on another tile must not hide an uncharged texture.

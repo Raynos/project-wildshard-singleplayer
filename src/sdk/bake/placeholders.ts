@@ -11,6 +11,7 @@ import { NEAR_PLACEHOLDER_LIMITS } from '@wildshard/format/nearPlaceholder';
 import { MEASURE_SLOT, parseFamilyMaterial, type FamilyMaterialParams } from '@wildshard/format/materialFamilies';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { placeholderGeometry, placeholderLeanDrop, type PlaceholderGrid, type PlaceholderLook, type PlaceholderLookRuntime, type PlaceholderPart } from '@wildshard/game/plugin/animation';
+import { assetCost } from '@wildshard/format/product';
 import { parseGlb } from '../assets';
 import { encodeCanonicalJson, hashImmutableBytes } from '../immutable';
 import { staticGlb } from './glb';
@@ -147,10 +148,10 @@ export async function bakeFarPlaceholder(grid: PlaceholderGrid, look: Placeholde
   const bytes = oneDraw(geometry, 'far-proxy'), file = fileRow(bytes);
   geometry.computeBoundingBox(); const box = geometry.boundingBox; if (box === null) throw new Error('Missing far bounds');
   const baked = await bakeFarImpostor(geometry, look.family);
-  // its pixels decode, pack to RGBA 5551 and upload once, then go: only the texels stay resident
-  const impostorFile: PlaceholderFile = { hash: hashImmutableBytes(baked.png), kind: 'image', compressed: baked.png.length, decoded: 0, gpu: baked.gpu, triangles: 0, draws: 0, dependencies: [], critical: false };
+  // Admit the defining image envelope, including decode workspace and RGBA fallback; runtime packing stays RGBA 5551.
+  const impostorFile: PlaceholderFile = { hash: hashImmutableBytes(baked.png), kind: 'image', compressed: baked.png.length, ...assetCost('image', baked.png), dependencies: [], critical: false };
   const far: NonNullable<Shardfile['far']> = { bounds: { min: box.min.toArray(), max: box.max.toArray() }, files: [file.hash, impostorFile.hash], impostor: { file: impostorFile.hash, ...baked.row },
-    compressed: file.compressed + impostorFile.compressed, decoded: file.decoded, gpu: file.gpu + impostorFile.gpu, triangles: file.triangles, draws: file.draws };
+    compressed: file.compressed + impostorFile.compressed, decoded: file.decoded + impostorFile.decoded, gpu: file.gpu + impostorFile.gpu, triangles: file.triangles, draws: file.draws };
   if (far.decoded + far.gpu > CONTENT_CAPS.far.resident || far.compressed > CONTENT_CAPS.far.compressed || far.triangles > CONTENT_CAPS.far.triangles || far.draws > CONTENT_CAPS.far.draws) throw new Error(`Far proxy exceeds content caps: ${JSON.stringify(far)}`);
   return { manifest: { far, file, impostorFile, look: { family: look.family, haze: look.haze, ...(look.grade === undefined ? {} : { grade: look.grade }), ...(look.band === undefined ? {} : { band: look.band }) } }, bytes, impostor: baked.png };
 }
@@ -496,8 +497,8 @@ async function authoredFarImpostor(shard: Shardfile, assets: Map<string, Uint8Ar
   if (idx.length < 3) return shard;
   const geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(new Float32Array(pos), 3)).setAttribute('color', new BufferAttribute(new Float32Array(col), 3)).setIndex(idx);
   const baked = await bakeFarImpostor(geometry, 'pbr');
-  const file: PlaceholderFile = { hash: hashImmutableBytes(baked.png), kind: 'image', compressed: baked.png.length, decoded: 0, gpu: baked.gpu, triangles: 0, draws: 0, dependencies: [], critical: false };
-  const next = { ...far, files: [...far.files, file.hash], impostor: { file: file.hash, ...baked.row }, compressed: far.compressed + file.compressed, gpu: far.gpu + file.gpu };
+  const file: PlaceholderFile = { hash: hashImmutableBytes(baked.png), kind: 'image', compressed: baked.png.length, ...assetCost('image', baked.png), dependencies: [], critical: false };
+  const next = { ...far, files: [...far.files, file.hash], impostor: { file: file.hash, ...baked.row }, compressed: far.compressed + file.compressed, decoded: far.decoded + file.decoded, gpu: far.gpu + file.gpu };
   if (next.decoded + next.gpu > CONTENT_CAPS.far.resident || next.compressed > CONTENT_CAPS.far.compressed) return shard;
   assets.set(file.hash, baked.png);
   return { ...shard, files: [...shard.files, file], far: next };

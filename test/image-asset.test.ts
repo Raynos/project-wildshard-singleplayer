@@ -3,6 +3,9 @@ import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { parseImageAsset, parseStillImage } from '@wildshard/format/stillImage';
 import { assetCost } from '@wildshard/format/product';
+import { validateShardfileAssets } from '../src/format/assetAdmission';
+import { emptyShardfile } from '../src/sdk/author';
+import { hashImmutableBytes } from '../src/sdk/immutable';
 import { nameBlob } from '@wildshard/sdk/blobs';
 
 // A bounded VP8L envelope suffices to exercise rejection before any image decoder.
@@ -30,4 +33,14 @@ it('refuses over-pixel or over-dimension images and retains the wire bound', () 
 it('keeps ordinary image envelopes identical for title and asset admission', () => {
   const bytes = Uint8Array.from(readFileSync('test/fixtures/world-source/image.png'));
   expect(parseImageAsset(bytes)).toEqual(parseStillImage(bytes));
+});
+
+it('names the exact asset and understated dimensions before admission', () => {
+  const bytes = Uint8Array.from(readFileSync('test/fixtures/world-source/image.png'));
+  const hash = hashImmutableBytes(bytes), cost = assetCost('image', bytes);
+  const shard = emptyShardfile({ slug: 'asset-cost', name: 'Asset cost', author: 'Test', revision: 1, seed: 1 });
+  shard.library = [hash];
+  shard.budgets.library = { resident: cost.decoded + cost.gpu, compressed: bytes.length };
+  shard.files = [{ hash, kind: 'image', compressed: bytes.length, ...cost, decoded: cost.decoded - 1, gpu: cost.gpu - 1, dependencies: [], critical: false }];
+  expect(() => validateShardfileAssets(shard, new Map([[hash, bytes]]), hashImmutableBytes)).toThrow(`asset cost declaration understated: ${hash} (image); decoded ${cost.decoded - 1} < ${cost.decoded}, gpu ${cost.gpu - 1} < ${cost.gpu}`);
 });
