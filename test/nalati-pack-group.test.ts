@@ -28,7 +28,21 @@ const PACK_ROWS={...profile,outputs:128,pages:1,fuel:400000};
 void profileId;
 class ScriptedPack extends PackBrain<AnimalSim>{
  segments=0;captures=0;readonly banks=new Set<Float64Array>();
- protected override captureGuest(replies:readonly GroupStepNativeResultV2[]){this.captures++;return super.captureGuest(replies);}
+ readonly resultOwners=new Set<Readonly<Record<string,number>>>();checkResults=false;resultMismatches=0;resultReplies=0;unsharedFrames=0;
+ protected override captureGuest(replies:readonly GroupStepNativeResultV2[]){
+  this.captures++;const frame=super.captureGuest(replies),first=frame.input.members[0];
+  if(first===undefined)throw new Error('Missing pack member');
+  for(const[slot,member]of frame.input.members.entries()){
+   if(member.results!==undefined)this.resultOwners.add(member.results);
+   if(member.player!==first.player||member.environment!==first.environment||member.observed!==first.observed)this.unsharedFrames++;
+   if(this.checkResults)this.resultReplies+=replies.filter(reply=>reply.value!==0).length;
+   if(this.checkResults)for(const[channel,value]of Object.entries(member.results??{})){
+    let expected=0;for(const reply of replies)if(reply.channel===channel&&(reply.member===undefined||reply.member.slot===slot))expected=reply.value;
+    if(!Object.is(value,expected))this.resultMismatches++;
+   }
+  }
+  return frame;
+ }
  constructor(step:GroupStepV2,scope:Scope,group:string,handle:number,members:AnimalSim[],home:{x:number;z:number},spec:PackSpec,ports:PackPorts<AnimalSim>){
  super(members,home.x,home.z,spec,ports);
  this.bindGuest({groupBindings:PACK_ROWS,prepareGroup:input=>{this.segments++;this.banks.add(input.state);return step.prepare(input);}},{profile:'main',parameters:{boundsHalf:250},capture:{common:['c00.alive','c12.lunge','c28.x','c30.z'],slots:[],references:[]},resume:{field:'pc',values:[0,1,2,3,4,5,6,7,8,9,10,20,21,22,23],segments:64}},{scope,group,handle,roster:()=>[]});
@@ -197,6 +211,7 @@ test('a nested native decision reuses its own depth bank and preserves later rea
   expect(logs[1]).toEqual(logs[0]);expect(guest.phase).toBe(oracle.phase);
   expect(round(guest.awareness)).toBe(round(oracle.awareness));
   expect(b.contextRng.snapshot()).toEqual(a.contextRng.snapshot());expect(guest.banks.size).toBe(2);
+  expect(guest.resultOwners.size).toBe(b.wolves.length*2);
  }finally{scope.dispose();}
 });
 
@@ -305,7 +320,7 @@ test('periodic full-pack ticks encode once and skip every duplicate member tick 
  const spec=nativeGroupBrain({...brains.pack,id:'pack',home:[60,40],members:['wolf']});if(spec.kind!=='pack')throw new Error('Missing spec');
  const encode=vi.spyOn(GroupBankV2.prototype,'encode');
  try{
-  const pack=new ScriptedPack(new GroupStepV2(bytes,PACK_ROWS,scope),scope,'pack',100,f.wolves,{x:60,z:40},spec,f.ports);pack.initialize();
+  const pack=new ScriptedPack(new GroupStepV2(bytes,PACK_ROWS,scope),scope,'pack',100,f.wolves,{x:60,z:40},spec,f.ports);pack.checkResults=true;pack.initialize();
   for(let tick=1;tick<=48;tick++){
    const c=f.context0(tick*.1,new Vector3(64,0,40)),before=pack.segments;pack.tick(c);
    const actual={segments:pack.segments,captures:pack.captures};expect(actual.segments-before).toBeGreaterThan(0);
@@ -314,5 +329,6 @@ test('periodic full-pack ticks encode once and skip every duplicate member tick 
    expect({segments:pack.segments,captures:pack.captures}).toEqual(actual);
   }
   expect(encode).toHaveBeenCalledTimes(1);expect(pack.banks.size).toBe(1);
+  expect(pack.resultOwners.size).toBe(16);expect(pack.resultMismatches).toBe(0);expect(pack.resultReplies).toBeGreaterThan(0);expect(pack.unsharedFrames).toBe(0);
  }finally{encode.mockRestore();scope.dispose();}
 });

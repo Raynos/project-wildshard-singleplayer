@@ -719,10 +719,10 @@ export class StalkerBrain<A extends AnimalSim> extends HuntingStalkerCore<A> {
     readonly program: GroupGuestProjectionV2; readonly prepare: GroupGuestProjectionV2['prepareGroup']; readonly bindings: GroupGuestBindingsV2;
     readonly scope: Scope; readonly group: string; readonly handle: number; readonly rows: GroupGuestBindingRows; readonly codec: GroupBankV2;
     readonly results: readonly string[]; readonly roster: () => readonly A[];
-    readonly buffers:{readonly bank:Float64Array;readonly captured:Record<string,GroupBankValueV2>}[];
+    readonly buffers:{readonly bank:Float64Array;readonly captured:Record<string,GroupBankValueV2>;readonly results:Record<string,number>[]}[];
   } | undefined;
   private packCall: { readonly signal: string; readonly context: CirclingPackContext<A>; readonly bank: Float64Array;
-    readonly references: GroupStepReferenceV2<A>[]; readonly random: Rng;readonly captured:Record<string,GroupBankValueV2>;readonly slot:number|undefined } | undefined;
+    readonly references: GroupStepReferenceV2<A>[]; readonly random: Rng;readonly captured:Record<string,GroupBankValueV2>;readonly results:Record<string,number>[];readonly slot:number|undefined } | undefined;
   private packDepth=0;
   /** Select the pack profile (the binding rows: profile, resume) on the SAME admitted programme; `roster` lends the bodies
    *  findPrey picks from (the nearest request's roster). Scope, bodies and random streams stay the original owners'. */
@@ -742,7 +742,7 @@ export class StalkerBrain<A extends AnimalSim> extends HuntingStalkerCore<A> {
     const guest:NonNullable<StalkerBrain<A>['packGuest']> = { program, prepare: program.prepareGroup, bindings, scope: loans.scope, group: loans.group, handle: loans.handle,
       rows, codec: new GroupBankV2(shape.bank), results, roster: loans.roster, buffers:[] };
     const references=this.packReferences(guest),values={...this.packValues(guest,references),pc:0,ret:0,try:0,candX:0,candZ:0,hit:0,spotX:0,spotZ:0,claim:0};
-    guest.buffers.push({bank:guest.codec.encode(values,guest.group,references),captured:values});this.packGuest=guest;
+    guest.buffers.push({bank:guest.codec.encode(values,guest.group,references),captured:values,results:this.members.map(()=>Object.fromEntries(results.map(channel=>[channel,0])))});this.packGuest=guest;
   }
   private siblings=0;
   protected bindSibling(next:StalkerBrain<A>):void{
@@ -771,14 +771,14 @@ export class StalkerBrain<A extends AnimalSim> extends HuntingStalkerCore<A> {
     if(guest.scope.disposed||guest.scope.disposing||guest.program.prepareGroup!==guest.prepare||guest.program.groupBindings!==guest.bindings)throw new Error('Replaced pack guest binding');
     const references=this.packReferences(guest),values={...this.packValues(guest,references),pc:0,ret:0,try:0,candX:0,candZ:0,hit:0,spotX:0,spotZ:0,claim:0};
     let buffer=guest.buffers[this.packDepth];
-    if(buffer===undefined){buffer={bank:guest.codec.encode(values,guest.group,references),captured:{...values}};guest.buffers[this.packDepth]=buffer;}
+    if(buffer===undefined){buffer={bank:guest.codec.encode(values,guest.group,references),captured:{...values},results:this.members.map(()=>Object.fromEntries(guest.results.map(channel=>[channel,0])))};guest.buffers[this.packDepth]=buffer;}
     else{
       const changed:Record<string,GroupBankValueV2>={};
       for(const[key,value]of Object.entries(values))if(key==='prey'||key==='pendingPrey'||!Object.is(value,buffer.captured[key]))changed[key]=value;
       guest.codec.update(buffer.bank,changed,guest.group,references);Object.assign(buffer.captured,values);
     }
     const previous=this.packCall;
-    this.packCall={signal,context,bank:buffer.bank,captured:buffer.captured,references,random,slot};this.packDepth++;
+    this.packCall={signal,context,bank:buffer.bank,captured:buffer.captured,results:buffer.results,references,random,slot};this.packDepth++;
     try{this.runGuest(guest.program);}finally{this.packDepth--;this.packCall=previous;}
     return true;
   }
@@ -799,17 +799,20 @@ export class StalkerBrain<A extends AnimalSim> extends HuntingStalkerCore<A> {
     // the environment's grass is a method of its owner: lent bound
     this.syncPackCall(call,guest);
     const { context, references } = call, env = this.packPorts.environment(), grass = (x: number, z: number): number => env.grassHeightAt(x, z);
-    const results = this.members.map(() => Object.fromEntries(guest.results.map(channel => [channel, 0])));
+    const results = call.results;
+    while(results.length<this.members.length)results.push(Object.fromEntries(guest.results.map(channel=>[channel,0])));
+    results.length=this.members.length;
+    for(const row of results)for(const channel of Object.keys(row))row[channel]=0;
     for (const reply of replies) for (const [slot, row] of results.entries()) if (reply.member === undefined || reply.member.slot === slot) row[reply.channel] = reply.value;
     const ref = (prey: CirclingPackPrey | null): { identity: string; handle: number; body: CirclingPackPrey } | null => {
       const row = prey === null ? undefined : references.find(value => value.body === prey); return row === undefined ? null : { identity: row.identity, handle: row.handle, body: row.body };
     };
     const lent = new Map([['prey', ref(this.prey)], ['pending', ref(this.pendingPrey)]]);
+    const player = { position: context.player }, observed = new Map<number,A>();
+    const environment = { playerCrouched: false, playerFwdX: env.playerFwdX, playerFwdZ: env.playerFwdZ, playerMounted: env.playerMounted,
+      playerHealth01: env.playerHealth01, light: 1, storm: false, wind: { x: 0, z: 0, strength: 0 }, grassHeightAt: grass };
     const members: V2ColumnOwners<A>[] = this.members.map((actor, slot) => ({ scope: guest.scope, self: { group: guest.group, slot, identity: actor.entityId, actor },
-      player: { position: context.player }, observed: new Map(), t: context.t, dt: context.dt, context,
-      environment: { playerCrouched: false, playerFwdX: env.playerFwdX, playerFwdZ: env.playerFwdZ, playerMounted: env.playerMounted,
-        playerHealth01: env.playerHealth01, light: 1, storm: false, wind: { x: 0, z: 0, strength: 0 }, grassHeightAt: grass },
-      references: lent, results: results[slot] ?? {} }));
+      player, observed, t: context.t, dt: context.dt, context, environment, references: lent, results: results[slot] ?? {} }));
     const roster = references.filter(row => row.group === `${guest.group}:prey` && row.pose !== true);
     return { input: { group: guest.group, handle: guest.handle, profile: guest.rows.profile, signal: call.signal, tick: 0, state: call.bank, members, references, random: call.random,
       ...(guest.rows.capture===undefined||call.slot===undefined?{}:{capture:{common:guest.rows.capture.common,slots:[...new Set([0,call.slot])]}}) },
