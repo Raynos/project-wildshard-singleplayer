@@ -79,7 +79,7 @@ import { createRegionalRuntimeFactory, regionalRuntimeAccountedBytes, type Prepa
 import type { ClientTileRegistration } from '../shardfile/clientRings';
 import { createRegionalWorldFoundation, hangCellDataSky, resolveRegionalRuntimeTextures } from './regionalWorld';
 import { regionalRuntimeCheckpoint } from './runtimeCheckpoint';
-import { regionalSimAccountedBytes } from './runtimeCost';
+import { regionalDataCellBytes } from './runtimeCost';
 import { resolveLevelBounds } from '../shard/runtime';
 
 /** The page traveller the live host rebinds (the existing Player; never a second capsule). */
@@ -589,6 +589,13 @@ export class LiveGridSession {
     this.crossing.crossing.dispose(); this.crossing = this.installCrossing();
     this.startedRuntimes.add(cell.instance);
     gridCells.enter({ instance: cell.instance, slug: cell.slug });
+    // T7 (Tile residency): a data shard's owned home is its bodyless region, entered as a crossing enters it; no hooks run
+    const region = this.runtimeRegions.has(cell.instance) ? undefined : this.regions.get(cell.instance);
+    if (region !== undefined) {
+      const at = this.page.traveller.position;
+      this.page.traveller.position.y = spawn.y ?? this.standingHeight(region.queries, at.x, at.z, spawn.x, spawn.z) + 0.5;
+      return;
+    }
     if (await this.activation !== true || !this.gameplayReady()) throw new Error('Initial owned home gameplay is not ready');
     const runtime = this.runtimeRegions.get(cell.instance);
     if (runtime === undefined) throw new Error('Initial owned runtime is missing');
@@ -660,13 +667,12 @@ export class LiveGridSession {
     const groundResolution = source.edge.north.heights.length === 256 ? 256 : 257;
     // G220 pass 2: a shared product's copy collides with its own landmarks (copyLayout.ts); every other cell gets its source unchanged
     const copySource = withCopyLayout(source, cell.identity);
-    const generatedGroundBytes = source.terrain === null ? 2 * groundResolution ** 2 * Float32Array.BYTES_PER_ELEMENT : 0;
     const rapier = this.ports.physics.R, duplicates = this.ports.strips.flatMap((strip) => strip.duplicates.filter((row) => row.instance === cell.instance).map((row) => row.mesh));
     const notices = this.page.scriptNotices;
     const scriptPorts = notices === undefined ? {} : { scriptDisabled: scriptDisabledNotice(notices) };
     // Four native creature-only walls and their shape/query adapters belong to this regional claim.
     // SF57: a reviewed per-sim reading (the generated ground and backstop inside it) replaces the declared ceiling
-    const bytes = regionalSimAccountedBytes(cell.slug, source.budgets.sim.resident + generatedGroundBytes + 4096, TRANSFER_WALL_BYTES, findShard(cell.slug));
+    const bytes = regionalDataCellBytes(cell.slug, source, findShard(cell.slug));
     const build = (saved: Parameters<LiveGridAdmission['create']>[0]): ReturnType<LiveGridAdmission['create']> => {
       let sim: ShardfileSimulation = createShardfileSim(copySource, assets, { sections: outputDescriptor(source)?.sections, rapier, playerBody: false, quest, groundResolution, ...scriptPorts });
       let releaseBasis: () => void = () => undefined;
@@ -710,8 +716,8 @@ export class LiveGridSession {
           // the admitted terrain inside the cell (one source of truth); its strips are road level (the terrain tile ends at the cell edge)
           queries: { heightAt: (x, z) => (Math.max(Math.abs(x), Math.abs(z)) <= CHUNK_HALF ? host.groundHeightAt(x, z) : 0), waterSurfaceAt: (x, z) => water.restAt(x, z), platforms: [] }, simulation: region, prompts: copyPrompts(copySource, region) });
         this.respawnCells.set(cell.instance, { instance: cell.instance, origin: cell.origin, entryways: source.entryways });
-        // G321: its own sky inside its cell (its data look's dome and light), laid while it is resident
-        if (cell.instance !== this.ports.home.instance) {
+        // G321: its own sky inside its cell (its data look's dome and light), laid while it is resident; a borrowed home's page draws its own
+        if (cell.instance !== this.ports.home.instance || this.page.ownedHome === true) {
           const request = { instance: cell.instance, slug: cell.slug, look: copySource.look, assets, page: this.page.runtimePage?.() ?? null, allocator: this.ports.allocator, scope: host.scope };
           void (async (): Promise<void> => {
             try { await hangCellDataSky(request); } catch (error) { console.warn(`[region sky] ${cell.instance}`, error); }

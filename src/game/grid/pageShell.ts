@@ -8,10 +8,14 @@ import { EmptyEquipment } from '../shardfile/emptyEquipment';
 import { emptyLook } from '../shardfile/emptyLook';
 import { ROAD_SKY } from './frameModel';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
+import { tileResidencyRadius } from '../shardfile/tileDriver';
 
 
-/** G226/G258: every admitted grid runtime owns its region so leaving it releases the whole world before the next loads. */
+/** G226/G258: every admitted grid runtime owns its region so leaving it releases the whole world before the next loads.
+ * Tile streaming T7 (pause ▸ Settings ▸ Debug ▸ Tile residency): a data shard's home is owned too, entered as every crossing
+ * enters a data cell, so no grid page boots a borrowed home world. */
 export function useOwnedGridHome(mode: PageMode, _developer: boolean, manifest: Pick<ShardManifest, 'trustedRuntime' | 'clientPlanRuntime' | 'gridShardfile'>, source?: Parameters<typeof hasDeclaredClientPage>[0]): boolean {
+  if (mode === 'grid' && tileResidencyRadius() < 8 && source?.runtime === null) return true;
   return mode === 'grid' && ((manifest.trustedRuntime !== undefined || manifest.clientPlanRuntime === true) && manifest.gridShardfile !== undefined || source !== undefined && (hasDeclaredClientPage(source) || source.runtime !== undefined && source.runtime !== null && !('entry' in source.runtime)));
 }
 

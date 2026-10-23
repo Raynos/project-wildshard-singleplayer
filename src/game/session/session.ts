@@ -4,7 +4,9 @@ import { type LevelSequence, bootLevel } from '@wildshard/engine/boot';
 import { retried } from '@wildshard/engine/boot/retry';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import type { SkinDef } from '@wildshard/engine/player/Skins';
-import { shardContext, type GameServices, type ShardContext, type PageMode } from '../plugin/context';
+import { shardContext, pageGridInstance, type GameServices, type ShardContext, type PageMode } from '../plugin/context';
+import { regionalDataCellBytes } from '../grid/runtimeCost';
+import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { bootPageMode } from '../grid/pageEntry';
 import type { ShardManifest } from '../shard/manifest';
 import { toLevelSpec } from '../shard/spec';
@@ -70,6 +72,10 @@ export async function startSession(manifest: ShardManifest, kit: KitPorts, optio
     session.ownedGridHome = useOwnedGridHome(mode, isDev(), manifest, manifestAdmittedSource(manifest));
     const pageManifest = session.ownedGridHome ? gridPageShell(manifest) : manifest;
     if (mode === 'grid' && options.residency === undefined) throw new Error('Grid boot requires residency admission before hydration');
+    // T7: an owned data home has no data page to admit its claim; admit it at the regional charge its entry hands off
+    const homeSource = manifestAdmittedSource(manifest), homeInstance = pageGridInstance();
+    if (session.ownedGridHome && homeSource?.runtime === null && !hasDeclaredClientPage(homeSource) && options.residency !== undefined && homeInstance !== null
+      && !options.residency.allocator.has(`sim:${homeInstance}`)) options.residency.admitHome(homeInstance, regionalDataCellBytes(manifest.slug, homeSource, manifest));
     setAliveSource((): AliveInfo<PageMode> => ({ slug: selected, resident: '', mode }));
     if (matchMedia('(display-mode: fullscreen)').matches || matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true) {
       const home = new URL(location.href);
