@@ -4,14 +4,20 @@
  * in the row's material, carrying positions, normals and the `_SPLAT` weights, plus a `_CANOPY` density channel; the drawn
  * openings (a page's terrain cuts) leave the indices as the runtime punch removes them. Physics stays on the native ground.
  *
- *   const source = splatGroundSource(terrainBin, canopyMapOf(trees), hole);   // hole: the page's opening test
+ *   const source = splatGroundSource(terrainBin, nativeSplatGround('pine-hollow', terrainBin).canopy, hole);   // hole: the page's openings
  *   const tiles = await bakeSplatGround(source, { material: 'pine.ground', lod1: { targetRatio: 0.25, maxErrorMetres: 1 } });
+ *   const files = splatLayerFiles(['forrest_ground_03', ...], PINE_GPU_FILES);   // each tier's layer KTX2s, as the runtime picks them
  *
  * Build time only: geometry and bytes, no textures, renderer, physics or scene.
  */
 import { BufferAttribute, BufferGeometry, Float32BufferAttribute, MeshStandardMaterial } from 'three';
 import { parseBakedTerrain, bakedSamplers } from '@wildshard/engine/world/BakedTerrain';
 import { canopyChannel, terrainChunkGeometry } from '@wildshard/engine/world/Terrain';
+import { _installBakedTerrain } from '@wildshard/engine/world/Heightfield';
+import { canopyMapOf, placeForest, plantSpecs } from '@wildshard/engine/world/forest/placement';
+import { filePolicy } from '@wildshard/engine/boot/filePolicy';
+import type { Ktx2Table } from '@wildshard/engine/boot/gpuFiles';
+import { findShard, setActiveChunk } from '@wildshard/game/shard/registry';
 import { sliceNativeLattice, type NativeLatticeAttribute, type NativeLatticeSource, type NativeLatticeTile } from './nativeLattice';
 import { staticGlb } from './glb';
 import { simplifyNativeLatticeTile } from './worldLod';
@@ -71,4 +77,49 @@ export async function bakeSplatGround(source: NativeLatticeSource, options: Spla
       return { tile, bytes, cost: parseGlb(bytes), geometricError: errorMetres };
     });
   } finally { material.dispose(); }
+}
+
+/**
+ * A native level's splat ground set (its `assets`: the four layer ids, tints and boreal extras) and the canopy density
+ * (`canopyMapOf`, 256²) of the forest it plants on its committed bake: the level selected and its baked ground installed as
+ * the page does, then `placeForest` on its tree set. Selects the level (build time only).
+ */
+export interface NativeSplatGround {
+  readonly layers: readonly string[]; readonly tints: readonly (readonly [number, number, number])[];
+  readonly boreal: { readonly normalK: readonly number[]; readonly trailDust: readonly number[] } | null; readonly canopy: Float32Array;
+}
+export function nativeSplatGround(slug: string, bytes: Uint8Array): NativeSplatGround {
+  // an unknown level would select the default one (with only a warning): refuse it instead
+  if (findShard(slug) === undefined) throw new Error(`Native forest canopy: no level ${slug}`);
+  const def = setActiveChunk(slug), grid = parseBakedTerrain(Uint8Array.from(bytes).buffer);
+  if (grid === null) throw new Error(`Native forest canopy: unreadable bake for ${slug}`);
+  const assets = def.assets; if (assets === undefined) throw new Error(`Native level ${slug} has no splat ground`);
+  _installBakedTerrain(bakedSamplers(grid));
+  const boreal = assets.boreal === undefined ? null : { normalK: assets.boreal.normalK, trailDust: assets.boreal.trailDust };
+  return { layers: assets.groundLayers, tints: assets.groundTints, boreal, canopy: canopyMapOf(placeForest(plantSpecs(def.trees)).trees) };
+}
+
+/** One tier's four splat layers by role, as public asset paths. */
+export interface SplatLayerPaths { colour: string[]; normal: string[]; arm: string[] }
+/**
+ * The KTX2 files four native ground layers (`groundLayers` ids, in splat channel order) draw from on each tier, exactly as the
+ * runtime's texture arrays resolve them (`filePolicy(tier, 'ktx2', table).layer`: the engine table under the shard's own,
+ * the phone's `.phone` variants); throws when a layer has no `#layer` KTX2.
+ */
+export function splatLayerFiles(ids: readonly string[], table: Ktx2Table): { desktop: SplatLayerPaths; phone: SplatLayerPaths } {
+  if (ids.length !== 4) throw new Error('A splat ground has four layers');
+  const tier = (name: 'phone' | 'desktop'): SplatLayerPaths => {
+    const policy = filePolicy(name, 'ktx2', table), roles: SplatLayerPaths = { colour: [], normal: [], arm: [] };
+    for (const id of ids) {
+      const [colour, normal, arm] = policy.pbr(id).map(url => {
+        const file = policy.layer(url);
+        if (!file.endsWith('.ktx2')) throw new Error(`Splat layer ${url} has no ${name} #layer KTX2`);
+        return file;
+      });
+      if (colour === undefined || normal === undefined || arm === undefined) throw new Error(`Splat layer ${id} lost a role`);
+      roles.colour.push(colour); roles.normal.push(normal); roles.arm.push(arm);
+    }
+    return roles;
+  };
+  return { desktop: tier('desktop'), phone: tier('phone') };
 }
