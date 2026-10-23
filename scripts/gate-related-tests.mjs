@@ -13,7 +13,7 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { basename, relative, resolve } from 'node:path';
 import { createVitest } from 'vitest/node';
-import { liveTests } from './push-inputs.mjs';
+import { liveTestSelection } from './push-inputs.mjs';
 
 // The tree under test is the working directory (the gate runs the checkout's copy of this script in the build mirror).
 const ROOT = process.cwd();
@@ -160,8 +160,11 @@ if (isMain) {
   const products = JSON.parse(readFileSync(registryPath, 'utf8'));
   const live = process.argv.includes('--live');
   const required = live ? [] : [...new Set([...QUICK_TESTS, ...scriptScenarioTests(changed, scenarios), ...productReaderTests(changed, products).filter(test => existsSync(resolve(ROOT, test)))])];
-  const eligible = live ? liveTests(ROOT, related, products) : related;
-  const eligibleSources = live ? sources.filter(file => !INCLUDED.test(file) || liveTests(ROOT, [file], products).length > 0) : sources;
+  const selection = live ? liveTestSelection(ROOT, [...new Set([...related, ...sources.filter(file => INCLUDED.test(file))])], products) : { run: related, deferred: [] };
+  for (const row of selection.deferred) console.error(`gate-related-tests: CI only ${row.test} (${row.reason})`);
+  const allowed = new Set(selection.run);
+  const eligible = related.filter(file => allowed.has(file));
+  const eligibleSources = live ? sources.filter(file => !INCLUDED.test(file) || allowed.has(file)) : sources;
   const { run, left } = capRelated(eligible, eligibleSources, knownDurations(), seconds, workers, required);
   const walk = ((performance.now() - started) / 1000).toFixed(1);
   const over = left.length > 0 ? `; ${left.length} over the ${seconds}s budget run in CI only: ${left.join(' ')}` : '';

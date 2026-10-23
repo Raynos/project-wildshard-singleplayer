@@ -1,10 +1,10 @@
 // Source-only dependency walk: no imports execute and no products are prepared.
 import { existsSync, readFileSync } from 'node:fs';
-import { relative, resolve } from 'node:path';
+import { dirname, relative, resolve } from 'node:path';
 import ts from '@typescript/typescript6';
 
 /** @param {string} root */
-export function sourceWalker(root, runtimeOnly = false) {
+export function sourceWalker(root, runtimeOnly = false, includeMissing = false) {
   const config = ts.findConfigFile(root, path => ts.sys.fileExists(path));
   const options = config === undefined ? { allowJs: true } : ts.parseJsonConfigFileContent(
     ts.readConfigFile(config, path => ts.sys.readFile(path)).config, ts.sys, root).options;
@@ -16,9 +16,10 @@ export function sourceWalker(root, runtimeOnly = false) {
   const seen = new Set();
   while (pending.length > 0) {
     const path = pending.pop();
-    if (path === undefined || seen.has(path) || !existsSync(path)) continue;
+    if (path === undefined || seen.has(path)) continue;
     const name = relative(root, path);
     if (name.startsWith('..') || name.split('/').includes('node_modules')) continue;
+    if (!existsSync(path)) { if (includeMissing) seen.add(path); continue; }
     seen.add(path);
     if (!/\.[cm]?[jt]sx?$/u.test(path)) continue;
     const cached = imports.get(path);
@@ -42,11 +43,13 @@ export function sourceWalker(root, runtimeOnly = false) {
       if (module !== undefined) {
         const declared = module.resolvedFileName;
         const target = runtimeOnly ? declared.replace(/\.d\.json\.ts$/u, '.json').replace(/\.d\.mts$/u, '.mjs') : declared;
-        if (runtimeOnly && (/\.d\.[cm]?ts$/u.test(target) || !existsSync(target))) continue;
+        if (runtimeOnly && (/\.d\.[cm]?ts$/u.test(target) || !includeMissing && !existsSync(target))) continue;
         dependencies.push(target);
         // A handwritten .d.mts types the script; its implementation still runs.
         const implementation = target.replace(/\.d\.mts$/u, '.mjs');
         if (implementation !== target && existsSync(implementation)) dependencies.push(implementation);
+      } else if (includeMissing && imported.fileName.startsWith('.')) {
+        dependencies.push(resolve(dirname(path), imported.fileName));
       }
     }
     // Disk/script readers have literal paths without an import edge.
@@ -72,12 +75,31 @@ const EXTERNAL_JOBS = new Set([
   'test/ruler-product-failure.test.ts',
 ]);
 
-/** Product readers still need CI's complete products; other process fixtures run.
- * @param {string} _root @param {readonly string[]} tests @param {Record<string,string[]>} products
- * @returns {string[]} */
-export function liveTests(_root, tests, products) {
-  return tests.filter(test => !EXTERNAL_JOBS.has(test) && !(products[test]?.length));
+/** Missing declared generation outputs are product inputs, not missing author source.
+ * @param {string} root @param {readonly string[]} tests @param {Record<string,string[]>} products
+ * @returns {{run: string[], deferred: {test: string, reason: string}[]}} */
+export function liveTestSelection(root, tests, products) {
+  const catalogue = resolve(root, 'scripts/generation-jobs.json');
+  /** @type {{jobs: {outputs: string[]}[]}} */
+  const generation = existsSync(catalogue) ? JSON.parse(readFileSync(catalogue, 'utf8')) : { jobs: [] };
+  const missing = new Set(generation.jobs.flatMap(job => job.outputs).filter(file => !existsSync(resolve(root, file))));
+  const walk = sourceWalker(root, true, true), run = [], deferred = [];
+  for (const test of tests) {
+    let reason;
+    if (EXTERNAL_JOBS.has(test)) reason = 'external builder/process fixture';
+    else if (products[test]?.length) reason = `products: ${products[test].join(',')}`;
+    else if (missing.size > 0) {
+      const absent = walk([test]).filter(file => missing.has(file));
+      if (absent.length > 0) reason = `generated inputs: ${absent.join(',')}`;
+    }
+    if (reason === undefined) run.push(test);
+    else deferred.push({ test, reason });
+  }
+  return { run, deferred };
 }
+
+/** @param {string} root @param {readonly string[]} tests @param {Record<string,string[]>} products */
+export function liveTests(root, tests, products) { return liveTestSelection(root, tests, products).run; }
 
 if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename)) {
   console.info(JSON.stringify(sourceInputs(process.cwd(), process.argv.slice(2))));
