@@ -1,13 +1,15 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- validate the generated catalogue at runtime rather than infer its complete JSON type
+import { readFileSync } from 'node:fs';
+import * as v from 'valibot';
 import { beforeAll, expect, it } from 'vitest';
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 import { ShrineBuilder } from '../src/shards/driftwood-isle/generators/shrine';
 import { driftwoodGroundSampler } from '../src/shards/driftwood-isle/generators/groundSampling';
-import specimens from '../src/shards/driftwood-isle/boot/modelCatalogue.generated.json' with { type: 'json' };
-import { parseWorldSceneModels } from '../src/format/worldSceneModels';
+import { parseWorldSceneModels, WorldSceneModelsSchema } from '../src/format/worldSceneModels';
 import { floorAtRects } from '../src/engine/physics/box';
 import SHRINE_SITES from '../src/shards/driftwood-isle/data/shrineSites.json' with { type: 'json' };
 
-const catalogue = specimens.siteCatalogue;
+const catalogue = v.parse(v.object({siteCatalogue:WorldSceneModelsSchema}),JSON.parse(readFileSync('src/shards/driftwood-isle/boot/modelCatalogue.generated.json','utf8'))).siteCatalogue;
 
 beforeAll(admitDriftwoodFixtureRows);
 
