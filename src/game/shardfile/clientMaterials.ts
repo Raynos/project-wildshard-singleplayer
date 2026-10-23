@@ -124,6 +124,8 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
    *  lookup finds it made; rejects once the scope has closed */
   prepare?: (ids: readonly string[]) => Promise<void>;
   outline: GraphOutlineHook; graphs: { bind: (sources: GraphSources) => void; readout: GraphReadout }; surfaces: ((name: string) => PropSurfaceBinding | null) | null;
+  /** the splat ground's material while its tiles draw (Debug ▸ Ground tiles), which the tile views merge (`groundMerge`) */
+  ground: Material | null;
 }> {
   // a look that declares its graphs required (SF88e) draws them on every path: standalone, regional and grid near
   const graphsOn = shard.look.graphs === 'required' || (options.graphs ?? setting('graphMaterials') === 'on');
@@ -245,5 +247,6 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
   }, prepare: async ids => {
     for (const id of new Set(ids)) { if (!materials.pending(id)) continue; await buildYield(scope); materials.get(id); }
   }, materials, textures, compile, bindMeshMap, instance, outline: graphOutlineHook(graphs.outline), tick: (dt) => { toon.tick(dt); painterly.tick(dt); emissive.tick(dt); graphs.tick(dt); moveCurves(); },
-    graphs: { bind: (sources) => { if (sources.state !== undefined) stateOf = sources.state; graphs.bind(sources); moveCurves(); }, readout: graphs.readout }, surfaces };
+    graphs: { bind: (sources) => { if (sources.state !== undefined) stateOf = sources.state; graphs.bind(sources); moveCurves(); }, readout: graphs.readout }, surfaces,
+    ground: splatDrawn !== null && 'material' in splatDrawn ? splatDrawn.material : null };
 }

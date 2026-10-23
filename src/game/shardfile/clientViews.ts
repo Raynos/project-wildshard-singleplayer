@@ -6,7 +6,7 @@
  * the optional `outline` hook (`clientMaterials().outline`): a graph that declares `stages.outline` draws its hull as each
  * mesh's second draw (terrain tiles, fine prop tiles, library panels and models; the coarse L1 proxy keeps one draw).
  */
-import { Mesh, type Material, type Object3D, type Texture } from 'three';
+import { Material, Mesh, type Object3D, type Texture } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { TerrainTileData } from '@wildshard/format/terrainTileBytes';
 import { installTerrainTile, maskTerrainTile } from '@wildshard/engine/world/terrainTileView';
@@ -14,7 +14,10 @@ import { coarseTileMask } from '@wildshard/engine/world/coarseTileMask';
 import { installDeclaredProps, type PropSurfaceBinding } from '@wildshard/engine/world/declaredProps';
 import type { ClientWorldViews, ResidentTile } from './clientWorld';
 import type { GraphOutlineHook } from './clientGraphs';
+import { groundMerge } from './groundMerge';
 import type { Shardfile } from '@wildshard/format/shardSchema';
+
+const isMaterial = (value: unknown): value is Material => value instanceof Material;
 
 function isMesh(object: Object3D): object is Mesh { return object instanceof Mesh; }
 /** a fine tile has nothing under it to hide */
@@ -40,6 +43,8 @@ export interface ClientTileViews {
  * the named prop surfaces (SF55; null or absent: every prop draws with `props.family`) and the optional shared terrain lattice.
  */
 interface ViewPorts { terrain: string | NonNullable<Shardfile['terrain']> | null; materials: ReadonlyMap<string, Material>; textures: ReadonlyMap<string, Texture>; outline?: GraphOutlineHook; surfaces?: ((name: string) => PropSurfaceBinding | null) | null;
+  /** a drawn splat ground's material: its tiles' meshes draw merged, one mesh per material (`groundMerge`) */
+  ground?: Material | null;
   /** The decoded terrain collider every tile was cut from: each tile's normals come from it, so tile edges light alike (absent: each tile's own grid). */
   lattice?: TerrainTileData;
   /** The terrain's shadow flags (`terrain.shadow`): a tile casts only when `cast` (and the shadow disc says so), receives only when `receive` (absent: both). */
@@ -83,6 +88,17 @@ export function clientTileViews(ports: ViewPorts): ClientTileViews {
       const installed = await installDeclaredProps(props, { scene, scope, assets: new Map([[row.file, bytes], ...additional ?? []]), materials: ports.materials, textures: ports.textures,
         lod: row.lod, selectedTiles: new Set([key]), includeLibrary: false, ...surfacePort(ports) });
       const root = installed.tiles.get(key); if (root === undefined) return null;
+      // P1 draws: a drawn splat ground's tiles merge, the fine tiles on its material, a coarse tile's meshes by material with
+      // the fine tiles over it left out (in place of the coarse tile mask), so the ground keeps one draw per material
+      const ground = ports.ground ?? null, parent = root.parent ?? scene;
+      if (ground !== null) {
+        const meshes: Mesh[] = []; root.traverse((object) => { if (isMesh(object)) meshes.push(object); });
+        if (row.lod === 1) {
+          const hide = meshes.flatMap((mesh) => { const drawn: unknown = mesh.material; return isMaterial(drawn) ? [groundMerge(parent, drawn, 'ground.coarse').add(mesh, scope, { x: row.x, z: row.z })] : []; });
+          return { mask: (excluded) => { for (const set of hide) set(excluded); }, shadow: () => undefined };
+        }
+        for (const mesh of meshes) if (mesh.material === ground) groundMerge(parent, ground, 'ground.fine').add(mesh, scope);
+      }
       if (row.lod !== 1) outlineProps(root, ports, ports.materials.get(props.family), scope);
       // what each mesh was baked to do (a GLB node's castShadow flag); the shadow disc only ever turns it off
       const casters: Mesh[] = []; root.traverse((object) => { if (isMesh(object) && object.castShadow) casters.push(object); });
