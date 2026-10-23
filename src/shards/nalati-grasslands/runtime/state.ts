@@ -8,7 +8,6 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardRuntime } from '@wildshard/game/shard/runtime';
 import * as v from 'valibot';
 import { slicer, type StepProgress } from '@wildshard/engine/boot/plan';
-import { wind } from '@wildshard/engine/world/steppeWind';
 
 
 
@@ -110,7 +109,6 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
     'combat/timed-encounters.json', { rider: riderFigure, captain: captainFigure, storm: riderFigure }, species.program('balbal'));
   function eliteFrame() { return { patrolAvailable: true, herdAvailable: wildlife !== null, kills: night.riders.killsTonight,
     bonded: ride?.taming.phase === 'bonded', mount: ride?.taming.companion ?? null }; }
-  let syncT = 0;
   const nalati = {
     weather, groups, boss, elites, titan, eliteFrame, eliteRows, eliteProgram, eliteDrops: drops, eliteCharge: charge, eliteLedges,
     get elitePatrol() { return night.riders; },
@@ -140,26 +138,14 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
 
   titan.riders = night.riders;    // B14: the Titan's storm riders ride the same rig
   updates.push((dt, t) => { if (!practiceRoom.open) night.update(dt, t); });   // no night riders shooting up at a practice room (E321)
-  // ── wearable skins (B15; src/shards/nalati-grasslands/weapons/nalatiSkins.ts): the elites' drops (mirrored from elites.skins once a second) and the
-  //    Titan's saddle, painted on the kit and on the horse you ride / your bonded horse ──
-
-    updates.push((dt) => {
-      syncT -= dt;
-      if (syncT <= 0) { syncT = 1; for (const id of elites.skins) nalati.skins.own(id); }
-      clientCosmeticFinishes(plugin).frame(plugin);
-    });
-
-  // ── sound (B16 audio): wraps attachAnimals / bindPlay / wildEnv.onEvent for the creatures and the kit — src/shards/nalati-grasslands/sound.ts ──
-  updates.push(dt=>{const clock=weather.clock;plugin.app.events.emit('audio.scene-frame',{delta:dt,inputs:{wind:wind.speed,gust:wind.gustAt(player.position.x,player.position.z),sun:clock.sunElevation,dark:Number(clock.dayPhase==='dusk'||clock.dayPhase==='night'),storm:Number(weather.weather.stormActive),inside:Number(nalati.boss.inside),engaged:Number(nalati.titan.engaged)}});});
-
-  const ids = ['pois', 'weather.fx', 'titan', 'look', 'elites', 'boss', 'wildlife', 'stealth', 'night', 'skins', 'sound'];
+  const ids = ['pois', 'weather.fx', 'titan', 'look', 'elites', 'boss', 'wildlife', 'stealth', 'night'];
   let previous = 'main.world';
   if (updates.length !== ids.length) throw new Error('Nalati update registration lacks an id');
-  for (let index = 0; index < 11; index++) {
+  for (let index = 0; index < 9; index++) {
     const name = ids[index], run = updates[index];
     if (name === undefined || run === undefined) throw new Error('Nalati update registration lacks an id');
     const id = `shard.nalati.${name}`;
-    if (name === 'look') installWorldUpdates(plugin, worldUpdates);
+    if (name === 'look') installWorldUpdates(plugin, worldUpdates, {arenas:new Map([['arena',boss],['fight',titan]]),elites:new Map([['elites',elites]])});
     else if (name !== 'wildlife') plugin.system({ id, phase: 'update', after: [previous], before: ['engine.creatures.update'], run });
     previous = id;
   }

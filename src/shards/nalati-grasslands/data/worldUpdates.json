@@ -30,5 +30,83 @@
     "phase": "late",
     "system": "shard.nalati.reins",
     "before": []
+  },
+  {
+    "kind": "cosmetic-finishes",
+    "system": "shard.nalati.skins",
+    "after": [
+      "shard.nalati.night"
+    ],
+    "before": [
+      "engine.creatures.update"
+    ],
+    "elite": "elites",
+    "every": 1
+  },
+  {
+    "kind": "audio-scene",
+    "system": "shard.nalati.sound",
+    "after": [
+      "shard.nalati.skins"
+    ],
+    "before": [
+      "engine.creatures.update"
+    ],
+    "inputs": [
+      {
+        "name": "wind",
+        "source": {
+          "kind": "wind",
+          "field": "speed"
+        }
+      },
+      {
+        "name": "gust",
+        "source": {
+          "kind": "wind",
+          "field": "gust"
+        }
+      },
+      {
+        "name": "sun",
+        "source": {
+          "kind": "weather",
+          "owner": "nalati.weather",
+          "field": "sun"
+        }
+      },
+      {
+        "name": "dark",
+        "source": {
+          "kind": "weather",
+          "owner": "nalati.weather",
+          "field": "dark"
+        }
+      },
+      {
+        "name": "storm",
+        "source": {
+          "kind": "weather",
+          "owner": "nalati.weather",
+          "field": "storm"
+        }
+      },
+      {
+        "name": "inside",
+        "source": {
+          "kind": "arena",
+          "owner": "arena",
+          "field": "inside"
+        }
+      },
+      {
+        "name": "engaged",
+        "source": {
+          "kind": "arena",
+          "owner": "fight",
+          "field": "engaged"
+        }
+      }
+    ]
   }
 ]

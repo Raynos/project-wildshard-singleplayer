@@ -11942,6 +11942,20 @@ registration. The bound construction scope selects the toon book across
 re-entry; entered system ownership does not dispose any borrowed native owner.
 
 
+World updates also admit audio-scene and cosmetic-finishes rows. Audio inputs
+select a closed wind, weather or arena observation; source names are ids, not
+property paths. Optional WorldUpdateLoans lend the original arena and declared
+elite owners. Every source resolves before any system registers, and samples
+remain native doubles. One complete finite input bank emits the original
+audio.scene-frame event, with the original event receiver and input order.
+Cosmetic rows borrow the same elite skin set and declare the existing grant
+interval. They grant in set order before the original finish frame; the first
+frame grants immediately, and long frames reset the interval as before. The
+finish book resolves at frame time because kit installation happens later.
+Original product, scopes, native loans and callable identities are pinned;
+replacement or retirement refuses before subsequent publication. These rows
+add no clock, persistence or ownership of borrowed resources.
+
 `installAssemblyWeather(ports, stage)` runs the defining weather handler at
 an existing native construction boundary. Its ports are the original scope,
 ShardContext and sky; the finite stage names its id and admitted page file.
