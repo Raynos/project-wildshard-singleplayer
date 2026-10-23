@@ -1,13 +1,24 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Retain raw provenance/body fields without a generated JSON type program.
+import { readFileSync } from 'node:fs';
+import { PinePhysicsSchema } from '../src/shards/pine-hollow/generators/sections';
 import { expect, test } from 'vitest';
 import { parseUiStrings } from '../src/format/uiStrings';
 import { parseWorldPhysics } from '../src/format/worldPhysics';
 import { emitPlatformSections, worldPhysicsSection } from '../src/sdk/platformSections';
 import { nativeBodySchema, nativeColliderRecordSchema, nativeGroundRecordSchema } from '../src/format/nativePhysics';
 import * as v from 'valibot';
-import pine from '../src/shards/pine-hollow/data/physics.generated.json';
-import driftwood from '../src/shards/driftwood-isle/data/physics.generated.json';
 import PINE_STRINGS from '../src/shards/pine-hollow/data/strings.json' with { type: 'json' };
 import DRIFTWOOD_STRINGS from '../src/shards/driftwood-isle/data/strings.json' with { type: 'json' };
+
+const pine=(()=>{
+  const value:unknown=JSON.parse(readFileSync('src/shards/pine-hollow/data/physics.generated.json','utf8'));
+  v.assert(PinePhysicsSchema,value);return value;
+})();
+const driftwood=(()=>{
+  const value:unknown=JSON.parse(readFileSync('src/shards/driftwood-isle/data/physics.generated.json','utf8'));
+  v.assert(v.object({ground:v.unknown(),solids:v.array(v.unknown()),actors:v.array(v.unknown()),
+    herds:v.array(v.unknown()),habitat:v.unknown()}),value);return value;
+})();
 
 test('player-facing strings retain authored labels and refuse unsafe or executable entries', () => {
   expect(parseUiStrings(PINE_STRINGS)).toEqual(PINE_STRINGS);
