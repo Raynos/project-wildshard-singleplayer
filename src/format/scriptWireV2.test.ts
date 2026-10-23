@@ -1,5 +1,5 @@
 import { expect,test } from 'vitest';
-import { layoutV2,writeV2Frame,validateV2Frame,relativeTickV2,V2_REGION_STRIDES } from '../src/format/scriptWireV2';
+import { layoutV2,writeV2Frame,validateV2Frame,relativeTickV2,V2_REGION_STRIDES } from './scriptWireV2';
 
 test('v2 layouts retain all 22 kinds and check absolute alignment, inactive regions and overflow', () => {
   const layout = layoutV2(8,1,new Map([[1,2],[2,4],[10,2]]));
