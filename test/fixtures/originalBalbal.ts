@@ -8,12 +8,12 @@ import { ANIMAL_STATES } from '@wildshard/engine/entities/AnimalSim';
 import type { DamageRequest } from '@wildshard/engine/combat/pipeline';
 import { StrikeRunner } from '@wildshard/engine/ai/strikes';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
-import type { CreatureGuestRows } from '@wildshard/format/speciesBookRows';
+import { CreatureGuestSchema, type CreatureGuestRows } from '@wildshard/format/speciesBookRows';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import speciesRows from '../../src/shards/nalati-grasslands/boot/speciesRows.generated.json' with { type:'json' };
 import generated from '../../src/shards/nalati-grasslands/data/species.generated.json' with { type: 'json' };
 // The unchanged ABI1 artifact is the oracle even after the production guest selects ABI2.
-function speciesGuestRows(): CreatureGuestRows { return { ...generated.presentation.guest, program: { script: generated.program.script, bytes: generated.program.bytes } }; }
+function speciesGuestRows(): CreatureGuestRows { return v.parse(CreatureGuestSchema, { ...generated.presentation.guest, program: { script: generated.program.script, bytes: generated.program.bytes } }); }
 
 export const BALBAL = speciesRows.balbal.kind;
 let admitted:CreatureGuestRows|null=null;
