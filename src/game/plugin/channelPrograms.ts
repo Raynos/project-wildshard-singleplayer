@@ -79,7 +79,27 @@ export function numericCreaturePose(poseData: unknown): (ctx: AnimalRigContext) 
   })) throw new Error('Invalid creature pose programme');
   // G639: one detached table per distinct set of programmes a rig carries, so the table is admitted once, not per rig (a
   // herd's first frame admitted it once for every body: most of a 350 ms Nalati cell-activation frame)
-  const detachedTables = new Map<string, ReturnType<typeof parseClientChannels>>();
+  // (with the programmes' merged inputs, which depend on the set alone)
+  type PoseInput = poseSchema.InferOutput<typeof NumericPoseInputSchema>;
+  const detachedTables = new Map<string, { readonly table: ReturnType<typeof parseClientChannels>; readonly inputs: readonly PoseInput[] }>();
+  const detach = (programs: readonly (typeof row.programs)[number][]): { readonly table: ReturnType<typeof parseClientChannels>; readonly inputs: readonly PoseInput[] } => {
+    const key = programs.map(program => row.programs.indexOf(program)).join(',');
+    let detached = detachedTables.get(key);
+    if (detached === undefined) {
+      const inputs = new Map<string, PoseInput>();
+      for (const program of programs) for (const input of program.numeric.inputs) {
+        const prior = inputs.get(input.input);
+        if (prior !== undefined && JSON.stringify(prior) !== JSON.stringify(input)) throw new Error('Ambiguous creature pose input');
+        inputs.set(input.input, input);
+      }
+      detached = { table: programs.map(program => ({ ...program, numeric: { ...program.numeric, inputs: [] } })), inputs: [...inputs.values()] };
+      detachedTables.set(key, detached);
+    }
+    return detached;
+  };
+  // a rig with every joint (the usual case) takes the whole table: admitted here, as the look loads, not in the frame a
+  // herd first poses (G639: ~6 ms of a 200 ms Nalati cell-activation frame at phone 4x)
+  admittedChannelTable(detach(row.programs).table);
   const rigs = new WeakMap<AnimalRigContext['bones'], {
     look: { yaw: number; pitch: number }; scalars: Record<string, number>;
     inputs: readonly poseSchema.InferOutput<typeof NumericPoseInputSchema>[]; joints: ReadonlyMap<string, AnimalRigJoint>;
@@ -119,19 +139,9 @@ export function numericCreaturePose(poseData: unknown): (ctx: AnimalRigContext) 
         if (targets.size !== 1 || program.numeric.group !== row.group) throw new Error('Invalid creature pose target');
         return [...targets].every(target => owners.has(target));
       });
-      const inputs = new Map<string, poseSchema.InferOutput<typeof NumericPoseInputSchema>>();
-      for (const program of programs) {
-      for (const input of program.numeric.inputs) {
-        const prior = inputs.get(input.input);
-        if (prior !== undefined && JSON.stringify(prior) !== JSON.stringify(input)) throw new Error('Ambiguous creature pose input');
-        inputs.set(input.input, input);
-      }
-      }
-      const key = programs.map(program => row.programs.indexOf(program)).join(',');
-      let detached = detachedTables.get(key);
-      if (detached === undefined) { detached = programs.map(program => ({ ...program, numeric: { ...program.numeric, inputs: [] } })); detachedTables.set(key, detached); }
-      rig = { look, scalars, joints, memory: {}, inputs: [...inputs.values()], observation: { time: c.t, delta: c.dt, values: {} },
-        lane: programs.length === 0 ? null : installChannelPrograms(detached, row.group, owners) };
+      const detached = detach(programs);
+      rig = { look, scalars, joints, memory: {}, inputs: detached.inputs, observation: { time: c.t, delta: c.dt, values: {} },
+        lane: programs.length === 0 ? null : installChannelPrograms(detached.table, row.group, owners) };
       rigs.set(c.bones, rig);
     }
     row.scalars.forEach((scalar, i) => { rig.scalars[scalar.name] = scalarValues[i] ?? Number.NaN; });
