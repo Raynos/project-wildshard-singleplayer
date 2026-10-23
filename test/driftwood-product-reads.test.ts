@@ -1,5 +1,6 @@
 import { parseWorldSceneModels } from '../src/format/worldSceneModels';
-import nativePhysics from '../src/shards/driftwood-isle/data/physics.generated.json' with {type:'json'};
+// oxlint-disable-next-line import/no-nodejs-modules -- Keep raw collider tuples while avoiding the full generated bake type.
+import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { readProjectAssets } from '../src/sdk/project';
@@ -11,6 +12,9 @@ import { SECTIONS } from '../src/shards/driftwood-isle/generators/sections';
 import { collectionRows } from '../src/shards/driftwood-isle/generators/collections';
 import { DRIFTWOOD_FEATS, DRIFTWOOD_ITEMS } from '../src/shards/driftwood-isle/generators/questInventory';
 import { DRIFTWOOD_EFFECTS, GOODS } from '../src/shards/driftwood-isle/generators/economy';
+
+const nativePhysics=v.parse(v.object({solids:v.array(v.unknown())}),
+  JSON.parse(readFileSync('src/shards/driftwood-isle/data/physics.generated.json','utf8')));
 
 const CHIME_PIECES = collectionRows().keepsakes.flags.count;
 
