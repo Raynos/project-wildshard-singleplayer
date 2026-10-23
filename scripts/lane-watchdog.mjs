@@ -166,7 +166,7 @@ async function poll() {
       if (parsed.success) panes.set(parsed.output.sha, parsed.output.pane);
     } catch { /* Partial concurrent ledger append supplies no attribution. */ }
   }
-  const EXEMPT = new Set(['sp-x7', 'sp-o2']);
+  const EXEMPT = new Set(['sp-x7', 'sp-o2', 'sp-o5']);
   const now = Date.now(), live = new Set();
   if (releaseCheckDue(now, releaseCheckedAt) && agents.some(agent => agent.name === 'sp-x7')) {
     try {
