@@ -1,4 +1,5 @@
 import { pageScope, resourceScope } from '../app/resources';
+import { drawnEnvironment } from './drawnEnvironment';
 import type { Scope } from '../app/scope';
 import { engineString } from '../strings';
 import * as THREE from 'three';
@@ -156,6 +157,14 @@ function exteriorJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, sh
     : exterior;
   // Passes with their own scene keep their authored state. Only the page world/depth variants transition outside.
   for (const job of jobs) if (job.target === scene) { job.target = target; job.lights = lights; }
+  // A view root's warm-up (`roots`): with no environment between frames, also the variant the road last drew with (a cell's
+  // layer swaps its PMREM in by weight; G639: a Driftwood ring tile linked env + road lights on its first road frame)
+  const drawn = roots === undefined || target.environment !== null ? null : drawnEnvironment();
+  if (drawn !== null) {
+    const lit = sceneJobs(scene, rt, 1, roots ?? [scene], state.roots).jobs;
+    for (const job of lit) if (job.target === scene) { job.target = target; job.lights = lights; job.environment = drawn; }
+    jobs.push(...lit);
+  }
   return jobs;
 }
 

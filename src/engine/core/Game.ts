@@ -36,6 +36,7 @@ import { installViewport, viewportHeight } from './viewport';
 import { FIXED_STEP } from './fixedStep';
 import { SHADOW_LAYER } from './shadowLayer';
 import { WorldRenderPass } from './worldDepth';
+import { noteDrawnEnvironment } from '../render/drawnEnvironment';
 import { makeSystem, setLoopState, systemFault, type GameSystem } from './faults';
 import { frameCost } from './frameCost';
 import { diagnosticNow } from './clock';
@@ -1075,6 +1076,7 @@ export class Game {
         finally { if (this.app.cpu.enabled && this.lookStrategy?.frame !== undefined) this.app.cpu.record(this.app.cpu.ticket(this.levelScope), diagnosticNow() - lookStart); }
         cullPlaced(this.camera); // placed models' per-copy culling and LODs for this view (src/engine/models/place.ts; nothing when none cull)
         composer.render(realDt);
+        noteDrawnEnvironment(this.rootScene.environment); // what the frame lit with, for view-root warm-ups (drawnEnvironment.ts)
         if (this.compositionChanged && this.compositionObservers.size > 0) {
           const bytes = this.composerAllocationResources().reduce((sum, row) => sum + row.bytes, 0);
           for (const read of this.compositionObservers) read(bytes);
