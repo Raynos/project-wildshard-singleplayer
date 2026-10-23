@@ -54,6 +54,7 @@ plan? … what is in scope … and what do we all have to complete to be done?"*
 | [build-speed](shard-platform/build-speed-mini-plan.md), CI speed | G547, G548, G584, G609, G620 | build done; **CI open**: ≤ 10 min, green main (fix forward 30 min, then revert) |
 | [fail-fast](shard-platform/fail-fast-mini-plan.md) | G610, G612, G620 | **done** (F1–F9) |
 | WASM-HOST zero blockers ([WASM-HOST](WASM-HOST.md)) | G595, G600, G604 | **done**: H4, H5, view-target adapter, dismount / ignite / impulse |
+| [memory-strip](shard-platform/memory-strip-mini-plan.md) + leak fix (O18) | G628 | **open**: leak fix first (crossing-crash P0), then strip rows M1–M7 |
 | [legacy-deletion](shard-platform/legacy-deletion-mini-plan.md) | G604, G606 | LD1–LD3 done; LD4 per shard at zero; LD5–LD8 only on Jake's word after his QA |
 
 **Out of scope here (their own plans, after this one):** [HOST-AUDIT](HOST-AUDIT.md) (starts after every shard is at
@@ -511,7 +512,7 @@ line to Jake at each milestone.
 Everything in [`shard-platform/`](shard-platform/), beside this file:
 
 - [STATE.md](shard-platform/STATE.md): the live status, calls for Jake and the fleet (coordinator only, ≤ 3 KB).
-- [decisions.md](shard-platform/decisions.md): every decision G1–G627+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
+- [decisions.md](shard-platform/decisions.md): every decision G1–G628+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
 - [rows.md](shard-platform/rows.md): §4 in full, Part A and Part B, with done-whens and evidence.
 - [contracts.md](shard-platform/contracts.md): §3 in full (determinism, caps, the grid, versioning, a shard project).
 - [history.md](shard-platform/history.md): the long State line, the council-time baseline (old §2), the pre-G291 measure and the 2026-10-04 Handoff.
