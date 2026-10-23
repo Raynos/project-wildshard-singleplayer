@@ -59,7 +59,7 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   `.github/workflows/boot-smoke.yml` follows successful main push CI (or an explicit SHA dispatch), reuses that exact
   successful main push run's `boot-dist` artifact, and drives every public primary shard to entered, unpaused page-ready
   with ten live gameplay frames. Push CI archives its actual web dist with its full commit, run ID and tar checksum.
-  Smoke verifies that provenance and the version stamp before sharing the same bytes with all five browser legs;
+  Smoke verifies that provenance and the version stamp before sharing the same bytes with all six browser legs;
   it never regenerates products. Missing or expired artifacts refuse the proof: push a head containing the artifact
   publisher and prove that head; an older run without the artifact cannot supply this proof.
   Cases come from that build's actual title catalogue, excluding hidden levels and frozen copies. Experimental
@@ -78,14 +78,14 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   bound through visible home residency. The following 90-second home proof still
   requires every visible ring and ten gameplay frames before the Signal road leg.
   Smoke receipts distinguish drawn frames, fixed ring steps and clock/pause state.
-  Five required macOS legs separate public cases, Developer standalones, the grid/Signal road proof,
+  Six required macOS legs separate public cases, Developer standalones, the grid/Signal road proof,
   Chromium HOVER and WebKit HOVER/rendering (`boot-public`, `boot-developer`, `boot-grid`,
-  `hover-chromium`, `hover-webkit`). Each keeps its 20-minute outer deadline. The 2026-10-18
+  `hover-chromium`, `hover-webkit`, `explorer`). Each keeps its 20-minute outer deadline. The 2026-10-18
   Developer job spent 9.5 minutes building, passed all seven standalone cases, then exhausted
   the outer deadline before its grid case could finish. The grid now has its own required leg;
   no case, gameplay deadline or failure condition changed. HOVER waits for the loading overlay
   to close within its existing 150-second title budget before tapping the real entry button.
-  The `verdict` job requires all five legs before publishing the one `boot-smoke` status (SF74 W16). Fatal UI, page errors and bad asset
+  The `verdict` job requires all six legs before publishing the one `boot-smoke` status (SF74 W16). Fatal UI, page errors and bad asset
   responses refuse the proof. Its macOS queue stays outside push CI's critical path. A scheduled, backstop or manual
   release immediately selects the newest SHA with both push CI and exact-SHA smoke green. A newer CI-green SHA
   whose smoke is pending or not started never delays that proven release. With no fully proven candidate, the
@@ -156,3 +156,10 @@ G609: the complete TypeScript project check has its own matrix worker beside
 the four lint partitions. It no longer serializes one lint partition after
 all types. Coverage, generated-input proof and the existing deadlines remain
 unchanged; no running push CI is cancelled.
+
+G671 V3: the required Explorer leg reads the exact built title catalogue and opens
+every primary shard through the existing Model Explorer entry with Developer on.
+It waits for every real card canvas, rejects build/asset/page errors, missing or
+at-least-90%-near-black thumbnails, and records each model identity. Explicit
+empty catalogues are reported separately. It uses the same verified boot-dist;
+no model, light, material, scene or frame is injected or re-rendered for proof.

@@ -165,7 +165,7 @@ async function bootSignalRoad(page, faults) {
 }
 
 /** @param {import('playwright').Browser} browser @param {string} base */
-async function discoverCatalogue(browser, base) {
+export async function discoverCatalogue(browser, base) {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, serviceWorkers: 'block' });
   try {
     await saveFixture(context, { scope: 'device', key: 'devMode', data: false });

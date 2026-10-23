@@ -1,4 +1,5 @@
 import type { FloorGridPlan, FloorGridWitness } from '../frame-floor-grid.mjs';
+import type { Browser } from 'playwright';
 
 /** Preserve a static-preview error transport's original payload for CI diagnosis, including nonfatal lifecycle diagnostics. */
 export function bootErrorReport(url: string, method: string, body: string | null): unknown;
@@ -18,3 +19,6 @@ export function verifyBootSignalRoad(witness: FloorGridWitness): void;
 
 /** Give the grid a fresh browser after prior contexts are closed, preserving every case law. */
 export function bootCaseBrowser<T>(pool: {browser:(slot:number)=>Promise<T>;release:(slot:number)=>Promise<void>}, mode:'standalone'|'grid'|'public-policy'):Promise<T>;
+
+/** Discover actual built-title rows through its normal document. */
+export function discoverCatalogue(browser: Browser, base: string): Promise<{slug:string;status:string;legacy:boolean}[]>;

@@ -125,7 +125,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit]
+        part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer]
     concurrency:
       group: boot-smoke-${{ matrix.part }}-${{ github.event_name == 'workflow_run' && 'main' || inputs.sha || github.sha }}
       cancel-in-progress: false
@@ -197,6 +197,9 @@ jobs:
       - name: WebKit world and held-item rendering
         if: matrix.part == 'hover-webkit'
         run: scripts/browser-lane.sh --max 3 node scripts/webkit-render-smoke.mjs --dist=dist
+      - name: Every primary Model Explorer draws its actual catalogue
+        if: matrix.part == 'explorer'
+        run: node scripts/parity/explorer-smoke.mjs
       - name: Record smoke queue and run timings
         if: always()
         env:
@@ -214,7 +217,7 @@ jobs:
           if-no-files-found: warn
 
   verdict:
-    # The exact-SHA proof requires all five legs. A replaced leg leaves this SHA unproven:
+    # The exact-SHA proof requires all six legs. A replaced leg leaves this SHA unproven:
     # it gets `error` so a pending status never lingers; the newer SHA carries the proof.
     needs: [build, boot-smoke]
     if: always() && needs.build.result != 'skipped'
