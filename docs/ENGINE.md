@@ -880,7 +880,9 @@ navigation starting after expiry. Explicit clocks support deterministic tests.
 `pendingTitleArrival(slug)` reads the same validated, fresh session/device
 arrival without consuming it. The grid's entry recovery uses it only with
 an exact planned stale-product reload and the original pending travel
-handoff; ordinary title visits and crashes cannot resume that old entry.
+handoff. A later old-client admission may have consumed both handoffs;
+its explicit original grid-mode lifecycle record is then required instead.
+Ordinary title visits and crashes cannot resume that old entry.
 The initial grid boot registers its existing planned-reload capture before
 clearing its route; the live grid later replaces it with actual position
 and continuation capture. All paths retain the existing durable loop guard.

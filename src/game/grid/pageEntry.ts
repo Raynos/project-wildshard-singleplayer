@@ -112,19 +112,23 @@ export function consumeGridRecovery(options: { assembly?: GridAssembly; saves?: 
   let result = service.consume(assembly, options.unexpected);
   const end = options.previous, search = options.search;
   // Older clients consumed their grid intent and cleared chunk before product admission.
-  // Only their exact planned stale-product reload can recover from the still-pending
-  // title/travel handoff. Ordinary title visits, crashes and explicit shard URLs cannot.
-  if (result.kind === 'none' && end?.kind === 'intentional' && !end.discarded && end.mode === ''
+  // Only their exact planned stale-product reload can use the original grid-mode
+  // record or still-pending handoff. Ordinary titles, crashes and explicit shard URLs cannot.
+  if (result.kind === 'none' && end?.kind === 'intentional' && !end.discarded && (end.mode === '' || end.mode === 'grid')
     && end.reason === 'stuck boot recovery (app older than its product)' && Number.isFinite(end.at)
     && now() >= end.at && now() - end.at <= 60_000 && search?.size === 1 && search.has('v')) {
     const home = assembly.at(0, 0);
-    if (home !== undefined && pendingTitleArrival(home.slug)?.mode === 'enter') {
+    // A later old-client admission already consumed both handoffs but recorded
+    // its actual grid mode. That concrete lifecycle record is the authority.
+    let grid = end.mode === 'grid';
+    if (!grid && home !== undefined && pendingTitleArrival(home.slug)?.mode === 'enter') {
       const handoff = travelSlot(store).peek();
-      if (handoff !== null && [home.slug].includes(handoff.to) && handoff.from === null && handoff.mode === 'enter'
-        && handoff.arrive === null && handoff.carry.length === 0 && freshPageArrival(handoff.at, now())) {
-        const road = safeGridRecovery(assembly, now()).road;
-        if (service.write(assembly, home, road, 'reload')) result = service.consume(assembly);
-      }
+      grid = handoff !== null && [home.slug].includes(handoff.to) && handoff.from === null && handoff.mode === 'enter'
+        && handoff.arrive === null && handoff.carry.length === 0 && freshPageArrival(handoff.at, now());
+    }
+    if (grid && home !== undefined) {
+      const road = safeGridRecovery(assembly, now()).road;
+      if (service.write(assembly, home, road, 'reload')) result = service.consume(assembly);
     }
   }
   loop = result.kind === 'loop';

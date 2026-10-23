@@ -51,6 +51,16 @@ test('an older client stale reload resumes the actual home once without consumin
   expect(gridRecoveryLoop()).toBe(true);
 });
 
+test('the recorded grid mode survives a later stale admission after both original handoffs were consumed', () => {
+  const f = fixture();
+  consumeTitleArrival(home.slug);
+  travelSlot(f.store).reset();
+  const end = { ...previous, mode: 'grid' };
+  expect(f.read(end)?.instance).toBe(home.instance);
+  expect(f.read(end)).toBeNull();
+  expect(gridRecoveryLoop()).toBe(true);
+});
+
 test.each([
   { kind: 'unexpected' as const }, { reason: 'new build adopted' }, { mode: 'shard' },
   { discarded: true }, { at: 3000 }, { at: -60_000 },
