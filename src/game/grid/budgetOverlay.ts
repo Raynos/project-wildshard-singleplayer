@@ -42,6 +42,8 @@ export interface BudgetOverlayHost {
   readonly shard?: (owner: string) => boolean;
   /** Existing allocation identities, not another admission ledger. Null native readings remain unavailable. */
   readonly memory?: () => MemorySnapshot;
+  /** G628 M4: the loaded shards over their own limit now (resident only), one strip line each (`memoryWarning.ts`) */
+  readonly overLimit?: () => readonly { readonly owner: string; readonly overBytes: number }[];
 }
 export interface BudgetOverlay {
   /** the last scored table (null until Developer mode first shows the strip) */

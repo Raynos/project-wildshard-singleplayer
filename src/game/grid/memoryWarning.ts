@@ -17,6 +17,12 @@ export function memoryWarningChip(reports: readonly MemoryAdmissionWarning[], en
   return largest === undefined ? null
     : `MEMORY LIMIT · ${largest.owner} ${largest.stage === 'resident' ? 'RESIDENT' : 'ESTIMATE'} · +${(over / 1_000_000).toFixed(1)} MB`;
 }
+/** G628 M4: the resident over-limit rows (a loaded shard's own cost over its limit) that a grid page's memory strip shows
+ *  as lines; a cold estimate (a neighbour's worst spot if loaded alone) is never one. */
+export function residentOverLimit(memory: Pick<MemoryAdmission, 'reports'>): readonly { readonly owner: string; readonly overBytes: number }[] {
+  return memory.reports().filter(report => report.stage === 'resident')
+    .map(report => ({ owner: report.owner, overBytes: Math.max(report.playingOverBytes, report.loadingOverBytes) })).filter(row => row.overBytes > 0);
+}
 /** G216: visible only for a Developer override, showing full claims and original caps rather than an altered allowance. */
 export function memoryWarningLines(row: MemoryAdmissionWarning): readonly string[] {
   return [

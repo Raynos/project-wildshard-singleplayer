@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { MemoryAdmission } from '../src/format/product';
-import { memoryWarningChip } from '../src/game/grid/memoryWarning';
+import { memoryWarningChip, residentOverLimit } from '../src/game/grid/memoryWarning';
 
 test('history retains a worst-location estimate while the HUD filters it by entered shard', () => {
   const memory = new MemoryAdmission(() => true);
@@ -34,5 +34,7 @@ test('the chip uses the owner and stage of the largest loading or playing excess
     playingBytes, loadingBytes, playingCap: 1_200_000_000, loadingCap: 1_800_000_000 });
   expect(memoryWarningChip(memory.reports())).toBe('MEMORY LIMIT · second RESIDENT · +200.0 MB');
   expect(memoryWarningChip(memory.reports(), 'another-shard')).toBe('MEMORY LIMIT · second RESIDENT · +200.0 MB');
-  memory.dispose();
+  // G628 M4: the grid's memory strip takes only the resident excess; the cold estimate is no line
+  expect(residentOverLimit(memory)).toEqual([{ owner: 'second', overBytes: 200_000_000 }]);
+  memory.dispose(); expect(residentOverLimit(memory)).toEqual([]);
 });

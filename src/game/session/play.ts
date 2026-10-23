@@ -69,7 +69,7 @@ import { gridCells, gridHomeSim, pageMode } from '../plugin/context';
 import { installGridReveal } from '../grid/reveal';
 import { installGridHud } from '../grid/gridHud';
 import { installBudgetOverlay } from '../grid/budgetOverlay';
-import { installMemoryWarning } from '../grid/memoryWarning';
+import { installMemoryWarning, residentOverLimit } from '../grid/memoryWarning';
 import { ACCENTS } from '@wildshard/format/accent';
 import { installMinimapBlend } from '../grid/minimapBlend';
 import { installShardHoverSpeed } from '../grid/rules';
@@ -85,8 +85,9 @@ import { terrainDatum } from '@wildshard/engine/world/terrainHeight';
 async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   const { manifest, boot, session, kit, files, step, menuLoad, world, game, sky, player, params, chunk, registry, nolock, viewer, boundary, horizon, prepareAudio, animals, arena, swimArms, crossbow, rifle, longbow, weapons, lockSys, touchControls, hud } = ctx;
   const leakPhysics = world.physics; // The borrowed page world outlives temporary active frames.
-  const memoryWarningOwner = session.memory === undefined ? undefined
-    : installMemoryWarning(session.memory, game.levelScope, hud.root, manifest.slug);
+  // G628 M4: a shard page's Developer warning chip; a grid page's resident over-limit is a line of its memory strip instead,
+  // and a neighbour's cold estimate shows nowhere (the G217 blocked cell screen reads the policy, not the chip)
+  if (session.memory !== undefined && pageMode() !== 'grid') installMemoryWarning(session.memory, game.levelScope, hud.root, manifest.slug);
 
   let playground: Playground | null = null;
   const away = (): boolean => arena.entered || playground?.entered === true;
@@ -507,18 +508,16 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     const blend = installMinimapBlend(minimap, { assembly: grid.assembly, home: grid.home, cells: gridCells, worldFeet: () => grid.worldFeet(), image: (id) => grid.mapImage(id),
       name: (cell) => findShard(cell.slug)?.name ?? cell.slug }, game.levelScope, fullMap); // SF66: the full map lays out every cell's baked map + the road
     // playtest round 3: the menu names the shard whose cell you are in (the full map's arrow reads mapAt's home frame too)
-    memoryWarningOwner?.(gridCells.cell?.slug ?? null);
-    game.levelScope.onDispose(gridCells.onEnter((cell) => {
-      menu.setLevelName(findShard(cell.slug)?.name ?? cell.slug); memoryWarningOwner?.(cell.slug);
-    }));
-    game.levelScope.onDispose(gridCells.onLeave(() => { memoryWarningOwner?.(null); }));
+    game.levelScope.onDispose(gridCells.onEnter((cell) => { menu.setLevelName(findShard(cell.slug)?.name ?? cell.slug); }));
     // SF38 / G30: Developer mode's points budget over the one live allocator (no element or timer until Developer is on)
     const slugCount = new Map<string, number>();
     for (const cell of grid.assembly.cells) slugCount.set(cell.slug, (slugCount.get(cell.slug) ?? 0) + 1);
     const cellName = new Map(grid.assembly.cells.map((cell) => { const name = findShard(cell.slug)?.name ?? cell.slug; return [cell.instance, (slugCount.get(cell.slug) ?? 0) > 1 ? `${name} ${cell.cell[0]},${cell.cell[1]}` : name]; }));
     const cellCost = new Map(grid.assembly.cells.map((cell) => [cell.instance, findShard(cell.slug)?.runtimeCost] as const));
+    const memory = session.memory;
     const budget = installBudgetOverlay({ scope: game.levelScope, hudRoot: hud.root, allocator: grid.allocator, name: (owner) => cellName.get(owner) ?? owner, shard: (owner) => cellName.has(owner),
-      measuredMB: (owner) => { const cost = cellCost.get(owner); return cost === undefined ? null : cost.webContentMB + cost.glMB; } });
+      measuredMB: (owner) => { const cost = cellCost.get(owner); return cost === undefined ? null : cost.webContentMB + cost.glMB; },
+      ...(memory === undefined ? {} : { overLimit: () => residentOverLimit(memory) }) });
     game.levelScope.onDispose(app.debug.scopedExpose('gridBudget', budget));
     game.levelScope.onDispose(app.debug.scopedExpose('gridHud', { state: gridHud, minimap: () => { const o = blend(); return { baseAlpha: o.baseAlpha ?? 1, images: o.images.map((m) => ({ x: m.x, z: m.z, alpha: m.alpha })), labels: o.labels.map((l) => l.text) }; } }));
   }
