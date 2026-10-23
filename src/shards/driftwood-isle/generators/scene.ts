@@ -17,7 +17,7 @@ export function driftwoodScene(project: string, head: BufferGeometry): { baked: 
     const pose = fixed.world.get(id);
     if (pose !== undefined) {
       const mesh = new Mesh(geometry, material); mesh.name = id; mesh.matrixAutoUpdate = false; mesh.matrix.copy(pose);
-      scene.add(new WholeShape(id, mesh, { nativeAttributes: true, partition: true }));
+      scene.add(new WholeShape(id, mesh, { nativeAttributes: true, partition: 'runs' }));
     } else {
       const key = `template-${library++}`, mesh = new InstancedMesh(geometry, material, 1);
       const vertexCount = geometry.getAttribute('position').count, indexCount = geometry.getIndex()?.count ?? 0;
