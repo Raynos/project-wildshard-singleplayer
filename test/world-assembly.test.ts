@@ -1,3 +1,5 @@
+import { emptyShardfile } from '../src/sdk/author';
+import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { SceneDressing } from '../src/game/shardfile/sceneDressing';
 import { installClientPlaceSets, requireClientPlaceSetsBound } from '../src/game/shardfile/clientPlaceSets';
 import type { ShardContext } from '../src/game/plugin/context';
@@ -356,7 +358,10 @@ test('an entry piece row registers its collider owner, its declared collider sur
 
 test('native dressing stages borrow original groups and complete the original place-set owner without scene handles', async () => {
   const scope = new Scope('orchard-native'), root = new Group(), registry = new WorldRegistry();
-  const product = legacyDouble<ShardContext['product']>({ slug: 'orchard', hasFile: () => false });
+  const read = vi.fn<(hash: string) => Promise<Uint8Array>>(() => Promise.reject(new Error('Unexpected orchard file read')));
+  const identity = { slug: 'orchard', name: 'Orchard', author: 'Fixture', revision: 1, seed: 1 };
+  const product = createShardProduct({ slug: identity.slug, revision: 1, shardfile: emptyShardfile(identity),
+    sections: new Map(), files: new Map(), read });
   type Runtime = NonNullable<ShardContext['game']['runtime']>;
   const world = legacyDouble<NonNullable<Runtime['world']>>({ sky: legacyDouble<NonNullable<Runtime['world']>['sky']>({}), game: legacyDouble<Game>({}) });
   const runtime = legacyDouble<Runtime>({ world });
@@ -377,5 +382,6 @@ test('native dressing stages borrow original groups and complete the original pl
     expect(entryOwner(scope, 'world-point', 'absent')).toBeNull();
     expect(root.children).toEqual([original.group]); expect(assembly.done).toBe(true);
     expect(() => requireClientPlaceSetsBound(ctx)).not.toThrow();
+    expect(read).not.toHaveBeenCalled();
   } finally { scope.dispose(); }
 });
