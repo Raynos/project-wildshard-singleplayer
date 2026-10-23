@@ -31,14 +31,14 @@ async function bounded(response: Response, maximum: number): Promise<Uint8Array<
   for (const chunk of chunks) { bytes.set(chunk, at); at += chunk.byteLength; }
   return bytes;
 }
-/** The network receipt of `url`: the browser's own when it recorded one, else this read's clock and body size. */
-function timing(url: string, startTime: number, length: number): FetchedContent['timing'] {
+// Receipts are read as soon as their body lands; a roomy buffer, cleared well before it fills, keeps later ones.
+performance.setResourceTimingBufferSize(4096);
+/** The browser's own network receipt of `url` (its latest read), for the page's download accounting. */
+function timing(url: string): FetchedContent['timing'] {
   const entries = performance.getEntriesByName(url, 'resource'), entry = entries[entries.length - 1];
-  // Receipts are read as soon as their body lands; a full buffer would drop later ones.
-  if (performance.getEntriesByType('resource').length > 200) performance.clearResourceTimings();
-  if (entry instanceof PerformanceResourceTiming && entry.startTime >= startTime) return { name: url, startTime: entry.startTime,
-    responseEnd: entry.responseEnd, transferSize: entry.transferSize, encodedBodySize: entry.encodedBodySize };
-  return { name: url, startTime, responseEnd: performance.now(), transferSize: length, encodedBodySize: length };
+  if (performance.getEntriesByType('resource').length > 1024) performance.clearResourceTimings();
+  return entry instanceof PerformanceResourceTiming ? { name: url, startTime: entry.startTime, responseEnd: entry.responseEnd,
+    transferSize: entry.transferSize, encodedBodySize: entry.encodedBodySize } : null;
 }
 /** Read, verify and store one immutable file without the page touching its stream, hash or store copy (G639). The URL
  * cache is a hint like the page's (cachedTransport); the content cache's put re-hashes the bytes and refuses a mismatch. */
@@ -53,9 +53,8 @@ async function fetchVerified(command: FetchCommand): Promise<FetchedContent> {
     } catch { body = null; } // An evicted or stale URL cache falls through to the network.
   }
   if (body === null) {
-    const startTime = performance.now();
     body = await bounded(await fetch(url.href, command.keep === true ? { cache: 'no-store' } : undefined), command.bytes);
-    receipt = timing(url.href, startTime, body.length);
+    receipt = timing(url.href);
   }
   if (body.length !== command.bytes) throw new Error('Read differs from its declared size');
   let stored: boolean;
