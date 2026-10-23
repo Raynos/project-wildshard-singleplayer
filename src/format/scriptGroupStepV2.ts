@@ -12,6 +12,7 @@ const name = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 /** Native result requests remain op25 records. They are executed only by the
  * original scoped owners after the complete result bank is preflighted. */
 export type GroupStepNativeV2 =
+  | { kind: 'locomotion-plan'; part: number }
   | { kind: 'grass'; channel: string }
   | { kind: 'normal'; channel: string }
   | { kind: 'visibility'; channel: string }
@@ -33,6 +34,7 @@ export type GroupStepNativeV2 =
 const radius = v.pipe(v.number(), v.finite(), v.minValue(0));
 const memoryKey = v.pipe(name,v.regex(/^(?!(?:__proto__|prototype|constructor)$).+$/));
 const nativeSchema: v.GenericSchema<GroupStepNativeV2> = v.variant('kind', [
+  v.strictObject({kind:v.literal('locomotion-plan'),part:v.pipe(natural,v.maxValue(7))}),
   v.strictObject({ kind: v.picklist(['grass', 'normal', 'visibility', 'downwind', 'claim']), channel: name }),
   v.strictObject({ kind: v.literal('memory'),key:memoryKey,encoding:v.exactOptional(v.literal('negative-infinity')) }),
   v.strictObject({ kind: v.literal('notify-state'),states:v.pipe(v.array(name),v.minLength(1),v.maxLength(64)) }),
@@ -95,7 +97,7 @@ export function groupNativeWordsV2(row: GroupStepNativeV2): number {
     case 'nearest': case 'nearest-group': case 'group-claim': case 'event': case 'knockdown': return 3;
     case 'grass': case 'normal': case 'state': case 'look-weight': case 'health': case 'start-attack': case 'sound': case 'contact': case 'pass-through': case 'hurt': case 'scare': return 2;
     case 'memory': return row.encoding === undefined ? 2 : 3;
-    case 'motion': case 'look-position': case 'steer': case 'path': case 'damage': case 'stagger': return 4;
+    case 'locomotion-plan': case 'motion': case 'look-position': case 'steer': case 'path': case 'damage': case 'stagger': return 4;
     case 'visibility': case 'hearing': case 'downwind': case 'claim': case 'confine': case 'cancel-attack': case 'notify-state': case 'notify-flight': case 'notify-beaten': case 'append-member': return 1;
     default: throw new Error('Unknown native group operation');
   }
@@ -107,7 +109,7 @@ export function groupNativeTargetV2(row: GroupStepNativeV2): 'point' | 'member' 
     case 'grass': case 'normal': case 'nearest': case 'event': case 'knockdown': case 'environment': case 'nearest-group': case 'notify-state': case 'notify-flight': return 'point';
     case 'damage': case 'stagger': case 'health': case 'scare': case 'notify-beaten': case 'append-member': return 'reference';
     case 'visibility': case 'hearing': case 'downwind': case 'claim': case 'memory': case 'state':
-    case 'motion': case 'look-position': case 'look-weight': case 'steer': case 'confine': case 'path': case 'start-attack': case 'cancel-attack':
+    case 'locomotion-plan': case 'motion': case 'look-position': case 'look-weight': case 'steer': case 'confine': case 'path': case 'start-attack': case 'cancel-attack':
     case 'sound': case 'contact': case 'pass-through': case 'hurt': case 'group-claim': return 'member';
     default: throw new Error('Unknown native group target');
   }

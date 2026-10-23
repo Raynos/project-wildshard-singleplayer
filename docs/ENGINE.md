@@ -12877,6 +12877,26 @@ when valid is zero (requiring positive-zero value). Without encoding it uses
 AS bank remains finite; no field name or species-specific sentinel is hidden
 in the transport.
 
+### Group-tick locomotion outputs (G415, G621 R10c)
+
+A native group action may declare locomotion-plan with part 0..7. Each
+record contains [member, a, b, c]; all eight unique parts form the fixed
+24-number HERD_DRIVE_PLAN_FIELDS tuple. The whole bank, every member and
+all eight parts preflight before any output publishes. Missing, duplicate,
+nonfinite or invalid flag/enum/tuning values refuse without a plan prefix.
+The same concrete GrazerBrain prepares and retains these transient outputs;
+there is no body, save, script instance, random stream or clock added.
+
+GuardedHerdGuestSchema plans:true selects this mode. AS plans once at the
+group tick, and drive consumes its member's output without guest capture,
+encoding or execution. Native path/steer services still run at the member
+slot; charge/trample and taming retain their original live body barriers.
+G415 allows tick-wide movement observations and different drive RNG order;
+behaviour is checked across seeds. Historical herd save bytes still load,
+and native contact/taming remain exact. Cold/restored owners retain their
+native bootstrap until their first tick output; fallbacks stay until the
+quiet performance sample passes.
+
 ### Preflighting the original native group codec (H4, G621 R10a)
 
 GroupStep.prepare exposes readonly values: the SAME frozen decoded record

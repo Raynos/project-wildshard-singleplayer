@@ -1418,6 +1418,78 @@
         "kind": "memory",
         "key": "toss"
       }
+    },
+    {
+      "id": 200,
+      "words": 4,
+      "member": 0,
+      "native": {
+        "kind": "locomotion-plan",
+        "part": 0
+      }
+    },
+    {
+      "id": 201,
+      "words": 4,
+      "member": 0,
+      "native": {
+        "kind": "locomotion-plan",
+        "part": 1
+      }
+    },
+    {
+      "id": 202,
+      "words": 4,
+      "member": 0,
+      "native": {
+        "kind": "locomotion-plan",
+        "part": 2
+      }
+    },
+    {
+      "id": 203,
+      "words": 4,
+      "member": 0,
+      "native": {
+        "kind": "locomotion-plan",
+        "part": 3
+      }
+    },
+    {
+      "id": 204,
+      "words": 4,
+      "member": 0,
+      "native": {
+        "kind": "locomotion-plan",
+        "part": 4
+      }
+    },
+    {
+      "id": 205,
+      "words": 4,
+      "member": 0,
+      "native": {
+        "kind": "locomotion-plan",
+        "part": 5
+      }
+    },
+    {
+      "id": 206,
+      "words": 4,
+      "member": 0,
+      "native": {
+        "kind": "locomotion-plan",
+        "part": 6
+      }
+    },
+    {
+      "id": 207,
+      "words": 4,
+      "member": 0,
+      "native": {
+        "kind": "locomotion-plan",
+        "part": 7
+      }
     }
   ],
   "outputs": 128,

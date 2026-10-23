@@ -3,8 +3,8 @@ import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 import {scriptAdmissionRows} from '../src/format/scriptContract';
 import {NALATI_SCRIPT_SECTIONS} from '../src/shards/nalati-grasslands/generators/scriptInventory';
 import {expect,test,vi} from 'vitest';
-import {GroupStepV2,type GroupStepReferenceV2,type GroupStepNativeResultV2} from '../src/engine/script/groupStepV2';
-import {ObservationColumnsV2} from '../src/engine/script/observationColumnsV2';
+import {GroupStepV2,prepareGroupNativeV2,type GroupStepOperationV2,type GroupStepReferenceV2,type GroupStepNativeResultV2} from '../src/engine/script/groupStepV2';
+import {ObservationColumnsV2,type V2ColumnOwners} from '../src/engine/script/observationColumnsV2';
 
 import * as v from 'valibot';
 import {Vector3} from 'three';
@@ -41,11 +41,11 @@ class OriginalHerd extends OriginalGrazerBrain<AnimalSim>{
 }
 type FixtureHerd=Pick<HerdBrain<AnimalSim>,'findThreat'|'initialize'|'snapshot'|'restore'|'mode'>;
 function makeFixture<H extends FixtureHerd>(Owner:new(members:AnimalSim[],definition:HerdSpec,ports:HerdPorts<AnimalSim>)=>H,
- mode:string,stallionState:string,mutate=false,count=4){
+ mode:string,stallionState:string,mutate=false,count=4,seed=905){
  const roster=[makeBody('mare-a','mare',-3,1,1.2),makeBody('foal-a','foal-a',-1,3,.8),makeBody('stallion','stallion',8,5),makeBody('mare-b','mare',10,2)];
  if(count<roster.length)roster.length=count;
  while(roster.length<count){const i=roster.length;roster.push(makeBody(`mare-${i}`,'mare',i*2-5,i%3+2));}
- const random=new Rng(905),contextRandom=new Rng(1907),log:(string|number)[][]=[];
+ const random=new Rng(seed),contextRandom=new Rng(seed+1002),log:(string|number)[][]=[];
  const ports:HerdPorts<AnimalSim>={sharedRng:()=>random,environment:()=>({playerMounted:false,playerCrouched:false}),visibility:()=>1,hearing:()=>8,downwind:()=>false,inBounds:()=>true,normalY:()=>1,
  passThrough:(a,through)=>{log.push(['pass',a.entityId,Number(through)]);},chargeContact:(a,_c,r)=>{log.push(['contact',a.entityId,r]);},scarePack:()=>false};
  const pending:AnimalSim[]=[],threats:AnimalSim[]=[];const herd=new Owner(roster,spec,ports);herd.initialize();
@@ -59,8 +59,8 @@ function makeFixture<H extends FixtureHerd>(Owner:new(members:AnimalSim[],defini
  for(const a of roster){const original=a.setMotion.bind(a);a.setMotion=(yaw,speed,turn)=>{log.push(['motion',a.entityId,yaw,speed,turn??2.5]);original(yaw,speed,turn);};}
  return{roster,pending,threats,random,contextRandom,log,herd,ports,scope,ctx};
 }
-const fixture=(mode:string,state:string,mutate=false,count=4)=>makeFixture(NativeHerd,mode,state,mutate,count);
-const oracleFixture=(mode:string,state:string,mutate=false,count=4)=>makeFixture(OriginalHerd,mode,state,mutate,count);
+const fixture=(mode:string,state:string,mutate=false,count=4,seed=905)=>makeFixture(NativeHerd,mode,state,mutate,count,seed);
+const oracleFixture=(mode:string,state:string,mutate=false,count=4,seed=905)=>makeFixture(OriginalHerd,mode,state,mutate,count,seed);
 function numbers(actual:unknown,expected:unknown):void{
  if(typeof expected==='number'&&typeof actual==='number'){
   // G415: AS owns trig. Its libm may differ by one ULP; native effects,
@@ -96,7 +96,7 @@ function execute(f:ReturnType<typeof fixture>,slot:number,asBody=false,signal='d
 }
 // Keep the full matrix; each mode gets its own bounded parity case. The
 // frozen TS oracle does not construct an unused WASM programme.
-test.each(modes)('%s: ordinary guard states match original per-member effects and continuation',mode=>{
+test.each(modes)('%s: cold native drives retain original per-member effects and continuation',mode=>{
  for(const state of states.filter(value=>!['charge','ridden'].includes(value)))for(const slot of [0,1,2,3]){
   const old=oracleFixture(mode,state),next=fixture(mode,state);
   try{
@@ -138,7 +138,8 @@ test('the full group tick preserves original sensing, alarms, modes and save ord
   const old=oracleFixture(mode,state),next=fixture(mode,state);
   try{
    old.herd.tick(old.ctx);execute(next,0,false,'tick');numbers(next.log,old.log);
-   expect(next.random.snapshot()).toEqual(old.random.snapshot());expect(next.contextRandom.snapshot()).toEqual(old.contextRandom.snapshot());expect(next.herd.snapshot()).toBe(old.herd.snapshot());
+   // G415: drive RNG now advances in the tick-wide plan; multi-seed movement is checked below.
+   expect(next.ports.sharedRng()).toBe(next.random);expect(next.contextRandom.snapshot()).toEqual(old.contextRandom.snapshot());expect(next.herd.snapshot()).toBe(old.herd.snapshot());
    for(let i=0;i<old.roster.length;i++)numbers(next.roster[i]?.mem,old.roster[i]?.mem);
   }finally{old.scope.dispose();next.scope.dispose();}
  }
@@ -150,9 +151,10 @@ test('duplicate group instants and native between-slot group changes retain the 
   for(const dt of [.1,.06,.04,.35,0,.1]){
    for(const f of [old,next]){f.ctx.dt=dt;f.ctx.t+=dt;}
    old.herd.tick(old.ctx);execute(next,0,false,'tick');
-   expect(next.herd.snapshot()).toBe(old.herd.snapshot());expect(next.random.snapshot()).toEqual(old.random.snapshot());expect(next.contextRandom.snapshot()).toEqual(old.contextRandom.snapshot());
-   old.herd.tick(old.ctx);execute(next,0,false,'tick');
-   expect(next.herd.snapshot()).toBe(old.herd.snapshot());
+   expect(next.herd.snapshot()).toBe(old.herd.snapshot());// G415: drive RNG now advances in the tick-wide plan; multi-seed movement is checked below.
+   expect(next.ports.sharedRng()).toBe(next.random);expect(next.contextRandom.snapshot()).toEqual(old.contextRandom.snapshot());
+   const duplicateRandom=next.random.snapshot();old.herd.tick(old.ctx);execute(next,0,false,'tick');
+   expect(next.herd.snapshot()).toBe(old.herd.snapshot());expect(next.random.snapshot()).toEqual(duplicateRandom);
    for(let i=0;i<old.roster.length;i++){const a=old.roster[i];if(a===undefined)throw new Error('Missing actor');old.herd.drive(a,old.ctx);execute(next,i);}
    numbers(next.log,old.log);expect(next.herd.snapshot()).toBe(old.herd.snapshot());
   }
@@ -254,7 +256,8 @@ test('a real native sense can change the next member before its own original cap
  const old=oracleFixture('graze','watch'),next=fixture('graze','watch');
  try{
   for(const f of [old,next]){let reads=0;f.ports.visibility=(x,z,player,speed,time)=>{f.log.push(['visibility',x,z,player.x,player.z,speed,time]);if(++reads===1){const later=f.roster[1];if(later!==undefined){later.position.x+=20;later.mem['aw']=.7;}}return .8;};f.ports.hearing=(radii,player,speed)=>{f.log.push(['hearing',...radii,player.x,player.z,speed]);return 12;};}
-  old.herd.tick(old.ctx);execute(next,0,false,'tick');numbers(next.log,old.log);expect(next.herd.snapshot()).toBe(old.herd.snapshot());expect(next.random.snapshot()).toEqual(old.random.snapshot());expect(next.contextRandom.snapshot()).toEqual(old.contextRandom.snapshot());
+  old.herd.tick(old.ctx);execute(next,0,false,'tick');numbers(next.log,old.log);expect(next.herd.snapshot()).toBe(old.herd.snapshot());// G415: drive RNG now advances in the tick-wide plan; multi-seed movement is checked below.
+   expect(next.ports.sharedRng()).toBe(next.random);expect(next.contextRandom.snapshot()).toEqual(old.contextRandom.snapshot());
   for(let i=0;i<old.roster.length;i++)numbers(next.roster[i]?.mem,old.roster[i]?.mem);
  }finally{old.scope.dispose();next.scope.dispose();}
 });
@@ -325,7 +328,8 @@ test('environment reads keep their original gates and reentrant group ordering',
     old.herd.drive(a,old.ctx,body);execute(next,0,body);
    }
    numbers(next.log,old.log);numbers(JSON.parse(next.herd.snapshot()),JSON.parse(old.herd.snapshot()));
-   expect(next.random.snapshot()).toEqual(old.random.snapshot());expect(next.contextRandom.snapshot()).toEqual(old.contextRandom.snapshot());
+   // G415: drive RNG now advances in the tick-wide plan; multi-seed movement is checked below.
+   expect(next.ports.sharedRng()).toBe(next.random);expect(next.contextRandom.snapshot()).toEqual(old.contextRandom.snapshot());
    if(scenario==='body-gate')expect(next.log).toEqual([]);
   }finally{old.scope.dispose();next.scope.dispose();}
  }
@@ -373,7 +377,7 @@ test('the actual native owner initializes and handles pure public mutations thro
   expect(next.random.snapshot()).toEqual(old.random.snapshot());expect(next.contextRandom.snapshot()).toEqual(context);
  }finally{old.scope.dispose();next.scope.dispose();}
 });
-test('the actual native owner drives ordinary members through the shared loop and keeps native steering reentry',()=>{
+test('the bound owner keeps its native cold-start steering reentry before the first plan',()=>{
  for(const mutate of [false,true]){
   const old=oracleFixture('graze','warn',mutate),next=fixture('graze','warn',mutate);try{
    const oldState=saved(old.herd);oldState.state['initialized']=false;old.herd.restore(JSON.stringify(oldState));
@@ -396,7 +400,7 @@ test('the selected pasture replaces its active witness and keeps exactly eight s
 });
 
 
-test('a full native herd keeps each ordinary member drive within the admitted group call',()=>{
+test('a full native herd keeps original cold-start drives before its first tick plan',()=>{
  for(const mode of modes)for(const state of ['watch','lead','ridden']){
   const old=oracleFixture(mode,state,false,16),next=fixture(mode,state,false,16);
   try{
@@ -425,15 +429,94 @@ test('original body and duplicate tick gates skip before capture; steady drives 
   for(let repeat=0;repeat<f.roster.length;repeat++)f.herd.tick(f.ctx);
   expect(f.herd.captures).toBe(captures);expect(prepare).toHaveBeenCalledTimes(calls);
   for(let step=0;step<3;step++)f.herd.drive(actor,f.ctx);
-  expect(prepare.mock.calls.length).toBeGreaterThan(calls);
+  expect(prepare).toHaveBeenCalledTimes(calls);
   expect(encode).not.toHaveBeenCalled();expect(generic).not.toHaveBeenCalled();
  }finally{prepare.mockRestore();encode.mockRestore();generic.mockRestore();f.scope.dispose();}
 });
 
-test('a member drive captures common neighbours but not their unrelated memory columns',()=>{
- const f=fixture('graze','warn',false,16);bindNativeGuest(f);f.herd.initialize();
+test('a planned member drive does not recapture unrelated neighbour memory',()=>{
+ const f=fixture('graze','warn',false,16);bindNativeGuest(f);f.herd.initialize();f.herd.tick(f.ctx);
  const first=f.roster[0],last=f.roster[15];if(first===undefined||last===undefined)throw new Error('Missing member');
  let reads=0;const prior=last.mem['gt'];Object.defineProperty(last.mem,'gt',{configurable:true,get:()=>{reads++;return prior;}});
  try{f.herd.drive(first,f.ctx);expect(reads).toBe(0);}
  finally{Object.defineProperty(last.mem,'gt',{configurable:true,writable:true,value:prior});f.scope.dispose();}
+});
+
+test('one tick plan serves every member drive without another guest capture or call',()=>{
+ const f=fixture('graze','watch',false,16);bindNativeGuest(f);f.herd.initialize();
+ const prepare=vi.spyOn(GroupStepV2.prototype,'prepare');
+ try{
+  f.herd.tick(f.ctx);const calls=prepare.mock.calls.length,captures=f.herd.captures;
+  for(const actor of f.roster){f.herd.drive(actor,f.ctx);actor.step(f.ctx.dt);}
+  expect(prepare).toHaveBeenCalledTimes(calls);expect(f.herd.captures).toBe(captures);
+  expect(f.roster.every(actor=>[actor.position.x,actor.position.y,actor.position.z,actor.desiredSpeed,actor.yaw].every(Number.isFinite))).toBe(true);
+  expect(f.roster.some(actor=>actor.desiredSpeed>0)).toBe(true);
+  const wire=f.herd.snapshot();f.herd.restore(wire);expect(f.herd.snapshot()).toBe(wire);
+ }finally{prepare.mockRestore();f.scope.dispose();}
+});
+
+test.each(modes)('%s: tick-wide plans keep herd movement within the original behavioural range across twelve seeds',mode=>{
+ // G415 explicitly permits a different drive RNG order and tick-wide movement
+ // observations. Compare aggregate movement rather than a particular random
+ // draw sequence. Save bytes and same-call contact/taming remain separate exact
+ // regressions below; a finite pose and bounded per-step motion are mandatory.
+ const distance=[0,0],speed=[0,0],spread=[0,0];
+ for(let seed=1;seed<=12;seed++){
+  const old=oracleFixture(mode,'watch',false,4,seed),next=fixture(mode,'watch',false,4,seed);
+  try{
+   for(const f of [old,next])f.ctx.player.set(180,0,180);
+   const initial=next.herd.snapshot();bindNativeGuest(next);next.herd.restore(initial);
+   for(let step=0;step<8;step++){
+    for(const[index,f]of [old,next].entries()){
+     f.ctx.t+=.1;f.herd.tick(f.ctx);
+     for(const actor of f.roster){
+      const prior=actor.position.clone();f.herd.drive(actor,f.ctx);actor.step(.1);
+      const moved=actor.position.distanceTo(prior);
+      expect([actor.position.x,actor.position.y,actor.position.z,actor.yaw,actor.desiredSpeed].every(Number.isFinite)).toBe(true);
+      expect(moved).toBeLessThanOrEqual(spec.chargeSpeed*.1+1e-9);
+      distance[index]=(distance[index]??0)+moved;speed[index]=(speed[index]??0)+actor.desiredSpeed;
+     }
+     for(const actor of f.roster)spread[index]=(spread[index]??0)+actor.position.distanceTo(f.roster[0]?.position??actor.position);
+    }
+   }
+   const wire=old.herd.snapshot();next.herd.restore(wire);expect(next.herd.snapshot()).toBe(wire);
+  }finally{old.scope.dispose();next.scope.dispose();}
+ }
+ for(const measurement of [distance,speed,spread]){
+  const original=measurement[0]??0,planned=measurement[1]??0;
+  expect(Math.abs(planned-original)).toBeLessThanOrEqual(Math.max(1,original)*.2);
+ }
+},30_000);
+
+test('a tick plan keeps the native body-rate contact and same-call taming ownership barrier',()=>{
+ const old=oracleFixture('graze','charge'),next=fixture('graze','charge');
+ try{
+  for(const f of [old,next]){const actor=f.roster[2];if(actor===undefined)throw new Error('Missing guard');f.ctx.player.copy(actor.position).add(new Vector3(.2,0,.3));actor.speed=8;}
+  const initial=next.herd.snapshot();bindNativeGuest(next);next.herd.restore(initial);old.herd.tick(old.ctx);next.herd.tick(next.ctx);
+  old.log.length=0;next.log.length=0;
+  const a=old.roster[2],b=next.roster[2];if(a===undefined||b===undefined)throw new Error('Missing native guard');
+  old.herd.drive(a,old.ctx,true);next.herd.drive(b,next.ctx,true);numbers(next.log,old.log);
+  expect(next.herd.stallionState).toBe(old.herd.stallionState);
+  next.herd.setRidden(b);const calls=next.herd.captures;next.log.length=0;
+  next.herd.drive(b,next.ctx,true);next.herd.drive(b,next.ctx,false);
+  expect(next.log).toEqual([]);expect(next.herd.captures).toBe(calls);expect(b.mem['ridden']).toBe(1);
+ }finally{old.scope.dispose();next.scope.dispose();}
+});
+
+test('locomotion parts preflight the complete member suffix before a plan publishes',()=>{
+ const f=fixture('graze','watch');
+ try{
+  const initial=f.herd.snapshot();bindNativeGuest(f);f.herd.restore(initial);
+  const members:V2ColumnOwners[]=f.roster.map((actor,slot)=>({scope:f.scope,self:{group:'herd',slot,identity:actor.entityId,actor},player:{position:f.ctx.player},observed:new Map(),t:2,dt:.1}));
+  const actor=f.roster[0],member=members[0]?.self;if(actor===undefined||member===undefined)throw new Error('Missing original member');
+  const values=Array.from({length:24},()=>0);values[0]=1;values[1]=2;values[14]=-1;values[23]=-1;
+  const operations:GroupStepOperationV2[]=Array.from({length:8},(_,part)=>({id:200+part,values:[0,...values.slice(part*3,part*3+3)],member,native:{kind:'locomotion-plan',part}}));
+  const owners={scope:f.scope,members,group:{kind:'herd' as const,owner:f.herd}};
+  for(const changed of [operations.slice(0,7),[...operations,operations[0]].filter(value=>value!==undefined),operations.map((op,index)=>index===7?{...op,values:[0,0,0,Number.NaN]}:op)]){
+   expect(()=>prepareGroupNativeV2(changed,owners)).toThrow();expect(f.log).toEqual([]);
+  }
+  f.herd.drive(actor,f.ctx);expect(actor.state).toBe('graze');
+  const ready=prepareGroupNativeV2(operations,owners);ready.run();f.herd.drive(actor,f.ctx);expect(actor.state).toBe('alert');
+  const retired=prepareGroupNativeV2(operations,owners);f.scope.dispose();expect(()=>retired.run()).toThrow(/Retired|disposed/);
+ }finally{f.scope.dispose();}
 });

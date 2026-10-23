@@ -80,6 +80,8 @@ export const GroupGuestBindingSchema = v.strictObject({profile:guestName,capture
     v.check(values=>values.includes(0)&&new Set(values).size===values.length)),segments:v.pipe(v.number(),v.integer(),v.minValue(1),v.maxValue(512))})});
 /** Shared finite binding into an already-selected group profile. */
 export type GroupGuestBindingRows = v.InferOutput<typeof GroupGuestBindingSchema>;
-export const GuardedHerdGuestSchema = v.strictObject({...GroupGuestBindingSchema.entries,references:v.exactOptional(v.record(guestName,guestName))});
+/** Finite per-member locomotion outputs; contacts keep their native slot. */
+export const HERD_DRIVE_PLAN_FIELDS = ['kind','state','yaw','speed','turn','targetX','targetZ','pathEvery','blendX','blendZ','headUp','lookKind','lookX','lookZ','lookWeight','flags','memoryMask','gt','gyaw','gs','snT','pin','rear','sound'] as const;
+export const GuardedHerdGuestSchema = v.strictObject({...GroupGuestBindingSchema.entries,references:v.exactOptional(v.record(guestName,guestName)),plans:v.exactOptional(v.literal(true))});
 /** Finite binding into an already-admitted group profile; no owner or callback is authored. */
 export type GuardedHerdGuestRows = v.InferOutput<typeof GuardedHerdGuestSchema>;

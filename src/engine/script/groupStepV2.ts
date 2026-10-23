@@ -336,6 +336,7 @@ export function prepareGroupNativeV2<A extends AnimalSim = AnimalSim>(operations
     before.push(() => roster.length === original.length && original.every((body,index) => roster[index] === body)
       && sources.every((source,index) => source.self.actor === null || source.self.actor === original[index]));
   }
+  const plans=new Map<A,{readonly parts:Map<number,readonly number[]>;publication?:{validate:()=>void;accept:()=>void}}>();
   const prepared = operations.map(operation => {
     const request = operation.native;
     if (request === undefined || 'channel' in request && (request.channel.length === 0 || request.channel.length > 128)
@@ -399,6 +400,17 @@ export function prepareGroupNativeV2<A extends AnimalSim = AnimalSim>(operations
     };
     let invoke: () => number | undefined;
     switch (request.kind) {
+      case 'locomotion-plan': {
+        const body=nativeActor();
+        if(group?.kind!=='herd'||!Number.isInteger(request.part)||request.part<0||request.part>7)throw new Error('Invalid native locomotion owner');
+        let plan=plans.get(body);if(plan===undefined){plan={parts:new Map()};plans.set(body,plan);}
+        if(plan.parts.has(request.part))throw new Error('Duplicate locomotion plan part');
+        plan.parts.set(request.part,operation.values.slice(1));
+        const current=plan;
+        invoke=()=>{if(request.part===0){if(current.publication===undefined)throw new Error('Incomplete locomotion plan');current.publication.accept();}return undefined;};
+        break;
+      }
+
       case 'notify-state': case 'notify-flight': case 'notify-beaten': case 'append-member': {
         if (group?.kind !== 'herd') throw new Error('Missing original herd notification owner');
         const owner = group.owner, value = operation.values[0];
@@ -787,6 +799,19 @@ export function prepareGroupNativeV2<A extends AnimalSim = AnimalSim>(operations
     }
     return { channel: resultChannel, member, invoke };
   });
+  if(plans.size>0){
+    if(group?.kind!=='herd')throw new Error('Missing locomotion group');
+    const owner=group.owner,prepare:unknown=Reflect.get(owner,'prepareDrivePlan');
+    if(typeof prepare!=='function')throw new Error('Missing locomotion plan owner');
+    pins.push(()=>owner.prepareDrivePlan===prepare);
+    for(const[body,plan]of plans){
+      if(plan.parts.size!==8)throw new Error('Incomplete locomotion plan');
+      const values:number[]=[];
+      for(let part=0;part<8;part++){const row=plan.parts.get(part);if(row?.length!==3)throw new Error('Incomplete locomotion plan');values.push(...row);}
+      plan.publication=owner.prepareDrivePlan(body,values);const publication=plan.publication;
+      before.push(()=>{publication.validate();return true;});
+    }
+  }
   const validate = (): void => {
     live();
     if (used) throw new Error('Native group result segment already consumed');

@@ -1,4 +1,4 @@
-import {GUARDED_STALLION_STATES,GuardedHerdGuestSchema,type GuardedHerdGuestRows} from '@wildshard/format/groupBrains';
+import {HERD_DRIVE_PLAN_FIELDS,GUARDED_STALLION_STATES,GuardedHerdGuestSchema,type GuardedHerdGuestRows} from '@wildshard/format/groupBrains';
 import * as v from 'valibot';
 import { MathUtils, Vector3 } from 'three';
 import { GroupBrain, type GroupGuestPublicationV2, type GroupGuestProjectionV2, type GroupGuestBindingsV2, type GroupGuestFrameV2 } from './GroupBrain';
@@ -364,6 +364,7 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     readonly actors: Map<string,A> | readonly A[];
     readonly codec: GroupBankV2;
   } | undefined;
+  private readonly guestPlans=new Map<A,{readonly values:readonly number[];applied:boolean}>();
   private readonly guestBanks: {bank:Float64Array;values:Readonly<Record<string,GroupBankValueV2>>;bodies:readonly A[]}[]=[];
   private guestDepth=0;
   private guestCall: {
@@ -393,6 +394,7 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     if (shape === undefined || this.members.length > shape.members || shape.bank.some(row => row.kind === 'nullable-number' || row.kind === 'references')
       || ['drive','tick','initialize','stampede','leadAway','addTrust','setRidden','adopt','release','disturb'].some(name => !shape.signals.includes(name))
       || Object.entries(rows.references??{}).some(([name,field]) => ['self','target','threat'].includes(name) || !shape.bank.some(row=>row.name===field&&(row.kind==='number'||row.kind==='reference')))
+      || rows.plans===true&&Array.from({length:8},(_,part)=>part).some(part=>!shape.actions.some(action=>action.native?.kind==='locomotion-plan'&&action.native.part===part))
       || !shape.bank.some(row => row.name === rows.resume.field && row.kind === 'number')
       || rows.capture!==undefined&&(rows.capture.common.some(name=>!shape.columns.some(row=>row.name===name))
         ||rows.capture.slots.some(name=>!shape.bank.some(row=>row.name===name&&row.kind==='number'))
@@ -482,6 +484,7 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
       references:new Map([...named,['self',references.find(row => row.body === actor) ?? null],['target',target],['threat',threat]]),
       results:{...this.captureHerdGuestRoles(actor),reply:call.reply}}));
     const selection=binding.rows.capture,slots=new Set<number>([0,call.slot]);
+    if(call.signal==='tick'&&retained[binding.rows.resume.field]===170)for(let index=0;index<members.length;index++)slots.add(index);
     if(selection!==undefined){
       for(const name of selection.slots){const value=retained[name];if(typeof value==='number'&&Number.isInteger(value)&&value>=0&&value<members.length)slots.add(value);}
       for(const name of selection.references){
@@ -504,7 +507,9 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
         || call.binding.program.groupBindings !== call.binding.bindings) throw new Error('Replaced herd guest call');
       publication.validate();
     };
-    return {validate,commit:() => {validate();publication.commit();call.values=values;call.fresh=false;}};
+    return {validate,commit:() => {validate();publication.commit();call.values=values;call.fresh=false;
+
+    }};
   }
 
   /** Perform only the shipping initial graze-timer draw, exactly once after complete controller preflight. */
@@ -618,7 +623,7 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     this.restoreGroup(data.group, actor => actor.entityId);
     this.lead = lead; this.stallion = stallion; this.ridden = ridden; this.chargeTarget = chargeTarget;
     this.foals.length = 0; for (const foal of foals) if (foal !== null) this.foals.push(foal);
-    this.mothers = mothers; Object.assign(this, data.state);
+    this.mothers = mothers; Object.assign(this, data.state);this.guestPlans.clear();
   }
 
   /** B7: this horse is being ridden — the herd lets go of it (null hands it back) */
@@ -849,6 +854,91 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     }
   }
 
+  /** Preflight one complete fixed locomotion output on this SAME native owner.
+   * The group dispatcher assembles all eight parts before any plan publishes. */
+  prepareDrivePlan(actor:A,input:readonly number[]):{validate:()=>void;accept:()=>void} {
+    this.validateHerdGuest();
+    const binding=this.guest,roster=this.members,slot=roster.indexOf(actor);
+    if(binding?.rows.plans!==true||slot=== -1||input.length!==24||input.some(value=>!Number.isFinite(value)))throw new Error('Invalid herd locomotion output');
+    const values=Object.freeze(input.slice());
+    for(const[index,min,max]of [[0,0,5],[1,0,4],[11,0,2],[15,0,1023],[16,0,255],[23,-1,2]]){
+      if(index===undefined||min===undefined||max===undefined)throw new Error('Invalid locomotion bounds');
+      const value=values[index];if(value===undefined||!Number.isInteger(value)||value<min||value>max)throw new Error('Invalid herd locomotion flags');
+    }
+    if(((values[15]??0)&~895)!==0||(values[3]??-1)<0||(values[4]??-1)<0||(values[7]??-1)<0
+      ||(values[14]??-2)< -1||(values[14]??2)>1)throw new Error('Invalid herd locomotion tuning');
+    let used=false;
+    const validate=():void=>{this.validateHerdGuest();if(used||this.guest!==binding||this.members!==roster||roster[slot]!==actor)throw new Error('Changed herd locomotion owner');};
+    validate();return{validate,accept:()=>{validate();used=true;this.guestPlans.set(actor,{values,applied:false});}};
+  }
+
+  /** Consume one group's committed plan at the original member/body slot.
+   * Planning is amortized across the roster; pathing, motion and contacts still
+   * use this call's actual native services. Plans never enter the save wire. */
+  private applyHerdGuestDrive(a:A,c:GuardedHerdContext<A>):boolean {
+    const binding=this.guest,plan=this.guestPlans.get(a);
+    if(binding===undefined||plan===undefined)return false;
+    const read=(name:typeof HERD_DRIVE_PLAN_FIELDS[number]):number=>{
+      const value=plan.values[HERD_DRIVE_PLAN_FIELDS.indexOf(name)];
+      if(value===undefined)throw new Error('Missing herd drive plan value');return value;
+    };
+    const kind=read('kind'),flags=read('flags'),mask=read('memoryMask'),state=read('state'),look=read('lookKind'),sound=read('sound');
+    if(!Number.isInteger(kind)||kind<0||kind>5||!Number.isInteger(flags)||flags<0||flags>1023
+      ||!Number.isInteger(mask)||mask<0||mask>255||!Number.isInteger(state)||state<0||state>4
+      ||!Number.isInteger(look)||look<0||look>2||!Number.isInteger(sound)||sound< -1||sound>2)
+      throw new Error('Invalid herd drive plan flags');
+    for(const name of HERD_DRIVE_PLAN_FIELDS)read(name);
+    const mem=a.mem,position=a.position,steer=c.steer,path=c.pathYaw,confine=c.confine,soundCall=c.sound,player=c.player;
+    const motion:unknown=Reflect.get(a,'setMotion');
+    const ports=this.herdPorts,environment=ports.environment,pass=ports.passThrough;
+    if([motion,steer,path,confine,environment,pass,c.sound].some(value=>typeof value!=='function'))throw new Error('Missing herd drive authority');
+    const live=():void=>{this.validateHerdGuest();if(this.guest!==binding||a.mem!==mem||a.position!==position||a.setMotion!==motion
+      ||c.steer!==steer||c.pathYaw!==path||c.confine!==confine||c.sound!==soundCall||c.player!==player||this.herdPorts!==ports||ports.environment!==environment||ports.passThrough!==pass
+      ||!this.members.includes(a))throw new Error('Changed herd drive authority');};
+    live();
+    // Charge/contact is a body-rate native barrier, never a future tick target.
+    const committed=a===this.stallion&&this.stallionState==='charge';
+    const through=!environment.call(ports).playerMounted&&((this.stampeding&&this.mode==='flee')||committed);live();
+    pass.call(ports,a,through);live();
+    if(committed){this.driveStallion(a,c);live();confine.call(c,a);return true;}
+    if(kind===0)return true;
+    // Taming may have changed ownership while the original environment/pass
+    // service ran. Never let a cached plan take a mounted actor back.
+    if(a===this.ridden||(mem['ridden']??0)===1)return true;
+    if((flags&16)!==0&&this.stampeding&&a.speed>6){this.trample(a,c);live();}
+    const first=!plan.applied;plan.applied=true;
+    if(first&&(mask&1)!==0)mem['gt']=read('gt');
+    if(first&&(mask&2)!==0)mem['gyaw']=read('gyaw');
+    if(first&&(mask&4)!==0)mem['gs']=read('gs');
+    if((flags&512)!==0){mem['headUp']=read('headUp');mem['pin']=0;mem['rear']=0;a.lookTarget.copy(c.player);a.lookWeight=0;}
+    if((flags&6)===0){if((mask&64)!==0)mem['pin']=read('pin');if((mask&128)!==0)mem['rear']=read('rear');}
+    if(look===1)a.lookTarget.copy(c.player);else if(look===2)a.lookTarget.set(read('lookX'),a.position.y,read('lookZ'));
+    if(read('lookWeight')>=0)a.lookWeight=read('lookWeight');
+    const states=['graze','wander','alert','flee','charge'] as const,next=states[state];
+    if(next===undefined)throw new Error('Unknown herd drive state');a.state=next;
+    let yaw=read('yaw');
+    if(kind===3||kind===4){
+      yaw=path.call(c,a,read('targetX'),read('targetZ'),read('pathEvery'));live();
+      if(kind===3)yaw=Math.atan2(Math.sin(yaw)+read('blendX'),Math.cos(yaw)+read('blendZ'));
+    }
+    const speed=read('speed')*((flags&64)!==0?a.mods.speed:1);
+    if(kind===1)a.setMotion(yaw,speed,read('turn'));
+    else steer.call(c,a,yaw,speed,read('turn'));
+    live();
+    if((flags&32)!==0&&this.stampeding&&a.speed>6){this.trample(a,c);live();}
+    if((flags&6)!==0){if((mask&64)!==0)mem['pin']=read('pin');if((mask&128)!==0)mem['rear']=read('rear');}
+    if(first&&(mask&8)!==0)mem['snT']=read('snT');
+    if(first&&(mask&16)!==0)mem['stamp']=1;if(first&&(mask&32)!==0)mem['toss']=1;
+    if(first&&sound>=0){const cues=[this.herdSpec.snortCue,this.herdSpec.neighCue,this.herdSpec.squealCue],cue=cues[sound];
+      if(cue===undefined)throw new Error('Unknown herd drive cue');c.sound(cue);live();}
+    if((flags&1)!==0){
+      if(kind===1&&this.mode==='graze')a.lookWeight=(mem['aw']??0)>.15?.6:0;
+      if((this.mode==='graze'||this.mode==='drift')&&(mem['aw']??0)>.2){a.lookTarget.copy(c.player);a.lookWeight=.7;}
+    }
+    if((flags&8)!==0)mem['toss']=0;
+    mem['headUp']=read('headUp');confine.call(c,a);live();return true;
+  }
+
   /** steer one horse for this tick (after `tick`) */
   drive(a: A, c: GuardedHerdContext<A>, body = false): void { this.requireHerd();
     if (!this.initialized) throw new Error('Herd is not initialized');
@@ -857,7 +947,8 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
       const committed=a===this.stallion&&this.stallionState==='charge';
       if(body!==committed||a===this.ridden||(a.mem['ridden']??0)===1)return;
     }
-    if (this.runHerdGuest('drive',c,a,body)) return;
+    if(this.guest?.rows.plans!==undefined){if(this.applyHerdGuestDrive(a,c))return;}
+    else if (this.runHerdGuest('drive',c,a,body)) return;
     const m = a.mem;
     const committed = a === this.stallion && this.stallionState === 'charge';
     if (body !== committed) return;
@@ -981,11 +1072,11 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
           _t.set(tx, 0, tz).normalize();
           if (ct?.alive === true) {
             const w = ct;
-            w.applyDamage(25, w.position, _t); w.stagger(_t, 1);
+            w.applyDamage(25, w.position, _t);if(this.guest!==undefined)this.validateHerdGuest(); w.stagger(_t, 1);if(this.guest!==undefined)this.validateHerdGuest();
             m['kicks'] = (m['kicks'] ?? 0) + 1;
             if ((m['kicks'] ?? 0) >= 2 && this.herdPorts.scarePack(w, 40)) { this.herdPorts.onEvent?.('pack-driven-off', w.position.x, w.position.z); m['kicks'] = 0; }
           } else if (this.knockCd <= 0) {
-            this.herdPorts.chargeContact(a, c, 1.9 * a.scale); this.knockCd = 1.5;
+            this.herdPorts.chargeContact(a, c, 1.9 * a.scale);if(this.guest!==undefined)this.validateHerdGuest(); this.knockCd = 1.5;
             this.herdPorts.onKnockdown?.(_t.x, _t.z, 1);
           }
           m['kick'] = 1; c.sound(this.herdSpec.squealCue);
@@ -1021,11 +1112,11 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     const m = a.mem;
     if ((m['hitP'] ?? 0) === 0 && this.knockCd <= 0 && a.position.distanceTo(c.player) < 1.7 * a.scale && !this.herdPorts.environment().playerMounted) {
       m['hitP'] = 1; this.knockCd = 1.2;
-      c.hurt(30);
+      c.hurt(30);if(this.guest!==undefined)this.validateHerdGuest();
       _t.set(Math.sin(a.yaw), 0, Math.cos(a.yaw));
       this.herdPorts.onKnockdown?.(_t.x, _t.z, 1);
     }
     const w = this.findThreat?.(a.position.x, a.position.z, 1.8) ?? null;
-    if (w !== null) { _t.set(Math.sin(a.yaw), 0, Math.cos(a.yaw)); w.applyDamage(30, w.position, _t); w.stagger(_t, 1); }
+    if (w !== null) { _t.set(Math.sin(a.yaw), 0, Math.cos(a.yaw)); w.applyDamage(30, w.position, _t);if(this.guest!==undefined)this.validateHerdGuest(); w.stagger(_t, 1);if(this.guest!==undefined)this.validateHerdGuest(); }
   }
 }

@@ -80,7 +80,8 @@
       150,
       152,
       153,
-      160
+      160,
+      170
     ],
     "segments": 256
   },
@@ -108,5 +109,6 @@
       "tickStallion",
       "beatenHandle"
     ]
-  }
+  },
+  "plans": true
 }
