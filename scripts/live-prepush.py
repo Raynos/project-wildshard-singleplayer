@@ -71,6 +71,17 @@ def json_path_list(output):
     raise ValueError('Missing JSON array of paths')
 
 
+def selection_paths(path, output):
+    # The CLI writes its result separately: stdout/stderr can interleave inside
+    # an arbitrarily long JSON line on the merged diagnostics pipe.
+    if not path.exists():
+        return json_path_list(output)  # Older tooling may still use stdout.
+    value = json.loads(path.read_text())
+    if not isinstance(value, list) or not all(isinstance(name, str) for name in value):
+        raise ValueError('Expected a JSON array of paths in selector result')
+    return value
+
+
 def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_available=True,
           tests_available=None, test_revision=None, deleted=(), typed_files=()):
     files = changed(root, base, tip) if files is None else files
@@ -116,15 +127,16 @@ def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_a
         result['output'] += '\nRequired guards passed: ' + ', '.join(guards)
         left = deadline - time.monotonic()
         if tests_available and left > 2:
+            selected = Path(temporary) / 'selected.json'
             rc, output = runner(['node', str(tools / 'gate-related-tests.mjs'), str(listing),
-                                 '--live', '--budget=' + str(max(0, left - 2))], root, deadline, env)
+                                 '--live', '--budget=' + str(max(0, left - 2)), '--output=' + str(selected)], root, deadline, env)
             if rc not in (0, 124):
                 result.update(phase='selection', output=output, files=failure_paths(output))
                 return result
             if rc == 0:
                 try:
-                    tests = json_path_list(output)
-                except ValueError as error:
+                    tests = selection_paths(selected, output)
+                except (ValueError, OSError) as error:
                     result.update(phase='selection', output=f'Invalid related selector output: {error}\n{output}', files=[])
                     return result
                 tests = [test for test in tests if test not in guards]
@@ -145,15 +157,17 @@ def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_a
         # Spend the remaining budget on changed source and its typed importers.
         # Previous generated inputs are deliberately insufficient for this step.
         if types_available and deadline - time.monotonic() > 1:
-            rc, output = runner(['node', str(tools / 'push-checks.mjs'), 'importers', str(listing)], root, deadline, env)
+            imported = Path(temporary) / 'importers.json'
+            rc, output = runner(['node', str(tools / 'push-checks.mjs'), 'importers', str(listing),
+                                 '--output=' + str(imported)], root, deadline, env)
             if rc not in (0, 124):
                 result.update(phase='importers', output=output, files=failure_paths(output))
                 return result
             lint = list(typed_files)
             if rc == 0:
                 try:
-                    lint = list(dict.fromkeys([*lint, *json_path_list(output)]))
-                except ValueError as error:
+                    lint = list(dict.fromkeys([*lint, *selection_paths(imported, output)]))
+                except (ValueError, OSError) as error:
                     result.update(phase='importers', output=f'Invalid importer selector output: {error}\n{output}', files=[])
                     return result
             else:

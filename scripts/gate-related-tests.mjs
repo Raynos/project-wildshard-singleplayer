@@ -10,7 +10,7 @@
 // and runs in CI. A changed test file always runs. Today the whole suite (~115 files) estimates under the budget at the
 // gate's 4 workers, so the cap only bites once the suite grows. Wasm scenarios have explicit source/row edges
 // below because the test imports the built bytes; those required tests run even beyond the estimate.
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { basename, relative, resolve } from 'node:path';
 import { createVitest } from 'vitest/node';
 import { liveTestSelection } from './push-inputs.mjs';
@@ -171,6 +171,9 @@ if (isMain) {
   console.error(`gate-related-tests: ${related.length} related + ${required.length} required product test files for ${sources.length} changed sources (${walk}s)${over}`);
   const durations = knownDurations();
   if (live) run.sort((a, b) => (durations.get(a) ?? 1) - (durations.get(b) ?? 1) || a.localeCompare(b));
-  // Vitest may intercept console.info even after close(); this is our protocol.
-  process.stdout.write(`${JSON.stringify(run)}\n`);
+  // Keep machine output out of the merged diagnostics pipe (writes interleave).
+  const payload = `${JSON.stringify(run)}\n`;
+  const output = process.argv.find(arg => arg.startsWith('--output='))?.slice(9);
+  if (output !== undefined) writeFileSync(resolve(output), payload);
+  else process.stdout.write(payload);
 }

@@ -1,5 +1,5 @@
 // Source-only push helpers: no imports execute and no products are built.
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, relative, resolve } from 'node:path';
 import ts from '@typescript/typescript6';
 import { pushGuards } from './gate-related-tests.mjs';
@@ -94,8 +94,15 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename
   if (process.argv.length < 4) throw new Error('push-checks requires a path listing');
   /** @type {string[]} */
   const changed = JSON.parse(readFileSync(listing, 'utf8'));
-  if (mode === 'guards') console.info(JSON.stringify(pushGuards(changed)));
-  else if (mode === 'importers') console.info(JSON.stringify(importerFiles(process.cwd(), changed)));
+  const output = process.argv.find(arg => arg.startsWith('--output='))?.slice(9);
+  /** @param {string[]} files */
+  const emit = files => {
+    const payload = `${JSON.stringify(files)}\n`;
+    if (output !== undefined) writeFileSync(resolve(output), payload);
+    else process.stdout.write(payload);
+  };
+  if (mode === 'guards') emit(pushGuards(changed));
+  else if (mode === 'importers') emit(importerFiles(process.cwd(), changed));
   else if (mode === 'deleted') {
     const errors = deletedReferences(process.cwd(), changed);
     if (errors.length > 0) { console.error(errors.join('\n')); process.exitCode = 1; }

@@ -146,10 +146,33 @@ class PushLoop(unittest.TestCase):
         self.put('mute-console.mjs', 'console.info = () => {};')
         subprocess.run(['node', str(TOOL_ROOT / 'link-node-modules.mjs'), str(ROOT), str(self.root)], check=True)
         process = subprocess.run(['node', '--import', './mute-console.mjs', str(TOOL_ROOT / 'gate-related-tests.mjs'),
-                                  'changed.json', '--live', '--budget=10'], cwd=self.root,
+                                  'changed.json', '--live', '--budget=10', '--output=selected.json'], cwd=self.root,
                                  capture_output=True, text=True, timeout=20)
         self.assertEqual(process.returncode, 0, process.stderr)
-        self.assertEqual(json.loads(process.stdout.strip()), ['test/consumer.test.ts'])
+        self.assertEqual(process.stdout, '')
+        self.assertEqual(json.loads((self.root / 'selected.json').read_text()), ['test/consumer.test.ts'])
+
+    def test_file_results_survive_json_spliced_inside_stderr_lines(self):
+        tip = self.commit('src/good.ts')
+        commands = []
+        def runner(command, *_):
+            commands.append(command)
+            if '--live' in command or 'importers' in command:
+                target = next(value[9:] for value in command if value.startswith('--output='))
+                rows = ['test/unit.test.ts'] if '--live' in command else ['src/good.ts']
+                Path(target).write_text(json.dumps(rows))
+                # Retained real output put JSON inside a partial stderr line,
+                # at byte65597: ... (job driftwo["test/..." ... ]\nod-zipline...
+                return 0, 'stderr prefix (job driftwo["test/unit.test.ts"]\nod-zipline diagnostic\n'
+            return 0, ''
+        result = LIVE['check'](self.root, self.base, tip, time.monotonic() + 45, runner)
+        self.assertTrue(result['ok'], result)
+        self.assertTrue(any('test/unit.test.ts' in command for command in commands))
+        self.assertTrue(any('oxlint' in command and 'src/good.ts' in command for command in commands))
+        target = self.root / 'malformed-selection.json'
+        target.write_text('[1]')
+        with self.assertRaises(ValueError):
+            LIVE['selection_paths'](target, '["test/fallback.test.ts"]')
 
     def test_selector_diagnostics_after_json_do_not_crash_or_skip_tests(self):
         tip = self.commit('src/good.ts')
