@@ -2,7 +2,7 @@ import { BufferAttribute, BufferGeometry, Group, InstancedBufferAttribute, Insta
 import { TIER } from '@wildshard/engine/core/tier';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { App } from '@wildshard/engine/app/app';
-import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
+import { forgetWhenDisposed } from '@wildshard/engine/app/cachedAssets';
 import { parseSceneBuffers, type SceneBuffers } from '@wildshard/format/sceneBuffers';
 import type { PlumbingData } from '@wildshard/format/plumbing';
 import { plumbingKnob } from '../shard/declaredPlumbing';
@@ -142,9 +142,8 @@ export function createSceneBuffers(input: unknown, material: Material, scope: Sc
           for (const asset of registered) reuse.assets.evictCached(asset);
           throw error;
         }
-        const cache = memo, built = geometries;
         memo.set(key, geometries);
-        cacheUntilDisposed(geometries, () => { if (cache.get(key) === built) cache.delete(key); });
+        forgetWhenDisposed(geometries, memo, key, geometries); // its listener holds no owner of this build
       }
     }
     const group = new Group(); group.name = row.name;

@@ -55,6 +55,16 @@ export function cacheUntilDisposed<T>(value: T, invalidate: () => void): T {
   return value;
 }
 
+/**
+ * `cacheUntilDisposed` for one memo entry: forget `entry` under `key` once `value` retires. The listener is made here, so
+ * it holds only the memo, the key and the entry. One made inside a loader keeps the loader's whole context (an async
+ * reader's product, owner and scope across its awaits): a page-cached geometry then kept the first grid region that
+ * loaded it alive for the page's life (live P0: Driftwood -> Sky Reach -> Driftwood on the phone).
+ */
+export function forgetWhenDisposed<K, E>(value: object, memo: Map<K, E>, key: K, entry: E): void {
+  cacheUntilDisposed(value, () => { if (memo.get(key) === entry) memo.delete(key); });
+}
+
 /** A keyed memo `memoUntilDisposed` keeps values in (a Map or a WeakMap). */
 export interface DisposalMemo<K, V> { readonly get: (key: K) => V | undefined; readonly set: (key: K, value: V) => unknown; readonly delete: (key: K) => unknown }
 

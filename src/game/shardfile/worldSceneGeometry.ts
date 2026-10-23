@@ -2,7 +2,7 @@ import type { BufferGeometry } from 'three';
 import type { App } from '@wildshard/engine/app/app';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { withOwner } from '@wildshard/engine/app/ownership';
-import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
+import { forgetWhenDisposed } from '@wildshard/engine/app/cachedAssets';
 import { createOwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { TIER } from '@wildshard/engine/core/tier';
 import type { ShardProduct } from './shardProduct';
@@ -75,9 +75,8 @@ export async function readWorldSceneGeometry(owner: Scope, product: Pick<ShardPr
     withOwner(owner, () => assets.register(id, geometry, { retain: true, cache: true, reusable: true }));
     asset = id;
     const held = lease(owner, assets, geometry);
-    const cache = memo;
-    cache.set(key, geometry);
-    cacheUntilDisposed(geometry, () => { if (cache.get(key) === geometry) cache.delete(key); });
+    memo.set(key, geometry);
+    forgetWhenDisposed(geometry, memo, key, geometry); // its listener holds no product or owner of this reader
     return held;
   } catch (error) {
     if (asset !== undefined) assets.evictCached(asset); else if (temporary) geometry.dispose();

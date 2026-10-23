@@ -2,7 +2,7 @@ import { Matrix4, type BufferGeometry } from 'three';
 import type { App } from '@wildshard/engine/app/app';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { withOwner } from '@wildshard/engine/app/ownership';
-import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
+import { forgetWhenDisposed } from '@wildshard/engine/app/cachedAssets';
 import { TIER } from '@wildshard/engine/core/tier';
 import { readWholeGeometry } from '../plugin/geometry';
 import type { ShardProduct } from './shardProduct';
@@ -86,10 +86,11 @@ export async function readReusableWholeLibrary(owner: Scope, product: ShardProdu
       held.push(release);
       built.set(part, { geometry: view.geometry, matrix: view.matrix.elements.slice() });
     }
-    const result = lease(owner, assets, built, held), cache = memo;
+    const result = lease(owner, assets, built, held);
     if (built.size === 0) return result;
-    cache.set(key, built);
-    cacheUntilDisposed(new Map([...built].map(([id, view]) => [id, view.geometry])), () => { if (cache.get(key) === built) cache.delete(key); });
+    memo.set(key, built);
+    // its listener holds no product or owner of this reader
+    forgetWhenDisposed(new Map([...built].map(([id, view]) => [id, view.geometry])), memo, key, built);
     return result;
   } catch (error) {
     decoder.dispose();

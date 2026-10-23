@@ -209,7 +209,11 @@ export class SceneOwnership {
   private readonly assets: AssetService;
   constructor(scene: Object3D, level: Scope, assets: AssetService) { this.scene = scene; this.level = level; this.assets = assets; }
   retain(root: Object3D, scope = this.level): void {
-    root.traverse((node) => { this.engineNodes.add(node); this.nodeOwners.set(node, scope); });
+    const nodes: Object3D[] = [];
+    root.traverse((node) => { this.engineNodes.add(node); this.nodeOwners.set(node, scope); nodes.push(node); });
+    // a retired owner's nodes leave the page's census with it (live P0: a retired grid region's nodes, and through their
+    // materials the region, stayed in this set for the page's life)
+    if (scope !== this.level) scope.onDispose(() => { for (const node of nodes) if (this.nodeOwners.get(node) === scope) this.engineNodes.delete(node); });
     for (const resource of sceneResources(root)) this.acquire(resource, scope);
   }
   retainContainer(container: unknown, scope = this.level): void {
@@ -233,7 +237,7 @@ export class SceneOwnership {
       release = () => { this.assets.release(key); };
     }
     this.acquired.add(resource);
-    scope.onDispose(release);
+    scope.onDispose(() => { release(); this.acquired.delete(resource); });
   }
   capture(): void {
     if (this.level.disposed) return;
