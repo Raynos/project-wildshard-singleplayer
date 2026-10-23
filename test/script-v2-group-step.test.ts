@@ -155,3 +155,29 @@ test('changed native query capabilities refuse the entire prepared transaction',
     expect(ring.snapshot().entries).toHaveLength(0);expect(f.state[1]).toBe(0);
   } finally { f.root.dispose(); }
 });
+
+test('one executable serves different finite group profiles with exact original banks and no scratch leakage', async () => {
+  const declarations = parseGroupStepV2({ ...rows, profiles: [{ id: 'second',
+    bank: [{ name: 'awake', kind: 'boolean' }], columns: [], members: 16, signals: ['pulse'], actions: [] }] });
+  const executable = await compileScriptV2(`import * as core from './sdk/as/wsV2';let scratch:i32=0;
+    export function ws_abi():i32{return 2;}export function ws_io():i32{return 0;}
+    export function ws_init(lo:i32,hi:i32,fuel:i32):i32{return fuel;}
+    export function ws_project(fuel:i32):i32{core.beginState();assert(core.beginBinding(0));scratch++;
+      if(core.parameter(2)==0){assert(core.count(2)==5);core.setState(1,core.state(1)+f64(scratch));}
+      else {assert(core.parameter(2)==1&&core.count(2)==1&&core.parameter(1)==0);core.setState(0,1);}
+      core.endBinding();return fuel;}`, { lane: 'project', ioBytes: groupStepLayoutV2(declarations).bytes,
+    sources: { 'sdk/as/wsV2.ts': v2CoreSource(0) } });
+  const scope = new Scope('profile-module'), runner = new GroupStepV2(executable, declarations, scope);
+  const first = Float64Array.of(0, 0, 0, 0, 0), second = Float64Array.of(0);
+  try {
+    expect(runner.layout.regions[1]?.capacity).toBe(5);expect(runner.layout.regions[5]?.capacity).toBe(32);
+    const input = { group: 'first', handle: 1, signal: 'step', tick: 0, state: first, members: [], references: [] };
+    runner.prepare(input).accept();expect(first[1]).toBe(1);
+    runner.prepare({ ...input, profile: 'second', group: 'other', signal: 'pulse', state: second }).accept();expect(second[0]).toBe(1);
+    runner.prepare(input).accept();expect(first[1]).toBe(2); // Module globals rewind across profiles.
+    expect(() => runner.prepare({ ...input, profile: 'absent' })).toThrow('profile');
+    expect(() => runner.prepare({ ...input, profile: 'second', signal: 'pulse' })).toThrow('width');
+    expect(() => runner.prepare({ ...input, profile: 'second', state: second })).toThrow('input');
+    expect(() => parseGroupStepV2({ ...declarations, profiles: [{ ...declarations.profiles?.[0], id: 'main' }] })).toThrow('profile');
+  } finally { scope.dispose(); }
+});

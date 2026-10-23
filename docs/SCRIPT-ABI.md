@@ -1015,3 +1015,27 @@ Next-tick replies are appropriate where the consumer preserves its original
 cadence or explicitly permits that delay (the pack spot/roam refresh). They
 must not replace a same-call herd terrain/RNG barrier: that original native
 slot uses a segmented group projection and explicit transient result columns.
+
+### Shared group projection profiles (H4, G621 R10a)
+
+A group-step declaration may add up to seven named profiles. The base bank,
+columns, members, signals and actions form profile main; additional profiles
+have their own exact finite versions of those rows. The executable, fuel,
+output capacity, query banks and entered scope remain shared. Native input
+profile selects only admitted metadata; unknown profiles and cross-profile
+signals/operations refuse. The common layout reserves the maximum bank and
+member-column capacity, while each call supplies and validates only its exact
+original bank width. It does not pad or merge the group's saved JSON shape.
+
+With extra profiles, parameter 2 is the zero-based profile ordinal (main is 0,
+then declaration order). Parameters 0/1 remain the profile-local signal and
+actual member count. Without profiles the original two-parameter layout is
+unchanged. groupStepColumnV2 accepts an optional profile id; each profile's
+per-member columns retain their own sorted order and field ids. A prepared
+call pins its group, profile, signal, handle and tick before acceptance.
+
+Profiles enable different group kinds to use one selected executable. This
+transport does not independently publish a shipping module or replace the
+existing programme owner. Shared legacy numeric projections and group calls
+must borrow the SAME selected instance and common descriptor when adopted;
+a matching hash alone is not permission for parallel runtime caches.

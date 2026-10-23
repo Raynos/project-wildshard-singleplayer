@@ -29,8 +29,7 @@ function sameRng(a: RngState, b: RngState): boolean {
 export class GroupStepV2 {
   private readonly rows;
   readonly layout;
-  private readonly bank: GroupBankV2;
-  private readonly columns: ObservationColumnsV2;
+  private readonly profiles;
   private readonly module: ScriptModuleV2;
   private busy = false;
   private revision = 0;
@@ -40,8 +39,10 @@ export class GroupStepV2 {
     this.live();
     this.rows = structuredClone(parseGroupStepV2(input));
     this.layout = groupStepLayoutV2(this.rows);
-    this.bank = new GroupBankV2(this.rows.bank);
-    this.columns = new ObservationColumnsV2(this.rows.columns, scope);
+    this.profiles = [this.rows, ...(this.rows.profiles ?? [])].map((rows, index) => ({
+      id: index === 0 ? 'main' : this.rows.profiles?.[index - 1]?.id,
+      rows, bank: new GroupBankV2(rows.bank), columns: new ObservationColumnsV2(rows.columns, scope),
+    }));
     const source = Uint8Array.from(bytes), admitted = admitScriptV2(source, { lane: 'project', ioBytes: this.layout.bytes });
     if (admitted.io !== 0 || admitted.initialPages !== this.rows.pages) throw new Error('Group step module layout mismatch');
     this.module = new ScriptModuleV2(source, { seed: [0, 0], initFuel: this.rows.fuel, ioBytes: this.layout.bytes, output: [] });
@@ -56,7 +57,7 @@ export class GroupStepV2 {
    * A synchronous native barrier requires another segment at the SAME slot;
    * this transport never invents a delayed mount/adopt/bond transaction. */
   prepare(input: {
-    readonly group: string; readonly handle: number; readonly signal: string; readonly tick: number;
+    readonly group: string; readonly handle: number; readonly signal: string; readonly tick: number; readonly profile?: string;
     readonly state: Float64Array; readonly members: readonly V2ColumnOwners[];
     readonly references: readonly GroupStepReferenceV2[]; readonly random?: Rng;
     readonly queries?: { readonly ring: QueryRingV2; readonly binding: V2QueryBinding };
@@ -66,11 +67,15 @@ export class GroupStepV2 {
     this.busy = true;
     try {
       const revision = this.revision, stateOwner = input.state;
-      const signal = this.rows.signals.indexOf(input.signal) + 1;
-      if (signal === 0 || input.group.length === 0 || input.members.length > this.rows.members
+      const envelope = { group: input.group, handle: input.handle, signal: input.signal, tick: input.tick, profile: input.profile };
+      const profileIndex = this.profiles.findIndex(row => row.id === (input.profile ?? 'main'));
+      const profile = this.profiles[profileIndex];
+      if (profile === undefined) throw new Error('Unknown group step profile');
+      const signal = profile.rows.signals.indexOf(input.signal) + 1;
+      if (signal === 0 || input.group.length === 0 || input.members.length > profile.rows.members
         || !Number.isInteger(input.handle) || input.handle < 1 || input.handle > 0x7fffffff) throw new Error('Invalid group step input');
       const originalState = input.state.slice();
-      this.bank.decode(originalState, input.group, input.references);
+      profile.bank.decode(originalState, input.group, input.references);
       const refs = input.references.map(row => {
         if (row.body.entityId !== row.identity) throw new Error('Foreign group reference body');
         return Object.freeze({ ...row });
@@ -81,10 +86,10 @@ export class GroupStepV2 {
       if (new Set(identities).size !== identities.length) throw new Error('Duplicate group body loan');
       const members = input.members.map((owners, slot) => {
         if (owners.scope !== this.scope || owners.self.group !== input.group || owners.self.slot !== slot) throw new Error('Foreign group member loan');
-        return { source: owners, self: Object.freeze({ ...owners.self }), values: this.columns.capture(owners) };
+        return { source: owners, self: Object.freeze({ ...owners.self }), values: profile.columns.capture(owners) };
       });
       const fields = members.flatMap((member, slot) => [...member.values].sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0).map((row, column) => ({
-        name: `${String(slot).padStart(2, '0')}/${row.name}`, id: slot * this.rows.columns.length + column + 1, value: row.value,
+        name: `${String(slot).padStart(2, '0')}/${row.name}`, id: slot * profile.rows.columns.length + column + 1, value: row.value,
       })));
       if (originalState.some((value, index) => !Object.is(value, input.state[index]))
         || input.references.length !== refs.length || refs.some((row, index) => {
@@ -109,7 +114,8 @@ export class GroupStepV2 {
       const observations = prepareV2Observations(this.layout, input.tick, { bindings: [{
         identity: input.group, handle: input.handle, self: 0, player: 0, observed: new Set(), enabled: true, due: true,
         divisor: 6, fuel: this.rows.fuel, previousTick: input.tick, currentTick: input.tick, state: Array.from(originalState),
-        parameters: [{ name: 'a.signal', value: signal }, { name: 'b.members', value: members.length }], fields,
+        parameters: [{ name: 'a.signal', value: signal }, { name: 'b.members', value: members.length },
+          ...(this.rows.profiles === undefined ? [] : [{ name: 'c.profile', value: profileIndex }])], fields,
         sample: { atTick: input.tick, target: 0 },
       }], players: [], edges: [], events: [], actions: new Set(), eventKinds: new Set() });
       const counts = new Map(observations.counts), extra = delivery?.banks ?? [];
@@ -127,13 +133,13 @@ export class GroupStepV2 {
       }, view => {
         if (authority === undefined) throw new Error('Missing group frame authority');
         const actual = validateV2Frame(view, this.layout, authority), state = this.layout.regions[2], actions = this.layout.regions[9];
-        if (state === undefined || actions === undefined || actual[2] !== this.bank.width) throw new Error('Incomplete group candidate');
-        const bank = Float64Array.from({ length: this.bank.width }, (_, index) => view.getFloat64(this.layout.io + state.offset + index * 8, true));
-        const prepared = this.bank.prepare(input.state, bank, input.group, input.references, this.scope);
+        if (state === undefined || actions === undefined || actual[2] !== profile.bank.width) throw new Error('Incomplete group candidate');
+        const bank = Float64Array.from({ length: profile.bank.width }, (_, index) => view.getFloat64(this.layout.io + state.offset + index * 8, true));
+        const prepared = profile.bank.prepare(input.state, bank, input.group, input.references, this.scope);
         const operations: GroupStepOperationV2[] = [];
         for (let index = 0; index < (actual[9] ?? 0); index++) {
           const at = this.layout.io + actions.offset + index * 64, id = view.getUint32(at + 8, true);
-          const action = this.rows.actions.find(row => row.id === id);
+          const action = profile.rows.actions.find(row => row.id === id);
           if (action === undefined || view.getUint32(at, true) !== input.handle || view.getUint32(at + 4, true) !== 25
             || view.getUint32(at + 12, true) !== 0) throw new Error('Undeclared group operation');
           const values = Array.from({ length: 6 }, (_, word) => view.getFloat64(at + 16 + word * 8, true));
@@ -160,7 +166,8 @@ export class GroupStepV2 {
       const validate = (): void => {
         this.live();
         if (accepted || revision !== this.revision) throw new Error('Group step already accepted or superseded');
-        if (input.state !== stateOwner || input.random !== random || input.queries !== queryLoan
+        if (input.group !== envelope.group || input.handle !== envelope.handle || input.signal !== envelope.signal
+          || input.tick !== envelope.tick || input.profile !== envelope.profile || input.state !== stateOwner || input.random !== random || input.queries !== queryLoan
           || binding !== undefined && (binding.observed.size !== queryObserved.length || binding.operations.size !== queryOperations.length
             || queryObserved.some(([key, value]) => binding.observed.get(key) !== value) || queryOperations.some(op => !binding.operations.has(op))))
           throw new Error('Changed group continuation owner');
