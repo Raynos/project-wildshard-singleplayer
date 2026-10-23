@@ -38,6 +38,7 @@ import { parsePrivateScene } from '@wildshard/format/clientChannels';
 import { Rng } from '@wildshard/engine/core/rng';
 import { memorySaverOn } from '@wildshard/engine/render/memorySaver';
 import { macrotask } from '@wildshard/engine/boot/plan';
+import { buildYield } from '@wildshard/engine/core/workSlice';
 import { listenPage } from '@wildshard/engine/input/dom';
 import type { ArenaScriptData,ArenaScriptRows,ArenaScriptFightFile } from '@wildshard/format/arenaScriptRows';
 import type { TargetAnimal, TargetHit } from '@wildshard/engine/combat/types';
@@ -1207,6 +1208,10 @@ async function buildOpenArenaEncounter(ports: {readonly scope:Scope;readonly wea
   };
   live();
   const data = await readArenaScriptData(product, stage.files); live();
+  // G639: the fight's programmes admit in their own build slices, into the same level-scope cache the encounter's
+  // constructor reads (one Nalati world-hook frame held the read, both admissions and the views: 136 ms at phone 4x)
+  for (const program of [data.programs.attack, data.programs.wind]) { await buildYield(owner); live(); ReturnProgram.page(program, owner); }
+  await buildYield(owner); live();
   const encounter = new ArenaRoomEncounter({kind:'open',world:{game,player,weather:storm,air,tieSpot:point},rows:data}); live();
   ctx.answer('weather.storm-hold', held => Math.max(held, Number(encounter.engaged))); live();
   return encounter;
