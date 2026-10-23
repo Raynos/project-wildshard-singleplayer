@@ -30,6 +30,8 @@ const rows=parseGroupStepV2({bank:[{name:'calls',kind:'number'}],columns:[],memb
  {id:20,words:1,member:0,native:{kind:'downwind',channel:'downwind'}},
 ],outputs:8,pages:1,fuel:400000,randomStreams:2});
 let bytes:Uint8Array;
+// This real fixture compiles twice (IO discovery/reservation), then instruments
+// fuel/finite checks and admits the module; give compilation its 30 s budget.
 beforeAll(async()=>{bytes=await compileScriptV2(`import * as core from './sdk/as/wsV2';
  export function ws_abi():i32{return 2;}export function ws_io():i32{return 0;}
  export function ws_init(lo:i32,hi:i32,fuel:i32):i32{return fuel;}
@@ -43,7 +45,7 @@ beforeAll(async()=>{bytes=await compileScriptV2(`import * as core from './sdk/as
  core.pageOutput(1,0,.7);core.pageOutput(3,0,0);core.pageOutput(4,0,1.5);
  if(signal==2){core.pageOutput(7,0,1);core.pageOutput(8,0,6);core.pageOutput(9,2,3,.4);}
  if(signal==5)core.pageOutput(10);core.pageOutput(5,signal==3?99:0,2,3);if(signal==1)core.pageOutput(6,0);core.pageOutput(2,0);core.endBinding();return fuel;}`,
- {lane:'project',ioBytes:groupStepLayoutV2(rows).bytes,sources:{'sdk/as/wsV2.ts':v2CoreSource(0)}});});
+ {lane:'project',ioBytes:groupStepLayoutV2(rows).bytes,sources:{'sdk/as/wsV2.ts':v2CoreSource(0)}});},30_000);
 function actor(id='body'):AnimalSim{return new AnimalSim({kind:'sample',label:'Sample',variant:'leader',rarity:'common',hp:20,aggressive:false,
  dims:{bodyY:.6,bodyHalfLen:.5,bodyRadius:.3,headRadius:.2,legLen:.5,feet:[],halfWidth:.3},mods:{speed:1,chargeDist:1,damageTaken:1,chargeDamage:5,relentless:false}},1,1,id,{heightAt:()=>0,random:()=>.5});}
 function fixture(id='body'){
