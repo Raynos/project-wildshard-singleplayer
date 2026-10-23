@@ -22,6 +22,9 @@ sp-o4: draw wrapper overhead ~3.8 ms. Distant trees and post rows decided on one
 **Extras:** Night Market NM4/NM5/posters, NM6 board next (sp-o3). B5 geography intake e70e28a8f0 (-1.33M chars,
 +115 platform TS). GR1 template generators (sp-x6, 341b7f6e01; next the SDK compiler capability).
 
+**G672 settings burn-down:** dedicated lane sp-x8 from 15:05Z (DR19 first, then DR18 and every non-graphical DR);
+sp-o4 does the graphical rows (DR3/DR12 inside the Signal lighting red, then DR10/DR1/DR5/DR8/DR9). First SHA: pending.
+
 **For wildshard-v (Jake picks needed):**
 1. Titan (G665) and wildlife/species/weather (G667): answered, being built.
 2. OPEN, the rest of Nalati's one-user code, no second shipped user: stealth controller + rows, the entered-owner
