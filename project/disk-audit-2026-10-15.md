@@ -282,6 +282,26 @@ The boot purge was at **212k files**, up 45k in 4 h and closing on the 250k inve
 - Also growing: `$TMPDIR/node-compile-cache/v24.18.1-arm64-…` went 13.6k → 27.3k files in a day. In `/private/tmp`,
   `claude-501/bash-edit-diff` holds 61k files in 12 dirs; that is Claude Code's own scratch, not a lane's.
 
+## 11. 2026-10-23 16:47 check: `./tmp` 44 → 53 GB and 407k → 509k files in 4 h; the `tmp/vitest` sweep is gone (OPEN)
+
+- **What grew:** `tmp/vitest` went 3.3 → **7.7 GB**, **111k files** in 28 `<pid>` dirs. 17 dirs are new since 12:47.
+  Only one belongs to a live process. The others are 0.1–0.75 GB each: about 2.8 GB / 46k files of
+  `node-compile-cache`, and the rest Vitest's `ssr/`/`client/` module copies. These are not boot-purged, so they cost
+  disk only. The redirect from section 1 works.
+- **Why nothing removes them:** `scripts/vitest-tmp.ts` deletes its dir on `process.once('exit')`. A run killed by a
+  signal (a lane timeout or `kill`) never emits `exit`, so its dir stays. The fallback was the sweep in
+  `scripts/boot-temp-warn.sh --count` (dead pid, nothing changed for an hour). That sweep ran from `.githooks/pre-commit`
+  until **013a31e5c2** (10-21 20:03, "refactor(git): use one short commit path", G585). That commit removed the hook
+  line along with the "guard and sweep machinery". `tmp/.boot-temp-count` was last written 10-21 19:51. 26 of the 28
+  dirs are sweepable by the script's own rule right now. This reverses the "pre-commit sweep of `./tmp/vitest`" in
+  Jake's 10-15 decisions below.
+- **Fix:** put the sweep back on a path that still runs. Either restore `scripts/boot-temp-warn.sh` (warning plus
+  sweep, backgrounded) in `.githooks/pre-commit` or `scripts/commit.sh`, or call `sweep_vitest` from `vitestTmpRoot()`
+  at start-up so every run cleans up after the killed ones. Also clean up on `SIGTERM`/`SIGINT` in `vitest-tmp.ts`.
+- Boot purge: 200k (up 23k). `$TMPDIR` Vitest dirs from lane-private configs (section 10) went 36 → 60, and
+  `$TMPDIR/node-compile-cache` reached 49k files. The new top-level slot `tmp/build-mirror/ruler` is 3.3 GB and outside
+  G547's seven slots.
+
 ## Decisions (Jake, 2026-10-15)
 
 - **Boot-purge warning: 500,000 files.**
