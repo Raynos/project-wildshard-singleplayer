@@ -74,7 +74,7 @@ import { loadGridEdgeProfiles, type GridEdgeSource } from './edgeProfiles';
 import { readGridEdges } from './edgeSources';
 import { findShard } from '../shard/registry';
 import { TileDecoder } from './tileDecoder';
-import { clientTileRegistration, type ClientTileRegistration, clientRingCatalogue, clientRingPorts, type ClientRingInstance, type PreparedRingTile } from '../shardfile/clientRings';
+import { clientTileRegistration, type ClientTileRegistration, clientRingCatalogue, clientRingPorts, type ClientRingInstance, type PreparedRingTile } from '../shardfile/tileContent';
 import { ClientAssets } from '../shardfile/clientAssets';
 import { clientMaterials } from '../shardfile/clientMaterials';
 import { clientTileViews, type ClientTileViews } from '../shardfile/clientViews';
@@ -552,7 +552,7 @@ export class GridSession {
     // with no near view keeps its far proxy until entered (only the entered world lights its tiles)
     this.rings = new TileStreamer(this.neighbours, this.allocator, (id, level, x, z) => (level === 'far' ? this.costs.get(id) ?? this.declaredFar.get(id) ?? 1_600_000
       : this.placeholderBlocksTiles(id) ? null : tileCost(id, level, x, z)),
-      levelPorts<FarPrepared, PreparedRingTile>(farPorts, tiles.ports), { farRadius: FAR_RING.reach });
+      levelPorts<FarPrepared, PreparedRingTile>(farPorts, tiles.ports), { farRadius: FAR_RING.reach, uploadsPerFrame: 1, uploadBytesPerFrame: 4_000_000 });
     this.clientTiles = clientTileRegistration(tiles.instances, this.rings, () => TILE_RING);
     this.admitNeighbour = host.renderer === undefined ? undefined : this.tileAdmission(host.renderer, roots);
     host.scope.onDispose(() => {

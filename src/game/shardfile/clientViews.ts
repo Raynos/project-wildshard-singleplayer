@@ -1,6 +1,6 @@
 /**
  * The shardfile loader's render side (SHARD-PLATFORM SF15a): the `ClientWorldViews` the loader's data side
- * (`clientWorld`) injects. The loader admits bytes, owns residency and hands each tile its scope; these views turn the
+ * (`tileContent`) injects. The loader admits bytes, owns residency and hands each tile its scope; these views turn the
  * admitted bytes into scene objects under one root and obey that scope. Terrain tiles share the terrain family's one
  * material; props take the family material catalogue (`clientMaterials`). Where a view binds a catalogue material it calls
  * the optional `outline` hook (`clientMaterials().outline`): a graph that declares `stages.outline` draws its hull as each
@@ -12,7 +12,7 @@ import type { TerrainTileData } from '@wildshard/format/terrainTileBytes';
 import { installTerrainTile, maskTerrainTile } from '@wildshard/engine/world/terrainTileView';
 import { coarseTileMask } from '@wildshard/engine/world/coarseTileMask';
 import { installDeclaredProps, type PropSurfaceBinding } from '@wildshard/engine/world/declaredProps';
-import type { ClientWorldViews, ResidentTile } from './clientWorld';
+import type { ClientWorldViews, ResidentTile } from './tileContent';
 import type { GraphOutlineHook } from './clientGraphs';
 import { groundMerge } from './groundMerge';
 import type { Shardfile } from '@wildshard/format/shardSchema';

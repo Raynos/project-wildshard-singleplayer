@@ -1,12 +1,14 @@
 // SF15a view board: today's template ground and props (its terrainPainter and its world generators) beside the template
-// shardfile rendered through the loader's views (clientMaterials → clientViews → clientWorld), in one renderer under the
+// shardfile rendered through the loader's views (clientMaterials → clientViews → tileContent), in one renderer under the
 // template look's numbers (gradient dome, linear fog 60–180 m, a 1.5 white sun, hemisphere ambient), so the only change is the view layer.
 import { Color, DirectionalLight, DoubleSide, Fog, Group, HemisphereLight, Mesh, MeshStandardMaterial, PCFSoftShadowMap, PerspectiveCamera, PlaneGeometry, Scene, ShaderMaterial, SphereGeometry, WebGLRenderer } from 'three';
+import { ResidencyAllocator } from '../../../../src/game/grid/allocator';
+import { buildYield } from '../../../../src/engine/core/workSlice';
 import { Scope } from '../../../../src/engine/app/scope';
 import { buildTerrain } from '../../../../src/engine/world/terrainField';
 import { clientMaterials } from '../../../../src/game/shardfile/clientMaterials';
 import { clientViews } from '../../../../src/game/shardfile/clientViews';
-import { clientWorld } from '../../../../src/game/shardfile/clientWorld';
+import { standaloneClientTiles } from '../../../../src/game/shardfile/tileContent';
 import { ClientAssets } from '../../../../src/game/shardfile/clientAssets';
 import layout from '../../../../src/shards/_template/data/layout.json' with { type: 'json' };
 import { poolMask } from '../../../../src/shards/_template/generators/world';
@@ -48,7 +50,13 @@ const assets = new Map(await Promise.all(source.files.map(async (file) => [file.
 const hash = async (bytes: Uint8Array): Promise<string> => [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes.slice()))].map((b) => b.toString(16).padStart(2, '0')).join('');
 const reader = new ClientAssets(source, assets, { base: new URL('./shard.json', location.href).href, offline: false, firstParty: true, fetch: (url) => fetch(url), hash });
 const look = await clientMaterials(source, assets, renderer, scope);
-const world = await clientWorld(source, reader, { scope, views: clientViews({ root: views, terrain: source.terrain?.family ?? null, materials: look.materials, textures: look.textures }), x: 0, z: 0 });
+const installed = clientViews({ root: views, terrain: source.terrain?.family ?? null, materials: look.materials, textures: look.textures });
+const world = await standaloneClientTiles({ source, assets: reader, root: views, views: installed.tiles }, scope, {
+  instance: 'board', budget: new ResidencyAllocator(), start: { x: 0, z: 0 }, radius: () => 2,
+  library: owner => source.props === null ? Promise.resolve(null) : installed.library(source.props, assets, owner),
+  viewer: () => camera.position, pause: () => buildYield(scope),
+  frame: run => { const follow = (): void => { run(); scope.raf(follow); }; scope.raf(follow); },
+});
 if (world.props !== null) for (const [id, panel] of world.props.panels) panel.visible = id !== 'template.jump';
 
 const poses = { spawn: { at: [0, 2.6, 7], look: [0, 1.2, -12] }, hut: { at: [9, 4, 2], look: [0, 1, -12] }, overview: { at: [45, 32, 45], look: [0, 0, -8] }, horizon: { at: [0, 14, 70], look: [0, 0, -120] } } as const;

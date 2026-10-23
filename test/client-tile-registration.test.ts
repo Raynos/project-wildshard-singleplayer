@@ -7,7 +7,7 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { TileDecoder } from '../src/game/grid/tileDecoder';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
-import { standaloneClientTiles, clientRingCatalogue, clientRingPorts, clientTileRegistration, type ClientRingInstance } from '../src/game/shardfile/clientRings';
+import { standaloneClientTiles, clientRingCatalogue, clientRingPorts, clientTileRegistration, type ClientRingInstance } from '../src/game/shardfile/tileContent';
 import type { Shardfile } from '../src/format/shardSchema';
 
 function isGroup(object: Object3D): object is Group { return object instanceof Group; }
@@ -128,7 +128,11 @@ test('standalone publication uses the same leased ports, then advances only from
     expect(f.coverage(f.entered.root)).toEqual(Array.from({ length: 64 }, () => 1));
     expect(f.allocator.entries().filter(row => row.category === 'l1')).toHaveLength(16);
     if (late === undefined) throw new Error('Missing standalone frame callback');
-    for (let frame = 0; frame < 25; frame++) { late(); await Promise.resolve(); }
+    for (let frame = 0; frame < 25; frame++) {
+      const before = f.entered.root.children.length;
+      late(); await Promise.resolve();
+      expect(f.entered.root.children.length - before).toBeLessThanOrEqual(1);
+    }
     f.scope.dispose(); late(); expect(f.entered.root.children).toHaveLength(0);
   } finally { f.scope.dispose(); }
   expect(f.pins()).toBe(0); expect(f.allocator.entries()).toHaveLength(0);

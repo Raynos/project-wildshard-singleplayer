@@ -76,7 +76,7 @@ import { yieldGridAdmission, yieldGridConstruction } from './admissionYield';
 import { HybridRuntimeSession, type HybridResident } from '../shardfile/hybrid';
 
 import { createRegionalRuntimeFactory, regionalRuntimeAccountedBytes, type PreparedRegionalRuntime, type RegionalRuntimePage } from './regionalRuntime';
-import type { ClientTileRegistration } from '../shardfile/clientRings';
+import type { ClientTileRegistration } from '../shardfile/tileContent';
 import { createRegionalWorldFoundation, hangCellDataSky, resolveRegionalRuntimeTextures } from './regionalWorld';
 import { regionalRuntimeCheckpoint } from './runtimeCheckpoint';
 import { regionalDataCellBytes } from './runtimeCost';

@@ -3,7 +3,7 @@ import { expect, test } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import { emptyShardfile } from '../src/sdk/author';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
-import { clientRingPorts, type PreparedRingTile } from '../src/game/shardfile/clientRings';
+import { clientRingPorts, type PreparedRingTile } from '../src/game/shardfile/tileContent';
 import type { RingTile } from '../src/engine/world/tileStreamer';
 import { TileDecoder } from '../src/game/grid/tileDecoder';
 

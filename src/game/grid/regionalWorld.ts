@@ -88,7 +88,7 @@ import type { AdmittedProduct } from '../shardfile/product';
 import { clientMaterials } from '../shardfile/clientMaterials';
 import { splatGroundDrawn } from '../shardfile/clientSplatTerrain';
 import { lendLooks, lendSceneMaterials } from '../shardfile/lentLooks';
-import { standaloneClientTiles, type ClientTileRegistration } from '../shardfile/clientRings';
+import { standaloneClientTiles, type ClientTileRegistration } from '../shardfile/tileContent';
 import { clientViews } from '../shardfile/clientViews';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { shardfileLook } from '../shardfile/look';

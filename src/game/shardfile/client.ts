@@ -57,7 +57,7 @@ import { clientViews } from './clientViews';
 import { createShardfileClientScripts } from './clientScripts';
 
 import { installClientWater } from './clientWater';
-import { standaloneClientTiles } from './clientRings';
+import { standaloneClientTiles } from './tileContent';
 import { TILE_RING } from './tileDriver';
 import { buildYield } from '@wildshard/engine/core/workSlice';
 import { clientSimStep } from './clientStep';

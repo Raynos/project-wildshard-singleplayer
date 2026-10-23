@@ -1,11 +1,11 @@
 import { Group } from 'three';
 import { expect, test } from 'vitest';
+import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { Scope } from '../src/engine/app/scope';
 import { emptyShardfile } from '../src/sdk/author';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
-import { clientWorld, type ResidentTile } from '../src/game/shardfile/clientWorld';
-import { clientRingPorts } from '../src/game/shardfile/clientRings';
+import { standaloneClientTiles, clientRingPorts, type ResidentTile } from '../src/game/shardfile/tileContent';
 import { TileDecoder } from '../src/game/grid/tileDecoder';
 
 function fixture(mode: 'entered' | 'neighbour', pending = false) {
@@ -20,6 +20,7 @@ function fixture(mode: 'entered' | 'neighbour', pending = false) {
     triangles: 0, draws: 1, dependencies: hash === primary ? [dependency] : [], critical: false });
   source.props = { version: 1, family: 'fixture-ground', tiles: [{ lod: 1, x: 0, z: 0, file: primary, additionalFiles: [extra] }],
     wholeLibrary: [], models: [], panels: [], far: null, colliders: [], textures: [] };
+  source.tiles.push({ lod: 1, x: 0, z: 0, files: [primary, extra], compressed: 4, decoded: 2, gpu: 2, triangles: 0, draws: 1, geometricError: 0, bounds: { min: [-250, 0, -250], max: [-125, 0, -125] } });
   const reads: string[] = [], pinned = new Map<string, number>(), installed: string[] = [];
   let started: () => void = () => undefined, finish: () => void = () => undefined;
   const waiting = new Promise<void>(resolve => { started = resolve; });
@@ -44,10 +45,12 @@ function fixture(mode: 'entered' | 'neighbour', pending = false) {
     return Promise.resolve({ mask: () => undefined, shadow: () => undefined });
   };
   const start = (): Promise<void> => {
-    if (mode === 'entered') return clientWorld(source, assets, { scope, x: -200, z: -200, views: {
-      terrain: () => { throw new Error('No fixture terrain'); }, props: (_props, key, main, owner, additional) => props(key, main, owner, additional),
-      library: () => Promise.resolve({ tiles: new Map(), panels: new Map(), models: new Map(), far: null, disposeTile: () => undefined }),
-    } }).then(() => undefined);
+    if (mode === 'entered') return standaloneClientTiles({ source, assets, root, views: {
+      terrain: () => { throw new Error('No fixture terrain'); }, panels: () => Promise.resolve(new Map()),
+      props: (_props, key, main, _root, owner, additional) => props(key, main, owner, additional),
+    } }, scope, { instance: 'home', budget: new ResidencyAllocator(), start: { x: -200, z: -200 }, radius: () => 2,
+      library: () => Promise.resolve(null), viewer: () => ({ x: -200, z: -200 }), pause: () => Promise.resolve(), frame: () => undefined,
+    }).then(() => undefined);
     const ports = clientRingPorts(new Map([['home', { source, assets, root, views: {
       terrain: () => { throw new Error('No fixture terrain'); }, panels: () => Promise.resolve(new Map()),
       props: (_props, key, main, _root, owner, additional) => props(key, main, owner, additional),
@@ -74,7 +77,7 @@ for (const mode of ['entered', 'neighbour'] as const) {
   test(`${mode} retirement during an additional-file read prevents a late installer`, async () => {
     const f = fixture(mode, true);
     try {
-      const work = f.start(), refused = expect(work).rejects.toThrow('Tile unloaded while reading');
+      const work = f.start(), refused = expect(work).rejects.toThrow(mode === 'entered' ? 'Standalone tile owner left' : 'Tile unloaded while reading');
       await f.waiting; f.scope.dispose(); expect(f.pinned.size).toBe(0);
       f.finish(); await refused; expect(f.installed).toEqual([]); expect(f.root.children).toHaveLength(0);
     } finally { f.scope.dispose(); }

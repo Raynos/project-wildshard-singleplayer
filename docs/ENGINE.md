@@ -13183,8 +13183,15 @@ stays detached, and `publish` synchronously returns its mask/shadow handles.
 Cancel, discard, owner retirement and view disposal close the same scope.
 Duplicate active keys, replaced scopes, repeated publication and retired
 owners refuse. A late completion cannot retire a replacement for its key.
-The shardfile ring adapter uses this lifecycle without changing its asset
-lease/read, decoder or detached group publication order.
+`game/shardfile/tileContent` is the shared compiled-tile adapter: admitted
+primary/additional files are leased before reads, terrain decodes through the
+existing pool, and publication attaches the prepared detached group. SHARD
+SELECT and the regional fallback use its standalone scheduler; entered grid
+regions and neighbours register with the grid page's existing scheduler.
+Both compositions limit publication to one tile / 4 MB per step. The old
+clientWorld serial refresh queue and 150 m residency implementation are gone.
+The same module keeps pure placement buckets and scoped content contracts;
+collider and scene-content ownership remains with their existing builders.
 
 ArenaWhirlsView.bindView lends its own records, objects and draw under the
 entered Scope. View rows name each field alias/object id and the values/draw/frame
