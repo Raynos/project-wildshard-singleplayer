@@ -96,3 +96,20 @@ test('a late sky receives the selected time once on first use without resetting 
     entered.dispose(); expect(p.app.dayCycle).toBe(p.pageClock);
   } finally { time.mockRestore(); overrideSetting('time', null); p.level.dispose(); }
 });
+
+test('a Developer time picked before a sky is built reaches it when it is published after the entry', () => {
+  const p = page(), time = vi.spyOn(p.skyClock, 'setTime');
+  const settings = { setting: () => 'night' as const, onSettingChange: () => () => undefined };
+  try {
+    const entered = p.runtime.child('runtime.entered');
+    enterSkyClock(p.app, [p.runtime, p.cell], entered, settings);
+    expect(time).not.toHaveBeenCalled();
+    publishSkyClock(p.runtime, p.skyClock);
+    expect(time).toHaveBeenCalledExactlyOnceWith('night');
+    expect(p.app.dayCycle).toBe(p.skyClock);
+    entered.dispose();
+    const later = clock(), lateTime = vi.spyOn(later, 'setTime');
+    publishSkyClock(p.world, later);
+    expect(lateTime).not.toHaveBeenCalled();
+  } finally { time.mockRestore(); p.level.dispose(); }
+});

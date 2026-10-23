@@ -15,12 +15,15 @@ export function bindClockSettings(clock: DayCycleClock, scope: Scope, settings: 
 /** R12: the day clocks of runtimes' own skies, each on the scope that owns its sky (a grid region's world, a painted sky's
  *  runtime); `enterSkyClock` makes the one nearest an entered runtime the day cycle while it is entered. */
 const skyClocks = new Map<Scope, DayCycleClock>();
+/** the live entries, told when a sky publishes its clock (a painted sky is built after its runtime's entry) */
+const entries = new Set<() => void>();
 
 /** Publish the day clock `scope`'s own sky runs on, until `scope` ends. */
 export function publishSkyClock(scope: Scope, clock: DayCycleClock): void {
   if (scope.disposed || scope.disposing) return;
   skyClocks.set(scope, clock);
   scope.onDispose(() => { if (skyClocks.get(scope) === clock) skyClocks.delete(scope); });
+  for (const entry of entries) entry();
 }
 
 /** The sky clock published within one of `owners` (on it or a scope it holds: a grid runtime holds its region's world),
@@ -52,6 +55,9 @@ export function enterSkyClock(app: Pick<App, 'enterDayCycle'>, owners: readonly 
     return clock;
   };
   app.enterDayCycle(read, entered);
+  // the entry's Developer time reaches a sky published after it (Nalati's painted sky is built at play, G667)
+  const seen = (): void => { read(); };
+  entries.add(seen); entered.onDispose(() => { entries.delete(seen); });
   read();
   entered.onDispose(settings.onSettingChange('time', (time) => { current = skyClockOf(owners); current?.setTime(time); }));
 }
