@@ -27,12 +27,17 @@ function installDrawRetirement(renderer: UploadTarget, state: UploadState): void
   const draw = renderer.renderBufferDirect.bind(renderer);
   const bound = new Set<THREE.Texture>();
   const retired = new WeakMap<THREE.Texture, unknown>();
-  let depth = 0;
+  /** the draw each texture was last checked in: a draw asks for a bound texture's properties several times, and the
+   *  retirement checks (its sampler fields, its allocation) need one look a draw (G639); outside a draw, every time */
+  const checked = new WeakMap<THREE.Texture, number>();
+  let depth = 0, drawGen = 0;
   renderer.properties.get = object => {
     if (object instanceof THREE.CompressedTexture) {
+      // three's own lookup, once: it returns the same properties object every time (G639: a draw asks several times)
+      if (depth > 0 && checked.get(object) === drawGen) { const properties: unknown = get(object); if (state.final.has(object)) bound.add(object); return properties; }
+      if (depth > 0) checked.set(object, drawGen);
       assertCompressedMipmapsUnchanged(object);
       const native = retired.get(object);
-      // three's own lookup, once: it returns the same properties object every time (G639: a draw asks several times)
       const properties: unknown = get(object);
       if (native !== undefined && (typeof properties !== 'object' || properties === null || Reflect.get(properties, '__webglTexture') !== native)) {
         throw new Error(`Compressed texture ${object.name || object.id} lost its allocation after mip retirement`);
@@ -43,6 +48,7 @@ function installDrawRetirement(renderer: UploadTarget, state: UploadState): void
     return get(object);
   };
   renderer.renderBufferDirect = (camera, scene, geometry, material, object, group) => {
+    if (depth === 0) drawGen++;
     depth++; let complete = false;
     try { draw(camera, scene, geometry, material, object, group); complete = true; }
     finally {
