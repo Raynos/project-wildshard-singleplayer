@@ -2084,6 +2084,13 @@ and scopes, owner identities and callable identities are checked before and betw
 reducers retain their registration order. `clientWildlifeState(ctx)` in `@wildshard/game/population/wildlife`
 lends that feature's original mutable readiness object; it creates no population, frame state or clock.
 
+`@wildshard/game/shardfile/groupRuntime.initializeDeclaredGroup` completes the original constructed pack/herd
+controller: resolve its admitted ReturnProgram, bind the guest and initialize, in that order. Its typed runtime
+loans retain the actual controller receiver, scope, ordered actors and live prey-roster closure. Native calls
+also lend the concrete SimHost and require its exact scope; page calls retain their original world scope.
+Callers keep construction, contact/perception ports, membership maps and subsequent adoption at their original
+slots. This shares initialization only; it creates no new roster, clock, save owner or authored factory.
+
 **Custom weapon targets.** `app.combat.targets()` returns scoped `CombatTarget` ports for creatures, or only the
 training dummies while the Practice Arena is open. Each port has `actor`, world `position`, live `hittable`, its
 raycast `target` identity, `hurt(req)` (a `DamageRequest` without `target`) and optional `impulse(velocity)`.

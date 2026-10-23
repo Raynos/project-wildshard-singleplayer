@@ -17,7 +17,7 @@ import { knockdownVelocity } from './relations';
 import { ReturnProgram, ProjectedState } from './returnProgram';
 import { createCreatureSpawner, type CreatureSpawnRow } from '../plugin/brain';
 import { WildSenses } from './nativeManager';
-import { groupContact, nearestPopulationActor, sharedGroupPorts } from '../shardfile/groupRuntime';
+import { groupContact, nearestPopulationActor, sharedGroupPorts, initializeDeclaredGroup } from '../shardfile/groupRuntime';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { terrainHeight, terrainNormal, terrainWaterLevel } from '@wildshard/engine/world/terrainHeight';
@@ -236,15 +236,8 @@ export class PageGroups {
     const ports: PackPorts<Animal> = { ...this.common(),register: (actor,director) => { app.aggression.register(actor,director); },
       bite: (actor,context,radius) => { this.contact(actor,context,radius,false); },preyIdentity: prey => this.targets.identity(prey),resolvePrey: id => this.targets.resolve(id) };
     const pack = new PackBrain(members,x,z,row,ports);
-    const guest=this.rows.packGuest;
-    if(guest!==undefined){
-      const owner=this.groupOwner;if(owner===undefined)throw new Error('Pack guest requires its original world owner');
-      const program=ReturnProgram.page(guest.program,owner.scope);
-      if(program.prepareGroup===undefined||program.groupBindings===undefined)throw new Error('Missing pack group capability');
-      pack.bindGuest({groupBindings:program.groupBindings,prepareGroup:program.prepareGroup},guest.binding,
-        {scope:owner.scope,group:`pack.${this.packs.length}`,handle:100+this.packs.length,roster:()=>this.herds.flatMap(herd=>herd.foals)});
-    }
-    pack.initialize();
+    initializeDeclaredGroup(pack,this.rows.packGuest,this.groupOwner===undefined?undefined:{scope:this.groupOwner.scope,
+      group:`pack.${this.packs.length}`,handle:100+this.packs.length,roster:()=>this.herds.flatMap(herd=>herd.foals)});
     pack.findPrey = (px,pz,radius) => nearestPopulationActor(this.herds.flatMap(herd => herd.foals),px,pz,radius);
     this.packs.push(pack); for (const actor of members) { renderedPacks.set(actor,pack); } return pack;
   }
@@ -254,14 +247,9 @@ export class PageGroups {
       chargeContact: (actor,context,radius) => { this.contact(actor,context,radius,true); },
       scarePack: (actor,radius) => { const pack = renderedPacks.get(actor); if (pack === undefined) return false; pack.scare(actor.position.x,actor.position.z,radius); return true; },
       onKnockdown: (x,z,strength) => { wildEnv.onKnockdown(x,z,strength); } });
-    if(this.rows.guest!==undefined){
-      if(this.groupOwner===undefined)throw new Error('Herd guest requires the original world scope');
-      const program=ReturnProgram.page(this.rows.guest.program,this.groupOwner.scope);
-      if(program.prepareGroup===undefined||program.groupBindings===undefined)throw new Error('Missing herd group capability');
-      herd.bindGuest({groupBindings:program.groupBindings,prepareGroup:program.prepareGroup},this.rows.guest.binding,
-        {scope:this.groupOwner.scope,group:`herd.${this.herds.length}`,handle:this.herds.length+1,player:this.groupOwner.player,actors:this.animals.animals});
-    }
-    herd.initialize(); herd.findThreat = (x,z,radius) => nearestPopulationActor(this.packs.flatMap(pack => pack.members),x,z,radius);
+    initializeDeclaredGroup(herd,this.rows.guest,this.groupOwner===undefined?undefined:{scope:this.groupOwner.scope,
+      group:`herd.${this.herds.length}`,handle:this.herds.length+1,player:this.groupOwner.player,actors:this.animals.animals});
+    herd.findThreat = (x,z,radius) => nearestPopulationActor(this.packs.flatMap(pack => pack.members),x,z,radius);
     const adopt = herd.adoptStallion.bind(herd); herd.adoptStallion = actor => { adopt(actor); renderedHerds.set(actor,herd); };
     this.herds.push(herd); for (const actor of members) { renderedHerds.set(actor,herd); } return herd;
   }

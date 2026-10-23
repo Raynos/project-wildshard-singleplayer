@@ -10,6 +10,9 @@ import { PagePastureRaid } from '../src/game/riding/pagePasture';
 import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { PageWildlife } from '../src/game/population/wildlife';
+import { initializeDeclaredGroup } from '../src/game/shardfile/groupRuntime';
+import { ReturnProgram } from '../src/game/population/returnProgram';
+import type { GroupGuestProjectionV2 } from '../src/engine/ai/GroupBrain';
 import { CrowdTargets } from '../src/game/shardfile/crowdRuntime';
 import { FlockBrain } from '../src/engine/ai/flock';
 import { parseFlock } from '../src/format/crowds';
@@ -24,6 +27,8 @@ import { headlessAssembly } from '../src/shards/nalati-grasslands/generators/nat
 
 test('orchard population emits crowd work between native groups and mount placement', () => {
   const previous=app.levelScope,previousHealth=wildEnv.playerHealth01,scope=new Scope('orchard.health');app.levelScope=scope;lendNalatiPasture(scope);
+  // This flat orchard fixture lends native grass directly without a selected rendered level.
+  const grass=vi.spyOn(wildEnv,'grassHeightAt').mockReturnValue(.5),standing=vi.spyOn(wildEnv,'grassStandingAt').mockReturnValue(.5);
   const playerPoint=new Vector3();
   const health=new PlayerHealth(app.events,{now:()=>0,dodging:()=>false,dodgeGuard:()=>false,position:()=>playerPoint});app.registerPlayer(health,scope);health.attributes.health=40;
   try{
@@ -63,7 +68,7 @@ test('orchard population emits crowd work between native groups and mount placem
   for(let i=0;i<5;i++)raid.update(1/60,new Vector3(),[],i/60);
   expect(raid.snapshot().state).toEqual(saved.state);
   raid.update(1/60,new Vector3(),[],.1); expect(raid.snapshot().elapsed).toBe(0);
-  }finally{scope.dispose();app.levelScope=previous;wildEnv.playerHealth01=previousHealth;}
+  }finally{scope.dispose();grass.mockRestore();standing.mockRestore();app.levelScope=previous;wildEnv.playerHealth01=previousHealth;}
 });
 
 
@@ -99,4 +104,36 @@ test('orchard population rows own notice cooldowns and native knockback effects 
     expect(()=>bindPageGroups(ctx,{...rows,effects:{...rows.effects,knockdown:{...rows.effects.knockdown,min:3}}})).toThrow();
   }finally{scope.dispose();}
   application.events.emit('creature.knockdown',{x:3,z:4,strength:4});application.events.emit('creature.signal',{name:'grunt',x:0,z:0});application.events.flush('update');expect(dash).toHaveBeenCalledTimes(2);expect(toast).toHaveBeenCalledTimes(3);
+});
+
+
+test('shared group initialization retains controller receiver and original owner/roster loans',()=>{
+  const scope=new Scope('shared.group.init'),rows=headlessAssembly.constants.pageGroups;
+  const guest=rows.packGuest;
+  if(guest===undefined)throw new Error('Missing admitted pack guest');
+  const actors:Animal[]=[],roster=()=>actors,owners={scope,group:'original.pack',handle:100,roster};
+  const events:string[]=[];
+  try{
+    lendNalatiPasture(scope);
+    const admitted=ReturnProgram.page(guest.program,scope);
+    const controller={
+      bindGuest(program:GroupGuestProjectionV2,input:unknown,loan:typeof owners):void{
+        expect(this).toBe(controller);expect(loan).toBe(owners);expect(loan.scope).toBe(scope);
+        expect(loan.roster).toBe(roster);expect(loan.roster()).toBe(actors);expect(input).toBe(guest.binding);
+        expect(program.groupBindings).toBe(admitted.groupBindings);expect(program.prepareGroup).toBe(admitted.prepareGroup);
+        events.push('bind');
+      },
+      initialize():void{expect(this).toBe(controller);events.push('initialize');},
+    };
+    initializeDeclaredGroup(controller,guest,owners);
+    expect(events).toEqual(['bind','initialize']);
+    const lookup=vi.spyOn(ReturnProgram,'page');
+    try{
+      events.length=0;
+      expect(()=>initializeDeclaredGroup(controller,guest,undefined)).toThrow('original world owner');
+      expect(lookup).not.toHaveBeenCalled();expect(events).toEqual([]);
+      initializeDeclaredGroup(controller,undefined,undefined);
+      expect(lookup).not.toHaveBeenCalled();expect(events).toEqual(['initialize']);
+    }finally{lookup.mockRestore();}
+  }finally{scope.dispose();}
 });

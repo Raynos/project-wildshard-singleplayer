@@ -1,3 +1,5 @@
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { GroupGuestProjectionV2 } from '@wildshard/engine/ai/GroupBrain';
 import { NativeWildEnvironment, type WildSenses } from '../population/nativeManager';
 import { ReturnProgram } from '../population/returnProgram';
 import { bakedSamplers, type BakedGrid } from '@wildshard/engine/world/BakedTerrain';
@@ -174,6 +176,24 @@ export function groupContact(rows: { readonly pack: Parameters<typeof strikeFrom
   };
 }
 
+type GroupGuestRow=NonNullable<Extract<v.InferOutput<typeof NativeGroupRowsSchema>['steps'][number],{kind:'group'}>['guest']>;
+interface GroupLifecycle<Owner> {
+  bindGuest:(program:GroupGuestProjectionV2,input:unknown,loans:Owner)=>void;
+  initialize:()=>void;
+}
+/** Complete the original concrete controller's construction transaction.
+ * Programme lookup follows its constructor; binding precedes initialization.
+ * The caller retains native/page ports, ordered bodies and membership maps. */
+export function initializeDeclaredGroup<Owner extends {readonly scope:Scope}>(controller:GroupLifecycle<Owner>,guest:GroupGuestRow|undefined,owners:Owner|undefined,host?:SimHost):void {
+  if(guest!==undefined){
+    if(owners===undefined||host!==undefined&&host.scope!==owners.scope)throw new Error('Group guest requires its original world owner');
+    const program=host===undefined?ReturnProgram.page(guest.program,owners.scope):ReturnProgram.native(host,guest.program);
+    if(program.prepareGroup===undefined||program.groupBindings===undefined)throw new Error('Missing group capability');
+    controller.bindGuest({groupBindings:program.groupBindings,prepareGroup:program.prepareGroup},guest.binding,owners);
+  }
+  controller.initialize();
+}
+
 const collections = new WeakMap<SimHost, Map<string, NativeGroupCollection>>();
 /** Resolve the admitted herd controllers and their live numeric wind together. */
 export function nativeHerdCollection(host: SimHost, id: string): { herds: readonly HerdBrain<AnimalSim>[]; wind: { x: number; z: number; strength: number } } {
@@ -256,13 +276,9 @@ export function installNativeGroupRows(host: SimHost, input: unknown, grid: Bake
         register: (body,director) => { tokens.set(body,director); }, bite: (body,context,radius) => { contact(body,context,radius,false); },
         preyIdentity: target => { const id = ids.get(target); if (id === undefined) throw new Error('Missing native prey identity'); return id; },
         resolvePrey: id => id.startsWith('actor:') ? actors.get(id.slice(6)) ?? null : prey.get(id) ?? null });
-      if(step.guest!==undefined){
-        const program=ReturnProgram.native(host,step.guest.program);
-        if(program.prepareGroup===undefined||program.groupBindings===undefined)throw new Error('Missing native pack guest');
-        pack.bindGuest({groupBindings:program.groupBindings,prepareGroup:program.prepareGroup},step.guest.binding,
-          {scope:host.scope,group:`${rows.id}:pack.${packs.length}`,handle:100+packs.length,roster:()=>herds.flatMap(herd=>herd.foals)});
-      }
-      pack.initialize(); pack.findPrey = (x,z,radius) => nearestPopulationActor(herds.flatMap(herd => herd.foals),x,z,radius);
+      initializeDeclaredGroup(pack,step.guest,{scope:host.scope,group:`${rows.id}:pack.${packs.length}`,
+        handle:100+packs.length,roster:()=>herds.flatMap(herd=>herd.foals)},host);
+      pack.findPrey = (x,z,radius) => nearestPopulationActor(herds.flatMap(herd => herd.foals),x,z,radius);
       packs.push(pack); wolves.push(...bodies); for (const body of bodies) packOf.set(body,pack);
     } else {
       const herd = new HerdBrain(bodies,row,{ ...shared, resolveActor: id => actors.get(id) ?? null,
@@ -270,13 +286,9 @@ export function installNativeGroupRows(host: SimHost, input: unknown, grid: Bake
         chargeContact: (body,context,radius) => { contact(body,context,radius,true); },
         scarePack: (body,radius) => { const pack = packOf.get(body); if (pack === undefined) return false; pack.scare(body.position.x,body.position.z,radius); return true; },
         onKnockdown: (x,z,strength) => { environment.onKnockdown(x,z,strength); } });
-      if(step.guest!==undefined){
-        const program=ReturnProgram.native(host,step.guest.program);
-        if(program.prepareGroup===undefined||program.groupBindings===undefined)throw new Error('Missing native herd group capability');
-        herd.bindGuest({groupBindings:program.groupBindings,prepareGroup:program.prepareGroup},step.guest.binding,
-          {scope:host.scope,group:row.id,handle:herds.length+1,player:host.player.position,actors:host.entities});
-      }
-      herd.initialize(); herd.findThreat = (x,z,radius) => nearestPopulationActor(wolves,x,z,radius);
+      initializeDeclaredGroup(herd,step.guest,{scope:host.scope,group:row.id,handle:herds.length+1,
+        player:host.player.position,actors:host.entities},host);
+      herd.findThreat = (x,z,radius) => nearestPopulationActor(wolves,x,z,radius);
       if (step.adopt !== null) herd.adoptStallion(actor(step.adopt)); herds.push(herd);
     }
   }
