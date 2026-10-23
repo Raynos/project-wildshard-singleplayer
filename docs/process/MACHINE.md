@@ -128,8 +128,7 @@ preview past its `--hours` (default 4), an unregistered one after 6 h and any de
   (`scripts/shardfile-cache.mjs`; the push gate's full build publishes every shard it builds there). `--shard <slug>`
   filters a working-tree build's products (others stay only if still current, never stale); pinned previews always build
   all products for sharing. `--full` is the old full rebuild.
-  A proof without a server: `node scripts/build-mirror.mjs run HEAD -- pnpm build:proof`. The push gate and CI still run
-  the full `pnpm build`. The build log prints per-step seconds.
+  The push gate and CI run the full `pnpm build`. The build log prints per-step seconds.
 - **Start previews from your session scratchpad, not the repo root.** Its "all mine" eviction keys on the caller's
   folder, so repo-root previews get killed or reused by other agents. Read `/version.json` on your port before each
   capture batch.

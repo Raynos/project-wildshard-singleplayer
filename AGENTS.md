@@ -118,9 +118,9 @@ file in `docs/` is: [docs/README.md](docs/README.md).
 - **One full suite and up to three app builds machine-wide** (Jake, G620): use `python3 scripts/heavy-lane.py full-test|build -- <command>`; the push gate has queue priority, focused tests are unrestricted. Lanes never run the full suite: `full-test` refuses outside CI without `WS_FULL_SUITE=1` (SF74 W1). Pinned HEAD previews share one server per SHA across lanes; release your use with `serve-build.sh stop <port>`.
 - **Clean your scratchpad**: delete throwaways as soon as you have the result; never rename aside. What you keep goes in
   the repo.
-- **Disk: never copy the repo.** No `git archive | tar -x` exports, clones or worktrees. An exact-commit build or check runs
-  in the one build mirror: `node scripts/build-mirror.mjs run <sha> [--slot name] -- <cmd>` (synced file by file,
-  locked; `serve-build.sh --head/--rev`, the pre-commit check and the push gate already use it). Big scratch goes under
+- **Disk: never copy the repo.** No `git archive | tar -x` exports, clones or worktrees. The one build mirror is used only by
+  `serve-build.sh --head/--rev` previews of landed commits, the pre-commit check and the push gate; lanes never run
+  their own checks there (G612, G670). Big scratch goes under
   the git-ignored `./tmp/<task>`, deleted with `rm -rf` on its exact path when done. Never `/tmp`, `$TMPDIR` or the
   session scratchpad for anything big, and never `mv` trees to `/tmp/delete-me-*`: macOS empties those at boot before
   login, and millions of leftover export files held the laptop at the login progress bar for hours (2026-10-15).

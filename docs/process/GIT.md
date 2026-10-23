@@ -171,9 +171,8 @@ rewrite still needs Jake's approval.
   parallel sessions claim ids in the same second. Claim in the main checkout, never in a worktree behind main (E105
   was handed out twice that way).
 - **A clean tree needs `node scripts/gen.mjs`** before raw `tsc` / `oxlint`: `src/**/*.generated.*` is gitignored and
-  CI's `pnpm run typecheck` / `lint` run `pnpm gen` first. Never export: run it in the build mirror,
-  `node scripts/build-mirror.mjs run HEAD [--slot name] -- <cmd>` (HEAD without art/progress/sources, ~0.9 GB once,
-  synced file by file; generated files persist between runs).
+  CI's `pnpm run typecheck` / `lint` run `pnpm gen` first. Never export a
+  copy of the repo to run it; lanes land on types, lint and `vitest related` in the working tree (G612, G670).
 - **CI-only node checks:** `pnpm test`'s check-paths, audit-assets, check-model-sources and webgpu-inventory don't run
   in the pre-push gate (its tree drops paths they read). After moving fixtures or editing an allowlist, run
   `node scripts/check-paths.mjs` yourself.
@@ -186,7 +185,7 @@ rewrite still needs Jake's approval.
   after checking `git diff HEAD` shows only your lines.
 - **No worktrees, feature branches or landings by default** (Jake, 2026-10-15). Everyone, subagents included, commits
   to `main` in this checkout. A worktree is only for an exceptional case Jake approves: under `./tmp`, removed when
-  done, never pushed. Exact-commit checks use the build mirror (`node scripts/build-mirror.mjs run <rev> -- <cmd>`).
+  done, never pushed.
 - **New npm deps:** `pnpm install --frozen-lockfile --prefer-offline --config.enable-global-virtual-store=false` in the
   checkout first, or the gate refuses the push.
 - **Deleting a branch** (`git branch -d`) is blocked for agents by dcg. Check it is merged, prune its worktree, and hand
