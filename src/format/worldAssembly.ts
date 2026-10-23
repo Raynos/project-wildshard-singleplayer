@@ -33,6 +33,11 @@ export const WorldAssemblyStageSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('dressing-anchor'), id, part: id, anchor: id }),
   v.strictObject({ kind: v.literal('dressing'), id, bindSets: v.boolean() }),
   v.strictObject({ kind: v.literal('fixed-draws'), id }),
+  /** G603: finite models drawn from the loaded fixed draws (a group holding one copy of each row's draw) in one lent look,
+   *  published together as one drawn-models loan keyed by model id */
+  v.strictObject({ kind: v.literal('drawn-models'), id, look: v.strictObject({ painterly: v.strictObject({ rim: v.pipe(finite, v.minValue(0), v.maxValue(1)) }) }),
+    models: v.pipe(v.array(v.strictObject({ id, draw: id })), v.minLength(1), v.maxLength(64),
+      v.check(rows => new Set(rows.map(row => row.id)).size === rows.length, 'Drawn model ids are unique')) }),
   v.strictObject({ kind: v.literal('painted-reseed'), id, world: id }),
   v.strictObject({ kind: v.literal('painted-world'), id, world: id, weather: id,
     groups: v.pipe(v.array(v.strictObject({ name: id, object: id })), v.maxLength(16)),

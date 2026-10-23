@@ -46,6 +46,7 @@ export interface EntryOwnerTypes {
   site: ModelSiteLayout['anchors'];
   floor: ModelSiteLayout['floorHeightAt'];
   'fixed-draws': FixedDraws;
+  'drawn-models': ReadonlyMap<string, Object3D>;
   chain: RopeChain;
   'rope-deck': ReturnType<RopeDeckSite['place']>;
   ambient: AmbientGroup;
@@ -71,7 +72,7 @@ function book(scope: Scope): Owners {
   let value = books.get(scope);
   if (value === undefined) {
     value = { scenes: new Map(), 'world-weather': new Map(), 'world-point': new Map(), 'arena-script': new Map(), 'arena-room': new Map(), taming: new Map(), adventure: new Map(), buildings: new Map(), forest: new Map(), cave: new Map(), quest: new Map(), 'quest-reference': new Map(),
-      object: new Map(), placed: new Map(), site: new Map(), floor: new Map(), 'fixed-draws': new Map(), chain: new Map(), 'rope-deck': new Map(), ambient: new Map(), 'ambient-draw': new Map(), collection: new Map(), claims: new Map(), 'mounted-arsenal': new Map(),
+      object: new Map(), placed: new Map(), site: new Map(), floor: new Map(), 'fixed-draws': new Map(), 'drawn-models': new Map(), chain: new Map(), 'rope-deck': new Map(), ambient: new Map(), 'ambient-draw': new Map(), collection: new Map(), claims: new Map(), 'mounted-arsenal': new Map(),
       animals: new Map(), sounds: new Map(), 'quest-spawns': new Map(), 'painted-world': new Map() };
     books.set(scope, value);
   }

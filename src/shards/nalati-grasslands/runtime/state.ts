@@ -6,7 +6,6 @@ import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import { wildEnv } from '@wildshard/game/population/pageGroups';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardRuntime } from '@wildshard/game/shard/runtime';
-import { Group, Mesh } from 'three';
 import * as v from 'valibot';
 import { slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 import { wind } from '@wildshard/engine/world/steppeWind';
@@ -21,7 +20,7 @@ import { buildArenaRoomEncounter } from '@wildshard/game/boss/arenaRoom';
 import { DeclaredEliteEntry } from '@wildshard/engine/ai/view/eliteEntry';
 import type { ExternalElitePage } from '@wildshard/game/quest/elitePage';
 import { parseEliteEntryPageRows } from '@wildshard/format/eliteEntryRows';
-import { painterlyMaterial } from '@wildshard/engine/world/painterly';
+import { sharedModelContext } from '@wildshard/engine/models/model';
 import { WorldAssembly } from '@wildshard/game/shardfile/worldAssembly';
 import prefix from '../data/worldPrefix.json' with { type: 'json' };
 import { installWorldUpdates } from '@wildshard/game/shardfile/worldUpdates';
@@ -74,10 +73,11 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
 
   // ── named elites (elites agent, B12): the five lairs, their spawn rules on the clock / the storm — src/shards/nalati-grasslands/elites.ts ──
   const charge = await readSpawnScript(plugin.product, 'nalati.qara-charge');
-  const { constants: { pageElites: eliteInput } } = await plugin.product.json<{ constants: { pageElites: unknown } }>('sim/headless-assembly.json');
+  const { constants: { pageElites: eliteInput, trophies } } = await plugin.product.json<{ constants: { pageElites: unknown; trophies: unknown } }>('sim/headless-assembly.json');
   const eliteRows = parseEliteEntryPageRows(eliteInput);
-  const dropMaterial = painterlyMaterial(sky, { rim: .6 });
-  const drops = new Map(eliteRows.entry.entries.map(row => { const model = new Group(); model.add(new Mesh(shapes.handle(`trophy:${row.id}`).copy(), dropMaterial)); return [row.id, model] as const; }));
+  // the lairs' trophies: drawn from the shape book at this slot (data/worldTrophies.json, a drawn-models stage)
+  await WorldAssembly.admit(trophies, { scope: plugin.scope, context: sharedModelContext(sky, game), registry: null, draws: shapes, slice: () => Promise.resolve() }).next('nalati.trophies');
+  const drops = entryOwner(plugin.scope, 'drawn-models', 'nalati.trophies');
   const eliteLedges = anchors('crags', 'ledges');
   const elites = new DeclaredEliteEntry<ExternalElitePage>(eliteRows.entry, game.levelScope);
   updates.push((dt, t) => {

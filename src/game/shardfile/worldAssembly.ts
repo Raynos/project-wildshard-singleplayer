@@ -13,7 +13,8 @@ import type { ShardRuntime } from '../shard/runtime';
 import type { IslandLibrary } from '../models/islandLibrary';
 import type { defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
 import type { BakedTiles } from './bakedTiles';
-import { Group, Vector3, type Object3D } from 'three';
+import { Group, Mesh, Vector3, type BufferGeometry, type Object3D } from 'three';
+import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import { worldBuildYield } from '../shard/plugin';
 import { CoverCompositionSchema } from '@wildshard/format/streamedCover';
 import { createStreamedCover } from '../looks/streamedCover';
@@ -79,6 +80,25 @@ export interface WorldConstructionPorts {
   readonly sites?: ReturnType<typeof defineWorldSceneCatalogue>;
   readonly variant?: string;
   readonly progress?: StepProgress;
+}
+
+/** A drawn-models stage: every row's draw is found in the loaded fixed draws before anything is allocated, then one material
+ *  and a group per row holding a copy of its draw; the copies and the material belong to the construction scope (a failure
+ *  part-way disposes what it made), and the models are published together as one loan. No progress step. */
+function installDrawnModels(ports: Pick<WorldAssemblyPorts, 'scope' | 'draws' | 'context'>, stage: Extract<WorldAssemblyStage, { kind: 'drawn-models' }>): void {
+  const { scope, draws } = ports;
+  if (draws === undefined || !draws.ready) throw new Error('World drawn models need loaded fixed draws');
+  const handles = stage.models.map(row => [row.id, draws.handle(row.draw)] as const);
+  const material = painterlyMaterial(ports.context.sky, { rim: stage.look.painterly.rim }), copies: BufferGeometry[] = [];
+  let models: Map<string, Object3D>;
+  try {
+    models = new Map(handles.map(([id, handle]) => {
+      const geometry = handle.copy(), group = new Group(); copies.push(geometry); group.add(new Mesh(geometry, material)); return [id, group] as const;
+    }));
+    if (scope.disposed || scope.disposing) throw new Error('World assembly owner left');
+  } catch (error) { for (const geometry of copies) geometry.dispose(); material.dispose(); throw error; }
+  scope.own(material); for (const geometry of copies) scope.own(geometry);
+  publishEntryOwner(scope, 'drawn-models', stage.id, models);
 }
 
 /** Ordered weather admission stays separately charged to its actual users. */
@@ -326,6 +346,7 @@ export class WorldAssembly {
       unchanged(); return;
     }
     if (stage.kind === 'fixed-draws') { this.at++; await installFixedDrawsStage(this.ports, stage); return; }
+    if (stage.kind === 'drawn-models') { this.at++; installDrawnModels(this.ports, stage); return; }
     if (stage.kind === 'painted-reseed') { this.at++; installPaintedReseedStage(scope, stage); return; }
     if (stage.kind === 'painted-world') {
       const ctx = this.ports.weatherContext, world = ctx?.game.runtime?.world;
@@ -481,12 +502,13 @@ function admitted(input: unknown): readonly WorldAssemblyStage[] {
 }
 
 /** The loan kinds a stage publishes, from its declaration alone. */
-function loanKinds(stage: WorldAssemblyStage): readonly ('object' | 'placed' | 'site' | 'floor' | 'rope-deck' | 'chain' | 'buildings' | 'ambient-draw' | 'ambient' | 'world-weather' | 'arena-script' | 'fixed-draws' | 'world-point' | 'painted-world')[] {
+function loanKinds(stage: WorldAssemblyStage): readonly ('object' | 'placed' | 'site' | 'floor' | 'rope-deck' | 'chain' | 'buildings' | 'ambient-draw' | 'ambient' | 'world-weather' | 'arena-script' | 'fixed-draws' | 'drawn-models' | 'world-point' | 'painted-world')[] {
   if (stage.kind === 'dressing-anchor') return ['world-point'];
   if (stage.kind === 'arena-script') return ['arena-script'];
   if (stage.kind === 'painted-world') return ['painted-world', 'object'];
   if (stage.kind === 'weather') return ['world-weather', 'object'];
   if (stage.kind === 'fixed-draws') return ['fixed-draws'];
+  if (stage.kind === 'drawn-models') return ['drawn-models'];
   if (stage.kind === 'painted-reseed') return [];
   if (stage.kind === 'streamed-cover') return ['object', 'placed'];
   if (stage.kind === 'ambient-flock') return ['object', 'ambient-draw', 'ambient'];

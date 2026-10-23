@@ -100,6 +100,7 @@ import { SCRIPT_V2_REVISIONS } from '@wildshard/format/scriptAdmissionV2';
 import creatureViewBytes from '../behaviour/creatureViews.generated.json' with { type: 'json' };
 import { nalatiCreatureViews } from './creatureViews';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
+import worldTrophies from '../data/worldTrophies.json' with { type: 'json' };
 import { FixedDrawRowsSchema } from '@wildshard/format/fixedDraws';
 import shapeBook from '../data/shapeBook.generated.json' with { type: 'json' };
 import { postChainRows } from './postChain';
@@ -113,7 +114,7 @@ const {polearm:_polearm,blade:_blade,programs:_programs,program:_program,...weap
 const sheepBody = bakeSheepBody();
 // Resolve author-only lair definitions into the admitted assembly, never runtime imports.
 const {pageWildlife:_pageWildlife,pageGroups:_pageGroups,groupAdmission:_groupAdmission,...nativeConstants}=headlessAssembly.constants;
-const eliteAssembly = { ...headlessAssembly, constants: { ...nativeConstants, pageElites: buildEliteEntryPageRows(), eliteDefs: Object.fromEntries(Object.entries(ecology.elites).filter(([id]) => ['aqbars', 'kokbori', 'argymaq'].includes(id)).map(([id, def]) => [id, {
+const eliteAssembly = { ...headlessAssembly, constants: { ...nativeConstants, pageElites: buildEliteEntryPageRows(), trophies: worldTrophies, eliteDefs: Object.fromEntries(Object.entries(ecology.elites).filter(([id]) => ['aqbars', 'kokbori', 'argymaq'].includes(id)).map(([id, def]) => [id, {
   id: def.id, lair: def.lair, awareR: def.awareR, engageR: def.engageR, leashR: def.leashR, rule: def.rule, respawnMin: def.respawnMin,
 }])), nativePopulation: v.parse(v.object({ population: v.record(v.string(), v.unknown()) }), ridingPrograms).population, nativeRide: { ...nativeRide, speeds: ecology.modes.ride[0].gaits, roads: headlessBoot.roads } } };
 

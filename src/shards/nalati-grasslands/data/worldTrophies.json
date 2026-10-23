@@ -1,0 +1,35 @@
+{
+  "stages": [
+    {
+      "kind": "drawn-models",
+      "id": "nalati.trophies",
+      "look": {
+        "painterly": {
+          "rim": 0.6
+        }
+      },
+      "models": [
+        {
+          "id": "aqbars",
+          "draw": "trophy:aqbars"
+        },
+        {
+          "id": "kokbori",
+          "draw": "trophy:kokbori"
+        },
+        {
+          "id": "qyran",
+          "draw": "trophy:qyran"
+        },
+        {
+          "id": "qara-batyr",
+          "draw": "trophy:qara-batyr"
+        },
+        {
+          "id": "argymaq",
+          "draw": "trophy:argymaq"
+        }
+      ]
+    }
+  ]
+}
