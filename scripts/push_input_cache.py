@@ -249,11 +249,13 @@ def restore(repo, tree, records, deadline):
         return False
 
 
-def restore_tests(repo, tree, records, deadline):
+def restore_tests(repo, tree, records, deadline, include=None):
     """An older verified generation is useful for tests, never current types.
 
     Its source key must still describe its original Git revision and every
-    blob is checked before any writes. No loose generated output is trusted.
+    blob is checked before any writes, including blobs omitted by include.
+    The optional predicate limits materialization, never verification.
+    No loose generated output is trusted.
     """
     cache = repo / 'tmp/push-input-cache'
     entry = cache / 'entries.json'
@@ -297,7 +299,7 @@ def restore_tests(repo, tree, records, deadline):
                 data = (cache / 'blobs' / digest).read_bytes()
                 if hashlib.sha256(data).hexdigest() != digest:
                     raise ValueError('Corrupt test-input blob')
-                if name not in tracked or name.startswith('public/'):
+                if (name not in tracked or name.startswith('public/')) and (include is None or include(name)):
                     verified.append((path, data))
             for path, data in verified:
                 path.parent.mkdir(parents=True, exist_ok=True)

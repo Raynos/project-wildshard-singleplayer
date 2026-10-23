@@ -15,6 +15,8 @@ export async function precommitInputs(root = resolve(import.meta.dirname, '..'),
   const initial = git(['ls-files', '--stage', '-z']);
   const changed = git(['diff', '--cached', '--name-only', '-z', '--no-renames', '--diff-filter=ACMRD']).split('\0').filter(Boolean);
   const deleted = git(['diff', '--cached', '--name-only', '-z', '--no-renames', '--diff-filter=D']).split('\0').filter(Boolean);
+  const sourcePolicy = changed.some(path => path.startsWith('src/') || path === 'lint/ratchet.json');
+  const guards = commitGuards(changed);
   if (changed.includes('lint/ratchet.json')) {
     const before = JSON.parse(git(['show', 'HEAD:lint/ratchet.json']));
     const after = JSON.parse(git(['show', ':lint/ratchet.json']));
@@ -48,6 +50,7 @@ export async function precommitInputs(root = resolve(import.meta.dirname, '..'),
   if (same) early.push({ name: 'typed lint', command: [executable, '--type-aware', '-c', '.oxlintrc.json', ...files] });
   else if (files.length > 0) { defer(); console.warn('pre-commit: staged patch differs from working files; exact typed checks deferred to push'); }
   // Inspect exact staged JSON in Git, including assets outside the source snapshot.
+  /** @type {string | undefined} */
   let binaryTree;
   if (changed.some(path => path.endsWith('.json')) && (initial.includes('\tlint/no-binary-json.json\0') || changed.includes('lint/no-binary-json.json'))) {
     mkdirSync(resolve(root, 'tmp'), { recursive: true });
@@ -57,15 +60,17 @@ export async function precommitInputs(root = resolve(import.meta.dirname, '..'),
     early.push({ name: 'binary JSON', command: [process.execPath, checker, '--staged'] });
   }
   const running = runCommitJobs(root, early, deadline);
+  /** @type {string | undefined} */
   let tree;
   try {
     /** @type {import('./precommit-jobs.mjs').CommitResult[]} */
     let checked = [];
-    if (changed.length > 0) {
+    if (files.length > 0 || changed.some(path => /^(?:src|scripts|test|lint)\//u.test(path))) {
       mkdirSync(resolve(root, 'tmp'), { recursive: true });
       tree = mkdtempSync(resolve(root, 'tmp/commit-source-'));
       const preparation = await runCommitJobs(root, [{ name: 'staged source', command: ['python3', resolve(import.meta.dirname, 'precommit-source.py'), root, tree,
-        String((Date.now() + Math.max(0, deadline - performance.now())) / 1000)] }], deadline);
+        String((Date.now() + Math.max(0, deadline - performance.now())) / 1000), '-',
+        JSON.stringify({ files, changed, guards, closed: sourcePolicy, deleted: deleted.length > 0 })] }], deadline);
       const failed = preparation.find(result => result.code !== 0);
       if (failed !== undefined && commitCheckFailed(failed)) throw new Error(`${failed.name}: ${failed.output}`);
       if (failed !== undefined) {
@@ -80,7 +85,7 @@ export async function precommitInputs(root = resolve(import.meta.dirname, '..'),
         const baseline = execFileSync('git', ['show', `HEAD:${policy}`], { cwd: root, encoding: 'utf8', maxBuffer: 1 << 30 });
         writeFileSync(resolve(tree, '.commit-baseline-ratchet.json'), baseline);
         const sections = 'lint/custom-sections.json';
-        if (execFileSync('git', ['ls-tree', '--name-only', 'HEAD', sections], { cwd: root, encoding: 'utf8' }).trim() === sections)
+        if (execFileSync('git', ['ls-tree', '--name-only', 'HEAD', sections], { cwd: root, encoding: 'utf8', maxBuffer: 1 << 30 }).trim() === sections)
           writeFileSync(resolve(tree, '.commit-baseline-custom-sections.json'),
             execFileSync('git', ['show', `HEAD:${sections}`], { cwd: root, encoding: 'utf8', maxBuffer: 1 << 30 }));
       }
@@ -88,16 +93,18 @@ export async function precommitInputs(root = resolve(import.meta.dirname, '..'),
       const worker = existsSync(stagedWorker) ? stagedWorker : resolve(import.meta.dirname, 'precommit-checks.mjs');
       const jobs = [];
       if (files.length > 0) jobs.push({ name: 'fast lint', command: [process.execPath, worker, 'fast', executable] });
-      if (existsSync(resolve(tree, policy))) {
+      if (sourcePolicy && existsSync(resolve(tree, policy))) {
         jobs.push({ name: 'closed components', command: [process.execPath, worker, 'closed'] });
         jobs.push({ name: 'ratchet', command: [process.execPath, worker, 'ratchet', executable, root] });
       }
       if (deleted.length > 0) jobs.push({ name: 'deleted paths', command: [process.execPath, worker, 'deleted'] });
-      const guards = commitGuards(changed).filter(file => existsSync(resolve(tree, file)));
+      for (const file of guards) if (!existsSync(resolve(tree, file))) throw new Error(`Missing selected staged inventory guard: ${file}`);
       if (guards.length > 0) jobs.push({ name: 'inventory guards', command: [process.execPath, resolve(root, 'node_modules/vitest/vitest.mjs'), 'run', '--config', 'scripts/vitest-push-guards.config.ts', ...guards] });
       checked = await runCommitJobs(tree, jobs, deadline);
       }
     }
+    if (checked.length === 0 && guards.length > 0 && !changed.some(path => /^(?:src|scripts|test|lint)\//u.test(path)))
+      console.warn('pre-commit: docs-only inventory checks deferred to push/CI');
     const results = [...await running, ...checked];
     const failures = [];
     for (const result of results) {

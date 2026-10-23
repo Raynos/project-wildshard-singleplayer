@@ -125,6 +125,12 @@ class PushInputCache(unittest.TestCase):
         changed = [*records, b'100644 blob new\tsrc/new.ts']
         self.assertEqual(CACHE['restore_tests'](self.root, previous, changed, time.monotonic() + 5), tip)
         self.assertEqual((previous / 'src/value.generated.json').read_bytes(), output)
+        selected = self.root / 'selected-check'
+        selected.mkdir()
+        self.assertEqual(CACHE['restore_tests'](self.root, selected, changed, time.monotonic() + 5,
+                         include=lambda name: name == 'src/post.generated.ts'), tip)
+        self.assertEqual((selected / 'src/post.generated.ts').read_bytes(), post_bytes)
+        self.assertFalse((selected / 'src/value.generated.json').exists())
         # The same old set still cannot earn current type proof.
         self.assertFalse(CACHE['restore'](self.root, previous, changed, time.monotonic() + 5))
         unsafe = self.root / 'symlink-check'
@@ -140,6 +146,12 @@ class PushInputCache(unittest.TestCase):
         self.assertFalse(CACHE['restore'](self.root, clean, records, time.monotonic() + 5))
         self.assertIsNone(CACHE['restore_tests'](self.root, clean, changed, time.monotonic() + 5))
         self.assertFalse((clean / 'src/shards/fixture/discovery.generated.ts').exists())
+        # An omitted blob is still verified; selection cannot hide corruption.
+        filtered = self.root / 'filtered-corrupt'
+        filtered.mkdir()
+        self.assertIsNone(CACHE['restore_tests'](self.root, filtered, changed, time.monotonic() + 5,
+                          include=lambda name: name == 'src/post.generated.ts'))
+        self.assertFalse((filtered / 'src/post.generated.ts').exists())
         saved['inputs']['src/base.ts'] = 'f' * 64
         encoded = json.dumps(saved, ensure_ascii=False, separators=(',', ':'))
         phase.write_text(json.dumps({**saved, 'seal': hashlib.sha256(encoded.encode()).hexdigest()}))

@@ -16,7 +16,8 @@ export function fastCommitLintConfig(raw) {
   const expensive = Object.fromEntries(['wildshard/no-authored-html', 'wildshard/no-shard-host-callback']
     .filter(rule => serialized.includes(`"${rule}"`)).map(rule => [rule, 'off']));
   const overrides = Reflect.get(config, 'overrides');
-  Object.assign(config, { rules: { ...Reflect.get(config, 'rules'), ...expensive },
+  const rules = Reflect.get(config, 'rules');
+  Object.assign(config, { rules: { ...(typeof rules === 'object' && rules !== null ? rules : {}), ...expensive },
     overrides: [...(Array.isArray(overrides) ? overrides : []), { files: ['**/*'], rules: expensive }] });
   return config;
 }
@@ -78,7 +79,8 @@ export async function stagedRatchet(files, executable, repository) {
     if (repository === undefined) throw new Error('Missing HEAD repository for staged ratchet comparison');
     const head = resolve('.commit-head');
     const prepared = spawnSync('python3', [resolve(import.meta.dirname, 'precommit-source.py'), repository, head,
-      String(Date.now() / 1000 + 5), 'HEAD'], { encoding: 'utf8', maxBuffer: 1 << 30 });
+      String(Date.now() / 1000 + 5), 'HEAD', JSON.stringify({ files: missing, guards: [], closed: false, deleted: false })],
+    { encoding: 'utf8', maxBuffer: 1 << 30 });
     if (prepared.error !== undefined) throw prepared.error;
     if (prepared.status !== 0) throw new Error(`HEAD ratchet source failed: ${prepared.stderr}`);
     linkNodeModules(repository, head);
