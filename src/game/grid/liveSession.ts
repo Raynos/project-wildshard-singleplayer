@@ -620,6 +620,8 @@ export class LiveGridSession {
 
   /** The traveller's world feet (grid metres), whatever frame it is in. */
   worldFeet(): { x: number; y: number; z: number } { return this.live.worldFeet(); }
+  /** The road start (Debug ▸ Start of play): the home builds in play from the first frames, before the traveller nears it. */
+  admitHomeAhead(): void { if (this.page.ownedHome === true && this.live.current() === null) this.live.admitAhead(this.ports.home.instance); }
   /** Retry a refused source save without reloading the prepared destination; retreat also cancels the hold safely. */
   retrySave(): void { this.crossing.crossing.retrySave(); }
   /** Original latest admission failure for classified UI; retry clears it before another generation begins. */

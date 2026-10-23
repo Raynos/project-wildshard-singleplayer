@@ -266,6 +266,13 @@ export class LiveGridHost {
   ready(instance: string | null): boolean {
     return !this.disposed && (instance === null || this.borrowedHome(instance) || (this.residents.has(instance) && !this.residents.get(instance)?.evicting && !this.residents.get(instance)?.disposalFailed && this.readiness.status(instance).ready));
   }
+  /** On the road (owned, no active cell), build `instance` whole now as the known destination, as the road approach does
+   *  for a cell the traveller heads for; a crossing toward another cell abandons it at its next safe point (`preempt`). */
+  admitAhead(instance: string): void {
+    if (this.disposed || this.ports.home.mode !== 'owned' || this.active !== null || this.requests.size > 0
+      || this.residents.has(instance) || this.issues.has(instance)) return;
+    void background(instance, this.ensure(instance, true), () => !this.disposed);
+  }
   /** Submit whole-shard requests in stable order. Failed attempts remain closed until an explicit retry. */
   prefetch(instances: readonly string[]): Promise<void> { return Promise.all([...new Set(instances)].sort().map((id) => this.ports.home.mode === 'owned' ? this.residents.has(id) ? Promise.resolve() : this.prefetchProduct(id) : this.ensure(id))).then(() => undefined); }
   private prefetchProduct(instance: string): Promise<LiveGridAdmission> {
