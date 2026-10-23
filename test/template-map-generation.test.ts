@@ -9,8 +9,16 @@ import { paintDataMap } from '../scripts/bake-data-maps.mjs';
 import { mapTilesHash } from '../scripts/map-hash.mjs';
 import { templateMapInputs } from '../src/shards/_template/generators/mapInputs';
 import settings from '../src/shards/_template/data/map.json' with { type: 'json' };
+import { builtProduct } from './fixtures/builtProduct';
+import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
+import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
 
 test('the Template map uses producer bytes with no restored world metadata or assets', async () => {
+  const product = await loadHeadlessProduct(builtProduct('_template'));
+  const name = outputDescriptor(product.shardfile)?.index.files
+    .find(file => file.hash === product.shardfile.map?.image)?.name;
+  if (name === undefined) throw new Error('Template product does not declare its map image');
+  const expected = Buffer.from(await product.file(name));
   const sources = templateMapInputs();
   mkdirSync('tmp', { recursive: true }); const root = mkdtempSync(resolve('tmp', 'template-map-'));
   try {
@@ -20,7 +28,7 @@ test('the Template map uses producer bytes with no restored world metadata or as
     const result = await paintDataMap(root, 'fixture', { sources });
     expect(result.raster.triangles).toBe(143742);
     const actual = readFileSync(resolve(root, 'public/assets/fixture/map/top.webp'));
-    expect(Buffer.compare(actual, readFileSync('public/assets/_template/map/top.webp'))).toBe(0);
+    expect(Buffer.compare(actual, expected)).toBe(0);
     expect(result.stamp.tilesHash).toBe(mapTilesHash(dir));
     const before = result.stamp.tilesHash; writeFileSync(resolve(dir, 'source.txt'), 'changed authored source');
     expect(mapTilesHash(dir)).not.toBe(before);

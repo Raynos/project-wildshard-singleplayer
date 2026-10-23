@@ -10,7 +10,8 @@ test.each([
   'scripts/far-reach-roc', 'scripts/skitterer-pack',
   'chapter-director-product', 'pine-quest-actions-product', 'pine-prop-product',
   'native-runtime-plan', 'mover-carry',
-])('%s consumes an existing product without invoking a producer or server', name => {
+  'template-map-generation',
+])('%s consumes an existing product without building an app or starting a server', name => {
   const source = readFileSync(`test/${name}.test.ts`, 'utf8');
   expect(source).toContain('builtProduct(');
   expect(source).not.toMatch(/node:child_process|scripts\/build-shardfiles|createServer\(|localhost:3000/u);
@@ -29,6 +30,7 @@ cases = [
  ['test/scripts/readme.md'], ['other/test/scripts/example.test.ts'],
  ['test/pine-npc-figure-product.test.ts', 'test/scripts/ground-encounters.test.ts'],
  ['test/scripts/nine-sign-atlas.test.ts'],
+ ['test/template-map-generation.test.ts'],
 ]
 print(json.dumps([select(case, registry) for case in cases], separators=(',', ':')))
 try:
@@ -42,7 +44,7 @@ assert all(str(path) in registry for path in Path('test/scripts').glob('*.test.t
   expect(JSON.parse(result)).toEqual([
     ['_template'], ['far-reach'],
     ['_template', 'driftwood-isle', 'far-reach', 'nalati-grasslands', 'nine-dragon-stack', 'pastel-plain', 'pine-hollow', 'sunscar-dunes'],
-    [], [], [], [], ['driftwood-isle', 'pine-hollow'], [],
+    [], [], [], [], ['driftwood-isle', 'pine-hollow'], [], ['_template'],
   ]);
 });
 

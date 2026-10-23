@@ -226,6 +226,9 @@
   "test/grapple-platform.test.ts": [],
   "test/nalati-layout-bake.test.ts": [],
   "test/data-map-painter.test.ts": [],
+  "test/template-map-generation.test.ts": [
+    "_template"
+  ],
   "test/stealth-detection.test.ts": [],
   "test/held-weapon-laws.test.ts": [],
   "test/nalati-riding-rules.test.ts": [],
