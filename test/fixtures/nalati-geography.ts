@@ -25,8 +25,8 @@ const palette:v.GenericSchema<unknown,MapPaletteRow>=v.object({ground:paint,
 const geography=v.object({res:finite,size:finite,seed:finite,map:palette,
   channels:v.object({wet:ScalarLatticeSchema,mapRed:ScalarLatticeSchema,mapGreen:ScalarLatticeSchema,mapBlue:ScalarLatticeSchema})});
 
-/** Independent raw fixture for map/sampler comparisons, without static JSON inference. */
+/** Independent admitted fixture for map/sampler comparisons, without static JSON inference. */
 export function readNalatiGeography():v.InferOutput<typeof geography>{
   const input:unknown=JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/geography.generated.json','utf8'));
-  v.assert(geography,input);return input;
+  return v.parse(geography,input);
 }
