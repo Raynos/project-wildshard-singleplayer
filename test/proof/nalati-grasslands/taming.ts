@@ -22,7 +22,7 @@ const physics=(()=>{
  v.assert(v.object({spawns:v.array(v.object({id:v.string(),at:v.pipe(v.array(finite),v.length(3))}))}),rows);return rows;
 })();
 
-const nalatiBake=()=>createNativeBakeReader(physics,{label:'Nalati',resolution:256,size:500,parked:false,rig:'segments',provenance:'piece',shapes:[1,2,6,9],metadata:'population'}).read();
+const nalatiBake=()=>createNativeBakeReader(physics,{label:'Nalati',resolution:256,size:500,parked:false,rig:'segments',provenance:'piece',shapes:[1,2,6,9]}).read();
 
 const MODULE = new URL('../../fixtures/nalati-headless.ts', import.meta.url).href;
 function law(host: SimHost) {

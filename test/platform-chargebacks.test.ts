@@ -57,7 +57,7 @@ test('Nine pool spans charge actual source lines while instance packets remain s
 test('reviewed Pine and Driftwood branches charge their actual owners', () => {
   const reports: string[] = [];
   const charges = new Map<string, {path: string; name: string; lines: number}[]>([['pine-hollow', []], ['driftwood-isle', []]]);
-  for (const path of inlinePlatformPaths().filter(file => !file.endsWith('/worldScenes.ts') && file !== 'src/game/shardfile/scenePools.ts' && file !== 'src/game/population/nativeBake.ts')) {
+  for (const path of inlinePlatformPaths().filter(file => !file.endsWith('/worldScenes.ts') && file !== 'src/game/shardfile/scenePools.ts')) {
     const source = readFileSync(path, 'utf8');
     for (const span of inlinePlatformSpans(path, source, line => { reports.push(line); })) {
       expect(span.lines.length).toBeGreaterThan(0);
@@ -505,23 +505,11 @@ test('retired elite keeper selectors carry no chargeback after declared engine e
     expect(platformChargeback('src/game/quest/elitePage.ts', name)).toBeNull();
 });
 
-test('the optional population bake profile remains charged inside the stock native reader', () => {
-  const path = 'src/game/population/nativeBake.ts', source = readFileSync(path, 'utf8'), reports: string[] = [];
-  expect(platformChargeback(path, 'populationMetadata')).toBe('C9');
-  expect(platformChargeback(path, 'readPopulationBake')).toBeNull();
-  const spans = inlinePlatformSpans(path, source, message => { reports.push(message); });
-  expect(reports).toEqual([]);
-  expect(spans.map(row => [row.name, row.lines.length])).toEqual([['nativeIntake', 1], ['createNativeBakeReader', 3]]);
-  const charges = new Map<string, {path: string; name: string; lines: number}[]>([['nalati-grasslands', []]]);
-  for (const span of spans) expect(recordPrivateCharge(charges, 'fixture-only-user', {path, name: span.name, lines: span.lines.length})).toBe(true);
-  expect(charges.get('nalati-grasslands')?.reduce((sum, row) => sum + row.lines, 0)).toBe(4);
-  const shared = new Set(['pine-hollow', 'nalati-grasslands']);
-  const bindings = new Map([[`${path}\0populationMetadata`, shared], [`${path}\0createNativeBakeReader`, shared]]);
-  chargePlatformUsers(new Map(), bindings);
-  expect([...bindings.get(`${path}\0populationMetadata`) ?? []]).toEqual(['nalati-grasslands']);
-  expect(bindings.get(`${path}\0createNativeBakeReader`)).toBe(shared);
+test('retired population metadata has no platform selector or inline branch',()=>{
+ const path='src/game/population/nativeBake.ts',reports:string[]=[];
+ expect(platformChargeback(path,'populationMetadata')).toBeNull();expect(platformChargeback(path,'readPopulationBake')).toBeNull();
+ expect(inlinePlatformSpans(path,readFileSync(path,'utf8'),message=>{reports.push(message);})).toEqual([]);expect(reports).toEqual([]);
 });
-
 
 test('G667 case three credits only its exact original binding selectors',()=>{
   const rows = [

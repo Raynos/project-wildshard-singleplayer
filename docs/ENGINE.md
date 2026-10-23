@@ -7475,20 +7475,16 @@ with the existing module image and never becomes durable continuation.
 source-budget admission and supplies only the selected authored closure; it
 does not compile an alternate entry as a replacement ABI1 witness.
 
-`game/population/nativeBake.createNativeBakeReader(input, rows)` admits a
-stock native-world profile: lattice, rig, collider shapes/provenance and a
-parked-roster requirement. `NativeBakedActor` and `NativePhysicsBake` retain
-ordered body/herd metadata and owned ground/collider buffers. Actor ids must
-be unique, and every declared herd member must join an admitted actor.
-`NativeBakeReader.read()` memoizes only successful admission; independent
-readers own independent buffers. `solid(input)` uses the same stock schema.
-No caller validator, owner-check callback or arbitrary metadata schema is
-accepted. Optional `metadata:'population'` admits ordered trees/tops,
-ledges and the existing forager continuation, with matching canopy counts.
-That optional metadata schema and branch remain charged to their content
-owner. Pine retains its private hit/shelter metadata as assembly data;
-Nalati reads its stock population profile at the original prepare slot.
-No bodies, transforms, samples or random draws are produced.
+`game/population/nativeBake.createNativeBakeReader(input, rows)` composes
+stock native lattice, collider and body admission from finite data rows:
+label, resolution, size, parked, rig, provenance and shapes. Its memo holds
+only a fully admitted world; ordered actor ids are unique and herd member
+references must resolve. `NativeBakeReader.solid` applies the same strict
+shape/provenance policy to an independent collider. No bodies, transforms,
+samples or random draws are produced. Owner metadata is a separate named
+JSON file admitted through `Product.json`; native assembly merges it with
+the stock result at the original preparation slot. No metadata selector,
+authored validator or cross-record callback extends the runtime reader.
 
 ### Ranged action clocks
 

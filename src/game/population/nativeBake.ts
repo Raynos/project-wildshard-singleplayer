@@ -4,7 +4,6 @@ import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { tagCollider, tagOf, type Material } from '@wildshard/engine/physics/surface';
 import type { SimHost } from '@wildshard/engine/sim';
-import { ForagerContinuation } from '@wildshard/format/ambientLife';
 
 /** Decode an owned copy of one native base64 buffer; typed views never share
  * caller storage. Malformed data is refused by atob or its typed-array reader. */
@@ -157,20 +156,12 @@ function nativeBakeReader<E extends object>(input: unknown, options: {
 }
 
 const finite=v.pipe(v.number(),v.finite());
-const populationMetadata=v.pipe(v.object({
-  trees:v.array(v.tuple([finite,finite,v.pipe(finite,v.minValue(0))])),tops:v.array(finite),
-  ledges:v.pipe(v.array(v.strictObject({x:finite,y:finite,z:finite,r:v.pipe(finite,v.minValue(0))})),v.maxLength(6)),
-  marmots:ForagerContinuation,
-}),v.check(row=>row.tops.length===row.trees.length,'Baked population trees and tops differ in count'));
 const lattice={label:v.pipe(v.string(),v.minLength(1),v.maxLength(128)),resolution:v.pipe(finite,v.integer(),v.minValue(2)),size:v.pipe(finite,v.minValue(0.001))};
 const nativeIntake=v.strictObject({...lattice,parked:v.boolean(),rig:v.picklist(['segments','axis']),provenance:v.picklist(['piece','tagged']),
-  metadata:v.exactOptional(v.literal('population')),
   shapes:v.pipe(v.array(v.picklist([1,2,6,9])),v.minLength(1),v.maxLength(4),v.check(shapes=>new Set(shapes).size===shapes.length))});
 /** Public native admission accepts only stock data profiles, never a validator
- * or owner-check callback. Metadata profiles are compiled into this module. */
-export function createNativeBakeReader(input:unknown,rows:{readonly metadata:'population'}):NativeBakeReader<v.InferOutput<typeof populationMetadata>>;
-export function createNativeBakeReader(input:unknown,rows:unknown):NativeBakeReader<object>;
+ * or owner-check callback. Owner metadata uses named Product.json files. */
 export function createNativeBakeReader(input:unknown,rows:unknown):NativeBakeReader<object>{
   const row=v.parse(nativeIntake,rows),options={...row,spec:nativeBodySchema(row.rig),solid:nativeColliderRecordSchema(row.shapes,row.provenance)};
-  return row.metadata===undefined?nativeBakeReader(input,{...options,extra:v.object({})}):nativeBakeReader(input,{...options,extra:populationMetadata});
+  return nativeBakeReader(input,{...options,extra:v.object({})});
 }
