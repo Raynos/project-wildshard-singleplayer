@@ -260,7 +260,10 @@ export async function generateShardJob(root,descriptor,options={}) {
         for(const file of Object.keys(stageHashes)) {const to=resolve(tree,file);mkdirSync(dirname(to),{recursive:true});copyFileSync(upstreamFiles.get(file)?.source ?? resolve(root,file),to);}
         // Re-check after copying so concurrent edits cannot publish bytes under an earlier key.
         const copied=bakeInputHashes(tree,Object.keys(stageHashes));
-        if(JSON.stringify(copied)!==JSON.stringify(stageHashes)) throw new Error('Generation inputs changed while copying');
+        if(JSON.stringify(copied)!==JSON.stringify(stageHashes)) {
+          const changed=Object.keys(stageHashes).filter(file=>copied[file]!==stageHashes[file]);
+          throw new Error(`Generation inputs changed while copying ${job.id}: ${changed.map(file=>`${file} (expected ${stageHashes[file]}, copied ${copied[file]})`).join('; ')||'input map ordering differs'}`);
+        }
         if(projected!==undefined){mkdirSync(dirname(resolve(tree,catalog)),{recursive:true});writeFileSync(resolve(tree,catalog),projected);}
         // Some schemas import their committed stamps. Those seed inputs may exist, but a producer must still write
         // every output; otherwise a no-op could falsely pass regenerate-and-compare against the copied seed.

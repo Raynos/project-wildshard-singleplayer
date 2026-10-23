@@ -1,5 +1,6 @@
+import {InputHashMemo} from '../scripts/bake-input-hashes.mjs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Owned source and cache fixtures.
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture paths only.
 import { dirname, resolve } from 'node:path';
 import { afterEach, expect, it, vi } from 'vitest';
@@ -119,4 +120,19 @@ it('reuses a consumer when a rerun producer writes identical stage bytes', async
   expect(log.mock.calls.filter(row=>String(row[0]).includes(', generated,'))).toHaveLength(1);
   expect(log.mock.calls.some(row=>String(row[0]).includes('cutoff-second, verified cache'))).toBe(true);
   expect(JSON.parse(readFileSync(resolve(root,second),'utf8'))).toBe('same output');
+});
+
+
+it('names the job and exact changed input while refusing an unproven copied stage',async()=>{
+  mkdirSync('tmp',{recursive:true});const root=mkdtempSync(resolve('tmp/generation-copy-'));owned.push(root);
+  const entry='src/shards/alpha/generators/bake-copy.mjs',output='src/shards/alpha/data/result.json';
+  const job={id:'fixture-copy',shard:'alpha',entry,command:[entry],inputRoots:[entry,'source.txt'],outputs:[output],buildTimeOutputs:[output],platform:'portable' as const};
+  put(root,entry,`import fs from 'node:fs';fs.writeFileSync('${output}',JSON.stringify('must not publish'));`);
+  put(root,'scripts/generation-jobs.json',JSON.stringify({schema:'generation-jobs/1',notice:'DO NOT EDIT fixture',jobs:[job]}));
+  put(root,'source.txt','captured source');
+  const memo=new InputHashMemo(root);memo.enableSnapshot(()=>false);memo.hash('source.txt');
+  put(root,'source.txt','changed after capture');
+  await expect(generateShardJob(root,job,{cacheDir:resolve(root,'cache'),inputHashes:memo,restore:true}))
+    .rejects.toThrow('Generation inputs changed while copying fixture-copy: source.txt (expected ');
+  expect(existsSync(resolve(root,output))).toBe(false);
 });
