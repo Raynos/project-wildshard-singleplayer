@@ -60,8 +60,8 @@
     },
     "entry": {
       "inset": 247,
-      "width": 12,
-      "bottom": 2.5,
+      "width": 10,
+      "bottom": 0.6,
       "posts": 4,
       "offset": 12.5
     }
