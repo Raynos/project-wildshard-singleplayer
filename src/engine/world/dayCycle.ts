@@ -20,7 +20,7 @@ export interface DayCycleSpec<K = never> extends Omit<DayClockRow, 'sun'> {
     night: (p: number) => number; dusk: (p: number) => number; dawn: (p: number) => number; lamps: (p: number) => number;
   };
 }
-export type DayCycleClock = Pick<DayCycle, 'hour' | 'phase' | 'dayPhase' | 'night' | 'dusk' | 'dawn' | 'lamps' | 'body' | 'sunDir' | 'setTime' | 'set' | 'pin' | 'scale' | 'paused' | 'update' | 'sunElevation' | 'sunAzimuth' | 'moonElevation' | 'moonAzimuth' | 'onDawn' | 'onDay' | 'onGolden' | 'onDusk' | 'onNight' | 'onPhase' | 'dayMinutes' | 'phaseProgress'>;
+export type DayCycleClock = Pick<DayCycle, 'hour' | 'phase' | 'dayPhase' | 'night' | 'dusk' | 'dawn' | 'lamps' | 'body' | 'sunDir' | 'setTime' | 'set' | 'pin' | 'scale' | 'paused' | 'update' | 'sunElevation' | 'sunAzimuth' | 'moonElevation' | 'moonAzimuth' | 'onDawn' | 'onDay' | 'onGolden' | 'onDusk' | 'onNight' | 'onPhase' | 'dayMinutes' | 'phaseProgress' | 'hold' | 'pinned'>;
 
 /** A normalized look clock: real minutes per day, midnight-zero start and the sun's arc in degrees. */
 export interface NormalizedDay { readonly minutes: number; readonly start: number; readonly maxElevation: number; readonly azimuth: number }
@@ -50,6 +50,8 @@ export class DayCycle<K = never> {
   private lastPhase: DayPhase;
   private listeners: { phase: DayPhase | null; fn: PhaseListener }[] = [];
   private held: { value: number; paused: boolean } | null = null;
+  /** live holds (`hold`): the Explorer stills the clock where it is while it is open */
+  private holds = 0;
   private readonly direction = new Vector3();
   scale = 1;
   paused = false;
@@ -88,7 +90,7 @@ export class DayCycle<K = never> {
     return (h - s.from) / (s.to - s.from);
   }
   update(dt: number): void {
-    if (this.paused) return;
+    if (this.paused || this.holds > 0) return;
     this.value = stepDayClock(this.spec, this.value, dt, this.scale, this.cycle);
     this.checkPhase();
   }
@@ -112,6 +114,14 @@ export class DayCycle<K = never> {
     this.checkPhase();
     await this.onSet?.();
   }
+  /** Still the clock where it is until the returned release (the Explorer, while open): no time moves and no preset is
+   *  applied; a look that follows live state as well as the clock shows its own base state while held (`pinned`). */
+  hold(): () => void {
+    this.holds++; let held = true;
+    return () => { if (held) { held = false; this.holds--; } };
+  }
+  /** A light preset pin or a hold is on: the light is the clock's own, not live play state's. */
+  get pinned(): boolean { return this.held !== null || this.holds > 0; }
   pin(preset: LightPreset | null): void {
     if (preset === null) {
       if (this.held) { this.value = this.held.value; this.paused = this.held.paused; this.checkPhase(); }

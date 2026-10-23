@@ -621,7 +621,9 @@ export function paintedLook(spec: PaintedLookSpec): LookStrategy {
           if (spec.hold !== true) clock.update(dt);
           if (state === undefined || deep === null) rig.setKeyLight(sunDir, key, spec.sun.intensity);
           else {
-            const s = state.value.value, curves = state.curves;
+            // a pinned clock (the Explorer's hold or light preset) shows the look's base state, never live play's (G639
+            // live red: Signal's finished quest held its key at 5 %, so every Model Explorer card drew black)
+            const s = clock.pinned ? 0 : state.value.value, curves = state.curves;
             rig.setKeyLight(sunDir, keyNow.copy(key).lerp(deep, s), spec.sun.intensity * curveAt(curves.key, s));
             painted?.blend(s);
             if (live) {

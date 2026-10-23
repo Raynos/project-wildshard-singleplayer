@@ -153,6 +153,7 @@ export class Explore {
   private readonly uiScope = (app.levelScope ?? app.engineScope).child('explore-widget');
   private readonly inputScope = (app.levelScope ?? app.engineScope).child('explore-input');
   active = false;
+  private releaseClock: (() => void) | null = null;
   mode: ExploreMode = 'hub';
   readonly cam: FreeCam;
   readonly root: HTMLElement;
@@ -407,6 +408,9 @@ export class Explore {
     const { world } = this.host;
     if (!this.active) {
       this.active = true;
+      // the day clock stays where it is while exploring, and a look driven by play state shows its base light: the cards,
+      // the turntable and the World view are lit the same whatever the quest left the sky at
+      this.releaseClock = app.world.dayCycle?.hold() ?? null;
       // Weapons can set their own model visible during update (including custom weapons).
       // Hide their shared camera-space parent for the entire Explore session instead.
       this.viewmodelVisible = world.game.viewmodel.visible;
@@ -461,6 +465,7 @@ export class Explore {
     this.compare?.close();
     this.hidePanes();
     this.active = false;
+    this.releaseClock?.(); this.releaseClock = null;
     app.setState('title');
     this.cam.enabled = false; this.cam.move.set(0, 0, 0);
     world.player.position.copy(this.parkedFrom);
