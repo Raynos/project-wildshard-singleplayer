@@ -108,7 +108,7 @@ try {
         receipt.nodeBuilds = await page.evaluate(() => window.__wildshard?.world?.game.nodeBuilds ?? null);
         if (path === 'grid' && arg('arrival', '0') === '1') {
           await page.waitForFunction(() => window.__wsReveal?.startedAt >= 0, undefined, { timeout: 10_000 });
-          await page.locator('.ws-grid-reveal').click();
+          await page.locator('.ws-grid-reveal').dispatchEvent('pointerdown'); // R1: the layer takes no pointer; any touch skips
           await page.waitForFunction(() => window.__wsReveal?.endedMs !== null
             && !document.querySelector('#hud')?.classList.contains('ws-grid-revealing'), undefined, { timeout: 1500 });
           receipt.arrival = await page.evaluate(arrivalState);
