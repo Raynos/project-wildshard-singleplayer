@@ -210,20 +210,12 @@
       "base64Chars": 16472,
       "dataUris": 0
     },
-    "src/shards/nalati-grasslands/boot/cragRock.generated.json": {
-      "base64Chars": 27360,
-      "dataUris": 0
-    },
     "src/shards/nalati-grasslands/boot/mountedLoadout.generated.json": {
       "base64Chars": 13960,
       "dataUris": 0
     },
     "src/shards/nalati-grasslands/boot/placeRuntime.generated.json": {
       "base64Chars": 20268,
-      "dataUris": 0
-    },
-    "src/shards/nalati-grasslands/data/cragRock.generated.json": {
-      "base64Chars": 27360,
       "dataUris": 0
     },
     "src/shards/nalati-grasslands/data/eliteCharge.generated.json": {

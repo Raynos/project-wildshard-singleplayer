@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Rng } from '@wildshard/engine/core/rng';
+import type { Rng } from '@wildshard/engine/core/rng';
 // ── the rock pieces ─────────────────────────────────────────────────────────────────────────────────────────────
 
 /**
@@ -98,13 +98,3 @@ export function towerGeometry(rng: Rng, sz: number, h: number): THREE.BufferGeom
 }
 
 export type CragKind = 'fin' | 'rib' | 'tower';
-
-/** one of each for the Explorer: a mid-size piece in the rock's own grey */
-export function specimen(kind: CragKind): THREE.BufferGeometry {
-  const rng = new Rng(0xc4a9);
-  const g = kind === 'fin' ? finGeometry(rng, 10, 5.5, 14) : kind === 'rib' ? ribGeometry(rng, 5, 8, 12, 1) : towerGeometry(rng, 6, 9);
-  const n = g.getAttribute('position').count, cols = new Float32Array(n * 3).fill(0.35);
-  g.setAttribute('color', new THREE.BufferAttribute(cols, 3));
-  return g;
-}
-

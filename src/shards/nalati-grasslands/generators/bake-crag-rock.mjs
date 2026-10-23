@@ -5,7 +5,6 @@ import { deflateSync } from 'node:zlib';
 import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
 import { prepareNativeTerrain } from '../../../../scripts/bake/nativeWorld.mjs';
 import { game } from '@wildshard/game/shard/registry';
-import { specimen } from './cragGeometry.ts';
 import { bakeCragRock } from './places.ts';
 import { writeGeometry, join } from './geometryWriter.ts';
 
@@ -33,18 +32,7 @@ const build = tier => {
       return { x: row.x, y: row.y, z: row.z, points: Array.from(row.points) };
     }) };
 };
-const specimens = Object.fromEntries(['fin', 'rib', 'tower'].map(kind => {
-  const geometry = specimen(kind), parts = [];
-  // Preserve the original non-indexed allocation: no welding or index expansion for the card.
-  const attrs = Object.entries(geometry.attributes).map(([name, a]) => {
-    parts.push(new Uint8Array(a.array.buffer, a.array.byteOffset, a.array.byteLength));
-    return [name, 'f32', a.itemSize, a.normalized];
-  });
-  const row = { attrs, count: geometry.getAttribute('position').count, index: null, indexCount: 0, box: false };
-  const result = [kind, { row, bytes: Buffer.from(join(parts)).toString('base64') }];
-  geometry.dispose(); return result;
-}));
-const rows = { phone: build('phone'), desktop: build('desktop'), specimens }, raw = join(blocks);
+const rows = { phone: build('phone'), desktop: build('desktop') }, raw = join(blocks);
 const lanes = new Uint8Array(raw.length), words = raw.length / 4;
 for (let i = 0; i < words; i++) for (let b = 0; b < 4; b++) lanes[b * words + i] = raw[i * 4 + b];
 const writer = byteWriter(process.argv.includes('--check'), 'nalati-crags');
