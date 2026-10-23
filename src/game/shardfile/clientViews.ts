@@ -95,7 +95,15 @@ export function clientTileViews(ports: ViewPorts): ClientTileViews {
       if (ground !== null) {
         const meshes: Mesh[] = []; root.traverse((object) => { if (isMesh(object)) meshes.push(object); });
         if (row.lod === 1) {
-          const hide = meshes.flatMap((mesh) => { const drawn: unknown = mesh.material; return isMaterial(drawn) ? [groundMerge(parent, drawn, 'ground.coarse').add(mesh, scope, { x: row.x, z: row.z })] : []; });
+          // a coarse tile baked with the splat channels draws in the fine tiles' one mesh; any other mesh merges by material
+          const hide = meshes.flatMap((mesh) => {
+            const g = mesh.geometry, splat = g.getAttribute('_splat'), canopy = g.getAttribute('_canopy');
+            if (g.hasAttribute('_splat') && g.hasAttribute('_canopy')) {
+              g.setAttribute('splat', splat); g.setAttribute('canopy', canopy); g.deleteAttribute('_splat'); g.deleteAttribute('_canopy');
+              return [groundMerge(parent, ground, 'ground.fine').add(mesh, scope, { x: row.x, z: row.z })];
+            }
+            const drawn: unknown = mesh.material; return isMaterial(drawn) ? [groundMerge(parent, drawn, 'ground.coarse').add(mesh, scope, { x: row.x, z: row.z })] : [];
+          });
           return { mask: (excluded) => { for (const set of hide) set(excluded); }, shadow: () => undefined };
         }
         for (const mesh of meshes) if (mesh.material === ground) groundMerge(parent, ground, 'ground.fine').add(mesh, scope);

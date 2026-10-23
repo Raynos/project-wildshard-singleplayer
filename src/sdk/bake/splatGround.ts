@@ -35,7 +35,8 @@ export type SplatWeights = readonly [number, number, number, number];
  * The tiles' material name (the `props.splat` row binds it), the L1 simplification (`simplifyNativeLatticeTile`) and, for a
  * coarse tier the rings can draw without the splat layers (a coarse tile may not depend on the library the layers live
  * in), `coarse`: L1 tiles then carry vertex colours (`colourAt` over each vertex's height, slope, splat weights and canopy)
- * in their own material name, which the props family draws, and no splat channels.
+ * in their own material name, which the props family draws, beside the same `_SPLAT` / `_CANOPY` channels, so a client that
+ * draws the splat ground can draw them with it in one mesh (no layer dependency: their material is not the splat one).
  */
 export interface SplatGroundOptions {
   readonly material: string; readonly lod1: { readonly targetRatio: number; readonly maxErrorMetres: number };
@@ -87,7 +88,8 @@ export async function bakeSplatGround(source: NativeLatticeSource, options: Spla
         if (tile.lod === 1 && coarse !== null && options.coarse !== undefined) {
           geometry.setAttribute('normal', new Float32BufferAttribute(channelOf(tile, 'normal', 3), 3));
           geometry.setAttribute('color', new Float32BufferAttribute(coarseColours(tile, options.coarse.colourAt), 3));
-          bytes = staticGlb([{ geometry, material: coarse, castShadow: false }], `${options.coarse.material}.l1.${String(tile.x)}.${String(tile.z)}`);
+          for (const name of ['splat', 'canopy'] as const) { const width = CHANNELS[name]; geometry.setAttribute(name, new Float32BufferAttribute(channelOf(tile, name, width), width)); }
+          bytes = staticGlb([{ geometry, material: coarse, castShadow: false, customAttributes: CUSTOM }], `${options.coarse.material}.l1.${String(tile.x)}.${String(tile.z)}`);
         } else {
           for (const [name, channel] of Object.entries(tile.attributes)) geometry.setAttribute(name, new Float32BufferAttribute(channel.values, channel.itemSize));
           bytes = staticGlb([{ geometry, material, castShadow: false, customAttributes: CUSTOM }], `${options.material}.l${String(tile.lod)}.${String(tile.x)}.${String(tile.z)}`);

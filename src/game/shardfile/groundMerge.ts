@@ -7,8 +7,8 @@
  *   const merge = groundMerge(parent, material);
  *   const hide = merge.add(mesh, tileScope, { x: 1, z: 2 });   // a coarse tile; the fine tiles over it: hide(new Set([0, 3]))
  *
- * Positions go into the parent's space; every member must carry the same attributes (the first member's set is taken, and
- * a member without one is refused). The merged mesh receives shadow and never casts (as the tiles), and leaves with the
+ * Positions go into the parent's space; the merged mesh carries the attributes every member has (a coarse tile's vertex
+ * colours, say, are left out when a fine tile has none). The merged mesh receives shadow and never casts (as the tiles), and leaves with the
  * last member.
  */
 import { BufferAttribute, BufferGeometry, Matrix4, Mesh, Vector3, type Material, type Object3D } from 'three';
@@ -48,7 +48,7 @@ export class GroundMerge {
     this.merged = null;
     if (old !== null) { old.removeFromParent(); old.geometry.dispose(); }
     const first = this.members.values().next().value; if (first === undefined) return;
-    const names = Object.keys(first.mesh.geometry.attributes), parentInverse = new Matrix4(), toParent = new Matrix4(), point = new Vector3();
+    const names = Object.keys(first.mesh.geometry.attributes).filter(name => [...this.members.values()].every(member => member.mesh.geometry.hasAttribute(name))), parentInverse = new Matrix4(), toParent = new Matrix4(), point = new Vector3();
     this.parent.updateWorldMatrix(true, false); parentInverse.copy(this.parent.matrixWorld).invert();
     const values = new Map<string, number[]>(names.map(name => [name, []])), index: number[] = [];
     for (const member of this.members.values()) {
