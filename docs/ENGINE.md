@@ -10841,7 +10841,7 @@ The compiled registry in `src/game/shardfile/clientPlan.ts` owns the order:
 | `motion.channels` | world / 40 | entered | `world/scenes` |
 | `player.enter` | world / 50, play / 25 | entered | none |
 | `held.melee` | kit / 10, play / 20 | entered | `look/painted` |
-| `species.program` | kit / 20 | entered | species, scripts, native plan |
+| `species.program` | kit / 20; catalogue source world / 10, kit / -40 | entered | species/scripts/native plan, or `look/hull-book` |
 | `quest.page` | play / 10, play / 80 | entered | scenes, targets, painted look |
 | `boss.spawned` | play / 50 | entered | native plan |
 | `population.homes` | play / 60 | entered | native plan, scripts |
@@ -10857,6 +10857,14 @@ The compiled registry in `src/game/shardfile/clientPlan.ts` owns the order:
 Debug exposes actual native owner references and the admitted capture actions;
 rows cannot traverse or invoke reflected objects.
 There is no dynamic loader, condition, loop or TS hook in a plan.
+
+`species.program` accepts either its original `library` source or the approved
+speciesBook catalogue source `{catalogue:{owner,actors,looks}}` (G667 case 3).
+The catalogue reads those admitted named files at world preparation, pins the
+original product/runtime/world/scope across both reads, and publishes one typed
+`species` entry loan. Kit installs that same catalogue before held claims; the
+library source retains kit rank 20. Mixed sources or missing files refuse. No
+additional programme, body owner or global catalogue cache is created.
 
 A typed `questHost.page` and complete client plan replace the runtime owner.
 `clientOwnershipRules` verifies the actual quest/NPC, primary item, native

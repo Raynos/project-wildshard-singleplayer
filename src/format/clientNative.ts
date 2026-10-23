@@ -28,9 +28,11 @@ export const ClientHeldMeleeSchema = v.strictObject({ kind: v.literal('held.mele
 });
 /** The existing SpeciesBrains catalogue, with original registration order and
  * body homes. The program and rig rows are referenced, never copied here. */
-export const ClientSpeciesProgramSchema = v.strictObject({ kind: v.literal('species.program'), library: id,
+export const ClientSpeciesProgramSchema = v.pipe(v.strictObject({ kind: v.literal('species.program'), library: v.exactOptional(id),
+  catalogue: v.exactOptional(v.strictObject({ owner: id, actors: id, looks: id })),
   homes: v.exactOptional(v.pipe(v.record(id, home), v.maxEntries(256))), shove: v.optional(v.boolean(), false),
-});
+}), v.check(row => row.catalogue === undefined ? row.library !== undefined
+  : row.library === undefined && row.homes === undefined && !row.shove, 'Species program requires one source'));
 /** Saved page composition on the original flag/reward/NPC owners. Captures
  * select bounded platform actions, never a method or property path. */
 export const ClientQuestPageSchema = v.strictObject({ kind: v.literal('quest.page'),

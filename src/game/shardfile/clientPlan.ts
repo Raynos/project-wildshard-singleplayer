@@ -31,7 +31,7 @@ import { clientNativeBook } from './clientNativeBook';
 import { installWeatherFields } from './weatherFields';
 import { installSceneMotion } from './sceneMotion';
 import { installClientHeldMelee, enterClientHeldMelee } from './clientHeldMelee';
-import { installClientSpeciesProgram } from './clientSpeciesProgram';
+import { installClientSpeciesProgram, prepareClientSpeciesCatalogue } from './clientSpeciesProgram';
 import { installClientQuestPage, finishClientQuestPage } from './clientQuestPage';
 import { installClientPopulation } from './clientPopulation';
 import { installClientBossFight } from './clientBossFight';
@@ -54,12 +54,14 @@ export type ClientPhase = 'world' | 'world-bindings' | 'kit' | 'prepare-play' | 
 interface ClientFeature {
   readonly phase: ClientPhase;
   readonly rank: number;
+  readonly rankFor?: (row: ClientFeatureRow) => number;
   readonly lifetime: 'resident' | 'entered';
   readonly sections: readonly PlatformSectionName[];
   /** Native metadata can precede the original visual constructor without loading its looks. */
   readonly needsWorldLooks?: false;
   readonly install: (ctx: ShardContext, row: ClientFeatureRow, resident: Scope) => Promise<void> | void;
   readonly play?: { readonly rank: number; readonly install: ClientFeature['install'] };
+  readonly world?: { readonly rank: number; readonly when: (row: ClientFeatureRow) => boolean; readonly install: ClientFeature['install'] };
   readonly preparePlay?: { readonly rank: number; readonly install: ClientFeature['install']; readonly when?: (row: ClientFeatureRow) => boolean };
 }
 /** Compiled-in client-only registry. Adding a kind requires its strict format schema and a reviewed platform host. */
@@ -286,7 +288,8 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     play: { rank: 20, install: enterClientHeldMelee } },
   'player.enter': { phase: 'world', rank: 50, lifetime: 'entered', sections: [], install: installClientPlayerEnter,
     play: { rank: 25, install: enterClientPlayer } },
-  'species.program': { phase: 'kit', rank: 20, lifetime: 'entered', sections: ['actors/species-programs', 'sim/scripts', 'sim/runtime-plan'], install: installClientSpeciesProgram },
+  'species.program': { phase: 'kit', rank: 20, rankFor: row => row.kind === 'species.program' && row.catalogue !== undefined ? -40 : 20, lifetime: 'entered', needsWorldLooks: false, sections: ['actors/species-programs', 'sim/scripts', 'sim/runtime-plan'], install: installClientSpeciesProgram,
+    world: { rank: 10, when: row => row.kind === 'species.program' && row.catalogue !== undefined, install: prepareClientSpeciesCatalogue } },
   'quest.page': { phase: 'play', rank: 10, lifetime: 'entered', sections: ['world/scenes', 'world/targets', 'look/painted'], install: installClientQuestPage,
     play: { rank: 80, install: finishClientQuestPage } },
   'boss.spawned': { phase: 'play', rank: 50, lifetime: 'entered', sections: ['sim/runtime-plan'], install: installClientBossFight },
@@ -388,6 +391,8 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
       const ranged = row.kind === 'page.life' ? row.ranged : row.kind === 'world.forest-page' ? row.cave?.spots?.ranged : undefined;
       if (ranged !== undefined && !plan.features.some(feature => feature.kind === 'held.ranged-page')) throw new Error('Forest page ambience requires a ranged page');
     }
+    for (const row of plan.features) if (row.kind === 'species.program' && row.catalogue !== undefined
+      && (!product.hasFile(row.catalogue.actors) || !product.hasFile(row.catalogue.looks))) throw new Error('Species catalogue requires its admitted files');
     for (const row of plan.features) if ((row.kind === 'state.adventure' || row.kind === 'world.meadow') && !product.hasFile(row.file)) throw new Error('World services require their admitted data files');
     for (const row of plan.features) if (row.kind === 'riding.session' && (!product.hasFile(row.file) || !plan.features.some(feature => feature.kind === 'population.wildlife'))) throw new Error('Riding requires its admitted session file and wildlife feature');
     for (const row of plan.features) if (row.kind === 'population.wildlife' && [row.file, row.crowd.json, row.crowd.binary].some(file => !product.hasFile(file))) throw new Error('Wildlife requires its admitted population and crowd files');
@@ -411,7 +416,7 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
         product.section(row.source);
         if (!plan.features.some(owner => owner.kind === 'quest.composition' && owner.id === row.quest && owner.equipment?.animals === row.animals && owner.equipment.sounds === row.sounds)) throw new Error('Quest spawns require their declared composition owners');
       }
-      const required = row.kind === 'content.catalogue' && !(row.finishes || row.effects.includes('finishes')) ? [] : CLIENT_FEATURES[row.kind].sections;
+      const required = row.kind === 'species.program' && row.catalogue !== undefined ? ['look/hull-book'] as const : row.kind === 'content.catalogue' && !(row.finishes || row.effects.includes('finishes')) ? [] : CLIENT_FEATURES[row.kind].sections;
       for (const name of required) {
         if (!product.has(name)) throw new Error(`Missing feature section ${name}`);
         product.section(name); // A listed stream section is not an admitted boot dependency.
@@ -428,7 +433,8 @@ export async function installClientPhase(ctx: ShardContext, plan: AdmittedClient
   const rows = plan.features.flatMap(row => {
     const feature = CLIENT_FEATURES[row.kind];
     if (lifetime !== undefined && feature.lifetime !== lifetime) return [];
-    return [...(feature.phase === phase ? [{ row, rank: feature.rank, install: feature.install }] : []),
+    return [...(feature.phase === phase ? [{ row, rank: feature.rankFor?.(row) ?? feature.rank, install: feature.install }] : []),
+      ...(phase === 'world' && feature.world?.when(row) === true ? [{ row, ...feature.world }] : []),
       ...(phase === 'play' && feature.play !== undefined ? [{ row, ...feature.play }] : []),
       ...(phase === 'prepare-play' && feature.preparePlay !== undefined && (feature.preparePlay.when?.(row) ?? true) ? [{ row, ...feature.preparePlay }] : [])];
   }).sort((a, b) => a.rank - b.rank || phaseKey(a.row).localeCompare(phaseKey(b.row)));

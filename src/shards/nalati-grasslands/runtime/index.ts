@@ -1,6 +1,4 @@
 import { entryOwner, publishEntryOwner } from '@wildshard/game/shardfile/entryOwners';
-import type { SpeciesActorsFileRows } from '@wildshard/format/speciesBookRows';
-import { productSpeciesCatalogue, type SpeciesCatalogue } from '@wildshard/game/looks/speciesBook';
 
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin } from '@wildshard/game/shard/plugin';
@@ -20,14 +18,11 @@ function host(ctx: ShardContext) {
 
 export class NalatiPlugin extends ShardPlugin {
   private rt: Nalati | null = null;
-  private species: SpeciesCatalogue | null = null;
 
   override async world(ctx: ShardContext): Promise<void> {
     const { shell, world, step } = host(ctx);
     await step('cabins', () => undefined);
-    const actorRows = await ctx.product.json<SpeciesActorsFileRows>('actors/sheep.json');
-    const species = productSpeciesCatalogue(ctx.product, actorRows.species, await ctx.product.json('actors/species-looks.json'));
-    this.species = species;
+    const species = entryOwner(ctx.scope, 'species', 'nalati.species');
     this.rt = await step('props', (progress) => buildNalatiWorld(world, ctx, species, progress));
     const arsenal=HeldClaims.fromProductSlots(ctx.product,slots,'models/gear-book.json');
     await arsenal.prepareSlotSources(ctx);
@@ -35,12 +30,6 @@ export class NalatiPlugin extends ShardPlugin {
     shell.objects['nalati'] = this.rt;
     // the probe's `shard` handles (E405 AG25), read when the probe installs (ride and wildlife arrive in later hooks)
     ctx.debug.expose(`harness.shard.${ctx.manifest.slug}`, Object.defineProperties({}, Object.fromEntries(['nalati', 'ride', 'wildlife'].map((key) => [key, { enumerable: true, get: () => shell.objects[key] }]))));
-  }
-
-  override kit(ctx: ShardContext): void {
-    host(ctx);
-    if (this.species === null) throw new Error('Species are not prepared');
-    this.species.install(ctx.rows);
   }
 
   override async play(ctx: ShardContext): Promise<void> {

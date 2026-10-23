@@ -1,4 +1,7 @@
-import { parse } from 'valibot';
+import { object, parse, pick } from 'valibot';
+import { SpeciesPresentationSchema } from '@wildshard/format/speciesBookRows';
+import { productSpeciesCatalogue } from '../looks/speciesBook';
+import { entryOwner, presentEntryOwner, publishEntryOwner } from './entryOwners';
 import { ClientSpeciesProgramSchema } from '@wildshard/format/clientNative';
 import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
 import { floorBelow } from '@wildshard/engine/physics/query';
@@ -11,10 +14,30 @@ import { clientNativeBook } from './clientNativeBook';
 import { outputDescriptor } from './outputDescriptor';
 import { sceneModelSource } from './sceneSources';
 
+/** Prepare the approved speciesBook catalogue once for world and kit consumers. */
+export async function prepareClientSpeciesCatalogue(ctx: ShardContext, input: unknown): Promise<void> {
+  const row = parse(ClientSpeciesProgramSchema, input), source = row.catalogue;
+  if (source === undefined) throw new Error('Species catalogue source is missing');
+  const scope = ctx.scope, product = ctx.product, runtime = ctx.game.runtime, world = runtime?.world;
+  const live = (): void => {
+    if (scope.disposed || scope.disposing || ctx.scope !== scope || ctx.product !== product || ctx.game.runtime !== runtime
+      || world === undefined || world === null || runtime?.world !== world) throw new Error('Species catalogue owner changed');
+  };
+  live();
+  if (presentEntryOwner(scope, 'species', source.owner) !== null) throw new Error('Species catalogue is already prepared');
+  const actors = parse(object({species: pick(SpeciesPresentationSchema, ['lookBook'])}), await product.json<unknown>(source.actors)); live();
+  const looks = await product.json<unknown>(source.looks); live();
+  const catalogue = productSpeciesCatalogue(product, actors.species, looks); live();
+  publishEntryOwner(scope, 'species', source.owner, catalogue);
+}
+
 /** Compiled species.program feature. Registration, native policy and rendered
  * rigs are the original owners; decisions borrow those actual live bodies. */
 export async function installClientSpeciesProgram(ctx: ShardContext, input: unknown): Promise<void> {
-  const row = parse(ClientSpeciesProgramSchema, input), book = clientNativeBook(ctx), product = ctx.product;
+  const row = parse(ClientSpeciesProgramSchema, input);
+  if (row.catalogue !== undefined) { entryOwner(ctx.scope, 'species', row.catalogue.owner).install(ctx.rows); return; }
+  if (row.library === undefined) throw new Error('Species program library is missing');
+  const book = clientNativeBook(ctx), product = ctx.product;
   if (book.brains !== null) throw new Error('Species program is already installed');
   const source = product.shardfile, declared = product.section('actors/species-programs');
   const descriptor = outputDescriptor(source);

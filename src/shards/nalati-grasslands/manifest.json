@@ -573,6 +573,7 @@
         ],
         "features": [
           "state.adventure",
+          "species.program",
           "weather.forest",
           "held.claims.install",
           "taming.entry",
