@@ -65,7 +65,8 @@ export interface CullOptions {
   /**
    * the shard's own visibility test in place of the frustum / `keepNear` / `minAngular` one: copy i at distance² d2 (on
    * the ground when `flat`) is drawn when it says so. It reads the shard's view as it last changed — Pine Hollow's forest
-   * keeps a tree out of view while its long low-sun shadow can still fall into view (E94). `far` and the LODs still apply
+   * keeps a tree out of view while its long low-sun shadow can still fall into view (E94). `far` and the LODs still apply.
+   * With `cells` it filters after the cell and range tests (a tile ring over a forest floor, tile streaming P4)
    */
   readonly test?: (i: number, d2: number) => boolean;
 }
@@ -370,6 +371,8 @@ export class CelledCopiesCull {
   private readonly start: Uint32Array;
   private readonly order: Uint32Array;
   private readonly far: number;
+  /** `CullOptions.test`, after the cell and range tests: a copy it refuses is not drawn (a tile ring, say) */
+  private readonly test: ((i: number, d2: number) => boolean) | null;
   private readonly from2: Float32Array;
   private readonly levels: number;
   private readonly variantOf: Uint16Array;
@@ -386,6 +389,7 @@ export class CelledCopiesCull {
     this.view = viewFor(o);
     this.sinks = new Sinks(groups, matrices, colors);
     this.far = o.far ?? Number.POSITIVE_INFINITY;
+    this.test = o.test ?? null;
     this.from2 = Float32Array.from(from, (d) => d * d);
     const { size, pad } = o.cells, n = origins.length / 3;
     const buckets = new Map<string, number[]>();
@@ -434,7 +438,7 @@ export class CelledCopiesCull {
       for (let j = this.start[c] ?? 0; j < (this.start[c + 1] ?? 0); j++) {
         const i = this.order[j] ?? 0;
         const ex = (p[i * 3] ?? 0) - e.x, ez = (p[i * 3 + 2] ?? 0) - e.z, d2 = ex * ex + ez * ez;
-        if (d2 > max2) continue;
+        if (d2 > max2 || (this.test !== null && !this.test(i, d2))) continue;
         let l = from2.length - 1;
         while (l > 0 && d2 < (from2[l] ?? 0)) l--;
         sinks.put(i, (this.variantOf[i] ?? 0) * this.levels + l, d2);

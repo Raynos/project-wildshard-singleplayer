@@ -157,6 +157,9 @@ export async function placeForestPageModels(ctx: ShardContext, id: string): Prom
   const page = forestPage(ctx.scope, id), due = slicer(page.rows.sliceMs).due, h = forestFieldModels(ctx, id), { forest, registry } = h, under = page.under;
   const models = sharedModelContext(h.sky, h), trees = treeSetModel(ctx.product.section('world/trees'));
   const variants = trees.model.variants; if (variants === undefined) throw new Error('Forest model requires its variants');
+  // tile streaming P3/P4 (Debug ▸ Tile residency 5 x 5 / 3 x 3): the trees and the floor cover keep to the tiles around the
+  // viewer (the trees' follower moves the ring); whole: as before
+  const radius = tileResidencyRadius(), tiled = radius < 8, residency = { resident: (_x: number, _z: number): boolean => true };
   if (forest !== null && forest.trees.length > 0) {
     if (forest.drawer !== 'model' || forest.factory.variants.length !== variants.length) {
       const own = forest.drawer === 'model'; forest.drawItself();
@@ -167,15 +170,14 @@ export async function placeForestPageModels(ctx: ShardContext, id: string): Prom
       const pls = forest.trees.map((t): Placement<TreeSetParams> => { const variant = variants[t.variant]?.id; if (variant === undefined) throw new Error('Forest tree variant out of range');
         return { x: t.x, y: t.y, z: t.z, variant, color: t.tint, params: { height: t.height, r: t.r, scale: t.scale },
           matrix: new Matrix4().compose(at.set(t.x, t.y, t.z), q.setFromAxisAngle(up, t.rot), sc.set(t.scale, t.scale, t.scale)) }; });
-      // tile streaming P3 (Debug ▸ Tile residency 5 x 5 / 3 x 3): only the trees of the tiles around the viewer draw, and
-      // only the 3 x 3's trunks collide (one piece per tile, its scope ending as the viewer leaves); whole: as before
-      const radius = tileResidencyRadius(), tiled = radius < 8;
+      // P3: only the trees of the tiles around the viewer draw, and only the 3 x 3's trunks collide (one piece per tile, its
+      // scope ending as the viewer leaves)
       await placeSliced(tiled ? { ...trees.model, colliders: () => [] } : trees.model, pls, { ctx: models, draw: forest.path, registry, piece: { id: trees.model.id }, sortObjects: false,
         cull: { view: forest, test: forest.keeps, from: 'origin', flat: true }, parent: forest.group }, due);
       if (tiled) {
         // one capsule per tree, in the trees' order: bucket the trees, index the capsules
         const trunks = forest.colliderDescs(), byTile = bucketByTile(forest.trees, tree => tree), colliding = new Map<number, Scope>();
-        let centre: CellTile | null = null, resident = (_x: number, _z: number): boolean => true;
+        let centre: CellTile | null = null;
         const collide = (wanted: ReadonlySet<number>): void => {
           for (const [key, scope] of colliding) if (!wanted.has(key)) { colliding.delete(key); scope.dispose(); }
           for (const key of wanted) {
@@ -189,10 +191,10 @@ export async function placeForestPageModels(ctx: ShardContext, id: string): Prom
           const next = followTile(centre, viewer.x, viewer.z);
           if (centre === null || next.i !== centre.i || next.j !== centre.j) {
             centre = next; const keys = ring(next, radius);
-            resident = (x, z) => keys.has(tileKey(tileOf(x, z)));
+            residency.resident = (x, z) => keys.has(tileKey(tileOf(x, z)));
             collide(ring(next, Math.min(radius, 1)));
           }
-          return resident;
+          return residency.resident;
         });
         ctx.scope.onDispose(() => { forest.setResidency(null); });
       }
@@ -202,7 +204,9 @@ export async function placeForestPageModels(ctx: ShardContext, id: string): Prom
   for (const kind of page.rows.ground.kinds) {
     const items = under.layout[kind.id] ?? []; if (items.length === 0) continue;
     const model = groundModel(kind, under);
+    // P4: the cover keeps to the trees' ring (after its own cell and range tests)
+    const kept = tiled ? { test: (i: number): boolean => { const it = items[i]; return it === undefined || residency.resident(it.x, it.z); } } : {};
     await placeSliced(model, items.map((it) => ({ x: it.x, y: it.y, z: it.z, matrix: new Matrix4().fromArray(it.matrix), color: new Color(it.r, it.g, it.b) })),
-      { ctx: models, draw: 'instanced', registry, piece: { id: model.id }, cull, parent: under.group }, due);
+      { ctx: models, draw: 'instanced', registry, piece: { id: model.id }, cull: { ...cull, ...kept }, parent: under.group }, due);
   }
 }
