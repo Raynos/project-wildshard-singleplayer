@@ -30,7 +30,6 @@ import { TimedEncounters } from '@wildshard/game/boss/timedEncounters';
 import { program as balbalProgram } from '../species/balbal';
 import { StealthController, type StealthController as Stealth, type StealthThreat } from '@wildshard/game/stealth/controller';
 import { enterClientRiding, type PageRidingView as Ride } from '@wildshard/game/riding/client';
-import type { CosmeticFinishPainter } from '@wildshard/game/loadout/cosmeticFinishes';
 import { clientCosmeticFinishes } from '@wildshard/game/shardfile/clientCosmeticFinishes';
 import type { RayTargets } from '@wildshard/engine/combat/targets';
 
@@ -113,7 +112,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
     'combat/timed-encounters.json', { rider: riderFigure, captain: captainFigure, storm: riderFigure }, balbalProgram());
   function eliteFrame() { return { patrolAvailable: true, herdAvailable: wildlife !== null, kills: night.riders.killsTonight,
     bonded: ride?.taming.phase === 'bonded', mount: ride?.taming.companion ?? null }; }
-  let painter: CosmeticFinishPainter | null = null, syncT = 0;
+  let syncT = 0;
   const nalati = {
     weather, groups, boss, elites, titan, eliteFrame, eliteRows, eliteProgram, eliteDrops: drops, eliteCharge: charge, eliteLedges,
     get elitePatrol() { return night.riders; },
@@ -133,7 +132,6 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
       plugin.debug.expose('nalati.ride',ride);
 
       const bow=p.bow('bow'),prevBow=bow.damageMultiplier;bow.damageMultiplier=hit=>(prevBow?.(hit)??1)*(stealth?.sneakMultiplier()??1);
-      painter = clientCosmeticFinishes(plugin).painter;
     },
   };
   // ── crouch + grass stealth (melee agent, B9): the long-grass CROUCH toggle (touch disc above JUMP, C / Ctrl on desktop),
@@ -157,15 +155,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
     updates.push((dt) => {
       syncT -= dt;
       if (syncT <= 0) { syncT = 1; for (const id of elites.skins) nalati.skins.own(id); }
-      const kit = playKit, mounted = ride?.mount.horse, bonded = ride?.taming.companion;
-      painter?.update({ objects: new Map([
-        ['blade', kit === null ? [] : [kit.blade('blade').model]],
-        ['arrows', kit === null ? [] : [kit.bow('bow').arrows.mesh]],
-        ['mounts', [...new Set([...(mounted === null || mounted === undefined ? [] : [mounted.mesh]), ...(bonded?.alive === true && !bonded.hidden ? [bonded.mesh] : [])])]],
-      ]),
-      facts: new Set([...(boss.power?.applied === true ? ['golden'] : []), ...(titan.power?.applied === true ? ['storm'] : [])]) });
-      if (kit !== null) for (const style of ['recurve', 'golden', 'sky-wolf'] as const)
-        if (style === painter?.selectedFinishes.get('bow') && kit.bow('bow').style !== style) kit.bow('bow').setStyle(style);
+      clientCosmeticFinishes(plugin).frame(plugin);
     });
 
   // ── sound (B16 audio): wraps attachAnimals / bindPlay / wildEnv.onEvent for the creatures and the kit — src/shards/nalati-grasslands/sound.ts ──
