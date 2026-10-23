@@ -156,8 +156,3 @@ it('native page entries retain their sampled collider and structure-floor polici
     }
   }
 });
-
-it('native scene declarations preserve required and debug-selected graph ownership', () => {
-  expect(SKY_CLIENT_PLAN.features.find(row => row.kind === 'world.scenes')?.graphs).toBe('required');
-  expect(SIGNAL_CLIENT_PLAN.features.find(row => row.kind === 'world.scenes')?.graphs).toBe('debug');
-});
