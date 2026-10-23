@@ -6,7 +6,8 @@ import {dirname,resolve} from 'node:path';
 import {createHash} from 'node:crypto';
 import * as v from 'valibot';
 import {afterEach,expect,it} from 'vitest';
-import {generateShardJob,type GenerationPreparation,type ShardGenerationJob} from '../scripts/generate.mjs';
+import {generateShardJob} from '../scripts/generate.mjs';
+import type {GenerationPreparation,ShardGenerationJob} from '../scripts/generate.d.mts';
 
 const owned:string[]=[];
 afterEach(()=>{for(const root of owned.splice(0))rmSync(root,{recursive:true,force:true});});
@@ -39,6 +40,23 @@ function packageFixture(source?:string) {
   mkdirSync(resolve(row.root,'node_modules/@wildshard'),{recursive:true});
   symlinkSync('../../src/sdk',resolve(row.root,'node_modules/@wildshard/sdk'),'dir');
   return {...row,write};
+}
+/** Upstream outputs exist only in their immutable producer loan, never in the
+ * reader checkout. Its private source data is outside the reader's roots. */
+function upstreamFixture(source?:string) {
+  const row=fixture(source),entry='src/shards/alpha/generators/bake-upstream.mjs',values='src/commons/upstream.json';
+  put(row.root,entry,`import fs from 'node:fs';for(const [name,value]of Object.entries(JSON.parse(fs.readFileSync('${values}','utf8'))))fs.writeFileSync('src/shards/alpha/data/'+name,value);`);
+  const run=async(contents:Record<string,string>)=>{
+    put(row.root,values,JSON.stringify(contents));
+    const outputs=Object.keys(contents).map(name=>`src/shards/alpha/data/${name}`);
+    const producer:ShardGenerationJob={id:'fixture-upstream',shard:'alpha',entry,command:[entry],inputRoots:[entry,values],outputs,buildTimeOutputs:outputs,platform:'portable'};
+    put(row.root,'scripts/generation-jobs.json',JSON.stringify({schema:'generation-jobs/1',notice:'DO NOT EDIT fixture',jobs:[producer,row.job]}));
+    const loan=await generateShardJob(row.root,producer,{cacheDir:row.cacheDir});
+    try {
+      return await row.run(false,{outputs:[...outputs,...row.job.outputs],upstream:new Map([[producer.id,loan]])});
+    } finally {loan.release();}
+  };
+  return {...row,upstream:run};
 }
 it('reuses only unused workspace export edits and keeps other package fields exact',async()=>{
   const {write,run}=packageFixture();const first=await run();expect(first).toMatchObject({hit:false,text:'1'});
@@ -228,6 +246,49 @@ it('includes immutable upstream stage files even when absent from the checkout',
     preparation.upstream.clear();
     expect(await run(false,preparation)).toMatchObject({hit:false,text:'false'});
   } finally {loan.release();}
+});
+it('reuses unread upstream bytes without losing newly consumed branches',async()=>{
+  const f=upstreamFixture(),first=await f.upstream({'unused.bin':'first bytes'});
+  expect(first).toMatchObject({hit:false,text:'1'});
+  expect(await f.upstream({'unused.bin':'changed unread bytes'})).toEqual({...first,hit:true});
+  expect(()=>readFileSync(resolve(f.root,'src/shards/alpha/data/unused.bin'))).toThrow();
+  put(f.root,f.entry,`import fs from 'node:fs';fs.writeFileSync('${f.output}',fs.readFileSync('src/shards/alpha/data/unused.bin'));`);
+  expect(await f.upstream({'unused.bin':'changed unread bytes'})).toMatchObject({hit:false,text:'changed unread bytes'});
+  expect(await f.upstream({'unused.bin':'changed consumed bytes'})).toMatchObject({hit:false,text:'changed consumed bytes'});
+});
+it.each(['file','module','json'])('keeps consumed immutable upstream %s bytes exact',async kind=>{
+  const output='src/shards/alpha/data/output.txt',file=`src/shards/alpha/data/used.${kind==='module'?'mjs':kind==='json'?'json':'bin'}`;
+  const source=kind==='file'?`import fs from 'node:fs';fs.writeFileSync('${output}',fs.readFileSync('${file}'));`
+    :`import rows from '../data/${file.split('/').at(-1)}' ${kind==='json'?"with {type:'json'}":''};import fs from 'node:fs';fs.writeFileSync('${output}',String(rows.value));`;
+  const f=upstreamFixture(source),name=file.split('/').at(-1);
+  if(name===undefined)throw new Error('Missing upstream fixture name');
+  const bytes=kind==='file'?'first':kind==='module'?'export default {value:1};':'{"value":1}';
+  const first=await f.upstream({[name]:bytes,'unused.bin':'old'});
+  expect(await f.upstream({[name]:bytes,'unused.bin':'new'})).toEqual({...first,hit:true});
+  const changed=kind==='file'?'second':kind==='module'?'/* changed raw module */ export default {value:2};':'{"value":2}';
+  expect(await f.upstream({[name]:changed,'unused.bin':'new'})).toMatchObject({hit:false,text:kind==='file'?'second':'2'});
+});
+it('keeps upstream negative existence probes and directory membership',async()=>{
+  const output='src/shards/alpha/data/output.txt';
+  const presence=upstreamFixture(`import fs from 'node:fs';fs.writeFileSync('${output}',String(fs.existsSync('src/shards/alpha/data/optional.bin')));`);
+  expect(await presence.upstream({'unused.bin':'old'})).toMatchObject({hit:false,text:'false'});
+  expect(await presence.upstream({'unused.bin':'new'})).toMatchObject({hit:true,text:'false'});
+  expect(await presence.upstream({'unused.bin':'new','optional.bin':'present'})).toMatchObject({hit:false,text:'true'});
+  const directory=upstreamFixture(`import fs from 'node:fs';fs.writeFileSync('${output}',JSON.stringify(fs.readdirSync('src/shards/alpha/data').sort()));`);
+  const first=await directory.upstream({'first.bin':'old'});
+  expect(await directory.upstream({'first.bin':'new'})).toEqual({...first,hit:true});
+  const added=await directory.upstream({'first.bin':'new','second.bin':'added'});
+  expect(added.hit).toBe(false);expect(v.parse(v.array(v.string()),JSON.parse(added.text))).toContain('second.bin');
+});
+it('retains all upstream hashes behind unmodeled probes and opaque child work',async()=>{
+  const output='src/shards/alpha/data/output.txt';
+  const probe=upstreamFixture(`import fs from 'node:fs';fs.writeFileSync('${output}',String(fs.existsSync('.')));`);
+  await probe.upstream({'unread.bin':'old'});
+  expect((await probe.upstream({'unread.bin':'new'})).hit).toBe(false);
+  const child=upstreamFixture(`import fs from 'node:fs';import {execFileSync}from'node:child_process';fs.writeFileSync('${output}',execFileSync(process.execPath,['-e',"process.stdout.write(require('fs').readFileSync('src/shards/alpha/data/used.bin'))"]));`);
+  expect(await child.upstream({'used.bin':'first','unused.bin':'old'})).toMatchObject({hit:false,text:'first'});
+  expect((await child.upstream({'used.bin':'first','unused.bin':'new'})).hit).toBe(false);
+  expect(await child.upstream({'used.bin':'second','unused.bin':'new'})).toMatchObject({hit:false,text:'second'});
 });
 it('fences recursive directory reads by their staged subtree',async()=>{
   const {root,run}=fixture("import fs from 'node:fs';fs.writeFileSync('src/shards/alpha/data/output.txt',JSON.stringify(fs.readdirSync('src/sdk/list',{recursive:true}).sort()));");

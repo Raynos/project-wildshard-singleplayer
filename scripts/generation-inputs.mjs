@@ -11,6 +11,7 @@ export const generationReadReceipt='.generation-reads.json';
 const digest=(/** @type {string|Uint8Array} */ text)=>createHash('sha256').update(text).digest('hex');
 const path=v.pipe(v.string(),v.check(file=>file.length>0&&!isAbsolute(file)&&!file.includes('\\')&&file.split('/').every(part=>part!==''&&part!=='.'&&part!=='..')));
 const paths=v.pipe(v.array(path),v.maxLength(100_000));
+const hashes=v.record(path,v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u)));
 const Trace=v.strictObject({schema:v.literal('generation-reads/4'),files:paths,execution:paths,packages:v.record(path,v.array(v.string())),inventory:v.array(v.string()),opaque:v.array(v.string()),seal:v.string()});
 const order=(/** @type {string} */ a,/** @type {string} */ b)=>a<b?-1:a>b?1:0;
 const code=/\.[cm]?[jt]sx?$/u;
@@ -101,7 +102,15 @@ function probeIdentity(trace,job,staged,inventory) {
     if(value===undefined){fallback=true;values[probe]='conservative';}
     else values[probe]=value;
   }
-  return digest(JSON.stringify({values,...(fallback?{inventory,staged:staged===undefined?[]:[...new Set(staged)].sort(order)}:{})}));
+  return {identity:digest(JSON.stringify({values,...(fallback?{inventory,staged:staged===undefined?[]:[...new Set(staged)].sort(order)}:{})})),conservative:fallback};
+}
+/** Verified immutable upstream files are stage inputs, not observation recipe
+ * identities. Invalid metadata stays opaque and retains its complete tool key.
+ * @param {import('./generation-cache.mjs').GenerationJob} job */
+function upstreamHashes(job) {
+  const text=job.tools?.upstream;
+  if(text===undefined)return undefined;
+  try {return v.parse(hashes,JSON.parse(text));}catch{return undefined;}
 }
 /** Existing read sets are lookup hints, never permission to execute a changed
  * producer with an old dependency list. Recipes locate observations independently
@@ -114,7 +123,8 @@ function probeIdentity(trace,job,staged,inventory) {
 export async function runObservedGeneration(root,job,options,entry,catalogue,staged) {
   const catalog=catalogue??'scripts/generation-jobs.json';
   const inventory=Object.keys(job.inputs).sort(order);
-  const recipe=digest(JSON.stringify({schema:'generation-inputs/6',node:process.version,id:job.id,command:job.command,outputs:job.outputs,platform:job.platform,tools:job.tools}));
+  const upstream=upstreamHashes(job),recipeTools=upstream===undefined?job.tools:{...job.tools,upstream:'observed-upstream/1'};
+  const recipe=digest(JSON.stringify({schema:'generation-inputs/7',node:process.version,id:job.id,command:job.command,outputs:job.outputs,platform:job.platform,tools:recipeTools}));
   const profiles=resolve(options.cacheDir??generationCacheRoot(),'.reads-v1',job.id,recipe);
   /** @param {v.InferOutput<typeof Trace>} trace */
   const executionInputs=trace=>Object.fromEntries(trace.execution.filter(file=>code.test(file)&&Object.hasOwn(job.inputs,file)).map(file=>[file,job.inputs[file]]));
@@ -131,7 +141,12 @@ export async function runObservedGeneration(root,job,options,entry,catalogue,sta
     }
     // The backend retains its nonempty-source contract even for tiny fixtures.
     const retained=Object.keys(inputs).length===0?job.inputs:inputs;
-    return {...job,inputs:retained,tools:{...job.tools,readInventory:recipe,probeInventory:probeIdentity(trace,job,staged,inventory),packageExports:JSON.stringify(packages),
+    const probes=probeIdentity(trace,job,staged,inventory),used=new Set([...trace.files,...trace.execution]);
+    // Unknown probes keep ALL upstream hashes. Otherwise the same immutable
+    // stage supplies exact bytes for every observed file/module; presence and
+    // directory reads remain fenced by the staged probe model above.
+    const tools=upstream===undefined?job.tools:{...job.tools,upstream:JSON.stringify(Object.fromEntries(Object.entries(upstream).filter(([file])=>probes.conservative||used.has(file)).sort(([a],[b])=>order(a,b))))};
+    return {...job,inputs:retained,tools:{...tools,readInventory:recipe,probeInventory:probes.identity,packageExports:JSON.stringify(packages),
       execution:JSON.stringify(Object.fromEntries(Object.entries(executionInputs(trace)).map(([file,raw])=>[file,compilerCodeHash(file,raw,()=>readFileSync(resolve(root,file)))])))}};
   };
   /** Normalized execution and projected exports still validate current raw
