@@ -11,15 +11,16 @@ import { expect,test } from 'vitest';
 import { fastCommitLintConfig } from '../scripts/precommit-checks.mjs';
 import { readLintConfig } from '../scripts/guard-counts.mjs';
 
-const units=readdirSync('src/engine',{recursive:true,encoding:'utf8'})
- .filter(file=>file.endsWith('.test.ts')).map(file=>`src/engine/${file}`);
-
-test('the actual engine composite project includes its colocated unit tests',()=>{
- const project=ts.getParsedCommandLineOfConfigFile(resolve('tsconfig.engine.json'),{},
-  {...ts.sys,onUnRecoverableConfigFileDiagnostic:diagnostic=>{throw new Error(ts.flattenDiagnosticMessageText(diagnostic.messageText,'\n'));}});
- expect(project).toBeDefined();expect(units.length).toBeGreaterThanOrEqual(5);
- for(const file of units)expect(project?.fileNames).toContain(resolve(file));
-});
+for(const layer of ['engine','format']){
+ test(`the actual ${layer} composite project includes its colocated unit tests`,()=>{
+  const units=readdirSync(`src/${layer}`,{recursive:true,encoding:'utf8'})
+   .filter(file=>file.endsWith('.test.ts')).map(file=>`src/${layer}/${file}`);
+  const project=ts.getParsedCommandLineOfConfigFile(resolve(`tsconfig.${layer}.json`),{},
+   {...ts.sys,onUnRecoverableConfigFileDiagnostic:diagnostic=>{throw new Error(ts.flattenDiagnosticMessageText(diagnostic.messageText,'\n'));}});
+  expect(project).toBeDefined();expect(units.length).toBeGreaterThan(0);
+  for(const file of units)expect(project?.fileNames).toContain(resolve(file));
+ });
+}
 
 test('colocated tests retain the hard refusal of module replacement',()=>{
  mkdirSync('tmp',{recursive:true});const root=mkdtempSync(resolve('tmp/unit-policy-'));
@@ -32,5 +33,26 @@ test('colocated tests retain the hard refusal of module replacement',()=>{
   const result=spawnSync(execPath,[resolve('node_modules/oxlint/bin/oxlint'),'-c',config,'--no-ignore',target],{cwd:root,encoding:'utf8'});
   expect(result.status,result.stdout+result.stderr).toBe(1);
   expect(result.stdout+result.stderr).toContain('no-module-mock');
+ }finally{rmSync(root,{recursive:true,force:true});}
+});
+
+
+test('format runner imports are test-only and do not open higher layers',()=>{
+ mkdirSync('tmp',{recursive:true});const root=mkdtempSync(resolve('tmp/unit-policy-'));
+ try{
+  const config=resolve(root,'lint.json');
+  const fast=fastCommitLintConfig(readLintConfig('.oxlintrc.json'));
+  fast['jsPlugins']=[resolve('lint/wildshard-plugin.js')];writeFileSync(config,JSON.stringify(fast));
+  const run=(file:string,source:string)=>{
+   const target=resolve(root,`src/format/${file}`);mkdirSync(resolve(target,'..'),{recursive:true});
+   writeFileSync(target,source);
+   return spawnSync(execPath,[resolve('node_modules/oxlint/bin/oxlint'),'-c',config,'--no-ignore',target],{cwd:root,encoding:'utf8'});
+  };
+  const unit=run('example.test.ts',"import {expect,test} from 'vitest';\n\ntest('unit',()=>{expect(1).toBe(1);});\n");
+  expect(unit.status,unit.stdout+unit.stderr).toBe(0);
+  const production=run('example.ts',"import {expect} from 'vitest';\n\nexport const value=expect;\n");
+  expect(production.status).toBe(1);expect(production.stdout+production.stderr).toContain('Format imports only');
+  const higher=run('example.test.ts',"import {value} from '../game/example';\n\nexport const result=value;\n");
+  expect(higher.status).toBe(1);expect(higher.stdout+higher.stderr).toContain('Format imports only');
  }finally{rmSync(root,{recursive:true,force:true});}
 });

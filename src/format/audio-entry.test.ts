@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { AudioEntryEnvironmentSchema, parseAudioData } from '../src/format/audio';
+import { AudioEntryEnvironmentSchema, parseAudioData } from './audio';
 
 const audio={cues:[],ambience:null,score:'silent'};
 const gameplay={entered:false,score:false,activate:false,restoreShade:false,inputs:{},writers:{},entities:{},commands:{}};

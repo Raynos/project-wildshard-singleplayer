@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { FigureAtlasSchema, FigureGroupSchema, FigureRowSchema } from '../src/format/figures';
+import { FigureAtlasSchema, FigureGroupSchema, FigureRowSchema } from './figures';
 
 /** An unrelated harbour's net-menders: one still mender and a gull-chasing boy on an orbit, as a merged figure group. */
 const atlas = (ids: readonly string[]) => ({ url: '/assets/harbour/menders.glb', name: 'harbour-menders', skeleton: 'npc.figures.v1',

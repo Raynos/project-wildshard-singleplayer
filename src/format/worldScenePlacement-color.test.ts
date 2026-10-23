@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { parseWorldScenePlacement } from '../src/format/worldScenePlacement';
+import { parseWorldScenePlacement } from './worldScenePlacement';
 
 // a placement pose may carry its instanced copy's own colour (Nine's wall kit and drawn facade pieces)
 const row = (color: unknown) => ({ id: 'nds-inst-plant.town', model: 'galleryPlant', draw: 'instanced', poses: [{ x: 1, y: 2, z: 3, matrix: Array.from({ length: 16 }, (_, i) => i % 5 === 0 ? 1 : 0), color }] });

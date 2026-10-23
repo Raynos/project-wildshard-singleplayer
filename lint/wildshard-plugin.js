@@ -369,7 +369,9 @@ const layerWalk = (kind) => (context) => {
     const target = layerOf(targetPath);
     // E435: decoded-byte GLB admission needs this pinned, server-safe pure Wasm codec only here.
     const formatCodec = pathOf(context) === 'src/format/glbBuffers.ts' && source === 'meshoptimizer/decoder';
-    if (kind === 'layer' && own.name === 'format' && target?.name !== 'format' && source !== 'valibot' && !formatCodec) {
+    // G645: colocated unit tests use the runner, without opening production format imports.
+    const formatTestRunner = pathOf(context).endsWith('.test.ts') && source === 'vitest';
+    if (kind === 'layer' && own.name === 'format' && target?.name !== 'format' && source !== 'valibot' && !formatCodec && !formatTestRunner) {
       report(context, node, `Format imports only valibot or its own defining modules: ${source}`);
       return;
     }

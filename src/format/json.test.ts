@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { parseNamedJson } from '../src/format/json';
+import { parseNamedJson } from './json';
 
 const bytes = (text: string): Uint8Array => new TextEncoder().encode(text);
 
