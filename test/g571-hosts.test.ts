@@ -146,3 +146,10 @@ test('G614 credits the exact tagged binding without approving sibling declaratio
   expect(after.conversion.customRuntimeLines).toBe(before.conversion.customRuntimeLines - 1);
   expect(after.conversion.gameSystemAttribution.modules).toContainEqual({ path: 'src/game/approved.ts', lines: 2, excludedLines: [1] });
 });
+
+
+test('the picked riding host approves only the seated figure class', () => {
+  const approvals = g571HostApprovals('.');
+  expect(approvals.get('src/game/riding/seatedFigure.ts')).toEqual(new Set(['SeatedFigure']));
+  expect(approvals.get('src/game/models/mountedSpecimen.ts')).toBeNull();
+});
