@@ -45,9 +45,11 @@ mkdirSync(out, { recursive: true });
 
 /** Serve a commit for the run; the preview is stopped when the script ends. */
 function serve(rev) {
-  const result = spawnSync('bash', [resolvePath(REPO, 'scripts/serve-build.sh'), '--rev', rev, '--hours', '2', '--name', 'sim-grid-entry'], { cwd: REPO, encoding: 'utf8' });
-  const url = result.stdout.split('\n').findLast(line => /^https?:/u.test(line));
-  if (url === undefined) throw new Error(`serve-build failed: ${result.stderr.slice(-800)}`);
+  const result = spawnSync('bash', [resolvePath(REPO, 'scripts/serve-build.sh'), '--rev', rev, '--hours', '2', '--name', 'sim-grid-entry'], { cwd: REPO, encoding: 'utf8', maxBuffer: 8 * 1024 * 1024 });
+  writeFileSync(resolvePath(out, 'serve.stdout.log'), result.stdout ?? '');
+  writeFileSync(resolvePath(out, 'serve.stderr.log'), result.stderr ?? '');
+  const url = (result.stdout ?? '').split('\n').findLast(line => /^https?:/u.test(line));
+  if (result.status !== 0 || url === undefined) throw new Error(`serve-build failed (${result.status}, ${result.error?.message ?? 'see retained serve logs'}): ${(result.stderr ?? '').slice(-800)}`);
   return { url: url.replace(/\/$/u, ''), stop: () => { spawnSync('bash', [resolvePath(REPO, 'scripts/serve-build.sh'), 'stop', new URL(url).port], { cwd: REPO, stdio: 'ignore' }); } };
 }
 
