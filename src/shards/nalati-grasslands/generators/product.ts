@@ -65,7 +65,7 @@ const ridingProjection=ridingPrograms.approach.v2;
 const pastureProjection=pasture.v2;
 const admissionProjection=admission.v2;
 const programMemory = programs.reduce((sum, program) => sum + program.script.pages * 65536 * 2, programBytes)
-  + atob(projection.bytes).length + projection.artifact.pages * 65536 * 2
+  + titanProgram.compiled.attack.bytes + projection.artifact.pages * 65536 * 2
   + heldWeapons.compiled.bytes + heldProjection.artifact.pages * 65536 * 2
   + ridingPrograms.compiled.bytes+ridingProjection.artifact.pages*65536*2
   + titanProgram.compiled.pasture.bytes+pastureProjection.artifact.pages*65536*2

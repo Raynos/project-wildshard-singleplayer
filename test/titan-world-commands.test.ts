@@ -5,7 +5,7 @@ import {V2_ACTION_OPS,type V2ActionBinding} from '../src/format/scriptActionsV2'
 import {parseReturnProjectionV2} from '../src/format/returnProjectionV2';
 import {ProjectedState,ReturnProgram} from '../src/game/population/returnProgram';
 import {prepareV2WorldActions,type V2WorldActionLoan} from '../src/game/shardfile/worldActionsV2';
-import programs from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with {type:'json'};
+import {titanPrograms as programs} from './fixtures/titanInlineWitness';
 
 function binding(kind:'cell-field'|'mount'):ReadonlyMap<number,V2ActionBinding>{
   return new Map([[1,{identity:'arena',handle:1,targets:new Map([[1,{identity:kind,kind}]]),operations:new Set([kind==='cell-field'?V2_ACTION_OPS.ignite:V2_ACTION_OPS.dismount]),maxCommands:1,bounds:{coordinate:Number.MAX_VALUE,velocity:0}}]]);

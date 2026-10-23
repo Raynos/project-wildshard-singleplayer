@@ -9,7 +9,7 @@ import {ArenaWhirlsView as OriginalWhirls} from './fake/originalArenaFire';
 import {ProjectedState,ReturnProgram} from '../src/game/population/returnProgram';
 import {overrideTerrain} from './fake/terrain';
 import {TITAN_WHIRLS,titanWhirlGate,titanWhirlView} from '../src/shards/nalati-grasslands/generators/stormTitanFight';
-import programmes from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with {type:'json'};
+import {titanPrograms as programmes} from './fixtures/titanInlineWitness';
 
 function trace(original:boolean,ease:number,count:number):unknown[]{
   const scope=new Scope('titan.whirl-gate'),calls:unknown[]=[],snapshots:unknown[]=[];

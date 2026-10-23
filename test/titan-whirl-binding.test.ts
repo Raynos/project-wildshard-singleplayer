@@ -18,7 +18,7 @@ import {presentEntryOwner,publishEntryOwner} from '../src/game/shardfile/entryOw
 import {titanWhirlGate} from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 import {whirlsViewRows} from '../src/shards/nalati-grasslands/generators/titanWhirlsView';
 import {overrideTerrain} from './fake/terrain';
-import programmes from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with {type:'json'};
+import {titanPrograms as programmes} from './fixtures/titanInlineWitness';
 import moduleRows from '../src/shards/nalati-grasslands/behaviour/titanWhirlsView.generated.json' with {type:'json'};
 
 function context(parent:Scope,name:string):ReturnType<typeof shardContext>{

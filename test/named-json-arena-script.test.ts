@@ -10,7 +10,7 @@ import { emptyShardfile } from '@wildshard/sdk/author';
 import titan from '../src/shards/nalati-grasslands/data/stormTitanFight.generated.json' with {type:'json'};
 import geometry from '../src/shards/nalati-grasslands/data/stormTitanGeometry.generated.json' with {type:'json'};
 import arenaFire from '../src/shards/nalati-grasslands/data/arenaFire.json' with {type:'json'};
-import programs from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with {type:'json'};
+import {titanPrograms as programs} from './fixtures/titanInlineWitness';
 import night from '../src/shards/nalati-grasslands/data/night.generated.json' with {type:'json'};
 import strikes from '../src/shards/nalati-grasslands/data/strikeProfiles.generated.json' with {type:'json'};
 

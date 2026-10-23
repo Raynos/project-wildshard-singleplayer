@@ -24,7 +24,7 @@ import view from '../src/shards/nalati-grasslands/data/kurganView.json' with { t
 import { bossArena } from './fake/bossArena';
 import { SHAPES } from './fixtures/nalatiShapes';
 import { ReturnProgram } from '../src/game/population/returnProgram';
-import titan from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type: 'json' };
+import {titanPrograms as titan} from './fixtures/titanInlineWitness';
 import king from '../src/shards/nalati-grasslands/data/goldenKing.generated.json' with { type: 'json' };
 
 test('second-shard arena owns its translated floor, gate, cover and sand', () => {

@@ -24,7 +24,7 @@ import {mockCanvas} from './fake/weaponParity';
 import fireView from '../src/shards/nalati-grasslands/data/arenaFire.json' with {type:'json'};
 import titan from '../src/shards/nalati-grasslands/data/stormTitanFight.generated.json' with {type:'json'};
 import geometry from '../src/shards/nalati-grasslands/data/stormTitanGeometry.generated.json' with {type:'json'};
-import programs from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with {type:'json'};
+import {titanPrograms as programs} from './fixtures/titanInlineWitness';
 
 function run(original:boolean):{trace:unknown[];input:unknown[];ownerScope:boolean;onePrompt:boolean}{
   mockCanvas();

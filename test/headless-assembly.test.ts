@@ -4,7 +4,7 @@ import {parseShardfile} from '../src/format/shardSchema';
 import {resolveOutputDescriptor,carryOutputDescriptor} from '../src/game/shardfile/outputDescriptor';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { parseReturnProjectionV2 } from '../src/format/returnProjectionV2';
-import returnPrograms from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with {type:'json'};
+import {titanPrograms as returnPrograms} from './fixtures/titanInlineWitness';
 // oxlint-disable-next-line import/no-nodejs-modules -- The unit host uses the same native physics module as the resident.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';

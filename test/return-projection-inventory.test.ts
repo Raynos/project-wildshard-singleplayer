@@ -17,7 +17,7 @@ import { validateShardfileAssets } from '../src/format/assetAdmission';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { readProductDescriptor,admitProduct,type ProductOptions } from '../src/game/shardfile/product';
 import { HeadlessSimulation } from '../src/sdk/headless';
-import programs from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with {type:'json'};
+import {titanPrograms as programs} from './fixtures/titanInlineWitness';
 
 const owned:string[]=[];
 afterEach(()=>{for(const path of owned.splice(0))rmSync(path,{recursive:true,force:true});});

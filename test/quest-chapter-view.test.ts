@@ -18,7 +18,7 @@ import king from '../src/shards/nalati-grasslands/data/goldenKing.generated.json
 import titan from '../src/shards/nalati-grasslands/data/stormTitanFight.generated.json' with { type: 'json' };
 import geometry from '../src/shards/nalati-grasslands/data/stormTitanGeometry.generated.json' with { type: 'json' };
 import arenaFire from '../src/shards/nalati-grasslands/data/arenaFire.json' with { type: 'json' };
-import programs from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type: 'json' };
+import {titanPrograms as programs} from './fixtures/titanInlineWitness';
 import { carriedQuestRows } from '../src/shards/nalati-grasslands/generators/carriedQuest';
 import { Scope } from '../src/engine/app/scope';
 import { Flags } from '../src/engine/world/interact/flags';

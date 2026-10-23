@@ -45,7 +45,7 @@ import layout from '../src/shards/nalati-grasslands/data/kurganLayout.generated.
 import world from '../src/shards/nalati-grasslands/boot/layout.generated.json' with { type: 'json' };
 import { manager } from './fake/manager';
 import { legacyDouble } from './fake/FakeGame';
-import programs from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type: 'json' };
+import {titanPrograms as programs} from './fixtures/titanInlineWitness';
 import { mockCanvas } from './fake/weaponParity';
 import { App } from '../src/engine/app/app';
 import { createLevelInstallation } from '../src/engine/level/installation';

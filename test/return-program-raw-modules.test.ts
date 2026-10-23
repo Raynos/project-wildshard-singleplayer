@@ -4,7 +4,7 @@ import {Scope} from '../src/engine/app/scope';
 import {ReturnProgram} from '../src/game/population/returnProgram';
 import {ReturnProjectionV2} from '../src/game/population/returnProjectionV2';
 import type {ReturnModuleRow} from '../src/format/scriptContract';
-import programs from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with {type:'json'};
+import {titanPrograms as programs} from './fixtures/titanInlineWitness';
 
 function fixture(){
   const row=structuredClone(programs.attack),artifact=parseReturnProjectionV2(row.v2).artifact;

@@ -11,7 +11,7 @@ import {createShardProduct} from '../src/game/shardfile/shardProduct';
 import {emptyShardfile} from '../src/sdk/author';
 import type {ShardContext} from '../src/game/plugin/context';
 import {legacyDouble} from './fake/FakeGame';
-import programs from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with {type:'json'};
+import {titanPrograms as programs} from './fixtures/titanInlineWitness';
 
 test('page preparation lends the same verified book to sibling construction and actual level scopes',async()=>{
   const root=new Scope('page'),scope=root.child('construction'),level=root.child('entered');

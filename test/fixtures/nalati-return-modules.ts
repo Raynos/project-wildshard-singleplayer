@@ -22,9 +22,10 @@ const mounts=v.parse(v.object({approach:v.strictObject({...ReturnProgramSchema.e
   JSON.parse(readFileSync('src/shards/nalati-grasslands/behaviour/riding.generated.json','utf8')));
 export const heldModuleBytes=Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/held-weapons.generated.wasm'));
 export const ridingModuleBytes=Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/riding.generated.wasm'));
-const modules=new Map([[projection.artifact.hash,Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/pasture.generated.wasm'))],
+export const titanModuleBytes=Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/titan.generated.wasm'));
+const modules=new Map([[programs.attack.v2.artifact.hash,titanModuleBytes],[projection.artifact.hash,Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/pasture.generated.wasm'))],
   [held.program.v2.artifact.hash,heldModuleBytes],[mounts.approach.v2.artifact.hash,ridingModuleBytes],[admission.v2.artifact.hash,admissionModuleBytes]]);
-const rows=v.parse(ReturnModulesSchema,[['nalati.pasture.projection',projection],['nalati.held-weapons.projection',held.program.v2],['nalati.mounts.projection',mounts.approach.v2],['nalati.admission.projection',admission.v2]].map(([id,program])=>{
+const rows=v.parse(ReturnModulesSchema,[['nalati.titan.projection',programs.attack.v2],['nalati.pasture.projection',projection],['nalati.held-weapons.projection',held.program.v2],['nalati.mounts.projection',mounts.approach.v2],['nalati.admission.projection',admission.v2]].map(([id,program])=>{
   if(typeof id!=='string'||typeof program==='string'||program===undefined)throw new Error('Missing fixture return descriptor');
   return {id,module:`blobs/wasm/${program.artifact.hash}.wasm`,side:'sim',abi:2,lane:'project',pages:program.artifact.pages,ioBytes:program.artifact.ioBytes,
     compilerRevision:program.artifact.compilerRevision,admissionRevision:program.artifact.admissionRevision};
@@ -46,3 +47,6 @@ export function admissionPage(owner?:Scope):ReturnProgram {
 export function admissionNative(host:SimHost):ReturnProgram {
   lendNalatiAdmission(host.scope);return ReturnProgram.native(host,admission);
 }
+
+/** Titan fixtures borrow the same real file and original entered scope. */
+export function lendNalatiTitan(owner:Scope):void { ReturnProgram.lendModules(owner,modules,rows); }

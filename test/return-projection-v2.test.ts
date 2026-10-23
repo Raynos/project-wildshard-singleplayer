@@ -10,7 +10,7 @@ import { v2CoreSource } from '../src/sdk/as/wsV2';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { SCRIPT_V2_REVISIONS } from '../src/format/scriptAdmissionV2';
 import { TITAN_SCRIPT } from '../src/shards/nalati-grasslands/generators/stormTitanFight';
-import programs from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type:'json' };
+import {titanPrograms as programs} from './fixtures/titanInlineWitness';
 
 let built:Awaited<ReturnType<typeof compileReturnProjectionV2>>;
 let hostile:ReturnProjectionV2Rows;

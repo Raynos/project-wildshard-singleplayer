@@ -31,7 +31,7 @@ const source = { id:'nalati.titan',abi:'1.0',side:'sim',module:`blobs/wasm/${'0'
 const authored = readDecisionSources(fileURLToPath(new URL('../', import.meta.url)));
 const row={...source,id:'nalati.titan-combined',source:'behaviour/titanCombined.as'};
 const dual=await compileReturnProjectionV2(row,{fields:registry(fields),channels:registry(channels),signals:registry(signals)},authored,{asLineCeiling:3184,projectSource:'behaviour/titanCommands.as',outputCapacity:96,worldActions:true,additional:{fields:['zzzzIntroT',...Object.keys(fight.titanWhirlGate(8).law.initial).sort()],signals:['zzzzDismount','zzzzIgnite','zzzzIntroClock','zzzzWhirlArm','zzzzWhirlGate'],channels:['zzzzIntroT','zzzzIntroTick',...Object.keys(fight.titanWhirlGate(8).law.initial).sort()]}});
-const program={...dual.legacy,v2:dual.candidate};
+const program={...dual.legacy,v2:{...dual.candidate,bytes:''}};
 const pastureText=['pastureWind','pasture','titanWind','titanFire'].map(name=>authored.get(`behaviour/${name}.as`)).join('\n');
 const names=prefix=>[...new Set([...pastureText.matchAll(new RegExp(`${prefix}\\.([A-Za-z0-9_]+)`,'g'))].map(match=>match[1]))];
 const pf=names('Field'),pc=names('Channel'),ps=names('Signal');
@@ -41,14 +41,15 @@ const pastureSource={...source,id:'nalati.pasture-wind',source:'behaviour/pastur
 const herd=parseGroupStepV2(herdRows),groups=parseGroupStepV2({...herd,profiles:[PACK_PROFILE]});
 const pastureDual=await compileReturnProjectionV2(pastureSource,{fields:registry(pf),channels:registry(pc),signals:registry(ps)},authored,{asLineCeiling:3184,projectSource:'behaviour/pastureProject.as',groups:{rows:groups,helpers:{'sdk/as/groupBankV2.herd.ts':groupBankSourceV2(0,herd.bank.length),'sdk/as/groupBankV2.pack.ts':groupBankSourceV2(0,PACK_PROFILE.bank.reduce((sum,field)=>sum+groupBankWidthV2(field),0)),'sdk/as/groupStepV2.pack.ts':groupStepSourceV2(PACK_PROFILE.columns.length,PACK_PROFILE.members),'sdk/as/groupStepV2.herd.ts':groupStepSourceV2(herd.columns.length,herd.members)}}});
 // The selected artifact stays binary; JSON retains only its descriptor and original ABI1 witness.
-const pastureBytes=Uint8Array.from(atob(pastureDual.candidate.bytes),byte=>byte.codePointAt(0)??0);
+const pastureBytes=pastureDual.binary;
 const wind={...pastureDual.legacy,v2:{...pastureDual.candidate,bytes:''}};
-const compiled={pasture:{source:'behaviour/pasture.generated.wasm',bytes:pastureBytes.length,hash:pastureDual.candidate.artifact.hash}};
+const compiled={attack:{source:'behaviour/titan.generated.wasm',bytes:dual.binary.length,hash:dual.candidate.artifact.hash},pasture:{source:'behaviour/pasture.generated.wasm',bytes:pastureBytes.length,hash:pastureDual.candidate.artifact.hash}};
 const programs={attack:program,fire:wind,wind,rules:program,compiled};
 
 const writer = byteWriter(process.argv.includes('--check'), 'nalati-storm-titan');
 writer.put(fileURLToPath(new URL('../data/stormTitanFight.generated.json', import.meta.url)), jsonBytes(fight));
 writer.put(fileURLToPath(new URL('../data/stormTitanGeometry.generated.json', import.meta.url)), jsonBytes({ ...titanGeometry(), body: titanBodyRows(), poses: [...titanPoseRows(), ...titanFightPoseRows()], arena: titanArenaRows(fight.TITAN_PLACE.arenaRadius, fight.TITAN_TUNING.cell, fight.TITAN_ARENA.grid) }, 0));
+writer.put(fileURLToPath(new URL('../behaviour/titan.generated.wasm',import.meta.url)),dual.binary);
 writer.put(fileURLToPath(new URL('../behaviour/pasture.generated.wasm',import.meta.url)),pastureBytes);
 writer.put(fileURLToPath(new URL('../behaviour/titan.generated.json', import.meta.url)), jsonBytes(programs));
 writer.put(fileURLToPath(new URL('../behaviour/pasture.generated.json', import.meta.url)),jsonBytes(wind));

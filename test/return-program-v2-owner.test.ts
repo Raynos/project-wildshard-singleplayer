@@ -10,7 +10,7 @@ import { nameBlob } from '../src/sdk/blobs';
 import { wireProgram } from '../src/shards/nalati-grasslands/generators/returnProgramRows';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import * as v from 'valibot';
-import programs from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with {type:'json'};
+import {titanPrograms as programs} from './fixtures/titanInlineWitness';
 
 const spear={phase:0,mode:3,dt:2,t:0,cd:0,x:0,z:0,px:1,pz:1,chain:0,aim:1,lock:.2,stuck:.5};
 

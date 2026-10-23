@@ -13,7 +13,7 @@ import { fireViewRows } from '../src/shards/nalati-grasslands/generators/titanFi
 import {titanWhirlGate,titanWhirlView} from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
-import program from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type: 'json' };
+import {titanPrograms as program} from './fixtures/titanInlineWitness';
 
 // A made-up reed marsh (the fire cells' fixture second user): a 3 × 2 field of 2 m cells on a 1 m bank, burning 1 s.
 const reeds = { flameLook: 'reed-flame', smokeLook: 'reed-smoke', flameCount: 8, smokeCount: [4, 4], smokeDetail: [0, 0],

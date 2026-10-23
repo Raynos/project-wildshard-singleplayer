@@ -3,7 +3,7 @@ import { parse } from 'valibot';
 import { ArenaScriptBossProfileSchema } from '../src/format/arenaScriptRows';
 import { ProjectedState, ReturnProgram } from '../src/game/population/returnProgram';
 import { TITAN_SCRIPT } from '../src/shards/nalati-grasslands/generators/stormTitanFight';
-import programs from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type: 'json' };
+import {titanPrograms as programs} from './fixtures/titanInlineWitness';
 
 const frame = { mode: 3, broke: 0, px: 0, pz: 0, cx: 0, cz: 0, radius: 10, mounted: 1 };
 

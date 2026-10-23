@@ -12,7 +12,7 @@ import type { ThinkCtx } from '../src/engine/entities/species/registry';
 import type { DamageRequest } from '../src/engine/combat/pipeline';
 import { legacyDouble } from './fake/FakeGame';
 import { wireProgram } from '../src/shards/nalati-grasslands/generators/returnProgramRows';
-import titan from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type:'json' };
+import {titanPrograms as titan} from './fixtures/titanInlineWitness';
 import { parseDecisionScripts } from '../src/format/decisionScripts';
 import { CreatureGuestSchema } from '../src/format/speciesBookRows';
 import { ReturnProgramSchema } from '../src/format/namedJsonContracts';

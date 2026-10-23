@@ -12,7 +12,7 @@ import { parseDecisionScripts } from '../src/format/decisionScripts';
 import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
 import { applyV2WorldActions } from '../src/game/shardfile/worldActionsV2';
 import { TITAN_FIRE_FIELD } from '../src/shards/nalati-grasslands/generators/stormTitanFight';
-import program from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type: 'json' };
+import {titanPrograms as program} from './fixtures/titanInlineWitness';
 
 let programmeScope:Scope;
 beforeEach(()=>{programmeScope=new Scope('original-pasture-fixture');lendNalatiPasture(programmeScope);});

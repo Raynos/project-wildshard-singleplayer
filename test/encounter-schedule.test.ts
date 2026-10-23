@@ -3,7 +3,7 @@ import {Scope} from '../src/engine/app/scope';
 import { expect, test } from 'vitest';
 import { ProjectedState, ReturnProgram } from '../src/game/population/returnProgram';
 import { Rng } from '../src/engine/core/rng';
-import programs from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type: 'json' };
+import {titanPrograms as programs} from './fixtures/titanInlineWitness';
 import * as fight from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 
 const author = (): ReturnProgram => ReturnProgram.page(programs.attack);

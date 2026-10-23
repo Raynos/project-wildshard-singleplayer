@@ -10,7 +10,7 @@ import {SIM_LEVEL} from './fixtures/sim-level/level';
 import {namedJsonSchema} from '../src/sdk/formatJsonSchema';
 import {validateNamedJsonSchema} from '../src/game/shardfile/customSchema';
 import {legacyDouble} from './fake/FakeGame';
-import programme from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with {type:'json'};
+import {titanPrograms as programme} from './fixtures/titanInlineWitness';
 
 function rows(){return {program:programme.attack,step:{signal:'bossClamp',clock:'sampleAt',every:.2,
   columns:[{name:'fullHp',id:1,source:{kind:'memory',key:'capacity',default:{value:100}}},

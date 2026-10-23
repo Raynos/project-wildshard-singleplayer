@@ -7,7 +7,7 @@ import { CellField } from '../src/game/systems/cellField';
 import { Scope } from '../src/engine/app/scope';
 import { ProjectedState,ReturnProgram } from '../src/game/population/returnProgram';
 import { Rng } from '../src/engine/core/rng';
-import program from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with { type: 'json' };
+import {titanPrograms as program} from './fixtures/titanInlineWitness';
 import fight from '../src/shards/nalati-grasslands/data/stormTitanFight.generated.json' with { type: 'json' };
 import { TITAN_TRAIL, TITAN_FIRE_FIELD } from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 

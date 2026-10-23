@@ -2,7 +2,7 @@ import {Scope} from '../src/engine/app/scope';
 import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 import { expect, test, beforeEach, afterEach } from 'vitest';
 import { ReturnProgram } from '../src/game/population/returnProgram';
-import programs from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with {type:'json'};
+import {titanPrograms as programs} from './fixtures/titanInlineWitness';
 
 let programmeScope:Scope;
 beforeEach(()=>{programmeScope=new Scope('original-pasture-fixture');lendNalatiPasture(programmeScope);});
