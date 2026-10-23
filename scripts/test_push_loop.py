@@ -369,6 +369,7 @@ readFileSync('../public/assets/native/untracked.bin');
             try:
                 yield self.root, self.root / 'scripts'
             finally:
+                clock[0] += 3
                 cleanups.append(revision)
         with patch.dict(PUSH['SOURCE'], committed_source=prepared), \
                 patch.object(time, 'monotonic', side_effect=lambda: clock[0]), \
@@ -381,6 +382,60 @@ readFileSync('../public/assets/native/untracked.bin');
         self.assertEqual(checks, [])
         self.assertEqual(uploads, [tip])
         self.assertEqual(cleanups, [tip])
+        steps = {row['step']: row for row in result['steps']}
+        self.assertEqual(steps['source-prepare']['seconds'], 46)
+        self.assertEqual(steps['source-cleanup']['seconds'], 3)
+        self.assertEqual(result['gateSeconds'], 49)
+        self.assertEqual(result['gateOtherSeconds'], 0)
+        for name in LIVE['CHECK_STEPS']:
+            self.assertEqual(steps[name]['status'], 'skipped')
+            self.assertEqual(steps[name]['reason'], 'budget')
+            self.assertEqual(steps[name]['seconds'], 0)
+        self.assertTrue(all(row['candidate'] == tip for row in result['steps']))
+
+    def test_step_timings_cover_policy_recent_related_and_typed_work_once(self):
+        tip = self.commit('src/timed.ts')
+        self.put('test/recent.test.ts', '')
+        clock = [100.0]
+        def runner(command, *_):
+            clock[0] += 1.25
+            if '--recent-only' in command:
+                return 0, '["test/recent.test.ts"]'
+            if '--live' in command:
+                return 0, '["test/related.test.ts"]'
+            if 'importers' in command:
+                return 0, '["src/timed.ts"]'
+            return 0, ''
+        with patch.object(time, 'monotonic', side_effect=lambda: clock[0]):
+            result = LIVE['check'](self.root, self.base, tip, 143, runner=runner,
+                                   policy_checks=True, deleted=['src/old.ts'],
+                                   recent_tests=['test/recent.test.ts'])
+        self.assertTrue(result['ok'], result)
+        self.assertEqual([row['step'] for row in result['steps']], list(LIVE['CHECK_STEPS']))
+        self.assertTrue(all(row['seconds'] == 1.25 and row['status'] == 'passed' and row['rc'] == 0
+                            for row in result['steps']))
+        self.assertEqual(sum(row['seconds'] for row in result['steps']), clock[0]-100)
+
+    def test_step_timings_distinguish_budget_inputs_and_no_work(self):
+        tip = self.commit('src/timed.ts')
+        clock = [100.0]
+        def timed_out(*_):
+            clock[0] += 43
+            return 124, 'still running'
+        with patch.object(time, 'monotonic', side_effect=lambda: clock[0]):
+            result = LIVE['check'](self.root, self.base, tip, 143, runner=timed_out)
+        self.assertTrue(result['ok'], result)
+        steps = {row['step']: row for row in result['steps']}
+        self.assertEqual(steps['fast-lint']['seconds'], 43)
+        self.assertEqual(steps['fast-lint']['status'], 'budget')
+        self.assertEqual(steps['guards']['reason'], 'budget')
+        self.assertEqual(steps['deleted-paths']['reason'], 'no-deletions')
+        self.assertEqual(steps['ratchet']['reason'], 'not-requested')
+        result = LIVE['check'](self.root, self.base, tip, time.monotonic()+45,
+                               runner=lambda *_: (0, ''), types_available=False)
+        steps = {row['step']: row for row in result['steps']}
+        self.assertEqual(steps['related-tests']['reason'], 'generated-inputs')
+        self.assertEqual(steps['typed-lint']['reason'], 'generated-inputs')
 
     def test_guard_budget_defers_only_without_observed_failures(self):
         tip = self.commit('src/good.ts')
@@ -456,7 +511,9 @@ readFileSync('../public/assets/native/untracked.bin');
         notices = []
 
         def checker(root, base, candidate, deadline):
-            return {'ok': candidate == good, 'phase': 'lint', 'files': ['src/bad.ts'], 'output': 'bad'}
+            return {'ok': candidate == good, 'phase': 'lint', 'files': ['src/bad.ts'], 'output': 'bad',
+                    'steps': [{'step': 'fast-lint', 'seconds': 0.01,
+                               'status': 'passed' if candidate == good else 'failed'}]}
 
         def notify(*args):
             self.assertEqual(self.git('rev-parse', 'origin/main'), good)
@@ -476,6 +533,9 @@ readFileSync('../public/assets/native/untracked.bin');
         self.assertEqual(self.git('rev-parse', 'main'), tip)
         self.assertEqual((self.root / '.git/index').read_bytes(), index)
         self.assertEqual(len(notices), 1)
+        checks = [row for row in result['steps'] if row['step'] == 'fast-lint']
+        self.assertEqual([(row['candidate'], row['status']) for row in checks], [(tip, 'failed'), (good, 'passed')])
+        self.assertGreaterEqual(result['uploadSeconds'], 0)
 
     def test_unknown_live_refusal_pings_only_on_third_repeat(self):
         self.commit('src/good.ts')

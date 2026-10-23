@@ -10,9 +10,51 @@ import subprocess
 import sys
 import tempfile
 import time
+from contextlib import contextmanager
 
 LIMIT = 45
 ANSI = re.compile(r'\x1b\[[0-9;]*m')
+
+
+class GateSteps:
+    """Per-step wall time, including explicit reasons for work not attempted."""
+    def __init__(self, names):
+        self.rows = [{'step': name, 'seconds': 0.0, 'status': 'skipped', 'reason': 'not-reached'}
+                     for name in names]
+
+    def row(self, name):
+        return next(row for row in self.rows if row['step'] == name)
+
+    @contextmanager
+    def measure(self, name):
+        row = self.row(name)
+        started = time.monotonic()
+        row.update(status='passed')
+        row.pop('reason', None)
+        try:
+            yield row
+        except BaseException:
+            row['status'] = 'error'
+            raise
+        finally:
+            row['seconds'] = round(row['seconds'] + time.monotonic() - started, 4)
+
+    def run(self, name, runner, *args):
+        with self.measure(name) as row:
+            rc, output = runner(*args)
+            row['status'] = 'budget' if rc == 124 else 'failed' if rc else 'passed'
+            row['rc'] = rc
+            return rc, output
+
+    def skip(self, names, reason):
+        for name in names:
+            row = self.row(name)
+            if row['status'] == 'skipped' and row['reason'] == 'not-reached':
+                row['reason'] = reason
+
+
+CHECK_STEPS = ('closed-components', 'ratchet', 'deleted-paths', 'fast-lint', 'guards', 'recent-selection', 'recent-tests',
+               'related-selection', 'related-tests', 'importer-selection', 'typed-lint')
 
 
 def git(root, *args):
@@ -86,9 +128,14 @@ def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_a
           tests_available=None, test_revision=None, deleted=(), typed_files=(), recent_tests=(), policy_checks=False):
     files = changed(root, base, tip) if files is None else files
     tools = root / 'scripts' if tools is None else tools
-    result = {'ok': False, 'phase': 'working-tree', 'files': [], 'output': ''}
+    steps = GateSteps(CHECK_STEPS)
+    result = {'ok': False, 'phase': 'working-tree', 'files': [], 'output': '', 'steps': steps.rows}
     result['types'] = 'pre-commit'
     tests_available = types_available if tests_available is None else tests_available
+    if not tests_available:
+        steps.skip(('recent-selection', 'recent-tests', 'related-selection', 'related-tests'), 'generated-inputs')
+    if not types_available:
+        steps.skip(('importer-selection', 'typed-lint'), 'generated-inputs')
     if test_revision:
         result['output'] = 'Verified generated test inputs: ' + test_revision
         if not types_available:
@@ -110,6 +157,7 @@ def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_a
                 return False
             result.update(ok=True, phase='done', types='ci-budget', output=result['output'] + '\n' + output +
                           '\nLocal check budget exhausted; remaining guards, related tests and typed checks defer to full CI.')
+            steps.skip(CHECK_STEPS, 'budget')
             return True
 
         # Exact pre-commit policy timeouts run even when no source was staged.
@@ -120,27 +168,31 @@ def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_a
                 ('closed-components', ['node', str(tools / 'check-closed-components.mjs'), '--source-only']),
                 ('ratchet', ['node', str(root / 'lint/ratchet.mjs'), '--defer-reductions']),
             ]:
-                rc, output = runner(command, root, deadline, env)
+                rc, output = steps.run(phase, runner, command, root, deadline, env)
                 if rc:
                     if budget_deferred(rc, output):
                         return result
                     result.update(phase=phase, output=output, files=failure_paths(output))
                     return result
                 result['output'] += '\nDeferred policy passed: ' + phase
+        else:
+            steps.skip(('closed-components', 'ratchet'), 'not-requested')
         # Mandatory cheap guards precede optional related tests, including when
         # current generated declarations are unavailable. No app setup runs.
         removed = Path(temporary) / 'deleted.json'
         removed.write_text(json.dumps(list(deleted)))
         if deleted:
-            rc, output = runner(['node', str(tools / 'push-checks.mjs'), 'deleted', str(removed)], root, deadline, env)
+            rc, output = steps.run('deleted-paths', runner, ['node', str(tools / 'push-checks.mjs'), 'deleted', str(removed)], root, deadline, env)
             if rc:
                 if budget_deferred(rc, output):
                     return result
                 result.update(phase='deleted-paths', output=output, files=failure_paths(output))
                 return result
+        else:
+            steps.skip(('deleted-paths',), 'no-deletions')
         # G655 LD2: lint the entire committed snapshot, including files outside
         # this prefix's changed/importer selection. No generated types needed.
-        rc, output = runner(['node', str(tools / 'lint-fast.mjs')], root, deadline, env)
+        rc, output = steps.run('fast-lint', runner, ['node', str(tools / 'lint-fast.mjs')], root, deadline, env)
         if rc:
             if budget_deferred(rc, output):
                 return result
@@ -151,7 +203,7 @@ def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_a
                   'test/platform-chargebacks.test.ts', 'test/manifest-declarations.test.ts']
         if any(name.startswith(('src/format/', 'src/sdk/')) for name in files):
             guards.insert(0, 'test/schema-reference.test.ts')
-        rc, output = runner(['pnpm', 'exec', 'vitest', 'run', '--config',
+        rc, output = steps.run('guards', runner, ['pnpm', 'exec', 'vitest', 'run', '--config',
                              'scripts/vitest-push-guards.config.ts', *guards], root, deadline, env)
         if rc:
             if budget_deferred(rc, output):
@@ -168,7 +220,7 @@ def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_a
             recent_listing = Path(temporary)/'recent.json'
             recent_listing.write_text(json.dumps(recent))
             recent_selected = Path(temporary)/'recent-selected.json'
-            rc, output = runner(['node',str(tools/'gate-related-tests.mjs'),str(recent_listing),
+            rc, output = steps.run('recent-selection', runner, ['node',str(tools/'gate-related-tests.mjs'),str(recent_listing),
                 '--live','--recent-only','--budget='+str(max(0,deadline-time.monotonic()-2)),
                 '--output='+str(recent_selected)],root,deadline,env)
             if rc not in (0,124):
@@ -182,7 +234,7 @@ def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_a
                 if any(name not in recent for name in selected_recent):
                     result.update(phase='recent-selection',output='Foreign recent selector path',files=[]);return result
                 if selected_recent:
-                    rc, output=runner(['pnpm','exec','vitest','run','--config','scripts/vitest-push.config.ts',
+                    rc, output=steps.run('recent-tests', runner, ['pnpm','exec','vitest','run','--config','scripts/vitest-push.config.ts',
                                       *selected_recent],root,deadline,env)
                     if refused(rc,output):
                         result.update(phase='recent-tests',output=output,files=failure_paths(output));return result
@@ -191,14 +243,21 @@ def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_a
                         result['output']+='\nRecently red tests passed before related: '+', '.join(recent_done)
                     else:
                         result['output']+='\nRecently red tests reached the ceiling; CI owns unfinished tests'
+                else:
+                    steps.skip(('recent-tests',), 'no-tests')
             else:
+                steps.skip(('recent-tests',), 'budget')
                 result['output']+='\nRecently red selection reached the ceiling; CI owns unfinished selection'
         elif recent:
+            if tests_available:
+                steps.skip(('recent-selection', 'recent-tests'), 'budget')
             result['output']+='\nRecently red tests need verified inputs/budget; CI owns: '+', '.join(recent)
+        else:
+            steps.skip(('recent-selection', 'recent-tests'), 'no-recent-tests')
         left = deadline - time.monotonic()
         if tests_available and left > 2:
             selected = Path(temporary) / 'selected.json'
-            rc, output = runner(['node', str(tools / 'gate-related-tests.mjs'), str(listing),
+            rc, output = steps.run('related-selection', runner, ['node', str(tools / 'gate-related-tests.mjs'), str(listing),
                                  '--live', '--budget=' + str(max(0, left - 2)), '--output=' + str(selected)], root, deadline, env)
             if rc not in (0, 124):
                 result.update(phase='selection', output=output, files=failure_paths(output))
@@ -212,7 +271,7 @@ def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_a
                 tests = [test for test in tests if test not in guards and test not in recent_done]
                 result['output'] += '\n' + output
                 if tests:
-                    rc, output = runner(['pnpm', 'exec', 'vitest', 'run', '--config',
+                    rc, output = steps.run('related-tests', runner, ['pnpm', 'exec', 'vitest', 'run', '--config',
                                          'scripts/vitest-push.config.ts', *tests], root, deadline, env)
                     # An actual refusal remains red, even if the clock then expires.
                     if refused(rc, output):
@@ -222,13 +281,18 @@ def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_a
                         result['output'] += '\nRelated tests reached the ceiling; CI owns unfinished work from: ' + ', '.join(tests)
                     else:
                         result['output'] += '\nRelated tests passed: ' + ', '.join(tests)
+                else:
+                    steps.skip(('related-tests',), 'no-tests')
             else:
+                steps.skip(('related-tests',), 'budget')
                 result['output'] += '\nRelated selection reached the ceiling; remaining related tests run in CI'
+        elif tests_available:
+            steps.skip(('related-selection', 'related-tests'), 'budget')
         # Spend the remaining budget on changed source and its typed importers.
         # Previous generated inputs are deliberately insufficient for this step.
         if types_available and deadline - time.monotonic() > 1:
             imported = Path(temporary) / 'importers.json'
-            rc, output = runner(['node', str(tools / 'push-checks.mjs'), 'importers', str(listing),
+            rc, output = steps.run('importer-selection', runner, ['node', str(tools / 'push-checks.mjs'), 'importers', str(listing),
                                  '--output=' + str(imported)], root, deadline, env)
             if rc not in (0, 124):
                 result.update(phase='importers', output=output, files=failure_paths(output))
@@ -245,7 +309,7 @@ def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_a
             if lint and deadline - time.monotonic() > 1:
                 for start in range(0, len(lint), 16):
                     remainder = lint[start:]
-                    rc, output = runner(['pnpm', 'exec', 'oxlint', '--type-aware',
+                    rc, output = steps.run('typed-lint', runner, ['pnpm', 'exec', 'oxlint', '--type-aware',
                                          '-c', '.oxlintrc.json', *remainder[:16]], root, deadline, env)
                     if refused(rc, output):
                         result.update(phase='typed-check', output=output,
@@ -258,10 +322,14 @@ def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_a
                     result['output'] += '\nTyped importer lint passed: ' + ', '.join(lint)
                     result['types'] = 'pre-commit+importers'
             elif lint:
+                steps.skip(('typed-lint',), 'budget')
                 result['output'] += '\nPush budget exhausted; typed lint runs in CI: ' + ', '.join(lint)
+            else:
+                steps.skip(('typed-lint',), 'budget' if rc == 124 else 'no-importers')
         elif not types_available:
             result['output'] += '\nTyped importers require exact generated inputs; CI owns this remainder'
         else:
+            steps.skip(('importer-selection', 'typed-lint'), 'budget')
             result['output'] += '\nPush budget exhausted before typed importer selection; CI owns importers of: ' + ', '.join(files)
         if before != snapshot(root, files):
             result.update(phase='working-tree', output='Inputs changed during checks; retry next minute')

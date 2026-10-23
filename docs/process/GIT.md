@@ -149,6 +149,11 @@ rewrite still needs Jake's approval.
   unavailable reads are named, not silently counted as green. Within the same 45-second ceiling, run eligible
   recently-red tests after mandatory guards and before related tests, then omit successful repeats. Missing
   verified inputs still defer to CI. No new watcher or schedule is installed.
+- **Gate timings (G671 P3):** every checked push records per-step seconds and outcomes in `.git/push.log`,
+  with the exact candidate SHA for prefix rechecks. Source preparation and cleanup are separate from policy
+  guards, recent/related tests, selection and typed lint. Skipped rows name budget exhaustion, missing verified
+  inputs or absent work; a timeout never becomes a passing check. Upload time and remaining gate overhead
+  are recorded separately. This is measurement, not a new preparation cache or budget policy.
 - **Source checks:** pre-commit checks the pathspec's named files and refuses if they change during the check.
   The scheduled push gate checks immutable committed candidates in disposable source snapshots, preserving the
   shared working tree and index. Missing generated test inputs follow the explicit cache-miss rule above.

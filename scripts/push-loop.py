@@ -11,6 +11,7 @@ import subprocess
 import sys
 import tempfile
 import time
+from contextlib import contextmanager
 
 LIVE = runpy.run_path(str(Path(__file__).with_name('live-prepush.py')))
 SOURCE = runpy.run_path(str(Path(__file__).with_name('push-source.py')))
@@ -61,33 +62,71 @@ def check_binary_json(root, base, tip, deadline):
         checker.write_text(script.stdout)
         rc, output = LIVE['run'](['node', str(checker), '--range', base, tip], root, deadline)
     if rc == 124 and 'BINARY-JSON ' not in output:
-        return {'ok': True, 'output': output + '\nBinary JSON check reached the local budget; defer to full CI.\n'}
+        return {'ok': True, 'budget': True, 'output': output + '\nBinary JSON check reached the local budget; defer to full CI.\n'}
     if rc != 0:
         paths = sorted(set(re.findall(r'^BINARY-JSON ([^\n:]+):', output, re.M)))
         return {'ok': False, 'phase': 'binary-json', 'files': paths, 'output': output}
     return {'ok': True, 'output': output}
 
 
+@contextmanager
+def measured_source(manager, steps):
+    """Separate materialisation and cleanup without counting checks twice."""
+    started = time.monotonic()
+    cleanup_started = None
+    try:
+        with manager as value:
+            steps.row('source-prepare').update(seconds=round(time.monotonic()-started, 4), status='passed')
+            steps.row('source-prepare').pop('reason', None)
+            try:
+                yield value
+            finally:
+                cleanup_started = time.monotonic()
+    finally:
+        name = 'source-prepare' if cleanup_started is None else 'source-cleanup'
+        row = steps.row(name)
+        row.update(seconds=round(time.monotonic()-(started if cleanup_started is None else cleanup_started), 4),
+                   status='error' if sys.exc_info()[0] is not None else 'passed')
+        row.pop('reason', None)
+
+
 def check_committed(root, base, tip, deadline):
-    binary = check_binary_json(root, base, tip, deadline)
+    steps = LIVE['GateSteps'](('binary-json', 'recent-refresh', 'source-prepare', 'source-inputs',
+                               'failure-inputs', 'source-cleanup'))
+    def report(result, skipped='not-reached'):
+        checks = result.get('steps')
+        if checks is None:
+            pending = LIVE['GateSteps'](LIVE['CHECK_STEPS'])
+            pending.skip(LIVE['CHECK_STEPS'], skipped)
+            checks = pending.rows
+        result['steps'] = steps.rows + checks
+        return result
+
+    with steps.measure('binary-json') as row:
+        binary = check_binary_json(root, base, tip, deadline)
+        row['status'] = 'budget' if binary.get('budget') else 'passed' if binary['ok'] else 'failed'
     if not binary['ok']:
-        return binary
-    recent, recent_note = RECENT['refresh'](root, min(deadline,time.monotonic()+5))
+        return report(binary)
+    with steps.measure('recent-refresh') as row:
+        recent, recent_note = RECENT['refresh'](root, min(deadline,time.monotonic()+5))
+        row.update(status='completed', note=recent_note.strip())
     policy = deferred_policy(root, base, tip)
     preparation_started = time.monotonic()
     try:
         # The local check budget is soft; exact source preparation must finish.
-        with SOURCE['committed_source'](root, tip, git(root, 'rev-parse', 'main'), float('inf')) as (tree, tools):
+        with measured_source(SOURCE['committed_source'](root, tip, git(root, 'rev-parse', 'main'), float('inf')), steps) as (tree, tools):
             if time.monotonic() >= deadline:
-                return {'ok': True, 'phase': 'preparation-deferred', 'files': [], 'types': 'ci-budget',
+                steps.skip(('source-inputs', 'failure-inputs'), 'budget')
+                return report({'ok': True, 'phase': 'preparation-deferred', 'files': [], 'types': 'ci-budget',
                         'output': binary['output'] + 'Exact committed source preparation completed in %.2f seconds. '
                                   'Local check budget exhausted; deleted-path/inventory guards, related tests '
                                   'and remaining typed checks defer to full CI.' % (time.monotonic() - preparation_started)
-                                  + (' Deferred pre-commit policy checks remain queued: ' + ', '.join(policy) if policy else '')}
-            inputs = json.loads((tree / '.push-types.json').read_text())
-            available = inputs['available']
-            deferred = deferred_types(root, base, tip)
-            deleted = git(root, 'diff', '--name-only', '--diff-filter=D', '--no-renames', base, tip).splitlines()
+                                  + (' Deferred pre-commit policy checks remain queued: ' + ', '.join(policy) if policy else '')}, 'budget')
+            with steps.measure('source-inputs'):
+                inputs = json.loads((tree / '.push-types.json').read_text())
+                available = inputs['available']
+                deferred = deferred_types(root, base, tip)
+                deleted = git(root, 'diff', '--name-only', '--diff-filter=D', '--no-renames', base, tip).splitlines()
             result = LIVE['check'](tree, base, tip, deadline, files=LIVE['changed'](root, base, tip),
                                    runner=LIVE['run'],
                                    tools=tools, types_available=available,
@@ -100,12 +139,14 @@ def check_committed(root, base, tip, deadline):
                 if not available:
                     result['output'] += '\nDeferred typed checks lack verified generated inputs; full CI owns: ' + ', '.join(deferred)
             if not result['ok'] and result['files']:
-                rc, output = LIVE['run'](['node', str(tools / 'push-inputs.mjs'), *result['files']], tree, deadline)
+                rc, output = steps.run('failure-inputs', LIVE['run'], ['node', str(tools / 'push-inputs.mjs'), *result['files']], tree, deadline)
                 result['inputs'] = json.loads(output) if rc == 0 else []
+            else:
+                steps.skip(('failure-inputs',), 'no-failure')
             result['output'] = binary['output'] + recent_note + '\n' + result['output']
-            return result
+            return report(result)
     except (TimeoutError, subprocess.TimeoutExpired):
-        return {'ok': False, 'phase': 'preparation', 'files': [], 'output': 'Committed check exceeded 45 seconds'}
+        return report({'ok': False, 'phase': 'preparation', 'files': [], 'output': 'Committed check exceeded 45 seconds'})
 
 
 def load(path, fallback):
@@ -184,8 +225,12 @@ def tick(root, checker=check_committed, uploader=None, notify=ping):
     # Reaping the snapshot is part of the 45-second ceiling too.
     deadline = started + LIVE['LIMIT'] - 2
     pending_notice = None
+    attempts = []
 
     def finish(result):
+        result['steps'] = [dict(row, candidate=revision) for revision, rows in attempts for row in rows]
+        result['gateOtherSeconds'] = round(max(0, result['gateSeconds'] -
+            sum(row['seconds'] for row in result['steps'])), 4)
         # Lane notification is outside the check budget and never delays upload.
         if pending_notice is not None:
             # The recipient may open this file as soon as Herdr delivers.
@@ -206,14 +251,21 @@ def tick(root, checker=check_committed, uploader=None, notify=ping):
     if git(root, 'merge-base', base, tip) != base:
         return {'status': 'diverged', 'tip': tip}
     result = checker(root, base, tip, deadline)
+    attempts.append((tip, result.get('steps', [])))
     candidate = tip
     bad = None
     if not result['ok']:
+        attribution_started = time.monotonic()
         bad = offender(root, base, tip, result.get('inputs', result['files']), deadline)
+        attempts.append((tip, [{'step': 'attribution', 'seconds': round(time.monotonic()-attribution_started, 4),
+                                'status': 'passed'}]))
         candidate = git(root, 'rev-parse', bad + '^') if bad else base
         # The prefix must pass too, in the remaining original 45s budget.
-        if candidate != base and not checker(root, base, candidate, deadline)['ok']:
-            candidate = base
+        if candidate != base:
+            prefix = checker(root, base, candidate, deadline)
+            attempts.append((candidate, prefix.get('steps', [])))
+            if not prefix['ok']:
+                candidate = base
         state_file = common / 'push-red.json'
         signature = refusal_signature(result['output'])
         fingerprint = hashlib.sha256(json.dumps([bad, result['phase'], result['files'], signature], sort_keys=True).encode()).hexdigest()
@@ -236,10 +288,12 @@ def tick(root, checker=check_committed, uploader=None, notify=ping):
         def uploader(revision, environment):
             return subprocess.run(['git', 'push', '-q', 'origin', revision + ':refs/heads/main'], cwd=root, env=environment).returncode
     gate_seconds = round(time.monotonic() - started, 2)
+    upload_started = time.monotonic()
     rc = uploader(candidate, env)
     return finish({'status': 'pushed' if rc == 0 else 'upload-red', 'tip': candidate, 'bad': bad,
                    'types': result.get('types', 'unavailable'),
-                   'gateSeconds': gate_seconds, 'output': result['output']})
+                   'gateSeconds': gate_seconds, 'uploadSeconds': round(time.monotonic()-upload_started, 4),
+                   'output': result['output']})
 
 
 def main():
@@ -261,6 +315,7 @@ def main():
             print(json.dumps({'status': 'busy'}))
             return 0
         result = tick(root)
+        result.setdefault('steps', [])
     (folder / 'current.log').write_text(result.pop('output', '') + '\n' + json.dumps(result) + '\n')
     with (common / 'push.log').open('a') as log:
         log.write(time.strftime('%Y-%m-%dT%H:%M:%S%z ') + json.dumps(result) + '\n')
