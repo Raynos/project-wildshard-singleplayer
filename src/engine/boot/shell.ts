@@ -7,6 +7,8 @@
  * from this same markup. test/shell.test.ts keeps index.html and this markup identical; the wordmark and tagline are the
  * app's (src/engine/app/identity.ts).
  */
+import type { Scope } from '../app/scope';
+import { HudSlots } from '../ui/hudSlots';
 import { appIdentity } from '../app/identity';
 
 const shellHtml = (tagline: string): string => `<div class="ws-load-head">
@@ -37,3 +39,28 @@ const shellHtml = (tagline: string): string => `<div class="ws-load-head">
 
 /** Runtime shell markup: the caller fills the identity tagline through textContent. */
 export const loadShellTemplate = (): string => shellHtml('');
+
+/** Paint an owned loading panel before a fresh-page handoff. The compiled caller
+ * supplies navigation; no renderer or save service is imported by this shell. */
+export function beginNavigationShell(name: string, owner: Scope, navigate: () => void, card?: HTMLButtonElement | null): Scope {
+  if (owner.disposed || owner.disposing) throw new Error('Navigation shell requires a live owner');
+  const attempt = owner.child('navigation'), html = document.documentElement, title = html.classList.contains('title-first');
+  const existing = document.querySelector<HTMLElement>('.ws-load'), root = existing ?? document.createElement('div'), slots = new HudSlots();
+  if (existing === null) { root.className = 'ws-load'; root.dataset['shell'] = ''; root.innerHTML = loadShellTemplate(); slots.widget('band.1', root, 0, attempt, document.body); }
+  const hidden = root.classList.contains('hide'), nameField = root.querySelector<HTMLElement>('[data-el="slug"]');
+  const previousName = nameField?.textContent ?? '', disabled = card?.disabled ?? false, busy = card?.getAttribute('aria-busy') ?? null;
+  if (nameField !== null) nameField.textContent = name;
+  root.classList.remove('hide'); root.dataset['navigation'] = '';
+  html.classList.remove('title-first');
+  if (card !== undefined && card !== null) { card.disabled = true; card.setAttribute('aria-busy', 'true'); }
+  attempt.onDispose(() => {
+    if (existing === null) slots.discard(root);
+    else { root.classList.toggle('hide', hidden); delete root.dataset['navigation']; if (nameField !== null) nameField.textContent = previousName; }
+    html.classList.toggle('title-first', title);
+    if (card !== undefined && card !== null) { card.disabled = disabled; if (busy === null) card.removeAttribute('aria-busy'); else card.setAttribute('aria-busy', busy); }
+  });
+  // RAF runs before paint. A second frame leaves a complete paint opportunity
+  // before synchronous storage work or navigation can block this document.
+  attempt.raf(() => { attempt.raf(() => { try { navigate(); } catch (error) { attempt.dispose(); throw error; } }); });
+  return attempt;
+}

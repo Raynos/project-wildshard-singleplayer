@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./boot/shell": "./boot/shell.ts",
     "./fx/groundTell": "./fx/groundTell.ts",
     "./ai/view/eliteController": "./ai/view/eliteController.ts",
     "./ai/view/eliteEntry": "./ai/view/eliteEntry.ts",

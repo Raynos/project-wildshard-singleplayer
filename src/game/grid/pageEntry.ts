@@ -1,3 +1,6 @@
+import { beginNavigationShell } from '@wildshard/engine/boot/shell';
+import { pageScope } from '@wildshard/engine/app/resources';
+import type { Scope } from '@wildshard/engine/app/scope';
 import { saves } from '@wildshard/engine/saves/runtime';
 import type { SaveStore } from '@wildshard/engine/saves/store';
 import { GridAssembly, type GridCell } from './assembly';
@@ -32,19 +35,24 @@ export function gridHome(mode?: MenuMode): GridCell {
   return home;
 }
 
-/** The title's Infinite Wildshard tap: write the one-shot intent, then open the home cell in a fresh document. */
+let navigating: Scope | null = null;
+/** Paint the loading shell before the title's durable handoff and fresh-page navigation. */
 export function enterGrid(): void {
-  // A deliberate new player attempt starts a new guard window; automatic reloads cannot clear it.
-  if (!gridRecovery(saves).clearLoop()) throw new Error('Grid recovery guard could not be cleared');
-  clearGridRecovery();
+  if (navigating !== null && !navigating.disposed) return;
   const home = gridHome();
   const target = findShard(home.slug);
   if (target === undefined) throw new Error(`The grid's home cell names no shard: ${home.slug}`);
-  // INFINITE WILDSHARD enters the catalogue home, never SHARD SELECT's frozen LEGACY copy.
-  chooseShardEntry(target.slug, 'shardfile');
-  pageGridIntents().set({ instance: home.instance, slug: target.slug });
-  travel({ to: target.slug, mode: 'enter' });
+  navigating = beginNavigationShell(target.name, pageScope, () => {
+    // A deliberate new player attempt starts a new guard window; automatic reloads cannot clear it.
+    if (!gridRecovery(saves).clearLoop()) throw new Error('Grid recovery guard could not be cleared');
+    clearGridRecovery();
+    // INFINITE WILDSHARD enters the catalogue home, never SHARD SELECT's frozen LEGACY copy.
+    chooseShardEntry(target.slug, 'shardfile');
+    pageGridIntents().set({ instance: home.instance, slug: target.slug });
+    travel({ to: target.slug, mode: 'enter' });
+  }, document.querySelector<HTMLButtonElement>('.ws-main-grid'));
 }
+
 
 
 /** The boot's one read of the tap intent (used or not), overridden by validated recovery before ordinary admission.

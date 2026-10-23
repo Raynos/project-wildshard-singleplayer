@@ -851,6 +851,15 @@ rAF timestamp measures polling timing; neither substitutes for the delivered dra
 
 `beginLoading({id, name, trace?})` from `@wildshard/engine/ui/Loading` adopts the first-HTML panel before product hydration. Repeating it for the same active identity returns the same panel and clock. `Loading.paintAdmission({phase, detail, bytesRead, bytesTotal, filesDone, filesTotal})` shows actual pre-plan work; an unknown total stays explicit. `waiting(detail)` identifies module or service waits. The session then hands its ordinary plan to that instance with `paint(view)`, preserving verified admission bytes and reaching 100 only at plan completion. The first HTML reads the title-arrival display name without consuming its one-shot navigation intent.
 
+`beginNavigationShell(name, scope, navigate, card?)` from
+`@wildshard/engine/boot/shell` shows the existing HTML panel synchronously
+(or mounts identical markup through owned HUD slots when a running page
+has retired it). Its CSS is linked before module evaluation. It returns
+an attempt Scope and runs the compiled navigation callback only after a
+complete frame can paint. Retirement cancels pending frames and restores
+the panel/card; a failed handoff retires the attempt. It imports no
+renderer or save service.
+
 `freshPageArrival(at, now?, startedAt?)` in `@wildshard/engine/boot/titleArrival`
 checks one-shot entry intent against the receiving document's start before cold modules
 or admission can consume its 60-second navigation window. Title, grid and travel
