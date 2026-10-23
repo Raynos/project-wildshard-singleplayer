@@ -363,8 +363,15 @@ class GraphLitMaterial extends GraphNormalMaterial {
  */
 const HOOK_INPUT_OPS: ReadonlySet<string> = new Set([...SUN_OPS, 'irradiance', 'radiance', 'environmentIrradiance', 'environmentIrradianceAt', 'litColour']);
 
-/** the root nodes that read a hook input (HOOK_INPUT_OPS), directly or through their inputs and loop bodies */
+const lightDependentsOf = new WeakMap<GraphIr, ReadonlySet<string>>();
+/** the root nodes that read a hook input (HOOK_INPUT_OPS), directly or through their inputs and loop bodies; once per
+ *  (read-only) IR: every compile walked the same graph, and the toon preset's for each toon material */
 function lightDependents(ir: GraphIr): ReadonlySet<string> {
+  let known = lightDependentsOf.get(ir);
+  if (known === undefined) { known = scanLightDependents(ir); lightDependentsOf.set(ir, known); }
+  return known;
+}
+function scanLightDependents(ir: GraphIr): ReadonlySet<string> {
   type Nodes = Readonly<Record<string, GraphNode>>;
   const memo = new Map<string, boolean>();
   function depRef(chain: readonly Nodes[], r: GraphRef | undefined): boolean {
