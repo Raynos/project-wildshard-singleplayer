@@ -106,7 +106,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   releaseByteCounter();
   // G325: an arrival enters at once, but its AudioContext waits for the player's first tap (`installAudioUnlock`)
   // an app switch that takes the GPU (iOS): hold the loop, restore in place or reload where the player stood (E54)
-  if (resuming) hud.setPaused(true); // RESUME is the gesture that brings the audio back (enter)
+  if (resuming && !ctx.continuingGridEntry) hud.setPaused(true); // A live recovery needs RESUME; a pre-entry update retains the original tap.
   const recoveryInstalledAt = performance.now();
   installGpuRecovery({ game, rebuild: () => { sky.rebuildEnvironment(); }, pose: () => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null), resumed: resuming,
     ...(ctx.gridLive === null ? {} : { beforeReload: (reason: 'gpu' | 'background') => ctx.gridLive?.prepareRecovery(reason) === true }),
@@ -135,7 +135,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
     catch (error: unknown) { if (!levelScope.disposed) console.warn('[shaders] the in-play warm-up stopped:', error); }
   };
   void warmRest();
-  if (arrival?.mode === 'enter' || arrival?.mode === 'arena') enter();
+  if (arrival?.mode === 'enter' || arrival?.mode === 'arena' || ctx.continuingGridEntry) enter();
   else if (arrival?.mode === 'explore') hud.startExplore(); // import the viewer only after shader compilation and the loader's peak
   if (arrival?.mode === 'arena') hud.enterArenaNow();
   if (deferredAudio) {

@@ -877,6 +877,12 @@ checks one-shot entry intent against the receiving document's start before cold 
 or admission can consume its 60-second navigation window. Title, grid and travel
 handoffs still reset on their first read, reject future timestamps and refuse a new
 navigation starting after expiry. Explicit clocks support deterministic tests.
+
+`initialGridReload(record)` in `@wildshard/game/grid/recovery` identifies a
+planned reload before a live position has been saved. It continues the original
+grid entry with its reveal and enter action; GPU/background recovery and saved
+live positions retain the pause screen. The consumed recovery, lifetime checks
+and durable loop guard remain the navigation authority.
 `pendingTitleArrival(slug)` reads the same validated, fresh session/device
 arrival without consuming it. The grid's entry recovery uses it only with
 an exact planned stale-product reload and the original pending travel

@@ -31,6 +31,10 @@ const schema = v.nullable(v.strictObject({ instance: identity, slug: identity,
 }));
 /** A recovery location only: progress remains in the existing instance saves, never copied into this record. */
 export type GridRecoveryRecord = v.InferOutput<typeof schema>;
+/** A planned reload before the first live checkpoint continues the original grid entry gesture. */
+export function initialGridReload(record: GridRecoveryRecord | undefined): boolean {
+  return record?.reason === 'reload' && record.saved === undefined;
+}
 /** GPU loss, long absence and New game may resume; a crossing never writes or consumes this protocol. */
 export type GridRecoveryReason = NonNullable<GridRecoveryRecord>['reason'];
 const definition: SaveKeyDef<GridRecoveryRecord> = { key: 'grid.recovery.once', scope: 'session', version: 1, schema, initial: () => null };
