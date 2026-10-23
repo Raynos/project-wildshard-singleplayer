@@ -12391,3 +12391,42 @@ held mask, so a second claim observes the first in the SAME call. The original
 group director remains the native owner and its existing codec publishes that
 mask. This codec/helper is not the production group runner, member-operation
 application or H5 query extension; those remain separate transport work.
+
+### Ordered group projection transport (H4, G621 R10a)
+
+GroupStepV2 in engine/script/groupStepV2 runs one reusable ABI2 projection
+executable over a borrowed original group bank and ordered member slots. It
+adds no group, actor, scheduler, clock, random stream or save owner. The native
+owner calls prepare at its original group-decision or member-drive slot,
+passing the admitted group identity/handle/signal, absolute tick, SAME state
+bank, original member column owners and scoped reference loans. Death retains
+its slot; only explicit native despawn removes it. Each reference includes the
+actual AnimalSim body, stable wire id and original group/slot/identity. Foreign,
+duplicate, replaced and retired loans refuse before publication.
+
+format/scriptGroupStepV2 declares the finite bank, per-member observation
+columns, member/output capacities, signal names and operation arities. Columns
+are flattened by slot then lexicographic column name; groupStepColumnV2 returns
+the zero-based flattened index and wire field ids are index+1. The generated
+groupStepSourceV2 helper reads exactly those member columns. Parameters 0/1 are
+the one-based declared signal and actual ordered slot count. The original H4
+resolver supplies finite pose, memory, environment and context observations;
+this runner never guesses species, member order or live owner paths.
+
+The AS guest writes the existing candidate bank and bounded op25 records.
+Declared member/reference operands resolve once to emitted actual body loans;
+intents remain detached and ordered. Native callers preflight ALL concrete
+operations, call validate, accept the complete state/RNG/query candidate, and
+apply at the original slot. Every native effect must fence scope and concrete
+service lifetime without retargeting an earlier emitted body after adoption.
+Same-call mount/adopt/bond barriers require segments in that SAME native slot,
+not a future-tick transaction. Existing group JSON codecs and continuation
+owners stay authoritative; this transport creates no saved outbox or clock.
+
+Optional query authority is the original QueryRingV2. Delivery and requests
+are prepared together with state, original ai RNG and native reference loans.
+AfterBodies resolution and next-tick delivery stay unchanged; capabilities,
+ring revision, state, RNG methods and body identity are checked before accept.
+Refused candidates advance neither group bank, random stream nor query ring.
+This foundational runner does not activate a group simulation or add a
+shipping module/admission row; pack and herd adoption own those changes.

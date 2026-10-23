@@ -130,7 +130,8 @@
     "./projectDecisions": "./projectDecisions.ts",
     "./bake/practiceCourse": "./bake/practiceCourse.ts",
     "./returnProjectionV2": "./returnProjectionV2.ts",
-    "./as/groupBankV2": "./as/groupBankV2.ts"
+    "./as/groupBankV2": "./as/groupBankV2.ts",
+    "./as/groupStepV2": "./as/groupStepV2.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
