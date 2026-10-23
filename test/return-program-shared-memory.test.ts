@@ -1,5 +1,5 @@
 import {Scope} from '../src/engine/app/scope';
-import {lendNalatiRiding} from './fixtures/nalati-return-modules';
+import {lendNalatiRiding,ridingWitnessBytes} from './fixtures/nalati-return-modules';
 import { expect, test } from 'vitest';
 import { DecisionModule } from '../src/engine/script/decisionModule';
 import { ReturnProgram } from '../src/game/population/returnProgram';
@@ -32,8 +32,10 @@ test('return programs share one memory per page count and answer exactly as alon
 test('stateless decision modules take turns in one memory; stateful modules keep their own', () => {
   const bytes = (row: { bytes: string }): Uint8Array => Uint8Array.from(atob(row.bytes), byte => byte.codePointAt(0) ?? 0);
   const ports = { read: () => 0, list: () => 0 };
-  const [a, b] = [programs.approach, programs.breaking].map(row => new DecisionModule(bytes(row), [0, 0], ports, true));
-  const [c, d] = [programs.approach, programs.breaking].map(row => new DecisionModule(bytes(row), [0, 0], ports));
+  const legacy=structuredClone([programs.approach,programs.breaking]);
+  for(const row of legacy)row.bytes=Buffer.from(ridingWitnessBytes).toString('base64');
+  const [a, b] = legacy.map(row => new DecisionModule(bytes(row), [0, 0], ports, true));
+  const [c, d] = legacy.map(row => new DecisionModule(bytes(row), [0, 0], ports));
   expect(a?.memory).toBe(b?.memory);
   expect(c?.memory).not.toBe(d?.memory);
   expect(c?.memory).not.toBe(a?.memory);

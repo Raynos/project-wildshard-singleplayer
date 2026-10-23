@@ -1,4 +1,4 @@
-import {lendNalatiRiding} from './nalati-return-modules';
+import {lendNalatiRiding,ridingWitnessBytes} from './nalati-return-modules';
 import {TamingBinding as LegacyTamingBinding} from './tamingLegacyBinding';
 import { Vector3 } from 'three';
 import { TamingSession as TamingBinding } from '../../src/game/riding/taming';
@@ -37,7 +37,8 @@ export function tamingRig(saved: string | null = null, actorId='wild',companionI
     hurt: value => { events.push(`hurt:${String(value)}`); }, toast: value => { events.push(`notice:${value}`); },
   };
   lendNalatiRiding(scope);
-  const binding = legacy?new LegacyTamingBinding({...opts,programs:{...programs,approach:{script:programs.approach.script,bytes:programs.approach.bytes},breaking:{script:programs.breaking.script,bytes:programs.breaking.bytes},riding:{script:programs.riding.script,bytes:programs.riding.bytes}}}):new TamingBinding(opts,scope);
+  const bytes=Buffer.from(ridingWitnessBytes).toString('base64');
+  const binding = legacy?new LegacyTamingBinding({...opts,programs:{...programs,approach:{script:programs.approach.script,bytes},breaking:{script:programs.breaking.script,bytes},riding:{script:programs.riding.script,bytes}}}):new TamingBinding(opts,scope);
   binding.onBreaking = on => { events.push(`breaking:${String(on)}`); };
   binding.onBonded = actor => { events.push(`bonded:${actor.entityId}`); };
   binding.update(.1); events.length = 0;

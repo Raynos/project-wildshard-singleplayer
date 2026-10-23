@@ -23,11 +23,14 @@ const mounts=v.parse(v.object({approach:v.strictObject({...ReturnProgramSchema.e
   JSON.parse(readFileSync('src/shards/nalati-grasslands/behaviour/riding.generated.json','utf8')));
 export const heldWitnessBytes=Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/held-witness.generated.bin'));
 export const heldModuleBytes=Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/held-weapons.generated.wasm'));
+export const ridingWitnessBytes=Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/riding-witness.generated.bin'));
 export const ridingModuleBytes=Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/riding.generated.wasm'));
 export const titanModuleBytes=Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/titan.generated.wasm'));
 const heldScript=parseDecisionScripts([held.program.script])[0];
 if(heldScript===undefined)throw new Error('Missing actual held script');
-const modules=new Map([[heldScript.module.slice('blobs/wasm/'.length,-'.wasm'.length),heldWitnessBytes],[programs.attack.script.module.slice('blobs/wasm/'.length,-'.wasm'.length),titanWitnessBytes],[programs.wind.script.module.slice('blobs/wasm/'.length,-'.wasm'.length),pastureWitnessBytes],[programs.attack.v2.artifact.hash,titanModuleBytes],[projection.artifact.hash,Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/pasture.generated.wasm'))],
+const ridingScript=parseDecisionScripts([mounts.approach.script])[0];
+if(ridingScript===undefined)throw new Error('Missing actual riding script');
+const modules=new Map([[ridingScript.module.slice('blobs/wasm/'.length,-'.wasm'.length),ridingWitnessBytes],[heldScript.module.slice('blobs/wasm/'.length,-'.wasm'.length),heldWitnessBytes],[programs.attack.script.module.slice('blobs/wasm/'.length,-'.wasm'.length),titanWitnessBytes],[programs.wind.script.module.slice('blobs/wasm/'.length,-'.wasm'.length),pastureWitnessBytes],[programs.attack.v2.artifact.hash,titanModuleBytes],[projection.artifact.hash,Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/pasture.generated.wasm'))],
   [held.program.v2.artifact.hash,heldModuleBytes],[mounts.approach.v2.artifact.hash,ridingModuleBytes],[admission.v2.artifact.hash,admissionModuleBytes]]);
 const rows=v.parse(ReturnModulesSchema,[['nalati.titan.projection',programs.attack.v2],['nalati.pasture.projection',projection],['nalati.held-weapons.projection',held.program.v2],['nalati.mounts.projection',mounts.approach.v2],['nalati.admission.projection',admission.v2]].map(([id,program])=>{
   if(typeof id!=='string'||typeof program==='string'||program===undefined)throw new Error('Missing fixture return descriptor');

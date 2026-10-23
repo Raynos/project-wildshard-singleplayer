@@ -1,4 +1,4 @@
-import {lendNalatiRiding,ridingModuleBytes} from './fixtures/nalati-return-modules';
+import {lendNalatiRiding,ridingModuleBytes,ridingWitnessBytes} from './fixtures/nalati-return-modules';
 import {expect,test} from 'vitest';
 import {Scope} from '../src/engine/app/scope';
 import {ReturnProgram} from '../src/game/population/returnProgram';
@@ -14,9 +14,12 @@ test('mounted ABI2 replaces one executable in the complete return/spawn inventor
   const candidate=programs.approach.v2,bytes=ridingModuleBytes;
   expect(programs.approach.script.module).toBe('blobs/wasm/84bd39abf54a633b3946e0e1dea7c1816565609c034799f5310db55a7b65d4ca.wasm');
   expect(hashImmutableBytes(bytes)).toBe(candidate.artifact.hash);expect(candidate.artifact.pages).toBe(1);
-  expect(candidate.bytes).toBe('');
-  expect(programs.compiled).toEqual({source:'behaviour/riding.generated.wasm',bytes:47229,hash:'09463dfbd52f3bf943c9f1203ad1bab3febca73ad0da10a8e242aaf418fb0b09'});
-  const {compiled:_compiled,...wire}=programs,inline={...programs.approach,v2:{...candidate,bytes:btoa(String.fromCodePoint(...bytes))}};
+  expect(candidate.bytes).toBe('');expect(programs.approach.bytes).toBe('');
+  expect(hashImmutableBytes(ridingWitnessBytes)).toBe('84bd39abf54a633b3946e0e1dea7c1816565609c034799f5310db55a7b65d4ca');
+  const {witnessBytes,...compiled}=programs.compiled;
+  expect(witnessBytes).toBe(ridingWitnessBytes.length);
+  expect(compiled).toEqual({source:'behaviour/riding.generated.wasm',bytes:47229,hash:'09463dfbd52f3bf943c9f1203ad1bab3febca73ad0da10a8e242aaf418fb0b09'});
+  const {compiled:_compiled,...wire}=programs,inline={...programs.approach,bytes:Buffer.from(ridingWitnessBytes).toString('base64'),v2:{...candidate,bytes:btoa(String.fromCodePoint(...bytes))}};
   expect(hashImmutableBytes(new TextEncoder().encode(JSON.stringify(inline)))).toBe('bcb91aa391cffd0cc224d14e3a54dcd06a888f724d867eaec2e69f8e39b9ac91');
   const original={...wire,approach:inline,breaking:inline,riding:inline};
   expect(hashImmutableBytes(new TextEncoder().encode(JSON.stringify(original)))).toBe('42a29475ac365a10f7a9b041acb4b665ad5653b3463b2806813840298079406d');
@@ -30,11 +33,14 @@ test('mounted ABI2 replaces one executable in the complete return/spawn inventor
   expect(decisionModuleContracts(rows,rows.map(row=>({kind:'wasm',path:row.module,hash:row.module.slice(11,-5)}))).get(candidate.artifact.hash)).toMatchObject({abi:2,lane:'project',pages:1,ioBytes:candidate.artifact.ioBytes});
   const scope=new Scope('mounted.program');lendNalatiRiding(scope);try{expect(ReturnProgram.page(programs.approach,scope)).toBe(ReturnProgram.page(programs.breaking,scope));expect(ReturnProgram.page(programs.riding,scope)).toBe(ReturnProgram.page(programs.approach,scope));}finally{scope.dispose();}
   const {output}=await import('../src/shards/nalati-grasslands/generators/output');
-  const declaration=v.parse(v.object({name:v.string(),kind:v.literal('wasm'),source:v.string(),options:v.object({critical:v.boolean(),
+  const declaration=v.parse(v.object({name:v.string(),kind:v.literal('wasm'),source:v.string(),options:v.object({dependencies:v.array(v.string()),critical:v.boolean(),
     script:v.object({abi:v.literal(2),lane:v.literal('project'),pages:v.number(),ioBytes:v.number(),compilerRevision:v.literal(1),admissionRevision:v.literal(1)})})}),
     output.blobs.find(blob=>blob.name==='behaviour/nalati.mounts.wasm'));
   const actual=await readNamedBlob('src/shards/nalati-grasslands',declaration.name,declaration.source,declaration.kind,declaration.options);
   expect(actual.bytes).toEqual(bytes);expect(actual.file.path).toBe(file);
+  const witness=v.parse(v.object({name:v.string(),kind:v.literal('bin'),source:v.string()}),output.blobs.find(blob=>blob.name==='behaviour/riding-witness.bin'));
+  const raw=await readNamedBlob('src/shards/nalati-grasslands',witness.name,witness.source,witness.kind);
+  expect(raw.bytes).toEqual(ridingWitnessBytes);expect(actual.file.dependencies).toEqual([raw.file.hash]);
   for(const name of ['ride/rules.json','sim/headless-boot.json']){
     const entry=output.namedFiles.find(row=>row.name===name),payload=entry===undefined?undefined:output.assets.get(entry.hash);
     if(payload===undefined)throw new Error('Missing actual riding payload');
