@@ -29,3 +29,20 @@ test.each(['phone', 'desktop'] as const)('%s retains every consumed plan field w
   expect(rows.smallRocks).toHaveLength(before.smallRocks);
   expect(rows.families.every(row => !Object.hasOwn(row, 'boxes'))).toBe(true);
 });
+
+test('every explicit plan input names a declared current producer output', () => {
+  const catalogue = v.parse(v.object({ jobs: v.array(v.object({ id: v.string(), outputs: v.array(v.string()), inputRoots: v.array(v.string()) })) }),
+    JSON.parse(readFileSync('scripts/generation-jobs.json', 'utf8')));
+  const producer = catalogue.jobs.findIndex(job => job.id === 'driftwood-island-dressing');
+  const current = new Set(Object.values(files).map(file => `public${file.url}`));
+  expect(producer).toBeGreaterThanOrEqual(0);
+  for (const file of current) expect(catalogue.jobs[producer]?.outputs).toContain(file);
+  let inputs = 0;
+  catalogue.jobs.forEach((job, index) => {
+    for (const input of job.inputRoots.filter(path => path.includes('/island-plan-'))) {
+      expect(current.has(input), `${job.id}: ${input}`).toBe(true);
+      expect(index).toBeGreaterThan(producer); inputs++;
+    }
+  });
+  expect(inputs).toBeGreaterThan(0);
+});
