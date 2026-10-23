@@ -2289,7 +2289,8 @@
         "src/shards/pine-hollow/data/geography.generated.json",
         "src/shards/pine-hollow/data/pondClip.generated.json",
         "src/shards/pine-hollow/data/gpuTables.generated.json",
-        "src/shards/pine-hollow/data/perches.generated.json"
+        "src/shards/pine-hollow/data/perches.generated.json",
+        "src/shards/pine-hollow/data/fauna.generated.ts"
       ],
       "outputs": [
         "src/shards/pine-hollow/data/perchRows.generated.json"
@@ -2343,7 +2344,8 @@
         "src/shards/pine-hollow/data/bootMetadata.generated.json",
         "src/shards/pine-hollow/data/geography.generated.json",
         "src/shards/pine-hollow/data/pondClip.generated.json",
-        "src/shards/pine-hollow/data/gpuTables.generated.json"
+        "src/shards/pine-hollow/data/gpuTables.generated.json",
+        "src/shards/pine-hollow/data/fauna.generated.ts"
       ],
       "outputs": [
         "src/shards/pine-hollow/data/groundTiles.json",
@@ -8198,7 +8200,8 @@
         "src/shards/pine-hollow/data/bootMetadata.generated.json",
         "src/shards/pine-hollow/data/geography.generated.json",
         "src/shards/pine-hollow/data/pondClip.generated.json",
-        "src/shards/pine-hollow/data/gpuTables.generated.json"
+        "src/shards/pine-hollow/data/gpuTables.generated.json",
+        "src/shards/pine-hollow/data/fauna.generated.ts"
       ],
       "outputs": [
         "public/assets/hdri/qwantani_dawn_puresky_2k.key.jpg",
