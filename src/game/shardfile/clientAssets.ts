@@ -43,7 +43,15 @@ export class ClientAssets {
       downloaded = true;
     }
     if (bytes.length !== cap || await this.hashOf(bytes) !== hash) throw new Error('Resident tile hash or size mismatch');
-    if (downloaded) await this.options.cache?.putAsset(base, hash, bytes);
+    if (downloaded) {
+      // The verified network response is the build input. Disk persistence must
+      // not hold the home load behind a background writer or a cache refusal.
+      const cache = this.options.cache, wire = bytes;
+      if (cache !== undefined) void Promise.resolve().then(async () => {
+        await (cache.putAssetBackground === undefined ? cache.putAsset(base, hash, wire) : cache.putAssetBackground(base, hash, wire));
+        return undefined;
+      }).catch(() => undefined);
+    }
     else recordCachedDownload(hash, bytes.length);
     return bytes;
   }

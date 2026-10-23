@@ -186,6 +186,36 @@ test('a resident read the content cache already verified is not hashed again on 
   expect(hash).toHaveBeenCalledTimes(1);
 });
 
+test('cold resident bytes build before the background cache write completes', async () => {
+  const f = fixture(), source = await readProductDescriptor(f.options);
+  let release = (): void => { throw new Error('Missing cache write gate'); };
+  let saved: Uint8Array | undefined;
+  const blocked = new Promise<void>(resolve => { release = resolve; });
+  const writes: Promise<boolean>[] = [];
+  const cache: ProductCache = { product: () => Promise.resolve(null), putProduct: () => Promise.resolve(),
+    asset: () => Promise.resolve(null), putAsset: () => { throw new Error('Foreground cache write used'); },
+    putAssetBackground: (_base, _hash, wire) => {
+      const copy = Uint8Array.from(wire), pending = blocked.then(() => { saved = copy; return true; });
+      writes.push(pending); return pending;
+    } };
+  const reader = new ClientAssets(source, new Map(), { ...f.options, cache });
+  try {
+    const read = await reader.read(f.ref);
+    expect(read).toEqual(f.blob); expect(saved).toBeUndefined(); expect(writes).toHaveLength(1);
+    read.fill(9); expect(reader.retained.size).toBe(0);
+  } finally { release(); await Promise.all(writes); }
+  expect(saved).toEqual(f.blob);
+});
+
+test('a failed background resident cache write cannot reject verified online bytes', async () => {
+  const f = fixture(), source = await readProductDescriptor(f.options);
+  const cache: ProductCache = { product: () => Promise.resolve(null), putProduct: () => Promise.resolve(),
+    asset: () => Promise.resolve(null), putAsset: () => Promise.reject<boolean>(new Error('Unavailable disk')) };
+  expect(await new ClientAssets(source, new Map(), { ...f.options, cache }).read(f.ref)).toEqual(f.blob);
+  f.wires.set(`blobs/bin/${f.ref}.bin`, Uint8Array.of(9, 9, 9));
+  await expect(new ClientAssets(source, new Map(), { ...f.options, cache }).read(f.ref)).rejects.toThrow('hash or size');
+});
+
 test('neighbour transport release shrinks the shared claim before readers copy its bytes', async () => {
   const f = fixture(); trust(f.receipt);
   const disk = new Map<string, Uint8Array>(), pins = new Set<string>();

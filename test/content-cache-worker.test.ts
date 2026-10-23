@@ -2,6 +2,7 @@ import { afterEach, expect, test, vi } from 'vitest';
 import * as v from 'valibot';
 import { ContentCacheWorker } from '../src/engine/boot/contentCacheWorker';
 import { CacheCommandSchema, type CacheCommand, type CacheValue } from '../src/engine/boot/contentCacheProtocol';
+import { bootWaits } from '../src/engine/boot/waits';
 
 function replyValue(command: CacheCommand): CacheValue {
   switch (command.op) {
@@ -159,6 +160,18 @@ test('a queued put snapshots caller bytes and keeps its buffer attached', async 
   worker.drain();
   await Promise.all(reads);
   expect(await write).toBe(true);
+});
+
+test('background admission writes keep eviction semantics without becoming a boot wait', async () => {
+  const { worker, client } = fixture(), bytes = Uint8Array.of(1, 2);
+  const pending = client.put('a'.repeat(64), bytes, false, true);
+  const command = worker.sent[0];
+  expect(command?.op).toBe('put');
+  if (command?.op !== 'put') throw new Error('Missing background write');
+  expect(command.keep).toBeUndefined();
+  expect(bootWaits().some(wait => wait.label.startsWith('Content cache put'))).toBe(false);
+  bytes.fill(9); expect(command.bytes).toEqual(Uint8Array.of(1, 2));
+  worker.reply(0); expect(await pending).toBe(true);
 });
 
 test('an ordinary checked refusal releases one slot without retiring the worker', async () => {

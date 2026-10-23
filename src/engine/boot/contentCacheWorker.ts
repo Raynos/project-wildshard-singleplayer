@@ -160,11 +160,11 @@ export class ContentCacheWorker {
     if (typeof value === 'boolean') return value;
     throw new Error('Invalid cache presence result');
   }
-  /** `keep`: a background prefetch write that never evicts (G554). */
-  async put(hash: string, input: Uint8Array, keep = false): Promise<boolean> {
+  /** `keep`: a prefetch write that never evicts. `background`: ordinary persistence outside boot waits. */
+  async put(hash: string, input: Uint8Array, keep = false, background = false): Promise<boolean> {
     // Snapshot before any await, and never transfer/detach caller-owned data.
     if (input.length > CONTENT_CACHE_WIRE_CAP) throw new Error('Invalid immutable content bytes');
-    const bytes = Uint8Array.from(input), value = await this.request({ op: 'put', hash, bytes, ...(keep ? { keep } : {}) }, keep);
+    const bytes = Uint8Array.from(input), value = await this.request({ op: 'put', hash, bytes, ...(keep ? { keep } : {}) }, keep || background);
     if (typeof value === 'boolean') return value;
     throw new Error('Invalid cache write result');
   }

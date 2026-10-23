@@ -59,6 +59,7 @@ export class ContentCache {
   private tail = Promise.resolve();
   private readonly pinned = new Map<string, number>();
   private readonly inflight = new Map<string, Promise<Uint8Array>>();
+  private readonly pendingWrites = new Set<Promise<boolean>>();
   constructor(ports: ContentCachePorts) {
     this.ports = ports; this.root = new URL('/__ws_content__/v0/', ports.origin).href;
     // G554: room for the grid's whole known set (~650 MB, ~6k files), still capped at a quarter of the origin's quota
@@ -138,9 +139,9 @@ export class ContentCache {
   /** Coalesce index writes; immutable blob writes remain durable before returning. Pagehide/close force the index. */
   flush(): Promise<void> {
     if (this.pendingFlush !== undefined) return this.pendingFlush;
-    const pending = this.serial(async () => {
+    const pending = Promise.allSettled(this.pendingWrites).then(() => this.serial(async () => {
       if (this.dirty && this.cache !== undefined) await this.metadata(this.cache);
-    });
+    }));
     this.pendingFlush = pending;
     void pending.finally(() => { if (this.pendingFlush === pending) this.pendingFlush = undefined; });
     return pending;
@@ -223,15 +224,25 @@ export class ContentCache {
     this.key(hash);
     await this.open().catch(() => undefined); return this.index[hash]?.bytes === bytes;
   }
-  /** One network read per concurrent immutable address; offline misses never try the network. */
+  /** Share verified downloads through background persistence; flush awaits writes, offline misses never fetch. */
   async load(hash: string, download: () => Promise<Uint8Array>, offline = false): Promise<Uint8Array> {
     this.key(hash);
     const cached = await this.get(hash); if (cached !== null) return cached;
     if (offline) throw new Error('Content is unavailable offline');
     const existing = this.inflight.get(hash); if (existing !== undefined) return Uint8Array.from(await existing);
-    const pending = (async () => { const bytes = Uint8Array.from(await download()); await this.put(hash, bytes); return bytes; })();
+    const pending = (async () => {
+      const bytes = Uint8Array.from(await download());
+      if (bytes.length > MAX_FILE || await this.ports.hash(bytes) !== hash) throw new Error('Invalid immutable content bytes');
+      return bytes;
+    })();
     this.inflight.set(hash, pending);
-    try { return Uint8Array.from(await pending); } finally { this.inflight.delete(hash); }
+    // Retain the shared download through persistence, but let its verified
+    // response build now. A failed cache write never fails valid online bytes.
+    const stored = pending.then(bytes => this.put(hash, bytes));
+    this.pendingWrites.add(stored);
+    const settled = (): void => { this.pendingWrites.delete(stored); this.inflight.delete(hash); };
+    void stored.then(settled, settled);
+    return Uint8Array.from(await pending);
   }
   /** Reference-counted leases protect active critical bytes from this cache's LRU eviction. */
   pin(hashes: Iterable<string>): () => void {

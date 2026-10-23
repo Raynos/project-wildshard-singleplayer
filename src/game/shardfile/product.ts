@@ -34,6 +34,8 @@ export interface ProductCache {
   /** Checked durable presence without transferring a discarded asset to the page. */
   verifiedPresent?: (hash: string, bytes: number) => Promise<boolean>;
   putAsset: (base: string, hash: string, bytes: Uint8Array) => Promise<boolean> | Promise<void>;
+  /** Snapshot bytes before awaiting a best-effort disk write, outside the loading wait readout. */
+  putAssetBackground?: (base: string, hash: string, bytes: Uint8Array) => Promise<boolean>;
   /** G554 prefetch: the content cache's index says this address is stored at this size (no read, no re-hash). */
   holds?: (hash: string, bytes: number) => Promise<boolean>;
   /** G554 prefetch: store verified bytes without evicting anything; false when they do not fit. */
@@ -166,8 +168,8 @@ async function readBoundedResponse(response: Response, maximum: number, read?: (
   for (const chunk of chunks) { bytes.set(chunk, at); at += chunk.length; }
   return bytes;
 }
-function resolveDescriptor(input: unknown, options: ProductOptions, lineage = false): Promise<unknown> {
-  const base = new URL('.', options.base).href, cache = options.cache;
+function resolveDescriptor(input: unknown, options: ProductOptions, lineage = false, background = false): Promise<unknown> {
+  const base = new URL('.', options.base).href, cache = options.cache, backgroundStore = cache?.putAssetBackground;
   return resolveOutputDescriptor(input, {
     offline: options.offline, hash: options.hash, firstParty: options.firstParty, ...(lineage ? { lineage } : {}),
     ...(options.pause === undefined ? {} : { pause: options.pause }),
@@ -181,6 +183,9 @@ function resolveDescriptor(input: unknown, options: ProductOptions, lineage = fa
     ...(cache === undefined ? {} : {
       store: async (hash: string, bytes: Uint8Array) => await cache.putAsset(base, hash, bytes) !== false,
     }),
+    ...(background && !options.offline && backgroundStore !== undefined ? {
+      backgroundStore: (hash: string, bytes: Uint8Array) => backgroundStore(base, hash, bytes),
+    } : {}),
   });
 }
 
@@ -201,7 +206,7 @@ export async function readProductDescriptor(options: ProductOptions): Promise<Sh
 
 /** Assemble an inline or already fetched descriptor through the same verified section reader. */
 export async function readProductInput(input: unknown, options: ProductOptions): Promise<Shardfile> {
-  const assembled = await resolveDescriptor(input, options);
+  const assembled = await resolveDescriptor(input, options, false, true);
   if (isBuildValidatedOutput(assembled)) return assembled;
   preflightShardfile(assembled);
   const source = parseShardfile(assembled);
@@ -362,7 +367,7 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
     const sectionFiles = descriptor === undefined ? [] : [...descriptor.index.sections, ...descriptor.index.schemas];
     const release = cache.pin?.([...assets.keys()].map((ref) => ref.replace(/^commons:/u, '')).concat(sectionFiles.map(section => section.hash)));
     try {
-      let complete = descriptor?.cached ?? true;
+      let complete = descriptor?.cacheStored === undefined ? descriptor?.cached ?? true : await descriptor.cacheStored;
       await cacheRows([...assets], options.cacheBatch === true, async ([ref, bytes]) => {
         const hash = ref.replace(/^commons:/u, '');
         if (verifiedCached.has(hash)) return; // Exact cached bytes were already admitted; avoid rewriting the same immutable file.
@@ -425,6 +430,7 @@ export function browserProductCache(storage: Pick<CacheStorage, 'open'> & Partia
     verifiedAsset: async hash => { const bytes = await ownedContent.get(hash); if (bytes !== null) recordCachedDownload(hash, bytes.length); return bytes; },
     ...(ownedContent instanceof ContentCacheWorker ? { verifiedPresent: (hash: string, bytes: number) => ownedContent.has(hash, bytes) } : {}),
     putAsset: (_base, hash, bytes) => ownedContent.put(hash, bytes), pin: (hashes) => ownedContent.pin(hashes),
+    putAssetBackground: (_base, hash, bytes) => ownedContent instanceof ContentCacheWorker ? ownedContent.put(hash, bytes, false, true) : ownedContent.put(hash, bytes),
     holds: (hash, bytes) => ownedContent.holds(hash, bytes), keepAsset: (hash, bytes) => ownedContent.put(hash, bytes, true),
     putProduct: async (base, product) => { await (await open()).put(productUrl(base), Response.json(product)); },
   };

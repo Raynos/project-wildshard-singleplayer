@@ -155,3 +155,30 @@ test('concurrent first reads share one complete disk recovery', async () => {
   expect(ports.writes).toHaveLength(before + 1);
   expect(await reopened.stats()).toEqual({ bytes: 1, entries: 1 });
 });
+
+test('cold loads return verified network bytes before persistence and share the pending write', async () => {
+  const bytes = Uint8Array.of(8, 9), hash = hashImmutableBytes(bytes);
+  let release = (): void => { throw new Error('Missing write gate'); };
+  let started = (): void => { throw new Error('Missing write signal'); };
+  const blocked = new Promise<void>(resolve => { release = resolve; }), writing = new Promise<void>(resolve => { started = resolve; });
+  const ports = fixture({}, key => { if (key.endsWith(hash)) { started(); return blocked; } return Promise.resolve(); });
+  const store = ports.open(); let downloads = 0, flushed = false;
+  const download = (): Promise<Uint8Array> => { downloads++; return Promise.resolve(bytes); };
+  const first = await store.load(hash, download); await writing;
+  const flush = store.flush().then(() => { flushed = true; return undefined; });
+  try {
+    expect(first).toEqual(bytes);
+    expect(await store.load(hash, download)).toEqual(bytes);
+    expect(downloads).toBe(1); expect(flushed).toBe(false);
+    expect(ports.disk.has(ports.key(hash))).toBe(false);
+    first.fill(0); // A returned owner's mutation cannot change the pending immutable write.
+  } finally { release(); await flush; }
+  expect(await store.get(hash)).toEqual(bytes);
+});
+
+test('a cold download is hash-checked before return even when its cache write is detached', async () => {
+  const ports = fixture(), store = ports.open(), hash = hashImmutableBytes(Uint8Array.of(1));
+  await expect(store.load(hash, () => Promise.resolve(Uint8Array.of(2)))).rejects.toThrow('Invalid immutable content bytes');
+  await store.flush();
+  expect(ports.disk.has(ports.key(hash))).toBe(false);
+});

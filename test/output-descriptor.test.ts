@@ -186,6 +186,40 @@ test('every section request starts before a slow first response completes', asyn
   await expect(pending).resolves.toBeDefined();
 });
 
+test('cold sections build before disk writes while offline publication waits for durability', async () => {
+  const f = fixture(), store = cacheStore();
+  let release = (): void => { throw new Error('Missing cache write gate'); };
+  const blocked = new Promise<void>(resolve => { release = resolve; });
+  const cache: ProductCache = { ...store.cache, putAssetBackground: async (productBase, address, bytes) => {
+    const copy = Uint8Array.from(bytes); await blocked; return await store.cache.putAsset(productBase, address, copy) !== false;
+  } };
+  const opts = options(f.wires, cache);
+  try {
+    const source = await readProductDescriptor(opts);
+    expect(source).toEqual(f.source);
+    expect(outputDescriptor(source)?.cached).toBe(false);
+    expect(store.product()).toBeNull(); expect(store.bytes.size).toBe(0);
+    const admitted = admitProduct(source, opts);
+    await new Promise<void>(resolve => { setTimeout(resolve, 0); });
+    expect(store.product()).toBeNull();
+    release(); await admitted;
+    expect(outputDescriptor(source)?.cached).toBe(true);
+    expect(store.product()?.source).toEqual(f.index);
+    expect(await readProductDescriptor({ ...opts, offline: true })).toEqual(f.source);
+  } finally { release(); }
+});
+
+test('a refused background section write cannot advertise a complete offline product', async () => {
+  const f = fixture(), store = cacheStore(), opts = options(f.wires, { ...store.cache, putAssetBackground: () => Promise.resolve(false) });
+  const source = await readProductDescriptor(opts);
+  expect(source).toEqual(f.source);
+  expect(await outputDescriptor(source)?.cacheStored).toBe(false);
+  expect(outputDescriptor(source)?.cached).toBe(false);
+  await admitProduct(source, opts);
+  expect(store.product()).toBeNull();
+  await expect(readProductDescriptor({ ...opts, offline: true })).rejects.toThrow('not been visited offline');
+});
+
 test('checks emitted custom schemas at load, including first-party and cached readers', async () => {
   const { index, wires } = fixture();
   let paused = 0;

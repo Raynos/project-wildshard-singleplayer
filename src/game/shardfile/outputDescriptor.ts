@@ -15,6 +15,8 @@ export interface OutputDescriptorReader {
   /** A verified cache hit also completes its named section/schema path. */
   cacheHit?: (path: string, hash: string, bytes: number) => void;
   store?: (hash: string, bytes: Uint8Array) => Promise<boolean>;
+  /** Lazy online page reads build verified network bytes before best-effort persistence completes. */
+  backgroundStore?: (hash: string, bytes: Uint8Array) => Promise<boolean>;
   /** A client may let its loading panel draw between complete schema checks. */
   pause?: () => Promise<void>;
   offline: boolean;
@@ -29,6 +31,8 @@ export interface OutputDescriptor {
   readonly index: OutputIndex;
   readonly sections: ReadonlyMap<string, unknown>;
   readonly cached: boolean;
+  /** Background section writes settle here; explicit offline publication still awaits durable proof. */
+  readonly cacheStored?: Promise<boolean>;
   readonly indexHash: string;
   readonly receipt?: ValidationReceipt;
 }
@@ -91,13 +95,23 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
   for (const file of [...index.sections, ...index.schemas]) reader.declare?.(file.path, file.bytes);
   const sections = new Map<string, unknown>();
   let cached = reader.cached !== undefined;
+  const stores: Promise<void>[] = [];
+  let pendingStores = 0;
   const load = async (section: OutputIndex['sections'][number]): Promise<readonly [string, unknown]> => {
     let bytes = await reader.cached?.(section.hash, section.path, section.bytes);
     if (bytes === null || bytes === undefined) {
       if (reader.offline) throw new IncompleteOutputCacheError();
       bytes = await reader.read(section.path, section.bytes);
       if (bytes.length !== section.bytes || await reader.hash(bytes) !== section.hash) throw new Error('Shardfile section hash or size mismatch');
-      if (reader.store === undefined || !await reader.store(section.hash, bytes)) cached = false;
+      if (reader.backgroundStore !== undefined) {
+        // A scheduled write is not durable cache proof. Complete offline
+        // admission still uses the awaited store path before publication.
+        const store = reader.backgroundStore, wire = bytes;
+        pendingStores++;
+        stores.push(Promise.resolve().then(() => store(section.hash, wire)).then(ok => {
+          if (!ok) cached = false; pendingStores--; return undefined;
+        }, () => { cached = false; pendingStores--; return undefined; }));
+      } else if (reader.store === undefined || !await reader.store(section.hash, bytes)) cached = false;
     } else {
       if (bytes.length !== section.bytes || await reader.hash(bytes) !== section.hash) throw new Error('Cached shardfile section hash or size mismatch');
       reader.cacheHit?.(section.path, section.hash, bytes.length);
@@ -140,7 +154,9 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
     source = fields;
     buildValidated.add(source);
   }
-  descriptors.set(source.files, { index, sections, cached, indexHash, ...(receipt === null ? {} : { receipt }) });
+  descriptors.set(source.files, { index, sections, get cached() { return cached && pendingStores === 0; }, indexHash,
+    ...(stores.length === 0 ? {} : { cacheStored: Promise.all(stores).then(() => cached) }),
+    ...(receipt === null ? {} : { receipt }) });
   return source;
 }
 
