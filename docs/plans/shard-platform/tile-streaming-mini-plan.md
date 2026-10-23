@@ -354,3 +354,13 @@ A neighbour shard is only scene-graph level of detail (far proxy → L1 → L0 t
   - B: keep it as the Debug "whole shard" option until T10.
 
 </details>
+
+## Far-view quality (Jake, 2026-10-23: *"When we try the low detail stuff, it just looked like shit … when we made it render everything, then all of a sudden it looked good"*)
+
+The far views looked bad because today's stand-ins are crude (decimated ~1.6 MB far proxies), not because stand-ins can't look good. The menu hero is a picture, so it is rendered offline at full detail (no run-time budget). In game, stand-ins are baked from the full-detail render (silhouette, colours, lighting; impostors captured from render-everything), shaded to match, behind mild haze (G631) with cross-fades instead of pops; a generous 5–10 MB per neighbour is still tiny next to a whole world (~300 MB). Render-everything (G607) stays the Debug option until Jake picks.
+
+| Row | What | Lane | Size | Done when |
+|---|---|---|---|---|
+| F1 | Variant sheet (iPhone portrait, labelled): render-everything vs today's stand-ins vs improved baked stand-ins, from inside Driftwood looking out (3 views) and the hero angle, each with WebContent + GPU MB | Opus | 0.5 d | Jake picks by eye |
+| F2 | The picked stand-in for every shard (bake step per shard, far budget per G658 crash-line count) | Opus + Codex | 1.5 d | far views match the pick; memory recorded |
+| F3 | Menu hero rendered offline at full detail and shipped as an image (no run-time streaming) | Opus | 0.5 d | hero matches the original framing; costs no run-time memory |
