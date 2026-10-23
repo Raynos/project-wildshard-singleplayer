@@ -1,7 +1,8 @@
 import { buildCourseProgram } from '@wildshard/commons/practiceCourse';
 import { compileDecisionScripts, readDecisionSources } from '@wildshard/sdk/buildDecisionScripts';
 import { fileURLToPath } from 'node:url';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
+import { byteWriter,jsonBytes } from '../../../../scripts/bake-output.mjs';
 
 const { KOKPAR:k }=JSON.parse(readFileSync(new URL('../data/layout.generated.json',import.meta.url),'utf8'));
 const goals=[0,Math.PI].map(t=>{const x=Math.cos(t)*k.rx*0.82,z=Math.sin(t)*k.rz*0.82;
@@ -28,12 +29,14 @@ if(script===undefined||blob===undefined)throw new Error('Missing kokpar program'
 const course=await buildCourseProgram('oval',{courseRadius:OVAL.radius,courseWidth:OVAL.width,courseLine:LINE_X,
  resetX:RIDER_START.x,resetZ:RIDER_START.z,resetPitch:RIDER_PITCH,resetPrevX:(FIELD_AT.x+RIDER_START.x)-FIELD_AT.x,
  resetYaw:Math.atan2(-((FIELD_AT.x+HORSE_START.x)+SHOULDER-(FIELD_AT.x+RIDER_START.x)),-((FIELD_AT.z+HORSE_START.z)-(FIELD_AT.z+RIDER_START.z)))});
-const data={program:{script,bytes:Buffer.from(blob.bytes).toString('base64')},course,home:{x:k.x,z:k.z},goals,
+const compiled={source:'behaviour/kokpar.generated.wasm',bytes:blob.bytes.length};
+const data={program:{script,bytes:''},compiled,course,home:{x:k.x,z:k.z},goals,
  messages:{'1':'You have the goat! Into a tai-qazan — keep galloping, the riders are on you',
  '2':'You let go of the goat — it goes back to the middle','3':'Off the field — the goat goes back to the middle',
  '4':'Time! The riders take the goat back','5':'A rider leans in and snatches the goat back — keep moving!',
  '6':'15 seconds — find a tai-qazan!','7':'TAI-QAZAN! The riders roar and fling their hats — the round is yours'}};
-const bytes=`${JSON.stringify(data,null,2)}\n`,target=new URL('../data/kokpar.generated.json',import.meta.url);
-if(process.argv.includes('--check')) {if(readFileSync(target,'utf8')!==bytes)throw new Error('Kokpar program is stale');}
-else writeFileSync(target,bytes);
+const writer=byteWriter(process.argv.includes('--check'),'nalati-kokpar');
+writer.put(fileURLToPath(new URL('../data/kokpar.generated.json',import.meta.url)),jsonBytes(data));
+writer.put(fileURLToPath(new URL('../behaviour/kokpar.generated.wasm',import.meta.url)),blob.bytes);
+writer.finish();
 console.info(`nalati-kokpar: ${built.lines}/${built.ceiling} authored AS lines`);

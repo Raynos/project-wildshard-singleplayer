@@ -1,3 +1,4 @@
+import {lendNalatiKokpar} from './fixtures/nalati-return-modules';
 import { parseDecisionScripts } from '../src/format/decisionScripts';
 import { writeGeometry, join } from '../src/shards/nalati-grasslands/generators/geometryWriter';
 import { zlibSync } from 'fflate';
@@ -23,7 +24,7 @@ import { buildKokparRound, KOKPAR_GOALS, type KokparMount } from './fixtures/nal
 
 
 it('matches frozen round rules at 10 Hz while carrying poses stay per frame', () => {
-  const scope = new Scope('kokpar projection replay'), practiceBefore = practiceRoom.open;
+  const scope = new Scope('kokpar projection replay'), practiceBefore = practiceRoom.open;lendNalatiKokpar(scope);
   const sky: unknown = Object.create(SkyRig.prototype);
   if (!(sky instanceof SkyRig)) throw new Error('Missing test sky');
   const events: string[] = [], expected: string[] = [], player = new THREE.Vector3(rows.home.x, 0, rows.home.z);
@@ -106,6 +107,7 @@ it('an orchard delivery uses its own shape, program profile and quest effects',(
   vi.spyOn(terrainService,'terrainHeight').mockImplementation(()=>0);
   const scope=new Scope('orchard carried prop'),sky:unknown=Object.create(SkyRig.prototype),native:unknown=Object.create(Mount.prototype),quest:unknown=Object.create(QuestState.prototype);
   if(!(sky instanceof SkyRig)||!(native instanceof Mount)||!(quest instanceof QuestState))throw new Error('Missing native fixture');
+  lendNalatiKokpar(scope);
   Reflect.set(sky,'csm',{lights:[]});Reflect.set(sky,'sunDir',new THREE.Vector3(0,1,0));vi.spyOn(sky,'setupMaterial').mockImplementation(()=>undefined);
   const position=new THREE.Vector3(4,0,6),horse={position:position.clone(),yaw:0},events:string[]=[],ctx={} as ShardContext;
   Object.defineProperties(native,{mounted:{get:()=>true},gait:{get:()=>'gallop'},horse:{get:()=>horse}});vi.spyOn(ridingService,'pageRidingMount').mockReturnValue(native);

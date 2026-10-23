@@ -182,20 +182,12 @@
       "base64Chars": 7028,
       "dataUris": 0
     },
-    "src/shards/nalati-grasslands/boot/bowVariant.generated.json": {
-      "base64Chars": 16472,
-      "dataUris": 0
-    },
-    "src/shards/nalati-grasslands/boot/mountedLoadout.generated.json": {
-      "base64Chars": 13960,
-      "dataUris": 0
-    },
     "src/shards/nalati-grasslands/data/eliteCharge.generated.json": {
       "base64Chars": 15840,
       "dataUris": 0
     },
     "src/shards/nalati-grasslands/data/kokpar.generated.json": {
-      "base64Chars": 27008,
+      "base64Chars": 13048,
       "dataUris": 0
     },
     "src/shards/nalati-grasslands/data/populationField.generated.json": {

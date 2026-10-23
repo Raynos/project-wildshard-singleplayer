@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import {lendNalatiKokpar} from './fixtures/nalati-return-modules';
 import { afterEach, expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { App } from '../src/engine/app/app';
@@ -143,7 +144,7 @@ test(`${source.identity.slug}: shared chapter retains its previous notices, card
 test('entered chapter rows preserve carving order and continue the same saved chapters', () => {
   const notices: string[] = [], changes: string[] = [], instance = 'chapter-story-continuation';
   const enter = () => {
-    const scope = new Scope(instance), app = new App();
+    const scope = new Scope(instance), app = new App();lendNalatiKokpar(scope);
     const product = createShardProduct({ slug: nalati.identity.slug, revision: 1, shardfile: nalati,
       sections: new Map(), files: new Map(), read: () => Promise.reject(new Error('No file needed')) });
     const level = createLevelInstallation(app, scope, {}, () => ({ set: () => undefined, detail: () => undefined }));

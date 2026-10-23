@@ -1,3 +1,4 @@
+import {lendNalatiKokpar} from './fixtures/nalati-return-modules';
 import { afterEach, expect, test, vi } from 'vitest';
 import { HeldClaims } from '../src/game/loadout/claims';
 import { MountedArsenal, VariantBowPower } from './fixtures/originalMountedArsenal';
@@ -40,7 +41,7 @@ function slots(){return parseHeldSlots({version:1,id:'native-kit',bindAt:'equipm
 
 afterEach(()=>{vi.restoreAllMocks();});
 function fixture(mode:'original'|'slots'){
-  const parent=new Scope('slot-parent'),scope=parent.child('slot-entry');
+  const parent=new Scope('slot-parent'),scope=parent.child('slot-entry');lendNalatiKokpar(scope);
   const source={...emptyShardfile({slug:'native-slots',name:'Native slots',author:'Fixture',revision:1,seed:1}),items:parseItems(items)};
   const catalogue=new ItemCatalogue(source.items),events:string[]=[],registered:string[]=[];
   const owner=mode==='original'?new MountedArsenal(original):HeldClaims.fromSlots(slots());

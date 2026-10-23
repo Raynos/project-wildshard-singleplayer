@@ -1,3 +1,4 @@
+import {lendNalatiKokpar} from './fixtures/nalati-return-modules';
 import {expect,test,vi} from 'vitest';
 import * as THREE from 'three';
 import * as bowBinding from '../src/game/weapons/Bow';
@@ -32,7 +33,7 @@ function actor(kind:string):Animal{
 }
 function owner(scope:Scope){
   const animals:unknown=Object.create(AnimalManager.prototype);if(!(animals instanceof AnimalManager))throw new Error('Missing native owner');
-  const targets={raycast:()=>null};bindEquipmentActors(targets,animals,scope);return{animals,targets};
+  lendNalatiKokpar(scope);const targets={raycast:()=>null};bindEquipmentActors(targets,animals,scope);return{animals,targets};
 }
 function bow(targets:Targets):Bow{
   const value:unknown=Object.create(NativeBow.prototype);if(!(value instanceof NativeBow))throw new Error('Missing native bow');

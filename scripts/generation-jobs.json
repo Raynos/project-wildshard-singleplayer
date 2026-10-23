@@ -20037,13 +20037,16 @@
         "src/format/decisionScripts.ts",
         "src/commons/package.json",
         "src/commons/practiceCourse.ts",
-        "src/commons/scripts/course.as"
+        "src/commons/scripts/course.as",
+        "scripts/bake-output.mjs"
       ],
       "outputs": [
-        "src/shards/nalati-grasslands/data/kokpar.generated.json"
+        "src/shards/nalati-grasslands/data/kokpar.generated.json",
+        "src/shards/nalati-grasslands/behaviour/kokpar.generated.wasm"
       ],
       "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/data/kokpar.generated.json"
+        "src/shards/nalati-grasslands/data/kokpar.generated.json",
+        "src/shards/nalati-grasslands/behaviour/kokpar.generated.wasm"
       ],
       "platform": "portable"
     },

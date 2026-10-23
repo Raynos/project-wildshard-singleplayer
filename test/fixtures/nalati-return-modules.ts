@@ -11,6 +11,11 @@ import {ReturnProjectionV2Schema} from '../../src/format/returnProjectionV2';
 import {readFileSync} from 'node:fs';
 import {titanWitnessBytes,pastureWitnessBytes} from './titanInlineWitness';
 
+const kokparInput=v.parse(v.object({program:ReturnProgramSchema}),JSON.parse(readFileSync('src/shards/nalati-grasslands/data/kokpar.generated.json','utf8')));
+const kokparScript=parseDecisionScripts([kokparInput.program.script])[0];
+if(kokparScript===undefined)throw new Error('Missing actual Kokpar script');
+export const kokparProgram={...kokparInput.program,script:kokparScript};
+export const kokparModuleBytes=Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/kokpar.generated.wasm'));
 const admissionInput=v.parse(v.object({...ReturnProgramSchema.entries}),JSON.parse(readFileSync('src/shards/nalati-grasslands/behaviour/admission.generated.json','utf8')));
 const admissionScript=parseDecisionScripts([admissionInput.script])[0];
 if(admissionScript===undefined||admissionInput.v2===undefined)throw new Error('Missing actual admission script');
@@ -33,13 +38,15 @@ const heldScript=parseDecisionScripts([held.program.script])[0];
 if(heldScript===undefined)throw new Error('Missing actual held script');
 const ridingScript=parseDecisionScripts([mounts.approach.script])[0];
 if(ridingScript===undefined)throw new Error('Missing actual riding script');
-const modules=new Map([[admissionScript.module.slice('blobs/wasm/'.length,-'.wasm'.length),admissionWitnessBytes],[ridingScript.module.slice('blobs/wasm/'.length,-'.wasm'.length),ridingWitnessBytes],[heldScript.module.slice('blobs/wasm/'.length,-'.wasm'.length),heldWitnessBytes],[programs.attack.script.module.slice('blobs/wasm/'.length,-'.wasm'.length),titanWitnessBytes],[programs.wind.script.module.slice('blobs/wasm/'.length,-'.wasm'.length),pastureWitnessBytes],[programs.attack.v2.artifact.hash,titanModuleBytes],[projection.artifact.hash,Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/pasture.generated.wasm'))],
+const modules=new Map([[kokparScript.module.slice('blobs/wasm/'.length,-'.wasm'.length),kokparModuleBytes],[admissionScript.module.slice('blobs/wasm/'.length,-'.wasm'.length),admissionWitnessBytes],[ridingScript.module.slice('blobs/wasm/'.length,-'.wasm'.length),ridingWitnessBytes],[heldScript.module.slice('blobs/wasm/'.length,-'.wasm'.length),heldWitnessBytes],[programs.attack.script.module.slice('blobs/wasm/'.length,-'.wasm'.length),titanWitnessBytes],[programs.wind.script.module.slice('blobs/wasm/'.length,-'.wasm'.length),pastureWitnessBytes],[programs.attack.v2.artifact.hash,titanModuleBytes],[projection.artifact.hash,Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/pasture.generated.wasm'))],
   [held.program.v2.artifact.hash,heldModuleBytes],[mounts.approach.v2.artifact.hash,ridingModuleBytes],[admission.v2.artifact.hash,admissionModuleBytes]]);
-const rows=v.parse(ReturnModulesSchema,[['nalati.titan.projection',programs.attack.v2],['nalati.pasture.projection',projection],['nalati.held-weapons.projection',held.program.v2],['nalati.mounts.projection',mounts.approach.v2],['nalati.admission.projection',admission.v2]].map(([id,program])=>{
+const rows=v.parse(ReturnModulesSchema,[kokparScript,...[['nalati.titan.projection',programs.attack.v2],['nalati.pasture.projection',projection],['nalati.held-weapons.projection',held.program.v2],['nalati.mounts.projection',mounts.approach.v2],['nalati.admission.projection',admission.v2]].map(([id,program])=>{
   if(typeof id!=='string'||typeof program==='string'||program===undefined)throw new Error('Missing fixture return descriptor');
   return {id,module:`blobs/wasm/${program.artifact.hash}.wasm`,side:'sim',abi:2,lane:'project',pages:program.artifact.pages,ioBytes:program.artifact.ioBytes,
     compilerRevision:program.artifact.compilerRevision,admissionRevision:program.artifact.admissionRevision};
-}));
+})]);
+/** Bow and quest fixtures borrow the original admitted ABI1 module map. */
+export function lendNalatiKokpar(owner:Scope):void { ReturnProgram.lendModules(owner,modules,rows); }
 /** Lend the real generated binary through the same scoped production API. */
 export function lendNalatiPasture(owner:Scope):void { ReturnProgram.lendModules(owner,modules,rows); }
 /** The held, creature and stealth fixture owners borrow that same admitted map. */

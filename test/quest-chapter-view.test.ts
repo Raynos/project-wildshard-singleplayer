@@ -1,4 +1,4 @@
-import {lendNalatiPasture} from './fixtures/nalati-return-modules';
+import {lendNalatiPasture,lendNalatiKokpar} from './fixtures/nalati-return-modules';
 import { type OpenArenaWorld, ArenaRoomEncounter } from '../src/game/boss/arenaRoom';
 // @vitest-environment happy-dom
 import { expect, test, vi, afterEach } from 'vitest';
@@ -54,7 +54,7 @@ function fixture() {
   mockCanvas();
   const terrain = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 });
   const scope = new Scope('chapter-view'), flags = new Flags('chapter-view', false), f = manager();
-  lendNalatiPasture(scope);
+  lendNalatiPasture(scope);lendNalatiKokpar(scope);
   scope.onDispose(terrain);
   publishBoundQuest(scope,new QuestState({id:carriedQuestRows.quest,title:'Carried delivery',
     steps:[{id:'delivery',objective:'Deliver',done:{all:['fixture:done']}}],completeFlag:'fixture:complete'},flags,undefined,scope));
