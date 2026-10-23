@@ -38,6 +38,8 @@ export class ReturnProjectionV2 {
   private readonly module: ScriptModuleV2;
   private busy = false;
   private readonly groups:GroupStepV2|null=null;
+  /** each actor's declared field column names (`actor/name`), made once */
+  private readonly columns: string[][] = [];
   constructor(input: unknown,private readonly owner?: Scope) {
     this.live();
     this.row = parseReturnProjectionV2(input);this.layout = returnProjectionV2Layout(this.row.fields.length,this.row.artifact.pages,this.row.outputCapacity,this.row.groups);
@@ -64,10 +66,13 @@ export class ReturnProjectionV2 {
     this.live();
     const rng = prepareV2Rng(layout,before === undefined ? [] : [{ binding: 1,stream: 1,algorithm: 1,
       state: [before.state,before.initial,Number(before.scrambledFork),0,0,0] }]);
-    const fields = Array.from({ length: candidates.length+1 },(_,actor) => this.row.fields.map((name,index) => {
-      const value = frames[actor]?.[name];
-      return { name: `${String(actor)}/${name}`,id: actor*this.row.fields.length+index+1,...(value === undefined ? {} : { value }) };
-    })).flat();
+    const fields = Array.from({ length: candidates.length+1 },(_,actor) => {
+      const names = this.columns[actor] ??= this.row.fields.map(name => `${String(actor)}/${name}`);
+      return this.row.fields.map((name,index) => {
+        const value = frames[actor]?.[name];
+        return { name: names[index] ?? `${String(actor)}/${name}`,id: actor*this.row.fields.length+index+1,...(value === undefined ? {} : { value }) };
+      });
+    }).flat();
     const input = prepareV2Observations(layout,0,{ bindings: [{ identity: 'projection',handle: 1,self: 1,player: 0,observed: new Set([1]),enabled: true,due: true,
       divisor: 6,fuel: 400000,previousTick: 0,currentTick: 0,state: [],parameters: [{ name: 'signal',value: signalId }],fields,sample: { atTick: 0,target: 0 } }],
     players: [],edges: [],events: [],actions: new Set(),eventKinds: new Set() });

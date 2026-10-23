@@ -41,6 +41,11 @@ function finite(value: number): number { if (!Number.isFinite(value)) throw new 
 function share(value: number): number { finite(value);if (value < 0 || value > 1) throw new Error('Invalid v2 observed share');return value; }
 function compare(a: string,b: string): number { return a < b ? -1 : a > b ? 1 : 0; }
 function unique(values: readonly (string | number)[]): void { if (new Set(values).size !== values.length) throw new Error('Duplicate v2 observation identity'); }
+/** `unique` over names already sorted by `compare`: a duplicate sits next to its twin (G639: a projection's few hundred
+ *  field names went through a string Set on every call, ~1 ms a frame on Nalati at phone 4x) */
+function uniqueSorted(rows: readonly { readonly name: string }[]): void {
+  for (let i = 1; i < rows.length; i++) if (rows[i]?.name === rows[i - 1]?.name) throw new Error('Duplicate v2 observation identity');
+}
 function sorted<T extends { readonly identity: string; readonly handle: number }>(rows: readonly T[]): T[] {
   for (const row of rows) { if (row.identity.length === 0) throw new Error('Empty v2 observation identity');handle(row.handle); }
   unique(rows.map(row => row.identity));unique(rows.map(row => row.handle));return [...rows].sort((a,b) => compare(a.identity,b.identity));
@@ -87,7 +92,7 @@ export function prepareV2Observations(layout: V2Layout,tick: number,batch: V2Obs
     observations.view.setFloat64(o+72,sample.walk === undefined ? 0 : finite(sample.walk.x),true);observations.view.setFloat64(o+80,sample.walk === undefined ? 0 : finite(sample.walk.z),true);observations.view.setFloat64(o+88,sample.lineOfSight ? 1 : 0,true);
     row.state.forEach((value,i) => states.view.setFloat64((stateBase+i)*8,finite(value),true));
     const params = [...row.parameters].sort((a,b) => compare(a.name,b.name)), named = [...row.fields].sort((a,b) => compare(a.name,b.name));
-    unique(params.map(value => value.name));unique(named.map(value => value.name));unique(named.map(value => value.id));
+    uniqueSorted(params);uniqueSorted(named);unique(named.map(value => value.id));
     for (const value of [...params,...named]) if (value.name.length === 0) throw new Error('Empty v2 declared column');
     params.forEach((value,i) => parameters.view.setFloat64((paramBase+i)*8,finite(value.value),true));
     named.forEach((value,i) => { const f = (fieldBase+i)*16;fields.view.setUint32(f,uint(value.id,true),true);fields.view.setUint32(f+4,value.value === undefined ? 0 : 1,true);fields.view.setFloat64(f+8,value.value === undefined ? 0 : finite(value.value),true); });
