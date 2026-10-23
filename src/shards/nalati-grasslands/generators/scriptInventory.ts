@@ -10,7 +10,6 @@ import titanProgram from '../behaviour/titan.generated.json' with { type: 'json'
 import charge from '../data/eliteCharge.generated.json' with { type: 'json' };
 
 const programs = [weatherDecision.script, kokpar.program.script, admission.script, pasture.script,
-  ridingPrograms.approach.script, ridingPrograms.breaking.script, ridingPrograms.riding.script,
   titanProgram.fire.script, titanProgram.wind.script];
 const legacy = programs.filter((row, index, all) => all.findIndex(entry => entry.module === row.module) === index);
 function projection(id: string, program: typeof heldWeapons.program.v2): Record<string, string | number> {
@@ -23,5 +22,5 @@ function projection(id: string, program: typeof heldWeapons.program.v2): Record<
 export const NALATI_SCRIPT_SECTIONS: ReadonlyMap<PlatformDataSectionName, unknown> = new Map([
   ['actors/spawn-scripts', [{ ...charge, bytes: '' }]],
   ['actors/return-scripts', [...legacy, projection('nalati.held-weapons.projection', heldWeapons.program.v2),
-    projection('nalati.titan.projection', titanProgram.attack.v2)]],
+    projection('nalati.titan.projection', titanProgram.attack.v2),projection('nalati.mounts.projection',ridingPrograms.approach.v2)]],
 ]);

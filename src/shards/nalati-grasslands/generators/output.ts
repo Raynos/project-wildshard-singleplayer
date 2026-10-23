@@ -149,7 +149,8 @@ const weatherModule = emitNamedBlobs([nameBlob('behaviour/nalati.weather.wasm', 
 // ABI1 remains byte-exact inside combat/titan-fight.json as the dual-port
 // witness. Only the selected ABI2 module is a shipped executable instance.
 const titanV2Module = emitNamedBlobs([nameBlob('behaviour/nalati.titan.attack.v2.wasm','wasm',Uint8Array.from(atob(titanProgram.attack.v2.bytes),byte=>byte.codePointAt(0)??0),{critical:true,script:{abi:2,lane:'project',pages:titanProgram.attack.v2.artifact.pages,ioBytes:titanProgram.attack.v2.artifact.ioBytes,compilerRevision:SCRIPT_V2_REVISIONS.compiler,admissionRevision:SCRIPT_V2_REVISIONS.admission}})]);
-const ridingModule = emitNamedBlobs([ridingPrograms.approach].map(program => nameBlob(`behaviour/${program.script.id}.wasm`, 'wasm', Uint8Array.from(atob(program.bytes), byte => byte.codePointAt(0) ?? 0), { critical: true, script: { abi: 1, pages: 1 } })));
+const ridingProjection=ridingPrograms.approach.v2;
+const ridingModule=emitNamedBlobs([nameBlob('behaviour/nalati.mounts.wasm','wasm',Uint8Array.from(atob(ridingProjection.bytes),byte=>byte.codePointAt(0)??0),{critical:true,script:{abi:2,lane:'project',pages:ridingProjection.artifact.pages,ioBytes:ridingProjection.artifact.ioBytes,compilerRevision:SCRIPT_V2_REVISIONS.compiler,admissionRevision:SCRIPT_V2_REVISIONS.admission}})]);
 const pastureModule = emitNamedBlobs([nameBlob('behaviour/nalati.pasture.wasm', 'wasm', Uint8Array.from(atob(pasture.bytes), byte => byte.codePointAt(0) ?? 0), { critical: true, script: { abi: 1, pages: 1 } })]);
 const chargeModule = emitNamedBlobs([nameBlob('behaviour/nalati.qara-charge.wasm', 'wasm', Uint8Array.from(atob(charge.bytes), byte => byte.codePointAt(0) ?? 0), { critical: true, script: { abi: 1, pages: 1 } })]);
 const heldProjection = heldWeapons.program.v2;

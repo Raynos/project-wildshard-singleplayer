@@ -7,9 +7,8 @@ import { pickPrompt, setPromptSight } from '@wildshard/engine/world/interact/pro
 import { nativeHerdCollection } from '../shardfile/groupRuntime';
 import { bondedMountRoster } from './roster';
 import { mountedPlayerOf } from './native';
-import { TamingBinding } from './binding';
+import { TamingSession,type TamingPrograms } from './taming';
 import type { TamingBindingProfile, TamingObservation } from './bindingTypes';
-import type { TamingPrograms } from './taming';
 import { createNativeCreaturePoses, type NativeCreaturePoseRecipe } from '../plugin/animation';
 import { numericCreaturePose } from '../plugin/channelPrograms';
 import { poseRidingEnvelopes, type RidingPresentationRows } from './presentation';
@@ -66,7 +65,7 @@ export function installNativeTaming(host: SimHost, context: NativeTamingContext,
   };
   if (creatures.actors.length > 64) throw new Error('native taming body bound exceeded');
   for (let i = 0; i < 64; i++) { const a = creatures.actors[i]; if (a === undefined) break; if (rows.kinds.includes(a.kind)) addPose(a); }
-  const law = new TamingBinding<AnimalSim, HerdBrain<AnimalSim>>({
+  const law = new TamingSession<AnimalSim, HerdBrain<AnimalSim>>({
     profile: rows.binding,
     programs: rows.programs,
     bond: { read: () => null, write: value => { if (!rows.binding.bonds.includes(value)) throw new Error('Invalid native bond'); bond = value; } },
@@ -87,7 +86,7 @@ export function installNativeTaming(host: SimHost, context: NativeTamingContext,
       host.combat.hit({ source: 'env', sourceTags: ['env.ride'], target: host.player.health, amount, throughWalls: true,
         point: host.player.position, dir: hurtDir, cause: { kind: 'env.ride', label: rows.thrownLabel, text: rows.thrownLabel } });
     },
-  });
+  },host.scope);
   host.events.on('creature.signal', ({ name, x, z }) => { law.noteEvent(name, x, z); }, host.scope);
   host.events.on('weapon.impact', ({ point }) => {
     // Same state.ts filter: only a distant landing, not an arm's-length melee impact.

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { TamingSession, type TamingFrame, type TamingEffect, type TamingCandidate } from './taming';
-import type { TamingHorse, TamingHerd, TamingObservation, TamingServices } from './bindingTypes';
+import { TamingSession, type TamingFrame, type TamingEffect, type TamingCandidate } from './tamingLegacyState';
+import type { TamingHorse, TamingHerd, TamingObservation, TamingServices } from '../../src/game/riding/bindingTypes';
 
 /** Internal native effects around the shared data-only taming session. */
 export class TamingBinding<A extends TamingHorse, H extends TamingHerd<A>> {

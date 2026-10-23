@@ -7411,6 +7411,24 @@ uses `NativeCreaturePose` directly with offline joint rows from
 `generators/bodies.ts` (`sim/taming-poses.json`). It retains its wind
 overlay, body cadence, adoption, legacy transforms and publication phase.
 
+`game/riding/taming.TamingSession` captures the original concrete player,
+mount and herd services on the entered scope. Nalati's admitted taming guest
+owns selection, approach, bucking, cadence and ordered effect decisions;
+the session retains the historical version-3 save envelope and stable actor
+identities. It prepares the complete continuation and native action bank
+before effects. Mount refusal and post-pose adoption use synchronous result
+barriers, without another clock, deferred queue or script instance.
+`ReturnProgram.prepareWorld(signal, observations, bindings, candidates?,
+random?)` lends prepared numeric channels and world actions from its SAME
+scoped projection. The native caller validates state, action rights and
+concrete loans before `accept`, then applies actions in guest order.
+`compileReturnProjectionV2` may declare bounded capture field/channel sets
+for composition of existing kernels in one call; fixed scratch is rewound
+with the existing module image and never becomes durable continuation.
+`captureDecisionSources(authored, options)` reuses original path, handler and
+source-budget admission and supplies only the selected authored closure; it
+does not compile an alternate entry as a replacement ABI1 witness.
+
 `src/sdk/headlessRuntime.ts` also defines `createNativeBakeReader(input,
 options)`, a typed one-time native-world intake composed from those readers.
 `NativeBakedActor` and `NativePhysicsBake` retain ordered body/herd metadata,

@@ -2,6 +2,7 @@ import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
 import { DecisionModule } from '@wildshard/engine/script/decisionModule';
 import { scriptV1Layout, SCRIPT_V1_EVENTS, SCRIPT_V1_COMMANDS } from '@wildshard/format/scriptAbiV1';
 import { decisionScriptContract, parseDecisionScripts, SCRIPT_V1_REFERENCE_KINDS, type DecisionScriptRow } from '@wildshard/format/decisionScripts';
+import type {V2ActionBinding} from '@wildshard/format/scriptActionsV2';
 import type { Rng } from '@wildshard/engine/core/rng';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { SimHost } from '@wildshard/engine/sim';
@@ -11,7 +12,7 @@ import { admitScriptContract } from '@wildshard/format/scriptContract';
 import { sha256 } from '../plugin/moduleHash';
 import { isJsonData } from '@wildshard/format/json';
 import { parseReturnProjectionV2 } from '@wildshard/format/returnProjectionV2';
-import { ReturnProjectionV2 } from './returnProjectionV2';
+import { ReturnProjectionV2,type PreparedProjectionV2 } from './returnProjectionV2';
 
 const scoped = new WeakMap<Scope, Map<string, { declaration: string; program: ReturnProgram }>>();
 
@@ -23,7 +24,7 @@ function readProgram(input: unknown): Omit<v.InferOutput<typeof ReturnProgramSch
   if (script === undefined) throw new Error('Missing return script');
   if (row.v2 !== undefined) {
     const v2 = parseReturnProjectionV2(row.v2);
-    if (Object.keys(script.params).length > 0 || script.reads.some(read => read !== 'field' && read !== 'random')
+    if (Object.keys(script.params).length > 0 || script.reads.some(read => read !== 'field' && read !== 'random' && read !== 'radial')
       || (['fields','signals','channels'] as const).some(kind => JSON.stringify(Object.values(script[kind]).sort()) !== JSON.stringify(v2[kind]))) throw new Error('Mismatched return projection declaration');
   }
   return {...row,script};
@@ -41,6 +42,7 @@ export class ReturnProgram {
   private candidates: readonly Readonly<Record<string, number>>[] = [];
   private random: Rng | undefined;
   private active = false;
+  readonly prepareWorld?: (signal:string,observations:Readonly<Record<string,number>>,bindings:ReadonlyMap<number,V2ActionBinding>,candidates?:readonly Readonly<Record<string,number>>[],random?:Rng)=>PreparedProjectionV2;
   readonly prepare?: NonNullable<NumericProjection['prepare']>;
   private constructor(input: unknown, floor: (x: number, z: number) => number,owner?: Scope) {
     const row = readProgram(input),script = row.script;
@@ -57,6 +59,7 @@ export class ReturnProgram {
     if (row.v2 !== undefined) {
       const projection = new ReturnProjectionV2(row.v2,owner);
       this.prepare = projection.prepare.bind(projection);
+      this.prepareWorld=(signal,observations,bindings,candidates,random)=>projection.prepare(signal,observations,random,candidates??[],bindings);
       return;
     }
     const module: DecisionModule = new DecisionModule(bytes, [0, 0], {
@@ -103,6 +106,9 @@ export class ReturnProgram {
   /** Built-in terrain owners share one admitted instance per module and scope. */
   static native(host: SimHost, input: unknown): ReturnProgram { return ReturnProgram.owned(host.scope, input, (x, z) => host.groundHeightAt(x, z)); }
   static page(input: unknown, owner?: Scope): ReturnProgram { return owner === undefined ? new ReturnProgram(input, terrainHeight) : ReturnProgram.owned(owner, input, terrainHeight); }
+
+  /** Resolve only the admitted signal table for a same-call native barrier. */
+  signalName(id:number):string{const name=Number.isInteger(id)?Object.values(this.script.signals).sort()[id-1]:undefined;if(name===undefined)throw new Error('Unknown return signal');return name;}
 
   /** A request is atomic with its borrowed stream. Refusals publish no channel
    * and restore the stream, including traps after one or more terrain retries. */
@@ -159,6 +165,7 @@ export class ProjectedMotionSample {
  * transport prepares its RNG candidate until retained columns also validate. */
 export interface NumericProjection {
   readonly project:(signal:string,observations:Readonly<Record<string,number>>,random?:Rng,candidates?:readonly Readonly<Record<string,number>>[])=>Readonly<Record<string,number>>;
+  readonly prepareWorld?: (signal:string,observations:Readonly<Record<string,number>>,bindings:ReadonlyMap<number,V2ActionBinding>,candidates?:readonly Readonly<Record<string,number>>[],random?:Rng)=>PreparedProjectionV2;
   readonly prepare?:(signal:string,observations:Readonly<Record<string,number>>,random?:Rng,candidates?:readonly Readonly<Record<string,number>>[])=>{
     readonly values:Readonly<Record<string,number>>;readonly accept:()=>void;
   };

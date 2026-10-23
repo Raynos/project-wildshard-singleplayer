@@ -898,3 +898,46 @@ The AS claim helper reads and updates the same candidate bank, using the
 original director's bounded held-member mask. It does not import a claim
 callback or allocate tokens in another owner. Module admission and the active
 module count are unchanged by this codec/helper prerequisite.
+
+### Taming service commands (G484, G600 L9)
+
+The command region's existing 64-byte records carry these operations.
+`request` is zero, operands are finite f64, flags are exactly 0 or 1, and
+all unused operand words are positive zero. Native binding metadata names
+an exact taming service, herd or actor loan; numeric handles never become
+saved identities. Unknown operations, unowned ids, wrong kinds, invalid
+operands and over-quota suffixes refuse the entire bank before effects.
+
+| Op | Target loan | Operands in order |
+|---|---|---|
+| 23 | taming service or mount | thrown flag; same existing dismount operation |
+| 26 | herd | trust delta, has-alert flag, alert (0–100) |
+| 27 | herd | alert ownership flag |
+| 28 | herd | lead-away x, z |
+| 29 | actor | breaking flag; native mount result returned to the same call |
+| 30 | service | nonnegative hurt amount |
+| 31 | actor | buck (0–1), direction (-1 or 1), rear (-1–1), kick, toss, yaw delta |
+| 32 | service | adoption x, z, yaw, upgrade flag; returns the original adopted actor |
+| 33 | actor | upgrade flag; original bond persistence and notification |
+| 34 | herd | release stallion; no operands |
+| 35 | actor | hide stallion; no operands |
+| 36 | actor | retire previous companion; no operands |
+| 37 | service | breaking presentation flag |
+| 38 | service | notice id: trust=0, start=1, thrown=2 |
+| 39 | service | player yaw, pitch (-pi/2–pi/2) |
+
+`prepareV2WorldActions` borrows the existing riding/taming services,
+preflights all loans and pins callables before returning ordered operations.
+Each operation fences scope retirement and owner replacement again. It adds
+no body, registry, clock, random stream or save owner. Mount refusal prevents
+player-pose, entropy and continuation changes. Pose effects run before the
+bond position/yaw capture; dismount, release, hide, retirement, adoption,
+mounting and bond publication retain their original order in the same call.
+
+`ReturnProgram.prepareWorld` lends the existing selected projection's
+prepared channels, world actions and acceptance function. An optional RNG
+loan is its original stream. The caller validates its complete continuation
+and native bank before acceptance. Pure projection calls supply no action
+rights. Nalati replaces its mounted executable with one ABI2 projection;
+its original ABI1 witness remains inline, without a ninth executable.
+

@@ -2,7 +2,7 @@
  * ws_project and the defining v2 SDK, while the public v1 artifact is retained. */
 import { parseDecisionScripts,scriptV1Identifier } from '@wildshard/format/decisionScripts';
 import { parseReturnProjectionV2,returnProjectionV2Layout,type ReturnProjectionV2Rows } from '@wildshard/format/returnProjectionV2';
-import { compileDecisionScripts,type DecisionBuildOptions } from './buildDecisionScripts';
+import { compileDecisionScripts,captureDecisionSources,type DecisionBuildOptions } from './buildDecisionScripts';
 import type { DecisionRegistries } from './decisionBindingMap';
 import { compileScriptV2 } from './bake/compileScriptV2';
 import { SCRIPT_V2_REVISIONS } from '@wildshard/format/scriptAdmissionV2';
@@ -10,33 +10,47 @@ import { v2CoreSource } from './as/wsV2';
 import { hashImmutableBytes } from './immutable';
 import { decisionBindingsPath } from './decisionScriptBindings';
 
-export async function compileReturnProjectionV2(input:unknown,registries:DecisionRegistries,authored:ReadonlyMap<string,string>,options:DecisionBuildOptions & {readonly projectSource?:string;readonly outputCapacity?:number}):Promise<{
+export async function compileReturnProjectionV2(input:unknown,registries:DecisionRegistries,authored:ReadonlyMap<string,string>,options:DecisionBuildOptions & {readonly projectSource?:string;readonly outputCapacity?:number;readonly worldActions?:boolean;readonly capture?:{readonly fields:readonly string[];readonly channels:readonly string[]}}):Promise<{
   readonly legacy:{readonly script:ReturnType<typeof parseDecisionScripts>[number];readonly bytes:string};readonly candidate:ReturnProjectionV2Rows;
 }> {
   const row=parseDecisionScripts([input])[0];
   if(row?.side!=='sim'||row.state.length>0||row.tick!==null||row.timers.length>0||row.on.length!==1||row.on[0]!=='signal'
-    ||row.reads.some(read=>read!=='field'&&read!=='random')||row.commands.some(command=>command!=='channel')||Object.keys(row.params).length>0)throw new Error('Not a numeric return projection');
+    ||row.reads.some(read=>read!=='field'&&read!=='random'&&read!=='radial')||row.commands.some(command=>command!=='channel')||Object.keys(row.params).length>0)throw new Error('Not a numeric return projection');
   const old=await compileDecisionScripts([row],registries,authored,{...options,singleSignal:true}),script=old.rows[0],blob=old.blobs[0];
   if(script===undefined||blob===undefined)throw new Error('Missing legacy projection');
   // An additive project entry is admitted through the original source budget,
   // handler and captured-import checks; it cannot replace the ABI1 witness.
   const selected=options.projectSource??row.source;
-  if(selected!==row.source)await compileDecisionScripts([{...row,source:selected}],registries,authored,{...options,singleSignal:true});
+  const captured=await captureDecisionSources(authored,options);
   const fields=Object.values(row.fields).sort(),signals=Object.values(row.signals).sort(),channels=Object.values(row.channels).sort();
   const layout=returnProjectionV2Layout(fields.length,row.pages,options.outputCapacity),path=decisionBindingsPath(row);
   const lines=["import * as core from '../../sdk/as/wsV2';"];
   for(const [kind,namespace,names]of [['fields','Field',fields],['signals','Signal',signals],['channels','Channel',channels]] as const){
     lines.push(`export namespace ${namespace}{`,...Object.entries(row[kind]).map(([alias,name])=>`export const ${scriptV1Identifier(alias)}:i32=${names.indexOf(name)+1};`),'}');
   }
+  const capture=options.capture;
+  const capturedIds=(kind:'fields'|'channels'):number[]=>{const names=capture?.[kind]??[];if(new Set(names).size!==names.length||names.some(name=>!Object.hasOwn(row[kind],name)))throw new Error('Undeclared projection capture');return names.map(name=>(kind==='fields'?fields:channels).indexOf(row[kind][name]??'')+1);};
+  const cf=capturedIds('fields'),co=capturedIds('channels');
+  if(capture!==undefined)lines.push(`let capturing:bool=false;const CF:usize=memory.data(${cf.length*16},8),CO:usize=memory.data(${co.length*16},8);`);
   lines.push(`export class Read{
-    static field(actor:i32,id:i32):f64{assert(actor>=0&&actor<=8&&id>0&&id<=${fields.length});return core.field(actor*${fields.length}+id-1);}
+    static field(actor:i32,id:i32):f64{assert(actor>=0&&actor<=8&&id>0&&id<=${fields.length});${capture===undefined?'':`if(actor==0)switch(id){${cf.map((id,i)=>`case ${id}:if(load<u32>(CF+${i*16}))return load<f64>(CF+${i*16+8});break;`).join('')}}`}return core.field(actor*${fields.length}+id-1);}
     static random():f64{return core.random(1);}
+    static radial(yaw:f64,radius:f64):i32{assert(radius>=0&&radius<=10000);radialX=core.radialX(yaw,radius);radialZ=core.radialZ(yaw,radius);return 2;}
+    ${capture===undefined?'':`static captureField(id:i32,value:f64):void{switch(id){${cf.map((id,i)=>`case ${id}:store<f64>(CF+${i*16+8},value);store<u32>(CF+${i*16},1);return;`).join('')}default:unreachable();}}`}
   }
-  export class Do{static channel(id:i32,value:f64):void{assert(id>0&&id<=${channels.length});core.pageOutput(id,value);}}`);
+  let radialX:f64=0,radialZ:f64=0;
+  export class List{static at(index:i32):f64{assert(index==0||index==1);return index==0?radialX:radialZ;}}
+  export class Do{
+    static channel(id:i32,value:f64):void{assert(id>0&&id<=${channels.length});${capture===undefined?'':`if(capturing){switch(id){${co.map((id,i)=>`case ${id}:store<f64>(CO+${i*16+8},value);store<u32>(CO+${i*16},1);return;`).join('')}default:unreachable();}}`}core.pageOutput(id,value);}
+    ${capture===undefined?'':`static capture():void{capturing=true;for(let i:i32=0;i<${cf.length};i++)store<u32>(CF+usize(i)*16,0);for(let i:i32=0;i<${co.length};i++)store<u32>(CO+usize(i)*16,0);}
+      static captured(id:i32,fallback:f64):f64{switch(id){${co.map((id,i)=>`case ${id}:return load<u32>(CO+${i*16})?load<f64>(CO+${i*16+8}):fallback;`).join('')}default:unreachable();}return fallback;}
+      static release():void{capturing=false;}`}
+    ${options.worldActions===true?`static taming(op:i32,target:i32,a:f64=0,b:f64=0,c:f64=0,d:f64=0,e:f64=0,f:f64=0):void{core.taming(op,target,a,b,c,d,e,f);}`:''}
+  }`);
   // The legacy compiler has already checked the entire source budget and the
   // selected entry's captured import closure. Supply only admitted author texts.
   const sources:Record<string,string>={[path]:lines.join('\n'),'sdk/as/wsV2.ts':v2CoreSource(0)};
-  for(const [name,text]of authored)sources[`${name.slice(0,-3)}.ts`]=text;
+  Object.assign(sources,captured.entry({...row,source:selected},path));
   const source=`import {onSignal} from './${selected.slice(0,-3)}';
     import * as core from './sdk/as/wsV2';
     export function ws_abi():i32{return 2;}

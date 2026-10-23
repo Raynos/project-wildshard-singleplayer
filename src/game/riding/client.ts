@@ -21,7 +21,7 @@ import type { InputService } from '@wildshard/engine/input/InputService';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import type { Player } from '@wildshard/engine/player/Player';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
-import { TamingBinding } from './binding';
+import { TamingSession } from './taming';
 import type { TamingObservation } from './bindingTypes';
 import type { TamingPrograms } from './taming';
 import { Mount, enteredMount } from './mount';
@@ -73,7 +73,7 @@ export function createPageTaming(ctx: LevelContext, player: Player, animals: Ani
   const colour = v.parse(v.tuple([v.number(), v.number(), v.number()]), rows.adopted.upgrade.colour);
   const herds = ridingHerds(owners, rows.herds), wind = owners.wind;
   let events: PageTamingEvent[] = [];
-  const law = new TamingBinding<Animal, HerdBrain<Animal>>({ profile, programs: rows.programs,
+  const law = new TamingSession<Animal, HerdBrain<Animal>>({ profile, programs: rows.programs,
     bond: { read: () => rows.savedBond, write: value => { events.push({ kind: 'bond', value }); } }, player,
     mount: { get mounted() { return mount.mounted; }, get horse() { return mount.horse; },
       get breakShake() { return mount.breakShake; }, set breakShake(value) { mount.breakShake = value; },
@@ -101,7 +101,7 @@ export function createPageTaming(ctx: LevelContext, player: Player, animals: Ani
       ctx.app.combat.hit({ source: 'env', sourceTags: ['env.ride'], target, amount, throughWalls: true, point: player.position,
         dir: new THREE.Vector3(), cause: { kind: 'env.ride', label: rows.thrownLabel, text: rows.thrownLabel } });
     }, toast: text => { events.push({ kind: 'notice', text }); },
-  });
+  },ctx.scope);
   law.input = ctx.app.input;
   law.onBonded = actor => { events.push({ kind: 'bonded', actor: actor.entityId }); };
   law.onBreaking = on => {

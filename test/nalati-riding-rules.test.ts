@@ -1,7 +1,8 @@
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { ReturnProgram } from '../src/game/population/returnProgram';
-import { TamingBinding } from '../src/game/riding/binding';
+import { TamingSession as TamingBinding } from '../src/game/riding/taming';
+import { Scope } from '../src/engine/app/scope';
 import type { TamingServices, TamingHorse, TamingHerd } from '../src/game/riding/bindingTypes';
 import rows from '../src/shards/nalati-grasslands/data/headlessAssembly.json' with { type: 'json' };
 import programs from '../src/shards/nalati-grasslands/behaviour/riding.generated.json' with { type: 'json' };
@@ -18,7 +19,7 @@ function rig() {
     mount: { get mounted() { return mounted !== null; }, get horse() { return mounted; }, breakShake: 0, breakRoll: 0, mount: a => { mounted = a; return true; }, dismount: () => { mounted = null; }, addMountable: () => undefined, removeMountable: () => undefined },
     hud, herds: () => [herd], rest: { x: 0, z: 0, face: { x: 1, z: 0 } }, wind: () => ({ x: 0, z: 1, strength: 1 }), random: () => .25,
     spawnBonded: (x, z, yaw, argymaq) => ({ ...horse, entityId: 'bonded', kind: argymaq ? 'argymaq' : 'horse', position: new Vector3(x, 0, z), yaw }), hideStallion: () => { hidden = true; }, retireBonded: () => { retired = true; }, hurt: value => { damage += value; } };
-  return { horse, herd, ports, hud, law: new TamingBinding(ports), result: () => ({ mounted, damage, saved, hidden, retired }) };
+  return { horse, herd, ports, hud, law: new TamingBinding(ports,new Scope('taming-rules')), result: () => ({ mounted, damage, saved, hidden, retired }) };
 }
 
 test('approach selects the closest eligible live stallion and spends trust from observations', () => {

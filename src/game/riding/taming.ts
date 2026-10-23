@@ -1,135 +1,99 @@
+import * as THREE from 'three';
 import * as v from 'valibot';
-import { ReturnProgram } from '../population/returnProgram';
-
-/** Admitted event-only decisions; the session owns numeric state and bounded cadence. */
-export interface TamingPrograms { approach: unknown; breaking: unknown; riding: unknown; initial: Record<string, number> }
-/** A view or native owner supplies only numeric observations and actor identities. */
-export interface TamingCandidate { id: string; x: number; y: number; z: number; alive: number; upgraded: number; scale: number; dot: number }
-export interface TamingFrame {
-  x: number; y: number; z: number; mounted: string | null; crouched: boolean; offer: boolean; lean: number;
-  wind: { x: number; z: number; strength: number };
-  herds: readonly { stallion: TamingCandidate | null; cx: number; cz: number; trust: number; alert: number; beaten: boolean; fleeing: boolean }[];
-  random: readonly [number, number, number];
-}
-export type TamingEffect =
-  | { kind: 'trust'; herd: number; delta: number; alert?: number }
-  | { kind: 'ownership'; herd: number; active: boolean }
-  | { kind: 'lead'; herd: number; x: number; z: number }
-  | { kind: 'pose'; actor: string; values: Readonly<Record<string, number>>; direction: number }
-  | { kind: 'breaking'; on: boolean }
-  | { kind: 'dismount'; thrown: boolean }
-  | { kind: 'hurt'; damage: number }
-  | { kind: 'bond'; herd: number; actor: string; previous: string | null; upgraded: boolean }
-  | { kind: 'notice'; name: 'trust' | 'start' | 'thrown' };
+import type {Scope} from '@wildshard/engine/app/scope';
+import {V2_ACTION_OPS,type V2ActionBinding,type V2ActionTarget} from '@wildshard/format/scriptActionsV2';
+import {ReturnProgram} from '../population/returnProgram';
+import type {PreparedProjectionV2} from '../population/returnProjectionV2';
+import {prepareV2WorldActions,type PreparedV2WorldActions,type TamingActionResult,type V2WorldActionLoan} from '../shardfile/worldActionsV2';
+import type {TamingHorse,TamingHerd,TamingServices,TamingObservation} from './bindingTypes';
+/** Admitted dual projections and the original historical numeric defaults. */
+export interface TamingPrograms {approach:unknown;breaking:unknown;riding:unknown;initial:Record<string,number>}
 const finite = v.pipe(v.number(), v.finite()), herdIndex = v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(7));
 const Saved = v.strictObject({ version: v.literal(3), phase: v.picklist(['wild', 'breaking', 'bonded']),
   bonded: v.nullable(v.string()), upgraded: v.boolean(), herd: v.nullable(herdIndex), stallion: v.nullable(v.string()),
   drove: v.pipe(v.array(herdIndex), v.maxLength(8)), state: v.record(v.string(), finite),
   clock: v.pipe(finite, v.minValue(0), v.maxValue(.1)), prev: v.nullable(v.tuple([finite, finite, finite])) });
 
-/** Renderer-free taming session. No actor, herd controller or authored TS callback
- * crosses this API. Decisions stay in the admitted guest; effects use stable ids.
- * The G478 fixture may use entirely unrelated animals and program rows. */
-export class TamingSession {
-  phase: 'wild' | 'breaking' | 'bonded' = 'wild';
-  bonded: string | null = null;
-  upgraded = false;
-  herd: number | null = null;
-  stallion: string | null = null;
-  readonly view = { trust: null as number | null, alert: 0, ear: false, earOffset: 0, round: null as number | null, balance: 0, danger: false, offer: false, radius: 0, beaten: false, roll: 0, shake: 0 };
-  private readonly drove = new Set<number>();
-  private clock = 0;
-  private previous: [number, number, number] | null = null;
-  private state: Record<string, number>;
-  private readonly keys: readonly string[];
-  private readonly approach: ReturnProgram;
-  private readonly breaking: ReturnProgram;
-  constructor(private readonly programs: TamingPrograms, private readonly fields: { upgraded: string; horseUpgraded: string; candidateUpgraded: string }) {
-    this.approach = ReturnProgram.page(programs.approach); this.breaking = ReturnProgram.page(programs.breaking);
-    this.state = v.parse(v.record(v.string(), finite), { ...programs.initial }); this.keys = Object.keys(this.state);
-    if (this.keys.length > 32) throw new Error('Taming state bound exceeded');
+type SavedTaming=v.InferOutput<typeof Saved>;
+/** Native observations and historical continuation around the admitted taming
+ * guest. Bodies, mounts, herds, entropy and scopes remain their actual owners. */
+export class TamingSession<A extends TamingHorse,H extends TamingHerd<A>> {
+  phase:'wild'|'breaking'|'bonded'='wild'; bonded:string|null=null; upgraded=false; herd:number|null=null; stallion:string|null=null;
+  private clock=0; private previous:[number,number,number]|null=null; private readonly drove=new Set<number>();
+  private readonly actors=new Map<string,A>(); private state:Record<string,number>;private readonly program:ReturnProgram;private readonly project:NonNullable<ReturnProgram['prepareWorld']>;
+  private readonly lenders:readonly unknown[];private readonly ear=new THREE.Vector3();private readonly direction=new THREE.Vector3();private readonly toward=new THREE.Vector3();
+  private readonly visual={trust:-1,alert:0,ear:0,earOffset:0,round:-1,balance:0,danger:0,offer:0,radius:0,beaten:0,roll:0,shake:0};
+  readonly interactable={position:new THREE.Vector3(0,-1e4,0),radius:0,label:'',onInteract:():void=>{this.startBreaking();}};
+  readonly view:TamingObservation={trust:null,alert:0,ear:null,round:null,balance:0,danger:false,offer:false};
+  onBonded?:((horse:A)=>void)|undefined;onBreaking?:((on:boolean)=>void)|undefined;
+  input:{readonly held:(action:'ride.offer'|'lean.right'|'lean.left')=>boolean}|null=null;
+  get companion():A|null{return this.bonded===null?null:this.actors.get(this.bonded)??null;}
+  get promptHorse():A|null{return this.stallion===null?null:this.actors.get(this.stallion)??null;}
+  constructor(private readonly opts:TamingServices<A,H>,private readonly scope:Scope){
+    this.lenders=[opts.player,opts.mount,opts.profile,opts.bond,opts.herds];this.program=ReturnProgram.page(opts.programs.approach,scope);if(this.program.prepareWorld===undefined)throw new Error('Missing taming world projection');this.project=this.program.prepareWorld;
+    this.state=v.parse(v.record(v.string(),finite),{...opts.programs.initial});if(Object.keys(this.state).length>32)throw new Error('Taming state bound exceeded');
+    let saved:string|null=null;try{saved=opts.bond.read();}catch{/* unavailable storage */}
+    this.run('zz_init',{zz_savedBond:saved===opts.profile.bonds[0]?0:saved===opts.profile.bonds[1]?1:-1,zz_restX:opts.rest.x+opts.profile.offset[0],zz_restZ:opts.rest.z+opts.profile.offset[1],zz_restYaw:Math.atan2(opts.rest.face.x,opts.rest.face.z)});
   }
-  private check(frame: TamingFrame): void {
-    if (frame.herds.length > 8) throw new Error('Taming herd bound exceeded');
+  private live():void{if(this.scope.disposed||this.scope.disposing)throw new Error('Retired taming owner');if(this.lenders.some((owner,index)=>owner!==[this.opts.player,this.opts.mount,this.opts.profile,this.opts.bond,this.opts.herds][index])||this.program.prepareWorld!==this.project)throw new Error('Changed taming projection');}
+  private capture(draw:boolean):{frame:Record<string,number>;candidates:Record<string,number>[];ids:readonly (string|null)[];herds:readonly H[]} {
+    this.live();const o=this.opts,p=o.player,herds=o.herds();if(herds.length>8)throw new Error('Taming herd bound exceeded');
+    const ids:(string|null)[]=[];const candidates=herds.map(h=>{const a=h.stallion;ids.push(a?.entityId??null);let dot=0;
+      if(a!==null){this.actors.set(a.entityId,a);a.headWorld(this.ear);p.camera.getWorldDirection(this.direction);dot=this.direction.dot(this.toward.copy(this.ear).sub(p.camera.position).normalize());}
+      return {x:a?.position.x??0,y:a?.position.y??0,z:a?.position.z??0,alive:Number(a?.alive??false),[o.profile.fields.candidateUpgraded]:Number(a?.kind===o.profile.upgradeKind),
+        zz_h_cx:h.cx,zz_h_cz:h.cz,zz_h_yaw:a?.yaw??0,zz_h_upgraded:Number(a?.kind===o.profile.upgradeKind),zz_h_beaten:Number(h.stallionState==='beaten'),zz_h_flee:Number(h.mode==='flee'),zz_h_trust:h.trust,zz_h_alert:h.alert,zz_h_scale:a?.scale??1,zz_h_dot:dot};});
+    const x=p.position.x,y=p.position.y,z=p.position.z,wind=o.wind();
+    const frame={px:x,py:y,pz:z,zz_count:herds.length,zz_crouched:Number(p.crouching),zz_windStrength:wind.strength,zz_offer:Number(this.input?.held('ride.offer')??o.hud.offer),
+      zz_lean:this.input?Number(this.input.held('lean.right'))-Number(this.input.held('lean.left')):Number(p.keys.has('KeyD'))-Number(p.keys.has('KeyA'))+o.hud.lean,
+      zz_moved:this.previous===null?0:Math.hypot(x-this.previous[0],z-this.previous[2]),zz_r0:draw?o.random():0,zz_r1:draw?o.random():0,zz_r2:draw?o.random():0};
+    return {frame,ids,herds,candidates:candidates.map(row=>Object.assign(row,{zz_h_downwind:((x-row.x)*wind.x+(z-row.z)*wind.z)/(Math.hypot(x-row.x,z-row.z)||1)}))};
   }
-  eligible(upgraded: boolean): boolean {
-    return this.approach.project('eligible', { bonded: Number(this.bonded !== null), [this.fields.upgraded]: Number(this.upgraded), [this.fields.horseUpgraded]: Number(upgraded) })['accept'] === 1;
+  private run(initialSignal:string,initialExtra:Readonly<Record<string,number>>={},initialCapture=0,readOnly=false):Readonly<Record<string,number>> {
+    let signal=initialSignal,capture=initialCapture;const extra={...initialExtra};this.live();let present=false,result:Readonly<Record<string,number>>={},nativeAccepted=0,adopted:string|null=null;
+    let observed={frame:{} as Record<string,number>,candidates:[] as Record<string,number>[],ids:[] as readonly (string|null)[],herds:[] as readonly H[]};
+    for(let step=0;step<8;step++){
+      this.live();if(capture===1||capture===2)observed=this.capture(capture===2);
+      if(capture===3){const a=this.promptHorse;if(a===null)throw new Error('Missing taming actor');Object.assign(extra,{zz_adoptX:a.position.x,zz_adoptZ:a.position.z,zz_adoptYaw:a.yaw});}
+      const actors=[...this.actors.values()],id=(name:string|null):number=>name===null?0:actors.findIndex(a=>a.entityId===name)+1;
+      if(actors.length>64)throw new Error('Taming owner capacity');
+      const slots={phase:['wild','breaking','bonded'].indexOf(this.phase),bonded:id(this.bonded),upgraded:Number(this.upgraded),herd:this.herd??-1,stallion:id(this.stallion),clock:this.clock,previous:Number(this.previous!==null),prevX:this.previous?.[0]??0,prevY:this.previous?.[1]??0,prevZ:this.previous?.[2]??0,...Object.fromEntries(Array.from({length:8},(_,i)=>[`drove${String(i)}`,[...this.drove][i]??-1]))};
+      const frame:Record<string,number>={...observed.frame,...Object.fromEntries(Object.entries(slots).map(([key,value])=>[`zz_${key}`,value])),...Object.fromEntries(Object.entries(this.state).map(([key,value])=>[`zz_s_${key}`,value])),...Object.fromEntries(Object.entries(this.visual).map(([key,value])=>[`zz_v_${key}`,value])),
+        ...Object.fromEntries(Object.entries(this.opts.programs.initial).map(([key,value])=>[`zz_initial_${key}`,value])),zz_mounted:id(this.opts.mount.horse?.entityId??null),zz_nativeAccepted:nativeAccepted,zz_adopted:id(adopted),zz_selectedYaw:this.promptHorse?.yaw??0,zz_candidateUpgraded:Number(this.promptHorse?.kind===this.opts.profile.upgradeKind),...extra};
+      const candidates=observed.candidates.map((row,index)=>Object.assign(row,{zz_h_actor:id(observed.ids[index]??null)}));
+      const targets=new Map<number,V2ActionTarget>([[1,{identity:'service',kind:'taming'}],[2,{identity:'mount',kind:'mount'}],...Array.from({length:8},(_,i):[number,V2ActionTarget]=>[16+i,{identity:`herd:${String(i)}`,kind:'taming-herd'}]),...actors.map((a,i):[number,V2ActionTarget]=>[64+i,{identity:a.entityId,kind:'taming-actor'}])]);
+      const binding:V2ActionBinding={identity:'taming',handle:1,targets,operations:new Set(readOnly?[]:Object.values(V2_ACTION_OPS).filter(op=>op===23||op>=26)),maxCommands:32,bounds:{coordinate:Number.MAX_VALUE,velocity:0}};
+      const prepared:PreparedProjectionV2=this.project(signal.replaceAll(/_([A-Za-z0-9])/g,(_match,next:string)=>next.toUpperCase()),Object.fromEntries(Object.entries(frame).map(([key,value])=>[key.replaceAll(/_([A-Za-z0-9])/g,(_match,next:string)=>next.toUpperCase()),value])),new Map([[1,binding]]),candidates.map(row=>Object.fromEntries(Object.entries(row).map(([key,value])=>[key.replaceAll(/_([A-Za-z0-9])/g,(_match,next:string)=>next.toUpperCase()),value]))));
+      result=prepared.values;const number=(key:string):number=>{const value=result[`zz_${key}`.replaceAll(/_([A-Za-z0-9])/g,(_match,next:string)=>next.toUpperCase())];if(value===undefined||!Number.isFinite(value))throw new Error('Missing taming continuation output');return value;};
+      const bit=(key:string):number=>{const value=number(key);if(value!==0&&value!==1)throw new Error('Invalid taming flag');return value;};
+      const nextSignal=number('next'),nextCapture=number('capture'),nextPresent=bit('present'),nextUpgrade=bit('upgrade');bit('accept');
+      if(!Number.isInteger(nextCapture)||nextCapture<0||nextCapture>3)throw new Error('Invalid taming capture');
+      const nextName=nextSignal===0?null:this.program.signalName(nextSignal);
+      const actor=(key:string):string|null=>{const index=number(key);if(!Number.isInteger(index)||index<0||index>actors.length)throw new Error('Invalid taming actor output');return index===0?null:actors[index-1]?.entityId??null;};
+      const next=this.admit({version:3,phase:['wild','breaking','bonded'][number('phase')],bonded:actor('bonded'),upgraded:bit('upgraded')===1,herd:number('herd')===-1?null:number('herd'),stallion:actor('stallion'),drove:Array.from({length:8},(_,i)=>number(`drove${String(i)}`)).filter(i=>i!==-1),state:Object.fromEntries(Object.keys(this.state).map(key=>[key,number(`s_${key}`)])),clock:number('clock'),prev:bit('previous')===0?null:[number('prevX'),number('prevY'),number('prevZ')]},actors.map(a=>a.entityId),8,this.opts.mount.horse?.entityId??null,false);
+      const visual=Object.fromEntries(Object.keys(this.visual).map(key=>[key,number(`v_${key}`)]));
+      for(const key of ['ear','danger','offer','beaten'])if(visual[key]!==0&&visual[key]!==1)throw new Error('Invalid taming visual flag');
+      const herds=prepared.actions.some(a=>a.target.startsWith('herd:'))?this.opts.herds():[];if(observed.herds.length>0&&herds.some((herd,index)=>herd!==observed.herds[index]))throw new Error('Changed taming herd owner');
+      const identity={binding:'taming',scope:this.scope},loans:V2WorldActionLoan<A,H>[]=[{...identity,target:'service',kind:'taming',owner:this.opts,services:this.opts,presentation:this},{...identity,target:'mount',kind:'mount',owner:this.opts.mount},...herds.map((h,i):V2WorldActionLoan<A,H>=>({binding:'taming',scope:this.scope,target:`herd:${String(i)}`,kind:'taming-herd',owner:h})),...actors.map((a):V2WorldActionLoan<A,H>=>({binding:'taming',scope:this.scope,target:a.entityId,kind:'taming-actor',owner:a,services:this.opts,presentation:this}))];
+      const operations:PreparedV2WorldActions<A>=prepareV2WorldActions(prepared.actions,loans);operations.validate();prepared.accept();this.install(next);Object.assign(this.visual,visual);
+      for(const apply of operations.operations){const value:TamingActionResult<A>|undefined=apply();if(value?.kind==='mounted')nativeAccepted=Number(value.accepted);else if(value?.kind==='adopted'){this.actors.set(value.actor.entityId,value.actor);adopted=value.actor.entityId;}else if(value?.kind==='retired')this.actors.delete(value.actor.entityId);}
+      operations.validate();present ||= nextPresent===1;if(nextName===null){if(present)this.present();return result;}
+      signal=nextName;capture=nextCapture;extra['zz_adoptUpgraded']=nextUpgrade;
+    }
+    throw new Error('Taming same-call barrier capacity');
   }
-  adopt(id: string, upgraded: boolean): void { this.bonded = id; this.upgraded = upgraded; this.phase = 'bonded'; }
-  event(x: number, z: number, shot: boolean, frame: TamingFrame): TamingEffect[] {
-    this.check(frame); const effects: TamingEffect[] = [];
-    frame.herds.forEach((herd, index) => {
-      if ((!shot && this.drove.has(index)) || (shot && herd.stallion === null)) return;
-      const point = shot ? herd.stallion : herd; if (point === null) return;
-      const row = this.approach.project('event', { x, z, cx: 'x' in point ? point.x : point.cx, cz: 'z' in point ? point.z : point.cz,
-        px: frame.x, pz: frame.z, shot: Number(shot), alert: herd.alert });
-      effects.push({ kind: 'trust', herd: index, delta: row['trust'] ?? 0, alert: row['alert'] ?? herd.alert });
-      if (!shot && (row['trust'] ?? 0) > 0) { this.drove.add(index); effects.push({ kind: 'notice', name: 'trust' }); }
-    }); return effects;
+  private present():void{const a=this.promptHorse,s=this.visual,m=this.opts.mount;this.interactable.radius=s.radius;this.interactable.label=s.beaten===1?this.opts.profile.labels.breaking:this.opts.profile.labels.mount;if(a!==null)this.interactable.position.copy(a.position);
+    if(s.ear===1&&a!==null){a.headWorld(this.ear);this.ear.y+=s.earOffset;}Object.assign(this.view,{trust:s.trust<0?null:s.trust,alert:s.alert,round:s.round<0?null:s.round,balance:s.balance,danger:s.danger===1,offer:s.offer===1,ear:s.ear===1?this.ear:null});m.breakRoll=s.roll;m.breakShake=s.shake;}
+  update(dt:number):void{if(!Number.isFinite(dt)||dt<0)throw new Error('Invalid taming elapsed time');this.run('zz_probe',{zz_dt:dt});}
+  noteEvent(name:string,x:number,z:number):void{if(name==='pack-driven-off'||name==='pack-break')this.run('zz_event',{zz_eventX:x,zz_eventZ:z,zz_shot:0},1);}
+  noteShot(x:number,z:number):void{this.run('zz_event',{zz_eventX:x,zz_eventZ:z,zz_shot:1},1);}
+  canTame(a:A):boolean{return this.run('zz_eligible',{zz_candidateUpgraded:Number(a.kind===this.opts.profile.upgradeKind)},0,true)['zzAccept']===1;}
+  startBreaking():void{this.run('zz_start');}forceBreak():void{this.run('zz_force');}
+  snapshot():string{return JSON.stringify({version:3,phase:this.phase,bonded:this.bonded,upgraded:this.upgraded,herd:this.herd,stallion:this.stallion,drove:[...this.drove],state:this.state,clock:this.clock,prev:this.previous});}
+  private install(saved:SavedTaming):void{this.phase=saved.phase;this.bonded=saved.bonded;this.upgraded=saved.upgraded;this.herd=saved.herd;this.stallion=saved.stallion;this.state=saved.state;this.clock=saved.clock;this.previous=saved.prev;this.drove.clear();saved.drove.forEach(i=>{this.drove.add(i);});}
+  private admit(input:unknown,actors:readonly string[],herds:number,mounted:string|null,restoring=true):SavedTaming{
+    if(actors.length>64||herds>8)throw new Error('Taming continuation bound exceeded');const saved=v.parse(Saved,input),ids=new Set(actors);
+    if(ids.size!==actors.length||[saved.bonded,saved.stallion].some(id=>id!==null&&!ids.has(id))||(saved.herd!==null&&saved.herd>=herds)||saved.drove.some(i=>i>=herds)||new Set(saved.drove).size!==saved.drove.length||Object.keys(saved.state).sort().join(',')!==Object.keys(this.state).sort().join(',')
+      ||Math.abs(saved.state['b']??2)>1.2||(saved.state['round']??0)<1||(saved.state['round']??7)>6||(saved.phase==='breaking'&&(saved.herd===null||saved.stallion===null||restoring&&mounted!==saved.stallion))||((saved.phase==='bonded'||saved.upgraded)&&saved.bonded===null))throw new Error('Invalid taming continuation');return saved;
   }
-  /** Called after the trusted motor accepts the selected actor. */
-  start(frame: TamingFrame): TamingEffect[] {
-    this.check(frame);
-    if (this.herd === null || this.stallion === null || frame.mounted !== this.stallion || this.phase === 'breaking') return [];
-    this.phase = 'breaking'; this.view.radius = 0; this.view.round = 1; this.clock = 0;
-    this.state = { ...this.programs.initial, ...this.breaking.project('start', { r0: frame.random[0], r1: frame.random[1] }) };
-    return [{ kind: 'ownership', herd: this.herd, active: true }, { kind: 'breaking', on: true }, { kind: 'notice', name: 'start' }];
-  }
-  sample(dt: number, frame: TamingFrame): TamingEffect[] {
-    this.check(frame);
-    if (!Number.isFinite(dt) || dt < 0) throw new Error('Invalid taming elapsed time');
-    if (this.phase === 'breaking' && frame.mounted !== this.stallion) return this.finish(false, frame);
-    this.clock += dt; if (this.clock + 1e-9 < .1) return [];
-    const elapsed = this.clock; this.clock = 0;
-    if (this.phase === 'breaking') return this.buck(elapsed, frame);
-    const previous = this.previous;
-    this.state['speed'] = previous === null ? 0 : (this.state['speed'] ?? 0) + (Math.hypot(frame.x - previous[0], frame.z - previous[2]) / elapsed - (this.state['speed'] ?? 0)) * Math.min(1, elapsed * 6);
-    this.previous = [frame.x, frame.y, frame.z];
-    const candidates = frame.herds.map(h => h.stallion === null ? { x: 0, y: 0, z: 0, alive: 0, [this.fields.candidateUpgraded]: 0 } : { x: h.stallion.x, y: h.stallion.y, z: h.stallion.z, alive: h.stallion.alive, [this.fields.candidateUpgraded]: h.stallion.upgraded });
-    const selected = this.approach.project('select', { count: candidates.length, px: frame.x, py: frame.y, pz: frame.z, bonded: Number(this.bonded !== null), [this.fields.upgraded]: Number(this.upgraded) }, undefined, candidates);
-    const index = selected['index'] ?? -1, herd = frame.herds[index], effects: TamingEffect[] = [];
-    if (this.herd !== null && this.herd !== index) effects.push({ kind: 'ownership', herd: this.herd, active: false });
-    this.herd = herd === undefined ? null : index; this.stallion = herd?.stallion?.id ?? null;
-    Object.assign(this.view, { radius: 0, round: null, danger: false, trust: null, ear: false, offer: false });
-    const actor = herd?.stallion; if (herd === undefined || actor === null || actor === undefined) return effects;
-    if (selected['active'] === 0) return [...effects, { kind: 'ownership', herd: index, active: false }, { kind: 'trust', herd: index, delta: -elapsed }];
-    const tx = frame.x - actor.x, tz = frame.z - actor.z, wind = frame.wind;
-    const row = this.approach.project('approach', { dt: elapsed, distance: selected['distance'] ?? 41, beaten: Number(herd.beaten), mounted: Number(frame.mounted !== null), speed: this.state['speed'] ?? 0,
-      scale: actor.scale, dot: actor.dot, lookT: this.state['lookT'] ?? 0, offer: Number(frame.offer), alert: herd.alert, trust: herd.trust, crouched: Number(frame.crouched),
-      downwind: (tx * wind.x + tz * wind.z) / (Math.hypot(tx, tz) || 1), strength: wind.strength, flee: Number(herd.fleeing) });
-    this.state['lookT'] = row['lookT'] ?? 0;
-    effects.push({ kind: 'ownership', herd: index, active: true }, { kind: 'trust', herd: index, delta: row['trust'] ?? 0, alert: row['alert'] ?? herd.alert });
-    if (row['lead'] === 1) effects.push({ kind: 'lead', herd: index, x: frame.x, z: frame.z });
-    Object.assign(this.view, { radius: row['radius'] ?? 0, earOffset: row['ear'] ?? 0, trust: Math.max(0, Math.min(100, herd.trust + (row['trust'] ?? 0))), alert: row['alert'] ?? herd.alert, ear: true, offer: row['offer'] === 1, beaten: herd.beaten });
-    return effects;
-  }
-  sampleDue(dt: number): boolean { return this.clock + dt + 1e-9 >= .1; }
-  private buck(dt: number, frame: TamingFrame): TamingEffect[] {
-    const row = this.breaking.project('step', { ...this.state, dt, lean: frame.lean, r0: frame.random[0], r1: frame.random[1], r2: frame.random[2] });
-    for (const key of this.keys) if (row[key] !== undefined) this.state[key] = row[key];
-    Object.assign(this.view, { roll: row['roll'] ?? 0, shake: row['shake'] ?? 0, round: row['round'] ?? 1, balance: row['b'] ?? 0, danger: row['danger'] === 1, trust: null, ear: false });
-    const effects: TamingEffect[] = this.stallion === null ? [] : [{ kind: 'pose', actor: this.stallion, values: row, direction: this.state['dir'] ?? 1 }];
-    return (row['outcome'] ?? 0) === 0 ? effects : [...effects, ...this.finish(row['outcome'] === 1, frame)];
-  }
-  private finish(won: boolean, frame: TamingFrame): TamingEffect[] {
-    this.phase = this.bonded === null ? 'wild' : 'bonded'; Object.assign(this.view, { round: null, danger: false, roll: 0, shake: 0 });
-    const effects: TamingEffect[] = [{ kind: 'breaking', on: false }];
-    if (this.stallion === null || this.herd === null) return frame.mounted === null ? effects : [...effects, { kind: 'dismount', thrown: true }];
-    effects.push({ kind: 'pose', actor: this.stallion, values: { buck: 0, rear: 0 }, direction: 1 });
-    if (won) return [...effects, { kind: 'bond', herd: this.herd, actor: this.stallion, previous: this.bonded, upgraded: frame.herds[this.herd]?.stallion?.upgraded === 1 }];
-    const loss = this.approach.project('finish', { won: 0 });
-    return [...effects, { kind: 'dismount', thrown: true }, { kind: 'hurt', damage: loss['damage'] ?? 0 }, { kind: 'trust', herd: this.herd, delta: loss['trust'] ?? 0 }, { kind: 'lead', herd: this.herd, x: frame.x, z: frame.z }, { kind: 'notice', name: 'thrown' }];
-  }
-  snapshot(): string { return JSON.stringify({ version: 3, phase: this.phase, bonded: this.bonded, upgraded: this.upgraded, herd: this.herd, stallion: this.stallion, drove: [...this.drove], state: this.state, clock: this.clock, prev: this.previous }); }
-  restore(wire: string, actors: readonly string[], herds: number, mounted: string | null): void {
-    if (wire.length > 65536 || actors.length > 64 || herds > 8) throw new Error('Taming continuation bound exceeded');
-    const saved = v.parse(Saved, JSON.parse(wire)), ids = new Set(actors);
-    if (ids.size !== actors.length || [saved.bonded, saved.stallion].some(id => id !== null && !ids.has(id)) || (saved.herd !== null && saved.herd >= herds)
-      || saved.drove.some(index => index >= herds) || new Set(saved.drove).size !== saved.drove.length || Object.keys(saved.state).sort().join(',') !== [...this.keys].sort().join(',')
-      || Math.abs(saved.state['b'] ?? 2) > 1.2 || (saved.state['round'] ?? 0) < 1 || (saved.state['round'] ?? 7) > 6
-      || (saved.phase === 'breaking' && (saved.herd === null || saved.stallion === null || mounted !== saved.stallion)) || ((saved.phase === 'bonded' || saved.upgraded) && saved.bonded === null)) throw new Error('Invalid taming continuation');
-    this.phase = saved.phase; this.bonded = saved.bonded; this.upgraded = saved.upgraded; this.herd = saved.herd; this.stallion = saved.stallion; this.state = saved.state; this.clock = saved.clock; this.previous = saved.prev;
-    Object.assign(this.view, { round: saved.phase === 'breaking' ? saved.state['round'] ?? 1 : null, balance: saved.state['b'] ?? 0, radius: 0 });
-    this.drove.clear(); saved.drove.forEach(index => { this.drove.add(index); });
-  }
+  restore(wire:string,horses:readonly A[]):void{this.live();if(wire.length>65536)throw new Error('Taming continuation bound exceeded');const saved=this.admit(JSON.parse(wire),horses.map(a=>a.entityId),this.opts.herds().length,this.opts.mount.horse?.entityId??null);this.install(saved);this.actors.clear();horses.forEach(a=>{this.actors.set(a.entityId,a);});Object.assign(this.visual,{round:saved.phase==='breaking'?saved.state['round']??1:-1,balance:saved.state['b']??0,radius:0});this.present();}
 }

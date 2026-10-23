@@ -1,5 +1,7 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
+import {tamingRig} from './fixtures/tamingServices';
+import type {TamingHorse} from '../src/game/riding/bindingTypes';
 import { PerspectiveCamera, Vector3, SkinnedMesh } from 'three';
 import { app as pageApp } from '@wildshard/engine/app/runtime';
 import { OriginalPracticeCourse } from './fixtures/course-controller.oracle';
@@ -86,28 +88,17 @@ test('HUD accepts a fictional second shard observation and retains the baseline 
   } finally { f.scope.dispose(); root.remove(); }
 });
 
-test('G478 orchard fixture drives the data-only taming host and restores its bond', async () => {
-  const { TamingSession } = await import('@wildshard/game/riding/taming');
-  const { default: programs } = await import('../src/shards/nalati-grasslands/behaviour/riding.generated.json');
-  const aliases = { upgraded: 'argymaq', horseUpgraded: 'horseArgymaq', candidateUpgraded: 'argymaq' };
-  const session = new TamingSession(programs, aliases);
-  const frame = { x: 0, y: 0, z: 2, mounted: null as string | null, crouched: true, wind: { x: 0, z: 1, strength: 1 }, offer: true, lean: 0,
-    random: [.25, .25, .25] as const, herds: [{ cx: 0, cz: 0, trust: 100, alert: 0, beaten: true, fleeing: false,
-      stallion: { id: 'orchard.mule', x: 0, y: 0, z: 0, alive: 1, upgraded: 0, scale: .8, dot: 0 } }] };
-  session.sample(.1, frame); frame.mounted = 'orchard.mule'; session.start(frame);
-  let previous = 0;
-  const effects = [];
-  for (let tick = 0; tick < 220 && session.phase === 'breaking'; tick++) {
-    const balance = session.view.balance;
-    frame.lean = Math.max(-1, Math.min(1, balance * 8 + (balance - previous) * 20)); previous = balance;
-    effects.push(...session.sample(.1, frame));
+test('G478 orchard fixture drives the data-only taming host and restores its bond', () => {
+  const f=tamingRig(null,'orchard.mule','orchard.companion','fixture-mule',.8);f.allowMount();f.binding.startBreaking();
+  let previous=0;
+  for(let tick=0;tick<220&&f.binding.phase==='breaking';tick++){
+    const balance=f.binding.view.balance;f.hud.lean=Math.max(-1,Math.min(1,balance*8+(balance-previous)*20));previous=balance;f.binding.update(.1);
   }
-  expect(effects.find(effect => effect.kind === 'bond')).toEqual({ kind: 'bond', herd: 0, actor: 'orchard.mule', previous: null, upgraded: false });
-  session.adopt('orchard.companion', false);
-  const wire = session.snapshot(), restored = new TamingSession(programs, aliases);
-  restored.restore(wire, ['orchard.mule', 'orchard.companion'], 1, 'orchard.companion');
-  expect(restored.snapshot()).toBe(wire);
-  expect(() => restored.restore(wire, ['foreign'], 1, null)).toThrow();
+  expect(f.binding.phase).toBe('bonded');expect(f.binding.companion?.entityId).toBe('orchard.companion');
+  expect(f.events.filter(event=>event==='bonded:orchard.companion')).toHaveLength(1);
+  const companion=f.binding.companion;if(companion===null)throw new Error('Missing companion');
+  const wire=f.binding.snapshot();f.binding.restore(wire,[f.herd.stallion,companion].filter((actor):actor is TamingHorse=>actor!==null));expect(f.binding.snapshot()).toBe(wire);
+  expect(()=>f.binding.restore(wire,[])).toThrow();
 });
 
 test('fixture riding actions selects the rail prompt and emits a naming row', () => {

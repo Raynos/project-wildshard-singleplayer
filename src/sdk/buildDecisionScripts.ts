@@ -27,36 +27,10 @@ export function decisionLineCeiling(options: DecisionBuildOptions): number {
 export async function compileDecisionScripts(input: unknown, registries: DecisionRegistries, authored: ReadonlyMap<string, string>, options: DecisionBuildOptions): Promise<{
   rows: readonly DecisionScriptRow[]; blobs: readonly NamedBlob[]; generated: ReadonlyMap<string, string>; lines: number; ceiling: number;
 }> {
-  const rows = parseDecisionScripts(input), ceiling = decisionLineCeiling(options), virtual: Record<string, string> = {}, inspected = new Map<string, Awaited<ReturnType<typeof inspectDecisionSource>>>();
-  let lines = 0;
-  if (authored.size > 60) throw new Error('Too many authored AssemblyScript sources');
-  for (const [path, text] of authored) {
-    if (!/^behaviour\/(?:[A-Za-z0-9_-][A-Za-z0-9_.-]*\/)*[A-Za-z0-9_-][A-Za-z0-9_.-]*\.as$/u.test(path) || path.startsWith('behaviour/generated/')) throw new Error('Invalid authored AssemblyScript path');
-    const info = await inspectDecisionSource(text, path); inspected.set(path, info); lines += info.lines;
-    virtual[`${path.slice(0, -3)}.ts`] = text;
-  }
-  if (lines > ceiling) throw new Error(`Authored AssemblyScript budget exceeded: ${lines} > ${ceiling}`);
-  const generated = new Map<string, string>(), compiled: DecisionScriptRow[] = [], blobs = new Map<string, NamedBlob>();
-  for (const row of rows) {
-    const source = inspected.get(row.source); if (source === undefined) throw new Error(`Missing decision source: ${row.source}`);
-    checkDecisionHandlers(row, source.handlers);
-    const binding = generateDecisionBindings(row, registries, options), sources: Record<string, string> = { ...binding.sources };
-    const pending = [row.source], seen = new Set<string>();
-    // Only the entry's transitive AS imports reach this module; other authored AS still counts above.
-    while (pending.length > 0) {
-      const path = pending.pop(); if (path === undefined || seen.has(path)) continue;
-      seen.add(path);
-      const info = inspected.get(path), text = authored.get(path);
-      if (info === undefined || text === undefined) throw new Error(`Missing decision source: ${path}`);
-      const virtualPath = `${path.slice(0, -3)}.ts`; sources[virtualPath] = text;
-      for (const specifier of info.imports) {
-        if (!specifier.startsWith('.')) throw new Error('Decision source imports must be relative');
-        const target = `${posix.normalize(posix.join(posix.dirname(path), specifier)).replace(/\.(?:as|ts)$/u, '')}.ts`;
-        if (target === binding.path) continue;
-        if (!Object.hasOwn(virtual, target)) throw new Error(`Undeclared decision source import: ${specifier}`);
-        pending.push(`${target.slice(0, -3)}.as`);
-      }
-    }
+  const rows=parseDecisionScripts(input),captured=await captureDecisionSources(authored,options),{lines,ceiling}=captured;
+  const generated=new Map<string,string>(),compiled:DecisionScriptRow[]=[],blobs=new Map<string,NamedBlob>();
+  for(const row of rows){
+    const binding=generateDecisionBindings(row,registries,options),sources={...binding.sources,...captured.entry(row,binding.path)};
     const bytes = await compileScript(binding.glue, { abi: 1, maximumPages: row.pages, sources });
     admitScriptContract(bytes, { abi: 1, pages: row.pages });
     const hash = hashImmutableBytes(bytes), module = `blobs/wasm/${hash}.wasm`;
@@ -92,4 +66,41 @@ export function readDecisionSources(project: string): ReadonlyMap<string, string
 /** Project entry for the same virtual compiler, with no generated file writes or hidden policy reads. */
 export function buildDecisionScripts(project: string, input: unknown, registries: DecisionRegistries, options: DecisionBuildOptions): ReturnType<typeof compileDecisionScripts> {
   return compileDecisionScripts(input, registries, readDecisionSources(project), options);
+}
+
+/** Inspect every authored source once; entries capture only their checked relative
+ * closure. ABI2 uses the same budget/handler/import law without executing ABI1. */
+export async function captureDecisionSources(authored:ReadonlyMap<string,string>,options:DecisionBuildOptions):Promise<{
+  lines:number;ceiling:number;entry:(row:DecisionScriptRow,bindingPath:string)=>Record<string,string>;
+}>{
+  const ceiling=decisionLineCeiling(options),virtual:Record<string,string>={},inspected=new Map<string,Awaited<ReturnType<typeof inspectDecisionSource>>>();
+  let lines = 0;
+  if (authored.size > 60) throw new Error('Too many authored AssemblyScript sources');
+  for (const [path, text] of authored) {
+    if (!/^behaviour\/(?:[A-Za-z0-9_-][A-Za-z0-9_.-]*\/)*[A-Za-z0-9_-][A-Za-z0-9_.-]*\.as$/u.test(path) || path.startsWith('behaviour/generated/')) throw new Error('Invalid authored AssemblyScript path');
+    const info = await inspectDecisionSource(text, path); inspected.set(path, info); lines += info.lines;
+    virtual[`${path.slice(0, -3)}.ts`] = text;
+  }
+  if (lines > ceiling) throw new Error(`Authored AssemblyScript budget exceeded: ${lines} > ${ceiling}`);
+  return {lines,ceiling,entry:(row,bindingPath)=>{
+    const source=inspected.get(row.source);if(source===undefined)throw new Error(`Missing decision source: ${row.source}`);checkDecisionHandlers(row,source.handlers);
+    const sources:Record<string,string>={};
+    const pending = [row.source], seen = new Set<string>();
+    // Only the entry's transitive AS imports reach this module; other authored AS still counts above.
+    while (pending.length > 0) {
+      const path = pending.pop(); if (path === undefined || seen.has(path)) continue;
+      seen.add(path);
+      const info = inspected.get(path), text = authored.get(path);
+      if (info === undefined || text === undefined) throw new Error(`Missing decision source: ${path}`);
+      const virtualPath = `${path.slice(0, -3)}.ts`; sources[virtualPath] = text;
+      for (const specifier of info.imports) {
+        if (!specifier.startsWith('.')) throw new Error('Decision source imports must be relative');
+        const target = `${posix.normalize(posix.join(posix.dirname(path), specifier)).replace(/\.(?:as|ts)$/u, '')}.ts`;
+        if (target === bindingPath) continue;
+        if (!Object.hasOwn(virtual, target)) throw new Error(`Undeclared decision source import: ${specifier}`);
+        pending.push(`${target.slice(0, -3)}.as`);
+      }
+    }
+    return sources;
+  }};
 }

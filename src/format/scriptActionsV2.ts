@@ -3,9 +3,9 @@
 import { SCRIPT_V1_COMMANDS } from './scriptAbiV1';
 import type { V2Layout } from './scriptWireV2';
 
-export const V2_ACTION_OPS = Object.freeze({ impulse: SCRIPT_V1_COMMANDS.impulse,dismount: 23,ignite: 24 });
+export const V2_ACTION_OPS = Object.freeze({ impulse: SCRIPT_V1_COMMANDS.impulse,dismount: 23,ignite: 24,trust:26,ownership:27,lead:28,mount:29,hurt:30,pose:31,adopt:32,bond:33,release:34,hide:35,retire:36,breaking:37,notice:38,playerPose:39 });
 export type V2ActionOperation = typeof V2_ACTION_OPS[keyof typeof V2_ACTION_OPS];
-export type V2ActionTargetKind = 'player' | 'mount' | 'cell-field';
+export type V2ActionTargetKind = 'player' | 'mount' | 'cell-field' | 'taming' | 'taming-herd' | 'taming-actor';
 export interface V2ActionTarget { readonly identity: string; readonly kind: V2ActionTargetKind }
 export interface V2ActionBinding {
   readonly identity: string; readonly handle: number;
@@ -20,12 +20,13 @@ export type V2WorldAction = Target & (
   { readonly kind: 'dismount'; readonly thrown: boolean }
   | { readonly kind: 'ignite'; readonly x: number; readonly z: number }
   | { readonly kind: 'impulse'; readonly x: number; readonly y: number; readonly z: number }
+  | { readonly kind:'taming'; readonly operation:V2ActionOperation; readonly values:readonly [number,number,number,number,number,number] }
 );
 function positive(value: number): boolean { return Number.isInteger(value) && value > 0 && value <= 0x7fffffff; }
 /** Decode and validate the WHOLE ordered bank before borrowing or mutating an
  * owner. Unknown ops, target kinds, reserved words and over-quota suffixes refuse
  * the entire bank. This is used after validateV2Frame checks host-owned bytes. */
-export function readV2WorldActions(view: DataView,layout: V2Layout,count: number,bindings: ReadonlyMap<number,V2ActionBinding>): readonly V2WorldAction[] {
+export function readV2WorldActions(view: DataView,layout: V2Layout,count: number,bindings: ReadonlyMap<number,V2ActionBinding>,selection?:readonly number[]): readonly V2WorldAction[] {
   const region = layout.regions[9];
   if (region === undefined || view.byteLength !== layout.pages*65536 || !Number.isInteger(count) || count < 0 || count > region.capacity || count > 128) throw new Error('Invalid v2 world action bank');
   const identities = new Set<string>();
@@ -38,12 +39,14 @@ export function readV2WorldActions(view: DataView,layout: V2Layout,count: number
     identities.add(binding.identity);
     const targets = new Set<string>();
     for (const [target,owner] of binding.targets) {
-      if (!positive(target) || owner.identity.length === 0 || targets.has(owner.identity) || !['player','mount','cell-field'].includes(owner.kind)) throw new Error('Invalid v2 action target');
+      if (!positive(target) || owner.identity.length === 0 || targets.has(owner.identity) || !['player','mount','cell-field','taming','taming-herd','taming-actor'].includes(owner.kind)) throw new Error('Invalid v2 action target');
       targets.add(owner.identity);
     }
   }
   const rows: V2WorldAction[] = [], used = new Map<number,number>();
-  for (let index = 0; index < count; index++) {
+  const indices=selection??Array.from({length:count},(_,index)=>index);
+  if(indices.length>count||new Set(indices).size!==indices.length||indices.some(index=>!Number.isInteger(index)||index<0||index>=count))throw new Error('Invalid world action selection');
+  for (const index of indices) {
     const at = layout.io+region.offset+index*64, handle = view.getUint32(at,true), binding = bindings.get(handle);
     const action = readV2WorldAction(view,at,binding);
     if (binding === undefined) throw new Error('Undeclared v2 world action');
@@ -68,8 +71,22 @@ export function readV2WorldAction(view: DataView,at: number,binding: V2ActionBin
     if (!values.every(Number.isFinite)) throw new Error('Non-finite v2 world action');
     const [x,y,z] = values;if (x === undefined || y === undefined || z === undefined) throw new Error('Missing v2 world action values');
     const zero = (from: number): boolean => values.slice(from).every(value => Object.is(value,0));
-    if (op === V2_ACTION_OPS.dismount && owner.kind === 'mount' && (x === 0 || x === 1) && zero(1)) return Object.freeze({ binding: binding.identity,target: owner.identity,kind: 'dismount',thrown: x === 1 });
+    if (op === V2_ACTION_OPS.dismount && (owner.kind === 'mount'||owner.kind==='taming') && (x === 0 || x === 1) && zero(1)) return Object.freeze({ binding: binding.identity,target: owner.identity,kind: 'dismount',thrown: x === 1 });
     if (op === V2_ACTION_OPS.ignite && owner.kind === 'cell-field' && Math.abs(x) <= binding.bounds.coordinate && Math.abs(y) <= binding.bounds.coordinate && zero(2)) return Object.freeze({ binding: binding.identity,target: owner.identity,kind: 'ignite',x,z: y });
     if (op === V2_ACTION_OPS.impulse && owner.kind === 'player' && Math.hypot(x,y,z) <= binding.bounds.velocity && zero(3)) return Object.freeze({ binding: binding.identity,target: owner.identity,kind: 'impulse',x,y,z });
+    if(validV2TamingAction(op,owner.kind,values,binding.bounds.coordinate))return Object.freeze({binding:binding.identity,target:owner.identity,kind:'taming',operation:op,values:Object.freeze([values[0]??0,values[1]??0,values[2]??0,values[3]??0,values[4]??0,values[5]??0] as const)});
     throw new Error('Invalid v2 world action operands');
+}
+
+/** Exact taming operands. Finite deltas and yaw stay unbounded, preserving
+ * long-frame native laws; unused words must be positive zero. */
+export function validV2TamingAction(op:number,kind:string,values:readonly number[],coordinate:number):op is V2ActionOperation {
+  if(values.length!==6||!values.every(Number.isFinite))return false;
+  const [a=0,b=0,c=0,d=0,e=0,f=0]=values,bit=(n:number):boolean=>n===0||n===1,zero=(n:number):boolean=>values.slice(n).every(x=>Object.is(x,0));
+  if(kind==='taming-herd')return op===26&&bit(b)&&c>=0&&c<=100&&(b===1||Object.is(c,0))&&zero(3)
+    ||op===27&&bit(a)&&zero(1)||op===28&&Math.abs(a)<=coordinate&&Math.abs(b)<=coordinate&&zero(2)||op===34&&zero(0);
+  if(kind==='taming-actor')return (op===29||op===33)&&bit(a)&&zero(1)||(op===35||op===36)&&zero(0)
+    ||op===31&&a>=0&&a<=1&&(b===-1||b===1)&&c>=-1&&c<=1&&bit(d)&&bit(e)&&Number.isFinite(f);
+  return kind==='taming'&&(op===23&&bit(a)&&zero(1)||op===30&&a>=0&&zero(1)||op===32&&Math.abs(a)<=coordinate&&Math.abs(b)<=coordinate&&bit(d)&&zero(4)
+    ||op===37&&bit(a)&&zero(1)||op===38&&(a===0||a===1||a===2)&&zero(1)||op===39&&Math.abs(b)<=Math.PI/2&&zero(2));
 }

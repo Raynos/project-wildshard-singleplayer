@@ -1,45 +1,6 @@
-import { expect, test } from 'vitest';
-import { Vector3 } from 'three';
-import { TamingBinding } from '../src/game/riding/binding';
-import type { TamingHorse, TamingHerd, TamingServices } from '../src/game/riding/bindingTypes';
-import programs from '../src/shards/nalati-grasslands/behaviour/riding.generated.json' with { type: 'json' };
-
-function fixture(saved: string | null = null) {
-  const events: string[] = [];
-  const horse = (id: string, kind: string): TamingHorse => ({ entityId: id, kind, scale: 1, alive: true, yaw: .7,
-    position: new Vector3(0, 0, 0), mem: {}, headWorld: out => out.set(0, 1.5, 0),
-    setMotion: () => { events.push('motion'); } });
-  const stallion = horse('wild', saved === null ? 'ordinary' : 'upgraded');
-  const herd: TamingHerd<TamingHorse> = { stallion, stallionState: 'beaten', cx: 0, cz: 0, trust: 100, alert: 0, alertOwned: false, mode: 'graze',
-    addTrust(value) { events.push(`trust:${String(value)}`); this.trust = Math.max(0, Math.min(100, this.trust + value)); },
-    leadAway: () => { events.push('lead'); }, releaseStallion: () => { events.push('release'); } };
-  let mounted: TamingHorse | null = null, acceptsMount = false, yaw = 2, pitch = .4, spawned = 0;
-  const hud = { offer: false, lean: 0 };
-  const opts: TamingServices<TamingHorse, TamingHerd<TamingHorse>> = {
-    profile: { upgradeKind: 'upgraded', bonds: ['bond', 'better-bond'], names: ['Companion', 'Better companion'], offset: [0, 0],
-      fields: { upgraded: 'argymaq', horseUpgraded: 'horseArgymaq', candidateUpgraded: 'argymaq' },
-      labels: { mount: 'Mount', breaking: 'Tame', trust: 'Trust', start: 'Start', thrown: 'Thrown', bonded: ['Bonded', 'Better bonded'] } },
-    programs, bond: { read: () => saved, write: value => { events.push(`write:${value}`); } },
-    player: { position: new Vector3(0, 0, 2), crouching: true, keys: new Set(),
-      get yaw() { return yaw; }, set yaw(value) { events.push('yaw'); yaw = value; },
-      get pitch() { return pitch; }, set pitch(value) { events.push('pitch'); pitch = value; },
-      camera: { position: new Vector3(0, 1.5, 2), getWorldDirection: out => out.set(0, 0, -1) } },
-    mount: { get mounted() { return mounted !== null; }, get horse() { return mounted; }, breakRoll: 0, breakShake: 0,
-      mount: (actor, breaking) => { events.push(`mount:${actor.entityId}:${String(breaking === true)}`); if (!acceptsMount) return false; mounted = actor; return true; },
-      dismount: thrown => { events.push(`dismount:${String(thrown === true)}`); mounted = null; },
-      addMountable: actor => { events.push(`add:${actor.entityId}`); }, removeMountable: actor => { events.push(`remove:${actor.entityId}`); } },
-    hud, herds: () => [herd], rest: { x: 0, z: 0, face: { x: 0, z: 1 } }, wind: () => ({ x: 0, z: 1, strength: 1 }),
-    random: () => { events.push('random'); return .25; },
-    spawnBonded: () => { const actor = horse(`bonded-${String(++spawned)}`, 'ordinary'); events.push(`spawn:${actor.entityId}`); return actor; },
-    hideStallion: actor => { events.push(`hide:${actor.entityId}`); }, retireBonded: actor => { events.push(`retire:${actor.entityId}`); },
-    hurt: value => { events.push(`hurt:${String(value)}`); }, toast: value => { events.push(`notice:${value}`); },
-  };
-  const binding = new TamingBinding(opts);
-  binding.onBreaking = on => { events.push(`breaking:${String(on)}`); };
-  binding.onBonded = actor => { events.push(`bonded:${actor.entityId}`); };
-  binding.update(.1); events.length = 0;
-  return { binding, events, hud, opts, herd, allowMount: () => { acceptsMount = true; }, loseMount: () => { mounted = null; } };
-}
+import type {TamingHorse} from '../src/game/riding/bindingTypes';
+import {expect,test} from 'vitest';
+import {tamingRig as fixture} from './fixtures/tamingServices';
 
 test('native mount refusal precedes player pose, entropy and taming continuation changes', () => {
   const f = fixture(), wire = f.binding.snapshot();
