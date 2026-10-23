@@ -20,7 +20,7 @@ import { WorldSceneWeldAssembly, worldSceneWeldFile, worldSceneWeldFiles, admitW
 import { parseWorldSceneWeld, type WorldSceneWeld } from '@wildshard/format/worldSceneWeld';
 import { parseWorldScenePlacement, type WorldScenePlacementRow } from '@wildshard/format/worldScenePlacement';
 import { poseOf, placeCollider, readColliderRows } from '@wildshard/engine/models/colliders';
-import { readWorldSceneGeometry, type WorldSceneGeometry } from './worldSceneGeometry';
+import { cachedWorldSceneGeometry, readWorldSceneGeometry, type WorldSceneGeometry } from './worldSceneGeometry';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { buildYield } from '@wildshard/engine/core/workSlice';
@@ -291,9 +291,11 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
           modelProgress(0, row.id);
           // read ahead: the next MODEL_READ_AHEAD models' bytes are read while the current one decodes (one model after
           // another waited on each read: much of the home's ~0.46 s library intake at 4x CPU)
+          // (a model whose decoded template is already cached reads nothing: a retired resident's storage is reused)
           const files = neededModels.map(model => typeof model.file === 'string' ? model.file : model.file[TIER]), ahead = new Map<string, Promise<Uint8Array>>();
           const readAhead = (index: number): void => {
-            const name = files[index]; if (name === undefined || ahead.has(name)) return;
+            const name = files[index], model = neededModels[index]; if (name === undefined || model === undefined || ahead.has(name)) return;
+            if (cachedWorldSceneGeometry(product, { file: name, attributes: model.attributes, ...(model.segments === undefined ? {} : { segments: model.segments }) }, ctx.app.assets)) return;
             const read = product.file(name); void read.catch(() => undefined); ahead.set(name, read);
           };
           const reader = { url: (name: string) => product.url(name), file: (name: string): Promise<Uint8Array> => {
