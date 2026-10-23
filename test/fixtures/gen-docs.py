@@ -19,6 +19,7 @@ with tempfile.TemporaryDirectory(dir=repo/'tmp', prefix='gen-docs-test-') as fol
         return "appendFileSync('calls.txt'," + json.dumps(name+'\n') + ");"
     module('quiet-cli', 'export function quietCli() {}')
     module('generation-scheduling', 'export function generationConcurrency(){return 1}')
+    module('generation-tail-cache', 'export async function generationTailCached(root,step,run){return run()}')
     module('bake-loader', record('loader'))
     module('gen-shards', 'export function refreshDiscovery(){'+record('discovery')+'}export function genShards(){'+record('shards')+'}')
     for file, function in [('gen-budget-derivations','genBudgetDerivations'),('gen-ask-ids','genAskIds'),('generate','prepareGeneration'),('gen-starter-arm-clips','genStarterArmClips'),('gen-starter-weapons','genStarterWeapons'),('gen-starter-bag','genStarterBag'),('gen-starter-effects','genStarterEffects'),('gen-decision-policy','genDecisionPolicies'),('gen-format-schema','writeFormatJsonSchemas')]:

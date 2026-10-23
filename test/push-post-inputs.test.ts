@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise cache publication on owned tiny files.
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the owned source fixture.
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
@@ -24,6 +24,21 @@ test('only completed stable generation seals post tables and lint words', () => 
     expect(saved.phase).toBe('phase-proof');
     expect(saved.revision).toBe('a'.repeat(40));
     expect(Object.keys(saved.outputs).sort()).toEqual(['lint/shard-words.generated.json', 'src/shards/fixture/discovery.generated.ts']);
+    const receipt = resolve(root, '.cache/push-post-inputs.json');
+    utimesSync(receipt, 1, 1);
+    const before = lstatSync(receipt);
+    finish();
+    expect(lstatSync(receipt).mtimeMs).toBe(before.mtimeMs);
+    expect(lstatSync(receipt).ctimeMs).toBe(before.ctimeMs);
+    const output = resolve(root, 'lint/shard-words.generated.json'), outputBefore = lstatSync(output);
+    put('lint/shard-words.generated.json', '[]'); // Same-size corruption still changes ctime.
+    utimesSync(output, outputBefore.atime, outputBefore.mtime);
+    finish();
+    const changed = parse(object({ outputs: record(string(), string()) }), JSON.parse(readFileSync(receipt, 'utf8')));
+    const digest = changed.outputs['lint/shard-words.generated.json'];
+    if (digest === undefined) throw new Error('Missing sealed output');
+    expect(digest).not.toBe(saved.outputs['lint/shard-words.generated.json']);
+    expect(readFileSync(resolve(root, '.cache/push-post-blobs', digest), 'utf8')).toBe('[]');
     put('src/author.ts', 'export const value = 2;');
     expect(finish).toThrow('source moved');
   } finally { rmSync(root, { recursive: true, force: true }); }

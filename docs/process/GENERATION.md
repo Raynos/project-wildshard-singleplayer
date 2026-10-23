@@ -19,6 +19,12 @@ that default. `node scripts/gen.mjs --parallel=N` requests 1–4 explicitly; CI 
 `--parallel` remains an explicit four-job request. Audited long jobs run first when ready; original catalogue
 read/write conflicts still govern admission, and equal/unknown costs retain catalogue ties.
 
+After the producer phase verifies, the two shard-table passes and boot tables can reuse complete local outputs
+(G668 G3). Each pass binds that phase, source/asset bytes, directory inventories, command/environment and its output
+inventory/hashes; boot also binds the installed Rapier/Basis copies. Missing, changed or incomplete tables run the
+original writer. These local receipts never restore files or grant generation/product proof. The push-input seal
+still rechecks source and table hashes; a stat memo avoids rereading unchanged bytes and an identical seal is not rewritten.
+
 Run one declared job with `node scripts/generate.mjs --job=nine-layout`. Add `--compare` to force fresh generation and
 compare both the existing cache and every committed output. `--restore` may materialize absent outputs after the same
 checks; it never overwrites different committed bytes. The pilot keeps stamp seeds because its schema imports them;

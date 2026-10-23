@@ -4,6 +4,7 @@ import { genBudgetDerivations } from './gen-budget-derivations.mjs';
 import { genAskIds } from './gen-ask-ids.mjs';
 import { prepareGeneration } from './generate.mjs';
 import { generationConcurrency } from './generation-scheduling.mjs';
+import { generationTailCached } from './generation-tail-cache.mjs';
 import { genStarterArmClips } from './gen-starter-arm-clips.mjs';
 import { genStarterWeapons } from './gen-starter-weapons.mjs';
 import { genStarterBag } from './gen-starter-bag.mjs';
@@ -42,18 +43,18 @@ await import('./bake-loader.mjs');
 const { writeFormatJsonSchemas } = await import('./gen-format-schema.mjs');
 await step('format-schemas', () => writeFormatJsonSchemas(`${import.meta.dirname}/..`));
 const shard = process.argv.find((arg) => arg.startsWith('--shard='))?.slice(8);
-await step('shards', () => genShards(undefined, false, false, shard));
+await step('shards', () => generationTailCached(`${import.meta.dirname}/..`, 'shards-before', () => genShards(undefined, false, false, shard)));
 await step('ask-ids', () => genAskIds());
 const { generateBootTables } = await import('../vite/gen.ts');
-await step('boot-tables', async () => {
+await step('boot-tables', () => generationTailCached(`${import.meta.dirname}/..`, 'boot', async () => {
   if (buildInputs && process.env.WS_PRECOMMIT_BOOT_CACHE) {
     const { generateBootTablesCached } = await import('./gen-boot-cache.mjs');
     generateBootTablesCached(`${import.meta.dirname}/..`, process.env.WS_PRECOMMIT_BOOT_CACHE, generateBootTables);
   } else generateBootTables();
-});
+}));
 await step('budgets', () => genBudgetDerivations(undefined, process.argv.includes('--check-budgets'), shard));
 // Boot tables add static imports; derive the closure from the completed graph.
-await step('shards', () => genShards(undefined, false, false, shard));
+await step('shards', () => generationTailCached(`${import.meta.dirname}/..`, 'shards-after', () => genShards(undefined, false, false, shard)));
 // E486: SHARD SELECT's PORTED badges read the committed src/game/shard/portShares.json, which the plan ruler writes with
 // ruler.json (scripts/gen-port-shares.mjs) and pre-commit keeps in step; gen has no port-shares step.
 try { publishPushInputs(); }
