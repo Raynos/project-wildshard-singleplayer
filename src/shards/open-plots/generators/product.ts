@@ -2,6 +2,8 @@ import { emptyShardfile } from '@wildshard/sdk/author';
 import declared from '../outputs.json' with { type: 'json' };
 import source from '../data/source.json' with { type: 'json' };
 import hologram from '../data/hologram.graph.json' with { type: 'json' };
+import glowFlicker from '../data/glowFlicker.graph.json' with { type: 'json' };
+import poolFlicker from '../data/poolFlicker.graph.json' with { type: 'json' };
 
 /** The open-plots source shard (SF88g, G538/G539/G541/G542/G545): data rows (`outputs.json`, one product per idea) and one
  *  build-time generator (`generators/bake-plots.mjs`, which writes each idea's `assets/<idea>/world.glb`); this module
@@ -13,7 +15,10 @@ const look = { ...source.look, materials: { ...source.look.materials,
 
 const { why: _why, ...tiledMaterials } = source.tiledMaterials;
 /** G641: a tiled plot's look adds the kit's materials (generators/tiledPlot.mjs) */
-const tiledLook = { ...look, materials: { ...look.materials, ...tiledMaterials } };
+// NM10: the lanterns, windows and their light pools flicker a little, each on its own phase (world position), unlit as the
+// emissive family drew them (glow x2.4 +-12 %, pool additive x1.2 +-8 %)
+const tiledLook = { ...look, materials: { ...look.materials, ...tiledMaterials,
+  glow: { family: 'graph', graph: glowFlicker }, pool: { family: 'graph', graph: poolFlicker } } };
 
 /** One idea row's output (validated whole by the build's parseShardfile; SF88g: one per idea). */
 function project(row: { readonly slug: string; readonly idea: string; readonly name: string; readonly accent: string; readonly layout?: string; readonly look?: { readonly keys: readonly unknown[] } }) {

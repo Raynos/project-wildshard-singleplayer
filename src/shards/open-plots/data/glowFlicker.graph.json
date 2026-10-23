@@ -1,0 +1,161 @@
+{
+ "version": 1,
+ "kind": "material",
+ "model": "unlit",
+ "doubleSided": false,
+ "params": {
+  "intensity": {
+   "type": "float",
+   "value": 2.4,
+   "min": 0,
+   "max": 64
+  },
+  "amount": {
+   "type": "float",
+   "value": 0.12,
+   "min": 0,
+   "max": 1
+  }
+ },
+ "nodes": {
+  "t": {
+   "op": "time"
+  },
+  "pw": {
+   "op": "positionWorld"
+  },
+  "px": {
+   "op": "swizzle",
+   "in": [
+    "pw"
+   ],
+   "mask": "x"
+  },
+  "pz": {
+   "op": "swizzle",
+   "in": [
+    "pw"
+   ],
+   "mask": "z"
+  },
+  "a1": {
+   "op": "mul",
+   "in": [
+    "px",
+    0.31
+   ]
+  },
+  "a2": {
+   "op": "mul",
+   "in": [
+    "pz",
+    0.23
+   ]
+  },
+  "ph": {
+   "op": "add",
+   "in": [
+    "a1",
+    "a2"
+   ]
+  },
+  "t1": {
+   "op": "mul",
+   "in": [
+    "t",
+    9.0
+   ]
+  },
+  "s1in": {
+   "op": "add",
+   "in": [
+    "t1",
+    "ph"
+   ]
+  },
+  "s1": {
+   "op": "sin",
+   "in": [
+    "s1in"
+   ]
+  },
+  "t2": {
+   "op": "mul",
+   "in": [
+    "t",
+    5.3
+   ]
+  },
+  "ph2": {
+   "op": "mul",
+   "in": [
+    "ph",
+    1.7
+   ]
+  },
+  "s2in": {
+   "op": "add",
+   "in": [
+    "t2",
+    "ph2"
+   ]
+  },
+  "s2": {
+   "op": "sin",
+   "in": [
+    "s2in"
+   ]
+  },
+  "wave": {
+   "op": "mul",
+   "in": [
+    "s1",
+    "s2"
+   ]
+  },
+  "amount": {
+   "op": "param",
+   "param": "amount"
+  },
+  "wa": {
+   "op": "mul",
+   "in": [
+    "wave",
+    "amount"
+   ]
+  },
+  "flick": {
+   "op": "add",
+   "in": [
+    "wa",
+    1
+   ]
+  },
+  "vc": {
+   "op": "vertexColour"
+  },
+  "intensity": {
+   "op": "param",
+   "param": "intensity"
+  },
+  "lit": {
+   "op": "mul",
+   "in": [
+    "vc",
+    "intensity"
+   ]
+  },
+  "out": {
+   "op": "mul",
+   "in": [
+    "lit",
+    "flick"
+   ]
+  }
+ },
+ "stages": {
+  "surface": {
+   "colour": "out"
+  }
+ }
+}
