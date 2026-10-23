@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Commit into an owned throwaway Git repository.
 import { execFileSync, spawnSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Every write is confined to an owned fixture under ./tmp.
-import { existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, readlinkSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, readlinkSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture paths.
 import { dirname, join, resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- The mirror root comes from the fixture's environment.
@@ -180,4 +180,113 @@ it('keeps whole generated jobs, invalidates partial jobs and prunes retired outp
   expect(existsSync(join(migrated.dir, 'dist/rows.json'))).toBe(false);
   expect(existsSync(join(migrated.dir, 'assets/retained'))).toBe(false);
   migrated.release();
+});
+
+it('clears generated jobs when a released source overlay could have produced them', () => {
+  const { repo, commit, env } = fixture();
+  const outputs = ['dist/ecology.generated.json', 'dist/companion.json', 'assets/retained'];
+  const sha = commit({ 'scripts/generation-jobs.json': JSON.stringify({ jobs: [{ buildTimeOutputs: outputs }] }), 'src/generator.ts': 'HEAD source', 'assets/retained': 'authored' });
+  const one = openMirror(sha, { repo, env });
+  mkdirSync(join(one.dir, 'dist'), { recursive: true });
+  writeFileSync(join(one.dir, outputs[0] ?? ''), 'HEAD ecology');
+  writeFileSync(join(one.dir, outputs[1] ?? ''), 'HEAD companion');
+  one.release();
+  const overlay = openMirror(sha, { repo, env });
+  writeFileSync(join(overlay.dir, 'src/generator.ts'), 'unlanded projection source');
+  writeFileSync(join(overlay.dir, outputs[0] ?? ''), '{"projection":true}');
+  overlay.release();
+  const next = openMirror(sha, { repo, env });
+  try {
+    expect(readFileSync(join(next.dir, 'src/generator.ts'), 'utf8')).toBe('HEAD source');
+    expect(existsSync(join(next.dir, outputs[0] ?? ''))).toBe(false);
+    expect(existsSync(join(next.dir, outputs[1] ?? ''))).toBe(false);
+    expect(readFileSync(join(next.dir, 'assets/retained'), 'utf8')).toBe('authored');
+    expect(readFileSync(join(repo, 'src/generator.ts'), 'utf8')).toBe('HEAD source');
+  } finally { next.release(); }
+});
+
+it('clears a whole generated job after an output-only overlay, retaining untouched jobs', () => {
+  const { repo, commit, env } = fixture();
+  const sha = commit({ 'scripts/generation-jobs.json': JSON.stringify({ jobs: [
+    { buildTimeOutputs: ['dist/ecology.generated.json', 'dist/companion.json'] },
+    { buildTimeOutputs: ['dist/unrelated.json'] },
+  ] }), 'src/source.ts': 'HEAD' });
+  const one = openMirror(sha, { repo, env });
+  mkdirSync(join(one.dir, 'dist'), { recursive: true });
+  for (const file of ['ecology.generated.json', 'companion.json', 'unrelated.json']) writeFileSync(join(one.dir, 'dist', file), 'HEAD output');
+  one.release();
+  const overlay = openMirror(sha, { repo, env });
+  const ecology = join(overlay.dir, 'dist/ecology.generated.json'), before = lstatSync(ecology);
+  writeFileSync(ecology, 'evil output'); // Same size as HEAD output; restoring mtime still changes ctime.
+  utimesSync(ecology, before.atime, before.mtime);
+  writeFileSync(join(overlay.dir, 'dist/unrelated.json'), 'HEAD output'); // A normal byte-identical rewrite remains reusable.
+  overlay.release();
+  const next = openMirror(sha, { repo, env });
+  try {
+    expect(existsSync(join(next.dir, 'dist/ecology.generated.json'))).toBe(false);
+    expect(existsSync(join(next.dir, 'dist/companion.json'))).toBe(false);
+    expect(readFileSync(join(next.dir, 'dist/unrelated.json'), 'utf8')).toBe('HEAD output');
+  } finally { next.release(); }
+});
+
+it('detects source overlays left behind before the next sync resets tracked files', () => {
+  const { repo, commit, env } = fixture();
+  const sha = commit({ 'scripts/generation-jobs.json': JSON.stringify({ jobs: [{ buildTimeOutputs: ['dist/rows.json'] }] }), 'src/source.ts': 'HEAD' });
+  const one = openMirror(sha, { repo, env });
+  mkdirSync(join(one.dir, 'dist'), { recursive: true });
+  writeFileSync(join(one.dir, 'dist/rows.json'), 'HEAD rows');
+  one.release();
+  // Model an interrupted overlay owner that never ran its release cleanup.
+  writeFileSync(join(one.dir, 'src/source.ts'), 'overlay');
+  writeFileSync(join(one.dir, 'dist/rows.json'), 'overlay rows');
+  const next = openMirror(sha, { repo, env });
+  try {
+    expect(readFileSync(join(next.dir, 'src/source.ts'), 'utf8')).toBe('HEAD');
+    expect(existsSync(join(next.dir, 'dist/rows.json'))).toBe(false);
+  } finally { next.release(); }
+});
+
+it('also invalidates source-generation tables while preserving tracked outputs', () => {
+  const { repo, commit, env } = fixture();
+  const sha = commit({ 'scripts/source-generation-outputs.json': JSON.stringify({ producers: {
+    'scripts/gen.mjs': ['dist/discovery.generated.ts', 'src/retained.ts'],
+  } }), 'src/retained.ts': 'authored' });
+  const one = openMirror(sha, { repo, env });
+  mkdirSync(join(one.dir, 'dist'), { recursive: true });
+  writeFileSync(join(one.dir, 'dist/discovery.generated.ts'), 'HEAD discovery');
+  one.release();
+  const overlay = openMirror(sha, { repo, env });
+  writeFileSync(join(overlay.dir, 'dist/discovery.generated.ts'), 'overlay discovery');
+  overlay.release();
+  const next = openMirror(sha, { repo, env });
+  try {
+    expect(existsSync(join(next.dir, 'dist/discovery.generated.ts'))).toBe(false);
+    expect(readFileSync(join(next.dir, 'src/retained.ts'), 'utf8')).toBe('authored');
+  } finally { next.release(); }
+});
+
+it('rejects an abandoned output-only overlay against the saved slot baseline', () => {
+  const { repo, commit, env } = fixture();
+  const sha = commit({ 'scripts/generation-jobs.json': JSON.stringify({ jobs: [{ buildTimeOutputs: ['dist/rows.json'] }] }), 'src/source.ts': 'HEAD' });
+  const one = openMirror(sha, { repo, env });
+  mkdirSync(join(one.dir, 'dist'), { recursive: true });
+  writeFileSync(join(one.dir, 'dist/rows.json'), 'HEAD rows');
+  one.release();
+  writeFileSync(join(one.dir, 'dist/rows.json'), 'abandoned overlay');
+  const next = openMirror(sha, { repo, env });
+  try { expect(existsSync(join(next.dir, 'dist/rows.json'))).toBe(false); }
+  finally { next.release(); }
+});
+
+it('discards complete legacy generated groups without a slot baseline', () => {
+  const { repo, commit, env } = fixture();
+  const sha = commit({ 'scripts/generation-jobs.json': JSON.stringify({ jobs: [{ buildTimeOutputs: ['dist/rows.json'] }] }), 'src/source.ts': 'HEAD' });
+  const one = openMirror(sha, { repo, env });
+  mkdirSync(join(one.dir, 'dist'), { recursive: true });
+  writeFileSync(join(one.dir, 'dist/rows.json'), 'unproven legacy rows');
+  one.release();
+  rmSync(join(dirname(one.dir), 'generated-outputs.json'));
+  const next = openMirror(sha, { repo, env });
+  try { expect(existsSync(join(next.dir, 'dist/rows.json'))).toBe(false); }
+  finally { next.release(); }
 });

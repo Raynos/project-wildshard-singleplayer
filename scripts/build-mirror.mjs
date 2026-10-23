@@ -15,10 +15,11 @@
 // what this repo holds. A lock serializes users of a slot: the mirror cannot change under a running build.
 // node_modules is linked by link-node-modules.mjs (E432): @wildshard/* resolves to the mirror's own sources.
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, renameSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { linkNodeModules } from './link-node-modules.mjs';
 import { assertHeavyLease } from './heavy-lane-lease.mjs';
+import { InputHashMemo } from './bake-input-hashes.mjs';
 
 const REPO = resolve(import.meta.dirname, '..');
 const EXCLUDED = new Set(['art', 'progress', 'sources']);
@@ -106,13 +107,28 @@ function buildTree(repo, sha, full) {
 // generation and tracked-to-generated migrations. Never remove authored files.
 function generatedGroups(dir) {
   const catalog = join(dir, 'scripts/generation-jobs.json');
-  if (!existsSync(catalog)) return [];
-  /** @type {{jobs: {buildTimeOutputs?: string[], buildOutputs?: Record<string, string>}[]}} */
-  const { jobs } = JSON.parse(readFileSync(catalog, 'utf8'));
-  return jobs.map(job => [...(job.buildTimeOutputs ?? []), ...Object.keys(job.buildOutputs ?? {})].map(file => {
+  const groups = [];
+  if (existsSync(catalog)) {
+    /** @type {{jobs: {buildTimeOutputs?: string[], buildOutputs?: Record<string, string>}[]}} */
+    const { jobs } = JSON.parse(readFileSync(catalog, 'utf8'));
+    for (const job of jobs) groups.push((job.buildTimeOutputs ?? []).concat(Object.keys(job.buildOutputs ?? {})));
+  }
+  const sourceCatalog = join(dir, 'scripts/source-generation-outputs.json');
+  if (existsSync(sourceCatalog)) {
+    /** @type {{producers: Record<string, string[]>}} */
+    const { producers } = JSON.parse(readFileSync(sourceCatalog, 'utf8'));
+    groups.push(...Object.values(producers));
+  }
+  return groups.map(outputs => outputs.map(file => {
     if (typeof file !== 'string' || file.startsWith('/') || file.includes('\\') || file.split('/').some(part => part === '' || part === '.' || part === '..')) throw new Error(`build-mirror: invalid generated path ${file}`);
     return file;
   }));
+}
+
+function sourceOverlay(git, generated) {
+  if (git(['diff-files', '--name-only', '-z']).length > 0) return true;
+  return git(['ls-files', '--others', '--exclude-standard', '-z'], { encoding: 'utf8' }).split('\0')
+    .some(file => file && !generated.has(file) && !file.split('/').includes('node_modules'));
 }
 
 /** Lock the slot, bring its tree to `rev`, return { dir, sha, release }. The lock also releases at process exit. */
@@ -145,7 +161,13 @@ export function openMirror(rev, { repo = REPO, slot = 'check', full = false, env
   if (existsSync(join(repo, 'tmp')) && !existsSync(scratchIgnore)) writeFileSync(scratchIgnore, '*\n');
   const unlock = admitted.unlock;
   let released = false;
-  const release = () => { if (!released) { released = true; unlock(); process.removeListener('exit', release); } };
+  /** @type {(()=>void)|undefined} */
+  let cleanup;
+  const release = () => {
+    if (released) return;
+    released = true;
+    try { cleanup?.(); } finally { unlock(); process.removeListener('exit', release); }
+  };
   process.once('exit', release);
   try {
     mkdirSync(dir, { recursive: true });
@@ -156,6 +178,8 @@ export function openMirror(rev, { repo = REPO, slot = 'check', full = false, env
     const gitEnv = { ...env, GIT_INDEX_FILE: join(root, 'index') };
     const git = (args, options = {}) => execFileSync('git', ['--work-tree', dir, ...args], { cwd: repo, env: gitEnv, maxBuffer: 1 << 28, ...options });
     const previous = generatedGroups(dir).flat();
+    // Check before read-tree erases evidence of an interrupted source overlay.
+    const overlaid = sourceOverlay(git, new Set(previous));
     git(['read-tree', '--reset', '-u', buildTree(repo, sha, full)]);
     spawnSync('git', ['--work-tree', dir, 'update-index', '-q', '--refresh'], { cwd: repo, env: gitEnv });
     const drifted = git(['diff-files', '--name-only', '-z']);
@@ -172,9 +196,38 @@ export function openMirror(rev, { repo = REPO, slot = 'check', full = false, env
     for (const file of previous) if (!generated.has(file) && !tracked.has(file)) rmSync(join(dir, file), { force: true });
     const strays = git(['ls-files', '--others', '--exclude-standard', '-z'], { encoding: 'utf8' }).split('\0').filter(Boolean);
     for (const stray of strays) if (!generated.has(stray) && !stray.split('/').includes('node_modules')) unlinkSync(join(dir, stray));
-    for (const outputs of groups) if (outputs.some(file => !existsSync(join(dir, file)))) {
-      for (const file of outputs) if (!tracked.has(file)) rmSync(join(dir, file), { force: true });
-    }
+    const clear = outputs => { for (const file of outputs) if (!tracked.has(file)) rmSync(join(dir, file), { force: true }); };
+    const hashes = new InputHashMemo(dir, join(root, 'generated-output-hashes.json'));
+    const stateFile = join(root, 'generated-outputs.json');
+    /** @type {Record<string,string|undefined>} */
+    let accepted = {};
+    try {
+      const saved = JSON.parse(readFileSync(stateFile, 'utf8'));
+      if (saved.schema === 1 && saved.root === realpathSync(dir) && saved.outputs !== null && typeof saved.outputs === 'object'
+        && !Array.isArray(saved.outputs) && Object.values(saved.outputs).every(hash => typeof hash === 'string' && /^[a-f0-9]{64}$/u.test(hash))) accepted = saved.outputs;
+    } catch { /* First use, legacy slots and malformed state discard unproven outputs. */ }
+    const currentHash = file => {
+      try { return hashes.hash(file); } catch { return undefined; }
+    };
+    for (const outputs of groups) if (overlaid || outputs.some(file => !existsSync(join(dir, file)) || !tracked.has(file) && (accepted[file] === undefined || currentHash(file) !== accepted[file]))) clear(outputs);
+    const save = () => {
+      const outputs = Object.fromEntries([...generated].filter(file => !tracked.has(file) && existsSync(join(dir, file))).map(file => [file, hashes.hash(file)]));
+      const temporary = `${stateFile}.${process.pid}.tmp`;
+      try { writeFileSync(temporary, JSON.stringify({ schema: 1, root: realpathSync(dir), outputs })); renameSync(temporary, stateFile); }
+      finally { rmSync(temporary, { force: true }); hashes.flush(); }
+      return outputs;
+    };
+    // Persist the baseline before handing over the slot, so an output-only
+    // overlay is detected even if its owner dies without running release.
+    /** @type {Record<string,string|undefined>} */
+    const existing = save();
+    cleanup = () => {
+      const dirty = sourceOverlay(git, generated);
+      // Normal generation may fill an empty job. Changing a ready job's bytes is an
+      // overlay: discard the whole group, including unchanged companion files.
+      for (const outputs of groups) if (dirty || outputs.some(file => existing[file] !== undefined && currentHash(file) !== existing[file])) clear(outputs);
+      save();
+    };
     if (linkModules) linkNodeModules(repo, dir);
     writeFileSync(join(root, 'HEAD'), `${sha}${full ? ' full' : ''}\n`);
     // git run inside the mirror must not find the checkout's .git above it (it would report the checkout's HEAD
