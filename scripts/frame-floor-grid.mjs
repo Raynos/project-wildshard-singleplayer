@@ -385,6 +385,13 @@ export async function driveFloorGrid(plan, documentOrigin) {
   const destination = before.cells.find(cell => cell.instance === plan.to);
   const arrival = plan.observePreparation !== true ? undefined : { blockedFrames: 0, blockedMs: 0, visibleBeforeReadyFrames: 0 };
   let previousFrameAt = started, exitSeen = false, worstFrameMs = 0;
+  // The destination's region root, found once (a whole-scene name search each frame was ~0.8 s of a phone-4x Nine drive
+  // charged to the frames it measures); found again only if it leaves the scene.
+  let regionRoot = null;
+  const region = () => {
+    if (regionRoot === null || regionRoot.parent === null) regionRoot = world.game.rootScene.getObjectByName(`region:${plan.to}`) ?? null;
+    return regionRoot;
+  };
   try {
     await new Promise((resolve, reject) => {
       let stop = () => undefined, waypoint = 0, lastSample = -1;
@@ -420,7 +427,7 @@ export async function driveFloorGrid(plan, documentOrigin) {
             if (!ready && active.current === null && edgeDistance <= 10 && distance > 1.5 && player.motor.result.horizontalFreedom < 0.1) {
               arrival.blockedFrames++; arrival.blockedMs += now - previousFrameAt;
             }
-            if (!ready && world.game.rootScene.getObjectByName(`region:${plan.to}`)?.visible === true) arrival.visibleBeforeReadyFrames++;
+            if (!ready && region()?.visible === true) arrival.visibleBeforeReadyFrames++;
           }
           // O12: the longest frame interval of the leg (a soak's per-cell worst frame)
           worstFrameMs = Math.max(worstFrameMs, now - previousFrameAt); previousFrameAt = now;
@@ -429,7 +436,7 @@ export async function driveFloorGrid(plan, documentOrigin) {
           if (seconds - lastSample >= 0.25) {
             const preparation = plan.observePreparation === true ? {
               pending: active.pending ?? [], resident: active.residents.includes(plan.to),
-              visible: world.game.rootScene.getObjectByName(`region:${plan.to}`)?.visible ?? null,
+              visible: region()?.visible ?? null,
               hook: state.live.runtimeTiming?.current?.hook ?? null,
             } : undefined;
             trace.push({ seconds, ...feet, current: active.current, gameplayReady: active.gameplayReady, hover: player.hover,
