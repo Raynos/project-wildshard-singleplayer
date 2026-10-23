@@ -3,7 +3,8 @@ import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare every decoded geometry byte without object-matcher traversal.
 import { Buffer } from 'node:buffer';
 import { expect, test } from 'vitest';
-import { CAST_BLOBS, CAST_SOURCES } from '../src/shards/nine-dragon-stack/generators/castSources';
+import { CAST_SOURCES } from '../src/shards/nine-dragon-stack/generators/castSources';
+import {nineCastBlobs} from './fixtures/nine-cast-blobs';
 import { createModelLibrary } from '../src/game/plugin/geometry';
 import { readSourceModel } from '../src/sdk/bake/skinned';
 import { parseWorldSceneWeld } from '../src/format/worldSceneWeld';
@@ -14,6 +15,8 @@ import { parseWorldSceneModels } from '../src/format/worldSceneModels';
 import { BufferGeometry, Color, Mesh, MeshStandardMaterial, Texture, type Object3D } from 'three';
 import { weldSceneMaterial } from '../src/game/shardfile/worldSceneWeld';
 import hookRows from '../src/shards/nine-dragon-stack/data/hookSpecimen.json' with { type: 'json' };
+
+const CAST_BLOBS=await nineCastBlobs();
 
 const isGeometry = (value: unknown): value is BufferGeometry => value instanceof BufferGeometry;
 

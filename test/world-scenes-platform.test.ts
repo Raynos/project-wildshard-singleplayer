@@ -1,3 +1,4 @@
+import {nineCastBlobs} from './fixtures/nine-cast-blobs';
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import { Box3, BufferAttribute as NativeBufferAttribute, BufferGeometry as NativeBufferGeometry, Group, Mesh, MeshStandardMaterial, Object3D, Vector3 } from 'three';
@@ -525,7 +526,7 @@ test.each(['harbour.at', 'markers.east.enabled', 'absent'])('collision scalar %s
 });
 
 test('a cold card reads a pool part from its declared file only, exactly as the resident pool decodes it', async () => {
-  const [{ defineWorldSceneCatalogue, bindWorldSceneModelSources }, { modelContext }, { Rng }, { withOwner }, { parseWorldSceneModels }, { worldScenePool }, { CAST_BLOBS, CAST_SOURCES }] = await Promise.all([
+  const [{ defineWorldSceneCatalogue, bindWorldSceneModelSources }, { modelContext }, { Rng }, { withOwner }, { parseWorldSceneModels }, { worldScenePool }, { CAST_SOURCES }] = await Promise.all([
     import('../src/game/models/worldSceneCatalogue'), import('../src/engine/models/model'), import('../src/engine/core/rng'), import('../src/engine/app/ownership'),
     import('../src/format/worldSceneModels'), import('../src/game/shardfile/scenePools'), import('../src/shards/nine-dragon-stack/generators/castSources'),
   ]);
@@ -533,7 +534,7 @@ test('a cold card reads a pool part from its declared file only, exactly as the 
   // Nine's real cast pool holding the lion: its files, parts and channel rules, served from its shipped blobs
   const pool = CAST_SOURCES.find(row => row.files.some(entry => entry.parts.includes('lion')));
   if (pool === undefined) throw new Error('Missing the lion cast pool');
-  const blobs = new Map(CAST_BLOBS.map(row => [row.file.name, row.bytes]));
+  const blobs = new Map((await nineCastBlobs()).map(row => [row.file.name, row.bytes]));
   const rows = parseWorldScenes({ ...base, libraries: [...base.libraries, pool], catalogue: 'models/catalogue.json' });
   const catalogueRows = { product: 'fixture-harbour', models: [{ key: 'lion', id: 'fixture-harbour/lion', name: 'Lion', category: 'props', pipeline: 'trellis', file: 'casts.json', defaults: {},
     assembly: 'parts', choices: [{ id: 'only', params: {}, size: [1, 1, 1], colliders: [], draws: [{ id: 'main', library: pool.id, model: 'lion', material: 'paint' }] }] }] };
@@ -573,7 +574,7 @@ test('a cold card reads a pool part from its declared file only, exactly as the 
 });
 
 test('a cold pool card under a retiring cell reads nothing more and publishes no geometry once its preload returns', async () => {
-  const [{ defineWorldSceneCatalogue, bindWorldSceneModelSources }, { modelContext }, { Rng }, { withOwner }, { parseWorldSceneModels }, { CAST_BLOBS, CAST_SOURCES }] = await Promise.all([
+  const [{ defineWorldSceneCatalogue, bindWorldSceneModelSources }, { modelContext }, { Rng }, { withOwner }, { parseWorldSceneModels }, { CAST_SOURCES }] = await Promise.all([
     import('../src/game/models/worldSceneCatalogue'), import('../src/engine/models/model'), import('../src/engine/core/rng'), import('../src/engine/app/ownership'),
     import('../src/format/worldSceneModels'), import('../src/shards/nine-dragon-stack/generators/castSources'),
   ]);
@@ -581,7 +582,7 @@ test('a cold pool card under a retiring cell reads nothing more and publishes no
   const pool = CAST_SOURCES.find(row => row.files.some(entry => entry.parts.includes('lion')));
   const lionFile = pool?.files.find(entry => entry.parts.includes('lion'))?.file;
   if (pool === undefined || typeof lionFile !== 'string') throw new Error('Missing the lion cast pool');
-  const blobs = new Map(CAST_BLOBS.map(row => [row.file.name, row.bytes]));
+  const blobs = new Map((await nineCastBlobs()).map(row => [row.file.name, row.bytes]));
   const rows = parseWorldScenes({ ...base, libraries: [...base.libraries, pool], catalogue: 'models/catalogue.json' });
   const catalogueRows = { product: 'fixture-harbour', models: [{ key: 'lion', id: 'fixture-harbour/lion', name: 'Lion', category: 'props', pipeline: 'trellis', file: 'casts.json', defaults: {},
     assembly: 'parts', choices: [{ id: 'only', params: {}, size: [1, 1, 1], colliders: [], draws: [{ id: 'main', library: pool.id, model: 'lion', material: 'paint' }] }] }] };

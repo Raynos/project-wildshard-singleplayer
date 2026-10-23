@@ -4,7 +4,8 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
 import { BufferAttribute, Float32BufferAttribute, Mesh, MeshBasicMaterial, Box3, Object3D, Sphere, Vector3, type BufferGeometry } from 'three';
-import { CAST_BLOBS } from '../../src/shards/nine-dragon-stack/generators/castSources';
+
+import {nineCastBlobs} from '../fixtures/nine-cast-blobs';
 import { createOwnedGeometry } from '../../src/engine/models/ownedGeometry';
 import metadata from '../../src/shards/nine-dragon-stack/boot/metadata.generated.json' with { type: 'json' };
 import hookBounds from '../../src/shards/nine-dragon-stack/data/hookBounds.json' with { type: 'json' };
@@ -26,6 +27,8 @@ import { floorAtRects } from '../../src/engine/physics/box';
 import deckFloors from '../../src/shards/nine-dragon-stack/data/deckFloors.generated.json' with { type: 'json' };
 import lodBasis from '../fixtures/nine-lods.json' with { type: 'json' };
 import baseline from '../fixtures/nine-casts.json' with { type: 'json' };
+
+const CAST_BLOBS=await nineCastBlobs();
 
 const { CAST_CHANNELS } = castRows;
 const names = v.parse(v.array(v.picklist(['walker-dark', 'walker-light', 'sitter-dark', 'sitter-light', 'lion', 'guard', 'entries-open', 'entries-capped', 'facade-signs'])), [...castRows.CASTS, ...castRows.FIXED_KITS]);

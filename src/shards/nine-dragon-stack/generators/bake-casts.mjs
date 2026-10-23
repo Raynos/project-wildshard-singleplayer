@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { bakeLods } from './lods.ts';
 import { hookProduct } from './hookProduct.ts';
 import { FRAMES, deckParts } from './floorRows.ts';
+import { compressGlb } from '@wildshard/sdk/bake/glbCompression';
 import { bakeCasts, bakeFixedKits, packGeometry, readFixedSlots } from './casts.ts';
 import { drawSpill, withSpill } from './spillBake.ts';
 
@@ -26,7 +27,12 @@ writeFileSync(resolve(root, 'src/shards/nine-dragon-stack/data/fixedKits.generat
 writeFileSync(resolve(root, 'src/shards/nine-dragon-stack/data/deckFloors.generated.json'), `${JSON.stringify(floors)}\n`);
 const hook = await hookProduct(url => new Uint8Array(readFileSync(resolve(root, `public${url}`))));
 writeFileSync(resolve(root, 'src/shards/nine-dragon-stack/data/castHook.generated.glb'), hook.glb);
+const sources = [...new Map([...casts, ...fixed.packs, ...lods])].map(([name, bytes]) => {
+  const file = `data/cast-${name}.generated.glb`;
+  writeFileSync(resolve(root, 'src/shards/nine-dragon-stack', file), compressGlb(bytes));
+  return {name,file};
+});
 writeFileSync(resolve(root, 'src/shards/nine-dragon-stack/data/castHook.generated.json'), `${JSON.stringify({
   glb: 'castHook.generated.glb', material: hook.material,
-  casts: [...new Map([...casts, ...fixed.packs, ...lods])].map(([name]) => ({ name, file: `/assets/nine-dragon/baked/casts/${name}.glb` })),
+  casts: sources,
 })}\n`);

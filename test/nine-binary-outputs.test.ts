@@ -3,10 +3,15 @@ import {readFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The fixture records hashes, never encoded binary payloads.
 import {createHash} from 'node:crypto';
 import {expect,test} from 'vitest';
-import {CAST_BLOBS} from '../src/shards/nine-dragon-stack/generators/castSources';
+import {build} from 'vite';
+import {assertConfigBoundary} from '../src/sdk/configBoundary';
+
+import {nineCastBlobs} from './fixtures/nine-cast-blobs';
 import {hookProduct} from '../src/shards/nine-dragon-stack/generators/hookProduct';
 import hook from '../src/shards/nine-dragon-stack/data/castHook.generated.json' with {type:'json'};
 import baseline from './fixtures/nine-binary-outputs.json' with {type:'json'};
+
+const CAST_BLOBS=await nineCastBlobs();
 
 const hash=(bytes:Uint8Array):string=>createHash('sha256').update(bytes).digest('hex');
 test('every named cast retains its exact original file metadata and GLB bytes',()=>{
@@ -25,3 +30,11 @@ test('paint retains all compressed chunks byte for byte outside JSON',()=>{
   const bytes=readFileSync('src/shards/nine-dragon-stack/data/paintArray.generated.bin');
   expect(bytes.length).toBe(baseline.paint.length);expect(hash(bytes)).toBe(baseline.paint.hash);
 });
+
+test('cast declarations bundle without file services; the SDK reads the declared sources later',async()=>{
+  const built=await build({configFile:false,publicDir:false,logLevel:'silent',build:{write:false,minify:false,
+    lib:{entry:'src/shards/nine-dragon-stack/generators/castSources.ts',formats:['es']},rolldownOptions:{external:[/^node:/u]}}});
+  const outputs=(Array.isArray(built)?built:[built]).flatMap(bundle=>'output' in bundle?bundle.output:[]),chunks=outputs.filter(row=>row.type==='chunk');
+  expect(chunks).toHaveLength(1);
+  for(const chunk of chunks)expect(()=>assertConfigBoundary([...chunk.imports,...chunk.dynamicImports])).not.toThrow();
+},30_000);
