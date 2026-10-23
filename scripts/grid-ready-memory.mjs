@@ -61,8 +61,11 @@ export function chromiumAllocatorBytes(events) {
       const effective = read(allocator.attrs.effective_size ?? allocator.attrs.size);
       if (effective === undefined) continue;
       const size = read(allocator.attrs.size), allocated = read(allocator.attrs.allocated_objects_size);
+      const text = v.looseObject({type: v.literal('string'), value: v.string()});
+      const url = v.safeParse(text, allocator.attrs.url), reason = v.safeParse(text, allocator.attrs.reason_not_deletable);
       entries.push({ path, bytes: effective, ...(size === undefined ? {} : { sizeBytes: size }),
-        ...(allocated === undefined ? {} : { allocatedObjectsBytes: allocated }) });
+        ...(allocated === undefined ? {} : { allocatedObjectsBytes: allocated }),
+        ...(url.success ? {url: url.output.value} : {}), ...(reason.success ? {reasonNotDeletable: reason.output.value} : {}) });
     }
     rows.push({ pid: parsed.output.pid, role, entries });
   }

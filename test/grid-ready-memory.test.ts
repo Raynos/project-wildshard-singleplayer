@@ -28,4 +28,6 @@ it('keeps renderer allocator parents and children separate and reads effective h
  expect(()=>chromiumAllocatorBytes(names)).toThrow('omitted renderer');
  const unsafe={ph:'v',pid:1,args:{dumps:{allocators:{partition_alloc:{attrs:{size:{units:'bytes',value:'ffffffffffffffff'}}}}}}};
  expect(()=>chromiumAllocatorBytes([...names,unsafe])).toThrow('Invalid allocator size');
+ const resource={ph:'v',pid:1,args:{dumps:{allocators:{'web_cache/Script_resources/1':{attrs:{size:{units:'bytes',value:'200'},url:{type:'string',value:'https://example.test/chunk.js'},reason_not_deletable:{type:'string',value:'in_memory_cache'}}}}}}};
+ expect(chromiumAllocatorBytes([...names,resource])[0]?.entries).toEqual([{path:'web_cache/Script_resources/1',bytes:512,sizeBytes:512,url:'https://example.test/chunk.js',reasonNotDeletable:'in_memory_cache'}]);
 });
