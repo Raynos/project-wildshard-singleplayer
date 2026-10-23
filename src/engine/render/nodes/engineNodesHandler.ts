@@ -389,7 +389,10 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   reuses = 0;
   reuseDifferences = 0;
   /** per reuse key, the last full build and its material (`nodeReuse`) */
-  private readonly reusable = new Map<string, { readonly material: WeakRef<THREE.Material>; readonly output: BuildOutput; readonly shape: GraphShape; readonly lazy: readonly LazyUniform[] }>();
+  private readonly reusable = new Map<string, WeakRef<THREE.Material>>();
+  /** each such material's full build, held by the material itself: a key never keeps a retired region's material or its
+   *  nodes alive (live P0: Driftwood -> Sky Reach -> Driftwood), and a disposed material's build goes with it */
+  private readonly reusableBuilds = new WeakMap<THREE.Material, { readonly output: BuildOutput; readonly shape: GraphShape; readonly lazy: readonly LazyUniform[] }>();
   /** each graph material's shape, read before its first build touched its nodes (`nodeReuse`) */
   private readonly shapes = new WeakMap<THREE.Material, GraphShape>();
   /** programShare: graph shapes whose builds wrote other code under one shared key (they key by their own nodes) */
@@ -763,7 +766,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       const real = key === null ? null : captureBuild(Reflect.get(material, '_latestBuilder'));
       if (key !== null && real !== null && shape !== null && owner !== undefined) {
         const { lazy, rest: unbound } = lazyReads(unboundReads(real, material, owner), owner);
-        if (unbound.length === 0) this.reusable.set(key, { material: new WeakRef(material), output: real, shape, lazy });
+        if (unbound.length === 0) { this.reusable.set(key, new WeakRef(material)); this.reusableBuilds.set(material, { output: real, shape, lazy }); }
         else if (mode === 'verify') console.info(`[nodeReuse] ${material.name || material.type} is not reusable: it reads ${unbound.slice(0, 6).map(node => `${node.constructor.name}#${String(node.id)}${owner.owns(node) ? ' made by its compile' : ` attached at ${attachedAt(material, node)}`}`).join(', ')}`);
         if (mode === 'verify' && typeof reused === 'string') console.info(`[nodeReuse] ${material.name || material.type} builds in full: ${reused}`);
         if (mode === 'verify' && typeof reused === 'object' && reused !== null) {
@@ -850,8 +853,9 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   /** the build an earlier material of the same program key and graph shape left, bound to `material`'s own nodes; null
    *  without one, the reason when they cannot be bound (`nodeBuildReuse.ts`) */
   private reusedBuild(key: string, material: THREE.Material, object: THREE.Object3D, shape: GraphShape): BuildOutput | string | null {
-    const entry = this.reusable.get(key), source = entry?.material.deref();
-    if (entry === undefined || source === undefined || source === material) return null;
+    const source = this.reusable.get(key)?.deref(), entry = source === undefined ? undefined : this.reusableBuilds.get(source);
+    if (source === undefined || entry === undefined) { this.reusable.delete(key); return null; }
+    if (source === material) return null;
     const twins = pairShapes(entry.shape, shape);
     if (!bindLazy(entry.lazy, twins, object, material)) return 'a reference uniform cannot be made alike';
     return rebindBuild(entry.output, twins) ?? 'a paired uniform is not a uniform node';
@@ -1091,7 +1095,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       Reflect.defineProperty(material, 'isShaderMaterial', { value: true, configurable: true });
       queueMicrotask(() => { Reflect.deleteProperty(material, 'isShaderMaterial'); });
     }
-    this.pendingBuilds.delete(material); this.objectVariants.forget(material); this.drawEntries.delete(material);
+    this.pendingBuilds.delete(material); this.objectVariants.forget(material); this.drawEntries.delete(material); this.reusableBuilds.delete(material);
     Reflect.deleteProperty(material, '_latestBuilder');
     const self = internals(this), programs = self.programCache.get(material), blocks = this.blocks;
     if (programs !== undefined) {
