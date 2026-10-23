@@ -104,7 +104,9 @@ class View {
     this.step = step;
   }
   changed(camera: THREE.Camera): boolean {
-    camera.updateMatrixWorld();
+    // the camera's own world matrix only: `updateMatrixWorld` also walked its children (the held weapon's whole viewmodel)
+    // once per culler per frame (G639: ~1.4 ms a Signal Dunes drive frame at phone 4x); the render updates them itself
+    camera.updateWorldMatrix(false, false);
     if (this.step > 0) {
       this.eye.setFromMatrixPosition(camera.matrixWorld);
       if (this.primed && this.eye.distanceToSquared(this.lastEye) <= this.step * this.step) return false;
