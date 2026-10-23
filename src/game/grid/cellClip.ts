@@ -112,6 +112,10 @@ export interface CellClipOptions {
 /** how long a clipped piece waits for its variant's link before it draws anyway */
 const LINK_FALLBACK_MS = 3000;
 
+/** a far herd member's reach from its joints (metres): the largest Pine / Nalati animal is well inside it */
+const BORROWED_REACH = 6;
+const _joint = new Vector3();
+
 /** Clip edge-crossing draws at the exact inclusive cell edge. No road-band or dome exemption. */
 export function cellClip(root: Object3D, half: number, scope: Scope, options: CellClipOptions = {}): CellClip {
   const cell = { value: new Vector4(-half, -half, half, half) }, origin = new Vector3(), box = new Box3(), camera = { value: new Matrix4() }, submittedWorld = new Matrix4(), alternate = new Box3();
@@ -156,6 +160,13 @@ export function cellClip(root: Object3D, half: number, scope: Scope, options: Ce
   // cell's) is still refused below.
   const borrowedSkins = new WeakSet<Draw>();
   const borrowsBones = (node: SkinnedMesh): boolean => node.skeleton.bones.some((bone) => bone.parent === null);
+  const borrowedBounds = (node: SkinnedMesh, target: Box3): Box3 => {
+    target.makeEmpty();
+    const m = node.skeleton.boneMatrices;
+    if (m !== null) for (let o = 0; o + 15 < m.length; o += 16) target.expandByPoint(_joint.set(m[o + 12] ?? 0, m[o + 13] ?? 0, m[o + 14] ?? 0));
+    if (target.isEmpty()) target.setFromCenterAndSize(_joint.set(0, 0, 0), _joint.clone());
+    return target.expandByScalar(BORROWED_REACH);
+  };
   const boneOwned = (node: Object3D): boolean => { for (let parent = node.parent; parent !== null && parent !== root; parent = parent.parent) if (parent instanceof Bone) return true; return false; };
   const customDraw = (node: Draw): boolean => node.onBeforeRender !== Object3D.prototype.onBeforeRender;
   const gate = (node: Draw): void => {
@@ -214,8 +225,12 @@ export function cellClip(root: Object3D, half: number, scope: Scope, options: Ce
       const radius = Math.hypot(Math.max(Math.abs(node.center.x), Math.abs(1 - node.center.x)) * scale.x,
         Math.max(Math.abs(node.center.y), Math.abs(1 - node.center.y)) * scale.y);
       box.setFromCenterAndSize(node.getWorldPosition(new Vector3()), new Vector3(radius * 2, radius * 2, radius * 2));
+    } else if (isSkin(node) && borrowedSkins.has(node)) {
+      // a far herd page: its members' joints (the uploaded bone matrices' translations) padded by a body's reach, never a
+      // scan of its batched geometry (sixteen rigs a page, rebuilt as it grows: 199 ms of Pine's desktop entry frames)
+      projectBounds(borrowedBounds(node, alternate), node.matrixWorld, box);
     } else if (isSkin(node)) {
-      if (!submitted && !borrowedSkins.has(node)) {
+      if (!submitted) {
         node.updateMatrixWorld(true);
         const bones = new Set<Object3D>(node.skeleton.bones);
         for (const bone of bones) if (!(bone.parent instanceof Bone) || !bones.has(bone.parent)) bone.updateWorldMatrix(true, true);
