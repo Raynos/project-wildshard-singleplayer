@@ -5,7 +5,7 @@ import { dirname, resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Reproduce the builder's exact recipe namespace.
 import { createHash } from 'node:crypto';
 import { afterEach, expect, test } from 'vitest';
-import { readBuiltShardfile } from '../scripts/build-shardfiles.mjs';
+import { readBuiltShardfile } from '../scripts/built-product.mjs';
 import { captureProductInputs, productInputKey, productToolchainKey, publishProductInputs, recordBundle } from '../scripts/shardfile-inputs.mjs';
 import { InputHashMemo } from '../scripts/bake-input-hashes.mjs';
 import { shardfileValidationRevision } from '../scripts/shardfile-validation-revision.mjs';

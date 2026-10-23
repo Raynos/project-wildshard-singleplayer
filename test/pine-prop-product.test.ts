@@ -8,6 +8,7 @@ import rows from '../src/shards/pine-hollow/data/props.json' with { type: 'json'
 import { output } from '../src/shards/pine-hollow/generators/output';
 import { MODEL_SCENES, SCENE_MODELS, SCENE_PLACEMENTS } from '../src/shards/pine-hollow/generators/sceneModelRows';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
+import { builtProduct } from './fixtures/builtProduct';
 
 const baked=parse(object({groups:array(object({id:string(),matrices:array(pipe(number(),finite()))}))}),
   JSON.parse(readFileSync('src/shards/pine-hollow/data/propScenes.generated.json','utf8')));
@@ -35,7 +36,7 @@ test('admitted scene rows retain every scatter copy and native Float32 upload', 
 });
 
 test('built scene libraries retain every logical reference after hash deduplication', async () => {
-  const product = await loadHeadlessProduct('out/pine-hollow'), scenes = product.section('world/scenes');
+  const product = await loadHeadlessProduct(builtProduct('pine-hollow')), scenes = product.section('world/scenes');
   for (const library of scenes.libraries) if (library.kind === 'owned') for (const model of library.models) {
     expect(typeof model.file === 'string' ? product.hasFile(model.file) : product.hasFile(model.file.phone) && product.hasFile(model.file.desktop), `${library.id}/${model.id}`).toBe(true);
   }

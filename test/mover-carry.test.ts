@@ -8,6 +8,7 @@ import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
 import { MoverScriptDriver, type MoverRuntime } from '../src/game/plugin/mover';
 import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
+import { builtProduct } from './fixtures/builtProduct';
 import { createTrustedHeadlessResident } from '../src/sdk/headlessRuntime';
 import { emptyShardfile } from '../src/sdk/author';
 import { canoeMover } from '../src/shards/pine-hollow/generators/canoe';
@@ -47,11 +48,11 @@ test.each([180, 539])('native ride at tick %i owns carry/release, blocks walking
 });
 
 test('built Pine installs and commands its admitted carry without a shard ride installer', async () => {
-  const product = await loadHeadlessProduct('out/pine-hollow'), source = product.shardfile;
+  const directory = builtProduct('pine-hollow'), product = await loadHeadlessProduct(directory), source = product.shardfile;
   const descriptor = outputDescriptor(source); if (descriptor === undefined) throw new Error('Missing admitted inventory');
   expect(descriptor.index.files.some(file => file.name === 'movers/canoe.json')).toBe(false);
   const assets = new Map(descriptor.index.files.map(file => [file.commons === true ? `commons:${file.hash}` : file.hash,
-    Uint8Array.from(readFileSync(`out/pine-hollow/${file.path}`))]));
+    Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
   const resident = await createTrustedHeadlessResident({ shard: source, product, assets, rapier },
     { module: new URL('fixtures/pine-headless.ts', import.meta.url).href });

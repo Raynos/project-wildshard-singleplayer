@@ -10,6 +10,7 @@ import { CONTRACTS } from './fixtures/pine-contracts';
 import { beforeAll, expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
+import { builtProduct } from './fixtures/builtProduct';
 import { PINE_QUEST_TRANSACTIONS } from './fixtures/pine-quest-transactions';
 import { PINE_QUEST_CONSEQUENCES } from './fixtures/pine-quest-consequences';
 import { parseQuestPageInteractions, type QuestPageInteractionsData } from '../src/format/questInteractions';
@@ -23,7 +24,7 @@ const serviceProducts = new Map<string, ShardProduct>();
 const admitted = new Map<string, QuestPageInteractionsData>();
 beforeAll(async () => {
   for (const slug of ['pine-hollow', 'driftwood-isle']) {
-    const product = await loadHeadlessProduct(`out/${slug}`);
+    const product = await loadHeadlessProduct(builtProduct(slug));
     expect(product.hasFile('quests/services.json')).toBe(true);
     serviceProducts.set(slug, product);
   }

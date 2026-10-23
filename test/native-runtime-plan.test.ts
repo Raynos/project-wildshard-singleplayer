@@ -5,6 +5,7 @@ import { createHash } from 'node:crypto';
 import { clientPageGround } from '../src/game/shardfile/clientGround';
 import { needsTerrainCollider } from '../src/engine/level/spec';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
+import { builtProduct } from './fixtures/builtProduct';
 import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { readCreatureStrikes } from '../src/format/creatures';
 import { outputPlatformPayloads } from '../src/sdk/outputProduct';
@@ -134,7 +135,7 @@ it('build admission carries the verified native plan into its renderer-free work
 
 it('native page entries retain their sampled collider and structure-floor policies', async () => {
   for (const [slug, collision, height] of [['far-reach', false, SKY_NATIVE_WORLD.ground.height], ['sunscar-dunes', true, null]] as const) {
-    const product = await loadHeadlessProduct(`out/${slug}`), source = product.shardfile;
+    const directory = builtProduct(slug), product = await loadHeadlessProduct(directory), source = product.shardfile;
     const files = outputDescriptor(source)?.index.files;
     if (files === undefined) throw new Error('Missing native product index');
     const refs = source.terrain === null ? [] : [source.terrain.collider, ...(source.terrain.sampling === undefined ? [] : [source.terrain.sampling.file])];
@@ -142,7 +143,7 @@ it('native page entries retain their sampled collider and structure-floor polici
     for (const ref of new Set(refs)) {
       const file = files.find(entry => entry.hash === ref);
       if (file === undefined) throw new Error('Missing admitted terrain file');
-      const bytes = await readFile(`out/${slug}/${file.path}`);
+      const bytes = await readFile(`${directory}/${file.path}`);
       expect(bytes.length).toBe(file.compressed);
       expect(createHash('sha256').update(bytes).digest('hex')).toBe(file.hash);
       assets.set(ref, Uint8Array.from(bytes));

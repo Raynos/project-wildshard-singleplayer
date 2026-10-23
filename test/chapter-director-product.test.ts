@@ -9,6 +9,7 @@ import { readDirectorProduct } from '../src/game/plugin/director';
 import { Flags } from '../src/engine/world/interact/flags';
 import { QuestState } from '../src/engine/quest/core';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
+import { builtProduct } from './fixtures/builtProduct';
 import type { ShardProduct } from '../src/game/shardfile/shardProduct';
 import { publishBoundQuest } from '../src/game/quest/boundState';
 import { buildQuestChapter } from '../src/game/quest/chapter';
@@ -36,7 +37,7 @@ test('both real chapter declarations read live values through the same renderer-
   expect(() => chapterObservations(driftRows.observations, { ...frame, reward: null })).toThrow('pose');
 });
 beforeAll(async () => {
-  for (const slug of ['pine-hollow', 'driftwood-isle']) products.set(slug, await loadHeadlessProduct(`out/${slug}`));
+  for (const slug of ['pine-hollow', 'driftwood-isle']) products.set(slug, await loadHeadlessProduct(builtProduct(slug)));
 }, 30_000);
 
 test('Pine native product uses the shared request rows and retires executable binding data', async () => {

@@ -8,6 +8,8 @@ test.each([
   'ground-borrowed-body', 'matriarch-borrowed-body', 'roc-borrowed-body', 'pine-npc-figure-product',
   'scripts/_template-boss', 'scripts/ground-encounters', 'scripts/sunscar-matriarch',
   'scripts/far-reach-roc', 'scripts/skitterer-pack',
+  'chapter-director-product', 'pine-quest-actions-product', 'pine-prop-product',
+  'native-runtime-plan', 'mover-carry',
 ])('%s consumes an existing product without invoking a producer or server', name => {
   const source = readFileSync(`test/${name}.test.ts`, 'utf8');
   expect(source).toContain('builtProduct(');
