@@ -749,3 +749,36 @@ test('the original manifest product loader prepares named scalar blocks before r
   expect(product.shardfile).toBe(source);expect(intake.prepared).toBe(true);
   expect(sample(-250,-250)).toBe(0);expect(sample(250,250)).toBe(1);expect(sample(0,0)).toBe(.5);
 });
+
+
+test('cold receipt admission hashes a private source once, while exposed roots still rehash and refuse mutation', async () => {
+  const f = fixture(); trust(f.receipt);
+  let sourceChecked = false, callerChanged = false;
+  const digests: string[] = [], hash = vi.fn((wire: Uint8Array) => { const digest = hashImmutableBytes(wire); digests.push(digest); sourceChecked ||= digest === f.receipt.sourceHash; return Promise.resolve(digest); });
+  const pause = () => { if (sourceChecked && !callerChanged) { callerChanged = true; f.index.identity.name = 'Caller changed'; const library: unknown = f.index.admission.library; if (!Array.isArray(library)) throw new Error('Missing caller library'); library.length = 0; } return Promise.resolve(); };
+  const fetch = vi.fn(f.options.fetch), options = { ...f.options, hash, fetch, pause };
+  const cold = await admitProduct(f.index, options);
+  expect(callerChanged).toBe(true); expect(f.index.identity.name).toBe('Caller changed'); expect(f.index.admission.library).toEqual([]);
+  expect(cold.source).toEqual(f.source); expect(digests.filter(digest => digest === f.receipt.sourceHash)).toHaveLength(1);
+  expect(cold.assets.get(f.ref)).toEqual(f.blob);
+  const start = digests.length;
+  const again = await admitProduct(cold.source, options);
+  expect(again.source).toBe(cold.source); expect(digests.slice(start).filter(digest => digest === f.receipt.sourceHash)).toHaveLength(1);
+  cold.source.spawn.x += 1;
+  const reads = fetch.mock.calls.length, changed = hashImmutableBytes(bytes(cold.source));
+  await expect(admitProduct(cold.source, options)).rejects.toThrow('Built shardfile changed after verification');
+  expect(digests.at(-1)).toBe(changed); expect(fetch).toHaveBeenCalledTimes(reads);
+});
+
+test('fresh unpinned and external products retain ordinary source validation', async () => {
+  for (const firstParty of [true, false]) {
+    const f = fixture(), parse = vi.spyOn(schema, 'parseShardfile');
+    const digests: string[] = [];
+    const hash = (wire: Uint8Array) => { const digest = hashImmutableBytes(wire); digests.push(digest); return Promise.resolve(digest); };
+    vi.stubGlobal('__SHARDFILE_VALIDATOR__', 'loader-test'); vi.stubGlobal('__SHARDFILE_VERDICTS__', []);
+    const admitted = await admitProduct(f.index, { ...f.options, firstParty, hash });
+    expect(admitted.source).toEqual(f.source); expect(parse).toHaveBeenCalled();
+    expect(digests.filter(digest => digest === f.receipt.sourceHash)).toHaveLength(1);
+    expect(admitted.assets.get(f.ref)).toEqual(f.blob); parse.mockRestore();
+  }
+});

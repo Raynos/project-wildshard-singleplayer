@@ -247,7 +247,8 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
   if (visited !== null && visited !== undefined) preflightShardfile(visited);
   const cached = options.offline ? visited : null;
   if (cached !== null && cached !== undefined && !isOutputIndex(cached.source)) throw new Error('Cached shardfile requires a format-2 rebuild');
-  const raw = await resolveDescriptor(cached?.source ?? input, options);
+  const descriptorInput = cached?.source ?? input;
+  const raw = await resolveDescriptor(descriptorInput, options);
   await options.pause?.();
   if (!isBuildValidatedOutput(raw)) preflightShardfile(raw);
   if (version(raw) !== SHARDFILE_VERSION) throw new Error('Shardfile needs the current format');
@@ -257,8 +258,12 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
   preflightAssetGraph(source);
   await options.pause?.();
   const revisionKey = validationRevision();
-  const sourceHash = revisionKey === null ? '' : await waitFor('Hash product validation source', options.hash(validationSourceBytes(source)), 'worker');
   const built = outputDescriptor(source)?.receipt;
+  // Only a freshly assembled, still-private root already proved its exact source hash in this call.
+  // An exposed root (raw === descriptorInput) must hash again: callers may have changed it.
+  const fresh = raw !== descriptorInput && source === raw && isBuildValidatedOutput(source);
+  const sourceHash = revisionKey === null ? '' : fresh && built?.revision === revisionKey ? built.sourceHash
+    : await waitFor('Hash product validation source', options.hash(validationSourceBytes(source)), 'worker');
   if (built !== undefined && sourceHash !== built.sourceHash) throw new Error('Built shardfile changed after verification');
   // A build receipt is pinned inside this client, never fetched from data.
   const receipt = revisionKey !== null
