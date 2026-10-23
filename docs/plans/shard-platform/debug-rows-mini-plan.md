@@ -1,0 +1,139 @@
+# Debug rows burn-down: mini plan (G669)
+
+**State:** `open` 2026-10-23. Audit only, read at HEAD c145edf02a: no row built yet. Rows DR1–DR17 below.
+
+Jake, 2026-10-23 ~10:05 Cancun: *"What's the default state? … are these all improvements that we need to be on and we
+should just default them on? … default on whatever should be on, like whatever setting is the best setting. Even if that
+setting is buggy, we'll just fix it forward. I really want to get rid of these debug rows because it's just a fucking
+mess. I want to get rid of as many as possible. I just want to have one setting."* And: *"if we have a bunch of
+improvements waiting behind the debug row toggle … I want all the improvements."*
+
+**G669:** each row's best option becomes the only behaviour. The row, its losing options, their strings and their dead
+code go in the same commit (E451). "Best" means the measured or intended improvement, even if it still has bugs; those
+get fixed forward. This overrides AGENTS.md's "risky render change stays default-off until a device reading" for these
+rows. A row survives only if it is a look A/B Jake hasn't judged yet, or a pure diagnostic tool.
+
+## What's there today
+
+27 rows in total. 19 are engine rows (`src/engine/ui/debugOptions.ts`) and 4 are game-wide rows (measure clay, Pine
+score, legacy buttons, template). 4 are legacy-shard rows: 3 can be reached through Developer ▸ Legacy shard buttons,
+and Signal's legacy one can't be reached at all. 7 rows are public, so everyone sees them in Settings ▸ Debug. 20 are
+Developer-only.
+
+The shardfile route for declared Debug rows (`plumbing.json` → `debug: []`) is empty on every shard. Some dead code
+already sits around the rows: `DEBUG_READOUTS.tex` reads out a row that was deleted with the GPU textures row (G386),
+and `prepareHybridShard`'s `debug` parameter has no caller.
+
+**Verdicts: 14 SHIP · 8 DELETE · 5 KEEP.** About 1,200 lines go.
+
+| Row id | Label | Default today | Verdict | Ships | Evidence | Risk | Lines |
+|---|---|---|---|---|---|---|---|
+| `graphUniforms` (dev) | Graph material uniforms | plain | SHIP | plain | Nine Sim frame 25–32 → 17 ms, p95 34 (ea0ab7baa9); default for 3 days | low | ~390 |
+| `bootShaders` (dev) | Shaders before play | drawn | SHIP | first frame only | Shaders 4111 → 3366 ms, tap→play 14.1 → 13.5 s (e4b4e1a847) | low | ~20 |
+| `nodeReuse` (dev) | Shared shader builds | on | SHIP | on | node builds −19 %, 0 verify differences (ae8ed1fd6a); 00:14 leak fix 3f972ab731. **Signal suspect** | med | ~45 |
+| `programShare` (dev) | Shared shader programs | off | SHIP | on | fewer GL links at cell entry (c862a20fa4); never measured on; falls back with a warning | med | ~20 |
+| `fixedShadowSamples` | Fixed shadow samples | off | SHIP | on | DW graph CPU 1.60 → 1.21 ms/frame, DW pixels equal, Pine horizon max 23 (a88e5e4159) | low | ~15 |
+| `buildPacing` (dev) | Build pacing in play | on | SHIP | on | Sky quiet floors (9ba34b4bbe); `entry` ABBA no gain (2267c30660); `uploads` = `on` on WebKit; `links` never proven | low | ~180 |
+| `staticMatrices` (dev) | Static piece matrices | off | SHIP | on | ~2.6 ms of a Nalati frame (7de6a6a4d7); on the coordinator's phone list | med | ~25 |
+| `staticSets` (dev) | Merged static pieces | off | SHIP | on | Nalati 46 of ~117 draws are dressing; same pixels (03f53f63df); not live yet | low | ~10 |
+| `distantTrees` | Distant trees | per variant | SHIP | per species | ~20 fewer draws in Pine (27df8e3893); far trees of a species look alike | low | ~10 |
+| `groundTiles` | Ground from tiles | off | SHIP | on | G652 D-S3 one ground path; off/on read the same, −48k tris, +35 draws aerial (015607cb12) | med | ~20 |
+| `tileResidency` (dev) | Tile residency | whole | SHIP | 5 x 5 | tile plan D2 B (recommended); 5 x 5 walks 0 stuck (STATE) | high | ~30 |
+| `graphMaterials` | Graph materials | off | SHIP | on | G387 graphs on without a device reading; Signal, Nine, Pine still draw presets. **Signal suspect** | high | ~40 |
+| `pineMemoryTrim` (legacy Pine) | Pine memory trim | on in grid | SHIP | on | G180 / E450 Jake picked the trim | low | ~25 |
+| `memorySaver` (dev) | Memory saver | off | SHIP (needs Jake's word) | on | cuts "change no look" (memorySaver.ts); reverses G271's "off, full quality" | med-high | ~60 |
+| `fps` (dev, desktop) | Frame cap | auto | DELETE | auto | desktop only, never on Jake's phone; harness `?fps=` stays | low | ~10 |
+| `budgetReadout` (dev) | Calibrated budgets | button | DELETE | — | no reader on device; the probe stays for scripts | low | ~12 |
+| `storage` (dev) | Storage | readout | DELETE | readout moves under Clear downloads | one row fewer; plus the dead `tex` readout | low | ~20 |
+| `measurePlain` | Dev map / Clay | dev map | DELETE | dev map | G527 approved the dev-map look; clay was the before | low | ~60 |
+| `pineScore` (Pine) | Pine Hollow score | auto | DELETE | auto | an audition pin, no pick pending; the `debugPin` format field goes too | low | ~50 |
+| `shardDirectors` (legacy) | Shard directors (data) | legacy | DELETE | legacy | review date 10-18 passed; Script path never shipped; legacy only | low | ~100 |
+| `ai.brains` (legacy Pine) | AI brains | off | DELETE | off | legacy Pine is its only user; on LD7's legacy-only list | low | ~85 |
+| `groundTiles` (legacy Signal) | Signal Dunes ground tiles | code-built | DELETE | — | can't be reached; goes with its folder in LD6 | none | (LD6) |
+| `time` (dev) | Time of day | live | KEEP | — | diagnostic: holds the clock for look checks | — | — |
+| `weather` (dev) | Weather | live | KEEP | — | diagnostic: holds a weather phase | — | — |
+| `clearDownloads` (dev) | Clear downloads | button | KEEP | — | Jake's cold-load tool (E172) | — | — |
+| `legacyShardButtons` (dev) | Legacy shard buttons | off | KEEP | — | G606: stays until deletion day | — | — |
+| `game.template` (dev) | Template shard | button | KEEP | — | the only way into the hidden grey-box level | — | — |
+
+## The Signal Dunes lighting regression (live ff45b6a24, 09:36)
+
+Jake reported dark Model Explorer cards and a dark, washed-out world (`art/grid/round-54-explorer-dark/`). Four rows
+could cause it:
+
+- **`nodeReuse` is the first suspect.** It has been on by default since ae8ed1fd6a and is in live. A reused build keeps
+  the first material's code and rebinds only its own uniform and update nodes. A model card renders in its own scene
+  with its own lights, so it could pick up code or light bindings built for the world. That fits "every card a black
+  silhouette".
+- **`graphMaterials`.** Signal's client plan only draws its graph materials when this public row is on
+  (`graphs: 'debug'`). If Jake's saved pick is on, he is the only one seeing those graphs on Signal, and DR12 would
+  make that look universal.
+- **`bootShaders`** (drawn-only, in live) compiles off-screen programs (cards, the Explorer) in play rather than at
+  boot. It is less likely to leave things unlit.
+- **`graphUniforms`** (plain, live since 10-20) caches render and frame uniforms once per camera pass. It's older, so
+  it's unlikely to explain a new regression.
+
+Jake runs with Developer on, so any Developer pick he once saved also applies to him. G669 still holds: these ship as
+the only behaviour, and the fix goes forward. DR3 and DR12 each start by drawing Signal's Explorer once with their
+row's old value. If that lights the cards, the fix lands in the same commit.
+
+## Build rows
+
+Each row is one small commit (or a few related rows). It deletes the row, the losing options, their strings, their
+`OPTION_VALUES` / `OPTION_SPECS` / `DEVELOPER_OPTIONS` entries, the tests that only covered the losing path, and the
+dead code. It also lowers `lint/ratchet.json` `debugRows` and refreshes `lint/ask-ids.json`.
+
+**Done when:** the row is gone from Debug; types, lint and `vitest related` on the touched files pass; and the commit
+subject names the shipped behaviour.
+
+**Owner:** Opus for rows that change pixels or shader code, Codex for everything else.
+
+Pure improvements with evidence come first:
+
+| Row | What | Owner | Size |
+|---|---|---|---|
+| **DR1** | `graphUniforms` → plain only: delete `NodeUniformBuffers` (move the `BlockGroup` type into `nodePlainUniforms.ts`) and its test | Opus | S |
+| **DR2** | `bootShaders` → first frame only: drop the `all` branches in `Game.ts` and `session/finish.ts` | Codex | XS |
+| **DR3** | `nodeReuse` → on: drop the `off` / `verify` paths in `engineNodesHandler.ts` and their tests. First draw Signal's Explorer cards with reuse forced off; if they light, fix the rebind in this commit | Opus | S |
+| **DR4** | `buildPacing` → on: delete `off`, `uploads`, `entry`, `links` (`Game.ts`, `precompile.ts` entry inventory and borrowed instances, `regionalRuntime.ts`, `hybrid.ts` parked entry, `SLICED_UPLOAD_BUDGET`, the framePacing off switch) and their test cases | Codex | M |
+| **DR5** | `fixedShadowSamples` → on: `shadowDepthSample` always folds; drop the stock-texture branch and its test case | Opus | XS |
+| **DR6** | `staticMatrices` → on: drop `off` and `verify`; keep the 30-step mover check and its console line | Codex | XS |
+| **DR7** | `staticSets` → on: scene dressing always merges static siblings | Opus | XS |
+| **DR8** | `programShare` → on (after DR3): the shared key always leads with the graph shape; drop the off-case tests | Opus | XS |
+| **DR9** | `distantTrees` → per species: drop the per-variant far path | Opus | XS |
+| **DR10** | `groundTiles` → on: painted and splat grounds draw from their tiles (`painterlyLook.ts`, `clientSplatTerrain.ts`); delete the whole-mesh draw branch. Tile plan D-S3 deletes the whole `Terrain.build` | Opus | S |
+| **DR11** | `tileResidency` → 5 x 5 (colliders 3 x 3): delete `whole` and the 3 x 3 choice; `tileResidencyRadius()` becomes a constant | Codex | S |
+| **DR12** | `graphMaterials` → on: every shard draws its declared graphs; delete the `graphs: 'required'` field (schema plus 7 declarations) and Signal's `graphs: 'debug'`. First draw Signal's Explorer with graphs on | Opus | S |
+| **DR13** | Developer cleanup: delete `fps` (`?fps=` stays a harness read in `tier.ts`), `budgetReadout`, the `storage` row (its readout moves under Clear downloads) and the dead `tex` readout plus `memoryReadout` | Codex | S |
+| **DR14** | `measurePlain` → dev map: delete `measurePlain.ts`, `setMeasurePlain`, the `plainVariant` field and its 3 data flags, and the strings | Opus | S |
+| **DR15** | `pineScore` → auto: delete Pine's `debugPin`, the format field, `CatalogueScore.pin` and the row in `plugin/audio.ts`, plus the legacy Pine score row | Codex | S |
+| **DR16** | Legacy rows: delete `shardDirectors` (`directorClient.ts` and the legacy Script branches in the DW finale, Pine clock and Nalati raid / crowd), `ai.brains` (`DebugOverlay.ts`), `pineMemoryTrim` → on, the now-unused `runtimeVariantEnabled`, and `prepareHybridShard`'s dead `debug` parameter. Signal's legacy row goes with LD6 | Codex | M |
+| **DR17** | `memorySaver` → on, once Jake confirms (see below): drop the off path and the Developer fence. If he says keep it off, DR17 instead deletes `memorySaver.ts` and its ~16 call sites (~330 lines) | Opus | S |
+
+## Survivors (KEEP)
+
+Five rows stay, all Developer-only diagnostics:
+
+- **Time of day** and **Weather**: they hold the clock or a weather phase for look checks and captures. They retire when
+  every capture holds them through the harness alone.
+- **Clear downloads** (Jake's cold-load button, E172): it also takes over the Storage readout.
+- **Legacy shard buttons**: retire with LD5 (G606).
+- **Template shard**: retires once the template has a Developer card in SHARD SELECT.
+
+No look A/B is left in the public Debug card after DR14.
+
+## For Jake
+
+One question:
+
+- **Memory saver on for everyone?** **Recommended: yes.** Its cuts change no look: the CPU copies go once they are on
+  the GPU, the shadow maps keep depth only, and the bloom luminance runs at half size. G669 asks for every improvement.
+  But it reverses G271 ("off everywhere, full quality"), and a lost GPU context reloads the page while it is on. DR17
+  builds last, so his answer decides it without holding anything.
+
+Two notes that need no answer:
+
+- **Tile residency** ships at 5 x 5 (the tile plan's D2 B). His first words were "62.5 m plus the neighbours, so
+  3 x 3"; changing that is one constant if he feels the pop-in is fine.
+- **Distant trees** ship per species. He'll see it in play: the far trees of one species look alike. Reverting is one
+  commit.
