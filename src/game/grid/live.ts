@@ -14,6 +14,7 @@ import type { ResidencyAllocator, ResidencyLease, ResidencyEviction } from './al
 import type { PreparedGridCrossing } from './crossing';
 import { GridContinuationCache, GRID_CONTINUATION_CACHE_BYTES } from './continuations';
 import type { HomeResidencyClaim } from './pageResidency';
+import { tileResidencyRadius } from '../shardfile/tileDriver';
 
 /** An owned region has authored colliders and logical player state, but no second traveller capsule. */
 export interface LiveGridRegion { host: SimHost; dispose: () => void;
@@ -491,7 +492,12 @@ export class LiveGridHost {
         const product = this.products.get(cell.instance);
         return product !== undefined && product.exclusiveRuntime !== true;
       });
-      const early = bounded.length === 1 ? bounded[0] : undefined;
+      // T7 (Debug ▸ Tile residency): a prediction never starts a neighbour's world hooks from the road; only a bodyless
+      // declarative cell builds ahead, an opaque one waits for the traveller to head into its entry or reach its wall
+      const predicted = bounded.length === 1 ? bounded[0] : undefined;
+      const product = predicted === undefined ? undefined : this.products.get(predicted.instance);
+      const declarative = product !== undefined && product.exclusiveRuntime !== true;
+      const early = tileResidencyRadius() >= 8 || declarative ? predicted : undefined;
       const approach = moving ?? early ?? nearby.find(cell => this.distance(cell, feet) <= wallReach);
       if (approach !== undefined && !this.issues.has(approach.instance)) {
         // G580 T4: a direct cross-road heading commits at the source edge, using the whole road for preparation.
