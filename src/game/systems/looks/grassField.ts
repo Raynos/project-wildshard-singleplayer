@@ -5,7 +5,7 @@ import { activeLevel, onLevelChange } from '@wildshard/engine/level/selection';
 import { normalAt, splatAt, trailDistance, cabinMask, pondMask, waterLevel } from '@wildshard/engine/world/Heightfield';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { PopulationFieldSchema } from '@wildshard/format/populationEnvironment';
-import { parse } from 'valibot';
+import { parse, type InferOutput } from 'valibot';
 
 /**
  * The painterly grass *field*: how tall the grass stands, how golden it is and which flowers grow, as pure
@@ -218,12 +218,17 @@ export function configureGrassField(next: GrassFieldLayout, scope: Scope): void 
 }
 /** Admit the native meadow's geography on the page without author samplers. */
 export function configureGrassFieldData(input:unknown,scope:Scope):GrassFieldLayout{
-  const rows=parse(PopulationFieldSchema,input),river=rows.river;
+  const next=populationMeadow(parse(PopulationFieldSchema,input));configureGrassField(next,scope);return next;
+}
+/** Page and native fields share the admitted meadow and exact clamped river
+ * interpolation. This borrows the rows without decoding or installing a field. */
+export function populationMeadow(rows:Pick<InferOutput<typeof PopulationFieldSchema>,'river'|'meadow'>):GrassFieldLayout{
+  const river=rows.river;
   const profile=(x:number,index:0|1):number=>{
     const at=Math.max(0,Math.min(river.values.length-1,(x-river.from)/river.step)),i=Math.min(river.values.length-2,Math.floor(at));
     const a=river.values[i]?.[index]??0,b=river.values[i+1]?.[index]??a;return a+(b-a)*(at-i);
   };
-  const next={...rows.meadow,riverZ:(x:number)=>profile(x,0),riverHalf:(x:number)=>profile(x,1)};configureGrassField(next,scope);return next;
+  return {...rows.meadow,riverZ:(x:number)=>profile(x,0),riverHalf:(x:number)=>profile(x,1)};
 }
 let listening = false;
 function meadowLayout(): GrassFieldLayout | null {

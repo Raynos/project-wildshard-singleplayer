@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { PopulationEnvironmentSchema, PopulationFieldSchema } from '@wildshard/format/populationEnvironment';
 import { readScalarLattice } from '@wildshard/engine/world/scalarChannel';
-import { GrassField } from '../systems/looks/grassField';
+import { GrassField, populationMeadow } from '../systems/looks/grassField';
 import { TrampleField } from '../systems/looks/trample';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import type { BakedGrid } from '@wildshard/format/bakedTerrainBytes';
@@ -73,13 +73,9 @@ export class NativePopulationField {
     treeRows.forEach(([x,z,r],index) => { const top = tops[index]; if (top === undefined || ![x,z,r,top].every(Number.isFinite)) throw new Error('Invalid population tree'); this.trees.add({ x,z,r,top }); });
     this.queries = { normalY: (x,z) => sample.normalAt(x,z)[1],surfaceAt: (x,z) => pond(x,z) > 0 ? world.water : null,
       inBounds: (x,z,margin) => Math.abs(x) < world.size/2-margin && Math.abs(z) < world.size/2-margin };
-    const profile = (x: number,index: 0 | 1): number => {
-      const row = rows.river, at = Math.max(0,Math.min(row.values.length-1,(x-row.from)/row.step)), i = Math.min(row.values.length-2,Math.floor(at));
-      const a = row.values[i]?.[index] ?? 0,b = row.values[i+1]?.[index] ?? a; return a+(b-a)*(at-i);
-    };
     this.grass = { field: new GrassField({ seed: rows.seed,half: world.size/2,heightAt: sample.heightAt,normalAt: sample.normalAt,splatAt: sample.splatAt,
       trailDistance: meta.trailDistance,cabinMask: meta.cabinMask,pondMask: pond,waterLevel: meta.waterLevel,paint: () => false,
-      layout: { ...rows.meadow,riverZ: x => profile(x,0),riverHalf: x => profile(x,1) } }),trample: new TrampleField() };
+      layout: populationMeadow(rows) }),trample: new TrampleField() };
     this.hunt = { heightAt: sample.heightAt,normalY: this.queries.normalY,trailDistance: meta.trailDistance,cabinMask: meta.cabinMask,
       inChunk: (x,z,margin) => Math.abs(x) <= world.size/2-margin && Math.abs(z) <= world.size/2-margin,
       streamAt: () => null,waterLevel: meta.waterLevel,pond: () => null,sea: () => false,wetAt: (x,z) => wet(x,z) > .5,

@@ -34,6 +34,11 @@ All moved unchanged from the kit (SF54); species ids (`kit.creature.*`) and mode
 (mist / needle-fall / mote particles, GPU grass trampling, the meadow height and tone fields, the fog GLSL chunk for
 custom programs, the rain curtain), moved unchanged from the kit (SF54). Shard world files import them directly;
 Nalati and Pine runtime world hooks lazily import these defining modules. The kit `lookApi` loaders are removed.
+`grassField.populationMeadow(rows)` borrows an already-admitted population
+field's river/meadow rows as a `GrassFieldLayout`, retaining its zone arrays
+and exact clamped river interpolation. It performs no decode or installation.
+The native field and `configureGrassFieldData(input, scope)` share this reader;
+the latter keeps schema admission and scoped page installation.
 A curtain's frame of motion is data (W2 C2, H4): Pine Hollow's rain turns its curtain's velocity and wrapped offset,
 the splash and lens clocks and the lens's wetness through the numeric channel group `pine.rain`
 (`generators/rainChannels.ts`, private slots for the integrated values) over graph param roots
