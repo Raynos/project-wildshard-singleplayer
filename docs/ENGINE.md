@@ -3258,11 +3258,15 @@ keyed clone/delete templates with owned intakes, adopting assembled geometry
 from `runtime/geometry.ts`; `world/modelLook.ts` keeps its context ownership.
 
 
-`@wildshard/game/plugin/ui` admits a browser product with `shardfileSource` or selects it with
+`@wildshard/game/shardfile/clientSource` admits a browser product with `shardfileSource` or selects it with
 `installShardfileProduct`; `browserShardfileOptions` supplies the verified origin-wide content cache. Trusted kit
 recipes and item factories are injected by the composition root. The resulting manifest runs the ordinary Game
 stages and borrows its player, physics and fixed-step driver. Terrain and props refine under scoped tile residency;
 UI reads the same admitted script and item state. The SDK's client includes the platform's base audio assets.
+Descriptor and residency admission do not import quest, boss or scene presentation.
+The compiler records optional feature graphs in one shared file table; the original
+admitted plan reserves only selected groups before imports. Script, loot and quest
+presentation load before their original synchronous, owner-bound play steps.
 
 ## Appendix: every export
 

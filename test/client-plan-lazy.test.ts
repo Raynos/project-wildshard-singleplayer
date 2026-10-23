@@ -5,6 +5,7 @@ import {CLIENT_FEATURES,installClientPhase} from '../src/game/shardfile/clientPl
 import {createShardProduct} from '../src/game/shardfile/shardProduct';
 import {emptyShardfile} from '../src/sdk/author';
 import * as meadow from '../src/game/shardfile/clientMeadow';
+import * as scenes from '../src/game/shardfile/worldScenes';
 
 function fixture(){
   const root=new Scope('feature.root'),scope=root.child('entered'),resident=new Scope('feature.resident');
@@ -47,3 +48,13 @@ for(const change of ['resident','product'] as const){
     }finally{install.mockRestore();f.root.dispose();f.resident.dispose();other.root.dispose();other.resident.dispose();}
   });
 }
+
+test('a retired original scene owner refuses before the newly loaded constructor runs', async () => {
+  const f = fixture(), install = vi.spyOn(scenes, 'installWorldScenes').mockRejectedValue(new Error('Must not install'));
+  try {
+    const pending = CLIENT_FEATURES['world.scenes'].install(f.ctx, {kind:'world.scenes'}, f.resident);
+    f.root.disposeSteps().next();
+    await expect(pending).rejects.toThrow('Client feature owner is disposed');
+    expect(install).not.toHaveBeenCalled();
+  } finally { install.mockRestore(); f.root.dispose(); f.resident.dispose(); }
+});

@@ -39,6 +39,23 @@ export function startupImports(source: string): string[] {
   return [...imports];
 }
 
+/** Literal optional imports stay attached to their defining feature row. */
+export function clientFeatureImports(source: string): Readonly<Record<string, readonly string[]>> {
+  const file = ts.createSourceFile('clientPlan.ts', source, ts.ScriptTarget.Latest, true);
+  const rows: Record<string, string[]> = {};
+  const visit = (node: ts.Node): void => {
+    if (ts.isVariableDeclaration(node) && node.name.getText(file) === 'CLIENT_FEATURES' && node.initializer !== undefined && ts.isObjectLiteralExpression(node.initializer)) {
+      for (const property of node.initializer.properties) {
+        if (!ts.isPropertyAssignment(property) || !ts.isStringLiteral(property.name)) throw new Error('Feature module bank requires literal feature rows');
+        rows[property.name.text] = literalImports(property.initializer);
+      }
+      return;
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(file);
+  return rows;
+}
 function literalImports(node: ts.Node): string[] {
   const rows = new Set<string>();
   const visit = (entry: ts.Node): void => {
@@ -92,6 +109,18 @@ export function bootModuleFiles(bundle: Bundle, roots: readonly string[]): reado
   }));
 }
 
+/** One shared file table avoids repeating common chunks for every feature. */
+export function bootModuleGroups(bundle: Bundle, roots: Readonly<Record<string, readonly string[]>>): {
+  files: ModuleFile[]; groups: Record<string, number[]>;
+} {
+  const files: ModuleFile[] = [], indexes = new Map<string, number>(), groups: Record<string, number[]> = {};
+  for (const [kind, paths] of Object.entries(roots)) groups[kind] = paths.length === 0 ? [] : bootModuleFiles(bundle, paths).map(row => {
+    const prior = indexes.get(row[0]); if (prior !== undefined) return prior;
+    const next = files.length; indexes.set(row[0], next); files.push(row); return next;
+  });
+  return {files,groups};
+}
+
 /** Compiler-owned facts ride the existing shell, including offline launches.
  * No metadata fetch, speculative import or new service-worker install list. */
 export function bootModulesPlugin(): Plugin {
@@ -129,6 +158,24 @@ export function bootModulesPlugin(): Plugin {
           gridRoots.push(dependency.id);
         }
       }
+      const planFile = resolve(root, 'src/game/shardfile/clientPlan.ts'), featureRoots: Record<string, string[]> = {};
+      const features = existsSync(planFile) ? clientFeatureImports(readFileSync(planFile, 'utf8')) : {};
+      for (const [kind, imports] of Object.entries(features)) {
+        const paths: string[] = [];
+        for (const request of imports) {
+          const dependency = await this.resolve(request, planFile);
+          if (dependency === null || dependency.external !== false) throw new Error('Missing optional client module');
+          paths.push(dependency.id);
+        }
+        featureRoots[kind] = paths;
+      }
+      for (const [kind, request] of [['presentation', '../plugin/ui'], ['loot', '../loot/runtime'], ['compendium', '../compendium/install']] as const) {
+        featureRoots[kind] = [];
+        if (!sourceImports(client.id).includes(request)) continue;
+        const dependency = await this.resolve(request, client.id);
+        if (dependency === null || dependency.external !== false) throw new Error('Missing optional client presentation');
+        featureRoots[kind].push(dependency.id);
+      }
       const products = bootProductTotals(root), extras: Record<string, readonly [string, number, number, string]> = {};
       for (const prefix of Object.keys(products)) {
         const directory = prefix.split('/')[2];
@@ -148,7 +195,7 @@ export function bootModulesPlugin(): Plugin {
         if(catalogue===null||catalogue.external!==false)throw new Error('Missing full discovery module');
         catalogueFiles=bootModuleFiles(bundle,[catalogue.id]);
       }
-      const rows = { common: bootModuleFiles(bundle, ids), client: bootModuleFiles(bundle, [client.id]), grid: bootModuleFiles(bundle, gridRoots), selection:selected, catalogue:catalogueFiles, products, extras };
+      const rows = { common: bootModuleFiles(bundle, ids), client: bootModuleFiles(bundle, [client.id]), grid: bootModuleFiles(bundle, gridRoots), optional: bootModuleGroups(bundle, featureRoots), selection:selected, catalogue:catalogueFiles, products, extras };
       const json = JSON.stringify(rows).replaceAll('<', String.raw`\u003c`);
       html.source = html.source.replace('<head>', `<head><script type="application/json" id="boot-module-files">${json}</script>`);
     } },

@@ -4,7 +4,8 @@ import { build } from 'vite';
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve that compiler fixture without changing process cwd.
 import { resolve } from 'node:path';
-import { bootModuleFiles, bootModulesPlugin, startupImports } from '../vite/bootModules';
+import { readModuleFiles } from '../src/engine/boot/download';
+import { bootModuleFiles, bootModuleGroups, clientFeatureImports, bootModulesPlugin, startupImports } from '../vite/bootModules';
 
 test('startup roots follow the executed entry function, excluding title, recovery and error entry branches', () => {
   expect(startupImports(`
@@ -48,6 +49,7 @@ test('the actual Vite plugin emits exact module body sizes into the existing doc
   try {
     mkdirSync(resolve(root, 'src/game/shardfile'), { recursive: true });
     mkdirSync(resolve(root, 'src/game/grid'), { recursive: true });
+    mkdirSync(resolve(root, 'src/game/session'), { recursive: true });
     writeFileSync(resolve(root, 'index.html'), '<html><head></head><body><script type="module" src="/src/entry.ts"></script></body></html>');
     writeFileSync(resolve(root, 'src/entry.ts'), `
       window.optionalClient = () => import('./game/shardfile/client');
@@ -59,8 +61,13 @@ test('the actual Vite plugin emits exact module body sizes into the existing doc
     writeFileSync(resolve(root, 'src/first.ts'), 'import "./main.css"; export const value = "π";');
     writeFileSync(resolve(root, 'src/main.css'), 'body { color: red; }');
     writeFileSync(resolve(root, 'src/title.ts'), 'export const title = "optional title";');
-    writeFileSync(resolve(root, 'src/game/shardfile/client.ts'), 'export const client = "compiled client";');
-    writeFileSync(resolve(root, 'src/game/grid/session.ts'), 'export const grid = "grid session";');
+    writeFileSync(resolve(root, 'src/game/shardfile/client.ts'), 'import {CLIENT_FEATURES} from "./clientPlan"; export const client = CLIENT_FEATURES;');
+    writeFileSync(resolve(root, 'src/game/shardfile/clientPlan.ts'), 'export const CLIENT_FEATURES = {"world.first":{install:()=>import("./optional-first")},"world.second":{install:()=>import("./optional-second")}};');
+    writeFileSync(resolve(root, 'src/game/shardfile/optional-first.ts'), 'export const first = "first world";');
+    writeFileSync(resolve(root, 'src/game/shardfile/optional-second.ts'), 'export const second = "second world";');
+    writeFileSync(resolve(root, 'src/game/grid/session.ts'), 'export const grid = () => import("./reveal");');
+    writeFileSync(resolve(root, 'src/game/grid/reveal.ts'), 'export const reveal = "grid reveal";');
+    writeFileSync(resolve(root, 'src/game/session/play.ts'), 'export const play = () => import("../grid/reveal");');
     const result = await build({ root, configFile: false, logLevel: 'silent', plugins: [bootModulesPlugin()],
       build: { write: false, minify: false, cssCodeSplit: false } });
     if (Array.isArray(result) || !('output' in result)) throw new Error('Expected one generated bundle');
@@ -76,9 +83,37 @@ test('the actual Vite plugin emits exact module body sizes into the existing doc
     }).sort(([left], [right]) => left.localeCompare(right));
     expect(rows.products).toEqual({});
     expect(rows.common).toEqual(expected(['/first-', '/index-']));
-    expect(rows.client).toEqual(expected(['/client-']));
-    expect(rows.grid).toEqual(expected(['/session-']));
+    expect(rows.client).toEqual(expected(['/client-', '/index-']));
+    expect(rows.grid).toEqual(expected(['/session-', '/reveal-', '/index-']));
+    const optional: unknown = Reflect.get(rows, 'optional');
+    if (typeof optional !== 'object' || optional === null) throw new Error('Missing optional banks');
+    const files = readModuleFiles(Reflect.get(optional, 'files')), groups: unknown = Reflect.get(optional, 'groups');
+    if (typeof groups !== 'object' || groups === null) throw new Error('Missing optional groups');
+    const indices: unknown = Reflect.get(groups, 'world.first');
+    if (!Array.isArray(indices)) throw new Error('Missing first group');
+    expect(indices.map(index => { if (typeof index !== 'number') throw new Error('Invalid group index'); return files[index]; })).toEqual(expected(['/optional-first-']));
+    expect(rows.common).not.toEqual(expect.arrayContaining(expected(['/optional-first-'])));
     expect(JSON.stringify(rows)).not.toContain('/title-');
     expect(readFileSync(resolve(root, 'index.html'), 'utf8')).not.toContain('boot-module-files');
   } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('feature module facts follow literal rows and share one file table', () => {
+  const actual = clientFeatureImports(readFileSync('src/game/shardfile/clientPlan.ts', 'utf8'));
+  expect(actual['world.scenes']).toEqual(['./worldScenes']);
+  expect(actual['world.dressing']).toEqual(['./sceneDressing']);
+  expect(clientFeatureImports(`export const CLIENT_FEATURES = {
+    'world.first': { install: () => import('./first'), play: { install: () => import('./first') } },
+    'world.second': { install: () => import('./second') }, 'strings.register': { install() {} }
+  };`)).toEqual({'world.first':['./first'],'world.second':['./second'],'strings.register':[]});
+  expect(() => clientFeatureImports(`const CLIENT_FEATURES = {'world.first': {install: () => import(path)}};`)).toThrow('literal import');
+  const bank = bootModuleGroups({
+    'assets/first.js': {type:'chunk', code:'first', modules:{'/first.ts':{}}, imports:['assets/shared.js']},
+    'assets/second.js': {type:'chunk', code:'second', modules:{'/second.ts':{}}, imports:['assets/shared.js']},
+    'assets/shared.js': {type:'chunk',code:'shared'},
+  }, {'world.first':['/first.ts'],'world.second':['/second.ts'],'strings.register':[]});
+  expect(bank.files).toHaveLength(3);
+  expect(bank.groups['strings.register']).toEqual([]);
+  expect(bank.groups['world.first']?.map(index => bank.files[index])).toEqual([['/assets/first.js',5],['/assets/shared.js',6]]);
+  expect(bank.groups['world.second']?.map(index => bank.files[index])).toEqual([['/assets/second.js',6],['/assets/shared.js',6]]);
 });

@@ -1,3 +1,7 @@
+import type * as ScriptPresentation from '../plugin/ui';
+import type * as LootPresentation from '../loot/runtime';
+import type * as CompendiumPresentation from '../compendium/install';
+import { declareClientModules } from './clientModules';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { timeClientPreparation } from './preparationTiming';
 import { admitClientPlan, installClientPhase, type AdmittedClientPlan, type ClientPhase } from './clientPlan';
@@ -30,12 +34,10 @@ import type { ShardContext } from "../plugin/context";
 import type { ShardPlayHost } from '../shard/runtime';
 import { installDeclaredPlumbing } from '../shard/declaredPlumbing';
 import { declaredProductCompendium, declaredDay, declaredWeather } from '../shard/declaredRows';
-import { installCompendium } from '../compendium/install';
-import { installLoot,enteredLootPresentation } from '../loot/runtime';
 import { installDeclaredTargets } from '../shard/declaredTargets';
 import { mountDeclaredUi } from '../shard/declaredUi';
 import { createQuestScriptPorts } from '../quest/declared';
-import { installEnteredQuestPresentation, installQuestPresentation, ClientScriptViews, driveClientScriptViews, type ClientScriptViewTarget } from "../plugin/ui";
+import type { ClientScriptViewTarget } from "../plugin/ui";
 import { instanceSave } from '../instanceSaves';
 import { Ledger, installLedgerEmitter, type LedgerCatalogueItem, type LedgerEmitter } from '../ledger';
 import { EmptyEquipment } from './emptyEquipment';
@@ -199,6 +201,11 @@ export class ShardfileClient {
     this.mode = bindings.runtimeStagesOnly === true ? splatGroundFiles(data).size > 0 ? 'presentation' : 'empty' : bindings.trustedRuntime !== true ? 'full'
       : emptyHybridData(data, bindings.audioOwner, bindings.worldOwner) ? 'empty'
       : emptyHybridData(withoutPresentation(data), bindings.audioOwner, bindings.worldOwner) ? 'presentation' : 'full';
+    if (this.mode === 'full' && !hasDeclaredClientPage(source)) declareClientModules([
+      ...(data.clientScripts.bindings.length > 0 || data.quests.quests.length > 0 ? ['presentation'] : []),
+      ...(data.rows.loot.some(row => 'gear' in row) ? ['loot'] : []),
+      ...(data.rows.compendiums.length > 0 ? ['compendium'] : []),
+    ]);
     this.nativeFeatures = hasDeclaredClientPage(source);
     if (this.mode === 'full' && !this.nativeFeatures) bindings.onSimulationExpected?.();
   }
@@ -342,7 +349,12 @@ export class ShardfileClient {
   /** SF67: the installation a part a task (the page's play stage, the views, the sim and the restore were one 170-270 ms
    *  task at 4x CPU). Each part runs under the owner the call began with, and the sim does not step until the last part. */
   async play(ctx: ShardContext): Promise<void> {
-    const own = enteredOwner(), steps = this.playSteps(ctx);
+    const own = enteredOwner(), scope = ctx.scope, product = ctx.product;
+    const presentation = this.mode === 'full' && !this.nativeFeatures && (this.source.clientScripts.bindings.length > 0 || this.source.quests.quests.length > 0) ? await import('../plugin/ui') : null;
+    const lootPresentation = this.mode === 'full' && !this.nativeFeatures && this.source.rows.loot.some(row => 'gear' in row) ? await import('../loot/runtime') : null;
+    const compendium = this.mode === 'full' && !this.nativeFeatures && this.source.rows.compendiums.length > 0 ? await import('../compendium/install') : null;
+    if (ctx.scope !== scope || ctx.product !== product || scope.disposed || scope.disposing) throw new Error('Shardfile left during presentation import');
+    const steps = this.playSteps(ctx, presentation, lootPresentation, compendium);
     for (;;) {
       if ((own === null ? steps.next() : withOwner(own, () => steps.next())).done === true) break;
       await macrotask();
@@ -352,7 +364,7 @@ export class ShardfileClient {
     await this.phase(ctx, 'play');
   }
 
-  private *playSteps(ctx: ShardContext): Generator<void, void> {
+  private *playSteps(ctx: ShardContext, presentation: typeof ScriptPresentation | null, lootPresentation: typeof LootPresentation | null, compendium: typeof CompendiumPresentation | null): Generator<void, void> {
     if (this.mode !== 'full' || this.nativeFeatures) return;
     const runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play, items = this.items, tiles = this.worldTiles;
     const health = ctx.app.player;
@@ -382,11 +394,14 @@ export class ShardfileClient {
       }
       baseFov = base;
     } });
-    const lootRow = source.rows.loot[0], loot = lootRow === undefined || !('gear' in lootRow) ? null : installLoot({ ctx, manifest: ctx.manifest, owned: play.owned, scene: world.game.scene,
-      player: world.player, camera: world.game.camera, animals: () => play.animals.animals, menu: play.menu, presentation: enteredLootPresentation(ctx,lootRow.id),
+    const lootRow = source.rows.loot[0];
+    if (lootRow !== undefined && 'gear' in lootRow && lootPresentation === null) throw new Error('Missing loot presentation module');
+    const loot = lootRow === undefined || !('gear' in lootRow) || lootPresentation === null ? null : lootPresentation.installLoot({ ctx, manifest: ctx.manifest, owned: play.owned, scene: world.game.scene,
+      player: world.player, camera: world.game.camera, animals: () => play.animals.animals, menu: play.menu, presentation: lootPresentation.enteredLootPresentation(ctx,lootRow.id),
     });
     if (source.rows.compendiums.length > 0) {
-      const journal = installCompendium({ context: ctx, chunkId: ctx.manifest.slug, game: world.game, camera: world.game.camera, hud: play.hud, menu: play.menu,
+      if (compendium === null) throw new Error('Missing compendium presentation module');
+      const journal = compendium.installCompendium({ context: ctx, chunkId: ctx.manifest.slug, game: world.game, camera: world.game.camera, hud: play.hud, menu: play.menu,
         animals: play.animals, cabins: null, interactables: runtime.interactables, weapons: play.weapons, touchUi: play.touchUi, nolock: play.nolock });
       // a retained (grid) context's journal lives in its entered scope (installRetainedCompendium)
       if (journal !== null && !retainsRuntimeServices(ctx)) ctx.scope.onDispose(() => { journal.journal.scope.dispose(); });
@@ -467,6 +482,8 @@ export class ShardfileClient {
     // SF25 / G66: presentation-only client scripts; live creatures keep their sim pose and clips, a frozen home (the
     // traveller in another frame) breathes and grazes on top of it. The lane sees copies; its sim is never stepped here.
     if (source.clientScripts.bindings.length > 0) {
+      if (presentation === null) throw new Error('Missing client script presentation module');
+      const { ClientScriptViews, driveClientScriptViews } = presentation;
       const animals = this.animals, lane = sim.lane;
       const scripts = createShardfileClientScripts(source, this.assets.retained, { actorId: health.id, ...(lane === undefined ? {} : { state: lane.world }),
         observe: (target) => {
@@ -525,7 +542,8 @@ export class ShardfileClient {
       const declaration = source.quests.quests.find((row) => row.id === quest.def.id);
       const options = declaration?.track === false ? { chip: () => ({ label: '', count: '' }) } : {};
       // a retained (grid) runtime's chip, pins and card are its entered cell's only
-      if (retainsRuntimeServices(ctx)) installEnteredQuestPresentation(ctx, quest, options); else installQuestPresentation(ctx, quest, options);
+      if (presentation === null) throw new Error('Missing quest presentation module');
+      if (retainsRuntimeServices(ctx)) presentation.installEnteredQuestPresentation(ctx, quest, options); else presentation.installQuestPresentation(ctx, quest, options);
     }
     if (ctx.product.has('ui/completion') && ctx.product.section('ui/completion').trigger === 'quest') installCompletion(ctx, sim.host.flags, play.progress);
     runtime.hooks.questFlags = () => sim.host.flags.all; runtime.hooks.adventureFlags = () => sim.host.flags.all;

@@ -138,11 +138,11 @@ async function startSelected(): Promise<void> {
     retried(() => import('./game/systems/tools/hoverboard')), retried(() => import('@wildshard/sdk/runtime/audio/weaponVoices')), retried(() => import('@wildshard/sdk/runtime/audio/combatCues')),
     retried(() => import('@wildshard/game/systems/species/view/boar')), retried(() => import('@wildshard/game/plugin/weaponFamily')),
   ]);
-  const { configuredShardfile, installShardfileProduct, installManifestShardfile } = await retried(() => import('@wildshard/game/plugin/ui'));
+  const { configuredShardfile, installShardfileProduct, installManifestShardfile } = await retried(() => import('@wildshard/game/shardfile/clientSource'));
   const { browserShardfileOptions } = await retried(() => import('@wildshard/game/shardfile/runtimeProduct'));
   const { pageGridRecovery } = await retried(() => import('@wildshard/game/grid/pageEntry'));
   const source = pageGridRecovery() === null ? await configuredShardfile(document, browserShardfileOptions(document.baseURI)) : null;
-  const { preparePageResidency } = await retried(() => import('@wildshard/game/plugin/ui'));
+  const { preparePageResidency } = await retried(() => import('@wildshard/game/shardfile/clientSource'));
   let page: ReturnType<typeof preparePageResidency> | undefined;
   try {
     page = preparePageResidency(game.shard, source?.identity.slug);

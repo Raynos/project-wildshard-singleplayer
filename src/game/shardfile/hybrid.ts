@@ -14,7 +14,7 @@ import { bindScopedRuntime, createScopedRuntimeBinding, type ScopedRuntimeBindin
 import { RetainedRuntimeHooks, installEnteredRuntimeService } from "../shard/retainedHooks";
 import { enterSkyClock } from '../session/clockSettings';
 
-import { shardfileSource } from '../plugin/ui';
+import { shardfileSource } from './clientSource';
 import type { ProductOptions } from './product';
 import { configureLevel, selectedLevel } from '@wildshard/engine/level/selection';
 import { reserveMapImage } from './mapImage';

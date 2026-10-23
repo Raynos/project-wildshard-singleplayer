@@ -1,3 +1,4 @@
+import { declareClientPlanModules } from './clientModules';
 import { entryOwner as declaredOwner } from './entryOwners';
 import { prepareClientReturnModules } from './clientReturnModules';
 import { preflightIslandBook } from './islandBook';
@@ -6,18 +7,13 @@ import { timeClientPreparation } from './preparationTiming';
 import { runtimeLookMaterials } from './runtimeProduct';
 import { hasLentLook, lendLooks } from './lentLooks';
 import { TIER } from '@wildshard/engine/core/tier';
-import { SceneDressing } from './sceneDressing';
 import { Color } from 'three';
 import { syncPainterlySun,updatePainterly,setPainterlyLook,painterlyUniforms } from '@wildshard/engine/world/painterly';
 import { wind } from '@wildshard/engine/world/steppeWind';
 import { windUniforms } from '@wildshard/engine/world/TreeFactory';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
-import { installClientCues } from './clientCues';
 import { clientNativeBook } from './clientNativeBook';
-import { installWeatherFields } from './weatherFields';
-import { installSceneMotion } from './sceneMotion';
 import type { PlatformSectionName } from '@wildshard/format/sections';
-import { installLightEmitters } from './lightEmitters';
 import { buildYield } from '@wildshard/engine/core/workSlice';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { parseClientPlan, type ClientFeatureKind, type ClientFeatureRow } from '@wildshard/format/clientPlan';
@@ -25,7 +21,6 @@ import { clientOwnershipRules } from '@wildshard/format/clientOwnership';
 import { outputDescriptor } from './outputDescriptor';
 import type { ShardContext } from '../plugin/context';
 import { ProductError, type ShardProduct } from './shardProduct';
-import { installWorldScenes } from './worldScenes';
 import { clientSceneHandles, publishClientSceneHandles } from './clientSceneHandles';
 import { installEnteredRuntimeService, retainsRuntimeServices } from '../shard/retainedHooks';
 
@@ -278,25 +273,37 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
       if (!retainsRuntimeServices(ctx)) { ctx.strings(rows); return; }
       installEnteredRuntimeService(ctx, scope => { ctx.app.levelRegistrations.strings(rows, scope); });
     } },
-  'world.dressing': {phase:'world',rank:45,lifetime:'entered',sections:['world/scenes'],install:async(ctx)=>{
-    const rows=ctx.product.section('world/scenes').dressing;if(rows===undefined)throw new Error('Dressing feature requires its scene rows');
-    await SceneDressing.install(ctx,await ctx.product.json<unknown>(rows[TIER]));
-  }},
+  'world.dressing': {phase:'world',rank:45,lifetime:'entered',sections:['world/scenes'],install:loadFeature(async()=>{
+    const {SceneDressing}=await import('./sceneDressing');
+    return async(ctx)=>{
+      const rows=ctx.product.section('world/scenes').dressing;if(rows===undefined)throw new Error('Dressing feature requires its scene rows');
+      await SceneDressing.install(ctx,await ctx.product.json<unknown>(rows[TIER]));
+    };
+  })},
   'world.scenes': { phase: 'world', rank: 20, lifetime: 'resident', sections: ['world/scenes'],
-    install: async (ctx, _row, resident) => {
-      const value = await installWorldScenes(ctx, ctx.product.section('world/scenes'), resident);
-      publishClientSceneHandles(ctx.product, resident, value);
-    } },
+    install: loadFeature(async () => {
+      const { installWorldScenes } = await import('./worldScenes');
+      return async (ctx, _row, resident) => {
+        const value = await installWorldScenes(ctx, ctx.product.section('world/scenes'), resident);
+        publishClientSceneHandles(ctx.product, resident, value);
+      };
+    }) },
   'light.emitters': { phase: 'world', rank: 30, lifetime: 'resident', sections: ['world/scenes'],
-    install: async (ctx, row, resident) => {
-      if (row.kind !== 'light.emitters') throw new Error('Invalid emitter feature');
-      await installLightEmitters(ctx, row.rows, clientSceneHandles(ctx.product, resident), resident);
-    } },
+    install: loadFeature(async () => {
+      const { installLightEmitters } = await import('./lightEmitters');
+      return async (ctx, row, resident) => {
+        if (row.kind !== 'light.emitters') throw new Error('Invalid emitter feature');
+        await installLightEmitters(ctx, row.rows, clientSceneHandles(ctx.product, resident), resident);
+      };
+    }) },
   'motion.channels': { phase: 'world', rank: 40, lifetime: 'entered', sections: ['world/scenes'],
-    install: (ctx, row, resident) => {
-      if (row.kind !== 'motion.channels') throw new Error('Invalid scene motion feature');
-      installSceneMotion(ctx, row.rows, clientSceneHandles(ctx.product, resident));
-    } },
+    install: loadFeature(async () => {
+      const { installSceneMotion } = await import('./sceneMotion');
+      return (ctx, row, resident) => {
+        if (row.kind !== 'motion.channels') throw new Error('Invalid scene motion feature');
+        installSceneMotion(ctx, row.rows, clientSceneHandles(ctx.product, resident));
+      };
+    }) },
   // after quest.chapter-view: the finds borrow the quest it binds
   'bag.finds': {phase:'play',rank:120,lifetime:'entered',sections:[],install: loadFeature(async () => (await import('./clientFinds')).installClientFinds)},
   'held.cosmetics': {phase:'kit',rank:30,lifetime:'entered',sections:['held/finishes'],install: loadFeature(async () => (await import('./clientCosmeticFinishes')).installClientCosmeticFinishes)},
@@ -314,19 +321,32 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
   'boss.held': { phase: 'play', rank: 70, lifetime: 'entered', sections: ['sim/runtime-plan'], install: loadFeature(async () => (await import('./clientBossFight')).installClientBossFight) },
   'boss.telegraph': { phase: 'play', rank: 75, lifetime: 'entered', sections: ['sim/runtime-plan', 'actors/strikes'], install: loadFeature(async () => (await import('./clientBossTelegraph')).installClientBossTelegraph) },
   'weather.fields': { phase: 'play', rank: 40, lifetime: 'entered', sections: [],
-    install: (ctx, row) => {
-      if (row.kind !== 'weather.fields') throw new Error('Invalid weather feature');
-      installWeatherFields(ctx, row.rows, row.quest);
-    } },
+    install: loadFeature(async () => {
+      const { installWeatherFields } = await import('./weatherFields');
+      return (ctx, row) => {
+        if (row.kind !== 'weather.fields') throw new Error('Invalid weather feature');
+        installWeatherFields(ctx, row.rows, row.quest);
+      };
+    }) },
   'audio.cues': { phase: 'world', rank: 48, lifetime: 'entered', sections: ['world/scenes'],
-    install: (ctx, row) => { if (row.kind === 'audio.cues' && row.stage === 'world') installClientCues(ctx, row); },
-    play: { rank: 30, install: (ctx, row) => { if (row.kind === 'audio.cues' && row.stage !== 'world') installClientCues(ctx, row); } } },
+    install: loadFeature(async () => {
+      const { installClientCues } = await import('./clientCues');
+      return (ctx, row) => { if (row.kind === 'audio.cues' && row.stage === 'world') installClientCues(ctx, row); };
+    }),
+    play: { rank: 30, install: loadFeature(async () => {
+      const { installClientCues } = await import('./clientCues');
+      return (ctx, row) => { if (row.kind === 'audio.cues' && row.stage !== 'world') installClientCues(ctx, row); };
+    }) } },
   'fx.trail': { phase: 'play', rank: 90, lifetime: 'entered', sections: ['world/scenes'], install: loadFeature(async () => (await import('./clientTrails')).installClientTrails) },
-  'debug.expose': { phase: 'play', phaseFor: row => row.kind === 'debug.expose' && row.source?.kind !== 'world-weather' && (row.objects !== undefined || row.source !== undefined) ? 'world-bindings' : 'play', rank: 100, lifetime: 'entered', sections: [], install: (ctx, row) => {
+  'debug.expose': { phase: 'play', phaseFor: row => row.kind === 'debug.expose' && row.source?.kind !== 'world-weather' && (row.objects !== undefined || row.source !== undefined) ? 'world-bindings' : 'play', rank: 100, lifetime: 'entered', sections: [], install: (ctx, row, resident) => {
     if (row.kind !== 'debug.expose' || ctx.scope.disposed || ctx.scope.disposing || ctx.game.runtime === undefined) throw new Error('Client debug feature requires its runtime');
     if (row.source !== undefined) {
       const source=row.source;
-      const value=source.kind==='runtime-object'?ctx.game.runtime.objects[source.id]:source.kind==='dressing'?SceneDressing.current(ctx):source.kind==='timed-riders'?declaredOwner(ctx.scope,'timed-encounters',source.owner).riders:source.kind==='arena-room'?declaredOwner(ctx.scope,'arena-room',source.owner):declaredOwner(ctx.scope,'world-weather',source.owner);
+      if(source.kind==='dressing')return loadFeature(async()=>{
+        const {SceneDressing}=await import('./sceneDressing');
+        return context=>{context.debug.expose(row.name,SceneDressing.current(context));};
+      })(ctx,row,resident);
+      const value=source.kind==='runtime-object'?ctx.game.runtime.objects[source.id]:source.kind==='timed-riders'?declaredOwner(ctx.scope,'timed-encounters',source.owner).riders:source.kind==='arena-room'?declaredOwner(ctx.scope,'arena-room',source.owner):declaredOwner(ctx.scope,'world-weather',source.owner);
       if(value===undefined)throw new Error('Missing declared debug source');ctx.debug.expose(row.name,value);
     } else if (row.objects !== undefined) {
       const runtime = ctx.game.runtime, objects = runtime.objects;
@@ -449,6 +469,7 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
         product.section(name); // A listed stream section is not an admitted boot dependency.
       }
     }
+    declareClientPlanModules(plan);
     return { features: plan.features };
   } catch (error) { throw new ProductError(product.slug, 'client/plan', 'schema', error instanceof Error ? error.message : 'Invalid client plan'); }
 }

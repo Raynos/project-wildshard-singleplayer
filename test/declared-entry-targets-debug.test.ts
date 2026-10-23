@@ -15,11 +15,15 @@ import type {ForestWeatherRig} from '../src/game/weather/forest';
 import {SceneDressing} from '../src/game/shardfile/sceneDressing';
 import * as population from '../src/game/population/wildlife';
 import {legacyDouble} from './fake/FakeGame';
+import {emptyShardfile} from '../src/sdk/author';
+import {createShardProduct} from '../src/game/shardfile/shardProduct';
 
 function fixture(){
  const scope=new Scope('declared-targets'),events=new Events(),calls:string[]=[],objects:Record<string,unknown>={};
  const runtime=legacyDouble<ShardRuntime>({objects}),expose=vi.fn<ShardContext['debug']['expose']>();
- const ctx=legacyDouble<ShardContext>({scope,app:legacyDouble<ShardContext['app']>({events}),game:legacyDouble<ShardContext['game']>({runtime}),debug:{expose}});
+ const source=emptyShardfile({slug:'debug-fixture',name:'Debug fixture',author:'Fixture',revision:1,seed:7});
+ const product=createShardProduct({slug:source.identity.slug,revision:1,shardfile:source,sections:new Map(),files:new Map(),read:()=>Promise.reject(new Error('No debug read expected'))});
+ const ctx=legacyDouble<ShardContext>({scope,product,app:legacyDouble<ShardContext['app']>({events}),game:legacyDouble<ShardContext['game']>({runtime}),debug:{expose}});
  const heart={alive:true,position:new Vector3(2,3,4)},riders=legacyDouble<TimedEncounters['riders']>({});
  const night=legacyDouble<TimedEncounters>({riders,target(_o,_d,_m,hit){expect(this).toBe(night);calls.push('night');return hit;}});
  const arena=legacyDouble<ArenaRoomEncounter>({target(_o,_d,_m,hit){expect(this).toBe(arena);calls.push('arena');return hit;},lockTarget(){expect(this).toBe(arena);return heart;}});

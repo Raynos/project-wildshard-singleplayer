@@ -5,9 +5,9 @@ import * as v from 'valibot';
 import { parseClientPlan, type ClientFeatureRow } from '@wildshard/format/clientPlan';
 import { WorldAssemblySchema } from '@wildshard/format/worldAssembly';
 import { resourceScope } from '@wildshard/engine/app/resources';
-import { IslandLibrary } from '../models/islandLibrary';
+import type { IslandLibrary } from '../models/islandLibrary';
 import { ResolvedIslandLibrarySchema } from '@wildshard/format/islandLibrary';
-import { defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
+import type { defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
 import type { ShardProduct } from './shardProduct';
 
 type AssemblyRow = Extract<ClientFeatureRow, { kind: 'world.assembly' }>;
@@ -69,8 +69,14 @@ export async function admittedIslandBook(product: ShardProduct, id: string): Pro
   let record = byId.get(id);
   if (record !== undefined && (record.root !== root || record.row !== recipe)) throw new Error('Island book declaration changed');
   if (record === undefined) {
-    const library = new IslandLibrary<unknown>(root, product);
-    const pending = product.json<unknown>(row.catalogue).then(input => ({ library, sites: defineWorldSceneCatalogue(input, product) }));
+    const catalogue = row.catalogue;
+    const pending = (async () => {
+      const [{ IslandLibrary }, { defineWorldSceneCatalogue }] = await Promise.all([import('../models/islandLibrary'), import('../models/worldSceneCatalogue')]);
+      live();
+      if (product.section('custom/fixedLayouts') !== root) throw new Error('Island book declaration changed during module read');
+      const library = new IslandLibrary<unknown>(root, product);
+      return product.json<unknown>(catalogue).then(input => ({ library, sites: defineWorldSceneCatalogue(input, product) }));
+    })();
     record = { root, row: recipe, pending }; byId.set(id, record);
     const current = record, inventory = byId;
     void pending.catch(() => { if (inventory.get(id) === current) inventory.delete(id); });

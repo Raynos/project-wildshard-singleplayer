@@ -1,3 +1,4 @@
+import { declareProductClientModules } from '../shardfile/clientModules';
 import { imagesFirstPlayingBytes } from '../grid/runtimeCost';
 import { consumeTravelHandoff } from '../travel/travel';
 import { type StepRunner, createBootPlan } from '@wildshard/engine/boot/plan';
@@ -26,6 +27,7 @@ async function buildData(ctx: SessionContext) {
   boot.handoff = consumeTravelHandoff(manifest.slug);
   if (boot.handoff !== null) session.arrival = { slug: boot.handoff.to, mode: boot.handoff.mode };
   setTexturePolicy(manifest.tiers?.[TIER]?.textures, manifest.slug, imagesFirstPlayingBytes(manifest.runtimeCost));
+  declareProductClientModules(ctx.product);
   const loading = beginLoading({ id: manifest.slug, name: manifest.name, trace: manifest.boot?.phone?.trace === true });
   loading.setPrefetchSource(gridPrefetchStatus);
   loading.endAdmission();
