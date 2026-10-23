@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, w
 import { resolve } from 'node:path';
 import * as v from 'valibot';
 import { linkNodeModules } from './link-node-modules.mjs';
-import { commitGuards, runCommitJobs } from './precommit-jobs.mjs';
+import { commitCheckFailed, commitGuards, runCommitJobs } from './precommit-jobs.mjs';
 
 /** Check staged text only; no mirror, generator, app build or related walk.
  * @param {string} [root] @param {string} [executable] */
@@ -51,7 +51,10 @@ export async function precommitInputs(root = resolve(import.meta.dirname, '..'),
       const preparation = await runCommitJobs(root, [{ name: 'staged source', command: ['python3', resolve(import.meta.dirname, 'precommit-source.py'), root, tree,
         String((Date.now() + Math.max(0, deadline - performance.now())) / 1000)] }], deadline);
       const failed = preparation.find(result => result.code !== 0);
-      if (failed !== undefined) throw new Error(`${failed.name}: ${failed.output || 'five-second deadline exceeded'}`);
+      if (failed !== undefined && commitCheckFailed(failed)) throw new Error(`${failed.name}: ${failed.output}`);
+      if (failed !== undefined) {
+        defer(); console.warn('pre-commit: source preparation reached the five-second cap; cheap checks deferred to push/CI');
+      } else {
       linkNodeModules(root, tree);
       writeFileSync(resolve(tree, '.commit-files.json'), JSON.stringify(files));
       writeFileSync(resolve(tree, '.commit-deleted.json'), JSON.stringify(deleted));
@@ -73,13 +76,14 @@ export async function precommitInputs(root = resolve(import.meta.dirname, '..'),
       const guards = commitGuards(changed).filter(file => existsSync(resolve(tree, file)));
       if (guards.length > 0) jobs.push({ name: 'inventory guards', command: [process.execPath, resolve(root, 'node_modules/vitest/vitest.mjs'), 'run', '--config', 'scripts/vitest-push-guards.config.ts', ...guards] });
       checked = await runCommitJobs(tree, jobs, deadline);
+      }
     }
     const results = [...await running, ...checked];
     const failures = [];
     for (const result of results) {
       if (result.output !== '') console.error(result.output.trimEnd());
-      if (result.name === 'typed lint' && result.timedOut && !/\berror (?:[a-z]+\(|[a-z]+\/)/u.test(result.output)) {
-        defer(); console.warn('pre-commit: typed check reached the five-second wall cap; exact blobs deferred to push');
+      if ((result.timedOut || result.code === 124) && !commitCheckFailed(result)) {
+        defer(); console.warn(`pre-commit: ${result.name} reached the five-second wall cap; exact inputs deferred to push/CI`);
       } else if (result.code !== 0) failures.push(`${result.name}: ${result.timedOut ? 'five-second wall cap exceeded' : 'refused'}`);
     }
     if (git(['ls-files', '--stage', '-z']) !== initial) throw new Error('Commit index changed during checks');

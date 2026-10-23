@@ -7,7 +7,7 @@ import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Git fixtures must not inherit the caller's temporary index.
 import { env, execPath } from 'node:process';
 import { expect, test } from 'vitest';
-import { commitGuards, runCommitJobs } from '../scripts/precommit-jobs.mjs';
+import { commitCheckFailed, commitGuards, runCommitJobs } from '../scripts/precommit-jobs.mjs';
 import { fastCommitLintConfig } from '../scripts/precommit-checks.mjs';
 import { precommitInputs } from '../scripts/precommit-inputs.mjs';
 
@@ -64,4 +64,15 @@ test('staged deletions are checked even while their working file still exists', 
     writeFileSync(resolve(root, 'src/reader.ts'), 'import "./deleted";\n');
     await expect(precommitInputs(root, checker)).resolves.toBeUndefined();
   } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('a wall cap defers every cheap check but preserves observed refusals', () => {
+  for (const name of ['typed lint', 'fast lint', 'closed components', 'ratchet', 'inventory guards', 'staged source', 'storage']) {
+    expect(commitCheckFailed({ name, code: 124, timedOut: true, output: '' })).toBe(false);
+    expect(commitCheckFailed({ name, code: 124, timedOut: false, output: '' })).toBe(false);
+    expect(commitCheckFailed({ name, code: 1, timedOut: false, output: '' })).toBe(true);
+  }
+  for (const output of ['unit.ts:1: error typescript(TS2322): wrong', ' FAIL test/bad.test.ts', 'CLOSED C1 has custom lines', 'src/a.ts: deleted path src/gone.ts']) {
+    expect(commitCheckFailed({ name: 'check', code: 124, timedOut: true, output })).toBe(true);
+  }
 });

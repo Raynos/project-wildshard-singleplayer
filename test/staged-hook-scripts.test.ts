@@ -42,7 +42,7 @@ test('the cheap checker actually refuses types and lint without a mirror or gene
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
-test('time alone defers the exact staged blob to the push gate', async () => {
+test('slow typed and fast checks defer the exact staged blob to the push gate', async () => {
   const root = mkdtempSync(resolve('tmp/soft-hook-'));
   const env = Object.fromEntries(Object.entries(processEnv).filter(([key]) => !key.startsWith('GIT_')));
   const git = (...args: string[]): string => execFileSync('git', args, { cwd: root, env, encoding: 'utf8' }).trim();
@@ -53,7 +53,7 @@ test('time alone defers the exact staged blob to the push gate', async () => {
     writeFileSync(resolve(root, 'unit.ts'), 'export const value = 1;\n');
     git('add', '--', 'unit.ts', '.oxlintrc.json');
     const checker = resolve(root, 'slow-check.sh');
-    writeFileSync(checker, '#!/bin/sh\ncase " $* " in *--type-check*) exec sleep 10;; esac\nexit 0\n'); chmodSync(checker, 0o755);
+    writeFileSync(checker, '#!/bin/sh\nexec sleep 10\n'); chmodSync(checker, 0o755);
     await expect(precommitInputs(root, checker)).resolves.toBeUndefined();
     expect(JSON.parse(readFileSync(resolve(root, '.git/push-deferred-types.json'), 'utf8')))
       .toEqual({ 'unit.ts': [git('rev-parse', ':unit.ts')] });

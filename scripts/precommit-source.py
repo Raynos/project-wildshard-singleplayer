@@ -84,4 +84,8 @@ def staged_source(repo, tree, deadline, revision=None):
 
 
 if __name__ == '__main__':
-    staged_source(Path(sys.argv[1]).resolve(), Path(sys.argv[2]).resolve(), float(sys.argv[3]))
+    try:
+        staged_source(Path(sys.argv[1]).resolve(), Path(sys.argv[2]).resolve(), float(sys.argv[3]))
+    except (TimeoutError, subprocess.TimeoutExpired) as error:
+        print('pre-commit source preparation deferred: ' + str(error), file=sys.stderr)
+        raise SystemExit(124)

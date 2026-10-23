@@ -40,3 +40,13 @@ export function commitGuards(changed) {
     ...(touches(/^(?:src\/shards\/(?:nalati-grasslands|nine-dragon-stack)\/|src\/game\/shard\/manifest\.ts$|scripts\/(?:authored-manifest|manifest-declaration)\.|test\/(?:manifest-declarations\.test\.ts|fixtures\/manifest-declarations\.json)$)/u) ? ['test/manifest-declarations.test.ts'] : []),
   ];
 }
+
+/** Time alone defers; diagnostics already observed stay red at the deadline.
+ * @param {CommitResult} result */
+export function commitCheckFailed(result) {
+  if (result.code === 0) return false;
+  if (!result.timedOut && result.code !== 124) return true;
+  // oxlint-disable-next-line no-control-regex -- Strip terminal escapes before preserving observed failures at the deadline.
+  const output = result.output.replaceAll(/\u001B\[[0-9;]*m/gu, '');
+  return /(?:FAIL\s+|Tests\s+\d+ failed|Test Files\s+\d+ failed|error\[|\berror [\w-]+[(/]|CLOSED |SHRINK-ONLY |staged allowance rose|deleted path)/u.test(output);
+}
