@@ -1,5 +1,5 @@
 /**
- * Node-build reuse (P0 slow grid entry; the `nodeReuse` Developer tool, default off).
+ * Node-build reuse (P0 slow grid entry).
  *
  * Graph materials compiled from equal graphs (ground cover's kinds, near and far) emit the same code, yet three keys
  * each one's program by its own node ids (Node.customCacheKey), so the node handler builds every one in full (setup,
@@ -193,25 +193,6 @@ export function graphShape(material: THREE.Material, owner: GraphNodeOwner): Gra
   return { nodes, signature: [top.join(' '), ...lines].join('\n') };
 }
 
-/** `verify` diagnostics: where `node` hangs off `material`'s graph (the holder's class and field) */
-export function attachedAt(material: THREE.Material, node: Node): string {
-  const seen = new Set<unknown>();
-  const find = (value: unknown, at: string): string | null => {
-    if (typeof value !== 'object' || value === null || seen.has(value)) return null;
-    seen.add(value);
-    for (const property of Object.getOwnPropertyNames(value)) {
-      const child: unknown = Reflect.get(value, property);
-      if (child === node) return `${at}${value.constructor.name}.${property}`;
-      if (isNode(child) || Array.isArray(child) || typeof child === 'object' && child !== null && Object.getPrototypeOf(child) === Object.prototype) {
-        const found = find(child, at);
-        if (found !== null) return found;
-      }
-    }
-    return null;
-  };
-  return find(material, '') ?? 'unreached';
-}
-
 /** the nodes reachable from `material`'s node slots now (after its build: what its setup attached included) */
 function reachableNodes(material: THREE.Material): Set<Node> {
   const seen = new Set<Node>();
@@ -300,33 +281,4 @@ export function rebindBuild(output: BuildOutput, twins: ReadonlyMap<Node, Node>)
     uniforms: { vertex: output.uniforms.vertex.map(uniform), fragment: output.uniforms.fragment.map(uniform) },
     uniformGroups, updateNodes: output.updateNodes.map(node => twins.get(node) ?? node),
   };
-}
-
-function sameValue(a: unknown, b: unknown): boolean {
-  if (a === b) return true;
-  if (Array.isArray(a) && Array.isArray(b)) return a.length === b.length && a.every((value, i) => sameValue(value, b[i]));
-  const equals: unknown = typeof a === 'object' && a !== null ? Reflect.get(a, 'equals') : undefined;
-  return typeof equals === 'function' && Reflect.apply(equals, a, [b]) === true;
-}
-
-/**
- * Where a reused build differs from the full build of the same material (the `verify` mode): its code, its uniforms'
- * names and order, a uniform bound to another node whose value differs (a scene-updated node's value is its update's),
- * or its update nodes' classes.
- */
-export function buildDifferences(reused: BuildOutput, real: BuildOutput): string[] {
-  const out: string[] = [];
-  if (reused.vertexShader !== real.vertexShader || reused.fragmentShader !== real.fragmentShader) out.push('code');
-  const a = [...reused.uniforms.vertex, ...reused.uniforms.fragment], b = [...real.uniforms.vertex, ...real.uniforms.fragment];
-  if (a.map(u => u.name).join(',') !== b.map(u => u.name).join(',')) out.push('uniform names');
-  else {
-    for (let i = 0; i < a.length; i++) {
-      const x = a[i], y = b[i];
-      if (x === undefined || y === undefined || x.node === y.node) continue;
-      if (x.node.constructor !== y.node.constructor) out.push(`${x.name}: ${x.node.constructor.name} vs ${y.node.constructor.name}`);
-      else if ((x.node.updateType === 'none' || x.type === 'texture') && !sameValue(x.node.value, y.node.value)) out.push(`${x.name}: value`);
-    }
-  }
-  if (reused.updateNodes.map(n => n.constructor.name).join(',') !== real.updateNodes.map(n => n.constructor.name).join(',')) out.push('update nodes');
-  return out;
 }

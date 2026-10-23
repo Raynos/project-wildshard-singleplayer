@@ -8,7 +8,7 @@ import type { GraphIr } from '@wildshard/format/materialGraph';
 
 vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
 const developer = isDev();
-afterEach(() => { overrideSetting('nodeReuse', null); overrideSetting('programShare', null); setDev(developer); });
+afterEach(() => { overrideSetting('programShare', null); setDev(developer); });
 afterAll(() => { vi.unstubAllGlobals(); });
 
 // P0 grid entry: equal graphs (ground cover's kinds) still linked a GL program each, because three keys a program by its
@@ -45,7 +45,7 @@ function harness(): { handler: EngineNodesHandler; build: (material: THREE.Mater
 }
 
 test('equal graphs key one program with programShare on, their own nodes key them off; another shape keys its own', () => {
-  setDev(true); overrideSetting('nodeReuse', 'on');
+  setDev(true);
   for (const share of ['off', 'on'] as const) {
     overrideSetting('programShare', share);
     const { handler, build, done } = harness();
@@ -60,12 +60,4 @@ test('equal graphs key one program with programShare on, their own nodes key the
       expect(second.vertexShader).toBe(first.vertexShader);
     } finally { done(); a.material.dispose(); b.material.dispose(); c.material.dispose(); }
   }
-});
-
-test('programShare needs node reuse: with reuse off each material keys its own program', () => {
-  setDev(true); overrideSetting('nodeReuse', 'off'); overrideSetting('programShare', 'on');
-  const { build, done } = harness();
-  const a = compileGraph(GRAPH(0.25)), b = compileGraph(GRAPH(0.75));
-  try { expect(build(b.material).customProgramCacheKey).not.toBe(build(a.material).customProgramCacheKey); }
-  finally { done(); a.material.dispose(); b.material.dispose(); }
 });

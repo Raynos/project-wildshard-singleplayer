@@ -3,17 +3,16 @@ import * as THREE from 'three';
 import { TextureNode } from 'three/webgpu';
 import { compileGraph } from '../src/engine/render/graph/compile';
 import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandler';
-import { overrideSetting } from '../src/engine/ui/Settings';
 import { isDev, setDev } from '../src/engine/core/devMode';
 import type { GraphIr } from '@wildshard/format/materialGraph';
 
 vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
 const developer = isDev();
-afterEach(() => { overrideSetting('nodeReuse', null); setDev(developer); });
+afterEach(() => { setDev(developer); });
 afterAll(() => { vi.unstubAllGlobals(); });
 
 // P0: ground cover's kinds share one program, and each still paid a full node build. A material whose program key an
-// earlier material's build already made reuses that build's code with its own uniforms (the `nodeReuse` Developer tool).
+// earlier material's build already made reuses that build's code with its own uniforms.
 const GRAPH = (k: number, op: 'mul' | 'add' = 'mul'): GraphIr => ({ version: 1, kind: 'material', model: 'unlit', effectState: { fog: false },
   params: { k: { type: 'float', value: k }, painting: { type: 'texture', value: 'painting', role: 'lent' } },
   nodes: { uv: { op: 'uv' }, tap: { op: 'texture', param: 'painting', in: ['uv'] }, rgb: { op: 'swizzle', in: ['tap'], mask: 'xyz' },
@@ -48,7 +47,7 @@ const named = (parameters: THREE.WebGLProgramParametersWithUniforms, value: unkn
   Object.entries(parameters.uniforms).filter(([, uniform]) => uniform.value === value).map(([name]) => name);
 
 test('an equal program reuses the first build with its own params and textures', () => {
-  setDev(true); overrideSetting('nodeReuse', 'on');
+  setDev(true);
   const { handler, build, done } = harness();
   const a = compileGraph(GRAPH(0.25)), b = compileGraph(GRAPH(0.75));
   const ta = new THREE.DataTexture(new Uint8Array(4), 1, 1), tb = new THREE.DataTexture(new Uint8Array(4), 1, 1), tb2 = new THREE.DataTexture(new Uint8Array(4), 1, 1);
@@ -73,27 +72,8 @@ test('an equal program reuses the first build with its own params and textures',
   } finally { done(); a.material.dispose(); b.material.dispose(); ta.dispose(); tb.dispose(); tb2.dispose(); }
 });
 
-test('verify builds in full and finds the reused build equal; off never reuses', () => {
-  setDev(true); overrideSetting('nodeReuse', 'verify');
-  const verify = harness();
-  const a = compileGraph(GRAPH(0.25)), b = compileGraph(GRAPH(0.75));
-  try {
-    verify.build(a.material); verify.build(b.material);
-    expect(verify.handler.reuses).toBe(1);
-    expect(verify.handler.reuseDifferences).toBe(0);
-  } finally { verify.done(); a.material.dispose(); b.material.dispose(); }
-  overrideSetting('nodeReuse', 'off');
-  const off = harness();
-  const c = compileGraph(GRAPH(0.25)), d = compileGraph(GRAPH(0.75));
-  try {
-    off.build(c.material); off.build(d.material);
-    expect(off.handler.reuses).toBe(0);
-    expect(off.handler.builds).toBe(2);
-  } finally { off.done(); c.material.dispose(); d.material.dispose(); }
-});
-
 test('a graph of another shape (one operator differs) builds in full', () => {
-  setDev(true); overrideSetting('nodeReuse', 'on');
+  setDev(true);
   const { handler, build, done } = harness();
   const a = compileGraph(GRAPH(0.25)), b = compileGraph(GRAPH(0.25, 'add'));
   try {

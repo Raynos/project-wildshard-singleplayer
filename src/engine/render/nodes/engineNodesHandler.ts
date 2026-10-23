@@ -78,7 +78,7 @@ import { withNodeChildSnapshots } from './nodeChildren';
 import { NodeProgramVariants } from './nodeProgramVariants';
 import { classicModelUniform } from './nodeObjectUniforms';
 import { registerShadowDepthResolver } from '../shadowDepthVariants';
-import { attachedAt, bindLazy, buildDifferences, captureBuild, graphNodeOwner, graphShape, lazyReads, pairShapes, rebindBuild, reuseKey, unboundReads, type BuildOutput, type GraphShape, type LazyUniform } from './nodeBuildReuse';
+import { bindLazy, captureBuild, graphNodeOwner, graphShape, lazyReads, pairShapes, rebindBuild, reuseKey, unboundReads, type BuildOutput, type GraphShape, type LazyUniform } from './nodeBuildReuse';
 
 /** Depth displacement reads the same authored local normal as its surface. */
 class GraphShadowDepthMaterial extends MeshBasicNodeMaterial {
@@ -384,23 +384,19 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   private readonly plainHooked = new WeakSet();
   /** ms spent in the node builder (JS), summed */
   buildMs = 0;
-  /** builds that reused an equal program's earlier build (the `nodeReuse` Developer tool, `nodeBuildReuse.ts`); under
-   *  `verify` these are the full builds a reuse matched, and `reuseDifferences` the ones it did not */
+  /** builds that reused an equal program's earlier build (`nodeBuildReuse.ts`) */
   reuses = 0;
-  reuseDifferences = 0;
-  /** per reuse key, the last full build and its material (`nodeReuse`) */
+  /** per reuse key, the last full build and its material */
   private readonly reusable = new Map<string, WeakRef<THREE.Material>>();
   /** each such material's full build, held by the material itself: a key never keeps a retired region's material or its
    *  nodes alive (live P0: Driftwood -> Sky Reach -> Driftwood), and a disposed material's build goes with it */
   private readonly reusableBuilds = new WeakMap<THREE.Material, { readonly output: BuildOutput; readonly shape: GraphShape; readonly lazy: readonly LazyUniform[] }>();
-  /** each graph material's shape, read before its first build touched its nodes (`nodeReuse`) */
+  /** each graph material's shape, read before its first build touched its nodes */
   private readonly shapes = new WeakMap<THREE.Material, GraphShape>();
   /** programShare: graph shapes whose builds wrote other code under one shared key (they key by their own nodes) */
   private readonly unshared = new Set<string>();
   /** programShare: each shared build key's code, as a length and hash */
   private readonly sharedCode = new Map<string, string>();
-  /** `verify` only: each program's code, the first key it was built under */
-  private readonly verifiedKeys = new Map<string, string>();
   private real: Renderer | null = null;
   private warnedLevelFog = false;
   /** the node programs' uniforms, sent per draw: plain program uniforms (`nodePlainUniforms.ts`), or the std140 blocks
@@ -751,15 +747,14 @@ export class EngineNodesHandler extends WebGLNodesHandler {
 
   private buildProgram(material: THREE.Material, object: THREE.Object3D, parameters: THREE.WebGLProgramParametersWithUniforms): void {
     const t0 = diagnosticNow();
-    const mode = material instanceof NodeMaterial && !parameters.skinning && !parameters.morphTargets ? setting('nodeReuse') : 'off';
     // graph materials only (their compile owns its nodes); the shape is read before the build touches the graph
-    const owner = mode === 'off' ? undefined : graphNodeOwner(material);
+    const owner = material instanceof NodeMaterial && !parameters.skinning && !parameters.morphTargets ? graphNodeOwner(material) : undefined;
     let shape = owner === undefined ? null : this.shapes.get(material) ?? null;
     if (owner !== undefined && shape === null) { shape = graphShape(material, owner); this.shapes.set(material, shape); }
     const program = shape === null ? null : reuseKey(parameters, object, material, this.shareKeyOf(material));
     const key = shape === null || program === null ? null : `${program}\n${shape.signature}`;
     const reused = key === null || shape === null ? null : this.reusedBuild(key, material, object, shape);
-    if (mode === 'on' && typeof reused === 'object' && reused !== null) { this.applyReused(material, object, parameters, reused); this.reuses++; }
+    if (typeof reused === 'object' && reused !== null) { this.applyReused(material, object, parameters, reused); this.reuses++; }
     else {
       if (material instanceof NodeMaterial) buildWithInstanceAttributes(material, () => { super.build(material, object, parameters); });
       else super.build(material, object, parameters);
@@ -767,24 +762,6 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       if (key !== null && real !== null && shape !== null && owner !== undefined) {
         const { lazy, rest: unbound } = lazyReads(unboundReads(real, material, owner), owner);
         if (unbound.length === 0) { this.reusable.set(key, new WeakRef(material)); this.reusableBuilds.set(material, { output: real, shape, lazy }); }
-        else if (mode === 'verify') console.info(`[nodeReuse] ${material.name || material.type} is not reusable: it reads ${unbound.slice(0, 6).map(node => `${node.constructor.name}#${String(node.id)}${owner.owns(node) ? ' made by its compile' : ` attached at ${attachedAt(material, node)}`}`).join(', ')}`);
-        if (mode === 'verify' && typeof reused === 'string') console.info(`[nodeReuse] ${material.name || material.type} builds in full: ${reused}`);
-        if (mode === 'verify' && typeof reused === 'object' && reused !== null) {
-          const differences = buildDifferences(reused, real);
-          if (differences.length === 0) { this.reuses++; console.info(`[nodeReuse] ${material.name || material.type} matches its reuse`); }
-          else { this.reuseDifferences++; console.warn(`[nodeReuse] ${material.name || material.type} differs: ${differences.slice(0, 6).join('; ')}`); }
-        }
-        // a program the renderer will share under another key is a reuse the key misses: name the parts that differ
-        if (mode === 'verify') {
-          const code = real.vertexShader + real.fragmentShader, seen = this.verifiedKeys.get(code);
-          if (seen === undefined) this.verifiedKeys.set(code, key);
-          else if (seen !== key) {
-            const ours = key.split('\n'), theirs = seen.split('\n'), at = ours.findIndex((line, i) => line !== theirs[i]);
-            const parts = (line: string | undefined): Set<string> => new Set((line ?? '').split(at === 0 ? '|' : ' '));
-            const a = parts(ours[at]), b = parts(theirs[at]);
-            console.info(`[nodeReuse] ${material.name || material.type} equal code, other key at line ${String(at)}: ${[...a].filter(part => !b.has(part)).slice(0, 6).join(' ')} vs ${[...b].filter(part => !a.has(part)).slice(0, 6).join(' ')}`);
-          }
-        }
       }
     }
     this.disposeFirst(material);
@@ -842,7 +819,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
    * Null (its own nodes key it) for any other material, or a shape whose builds wrote other code under one key.
    */
   private shareKeyOf(material: THREE.Material): string | null {
-    if (setting('programShare') !== 'on' || setting('nodeReuse') === 'off' || !(material instanceof NodeMaterial)) return null;
+    if (setting('programShare') !== 'on' || !(material instanceof NodeMaterial)) return null;
     const owner = graphNodeOwner(material);
     if (owner === undefined) return null;
     let shape = this.shapes.get(material);
