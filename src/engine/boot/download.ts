@@ -118,21 +118,21 @@ export class DownloadAccounting {
   }
   snapshot(): DownloadSnapshot {
     let pendingBytes = 0, pendingFiles = 0, cachedBytes = this.browserCache, declaredBytes = 0;
-    for (const file of this.files.values()) { declaredBytes += file.bytes; if (!file.complete) { pendingBytes += file.bytes; pendingFiles++; } }
+    this.files.forEach(file => { declaredBytes += file.bytes; if (!file.complete) { pendingBytes += file.bytes; pendingFiles++; } });
     let unitemizedBytes = 0;
-    for (const [prefix, bytes] of this.groups) {
+    this.groups.forEach((bytes, prefix) => {
       let known = 0;
-      for (const [name, file] of this.files) if (name.startsWith(prefix)) known += file.bytes;
+      this.files.forEach((file, name) => { if (name.startsWith(prefix)) known += file.bytes; });
       // An unexpected extra file remains visible as real growth; a reserve never
       // hides later declarations or manufactures a completed file/byte receipt.
       unitemizedBytes += Math.max(0, bytes - known);
-    }
-    for (const bytes of this.banks.values()) unitemizedBytes += bytes;
+    });
+    this.banks.forEach(bytes => { unitemizedBytes += bytes; });
     declaredBytes += unitemizedBytes; pendingBytes += unitemizedBytes;
-    for (const bytes of this.cache.values()) cachedBytes += bytes;
+    this.cache.forEach(bytes => { cachedBytes += bytes; });
     let unclassifiedBytes = 0;
-    for (const receipt of this.unknown.values()) unclassifiedBytes += Math.max(receipt.bytes,
-      this.bodyHints.get(receipt.url) ?? 0);
+    this.unknown.forEach(receipt => { unclassifiedBytes += Math.max(receipt.bytes,
+      this.bodyHints.get(receipt.url) ?? 0); });
     return { networkBytes: this.network, cachedBytes, pendingBytes, filesDone: this.completed + this.cache.size,
       filesTotal: this.completed + this.cache.size + pendingFiles, unclassifiedBytes, unclassifiedFiles: this.unknown.size,
       declaredBytes, declaredDoneBytes: declaredBytes - pendingBytes, declaredFiles: this.files.size, declaredFilesDone: this.files.size - pendingFiles, ...(unitemizedBytes === 0 ? {} : { unitemizedBytes }) };
