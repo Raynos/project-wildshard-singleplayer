@@ -17,7 +17,7 @@ import { Color, MeshBasicMaterial, SkinnedMesh, type BufferGeometry } from 'thre
 import { productRiggedHulls } from './riggedHulls';
 import { HullLookBookSchema, PackedCreatureLooksSchema, type CompactSpeciesBodiesRows, type LookFrameSchema } from '@wildshard/format/speciesLooks';
 import type { NativeSpeciesLookBookRows, SpeciesPresentationRows } from '@wildshard/format/speciesBookRows';
-import { speciesWithLook, type SpeciesLook } from '@wildshard/engine/entities/species/look';
+import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { EngineRows } from '@wildshard/engine/level/context';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
@@ -226,19 +226,16 @@ export function productSpeciesCatalogue(product:Parameters<typeof productHullBoo
   const book=productHullBook(product),rules=speciesBehaviour(data.lookBook),packed=book.packedLooks(lookRows),bodies=book.packed;
   const rows=rules.rows,looks=packed.all.map(look=>rules.look(look));
   return {rows,looks,packed,program:kind=>{const projection=rules.projections.get(kind);if(projection===undefined)throw new Error('Missing actor projection');return projection.program();},preload:()=>bodies.preload(),
-    install:target=>{target.species(rows);target.speciesLook(looks);},
-    register:()=>{
-      for(const row of rows){const look=looks.find(candidate=>candidate.kind===row.kind);if(look===undefined)throw new Error('Missing species look');registerSpecies(speciesWithLook(row,look));}
-    }};
+    install:target=>{target.species(rows);target.speciesLook(looks);}};
 }
 
-/** A product's species: its rows and looks (installed on the level's rows, or registered by test fixtures), the packed
+/** A product's species: its rows and looks (installed on the level's rows), the packed
  *  looks' poses, the creature guest rows and the packed bodies' preload. */
 export interface SpeciesCatalogue {
   readonly rows: readonly SpeciesRow[]; readonly looks: readonly SpeciesLook[];
   program:(kind:string)=>ReturnType<ActorProjectionV2['program']>;
   readonly packed: ReturnType<HullLookBook['packedLooks']>;
-  preload: () => Promise<void>; install: (target: Pick<EngineRows, 'species' | 'speciesLook'>) => void; register: () => void;
+  preload: () => Promise<void>; install: (target: Pick<EngineRows, 'species' | 'speciesLook'>) => void;
 }
 
 /** Expand compact byte addressing only; the native packed owner admits every

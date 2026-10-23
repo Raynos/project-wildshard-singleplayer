@@ -75,7 +75,11 @@ const speciesPresentation = (await import('../src/shards/nalati-grasslands/data/
 const { productSpeciesCatalogue } = await import('../src/game/looks/speciesBook');
 prepareNalatiSpecies(productSpeciesCatalogue({section:()=>speciesPresentation.hullBook,
   file: name => name === 'actors/balbal-cracks.bin' ? Promise.resolve(Uint8Array.from(speciesPresentation.crackBytes)) : Promise.reject(new Error(`Unexpected product file ${name}`)) },parseSpeciesAdmission(SpeciesPresentationSchema,speciesPresentation.presentation),speciesPresentation.looks));
-nalatiSpeciesCatalogue().register();
+for(const row of nalatiSpeciesCatalogue().rows){
+  const look=nalatiSpeciesCatalogue().looks.find(candidate=>candidate.kind===row.kind);
+  if(look===undefined)throw new Error('Missing species look');
+  registerSpecies(speciesWithLook(row,look));
+}
 // Production uses the packed-body host; preload its exact binary through its normal fetch port.
 const speciesBodies = (await import('../src/shards/nalati-grasslands/data/species.generated.json')).default.packedBodies;
 const bodyFetch = vi.spyOn(globalThis, 'fetch').mockImplementation(input => {
