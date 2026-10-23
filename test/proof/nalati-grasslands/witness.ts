@@ -9,11 +9,11 @@ import { createSimHost, type SimHost } from '../../../src/engine/sim';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost, type SimSnapshot } from '../../../src/engine/sim/snapshot';
 import { loadRapier } from '../../../src/engine/physics/rapier';
 import { readPopulationBake } from '../../../src/game/population/nativeBake';
-import physics from '../../../src/shards/nalati-grasslands/data/physics.generated.json' with {type:'json'};
 import { prepareHeadlessRuntime } from '../../fixtures/nalati-headless';
 import { nalatiTamingWitness } from './taming';
 import { canonicalSimDigest, sameBytes } from '../../fake/simState';
 
+const physics:unknown=JSON.parse(readFileSync('src/shards/nalati-grasslands/data/physics.generated.json','utf8'));
 const nalatiBake=()=>readPopulationBake(physics,{label:'Nalati',resolution:256,size:500});
 
 /** Gaps are gameplay requirements, not exemptions; a boot/replay proof cannot certify the whole shard. */

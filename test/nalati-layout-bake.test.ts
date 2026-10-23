@@ -1,5 +1,8 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the committed native lattice.
 import { readFileSync } from 'node:fs';
+import * as v from 'valibot';
+import { ScalarLatticeSchema } from '../src/format/scalarChannel';
+import { GrassPresentationSchema } from '../src/format/fieldPresentation';
 import { expect, test } from 'vitest';
 import { unzlibSync } from 'fflate';
 import { InstancedBufferGeometry, Mesh, MeshBasicMaterial } from 'three';
@@ -9,8 +12,6 @@ import { ClientChannels } from '../src/sdk/clientChannels';
 import { installChannelPrograms } from '../src/game/plugin/channelPrograms';
 import { compactChannels } from '../src/shards/nalati-grasslands/generators/channelRows';
 import { isJsonData } from '../src/format/json';
-import geography from '../src/shards/nalati-grasslands/boot/geography.generated.json' with { type: 'json' };
-import grass from '../src/shards/nalati-grasslands/data/grass.generated.json' with { type: 'json' };
 import layout from '../src/shards/nalati-grasslands/boot/layout.generated.json' with { type: 'json' };
 import places from '../src/shards/nalati-grasslands/boot/poiLayout.generated.json' with { type: 'json' };
 import clearings from '../src/shards/nalati-grasslands/boot/clearings.generated.json' with { type: 'json' };
@@ -24,6 +25,16 @@ import { bakedSamplers } from '../src/format/bakedTerrainSampling';
 import { installDeclaredBakedTerrain } from '../src/engine/world/bakedTerrainField';
 import { GROUND,forestMask } from './fixtures/nalati-terrain';
 import { readScalarLattice } from '../src/engine/world/scalarChannel';
+
+const finite=v.pipe(v.number(),v.finite());
+const geography=v.parse(v.object({res:finite,size:finite,seed:finite,channels:v.object({wet:ScalarLatticeSchema,
+  valley:ScalarLatticeSchema,bowl:ScalarLatticeSchema,snow:ScalarLatticeSchema})}),
+  JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/geography.generated.json','utf8')));
+const originalTier=GrassPresentationSchema.entries.phone;
+const grassTierSchema=v.object({...originalTier.entries,cards:v.object({...originalTier.entries.cards.entries,
+  across:v.pipe(finite,v.integer(),v.minValue(1))})});
+const grass=v.parse(v.object({...GrassPresentationSchema.entries,phone:grassTierSchema,desktop:grassTierSchema}),
+  JSON.parse(readFileSync('src/shards/nalati-grasslands/data/grass.generated.json','utf8')));
 
 const bound = GROUND.terrain,wetMask = readScalarLattice(geography.channels.wet);
 
