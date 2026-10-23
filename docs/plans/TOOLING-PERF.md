@@ -49,4 +49,5 @@ audit and the 4-hour impact audit ([pipeline impact audit](https://claude.ai/art
 - **oxlint speed** — benchmark running (typed full lint 47 s / 12.7 GB; a 1-file typed run 4.1 s / 3.1 GB; 5 files 5.1 s).
   Becomes `tooling-perf/oxlint-mini-plan.md`: `lint:fast` (no types) always — pre-commit on affected files (G636) and the
   push gate; `lint:typed` at the push gate (changed files + importers) and CI; expensive rules dropped or moved to CI.
+- **`pnpm gen` speed** (Jake, 2026-10-23: *"a separate mini plan, audit, benchmarks, pnpm gen"*) — benchmark running (gen took 134 / 312 / 775 s in mirror slots; 229 generated JSON = 106 MB, 86 generated .ts). Becomes `tooling-perf/gen-mini-plan.md`: per-job input-hash cache shared across slots and CI, parallel jobs, drop unread outputs, typed .d.json.ts next to big JSON. Targets: warm no-change ≤ 5 s, one-shard change ≤ 20 s, cold ≤ 90 s.
 - **CI / push gate / pre-commit** — decided (G609, G610/G612, G620, G627, G628, G636); building under SHARD-PLATFORM now.
