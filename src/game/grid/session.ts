@@ -463,7 +463,9 @@ export class GridSession {
       // G164: a shard whose whole world is shifted vertically at runtime (its terrain field's `datum`, Driftwood's hybrid row)
       // shows its baked far proxy shifted by the same amount, as its own bake installs; absent, the root sits at road height
       const root = new Group(); root.name = `grid-cell:${cell.instance}`; root.position.set(cell.origin.x - home.origin.x, findShard(cell.slug)?.ground.terrain?.datum ?? 0, cell.origin.z - home.origin.z);
-      const containment = cellClip(root, CHUNK_HALF, host.scope); containment.sweep();
+      const prepareView = host.prepareView;
+      const containment = cellClip(root, CHUNK_HALF, host.scope, prepareView === undefined ? {} : { prepare: (node) => prepareView(node, () => !host.scope.disposed && node.parent !== null) });
+      containment.sweep();
       root.updateMatrixWorld(); host.scene.add(root); roots.set(cell.instance, root);
       // playtest 1: a shared product's copy wears its own number panels (copyIdentity.ts)
       const marks = copyMarks(cell.instance, cell.identity);

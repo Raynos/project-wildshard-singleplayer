@@ -295,6 +295,29 @@ test('the final draw gate catches callback-time instance changes and keeps bound
   } finally { scope.dispose(); geometry.dispose(); material.dispose(); depth.dispose(); }
 });
 
+test('a clip variant made after admission draws once the page has linked it', async () => {
+  const scope = new Scope('late-variant'), root = new Group(), geometry = new BoxGeometry(2, 2, 2), material = new MeshBasicMaterial();
+  let release: () => void = () => undefined;
+  const prepared: Object3D[] = [];
+  const prepare = (node: Object3D): Promise<void> => { prepared.push(node); return new Promise<void>((resolve) => { release = resolve; }); };
+  const guard = cellClip(root, 250, scope, { prepare }); guard.sweep();
+  let draws = 0;
+  const renderer = { renderBufferDirect: vi.fn<Renderer['renderBufferDirect']>(() => { draws++; }), shadowMap: { render: vi.fn<Renderer['shadowMap']['render']>() } };
+  installShadowMaterialOwnership(renderer, new AssetService(), scope);
+  const camera = new PerspectiveCamera(), scene = new Scene();
+  try {
+    const mesh = new Mesh(geometry, material); mesh.position.x = 250; root.add(mesh);
+    expect(mesh.material).not.toBe(material); expect(prepared).toEqual([mesh]);
+    renderer.renderBufferDirect(camera, scene, geometry, mesh.material, mesh, { start: 0, count: Infinity }); expect(draws).toBe(0);
+    // a second piece on the same variant waits on the same link, with no second preparation
+    const twin = new Mesh(geometry, material); twin.position.x = -250; root.add(twin);
+    expect(twin.material).toBe(mesh.material); expect(prepared).toHaveLength(1);
+    release(); await Promise.resolve(); await Promise.resolve();
+    renderer.renderBufferDirect(camera, scene, geometry, mesh.material, mesh, { start: 0, count: Infinity }); expect(draws).toBe(1);
+    renderer.renderBufferDirect(camera, scene, geometry, twin.material, twin, { start: 0, count: Infinity }); expect(draws).toBe(2);
+  } finally { scope.dispose(); geometry.dispose(); material.dispose(); }
+});
+
 test('event-only validation wakes refused draws and keeps the last pose guarded', () => {
   const scope = new Scope('event-only'), root = new Group(), geometry = new BoxGeometry(1, 1, 1), material = new MeshBasicMaterial();
   const mesh = new Mesh(geometry, material); mesh.castShadow = true; mesh.position.x = 251; root.add(mesh);

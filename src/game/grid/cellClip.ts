@@ -94,8 +94,17 @@ function projectBounds(local: Box3, world: Matrix4, target: Box3): Box3 {
   target.min.set(cx - rx, 0, cz - rz); target.max.set(cx + rx, 0, cz + rz); return target;
 }
 
+export interface CellClipOptions {
+  /** The page's precompile for one draw (the session's `prepareView`): a clip variant made after its cell's warm-up links its
+   *  program here, its piece held from drawing until it settles, instead of linking at its first draw (G639: a Nalati
+   *  dressing slab's variant linked in a 150 ms look frame). Absent, a variant draws at once. */
+  readonly prepare?: (node: Object3D) => Promise<void>;
+}
+/** how long a clipped piece waits for its variant's link before it draws anyway */
+const LINK_FALLBACK_MS = 3000;
+
 /** Clip edge-crossing draws at the exact inclusive cell edge. No road-band or dome exemption. */
-export function cellClip(root: Object3D, half: number, scope: Scope): CellClip {
+export function cellClip(root: Object3D, half: number, scope: Scope, options: CellClipOptions = {}): CellClip {
   const cell = { value: new Vector4(-half, -half, half, half) }, origin = new Vector3(), box = new Box3(), camera = { value: new Matrix4() }, submittedWorld = new Matrix4(), alternate = new Box3();
   root.updateWorldMatrix(true, false); origin.setFromMatrixPosition(root.matrixWorld);
   if (!Number.isFinite(origin.x) || !Number.isFinite(origin.z)) throw new Error('Cell origin is not finite');
@@ -114,6 +123,21 @@ export function cellClip(root: Object3D, half: number, scope: Scope): CellClip {
   // G639 frame floor: culled draws whose last check was decided by their declared envelope alone (every copy they may show),
   // so a change of which copies they draw (the culler's per-frame count and matrix uploads) cannot change it
   const enveloped = new WeakSet<Draw>();
+  // clip variants whose program the page's precompile is linking (`options.prepare`): their draws wait for it
+  const linking = new Set<Material>();
+  const linked = (node: Draw): boolean => linking.size === 0 || (Array.isArray(node.material) ? !node.material.some(m => linking.has(m)) : !linking.has(node.material));
+  const link = (node: Draw, fresh: readonly Material[]): void => {
+    const prepare = options.prepare;
+    if (prepare === undefined || fresh.length === 0) return;
+    for (const variant of fresh) linking.add(variant);
+    let settled = false, timer: ReturnType<typeof scope.timeout> = 0;
+    const settle = (): void => { if (settled) return; settled = true; scope.cancelTimer(timer); for (const variant of fresh) linking.delete(variant); };
+    timer = scope.timeout(LINK_FALLBACK_MS, settle);
+    const run = async (): Promise<void> => {
+      try { await prepare(node); } catch (error: unknown) { console.warn('[grid] clip variant link stopped', error); } finally { settle(); }
+    };
+    void run();
+  };
   let meshes = 0, checked = 0, checking = false, submitting = false;
   let flush = (): void => undefined;
   let validate = (_node: Draw, _submitted: boolean, _view?: Camera): void => undefined;
@@ -135,7 +159,7 @@ export function cellClip(root: Object3D, half: number, scope: Scope): CellClip {
       validate(node, true, moved ? view : undefined);
       if (clipped.has(node)) camera.value.multiplyMatrices(view.matrixWorld, view.projectionMatrixInverse);
       const active = Array.isArray(node.material) ? node.material.includes(material) : node.material === material;
-      return !refused.has(node) && (active || (!clipped.has(node) && !ownedVariants.has(material)));
+      return !refused.has(node) && linked(node) && (active || (!clipped.has(node) && !ownedVariants.has(material)));
     };
     gates.set(node, guardObjectDraw(node, admitCellDraw, scope));
   };
@@ -240,11 +264,12 @@ export function cellClip(root: Object3D, half: number, scope: Scope): CellClip {
     if (list.some(material => material instanceof RawShaderMaterial)) { if (!refused.has(node)) refused.set(node, node.visible); node.visible = false; return; }
     const visible = refused.get(node);
     if (visible !== undefined) { node.visible = visible; refused.delete(node); }
+    const fresh: Material[] = [];
     const variants = list.map(material => {
       if ([...patched.values()].includes(material)) return material;
       let variant = patched.get(material);
       if (variant === undefined) {
-        variant = material.clone(); ownedVariants.add(variant); copyShaderPatches(material, variant);
+        variant = material.clone(); ownedVariants.add(variant); copyShaderPatches(material, variant); fresh.push(variant);
         // G639: Material.copy carries no defines (only ShaderMaterial's does): the cascades' USE_CSM / CSM_CASCADES / CSM_FADE
         // set on the source (Sky.setupMaterial) went missing, so a clipped piece drew unshadowed on a program of its own
         // that linked on its first sight (161 ms of a Nalati look frame at phone 4x)
@@ -272,6 +297,7 @@ export function cellClip(root: Object3D, half: number, scope: Scope): CellClip {
     }
     if (!clipped.has(node)) { clipped.add(node); meshes++; }
     gate(node);
+    link(node, fresh);
   };
   const shown = (node: Object3D): boolean => {
     for (let parent: Object3D | null = node; parent !== null; parent = parent.parent) if (!parent.visible && !(isDraw(parent) && refused.has(parent))) return false;
