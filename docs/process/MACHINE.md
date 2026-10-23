@@ -128,6 +128,14 @@ cache hits) separately from network responses (excluding cache hits and
 headers); those totals must not be compared as the same unit. No response body
 is retained or changed, apart from the already documented HTML fixture.
 
+Compiled readings also inspect existing CacheStorage copies after controls,
+without fetching or opening caches. `cachedBodies` reports decoded body sizes,
+missing copies and explicit failures, never inferred boot cache hits. It bounds
+the URL bank to 1024 and cache count to 16, stops after 8 MiB per body or 64 MiB
+total (the last stream chunk may cross the bound), and has a five-second read
+deadline. Only metadata survives; no payload is retained. Missing IndexedDB or
+browser HTTP-cache bodies remain unknown. This adds no separate Simulator run.
+
 Any failed run stops the cohort and returns failure, with no automatic retry.
 The reader closes Safari, its proxy and any preview it opened in `finally`.
 

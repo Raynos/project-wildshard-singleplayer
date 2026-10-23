@@ -21,6 +21,7 @@ import { loadingCardIndex, loadingShardName } from './loading-benchmark/catalogu
 import { observeTransport } from './loading-benchmark/transport.mjs';
 import { accuracyRecorder } from './loading-benchmark/accuracy-data.mjs';
 import { requireCompiledEntry, downloadEvidence, transportEvidence } from './loading-benchmark/sim-shard.mjs';
+import { cachedBodyEvidence } from './loading-benchmark/cache-bodies.mjs';
 import { saveFixtureCode } from './debug-settings.mjs';
 
 const REPO = resolvePath(import.meta.dirname, '..');
@@ -227,9 +228,13 @@ async function run(mode, index) {
   if (shard !== undefined) {
     if (compiled === null || !compiled.ready) throw new Error(`${label}: compiled entry never reached controls`);
     requireCompiledEntry(compiled.href, shard, compiled.accuracy);
+    const observedUrls = [...new Set(compiled.accuracy.resources.map(row => row.name).filter(name => {
+      try { return new URL(name).origin === new URL(compiled.href).origin; } catch { return false; }
+    }))];
+    const cachedBodies = await settle(`async () => (${cachedBodyEvidence.toString()})(${JSON.stringify(observedUrls)})`, 10000);
     const receipts = transport.receipts.filter(row => row.endedAt >= compiled.origin && row.endedAt <= compiled.origin + compiled.accuracy.readyAt);
     const result = { mode, run: index, shard, href: compiled.href, accuracy: compiled.accuracy, measures: compiled.measures,
-      download: downloadEvidence(compiled.accuracy.samples), transportUnits: transportEvidence(receipts), transportReceipts: receipts, htmlFixtures: transport.htmlFixtures,
+      download: downloadEvidence(compiled.accuracy.samples), transportUnits: transportEvidence(receipts), cachedBodies, transportReceipts: receipts, htmlFixtures: transport.htmlFixtures,
       rows: compiled.accuracy.final.rows.flatMap(row => Number.isFinite(Number(row.ms)) ? [{ key: row.key, ms: Number(row.ms), label: row.label, detail: row.detail }] : []),
       loaderPaintMs: sample.fcp === null ? null : Math.round(compiled.origin + sample.fcp - sample.tap),
       loaderEndMs: Math.round(compiled.origin + compiled.accuracy.readyAt - sample.tap),
