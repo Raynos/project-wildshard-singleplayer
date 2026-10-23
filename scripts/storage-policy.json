@@ -112,6 +112,13 @@
       "bytes": 1336109,
       "kind": "runtime",
       "purpose": "Pine Hollow's splat ground layer (tile streaming P1, props.splat): a 1k ground texture-array layer KTX2, byte-identical to its public/assets/gpu/tex twin (the same git blob, no new object), content-addressed into the shard's product"
+    },
+    {
+      "path": "src/shards/nalati-grasslands/data/sign-atlas-roads.bin",
+      "oid": "838a68c2386f8fbf058cc99823844b6c948559a2",
+      "bytes": 2097152,
+      "kind": "input",
+      "purpose": "Exact 512x1024 Nalati road-sign RGBA8 canvas raster, replacing its inline base64 block through the existing named binary intake; pixel hash b018e4811be40e345a1d5ba3214b7260ac238a51b033a06dd69421a95906a55e"
     }
   ]
 }

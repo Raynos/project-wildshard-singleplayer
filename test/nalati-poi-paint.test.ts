@@ -1,3 +1,9 @@
+import {DRESSING_ATLAS_SOURCES} from '../src/shards/nalati-grasslands/generators/dressingScene';
+import {readNamedBlob} from '../src/sdk/blobs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Exercise the exact committed atlas files through the product reader.
+import {readFileSync} from 'node:fs';
+import {zlibSync} from 'fflate';
+import {prepareBinarySources} from '../src/game/models/binarySource';
 // oxlint-disable-next-line import/no-nodejs-modules -- compare the pre-conversion runtime's exact attribute bytes
 import { createHash } from 'node:crypto';
 import { describe, expect, it, vi } from 'vitest';
@@ -75,10 +81,14 @@ describe('Nalati fixed POI paint', () => {
     bodyGeometry.dispose(); armGeometry.dispose(); material.dispose();
   });
 
-  it('adopts exact atlas pixels and sampling before entering the world', () => {
+  it.each([false,true])('adopts exact atlas pixels and sampling before entering the world (inline=%s)', async inline => {
+    const files=await prepareBinarySources({file:name=>{const row=Object.values(atlases).find(candidate=>candidate.file===name);if(row===undefined)throw new Error('Missing atlas source');return Promise.resolve(new Uint8Array(readFileSync(`src/shards/nalati-grasslands/${row.source}`)));}},Object.values(atlases).map(row=>({source:{file:row.file},bytes:row.width*row.height*4})));
     const sky = testSky();
     for (const key of ['roads', 'specimen'] as const) {
-      const mesh = new Mesh(SHAPES.handle(`sign-labels:${key}`).copy(), letteringMaterial(sky, { ...atlases[key], rim: 0.2 })), material: unknown = mesh.material, expected = oracle.atlases[key];
+      const row=atlases[key],raw=files.get(row.file);if(raw===undefined)throw new Error('Missing raw atlas');
+      let data='';if(inline)for(const byte of zlibSync(raw))data+=String.fromCodePoint(byte);
+      const source=inline?{data:btoa(data)}:{file:row.file};
+      const mesh = new Mesh(SHAPES.handle(`sign-labels:${key}`).copy(), letteringMaterial(sky, { ...source,width:row.width,height:row.height, rim: 0.2 },files)), material: unknown = mesh.material, expected = oracle.atlases[key];
       if (!(material instanceof MeshLambertMaterial) || !(material.map instanceof DataTexture)) throw new Error('Sign lettering needs its Lambert atlas');
       const atlas = material.map, image: unknown = atlas.image;
       if (typeof image !== 'object' || image === null) throw new Error('Missing atlas image');
@@ -94,4 +104,13 @@ describe('Nalati fixed POI paint', () => {
     }
   });
 
+});
+
+
+it('admits both raw atlas files with their original hashes and conservative mip costs',async()=>{
+  for(const[source,expectedGpu]of DRESSING_ATLAS_SOURCES.map((candidate,index)=>[candidate,index===0?4194304:786432]as const)){
+    const blob=await readNamedBlob('src/shards/nalati-grasslands',source.name,source.source,source.kind,source.options);
+    const key=source.name===atlases.roads.file?'roads':'specimen';
+    expect(hash(blob.bytes)).toBe(oracle.atlases[key].rgbaHash);expect(blob.file.gpu).toBe(expectedGpu);expect(blob.file.decoded).toBe(blob.bytes.byteLength);
+  }
 });

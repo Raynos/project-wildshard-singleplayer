@@ -142,7 +142,8 @@ export class SceneDressing {
     };
     live();for(const file of names)if(!hasFile.call(product,file))throw new Error(`Missing scene contact file ${file}`);
     for(const file of names){live();const bytes=await read.call(product,file);live();files.set(file,bytes);}
-    const raw=await prepareBinarySources(product,Object.values(rows.geometry).flatMap(row=>row.kind==='file'?[{source:{file:row.file},bytes:bakedGeometryBytes(row.row)}]:[]),scope);
+    const raw=await prepareBinarySources(product,[...Object.values(rows.geometry).flatMap(row=>row.kind==='file'?[{source:{file:row.file},bytes:bakedGeometryBytes(row.row)}]:[]),
+      ...Object.values(rows.materials).flatMap(row=>row.kind==='lettering-file'?[{source:{file:row.file},bytes:row.width*row.height*4}]:[])],scope);
     live();for(const [name,bytes] of raw)files.set(name,bytes);
     const specimens=await prepareSpecimenCatalogue(product,rows.catalogues.flatMap(source=>source.rows),scope);live();for(const [name,bytes]of specimens)files.set(name,bytes);
     const owner=new SceneDressing(ctx,rows);
@@ -204,7 +205,7 @@ export class SceneDressing {
     await timeClientPreparation(ctx.product.slug,'dressing.materials',async()=>{
     for(const [key,source]of Object.entries(rows.materials).sort((a,b)=>Number(a[1].kind==='mapped')-Number(b[1].kind==='mapped'))){
       const material=source.kind==='specimen'?specimenMaterial(sky,source.row):source.kind==='asset'?(await loadBoundSpecimen(sky,source.row)).material
-        :source.kind==='look'?lentLook(source.look):source.kind==='mapped'?lentMappedLook(source.look,requiredMaterial(materials,source.over)):source.kind==='lettering'?letteringMaterial(sky,source):painterlyMaterial(sky,source);
+        :source.kind==='look'?lentLook(source.look):source.kind==='mapped'?lentMappedLook(source.look,requiredMaterial(materials,source.over)):source.kind==='lettering'||source.kind==='lettering-file'?letteringMaterial(sky,source,files):painterlyMaterial(sky,source);
       if(source.kind==='look'){
         for(const [name,value]of Object.entries(source.params??{}))setLentParam(source.look,name,value);
         for(const [name,row]of Object.entries(source.textures??{}))void loadSpecimenTexture(row).then(texture=>{if(!ctx.scope.disposed)setLentTexture(source.look,name,texture);return null;}).catch(()=>null);

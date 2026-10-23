@@ -48,6 +48,8 @@ export const DRESSING_CONTACT_SOURCES=v.parse(v.array(v.object({name:text,kind:v
   options:v.object({decoded:v.pipe(number,v.integer(),v.minValue(0))})})), 'sources'in paintInput?paintInput.sources:[]);
 /** Prepared carving files share the SDK's named geometry intake. */
 export const DRESSING_SPECIMEN_SOURCES=v.parse(v.array(v.object({name:text,kind:v.literal('bin'),source:text})),balbal.sources);
+/** Both exact sign rasters enter through the same named binary source path; two base planes bound the rectangular mip chain. */
+export const DRESSING_ATLAS_SOURCES=v.parse(v.array(v.object({name:text,kind:v.literal('bin'),source:text,options:v.object({gpu:number})})),Object.values(atlases).map(row=>({name:row.file,kind:'bin',source:row.source,options:{gpu:row.width*row.height*8}})));
 const cover=v.parse(coverSchema,coverInput);
 // the places' anchors and the camp smoke's baked puffs (bake-place-runtime.mjs)
 const spot=v.object({x:number,y:number,z:number}),placed=v.parse(v.object({places:v.object({rows:v.array(v.object({name:text,
@@ -99,7 +101,7 @@ function compileDressingScene(tier:'phone'|'desktop') {
     if(name==='roads'){
       // the signposts' painted lettering, between the posts and their wood (the atlas on the painterly material)
       const label=paint.rows.find(candidate=>candidate.key==='sign-labels:roads');if(label===undefined||root?.kind!=='group')throw new Error('Missing road lettering');
-      geometry['roads.lettering']={kind:'file',file:label.name,row:label.geometry};materials['roads.lettering']={kind:'lettering',...atlases.roads,rim:.2};geo['lettering']='roads.lettering';mats['lettering']='roads.lettering';
+      geometry['roads.lettering']={kind:'file',file:label.name,row:label.geometry};materials['roads.lettering']={kind:'lettering-file',file:atlases.roads.file,width:atlases.roads.width,height:atlases.roads.height,rim:.2};geo['lettering']='roads.lettering';mats['lettering']='roads.lettering';
       copied.materials.push({kind:'port',id:'lettering',source:'lettering'});copied.nodes.push({kind:'mesh',id:'lettering',name:'nalati-signs',geometry:'lettering',material:'lettering',missing:'empty',castShadow:false,receiveShadow:true,children:[]});root.children.splice(1,0,'lettering');
     }
     for(const [index,[,instance]]of row.instances.entries()){

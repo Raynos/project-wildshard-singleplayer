@@ -54,8 +54,9 @@ const sceneDressing = v.pipe(v.unknown(), v.check(isJsonData), v.strictObject({
     v.strictObject({kind:v.literal('painterly'),rim:finite,bands:finite,sway:v.exactOptional(finite),shade:v.exactOptional(finite),emissive:v.exactOptional(finite)}),
     v.strictObject({kind:v.literal('look'),look:id,params:v.exactOptional(v.record(id,v.union([finite,list(finite,16)]))),textures:v.exactOptional(v.record(id,SpecimenTextureSchema))}),
     v.strictObject({kind:v.literal('mapped'),look:id,over:id}),
-    /** painted lettering: an RGBA8 atlas (zlib, base64) on the painterly material */
+    /** Painted lettering borrows raw RGBA8 from a file, or retains the legacy compressed inline atlas. */
     v.strictObject({kind:v.literal('lettering'),width:count,height:count,data:v.pipe(v.string(),v.maxLength(1048576)),rim:finite}),
+    v.strictObject({kind:v.literal('lettering-file'),...BinaryFileSchema.entries,width:count,height:count,rim:finite}),
   ])),
   layers:list(v.strictObject({id,model:id,geometry:id,material:id,file:id,binary:v.boolean(),far:finite,castShadow:v.boolean(),keepNear:finite,
     select:v.exactOptional(v.strictObject({modulo:v.pipe(count,v.minValue(1)),remainder:count,equal:v.boolean()})),contacts:contactSource}),32),

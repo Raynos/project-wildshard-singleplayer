@@ -28,15 +28,16 @@ const prepared=v.parse(v.object({places:v.object({rows:v.array(v.object({name:v.
   JSON.parse(readFileSync('src/shards/nalati-grasslands/data/placeRuntime.generated.json','utf8')));
 
 const wire = (input:unknown):unknown => JSON.parse(encodeCanonicalJson(input));
-test.each(['world','retire','length']as const)('raw geometry refuses %s changes before any resource or system publication',async failure=>{
+test.each([['geometry','world'],['geometry','retire'],['geometry','length'],['lettering','world'],['lettering','retire'],['lettering','length']]as const)('raw %s refuses %s changes before any resource or system publication',async(kind,failure)=>{
   const inputShape=new THREE.BoxGeometry(1,2,1);inputShape.clearGroups();const blocks:Uint8Array[]=[],layout=writeGeometry(inputShape,blocks,'held');inputShape.dispose();
   const parent=new Scope('raw.parent'),scope=parent.child('raw.entered'),root=new THREE.Group(),system=vi.fn<ShardContext['system']>();
   type Runtime=NonNullable<ShardContext['game']['runtime']>;
   const runtime=legacyDouble<Runtime>({world:legacyDouble<NonNullable<Runtime['world']>>({})}),owned=vi.spyOn(scope,'own');let finish:(bytes:Uint8Array)=>void=()=>undefined;
   const held=new Promise<Uint8Array>(resolve=>{finish=resolve;}),read=vi.fn((name:string)=>name==='bad.bin'?Promise.resolve(new Uint8Array(1)):held);
   const ctx=legacyDouble<ShardContext>({scope,root,system,app:legacyDouble<ShardContext['app']>({registry:new WorldRegistry()}),game:legacyDouble<ShardContext['game']>({runtime}),product:legacyDouble<ShardContext['product']>({file:read,hasFile:()=>true})});
-  const rows={name:'raw-orchard',catalogues:[],packs:{},geometry:{marker:{kind:'file',file:'held.bin',row:layout},
-    ...(failure==='length'?{bad:{kind:'file',file:'bad.bin',row:layout}}:{})},materials:{},layers:[],statics:[],animations:[]};
+  const rows={name:'raw-orchard',catalogues:[],packs:{},geometry:kind==='geometry'?{marker:{kind:'file',file:'held.bin',row:layout},
+    ...(failure==='length'?{bad:{kind:'file',file:'bad.bin',row:layout}}:{})}:{},materials:kind==='lettering'?{paint:{kind:'lettering-file',file:'held.bin',width:1,height:join(blocks).byteLength/4,rim:.2},
+    ...(failure==='length'?{bad:{kind:'lettering-file',file:'bad.bin',width:1,height:1,rim:.2}}:{})}:{},layers:[],statics:[],animations:[]};
   const pending=SceneDressing.install(ctx,rows);expect(read).toHaveBeenCalledTimes(1);expect(owned).not.toHaveBeenCalled();
   if(failure==='world')runtime.world=legacyDouble<NonNullable<Runtime['world']>>({});
   const retiring=failure==='retire'?parent.disposeSteps():undefined;retiring?.next();finish(join(blocks));

@@ -282,10 +282,6 @@
       "base64Chars": 11564,
       "dataUris": 0
     },
-    "src/shards/nalati-grasslands/data/signAtlases.json": {
-      "base64Chars": 114140,
-      "dataUris": 0
-    },
     "src/shards/nalati-grasslands/data/species.generated.json": {
       "base64Chars": 28708,
       "dataUris": 0

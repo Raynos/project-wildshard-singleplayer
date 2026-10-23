@@ -2,7 +2,6 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { chromium, devices } from 'playwright';
-import { deflateSync } from 'node:zlib';
 import { paintSignAtlas } from './signLettering.ts';
 import { byteWriter, outputHash, jsonBytes } from '../../../../scripts/bake-output.mjs';
 
@@ -32,7 +31,9 @@ try {
       }
       return { pixels: Array.from(pixels), width: canvas.width, height: canvas.height };
     }, { paintLabels: boardLabels, hasReference: referencePath !== undefined });
-    atlases[key] = { width: result.width, height: result.height, data: deflateSync(new Uint8Array(result.pixels), { level: 9 }).toString('base64') };
+    const source=`data/sign-atlas-${key}.bin`,file=`textures/sign-atlas-${key}.rgba`;
+    writer.put(resolve(root,'src/shards/nalati-grasslands',source),new Uint8Array(result.pixels));
+    atlases[key] = { width: result.width, height: result.height, file,source };
     console.log(`${key}: ${result.width}x${result.height}, RGBA ${outputHash(new Uint8Array(result.pixels))}, ${referencePath === undefined ? 'no parent reference' : 'exact parent pixels'}`);
   }
 } finally { await browser.close(); }

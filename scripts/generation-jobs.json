@@ -19118,7 +19118,9 @@
         "src/shards/nalati-grasslands/data/places.json"
       ],
       "outputs": [
-        "src/shards/nalati-grasslands/data/signAtlases.json"
+        "src/shards/nalati-grasslands/data/signAtlases.json",
+        "src/shards/nalati-grasslands/data/sign-atlas-roads.bin",
+        "src/shards/nalati-grasslands/data/sign-atlas-specimen.bin"
       ],
       "platform": "darwin",
       "browser": true
