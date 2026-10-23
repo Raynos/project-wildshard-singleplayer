@@ -99,6 +99,7 @@ export const ClientFeatureSchema = v.variant('kind', [
   v.strictObject({ kind: v.literal('weather.forest'), file: label }),
   v.strictObject({ kind: v.literal('page.life'), file: label, ranged: label, object: v.exactOptional(id) }),
   v.strictObject({ kind: v.literal('held.ranged-page'), file: label, shadowBatch: v.exactOptional(v.strictObject({ shard: v.boolean(), grid: v.boolean() })) }),
+  v.strictObject({ kind: v.literal('elite.entry'), owner: id, adventure: id, body: id, rock: v.strictObject({ x: finite, z: finite, top: finite }), taming: v.exactOptional(id) }),
   v.strictObject({ kind: v.literal('quest.chapter-view'), chapterView: label, story: label, arena: id, fight: id, taming: v.exactOptional(id) }),
   v.strictObject({ kind: v.literal('quest.continuation'), file: label }),
   v.strictObject({ kind: v.literal('quest.views'), file: label }),

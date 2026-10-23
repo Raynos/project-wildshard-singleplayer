@@ -13152,3 +13152,10 @@ Selected captures keep other members' declared common columns while refreshing
 the active member and context slot. Steering and bite results resume before
 the original pose, grass and mounted reads. Unbound packs retain their native
 law until the required performance comparison accepts its removal.
+
+The `elite.entry` client-plan feature binds the existing engine elite feature
+from an `elite-entry` construction loan, the original adventure owner and the
+optional taming owner. It uses the original level scope, programme, models,
+clock and patrol; the entered child owns presentation and releases it on exit.
+Retained homes initialize only after boss identity prewarming, before chapter
+presentation. Rows carry ids only, with no runtime path or callback.

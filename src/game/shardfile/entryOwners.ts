@@ -1,6 +1,10 @@
 /** Client-only concrete loans between compiled entry capabilities. No shard
  * callbacks, reflected paths, clocks or continuation state live in this book. */
 import type { Object3D, Vector3 } from 'three';
+import type { DeclaredEliteEntry } from '@wildshard/engine/ai/view/eliteEntry';
+import type { EliteEntryPageRows } from '@wildshard/format/eliteEntryRows';
+import type { EliteDeclaredEntryOwners } from '../Elite';
+import type { clientWildlifeState } from '../population/wildlife';
 import type { ArenaRoomEncounter } from '../boss/arenaRoom';
 import type { PageTamingOwner } from '../riding/client';
 import type { AdventurePersistence } from '../quest/persistence';
@@ -28,9 +32,19 @@ import type { PainterlyWorld } from '../looks/postGraphLook';
 /** Existing entered owners expose their two native frame slots without another clock or saved state. */
 export interface WorldFrameOwner { readonly update: (dt: number, time: number) => void; readonly late: (dt: number, time: number) => void }
 
+/** Original elite construction resources, lent to the existing entered engine
+ * feature. No factory, shard object, reflected path or new durable owner. */
+export interface EliteEntryConstruction extends Pick<EliteDeclaredEntryOwners,
+  'construction' | 'models' | 'program' | 'fight' | 'environment' | 'clock' | 'weather' | 'ledges' | 'patrol'> {
+  readonly population: ReturnType<typeof clientWildlifeState>;
+  readonly entry: DeclaredEliteEntry;
+  readonly rows: EliteEntryPageRows;
+}
+
 /** A kind names a concrete platform owner, never an arbitrary shard result. */
 export interface EntryOwnerTypes {
   'world-frame': WorldFrameOwner;
+  'elite-entry': EliteEntryConstruction;
   scenes: SceneHandles;
   'world-weather': ForestWeatherRig;
   'world-point': Vector3 | null;
@@ -71,7 +85,7 @@ function check(scope: Scope, id: string): void {
 function book(scope: Scope): Owners {
   let value = books.get(scope);
   if (value === undefined) {
-    value = { 'world-frame': new Map(), scenes: new Map(), 'world-weather': new Map(), 'world-point': new Map(), 'arena-room': new Map(), taming: new Map(), adventure: new Map(), buildings: new Map(), forest: new Map(), cave: new Map(), quest: new Map(), 'quest-reference': new Map(),
+    value = { 'elite-entry': new Map(), 'world-frame': new Map(), scenes: new Map(), 'world-weather': new Map(), 'world-point': new Map(), 'arena-room': new Map(), taming: new Map(), adventure: new Map(), buildings: new Map(), forest: new Map(), cave: new Map(), quest: new Map(), 'quest-reference': new Map(),
       object: new Map(), placed: new Map(), site: new Map(), floor: new Map(), 'fixed-draws': new Map(), 'drawn-models': new Map(), chain: new Map(), 'rope-deck': new Map(), ambient: new Map(), 'ambient-draw': new Map(), collection: new Map(), claims: new Map(),
       animals: new Map(), sounds: new Map(), 'quest-spawns': new Map(), 'painted-world': new Map() };
     books.set(scope, value);

@@ -1,3 +1,11 @@
+import { Window } from 'happy-dom';
+import { installClientEliteEntry } from '../src/game/shardfile/clientEliteEntry';
+import { publishEntryOwner } from '../src/game/shardfile/entryOwners';
+import { parseClientPlan } from '../src/format/clientPlan';
+import type { ShardContext } from '../src/game/plugin/context';
+import type { ShardRuntime } from '../src/game/shard/runtime';
+import { ENGINE_CONTENT_STRINGS } from '../src/game/engineStrings';
+import { installEngineStrings } from '../src/engine/strings';
 import { expect, expectTypeOf, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, Group, Mesh, PerspectiveCamera, Scene, Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
@@ -24,7 +32,7 @@ import { strike } from '../src/sdk/species';
 import strikes from '../src/shards/nalati-grasslands/data/strikeProfiles.generated.json' with { type: 'json' };
 import { BorrowedElite, prepareEliteEntry, DeclaredEliteEntry, type EliteEntryLifecycle } from '../src/engine/ai/view/eliteEntry';
 import { NativeEliteController } from '../src/engine/ai/view/eliteController';
-import { ELITE_BODY_COLUMNS, ELITE_CONDITION_COLUMNS } from '../src/format/eliteEntryRows';
+import { parseEliteEntryPageRows, ELITE_BODY_COLUMNS, ELITE_CONDITION_COLUMNS } from '../src/format/eliteEntryRows';
 import { ObservationColumnsV2, type V2EnvironmentColumns } from '../src/engine/script/observationColumnsV2';
 import type { ThinkCtx } from '../src/engine/entities/species/registry';
 import { eliteThink, eliteDamageMul, setEliteBrain, setEliteDamage } from '../src/engine/entities/eliteBrain';
@@ -539,4 +547,47 @@ test('missing final borrowed model refuses before any native kernel or tell is p
     expect(f.scene.children).toHaveLength(0); expect(elites.entries).toHaveLength(0); expect(f.spawn).not.toHaveBeenCalled();
     expect(app.encounters.runtime(f.def.id)).toBeUndefined();
   } finally { f.root.dispose(); }
+});
+
+
+test('declared elite entry borrows the original engine owners and retires its exact UI/controller bank', async () => {
+  const {f,entry,rows,owners}=originalOwnerFixture(), dom=new Window();
+  const documentBefore=Object.getOwnPropertyDescriptor(globalThis,'document');
+  Object.defineProperty(globalThis,'document',{configurable:true,value:dom.document});
+  installEngineStrings(ENGINE_CONTENT_STRINGS);
+  const world=legacyDouble<NonNullable<ShardRuntime['world']>>({game:owners.game,player:owners.player});
+  const play=legacyDouble<NonNullable<ShardRuntime['play']>>({animals:owners.animals,hud:owners.entered.hud,audio:owners.entered.audio,music:owners.entered.music});
+  const runtime:ShardRuntime={world,play,step:null,interactables:[],overhead:[],hooks:{},objects:{},viewer:()=>new Vector3(),horizonVeil:null};
+  const ctx=legacyDouble<ShardContext>({scope:f.entered,game:legacyDouble<ShardContext['game']>({runtime})});
+  const {construction,models,program,environment,clock,weather,ledges,patrol}=owners;
+  const loan={entry,rows:parseEliteEntryPageRows(rows),construction,models,program,environment,clock,weather,ledges,patrol,population:{wildlife:null}};
+  const row={kind:'elite.entry' as const,owner:'quarry.elites',adventure:'quarry.progress',body:'animals',rock:owners.rock};
+  f.entered.expose(owners.game,'level',legacyDouble<Game['level']>({id:'quarry'}));
+  try{
+    expect(parseClientPlan({version:1,features:[row]}).features).toEqual([row]);
+    for(const invalid of [{...row,module:'runtime/elite.ts'},{...row,rock:{...row.rock,top:Infinity}},{...row,owner:()=>loan}])
+      expect(()=>parseClientPlan({version:1,features:[invalid]})).toThrow();
+    const before=dom.document.body.childElementCount;
+    expect(()=>installClientEliteEntry(ctx,row)).toThrow('Missing live entry owner');
+    expect(dom.document.body.childElementCount).toBe(before);
+    publishEntryOwner(f.entered,'elite-entry',row.owner,loan);
+    publishEntryOwner(f.entered,'adventure',row.adventure,owners.persistence);
+    installClientEliteEntry(ctx,row);
+    expect(entry.scripts).toHaveLength(1);
+    expect(entry.scripts[0]).toBeInstanceOf(NativeEliteController);
+    expect(app.encounters.runtime(f.def.id)).toBe(entry.scripts[0]);
+    expect(f.spawn).not.toHaveBeenCalled();
+    expect(dom.document.body.childElementCount).toBeGreaterThan(before);
+    expect(()=>installClientEliteEntry(ctx,row)).toThrow();
+    expect(entry.scripts).toHaveLength(1);
+    f.entered.dispose();
+    expect(app.encounters.runtime(f.def.id)).toBeUndefined();
+    expect(dom.document.body.childElementCount).toBe(before);
+    expect(()=>installClientEliteEntry(ctx,row)).toThrow('live world');
+  }finally{
+    f.root.dispose();
+    if(documentBefore===undefined)Reflect.deleteProperty(globalThis,'document');
+    else Object.defineProperty(globalThis,'document',documentBefore);
+    await dom.happyDOM.close();
+  }
 });

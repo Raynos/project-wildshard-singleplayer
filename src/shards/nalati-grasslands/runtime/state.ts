@@ -1,4 +1,4 @@
-import { entryOwner } from '@wildshard/game/shardfile/entryOwners';
+import { entryOwner, publishEntryOwner } from '@wildshard/game/shardfile/entryOwners';
 import { readSpawnScript } from '@wildshard/game/population/spawnScript';
 import { clientWildlife, clientWildlifeState, type PageWildlife } from '@wildshard/game/population/wildlife';
 import type { CrowdDraw as Flock } from '@wildshard/game/ambient/crowdDraw';
@@ -161,6 +161,12 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   plugin.debug.expose('nalati.ghosts', night.riders);
   plugin.debug.expose('nalati.dressing', dressing);
   await slice(total, total, 'World services');
+  publishEntryOwner(plugin.scope, 'elite-entry', 'nalati.elites', {
+    entry: elites, rows: eliteRows, construction: game.levelScope, models: drops, population: clientWildlifeState(plugin),
+    program: { id: 'elite.rules', scope: game.levelScope, value: eliteProgram }, fight: charge,
+    environment: wildEnv, clock: weather.clock, weather: weather.weather,
+    ledges: eliteLedges, patrol: night.riders,
+  });
   return nalati;
 }
 

@@ -1,12 +1,7 @@
-import { Elites } from '@wildshard/game/Elite';
-import { EliteBar } from '@wildshard/engine/ui/EliteBar';
-import { wildEnv } from '@wildshard/game/population/pageGroups';
-import poiLayout from '../boot/poiLayout.generated.json' with { type: 'json' };
 import { entryOwner, publishEntryOwner } from '@wildshard/game/shardfile/entryOwners';
 import type { SpeciesActorsFileRows } from '@wildshard/format/speciesBookRows';
 import { productSpeciesCatalogue, type SpeciesCatalogue } from '@wildshard/game/looks/speciesBook';
 
-import { retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin } from '@wildshard/game/shard/plugin';
 import { enteredOwner, withOwner } from '@wildshard/engine/app/ownership';
@@ -49,9 +44,9 @@ export class NalatiPlugin extends ShardPlugin {
   }
 
   override async play(ctx: ShardContext): Promise<void> {
-    const { shell, world } = host(ctx), h = shell.play, rt = this.rt, mounted = entryOwner(ctx.scope, 'claims', 'nalati.arsenal'), kit = mounted.pageKit(ctx);
+    const { shell } = host(ctx), h = shell.play, rt = this.rt, mounted = entryOwner(ctx.scope, 'claims', 'nalati.arsenal'), kit = mounted.pageKit(ctx);
     if (h === null || rt === null || kit === null) throw new Error('Nalati gameplay requires its world, equipment and UI');
-    const { animals, hud, audio, music, progress } = h;
+    const { hud, progress } = h;
     const persistence = entryOwner(ctx.scope, 'adventure', 'progress');
     persistence.bindProgress(progress);
     // SF67: the play installation a part a task (the ride, the bosses, the elites, the camp people were one ~290 ms task at
@@ -72,22 +67,8 @@ export class NalatiPlugin extends ShardPlugin {
     ctx.scope.run(() => rt.boss.bind(ctx,kit,mounted.model('goldenBow')));
     publishEntryOwner(ctx.scope, 'arena-room', 'arena', rt.boss);
     await part();
-    const eliteScope = ctx.scope.child('Elites.bind');
-    try { eliteScope.run(() => {
-      const game = world.game, player = world.player, bar = new EliteBar();
-      const owner = new Elites({ scene: game.scene, camera: game.camera, player,
-        condition: rule => rt.elites.holds(rule), ownSkin: skin => { rt.elites.skins.add(skin); } }, bar, game.level.id, persistence.elites);
-      owner.bindDeclaredEntry(rt.elites, rt.eliteRows, { construction: game.levelScope,
-        entered: { scope: eliteScope, interactables: shell.interactables, hud, audio, music }, game, player, body: 'animals', animals,
-        models: rt.eliteDrops, program: { id: 'elite.rules', scope: game.levelScope, value: rt.eliteProgram }, fight: rt.eliteCharge,
-        environment: wildEnv, clock: rt.weather.clock, weather: rt.weather.weather, ledges: rt.eliteLedges, rock: poiLayout.EAGLE_ROCK,
-        patrol: rt.elitePatrol, wildlife, persistence });
-    }); } catch (error) { eliteScope.dispose(); throw error; }
-    await part();
     ctx.scope.run(() => rt.titan.bind(ctx,kit,mounted.model('naizagai'),{arsenal:mounted,locker:rt.skins}));
     publishEntryOwner(ctx.scope, 'arena-room', 'fight', rt.titan);
-    // Boss prewarming reserves its identity before the authored lairs materialize for strict restore.
-    if (retainsRuntimeServices(ctx)) rt.elites.initialize(rt.eliteFrame());
     await part();
   }
 }

@@ -26,11 +26,6 @@ const declarations = new Map([
   ['src/game/shardfile/crowdRuntime.ts', new Map([
     'CrowdPrey', 'CrowdTargets',
   ].map(name => [name, 'C4']))],
-  ['src/game/quest/elitePage.ts', new Map([
-    'keeperBrains', 'keeperActs', 'keeperDamage', 'setEliteBrain', 'setEliteAct',
-    'setEliteDamage', 'eliteThink', 'eliteAct', 'eliteDamageMul', 'KeeperEliteRow',
-    'KeeperEliteEffect', 'KeeperEliteServices', 'KeeperElitePage',
-  ].map(name => [name, 'C4']))],
   ['src/game/shardfile/worldScenes.ts', new Map([['WorldScenePoolPublications', 'C1']])],
   ['src/game/shardfile/scenePools.ts', new Map([['WorldSceneTierPools', 'C1']])],
   ['src/format/worldScenes.ts', new Map([['WorldSceneTierPools', 'C1'], ['WorldScenePoolPublications', 'C1']])],

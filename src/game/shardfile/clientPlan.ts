@@ -147,6 +147,11 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     const { bindEnteredClientPlaceSets } = await import('./clientPlaceSets');
     await bindEnteredClientPlaceSets(ctx, row);
   } },
+  'elite.entry': { phase: 'play', rank: 100, lifetime: 'entered', sections: [], install: async (ctx, row) => {
+    if (row.kind !== 'elite.entry') throw new Error('Invalid elite entry feature');
+    const { installClientEliteEntry } = await import('./clientEliteEntry');
+    installClientEliteEntry(ctx, row);
+  } },
   'quest.chapter-view': { phase: 'play', rank: 110, lifetime: 'entered', sections: [], install: async (ctx, row) => {
     if (row.kind !== 'quest.chapter-view') throw new Error('Invalid chapter view feature');
     const { installEntryChapterView } = await import('./clientQuestComposition');

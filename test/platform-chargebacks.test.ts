@@ -124,10 +124,10 @@ test('the real Pine and Driftwood Explorer dispatcher no longer has a sole-user 
 });
 
 test('day-one feature credit cannot erase a G520 chargeback', () => {
-  const path = 'src/game/quest/elitePage.ts';
+  const path = 'src/game/boss/arenaRoom.ts';
   const allowance: PendingPlatformUser = { module: path, documentation: 'docs/HOST-BAR.md',
     approvedFeature: { name: 'painterly look host', decision: { path: 'docs/plans/shard-platform/decisions.md', row: 'G478' } } };
-  const painterly = { path, name: 'eliteThink', exported: true, lines: 40 };
+  const painterly = { path, name: 'OpenArenaProjection', exported: true, lines: 40 };
   const rows = [painterly,
     { path, name: 'ElitePageRows', exported: true, lines: 80 }];
   const result = partitionPendingPlatformUsers('nalati-grasslands', [], rows, [allowance]);
@@ -144,7 +144,7 @@ test('day-one feature credit cannot erase a G520 chargeback', () => {
 test('chargebacks retain their exact component after guest admission', () => {
   const sources = [
     { path: 'src/game/models/mountedSpecimen.ts', kind: 'sole-module', lines: 27 },
-    { path: 'src/game/quest/elitePage.ts', name: 'eliteThink', kind: 'sole-export', lines: 40 },
+    { path: 'src/game/boss/arenaRoom.ts', name: 'OpenArenaProjection', kind: 'sole-export', lines: 40 },
   ] as const;
   const inventory = componentInventory('.', 'nalati-grasslands', [...sources], 67);
   expect(inventory.counts.C2).toBe(0);
@@ -496,4 +496,9 @@ test('pending native continuation receipts name the actual defining schema and t
     writeFileSync(`${root}/docs/plans/shard-platform/open-x-queue.md`, '| W3 Nalati elite rule continuation (G441) | Nalati |');
     expect(pendingPlatformUsers(root)).toEqual(rows);
   } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('retired elite keeper selectors carry no chargeback after declared engine entry', () => {
+  for (const name of ['keeperBrains','keeperActs','keeperDamage','setEliteBrain','setEliteAct','setEliteDamage','eliteThink','eliteAct','eliteDamageMul','KeeperEliteRow','KeeperEliteEffect','KeeperEliteServices','KeeperElitePage'])
+    expect(platformChargeback('src/game/quest/elitePage.ts', name)).toBeNull();
 });
