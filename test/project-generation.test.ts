@@ -9,6 +9,8 @@ import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { emptyShardfile } from '../src/sdk/author';
 import { readProjectAssets } from '../src/sdk/project';
+import { runWildshard } from '../scripts/wildshard.mjs';
+import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 
 const owned: string[] = [], encoder = new TextEncoder(), program = 'a'.repeat(64);
 function fixture() {
@@ -63,7 +65,9 @@ test('the project loader executes a build entry and admits its generated asset w
   const { root } = fixture(), bytes = new Uint8Array([1, 2, 3]), source = emptyShardfile({ slug: 'generated-fixture', name: 'Generated', author: 'Test', revision: 1, seed: 3 });
   writeFileSync(resolve(root, 'shard.config.ts'), `export default ${JSON.stringify(source)};
   export async function generate(ctx) {
-    const bytes=new Uint8Array([1,2,3]), hash=ctx.asset(bytes), source=${JSON.stringify(source)};
+    const files=await ctx.cached({id:'fixture'},()=>new Map([['body.bin',new Uint8Array([1,2,3])]]));
+    const bytes=files.get('body.bin'); if(bytes===undefined)throw new Error('Missing fixture bytes');
+    const hash=ctx.asset(bytes), source=${JSON.stringify(source)};
     source.files=[{hash,kind:'binary',compressed:3,decoded:3,gpu:0,triangles:0,draws:0,dependencies:[],critical:false}];
     source.library=[hash]; source.budgets.library={resident:3,compressed:3}; return source;
   }`);
@@ -71,4 +75,7 @@ test('the project loader executes a build entry and admits its generated asset w
   expect(loaded.assets.get(hashImmutableBytes(bytes))).toEqual(bytes);
   expect(readdirSync(root)).toEqual(['shard.config.ts']);
   expect(encoder.encode(JSON.stringify(loaded.shard)).byteLength).toBeGreaterThan(0);
+  const output = resolve(root, 'out');
+  await runWildshard(['build', root, output, '--product-only', '--no-placeholders', '--format=2']);
+  expect((await loadHeadlessProduct(output)).shardfile.identity.slug).toBe('generated-fixture');
 });

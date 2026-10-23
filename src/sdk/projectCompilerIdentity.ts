@@ -4,8 +4,6 @@ import { readdirSync, realpathSync, existsSync } from 'node:fs';
 import { createRequire } from 'node:module';
 // oxlint-disable-next-line import/no-nodejs-modules -- Package-relative names, never installation paths, enter the key.
 import { dirname, resolve, relative } from 'node:path';
-// oxlint-disable-next-line import/no-nodejs-modules -- Vite consumes the SDK's defining compiler entry files.
-import { fileURLToPath } from 'node:url';
 import { build } from 'vite';
 import * as v from 'valibot';
 import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
@@ -21,8 +19,10 @@ export function projectCompilerIdentity(): Promise<string> {
   captured ??= capture(); return captured;
 }
 async function capture(): Promise<string> {
+  // The CLI defines the SDK directory when executing its bundle as a data URL.
+  const compiler = createRequire(resolve(import.meta.dirname, 'package.json')).resolve('@wildshard/sdk/compileScript');
   const built = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: false,
-    lib: { entry: [fileURLToPath(import.meta.resolve('@wildshard/sdk/compileScript'))], formats: ['es'] },
+    lib: { entry: [compiler], formats: ['es'] },
     rolldownOptions: { external: [/^node:/u, ...external] } } });
   const result = Array.isArray(built) ? built[0] : built;
   if (result === undefined || !('output' in result)) throw new Error('Missing generation compiler identity');
@@ -30,7 +30,7 @@ async function capture(): Promise<string> {
   if (chunks.length === 0 || result.output.some(row => row.type !== 'chunk')
     || chunks.some(row => [...row.imports, ...row.dynamicImports].some(name => !names.has(name) && !name.startsWith('node:') && !external.includes(name)))) throw new Error('Unknown generation compiler dependency');
   const files: [string, string][] = chunks.map(row => [`sdk/${row.fileName}`, hashImmutableBytes(new TextEncoder().encode(row.code))]);
-  files.push(...compilerPackageInputs([{ name: 'binaryen', from: import.meta.url }, { name: 'assemblyscript', from: import.meta.url, specifier: 'assemblyscript/dist/asc.js' }]));
+  files.push(...compilerPackageInputs([{ name: 'binaryen', from: compiler }, { name: 'assemblyscript', from: compiler, specifier: 'assemblyscript/dist/asc.js' }]));
   files.sort(([a, ah], [b, bh]) => a.localeCompare(b) || ah.localeCompare(bh));
   return hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson({ version: 1, files })));
 }
