@@ -1144,6 +1144,34 @@
           "grid-sunscar-dunes-road-entry-travel.skipped": 0
         }
       }
+    },
+    {
+      "shard": "nalati-grasslands",
+      "criterion": "oneFrameLooks",
+      "source": "48f221e44d29bc6256a20ce792cf0e6f24ff3810",
+      "measurement": {
+        "when": "2026-10-23T07:53:14.768Z",
+        "surface": "chromium",
+        "metrics": {
+          "grid-nalati-grasslands-road-entry-drive.frames": 845,
+          "grid-nalati-grasslands-road-entry-drive.maxMs": 183.3000000000029,
+          "grid-nalati-grasslands-road-entry-drive.p95Ms": 66.70000000000437,
+          "grid-nalati-grasslands-road-entry-drive.medianFps": 29.940119760481,
+          "grid-nalati-grasslands-road-entry-drive.skipped": 0,
+          "grid-nalati-grasslands-road-entry.frames": 136,
+          "grid-nalati-grasslands-road-entry.maxMs": 66.70000000000437,
+          "grid-nalati-grasslands-road-entry.p95Ms": 66.59999999999854,
+          "grid-nalati-grasslands-road-entry.medianFps": 20,
+          "grid-nalati-grasslands-road-entry.skipped": 0,
+          "grid-nalati-grasslands-road-entry-travel.frames": 363,
+          "grid-nalati-grasslands-road-entry-travel.maxMs": 83.39999999999418,
+          "grid-nalati-grasslands-road-entry-travel.p95Ms": 50.09999999999127,
+          "grid-nalati-grasslands-road-entry-travel.medianFps": 29.940119760484258,
+          "grid-nalati-grasslands-road-entry-travel.skipped": 0
+        }
+      },
+      "latchedAt": "2026-10-23T07:55:52.827Z",
+      "quiet": false
     }
   ]
 }
