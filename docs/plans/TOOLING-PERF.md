@@ -14,6 +14,7 @@ future."*
 
 - [TypeScript speed](tooling-perf/typescript-mini-plan.md) and its [quick wins](tooling-perf/typescript-quick-wins-mini-plan.md) — open, the builder builds them now.
 - [oxlint speed](tooling-perf/oxlint-mini-plan.md) — open, the builder builds it now.
+- [No binaries inside JSON](tooling-perf/no-binaries-in-json-mini-plan.md) — open (G649): banned; check, write guard, lint rule, burn-down.
 - [Generators spike](tooling-perf/generators-spike-mini-plan.md) — draft (G648): why generators import each other's outputs; standalone generators.
 - `pnpm gen` speed — benchmark running; becomes `tooling-perf/gen-mini-plan.md` (pending).
 - CI / push gate / pre-commit — decided (G609, G610/G612, G620, G627, G628, G636); building under SHARD-PLATFORM.

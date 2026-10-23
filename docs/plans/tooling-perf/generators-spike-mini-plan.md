@@ -1,4 +1,4 @@
-# Generators spike: mini plan (TOOLING-PERF, G648)
+# Generators spike and redesign: mini plan (TOOLING-PERF, G648/G650)
 
 **State:** `draft` 2026-10-23 — a plan-agent subagent spikes it (starts when a subagent slot frees); rows and decisions
 follow from its findings. Separate from the [gen speed plan](gen-mini-plan.md) (caching and timing) and the
@@ -19,6 +19,8 @@ files? Why can't they import the source code?"*
   `castSources.ts` imports it → `worldScenes.ts` → `build-shardfiles` packs `public/shardfiles/<slug>/`.
 - The importing makes TypeScript and typed lint read ~250 MB of baked data (about half the time and 4+ GB, G643).
 
+G650 (Jake): *"Writing generated JSON files into the data directory of the shard … we need a complete redesign of how generators work and the source code of shard files work and the data and the generators."* Binaries stay out of JSON (G649).
+
 ## The spike answers
 
 1. The real graph: every generator, what it reads and writes, the order `pnpm gen` / `gen-api.mjs` runs them, and why
@@ -29,6 +31,7 @@ files? Why can't they import the source code?"*
 4. Options, sized: (A) one generator program per shard: source in, shardfile out, in-process calls, a content-hash cache
    only around the truly expensive steps (writing binaries as `.glb`/`.bin` in a cache directory outside `src/`);
    (B) one program for the whole repo; (C) keep the files but move them out of `src/` and read them at run time.
-5. A lint ban: no import of a `*.generated.*` file from `src/` or `test/` (and no generated file under `src/`).
+5. A redesign of the shard folder: what is source (authored data, code), what is generated, and where generated output and caches live (never under `src/`).
+6. A lint ban: no import of a `*.generated.*` file from `src/` or `test/` (and no generated file under `src/`).
 
 ## Rows (to be drafted from the spike)
