@@ -182,9 +182,19 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
     return stateOf?.(part, name) ?? presented ?? fieldDefaults.get(key) ?? 0;
   };
   const moving: { material: Material; base: ReturnType<typeof parseFamilyMaterial>; rows: NonNullable<Shardfile['look']['curves']>[string]; seen: Map<string, number> }[] = [];
+  // G639: a param set on a look nothing has drawn yet waits for its compile instead of forcing it (a per-frame look update
+  // compiled every deferred painterly look in Nalati's cell-activation frame)
+  const early = new Map<string, Map<string, GraphLiteral>>();
   for (const [id, entry] of Object.entries(shard.look.materials)) {
     const rows = shard.look.curves?.[id];
-    if (isGraphEntry(entry)) { materials.defer(id, () => compile(entry)); continue; }
+    if (isGraphEntry(entry)) {
+      materials.defer(id, () => {
+        const material = compile(entry), held = early.get(id); early.delete(id);
+        for (const [name, value] of held ?? []) graphs.setParam(material, name, value);
+        return material;
+      });
+      continue;
+    }
     if (rows === undefined) { materials.set(id, compile(entry)); continue; }
     const base = parseFamilyMaterial(entry), seen = new Map(rows.map((row) => [row.state, fieldValue(row.state)]));
     const material = compile(curvedParams(base, rows, (key) => seen.get(key) ?? 0));
@@ -219,6 +229,7 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
   };
   return { toon, setParam: (id, name, value) => {
     if (scope.disposed) throw new Error('Material scope unloaded');
+    if (materials.pending(id)) { const held = early.get(id) ?? new Map<string, GraphLiteral>(); held.set(name, value); early.set(id, held); return; }
     const material = materials.get(id);
     if (material === undefined) throw new Error(`Unknown catalogue material ${id}`);
     // a standard (PBR) surface's params are its baked lightmaps' (engine render/lightmaps)
