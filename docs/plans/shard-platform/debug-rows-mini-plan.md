@@ -24,7 +24,7 @@ The shardfile route for declared Debug rows (`plumbing.json` → `debug: []`) is
 already sits around the rows: `DEBUG_READOUTS.tex` reads out a row that was deleted with the GPU textures row (G386),
 and `prepareHybridShard`'s `debug` parameter has no caller.
 
-**Verdicts: 14 SHIP · 8 DELETE · 5 KEEP.** About 1,200 lines go.
+**Verdicts: 14 SHIP · 13 DELETE · 0 KEEP** (G672 deleted the five survivors). About 1,200 lines go, plus the survivors' code.
 
 | Row id | Label | Default today | Verdict | Ships | Evidence | Risk | Lines |
 |---|---|---|---|---|---|---|---|
@@ -50,11 +50,11 @@ and `prepareHybridShard`'s `debug` parameter has no caller.
 | `shardDirectors` (legacy) | Shard directors (data) | legacy | DELETE | legacy | review date 10-18 passed; Script path never shipped; legacy only | low | ~100 |
 | `ai.brains` (legacy Pine) | AI brains | off | DELETE | off | legacy Pine is its only user; on LD7's legacy-only list | low | ~85 |
 | `groundTiles` (legacy Signal) | Signal Dunes ground tiles | code-built | DELETE | — | can't be reached; goes with its folder in LD6 | none | (LD6) |
-| `time` (dev) | Time of day | live | KEEP | — | diagnostic: holds the clock for look checks | — | — |
-| `weather` (dev) | Weather | live | KEEP | — | diagnostic: holds a weather phase | — | — |
-| `clearDownloads` (dev) | Clear downloads | button | KEEP | — | Jake's cold-load tool (E172) | — | — |
-| `legacyShardButtons` (dev) | Legacy shard buttons | off | KEEP | — | G606: stays until deletion day | — | — |
-| `game.template` (dev) | Template shard | button | KEEP | — | the only way into the hidden grey-box level | — | — |
+| `time` (dev) | Time of day | live | DELETE (G672) | — | diagnostic: holds the clock for look checks | — | — |
+| `weather` (dev) | Weather | live | DELETE (G672) | — | diagnostic: holds a weather phase | — | — |
+| `clearDownloads` (dev) | Clear downloads | button | DELETE (G672) | — | Jake's cold-load tool (E172) | — | — |
+| `legacyShardButtons` (dev) | Legacy shard buttons | off | DELETE (G672) | — | G606: stays until deletion day | — | — |
+| `game.template` (dev) | Template shard | button | DELETE (G672) | — | the only way into the hidden grey-box level | — | — |
 
 ## The Signal Dunes lighting regression (live ff45b6a24, 09:36)
 
@@ -110,17 +110,16 @@ Pure improvements with evidence come first:
 | **DR16** | Legacy rows: delete `shardDirectors` (`directorClient.ts` and the legacy Script branches in the DW finale, Pine clock and Nalati raid / crowd), `ai.brains` (`DebugOverlay.ts`), `pineMemoryTrim` → on, the now-unused `runtimeVariantEnabled`, and `prepareHybridShard`'s dead `debug` parameter. Signal's legacy row goes with LD6 | Codex | M |
 | **DR17** | `memorySaver` → on, once Jake confirms (see below): drop the off path and the Developer fence. If he says keep it off, DR17 instead deletes `memorySaver.ts` and its ~16 call sites (~330 lines) | Opus | S |
 
-## Survivors (KEEP)
+## Survivors: none (G672)
 
-Five rows stay, all Developer-only diagnostics:
+Jake, 2026-10-23 ~10:50 Cancun: *"Debug rows mini plan. That's big because it's just so much fucking code that's been off … Hidden template shard is being shown anyway, so like don't have a button for that. Get rid of that hidden template button. Clear downloads, legacy shard buttons, time of day and weather. Yeah, sure, whatever. Time of day and weather, get rid of those … Also, this setting page is really fucking annoying. It feels really slow. It feels really unresponsive. It does an instant reload when you toggle something that requires a reload instead of like allowing me to press the apply and reload button."*
 
-- **Time of day** and **Weather**: they hold the clock or a weather phase for look checks and captures. They retire when
-  every capture holds them through the harness alone.
-- **Clear downloads** (Jake's cold-load button, E172): it also takes over the Storage readout.
-- **Legacy shard buttons**: retire with LD5 (G606).
-- **Template shard**: retires once the template has a Developer card in SHARD SELECT.
+| Row | What | Owner | Size | Done when |
+|---|---|---|---|---|
+| **DR18** | Delete the five former survivors: Template shard (the template already has its SHARD SELECT card), Time of day, Weather, Clear downloads (and the Storage readout it was to take over), Legacy shard buttons; captures hold the clock and weather through the harness. Delete each row's code, strings and tests | Codex | S | the Debug card has no rows; types, lint, `vitest related` pass |
+| **DR19** | **The Settings page applies on a button.** A toggle never reloads the page: changes that need a reload are staged and an "APPLY & RELOAD" button appears (with how many changes wait); taps answer on pointerup within one frame; nothing re-renders the whole page per tap. Check the slowness on the phone tier first (what runs per tap) and fix that cause | Codex (Opus if it's render-side) | S | a Simulator recording: a reload toggle shows APPLY & RELOAD and no reload; every tap answers within 100 ms |
 
-No look A/B is left in the public Debug card after DR14.
+When DR1–DR19 are done the Debug card is gone; Settings keeps only player settings.
 
 ## For Jake
 
