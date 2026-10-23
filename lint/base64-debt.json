@@ -76,7 +76,6 @@
     "src/shards/driftwood-isle-legacy/runtime/headless.ts": 1,
     "src/shards/driftwood-isle/generators/bake-bridge-sway.mjs": 1,
     "src/shards/driftwood-isle/generators/bake-driftwood-director.mjs": 1,
-    "src/shards/driftwood-isle/generators/bake-island-dressing.mjs": 1,
     "src/shards/driftwood-isle/generators/bake-returns.mjs": 1,
     "src/shards/driftwood-isle/generators/enemyPlacement.ts": 1,
     "src/shards/driftwood-isle/generators/entryDeckSpecimen.ts": 1,

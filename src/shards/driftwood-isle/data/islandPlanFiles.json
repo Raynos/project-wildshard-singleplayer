@@ -1,12 +1,12 @@
 {
   "phone": {
-    "url": "/assets/driftwood-isle/baked/island-plan-bbe7282cde6bf8a130140dd7c952b4b3c86159c59daf1b5f56f93fb04ddf8bee.json",
-    "bytes": 666785,
+    "url": "/assets/driftwood-isle/baked/island-plan-2d4a403504f0fc26c8907c97d3a234683d00f615476d10844f30e59f238ec7a6.json",
+    "bytes": 297521,
     "used": 11949
   },
   "desktop": {
-    "url": "/assets/driftwood-isle/baked/island-plan-cbf54035425a3adeaffdb5648b055437c27453980f670e8dda8234ef874b8bba.json",
-    "bytes": 874449,
+    "url": "/assets/driftwood-isle/baked/island-plan-77efc112d9d8c772270336a57fcef6e034b9c17e7af39c7176f833112f74444f.json",
+    "bytes": 353953,
     "used": 16675
   }
 }

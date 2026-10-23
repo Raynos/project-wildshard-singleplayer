@@ -57,10 +57,10 @@ const islandMeta=JSON.parse(readFileSync(new URL('island.json',islandBase),'utf8
 const placementBytes=readFileSync(new URL('placements.bin',islandBase)),planFiles={};
 for(const tier of ['phone','desktop']){
  const plan=bakeIslandPlan(islandPlacements(Uint8Array.from(placementBytes).buffer),islandMeta,tier==='phone');
- const packed={...plan,families:plan.families.map(row=>({...row,boxes:Buffer.from(Float32Array.from(row.boxes).buffer).toString('base64')}))};
- const bytes=new TextEncoder().encode(JSON.stringify(packed));
+ const bytes=new TextEncoder().encode(JSON.stringify(plan));
  planFiles[tier]={url:emit(bytes,'json','island-plan'),bytes:bytes.length,used:plan.used};
 }
+writeFileSync(new URL('../data/islandPlanFiles.json',import.meta.url),`${JSON.stringify(planFiles,null,2)}\n`);
 console.log(`island-plan-files ${JSON.stringify(planFiles)}`);
 // SHARD-PLATFORM C2: the cove's prototypes with their far copies simplified at build; the page only clones them
 blobs.add('world/island/protos.glb','glb',await islandProtoGlb(new Uint8Array(readFileSync(new URL('island.glb',islandBase))),islandMeta));

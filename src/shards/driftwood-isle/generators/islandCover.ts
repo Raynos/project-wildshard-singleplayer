@@ -214,25 +214,22 @@ export function placementSets(f: Float32Array, protos: readonly { readonly name:
 
 interface IslandBox { x:number; z:number; hw:number; hd:number; rot:number; yTop:number; yBottom:number }
 interface IslandPlanMeta extends CoverMeta { colliders:IslandBox[] }
-interface IslandFamily { key:CoveFamily;indices:number[];boxes:number[];colliders:IslandBox[] }
+interface IslandFamily { key:CoveFamily;indices:number[];colliders:IslandBox[] }
 interface IslandPlacementPlan { version:1;used:number;sets:{casters:number[][];covers:number[][];bigs:number[][]};smallRocks:{x:number;y:number;z:number;matrix:number[];params:{r:number;sq:number}}[];families:IslandFamily[];unclaimed:IslandBox[] }
-/** Compile the native placement partitions, world picking bounds and collider ownership once. */
+/** Compile the native placement partitions and collider ownership once. */
 export function bakeIslandPlan(f:Float32Array,meta:IslandPlanMeta,phone:boolean):IslandPlacementPlan {
   const look=phone?ISLAND_TIERS.phone:ISLAND_TIERS.desktop,used=islandUsed(f,meta,phone);
   const sets=placementSets(f,meta.protos,used,area,{casterTiles:look.casterTiles,coverTiles:look.coverTiles,...ISLAND_LOOK.names});
-  const local=ISLAND_FACTS.protos.map(fact=>!fact.present?undefined:fact.empty?new THREE.Box3():new THREE.Box3(new THREE.Vector3(fact.min.x,fact.min.y,fact.min.z),new THREE.Vector3(fact.max.x,fact.max.y,fact.max.z)));
   const families=new Map<CoveFamily,IslandFamily>();
   const claim=new Map<string,IslandBox>(),spot=(x:number,z:number)=>`${x},${z}`;
   for(const original of meta.colliders){const c={...original,yTop:original.yTop-WORLD_DROP,yBottom:original.yBottom-WORLD_DROP};claim.set(spot(Math.fround(c.x),Math.fround(c.z)),c);}
-  const m=new THREE.Matrix4(),q=new THREE.Quaternion(),scale=new THREE.Vector3(),t=new THREE.Vector3(),b=new THREE.Box3();
+  const m=new THREE.Matrix4(),q=new THREE.Quaternion(),scale=new THREE.Vector3(),t=new THREE.Vector3();
   for(let i=0;i<used;i++){
-    const o=i*10,pi=f[o]??0,name=meta.protos[pi]?.name??'',key=coveFamilyOf(name),lb=local[pi];
-    if(key===undefined||lb===undefined)continue;
-    t.set(f[o+1]??0,f[o+2]??0,f[o+3]??0);q.set(f[o+4]??0,f[o+5]??0,f[o+6]??0,f[o+7]??1);
-    const sc=f[o+8]??1;b.copy(lb).applyMatrix4(m.compose(t,q,scale.set(sc,sc,sc)));
-    let entry=families.get(key);if(entry===undefined){entry={key,indices:[],boxes:[],colliders:[]};families.set(key,entry);}
+    const o=i*10,pi=f[o]??0,name=meta.protos[pi]?.name??'',key=coveFamilyOf(name);
+    if(key===undefined||ISLAND_FACTS.protos[pi]?.present!==true)continue;
+    t.set(f[o+1]??0,f[o+2]??0,f[o+3]??0);
+    let entry=families.get(key);if(entry===undefined){entry={key,indices:[],colliders:[]};families.set(key,entry);}
     entry.indices.push(i);
-    entry.boxes.push(b.min.x,b.min.y,b.min.z,b.max.x,b.max.y,b.max.z);
     const own=claim.get(spot(t.x,t.z));if(own!==undefined){entry.colliders.push(own);claim.delete(spot(t.x,t.z));}
   }
   const smallRocks=sets.apart.map(i=>{

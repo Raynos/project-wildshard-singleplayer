@@ -1,0 +1,180 @@
+{
+  "phone": {
+    "hash": "2d4a403504f0fc26c8907c97d3a234683d00f615476d10844f30e59f238ec7a6",
+    "oldBytes": 666785,
+    "used": 11949,
+    "families": [
+      {
+        "key": "bpalm",
+        "indices": 72,
+        "colliders": 15
+      },
+      {
+        "key": "palm",
+        "indices": 41,
+        "colliders": 9
+      },
+      {
+        "key": "cliff",
+        "indices": 176,
+        "colliders": 176
+      },
+      {
+        "key": "coconuts",
+        "indices": 171,
+        "colliders": 0
+      },
+      {
+        "key": "drift",
+        "indices": 47,
+        "colliders": 0
+      },
+      {
+        "key": "white",
+        "indices": 446,
+        "colliders": 0
+      },
+      {
+        "key": "tuft",
+        "indices": 4996,
+        "colliders": 0
+      },
+      {
+        "key": "yellow",
+        "indices": 658,
+        "colliders": 0
+      },
+      {
+        "key": "pebble",
+        "indices": 370,
+        "colliders": 0
+      },
+      {
+        "key": "fern",
+        "indices": 1779,
+        "colliders": 0
+      },
+      {
+        "key": "beachgrass",
+        "indices": 548,
+        "colliders": 0
+      },
+      {
+        "key": "bush",
+        "indices": 614,
+        "colliders": 0
+      },
+      {
+        "key": "hibiscus",
+        "indices": 542,
+        "colliders": 0
+      },
+      {
+        "key": "flowerbush",
+        "indices": 244,
+        "colliders": 0
+      },
+      {
+        "key": "shell",
+        "indices": 642,
+        "colliders": 0
+      },
+      {
+        "key": "star",
+        "indices": 188,
+        "colliders": 0
+      }
+    ],
+    "unclaimed": 0,
+    "smallRocks": 400
+  },
+  "desktop": {
+    "hash": "77efc112d9d8c772270336a57fcef6e034b9c17e7af39c7176f833112f74444f",
+    "oldBytes": 874449,
+    "used": 16675,
+    "families": [
+      {
+        "key": "bpalm",
+        "indices": 72,
+        "colliders": 15
+      },
+      {
+        "key": "palm",
+        "indices": 41,
+        "colliders": 9
+      },
+      {
+        "key": "cliff",
+        "indices": 176,
+        "colliders": 176
+      },
+      {
+        "key": "coconuts",
+        "indices": 171,
+        "colliders": 0
+      },
+      {
+        "key": "drift",
+        "indices": 47,
+        "colliders": 0
+      },
+      {
+        "key": "white",
+        "indices": 596,
+        "colliders": 0
+      },
+      {
+        "key": "tuft",
+        "indices": 7172,
+        "colliders": 0
+      },
+      {
+        "key": "yellow",
+        "indices": 912,
+        "colliders": 0
+      },
+      {
+        "key": "pebble",
+        "indices": 538,
+        "colliders": 0
+      },
+      {
+        "key": "fern",
+        "indices": 2529,
+        "colliders": 0
+      },
+      {
+        "key": "beachgrass",
+        "indices": 798,
+        "colliders": 0
+      },
+      {
+        "key": "bush",
+        "indices": 900,
+        "colliders": 0
+      },
+      {
+        "key": "hibiscus",
+        "indices": 775,
+        "colliders": 0
+      },
+      {
+        "key": "flowerbush",
+        "indices": 350,
+        "colliders": 0
+      },
+      {
+        "key": "shell",
+        "indices": 915,
+        "colliders": 0
+      },
+      {
+        "key": "star",
+        "indices": 268,
+        "colliders": 0
+      }
+    ],
+    "unclaimed": 0,
+    "smallRocks": 400
+  }
+}
