@@ -3,6 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import * as v from 'valibot';
+import { ratchetApprovalFailures } from './ratchet-approval.mjs';
 import { linkNodeModules } from './link-node-modules.mjs';
 import { commitCheckFailed, commitGuards, runCommitJobs } from './precommit-jobs.mjs';
 
@@ -14,6 +15,12 @@ export async function precommitInputs(root = resolve(import.meta.dirname, '..'),
   const initial = git(['ls-files', '--stage', '-z']);
   const changed = git(['diff', '--cached', '--name-only', '-z', '--no-renames', '--diff-filter=ACMRD']).split('\0').filter(Boolean);
   const deleted = git(['diff', '--cached', '--name-only', '-z', '--no-renames', '--diff-filter=D']).split('\0').filter(Boolean);
+  if (changed.includes('lint/ratchet.json')) {
+    const before = JSON.parse(git(['show', 'HEAD:lint/ratchet.json']));
+    const after = JSON.parse(git(['show', ':lint/ratchet.json']));
+    const failures = ratchetApprovalFailures(before, after, process.env.WS_COMMIT_MESSAGE ?? '');
+    if (failures.length > 0) throw new Error(failures.join('\n'));
+  }
   const source = changed.filter(path => /\.[cm]?[jt]sx?$/u.test(path) && !deleted.includes(path));
   const config = initial.includes('\t.oxlintrc.json\0') ? git(['show', ':.oxlintrc.json']) : '{}';
   const patterns = /"ignorePatterns"\s*:\s*\[([^\]]*)\]/u.exec(config)?.[1] ?? '';

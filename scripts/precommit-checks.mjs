@@ -4,6 +4,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { relative, resolve } from 'node:path';
 import { compareCounts, hardRules, readLintConfig } from './guard-counts.mjs';
 import { untypedLintConfig } from './push-lint-config.mjs';
+import { ratchetApprovalFailures } from './ratchet-approval.mjs';
 import { linkNodeModules } from './link-node-modules.mjs';
 import { legacyInventory, registeredLegacyFile } from './legacy-shards.mjs';
 
@@ -91,11 +92,7 @@ export async function stagedRatchet(files, executable, repository) {
   }
   const failures = compareCounts(effective, current, hard, files, false, true, true).failures;
   failures.push(...comparePlatformList('lint/ratchet.json', resolve('.commit-baseline-ratchet.json'), resolve('lint/ratchet.json')));
-  // Existing allowances remain shrink-only; newly staged entries apply now.
-  for (const [rule, rows] of Object.entries(policy)) {
-    if (!rule.startsWith('wildshard/')) continue;
-    for (const [file, count] of Object.entries(rows)) if (Object.hasOwn(baseline[rule] ?? {}, file) && count > baseline[rule][file]) failures.push(`${file}: ${rule} staged allowance rose`);
-  }
+  failures.push(...ratchetApprovalFailures(baseline, policy, process.env.WS_COMMIT_MESSAGE ?? ''));
   if (failures.length > 0) throw new Error(failures.join('\n'));
 }
 

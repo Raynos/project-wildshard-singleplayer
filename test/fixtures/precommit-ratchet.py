@@ -46,12 +46,15 @@ console.log(JSON.stringify({diagnostics}));process.exitCode=diagnostics.length ?
  (staged/'src/old.ts').write_text('19');check(['src/old.ts'],'was 18, now 19')
  (staged/'src/new.ts').write_text('1');check(['src/new.ts'],'was 0, now 1')
  policy={'wildshard/generator-imports':{'src/listed.ts':1,'src/new.ts':1}}
- (staged/'lint/ratchet.json').write_text(json.dumps(policy));check(['src/new.ts'])
+ (staged/'lint/ratchet.json').write_text(json.dumps(policy))
+ check(['src/new.ts'],'Missing ratchet approval')
+ env['WS_COMMIT_MESSAGE']='fix(test): fixture\n\nRatchet-Approved: wildshard-new wildshard/generator-imports src/new.ts +1'
+ check(['src/new.ts'])
  policy['wildshard/generator-imports']['src/listed.ts']=2
- (staged/'lint/ratchet.json').write_text(json.dumps(policy));check(['src/listed.ts'],'staged allowance rose')
+ (staged/'lint/ratchet.json').write_text(json.dumps(policy));check(['src/listed.ts'],'Missing ratchet approval')
  policy['wildshard/generator-imports']['src/old.ts']=0
  (staged/'lint/ratchet.json').write_text(json.dumps(policy));check(['src/old.ts'],'was 0, now 19')
  (staged/'.oxlintrc.json').write_text(json.dumps({'overrides':[{'files':['src/**'],'rules':{'wildshard/generator-imports':'error'}}]}))
  policy['wildshard/generator-imports']['src/old.ts']=19
  (staged/'lint/ratchet.json').write_text(json.dumps(policy));check(['src/old.ts'],'was 0, now 19')
- print('8 staged ratchet regressions passed')
+ print('9 staged ratchet regressions passed')

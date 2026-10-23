@@ -77,6 +77,7 @@ with open(sys.argv[1], "a") as lease:
   set -euo pipefail
   message=$1; patch=$2; common=$3; shift 3
   export WS_COMMIT_WRAPPER=1
+  export WS_COMMIT_MESSAGE="$message"
   if [ -n "$patch" ]; then
     index=$(mktemp "$common/commit-patch.XXXXXX")
     rm -f "$index"
