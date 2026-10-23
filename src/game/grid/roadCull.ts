@@ -297,9 +297,10 @@ export function bytePlan(id: string, ...parts: readonly RenderBytes[]): Platform
   return { id, jsBytes: parts.reduce((sum, p) => sum + p.jsBytes, 0), gpuBytes: parts.reduce((sum, p) => sum + p.gpuBytes, 0) };
 }
 
-/** The view's frustum in world space. */
-function frustumOf(camera: Camera, out: Frustum, scratch: Matrix4): Frustum {
-  camera.updateMatrixWorld();
+/** The view's frustum in world space. Inside a render (`fresh`) three has already brought the camera's matrices up to date:
+ *  updating it again per road draw walked the camera's whole subtree (the held weapon and hands) each time (G639). */
+function frustumOf(camera: Camera, out: Frustum, scratch: Matrix4, fresh = false): Frustum {
+  if (!fresh) camera.updateMatrixWorld();
   return out.setFromProjectionMatrix(scratch.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
 }
 
@@ -332,7 +333,7 @@ function attachRoadCull(mesh: Mesh, plan: CullPlan, main?: () => Camera | undefi
   mesh.onBeforeRender = (_renderer, _scene, camera) => {
     const view = main?.();
     if (view !== undefined && camera !== view) return;
-    const runs = visibleRuns(plan, mesh.matrixWorld, frustumOf(camera, frustum, matrix), sphere, eye.setFromMatrixPosition(camera.matrixWorld)), next = runs.map((r) => r.id).join(',');
+    const runs = visibleRuns(plan, mesh.matrixWorld, frustumOf(camera, frustum, matrix, true), sphere, eye.setFromMatrixPosition(camera.matrixWorld)), next = runs.map((r) => r.id).join(',');
     if (next === key) return;
     key = next; rebuilds++;
     let at = 0;
