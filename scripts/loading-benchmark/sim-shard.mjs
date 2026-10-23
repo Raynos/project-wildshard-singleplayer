@@ -1,5 +1,14 @@
 import { loadingShardName } from './catalogue.mjs';
 
+/** A saved-pose update skips descent; require actual unpaused gameplay rather than an invented reveal. */
+export function recoveredGridControls(sample) {
+  return sample?.bootEntry?.reason === 'reload' && sample.bootEntry.saved === true
+    && sample.bootEntry.continuing === true && sample.bootEntry.grid === true
+    && sample.world?.entered === true && sample.world.paused === false && sample.world.frameGate === true
+    && sample.loaderVisible === false && sample.title === false && sample.error === null
+    && Number.isFinite(sample.origin) && Number.isFinite(sample.at);
+}
+
 /** Exact compiled route fence; the similarly named legacy route is not evidence. */
 export function requireCompiledEntry(href, shard, accuracy) {
   loadingShardName(shard);

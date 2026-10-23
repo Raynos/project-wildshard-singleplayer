@@ -1,5 +1,24 @@
 import { expect, test } from 'vitest';
-import { downloadEvidence, requireCompiledEntry, transportEvidence, waitForWaitingWorker } from '../scripts/loading-benchmark/sim-shard.mjs';
+import { downloadEvidence, recoveredGridControls, requireCompiledEntry, transportEvidence, waitForWaitingWorker } from '../scripts/loading-benchmark/sim-shard.mjs';
+
+test('saved-pose upgrade evidence requires real controls and refuses the observed paused-world failure', () => {
+  const ready = { origin: 1000, at: 200, bootEntry: { reason: 'reload', saved: true, continuing: true, grid: true },
+    world: { entered: true, paused: false, frameGate: true }, loaderVisible: false, title: false, error: null };
+  expect(recoveredGridControls(ready)).toBe(true);
+  expect(recoveredGridControls(null)).toBe(false);
+  expect(recoveredGridControls({})).toBe(false);
+  for (const change of [{ reason: 'gpu' }, { reason: 'background' }, { saved: false }, { continuing: false }, { grid: false }]) {
+    expect(recoveredGridControls({ ...ready, bootEntry: { ...ready.bootEntry, ...change } })).toBe(false);
+  }
+  for (const change of [{ entered: false }, { paused: true }, { frameGate: false }]) {
+    expect(recoveredGridControls({ ...ready, world: { ...ready.world, ...change } })).toBe(false);
+  }
+  expect(recoveredGridControls({ ...ready, bootEntry: { ...ready.bootEntry, continuing: false },
+    world: { ...ready.world, paused: true } })).toBe(false);
+  for (const change of [{ loaderVisible: true }, { title: true }, { error: 'Importing a module script failed' }, { at: Number.NaN }, { origin: Infinity }]) {
+    expect(recoveredGridControls({ ...ready, ...change })).toBe(false);
+  }
+});
 
 test('compiled evidence refuses the legacy route, missing readiness and application failures', () => {
   const ready = { readyAt: 1200, errors: [], final: { path: 'shardfile' } };

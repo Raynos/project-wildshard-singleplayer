@@ -178,6 +178,11 @@ Failures and response metadata survive cleanup. An absent or changed old
 controller refuses the reading.
 After entry, the controller's BUILD reply must match the new deployment;
 an installed waiting worker alone cannot pass the update proof.
+The worker must also report completed activation. Saved-pose planned updates
+skip the descent: that path instead requires actual entered, unpaused HUD,
+open gameplay gate, no visible loader, and the matching recorded planned-reload
+policy. Its first observed controls time is explicit; unmeasured reveal/frame
+statistics remain null. Normal entry still requires its completed reveal.
 The official polls retain actual entered/paused HUD state and the single
 `wildshard.grid.entry-policy` performance mark (reason, checkpoint presence,
 initial-entry policy, grid and arrival mode), without copying save contents.

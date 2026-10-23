@@ -22,7 +22,7 @@ import { soakInspector } from './soak/inspector.mjs';
 import { loadingCardIndex, loadingShardName } from './loading-benchmark/catalogue.mjs';
 import { observeTransport } from './loading-benchmark/transport.mjs';
 import { accuracyRecorder } from './loading-benchmark/accuracy-data.mjs';
-import { requireCompiledEntry, downloadEvidence, transportEvidence, waitForWaitingWorker } from './loading-benchmark/sim-shard.mjs';
+import { requireCompiledEntry, downloadEvidence, transportEvidence, waitForWaitingWorker, recoveredGridControls } from './loading-benchmark/sim-shard.mjs';
 import { cachedBodyEvidence } from './loading-benchmark/cache-bodies.mjs';
 import { saveFixtureCode } from './debug-settings.mjs';
 import { readSimulatorCoreFootprint, coreMemoryTargets, coreMemorySummary, compiledFloorSave, scriptResourceURLs } from './shard-phone-memory.mjs';
@@ -134,12 +134,13 @@ const WATCH = `window.__simEntry ??= (() => {
   requestAnimationFrame(tick);
   return s;
 })(); 1`;
-const READ = `JSON.stringify({ origin: performance.timeOrigin, entry: window.__simEntry ?? null, reveal: window.__wsReveal ?? null,
+const READ = `JSON.stringify({ origin: performance.timeOrigin, at: performance.now(), entry: window.__simEntry ?? null, reveal: window.__wsReveal ?? null,
   fcp: performance.getEntriesByType('paint').find(e => e.name === 'first-contentful-paint')?.startTime ?? null, href: location.href,
   tap: Number(sessionStorage.getItem('sim.tap')),
   title: !!document.querySelector('.ws-main-select'), pill: document.querySelector('.ws-update')?.textContent ?? null,
   error: document.querySelector('#wsstuck')?.textContent ?? document.querySelector('#wserr .msg')?.textContent ?? null,
-  world: (()=>{const w=window.__wildshard?.world;return w?{entered:w.hud?.entered??null,paused:w.hud?.paused??null}:null;})(),
+  world: (()=>{const w=window.__wildshard?.world;return w?{entered:w.hud?.entered??null,paused:w.hud?.paused??null,frameGate:w.game.frameGate()}:null;})(),
+  loaderVisible: [...document.querySelectorAll('.ws-load,.ws-resume.show')].some(panel=>getComputedStyle(panel).display!=='none'&&Number(getComputedStyle(panel).opacity)>.05),
   bootEntry: performance.getEntriesByName('wildshard.grid.entry-policy', 'mark').at(-1)?.detail ?? null,
   recovery: (()=>{try{const d=JSON.parse(localStorage.getItem('wildshard.save.v2.device')||'{}').keys??{},s=JSON.parse(sessionStorage.getItem('wildshard.save.v2.session')||'{}').keys??{};return {end:d['life.lastEnd'],arrival:s.titleArrival,backup:d['titleArrival.once'],travel:s['travel.handoff'],grid:s['grid.recovery.once'],gridBackup:d['grid.recovery.once'],guard:d['grid.recovery.guard']};}catch(error){return {error:String(error)};}})(),
   worker: {controller: navigator.serviceWorker?.controller?.state ?? null, waiting: window.__ws_sw?.waiting?.state ?? null} })`;
@@ -247,7 +248,7 @@ async function run(mode, index, target) {
     const on = data => { if (/Recording started/iu.test(String(data))) resolve(Date.now()); };
     recorder.stdout.on('data', on); recorder.stderr.on('data', on); setTimeout(() => { resolve(Date.now()); }, 8000);
   });
-  let sample = null, compiled = null, secondTapAt = null;
+  let sample = null, compiled = null, secondTapAt = null, recoveredAt = null;
   try {
     await sleep(1000);
     const setup = shard === undefined && upgradeFrom === undefined ? '' : [
@@ -326,7 +327,8 @@ async function run(mode, index, target) {
             measures: performance.getEntriesByType('measure').map(row => ({ name: row.name, start: row.startTime, ms: row.duration })) })`));
           if ((compiled.accuracy?.readyAt > 0 && compiled.ready) || compiled.accuracy?.errors.length > 0) break;
         }
-        if (typeof sample.reveal?.endedMs === 'number' && ended === null) ended = Date.now();
+        if (upgradeFrom !== undefined && recoveredAt === null && recoveredGridControls(sample)) recoveredAt = sample.origin + sample.at;
+        if ((typeof sample.reveal?.endedMs === 'number' || recoveredAt !== null) && ended === null) ended = Date.now();
         if (ended !== null && Date.now() - ended > 8500) break;
       } catch (error) { log(file, { ev: 'poll-error', e: String(error).slice(0, 160) }); try { await connect(BASE); } catch { /* retried next poll */ } }
       await sleep(500);
@@ -339,6 +341,7 @@ async function run(mode, index, target) {
     const nextVersion = await (await fetch(new URL('version.json', upstream), {cache: 'no-store'})).json();
     log(file, {ev: 'upgrade-final-controller', controller, href: sample?.href ?? null});
     if (typeof controller?.build !== 'string' || !controller.build.startsWith(`${nextVersion.build}-`)) throw new Error('New deployment worker did not take control of the grid entry');
+    if (controller.activationStage !== 'complete') throw new Error('New deployment worker did not complete activation');
   }
   if (shard !== undefined) {
     if (compiled === null || !compiled.ready) throw new Error(`${label}: compiled entry never reached controls`);
@@ -358,17 +361,19 @@ async function run(mode, index, target) {
     writeFileSync(resolvePath(out, `${label}.json`), `${JSON.stringify(result, null, 1)}\n`);
     return result;
   }
-  if (typeof sample?.reveal?.endedMs !== 'number' || sample.entry === null) throw new Error(`${label}: the entry never reached the controls`);
+  const restored = upgradeFrom !== undefined && recoveredAt !== null && recoveredGridControls(sample);
+  if ((!restored && typeof sample?.reveal?.endedMs !== 'number') || sample.entry === null) throw new Error(`${label}: the entry never reached the controls`);
   const { origin, entry, reveal, fcp, tap } = sample, from = at => Math.round(origin + at - tap);
   const result = { mode, run: index, href: sample.href,
     loaderPaintMs: fcp === null ? null : from(fcp), loaderEndMs: entry.gone === null ? null : from(entry.gone),
-    revealStartMs: from(reveal.startedAt), controlsMs: from(reveal.startedAt + reveal.endedMs), revealSkipped: reveal.skipped,
-    worstFrameAfterControlsMs: Math.round(entry.worst), worstFrameAt: entry.worstAt === null ? null : Math.round(entry.worstAt),
+    revealStartMs: restored ? null : from(reveal.startedAt), controlsMs: restored ? Math.round(recoveredAt - tap) : from(reveal.startedAt + reveal.endedMs), revealSkipped: restored ? null : reveal.skipped,
+    savedPoseRecovery: restored,
+    worstFrameAfterControlsMs: restored ? null : Math.round(entry.worst), worstFrameAt: restored || entry.worstAt === null ? null : Math.round(entry.worstAt),
     stepTotals: entry.totals, downloadShown: entry.downloads, downloadDrops: entry.downloads.filter((value, i) => i > 0 && value < (entry.downloads[i - 1] ?? 0)).length,
     rows: entry.rows.map(([key, ms, text, detail]) => ({ key, ms: Math.round(ms), label: text, detail })) };
   // video seconds of a page time: the recording started at recordingAt (wall clock), the tap at tapAt
   const videoAt = ms => (tap + ms - recordingAt) / 1000;
-  result.brokenFrames = result.loaderEndMs === null ? null : brokenFrames(video, videoAt(result.loaderEndMs), videoAt(result.revealStartMs));
+  result.brokenFrames = restored || result.loaderEndMs === null ? null : brokenFrames(video, videoAt(result.loaderEndMs), videoAt(result.revealStartMs));
   if (!keepVideo) rmSync(video, { force: true });
   writeFileSync(resolvePath(out, `${label}.json`), `${JSON.stringify(result, null, 1)}\n`);
   if (secondTapAt !== null) {

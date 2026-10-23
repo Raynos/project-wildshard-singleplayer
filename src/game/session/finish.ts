@@ -110,7 +110,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   } });
   // G325: an arrival enters at once, but its AudioContext waits for the player's first tap (`installAudioUnlock`)
   // an app switch that takes the GPU (iOS): hold the loop, restore in place or reload where the player stood (E54)
-  if (resuming && !ctx.continuingGridEntry) hud.setPaused(true); // A live recovery needs RESUME; a pre-entry update retains the original tap.
+  if (resuming && !ctx.continuingGridEntry) hud.setPaused(true); // Graphics recovery needs RESUME; a planned update retains the original tap.
   const recoveryInstalledAt = performance.now();
   installGpuRecovery({ game, rebuild: () => { sky.rebuildEnvironment(); }, pose: () => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null), resumed: resuming,
     ...(ctx.gridLive === null ? {} : { beforeReload: (reason: 'gpu' | 'background') => ctx.gridLive?.prepareRecovery(reason) === true }),

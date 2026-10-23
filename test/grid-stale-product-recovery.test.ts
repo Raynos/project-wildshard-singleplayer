@@ -4,7 +4,7 @@ import { installSaveEnvironment, saveEnvironment } from '../src/engine/saves/env
 import { markReload, type LastEnd } from '../src/engine/boot/lastEnd';
 import { consumeTitleArrival, pendingTitleArrival, setTitleArrival } from '../src/engine/boot/titleArrival';
 import { GridAssembly, type GridCell } from '../src/game/grid/assembly';
-import { gridRecovery, initialGridReload } from '../src/game/grid/recovery';
+import { gridRecovery, initialGridReload, plannedGridReload } from '../src/game/grid/recovery';
 import { pageGridIntents } from '../src/game/grid/intent';
 import { bootPageMode, clearGridRecovery, consumeGridRecovery, gridRecoveryLoop } from '../src/game/grid/pageEntry';
 import { travelService, travelSlot } from '../src/game/travel/travel';
@@ -62,15 +62,19 @@ test('the recorded grid mode survives a later stale admission after both origina
   expect(gridRecoveryLoop()).toBe(true);
 });
 
-test('only a planned pre-entry reload continues the original entry instead of pausing for RESUME', () => {
+test('planned reloads continue at the saved pose; graphics recovery retains RESUME', () => {
   const f = fixture();
   const record = f.read({ ...previous, mode: 'grid' });
   if (record === null) throw new Error('Missing admitted stale-grid recovery');
   expect(initialGridReload(record)).toBe(true);
+  expect(plannedGridReload(record)).toBe(true);
   expect(initialGridReload(undefined)).toBe(false);
   expect(initialGridReload(null)).toBe(false);
+  expect(plannedGridReload(undefined)).toBe(false);
+  expect(plannedGridReload(null)).toBe(false);
   for (const reason of ['gpu', 'background', 'new-game'] as const) {
     expect(initialGridReload({ ...record, reason })).toBe(false);
+    expect(plannedGridReload({ ...record, reason })).toBe(false);
   }
   const service = gridRecovery(f.store, () => Date.now());
   expect(service.save(assembly, home, record.road, { kind: 'road' })).toBe(true);
@@ -80,6 +84,10 @@ test('only a planned pre-entry reload continues the original entry instead of pa
   if (live.kind !== 'resume') throw new Error('Missing admitted live recovery');
   expect(live.record.saved).toBeDefined();
   expect(initialGridReload(live.record)).toBe(false);
+  expect(plannedGridReload(live.record)).toBe(true);
+  for (const reason of ['gpu', 'background', 'new-game'] as const) {
+    expect(plannedGridReload({ ...live.record, reason })).toBe(false);
+  }
 });
 
 test.each([

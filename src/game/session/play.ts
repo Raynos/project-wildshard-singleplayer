@@ -20,7 +20,7 @@ import { BagButton } from '../bag/BagButton';
 import { Progress } from '../Progress';
 import { Inventory } from '../Inventory';
 import { legacyHomeCheckpoint } from '../grid/homeCheckpoint';
-import { initialGridReload } from '../grid/recovery';
+import { initialGridReload, plannedGridReload } from '../grid/recovery';
 import { ITEMS } from '../bag/itemCatalog';
 import { LastPlace, placeName } from '../LastPlace';
 import { shardCompleteUp } from '../complete/ShardComplete';
@@ -424,7 +424,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   const tour = world.tour;
   // a GPU-recovery reload (E61) skips the title: straight back into the world at the saved spot, under the pause menu
   const resuming = session.recovery !== undefined || params.has('glreload');
-  const continuingGridEntry = initialGridReload(session.recovery);
+  const continuingGridEntry = plannedGridReload(session.recovery);
   const arrival = session.arrival;
   const menuFirst = arrival === null && !params.has('skipintro') && !params.has('tour') && !resuming;
   let firstIn = true;
@@ -503,7 +503,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   // the grid's player-facing moments: G98's sky-down reveal to the pier (G622 D1: 3 s, any touch or key takes over), then
   // G78's SAFE ZONE + dimmed ATTACK on the road, G82 / G105's title card on entering a shard, G97's speed look (gridHud.ts)
   if (grid !== null) {
-    const revealing = session.recovery === undefined || continuingGridEntry ? installGridReveal({ scope: game.levelScope, camera: game.camera, hudRoot: hud.root, canvas: game.renderer.domElement, onLate: (fn) => { game.onLate(fn, 'game.grid.reveal'); },
+    const revealing = session.recovery === undefined || initialGridReload(session.recovery) ? installGridReveal({ scope: game.levelScope, camera: game.camera, hudRoot: hud.root, canvas: game.renderer.domElement, onLate: (fn) => { game.onLate(fn, 'game.grid.reveal'); },
       home: chunk.name, ringsReady: () => grid.ringsReady(), homeSimReady: () => !gridHomeSim.pending, weapons, viewmodel: game.viewmodel, entered: () => hud.entered }) : () => false;
     const gridHud = installGridHud({ scope: game.levelScope, hudRoot: hud.root, camera: game.camera, cells: gridCells,
       title: (cell) => { const shard = findShard(cell.slug); return { name: shard?.name ?? cell.slug, subtitle: shard?.biome ?? '' }; },
