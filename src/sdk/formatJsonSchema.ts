@@ -1,3 +1,4 @@
+import { WorldAssemblySchema } from '@wildshard/format/worldAssembly';
 import { ReturnModulesSchema } from '@wildshard/format/scriptContract';
 import { BowVariantSchema } from '@wildshard/format/bowVariantRows';
 import { ReturnProjectionV2Schema } from '@wildshard/format/returnProjectionV2';
@@ -371,6 +372,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'scalarChannel.ScalarTriplet': ScalarTripletSchema,
   'returnProjectionV2.ReturnProjectionV2': ReturnProjectionV2Schema,
   'scriptContract.ReturnModules': ReturnModulesSchema,
+  'worldAssembly.WorldAssembly': WorldAssemblySchema,
  };
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();
