@@ -250,10 +250,6 @@
       "base64Chars": 39172,
       "dataUris": 0
     },
-    "src/shards/nalati-grasslands/boot/balbalSpecimen.generated.json": {
-      "base64Chars": 204984,
-      "dataUris": 0
-    },
     "src/shards/nalati-grasslands/boot/bowVariant.generated.json": {
       "base64Chars": 16472,
       "dataUris": 0
@@ -264,10 +260,6 @@
     },
     "src/shards/nalati-grasslands/boot/geography.generated.json": {
       "base64Chars": 1369756,
-      "dataUris": 0
-    },
-    "src/shards/nalati-grasslands/boot/grass.generated.json": {
-      "base64Chars": 1518880,
       "dataUris": 0
     },
     "src/shards/nalati-grasslands/boot/mountedLoadout.generated.json": {
