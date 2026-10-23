@@ -269,6 +269,34 @@ it('keeps higher-priority CommonJS candidates on the complete key',async()=>{
   put(root,'src/sdk/chosen.js','module.exports={value:2};');
   expect(await run()).toMatchObject({hit:false,text:'2'});
 });
+it('keeps CommonJS resolution inventory without treating it as module execution',async()=>{
+  const {root,run}=fixture("import{createRequire}from'node:module';import fs from'node:fs';const name=createRequire(import.meta.url).resolve('../../../sdk/chosen').split('/').at(-1);fs.writeFileSync('src/shards/alpha/data/output.txt',name);");
+  put(root,'src/sdk/chosen.json',JSON.stringify({value:1}));
+  const first=await run();expect(first).toMatchObject({hit:false,text:'chosen.json'});
+  put(root,'src/sdk/chosen.json',JSON.stringify({value:2}));
+  put(root,'src/sdk/unread.ts','// changed code cannot affect path resolution');
+  expect(await run()).toEqual({...first,hit:true});
+  put(root,'src/sdk/chosen.js','export const value=3;');
+  expect(await run()).toMatchObject({hit:false,text:'chosen.js'});
+});
+it('keeps package main metadata exact for CommonJS resolution-only calls',async()=>{
+  const {root,run}=fixture("import{createRequire}from'node:module';import fs from'node:fs';const name=createRequire(import.meta.url).resolve('../../../sdk/chosen').split('/').at(-1);fs.writeFileSync('src/shards/alpha/data/output.txt',name);");
+  put(root,'src/sdk/chosen/package.json',JSON.stringify({main:'first.mjs'}));
+  put(root,'src/sdk/chosen/first.mjs','export const value=1;');
+  put(root,'src/sdk/chosen/second.mjs','export const value=2;');
+  expect(await run()).toMatchObject({hit:false,text:'first.mjs'});
+  put(root,'src/sdk/chosen/package.json',JSON.stringify({main:'second.mjs'}));
+  expect(await run()).toMatchObject({hit:false,text:'second.mjs'});
+});
+it('keeps actual CommonJS module execution on the full byte closure',async()=>{
+  const {root,run}=fixture("import{createRequire}from'node:module';import fs from'node:fs';const value=createRequire(import.meta.url)('../../../sdk/chosen.cjs').value;fs.writeFileSync('src/shards/alpha/data/output.txt',String(value));");
+  put(root,'src/sdk/chosen.cjs','module.exports={value:1};');
+  expect(await run()).toMatchObject({hit:false,text:'1'});
+  put(root,'src/sdk/unread.ts','// still conservative for actual CommonJS execution');
+  expect(await run()).toMatchObject({hit:false,text:'1'});
+  put(root,'src/sdk/chosen.cjs','module.exports={value:2};');
+  expect(await run()).toMatchObject({hit:false,text:'2'});
+});
 it('keeps opaque subprocess reads on the conservative closure',async()=>{
   const output='src/shards/alpha/data/output.txt';
   const {root,run}=fixture(`import fs from 'node:fs';import {execFileSync} from 'node:child_process';fs.writeFileSync('${output}',execFileSync(process.execPath,['-e',"process.stdout.write(require('fs').readFileSync('src/sdk/unread.ts'))"]));`);

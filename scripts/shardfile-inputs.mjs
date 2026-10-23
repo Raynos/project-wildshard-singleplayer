@@ -129,7 +129,10 @@ export function installInputRecorder() {
   resolve(specifier,context,next) {
     notePackageExport(specifier);
     const scope=inputScope();
-    if(context.conditions.includes('require'))scope?.opaque?.add('commonjs-resolution');
+    // require.resolve and Node's ESM error hints inspect candidates without
+    // executing their bodies. Retain every filename and package manifest for
+    // resolution; actual CommonJS module loads below remain fully opaque.
+    if(scope?.traceOnly===true&&context.conditions.includes('require'))scope.inventory?.add('R commonjs-resolution');
     try {return next(specifier,context);}
     catch(error){
       if(scope?.traceOnly===true) {

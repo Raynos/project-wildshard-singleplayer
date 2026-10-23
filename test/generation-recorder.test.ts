@@ -44,9 +44,9 @@ it.each([
 ])('retains an inventory fence for filesystem probes: %s',source=>{
   const {child,read}=fixture(source);expect(child.status,child.stderr).toBe(0);expect(read().inventory.length).toBeGreaterThan(0);
 });
-it('keeps CommonJS resolution opaque',()=>{
+it('retains CommonJS resolution inventory without treating a builtin as source execution',()=>{
   const {child,read}=fixture("import{createRequire}from'node:module';createRequire(import.meta.url)('node:fs');");
-  expect(child.status,child.stderr).toBe(0);expect(read().opaque).toContain('commonjs-resolution');
+  expect(child.status,child.stderr).toBe(0);expect(read().inventory).toContain('R commonjs-resolution');expect(read().opaque).toEqual([]);
 });
 it.each([
   ["import{spawnSync}from'node:child_process';spawnSync(process.execPath,['-e',\"require('fs').readFileSync('unread.ts')\"]);",'child-process'],

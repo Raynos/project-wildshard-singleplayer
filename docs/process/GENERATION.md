@@ -78,7 +78,8 @@ stage's file/directory/absent ancestor chain; directory reads bind their subtree
 That view includes immutable upstream copies, projected catalogue files, pinned external inputs and output-parent
 directories, never loose checkout files. Unsupported paths, glob/readlink probes, dependency-link scans and unresolved
 bare packages retain the full inventory; failed file resolution also binds the candidate's parent subtree.
-CommonJS/native/subprocess work keeps the complete conservative key.
+CommonJS resolution-only calls (including Node's ESM error hints) bind the complete filename inventory and package
+metadata; actual CommonJS module execution, native and subprocess work keep the complete conservative byte key.
 Every miss still executes the complete current stage.
 
 Jobs hash every regular file in their declared conservative input roots plus the runner, sidecar, loader and lockfile.
