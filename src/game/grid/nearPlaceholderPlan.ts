@@ -51,3 +51,10 @@ export function planNearPlaceholders(cells: readonly GridCell[], pitch: number,
   if (!Number.isSafeInteger(limit) || limit < 0) throw new RangeError('Invalid near-placeholder limit');
   return { cells: ranked.slice(0, limit).map(({ instance, distance }) => ({ instance, distance })) };
 }
+
+
+/** Placeholder suppression belongs only to unentered cells. An entered region
+ * keeps its tiles even when it has no near view or shared tile registration. */
+export function placeholderBlocksTiles(instance:string,entered:string|null,registered:boolean,ownsNear:boolean,absentNear:boolean):boolean {
+  return instance!==entered&&!registered&&(ownsNear||absentNear);
+}

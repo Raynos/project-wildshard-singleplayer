@@ -56,7 +56,7 @@ import { FarImpostorSchema, type FarImpostor } from '@wildshard/format/shardSect
 import { bindCellCover, cellCoverPort } from './cellCover';
 import { FAR_RING, type FarLookRuntime } from './farProxy';
 import { bakedNearFiles, NearPlaceholders, type NearPlaceholderState } from './nearPlaceholderView';
-import { PHONE_NEAR_CELLS } from './nearPlaceholderPlan';
+import { PHONE_NEAR_CELLS, placeholderBlocksTiles } from './nearPlaceholderPlan';
 import { TIER } from '@wildshard/engine/core/tier';
 import { GridFrame, type GridFrameHost, type GridFrameState } from './frame';
 import { installHazeBand } from './hazeBand';
@@ -549,9 +549,9 @@ export class GridSession {
     // G342 round 3: a cell whose near view draws and carries its own world owns it whole (its dense
     // ground over the cell), so the rings stop refining it to its own L1 / L0 tiles, which would mask the near view near
     // the road (round 3's first A = B); a terrain-only near view (the template, its world in its tiles) keeps them; a cell
-    // with no near view at all keeps its far proxy (its tiles draw in looks only its entered world lights)
+    // with no near view keeps its far proxy until entered (only the entered world lights its tiles)
     this.rings = new TileStreamer(this.neighbours, this.allocator, (id, level, x, z) => (level === 'far' ? this.costs.get(id) ?? this.declaredFar.get(id) ?? 1_600_000
-      : !this.clientTiles.owns(id) && (this.near.owns(id) || this.near.absent(id)) ? null : tileCost(id, level, x, z)),
+      : this.placeholderBlocksTiles(id) ? null : tileCost(id, level, x, z)),
       levelPorts<FarPrepared, PreparedRingTile>(farPorts, tiles.ports), { farRadius: FAR_RING.reach });
     this.clientTiles = clientTileRegistration(tiles.instances, this.rings, tileResidencyRadius);
     this.admitNeighbour = host.renderer === undefined ? undefined : this.tileAdmission(host.renderer, roots);
@@ -718,11 +718,16 @@ export class GridSession {
     else gridCells.enter({ instance: inside.instance, slug: inside.slug });
   }
 
+  private placeholderBlocksTiles(instance:string):boolean {
+    const entered=this.live===null?this.home.instance:this.live.live.current();
+    return placeholderBlocksTiles(instance,entered,this.clientTiles.owns(instance),this.near.owns(instance),this.near.absent(instance));
+  }
+
   /** What only draws, from the last fixed step's pose and velocity: the rings, the screens, the shimmer, the near view. */
   private viewStep(): void {
     const at = this.last ?? this.world(), speed = Math.hypot(this.velocity.x, this.velocity.z), clamp = speed > 60 ? 60 / speed : 1; // a respawn's jump is not a velocity
     this.rings.step({ x: at.x, z: at.z, vx: this.velocity.x * clamp, vz: this.velocity.z * clamp });
-    for (const cell of this.neighbours) if (!this.clientTiles.owns(cell.instance) && (this.near.owns(cell.instance) || this.near.absent(cell.instance))) this.rings.retireRefinement(cell.instance);
+    for (const cell of this.neighbours) if (this.placeholderBlocksTiles(cell.instance)) this.rings.retireRefinement(cell.instance);
     this.stepCellLoading();
     this.shimmer.step();
     const active = this.live === null ? this.home.instance : this.live.live.current();
