@@ -139,6 +139,18 @@ class PushLoop(unittest.TestCase):
         self.assertIn('oxlint', commands[-1])
         self.assertEqual(result['types'], 'pre-commit+importers')
 
+    def test_real_selector_emits_payload_when_console_info_is_muted(self):
+        self.put('vitest.config.mjs', "export default {test:{include:['test/*.test.ts'],setupFiles:[]}};")
+        self.put('test/consumer.test.ts', "import {test} from 'vitest'; import '../src/base'; test('unit',()=>{});")
+        self.put('changed.json', '["src/base.ts"]')
+        self.put('mute-console.mjs', 'console.info = () => {};')
+        subprocess.run(['node', str(TOOL_ROOT / 'link-node-modules.mjs'), str(ROOT), str(self.root)], check=True)
+        process = subprocess.run(['node', '--import', './mute-console.mjs', str(TOOL_ROOT / 'gate-related-tests.mjs'),
+                                  'changed.json', '--live', '--budget=10'], cwd=self.root,
+                                 capture_output=True, text=True, timeout=20)
+        self.assertEqual(process.returncode, 0, process.stderr)
+        self.assertEqual(json.loads(process.stdout.strip()), ['test/consumer.test.ts'])
+
     def test_selector_diagnostics_after_json_do_not_crash_or_skip_tests(self):
         tip = self.commit('src/good.ts')
         commands = []

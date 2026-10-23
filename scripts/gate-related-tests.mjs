@@ -171,5 +171,6 @@ if (isMain) {
   console.error(`gate-related-tests: ${related.length} related + ${required.length} required product test files for ${sources.length} changed sources (${walk}s)${over}`);
   const durations = knownDurations();
   if (live) run.sort((a, b) => (durations.get(a) ?? 1) - (durations.get(b) ?? 1) || a.localeCompare(b));
-  console.info(JSON.stringify(run));
+  // Vitest may intercept console.info even after close(); this is our protocol.
+  process.stdout.write(`${JSON.stringify(run)}\n`);
 }
