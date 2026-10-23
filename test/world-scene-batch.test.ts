@@ -51,6 +51,25 @@ test('fixed instances keep authored range and LOD boundaries, moving between the
   owner.dispose(); material.dispose(); geometry.dispose();
 });
 
+test('merge copies draw as one static copy of their near geometries, the rest keep their LOD (G639)', () => {
+  const owner = new Scope('harbour'), material = new MeshBasicMaterial(), geometry = triangle();
+  const row = batchRows(), [culled] = row.fixed;
+  if (culled === undefined) throw new Error('Missing fixed row');
+  const at = (x: number) => ({ ...culled, merge: true as const, matrix: new Matrix4().makeTranslation(x, 0, 0).elements });
+  const batch = new WorldSceneBatch(v.parse(WorldSceneBatchSchema, { ...row, fixed: [at(10), culled, at(20)] }), material, [geometry, geometry], owner, new WorldRegistry());
+  const group = batch.finish(), meshes = drawn(group);
+  expect(counts(group)).toEqual([0, 0, 1]); // the merged copy draws before any view, and at every distance
+  const camera = new PerspectiveCamera(); camera.position.z = -1000; camera.updateMatrixWorld(true); batch.update(camera);
+  expect(counts(group)).toEqual([0, 0, 1]);
+  const merged = meshes[2]?.geometry, position = merged?.getAttribute('position');
+  expect(position?.count).toBe(6); expect(merged?.getIndex()?.count).toBe(6);
+  expect([position?.getX(0), position?.getX(3)]).toEqual([10, 20]);
+  expect(geometry.getAttribute('position').getX(0)).toBe(0); // the shared source geometry is never moved
+  const dispose = vi.spyOn(merged ?? geometry, 'dispose');
+  owner.dispose(); expect(dispose).toHaveBeenCalledTimes(1);
+  material.dispose(); geometry.dispose();
+});
+
 test('a batch owns only its instance buffers and refuses use after its lifetime ends', () => {
   const owner = new Scope('harbour'), material = new MeshBasicMaterial(), geometry = triangle();
   const materialDispose = vi.spyOn(material, 'dispose'), geometryDispose = vi.spyOn(geometry, 'dispose');

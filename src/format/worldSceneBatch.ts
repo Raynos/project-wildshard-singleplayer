@@ -6,9 +6,11 @@ const count = v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(16_777_2
 const slot = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(127));
 const geometry = v.strictObject({ library: id, model: id });
 const distance = v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(1e12));
+/** `merge`: a static copy drawn always at its near geometry, merged with the batch's other merge copies into one draw
+ *  (no per-copy LOD or range: many small fixed copies of one material cost one draw a pass, not one each) */
 const instance = v.strictObject({ near: distance, far: distance,
   lod0: slot, lod1: slot, matrix: v.pipe(v.array(finite), v.length(16)),
-  sphere: v.tuple([finite, finite, finite, v.pipe(finite, v.minValue(0))]) });
+  sphere: v.tuple([finite, finite, finite, v.pipe(finite, v.minValue(0))]), merge: v.exactOptional(v.literal(true)) });
 
 /** One reserved client draw shared by named placements and ordered fixed LOD instances. */
 export const WorldSceneBatchSchema = v.pipe(v.strictObject({ id, tier: v.exactOptional(v.picklist(['phone', 'desktop'])), material: id, name: v.optional(id, 'world-scene-batch'),

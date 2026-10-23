@@ -33,7 +33,7 @@ export function cragNodeGeometry(scene: Object3D): Map<string, BufferGeometry> {
 
 interface FixedRows {
   geometry: { library: string; model: string }[];
-  fixed: { lod0: number; lod1: number; near: number; far: number; sphere: number[]; matrix: number[] }[];
+  fixed: { lod0: number; lod1: number; near: number; far: number; sphere: number[]; matrix: number[]; merge?: true }[];
   capacity: { instances: number; vertices: number; indices: number };
 }
 /** Keep final atlas names and fixed-instance order separate from the native reservations. */
@@ -42,7 +42,9 @@ export function cragFixedRows(tier: 'phone' | 'desktop'): FixedRows {
   const geometry = assembly.slots.map(slot => ({ library: 'crags', model: slot.skin >= 0
     ? `${tier}-skin-${String(slot.skin >> 1)}-${slot.skin % 2 === 1 ? 'far' : 'near'}` : slot.cave }));
   const frame = new Matrix4().makeRotationY(LAYOUT.BEAR_CAVE.rot).setPosition(LAYOUT.BEAR_CAVE.x, 0, LAYOUT.BEAR_CAVE.z);
+  // the skin tiles draw merged at their near level, one draw a pass (G639: 18 tiles were 36 of Pine's ~228 draws; the
+  // whole phone near skin is 50k triangles); the cave keeps its own LOD
   const fixed = assembly.plans.map(row => ({ lod0: row.lod0, lod1: row.lod1, near: row.near, far: row.far,
-    sphere: [row.x, row.y, row.z, row.r], matrix: row.cave ? frame.elements : new Matrix4().elements }));
+    sphere: [row.x, row.y, row.z, row.r], matrix: row.cave ? frame.elements : new Matrix4().elements, ...(row.cave ? {} : { merge: true as const }) }));
   return { geometry, fixed, capacity: assembly.reserve };
 }
