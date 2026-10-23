@@ -334,6 +334,14 @@ async function pacedSceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | 
   }
 }
 
+/**
+ * sp-o100: the bound for a live warm-up on a paced page that does not isolate its uploads (desktop Chromium's entered
+ * frame). The 12 ms boot bound is checked after the fact, so a slice ran 12 ms plus its last unit (a six-material job, a
+ * 15 ms first link query) on top of the frame's own 3-5 ms of game work: Pine's road entry drew five of its ten
+ * double-vsync travel frames in its warm-up. Live slices also issue one material a job.
+ */
+export const LIVE_PRECOMPILE_SLICE_MS = 6;
+
 /** Prepare newly resident roots against current page lighting and its declared exterior state before exposure.
  * Borrow original materials and object flags in the ordinary painted compile/link/upload slices. Live parents,
  * visibility, uniforms, lighting and render targets stay unchanged; the resident owner fences every slice.
@@ -346,8 +354,14 @@ export async function prepareSceneRoots(renderer: Renderer, camera: THREE.Camera
   // `scenePrograms` false: the roots' resources and exterior variants only (the boot's Shaders step builds what its first
   // frame draws, and the rest is warmed in play)
   const { jobs, materials } = !scenePrograms ? { jobs: [], materials: 0 } : sceneJobs(scene, target, 1, roots);
+  // G639 frame floor: on a live page (a drawn-frame `pause`) the job building walks the scene (the exterior lights walk
+  // the whole page) and each step takes a drawn frame of its own, and the compiles run in live slices: a streamed root's
+  // or a clip variant's warm-up drew one 100 ms Nalati drive frame (job building, then a 12 ms-bound compile slice)
+  if (pause !== undefined) await pause();
   jobs.push(...exteriorJobs(scene, target, false, roots));
-  await runPrecompile(renderer, camera, jobs, materials, undefined, undefined, current, pause !== undefined, pause, uploadBudget);
+  if (pause !== undefined) await pause();
+  await runPrecompile(renderer, camera, jobs, materials, undefined, undefined, current, pause !== undefined, pause, uploadBudget, undefined,
+    pause === undefined ? undefined : LIVE_PRECOMPILE_SLICE_MS);
 
 }
 
@@ -733,13 +747,6 @@ const preparedBlocks = new WeakMap<ProgramLike, WeakSet<THREE.Material>>();
 
 /** A slice's wall time, checked after each unit (a job's compile, a program's resolve, an image's upload): boot's bound. */
 const PRECOMPILE_SLICE_MS = 12;
-/**
- * sp-o100: the bound for a live warm-up on a paced page that does not isolate its uploads (desktop Chromium's entered
- * frame). The 12 ms boot bound is checked after the fact, so a slice ran 12 ms plus its last unit (a six-material job, a
- * 15 ms first link query) on top of the frame's own 3-5 ms of game work: Pine's road entry drew five of its ten
- * double-vsync travel frames in its warm-up. Live slices also issue one material a job.
- */
-export const LIVE_PRECOMPILE_SLICE_MS = 6;
 
 /** Decoded bytes an uncompressed texture's upload moves (with a third more for generated mips); 0 when unknown. */
 export function imageUploadBytes(texture: THREE.Texture): number {
