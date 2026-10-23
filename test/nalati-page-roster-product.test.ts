@@ -1,4 +1,6 @@
 import { expect,test } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Admit the live population book without a generated JSON type edge.
+import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { CombatTargetRowsSchema } from '../src/format/targets';
 import combatTargets from '../src/shards/nalati-grasslands/data/combatTargets.json' with { type: 'json' };
@@ -7,7 +9,10 @@ import { decisionModuleContracts } from '../src/format/scriptContract';
 import { validateShardfileAssets } from '../src/format/assetAdmission';
 import { contentHash, readProjectAssets } from '../src/sdk/project';
 import { buildEliteEntryPageRows } from '../src/shards/nalati-grasslands/generators/eliteEntryRows';
-import ridingTerrain from '../src/shards/nalati-grasslands/data/ridingTerrain.generated.json' with { type: 'json' };
+import { PopulationFieldSchema } from '../src/format/populationEnvironment';
+
+const populationInput:unknown=JSON.parse(readFileSync('src/shards/nalati-grasslands/data/populationField.generated.json','utf8'));
+const populationField=v.parse(PopulationFieldSchema,populationInput);
 
 test('the shared assembly document retains the complete page elite roster and its contact lookup', async () => {
   const product = await readProjectAssets('src/shards/nalati-grasslands');
@@ -36,6 +41,6 @@ test('the shared assembly document retains the complete page elite roster and it
   if (bytes === undefined) throw new Error('Missing actual admitted assembly document');
   const assembly = v.parse(v.object({ constants: v.object({ pageElites: v.unknown(),nativeRide: v.record(v.string(),v.unknown()),nativeField: v.object({ world: v.unknown() }) }) }),JSON.parse(new TextDecoder().decode(bytes)));
   expect(assembly.constants.nativeRide).not.toHaveProperty('world');
-  expect(assembly.constants.nativeField.world).toEqual(ridingTerrain);
+  expect(assembly.constants.nativeField.world).toEqual(populationField.world);
   expect(assembly.constants.pageElites).toEqual(buildEliteEntryPageRows());
 });

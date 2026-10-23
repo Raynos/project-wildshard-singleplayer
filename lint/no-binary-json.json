@@ -330,10 +330,6 @@
       "base64Chars": 11564,
       "dataUris": 0
     },
-    "src/shards/nalati-grasslands/data/ridingTerrain.generated.json": {
-      "base64Chars": 7304,
-      "dataUris": 0
-    },
     "src/shards/nalati-grasslands/data/signAtlases.json": {
       "base64Chars": 114140,
       "dataUris": 0
