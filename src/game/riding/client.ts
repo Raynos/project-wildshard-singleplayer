@@ -313,7 +313,7 @@ export async function installClientRiding(ctx: ShardContext, feature: ClientFeat
 export function enterClientRiding(ctx: ShardContext, arsenal: HeldClaims): PageRidingView {
   const owner = clientSessions.get(ctx.scope), runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play;
   if (owner === undefined || ctx.scope.disposed || runtime === undefined || world === undefined || world === null || play === undefined || play === null) throw new Error('Riding feature is not ready');
-  if (owner.view !== null || owner.id !== undefined && presentEntryOwner(ctx.scope, 'riding-view', owner.id) !== null) throw new Error('Riding feature is already entered');
+  if (owner.view !== null || owner.id !== undefined && (presentEntryOwner(ctx.scope, 'riding-view', owner.id) !== null || presentEntryOwner(ctx.scope, 'riding-play', owner.id) !== null)) throw new Error('Riding feature is already entered');
   const population = clientWildlife(ctx); if (population === null) throw new Error('Riding requires built wildlife');
   const { rows } = owner, persistence = enteredAdventurePersistence(ctx.scope), kit = arsenal.pageKit(ctx);
   if (kit === null) throw new Error('Riding requires its built equipment owner');
@@ -370,7 +370,10 @@ export function enterClientRiding(ctx: ShardContext, arsenal: HeldClaims): PageR
   ctx.on('player.died', () => { if (mount.mounted) mount.dismount(); });
   ctx.on('player.respawned', () => { kit.refill(); });
   owner.view = view;
-  if (owner.id !== undefined) publishEntryOwner(ctx.scope, 'riding-view', owner.id, view);
+  if (owner.id !== undefined) {
+    publishEntryOwner(ctx.scope, 'riding-view', owner.id, view);
+    publishEntryOwner(ctx.scope, 'riding-play', owner.id, view);
+  }
   return view;
 }
 

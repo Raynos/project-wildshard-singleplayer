@@ -242,6 +242,11 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
   } },
   'world.paths': { phase: 'kit', rank: 0, lifetime: 'entered', sections: [], install: installClientPathRamps },
   'riding.session': { phase: 'world', rank: 49, lifetime: 'entered', sections: [], install: installClientRiding },
+  'stealth.entry': { phase: 'prepare-play', rank: 0, lifetime: 'entered', sections: ['player/stealth'], install: async (ctx, row) => {
+    if (row.kind !== 'stealth.entry') throw new Error('Invalid stealth entry feature');
+    const { installClientStealthEntry } = await import('./clientStealthEntry');
+    installClientStealthEntry(ctx, row);
+  } },
   'practice.course': { phase: 'play', rank: 100, lifetime: 'entered', sections: [], install: installPracticeCourse },
   'population.wildlife': { phase: 'world', rank: 49, lifetime: 'entered', sections: [], install: installClientWildlife },
   'world.water': {phase:'world',rank:42,lifetime:'entered',sections:[],install:installClientWaterSurfaces},

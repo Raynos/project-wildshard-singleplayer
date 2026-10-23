@@ -579,6 +579,7 @@
           "taming.entry",
           "arena-room.entry",
           "elite.entry",
+          "stealth.entry",
           "quest.chapter-view"
         ]
       }

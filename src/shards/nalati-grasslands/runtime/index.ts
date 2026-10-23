@@ -2,7 +2,6 @@ import { entryOwner, publishEntryOwner } from '@wildshard/game/shardfile/entryOw
 
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin } from '@wildshard/game/shard/plugin';
-import { enteredOwner, withOwner } from '@wildshard/engine/app/ownership';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { buildNalatiWorld, type Nalati } from './state';
 import { HeldClaims } from '@wildshard/game/loadout/claims';
@@ -39,11 +38,9 @@ export class NalatiPlugin extends ShardPlugin {
     // 4x CPU). What ran before the first yield (the King's binding, the ride, the ride's director) runs under the owner the
     // call began with, as it did.
     const part = async (): Promise<void> => { await macrotask(); if (ctx.scope.disposed) throw new Error('Nalati was unloaded during play installation'); };
-    const own = enteredOwner(), owned = <T>(fn: () => T): T => (own === null ? fn() : withOwner(own, fn));
     await part(); // not in the page's play-stage task
     const wildlife = rt.wildlife;
     if (wildlife === null) throw new Error('Nalati creatures have not been built');
-    owned(() => { rt.bindPlay(kit); });
     await part();
     Object.assign(shell.objects, { wildlife });
     await part();

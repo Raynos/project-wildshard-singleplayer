@@ -1,7 +1,6 @@
-import { entryOwner, lateEntryOwner, publishEntryOwner } from '@wildshard/game/shardfile/entryOwners';
+import { entryOwner, lateEntryOwner, presentEntryOwner, publishEntryOwner } from '@wildshard/game/shardfile/entryOwners';
 import { readSpawnScript } from '@wildshard/game/population/spawnScript';
-import { clientWildlife, clientWildlifeState, type PageWildlife } from '@wildshard/game/population/wildlife';
-import type { CrowdDraw as Flock } from '@wildshard/game/ambient/crowdDraw';
+import { clientWildlife, clientWildlifeState } from '@wildshard/game/population/wildlife';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import { wildEnv } from '@wildshard/game/population/pageGroups';
 import type { ShardContext } from '@wildshard/game/shard/context';
@@ -23,11 +22,8 @@ import prefix from '../data/worldPrefix.json' with { type: 'json' };
 import { installWorldUpdates } from '@wildshard/game/shardfile/worldUpdates';
 
 
-import type { HeldSlotKit } from '@wildshard/game/loadout/claims';
 import { TimedEncounters } from '@wildshard/game/boss/timedEncounters';
 import type { SpeciesCatalogue } from '@wildshard/game/looks/speciesBook';
-import { StealthController, type StealthController as Stealth } from '@wildshard/game/stealth/controller';
-import { enterClientRiding, type PageRidingView as Ride } from '@wildshard/game/riding/client';
 import { clientCosmeticFinishes } from '@wildshard/game/shardfile/clientCosmeticFinishes';
 import { installCombatTargets, type CombatTargetOwner } from '@wildshard/game/shardfile/clientTargets';
 
@@ -95,43 +91,22 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   await slice(total - 1, total, 'Dungeon and weather');
 
   // ── creatures (creatures agent, B4): Wildlife over main's AnimalManager, fed the grass, the wind, the water, the player ──
-  const player = ctx.player;
-  const stealthRows=plugin.product.section('player/stealth');
-  let wildlife: PageWildlife<Flock> | null = null;
-  let playKit: HeldSlotKit | null = null;
-  let ride: Ride | null = null;
-
-  // B9, wired below; the crouch also works on the meadow while you approach a stallion to tame (E287: the quest asks for it)
-  let stealth: Stealth | null = null;
   const riderFigure = game.levelScope.own(shapes.handle('ghost-rider').copy()), captainFigure = game.levelScope.own(shapes.handle('ghost-captain').copy());
   const night = await TimedEncounters.install(plugin, { game, sky, player: ctx.player, forest: ctx.forest, sites: dressing.sites.get('balbals')?.sites ?? null, get clock() { return readWeather().clock; } },
     'combat/timed-encounters.json', { rider: riderFigure, captain: captainFigure, storm: riderFigure }, species.program('balbal'));
-  function eliteFrame() { return { patrolAvailable: true, herdAvailable: wildlife !== null, kills: night.riders.killsTonight,
+  publishEntryOwner(plugin.scope, 'timed-encounters', 'nalati.night', night);
+  function eliteFrame() { const ride = presentEntryOwner(plugin.scope, 'riding-play', 'nalati.riding'); return { patrolAvailable: true, herdAvailable: clientWildlife(plugin) !== null, kills: night.riders.killsTonight,
     bonded: ride?.taming.phase === 'bonded', mount: ride?.taming.companion ?? null }; }
   const nalati = {
     get weather() { return readWeather(); }, groups, boss, elites, titan, eliteFrame, eliteRows, eliteProgram, eliteDrops: drops, eliteCharge: charge, eliteLedges,
     get elitePatrol() { return night.riders; },
-    get stealth(): Stealth | null { return stealth; },
-    get ride(): Ride | null { return ride; },
+    get stealth() { return presentEntryOwner(plugin.scope, 'stealth', 'nalati.stealth'); },
+    get ride() { return presentEntryOwner(plugin.scope, 'riding-play', 'nalati.riding'); },
     get wildlife() { return clientWildlife(plugin); },
     get skins() { return clientCosmeticFinishes(plugin).locker; },
-    bindPlay(p: HeldSlotKit): void {
-      playKit = p;
-      wildlife = clientWildlife(plugin);
-      const attachedAnimals = plugin.game.runtime?.play?.animals;
-      if (attachedAnimals === undefined) throw new Error('Missing animal play owner');
-      night.attach(attachedAnimals);
-      stealth = new StealthController(plugin,player,stealthRows);
-      if (wildlife === null) throw new Error('Nalati creatures have not been built');
-      ride = enterClientRiding(plugin, entryOwner(plugin.scope, 'claims', 'nalati.arsenal'));
-      plugin.debug.expose('nalati.ride',ride);
-
-      const bow=p.bow('bow'),prevBow=bow.damageMultiplier;bow.damageMultiplier=hit=>(prevBow?.(hit)??1)*(stealth?.sneakMultiplier()??1);
-    },
   };
   // ── crouch + grass stealth (melee agent, B9): the long-grass CROUCH toggle (touch disc above JUMP, C / Ctrl on desktop),
   //    the eye pip + GRASS meter + threat chevron, the sneak shot (× 2 from HIDDEN on arrows and javelins) — src/shards/nalati-grasslands/stealth.ts ──
-  updates.push((dt,t)=>{stealth?.updateSources(dt,t,{population:wildlife,riding:ride,kit:playKit,grass:wildEnv});});
   // ── dusk + night enemies (bow agent, B11): the balbal warriors wake at dusk, the ghost riders ride the ridges at night —
   //    src/shards/nalati-grasslands/nightEnemies.ts (balbalWarriors.ts, ghostRiders.ts); chained into attachAnimals / bindPlay / the Targets ray ──
 
@@ -139,18 +114,11 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   updates.push((dt, t) => { if (!practiceRoom.open) night.update(dt, t); });   // no night riders shooting up at a practice room (E321)
   // the frames in their original order: the weather host, the declared look (world-update rows) and the declared
   // population register their own frames (shard.nalati.weather / look / wildlife) between these
-  const ids = ['titan', 'elites', 'boss', 'stealth', 'night'], after = [['main.world', 'shard.nalati.weather'], ['shard.nalati.look'], ['shard.nalati.elites'], ['shard.nalati.wildlife'], ['shard.nalati.stealth']];
+  const ids = ['titan', 'elites', 'boss', 'night'], after = [['main.world', 'shard.nalati.weather'], ['shard.nalati.look'], ['shard.nalati.elites'], ['shard.nalati.stealth']];
   if (updates.length !== ids.length) throw new Error('Nalati update registration lacks an id');
   updates.forEach((run, index) => {
     plugin.system({ id: `shard.nalati.${ids[index] ?? ''}`, phase: 'update', after: after[index] ?? [], before: ['engine.creatures.update'], run });
     if (index === 0) installWorldUpdates(plugin, worldUpdates, {arenas:new Map([['arena',boss],['fight',titan]]),elites:new Map([['elites',elites]])});
-  });
-  plugin.on('weapon.fired', () => { stealth?.noteShot(); if(playKit!==null)playKit.polearm('polearm').damageScale=stealth?.sneakMultiplier()??1; wildEnv.lastShotT = plugin.app.clock.now; });
-  // A landing arrow or javelin, preserving the original exclusion around the player.
-  plugin.on('weapon.impact', ({ point }) => {
-    if (wildlife === null || Math.hypot(point.x - player.position.x, point.z - player.position.z) < 4.5) return;
-    wildlife.disturb(point.x, point.z);
-    ride?.noteShot(point.x, point.z);
   });
   installCombatTargets(plugin, targetRows, new Map<string, CombatTargetOwner>([['night', night], ['titan', titan]]), clientWildlifeState(plugin));
   plugin.debug.expose('nalati', nalati);

@@ -13355,6 +13355,16 @@ clock and patrol; the entered child owns presentation and releases it on exit.
 Retained homes initialize only after boss identity prewarming, before chapter
 presentation. Rows carry ids only, with no runtime path or callback.
 
+The G677 `stealth.entry` feature keeps the original play binding order:
+night actors attach, stealth constructs, riding enters, then the bow binds.
+Its finite claims/night/riding ids and frame row select original owners;
+weapon ids and the impact exclusion radius are data. `riding-play` lends
+that same full riding view alongside the existing small `riding-view`
+contract. The `stealth` and `timed-encounters` loans share the original
+entered scope. Fired/impact handlers retain the prior multiplier, exact
+boundary and roster order; retirement removes listeners and restores only
+its own bow wrapper. No new body, clock, save owner or Debug row is added.
+
 The `taming.entry` feature publishes the original prepared riding view's
 taming authority and interactable, optionally lending that same view to a
 runtime object slot. `arena-room.entry` binds the original room encounter
