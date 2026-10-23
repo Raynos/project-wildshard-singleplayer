@@ -15,6 +15,8 @@ import { sha256 } from '../plugin/moduleHash';
 import { isJsonData } from '@wildshard/format/json';
 import { parseReturnProjectionV2 } from '@wildshard/format/returnProjectionV2';
 import { ReturnProjectionV2,type PreparedProjectionV2 } from './returnProjectionV2';
+import type {ShardProduct} from '../shardfile/shardProduct';
+import {outputDescriptor} from '../shardfile/outputDescriptor';
 
 type RawReturnRow = Extract<ReturnModuleRow,{abi:2}>;
 interface ReturnOwnerBook {
@@ -30,17 +32,18 @@ function ownerBook(owner:Scope):ReturnOwnerBook {
   owner.onDispose(()=>{book.instances.clear();delete book.loan;scoped.delete(owner);});
   return book;
 }
-function rawModule(owner:Scope|undefined,row:ReturnType<typeof readProgram>):Uint8Array|undefined {
-  if(row.v2?.bytes!=='')return undefined;
+function rawModule(owner:Scope|undefined,row:ReturnType<typeof readProgram>,witness=false):Uint8Array|undefined {
+  if((witness?row.bytes:row.v2?.bytes)!=='')return undefined;
   if(owner===undefined||owner.disposed||owner.disposing)throw new Error('Raw return module requires a living owner');
   let lender:Scope|undefined,book:ReturnOwnerBook|undefined;
   for(const [scope,candidate]of scoped)if(candidate.loan!==undefined&&owner.belongsTo(scope)
     &&!scope.disposed&&!scope.disposing&&(lender===undefined||scope.belongsTo(lender))){lender=scope;book=candidate;}
-  const loan=book?.loan,artifact=row.v2.artifact,contract=loan?.rows.get(artifact.hash);
-  if(loan===undefined||contract===undefined)throw new Error('Missing admitted raw return module loan');
+  const loan=book?.loan,artifact=row.v2?.artifact,contract=artifact===undefined?undefined:loan?.rows.get(artifact.hash);
+  if(loan===undefined||artifact===undefined||contract===undefined)throw new Error('Missing admitted raw return module loan');
   if(contract.pages!==artifact.pages||contract.ioBytes!==artifact.ioBytes)throw new Error('Raw return module contract mismatch');
-  const bytes:unknown=Map.prototype.get.call(loan.assets,artifact.hash);
-  if(!(bytes instanceof Uint8Array)||sha256(bytes)!==artifact.hash)throw new Error('Raw return module hash mismatch');
+  const hash=witness?row.script.module.slice('blobs/wasm/'.length,-'.wasm'.length):artifact.hash;
+  const bytes:unknown=Map.prototype.get.call(loan.assets,hash);
+  if(!(bytes instanceof Uint8Array)||sha256(bytes)!==hash)throw new Error('Raw return module hash mismatch');
   return bytes;
 }
 
@@ -82,7 +85,7 @@ export class ReturnProgram {
   /** The same immutable admitted descriptor used by this selected instance. */
   readonly groupBindings?:GroupGuestBindingsV2;
   readonly prepareGroup?:NonNullable<NumericProjection['prepareGroup']>;
-  private constructor(input: unknown, floor: (x: number, z: number) => number,owner?: Scope,raw?:Uint8Array) {
+  private constructor(input: unknown, floor: (x: number, z: number) => number,owner?: Scope,raw?:Uint8Array,witness?:Uint8Array) {
     const row = readProgram(input),script = row.script;
     const freeze=(value:unknown):void=>{if(typeof value!=='object'||value===null||Object.isFrozen(value))return;for(const child of Object.values(value))freeze(child);Object.freeze(value);};
     freeze(row);this.declaration=row;
@@ -92,7 +95,8 @@ export class ReturnProgram {
       || script.reads.some(read => !['field', 'random', 'groundHeight', 'radial'].includes(read))) throw new Error('Invalid return projection');
     this.script = script;this.signalNames=row.v2?.signals??Object.values(script.signals).sort(); this.layout = scriptV1Layout(0, Object.keys(script.params).length);
     const fields = Object.values(script.fields).sort();
-    const bytes = Uint8Array.from(atob(row.bytes), byte => byte.codePointAt(0) ?? 0);
+    if(row.bytes===''&&witness===undefined)throw new Error('Missing admitted raw return module loan');
+    const bytes = witness ?? Uint8Array.from(atob(row.bytes), byte => byte.codePointAt(0) ?? 0);
     if (`blobs/wasm/${sha256(bytes)}.wasm` !== script.module) throw new Error('Return module hash mismatch');
     if (owner?.disposed === true || owner?.disposing === true) throw new Error('Return owner disposed');
     admitScriptContract(bytes, { abi: 1, pages: script.pages });
@@ -134,16 +138,33 @@ export class ReturnProgram {
     const named = Object.fromEntries([...SCRIPT_V1_REFERENCE_KINDS, 'params' as const].map(key =>
       [key, Object.fromEntries(Object.entries(script[key] ?? {}).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0))]));
     const declaration = JSON.stringify({ script: decisionScriptContract({ ...script, ...named }), bytes: row.bytes,...(row.v2 === undefined ? {} : {v2:row.v2}) }), modules = ownerBook(owner).instances;
-    const raw=rawModule(owner,row);
+    const raw=rawModule(owner,row),witness=rawModule(owner,row,true);
     const key = row.v2 === undefined ? `1:${script.module}` : `2:${row.v2.artifact.hash}`;
     const previous = modules.get(key);
     if (previous !== undefined) {
       if (previous.declaration !== declaration) throw new Error('Shared return declaration changed');
       return previous.program;
     }
-    const program = owner.run(() => new ReturnProgram(row, floor,owner,raw));
+    const program = owner.run(() => new ReturnProgram(row, floor,owner,raw,witness));
     modules.set(key, { declaration, program });
     return program;
+  }
+  /** Read selected modules and their direct declared dependencies into the
+   * original asset map. Witness sidecars are data, never executable admissions. */
+  static async prepareModules(product:ShardProduct,assets:ReadonlyMap<string,Uint8Array>,rows:readonly ReturnModuleRow[]):Promise<void> {
+    if(!(assets instanceof Map))throw new Error('Return modules require the original asset map');
+    const files=outputDescriptor(product.shardfile)?.index.files;
+    for(const row of rows)if(row.abi===2){
+      const hash=row.module.slice('blobs/wasm/'.length,-'.wasm'.length);
+      const root=files?.find(file=>file.kind==='wasm'&&file.hash===hash);
+      if(root?.name===undefined)throw new Error('Return module needs its admitted logical file');
+      for(const key of [hash,...root.dependencies]){
+        if(Map.prototype.has.call(assets,key))continue;
+        const file=files?.find(candidate=>candidate.hash===key);
+        if(file?.name===undefined)throw new Error('Return dependency needs its admitted logical file');
+        Map.prototype.set.call(assets,key,await product.file(file.name));
+      }
+    }
   }
   /** Lend the original admitted asset map to its actual runtime scope. Child
    * scopes borrow it; unrelated scopes cannot. No byte or state copy is kept. */

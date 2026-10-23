@@ -14,6 +14,7 @@ import { SceneDressing } from '../src/game/shardfile/sceneDressing';
 import { publishEntryOwner } from '../src/game/shardfile/entryOwners';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { ReturnProgram } from '../src/game/population/returnProgram';
+import {ReturnModulesSchema} from '../src/format/scriptContract';
 import * as spawn from '../src/game/population/spawnScript';
 import * as room from '../src/game/boss/arenaRoom';
 import { parseSpawnScript } from '../src/format/spawnScripts';
@@ -29,7 +30,7 @@ import { nalatiSpeciesCatalogue } from './fake/nalatiSpecies';
 test('the shipped King intake retains its attack owner before weather is published',async()=>{
   const emitted=await readProjectAssets('src/shards/nalati-grasslands');
   const files=new Map((emitted.output.namedFiles??[]).flatMap(file=>file.name===undefined?[]:[[file.name,{...file,url:file.path}] as const]));
-  const product=createShardProduct({slug:emitted.shard.identity.slug,revision:emitted.shard.identity.revision,shardfile:emitted.shard,sections:outputPlatformPayloads(emitted.output.platform,['client/plan']),files,
+  const product=createShardProduct({slug:emitted.shard.identity.slug,revision:emitted.shard.identity.revision,shardfile:emitted.shard,sections:outputPlatformPayloads(emitted.output.platform,['client/plan','actors/return-scripts']),files,
     read:hash=>{const bytes=emitted.assets.get(hash);if(bytes===undefined)throw new Error('Missing shipped named bytes');return Promise.resolve(bytes);}});
   const plan=v.parse(v.object({features:v.array(v.object({kind:v.string(),file:v.exactOptional(v.string()),owner:v.exactOptional(v.string())}))}),product.section('client/plan'));
   expect(plan.features.filter(row=>row.kind==='weather.forest')).toEqual([{kind:'weather.forest',file:'world/forest-weather.json',owner:'nalati.weather'}]);
@@ -39,6 +40,7 @@ test('the shipped King intake retains its attack owner before weather is publish
   const scope=new Scope('state-intake'),f=fakeWorld(),game=Object.assign(f.game.asGame(),{levelScope:scope});
   const world=legacyDouble<ShardWorld>({game,sky:f.sky,player:f.player,forest:f.forest}),runtime=legacyDouble<ShardRuntime>({world});
   const plugin=legacyDouble<ShardContext>({scope,product,game:legacyDouble<ShardContext['game']>({runtime})});
+  ReturnProgram.lendModules(scope,emitted.assets,v.parse(ReturnModulesSchema,product.section('actors/return-scripts')));
   publishEntryOwner(scope,'arena-room','nalati.titan',legacyDouble<ArenaRoomEncounter>({}));
   publishEntryOwner(scope,'drawn-models','nalati.trophies',new Map());
   const stop=new Error('King intake reached');let selected:ReturnProgram|undefined;

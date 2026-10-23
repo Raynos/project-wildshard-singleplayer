@@ -1,5 +1,8 @@
 import {expect,test} from 'vitest';
-import {titanRawPrograms as programs} from './fixtures/titanInlineWitness';
+import {parse} from 'valibot';
+import {ReturnModulesSchema,scriptAdmissionRows} from '../src/format/scriptContract';
+import {NALATI_SCRIPT_SECTIONS} from '../src/shards/nalati-grasslands/generators/scriptInventory';
+import {titanRawPrograms as programs,titanPrograms as inline,titanWitnessBytes,pastureWitnessBytes} from './fixtures/titanInlineWitness';
 import {hashImmutableBytes} from '../src/sdk/immutable';
 import {prepareProjectOutput} from '../src/sdk/projectOutput';
 import {Scope} from '../src/engine/app/scope';
@@ -13,20 +16,25 @@ test('Titan keeps every original witness and metadata byte while selected bytes 
   expect(programs.compiled.attack).toStrictEqual({source:'behaviour/titan.generated.wasm',bytes:33384,hash:selected});
   for(const key of ['attack','rules','wind','fire'] as const){
     const expected=key==='attack'||key==='rules'?'ba56b0de486d84b2dcf05695844f5ad61579d1eb4f3530d5211b85b2568f1e3b':'17a68c74224d7e331d3d53dbb217d44b433254df0897e2b2a064651870d94327';
-    expect(hashImmutableBytes(Uint8Array.from(atob(programs[key].bytes),byte=>byte.codePointAt(0)??0))).toBe(expected);
+    expect(programs[key].bytes).toBe('');
+    expect(hashImmutableBytes(key==='attack'||key==='rules'?titanWitnessBytes:pastureWitnessBytes)).toBe(expected);
   }
-  const metadata={attack:programs.attack,rules:programs.rules,wind:programs.wind,fire:programs.fire};
+  const metadata={attack:{...programs.attack,bytes:inline.attack.bytes},rules:{...programs.rules,bytes:inline.rules.bytes},wind:inline.wind,fire:inline.fire};
+  expect(programs.compiled.witnessBytes).toBe(titanWitnessBytes.length+pastureWitnessBytes.length);
   expect(hashImmutableBytes(new TextEncoder().encode(JSON.stringify(metadata)))).toBe('d3b7a245ed44ef2a39ee0d4f396492b09d7ed2d29fdf6770f30103a781b2ebcc');
 });
 
 test('the standard named-file reader ships that exact admitted module',async()=>{
   const row=programs.attack.v2;
   const output=await prepareProjectOutput(decodeURIComponent(new URL('../src/shards/nalati-grasslands',import.meta.url).pathname),{blobs:[{
-    name:'behaviour/nalati.titan.attack.v2.wasm',kind:'wasm',source:programs.compiled.attack.source,options:{critical:true,script:{abi:2,lane:'project',
+    name:'behaviour/nalati.titan.attack.v2.wasm',kind:'wasm',source:programs.compiled.attack.source,options:{dependencies:[hashImmutableBytes(titanWitnessBytes)],critical:true,script:{abi:2,lane:'project',
       pages:row.artifact.pages,ioBytes:row.artifact.ioBytes,compilerRevision:row.artifact.compilerRevision,admissionRevision:row.artifact.admissionRevision}}
-  }]});
+  },{name:'behaviour/titan-witness.bin',kind:'bin',source:'behaviour/titan-witness.generated.bin'}]});
   const blob=output.blobs[0];if(blob===undefined)throw new Error('Missing raw Titan programme');
   expect(blob.bytes).toEqual(titanModuleBytes);expect(blob.file.path).toBe(`blobs/wasm/${selected}.wasm`);
+  expect(blob.file.dependencies).toEqual([hashImmutableBytes(titanWitnessBytes)]);
+  expect(output.blobs[1]?.bytes).toEqual(titanWitnessBytes);
+  expect(output.blobs[1]?.file.kind).toBe('bin');
   expect(blob.file.compressed).toBe(33384);expect(blob.file.decoded).toBe(33384);
 });
 
@@ -45,4 +53,29 @@ test('attack and rules borrow one selected module from the original live owner',
     expect(()=>ReturnProgram.page(programs.attack,child)).toThrow('disposed');
     for(const _ of retirement){/* finish the same original scope teardown */}
   }finally{owner.dispose();other.dispose();}
+});
+
+
+test('raw witnesses retain hash and ABI1 admission before selected construction',()=>{
+  const row=programs.attack,artifact=row.v2.artifact,hash=hashImmutableBytes(titanWitnessBytes);
+  const contract={id:'witness.projection',module:`blobs/wasm/${artifact.hash}.wasm`,side:'sim' as const,abi:2 as const,lane:'project' as const,
+    pages:artifact.pages,ioBytes:artifact.ioBytes,compilerRevision:artifact.compilerRevision,admissionRevision:artifact.admissionRevision};
+  const owner=new Scope('witness.refusals'),assets=new Map([[artifact.hash,titanModuleBytes]]);
+  try{
+    ReturnProgram.lendModules(owner,assets,parse(ReturnModulesSchema,[contract]));
+    expect(()=>ReturnProgram.page(row,owner)).toThrow('hash mismatch');
+    assets.set(hash,new Uint8Array([0]));
+    expect(()=>ReturnProgram.page(row,owner)).toThrow('hash mismatch');
+    const wrong={...row,script:{...row.script,module:contract.module}};
+    expect(()=>ReturnProgram.page(wrong,owner)).toThrow();
+    assets.set(hash,titanWitnessBytes);
+    const program=ReturnProgram.page(row,owner);
+    expect(program.project('bossClamp',{fullHp:100,share:.3})).toStrictEqual({hp:30});
+    assets.set(hash,new Uint8Array([0]));
+    expect(()=>ReturnProgram.page(row,owner)).toThrow('hash mismatch');
+  }finally{owner.dispose();}
+});
+
+test('binary witnesses add no executable to the complete return and spawn inventory',()=>{
+  expect(new Set(scriptAdmissionRows(NALATI_SCRIPT_SECTIONS).map(row=>row.module)).size).toBe(8);
 });

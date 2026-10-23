@@ -3,8 +3,7 @@ import { compileReturnProjectionV2 } from '../src/sdk/returnProjectionV2';
 import { readDecisionSources } from '../src/sdk/buildDecisionScripts';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { Rng } from '../src/engine/core/rng';
-import {titanPrograms as programs} from './fixtures/titanInlineWitness';
-import pasture from '../src/shards/nalati-grasslands/behaviour/pasture.generated.json' with { type: 'json' };
+import {titanPrograms as programs,pastureWitness as pasture} from './fixtures/titanInlineWitness';
 
 // R10b (3): the shared pasture/wind/fire programme (nalati.pasture-wind) selected as v2 answers every original signal
 // exactly as its ABI1 witness: outputs (f64, -0), refusals and the borrowed RNG.

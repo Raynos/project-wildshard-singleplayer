@@ -1,5 +1,4 @@
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
-import { outputDescriptor } from '@wildshard/game/shardfile/outputDescriptor';
 import { ReturnModulesSchema } from '@wildshard/format/scriptContract';
 import { parse } from 'valibot';
 import { isJsonData } from '@wildshard/format/json';
@@ -225,15 +224,7 @@ export async function prepareHeadlessAssembly(preparation: HeadlessRuntimePrepar
   const returns=preparation.product.has('actors/return-scripts')?parse(ReturnModulesSchema,preparation.product.section('actors/return-scripts')):[];
   if(returns.some(row=>row.abi===2)){
     const assets=preparation.assets;
-    if(!(assets instanceof Map))throw new Error('Return modules require the original asset map');
-    const descriptor=outputDescriptor(shard);
-    for(const row of returns)if(row.abi===2){
-      const hash=row.module.slice('blobs/wasm/'.length,-'.wasm'.length);
-      if(Map.prototype.has.call(assets,hash))continue;
-      const file=descriptor?.index.files.find(candidate=>candidate.kind==='wasm'&&candidate.hash===hash);
-      if(file?.name===undefined)throw new Error('Return module needs its admitted logical file');
-      Map.prototype.set.call(assets,hash,await preparation.product.file(file.name));
-    }
+    await ReturnProgram.prepareModules(preparation.product,assets,returns);
   }
   const values = new Map<string, unknown>([['shard', shard], ['assets', preparation.assets], ['rapier', preparation.rapier], ['product', preparation.product], ['assembly', primitives]]);
   // Expose precisely the declared exports, never a module namespace's remainder.

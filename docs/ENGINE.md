@@ -12626,6 +12626,15 @@ files and lends it to the construction scope and the actual level scope,
 including sibling scopes. No second module registry or population is created.
 The original scope retires loans and cached instances together.
 
+`ReturnProgram.prepareModules(product, assets, rows)` fills that same map with
+selected modules and their direct admitted dependencies through verified logical
+files. A selected row may leave its ABI1 `bytes` empty too: its original
+`script.module` hash resolves a binary witness dependency from the same living
+loan. Original ABI1 SHA, page and instrumentation admission still runs before
+selected construction. Witness dependencies are data, with no script admission
+row or executable instance. The SDK dual compiler returns `witness` alongside
+`binary`, exposing the original bytes without decoding/re-encoding them.
+
 StealthRows optionally declares ordered native observation sources: bounded
 pack/herd rosters, alert thresholds, pack phases, mount/ownership exclusions,
 nearest-threat count and a held melee slot. StealthController.updateSources

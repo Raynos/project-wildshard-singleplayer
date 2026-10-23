@@ -1438,7 +1438,9 @@
         "src/shards/nalati-grasslands/behaviour/titan.generated.json",
         "src/shards/nalati-grasslands/behaviour/pasture.generated.json",
         "src/shards/nalati-grasslands/behaviour/pasture.generated.wasm",
-        "src/shards/nalati-grasslands/behaviour/titan.generated.wasm"
+        "src/shards/nalati-grasslands/behaviour/titan.generated.wasm",
+        "src/shards/nalati-grasslands/behaviour/titan-witness.generated.bin",
+        "src/shards/nalati-grasslands/behaviour/pasture-witness.generated.bin"
       ],
       "buildTimeOutputs": [
         "src/shards/nalati-grasslands/data/stormTitanFight.generated.json",
@@ -1446,7 +1448,9 @@
         "src/shards/nalati-grasslands/behaviour/titan.generated.json",
         "src/shards/nalati-grasslands/behaviour/pasture.generated.json",
         "src/shards/nalati-grasslands/behaviour/pasture.generated.wasm",
-        "src/shards/nalati-grasslands/behaviour/titan.generated.wasm"
+        "src/shards/nalati-grasslands/behaviour/titan.generated.wasm",
+        "src/shards/nalati-grasslands/behaviour/titan-witness.generated.bin",
+        "src/shards/nalati-grasslands/behaviour/pasture-witness.generated.bin"
       ],
       "platform": "portable",
       "catalogueDependencies": []

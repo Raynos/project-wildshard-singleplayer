@@ -9,6 +9,7 @@ import programs from '../../src/shards/nalati-grasslands/behaviour/titan.generat
 import {ReturnProgramSchema} from '../../src/format/namedJsonContracts';
 import {ReturnProjectionV2Schema} from '../../src/format/returnProjectionV2';
 import {readFileSync} from 'node:fs';
+import {titanWitnessBytes,pastureWitnessBytes} from './titanInlineWitness';
 
 const admissionInput=v.parse(v.object({...ReturnProgramSchema.entries}),JSON.parse(readFileSync('src/shards/nalati-grasslands/behaviour/admission.generated.json','utf8')));
 const admissionScript=parseDecisionScripts([admissionInput.script])[0];
@@ -23,7 +24,7 @@ const mounts=v.parse(v.object({approach:v.strictObject({...ReturnProgramSchema.e
 export const heldModuleBytes=Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/held-weapons.generated.wasm'));
 export const ridingModuleBytes=Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/riding.generated.wasm'));
 export const titanModuleBytes=Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/titan.generated.wasm'));
-const modules=new Map([[programs.attack.v2.artifact.hash,titanModuleBytes],[projection.artifact.hash,Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/pasture.generated.wasm'))],
+const modules=new Map([[programs.attack.script.module.slice('blobs/wasm/'.length,-'.wasm'.length),titanWitnessBytes],[programs.wind.script.module.slice('blobs/wasm/'.length,-'.wasm'.length),pastureWitnessBytes],[programs.attack.v2.artifact.hash,titanModuleBytes],[projection.artifact.hash,Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/pasture.generated.wasm'))],
   [held.program.v2.artifact.hash,heldModuleBytes],[mounts.approach.v2.artifact.hash,ridingModuleBytes],[admission.v2.artifact.hash,admissionModuleBytes]]);
 const rows=v.parse(ReturnModulesSchema,[['nalati.titan.projection',programs.attack.v2],['nalati.pasture.projection',projection],['nalati.held-weapons.projection',held.program.v2],['nalati.mounts.projection',mounts.approach.v2],['nalati.admission.projection',admission.v2]].map(([id,program])=>{
   if(typeof id!=='string'||typeof program==='string'||program===undefined)throw new Error('Missing fixture return descriptor');

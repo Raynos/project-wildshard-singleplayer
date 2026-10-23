@@ -7,8 +7,13 @@ import stored from '../../src/shards/nalati-grasslands/behaviour/titan.generated
 
 export const titanRawPrograms=stored;
 export const titanModuleBytes=Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/titan.generated.wasm'));
+export const titanWitnessBytes=Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/titan-witness.generated.bin'));
+export const pastureWitnessBytes=Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/pasture-witness.generated.bin'));
+const attack=Buffer.from(titanWitnessBytes).toString('base64'),wind=Buffer.from(pastureWitnessBytes).toString('base64');
 const bytes=Buffer.from(titanModuleBytes).toString('base64');
 export const titanPrograms={...stored,
-  attack:{...stored.attack,v2:{...stored.attack.v2,bytes}},
-  rules:{...stored.rules,v2:{...stored.rules.v2,bytes}},
+  attack:{...stored.attack,bytes:attack,v2:{...stored.attack.v2,bytes}},
+  rules:{...stored.rules,bytes:attack,v2:{...stored.rules.v2,bytes}},
+  wind:{...stored.wind,bytes:wind},fire:{...stored.fire,bytes:wind},
 };
+export const pastureWitness=titanPrograms.wind;

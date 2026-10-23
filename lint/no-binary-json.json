@@ -210,20 +210,12 @@
       "base64Chars": 1372,
       "dataUris": 0
     },
-    "src/shards/nalati-grasslands/behaviour/pasture.generated.json": {
-      "base64Chars": 47744,
-      "dataUris": 0
-    },
     "src/shards/nalati-grasslands/behaviour/qara.generated.json": {
       "base64Chars": 7028,
       "dataUris": 0
     },
     "src/shards/nalati-grasslands/behaviour/riding.generated.json": {
       "base64Chars": 107184,
-      "dataUris": 0
-    },
-    "src/shards/nalati-grasslands/behaviour/titan.generated.json": {
-      "base64Chars": 178200,
       "dataUris": 0
     },
     "src/shards/nalati-grasslands/behaviour/titanFireView.generated.json": {
