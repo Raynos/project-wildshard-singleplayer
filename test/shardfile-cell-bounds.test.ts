@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest';
 import { assertCellBounds } from '../src/format/cellBounds';
+import { preflightShardfile } from '../src/format/preflight';
 import { validateOutputSection } from '../src/format/outputIndex';
 import { CellBoundsSchema } from '../src/format/shardSections';
 import * as v from 'valibot';
@@ -54,4 +55,18 @@ test('scalar arrays preserve nested bounds paths and canonical-data refusals', (
   }
   const sparse = [box]; sparse.length = 3;
   expect(() => assertCellBounds(sparse)).toThrow('plain JSON');
+});
+
+
+test('preflight retains its JSON refusal and exact nested bounds path', () => {
+  let reads = 0;
+  const accessor = Object.defineProperty({}, 'bounds', { enumerable: true, get: () => { reads++; return box; } });
+  const cycle: Record<string, unknown> = {}; cycle['self'] = cycle;
+  const sparse: unknown[] = []; sparse.length = 3;
+  for (const value of [accessor, cycle, sparse, { value: Number.NaN }, { value: -0 }]) {
+    expect(() => preflightShardfile(value)).toThrow('Shardfile preflight requires bounded plain JSON data');
+  }
+  expect(reads).toBe(0);
+  expect(() => preflightShardfile({ nested: { extent: { x0: -1, x1: 251, z0: -1, z1: 1 } } })).toThrow('Out-of-cell bounds: shardfile.nested.extent');
+  expect(() => preflightShardfile({ nested: { bounds: box } })).not.toThrow();
 });

@@ -1,5 +1,4 @@
 import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits';
-import { isJsonData } from './json';
 import { assertCellBounds } from './cellBounds';
 import { assertCommonsCosts } from './commonsCosts';
 
@@ -26,8 +25,12 @@ export function preflightShardfile(input: unknown): void {
   arrayCap(files, limits.files, 'files'); arrayCap(commons, limits.commons, 'commons');
   arrayCap(own(state, 'shared'), limits.stateFields, 'shared state'); arrayCap(own(state, 'player'), limits.stateFields, 'player state');
   arrayCap(own(input, 'water'), limits.waterBodies, 'water');
-  if (!isJsonData(input)) throw new Error('Shardfile preflight requires bounded plain JSON data');
-  assertCellBounds(input);
+  // The bounds fence first validates the complete plain-JSON tree. Reuse that
+  // refusal instead of repeating its descriptor/prototype walk beforehand.
+  try { assertCellBounds(input); } catch (error) {
+    if (error instanceof Error && error.message === 'Cell bounds require plain JSON data') throw new Error('Shardfile preflight requires bounded plain JSON data', { cause: error });
+    throw error;
+  }
 
   let bytes = 0;
   const encoder = new TextEncoder();
