@@ -11,7 +11,7 @@
  * colours, say, are left out when a fine tile has none). The merged mesh receives shadow and never casts (as the tiles), and leaves with the
  * last member.
  */
-import { BufferAttribute, BufferGeometry, Matrix4, Mesh, Vector3, type Material, type Object3D } from 'three';
+import { BufferAttribute, BufferGeometry, Matrix4, Mesh, type Material, type Object3D } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 
 const HALF = 250, COARSE = 125;
@@ -49,20 +49,33 @@ export class GroundMerge {
     this.merged = null;
     if (old !== null) { old.removeFromParent(); old.geometry.dispose(); }
     const first = this.members.values().next().value; if (first === undefined) return;
-    const names = Object.keys(first.mesh.geometry.attributes).filter(name => [...this.members.values()].every(member => member.mesh.geometry.hasAttribute(name))), parentInverse = new Matrix4(), toParent = new Matrix4(), point = new Vector3();
+    const names = Object.keys(first.mesh.geometry.attributes).filter(name => [...this.members.values()].every(member => member.mesh.geometry.hasAttribute(name))), parentInverse = new Matrix4(), toParent = new Matrix4();
     this.parent.updateWorldMatrix(true, false); parentInverse.copy(this.parent.matrixWorld).invert();
-    const values = new Map<string, number[]>(names.map(name => [name, []])), index: number[] = [];
-    for (const member of this.members.values()) {
-      if (member.hidden.size >= 4) continue;
+    // sized up front and filled in place (G639: growing number arrays for every tile's attributes held a 183 ms frame,
+    // a quarter of it collection, each time a Nalati tile streamed in on the drive)
+    const drawn = [...this.members.values()].filter(member => member.hidden.size < 4);
+    let vertices = 0, indices = 0;
+    for (const member of drawn) { const geometry = member.mesh.geometry, source = geometry.getIndex(); vertices += geometry.getAttribute('position').count; indices += source === null ? geometry.getAttribute('position').count : source.count; }
+    const values = new Map(names.map(name => [name, new Float32Array(vertices * first.mesh.geometry.getAttribute(name).itemSize)])), index = new Uint32Array(indices);
+    let base = 0, written = 0;
+    for (const member of drawn) {
       const geometry = member.mesh.geometry, position = geometry.getAttribute('position'), source = geometry.getIndex();
       member.mesh.updateWorldMatrix(true, false); toParent.multiplyMatrices(parentInverse, member.mesh.matrixWorld);
-      const base = (values.get('position')?.length ?? 0) / 3;
+      const e = toParent.elements;
       for (const name of names) {
         const attribute = geometry.getAttribute(name), out = values.get(name);
         if (out === undefined || attribute.count !== position.count) throw new Error(`Ground merge member lacks ${name}`);
-        for (let i = 0; i < attribute.count; i++) {
-          if (name === 'position') { point.fromBufferAttribute(position, i).applyMatrix4(toParent); out.push(point.x, point.y, point.z); }
-          else for (let c = 0; c < attribute.itemSize; c++) out.push(attribute.getComponent(i, c));
+        if (name === 'position') {
+          // Vector3.applyMatrix4, inlined
+          for (let i = 0; i < attribute.count; i++) {
+            const x = position.getX(i), y = position.getY(i), z = position.getZ(i), w = 1 / ((e[3] ?? 0) * x + (e[7] ?? 0) * y + (e[11] ?? 0) * z + (e[15] ?? 1)), at = (base + i) * 3;
+            out[at] = ((e[0] ?? 1) * x + (e[4] ?? 0) * y + (e[8] ?? 0) * z + (e[12] ?? 0)) * w;
+            out[at + 1] = ((e[1] ?? 0) * x + (e[5] ?? 1) * y + (e[9] ?? 0) * z + (e[13] ?? 0)) * w;
+            out[at + 2] = ((e[2] ?? 0) * x + (e[6] ?? 0) * y + (e[10] ?? 1) * z + (e[14] ?? 0)) * w;
+          }
+        } else {
+          const size = attribute.itemSize;
+          for (let i = 0; i < attribute.count; i++) for (let c = 0; c < size; c++) out[(base + i) * size + c] = attribute.getComponent(i, c);
         }
       }
       const count = source === null ? position.count : source.count, at = (k: number): number => source === null ? k : source.getX(k);
@@ -72,13 +85,14 @@ export class GroundMerge {
           const cx = (position.getX(a) + position.getX(b) + position.getX(c)) / 3 - member.corner.x, cz = (position.getZ(a) + position.getZ(b) + position.getZ(c)) / 3 - member.corner.z;
           if (member.hidden.has((cz >= COARSE / 2 ? 2 : 0) + (cx >= COARSE / 2 ? 1 : 0))) continue;
         }
-        index.push(base + a, base + b, base + c);
+        index[written++] = base + a; index[written++] = base + b; index[written++] = base + c;
       }
+      base += position.count;
     }
-    if (index.length === 0) return;
+    if (written === 0) return;
     const geometry = new BufferGeometry();
-    for (const name of names) geometry.setAttribute(name, new BufferAttribute(Float32Array.from(values.get(name) ?? []), first.mesh.geometry.getAttribute(name).itemSize));
-    geometry.setIndex(new BufferAttribute((values.get('position')?.length ?? 0) / 3 > 65535 ? Uint32Array.from(index) : Uint16Array.from(index), 1));
+    for (const name of names) { const out = values.get(name); if (out !== undefined) geometry.setAttribute(name, new BufferAttribute(out, first.mesh.geometry.getAttribute(name).itemSize)); }
+    geometry.setIndex(new BufferAttribute(base > 65535 ? index.slice(0, written) : Uint16Array.from(index.subarray(0, written)), 1));
     geometry.computeBoundingSphere();
     const mesh = new Mesh(geometry, this.material);
     mesh.name = this.name; mesh.castShadow = false; mesh.receiveShadow = true;
