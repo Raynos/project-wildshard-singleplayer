@@ -27,7 +27,7 @@ import { installWorldUpdates } from '@wildshard/game/shardfile/worldUpdates';
 import type { HeldSlotKit } from '@wildshard/game/loadout/claims';
 import { TimedEncounters } from '@wildshard/game/boss/timedEncounters';
 import type { SpeciesCatalogue } from '@wildshard/game/looks/speciesBook';
-import { StealthController, type StealthController as Stealth, type StealthThreat } from '@wildshard/game/stealth/controller';
+import { StealthController, type StealthController as Stealth } from '@wildshard/game/stealth/controller';
 import { enterClientRiding, type PageRidingView as Ride } from '@wildshard/game/riding/client';
 import { clientCosmeticFinishes } from '@wildshard/game/shardfile/clientCosmeticFinishes';
 import { installCombatTargets, type CombatTargetOwner } from '@wildshard/game/shardfile/clientTargets';
@@ -134,13 +134,7 @@ async function buildNalatiState(ctx: NonNullable<ShardRuntime['world']>, plugin:
   };
   // ── crouch + grass stealth (melee agent, B9): the long-grass CROUCH toggle (touch disc above JUMP, C / Ctrl on desktop),
   //    the eye pip + GRASS meter + threat chevron, the sneak shot (× 2 from HIDDEN on arrows and javelins) — src/shards/nalati-grasslands/stealth.ts ──
-  updates.push((dt,t)=>{
-    if(stealth===null)return;const threats:StealthThreat[]=[];
-    for(let i=0;i<96;i++){const pack=wildlife?.packs[i];if(pack===undefined)break;for(let j=0;j<96;j++){const actor=pack.members[j];if(actor===undefined)break;if(actor.alive)threats.push({x:actor.position.x,z:actor.position.z,awareness:pack.awareness,alert:.35,hunting:Number(pack.phase==='shadow'||pack.phase==='encircle'||pack.phase==='regroup')});}}
-    for(let i=0;i<96;i++){const herd=wildlife?.herds[i];if(herd===undefined)break;for(let j=0;j<96;j++){const actor=herd.members[j];if(actor===undefined)break;if(actor.alive&&(actor.mem['ridden']??0)!==1&&(actor.mem['owned']??0)!==1)threats.push({x:actor.position.x,z:actor.position.z,awareness:actor.mem['aw']??0,alert:.45,hunting:0});}}
-    stealth.update(dt,t,{grass:wildEnv.grassStandingAt(player.position.x,player.position.z),mounted:ride?.mounted ?? false,forced:ride!==null&&ride.taming.view.trust!==null,threats:threats.sort((a,b)=>Math.hypot(a.x-player.position.x,a.z-player.position.z)-Math.hypot(b.x-player.position.x,b.z-player.position.z)).slice(0,8)});
-    if(playKit!==null)playKit.polearm('polearm').damageScale=stealth.sneakMultiplier();
-  });
+  updates.push((dt,t)=>{stealth?.updateSources(dt,t,{population:wildlife,riding:ride,kit:playKit,grass:wildEnv});});
   // ── dusk + night enemies (bow agent, B11): the balbal warriors wake at dusk, the ghost riders ride the ridges at night —
   //    src/shards/nalati-grasslands/nightEnemies.ts (balbalWarriors.ts, ghostRiders.ts); chained into attachAnimals / bindPlay / the Targets ray ──
 

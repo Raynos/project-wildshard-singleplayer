@@ -12417,6 +12417,16 @@ product transport. These rows grant byte admission only: no scheduler, binding,
 clock or guest query is installed. Missing declarations still refuse; admission
 never infers an ABI from module bytes.
 
+StealthRows optionally declares ordered native observation sources: bounded
+pack/herd rosters, alert thresholds, pack phases, mount/ownership exclusions,
+nearest-threat count and a held melee slot. StealthController.updateSources
+borrows the original population, riding, kit and grass owners at the existing
+update slot. Stable nearest-first ordering retains native double positions.
+It samples grass with its original receiver, calls the original update, then
+applies the original sneak multiplier. Scope retirement before sampling,
+after sampling or during presentation refuses subsequent publication. The
+input system, guest cadence, detection state and save authority are unchanged.
+
 The shared held/stealth/creature numeric guest selects ABI2 projection rows
 explicitly. Its original ABI1 descriptors and bytes remain inline witnesses;
 only the selected module is admitted as an active executable. All consumers

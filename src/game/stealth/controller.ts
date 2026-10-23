@@ -1,5 +1,5 @@
 import {parse} from 'valibot';
-import {StealthRowsSchema,type StealthRows} from '@wildshard/format/stealth';
+import {StealthRowsSchema,type StealthRows,type StealthSources} from '@wildshard/format/stealth';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import type { Player } from '@wildshard/engine/player/Player';
@@ -8,11 +8,39 @@ import { hudSlots } from '@wildshard/engine/ui/hudSlots';
 import { declarePanel, type PanelView } from '@wildshard/engine/ui/panel';
 import { mountUi } from '@wildshard/engine/ui/ownership';
 import { ReturnProgram } from '../population/returnProgram';
+import type { PageWildlife } from '../population/wildlife';
+import type { PageRidingView } from '../riding/client';
+import type { HeldSlotKit } from '../loadout/claims';
+import type { PageWildEnvironment } from '../population/pageGroups';
 import './stealth.css';
 
 /** Admitted scalar awareness observations; animal senses retain their actual owners. */
 export interface StealthThreat {x:number;z:number;awareness:number;alert:number;hunting:number}
 export interface StealthObservation {grass:number;mounted:boolean;forced:boolean;threats:readonly StealthThreat[]}
+/** Concrete native sources, with no copied roster or authored callback. */
+export interface StealthSourcesOwners {
+ readonly population: Pick<PageWildlife, 'packs' | 'herds'> | null;
+ readonly riding: PageRidingView | null;
+ readonly kit: HeldSlotKit | null;
+ readonly grass: Pick<PageWildEnvironment, 'grassStandingAt'>;
+}
+/** Gather in row/group/member order, then select the nearest threats stably.
+ * Positions remain native doubles, independent of render projections. */
+export function sampleStealthSources(rows:StealthSources,player:Pick<Player,'position'>,owners:StealthSourcesOwners):StealthObservation {
+ const threats:StealthThreat[]=[];
+ for(const row of rows.sources){
+  if(row.kind==='packs'){
+   for(let i=0;i<row.groups;i++){const pack=owners.population?.packs[i];if(pack===undefined)break;
+    for(let j=0;j<row.members;j++){const actor=pack.members[j];if(actor===undefined)break;if(actor.alive)threats.push({x:actor.position.x,z:actor.position.z,awareness:pack.awareness,alert:row.alert,hunting:Number(row.hunting.includes(pack.phase))});}}
+  }else{
+   for(let i=0;i<row.groups;i++){const herd=owners.population?.herds[i];if(herd===undefined)break;
+    for(let j=0;j<row.members;j++){const actor=herd.members[j];if(actor===undefined)break;if(actor.alive&&!row.exclude.some(field=>(actor.mem[field]??0)===1))threats.push({x:actor.position.x,z:actor.position.z,awareness:actor.mem['aw']??0,alert:row.alert,hunting:0});}}
+  }
+ }
+ return {grass:owners.grass.grassStandingAt(player.position.x,player.position.z),mounted:owners.riding?.mounted??false,
+  forced:owners.riding!==null&&owners.riding.taming.view.trust!==null,
+  threats:threats.sort((a,b)=>Math.hypot(a.x-player.position.x,a.z-player.position.z)-Math.hypot(b.x-player.position.x,b.z-player.position.z)).slice(0,rows.take)};
+}
 /** Renderer-free decision owner: rows and scalar snapshots only, with one projection at most every 100 ms. */
 export class StealthDetection {
  readonly program:ReturnProgram;
@@ -64,6 +92,19 @@ export class StealthController {
  }
  noteShot():void{this.shotUntil=this.state===this.rows.sneak.state?this.t+this.rows.sneak.seconds:-1;}
  sneakMultiplier():number{return this.t<this.shotUntil?this.rows.sneak.multiplier:1;}
+ private validateSources():void{
+  if(this.scope.disposed||this.scope.disposing)throw new Error('Stealth observation owner has ended');
+ }
+ /** Sample declared native sources at the caller's existing update slot. */
+ updateSources(dt:number,t:number,owners:StealthSourcesOwners):void{
+  this.validateSources();
+  const rows=this.rows.observations;if(rows===undefined)throw new Error('Stealth observation sources are not declared');
+  const observation=sampleStealthSources(rows,this.player,owners);
+  this.validateSources();
+  this.update(dt,t,observation);
+  this.validateSources();
+  if(owners.kit!==null&&rows.melee!==undefined)owners.kit.polearm(rows.melee).damageScale=this.sneakMultiplier();
+ }
  update(_dt:number,t:number,observation:StealthObservation):void{this.t=t;this.observation=observation;this.render();}
   private render(): void {
     const s = this.state;
