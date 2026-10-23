@@ -265,6 +265,34 @@
       "quiet": false
     },
     {
+      "shard": "nine-dragon-stack",
+      "criterion": "oneFrameLooks",
+      "source": "94e91aff2cc687735b9716d027f5a6d3a96460d0",
+      "measurement": {
+        "when": "2026-10-23T00:57:03.923Z",
+        "surface": "chromium",
+        "metrics": {
+          "grid-nine-dragon-stack-road-entry-drive.frames": 860,
+          "grid-nine-dragon-stack-road-entry-drive.maxMs": 166.60000000000582,
+          "grid-nine-dragon-stack-road-entry-drive.p95Ms": 66.60000000000582,
+          "grid-nine-dragon-stack-road-entry-drive.medianFps": 29.940119760484258,
+          "grid-nine-dragon-stack-road-entry-drive.skipped": 0,
+          "grid-nine-dragon-stack-road-entry.frames": 162,
+          "grid-nine-dragon-stack-road-entry.maxMs": 66.70000000000437,
+          "grid-nine-dragon-stack-road-entry.p95Ms": 50.099999999998545,
+          "grid-nine-dragon-stack-road-entry.medianFps": 29.940119760484258,
+          "grid-nine-dragon-stack-road-entry.skipped": 0,
+          "grid-nine-dragon-stack-road-entry-travel.frames": 442,
+          "grid-nine-dragon-stack-road-entry-travel.maxMs": 166.6999999999971,
+          "grid-nine-dragon-stack-road-entry-travel.p95Ms": 50,
+          "grid-nine-dragon-stack-road-entry-travel.medianFps": 30.030030030027405,
+          "grid-nine-dragon-stack-road-entry-travel.skipped": 0
+        }
+      },
+      "latchedAt": "2026-10-23T01:02:53.815Z",
+      "quiet": true
+    },
+    {
       "shard": "open-plot-alien-plain",
       "criterion": "memory",
       "source": "c9c864577a5ce9186565dc0560a66e6a65533a9b",
