@@ -42,7 +42,10 @@ with tempfile.TemporaryDirectory(dir=repo/'tmp', prefix='gen-docs-test-') as fol
         assert result.returncode == 0,result.stderr
         assert not set(calls)&set(docs_steps),calls
         assert calls[-1]=='seal' and 'boot' in calls and calls.count('shards')==2,calls
-    result,calls = run('scripts/docs.mjs')
+    put('package.json', json.dumps({'name':'docs-command-fixture','private':True,'scripts':{'docs':'node scripts/docs.mjs'}}))
+    (root/'calls.txt').write_text('')
+    result = subprocess.run(['pnpm','run','docs'], cwd=root, env=env, text=True, capture_output=True)
+    calls = (root/'calls.txt').read_text().splitlines()
     assert result.returncode==0,result.stderr
     assert calls == ['loader',*docs_steps],calls
     module('gen-host-catalogue', 'export function writeHostCatalogue(){throw Error("actual docs refusal")}')

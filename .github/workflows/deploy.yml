@@ -339,7 +339,7 @@ jobs:
         run: |
           zstd -d --rm generated-inputs.tar.zst
           python3 scripts/ci-products.py unpack-generated
-      - run: python3 scripts/ci-fail-fast.py -- pnpm docs
+      - run: python3 scripts/ci-fail-fast.py -- pnpm run docs
       - name: Publish exact failure paths
         if: failure()
         uses: actions/upload-artifact@v4
