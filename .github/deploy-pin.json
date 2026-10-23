@@ -1,10 +1,10 @@
 {
   "$doc": "What production and the native OTA channel serve (E357 decision 32). Moved only by scripts/deploy-pin.mjs set (at a milestone; decision 103: the lead moves it when the gate is green) or rollback. mode: pinned (during GAME-NORMALIZATION) | newest-green (gpu-gate-green main) | newest-ci-green (the newest main whose push CI passed; Jake 2026-10-02).",
-  "mode": "pinned",
+  "mode": "newest-ci-green",
   "sha": "ab93dccfe00b3c405d7094b6acd85d3a4f111749",
   "milestone": "post-Z4 hotfix-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback",
   "gate": "grandfathered",
-  "go": "Hold verified current live ab93dccfe after release 39884972025; never release 0e9ffd5c58 without 6ab738e7e7. Await targeted 041327 script-cap repair and CI plus exact smoke; immediate P0 repair release authorized.",
-  "set": "2026-10-23T02:06:03.469Z",
+  "go": "P0 release authorized immediately: 92bba7c1badfd2f1c81946212086108954dd669a contains every required repair through 0ea6fb46f0, CI 39894380495 SUCCESS and exact five-leg smoke 39895925892 SUCCESS. Lift terrain/script/quest hold and release newest fully proven main.",
+  "set": "2026-10-23T03:55:07.894Z",
   "by": "E357 lead"
 }
