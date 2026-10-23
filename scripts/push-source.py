@@ -14,6 +14,7 @@ TEXT = {'.ts', '.tsx', '.mts', '.cts', '.js', '.mjs', '.cjs', '.json', '.jsonc',
         '.yaml', '.yml', '.css', '.glsl', '.frag', '.vert', '.wgsl', '.as', '.py', '.sh', '.md', '.html'}
 ROOTS = {'src', 'scripts', 'test', 'lint', 'vite', 'admin', 'api', 'drafts', 'site', 'docs', 'budgets', '.githooks', '.github'}
 TOOLS = ['gate-related-tests.mjs', 'push-inputs.mjs', 'push-checks.mjs', 'test-products.json']
+RUNTIME_TOOLS = ['runtime_input_copies.py', 'copied-runtime-inputs.json']
 CONFIGS = ['vitest-push.config.ts', 'vitest-push-guards.config.ts']
 
 
@@ -155,6 +156,18 @@ def committed_source(repo, revision, tooling_revision, deadline):
                 target = tree / name
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_bytes(data)
+        # Build-copied assets are neither Git blobs nor generated source imports.
+        # Read the copier and manifest from immutable gate tooling, including
+        # when checking an older prefix that predates this gate repair.
+        runtime_tools = {}
+        for name in RUNTIME_TOOLS:
+            runtime_tools[name] = command(repo, ['git', 'show', tooling_revision + ':scripts/' + name],
+                                          deadline, capture_output=True).stdout
+        copier_path = tree / '.push-runtime-copies.py'
+        copier_path.write_bytes(runtime_tools['runtime_input_copies.py'])
+        copied = runpy.run_path(str(copier_path))['restore_runtime_inputs'](
+            repo, tree, json.loads(runtime_tools['copied-runtime-inputs.json']), deadline)
+        print('push-source: restored %d content-verified copied runtime inputs' % copied, flush=True)
         tests_available = test_revision is not None
         # Vitest's real module graph includes literal raster/binary imports.
         # Read their tracked Git blobs; never substitute shared-tree assets.

@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "copies": [
+    {
+      "source": "node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm",
+      "target": "public/assets/physics/rapier.wasm",
+      "package": "@dimforge/rapier3d-simd",
+      "version": "0.21.0",
+      "bytes": 3292228,
+      "sha256": "2935a533335952cf160de69186d03e8b3ad2895b65d20df1b74d197a7498bd6f"
+    }
+  ]
+}

@@ -17,6 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 TOOL_ROOT = Path(os.environ.get('WS_PUSH_TOOL_ROOT', ROOT / 'scripts'))
 PUSH = runpy.run_path(str(TOOL_ROOT / 'push-loop.py'))
 LIVE = PUSH['LIVE']
+RESTORE_RUNTIME = runpy.run_path(str(TOOL_ROOT / 'runtime_input_copies.py'))['restore_runtime_inputs']
 CACHE = runpy.run_path(str(TOOL_ROOT / 'push_input_cache.py'))
 TOOLS = runpy.run_path(str(ROOT / 'scripts/sp-tools.py'))
 
@@ -154,6 +155,9 @@ class PushLoop(unittest.TestCase):
     def test_committed_source_ignores_working_and_index_edits(self):
         for name in [*PUSH['SOURCE']['TOOLS'], *PUSH['SOURCE'].get('CONFIGS', []), 'link-node-modules.mjs']:
             self.put('scripts/' + name, '// committed tool\n')
+        self.put('scripts/runtime_input_copies.py', (TOOL_ROOT / 'runtime_input_copies.py').read_text())
+        self.put('scripts/copied-runtime-inputs.json', '{"version":1,"copies":[]}')
+        self.put('package.json', '{}')
         self.put('src/data.json', '{"state":"committed"}')
         self.put('src/other.ts', 'export const original = true;')
         self.put('src/asset.ts', "import image from './image.png'; export {image};")
@@ -387,6 +391,58 @@ class PushLoop(unittest.TestCase):
         self.assertEqual(clock[0], 145)
         self.assertIn('CI owns: src/good.ts, src/importer.ts', result['output'])
         self.assertIn('oxlint', commands[-1])
+
+
+class RuntimeCopies(unittest.TestCase):
+    def setUp(self):
+        (ROOT / 'tmp').mkdir(exist_ok=True)
+        self.temp = tempfile.TemporaryDirectory(dir=ROOT / 'tmp', prefix='runtime-copies-')
+        self.addCleanup(self.temp.cleanup)
+        self.repo = Path(self.temp.name)
+        self.tree = self.repo / 'candidate'
+        self.tree.mkdir()
+        self.package = self.repo / 'node_modules/@fixture/native'
+        self.package.mkdir(parents=True)
+        self.data = b'\x00asm-real-installed-payload'
+        (self.package / 'native.wasm').write_bytes(self.data)
+        (self.package / 'package.json').write_text('{"name":"@fixture/native","version":"1.0.0"}')
+        (self.tree / 'package.json').write_text('{"dependencies":{"@fixture/native":"1.0.0"}}')
+        self.row = dict(source='node_modules/@fixture/native/native.wasm', target='public/native.wasm',
+                        package='@fixture/native', version='1.0.0', bytes=len(self.data),
+                        sha256=hashlib.sha256(self.data).hexdigest())
+
+    def restore(self, rows=None):
+        return RESTORE_RUNTIME(self.repo, self.tree, dict(version=1, copies=rows or [self.row]), time.monotonic() + 5)
+
+    def test_installed_bytes_replace_no_working_asset(self):
+        (self.repo / 'public').mkdir()
+        (self.repo / 'public/native.wasm').write_bytes(b'untrusted working build')
+        self.assertEqual(self.restore(), 1)
+        self.assertEqual((self.tree / 'public/native.wasm').read_bytes(), self.data)
+        self.assertEqual(self.restore(), 1)
+
+    def test_corruption_and_candidate_version_fail_before_any_write(self):
+        bad = {**self.row, 'target': 'public/bad.wasm', 'sha256': '0' * 64}
+        with self.assertRaisesRegex(ValueError, 'hash mismatch'):
+            self.restore([self.row, bad])
+        self.assertFalse((self.tree / 'public').exists())
+        (self.tree / 'package.json').write_text('{"dependencies":{"@fixture/native":"2.0.0"}}')
+        with self.assertRaisesRegex(ValueError, 'candidate dependency'):
+            self.restore()
+
+    def test_symlinks_traversal_duplicates_and_existing_mismatch_refuse(self):
+        outside = self.repo / 'outside'; outside.mkdir()
+        (self.tree / 'public').symlink_to(outside, target_is_directory=True)
+        with self.assertRaisesRegex(ValueError, 'symlink'):
+            self.restore()
+        (self.tree / 'public').unlink()
+        with self.assertRaisesRegex(ValueError, 'Unsafe'):
+            self.restore([{**self.row, 'target': 'public/../escaped'}])
+        with self.assertRaisesRegex(ValueError, 'Duplicate'):
+            self.restore([self.row, self.row])
+        (self.tree / 'public').mkdir(); (self.tree / 'public/native.wasm').write_bytes(b'other')
+        with self.assertRaisesRegex(ValueError, 'Existing'):
+            self.restore()
 
 
 if __name__ == '__main__':
