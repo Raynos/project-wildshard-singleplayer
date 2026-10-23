@@ -155,8 +155,18 @@ test.each(['G614', 'G665', 'G667'])('%s credits the exact tagged binding without
 });
 
 
-test('the picked riding host approves only the seated figure class', () => {
+test('the picked riding host approves its seated figure and exact cap/native-port declarations', () => {
   const approvals = g571HostApprovals('.');
-  expect(approvals.get('src/game/riding/seatedFigure.ts')).toEqual(new Set(['SeatedFigure']));
+  expect(approvals.get('src/game/riding/seatedFigure.ts')).toEqual(new Set(['SeatedFigure','GESTURES','SIGNALS','Mount']));
   expect(approvals.get('src/game/models/mountedSpecimen.ts')).toBeNull();
+});
+
+
+test('the riding caps and native port remove exactly two lines while their consumer stays charged',()=>{
+  const root=fixture('const GESTURES=16, SIGNALS=8;\ninterface Mount { readonly speed: number }\nexport function approved(mount:Mount):number { return mount.speed+GESTURES+SIGNALS; }');
+  const before=row(root);
+  put(root,'docs/HOST-BAR.md','- G602 L10 Jake-approved host: `game/approved#GESTURES`, `game/approved#SIGNALS`, `game/approved#Mount`.');
+  const after=row(root);
+  expect(after.conversion.customRuntimeLines).toBe(before.conversion.customRuntimeLines-2);
+  expect(after.conversion.gameSystemAttribution.modules).toContainEqual({path:'src/game/approved.ts',lines:1,excludedLines:[1,2]});
 });
