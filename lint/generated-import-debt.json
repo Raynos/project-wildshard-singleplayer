@@ -165,7 +165,6 @@
     "src/shards/nalati-grasslands/generators/terrainRecipe.ts": 2,
     "src/shards/nalati-grasslands/generators/treeSet.ts": 1,
     "src/shards/nalati-grasslands/generators/wetRecipe.ts": 1,
-    "src/shards/nalati-grasslands/runtime/index.ts": 2,
     "src/shards/nine-dragon-stack-legacy/boot/files.ts": 1,
     "src/shards/nine-dragon-stack-legacy/manifest.ts": 1,
     "src/shards/nine-dragon-stack/generators/bake-entry-proof.mjs": 2,

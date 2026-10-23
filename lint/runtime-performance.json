@@ -598,42 +598,6 @@
       "count": 1,
       "row": "SF48"
     },
-    "src/shards/nalati-grasslands/runtime/index.ts:frame-allocation:55c6e8158e1d823c528db44bee4e1a88ad02a1327de70e8ca24955de0e91df5d": {
-      "count": 1,
-      "row": "SF48"
-    },
-    "src/shards/nalati-grasslands/runtime/index.ts:raw-render:ae8dedf219ccd850aedd82b38eaafe641af6681d4ee858b0ac59710d4ee8ed86": {
-      "count": 1,
-      "row": "SF48"
-    },
-    "src/shards/nalati-grasslands/runtime/state.ts:raw-render:ae8dedf219ccd850aedd82b38eaafe641af6681d4ee858b0ac59710d4ee8ed86": {
-      "count": 6,
-      "row": "SF48"
-    },
-    "src/shards/nalati-grasslands/runtime/state.ts:raw-render:26ac04d3c61192df7c8aef1624f65c27f8fcc32c97f81124161fc5085d275655": {
-      "count": 1,
-      "row": "SF48"
-    },
-    "src/shards/nalati-grasslands/runtime/state.ts:unbounded-loop:4abed363ae244317352edfebe398eec0c499413ade0b6d129060ce40ee2ad6e0": {
-      "count": 1,
-      "row": "SF48"
-    },
-    "src/shards/nalati-grasslands/runtime/state.ts:frame-allocation:3b9dcba1c6f71b0595d904965565636b455fa9103dd7b5134e7aa48678384093": {
-      "count": 1,
-      "row": "SF48"
-    },
-    "src/shards/nalati-grasslands/runtime/state.ts:frame-allocation:b1fb84fb3ba6471ed03d1d02d7ea1a61308a74439d65a5fbd03817bf7f966a6d": {
-      "count": 1,
-      "row": "SF48"
-    },
-    "src/shards/nalati-grasslands/runtime/state.ts:unbounded-loop:109deae63a5ac2be7ed0adaa310ec0dc45bbe49460bff05e6971ab80e8a78fa5": {
-      "count": 1,
-      "row": "SF48"
-    },
-    "src/shards/nalati-grasslands/runtime/state.ts:unbounded-loop:db5628bacfa79539d12f29983d94489bb6be82d19b10af236aff2d3e5d6331d8": {
-      "count": 1,
-      "row": "SF48"
-    },
     "src/shards/nalati-grasslands/runtime/weapons/GoldenBow.ts:raw-render:2c1caff46adaba5159fff206ff1ce360bf06fbeb7a4ba67ec4237c3330cef409": {
       "count": 1,
       "row": "SF48"

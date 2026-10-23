@@ -14,7 +14,7 @@ extraction remains a separate authoring task, not a compatibility failure.
 The original dependency inventory below was audited from clean committed source `b13614a6e7bb218f691a5f3b7040510de13cb7e8` plus these test-only files,
 using the template's unchanged `scripts/sim-node-loader.mjs`, plain Node 24.18.1, no browser/DOM shim.
 Every shard has `run.mjs`, `headless.test.ts`, `replay.test.ts`, `ledger.test.ts` and an unedited-result
-`compatibility.json` with source revision and invocation. `dependency-chains.json` records static
+`compatibility.json` with source revision and invocation. `test/fixtures/compatibility-dependency-chains.json` records static
 value-import paths from that clean source; it is a dependency inventory, not a captured failure stack.
 
 Run, for example:

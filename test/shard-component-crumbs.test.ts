@@ -11,7 +11,7 @@ import {platformOutput} from './fixtures/platformOutputs';
 
 test('crumbs stay with their file while executable owner APIs keep their component',()=>{
   const root=mkdtempSync(join(tmpdir(),'component-crumbs-'));
-  const path='src/shards/nalati-grasslands/runtime/state.ts';
+  const path='src/shards/nalati-grasslands/runtime/facts.ts';
   const source=[
     "import {windFx} from './windFx';",
     "export {weapon} from './weapon';",
@@ -64,7 +64,7 @@ test('type-only users share their declarations without sharing unrelated combat 
 
 test('borrowed service fields retain their owner; calls and tuning keep semantics', () => {
   const root = mkdtempSync(join(tmpdir(), 'component-borrowed-'));
-  const path = 'src/shards/nalati-grasslands/runtime/state.ts';
+  const path = 'src/shards/nalati-grasslands/runtime/facts.ts';
   const source = [
     'export const field = { audio: services.audio };',
     'const {audio, score} = services;',

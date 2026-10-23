@@ -26,7 +26,7 @@ test('publishes the existing census for every shard, including zero-native rows'
 
 test('retains class and method symbols without changing any counted line',()=>{
   mkdirSync('tmp',{recursive:true});const root=mkdtempSync(resolve('tmp/ruler-symbols-'));
-  const path='src/shards/nalati-grasslands/runtime/index.ts';
+  const path='src/shards/nalati-grasslands/runtime/facts.ts';
   try {
     mkdirSync(dirname(resolve(root,path)),{recursive:true});
     writeFileSync(resolve(root,path),'export class Runtime {\n  begin() {\n    return 1;\n  }\n}\n');
