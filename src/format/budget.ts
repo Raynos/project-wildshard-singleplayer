@@ -110,10 +110,15 @@ export function* worstContentCostSteps(shard: Shardfile, commons = 0): Generator
   const steps: number[] = []; for (let v = -280; v <= 280; v += GRID_STEP) steps.push(v);
   const n = steps.length, at = (xi: number, zi: number): number => xi * n + zi;
   const square = (lo: number, hi: number, v: number): number => { const d = Math.max(lo - v, v - hi, 0); return d * d; };
+  // one pair of scratch rows for every near() call of the scan (it ran once per tile and synthetic neighbour tile,
+  // building four arrays each time); the same cells visit in the same order
+  const dx = new Float64Array(n), dz = new Float64Array(n);
   const near = (x0: number, z0: number, x1: number, z1: number, each: (cell: number) => void): void => {
-    const dx = steps.map(x => square(x0, x1, x)), dz = steps.map(z => square(z0, z1, z));
-    const columns = dx.flatMap((d, i) => d <= RADIUS2 ? [i] : []), rows = dz.flatMap((d, i) => d <= RADIUS2 ? [i] : []);
-    for (const xi of columns) for (const zi of rows) if ((dx[xi] ?? 0) + (dz[zi] ?? 0) <= RADIUS2) each(at(xi, zi));
+    for (let i = 0; i < n; i++) { const v = steps[i] ?? 0; dx[i] = square(x0, x1, v); dz[i] = square(z0, z1, v); }
+    for (let xi = 0; xi < n; xi++) {
+      const ex = dx[xi] ?? 0; if (ex > RADIUS2) continue;
+      for (let zi = 0; zi < n; zi++) { const ez = dz[zi] ?? 0; if (ez <= RADIUS2 && ex + ez <= RADIUS2) each(at(xi, zi)); }
+    }
   };
   const ownL0 = new Float64Array(n * n).fill(8 * C.l0.resident), ownActive = new Uint8Array(n * n);
   for (const tile of shard.tiles) if (tile.lod === 0) {

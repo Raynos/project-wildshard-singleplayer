@@ -469,12 +469,12 @@ export class LiveGridHost {
     // Owned-mode prefetch prepares products without allocating worlds, so it needs no such reservation.
     const reserved = this.ports.home.mode === 'owned' ? 0 : 1 + (this.active !== null && !this.borrowedHome(this.active) ? 1 : 0);
     const candidates = this.assembly.cells.filter((cell) => !this.borrowedHome(cell.instance) && cell.instance !== this.active && (this.ports.prefetchable?.(cell) ?? true))
-      .sort((a, b) => this.distance(a) - this.distance(b) || a.instance.localeCompare(b.instance));
+      .sort((a, b) => this.distance(a, feet) - this.distance(b, feet) || a.instance.localeCompare(b.instance));
     const nearby = candidates.slice(0, Math.max(0, this.limit - reserved));
     // Active/prepared frames and recently nearby worlds remain protected without changing motor bands.
     this.retireColdRegions();
     for (const cell of nearby) {
-      const estimate = readinessModel(this.ports.readiness.bundle(cell), this.ports.readiness.link), distance = this.distance(cell);
+      const estimate = readinessModel(this.ports.readiness.bundle(cell), this.ports.readiness.link), distance = this.distance(cell, feet);
       if (this.assembly.approaching(distance, estimate.distance) && !this.issues.has(cell.instance)) void background(cell.instance, this.prefetch([cell.instance]), () => !this.disposed);
     }
     // G580 T1: still inside the source, the nearest neighbour builds whole now (one at a time), so the wall is

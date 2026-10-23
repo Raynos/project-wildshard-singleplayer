@@ -175,9 +175,10 @@ function installReadinessProbe(instance,slug,sumOwned) {
  let phase='loading',count=game.frameCount,last=0,raf=0,skipped=0,active=false,contextLost=false;
  let previousWork=null;
  const memory=()=>{
-  const state=api.shard.grid.state(),claims=api.shard.grid.residency().claims;
+  // the live cell through the cheap accessor: state() built the whole grid readout every 250 ms, GC the frames measured
+  const current=typeof api.shard.grid.current==='function'?api.shard.grid.current():api.shard.grid.state().live.live.current,claims=api.shard.grid.residency().claims;
   const own=claims.filter(row=>row.owner===instance||row.id===`product:grid:${slug}`);
-  const row={at:performance.now(),phase,bytes:sumOwned(own,instance,slug),current:state.live.live.current};
+  const row={at:performance.now(),phase,bytes:sumOwned(own,instance,slug),current};
   samples.push(row);
   const peak=()=>({...row,claims:own.map(claim=>({id:claim.id,category:claim.category,bytes:claim.bytes,accountedBytes:claim.accountedBytes,coveredBy:claim.coveredBy}))});
   if(loadingPeak===null||row.bytes>loadingPeak.bytes)loadingPeak=peak();
