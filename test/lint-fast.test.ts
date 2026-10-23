@@ -29,6 +29,12 @@ test('fast lint shares staged rules, propagates refusals and cleans each private
   const whole:unknown=JSON.parse(readFileSync(resolve(fixture,'called.json'),'utf8'));
   expect(whole).toMatchObject({args:['--threads=2','-c',expect.stringMatching(/^\.commit-fast-lint-\d+\.json$/u)]});
   expect(run(['src/one.ts'],'1').status).toBe(1);
+  writeFileSync(resolve(fixture,'.push-tracked.json'),JSON.stringify(['src/unchanged.ts','public/image.bin']));
+  expect(run([]).status).toBe(0);
+  expect(JSON.parse(readFileSync(resolve(fixture,'called.json'),'utf8'))).toMatchObject({args:[
+   '--threads=2','-c',expect.stringMatching(/^\.commit-fast-lint-\d+\.json$/u),'src/unchanged.ts']});
+  writeFileSync(resolve(fixture,'.push-tracked.json'),'["../foreign.ts"]');
+  expect(run([]).status).toBe(1);
   expect(run(['--type-aware']).status).toBe(2);
   expect(readdirSync(fixture).some(name=>name.startsWith('.commit-fast-lint-'))).toBe(false);
  }finally{rmSync(fixture,{recursive:true,force:true});}

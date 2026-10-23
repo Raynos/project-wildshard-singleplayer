@@ -13,7 +13,9 @@ import time
 TEXT = {'.ts', '.tsx', '.mts', '.cts', '.js', '.mjs', '.cjs', '.json', '.jsonc',
         '.yaml', '.yml', '.css', '.glsl', '.frag', '.vert', '.wgsl', '.as', '.py', '.sh', '.md', '.html'}
 ROOTS = {'src', 'scripts', 'test', 'lint', 'vite', 'admin', 'api', 'drafts', 'site', 'docs', 'budgets', '.githooks', '.github'}
-TOOLS = ['gate-related-tests.mjs', 'push-inputs.mjs', 'push-checks.mjs', 'test-products.json']
+FAST_LINT_TOOLS = ['lint-fast.mjs', 'precommit-checks.mjs', 'guard-counts.mjs', 'guard-index-tree.mjs',
+                   'push-lint-config.mjs', 'ratchet-approval.mjs', 'legacy-shards.mjs']
+TOOLS = ['gate-related-tests.mjs', 'push-inputs.mjs', 'push-checks.mjs', 'test-products.json', *FAST_LINT_TOOLS]
 RUNTIME_TOOLS = ['runtime_input_copies.py', 'copied-runtime-inputs.json']
 CONFIGS = ['vitest-push.config.ts', 'vitest-push-guards.config.ts']
 

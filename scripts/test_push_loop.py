@@ -290,6 +290,34 @@ readFileSync('../public/assets/native/untracked.bin');
             self.assertEqual((self.root / name).read_bytes(), b'foreign working input')
         self.assertEqual((self.root / '.git/index').read_bytes(), index)
 
+    def test_copied_fast_lint_executes_exact_committed_tool_dependencies(self):
+        for name in [*PUSH['SOURCE']['TOOLS'], *PUSH['SOURCE']['CONFIGS']]:
+            self.put('scripts/' + name, '// unused copied tool\n')
+        exact = {}
+        for name in [*PUSH['SOURCE']['FAST_LINT_TOOLS'], 'link-node-modules.mjs']:
+            exact[name] = ((TOOL_ROOT / name).read_text() if name == 'lint-fast.mjs' else
+                           subprocess.check_output(['git', 'show', 'HEAD:scripts/' + name], cwd=ROOT, text=True))
+            self.put('scripts/' + name, exact[name])
+        self.put('scripts/runtime_input_copies.py', (TOOL_ROOT / 'runtime_input_copies.py').read_text())
+        self.put('scripts/copied-runtime-inputs.json', '{"version":1,"copies":[]}')
+        self.put('package.json', '{}')
+        self.put('.oxlintrc.json', json.dumps({'ignorePatterns': ['scripts/**', '.push-tools/**', '**/*.generated.*'], 'rules': {'no-eval': 'error'}}))
+        self.put('src/unchanged.ts', 'eval("1");\n')
+        self.put('src/ignored.generated.ts', 'eval("2");\n')
+        tip = self.commit('src/changed.ts')
+        self.put('scripts/lint-fast.mjs', 'throw Error("foreign working tool");\n')
+        subprocess.run(['node', str(TOOL_ROOT / 'link-node-modules.mjs'), str(ROOT), str(self.root)], check=True)
+        with PUSH['SOURCE']['committed_source'](self.root, tip, tip, time.monotonic() + 30) as (tree, tools):
+            for name, source in exact.items():
+                self.assertEqual((tools / name).read_text(), source)
+            result = subprocess.run(['node', str(tools / 'lint-fast.mjs')], cwd=tree,
+                                    capture_output=True, text=True, timeout=15)
+            self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+            self.assertIn('no-eval', result.stdout + result.stderr)
+            self.assertNotIn('ignored.generated.ts', result.stdout + result.stderr)
+            self.assertNotIn('MODULE_NOT_FOUND', result.stdout + result.stderr)
+            self.assertNotIn('foreign working tool', result.stdout + result.stderr)
+
     def test_binary_json_git_guard_precedes_source_preparation(self):
         self.put('scripts/no-binary-json.mjs', (TOOL_ROOT / 'no-binary-json.mjs').read_text())
         self.put('lint/no-binary-json.json', json.dumps({'schema': 'no-binary-json/1', 'source': self.base, 'files': {}}))
