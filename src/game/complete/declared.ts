@@ -2,6 +2,7 @@ import type { CompletionRows } from '@wildshard/format/completion';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { LiveMarker } from '@wildshard/engine/quest/view';
 import type { ShardContext } from '../plugin/context';
+import { findTitleManifest } from '../shard/titleList';
 import { findChunk } from '../shard/registry';
 import { travel } from '../travel/travel';
 import { ShardComplete, completeEntry, setCompleteEntry, type CompleteEntry, type ShardCompleteData } from './ShardComplete';
@@ -69,8 +70,8 @@ export interface CompletionContext {
 export function installCompletion(ctx: CompletionContext, flags: Flags, progress: CompletionProgress | undefined, objective?: HTMLElement, anchors?: ReadonlyMap<string, { readonly x: number; readonly z: number }>): Completion {
   const rows = ctx.product.section('ui/completion'), runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play;
   if (world === undefined || world === null || play === undefined || play === null) throw new Error('Completion requires the normal play owner');
-  const player = world.player, card = new ShardComplete(), title = findChunk(ctx.manifest.slug)?.name ?? rows.title;
-  const next = ctx.manifest.next === undefined ? undefined : findChunk(ctx.manifest.next);
+  const player = world.player, card = new ShardComplete(), title = (findChunk(ctx.manifest.slug)??findTitleManifest(ctx.manifest.slug))?.name ?? rows.title;
+  const next = ctx.manifest.next === undefined ? undefined : findChunk(ctx.manifest.next)??findTitleManifest(ctx.manifest.next);
   const project = () => completionProjection(rows, flags, progress, title, next?.name, anchors);
   let wasMuted = false;
   const close = (): void => { card.close(); player.carried = false; play.weapons.visible = true; objective?.classList.remove('ws-quest-hide'); };

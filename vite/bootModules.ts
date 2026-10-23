@@ -6,6 +6,7 @@ import { readModuleFiles } from '../src/engine/boot/download';
 import { bootProductTotals } from './bootProducts';
 import { homeExtraFiles } from './bootExtras';
 import { createHash } from 'node:crypto';
+import { selectionModules } from '../scripts/title-catalogue.mjs';
 
 /** Only imports actually scheduled by startSelected; title, recovery and error
  * branches elsewhere in the entry module are not home requirements. */
@@ -114,7 +115,15 @@ export function bootModulesPlugin(): Plugin {
         this.emitFile({ type: 'asset', fileName: name, source });
         extras[prefix] = [`/${name}`, Buffer.byteLength(source), files.reduce((sum, row) => sum + row[1], 0), hash];
       }
-      const rows = { common: bootModuleFiles(bundle, ids), client: bootModuleFiles(bundle, [client.id]), grid: bootModuleFiles(bundle, [grid.id]), products, extras };
+      const selected:Record<string,readonly ModuleFile[]>={};
+      for(const row of selectionModules(root))selected[row.slug]=bootModuleFiles(bundle,[resolve(root,row.file)]);
+      let catalogueFiles:readonly ModuleFile[]=[];
+      if(Object.keys(selected).length>0){
+        const catalogue=await this.resolve('./shardList',entry);
+        if(catalogue===null||catalogue.external!==false)throw new Error('Missing full discovery module');
+        catalogueFiles=bootModuleFiles(bundle,[catalogue.id]);
+      }
+      const rows = { common: bootModuleFiles(bundle, ids), client: bootModuleFiles(bundle, [client.id]), grid: bootModuleFiles(bundle, [grid.id]), selection:selected, catalogue:catalogueFiles, products, extras };
       const json = JSON.stringify(rows).replaceAll('<', String.raw`\u003c`);
       html.source = html.source.replace('<head>', `<head><script type="application/json" id="boot-module-files">${json}</script>`);
     } },

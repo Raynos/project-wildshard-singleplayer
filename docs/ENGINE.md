@@ -3787,6 +3787,21 @@ collision ownership are unchanged.
 
 `@wildshard/engine/level/installation` provides `createLevelInstallation(app, scope, adapters, progress)`. It constructs the same scope-bound context used by `LevelLoader`, without starting another load or changing the active level. `openKit()` and `closeKit()` delimit the row-registration window. The caller owns the supplied scope and disposes it to remove its systems, events, content rows, scene root and adapter contributions. `context.inputContext(definition, owner?)` defaults to that scope; an explicit live descendant owns the adapter inverse, letting an entered scope retire input before its resident world. Unrelated or disposed owners are refused.
 
+The root's selected discovery path imports only the chosen original manifest on
+standalone phone pages. The existing title compiler emits a separate lazy loader
+bank using the same discovered module paths and placement rows. Explicit legacy
+boots and desktop background prefetch retain full discovery; grid boot completes
+it immediately after consuming its original page intent, before product admission.
+
+`game/shard/titleList.catalogueManifests()` combines complete scalar title/save
+metadata with original prepared manifests. Prepared entries take precedence,
+including external products. Save cards, pack policies, completion links and boot
+card art need no unrelated executable manifest. The compiler records separate
+common, selected-discovery and full-catalogue module banks; the root declares the
+bank before importing it, with existing file deduplication. This removes eager
+module edges, not a measured RAM amount; core-memory acceptance uses the next
+required official four-floor reading without forced GC.
+
 ### Allocation memory diagnostics (SF64)
 
 `@wildshard/engine/core/memoryAttribution` defines `MemoryAttribution`, the shared `memoryAttribution` ledger and scalar

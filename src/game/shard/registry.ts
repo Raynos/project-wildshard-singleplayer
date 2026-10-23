@@ -11,7 +11,7 @@ export function defaultShard(): string {
   if (first === undefined) throw new Error('No shard manifests were generated');
   return first.slug;
 }
-export const playable = (manifest: ShardManifest): boolean => manifest.status !== 'hidden';
+export const playable = (manifest: Pick<ShardManifest, 'status'>): boolean => manifest.status !== 'hidden';
 
 export function shardSlugFromUrl(search?: string): string {
   const named = new URLSearchParams(search ?? (typeof location === 'undefined' ? '' : location.search)).get('chunk');

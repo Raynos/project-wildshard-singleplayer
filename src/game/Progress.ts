@@ -1,6 +1,7 @@
 import { resourceScope } from '@wildshard/engine/app/resources';
 import { progressSave, saveSlug } from './saves';
 import { updateSummary } from './summary';
+import { findTitleManifest } from './shard/titleList';
 import { findShard } from './shard/registry';
 import type { ShardSlug } from './shard/slugs.generated';
 /**
@@ -95,7 +96,7 @@ export class Progress {
   private featTotal: number | undefined;
   private updateSummary(): void {
     const slug = saveSlug(this.chunkId);
-    if (findShard(slug) !== undefined) updateSummary(slug as ShardSlug, this.ledger === undefined ? this.shard
+    if ((findShard(slug)??findTitleManifest(slug)) !== undefined) updateSummary(slug as ShardSlug, this.ledger === undefined ? this.shard
       : { earned: this.defs.filter((def) => this.earned(def.id)).map((def) => def.id), playS: this.playS }, this.featTotal ?? this.defs.length);
   }
   private save() { progressSave.write(this.shard, saveSlug(this.chunkId)); this.updateSummary(); }

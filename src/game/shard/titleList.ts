@@ -2,12 +2,12 @@ import type { ShardManifest } from './manifest';
 import { shards } from './list';
 
 /** Cold-title metadata contains no executable shard bindings. */
-export type TitleManifest = Pick<ShardManifest, 'slug' | 'name' | 'biome' | 'status' | 'card' | 'legacy' | 'shardSelect' | 'shardfile' | 'gridShardfile'> & { readonly entries: NonNullable<ShardManifest['entries']> };
+export type TitleManifest = Pick<ShardManifest, 'slug' | 'name' | 'biome' | 'status' | 'card' | 'legacy' | 'shardSelect' | 'shardfile' | 'gridShardfile'> & Pick<Partial<ShardManifest>, 'order' | 'bag'> & { readonly entries: NonNullable<ShardManifest['entries']> };
 type TitleSource = Omit<TitleManifest, 'entries'> & { readonly entries?: TitleManifest['entries']; readonly load?: unknown };
 /** Preserve discovery's entry defaults while copying no executable bindings. */
 export function titleMetadata(row: TitleSource): TitleManifest {
-  const { slug, name, biome, status, card, legacy, shardSelect, shardfile, gridShardfile } = row;
-  return { slug, name, biome, status, card, ...(legacy === undefined ? {} : { legacy }),
+  const { slug, name, biome, status, card, legacy, shardSelect, shardfile, gridShardfile, order, bag } = row;
+  return { slug, name, biome, status, card, ...(order === undefined ? {} : {order}), ...(bag === undefined ? {} : {bag}), ...(legacy === undefined ? {} : { legacy }),
     ...(shardSelect === undefined ? {} : { shardSelect }), ...(shardfile === undefined ? {} : { shardfile }),
     ...(gridShardfile === undefined ? {} : { gridShardfile }),
     entries: row.entries ?? { legacy: row.load !== undefined, shardfile: row.load === undefined } };
@@ -24,6 +24,15 @@ export function titleManifests(): readonly TitleManifest[] {
   let rows = worldRows.get(installed);
   if (rows === undefined) { rows = installed.map(titleMetadata); worldRows.set(installed, rows); }
   return rows;
+}
+/** Data-only cards plus original prepared manifests: grids and desktop keep their
+ * full runnable catalogue; standalone pages prepare only the selected world. */
+export function catalogueManifests():readonly (ShardManifest|TitleManifest)[]{
+  const prepared=shards();
+  if(title===null)return prepared;
+  const rows=new Map<string,ShardManifest|TitleManifest>(title.map(row=>[row.slug,row]));
+  for(const manifest of prepared)rows.set(manifest.slug,manifest);
+  return [...rows.values()];
 }
 export function findTitleManifest(slug: string): TitleManifest | undefined {
   const rows = titleManifests();

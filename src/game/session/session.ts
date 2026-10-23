@@ -10,8 +10,8 @@ import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { bootPageMode } from '../grid/pageEntry';
 import type { ShardManifest } from '../shard/manifest';
 import { toLevelSpec } from '../shard/spec';
-import { playable, findChunk } from '../shard/registry';
-import { shards } from '../shard/list';
+import { playable } from '../shard/registry';
+import { catalogueManifests } from '../shard/titleList';
 import { ART_URL_BYTES } from '../shard/art.generated';
 import { runShardLoad, withShardHooks, ShardLoadError, type LoadStage } from '../shard/load';
 import type { KitPorts, BuiltWorld, SessionState, StagedBoot, SessionContext } from './context';
@@ -58,7 +58,8 @@ export async function startSession(manifest: ShardManifest, kit: KitPorts, optio
   installProductSampling(); // an optional bake its shard admitted as query terrain reads that product, never terrain.bin too
   installProductNavigation(); // declared navigation its shard's product admitted reads that product, never navmesh.bin too
   // the boot and the background download read the registry through the engine's catalog (E405: no engine → game import)
-  setBootCatalog({ levels: shards(), playable: shards().filter(playable), find: findChunk, artBytes: ART_URL_BYTES });
+  const levels=catalogueManifests(),byId=new Map<string,(typeof levels)[number]>(levels.map(row=>[row.slug,row]));
+  setBootCatalog({ levels, playable: levels.filter(playable), find:id=>byId.get(id), artBytes: ART_URL_BYTES });
   installErrorModal();
   const session: SessionState = { music: null, arrival: null, fatalShown: false, ...(options.memory === undefined ? {} : { memory: options.memory }), ...(options.recovery === undefined ? {} : { recovery: options.recovery }), ...(options.residency === undefined ? {} : { residency: options.residency }) };
   try {

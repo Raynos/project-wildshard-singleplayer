@@ -1,6 +1,7 @@
 import { ITEMS } from './bag/itemCatalog';
 import { WeightedTable, type WeightedRow } from '@wildshard/engine/ai/weighted';
 import type { IconId } from '@wildshard/engine/ui/icons';
+import { findTitleManifest } from './shard/titleList';
 import { findShard } from './shard/registry';
 import { inventorySave, saveSlug } from './saves';
 import type { ItemRow } from './bag/items';
@@ -52,8 +53,9 @@ export function harvestOf(kind: string, variant?: string): ItemId[] {
 }
 
 export const PACK_SLOTS = DEFAULT_PACK_SLOTS;
+const inventoryManifest=(slug:string)=>findShard(slug)??findTitleManifest(slug);
 /** Nalati (E314 C) and Nine Dragon (E314 A): no pack — nothing enters it, the Bag has no PACK tab */
-const isNoPackChunk = (chunkId: string): boolean => findShard(saveSlug(chunkId))?.bag?.pack.slots === 0; // a level with no pack declares 0 slots (its manifest's bag)
+const isNoPackChunk = (chunkId: string): boolean => inventoryManifest(saveSlug(chunkId))?.bag?.pack.slots === 0; // a level with no pack declares 0 slots (its manifest's bag)
 
 export class Inventory {
   private counts: Partial<Record<ItemId, number>>;
@@ -76,7 +78,7 @@ export class Inventory {
   }
 
   /** does this shard's pack take `id` at all? (Pine Hollow: only PINE_PACK_KINDS; Nalati, Nine Dragon: nothing) */
-  keeps(id: ItemId): boolean { return !isNoPackChunk(this.chunkId) && (findShard(saveSlug(this.chunkId))?.bag?.pack.keeps?.includes(id) ?? true); }
+  keeps(id: ItemId): boolean { return !isNoPackChunk(this.chunkId) && (inventoryManifest(saveSlug(this.chunkId))?.bag?.pack.keeps?.includes(id) ?? true); }
   /** what this shard's pack takes from a carcass: harvestOf, less the kinds it does not keep (empty = no [E] Harvest) */
   harvest(kind: string, variant?: string): ItemId[] { return harvestOf(kind, variant).filter((id) => this.keeps(id)); }
   /** did the save this pack loaded hold `id`, a kind the pack no longer keeps? ('warden-longbow' → Owned) */
@@ -94,7 +96,7 @@ export class Inventory {
     return true;
   }
   /** this shard's pack size (0: no pack, no PACK tab — Nalati, Nine Dragon) */
-  get slots(): number { return findShard(saveSlug(this.chunkId))?.bag?.pack.slots ?? (isNoPackChunk(this.chunkId) ? 0 : PACK_SLOTS); }
+  get slots(): number { return inventoryManifest(saveSlug(this.chunkId))?.bag?.pack.slots ?? (isNoPackChunk(this.chunkId) ? 0 : PACK_SLOTS); }
   /** how many of `id` the pack holds */
   count(id: ItemId): number { return this.counts[id] ?? 0; }
   /** take `n` of `id` out of the pack (a trade); false, and nothing taken, when there are fewer. At 0 the slot frees up. */

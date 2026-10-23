@@ -19,6 +19,8 @@ test('startup roots follow the executed entry function, excluding title, recover
   expect(startupImports('function startSelected() { return retried(() => import("./required")); }')).toEqual(['./required']);
   const actual = startupImports(readFileSync('src/entry.ts', 'utf8'));
   expect(actual).toContain('./game/session/session');
+  expect(actual).toContain('./shardSelection');
+  expect(actual).not.toContain('./shardList');
   expect(actual).not.toContain('./engine/ui/StartTitle');
   expect(actual.length).toBe(new Set(actual).size);
 });

@@ -15,7 +15,7 @@ import { mountUi } from '@wildshard/engine/ui/ownership';
 import catalogue from './grid/singleplayer.json' with { type: 'json' };
 import { previewNewGame, resetNewGame, type NewGameProgress, type NewGameSummary } from './newGame';
 import type { LocalSaveInstance } from './instanceSaves';
-import { shards } from './shard/list';
+import { catalogueManifests } from './shard/titleList';
 import type { ShardManifest } from './shard/manifest';
 
 /** Every string the section and the sheet show, quoted from the G83 board. */
@@ -67,7 +67,7 @@ export function sheetRows(summary: NewGameSummary, total: number | null = null):
 const hasSave = (s: NewGameSummary): boolean => s.before.quests.saved || s.before.inventory.quantity > 0 || s.before.inventory.coins > 0 || s.removedKeys.length > 0;
 
 /** Every stable save instance the singleplayer catalogue places (the canonical copies, then the grid's template copies). */
-type CardManifest = Pick<ShardManifest, 'slug' | 'name' | 'status' | 'order' | 'card'>;
+type CardManifest = Pick<ShardManifest, 'slug' | 'name' | 'status' | 'card'> & {readonly order?:number};
 export function saveCards(list: readonly CardManifest[], developer: boolean): SaveCardSpec[] {
   const bare = (slug: string): string => slug.replace(/^_/u, '');
   const bySlug = new Map(list.map((m) => [bare(m.slug), m]));
@@ -145,7 +145,7 @@ export function installSavesSettings(menu: GameMenu, opts: SavesSettingsOptions)
   const render = (): void => {
     cards?.dispose(); const owner = opts.scope.child('saves.cards'); cards = owner;
     const here = opts.here();
-    const rows = saveCards(shards(), isDev()).map((card) => ({ card, summary: preview(card.instance), here: here !== null && here.id === card.instance.id }))
+    const rows = saveCards(catalogueManifests(), isDev()).map((card) => ({ card, summary: preview(card.instance), here: here !== null && here.id === card.instance.id }))
       .filter((row) => row.here || row.card.listed || row.summary === null || hasSave(row.summary));
     rows.sort((a, b) => Number(b.here) - Number(a.here));
     strip.replaceChildren(...rows.map(({ card, summary, here: isHere }) => {

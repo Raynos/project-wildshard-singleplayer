@@ -1,4 +1,8 @@
-import { realpathSync } from 'node:fs';
+import { existsSync, readFileSync, realpathSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { shardFolders } from './gen-shards.mjs';
+import { shardProducts } from './shard-outputs.mjs';
+import { productManifestPath } from './authored-manifest.mjs';
 import { pathToFileURL } from 'node:url';
 
 /** Emit data and image imports only, never a shard's executable discovery graph.
@@ -29,4 +33,26 @@ export async function readTitleCatalogue() {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
   process.stdout.write(`TITLE-CATALOGUE ${JSON.stringify(await readTitleCatalogue())}\n`);
+  process.stdout.write(`TITLE-SELECTION ${JSON.stringify(selectionCatalogueSource(selectionModules(process.cwd())))}\n`);
+}
+
+/** The same discovered modules and original placement rows, without importing them.
+ * @param {string} root
+ * @returns {{slug:string,file:string,placement?:{grid:[number,number],size:[number,number,number],instance:string}}[]} */
+export function selectionModules(root) {
+  if (!existsSync(resolve(root,'src/shards'))) return [];
+  const path=resolve(root,'src/game/grid/singleplayer.json');
+  /** @type {{slug:string,cell:[number,number],size:[number,number,number],instance:string}[]} */
+  const placements=existsSync(path)?JSON.parse(readFileSync(path,'utf8')).placements:[];
+  return shardProducts(root,shardFolders(root)).map(product=>{
+    const placement=placements.find(row=>row.slug===product.slug);
+    const row={slug:product.slug,file:productManifestPath(root,product)};
+    if(placement===undefined)return row;
+    return {slug:row.slug,file:row.file,placement:{grid:placement.cell,size:placement.size,instance:placement.instance}};
+  });
+}
+/** A separate lazy composition bank: the cold title imports none of these modules.
+ * @param {ReturnType<typeof selectionModules>} rows */
+export function selectionCatalogueSource(rows) {
+  return `export const SHARD_LOADERS={${rows.map(row=>`${JSON.stringify(row.slug)}:()=>import(${JSON.stringify(`/${row.file}`)}).then(({default:manifest})=>${row.placement===undefined?'manifest':`({...manifest,placement:${JSON.stringify(row.placement)}})`})`).join(',')}};\n`;
 }

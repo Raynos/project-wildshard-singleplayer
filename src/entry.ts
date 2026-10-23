@@ -114,7 +114,8 @@ export async function start(): Promise<void> {
 }
 
 async function startSelected(): Promise<void> {
-  await retried(() => import('./shardList')); // the shard list before @wildshard/game reads it (AG4)
+  const {prepareSelectedShard,completePageCatalogue}=await retried(()=>import('./shardSelection'));
+  await prepareSelectedShard();
   const { game } = await retried(() => import('./game/shard/registry'));
   const { beginLoading } = await retried(() => import('@wildshard/engine/ui/Loading'));
   const loading = beginLoading({ id: game.shard.slug, name: game.shard.name, trace: game.shard.boot?.phone?.trace === true });
@@ -145,6 +146,7 @@ async function startSelected(): Promise<void> {
   let page: ReturnType<typeof preparePageResidency> | undefined;
   try {
     page = preparePageResidency(game.shard, source?.identity.slug);
+    await completePageCatalogue(page.mode);
     const { loadingPath } = await retried(() => import('./game/boot/loadingPaths'));
     const { shardEntry } = await retried(() => import('./game/shard/entryMode'));
     const { default: calibration } = await retried(() => import('./loadingCalibration.json'));

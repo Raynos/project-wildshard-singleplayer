@@ -6,7 +6,7 @@ import type { ShardManifest } from './manifest';
 const SLOT = Symbol.for('game.shards');
 const CONTENT_SLOT = Symbol.for('game.shardContentIdentities');
 const isList = (v: unknown): v is readonly ShardManifest[] => Array.isArray(v);
-/** Install the committed discovery list and its exact reviewed legacy inventory identities. Save/instance slugs are never changed. */
+/** Install original prepared manifests and their reviewed legacy identities. Save/instance slugs never change. */
 export function installShards(list: readonly ShardManifest[], legacyContent?: Readonly<Record<string, string>>): void {
   const manifests = new Map<string, ShardManifest>(list.map(manifest => [manifest.slug, manifest]));
   const content = legacyContent ?? Object.fromEntries(list.flatMap(manifest => {
@@ -30,7 +30,7 @@ export function legacyContentIdentity(slug: string): string | undefined {
   const primary: unknown = Object.hasOwn(table, slug) ? Reflect.get(table, slug) : undefined;
   return typeof primary === 'string' ? primary : undefined;
 }
-/** every shard, sorted by `order` */
+/** Original manifests prepared for this page; titleList retains complete data-only catalogue metadata. */
 export function shards(): readonly ShardManifest[] {
   const list: unknown = Reflect.get(globalThis, SLOT);
   if (!isList(list)) throw new Error('No shard list installed: the composition root installs it (src/shardList.ts)');

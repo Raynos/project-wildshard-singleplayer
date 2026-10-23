@@ -13,7 +13,7 @@ import { installLegacyButtonsRow } from '../shard/legacyButtons';
 import { pageMode } from '../plugin/context';
 import { enterGrid } from '../grid/pageEntry';
 import { travel } from '../travel/travel';
-import { shards } from '../shard/list';
+import { catalogueManifests } from '../shard/titleList';
 import { primaryShardManifest } from '../shard/legacy';
 import type { worldStage } from './world';
 import { withOwner } from '@wildshard/engine/app/ownership';
@@ -98,7 +98,7 @@ async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) {
   const booted = shardEntry(chunk); // SF65: the way this page entered the shard (LEGACY / SHARDFILE)
   installLegacyButtonsRow(); // G531: pause ▸ Settings ▸ Debug offers it in every shard
   hud.titleDeck = (here) => {
-    const primary = primaryShardManifest(shards(), chunk);
+    const primary = primaryShardManifest<Pick<typeof chunk, 'slug' | 'legacy'>>(catalogueManifests(), chunk);
     const cards = titleCards(), own = cards[cards.map((card): string => card.slug).indexOf(primary.slug)];
     return buildTitleMenu({
       cards, active: primary.slug,

@@ -47,3 +47,8 @@ test('client phase admission keeps unused feature constructors outside its stati
   const files = titleGraph(['src/game/session/session.ts', 'src/game/shardfile/client.ts']);
   expect(files.filter(file => /src\/game\/shardfile\/(?:clientCatalogue|clientMeadow|clientHeldMelee|clientSpeciesProgram|clientQuestPage|clientPopulation|clientBossFight|clientBossTelegraph|clientPlayerEnter)\.ts$/u.test(file))).toEqual([]);
 });
+
+test('selected discovery composition has no static shard or complete-list dependency',()=>{
+  const files=titleGraph(['src/shardSelection.ts']);
+  expect(files.filter(file=>/src\/(?:shards\/|shardList\.ts$|shards\.generated\.ts$)/u.test(file))).toEqual([]);
+});
