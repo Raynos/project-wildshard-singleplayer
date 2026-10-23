@@ -36,7 +36,7 @@ import weatherProgram from '../src/shards/nalati-grasslands/behaviour/weather.ge
 
 const row = { kind: 'arena-script', id: 'meadow.titan', files: { fight: 'combat/titan-fight.json', geometry: 'combat/titan-geometry.json' },
   weather: 'meadow.weather', anchor: 'meadow.cairn' };
-const fight = { arenaScript: titan.TITAN_HOST, arenaFire, programs };
+const fight = { arenaScript: titan.TITAN_HOST, arenaFire, programs:{attack:programs.attack,wind:programs.wind} };
 const fightSchema = namedJsonSchema(ArenaScriptFightFileSchema), geometrySchema = namedJsonSchema(ArenaScriptGeometrySchema);
 
 function fixture(options: { held?: 'fight' | 'geometry'; parent?: Scope; native?: Scope; missing?: 'weather' | 'point'; point?: Vector3 | null } = {}) {
