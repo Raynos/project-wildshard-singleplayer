@@ -39,7 +39,7 @@ const schemas: Readonly<Record<string, v.GenericSchema>> = {
   'models/fixed-geometry.json': FixedGeometryGroupsSchema,
   'quests/chapter-director.json': ChapterDirectorSchema,
   'quests/wake-boss.json': ChapterWakeSchema,
-  'directors/main.json': v.strictObject({ declaration: DirectorSchema, module: v.strictObject({ module: text, bytes: text }), stages: DirectorStagesSchema, bindings: v.null(), seed: number }),
+  'directors/main.json': v.strictObject({ declaration: DirectorSchema, module: v.strictObject({ module: text, bytes: text, file: v.exactOptional(v.pipe(v.string(), v.minLength(1), v.maxLength(240))) }), stages: DirectorStagesSchema, bindings: v.null(), seed: number }),
   'look/creature-looks.json': PackedCreatureLooksSchema,
   'actors/creature-install.json': CreatureInstallSchema,
   'look/gull-draw.json': PosedLibrarySchema,
