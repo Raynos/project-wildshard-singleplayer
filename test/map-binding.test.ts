@@ -3,8 +3,11 @@ import { zlibSync,unzlibSync } from 'fflate';
 import { declaredMapColour } from '../src/game/shard/manifest';
 import { bakedSamplers } from '../src/format/bakedTerrainSampling';
 import { mapPalette } from '../src/format/minimap';
-import geography from '../src/shards/nalati-grasslands/boot/geography.generated.json' with { type: 'json' };
+import { readNalatiGeography } from './fixtures/nalati-geography';
+
 import { NALATI_MINIMAP } from './fixtures/nalati-terrain';
+
+const geography=readNalatiGeography();
 
 const encode = (values: Float32Array): string => btoa(String.fromCodePoint(...zlibSync(new Uint8Array(values.buffer))));
 const raster = (value: number) => ({ res: 2,size: 500,values: { type: 'f32',count: 4,data: encode(new Float32Array(4).fill(value)) } });
