@@ -461,9 +461,19 @@ export class HybridRuntimeSession {
         if (preparing) return true;
         const start = diagnosticNow(); let outcome: HybridHookTiming['outcome'] = 'failed';
         try {
-          parked.retained.slots.activate();
-          try { parked.retained.hooks.activate(); }
-          catch (error) { parked.retained.slots.deactivate(); throw error; }
+          const { slots, hooks } = parked.retained;
+          slots.activate();
+          // sp-o4 (grid readiness): the hooks' installers (~18 ms: audio filters, bag tabs, UI, inputs) take their own frame
+          // rather than the crossing's fixed step; a leave or a newer crossing meanwhile takes the slots back
+          if (this.options.pause !== undefined) {
+            // read after the await: the scope (and the generation) may have moved on while it waited
+            const gone = (): boolean => parked.scope.disposed, stale = (): boolean => generation !== this.generation;
+            try { await this.options.pause(parked.scope); }
+            catch (error) { if (!gone()) slots.deactivate(); throw error; }
+            if (stale() || gone()) { if (!gone()) slots.deactivate(); return false; }
+          }
+          try { hooks.activate(); }
+          catch (error) { slots.deactivate(); throw error; }
           this.active = parked; outcome = 'done'; return true;
         } finally {
           this.completedHooks.push(Object.freeze({ instance: cell.instance, hook: 'activate', start, end: diagnosticNow(), outcome }));
