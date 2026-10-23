@@ -7,6 +7,7 @@ import type { PostPackTerm, ScaledPostRow } from '@wildshard/format/scaledPost';
 import { BLEND_ADD_KEEP_ALPHA, type UniformMap } from '../plugin/shaderFamily';
 import { buildYield } from '@wildshard/engine/core/workSlice';
 import type { Scope } from '@wildshard/engine/app/scope';
+import { compileOffscreenPass } from '@wildshard/engine/render/precompile';
 
 const compilers = new WeakMap<Renderer, GraphCompiler>();
 /** Prepare the client backend during async world loading, before synchronous composer construction. */
@@ -22,9 +23,19 @@ function compilePost(compiler: GraphCompiler, pass: string, name: string, p: Sca
   if (p.blend === 'addKeepAlpha') Object.assign(graph.material, { transparent: true, ...BLEND_ADD_KEEP_ALPHA });
   return graph;
 }
+/** A throwaway pass: its own draw (the full-screen triangle) links a program as a scaled post pass will draw it. */
+class LinkPass extends Pass {
+  constructor() { super('scaled-post-link'); }
+  link(renderer: Renderer, material: Material, target: WebGLRenderTarget): Promise<void> {
+    this.fullscreenMaterial = material;
+    return compileOffscreenPass(renderer, { scene: this.scene, camera: this.camera, target });
+  }
+}
 /** Compile `rows`' programs ahead, one build step each, during async world loading: a later pass of the same row takes
  *  these copies instead of compiling every program in its synchronous constructor (a cell's composite is built in one
- *  frame); the copies `scope` leaves untaken are disposed with it. */
+ *  frame), and each is linked on a pass's own draw into a render target first (the driver links it on its workers with
+ *  KHR_parallel_shader_compile, not inside the composite's first draw); the copies `scope` leaves untaken are disposed
+ *  with it. */
 export async function precompileScaledPost(renderer: Renderer, rows: readonly ScaledPostRow[], scope: Scope): Promise<void> {
   const compiler = compilers.get(renderer);
   if (compiler === undefined) throw new Error('Scaled post backend was not prepared during world loading');
@@ -36,11 +47,16 @@ export async function precompileScaledPost(renderer: Renderer, rows: readonly Sc
       list.splice(at, 1); graph.material.dispose(); if (list.length === 0) pool.delete(key);
     }
   });
-  for (const row of rows) for (const [name, p] of Object.entries(row.programs)) {
-    await buildYield(scope);
-    const graph = compilePost(compiler, row.name, name, p); made.push(graph);
-    pool.set(p.graph, [...(pool.get(p.graph) ?? []), graph]);
-  }
+  const link = new LinkPass(), target = new WebGLRenderTarget(1, 1, { type: HalfFloatType, depthBuffer: false });
+  try {
+    for (const row of rows) for (const [name, p] of Object.entries(row.programs)) {
+      await buildYield(scope);
+      const graph = compilePost(compiler, row.name, name, p); made.push(graph);
+      pool.set(p.graph, [...(pool.get(p.graph) ?? []), graph]);
+      await buildYield(scope);
+      await link.link(renderer, graph.material, target);
+    }
+  } finally { target.dispose(); }
 }
 /** Generic client-only post executor: all differences between shards are graphs and rows. */
 export class ScaledPostPass extends Pass {
