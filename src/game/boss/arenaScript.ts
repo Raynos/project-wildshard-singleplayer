@@ -34,6 +34,9 @@ import { CellField } from '../systems/cellField';
 import { arenaBlockedAt, installArenaBoundary, type ArenaBoundary } from './arenaField';
 import { ArenaFireView, ArenaWhirlsView } from './arenaFire';
 import { ArenaSceneView, CloudBody, type PatrolEncounterView } from './encounterView';
+import { ARENA_VIEW, arenaChainTell } from '@wildshard/format/arenaView';
+import { lendViewCell, lendViewFrame, lendViewTell, lendViewValues } from '../shardfile/clientViewProgram';
+import type { Scope } from '@wildshard/engine/app/scope';
 import type { GroundTell } from '../Elite';
 import type { ArcWeaponPower } from '../weapons/arcPower';
 import type { HeldClaims, HeldSlotKit } from '../loadout/claims';
@@ -96,6 +99,9 @@ export class ArenaScriptFight implements BossScript {
   readonly life: ProjectedState;
   private readonly fightDraw: ReturnType<typeof installChannelPrograms>;
   private readonly viewRead = { fighting: 0, victoryT: -1, phase: 0, domeBroken: 0, open: 0, flash: 0 };
+  /** Nalati zero R6: the tells and pose run in the fight's view module at its frame slot (format/arenaView), lent in the
+   *  entered encounter's bind; its cells are the eased pose and the aim's operands */
+  private view: { readonly frame: (dt: number, time: number) => void; readonly cells: Record<'bend' | 'raise' | 'castL' | 'struck' | 'alpha', { value: number }> } | null = null;
 
   constructor(private readonly ctx: ArenaScriptWorld, private readonly host: ArenaScriptEncounter, data: ArenaScriptData) {
     this.data = data; this.pose={...data.pose};
@@ -129,6 +135,21 @@ export class ArenaScriptFight implements BossScript {
     this.heartTarget = { kind: data.definition.id,position: new THREE.Vector3(),alive: true,damageFor: () => target.damage,applyDamage: amount => this.hitHeart(amount) };
     this.heartHit = { animal: this.heartTarget,point: new THREE.Vector3(),distance: 0,headshot: false };
     this.heartLock = { kind: data.definition.id,position: new THREE.Vector3(),alive: true,lockable: true,lockRange: target.range,dims: { bodyY: 0,bodyRadius: target.closed } };
+  }
+
+  /** Lend the view module (format/arenaView) what it samples and writes, then the frame slot it runs at, for `scope`'s life. */
+  lendView(scope: Scope): void {
+    const { sources, cells: ids, tells } = ARENA_VIEW, pose = this.pose;
+    lendViewValues(scope, sources.life, field => this.life.value(field));
+    lendViewValues(scope, sources.clocks, field => this.clocks.value(field));
+    lendViewValues(scope, sources.pose, field => field === 'bend' ? pose.bend : field === 'raise' ? pose.raise : field === 'castL' ? pose.castL : Number.NaN);
+    lendViewValues(scope, sources.spear, field => field === 'x' ? this.spearAt.x : field === 'z' ? this.spearAt.z : Number.NaN);
+    const cells = { bend: { value: pose.bend }, raise: { value: pose.raise }, castL: { value: pose.castL }, struck: { value: 0 }, alpha: { value: 0 } };
+    for (const key of ['bend', 'raise', 'castL', 'struck', 'alpha'] as const) lendViewCell(scope, ids[key], cells[key]);
+    lendViewTell(scope, tells.spear, this.arena.tell('spear')); lendViewTell(scope, tells.fork, this.arena.tell('fork'));
+    for (const [i, chain] of this.chains.entries()) lendViewTell(scope, arenaChainTell(i), chain.tell);
+    const view = { frame: lendViewFrame(scope, ARENA_VIEW.slot).frame, cells };
+    this.view = view; scope.onDispose(() => { if (this.view === view) this.view = null; });
   }
 
   // ── BossScript ──
@@ -227,19 +248,18 @@ export class ArenaScriptFight implements BossScript {
       if (this.life.value(this.data.script.fight.retainEvents.step.spread)===1 && step.dt>0) this.updateChains(step.values);
     }
     if (decision.dt>0) this.life.event('tell',{ t,mode: this.clocks.value('mode'),spearT: this.clocks.value('t'),chainLeft: this.chainLeft,bend: this.pose.bend,raise: this.pose.raise });
-    const tell = this.life.state,slots=this.data.script.fight.retainEvents.tell,struck=tell[slots.struck],alpha=tell[slots.alpha];
-    this.pose.bend += ((tell[slots.bend] ?? this.pose.bend)-this.pose.bend)*Math.min(1,dt*(tell[slots.bendRate] ?? 0));
-    this.pose.raise += ((tell[slots.raise] ?? this.pose.raise)-this.pose.raise)*Math.min(1,dt*(tell[slots.raiseRate] ?? 0));
-    this.pose.castL += ((tell[slots.castL] ?? 0)-this.pose.castL)*Math.min(1,dt*4);
-    if (tell[slots.tell]===1) {
-      this.arena.tell('spear').ring(this.spearAt.x,this.spearAt.z,tell[slots.ringRadius] ?? 0,tell[slots.ringAlpha] ?? 0);
-      this.arena.tell('fork').ring(this.spearAt.x,this.spearAt.z,tell[slots.forkRadius] ?? 0,tell[slots.forkAlpha] ?? 0);
-    } else { this.arena.tell('spear').hide(); this.arena.tell('fork').hide(); }
-    for (const ring of this.chains) if (this.clocks.value(ring.row.on)===1) ring.tell.ring(this.clocks.value(ring.row.x),this.clocks.value(ring.row.z),tell[slots.chainRadius] ?? 0,tell[slots.chainAlpha] ?? 0);
+    // the frame slot: the view module eases the pose and draws the spear, fork and chain rings (behaviour titanView);
+    // the aim's operands are captured here, before the whirls and the fire (a reset during their contact keeps them)
+    let struck = 0, alpha = 0;
+    const view = this.view;
+    if (view !== null) {
+      view.frame(dt, t); const c = view.cells;
+      this.pose.bend = c.bend.value; this.pose.raise = c.raise.value; this.pose.castL = c.castL.value; struck = c.struck.value; alpha = c.alpha.value;
+    }
     this.updateWhirls(dt, t, fighting && this.victoryT < 0, this.hazardDt);
     this.updateFire(dt, t, fighting && this.victoryT < 0, this.hazardDt);
     // the spear in his hand (raised) or stuck in the meadow
-    b.aim(struck===1 ? this.spearAt : null,b.visible ? alpha ?? 0 : 0);
+    b.aim(struck===1 ? this.spearAt : null,b.visible ? alpha : 0);
     b.update(t, this.ctx.game.camera);
   }
 
@@ -493,6 +513,7 @@ export class ArenaScriptEncounter {
     this.boss = encounter.boss; this.ui = encounter.ui; runtime.interactables.push(this.prompt);
     if (encounter.boss.rewardTaken) kit.upgradeBlade('blade-reward',play.weapons,power);
     installArenaBoundary(ctx.scope,this.fight.boundary);
+    this.fight.lendView(ctx.scope);
     listenPage(ctx.scope,'keydown',event => { if (event instanceof KeyboardEvent && event.code === 'Enter') this.skipEnter = true; });
     listenPage(ctx.scope,'keyup',event => { if (event instanceof KeyboardEvent && event.code === 'Enter') this.skipEnter = false; });
     listenPage(ctx.scope,'pointerdown',() => { this.skipTouch = true; });
