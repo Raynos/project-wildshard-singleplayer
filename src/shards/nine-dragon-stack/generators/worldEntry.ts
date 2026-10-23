@@ -1,5 +1,5 @@
 import { parseWorldEntry, type WorldEntryRows } from '@wildshard/format/worldEntry';
-import { BLEND_ADD_KEEP_ALPHA } from '@wildshard/game/plugin/shaderFamily';
+import { AddEquation, CustomBlending, OneFactor, ZeroFactor } from 'three';
 import canopy from '../data/canopy.json' with { type: 'json' };
 import light from '../data/light.json' with { type: 'json' };
 import { nineWorldInstallRows, type NinePhysicsPlacement } from './physicsPlacements';
@@ -69,7 +69,8 @@ function nineEntryBlocks(): WorldEntryRows['blocks'] {
     wall: wall.flatMap(row => placed(row.id)),
     figures: [...placed('nds-fei-zhua-hooks'), ...(['walkers', 'sitters'] as const).flatMap(group => worldRows.rows.crowd[group].length === 0 ? [] : placed(`nds-crowd-${group}`, 'crowd'))],
     cards: [
-      { kind: 'look', look: 'nine-streaks', state: { transparent: true, ...BLEND_ADD_KEEP_ALPHA } },
+      { kind: 'look', look: 'nine-streaks', state: { transparent: true, blending: CustomBlending, blendEquation: AddEquation, blendSrc: OneFactor, blendDst: OneFactor,
+        blendEquationAlpha: AddEquation, blendSrcAlpha: ZeroFactor, blendDstAlpha: OneFactor } },
       { kind: 'look', look: 'nine-halo', state: light.haloState },
       { kind: 'attach', id: 'cards-capped.root', as: 'group', when: { variant: 'capped' } },
       { kind: 'attach', id: 'cards-open.root', as: 'group', when: { variant: 'open' } },
