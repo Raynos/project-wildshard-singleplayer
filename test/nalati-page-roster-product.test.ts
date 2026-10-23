@@ -2,12 +2,24 @@ import { expect,test } from 'vitest';
 import * as v from 'valibot';
 import { outputScriptAdmissionRows } from '../src/sdk/outputProduct';
 import { decisionModuleContracts } from '../src/format/scriptContract';
-import { readProjectAssets } from '../src/sdk/project';
+import { validateShardfileAssets } from '../src/format/assetAdmission';
+import { contentHash, readProjectAssets } from '../src/sdk/project';
 import { buildEliteEntryPageRows } from '../src/shards/nalati-grasslands/generators/eliteEntryRows';
 import ridingTerrain from '../src/shards/nalati-grasslands/data/ridingTerrain.generated.json' with { type: 'json' };
 
 test('the shared assembly document retains the complete page elite roster and its contact lookup', async () => {
   const product = await readProjectAssets('src/shards/nalati-grasslands');
+  const scripts=outputScriptAdmissionRows(product.output.platform);
+  expect(new Set(scripts.filter(row=>row.side==='sim').map(row=>row.module)).size).toBe(8);
+  expect(()=>validateShardfileAssets(product.shard,product.assets,contentHash,undefined,undefined,scripts)).not.toThrow();
+  expect(product.output.namedFiles?.some(row=>row.name==='behaviour/nalati.titan.attack.wasm')).toBe(false);
+  const fightFile=product.output.namedFiles?.find(row=>row.name==='combat/titan-fight.json');
+  const fightBytes=fightFile===undefined?undefined:product.assets.get(fightFile.hash);
+  if(fightBytes===undefined)throw new Error('Missing dual-port witness');
+  const fight=v.parse(v.object({programs:v.object({attack:v.object({script:v.object({module:v.string()}),bytes:v.string()})})}),JSON.parse(new TextDecoder().decode(fightBytes)));
+  const witness=fight.programs.attack;
+  expect(`blobs/wasm/${contentHash(Uint8Array.from(atob(witness.bytes),byte=>byte.codePointAt(0)??0))}.wasm`).toBe(witness.script.module);
+  expect(scripts.some(row=>row.module===witness.script.module)).toBe(false);
   const projection=product.output.namedFiles?.find(row=>row.name==='behaviour/nalati.titan.attack.v2.wasm');
   if(projection===undefined)throw new Error('Missing selected project module');
   const contracts=decisionModuleContracts(outputScriptAdmissionRows(product.output.platform),product.shard.files);
