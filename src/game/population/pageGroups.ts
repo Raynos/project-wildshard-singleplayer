@@ -157,10 +157,11 @@ export class PageWildEnvironment extends WildSenses {
   private wet: ((x: number,z: number) => number) | null = null;
   private readonly states = new WeakMap<object,PropertyDescriptorMap>();
   enter(scope: Scope, input: unknown, author: ReturnProgram): void {
-    const rows = v.parse(PageGroupRowsSchema,input), world = rows.world, previous = Object.getOwnPropertyDescriptors(this);
     if (input === null || typeof input !== 'object') throw new Error('Missing entered population rows');
-    const state = this.states.get(input);
+    const previous = Object.getOwnPropertyDescriptors(this), state = this.states.get(input);
+    // a re-entry restores the state its first entry admitted and built (G639: no second parse in the activation frame)
     if (state !== undefined) { Object.defineProperties(this,state); scope.onDispose(() => { this.states.set(input,Object.getOwnPropertyDescriptors(this)); Object.defineProperties(this,previous); }); return; }
+    const rows = v.parse(PageGroupRowsSchema,input), world = rows.world;
     const bytes = unzlibSync(Uint8Array.from(atob(world.wet),value => value.codePointAt(0) ?? 0));
     if (bytes.byteLength !== world.res*world.res*4) throw new Error('Invalid population wet mask');
     const heights = new Float32Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/4);

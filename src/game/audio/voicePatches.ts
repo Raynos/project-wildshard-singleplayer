@@ -11,6 +11,8 @@ import { ambientTick, tap } from '@wildshard/engine/core/harnessTap';
 type Group=VoicePatches['groups'][string];
 interface Live {scope:Scope;gains:Map<string,GainNode>;filters:Map<string,BiquadFilterNode>}
 const mixers=new WeakMap<Audio,AudioVoicePatches>();
+/** each admitted rows object's parse, once (G639: every cell entry re-parsed it inside a ~180 ms Nalati activation frame) */
+const admitted=new WeakMap<object,VoicePatches>();
 /** Client-only patch interpreter. Native mixers own samples/envelopes; rows own every voice, layer and bed. */
 export class AudioVoicePatches {
  readonly rows:VoicePatches;
@@ -20,7 +22,8 @@ export class AudioVoicePatches {
  private readonly last=new Map<string,number>();
  private sampled=false;
  constructor(private readonly audio:Audio,private readonly data:AudioData,input:unknown,private readonly scope:Scope){
-  this.rows=parse(VoicePatchesSchema,input);this.inputs={...this.rows.initial};
+  const known=typeof input==='object'&&input!==null?admitted.get(input):undefined;
+  this.rows=known??parse(VoicePatchesSchema,input);if(known===undefined&&typeof input==='object'&&input!==null)admitted.set(input,this.rows);this.inputs={...this.rows.initial};
   for(const row of Object.values(this.rows.cues)){
    if(row.phrase!==undefined)requireAudioProfile(data.synth?.[row.phrase],row.phrase);
    for(const layer of row.layers)requireAudioProfile(this.rows.cues[layer.cue],layer.cue);
