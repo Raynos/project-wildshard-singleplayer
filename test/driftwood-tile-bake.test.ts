@@ -1,5 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The real scene bake writes its inspectable intermediate into an isolated test project.
 import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Compare every byte natively without Vitest recursively visiting millions of typed-array elements.
+import { Buffer } from 'node:buffer';
 import { BufferAttribute, BufferGeometry, Material, Mesh, type Object3D } from 'three';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
@@ -9,7 +11,7 @@ import { driftwoodScene } from '../src/shards/driftwood-isle/generators/scene';
 const ordinals = v.union([v.array(v.number()), v.strictObject({ runs: v.array(v.number()) })]);
 const partition = v.object({ vertices: ordinals, triangles: ordinals });
 const isMesh = (node: Object3D): node is Mesh => node instanceof Mesh;
-const bytes = (attribute: BufferAttribute): Uint8Array => new Uint8Array(attribute.array.buffer, attribute.array.byteOffset, attribute.array.byteLength);
+const bytes = (attribute: BufferAttribute): Buffer => Buffer.from(attribute.array.buffer, attribute.array.byteOffset, attribute.array.byteLength);
 
 test('the compact Driftwood tile bake reconstructs every original world draw bit for bit', async () => {
   mkdirSync('tmp', { recursive: true });
@@ -44,9 +46,14 @@ test('the compact Driftwood tile bake reconstructs every original world draw bit
           if (!(attribute instanceof BufferAttribute) || !(channel instanceof BufferAttribute)) throw new Error('Expected exact plain channels');
           expect(channel.array.constructor).toBe(attribute.array.constructor);
           expect([channel.itemSize, channel.normalized]).toEqual([attribute.itemSize, attribute.normalized]);
-          expect(bytes(channel)).toEqual(bytes(attribute));
+          expect(bytes(channel).equals(bytes(attribute)), `${id}.${name} bytes`).toBe(true);
         }
-        expect(actual.geometry.index?.array).toEqual(original.index?.array);
+        const expectedIndex=original.index,actualIndex=actual.geometry.index;
+        expect(actualIndex===null).toBe(expectedIndex===null);
+        if(expectedIndex!==null&&actualIndex!==null){
+          expect(actualIndex.array.constructor).toBe(expectedIndex.array.constructor);
+          expect(bytes(actualIndex).equals(bytes(expectedIndex)), `${id} index bytes`).toBe(true);
+        }
       }
     } finally { for (const view of assembled.values()) view.geometry.dispose(); }
   } finally {
