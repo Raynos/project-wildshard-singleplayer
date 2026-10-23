@@ -37,7 +37,7 @@ function herdService(host: SimHost, id: string, group = `fixture:${id}`, tokens?
   return new FixtureNativeGroups(host, [pack], [], new Map<string, AnimalSim>(), new Map<string, PackPrey>(), new WeakMap<PackPrey, string>(), [],
     new WeakMap<AnimalSim, FixturePack<AnimalSim>>(), { id: group, herds: id, firstRaid: 0 }, tokens);
 }
-function install(host: SimHost) { herdService(host, rows.herds); return installMountedPlayer(host, rows); }
+function install(host: SimHost) { lendNalatiPasture(host.scope); herdService(host, rows.herds); return installMountedPlayer(host, rows); }
 
 test('G478 orchard native fixture owns and restores its actual mounted capsule', async () => {
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
@@ -85,6 +85,7 @@ test('G478 orchard fixture owns companion allocation, retirement and native tami
   expect(() => new BondedMountRoster(host, { ...companionRows, id: 'orchard.other' }, { ...service, sight: [false] })).toThrow('Invalid mount roster owners');
   const foreign = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier });
   try { expect(() => new BondedMountRoster(foreign, companionRows, service)).toThrow('Invalid mount roster owners'); } finally { foreign.dispose(); }
+  lendNalatiPasture(host.scope);
   const mounted = installMountedPlayer(host, { ...rows, mountable: [] });
   const taming = installNativeTaming(host, { commands: () => [] }, { step: 'orchard.taming', herds: 'orchard.herds', roster: 'orchard.companions', kinds: [], programs,
     binding: { upgradeKind: 'silver', bonds: ['ordinary', 'silver'], names: ['Juniper', 'Silver'], offset: [1, 2], fields: { upgraded: 'argymaq', horseUpgraded: 'horseArgymaq', candidateUpgraded: 'argymaq' },

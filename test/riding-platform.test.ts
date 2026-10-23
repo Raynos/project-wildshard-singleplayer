@@ -1,3 +1,4 @@
+import {lendNalatiRiding} from './fixtures/nalati-return-modules';
 import { installTamingEntry } from '../src/game/shardfile/clientEntryBinds';
 import { entryOwner, publishEntryOwner } from '../src/game/shardfile/entryOwners';
 import { parseClientPlan } from '../src/format/clientPlan';
@@ -33,6 +34,7 @@ import { legacyDouble } from './fake/FakeGame';
 
 function fixture(kind: string, speeds: MountProfile['speeds'], registerMode = true): { player: Player; animals: AnimalManager; mount: Mount; actor: Animal; scope: Scope; ctx: LevelContext; camera: PerspectiveCamera; slots: DiscOpts[]; widgets: string[] } {
   const scope = new Scope('riding-fixture'), app = new App(), camera = new PerspectiveCamera(), slots: DiscOpts[] = [], widgets: string[] = [];
+  lendNalatiRiding(scope);
   scope.onDispose(overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 }));
   const ctx = legacyDouble<LevelContext>({ app, scope, hud: {
     disc: (row: DiscOpts): HTMLButtonElement => { slots.push(row); const button = document.createElement('button'); button.className = row.cls; return button; },

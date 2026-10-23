@@ -21189,7 +21189,7 @@
       "command": [
         "--experimental-transform-types",
         "--import",
-        "./scripts/bake-loader.mjs",
+        "./src/sdk/bake/source-loader.mjs",
         "src/shards/nalati-grasslands/generators/bake-riding.mjs"
       ],
       "inputRoots": [
@@ -21197,11 +21197,9 @@
         "src/shards/nalati-grasslands/generators/bake-riding.mjs",
         "src/shards/nalati-grasslands/behaviour",
         "src/shards/nalati-grasslands/data/ridingRules.json",
-        "src/engine",
-        "src/game",
         "src/sdk",
         "src/format",
-        "scripts/bake-loader.mjs",
+        "src/sdk/bake/source-loader.mjs",
         "scripts/bake-output.mjs",
         "package.json",
         "pnpm-lock.yaml",
@@ -21214,11 +21212,13 @@
         "src/format/decisionScripts.ts"
       ],
       "outputs": [
-        "src/shards/nalati-grasslands/behaviour/riding.generated.json"
+        "src/shards/nalati-grasslands/behaviour/riding.generated.json",
+        "src/shards/nalati-grasslands/behaviour/riding.generated.wasm"
       ],
       "platform": "portable",
       "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/behaviour/riding.generated.json"
+        "src/shards/nalati-grasslands/behaviour/riding.generated.json",
+        "src/shards/nalati-grasslands/behaviour/riding.generated.wasm"
       ]
     },
     {

@@ -1,4 +1,5 @@
-import { expect, test } from 'vitest';
+import { afterEach, beforeEach, expect, test } from 'vitest';
+import {lendNalatiRiding} from './fixtures/nalati-return-modules';
 import { Vector3 } from 'three';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { TamingSession as TamingBinding } from '../src/game/riding/taming';
@@ -6,6 +7,10 @@ import { Scope } from '../src/engine/app/scope';
 import type { TamingServices, TamingHorse, TamingHerd } from '../src/game/riding/bindingTypes';
 import rows from '../src/shards/nalati-grasslands/data/headlessAssembly.json' with { type: 'json' };
 import programs from '../src/shards/nalati-grasslands/behaviour/riding.generated.json' with { type: 'json' };
+
+let scope:Scope;
+beforeEach(()=>{scope=new Scope('taming-rules');lendNalatiRiding(scope);});
+afterEach(()=>{scope.dispose();});
 
 function rig() {
   const horse: TamingHorse = { entityId: 'wild', kind: 'horse', scale: 1, alive: true, yaw: 0, position: new Vector3(), mem: {}, headWorld: out => out.set(0, 2, 0), setMotion: () => undefined };
@@ -19,11 +24,11 @@ function rig() {
     mount: { get mounted() { return mounted !== null; }, get horse() { return mounted; }, breakShake: 0, breakRoll: 0, mount: a => { mounted = a; return true; }, dismount: () => { mounted = null; }, addMountable: () => undefined, removeMountable: () => undefined },
     hud, herds: () => [herd], rest: { x: 0, z: 0, face: { x: 1, z: 0 } }, wind: () => ({ x: 0, z: 1, strength: 1 }), random: () => .25,
     spawnBonded: (x, z, yaw, argymaq) => ({ ...horse, entityId: 'bonded', kind: argymaq ? 'argymaq' : 'horse', position: new Vector3(x, 0, z), yaw }), hideStallion: () => { hidden = true; }, retireBonded: () => { retired = true; }, hurt: value => { damage += value; } };
-  return { horse, herd, ports, hud, law: new TamingBinding(ports,new Scope('taming-rules')), result: () => ({ mounted, damage, saved, hidden, retired }) };
+  return { horse, herd, ports, hud, law: new TamingBinding(ports,scope), result: () => ({ mounted, damage, saved, hidden, retired }) };
 }
 
 test('approach selects the closest eligible live stallion and spends trust from observations', () => {
-  const law = ReturnProgram.page(programs.approach);
+  const law = ReturnProgram.page(programs.approach,scope);
   const candidates = [{ x: 0, y: 0, z: 0, alive: 1, argymaq: 0 }, { x: 0, y: 0, z: 10, alive: 1, argymaq: 1 }];
   expect(law.project('select', { count: 2, px: 0, py: 0, pz: 1, bonded: 0, argymaq: 0 }, undefined, candidates)['index']).toBe(0);
   expect(law.project('select', { count: 2, px: 0, py: 0, pz: 1, bonded: 1, argymaq: 0 }, undefined, candidates)['index']).toBe(1);
@@ -57,7 +62,7 @@ test('throwing applies health and trust effects; mid-round numeric state reconne
 });
 
 test('riding projections enforce practice-room panic, mount identity, rail range and walk controls', () => {
-  const law = ReturnProgram.page(programs.riding);
+  const law = ReturnProgram.page(programs.riding,scope);
   expect(law.project('panic', { x: 0, z: 0, px: 1, pz: 0, bite: 0, practice: 1 })['duration']).toBe(0);
   expect(law.project('panic', { x: 0, z: 0, px: 1, pz: 0, bite: 0, practice: 0 })['duration']).toBe(2.2);
   expect(law.project('mount', { mounted: 0, present: 1, alive: 1, driven: 0, available: 0, breaking: 1, stallion: 1 })['accept']).toBe(1);
@@ -67,7 +72,7 @@ test('riding projections enforce practice-room panic, mount identity, rail range
 });
 
 test('dismount and naming stay within decision fuel for arbitrary restored headings', () => {
-  const law = ReturnProgram.page(programs.riding);
+  const law = ReturnProgram.page(programs.riding,scope);
   for (const yaw of [0, .37, -1.23, Math.PI / 2, Math.PI, -Math.PI, 12345.67, -1e100]) {
     for (const thrown of [0, 1]) {
       const side = thrown === 1 ? 2.2 : 1.15;
@@ -85,7 +90,7 @@ test('dismount and naming stay within decision fuel for arbitrary restored headi
 
 // A scheduled buck can fall on the same sample as a round boundary.
 test.each([1, 5])('round %i publishes one next-buck channel at the boundary', round => {
-  const law = ReturnProgram.page(programs.breaking);
+  const law = ReturnProgram.page(programs.breaking,scope);
   const row = law.project('step', { ...programs.initial, round, roundT: 3.4, next: 3.45, dt: .1, lean: 0, r0: .25, r1: .25, r2: .25 });
   expect(row['round']).toBe(round + 1);
   expect(row['roundT']).toBe(0);
