@@ -15,7 +15,9 @@ const rows=v.parse(GrassPresentationSchema,input);
 const sources=v.parse(v.object({sources:v.array(v.object({name:v.string(),source:v.string(),options:v.object({decoded:v.number()})}))}),input).sources;
 const hash=(bytes:Uint8Array):string=>createHash('sha256').update(bytes).digest('hex');
 
-test('all grass payloads use named binary intake with the original compressed bytes',async()=>{
+// The mask pin follows freshly baked dressing keep-outs. The other nine blocks
+// retain their original inline-payload hashes; the mask uses the same encoder.
+test('all grass payloads use named binary intake with the pinned compressed bytes',async()=>{
   expect(grassPresentationFiles(rows)).toHaveLength(10);expect(sources).toHaveLength(10);
   for(const before of reference){
     const source=sources.find(row=>row.name===`look/grass/${before.id}.bin`);
