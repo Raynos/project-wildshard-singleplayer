@@ -1,3 +1,9 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Real native restore regression loads the shipped physics runtime.
+import { readFileSync } from 'node:fs';
+import { createSimHost } from '../src/engine/sim';
+import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
+import { loadRapier } from '../src/engine/physics/rapier';
+import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { expect, test, vi } from 'vitest';
 import { NativeEliteKernels } from '../src/engine/ai/eliteKernels';
 import { StalkerBrain, readHowlerSpec } from '../src/engine/ai/stalker';
@@ -84,7 +90,7 @@ test('native terrain queries preserve the original concrete sampler receiver and
 });
 
 test('native owner and callable replacement refuse before construction and ancestor disposal closes the binder', () => {
-  for (const replacement of ['terrain', 'environment', 'contact', 'lifecycle', 'physics', 'scope']) {
+  for (const replacement of ['terrain', 'environment', 'contact', 'lifecycle', 'scope']) {
     const f = nativeKernelOwners();
     try {
       const kernels = new NativeEliteKernels(f.rows, f.loans), first = f.rows[0]; if (first === undefined) throw new Error('Missing native row');
@@ -92,7 +98,6 @@ test('native owner and callable replacement refuse before construction and ances
       else if (replacement === 'environment') Object.defineProperty(f.loans.environment, 'grassHeightAt', { value: () => 1 });
       else if (replacement === 'contact') f.loans.contacts.contact = () => true;
       else if (replacement === 'lifecycle') Object.defineProperty(f.loans.lifecycle, 'signature', { value: () => undefined });
-      else if (replacement === 'physics') Object.defineProperty(f.host, 'physics', { value: {} });
       else f.scope.dispose();
       expect(() => kernels.create(first.id, { animal: null, phase2: false, pack: null })).toThrow('owner');
       expect(f.loans.brains.size).toBe(0); expect(f.hit).not.toHaveBeenCalled();
@@ -133,4 +138,56 @@ test('equal native damage amounts retain the declared pattern contact precedence
     expect(f.hit.mock.calls[0]?.[0]).toMatchObject({ amount: 14 });
     expect(f.host.rng.snapshot().streams).toEqual([]);
   } finally { contact.mockRestore(); canReach.mockRestore(); f.scope.dispose(); }
+});
+
+
+test('native kernels resume against the restored physics owner after real snapshot replacement', async () => {
+  const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
+  const level = { ...SIM_LEVEL, entities: [], quests: [] }, host = createSimHost(level, { rapier });
+  const f = nativeKernelOwners(); f.actor.yOffset = 0;
+  let initialPhysics: typeof host.physics | undefined;
+  let kernels: NativeEliteKernels | undefined;
+  let kernel: ReturnType<NativeEliteKernels['create']> | undefined;
+  const row = f.rows.find(candidate => candidate.profile.pattern === 'pouncer');
+  if (row === undefined) throw new Error('Missing native profile');
+  let restored: typeof host | undefined;
+  try {
+    restored = restoreSimHost(level, { rapier }, snapshotSimHost(host), owner => {
+      initialPhysics = owner.physics;
+      kernels = new NativeEliteKernels(f.rows, { ...f.loans, host: owner, scope: owner.scope });
+      kernel = kernels.create(row.id, { animal: f.actor, phase2: false, pack: null });
+    });
+    expect(restored.physics).not.toBe(initialPhysics);
+    if (kernels === undefined || kernel === undefined) throw new Error('Missing restored kernel owner');
+    const resumed = kernel;
+    expect(() => resumed.advance(f.actor, 1 / 60, 0, false, false)).not.toThrow();
+    const canReach = vi.spyOn(reach, 'canReach').mockReturnValue(true), hit = vi.spyOn(restored.combat, 'hit');
+    try {
+      // Install a fresh binder after instrumenting the original combat authority.
+      const live = new NativeEliteKernels(f.rows, { ...f.loans, host: restored, scope: restored.scope });
+      const contact = live.create(row.id, { animal: f.actor, phase2: false, pack: null });
+      swipe(contact); contact.act(f.actor);
+      expect(canReach).toHaveBeenCalledTimes(4);
+      expect(canReach.mock.calls.every(call => call[2] === restored?.physics)).toBe(true);
+      expect(hit).toHaveBeenCalledTimes(2);
+    } finally { canReach.mockRestore(); hit.mockRestore(); }
+  } finally { restored?.dispose(); host.dispose(); f.scope.dispose(); }
+});
+
+
+for (const swapAt of [1, 2]) test(`a physics replacement at reach ${String(swapAt)} refuses before damage`, () => {
+  const f = nativeKernelOwners();
+  let queries = 0;
+  const canReach = vi.spyOn(reach, 'canReach').mockImplementation(() => {
+    if (++queries === swapAt) Object.defineProperty(f.host, 'physics', { value: {} });
+    return true;
+  });
+  try {
+    const kernels = new NativeEliteKernels(f.rows, f.loans), row = f.rows.find(candidate => candidate.profile.pattern === 'pouncer');
+    if (row === undefined) throw new Error('Missing native profile');
+    const kernel = kernels.create(row.id, { animal: f.actor, phase2: false, pack: null });
+    swipe(kernel);
+    expect(() => kernel.act(f.actor)).toThrow('Replaced elite contact physics owner');
+    expect(canReach).toHaveBeenCalledTimes(swapAt); expect(f.hit).not.toHaveBeenCalled();
+  } finally { canReach.mockRestore(); f.scope.dispose(); }
 });

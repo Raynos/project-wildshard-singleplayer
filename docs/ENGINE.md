@@ -10795,6 +10795,9 @@ original receiver. Same member objects, manager cadence, shared RNG,
 physics contacts and continuation remain authoritative. Binding rejects
 foreign bodies and replaced owners; sliced ancestor retirement closes
 callbacks without adding a body step, clock or save owner.
+Native snapshot restore may replace the host physics after construction. Each
+contact captures the current physics owner and refuses replacement during either
+reach check or damage delivery; other concrete lifetime fences remain pinned.
 
 The original Elites entered binding accepts optional finite action rows and
 concrete native service loans through

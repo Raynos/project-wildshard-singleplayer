@@ -47,7 +47,7 @@ export class NativeEliteKernels {
   private readonly host; private readonly scope; private readonly lifecycle;
   private readonly contacts; private readonly strikeOwner; private readonly strikes; private readonly terrain; private readonly environment;
   private readonly ledges; private readonly brains;
-  private readonly player; private readonly physics; private readonly combat; private readonly rng;
+  private readonly player; private readonly combat; private readonly rng;
   private readonly methods: readonly unknown[];
   private readonly loans: NativeEliteKernelLoans;
   private readonly head = new Vector3(); private readonly direction = new Vector3(); private readonly knocked = { x: 0, z: 0 };
@@ -63,7 +63,7 @@ export class NativeEliteKernels {
     if (rows.some(row => row.profile.pattern === 'pouncer') && ledges.length > 6) throw new RangeError('Pouncer ledge bound exceeded');
     this.host = host; this.scope = scope; this.lifecycle = lifecycle; this.contacts = contacts; this.strikeOwner = strikes; this.strikes = [...strikes];
     this.terrain = terrain; this.environment = environment; this.ledges = ledges; this.brains = brains;
-    this.player = host.player; this.physics = host.physics; this.combat = host.combat; this.rng = host.rng;
+    this.player = host.player; this.combat = host.combat; this.rng = host.rng;
     if (!(scope instanceof Scope) || !(contacts instanceof StrikeRunner) || !(brains instanceof Map) || scope !== host.scope
       || new Set(rows.map(row => row.id)).size !== rows.length || new Set(strikes.map(row => row.id)).size !== strikes.length
       || rows.some(row => row.knockdown.min > row.knockdown.max || new Set(row.contacts.map(contact => contact.amount)).size !== row.contacts.length
@@ -80,21 +80,29 @@ export class NativeEliteKernels {
     if (this.scope.disposed || this.scope.disposing || loans.scope !== this.scope || loans.host !== host || host.scope !== this.scope
       || loans.lifecycle !== this.lifecycle || loans.contacts !== this.contacts || loans.terrain !== this.terrain || loans.environment !== this.environment
       || loans.ledges !== this.ledges || loans.brains !== this.brains || loans.strikes !== this.strikeOwner || loans.strikes.length !== this.strikes.length || loans.strikes.some((row, i) => row !== this.strikes[i])
-      || host.player !== this.player || host.physics !== this.physics || host.combat !== this.combat || host.rng !== this.rng
+      || host.player !== this.player || host.combat !== this.combat || host.rng !== this.rng
       || [method(this.contacts, 'contact'), method(this.terrain, 'heightAt'), method(this.environment, 'grassHeightAt'), method(this.lifecycle, 'signature'), method(host, 'dashPlayer'), method(this.combat, 'hit'), method(this.rng, 'stream'), method(this.brains, 'set')]
         .some((callable, i) => callable !== this.methods[i])) throw new Error('Retired or replaced elite kernel owner');
   }
   create(id: string, state: NativeEliteKernelState): StalkerBrain<AnimalSim> {
     this.validate();
     const row = this.rows.find(candidate => candidate.id === id); if (row === undefined) throw new Error('Missing elite kernel row');
-    let striking: AnimalSim | null = null;
+    // Native restore replaces physics after installing controllers; each contact
+    // pins the current owner through both reach checks and damage delivery.
+    let striking: AnimalSim | null = null, physics = this.host.physics;
     const hit = { source: 'env' as const, sourceTags: [`elite.${id}`, 'feel.blow', 'cover.checked'] as `${string}.${string}`[], target: this.player.health,
       amount: 0, point: this.head, dir: this.direction, cause: { kind: '', label: '' } };
-    const reach = (): boolean => striking !== null && canReach(striking, this.player.position, this.physics);
+    const reach = (): boolean => {
+      this.validate();
+      if (this.host.physics !== physics) throw new Error('Replaced elite contact physics owner');
+      const allowed = striking !== null && canReach(striking, this.player.position, physics);
+      if (this.host.physics !== physics) throw new Error('Replaced elite contact physics owner');
+      return allowed;
+    };
     const deliver = (): void => { this.validate(); if (reach()) this.combat.hit(hit); };
     const contactPorts = { canReach: reach, hit: deliver };
     const hurt = (actor: AnimalSim, amount: number): void => {
-      this.validate(); striking = actor; hit.amount = amount; hit.point = actor.position; hit.cause.kind = actor.kind; hit.cause.label = actor.label;
+      this.validate(); physics = this.host.physics; striking = actor; hit.amount = amount; hit.point = actor.position; hit.cause.kind = actor.kind; hit.cause.label = actor.label;
       const name = row.contacts.find(contact => contact.amount === amount)?.strike ?? row.fallbackStrike;
       const strike = this.strikes.find(candidate => candidate.id === name); if (strike === undefined) throw new Error('Missing elite contact row');
       this.contacts.contact(strike, { ...contactPorts, actor, target: this.player.position });
