@@ -11,11 +11,15 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import { readFileSync } from 'node:fs';
 import assembly from '../src/shards/pine-hollow/data/headlessAssembly.json' with { type: 'json' };
 import terrain from '../src/shards/pine-hollow/data/terrainBindings.json' with { type: 'json' };
-import baked from '../src/shards/pine-hollow/data/physics.generated.json' with { type: 'json' };
 import { PinePhysicsSchema } from '../src/shards/pine-hollow/generators/sections';
 import { readNamedBlob } from '../src/sdk/blobs';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+
+const baked=(()=>{
+  const rows:unknown=JSON.parse(readFileSync('src/shards/pine-hollow/data/physics.generated.json','utf8'));
+  v.assert(PinePhysicsSchema,rows);return rows;
+})();
 
 const options = { label: 'Native test', resolution: 2, size: 4, parked: true,
   rig: 'segments',shapes: [1,2,6,9],provenance: 'piece' };
