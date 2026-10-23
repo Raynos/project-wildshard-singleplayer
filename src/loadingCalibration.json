@@ -27,7 +27,7 @@
     "tier": "*",
     "path": "shardfile",
     "identity": "*",
-    "source": "1c61174e7a; progress/loading/l12-calibration-1c61174.json; measured phone distribution, byte-scaled fallback for uncalibrated loads",
+    "source": "1c61174e7a; test/fixtures/l12-calibration-1c61174.json; measured phone distribution, byte-scaled fallback for uncalibrated loads",
     "samples": 2,
     "workload": {
       "bytes": 20709810.0,

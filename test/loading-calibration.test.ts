@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import calibrations from '../src/loadingCalibration.json';
-import receipt from '../progress/loading/l12-calibration-1c61174.json';
+import receipt from './fixtures/l12-calibration-1c61174.json';
 import { loadingExpectations } from '../src/engine/boot/weights';
 import { loadingPath } from '../src/game/boot/loadingPaths';
 
