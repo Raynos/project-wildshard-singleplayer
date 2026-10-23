@@ -23,7 +23,7 @@ import product from '../src/shards/driftwood-isle/generators/product';
 import policy from '../src/shards/driftwood-isle/data/nativeQuest.json' with { type: 'json' };
 import swords from '../src/shards/driftwood-isle/data/nativeSwords.json' with { type: 'json' };
 import declaration from '../src/shards/driftwood-isle/data/director.json' with { type: 'json' };
-import module from '../src/shards/driftwood-isle/behaviour/director.json' with { type: 'json' };
+import {driftwoodDirector as module} from './fixtures/director-modules';
 import stages from '../src/shards/driftwood-isle/data/finaleStages.json' with { type: 'json' };
 import bindings from './fixtures/driftwood-director-bindings.json' with { type: 'json' };
 import { DRIFTWOOD_MODES } from '../src/shards/driftwood-isle/generators/modes';

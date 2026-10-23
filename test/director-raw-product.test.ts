@@ -1,0 +1,47 @@
+import {expect,test,vi} from 'vitest';
+import {Scope} from '../src/engine/app/scope';
+import {readDirectorProduct,prepareEmbeddedDirector} from '../src/game/plugin/director';
+import {parseDirector} from '../src/format/director';
+import {createShardProduct} from '../src/game/shardfile/shardProduct';
+import {emptyShardfile} from '../src/sdk/author';
+import {sha256} from '../src/game/plugin/moduleHash';
+import {pineDirector,driftwoodDirector} from './fixtures/director-modules';
+import pine from '../src/shards/pine-hollow/data/director.json' with {type:'json'};
+import driftwood from '../src/shards/driftwood-isle/data/director.json' with {type:'json'};
+
+function fixture(declaration:unknown,module:{readonly module:string;readonly bytes:Uint8Array},options:{readonly inline?:string;readonly raw?:Uint8Array;readonly wait?:Promise<void>}={}){
+  const file='behaviour/director.wasm',raw=options.raw??module.bytes,hash=sha256(raw),stages={original:true};
+  const json=new TextEncoder().encode(JSON.stringify({declaration,module:{module:module.module,bytes:options.inline??'',file},stages,bindings:null,seed:357})),jsonHash=sha256(json),reads:string[]=[];
+  const product=createShardProduct({slug:'raw-director',revision:1,shardfile:emptyShardfile({slug:'raw-director',name:'Director',author:'Fixture',revision:1,seed:357}),
+    sections:new Map(),files:new Map([['directors/main.json',{hash:jsonHash,url:'main'}],[file,{hash,url:file}]]),read:async ref=>{
+      if(ref===jsonHash){reads.push('main');return json;}if(ref!==hash)throw new Error('Unexpected director file');reads.push(file);await options.wait;return raw;
+    }});
+  return {product,reads,stages};
+}
+for(const [name,declaration,module,size,hash] of [
+  ['pine',pine,pineDirector,1688,'4bca3aaa1d0e5b78ef167939efa53c7a67c50377529cff637044aae9c5c84251'],
+  ['driftwood',driftwood,driftwoodDirector,1428,'25121a8616589da2265bc6d0537c86eabec4d64d26d0bd757268d80dac2cba1b'],
+] as const){
+  test(`${name} named director preserves its original module and continuation`,async()=>{
+    const f=fixture(declaration,module),scope=new Scope('director.raw');
+    try{
+      expect(module.bytes.length).toBe(size);expect(sha256(module.bytes)).toBe(hash);
+      const result=await readDirectorProduct(f.product,scope),old=await prepareEmbeddedDirector(declaration,module,357,scope),a=old(),b=result.create();
+      expect(result.bytes).toEqual(module.bytes);expect(result.stages).toEqual(f.stages);expect(f.reads).toEqual(['main','behaviour/director.wasm']);
+      const rows=parseDirector(declaration),input=Object.fromEntries(rows.inputs.map(row=>[row.key,0]));
+      for(const event of rows.events.filter(row=>row.direction==='input')){a.enqueue(event.key);b.enqueue(event.key);}
+      for(let tick=0;tick<32;tick++){expect(b.step(tick,input,1/60)).toEqual(a.step(tick,input,1/60));expect(b.snapshot()).toEqual(a.snapshot());}
+    }finally{scope.dispose();}
+  });
+  test(`${name} raw admission rejects mixed bytes, wrong hashes and ancestor retirement`,async()=>{
+    const mixed=fixture(declaration,module,{inline:'invalid'});await expect(readDirectorProduct(mixed.product)).rejects.toThrow('mixed');expect(mixed.reads).toEqual(['main']);
+    const wrong=Uint8Array.from(module.bytes);wrong[wrong.length-1]=0;
+    await expect(readDirectorProduct(fixture(declaration,module,{raw:wrong}).product)).rejects.toThrow('hash mismatch');
+    const root=new Scope('director.root'),scope=root.child('entry');let finish:(()=>void)|undefined;
+    const wait=new Promise<void>(resolve=>{finish=resolve;}),f=fixture(declaration,module,{wait});
+    try{
+      const pending=readDirectorProduct(f.product,scope);await vi.waitFor(()=>expect(f.reads).toHaveLength(2));root.disposeSteps().next();
+      if(finish===undefined)throw new Error('Missing held file');finish();await expect(pending).rejects.toThrow('owner left');
+    }finally{root.dispose();}
+  });
+}

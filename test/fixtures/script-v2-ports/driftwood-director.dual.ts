@@ -1,7 +1,7 @@
 import source from '../../../src/shards/driftwood-isle/behaviour/directorV2.as?raw';
 import original from '../../../src/shards/driftwood-isle/behaviour/director.as?raw';
 import declaration from '../../../src/shards/driftwood-isle/data/director.json' with { type: 'json' };
-import embedded from '../../../src/shards/driftwood-isle/behaviour/director.json' with { type: 'json' };
+import {driftwoodDirector as embedded} from '../director-modules';
 import { expect } from 'vitest';
 import { directorPort } from '../script-v2-director';
 

@@ -10,7 +10,7 @@ import { terrainOpeningHits } from '../src/game/shardfile/pagePreparation';
 import { PageTerrainCutSchema } from '../src/format/pagePreparation';
 import * as v from 'valibot';
 import declaration from '../src/shards/driftwood-isle/data/director.json' with { type: 'json' };
-import module from '../src/shards/driftwood-isle/behaviour/director.json' with { type: 'json' };
+import {driftwoodDirector as module} from './fixtures/director-modules';
 
 const bytes = embeddedDirectorBytes(declaration, module);
 

@@ -7934,6 +7934,13 @@ input and dispatches at zero delta. `emits.value: 'literal'` requires row
 values to satisfy their declared AS output and delivered same-key events
 to carry that exact value. Pine retains its 1/60 initialization delta;
 both shards retain their AS bytes and unchanged version-3 snapshots.
+Director bakes may lend prepared Uint8Array bytes directly to the same
+embeddedDirectorBytes / prepareEmbeddedDirector admission path. The JSON
+module row may instead declare empty bytes plus a named file; readDirectorProduct
+reads that exact file, then retains the same declaration/hash and entered
+scope fences. Mixed file/inline bytes and retired or disposing owners refuse.
+No module, clock, cache or saved owner is added; inline bakes stay supported.
+
 `readDirectorProduct(product, scope?)` admits the named `directors/main.json`
 blob. Both native recipes use that product directly: Pine passes its prepared
 director into story installation, and Driftwood binds its named stage lane.

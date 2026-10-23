@@ -1,7 +1,7 @@
 import source from '../../../src/shards/pine-hollow/behaviour/directorV2.as?raw';
 import original from '../../../src/shards/pine-hollow/behaviour/director.as?raw';
 import declaration from '../../../src/shards/pine-hollow/data/director.json' with { type: 'json' };
-import embedded from '../../../src/shards/pine-hollow/behaviour/director.json' with { type: 'json' };
+import {pineDirector as embedded} from '../director-modules';
 import { expect } from 'vitest';
 import { directorPort } from '../script-v2-director';
 

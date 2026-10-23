@@ -142,10 +142,6 @@
       "base64Chars": 533320,
       "dataUris": 0
     },
-    "src/shards/driftwood-isle/behaviour/director.json": {
-      "base64Chars": 1904,
-      "dataUris": 0
-    },
     "src/shards/ink-cel-valley/data/rows.json": {
       "base64Chars": 0,
       "dataUris": 1
@@ -176,10 +172,6 @@
     },
     "src/shards/pine-hollow-legacy/runtime/physics.baked.json": {
       "base64Chars": 765384,
-      "dataUris": 0
-    },
-    "src/shards/pine-hollow/behaviour/director.json": {
-      "base64Chars": 2252,
       "dataUris": 0
     },
     "src/shards/pine-hollow/behaviour/life.generated.json": {

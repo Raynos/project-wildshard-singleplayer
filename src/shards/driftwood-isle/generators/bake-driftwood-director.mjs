@@ -14,7 +14,7 @@ if (declaration.module !== compiled.module) throw new Error('Driftwood director 
 const notice = 'DO NOT EDIT: behaviour/director.as -> scripts/bake/directorSource.ts (@wildshard/sdk/compileScript); regenerate with node scripts/bake/directors.mjs';
 const products = new Map([
   [`${project}/assets/${compiled.module}`, compiled.bytes],
-  [`${project}/behaviour/director.json`, new TextEncoder().encode(`${JSON.stringify({ generated: notice, module: compiled.module, bytes: Buffer.from(compiled.bytes).toString('base64') }, null, 2)}\n`)],
+  [`${project}/behaviour/director.json`, new TextEncoder().encode(`${JSON.stringify({ generated: notice, module: compiled.module, bytes: '' }, null, 2)}\n`)],
 ]);
 for (const [file, bytes] of products) {
   const path = resolve(root, file);

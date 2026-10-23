@@ -5,7 +5,7 @@ import { Scope } from '../src/engine/app/scope';
 import { Flags } from '../src/engine/world/interact/flags';
 import { DirectorScriptStageLane, prepareEmbeddedDirector } from '../src/game/plugin/director';
 import declaration from '../src/shards/driftwood-isle/data/director.json';
-import module from '../src/shards/driftwood-isle/behaviour/director.json';
+import {driftwoodDirector as module} from './fixtures/director-modules';
 import stages from '../src/shards/driftwood-isle/data/finaleStages.json';
 import bindings from './fixtures/driftwood-director-bindings.json' with { type: 'json' };
 

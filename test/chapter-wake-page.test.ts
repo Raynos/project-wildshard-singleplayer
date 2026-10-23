@@ -19,15 +19,15 @@ import { WAKE_ENCOUNTER } from '../src/shards/driftwood-isle/generators/wakeEnco
 import source from '../src/shards/driftwood-isle/shard.config';
 import { CHAPTER_DIRECTOR } from '../src/shards/driftwood-isle/generators/chapterDirector';
 import declaration from '../src/shards/driftwood-isle/data/director.json';
-import module from '../src/shards/driftwood-isle/behaviour/director.json';
+import {driftwoodDirector as module} from './fixtures/director-modules';
 import stages from '../src/shards/driftwood-isle/data/finaleStages.json';
 import bindings from './fixtures/driftwood-director-bindings.json' with { type: 'json' };
 
 test('salt-marsh chapter binds cue effects and the baseline boss bar through data', async () => {
   const runtime = source.runtime, spawns = runtime?.spawns, original = spawns?.bosses[0];
   if (runtime === null || spawns === undefined || original === undefined) throw new Error('Missing declared fixture spawn');
-  const blobs = [nameBlob('directors/main.json', 'json', new TextEncoder().encode(JSON.stringify({
-    declaration, module: { module: module.module, bytes: module.bytes }, stages, bindings, seed: 357,
+  const blobs = [nameBlob('behaviour/director.wasm','wasm',module.bytes,{script:{abi:0}}),nameBlob('directors/main.json', 'json', new TextEncoder().encode(JSON.stringify({
+    declaration, module: { module: module.module, bytes: '',file:'behaviour/director.wasm' }, stages, bindings, seed: 357,
   }))), nameBlob('quests/chapter-director.json', 'json', new TextEncoder().encode(JSON.stringify(CHAPTER_DIRECTOR)))];
   const bytes = new Map(blobs.map(blob => [blob.file.hash, blob.bytes]));
   const product = createShardProduct({ slug: 'salt-marsh', revision: 1,
