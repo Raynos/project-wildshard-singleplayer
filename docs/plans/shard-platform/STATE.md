@@ -1,33 +1,30 @@
 # SHARD-PLATFORM — State (wildshard-new; ≤ 3 KB)
 
-**Order (G639):** (1) live reds → (2) NALATI TO ZERO (R1-R15) → (3) GRID READINESS (10/10). Extras: tile streaming →
-CI/gate/no-binaries → Night Market pilot NM4-NM6 (unclaimed) → loading → strip → hero.
+**Order (G639):** (1) live reds → (2) NALATI TO ZERO → (3) GRID READINESS (10/10). Extras: tile streaming →
+CI/gate/no-binaries → Night Market pilot → loading → strip → hero.
 
-**(1) LIVE bda4ecdf14** (verified 11:40Z): the crash leak fix, the herd rollback (Nalati ~20-30 fps), Nine
-placeholder, backdrop, elites, build fixes. Hourly release of ff45b6a24d running. All of this morning's routed
-main reds are fixed and on origin (405acb1a5f AS budget, 8c2f5a2cdc island plan, 34d19e460b Nine spill, 332a7190f3
-staticSets, a053803e5a + 77958833ba raw-module loans). The next CI + smoke green build is the next candidate.
+**(1) LIVE ff45b6a24d** (sp-x7, 13:12Z). Closed today: entered open plots drew only the far proxy (e755dddbce; Nine's
+far-only approach kept), preview generation race (stale rest-storm.glb, e9c1bf3643; guard narrowed to tracked outputs
+5ad23b5b99), R3 typed lint OOM (five CI partitions, 7a507f252e). The next CI must confirm generation and the five
+partitions; the nalati-water grass-mask CI mismatch (CI regenerates a different upstream mask) stays to be seen.
 
-**(2) Nalati:** C1-C3/C5-C8 CLOSED; R8 elites 0, R9 0, R3 0, R6 done, R14 C9 -14, dog guard retired -42. Herd re-land
-6fa6de0276 (+ binary module 6fa07559f7/2c443c89db; titan JSON base64 425,112 -> 267,224) and pack 3ba6464938
-(+78b530c90f; AS ceiling: species 3,189, others 3,184, approved exact): medians pass, but the herd still adds
-~15 ms/frame (groupBank decode + numeric capture via tick + drive) -> p95 67 -> 100 and 217 ms frames. Fallbacks
-STAY until sp-x8's hot-path fix passes sp-o3's combined sample. R10d/R10e after. R7 Titan 355 charged: Jake pick
-(below). R15 waits R7/R10.
+**(2) Nalati** (speed review 9c0e02fe82 is the queue): herd hot path dc8dbcafcc landed, so R10e (native copies,
+sp-x8) and R10d (page copies + crowd joins, sp-x1) run now with no sample gate; R17 one Simulator sample after both
+(sp-o3). R15a then R15c (sp-x9). R12 weather clock (sp-o3): one generic "entered runtime's sky is the day cycle"
+registration, Pine the second user. R19 span list (sp-x1). R16 Titan: Jake pick below.
 
-**(3) Grid 10/10.** Pine activation frame ~177 ms of work straddles 200 under the 30 fps cap; an 18 ms hook deferral
-passes but changes entry semantics: sp-o1's call. Frame floor: Pine look p95 67 -> 50 (crag skin bd6c5005c6);
-sp-o4 on species-shared distant trees (default-off row); staticMatrices + staticSets default off.
+**(3) Grid 10/10.** Pine entry frame settled (654a35322d: max 233 -> 167-183 ms). Tile T3 colliders follow the ring
+(f72589fd11), Pine P4/P5 per tile (b628882e61, c010d0a9f5); sp-o1 on T7 crossings; physics walk + Pine check + N1a
+on the first green preview. sp-o4: distant trees per species decided by one Sim pair (winner kept, row deleted); next
+Pine per-frame update JS profile.
 
-**Extras:** no-binaries B1-B4 done (121 caps; Nine 0 base64; B3 codec lint), B5 in progress (sp-x9: island plan -889k,
-people fallback -578k); TS QW1/2/5/6, LD2/LD4, TD3 (578 -> 574), R3, T3 (18 files colocated), T4 (sp-x1); tile
-streaming S1 done, S2 behind Tile residency; Pine P1-P3 (sp-o1; ground draws merged 3b9871866b).
+**Extras:** Night Market NM4 cb670026cf + NM5 1a5ffecb7c; NM6 capture on green. B5 POI contacts 067a247521 (-4.7M
+chars); geography (1.37M) paused for lane C. GR1 generators (sp-x6, d19af9d060 first slice).
 
-**For wildshard-v (Jake pick needed):** the Titan's 355-line OpenArenaProjection can't be cut honestly with current
-APIs (two sized routes failed, sp-x6). Options: (a) approve it as a one-user host for HOST-AUDIT; (b) a full WASM
-route (large); (c) leave it charged. Recommended (a). Also: staticMatrices + staticSets on, for the phone check.
+**For wildshard-v (Jake pick needed):** R16 Titan: (a) one-user host for HOST-AUDIT (recommended), (b) full WASM
+route, (c) leave charged. Phone list: staticMatrices + staticSets on, Ground tiles/Tile residency.
 
-**Lanes:** Claude weekly 58 % -> 3 Opus (sp-o1, sp-o3, sp-o4); 5 Codex + sp-x7.
+**Lanes:** Claude weekly 61 % -> 3 Opus (sp-o1, sp-o3, sp-o4); 5 Codex + sp-x7.
 
 **Rules:** G605 (70 % 2, 80 % 1, 90 % 0). G620 30 min fix-forward then revert. No net-0 moves (G571); never herdr
 wildshard-v.
