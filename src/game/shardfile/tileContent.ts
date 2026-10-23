@@ -107,3 +107,67 @@ export function followTile(current: CellTile | null, x: number, z: number, hyste
   const clamped = Math.abs(x) >= HALF || Math.abs(z) >= HALF;
   return inside >= hysteresis || clamped ? next : current;
 }
+
+/** The tiles a square footprint (`x`, `z` ± `reach` metres) touches, clipped to the cell. */
+export function tilesTouching(x: number, z: number, reach: number): number[] {
+  const lo = tileOf(x - reach, z - reach), hi = tileOf(x + reach, z + reach), keys: number[] = [];
+  for (let j = lo.j; j <= hi.j; j++) for (let i = lo.i; i <= hi.i; i++) keys.push(tileKey({ i, j }));
+  return keys;
+}
+
+/** What a collider row needs for its footprint: its point and its shape's extents (`ColliderDesc`, structurally). */
+type ColliderFootprint =
+  | { readonly kind: 'box'; readonly x: number; readonly z: number; readonly hx: number; readonly hy: number; readonly hz: number }
+  | { readonly kind: 'capsule'; readonly x: number; readonly z: number; readonly halfHeight: number; readonly radius: number }
+  | { readonly kind: 'ball'; readonly x: number; readonly z: number; readonly radius: number }
+  | { readonly kind: 'hull'; readonly x: number; readonly z: number; readonly points: ArrayLike<number> }
+  | { readonly kind: 'trimesh'; readonly x: number; readonly z: number; readonly vertices: ArrayLike<number> }
+  | { readonly kind: 'treads'; readonly from: { readonly x: number; readonly y: number; readonly z: number }; readonly to: { readonly x: number; readonly y: number; readonly z: number }; readonly width: number };
+
+const reachOf = (points: ArrayLike<number>): number => {
+  let reach = 0;
+  for (let k = 0; k + 2 < points.length; k += 3) reach = Math.max(reach, Math.hypot(points[k] ?? 0, points[k + 2] ?? 0));
+  return reach;
+};
+/**
+ * Tile streaming T3 (the collider ring): every tile a collider's footprint reaches (conservatively: its point ± its largest
+ * horizontal extent, any rotation), so a collider straddling a tile edge stands in each tile it reaches: a ring never has a
+ * gap at its edge. Pure.
+ */
+export function colliderTileKeys(row: ColliderFootprint): number[] {
+  if (row.kind === 'box') return tilesTouching(row.x, row.z, Math.hypot(row.hx, row.hy, row.hz));
+  if (row.kind === 'capsule') return tilesTouching(row.x, row.z, row.radius + row.halfHeight);
+  if (row.kind === 'ball') return tilesTouching(row.x, row.z, row.radius);
+  if (row.kind === 'hull') return tilesTouching(row.x, row.z, reachOf(row.points));
+  if (row.kind === 'trimesh') return tilesTouching(row.x, row.z, reachOf(row.vertices));
+  const { from, to } = row;
+  return tilesTouching((from.x + to.x) / 2, (from.z + to.z) / 2, Math.hypot(to.x - from.x, to.z - from.z) / 2 + row.width / 2);
+}
+
+/**
+ * One build per tile shared by every hold on it (tile streaming T3: a tile's draws for the render ring and its colliders for
+ * the collider ring come from one build of its copies): the first hold builds under its own child of `owner`, each hold
+ * ends with its scope, and the build is disposed when the last hold ends.
+ */
+export class SharedTileBuilds<T> {
+  private readonly builds = new Map<number, { readonly scope: Scope; readonly built: Promise<T>; holds: number }>();
+  constructor(private readonly owner: Scope, private readonly build: (tile: number, scope: Scope) => Promise<T>) {}
+  /** The tiles built now (tests read them). */
+  get tiles(): ReadonlySet<number> { return new Set(this.builds.keys()); }
+  hold(tile: number, scope: Scope): Promise<T> {
+    let entry = this.builds.get(tile);
+    if (entry === undefined) {
+      const child = this.owner.child(`tile.build.${String(tile)}`);
+      entry = { scope: child, built: this.build(tile, child), holds: 0 };
+      this.builds.set(tile, entry);
+    }
+    const held = entry;
+    held.holds++;
+    scope.onDispose(() => {
+      held.holds--;
+      if (held.holds > 0 || this.builds.get(tile) !== held) return;
+      this.builds.delete(tile); held.scope.dispose();
+    });
+    return held.built;
+  }
+}

@@ -71,7 +71,9 @@ export class SceneHandles {
     const part = value.drawnInto(), container = part === undefined ? new Group() : null;
     if (container !== null) container.name = id;
     this.publish(`${id}.root`, container ?? this.object(part ?? id));
-    const content: TileContent = { id, tiles: () => value.tiles(), attach: async (tile, scope) => { await value.attach(tile, scope, container); } };
+    // its draws follow the render ring, its colliders (from the same per-tile build) the collider ring (T3, D2 B)
+    const content: TileContent = { id, tiles: () => value.tiles(), attach: async (tile, scope) => { await value.attach(tile, scope, container); },
+      attachColliders: (tile, scope) => value.attachColliders(tile, scope) };
     this.tileContents.push(content);
     return content;
   }

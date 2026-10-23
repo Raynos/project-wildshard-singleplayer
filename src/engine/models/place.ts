@@ -72,6 +72,11 @@ export interface PieceOptions {
    * Driftwood cove's palm trunks and crag plates), registered after them on the same piece
    */
   readonly colliders?: readonly ColliderDesc[];
+  /**
+   * false: the piece registers its object, floor and picks but none of its colliders; `Placed.colliders` still lists them
+   * (world space) for a caller that registers them itself (a tile's colliders on the collider ring, tile streaming T3)
+   */
+  readonly collide?: false;
 }
 
 /** how `place` draws a model's copies: the model context, the draw, merging into cells and culling */
@@ -1349,7 +1354,7 @@ function* placeSteps<P extends object>(def: ModelDef<P>, placements: readonly Pl
     const every = pace === undefined ? drawn.colliders.length : Math.max(1, live ? Math.min(split?.every ?? LIVE_SPLIT_EVERY, LIVE_SPLIT_EVERY) : split?.every ?? LIVE_SPLIT_EVERY);
     registry.add({
       id: pieceId, name: pc.name ?? def.name, category: def.category, file: def.file,
-      ...(shared ? { anchor: boxesCentre(boxes) } : { object: drawn.object }), colliders: drawn.colliders.slice(0, every),
+      ...(shared ? { anchor: boxesCentre(boxes) } : { object: drawn.object }), colliders: pc.collide === false ? [] : drawn.colliders.slice(0, every),
       ...(def.surface === undefined ? {} : { surface: def.surface }), ...(pc.floor === undefined ? {} : { floor: pc.floor }),
       ...(pc.solidFloor === undefined ? {} : { solidFloor: pc.solidFloor }), ...(pc.follows === undefined ? {} : { follows: pc.follows === 'copy' ? drawn.object : pc.follows }),
       ...(pc.active === undefined ? {} : { active: pc.active }),
@@ -1361,7 +1366,7 @@ function* placeSteps<P extends object>(def: ModelDef<P>, placements: readonly Pl
     registry.addPick({ object: drawn.object, entry: def.id, boxAt: (pt) => placed.copyBox(Math.max(0, placed.nearest(pt)), new THREE.Box3()),
       // drawn into an object it shares (a kit, a painted place, a weld): a tap is this model's only on one of its copies (E323)
       ...(shared ? { claim: (pt: THREE.Vector3): THREE.Box3 | null => claimCopy(placed, pt), boxHit: (ray: THREE.Ray, far: number) => rayCopy(placed, ray, far) } : {}) });
-    if (pace !== undefined && drawn.colliders.length > every) {
+    if (pc.collide !== false && pace !== undefined && drawn.colliders.length > every) {
       // the rest of the colliders, a task per `every` (collider-only pieces: the object and the catalog entry are on the first)
       registered = (async (): Promise<void> => {
         for (let at = every, k = 2; at < drawn.colliders.length; at += every, k++) {
