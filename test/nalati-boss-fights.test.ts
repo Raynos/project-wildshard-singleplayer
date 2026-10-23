@@ -1,3 +1,4 @@
+import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 import { arenaRoomFight, ArenaRoomEncounter } from '../src/game/boss/arenaRoom';
 import type { Animal } from '../src/engine/entities/AnimalView';
 import { eliteDamageMul } from '../src/engine/entities/eliteBrain';
@@ -114,6 +115,7 @@ test.each([false,true])('arena script runs mounted phases, exposes its heart and
     instance: () => ({ material: new MeshBasicMaterial(), setParam: () => undefined }) });
   const weather = legacyDouble<Nalati['weather']>({ weather: legacyDouble<Nalati['weather']['weather']>({ flash: 0, raise: () => undefined,stormActive: true }),air: legacyDouble<Nalati['weather']['air']>({}) });
   const game = Object.assign(f.game.asGame(), { app,levelScope: scope });
+  lendNalatiPasture(scope);
   const data = parseArenaScriptData({ arenaScript: titan.TITAN_HOST,arenaFire: fireView,programs:{attack:programs.attack,wind:programs.wind} },geometry);
   if (orchard) {
     data.definition.id = 'orchard-thunder'; data.definition.name = 'Orchard thunder';

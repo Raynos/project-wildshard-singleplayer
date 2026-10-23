@@ -38,12 +38,16 @@ const pastureSource={...source,id:'nalati.pasture-wind',source:'behaviour/pastur
 // its exact ABI1 witness kept (test/nalati-pasture-v2.test.ts: every signal answers as the witness)
 const herd=parseGroupStepV2(herdRows);
 const pastureDual=await compileReturnProjectionV2(pastureSource,{fields:registry(pf),channels:registry(pc),signals:registry(ps)},authored,{asLineCeiling:2837,projectSource:'behaviour/pastureProject.as',groups:{rows:herd,helpers:{'sdk/as/groupBankV2.herd.ts':groupBankSourceV2(0,herd.bank.length),'sdk/as/groupStepV2.herd.ts':groupStepSourceV2(herd.columns.length,herd.members)}}});
-const wind={...pastureDual.legacy,v2:pastureDual.candidate};
-const programs={attack:program,fire:wind,wind,rules:program};
+// The selected artifact stays binary; JSON retains only its descriptor and original ABI1 witness.
+const pastureBytes=Uint8Array.from(atob(pastureDual.candidate.bytes),byte=>byte.codePointAt(0)??0);
+const wind={...pastureDual.legacy,v2:{...pastureDual.candidate,bytes:''}};
+const compiled={pasture:{source:'behaviour/pasture.generated.wasm',bytes:pastureBytes.length,hash:pastureDual.candidate.artifact.hash}};
+const programs={attack:program,fire:wind,wind,rules:program,compiled};
 
 const writer = byteWriter(process.argv.includes('--check'), 'nalati-storm-titan');
 writer.put(fileURLToPath(new URL('../data/stormTitanFight.generated.json', import.meta.url)), jsonBytes(fight));
 writer.put(fileURLToPath(new URL('../data/stormTitanGeometry.generated.json', import.meta.url)), jsonBytes({ ...titanGeometry(), body: titanBodyRows(), poses: [...titanPoseRows(), ...titanFightPoseRows()], arena: titanArenaRows(fight.TITAN_PLACE.arenaRadius, fight.TITAN_TUNING.cell, fight.TITAN_ARENA.grid) }, 0));
+writer.put(fileURLToPath(new URL('../behaviour/pasture.generated.wasm',import.meta.url)),pastureBytes);
 writer.put(fileURLToPath(new URL('../behaviour/titan.generated.json', import.meta.url)), jsonBytes(programs));
 writer.put(fileURLToPath(new URL('../behaviour/pasture.generated.json', import.meta.url)),jsonBytes(wind));
 writer.finish();

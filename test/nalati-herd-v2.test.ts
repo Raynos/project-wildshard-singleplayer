@@ -1,3 +1,4 @@
+import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 import {scriptAdmissionRows} from '../src/format/scriptContract';
 import {NALATI_SCRIPT_SECTIONS} from '../src/shards/nalati-grasslands/generators/scriptInventory';
 import {expect,test,vi} from 'vitest';
@@ -52,7 +53,7 @@ function fixture(mode:string,stallionState:string,mutate=false,count=4){
  steer:(a,yaw,speed,turn)=>{log.push(['steer',a.entityId,yaw,speed,turn]);a.setMotion(yaw,speed,turn);if(mutate){a.position.x+=.5;herd.mode='alert';}},
  pathYaw:(a,x,z,every)=>{log.push(['path',a.entityId,x,z,every??0]);return Math.atan2(x-a.position.x,z-a.position.z)+.03;},confine:a=>{log.push(['confine',a.entityId]);}};
  for(const a of roster){const original=a.setMotion.bind(a);a.setMotion=(yaw,speed,turn)=>{log.push(['motion',a.entityId,yaw,speed,turn??2.5]);original(yaw,speed,turn);};}
- const program=ReturnProgram.page(pasture,scope);if(program.prepareGroup===undefined||program.groupBindings===undefined)throw new Error('Missing selected herd capability');
+ lendNalatiPasture(scope);const program=ReturnProgram.page(pasture,scope);if(program.prepareGroup===undefined||program.groupBindings===undefined)throw new Error('Missing selected herd capability');
  const runner={prepare:program.prepareGroup},codec=new GroupBankV2(rows.bank);
  return{roster,pending,threats,random,contextRandom,log,herd,ports,scope,ctx,runner,codec};
 }

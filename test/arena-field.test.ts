@@ -1,5 +1,6 @@
+import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 import { installArenaBoundary, arenaBoundaryBlocked } from '../src/game/riding/client';
-import { expect, test } from 'vitest';
+import { beforeEach,afterEach,expect,test } from 'vitest';
 import { parse } from 'valibot';
 import { CellFieldSchema } from '../src/format/cellField';
 import { CellField } from '../src/game/systems/cellField';
@@ -10,9 +11,13 @@ import program from '../src/shards/nalati-grasslands/behaviour/titan.generated.j
 import fight from '../src/shards/nalati-grasslands/data/stormTitanFight.generated.json' with { type: 'json' };
 import { TITAN_TRAIL, TITAN_FIRE_FIELD } from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 
+let programmeScope:Scope;
+beforeEach(()=>{programmeScope=new Scope('original-field-programme');lendNalatiPasture(programmeScope);});
+afterEach(()=>programmeScope.dispose());
+
 test('mounted refusal borrows only its entered scope and releases on disposal', () => {
   const owner = new Scope('orchard-arena'),other = new Scope('outside');
-  const field = new CellField(TITAN_FIRE_FIELD,ReturnProgram.page(program.fire),new Rng(714));
+  const field = new CellField(TITAN_FIRE_FIELD,ReturnProgram.page(program.fire,programmeScope),new Rng(714));
   const at = fight.TITAN_ARENA.center,row = { field,boundary: { x: at.x,z: at.z,radius: 20 },mask: 0 };
   try {
     installArenaBoundary(owner,row); field.activate(at.x,at.z);
@@ -27,7 +32,7 @@ test('mounted refusal borrows only its entered scope and releases on disposal', 
 });
 
 test('the arena field obeys ignition bounds and cannot rekindle spent cells', () => {
-  const field = new CellField(parse(CellFieldSchema, fight.TITAN_FIRE_FIELD), ReturnProgram.page(program.fire), new Rng(513));
+  const field = new CellField(parse(CellFieldSchema, fight.TITAN_FIRE_FIELD), ReturnProgram.page(program.fire,programmeScope), new Rng(513));
   const { x, z } = fight.TITAN_ARENA.center;
   field.activate(x, z);
   const cell = field.cellAt(x, z), lifetime = field.remaining(cell);
@@ -47,7 +52,7 @@ test('an unrelated orchard encounter uses a rectangular four-neighbour frost fie
     neighbours: [[0,-1],[-1,0],[1,0],[0,1]],
     states: { idle: 0,active: 1,spent: 2 },channels: { state: 'mode',lifetime: 'burn',clock: 't',pulse: 'spread',neighbours: 'mask' },
     signals: { activate: 'fieldIgnite', step: 'fire', clock: 'fieldClock' },
-  }, ReturnProgram.page(program.fire), new Rng(714));
+  }, ReturnProgram.page(program.fire,programmeScope), new Rng(714));
   expect(field.cellAt(9, 20)).toBe(-1); expect(field.cellAt(16, 20)).toBe(-1);
   field.activate(11, 21); field.activate(15, 23);
   expect(field.x(5)).toBe(15); expect(field.z(5)).toBe(23);
@@ -57,7 +62,7 @@ test('an unrelated orchard encounter uses a rectangular four-neighbour frost fie
 });
 
 test('field contact owns its footprint, cooldown and checkpoint reset', () => {
-  const field = new CellField(TITAN_FIRE_FIELD, ReturnProgram.page(program.fire), new Rng(513));
+  const field = new CellField(TITAN_FIRE_FIELD, ReturnProgram.page(program.fire,programmeScope), new Rng(513));
   const { x, z } = fight.TITAN_ARENA.center;
   field.activate(x, z);
   expect(field.sense(.05, { x, z }, { mounted: 1 })).toEqual({});
@@ -78,7 +83,7 @@ test('the orchard field binds a different contact footprint and damage', () => {
     states: { idle: 0,active: 1,spent: 2 },channels: { state: 'mode',lifetime: 'burn',clock: 't',pulse: 'spread',neighbours: 'mask' },
     signals: { activate: 'fieldIgnite', step: 'fire', clock: 'fieldClock' },
     contact: { law: { signal: 'fieldContact', initial: { cd: 0 }, parameters: { amount: 12 }, retain: { cd: 'cd' } }, samples: [{ x: 2, z: 0 }] },
-  }, ReturnProgram.page(program.fire), new Rng(714));
+  }, ReturnProgram.page(program.fire,programmeScope), new Rng(714));
   field.activate(13, 21);
   expect(field.sense(.1, { x: 11, z: 21 }, { mounted: 1 })['speed']).toBe(-1);
   expect(field.sense(.1, { x: 13, z: 21 }, { mounted: 0 })['hurt']).toBe(6);

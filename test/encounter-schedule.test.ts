@@ -1,3 +1,5 @@
+import {lendNalatiPasture} from './fixtures/nalati-return-modules';
+import {Scope} from '../src/engine/app/scope';
 import { expect, test } from 'vitest';
 import { ProjectedState, ReturnProgram } from '../src/game/population/returnProgram';
 import { Rng } from '../src/engine/core/rng';
@@ -31,8 +33,11 @@ test('phase and arena rules are decided in the admitted module', () => {
 });
 
 test('mounted field refusal consumes numeric samples in AS without a second page rule', () => {
-  const schedule = new ProjectedState(fight.TITAN_SCHEDULES.contact, ReturnProgram.page(programs.fire));
+  const scope=new Scope('original-contact-programme');lendNalatiPasture(scope);
+  const schedule = new ProjectedState(fight.TITAN_SCHEDULES.contact, ReturnProgram.page(programs.fire,scope));
+  try {
   const samples = [{ hit: 0 }, { hit: 1 }];
   expect(schedule.project({ dt: .1, mounted: 1, hit: 0, count: samples.length }, undefined, samples)).toMatchObject({ hurt: 0, speed: -1 });
   expect(schedule.project({ dt: .1, mounted: 0, hit: 0, count: samples.length }, undefined, samples)).toMatchObject({ hurt: 0, speed: 0 });
+  }finally{scope.dispose();}
 });

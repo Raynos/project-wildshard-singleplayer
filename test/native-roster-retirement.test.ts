@@ -1,3 +1,5 @@
+import {lendNalatiPasture} from './fixtures/nalati-return-modules';
+import {Scope} from '../src/engine/app/scope';
 import pasture from '../src/shards/nalati-grasslands/behaviour/pasture.generated.json' with { type: 'json' };
 import { fixtureNativeRoster } from './fixtures/native-roster';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native ownership tests use the actual shipped Rapier binary.
@@ -214,7 +216,9 @@ test('AS sheepdog retains guard, fetch and rest behaviour on the 10 Hz decision 
 });
 
 test('pasture shepherd patrol stays within its unchanged decision fuel on the first native tick', () => {
-  const author = ReturnProgram.page(pasture), random = new Rng(53);
+  const scope=new Scope('original-shepherd-programme');lendNalatiPasture(scope);
+  const author = ReturnProgram.page(pasture,scope), random = new Rng(53);
+  try {
   const input = { raidT: 163.2241375628859, pendingT: 0, raiding: 0, raids: 0, taken: 0, drivenOff: 0, cracks: 0, cracksNow: 0,
     spawned: 0, crackCd: 0, restT: 0, patrolA: 0, dt: 0.1, px: -108, pz: 228, yaw: -2.498091544796509,
     cx: -119.28424587249756, cz: 212.73528823852538, wolf: 0, wx: 0, wz: 0, time: 0.1, seed: 0.3340211238246411 };
@@ -224,4 +228,5 @@ test('pasture shepherd patrol stays within its unchanged decision fuel on the fi
     expect(output['speed']).toBe(1.8);
     expect(Math.abs(output['yaw'] ?? 4)).toBeLessThanOrEqual(Math.PI);
   }
+  }finally{scope.dispose();}
 });
