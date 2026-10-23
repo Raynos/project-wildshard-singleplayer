@@ -29,7 +29,7 @@ import { timeClientPreparation } from './preparationTiming';
 import { lendLooks, setLentParam } from './lentLooks';
 import type { SceneHandles } from './sceneHandles';
 import type { ShardContext } from '../plugin/context';
-import { tileResidencyRadius } from './tileDriver';
+import { followResidentTiles, residentTiles, tileResidencyRadius } from './tileDriver';
 import { bucketByTile, followTile, ring, tileKey } from './tileContent';
 import { tileOf, type CellTile } from './tileOrder';
 import { withOwner } from '@wildshard/engine/app/ownership';
@@ -96,8 +96,19 @@ export async function prepareForestPage(ctx: ShardContext, input: unknown): Prom
   const page: ForestPage = { rows, resources, cabins, ...carpet, streams, props,
     finish: async () => { if (finished) throw new Error('Forest page already finished'); finished = true;
       await step('props', async () => {
-        for (const mark of rows.landmarks) if (mark.tier === undefined || mark.tier === TIER) { if ('place' in mark) await resources.place(mark.place); else resources.object(mark.object); await macrotask(); }
-        for (const id of rows.props) contacts.push(...(await resources.place(id)).colliders); }); },
+        // tile streaming P5 (Debug ▸ Tile residency 5 x 5 / 3 x 3): a landmark placement goes by tile (its draws on the
+        // render ring, its colliders on the collider ring); the props stay whole (their colliders are the page's `props`)
+        const tiled = tileResidencyRadius() < 8;
+        for (const mark of rows.landmarks) if (mark.tier === undefined || mark.tier === TIER) {
+          if ('place' in mark) { if (tiled) resources.tile(mark.place); else await resources.place(mark.place); } else resources.object(mark.object);
+          await macrotask();
+        }
+        for (const id of rows.props) contacts.push(...(await resources.place(id)).colliders);
+        // the page's tiled world (landmarks, and recipe meshes spanning tiles) follows the player by tile, as an assembled world's
+        const owner = residentWorldScope(ctx), shard = ctx.product.shardfile;
+        await residentTiles(owner, resources.tiled(), shard.spawn, shard.entryways);
+        const follow = followResidentTiles(owner, () => player.position);
+        if (follow !== null) ctx.system({ id: `client.forest.tiles.${rows.id}`, phase: 'update', run: () => { follow(); } }); }); },
     roofAt: (x, z) => floorAtRects(row.floors, x, z, 'first') !== undefined, setLantern: lanterns.set,
     update: (dt, time) => { const viewer = runtime.viewer();
       for (const binding of rows.treeLooks) { const fade = world.forest.factory.fade[binding.band].value; setLentParam(binding.look, binding.fade, [fade.x, fade.y]); setLentParam(binding.look, binding.viewer, [viewer.x, viewer.y, viewer.z]); }
