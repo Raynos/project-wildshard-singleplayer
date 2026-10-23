@@ -62,3 +62,25 @@ test('slow typed and fast checks defer the exact staged blob to the push gate', 
       .toEqual({ 'unit.ts': [git('rev-parse', ':unit.ts')] });
   } finally { rmSync(root, { recursive: true, force: true }); }
 }, 15_000);
+
+test('a policy-only timeout records exact staged work without inventing typed files', async () => {
+  const root = mkdtempSync(resolve('tmp/policy-hook-'));
+  const env = Object.fromEntries(Object.entries(processEnv).filter(([key]) => !key.startsWith('GIT_')));
+  const git = (...args: string[]): string => execFileSync('git', args, { cwd: root, env, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 }).trim();
+  try {
+    git('init', '-q'); git('config', 'user.email', 'fixture@example.invalid'); git('config', 'user.name', 'fixture');
+    git('config', 'core.hooksPath', '/dev/null');
+    mkdirSync(resolve(root, 'lint')); mkdirSync(resolve(root, 'scripts'));
+    writeFileSync(resolve(root, 'lint/ratchet.json'), '{"closedComponents":{}}');
+    writeFileSync(resolve(root, 'scripts/precommit-checks.mjs'), 'setTimeout(()=>{},10000);');
+    git('add', '.'); git('commit', '-qm', 'base');
+    writeFileSync(resolve(root, 'lint/ratchet.json'), '{"closedComponents":{"example":["C9"]}}');
+    git('add', '--', 'lint/ratchet.json');
+    const blob = git('rev-parse', ':lint/ratchet.json');
+    const index = readFileSync(resolve(root, '.git/index'));
+    await precommitInputs(root);
+    expect(JSON.parse(readFileSync(resolve(root, '.git/push-deferred-policy.json'), 'utf8')))
+      .toEqual({ 'lint/ratchet.json': [blob] });
+    expect(readFileSync(resolve(root, '.git/index'))).toEqual(index);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+}, 15_000);

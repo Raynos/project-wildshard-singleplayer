@@ -15,7 +15,7 @@ export async function precommitInputs(root = resolve(import.meta.dirname, '..'),
   const initial = git(['ls-files', '--stage', '-z']);
   const changed = git(['diff', '--cached', '--name-only', '-z', '--no-renames', '--diff-filter=ACMRD']).split('\0').filter(Boolean);
   const deleted = git(['diff', '--cached', '--name-only', '-z', '--no-renames', '--diff-filter=D']).split('\0').filter(Boolean);
-  const sourcePolicy = changed.some(path => path.startsWith('src/') || path === 'lint/ratchet.json');
+  const sourcePolicy = changed.some(path => path.startsWith('src/') ? true : path === 'lint/ratchet.json');
   const guards = commitGuards(changed);
   if (changed.includes('lint/ratchet.json')) {
     const before = JSON.parse(git(['show', 'HEAD:lint/ratchet.json']));
@@ -31,17 +31,22 @@ export async function precommitInputs(root = resolve(import.meta.dirname, '..'),
     if (posix.matchesGlob(path, pattern) || path.startsWith(pattern)) return true;
     return !pattern.slice(0, -1).includes('/') && path.includes(`/${pattern}`);
   }));
-  const defer = () => {
-    if (files.length === 0) return;
+  const recordDeferred = (/** @type {string} */ name, /** @type {string[]} */ paths) => {
+    if (paths.length === 0) return;
     const common = git(['rev-parse', '--path-format=absolute', '--git-common-dir']).trim();
-    const path = resolve(common, 'push-deferred-types.json');
+    const path = resolve(common, name);
     const pending = existsSync(path) ? v.parse(v.record(v.string(), v.array(v.string())), JSON.parse(readFileSync(path, 'utf8'))) : {};
-    for (const file of files) {
+    for (const file of paths) {
       const blob = git(['rev-parse', `:${file}`]).trim();
       pending[file] = [...new Set([...(Object.hasOwn(pending, file) ? pending[file] : []), blob])];
     }
     const temporary = `${path}.${process.pid}`;
     writeFileSync(temporary, JSON.stringify(pending)); renameSync(temporary, path);
+  };
+  const defer = (check = 'typed lint') => {
+    recordDeferred('push-deferred-types.json', files);
+    if (sourcePolicy && ['staged source', 'closed components', 'ratchet'].includes(check))
+      recordDeferred('push-deferred-policy.json', changed.filter(path => !deleted.includes(path)));
   };
   const same = files.length > 0 && git(['diff', '--name-only', '--', ...files]).trim() === '';
   /** @type {import('./precommit-jobs.mjs').CommitJob[]} */
@@ -74,7 +79,7 @@ export async function precommitInputs(root = resolve(import.meta.dirname, '..'),
       const failed = preparation.find(result => result.code !== 0);
       if (failed !== undefined && commitCheckFailed(failed)) throw new Error(`${failed.name}: ${failed.output}`);
       if (failed !== undefined) {
-        defer(); console.warn('pre-commit: source preparation reached the five-second cap; cheap checks deferred to push/CI');
+        defer('staged source'); console.warn('pre-commit: source preparation reached the five-second cap; cheap checks deferred to push/CI');
       } else {
       linkNodeModules(root, tree);
       writeFileSync(resolve(tree, '.commit-files.json'), JSON.stringify(files));
@@ -110,7 +115,7 @@ export async function precommitInputs(root = resolve(import.meta.dirname, '..'),
     for (const result of results) {
       if (result.output !== '') console.error(result.output.trimEnd());
       if ((result.timedOut || result.code === 124) && !commitCheckFailed(result)) {
-        defer(); console.warn(`pre-commit: ${result.name} reached the five-second wall cap; exact inputs deferred to push/CI`);
+        defer(result.name); console.warn(`pre-commit: ${result.name} reached the five-second wall cap; exact inputs deferred to push/CI`);
       } else if (result.code !== 0) failures.push(`${result.name}: ${result.timedOut ? 'five-second wall cap exceeded' : 'refused'}`);
     }
     if (git(['ls-files', '--stage', '-z']) !== initial) throw new Error('Commit index changed during checks');

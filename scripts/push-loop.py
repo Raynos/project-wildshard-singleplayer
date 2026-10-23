@@ -18,9 +18,9 @@ RECENT = runpy.run_path(str(Path(__file__).with_name('recent-ci-tests.py')))
 git = LIVE['git']
 
 
-def deferred_types(root, base, tip):
+def deferred_blobs(root, base, tip, name):
     common = Path(git(root, 'rev-parse', '--path-format=absolute', '--git-common-dir'))
-    pending = load(common / 'push-deferred-types.json', {})
+    pending = load(common / name, {})
     files = []
     for path in LIVE['changed'](root, base, tip):
         if path not in pending:
@@ -30,6 +30,14 @@ def deferred_types(root, base, tip):
         if blob.returncode == 0 and blob.stdout.strip() in pending[path]:
             files.append(path)
     return files
+
+
+def deferred_types(root, base, tip):
+    return deferred_blobs(root, base, tip, 'push-deferred-types.json')
+
+
+def deferred_policy(root, base, tip):
+    return deferred_blobs(root, base, tip, 'push-deferred-policy.json')
 
 
 def check_binary_json(root, base, tip, deadline):
@@ -65,6 +73,7 @@ def check_committed(root, base, tip, deadline):
     if not binary['ok']:
         return binary
     recent, recent_note = RECENT['refresh'](root, min(deadline,time.monotonic()+5))
+    policy = deferred_policy(root, base, tip)
     preparation_started = time.monotonic()
     try:
         # The local check budget is soft; exact source preparation must finish.
@@ -73,7 +82,8 @@ def check_committed(root, base, tip, deadline):
                 return {'ok': True, 'phase': 'preparation-deferred', 'files': [], 'types': 'ci-budget',
                         'output': binary['output'] + 'Exact committed source preparation completed in %.2f seconds. '
                                   'Local check budget exhausted; deleted-path/inventory guards, related tests '
-                                  'and remaining typed checks defer to full CI.' % (time.monotonic() - preparation_started)}
+                                  'and remaining typed checks defer to full CI.' % (time.monotonic() - preparation_started)
+                                  + (' Deferred pre-commit policy checks remain queued: ' + ', '.join(policy) if policy else '')}
             inputs = json.loads((tree / '.push-types.json').read_text())
             available = inputs['available']
             deferred = deferred_types(root, base, tip)
@@ -82,7 +92,8 @@ def check_committed(root, base, tip, deadline):
                                    runner=LIVE['run'],
                                    tools=tools, types_available=available,
                                    tests_available=inputs.get('testsAvailable', available),
-                                   test_revision=inputs.get('testRevision'), deleted=deleted, typed_files=deferred, recent_tests=recent)
+                                   test_revision=inputs.get('testRevision'), deleted=deleted, typed_files=deferred, recent_tests=recent,
+                                   policy_checks=bool(policy))
             if deferred:
                 if not available:
                     result['types'] = 'ci-cache-miss'

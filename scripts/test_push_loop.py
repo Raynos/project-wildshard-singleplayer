@@ -532,6 +532,40 @@ readFileSync('../public/assets/native/untracked.bin');
                          ['pnpm', 'exec', 'oxlint', '--type-aware',
                           '-c', '.oxlintrc.json', 'src/good.ts'])
 
+    def test_policy_only_deferral_runs_before_optional_gate_work(self):
+        tip = self.commit('lint/ratchet.json')
+        blob = self.git('rev-parse', tip + ':lint/ratchet.json')
+        self.put('.git/push-deferred-policy.json', json.dumps({'lint/ratchet.json': [blob]}))
+        self.put('lint/ratchet.json', 'foreign WIP')
+        self.assertEqual(PUSH['deferred_policy'](self.root, self.base, tip), ['lint/ratchet.json'])
+        self.assertEqual(PUSH['deferred_types'](self.root, self.base, tip), [])
+        self.put('.push-types.json', '{"available":false}')
+        @contextmanager
+        def prepared(*_):
+            yield self.root, self.root / 'scripts'
+        calls = []
+        def runner(command, *_):
+            calls.append(command)
+            if command[1].endswith('check-closed-components.mjs'):
+                return 1, 'CLOSED C9 has custom lines'
+            return 0, '[]'
+        with patch.dict(PUSH['SOURCE'], committed_source=prepared), patch.dict(LIVE, run=runner):
+            result = PUSH['check_committed'](self.root, self.base, tip, time.monotonic() + 45)
+        self.assertFalse(result['ok'])
+        self.assertEqual(result['phase'], 'closed-components')
+        self.assertEqual(calls[-1][-1], '--source-only')
+        self.assertFalse(any('vitest' in command for command in calls))
+        self.put('.git/push-deferred-policy.json', json.dumps({'lint/ratchet.json': ['wrong blob']}))
+        self.assertEqual(PUSH['deferred_policy'](self.root, self.base, tip), [])
+
+    def test_ratchet_deferral_preserves_a_refusal_at_the_budget(self):
+        def runner(command, *_):
+            return (124, 'Ratchet rose:\ncustom debt') if command[1].endswith('ratchet.mjs') else (0, '')
+        result = LIVE['check'](self.root, self.base, self.base, time.monotonic() + 45,
+                              runner=runner, files=[], policy_checks=True)
+        self.assertFalse(result['ok'])
+        self.assertEqual(result['phase'], 'ratchet')
+
     def test_deferred_types_with_missing_generated_inputs_stay_with_ci(self):
         tip = self.commit('src/good.ts')
         blob = self.git('rev-parse', tip + ':src/good.ts')

@@ -83,7 +83,7 @@ def selection_paths(path, output):
 
 
 def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_available=True,
-          tests_available=None, test_revision=None, deleted=(), typed_files=(), recent_tests=()):
+          tests_available=None, test_revision=None, deleted=(), typed_files=(), recent_tests=(), policy_checks=False):
     files = changed(root, base, tip) if files is None else files
     tools = root / 'scripts' if tools is None else tools
     result = {'ok': False, 'phase': 'working-tree', 'files': [], 'output': ''}
@@ -102,7 +102,7 @@ def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_a
         listing.write_text(json.dumps(files))
         env = dict(os.environ, WS_VITEST_MAX_WORKERS='4', WS_LIVE_PREPUSH='1', NO_COLOR='1')
         def refused(rc, output):
-            failed = re.search(r'(?:FAIL\s+|failed\s*\(|Tests\s+\d+ failed|Test Files\s+\d+ failed|error\[|\berror [\w-]+[(/]|CLOSED |SHRINK-ONLY |deleted path)', ANSI.sub('', output))
+            failed = re.search(r'(?:FAIL\s+|failed\s*\(|Tests\s+\d+ failed|Test Files\s+\d+ failed|error\[|\berror [\w-]+[(/]|CLOSED |SHRINK-ONLY |Ratchet rose:|deleted path)', ANSI.sub('', output))
             return rc != 0 and (rc != 124 or failed)
 
         def budget_deferred(rc, output):
@@ -112,6 +112,21 @@ def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_a
                           '\nLocal check budget exhausted; remaining guards, related tests and typed checks defer to full CI.')
             return True
 
+        # Exact pre-commit policy timeouts run even when no source was staged.
+        # Keep the normal soft budget and observed-refusal handling, with an
+        # explicit gate/CI handoff instead of losing the empty typed-file case.
+        if policy_checks:
+            for phase, command in [
+                ('closed-components', ['node', str(tools / 'check-closed-components.mjs'), '--source-only']),
+                ('ratchet', ['node', str(root / 'lint/ratchet.mjs'), '--defer-reductions']),
+            ]:
+                rc, output = runner(command, root, deadline, env)
+                if rc:
+                    if budget_deferred(rc, output):
+                        return result
+                    result.update(phase=phase, output=output, files=failure_paths(output))
+                    return result
+                result['output'] += '\nDeferred policy passed: ' + phase
         # Mandatory cheap guards precede optional related tests, including when
         # current generated declarations are unavailable. No app setup runs.
         removed = Path(temporary) / 'deleted.json'
