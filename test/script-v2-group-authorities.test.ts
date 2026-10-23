@@ -6,8 +6,9 @@ import type {Animal} from '../src/engine/entities/AnimalView';
 import {Rng} from '../src/engine/core/rng';
 import {StalkerBrain,type CirclingPackContext,type CirclingPackPorts} from '../src/engine/ai/stalker';
 import {GrazerBrain,type GuardedHerdContext,type GuardedHerdPorts} from '../src/engine/ai/grazer';
+import {GroupBrain} from '../src/engine/ai/GroupBrain';
 import {AggressionDirector} from '../src/engine/ai/director';
-import {GroupStepV2,type GroupStepNativeOwnersV2} from '../src/engine/script/groupStepV2';
+import {GroupStepV2,prepareGroupNativeV2,type GroupStepNativeOwnersV2,type GroupStepReferenceV2} from '../src/engine/script/groupStepV2';
 import type {V2ColumnOwners} from '../src/engine/script/observationColumnsV2';
 import {parseGroupStepV2,groupStepLayoutV2,GroupStepV2Schema} from '../src/format/scriptGroupStepV2';
 import {compileScriptV2} from '../src/sdk/bake/compileScriptV2';
@@ -15,26 +16,38 @@ import {v2CoreSource} from '../src/sdk/as/wsV2';
 import {namedJsonSchema} from '../src/sdk/formatJsonSchema';
 import {validateNamedJsonSchema} from '../src/game/shardfile/customSchema';
 
-const rows=parseGroupStepV2({bank:[{name:'calls',kind:'number'}],columns:[],members:1,signals:['pack','herd','bad','prefix','environment'],actions:[
+const rows=parseGroupStepV2({bank:[{name:'calls',kind:'number'}],columns:[],members:1,signals:['pack','herd','bad','prefix','environment','notifications','groupClaim','badFlight','badMask','senses','nearest','sharedInit','twoStreams'],actions:[
  {id:1,words:2,member:0,native:{kind:'start-attack'}},{id:2,words:1,member:0,native:{kind:'cancel-attack'}},
  {id:3,words:2,member:0,native:{kind:'sound',cues:['call']}},{id:4,words:2,member:0,native:{kind:'contact'}},
  {id:5,words:3,native:{kind:'event',events:['notice']}},{id:6,words:1,member:0,native:{kind:'claim',channel:'claim'}},
  {id:7,words:2,member:0,native:{kind:'pass-through'}},{id:8,words:2,member:0,native:{kind:'hurt'}},
  {id:9,words:3,native:{kind:'knockdown'}},{id:10,words:0,native:{kind:'environment',field:'playerMounted',channel:'mounted'}},
-],outputs:8,pages:1,fuel:400000});
+ {id:11,words:1,native:{kind:'notify-state',states:['beaten']}},{id:12,words:1,native:{kind:'notify-flight'}},
+ {id:13,words:1,reference:{word:0},native:{kind:'notify-beaten'}},{id:14,words:1,reference:{word:0},native:{kind:'append-member'}},
+ {id:15,words:2,reference:{word:0},native:{kind:'scare',channel:'scare'}},{id:16,words:3,native:{kind:'nearest-group',channel:'nearest'}},
+ {id:17,words:3,member:0,native:{kind:'group-claim',channel:'claimed'}},
+ {id:18,words:1,member:0,native:{kind:'visibility',channel:'visible'}},{id:19,words:1,member:0,native:{kind:'hearing',channel:'heard',radii:[1,2,3,4]}},
+ {id:20,words:1,member:0,native:{kind:'downwind',channel:'downwind'}},
+],outputs:8,pages:1,fuel:400000,randomStreams:2});
 let bytes:Uint8Array;
 beforeAll(async()=>{bytes=await compileScriptV2(`import * as core from './sdk/as/wsV2';
  export function ws_abi():i32{return 2;}export function ws_io():i32{return 0;}
  export function ws_init(lo:i32,hi:i32,fuel:i32):i32{return fuel;}
  export function ws_project(fuel:i32):i32{core.beginState();assert(core.beginBinding(0));const signal=i32(core.parameter(0));core.setState(0,core.state(0)+1);
+ if(signal==6){core.pageOutput(11,0);core.pageOutput(12,1);core.pageOutput(13,33);core.pageOutput(14,34);core.pageOutput(15,33,5);core.pageOutput(16,0,0,10);core.endBinding();return fuel;}
+ if(signal==7||signal==9){core.pageOutput(17,0,2,signal==9?65536:1);core.endBinding();return fuel;}
+ if(signal==8){core.pageOutput(14,34);core.pageOutput(12,2);core.endBinding();return fuel;}
+ if(signal==10){core.pageOutput(18,0);core.pageOutput(19,0);core.pageOutput(20,0);core.endBinding();return fuel;}
+ if(signal==11){core.pageOutput(16,0,0,10);core.endBinding();return fuel;}
+ if(signal==12||signal==13){core.setState(0,core.random(1)+(signal==13?core.random(2):0));core.endBinding();return fuel;}
  core.pageOutput(1,0,.7);core.pageOutput(3,0,0);core.pageOutput(4,0,1.5);
  if(signal==2){core.pageOutput(7,0,1);core.pageOutput(8,0,6);core.pageOutput(9,2,3,.4);}
  if(signal==5)core.pageOutput(10);core.pageOutput(5,signal==3?99:0,2,3);if(signal==1)core.pageOutput(6,0);core.pageOutput(2,0);core.endBinding();return fuel;}`,
  {lane:'project',ioBytes:groupStepLayoutV2(rows).bytes,sources:{'sdk/as/wsV2.ts':v2CoreSource(0)}});});
-function actor():AnimalSim{return new AnimalSim({kind:'sample',label:'Sample',variant:'leader',rarity:'common',hp:20,aggressive:false,
- dims:{bodyY:.6,bodyHalfLen:.5,bodyRadius:.3,headRadius:.2,legLen:.5,feet:[],halfWidth:.3},mods:{speed:1,chargeDist:1,damageTaken:1,chargeDamage:5,relentless:false}},1,1,'body',{heightAt:()=>0,random:()=>.5});}
-function fixture(){
- const parent=new Scope('group-native-parent'),scope=parent.child('entered'),body=actor(),random=new Rng(31),player=new Vector3(1,2,3),log:unknown[]=[],hooks:{contact?:()=>void}={};
+function actor(id='body'):AnimalSim{return new AnimalSim({kind:'sample',label:'Sample',variant:'leader',rarity:'common',hp:20,aggressive:false,
+ dims:{bodyY:.6,bodyHalfLen:.5,bodyRadius:.3,headRadius:.2,legLen:.5,feet:[],halfWidth:.3},mods:{speed:1,chargeDist:1,damageTaken:1,chargeDamage:5,relentless:false}},1,1,id,{heightAt:()=>0,random:()=>.5});}
+function fixture(id='body'){
+ const parent=new Scope('group-native-parent'),scope=parent.child('entered'),body=actor(id),random=new Rng(31),player=new Vector3(1,2,3),log:unknown[]=[],hooks:{contact?:()=>void}={};
  const director=new AggressionDirector<AnimalSim>(1),tokens=new WeakMap<AnimalSim,AggressionDirector<AnimalSim>>();
  const packContext:CirclingPackContext<AnimalSim>={dt:.1,t:2,player,playerSpeed:0,calm:false,rng:random,
  sound(cue){log.push(['sound',cue,this===packContext]);},claim(a){log.push(['claim',a.entityId,this===packContext]);return tokens.get(a)?.take(a)??true;},steer:()=>undefined,pathYaw:()=>0};
@@ -142,4 +155,81 @@ test('retirement inside original token registration prevents the subsequent cont
   expect(f.director.count).toBe(0);expect(f.log).not.toContainEqual(['claim','body',true]);
   if(disposal!==undefined)for(const _step of disposal){/* Complete original retirement. */}
  }finally{f.parent.dispose();}
+});
+
+test('original herd notifications and adoption keep captured old leader and original members order',()=>{
+ const f=fixture(),other=fixture('added');
+ try{
+  const native=f.enterHerd(),old=f.body;
+  const refs:GroupStepReferenceV2[]=[{group:'sample',slot:0,identity:old.entityId,wire:'old',handle:33,body:old},
+   {group:'outside',slot:0,identity:other.body.entityId,wire:'added',handle:34,body:other.body}];
+  f.herd.onStallionState=function onStallionState(state,owner){f.log.push(['state',state,this===f.herd,owner===f.herd]);this.releaseStallion();};
+  f.herd.onFlight=function onFlight(stampede,owner){f.log.push(['flight',stampede,this===owner]);};
+  f.herd.onBeaten=function onBeaten(body,owner){f.log.push(['beaten',body===old,this===owner,this.stallion===null]);};
+  f.herdPorts.scarePack=function scarePack(body,radius){f.log.push(['scare',body===old,radius,this===f.herdPorts]);return true;};
+  f.herd.findThreat=function findThreat(x,z,radius){f.log.push(['nearest',x,z,radius,this===f.herd]);return other.body;};
+  const ready=f.runner.prepare({...f.input,signal:'notifications',references:refs}),prepared=prepareGroupNativeV2(ready.operations,{...native,references:refs});
+  ready.validate();prepared.validate();ready.accept();f.herd.stallionState='beaten';
+  expect(prepared.run()).toStrictEqual([{channel:'scare',value:1},{channel:'nearest',value:34}]);
+  expect(f.log).toStrictEqual([['state','beaten',true,true],['flight',true,true],['beaten',true,true,true],['scare',true,5,true],['nearest',0,0,10,true]]);
+  expect(f.herd.members).toStrictEqual([old,other.body]);expect(old.mem['ridden']).toBe(1);
+ }finally{f.parent.dispose();other.parent.dispose();}
+});
+test('native token selection reuses the original per-cap cache and rejects masks without a token mutation',()=>{
+ const f=fixture(),oracle=fixture();
+ try{
+  const expected=oracle.pack.borrowGroupDirector(2,[oracle.body]);oracle.packPorts.register(oracle.body,expected);const claimed=oracle.packContext.claim(oracle.body);
+  const ready=f.runner.prepare({...f.input,signal:'groupClaim'}).prepareNative(f.native);expect(f.log).toStrictEqual([]);
+  expect(ready.accept()).toStrictEqual([{channel:'claimed',value:Number(claimed),member:f.member.self}]);
+  expect(f.pack.snapshotPack()).toBe(oracle.pack.snapshotPack());const same=f.pack.borrowGroupDirector(2,[f.body]);expect(same.holds(f.body)).toBe(true);
+  expect(f.pack.borrowGroupDirector(2,[f.body])).toBe(same);expect(f.pack.borrowGroupDirector(1,[])).not.toBe(same);
+  const saved=f.pack.snapshotPack(),state=f.state.slice();expect(()=>f.runner.prepare({...f.input,signal:'badMask'}).prepareNative(f.native)).toThrow('token operands');
+  expect(f.pack.snapshotPack()).toBe(saved);expect(f.state).toStrictEqual(state);
+ }finally{f.parent.dispose();oracle.parent.dispose();}
+});
+test('group sensing uses unchanged original ports and current context without an augmented senses object',()=>{
+ const f=fixture();
+ try{
+  f.packPorts.visibility=function visibility(x,z,player,speed,time){f.log.push(['visibility',this===f.packPorts,x,z,player===f.packContext.player,speed,time]);return .7;};
+  f.packPorts.hearing=function hearing(radii,player,speed){f.log.push(['hearing',this===f.packPorts,...radii,player===f.packContext.player,speed]);return .3;};
+  f.packPorts.downwind=function downwind(x,z,player){f.log.push(['downwind',this===f.packPorts,x,z,player===f.packContext.player]);return true;};
+  expect(f.member.senses).toBeUndefined();expect(Object.hasOwn(f.packPorts,'player')).toBe(false);
+  const ready=f.runner.prepare({...f.input,signal:'senses'}).prepareNative(f.native);expect(f.log).toStrictEqual([]);
+  expect(ready.accept().map(row=>[row.channel,row.value])).toStrictEqual([['visible',.7],['heard',.3],['downwind',1]]);
+  expect(f.log).toStrictEqual([['visibility',true,0,0,true,0,2],['hearing',true,1,2,3,4,true,0],['downwind',true,0,0,true]]);
+  expect(Object.hasOwn(f.packPorts,'player')).toBe(false);
+ }finally{f.parent.dispose();}
+});
+test('malformed notification suffix prevents native adoption and wrong nearest callable fails before query',()=>{
+ const f=fixture(),other=fixture();
+ try{
+  const refs:GroupStepReferenceV2[]=[{group:'outside',slot:0,identity:other.body.entityId,wire:'added',handle:34,body:other.body}],native={...f.enterHerd(),references:refs};
+  const state=f.state.slice(),saved=f.herd.snapshotHerd();expect(()=>f.runner.prepare({...f.input,signal:'badFlight',references:refs}).prepareNative(native)).toThrow('flight');
+  expect(f.herd.members).toStrictEqual([f.body]);expect(f.state).toStrictEqual(state);expect(f.herd.snapshotHerd()).toBe(saved);
+  f.herd.findThreat=()=>other.body;const ready=f.runner.prepare({...f.input,signal:'nearest',references:refs}).prepareNative(native);
+  f.herd.findThreat=()=>null;expect(()=>ready.accept()).toThrow('replaced');expect(f.state).toStrictEqual(state);
+ }finally{f.parent.dispose();other.parent.dispose();}
+});
+test('the existing two-stream capacity admits shared-only initialization and later both original owners',()=>{
+ const f=fixture();
+ try{
+  const shared=new Rng(31),initial=shared.next();f.runner.prepare({...f.input,signal:'sharedInit'}).accept();expect(f.state[0]).toBe(initial);expect(f.random.snapshot()).toStrictEqual(shared.snapshot());
+  const local=new Rng(53),oracle=new Rng(53),expected=shared.next()+oracle.next();
+  f.runner.prepare({...f.input,signal:'twoStreams',contextRandom:local}).accept();expect(f.state[0]).toBe(expected);expect(f.random.snapshot()).toStrictEqual(shared.snapshot());expect(local.snapshot()).toStrictEqual(oracle.snapshot());
+  const state=f.state.slice(),rng=f.random.snapshot();expect(()=>f.runner.prepare({...f.input,signal:'twoStreams'})).toThrow();expect(f.state).toStrictEqual(state);expect(f.random.snapshot()).toStrictEqual(rng);
+ }finally{f.parent.dispose();}
+});
+
+test('token loans preserve the legacy minimal-member group and exact original per-cap continuation',()=>{
+ interface Member {alive:boolean;id:string}
+ class OriginalGroup extends GroupBrain<Member>{
+  direct(cap:number,held:readonly Member[]){return this.groupDirector(cap,member=>member.alive&&held.includes(member));}
+  snapshot(){return this.snapshotGroup(member=>member.id);}
+ }
+ const a={alive:true,id:'a'},b={alive:true,id:'b'},left=new OriginalGroup([a,b]),right=new OriginalGroup([a,b]);
+ for(const cap of [1,2,3]){
+  const actual=left.borrowGroupDirector(cap,[a]),expected=right.direct(cap,[a]);expect(actual.take(b)).toBe(expected.take(b));expect(left.snapshot()).toBe(right.snapshot());
+ }
+ a.alive=false;left.borrowGroupDirector(2,[a]);right.direct(2,[a]);expect(left.snapshot()).toBe(right.snapshot());
+ const before=left.snapshot();expect(()=>left.borrowGroupDirector(2,[{alive:true,id:'foreign'}])).toThrow('token loan');expect(()=>left.borrowGroupDirector(2,[b,b])).toThrow('token loan');expect(left.snapshot()).toBe(before);
 });

@@ -30,6 +30,13 @@ export class GroupBrain<A extends GroupMember> {
     for (const member of this.members) if (member.alive && attacking(member)) director.take(member);
     return director;
   }
+  /** Lend the original per-cap token pool at a native group apply slot.
+   * The guest supplies attacking member identities; no attack law is inferred. */
+  borrowGroupDirector(cap: number, attacking: readonly A[]): AggressionDirector<A> {
+    if (!Number.isInteger(cap) || cap < 0 || cap > 128 || new Set(attacking).size !== attacking.length
+      || attacking.some(actor => !this.members.includes(actor))) throw new Error('Invalid native group token loan');
+    return this.groupDirector(cap, actor => actor.alive && attacking.includes(actor));
+  }
   /** Snapshot the shared decision clock and token pools using stable member ids; actor state is owned separately. */
   protected snapshotGroup(identity: (actor: A) => string): string {
     return JSON.stringify({ members: this.members.map(identity), time: this.groupTime === -Infinity ? null : this.groupTime,

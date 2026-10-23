@@ -19,10 +19,10 @@ import type { Rng, RngState } from '../core/rng';
 import type { AggressionDirector, AggressionService } from '../ai/director';
 import type { Events } from '../events/events';
 import type { CirclingPackPrey, CirclingPackContext, StalkerBrain } from '../ai/stalker';
-import type { GuardedHerdContext, GrazerBrain } from '../ai/grazer';
+import { GUARDED_STALLION_STATES, type GuardedHerdContext, type GrazerBrain } from '../ai/grazer';
 
-export type GroupStepReferenceV2 = GroupBankReferenceV2 & (
-  | { readonly body: AnimalSim; readonly pose?: never }
+export type GroupStepReferenceV2<A extends AnimalSim = AnimalSim> = GroupBankReferenceV2 & (
+  | { readonly body: A; readonly pose?: never }
   | { readonly body: CirclingPackPrey; readonly pose: true }
 );
 function validReference(row: GroupStepReferenceV2): boolean {
@@ -247,7 +247,7 @@ export class GroupStepV2 {
 function freezeNative(input: GroupStepNativeV2): Readonly<GroupStepNativeV2> {
   const row = structuredClone(input);
   if (row.kind === 'hearing') Object.freeze(row.radii);
-  if (row.kind === 'state') Object.freeze(row.states);
+  if (row.kind === 'state' || row.kind === 'notify-state') Object.freeze(row.states);
   if (row.kind === 'sound') Object.freeze(row.cues);
   if (row.kind === 'event') Object.freeze(row.events);
   return Object.freeze(row);
@@ -265,8 +265,8 @@ export interface GroupStepNativeOwnersV2<A extends AnimalSim = AnimalSim> {
   readonly contexts?: readonly GroupStepContextV2<A>[];
   readonly group?: { readonly kind: 'pack'; readonly owner: StalkerBrain<A> }
     | { readonly kind: 'herd'; readonly owner: GrazerBrain<A> };
-  readonly references?: readonly GroupStepReferenceV2[];
-  readonly rosters?: ReadonlyMap<string, readonly GroupStepReferenceV2[]>;
+  readonly references?: readonly GroupStepReferenceV2<A>[];
+  readonly rosters?: ReadonlyMap<string, readonly GroupStepReferenceV2<A>[]>;
   readonly ground?: { readonly normalY: (x: number, z: number) => number };
   readonly grass?: { readonly grassHeightAt: (x: number, z: number) => number };
   readonly aggression?: {
@@ -307,8 +307,8 @@ export function prepareGroupNativeV2<A extends AnimalSim = AnimalSim>(operations
   const channels = new Set<string>();
   const group = owners.group;
   if (group !== undefined) {
-    const owner = group.owner, roster = owner.members, original = roster.slice(), ports = owner.groupPorts;
-    pins.push(() => owners.group === group && group.owner === owner && owner.members === roster && owner.groupPorts === ports);
+    const owner = group.owner, kind = group.kind, roster = owner.members, original = roster.slice(), ports = owner.groupPorts;
+    pins.push(() => owners.group === group && group.kind === kind && group.owner === owner && owner.members === roster && owner.groupPorts === ports);
     before.push(() => roster.length === original.length && original.every((body,index) => roster[index] === body)
       && sources.every((source,index) => source.self.actor === null || source.self.actor === original[index]));
   }
@@ -357,6 +357,11 @@ export function prepareGroupNativeV2<A extends AnimalSim = AnimalSim>(operations
       if (original === undefined) throw new Error('Foreign native group actor');
       return original;
     };
+    const nativeReference = (): A => {
+      const original = emittedReference === undefined ? undefined : owners.references?.find(row => sameReference(row,emittedReference));
+      if (original === undefined || original.pose === true) throw new Error('Native effect requires original typed actor reference');
+      return original.body;
+    };
     const prepareContext = (): GroupStepContextV2<A> => {
       const contexts = owners.contexts, context = member === undefined ? undefined : contexts?.[member.slot], body = member?.actor;
       if (member === undefined || source === undefined || contexts === undefined || contexts.length !== sources.length || context === undefined || body === undefined || body === null
@@ -370,6 +375,77 @@ export function prepareGroupNativeV2<A extends AnimalSim = AnimalSim>(operations
     };
     let invoke: () => number | undefined;
     switch (request.kind) {
+      case 'notify-state': case 'notify-flight': case 'notify-beaten': case 'append-member': {
+        if (group?.kind !== 'herd') throw new Error('Missing original herd notification owner');
+        const owner = group.owner, value = operation.values[0];
+        if (request.kind === 'notify-state') {
+          const state = GUARDED_STALLION_STATES.find(name => name === (value === undefined ? undefined : request.states[value]));
+          if (value === undefined || !Number.isInteger(value) || state === undefined) throw new Error('Invalid native group state notification');
+          const notify = owner.onStallionState;
+          if (notify !== undefined && typeof notify !== 'function') throw new Error('Invalid native state notification');
+          pins.push(() => owner.onStallionState === notify);
+          invoke = () => { notify?.call(owner,state,owner);return undefined; };
+        } else if (request.kind === 'notify-flight') {
+          if (value !== 0 && value !== 1) throw new Error('Invalid native group flight notification');
+          const notify = owner.onFlight;
+          if (notify !== undefined && typeof notify !== 'function') throw new Error('Invalid native flight notification');
+          pins.push(() => owner.onFlight === notify);
+          invoke = () => { notify?.call(owner,value === 1,owner);return undefined; };
+        } else {
+          const body = nativeReference();
+          if (request.kind === 'notify-beaten') {
+            const notify = owner.onBeaten;
+            if (notify !== undefined && typeof notify !== 'function') throw new Error('Invalid native beaten notification');
+            pins.push(() => owner.onBeaten === notify);
+            invoke = () => { notify?.call(owner,body,owner);return undefined; };
+          } else {
+            const roster = owner.members, includes: unknown = Reflect.get(roster,'includes'), push: unknown = Reflect.get(roster,'push');
+            if (typeof includes !== 'function' || typeof push !== 'function') throw new Error('Invalid native member collection');
+            pins.push(() => owner.members === roster && roster.includes === includes && roster.push === push);
+            invoke = () => { if (!roster.includes(body)) roster.push(body);return undefined; };
+          }
+        }
+        break;
+      }
+      case 'scare': {
+        if (group?.kind !== 'herd') throw new Error('Missing original group scare owner');
+        const body = nativeReference(), radius = operation.values[1], ports = group.owner.groupPorts, scare = ports.scarePack;
+        if (radius === undefined || radius < 0 || typeof scare !== 'function') throw new Error('Invalid native scare operation');
+        pins.push(() => ports.scarePack === scare);
+        invoke = () => { const value = scare.call(ports,body,radius);
+          if (typeof value !== 'boolean') throw new Error('Invalid native scare result');return Number(value); };
+        break;
+      }
+      case 'nearest-group': {
+        if (group === undefined || owners.references === undefined) throw new Error('Missing original group nearest owner');
+        const references = owners.references, original = references.map(row => Object.freeze({...row})), x = operation.values[0], z = operation.values[1], radius = operation.values[2];
+        if (x === undefined || z === undefined || radius === undefined || radius < 0) throw new Error('Invalid native group nearest operands');
+        before.push(() => owners.references === references && references.length === original.length && original.every((row,index) => sameReference(references[index],row)));
+        const resolve = (body: CirclingPackPrey | null): number => {
+          if (body === null) return 0;
+          const found = original.find(row => row.body === body);
+          if (found === undefined) throw new Error('Unknown native nearest result reference');return found.handle;
+        };
+        const owner = group.owner;
+        const find: ((x:number,z:number,radius:number) => CirclingPackPrey | null) | undefined = group.kind === 'pack' ? group.owner.findPrey : group.owner.findThreat;
+        if (find !== undefined && typeof find !== 'function') throw new Error('Invalid native nearest callable');
+        pins.push(() => group.kind === 'pack' ? group.owner.findPrey === find : group.owner.findThreat === find);
+        invoke = () => resolve(find?.call(owner,x,z,radius) ?? null);
+        break;
+      }
+      case 'group-claim': {
+        if (group?.kind !== 'pack') throw new Error('Missing original group token owner');
+        const body = nativeActor(), context = prepareContext(), cap = operation.values[1], mask = operation.values[2], owner = group.owner, roster = owner.members;
+        if (!('claim' in context) || cap === undefined || !Number.isInteger(cap) || cap < 0 || cap > 128 || roster.length > 16
+          || mask === undefined || !Number.isInteger(mask) || mask < 0 || mask >= 2 ** roster.length) throw new Error('Invalid native group token operands');
+        const attacking = roster.filter((_actor,index) => (mask & (1 << index)) !== 0), ports = owner.groupPorts, register = ports.register, claim = context.claim;
+        const borrow: unknown = Reflect.get(owner,'borrowGroupDirector');
+        if (typeof register !== 'function' || typeof claim !== 'function' || typeof borrow !== 'function') throw new Error('Missing native group token callable');
+        pins.push(() => owner.borrowGroupDirector === borrow && ports.register === register && context.claim === claim);
+        invoke = () => { const director = owner.borrowGroupDirector(cap,attacking);register.call(ports,body,director);live();
+          const value = claim.call(context,body);if (typeof value !== 'boolean') throw new Error('Invalid native group token result');return Number(value); };
+        break;
+      }
       case 'cancel-attack': case 'start-attack': {
         const body = member?.actor;
         if (body === undefined || body === null) throw new Error('Missing native attack owner');
@@ -611,16 +687,17 @@ export function prepareGroupNativeV2<A extends AnimalSim = AnimalSim>(operations
         break;
       }
       case 'visibility': case 'hearing': case 'downwind': {
-        const owner = source?.senses, context = source?.context, body = member?.actor;
-        if (source === undefined || owner === undefined || context === undefined || body === undefined || body === null
-          || owner.player !== source.player.position || !Number.isFinite(context.playerSpeed) || !Number.isFinite(source.t))
+        const entered = group === undefined ? undefined : prepareContext();
+        const owner = group?.owner.groupPorts ?? source?.senses, context = entered ?? source?.context, body = member?.actor;
+        const player = entered?.player ?? source?.senses?.player;
+        if (source === undefined || owner === undefined || context === undefined || player === undefined || body === undefined || body === null
+          || player !== source.player.position || !Number.isFinite(context.playerSpeed) || !Number.isFinite(source.t))
           throw new Error('Missing native group sense owner');
-        const player = owner.player, speed = context.playerSpeed, time = source.t;
+        const speed = context.playerSpeed, time = source.t;
         const finitePose = (): boolean => [body.position.x, body.position.z, player.x, player.y, player.z].every(Number.isFinite);
         if (!finitePose()) throw new Error('Invalid native sense position');
         pins.push(finitePose);
-        pins.push(() => source.senses === owner && source.context === context && source.player.position === player
-          && owner.player === player && Object.is(context.playerSpeed, speed) && Object.is(source.t, time));
+        pins.push(() => (group !== undefined || source.senses === owner && source.senses.player === player) && source.context === context && source.player.position === player && Object.is(context.playerSpeed, speed) && Object.is(source.t, time));
         if (request.kind === 'visibility') {
           const sample = owner.visibility;
           if (typeof sample !== 'function') throw new Error('Missing native visibility owner');

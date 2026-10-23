@@ -39,7 +39,8 @@ export interface CircleGrazerPorts<A extends AnimalSim> {
 /** Shared grazing, alert and flight modes of a guarded herd. */
 export type GuardedHerdMode = 'graze' | 'drift' | 'alert' | 'flee' | 'settle';
 /** Guard animal decisions; riding and taming remain host-owned recipes. */
-export type GuardedStallionState = 'watch' | 'warn' | 'display' | 'charge' | 'wheel' | 'lead' | 'beaten' | 'ridden';
+export const GUARDED_STALLION_STATES = ['watch', 'warn', 'display', 'charge', 'wheel', 'lead', 'beaten', 'ridden'] as const;
+export type GuardedStallionState = typeof GUARDED_STALLION_STATES[number];
 /** Declared guarded-herd tuning, independent of any particular species rig. */
 export interface GuardedHerdSpec {
   walkSpeed: number; trotSpeed: number; gallopSpeed: number; chargeSpeed: number;
@@ -80,7 +81,7 @@ const herdFinite = v.pipe(v.number(), v.finite());
 const herdContinuation = v.strictObject({ contract: v.string(), group: v.string(), lead: v.nullable(v.string()), stallion: v.nullable(v.string()),
   ridden: v.nullable(v.string()), chargeTarget: v.nullable(v.string()), foals: v.array(v.string()), mothers: v.array(v.tuple([v.string(), v.string()])),
   state: v.strictObject({ initialized: v.boolean(), mode: v.picklist(['graze', 'drift', 'alert', 'flee', 'settle']), stampeding: v.boolean(),
-    stallionState: v.picklist(['watch', 'warn', 'display', 'charge', 'wheel', 'lead', 'beaten', 'ridden']), trust: herdFinite, alert: herdFinite,
+    stallionState: v.picklist(GUARDED_STALLION_STATES), trust: herdFinite, alert: herdFinite,
     alertOwned: v.boolean(), cx: herdFinite, cz: herdFinite, spotX: herdFinite, spotZ: herdFinite, spotT: herdFinite, fleeX: herdFinite, fleeZ: herdFinite,
     fleeRun: herdFinite, fleeLen: herdFinite, fleeFromX: herdFinite, fleeFromZ: herdFinite, modeT: herdFinite, sT: herdFinite, chargeCd: herdFinite,
     beatenT: herdFinite, beaten: v.boolean(), knockCd: herdFinite }) });

@@ -1294,3 +1294,47 @@ scope and concrete callable identity; earlier adoption cannot retarget later
 emitted body operations. The original group, body, reward and saved owners and
 native call order remain authoritative. Group notifications, member adoption
 and dynamic token selection are not implemented by these contact rows.
+
+### Native group notifications, queries and tokens (H4, G621 R10a)
+
+The same concrete herd loan admits notify-state {states} [index], notify-flight
+[boolean], notify-beaten [referenceHandle], append-member [referenceHandle],
+and scare {channel} [referenceHandle,radius]. Notifications call the original
+onStallionState/onFlight/onBeaten properties with the original group receiver
+and argument. State indices resolve through the defining guarded-stallion state
+set; boolean operands are strict zero/one. Missing optional original callbacks
+remain optional. The original native codec publishes its prepared fields before
+these notifications. An earlier callback may release the current leader; the
+beaten callback still receives the original emitted actor reference. Append
+changes only the SAME members array, adding the original actor once. Following
+stallion/state publication remains at the caller's original resume barrier.
+
+GroupStepReferenceV2<A> and the native owner reference list preserve the concrete
+actor subtype for herd callbacks/adoption. The binder resolves that original
+reference during preparation, never by looking up the current leader at apply.
+Scare calls the SAME original scarePack port and returns its boolean result.
+
+Nearest-group {channel} [x,z,radius] calls the original pack findPrey or herd
+findThreat method at its emitted slot, retaining its receiver, ordered query
+policy and current memberships. Null/absent returns handle zero; a returned body
+must match an original captured reference or refuses. Existing nearest {roster}
+remains unchanged. Group sensing result rows use the SAME original group ports
+and per-call context player directly, without a copied/augmented senses object.
+Standalone senses loans remain available for callers without a concrete group.
+
+Group-claim {channel} [member,cap,attackingMask] bounds cap to 0..128 and the mask
+to the original ordered roster of at most sixteen members. AS chooses the cap
+and attacking mask. GroupBrain.borrowGroupDirector(cap,attackingRefs) uses its
+SAME existing per-cap cache, sweep and held tokens; it introduces no other book.
+It accepts legacy minimal GroupMember types as well as native/page animals.
+The prepared operation calls that original helper, original pack register,
+then original context claim with a lifetime fence between native calls. Token
+allocation/sweep happens only at apply, after all state/RNG/native preflight.
+Original group JSON snapshots and per-cap token identity remain authoritative.
+
+randomStreams:2 is capacity, not a requirement to invent a second owner. Each
+call already lends only the present original streams: shared-only init/public
+signals can run before a local context RNG exists, while tick/drive borrow both
+when they use both. Reading an absent stream refuses without advancing the
+original owner. No per-signal metadata, fake stream or earlier construction is
+needed to retain that lifecycle.
