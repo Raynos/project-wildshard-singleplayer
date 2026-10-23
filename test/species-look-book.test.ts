@@ -1,12 +1,16 @@
-import { parse } from 'valibot';
-import { NativeSpeciesLookBookSchema } from '@wildshard/format/speciesBookRows';
+import { object, parse, string } from 'valibot';
+import { NativeSpeciesLookBookSchema, SpeciesPresentationSchema } from '@wildshard/format/speciesBookRows';
 import { expect,test,vi } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Use the admitted packed source bytes through its ordinary fetch port.
 import { readFileSync } from 'node:fs';
 import { HullLookBook, speciesBehaviour } from '../src/game/looks/speciesBook';
 import { Rng } from '../src/engine/core/rng';
 import rows from '../src/shards/nalati-grasslands/data/speciesLooks.json' with {type:'json'};
-import source from '../src/shards/nalati-grasslands/data/species.generated.json' with {type:'json'};
+import { HullLookBookSchema, PackedCreatureLooksSchema } from '../src/format/speciesLooks';
+
+const source=parse(object({hullBook:HullLookBookSchema,looks:PackedCreatureLooksSchema,
+  packedBodies:object({file:string()}),presentation:SpeciesPresentationSchema}),
+  JSON.parse(readFileSync('src/shards/nalati-grasslands/data/species.generated.json','utf8')));
 
 // G600 L8: the species looks are the hull book's packed looks; the behaviour rows stay outside the look book
 test('orchard creature data owns body copies and look identities without control hooks',async()=>{

@@ -1,4 +1,8 @@
-import speciesRows from '../src/shards/nalati-grasslands/data/species.generated.json' with { type: 'json' };
+// oxlint-disable-next-line import/no-nodejs-modules -- validate generated pose/program rows without inferring the full species JSON type
+import { readFileSync } from 'node:fs';
+import { object, parse, record, string } from 'valibot';
+import { NumericPoseSchema } from '../src/format/clientChannels';
+import { ReturnProgramSchema } from '../src/format/namedJsonContracts';
 import { numericCreaturePose } from '../src/game/plugin/channelPrograms';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { Bone, Vector3 } from 'three';
@@ -11,6 +15,9 @@ import { animateKing } from './fixtures/nalati-king-pose';
 import { legacyDouble } from './fake/FakeGame';
 import type { Animal } from '../src/engine/entities/AnimalView';
 import type { RigAnimCtx } from '../src/engine/entities/species/registry';
+
+const speciesRows=parse(object({poses:record(string(),NumericPoseSchema),program:ReturnProgramSchema}),
+  JSON.parse(readFileSync('src/shards/nalati-grasslands/data/species.generated.json','utf8')));
 
 const names = ['body', 'spine', 'chest', 'head', 'crown', 'cape', ...['L', 'R'].flatMap(side =>
   ['sh', 'el', 'hand'].map(joint => `arm${side}_${joint}`).concat(['hip', 'knee', 'foot'].map(joint => `leg${side}_${joint}`)))];
@@ -64,7 +71,7 @@ test('species channels drive the original joints without writing actor memory', 
     if (key === 'eagle') expect(c.bones['wingL1']?.rotation.y).toBeGreaterThan(1);
     if (key === 'balbal') expect(c.bones['armR_sh']?.rotation.x).toBeLessThan(-2);
   }
-  c.alive = false; c.deathT = 1; numericCreaturePose(speciesRows.poses.canidDead)(c);
+  c.alive = false; c.deathT = 1; numericCreaturePose(speciesRows.poses['canidDead'])(c);
   expect(c.bones['jaw']?.rotation.x).toBe(.25);
 });
 
