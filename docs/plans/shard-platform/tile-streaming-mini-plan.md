@@ -185,3 +185,168 @@ baked L1, and Pine/Nalati draw their terrain tiles with their own code. Rows add
 | U1 | Every shard bakes all 64 L0 squares (empty sea / sky squares as near-empty tiles) | the census shows 64 L0 per shard |
 | U2 | Every shard bakes all 16 L1 squares (Driftwood and Sky first) | 16 L1 per shard |
 | U3 | Pine and Nalati terrain tiles go through the one shared streamer (T2), not shard code | no shard-owned tile drawing left |
+
+## One streamer, Pine and Nalati on it (2026-10-23, replaces T2's text and U3)
+
+Traced at HEAD f81d5aade9 (full write-up below). **Correction:** Pine has **no terrain tiles** — its ground is the engine's whole `Terrain` (one 257² mesh, 4 splat layers), all 2,600 trees, ground cover, buildings and props are built whole on entry and stay loaded; its 26 L0 tiles are timber props only the grid draws. Nalati's painted ground is one mesh; its 64 L0 ground tiles sit behind an off-by-default Debug row. The four streaming modules: `grid/rings.ts` (full scheduler, neighbours only), `shardfile/clientRings.ts`, `shardfile/clientWorld.ts` + `residency.ts` (entered shard; copy-paste of reads, masks, distance; dead `rings` branch); `clientResidency.ts` is the home budget claim, not streaming. Terrain + Forest are also built twice (`bootstrap.ts:81-97`, `regionalWorld.ts:278-293`).
+
+| Row | What | Lane | Size |
+|---|---|---|---|
+| S1 | `engine/world/tileStreamer.ts` from RenderRings, with road/junction tile types; host-bar tests; same trace as today at 150 m, no hole frames | Codex | 2 d |
+| S2 | One tile-content module; SHARD SELECT, grid region and neighbours all on S1; delete clientWorld, residency, the dead branch, rings.ts (≥ 200 lines gone, worst frame ≤ 100 ms) | Codex | 1 d |
+| S3 | Road tiles on the 62.5 m lattice (after T9) | Codex | 0.5 d |
+| S4 | Delete `runtimeWorld.ts` with sunscar-dunes-legacy (on legacy deletion) | — | — |
+| P1 | Pine: bake 64 L0 + 16 L1 ground tiles from its heightfield + splat; boreal look as a material row on `clientSplatTerrain`; canopy a per-tile channel; collider shard-wide | Opus | 1.5 d |
+| P2 | One ground path: no whole `Terrain` build for a tiled shard in bootstrap or regionalWorld | Opus | 1 d |
+| P3 | Pine trees as per-tile instance ranges, colliders in the tile scope | Opus | 1.5 d |
+| P4 | Pine ground cover per tile | Codex | 0.5 d |
+| P5 | Pine buildings and props per tile (logic, doors, saves, lanterns shard-wide) | Codex + Opus | 1.5 d |
+| N1 | Nalati (after its zero): painted ground on the streamer + 16 L1 tiles; delete the one-mesh path and the groundTiles row | Opus | 1 d |
+| N2 | Nalati WorldAssembly + SceneDressing per tile | Codex + Opus | 1.5 d |
+
+Pine done when: memory drops by Pine's tile-local share (T0) × 39/64, no frame over 100 ms after controls, Pine↔Driftwood peak ≤ 1.2 GB. Decisions D-S1 (Pine ground: bake splat tiles vs keep whole Terrain), D-S2 (order: Driftwood → Pine → crossings → Nalati), D-S3 (delete the whole-shard Terrain build vs keep as Debug) — for Jake.
+
+<details><summary>Full streamer trace</summary>
+
+# One shared streamer: map, Pine and Nalati truth, rows (read at HEAD f81d5aade9, 2026-10-23)
+
+Code read only. Nothing built or run. Pine's generated JSON is gitignored; its shape was read from the on-disk
+`src/shards/pine-hollow/data/timberWorld.generated.json` (Oct 17), so the tile counts for Pine need a fresh bake to
+confirm.
+
+## 1. The streaming map
+
+| Module | What it streams | Radii / LOD | Budgets / disposal | Called by |
+|---|---|---|---|---|
+| `game/grid/rings.ts` `RenderRings` (411 lines) | neighbour cells: far proxy → L1 → L0 | L0 `nearRadius` 150 m + lookahead (speed × 4 s); L1 400 m; far ring 9 × 1.6 MB, nearest first; caps l0 40 / l1 32 | allocator lease per tile (`evictSync`), parent holds, evictable cache, hysteresis + one tile size, 2 uploads and 8 MB a frame, 8 in flight, retry backoff, quadrant/region masks, shadow ≤ 80 m | `grid/session.ts:550` only (+ tests and sim fixtures) |
+| `game/shardfile/clientRings.ts` (99) | the content of a ring tile: terrain (worker decode) + props tile + extra files, in the tile's scope | — | scope per tile | `grid/session.ts:181,546` |
+| `game/shardfile/clientWorld.ts` (124) | the entered data shard | all 16 L1 always resident; L0 inside a 150 m (+ overhang) disc; shadow 80 m; refresh when the viewer moves 5 m (`FOLLOW`) | `needed: true` lease, so no eviction, no cache, no hysteresis; main-thread decode; its own remask; `slicer` 30 ms | `shardfile/client.ts:250` (SHARD SELECT), `grid/regionalWorld.ts:164` (the entered grid region's data page), `shardfile/runtimeWorld.ts:61` (legacy only, see below) |
+| `game/shardfile/residency.ts` (19) | the 150 m disc math for clientWorld | literals 150 / 80 | — | clientWorld |
+| `game/shardfile/clientResidency.ts` (26) | **not streaming**: the page's home budget claim (`admitHome`) | — | — | `plugin/ui.ts:1588`; stays shard-global |
+
+**Copy-paste:**
+- The per-file lease-and-read and the terrain/props reads (`clientWorld.ts:58-72` vs `clientRings.ts:54-70`).
+- The quadrant mask (`clientWorld.ts:85-95` vs `rings.ts:384-394`).
+- Tile distance (`residency.ts:2-5` vs `rings.ts:104-107`).
+- 150 / 80 m appear as literals in `residency.ts` but as `CONTENT_CAPS` in rings.
+
+**Dead or legacy code:**
+- The `rings` branch of `clientWorld` (`ClientWorldRings`, lines 19-42) has **no caller**.
+- `runtimeWorld.ts` `bindRuntimeTerrain` / `runtimeProduct.ts` `bindRuntimeProductTerrain` are used only by
+  `sunscar-dunes-legacy/look/groundTiles.ts`.
+
+**What genuinely differs:**
+- Rings: the far level, lookahead, eviction cache, worker decode, multiple cells.
+- clientWorld: keeps L1 resident always, installs the props library, `assets.releaseTiles()` admission ordering, overhang.
+
+**Neighbouring tiers (they don't decide tile residency):**
+- `nearPlaceholderPlan`/`View`: G342; at most 4 cells on the phone; one `near.glb` per shard; `near` category.
+- `farView`/`farProxy`: draw the far level that rings schedules.
+- `prefetch`: disk only.
+- `allocator`, `pageResidency`, `assetResidency`, `renderResidency`: accounting.
+- `tileOrder`: rank only (H3).
+
+**Whole builds:**
+- `bakedTiles` (`world.baked`: every node of one GLB at once).
+- `worldScenes` (whole placements).
+- A **second duplication**: the native world builds a whole `Terrain` + `Forest` twice, in `engine/core/bootstrap.ts:81-97`
+  (SHARD SELECT) and `grid/regionalWorld.ts:278-293` (grid region).
+
+## 2. Pine Hollow today
+
+Pine is a client-plan shardfile: `generators/product.ts`, runtime `kind: 'client-plan'`,
+`binds: ['terrain','props',…]`. Its README "Its custom code" table is stale; those folders are gone.
+
+- **Terrain: there are no Pine terrain tiles.**
+  - `terrain.form = 'query'`, 0 tiles, with a 257² collider/sampling file. The plan's "64 + 16 terrain tiles their own
+    runtime draws" is wrong for Pine.
+  - The ground is the engine's **whole `Terrain`**: one 257² mesh + a rock slab + 4 PBR splat layers as 1024 arrays and
+    the boreal shader (`engine/world/Terrain.ts:398-420`).
+  - It is built in `bootstrap.ts:81` (SHARD SELECT) or `regionalWorld.ts:278` (grid entered), and stays for the whole
+    visit.
+  - It never goes through clientWorld: `withoutRuntimeRows` strips bound terrain/props (`client.ts:191`,
+    `plugin/headless.ts:78`).
+- **Trees:** `Forest` builds all 2,600 trees whole: `bootstrap.ts:91` / `regionalWorld.ts:291`, then
+  `placeForestPageModels` places all of them sliced (`forestPage.ts:152-168`). There is a culling view, but every instance
+  and its capsule colliders stay resident.
+- **Ground cover (ferns, shrubs, litter):** `ForestGround.prepare` reads the whole-shard layout
+  (`looks/forestGround.ts:21-40`), instanced with cell culling (`forestPage.ts:170-176`). Every matrix is resident.
+- **Grass is already streamed by the camera:** `engine/world/Grass` is a 28 × 28 toroidal grid of 4 m cells (75k slots)
+  that follows the player (`forestPage.ts:67`). It is fixed memory, so it is not the problem.
+- **World scenes:** cabins, living buildings, crags, the cave, timbers, streams, landmarks and props are all built whole:
+  - `installWorldScenes(..., residentWorldScope)` (`forestPage.ts:64`);
+  - cabins (`:72-87`);
+  - landmarks and props with their colliders in `finish` (`:93-96`);
+  - the cave (`clientForestPage.ts:62-74`).
+- **Props tiles:** Pine's 26 L0 props tiles (timber world, ~15.9 MB) are runtime-bound. The entered world draws none of
+  them; only the grid rings draw them for Pine as a *neighbour*, and not while its near view owns the cell
+  (`session.ts:550`).
+- **Water, weather, sky:** page-wide.
+- **Why it is all whole:** it is legacy carry-over from the native runtime. The forest page ports the old `world/` build
+  as rows. The engine `Terrain` is the only splat-boreal path for the entered world, although `clientSplatTerrain.ts`
+  already compiles the same `splatTerrainMaterial` for props tiles (with `boreal` and tints).
+
+## 3. Nalati today
+
+Nalati keeps `runtime/index.ts` and `state.ts` (custom TS). Its runtime binds terrain and props; the terrain is query
+form.
+
+- **Ground:** painted. `paintedGroundPainter` (`game/looks/painterlyLook.ts:46-88`) is a `TerrainPainter` run by the same
+  `Terrain.build` in bootstrap / regionalWorld. It builds one whole mesh from `world/terrain/<id>.glb`.
+- **64 L0 render tiles exist** (`data/renderTiles.json`, 15.1 MB, painterly family, cut from that mesh). But:
+  - they draw only behind Debug `groundTiles` (default **off**);
+  - when on, **all 64 load at once** (`painterlyLook.ts:70-82`);
+  - there is no L1.
+- **World:** `WorldAssembly.construct` (whole world prefix) and `SceneDressing` (whole-shard dressing) build everything,
+  with their colliders (`runtime/state.ts:43-54,76`).
+- **Grass:** camera rings (`looks/grassPresentation.ts`), fixed memory.
+- **Water and the painted sky dome:** page-wide.
+
+## 4. Rows (proposed for tile-streaming-mini-plan.md; they replace T2's text and U3)
+
+### (a) One streamer
+
+| Row | What | Files | Lane | Size | Done when |
+|---|---|---|---|---|---|
+| S1 | `engine/world/tileStreamer.ts`, built from `RenderRings`: wanted sets by distance (N × N full ring, coarse ring, far, near); keys `{instance, level, x, z, type: shard\|road\|junction}`; parent-first masks; hysteresis; a lease per tile through an injected budget port (the engine can't import `grid/allocator`); per-frame count + bytes + ms budgets; a Scope per tile; `ready()` / `waiting()` | new engine module; `rings.ts` → deleted (tests move) | Codex | 2 d | host-bar six tests; Node 1 km drive gives the same trace as today's rings at 150 m; 0 hole frames |
+| S2 | One tile-content adapter (clientRings + clientWorld's reads merged). SHARD SELECT (`client.ts:250`), the grid region (`regionalWorld.ts:164`) and grid neighbours (`session.ts:546`) all register instances on the one streamer; an entered cell is just the instance with the full ring | `clientRings.ts` → `tileContent.ts`; delete `clientWorld.ts`, `residency.ts` and the dead `rings` branch | Codex | 1 d | net deletion ≥ 200 lines; DW SHARD SELECT + grid: same tiles at the same pose; worst frame ≤ 100 ms |
+| S3 | Road and junction tiles as streamer types on the 62.5 m lattice (after T9 A, G638 D1) | `roadCull`, `roadLook`, `roadLayout` | Codex | 0.5 d | road resident only in the ring; road MB down; seams certified |
+| S4 | Delete `runtimeWorld.ts` and `bindRuntimeProductTerrain` with sunscar-dunes-legacy | legacy-deletion plan | Codex | 0.2 d | 0 callers |
+
+### (b) Pine onto it (after the DW slice)
+
+| Row | What | Files | Lane | Size | Done when |
+|---|---|---|---|---|---|
+| P1 | Bake Pine's ground as 64 L0 + 16 L1 splat terrain tiles from its existing heightfield + splat. The boreal look becomes a **material row** (`props.splat` with `boreal` + tints, drawn by `clientSplatTerrain`, the engine's own `splatTerrainMaterial`). The canopy map becomes a per-tile `_canopy` channel. The 257² collider stays shard-wide | `pine-hollow/generators` (terrain bake), `sdk/bake/terrain.ts` | Opus | 1.5 d | Pine renders from tiles with roughly the same look (G415 side-by-side) |
+| P2 | One ground path: `bootstrap.ts:81` and `regionalWorld.ts:278` build no whole `Terrain` when the shard declares tiled ground; the two native-world assemblies (bootstrap vs regional) share one builder | engine `Terrain`, `bootstrap`, `regionalWorld` | Opus | 1 d | Pine entered: no 257² mesh or slab; memory drop measured |
+| P3 | Trees per tile: `Forest` placements bucketed by tile into per-variant instance ranges (one InstancedMesh per variant per region); trunk colliders in the tile scope; the 5 × 5 is full, beyond it the L1 tile / near view | `engine/world/forest`, `forestPage.ts:152-168`, `models/place` | Opus | 1.5 d | draws ±10 %; 25 / 64 of the tree instances resident; 0 stuck in the physics walk |
+| P4 | Ground cover per tile (the `ForestGround` layout bucketed; ranges per tile) | `looks/forestGround.ts`, `forestPage.ts:170-176` | Codex | 0.5 d | cover instances resident ≤ the 5 × 5 share |
+| P5 | Pine world scenes per tile (T3 for Pine): placements, welds, the cave and landmark/prop colliders per tile scope; living-building logic, doors, saves and lanterns stay shard-global | `worldScenes.ts`, `forestPage.ts:64-96`, `clientForestPage.ts` | Codex + Opus | 1.5 d | the cabins, the cave and the King fight unchanged |
+
+Stays shard-wide: sky, look, LUT, weather, water rows, the grass camera ring, sim, quests, audio index.
+
+**Pine done when:** SHARD SELECT Pine entered memory drops by its T0 tile-local share × (1 − 25/64); no frame
+over 100 ms after controls; Pine↔DW crossing at peak ≤ 1.2 GB.
+
+### (c) Nalati (after its zero, G639)
+
+| Row | What | Files | Lane | Size | Done when |
+|---|---|---|---|---|---|
+| N1 | Painted ground on the streamer: its existing 64 L0 tiles + 16 new L1 (U2); the painterly ground material becomes a material row (painted-terrain family); delete the one-mesh path, the all-at-once tile path and the `groundTiles` row when Jake picks (T5's row) | `painterlyLook.ts:46-88`, `bake-render-tiles.mjs` | Opus | 1 d | memory drop measured; no frame over 100 ms |
+| N2 | `WorldAssembly` and `SceneDressing` bucketed per tile, with their colliders in tile scopes | `worldAssembly.ts`, `sceneDressing.ts` | Codex + Opus | 1.5 d | physics walk 0 stuck; the Titan and the King unchanged |
+
+## 5. Decisions for Jake (option 1 Skip)
+
+- **D-S1 · Pine's ground.**
+  - **A, recommended:** bake 64 + 16 splat tiles from its heightfield and splat, with the boreal shader as a material
+    row.
+  - B: keep the whole engine Terrain and stream only content (trees, cover, scenes).
+- **D-S2 · Order.**
+  - **A, recommended:** the DW slice (T2–T5) first as G638 D4 says, then Pine P1–P5 before crossings (T7), then Nalati
+    after its zero.
+  - B: Pine first.
+- **D-S3 · One ground path.**
+  - **A, recommended:** the whole-shard `Terrain.build` goes for every tiled shard, so the engine has one ground path.
+  - B: keep it as the Debug "whole shard" option until T10.
+
+</details>
