@@ -314,6 +314,8 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
   private requireHerd(): void { if (this.profile.pattern !== 'herd') throw new Error('Incompatible herd grazer pattern'); }
   private get herdSpec(): GuardedHerdSpec { const p = this.profile; if (p.pattern !== 'herd') throw new Error('Incompatible herd grazer pattern'); return p.spec; }
   private get herdPorts(): GuardedHerdPorts<A> { const p = this.profile; if (p.pattern !== 'herd') throw new Error('Incompatible herd grazer pattern'); return p.ports; }
+  /** The original guarded native authorities lent to a prepared group step. */
+  get groupPorts(): GuardedHerdPorts<A> { return this.herdPorts; }
   private initialized = false;
   lead: A | null = null;
   stallion: A | null = null;

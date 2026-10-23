@@ -33,15 +33,15 @@ export interface V2ReferenceColumn {
     readonly alive: boolean;
   };
 }
-export interface V2ActorColumnSlot {
+export interface V2ActorColumnSlot<A extends AnimalSim = AnimalSim> {
   readonly group: string; readonly slot: number; readonly identity: string;
-  readonly actor: AnimalSim | null;
+  readonly actor: A | null;
 }
 type Herd = Pick<GrazerBrain<AnimalSim>,'cx' | 'cz' | 'trust' | 'alert' | 'stallionState' | 'mode' | 'stallion'>;
 /** These are concrete borrowed owners, resolved by the existing actor authority
  * before capture. This resolver never allocates, adopts or indexes a body. */
-export interface V2ColumnOwners {
-  readonly scope: Scope; readonly self: V2ActorColumnSlot;
+export interface V2ColumnOwners<A extends AnimalSim = AnimalSim> {
+  readonly scope: Scope; readonly self: V2ActorColumnSlot<A>;
   readonly player: { readonly position: Readonly<{ x: number; y?: number; z: number }> };
   readonly observed: ReadonlyMap<number,AnimalSim>;
   readonly references?: ReadonlyMap<string,V2ReferenceColumn | null>;

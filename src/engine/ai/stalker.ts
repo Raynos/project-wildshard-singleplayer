@@ -678,6 +678,8 @@ export class StalkerBrain<A extends AnimalSim> extends HuntingStalkerCore<A> {
   private requirePack(): void { if (this.profile.pattern !== 'pack') throw new Error('Incompatible pack stalker pattern'); }
   private get packSpec(): CirclingPackSpec { const p = this.profile; if (p.pattern !== 'pack') throw new Error('Incompatible pack stalker pattern'); return p.spec; }
   private get packPorts(): CirclingPackPorts<A> { const p = this.profile; if (p.pattern !== 'pack') throw new Error('Incompatible pack stalker pattern'); return p.ports; }
+  /** The original guarded native authorities lent to a prepared group step. */
+  get groupPorts(): CirclingPackPorts<A> { return this.packPorts; }
   private initialized = false;
   alpha: A | null = null;
   phase: CirclingPackPhase = 'roam';

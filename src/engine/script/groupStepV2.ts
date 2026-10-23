@@ -18,8 +18,8 @@ import { ANIMAL_STATES, type AnimalSim } from '../entities/AnimalSim';
 import type { Rng, RngState } from '../core/rng';
 import type { AggressionDirector, AggressionService } from '../ai/director';
 import type { Events } from '../events/events';
-import type { CirclingPackPrey, CirclingPackContext } from '../ai/stalker';
-import type { GuardedHerdContext } from '../ai/grazer';
+import type { CirclingPackPrey, CirclingPackContext, StalkerBrain } from '../ai/stalker';
+import type { GuardedHerdContext, GrazerBrain } from '../ai/grazer';
 
 export type GroupStepReferenceV2 = GroupBankReferenceV2 & (
   | { readonly body: AnimalSim; readonly pose?: never }
@@ -87,7 +87,7 @@ export class GroupStepV2 {
     readonly values: Readonly<Record<string,GroupBankValueV2>>;
     readonly validate: () => void;
     readonly accept: () => void;
-    readonly prepareNative: (owners: GroupStepNativeOwnersV2) => {
+    readonly prepareNative: <A extends AnimalSim>(owners: GroupStepNativeOwnersV2<A>) => {
       readonly validate: () => void;
       readonly accept: () => readonly GroupStepNativeResultV2[];
     };
@@ -248,19 +248,23 @@ function freezeNative(input: GroupStepNativeV2): Readonly<GroupStepNativeV2> {
   const row = structuredClone(input);
   if (row.kind === 'hearing') Object.freeze(row.radii);
   if (row.kind === 'state') Object.freeze(row.states);
+  if (row.kind === 'sound') Object.freeze(row.cues);
+  if (row.kind === 'event') Object.freeze(row.events);
   return Object.freeze(row);
 }
 
 /** The original per-call population context. No callback is supplied by an
  * authored row; confinement remains optional only on the pack context type. */
-export type GroupStepContextV2 = GuardedHerdContext<AnimalSim>
-  | (CirclingPackContext<AnimalSim> & { readonly confine?: (actor: AnimalSim) => void });
+export type GroupStepContextV2<A extends AnimalSim = AnimalSim> = GuardedHerdContext<A>
+  | (CirclingPackContext<A> & { readonly confine?: (actor: A) => void });
 /** Concrete original authorities for same-call result barriers. No native
  * operation is selected by a callback, object path or content identifier. */
-export interface GroupStepNativeOwnersV2 {
+export interface GroupStepNativeOwnersV2<A extends AnimalSim = AnimalSim> {
   readonly scope: Scope;
-  readonly members: readonly V2ColumnOwners[];
-  readonly contexts?: readonly GroupStepContextV2[];
+  readonly members: readonly V2ColumnOwners<A>[];
+  readonly contexts?: readonly GroupStepContextV2<A>[];
+  readonly group?: { readonly kind: 'pack'; readonly owner: StalkerBrain<A> }
+    | { readonly kind: 'herd'; readonly owner: GrazerBrain<A> };
   readonly references?: readonly GroupStepReferenceV2[];
   readonly rosters?: ReadonlyMap<string, readonly GroupStepReferenceV2[]>;
   readonly ground?: { readonly normalY: (x: number, z: number) => number };
@@ -269,11 +273,11 @@ export interface GroupStepNativeOwnersV2 {
     readonly kind: 'events';
     readonly service: AggressionService;
     readonly events: Events;
-    readonly director: AggressionDirector<AnimalSim>;
+    readonly director: AggressionDirector<A>;
   } | {
     readonly kind: 'tokens';
-    readonly owners: WeakMap<AnimalSim, AggressionDirector<AnimalSim>>;
-    readonly director: AggressionDirector<AnimalSim>;
+    readonly owners: WeakMap<A, AggressionDirector<A>>;
+    readonly director: AggressionDirector<A>;
   };
 }
 export interface GroupStepNativeResultV2 {
@@ -286,7 +290,7 @@ export interface GroupStepNativeResultV2 {
  * owner. The original group accepts its candidate before run(), then feeds
  * these transient results into source:result columns and resumes at the SAME
  * call slot. An undeclared operation in the bank refuses before any prefix. */
-export function prepareGroupNativeV2(operations: readonly GroupStepOperationV2[], owners: GroupStepNativeOwnersV2): {
+export function prepareGroupNativeV2<A extends AnimalSim = AnimalSim>(operations: readonly GroupStepOperationV2[], owners: GroupStepNativeOwnersV2<A>): {
   readonly validate: () => void;
   readonly run: () => readonly GroupStepNativeResultV2[];
 } {
@@ -301,6 +305,13 @@ export function prepareGroupNativeV2(operations: readonly GroupStepOperationV2[]
   if (operations.length > 512 || sources.length > 16) throw new Error('Native group result capacity');
   let used = false;
   const channels = new Set<string>();
+  const group = owners.group;
+  if (group !== undefined) {
+    const owner = group.owner, roster = owner.members, original = roster.slice(), ports = owner.groupPorts;
+    pins.push(() => owners.group === group && group.owner === owner && owner.members === roster && owner.groupPorts === ports);
+    before.push(() => roster.length === original.length && original.every((body,index) => roster[index] === body)
+      && sources.every((source,index) => source.self.actor === null || source.self.actor === original[index]));
+  }
   const prepared = operations.map(operation => {
     const request = operation.native;
     if (request === undefined || 'channel' in request && (request.channel.length === 0 || request.channel.length > 128)
@@ -338,8 +349,87 @@ export function prepareGroupNativeV2(operations: readonly GroupStepOperationV2[]
       // change the roster; every operation retains this emitted body.
       before.push(() => owners.references === references && references.some(row => sameReference(row,emittedReference)));
     } else if (emittedReference !== undefined) throw new Error('Unexpected native group effect reference');
+    const nativeActor = (): A => {
+      const actor = source?.self.actor;
+      if (actor === undefined || actor === null || actor !== member?.actor) throw new Error('Missing native emitted actor');
+      if (group === undefined) return actor;
+      const original = group.owner.members.find(row => row === actor);
+      if (original === undefined) throw new Error('Foreign native group actor');
+      return original;
+    };
+    const prepareContext = (): GroupStepContextV2<A> => {
+      const contexts = owners.contexts, context = member === undefined ? undefined : contexts?.[member.slot], body = member?.actor;
+      if (member === undefined || source === undefined || contexts === undefined || contexts.length !== sources.length || context === undefined || body === undefined || body === null
+        || context !== source.context || context.player !== source.player.position || !Number.isFinite(context.dt) || !Number.isFinite(context.t)
+        || context.dt !== source.dt || context.t !== source.t) throw new Error('Missing or foreign native group context');
+      const player = context.player, random = context.rng, time = context.t, dt = context.dt;
+      pins.push(() => owners.contexts === contexts && contexts.length === sources.length && contexts[member.slot] === context
+        && source.context === context && context.player === player && source.player.position === player && context.rng === random
+        && Object.is(context.t,time) && Object.is(source.t,time) && Object.is(context.dt,dt) && Object.is(source.dt,dt));
+      return context;
+    };
     let invoke: () => number | undefined;
     switch (request.kind) {
+      case 'cancel-attack': case 'start-attack': {
+        const body = member?.actor;
+        if (body === undefined || body === null) throw new Error('Missing native attack owner');
+        if (request.kind === 'cancel-attack') {
+          const cancel: unknown = Reflect.get(body,'cancelAttack');
+          if (typeof cancel !== 'function') throw new Error('Missing native cancel callable');
+          pins.push(() => body.cancelAttack === cancel);
+          invoke = () => { body.cancelAttack();return undefined; };
+        } else {
+          const seconds = operation.values[1], start: unknown = Reflect.get(body,'startAttack');
+          if (seconds === undefined || typeof start !== 'function') throw new Error('Missing native start callable');
+          pins.push(() => body.startAttack === start);
+          invoke = () => { body.startAttack(seconds);return undefined; };
+        }
+        break;
+      }
+      case 'environment': {
+        if (group === undefined) throw new Error('Missing native environment group');
+        if (request.field === 'playerCrouched') {
+          if (group.kind !== 'herd') throw new Error('Missing native crouch environment');
+          const ports = group.owner.groupPorts, environment = ports.environment;
+          if (typeof environment !== 'function') throw new Error('Missing native environment callable');
+          pins.push(() => ports.environment === environment);
+          invoke = () => { const value = environment.call(ports).playerCrouched;
+            if (typeof value !== 'boolean') throw new Error('Invalid native environment boolean');return Number(value); };
+        } else {
+          const ports = group.owner.groupPorts, environment = ports.environment;
+          if (typeof environment !== 'function') throw new Error('Missing native environment callable');
+          pins.push(() => ports.environment === environment);
+          invoke = () => { const value = ports.environment().playerMounted;
+            if (typeof value !== 'boolean') throw new Error('Invalid native environment boolean');return Number(value); };
+        }
+        break;
+      }
+      case 'event': case 'knockdown': {
+        const x = operation.values[request.kind === 'event' ? 1 : 0], z = operation.values[request.kind === 'event' ? 2 : 1];
+        if (group === undefined || x === undefined || z === undefined) throw new Error('Missing native group notification owner');
+        if (request.kind === 'event') {
+          const code = operation.values[0], name = code === undefined ? undefined : request.events[code], ports = group.owner.groupPorts, event = ports.onEvent;
+          if (code === undefined || !Number.isInteger(code) || name === undefined || event !== undefined && typeof event !== 'function') throw new Error('Invalid native event owner or name');
+          pins.push(() => ports.onEvent === event);
+          invoke = () => { event?.call(ports,name,x,z);return undefined; };
+        } else {
+          if (group.kind !== 'herd') throw new Error('Missing native knockdown group');
+          const strength = operation.values[2], ports = group.owner.groupPorts, knock = ports.onKnockdown;
+          if (strength === undefined || knock !== undefined && typeof knock !== 'function') throw new Error('Invalid native knockdown owner');
+          pins.push(() => ports.onKnockdown === knock);
+          invoke = () => { knock?.call(ports,x,z,strength);return undefined; };
+        }
+        break;
+      }
+      case 'pass-through': {
+        const body = nativeActor(), value = operation.values[1];
+        if (group?.kind !== 'herd' || value !== 0 && value !== 1) throw new Error('Invalid native pass-through owner');
+        const ports = group.owner.groupPorts, pass = ports.passThrough;
+        if (typeof pass !== 'function') throw new Error('Missing native pass-through callable');
+        pins.push(() => ports.passThrough === pass);
+        invoke = () => { pass.call(ports,body,value === 1);return undefined; };
+        break;
+      }
       case 'damage': {
         const body = emittedReference?.body, amount = operation.values[1], x = operation.values[2], z = operation.values[3];
         if (body === undefined || amount === undefined || x === undefined || z === undefined || typeof body.applyDamage !== 'function')
@@ -421,16 +511,35 @@ export function prepareGroupNativeV2(operations: readonly GroupStepOperationV2[]
         invoke = () => { body.setMotion(yaw,speed,turn);return undefined; };
         break;
       }
-      case 'steer': case 'path': case 'confine': {
-        const contexts = owners.contexts, context = member === undefined ? undefined : contexts?.[member.slot], body = member?.actor;
-        if (member === undefined || source === undefined || contexts === undefined || contexts.length !== sources.length || context === undefined || body === undefined || body === null
-          || context !== source.context || context.player !== source.player.position || !Number.isFinite(context.dt) || !Number.isFinite(context.t)
-          || context.dt !== source.dt || context.t !== source.t) throw new Error('Missing or foreign native group context');
-        const player = context.player, random = context.rng, time = context.t, dt = context.dt;
-        pins.push(() => owners.contexts === contexts && contexts.length === sources.length && contexts[member.slot] === context
-          && source.context === context && context.player === player && source.player.position === player && context.rng === random
-          && Object.is(context.t,time) && Object.is(source.t,time) && Object.is(context.dt,dt) && Object.is(source.dt,dt));
-        if (request.kind === 'confine') {
+      case 'steer': case 'path': case 'confine': case 'sound': case 'hurt': case 'contact': {
+        const context = prepareContext(), body = nativeActor();
+        if (request.kind === 'sound') {
+          const code = operation.values[1], cue = code === undefined ? undefined : request.cues[code], sound = context.sound;
+          if (code === undefined || !Number.isInteger(code) || cue === undefined || typeof sound !== 'function') throw new Error('Invalid native sound owner or cue');
+          pins.push(() => context.sound === sound);
+          invoke = () => { sound.call(context,cue);return undefined; };
+        } else if (request.kind === 'hurt') {
+          const amount = operation.values[1];
+          if (!('hurt' in context) || typeof context.hurt !== 'function' || amount === undefined) throw new Error('Missing native hurt owner');
+          const hurt = context.hurt;pins.push(() => context.hurt === hurt);
+          invoke = () => { hurt.call(context,amount);return undefined; };
+        } else if (request.kind === 'contact') {
+          const radius = operation.values[1];
+          if (group === undefined || radius === undefined || radius < 0) throw new Error('Missing native group contact owner');
+          if (group.kind === 'pack') {
+            if (!('claim' in context)) throw new Error('Missing original pack context');
+            const ports = group.owner.groupPorts, bite = ports.bite;
+            if (typeof bite !== 'function') throw new Error('Missing native bite owner');
+            pins.push(() => ports.bite === bite);
+            invoke = () => { bite.call(ports,body,context,radius);return undefined; };
+          } else {
+            if (!('hurt' in context)) throw new Error('Missing original herd context');
+            const ports = group.owner.groupPorts, contact = ports.chargeContact;
+            if (typeof contact !== 'function') throw new Error('Missing native charge owner');
+            pins.push(() => ports.chargeContact === contact);
+            invoke = () => { contact.call(ports,body,context,radius);return undefined; };
+          }
+        } else if (request.kind === 'confine') {
           const confine = context.confine;
           if (typeof confine !== 'function') throw new Error('Missing native group confinement');
           pins.push(() => context.confine === confine);
@@ -537,12 +646,20 @@ export function prepareGroupNativeV2(operations: readonly GroupStepOperationV2[]
         break;
       }
       case 'claim': {
-        const loan = owners.aggression, body = member?.actor;
-        if (loan === undefined || body === undefined || body === null) throw new Error('Missing native aggression owner');
+        const loan = owners.aggression, body = nativeActor();
+        if (loan === undefined) throw new Error('Missing native aggression owner');
         const director = loan.director, take: unknown = Reflect.get(director, 'take');
         if (typeof take !== 'function') throw new Error('Invalid native aggression director');
         pins.push(() => owners.aggression === loan && loan.director === director && director.take === take);
-        if (loan.kind === 'events') {
+        if (group?.kind === 'pack') {
+          const context = prepareContext();
+          if (!('claim' in context) || typeof context.claim !== 'function') throw new Error('Missing original native claim context');
+          const ports = group.owner.groupPorts, register = ports.register, claim = context.claim;
+          if (typeof register !== 'function') throw new Error('Missing original native registration');
+          pins.push(() => ports.register === register && context.claim === claim);
+          invoke = () => { register.call(ports,body,director);live();const result = claim.call(context,body);
+            if (typeof result !== 'boolean') throw new Error('Invalid native aggression result');return Number(result); };
+        } else if (loan.kind === 'events') {
           const { service, events } = loan, register: unknown = Reflect.get(service, 'register'), ask: unknown = Reflect.get(events, 'ask');
           if (typeof register !== 'function' || typeof ask !== 'function') throw new Error('Invalid native aggression owner');
           pins.push(() => loan.service === service && loan.events === events && service.register === register && events.ask === ask);

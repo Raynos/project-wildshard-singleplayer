@@ -21,7 +21,10 @@ export type GroupStepNativeV2 =
   | { kind: 'memory'; key: string; encoding?: 'negative-infinity' }
   | { kind: 'state'; states: readonly string[] }
   | { kind: 'motion' | 'look-position' | 'look-weight' | 'steer' | 'confine' }
-  | { kind: 'damage' | 'stagger' | 'health' }
+  | { kind: 'damage' | 'stagger' | 'health' | 'start-attack' | 'cancel-attack' | 'contact' | 'pass-through' | 'hurt' | 'knockdown' }
+  | { kind: 'sound'; cues: readonly string[] }
+  | { kind: 'event'; events: readonly string[] }
+  | { kind: 'environment'; field: 'playerMounted' | 'playerCrouched'; channel: string }
   | { kind: 'path'; channel: string }
   | { kind: 'hearing'; channel: string; radii: readonly [number, number, number, number] };
 const radius = v.pipe(v.number(), v.finite(), v.minValue(0));
@@ -30,8 +33,11 @@ const nativeSchema: v.GenericSchema<GroupStepNativeV2> = v.variant('kind', [
   v.strictObject({ kind: v.picklist(['grass', 'normal', 'visibility', 'downwind', 'claim']), channel: name }),
   v.strictObject({ kind: v.literal('memory'),key:memoryKey,encoding:v.exactOptional(v.literal('negative-infinity')) }),
   v.strictObject({ kind: v.literal('state'),states:v.pipe(v.array(name),v.minLength(1),v.maxLength(64)) }),
-  v.strictObject({ kind: v.picklist(['motion','look-position','look-weight','steer','confine','damage','stagger','health']) }),
+  v.strictObject({ kind: v.picklist(['motion','look-position','look-weight','steer','confine','damage','stagger','health','start-attack','cancel-attack','contact','pass-through','hurt','knockdown']) }),
   v.strictObject({ kind: v.literal('path'), channel: name }),
+  v.strictObject({kind:v.literal('environment'),field:v.picklist(['playerMounted','playerCrouched']),channel:name}),
+  v.strictObject({ kind: v.literal('sound'), cues:v.pipe(v.array(name),v.minLength(1),v.maxLength(128)) }),
+  v.strictObject({ kind: v.literal('event'), events:v.pipe(v.array(name),v.minLength(1),v.maxLength(128)) }),
   v.strictObject({ kind: v.literal('nearest'), channel: name, roster: name }),
   v.strictObject({ kind: v.literal('hearing'), channel: name, radii: v.strictTuple([radius, radius, radius, radius]) }),
 ]);
@@ -79,11 +85,12 @@ export const GroupStepV2Schema: v.GenericSchema<GroupStepRowsV2> = v.strictObjec
  * operand zero for their original slot. No guest selects a native setter. */
 export function groupNativeWordsV2(row: GroupStepNativeV2): number {
   switch (row.kind) {
-    case 'nearest': return 3;
-    case 'grass': case 'normal': case 'state': case 'look-weight': case 'health': return 2;
+    case 'environment': return 0;
+    case 'nearest': case 'event': case 'knockdown': return 3;
+    case 'grass': case 'normal': case 'state': case 'look-weight': case 'health': case 'start-attack': case 'sound': case 'contact': case 'pass-through': case 'hurt': return 2;
     case 'memory': return row.encoding === undefined ? 2 : 3;
     case 'motion': case 'look-position': case 'steer': case 'path': case 'damage': case 'stagger': return 4;
-    case 'visibility': case 'hearing': case 'downwind': case 'claim': case 'confine': return 1;
+    case 'visibility': case 'hearing': case 'downwind': case 'claim': case 'confine': case 'cancel-attack': return 1;
     default: throw new Error('Unknown native group operation');
   }
 }
@@ -91,10 +98,11 @@ export function groupNativeWordsV2(row: GroupStepNativeV2): number {
  * slot or reflected target selector. */
 export function groupNativeTargetV2(row: GroupStepNativeV2): 'point' | 'member' | 'reference' {
   switch (row.kind) {
-    case 'grass': case 'normal': case 'nearest': return 'point';
+    case 'grass': case 'normal': case 'nearest': case 'event': case 'knockdown': case 'environment': return 'point';
     case 'damage': case 'stagger': case 'health': return 'reference';
     case 'visibility': case 'hearing': case 'downwind': case 'claim': case 'memory': case 'state':
-    case 'motion': case 'look-position': case 'look-weight': case 'steer': case 'confine': case 'path': return 'member';
+    case 'motion': case 'look-position': case 'look-weight': case 'steer': case 'confine': case 'path': case 'start-attack': case 'cancel-attack':
+    case 'sound': case 'contact': case 'pass-through': case 'hurt': return 'member';
     default: throw new Error('Unknown native group target');
   }
 }
@@ -137,6 +145,8 @@ export function parseGroupStepV2(input: unknown): GroupStepRowsV2 {
         if (row.words !== groupNativeWordsV2(row.native) || row.member !== (target === 'member' ? 0 : undefined)
           || (target === 'reference' ? row.reference?.word !== 0 || row.reference.nullable === true : row.reference !== undefined))
           throw new Error('Invalid native group result operands');
+        if (row.native.kind === 'sound' && new Set(row.native.cues).size !== row.native.cues.length
+          || row.native.kind === 'event' && new Set(row.native.events).size !== row.native.events.length) throw new Error('Duplicate native group name');
         if (row.native.kind === 'state' && new Set(row.native.states).size !== row.native.states.length)
           throw new Error('Duplicate native group state');
       }

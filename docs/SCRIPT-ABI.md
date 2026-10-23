@@ -1256,3 +1256,41 @@ retains the emitted body even if an earlier original native callback adopts a
 new target or changes the roster. No later operation looks the handle up again.
 Original body and crowd snapshot/restore owners retain all damage/death state;
 there is no second combat pipeline, actor book, save envelope or event clock.
+
+### Original native group ports and context effects (H4, G621 R10a)
+
+GroupStepNativeOwnersV2<A> optionally lends {kind:pack|herd,owner} for the
+original StalkerBrain<A> or GrazerBrain<A>. Their read-only groupPorts getters
+return the SAME original guarded ports object; incompatible patterns refuse.
+V2ActorColumnSlot<A>, V2ColumnOwners<A> and GroupStepContextV2<A> preserve the
+concrete native/page actor type (default AnimalSim), including contravariant
+page callbacks. Native preparation resolves the emitted actor through the
+original typed source and group roster before preparing callbacks. No cast,
+callback wrapping, replacement body or separate group authority is introduced.
+
+Finite member rows include start-attack [slot,seconds], cancel-attack [slot],
+sound {cues} [slot,index], contact [slot,radius], pass-through [slot,boolean]
+and hurt [slot,amount]. Contact uses original pack bite or herd chargeContact;
+sound and hurt use the original per-call context. Event {events} consumes
+[index,x,z]; knockdown consumes [x,z,strength]. Missing optional original
+notification callbacks retain their original no-op behavior. Authored rows
+contain only finite names/operands, never callbacks or reflected selectors.
+
+A group-aware claim retains an explicitly lent original director: original
+pack ports register the emitted body, then the SAME context claims it, with a
+lifetime fence between those calls. This compatibility operation does not choose
+a dynamic per-cap group director; that separate group-claim binding must supply
+the AS-selected cap and attacking member mask before pack adoption.
+
+Environment {field:playerMounted|playerCrouched,channel} consumes no operands.
+It calls the original group ports environment function only at its emitted
+native slot and returns the selected strict boolean as zero/one. Crouch requires
+the original herd environment. This preserves reads after contact/reentrant
+effects rather than eagerly sampling them before the call.
+
+All native branches preflight the complete bank, original group/member-array,
+context, methods and receivers before publication. Each operation then rechecks
+scope and concrete callable identity; earlier adoption cannot retarget later
+emitted body operations. The original group, body, reward and saved owners and
+native call order remain authoritative. Group notifications, member adoption
+and dynamic token selection are not implemented by these contact rows.
