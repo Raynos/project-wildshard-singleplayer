@@ -54,7 +54,7 @@ import { GridWallet, stowGridMount } from './wallet';
 import { GridRegionDurability } from './durability';
 import type { LedgerCatalogueItem } from '../ledger';
 import { installGridHoverSpeed, installGridTravellerCombat } from './rules';
-import { gridCells, prepareTrustedRuntime, manifestRuntimeEntry, type TrustedRuntimeEntry } from '../plugin/context';
+import { gridHomeSim, gridCells, type GridHomeSimulation, prepareTrustedRuntime, manifestRuntimeEntry, type TrustedRuntimeEntry } from '../plugin/context';
 import { findShard } from '../shard/registry';
 import { gridPostCosts, gridShardfileProduct, prioritizeGridProduct } from './products';
 import { gridPostPairRefusal } from './postPairs';
@@ -188,6 +188,9 @@ export class LiveGridSession {
   private readonly transferWalls = new Map<string | null, TransferWalls>();
   private readonly offset = new Vector3();
   private framePhysics: Physics;
+  /** the home runtime's own simulation driver (its hybrid binding offers it): the live grid drives that region, so it runs
+   *  only while bound as the current frame's (never on a grid page today); taking the offer settles the boot's handoff */
+  private homeSim: GridHomeSimulation | null = null;
   private readonly applied = new Vector3();
   private readonly roadWallet: GridWallet;
   /** each admitted region's authored spawn (its level's player start) and its ground / water queries, local */
@@ -298,6 +301,13 @@ export class LiveGridSession {
       const speedClass = hoverClasses.get(`${Math.round(feet.x / p)},${Math.round(feet.z / p)}`) ?? 'shard';
       return { local, shardCap: 14, onHighwayDeck: feet.y < 4, speedClass };
     });
+    // the freeze fence: the home client's existing driver runs only while the traveller is in the home frame (sp-x5's handoff)
+    scope.onDispose(gridHomeSim.take((sim) => {
+      if (sim.residency !== ports.residency) throw new Error('Home simulation handoff must retain its admitted page claim');
+      this.homeSim = sim; sim.setActive(this.live.current() === home.instance);
+      if (this.checkpointsSuppressed) sim.suppressCheckpoint?.();
+    }));
+    scope.onDispose(() => { this.homeSim?.setActive(true); this.homeSim = null; });
     page.onFixedPre(() => {
       if (scope.disposed) return;
       this.live.beforeFixed(); this.crossing.step(this.live.worldFeet());
@@ -424,6 +434,7 @@ export class LiveGridSession {
     if (!gridRecovery(this.page.saves).write(this.ports.assembly, this.ports.home, this.recoveryRoad(), reason)) return false;
     // The intent names exactly this checkpoint; a later pagehide/timer must not replace its location or continuation.
     this.checkpointsSuppressed = true; this.autosave?.return(false); this.autosave = null;
+    this.homeSim?.suppressCheckpoint?.();
     return true;
   }
 
@@ -437,6 +448,7 @@ export class LiveGridSession {
     if (!recovery.prepareReset(this.ports.assembly, home, road, target ?? { id: home.instance, shard: home.slug })) throw new Error('New game recovery road is not durable');
     return () => {
       this.checkpointsSuppressed = true; this.autosave?.return(false); this.autosave = null;
+      this.homeSim?.suppressCheckpoint?.();
       recovery.completeReset(this.ports.assembly);
     };
   }
@@ -823,6 +835,8 @@ export class LiveGridSession {
     this.page.traveller.bindFrame(frame.physics, frame.motor, frame.instance === null ? HIGHWAY_QUERIES : runtimeQueries ?? this.regions.get(frame.instance)?.queries ?? HIGHWAY_QUERIES);
     this.page.setPhysics(frame.physics);
     this.offset.set(frame.origin.x - this.ports.home.origin.x, 0, frame.origin.z - this.ports.home.origin.z);
+    if (this.homeSim?.disposed() === true) this.homeSim = null;
+    this.homeSim?.setActive(false);   // the live grid drives every owned region
   }
 
   /**
