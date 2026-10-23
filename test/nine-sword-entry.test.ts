@@ -35,6 +35,6 @@ test('Nine manifest native load installs its original Jian once', async () => {
     if (build === undefined) throw new Error('Missing Nine equipment factory');
     expect(read).toHaveBeenCalledOnce();
     expect(app.levelRegistrations.list('weapon')).toMatchObject([{ id: 'weapon.jian', parent: 'weapon.sword', feel: { portraitFov: 78 } }]);
-    expect(() => build({ raycast: () => null }, true, null)).toThrow('declared sword rig');
+    await expect(build({ raycast: () => null }, true, null)).rejects.toThrow('declared sword rig');
   } finally { scope.dispose(); app.engineScope.dispose(); }
 });
