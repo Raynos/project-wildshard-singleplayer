@@ -7,6 +7,7 @@ import {createHash} from 'node:crypto';
 import * as v from 'valibot';
 import {afterEach,expect,it} from 'vitest';
 import {generateShardJob} from '../scripts/generate.mjs';
+import {runObservedGeneration,generationReadReceipt} from '../scripts/generation-inputs.mjs';
 import type {GenerationPreparation,ShardGenerationJob} from '../scripts/generate.d.mts';
 
 const owned:string[]=[];
@@ -43,8 +44,8 @@ function packageFixture(source?:string) {
 }
 /** Upstream outputs exist only in their immutable producer loan, never in the
  * reader checkout. Its private source data is outside the reader's roots. */
-function upstreamFixture(source?:string) {
-  const row=fixture(source),entry='src/shards/alpha/generators/bake-upstream.mjs',values='src/commons/upstream.json';
+function upstreamFixture(source?:string,workspace=false) {
+  const row=workspace?packageFixture(source):fixture(source),entry='src/shards/alpha/generators/bake-upstream.mjs',values='src/commons/upstream.json';
   put(row.root,entry,`import fs from 'node:fs';for(const [name,value]of Object.entries(JSON.parse(fs.readFileSync('${values}','utf8'))))fs.writeFileSync('src/shards/alpha/data/'+name,value);`);
   const run=async(contents:Record<string,string>)=>{
     put(row.root,values,JSON.stringify(contents));
@@ -58,6 +59,57 @@ function upstreamFixture(source?:string) {
   };
   return {...row,upstream:run};
 }
+it('reuses unread upstream bytes behind authoring dependency probes',async()=>{
+  const f=upstreamFixture(undefined,true);
+  put(f.root,'src/sdk/bake/source-loader.mjs',readFileSync('src/sdk/bake/source-loader.mjs','utf8'));
+  put(f.root,'src/sdk/used.mjs',"import {value} from './other.mjs';export {value};");
+  f.job.command=['--import','./src/sdk/bake/source-loader.mjs',f.entry];
+  const first=await f.upstream({'unread.bin':'old'});expect(first).toMatchObject({hit:false,text:'2'});
+  expect(await f.upstream({'unread.bin':'new'})).toEqual({...first,hit:true});
+  put(f.root,'src/sdk/other.mjs','export const value=3;');
+  expect(await f.upstream({'unread.bin':'new'})).toMatchObject({hit:false,text:'3'});
+  put(f.root,'src/sdk/package.json',JSON.stringify({name:'@wildshard/sdk',type:'module',exports:{'./used':'./other.mjs','./unused':'./other.mjs'}}));
+  expect(await f.upstream({'unread.bin':'new'})).toMatchObject({hit:false,text:'3'});
+});
+it('keeps the complete filename fence behind dependency probes',async()=>{
+  const output='src/shards/alpha/data/output.txt';
+  const f=upstreamFixture(`import fs from'node:fs';fs.writeFileSync('${output}',String(fs.existsSync('node_modules/fixture-absent')));`);
+  const first=await f.upstream({'unread.bin':'old'});expect(first).toMatchObject({hit:false,text:'false'});
+  expect(await f.upstream({'unread.bin':'new'})).toEqual({...first,hit:true});
+  expect(await f.upstream({'unread.bin':'new','added.bin':'not read'})).toMatchObject({hit:false,text:'false'});
+});
+it('keeps consumed upstream bytes and resolution metadata behind dependency probes',async()=>{
+  const output='src/shards/alpha/data/output.txt';
+  const f=upstreamFixture(`import fs from'node:fs';fs.existsSync('node_modules/valibot');fs.writeFileSync('${output}',fs.readFileSync('src/shards/alpha/data/used.bin'));`);
+  const first=await f.upstream({'used.bin':'first','unread.bin':'old','package.json':'{"type":"module"}'});
+  expect(first).toMatchObject({hit:false,text:'first'});
+  expect(await f.upstream({'used.bin':'first','unread.bin':'new','package.json':'{"type":"module"}'})).toEqual({...first,hit:true});
+  expect(await f.upstream({'used.bin':'second','unread.bin':'new','package.json':'{"type":"module"}'})).toMatchObject({hit:false,text:'second'});
+  expect(await f.upstream({'used.bin':'second','unread.bin':'new','package.json':'{"type":"module","private":true}'})).toMatchObject({hit:false,text:'second'});
+});
+it('keeps all upstream bytes when dependency probes also invoke CommonJS resolution',async()=>{
+  const output='src/shards/alpha/data/output.txt';
+  const f=upstreamFixture(`import fs from'node:fs';import{createRequire}from'node:module';fs.existsSync('node_modules/valibot');try{createRequire(import.meta.url).resolve('fixture-absent');}catch{}fs.writeFileSync('${output}','same');`);
+  const first=await f.upstream({'unread.bin':'old'});expect(first).toMatchObject({hit:false,text:'same'});
+  expect(await f.upstream({'unread.bin':'new'})).toMatchObject({hit:false,text:'same'});
+});
+it('keeps dependency-probe upstream hashes when the staged inventory is unavailable',async()=>{
+  const f=fixture(),hash=(text:string|Uint8Array)=>createHash('sha256').update(text).digest('hex');
+  const trace={schema:'generation-reads/4',files:[],execution:[f.entry],packages:{},inventory:['P node_modules/fixture-absent'],opaque:[]};
+  const run=async(contents:string)=>{
+    const result=await runObservedGeneration(f.root,{id:f.job.id,command:f.job.command,outputs:f.job.outputs,platform:f.job.platform,
+      inputs:{[f.entry]:hash(readFileSync(resolve(f.root,f.entry)))},tools:{upstream:JSON.stringify({'src/shards/alpha/data/unread.bin':hash(contents)})}},
+    {cacheDir:f.cacheDir,generate:directory=>{
+      put(directory,f.output,'same');
+      put(directory,generationReadReceipt,JSON.stringify({...trace,seal:hash(JSON.stringify(trace))}));
+      return Promise.resolve();
+    }},f.entry);
+    try{return {hit:result.hit,key:result.key};}finally{result.release();}
+  };
+  const first=await run('old');expect(first.hit).toBe(false);
+  expect(await run('old')).toEqual({...first,hit:true});
+  expect((await run('new')).hit).toBe(false);
+});
 it('reuses only unused workspace export edits and keeps other package fields exact',async()=>{
   const {write,run}=packageFixture();const first=await run();expect(first).toMatchObject({hit:false,text:'1'});
   write({'./used':'./used.mjs','./unused':'./used.mjs','./new-unused':'./other.mjs'});

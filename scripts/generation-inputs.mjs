@@ -95,15 +95,22 @@ function probeIdentity(trace,job,staged,inventory) {
   const positive=new Set([...trace.files,...trace.execution].filter(file=>Object.hasOwn(job.inputs,file)));
   const probes=new Set([...trace.inventory,...trace.files.filter(file=>!Object.hasOwn(job.inputs,file)).map(file=>`F ${file}`)]);
   /** @type {Record<string,string>} */
-  const values={};let fallback=false;
+  const values={};let fallback=false,conservativeBytes=false;
   for(const probe of [...probes].sort(order)) {
     const kind=probe.slice(0,1),file=probe.slice(2);
     if(kind==='P'&&positive.has(file))continue;
     const value=view?.(kind,file);
-    if(value===undefined){fallback=true;values[probe]='conservative';}
+    if(value===undefined){
+      fallback=true;values[probe]='conservative';
+      // Dependency exists/realpath probes still bind the COMPLETE filename
+      // inventory. Regular unread payload bytes cannot change that namespace;
+      // package manifests remain exact below for link/resolution decisions.
+      // Unknown reads, scans and CommonJS resolution keep every upstream byte.
+      if(staged===undefined||kind!=='P'||!file.split('/').includes('node_modules'))conservativeBytes=true;
+    }
     else values[probe]=value;
   }
-  return {identity:digest(JSON.stringify({values,...(fallback?{inventory,staged:staged===undefined?[]:[...new Set(staged)].sort(order)}:{})})),conservative:fallback};
+  return {identity:digest(JSON.stringify({values,...(fallback?{inventory,staged:staged===undefined?[]:[...new Set(staged)].sort(order)}:{})})),conservativeBytes};
 }
 /** Verified immutable upstream files are stage inputs, not observation recipe
  * identities. Invalid metadata stays opaque and retains its complete tool key.
@@ -143,10 +150,12 @@ export async function runObservedGeneration(root,job,options,entry,catalogue,sta
     // The backend retains its nonempty-source contract even for tiny fixtures.
     const retained=Object.keys(inputs).length===0?job.inputs:inputs;
     const probes=probeIdentity(trace,job,staged,inventory),used=new Set([...trace.files,...trace.execution]);
-    // Unknown probes keep ALL upstream hashes. Otherwise the same immutable
-    // stage supplies exact bytes for every observed file/module; presence and
-    // directory reads remain fenced by the staged probe model above.
-    const tools=upstream===undefined?job.tools:{...job.tools,upstream:JSON.stringify(Object.fromEntries(Object.entries(upstream).filter(([file])=>probes.conservative||used.has(file)).sort(([a],[b])=>order(a,b))))};
+    // Unknown byte reads keep ALL upstream hashes. Dependency namespace probes
+    // retain every staged filename, consumed byte and package manifest; only
+    // unread payload content leaves their identity. The full miss stage stays
+    // unchanged, including every verified immutable upstream file.
+    const tools=upstream===undefined?job.tools:{...job.tools,upstream:JSON.stringify(Object.fromEntries(Object.entries(upstream)
+      .filter(([file])=>probes.conservativeBytes||used.has(file)||file==='package.json'||file.endsWith('/package.json')).sort(([a],[b])=>order(a,b))))};
     return {...job,inputs:retained,tools:{...tools,readInventory:recipe,probeInventory:probes.identity,packageExports:JSON.stringify(packages),
       execution:JSON.stringify(Object.fromEntries(Object.entries(executionInputs(trace)).map(([file,raw])=>[file,compilerCodeHash(file,raw,()=>readFileSync(resolve(root,file)))])))}};
   };
