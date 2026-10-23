@@ -4,7 +4,7 @@
  * share one product's immutable bytes; a failed admission is forgotten so a later request retries.
  */
 import { findShard } from '../shard/registry';
-import { admitProduct, boundedResponse, readIndexBytes, type AdmittedProduct, type ProductOptions } from '../shardfile/product';
+import { admitProduct, boundedResponse, checkBuiltIndex, readIndexBytes, type AdmittedProduct, type ProductOptions } from '../shardfile/product';
 import { browserShardfileOptions } from '../shardfile/runtimeProduct';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { ProductLeases } from './productLeases';
@@ -34,8 +34,18 @@ const edges = new WeakMap<ResidencyAllocator, Map<string, Promise<Pick<Shardfile
 
 /** A product's bounded index, read once for several section or file reads (no runtime or asset is admitted). */
 interface GridProductIndex { readonly index: OutputIndex; readonly url: string; readonly options: ProductOptions }
+/** each index's parse by its bytes' hash: a cell's far, near and edge reads each parsed the same index (G639: ~0.9 ms a
+ *  frame over a Sky Reach drive at phone 4x). The index is still read and its stale-client check still runs every time;
+ *  only the parse of the same bytes is kept. The oldest of 32 leaves first. */
+const parsedIndexes = new Map<string, OutputIndex>();
 async function readGridProductIndex(url: string, identity: string, options: ProductOptions): Promise<GridProductIndex> {
-  const index = parseOutputIndex(await readIndexBytes(await boundedResponse(await options.fetch(url), limits.sourceBytes), options));
+  const bytes = await boundedResponse(await options.fetch(url), limits.sourceBytes), key = await options.hash(bytes);
+  let index = parsedIndexes.get(key);
+  if (index !== undefined) await checkBuiltIndex(key, options);
+  else {
+    index = parseOutputIndex(await readIndexBytes(bytes, options)); parsedIndexes.set(key, index);
+    if (parsedIndexes.size > 32) { const oldest = parsedIndexes.keys().next().value; if (oldest !== undefined) parsedIndexes.delete(oldest); }
+  }
   const { slug: declaredIdentity } = index.identity;
   if (declaredIdentity !== identity.replace(/^_/u, '')) throw new Error('Grid product index identity differs from its cell');
   return { index, url, options };

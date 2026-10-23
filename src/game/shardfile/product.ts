@@ -88,11 +88,16 @@ export class StaleClientError extends Error {
 /** Parse fetched index bytes; a first-party index outside the bundle's own catalogue reloads once before any parsing. */
 export async function readIndexBytes(bytes: Uint8Array, options: ProductOptions): Promise<unknown> {
   const built = options.firstParty ? options.built : undefined;
-  if (built !== undefined && !built.indexes.has(await options.hash(bytes))) {
+  if (built !== undefined) await checkBuiltIndex(await options.hash(bytes), options);
+  return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+}
+/** A first-party index whose bytes' `hash` this build does not list takes stale-client recovery (a no-op otherwise). */
+export async function checkBuiltIndex(hash: string, options: ProductOptions): Promise<void> {
+  const built = options.firstParty ? options.built : undefined;
+  if (built !== undefined && !built.indexes.has(hash)) {
     await built.stale(); // pends while the reload navigates; returns when the reload budget is spent
     throw new StaleClientError();
   }
-  return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
 }
 /** Admitted owned wire bytes; callers release this map when decoded resources take over. */
 export interface AdmittedProduct {
