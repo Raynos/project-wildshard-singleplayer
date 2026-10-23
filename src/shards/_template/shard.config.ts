@@ -3,14 +3,16 @@ import { templateTerrain } from './generators/terrain';
 import { templatePropRows } from './generators/props';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { parseShardfile, type Shardfile } from '@wildshard/sdk/shardfile';
+import { templateBehaviour, TEMPLATE_BEHAVIOUR_INPUTS } from './generators/behaviour';
 import { BUILD_OPTIONS } from './generators/buildOptions';
 
 // Edit the build-time declaration to author this project's data.
 export async function generate(ctx: ProjectGenerationContext): Promise<Shardfile> {
-  const files = await ctx.cached({ id: 'world-product' }, () => {
+  const behaviour = await templateBehaviour(ctx);
+  const files = await ctx.cached({ id: 'world-product', inputs: TEMPLATE_BEHAVIOUR_INPUTS }, () => {
     const { assets, ...terrain } = templateTerrain();
     const props = templatePropRows();
-    return new Map([['shard.json', new TextEncoder().encode(JSON.stringify(templateProduct(terrain, props)))], ...assets, ...props.assets]);
+    return new Map([['shard.json', new TextEncoder().encode(JSON.stringify(templateProduct(terrain, props, behaviour)))], ...assets, ...props.assets]);
   });
   const metadata = files.get('shard.json');
   if (metadata === undefined) throw new Error('Terrain cache misses shard rows');

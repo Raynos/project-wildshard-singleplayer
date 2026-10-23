@@ -10,6 +10,8 @@ import { expect, test } from 'vitest';
 import { build } from 'vite';
 import { generate } from '../src/shards/_template/shard.config';
 import { templateTerrain } from '../src/shards/_template/generators/terrain';
+import { TEMPLATE_BEHAVIOUR } from './fixtures/templateSource';
+import { templateBehaviour } from '../src/shards/_template/generators/behaviour';
 import { templateProduct } from '../src/shards/_template/generators/product';
 import { templatePropRows } from '../src/shards/_template/generators/props';
 import { createProjectGeneration, isProjectGenerator } from '../src/sdk/projectGeneration';
@@ -24,8 +26,11 @@ test('template direct generation and a cache hit retain every original world row
     const assets = new Map<string, Uint8Array>(), root = resolve('src/shards/_template');
     const coldAt = performance.now(), cold = await generate(createProjectGeneration(root, 'c'.repeat(64), assets, cache)), coldMs = performance.now() - coldAt;
     const hitAt = performance.now(), hit = await generate(createProjectGeneration(root, 'c'.repeat(64), assets, cache)), hitMs = performance.now() - hitAt;
-    expect(JSON.stringify(cold)).toBe(JSON.stringify(templateProduct(rows, props))); expect(hit).toEqual(cold);
-    const expected = new Map([...original, ...props.assets]); expect([...assets.keys()]).toEqual([...expected.keys()]);
+    expect(JSON.stringify(cold)).toBe(JSON.stringify(templateProduct(rows, props, TEMPLATE_BEHAVIOUR))); expect(hit).toEqual(cold);
+    const expected = new Map([...original, ...props.assets]);
+    for (const row of Object.values(await templateBehaviour(createProjectGeneration(root, 'c'.repeat(64), assets, cache)))) {
+      const bytes = assets.get(row.hash); if (bytes === undefined) throw new Error('Missing actual compiled module'); expected.set(row.hash, bytes);
+    } expect([...assets.keys()].sort()).toEqual([...expected.keys()].sort());
     for (const [hash, bytes] of assets) {
       const old = expected.get(hash); if (old === undefined) throw new Error('Unexpected world asset');
       expect(Buffer.compare(bytes, old), hash).toBe(0);

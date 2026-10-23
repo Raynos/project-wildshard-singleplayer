@@ -2,7 +2,7 @@ import TEMPLATE_DIRECTORS from '../data/director.json' with { type: 'json' };
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile, type Shardfile } from '@wildshard/sdk/shardfile';
 import type { templateTerrain } from './terrain';
-import door from '../behaviour/door.json' with { type: 'json' };
+import type { TemplateBehaviour } from './behaviour';
 import type { BakedProps } from '@wildshard/sdk/bake/props';
 import hooks from '../behaviour/hooks.json' with { type: 'json' };
 import rows from '../data/rows.json' with { type: 'json' };
@@ -31,10 +31,14 @@ const TEMPLATE_SKIN_FILES = skins.flatMap(entry => entry.files), TEMPLATE_SKIN_L
 const TEMPLATE_SKIN_COST = TEMPLATE_SKIN_FILES.reduce((sum, file) => ({ resident: sum.resident + file.decoded + file.gpu, compressed: sum.compressed + file.compressed }), { resident: 0, compressed: 0 });
 
 // The idle reserve retains three pairs of Wasm pages and six particle slots.
-const { hash: CLIENT_IDLE_HASH, bytes: CLIENT_IDLE_BYTES, resident: CLIENT_IDLE_RESIDENT } = idle.module;
 const TEMPLATE_ROWS = parseRows(rows);
 /** Assemble the original authored product from this build's terrain rows. */
-export function templateProduct(terrain: Omit<ReturnType<typeof templateTerrain>, 'assets'>, props: BakedProps): Shardfile {
+export function templateProduct(terrain: Omit<ReturnType<typeof templateTerrain>, 'assets'>, props: BakedProps, behaviour: TemplateBehaviour): Shardfile {
+const door = behaviour.door, itemModule = behaviour.items.hash;
+const CLIENT_IDLE_HASH = behaviour.idle.hash, CLIENT_IDLE_BYTES = behaviour.idle.compressed;
+const CLIENT_IDLE_RESIDENT = idle.module.resident - idle.module.bytes + CLIENT_IDLE_BYTES;
+const clientScripts = structuredClone(idle.scripts);
+for (const binding of clientScripts.bindings) binding.module = CLIENT_IDLE_HASH;
 // Keep generated door positions and the shared teaching text authoritative.
 const TEMPLATE_UI = [{ ...ui.marker, label: text.hut, at: terrain.sites.door }, ui.oil, ui.jump,
   { ...ui.notes, tab: { ...ui.notes.tab, title: text.notes }, paragraphs: [text.note] }, ...ENCOUNTERS.ui];
@@ -42,8 +46,7 @@ const TEMPLATE_TARGETS = { ...targets.rows, interactions: [{ ...targets.interact
 const base = emptyShardfile({ slug: 'template', name: 'Template shard', author: 'Wildshard', revision: 2, seed: 357 });
 const playerHandle = 1106943697; // fnv1a32('actor.player') & 0x7fffffff; admission compares this with the session map.
 const script = { hash: door.hash, kind: 'wasm', compressed: door.compressed, decoded: door.compressed, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: true };
-const itemModule = '7035c479edde46ee0baf713fce437fe21e7b61967154f36b5f1126708b2bfaa7';
-const itemScript = { ...script, hash: itemModule, compressed: 740, decoded: 740 };
+const itemScript = { ...script, hash: itemModule, compressed: behaviour.items.compressed, decoded: behaviour.items.compressed };
 const clientScript = { ...script, hash: CLIENT_IDLE_HASH, compressed: CLIENT_IDLE_BYTES, decoded: CLIENT_IDLE_BYTES, critical: false };
 const tiles = terrain.tiles.map((tile) => {
   const addition = props.tiles.find((row) => row.lod === tile.lod && row.x === tile.x && row.z === tile.z);
@@ -64,7 +67,7 @@ return parseShardfile(JSON.parse(JSON.stringify({ ...base, accent: 'sand', manif
   serverBudget: { ...base.serverBudget, tickMicros: 5_000, memory: 16_000_000 },
   look: TEMPLATE_LOOK, spawn: SPAWN, rows: { ...TEMPLATE_ROWS, looks: TEMPLATE_SKIN_LOOKS }, plumbing: TEMPLATE_PLUMBING, ui: TEMPLATE_UI,
   terrain: { ...terrain.terrain, ...TERRAIN_DRAW }, tiles, files: [...terrain.files, ...props.files, ...TEMPLATE_SKIN_FILES, script, itemScript, clientScript], edge: terrain.edge,
-  library: [...props.library, ...TEMPLATE_SKIN_LIBRARY, CLIENT_IDLE_HASH], far: props.far, props: props.props, items: ITEMS, targets: TEMPLATE_TARGETS, clientScripts: idle.scripts,
+  library: [...props.library, ...TEMPLATE_SKIN_LIBRARY, CLIENT_IDLE_HASH], far: props.far, props: props.props, items: ITEMS, targets: TEMPLATE_TARGETS, clientScripts,
   critical: [...terrain.critical, door.hash, itemModule], water: TEMPLATE_WATER, creatures: CREATURES, encounters: ENCOUNTERS.encounters,
   quests: TEMPLATE_QUESTS, directors: TEMPLATE_DIRECTORS, ledger: TEMPLATE_LEDGER, audio: TEMPLATE_AUDIO, state: hooks.state, hooks: hooks.hooks,
   sim: { ...base.sim, scriptTickDivisor: 1, scripts: [door.hash, itemModule], bindings: [{ module: door.hash, entity: playerHandle, actorId: 'actor.player', kind: 'server' }] },

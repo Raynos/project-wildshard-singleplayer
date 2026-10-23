@@ -3,14 +3,14 @@ import fs from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare only the admitted immutable file names.
 import { basename } from 'node:path';
 import { expect, test, vi } from 'vitest';
-import { TEMPLATE_SOURCE, templateAssets } from './fixtures/templateSource';
+import { TEMPLATE_SOURCE, TEMPLATE_BEHAVIOUR, templateAssets } from './fixtures/templateSource';
 import { templateTerrain } from '../src/shards/_template/generators/terrain';
 import { templatePropRows } from '../src/shards/_template/generators/props';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { nativeProof } from './proof/_template/native';
 
 test('native fixtures generate world bytes without reading restored terrain/props assets and keep independent ownership', () => {
-  const terrain = templateTerrain(), props = templatePropRows(), generated = new Map([...terrain.assets, ...props.assets]), read = vi.spyOn(fs, 'readFileSync'), first = templateAssets();
+  const terrain = templateTerrain(), props = templatePropRows(), generated = new Set([...terrain.assets.keys(), ...props.assets.keys(), ...Object.values(TEMPLATE_BEHAVIOUR).map(row => row.hash)]), read = vi.spyOn(fs, 'readFileSync'), first = templateAssets();
   expect(first.size).toBe(TEMPLATE_SOURCE.files.length);
   const filenames = read.mock.calls.map(([path]) => basename(String(path)));
   expect(filenames.filter(file => generated.has(file))).toEqual([]);

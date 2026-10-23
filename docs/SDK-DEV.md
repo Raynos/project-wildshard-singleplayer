@@ -74,6 +74,8 @@ AssemblyScript/Binaryen dependency bytes (including standard library sources).
 That conservative compiler identity is captured once per immutable CLI process,
 so even a geometry-only step invalidates when these tools change. The entry's
 filesystem/compiler import fence remains unchanged: compilers are injected.
+The Template compiles door/items/idle in-process, keeps their original hashes,
+and retires its separate raw-behaviour job; boss and map jobs remain for GR1.
 
 In this repository, `scripts/serve-build.sh --devserver` builds the game in
 that mode and serves the resulting build. Without that flag it uses production
