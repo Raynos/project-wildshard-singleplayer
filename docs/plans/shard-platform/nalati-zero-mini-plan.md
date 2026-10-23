@@ -221,12 +221,12 @@ with `entry: {platform: "client-plan"}` (86af73733d). Nalati can copy them. Thes
 | R23 (S2) | `runtime/index.ts` world/kit/play onto the existing features: `species.program`, `held.claims.*`, `state.adventure`, `weather.forest` → HUD, `debug.expose` | ~-30 | Codex lane C | 2.5 h | index.ts holds only the host guard | now |
 | R24 (S3) | `state.ts` assembly (prefix, trophies, dressing anchors) as `world.assembly` rows; the King as an `arena-room` stage (worldAssembly.ts:325 gains the room variant) | ~-32 | lane C | 3 h | no WorldAssembly or buildArenaRoomEncounter calls in state.ts | R23 |
 | R25 (S4) | Weather loan, update-id loop, Titan bind, combat targets (Pine is the second user, pageLife.ts:146) and debug as `world.updates` / targets / `debug.expose` rows | ~-35 | lane C | 3 h | those blocks gone | R24 |
-| R26 (S5) | Stealth, riding, night and elite construction plus weapon handlers as features over the approved hosts (HOST-BAR.md:175, :205, :291); the Nalati-only adapters go where Jake's pick puts them | ~-70 shard, ~+40–60 listed platform | Codex lane D | 4–5 h | state.ts holds no glue | the pick (safe parts now) |
+| R26 (S5) | Stealth, riding, night and elite construction plus weapon handlers as features over the approved hosts (HOST-BAR.md:175, :205, :291); the Nalati-only adapters become hosts listed for HOST-AUDIT, credited in one chargeback commit (G677) | ~-70 shard, ~+40–60 listed platform | Codex lane D | 4–5 h | state.ts holds no glue | now |
 | R27 (S7) | Final flip: delete `runtime/index.ts` and `state.ts`, `entry: {platform: "client-plan"}` (copy 86af73733d); `ShardPlugin` drops out; boot smoke and physics walk | rest (~-30, -2 platform) | Codex | 2 h | Nalati 0, C4 and C9 locked | all above + the JSON-node red fixed |
 
 Blockers: Nalati's shard file sits at 100,041 JSON nodes against the 100,000 limit (sp-x9 is fixing it; previews refuse
-to build until then); the pick on the Nalati-only adapters (STATE item 1). About 17 lane-hours: zero is about 10–12 h after two
-Codex lanes start (one on R21/R22 then R27, one on R23–R25), with R26 starting when the pick lands.
+to build until then); the pick on the Nalati-only adapters (answered: G677, HOST-AUDIT). About 17 lane-hours: zero is about 10–12 h after two
+Codex lanes start (one on R21/R22 then R27, one on R23–R25), with R26 on a third lane.
 
 **Lanes:** G639's order applied: three Codex lanes on Nalati (A, B, C) plus sp-x8 and sp-x6 until zero, taken from the
 extras (B5 no-binaries, T4, tile streaming). Every row left is non-graphical, so the Opus step-down (G605) is not the
