@@ -15,6 +15,10 @@ import * as THREE from 'three';
  *   LightPool.for(scene).release(light);                                  // intensity 0, free for the next acquire
  *
  * Shadows are never cast by a pooled light. `LightPool.for(scene).size` / `.free` for the perf meter / dev.
+ *
+ * An `owner` (optional) ties a light to the object it lights for: every render of the pool's scene dims an owned light
+ * whose owner, or any ancestor, is hidden or detached, so a parked or retired region's lights keep the count but light
+ * nothing (a grid region's own lights would otherwise leave with its root and recompile every lit program on the road).
  */
 export class LightPool {
   private static pools = new WeakMap<THREE.Scene, LightPool>();
@@ -28,6 +32,7 @@ export class LightPool {
   readonly group = new THREE.Group();
   private lights: THREE.PointLight[] = [];
   private busy = new Set<THREE.PointLight>();
+  private readonly owners = new Map<THREE.PointLight, THREE.Object3D>();
   private sealed = false;
   private warned = false;
 
@@ -36,7 +41,7 @@ export class LightPool {
     scene.add(this.group);
     // seal on the first real render (compileAsync in the boot's precompile does not call it; firstFrame's render does)
     const prev = scene.onBeforeRender.bind(scene);
-    scene.onBeforeRender = (...args) => { this.sealed = true; prev(...args); };
+    scene.onBeforeRender = (...args) => { this.sealed = true; this.dimHidden(); prev(...args); };
   }
 
   get size(): number { return this.lights.length; }
@@ -44,7 +49,7 @@ export class LightPool {
   /** stop growing now (tests / a dev harness that renders before its pickups exist) */
   seal(): void { this.sealed = true; }
 
-  acquire(color: THREE.ColorRepresentation, intensity: number, distance: number, decay = 2): THREE.PointLight {
+  acquire(color: THREE.ColorRepresentation, intensity: number, distance: number, decay = 2, owner?: THREE.Object3D): THREE.PointLight {
     let light = this.lights.find((l) => !this.busy.has(l));
     if (light === undefined) {
       light = new THREE.PointLight();
@@ -57,6 +62,7 @@ export class LightPool {
       this.lights.push(light); this.group.add(light);
     }
     this.busy.add(light);
+    if (owner !== undefined) this.owners.set(light, owner);
     light.color.set(color); light.intensity = intensity; light.distance = distance; light.decay = decay;
     return light;
   }
@@ -64,6 +70,13 @@ export class LightPool {
   /** back to the pool: dark, still in the scene (a detached light from a full pool is simply dropped) */
   release(light: THREE.PointLight): void {
     light.intensity = 0;
-    this.busy.delete(light);
+    this.busy.delete(light); this.owners.delete(light);
+  }
+  private dimHidden(): void {
+    for (const [light, owner] of this.owners) {
+      let shown = owner.parent !== null;
+      for (let at: THREE.Object3D | null = owner; shown && at !== null; at = at.parent) shown = at.visible;
+      if (!shown) light.intensity = 0;
+    }
   }
 }

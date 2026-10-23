@@ -11,6 +11,7 @@ import { worldTime } from '@wildshard/engine/core/time';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { ParticlePool } from '@wildshard/engine/fx/ParticlePool';
+import { LightPool } from '@wildshard/engine/fx/LightPool';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
@@ -33,7 +34,10 @@ export class PopulationProjection {
   private disposed = false;
   private readonly at = new THREE.Vector3(); private readonly head = new THREE.Vector3();
   private readonly matrix = new THREE.Matrix4(); private readonly scale = new THREE.Vector3(1, 1, 1);
-  constructor(private readonly animals: AnimalManager, private readonly scene: THREE.Scene, sky: SkyRig, private readonly scope: Scope, input: unknown) {
+  /** `lightScene`: the scene whose light pool lends this projection's lights (the page's root scene): a light count that
+   *  leaves with a region recompiles every lit program in view (B7, LightPool) */
+  constructor(private readonly animals: AnimalManager, private readonly scene: THREE.Scene, sky: SkyRig, private readonly scope: Scope, input: unknown,
+    private readonly lightScene: THREE.Scene = scene) {
     this.rows = v.parse(PopulationProjectionSchema, input); const row = this.rows;
     if (row.seed !== SEED) throw new Error('Population projection requires its authored seed');
     this.creatures = new PageActorGroups(animals, row.practice, scope); this.rng = new Rng(row.random);
@@ -80,8 +84,10 @@ export class PopulationProjection {
     this.scope.run(() => {
       this.rng.restore(placement.stream); this.creatures.place(placement.centres, placement.kinds, placement.enemies);
       for (const spot of placement.enemies.filter(entry => entry.herd < 0 && entry.kind === hold.kind)) {
-        const actor = this.creatures.loose(spot), light = new THREE.PointLight(row.light.colour, 0, row.light.distance, row.light.decay);
-        light.castShadow = false; this.group.add(light); this.lights.push({ actor, light, dead: false, fade: 0 });
+        // pooled, lit only while this projection is shown; a sealed, full pool's detached light is this group's own
+        const actor = this.creatures.loose(spot), light = LightPool.for(this.lightScene).acquire(row.light.colour, 0, row.light.distance, row.light.decay, this.group);
+        if (light.parent === null) this.group.add(light);
+        this.lights.push({ actor, light, dead: false, fade: 0 });
       }
       this.counts(); this.scene.add(this.group);
     });
@@ -175,6 +181,8 @@ export class PopulationProjection {
     this.disposed = true; this.volley.dispose();
     yield* this.creatures.disposeSteps();
     this.group.removeFromParent();
+    const pool = LightPool.for(this.lightScene);
+    for (const { light } of this.lights) if (light.parent !== this.group) pool.release(light); // dark, still counted
   }
 }
 function dropTexture(): THREE.CanvasTexture {

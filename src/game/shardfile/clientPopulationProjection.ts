@@ -11,7 +11,7 @@ export function installPopulationProjection(ctx: ShardContext, input: unknown): 
   let projection: PopulationProjection | null = null;
   const ready = async (animals: AnimalManager): Promise<void> => {
     await previousReady?.(animals);
-    projection = await new PopulationProjection(animals, world.game.scene, world.sky, ctx.scope, input).build();
+    projection = await new PopulationProjection(animals, world.game.scene, world.sky, ctx.scope, input, world.game.rootScene).build();
     shell.objects['enemies'] = projection;
   };
   const update = (dt: number, time: number): void => { previousUpdate?.(dt, time); projection?.update(dt, time, world.player.position); };
