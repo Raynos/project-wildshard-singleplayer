@@ -35,10 +35,6 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   The optional type-aware lint attempt stays within that cap (G636), without oxlint's `--type-check` (G657);
   `tsc` owns TypeScript diagnostics. Timeout warns and hands those exact staged blobs' typed lint to pre-push;
   actual errors still refuse. Missing verified generated inputs defer typed lint to full CI explicitly.
-  Staged static relative imports must name modules in the candidate Git tree,
-  including targets added in the same commit. Loose working files cannot satisfy
-  them; exact declared generation/copied-runtime outputs retain their existing
-  missing-input deferral. The staged-only AST check runs inside source selection.
   No mirror, generator, build or full suite runs at commit.
   Fix a refusal and retry. Message conventions and the existing lock/legacy policies remain.
 - **Commits are pushed by the scheduled loop (G568, Jake, 2026-10-21).** `scripts/push-loop.py` runs every
@@ -112,6 +108,13 @@ rewrite still needs Jake's approval.
   refused by the `layer` / `shard-sandbox` lint rules, one shard reaching into another by the reach check, and
   every other layer pair is still counted. Pass the coordinator's `.git/generated-approval.json` to `push-main.sh` as `GENERATED_APPROVAL_FILE`. Hard rules,
   zero-debt promotion and ambient checks stay fatal.
+- **Tile bake debt is exact and shrink-only** (`lint/tile-bake-debt.json`, T8).
+  Normal product builds and reuses check every L0/L1 coordinate, tile cap and full
+  interior 5 × 5 window. Only listed product/coordinate/metric debt is retained;
+  new products default to all 64 + 16 tiles and strict caps. Increases require an
+  exact `Ratchet-Approved: wildshard-new wildshard/tile-bake <identity> +<delta>`
+  trailer, checked from the staged policy by the commit-message hook. Geometry
+  debt remains visible and does not change runtime memory caps or readiness latches.
 - **Source guards require their pinned JSON.** Pre-commit and the detached commit ratchet copy only JSON whose bytes
   match the immutable tree's generation catalogue. Missing pins refuse before lint, naming the output and job;
   run `pnpm gen` before retrying. Hooks never run producers. The detached reader clears Git-local overrides and

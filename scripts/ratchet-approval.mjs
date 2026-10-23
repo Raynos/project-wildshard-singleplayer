@@ -9,13 +9,15 @@ export function schemaTypeIdentity(identity) {
 
 // Policy increases require one exact coordinator approval per increased row.
 /** @param {Record<string, object>} before
- * @param {Record<string, object>} after @param {string} message */
-export function ratchetApprovalFailures(before, after, message) {
+ * @param {Record<string, object>} after @param {string} message
+ * @param {'lint'|'tiles'} [scope] Tile policy is checked by the mandatory commit-message hook. */
+export function ratchetApprovalFailures(before, after, message, scope = 'lint') {
   // The repository requires a blank line before the final attribution.
   const content = message.trimEnd().replace(/\n\nAssisted-by:[^\n]+$/u, '');
   const unfolded = content.replaceAll(/\n[ \t]+/gu, ' ');
   const footer = unfolded.split(/\n\s*\n/u).at(-1) ?? '';
-  const approvals = unfolded.split('\n').filter(line => line.startsWith('Ratchet-Approved:'));
+  const approvals = unfolded.split('\n').filter(line => line.startsWith('Ratchet-Approved:')
+    && line.startsWith('Ratchet-Approved: wildshard-new wildshard/tile-bake ') === (scope === 'tiles'));
   const increases = new Map();
   for (const [rule, rows] of Object.entries(after)) {
     if (!rule.startsWith('wildshard/')) continue;

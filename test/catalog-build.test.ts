@@ -28,6 +28,7 @@ function put(root: string, path: string, bytes: string | Uint8Array): void {
 async function fixture(): Promise<string> {
   mkdirSync('tmp', { recursive: true }); const root = mkdtempSync(resolve('tmp/catalog-build-')); owned.push(root);
   put(root, 'scripts/generation-jobs.json', JSON.stringify({ schema: 'generation-jobs/1', notice: 'DO NOT EDIT: fixture', jobs: [] }));
+  put(root, 'lint/tile-bake-debt.json', JSON.stringify({ version: 1, products: {} }));
   const placements = [];
   for (const [order, slug] of ['alpha', 'beta'].entries()) {
     const project = resolve(root, 'src/shards', slug), image = `public/assets/${slug}/map/top.webp`;
@@ -40,7 +41,7 @@ async function fixture(): Promise<string> {
   }
   put(root, 'src/game/grid/singleplayer.json', JSON.stringify({ version: 0, placements })); return root;
 }
-function builder(calls: string[][], fail?: string): (args: string[]) => Promise<void> {
+function builder(calls: string[][], fail?: string, missingTile = false): (args: string[]) => Promise<void> {
   return async args => {
     calls.push([...args]); const [command, project, destination] = args;
     if (command === 'catalog' || command === 'validate') { await runCli(args); return; }
@@ -49,6 +50,12 @@ function builder(calls: string[][], fail?: string): (args: string[]) => Promise<
     const authored = parseManifestMetadata({ ...metadata, slug, name: slug, order: slug === 'alpha' ? 1 : 2 }, slug);
     const packed = packManifestImages(slug, authored, new Map(manifestImages(authored).map(row => [row.url, png])));
     const source = emptyShardfile({ slug, name: slug, author: 'Test', revision: 1, seed: 1 });
+    for (const lod of [0, 1] as const) for (let x = 0; x < (lod === 0 ? 8 : 4); x++) for (let z = 0; z < (lod === 0 ? 8 : 4); z++) {
+      const size = lod === 0 ? 62.5 : 125;
+      source.tiles.push({ lod, x, z, bounds: { min: [-250 + x * size, 0, -250 + z * size], max: [-250 + (x + 1) * size, 0, -250 + (z + 1) * size] },
+        files: [], geometricError: 0, decoded: 0, gpu: 0, compressed: 0, triangles: 0, draws: 0 });
+    }
+    if (missingTile && slug === 'alpha') source.tiles.shift();
     const merged = mergeProjectBlobs({ ...source, manifest: packed.manifest, runtime: { entry: 'runtime/index.ts' } }, new Map(), packed.blobs);
     const runtime = args.includes('--copy-runtime') ? writeRuntimeFiles(project, destination, { check: () => [] }) : undefined;
     writeOutputProduct(merged.shard, merged.assets, destination, { namedFiles: merged.namedFiles, ...(runtime === undefined ? {} : { runtime }) });
@@ -57,6 +64,15 @@ function builder(calls: string[][], fail?: string): (args: string[]) => Promise<
 function productCalls(calls: string[][]): string[][] {
   return calls.filter(call => call[0] === 'build').sort((a,b) => (a[1] ?? '').localeCompare(b[1] ?? ''));
 }
+it('refuses missing tile coverage after both fresh builds and cache reuse', async () => {
+  const root = await fixture(), calls: string[][] = [];
+  vi.stubEnv('WILDSHARD_SHARDFILE_CACHE', resolve(root, 'tmp/cache'));
+  const options = { strict: false, reuse: true, build: builder(calls, undefined, true) };
+  await expect(buildShardfiles(root, options)).rejects.toThrow('alpha: tile bake refused: missing/0/0/0');
+  calls.length = 0;
+  await expect(buildShardfiles(root, options)).rejects.toThrow('alpha: tile bake refused: missing/0/0/0');
+  expect(productCalls(calls)).toHaveLength(0);
+});
 it('prepares a multi-output folder once per report while checking every output raster',async()=>{
   const root=await fixture(),calls:string[][]=[],failures:Record<string,string>={},project=resolve(root,'src/shards/beta');
   vi.stubEnv('WILDSHARD_SHARDFILE_CACHE',resolve(root,'tmp/cache'));
