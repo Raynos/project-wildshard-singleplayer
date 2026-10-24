@@ -16041,58 +16041,6 @@
       "platform": "portable"
     },
     {
-      "id": "signal-quest-page",
-      "shard": "sunscar-dunes",
-      "entry": "src/shards/sunscar-dunes/generators/questRows.ts",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/sdk/bake/json.mjs",
-        "src/shards/sunscar-dunes/generators/questRows.ts",
-        "questPageFiles",
-        "src/shards/sunscar-dunes",
-        "--files"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/format",
-        "src/format/package.json",
-        "src/format/questStory.ts",
-        "src/format/quests.ts",
-        "src/sdk/bake/json.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/package.json",
-        "src/sdk/quests.ts",
-        "src/shards/sunscar-dunes/data/braziers.json",
-        "src/shards/sunscar-dunes/data/caravan.json",
-        "src/shards/sunscar-dunes/data/layout.generated.json",
-        "src/shards/sunscar-dunes/data/manifestGround.generated.json",
-        "src/shards/sunscar-dunes/data/strings.json",
-        "src/shards/sunscar-dunes/data/tower.json",
-        "src/shards/sunscar-dunes/data/well.json",
-        "src/shards/sunscar-dunes/generators/layout.ts",
-        "src/shards/sunscar-dunes/generators/persistence.ts",
-        "src/shards/sunscar-dunes/generators/questMarkers.ts",
-        "src/shards/sunscar-dunes/generators/questPage.ts",
-        "src/shards/sunscar-dunes/generators/questPresentation.ts",
-        "src/shards/sunscar-dunes/generators/questRepair.ts",
-        "src/shards/sunscar-dunes/generators/questRows.ts",
-        "src/shards/sunscar-dunes/generators/quests.ts",
-        "src/shards/sunscar-dunes/generators/rows/flags.ts",
-        "src/shards/sunscar-dunes/generators/rows/signalQuest.ts"
-      ],
-      "outputs": [
-        "src/shards/sunscar-dunes/data/questPage.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/sunscar-dunes/data/questPage.generated.json"
-      ],
-      "platform": "portable"
-    },
-    {
       "id": "nalati-crags",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-crag-rock.mjs",
