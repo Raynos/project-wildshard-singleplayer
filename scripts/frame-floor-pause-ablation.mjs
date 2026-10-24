@@ -6,7 +6,7 @@ export function ablationWindow(mode) {
   const menu = () => document.querySelector('.ws-gmenu.show') !== null;
   if (!game || !world.hud.entered || world.hud.paused !== paused || game.frameGate() === paused || menu() !== paused)
     throw new Error('Ablation requires matching entered controls/menu/frame gate');
-  const counters = () => ({ frames: game.frameCount, tick: game.app.clock.frame, simulationMs: game.app.clock.now,
+  const counters = () => ({ frames: game.frameCount, tick: game.app.clock.frame, simulationSeconds: game.app.clock.now,
     paused: world.hud.paused, frameGate: game.frameGate(), menuVisible: menu() });
   const before = counters(), startMs = performance.now(), intervals = [], browserIntervals = [];
   let lastBrowser = null, lastDrawn = null, lastCount = game.frameCount, missedDraws = 0, dropped = 0;

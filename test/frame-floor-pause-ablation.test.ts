@@ -35,7 +35,7 @@ test('B completes with browser rAF but zero simulation ticks or drawn frames', a
   const f = fixture(true), result = f.start(ABLATION_PAUSED);
   f.frame(100); f.frame(20100);
   await expect(result).resolves.toMatchObject({mode: 'paused', frames: 0, intervals: [], browserIntervals: [[100,20000]],
-    before: {tick: 50, frames: 50, paused: true, frameGate: false, menuVisible: true}, after: {tick: 50, frames: 50}});
+    before: {tick: 50, frames: 50, simulationSeconds: 200, paused: true, frameGate: false, menuVisible: true}, after: {tick: 50, frames: 50, simulationSeconds: 200}});
   expect(f.begins).toBe(0); expect(f.rafs.size + f.timers.size).toBe(0);
 });
 
