@@ -13621,9 +13621,10 @@ A `shard.config.ts` build function receives `ProjectGenerationContext` from
 returns detached named bytes keyed by the bundled source closure, compiler
 identity, explicit input bytes and optional native host. Inputs are read on
 hits too; product receipts observe the step key. `asset(bytes)` publishes
-owned content-addressed bytes. `compileScript` and `compileDecisionScripts`
-are injected build capabilities, so the author module imports no compiler
-or filesystem service.
+owned content-addressed bytes. `compileScript`, `compileScriptV2` and
+`compileDecisionScripts` are injected build capabilities. Their implementations
+and installed compiler dependencies enter the cache key; author modules
+import no compiler or filesystem service.
 
 A build function may return a shard declaration or `GeneratedProject`:
 `{shard, output}`. The latter carries `ProjectOutput` named files and platform

@@ -13,6 +13,7 @@ import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
 import { readBoundedFile } from './sourceReader';
 import { projectCompilerIdentity } from './projectCompilerIdentity';
 import { compileScript } from './bake/compileScript';
+import { compileScriptV2 } from './bake/compileScriptV2';
 import { compileDeclaredDecisionScripts } from './buildDecisionScripts';
 import type { Shardfile } from './shardfile';
 import type { ProjectOutput } from './projectOutput';
@@ -42,6 +43,7 @@ export interface ProjectGenerationContext {
   cached: (step: ProjectGenerationStep, generate: (inputs: ReadonlyMap<string, Uint8Array>) => ReadonlyMap<string, Uint8Array> | Promise<ReadonlyMap<string, Uint8Array>>) => Promise<ReadonlyMap<string, Uint8Array>>;
   asset: (bytes: Uint8Array) => string;
   compileScript: typeof compileScript;
+  compileScriptV2: typeof compileScriptV2;
   compileDecisionScripts: typeof compileDeclaredDecisionScripts;
 }
 /** Build entries are trusted functions; their returned declaration still crosses normal shardfile admission. */
@@ -68,7 +70,7 @@ export function createProjectGeneration(project: string, programHash: string, as
     return { prefix: source.prefix, directory: realpathSync(source.directory) };
   });
   return {
-    compileScript, compileDecisionScripts: compileDeclaredDecisionScripts,
+    compileScript, compileScriptV2, compileDecisionScripts: compileDeclaredDecisionScripts,
     asset(bytes) {
       if (!(bytes instanceof Uint8Array) || bytes.byteLength > 256_000_000) throw new Error('Invalid generation asset bytes');
       const copy = new Uint8Array(bytes), key = hashImmutableBytes(copy); assets.set(key, copy); return key;

@@ -23,8 +23,9 @@ async function capture(): Promise<string> {
   const require = createRequire(resolve(import.meta.dirname, 'package.json'));
   const compiler = require.resolve('@wildshard/sdk/compileScript');
   const decisions = require.resolve('@wildshard/sdk/buildDecisionScripts');
+  const v2 = require.resolve('@wildshard/sdk/compileScriptV2');
   const built = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: false,
-    lib: { entry: [compiler, decisions], formats: ['es'] },
+    lib: { entry: [compiler, decisions, v2], formats: ['es'] },
     rolldownOptions: { external: [/^node:/u, ...external] } } });
   const result = Array.isArray(built) ? built[0] : built;
   if (result === undefined || !('output' in result)) throw new Error('Missing generation compiler identity');
