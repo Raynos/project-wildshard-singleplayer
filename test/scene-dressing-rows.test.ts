@@ -168,7 +168,7 @@ test('Nalati logical bakes admit the exact shipping compressed bytes and decoded
   for(const source of DRESSING_BAKE_SOURCES){
     const name=source.name.slice('world/'.length),original=readFileSync(`public/assets/nalati/baked/${name}`);
     const admitted=await readNamedBlob('src/shards/nalati-grasslands',source.name,source.source,source.kind,source.options);
-    expect(admitted.file.hash).toBe(hashImmutableBytes(original));expect(admitted.bytes).toEqual(new Uint8Array(original));
+    expect(admitted.file.hash).toBe(hashImmutableBytes(original));expect(Buffer.compare(admitted.bytes,original)).toBe(0);
     expect((await decodeLaneBytes(admitted.bytes)).byteLength).toBe(source.options.decoded);
   }
 });
