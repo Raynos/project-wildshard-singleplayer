@@ -2,6 +2,7 @@ import { shaderCodeSources } from '../scripts/parity/shader-code.mjs';
 import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, Group, Mesh, MeshStandardMaterial, Texture } from 'three';
 import { Scope } from '../src/engine/app/scope';
+import { app } from '../src/engine/app/runtime';
 import { sharedModelContext } from '../src/engine/models/model';
 import { Rng } from '../src/engine/core/rng';
 import { TIER, TIER_CONFIG, applyLevelTier, initializeTier } from '../src/engine/core/tier';
@@ -67,6 +68,39 @@ test.each(['roster', 'placement'])('%s catalogue lifetimes retire variants and t
     expect(entry.object().children).toHaveLength(1); entry.release?.();
     expect(owner.census.geometries).toBe(kind === 'roster' ? 0 : 1);
   } finally { owner.dispose(); registry.retire(); geometry.dispose(); material.dispose(); }
+});
+
+test.each(['regional', 'standalone'].flatMap(mode => ['disposed', 'retiring', 'registry'].map(retirement => ({ mode, retirement }))))(
+  '$mode queued specimens outlive a retired tile but refuse $retirement worlds', ({ mode, retirement }) => {
+  const world = new Scope('catalogue-world'), tile = world.child('catalogue-tile'), registry = new WorldRegistry();
+  const priorRegistry = app.registryValue, priorLevel = app.levelScope;
+  if (mode === 'regional') registry.scope = world;
+  else { app.registryValue = registry; app.levelScope = world; }
+  const geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]), 3));
+  const material = new MeshStandardMaterial(), ctx = sharedModelContext(fixtureSky());
+  const catalogue = parseWorldSceneModels({ product: 'fixture-quay', models: [{ key: 'marker', id: 'fixture-quay/queued-marker', name: 'Marker',
+    category: 'props', pipeline: 'code', file: 'marker.json', defaults: {}, assembly: 'objects', choices: [{ id: 'one', params: {}, size: [1, 1, 1],
+      colliders: [], draws: [{ id: 'face', library: 'shapes', model: 'face', material: 'paint' }] }] }] });
+  bindWorldSceneModelSources(ctx, catalogue.product, { catalogue, geometries: new Map([['["shapes","face"]', geometry]]), materials: new Map([['paint', material]]) }, world);
+  try {
+    withOwner(tile, () => place(defineWorldSceneCatalogue(catalogue).model('marker'), [{ x: 0, y: 0, z: 0 }], { ctx, registry, draw: 'single' }));
+    // Explore already queued this entry when the tile ring advances.
+    const queued = registry.models()[0]; if (queued === undefined) throw new Error('Missing queued model');
+    tile.dispose(); expect(registry.models()).toHaveLength(0);
+    const specimen = queued.object(), mesh = specimen.children[0]?.children[0];
+    if (!(mesh instanceof Mesh)) throw new Error('Missing queued specimen');
+    const drawn: unknown = mesh.geometry; if (!(drawn instanceof BufferGeometry)) throw new Error('Missing queued geometry');
+    expect(sceneResourceOwner(drawn)?.belongsTo(world)).toBe(true); expect(mesh.material).toBe(material);
+    const released = vi.spyOn(drawn, 'dispose'); queued.release?.(); expect(released).toHaveBeenCalledOnce();
+    expect(queued.object().children).toHaveLength(1);
+    const clone = vi.spyOn(geometry, 'clone');
+    let steps: ReturnType<Scope['disposeSteps']> | undefined;
+    if (retirement === 'registry') registry.retire();
+    else if (retirement === 'disposed') world.dispose();
+    else { world.onDisposeSteps(function* holdRetirement() { yield; }); steps = world.disposeSteps(); steps.next(); expect(world.disposing).toBe(true); }
+    expect(() => queued.object()).toThrow('Model specimen owner is not live'); expect(clone).not.toHaveBeenCalled();
+    if (steps !== undefined) Array.from(steps);
+  } finally { world.dispose(); registry.retire(); geometry.dispose(); material.dispose(); app.registryValue = priorRegistry; app.levelScope = priorLevel; }
 });
 
 test('fictional scan rows share original PBR material identity and release it once', async () => {

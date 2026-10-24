@@ -1113,11 +1113,14 @@ function drawHosted<P extends object>(def: ModelDef<P>, pls: readonly Placement<
 
 // ── the catalog entry: a specimen in own space, its variants, its facts ──
 
-function modelEntry<P extends object>(def: ModelDef<P>, o: PlaceOptions, rec: ModelRecord, drawnAs: DrawnAs): ModelEntry {
+function modelEntry<P extends object>(def: ModelDef<P>, o: PlaceOptions, rec: ModelRecord, drawnAs: DrawnAs, registry: WorldRegistry): ModelEntry {
   const specimen = new THREE.Group();
   specimen.name = `model:${def.id}`;
-  const parent = resourceScope(), owners = new Set<Scope>();
+  // Explore queues cards across tile retirement; their resources belong to the resident world.
+  const registrationOwner = resourceScope(), parent = registry.scope ?? (registry === app.registryValue ? app.levelScope : null) ?? registrationOwner, owners = new Set<Scope>();
+  const requireSpecimenOwner = (): void => { if (def.specimenLifetime === 'view' && (parent.disposed || parent.disposing || registry.retired)) throw new Error('Model specimen owner is not live'); };
   const build = (variant?: string): THREE.Object3D => {
+    requireSpecimenOwner();
     const owner = def.specimenLifetime === 'view' ? parent.child(`specimen/${def.id}`) : undefined;
     if (owner !== undefined) owners.add(owner);
     const make = () => (def.specimen ?? def.build)(owner === undefined ? o.ctx : { ...o.ctx, specimenScope: owner }, paramsOf(def, variant, undefined), new Rng(seedOf(def)));
@@ -1142,7 +1145,7 @@ function modelEntry<P extends object>(def: ModelDef<P>, o: PlaceOptions, rec: Mo
   };
   // O18: the entry lives on its registry's piece: a world that retires releases it too, and drops the ambient owner's
   // hold (the page's scope after an await), or every visit's release (and the placement it closes over) outlived the visit
-  if (def.specimenLifetime === 'view') { const forget = parent.capture('disposers', release); o.registry?.onRetire(() => { forget(); release(); }); }
+  if (def.specimenLifetime === 'view') { const forget = registrationOwner.capture('disposers', release); registry.onRetire(() => { forget(); release(); }); }
   const kept = (variant?: string): THREE.Object3D => {
     const key = variant ?? '';
     let obj = specimens.get(key);
@@ -1160,7 +1163,7 @@ function modelEntry<P extends object>(def: ModelDef<P>, o: PlaceOptions, rec: Mo
   const entry: ModelEntry = {
     ...(def.specimenLifetime === 'view' ? { release, ready: () => specimenReady(specimen) } : {}),
     id: def.id, category: def.category, live: false, pipeline: def.pipeline, drawnAs,
-    object: () => { if (specimen.children.length === 0) specimen.add(kept()); return specimen; },
+    object: () => { requireSpecimenOwner(); if (specimen.children.length === 0) specimen.add(kept()); return specimen; },
     buildAt: (tier) => withTier(tier, () => build()),
     get copies(): number { let c = 0; for (const g of rec.groups) c += g.copies; return c; },
     worldBox: (near) => {
@@ -1358,7 +1361,7 @@ function* placeSteps<P extends object>(def: ModelDef<P>, placements: readonly Pl
       ...(def.surface === undefined ? {} : { surface: def.surface }), ...(pc.floor === undefined ? {} : { floor: pc.floor }),
       ...(pc.solidFloor === undefined ? {} : { solidFloor: pc.solidFloor }), ...(pc.follows === undefined ? {} : { follows: pc.follows === 'copy' ? drawn.object : pc.follows }),
       ...(pc.active === undefined ? {} : { active: pc.active }),
-      ...(first ? { model: modelEntry(def, o, rec, drawn.drawnAs) } : {}),
+      ...(first ? { model: modelEntry(def, o, rec, drawn.drawnAs, registry) } : {}),
     });
     // (the registry's scene listener added it to the scene: under the shard's own group instead; a weld's are where it put them)
     if (w === undefined) o.parent?.add(drawn.object);
