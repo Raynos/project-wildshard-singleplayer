@@ -119,6 +119,17 @@ function skipRaysOffscreen(rays: GodRaysEffect, camera: THREE.Camera, disc: THRE
   };
 }
 
+/**
+ * An effect whose blend opacity is 0 composites nothing (every blend function mixes by it): its own offscreen passes
+ * (`update`: the bloom's luminance and mip chain, the rays' light pass and blur, the volumetric march) wait until it shows
+ * again, when its next update runs before the frame composites it. A look that grades in its own passes (Nalati's post
+ * graph) keeps the engine chain at opacity 0: its census drew 12 renders a frame, 10 of them full-screen post passes.
+ */
+function skipWhileTransparent(effect: Effect): void {
+  const update = effect.update.bind(effect);
+  effect.update = (renderer, inputBuffer, deltaTime) => { if (effect.blendMode.opacity.value > 0) update(renderer, inputBuffer, deltaTime); };
+}
+
 /** one engine colour chain, built (Game.buildComposer): its effects, in order, and by name */
 interface BuiltChain { clean: boolean; order: Effect[]; fx: Omit<EngineEffects, 'order'> }
 
@@ -567,6 +578,7 @@ export class Game {
       const tuning = ENGINE_CHAIN_TUNING[clean ? 'clean' : 'cinematic'];
       const bloom = new BloomEffect({ intensity: G.bloomIntensity, luminanceThreshold: G.bloomThreshold, luminanceSmoothing: tuning.bloomSmoothing, mipmapBlur: true, radius: 0.6, levels: TIER_CONFIG.bloomLevels });
       halfLuminance(bloom); // SF22d
+      skipWhileTransparent(bloom); skipWhileTransparent(godRays); skipWhileTransparent(vol);
       const vignette = new VignetteEffect({ offset: 0.32, darkness: tuning.vignette });
       const tone = new ToneMappingEffect({ mode: ToneMappingMode.AGX });
       const grade = new HueSaturationEffect({ saturation: G.saturation });
