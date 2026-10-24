@@ -151,27 +151,90 @@ export function verifyBootSignalRoad(witness) {
   if (failures.length > 0) throw new Error(`Signal road entry: ${failures.join('; ')}`);
 }
 
-/** Keep the existing home deadline and give this additional mandatory crossing its own unchanged 90-second budget.
+/** A short real Template entry/departure exercises the durable crossing without spending a diagonal home trip.
+ * @param {unknown} state @returns {{entry:import('../frame-floor-grid.mjs').FloorGridPlan,exit:import('../frame-floor-grid.mjs').FloorGridPlan}} */
+export function bootTemplateRoadPlans(state) {
+  if (typeof state !== 'object' || state === null || !('cells' in state) || !Array.isArray(state.cells)) throw new Error('Missing grid cell catalogue');
+  const targets = state.cells.filter((/** @type {unknown} */ row) => typeof row === 'object' && row !== null && 'slug' in row && row.slug === '_template' &&
+    'instance' in row && typeof row.instance === 'string').sort((a, b) => a.instance.localeCompare(b.instance));
+  const target = /** @type {unknown} */ (targets.at(0));
+  if (typeof target !== 'object' || target === null || !('instance' in target) || typeof target.instance !== 'string' || target.instance.length === 0 ||
+    !('cell' in target) || !Array.isArray(target.cell) || target.cell.length !== 2) throw new Error('Template grid cell is missing or invalid');
+  const x = /** @type {unknown} */ (target.cell[0]), z = /** @type {unknown} */ (target.cell[1]);
+  if (typeof x !== 'number' || typeof z !== 'number' || !Number.isSafeInteger(x) || !Number.isSafeInteger(z)) throw new Error('Invalid Template grid address');
+  const road = { x: x * 555 - 277.5, z: z * 555 }, inside = { x: x * 555 - 230, z: z * 555 };
+  return { entry: { name: 'boot-template-entry', from: null, to: target.instance, movement: 'road-hover', start: road,
+    waypoints: [inside], requiredResidents: [target.instance], finishOnArrival: true },
+  exit: { name: 'boot-template-return', from: target.instance, to: null, movement: 'road-hover', waypoints: [road], requiredResidents: [], finishOnArrival: true } };
+}
+
+/** Read actual durable storage, never the save service's retryable in-memory fallback.
+ * @param {string} instance */
+export function bootTemplateCheckpoint(instance) {
+  const raw = localStorage.getItem(`wildshard.save.v2.${instance}`);
+  if (raw === null) throw new Error('Template crossing has no durable checkpoint');
+  const document = JSON.parse(raw), slot = document?.keys?.['platform.region'], data = slot?.data;
+  if (slot?.v !== 1 || !Number.isSafeInteger(data?.revision) || data.revision < 1 || !Number.isSafeInteger(data?.integrity) ||
+    data.integrity < 0 || data.integrity > 0xffffffff ||
+    !(data.mode === 'exact' && typeof data.snapshot === 'string' && data.snapshot.length > 0 || data.mode === 'logical' && data.snapshot === null && typeof data.logical === 'object' && data.logical !== null)) {
+    throw new Error('Template crossing has an invalid durable checkpoint');
+  }
+  return { instance, mode: data.mode, revision: data.revision, integrity: data.integrity, snapshotCharacters: data.snapshot?.length ?? 0, storageCharacters: raw.length };
+}
+
+/** @param {{entry:import('../frame-floor-grid.mjs').FloorGridWitness,exit:import('../frame-floor-grid.mjs').FloorGridWitness,checkpoint:ReturnType<typeof bootTemplateCheckpoint>}} result */
+export function verifyBootTemplateRoad(result) {
+  const failures = [...gridFloorWitnessFailures(result.entry), ...gridFloorWitnessFailures(result.exit)];
+  const id = result.entry.plan.to, cell = result.entry.after.cells.find(row => row.instance === id);
+  if (result.entry.plan.from !== null || cell?.slug !== '_template' || result.exit.plan.from !== id || result.exit.plan.to !== null) failures.push('Required Template entry and checkpoint-backed road return were not driven');
+  if (result.checkpoint.instance !== id || result.checkpoint.storageCharacters <= 0) failures.push('Template durable checkpoint does not match its crossing');
+  if (failures.length > 0) throw new Error(`Template checkpoint roundtrip: ${failures.join('; ')}`);
+}
+
+/** The Template roundtrip and mandatory Signal entry share the original road leg's 90-second budget.
  * @param {import('playwright').Page} page @param {string[]} faults
- * @param {import('./black-frame.mjs').BootFrameSample[]} frames */
-async function bootSignalRoad(page, faults, frames) {
-  const deadline = Date.now() + 90000;
-  const plan = bootSignalRoadPlan((await page.evaluate(bootObservation)).grid);
-  const documentOrigin = await page.evaluate(gridFloorDocumentIdentity);
+ * @param {import('../frame-floor-grid.mjs').FloorGridPlan} plan @param {import('../frame-floor-grid.mjs').FloorGridDocumentIdentity} documentOrigin
+ * @param {number} deadline @param {string} label */
+async function bootRoadRoute(page, faults, plan, documentOrigin, deadline, label) {
   let finished = false;
   const route = (async () => {
     try { return { witness: await runFloorGridRoute(page, plan, documentOrigin) }; }
     catch (error) { return { error }; }
     finally { finished = true; }
   })();
-  await until(page, faults, () => Promise.resolve(finished), 'Signal road entry', deadline);
+  await until(page, faults, () => Promise.resolve(finished), label, deadline);
   const result = await route;
   if ('error' in result) throw result.error instanceof Error ? result.error : new Error(String(result.error));
-  verifyBootSignalRoad(result.witness);
+  return result.witness;
+}
+
+/** @param {import('playwright').Page} page @param {string[]} faults
+ * @param {import('./black-frame.mjs').BootFrameSample[]} frames @param {number} deadline */
+async function bootTemplateRoad(page, faults, frames, deadline) {
+  const plans = bootTemplateRoadPlans((await page.evaluate(bootObservation)).grid), documentOrigin = await page.evaluate(gridFloorDocumentIdentity);
+  const entry = await bootRoadRoute(page, faults, plans.entry, documentOrigin, deadline, 'Template road entry');
+  const initial = await page.evaluate(bootObservation);
+  await until(page, faults, async () => { const observed = await page.evaluate(bootObservation); return observed.ready && observed.frame >= initial.frame + 10; }, 'Template ten live gameplay frames', deadline);
+  await captureBootFrame(page, 'grid Template entered', deadline, frames);
+  const exit = await bootRoadRoute(page, faults, plans.exit, documentOrigin, deadline, 'Template checkpoint-backed return');
+  const result = { entry, exit, checkpoint: await page.evaluate(bootTemplateCheckpoint, plans.entry.to ?? '') };
+  verifyBootTemplateRoad(result);
+  await captureBootFrame(page, 'grid Template checkpoint return', deadline, frames);
+  return result;
+}
+
+/** Keep the existing home deadline and the road proof's unchanged shared 90-second budget.
+ * @param {import('playwright').Page} page @param {string[]} faults
+ * @param {import('./black-frame.mjs').BootFrameSample[]} frames @param {number} deadline */
+async function bootSignalRoad(page, faults, frames, deadline) {
+  const plan = bootSignalRoadPlan((await page.evaluate(bootObservation)).grid);
+  const documentOrigin = await page.evaluate(gridFloorDocumentIdentity);
+  const witness = await bootRoadRoute(page, faults, plan, documentOrigin, deadline, 'Signal road entry');
+  verifyBootSignalRoad(witness);
   const initial = await page.evaluate(bootObservation);
   await until(page, faults, async () => { const observed = await page.evaluate(bootObservation); return observed.ready && observed.frame >= initial.frame + 10; }, 'Signal ten live gameplay frames', deadline);
   await captureBootFrame(page, 'grid Signal road entry', deadline, frames);
-  return result.witness;
+  return witness;
 }
 
 /** @param {import('playwright').Browser} browser @param {string} base */
@@ -336,8 +399,10 @@ export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle
     gameplayFrames.final = (await page.evaluate(bootObservation)).frame;
     phases.framesCompleteMs = Date.now() - started;
     await captureBootFrame(page, mode === 'grid' ? 'grid HOME' : `${shard} gameplay`, deadline, frames);
-    const road = mode === 'grid' ? await bootSignalRoad(page, faults, frames) : null;
-    const result = { mode, phases, frames, gameplayFrames, road, telemetryPosts, lifecycleReports, gridNavigationObserved, elapsedMs: Date.now() - started, ...await page.evaluate(bootObservation), faults, reports };
+    const roadDeadline = Date.now() + 90000;
+    const templateRoad = mode === 'grid' ? await bootTemplateRoad(page, faults, frames, roadDeadline) : null;
+    const road = mode === 'grid' ? await bootSignalRoad(page, faults, frames, roadDeadline) : null;
+    const result = { mode, phases, frames, gameplayFrames, templateRoad, road, telemetryPosts, lifecycleReports, gridNavigationObserved, elapsedMs: Date.now() - started, ...await page.evaluate(bootObservation), faults, reports };
     if (faults.length > 0 || result.fatal.length > 0) throw new Error(JSON.stringify(result));
     writeFileSync(join(out, `${receipt}.json`), `${JSON.stringify(result, null, 2)}\n`);
     return result;

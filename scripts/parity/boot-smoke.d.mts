@@ -17,6 +17,13 @@ export function bootSignalRoadPlan(state: unknown): FloorGridPlan;
 /** Refuse missing Signal transitions, live residency or actual road frames. */
 export function verifyBootSignalRoad(witness: FloorGridWitness): void;
 
+/** Actual Template border entry and checkpoint-backed departure, sharing Signal's original 90-second budget. */
+export function bootTemplateRoadPlans(state: unknown): {entry: FloorGridPlan; exit: FloorGridPlan};
+/** Read durable storage only; a retryable save-service fallback cannot satisfy this proof. */
+export function bootTemplateCheckpoint(instance: string): {instance:string; mode:'exact'|'logical'; revision:number; integrity:number; snapshotCharacters:number; storageCharacters:number};
+/** Both real frame commits and the matching durable Template namespace must be present. */
+export function verifyBootTemplateRoad(result: {entry:FloorGridWitness;exit:FloorGridWitness;checkpoint:ReturnType<typeof bootTemplateCheckpoint>}):void;
+
 /** Give the grid a fresh browser after prior contexts are closed, preserving every case law. */
 export function bootCaseBrowser<T>(pool: {browser:(slot:number)=>Promise<T>;release:(slot:number)=>Promise<void>}, mode:'standalone'|'grid'|'public-policy'):Promise<T>;
 

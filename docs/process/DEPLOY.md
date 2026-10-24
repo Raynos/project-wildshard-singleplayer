@@ -72,9 +72,12 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   It does not claim a public menu or grid entry. The public playing-envelope refusal remains active at `level.world`;
   a pre-`1b39cec67` build must fail that negative. The separate Developer Nine case retains entered gameplay and ten
   live frames. When Nine becomes public, its public case uses the ordinary gameplay entry. The Developer grid proves its home handoff, then a
-  real road-to-Signal crossing, entered runtime residency and ten live gameplay frames. One initial road pose uses
-  the existing probe; held input and the shipping fixed step perform admission. Home and road each retain a
-  90-second budget; a prepared cell or a ready home cannot substitute for Signal entry.
+  road-to-Template entry, ten live frames and a checkpoint-backed return to the road, followed by the real
+  road-to-Signal crossing, entered runtime residency and ten live gameplay frames. Initial road approaches use
+  the existing probe; held input and the shipping fixed step perform each crossing. Template's return has no
+  second pose and requires its durable storage checkpoint. Home retains its 90-second budget; the Template
+  roundtrip and Signal share the existing 90-second road budget. A prepared cell or ready home cannot
+  substitute for either entered runtime or the return checkpoint.
   The initial title has its own 150-second budget. Standalone gameplay starts at
   the real entry action, so cold title loading cannot consume the home proof.
   Grid entry changes documents: its cold preparation has a separate 150-second
