@@ -823,6 +823,11 @@ export class Game {
   }
   /** each `nodeBuilds.log` row's program parameters at the same index (`EngineNodesHandler.buildKeys`); a diagnostic */
   get nodeBuildKeys(): readonly string[] | null { return installedGraphBackend(this.renderer)?.buildKeys ?? null; }
+  /** node program key asks and the whole keys they built (`EngineNodesHandler.keyAsks` / `keyBuilds`); a diagnostic */
+  get nodeKeyAsks(): { readonly asks: number; readonly builds: number } | null {
+    const handler = installedGraphBackend(this.renderer);
+    return handler === null ? null : { asks: handler.keyAsks, builds: handler.keyBuilds };
+  }
 
   /** Prepare an entered frame's new world/depth/post programs before its owner publishes readiness.
    * Initial boot has no composer yet and uses the ordinary shaders/firstFrame stages instead. No simulation tick,
