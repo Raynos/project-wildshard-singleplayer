@@ -1063,6 +1063,8 @@ The bounded factory calls it at construction; the frozen-shard hook bridge calls
 it before original plugin/world hooks. Frozen source files stay
 unchanged. Texture mode stays a parse-time observation; compressed mip retirement and the final upload fence remain with
 the existing texture owner. The texture module imports only the parser's type.
+The installer neither constructs a parser nor retains one; the existing asset
+loader or frozen plugin still owns every loader instance.
 
 The loader flags ten seconds without reported work progress in amber, naming
 the open dependency. Body-read activity (`noteDownloadRead(bytes)` in
