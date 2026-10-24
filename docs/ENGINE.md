@@ -3313,6 +3313,10 @@ from `runtime/geometry.ts`; `world/modelLook.ts` keeps its context ownership.
 recipes and item factories are injected by the composition root. The resulting manifest runs the ordinary Game
 stages and borrows its player, physics and fixed-step driver. Terrain and props refine under scoped tile residency;
 UI reads the same admitted script and item state. The SDK's client includes the platform's base audio assets.
+Both selection installers accept an optional trusted preparation barrier as their
+fourth argument. Admission may finish while application code loads; the barrier
+precedes client bindings and active-manifest publication. The composition root
+retains import-error precedence and disposes its page only after started work settles.
 Descriptor and residency admission do not import quest, boss or scene presentation.
 The compiler records optional feature graphs in one shared file table; the original
 admitted plan reserves only selected groups before imports. Script, loot and quest

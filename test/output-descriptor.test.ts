@@ -8,7 +8,8 @@ import { provideHybridDeclaration, runtimeProduct } from '../src/game/shardfile/
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import { outputBlobUrl, outputDescriptor, resolveOutputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { DownloadAccounting, installDownloadAccounting } from '../src/engine/boot/download';
-import { installManifestShardfile } from '../src/game/shardfile/clientSource';
+import { installManifestShardfile, installShardfileProduct } from '../src/game/shardfile/clientSource';
+import { prepareBootImports } from '../src/bootDownloads';
 import { sourceManifest } from '../src/game/plugin/context';
 import { installShards, shards } from '../src/game/shard/list';
 import { game, setActiveChunk } from '../src/game/shard/registry';
@@ -73,6 +74,75 @@ test.each([true, false])('first-party data admission retains Explore=%s without 
     expect(installed.ground).not.toBe(manifest.ground);
     expect(installed.ground.terrain?.heightAt(0, 0)).toBe(0);
   } finally { installShards(previous); setActiveChunk(active.slug); }
+});
+
+test.each(['manifest', 'external'] as const)('%s admission finishes during kit imports but publishes only after them', async kind => {
+  const { source, wires } = fixture(false, 0, 1, 'template');
+  const manifest = { ...sourceManifest(source), shardfile: `${base}shard.json` };
+  let release = (): void => { throw new Error('Uninitialized kit import'); };
+  const imports = prepareBootImports(new Promise<void>(resolve => { release = resolve; }));
+  let admitted = (): void => { throw new Error('Uninitialized admission'); };
+  const admission = new Promise<void>(resolve => { admitted = resolve; });
+  const opts = { ...options(wires), progress: (row: Parameters<NonNullable<ProductOptions['progress']>>[0]) => {
+    if (row.phase === 'complete') admitted();
+  } };
+  const bindings = { instance: 'template-solo', recipes: new Map(), items: new Map(), catalogue: [],
+    voices: () => new Map(), icon: () => { throw new Error('No fixture item'); } };
+  const previous = shards(), active = game.shard;
+  try {
+    const installing = kind === 'manifest'
+      ? installManifestShardfile(manifest, opts, bindings, imports.ready)
+      : installShardfileProduct(source, opts, bindings, imports.ready);
+    await admission;
+    expect(game.shard).toBe(active);
+    expect(shards()).toBe(previous);
+    release();
+    const installed = await installing;
+    expect(game.shard).toBe(installed);
+    expect(installed.slug).toBe(manifest.slug);
+  } finally { release(); installShards(previous); setActiveChunk(active.slug); }
+});
+
+test('a rejected kit barrier leaves admitted data unpublished and retains the original failure', async () => {
+  const { source, wires } = fixture(false, 0, 1, 'template');
+  const manifest = { ...sourceManifest(source), shardfile: `${base}shard.json` };
+  const kit = new Error('kit import failed'), imports = prepareBootImports(Promise.reject(kit));
+  const previous = shards(), active = game.shard;
+  await expect(installManifestShardfile(manifest, options(wires), {
+    instance: 'template-solo', recipes: new Map(), items: new Map(), catalogue: [],
+    voices: () => new Map(), icon: () => { throw new Error('No fixture item'); },
+  }, imports.ready)).rejects.toBe(kit);
+  expect(game.shard).toBe(active);
+  expect(shards()).toBe(previous);
+});
+
+test.each([true, false])('a real admission refusal drains before cleanup and retains kit-first errors=%s', async fails => {
+  const { source, wires } = fixture(false, 0, 1, 'template');
+  const manifest = { ...sourceManifest(source), shardfile: `${base}shard.json` };
+  let release = (): void => { throw new Error('Uninitialized import'); };
+  let failImport = (_error: Error): void => { throw new Error('Uninitialized import'); };
+  const imports = prepareBootImports(new Promise<void>((resolve, reject) => { release = resolve; failImport = reject; }));
+  let refused = (): void => { throw new Error('Uninitialized refusal'); };
+  const refusal = new Promise<void>(resolve => { refused = resolve; });
+  const kit = new Error('kit import failed'), admission = new Error('descriptor read failed'), events: string[] = [];
+  const previous = shards(), active = game.shard;
+  const completed = (async () => {
+    try {
+      return await installManifestShardfile(manifest, { ...options(wires), fetch: () => Promise.reject(admission) }, {
+        instance: 'template-solo', recipes: new Map(), items: new Map(), catalogue: [],
+        voices: () => new Map(), icon: () => { throw new Error('No fixture item'); },
+      }, imports.ready);
+    } catch (failure) { refused(); return await imports.refuse(failure); }
+    finally { events.push('residency', 'memory'); }
+  })();
+  const observed = expect(completed).rejects.toBe(fails ? kit : admission);
+  await refusal;
+  expect(events).toEqual([]);
+  expect(game.shard).toBe(active);
+  expect(shards()).toBe(previous);
+  if (fails) failImport(kit); else release();
+  await observed;
+  expect(events).toEqual(['residency', 'memory']);
 });
 
 test('v2 sections reconstruct host values and refuse the old monolithic transport', async () => {

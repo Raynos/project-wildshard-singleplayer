@@ -117,11 +117,13 @@ function clientSource(admitted: AdmittedProduct, options: ProductOptions, bindin
   return result;
 }
 
-/** Select a fully admitted external product before the ordinary session starts; first-party discovery remains installed. */
-export async function installShardfileProduct(input: unknown, providedOptions: ProductOptions, bindings: ShardfileClientBindings): Promise<ShardManifest> {
+/** Select a fully admitted external product before the ordinary session starts; first-party discovery remains installed.
+ * A trusted preparation barrier may overlap admission, but precedes every live binding and publication. */
+export async function installShardfileProduct(input: unknown, providedOptions: ProductOptions, bindings: ShardfileClientBindings, prepared?: () => Promise<unknown>): Promise<ShardManifest> {
   const options = withPageMemory(providedOptions, bindings);
   const admitted = await admitProduct(input, options);
   if (admitted.source.runtime !== null) throw new Error('Custom runtime requires trusted hybrid composition');
+  if (prepared !== undefined) await prepared();
   const source = clientSource(admitted, options, bindings);
   return selectSource(source, options.firstParty);
 }
@@ -132,8 +134,9 @@ function selectSource(source: ShardManifest, firstParty: boolean): ShardManifest
   game.shard = source; _applyChunkConstants(source); configureLevel(toLevelSpec(source)); return source;
 }
 
-/** Admit a built first-party descriptor before the normal session, preserving picker identity and its canonical save instance. */
-export async function installManifestShardfile(manifest: ShardManifest, providedOptions: ProductOptions, bindings: ShardfileClientBindings): Promise<ShardManifest> {
+/** Admit a built first-party descriptor before the normal session, preserving picker identity and its canonical save instance.
+ * A trusted preparation barrier may overlap admission, but precedes every live binding and publication. */
+export async function installManifestShardfile(manifest: ShardManifest, providedOptions: ProductOptions, bindings: ShardfileClientBindings, prepared?: () => Promise<unknown>): Promise<ShardManifest> {
   const options = withPageMemory(providedOptions, bindings);
   if (manifest.shardfile === undefined) return manifest;
   if (!options.firstParty) throw new Error('Manifest shardfile descriptors require first-party provenance');
@@ -165,6 +168,7 @@ export async function installManifestShardfile(manifest: ShardManifest, provided
   const sections = outputDescriptor(source)?.sections;
   if (sections !== undefined) prepareClientModuleGroups(source, sections);
   const admitted = await admitProduct(source, productOptions);
+  if (prepared !== undefined) await prepared();
   const client = clientSource(admitted, productOptions, { ...bindings, instance: bindings.residency === undefined ? firstPartyInstance(manifest.slug) : bindings.instance });
   const { image: _unadmittedImage, ...mapLook } = manifest.minimap ?? {};
   // First-party declared pages keep their authored scalar level presentation and boot inventory.

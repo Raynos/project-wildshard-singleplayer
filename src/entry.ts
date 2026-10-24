@@ -6,7 +6,7 @@ import { startPageServices } from './pageServices';
 import { persistHomeScreen } from '@wildshard/engine/saves/runtime';
 import { waitFor } from '@wildshard/engine/boot/waits';
 import { preloadModuleFiles } from '@wildshard/engine/boot/download';
-import { reserveHomeDownload, prepareHomeExtras, prepareHomeModules } from './bootDownloads';
+import { reserveHomeDownload, prepareHomeExtras, prepareHomeModules, prepareBootImports } from './bootDownloads';
 /**
  * The page's module entry. Everything the game imports statically is evaluated in ONE task when a module graph
  * runs: three.js plus the ~150 game modules at once was a 115–157 ms long task at 4× CPU before the first boot step
@@ -130,11 +130,11 @@ async function startSelected(): Promise<void> {
     preloadModuleFiles(Reflect.get(moduleRows, kind));
   };
   loading.waiting('Preparing application services');
-  // each module the boot needs, by name (E434: no barrels); they load in parallel, as the indexes did
-  const [{ installKitSpecies }, { installKitIcons, BAG_ICONS }, { installPickupCatalogue, preparePickupCatalogue }, { default: PICKUP_CATALOGUE }, { installKitProps }, { STARTER_BAG_ITEMS }, { HOVERBOARD_TOOL },
-    { sharedWeaponVoices, declaredWeaponVoices }, { sharedCombatCues }, { BOAR_LOOK }, { declaredKitItemFamilies },
-    { configuredShardfile, installShardfileProduct, installManifestShardfile, preparePageResidency }, { browserShardfileOptions },
-    { pageGridRecovery }, { loadingPath }, { shardEntry }, { default: calibration }, { gridPrefetchStatus }] = await Promise.all([
+  // Start every original import together; only admission's prerequisites block
+  // its preparation. The full import barrier still precedes publication.
+  const [speciesModule, iconsModule, pickupsModule, pickupRowsModule, propsModule, starterModule, hoverboardModule,
+    voicesModule, combatModule, boarModule, familiesModule, sourceModule, runtimeModule, gridEntryModule,
+    pathsModule, entryModule, calibrationModule, prefetchModule] = [
     retried(() => import('./game/systems/species/install')), retried(() => import('./game/icons')),
     retried(() => import('./game/models/specimenCatalogue')), retried(() => import('./game/data/pickupCatalogue.json')),
     retried(() => import('./game/models/interact')), retried(() => import('./game/bag/starter.generated')),
@@ -144,11 +144,21 @@ async function startSelected(): Promise<void> {
     retried(() => import('@wildshard/game/grid/pageEntry')), retried(() => import('./game/boot/loadingPaths')),
     retried(() => import('./game/shard/entryMode')), retried(() => import('./loadingCalibration.json')),
     retried(() => import('./game/grid/prefetch')),
-  ]);
-  loading.setPrefetchSource(gridPrefetchStatus);
-  const source = pageGridRecovery() === null ? await configuredShardfile(document, browserShardfileOptions(document.baseURI)) : null;
+  ] as const;
+  const imports = prepareBootImports(Promise.all([speciesModule, iconsModule, pickupsModule, pickupRowsModule, propsModule,
+    starterModule, hoverboardModule, voicesModule, combatModule, boarModule, familiesModule, sourceModule, runtimeModule,
+    gridEntryModule, pathsModule, entryModule, calibrationModule, prefetchModule]));
+  const [{ sharedWeaponVoices, declaredWeaponVoices }, { BOAR_LOOK }, { declaredKitItemFamilies },
+    { configuredShardfile, installShardfileProduct, installManifestShardfile, preparePageResidency }, { browserShardfileOptions },
+    { pageGridRecovery }, { loadingPath }, { shardEntry }, { default: calibration }, { gridPrefetchStatus }] = await Promise.all([
+    voicesModule, boarModule, familiesModule, sourceModule, runtimeModule, gridEntryModule, pathsModule, entryModule,
+    calibrationModule, prefetchModule,
+  ]).catch(imports.refuse);
   let page: ReturnType<typeof preparePageResidency> | undefined;
   try {
+    imports.check();
+    loading.setPrefetchSource(gridPrefetchStatus);
+    const source = pageGridRecovery() === null ? await configuredShardfile(document, browserShardfileOptions(document.baseURI)) : null;
     page = preparePageResidency(game.shard, source?.identity.slug);
     await completePageCatalogue(page.mode);
     const path = page.mode === 'grid' ? 'grid' : source !== null || shardEntry(game.shard) === 'shardfile' ? 'shardfile' : 'legacy';
@@ -171,9 +181,12 @@ async function startSelected(): Promise<void> {
       icon: (name) => { const id = declaredIcons.find((entry) => entry === name); if (id === undefined) throw new Error(`Unknown catalogue item icon ${name}`); return id; },
       recipes: new Map([['kit.look.boar', (row, species) => { if (row.animation.recipe !== 'kit.pose.quadruped') throw new Error('Unknown boar pose recipe'); return { ...BOAR_LOOK, id: row.id, species: species.id, kind: species.kind }; }]]),
     };
+    imports.check();
     const manifest = source === null
-      ? await installManifestShardfile(game.shard, { ...browserShardfileOptions(document.baseURI, true), memory: page.memory, progress: (progress) => { loading.paintAdmission(progress); } }, bindings)
-      : await installShardfileProduct(source, { ...browserShardfileOptions(document.baseURI), memory: page.memory, progress: (progress) => { loading.paintAdmission(progress); } }, bindings);
+      ? await installManifestShardfile(game.shard, { ...browserShardfileOptions(document.baseURI, true), memory: page.memory, progress: (progress) => { loading.paintAdmission(progress); } }, bindings, imports.ready)
+      : await installShardfileProduct(source, { ...browserShardfileOptions(document.baseURI), memory: page.memory, progress: (progress) => { loading.paintAdmission(progress); } }, bindings, imports.ready);
+    const [{ installKitSpecies }, { installKitIcons, BAG_ICONS }, { installPickupCatalogue, preparePickupCatalogue },
+      { default: PICKUP_CATALOGUE }, { installKitProps }, { STARTER_BAG_ITEMS }, { HOVERBOARD_TOOL }, , { sharedCombatCues }] = await imports.ready();
     if (source !== null || manifest.shardfile !== undefined) document.documentElement.classList.remove('title-first');
     installKitSpecies();
     installKitIcons();
@@ -196,8 +209,7 @@ async function startSelected(): Promise<void> {
       bagIcons: BAG_ICONS,
     }, { mode: page.mode, memory: page.memory, ...(page.recovery === undefined ? {} : { recovery: page.recovery }), ...(page.residency === undefined ? {} : { residency: page.residency }) });
   } catch (error) {
-    page?.residency?.dispose();
-    page?.memory.dispose();
-    throw error;
+    try { return await imports.refuse(error); }
+    finally { page?.residency?.dispose(); page?.memory.dispose(); }
   }
 }
