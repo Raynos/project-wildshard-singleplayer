@@ -4,6 +4,7 @@ import { Scope } from '../src/engine/app/scope';
 import { Rng } from '../src/engine/core/rng';
 import { GroupBankV2 } from '../src/engine/script/groupBankV2';
 import { GroupStepV2 } from '../src/engine/script/groupStepV2';
+import { ScriptModuleV2 } from '../src/engine/script/moduleV2';
 import { ObservationColumnsV2 } from '../src/engine/script/observationColumnsV2';
 import { QueryRingV2 } from '../src/engine/script/queriesV2';
 import { parseGroupStepV2, groupStepColumnV2, groupStepLayoutV2 } from '../src/format/scriptGroupStepV2';
@@ -98,6 +99,25 @@ test('malformed state, action suffix, actor authority and reference operands pub
     f.runner.prepare(f.input).accept();expect(f.state[1]).toBe(120);
   } finally { f.root.dispose(); }
 });
+test('group binding bytes clear dirty reserved words at the input boundary', () => {
+  const f = fixture(), project = vi.spyOn(ScriptModuleV2.prototype, 'project');
+  try {
+    const binding = f.runner.layout.regions[0];
+    if (binding === undefined) throw new Error('Missing binding region');
+    for (const tick of [0, 2 ** 30 - 1]) {
+      f.runner.prepare({ ...f.input, handle: 0x7fffffff, tick });
+      const write = project.mock.calls.at(-1)?.[1];
+      if (write === undefined) throw new Error('Missing group input writer');
+      const view = new DataView(new ArrayBuffer(f.runner.layout.pages * 65536));
+      new Uint8Array(view.buffer).fill(0xff);
+      write(view);
+      const at = f.runner.layout.io + binding.offset;
+      const words = Array.from({ length: 16 }, (_, index) => view.getUint32(at + index * 4, true));
+      expect(words).toStrictEqual([0x7fffffff, 0, 0, 3, 0, 5, 0, 2, 0, 0, 32, 6, tick, tick, rows.fuel, 0]);
+    }
+  } finally { project.mockRestore(); f.root.dispose(); }
+});
+
 test('the same ai RNG advances only on accepted calls and stale preparations refuse', () => {
   const f = fixture();
   try {

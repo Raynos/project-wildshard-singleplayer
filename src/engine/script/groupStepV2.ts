@@ -170,8 +170,9 @@ export class GroupStepV2 {
         new Uint8Array(view.buffer,view.byteOffset+b,64).fill(0);
         new Uint8Array(view.buffer,view.byteOffset+o,96).fill(0);
         const stamp=relativeTickV2(input.tick,Math.floor(input.tick/2**30)*2**30);
-        const bindingWords=[input.handle,0,0,3,0,originalState.length,0,parameters,0,0,fieldCount,6];
-        for(const[index,value]of bindingWords.entries())view.setUint32(b+index*4,value,true);
+        // The binding block is already zeroed; retain its reserved words without per-segment array/iterator scratch.
+        view.setUint32(b,input.handle,true);view.setUint32(b+12,3,true);view.setUint32(b+20,originalState.length,true);
+        view.setUint32(b+28,parameters,true);view.setUint32(b+40,fieldCount,true);view.setUint32(b+44,6,true);
         view.setInt32(b+48,stamp,true);view.setInt32(b+52,stamp,true);view.setUint32(b+56,this.rows.fuel,true);
         view.setUint32(o,input.handle,true);view.setInt32(o+16,stamp,true);
         for(let index=0;index<originalState.length;index++)view.setFloat64(state+index*8,originalState[index]??0,true);
