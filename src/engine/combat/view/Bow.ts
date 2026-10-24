@@ -250,7 +250,8 @@ export class Bow<Style extends string = string> extends Weapon {
   // ── per frame ──
   update(dt: number, t: number): void {
     const pl = this.player, cam = this.game.camera;
-    cam.updateMatrixWorld();
+    // the camera's own matrices, not the viewmodel under it (the nock's world position below walks its own parents)
+    cam.updateWorldMatrix(true, false);
     if (!this.enabled) { this.mouseDraw = false; this.mouseAds = false; }
 
     // ── the draw (bowDraw.ts): hold = draw, release at full = loose, early = let-down. The next draw may start while the
