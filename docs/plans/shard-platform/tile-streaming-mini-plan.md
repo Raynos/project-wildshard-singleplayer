@@ -252,8 +252,13 @@ errors 0, but **FAILS** strict zero-ghost and ±20 MB acceptance. Baseline ghost
 are 0/0; returns are 11/1, 1/1, 0/0, 0/0, 0/0 (tile/region). Renderer + GPU
 private-footprint deltas are +186.253/+44.089/+20.267/+27.902/+65.044 MB.
 The early spike falls again; this does not establish a monotonic leak or a
-per-fix causal result. One authorized opt-in resource diagnostic on the same
-source will name the remaining owners; it is not acceptance evidence.
+per-fix causal result. The [same-source diagnostic](../../../progress/shard-platform/tile-streaming/t1-resources-fbb.json)
+completed with zero ghosts at every boundary. Sites and LUTs do not accumulate;
+composer depth still adds exactly 4,380,192 bytes / one texture per return
+(+21,900,960 bytes after five), despite `acda59debf`. The +186 MB early spike
+did not reproduce; its cause remains unknown. **Open follow-up (sp-x9):** trace
+the missed input/output depth lifecycle, add a GPU-ledger regression, then
+rerun T1 once. This diagnostic is not acceptance evidence.
 
 The earlier [794 acceptance](../../../progress/shard-platform/tile-streaming/t1-retirement-794.json)
 and [resource diagnostic](../../../progress/shard-platform/tile-streaming/t1-resources-794.json)

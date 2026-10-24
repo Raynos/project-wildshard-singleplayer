@@ -1,0 +1,993 @@
+{
+  "source": "fbb51b96028196c887d2ec82f1863782f0760d19",
+  "complete": true,
+  "acceptanceEligible": false,
+  "errors": [],
+  "protocol": {
+    "device": "iPhone 16 Pro",
+    "tier": "phone",
+    "cpu": 4,
+    "renderScale": 2,
+    "developer": true,
+    "roundTrips": 5,
+    "warmupRoundTrips": 1,
+    "settleSeconds": 45,
+    "forcedGC": false,
+    "inspectorBodyBytes": 0,
+    "toolHashes": {
+      "tile-retirement-chromium.mjs": "992f1f14f819666c016d7d286205fc7aaf8660146c874dc5f10c8658512ca6d9",
+      "tile-retirement-proof.mjs": "e555b0cf0dc9b20cae8c0135dbb648add1edc865139fbb84fe9d486a6d4b7951",
+      "frame-floor-grid.mjs": "68f0b11e9a7757c2e159062807f76c4b93d8ecca105ed740e354d11dd13fea86",
+      "soak/owned.mjs": "15d98943b6a62606f236ca71bfc4b8630819e09626ba476d9c30b6c2a2ca912b",
+      "grid-ready-memory.mjs": "39c5917796a0bab687a536218d76609a372bb12224c9cec45937d118608361f2",
+      "chromium-memory-browser.mjs": "41ed23eb5306466f155cebfe405ea3097686caf3761de56a7d266ea40bc66d01"
+    },
+    "memory": "One dedicated Chromium: renderer + GPU private footprint. Browser overhead separate. Endpoint dumps, no FPS claim.",
+    "diagnostic": "resources",
+    "backingStorage": "CDP backingStorageSize includes ArrayBuffers and external strings; ledger RAM allocations are tracked identities only. No forced GC.",
+    "cycles": "Observed render claim acquisition/removal lifetimes at 1 Hz; missed lifetimes undercount, never interpolate."
+  },
+  "rawReceiptSha256": "891ac13985a530a6f5b4a8eda666c6ad79cfe23f0d88596875a703d538fa91b6",
+  "routeLegs": 12,
+  "boundaries": [
+    {
+      "label": "baseline",
+      "ghosts": [
+        0,
+        0
+      ],
+      "nativeDeltaBytes": 0,
+      "renderer": {
+        "geometries": 372,
+        "textures": 487,
+        "programs": 442
+      },
+      "heap": {
+        "usedSize": 346497032,
+        "totalSize": 657981440,
+        "embedderHeapUsedSize": 13979552,
+        "backingStorageSize": 456511269
+      },
+      "ledgerTotals": {
+        "gpu": 339933898,
+        "ram": 327918667
+      },
+      "siteBuffers": 2887788,
+      "depth": 4380192,
+      "luts": 143748,
+      "process": {
+        "browser": 657688576,
+        "renderer": 1339299840,
+        "gpu": 1267058688
+      },
+      "depthAllocations": [
+        {
+          "id": "gpu:14404",
+          "domain": "gpu",
+          "kind": "texture",
+          "bytes": 4380192,
+          "precision": "exact",
+          "owner": "engine/render-target",
+          "asset": "EffectComposer.Buffer/depth/Texture"
+        }
+      ],
+      "topOwnerDeltas": []
+    },
+    {
+      "label": "return-1",
+      "ghosts": [
+        0,
+        0
+      ],
+      "nativeDeltaBytes": 34373632,
+      "renderer": {
+        "geometries": 372,
+        "textures": 488,
+        "programs": 522
+      },
+      "heap": {
+        "usedSize": 429932408,
+        "totalSize": 580370432,
+        "embedderHeapUsedSize": 30597504,
+        "backingStorageSize": 462278161
+      },
+      "ledgerTotals": {
+        "gpu": 344314090,
+        "ram": 332149151
+      },
+      "siteBuffers": 2887788,
+      "depth": 8760384,
+      "luts": 143748,
+      "process": {
+        "browser": 658917376,
+        "renderer": 1348655104,
+        "gpu": 1292077056
+      },
+      "depthAllocations": [
+        {
+          "id": "gpu:14404",
+          "domain": "gpu",
+          "kind": "texture",
+          "bytes": 4380192,
+          "precision": "exact",
+          "owner": "engine/render-target",
+          "asset": "EffectComposer.Buffer/depth/Texture"
+        },
+        {
+          "id": "gpu:20849",
+          "domain": "gpu",
+          "kind": "texture",
+          "bytes": 4380192,
+          "precision": "exact",
+          "owner": "engine/render-target",
+          "asset": "EffectComposer.Buffer/depth/Texture"
+        }
+      ],
+      "topOwnerDeltas": [
+        {
+          "domain": "gpu",
+          "owner": "scene:region:driftwood-isle",
+          "kind": "buffer",
+          "bytes": 34586519,
+          "count": 346,
+          "deltaBytes": 23776551,
+          "deltaCount": 268
+        },
+        {
+          "domain": "gpu",
+          "owner": "engine/render-target",
+          "kind": "texture",
+          "bytes": 40064860,
+          "count": 27,
+          "deltaBytes": 4380192,
+          "deltaCount": 1
+        },
+        {
+          "domain": "ram",
+          "owner": "scene:near-placeholder",
+          "kind": "array-buffer",
+          "bytes": 8864984,
+          "count": 17,
+          "deltaBytes": 3859620,
+          "deltaCount": 6
+        },
+        {
+          "domain": "gpu",
+          "owner": "engine/scene",
+          "kind": "buffer",
+          "bytes": 5895608,
+          "count": 189,
+          "deltaBytes": 2162688,
+          "deltaCount": 5
+        },
+        {
+          "domain": "ram",
+          "owner": "scene:region:driftwood-isle",
+          "kind": "array-buffer",
+          "bytes": 9115407,
+          "count": 76,
+          "deltaBytes": 468127,
+          "deltaCount": 3
+        },
+        {
+          "domain": "ram",
+          "owner": "far.crown.ruin",
+          "kind": "array-buffer",
+          "bytes": 464100,
+          "count": 6,
+          "deltaBytes": 464100,
+          "deltaCount": 6
+        },
+        {
+          "domain": "ram",
+          "owner": "scene:far-proxy-light",
+          "kind": "array-buffer",
+          "bytes": 320832,
+          "count": 2,
+          "deltaBytes": 320832,
+          "deltaCount": 2
+        },
+        {
+          "domain": "gpu",
+          "owner": "scene:region:driftwood-isle",
+          "kind": "texture",
+          "bytes": 46180,
+          "count": 21,
+          "deltaBytes": 46180,
+          "deltaCount": 21
+        },
+        {
+          "domain": "ram",
+          "owner": "BackdropLayer",
+          "kind": "array-buffer",
+          "bytes": 350912,
+          "count": 19,
+          "deltaBytes": 42648,
+          "deltaCount": 3
+        },
+        {
+          "domain": "gpu",
+          "owner": "engine/scene",
+          "kind": "texture",
+          "bytes": 2825928,
+          "count": 35,
+          "deltaBytes": 27648,
+          "deltaCount": 12
+        },
+        {
+          "domain": "ram",
+          "owner": "grid.view:far-reach",
+          "kind": "array-buffer",
+          "bytes": 2004,
+          "count": 2,
+          "deltaBytes": 2004,
+          "deltaCount": 2
+        },
+        {
+          "domain": "gpu",
+          "owner": "scene:driftwood-kit-still",
+          "kind": "buffer",
+          "bytes": 1528,
+          "count": 4,
+          "deltaBytes": 720,
+          "deltaCount": 2
+        }
+      ]
+    },
+    {
+      "label": "return-2",
+      "ghosts": [
+        0,
+        0
+      ],
+      "nativeDeltaBytes": 63438848,
+      "renderer": {
+        "geometries": 368,
+        "textures": 489,
+        "programs": 577
+      },
+      "heap": {
+        "usedSize": 398865436,
+        "totalSize": 551288832,
+        "embedderHeapUsedSize": 19999088,
+        "backingStorageSize": 463132871
+      },
+      "ledgerTotals": {
+        "gpu": 348548530,
+        "ram": 332751879
+      },
+      "siteBuffers": 2887788,
+      "depth": 13140576,
+      "luts": 143748,
+      "process": {
+        "browser": 660981760,
+        "renderer": 1350244352,
+        "gpu": 1319553024
+      },
+      "depthAllocations": [
+        {
+          "id": "gpu:14404",
+          "domain": "gpu",
+          "kind": "texture",
+          "bytes": 4380192,
+          "precision": "exact",
+          "owner": "engine/render-target",
+          "asset": "EffectComposer.Buffer/depth/Texture"
+        },
+        {
+          "id": "gpu:20849",
+          "domain": "gpu",
+          "kind": "texture",
+          "bytes": 4380192,
+          "precision": "exact",
+          "owner": "engine/render-target",
+          "asset": "EffectComposer.Buffer/depth/Texture"
+        },
+        {
+          "id": "gpu:27338",
+          "domain": "gpu",
+          "kind": "texture",
+          "bytes": 4380192,
+          "precision": "exact",
+          "owner": "engine/render-target",
+          "asset": "EffectComposer.Buffer/depth/Texture"
+        }
+      ],
+      "topOwnerDeltas": [
+        {
+          "domain": "gpu",
+          "owner": "scene:region:driftwood-isle",
+          "kind": "buffer",
+          "bytes": 28888916,
+          "count": 338,
+          "deltaBytes": 18078948,
+          "deltaCount": 260
+        },
+        {
+          "domain": "gpu",
+          "owner": "engine/render-target",
+          "kind": "texture",
+          "bytes": 44445052,
+          "count": 28,
+          "deltaBytes": 8760384,
+          "deltaCount": 2
+        },
+        {
+          "domain": "ram",
+          "owner": "scene:near-placeholder",
+          "kind": "array-buffer",
+          "bytes": 8864984,
+          "count": 17,
+          "deltaBytes": 3859620,
+          "deltaCount": 6
+        },
+        {
+          "domain": "ram",
+          "owner": "far.windmill",
+          "kind": "array-buffer",
+          "bytes": 708396,
+          "count": 4,
+          "deltaBytes": 708396,
+          "deltaCount": 4
+        },
+        {
+          "domain": "ram",
+          "owner": "far.crown.ruin",
+          "kind": "array-buffer",
+          "bytes": 464100,
+          "count": 6,
+          "deltaBytes": 464100,
+          "deltaCount": 6
+        },
+        {
+          "domain": "ram",
+          "owner": "scene:far-proxy-light",
+          "kind": "array-buffer",
+          "bytes": 320832,
+          "count": 2,
+          "deltaBytes": 320832,
+          "deltaCount": 2
+        },
+        {
+          "domain": "ram",
+          "owner": "far.notes",
+          "kind": "array-buffer",
+          "bytes": 158664,
+          "count": 2,
+          "deltaBytes": 158664,
+          "deltaCount": 2
+        },
+        {
+          "domain": "ram",
+          "owner": "BackdropLayer",
+          "kind": "array-buffer",
+          "bytes": 393560,
+          "count": 22,
+          "deltaBytes": 85296,
+          "deltaCount": 6
+        },
+        {
+          "domain": "ram",
+          "owner": "far.keeper.stand",
+          "kind": "array-buffer",
+          "bytes": 70644,
+          "count": 4,
+          "deltaBytes": 70644,
+          "deltaCount": 4
+        },
+        {
+          "domain": "ram",
+          "owner": "scene:props110",
+          "kind": "array-buffer",
+          "bytes": 70992,
+          "count": 5,
+          "deltaBytes": 47328,
+          "deltaCount": 3
+        },
+        {
+          "domain": "gpu",
+          "owner": "scene:region:driftwood-isle",
+          "kind": "texture",
+          "bytes": 46180,
+          "count": 21,
+          "deltaBytes": 46180,
+          "deltaCount": 21
+        },
+        {
+          "domain": "ram",
+          "owner": "scene:props111",
+          "kind": "array-buffer",
+          "bytes": 47808,
+          "count": 5,
+          "deltaBytes": 31872,
+          "deltaCount": 3
+        }
+      ]
+    },
+    {
+      "label": "return-3",
+      "ghosts": [
+        0,
+        0
+      ],
+      "nativeDeltaBytes": 84361216,
+      "renderer": {
+        "geometries": 368,
+        "textures": 490,
+        "programs": 582
+      },
+      "heap": {
+        "usedSize": 450245052,
+        "totalSize": 574504960,
+        "embedderHeapUsedSize": 27756144,
+        "backingStorageSize": 470354825
+      },
+      "ledgerTotals": {
+        "gpu": 352928722,
+        "ram": 332339903
+      },
+      "siteBuffers": 2887788,
+      "depth": 17520768,
+      "luts": 0,
+      "process": {
+        "browser": 659441664,
+        "renderer": 1369217024,
+        "gpu": 1321502720
+      },
+      "depthAllocations": [
+        {
+          "id": "gpu:14404",
+          "domain": "gpu",
+          "kind": "texture",
+          "bytes": 4380192,
+          "precision": "exact",
+          "owner": "engine/render-target",
+          "asset": "EffectComposer.Buffer/depth/Texture"
+        },
+        {
+          "id": "gpu:20849",
+          "domain": "gpu",
+          "kind": "texture",
+          "bytes": 4380192,
+          "precision": "exact",
+          "owner": "engine/render-target",
+          "asset": "EffectComposer.Buffer/depth/Texture"
+        },
+        {
+          "id": "gpu:27338",
+          "domain": "gpu",
+          "kind": "texture",
+          "bytes": 4380192,
+          "precision": "exact",
+          "owner": "engine/render-target",
+          "asset": "EffectComposer.Buffer/depth/Texture"
+        },
+        {
+          "id": "gpu:33664",
+          "domain": "gpu",
+          "kind": "texture",
+          "bytes": 4380192,
+          "precision": "exact",
+          "owner": "engine/render-target",
+          "asset": "EffectComposer.Buffer/depth/Texture"
+        }
+      ],
+      "topOwnerDeltas": [
+        {
+          "domain": "gpu",
+          "owner": "scene:region:driftwood-isle",
+          "kind": "buffer",
+          "bytes": 26989223,
+          "count": 306,
+          "deltaBytes": 16179255,
+          "deltaCount": 228
+        },
+        {
+          "domain": "gpu",
+          "owner": "engine/render-target",
+          "kind": "texture",
+          "bytes": 48825244,
+          "count": 29,
+          "deltaBytes": 13140576,
+          "deltaCount": 3
+        },
+        {
+          "domain": "ram",
+          "owner": "scene:near-placeholder",
+          "kind": "array-buffer",
+          "bytes": 8864984,
+          "count": 17,
+          "deltaBytes": 3859620,
+          "deltaCount": 6
+        },
+        {
+          "domain": "ram",
+          "owner": "far.windmill",
+          "kind": "array-buffer",
+          "bytes": 708396,
+          "count": 4,
+          "deltaBytes": 708396,
+          "deltaCount": 4
+        },
+        {
+          "domain": "ram",
+          "owner": "scene:region:driftwood-isle",
+          "kind": "array-buffer",
+          "bytes": 9115407,
+          "count": 76,
+          "deltaBytes": 468127,
+          "deltaCount": 3
+        },
+        {
+          "domain": "ram",
+          "owner": "far.crown.ruin",
+          "kind": "array-buffer",
+          "bytes": 464100,
+          "count": 6,
+          "deltaBytes": 464100,
+          "deltaCount": 6
+        },
+        {
+          "domain": "ram",
+          "owner": "scene:far-proxy-light",
+          "kind": "array-buffer",
+          "bytes": 320832,
+          "count": 2,
+          "deltaBytes": 320832,
+          "deltaCount": 2
+        },
+        {
+          "domain": "gpu",
+          "owner": "engine/scene",
+          "kind": "texture",
+          "bytes": 2969676,
+          "count": 36,
+          "deltaBytes": 171396,
+          "deltaCount": 13
+        },
+        {
+          "domain": "ram",
+          "owner": "far.notes",
+          "kind": "array-buffer",
+          "bytes": 158664,
+          "count": 2,
+          "deltaBytes": 158664,
+          "deltaCount": 2
+        },
+        {
+          "domain": "ram",
+          "owner": "engine/scene",
+          "kind": "array-buffer",
+          "bytes": 696256,
+          "count": 260,
+          "deltaBytes": 143844,
+          "deltaCount": 25
+        },
+        {
+          "domain": "ram",
+          "owner": "far.keeper.stand",
+          "kind": "array-buffer",
+          "bytes": 70644,
+          "count": 4,
+          "deltaBytes": 70644,
+          "deltaCount": 4
+        },
+        {
+          "domain": "ram",
+          "owner": "scene:props110",
+          "kind": "array-buffer",
+          "bytes": 70992,
+          "count": 5,
+          "deltaBytes": 47328,
+          "deltaCount": 3
+        }
+      ]
+    },
+    {
+      "label": "return-4",
+      "ghosts": [
+        0,
+        0
+      ],
+      "nativeDeltaBytes": 82460672,
+      "renderer": {
+        "geometries": 372,
+        "textures": 491,
+        "programs": 584
+      },
+      "heap": {
+        "usedSize": 448696708,
+        "totalSize": 581386240,
+        "embedderHeapUsedSize": 25775440,
+        "backingStorageSize": 464150132
+      },
+      "ledgerTotals": {
+        "gpu": 357454666,
+        "ram": 332102679
+      },
+      "siteBuffers": 2900748,
+      "depth": 21900960,
+      "luts": 143748,
+      "process": {
+        "browser": 659523584,
+        "renderer": 1372887040,
+        "gpu": 1315932160
+      },
+      "depthAllocations": [
+        {
+          "id": "gpu:14404",
+          "domain": "gpu",
+          "kind": "texture",
+          "bytes": 4380192,
+          "precision": "exact",
+          "owner": "engine/render-target",
+          "asset": "EffectComposer.Buffer/depth/Texture"
+        },
+        {
+          "id": "gpu:20849",
+          "domain": "gpu",
+          "kind": "texture",
+          "bytes": 4380192,
+          "precision": "exact",
+          "owner": "engine/render-target",
+          "asset": "EffectComposer.Buffer/depth/Texture"
+        },
+        {
+          "id": "gpu:27338",
+          "domain": "gpu",
+          "kind": "texture",
+          "bytes": 4380192,
+          "precision": "exact",
+          "owner": "engine/render-target",
+          "asset": "EffectComposer.Buffer/depth/Texture"
+        },
+        {
+          "id": "gpu:33664",
+          "domain": "gpu",
+          "kind": "texture",
+          "bytes": 4380192,
+          "precision": "exact",
+          "owner": "engine/render-target",
+          "asset": "EffectComposer.Buffer/depth/Texture"
+        },
+        {
+          "id": "gpu:39829",
+          "domain": "gpu",
+          "kind": "texture",
+          "bytes": 4380192,
+          "precision": "exact",
+          "owner": "engine/render-target",
+          "asset": "EffectComposer.Buffer/depth/Texture"
+        }
+      ],
+      "topOwnerDeltas": [
+        {
+          "domain": "gpu",
+          "owner": "scene:region:driftwood-isle",
+          "kind": "buffer",
+          "bytes": 36699431,
+          "count": 357,
+          "deltaBytes": 25889463,
+          "deltaCount": 279
+        },
+        {
+          "domain": "gpu",
+          "owner": "engine/render-target",
+          "kind": "texture",
+          "bytes": 53205436,
+          "count": 30,
+          "deltaBytes": 17520768,
+          "deltaCount": 4
+        },
+        {
+          "domain": "ram",
+          "owner": "scene:near-placeholder",
+          "kind": "array-buffer",
+          "bytes": 8864984,
+          "count": 17,
+          "deltaBytes": 3859620,
+          "deltaCount": 6
+        },
+        {
+          "domain": "ram",
+          "owner": "far.windmill",
+          "kind": "array-buffer",
+          "bytes": 708396,
+          "count": 4,
+          "deltaBytes": 708396,
+          "deltaCount": 4
+        },
+        {
+          "domain": "ram",
+          "owner": "scene:region:driftwood-isle",
+          "kind": "array-buffer",
+          "bytes": 9115407,
+          "count": 76,
+          "deltaBytes": 468127,
+          "deltaCount": 3
+        },
+        {
+          "domain": "ram",
+          "owner": "far.crown.ruin",
+          "kind": "array-buffer",
+          "bytes": 464100,
+          "count": 6,
+          "deltaBytes": 464100,
+          "deltaCount": 6
+        },
+        {
+          "domain": "ram",
+          "owner": "scene:far-proxy-light",
+          "kind": "array-buffer",
+          "bytes": 320832,
+          "count": 2,
+          "deltaBytes": 320832,
+          "deltaCount": 2
+        },
+        {
+          "domain": "ram",
+          "owner": "BackdropLayer",
+          "kind": "array-buffer",
+          "bytes": 478856,
+          "count": 28,
+          "deltaBytes": 170592,
+          "deltaCount": 12
+        },
+        {
+          "domain": "ram",
+          "owner": "far.notes",
+          "kind": "array-buffer",
+          "bytes": 158664,
+          "count": 2,
+          "deltaBytes": 158664,
+          "deltaCount": 2
+        },
+        {
+          "domain": "ram",
+          "owner": "far.keeper.stand",
+          "kind": "array-buffer",
+          "bytes": 70644,
+          "count": 4,
+          "deltaBytes": 70644,
+          "deltaCount": 4
+        },
+        {
+          "domain": "gpu",
+          "owner": "engine/scene",
+          "kind": "buffer",
+          "bytes": 3795092,
+          "count": 185,
+          "deltaBytes": 62172,
+          "deltaCount": 1
+        },
+        {
+          "domain": "gpu",
+          "owner": "scene:region:driftwood-isle",
+          "kind": "texture",
+          "bytes": 46180,
+          "count": 21,
+          "deltaBytes": 46180,
+          "deltaCount": 21
+        }
+      ]
+    },
+    {
+      "label": "return-5",
+      "ghosts": [
+        0,
+        0
+      ],
+      "nativeDeltaBytes": 104087552,
+      "renderer": {
+        "geometries": 372,
+        "textures": 492,
+        "programs": 586
+      },
+      "heap": {
+        "usedSize": 415512976,
+        "totalSize": 583286784,
+        "embedderHeapUsedSize": 16941352,
+        "backingStorageSize": 463316113
+      },
+      "ledgerTotals": {
+        "gpu": 361834858,
+        "ram": 332145359
+      },
+      "siteBuffers": 2887788,
+      "depth": 26281152,
+      "luts": 143748,
+      "process": {
+        "browser": 660097024,
+        "renderer": 1392023552,
+        "gpu": 1318422528
+      },
+      "depthAllocations": [
+        {
+          "id": "gpu:14404",
+          "domain": "gpu",
+          "kind": "texture",
+          "bytes": 4380192,
+          "precision": "exact",
+          "owner": "engine/render-target",
+          "asset": "EffectComposer.Buffer/depth/Texture"
+        },
+        {
+          "id": "gpu:20849",
+          "domain": "gpu",
+          "kind": "texture",
+          "bytes": 4380192,
+          "precision": "exact",
+          "owner": "engine/render-target",
+          "asset": "EffectComposer.Buffer/depth/Texture"
+        },
+        {
+          "id": "gpu:27338",
+          "domain": "gpu",
+          "kind": "texture",
+          "bytes": 4380192,
+          "precision": "exact",
+          "owner": "engine/render-target",
+          "asset": "EffectComposer.Buffer/depth/Texture"
+        },
+        {
+          "id": "gpu:33664",
+          "domain": "gpu",
+          "kind": "texture",
+          "bytes": 4380192,
+          "precision": "exact",
+          "owner": "engine/render-target",
+          "asset": "EffectComposer.Buffer/depth/Texture"
+        },
+        {
+          "id": "gpu:39829",
+          "domain": "gpu",
+          "kind": "texture",
+          "bytes": 4380192,
+          "precision": "exact",
+          "owner": "engine/render-target",
+          "asset": "EffectComposer.Buffer/depth/Texture"
+        },
+        {
+          "id": "gpu:46058",
+          "domain": "gpu",
+          "kind": "texture",
+          "bytes": 4380192,
+          "precision": "exact",
+          "owner": "engine/render-target",
+          "asset": "EffectComposer.Buffer/depth/Texture"
+        }
+      ],
+      "topOwnerDeltas": [
+        {
+          "domain": "gpu",
+          "owner": "engine/render-target",
+          "kind": "texture",
+          "bytes": 57585628,
+          "count": 31,
+          "deltaBytes": 21900960,
+          "deltaCount": 5
+        },
+        {
+          "domain": "ram",
+          "owner": "scene:near-placeholder",
+          "kind": "array-buffer",
+          "bytes": 8864984,
+          "count": 17,
+          "deltaBytes": 3859620,
+          "deltaCount": 6
+        },
+        {
+          "domain": "ram",
+          "owner": "far.windmill",
+          "kind": "array-buffer",
+          "bytes": 708396,
+          "count": 4,
+          "deltaBytes": 708396,
+          "deltaCount": 4
+        },
+        {
+          "domain": "ram",
+          "owner": "far.crown.ruin",
+          "kind": "array-buffer",
+          "bytes": 464100,
+          "count": 6,
+          "deltaBytes": 464100,
+          "deltaCount": 6
+        },
+        {
+          "domain": "ram",
+          "owner": "scene:far-proxy-light",
+          "kind": "array-buffer",
+          "bytes": 320832,
+          "count": 2,
+          "deltaBytes": 320832,
+          "deltaCount": 2
+        },
+        {
+          "domain": "ram",
+          "owner": "BackdropLayer",
+          "kind": "array-buffer",
+          "bytes": 521504,
+          "count": 31,
+          "deltaBytes": 213240,
+          "deltaCount": 15
+        },
+        {
+          "domain": "ram",
+          "owner": "far.notes",
+          "kind": "array-buffer",
+          "bytes": 158664,
+          "count": 2,
+          "deltaBytes": 158664,
+          "deltaCount": 2
+        },
+        {
+          "domain": "ram",
+          "owner": "far.keeper.stand",
+          "kind": "array-buffer",
+          "bytes": 70644,
+          "count": 4,
+          "deltaBytes": 70644,
+          "deltaCount": 4
+        },
+        {
+          "domain": "ram",
+          "owner": "grid.view:far-reach",
+          "kind": "array-buffer",
+          "bytes": 2004,
+          "count": 2,
+          "deltaBytes": 2004,
+          "deltaCount": 2
+        },
+        {
+          "domain": "ram",
+          "owner": "far.winch",
+          "kind": "array-buffer",
+          "bytes": 1896,
+          "count": 8,
+          "deltaBytes": 1896,
+          "deltaCount": 8
+        },
+        {
+          "domain": "gpu",
+          "owner": "scene:driftwood-kit-still",
+          "kind": "buffer",
+          "bytes": 1528,
+          "count": 4,
+          "deltaBytes": 720,
+          "deltaCount": 2
+        },
+        {
+          "domain": "ram",
+          "owner": "engine/scene",
+          "kind": "array-buffer",
+          "bytes": 552572,
+          "count": 275,
+          "deltaBytes": 160,
+          "deltaCount": 40
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "Diagnostic only; no acceptance or Simulator/physical-device claim.",
+    "Same exact fbb source reopened after plain acceptance cleanup; new build stamp.",
+    "No forced GC: heap used is not retained heap. backingStorageSize includes ArrayBuffers and external strings.",
+    "Ledger capacities/identities are incomplete native-memory attribution.",
+    "The 186 MB plain-acceptance first-return spike did not reproduce; this visit cannot name its cause."
+  ],
+  "findings": {
+    "depthDeltaBytes": 21900960,
+    "depthAddedTextures": 5,
+    "depthBytesPerReturn": 4380192,
+    "siteBuffersBaselineFinal": [
+      2887788,
+      2887788
+    ],
+    "lutBaselineFinal": [
+      143748,
+      143748
+    ],
+    "followup": "sp-x9 owns composer depth lifecycle follow-up from acda59debf; ledger regression then T1 rerun."
+  }
+}
