@@ -9,8 +9,7 @@ import type { World } from '../src/engine/core/bootstrap';
 import { Physics } from '../src/engine/physics/Physics';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { RopeChain } from '../src/engine/physics/ropeChain';
-import { shardContext, ShardPlugin, type ShardContext } from '../src/game/plugin/context';
-import { declaredRuntimeEntry } from '../src/game/shard/declaredEntry';
+import { shardContext, ShardPlugin, standaloneHybridEntry, type ShardContext } from '../src/game/plugin/context';
 import { hybridInstallation } from '../src/game/shardfile/hybrid';
 import { bindResidentWorldScope, boundResidentWorldScope } from '../src/game/shardfile/hybridPresentation';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
@@ -191,7 +190,7 @@ test('standalone hybridInstallation owns exactly one entered client drive',async
   }finally{install.mockRestore();scope.dispose();}
 });
 
-test('a direct NativeEntry leaves the original rest and native handles without a client drive',async()=>{
+test('the held legacy standalone entry leaves original rest and native handles without a client drive',async()=>{
   const {ctx,scope}=fixture([platform],false),group=new Group();
   const R=await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm'))),physics=new Physics(R),host=await movers.createMoverHost([platform],new Map(),()=>[]);
   const result=new movers.MoverRuntime([platform],{scope,host,physics}),saved=result.snapshotBodies();
@@ -203,8 +202,8 @@ test('a direct NativeEntry leaves the original rest and native handles without a
       expect(await installClientMoverOwners(context,{system:'original.movers',bindings:[{id:platform.id,kind:'object',owner:'boat'}]})).toBeUndefined();completed=true;
     }
   }
-  const entry=declaredRuntimeEntry(Native,Native,{entry:'fixture.ts',retainHomeRuntime:false,stagesOwner:'declared'});
-  const NativeEntry=entry.default,native=new NativeEntry(undefined,()=>Promise.reject(new Error('Native must not admit a second hybrid')),()=>false);
+  const NativeEntry=standaloneHybridEntry(Native,()=>Promise.reject(new Error('Native must not admit a second hybrid')),()=>false,'Legacy fixture');
+  const native=new NativeEntry();
   const install=vi.spyOn(movers,'installDeclaredMovers'),system=vi.spyOn(ctx,'system');
   try{
     await native.world(ctx);expect(completed).toBe(true);expect(boundResidentWorldScope(scope)).toBeUndefined();

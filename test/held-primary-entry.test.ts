@@ -5,7 +5,7 @@ import type { ShardContext } from '../src/game/plugin/context';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import { HeldClaims } from '../src/game/loadout/claims';
 import { ShardPlugin } from '../src/game/shard/plugin';
-import { declaredRuntimeEntry } from '../src/game/shard/declaredEntry';
+import { declaredClientPlanEntry } from '../src/game/shard/declaredEntry';
 import { HybridRuntimeSession, type HybridResident } from '../src/game/shardfile/hybrid';
 import { Vector3 } from 'three';
 import { heldSwordWorld } from './fixtures/heldNativeSword';
@@ -94,21 +94,19 @@ test('primary rows reject callbacks, unknown fields and repeated tools before re
 });
 
 
-test('the actual native entry runs the primary kit once between its original world and play', async () => {
-  const f = fixture(), order: string[] = [], item = f.ctx.product.shardfile.items.rows.find(row => row.id === 'weapon.jian');
+test('the compiled entry runs the primary kit once before play consumes its exact profile', async () => {
+  const f = fixture(), item = f.ctx.product.shardfile.items.rows.find(row => row.id === 'weapon.jian');
   if (item?.kind !== 'weapon') throw new Error('Missing fixture weapon');
   const expected=v.parse(MeleeWeaponProfileSchema,item.profile);
-  const install=f.weapon;install.mockImplementation(()=>{order.push('kit');});
-  class Native extends ShardPlugin {
-    override world(): void { order.push('world'); }
-    override play(ctx: ShardContext): void { expect(entryOwner(ctx.scope, 'claims', 'primary.claims').melee().profile).toEqual(expected); order.push('play'); }
-  }
-  const Entry = declaredRuntimeEntry(Native, Native, { entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'declared', nativePlan: { phases: ['kit'] } }).default;
+  const install=f.weapon;
+  const Entry = declaredClientPlanEntry({ retainHomeRuntime: true, stagesOwner: 'declared' }).default;
   const plugin = new Entry(undefined, undefined, () => false);
   try {
     await plugin.world(f.ctx); expect(install).not.toHaveBeenCalled();
-    await plugin.kit(f.ctx); await plugin.play(f.ctx);
-    expect(order).toEqual(['world', 'kit', 'play']); expect(install).toHaveBeenCalledOnce(); expect(f.tool).toHaveBeenCalledOnce();
+    await plugin.kit(f.ctx); expect(install).toHaveBeenCalledOnce();
+    await plugin.play(f.ctx);
+    expect(entryOwner(f.ctx.scope, 'claims', 'primary.claims').melee().profile).toEqual(expected);
+    expect(install).toHaveBeenCalledOnce(); expect(f.tool).toHaveBeenCalledOnce();
   } finally { f.parent.dispose(); }
 });
 
