@@ -13,12 +13,11 @@ export function installShadowMaterialOwnership(renderer: ShadowRenderer, assets:
   renderer.renderBufferDirect = (camera, scene, geometry, material, object, group) => {
     if (!admitObjectDraw(camera, scene, geometry, material, object, group)) return;
     if (drawing && (material instanceof MeshDepthMaterial || material instanceof MeshDistanceMaterial) &&
-      material !== object.customDepthMaterial && material !== object.customDistanceMaterial) {
+      // asked by resource, not by key: a key string per shadow draw was garbage on every frame
+      material !== object.customDepthMaterial && material !== object.customDistanceMaterial && !assets.isAcquired(material)) {
       const key = `renderer:shadow:${material.uuid}`;
-      if (!assets.has(key)) {
-        assets.register(key, material, { retain: true });
-        scope.listenOnceEmitter(material, 'dispose', () => { assets.forgetDisposed(key); });
-      }
+      assets.register(key, material, { retain: true });
+      scope.listenOnceEmitter(material, 'dispose', () => { assets.forgetDisposed(key); });
     }
     draw(camera, scene, geometry, material, object, group);
   };
