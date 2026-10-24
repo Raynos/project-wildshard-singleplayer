@@ -59,3 +59,10 @@ test('an unending preparation hits the unchanged whole-leg deadline and cannot p
   expect(await f.result).toMatchObject({ stuck: [], complete: false, timedOut: true });
   expect(f.position.x).toBe(0); expect(f.stopped()).toBe(true);
 });
+
+test('a closed frame gate still reaches the same wall-clock deadline without more callbacks', async () => {
+  const f = await fixture();
+  await vi.advanceTimersByTimeAsync(8_000);
+  expect(await f.result).toMatchObject({ trace: [], stuck: [], complete: false, timedOut: true });
+  expect(f.stopped()).toBe(true);
+});

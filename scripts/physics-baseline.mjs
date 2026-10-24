@@ -336,6 +336,11 @@ if (MODE.includes('walk')) {
       if (ONLY_LEG && selected.length === 0) throw new Error(`Unknown leg ${ONLY_LEG} in ${shard}`);
       for (const leg of selected.flatMap((routeLeg) => Array.from({ length: REPEAT }, () => routeLeg))) {
         const r = await page.evaluate(walkPhysicsLeg, leg);
+        const grid = ENTRY === 'shard' ? undefined : await page.evaluate(() => {
+          const api = window.__wildshard;
+          return { live: api.shard.grid.state().live, clock: api.app.clock, frameGate: api.world.game.frameGate(),
+            entered: api.world.hud.entered, paused: api.world.hud.paused };
+        });
         const ys = r.trace.map((s) => s[2]);
         const last = r.trace.at(-1) ?? [0, Number.NaN, Number.NaN, Number.NaN];
         const speeds = [];
@@ -348,9 +353,11 @@ if (MODE.includes('walk')) {
           airFrames: r.trace.filter((s) => s[5] === 0).length, swimFrames: r.trace.filter((s) => s[7] === 1).length, slideFrames: r.trace.filter((s) => s[8] === 1).length,
           stuck: r.stuck, trace: r.trace, ...(leg.inside ? { out: r.out, minY: Math.round(Math.min(...ys) * 100) / 100 } : {}),
           complete: r.complete, timedOut: r.timedOut,
+          grid,
         };
         result.walk.push(summary);
         console.error(`  ${leg.name}: ${summary.seconds}s end y ${summary.end.y} (expect ${summary.expectY ?? '?'}) stuck ${summary.stuck.length}${leg.inside ? ` · out ${r.out} frames, min y ${summary.minY}` : ''}`);
+        if (!r.complete || r.timedOut) break;
       }
       result.walkErrors = [...(result.walkErrors ?? []), ...errors.map((e) => `${shard}: ${e}`)];
     } finally {

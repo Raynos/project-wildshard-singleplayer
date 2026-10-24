@@ -24,8 +24,18 @@ export async function walkPhysicsLeg(legIn) {
   const t0 = performance.now();
   await new Promise((resolve) => {
     let stop = () => { /* assigned before the first simulation frame */ };
+    let cancelDeadline = () => { /* assigned before the first simulation frame */ };
+    const finish = (finished) => {
+      if (wi < 0) return;
+      complete = finished; timedOut = !finished;
+      w.game.app.input.clear(); if (legIn.start.hover === true) p.setHover(false);
+      wi = -1; cancelDeadline(); stop(); resolve(undefined);
+    };
+    // A closed frame gate stops dt callbacks too; it must not strand the proof.
+    const deadline = setTimeout(() => { finish(false); }, (legIn.timeout ?? 60) * 1000);
+    cancelDeadline = () => { clearTimeout(deadline); };
     stop = w.game.watchFrames((dt) => {
-      if (wi >= legIn.waypoints.length || t > (legIn.timeout ?? 60)) { if (wi !== -1) { complete = wi >= legIn.waypoints.length; timedOut = !complete; w.game.app.input.clear(); if (legIn.start.hover === true) p.setHover(false); wi = -1; stop(); resolve(undefined); } return; }
+      if (wi >= legIn.waypoints.length || t > (legIn.timeout ?? 60)) { if (wi !== -1) finish(wi >= legIn.waypoints.length); return; }
       if (wi < 0) return;
       t += dt;
       const wp = legIn.waypoints[wi];
