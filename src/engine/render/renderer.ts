@@ -8,6 +8,7 @@ import * as THREE from 'three';
 import { installGpuLabels, labelledCreation } from './gpuLabels';
 import { installFrameCounter } from './frameCounter';
 import { installDiagnosticJournal } from './diagnosticJournal';
+import { installDoubleElements } from './doubleElements';
 import { installShadowMaterialOwnership } from './shadowMaterialOwnership';
 import type { AssetService } from '../app/assets';
 import type { Scope } from '../app/scope';
@@ -24,6 +25,7 @@ export function probeRenderer(): Renderer {
 
 /** Create the client renderer and install upload observation before native shadow-cache ownership. */
 export function createRenderer(canvas: HTMLCanvasElement, context: WebGL2RenderingContext, ownership: { assets: AssetService; scope: Scope; uploads: UploadOwnership }): Renderer {
+  installDoubleElements();
   const stopJournal = installDiagnosticJournal(context);
   const renderer = labelledCreation('engine/renderer', 'builtin/renderer-initialization', () => new THREE.WebGLRenderer({ canvas, context, antialias: false, stencil: false, depth: true }));
   ownership.uploads.attach(renderer);
