@@ -1,4 +1,4 @@
-// Plain Node grid admission of a native shard through its declared trusted headless entry (SF72 gridReady): the same
+// Plain Node grid admission through the built native plan or a direct typed proof factory (SF72 gridReady): the same
 // GridAssembly / GridSimulation / ResidencyAllocator path the template's proof runs, with the cell's `load` composing the
 // shard's trusted runtime exactly as the headless worker does (`createTrustedHeadlessResident`, @wildshard/sdk/headlessRuntime).
 // oxlint-disable-next-line import/no-nodejs-modules -- Native witness assertions must fail the process.
@@ -18,6 +18,7 @@ import { GridAssembly } from '../../../src/game/grid/assembly.ts';
 import { GridSimulation } from '../../../src/game/grid/simulation.ts';
 import { ResidencyAllocator } from '../../../src/game/grid/allocator.ts';
 import { createTrustedHeadlessResident } from '../../../src/sdk/headlessRuntime.ts';
+import { createNativeProofResident } from '../../fixtures/headless-native.ts';
 
 /** The Developer grid, where the catalogue places the native shards' cells. */
 const DEVELOPER = Object.freeze({ developer: true, devserver: false });
@@ -32,19 +33,16 @@ const regionDigest = (host) => {
 const bodies = (host) => JSON.stringify([host.state.tick, ...[...host.entities].map(([id, actor]) => [id, actor.alive, actor.hp, actor.position.x, actor.position.y, actor.position.z])]);
 
 /**
- * Admit `source` (a native shard whose shardfile declares `runtime.entry`) into its catalogue grid cell and walk the
+ * Admit `source` through its native data plan or direct typed factory into its catalogue grid cell and walk the
  * template's readiness contract: one sim lease reserved before native physics, readiness false until the runtime fence
  * admits, `checkpoint` refused until durable, a frozen region while away, and the durable continuation restored on re-entry
  * through the same trusted entry. The template's door/script step (natives declare no script door) becomes play on the
  * region's own clock: a hurt creature, or a lent weapon swing where the region has no fauna (Nine Dragon Stack).
  */
-export async function proveTrustedGridReady(source, mode = DEVELOPER) {
+export async function proveTrustedGridReady(source, mode = DEVELOPER, prepare = null) {
   assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefined');
   installAppIdentity(WILDSHARD_IDENTITY);
-  const slug = source.identity.slug, declared = source.runtime?.entry;
-  // The declared trusted entry is the shardfile's `runtime.entry`; its renderer-free sibling is the one the worker and witness load.
-  assert.equal(declared, 'runtime/index.ts', 'A native grid cell needs a declared trusted runtime');
-  const module = new URL('headless.ts', new URL(`src/shards/${slug}/${declared}`, ROOT)).href;
+  const slug = source.identity.slug;
   const rapier = await loadRapier(readFileSync(new URL('public/assets/physics/rapier.wasm', ROOT)));
   const assets = new Map(source.files.map(file => [file.hash, bytes(slug, file.hash)]));
   const templateAssets = readTemplateAssets();
@@ -66,7 +64,12 @@ export async function proveTrustedGridReady(source, mode = DEVELOPER) {
       if (snapshot !== undefined) restored++;
       const { loadHeadlessProduct } = await import('../../../src/sdk/headlessProduct.ts');
       const product = await loadHeadlessProduct(`out/${slug}`);
-      resident = await createTrustedHeadlessResident({ shard: source, assets, rapier, product }, product.has('sim/runtime-plan') ? undefined : { module }, snapshot);
+      const preparation={shard:source,assets,rapier,product};
+      if(product.has('sim/runtime-plan')) resident=await createTrustedHeadlessResident(preparation,undefined,snapshot);
+      else {
+        assert.equal(typeof prepare,'function','A native proof needs its direct typed factory');
+        resident=await createNativeProofResident(preparation,prepare,snapshot);
+      }
       assert.equal(resident.effects.length, 0, 'Admission emits no gameplay');
       return resident;
     },
@@ -100,7 +103,7 @@ export async function proveTrustedGridReady(source, mode = DEVELOPER) {
     if (actor !== undefined) assert.equal(resident.host.entities.get(actorId)?.hp, hurt);
     assert.equal(resident.host.state.tick, tick); assert.equal(regionDigest(resident.host), digest, 'Re-entry restores the durable continuation');
     assert.equal(loads, 2); assert.equal(restored, 1);
-    return { slug, instance, entry: module.slice(ROOT.href.length), native: true, gridReady: true, reserveBeforePhysics: true, runtimeFence: true, refusedSave: true,
+    return { slug, instance, entry: typeof prepare==='function' ? 'direct native proof' : 'sim/runtime-plan', native: true, gridReady: true, reserveBeforePhysics: true, runtimeFence: true, refusedSave: true,
       restoredContinuation: true, played: actor === undefined ? 'swing' : 'hurt', ...(actor === undefined ? {} : { restoredHp: hurt }), frozenTicks: 5, loads, effects };
   } finally {
     grid.dispose();

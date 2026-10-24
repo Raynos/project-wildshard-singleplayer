@@ -22,7 +22,7 @@ const { loadHeadlessProduct } = await import('../../../src/sdk/headlessProduct.t
 const product = await loadHeadlessProduct('out/nine-dragon-stack');
 const assemblyFiles = ['sim/headless-assembly.json', 'sim/headless-constants.json'].map(name => product.url(name));
 installAppIdentity(WILDSHARD_IDENTITY);
-function inputFiles() { return [...loaded, ...assemblyFiles, ...['src/shards/nine-dragon-stack/data/headlessAssembly.json', 'test/proof/nine-dragon-stack/run.mjs', 'scripts/sim-node-loader.mjs', 'pnpm-lock.yaml', 'public/assets/physics/rapier.wasm'].map(path => new URL(path, ROOT).href)]; }
+function inputFiles() { return [...loaded, ...assemblyFiles, ...['src/shards/nine-dragon-stack/data/headlessAssembly.json', 'test/proof/nine-dragon-stack/run.mjs', 'test/fixtures/headless/worker.ts', 'scripts/sim-node-loader.mjs', 'pnpm-lock.yaml', 'public/assets/physics/rapier.wasm'].map(path => new URL(path, ROOT).href)]; }
 function inputs() {
   const files = [...new Set(inputFiles())].sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
   const hash = createHash('sha256');

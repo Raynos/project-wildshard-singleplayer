@@ -12,9 +12,11 @@ import { createHash } from 'node:crypto';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import { canonicalSimDigest } from '../../fake/simState';
 import { decodeSimSnapshot } from '../../../src/engine/sim/snapshot';
-import { createTrustedHeadlessAdapter } from '../../../src/sdk/headlessRuntime';
+import { createNativeProofAdapter } from '../../fixtures/headless-native';
+import { prepareHeadlessRuntime } from '../../fixtures/nine-headless';
 import { loadHeadlessProduct } from '../../../src/sdk/headlessProduct';
-import { HeadlessSimulation } from '../../../src/sdk/headless';
+import type { TickWorkerHost } from '../../../src/sdk/tickWorkerHost';
+import { createNativeProofWorker } from '../../fixtures/headless-worker';
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import { SaveStore, type SaveStorage } from '../../../src/engine/saves/store';
 import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/ledger';
@@ -27,8 +29,8 @@ import portalPlan from '../../../src/shards/nine-dragon-stack/world/portalPlan.g
 const { aim: GRAPPLE_AIM, lock: GRAPPLE_LOCK, step: GRAPPLE_STEP } = grappleProfile.headless;
 
 /**
- * Nine Dragon Stack's whole-shard witness (E435 §C / SF72) on its generated native proof module map,
- * through the platform's own trusted adapter (`createTrustedHeadlessAdapter`: the plan's level and ports, one install, the
+ * Nine Dragon Stack's whole-shard witness (E435 §C / SF72) using direct typed native composition,
+ * through its direct native proof adapter (`createNativeProofAdapter`: the plan's level and ports, one install, the
  * tick's commands lent to the runtime, a committed snapshot per tick). The tape is tick commands only, tapping the Jian
  * all the way: the player walks the square's declared route (portalPlan.ts `SQUARE_ROUTE`) from the spawn into the ring
  * out, rides to the north deck, steps out of the deck's ring and back in, and rides home to the square (two play-time
@@ -37,7 +39,7 @@ const { aim: GRAPPLE_AIM, lock: GRAPPLE_LOCK, step: GRAPPLE_STEP } = grappleProf
  * across the Well (runtime/grapple.ts over the page's own law, grapple/sim.ts): the lifting crossing, the safety cap open
  * while it flies. Headless: the whole tape, then the adapter's `finish` runs the
  * portal-link entry proof (every deck lane, every bound transfer). Replay: generated checkpoints mid-swing AND mid-ride
- * and mid-crossing restore exactly, then each short suffix matches in process and in the shipping worker, including
+ * and mid-crossing restore exactly, then each short suffix matches in process and in the fixed proof worker, including
  * every tick's canonical state and committed effects.
  * Ledger (G285): the same tape's committed `fact` effects (the ride home lands in Lantern Square; the Fei Zhua's lifting
  * crossing settles over the Well) go through the platform Ledger under their declared rules: each achievement granted
@@ -72,7 +74,6 @@ const assets = new Map(descriptor.index.files.map(file => {
   if(bytes.length!==file.compressed||createHash('sha256').update(bytes).digest('hex')!==file.hash)throw new Error('Native blob differs from output inventory');
   return [file.commons===true?`commons:${file.hash}`:file.hash,Uint8Array.from(bytes)] as const;
 }));
-const MODULE = new URL('../../fixtures/nine-headless.ts', import.meta.url).href;
 /** The walk's speed per tick (the host's 5 m/s at 60 Hz) and the north deck the square's ring sends a fresh spawn to. */
 const STEP = 5 / 60, NORTH = portalPlan.decks[0];
 if (NORTH === undefined) throw new Error('Nine Dragon declares its north deck portal');
@@ -135,7 +136,7 @@ export async function writeCheckpoints(rapier: Rapier, inputs: string): Promise<
 
 export function nineRapier(): Promise<Rapier> { return loadRapier(readFileSync(new URL('public/assets/physics/rapier.wasm', ROOT))); }
 function adapter(rapier: Rapier, snapshot?: string): Promise<TickWorkerAdapter> {
-  return createTrustedHeadlessAdapter({ shard: source, assets, rapier, product }, { module: MODULE }, snapshot);
+  return createNativeProofAdapter({ shard: source, assets, rapier, product }, prepareHeadlessRuntime, snapshot);
 }
 /** The tape: the walk, three Jian taps 12 ticks apart every 1.5 s (a chained combo, then the gap lapses). */
 function tape(tick: number): HeadlessCommand[] {
@@ -229,7 +230,7 @@ function checkCheckpoint(name: CheckpointName, snapshot: string): object {
 
 export async function replayProof(rapier: Rapier, inputs: string, name: CheckpointName): Promise<object> {
   let sim: TickWorkerAdapter | undefined, replay: TickWorkerAdapter | undefined;
-  let worker: HeadlessSimulation | undefined;
+  let worker: TickWorkerHost | undefined;
   try {
     if (checkpointsFresh(inputs).status !== 'fresh') throw new Error('Stale Nine Dragon checkpoints; regenerate from current headless inputs');
     const saved = readCheckpoint(name), { from, to } = SLICES[name];
@@ -240,7 +241,7 @@ export async function replayProof(rapier: Rapier, inputs: string, name: Checkpoi
     const end = run(sim, from, to), hash = digest(end);
     sim.dispose(); sim = undefined;
     replay = await adapter(rapier, saved.snapshot);
-    worker = await HeadlessSimulation.create(source, assets, saved.snapshot, { deadline: 'advisory', trustedRuntime: { module: MODULE } });
+    worker = await createNativeProofWorker(source, assets, 'nine', saved.snapshot);
     let replayEnd = saved.snapshot;
     for (let tick = from; tick < to; tick++) {
       const effects: HeadlessEffect[] = [];

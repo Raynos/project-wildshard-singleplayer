@@ -19,8 +19,11 @@ import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import { serializeSimSnapshot, snapshotSimHost } from '../../../src/engine/sim/snapshot';
 import { SaveStore, type SaveStorage } from '../../../src/engine/saves/store';
 import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/ledger';
-import { createTrustedHeadlessResident, type TrustedHeadlessResident } from '../../../src/sdk/headlessRuntime';
-import { HeadlessSimulation } from '../../../src/sdk/headless';
+import type { TrustedHeadlessResident } from '../../../src/sdk/headlessRuntime';
+import { createNativeProofResident } from '../../fixtures/headless-native';
+import { prepareHeadlessRuntime } from '../../fixtures/driftwood-headless';
+import type { TickWorkerHost } from '../../../src/sdk/tickWorkerHost';
+import { createNativeProofWorker } from '../../fixtures/headless-worker';
 import { TickCommandSchema, TickEffectSchema, type HeadlessCommand, type HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import { canonicalSimDigest } from '../../fake/simState';
 import { simMismatchError } from '../../fake/simMismatch';
@@ -29,8 +32,7 @@ import { playDriftwood } from './tape';
 const { actions: DRIFTWOOD_ACT, actor: DRIFTWOOD_INTERACT, step: QUEST_STEP } = policy;
 
 export const ENTRY = 'data/headlessAssembly.json';
-const ROOT = new URL('../../../', import.meta.url), MODULE = new URL('test/fixtures/driftwood-headless.ts', ROOT).href;
-const WORKER = new URL('worker.ts', import.meta.url).href;
+const ROOT = new URL('../../../', import.meta.url);
 let DIR = new URL('checkpoints/', import.meta.url), MANIFEST = new URL('manifest.json', DIR);
 /** Select a generator-owned output directory; native recorders and replay readers share this explicit port. */
 export function setCheckpointDirectory(directory: URL): void { DIR = directory; MANIFEST = new URL('manifest.json', DIR); }
@@ -64,7 +66,7 @@ function nativeAssets(product: ShardProduct): Map<string, Uint8Array> {
 }
 async function boot(rapier: Rapier, snapshot?: string): Promise<TrustedHeadlessResident> {
   const product = await loadHeadlessProduct('out/driftwood-isle');
-  return createTrustedHeadlessResident({ shard: product.shardfile, assets: nativeAssets(product), rapier, product }, { module: MODULE }, snapshot);
+  return createNativeProofResident({ shard: product.shardfile, assets: nativeAssets(product), rapier, product }, prepareHeadlessRuntime, snapshot);
 }
 function manifest(): Recorded { return v.parse(Manifest, readWitnessManifest(MANIFEST)); }
 function tape(m: Recorded): HeadlessCommand[][] {
@@ -184,7 +186,7 @@ export function checkpointsFresh(inputs: string): { status: string; inputs: stri
 /** A separate real spawn-to-reef swim, then the SDK workers dive, take the chest and surface from its earned checkpoint. */
 export async function reefProof(rapier: Rapier): Promise<object> {
   const session = await boot(rapier), local = new ProfileStorage(), ledger = profile(local), ingress = new FactIngress(ledger);
-  let worker: HeadlessSimulation | undefined, fork: TrustedHeadlessResident | undefined, workerTicks = 0;
+  let worker: TickWorkerHost | undefined, fork: TrustedHeadlessResident | undefined, workerTicks = 0;
   const still = { kind: 'player', moveX: 0, moveZ: 0, yaw: 0 } as const;
   const treasure = readNativeQuestSpots(nativeQuestSpots).rows.findIndex(row => row.id === 'reef-treasure'), spot = readNativeQuestSpots(nativeQuestSpots).rows[treasure];
   if (spot === undefined) { session.dispose(); throw new Error('Missing real reef treasure'); }
@@ -219,7 +221,7 @@ export async function reefProof(rapier: Rapier): Promise<object> {
     const restoreTick = session.host.state.tick, checkpoint = save(session);
     fork = await boot(rapier, checkpoint);
     const product = await loadHeadlessProduct('out/driftwood-isle');
-    worker = await HeadlessSimulation.create(product.shardfile, nativeAssets(product), checkpoint, { deadline: 'advisory', trustedRuntime: { module: WORKER } , sections: productHeadlessSections(product) });
+    worker = await createNativeProofWorker(product.shardfile, nativeAssets(product), 'driftwood', checkpoint, productHeadlessSections(product));
     const initial = worker.checkpoint;
     if (digest(fork) !== digest(session) || initial === undefined || canonicalSimDigest(initial.snapshot) !== digest(session)) throw new Error('Mid-dive restore was not exact');
     const wetStep = async (commands: HeadlessCommand[]): Promise<void> => {
@@ -264,7 +266,7 @@ export async function ziplineProof(rapier: Rapier): Promise<object> {
   for (const [key, value] of cp.profile) local.data.set(key, value);
   const ledger = profile(local), ingress = new FactIngress(ledger);
   const frames: { commands: HeadlessCommand[]; effects: Recorded['effects']; hash: string | null }[] = [];
-  let fork: TrustedHeadlessResident | undefined, worker: HeadlessSimulation | undefined;
+  let fork: TrustedHeadlessResident | undefined, worker: TickWorkerHost | undefined;
   session.host.events.on('player.died', () => { throw new Error('Zipline journey player died'); }, session.host.scope);
   let checkpoint: string | undefined, launchTick = 0, restoreTick = 0;
   let launch: readonly number[] = [];
@@ -295,7 +297,7 @@ export async function ziplineProof(rapier: Rapier): Promise<object> {
     const earned = Object.values(profile(local).state().achievements).find(row => row.id === 'zipline');
     if (earned?.count !== 1) throw new Error('Real landing did not persist its single zipline fact');
     const product = await loadHeadlessProduct('out/driftwood-isle');
-    worker = await HeadlessSimulation.create(product.shardfile, nativeAssets(product), checkpoint, { deadline: 'advisory', trustedRuntime: { module: WORKER } , sections: productHeadlessSections(product) });
+    worker = await createNativeProofWorker(product.shardfile, nativeAssets(product), 'driftwood', checkpoint, productHeadlessSections(product));
     if (worker.checkpoint === undefined || canonicalSimDigest(worker.checkpoint.snapshot) !== canonicalSimDigest(checkpoint)) throw new Error('SDK mid-ride restore diverged');
     for (const frame of frames) {
       const commit = await worker.step([{ source: 'witness.zipline', commands: frame.commands }]);
@@ -336,7 +338,7 @@ export async function replayProof(rapier: Rapier, workerTicks = 60): Promise<obj
   if (!Number.isInteger(workerTicks) || workerTicks < 1 || workerTicks > 1000) throw new RangeError('Invalid worker replay window');
   const m = manifest(), frames = tape(m), cp = m.checkpoints.find(row => row.name === 'captain');
   if (cp === undefined) throw new Error('No real Captain checkpoint');
-  const original = await resume(rapier, cp); let restored: TrustedHeadlessResident | undefined, worker: HeadlessSimulation | undefined;
+  const original = await resume(rapier, cp); let restored: TrustedHeadlessResident | undefined, worker: TickWorkerHost | undefined;
   try {
     const captain = [...original.host.entities.values()].find(actor => actor.kind === 'captain');
     const encounter = original.host.adapters.get(bossRows.step)?.snapshot();
@@ -344,7 +346,7 @@ export async function replayProof(rapier: Rapier, workerTicks = 60): Promise<obj
     const hp = captain.hp, checkpoint = save(original); restored = await boot(rapier, checkpoint);
     if (digest(original) !== digest(restored)) throw new Error('Mid-fight restore not exact');
     const product = await loadHeadlessProduct('out/driftwood-isle');
-    worker = await HeadlessSimulation.create(product.shardfile, nativeAssets(product), checkpoint, { deadline: 'advisory', trustedRuntime: { module: WORKER } , sections: productHeadlessSections(product) });
+    worker = await createNativeProofWorker(product.shardfile, nativeAssets(product), 'driftwood', checkpoint, productHeadlessSections(product));
     const until = Math.min(m.ticks, cp.tick + 1000), a: Recorded['effects'] = [], b: Recorded['effects'] = [];
     if (until - cp.tick < workerTicks) throw new Error('Captain tape is shorter than the requested worker replay');
     if (until - cp.tick > 10_000) throw new Error('Captain replay exceeded its 10k window');

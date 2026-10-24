@@ -20,7 +20,7 @@ await import('../../fixtures/driftwood-headless.ts');
 await import('./worker.ts');
 const witness = await import('./witness.ts');
 const { default: source } = await import('../../../src/shards/driftwood-isle/shard.config.ts');
-function inputFiles() { return new Set([...loaded, ...source.files.map(file => new URL(`src/shards/driftwood-isle/assets/${file.hash}`, ROOT).href), ...['src/shards/driftwood-isle/data/headlessAssembly.json', 'test/proof/driftwood-isle/run.mjs', 'scripts/sim-node-loader.mjs', 'pnpm-lock.yaml', 'public/assets/physics/rapier.wasm'].map(path => new URL(path, ROOT).href)]); }
+function inputFiles() { return new Set([...loaded, ...source.files.map(file => new URL(`src/shards/driftwood-isle/assets/${file.hash}`, ROOT).href), ...['src/shards/driftwood-isle/data/headlessAssembly.json', 'test/proof/driftwood-isle/run.mjs', 'test/fixtures/headless/worker.ts', 'scripts/sim-node-loader.mjs', 'pnpm-lock.yaml', 'public/assets/physics/rapier.wasm'].map(path => new URL(path, ROOT).href)]); }
 function inputs() {
   const files = inputFiles();
   const hash = createHash('sha256');
