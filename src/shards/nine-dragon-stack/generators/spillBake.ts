@@ -10,6 +10,7 @@ import { parseSignView } from './sections';
 import lantern from '../data/lantern.json' with { type: 'json' };
 import atlas from '../data/signAtlas.generated.json' with { type: 'json' };
 import { portalPlanRows } from './portalEntries';
+import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 
 const signRows = parseSignView(rawSignRows);
 
@@ -104,14 +105,43 @@ export function bakedSpill(caps: boolean, tier: 'phone' | 'desktop', atlasRows: 
  *  otherwise), and each ending's own entry decks are their own draw. */
 export function drawSpill(atlasRows: NineSpillAtlas = atlas): ReadonlyMap<string, BufferAttribute> {
   const spill = new Map<string, BufferAttribute>();
-  for (const tier of ['phone', 'desktop'] as const) for (const caps of [false, true]) for (const [name, geometry] of bakedSpill(caps, tier, atlasRows).geometry) {
-    const key = name === 'entries' ? (caps ? 'entries-capped' : 'entries-open') : name, value = geometry.getAttribute('aSpill');
-    if (!(value instanceof BufferAttribute)) throw new Error(`Nine spill ${key} is not a buffer`);
-    const known = spill.get(key);
-    if (known === undefined) spill.set(key, value);
-    else if (known.array.length !== value.array.length || known.array.some((word, i) => !Object.is(word, value.array[i]))) throw new Error(`Nine spill differs by tier or deck ending: ${key}`);
+  const shaded = new Map<string, ReadonlyMap<string, BufferAttribute>>();
+  for (const tier of ['phone', 'desktop'] as const) for (const caps of [false, true]) {
+    const input = spillInputs(caps, tier, atlasRows), identity = spillInputIdentity(input), cached = shaded.get(identity);
+    if (cached === undefined) {
+      bakeSpill([...input.geometry.values()], input.emitters);
+      shaded.set(identity, new Map([...input.geometry].map(([name, geometry]) => {
+        const attribute = geometry.getAttribute('aSpill');
+        if (!(attribute instanceof BufferAttribute)) throw new Error(`Nine spill ${name} is not a buffer`);
+        return [name, attribute];
+      })));
+    } else for (const [name, geometry] of input.geometry) {
+      const attribute = cached.get(name);
+      if (attribute === undefined) throw new Error(`Missing identical Nine spill ${name}`);
+      geometry.setAttribute('aSpill', attribute);
+    }
+    for (const [name, geometry] of input.geometry) {
+      const key = name === 'entries' ? (caps ? 'entries-capped' : 'entries-open') : name, value = geometry.getAttribute('aSpill');
+      if (!(value instanceof BufferAttribute)) throw new Error(`Nine spill ${key} is not a buffer`);
+      const known = spill.get(key);
+      if (known === undefined) spill.set(key, value);
+      else if (known.array.length !== value.array.length || known.array.some((word, i) => !Object.is(word, value.array[i]))) throw new Error(`Nine spill differs by tier or deck ending: ${key}`);
+    }
   }
   return spill;
+}
+
+/** Complete ordered inputs read by bakeSpill: typed position/normal words and every emitter scalar.
+ * Local to one draw bake; no prior program, atlas or edited input can satisfy this identity. */
+export function spillInputIdentity(input: ReturnType<typeof spillInputs>): string {
+  const attribute = (value: BufferAttribute | undefined) => value === undefined ? null : [value.array.constructor.name, value.count, value.itemSize,
+    hashImmutableBytes(new Uint8Array(value.array.buffer, value.array.byteOffset, value.array.byteLength))];
+  const geometry = [...input.geometry].map(([name, row]) => {
+    const position = row.getAttribute('position'), normal = row.getAttribute('normal');
+    return [name, attribute(position instanceof BufferAttribute ? position : undefined), attribute(normal instanceof BufferAttribute ? normal : undefined)];
+  });
+  const emitters = new Float64Array(input.emitters.flatMap(row => [...row.at, ...row.color.toArray(), row.w, row.h, row.power, row.spill]));
+  return hashImmutableBytes(new TextEncoder().encode(JSON.stringify([geometry, hashImmutableBytes(new Uint8Array(emitters.buffer))])));
 }
 
 /** Put a draw's baked spill on its geometry (its vertex count must match). */
