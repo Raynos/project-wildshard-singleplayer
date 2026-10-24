@@ -80,8 +80,9 @@ function resourceKind(resource: Disposable3): Kind {
 export class Scope {
   private closed = false;
   private cleanups = new Set<Cleanup>();
-  private children = new Set<Scope>();
-  private owned = new Set<object>();
+  // Construction slices usually own only cleanup callbacks; allocate other indexes on first use.
+  private children: Set<Scope> | undefined;
+  private owned: Set<object> | undefined;
   private detach: (() => void) | undefined;
   readonly name: string;
   private readonly parent: Scope | undefined;
@@ -90,9 +91,9 @@ export class Scope {
     this.name = name;
     this.parent = parent;
     if (parent) {
-      parent.children.add(this);
+      (parent.children ??= new Set()).add(this);
       const forget = parent.track('disposers', () => this.dispose(), this);
-      this.detach = () => { parent.children.delete(this); forget(); };
+      this.detach = () => { parent.children?.delete(this); forget(); };
       if (parent.disposed) this.detach();
     }
   }
@@ -121,9 +122,11 @@ export class Scope {
   get census(): ScopeCensus {
     const counts = emptyCensus();
     for (const cleanup of this.cleanups) counts[cleanup.kind]++;
-    for (const child of this.children) {
-      const childCounts = child.census;
-      for (const kind of Object.keys(counts) as Kind[]) counts[kind] += childCounts[kind];
+    if (this.children !== undefined) {
+      for (const child of this.children) {
+        const childCounts = child.census;
+        for (const kind of Object.keys(counts) as Kind[]) counts[kind] += childCounts[kind];
+      }
     }
     return counts;
   }
@@ -152,12 +155,13 @@ export class Scope {
   captureScope(child: Scope): () => void { return this.track('disposers', () => { child.dispose(); }, child); }
 
   private ownHandle(resource: object, kind: Kind, dispose: () => void): (() => void) | undefined {
-    if (this.owned.has(resource)) return undefined;
-    this.owned.add(resource);
+    const owned = this.owned ??= new Set();
+    if (owned.has(resource)) return undefined;
+    owned.add(resource);
     return this.track(kind, dispose);
   }
   /** True while this scope still owns `resource` (a resource disposed by anyone else is forgotten, see `own`). */
-  owns(resource: object): boolean { return this.owned.has(resource); }
+  owns(resource: object): boolean { return this.owned?.has(resource) ?? false; }
   own<T extends Disposable3>(resource: T): T {
     const forget = this.ownHandle(resource, resourceKind(resource), () => resource.dispose());
     if (forget !== undefined) this.forgetOnDispose(resource, forget);
@@ -172,7 +176,7 @@ export class Scope {
     const released = (): void => {
       if (rebinding.has(resource)) return;
       Reflect.apply(remove, resource, ['dispose', released]);
-      this.owned.delete(resource); forget();
+      this.owned?.delete(resource); forget();
     };
     Reflect.apply(add, resource, ['dispose', released]);
   }
@@ -206,10 +210,10 @@ export class Scope {
     return () => { registrations.delete(record); forget(); };
   }
 
-  private readonly domListeners = new WeakMap<EventTarget, Map<string, Map<object, () => void>>>();
+  private domListeners: WeakMap<EventTarget, Map<string, Map<object, () => void>>> | undefined;
   unlisten(target: EventTarget, type: string, fn: object, options?: boolean | EventListenerOptions): void {
     const capture = typeof options === 'boolean' ? options : options?.capture === true;
-    this.domListeners.get(target)?.get(`${type}|${String(capture)}`)?.get(fn)?.();
+    this.domListeners?.get(target)?.get(`${type}|${String(capture)}`)?.get(fn)?.();
   }
 
   listen<K extends string>(target: EventTarget, type: K,
@@ -217,8 +221,9 @@ export class Scope {
     opts?: AddEventListenerOptions): () => void {
     if (this.closed || opts?.signal?.aborted) return () => undefined;
     const key = `${type}|${String(opts?.capture === true)}`;
-    let targetListeners = this.domListeners.get(target);
-    if (!targetListeners) { targetListeners = new Map(); this.domListeners.set(target, targetListeners); }
+    const domListeners = this.domListeners ??= new WeakMap();
+    let targetListeners = domListeners.get(target);
+    if (!targetListeners) { targetListeners = new Map(); domListeners.set(target, targetListeners); }
     let listeners = targetListeners.get(key);
     if (!listeners) { listeners = new Map(); targetListeners.set(key, listeners); }
     const existing = listeners.get(fn); if (existing) return existing;
@@ -249,8 +254,8 @@ export class Scope {
     return abort;
   }
 
-  private readonly timerCancels = new Map<ReturnType<typeof setTimeout>, () => void>();
-  cancelTimer(id: ReturnType<typeof setTimeout> | 0 | undefined): void { if (id !== 0 && id !== undefined) this.timerCancels.get(id)?.(); }
+  private timerCancels: Map<ReturnType<typeof setTimeout>, () => void> | undefined;
+  cancelTimer(id: ReturnType<typeof setTimeout> | 0 | undefined): void { if (id !== 0 && id !== undefined) this.timerCancels?.get(id)?.(); }
 
   /** THREE-style subscription, released by its owner or the returned unsubscribe. */
   listenEmitter<K extends string, E>(target: {
@@ -279,28 +284,28 @@ export class Scope {
   timeout(ms: number, fn: () => void): ReturnType<typeof setTimeout> | 0 {
     if (this.closed) return 0;
     let forget = () => { /* Filled before the timer can fire. */ };
-    const id = setTimeout(() => { forget(); this.timerCancels.delete(id); if (!this.closed) withOwner(this, fn); }, ms);
-    const cancel = (): void => { clearTimeout(id); this.timerCancels.delete(id); forget(); };
-    forget = this.registration({ kind: 'timeouts', timer: id }, 'timers', cancel); this.timerCancels.set(id, cancel);
+    const id = setTimeout(() => { forget(); this.timerCancels?.delete(id); if (!this.closed) withOwner(this, fn); }, ms);
+    const cancel = (): void => { clearTimeout(id); this.timerCancels?.delete(id); forget(); };
+    forget = this.registration({ kind: 'timeouts', timer: id }, 'timers', cancel); (this.timerCancels ??= new Map()).set(id, cancel);
     return id;
   }
   interval(ms: number, fn: () => void): ReturnType<typeof setInterval> | 0 {
     if (this.closed) return 0;
     const id = setInterval(() => { if (!this.closed) withOwner(this, fn); }, ms);
     let forget = () => { /* Assigned after registration. */ };
-    const cancel = (): void => { clearInterval(id); this.timerCancels.delete(id); forget(); };
-    forget = this.registration({ kind: 'intervals', timer: id }, 'timers', cancel); this.timerCancels.set(id, cancel);
+    const cancel = (): void => { clearInterval(id); this.timerCancels?.delete(id); forget(); };
+    forget = this.registration({ kind: 'intervals', timer: id }, 'timers', cancel); (this.timerCancels ??= new Map()).set(id, cancel);
     return id;
   }
-  private readonly rafCancels = new Map<number, () => void>();
-  cancelRaf(id: number): void { this.rafCancels.get(id)?.(); }
+  private rafCancels: Map<number, () => void> | undefined;
+  cancelRaf(id: number): void { this.rafCancels?.get(id)?.(); }
   raf(fn: FrameRequestCallback): number {
     if (this.closed) return 0;
     let forget = () => { /* Filled before the frame can fire. */ };
     const native = scopeEnvironment();
-    const id = native.frame((time) => { forget(); this.rafCancels.delete(id); if (!this.closed) withOwner(this, () => fn(time)); });
-    const cancel = (): void => { native.cancelFrame(id); this.rafCancels.delete(id); forget(); };
-    forget = this.registration({ kind: 'raf' }, 'rafs', cancel); this.rafCancels.set(id, cancel);
+    const id = native.frame((time) => { forget(); this.rafCancels?.delete(id); if (!this.closed) withOwner(this, () => fn(time)); });
+    const cancel = (): void => { native.cancelFrame(id); this.rafCancels?.delete(id); forget(); };
+    forget = this.registration({ kind: 'raf' }, 'rafs', cancel); (this.rafCancels ??= new Map()).set(id, cancel);
     return id;
   }
   onDispose(fn: () => void): void { this.track('disposers', fn); }
@@ -327,8 +332,8 @@ export class Scope {
         try { cleanup.run(); } catch (error) { errors.push(error); }
       }
     } finally { this.tearing = false; }
-    this.children.clear();
-    this.owned.clear();
+    this.children?.clear();
+    this.owned?.clear();
     this.detach?.();
     this.detach = undefined;
     if (errors.length > 0) throw new AggregateError(errors,
@@ -370,8 +375,8 @@ export class Scope {
         yield { scope: this.name, kind: cleanup.kind };
       }
     } finally { this.retiring = false; }
-    this.children.clear();
-    this.owned.clear();
+    this.children?.clear();
+    this.owned?.clear();
     this.detach?.();
     this.detach = undefined;
     if (errors.length > 0) throw new AggregateError(errors,
