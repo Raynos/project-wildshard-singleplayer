@@ -246,22 +246,23 @@ browsers and the owned preview are closed; no Sim was used.
 | T10 | Milestone: M1 Simulator recording + soak; delete the whole-shard path when Jake picks; Jake's iPhone check (G558) | — | coordinator | — | Sim < 5 s warm / < 15 s cold; Jake's word | all |
 | T11 | Far landmarks survive the ring: authored landmarks beyond the N×N ring (Pine crag spires, waterfall) draw a coarse stand-in from their LOD / impostor in the coarse ring, evicted only at its edge (found by sp-o1 at 5 × 5, 10-23) | tile residency, landmark LODs | Opus sp-o1 | 0.5–1 d | Pine spawn view at 5 × 5 shows the spires and waterfall | T2 |
 
-**T1 in flight (2026-10-24, sp-x9):** `7941053755` releases hidden touch-verb
-callbacks that kept the retired Far Reach runtime/world/view scopes alive;
-mandatory real-GC coverage passes. The [five-return receipt](../../../progress/shard-platform/tile-streaming/t1-retirement-794.json)
-completed 12 clean route legs and 205 observed tile lifetimes, with no runtime
-errors. Baseline and returns 1/3/4/5 have zero tile/region ghosts; return 2 has
-seven Template tile ghosts and one Driftwood region ghost, gone by return 3.
-Renderer + GPU private footprint remains +36.0/+77.7/+57.0/+65.9/+102.5 MB above
-the warm baseline. The strict zero-ghost and ±20 MB acceptance remains open;
-the [same-source resource diagnostic](../../../progress/shard-platform/tile-streaming/t1-resources-794.json)
-completed and is not acceptance evidence. Across five returns, tracked site
-buffers grew 14.44 MB, composer depth 21.90 MB and backdrop LUTs 1.44 MB.
-`0e3432322b` restores the construction owner around awaited site factories,
-with mandatory real-GC and ledger coverage. Composer depth/LUT lifecycle fixes
-are sp-x8's; one joint fresh-preview T1 rerun follows both landings. No
-Simulator, physical-device or full native-memory attribution claim from these
-Chromium counters.
+**T1 in flight (2026-10-24, sp-x9):** the [joint lifecycle cohort](../../../progress/shard-platform/tile-streaming/t1-retirement-fbb.json)
+on `fbb51b9602` completed 12 clean route legs / 205 observed tile lifetimes,
+errors 0, but **FAILS** strict zero-ghost and ±20 MB acceptance. Baseline ghosts
+are 0/0; returns are 11/1, 1/1, 0/0, 0/0, 0/0 (tile/region). Renderer + GPU
+private-footprint deltas are +186.253/+44.089/+20.267/+27.902/+65.044 MB.
+The early spike falls again; this does not establish a monotonic leak or a
+per-fix causal result. One authorized opt-in resource diagnostic on the same
+source will name the remaining owners; it is not acceptance evidence.
+
+The earlier [794 acceptance](../../../progress/shard-platform/tile-streaming/t1-retirement-794.json)
+and [resource diagnostic](../../../progress/shard-platform/tile-streaming/t1-resources-794.json)
+remain separate. `7941053755` releases hidden touch-verb callbacks;
+`0e3432322b` restores site-factory construction ownership, `67b5ab6f2d`
+retires borrowed backdrop LUTs, and `acda59debf` releases sampled composer
+depth. Mandatory real-GC / ledger tests cover those lifecycle changes. The
+joint cohort includes all three resource fixes. No Simulator, physical-device
+or full native-memory attribution claim from these Chromium counters.
 
 Order: T0 + T1 + T2 at once → T3 (DW) + T4 + T5 = **the first playable slice on Driftwood (SHARD SELECT, then the grid
 home)** → T6, T7 (the memory fix on crossings) → T8 → T9 → T10.

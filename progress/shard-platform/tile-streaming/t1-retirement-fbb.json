@@ -1,0 +1,403 @@
+{
+  "source": "fbb51b96028196c887d2ec82f1863782f0760d19",
+  "complete": true,
+  "acceptanceEligible": true,
+  "errors": [],
+  "protocol": {
+    "device": "iPhone 16 Pro",
+    "tier": "phone",
+    "cpu": 4,
+    "renderScale": 2,
+    "developer": true,
+    "roundTrips": 5,
+    "warmupRoundTrips": 1,
+    "settleSeconds": 45,
+    "forcedGC": false,
+    "inspectorBodyBytes": 0,
+    "toolHashes": {
+      "tile-retirement-chromium.mjs": "992f1f14f819666c016d7d286205fc7aaf8660146c874dc5f10c8658512ca6d9",
+      "tile-retirement-proof.mjs": "e555b0cf0dc9b20cae8c0135dbb648add1edc865139fbb84fe9d486a6d4b7951",
+      "frame-floor-grid.mjs": "68f0b11e9a7757c2e159062807f76c4b93d8ecca105ed740e354d11dd13fea86",
+      "soak/owned.mjs": "15d98943b6a62606f236ca71bfc4b8630819e09626ba476d9c30b6c2a2ca912b",
+      "grid-ready-memory.mjs": "39c5917796a0bab687a536218d76609a372bb12224c9cec45937d118608361f2",
+      "chromium-memory-browser.mjs": "41ed23eb5306466f155cebfe405ea3097686caf3761de56a7d266ea40bc66d01"
+    },
+    "memory": "One dedicated Chromium: renderer + GPU private footprint. Browser overhead separate. Endpoint dumps, no FPS claim.",
+    "diagnostic": null,
+    "backingStorage": null,
+    "cycles": "Observed render claim acquisition/removal lifetimes at 1 Hz; missed lifetimes undercount, never interpolate."
+  },
+  "grade": {
+    "pass": false,
+    "failures": [
+      "Boundary 1 has retired ghosts",
+      "Boundary 2 has retired ghosts",
+      "Round trip 1 differs from baseline by more than 20 MB",
+      "Round trip 2 differs from baseline by more than 20 MB",
+      "Round trip 3 differs from baseline by more than 20 MB",
+      "Round trip 4 differs from baseline by more than 20 MB",
+      "Round trip 5 differs from baseline by more than 20 MB"
+    ],
+    "baselineBytes": 2614435840,
+    "deltaBytes": [
+      186253312,
+      44089344,
+      20267008,
+      27901952,
+      65044480
+    ]
+  },
+  "cycles": {
+    "cycles": 205,
+    "byKey": {
+      "render:driftwood-isle:l0/2/5": 6,
+      "render:driftwood-isle:l0/2/6": 6,
+      "render:driftwood-isle:l0/4/5": 6,
+      "render:driftwood-isle:l0/5/5": 6,
+      "render:open-plot-nw:l1/3/0": 6,
+      "render:open-plot-nw:l1/3/1": 6,
+      "render:sunscar-dunes:l1/3/2": 6,
+      "render:sunscar-dunes:l1/3/3": 6,
+      "render:template-2:l0/0/1": 12,
+      "render:template-2:l1/1/2": 12,
+      "render:template-2:l0/1/0": 12,
+      "render:template-2:l1/0/2": 6,
+      "render:template-2:l0/0/0": 12,
+      "render:template-2:l1/1/1": 6,
+      "render:template-2:l1/2/0": 12,
+      "render:template-2:l1/1/0": 6,
+      "render:template-2:l1/0/1": 6,
+      "render:pine-hollow:l1/2/0": 1,
+      "render:pine-hollow:l1/3/0": 1,
+      "render:template-2:l1/0/0": 6,
+      "render:driftwood-isle:l0/3/1": 6,
+      "render:driftwood-isle:l0/4/1": 6,
+      "render:blender-template-1:l1/3/2": 6,
+      "render:sunscar-dunes:l1/3/0": 6,
+      "render:sunscar-dunes:l1/3/1": 6,
+      "render:nalati-grasslands:l0/1/0": 1,
+      "render:nalati-grasslands:l0/0/0": 1,
+      "render:nalati-grasslands:l0/1/1": 1,
+      "render:nalati-grasslands:l0/0/1": 1,
+      "render:nalati-grasslands:l0/1/2": 1,
+      "render:nalati-grasslands:l0/0/2": 1,
+      "render:nalati-grasslands:l0/1/3": 1,
+      "render:nalati-grasslands:l0/0/3": 1,
+      "render:nalati-grasslands:l0/0/4": 1,
+      "render:nalati-grasslands:l0/0/5": 1,
+      "render:nalati-grasslands:l0/0/6": 1,
+      "render:template-2:l0/1/1": 11,
+      "render:template-2:l1/2/1": 11,
+      "render:far-reach:l0/3/7": 1,
+      "render:far-reach:l0/4/7": 1
+    }
+  },
+  "routes": [
+    {
+      "round": "warmup",
+      "name": "driftwood-isle-to-far-reach",
+      "from": "driftwood-isle",
+      "to": "far-reach",
+      "failures": []
+    },
+    {
+      "round": "warmup",
+      "name": "far-reach-to-driftwood-isle",
+      "from": "far-reach",
+      "to": "driftwood-isle",
+      "failures": []
+    },
+    {
+      "round": 1,
+      "name": "driftwood-isle-to-far-reach",
+      "from": "driftwood-isle",
+      "to": "far-reach",
+      "failures": []
+    },
+    {
+      "round": 1,
+      "name": "far-reach-to-driftwood-isle",
+      "from": "far-reach",
+      "to": "driftwood-isle",
+      "failures": []
+    },
+    {
+      "round": 2,
+      "name": "driftwood-isle-to-far-reach",
+      "from": "driftwood-isle",
+      "to": "far-reach",
+      "failures": []
+    },
+    {
+      "round": 2,
+      "name": "far-reach-to-driftwood-isle",
+      "from": "far-reach",
+      "to": "driftwood-isle",
+      "failures": []
+    },
+    {
+      "round": 3,
+      "name": "driftwood-isle-to-far-reach",
+      "from": "driftwood-isle",
+      "to": "far-reach",
+      "failures": []
+    },
+    {
+      "round": 3,
+      "name": "far-reach-to-driftwood-isle",
+      "from": "far-reach",
+      "to": "driftwood-isle",
+      "failures": []
+    },
+    {
+      "round": 4,
+      "name": "driftwood-isle-to-far-reach",
+      "from": "driftwood-isle",
+      "to": "far-reach",
+      "failures": []
+    },
+    {
+      "round": 4,
+      "name": "far-reach-to-driftwood-isle",
+      "from": "far-reach",
+      "to": "driftwood-isle",
+      "failures": []
+    },
+    {
+      "round": 5,
+      "name": "driftwood-isle-to-far-reach",
+      "from": "driftwood-isle",
+      "to": "far-reach",
+      "failures": []
+    },
+    {
+      "round": 5,
+      "name": "far-reach-to-driftwood-isle",
+      "from": "far-reach",
+      "to": "driftwood-isle",
+      "failures": []
+    }
+  ],
+  "boundaries": [
+    {
+      "label": "baseline",
+      "document": "b1521c9c-9a46-4574-9ac5-445a57512f0a",
+      "current": "driftwood-isle",
+      "ready": true,
+      "controls": true,
+      "pending": 0,
+      "retiring": 0,
+      "tileGhosts": 0,
+      "regionGhosts": 0,
+      "ghostOwners": {
+        "tiles": [],
+        "regions": []
+      },
+      "inFlight": 0,
+      "queued": 0,
+      "x": 0.01303131196369774,
+      "z": 231.23327585330026,
+      "process": {
+        "browser": 655378432,
+        "renderer": 1352751104,
+        "gpu": 1261684736
+      }
+    },
+    {
+      "label": "return-1",
+      "document": "b1521c9c-9a46-4574-9ac5-445a57512f0a",
+      "current": "driftwood-isle",
+      "ready": true,
+      "controls": true,
+      "pending": 0,
+      "retiring": 0,
+      "tileGhosts": 11,
+      "regionGhosts": 1,
+      "ghostOwners": {
+        "tiles": [
+          {
+            "instance": "sunscar-dunes:l1/3/1",
+            "ageS": 89.7
+          },
+          {
+            "instance": "blender-template-1:l1/3/2",
+            "ageS": 89.6
+          },
+          {
+            "instance": "sunscar-dunes:l1/3/0",
+            "ageS": 88.9
+          },
+          {
+            "instance": "template-2:l1/2/0",
+            "ageS": 72.8
+          },
+          {
+            "instance": "template-2:l0/1/1",
+            "ageS": 60
+          },
+          {
+            "instance": "template-2:l0/1/0",
+            "ageS": 59.3
+          },
+          {
+            "instance": "template-2:l0/0/1",
+            "ageS": 57.9
+          },
+          {
+            "instance": "template-2:l0/0/0",
+            "ageS": 57.2
+          },
+          {
+            "instance": "template-2:l1/2/1",
+            "ageS": 55.9
+          },
+          {
+            "instance": "template-2:l1/2/0",
+            "ageS": 55.1
+          },
+          {
+            "instance": "template-2:l1/1/2",
+            "ageS": 51.5
+          }
+        ],
+        "regions": [
+          {
+            "instance": "driftwood-isle",
+            "ageS": 111.6
+          }
+        ]
+      },
+      "inFlight": 0,
+      "queued": 0,
+      "x": 0.012983538034792111,
+      "z": 231.23244104016158,
+      "process": {
+        "browser": 658556928,
+        "renderer": 1507465216,
+        "gpu": 1293223936
+      }
+    },
+    {
+      "label": "return-2",
+      "document": "b1521c9c-9a46-4574-9ac5-445a57512f0a",
+      "current": "driftwood-isle",
+      "ready": true,
+      "controls": true,
+      "pending": 0,
+      "retiring": 0,
+      "tileGhosts": 1,
+      "regionGhosts": 1,
+      "ghostOwners": {
+        "tiles": [
+          {
+            "instance": "template-2:l1/1/2",
+            "ageS": 51.5
+          }
+        ],
+        "regions": [
+          {
+            "instance": "driftwood-isle",
+            "ageS": 111.8
+          }
+        ]
+      },
+      "inFlight": 0,
+      "queued": 0,
+      "x": 0.015470877241812833,
+      "z": 231.23271886579187,
+      "process": {
+        "browser": 660129792,
+        "renderer": 1342871552,
+        "gpu": 1315653632
+      }
+    },
+    {
+      "label": "return-3",
+      "document": "b1521c9c-9a46-4574-9ac5-445a57512f0a",
+      "current": "driftwood-isle",
+      "ready": true,
+      "controls": true,
+      "pending": 0,
+      "retiring": 0,
+      "tileGhosts": 0,
+      "regionGhosts": 0,
+      "ghostOwners": {
+        "tiles": [],
+        "regions": []
+      },
+      "inFlight": 0,
+      "queued": 0,
+      "x": 0.014258678186892358,
+      "z": 231.31126211701485,
+      "process": {
+        "browser": 656148480,
+        "renderer": 1323112448,
+        "gpu": 1311590400
+      }
+    },
+    {
+      "label": "return-4",
+      "document": "b1521c9c-9a46-4574-9ac5-445a57512f0a",
+      "current": "driftwood-isle",
+      "ready": true,
+      "controls": true,
+      "pending": 0,
+      "retiring": 0,
+      "tileGhosts": 0,
+      "regionGhosts": 0,
+      "ghostOwners": {
+        "tiles": [],
+        "regions": []
+      },
+      "inFlight": 0,
+      "queued": 0,
+      "x": 0.013966355174539292,
+      "z": 231.30277396861675,
+      "process": {
+        "browser": 657672192,
+        "renderer": 1328830464,
+        "gpu": 1313507328
+      }
+    },
+    {
+      "label": "return-5",
+      "document": "b1521c9c-9a46-4574-9ac5-445a57512f0a",
+      "current": "driftwood-isle",
+      "ready": true,
+      "controls": true,
+      "pending": 0,
+      "retiring": 0,
+      "tileGhosts": 0,
+      "regionGhosts": 0,
+      "ghostOwners": {
+        "tiles": [],
+        "regions": []
+      },
+      "inFlight": 0,
+      "queued": 0,
+      "x": 0.01379062827941526,
+      "z": 231.3011186379672,
+      "process": {
+        "browser": 657950720,
+        "renderer": 1368430592,
+        "gpu": 1311049728
+      }
+    }
+  ],
+  "provenance": {
+    "rawReceiptSha256": "7110b6f7c16f760f61ad6a1652e2744721b387c2132910eec8b0146a9e7937b9",
+    "includes": [
+      "0e3432322b",
+      "67b5ab6f2d",
+      "acda59debf",
+      "fbb51b9602"
+    ],
+    "previewBuildSeconds": 84.63
+  },
+  "limits": [
+    "Single plain Chromium phone-tier cohort; no causal comparison or Simulator/physical-device claim.",
+    "No forced GC, heap snapshot, Network body bank or resource-ledger diagnostic.",
+    "Ghost counters name owner and age, not a retaining reference path.",
+    "Foreign parity browsers were active near the end; this was not a machine-wide quiet reading. Own browser and preview closed at completion."
+  ]
+}
