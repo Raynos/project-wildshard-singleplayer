@@ -15,7 +15,7 @@ p95 16.8, max Pine 1,117 → 66.7, Nalati 167 → 50.1 ms (f7e74f576e).
 iOS Sim: road spike 448 → 67 ms (Wasm pool, DB1). Settled spikes were FULL GCs every 0.6 s because JSC's heap
 (incl. external memory) was large vs RAM (Mac WebKit forced to 3 GiB reproduced it). RETAINED memory was the lever: snapshot 601 -> 457 MiB on 6f0c0dbd15 (closed shard scopes 121 -> 0: observedIn, Pine
 residency, scope/audio/material keepers, raw+splat textures). Quiet Sim settled on f527: 36 FULL -> 1 full + 17 partial
-GCs, p95 48 -> 34. OFFICIAL quiet Sim floor (bar p95 <= 35, max <= 200, median 30): a3fe576d34 13/15 PASS (b68f 12, 34aa 12/11, 9625 13; 436fca0bcb 11),
+GCs, p95 48 -> 34. OFFICIAL quiet Sim floor (bar p95 <= 35, max <= 200, median 30): a3fe576d34 13/15 PASS (b68f 12, 34aa 12/11, 9625 13; after TB1: 436f 11, a4cb 11, Nalati whole 45/199),
 every median 30.3; short-travel rows swing 35-43 run to run; TB1 crossing red fixed 3974a26c13; releases pinned 9625 until CI green.
 Desktop floor PASS: d6c530539b all 9 rows; interior-stop owner 4.0 ms on c2db00b25e (limit 4.17); frames 16.7 p95.
 
@@ -23,12 +23,12 @@ Desktop floor PASS: d6c530539b all 9 rows; interior-stop owner 4.0 ms on c2db00b
 cohorts; churn cuts don't move floors (they cut GC, not WebKit's dirty pages). M1's 50 MiB menu is below WebKit's own floor (framework 57 MiB): recommend re-basing
 M1 on menu → T1 growth. Lanes are off memory floors; render targets (49 MiB) parked.
 
-**Tooling:** gen warm 53-67 s → 2.7 s. DW tiles: wire 12.3 → 10.8 MB look-identical;
+**Tooling:** DW tiles: wire 12.3 → 10.8 MB look-identical;
 pick for Jake: art/driftwood-isle/round-19-tile-lod (3af5687a53) A landed / B / C; only C gets 6,4 + 2,5 under 4 MB.
 
-**For wildshard-v:** Night Market road view: A done (art/grid/round-60-night-market-road-a); B / C open. OPEN: (1) L10 cold-wire ceiling, ratchet from 15.1 MB (recommended);
-(2) M1 re-base (above); (3) Explorer: pause the blurred background orbit while thumbnails build (~1/3 less GPU per card,
-CI margin; recommended only if CI still misses after serialised cases).
+**For wildshard-v:** 6d1b8ba1cc (10-23 ff45 hold) is superseded: the pin is now 9625ae97ec (dd79651974, TB1 crossing hold,
+lifts on CI + smoke green >= 3974a26c13). openusage reads Claude weekly 91 % (0 Opus). SW9 with sp-x7; the 666-min 'main red' reading is dated 10-23, main CI is green today (all 28 jobs on b68f6cf88a, 34aa, 9625, a3fe).
+Night Market road B / C, L10 ratchet, M1 re-base, Explorer orbit pause: still open. DR19 (Settings APPLY & RELOAD) landed 78b5f111e7 on 10-23 and is live.
 
 **Lanes:** Claude weekly 90 %: 0 Opus (sp-o3 stopped, G605); 5 Codex + sp-x7.
 
