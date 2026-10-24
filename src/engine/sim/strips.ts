@@ -80,7 +80,7 @@ function* platformSteps(cells: readonly PlatformCell[], empty: StripProfile, pla
     return key;
   };
   function* strip(input: Parameters<typeof generateStrip>[0]): Generator<void, GeneratedStrip> {
-    const key = exactKey([input.axis, input.profiles.map(profileKey), input.observations]);
+    const key = exactKey([CONTENT_CAPS.pitch, input.axis, input.profiles.map(profileKey), input.observations]);
     let shape = shapes.get(key);
     if (shape === undefined) {
       input.profiles.forEach(validateEdgeProfile);
@@ -92,7 +92,7 @@ function* platformSteps(cells: readonly PlatformCell[], empty: StripProfile, pla
     return place(input.id, { ...shape.mesh, origin: { ...input.origin } }, input.adjacent, shape.features, shape.turnIn);
   }
   function* cross(input: Parameters<typeof generateCrossroads>[0]): Generator<void, GeneratedStrip> {
-    const key = exactKey(['cross', input.corners]);
+    const key = exactKey([CONTENT_CAPS.pitch, 'cross', input.corners]);
     let shape = shapes.get(key);
     if (shape === undefined) {
       const generated = yield* cornerSeamGeometrySteps(input, plans === undefined ? undefined : { key, rows: plans });

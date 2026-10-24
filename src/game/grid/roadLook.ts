@@ -175,7 +175,7 @@ function roadTexture(): CanvasTexture {
   return texture(el, true);
 }
 
-/** The junction canvas: 55 m square; the roundabout's markings in the middle, plain asphalt in the corners. */
+/** The junction canvas: 62.5 m square; the roundabout's markings in the middle, plain asphalt in the corners. */
 function junctionTexture(): CanvasTexture {
   const W = 1024, { el, g } = canvas(W, W), k = W / (2 * GAP_HALF);
   grain(g, W, W, 2);

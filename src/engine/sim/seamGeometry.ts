@@ -1,3 +1,4 @@
+import { CHUNK_SIZE, CONTENT_CAPS } from '@wildshard/format/contentBounds';
 import { edgeSample, edgeSampleLocations } from './edgeProfiles';
 import { seamLatticeSteps, type SeamLatticePlans } from './seamLattice';
 import { SHORE_DEPTH, SHORE_REVETMENT_INNER_FACE } from './shore';
@@ -13,8 +14,12 @@ export interface SeamEdge { readonly profile: StripProfile; readonly entryWidth:
 export interface SeamTurnIn { readonly at: 0; readonly widths: readonly [number, number] }
 /** The exact physical mesh and its surface descriptions, without renderer or Rapier objects. */
 export interface SeamGeometry { readonly mesh: StripMesh; readonly features: readonly SeamFeature[]; readonly turnIn: SeamTurnIn }
-/** Every gradient has a vertex at most 2 m apart; the 6/10 m re-frame lines remain explicit vertices. */
-export const SEAM_OFFSETS: readonly number[] = Object.freeze([...Array.from({ length: 11 }, (_, i) => -27.5 + i * 2), ...Array.from({ length: 11 }, (_, i) => 7.5 + i * 2)]);
+const gapHalf = (CONTENT_CAPS.pitch - CHUNK_SIZE) / 2;
+const vergeWidth = gapHalf - 7.5;
+const gradientWidth = gapHalf - 11.5;
+const vergeOffsets = [...Array.from({ length: Math.ceil(vergeWidth / 2) }, (_, i) => 7.5 + i * 2), gapHalf];
+/** Every gradient has a vertex at most 2 m apart; road edges and the 6/10 m re-frame lines remain explicit vertices. */
+export const SEAM_OFFSETS: readonly number[] = Object.freeze([...vergeOffsets.map(u => -u).reverse(), ...vergeOffsets]);
 const neutral = [0.25, 0.25, 0.25] as const;
 const smooth = (t: number): number => t * t * (3 - 2 * t);
 const bounded = (h: number): number => Math.max(-1.5, Math.min(6, h));
@@ -34,7 +39,7 @@ function rubble(at: number, side: number, channel: number): number {
 }
 /** A corner's floor height: B, held at 0 or above for a shore corner (the §3.2 shore rule: B = max(0, clamp(H, −1.5, 6))). */
 const cornerFloor = (corner: StripCorner): number => (corner.shore === true ? Math.max(0, bounded(corner.height)) : bounded(corner.height));
-const blend = (u: number): number => smooth(Math.max(0, Math.min(1, (Math.abs(u) - 11.5) / 16)));
+const blend = (u: number): number => smooth(Math.max(0, Math.min(1, (Math.abs(u) - 11.5) / gradientWidth)));
 const tan85 = Math.tan(85 * Math.PI / 180);
 /**
  * G222 (agent playtest round 1): the tallest face the seam builds, G90's own band (retaining walls run 6–14 m). A cliff or
@@ -85,11 +90,11 @@ function validateEdge(edge: SeamEdge): void {
     if (locations.some((at) => Math.abs(edgeSample(edge.profile, at).height) > 0.02)) throw new RangeError('Midpoint entry boundary must meet road height zero');
   }
 }
-/** The 85° cliff (its top capped at `SEAM_FACE_TOP`) and its 4 m talus fit inside w=4..20, whatever the edge's height. */
+/** The 85° cliff (its top capped at `SEAM_FACE_TOP`) and its 4 m talus fit inside the verge beyond its 4 m neutral buffer, whatever the edge's height. */
 function cliffFoot(edgeHeight: number, cornerWeight = 1): { u: number; bottom: number } {
-  const height = faceTop(edgeHeight), base = (w: number): number => bounded(edgeHeight) * smooth((w - 4) / 16) * cornerWeight + 1.5;
-  let low = 8, high = 20;
-  for (let i = 0; i < 48; i++) { const mid = (low + high) / 2; if (height - base(mid) > (20 - mid) * tan85) high = mid; else low = mid; }
+  const height = faceTop(edgeHeight), base = (w: number): number => bounded(edgeHeight) * smooth((w - 4) / gradientWidth) * cornerWeight + 1.5;
+  let low = 8, high = vergeWidth;
+  for (let i = 0; i < 48; i++) { const mid = (low + high) / 2; if (height - base(mid) > (vergeWidth - mid) * tan85) high = mid; else low = mid; }
   const w = (low + high) / 2; return { u: 7.5 + w, bottom: base(w) };
 }
 
@@ -155,7 +160,7 @@ export function* seamGeometrySteps(input: { readonly id: string; readonly axis: 
       const a = edgeSample(edge.profile, from).height, b = edgeSample(edge.profile, to).height, min = Math.min(a, b), max = Math.max(a, b);
       // The shared native row stays at the cell boundary. A quarter-metre same-mesh apron
       // continues its upper surface under regional terrain so KCC never meets an open seam edge.
-      const ia: Point = [side * 27.5, a, from], ib: Point = [side * 27.5, b, to], oa: Point = [side * 27.75, a, from], ob: Point = [side * 27.75, b, to];
+      const ia: Point = [side * gapHalf, a, from], ib: Point = [side * gapHalf, b, to], oa: Point = [side * (gapHalf + 0.25), a, from], ob: Point = [side * (gapHalf + 0.25), b, to];
       writer.quad(side < 0 ? [ia, oa, ib, ob] : [ia, ib, oa, ob], { kind: 'overlap', side, from, to, bottom: min, top: max,
         ...(edge.sourceSurface === undefined ? {} : { sourceSurface: edge.sourceSurface }) });
     }
@@ -200,16 +205,16 @@ export function* seamGeometrySteps(input: { readonly id: string; readonly axis: 
       if (Math.abs(middle) < edge.entryWidth / 2) continue;
       if (cliff) {
         const fa = cliffFoot(a), fb = cliffFoot(b);
-        writer.quad([[side * fa.u, fa.bottom, from], [side * fb.u, fb.bottom, to], [side * 27.5, faceTop(a), from], [side * 27.5, faceTop(b), to]], feature('cliff', Math.min(fa.bottom, fb.bottom), faceTop(max)));
+        writer.quad([[side * fa.u, fa.bottom, from], [side * fb.u, fb.bottom, to], [side * gapHalf, faceTop(a), from], [side * gapHalf, faceTop(b), to]], feature('cliff', Math.min(fa.bottom, fb.bottom), faceTop(max)));
         writer.quad([[side * (fa.u - 4), edgeFloor(edge, a) * blend(fa.u - 4), from], [side * (fb.u - 4), edgeFloor(edge, b) * blend(fb.u - 4), to], [side * fa.u, fa.bottom, from], [side * fb.u, fb.bottom, to]], feature('talus', Math.min(fa.bottom, fb.bottom) - 1.5, Math.max(fa.bottom, fb.bottom)));
       } else if (max > 6 || min < -1.5 || (shoreEdge(edge) && min < -SHORE_DEPTH)) {
         // Coordinator G90 gap decision: isolated >14 m runs shorter than30 m retain a face; never widen them over a legal entry.
         // On a shore the face drops from the held floor (0) to the seabed, under the revetment.
-        writer.quad([[side * 27.5, edgeFloor(edge, a), from], [side * 27.5, edgeFloor(edge, b), to], [side * 27.5, faceTop(a), from], [side * 27.5, faceTop(b), to]], feature(max > 6 ? 'retaining-wall' : 'parapet', min, faceTop(max)));
+        writer.quad([[side * gapHalf, edgeFloor(edge, a), from], [side * gapHalf, edgeFloor(edge, b), to], [side * gapHalf, faceTop(a), from], [side * gapHalf, faceTop(b), to]], feature(max > 6 ? 'retaining-wall' : 'parapet', min, faceTop(max)));
       }
       const outflow = edge.outflows?.some((flow) => middle >= flow.from && middle <= flow.to) ?? false;
-      if (edge.waterSurface !== undefined && edge.waterSurface > 0 && !outflow) writer.box(side * 27.4, from, to, Math.min(bounded(a), bounded(b)), Math.max(1.3, edge.waterSurface + 0.5), 0.2, feature('dike', min, Math.max(1.3, edge.waterSurface + 0.5)));
-      if (outflow) writer.quad([[side * 27.5, edgeFloor(edge, a), from], [side * 27.5, edgeFloor(edge, b), to], [side * 7.5, -1.5, from], [side * 7.5, -1.5, to]], feature('culvert', -1.5, 0));
+      if (edge.waterSurface !== undefined && edge.waterSurface > 0 && !outflow) writer.box(side * (gapHalf - 0.1), from, to, Math.min(bounded(a), bounded(b)), Math.max(1.3, edge.waterSurface + 0.5), 0.2, feature('dike', min, Math.max(1.3, edge.waterSurface + 0.5)));
+      if (outflow) writer.quad([[side * gapHalf, edgeFloor(edge, a), from], [side * gapHalf, edgeFloor(edge, b), to], [side * 7.5, -1.5, from], [side * 7.5, -1.5, to]], feature('culvert', -1.5, 0));
     }
     if (shoreEdge(edge)) revetment(writer, edge, side, along);
   }
@@ -239,7 +244,7 @@ function revetment(writer: MeshWriter, edge: SeamEdge, side: -1 | 1, along: read
     if (row === 0) stations.unshift(first - REVETMENT.corner);
     if (end === along.length - 1) stations.push(last + REVETMENT.corner);
     row = end;
-    const firstIndex = writer.indices.length, u = (d: number): number => side * (27.5 + d);
+    const firstIndex = writer.indices.length, u = (d: number): number => side * (gapHalf + d);
     let bottom = Infinity, top = -Infinity;
     // the section at each station: landward toe, landward crest, inner crest, seabed toe (its rubble jitter never lowers
     // the crest below +0.54 m or pulls the inner crest edge nearer the cell edge than the inner face)
@@ -310,22 +315,22 @@ export function* cornerSeamGeometrySteps(input: { readonly id: string; readonly 
       else { writer.indices.push(a, nextRight * count + col, b); r++; }
     }
   }
-  writer.features.push({ kind: 'gradient', firstIndex: 0, indexCount: writer.indices.length, side: 0, from: -27.5, to: 27.5, bottom: -1.5, top: 6 });
+  writer.features.push({ kind: 'gradient', firstIndex: 0, indexCount: writer.indices.length, side: 0, from: -gapHalf, to: gapHalf, bottom: -1.5, top: 6 });
   for (const [index, corner] of input.corners.entries()) {
     const sx = index % 2 === 0 ? -1 : 1, sz = index < 2 ? -1 : 1;
     for (const axis of ['x', 'z'] as const) {
       const across = axis === 'x' ? sx : sz, along = axis === 'x' ? sz : sx;
       const start = writer.positions.length / 3, before = writer.features.length;
-      const from = along * 27.5, to = along * 17.5;
+      const from = along * gapHalf, to = along * (gapHalf - 10);
       const feature = (kind: SeamFeatureKind, bottom: number, top: number): Omit<SeamFeature, 'firstIndex' | 'indexCount'> => ({ kind, side: across, from: Math.min(from, to), to: Math.max(from, to), bottom, top });
       // G149: a shore corner's field stays at 0 (cornerFloor) and needs neither the drop face nor the road wall: the
       // strips' revetments close the shoreline and no cyan drop wall crosses it
       const h = corner.height, a = cornerFloor(corner), b = a * blend(to), shore = corner.shore === true;
       if (h > 14) {
         const fa = cliffFoot(h), fb = cliffFoot(h, blend(to)), top = faceTop(h);
-        writer.quad([[across * fa.u, fa.bottom, from], [across * fb.u, fb.bottom, to], [across * 27.5, top, from], [across * 27.5, top, to]], feature('cliff', Math.min(fa.bottom, fb.bottom), top));
+        writer.quad([[across * fa.u, fa.bottom, from], [across * fb.u, fb.bottom, to], [across * gapHalf, top, from], [across * gapHalf, top, to]], feature('cliff', Math.min(fa.bottom, fb.bottom), top));
         writer.quad([[across * (fa.u - 4), bounded(h) * blend(fa.u - 4), from], [across * (fb.u - 4), bounded(h) * blend(fb.u - 4) * blend(to), to], [across * fa.u, fa.bottom, from], [across * fb.u, fb.bottom, to]], feature('talus', Math.min(a, b), Math.max(fa.bottom, fb.bottom)));
-      } else if (h > 6 || (h < -1.5 && !shore)) writer.quad([[across * 27.5, a, from], [across * 27.5, b, to], [across * 27.5, h, from], [across * 27.5, h, to]], feature(h > 6 ? 'retaining-wall' : 'parapet', Math.min(h, a, b), Math.max(h, a, b)));
+      } else if (h > 6 || (h < -1.5 && !shore)) writer.quad([[across * gapHalf, a, from], [across * gapHalf, b, to], [across * gapHalf, h, from], [across * gapHalf, h, to]], feature(h > 6 ? 'retaining-wall' : 'parapet', Math.min(h, a, b), Math.max(h, a, b)));
       if (h > 14 || (h < -1.5 && !shore)) {
         writer.box(across * 7.5, Math.min(from, to), Math.max(from, to), 0, roadWallTop, 0.25, feature('road-wall', 0, roadWallTop));
         writer.box(across * 7.5, Math.min(from, to), Math.max(from, to), roadWallTop, guardRailTop, 0.15, feature('guard-rail', roadWallTop, guardRailTop));

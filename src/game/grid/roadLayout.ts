@@ -3,8 +3,8 @@
  * streetlights and distance signs of the grid's deck sit, as plain data in grid metres. No three.js here, so the layout
  * is testable in Node; `roadLook.ts` draws it and `voidLook.ts` draws the void past the outer road.
  *
- * The deck's shape is the generator's (`@wildshard/engine/sim/strips`): between two cells a 55 m gap, a 15 m road on the
- * gap's centre line and a 20 m strip each side; a junction where four gaps meet. The outer ring is the gap past the
+ * The deck's shape is the generator's (`@wildshard/engine/sim/strips`): between two cells a 62.5 m gap, a 15 m road on the
+ * gap's centre line and a 23.75 m strip each side; a junction where four gaps meet. The outer ring is the gap past the
  * outermost cells, and the rail (the void's collision wall) sits on its outer shoulder.
  *
  * Every road segment between two junctions has one turn-in at its midpoint (G93: a shard's four entryways sit at its edge
@@ -17,7 +17,7 @@ import { CHUNK_SIZE, CONTENT_CAPS, ENTRY_WIDTH, ENTRY_ASPHALT as entryAsphalt } 
 
 /** The road's half width (the generator's flat road band, `STRIP_OFFSETS` ±7.5). */
 export const ROAD_HALF = 7.5;
-/** Half the 55 m gap between two cells (road plus both strips). */
+/** Half the 62.5 m gap between two cells (road plus both strips). */
 export const GAP_HALF = (CONTENT_CAPS.pitch - CHUNK_SIZE) / 2;
 /** A road segment's half length (a cell side, from junction to junction). */
 export const SEGMENT_HALF = 250;

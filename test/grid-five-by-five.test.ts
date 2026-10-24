@@ -34,8 +34,8 @@ for (const mode of modes) test(`complete 25-cell layout ${JSON.stringify(mode)}`
   expect(road.junctions.filter(row => row.roundabout)).toHaveLength(16);
   expect(road.segments.filter(row => row.low === undefined || row.high === undefined)).toHaveLength(20);
   expect(road.signs.flatMap(row => row.lines).filter(row => row.metres === null)).toHaveLength(100);
-  expect(road.rail).toEqual({ minX: -1387.5 - RAIL_OFFSET, maxX: 1387.5 + RAIL_OFFSET,
-    minZ: -1387.5 - RAIL_OFFSET, maxZ: 1387.5 + RAIL_OFFSET });
+  expect(road.rail).toEqual({ minX: -1406.25 - RAIL_OFFSET, maxX: 1406.25 + RAIL_OFFSET,
+    minZ: -1406.25 - RAIL_OFFSET, maxZ: 1406.25 + RAIL_OFFSET });
 });
 
 test('refuses holes, duplicate placements and cells beyond the declared square', () => {

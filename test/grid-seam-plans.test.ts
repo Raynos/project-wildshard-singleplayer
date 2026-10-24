@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import fixture from './fixtures/grid-seam-cache.json';
+import { CONTENT_CAPS } from '@wildshard/format/contentBounds';
 import { EdgeProfilesSchema } from '@wildshard/format/edgeProfiles';
 import { generatePlatform, generatePlatformSliced, type PlatformCell } from '@wildshard/engine/sim/strips';
 
@@ -11,7 +12,7 @@ function cells(): PlatformCell[] {
     if (product === undefined) throw new Error('Missing real edge fixture');
     const observe = (edge: string) => ({ entryWidth: product.entryways.find(row => row.edge === edge)?.width ?? 0,
       ...(product.sea ? { waterSurface: 0 } : {}) });
-    return { instance: slug, cell: [0, i], origin: { x: 0, z: i * 555 }, edges: v.parse(EdgeProfilesSchema, product.edge),
+    return { instance: slug, cell: [0, i], origin: { x: 0, z: i * CONTENT_CAPS.pitch }, edges: v.parse(EdgeProfilesSchema, product.edge),
       observations: { north: observe('north'), east: observe('east'), south: observe('south'), west: observe('west') } };
   });
 }

@@ -316,7 +316,7 @@
   ],
   "grid": {
     "version": 0,
-    "pitch": 555,
+    "pitch": 562.5,
     "cells": [
       {
         "instance": "pine-hollow",

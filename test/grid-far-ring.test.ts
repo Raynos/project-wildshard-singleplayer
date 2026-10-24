@@ -8,7 +8,7 @@ import { TileStreamer, type RingCatalogue, type RingPorts } from '../src/engine/
 // far ring's unchanged budget (9 charges of 1.6 MB), each proxy charged its own bytes once loaded.
 const assembly = new GridAssembly({ developer: true, devserver: true });
 const cells = assembly.cells.map((cell) => ({ instance: cell.instance, origin: cell.origin }));
-const PROXY = 480_000, SLOT = 1_600_000, EDGE = 1387.5;
+const PROXY = 480_000, SLOT = 1_600_000, EDGE = 2.5 * assembly.pitch;
 
 function drive(path: readonly (readonly [number, number])[]): { far: number; seen: Set<number> } {
   const loaded = new Set<string>();
@@ -27,7 +27,7 @@ function drive(path: readonly (readonly [number, number])[]): { far: number; see
 
 test('the far ring holds every cell along the outer road', () => {
   const lap: [number, number][] = [];
-  for (let s = -EDGE; s <= EDGE; s += 277.5) lap.push([s, EDGE], [EDGE, -s], [-s, -EDGE], [-EDGE, s]);
+  for (let s = -EDGE; s <= EDGE; s += assembly.pitch / 2) lap.push([s, EDGE], [EDGE, -s], [-s, -EDGE], [-EDGE, s]);
   const { far, seen } = drive(lap);
   expect([...seen]).toEqual([far]);
 });

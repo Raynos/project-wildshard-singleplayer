@@ -22,7 +22,7 @@ const assembly = new GridAssembly({ developer: false, devserver: false });
 const quest = { fact: () => { throw new Error('A frozen quest emitted a fact'); }, coins: () => { throw new Error('A frozen quest granted coins'); } };
 const template = () => createShardfileSim(source, assets, { rapier, quest });
 const a = template(), b = template();
-const seam = generateStrip({ id: 'east', axis: 'x', origin: { x: 277.5, z: 0 }, profiles: [source.edge.east, assembly.emptyNeighbour.edge], adjacent: [{ instance: 'zero', origin: { x: 0, z: 0 } }, { instance: 'one', origin: { x: 555, z: 0 } }] });
+const seam = generateStrip({ id: 'east', axis: 'x', origin: { x: assembly.pitch / 2, z: 0 }, profiles: [source.edge.east, assembly.emptyNeighbour.edge], adjacent: [{ instance: 'zero', origin: { x: 0, z: 0 } }, { instance: 'one', origin: { x: assembly.pitch, z: 0 } }] });
 let hash;
 try {
   installStripCollider(a.host.physics, seam.duplicates[0].mesh, a.host.scope); installStripCollider(b.host.physics, seam.duplicates[1].mesh, b.host.scope);

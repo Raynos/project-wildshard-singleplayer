@@ -42,7 +42,7 @@ export const CONTENT_CAPS = {
   sim: { resident: 25 * CONTENT_MB, compressed: 2 * CONTENT_MB },
   engineBase: ENGINE_BASE_BYTES, playing: MEMORY_GATES.explorerMB * CONTENT_MB, loading: MEMORY_GATES.loadingMB * CONTENT_MB,
   l0Count: 40, l1Count: 32, farCount: 9, simCount: 4, libraryCount: 4,
-  overlap: 80 * CONTENT_MB, residentFactor: 1.11, nearRadius: 150, shadowRadius: 80, pitch: 555,
+  overlap: 80 * CONTENT_MB, residentFactor: 1.11, nearRadius: 150, shadowRadius: 80, pitch: 562.5,
 } as const;
 
 /** Trusted GPU/transcoder capabilities, never authored shard data. */

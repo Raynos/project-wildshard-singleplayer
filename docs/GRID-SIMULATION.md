@@ -1,5 +1,11 @@
 # Local simulation frames
 
+G638 / T9 uses a 562.5 m cell pitch: the unchanged 500 m cell plus one
+62.5 m tile of road gap. Asphalt remains 15 m wide; each verge is 23.75 m.
+The native edge apron, shore treatment and ten-metre junction returns move
+with that boundary. Shard-local coordinates and authored 500 m tile bakes
+stay unchanged; the page recovery signature includes the lattice pitch.
+
 `@wildshard/game/grid/live` defines `LiveGridHost` for an already-running page. The page lends its home physics and
 logical checkpoint owner. The registry reserves that home's sim claim, its owned permanent highway, and each admitted
 neighbour through the same allocator. Neighbours are owned, bodyless `SimHost`s. The home counts toward the four-shard
@@ -41,7 +47,7 @@ distance)` protects readiness-required residents and updates allocator eviction 
 are also protected.
 
 `current`, `target`, `prepare`, `ready` and `checkpoint` match SF20a's crossing port. Target selection is pure: enter a
-cell's sim within 6 m outside its edge, leave after 10 m, both inside the 20 m strip. The crossing coordinator checkpoints
+cell's sim within 6 m outside its edge, leave after 10 m, both inside the 23.75 m strip. The crossing coordinator checkpoints
 local wallets and the source host before committing. `prepare` admits the destination and builds disabled replacement
 motors. The fixed-step commit refreshes the moving source pose and motor filters, transfers rider and optional mount
 together and retires the source controllers. The mount's gameplay owner retains its identity, velocity and continuation;
@@ -60,7 +66,7 @@ surface. A loader restores through `restoreSimHost` and `bindShardfileSim(..., {
 adapter must reinstall the current placement's shared meshes if placement or neighbour edge data changed.
 
 `@wildshard/engine/sim/strips` is pure numeric data. `generateStrip` uses two 129-sample profiles in positive lateral
-order, a 15 m deck and two 20 m easing strips. Both hysteresis boundaries are explicit vertices. `generateCrossroads`
+order, a 15 m deck and two 23.75 m easing strips. Both hysteresis boundaries are explicit vertices. `generateCrossroads`
 joins four corner values to the same easing field. `generatePlatform` builds every corridor and crossroads plus the
 explicit empty-neighbour perimeter. Its primary meshes belong to the highway world; its translated duplicates are
 installed in adjacent local worlds through `@wildshard/engine/physics/stripColliders`. Rendering consumes these same
@@ -73,9 +79,11 @@ logical continuation and canonical authored collision/motion state. It excludes 
 traveller/profile state and platform seams/borders/readiness walls. Hashing this string gives placement-independent
 authored state; full checkpoints still contain the complete physics continuation.
 
-Verification: `test/grid-strips.test.ts`, `test/grid-simulation.test.ts` and the strict native
-`test/fixtures/grid/run.mjs` cover deterministic meshes, exact seam colours/heights, equal handles across worlds,
-placement-independent real-template state, frozen neighbours, door/creature restore, allocator leases, two-phase
-eviction, rider/mount transfer and real 15/30 m/s capsule crossings in both directions. The EXPERIMENTAL Wildshard client
-owner, crossroads portrait board and grid-mode browser physics baseline are subsequent integration proofs; these Node
-checks do not claim those browser results.
+Verification: `src/engine/sim/seamGeometry.test.ts` checks native edge continuity,
+aprons, the unchanged road/buffer and cliff caps, and ten-metre corner returns.
+`test/grid-seam-plans.test.ts` checks exact mesh/duplicate/feature bytes through
+serialized build plans; `test/grid-five-by-five.test.ts` checks all 96 placements.
+The strict native `test/fixtures/grid/run.mjs` checks placement-independent
+real-template state, 600 frozen neighbour ticks, and door/creature restoration.
+Real 15/30 m/s crossings in both directions, walk snags and portrait road captures
+are separate browser proofs; the Node checks do not claim those results.
