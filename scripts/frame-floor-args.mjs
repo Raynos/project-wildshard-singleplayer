@@ -1,4 +1,4 @@
-const switches = new Set(['help', 'worker', 'quiet', 'devserver', 'gl-time', 'gpu-bisect', 'frame-timeline', 'task-clock', 'road-approach', 'entry-socket']);
+const switches = new Set(['help', 'worker', 'quiet', 'devserver', 'gl-time', 'gpu-bisect', 'frame-timeline', 'task-clock', 'road-approach', 'entry-socket', 'wasm-memory-probe']);
 const values = new Set(['base', 'cpu-profile', 'deadline', 'developer', 'device', 'frames', 'gl-observer', 'gpu-trace',
   'grid-cell', 'grid-cell-pose', 'grid-routes', 'grid-scenario', 'regrade', 'rev', 'rising-islet', 'safari-profile', 'safari-steady', 'safari-drive',
   'settle', 'shards', 'surface', 'scratch-dir', 'worker-out', 'device-save', 'expect-system', 'setting', 'output-dir',
@@ -21,6 +21,10 @@ export function validateFrameFloorArgs(args) {
     throw new Error('WebKit timelines require --surface=sim');
   if (args.some(arg => arg.startsWith('--wasm-constructors=')) && !args.includes('--surface=sim'))
     throw new Error('Native constructor observations require --surface=sim');
+  if (args.includes('--wasm-memory-probe') && (!args.includes('--surface=sim') || args.includes('--quiet')
+    || !args.some(arg => arg.startsWith('--wasm-constructors=') && arg.length > '--wasm-constructors='.length)
+    || !args.some(arg => arg.startsWith('--webkit-timeline=') && arg.length > '--webkit-timeline='.length)))
+    throw new Error('Blank memory probe requires no-quiet Simulator, native constructors and Timeline');
   const steady = args.filter(arg => arg.startsWith('--safari-steady='));
   const drive = args.filter(arg => arg.startsWith('--safari-drive='));
   const selected = [...steady, ...drive];

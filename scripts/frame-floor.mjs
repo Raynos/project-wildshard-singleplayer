@@ -17,6 +17,7 @@
 import { spawn, spawnSync, execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { join, resolve as resolvePath } from 'node:path';
+import { createServer } from 'node:http';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { saveFixtureCode } from './debug-settings.mjs';
 import { frameFloorSettingsCode } from './frame-floor-settings.mjs';
@@ -31,6 +32,7 @@ import { TASK_CLOCK_SCRIPT } from './frame-floor-task-clock.mjs';
 import { startScriptProfile, STEADY_SCRIPT_WINDOW } from './frame-floor-script-profile.mjs';
 import { startWebKitTimeline, timelineLongFrames } from './frame-floor-webkit-timeline.mjs';
 import { WASM_CONSTRUCTORS_SCRIPT } from './frame-floor-wasm-constructors.mjs';
+import { runWasmMemoryProbe } from './frame-floor-wasm-probe.mjs';
 import { gpuBisect, settleTrace } from './frame-floor-gpu-bisect.mjs';
 import { publicGridIntentCode, publicGridPlans, readPublicGridWitness, publicGridWitnessFailures } from './public-grid.mjs';
 
@@ -43,6 +45,7 @@ const flag = (name, fallback) => args.find((a) => a.startsWith(`--${name}=`))?.s
 const shards = flag('shards', ALL.join(',')).split(',');
 const surface = flag('surface', 'both');
 const quietSample = args.includes('--quiet');
+const wasmMemoryProbe = args.includes('--wasm-memory-probe');
 const nativeDirectory = flag('native-memory', '');
 if (nativeDirectory !== '' && (surface !== 'sim' || !existsSync(nativeDirectory))) throw new Error('--native-memory requires Simulator and an existing scratch directory');
 const frames = Number(flag('frames', '120'));
@@ -87,9 +90,9 @@ const safariSteadyPose = flag('safari-steady', '');
 const safariDrive = flag('safari-drive', '');
 if (safariProfileDir !== '' && (surface !== 'sim' || (gridScenario === 'baseline' && shards.includes('grid')) || !existsSync(safariProfileDir))) throw new Error('--safari-profile=<existing dir> samples Simulator standing and whole-drive windows (diagnostic, no timing credit)');
 const webkitTimelineDir = flag('webkit-timeline', '');
-if (webkitTimelineDir !== '' && (surface !== 'sim' || gridScenario === 'baseline' || !existsSync(webkitTimelineDir))) throw new Error('--webkit-timeline=<existing dir> captures Simulator grid drives only (diagnostic, no timing credit)');
+if (webkitTimelineDir !== '' && (surface !== 'sim' || gridScenario === 'baseline' && !wasmMemoryProbe || !existsSync(webkitTimelineDir))) throw new Error('--webkit-timeline=<existing dir> captures Simulator grid drives only (diagnostic, no timing credit)');
 const wasmConstructorsDir = flag('wasm-constructors', '');
-if (wasmConstructorsDir !== '' && (surface !== 'sim' || gridScenario === 'baseline' || !existsSync(wasmConstructorsDir))) throw new Error('--wasm-constructors=<existing dir> observes native Simulator constructors (diagnostic, no timing credit)');
+if (wasmConstructorsDir !== '' && (surface !== 'sim' || gridScenario === 'baseline' && !wasmMemoryProbe || !existsSync(wasmConstructorsDir))) throw new Error('--wasm-constructors=<existing dir> observes native Simulator constructors (diagnostic, no timing credit)');
 const WASM_CONSTRUCTORS = wasmConstructorsDir === '' ? '' : WASM_CONSTRUCTORS_SCRIPT;
 // sp-o3: `--gpu-bisect` measures each grid route's interior again with one post pass, the shadow update or one heavy
 // scene subtree switched off at a time (scripts/frame-floor-gpu-bisect.mjs): a render-shaped standing miss attributed
@@ -137,7 +140,7 @@ if (!['baseline', 'template', 'runtime-travel', 'sun-entry', 'cell', 'all', 'mil
 if (publicGrid && (gridScenario === 'milestone' || gridScenario === 'reentry')) throw new Error('Milestone and re-entry floors require Developer mode');
 if (publicGrid && gridScenario === 'sun-entry') throw new Error('Signal Dunes entered floor requires Developer mode');
 if (args.includes('--help')) {
-  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--developer=on|off] [--frames=120] [--settle=2] [--standing-poses=name,...] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value] [--textures=ktx2|img] [--ktx2-probe=skip] [--gl-observer=off|on] [--grid-scenario=baseline|template|runtime-travel|sun-entry|all|milestone|reentry|outer-road|cell --grid-cell=<slug|instance> [--grid-cell-pose=x,y,z,yawDeg[,pitchDeg]] [--road-approach] [--entry-socket] [--rising-islet=north|east|south|west]] [--devserver] [--grid-routes=route-name,...] [--cpu-profile=<scratch dir>] [--gpu-trace=<scratch dir>] [--safari-profile=<scratch dir>] [--safari-steady=<grid-interior-pose>] [--safari-drive=<grid-route>] [--gl-time] [--frame-timeline] [--wasm-constructors=<scratch dir>] [--task-clock] [--gpu-bisect] [--scratch-dir=<owned workspace>] [--serve-shard=<slug>] [--serve-base=<served preview url of --rev>]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Grid scenarios drive actual input and require frame/interior/residency witnesses. Public grid seeds only the existing tap intent; admission remains hard. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
+  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--developer=on|off] [--frames=120] [--settle=2] [--standing-poses=name,...] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value] [--textures=ktx2|img] [--ktx2-probe=skip] [--gl-observer=off|on] [--grid-scenario=baseline|template|runtime-travel|sun-entry|all|milestone|reentry|outer-road|cell --grid-cell=<slug|instance> [--grid-cell-pose=x,y,z,yawDeg[,pitchDeg]] [--road-approach] [--entry-socket] [--rising-islet=north|east|south|west]] [--devserver] [--grid-routes=route-name,...] [--cpu-profile=<scratch dir>] [--gpu-trace=<scratch dir>] [--safari-profile=<scratch dir>] [--safari-steady=<grid-interior-pose>] [--safari-drive=<grid-route>] [--gl-time] [--frame-timeline] [--wasm-constructors=<scratch dir>] [--wasm-memory-probe] [--task-clock] [--gpu-bisect] [--scratch-dir=<owned workspace>] [--serve-shard=<slug>] [--serve-base=<served preview url of --rev>]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Grid scenarios drive actual input and require frame/interior/residency witnesses. Public grid seeds only the existing tap intent; admission remains hard. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
   process.exit(0);
 }
 if (shards.length === 0 || shards.some((s) => !ALL.includes(s)) || new Set(shards).size !== shards.length || !['desktop', 'sim', 'both'].includes(surface) || !Number.isInteger(frames) || frames < 30 || frames > 600 || !Number.isFinite(settleMs) || settleMs < 1000 || settleMs > 10000) throw new Error('Invalid shards, surface, frames (30–600) or settle (1–10 seconds)');
@@ -747,7 +750,7 @@ async function worker() {
   const base = flag('base', ''), rows = [];
   // Native memory owns a bounded Simulator window, not time spent queued for it.
   const deadline = nativeDirectory === '' ? Number(flag('deadline', '0')) : Date.now() + 570_000;
-  let browser, context, page, proxy, inspector, nativeMemory;
+  let browser, context, page, proxy, inspector, nativeMemory, wasmProbeResult;
   /** @type {ReturnType<typeof startFloorNative> | undefined} */
   let stopNative;
   let quietHeld = false;
@@ -833,7 +836,7 @@ async function worker() {
           try { xcrun(['terminate', udid, 'com.apple.mobilesafari']); } catch { /* Safari is not running on first boot. */ }
           xcrun(['openurl', udid, `${base}version.json`]);
           await connect(`${base}version.json`);
-          await retryEvaluate(`(() => { ${fixture('phone')}; return true; })()`);
+          if (!wasmMemoryProbe) await retryEvaluate(`(() => { ${fixture('phone')}; return true; })()`);
           if (nativeDirectory !== '') stopNative = startFloorNative(ROOT, nativeDirectory, udid, expression => inspector?.raw(expression), () => { inspector?.close(); });
           // Reconnect after navigation: an inspector evaluation envelope can disappear in a WebContent process swap.
           // The helper sets live pose pins before the clean build's modules boot.
@@ -853,7 +856,22 @@ async function worker() {
         timeline: glTime || webkitTimelineDir !== '' ? { start: () => startWebKitTimeline(inspector, (expression) => retryEvaluate(expression)) } : null,
       };
     }
-    for (const shard of shards) { lastRoute = null; evaluationOriginDriftMaxMs = 0; rows.push(await measureShard(driver, shard, deadline)); }
+    if (wasmMemoryProbe) {
+      await driver.load('grid');
+      const blank = await driver.evaluate('window.__wildshard === undefined && [...document.scripts].every(script => script.src === "")');
+      if (!blank) throw new Error('Memory probe must run without application scripts');
+      const stop = await driver.timeline.start();
+      let probe, timeline;
+      try { probe = await driver.evaluate(`(${runWasmMemoryProbe.toString()})()`, 20000); }
+      finally { timeline = await stop(); }
+      const counts = await driver.evaluate(`(() => { const rows = window.__wasmDurationCensus.rows; return { dropped: window.__wasmDurationCensus.dropped, Memory: rows.filter(r => r.kind === 'Memory').length, Module: rows.filter(r => r.kind === 'Module').length, Instance: rows.filter(r => r.kind === 'Instance').length }; })()`);
+      if (counts.dropped !== 0 || counts.Memory !== 46 || counts.Instance !== 46 || counts.Module !== 1) throw new Error('Blank native constructor counts differ from the protocol');
+      const errors = await driver.errors();
+      if (errors.length > 0) throw new Error('Blank memory probe reported page errors');
+      wasmProbeResult = { complete: true, diagnostic: true, blank, counts, probe, timeline, errors };
+      writeFileSync(join(webkitTimelineDir, 'blank-memory-probe.json'), JSON.stringify(wasmProbeResult));
+      await driver.unload();
+    } else for (const shard of shards) { lastRoute = null; evaluationOriginDriftMaxMs = 0; rows.push(await measureShard(driver, shard, deadline)); }
   } catch (error) {
     for (const shard of shards.filter((s) => !rows.some((r) => r.shard === s))) rows.push({ shard, complete: false, pass: false, error: errorText(error) });
   } finally {
@@ -864,7 +882,7 @@ async function worker() {
     try { inspector?.close(); proxy?.kill('SIGTERM'); await context?.close(); await browser?.close(); }
     finally { if (quietHeld) quiet('release'); }
   }
-  writeFileSync(flag('worker-out', ''), JSON.stringify({ surface, rows, memoryJourney: [...memoryJourney.values()], ...(nativeMemory === undefined ? {} : { nativeMemory }) }));
+  writeFileSync(flag('worker-out', ''), JSON.stringify({ surface, rows, memoryJourney: [...memoryJourney.values()], ...(nativeMemory === undefined ? {} : { nativeMemory }), ...(wasmProbeResult === undefined ? {} : { wasmMemoryProbe: wasmProbeResult }) }));
 }
 function run(command, argv, options = {}) {
   return new Promise((resolve, reject) => {
@@ -891,7 +909,7 @@ async function main() {
   const scratch = join(resolvePath(flag('scratch-dir', '/private/tmp/sp-lanes/frame-floor')), `frame-floor-${runId}`);
   mkdirSync(scratch, { recursive: true });
   const results = [], temporary = [];
-  let base, ownedServer = true;
+  let base, probeServer, ownedServer = true;
   try {
     // --serve-shard=<slug>: build only that shard's product (serve-build --shard), for a standalone row when another
     // shard's product does not build at this commit
@@ -900,21 +918,38 @@ async function main() {
     // owner), so back-to-back A/B rows in a quiet window build nothing; its build id is still checked below (sp-o286)
     const serveBase = flag('serve-base', '');
     if (serveBase !== '') ownedServer = false;
-    base = serveBase !== '' ? (serveBase.endsWith('/') ? serveBase : `${serveBase}/`) : await run(join(ROOT, 'scripts/serve-build.sh'), ['--rev', sha, '--name', `frame-floor-${runId}`, '--hours', '1', ...(devserverBuild ? ['--devserver'] : []), ...(serveShard === '' ? [] : ['--shard', serveShard])], { cwd: ROOT }); // G670: previews start from the checkout, never a tmp/ caller
+    if (wasmMemoryProbe) {
+      ownedServer = false;
+      const blank = `<!doctype html><html><head><meta charset="utf-8"><script>${WASM_CONSTRUCTORS}${ERROR_SCRIPT}</script></head><body>Blank native memory diagnostic</body></html>`;
+      probeServer = createServer((request, response) => {
+        const path = new URL(request.url ?? '/', 'http://localhost').pathname;
+        response.setHeader('Cache-Control', 'no-store');
+        if (path === '/version.json') { response.setHeader('Content-Type', 'application/json'); response.end(JSON.stringify({ build: `blank-fixture-${sha.slice(0, 7)}` })); }
+        else if (path === '/frame-floor-safari.html') { response.setHeader('Content-Type', 'text/html; charset=utf-8'); response.end(blank); }
+        else { response.statusCode = 404; response.end(); }
+      });
+      await new Promise((resolve, reject) => { probeServer.once('error', reject); probeServer.listen(0, '127.0.0.1', resolve); });
+      const address = probeServer.address();
+      if (address === null || typeof address === 'string') throw new Error('Blank diagnostic server has no loopback port');
+      base = `http://127.0.0.1:${address.port}/`;
+    } else base = serveBase !== '' ? (serveBase.endsWith('/') ? serveBase : `${serveBase}/`) : await run(join(ROOT, 'scripts/serve-build.sh'), ['--rev', sha, '--name', `frame-floor-${runId}`, '--hours', '1', ...(devserverBuild ? ['--devserver'] : []), ...(serveShard === '' ? [] : ['--shard', serveShard])], { cwd: ROOT }); // G670: previews start from the checkout, never a tmp/ caller
     const version = await (await fetch(`${base}version.json`)).json();
     if (!JSON.stringify(version).includes(sha.slice(0, 7))) throw new Error(`Preview build id does not match ${sha}: ${JSON.stringify(version)}`);
     // Safari cannot inject a pre-navigation script with its inspector protocol. Add pins to a COPY of the clean
     // entry HTML in the served dist only. Compiled JS/assets and all gameplay remain byte-identical to the export.
-    const registry = readFileSync(join(process.env.HOME, '.dev-servers', new URL(base).port), 'utf8').trim().split(' ');
-    const dist = join(registry[2], 'dist'), html = readFileSync(join(dist, 'index.html'), 'utf8');
-    const helper = join(dist, 'frame-floor-safari.html');
-    writeFileSync(helper, html.replace('<head>', `<head><script>${WASM_CONSTRUCTORS}${fixture('phone')};window.__wildshardHarness=${HARNESS_PINS};${ERROR_SCRIPT}${CONSOLE_SCRIPT}${GL_TIME_SCRIPT}${TASK_CLOCK}${travelGl}</script>`));
+    if (!wasmMemoryProbe) {
+      const registry = readFileSync(join(process.env.HOME, '.dev-servers', new URL(base).port), 'utf8').trim().split(' ');
+      const dist = join(registry[2], 'dist'), html = readFileSync(join(dist, 'index.html'), 'utf8');
+      const helper = join(dist, 'frame-floor-safari.html');
+      writeFileSync(helper, html.replace('<head>', `<head><script>${WASM_CONSTRUCTORS}${fixture('phone')};window.__wildshardHarness=${HARNESS_PINS};${ERROR_SCRIPT}${CONSOLE_SCRIPT}${GL_TIME_SCRIPT}${TASK_CLOCK}${travelGl}</script>`));
+    }
     for (const s of surface === 'both' ? ['desktop', 'sim'] : [surface]) {
       const out = join(scratch, `frame-floor-${s}-${sha.slice(0, 9)}.json`); temporary.push(out);
       const workerArgs = [SCRIPT, '--worker', ...(devserverBuild ? ['--devserver'] : []), `--surface=${s}`, `--developer=${developer}`, `--standing-poses=${standingPoses.join(',')}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--grid-scenario=${gridScenario}`, ...(gridRoutes.length === 0 ? [] : [`--grid-routes=${gridRoutes.join(',')}`]), ...(gridCell === '' ? [] : [`--grid-cell=${gridCell}`]), ...(roadApproach ? ['--road-approach'] : []), ...(entrySocket ? ['--entry-socket'] : []), ...(risingIslet === '' ? [] : [`--rising-islet=${risingIslet}`]), ...(gridCellPoseArg === '' ? [] : [`--grid-cell-pose=${gridCellPoseArg}`]), `--gl-observer=${glObserver}`, ...(texturesPin === '' ? [] : [`--textures=${texturesPin}`]), ...(ktx2ProbePin === '' ? [] : [`--ktx2-probe=${ktx2ProbePin}`]), ...(glTime ? ['--gl-time'] : []), ...(gpuBisectOn ? ['--gpu-bisect'] : []), ...(frameTimeline ? ['--frame-timeline'] : []), ...(taskClock ? ['--task-clock'] : []), ...(cpuProfileDir === '' ? [] : [`--cpu-profile=${cpuProfileDir}`]), ...(safariProfileDir === '' ? [] : [`--safari-profile=${safariProfileDir}`]), ...(gpuTraceDir === '' ? [] : [`--gpu-trace=${gpuTraceDir}`]), `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`, ...settingArgs, ...deviceSaveArgs, ...systemArgs];
       if (nativeDirectory !== '') workerArgs.push(`--native-memory=${nativeDirectory}`);
       if (webkitTimelineDir !== '') workerArgs.push(`--webkit-timeline=${webkitTimelineDir}`);
       if (wasmConstructorsDir !== '') workerArgs.push(`--wasm-constructors=${wasmConstructorsDir}`);
+      if (wasmMemoryProbe) workerArgs.push('--wasm-memory-probe');
       if (safariSteadyPose !== '') workerArgs.push(`--safari-steady=${safariSteadyPose}`);
       if (safariDrive !== '') workerArgs.push(`--safari-drive=${safariDrive}`);
       if (quietSample) workerArgs.push('--quiet');
@@ -923,6 +958,16 @@ async function main() {
       results.push(JSON.parse(readFileSync(out, 'utf8')));
     }
     const elapsedSeconds = (Date.now() - start) / 1000;
+    if (wasmMemoryProbe) {
+      const complete = results.length === 1 && results[0]?.wasmMemoryProbe?.complete === true;
+      const record = { diagnostic: 'blank-wasm-memory-probe', complete, floorTimingCredit: false, harnessRevision: sha, elapsedSeconds, results };
+      const directory = resolvePath(ROOT, flag('output-dir', 'tmp/frame-floor')); mkdirSync(directory, { recursive: true });
+      const output = join(directory, `blank-wasm-${runId}.json`);
+      writeFileSync(output, JSON.stringify(record, null, 2));
+      console.log(`Blank native memory diagnostic ${output}: complete=${complete}; no app build or floor timing credit`);
+      process.exitCode = complete ? 0 : 3;
+      return;
+    }
     const complete = results.every((r) => r.rows.every((row) => row.complete));
     const pass = complete && elapsedSeconds < 600 && results.every((r) => r.rows.every((row) => row.pass));
     const record = grade({ schema: 2, sha, runId, device, when: new Date().toISOString(), elapsedSeconds, underTenMinutes: elapsedSeconds < 600,
@@ -937,6 +982,7 @@ async function main() {
     console.log(`Baseline ${output}: ${elapsedSeconds.toFixed(1)} seconds, complete=${record.complete}, pass=${record.pass}`);
     process.exitCode = record.complete ? record.pass ? 0 : 2 : 3;
   } finally {
+    if (probeServer !== undefined) await new Promise(resolve => { probeServer.close(resolve); });
     if (base && ownedServer) await run(join(ROOT, 'scripts/serve-build.sh'), ['stop', new URL(base).port], { cwd: ROOT });
     for (const out of temporary) rmSync(out, { force: true });
     rmSync(scratch, { recursive: true, force: true });

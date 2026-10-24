@@ -235,6 +235,14 @@ to retain bounded native Memory/Module/Instance durations and original frame-clo
 reads. It injects before app modules, collects stacks outside each native timed
 segment, and saves on existing Inspector evaluations; no extra watcher or rAF.
 Constructor and timeline observations are diagnostic, with no floor timing credit.
+For the controlled blank-page experiment, add `--wasm-memory-probe` with those
+two output directories and `--surface=sim` (no quiet). The same official worker
+serves a short-lived, no-store HTML fixture with no application scripts or build.
+It holds 38 fixed one-page Memory/Instance pairs plus four retained probes, drops
+all 42 strong pairs, yields ordinary timers, then measures four post-drop pairs.
+Only the final checkpoint reads WeakRefs/finalizers; no GC or snapshot is forced.
+Its completion verdict checks the 46/46/1 native counts, never frame-floor gates.
+A surviving weak target without collection is unknown, not a retaining-owner proof.
 
 For one steady function-sampling diagnostic, add `--safari-profile=<existing
 scratch dir> --safari-steady=grid-nalati-interior` to a Simulator grid travel
