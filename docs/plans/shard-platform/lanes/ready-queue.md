@@ -14,6 +14,7 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 | G681 | (G684: then Jake plays it in game; no board) Night Market road option B: lower / see-through barrier at open-plot edges, as an open-plot layout row (Codex only if pure data, else waits for Opus) | art/grid/round-60-night-market-road-a, open-plots-mini-plan.md | |
 | G682 | Core memory: measure a hello-world WebKit floor (same Sim, same method) and set budgets menu <= floor + 50 MB, Template <= floor + 100 MB | core-memory-mini-plan.md | |
 | L11 | Loading: section/schema reads use the trusted worker-verified transport (no second page hash), drop runtimeProduct Uint8Array.from | loading-mini-plan.md:675 | sp-x9 |
+| T9 | G638 approved lattice: 62.5 m gap / 562.5 m pitch, same road look apart from the gap; update strips, seams, layout and road proofs in small commits, no Debug row | tile-streaming-mini-plan.md:T9; T2 landed 30dcc15182 | sp-x6 13:36 (in flight) |
 
 **G683 Codex order (Jake, 13:20):** finish extras in this order, taking the top open Codex row of the first plan that has one:
 (1) tile streaming (shard-platform/tile-streaming-mini-plan.md), (2) loading (loading-mini-plan.md), (3) core memory
