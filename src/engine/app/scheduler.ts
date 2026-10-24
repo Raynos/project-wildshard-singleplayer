@@ -4,7 +4,8 @@ import * as v from 'valibot';
 import { DEFAULT_TICK_RATES, bandAt, checkTickRate, freshClock, tickClock, tickDistance, type TickClock } from '../sim/bands';
 
 export interface TickPoint { readonly x: number; readonly y: number; readonly z: number }
-export interface TickActor { readonly position: TickPoint }
+/** Stable optional identity phases only fresh half-body wakes; decision clocks never read it. */
+export interface TickActor { readonly position: TickPoint; readonly entityId?: string }
 export interface TickBand { upTo: number; brainHz: number | 'paused'; body: 'frame' | 'half' | 'paused' }
 export interface TickRate { bands: readonly TickBand[] }
 export type InterruptReason = 'hit' | 'target.attack' | 'target.dodge' | 'lost.sight' | 'ally.died';
@@ -133,7 +134,7 @@ export class TickScheduler {
     // An interrupt wakes decisions only, without catching up the time spent far away.
     const urgent = !body && interrupt !== row.interrupt;
     if (!body) row.interrupt = interrupt; // unchanged unless urgent
-    return tickClock(state, band, body, this.time, this.frame, urgent);
+    return tickClock(state, band, body, this.time, this.frame, urgent, body ? actor.entityId : undefined);
   }
   brainDt(id: TickRateId, actor: TickActor): number { return this.due(id, actor, false); }
   takeBrainDt(id: TickRateId, actor: TickActor): number {

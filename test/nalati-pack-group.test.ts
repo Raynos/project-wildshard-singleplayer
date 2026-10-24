@@ -106,8 +106,11 @@ test('the pack program runs the original circling-pack law tick for tick', { tim
     for (let tick = 1; tick <= 600; tick++) {
       const t = tick * .1, player = new Vector3(Math.max(64, 120 - tick * .25), 0, 40); // walks in and stands at the pack
       const ca = a.context0(t, player), cb = b.context0(t, player);
-      oracle.tick(ca); for (const w of a.wolves) oracle.drive(w, ca); for (const w of a.wolves) oracle.drive(w, ca, true);
-      scripted.tick(cb); for (const w of b.wolves) scripted.drive(w, cb); for (const w of b.wolves) scripted.drive(w, cb, true);
+      oracle.tick(ca); for (const w of a.wolves) oracle.drive(w, ca);
+      scripted.tick(cb); for (const w of b.wolves) scripted.drive(w, cb);
+      const bodyRandom=[a.shared.snapshot(),a.contextRng.snapshot(),b.shared.snapshot(),b.contextRng.snapshot()];
+      for (const w of a.wolves) oracle.drive(w, ca, true);for (const w of b.wolves) scripted.drive(w, cb, true);
+      expect([a.shared.snapshot(),a.contextRng.snapshot(),b.shared.snapshot(),b.contextRng.snapshot()]).toEqual(bodyRandom);
       if (phases.at(-1) !== oracle.phase) phases.push(oracle.phase);
       expect([tick, scripted.phase, round(scripted.awareness)]).toStrictEqual([tick, oracle.phase, round(oracle.awareness)]);
       expect([tick, states(b.wolves)]).toStrictEqual([tick, states(a.wolves)]);

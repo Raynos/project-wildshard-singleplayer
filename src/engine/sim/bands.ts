@@ -68,8 +68,10 @@ export function bandAt(rate: TickRate, distance: number): TickBand | undefined {
  * catching up time spent paused). A brain is due once its credit reaches one period of its band's rate (the remainder
  * carried); a 'frame' body every frame; a 'half' body every other frame, its step the time since its last update; a
  * paused clock discards the time and starts again one frame's step after the pause.
+ * A supplied stable body identity splits unstarted half-body wakes by parity;
+ * existing positive tickFrame phases, decision clocks and the save shape stay intact.
  */
-export function tickClock(state: TickClock, band: TickBand, body: boolean, time: number, frame: number, urgent: boolean): number {
+export function tickClock(state: TickClock, band: TickBand, body: boolean, time: number, frame: number, urgent: boolean, bodyIdentity?: string): number {
   if (state.frame === frame && !urgent) return state.dt;
   const step = time - state.last;
   state.last = time;
@@ -77,6 +79,10 @@ export function tickClock(state: TickClock, band: TickBand, body: boolean, time:
   if (paused) { state.elapsed = 0; state.credit = 0; state.tickFrame = -1; }
   else { state.elapsed += step; state.credit += step; }
   state.frame = frame; state.dt = 0; state.due = false;
+  // Only an unstarted half-body clock chooses a phase. Zero-time warm-up
+  // does not choose it; restored positive tickFrame values retain their phase.
+  if (body && band.body === 'half' && state.tickFrame < 0 && state.elapsed > 0
+    && bodyIdentity !== undefined && (fnv1a32(bodyIdentity) & 1) !== 0) state.tickFrame = frame - 1;
   if (urgent || (!paused && (body ? band.body === 'frame' || state.tickFrame < 0 || frame - state.tickFrame >= 2 : band.brainHz !== 'paused' && state.credit + 1e-9 >= 1 / band.brainHz))) {
     state.due = urgent || state.elapsed > 0; state.dt = state.elapsed; state.elapsed = 0;
     if (state.due) state.tickFrame = frame;
@@ -142,7 +148,7 @@ export class BodyBandClocks {
   /** This frame's body step for `id` at `distance` (m) on `rate`; 0 = paused or the off frame of 'half'. */
   bodyDt(id: string, rate: string, distance: number): number {
     const { row, band } = this.row(id, rate);
-    return tickClock(row.body, band(distance), true, this.time, this.frame, false);
+    return tickClock(row.body, band(distance), true, this.time, this.frame, false, id);
   }
   /** This frame's decision step for `id`; `urgent` (a hit, a lost sight line) wakes it now. The step is taken (consumed). */
   takeBrainDt(id: string, rate: string, distance: number, urgent: boolean): number {

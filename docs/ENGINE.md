@@ -1476,6 +1476,11 @@ The default bands: near (0–60 m) brain 20 Hz, body every frame; mid (60–160 
 paused. Interrupts re-think the same frame. `pin` keeps an active boss, elite or quest actor running. Strike phases run
 on the body clock. A shard overrides a rate in `manifest.tiers.<tier>.ticks`.
 
+A `TickActor` may supply its stable `entityId` to split fresh half-body wakes
+by deterministic parity. Native `BodyBandClocks` uses the same entity id.
+Zero-time warm-up does not choose a phase; existing saved body phases and
+rate fingerprints stay unchanged. Decision clocks and RNG order are unchanged.
+
 ## 13. Render, tiers, budgets
 
 ### 13.1 LookStrategy

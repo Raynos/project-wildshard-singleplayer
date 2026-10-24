@@ -759,3 +759,16 @@ test('publication reads the scalar snapshot getters before candidate getters',()
   expect(reads).toEqual([...names.map(name=>`scalar:${name}`),...names.map(name=>`candidate:${name}`)]);
  }finally{f.scope.dispose();}
 });
+
+
+test('all herd body-only modes leave both borrowed RNG streams unchanged',()=>{
+ for(const mode of modes)for(const state of states){
+  const f=fixture(mode,state);
+  try{
+   execute(f,0,false,'addTrust',{argument:0});
+   const before=[f.random.snapshot(),f.contextRandom.snapshot()];
+   for(let slot=0;slot<f.roster.length;slot++)execute(f,slot,true);
+   expect([f.random.snapshot(),f.contextRandom.snapshot()]).toEqual(before);
+  }finally{f.scope.dispose();}
+ }
+});
