@@ -13,11 +13,13 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 | G680 | Driftwood tile LOD option B: apply variant-B.patch; tile 6,4 at 4.67 MB gets an exact storage pin | art/driftwood-isle/round-19-tile-lod | sp-x2 (brief) |
 | G681 | (G684: then Jake plays it in game; no board) Night Market road option B: lower / see-through barrier at open-plot edges, as an open-plot layout row (Codex only if pure data, else waits for Opus) | waits for Opus (Tue 13:00): not pure data; needs graphical code in grid softWallLook.ts (HEIGHT 7, shader opacity) per plot (sp-x8 audit) |
 | G682 | Core memory: measure a hello-world WebKit floor (same Sim, same method) and set budgets menu <= floor + 50 MB, Template <= floor + 100 MB | core-memory-mini-plan.md | done 836f758a0e (98.538 MiB floor; fixed +50/+100 MiB budgets) |
-| CF3 | G691: product-free behaviour tests run before products; retain complete strict product coverage | ci-flow-mini-plan.md:CF3 | sp-x1 in flight (2026-10-24) |
+| CF3 | G691: product-free behaviour tests run before products; retain complete strict product coverage | ci-flow-mini-plan.md:CF3 | source done 1f76530a1d; coordinator CI reading open |
 | L11 | Loading: section/schema reads use the trusted worker-verified transport (no second page hash), drop runtimeProduct Uint8Array.from | loading-mini-plan.md:675 | sp-x9 |
 | T0 | Tile streaming: entered-world tile-local / shard-global census for Driftwood, Nalati, Pine, Nine and Sky; reconcile observed GL and allocator claims, keep shared/unknown separate | tile-streaming-mini-plan.md:123 | sp-x8 13:34 (in flight) |
 | T9 | G638 approved lattice: 62.5 m gap / 562.5 m pitch, same road look apart from the gap; update strips, seams, layout and road proofs in small commits, no Debug row | tile-streaming-mini-plan.md:T9; T2 landed 30dcc15182 | sp-x6 13:36 (in flight) |
 | T1 | Tile streaming: complete leak-free tile / region retirement and ghost collection proofs; preserve existing disposal ownership and audit the current counters before changes | tile-streaming-mini-plan.md:124 | sp-x9 13:41 T1 |
+
+| T3 | Per-tile content: non-graphical placement buckets and retirement ownership; graphical ranges/render parity stay with Opus | tile-streaming-mini-plan.md:T3 | sp-x1 14:05 (in flight) |
 
 **G683 Codex order (Jake, 13:20):** finish extras in this order, taking the top open Codex row of the first plan that has one:
 (1) tile streaming (shard-platform/tile-streaming-mini-plan.md), (2) loading (loading-mini-plan.md), (3) core memory
