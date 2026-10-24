@@ -96,14 +96,43 @@ function readRetirementBoundaryResult(value: unknown): { keys: unknown; controls
 test('T1 home seed preserves original ground resolution and applies the existing world origin', async () => {
   const poses: { x: number; z: number; y?: number; yaw: number; pitch: number }[] = [];
   const live = { current: 'dw', gameplayReady: true, worldFeet: { x: 100, z: 500 } };
-  const context = { performance: { timeOrigin: 1 }, window: { __wildshard: {
-    shard: { grid: { state: () => ({ home: 'dw', inside: 'dw', live: { live } }) } },
+  let now = 0, polls = 0;
+  const context = { performance: { timeOrigin: 1, now: () => now },
+    setTimeout: (resolve: () => void, ms: number) => { now += ms; polls++; resolve(); }, window: { __wildshard: {
+    shard: { grid: { state: () => ({ home: 'dw', inside: 'dw', live: { live, crossing: { phase: polls < 3 ? 'preparing' : 'settled' } },
+      rings: { inFlight: polls < 2 ? 1 : 0, queued: polls === 2 ? 1 : 0 } }) } },
     world: { player: { position: { x: 10, z: 20 } } },
-    pose: (value: (typeof poses)[number]) => { poses.push(value); return Promise.resolve(); },
+    pose: (value: (typeof poses)[number]) => {
+      if (poses.length > 0) expect(polls).toBe(4);
+      poses.push(value); return Promise.resolve();
+    },
   } } };
   const expression = `(${seedTileRetirementHome.toString()})({x:120,z:710},{token:'original',timeOrigin:1},()=>({token:'original',timeOrigin:1}))`;
   await runInNewContext(expression, context);
-  expect(poses).toEqual([{ x: 30, z: 230, yaw: 0, pitch: -0.08 }]);
+  expect(poses).toEqual(Array.from({ length: 2 }, () => ({ x: 30, z: 230, yaw: 0, pitch: -0.08 })));
+  expect(polls).toBe(4);
   expect(poses.every(pose => !Object.hasOwn(pose, 'y'))).toBe(true);
   live.current = 'other'; await expect(runInNewContext(expression, context)).rejects.toThrow(/original ready home/u);
+});
+
+
+test('T1 home staging refuses failed crossings, navigation and unending streaming before reseeding', async () => {
+  let now = 0, poses = 0;
+  const crossing = { phase: 'settled', issue: 'checkpoint refused' };
+  const live = { current: 'dw', gameplayReady: true, worldFeet: { x: 0, z: 230 } };
+  const context = { performance: { timeOrigin: 1, now: () => now },
+    setTimeout: (resolve: () => void, ms: number) => { now += ms; resolve(); }, window: { __wildshard: {
+      shard: { grid: { state: () => ({ home: 'dw', inside: 'dw', live: { live, crossing }, rings: { inFlight: 1, queued: 0 } }) } },
+      world: { player: { position: { x: 0, z: 230 } } },
+      pose: () => { poses++; return Promise.resolve(); },
+    } } };
+  const expression = `(${seedTileRetirementHome.toString()})({x:0,z:230},{token:'original',timeOrigin:1},()=>({token:'original',timeOrigin:1}))`;
+  await expect(runInNewContext(expression, context)).rejects.toThrow(/streaming did not settle/u);
+  expect(poses).toBe(1);
+  crossing.phase = 'save-failed';
+  await expect(runInNewContext(expression, context)).rejects.toThrow(/checkpoint refused/u);
+  expect(poses).toBe(1);
+  context.performance.timeOrigin = 2;
+  await expect(runInNewContext(expression, context)).rejects.toThrow(/navigated/u);
+  expect(poses).toBe(1);
 });

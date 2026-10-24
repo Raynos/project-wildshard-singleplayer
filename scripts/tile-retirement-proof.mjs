@@ -78,14 +78,35 @@ export function readRetirementBoundary(identity, documentIdentity) {
       && row.id.startsWith('render:')).map(row => row.id) };
 }
 
-/** The only seed is before warm-up. Let Player.spawn resolve its original
- * ground; the floor driver's explicit 0.55 m road height is not a home floor. */
+/** Initial staging only, before warm-up or measured input. A new position can
+ * publish streamed colliders after pose's first ground lookup; resolve again
+ * only after that position's normal streaming and crossing have settled. */
 export async function seedTileRetirementHome(reference, identity, documentIdentity) {
-  if (documentIdentity().token !== identity.token || performance.timeOrigin !== identity.timeOrigin)
-    throw new Error('Retirement proof navigated before its home seed');
-  const api = window.__wildshard, state = api.shard.grid.state(), live = state.live?.live;
-  if (!live || live.current !== state.home || state.inside !== state.home || !live.gameplayReady)
-    throw new Error('Retirement seed requires its original ready home');
-  const player = api.world.player, ox = live.worldFeet.x - player.position.x, oz = live.worldFeet.z - player.position.z;
-  await api.pose({ x: reference.x - ox, z: reference.z - oz, yaw: 0, pitch: -0.08 });
+  const api = window.__wildshard, home = api.shard.grid.state().home;
+  const read = () => {
+    if (documentIdentity().token !== identity.token || performance.timeOrigin !== identity.timeOrigin || window.__wildshard !== api)
+      throw new Error('Retirement proof navigated before its home seed');
+    const state = api.shard.grid.state(), live = state.live?.live;
+    if (!live || state.home !== home || live.current !== home || state.inside !== home || !live.gameplayReady)
+      throw new Error('Retirement seed requires its original ready home');
+    if (state.live.crossing.phase === 'blocked' || state.live.crossing.phase === 'save-failed')
+      throw new Error(`Retirement seed crossing failed: ${state.live.crossing.issue}`);
+    return state;
+  };
+  const pose = async () => {
+    const state = read(), player = api.world.player, feet = state.live.live.worldFeet;
+    await api.pose({ x: reference.x - (feet.x - player.position.x), z: reference.z - (feet.z - player.position.z), yaw: 0, pitch: -0.08 });
+  };
+  await pose();
+  const deadline = performance.now() + 120_000;
+  // Two separate normal turns let the moved player's stream request publish;
+  // an empty queue from the old position is not a settled staging receipt.
+  let settled = 0;
+  while (settled < 2) {
+    if (performance.now() >= deadline) throw new Error('Retirement home seed streaming did not settle');
+    await new Promise(resolve => { setTimeout(resolve, 100); });
+    const state = read();
+    settled = state.rings.inFlight === 0 && state.rings.queued === 0 && state.live.crossing.phase === 'settled' ? settled + 1 : 0;
+  }
+  await pose();
 }
