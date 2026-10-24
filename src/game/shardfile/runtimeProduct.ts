@@ -5,7 +5,7 @@ import type { Material } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { ClientAssets } from './clientAssets';
-import { buildYield, pacedResolve } from '@wildshard/engine/core/workSlice';
+import { buildYield, pacedResolve, workSlice, type WorkSlice } from '@wildshard/engine/core/workSlice';
 import { pageScope } from '@wildshard/engine/app/resources';
 import { waitFor } from '@wildshard/engine/boot/waits';
 import { currentOwner } from '@wildshard/engine/app/ownership';
@@ -90,16 +90,27 @@ export function browserShardfileOptions(base: string, firstParty = false): Produ
     verifiedResponse: async (url: string, hash: string, maximum: number) =>
       (await cachedTransport(caches, url, maximum, browserContentHash, actual => actual === hash, hashOwnedBytes))?.bytes ?? null }),
     ...(transport === undefined ? {} : { transport }),
-    pause: pauseDescriptor, cacheBatch: true,
+    pause: pauseDescriptor(), cacheBatch: true,
     ...(firstParty && builtIndexes !== null ? { built: { indexes: builtIndexes, stale: staleRecovery } } : {}),
     ...(typeof caches === 'undefined' ? {} : { cache: browserProductCache(caches) }),
   };
 }
 
-/** End a validation slice after a visible frame; Node readers inject no browser scheduler. */
-async function pauseDescriptor(): Promise<void> {
-  if (document.visibilityState !== 'visible') { await buildYield(pageScope); return; }
-  await new Promise<void>(resolve => { pageScope.raf(() => { pageScope.timeout(0, resolve); }); });
+/** Paint before admission, then spend the shared work budget between visible frames. */
+function pauseDescriptor(): () => Promise<void> {
+  let slice: WorkSlice | undefined, pending: Promise<void> | undefined;
+  return () => {
+    if (pending !== undefined) return pending;
+    if (slice !== undefined && !slice.due()) return Promise.resolve();
+    pending = (async () => {
+      try {
+        await (document.visibilityState !== 'visible' ? buildYield(pageScope)
+          : new Promise<void>(resolve => { pageScope.raf(() => { pageScope.timeout(0, resolve); }); }));
+        slice = workSlice(undefined, pageScope);
+      } finally { pending = undefined; }
+    })();
+    return pending;
+  };
 }
 
 const provided = new Map<string, RuntimeProduct[]>();

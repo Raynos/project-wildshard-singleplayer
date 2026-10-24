@@ -3318,6 +3318,11 @@ fourth argument. Admission may finish while application code loads; the barrier
 precedes client bindings and active-manifest publication. The composition root
 retains import-error precedence and disposes its page only after started work settles.
 Descriptor and residency admission do not import quest, boss or scene presentation.
+Browser product admission forces its first paint, then shares the existing
+8 ms work-slice budget across cheap checks. A spent slice waits for a real
+visible frame and a scoped task before restarting; concurrent pause calls
+join that same pending paint. Hidden pages retain scoped build yields.
+Validation, offline durability and publication order remain unchanged.
 The compiler records optional feature graphs in one shared file table; the original
 admitted plan reserves only selected groups before imports. Script, loot and quest
 presentation load before their original synchronous, owner-bound play steps.

@@ -24,3 +24,49 @@ test('browser admission overlaps cache requests and retains its frame boundary, 
     vi.restoreAllMocks();
   }
 });
+
+test('cheap admission checks share a slice but spent work always paints before continuing', async () => {
+  let now = performance.now() + 1000;
+  vi.spyOn(performance, 'now').mockImplementation(() => now);
+  vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('visible');
+  const frames: FrameRequestCallback[] = [];
+  installScopeEnvironment({ ...original, frame: render => { frames.push(render); return frames.length; } });
+  const pause = browserShardfileOptions('https://example.invalid/').pause;
+  if (pause === undefined) throw new Error('Missing browser admission policy');
+  try {
+    let painted = false;
+    const first = pause().then(() => { painted = true; return undefined; });
+    await microtasks();
+    expect(painted).toBe(false);
+    expect(frames).toHaveLength(1);
+    frames.shift()?.(now);
+    await first;
+
+    let cheapDone = false;
+    const cheap = pause().then(() => { cheapDone = true; return undefined; });
+    await microtasks();
+    expect(cheapDone).toBe(true);
+    expect(frames).toHaveLength(0);
+    await cheap;
+    for (let i = 0; i < 30; i++) await pause();
+    expect(frames).toHaveLength(0);
+
+    now += 7;
+    await pause();
+    expect(frames).toHaveLength(0);
+    now += 1;
+    let spentDone = false;
+    const spent = pause().then(() => { spentDone = true; return undefined; });
+    const joining = pause();
+    await microtasks();
+    expect(spentDone).toBe(false);
+    expect(frames).toHaveLength(1);
+    frames.shift()?.(now);
+    await Promise.all([spent, joining]);
+    await pause();
+    expect(frames).toHaveLength(0);
+  } finally {
+    for (const render of frames.splice(0)) render(now);
+    await microtasks();
+  }
+});
