@@ -167,6 +167,8 @@ export class LiveGridHost {
   private fixedTick = 0;
   private previousFeet: GridPoint | undefined;
   private readonly candidateDistances = new Map<GridCell,number>();
+  /** This host already owns the assembly and its frozen cells for its whole lifetime. */
+  private targetCells: readonly GridCell[] | undefined;
   /** A refused speculative retirement remains charged until an explicit durability retry. */
   private readonly roadRetirementRefused = new Set<string>();
   private initialHomePending: boolean;
@@ -228,7 +230,8 @@ export class LiveGridHost {
     if (![feet.x, feet.y, feet.z].every(Number.isFinite)) throw new RangeError('Invalid live grid feet');
     const distance = (cell: GridCell): number => Math.max(Math.abs(feet.x - cell.origin.x), Math.abs(feet.z - cell.origin.z)) - CHUNK_HALF;
     if (this.active !== null && distance(this.assembly.cell(this.active)) <= 10) return this.active;
-    return [...this.assembly.cells].sort((a, b) => a.instance.localeCompare(b.instance)).find((cell) => distance(cell) <= 6)?.instance ?? null;
+    const cells = this.targetCells ??= [...this.assembly.cells].sort((a, b) => a.instance.localeCompare(b.instance));
+    return cells.find((cell) => distance(cell) <= 6)?.instance ?? null;
   }
   /** Admission includes colliders, initialized sim and parsed runtime module; entered hooks are a separate gameplay fence. */
   ready(instance: string | null): boolean {
