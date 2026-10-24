@@ -78,3 +78,13 @@ export async function refreshAblationInspector(reconnect, expected) {
   // recorded rather than mistaken for navigation, as in the original driver.
   return { token: identity.token, timeOrigin: identity.timeOrigin, originDriftMs: identity.timeOrigin - expected.timeOrigin };
 }
+
+/** Same capture windows: omit the pause and both UI actions in A+C mode.
+ * @param {boolean} includePause
+ */
+export function ablationPhases(includePause) {
+  return includePause ? [
+    {mode: 'paused', expression: ABLATION_PAUSED, action: OPEN_PAUSE_MENU},
+    {mode: 'buffers', expression: ABLATION_BUFFERS, action: CLOSE_PAUSE_MENU},
+  ] : [{mode: 'buffers', expression: ABLATION_BUFFERS, action: null}];
+}

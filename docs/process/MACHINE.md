@@ -264,7 +264,9 @@ Nested species results deduplicate by weak identity; callback allocations remain
 visible. Errors/drops and
 unsupported APIs are explicit. Wrappers restore before serialization. C timing is
 perturbed and has no acceptance credit; worker/native-internal/Wasm allocations
-remain outside this page-realm probe.
+remain outside this page-realm probe. `--buffer-ablation` selects only A then C
+with the same samplers/probe; it never opens or closes the menu. The two ablation
+selectors are mutually exclusive.
 
 Add `--wasm-constructors=<existing scratch dir>`
 to retain bounded native Memory/Module/Instance durations and original frame-clock

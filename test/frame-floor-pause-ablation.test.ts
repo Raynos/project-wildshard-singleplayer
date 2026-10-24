@@ -1,7 +1,7 @@
 import {expect, test} from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- execute actual serialized diagnostic without Safari
 import {runInNewContext} from 'node:vm';
-import {ABLATION_NORMAL, ABLATION_PAUSED, ABLATION_BUFFERS, refreshAblationInspector} from '../scripts/frame-floor-pause-ablation.mjs';
+import {ABLATION_NORMAL, ABLATION_PAUSED, ABLATION_BUFFERS, refreshAblationInspector, ablationPhases} from '../scripts/frame-floor-pause-ablation.mjs';
 import {validateFrameFloorArgs} from '../scripts/frame-floor-args.mjs';
 
 function fixture(paused = false) {
@@ -80,4 +80,14 @@ test('pre-A Inspector refresh rejects a replaced or malformed identity once, wit
     await expect(refreshAblationInspector(() => {calls++; return Promise.resolve(actual);}, expected)).rejects.toThrow('changed the document');
     expect(calls).toBe(1);
   }
+});
+
+test('A+C selection emits only C and performs no pause or resume UI action', () => {
+  expect(ablationPhases(false)).toEqual([{mode: 'buffers', expression: ABLATION_BUFFERS, action: null}]);
+  expect(ablationPhases(true).map(phase => phase.mode)).toEqual(['paused','buffers']);
+  expect(ablationPhases(true).every(phase => phase.action !== null)).toBe(true);
+  const args = ['--surface=sim','--shards=grid','--grid-scenario=all','--webkit-timeline=tmp/timeline','--webkit-steady=grid-nalati-interior','--buffer-ablation','--quiet'];
+  expect(() => validateFrameFloorArgs(args)).not.toThrow();
+  expect(() => validateFrameFloorArgs([...args,'--pause-ablation'])).toThrow('only one ablation');
+  expect(() => validateFrameFloorArgs(args.filter(arg => !arg.startsWith('--webkit-steady')))).toThrow('Pause ablation');
 });
