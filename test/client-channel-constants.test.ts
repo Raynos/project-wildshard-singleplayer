@@ -74,3 +74,14 @@ test('a frozen sample row cannot retain a result while its key pairs remain muta
   const key = sample.keys[1]; if (key === undefined) throw new Error('Missing sample key'); key[1] = 8;
   lane.evaluate({ ...observation, values: [] }); expect(lane.frame.value).toBe(4);
 });
+
+test('a frozen opcode accessor keeps one live read when it changes from its installed opcode', () => {
+  const dag=new ClientChannels('constants.live-opcode');dag.output('value',dag.read('input'));
+  const row=dag.build(),node=row.nodes[0];if(node===undefined)throw new Error('Missing read node');
+  let live=false,reads=0;
+  Object.defineProperty(node,'value',{value:7,enumerable:true});
+  Object.defineProperty(node,'op',{enumerable:true,get:()=>{if(!live)return 'read';reads++;return reads===1?'constant':'read';}});
+  Object.freeze(node);Object.freeze(row.nodes);
+  const lane=admittedClientChannels(row);live=true;lane.evaluate(observation);
+  expect(lane.frame.value).toBe(7);expect(reads).toBe(1);
+});

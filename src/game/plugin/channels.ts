@@ -55,7 +55,9 @@ function operandsOf(nodes: ClientChannelProgram['nodes'], privateNodes: boolean)
   }
   const ops: readonly string[] = OPS;
   const made = { dynamic, a: Int32Array.from(nodes, node => 'a' in node ? node.a : -1), b: Int32Array.from(nodes, node => 'b' in node ? node.b : -1),
-    codes: Uint8Array.from(nodes, node => { const code = ops.indexOf(node.op); return code === -1 ? 255 : code; }) };
+    codes: Uint8Array.from(nodes, node => { const code = ops.indexOf(node.op);
+      // Simple mutable/accessor rows retain rowValue's single live opcode read.
+      return code === -1 || code < 4 && !privateNodes && !frozenData(node) ? 255 : code; }) };
   if (Object.isFrozen(nodes)) operandTables.set(nodes, made);
   return made;
 }
@@ -147,6 +149,10 @@ export function admittedClientChannels(program: ClientChannelProgram): ClientCha
       let value: number;
       // G639: the arithmetic ops by their small opcode (one per node, shared like the operands), the rest by their row
       switch (codes[i] ?? 255) {
+        case 0: value = node.op === 'constant' ? node.value : rowValue(node, a, b, time, delta); break;
+        case 1: value = node.op === 'clock' ? node.value === 'time' ? time : delta : rowValue(node, a, b, time, delta); break;
+        case 2: value = node.op === 'read' ? reads[node.index] ?? Number.NaN : rowValue(node, a, b, time, delta); break;
+        case 3: value = node.op === 'local' ? previous[node.index] ?? Number.NaN : rowValue(node, a, b, time, delta); break;
         case 4: value = -a; break;
         case 5: value = Math.sin(a); break;
         case 6: value = Math.cos(a); break;
