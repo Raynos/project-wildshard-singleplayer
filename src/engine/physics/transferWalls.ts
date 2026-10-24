@@ -61,8 +61,9 @@ export class TransferWalls {
     if (this.handles.length !== this.count) throw new RangeError('Missing transfer fence handles');
     const world = this.physics().world;
     for (const handle of this.handles) {
-      if (!world.colliders.contains(handle)) throw new RangeError('Missing transfer fence collider');
-      world.getCollider(handle).setEnabled(true);
+      const collider = world.colliders.get(handle);
+      if (collider === null) throw new RangeError('Missing transfer fence collider');
+      collider.setEnabled(true);
     }
   }
   /** Handle-only continuation; native physics carries the exact wall geometry and collision flags. */
