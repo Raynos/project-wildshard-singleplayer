@@ -26,7 +26,7 @@ import { bakeAuthoredWorld } from './bake/authoredWorld';
 import { parseWorldSource } from './worldSource';
 import { compileBehaviourSource } from './behaviourSource';
 import { buildBehaviourProject } from './buildBehaviour';
-import { packProjectMap, type ProjectMap } from './projectMap';
+import { packProjectMap, generatedProjectMap, type ProjectMap } from './projectMap';
 import { projectPlaceholders } from './bake/placeholders';
 import type { ScriptAdmissionRows } from '@wildshard/format/scriptContract';
 import { outputScriptAdmissionRows, outputPlatformPayloads, clearOutputProduct, writeOutputProduct, type OutputProductOptions } from './outputProduct';
@@ -36,6 +36,7 @@ import { proveRuntimeData, writeRuntimeFiles, type RuntimeCopyOptions } from './
 import { readManifestSource, type ProjectManifestSource } from './projectManifest';
 import { projectDecisionOptions } from './projectDecisions';
 import { projectDecisionBudget } from './projectPolicy';
+import { nameBlob } from './blobs';
 
 /** Stable JSON encoding: sorted object keys, no timestamps or host paths. */
 export function canonicalJson(value: unknown): string { return encodeCanonicalJson(value); }
@@ -71,19 +72,20 @@ function outputDeclaration(loaded: Record<string, unknown>, output: string): unk
   return Reflect.get(outputs, output);
 }
 
-async function projectModule(project: string, decisionLegacyLines?: number, selected?: string): Promise<{ shard: Shardfile; commons: unknown; baked: ReadonlyMap<string, Uint8Array>; output: PreparedProjectOutput; mirrors: readonly RuntimeMirror[] }> {
+async function projectModule(project: string, decisionLegacyLines?: number, selected?: string, mapSourceHash?: string): Promise<{ map: Awaited<ReturnType<typeof generatedProjectMap>> | undefined; shard: Shardfile; commons: unknown; baked: ReadonlyMap<string, Uint8Array>; output: PreparedProjectOutput; mirrors: readonly RuntimeMirror[] }> {
   const program = await authorModule(project, 'shard.config.ts'), loaded = program.exports;
   if (!('default' in loaded)) throw new Error('config has no default export');
   if ('generate' in loaded && typeof loaded['generate'] !== 'function') throw new Error('config generate export must be a build function');
   let declaration: unknown = selected === undefined ? loaded['generate'] ?? loaded['default'] : outputDeclaration(loaded, selected);
   let shard: Shardfile;
   const baked = new Map<string, Uint8Array>(), root = realpathSync(project);
-  let generatedOutput: unknown;
+  let generatedOutput: unknown, map: Awaited<ReturnType<typeof generatedProjectMap>> | undefined;
   if (isProjectGenerator(declaration)) {
     declaration = await declaration(createProjectGeneration(project,
       contentHash(new TextEncoder().encode(canonicalJson({ program: program.hash, output: selected ?? null }))), baked));
     if (typeof declaration === 'object' && declaration !== null && 'shard' in declaration) {
-      if (!('output' in declaration) || Object.keys(declaration).some(key => key !== 'shard' && key !== 'output')) throw new Error('Generated project requires only shard and output');
+      if (!('output' in declaration) || Object.keys(declaration).some(key => key !== 'shard' && key !== 'output' && key !== 'map')) throw new Error('Generated project requires shard, output and optional map');
+      if ('map' in declaration) map = await generatedProjectMap(declaration.map, mapSourceHash ?? program.hash);
       generatedOutput = declaration.output;
       if (generatedOutput === undefined) throw new Error('Generated project output is absent');
       declaration = declaration.shard;
@@ -113,25 +115,28 @@ async function projectModule(project: string, decisionLegacyLines?: number, sele
   // The CLI-only sidecar may declare the runtime/const.ts mirrors too (a browser config cannot import data/ values).
   if (sidecar !== undefined && 'mirrors' in loaded && 'mirrors' in sidecar) throw new Error('Runtime mirrors declared by both the config and its output sidecar');
   const mirrors = projectMirrors('mirrors' in loaded ? loaded['mirrors'] : sidecar !== undefined && 'mirrors' in sidecar ? sidecar['mirrors'] : undefined);
-  return { shard, commons: 'commons' in loaded ? loaded['commons'] : undefined, baked, output, mirrors };
+  if (mapSourceHash !== undefined && map === undefined) throw new Error('Generated map source identity requires a generated map');
+  return { map, shard, commons: 'commons' in loaded ? loaded['commons'] : undefined, baked, output, mirrors };
 }
 
 /** Compile authored geometry and read its remaining immutable inputs without writing hashes into the author folder. */
-export async function readProjectAssets(project: string, map?: ProjectMap, manifestSource?: ProjectManifestSource, options: { decisionLegacyLines?: number; output?: string } = {}): Promise<{ shard: Shardfile; assets: Map<string, Uint8Array>; output: Omit<OutputProductOptions, 'runtime'>; mirrors: readonly RuntimeMirror[] }> {
-  const loaded = await projectModule(project, options.decisionLegacyLines, options.output), pinned = new Map(pinnedCommons(loaded.commons, loaded.shard, project));
+export async function readProjectAssets(project: string, map?: ProjectMap, manifestSource?: ProjectManifestSource, options: { decisionLegacyLines?: number; output?: string; mapSourceHash?: string } = {}): Promise<{ shard: Shardfile; assets: Map<string, Uint8Array>; output: Omit<OutputProductOptions, 'runtime'>; mirrors: readonly RuntimeMirror[] }> {
+  const loaded = await projectModule(project, options.decisionLegacyLines, options.output, options.mapSourceHash), pinned = new Map(pinnedCommons(loaded.commons, loaded.shard, project));
   for (const [hash, bytes] of loaded.baked) pinned.set(hash, bytes);
   for (const [hash, bytes] of loaded.output.assets) {
     const previous = pinned.get(hash);
     if (previous !== undefined && contentHash(previous) !== contentHash(bytes)) throw new Error('Output asset conflicts with baked input');
     pinned.set(hash, bytes);
   }
-  const level = manifestSource === undefined || manifestSource.file === undefined && loaded.shard.manifest === undefined ? undefined : await readManifestSource(manifestSource, loaded.shard.manifest);
+  const level = manifestSource === undefined || manifestSource.file === undefined && loaded.shard.manifest === undefined ? undefined : await readManifestSource(manifestSource, loaded.shard.manifest, loaded.map?.map.bytes);
   if (level !== undefined && loaded.shard.manifest !== undefined && canonicalJson(loaded.shard.manifest) !== canonicalJson(level.authored)) throw new Error('Authored manifest differs from configured level metadata');
   const source = level === undefined ? loaded.shard : parseShardfile({ ...loaded.shard, manifest: level.manifest });
-  const packed = map === undefined ? undefined : packProjectMap(source, map);
-  if (packed !== undefined && map !== undefined) pinned.set(packed.hash, map.bytes);
+  if (map !== undefined && loaded.map !== undefined) throw new Error('Build map and generated map cannot compete');
+  const selectedMap = loaded.map?.map ?? map, packed = selectedMap === undefined ? undefined : packProjectMap(source, selectedMap);
+  if (packed !== undefined && selectedMap !== undefined) pinned.set(packed.hash, selectedMap.bytes);
   const shard = packed?.shard ?? source;
-  const merged = mergeProjectBlobs(shard, pinned, [...loaded.output.blobs, ...(level?.blobs ?? [])], loaded.output.options.namedFiles);
+  const mapBlobs = loaded.map?.name === undefined ? [] : [nameBlob(loaded.map.name, 'image', loaded.map.map.bytes)];
+  const merged = mergeProjectBlobs(shard, pinned, [...loaded.output.blobs, ...mapBlobs, ...(level?.blobs ?? [])], loaded.output.options.namedFiles);
   return { shard: merged.shard, assets: projectAssets(project, merged.shard, 'project', merged.assets),
     output: { ...loaded.output.options, namedFiles: merged.namedFiles }, mirrors: loaded.mirrors };
 }
@@ -165,7 +170,7 @@ export function projectAssets(project: string, shard: Shardfile, layout: 'projec
  * Build a deterministic shard.json, immutable files and the distributed normal client when present; a shardfile with a
  * terrain gains its far / near placeholders when `placeholders` is set (the CLI's default).
  */
-export async function buildProject(project: string, output?: string, options: { decisionLegacyLines?: number; output?: string; outputFormat?: 2; manifest?: ProjectManifestSource; copyRuntime?: boolean; runtimeCheck?: RuntimeCopyOptions['check']; devserver?: boolean; client?: string | null; map?: ProjectMap; placeholders?: boolean; admit?: (shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse', sections: ReadonlyMap<string, unknown>) => Promise<void> } = {}): Promise<Shardfile> {
+export async function buildProject(project: string, output?: string, options: { decisionLegacyLines?: number; output?: string; outputFormat?: 2; manifest?: ProjectManifestSource; copyRuntime?: boolean; runtimeCheck?: RuntimeCopyOptions['check']; devserver?: boolean; client?: string | null; map?: ProjectMap; mapSourceHash?: string; placeholders?: boolean; admit?: (shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse', sections: ReadonlyMap<string, unknown>) => Promise<void> } = {}): Promise<Shardfile> {
   let phaseStarted = performance.now();
   const phase = (name: string): void => {
     const now = performance.now();

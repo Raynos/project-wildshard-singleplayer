@@ -1,9 +1,9 @@
-// oxlint-disable-next-line unicorn/prefer-export-from -- E434 forbids re-export barrels.
-import product from './generators/product';
+import { generate as generatePastel } from './generators/generate';
 
-// Edit this documented project entry; the cold producer reads the same author-only declaration.
-// oxlint-disable-next-line import/no-default-export -- The author CLI loads this project entry.
-export default product;
+/** The source program supplies actual bytes and rows, without intermediary source files. */
+export const generate = generatePastel;
+// oxlint-disable-next-line import/no-default-export -- The author CLI executes this project entry.
+export default generate;
 
 /** Explicit standalone author-source ceiling; this project has no frozen legacy denominator. */
 export const buildOptions = { asLineCeiling: 256 };

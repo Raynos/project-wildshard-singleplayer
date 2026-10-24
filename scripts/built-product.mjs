@@ -1,10 +1,10 @@
 // Read-only product selection and the exact recipe shared with the normal builder.
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import * as v from 'valibot';
 import { shardfileBoundaryViolations } from '../lint/shardfile-boundaries.mjs';
-import { mapStampPath } from './map-hash.mjs';
+import { mapStampPath, mapSettingsPath, mapTilesHash } from './map-hash.mjs';
 import { borrowShardfileEntry, readBuildKey, shardfileCacheRoot } from './shardfile-cache.mjs';
 import { InputHashMemo } from './bake-input-hashes.mjs';
 import { productToolchainKey, matchingProductInputKey } from './shardfile-inputs.mjs';
@@ -34,10 +34,22 @@ export function runtimeCopyIssues(root, project) {
   if (executable.size > 0 && !existsSync(resolve(project, 'runtime/index.ts'))) issues.push({ file: 'runtime/index.ts', message: 'Closed runtime requires its compiled index entry' });
   return issues;
 }
+/** Root map identity for source programs, or the existing admitted image stamp for legacy bakers.
+ * @param {string} project @param {string|undefined} output
+ * @returns {{image?:string,tilesHash:string,pixelHash?:string}|undefined} */
+export function productMapInput(project, output) {
+  const settings = mapSettingsPath(project);
+  if (output === undefined && existsSync(settings)) {
+    const parsed = v.parse(v.object({ painter: v.optional(v.object({ program: v.optional(v.boolean(), false) })) }), JSON.parse(readFileSync(settings, 'utf8')));
+    if (parsed.painter?.program === true) return { tilesHash: mapTilesHash(project) };
+  }
+  const stamp = output === undefined ? mapStampPath(project) : resolve(project, `look/map.${output}.baked.json`);
+  return existsSync(stamp) ? v.parse(v.object({ image: v.string(), tilesHash: v.string(), pixelHash: v.optional(v.string()) }), JSON.parse(readFileSync(stamp, 'utf8'))) : undefined;
+}
 /** @param {string} root @param {string|undefined} output
- * @param {{image:string,tilesHash:string}|undefined} map @param {boolean} copy */
+ * @param {{image?:string,tilesHash:string}|undefined} map @param {boolean} copy */
 export function productFlags(root, output, map, copy) {
-  return [...(copy ? ['--copy-runtime'] : []), ...(map === undefined ? [] : [`--map=${resolve(root, 'public', map.image.slice(1))}`, `--map-tiles-hash=${map.tilesHash}`]), ...(output === undefined ? [] : [`--output=${output}`])];
+  return [...(copy ? ['--copy-runtime'] : []), ...(map === undefined ? [] : map.image === undefined ? [`--generated-map-tiles-hash=${map.tilesHash}`] : [`--map=${resolve(root, 'public', map.image.slice(1))}`, `--map-tiles-hash=${map.tilesHash}`]), ...(output === undefined ? [] : [`--output=${output}`])];
 }
 /** @param {string} root @param {string} name @param {string[]} flags
  * @param {string} toolchain @param {string} cacheRoot */
@@ -61,8 +73,7 @@ export function readBuiltShardfile(sourceRoot, name, { cacheRoot = shardfileCach
     && existsSync(resolve(destination, 'shard.json'))) return destination;
   const folder = productFolder(root, name), project = resolve(root, 'src/shards', folder);
   const output = name === folder ? undefined : name;
-  const stamp = output === undefined ? mapStampPath(project) : resolve(project, `look/map.${output}.baked.json`);
-  const map = existsSync(stamp) ? JSON.parse(readFileSync(stamp, 'utf8')) : undefined;
+  const map = productMapInput(project, output);
   const flags = productFlags(root, output, map, runtimeCopyIssues(root, project).length === 0);
   const memo = new InputHashMemo(root);
   const toolchain = `${productToolchainKey(root,memo)}:${shardfileValidationRevision(root)}`;
@@ -111,4 +122,27 @@ export function selectBuiltTestProducts(root, files, options = {}) {
 export function assertBuiltTestProducts(root, files, options = {}) {
   const {missing,blocked,buildCommand}=selectBuiltTestProducts(root, files, options);
   if(missing.length>0)throw new Error(`Missing current products ${missing.join(', ')} (no verified product matches current inputs), required by ${blocked.join(', ')}; run: ${buildCommand}`);
+}
+
+
+/** Publish the existing public map alias from the admitted product, never from an intermediate source file.
+ * @param {string} root @param {string} name @param {string} folder @param {string} expectedSourceHash */
+export async function publishProductMap(root, name, folder, expectedSourceHash) {
+  if (!/^[a-z0-9_-]+$/u.test(name)) throw new Error('Invalid program-map product name');
+  const { outputFormat } = await import('./shard-platform-format.mjs');
+  const envelope = readFileSync(resolve(folder, 'shard.json'));
+  const receipt = JSON.parse(readFileSync(resolve(folder, 'validation.json'), 'utf8'));
+  if (receipt.indexHash !== createHash('sha256').update(envelope).digest('hex')) throw new Error(`${name}: generated map index receipt differs`);
+  const index = outputFormat.parseOutputIndex(JSON.parse(envelope.toString('utf8')));
+  const section = index.sections.find(row => row.name === 'look/map');
+  if (section === undefined) throw new Error(`${name}: missing generated map section`);
+  const wire = readFileSync(resolve(folder, section.path));
+  if (wire.length !== section.bytes || createHash('sha256').update(wire).digest('hex') !== section.hash) throw new Error(`${name}: generated map section differs`);
+  const map = v.parse(v.object({ map: v.object({ image: v.string(), tilesHash: v.string() }) }), outputFormat.parseOutputSection(section.name, JSON.parse(wire.toString('utf8')))).map;
+  const file = index.files.find(row => row.hash === map.image && row.kind === 'image');
+  if (file === undefined || map.tilesHash !== expectedSourceHash) throw new Error(`${name}: generated map differs from current world inputs`);
+  const bytes = readFileSync(resolve(folder, file.path));
+  if (bytes.length !== file.compressed || createHash('sha256').update(bytes).digest('hex') !== file.hash) throw new Error(`${name}: generated map image differs`);
+  const image = resolve(root, 'public/assets', name, 'map/top.webp');
+  mkdirSync(dirname(image), { recursive: true }); writeFileSync(image, bytes);
 }

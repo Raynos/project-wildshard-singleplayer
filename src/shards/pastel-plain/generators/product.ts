@@ -1,15 +1,12 @@
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { parseShardfile } from '@wildshard/sdk/shardfile';
+import { parseShardfile, type Shardfile } from '@wildshard/sdk/shardfile';
 import { parseRows } from '@wildshard/sdk/rows';
 import { parsePlumbing } from '@wildshard/sdk/plumbing';
 import { parseLedgerRules } from '@wildshard/sdk/ledger';
 import { parseAudioData } from '@wildshard/sdk/audio';
 import { parseQuestData } from '@wildshard/sdk/quests';
 import { parseClientScripts } from '@wildshard/sdk/clientScripts';
-import terrain from '../data/terrain.json' with { type: 'json' };
-import door from '../behaviour/door.json' with { type: 'json' };
 import hooks from '../behaviour/hooks.json' with { type: 'json' };
-import props from '../data/props.json' with { type: 'json' };
 import rows from '../data/rows.json' with { type: 'json' };
 import plumbing from '../data/plumbing.json' with { type: 'json' };
 import water from '../data/water.json' with { type: 'json' };
@@ -26,6 +23,9 @@ import skins from '../data/skins.json' with { type: 'json' };
 import ITEMS from '../data/items.json' with { type: 'json' };
 import look from '../data/look.json' with { type: 'json' };
 import rock from '../data/rock.graph.json' with { type: 'json' };
+import type { BakedProps } from '@wildshard/sdk/bake/props';
+import type { pastelTerrain } from './terrain';
+import type { PastelBehaviour } from './behaviour';
 
 /** Pure template declarations (data/rows.json); SF16 binds these through the normal shardfile loader. */
 const PASTEL_ROWS = parseRows(rows);
@@ -35,10 +35,14 @@ const PASTEL_SKIN_LOOKS = skins.map((entry) => ({ id: entry.look, species: entry
   parameters: { skin: entry.skin }, animation: { recipe: 'platform.clips', parameters: { attackSpan: 1 } } }));
 const PASTEL_SKIN_FILES = skins.flatMap((entry) => entry.files), PASTEL_SKIN_LIBRARY = skins.map((entry) => entry.skin);
 const PASTEL_SKIN_COST = PASTEL_SKIN_FILES.reduce((sum, file) => ({ resident: sum.resident + file.decoded + file.gpu, compressed: sum.compressed + file.compressed }), { resident: 0, compressed: 0 });
-/** The idle client module (compileScript(idle.as, {maximumPages: 2})): its hash, size and presentation guest reserve. */
-const CLIENT_IDLE_HASH = clientScripts.module.hash, CLIENT_IDLE_BYTES = clientScripts.module.bytes;
+/** Assemble the original declaration from this invocation's producer rows and compiled bytes. */
+export function pastelProduct(terrain: Omit<ReturnType<typeof pastelTerrain>, 'assets'>, props: BakedProps, behaviour: PastelBehaviour): Shardfile {
+const door = behaviour.door;
+/** The idle client module retains its original presentation guest reserve. */
+const CLIENT_IDLE_HASH = behaviour.idle.hash, CLIENT_IDLE_BYTES = behaviour.idle.compressed;
 const CLIENT_IDLE_RESIDENT = CLIENT_IDLE_BYTES + 3 * 2 * 65536 + 6 * 88;
-const PASTEL_CLIENT_SCRIPTS = parseClientScripts({ divisor: clientScripts.divisor, bindings: clientScripts.bindings });
+const PASTEL_CLIENT_SCRIPTS = parseClientScripts({ divisor: clientScripts.divisor, bindings: structuredClone(clientScripts.bindings) });
+for (const binding of PASTEL_CLIENT_SCRIPTS.bindings) binding.module = CLIENT_IDLE_HASH;
 /** Baseline HUD slots, labels and bag text, and the door's panel, item actions and interaction point. */
 const PASTEL_UI = [
   { kind: 'marker', id: 'pastel.door-pin', label: text.hut, at: terrain.sites.door },
@@ -51,8 +55,8 @@ const PASTEL_TARGETS = { ...targets, interactions: [{ id: 'pastel.door.use', at:
 const base = emptyShardfile({ slug: 'pastel-plain', name: 'Pastel Plain', author: 'Wildshard', revision: 1, seed: 357 });
 const playerHandle = 1106943697; // fnv1a32('actor.player') & 0x7fffffff; admission compares this with the session map.
 const script = { hash: door.hash, kind: 'wasm', compressed: door.compressed, decoded: door.compressed, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: true };
-const itemModule = '7035c479edde46ee0baf713fce437fe21e7b61967154f36b5f1126708b2bfaa7';
-const itemScript = { ...script, hash: itemModule, compressed: 740, decoded: 740 };
+const itemModule = behaviour.items.hash;
+const itemScript = { ...script, hash: itemModule, compressed: behaviour.items.compressed, decoded: behaviour.items.compressed };
 const clientScript = { ...script, hash: CLIENT_IDLE_HASH, compressed: CLIENT_IDLE_BYTES, decoded: CLIENT_IDLE_BYTES, critical: false };
 const tiles = terrain.tiles.map((tile) => {
   const addition = props.tiles.find((row) => row.lod === tile.lod && row.x === tile.x && row.z === tile.z);
@@ -62,8 +66,8 @@ const tiles = terrain.tiles.map((tile) => {
     compressed: tile.compressed + addition.compressed, decoded: tile.decoded + addition.decoded, gpu: tile.gpu + addition.gpu, triangles: tile.triangles + addition.triangles, draws: tile.draws + addition.draws };
 });
 // This declaration is the live source; the manifest supplies only picker metadata.
-// oxlint-disable-next-line import/no-default-export -- The root config imports this author-only declaration.
-export default parseShardfile({ ...base, accent: 'lime',
+// oxlint-disable-next-line unicorn/prefer-structured-clone -- Preserve the former JSON producer's signed-zero normalization.
+return parseShardfile(JSON.parse(JSON.stringify({ ...base, accent: 'lime',
   budgets: { library: { resident: 100_000 + PASTEL_SKIN_COST.resident + CLIENT_IDLE_RESIDENT + 2_633_280, compressed: 100_000 + CLIENT_IDLE_BYTES + PASTEL_SKIN_COST.compressed }, sim: { resident: 16_000_000, compressed: 2_000_000 }, overlap: 0 },
   serverBudget: { ...base.serverBudget, tickMicros: 5_000, memory: 16_000_000 },
   look: { ...look, materials: { ...look.materials, rock: { ...look.materials.rock, graph: rock } } }, spawn, rows: { ...PASTEL_ROWS, looks: PASTEL_SKIN_LOOKS }, plumbing: parsePlumbing(plumbing), ui: PASTEL_UI,
@@ -72,4 +76,5 @@ export default parseShardfile({ ...base, accent: 'lime',
   critical: [...terrain.critical, door.hash, itemModule], water, creatures, encounters: encounters.encounters,
   quests: parseQuestData(quests), ledger: parseLedgerRules(ledger), audio: parseAudioData(audio), state: hooks.state, hooks: hooks.hooks,
   sim: { ...base.sim, scriptTickDivisor: 1, scripts: [door.hash, itemModule], bindings: [{ module: door.hash, entity: playerHandle, actorId: 'actor.player', kind: 'server' }] },
-});
+})));
+}

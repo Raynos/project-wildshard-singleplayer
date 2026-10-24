@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Milestone witnesses execute in plain Node against admitted in-tree bytes.
 import { readFileSync } from 'node:fs';
 import { Vector3 } from 'three';
-import source from '../../../src/shards/pastel-plain/shard.config';
+import { PASTEL_SOURCE as source, pastelAssets } from '../../fixtures/pastelSource';
 import { createShardfileSim, bindShardfileSim, type ShardfileSimulation, type ShardfileSimPorts } from '../../../src/game/plugin/simulation';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import { canonicalSimDigest } from '../../fake/simState';
@@ -24,7 +24,7 @@ class ProfileStorage implements SaveStorage {
 }
 const identity = { instance: 'pastel-solo', shard: source.identity.slug, revision: source.identity.revision };
 const origin = { kind: 'engine' as const, source: 'quest.complete' };
-const assets = new Map(source.files.map((file) => [file.hash, readFileSync(new URL(`../../../src/shards/pastel-plain/assets/${file.hash}`, import.meta.url))]));
+const assets = pastelAssets();
 /** A continuation's hash: the snapshot in canonical form (test/fake/simState.ts: Rapier's snapshot bytes are not canonical) */
 const digest = (host: SimHost): string => canonicalSimDigest(snapshotSimHost(host));
 const requireValue = <T>(value: T | undefined, message: string): T => { if (value === undefined) throw new Error(message); return value; };

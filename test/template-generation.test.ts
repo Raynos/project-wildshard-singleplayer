@@ -27,7 +27,9 @@ test('template direct generation and a cache hit retain every original world row
     const assets = new Map<string, Uint8Array>(), root = resolve('src/shards/_template');
     const coldAt = performance.now(), cold = await generate(createProjectGeneration(root, 'c'.repeat(64), assets, cache)), coldMs = performance.now() - coldAt;
     const hitAt = performance.now(), hit = await generate(createProjectGeneration(root, 'c'.repeat(64), assets, cache)), hitMs = performance.now() - hitAt;
-    expect(JSON.stringify(cold.shard)).toBe(JSON.stringify(templateProduct(rows, props, TEMPLATE_BEHAVIOUR, TEMPLATE_BOSS))); expect(hit).toEqual(cold);
+    expect(JSON.stringify(cold.shard)).toBe(JSON.stringify(templateProduct(rows, props, TEMPLATE_BEHAVIOUR, TEMPLATE_BOSS))); expect(hit.shard).toEqual(cold.shard); expect(hit.output).toEqual(cold.output);
+    if (hit.map === undefined || cold.map === undefined) throw new Error('Missing Template map');
+    expect(Buffer.compare(hit.map.pixels, cold.map.pixels)).toBe(0);
     const expected = new Map([...original, ...props.assets]);
     const boss = assets.get(TEMPLATE_BOSS.hash); if (boss === undefined) throw new Error('Missing generated boss'); expected.set(TEMPLATE_BOSS.hash, boss);
     expect(boss.length).toBe(6225);

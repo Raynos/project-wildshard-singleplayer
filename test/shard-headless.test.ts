@@ -11,7 +11,7 @@ import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
 import { productHeadlessSections } from '../src/sdk/headlessSections';
 import { TEMPLATE_SOURCE as template } from './fixtures/templateSource';
-import pastel from '../src/shards/pastel-plain/shard.config';
+import { PASTEL_SOURCE as pastel } from './fixtures/pastelSource';
 import driftwood from '../src/shards/driftwood-isle/shard.config';
 import pine from '../src/shards/pine-hollow/shard.config';
 import nalati from '../src/shards/nalati-grasslands/shard.config';

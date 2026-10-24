@@ -3,12 +3,12 @@
 // SF66 (G247): a shard whose baked map (look/map.baked.json) no longer matches its world is refused in CI and on Vercel,
 // so a stale map never deploys; a local build only warns, since the rebake itself needs a served build of that world
 // (node scripts/bake-maps.mjs --url=<scripts/serve-build.sh --head> --shards=<slug>). test/baked-maps.test.ts is the gate's check.
-import { existsSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { existsSync, readdirSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { runWildshard } from './wildshard.mjs';
 import { legacyInventory } from './legacy-shards.mjs';
-import { mapInputHashes, mapTilesHash, mapStampPath, verifyMapPixels } from './map-hash.mjs';
+import { mapInputHashes, mapTilesHash, verifyMapPixels } from './map-hash.mjs';
 import { readBuildKey, reuseOrBuild, shardfileCacheRoot, shardfileKey, treeHashes } from './shardfile-cache.mjs';
 import { createDataMapPreparation } from './bake-data-maps.mjs';
 import { randomBytes } from 'node:crypto';
@@ -19,7 +19,7 @@ import { productFolder, shardOutputs } from './shard-outputs.mjs';
 import { shardfileValidationRevision } from './shardfile-validation-revision.mjs';
 import { runShardBuild, runShardBuildPool } from './shard-build-pool.mjs';
 import { checkTileBake } from './tile-bakes.mjs';
-import { runtimeCopyIssues, productFlags, productRecipe, readBuiltShardfile as selectBuiltShardfile } from './built-product.mjs';
+import { runtimeCopyIssues, productMapInput, publishProductMap, productFlags, productRecipe, readBuiltShardfile as selectBuiltShardfile } from './built-product.mjs';
 
 /** Read CI's output or a matching immutable product without invoking the builder.
  * @param {string} root @param {string} name
@@ -94,17 +94,18 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
       await preparation;
     }
     const started = performance.now();
-    const stamp = output === undefined ? mapStampPath(project) : resolve(project, `look/map.${output}.baked.json`);
-    const expected = existsSync(stamp) ? JSON.parse(readFileSync(stamp, 'utf8')).tilesHash : null;
+    const map = productMapInput(project, output), expected = map?.tilesHash ?? null;
     let actual=mapTileHashes.get(project);
     if(actual===undefined){actual=mapTilesHash(project);mapTileHashes.set(project,actual);}
     if (expected !== actual) {
       stale.push(name);
       console.error(`wildshard map inputs: ${JSON.stringify({ shard: name, expected, actual, files: mapInputHashes(project) })}`);
     }
-    const map = existsSync(stamp) ? JSON.parse(readFileSync(stamp, 'utf8')) : undefined;
-    if (map !== undefined && map.image !== `/assets/${name}/map/top.webp`) throw new Error(`Unexpected baked map path for ${name}`);
-    if (map !== undefined) await verifyMapPixels(resolve(root, 'public', map.image.slice(1)), map.pixelHash);
+    if (map?.image !== undefined && map.image !== `/assets/${name}/map/top.webp`) throw new Error(`Unexpected baked map path for ${name}`);
+    if (map?.image !== undefined) {
+      if (map.pixelHash === undefined) throw new Error(`Missing baked map pixel identity for ${name}`);
+      await verifyMapPixels(resolve(root, 'public', map.image.slice(1)), map.pixelHash);
+    }
     const issues = copyRuntime === 'closed' ? runtimeIssues(project) : [];
     runtimeReport.push({ slug: name, runtime: issues.length > 0 ? 'source' : 'output', issues });
     const flags = productFlags(root, output, map, copyRuntime === true || copyRuntime === 'closed' && issues.length === 0);
@@ -136,6 +137,7 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
     // file hashes, schemas, budgets and executing the admitted script bytes.
     if (strict && how !== 'built') await buildOne(['validate',destination]);
     const tiles = checkTileBake(root, name, destination);
+    if (map !== undefined && map.image === undefined) await publishProductMap(root, name, destination, map.tilesHash);
     console.info(`tile bake: ${name} ${tiles.l0} L0/${tiles.l1} L1, 16 full 5x5 windows checked, ${Object.keys(tiles.debt).length} existing debt metrics`);
     console.info(`wildshard build: ${name} ${how === 'built' ? 'built' : `reused (${how})`} in ${((performance.now() - started) / 1000).toFixed(1)}s`);
     count++;

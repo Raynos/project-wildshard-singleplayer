@@ -15,8 +15,10 @@ export interface ProjectManifestSource {
 
 /** Read bounded author JSON and its images only through declared local roots.
  * Symlink/traversal escapes, missing images and ambiguous prefixes refuse. File
- * services are loaded only here, so the in-memory packer stays config-safe. */
-export async function readManifestSource(source: ProjectManifestSource, declared?: unknown): Promise<{ readonly authored: ManifestMetadata; readonly manifest: ManifestMetadata; readonly blobs: readonly NamedBlob[] }> {
+ * services are loaded only here, so the in-memory packer stays config-safe.
+ * A generated map replaces only its declared minimap URL with owned, bounded
+ * bytes; URL-root/path checks and normal image admission still apply. */
+export async function readManifestSource(source: ProjectManifestSource, declared?: unknown, generatedMap?: Uint8Array): Promise<{ readonly authored: ManifestMetadata; readonly manifest: ManifestMetadata; readonly blobs: readonly NamedBlob[] }> {
   const [fs, paths, reader] = await Promise.all([
     // oxlint-disable-next-line import/no-nodejs-modules -- Explicit author file intake owns its bounded disk reads.
     import('node:fs'),
@@ -38,6 +40,10 @@ export async function readManifestSource(source: ProjectManifestSource, declared
     if (matches.length !== 1 || root === undefined) throw new Error(`Manifest image needs exactly one declared root: ${url}`);
     const tail = url.slice(root.prefix.length);
     if (/[\\%?#]/u.test(tail) || tail.includes(String.fromCodePoint(0)) || tail.split('/').some(part => part === '' || part === '.' || part === '..')) throw new Error(`Manifest image path escapes its root: ${url}`);
+    if (generatedMap !== undefined && url === authored.minimap.image) {
+      if (generatedMap.byteLength > STILL_IMAGE_LIMITS.bytes) throw new Error('Generated manifest map exceeds image bounds');
+      images.set(url, new Uint8Array(generatedMap)); continue;
+    }
     const file = fs.realpathSync(paths.resolve(root.directory, tail));
     if (!file.startsWith(`${root.directory}${paths.sep}`)) throw new Error(`Manifest image path escapes its root: ${url}`);
     images.set(url, reader.readBoundedFile(file, STILL_IMAGE_LIMITS.bytes));

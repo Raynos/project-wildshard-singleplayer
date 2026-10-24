@@ -102,11 +102,24 @@ it('packs explicitly declared config metadata when no manifest file exists', asy
   await runWildshard(['build', project, output, '--product-only', '--no-placeholders']);
   expect(validateOutputProduct(output).shard.manifest?.card.thumb).toMatch(/^\/shardfiles\/level-test\/blobs\/image\//u);
 });
-it.each(['_template', 'far-reach', 'sunscar-dunes', 'pine-hollow', 'driftwood-isle'])('reads all declared %s level images through explicit source/public roots', async folder => {
+it.each(['far-reach', 'sunscar-dunes', 'pine-hollow', 'driftwood-isle'])('reads all declared %s level images through explicit source/public roots', async folder => {
   const project = resolve('src/shards', folder);
   const result = await readManifestSource({ folder, file: resolve(project, 'manifest.json'), imageRoots: [
     { prefix: `/src/shards/${folder}/`, directory: project }, { prefix: '/assets/', directory: resolve('public/assets') },
   ] });
   expect(result.blobs.length).toBeGreaterThan(0);
   for (const { url } of manifestImages(result.manifest)) expect(url.startsWith('data:image/') || url.startsWith(`/shardfiles/${folder}/blobs/image/`)).toBe(true);
+});
+
+
+it('packs the generated Template map with all declared level images through the real source loader', async () => {
+  const project = resolve('src/shards/_template');
+  const loaded = await readProjectAssets(project, undefined, { folder: '_template', file: resolve(project, 'manifest.json'), imageRoots: [
+    { prefix: '/src/shards/_template/', directory: project }, { prefix: '/assets/', directory: resolve('public/assets') },
+  ] });
+  const manifest = loaded.shard.manifest; if (manifest === undefined) throw new Error('Missing Template level metadata');
+  expect(loaded.output.namedFiles?.length).toBeGreaterThan(0);
+  for (const { url } of manifestImages(manifest)) expect(url.startsWith('data:image/') || url.startsWith('/shardfiles/_template/blobs/image/')).toBe(true);
+  const map = loaded.shard.map; if (map === undefined) throw new Error('Missing generated Template map');
+  expect(loaded.assets.get(map.image)).toBeInstanceOf(Uint8Array);
 });

@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "type": "module",
   "exports": {
+    "./bake/groundMap": "./bake/groundMap.ts",
     "./bake/species": "./bake/species.ts",
     "./decisionBindingMap": "./decisionBindingMap.ts",
     "./scriptScenario": "./scriptScenario.ts",
@@ -162,6 +163,10 @@
   },
   "publishConfig": {
     "exports": {
+      "./bake/groundMap": {
+        "types": "./dist/types/sdk/bake/groundMap.d.ts",
+        "default": "./dist/bake/groundMap.js"
+      },
       "./bake/species": {
         "types": "./dist/types/sdk/bake/species.d.ts",
         "default": "./dist/bake/species.js"

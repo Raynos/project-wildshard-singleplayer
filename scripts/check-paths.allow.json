@@ -765,11 +765,6 @@
     "why": "E435 SF54 / G140 immutable bootstrap identity for the reviewed Rifle transfer; its current destination is src/shards/nalati-grasslands/runtime/weapons/Rifle.ts. Historical keys cannot change or grow under the shrink-only comparator."
   },
   {
-    "path": "src/shards/pastel-plain/.wildshard/product",
-    "file": "src/shards/pastel-plain/generators/build-product.mjs",
-    "why": "SDK writeAuthoredProduct output destination, created by this registered report-only producer. The catalogue validates its entry and source inputs; explicit comparison qualification verifies every emitted pin. This directory is not a source or consumer input."
-  },
-  {
     "path": "src/shards/sunscar-dunes/.wildshard/product",
     "file": "src/shards/sunscar-dunes/generators/build-product.mjs",
     "why": "SDK writeAuthoredProduct output destination, created by this registered report-only producer. The catalogue validates its entry and source inputs; explicit comparison qualification verifies every emitted pin. This directory is not a source or consumer input."

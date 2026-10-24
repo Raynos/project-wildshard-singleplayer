@@ -21,10 +21,12 @@ export function authoredManifestSource(root, slug, { generation = false, metadat
   const data = composed ?? JSON.parse(readFileSync(resolve(root, file), 'utf8'));
   if (data.slug !== slug) throw new Error(`${file}: identity differs from its folder`);
   if (Object.hasOwn(data, 'runtimeEntry')) throw new Error(`${file}: client-plan entry names no runtime module`);
-  const mapPath = resolve(root, `src/shards/${folder}/look/map.json`);
+  const dataMap = resolve(root, `src/shards/${folder}/data/map.json`);
+  const mapPath = existsSync(dataMap) ? dataMap : resolve(root, `src/shards/${folder}/look/map.json`);
+  const mapPainter = existsSync(mapPath) ? JSON.parse(readFileSync(mapPath, 'utf8')).painter : undefined;
   // Geometry producers run before the map they feed. Only their discovery
   // compilation may defer this one declared output; final discovery checks it.
-  const generatedMap = generation && existsSync(mapPath) && JSON.parse(readFileSync(mapPath, 'utf8')).painter?.version === 1
+  const generatedMap = mapPainter?.program === true || generation && mapPainter?.version === 1
     ? `/assets/${slug}/map/top.webp` : undefined;
   const images = new Set();
   const visit = value => {

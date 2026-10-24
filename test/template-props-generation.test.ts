@@ -25,7 +25,5 @@ test('direct props preserve every byte and row of the original scene-walk produc
 test('the map consumes source functions without terrain or props prerequisite jobs', () => {
   const registry = v.parse(v.object({ jobs: v.array(v.object({ id: v.string(), inputRoots: v.array(v.string()) })) }), JSON.parse(readFileSync('scripts/generation-jobs.json', 'utf8')));
   expect(registry.jobs.some(row => ['template-author-props', 'template-author-terrain'].includes(row.id))).toBe(false);
-  const map = registry.jobs.find(row => row.id === 'template-data-map');
-  expect(map?.inputRoots).toContain('src/shards/_template/generators');
-  expect(map?.inputRoots.filter(file => file.endsWith('/terrain.json') || file.endsWith('/props.json'))).toEqual([]);
+  expect(registry.jobs.some(row => row.id === 'template-data-map')).toBe(false);
 });

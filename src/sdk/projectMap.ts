@@ -21,3 +21,15 @@ export function packProjectMap(source: Shardfile, map: ProjectMap): { shard: Sha
       resident: source.budgets.library.resident + (included ? 0 : cost.decoded + cost.gpu) } },
   }) };
 }
+
+/** Encode the source program's fixed 1000-square RGBA lattice through the original lossless map codec.
+ * The root adapter may supply its exact world-input key; standalone builds use their bundled program identity. */
+export async function generatedProjectMap(input: unknown, tilesHash: string): Promise<{ map: ProjectMap; name: string | undefined }> {
+  if (typeof input !== 'object' || input === null || !('pixels' in input) || !(input.pixels instanceof Uint8Array)
+    || input.pixels.length !== 1000 * 1000 * 4 || Object.keys(input).some(key => key !== 'pixels' && key !== 'name')
+    || 'name' in input && typeof input.name !== 'string' || !/^[a-f0-9]{64}$/u.test(tilesHash)) throw new Error('Invalid generated map lattice or source identity');
+  const { default: sharp } = await import('sharp');
+  const pixels = new Uint8Array(input.pixels);
+  const bytes = new Uint8Array(await sharp(pixels, { raw: { width: 1000, height: 1000, channels: 4 } }).webp({ lossless: true, effort: 6 }).toBuffer());
+  return { map: { bytes, tilesHash }, name: 'name' in input && typeof input.name === 'string' ? input.name : undefined };
+}

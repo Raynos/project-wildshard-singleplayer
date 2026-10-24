@@ -28,7 +28,7 @@ export function createDataMapPreparation(root) {
   for (const { slug, dir } of mapShards(root)) {
     if (only !== undefined && !only.includes(slug)) continue;
     const settings = json(mapSettingsPath(dir));
-    if (settings.painter === undefined) continue;
+    if (settings.painter === undefined || settings.painter.program === true) continue;
     for (const id of settings.painter.prerequisites ?? []) requested.push({slug,id,prerequisite:true});
     requested.push({slug,id:settings.painter.job,prerequisite:false});
   }

@@ -13,6 +13,7 @@ import { resolve } from 'node:path';
 import { parseManifestMetadata } from '@wildshard/format/minimap';
 import { ShardfileSchema } from '@wildshard/format/shardSchema';
 import { defineAuthoredShard } from '@wildshard/game/shard/manifest';
+import { productMapInput } from '../scripts/built-product.mjs';
 import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
 import { MANIFEST as nalati } from '../src/shards/nalati-grasslands/discovery.generated';
 import { MANIFEST as sky } from '../src/shards/far-reach/discovery.generated';
@@ -62,7 +63,9 @@ describe('authored JSON discovery', () => {
       else expect(path.startsWith('data:image/') || path.startsWith('/assets/')).toBe(true);
     }
     expect(manifest.card.thumb).toBeTruthy(); expect(manifest.card.portrait).toBeTruthy(); expect(manifest.card.landscape).toBeTruthy();
-    expect(existsSync(resolve(root, 'public', row.minimap.image.slice(1)))).toBe(true);
+    const map = productMapInput(resolve(root, 'src/shards', manifest.slug), undefined);
+    if (map !== undefined && map.image === undefined) expect(row.minimap.image).toBe(`/assets/${manifest.slug}/map/top.webp`);
+    else expect(existsSync(resolve(root, 'public', row.minimap.image.slice(1)))).toBe(true);
     expect(manifest.load === undefined).toBe(row.bindings.load === undefined && row.bindings.entry === undefined);
   });
   test('refuses malformed authored data and unresolved source assets', () => {

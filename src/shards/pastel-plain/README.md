@@ -16,16 +16,16 @@ The look (`data/look.json`) is the pastel alien plain admitted by `test/shardfil
 All three are this shard's default look: every shard draws its graphs (G669 DR12), standalone and in the grid (its
 regional world and its baked tiles).
 
-The template binds terrain and props to one `pbr` material, so this shard keeps its own copy of the generators:
-`generators/terrain.ts` bakes the terrain bound to `ground`, `generators/props.ts` (the template's props bake source)
-binds the props section to `rock`, and `generators/bake.ts` returns both. Rebake with
-`node src/shards/pastel-plain/generators/pastel-plain.mjs` (deterministic; writes `data/terrain.json`, `data/props.json` and `assets/`), then
-rebake the map from a served build (`node scripts/bake-maps.mjs --url=<served> --shards=pastel-plain`).
+The Template binds terrain and props to `pbr`; Pastel keeps its own source
+producers. `generators/terrain.ts` binds terrain to `ground` and
+`generators/props.ts` binds props to `rock`. The executable `shard.config.ts`
+program composes them, compiles the original door/item/idle AssemblyScript and
+paints the map in-process. `generators/product.ts` accepts those actual rows and
+compiled module identities. It preserves every original declaration and budget.
 
-The `shard.config.ts` project entry imports its author-only declaration in
-`generators/product.ts`; follow that import to edit identity and rows.
-`generators/build-product.mjs` shares SDK admission/emission with normal
-builds. `assets/map.webp` and `data/productMap.json` freeze the authored
-map and official stamp; refresh together after an official map bake. The
-live stale-map gate remains unchanged. Whole-product pins restore exact build bytes. Output removal still requires a
-fresh complete-product clean room and preserves every admission refusal.
+`ctx.cached` retains immutable world bytes and the original RGBA map lattice
+outside the source tree. The SDK packs its lossless WebP directly into the
+product; the root adapter supplies the current world-input key. The authored
+palette lives in `data/map.json`. No Pastel catalogue jobs, generated metadata
+or `.wildshard/product` report remain. Native fixtures call the same source
+producers; current complete-product admission stays strict.

@@ -7,8 +7,7 @@ type SectionName = Parameters<typeof emitPlatformSections>[0] extends ReadonlyMa
 
 /** CLI-only named bytes and section emission. The Template remains runtime-free. */
 export function templateOutput(boss: { hash: string }): ProjectOutput { return {
-  blobs: [{ name: 'ui/map', kind: 'image', source: 'assets/map.webp' },
-    { name: 'behaviour/boss.wasm', kind: 'wasm', source: `assets/${boss.hash}`,
+  blobs: [{ name: 'behaviour/boss.wasm', kind: 'wasm', source: `assets/${boss.hash}`,
       options: { script: { abi: 1, pages: 1 }, critical: true } }],
   platform: emitPlatformSections(new Map<SectionName, unknown>([
     ['ui/completion', { doneFlag: 'template.complete', seenFlag: 'template.complete-card', trigger: 'quest', system: 'game.completion', before: ['main.world'], after: [],

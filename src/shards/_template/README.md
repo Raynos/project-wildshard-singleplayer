@@ -66,16 +66,13 @@ declared item runtime. The installed-client proof covers real door/lantern input
 tile driving, cached/offline revisit and scoped unload.
 
 The author entry is the executable `shard.config.ts` program. It calls the
-terrain and props producers in-process through `ctx.cached`, retaining their
-original rows and immutable bytes. Native fixtures call those same producers;
-browser boards read the built format-2 product. The obsolete standalone product
-report job has no consumer and is removed. The map calls the same terrain and
-props functions and consumes their byte maps;
-the separate terrain/props jobs are retired. Door, item hooks and idle now compile
-through the injected SDK compiler inside the program cache, retaining their
-original bytes and page limits. The separate raw-behaviour job is retired; the
-boss and map producers still run through the catalogue during GR1 migration.
-`assets/map.webp` and `data/productMap.json` are generated together with the public
-raster by `template-data-map`. Its conservative source key covers the author
-generators, layout, SDK, format grammar and pinned dependency lock. The live
-stale-map gate still checks its stamp.
+terrain, props, raw behavior and boss producers in-process through `ctx.cached`,
+retaining their original rows, bytes and page limits. Native fixtures call those
+same source functions; browser boards read the built format-2 product.
+
+The map paints the same L0 terrain and placed prop triangles into a cached RGBA
+lattice. The SDK encodes the original lossless WebP directly into the charged
+product, named `ui/map`. The root adapter supplies its current world-input hash,
+covering generators, layout, SDK, format and the pinned dependency lock. There
+are no Template catalogue jobs or generated metadata/assets written under source.
+`data/map.json` keeps the same authored palette; map byte/pixel parity is tested.

@@ -95,3 +95,21 @@ test('a build function returns its named bytes with its shard and refuses compet
   writeFileSync(resolve(root, 'shard.config.ts'), `${config}\nexport const output = {};`);
   await expect(readProjectAssets(root)).rejects.toThrow('unambiguous');
 });
+
+
+test('a generated map packs its actual pixels with the adapter source key and original naming admission', async () => {
+  const { root } = fixture(), source = emptyShardfile({ slug: 'generated-map', name: 'Generated map', author: 'Test', revision: 1, seed: 3 });
+  writeFileSync(resolve(root, 'shard.config.ts'), `export default function generate() {
+    return {shard:${JSON.stringify(source)},output:{},map:{pixels:new Uint8Array(4000000),name:'ui/map'}};
+  }`);
+  const loaded = await readProjectAssets(root, undefined, undefined, { mapSourceHash: 'd'.repeat(64) });
+  expect(loaded.shard.map?.tilesHash).toBe('d'.repeat(64));
+  expect(loaded.output.namedFiles?.map(file => file.name)).toEqual(['ui/map']);
+  expect(loaded.assets.get(loaded.shard.map?.image ?? '')).toBeInstanceOf(Uint8Array);
+  expect(readdirSync(root)).toEqual(['shard.config.ts']);
+  const output = resolve(root, 'out');
+  await runWildshard(['build', root, output, '--product-only', '--no-placeholders', '--format=2', `--generated-map-tiles-hash=${'e'.repeat(64)}`]);
+  expect((await loadHeadlessProduct(output)).shardfile.map?.tilesHash).toBe('e'.repeat(64));
+  writeFileSync(resolve(root, 'shard.config.ts'), `export default ${JSON.stringify(source)};`);
+  await expect(readProjectAssets(root, undefined, undefined, { mapSourceHash: 'd'.repeat(64) })).rejects.toThrow('requires a generated map');
+});

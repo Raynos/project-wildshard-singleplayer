@@ -7,8 +7,9 @@ import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- Prove refusal precedes worker setup in a tiny real Vitest run.
 import { execFileSync, spawnSync } from 'node:child_process';
 import { afterEach, expect, test } from 'vitest';
-import { assertBuiltTestProducts, readBuiltShardfile, selectBuiltTestProducts } from '../scripts/built-product.mjs';
+import { assertBuiltTestProducts, productMapInput, productFlags, readBuiltShardfile, selectBuiltTestProducts } from '../scripts/built-product.mjs';
 import { captureProductInputs, productInputKey, productToolchainKey, publishProductInputs, recordBundle } from '../scripts/shardfile-inputs.mjs';
+import { mapTilesHash } from '../scripts/map-hash.mjs';
 import { InputHashMemo } from '../scripts/bake-input-hashes.mjs';
 import { shardfileValidationRevision } from '../scripts/shardfile-validation-revision.mjs';
 import { pruneShardfileCache } from '../scripts/shardfile-cache.mjs';
@@ -182,4 +183,18 @@ test.each([
   expect(result.stdout).toContain('1 passed');
   expect(existsSync(resolve(f.root,'pure-ran'))).toBe(cohort==='product-free');
   expect(existsSync(resolve(f.root,'product-ran'))).toBe(cohort==='products');
+});
+
+
+test('source-program maps key both builder and reader recipes on current world inputs without a source output stamp', async () => {
+  const f = await fixture(), project = resolve(f.root, 'src/shards/author');
+  write(project, 'source.txt', 'original world');
+  write(project, 'data/map.json', JSON.stringify({ why: 'Source-program fixture', inputs: ['source.txt'], painter: { program: true } }));
+  const first = productMapInput(project, undefined);
+  expect(first).toEqual({ tilesHash: mapTilesHash(project) });
+  expect(productFlags(f.root, undefined, first, false)).toEqual([`--generated-map-tiles-hash=${mapTilesHash(project)}`]);
+  write(project, 'data/productMap.json', JSON.stringify({ tilesHash: 'stale source output' }));
+  expect(productMapInput(project, undefined)).toEqual(first);
+  write(project, 'source.txt', 'changed world');
+  expect(productMapInput(project, undefined)?.tilesHash).not.toBe(first?.tilesHash);
 });

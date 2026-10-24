@@ -13616,3 +13616,16 @@ sections produced by that same invocation. Root and sidecar output exports
 cannot compete with it. Both forms cross the same shard, decision, asset,
 source-budget and output admission checks; no intermediate metadata file is
 needed to pass a generated hash to its consumer.
+
+`GeneratedProject.map` supplies the original 1000 × 1000 RGBA lattice and an
+optional logical name. `@wildshard/sdk/bake/groundMap.rasterGroundMap` paints
+actual L0 terrain and placed GLB triangles with the existing ground palette,
+integer coverage, height ordering and relief. The SDK encodes the original
+lossless WebP directly into the charged product. The root adapter supplies
+its current world-input hash through `--generated-map-tiles-hash`; build and
+read-only lookup share the same recipe. A missing generated map, competing
+external image or invalid lattice refuses. Source-program maps bypass legacy
+map jobs and stamps; legacy images still require their original pixel check.
+The authored minimap packs those same in-memory bytes before publication;
+the builder then publishes its existing public URL from the verified product
+image and receipt. Neither step creates map metadata under shard source.

@@ -32,6 +32,7 @@ export interface ProjectGenerationStep {
 export interface GeneratedProject {
   readonly shard: Shardfile;
   readonly output: ProjectOutput;
+  readonly map?: { readonly pixels: Uint8Array; readonly name?: string };
 }
 /** Build-only capabilities. No cache filename or intermediate source file enters a product. */
 export interface ProjectGenerationContext {
