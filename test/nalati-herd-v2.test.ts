@@ -772,3 +772,27 @@ test('all herd body-only modes leave both borrowed RNG streams unchanged',()=>{
   }finally{f.scope.dispose();}
  }
 });
+
+test('publication reads reference pins in order and stops at the first changed field',()=>{
+ const f=fixture('graze','warn');
+ try{
+  const refs=f.roster.map((body,slot)=>({group:'herd',slot,identity:body.entityId,wire:body.entityId,handle:slot+1,body}));
+  const publication=f.herd.prepareValues(f.herd.captureValues(),refs,f.scope),reads:string[]=[],random=f.random.snapshot();
+  const fields=['body','group','slot','identity','wire','handle'] as const;let changed=false;
+  for(let index=0;index<refs.length;index++){
+   const row=refs[index];if(row===undefined)throw new Error('Missing reference');
+   const actor=row.body,identity=actor.entityId;
+   for(const field of fields){const value=row[field];Object.defineProperty(row,field,{get:()=>{
+    reads.push(`${index}:${field}`);return changed&&index===0&&field==='slot'?-1:value;
+   }});}
+   Object.defineProperty(actor,'entityId',{get:()=>{reads.push(`${index}:entityId`);return identity;}});
+  }
+  publication.validate();
+  const expected:string[]=[];
+  for(let index=0;index<refs.length;index++){for(const field of fields)expected.push(`${index}:${field}`);expected.push(`${index}:entityId`);}
+  expect(reads).toEqual(expected);
+  reads.length=0;changed=true;
+  expect(()=>publication.commit()).toThrow('Changed herd guest publication owner');
+  expect(reads).toEqual(['0:body','0:group','0:slot']);expect(f.random.snapshot()).toEqual(random);
+ }finally{f.scope.dispose();}
+});

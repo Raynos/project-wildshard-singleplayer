@@ -649,12 +649,21 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
         const current=name===undefined?undefined:Object.getOwnPropertyDescriptor(this,name);
         if(current===undefined||descriptor===undefined||!Object.hasOwn(current,'value')||current.writable!==true||!Object.is(current.value,descriptor.value))throw new Error('Changed herd guest storage');
       }
-      if (accepted || scope.disposed || scope.disposing || this.members !== roster || members.length !== roster.length
-        || members.some((body,index) => roster[index] !== body)
-        || !Object.is(this.groupTime,beforeTime) || [this.lead,this.stallion,this.ridden,this.chargeTarget].some((body,index) => body !== beforeRoles[index])
-        || references.length !== source.length || source.some((pin,index) => references[index] !== pin.row || pin.row.body !== pin.body
-          || pin.row.group !== pin.group || pin.row.slot !== pin.slot || pin.row.identity !== pin.identity || pin.row.wire !== pin.wire || pin.row.handle !== pin.handle
-          || pin.body.entityId !== pin.identity)) throw new Error('Changed herd guest publication owner');
+      if(accepted||scope.disposed||scope.disposing||this.members!==roster||members.length!==roster.length)throw new Error('Changed herd guest publication owner');
+      for(let index=0;index<members.length;index++)if(index in members){
+        const body=members[index];if(roster[index]!==body)throw new Error('Changed herd guest publication owner');
+      }
+      if(!Object.is(this.groupTime,beforeTime))throw new Error('Changed herd guest publication owner');
+      // Read the whole role batch before comparing, as the original array did.
+      const currentLead=this.lead,currentStallion=this.stallion,currentRidden=this.ridden,currentTarget=this.chargeTarget;
+      if(currentLead!==beforeRoles[0]||currentStallion!==beforeRoles[1]||currentRidden!==beforeRoles[2]||currentTarget!==beforeRoles[3]
+        ||references.length!==source.length)throw new Error('Changed herd guest publication owner');
+      for(let index=0;index<source.length;index++){
+        const pin=source[index];
+        if(pin!==undefined&&(references[index]!==pin.row||pin.row.body!==pin.body
+          ||pin.row.group!==pin.group||pin.row.slot!==pin.slot||pin.row.identity!==pin.identity||pin.row.wire!==pin.wire||pin.row.handle!==pin.handle
+          ||pin.body.entityId!==pin.identity))throw new Error('Changed herd guest publication owner');
+      }
     };
     validate();
     return { validate, commit: () => {
