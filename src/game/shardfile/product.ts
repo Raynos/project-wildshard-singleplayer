@@ -107,10 +107,12 @@ export interface AdmittedProduct {
   source: Shardfile; assets: ReadonlyMap<string, Uint8Array>; cached: boolean; instance?: string;
   /** Forget runtime-only/bound wires with durable rereads, or verified cache/network rereads for an online owner. */
   releaseTransport?: (refs: Iterable<string>, reread?: 'cache-or-fetch') => Promise<readonly string[]>;
+  /** Grid preparations explicitly rehydrate before synchronous consumers; release only after their last input lease. */
+  releasePreparedTransport?: (refs: Iterable<string>, reread?: 'cache-or-fetch') => Promise<readonly string[]>;
 }
 
 // Construct outside admission's decoding context: the owner must not retain the temporary hash/transport maps.
-function transportRelease(source: Shardfile, assets: Map<string, Uint8Array>, options: ProductOptions): NonNullable<AdmittedProduct['releaseTransport']> {
+function transportRelease(source: Shardfile, assets: Map<string, Uint8Array>, options: ProductOptions, prepared = false): NonNullable<AdmittedProduct['releaseTransport']> {
   // The releasable set walks the whole product (~60 ms at 4x CPU): built on the first release, not on every admission,
   // in paced steps, once (concurrent first releases share it)
   let bound: Promise<ReadonlySet<string>> | undefined;
@@ -126,7 +128,7 @@ function transportRelease(source: Shardfile, assets: Map<string, Uint8Array>, op
     // Do not pin the whole grid in the bounded disk cache; offline owners still require durable bytes.
     const canFetch = reread === 'cache-or-fetch' && !options.offline;
     if (cache === undefined && !canFetch) return released;
-    const releasing = await (bound ??= releasable());
+    const releasing = prepared ? files : await (bound ??= releasable());
     for (const ref of requested) {
       if (!releasing.has(ref)) continue;
       const file = files.get(ref);
@@ -426,7 +428,7 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
   }
   progress('complete', 'Product admitted');
   await options.pause?.();
-  return { source, assets, cached: cached !== null && cached !== undefined, ...(options.firstParty ? { releaseTransport: transportRelease(source, assets, options) } : {}), ...(options.firstParty ? {} : { instance: await externalShardInstance(base, source.identity.slug, options.hash) }) };
+  return { source, assets, cached: cached !== null && cached !== undefined, ...(options.firstParty ? { releaseTransport: transportRelease(source, assets, options), releasePreparedTransport: transportRelease(source, assets, options, true) } : {}), ...(options.firstParty ? {} : { instance: await externalShardInstance(base, source.identity.slug, options.hash) }) };
 }
 /** Browser Cache Storage retains exact hash bytes separately from the last completely admitted visited product. */
 export function browserProductCache(storage: Pick<CacheStorage, 'open'> & Partial<Pick<CacheStorage, 'delete'>>): ProductCache {

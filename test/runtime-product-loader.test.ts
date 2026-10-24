@@ -82,6 +82,34 @@ function fixture(platformRef = false, extra?: (source: schema.Shardfile) => Read
 }
 function trust(receipt: unknown): void { vi.stubGlobal('__SHARDFILE_VALIDATOR__', 'loader-test'); vi.stubGlobal('__SHARDFILE_VERDICTS__', [receipt]); }
 
+test('finished preparation releases synchronous inputs only through its explicit verified-reread authority', async () => {
+  const f = fixture(true); trust(f.receipt);
+  const admitted = await admitProduct(f.index, f.options);
+  expect(await admitted.releaseTransport?.([f.ref], 'cache-or-fetch')).toEqual([]);
+  expect(admitted.assets.has(f.ref)).toBe(true);
+  expect(await admitted.releasePreparedTransport?.([f.ref], 'cache-or-fetch')).toEqual([f.ref]);
+  expect(admitted.assets.has(f.ref)).toBe(false);
+  await expect(admitted.releasePreparedTransport?.(['undeclared'], 'cache-or-fetch')).rejects.toThrow('Undeclared transport release');
+});
+
+test('prepared input release preserves offline bytes after failed writes and corrupt durable rereads', async () => {
+  const f = fixture(true); trust(f.receipt);
+  let stored: Uint8Array | null = null;
+  const cache: ProductCache = { product: () => Promise.resolve(null), putProduct: () => Promise.resolve(),
+    asset: () => Promise.resolve(stored), putAsset: () => Promise.resolve(false) };
+  const options = { ...f.options, cache }, admitted = await admitProduct(f.index, options);
+  options.offline = true;
+  expect(await admitted.releasePreparedTransport?.([f.ref], 'cache-or-fetch')).toEqual([]);
+  expect(admitted.assets.get(f.ref)).toEqual(f.blob);
+  stored = Uint8Array.of(3, 2, 1);
+  await expect(admitted.releasePreparedTransport?.([f.ref], 'cache-or-fetch')).rejects.toThrow('hash or size mismatch');
+  expect(admitted.assets.has(f.ref)).toBe(true);
+  stored = f.blob;
+  expect(await admitted.releasePreparedTransport?.([f.ref], 'cache-or-fetch')).toEqual([f.ref]);
+  const reader = new ClientAssets(admitted.source, admitted.assets, options);
+  expect(await reader.read(f.ref)).toEqual(f.blob); expect(reader.retained.size).toBe(0);
+});
+
 test('immutable URL cache avoids admission and released-library revalidation while retaining hash checks', async () => {
   const f = fixture(); trust(f.receipt);
   const fetch = vi.fn(f.options.fetch);

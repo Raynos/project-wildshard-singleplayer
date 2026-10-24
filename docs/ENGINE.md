@@ -5199,6 +5199,19 @@ Undeclared refs refuse before
 any deletion; host-referenced unbound/shared files remain. Caller-provided Maps
 without this callback are never mutated.
 
+TB1's grid preparation inputs have a separate lifetime from the product
+descriptor. `ProductInputs.acquire()` borrows a synchronous input Map;
+overlapping preparations share it until the last idempotent asynchronous
+release. Later acquisitions rehydrate missing inputs through the same
+size/hash-checked `ClientAssets.read` before publishing the Map. Rehydration
+reserves temporary residency before reading; failures publish no partial
+Map and release that temporary claim. First-party
+`AdmittedProduct.releasePreparedTransport` permits completed preparations
+to release their synchronous inputs, but keeps the same declared-reference,
+offline durable-presence and corrupt-cache refusals. The ordinary
+`releaseTransport` classification remains unchanged. Without preparation
+release authority, supplied input Maps and reader mirrors stay intact.
+
 `runtimeOnlyProductFiles(source)` excludes inventory-only references
 (`files`, `critical`, `library`) and retains every host-declared hash and
 its dependency closure. Grid admission releases the remaining runtime-only
