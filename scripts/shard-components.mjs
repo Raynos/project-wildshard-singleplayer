@@ -142,7 +142,6 @@ const reviewedW2Owners = new Map([
   ['src/engine/script/host.ts#preparationWait', 'C9'],
   ['src/engine/script/host.ts#preparingOwners', 'C9'],
   ['src/engine/script/host.ts#requirePreparationOwner', 'C9'],
-  ['src/engine/script/host.ts#withPreparedScriptMemories', 'C9'],
   ['src/sdk/headlessRuntime.ts#HeadlessCommandPorts', 'C9'],
   ['src/sdk/headlessRuntime.ts#bindHeadlessCommands', 'C9'],
   ['src/game/plugin/context.ts#buildProgress', 'C9'],

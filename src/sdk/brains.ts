@@ -1,4 +1,4 @@
-import { parseStalker, parseSkirmisher, parseGuardian, parsePerchHunter } from '@wildshard/format/brains';
+import { type parseStalker, parseSkirmisher, parseGuardian, parsePerchHunter } from '@wildshard/format/brains';
 
 /** Data-selected circling melee policy with host-owned perception and attack authority. */
 export type SkirmisherData = ReturnType<typeof parseSkirmisher>;
@@ -16,5 +16,3 @@ export function perchHunter(data: unknown): PerchHunterData { return parsePerchH
 
 /** Admitted circling-melee pattern of the shared stalker archetype. */
 export type StalkerData = ReturnType<typeof parseStalker>;
-/** Emit stalker data while retaining native body, perception, token and shared-RNG authority. */
-export function stalker(data: unknown): StalkerData { return parseStalker(data); }

@@ -108,12 +108,6 @@ async function preparedMemoryLease(modules: readonly Uint8Array[], owner: Scope,
 export function prepareScriptMemoryLease(modules: readonly Uint8Array[], owner: Scope, yieldMode: 'frame' | 'task'): Promise<() => void> {
   return preparedMemoryLease(modules, owner, () => yieldMode === 'frame' && presenting() ? nextDrawnFrame(owner) : new Promise<void>(resolve => { owner.timeout(0, resolve); }));
 }
-export async function withPreparedScriptMemories<T>(modules: readonly Uint8Array[], owner: Scope, pause: (() => Promise<void>) | null, install: () => T | Promise<T>): Promise<T> {
-  const release = await preparedMemoryLease(modules, owner, pause ?? (() => new Promise<void>(resolve => { owner.timeout(0, resolve); })));
-  try {
-    const value = await preparationWait(owner, () => owner.run(install)); requirePreparationOwner(owner); return value;
-  } finally { release(); }
-}
 
 function bounds(ptr: number, bytes: number, memory: WebAssembly.Memory): void {
   if (!integer(ptr, 0, memory.buffer.byteLength) || ptr % 8 !== 0 || !integer(bytes, 0, memory.buffer.byteLength) || ptr + bytes > memory.buffer.byteLength) throw new Error('ABI buffer outside memory');

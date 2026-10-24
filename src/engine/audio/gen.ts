@@ -405,8 +405,6 @@ export function impulseChannel(room: Room, sr: number, seed: number, ch: number)
   for (let i = 0; i < n; i++) out[i] = (out[i] ?? 0) * k;
   return out;
 }
-/** both channels */
-export function impulse(room: Room, sr: number, seed: number): [Float32Array, Float32Array] { return [impulseChannel(room, sr, seed, 0), impulseChannel(room, sr, seed, 1)]; }
 
 // ─────────────── interactables (the adventure kit, src/world/interact/*) ───────────────
 /** a stick-slip creak: a friction pulse train whose pitch wanders f0a → f0b with jumps, through wooden (or iron) body resonances */

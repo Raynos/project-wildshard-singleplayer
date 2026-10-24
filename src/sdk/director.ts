@@ -1,11 +1,9 @@
-import { parseDirector } from '@wildshard/format/director';
+import type { parseDirector } from '@wildshard/format/director';
 import { directorDataHostIssues, parseDirectorStages, type DirectorStagesData, type DirectorStagesDefinition } from '@wildshard/format/directorStages';
 import { Object3D } from 'three';
 
 /** Typed director data with bounded observations, payloads and reserved grid subscriptions. */
 export type DirectorData = ReturnType<typeof parseDirector>;
-/** Validate before admitting a bounded module or installing a fixed-step director. */
-export function director(data: unknown): DirectorData { return parseDirector(data); }
 
 /** Author a bounded stage machine. Inputs name native owners; the build emits rows without installing gameplay. */
 export class Director {

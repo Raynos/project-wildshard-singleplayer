@@ -3369,7 +3369,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 `@wildshard/engine/script/host` owns bounded module instances and complete snapshots;
 `@wildshard/engine/script/effects` publishes validated numeric batches atomically.
 
-`withPreparedScriptMemories(modules, scope, pause, install)` allocates fresh AS memories across caller-supplied frame yields before an owned installer consumes them; asynchronous installers explicitly carry that owner across awaits. Every module is admitted before any allocation, and each request describes a separate default-limit host. Matching descriptors are consumed once by that owner or its child, including its admitted construction binding after an await; explicit foreign or unowned callbacks, lower custom ceilings allocate normally, and restores ignore that owner lease. Seeds, initialization, quota accounting and snapshots remain in `ScriptHost.install`. Owner retirement rejects cancelled frame waits and pending installers. Cancellation, failure and return clear unused references; every prepared allocation remains in the CPU inventory. The caller keeps input/readiness fenced until installation finishes. This schedules allocation work; it is no memory discount or proven frame-rate saving.
+`prepareScriptMemoryLease(modules, scope, yieldMode)` allocates fresh AS memories across task/frame yields before an owned installer consumes them. Callers retain the returned release function through installation and invoke it in finally; asynchronous installers explicitly carry that owner across awaits. Every module is admitted before any allocation, and each request describes a separate default-limit host. Matching descriptors are consumed once by that owner or its child, including its admitted construction binding after an await; explicit foreign or unowned callbacks, lower custom ceilings allocate normally, and restores ignore that owner lease. Seeds, initialization, quota accounting and snapshots remain in `ScriptHost.install`. Owner retirement rejects cancelled frame waits and pending installers. Cancellation, failure and return clear unused references; every prepared allocation remains in the CPU inventory. The caller keeps input/readiness fenced until installation finishes. This schedules allocation work; it is no memory discount or proven frame-rate saving.
 `@wildshard/engine/script/queries` adapts read-only collision/navigation queries with stable numeric handles.
 
 `prepareScriptMemoryBank(counts, yieldTask, virgin?)` warms fixed page sizes
@@ -4558,8 +4558,8 @@ spelling below changes no species registration, collider or gameplay law.
 
 The matching author declaration is `@wildshard/format/grazers#GrazerSchema`:
 `kind: 'grazer'`, `pattern: 'wander-ram' | 'circle-challenge'`, with that preset's
-existing bounded flat tuning and strike ids. SDK `grazers.grazer(data)` validates
-without installing code. `grazerPreset` converts admitted data to the historical
+existing bounded flat tuning and strike ids. The format's `parseGrazer(data)`
+validates without installing code. `grazerPreset` converts admitted data to the historical
 contract; the native installer and full-shard strike checks use this same pure
 mapping, so existing body ports and save bytes survive the spelling change.
 

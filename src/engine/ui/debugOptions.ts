@@ -23,7 +23,7 @@ import { jsonSlot } from '../saves/slots';
 import { clearDownloads, freedBytes, lastClear, mbText, storageUsed } from '../boot/clearDownloads';
 import { RELOAD_PARAM } from '../core/GpuRecovery';
 import { markReload } from '../boot/lastEnd';
-import { onSettingChange, saveSetting, setting, settingsReloadUrl, type OptionKey, type OptionValue } from './Settings';
+import { settingsReloadUrl } from './Settings';
 import type { DebugRowSpec } from '../level/context';
 import { isDev, onDev } from '../core/devMode';
 
@@ -107,16 +107,6 @@ export function registerLevelDebugRow(spec: DebugRowSpec, levelId: string): () =
 const always: When = () => true;
 
 interface RowOpts { purpose?: 'developer'; reload?: boolean; when?: When; note: string; ask: `E${number}`; reviewBy: string }
-/** a row over a saved option (Settings.ts OPTION_VALUES): `choices` pairs each value with its button text */
-export function opt<K extends OptionKey>(key: K, group: DebugGroupId, label: string, choices: readonly (readonly [OptionValue<K>, string])[], o: RowOpts): DebugRow {
-  const list = choices.map(([v, text]) => ({ v, text }));
-  return {
-    ...(o.purpose === undefined ? {} : { purpose: o.purpose }), id: key, group, label, choices: () => list, reload: o.reload ?? false, when: o.when ?? always, note: o.note, ask: o.ask, reviewBy: o.reviewBy,
-    get: () => setting(key),
-    set: (s) => { const hit = choices.find(([v]) => v === s); if (hit) saveSetting(key, hit[0]); },
-    on: (fn) => { onSettingChange(key, () => { fn(); }); },
-  };
-}
 /**
  * A button row's action. `run` may report through `say(button, status)` (the button's text, the line under the row).
  * E172: `confirm` makes it two taps — the first shows what `confirm()` returns ("Tap again to clear ~158 MB", it may
