@@ -205,3 +205,17 @@ test('compiled environment preflight refuses a missing suffix before scalar read
   expect(reads).toBe(2);expect(f.query).toHaveBeenCalledExactlyOnceWith(4,7);
  }finally{f.host.dispose();}
 });
+
+test('numeric observed identity preflight retains empty, distinct and duplicate loan semantics',async()=>{
+ const f=await fixture();try{
+  const reader=new ObservationColumnsV2([{id:1,name:'x',source:{kind:'actor',field:'x'}}],f.host.scope);
+  for(const observed of [new Map(),new Map([[10,f.actor]]),new Map([[10,f.actor],[11,f.other]])]){
+   expect([...reader.captureNumeric({...f.owners,observed})]).toEqual([4]);
+  }
+  for(const observed of [new Map([[10,f.actor],[11,f.actor]]),new Map([[10,f.actor],[11,f.other],[12,f.actor]]),
+   new Map([[0,f.actor]]),new Map([[1.5,f.actor]]),new Map([[0x80000000,f.actor]])]){
+   expect(()=>reader.captureNumeric({...f.owners,observed})).toThrow('Invalid observed actor identity');
+  }
+  f.host.scope.dispose();expect(()=>reader.captureNumeric({...f.owners,observed:new Map()})).toThrow('Retired');
+ }finally{f.host.dispose();}
+});

@@ -185,8 +185,9 @@ export class ObservationColumnsV2 {
     live();
     if(owners.observed.size>256||self.group.length===0||!Number.isInteger(self.slot)||self.slot<0
       ||actor===null&&self.identity!=='')throw new Error('Stale observation actor slot');
-    const observed=new Set<AnimalSim>();
+    let observed:Set<AnimalSim>|undefined;
     for(const[handle,body]of owners.observed){
+      observed??=new Set<AnimalSim>();
       if(!Number.isInteger(handle)||handle<1||handle>0x7fffffff||observed.has(body)||body.entityId.length===0)throw new Error('Invalid observed actor identity');
       observed.add(body);
     }
