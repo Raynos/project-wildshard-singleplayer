@@ -1,13 +1,13 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Owned source/cache fixtures.
-import {copyFileSync,mkdirSync,mkdtempSync,readFileSync,readdirSync,realpathSync,rmSync,symlinkSync,writeFileSync} from 'node:fs';
+import {copyFileSync,mkdirSync,mkdtempSync,readFileSync,readdirSync,realpathSync,rmSync,symlinkSync,unlinkSync,writeFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Bounded fixture paths.
 import {dirname,resolve} from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Reseal old/malformed owned observations to exercise version validation.
 import {createHash} from 'node:crypto';
 import * as v from 'valibot';
 import {afterEach,expect,it} from 'vitest';
-import {generateShardJob} from '../scripts/generate.mjs';
-import {runObservedGeneration,generationReadReceipt} from '../scripts/generation-inputs.mjs';
+import {generateShardJob,prepareGeneration,verifiedPreparedGeneration} from '../scripts/generate.mjs';
+import {runObservedGeneration,generationReadReceipt,generationWorkspaceIdentity} from '../scripts/generation-inputs.mjs';
 import type {GenerationPreparation,ShardGenerationJob} from '../scripts/generate.d.mts';
 
 const owned:string[]=[];
@@ -123,6 +123,89 @@ it('reuses unread upstream bytes behind authoring dependency probes',async()=>{
   expect(await f.upstream({'unread.bin':'new'})).toMatchObject({hit:false,text:'3'});
   put(f.root,'src/sdk/package.json',JSON.stringify({name:'@wildshard/sdk',type:'module',exports:{'./used':'./other.mjs','./unused':'./other.mjs'}}));
   expect(await f.upstream({'unread.bin':'new'})).toMatchObject({hit:false,text:'3'});
+});
+it('models verified workspace probes without unrelated source filename fences',async()=>{
+  const f=upstreamFixture(undefined,true);
+  put(f.root,'src/sdk/bake/source-loader.mjs',readFileSync('src/sdk/bake/source-loader.mjs','utf8'));
+  put(f.root,'src/sdk/used.mjs',"import {value} from './other.mjs';export {value};");
+  f.job.command=['--import','./src/sdk/bake/source-loader.mjs',f.entry];
+  const first=await f.upstream({'unread.bin':'old'});expect(first.text).toBe('2');
+  put(f.root,'src/sdk/new-unread.ts','export const unused=1;');
+  expect(await f.upstream({'unread.bin':'new'})).toEqual({...first,hit:true});
+  put(f.root,'src/sdk/other.mjs','export const value=3;');
+  expect(await f.upstream({'unread.bin':'new'})).toMatchObject({hit:false,text:'3'});
+});
+it.each(['format','engine'])('invalidates a workspace link retargeted to %s before returning cached bytes',async layer=>{
+  const f=upstreamFixture(undefined,true),target=`src/${layer}`;
+  put(f.root,'src/sdk/bake/source-loader.mjs',readFileSync('src/sdk/bake/source-loader.mjs','utf8'));
+  put(f.root,`${target}/package.json`,readFileSync(resolve(f.root,'src/sdk/package.json'),'utf8'));
+  put(f.root,`${target}/used.mjs`,'export const value=9;');f.job.inputRoots.push(target);
+  f.job.command=['--import','./src/sdk/bake/source-loader.mjs',f.entry];
+  expect(await f.upstream({'unread.bin':'old'})).toMatchObject({hit:false,text:'1'});
+  const link=resolve(f.root,'node_modules/@wildshard/sdk');unlinkSync(link);symlinkSync(`../../${target}`,link,'dir');
+  if(layer==='engine')await expect(f.upstream({'unread.bin':'old'})).rejects.toThrow('Generator exited 1');
+  else expect(await f.upstream({'unread.bin':'old'})).toMatchObject({hit:false,text:'9'});
+});
+it('keeps an unverified workspace alias behind the complete filename fence',async()=>{
+  const f=upstreamFixture("import {value} from '@wildshard/sdk/used.mjs';import fs from 'node:fs';fs.writeFileSync('src/shards/alpha/data/output.txt',String(value));",true);
+  put(f.root,'src/sdk/bake/source-loader.mjs',readFileSync('src/sdk/bake/source-loader.mjs','utf8'));
+  rmSync(resolve(f.root,'src/sdk/package.json'));
+  f.job.command=['--import','./src/sdk/bake/source-loader.mjs',f.entry];
+  const first=await f.upstream({'unread.bin':'old'});expect(first.text).toBe('1');
+  put(f.root,'src/sdk/new-unread.ts','export const unused=1;');
+  expect(await f.upstream({'unread.bin':'old'})).toMatchObject({hit:false,text:'1'});
+});
+it('normalizes equivalent workspace links across roots and relative or absolute spellings',()=>{
+  const a=packageFixture(),b=packageFixture(),before=generationWorkspaceIdentity(a.root);
+  expect(generationWorkspaceIdentity(b.root)).toBe(before);
+  const link=resolve(b.root,'node_modules/@wildshard/sdk');unlinkSync(link);symlinkSync(resolve(b.root,'src/sdk'),link,'dir');
+  expect(generationWorkspaceIdentity(b.root)).toBe(before);
+  put(b.root,'src/format/keep.txt','new workspace target');unlinkSync(link);symlinkSync('../../src/format',link,'dir');
+  expect(generationWorkspaceIdentity(b.root)).not.toBe(before);
+});
+it.each(['dangling','loop'])('binds an unused %s workspace link and notices its repair',kind=>{
+  const f=packageFixture(),link=resolve(f.root,'node_modules/@wildshard/retired');
+  symlinkSync(kind==='loop'?'retired':'../../src/retired',link,'dir');
+  const before=generationWorkspaceIdentity(f.root);
+  unlinkSync(link);symlinkSync('../../src/sdk',link,'dir');
+  expect(generationWorkspaceIdentity(f.root)).not.toBe(before);
+});
+it('refuses publication when a producer retargets an installed workspace link',async()=>{
+  const f=upstreamFixture(undefined,true),link=resolve(f.root,'node_modules/@wildshard/sdk');
+  put(f.root,'src/format/keep.txt','replacement workspace');
+  put(f.root,f.entry,`import fs from 'node:fs';fs.unlinkSync(${JSON.stringify(link)});fs.symlinkSync('../../src/format',${JSON.stringify(link)},'dir');fs.writeFileSync('${f.output}','changed');`);
+  await expect(f.upstream({'unread.bin':'old'})).rejects.toThrow('Generation workspace links changed');
+  expect(readdirSync(resolve(f.cacheDir,f.job.id)).filter(name=>/^[a-f0-9]{64}$/u.test(name))).toEqual([]);
+});
+it('invalidates a completed generation phase when a mirrored workspace link changes',async()=>{
+  const f=packageFixture();
+  put(f.root,'src/format/package.json',readFileSync(resolve(f.root,'src/sdk/package.json'),'utf8'));
+  put(f.root,'src/format/used.mjs','export const value=9;');
+  await prepareGeneration(f.root,{cacheDir:f.cacheDir});expect(verifiedPreparedGeneration(f.root)).toBe(true);
+  const link=resolve(f.root,'node_modules/@wildshard/sdk');unlinkSync(link);symlinkSync('../../src/format',link,'dir');
+  expect(verifiedPreparedGeneration(f.root)).toBe(false);
+});
+it.each(['missing','directory'])('preserves explicit authoring extension fallback for %s paths',async kind=>{
+  const f=upstreamFixture(undefined,true);
+  put(f.root,'src/sdk/bake/source-loader.mjs',readFileSync('src/sdk/bake/source-loader.mjs','utf8'));
+  put(f.root,'src/sdk/used.mjs',"import {value} from './fallback.js';export {value};");
+  put(f.root,'src/sdk/fallback.js.ts','export const value=7;');
+  if(kind==='directory')put(f.root,'src/sdk/fallback.js/keep.txt','directory input');
+  f.job.command=['--import','./src/sdk/bake/source-loader.mjs',f.entry];
+  expect(await f.upstream({'unread.bin':'old'})).toMatchObject({hit:false,text:'7'});
+  put(f.root,'src/sdk/fallback.js.ts','export const value=8;');
+  expect(await f.upstream({'unread.bin':'old'})).toMatchObject({hit:false,text:'8'});
+});
+it.each([
+  ['../runtime/refused.mjs','src/shards/alpha/runtime/refused.mjs'],
+  ['../../beta/generators/refused.mjs','src/shards/beta/generators/refused.mjs'],
+  ['../../../engine/refused.mjs','src/engine/refused.mjs'],
+])('refuses explicit non-authoring import %s even when the source exists',async(specifier,file)=>{
+  const f=upstreamFixture(`import {value} from '${specifier}';import fs from 'node:fs';fs.writeFileSync('src/shards/alpha/data/output.txt',String(value));`);
+  put(f.root,'src/sdk/bake/source-loader.mjs',readFileSync('src/sdk/bake/source-loader.mjs','utf8'));
+  put(f.root,file,'export const value=3;');f.job.inputRoots.push(file);
+  f.job.command=['--import','./src/sdk/bake/source-loader.mjs',f.entry];
+  await expect(f.upstream({'unread.bin':'old'})).rejects.toThrow('Generator exited 1');
 });
 it('keeps the complete filename fence behind dependency probes',async()=>{
   const output='src/shards/alpha/data/output.txt';

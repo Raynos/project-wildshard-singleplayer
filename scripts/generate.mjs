@@ -9,7 +9,7 @@ import { pathToFileURL } from 'node:url';
 import * as v from 'valibot';
 import { isRecordedBake, bakeInputHashes, InputHashMemo } from './bake-input-hashes.mjs';
 import { generationOutputHashes } from './generation-cache.mjs';
-import { generationReadReceipt, runObservedGeneration } from './generation-inputs.mjs';
+import { generationReadReceipt, generationWorkspaceIdentity, runObservedGeneration } from './generation-inputs.mjs';
 import { generationNodeEnvironment } from './generation-node-cache.mjs';
 import { capturePreview, generationBrowserDigest } from './generation-capture.mjs';
 import { externalGenerationInputs, generationTools } from './generation-sources.mjs';
@@ -196,7 +196,7 @@ function retainedGenerationFiles(root,jobs) {
  * the source tree and retained-file admission from the exact exported tree.
  * @param {string} root @param {ReturnType<typeof discoverGeneration>['jobs']} jobs @param {Set<string>} retained */
 function phaseSnapshotIdentity(root,jobs,retained) {
-  return generationSnapshotIdentity({node:process.version,platform:process.platform,arch:process.arch,jobs,retained:[...retained].sort(),catalogue:bakeInputHashes(root,['scripts/generation-jobs.json']),jsonPolicy:existsSync(resolve(root,'lint/no-binary-json.json'))?bakeInputHashes(root,['lint/no-binary-json.json']):{},controller:bakeInputHashes(import.meta.dirname,['generate.mjs','generation-scheduling.mjs','generation-stage.mjs','generation-determinism.mjs','json-output-guard.mjs','no-binary-json.mjs','generation-cache.mjs','bake-input-hashes.mjs','generation-snapshot.mjs','generation-capture.mjs','generation-sources.mjs','generation-inventory.mjs','link-node-modules.mjs']),tools:generationTools(jobs.flatMap(job=>job.toolCommands))});
+  return generationSnapshotIdentity({node:process.version,platform:process.platform,arch:process.arch,workspaceLinks:generationWorkspaceIdentity(root),jobs,retained:[...retained].sort(),catalogue:bakeInputHashes(root,['scripts/generation-jobs.json']),jsonPolicy:existsSync(resolve(root,'lint/no-binary-json.json'))?bakeInputHashes(root,['lint/no-binary-json.json']):{},controller:bakeInputHashes(import.meta.dirname,['generate.mjs','generation-scheduling.mjs','generation-stage.mjs','generation-determinism.mjs','json-output-guard.mjs','no-binary-json.mjs','generation-cache.mjs','bake-input-hashes.mjs','generation-inputs.mjs','generation-snapshot.mjs','generation-capture.mjs','generation-sources.mjs','generation-inventory.mjs','link-node-modules.mjs']),tools:generationTools(jobs.flatMap(job=>job.toolCommands))});
 }
 
 /** Recheck a completed local phase at the next build fence. This is a fresh
@@ -228,7 +228,7 @@ export async function generateShardJob(root,descriptor,options={}) {
   const captureArgs=job.capture && preview!==undefined ? [`--url=${preview.url}`,`--revision=${preview.revision}`,'--inputs=<stage>'] : [];
   const projected=catalogueProjection(root,job,catalog);
   const policy=jsonOutputPolicy(root,job.outputs);
-  const controller=bakeInputHashes(import.meta.dirname,['generate.mjs','generation-scheduling.mjs','generation-stage.mjs','generation-determinism.mjs','json-output-guard.mjs','no-binary-json.mjs','generation-inputs.mjs','generation-cache.mjs','generation-recorder.mjs','generation-node-cache.mjs','shardfile-inputs.mjs','shardfile-cache.mjs','compiler-code.mjs','function-source.mjs','generation-capture.mjs','generation-sources.mjs']);
+  const controller=bakeInputHashes(import.meta.dirname,['generate.mjs','generation-scheduling.mjs','generation-stage.mjs','generation-determinism.mjs','json-output-guard.mjs','no-binary-json.mjs','generation-inputs.mjs','generation-cache.mjs','generation-recorder.mjs','generation-node-cache.mjs','shardfile-inputs.mjs','shardfile-cache.mjs','compiler-code.mjs','function-source.mjs','generation-capture.mjs','generation-sources.mjs','link-node-modules.mjs']);
   const external=await externalGenerationInputs(job.externalInputs,options.cacheDir);
   const tools={...generationTools(job.toolCommands),...(job.browser?{browserDigest:generationBrowserDigest()}:{})};
   const roots=[...job.inputRoots,...infrastructure.filter(file=>existsSync(resolve(root,file))),catalog];
