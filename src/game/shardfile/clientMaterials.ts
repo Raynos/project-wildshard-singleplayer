@@ -136,7 +136,10 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
   const splatRefs = new Set(splat === undefined ? [] : splatTextureRefs(splat, TIER));
   if (refs.size > 0) {
     const loader = detectKtx2Support(new KTX2Loader().setTranscoderPath(BASIS_PATH), renderer);
-    scope.onDispose(() => { loader.dispose(); });
+    let retired = false;
+    const retire = (): void => { if (retired) return;retired = true;loader.dispose(); };
+    const forget = scope.capture('disposers', retire);
+    try {
     for (const ref of refs) {
       const bytes = assets.get(ref); if (bytes === undefined) throw new Error('Missing admitted material texture');
       const texture = await new Promise<Texture>((resolve, reject) => { loader.parse(Uint8Array.from(bytes).buffer, resolve, reject); });
@@ -148,6 +151,10 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
       // a raw-texel file (uncompressed KTX2) arrives as a DataTexture: its decoded texels go once it is on the GPU too
       else if (texture instanceof DataTexture) gpuOnlyTexture(texture, 'shardfile raw textures');
       scope.own(texture); textures.set(ref, texture);
+    }
+    } finally {
+      // Decoded textures own their mips; no later material build uses this decoder.
+      forget();retire();
     }
   }
   const resolveTexture = (ref: string, use: 'colour' | 'data'): Texture => {
