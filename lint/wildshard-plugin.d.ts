@@ -8,3 +8,6 @@ export const CAPTURE_SHELL_FILES: ReadonlySet<string>;
 export const SIM_DIRS: readonly string[];
 /** The view parts inside SIM_DIRS that may render. */
 export const VIEW_PATHS: readonly string[];
+
+/** G645 product-surface rules that do not apply to colocated test fixtures. */
+export const TEST_DOMAIN_RUNTIME_RULES: readonly string[];

@@ -1116,9 +1116,31 @@ const clientPlanReflection = rule('Client features cannot reflect into shard TS 
   return { Program(node) { for (const failure of clientPlanSchemaViolations(REPO)) report(context, node, failure); } };
 });
 
+// G645: test fixtures are not shipped player surfaces. Keep architecture and
+// no-module-mock enforcement, and never let production import a test module.
+export const TEST_DOMAIN_RUNTIME_RULES = [
+  'no-url-switch', 'no-inline-ui-string', 'no-authored-html', 'engine-words',
+  'shard-names', 'no-shard-branch', 'no-raw-save', 'no-raw-input',
+  'no-global-listener-patch', 'no-raw-hud', 'no-raw-shader-patch',
+  'no-raw-animation-mixer', 'no-renderer-type', 'no-active-singleton',
+  'no-active-chunk', 'no-hook-chain', 'no-level-identity', 'sim-no-render',
+  'runtime-performance', 'no-raw-random-time', 'no-runtime-generator',
+];
+const testDomain = context => pathOf(context).endsWith('.test.ts');
+const noProductionTestImport = rule('Production cannot import a test module (G645)', context => {
+  if (!pathOf(context).startsWith('src/') || testDomain(context)) return {};
+  const check = node => {
+    const source = importPrefix(node.source);
+    if (source !== null && /\.test(?:\.[cm]?[jt]s)?(?:[?#].*)?$/u.test(modulePath(context.filename, source)))
+      report(context, node, 'Production cannot import or re-export a test module');
+  };
+  return { ...importsVisitor(check), TSImportType: check };
+});
+
 const plugin = {
   meta: { name: 'wildshard' },
   rules: {
+    'no-production-test-import': noProductionTestImport,
     'no-client-plan-reflection': clientPlanReflection,
     'explicit-schema-types': explicitSchemaTypes(shardfileDebt,pathOf),
     'no-base64': noBase64Rule(process.env.WILDSHARD_BASE64_FILE ?? BASE64_POLICY),
@@ -1156,4 +1178,8 @@ const plugin = {
     'shard-services': shardServices,
   },
 };
+for (const name of TEST_DOMAIN_RUNTIME_RULES) {
+  const original = plugin.rules[name];
+  plugin.rules[name] = { ...original, create(context) { return testDomain(context) ? {} : original.create(context); } };
+}
 export default plugin; // oxlint loads a JS plugin from its default export
