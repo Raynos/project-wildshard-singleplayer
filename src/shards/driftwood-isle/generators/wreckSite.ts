@@ -109,7 +109,7 @@ export function wreckSite(spec: WreckSpec, heightAt: (x: number, z: number) => n
         const mossy = rng.next() < 0.6, m = wm(x, y + r * 0.2, z, rng.range(0, 6));
         for (let i = old.getAttribute('position').count / 3; i > 0; i--) rng.next();
         old.dispose();
-        const g = rockGeometry(r, rockRng, { squash: 0.62, palette: REEF_ROCK, moss: mossy ? 0.9 : 0.5, ground: -0.2 * r });
+        const g = rockGeometry(r, rockRng, { squash: 0.62, palette: REEF_ROCK, moss: mossy ? 0.9 : 0.5, ground: -0.2 * r, detail: -1 });
         g.applyMatrix4(m); reef.push(g);
         g.computeBoundingBox(); reefCopies.push({ m, r, moss: mossy ? 0.9 : 0.5, box: g.boundingBox?.clone() ?? new THREE.Box3() });
         if (r > 0.9) colliders.push({ x, z, hw: r * 0.8, hd: r * 0.8, rot: 0, yTop: y + r * 0.7, yBottom: y - 2 });

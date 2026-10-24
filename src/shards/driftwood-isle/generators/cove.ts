@@ -40,7 +40,7 @@ export function coveGeometry(spec: CoveSpec, heightAt: (x: number, z: number) =>
       const old = rock(r, 1, rng, squash, 0.28), m = m4(x, y, z, rng.range(0, 6.28));
       for (let i = old.getAttribute('position').count / 3; i > 0; i--) rng.next();
       old.dispose();
-      const g = rockGeometry(r, rockRng, { squash, palette: REEF_ROCK, moss: top === C.moss ? 0.8 : 0.3, ground: -0.2 * r });
+      const g = rockGeometry(r, rockRng, { squash, palette: REEF_ROCK, moss: top === C.moss ? 0.8 : 0.3, ground: -0.2 * r, detail: -1 });
       g.applyMatrix4(m); smoothRocks.push(g);
       g.computeBoundingBox(); placements.push({ m, r, squash, moss: top === C.moss ? 0.8 : 0.3, box: g.boundingBox?.clone() ?? new THREE.Box3() });
     };

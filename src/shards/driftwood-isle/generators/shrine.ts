@@ -23,7 +23,7 @@
  */
 import * as THREE from 'three';
 import { SEED } from '@wildshard/engine/core/config';
-import type { Rng } from '@wildshard/engine/core/rng';
+import { Rng } from '@wildshard/engine/core/rng';
 import { siteFloor, type BoxSpec as Collider, type FloorRect } from '@wildshard/engine/physics/box';
 import { rock, tris } from '@wildshard/engine/world/geometryKit';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
@@ -237,7 +237,11 @@ export class ShrineBuilder {
       const lx = Math.cos(a) * (POOL.rx + 0.75), lz = POOL.z + Math.sin(a) * (POOL.rz + 0.75);
       if (Math.abs(lx) < POOL.causeway + 0.2) continue;
       const [x, z] = this.W(lx, lz);
-      kit.addTopped(rock(r, 1, rng, 0.6, 0.25), rng.next() < 0.5 ? C.stone : C.stoneB, C.moss, { matrix: new THREE.Matrix4().makeTranslation(x, Math.max(this.ground(x, z), wy) + r * 0.1, z), minY: 0.6, jitter: 0.08 });
+      // T8 LOD variant: a 20-face rim rock; the 80-face rock's draws are burnt so the rest of the shrine stays put
+      const full = rock(r, 1, rng, 0.6, 0.25), lite = rock(r, 0, new Rng(k + 0x5e1), 0.6, 0.25);
+      full.dispose();
+      kit.addTopped(lite, rng.next() < 0.5 ? C.stone : C.stoneB, C.moss, { matrix: new THREE.Matrix4().makeTranslation(x, Math.max(this.ground(x, z), wy) + r * 0.1, z), minY: 0.6, jitter: 0.08 });
+      for (let t = 60; t > 0; t--) rng.next();
     }
     for (let lz = POOL.z - POOL.rz - 0.5; lz < POOL.z + POOL.rz + 0.6; lz += 0.85) {
       const [x, z] = this.W(rng.range(-0.08, 0.08), lz);
@@ -282,7 +286,10 @@ export class ShrineBuilder {
       if ((lx / (POOL.rx + 1)) ** 2 + ((lz - POOL.z) / (POOL.rz + 1)) ** 2 < 1) continue;      // the pool
       const [x, z] = this.W(lx, lz), m = new THREE.Matrix4().compose(new THREE.Vector3(x, this.ground(x, z) - 0.05, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, rng.range(0, 6), 0)), new THREE.Vector3(1, 1, 1));
       const kind = i % 3, s = rng.range(1.1, 2.4) * (r > 13 ? 1.3 : 1);
-      addOpenEnded(kit, kind === 0 ? broadClump(rng, s) : kind === 1 ? fern(rng, s * 0.9) : hibiscusBush(rng, s * 0.8), { matrix: m, jitter: 0.1 });
+      const clump = kind === 0 ? broadClump(rng, s) : kind === 1 ? fern(rng, s * 0.9) : hibiscusBush(rng, s * 0.8);
+      // T8 LOD variant: every fourth clump left out; its jitter draws are burnt so the rest of the shrine stays put
+      if (i % 4 === 3) { for (const [g] of clump) { for (let t = (g.index?.count ?? g.getAttribute('position').count) / 3; t > 0; t--) rng.next(); g.dispose(); } continue; }
+      addOpenEnded(kit, clump, { matrix: m, jitter: 0.1 });
     }
     TIERS.forEach((t, i) => {
       if (i === 2) return;
