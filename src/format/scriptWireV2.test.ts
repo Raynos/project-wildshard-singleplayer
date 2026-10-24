@@ -120,3 +120,28 @@ test('retained-count writers preserve all frame bytes, subviews and partial refu
     }
   }
 });
+
+test('nested count getters cannot overwrite the active scratch or any detached authority',()=>{
+  const layout=layoutV2(1024,1,new Map([[1,2],[6,2]])),write=createV2FrameWriter(layout);
+  const outerView=new DataView(new ArrayBuffer(65536)),innerView=new DataView(new ArrayBuffer(65536));
+  const frame:V2Frame={lane:2,module:1,sequence:1,tick:0,due:1};
+  let nested:ReturnType<typeof write>|undefined,entered=false;
+  class ReentrantCounts extends Map<number,number>{
+    override get(key:number):number|undefined{
+      if(key===6&&!entered){entered=true;nested=write(innerView,frame,new Map([[1,2],[6,2]]));}
+      return super.get(key);
+    }
+  }
+  const outer=write(outerView,frame,new ReentrantCounts([[1,1],[6,-0]]));
+  if(nested===undefined)throw new Error('Missing nested authority');
+  const inner=nested;
+  expect(outer.counts[0]).toBe(1);expect(Object.is(outer.counts[5],-0)).toBe(true);
+  expect(nested.counts[0]).toBe(2);expect(nested.counts[5]).toBe(2);
+  expect(()=>validateV2Frame(outerView,layout,outer)).not.toThrow();
+  expect(()=>validateV2Frame(innerView,layout,inner)).not.toThrow();
+  const saved=[...outer.counts];
+  expect(()=>write(outerView,frame,new Map([[1,3]]))).toThrow('count');
+  write(outerView,frame,new Map([[1,2],[6,1]]));
+  expect(outer.counts).toEqual(saved);expect(Object.isFrozen(outer.counts)).toBe(true);
+  expect(nested.counts[5]).toBe(2);
+});

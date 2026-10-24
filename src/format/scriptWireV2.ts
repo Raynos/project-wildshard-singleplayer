@@ -39,19 +39,25 @@ export function writeV2Frame(view: DataView,layout: V2Layout,frame: V2Frame,coun
  * authority or mutable input is retained as a trusted template. */
 export function createV2FrameWriter(layout: V2Layout): (view: DataView,frame: V2Frame,counts: ReadonlyMap<number,number>) => V2FrameAuthority {
   let previous: readonly number[] | undefined;
+  let available: number[] | undefined;
   return (view,frame,counts) => {
-    const authority = writeFrame(view,layout,frame,counts,previous);
-    previous = authority.counts;return authority;
+    const scratch=available??[];available=undefined;
+    try {
+      const authority = writeFrame(view,layout,frame,counts,previous,scratch);
+      previous = authority.counts;return authority;
+    } finally { available=scratch; }
   };
 }
-function writeFrame(view: DataView,layout: V2Layout,frame: V2Frame,counts: ReadonlyMap<number,number>,previous?: readonly number[]): V2FrameAuthority {
+function writeFrame(view: DataView,layout: V2Layout,frame: V2Frame,counts: ReadonlyMap<number,number>,previous?: readonly number[],scratch?: number[]): V2FrameAuthority {
   if (view.byteLength !== layout.pages*65536 || !handle(frame.module) || !unsigned(frame.sequence) || !natural(frame.tick) || !natural(frame.due)) throw new Error('Invalid v2 call envelope');
   if (frame.lane !== 1 && frame.lane !== 2 && frame.lane !== 3) throw new Error('Unknown v2 lane');
   for (const [kind,count] of counts) if (!Number.isInteger(kind) || kind < 1 || kind > 22 || !natural(count)) throw new Error('Unknown v2 input count');
-  const actual = layout.regions.map(region => {
+  const actual=scratch??[];actual.length=layout.regions.length;
+  for(let index=0;index<layout.regions.length;index++){
+    const region=layout.regions[index];if(region===undefined)throw new Error('Missing v2 region metadata');
     const count = counts.get(region.kind) ?? (region.kind === 17 ? region.capacity : 0);
-    if (count > region.capacity || (outputKinds.has(region.kind) && count !== (region.kind === 17 ? region.capacity : 0))) throw new Error('Invalid v2 initial output/input count'); return count;
-  });
+    if (count > region.capacity || (outputKinds.has(region.kind) && count !== (region.kind === 17 ? region.capacity : 0))) throw new Error('Invalid v2 initial output/input count'); actual[index]=count;
+  }
   if (frame.due > (actual[0] ?? 0)) throw new Error('V2 due count exceeds bindings');
   const at = layout.io, origin = Math.floor(frame.tick/2**30)*2**30;
   new Uint8Array(view.buffer,view.byteOffset+at,656).fill(0);
@@ -73,7 +79,7 @@ function writeFrame(view: DataView,layout: V2Layout,frame: V2Frame,counts: Reado
   }
   let same = previous !== undefined && previous.length === actual.length;
   for (let index = 0; same && index < actual.length; index++) if (!Object.is(previous?.[index],actual[index])) same = false;
-  return { header: new Uint8Array(view.buffer,view.byteOffset+at,128).slice(),counts: same && previous !== undefined ? previous : Object.freeze(actual) };
+  return { header: new Uint8Array(view.buffer,view.byteOffset+at,128).slice(),counts: same && previous !== undefined ? previous : Object.freeze(scratch===undefined?actual:actual.slice()) };
 }
 /** Validate the entire envelope before trusting a single output count. Domain
  * IDs, numeric columns, RNG and command authority are checked by their owners. */
