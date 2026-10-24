@@ -118,7 +118,7 @@ in `public/assets/<slug>/` as real `.glb` / `.png` / `.ktx2` / `.bin`. App-wide 
 | Row | What | Size | Done when |
 |---|---|---|---|
 | GR0 | done (2026-10-24, sp-x1): existing import ban `7d9ada1bbb` plus generated-source guard; exact-path output debt only shrinks, G656 app sources remain separately reviewed | S | staged/push Git checks and pre/post-gen + CI tree checks refuse new source outputs; 138 focused cases pass |
-| GR1 | SDK `ctx.cached` / `ctx.asset` (§4 A key), cache in `~/.cache/wildshard/gen`, product receipt keys on cached keys; `_template` rebuilt in the new form | M | `_template` and `pastel-plain` build with no job rows and no generated file under `src/` |
+| GR1 | in flight (2026-10-24, sp-x1): finish SDK `ctx.cached` / `ctx.asset` (§4 A key) and Template/Pastel source programs; cached keys enter product receipts, map/boss and remaining producer calls replace shard-source output files | M | `_template` and `pastel-plain` build with no job rows and no generated file under `src/` |
 | GR2 | done (2026-10-24, sp-x1): `326950c025` + `78681f7cf5`; app tables then the existing per-product build pool, heavy-lane, scoped `--shard=`; preparation-only CI preserved | S | fresh Node refuses any scheduler import for a fully converted folder; 29 focused + 410 ready-related cases pass; exact `78681` generation builds all 24 products |
 | GR3 | **Nine** (27 jobs): calls replace imports; `castHook` / `lightSpill` / `paintArray` become cached `.glb` / `.bin` (closes B4); atlases per D2; its tests call functions | L | 0 Nine rows in the catalogue, 0 `*.generated.*` under its folder, product validates, boot smoke green |
 | GR4 | **Sunscar** (23 jobs) | M | same bar |
