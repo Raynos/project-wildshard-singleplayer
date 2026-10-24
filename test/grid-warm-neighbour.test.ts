@@ -108,13 +108,34 @@ test('G663: a U-turn back into the source just left re-activates it', async () =
 test('a throwing source disposal stays fully charged and prevents the destination allocating', async () => {
   const f = await fixture();
   try {
+    expect(f.live.ready(null)).toBe(true);
+    expect(f.live.ready(f.home.instance)).toBe(false);
     await f.enterHome();
+    expect(f.live.ready(f.home.instance)).toBe(true);
     f.control.dispose = false;
     await expect(f.cross(f.home.instance, f.east.instance)).rejects.toThrow('successful disposal');
     expect(f.created()).toEqual([f.home.instance]);
     expect(f.claims().some(row => row.owner === f.home.instance && row.bytes === 1000)).toBe(true);
     expect(f.claims().some(row => row.owner === f.east.instance)).toBe(false);
     expect(f.live.state().issues[`cleanup:${f.home.instance}`]).toContain('kept disposal refused');
+    expect(f.live.ready(f.home.instance)).toBe(false);
+    expect(f.live.ready(f.east.instance)).toBe(false);
+  } finally { f.close(); }
+  expect(f.live.ready(null)).toBe(false);
+  expect(f.live.ready(f.home.instance)).toBe(false);
+});
+
+test('prepared eviction closes readiness until its original abort restores it', async () => {
+  const f = await fixture();
+  try {
+    await f.enterHome();
+    const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    expect(f.live.ready(f.home.instance)).toBe(true);
+    const eviction = f.live.prepareUnload(f.home.instance);
+    if (eviction === null) throw new Error('Missing prepared eviction');
+    expect(f.live.ready(f.home.instance)).toBe(false);
+    eviction.abort();
+    expect(f.live.ready(f.home.instance)).toBe(true);
   } finally { f.close(); }
 });
 
