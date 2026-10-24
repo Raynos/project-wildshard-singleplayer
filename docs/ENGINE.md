@@ -4001,12 +4001,13 @@ The grid's optional `prepareFar(view)` port prepares a hidden, already-admitted
 proxy during fetch. Its upload exposes the same mesh and material; cancellation
 or failure disposes the staged view with its existing ring lease.
 
-The grid's initial admitted-edge stage also awaits each declared module through
-`manifestRuntimeEntry` and `prepareTrustedRuntime`, while the product lease is
-held and the loading panel is still up. This evaluates the registered module
-without constructing its runtime or running hooks. Later regional admission
-uses the same adapter and ordinary module cache. A preload failure is logged;
-normal admission retains its validation, refusal and retry authority.
+The grid's admitted-edge stage prepares each built-in compiled client-page
+loader while its product lease is held. This finishes literal CSS imports
+before entered features without constructing a world or running hooks.
+Regional source-entry declarations refuse; there is no manifest-to-trusted
+module registry. Frozen legacy composition roots keep their explicit trusted
+loaders until legacy deletion. Normal admission retains its validation,
+refusal and retry authority.
 
 The grid residency ledger indexes category totals, covered children and eligible
 eviction candidates. `coverageRemaining(parent, replacing?)` reads a sim claim's
@@ -5997,10 +5998,11 @@ callers no longer reconstruct a second model-binding object. The private
 cord kernel and shader decorators remain caller-owned.
 
 `defineShard(rows, bindings)` in the defining manifest module assembles
-first-party discovery and boot metadata from data rows. `runtimeEntry`,
-`poses` and `groundColour` replace entry getters, pose loader callbacks
-and fixed colour callbacks. Native render, plugin, roster, GPU table and
-terrain owners remain explicit bindings. Sky and Signal use the same
+first-party discovery and boot metadata from data rows. `poses` and
+`groundColour` replace pose loader callbacks and fixed colour callbacks.
+Source `runtimeEntry` fields refuse before getters or sample decoding;
+compiled client pages supply the modern entry. Native render, plugin,
+roster, GPU table and terrain owners remain explicit bindings. Sky and Signal use the same
 constructor; it copies mutable host arrays from readonly authored rows.
 
 Private scene mesh rows accept optional `instances` (1–8192, at most

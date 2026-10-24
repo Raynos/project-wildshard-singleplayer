@@ -7,7 +7,7 @@ import nine from '../src/shards/nine-dragon-stack/discovery.generated';
 
 it('Nine uses compiled page ownership without a trusted runtime', () => {
   expect(nine.clientPlanRuntime).toBe(true);
-  expect(nine.trustedRuntime).toBeUndefined();
+  expect(Object.hasOwn(nine, 'trustedRuntime')).toBe(false);
 });
 
 it('keeps the four native camera poses and unbounded Nine attacker allocation', async () => {

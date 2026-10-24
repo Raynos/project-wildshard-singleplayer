@@ -31,10 +31,10 @@ export function installProductGround(): () => void {
 }
 
 /** The product a standalone page will admit for `slug` before its hybrid boot runs (its level's physics and terrain steps come first):
- *  only for the selected level of a first-party trusted hybrid this page enters as its shardfile (keyed by its slug). */
+ *  only for the selected level of a compiled client page entered as its shardfile (keyed by its slug). */
 export function standaloneHybrid(key: string): Promise<RuntimeProduct> | null {
   const manifest = findShard(key);
-  if (manifest?.gridShardfile === undefined || manifest.trustedRuntime === undefined && manifest.clientPlanRuntime !== true || selectedLevel()?.id !== key || shardEntry(manifest) !== 'shardfile') return null;
+  if (manifest?.gridShardfile === undefined || manifest.clientPlanRuntime !== true || selectedLevel()?.id !== key || shardEntry(manifest) !== 'shardfile') return null;
   return firstPartyDescriptor(key).then(runtimeProduct);
 }
 

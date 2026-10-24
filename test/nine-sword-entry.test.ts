@@ -28,7 +28,7 @@ test('Nine manifest native load installs its original Jian once', async () => {
     level.openKit();
     await plugin.kit?.(ctx);
     expect(manifest.clientPlanRuntime).toBe(true);
-    expect(manifest.trustedRuntime).toBeUndefined();
+    expect(Object.hasOwn(manifest, 'trustedRuntime')).toBe(false);
     expect(entryOwner(scope, 'claims', 'held.primary').melee().profile.family).toBe('melee');
     level.closeKit();
     const build = shell.buildEquipment;

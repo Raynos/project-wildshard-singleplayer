@@ -30,7 +30,7 @@ test('Nine preserves its exact authored boot inventory, modes, art and structure
   const density = MANIFEST.forest?.density;
   if (density === undefined) throw new Error('Nine must keep its constant forest density');
   expect(density(50, -50)).toBe(0);
-  expect(MANIFEST.trustedRuntime).toBeUndefined();
+  expect(Object.hasOwn(MANIFEST, 'trustedRuntime')).toBe(false);
   expect(MANIFEST.clientPlanRuntime).toBe(true);
   const source = authoredManifestSource(resolve(import.meta.dirname, '..'), 'nine-dragon-stack');
   expect(source).toContain('.declaredClientPlanEntry({"retainHomeRuntime":true,"stagesOwner":"declared"})');

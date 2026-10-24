@@ -3,7 +3,7 @@ import { readScalarChannel,readScalarLattice,ScalarLatticeBindings } from '@wild
 import { ScalarLatticeSchema,ScalarTripletSchema,type ScalarLatticeRows,type ScalarTripletRows } from '@wildshard/format/scalarChannel';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import { basinBody,type WaterBody } from '@wildshard/engine/world/water/body';
-import type { TrustedRuntimeEntry, ShardPlugin } from "../plugin/context";
+import type { ShardPlugin } from "../plugin/context";
 import type { Ktx2Table } from '@wildshard/engine/boot/gpuFiles';
 import type { SwordArms, SwordFraming, SwordMoveSet, SwordRig } from '@wildshard/engine/combat/view/melee';
 import type { Noise2D } from '@wildshard/engine/core/noise';
@@ -472,8 +472,6 @@ export interface ShardManifest {
   shardfile?: string;
   /** First-party grid declaration for a trusted hybrid; discovery alone does not replace the standalone boot path. */
   gridShardfile?: string;
-  /** Explicit first-party module admission for the declared regional runtime; never an arbitrary asset import. */
-  trustedRuntime?: Pick<TrustedRuntimeEntry, 'slug' | 'entry'>;
   /** Built-in finite page owner, derived from the admitted entry policy; no source module exists. */
   clientPlanRuntime?: true;
   /** Definition-owned raw scalar preparation; never an authored callback. */
@@ -670,7 +668,7 @@ export interface ChunkMapDef {
 export interface ChunkPoi { id: string; name: string; x: number; z: number; r?: number }
 
 /** Data for first-party discovery and boot; native module loaders stay explicit bindings. */
-export type ShardManifestRows = Omit<ShardManifest, 'scalarBlocks' | 'load' | 'render' | 'roster' | 'ktx2' | 'dev' | 'groundColor' | 'trustedRuntime' | 'ground' | 'horizon' | 'pois' | 'spawns' | 'minimap' | 'trees' | 'audio'> & {
+export type ShardManifestRows = Omit<ShardManifest, 'scalarBlocks' | 'load' | 'render' | 'roster' | 'ktx2' | 'dev' | 'groundColor' | 'ground' | 'horizon' | 'pois' | 'spawns' | 'minimap' | 'trees' | 'audio'> & {
   readonly spawns: readonly ShardManifest['spawns'][number][];
   readonly trees: ChunkTrees | (Omit<ChunkTrees,'factory'> & { factory: 'declared' });
   readonly audio?: NonNullable<ShardManifest['audio']> & { catalogue?: boolean };

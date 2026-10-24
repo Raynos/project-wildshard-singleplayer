@@ -150,7 +150,7 @@ test('Nalati lazy admission selects the compiled plan without a trusted TS resol
     const first = await manifest.load?.(), second = await manifest.load?.();
     if (first === undefined || second === undefined) throw new Error('Missing compiled entry');
     expect('resolveTrustedRuntime' in first).toBe(false); expect('resolveTrustedRuntime' in second).toBe(false);
-    expect(manifest.clientPlanRuntime).toBe(true); expect(manifest.trustedRuntime).toBeUndefined();
+    expect(manifest.clientPlanRuntime).toBe(true); expect(Object.hasOwn(manifest, 'trustedRuntime')).toBe(false);
     const Entry = first.default; new Entry(); expect(install).not.toHaveBeenCalled();
   } finally { install.mockRestore(); }
 });
