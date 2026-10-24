@@ -42,7 +42,9 @@ export class FrameCamera {
 
   /** Pose the stand-in at `camera` seen from the frame, at the identity too: one camera object a pass reads every frame. */
   pose(camera: THREE.Camera): THREE.PerspectiveCamera {
-    camera.updateMatrixWorld();
+    // the camera's own world matrix (and its inverse), not its children's: the page camera carries the viewmodel, whose
+    // whole subtree `updateMatrixWorld` re-posed on each of a frame's poses (Nalati interior, phone 4x: 87 ms of 6 s)
+    camera.updateWorldMatrix(true, false);
     this.inv.copy(this.frame.matrixWorld).invert();
     this.m.multiplyMatrices(this.inv, camera.matrixWorld);
     const l = this.local;
