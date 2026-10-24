@@ -107,7 +107,7 @@ game that is depending on the legacy shards."*
 |---|---|---|
 | **1 · Now** | Freeze F1–F5 (F1 done dd52fc84ea); delete D1–D6 (only code no legacy shard uses) | none: Codex builds now |
 | **2 · Jake's QA** | Jake plays every shard on his iPhone, A/B against its LEGACY version; the six `-legacy` folders, the LEGACY entry and the Developer ▸ Legacy shard buttons row must keep working | Jake's QA (G606) |
-| **3 · After QA** | LD5 LEGACY entry, LD6 the six folders, LD7 legacy-only engine/game modules, LD8 legacy tooling, A1 one client-plan boot (ShardPlugin is legacy's authoring API), A2 sweep, Z1 delete the zero lock and census | Jake's word after his QA |
+| **3 · After QA** (G695: Z1 last, A1 mandatory) | LD5 LEGACY entry, LD6 the six folders, LD7 legacy-only engine/game modules, LD8 legacy tooling, A1 one client-plan boot (ShardPlugin is legacy's authoring API), A2 sweep, Z1 delete the zero lock and census | Jake's word after his QA |
 
 Wave 1 must not break the legacy path: any D-row that touches code a `-legacy` folder imports moves to wave 3.
 
