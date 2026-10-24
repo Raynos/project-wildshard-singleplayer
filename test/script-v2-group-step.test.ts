@@ -323,3 +323,22 @@ test('member capture destinations stay private per slot while outstanding result
   for(let slot=0;slot<16;slot++)expect(capture.mock.calls[slot]?.[2]).toBe(destinations[slot]);
  }finally{capture.mockRestore();f.root.dispose();}
 });
+
+
+test('member reference pins snapshot the whole entry list before loan getters run', () => {
+  const f=fixture();
+  try {
+    const first=f.members[0];if(first===undefined)throw new Error('Missing member');
+    const references=new Map<string,{readonly body:AnimalSim;readonly identity:string;readonly handle:number}|null>();
+    let reads=0;
+    references.set('target',{get body(){reads++;references.delete('empty');return f.other;},identity:f.other.entityId,handle:99});
+    references.set('empty',null);
+    const members=[{...first,references},...f.members.slice(1)],before=f.state.slice(),random=f.random.snapshot();
+    const ready=f.runner.prepare({...f.input,members});
+    expect(reads).toBeGreaterThan(0);expect(references.size).toBe(1);
+    expect(()=>ready.validate()).toThrow('body loan');
+    expect(()=>ready.accept()).toThrow('body loan');ready.discard();
+    expect(f.state).toEqual(before);expect(f.random.snapshot()).toEqual(random);
+    const next=f.runner.prepare({...f.input,members});next.validate();next.accept();
+  } finally {f.root.dispose();}
+});

@@ -9,7 +9,7 @@ import { prepareV2Rng } from '@wildshard/format/scriptRngV2';
 import { createV2FrameWriter, validateV2Frame, layoutV2, relativeTickV2, type V2FrameAuthority, type V2Layout } from '@wildshard/format/scriptWireV2';
 import type { V2QueryBinding } from '@wildshard/format/scriptQueriesV2';
 import { GroupBankV2 } from './groupBankV2';
-import { ObservationColumnsV2, type V2ColumnOwners, type V2ActorColumnSlot } from './observationColumnsV2';
+import { ObservationColumnsV2, type V2ColumnOwners, type V2ActorColumnSlot, type V2ReferenceColumn } from './observationColumnsV2';
 import { ScriptModuleV2 } from './moduleV2';
 import type { QueryRingV2 } from './queriesV2';
 import type { Scope } from '../app/scope';
@@ -141,11 +141,23 @@ export class GroupStepV2 {
       const selected=selection===undefined?undefined:profile.rows.columns.map(row=>selection.common.includes(row.name));
       const members = input.members.map((owners, slot) => {
         if (owners.scope !== this.scope || owners.self.group !== input.group || owners.self.slot !== slot) throw new Error('Foreign group member loan');
-        const referenceOwner = owners.references, references = referenceOwner === undefined ? [] : [...referenceOwner].map(([name, loan]) => {
-          if (loan !== null && !refs.some(row => row.body === loan.body && row.identity === loan.identity && row.handle === loan.handle))
-            throw new Error('Foreign observed group reference');
-          return { name, loan, body: loan?.body, identity: loan?.identity, handle: loan?.handle };
-        });
+        const referenceOwner = owners.references;
+        const references: {name:string;loan:V2ReferenceColumn|null;body:V2ReferenceColumn['body']|undefined;identity:string|undefined;handle:number|undefined}[] = [];
+        if(referenceOwner!==undefined){
+          const entries=[...referenceOwner];
+          for(let index=0;index<entries.length;index++){
+            const entry=entries[index];if(entry===undefined)throw new Error('Missing observed group reference');
+            const [name,loan]=entry;
+            if(loan!==null){
+              let found=false;
+              for(let refIndex=0;refIndex<refs.length;refIndex++){
+                const row=refs[refIndex];if(row!==undefined&&row.body===loan.body&&row.identity===loan.identity&&row.handle===loan.handle){found=true;break;}
+              }
+              if(!found)throw new Error('Foreign observed group reference');
+            }
+            references.push({name,loan,body:loan?.body,identity:loan?.identity,handle:loan?.handle});
+          }
+        }
         // The busy fence makes these per-profile/member buffers exclusive until
         // the synchronous input writer finishes. Candidate validation reads
         // only body pins; it never rereads these numeric inputs.
