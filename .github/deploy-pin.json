@@ -1,10 +1,10 @@
 {
   "$doc": "What production and the native OTA channel serve (E357 decision 32). Moved only by scripts/deploy-pin.mjs set (at a milestone; decision 103: the lead moves it when the gate is green) or rollback. mode: pinned (during GAME-NORMALIZATION) | newest-green (gpu-gate-green main) | newest-ci-green (the newest main whose push CI passed; Jake 2026-10-02).",
-  "mode": "pinned",
+  "mode": "newest-ci-green",
   "sha": "9625ae97ecf2343bfec49c516dd17604388edf20",
   "milestone": "post-Z4 hotfix-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback",
   "gate": "grandfathered",
-  "go": "wildshard-new: hold 3023c554d1 and later until the Template-return durable-checkpoint crossing is fixed and proven. Retain the currently live pre-TB1 build; CI plus six-leg smoke alone do not clear this hold.",
-  "set": "2026-10-24T17:00:10.012Z",
+  "go": "wildshard-new: TB1 hold lifted after 3974a26c13 crossing repair, sp-x2 desktop 436fca0bcb all nine rows PASS, and a4cb1fc8f23e8431b46d916a0506ab50789da39e full push CI 40117333551 plus exact six-leg smoke 40118538745 PASS. Grid receipt proves Template entry, durable exact checkpoint revision 2, held-input return and Signal, with zero faults and all five pixel gates green. Resume normal hourly proven-main releases.",
+  "set": "2026-10-24T18:22:37.077Z",
   "by": "E357 lead"
 }
