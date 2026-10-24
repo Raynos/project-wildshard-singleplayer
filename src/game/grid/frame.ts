@@ -340,6 +340,10 @@ export function chainBypass(effects: readonly Effect[]): ChainBypass {
 /** three's tone-mapping chunk, which a colour pass may include once (op-frame22) */
 const TONE_CHUNK = /#include\s*<tonemapping_pars_fragment>/u;
 
+interface FrameAirWork {
+  readonly home:{instance:string|null;fog:[number,number,number]};
+  readonly airs:Map<string,readonly [number,number,number]>;readonly rows:Map<string,[number,number,number]>;
+}
 /** The live one frame. Built by the grid session for every host with a frame (G175); disposed with the level scope. */
 export class GridFrame {
   private readonly host: GridFrameHost;
@@ -353,7 +357,8 @@ export class GridFrame {
   /** live regions' contributions (instance → its look), and the airs the owners bring this frame */
   private readonly live = new Map<string, FrameLookContribution>();
   private readonly owned = new Map<string, RegionGrade>();
-  private readonly airs = new Map<string, readonly [number, number, number]>();
+  private readonly airWork:FrameAirWork[]=[];
+  private frameRetired=false;
   /** G223: live regions' own skies (instance → its layer) */
   private readonly skies = new Map<string, FrameSkyLayer>();
   /** owner (an instance, or null for the road) → its stacks */
@@ -425,6 +430,7 @@ export class GridFrame {
       post: (instance?: string): FramePost | null => (this.chainPost === null ? null : { hueSat: this.chainPost.saturation, rays: this.chainPost.rays ?? null,
         vol: instance === undefined || this.cine === null ? null : this.cine.port(instance) }) });
     scope.onDispose(() => {
+      this.frameRetired=true;this.airWork.length=0;
       unbind(); this.live.clear(); this.skies.clear();
       host.scene.onBeforeRender = prev; this.uninstall(); this.effect.dispose(); this.lookEffect.dispose(); this.lutEffect.dispose(); this.neutral.dispose();
       this.cine?.dispose(); this.cine = null;
@@ -676,11 +682,11 @@ export class GridFrame {
   private ownerGrades(): ReadonlyMap<string, RegionGrade> {
     if (this.live.size === 0) return this.grades;
     this.owned.clear();
-    for (const [instance, grade] of this.grades) this.owned.set(instance, grade);
-    for (const [instance, look] of this.live) {
-      if (this.chainPost !== null && look.chain !== undefined) this.owned.set(instance, NEUTRAL_GRADE);
-      else if (look.grade !== undefined) this.owned.set(instance, look.grade);
-    }
+    this.grades.forEach((grade,instance)=>{this.owned.set(instance,grade);});
+    this.live.forEach((look,instance)=>{
+      if(this.chainPost!==null&&look.chain!==undefined)this.owned.set(instance,NEUTRAL_GRADE);
+      else if(look.grade!==undefined)this.owned.set(instance,look.grade);
+    });
     return this.owned;
   }
 
@@ -751,24 +757,29 @@ export class GridFrame {
 
   /** Before the scene draws: the scene fog becomes the owner's air. */
   private beforeScene(): void {
+    const work:FrameAirWork=this.airWork.pop()??{home:{instance:this.homeInstance,fog:[0,0,0]},airs:new Map(),rows:new Map()};
+    try{this.beforeSceneWithWork(work);}
+    finally{work.airs.clear();if(!this.frameRetired)this.airWork.push(work);}
+  }
+  private beforeSceneWithWork(work:FrameAirWork):void{
     // G343: the eye as drawn (a free camera is placed after the frame's late phase): the next frame's horizon reads it
     this.drawnLift = this.host.lift?.() ?? 0;
     const live = this.host.scene.fog?.color ?? null;
     // the backdrop rewrites the fog each frame; if it did not, keep the home value it wrote last
     if (live !== null && !live.equals(this.written)) this.homeFog.copy(live);
-    const home = { instance: this.homeInstance, fog: [this.homeFog.r, this.homeFog.g, this.homeFog.b] as const };
+    const home=work.home;home.fog[0]=this.homeFog.r;home.fog[1]=this.homeFog.g;home.fog[2]=this.homeFog.b;
+    work.rows.forEach((_row,instance)=>{if(!this.live.has(instance))work.rows.delete(instance);});
     let hazes: ReadonlyMap<string, readonly [number, number, number]> = this.hazes;
     if (this.live.size > 0) {
       // a live region's air is what its runtime wrote into its own fog this frame; the base goes back for the next frame
-      this.airs.clear();
-      for (const [instance, colour] of this.hazes) this.airs.set(instance, colour);
-      for (const [instance, look] of this.live) {
-        const fog = look.fog;
-        if (fog === undefined || fog === null) continue;
-        this.airs.set(instance, [fog.color.r, fog.color.g, fog.color.b]);
-        fog.color.setRGB(...(this.hazes.get(instance) ?? home.fog));
-      }
-      hazes = this.airs;
+      this.hazes.forEach((colour,instance)=>{work.airs.set(instance,colour);});
+      this.live.forEach((look,instance)=>{
+        const fog=look.fog;if(fog===undefined||fog===null)return;
+        const r=fog.color.r,g=fog.color.g,b=fog.color.b;let colour=work.rows.get(instance);
+        if(colour===undefined){colour=[r,g,b];work.rows.set(instance,colour);}else{colour[0]=r;colour[1]=g;colour[2]=b;}
+        work.airs.set(instance,colour);fog.color.setRGB(...(this.hazes.get(instance)??home.fog));
+      });
+      hazes=work.airs;
     }
     const [r, g, b] = frameFog(this.weights, home, hazes, ROAD_SKY.air);
     this.air.setRGB(r, g, b);
