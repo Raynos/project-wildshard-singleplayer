@@ -1,6 +1,6 @@
 /** ABI v2 executable intake: validate actual bytes before any guest code runs.
  * Kept separate from scriptAdmission so shipped v0/v1 contracts stay unchanged. */
-import { readV2Module,type V2Body,type V2Instruction,type V2Signature } from './scriptModuleV2';
+import type { V2Body,V2Instruction,V2Signature } from './scriptModuleV2';
 import { inspectV2Fuel,type V2Lane } from './scriptFuelV2';
 import * as v from 'valibot';
 
@@ -76,7 +76,7 @@ export interface ScriptAdmissionV2 {
 export function admitScriptV2(bytes: Uint8Array,options: { readonly ioBytes?: number; readonly lane?: V2Lane; readonly compilerRevision?: number; readonly admissionRevision?: number } = {}): ScriptAdmissionV2 {
   if ((options.compilerRevision !== undefined && options.compilerRevision !== SCRIPT_V2_REVISIONS.compiler)
     || (options.admissionRevision !== undefined && options.admissionRevision !== SCRIPT_V2_REVISIONS.admission)) throw new Error('Unsupported v2 compiler/admission revision');
-  const image = readV2Module(bytes), fuel = inspectV2Fuel(bytes,options);
+  const fuel = inspectV2Fuel(bytes,options), image = fuel.image;
   const floats = new Map(image.globals.flatMap((global,index): [number,number][] => global.type === f32 || global.type === f64 ? [[index,global.type]] : []));
   for (let i = 0; i < image.bodies.length; i++) {
     const body = image.bodies[i], type = image.types[image.functions[i] ?? -1], code = fuel.unmetered[i];

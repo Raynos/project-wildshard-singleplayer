@@ -49,6 +49,8 @@ function chargeAt(code: readonly V2Instruction[],at: number,fuel: number): numbe
   return shape.every(([op,arg],i) => instruction(code,at+i,op,arg)) ? cost : undefined;
 }
 export interface V2FuelInspection {
+  /** Same structural parse checked for fuel; finite/IO admission is still required. */
+  readonly image: V2Module;
   fuel: number; lane: V2Lane; globals: readonly string[]; pages: number;
   entries: ReadonlyMap<string,number>; unmetered: readonly (readonly V2Instruction[])[];
 }
@@ -118,5 +120,5 @@ export function inspectV2Fuel(bytes: Uint8Array,options: { readonly lane?: V2Lan
     active.delete(index); if (depth > SCRIPT_ABI.callDepth) throw new Error('V2 call graph depth exceeds 64'); depths.set(index,depth); return depth;
   };
   for (let i = 0; i < image.bodies.length; i++) visit(i);
-  return { fuel,lane,globals,pages: image.pages,entries,unmetered };
+  return { image,fuel,lane,globals,pages: image.pages,entries,unmetered };
 }
