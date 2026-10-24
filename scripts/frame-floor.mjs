@@ -22,6 +22,7 @@ import { saveFixtureCode } from './debug-settings.mjs';
 import { frameFloorSettingsCode } from './frame-floor-settings.mjs';
 import { startFloorNative } from './frame-floor-native.mjs';
 import { validateFrameFloorArgs } from './frame-floor-args.mjs';
+import { frameFloorShards } from './frame-floor-inventory.mjs';
 import { handoffFloorGridNavigation, FLOOR_GRID_TAP } from './frame-floor-navigation.mjs';
 import { selectFloorGridPlans, gridFloorPlans, floorGridPortalPlan, readFloorGridEntryways, stageFloorGrid, driveFloorGrid, gridFloorWitnessFailures, installFloorGridProgress, gridFloorRuntimeFailure, gridFloorDocumentIdentity } from './frame-floor-grid.mjs';
 import { GL_INIT } from './parity/glbytes.mjs';
@@ -34,7 +35,7 @@ import { publicGridIntentCode, publicGridPlans, readPublicGridWitness, publicGri
 
 const ROOT = resolvePath(import.meta.dirname, '..');
 const SCRIPT = import.meta.filename;
-const ALL = ['_template', 'driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'sunscar-dunes', 'far-reach', 'nine-dragon-stack', 'blender-template', 'pastel-plain', 'ink-cel-valley', 'grid'];
+const ALL = frameFloorShards(ROOT);
 const args = process.argv.slice(2);
 validateFrameFloorArgs(args);
 const flag = (name, fallback) => args.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
