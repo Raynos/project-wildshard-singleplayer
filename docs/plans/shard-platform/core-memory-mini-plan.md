@@ -96,9 +96,13 @@ iPhone's GPU process reading once.
 Order: C1 and C3 first (the menu), then C4 and C6, with C5 behind Jake's pick. C2 follows C1. C7 goes last, once D1 sets
 the target.
 
-## 5. Decisions (decided G658)
+## 5. Decisions (G658; M1 replaced by G682)
 
-**M1: target 100 MB per template and 50 MB for the menu / SHARD SELECT** (Jake). **M2:** the crash line counts all of WebContent + the GPU process, plus one iPhone GPU reading. **M3:** keep the prefetch, fixed by C1. **M4:** a post-processing variant sheet.
+**M1 (G682): menu / SHARD SELECT ≤ the fixed hello-world WebKit floor + 50 MiB;
+each template ≤ that floor + 100 MiB** (Jake, 2026-10-24). The measured floor in §6
+sets limits of **148.5383 MiB / 198.5383 MiB**. This replaces G658's absolute
+50 / 100 MiB targets; the floor does not automatically rise with future growth.
+**M2:** the crash line counts all of WebContent + the GPU process, plus one iPhone GPU reading. **M3:** keep the prefetch, fixed by C1. **M4:** a post-processing variant sheet.
 
 **Path to 100 MB (row C8, spike):** today's ~261 MB Simulator template: the held Blink buffer (−55, C4), the resource cache (−23, C4), post-processing at half or off on templates (−27 to −53, C5), title / shard code not loaded (C3, part of the 33–59 MB heap and 12.7 MB of JS) reach ~120–150 MB. Below that, measure the irreducible floor first: an empty Safari page, a page with only a WebGL context, and three.js alone, in the Simulator; then trim HUD / DOM, malloc and pools against it. Menu 50 MB: no three.js, WebGL or shard code on the title at all (C3).
 
@@ -113,3 +117,35 @@ the target.
   start it only on the INFINITE WILDSHARD tap / C prefetch only during the grid's own loading.
 - **D4 Composer bytes.** Skip / **A a C5 variant sheet: today's composer vs one at about half the bytes (rec)** / B leave
   the 53 MB as it is.
+
+## 6. G682 hello-world WebKit floor (2026-10-24)
+
+One cold Safari visit on the same `wildshard-iphone` Simulator and native
+`webkit-core-floor/1` reader as C2: `sim-grid-entry.mjs --core-memory=hello`
+through `sim-lane.sh`. The reader owns a temporary loopback page containing only
+“Hello, world.” No app preview, scripts, canvas, asset requests, prefetch,
+service workers, Network-domain capture or forced GC. All three native process
+samples and the plain-document witness passed; exit 0, 139 seconds including
+startup/cleanup. Reader source: `e0153ca2a1`.
+
+| Time after ready | WebContent MiB | GPU MiB | Combined MiB |
+|---|---:|---:|---:|
+| 10 s | 81.9268 | 14.7521 | 96.6789 |
+| 60 s | 83.4425 | 15.1896 | 98.6321 |
+| **120 s: fixed floor** | **83.3487** | **15.1896** | **98.5383** |
+
+The method sums **both WebContent processes and the one GPU process** under the
+owned Simulator launchd, including its framework/prewarmed process overhead.
+It does not silently select only the active document's process. The 120-second
+floor is **87,397,464 + 15,927,456 = 103,324,920 bytes**. Pin that calibration in
+the existing ruler: menu / selection **155,753,720 bytes**, templates
+**208,182,520 bytes**. MiB is 1,048,576 bytes, matching this plan's historical
+“MB” tables. No game-memory gain or new four-floor acceptance is claimed.
+
+Load averages (1/5/15 min) immediately before/after were
+**3.876 / 6.550 / 7.653 → 9.289 / 10.068 / 9.143**. A foreign grep remained active
+(99.3% → 79.0% CPU); this is a memory calibration, with no frame-timing credit.
+Raw native identities/samples and load records are retained locally at
+`tmp/core-memory-g682/`. Safari, Inspector, proxy, loopback server and Simulator
+were closed; zero booted devices verified. G687 separately accepts the existing
+13/15 Simulator frame milestone and cancels the unstarted e664 repeat.

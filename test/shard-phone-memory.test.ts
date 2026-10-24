@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Refusals must occur before launching a memory browser.
 import { execFileSync } from 'node:child_process';
 import { expect, test } from 'vitest';
-import { coreMemorySummary, coreMemoryTargets, selectedCoreMemoryTargets, scriptResourceURLs, simulatorCoreFootprint,
+import { coreMemorySummary, coreMemoryTargets, selectedCoreMemoryTargets, scriptResourceURLs, simulatorCoreFootprint, webKitCoreMemoryFloorBytes,
   serveHelloWorldMemory, helloWorldMemoryHTML, helloWorldMemoryFloor } from '../scripts/shard-phone-memory.mjs';
 
 const MiB = 1048576;
@@ -16,7 +16,8 @@ const rows = () => coreMemoryTargets.map(target => ({shard: target.shard, errors
   samples: [10, 60, 120].map(second => ({phase: `${second}s`, rendererBytes: target.limitBytes - 10 * MiB, gpuBytes: 10 * MiB}))}));
 
 test('four independent floors use the picked combined process limits', () => {
-  expect(coreMemoryTargets.map(target => [target.shard, target.limitBytes / MiB])).toEqual([
+  expect(webKitCoreMemoryFloorBytes).toBe(87397464 + 15927456);
+  expect(coreMemoryTargets.map(target => [target.shard, (target.limitBytes - webKitCoreMemoryFloorBytes) / MiB])).toEqual([
     ['menu', 50], ['select', 50], ['_template', 100], ['blender-template', 100],
   ]);
   expect(coreMemorySummary(rows()).every(row => row.passed && row.totalBytes === row.limitBytes)).toBe(true);
@@ -36,13 +37,13 @@ test('single-floor cohorts retain the original target and refuse unknown selecti
 
 test('uses original 120s values, counts GPU, and never substitutes a cache-clear improvement', () => {
   const input = rows();
-  const menu = input[0];
-  if (menu === undefined) throw new Error('Missing menu fixture');
+  const menu = input[0], target = coreMemoryTargets[0];
+  if (menu === undefined || target === undefined) throw new Error('Missing menu fixture');
   menu.samples = [{phase: '10s', rendererBytes: 300 * MiB, gpuBytes: 30 * MiB},
     {phase: '60s', rendererBytes: 200 * MiB, gpuBytes: 30 * MiB},
-    {phase: '120s', rendererBytes: 45 * MiB, gpuBytes: 6 * MiB},
+    {phase: '120s', rendererBytes: target.limitBytes - 5 * MiB, gpuBytes: 6 * MiB},
     {phase: 'after-http-cache-clear', rendererBytes: MiB, gpuBytes: MiB}];
-  expect(coreMemorySummary(input)[0]).toMatchObject({totalBytes: 51 * MiB, passed: false});
+  expect(coreMemorySummary(input)[0]).toMatchObject({totalBytes: target.limitBytes + MiB, passed: false});
 });
 
 test('missing, failed and invalid readings cannot pass as zero', () => {

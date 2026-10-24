@@ -19,12 +19,16 @@ import { chromiumProcessPeaks, chromiumAllocatorBytes } from './grid-ready-memor
 import { loadingCardIndex } from './loading-benchmark/catalogue.mjs';
 import { pageMemoryAttributionExpression } from './memory-report-snapshot.mjs';
 
-/** G658 M1 targets use MiB, as in the core-memory plan's measurement table. */
+/** G682: fixed 2026-10-24 hello-world 120s Simulator WebContent+GPU floor.
+ * Same native reader: 87,397,464 + 15,927,456 bytes; no forced GC or app scripts.
+ * This calibration is pinned, never automatically re-based when memory grows. */
+export const webKitCoreMemoryFloorBytes = 103324920;
+/** G682 allowances use MiB, as in the core-memory plan's measurement table. */
 export const coreMemoryTargets = Object.freeze([
-  Object.freeze({shard: 'menu', name: 'Menu', limitBytes: 50 * 1048576}),
-  Object.freeze({shard: 'select', name: 'SHARD SELECT', limitBytes: 50 * 1048576}),
-  Object.freeze({shard: '_template', name: 'Template 1', limitBytes: 100 * 1048576}),
-  Object.freeze({shard: 'blender-template', name: 'Template 2', limitBytes: 100 * 1048576}),
+  Object.freeze({shard: 'menu', name: 'Menu', limitBytes: webKitCoreMemoryFloorBytes + 50 * 1048576}),
+  Object.freeze({shard: 'select', name: 'SHARD SELECT', limitBytes: webKitCoreMemoryFloorBytes + 50 * 1048576}),
+  Object.freeze({shard: '_template', name: 'Template 1', limitBytes: webKitCoreMemoryFloorBytes + 100 * 1048576}),
+  Object.freeze({shard: 'blender-template', name: 'Template 2', limitBytes: webKitCoreMemoryFloorBytes + 100 * 1048576}),
 ]);
 /** G682 calibration is a separate visit, never a fifth app floor or a budget gate. */
 export const helloWorldMemoryTarget = Object.freeze({shard: 'hello', name: 'Hello, world', limitBytes: null});

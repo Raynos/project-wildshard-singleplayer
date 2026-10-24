@@ -1,10 +1,12 @@
-/** Independent Chromium floors, with the G658 M1 steady-state MiB targets. */
+/** Fixed G682 hello-world WebKit 120s WebContent+GPU calibration; no growth re-base. */
+export const webKitCoreMemoryFloorBytes: number;
+/** Independent floors with the G682 allowance above the WebKit calibration. */
 export const coreMemoryTargets: readonly Readonly<{shard: string; name: string; limitBytes: number}>[];
 export const helloWorldMemoryTarget: Readonly<{shard: 'hello'; name: string; limitBytes: null}>;
 export const helloWorldMemoryHTML: string;
 export function serveHelloWorldMemory(): Promise<{url: string; close: () => Promise<void>}>;
 export function helloWorldMemoryFloor(input: unknown): {phase: string; rendererBytes: number; gpuBytes: number; totalBytes: number; menuLimitBytes: number; templateLimitBytes: number};
-/** Select one existing target or all four, retaining their original identities. */
+/** Select one target, all four app floors, or the separate hello-world calibration. */
 export function selectedCoreMemoryTargets(selection: string): readonly (typeof coreMemoryTargets[number] | typeof helloWorldMemoryTarget)[];
 /** Existing device fixture exposing the explicit SHARDFILE button for compiled-only floors. */
 export const compiledFloorSave: Readonly<{scope: 'device'; key: 'debug.global.legacyShardButtons'; data: 'on'}>;
