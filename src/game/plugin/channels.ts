@@ -36,11 +36,25 @@ export interface ClientChannelLane {
 /** the evaluator's operations in opcode order (an unknown op is 255 and refuses at evaluation) */
 const OPS = ['constant', 'clock', 'read', 'local', 'neg', 'sin', 'cos', 'sqrt', 'abs', 'add', 'sub', 'mul', 'pow', 'div', 'mod', 'min', 'max',
   'atan2', 'hypot', 'hypot3', 'sample', 'gt', 'select'] as const;
-const operandTables = new WeakMap<object, { readonly a: Int32Array; readonly b: Int32Array; readonly codes: Uint8Array }>();
-function operandsOf(nodes: ClientChannelProgram['nodes']): { readonly a: Int32Array; readonly b: Int32Array; readonly codes: Uint8Array } {
+const frozenData = (value: object): boolean => Object.isFrozen(value) && Object.values(Object.getOwnPropertyDescriptors(value)).every(field => 'value' in field);
+const operandTables = new WeakMap<object, { readonly a: Int32Array; readonly b: Int32Array; readonly codes: Uint8Array; readonly dynamic: readonly number[] }>();
+function operandsOf(nodes: ClientChannelProgram['nodes'], privateNodes: boolean): { readonly a: Int32Array; readonly b: Int32Array; readonly codes: Uint8Array; readonly dynamic: readonly number[] } {
   const known = operandTables.get(nodes); if (known !== undefined) return known;
+  // Only immutable expressions can keep a result across observations. Private
+  // copies qualify; a caller's shallow-frozen table may still contain live rows.
+  const invariant: boolean[] = [], dynamic: number[] = [];
+  for (let i = 0; i < nodes.length; i++) {
+    const node = nodes[i];
+    const fixed = node !== undefined && (privateNodes || frozenData(node)
+      && (node.op !== 'sample' || frozenData(node.keys) && node.keys.every(frozenData)))
+      && node.op !== 'read' && node.op !== 'clock' && node.op !== 'local'
+      && (!('a' in node) || invariant[node.a] === true) && (!('b' in node) || invariant[node.b] === true)
+      && (!('c' in node) || invariant[node.c] === true) && (!('test' in node) || invariant[node.test] === true)
+      && (!('yes' in node) || invariant[node.yes] === true) && (!('no' in node) || invariant[node.no] === true);
+    invariant.push(fixed); if (!fixed) dynamic.push(i);
+  }
   const ops: readonly string[] = OPS;
-  const made = { a: Int32Array.from(nodes, node => 'a' in node ? node.a : -1), b: Int32Array.from(nodes, node => 'b' in node ? node.b : -1),
+  const made = { dynamic, a: Int32Array.from(nodes, node => 'a' in node ? node.a : -1), b: Int32Array.from(nodes, node => 'b' in node ? node.b : -1),
     codes: Uint8Array.from(nodes, node => { const code = ops.indexOf(node.op); return code === -1 ? 255 : code; }) };
   if (Object.isFrozen(nodes)) operandTables.set(nodes, made);
   return made;
@@ -51,7 +65,7 @@ export function admittedClientChannels(program: ClientChannelProgram): ClientCha
   const slots = program.locals !== undefined && Object.isFrozen(program.locals) ? program.locals : structuredClone(program.locals ?? []), locals = new Float64Array(slots.length), previous = new Float64Array(slots.length), next = new Float64Array(slots.length);
   let initialized = false;
   // each expression's operand slots, read once (-1: none), so the evaluator never asks a node which fields it has
-  const { a: operandA, b: operandB, codes } = operandsOf(nodes);
+  const { a: operandA, b: operandB, codes, dynamic } = operandsOf(nodes, nodes !== program.nodes);
   const frame: Partial<Record<ClientChannelProperty, number>> = {};
   for (const channel of program.channels) Object.defineProperty(frame, channel.property, { enumerable: true, get: () => published[channel.value] });
   Object.freeze(frame);
@@ -122,7 +136,11 @@ export function admittedClientChannels(program: ClientChannelProgram): ClientCha
       const slot = slots[i]; if (slot === undefined) throw new Error('Missing private client slot');
       previous[i] = initialized ? locals[i] ?? Number.NaN : slot.initial.op === 'constant' ? slot.initial.value : reads[slot.initial.index] ?? Number.NaN;
     }
-    for (let i = 0; i < nodes.length; i++) {
+    // The first successful frame still evaluates every expression, including
+    // unused invalid arithmetic. Refusal never initializes the retained bank.
+    const count = initialized ? dynamic.length : nodes.length;
+    for (let j = 0; j < count; j++) {
+      const i = initialized ? dynamic[j] ?? -1 : j;
       const node = nodes[i]; if (node === undefined) throw new Error('Missing client expression');
       const ai = operandA[i] ?? -1, bi = operandB[i] ?? -1;
       const a = ai >= 0 ? scratch[ai] ?? Number.NaN : 0, b = bi >= 0 ? scratch[bi] ?? Number.NaN : 0;
