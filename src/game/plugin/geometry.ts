@@ -21,7 +21,7 @@ import { Rng } from "@wildshard/engine/core/rng";
 import type { SpeciesLook } from "@wildshard/engine/entities/species/look";
 import { NO_FUR } from "@wildshard/engine/entities/species/rigs";
 import { clipAnimate, stepCreatureLift, type SpeciesClips } from "./animation";
-import { numericCreaturePose } from './channelPrograms';
+import { numericCreaturePoseFromBook } from './channelPrograms';
 import { parsePackedCreatureLooks } from '@wildshard/format/speciesLooks';
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import type { NpcMotion, NpcRow } from "./quests";
@@ -1359,7 +1359,7 @@ export function packedCreatureBodies(input: unknown, decode: (bytes: Uint8Array)
         if (!bake.bodies.some(body => body.kind === family) || Object.values(row.variants ?? {}).some(variant => !keys.has(JSON.stringify([family, bodyKey(variant)])))) throw new Error('Missing packed creature look body');
         const poseRows = row.pose === undefined ? undefined : book.poses[row.pose];
         if (row.pose !== undefined && poseRows === undefined) throw new Error('Missing packed creature joint pose');
-        const pose = poseRows === undefined ? undefined : numericCreaturePose(poseRows);
+        const pose = row.pose === undefined ? undefined : numericCreaturePoseFromBook(book, row.pose);
         const look: SpeciesLook = { id: row.id, species: row.species, kind: row.kind, fur: NO_FUR,
           rigContract: { skeleton: row.skeleton, sockets: row.sockets, clips: row.clips },
           build: variant => {

@@ -4,6 +4,7 @@ import { NumericPoseSchema, type NumericPoseInputSchema, parseClientChannels, ty
 import type { AnimalRigContext, AnimalRigJoint } from '@wildshard/engine/entities/animalRig';
 import { lookAngles, squashBody } from '@wildshard/engine/entities/species/rigs';
 import {admittedClientChannels,bindClientChannelInputs} from './channels';
+import { parsePackedCreatureLooks } from '@wildshard/format/speciesLooks';
 
 /** Copied values may be an existing common read vector or a named observation for independently authored DAGs. */
 export interface ChannelProgramObservation {readonly time:number;readonly delta:number;readonly values:readonly number[]|Readonly<Record<string,number>>}
@@ -68,7 +69,16 @@ interface Turn { readonly euler: Euler; x: number; y: number; z: number; dirty: 
 /** Numeric pose rows on existing joints. Each rig lends its frame and transforms to the existing channel evaluator;
  * optional bones are skipped, and no actor memory, clock, random stream or continuation is added. */
 export function numericCreaturePose(poseData: unknown): (ctx: AnimalRigContext) => void {
-  const row = poseSchema.parse(NumericPoseSchema, poseData);
+  return compileNumericCreaturePose(poseSchema.parse(NumericPoseSchema, poseData));
+}
+/** The book parser already admits every nested pose. Only its immutable output
+ * can take the shared path; unknown books still pass complete admission here. */
+export function numericCreaturePoseFromBook(input: unknown, id: string): (ctx: AnimalRigContext) => void {
+  const row = parsePackedCreatureLooks(input).poses[id];
+  if (row === undefined) throw new Error('Missing packed creature joint pose');
+  return compileNumericCreaturePose(row);
+}
+function compileNumericCreaturePose(row: poseSchema.InferOutput<typeof NumericPoseSchema>): (ctx: AnimalRigContext) => void {
   if (new Set(row.scalars.map(scalar => scalar.name)).size !== row.scalars.length
     || row.scalars.some(scalar => [scalar.name, ...scalar.path].some(key => ['constructor', 'prototype', '__proto__'].includes(key)))) throw new Error('Invalid creature pose scalar');
   if (row.programs.length === 0 || row.programs.some(program => {

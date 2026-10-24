@@ -5,7 +5,7 @@ import { eliteAct, eliteDamageMul, eliteThink } from '@wildshard/engine/entities
 import { ActorProjectionV2 } from '../population/actorProjectionV2';
 import { DirectedSpecies } from '../population/directedSpecies';
 import { groupSpecies } from '../population/groupSpecies';
-import { installChannelPrograms, numericCreaturePose } from '../plugin/channelPrograms';
+import { installChannelPrograms, numericCreaturePose, numericCreaturePoseFromBook } from '../plugin/channelPrograms';
 import { lookAngles } from '@wildshard/engine/entities/species/rigs';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { poseRidingEnvelopes } from '../riding/presentation';
@@ -92,7 +92,7 @@ export class HullLookBook {
    *  animal, put on once read). `pose` runs one of the rows' programmes over a borrowed rig. Rows only. */
   packedLooks(input: unknown): { readonly all: readonly SpeciesLook[]; get: (kind: string) => SpeciesLook; pose: (id: string, context: AnimalRigContext) => void } {
     const book = parsePackedCreatureLooks(input), packed = this.packed, base = packed.looks(book);
-    const programmes = new Map(Object.entries(book.poses).map(([id, row]) => [id, numericCreaturePose(row)] as const));
+    const programmes = new Map(Object.keys(book.poses).map(id => [id, numericCreaturePoseFromBook(book, id)] as const));
     const frames = new Map(Object.entries(book.frames).map(([id, row]) => [id, channelFrame(row)] as const));
     const envelopes = new Map(book.rows.flatMap(row => row.postPose?.envelopes === undefined ? [] : [[row.postPose.alive, row.postPose.envelopes] as const]));
     const pose = (id: string, context: AnimalRigContext): void => {

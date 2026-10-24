@@ -2,6 +2,9 @@ import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { AnimalSim } from '../src/engine/entities/AnimalSim';
 import { createNativeCreaturePoses, NativeCreaturePose, type NativeCreaturePoseRecipe } from '../src/game/plugin/animation';
+import { numericCreaturePose, numericCreaturePoseFromBook } from '../src/game/plugin/channelPrograms';
+import { creaturePoseRows, numericChannelPrograms } from '../src/sdk/clientChannels';
+import { parsePackedCreatureLooks } from '../src/format/speciesLooks';
 
 const recipe: NativeCreaturePoseRecipe = { custom: true, joints: [
   { name: 'body', parent: -1, position: [0, 1, 0], order: 'YXZ', scale: [1, 1, 1] },
@@ -14,6 +17,25 @@ function actor(): AnimalSim {
   1, 1, 'hunter', { heightAt: () => 0, random: () => .5 });
   body.position.set(10, 0, 20); return body;
 }
+test('a book pose preserves native joint publication and checks untrusted books', () => {
+  const rows = creaturePoseRows({ group: 'pose', programs: numericChannelPrograms('head.pose', 'pose', [
+    { target: 'joint.head', path: ['position', 'x'], expr: b => b.constant(.75) },
+  ]) });
+  const book = parsePackedCreatureLooks({ poses: { head: rows }, rows: [] });
+  const direct = new NativeCreaturePose(actor(), recipe, numericCreaturePose(rows));
+  const borrowed = new NativeCreaturePose(actor(), recipe, numericCreaturePoseFromBook(book, 'head'));
+  direct.advance(.1, 1, true); borrowed.advance(.1, 1, true);
+  direct.publish(); borrowed.publish();
+  expect(borrowed.bones['head']?.position.x).toBe(.75);
+  expect(borrowed.snapshot()).toBe(direct.snapshot());
+  expect(() => numericCreaturePoseFromBook(book, 'absent')).toThrow('Missing packed creature joint pose');
+  const changed = structuredClone(book);
+  const head = changed.poses['head'];
+  if (head === undefined) throw new Error('Missing copied pose');
+  head.programs[0]?.numeric.outputs.push({ property: 'value', target: 'player', path: ['hp'], restore: false, nullable: false });
+  expect(() => numericCreaturePoseFromBook(changed, 'head')).toThrow();
+  expect(() => numericCreaturePoseFromBook({ poses: { head: { ...rows, programs: 'invalid' } }, rows: [] }, 'head')).toThrow();
+});
 test('native poses keep contact publication separate and restore quietly before publishing current joints', () => {
   const advanceHead: NonNullable<ConstructorParameters<typeof NativeCreaturePose>[2]> = context => {
     const head = context.bones['head'];
