@@ -1469,7 +1469,6 @@
  "test/population-platform.test.ts": 0.674,
  "test/population-projection.test.ts": 1.813,
  "test/population-raster.test.ts": 0.071,
- "test/port-shares.test.ts": 0.008,
  "test/posed-atlas-source.test.ts": 0.006,
  "test/posed-draw.test.ts": 0.06,
  "test/post-graph-look.test.ts": 0.074,
