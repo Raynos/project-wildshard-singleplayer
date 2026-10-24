@@ -3,7 +3,7 @@
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { browserPool, parallel } from './pool.mjs';
+import { browserPool } from './pool.mjs';
 import { serve } from './serve.mjs';
 import { bootCases, discoverCatalogue } from './boot-smoke.mjs';
 import { saveFixture } from '../debug-settings.mjs';
@@ -114,11 +114,13 @@ async function main(){
   if(external===undefined && !existsSync(join(root,'dist/index.html')))throw new Error('Build dist before Explorer smoke');
   const preview=external===undefined?await serve(root,'',true):null,base=external??preview?.url;
   if(base===undefined)throw new Error('Missing exact built dist');
-  const pool=browserPool(root,2,process.platform==='darwin'?'metal':'swiftshader');
+  // CI's software GPU is shared: two simultaneous catalogues contend during
+  // shader compilation. Each complete case keeps its own original deadline.
+  const pool=browserPool(root,1,process.platform==='darwin'?'metal':'swiftshader');
   try{
     const catalogue=await discoverCatalogue(await pool.browser(0),base),cases=explorerCases(catalogue);
     writeFileSync(join(out,'cases.json'),`${JSON.stringify({catalogue,cases},null,2)}\n`);
-    await parallel(cases,2,async(slug,index,slot)=>sweepExplorer(await pool.browser(slot),base,slug,out),slot=>pool.release(slot));
+    for(const slug of cases)await sweepExplorer(await pool.browser(0),base,slug,out);
   }finally{try{await pool.close();}finally{preview?.close();}}
 }
 if(process.argv[1]&&pathToFileURL(resolve(process.argv[1])).href===import.meta.url)await main();
