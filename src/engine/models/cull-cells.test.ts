@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
-import { InstancedCull, type InstancedSink } from '../src/engine/models/cull';
+import { InstancedCull, type InstancedSink } from './cull';
 
 // G639: an instanced culler buckets its copies into squares and rejects a square wholly out of range, or past keepNear
 // and out of view, before testing its copies. The copies drawn, their levels and their order are exactly the per-copy

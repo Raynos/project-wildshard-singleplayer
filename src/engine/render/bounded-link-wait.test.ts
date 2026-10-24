@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { boundedLinkWait } from '../src/engine/render/precompile';
+import { boundedLinkWait } from './precompile';
 
 test('a link that reports done ends the wait (O14)', async () => {
   let asks = 0;

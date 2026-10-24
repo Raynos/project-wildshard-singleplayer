@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
 import { DepthEffect, EffectComposer, EffectPass, RenderPass } from 'postprocessing';
 import { Texture, WebGLRenderTarget } from 'three';
-import { ownComposerDepth } from '../src/engine/render/composerDepth';
-import { MemoryAttribution } from '../src/engine/core/memoryAttribution';
+import { ownComposerDepth } from './composerDepth';
+import { MemoryAttribution } from '../core/memoryAttribution';
 
 const isTexture = (value: unknown): value is Texture => value instanceof Texture;
 

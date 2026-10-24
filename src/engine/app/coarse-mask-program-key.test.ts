@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
 import { BoxGeometry, Group, Mesh, MeshStandardMaterial, Object3D, Vector2, Vector4 } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { coarseMaskOrigin, coarseTileMask } from '../src/engine/world/coarseTileMask';
-import { PATCH_ORDER, patchShader } from '../src/engine/render/shaderPatches';
+import { Scope } from './scope';
+import { coarseMaskOrigin, coarseTileMask } from '../world/coarseTileMask';
+import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 
 // G587 (live 616ea317b): an open plot's survey floor family sets an explicit program key; its coarse tiles' masked
 // variants kept that key, so the fine tiles drew with the masked program and the last coarse tile's mask: the floor

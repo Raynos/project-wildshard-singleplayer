@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
-import { CelledCopiesCull } from '../src/engine/models/cull';
+import { CelledCopiesCull } from './cull';
 
 // Tile streaming P4: a forest floor's celled cull keeps only the copies its `test` keeps (a tile ring), after its own cell
 // and range tests.

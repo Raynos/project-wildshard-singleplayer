@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { Bone, Group, Matrix4 } from 'three';
-import { AnimalGroup, type MatrixOwner } from '../src/engine/entities/animalMatrices';
+import { AnimalGroup, type MatrixOwner } from './animalMatrices';
 
 /** A near animal (pose not frozen) with a two-bone chain; `poseVersion` as AnimalView counts its pose updates. */
 function animal() {

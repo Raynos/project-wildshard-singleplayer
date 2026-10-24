@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
-import { installDoubleElements } from '../src/engine/render/doubleElements';
+import { installDoubleElements } from './doubleElements';
 
 // plain arrays reach three's fromArray through a double scratch: every value, offset and short array reads as before
 test('fromArray reads plain and typed arrays unchanged after the double-elements guard', () => {

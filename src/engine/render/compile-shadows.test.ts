@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
-import { installCompileShadowSkip } from '../src/engine/render/compileShadows';
+import { installCompileShadowSkip } from './compileShadows';
 
 // three's compile() asks for a whole shadow pass first; once every shadow light has its map that pass is skipped inside
 // compile only: frames, and a compile whose lights still lack a map, keep the pass

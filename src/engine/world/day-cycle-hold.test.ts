@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { DayCycle } from '../src/engine/world/dayCycle';
+import { DayCycle } from './dayCycle';
 
 const clock = () => new DayCycle({ units: 'hour', start: 19, schedule: [{ phase: 'day', from: 0, to: 24, minutes: 24 }],
   sun: { maxElevation: 60, azimuthOffset: 250 }, fixed: { midday: 12, golden: 18, sunset: 19, night: 0 }, presets: { dawn: 6, noon: 12, dusk: 19, night: 0 } });

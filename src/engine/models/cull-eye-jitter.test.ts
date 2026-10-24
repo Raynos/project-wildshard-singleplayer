@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
-import { UntilCull } from '../src/engine/models/cull';
+import { UntilCull } from './cull';
 
 // A standing player's camera settles by tenths of a millimetre every frame; the cullers keep the copies chosen for the
 // last view through any shift under 2 cm (no turn, no zoom), and re-choose on a real move or a turn.

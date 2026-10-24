@@ -1,12 +1,12 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the shipped native collision implementation.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { Bodies } from '../src/engine/physics/bodies';
-import { Physics } from '../src/engine/physics/Physics';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { BARREL_BODY, BARREL_HALF, BARREL_R, BarrelWatch, plateOverlap } from '../src/engine/world/interact/barrel';
-import { Live, plateDown } from '../src/engine/world/interact/Interactables';
-import { Flags } from '../src/engine/world/interact/flags';
+import { Bodies } from './bodies';
+import { Physics } from './Physics';
+import { loadRapier } from './rapier';
+import { BARREL_BODY, BARREL_HALF, BARREL_R, BarrelWatch, plateOverlap } from '../world/interact/barrel';
+import { Live, plateDown } from '../world/interact/Interactables';
+import { Flags } from '../world/interact/flags';
 
 test('page and native plates feel an upright or fallen barrel, respect filters and release when it leaves', async () => {
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));

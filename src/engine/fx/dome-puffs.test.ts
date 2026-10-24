@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
-import { DomePuffs } from '../src/engine/fx/groundFx';
+import { DomePuffs } from './groundFx';
 
 test('a dome puff pool swells, fades and parks its spheres, refusing an unbounded pool', () => {
   const root = new THREE.Group(), puffs = new DomePuffs(root, 0xffffff, 2, [8, 6], 5);

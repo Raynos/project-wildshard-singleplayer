@@ -1,9 +1,9 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import * as v from 'valibot';
-import { ContentCacheWorker } from '../src/engine/boot/contentCacheWorker';
-import { CacheCommandSchema, type CacheCommand, type CacheValue } from '../src/engine/boot/contentCacheProtocol';
-import { bootWaits } from '../src/engine/boot/waits';
-import { DownloadAccounting, installDownloadAccounting } from '../src/engine/boot/download';
+import { ContentCacheWorker } from './contentCacheWorker';
+import { CacheCommandSchema, type CacheCommand, type CacheValue } from './contentCacheProtocol';
+import { bootWaits } from './waits';
+import { DownloadAccounting, installDownloadAccounting } from './download';
 
 function replyValue(command: CacheCommand): CacheValue {
   switch (command.op) {

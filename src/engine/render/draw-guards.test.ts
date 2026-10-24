@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
-import { admitObjectDraw } from '../src/engine/render/drawGuards';
+import { admitObjectDraw } from './drawGuards';
 
 // an instanced draw of no instances puts no pixel: refused before three switches programs and uploads uniforms; its fields
 // stay its owners'

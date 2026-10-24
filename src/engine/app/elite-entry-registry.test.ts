@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { EncounterRegistry } from '../src/engine/ai/encounters';
+import { Scope } from './scope';
+import { EncounterRegistry } from '../ai/encounters';
 
 test('the original registry admits an ordered lease without publishing or retiring a prefix', () => {
   const scope = new Scope('registry.fixture'), registry = new EncounterRegistry(() => scope), order: string[] = [];

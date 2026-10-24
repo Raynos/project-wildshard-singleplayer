@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { DepthTexture, DirectionalLight, Group, WebGLRenderTarget } from 'three';
-import { CompileLights } from '../src/engine/render/compileLights';
+import { CompileLights } from './compileLights';
 
 function lightCopy(lights: CompileLights, source: DirectionalLight): DirectionalLight {
   const copy = lights.copy(source);
