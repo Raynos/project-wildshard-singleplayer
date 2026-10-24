@@ -29,6 +29,8 @@ function makeBody(id:string,variant:string,x:number,z:number,scale=1):AnimalSim{
 }
 class NativeHerd extends HerdBrain<AnimalSim>{
  captures=0;
+ scalarReads=0;
+ protected override herdGuestScalars(){this.scalarReads++;return super.herdGuestScalars();}
  protected override captureGuest(replies:readonly GroupStepNativeResultV2[]){this.captures++;return super.captureGuest(replies);}
  captureValues(){return this.captureHerdGuestState();}
  captureRoles(actor:AnimalSim){return this.captureHerdGuestRoles(actor);}
@@ -544,4 +546,36 @@ test('a final warning guard keeps boolean scratch valid after its timed sound pl
  const original=f.herd.snapshot();bindNativeGuest(f);f.herd.restore(original);
  try{f.herd.tick(f.ctx);expect(f.herd.stallionState).toBe('warn');f.herd.drive(guard,f.ctx);expect(guard.mem['snT']).toBeGreaterThan(1);expect(f.log.some(row=>row[0]==='sound'&&row[1]==='snort')).toBe(true);}
  finally{f.scope.dispose();}
+});
+
+
+test('publication fences every saved scalar, role and clock through its original storage',()=>{
+ const baseline=fixture('graze','warn');let names:string[];
+ try{names=[...Object.keys(saved(baseline.herd).state),'lead','stallion','ridden','chargeTarget','groupTime'];}
+ finally{baseline.scope.dispose();}
+ for(const name of names){
+  const f=fixture('graze','warn');
+  try{
+   const refs=f.roster.map((body,slot)=>({group:'herd',slot,identity:body.entityId,wire:body.entityId,handle:slot+1,body}));
+   const publication=f.herd.prepareValues({...f.herd.captureValues(),trust:41},refs,f.scope);
+   const descriptor=Object.getOwnPropertyDescriptor(f.herd,name);
+   if(descriptor===undefined||!Object.hasOwn(descriptor,'value'))throw new Error('Missing original storage');
+   const value:unknown=descriptor.value;
+   const replacement=typeof value==='number'?(Object.is(value,0)?-0:0):typeof value==='boolean'?!value:typeof value==='string'?`${value}.changed`:value===null?undefined:null;
+   Object.defineProperty(f.herd,name,{...descriptor,value:replacement});
+   try{expect(()=>publication.commit(),name).toThrow('Changed herd guest storage');}
+   finally{Object.defineProperty(f.herd,name,descriptor);}
+  }finally{f.scope.dispose();}
+ }
+});
+
+test('publication validation reuses field pins without rebuilding scalar snapshots',()=>{
+ const f=fixture('graze','warn');
+ try{
+  const refs=f.roster.map((body,slot)=>({group:'herd',slot,identity:body.entityId,wire:body.entityId,handle:slot+1,body}));
+  const values={...f.herd.captureValues(),trust:41},reads=f.herd.scalarReads,random=f.random.snapshot();
+  const publication=f.herd.prepareValues(values,refs,f.scope);
+  publication.validate();publication.validate();publication.commit();
+  expect(f.herd.scalarReads).toBe(reads+1);expect(f.herd.trust).toBe(41);expect(f.random.snapshot()).toEqual(random);
+ }finally{f.scope.dispose();}
 });

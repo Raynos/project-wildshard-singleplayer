@@ -92,6 +92,7 @@ const herdContinuation = v.strictObject({ contract: v.string(), group: v.string(
     alertOwned: v.boolean(), cx: herdFinite, cz: herdFinite, spotX: herdFinite, spotZ: herdFinite, spotT: herdFinite, fleeX: herdFinite, fleeZ: herdFinite,
     fleeRun: herdFinite, fleeLen: herdFinite, fleeFromX: herdFinite, fleeFromZ: herdFinite, modeT: herdFinite, sT: herdFinite, chargeCd: herdFinite,
     beatenT: herdFinite, beaten: v.boolean(), knockCd: herdFinite }) });
+const herdGuestStorage = [...Object.keys(herdContinuation.entries.state.entries),'lead','stallion','ridden','chargeTarget','groupTime'];
 
 
 /** A movement/attack pattern; old row names select these presets without changing their save contract. */
@@ -559,7 +560,7 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     references: readonly (GroupBankReferenceV2 & { readonly body: A })[], scope: Scope): GroupGuestPublicationV2 {
     this.requireHerd();
     if (scope.disposed || scope.disposing) throw new Error('Retired herd guest owner');
-    const storage = [...Object.keys(herdContinuation.entries.state.entries),'lead','stallion','ridden','chargeTarget','groupTime'].map(name => ({name,descriptor:Object.getOwnPropertyDescriptor(this,name)}));
+    const storage = herdGuestStorage.map(name => ({name,descriptor:Object.getOwnPropertyDescriptor(this,name)}));
     if (storage.some(({descriptor}) => descriptor === undefined || !Object.hasOwn(descriptor,'value') || descriptor.writable !== true)) throw new Error('Invalid herd guest storage');
     const before = Object.entries(this.herdGuestScalars()), roster = this.members, members = roster.slice();
     const beforeRoles = [this.lead,this.stallion,this.ridden,this.chargeTarget], beforeTime = this.groupTime;
@@ -580,15 +581,14 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     if (!present && !Object.is(time,0)) throw new Error('Nonzero absent herd clock');
     let accepted = false;
     const validate = (): void => {
+      // These pins cover every scalar as well as roles/time; no second snapshot is needed.
       if (storage.some(({name,descriptor}) => {
         const current = Object.getOwnPropertyDescriptor(this,name);
         return current === undefined || descriptor === undefined || !Object.hasOwn(current,'value') || current.writable !== true || !Object.is(current.value,descriptor.value);
       })) throw new Error('Changed herd guest storage');
-      const current = Object.entries(this.herdGuestScalars());
       if (accepted || scope.disposed || scope.disposing || this.members !== roster || members.length !== roster.length
         || members.some((body,index) => roster[index] !== body)
         || !Object.is(this.groupTime,beforeTime) || [this.lead,this.stallion,this.ridden,this.chargeTarget].some((body,index) => body !== beforeRoles[index])
-        || current.length !== before.length || current.some(([name,value],index) => {const prior=before[index];return prior===undefined||name!==prior[0]||!Object.is(value,prior[1]);})
         || references.length !== source.length || source.some((pin,index) => references[index] !== pin.row || pin.row.body !== pin.body
           || pin.row.group !== pin.group || pin.row.slot !== pin.slot || pin.row.identity !== pin.identity || pin.row.wire !== pin.wire || pin.row.handle !== pin.handle
           || pin.body.entityId !== pin.identity)) throw new Error('Changed herd guest publication owner');
