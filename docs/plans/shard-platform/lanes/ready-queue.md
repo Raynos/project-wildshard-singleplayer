@@ -20,6 +20,7 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 | T9 | G638 approved lattice: 62.5 m gap / 562.5 m pitch, same road look apart from the gap; update strips, seams, layout and road proofs in small commits, no Debug row | tile-streaming-mini-plan.md:T9; T2 landed 30dcc15182 | sp-x6 13:36 (in flight) |
 | T1 | Tile streaming: complete leak-free tile / region retirement and ghost collection proofs; preserve existing disposal ownership and audit the current counters before changes | tile-streaming-mini-plan.md:124 | sp-x9 13:41 T1 |
 | T3 | Per-tile content: non-graphical placement buckets and retirement ownership; graphical ranges/render parity stay with Opus | tile-streaming-mini-plan.md:T3 | sp-x1 14:05 (in flight) |
+| T8/U1 | Uniform 64 L0 output contract: audit callers, refusal and empty-tile rules before producer edits; preserve T3 ownership | tile-streaming-mini-plan.md:T8/U1 | sp-x2 14:23 (in flight) |
 
 **G683 Codex order (Jake, 13:20):** finish extras in this order, taking the top open Codex row of the first plan that has one:
 (1) tile streaming (shard-platform/tile-streaming-mini-plan.md), (2) loading (loading-mini-plan.md), (3) core memory
