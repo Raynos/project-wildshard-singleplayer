@@ -6,7 +6,6 @@ import { dirname, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { MapRaster, stylizeMap } from './map-painter.mjs';
 import { MAP_METRES, mapPixelHash, mapSettingsPath, mapStampPath, mapShards, mapTilesHash } from './map-hash.mjs';
-import { discoverGeneration, generateShardJob, verifiedPreparedGeneration } from './generate.mjs';
 import { InputHashMemo } from './bake-input-hashes.mjs';
 
 const sharp = createRequire(new URL('../src/sdk/package.json', import.meta.url))('sharp');
@@ -16,7 +15,7 @@ const json = file => JSON.parse(readFileSync(file, 'utf8'));
  * product build; source/output snapshot verification is shared within a report.
  * @param {string} root */
 export function createDataMapPreparation(root) {
-  /** @type {ReturnType<typeof discoverGeneration>['jobs']|undefined} */
+  /** @type {import('./generate.mjs').ShardGenerationJob[]|undefined} */
   let phaseJobs;
   /** @type {InputHashMemo|undefined} */
   let sharedHashes;
@@ -25,22 +24,22 @@ export function createDataMapPreparation(root) {
   /** @param {readonly string[]|undefined} only */
   return async only=>{
   // Discovery stays inside the per-folder failure boundary in report mode.
-  const jobs=phaseJobs ??= discoverGeneration(root).jobs;
-  const selected=[];
+  const requested=[];
   for (const { slug, dir } of mapShards(root)) {
     if (only !== undefined && !only.includes(slug)) continue;
     const settings = json(mapSettingsPath(dir));
     if (settings.painter === undefined) continue;
-    for (const id of settings.painter.prerequisites ?? []) {
-      const prerequisite = jobs.find(row => row.id === id);
-      if (prerequisite === undefined) throw new Error(`${slug}: missing map prerequisite ${id}`);
-      selected.push(prerequisite);
-    }
-    const job = jobs.find(row => row.id === settings.painter.job);
-    if (job === undefined) throw new Error(`${slug}: data map generation job is missing`);
-    selected.push(job);
+    for (const id of settings.painter.prerequisites ?? []) requested.push({slug,id,prerequisite:true});
+    requested.push({slug,id:settings.painter.job,prerequisite:false});
   }
-  if(selected.length===0)return;
+  if(requested.length===0)return;
+  const { discoverGeneration, generateShardJob, verifiedPreparedGeneration } = await import('./generate.mjs');
+  const jobs=phaseJobs ??= discoverGeneration(root).jobs;
+  const selected=requested.map(({slug,id,prerequisite})=>{
+    const job=jobs.find(row=>row.id===id);
+    if(job===undefined)throw new Error(prerequisite?`${slug}: missing map prerequisite ${id}`:`${slug}: data map generation job is missing`);
+    return job;
+  });
   localVerified ??= verifiedPreparedGeneration(root);
   // A retained/non-admitted output may need restoration which the phase does
   // not promise. Keep the ordinary generator path for any such declaration.

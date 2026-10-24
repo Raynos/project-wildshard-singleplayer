@@ -68,7 +68,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: npm install --global vercel@59.11.2
-      - run: pnpm gen
+      - run: pnpm gen --inputs-only
       - run: pnpm exec vitest run admin/test
       - run: pnpm --dir admin typecheck
       - name: Deploy committed admin data

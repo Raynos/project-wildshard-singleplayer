@@ -45,6 +45,22 @@ it('refuses to publish changed source bytes or an unverified local output',()=>{
   const fresh=new InputHashMemo(root);fresh.enableSnapshot(()=>false);
   expect(()=>publishGenerationSnapshot(receipt,identity,fresh,{'source/output.txt':'0'.repeat(64)})).toThrow('Generation input changed');
 });
+it('a scoped phase runs its declared prerequisite but not an unrelated producer or full-phase receipt',async()=>{
+  const {root}=fixture();mkdirSync(resolve(root,'scripts'));
+  const jobs=['upstream','alpha','unrelated'].map(slug=>{
+    const entry=`src/shards/${slug}/generators/bake-rows.mjs`,output=`source/${slug}.txt`;
+    mkdirSync(resolve(root,`src/shards/${slug}/generators`),{recursive:true});
+    const body=slug==='unrelated'?"throw Error('unrelated producer ran');":slug==='alpha'?"fs.writeFileSync('source/alpha.txt',fs.readFileSync('source/upstream.txt'));":"fs.writeFileSync('source/upstream.txt','ready');";
+    writeFileSync(resolve(root,entry),`import fs from 'node:fs';${body}`);
+    return {id:`${slug}-rows`,shard:slug,entry,command:[entry],inputRoots:[entry,...(slug==='alpha'?['source/upstream.txt']:[])],outputs:[output],buildTimeOutputs:[output],platform:'portable'};
+  });
+  writeFileSync(resolve(root,'scripts/generation-jobs.json'),JSON.stringify({schema:'generation-jobs/1',notice:'DO NOT EDIT fixture',jobs}));
+  await prepareGeneration(root,{cacheDir:resolve(root,'cache'),shards:['alpha'],concurrency:2});
+  expect(readFileSync(resolve(root,'source/alpha.txt'),'utf8')).toBe('ready');
+  expect(verifiedPreparedGeneration(root)).toBe(false);
+  await prepareGeneration(root,{cacheDir:resolve(root,'cache'),shards:['alpha'],concurrency:2});
+  expect(readFileSync(resolve(root,'source/alpha.txt'),'utf8')).toBe('ready');
+});
 it('keeps policy inputs current across the generation and product map fences',async()=>{
   const {root}=fixture(),entry='src/shards/alpha/generators/bake-fixture.mjs',output='source/output.txt';
   mkdirSync(resolve(root,'scripts'));mkdirSync(resolve(root,'lint'));mkdirSync(resolve(root,'src/shards/alpha/generators'),{recursive:true});

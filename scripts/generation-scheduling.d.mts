@@ -4,3 +4,5 @@ export function defaultGenerationConcurrency(cores?: number): number;
 export function generationConcurrency(args?: readonly string[], cores?: number): number;
 /** Cost-ranked original indices; callers retain their original conflict edges. */
 export function generationOrder(ids: readonly string[], costs?: Readonly<Record<string, number>>): number[];
+/** Keep shared producers and transitive declared writers in catalogue order. */
+export function selectGenerationJobs<T extends {id:string;shard:string|null;inputRoots:string[];outputs:string[]}>(jobs:readonly T[],shards:readonly string[]):T[];

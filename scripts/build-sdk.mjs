@@ -13,7 +13,7 @@ import { SDK_EXTERNALS } from './sdk-externals.mjs';
 assertHeavyLease('build');
 const root = resolve(import.meta.dirname, '..');
 process.chdir(root);
-execFileSync('node', ['scripts/gen.mjs'], { cwd: root, stdio: 'inherit' });
+execFileSync('node', ['scripts/gen.mjs', '--inputs-only'], { cwd: root, stdio: 'inherit' });
 const sdk = JSON.parse(readFileSync(resolve(root, 'src/sdk/package.json'), 'utf8'));
 const modules = Object.entries(sdk.exports).map(([specifier, target]) => {
   if (!specifier.startsWith('./') || typeof target !== 'string' || !target.endsWith('.ts')) throw new Error('SDK workspace exports must name defining TypeScript modules');

@@ -20,6 +20,9 @@ with tempfile.TemporaryDirectory(dir=repo/'tmp', prefix='gen-docs-test-') as fol
     module('quiet-cli', 'export function quietCli() {}')
     module('generation-scheduling', 'export function generationConcurrency(){return 1}')
     module('generation-tail-cache', 'export async function generationTailCached(root,step,run){return run()}')
+    module('generated-source', 'export function checkGeneratedSourceTree(){return []}')
+    module('heavy-lane-lease', 'export function assertHeavyLease(){}')
+    module('gen-programs', 'export function generationPlan(){return {products:["fixture"],folders:["fixture"],legacy:["fixture"],scoped:false}}export function prepareProgramInputs(){'+record('prepareGeneration')+'}export function buildPrograms(){'+record('programs')+'}')
     module('bake-loader', record('loader'))
     module('gen-shards', 'export function refreshDiscovery(){'+record('discovery')+'}export function genShards(){'+record('shards')+'}')
     for file, function in [('gen-budget-derivations','genBudgetDerivations'),('gen-ask-ids','genAskIds'),('generate','prepareGeneration'),('gen-starter-arm-clips','genStarterArmClips'),('gen-starter-weapons','genStarterWeapons'),('gen-starter-bag','genStarterBag'),('gen-starter-effects','genStarterEffects'),('gen-decision-policy','genDecisionPolicies'),('gen-format-schema','writeFormatJsonSchemas')]:
@@ -38,11 +41,19 @@ with tempfile.TemporaryDirectory(dir=repo/'tmp', prefix='gen-docs-test-') as fol
         result = subprocess.run(['node',script,*args], cwd=root, env=env, text=True, capture_output=True)
         return result, (root/'calls.txt').read_text().splitlines()
     docs_steps = ['writeApiDocs','writeHostCatalogue','webgpu-inventory','normalize/liveness','writeGeneratorInventory']
-    for mode in [[],['--parallel'],['--proof'],['--build-inputs']]:
+    for mode in [[],['--parallel'],['--proof'],['--build-inputs'],['--inputs-only']]:
         result,calls = run('scripts/gen.mjs',*mode)
         assert result.returncode == 0,result.stderr
         assert not set(calls)&set(docs_steps),calls
         assert calls[-1]=='seal' and 'boot' in calls and calls.count('shards')==2,calls
+        expected_programs = 0 if any(flag in mode for flag in ['--proof','--build-inputs','--inputs-only']) else 1
+        assert calls.count('programs') == expected_programs,calls
+        if expected_programs:
+            assert calls.index('programs') > calls.index('boot') and calls.index('programs') > calls.index('genBudgetDerivations'),calls
+    module('gen-programs', 'export function generationPlan(){return {products:[],folders:[],legacy:[],scoped:false}}export function prepareProgramInputs(){}export function buildPrograms(){throw Error("actual program refusal")}')
+    result,calls = run('scripts/gen.mjs')
+    assert result.returncode!=0 and 'actual program refusal' in result.stderr,result
+    assert 'seal' not in calls,calls
     put('package.json', json.dumps({'name':'docs-command-fixture','private':True,'scripts':{'docs':'node scripts/docs.mjs'}}))
     (root/'calls.txt').write_text('')
     result = subprocess.run(['pnpm','run','docs'], cwd=root, env=env, text=True, capture_output=True)

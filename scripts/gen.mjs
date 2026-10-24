@@ -2,7 +2,8 @@
 import { genShards, refreshDiscovery } from './gen-shards.mjs';
 import { genBudgetDerivations } from './gen-budget-derivations.mjs';
 import { genAskIds } from './gen-ask-ids.mjs';
-import { prepareGeneration } from './generate.mjs';
+import { generationPlan, prepareProgramInputs, buildPrograms } from './gen-programs.mjs';
+import { assertHeavyLease } from './heavy-lane-lease.mjs';
 import { generationConcurrency } from './generation-scheduling.mjs';
 import { generationTailCached } from './generation-tail-cache.mjs';
 import { genStarterArmClips } from './gen-starter-arm-clips.mjs';
@@ -15,6 +16,14 @@ import { beginPushInputs } from './push-post-inputs.mjs';
 import { checkGeneratedSourceTree } from './generated-source.mjs';
 
 quietCli('gen');
+const root = `${import.meta.dirname}/..`;
+const requests = process.argv.filter(arg => arg.startsWith('--shard='));
+if (requests.length > 1) throw new Error('Generation accepts one --shard= request');
+const shard = requests.at(0)?.slice(8);
+// Existing proof/build-input callers own their separate product phase.
+const inputsOnly = ['--inputs-only', '--proof', '--build-inputs'].some(flag => process.argv.includes(flag));
+const plan = generationPlan(root, shard);
+if (!inputsOnly && !process.env.CI && !process.env.GITHUB_ACTIONS) assertHeavyLease('build');
 const publishPushInputs = beginPushInputs(`${import.meta.dirname}/..`);
 function requireSourceOutputs() {
   const failures = checkGeneratedSourceTree(`${import.meta.dirname}/..`);
@@ -43,13 +52,13 @@ await step('starter-effects', () => genStarterEffects());
 // the phase invalidates its negative inventories in the next CI job.
 await step('decision-policies', () => genDecisionPolicies(`${import.meta.dirname}/..`));
 // G292 admitted outputs are ready before asset sizes, versions and shard packing read them.
-await step('generation', () => prepareGeneration(`${import.meta.dirname}/..`, { concurrency }));
+await step('generation', () => prepareProgramInputs(root, plan, concurrency));
 await import('./bake-loader.mjs');
 // DS1.1: structural wire schemas are small deterministic authoring outputs, never committed.
 const { writeFormatJsonSchemas } = await import('./gen-format-schema.mjs');
 await step('format-schemas', () => writeFormatJsonSchemas(`${import.meta.dirname}/..`));
-const shard = process.argv.find((arg) => arg.startsWith('--shard='))?.slice(8);
-await step('shards', () => generationTailCached(`${import.meta.dirname}/..`, 'shards-before', () => genShards(undefined, false, false, shard)));
+const vocabularyShard = plan.scoped && plan.products.length === 1 ? plan.products[0] : undefined;
+await step('shards', () => generationTailCached(root, 'shards-before', () => genShards(undefined, false, false, vocabularyShard)));
 await step('ask-ids', () => genAskIds());
 const { generateBootTables } = await import('../vite/gen.ts');
 await step('boot-tables', () => generationTailCached(`${import.meta.dirname}/..`, 'boot', async () => {
@@ -58,9 +67,12 @@ await step('boot-tables', () => generationTailCached(`${import.meta.dirname}/..`
     generateBootTablesCached(`${import.meta.dirname}/..`, process.env.WS_PRECOMMIT_BOOT_CACHE, generateBootTables);
   } else generateBootTables();
 }));
-await step('budgets', () => genBudgetDerivations(undefined, process.argv.includes('--check-budgets'), shard));
+await step('budgets', async () => {
+  for (const selected of plan.scoped ? plan.products : [undefined]) await genBudgetDerivations(undefined, process.argv.includes('--check-budgets'), selected);
+});
 // Boot tables add static imports; derive the closure from the completed graph.
-await step('shards', () => generationTailCached(`${import.meta.dirname}/..`, 'shards-after', () => genShards(undefined, false, false, shard)));
+await step('shards', () => generationTailCached(root, 'shards-after', () => genShards(undefined, false, false, vocabularyShard)));
+if (!inputsOnly) await step('programs', () => buildPrograms(root, plan, process.argv.includes('--proof') || process.argv.includes('--reuse')));
 requireSourceOutputs();
 try { publishPushInputs(); }
 catch (error) { console.warn(`push-inputs: completed cache unavailable: ${error instanceof Error ? error.message : String(error)}`); }

@@ -68,9 +68,7 @@ if (prepared) {
 } else {
   if (spawnSync('pnpm', ['gen'], { stdio: 'inherit' }).status !== 0) process.exit(1);
   console.log(`ci-checks: gen ${((Date.now() - t0) / 1000).toFixed(0)} s`);
-  const productsStarted = Date.now();
-  if (spawnSync(process.execPath, ['scripts/build-shardfiles.mjs'], { stdio: 'inherit' }).status !== 0) process.exit(1);
-  console.log(`ci-checks: products ${((Date.now() - productsStarted) / 1000).toFixed(0)} s; running ${commands.length} in parallel`);
+  console.log(`ci-checks: shard programs complete; running ${commands.length} in parallel`);
 }
 
 const results = await runChecks(commands);

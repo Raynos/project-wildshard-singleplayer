@@ -93,6 +93,13 @@ it('prepares a multi-output folder once per report while checking every output r
   expect(failures['beta-second']).toContain('decoded pixels differ');expect(failures['beta-first']).toBeUndefined();
   expect(prepared.filter(only=>only.includes('beta'))).toHaveLength(1);
 });
+it('a strict generation phase builds only its scope and never checks another project map', async () => {
+  const root=await fixture(),calls:string[][]=[];
+  put(root,'src/shards/beta/look/map.baked.json','{"image":"foreign invalid map"}');
+  expect(await buildShardfiles(root,{strict:true,scope:['alpha'],build:builder(calls)})).toBe(1);
+  expect(calls.map(args=>basename(args[1]??''))).toEqual(['alpha']);
+  await expect(buildShardfiles(root,{scope:['alpha'],only:['alpha'],build:builder(calls)})).rejects.toThrow('cannot be combined');
+});
 it('builds copied runtimes while publishing only data products with the app', async () => {
   const root = await fixture(), calls: string[][] = [];
   expect(await buildShardfiles(root, { strict: true, copyRuntime: true, build: builder(calls) })).toBe(2);

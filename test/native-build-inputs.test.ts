@@ -28,5 +28,5 @@ test('releases always build native, and push/PR detection compares the complete 
   expect(workflow).toMatch(/NATIVE_BASE: \$\{\{ github\.event\.before \|\| github\.event\.pull_request\.base\.sha \}\}/u);
   expect(workflow).toContain('git diff --name-only -z "$NATIVE_BASE" HEAD');
   expect(workflow).toContain("(env.DEPLOY == 'true' || steps.native-inputs.outputs.needed == 'true')");
-  expect(workflow).toContain("if [ \"$DEPLOY\" = 'true' ]; then pnpm gen; fi");
+  expect(workflow).toContain("if [ \"$DEPLOY\" = 'true' ]; then pnpm gen --inputs-only; fi");
 });

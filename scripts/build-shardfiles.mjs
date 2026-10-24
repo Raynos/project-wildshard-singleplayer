@@ -33,11 +33,13 @@ export function readBuiltShardfile(root, name, options = {}) { return selectBuil
 // --shard=<slug>[,<slug>] builds only those shards: another shard's product stays only while its key still matches,
 // else it is removed, so a one-shard preview never serves a stale product of a changed shard.
 /** Pack every first-party map through the existing charged SDK row; missing maps keep the old no-map build path.
- * @param {string} root @param {{strict?:boolean, build?:typeof runWildshard, reuse?:boolean, only?:string[], copyRuntime?:boolean|'closed',onFailure?:(slug:string,error:unknown)=>void}} options */
-export async function buildShardfiles(root, { strict = [process.env.CI, process.env.VERCEL].some(flag => flag !== undefined && flag !== '' && flag !== 'false'), build = runWildshard, reuse = false, only, copyRuntime = 'closed',onFailure } = {}) {
+ * @param {string} root @param {{strict?:boolean, build?:typeof runWildshard, reuse?:boolean, only?:string[], scope?:string[], copyRuntime?:boolean|'closed',onFailure?:(slug:string,error:unknown)=>void}} options */
+export async function buildShardfiles(root, { strict = [process.env.CI, process.env.VERCEL].some(flag => flag !== undefined && flag !== '' && flag !== 'false'), build = runWildshard, reuse = false, only, scope, copyRuntime = 'closed',onFailure } = {}) {
   if(onFailure!==undefined&&strict)throw new Error('Product failure collection is report-only; strict builds must fail');
+  if (scope !== undefined && only !== undefined) throw new Error('Product phase scope and CLI only filter cannot be combined');
+  const selected = scope ?? (strict ? undefined : only);
   const prepareMaps=createDataMapPreparation(root);
-  if(onFailure===undefined)await prepareMaps(strict ? undefined : only?.map(slug => productFolder(root, slug)));
+  if(onFailure===undefined)await prepareMaps(selected?.map(slug => productFolder(root, slug)));
   const outputRoot = resolve(root, 'out');
   // Discard the retired discovery artifact left by older builds.
   rmSync(resolve(outputRoot, 'catalog.json'), { force: true });
@@ -68,8 +70,8 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
       rmSync(resolve(outputRoot, entry.name), { recursive: true, force: true }); console.info(`wildshard build: ${entry.name} is no longer a product; removed`);
     }
   }
-  for (const slug of only ?? []) if (!built.includes(slug)) throw new Error(`wildshard build: --shard=${slug} is not a first-party shardfile project (${built.join(', ')})`);
-  if(onFailure===undefined)for (const folder of new Set((only ?? built).map(slug => products.find(row => row.name === slug)?.folder ?? slug))) checkHeadlessAssembly(root, folder);
+  for (const slug of scope ?? only ?? []) if (!built.includes(slug)) throw new Error(`wildshard build: --shard=${slug} is not a first-party shardfile project (${built.join(', ')})`);
+  if(onFailure===undefined)for (const folder of new Set((selected ?? built).map(slug => products.find(row => row.name === slug)?.folder ?? slug))) checkHeadlessAssembly(root, folder);
   if (only !== undefined && strict) console.warn('wildshard build: --shard ignored in CI; building every shard');
   const recorded = build === runWildshard;
   const files = recorded ? undefined : treeHashes(root);
@@ -81,6 +83,7 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
   const toolchain = recorded ? toolchainOf() : '';
   try {
   await runShardBuildPool(products, async ({ name, folder, output }, signal) => {
+    if (scope !== undefined && !scope.includes(name)) return;
     const buildOne = args => build === runWildshard ? runShardBuild(args, signal) : build(args);
     const project = resolve(projects, folder);
     try {
@@ -114,7 +117,7 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
     const { normalized, recipe, receipts } = productRecipe(root, name, flags, toolchain, shardfileCacheRoot());
     const currentKey = () => recorded ? matchingProductInputKey(root,receipts,recipe,inputHashes) : shardfileKey(files ?? new Map(),name,folders.filter(other=>other!==folder),normalized);
     const key = currentKey();
-    if (!strict && only !== undefined && !only.includes(name)) {
+    if (selected !== undefined && !selected.includes(name)) {
       const here = readBuildKey(destination);
       if (here !== key && existsSync(destination)) { rmSync(destination, { recursive: true, force: true }); console.info(`wildshard build: ${name} skipped (--shard), stale product removed`); }
       else console.info(`wildshard build: ${name} skipped (--shard)${here === key ? ', product current' : ''}`);

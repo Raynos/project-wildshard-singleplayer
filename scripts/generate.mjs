@@ -1,7 +1,7 @@
 // G292: shard-owned generator discovery and isolated jobs over the shared content-addressed cache.
 import { jsonOutputGuard, jsonOutputPolicy } from './json-output-guard.mjs';
 import { BINARY_JSON_POLICY } from './no-binary-json.mjs';
-import { defaultGenerationConcurrency, generationConcurrency, generationOrder } from './generation-scheduling.mjs';
+import { defaultGenerationConcurrency, generationConcurrency, generationOrder, selectGenerationJobs } from './generation-scheduling.mjs';
 import { spawn, spawnSync } from 'node:child_process';
 import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, resolve, sep } from 'node:path';
@@ -331,12 +331,13 @@ export function reportGeneration(root) {
 
 /** Generate the explicitly admitted build outputs before boot tables, packing or rendering reads them.
  * Complete jobs and pinned output hashes are checked even on a warm hit; undeclared outputs remain report-only.
- * @param {string} root @param {{cacheDir?:string, concurrency?:number,determinism?:boolean}} [options] */
+ * @param {string} root @param {{cacheDir?:string, concurrency?:number,determinism?:boolean,shards?:string[]}} [options] */
 export async function prepareGeneration(root,options={}) {
   const inputHashes=new InputHashMemo(root,resolve(root,'.cache/generation-hashes.json'));
   const concurrency=options.concurrency ?? defaultGenerationConcurrency();
   if(!Number.isSafeInteger(concurrency) || concurrency<1 || concurrency>4) throw new Error('Generation concurrency must be 1..4');
-  const report=reportGeneration(root), jobs=report.jobs.filter(job=>options.determinism === true || Object.keys(job.buildOutputs).length>0 || job.buildTimeOutputs.length>0), completed=new Set();
+  const report=reportGeneration(root), admitted=report.jobs.filter(job=>options.determinism === true || Object.keys(job.buildOutputs).length>0 || job.buildTimeOutputs.length>0);
+  const jobs=options.shards===undefined?admitted:selectGenerationJobs(admitted,options.shards), completed=new Set();
   // Preserve catalogue order for every declared read/write conflict, including broad directory inputs.
   // Producers use private exports; only verified declared outputs are published into the shared staged export.
   /** @param {import('./generate.mjs').ShardGenerationJob} job @param {string} file */

@@ -31,3 +31,17 @@ export function generationOrder(ids, costs = coldSeconds) {
   return ids.map((id, index) => ({ index, seconds: costs[id] ?? 0 }))
     .sort((a, b) => b.seconds - a.seconds || a.index - b.index).map(row => row.index);
 }
+
+/** A scoped legacy build keeps shared producers and all declared input writers,
+ * including cross-shard dependencies. Preserve the original catalogue order.
+ * @template {{id:string,shard:string|null,inputRoots:string[],outputs:string[]}} T
+ * @param {readonly T[]} jobs @param {readonly string[]} shards @returns {T[]} */
+export function selectGenerationJobs(jobs, shards) {
+  const selected = new Set(jobs.filter(job => job.shard === null || shards.includes(job.shard)));
+  for (;;) {
+    const before = selected.size;
+    for (const consumer of selected) for (const writer of jobs) if (!selected.has(writer)
+      && writer.outputs.some(file => consumer.inputRoots.some(input => file === input || file.startsWith(`${input}/`)))) selected.add(writer);
+    if (selected.size === before) return jobs.filter(job => selected.has(job));
+  }
+}
