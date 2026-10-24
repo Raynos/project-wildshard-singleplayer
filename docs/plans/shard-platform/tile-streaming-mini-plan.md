@@ -322,8 +322,25 @@ SDK emitters and treats explicit zero-cost/no-file rows as empty readiness;
 `9e0aee064b` completes Sky root metadata while its island payload list stays sparse.
 Registered producers preserve every declared binary byte. Retired 119 missing-L0
 allowances (DW 47, Nine 30, Sky 42); L1 debt and cost caps are unchanged. Current
-source metadata is 64 L0 for all six primary shards; the verified per-product
-census and remaining T8 streaming work stay open.
+source metadata is 64 L0 for all six primary shards.
+
+U1 product census (2026-10-24, sp-x2): pinned full preview `3c488ee9ab` exits 0
+(gen 32 s / 24 products 17 s / Vite 15 s). All 24 published products have exactly
+64 L0 rows and every interior 5 × 5 contains 25 rows, including Template, the
+Blender template and all 14 open plots. Every index receipt and tile-section
+hash/size passes the existing strict reader. The six primary products are:
+
+| Product | L0 | L1 | Explicit empty L0 |
+|---|---:|---:|---:|
+| Driftwood | 64 | 0 | 47 |
+| Pine | 64 | 16 | 0 |
+| Nalati | 64 | 0 | 0 |
+| Nine | 64 | 0 | 30 |
+| Sky (`far-reach`) | 64 | 0 | 42 |
+| Sunscar | 64 | 16 | 0 |
+
+U1 is done; U2 L1 completion and the remaining T8 streaming work stay open.
+Sparse library payloads, geometry, budgets and current L1 debt are unchanged.
 
 Isolated-stage repair `3a98cba178` adds the defining tileGrid input to all 13
 full-emitter recipes. All cold stages pass (38 outputs, 6.86 s); 37 match the
