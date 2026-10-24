@@ -35,8 +35,8 @@ function matchedBytes(left: DataView, leftAt: number, right: DataView, rightAt: 
 const basisStride = 16;
 /** Native bytes as the snapshot's plain JSON array: an indexed copy, ~10x faster than Array.from's iterator on a phone (rt3-freeze). */
 export function byteArray(bytes: Uint8Array): number[] {
-  const array: number[] = [];
-  array.length = bytes.length; // sized once: push or Array.from regrow or iterate
+  // oxlint-disable-next-line unicorn/no-new-array -- Typed numeric byte length; direct sizing avoids JSC backing-store growth (~4x copy kernel).
+  const array = new Array<number>(bytes.length);
   for (let index = 0; index < bytes.length; index++) array[index] = bytes[index] ?? 0;
   return array;
 }
