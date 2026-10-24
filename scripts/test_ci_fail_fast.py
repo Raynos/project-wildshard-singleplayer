@@ -28,6 +28,23 @@ class FailFastTests(unittest.TestCase):
         self.assertEqual(API['failure_files']('src/format/row.ts(2,4): error TS2322: bad'),['src/format/row.ts'])
         self.assertEqual(API['failure_files']('unknown command failed'),[])
 
+    def test_annotation_properties_are_not_part_of_the_file(self):
+        output='::error file=test/script-v2-strip.test.ts,title=test/script-v2-strip.test.ts::Error: missing input'
+        self.assertEqual(API['failure_files'](output),['test/script-v2-strip.test.ts'])
+        encoded='::error file=test/space%2C%20%5Bcase%5D.test.ts,title=ignored.ts::Error: actual input'
+        self.assertEqual(API['failure_files'](encoded),['test/space, [case].test.ts'])
+        self.assertEqual(API['failure_files']('Error: missing "test/space, [case].test.ts"'),['test/space, [case].test.ts'])
+
+    def test_culprit_paths_are_one_json_argument_without_shell_interpretation(self):
+        report=API['print_culprits'];files=['test/space, [case].test.ts']
+        row={'base':'a'*40,'candidates':[],'missingImports':[]}
+        with patch.object(subprocess,'run',return_value=subprocess.CompletedProcess([],0,json.dumps(row),'')) as command, \
+                contextlib.redirect_stdout(io.StringIO()):
+            report(files)
+        args=command.call_args.args[0]
+        self.assertEqual(json.loads(next(arg[8:] for arg in args if arg.startswith('--files='))),files)
+        self.assertNotIn('shell',command.call_args.kwargs)
+
     def test_success_retains_output_and_exit_code_without_metadata(self):
         with contextlib.redirect_stdout(io.StringIO()) as out:
             self.assertEqual(API['run']([sys.executable,'-c','print("real success")'],record=False),0)

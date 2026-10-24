@@ -56,6 +56,22 @@ test('a deleted import remains attributable through the previous immutable tree'
   } finally {rmSync(root,{recursive:true,force:true});}
 });
 
+test('commas, spaces and Git glob characters name a literal committed file', () => {
+  mkdirSync('tmp',{recursive:true});const root=mkdtempSync(resolve('tmp/ci-culprits-literal-'));
+  const git=(...args:string[]):string=>execFileSync('git',args,{cwd:root,encoding:'utf8'}).trim();
+  const commit=():string=>{git('add','.');git('-c','core.hooksPath=/dev/null','-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit','-qm','fixture');return git('rev-parse','HEAD');};
+  const file='test/a[1], notes.test.ts',other='test/a1, notes.test.ts';
+  try {
+    git('init','-q','-b','main');mkdirSync(resolve(root,'test'));
+    writeFileSync(resolve(root,file),'export const value=1;');writeFileSync(resolve(root,other),'export const value=1;');
+    const base=commit();writeFileSync(resolve(root,file),'export const value=2;');const direct=commit();
+    writeFileSync(resolve(root,other),'export const value=3;');const sha=commit();
+    expect(culpritReport(root,base,sha,[file]).candidates.map(row=>row.sha)).toEqual([direct]);
+    expect(()=>culpritReport(root,base,sha,['test/../outside.ts'])).toThrow('invalid');
+    expect(()=>culpritReport(root,base,sha,['test/line\nbreak.ts'])).toThrow('invalid');
+  } finally {rmSync(root,{recursive:true,force:true});}
+});
+
 test('prior green excludes release-only, future and wrong-source runs', () => {
   const sha='a'.repeat(40),base='b'.repeat(40);
   const previous={event:'push',head_branch:'main',head_sha:base,status:'completed',conclusion:'success',created_at:'2026-10-24T10:00:00Z',path:'.github/workflows/deploy.yml'};

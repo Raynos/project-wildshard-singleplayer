@@ -8,13 +8,20 @@ import { gitSourceView } from './git-source-view.mjs';
 
 const SHA=/^[0-9a-f]{40}$/u;
 /** @param {string} path */
-const safePath=path=>/^(?:src|scripts|test|admin|api|drafts|lint|vite)\/[\w./-]+$/u.test(path)&&!path.split('/').some(part=>part==='..'||part==='.');
+function repositoryPath(path){
+  if(path.includes('\\')||path.startsWith('/')||path.split('/').some(part=>part===''||part==='..'||part==='.'))return false;
+  for(const character of path){
+    const point=character.codePointAt(0);
+    if(point===undefined||point<32||point===127)return false;
+  }
+  return true;
+}
 /** @param {string} path */
-const repositoryPath=path=>/^[\w./-]+$/u.test(path)&&!path.startsWith('/')&&!path.split('/').some(part=>part==='..'||part==='.');
+const safePath=path=>/^(?:src|scripts|test|admin|api|drafts|lint|vite)\//u.test(path)&&repositoryPath(path);
 const packageSchema=v.object({exports:v.optional(v.record(v.string(),v.string()))});
 
 /** @param {string} root @param {string[]} args */
-function git(root,args){return execFileSync('git',args,{cwd:root,encoding:'utf8',timeout:10000,maxBuffer:8*1024*1024}).trim();}
+function git(root,args){return execFileSync('git',['--literal-pathspecs',...args],{cwd:root,encoding:'utf8',timeout:10000,maxBuffer:8*1024*1024}).trim();}
 
 /** Resolve only literal relative imports and the committed workspace exports.
  * @param {ReturnType<typeof gitSourceView>} view @param {string[]} roots */

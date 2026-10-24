@@ -11,16 +11,35 @@ import signal
 import subprocess
 import sys
 import time
+from urllib.parse import unquote
 
 ANSI = re.compile(r'\x1b\[[0-9;]*m')
-FILE = r'(?:src|scripts|test|admin|api|drafts|lint|vite)/[^\s():\x1b]+\.(?:json|[cm]?[jt]sx?|py|sh|mjs)'
+ROOT = r'(?:src|scripts|test|admin|api|drafts|lint|vite)/'
+EXTENSION = r'\.(?:json|[cm]?[jt]sx?|py|sh|mjs)'
+FILE = ROOT+r'[^\s():\x1b,=]+?'+EXTENSION+r'\b'
+QUOTED_FILE = r'[\'\"]('+ROOT+r'[^\'\"\r\n]+?'+EXTENSION+r')[\'\"]'
+ANNOTATION = re.compile(r'::error(?: ([^\r\n]*?))?::')
 
 
 def failure_files(output):
     plain = ANSI.sub('', output)
-    primary = [line for line in plain.splitlines() if re.search(r'\bFAIL\s|\berror (?:TS\d+|\[)|\berror\[|Error:|error:', line)]
-    found = sorted(set(re.findall(FILE, '\n'.join(primary))))
-    return found or sorted(set(re.findall(FILE, plain)))[:16]
+    annotated, lines = [], []
+    for line in plain.splitlines():
+        annotation = ANNOTATION.search(line)
+        if annotation:
+            # Split annotation properties BEFORE decoding escaped commas. A
+            # title is metadata, never a suffix of the file sent to Git.
+            properties = dict(item.split('=', 1) for item in (annotation[1] or '').split(',') if '=' in item)
+            if properties.get('file'):
+                annotated.append(unquote(properties['file']))
+                continue
+            line = line[annotation.end():]
+        lines.append(line)
+    primary = [line for line in lines if re.search(r'\bFAIL\s|\berror (?:TS\d+|\[)|\berror\[|Error:|error:', line)]
+    def extract(text):
+        return re.findall(QUOTED_FILE, text) + re.findall(FILE, text)
+    found = sorted(set(annotated + extract('\n'.join(primary))))
+    return (found or sorted(set(extract('\n'.join(lines)))))[:16]
 
 
 def failed_job(jobs):
