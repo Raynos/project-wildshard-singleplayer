@@ -23,6 +23,7 @@ import { lentLook, setLentParam, setLentTexture } from '../shardfile/lentLooks';
 import { loadFirstPartyProduct, runtimeProduct } from '../shardfile/runtimeProduct';
 import type { StaticCaptureUniforms } from './staticCapture';
 import { GroundMerge } from '../shardfile/groundMerge';
+import { paintedGroundMerge } from './paintedGroundMerge';
 import { TILE_RING } from '../shardfile/tileDriver';
 import { followTile, ring, tileKey } from '../shardfile/tileContent';
 import type { CellTile } from '../shardfile/tileOrder';
@@ -77,13 +78,10 @@ export function paintedGroundPainter(slug: string, input: unknown, tiles: unknow
       // world/terrain/ground-l1-<x>-<z>.glb) stay loaded beyond it, each leaving out the quadrants its drawn L0 tiles cover
       const assets = runtimeProduct(product.shardfile).assets, parent = ground.parent === scene.root ? terrain.group : ground.parent;
       if (parent === null) throw new Error('Painted ground mesh has no parent');
-      const radius = TILE_RING, loaded = new Map<number, Scope>(), at = new Vector3();
+      const radius = TILE_RING, loaded = new Map<number, Scope>();
       // the merged mesh's draws report where the player looks from; the ring follower takes over once it exists
       const follower = { at: (_x: number, _z: number): void => undefined };
-      const merge = new GroundMerge(parent, material, ground.name, (mesh) => {
-        mesh.castShadow = ground.castShadow; mesh.receiveShadow = ground.receiveShadow; mesh.renderOrder = ground.renderOrder; terrain.mesh = mesh;
-        mesh.onBeforeRender = (_renderer, _scene, camera) => { camera.getWorldPosition(at); parent.worldToLocal(at); follower.at(at.x, at.z); };
-      });
+      const merge = new GroundMerge(parent, material, ground.name, paintedGroundMerge(terrain, parent, ground, follower));
       // N1b: an L0 tile covers its coarse quadrant once it is merged (drawn), never while it is only wanted
       const drawn = new Set<number>(), coarse: { readonly x: number; readonly z: number; readonly hide: (hidden: ReadonlySet<number>) => void }[] = [];
       const cover = (): void => {
