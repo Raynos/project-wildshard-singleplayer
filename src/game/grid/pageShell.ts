@@ -12,12 +12,12 @@ import type { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 
 /** G226/G258: every grid home is an owned region, so leaving it releases the whole world before the next loads; the page
  * is the neutral shell (T7: no grid page boots a borrowed home world, and nothing caps the live worlds by count). A home
- * that cannot be owned (neither a declared shardfile nor a trusted runtime) refuses to boot. Standalone pages: false. */
-export function useOwnedGridHome(mode: PageMode, manifest: Pick<ShardManifest, 'slug' | 'trustedRuntime' | 'clientPlanRuntime' | 'gridShardfile'>, source?: Parameters<typeof hasDeclaredClientPage>[0]): boolean {
+ * that cannot be owned (neither admitted data nor a compiled client page) refuses to boot. Standalone pages: false. */
+export function useOwnedGridHome(mode: PageMode, manifest: Pick<ShardManifest, 'slug' | 'clientPlanRuntime' | 'gridShardfile'>, source?: Parameters<typeof hasDeclaredClientPage>[0]): boolean {
   if (mode !== 'grid') return false;
-  const owned = (manifest.trustedRuntime !== undefined || manifest.clientPlanRuntime === true) && manifest.gridShardfile !== undefined
+  const owned = manifest.clientPlanRuntime === true && manifest.gridShardfile !== undefined
     || source !== undefined && (source.runtime === null || source.runtime !== undefined && !('entry' in source.runtime));
-  if (!owned) throw new Error(`Grid home ${manifest.slug} cannot be an owned region (no declared shardfile or trusted runtime)`);
+  if (!owned) throw new Error(`Grid home ${manifest.slug} cannot be an owned region (no admitted data or compiled client page)`);
   return true;
 }
 
