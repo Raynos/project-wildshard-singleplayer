@@ -10,11 +10,12 @@ export interface V2RngInput {
 export interface V2RngCandidate extends V2RngInput { readonly draws: number }
 const u32 = (value: number | undefined): boolean => typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= 0xffffffff;
 const safe = (value: number | undefined): boolean => typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
+const bit = (value: number | undefined): boolean => value === 0 || value === 1;
 function validate(row: { readonly binding: number; readonly stream: number; readonly algorithm: number; readonly state: readonly number[] }): void {
   const s = row.state;
   if (!Number.isInteger(row.binding) || row.binding < 1 || row.binding > 0x7fffffff || !u32(row.stream) || row.stream === 0
     || s.length !== 6
-    || (row.algorithm === 1 ? !u32(s[0]) || !u32(s[1]) || ![0,1].includes(s[2] ?? Number.NaN) || s[3] !== 0 || s[4] !== 0 || s[5] !== 0
+    || (row.algorithm === 1 ? !u32(s[0]) || !u32(s[1]) || !bit(s[2]) || s[3] !== 0 || s[4] !== 0 || s[5] !== 0
       : row.algorithm !== 2 || !u32(s[0]) || !u32(s[1]) || !safe(s[2]) || !safe(s[3]) || !safe(s[4]) || s[5] !== 0)) throw new Error('Invalid v2 RNG continuation');
 }
 
@@ -27,12 +28,13 @@ export function prepareV2Rng(layout: V2Layout,input: readonly V2RngInput[]): {
   const source = layout.regions[20], target = layout.regions[21];
   if (source === undefined || target === undefined || input.length > source.capacity || input.length > target.capacity) throw new Error('Oversized v2 RNG bank');
   const rows = input.map(row => { validate(row);return { ...row,state: [...row.state] as const }; }).sort((a,b) => a.binding-b.binding || a.stream-b.stream);
-  if (new Set(rows.map(row => `${row.binding}:${row.stream}`)).size !== rows.length) throw new Error('Duplicate v2 RNG stream');
+  if (rows.length > 1 && new Set(rows.map(row => `${row.binding}:${row.stream}`)).size !== rows.length) throw new Error('Duplicate v2 RNG stream');
   const bytes = new Uint8Array(rows.length*64), packed = new DataView(bytes.buffer);
-  rows.forEach((row,i) => {
+  for(let i=0;i<rows.length;i++){
+    const row=rows[i];if(row===undefined)continue;
     const at = i*64;packed.setUint32(at,row.binding,true);packed.setUint32(at+4,row.stream,true);packed.setUint32(at+8,row.algorithm,true);
-    row.state.forEach((value,j) => packed.setFloat64(at+16+j*8,value,true));
-  });
+    for(let j=0;j<row.state.length;j++)packed.setFloat64(at+16+j*8,row.state[j]??Number.NaN,true);
+  }
   return { count: rows.length,bytes,readCandidate: (view,count,due) => {
     if (view.byteLength !== layout.pages*65536 || count !== rows.length) throw new Error('Incomplete v2 RNG candidate');
     return rows.map((row,i): V2RngCandidate => {
@@ -42,7 +44,8 @@ export function prepareV2Rng(layout: V2Layout,input: readonly V2RngInput[]): {
       const next = { binding: row.binding,stream: row.stream,algorithm: row.algorithm,state,draws };validate(next);
       const changed = row.algorithm === 1 ? 0 : 2;
       const expected = draws === 0 ? row.state[changed] : row.algorithm === 1 ? (row.state[0]+Math.imul(draws,0x6d2b79f5)) >>> 0 : row.state[2]+draws;
-      if (!Number.isSafeInteger(expected) || !Object.is(state[changed],expected) || state.some((value,j) => j !== changed && !Object.is(value,row.state[j]))) throw new Error('Invalid v2 RNG advance');
+      if (!Number.isSafeInteger(expected) || !Object.is(state[changed],expected)) throw new Error('Invalid v2 RNG advance');
+      for(let j=0;j<state.length;j++)if(j!==changed&&!Object.is(state[j],row.state[j]))throw new Error('Invalid v2 RNG advance');
       return next;
     });
   } };

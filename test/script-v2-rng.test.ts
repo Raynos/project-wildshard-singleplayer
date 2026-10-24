@@ -64,3 +64,24 @@ test('candidate RNG refuses forged seeds, counters, owners and inactive draws at
   expect(() => prepareV2Rng(layout,[...inputs,inputs[0] ?? inputs[1] ?? { binding: 0,stream: 0,algorithm: 1,state: [0,0,0,0,0,0] }])).toThrow();
   expect(() => prepareV2Rng(layout,[{ binding: 1,stream: 1,algorithm: 2,state: [0,0,Number.MAX_SAFE_INTEGER+1,1,0,0] }])).toThrow();
 });
+
+test('zero and single-stream banks stay detached through later preparation and exact no-draw replay',()=>{
+  const state:[number,number,number,number,number,number]=[17,23,-0,0,0,0];
+  const input={binding:1,stream:1,algorithm:1 as const,state};
+  const first=prepareV2Rng(layout,[input]),saved=first.bytes.slice();
+  input.binding=2;state[0]=99;state[2]=1;
+  const second=prepareV2Rng(layout,[input]);
+  expect(first.bytes).toEqual(saved);expect(second.bytes).not.toEqual(saved);
+  const view=new DataView(new ArrayBuffer(65536));
+  new Uint8Array(view.buffer,at(22),first.bytes.length).set(first.bytes);
+  expect(first.readCandidate(view,1,new Set([1]))).toEqual([{binding:1,stream:1,algorithm:1,state:[17,23,-0,0,0,0],draws:0}]);
+  view.setFloat64(at(22)+32,0,true);
+  expect(()=>first.readCandidate(view,1,new Set([1]))).toThrow('advance');
+  const empty=prepareV2Rng(layout,[]),otherEmpty=prepareV2Rng(layout,[]);
+  expect(empty.bytes).not.toBe(otherEmpty.bytes);expect(empty.bytes.buffer).not.toBe(otherEmpty.bytes.buffer);
+  expect(empty.readCandidate(view,0,new Set())).toEqual([]);
+  expect(()=>empty.readCandidate(view,1,new Set())).toThrow('Incomplete');
+  for(const flag of [2,Number.NaN,Infinity]){
+    expect(()=>prepareV2Rng(layout,[{...input,state:[17,23,flag,0,0,0]}])).toThrow('continuation');
+  }
+});

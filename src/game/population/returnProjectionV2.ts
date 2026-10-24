@@ -66,6 +66,7 @@ export class ReturnProjectionV2 {
   private readonly layout;
   private readonly module: ScriptModuleV2;
   private readonly writeFrame: ReturnType<typeof createV2FrameWriter>;
+  private emptyRng: ReturnType<typeof prepareV2Rng> | undefined;
   private busy = false;
   private readonly groups:GroupStepV2|null=null;
   /** Only fixed ABI bytes are retained. Every call still captures its own numeric values. */
@@ -123,7 +124,8 @@ export class ReturnProjectionV2 {
     const frames = [observations,...candidates].map(snapshotFrame);this.live();
     const before = random?.snapshot(), layout = this.layout;
     this.live();
-    const rng = prepareV2Rng(layout,before === undefined ? [] : [{ binding: 1,stream: 1,algorithm: 1,
+    // An empty bank carries no continuation and never leaves this instance.
+    const rng = before === undefined ? (this.emptyRng ??= prepareV2Rng(layout,[])) : prepareV2Rng(layout,[{ binding: 1,stream: 1,algorithm: 1,
       state: [before.state,before.initial,Number(before.scrambledFork),0,0,0] }]);
     const shape = this.observationShape(candidates.length), input = shape.input;
     const counts = rng.count === 0 ? shape.counts[0] : shape.counts[1];
