@@ -14,8 +14,21 @@ const DRIFT_LIMIT_MS = 5;
 const COVERAGE_FLOOR = 0.8;
 // Page.enable starts WebKit's execution stopwatch. Re-enabling would reset
 // that clock, so initialize it once per concrete Inspector connection.
-const pageClocks = new WeakSet();
+/** @type {WeakMap<object, Promise<unknown>>} */
+const pageClocks = new WeakMap();
 const heapObservers = new WeakSet();
+
+/** Start the Inspector clock once per concrete connection, before either recorder.
+ * @param {import('./frame-floor-webkit-timeline.mjs').TimelinePort} inspector
+ */
+export async function ensureWebKitPageClock(inspector) {
+  let clock = pageClocks.get(inspector);
+  if (clock === undefined) {
+    clock = inspector.send('Page.enable');
+    pageClocks.set(inspector, clock);
+  }
+  await clock;
+}
 
 // WebKit appendRecord events have a timestamp and deliberately no endTime.
 // They cannot establish busy coverage; unknown missing spans still refuse.
@@ -83,10 +96,7 @@ export async function startWebKitTimeline(inspector, evaluate) {
     } finally { clearTimeout(timer); receiveAnchor = undefined; }
   };
   try {
-    if (!pageClocks.has(inspector)) {
-      await inspector.send('Page.enable');
-      pageClocks.add(inspector);
-    }
+    await ensureWebKitPageClock(inspector);
     try {
       if (!heapObservers.has(inspector)) {
         await inspector.send('Heap.enable');

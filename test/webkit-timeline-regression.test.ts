@@ -1,5 +1,6 @@
 import {expect, test} from 'vitest';
-import {startWebKitTimeline, timelineLongFrames, type TimelinePort} from '../scripts/frame-floor-webkit-timeline.mjs';
+import {startScriptProfile} from '../scripts/frame-floor-script-profile.mjs';
+import {ensureWebKitPageClock, startWebKitTimeline, timelineLongFrames, type TimelinePort} from '../scripts/frame-floor-webkit-timeline.mjs';
 
 function fixture(frozen = false) {
   let enabled = false, pageMs = 1000;
@@ -114,4 +115,39 @@ test('admits known instantaneous events without counting them as busy coverage',
   const sparse = timelineLongFrames({records: [duration, ...points], anchors: [[1, 1000], [2, 2000]]}, [[1000, 16]]);
   expect(sparse.valid).toBe(false);
   expect(sparse.invalid.some(reason => reason.includes('coverage'))).toBe(true);
+});
+
+
+test.each(['profile-first', 'timeline-first'])('both recorders share one Page clock (%s)', async order => {
+  const f = fixture();
+  const stopTimeline = order === 'timeline-first' ? await startWebKitTimeline(f.inspector, f.evaluate) : undefined;
+  const stopProfile = await startScriptProfile(f.inspector);
+  const stop = stopTimeline ?? await startWebKitTimeline(f.inspector, f.evaluate);
+  const timeline = await stop();
+  expect(timeline.anchors.every(([seconds]) => seconds > 0)).toBe(true);
+  expect(f.methods.indexOf('Page.enable')).toBeLessThan(f.methods.indexOf('ScriptProfiler.startTracking'));
+  const finishing = stopProfile(), profile = {samples: {stackTraces: []}};
+  f.emit('ScriptProfiler.trackingComplete', profile);
+  expect(await finishing).toBe(profile);
+  expect(f.methods.filter(method => method === 'Page.enable')).toHaveLength(1);
+  expect(f.listening()).toBe(false);
+});
+
+test('a ScriptProfiler clock refusal starts no recording and leaves no listener', async () => {
+  const f = fixture(), calls: string[] = [];
+  const inspector: TimelinePort = {...f.inspector, send: method => { calls.push(method); return Promise.reject(new Error('Page refused')); }};
+  await expect(startScriptProfile(inspector)).rejects.toThrow('Page refused');
+  expect(calls).toEqual(['Page.enable']); expect(f.listening()).toBe(false);
+});
+
+
+test('concurrent recorders await the same clock admission without resetting it', async () => {
+  let release = (): void => undefined;
+  const pending = new Promise<void>(resolve => { release = resolve; });
+  const methods: string[] = [];
+  const inspector: TimelinePort = {send: method => { methods.push(method); return pending; }, on: () => () => undefined};
+  const first = ensureWebKitPageClock(inspector), second = ensureWebKitPageClock(inspector);
+  expect(methods).toEqual(['Page.enable']);
+  release(); await Promise.all([first, second]);
+  await ensureWebKitPageClock(inspector); expect(methods).toEqual(['Page.enable']);
 });

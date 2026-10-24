@@ -12,6 +12,8 @@ export interface TimelineSummary {
   readonly note?: string; readonly valid: boolean; readonly invalid: readonly string[]; readonly anchorDriftMs?: number; readonly renderingFrames?: number; readonly coverage?: number; readonly records?: number; readonly verdicts?: Readonly<Record<string, number>>;
   readonly totals?: Readonly<Record<string, number>>; readonly frames: readonly TimelineFrame[];
 }
+/** Start the shared Inspector clock once before Timeline or ScriptProfiler. */
+export function ensureWebKitPageClock(inspector: TimelinePort): Promise<void>;
 /** Enable Page's Inspector clock once per connection; refuse zero anchors before driving. Stop keeps raw records. */
 export function startWebKitTimeline(inspector: TimelinePort, evaluate: (expression: string) => Promise<unknown>): Promise<() => Promise<WebKitTimeline>>;
 /** Every `ff-anchor:<page ms>` TimeStamp record as [timeline seconds, page ms]. */

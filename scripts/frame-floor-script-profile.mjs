@@ -1,9 +1,12 @@
+import { ensureWebKitPageClock } from './frame-floor-webkit-timeline.mjs';
+
 /** Start Safari's existing sampling protocol on the driving Inspector, returning a bounded stop operation.
  * Proxy timestamps can be zero, so callers delimit the page window explicitly and never give this timing credit.
  * @param {import('./frame-floor-script-profile.mjs').ScriptProfilePort} inspector
  * @param {number} waitMs
  */
 export async function startScriptProfile(inspector, waitMs = 10000) {
+  await ensureWebKitPageClock(inspector);
   /** @type {(value: unknown) => void} */
   let receive = () => undefined;
   const finished = new Promise(resolve => { receive = resolve; });
