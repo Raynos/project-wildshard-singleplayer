@@ -57,6 +57,7 @@ import { installGridHoverSpeed, installGridTravellerCombat } from './rules';
 import { gridHomeSim, gridCells, type GridHomeSimulation, prepareTrustedRuntime, manifestRuntimeEntry, type TrustedRuntimeEntry } from '../plugin/context';
 import { findShard } from '../shard/registry';
 import { gridPostCosts, gridShardfileProduct, prioritizeGridProduct } from './products';
+import { preparationAdmission } from './preparationAdmission';
 import { gridPostPairRefusal } from './postPairs';
 import { postStackCost } from '@wildshard/format/postStack';
 import { gridRecovery, type GridRecoveryReason, type GridRecoveryRecord } from './recovery';
@@ -592,17 +593,36 @@ export class LiveGridSession {
   }
 
   /** Shardfile cells admit a bodyless regional host with their strip duplicates; every other cell waits for M3. */
-  private async admit(cell: GridCell): Promise<LiveGridAdmission> {
+  private admit(cell: GridCell): Promise<LiveGridAdmission> {
+    return preparationAdmission(metadata => this.prepareAdmission(cell, metadata));
+  }
+
+  private async prepareAdmission(cell: GridCell, metadata: boolean): Promise<LiveGridAdmission> {
     const pending = gridShardfileProduct(cell.slug, { allocator: this.ports.allocator, scope: this.ports.scope });
     if (pending === null) throw new GridCellWaitingError(`${cell.slug} is not a shardfile shard (it stays a far proxy until M3)`);
-    const retained = await pending, { source, assets } = retained.admitted;
+    const product = await pending;
+    const releaseInputs = async (): Promise<void> => {
+      try { await product.releaseInputs(); }
+      catch (error) { console.warn('[grid] metadata input release:', error); }
+    };
+    const retained = metadata ? { ...product, release: () => { void releaseInputs(); } } : product;
+    const finish = (admission: LiveGridAdmission): LiveGridAdmission => {
+      // The cached admission still holds source/JSON metadata; only its input
+      // borrow ends at prefetch. Keep that metadata's original charge page-owned.
+      if (metadata) this.ports.scope.onDispose(product.release);
+      return admission;
+    };
+    const { source, assets } = retained.admitted;
     let releaseProduct = retained.release;
     try {
-    // SF59: a stack that with an adjacent cell's exceeds the per-pixel budget where their frames blend is refused here
-    const costs = gridPostCosts(this.ports.allocator), own = postStackCost(source, (hash) => assets.get(hash)).cost;
-    const pair = gridPostPairRefusal(this.ports.assembly, cell, own, (slug) => costs.get(slug));
-    if (pair !== null) throw new Error(pair);
-    if (source.runtime !== null || hasDeclaredClientPage(source)) return await this.admitRuntime(cell, retained);
+    // SF59: the original metadata admission owns the adjacent post-stack check.
+    // Rehydration verifies input bytes without moving that policy check to each visit.
+    if (metadata) {
+      const costs = gridPostCosts(this.ports.allocator), own = postStackCost(source, (hash) => assets.get(hash)).cost;
+      const pair = gridPostPairRefusal(this.ports.assembly, cell, own, (slug) => costs.get(slug));
+      if (pair !== null) throw new Error(pair);
+    }
+    if (source.runtime !== null || hasDeclaredClientPage(source)) return finish(await this.admitRuntime(cell, retained));
     let durability = this.durability.get(cell.instance);
     if (durability === undefined) {
       durability = new GridRegionDurability(this.page.saves, { id: cell.instance, shard: cell.slug }, source, this.page.catalogue);
@@ -684,7 +704,7 @@ export class LiveGridSession {
         throw error;
       }
     };
-    return { bytes, reloadsCheckpoint: true, cancel: releaseProduct, create: async (saved) => {
+    return finish({ bytes, reloadsCheckpoint: true, cancel: releaseProduct, create: async (saved) => {
       // SF88e: each declared script module's WebAssembly.Memory is a synchronous full GC on iOS JSC (40-80 ms each);
       // lease them one drawn frame apart under the owner the script host installs in, so entry draws no 250 ms frame
       const owner = constructionOwner() ?? currentOwner();
@@ -693,8 +713,8 @@ export class LiveGridSession {
         : await prepareScriptMemoryLease(modules, owner, 'frame');
       try { return await (owner === null ? build(saved) : owner.run(() => build(saved))); }
       finally { release?.(); }
-    } };
-    } catch (error) { releaseProduct(); throw error; }
+    } });
+    } catch (error) { try { releaseProduct(); } finally { product.release(); } throw error; }
   }
 
   private async admitRuntime(cell: GridCell, retained: Awaited<NonNullable<ReturnType<typeof gridShardfileProduct>>>): Promise<LiveGridAdmission> {

@@ -14,7 +14,7 @@ export class ProductInputs {
   private readonly claims: { refs: Set<string>; bytes: number; lease: Claim }[] = [];
   private users = 0;
   private pending = Promise.resolve();
-  constructor(private readonly admitted: AdmittedProduct, options: ProductOptions, private readonly reserve: (bytes: number) => Claim) {
+  constructor(private readonly admitted: AdmittedProduct, options: ProductOptions, private readonly reserve: (bytes: number) => Claim, private readonly keep: ReadonlySet<string> = new Set()) {
     this.assets = new Map(admitted.assets); this.refs = [...this.assets.keys()];
     this.reader = new ClientAssets(admitted.source, admitted.assets, options);
   }
@@ -23,6 +23,8 @@ export class ProductInputs {
     // The settled queue carries no asset result or rejection into the page lifetime.
     this.pending = result.then(() => undefined, () => undefined); return result;
   }
+  /** A decoder's release cannot uncharge a wire still borrowed by another preparation. */
+  retains(ref: string): boolean { return this.assets.has(ref) || this.reader.retained.has(ref); }
   async acquire(): Promise<ProductInputLease> {
     this.users++;
     try {
@@ -39,12 +41,12 @@ export class ProductInputs {
         } catch (error) { lease.release(); throw error; }
       });
     } catch (error) { this.users--; throw error; }
-    let live = true;
+    let live = true, closing: Promise<void> | undefined;
     return { assets: this.assets, release: () => {
-      if (!live) return Promise.resolve(); live = false; this.users--;
-      return this.users === 0 ? this.run(async () => {
+      if (!live) return closing ?? Promise.resolve(); live = false; this.users--;
+      closing = this.users === 0 ? this.run(async () => {
         if (this.users !== 0) return;
-        const released = await this.admitted.releasePreparedTransport?.(this.refs, 'cache-or-fetch') ?? [];
+        const released = await this.admitted.releasePreparedTransport?.(this.refs.filter(ref => !this.keep.has(ref)), 'cache-or-fetch') ?? [];
         for (const ref of released) this.assets.delete(ref);
         this.reader.releaseTransport(released);
         for (const claim of this.claims) {
@@ -56,6 +58,7 @@ export class ProductInputs {
         }
         for (let i = this.claims.length - 1; i >= 0; i--) if (this.claims[i]?.bytes === 0) this.claims.splice(i, 1);
       }) : Promise.resolve();
+      return closing;
     } };
   }
 }

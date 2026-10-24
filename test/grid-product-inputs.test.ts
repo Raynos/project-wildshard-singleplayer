@@ -3,6 +3,7 @@ import { emptyShardfile } from '@wildshard/sdk/author';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import type { AdmittedProduct, ProductOptions } from '../src/game/shardfile/product';
 import { ProductInputs } from '../src/game/grid/productInputs';
+import { accountTransportRelease } from '../src/game/grid/products';
 
 function fixture() {
   const source = emptyShardfile({ slug: 'input-lease', name: 'Inputs', author: 'Test', revision: 1, seed: 1 });
@@ -23,7 +24,7 @@ function fixture() {
     held += count; let remaining = count;
     return { shrink: next => { held += next - remaining; remaining = next; }, release: () => { held -= remaining; remaining = 0; } };
   });
-  return { inputs, wire, ref, bytes, fetch, releasePreparedTransport, held: () => held,
+  return { inputs, wire, ref, bytes, fetch, releasePreparedTransport, admitted, options, held: () => held,
     durable: (value: boolean) => { durable = value; }, corrupt: () => { corrupted = true; } };
 }
 
@@ -69,4 +70,40 @@ test('an acquire during asynchronous retirement waits, then receives refilled in
   if (finish === undefined) throw new Error('Missing retirement gate'); finish();
   await retirement; const next = await loading;
   expect(next.assets.get(f.ref)).toEqual(f.bytes); await next.release(); expect(f.held()).toBe(0);
+});
+
+test('concurrent late borrowers share one verified refill and one temporary claim', async () => {
+  const f = fixture(), first = await f.inputs.acquire(); await first.release();
+  const [left, right] = await Promise.all([f.inputs.acquire(), f.inputs.acquire()]);
+  expect(f.fetch).toHaveBeenCalledOnce(); expect(f.held()).toBe(3);
+  await left.release(); expect(right.assets.get(f.ref)).toEqual(f.bytes); expect(f.held()).toBe(3);
+  await right.release(); expect(f.held()).toBe(0);
+});
+
+test('failed persistence after a refill keeps its wire claim until a verified release succeeds', async () => {
+  const f = fixture(), first = await f.inputs.acquire(); await first.release();
+  const next = await f.inputs.acquire(); f.durable(false); await next.release();
+  expect(next.assets.get(f.ref)).toEqual(f.bytes); expect(f.held()).toBe(3);
+  const again = await f.inputs.acquire(); expect(f.fetch).toHaveBeenCalledOnce();
+  f.durable(true); await again.release(); expect(again.assets.size).toBe(0); expect(f.held()).toBe(0);
+});
+
+test('the charged lazy-input subset survives completed preparation without extra reads', async () => {
+  const f = fixture(), reserve = vi.fn(() => ({ shrink: vi.fn(), release: vi.fn() }));
+  const inputs = new ProductInputs(f.admitted, f.options, reserve, new Set([f.ref]));
+  const first = await inputs.acquire(); await first.release();
+  expect(first.assets.get(f.ref)).toBe(f.bytes); expect(inputs.reader.retained.get(f.ref)).toBe(f.bytes);
+  const next = await inputs.acquire(); expect(next.assets.get(f.ref)).toBe(f.bytes);
+  expect(f.fetch).not.toHaveBeenCalled(); expect(reserve).not.toHaveBeenCalled(); await next.release();
+});
+
+test('decoder releases do not shrink bytes still pinned by preparation mirrors', async () => {
+  const f = fixture(), released = vi.fn<(bytes: number) => void>();
+  f.admitted.releaseTransport = refs => { const result = [...refs]; for (const ref of result) f.wire.delete(ref); return Promise.resolve(result); };
+  accountTransportRelease(f.admitted, count => { released(count); }, ref => f.inputs.retains(ref));
+  const input = await f.inputs.acquire();
+  await f.admitted.releaseTransport([f.ref]);
+  expect(released).toHaveBeenLastCalledWith(0); expect(input.assets.get(f.ref)).toBe(f.bytes);
+  await input.release(); expect(released).toHaveBeenLastCalledWith(3);
+  await input.release(); expect(released.mock.calls.map(([count]) => count)).toEqual([0, 3]);
 });

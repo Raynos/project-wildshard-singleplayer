@@ -78,7 +78,7 @@ import { readGridEdges } from './edgeSources';
 import { findShard } from '../shard/registry';
 import { TileDecoder } from './tileDecoder';
 import { clientTileRegistration, type ClientTileRegistration, clientRingCatalogue, clientRingPorts, type ClientRingInstance, type PreparedRingTile } from '../shardfile/tileContent';
-import { ClientAssets } from '../shardfile/clientAssets';
+import type { ClientAssets } from '../shardfile/clientAssets';
 import { clientMaterials } from '../shardfile/clientMaterials';
 import { clientTileViews, type ClientTileViews } from '../shardfile/clientViews';
 import type { ClientSkin } from '../shardfile/clientSkins';
@@ -596,31 +596,37 @@ export class GridSession {
    */
   private tileAdmission(renderer: Renderer, roots: ReadonlyMap<string, Group>): (cell: GridCell) => void {
     const scope = this.host.scope, skins = new Map<string, Promise<ReadonlyMap<string, ClientSkin>>>();
-    const shared = new Map<string, Promise<{ source: ClientRingInstance['source']; assets: ClientAssets; views: ClientTileViews; bytes: ReadonlyMap<string, Uint8Array>; compile: (entry: unknown) => Material }>>();
+    const shared = new Map<string, Promise<{ source: ClientRingInstance['source']; assets: ClientAssets; views: ClientTileViews; compile: (entry: unknown) => Material }>>();
     const requested = new Set<string>();
     const admit = async (cell: GridCell): Promise<void> => {
       const root = roots.get(cell.instance); if (root === undefined) return;
-      let loading = shared.get(cell.slug);
-      if (loading === undefined) {
+      try {
         const product = gridShardfileProduct(cell.slug, { allocator: this.allocator, scope });
         if (product === null) return;
-        loading = (async () => {
-          const retained = await product, { admitted, options } = retained, source = admitted.source;
-          try {
-            if (scope.disposed) throw new Error('Grid product view disposed during admission');
-            scope.onDispose(retained.release);
-            const presentation = await clientMaterials(source, admitted.assets, renderer, scope);
-            return { source, assets: new ClientAssets(source, admitted.assets, options), views: clientTileViews({ terrain: source.terrain, terrainShadow: source.terrain?.shadow, terrainOrder: source.terrain?.order, ...presentation }), bytes: admitted.assets, compile: presentation.compile };
-          } catch (error) { retained.release(); throw error; }
-        })();
-        shared.set(cell.slug, loading);
-      }
-      try {
-        const { source, assets, views, bytes, compile } = await loading;
-        if (scope.disposed) return;
-        if (source.tiles.length > 0) this.clientTiles.offer(cell.instance, { source, assets, root, views });
-        try { await this.life.admit(cell, root, source, bytes, compile, skins); } catch (error) { console.warn(`[grid] ${cell.instance} stays still (client scripts):`, error); }
-        try { await this.panels.admit(cell, root, source, bytes, views); } catch (error) { console.warn(`[grid] ${cell.instance} draws no doors (declared panels):`, error); }
+        const retained = await product; let pageOwned = false;
+        try {
+          let loading = shared.get(cell.slug);
+          if (loading === undefined) {
+            pageOwned = true; scope.onDispose(retained.release);
+            loading = (async () => {
+              const { admitted } = retained, source = admitted.source;
+              try {
+                if (scope.disposed) throw new Error('Grid product view disposed during admission');
+                const presentation = await clientMaterials(source, admitted.assets, renderer, scope);
+                return { source, assets: retained.reader, views: clientTileViews({ terrain: source.terrain, terrainShadow: source.terrain?.shadow, terrainOrder: source.terrain?.order, ...presentation }), compile: presentation.compile };
+              } catch (error) { retained.release(); throw error; }
+            })();
+            shared.set(cell.slug, loading);
+          }
+          const { source, assets, views, compile } = await loading;
+          if (scope.disposed) return;
+          if (source.tiles.length > 0) this.clientTiles.offer(cell.instance, { source, assets, root, views });
+          const bytes = retained.admitted.assets;
+          try { await this.life.admit(cell, root, source, bytes, compile, skins); } catch (error) { console.warn(`[grid] ${cell.instance} stays still (client scripts):`, error); }
+          try { await this.panels.admit(cell, root, source, bytes, views); } catch (error) { console.warn(`[grid] ${cell.instance} draws no doors (declared panels):`, error); }
+        } finally {
+          try { await retained.releaseInputs(); } finally { if (!pageOwned) retained.release(); }
+        }
       } catch (error) { this.refuse(cell, error); } // G167 / G217: a refused shard's cell screen names the reason
     };
     return cell => {

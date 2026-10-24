@@ -8,6 +8,8 @@ import { admitProduct, boundedResponse, checkBuiltIndex, readIndexBytes, type Ad
 import { browserShardfileOptions } from '../shardfile/runtimeProduct';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { ProductLeases } from './productLeases';
+import { ProductInputs } from './productInputs';
+import type { ClientAssets } from '../shardfile/clientAssets';
 import { GridPostCosts } from './postPairs';
 import { postStackCost } from '@wildshard/format/postStack';
 import type { ResidencyAllocator } from './allocator';
@@ -175,7 +177,12 @@ export function gridShardfileEdges(slug: string, owner: GridProductOwner): Promi
 }
 
 /** One admitted product and the options its assets resolve against (ClientAssets reads further tiles through them). */
-export interface GridProduct { readonly admitted: AdmittedProduct; readonly options: ProductOptions; release: () => void }
+export interface GridProduct {
+  readonly admitted: AdmittedProduct; readonly options: ProductOptions; readonly reader: ClientAssets;
+  /** End synchronous preparation while retaining the page's source/decoded-view owner. */
+  releaseInputs: () => Promise<void>; release: () => void;
+}
+interface CachedGridProduct { readonly admitted: AdmittedProduct; readonly options: ProductOptions; readonly inputs: ProductInputs }
 /** One page allocator owns its product cache; consumers release only after their source/transport references are gone. */
 export interface GridProductOwner { allocator: ResidencyAllocator; scope: { readonly disposed: boolean; onDispose: (dispose: () => void) => void } }
 
@@ -195,19 +202,23 @@ export function prioritizeGridProduct(slug: string, owner: GridProductOwner): ()
   return admissionPriority(owner).hold(slug);
 }
 
-const products = new WeakMap<ResidencyAllocator, ProductLeases<Omit<GridProduct, 'release'>>>();
+const products = new WeakMap<ResidencyAllocator, ProductLeases<CachedGridProduct>>();
 const postCosts = new WeakMap<ResidencyAllocator, GridPostCosts>();
 
 // Track each wire once even when concurrent runtime decoders release the same file later.
-function accountTransportRelease(admitted: AdmittedProduct, releaseBytes: (bytes: number) => void): void {
-  const release = admitted.releaseTransport;
-  if (release === undefined) return;
+export function accountTransportRelease(admitted: AdmittedProduct, releaseBytes: (bytes: number) => void, retained: (ref: string) => boolean = () => false): void {
   const charged = new Map(admitted.source.files.map(file => [file.hash, file.compressed]));
-  admitted.releaseTransport = async (refs, reread) => {
-    const released = await release(refs, reread); let bytes = 0;
-    for (const ref of released) { bytes += charged.get(ref) ?? 0; charged.delete(ref); }
-    releaseBytes(bytes); return released;
-  };
+  for (const key of ['releaseTransport', 'releasePreparedTransport'] as const) {
+    const release = admitted[key]; if (release === undefined) continue;
+    admitted[key] = async (refs, reread) => {
+      const released = await release(refs, reread); let bytes = 0;
+      for (const ref of released) {
+        if (key === 'releaseTransport' && retained(ref)) continue;
+        bytes += charged.get(ref) ?? 0; charged.delete(ref);
+      }
+      releaseBytes(bytes); return released;
+    };
+  }
 }
 /** The page's admitted post stack costs (SF59): every product admitted on `allocator` records its own (placement sums them per adjacent pair, `postPairs.ts`). */
 export function gridPostCosts(allocator: ResidencyAllocator): GridPostCosts {
@@ -242,12 +253,39 @@ export function gridShardfileProduct(slug: string, owner: GridProductOwner): Pro
     const admitted = await timeClientPreparation(slug, 'product.admission', () => admitProduct(input, { ...options, reserve }));
     // admission already refused a stack past the budget on its own; the cost is what placement sums per adjacent pair
     gridPostCosts(owner.allocator).record(slug, postStackCost(admitted.source, (hash) => admitted.assets.get(hash)).cost);
-    accountTransportRelease(admitted, releaseBytes);
+    const preparation: { inputs?: ProductInputs } = {};
+    accountTransportRelease(admitted, releaseBytes, ref => preparation.inputs?.retains(ref) === true);
     // Drop runtime-only wires before neighbours can copy their map. Entered product.file() reads the
     // same immutable bytes from cache or network; host-declared materials/skins/sim inputs stay available.
     const refs = await neighbourProductFilesPaced(admitted.source, options.pause), unpin = options.cache?.pin?.(refs);
     try { await admitted.releaseTransport?.(refs, 'cache-or-fetch'); }
     finally { unpin?.(); }
-    return { admitted, options };
-  }).then(lease => ({ ...lease.value, release: lease.release }));
+    let generation = 0;
+    // Lazy graph-file compilation still has a synchronous JSON contract. Its
+    // bounded JSON subset remains charged; meshes, textures and Wasm rehydrate.
+    const keep = new Set(admitted.source.files.filter(file => file.kind === 'json').map(file => file.hash));
+    const inputs = new ProductInputs(admitted, options, bytes => {
+      if (owner.scope.disposed) throw new Error('Grid product page disposed');
+      const claim = owner.allocator.reserve({ id: `product-input:grid:${slug}:${++generation}`, category: 'product', owner: 'grid', bytes, distance: 0, needed: true });
+      if (claim === null) throw new Error('Product input residency admission deferred');
+      return claim;
+    }, keep);
+    preparation.inputs = inputs;
+    return { admitted, options, inputs };
+  }).then(async lease => {
+    try {
+      const { admitted, options, inputs } = lease.value, input = await inputs.acquire();
+      if (owner.scope.disposed) { await input.release(); throw new Error('Grid product page disposed during preparation'); }
+      let live = true;
+      const close = async (): Promise<void> => {
+        try { await input.release(); }
+        catch (error) { console.warn('[grid] product input release:', error); }
+        finally { lease.release(); }
+      };
+      return { admitted: { ...admitted, assets: input.assets }, options, reader: inputs.reader, releaseInputs: input.release, release: () => {
+        if (!live) return; live = false;
+        void close();
+      } };
+    } catch (error) { lease.release(); throw error; }
+  });
 }

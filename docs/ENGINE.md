@@ -5212,6 +5212,21 @@ offline durable-presence and corrupt-cache refusals. The ordinary
 `releaseTransport` classification remains unchanged. Without preparation
 release authority, supplied input Maps and reader mirrors stay intact.
 
+The grid's settled tile-preparation promise carries source, decoded views and
+one verified reader, never the complete input Map. Each late same-slug cell
+borrows inputs through `gridShardfileProduct` before its scripts and panels
+install. Material closures project declared JSON files only, so deferred graph
+compiles keep their synchronous contract without retaining mesh/texture/Wasm
+inputs. That JSON subset and commons remain resident and charged.
+`preparationAdmission` keeps cached regional metadata page-owned; prefetch ends
+its input borrow, and every world creation (including re-entry) reacquires
+verified inputs before synchronous consumers. A cancelled in-flight build
+keeps its inputs until it settles, disposes any unpublished world, then releases
+the borrow. Active regional worlds retain inputs through their original
+retirement boundary. Decoder releases cannot shrink the product charge while
+another preparation still holds a mirror; rehydrated wires use a separately
+admitted temporary claim until their last release.
+
 `runtimeOnlyProductFiles(source)` excludes inventory-only references
 (`files`, `critical`, `library`) and retains every host-declared hash and
 its dependency closure. Grid admission releases the remaining runtime-only
