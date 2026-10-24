@@ -10,7 +10,7 @@ import { devProject } from './dev';
 import { HeadlessSimulation, proveAuthorSimulation, measureSimulation, validateSimulation } from './headless';
 import { performanceReport, performanceReportLines, type PerformanceObservations } from './reportCard';
 import { projectPerformancePolicy } from './performancePolicy';
-import { readBoundedFile, readShardfileSource } from './sourceReader';
+import { readBoundedFile } from './sourceReader';
 import { STILL_IMAGE_LIMITS } from '@wildshard/format/stillImage';
 import { assetOverdraw } from './assets';
 // oxlint-disable-next-line import/no-nodejs-modules -- The CLI releases its author server on termination.
@@ -22,8 +22,6 @@ import { decisionModuleContracts } from '@wildshard/format/scriptContract';
 import { outputScriptAdmissionRows, validateOutputProduct } from './outputProduct';
 import type { RuntimeCopyOptions } from './outputRuntime';
 import type { ProjectManifestSource } from './projectManifest';
-import { ShardCatalogPlacementsSchema } from '@wildshard/format/shardCatalog';
-import { writeCatalogFromOutputs } from './outputCatalogScan';
 
 const unmeasured: PerformanceObservations = { scripts: { p95Micros: 0, maxMicros: 0, samples: 0 }, fuel: { p95: 0, max: 0, samples: 0 } };
 function printReport(shard: Shardfile, observed: PerformanceObservations, policy: 'warn' | 'refuse'): void {
@@ -53,13 +51,7 @@ export async function runCli(args: readonly string[], options: { readonly decisi
       ? `/properties${output}` : output;
     console.info(JSON.stringify(schemaAt(document, pointer), null, 2)); return;
   }
-  if (input === undefined) throw new Error('usage: wildshard new <project> | synth <project> | build <project> [output] [--product-only] [--no-placeholders] [--output=<slug>] | build <project> --behaviour-only | catalog <out-directory> <placements.json> | validate <project|shard.json> | dev <project> [port]');
-  if (command === 'catalog') {
-    if (output === undefined || args.length !== 3) throw new Error('usage: wildshard catalog <out-directory> <placements.json>');
-    const placements = v.parse(ShardCatalogPlacementsSchema, readShardfileSource(resolve(output)));
-    const catalog = writeCatalogFromOutputs(resolve(input), placements);
-    console.info(`catalog: ${catalog.shards.length} validated output(s)`); return;
-  }
+  if (input === undefined) throw new Error('usage: wildshard new <project> | synth <project> | build <project> [output] [--product-only] [--no-placeholders] [--output=<slug>] | build <project> --behaviour-only | validate <project|shard.json> | dev <project> [port]');
   if (command === 'synth') {
     if (output !== undefined) throw new Error('usage: wildshard synth <project>');
     const result = await synthProject(resolve(input));

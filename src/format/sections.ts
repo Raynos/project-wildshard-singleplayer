@@ -120,7 +120,7 @@ export interface PlatformSections {
   'sim/plumbing': Pick<Shardfile, 'plumbing'>;
   'audio/audio': Pick<Shardfile, 'audio'>;
   'ui/card': Pick<Shardfile, 'accent'>;
-  /** the level metadata the catalog joins before publication (sp-x1, `LevelSectionSchema` in `./level`, moved out of `ui/card`) */
+  /** Plain manifest metadata for admitted data-client discovery. */
   'ui/level': { readonly manifest: NonNullable<Shardfile['manifest']> };
   'ui/ui': Pick<Shardfile, 'ui' | 'targets'>;
   'ui/compendium': { readonly rows: Pick<Rows, 'compendiums'> };

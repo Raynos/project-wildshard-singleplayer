@@ -3,7 +3,7 @@
 // SF66 (G247): a shard whose baked map (look/map.baked.json) no longer matches its world is refused in CI and on Vercel,
 // so a stale map never deploys; a local build only warns, since the rebake itself needs a served build of that world
 // (node scripts/bake-maps.mjs --url=<scripts/serve-build.sh --head> --shards=<slug>). test/baked-maps.test.ts is the gate's check.
-import { existsSync, readFileSync, readdirSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { runWildshard } from './wildshard.mjs';
@@ -30,19 +30,17 @@ export function readBuiltShardfile(root, name, options = {}) { return selectBuil
 // --reuse (fast proofs: serve-build.sh, `pnpm build:proof`): a shard whose inputs are unchanged keeps its product, from
 // the slot or the shared content-keyed cache (scripts/shardfile-cache.mjs). The plain `pnpm build` (the push gate)
 // rebuilds every shard into a fresh folder. CI may explicitly reuse exact input receipts, then fully validates each hit.
-// --catalog requires a complete pass with strict copies for closed runtimes and atomically publishes out/catalog.json.
 // --shard=<slug>[,<slug>] builds only those shards: another shard's product stays only while its key still matches,
 // else it is removed, so a one-shard preview never serves a stale product of a changed shard.
 /** Pack every first-party map through the existing charged SDK row; missing maps keep the old no-map build path.
- * @param {string} root @param {{strict?:boolean, build?:typeof runWildshard, reuse?:boolean, only?:string[], catalog?:boolean, copyRuntime?:boolean|'closed',onFailure?:(slug:string,error:unknown)=>void}} options */
-export async function buildShardfiles(root, { strict = [process.env.CI, process.env.VERCEL].some(flag => flag !== undefined && flag !== '' && flag !== 'false'), build = runWildshard, reuse = false, only, catalog = false, copyRuntime = 'closed',onFailure } = {}) {
-  if(onFailure!==undefined&&(strict||catalog))throw new Error('Product failure collection is report-only; strict/catalog builds must fail');
-  if (catalog && only !== undefined) throw new Error('wildshard build: --catalog requires every project; --shard cannot publish a catalog');
+ * @param {string} root @param {{strict?:boolean, build?:typeof runWildshard, reuse?:boolean, only?:string[], copyRuntime?:boolean|'closed',onFailure?:(slug:string,error:unknown)=>void}} options */
+export async function buildShardfiles(root, { strict = [process.env.CI, process.env.VERCEL].some(flag => flag !== undefined && flag !== '' && flag !== 'false'), build = runWildshard, reuse = false, only, copyRuntime = 'closed',onFailure } = {}) {
+  if(onFailure!==undefined&&strict)throw new Error('Product failure collection is report-only; strict builds must fail');
   const prepareMaps=createDataMapPreparation(root);
   if(onFailure===undefined)await prepareMaps(strict ? undefined : only?.map(slug => productFolder(root, slug)));
   const outputRoot = resolve(root, 'out');
-  // A partial/ordinary build cannot leave a previous complete catalog vouching for changed products.
-  if (!catalog) rmSync(resolve(outputRoot, 'catalog.json'), { force: true });
+  // Discard the retired discovery artifact left by older builds.
+  rmSync(resolve(outputRoot, 'catalog.json'), { force: true });
   const projects = resolve(root, 'src/shards'), frozen = legacyInventory(root);
   let count = 0;
   const stale = [], runtimeReport = [];
@@ -106,9 +104,9 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
     const map = existsSync(stamp) ? JSON.parse(readFileSync(stamp, 'utf8')) : undefined;
     if (map !== undefined && map.image !== `/assets/${name}/map/top.webp`) throw new Error(`Unexpected baked map path for ${name}`);
     if (map !== undefined) await verifyMapPixels(resolve(root, 'public', map.image.slice(1)), map.pixelHash);
-    const issues = catalog || copyRuntime === 'closed' ? runtimeIssues(project) : [];
+    const issues = copyRuntime === 'closed' ? runtimeIssues(project) : [];
     runtimeReport.push({ slug: name, runtime: issues.length > 0 ? 'source' : 'output', issues });
-    const flags = productFlags(root, output, map, copyRuntime === true || (catalog || copyRuntime === 'closed') && issues.length === 0);
+    const flags = productFlags(root, output, map, copyRuntime === true || copyRuntime === 'closed' && issues.length === 0);
     // --no-placeholders (G348): a first-party product keeps its own bytes; its near / far views come from the repo bakes
     // until the grid reads a shardfile's `near`. The CLI's default baked a near row into Signal Dunes' product, whose play
     // stage then never ran (677bd1cf1: "Shardfile requires the normal play stage", the page held at 82 %).
@@ -156,31 +154,12 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
     if (strict) throw new Error(message);
     console.warn(message);
   }
-  if (catalog) {
-    // Only the game placement declarations are source inputs. Discovery metadata
-    // comes from all validated outputs after the final product/map check passes.
-    const source = JSON.parse(readFileSync(resolve(root, 'src/game/grid/singleplayer.json'), 'utf8'));
-    if (source === null || typeof source !== 'object' || !Array.isArray(source.placements)) throw new Error('Catalog requires grid placements');
-    const placements = source.placements.map(row => {
-      const placement = { slug: row.slug, placement: { instance: row.instance, grid: row.cell, size: row.size } };
-      return runtimeReport.some(report => report.slug === row.slug && report.runtime === 'source') ? Object.assign(placement, { runtime: 'source' }) : placement;
-    });
-    mkdirSync(outputRoot, { recursive: true });
-    const temporary = mkdtempSync(resolve(outputRoot, '.catalog-input-'));
-    try {
-      const path = resolve(temporary, 'placements.json');
-      writeFileSync(path, JSON.stringify(placements));
-      await build(['catalog', outputRoot, path]);
-      writeFileSync(resolve(outputRoot, 'catalog-report.json'), `${JSON.stringify(runtimeReport, null, 2)}\n`);
-      for (const report of runtimeReport) console.info(`catalog runtime: ${report.slug}: ${report.runtime}, ${report.issues.length} closure issue(s)`);
-    } finally { rmSync(temporary, { recursive: true, force: true }); }
-  }
   return count;
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   quietCli('build-shardfiles');
   const only = process.argv.find(arg => arg.startsWith('--shard='))?.slice('--shard='.length).split(',').filter(Boolean);
-  try { await buildShardfiles(resolve(import.meta.dirname, '..'), { catalog: process.argv.includes('--catalog'), copyRuntime: process.argv.includes('--copy-runtime') ? true : 'closed', reuse: process.argv.includes('--reuse'), ...(only === undefined ? {} : { only }) }); }
+  try { await buildShardfiles(resolve(import.meta.dirname, '..'), { copyRuntime: process.argv.includes('--copy-runtime') ? true : 'closed', reuse: process.argv.includes('--reuse'), ...(only === undefined ? {} : { only }) }); }
   catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exitCode = 1; }
 }

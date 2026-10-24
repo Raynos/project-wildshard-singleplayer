@@ -1316,8 +1316,6 @@
  "test/npc-rest-scenes.test.ts": 0.049,
  "test/offscreen-build.test.ts": 0.1,
  "test/oneshot-browser.test.ts": 0,
- "test/output-catalog-scan.test.ts": 0.079,
- "test/output-catalog.test.ts": 0.012,
  "test/output-descriptor.test.ts": 1.446,
  "test/output-index.test.ts": 0.051,
  "test/output-product.test.ts": 0.543,

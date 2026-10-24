@@ -9,11 +9,9 @@
     "./bake/species": "./bake/species.ts",
     "./decisionBindingMap": "./decisionBindingMap.ts",
     "./scriptScenario": "./scriptScenario.ts",
-    "./outputCatalogScan": "./outputCatalogScan.ts",
     "./projectManifest": "./projectManifest.ts",
     "./headlessProduct": "./headlessProduct.ts",
     "./outputRuntime": "./outputRuntime.ts",
-    "./outputCatalog": "./outputCatalog.ts",
     "./runtime/audio/combatCues": "./runtime/audio/combatCues.ts",
     "./reportCard": "./reportCard.ts",
     "./crowds": "./crowds.ts",
@@ -181,10 +179,6 @@
         "types": "./dist/types/sdk/bake/species.d.ts",
         "default": "./dist/bake/species.js"
       },
-      "./outputCatalogScan": {
-        "types": "./dist/types/sdk/outputCatalogScan.d.ts",
-        "default": "./dist/outputCatalogScan.js"
-      },
       "./projectManifest": {
         "types": "./dist/types/sdk/projectManifest.d.ts",
         "default": "./dist/projectManifest.js"
@@ -192,10 +186,6 @@
       "./outputRuntime": {
         "types": "./dist/types/sdk/outputRuntime.d.ts",
         "default": "./dist/outputRuntime.js"
-      },
-      "./outputCatalog": {
-        "types": "./dist/types/sdk/outputCatalog.d.ts",
-        "default": "./dist/outputCatalog.js"
       },
       "./runtime/audio/combatCues": {
         "types": "./dist/types/sdk/runtime/audio/combatCues.d.ts",

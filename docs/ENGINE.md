@@ -8425,24 +8425,6 @@ disk admission uses the derived structural schema. Unknown predicates and
 transforms still refuse conversion. The generation cache binds the bridge
 to the registry and public format sources; `pnpm gen` regenerates it.
 
-### Built shard discovery catalog (P3)
-
-`@wildshard/sdk/outputCatalog.writeOutputCatalog(outRoot, entries)` writes
-canonical `out/catalog.json` after the caller validates and emits its
-products. Each entry supplies the exact index bytes plus title-card,
-accent, placement and nullable first-party runtime metadata. The writer
-hashes those original bytes, derives `<slug>/shard.json`, and sorts by
-card order then slug without mutating its input. It does not load source
-manifests or execute shard code.
-
-`@wildshard/format/shardCatalog.parseShardCatalog` admits that bounded JSON
-contract. Unknown versions, fields, duplicate slugs/instances/cells and
-index path escapes refuse. Thumbnail paths name the shard's hash-named
-image blobs relative to the catalog; data-image thumbnails support the
-data-only Template. Source `/src/` paths cannot leak into discovery.
-This is the catalog contract/emitter prerequisite; the live discovery
-switch follows the output writer and closed-runtime migration.
-
 ### Verbatim runtime output (P3)
 
 `@wildshard/sdk/outputRuntime.writeRuntimeFiles(project, destination,
@@ -8500,25 +8482,12 @@ The original SDK `nativeBodySpecSchema`, `nativeGroundSchema` and
 `@wildshard/format/nativePhysics`. Their admission and decoded return APIs
 stay unchanged; buffer decoding and native installation stay in the SDK.
 
-### Catalog boot and compiled runtime identity (P3)
+### Copied runtime compatibility (legacy)
 
-`format/level.LevelSectionSchema` holds `{manifest}` with the existing
-plain level metadata schema. `ui/card` keeps title presentation separate
-from level configuration; code-valued discovery bindings belong to the
-copied runtime's optional `discovery()` export, not JSON evaluation.
-
-The composition root's `outputRuntimeRegistry` pairs the literal
-`/out/*/runtime/index.ts` lazy glob with the corresponding emitted index
-runtime inventories. `compileCatalogRegistry` fingerprints sorted
-`[path,hash,bytes,lines]` tuples using
-`format/shardCatalog.runtimeInventoryBytes`; the catalog writer uses the
-same representation. Runtime evaluation stays lazy until the selected
-entry loads; repeated selection shares its module promise. The catalog writer
-regenerates the complete list, writes it in an owned temporary directory,
-and renames `catalog.json` atomically; readers see a complete old or new
-catalog. Build orchestration serializes publication of each output root.
-This spike leaves live discovery on its existing path until runtime
-closure, level emission and the full asynchronous composition are wired.
+Frozen legacy configurations retain their runtime schema and verified
+copied-runtime transport until legacy deletion is approved. The unused
+output catalogue and its runtime registry are retired; live discovery
+continues through authored metadata and the existing LEGACY entry.
 
 `wildshard build <project> <output> --copy-runtime` enables the strict
 copied-runtime build path (`buildProject` option `copyRuntime: true`). It
@@ -8640,7 +8609,7 @@ for the SDK client's embedded index. Installed data-client manifests
 retain their admitted product, so session context creation reuses its
 sections and file reader instead of loading a descriptor a second time.
 
-### Built level image packing and catalog scan (P3)
+### Built level image packing (P3)
 
 `@wildshard/sdk/projectManifest.manifestImages` lists the image inputs in
 plain level metadata. `packManifestImages(folder, metadata, images)`
@@ -8650,16 +8619,6 @@ named blobs. Project declaration intake charges new hashes once. Inline data
 images remain inline; absent bytes refuse. Emitted level image URLs are
 bounded `/shardfiles/<folder>/blobs/image/<sha256>.<webp|jpg|png>` paths.
 No runtime source image import or missing-image fallback is introduced.
-
-`@wildshard/sdk/outputCatalogScan.writeCatalogFromOutputs(out, placements)`
-regenerates discovery from every published product directory. It reads
-only output indexes, current index-hash receipts, `ui/level`, `ui/card`
-and the referenced image blobs, verifies their hashes and emits the
-complete catalog by atomic rename. It does not load all product assets,
-read a source manifest or patch a prior catalog. Missing level, card,
-placement, image or copied page runtime refuses before catalog publish.
-These are build-only preparation APIs; app activation follows the writer
-and standalone-runtime migration.
 
 ### Sectioned output writer (P1)
 
@@ -8893,30 +8852,6 @@ existing 6144×704 horizon without changing its bytes. The title's
 `parseStillImage` keeps its 4096-per-axis limit. Image blob cost and
 extension readers share the asset parser; decoded/GPU accounting stays
 byte-derived.
-
-### Complete catalog build orchestration (P3)
-
-`node scripts/build-shardfiles.mjs --catalog` builds every first-party
-product with `--copy-runtime`, including the strict runtime boundary,
-section-schema and constant-mirror proofs, then regenerates discovery
-from every output. The game supplies grid placements; all title metadata
-comes from validated output sections and image blobs. The author CLI
-`wildshard catalog <out-directory> <placements.json>` admits a bounded
-array through `ShardCatalogPlacementsSchema` before scanning outputs.
-A declared placement without its output refuses publication.
-
-Catalog generation runs once after all product and map checks pass.
-Failure preserves the previous catalog. `--catalog` refuses `--shard`;
-ordinary and partial builds remove an obsolete catalog. The orchestration
-option `copyRuntime:true` also proves selected products without
-publishing discovery; this supports per-shard output measurement. Vite publishes
-`out/catalog.json` as `dist/shardfiles/catalog.json`, alongside data
-products but without runtime TypeScript or build-cache stamps.
-
-This strict complete-build mode is opt-in until client runtime closure.
-The live title still uses its current discovery path. Switching that
-reader must enable `--catalog` in the app, push-gate and Vercel build
-commands in the same commit, so no shipped reader lacks its catalog.
 
 ### Decision-script v1 transport and host contract
 

@@ -89,12 +89,11 @@ it('reports every product and exits zero after one fixture product fails', () =>
   expect(report.calls.sort()).toEqual([...MILESTONE_SHARDS].sort());
 });
 
-it('keeps ordinary, strict and catalogue builds hard on failure', async () => {
+it('keeps ordinary and strict builds hard on failure', async () => {
   const root = fixture(), build = (): Promise<void> => Promise.reject(new Error('Strict fixture refused'));
   await expect(buildShardfiles(root, { strict: false, build })).rejects.toThrow('Strict fixture refused');
   const onFailure = (): void => { throw new Error('Must never collect strict failures'); };
   await expect(buildShardfiles(root, { strict: true, onFailure })).rejects.toThrow('report-only');
-  await expect(buildShardfiles(root, { strict: false, catalog: true, onFailure })).rejects.toThrow('report-only');
 });
 
 it('collects generation discovery failures within each report product boundary',async()=>{
