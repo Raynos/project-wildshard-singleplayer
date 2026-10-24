@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest';
-import { prepareHeadlessAssembly } from '../src/sdk/headlessAssembly';
+import { trustedLevel } from '../src/game/plugin/simulation';
+import type { HeadlessRuntimePlan } from '../src/sdk/headlessRuntime';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { createSimHost } from '../src/engine/sim';
@@ -76,10 +77,17 @@ test('the actual population assembly reads the stock profile at its original pre
     files: new Map([['sim/headless-assembly.json', { hash: 'assembly', url: 'assembly' }],['data/physics-ground.bin',{hash:'ground',url:'ground'}],['data/physics-colliders-0.bin',{hash:'colliders',url:'colliders-0'}],['data/physics-colliders-1.bin',{hash:'colliders',url:'colliders-1'}],['sim/population-metadata.json',{hash:metadataBlob.file.hash,url:metadataBlob.file.path,jsonSchema:schema}]]),
     read: hash => Promise.resolve(hash==='assembly'?bytes:hash==='ground'?new Uint8Array(new Float32Array([0,1,2,3]).buffer):hash==='colliders'?new Uint8Array():metadataBlob.bytes) });
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
-  const source = input(), modules = { '@wildshard/game/population/nativeBake': { createNativeBakeReader },
-    'src/shards/nalati-grasslands/data/physics.generated.json': { default: {...source,ground:{...source.ground,heights:{file:'data/physics-ground.bin'}}} }, 'src/game/populationFixture': { capture } };
-  const first = await prepareHeadlessAssembly({ shard, product, assets: new Map(), rapier }, modules);
-  const independent = await prepareHeadlessAssembly({ shard, product, assets: new Map(), rapier }, modules);
+  const source=input();
+  const prepare=async():Promise<HeadlessRuntimePlan>=>{
+    const ground=await product.file('data/physics-ground.bin'),colliders0=await product.file('data/physics-colliders-0.bin'),colliders1=await product.file('data/physics-colliders-1.bin');
+    const reader=createNativeBakeReader({...source,ground:{...source.ground,heights:{file:'data/physics-ground.bin'}}},rows,
+      {file:'data/physics-ground.bin',bytes:ground},[{file:'data/physics-colliders-0.bin',bytes:colliders0},{file:'data/physics-colliders-1.bin',bytes:colliders1}]);
+    const admittedMetadata=await product.json<Record<string,unknown>>('sim/population-metadata.json');
+    const value={...admittedMetadata,...reader.read()};
+    return {level:trustedLevel(shard,{at:{x:shard.spawn.x,y:Math.max(shard.spawn.y,.1),z:shard.spawn.z},yaw:shard.spawn.yaw,speed:5},{size:32,height:0}),
+      ports:{ground:false,heightAt:()=>0},install:()=>{capture(value);}};
+  };
+  const first=await prepare(),independent=await prepare();
   const host = createSimHost(first.level, { ...first.ports, rapier });
   try {
     for (const restoring of [false, true]) first.install(host, { restoring, commands: () => [], emit: () => undefined });

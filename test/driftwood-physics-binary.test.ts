@@ -7,7 +7,8 @@ import { readNamedBlob } from '../src/sdk/blobs';
 import { driftwoodPhysics, driftwoodPhysicsFiles, driftwoodPhysicsSources } from '../src/shards/driftwood-isle/generators/physics';
 import { driftwoodNativeRows } from '../src/shards/driftwood-isle/generators/nativeBake';
 import assembly from '../src/shards/driftwood-isle/data/headlessAssembly.json' with { type: 'json' };
-import { prepareHeadlessAssembly } from '../src/sdk/headlessAssembly';
+import { trustedLevel } from '../src/game/plugin/simulation';
+import type { HeadlessRuntimePlan } from '../src/sdk/headlessRuntime';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { createSimHost } from '../src/engine/sim';
@@ -75,7 +76,14 @@ test('the shipped assembly reads the raw files and retains native collision, sav
     files: new Map([...data.keys()].map(name => [name, { hash: name, url: name }])), read: name => {
       reads.push(name); const bytes = data.get(name); if (bytes === undefined) throw new Error('Missing native fixture file'); return Promise.resolve(bytes);
     } });
-  const plan = await prepareHeadlessAssembly({ shard, product, assets: new Map(), rapier }, { '@wildshard/game/population/nativeBake': module });
+  const {constants}=await product.json<{constants:{physics:typeof admitted}}>('sim/headless-assembly.json');
+  const floor=await product.file(floorFile),colliders=await product.file(hullFile);
+  const intake=createNativeBakeReader(constants.physics,{label:'Driftwood',resolution:256,size:500,parked:false,rig:'axis',shapes:[1,2,9],provenance:'tagged'},
+    {file:floorFile,bytes:floor},[{file:hullFile,bytes:colliders}]);
+  const bake={ground:nativeBakeGround(constants.physics.ground,256,500,'Driftwood',{file:floorFile,bytes:floor}),
+    solids:constants.physics.solids.map(row=>intake.solid(row))};
+  const plan:HeadlessRuntimePlan={level:trustedLevel(shard,{at:{x:shard.spawn.x,y:Math.max(shard.spawn.y,.1),z:shard.spawn.z},yaw:shard.spawn.yaw,speed:5},{size:500,height:0}),
+    ports:{ground:false,heightAt:()=>0},install:(host,context)=>{if(!context.restoring)installNativeCollision(host,bake,{resolution:256});}};
   expect(reads).toEqual(['sim/headless-assembly.json', floorFile, hullFile]);
   const original = createSimHost(plan.level, { ...plan.ports, rapier }), candidate = createSimHost(plan.level, { ...plan.ports, rapier });
   const inline = (bytes: Uint8Array): string => { let result = ''; for (const byte of bytes) result += String.fromCodePoint(byte); return btoa(result); };

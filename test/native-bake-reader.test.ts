@@ -2,7 +2,9 @@ import { nativeColliderRecordSchema } from '../src/format/nativePhysics';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { createNativeBakeReader, nativeBakeBytes, type NativePhysicsBake, type NativeBakeReader } from '../src/game/population/nativeBake';
-import { prepareHeadlessAssembly } from '../src/sdk/headlessAssembly';
+import { trustedLevel } from '../src/game/plugin/simulation';
+import type { HeadlessRuntimePlan } from '../src/sdk/headlessRuntime';
+import { readJson } from './fixtures/headless-plan';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { createSimHost } from '../src/engine/sim';
@@ -60,9 +62,16 @@ test('the Pine assembly retains memoized buffers and privately owned native meta
     files: new Map([...bytes.keys()].map(path => [path, { hash: path, url: path }])),
     read: path => { const value = bytes.get(path); if (value === undefined) throw new Error('Missing native fixture'); return Promise.resolve(value); } });
   const rapier = await loadRapier(readFileSync(new URL('../node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm',import.meta.url)));
-  const modules = { '@wildshard/game/population/nativeBake': { createNativeBakeReader }, 'src/game/bakeFixture': { capture } };
-  const first = await prepareHeadlessAssembly({ shard, product, assets: new Map(), rapier }, modules);
-  const other = await prepareHeadlessAssembly({ shard, product, assets: new Map(), rapier }, modules);
+  const prepare=async():Promise<HeadlessRuntimePlan>=>{
+    const physics=await readJson<typeof baked>(product,'data/physics.generated.json');
+    const ground=await product.file('data/physics-ground.bin'),colliders=await product.file('data/physics-colliders.bin');
+    const reader=createNativeBakeReader(physics,{label:'Pine',resolution:terrain.res,size:terrain.size,parked:true,rig:'segments',shapes:[1,2,6,9],provenance:'piece'},
+      {file:'data/physics-ground.bin',bytes:ground},[{file:'data/physics-colliders.bin',bytes:colliders}]);
+    const value={kingHit:physics.kingHit,shelterTrees:physics.shelterTrees,...reader.read()};
+    return {level:trustedLevel(shard,{at:{x:shard.spawn.x,y:Math.max(shard.spawn.y,.1),z:shard.spawn.z},yaw:shard.spawn.yaw,speed:5},{size:500,height:0}),
+      ports:{ground:false,heightAt:()=>0},install:()=>{capture(value,reader);}};
+  };
+  const first=await prepare(),other=await prepare();
   const host = createSimHost(first.level, { ...first.ports, rapier });
   try {
     for (const restoring of [false, true]) first.install(host, { restoring, commands: () => [], emit: () => undefined });
