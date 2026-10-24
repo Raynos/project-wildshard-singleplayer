@@ -101,6 +101,8 @@ export class ReturnProgram {
   private readonly module: DecisionModule | null = null;
   private readonly script: DecisionScriptRow;
   private readonly signalNames:readonly string[];
+  private readonly parameterNames:readonly string[];
+  private readonly channelNames:readonly string[];
   private readonly layout: ReturnType<typeof scriptV1Layout>;
   private observations: Readonly<Record<string, number>> = {};
   private candidates: readonly Readonly<Record<string, number>>[] = [];
@@ -117,6 +119,7 @@ export class ReturnProgram {
     freeze(row);this.declaration=row;
     const bytes = admitReturn(row, owner, witness);
     this.script = script;this.signalNames=row.v2?.signals??Object.values(script.signals).sort(); this.layout = scriptV1Layout(0, Object.keys(script.params).length);
+    this.parameterNames=Object.keys(script.params).sort();this.channelNames=Object.values(script.channels).sort();
     const fields = Object.values(script.fields).sort();
     if (row.v2 !== undefined) {
       const projection = new ReturnProjectionV2(row.v2,owner,raw,prepared);
@@ -240,7 +243,7 @@ export class ReturnProgram {
     this.validateOwner();
     if (this.prepare !== undefined) { const result = this.prepare(signal,observations,random,candidates);result.accept();return result.values; }
     if (this.active) throw new Error('Reentrant return request');
-    const signalId = Object.values(this.script.signals).sort().indexOf(signal) + 1;
+    const signalId = this.signalNames.indexOf(signal) + 1;
     if (signalId === 0 || Object.values(observations).some(value => !Number.isFinite(value))
       || candidates.length > 8 || candidates.some(candidate => Object.values(candidate).some(value => !Number.isFinite(value)))) throw new Error('Invalid return request');
     const { module, layout } = this;
@@ -250,13 +253,15 @@ export class ReturnProgram {
     try {
       const set = (slot: number, value: number): void => { module.view.setFloat64(base + slot * 8, value, true); };
       set(0, 0); set(1, 0); set(2, 1); set(3, 0); set(4, 1);
-      Object.keys(this.script.params).sort().forEach((name, i) => { set(layout.params + i, this.script.params[name] ?? 0); });
-      [SCRIPT_V1_EVENTS.signal, signalId, 0, 0, 0, 0].forEach((value, i) => { set(layout.inbox + i, value); });
-      const count = module.invoke('ws_handle'), result: Record<string, number> = {}, channels = Object.values(this.script.channels).sort();
+      for(let i=0;i<this.parameterNames.length;i++){const name=this.parameterNames[i];if(name===undefined)throw new Error('Missing return parameter');set(layout.params+i,this.script.params[name]??0);}
+      set(layout.inbox,SCRIPT_V1_EVENTS.signal);set(layout.inbox+1,signalId);
+      set(layout.inbox+2,0);set(layout.inbox+3,0);set(layout.inbox+4,0);set(layout.inbox+5,0);
+      const count = module.invoke('ws_handle'), result: Record<string, number> = {}, channels = this.channelNames;
       if (!Number.isSafeInteger(count) || count < 0 || count > 32) throw new Error('Return output bound');
       for (let i = 0; i < count; i++) {
-        const command = Array.from({ length: 5 }, (_, j) => module.view.getFloat64(base + (layout.outbox + i * 5 + j) * 8, true));
-        const [op, target, id, value, reserved] = command, name = channels[(id ?? 0) - 1];
+        const at=base+(layout.outbox+i*5)*8;
+        const op=module.view.getFloat64(at,true),target=module.view.getFloat64(at+8,true),id=module.view.getFloat64(at+16,true),
+          value=module.view.getFloat64(at+24,true),reserved=module.view.getFloat64(at+32,true),name=channels[id-1];
         if (op !== SCRIPT_V1_COMMANDS.channel || target !== 0 || reserved !== 0 || !Number.isInteger(id) || name === undefined
           || value === undefined || !Number.isFinite(value) || Object.hasOwn(result, name)) throw new Error('Invalid return output');
         result[name] = value;
