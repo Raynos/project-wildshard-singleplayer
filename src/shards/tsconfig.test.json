@@ -10,7 +10,7 @@
       "node"
     ],
     "rootDir": "../..",
-    "outDir": "../../.tsc-layers/shards-tests",
+    "outDir": "../../.tsc-layers/shards",
     "tsBuildInfoFile": "../../.tsc-layers/shards-tests.tsbuildinfo"
   },
   "references": [

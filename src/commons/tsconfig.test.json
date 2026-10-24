@@ -10,7 +10,7 @@
       "node"
     ],
     "rootDir": "../..",
-    "outDir": "../../.tsc-layers/commons-tests",
+    "outDir": "../../.tsc-layers/commons",
     "tsBuildInfoFile": "../../.tsc-layers/commons-tests.tsbuildinfo"
   },
   "references": [

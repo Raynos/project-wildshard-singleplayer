@@ -7,7 +7,7 @@
     "declaration": true,
     "types": ["vite/client", "node"],
     "rootDir": "../..",
-    "outDir": "../../.tsc-layers/engine-tests",
+    "outDir": "../../.tsc-layers/engine",
     "tsBuildInfoFile": "../../.tsc-layers/engine-tests.tsbuildinfo"
   },
   "references": [

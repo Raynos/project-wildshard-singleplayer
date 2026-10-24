@@ -201,6 +201,9 @@ rewrite still needs Jake's approval.
 - **Unit and integration tests live beside their source (G645)** and are checked by that layer's TypeScript project.
   Regression, end-to-end and scenario tests keep their separate test project. Vitest discovery, duration sharding,
   related-test selection and the no-module-mock rule cover both locations.
+  Production and test projects emit disjoint declarations into the same layer
+  output directory, with separate build metadata, so private relative types
+  exported by test helpers still resolve. Node globals remain test-only.
 - **Disk-reading tests declare their products** in `scripts/test-products.json`.
   The related-test walk retains their author-source edges; CI
   verifies/rebuilds selected products with `--reuse --shard=…`. The scheduled local

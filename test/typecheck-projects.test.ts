@@ -48,6 +48,13 @@ test('every source file has a layer owner, while the root covers all tests and a
   expect(project('scripts/tsconfig.json').options.checkJs).toBe(true);
   expect(project('scripts/tsconfig.json').options.strict).toBe(true);
   expect(project('scripts/tsconfig.json').options.skipLibCheck).toBe(true);
+  for (const layer of ['engine', 'format', 'game', 'sdk', 'commons', 'shards']) {
+    const production = project(`tsconfig.${layer}.json`), tests = project(`src/${layer}/tsconfig.test.json`);
+    expect(tests.options.outDir).toBe(production.options.outDir);
+    expect(tests.options.tsBuildInfoFile).not.toBe(production.options.tsBuildInfoFile);
+    const implementations = new Set(production.fileNames.filter(file => !file.endsWith('.d.ts')));
+    expect(tests.fileNames.filter(file => implementations.has(file))).toEqual([]);
+  }
 });
 
 test('tests consume emitted declarations; source and test errors each still refuse', () => {
@@ -145,14 +152,21 @@ test('workspace Node tests consume declarations without giving production Node g
   try {
     put('tsconfig.engine.json', JSON.stringify({ compilerOptions: { strict: true, composite: true, declaration: true,
       module: 'ESNext', moduleResolution: 'bundler', target: 'ES2022', types: [], skipLibCheck: true,
-      emitDeclarationOnly: true, outDir: 'out' }, include: ['src/engine'], exclude: ['**/*.test.ts'] }));
+      emitDeclarationOnly: true, outDir: 'out' }, include: ['src/engine'], exclude: ['**/*.test.ts', 'src/engine/test'] }));
     put('src/engine/tsconfig.test.json', JSON.stringify({ compilerOptions: { strict: true, composite: true,
-      declaration: true, emitDeclarationOnly: true, outDir: '../../test-out', types: ['node'], skipLibCheck: true,
-      module: 'ESNext', moduleResolution: 'bundler', target: 'ES2022' }, include: ['**/*.test.ts'],
+      declaration: true, emitDeclarationOnly: true, outDir: '../../out', rootDir: '../..', types: ['node'], skipLibCheck: true,
+      module: 'ESNext', moduleResolution: 'bundler', target: 'ES2022' }, include: ['**/*.test.ts', 'test/**/*.ts'],
       references: [{ path: '../../tsconfig.engine.json' }] }));
     put('src/engine/tsconfig.json', JSON.stringify({ files: [], references: [
       { path: '../../tsconfig.engine.json' }, { path: './tsconfig.test.json' },
     ] }));
+    put('src/engine/internal.ts', 'export class Internal { readonly value: number = 1; }\n');
+    put('src/engine/test/helper.ts', 'import {Internal} from "../internal"; export function make(): Internal { return new Internal(); }\n');
+    put('tsconfig.json', JSON.stringify({ compilerOptions: { strict: true, noEmit: true, types: [], skipLibCheck: true,
+      module: 'ESNext', moduleResolution: 'bundler' }, include: ['test'], references: [
+      { path: './tsconfig.engine.json' }, { path: './src/engine/tsconfig.test.json' },
+    ] }));
+    put('test/helper.ts', 'import {make} from "../src/engine/test/helper"; export const result: number = make().value;\n');
     put('src/engine/value.ts', 'export const value: number = 1;\n');
     put('src/engine/value.test.ts', '// oxlint-disable-next-line import/no-nodejs-modules -- Read the real Node executable in this compiler fixture.\nimport {readFileSync} from "node:fs";\nimport {value} from "./value";\n\nexport const size: number = readFileSync(process.execPath).length + value;\n');
     const lint = (): ReturnType<typeof spawnSync> => spawnSync(resolve('node_modules/.bin/oxlint'),
@@ -167,6 +181,17 @@ test('workspace Node tests consume declarations without giving production Node g
     const files = String(checked.stdout).replaceAll('\\', '/').split('\n');
     expect(files).toContain(`${root}/out/src/engine/value.d.ts`);
     expect(files).not.toContain(`${root}/src/engine/value.ts`);
+    const rootCheck = run('--noEmit', '--listFiles');
+    expect(rootCheck.status, String(rootCheck.stdout) + String(rootCheck.stderr)).toBe(0);
+    const rootFiles = String(rootCheck.stdout).replaceAll('\\', '/').split('\n');
+    expect(rootFiles).toContain(`${root}/out/src/engine/test/helper.d.ts`);
+    expect(rootFiles).toContain(`${root}/out/src/engine/internal.d.ts`);
+    expect(rootFiles).not.toContain(`${root}/src/engine/test/helper.ts`);
+    expect(rootFiles).not.toContain(`${root}/src/engine/internal.ts`);
+    put('test/helper.ts', 'import {make} from "../src/engine/test/helper"; export const result: string = make().value;\n');
+    const badHelper = run('--noEmit');
+    expect(badHelper.status).not.toBe(0);
+    expect(String(badHelper.stdout) + String(badHelper.stderr)).toContain('TS2322');
     put('src/engine/value.ts', 'export const value: number = process.pid;\n');
     const badProduction = run('-b', 'src/engine/tsconfig.json');
     expect(badProduction.status).not.toBe(0);

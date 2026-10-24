@@ -10,7 +10,7 @@
       "node"
     ],
     "rootDir": "../..",
-    "outDir": "../../.tsc-layers/sdk-tests",
+    "outDir": "../../.tsc-layers/sdk",
     "tsBuildInfoFile": "../../.tsc-layers/sdk-tests.tsbuildinfo"
   },
   "references": [

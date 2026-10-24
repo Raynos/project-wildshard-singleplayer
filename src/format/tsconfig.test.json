@@ -10,7 +10,7 @@
       "node"
     ],
     "rootDir": "../..",
-    "outDir": "../../.tsc-layers/format-tests",
+    "outDir": "../../.tsc-layers/format",
     "tsBuildInfoFile": "../../.tsc-layers/format-tests.tsbuildinfo"
   },
   "references": [

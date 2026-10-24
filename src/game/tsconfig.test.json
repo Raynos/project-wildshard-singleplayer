@@ -10,7 +10,7 @@
       "node"
     ],
     "rootDir": "../..",
-    "outDir": "../../.tsc-layers/game-tests",
+    "outDir": "../../.tsc-layers/game",
     "tsBuildInfoFile": "../../.tsc-layers/game-tests.tsbuildinfo"
   },
   "references": [
