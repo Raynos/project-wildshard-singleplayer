@@ -24,7 +24,7 @@ import { shadowDepthResolver, type ShadowDepthResolver } from './shadowDepthVari
 import { installedGraphBackend } from './graphBackend';
 import { boundEntryWarmup } from './entryWarmupBound';
 import { workSlice } from '../core/workSlice';
-import { heldBudget, presenting } from '../core/framePacing';
+import { frameBudgetSpent, heldBudget, presenting } from '../core/framePacing';
 import { waitFor } from '../boot/waits';
 
 /**
@@ -930,8 +930,12 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   const mode = parallel ? 'parallel' : 'serial';
   let tFrame = performance.now(), programsAtFrame = programCount(renderer);
   let stageStart = tFrame;
+  const spent = (start: number): boolean => performance.now() - start >= heldBudget(sliceMs) || frameBudgetSpent(sliceMs);
   const programsByKind = new Map<string, number>();
   for (const [i, job] of jobs.entries()) {
+    // Job discovery and other builders may already have spent this drawn frame. Compile is atomic: don't start it
+    // on a stale local slice, and don't append first-use/link preparation after a compile has consumed the budget.
+    if (frameBudgetSpent(sliceMs)) { await pause(); tFrame = performance.now(); programsAtFrame = programCount(renderer); }
     checkCurrent();
     const programsBefore = programCount(renderer);
     const prevRt = renderer.getRenderTarget(), prevTone = renderer.toneMapping;
@@ -975,8 +979,8 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     // queues compile/link to its GPU process, so the JS slice is cheap but the frame that presents it waits for all of
     // them (Sky Reach's entry: 18 programs in one 217 ms Simulator frame of afterPlay).
     const capped = isolateImageUploads && programCount(renderer) - programsAtFrame >= programsPerFrame();
-    if (performance.now() - tFrame > heldBudget(sliceMs) || capped || i === jobs.length - 1) {
-      if (isolateImageUploads) settleOne();
+    if (spent(tFrame) || capped || i === jobs.length - 1) {
+      if (isolateImageUploads && !spent(tFrame)) settleOne();
       await pause(); tFrame = performance.now(); programsAtFrame = programCount(renderer);
     }
   }
@@ -1017,6 +1021,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   // 759 uniforms resolved in one 699 ms Simulator frame of afterPlay).
   let tSlice = performance.now(), resolvedInSlice = 0;
   for (const [i, p] of pending.entries()) {
+    if (frameBudgetSpent(sliceMs)) { await pause(); tSlice = performance.now(); resolvedInSlice = 0; }
     checkCurrent();
     // A live slice settles one ready program. An incomplete link alone needs another poll.
     // (past LINK_WAIT_MS the resolve below links it synchronously). O14: each ask waits behind the GPU process's queued
@@ -1031,7 +1036,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     prepareBlocks(p); resolvedPrograms.add(p); resolvedInSlice++;
     const linkedProgress = parallel ? (isolateImageUploads ? 2 * (i + 1) : n + i + 1) : i + 1;
     onProgress?.(jobs.length + linkedProgress, jobs.length + units + textures.length, `${i + 1} / ${n} programs resolved · ${mode}`);
-    if (performance.now() - tSlice > heldBudget(sliceMs) || (isolateImageUploads && resolvedInSlice >= programsPerFrame())) { await pause(); tSlice = performance.now(); resolvedInSlice = 0; }
+    if (spent(tSlice) || (isolateImageUploads && resolvedInSlice >= programsPerFrame())) { await pause(); tSlice = performance.now(); resolvedInSlice = 0; }
   }
   // Compilation exposes samplers injected by shader callbacks; merge them before any draw.
   if (onStage !== undefined) { onStage('link', performance.now() - stageStart, pending.length); stageStart = performance.now(); }
@@ -1046,6 +1051,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   const batch = uploadBudget !== undefined ? newUploadBatch(uploadBudget) : undefined;
   let imageBytes = 0, slowestUpload = 0;
   for (const [i, tex] of uploadTextures.entries()) {
+    if (frameBudgetSpent(sliceMs)) { await pause(); tSlice = performance.now(); batch?.reset(); }
     checkCurrent();
     const compressed = tex instanceof THREE.CompressedTexture;
     const bytes = compressed ? 0 : imageUploadBytes(tex);

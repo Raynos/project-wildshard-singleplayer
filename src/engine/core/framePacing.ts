@@ -67,10 +67,13 @@ export function frameDue(now: number = diagnosticNow()): boolean {
  * Whether a presenting page's build work since its last drawn frame has used `budgetMs`, at most a quarter of the game frame and half a 60 Hz display slot: the budget is the
  * frame's, shared by every sliced build running at once. Each slice's own clock alone let several builds (a herd's coats,
  * the ground's arrays, the terrain) each run their stretch back to back, so no frame was drawn for 100-130 ms.
+ * A busy draw also caps construction at half the remaining deadline (at least 1 ms for progress): a 28 ms draw at
+ * 30 Hz cannot afford the same 8 ms of construction as a cheap frame. Cheap 60 Hz frames retain their quarter-frame cap.
  */
 export function frameBudgetSpent(budgetMs: number, now: number = diagnosticNow()): boolean {
   if (held) return presenting(now) && now - lastDrawn >= heldBudget(budgetMs);
-  return presenting(now) && (now - lastDrawn >= Math.min(budgetMs, interval / 4, BUILD_FRAME_MS / 2) || frameDue(now));
+  const remaining = interval - Math.max(0, lastDrawn - lastFrameAt) - DUE_SLACK_MS;
+  return presenting(now) && (now - lastDrawn >= Math.min(budgetMs, interval / 4, BUILD_FRAME_MS / 2, Math.max(1, remaining / 2)) || frameDue(now));
 }
 
 
@@ -96,9 +99,18 @@ export function nextDrawnFrame(owner?: Scope): Promise<void> {
 /**
  * End a build stretch: when presenting and a frame is due, wait for the loop to draw it; otherwise `plain()` (the caller's
  * own macrotask hop: a timer, a MessageChannel). `budgetMs`: also wait once the builds since the last drawn frame have used
- * that much of it (`frameBudgetSpent`), so concurrent sliced builds share one frame's budget.
+ * that much of it (`frameBudgetSpent`), so concurrent sliced builds share one frame's budget. Queued live tasks recheck
+ * this fence on delivery, before admitting their awaiting continuation.
  */
 export function paceYield(plain: () => Promise<void>, owner?: Scope, budgetMs?: number): Promise<void> {
   const now = diagnosticNow();
-  return !held && frameDue(now) || (budgetMs !== undefined && frameBudgetSpent(budgetMs, now)) ? nextDrawnFrame(owner) : plain();
+  if (yieldDue(budgetMs, now)) return nextDrawnFrame(owner);
+  const turn = plain();
+  // Other builders can spend the frame while this task is queued. A message/timer hop alone must not admit its
+  // awaiting continuation on the stale pre-hop budget. Loading and Node keep the original promise/turn unchanged.
+  return presenting(now) ? turn.then(() => owner?.disposed !== true && yieldDue(budgetMs, diagnosticNow()) ? nextDrawnFrame(owner) : undefined) : turn;
+}
+
+function yieldDue(budgetMs: number | undefined, now: number): boolean {
+  return !held && frameDue(now) || (budgetMs !== undefined && frameBudgetSpent(budgetMs, now));
 }

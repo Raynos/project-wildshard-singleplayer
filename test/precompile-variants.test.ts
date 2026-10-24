@@ -3,6 +3,7 @@ import { Bone, BoxGeometry, InstancedMesh, Mesh, MeshBasicMaterial, MeshDepthMat
 import { runPrecompile, sceneJobs, shadowJobs } from '../src/engine/render/precompile';
 import type { ProgramLike } from '../src/engine/boot/perflog';
 import { loadGraphBackend } from '../src/engine/render/graphBackend';
+import { noteFrameDrawn } from '../src/engine/core/framePacing';
 
 test('preparation retains both shadow-receiver variants of a shared material', () => {
   const scene = new Scene(), geometry = new BoxGeometry(), material = new MeshStandardMaterial();
@@ -158,3 +159,41 @@ test.each([[false, true], [true, true], [true, false]] as const)(
       expect(diagnostics.checkShaderErrors).toBe(true);
     } finally { geometry.dispose(); material.dispose(); }
   });
+
+test.each([
+  { cap: 30, draw: 28, compile: 2, resolve: 3, isolate: true, pauses: 4, expected: [0, 1, 2, 3] },
+  { cap: 60, draw: 4, compile: 1, resolve: 1, isolate: true, pauses: 2, expected: [0, 0, 1, 1] },
+  { cap: 60, draw: 4, compile: 1, resolve: 1, isolate: false, pauses: 1, expected: [0, 0, 1, 1] },
+  { cap: 30, draw: 28, compile: 23, resolve: 7, isolate: true, pauses: 4, expected: [0, 1, 2, 3] },
+])('compile and link share the remaining $cap Hz frame budget ($compile ms compile, isolate $isolate)', async ({ cap, draw, compile, resolve, isolate, pauses, expected }) => {
+  const renderer: unknown = Object.create(WebGLRenderer.prototype);
+  if (!(renderer instanceof WebGLRenderer)) throw new Error('Missing renderer');
+  const geometry = new BoxGeometry(), a = new MeshBasicMaterial(), b = new MeshBasicMaterial(), scene = new Scene();
+  scene.add(new Mesh(geometry, a), new Mesh(geometry, b));
+  let frame = 0, now = 1000 + draw;
+  const events: number[] = [], acquired: ProgramLike[] = [], programs = new Map<Material, Map<string, ProgramLike>>();
+  const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
+  const fields: Record<string, unknown> = {
+    info: { programs: acquired, render: { frame: 0 } }, extensions: { has: () => true },
+    properties: { get: (material: Material) => ({ programs: programs.get(material) }), has: () => true },
+    getRenderTarget: () => null, setRenderTarget: () => undefined,
+    compile: (root: Scene) => {
+      events.push(frame); now += compile;
+      root.traverse(object => {
+        if (!(object instanceof Mesh) || !(object.material instanceof MeshBasicMaterial)) return;
+        const program: ProgramLike = { name: 'paced', type: 'basic', cacheKey: String(acquired.length), id: acquired.length,
+          usedTimes: 1, program: {}, isReady: () => true, getUniforms: () => { events.push(frame); now += resolve; } };
+        acquired.push(program); programs.set(object.material, new Map([['paced', program]]));
+      });
+    },
+  };
+  for (const [key, value] of Object.entries(fields)) Reflect.set(renderer, key, value);
+  noteFrameDrawn(now, 1000, cap);
+  try {
+    await runPrecompile(renderer, new PerspectiveCamera(), sceneJobs(scene, null, 1).jobs, 2, undefined, [], () => true, isolate,
+      () => { frame++; now = 1000 + frame * (1000 / cap) + draw; noteFrameDrawn(now, 1000 + frame * (1000 / cap), cap); return Promise.resolve(); });
+    expect(events).toEqual(expected);
+    expect(frame).toBe(pauses);
+    expect(acquired).toHaveLength(2);
+  } finally { clock.mockRestore(); noteFrameDrawn(Number.NEGATIVE_INFINITY); geometry.dispose(); a.dispose(); b.dispose(); }
+});

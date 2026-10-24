@@ -827,7 +827,7 @@ omitting the anchor preserves the original deadline, and uncapped cadence still 
 The CPU/render work already spent by that frame is not spare construction time; `workSlice` yields
 when that deadline is due even if its own nominal budget is not exhausted. Uncapped deadlines use the
 fastest observed cadence from actual rAF pairs, so neither the synchronous first draw nor a missed vsync changes the target.
-Piece-to-piece macrotasks share the same budget as sliced loops, capped at a quarter of the game cadence and half a 60 Hz display slot (at most 8.33 ms). Caller budgets remain authoritative: the default 8 ms phone slice cannot grow with a slower cap; 60 Hz and faster retain their previous quarter-frame bound. Completion-only
+Piece-to-piece macrotasks share the same budget as sliced loops, capped at a quarter of the game cadence and half a 60 Hz display slot (at most 8.33 ms). Busy draws further cap construction at half the time remaining before the next deadline (at least 1 ms for progress); cheap desktop frames retain the previous allowance. Queued live timer/message turns recheck the shared budget before resuming their awaiting builder. Caller budgets remain authoritative: the default 8 ms phone slice cannot grow with a slower cap; 60 Hz and faster retain their previous quarter-frame bound. Completion-only
 `noteFrameDrawn(at)` callers keep their original smoothed cadence. This changes scheduling only: no
 frame-cap, geometry, simulation, render-scale or quality change.
 
@@ -1217,7 +1217,7 @@ upload. Compressed textures retain their fenced upload path. Ordinary boot and d
 This bounds combined upload work; it cannot split or guarantee the duration of one native upload.
 
 Live WebKit shader preparation separates drawable compile jobs and settles one program per drawn frame.
-Incomplete links yield before retrying completion; ready links resolve in the same slice, then yield.
+Incomplete links yield before retrying completion; ready links resolve in the same slice only while its shared frame budget remains, then yield. Compile, resolve and upload units check that budget before starting. A compile that spent its slice defers first-use preparation to a later painted slice; one atomic compile or native query can still overshoot.
 Ready programs are not polled again; weak resolved identities avoid repeating work for borrowed variants.
 KHR completion is checked before uniforms are resolved, and shader-error diagnostics remain enabled.
 Paced herd pages retain their original 16-slot capacity; loading-screen construction starts at eight slots.
