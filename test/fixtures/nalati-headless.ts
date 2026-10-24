@@ -1,3 +1,4 @@
+import type {BakedGrid} from '../../src/format/bakedTerrainBytes';
 import type { SimHost } from '../../src/engine/sim';
 import type { NativeEliteKernelLoans } from '../../src/engine/ai/eliteKernels';
 import type ecology from '../../src/shards/nalati-grasslands/data/ecology.generated.json';
@@ -35,7 +36,7 @@ import { nativeEliteBindings } from '@wildshard/engine/ai/eliteRoster';
 import { trustedLevel } from '../../src/game/plugin/simulation';
 import type { PrepareHeadlessRuntime } from '../../src/sdk/headlessRuntime';
 import { need, readJson, prepareReturns } from './headless-plan';
-export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async (preparation) => {
+export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHeadlessRuntime>[0], decodeNativeTerrain: (bytes:Uint8Array|undefined,row:{resolution:number;size:number;seed:number})=>BakedGrid = decodeTerrainTile): Promise<Awaited<ReturnType<PrepareHeadlessRuntime>>> => {
     const { product, assets } = preparation, shard = product.shardfile;
     const { constants } = await product.json<{
         constants: Omit<typeof headlessAssembly.constants, 'nativePopulation' | 'nativeRide' | 'nativeTaming' | 'pageWildlife' | 'pageGroups' | 'groupAdmission'> & {
@@ -80,7 +81,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async (preparation
         rest: NativeTamingRows["rest"];
         mountable: readonly string[];
     }>(product, "sim/headless-boot.json"));
-    const grid = await ((decodeTerrainTile)(((need(shard.terrain, "Missing terrain")["sampling"] === undefined) ? undefined : (assets["get"])(need(need(shard.terrain, "Missing terrain").sampling, "Missing sampling").file)), { "resolution": 256, "size": 500, "seed": shard["identity"]["seed"] }));
+    const grid = await ((decodeNativeTerrain)(((need(shard.terrain, "Missing terrain")["sampling"] === undefined) ? undefined : (assets["get"])(need(need(shard.terrain, "Missing terrain").sampling, "Missing sampling").file)), { "resolution": 256, "size": 500, "seed": shard["identity"]["seed"] }));
     const samplers = await ((bakedSamplers)(grid));
     const heightAt = await (samplers["heightAt"]);
     const populationPond = await ((product["file"])("data/geography-pond.bin"));
