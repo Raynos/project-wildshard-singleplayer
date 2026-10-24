@@ -1,12 +1,12 @@
 // @vitest-environment happy-dom
 import { afterAll, afterEach, beforeAll, beforeEach, expect, test, vi } from 'vitest';
-import { installByteCounter, releaseByteCounter, declareTotals, type ChunkFiles } from '../src/engine/boot/bytes';
-import { createBootPlan, type Plan, type ProgressView } from '../src/engine/boot/plan';
-import type { BootStep } from '../src/engine/boot/steps';
-import { installAssetTables, publicBytes, assetVersions, musicManifests, sfxManifests, bootPacks } from '../src/engine/boot/tables';
-import { initializeTier, TIER } from '../src/engine/core/tier';
-import { noteFrameDrawn, setBuildHeld } from '../src/engine/core/framePacing';
-import { installScopeEnvironment, scopeEnvironment } from '../src/engine/app/scopeEnvironment';
+import { installByteCounter, releaseByteCounter, declareTotals, type ChunkFiles } from './bytes';
+import { createBootPlan, type Plan, type ProgressView } from './plan';
+import type { BootStep } from './steps';
+import { installAssetTables, publicBytes, assetVersions, musicManifests, sfxManifests, bootPacks } from './tables';
+import { initializeTier, TIER } from '../core/tier';
+import { noteFrameDrawn, setBuildHeld } from '../core/framePacing';
+import { installScopeEnvironment, scopeEnvironment } from '../app/scopeEnvironment';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const originalTier = TIER, environment = scopeEnvironment(), nativeFetch = window.fetch, nativeChannel = globalThis.MessageChannel;
