@@ -254,10 +254,10 @@ test('the real nearest binder preserves ordered ties, live threats and post-flig
   }finally{old.scope.dispose();next.scope.dispose();}
  }
 });
-test('a real native sense can change the next member before its own original capture',()=>{
+test('a real native sense keeps later member and player captures fresh',()=>{
  const old=oracleFixture('graze','watch'),next=fixture('graze','watch');
  try{
-  for(const f of [old,next]){let reads=0;f.ports.visibility=(x,z,player,speed,time)=>{f.log.push(['visibility',x,z,player.x,player.z,speed,time]);if(++reads===1){const later=f.roster[1];if(later!==undefined){later.position.x+=20;later.mem['aw']=.7;}}return .8;};f.ports.hearing=(radii,player,speed)=>{f.log.push(['hearing',...radii,player.x,player.z,speed]);return 12;};}
+  for(const f of [old,next]){let reads=0;f.ports.visibility=(x,z,player,speed,time)=>{f.log.push(['visibility',x,z,player.x,player.z,speed,time]);if(++reads===1){const later=f.roster[1];if(later!==undefined){later.position.x+=20;later.mem['aw']=.7;}f.ctx.player.x+=3;}return .8;};f.ports.hearing=(radii,player,speed)=>{f.log.push(['hearing',...radii,player.x,player.z,speed]);return 12;};}
   old.herd.tick(old.ctx);execute(next,0,false,'tick');numbers(next.log,old.log);expect(next.herd.snapshot()).toBe(old.herd.snapshot());// G415: drive RNG now advances in the tick-wide plan; multi-seed movement is checked below.
    expect(next.ports.sharedRng()).toBe(next.random);expect(next.contextRandom.snapshot()).toEqual(old.contextRandom.snapshot());
   for(let i=0;i<old.roster.length;i++)numbers(next.roster[i]?.mem,old.roster[i]?.mem);
@@ -577,5 +577,17 @@ test('publication validation reuses field pins without rebuilding scalar snapsho
   const publication=f.herd.prepareValues(values,refs,f.scope);
   publication.validate();publication.validate();publication.commit();
   expect(f.herd.scalarReads).toBe(reads+1);expect(f.herd.trust).toBe(41);expect(f.random.snapshot()).toEqual(random);
+ }finally{f.scope.dispose();}
+});
+
+
+test('a sense cannot change the player scalar pinned by its pending native operations',()=>{
+ const f=fixture('graze','watch');
+ try{
+  let hearing=0;
+  f.ports.visibility=()=>{f.ctx.playerSpeed=.8;return .8;};
+  f.ports.hearing=()=>{hearing++;return 12;};
+  expect(()=>execute(f,0,false,'tick')).toThrow('Retired or replaced native group result owner');
+  expect(hearing).toBe(0);
  }finally{f.scope.dispose();}
 });

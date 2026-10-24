@@ -364,6 +364,8 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     readonly scope: Scope; readonly group: string; readonly handle: number; readonly player: Vector3;
     readonly actors: Map<string,A> | readonly A[];
     readonly codec: GroupBankV2;
+    readonly contextFields: readonly string[];
+    readonly referenceFields: readonly (readonly [string,string])[];
   } | undefined;
   private readonly guestPlans=new Map<A,{readonly values:readonly number[];applied:boolean}>();
   private readonly guestBanks: {bank:Float64Array;values:Readonly<Record<string,GroupBankValueV2>>;bodies:readonly A[]}[]=[];
@@ -403,7 +405,8 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
       || Object.keys(rows.parameters).some(name => !name.startsWith('context.') || !shape.bank.some(row => row.name === name && row.kind === 'number')))
       throw new Error('Incompatible herd guest profile');
     this.guest = {program,prepare:program.prepareGroup,bindings,shape,rows,scope:loans.scope,group:loans.group,handle:loans.handle,
-      player:loans.player,actors:loans.actors,codec:new GroupBankV2(shape.bank)};
+      player:loans.player,actors:loans.actors,codec:new GroupBankV2(shape.bank),
+      contextFields:shape.bank.filter(row=>row.name.startsWith('context.')).map(row=>row.name),referenceFields:Object.entries(rows.references??{})};
   }
   private validateHerdGuest():void {
     const binding=this.guest;
@@ -462,7 +465,7 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     }
     const retained = call.values, current = this.captureHerdGuestState();
     const target = references.find(row => row.body === this.chargeTarget) ?? null;
-    const named = Object.entries(binding.rows.references??{}).map(([name,field]):[string,typeof references[number]|null]=>{
+    const named = binding.referenceFields.map(([name,field]):[string,typeof references[number]|null]=>{
       const value=call.fresh?0:retained[field];if(value===null||value===0)return[name,null];
       const reference=typeof value==='number'?references.find(row=>row.handle===value):typeof value==='string'?references.find(row=>row.wire===value):undefined;
       if(reference===undefined)throw new Error('Unresolved herd guest capture reference');return[name,reference];
@@ -476,8 +479,8 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
       'context.playerSpeed':context?.playerSpeed ?? 0,'context.px':player.x,'context.py':player.y,'context.pz':player.z};
     const changes:Record<string,GroupBankValueV2>={};
     for(const[name,value]of Object.entries(current))if(!Object.is(retained[name],value))changes[name]=value;
-    for(const row of binding.shape.bank)if(row.name.startsWith('context.')){
-      const value=parameters[row.name]??0;if(!Object.is(retained[row.name],value))changes[row.name]=value;
+    for(const name of binding.contextFields){
+      const value=parameters[name]??0;if(!Object.is(retained[name],value))changes[name]=value;
     }
     binding.codec.update(call.bank,changes,binding.group,references);
     const members: V2ColumnOwners<A>[] = this.members.map((actor,slot) => ({scope:binding.scope,self:{group:binding.group,slot,identity:actor.entityId,actor},
