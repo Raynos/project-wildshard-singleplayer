@@ -2,8 +2,6 @@
 import {mkdirSync,mkdtempSync,readFileSync,rmSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- A generated author fixture and trusted entry remain inside this checkout.
 import {resolve} from 'node:path';
-// oxlint-disable-next-line import/no-nodejs-modules -- Trusted native code is selected by an exact local fixture module.
-import {pathToFileURL} from 'node:url';
 import {expect,test} from 'vitest';
 import {createSimHost,type SimHost} from '@wildshard/engine/sim';
 import {loadRapier} from '@wildshard/engine/physics/rapier';
@@ -11,7 +9,8 @@ import {snapshotSimHost,snapshotSimHostBytes,serializeSimSnapshot,decodeSimSnaps
 import {SIM_LEVEL,fightCommand} from './fixtures/sim-level/level';
 import {newProject,buildProject} from '../src/sdk/project';
 import {loadHeadlessProduct} from '../src/sdk/headlessProduct';
-import {createTrustedHeadlessAdapter,createTrustedHeadlessResident} from '../src/sdk/headlessRuntime';
+import {createNativeProofAdapter,createNativeProofResident} from './fixtures/headless-native';
+import {prepareHeadlessRuntime} from './fixtures/headless/trustedRuntime';
 import type {HeadlessCommand} from '../src/sdk/tickProtocol';
 import type {TickWorkerAdapter} from '../src/sdk/tickWorkerLoop';
 
@@ -37,14 +36,13 @@ test('byte capture retains exact native fight checkpoint wire and restored suffi
 
 test('trusted adapter retains legacy wire, effects and exact restored native suffix',async()=>{
  mkdirSync('tmp',{recursive:true});const root=mkdtempSync(resolve('tmp','native-byte-capture-'));
- let adapter:TickWorkerAdapter|undefined,restored:TickWorkerAdapter|undefined,resident:Awaited<ReturnType<typeof createTrustedHeadlessResident>>|undefined;
+ let adapter:TickWorkerAdapter|undefined,restored:TickWorkerAdapter|undefined,resident:Awaited<ReturnType<typeof createNativeProofResident>>|undefined;
  try{
   const project=resolve(root,'project'),output=resolve(root,'out');newProject(project,'trusted-byte-capture');
   await buildProject(project,output,{client:null,placeholders:false});
   const product=await loadHeadlessProduct(output),rapier=await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   const preparation={product,shard:product.shardfile,assets:new Map<string,Uint8Array>(),rapier};
-  const entry={module:pathToFileURL(resolve('test/fixtures/headless/trustedRuntime.ts')).href};
-  adapter=await createTrustedHeadlessAdapter(preparation,entry);resident=await createTrustedHeadlessResident(preparation,entry);
+  adapter=await createNativeProofAdapter(preparation,prepareHeadlessRuntime);resident=await createNativeProofResident(preparation,prepareHeadlessRuntime);
   let rewards=0;
   for(let tick=0;tick<30;tick++){
    const commands:HeadlessCommand[]=[{kind:'script',actorId:'fixture.actor',value:tick},
@@ -54,7 +52,7 @@ test('trusted adapter retains legacy wire, effects and exact restored native suf
    expect(commit.snapshot).toBe(serializeSimSnapshot(snapshotSimHost(resident.host)));
    expect(commit.effects).toEqual(resident.effects);
    rewards+=commit.effects.filter(effect=>effect.kind==='coins').length;
-   if(tick===9)restored=await createTrustedHeadlessAdapter(preparation,entry,commit.snapshot);
+   if(tick===9)restored=await createNativeProofAdapter(preparation,prepareHeadlessRuntime,commit.snapshot);
    else if(tick>9){
     if(restored===undefined)throw new Error('Missing restored trusted adapter');
     restored.step(commands);expect(restored.commit()).toEqual(commit);

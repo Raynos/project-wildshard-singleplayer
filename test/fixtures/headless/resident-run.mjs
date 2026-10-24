@@ -1,10 +1,12 @@
-// The trusted resident (`createTrustedHeadlessResident`) in plain Node: the worker adapter's exact composition, its lent
+// The trusted resident (`createNativeProofResident`) in plain Node: the worker adapter's exact composition, its lent
 // commands and per-lend effects, a strict object-continuation restore, and its admission as a GridSimulation region.
 // oxlint-disable-next-line import/no-nodejs-modules -- Native assertions must fail the process.
 import assert from 'node:assert/strict';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the native physics module.
 import { readFileSync } from 'node:fs';
-import { createTrustedHeadlessAdapter, createTrustedHeadlessResident } from '../../../src/sdk/headlessRuntime.ts';
+import { createNativeProofAdapter, createNativeProofResident } from '../headless-native.ts';
+import { prepareHeadlessRuntime } from './trustedRuntime.ts';
+import { createShardProduct } from '../../../src/game/shardfile/shardProduct.ts';
 import { emptyShardfile } from '../../../src/sdk/author.ts';
 import { loadRapier } from '../../../src/engine/physics/rapier.ts';
 import { serializeSimSnapshot, snapshotSimHost } from '../../../src/engine/sim/snapshot.ts';
@@ -15,12 +17,13 @@ import { ResidencyAllocator } from '../../../src/game/grid/allocator.ts';
 
 const shard = emptyShardfile({ slug: 'trusted-fixture', name: 'Trusted fixture', author: 'Test', revision: 1, seed: 435 });
 const rapier = await loadRapier(readFileSync(new URL('../../../public/assets/physics/rapier.wasm', import.meta.url)));
-const preparation = { shard, assets: new Map(), rapier }, entry = { module: new URL('./trustedRuntime.ts', import.meta.url).href };
+const product=createShardProduct({slug:shard.identity.slug,revision:shard.identity.revision,shardfile:shard,sections:new Map(),files:new Map(),read:()=>Promise.reject(new Error('No named files in direct fixture'))});
+const preparation = { shard, product, assets: new Map(), rapier }, entry = prepareHeadlessRuntime;
 const tape = tick => [{ kind: 'player', moveX: 0, moveZ: 0, yaw: 0, ...(tick === 0 ? { attack: { targetId: 'fixture.actor' } } : {}) }, { kind: 'script', actorId: 'fixture.actor', value: tick }];
 const wire = host => serializeSimSnapshot(snapshotSimHost(host));
 
 // 1. The worker adapter is the resident: the same ticks give the same continuation and the same per-tick effects.
-const adapter = await createTrustedHeadlessAdapter(preparation, entry), resident = await createTrustedHeadlessResident(preparation, entry);
+const adapter = await createNativeProofAdapter(preparation, entry), resident = await createNativeProofResident(preparation, entry);
 let rewards = 0;
 try {
   for (let tick = 0; tick < 30; tick++) {
@@ -39,14 +42,12 @@ resident.host.step();
 assert.deepEqual(resident.host.slots.questState['numeric'], [99]);
 
 // 3. An object continuation restores exactly as its wire does (both strictly decoded), and both continue identically.
-const saved = snapshotSimHost(resident.host), fromObject = await createTrustedHeadlessResident(preparation, entry, saved), fromWire = await createTrustedHeadlessResident(preparation, entry, serializeSimSnapshot(saved));
+const saved = snapshotSimHost(resident.host), fromObject = await createNativeProofResident(preparation, entry, saved), fromWire = await createNativeProofResident(preparation, entry, serializeSimSnapshot(saved));
 try {
   assert.equal(wire(fromObject.host), serializeSimSnapshot(saved));
   for (let tick = 0; tick < 10; tick++) { fromObject.step(tape(tick + 1)); fromWire.step(tape(tick + 1)); resident.step(tape(tick + 1)); }
   assert.equal(wire(fromObject.host), wire(fromWire.host)); assert.equal(wire(fromObject.host), wire(resident.host));
-  await assert.rejects(createTrustedHeadlessResident(preparation, { module: 'https://example.com/runtime.js' }), /local file module/);
-  await assert.rejects(createTrustedHeadlessResident(preparation, { module: new URL('../../../src/sdk/version.ts', import.meta.url).href }), /must export prepareHeadlessRuntime/);
-  await assert.rejects(createTrustedHeadlessResident(preparation, entry, { ...saved, version: -1 }));
+  await assert.rejects(createNativeProofResident(preparation, entry, { ...saved, version: -1 }));
 } finally { fromObject.dispose(); fromWire.dispose(); resident.dispose(); }
 
 // 4. A grid region: the lease precedes the world, the fence gates readiness, saves wait for durability, and the
@@ -56,12 +57,12 @@ const assembly = new GridAssembly({ developer: false, devserver: false }, { ...c
 const instance = assembly.cells[0].instance, allocator = new ResidencyAllocator(), store = new Map();
 let region, durable = false, admitted = false, loads = 0;
 const counter = host => snapshotSimHost(host).adapters.find(row => row.id === 'fixture.controller')?.state;
-const grid = new GridSimulation(assembly, { highway: await createTrustedHeadlessResident(preparation, entry), allocator, residentBytes: () => 1_000_000,
+const grid = new GridSimulation(assembly, { highway: await createNativeProofResident(preparation, entry), allocator, residentBytes: () => 1_000_000,
   admitted: () => admitted, read: id => store.get(id), save: (id, snapshot) => { if (!durable) return false; store.set(id, structuredClone(snapshot)); return true; },
   beforeMove: current => { if (current === instance) region.lend([{ kind: 'script', actorId: 'fixture.actor', value: 1 }]); },
   load: async (_cell, snapshot) => {
     assert.equal(allocator.has(`sim:${instance}`), true, 'reserve before native physics'); loads++;
-    region = await createTrustedHeadlessResident(preparation, entry, snapshot); return region;
+    region = await createNativeProofResident(preparation, entry, snapshot); return region;
   } });
 try {
   await grid.prefetch([instance]); assert.equal(grid.ready(instance), false); admitted = true; assert.equal(grid.ready(instance), true);
