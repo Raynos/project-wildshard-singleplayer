@@ -15,6 +15,56 @@ const catalogue = [
   {slug:'driftwood-isle-legacy',status:'live',legacy:true},
 ];
 
+function fixtureBrowser(evaluate: Page['evaluate']): { browser: Browser; close: ReturnType<typeof vi.fn<BrowserContext['close']>> } {
+  const page: Page = legacyDouble<Page>({ evaluate, on: () => page,
+    goto: vi.fn<Page['goto']>().mockResolvedValue(null),
+    screenshot: vi.fn<Page['screenshot']>().mockRejectedValue(new Error('No browser capture in the unit fixture')) });
+  const close = vi.fn<BrowserContext['close']>().mockResolvedValue(undefined);
+  const disposable = { dispose: (): Promise<void> => Promise.resolve(), [Symbol.asyncDispose]: (): Promise<void> => Promise.resolve() };
+  const context = legacyDouble<BrowserContext>({
+    addInitScript: vi.fn<BrowserContext['addInitScript']>().mockResolvedValue(disposable),
+    route: vi.fn<BrowserContext['route']>().mockResolvedValue(disposable),
+    newPage: vi.fn<BrowserContext['newPage']>().mockResolvedValue({ ...page }), close,
+  });
+  return { browser: legacyDouble<Browser>({ newContext: vi.fn<Browser['newContext']>().mockResolvedValue({ ...context }) }), close };
+}
+
+test.each(['progress', 'stalled', 'fatal', 'black'] as const)('Explorer no-progress hang guard retains complete pixels and fatal refusal (%s)', async mode => {
+  mkdirSync('tmp/sp-x7-live', { recursive: true });
+  const out = mkdtempSync('tmp/sp-x7-live/explorer-hang-');
+  let now = 0;
+  const clock = vi.spyOn(Date, 'now').mockImplementation(() => now);
+  const evaluate = vi.fn<Page['evaluate']>();
+  const first = { id: 'first', ready: true, pixels: 100, darkShare: .2 };
+  const last = { ...first, id: 'last', darkShare: mode === 'black' ? .9 : .2 };
+  evaluate.mockImplementationOnce(() => {
+    now = 120000;
+    return Promise.resolve({ fatal: [], empty: false, ready: false, readyIds: ['first'] });
+  }).mockImplementationOnce(() => {
+    now = 240000;
+    return Promise.resolve({ fatal: mode === 'fatal' ? ['real fault'] : [], empty: false, ready: false,
+      readyIds: mode === 'stalled' ? ['first'] : ['first', 'middle'] });
+  }).mockImplementationOnce(() => {
+    now = 360000;
+    return Promise.resolve({ fatal: [], empty: false, ready: mode !== 'stalled',
+      readyIds: mode === 'stalled' ? ['first'] : ['first', 'middle', 'last'] });
+  }).mockResolvedValue([first, { ...first, id: 'middle' }, last]);
+  const { browser, close } = fixtureBrowser(evaluate);
+  try {
+    if (mode === 'progress') {
+      await sweepExplorer(browser, 'https://test.example/', 'fixture', out);
+      const receipt: unknown = JSON.parse(readFileSync(`${out}/fixture.json`, 'utf8'));
+      expect(receipt).toMatchObject({ elapsedMs: 360000, hangMs: 180000, failures: [],
+        firstReadyMs: { first: 120000, middle: 240000, last: 360000 } });
+    } else {
+      const refusal = mode === 'stalled' ? 'stalled for 180 seconds without progress'
+        : mode === 'fatal' ? 'Explorer fatal: real fault' : 'last: thumbnail is at least 90% near-black';
+      await expect(sweepExplorer(browser, 'https://test.example/', 'fixture', out)).rejects.toThrow(refusal);
+    }
+    expect(close).toHaveBeenCalledOnce();
+  } finally { clock.mockRestore(); rmSync(out, { recursive: true, force: true }); }
+});
+
 test('progress records only appended canvases and still requires the whole displayed catalogue', () => {
   document.body.innerHTML='<div class="ws-x show" data-mode="model"><div class="ws-x-grid"><button class="ws-x-model" data-id="first"><canvas></canvas></button><button class="ws-x-model" data-id="pending"></button></div></div>';
   try {

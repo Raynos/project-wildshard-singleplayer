@@ -69,7 +69,8 @@ export async function sweepExplorer(browser,base,slug,out){
   page.on('crash',()=>faults.push('Page crashed'));
   page.on('console',message=>{if(message.type()==='error')faults.push(message.text());});
   page.on('response',response=>{if(response.status()>=400)faults.push(`HTTP ${response.status()}: ${response.url()}`);});
-  const started=Date.now(),deadline=started+180000;
+  const started=Date.now(),hangMs=180000;
+  let progressAt=started;
   /** @type {Map<string,number>} */ const firstReady=new Map();
   try{
     const url=new URL(base);
@@ -77,31 +78,34 @@ export async function sweepExplorer(browser,base,slug,out){
     await page.goto(url.href,{waitUntil:'domcontentloaded',timeout:30000});
     let empty=false,drawn=false;
     /** @type {ReturnType<typeof explorerCards>} */ let cards=[];
-    while(Date.now()<deadline){
+    while(Date.now()-progressAt<hangMs){
       if(faults.length>0)throw new Error(faults.join('\n'));
       const state=await page.evaluate(explorerState),observedMs=Date.now()-started;
-      for(const id of state.readyIds)if(!firstReady.has(id))firstReady.set(id,observedMs);
+      // CF5: a software GPU can take longer overall while still drawing new
+      // cards. Only a newly drawn identity extends the no-progress hang guard;
+      // polling and repeated redraws of the same cards never extend it.
+      for(const id of state.readyIds)if(!firstReady.has(id)){firstReady.set(id,observedMs);progressAt=Date.now();}
       if(state.fatal.length>0)throw new Error(`Explorer fatal: ${state.fatal.join('; ')}`);
       if(state.empty){empty=true;break;}
       if(state.ready){
         // A model-ready event can invalidate a thumbnail between these page
-        // tasks. Keep waiting for its replacement inside the same deadline.
+        // tasks. Keep waiting for its replacement inside the same hang guard.
         const snapshot=await page.evaluate(explorerCards);
         if(snapshot.length>0 && snapshot.every(card=>card.ready && card.pixels>0)){cards=snapshot;drawn=true;break;}
       }
       await new Promise(_resolve=>{setTimeout(_resolve,250);});
     }
-    if(!empty && !drawn)throw new Error('Explorer catalogue/thumbnail deadline');
+    if(!empty && !drawn)throw new Error('Explorer catalogue/thumbnail stalled for 180 seconds without progress');
     const failures=explorerFailures(cards);
     if(!empty && cards.length===0)failures.push('Explorer catalogue disappeared');
     if(faults.length>0)failures.push(...faults);
-    const result={slug,elapsedMs:Date.now()-started,empty,cards,failures,firstReadyMs:Object.fromEntries(firstReady)};
+    const result={slug,elapsedMs:Date.now()-started,hangMs,empty,cards,failures,firstReadyMs:Object.fromEntries(firstReady)};
     writeFileSync(join(out,`${slug}.json`),`${JSON.stringify(result,null,2)}\n`);
     if(failures.length>0)throw new Error(`${slug}: ${failures.join('; ')}`);
     console.info(`Explorer ${slug}: ${empty?'explicit empty catalogue':`${cards.length} real thumbnails`} PASS`);
   }catch(error){
     await page.screenshot({path:join(out,`${slug}-failure.jpg`),type:'jpeg',quality:70}).catch(()=>undefined);
-    writeFileSync(join(out,`${slug}-failure.json`),`${JSON.stringify({slug,elapsedMs:Date.now()-started,error:String(error),faults,cards:await page.evaluate(explorerCards).catch(()=>[]),firstReadyMs:Object.fromEntries(firstReady)},null,2)}\n`);
+    writeFileSync(join(out,`${slug}-failure.json`),`${JSON.stringify({slug,elapsedMs:Date.now()-started,hangMs,idleMs:Date.now()-progressAt,error:String(error),faults,cards:await page.evaluate(explorerCards).catch(()=>[]),firstReadyMs:Object.fromEntries(firstReady)},null,2)}\n`);
     throw error;
   }finally{await context.close();}
 }
@@ -115,7 +119,7 @@ async function main(){
   const preview=external===undefined?await serve(root,'',true):null,base=external??preview?.url;
   if(base===undefined)throw new Error('Missing exact built dist');
   // CI's software GPU is shared: two simultaneous catalogues contend during
-  // shader compilation. Each complete case keeps its own original deadline.
+  // shader compilation. Each case retains a bounded no-progress hang guard.
   const pool=browserPool(root,1,process.platform==='darwin'?'metal':'swiftshader');
   try{
     const catalogue=await discoverCatalogue(await pool.browser(0),base),cases=explorerCases(catalogue);

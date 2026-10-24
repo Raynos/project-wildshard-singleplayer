@@ -176,6 +176,11 @@ It waits for every real card canvas, rejects build/asset/page errors, missing or
 at-least-90%-near-black thumbnails, and records each model identity. Explicit
 empty catalogues are reported separately. It uses the same verified boot-dist;
 no model, light, material, scene or frame is injected or re-rendered for proof.
+CF5 replaces the Explorer's total 180-second case deadline with a 180-second
+no-progress hang guard: only the first observed canvas for a new model identity
+extends it. Repeated polls or redraws of existing cards cannot extend the guard.
+Every catalogue and final pixel/fatal check remains required; the leg's outer
+20-minute workflow limit still bounds a slowly progressing software-GPU run.
 
 G671 V1: the public, Developer and grid boot legs also inspect composited phone
 screenshots at the usable title, SHARD SELECT, settled gameplay, grid HOME and
