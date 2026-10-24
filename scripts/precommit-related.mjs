@@ -48,6 +48,10 @@ export async function relatedWorker(root, files) {
   const { createVitest } = await import('vitest/node');
   const { WS_COMMIT_RELATED_TOKEN: token } = process.env;
   const staged = stagedFiles(root);
+  const override = stagedInputOverride(root, staged);
+  // Keep the hook's index only long enough to seal overrides. Fixture Git
+  // commands must never inherit and rewrite the enclosing commit's index.
+  for (const key of Object.keys(process.env)) if (key.startsWith('GIT_')) Reflect.deleteProperty(process.env, key);
   let count = 0, failures = 0;
   const executing = new WeakSet();
   const started = performance.now();
@@ -66,7 +70,7 @@ export async function relatedWorker(root, files) {
         }
       },
     }],
-  }, { plugins: [stagedInputOverride(root, staged)] });
+  }, { plugins: [override] });
   try {
     await vitest.start();
     if (process.exitCode !== undefined && process.exitCode !== 0 && failures === 0)

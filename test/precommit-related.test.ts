@@ -23,7 +23,7 @@ function fixture() {
   put('package.json', '{"type":"module"}');
   put('vitest.config.mjs', 'export default {test:{include:["test/**/*.test.ts"],maxWorkers:1}};');
   put('src/value.ts', 'export const value = 1;\n');
-  put('test/value.test.ts', 'import {test,expect} from "vitest";import {value} from "../src/value";test("value",()=>expect(value).toBe(1));\n');
+  put('test/value.test.ts', 'import {test,expect} from "vitest";import {value} from "../src/value";test("value",()=>{expect(Object.keys(process.env).filter(key=>key.startsWith("GIT_"))).toEqual([]);expect(value).toBe(1)});\n');
   git('add', '.'); git('commit', '-qm', 'fixture');
   linkNodeModules(repository, root);
   return { root, git, put };
