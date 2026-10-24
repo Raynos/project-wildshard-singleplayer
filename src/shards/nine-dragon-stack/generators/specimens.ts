@@ -32,7 +32,10 @@ import { droneKit, gondolaCabin, trainKit } from './moverKits';
 import { PIECES as FACADE_PIECES, PIECE_FAR } from './facadePieces';
 import { PIECE_IDS } from './facadeIds';
 import type { SpecimenProfile } from '../data/specimenTypes';
-import profiles from '../data/specimenProfiles.json' with { type: 'json' };
+import rawProfiles from '../data/specimenProfiles.json' with { type: 'json' };
+import { parseSpecimenProfiles } from './sections';
+
+const profiles = parseSpecimenProfiles(rawProfiles);
 
 const { HAWKER, STALL, PLAZA } = NINE_LAYOUT_PLAN;
 

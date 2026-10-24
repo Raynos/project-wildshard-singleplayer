@@ -5,10 +5,13 @@ import { nineLayoutSource } from './layout';
 import { bakeFixedKits, readFixedSlots } from './casts';
 import { canopyGeometries } from './canopyGeometry';
 import { bakeSpill, type Emitter } from './lightSpill';
-import signRows from '../data/signView.json' with { type: 'json' };
+import rawSignRows from '../data/signView.json' with { type: 'json' };
+import { parseSignView } from './sections';
 import lantern from '../data/lantern.json' with { type: 'json' };
 import atlas from '../data/signAtlas.generated.json' with { type: 'json' };
 import { portalPlanRows } from './portalEntries';
+
+const signRows = parseSignView(rawSignRows);
 
 /** Only the native atlas fields the original spill law consumes. */
 export interface NineSpillAtlas {

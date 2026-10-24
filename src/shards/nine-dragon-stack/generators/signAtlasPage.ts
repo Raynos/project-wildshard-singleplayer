@@ -2,9 +2,12 @@ import { BufferAttribute, Vector3 } from 'three';
 import { SignAtlas, SignBuilder, type SignPlace } from './signAtlas';
 import type { SignModelParams, SignStyle } from '../data/signTypes';
 import { SIGN_COLOUR, SIGN_LAYOUT, SIGN_STYLES } from './signs';
-import signRows from '../data/signView.json' with { type: 'json' };
+import rawSignRows from '../data/signView.json' with { type: 'json' };
+import { parseSignView } from './sections';
 import { neonSize } from './signMath';
 import type { SignCallRow } from './contracts/signPlacement';
+
+const signRows = parseSignView(rawSignRows);
 
 interface PackedGeometry { readonly attributes: Record<string, { width: number; data: string }>; readonly index: string; readonly sphere: number[] | null }
 interface BakedSignAtlas extends ReturnType<SignAtlas['snapshot']> {

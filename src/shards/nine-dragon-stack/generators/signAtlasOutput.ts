@@ -1,12 +1,12 @@
 import * as v from 'valibot';
-import { SignAtlasSchema } from './sections';
+import { SignAtlasSchema, parseSignView } from './sections';
 // oxlint-disable-next-line import/no-nodejs-modules -- Author-only lossless KTX2 encoding, matching the SDK texture baker.
 import { zstdCompressSync } from 'node:zlib';
 import { unzlibSync } from 'fflate';
 import { NeonText } from './neonGeometry';
 import type { GlyphFieldLayout, GlyphRect } from './glyphField';
 import legacyGlyphs from '../data/glyphs.generated.json' with { type: 'json' };
-import signRows from '../data/signView.json' with { type: 'json' };
+import rawSignRows from '../data/signView.json' with { type: 'json' };
 import { signCopies, type PlacedSign } from './signCopies';
 import type { SignModelParams } from '../data/signTypes';
 import { BufferAttribute, BufferGeometry, Float32BufferAttribute, MeshStandardMaterial, Vector3 } from 'three';
@@ -14,6 +14,8 @@ import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import legacyAtlas from '../data/signAtlas.generated.json' with { type: 'json' };
+
+const signRows = parseSignView(rawSignRows);
 
 /** Retained native raster metadata, supplied by the product's declared input reader. */
 export interface NineNativeSignInputs {

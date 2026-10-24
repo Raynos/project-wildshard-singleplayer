@@ -11,7 +11,10 @@ import fixed from '../data/fixedKits.generated.json' with { type: 'json' };
 import signs from '../data/signAtlas.generated.json' with { type: 'json' };
 import pools from '../data/lightPools.json' with { type: 'json' };
 import lantern from '../data/lantern.json' with { type: 'json' };
-import signRows from '../data/signView.json' with { type: 'json' };
+import rawSignRows from '../data/signView.json' with { type: 'json' };
+import { parseSignView } from './sections';
+
+const signRows = parseSignView(rawSignRows);
 
 interface EmitterLike { at: Vector3; color: Color; w: number; h: number; power: number; spill: number }
 interface WindowLike { m: Matrix4; win: Vector4; light: Color }

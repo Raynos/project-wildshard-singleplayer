@@ -11,6 +11,41 @@ export const Place = v.strictObject({
   at: V3, normal: V3, size: finite, spec: Spec, gain: v.exactOptional(finite), flicker: v.exactOptional(finite), blade: v.exactOptional(v.boolean()),
   board: v.exactOptional(finite), fogK: v.exactOptional(finite), clear: v.exactOptional(finite),
 });
+/** Authored profile admission replaces generated JSON declaration shims. */
+function profile<T extends v.ObjectEntries, P extends v.ObjectEntries>(entries: T, params: P) {
+  const defaults = v.strictObject(entries);
+  return v.strictObject({ defaults, variants: v.array(v.strictObject({ id: v.string(), label: v.string(), params: v.strictObject(params) })) });
+}
+const SignDefaultsSchema = v.strictObject({ style: v.picklist(STYLES), text: v.string(), color: v.string(), vertical: v.boolean(), size: finite,
+  blade: v.boolean(), ink: v.exactOptional(v.string()), board: v.exactOptional(finite), gain: v.exactOptional(finite) });
+const SignVariantSchema = v.strictObject({ id: v.string(), label: v.string(), params: v.strictObject({
+  style: v.picklist(STYLES), text: v.string(), color: v.string(), vertical: v.boolean(), size: finite,
+  blade: v.exactOptional(v.boolean()), ink: v.exactOptional(v.string()), board: v.exactOptional(finite), gain: v.exactOptional(finite),
+}) });
+const SignViewSchema = v.strictObject({ model: v.strictObject({ key: v.string(), calligraphyStyles: v.array(v.string()),
+  calligraphyGain: finite, tubeGain: finite, sideways: v.array(v.string()), neonDepth: finite, bladeDepth: finite,
+  depth: finite, standoff: finite, variantOf: v.record(v.string(), v.string()), pieces: v.strictObject({ atlas: v.string(), neon: v.string() }) }),
+  defaults: SignDefaultsSchema, variants: v.array(SignVariantSchema) });
+const GateSchema = v.strictObject({ posts: v.tuple([finite, finite, finite, finite]), s: finite, plaque: v.string(),
+  couplets: v.nullable(v.tuple([v.string(), v.string()])), neonEaves: v.nullable(finite), lions: v.boolean(),
+  k: v.exactOptional(finite), paint: v.exactOptional(v.picklist(['mineral', 'cinnabar'])) });
+const SpecimenProfilesSchema = v.strictObject({
+  FIGURE_PROFILE: profile({ pose: v.picklist(['stand', 'sit', 'cook']), umbrella: v.boolean() },
+    { pose: v.exactOptional(v.picklist(['stand', 'sit', 'cook'])), umbrella: v.exactOptional(v.boolean()) }),
+  HOOK_PROFILE: profile({ reach: finite }, { reach: v.exactOptional(finite) }),
+  LAUNDRY_PROFILE: profile({ kind: v.picklist(['gallery', 'lower', 'pole']), span: finite, rise: finite },
+    { kind: v.exactOptional(v.picklist(['gallery', 'lower', 'pole'])), span: v.exactOptional(finite), rise: v.exactOptional(finite) }),
+  LOTUS_PROFILE: profile({ capped: v.boolean() }, { capped: v.exactOptional(v.boolean()) }),
+  PAIFANG: v.strictObject({ square: GateSchema, stair: GateSchema, well: GateSchema }),
+  PAIFANG_PROFILE: profile({ kind: v.picklist(['square', 'stair', 'well']) },
+    { kind: v.exactOptional(v.picklist(['square', 'stair', 'well'])) }),
+  SCOOTER_PROFILE: profile({ wash: finite }, { wash: v.exactOptional(finite) }), STOOL_PROFILE: profile({ wash: finite }, { wash: v.exactOptional(finite) }),
+});
+/** Validate without rebuilding the authored object: property order remains byte-significant to native rasters. */
+export function parseSignView(value: unknown): v.InferOutput<typeof SignViewSchema> { v.assert(SignViewSchema, value); return value; }
+/** Keep the authored defaults, partial variants and tuple positions; no emitted declaration is needed. */
+export function parseSpecimenProfiles(value: unknown): v.InferOutput<typeof SpecimenProfilesSchema> { v.assert(SpecimenProfilesSchema, value); return value; }
+
 const SignCall = v.variant('k', [
   v.strictObject({ k: v.literal('place'), p: Place }),
   v.strictObject({ k: v.literal('light'), c: V3, r: V3, u: V3, w: finite, h: finite, color: finite, gain: finite, mode: v.picklist([1, 2] as const), seed: finite }),

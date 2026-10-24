@@ -2354,8 +2354,6 @@
     "src/shards/nine-dragon-stack/data/signSource-8.generated.glb",
     "src/shards/nine-dragon-stack/data/signSource-9.generated.glb",
     "src/shards/nine-dragon-stack/data/signSources.generated.json",
-    "src/shards/nine-dragon-stack/data/signView.d.json.ts",
-    "src/shards/nine-dragon-stack/data/specimenProfiles.d.json.ts",
     "src/shards/nine-dragon-stack/data/world.generated.json",
     "src/shards/nine-dragon-stack/data/worldRows.generated.json",
     "src/shards/nine-dragon-stack/look/map.baked.json",

@@ -2,14 +2,14 @@ import { addWindowNodes, windowStep } from './facadeWindowRecipe';
 import { MOVER_REST, MOVER_STAGES } from './moversView';
 import { SIGN_POOL_LIBRARIES, SIGN_ATLAS_ROWS } from './signAtlasSources';
 import signTextures from '../data/signTextureSources.json' with { type: 'json' };
-import signRows from '../data/signView.json' with { type: 'json' };
+import rawSignRows from '../data/signView.json' with { type: 'json' };
+import { parseSignView, LayoutRowsSchema, parseSpecimenProfiles } from './sections';
 import { CAST_LIBRARIES, CAST_WELD, castBlobs, CAST_MATERIALS, castLibrary } from './castSources';
 import crowdRows from '../data/crowdModels.json' with { type: 'json' };
 import lodRows from '../data/lod.json' with { type: 'json' };
 import hookRows from '../data/hookSpecimen.json' with { type: 'json' };
 import hookBounds from '../data/hookBounds.json' with { type: 'json' };
 import { parseWorldSceneWeld } from '@wildshard/format/worldSceneWeld';
-import { LayoutRowsSchema } from './sections';
 import { portalLookRows } from './portalLook';
 // Nine Dragon's models on the shared world-scene host (G465): the Explorer catalogue (data/explorerModels.json) plus the
 // code-built specimens the page placed itself (the brush figures, the banyan and what stands at its foot, the paper
@@ -30,13 +30,16 @@ import { bakedLayoutProjection } from './layoutProjection';
 import explorer from '../data/explorerModels.json' with { type: 'json' };
 import worldRows from '../data/worldRows.generated.json' with { type: 'json' };
 import layout from '../data/layout.generated.json' with { type: 'json' };
-import profiles from '../data/specimenProfiles.json' with { type: 'json' };
+import rawProfiles from '../data/specimenProfiles.json' with { type: 'json' };
 import plan from '../data/layoutPlan.json' with { type: 'json' };
 import { presentationData } from './presentation';
 import { architectureGraphs } from './architectureGraphs';
 import { lightVolumeRows } from './lightVolumes';
 import paint from '../data/paint.json' with { type: 'json' };
 import canopy from '../data/canopy.json' with { type: 'json' };
+
+const signRows = parseSignView(rawSignRows);
+const profiles = parseSpecimenProfiles(rawProfiles);
 
 type Model = WorldSceneModels['models'][number];
 type Choice = Model['choices'][number];
