@@ -13,6 +13,7 @@ import { installViewProgram, lendViewCell, lendViewFrame, lendViewValues } from 
 import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
 import { ViewProgramSchema } from '../src/format/viewProgram';
 import { ViewLane, prepareViewMemory, type ViewLaneRows } from '../src/engine/script/viewLane';
+import { scriptMemoryCensus } from '../src/engine/script/moduleV2';
 
 // G600 L7: an owner's inline frame slot. The program samples one lent value and writes it to one lent cell.
 const COPY = `
@@ -45,14 +46,24 @@ test('a slot program installs no system and runs only where its owner calls the 
   const module = await compileScriptV2(COPY, { lane: 'view', ioBytes: 4096 });
   const NativeMemory = WebAssembly.Memory, NativeInstance = WebAssembly.Instance;
   expect(() => parse(ViewProgramSchema, { ...rows, system: 'owner.system' })).toThrow('one update system or one owner slot');
-  for (const order of ['install first', 'lend first'] as const) {
-    const allocated: WebAssembly.Memory[] = [], instantiated: WebAssembly.Instance[] = [];
-    const memory = vi.spyOn(WebAssembly, 'Memory').mockImplementation(class extends NativeMemory {
-      constructor(descriptor: WebAssembly.MemoryDescriptor) { super(descriptor); allocated.push(this); }
-    });
-    const instance = vi.spyOn(WebAssembly, 'Instance').mockImplementation(class extends NativeInstance {
-      constructor(compiled: WebAssembly.Module, imports?: WebAssembly.Imports) { super(compiled, imports); instantiated.push(this); }
-    });
+  const allocated: WebAssembly.Memory[] = [], instantiated: WebAssembly.Instance[] = [];
+  // One observer identity across both owners: the second may borrow a memory
+  // retired by the first. Both constructor misses and pool hits count as leases.
+  const memory = vi.spyOn(WebAssembly, 'Memory').mockImplementation(class extends NativeMemory {
+    constructor(descriptor: WebAssembly.MemoryDescriptor) { super(descriptor); allocated.push(this); }
+  });
+  const instance = vi.spyOn(WebAssembly, 'Instance').mockImplementation(class extends NativeInstance {
+    constructor(compiled: WebAssembly.Module, imports?: WebAssembly.Imports) {
+      const borrowed = imports?.['env']?.['memory'];
+      expect(borrowed).toBeInstanceOf(NativeMemory);
+      if (!(borrowed instanceof NativeMemory)) throw new Error('Missing original guest memory');
+      expect(new Uint8Array(borrowed.buffer).every(value => value === 0)).toBe(true);
+      super(compiled, imports); instantiated.push(this);
+    }
+  });
+  try { for (const order of ['install first', 'lend first'] as const) {
+    const allocations = allocated.length, instances = instantiated.length, hits = scriptMemoryCensus().hits;
+    const leases = (): number => allocated.length - allocations + scriptMemoryCensus().hits - hits;
     const ctx = context(order), system = vi.spyOn(ctx, 'system'), cell = { value: -1 }, values = { v: 2 };
     const lendAll = (): ReturnType<typeof lendViewFrame> => {
       lendViewValues(ctx.scope, 'owner', () => values.v); lendViewCell(ctx.scope, 'owner.cell', cell);
@@ -61,23 +72,21 @@ test('a slot program installs no system and runs only where its owner calls the 
     let slot: ReturnType<typeof lendViewFrame>;
     if (order === 'install first') {
       installViewProgram(ctx, feature, module); expect(cell.value).toBe(-1);
-      expect(allocated).toHaveLength(1); expect(instantiated).toHaveLength(0);
-      const fresh = allocated[0]; if (fresh === undefined) throw new Error('Missing reserved memory');
-      expect(new Uint8Array(fresh.buffer).every(value => value === 0)).toBe(true);
+      expect(leases()).toBe(1); expect(instantiated).toHaveLength(instances);
       slot = lendAll();
     }
     else { slot = lendAll(); slot.frame(1 / 60, 0); expect(cell.value).toBe(-1); installViewProgram(ctx, feature, module); }
     try {
-      expect(allocated).toHaveLength(1); expect(instantiated).toHaveLength(1);
+      expect(leases()).toBe(1); expect(instantiated).toHaveLength(instances + 1);
       expect(system).not.toHaveBeenCalled(); expect(cell.value).toBe(-1);
       slot.frame(1 / 60, 0); expect(cell.value).toBe(2);
       values.v = 5; expect(cell.value).toBe(2); slot.frame(1 / 60, 1 / 60); expect(cell.value).toBe(5);
       expect(() => lendViewFrame(ctx.scope, 'owner.frame')).toThrow('cannot be lent');
       expect(() => { installViewProgram(ctx, feature, module); }).toThrow('cannot be lent');
-      expect(allocated).toHaveLength(1);
-    } finally { ctx.scope.dispose(); memory.mockRestore(); instance.mockRestore(); }
+      expect(leases()).toBe(1);
+    } finally { ctx.scope.dispose(); }
     expect(cell.value).toBe(-1);
-  }
+  } } finally { memory.mockRestore(); instance.mockRestore(); }
 });
 
 test('prepared view memories admit once for their exact live owner, bytes and fixed pages', async () => {
