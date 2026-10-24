@@ -35,3 +35,20 @@ test('summary validates the same live capacities and accounting as snapshot', ()
   expect(() => ledger.summary(-1)).toThrow('Invalid memory allocation bytes');
   expect(ledger.summary(50).totals).toEqual({ gpu: 0, ram: 0 });
 });
+
+test('live resource callbacks retain deletion, insertion and detached summary semantics',()=>{
+  const ledger=new MemoryAttribution(),first={},removed={},added={};
+  let active=false,changed=false;
+  ledger.observe(first,'ram','first',()=>{
+    if(active&&!changed){changed=true;ledger.release(removed,'ram');ledger.allocation(added,'gpu','added',7);}
+    return 3;
+  });
+  ledger.allocation(removed,'ram','removed',99);active=true;
+  const before=ledger.summary();
+  expect(before.totals).toEqual({ram:3,gpu:7});
+  ledger.allocation(first,'ram','first',11);
+  const after=ledger.snapshot();
+  expect(after.totals).toEqual({ram:11,gpu:7});
+  expect(after.allocations.map(row=>row.kind).sort()).toEqual(['added','first']);
+  expect(before.totals).toEqual({ram:3,gpu:7});
+});

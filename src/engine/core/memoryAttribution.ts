@@ -111,7 +111,8 @@ export class MemoryAttribution {
   private read(accountedBytes: number | null, allocations?: MemoryAllocation[]): MemorySummary {
     if (accountedBytes !== null) validBytes(accountedBytes);
     const totals = { gpu: 0, ram: 0 }, unattributed = { gpu: 0, ram: 0 };
-    for (const [id, entry] of this.entries) {
+    for (const entry of this.entries.values()) {
+      const id=entry.id;
       const resource = entry.resource.deref();
       if (resource === undefined) { this.entries.delete(id); continue; }
       const bytes = validBytes(entry.readBytes(resource));
