@@ -67,12 +67,22 @@ export async function startScriptProfile(inspector, waitMs = 10000) {
  * @param {(expression: string) => Promise<unknown>} evaluate
  * @param {(capture: {profile: unknown, pageRange: {startMs: number, endMs: number}}) => void} persist
  */
-export async function startPrefixScriptProfile(inspector, evaluate, persist = () => undefined) {
+export function startPrefixScriptProfile(inspector, evaluate, persist = () => undefined) {
+  return startBoundedScriptProfile(inspector, evaluate, persist, null);
+}
+
+/** @param {import('./frame-floor-script-profile.mjs').ScriptProfilePort} inspector
+ * @param {(expression: string) => Promise<unknown>} evaluate
+ * @param {(capture: import('./frame-floor-script-profile.mjs').ScriptCapture) => void} persist
+ * @param {number | null} stopAtMs
+ */
+async function startBoundedScriptProfile(inspector, evaluate, persist, stopAtMs) {
   const stop = await startScriptProfile(inspector);
   let startMs;
   try {
     startMs = await evaluate('performance.now()');
     if (typeof startMs !== 'number' || !Number.isFinite(startMs)) throw new Error('Prefix profile has no start clock');
+    if (stopAtMs !== null && startMs >= stopAtMs) throw new Error('Sampling window start missed its end clock');
   } catch (error) { await stop().catch(() => undefined); throw error; }
   let stopping;
   const finish = async () => {
@@ -89,6 +99,39 @@ export async function startPrefixScriptProfile(inspector, evaluate, persist = ()
     if ('error' in result) throw result.error;
     return result.value;
   };
-  const timer = setTimeout(() => { void finish().catch(() => undefined); }, 20000);
+  const timer = setTimeout(() => { void finish().catch(() => undefined); }, stopAtMs === null ? 20000 : stopAtMs - startMs);
   return () => { clearTimeout(timer); return finish(); };
+}
+
+/** Schedule one finite drive window on the existing Inspector. Only Node timers;
+ * early drive cleanup cancels an unstarted recorder without sampling anything.
+ * @param {import('./frame-floor-script-profile.mjs').ScriptProfilePort} inspector
+ * @param {(expression: string) => Promise<unknown>} evaluate
+ * @param {number} driveMs
+ * @param {number} fromMs
+ * @param {number} toMs
+ * @param {(capture: import('./frame-floor-script-profile.mjs').ScriptCapture) => void} persist
+ */
+export async function startDriveWindowScriptProfile(inspector, evaluate, driveMs, fromMs, toMs, persist = () => undefined) {
+  if (![driveMs, fromMs, toMs].every(Number.isFinite) || fromMs < 0 || toMs <= fromMs || toMs > 120000 || toMs - fromMs > 20000)
+    throw new Error('Invalid bounded sampling window');
+  await ensureWebKitPageClock(inspector);
+  const now = await evaluate('performance.now()');
+  if (typeof now !== 'number' || !Number.isFinite(now) || now < driveMs || now >= driveMs + toMs)
+    throw new Error('Sampling window has no live drive clock');
+  /** @type {Promise<{finish: () => Promise<import('./frame-floor-script-profile.mjs').ScriptCapture>} | {error: unknown}> | undefined} */
+  let starting;
+  const timer = setTimeout(() => {
+    starting = (async () => {
+      try { return { finish: await startBoundedScriptProfile(inspector, evaluate, persist, driveMs + toMs) }; }
+      catch (error) { return { error }; }
+    })();
+  }, Math.max(0, driveMs + fromMs - now));
+  return async () => {
+    clearTimeout(timer);
+    if (starting === undefined) return undefined;
+    const result = await starting;
+    if ('error' in result) throw result.error;
+    return result.finish();
+  };
 }

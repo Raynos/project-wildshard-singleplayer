@@ -22,14 +22,14 @@ import { setTimeout as sleep } from 'node:timers/promises';
 import { saveFixtureCode } from './debug-settings.mjs';
 import { frameFloorSettingsCode } from './frame-floor-settings.mjs';
 import { startFloorNative } from './frame-floor-native.mjs';
-import { validateFrameFloorArgs } from './frame-floor-args.mjs';
+import { validateFrameFloorArgs, parseSafariWindow } from './frame-floor-args.mjs';
 import { frameFloorShards } from './frame-floor-inventory.mjs';
 import { handoffFloorGridNavigation, FLOOR_GRID_TAP } from './frame-floor-navigation.mjs';
 import { selectFloorGridPlans, gridFloorPlans, floorGridPortalPlan, readFloorGridEntryways, stageFloorGrid, driveFloorGrid, gridFloorWitnessFailures, installFloorGridProgress, gridFloorRuntimeFailure, gridFloorDocumentIdentity } from './frame-floor-grid.mjs';
 import { GL_INIT } from './parity/glbytes.mjs';
 import { PROGRAM_NAMES_SCRIPT } from './frame-floor-programs.mjs';
 import { TASK_CLOCK_SCRIPT } from './frame-floor-task-clock.mjs';
-import { startScriptProfile, startPrefixScriptProfile, STEADY_SCRIPT_WINDOW } from './frame-floor-script-profile.mjs';
+import { startScriptProfile, startPrefixScriptProfile, startDriveWindowScriptProfile, STEADY_SCRIPT_WINDOW } from './frame-floor-script-profile.mjs';
 import { startWebKitTimeline, timelineLongFrames } from './frame-floor-webkit-timeline.mjs';
 import { WASM_CONSTRUCTORS_SCRIPT, SCRIPT_MEMORY_POOL } from './frame-floor-wasm-constructors.mjs';
 import { runWasmMemoryProbe } from './frame-floor-wasm-probe.mjs';
@@ -89,6 +89,7 @@ const safariProfileDir = flag('safari-profile', '');
 const safariSteadyPose = flag('safari-steady', '');
 const safariDrive = flag('safari-drive', '');
 const safariPrefix = flag('safari-prefix', '');
+const safariWindow = parseSafariWindow(flag('safari-window', ''));
 if (safariProfileDir !== '' && (surface !== 'sim' || (gridScenario === 'baseline' && shards.includes('grid')) || !existsSync(safariProfileDir))) throw new Error('--safari-profile=<existing dir> samples Simulator standing and whole-drive windows (diagnostic, no timing credit)');
 const webkitTimelineDir = flag('webkit-timeline', '');
 if (webkitTimelineDir !== '' && (surface !== 'sim' || gridScenario === 'baseline' && !wasmMemoryProbe || !existsSync(webkitTimelineDir))) throw new Error('--webkit-timeline=<existing dir> captures Simulator grid drives only (diagnostic, no timing credit)');
@@ -141,7 +142,7 @@ if (!['baseline', 'template', 'runtime-travel', 'sun-entry', 'cell', 'all', 'mil
 if (publicGrid && (gridScenario === 'milestone' || gridScenario === 'reentry')) throw new Error('Milestone and re-entry floors require Developer mode');
 if (publicGrid && gridScenario === 'sun-entry') throw new Error('Signal Dunes entered floor requires Developer mode');
 if (args.includes('--help')) {
-  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--developer=on|off] [--frames=120] [--settle=2] [--standing-poses=name,...] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value] [--textures=ktx2|img] [--ktx2-probe=skip] [--gl-observer=off|on] [--grid-scenario=baseline|template|runtime-travel|sun-entry|all|milestone|reentry|outer-road|cell --grid-cell=<slug|instance> [--grid-cell-pose=x,y,z,yawDeg[,pitchDeg]] [--road-approach] [--entry-socket] [--rising-islet=north|east|south|west]] [--devserver] [--grid-routes=route-name,...] [--cpu-profile=<scratch dir>] [--gpu-trace=<scratch dir>] [--safari-profile=<scratch dir>] [--safari-steady=<grid-interior-pose>] [--safari-drive=<grid-route>] [--safari-prefix=<grid-route>] [--gl-time] [--frame-timeline] [--wasm-constructors=<scratch dir>] [--wasm-memory-probe] [--task-clock] [--gpu-bisect] [--scratch-dir=<owned workspace>] [--serve-shard=<slug>] [--serve-base=<served preview url of --rev>]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Grid scenarios drive actual input and require frame/interior/residency witnesses. Public grid seeds only the existing tap intent; admission remains hard. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
+  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--developer=on|off] [--frames=120] [--settle=2] [--standing-poses=name,...] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value] [--textures=ktx2|img] [--ktx2-probe=skip] [--gl-observer=off|on] [--grid-scenario=baseline|template|runtime-travel|sun-entry|all|milestone|reentry|outer-road|cell --grid-cell=<slug|instance> [--grid-cell-pose=x,y,z,yawDeg[,pitchDeg]] [--road-approach] [--entry-socket] [--rising-islet=north|east|south|west]] [--devserver] [--grid-routes=route-name,...] [--cpu-profile=<scratch dir>] [--gpu-trace=<scratch dir>] [--safari-profile=<scratch dir>] [--safari-steady=<grid-interior-pose>] [--safari-drive=<grid-route>] [--safari-prefix=<grid-route>] [--safari-window=<route:start:end seconds>] [--gl-time] [--frame-timeline] [--wasm-constructors=<scratch dir>] [--wasm-memory-probe] [--task-clock] [--gpu-bisect] [--scratch-dir=<owned workspace>] [--serve-shard=<slug>] [--serve-base=<served preview url of --rev>]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Grid scenarios drive actual input and require frame/interior/residency witnesses. Public grid seeds only the existing tap intent; admission remains hard. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
   process.exit(0);
 }
 if (shards.length === 0 || shards.some((s) => !ALL.includes(s)) || new Set(shards).size !== shards.length || !['desktop', 'sim', 'both'].includes(surface) || !Number.isInteger(frames) || frames < 30 || frames > 600 || !Number.isFinite(settleMs) || settleMs < 1000 || settleMs > 10000) throw new Error('Invalid shards, surface, frames (30–600) or settle (1–10 seconds)');
@@ -386,7 +387,7 @@ function assertStandingPosition(pose, result) {
 /** Profile the exact standing window on either surface, with no timing credit for diagnostics. */
 async function standingSample(driver, pose) {
   const started = driver.profile ? await driver.profile.start() : null;
-  const stopScript = driver.scriptProfile && safariSteadyPose === '' && safariDrive === '' && safariPrefix === '' ? await driver.scriptProfile.start() : undefined;
+  const stopScript = driver.scriptProfile && safariWindow === null && safariSteadyPose === '' && safariDrive === '' && safariPrefix === '' ? await driver.scriptProfile.start() : undefined;
   let result, raw, script;
   try { result = await driver.evaluate(`(${sample.toString()})(${frames},${frameTimeline})`); }
   finally {
@@ -489,7 +490,7 @@ async function measureShard(driver, shard, deadline) {
         await driver.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify(plan)},${JSON.stringify(documentOrigin)},(${driveFloorGrid.toString()}))`, 130000);
         const profileStart = driver.profile ? await driver.profile.start() : null;
         const traceAnchor = driver.trace ? await driver.trace.start(plan.name) : null;
-        const stopScriptProfile = driver.scriptProfile && safariPrefix === '' && (safariSteadyPose === '' || safariDrive !== '') && (safariDrive === '' || safariDrive === plan.name) ? await driver.scriptProfile.start() : undefined;
+        const stopScriptProfile = driver.scriptProfile && safariWindow === null && safariPrefix === '' && (safariSteadyPose === '' || safariDrive !== '') && (safariDrive === '' || safariDrive === plan.name) ? await driver.scriptProfile.start() : undefined;
         // Some Simulator Inspector targets time out on Timeline.start. Keep the
         // independent GL/task clocks, and mark the missing partition explicitly.
         let stopTimeline, timelineFailure;
@@ -502,7 +503,11 @@ async function measureShard(driver, shard, deadline) {
         }
         const prefixFile = join(safariProfileDir, `${plan.name}-prefix20s-${Date.now()}.scriptprofile.json`);
         const stopPrefix = driver.scriptProfile && safariPrefix === plan.name ? await driver.scriptProfile.prefix(capture => writeFileSync(prefixFile, JSON.stringify(capture))) : undefined;
-        const scriptMemoryBefore = await driver.evaluate(`(window.__frameFloorDriveDone = false, window.__frameFloorBuildsFrom = performance.now(), ${wasmConstructorsDir === '' ? 'true' : SCRIPT_MEMORY_POOL})`);
+        const windowSelected = safariWindow !== null && safariWindow.route === plan.name;
+        const scriptMemoryBefore = await driver.evaluate(`(window.__frameFloorDriveDone = false, window.__frameFloorBuildsFrom = performance.now(), ${windowSelected ? 'window.__frameFloorBuildsFrom' : wasmConstructorsDir === '' ? 'true' : SCRIPT_MEMORY_POOL})`);
+        const windowFile = join(safariProfileDir, `${plan.name}-window-${Date.now()}.scriptprofile.json`);
+        const stopWindow = driver.scriptProfile && windowSelected ? await driver.scriptProfile.window(scriptMemoryBefore, safariWindow,
+          capture => writeFileSync(windowFile, JSON.stringify(capture))) : undefined;
         if (taskClock) await driver.evaluate('(window.__frameFloorTaskTake?.(), true)');
         // the whole drive, and every runtime hook still building once it has arrived (the 120-frame travel row ends early)
         const wholeDrive = (async () => {
@@ -526,13 +531,16 @@ async function measureShard(driver, shard, deadline) {
             earlyPlay = await driver.evaluate(STEADY_SCRIPT_WINDOW, 35000);
         } finally {
           try {
-            if (stopPrefix !== undefined) { const prefix = await stopPrefix(); profile = prefix.profile; prefixRange = prefix.pageRange; }
+            if (stopWindow !== undefined) {
+              const selected = await stopWindow();
+              if (selected !== undefined) { profile = selected.profile; prefixRange = selected.pageRange; }
+            } else if (stopPrefix !== undefined) { const prefix = await stopPrefix(); profile = prefix.profile; prefixRange = prefix.pageRange; }
             else if (stopScriptProfile !== undefined) profile = await stopScriptProfile();
           } finally { if (stopTimeline !== undefined) timeline = await stopTimeline(); }
         }
         const scriptProfile = profile === undefined ? undefined : await saveSafariProfile(plan.name, profile,
           prefixRange ?? (earlyPlay === undefined ? whole.value.sampleRange : { drive: whole.value.sampleRange, earlyPlay }),
-          prefixRange === undefined ? undefined : prefixFile);
+          prefixRange === undefined ? undefined : windowSelected ? windowFile : prefixFile);
         const rawProfile = driver.profile && profileStart !== null ? await driver.profile.stop() : null;
         if (driver.trace && traceAnchor !== null) await driver.trace.stop(traceAnchor, whole.value.longFrames.at, await driver.evaluate('window.__wildshard.shard.grid.state().live.runtimeTiming?.completed ?? []'));
         if (rawProfile !== null) await saveProfileMaps(rawProfile);
@@ -596,6 +604,7 @@ async function measureShard(driver, shard, deadline) {
     if (safariSteadyPose !== '' && !rows.some(row => row.steadyScriptProfile)) throw new Error(`Selected steady profile pose was not reached: ${safariSteadyPose}`);
     if (safariDrive !== '' && !rows.some(row => row.pose.name === `grid-${safariDrive}-drive` && row.scriptProfile)) throw new Error(`Selected profile drive was not reached: ${safariDrive}`);
     if (safariPrefix !== '' && !rows.some(row => row.pose.name === `grid-${safariPrefix}-drive` && row.scriptProfile)) throw new Error(`Selected prefix drive was not reached: ${safariPrefix}`);
+    if (safariWindow !== null && !rows.some(row => row.pose.name === `grid-${safariWindow.route}-drive` && row.scriptProfile)) throw new Error(`Selected sampling window was not reached: ${safariWindow.route}`);
     const errors = await driver.errors();
     return { shard, complete: true, pass: rows.every((r) => r.pass) && errors.length === 0, seconds: (Date.now() - start) / 1000,
       floorMs, evaluationOriginDriftMaxMs, metadata: meta, cameraSource: declared.length > 0 ? 'manifest standing parity cameras' : 'no declared parity cameras; reversed spawn fallback', scan, rows, scenarios, lastRoute: driver.progress(), errors };
@@ -859,7 +868,8 @@ async function worker() {
         },
         // the tap's fresh document (same helper page, so the pins stay): reconnect to whatever page the helper path now holds
         followed: async () => { await sleep(1500); await connect(`${base}frame-floor-safari.html`); },
-        scriptProfile: safariProfileDir === '' ? null : { start: () => startScriptProfile(inspector), prefix: persist => startPrefixScriptProfile(inspector, expression => retryEvaluate(expression), persist) },
+        scriptProfile: safariProfileDir === '' ? null : { start: () => startScriptProfile(inspector), prefix: persist => startPrefixScriptProfile(inspector, expression => retryEvaluate(expression), persist),
+          window: (driveMs, selected, persist) => startDriveWindowScriptProfile(inspector, expression => retryEvaluate(expression), driveMs, selected.fromMs, selected.toMs, persist) },
         timeline: glTime || webkitTimelineDir !== '' ? { start: () => startWebKitTimeline(inspector, (expression) => retryEvaluate(expression)) } : null,
       };
     }
@@ -963,6 +973,7 @@ async function main() {
       if (safariSteadyPose !== '') workerArgs.push(`--safari-steady=${safariSteadyPose}`);
       if (safariDrive !== '') workerArgs.push(`--safari-drive=${safariDrive}`);
       if (safariPrefix !== '') workerArgs.push(`--safari-prefix=${safariPrefix}`);
+      if (safariWindow !== null) workerArgs.push(`--safari-window=${safariWindow.route}:${safariWindow.fromMs / 1000}:${safariWindow.toMs / 1000}`);
       if (quietSample) workerArgs.push('--quiet');
       const lane = s === 'desktop' ? ['--max', '10', process.execPath, ...workerArgs] : ['run', '--max', '10', device, process.execPath, ...workerArgs];
       await run(join(ROOT, `scripts/${s === 'desktop' ? 'browser' : 'sim'}-lane.sh`), lane, { cwd: quietSample ? ROOT : scratch, echo: true });
@@ -982,7 +993,7 @@ async function main() {
     const complete = results.every((r) => r.rows.every((row) => row.complete));
     const pass = complete && elapsedSeconds < 600 && results.every((r) => r.rows.every((row) => row.pass));
     const record = grade({ schema: 2, sha, runId, device, when: new Date().toISOString(), elapsedSeconds, underTenMinutes: elapsedSeconds < 600,
-      frames, settleMs, standingPoses, shards, surface, developer, quiet: quietSample, ...(publicGrid ? {publicGrid:'public grid as it would ship once GRID_GATES_PASSED flips'} : {}), settings, deviceSaves, expectedSystems, gridScenario, gridRoutes, ...(gridCell === '' ? {} : { gridCell, gridCellPose }), build: devserverBuild ? 'devserver' : 'production', glObserver, travelGlCensus: travelGl !== '', glTime, frameTimeline, gpuBisect: gpuBisectOn, safariProfile: safariProfileDir !== '', ...(safariSteadyPose === '' ? {} : {safariSteady: {pose: safariSteadyPose, seconds: 20}}), ...(safariDrive === '' ? {} : {safariDrive: {route: safariDrive, ...(safariSteadyPose === '' ? {earlyPlaySeconds: 20} : {separateSteady: true})}}), ...(safariPrefix === '' ? {} : {safariPrefix: {route: safariPrefix, seconds: 20}}), webkitTimeline: webkitTimelineDir !== '', wasmConstructors: wasmConstructorsDir !== '', harnessRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(), complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
+      frames, settleMs, standingPoses, shards, surface, developer, quiet: quietSample, ...(publicGrid ? {publicGrid:'public grid as it would ship once GRID_GATES_PASSED flips'} : {}), settings, deviceSaves, expectedSystems, gridScenario, gridRoutes, ...(gridCell === '' ? {} : { gridCell, gridCellPose }), build: devserverBuild ? 'devserver' : 'production', glObserver, travelGlCensus: travelGl !== '', glTime, frameTimeline, gpuBisect: gpuBisectOn, safariProfile: safariProfileDir !== '', ...(safariSteadyPose === '' ? {} : {safariSteady: {pose: safariSteadyPose, seconds: 20}}), ...(safariDrive === '' ? {} : {safariDrive: {route: safariDrive, ...(safariSteadyPose === '' ? {earlyPlaySeconds: 20} : {separateSteady: true})}}), ...(safariPrefix === '' ? {} : {safariPrefix: {route: safariPrefix, seconds: 20}}), ...(safariWindow === null ? {} : {safariWindow}), webkitTimeline: webkitTimelineDir !== '', wasmConstructors: wasmConstructorsDir !== '', harnessRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(), complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
       simulatorCap: `Shipped phone-tier 30 fps cap; Simulator Safari on ${device}`,
       measurement: 'Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.',
       limitations: [standingPoses.length === 0 ? 'Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.' : 'Stationary spawn and explicitly pinned authored standing cameras; this is a baseline, not proof of every gameplay moment.', 'Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.', 'Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim.'], results });

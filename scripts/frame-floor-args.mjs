@@ -1,6 +1,6 @@
 const switches = new Set(['help', 'worker', 'quiet', 'devserver', 'gl-time', 'gpu-bisect', 'frame-timeline', 'task-clock', 'road-approach', 'entry-socket', 'wasm-memory-probe']);
 const values = new Set(['base', 'cpu-profile', 'deadline', 'developer', 'device', 'frames', 'gl-observer', 'gpu-trace',
-  'grid-cell', 'grid-cell-pose', 'grid-routes', 'grid-scenario', 'regrade', 'rev', 'rising-islet', 'safari-profile', 'safari-steady', 'safari-drive', 'safari-prefix',
+  'grid-cell', 'grid-cell-pose', 'grid-routes', 'grid-scenario', 'regrade', 'rev', 'rising-islet', 'safari-profile', 'safari-steady', 'safari-drive', 'safari-prefix', 'safari-window',
   'settle', 'shards', 'surface', 'scratch-dir', 'worker-out', 'device-save', 'expect-system', 'setting', 'output-dir',
   'textures', 'ktx2-probe', 'serve-shard', 'serve-base', 'standing-poses', 'native-memory', 'webkit-timeline', 'wasm-constructors']);
 
@@ -28,6 +28,14 @@ export function validateFrameFloorArgs(args) {
   const steady = args.filter(arg => arg.startsWith('--safari-steady='));
   const drive = args.filter(arg => arg.startsWith('--safari-drive='));
   const prefix = args.filter(arg => arg.startsWith('--safari-prefix='));
+  const window = args.filter(arg => arg.startsWith('--safari-window='));
+  if (window.length > 0 && (window.length !== 1 || prefix.length > 0 || steady.length > 0 || drive.length > 0
+    || args.some(arg => arg.startsWith('--wasm-constructors=') || arg.startsWith('--webkit-timeline='))
+    || !parseSafariWindow(window[0]?.slice('--safari-window='.length) ?? '')
+    || !args.includes('--surface=sim') || !args.includes('--shards=grid')
+    || !args.some(arg => arg.startsWith('--safari-profile=') && arg.length > '--safari-profile='.length)
+    || !args.some(arg => arg.startsWith('--grid-scenario=') && arg !== '--grid-scenario=baseline')))
+    throw new Error('Safari window requires one bounded Simulator grid drive and --safari-profile without other sampling selections');
   const selected = [...steady, ...drive];
   const paired = steady.length === 1 && drive.length === 1 && drive[0] !== undefined
     && steady[0] === `--safari-steady=grid-${drive[0].slice('--safari-drive='.length)}`;
@@ -42,4 +50,14 @@ export function validateFrameFloorArgs(args) {
     || !args.some(arg => arg.startsWith('--safari-profile=') && arg.length > '--safari-profile='.length)
     || !args.some(arg => arg.startsWith('--grid-scenario=') && arg !== '--grid-scenario=baseline')))
     throw new Error('Safari prefix sampling requires one no-quiet Simulator grid drive and --safari-profile, without steady or extended-drive selection');
+}
+
+/** @param {string} value */
+export function parseSafariWindow(value) {
+  if (value === '') return null;
+  const match = /^([a-zA-Z0-9_.-]{1,128}):(\d{1,3}):(\d{1,3})$/u.exec(value);
+  if (!match || match[1] === undefined || match[2] === undefined || match[3] === undefined) return null;
+  const from = Number(match[2]), to = Number(match[3]);
+  if (from < 0 || to <= from || to > 120 || to - from > 20) return null;
+  return { route: match[1], fromMs: from * 1000, toMs: to * 1000 };
 }

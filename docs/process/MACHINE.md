@@ -267,6 +267,13 @@ timer stops only the sampling recorder; the original drive, frame sampler and
 optional Timeline continue. Other sampling windows are suppressed. Its page
 range is retained, and an early drive failure stops the recorder once without
 replaying the drive or extending the window.
+For a short interior interval, `--safari-window=nalati-interior:14:16` samples
+only drive seconds 14 through 16 on the existing Inspector. It uses bounded
+Node timers, saves its actual page-clock range, and cancels if travel ends
+before sampling starts. The end deadline stays absolute if startup is late;
+a missed end refuses. It excludes other profile selections and constructor /
+Timeline observers; quiet may cover the original floor route configuration.
+This window is diagnostic, with no timing acceptance credit.
 
 Before CPU work, `python3 scripts/sim-quiet.py status` reports the active official
 reading. During it, **read and edit only**: no tests, typechecks, lint, builds,
