@@ -34,7 +34,7 @@ test('every source file has a layer owner, while the root covers all tests and a
   const missing = original.fileNames.filter(file => !sources.has(file) && !roots.has(file));
   expect(missing.map(file => relative('.', file))).toEqual([]);
   expect(root.fileNames.filter(file => file.includes('/src/') && !/\.d\.(?:[cm]?ts|[^/]+\.ts)$/u.test(file))).toEqual([]);
-  expect(root.options.disableSourceOfProjectReferenceRedirect).toBe(true);
+  expect(root.options.disableSourceOfProjectReferenceRedirect).not.toBe(true);
   expect(new Set(root.projectReferences?.map(reference => ts.resolveProjectReferencePath(reference)))).toEqual(
     new Set([...seen].filter(file => file !== resolve('tsconfig.layers.json'))),
   );
@@ -66,10 +66,21 @@ test('tests consume emitted declarations; source and test errors each still refu
       emitDeclarationOnly: true, outDir: 'out', types: [], skipLibCheck: true }, include: ['src'] }));
     put('tsconfig.json', JSON.stringify({ compilerOptions: { strict: true, noEmit: true, types: [], skipLibCheck: true,
       module: 'ESNext', moduleResolution: 'bundler', allowArbitraryExtensions: true,
-      disableSourceOfProjectReferenceRedirect: true }, references: [{ path: './tsconfig.source.json' }], include: ['test'] }));
+      disableSourceOfProjectReferenceRedirect: false }, references: [{ path: './tsconfig.source.json' }], include: ['test'] }));
     put('src/value.ts', source);
     put('src/payload.d.json.ts', 'declare const payload: {label: string}; export default payload;\n');
     put('test/value.ts', 'import { value } from "../src/value"; import data from "../src/payload.json"; const result: number = value; const label: string = data.label; export { result, label };\n');
+    const lint = (): ReturnType<typeof spawnSync> => spawnSync(resolve('node_modules/.bin/oxlint'),
+      ['--type-aware', '--no-ignore', '--config', resolve('.oxlintrc.json'), '--tsconfig', resolve(root, 'tsconfig.json'), resolve(root, 'test/lint.ts')],
+      { cwd: resolve('.'), encoding: 'utf8', timeout: 10_000 });
+    put('test/lint.ts', 'import { value } from "../src/value";\n\nexport const result = value + 1;\n');
+    const coldLint = lint();
+    expect(coldLint.status, String(coldLint.stdout) + String(coldLint.stderr)).toBe(0);
+    put('test/lint.ts', 'export const result = JSON.parse("1");\n');
+    const unsafeLint = lint();
+    expect(unsafeLint.status).not.toBe(0);
+    expect(String(unsafeLint.stdout) + String(unsafeLint.stderr)).toContain('no-unsafe-assignment');
+    put('test/lint.ts', 'export const result = 1;\n');
     const missing = run('--noEmit');
     expect(missing.status).not.toBe(0);
     expect(String(missing.stdout) + String(missing.stderr)).toContain('TS6305');

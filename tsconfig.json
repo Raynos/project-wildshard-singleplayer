@@ -33,11 +33,11 @@
     "forceConsistentCasingInFileNames": true,
 
     "isolatedModules": true,
-    "verbatimModuleSyntax": true,
-    "disableSourceOfProjectReferenceRedirect": true
+    "verbatimModuleSyntax": true
   },
   // Source is checked and emitted once by the referenced layer projects.
   // Tests consume those declarations; scripts and sites keep their own checks.
+  // Keep default source redirects for cold editor/type-aware lint programs.
   "references": [
     { "path": "./tsconfig.format.json" },
     { "path": "./tsconfig.engine.json" },
