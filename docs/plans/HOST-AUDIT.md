@@ -13,6 +13,8 @@ bunch of hosts. I don't know where they live, but they need to be scored and ran
 in the engine or the game needs to go into the shard files as data or WASM. Various hosts need to either be deleted or
 made generic. That is a new draft plan that needs to be done across the entire engine, entire game."*
 
+**Custom sections (E498, G696):** draft phase HA7 in [host-audit/custom-sections-mini-plan.md](host-audit/custom-sections-mini-plan.md): 387 custom sections (15 `custom/`, 372 named JSON) to generic platform sections, WASM or deletion, then the custom path deleted.
+
 ## Where the hosts live (first pass, HEAD a03bd35a8a + the in-flight tree, 2026-10-22)
 
 Platform code: engine 668 files / 100.8k lines; game 613 / 94.6k; format 261 / 19.2k; sdk 155 / 12.1k; commons 3 / 0.2k.
