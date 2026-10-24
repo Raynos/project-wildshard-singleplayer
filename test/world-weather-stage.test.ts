@@ -8,7 +8,7 @@ import type { ShardContext } from '../src/game/plugin/context';
 import type { ForestWeatherRig } from '../src/game/weather/forest';
 import { installClientForestWeather } from '../src/game/shardfile/clientForestPage';
 import { CLIENT_FEATURES } from '../src/game/shardfile/clientPlan';
-import { ClientPlanSchema } from '../src/format/clientPlan';
+import { parseClientPlan } from '../src/format/clientPlan';
 import { WorldAssemblySchema } from '../src/format/worldAssembly';
 import { publishEntryOwner, entryOwner, lendEntryOwner } from '../src/game/shardfile/entryOwners';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
@@ -63,9 +63,10 @@ test('declared weather HUD binds before weather reads and keeps the original pla
 
 test('weather is the existing strict play feature and the assembly stage is retired', () => {
   const rows = { version: 1, features: [row] };
-  expect(v.parse(ClientPlanSchema, rows)).toEqual(rows);
+  const parsed: unknown = parseClientPlan(rows);
+  expect(parsed).toEqual(rows);
   for (const extra of [{ phase: 'world' }, { run: 'install' }, { page: ['path'] }, { owner: '../weather' }])
-    expect(() => v.parse(ClientPlanSchema, { version: 1, features: [{ ...row, ...extra }] })).toThrow();
+    expect(() => parseClientPlan({ version: 1, features: [{ ...row, ...extra }] })).toThrow();
   expect(v.safeParse(WorldAssemblySchema, { stages: [{ kind: 'weather', id: row.owner, file: row.file }] }).success).toBe(false);
   expect([CLIENT_FEATURES['weather.forest'].phase, CLIENT_FEATURES['weather.forest'].rank]).toEqual(['play', 40]);
 });

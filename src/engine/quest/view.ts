@@ -161,6 +161,13 @@ const GuideProfile = v.strictObject({
 /** The saved journal's points, borrowed without changing their identity. */
 export interface GuidePoint { readonly id: string; readonly x: number; readonly z: number; readonly r: number }
 
+interface GuidePorts<P extends GuidePoint> {
+  readonly points: () => readonly P[]; readonly discovered: (id: string) => boolean;
+  readonly position: () => { readonly x: number; readonly z: number };
+  readonly fly: (point: P, force: boolean) => boolean;
+  readonly time?: () => number; readonly random?: (lo: number, hi: number) => number;
+}
+
 /** One preflighted place-guide schedule and target selector. Flight, pose and
  * random sources belong to its caller; this controller owns no saved state.
  * Periodic schedules draw their next delay before eligibility or flight;
@@ -168,18 +175,13 @@ export interface GuidePoint { readonly id: string; readonly x: number; readonly 
  */
 export class PlaceGuide<P extends GuidePoint> {
   private readonly profile: v.InferOutput<typeof GuideProfile>;
-  private readonly ports: {
-    readonly points: () => readonly P[]; readonly discovered: (id: string) => boolean;
-    readonly position: () => { readonly x: number; readonly z: number };
-    readonly fly: (point: P, force: boolean) => boolean;
-    readonly time?: () => number; readonly random?: (lo: number, hi: number) => number;
-  };
+  private readonly ports: GuidePorts<P>;
   private sinceProgress = 0;
   private idle = 0;
   private cooldown: number;
   private next = 0;
 
-  constructor(input: unknown, ports: PlaceGuide<P>['ports']) {
+  constructor(input: unknown, ports: GuidePorts<P>) {
     const profile = v.parse(GuideProfile, input);
     if (profile.max !== undefined && profile.max < profile.min) throw new RangeError('Invalid guide target range');
     if (profile.schedule.kind === 'periodic' && (ports.time === undefined || ports.random === undefined)) throw new Error('Periodic guide requires its clock and random owner');
