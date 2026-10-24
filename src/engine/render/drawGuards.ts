@@ -1,4 +1,4 @@
-import type { Object3D } from 'three';
+import { InstancedMesh, type Object3D } from 'three';
 import type { Scope } from '../app/scope';
 import type { Renderer } from './renderer';
 
@@ -31,9 +31,15 @@ export function guardObjectDraw(object: Object3D, guard: DrawGuard, scope: Scope
   return () => { remove(); forget(); };
 }
 
+/** An instanced draw of no instances puts no pixel; three skips only its final GL call, after the program switch and the
+ *  uniform uploads (Nalati's phone frame drew ~5 a frame: empty dressing kinds, an idle impact pool). The mesh's own fields
+ *  stay its owners' (visibility has many). A warm-up that must draw it (parkedDraws) raises its count first. */
+const noInstances = (object: Object3D): boolean => object instanceof InstancedMesh && object.count === 0;
+
 /** Final admission in the existing renderer port. Registration collapses a sole
  * subscriber ahead of time, with no new per-draw wrapper. */
 export const admitObjectDraw: DrawGuard = (camera, scene, geometry, material, object, group) => {
+  if (noInstances(object)) return false;
   const target: GuardedObject = object, admit = target[GUARDS];
   return admit === undefined || admit(camera, scene, geometry, material, object, group);
 };

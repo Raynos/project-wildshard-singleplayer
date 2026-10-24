@@ -275,7 +275,10 @@ function drawSlice(renderer: ParkedDrawRenderer, scene: THREE.Scene, camera: THR
     if (object instanceof THREE.Light) { if (object.layers.test(camera.layers)) lights.push({ light: object, mask: object.layers.mask }); }
     else if (!inSlice.has(object) && object.layers.isEnabled(SHADOW_LAYER)) benched.push({ object, mask: object.layers.mask });
   });
-  const objects = slice.map(object => ({ object, mask: object.layers.mask, culled: object.frustumCulled, colour: object.layers.test(camera.layers) }));
+  // an instanced drawable of no instances (a culled set none of whose copies shows yet) draws one for the warm: a draw of no
+  // instances is refused (drawGuards `noInstances`), and its first real draw would build its pipeline in play
+  const objects = slice.map(object => ({ object, mask: object.layers.mask, culled: object.frustumCulled, colour: object.layers.test(camera.layers),
+    count: object instanceof THREE.InstancedMesh ? object.count : -1 }));
   const rootVisible = root.visible, priorEnvironment = scene.environment;
   const revealed = [...reveal].map(object => ({ object, visible: object.visible }));
   const priorTarget = renderer.getRenderTarget(), priorFace = renderer.getActiveCubeFace(), priorMip = renderer.getActiveMipmapLevel();
@@ -288,7 +291,10 @@ function drawSlice(renderer: ParkedDrawRenderer, scene: THREE.Scene, camera: THR
     for (const { object } of revealed) object.visible = true;
     if (environment !== undefined) scene.environment = environment;
     for (const { light } of lights) light.layers.enable(WARM_LAYER);
-    for (const { object, colour } of objects) { if (colour) object.layers.enable(WARM_LAYER); object.frustumCulled = false; }
+    for (const { object, colour } of objects) {
+      if (colour) object.layers.enable(WARM_LAYER); object.frustumCulled = false;
+      if (object instanceof THREE.InstancedMesh && object.count === 0) object.count = 1;
+    }
     for (const { object } of benched) object.layers.disableAll();
     // the slice's casters draw into each light's stand-in map in the same render (the entry frame's depth pipelines)
     const swapped = swapShadows(lights.map(({ light }) => light), standIns, renderer.shadowMap.type === THREE.VSMShadowMap);
@@ -302,7 +308,10 @@ function drawSlice(renderer: ParkedDrawRenderer, scene: THREE.Scene, camera: THR
     root.visible = rootVisible; scene.environment = priorEnvironment;
     for (const { object, visible } of revealed) object.visible = visible;
     for (const { light, mask } of lights) light.layers.mask = mask;
-    for (const { object, mask, culled } of objects) { object.layers.mask = mask; object.frustumCulled = culled; }
+    for (const { object, mask, culled, count } of objects) {
+      object.layers.mask = mask; object.frustumCulled = culled;
+      if (object instanceof THREE.InstancedMesh && count >= 0) object.count = count;
+    }
     for (const { object, mask } of benched) object.layers.mask = mask;
     restoreShadows(shadows);
     renderer.shadowMap.autoUpdate = shadowAuto; renderer.shadowMap.needsUpdate = shadowNeeds;
@@ -347,7 +356,7 @@ export function warmOffscreenPass(renderer: OffscreenWarmRenderer, scene: THREE.
     for (const object of benched) object.layers.mask &= ~layers.mask;
     for (const object of drawn) {
       object.frustumCulled = false;
-      if (object instanceof THREE.InstancedMesh && object.count > 1) object.count = 1;
+      if (object instanceof THREE.InstancedMesh && object.count !== 1) object.count = 1; // an empty one too: a draw of no instances is refused (drawGuards)
     }
     scene.overrideMaterial = pass.material; scene.background = null;
     renderer.shadowMap.autoUpdate = false; renderer.shadowMap.needsUpdate = false;
