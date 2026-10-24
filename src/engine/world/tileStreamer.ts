@@ -204,6 +204,8 @@ export class TileStreamer<D> {
   private readonly retryAt = new Map<string, number>();
   private readonly cells: readonly LayoutCell[];
   private readonly byInstance = new Map<string, LayoutCell>();
+  // Private cell coordinates only; construction ports receive independent copies.
+  private readonly tilePlans = new WeakMap<LayoutCell, Record<RingLevel, RingTile[]>>();
   private readonly budget: TileStreamBudget;
   private readonly now: () => number;
   private readonly catalogue: RingCatalogue;
@@ -360,6 +362,7 @@ export class TileStreamer<D> {
     if (this.disposed) return; this.disposed = true;
     for (const requirement of this.requirements) this.unpin(requirement, new Error('Tile streamer disposed'));
     this.fullRings.clear();
+    for (const cell of this.cells) this.tilePlans.delete(cell);
     const order = [...this.slots.values()].sort((a, b) => LEVEL_RANK[b.tile.level] - LEVEL_RANK[a.tile.level]);
     const errors: unknown[] = [];
     for (const slot of order) { try { this.drop(slot); } catch (error) { errors.push(error); } }
@@ -374,7 +377,15 @@ export class TileStreamer<D> {
     return rectDistance(camera.x - cell.origin.x, camera.z - cell.origin.z, tile.level, tile.x, tile.z, cell);
   }
   private cell(instance: string): LayoutCell { const cell = this.byInstance.get(instance); if (cell === undefined) throw new Error(`Unknown ring cell ${instance}`); return cell; }
-  private tile(instance: string, level: RingLevel, x: number, z: number): RingTile { return { key: key(instance, level, x, z), instance, type: this.cell(instance).type, level, x, z }; }
+  private tile(instance: string, level: RingLevel, x: number, z: number): RingTile {
+    const cell = this.cell(instance);
+    let levels = this.tilePlans.get(cell);
+    if (levels === undefined) { levels = { far: [], l1: [], l0: [] }; this.tilePlans.set(cell, levels); }
+    const tiles = levels[level], index = z * cell.columns[level] + x;
+    let tile = tiles[index];
+    if (tile === undefined) { tile = { key: key(instance, level, x, z), instance, type: cell.type, level, x, z }; tiles[index] = tile; }
+    return tile;
+  }
 
   /** Cell-local bounds of an admitted tile. Outside-rectangle indices refuse. */
   bounds(tile: Pick<RingTile, 'instance' | 'level' | 'x' | 'z'>): TileRectangle {
@@ -540,11 +551,13 @@ export class TileStreamer<D> {
     const pending = [...want.values()].filter(({ tile }) => !this.slots.has(tile.key) && (this.retryAt.get(tile.key) ?? 0) <= this.frame)
       .sort((a, b) => LEVEL_RANK[a.tile.level] - LEVEL_RANK[b.tile.level] || a.distance - b.distance || a.tile.key.localeCompare(b.tile.key));
     let inFlight = [...this.slots.values()].filter((s) => s.state === 'fetching').length;
-    for (const { tile, distance } of pending) {
+    for (const { tile: plan, distance } of pending) {
       if (inFlight >= this.options.maxInFlight) break;
-      const parentKey = parentOf(tile), parent = parentKey === null ? undefined : this.slots.get(parentKey);
-      if (parentKey !== null && this.exists(tile) && parent?.state !== 'uploaded') continue;
-      const bytes = this.bytes(tile.instance, tile.level, tile.x, tile.z); if (bytes === null) continue;
+      const parentKey = parentOf(plan), parent = parentKey === null ? undefined : this.slots.get(parentKey);
+      if (parentKey !== null && this.exists(plan) && parent?.state !== 'uploaded') continue;
+      const bytes = this.bytes(plan.instance, plan.level, plan.x, plan.z); if (bytes === null) continue;
+      // Ports retain a fresh descriptor for this construction, never the private plan.
+      const tile = { ...plan };
       const lease = this.budget.reserve({ id: `render:${tile.key}`, category: tile.level, bytes, owner: tile.instance, distance, needed: true, evictSync: () => { this.evicted(tile.key); } });
       if (lease === null) { this.refused++; this.retryAt.set(tile.key, this.frame + 15); continue; }
       const slot: Slot<D> = { tile, parent: parentKey, state: 'fetching', lease, unholdParent: parent?.lease.hold() ?? ((): void => undefined), view: null, data: null, bytes, distance, masked: '', shadow: false };

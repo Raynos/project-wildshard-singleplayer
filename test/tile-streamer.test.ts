@@ -146,3 +146,48 @@ test.each(['nested', 'throw'] as const)('release planning survives %s disposal w
     expect(allocator.entries()).toEqual([]);
   } finally { streamer.dispose(); }
 });
+
+test('replanning keeps fresh public descriptors and rejects an old construction completion', () => {
+  const allocator = new ResidencyAllocator(), received: RingTile[] = [], discarded: string[] = [];
+  const completions: ((value: string) => void)[] = [];
+  const ports: RingPorts<string> = {
+    fetch: (tile, done) => { received.push(tile); completions.push(done); done(tile.key); },
+    upload: () => ({ mask: () => undefined, shadow: () => undefined, dispose: () => undefined }),
+    discard: (_tile, data) => { discarded.push(data); },
+  };
+  const streamer = new TileStreamer([{ instance: 'home', origin: { x: 0, z: 0 } }],
+    { reserve: claim => allocator.reserve(claim), now: () => 0 }, (_instance, level) => level === 'far' ? 1000 : null, ports);
+  try {
+    streamer.step(camera);
+    const original = received[0]; if (original === undefined) throw new Error('Missing original tile');
+    Object.defineProperty(original, 'constructionMarker', { value: 1, enumerable: true });
+    for (let frame = 0; frame < 5; frame++) streamer.step(camera);
+    expect(received).toHaveLength(1);
+    streamer.step({ x: 10000, z: 0, vx: 0, vz: 0 });
+    streamer.step(camera);
+    const next = received[1]; if (next === undefined) throw new Error('Missing replacement tile');
+    expect(next).not.toBe(original);
+    expect(next).toEqual({ key: 'home:far', instance: 'home', type: 'level', level: 'far', x: 0, z: 0 });
+    completions[0]?.('obsolete'); streamer.step(camera);
+    expect(discarded).toEqual(['obsolete']);
+    expect(streamer.resident()).toEqual(['home:far']);
+  } finally { streamer.dispose(); }
+  expect(allocator.entries()).toEqual([]);
+});
+
+test('required zero keys retain the original Set coordinate canonicalization', async () => {
+  const allocator = new ResidencyAllocator(), received: RingTile[] = [];
+  const streamer = new TileStreamer([{ instance: 'home', origin: { x: 0, z: 0 } }],
+    { reserve: claim => allocator.reserve(claim), now: () => 0 }, (_instance, level) => level === 'l0' ? 1000 : null,
+    { fetch: (tile, done) => { received.push(tile); done(tile.key); }, upload: () => ({ mask: () => undefined, shadow: () => undefined, dispose: () => undefined }) });
+  const away = { x: 10000, z: 0, vx: 0, vz: 0 };
+  try {
+    const negative = streamer.require('home', [-0]); streamer.step(away); await negative.ready;
+    expect(Object.is(received[0]?.x, 0)).toBe(true); expect(Object.is(received[0]?.z, 0)).toBe(true);
+    negative.release(); streamer.step(away);
+    const positive = streamer.require('home', [0]); streamer.step(away); await positive.ready;
+    expect(received).toHaveLength(2);
+    expect(Object.is(received[1]?.x, 0)).toBe(true); expect(Object.is(received[1]?.z, 0)).toBe(true);
+    positive.release();
+  } finally { streamer.dispose(); }
+});
