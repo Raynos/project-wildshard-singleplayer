@@ -16,6 +16,7 @@ import { backdropPrefixPlugin } from './vite/backdropPrefix';
 import { chunkReport } from './vite/chunkReport';
 import { bootModulesPlugin } from './vite/bootModules';
 import { devserverFlags } from './vite/devserver';
+import { noTopLevelAwait } from './vite/noTopLevelAwait';
 import { crossroadsRigPlugin } from './vite/crossroadsRig';
 import { outputProductsPlugin } from './vite/outputProducts';
 import { assertHeavyLease } from './scripts/heavy-lane-lease.mjs';
@@ -119,8 +120,9 @@ export default defineConfig(({ mode, command }) => {
         // Manual groups remain disabled: Rolldown 1.2.9 emits circular chunks with invalid runtime bindings.
       },
     assetsInclude: ['**/*.hdr', '**/*.gltf', '**/*.bin'],
+    worker: { plugins: () => [noTopLevelAwait()] },
     resolve: { alias: rapierAlias }, // Rapier's wasm-importing module → plain bindings (vite/rapier.ts)
     define: { __SHARDFILE_VALIDATOR__: JSON.stringify(validationRevision), __SHARDFILE_VERDICTS__: JSON.stringify(buildValidationReceipts(validationRevision)), __DEVSERVER__: mode === 'devserver', __BUILD_ID__: JSON.stringify(BUILD_ID), __SAVE_NAMESPACES__: JSON.stringify(readdirSync('src/shards').filter((slug) => existsSync(join('src/shards', slug, 'manifest.ts')))) },
-    plugins: native ? [gridSeamPlansPlugin(), outputProductsPlugin(), devserverFlags(false), genShardsPlugin(), titleCataloguePlugin(), backdropPrefixPlugin(), versionPlugin(), nativePlugin()] : [gridSeamPlansPlugin(), outputProductsPlugin(), devserverFlags(mode === 'devserver'), genShardsPlugin(), titleCataloguePlugin(), backdropPrefixPlugin(), versionPlugin(), crossroadsRigPlugin(BUILD_ID), bootModulesPlugin(), pwaPlugin(BUILD_ID), rapierPreviewPlugin(), chunkReport()],
+    plugins: native ? [gridSeamPlansPlugin(), outputProductsPlugin(), devserverFlags(false), genShardsPlugin(), titleCataloguePlugin(), backdropPrefixPlugin(), versionPlugin(), nativePlugin(), noTopLevelAwait()] : [gridSeamPlansPlugin(), outputProductsPlugin(), devserverFlags(mode === 'devserver'), genShardsPlugin(), titleCataloguePlugin(), backdropPrefixPlugin(), versionPlugin(), crossroadsRigPlugin(BUILD_ID), bootModulesPlugin(), pwaPlugin(BUILD_ID), rapierPreviewPlugin(), chunkReport(), noTopLevelAwait()],
   };
 });
