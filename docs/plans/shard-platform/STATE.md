@@ -11,12 +11,11 @@ Next: HOST-AUDIT page READY docs/reviews/host-audit-inventory.md (6ec361162e: 11
 Jake approves each), legacy deletion (G606).
 
 **(3) Frame floor.** Desktop (466c98bac7): ALL 24 shipped shards PASS standing (59.9 fps, max 16.8 ms); grid drives
-p95 16.8 but Pine max 1,117 ms (one 1.5 s gl.bufferData after pine-hollow:activate, sp-o3) and Nalati max 167 FAIL.
-Quiet iOS Sim p95 (889 → 2e86e67846): Pine drive 71 → 35, interior 60 → 34; Nalati drive 53 → 43 (max 135, road
-spike 448 → 67 ms), settled 59 → 47 FAIL: 35/37 spikes overlap a full GC every ~0.6 s (1,184 MiB/20 s, objects + iterators, not buffers; 5 lanes cutting); DW/template 35/34. Cuts: shader-build churn (variants 566 → 20 MiB), variant token keys (select 241 → 2), page
-light budget 79fd45d18c, herd/Valibot/hash allocation. Wasm memory pool e472f34069: 33 hits / 0 misses, no fixed Memory built in play (each forced a 60-130 ms full GC).
-Road spike = growable Memory rebuilt by saved-state restore: virgin stock 45 (29fbc87055) + single-build restore DB1
-(54619d7a5f) -> 42 hits / 0 misses, zero Memory on the whole drive. Smoke red on 90ddf7d59f (WebKit context loss, sp-o3).
+p95 16.8, max Pine 1,117 → 66.7, Nalati 167 → 50.1 ms (f7e74f576e); left: owner CPU share FAIL.
+Quiet iOS Sim p95 (889 → 2e86e67846): Pine drive 71 → 35, interior 60 → 34; Nalati drive 53 → 43 (road spike 448 → 67
+ms: Wasm memory pool + virgin stock + single-build restore DB1, zero Memory on the drive), settled 59 → 46 FAIL: spikes
+overlap FULL GCs every 0.6 s (DW 1.25 s, p95 34); nothing requests them, Chromium allocation -13.6 % didn't move them;
+sp-x1 measuring WebKit typed-array bytes, sp-x8 JSC kernel ranking. Desktop owner CPU: Nalati 4.4 vs 4.17 ms (sp-x6).
 
 **Memory:** WebKit Sim floors menu ~166, T1 ~310-330 MiB vs M1's 50/100 (FAIL). Same source drifts ~10 MiB between
 cohorts; churn cuts don't move floors (they cut GC, not WebKit's dirty pages). M1's 50 MiB menu is below WebKit's own floor (framework 57 MiB): recommend re-basing
