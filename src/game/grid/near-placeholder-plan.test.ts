@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { PHONE_NEAR_CELLS, planNearPlaceholders } from '../src/game/grid/nearPlaceholderPlan';
+import { PHONE_NEAR_CELLS, planNearPlaceholders } from './nearPlaceholderPlan';
 
 const pitch = 555, cells = [-2, -1, 0, 1, 2].flatMap(x => [-2, -1, 0, 1, 2].map(z => ({ instance: `c${x}${z}`, slug: 'content', cell: [x, z] as [number, number], origin: { x: x * pitch, y: 0, z: z * pitch } })));
 

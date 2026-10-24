@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { FAR_BANDS, farBandShare } from '../src/game/grid/farImpostorView';
+import { FAR_BANDS, farBandShare } from './farImpostorView';
 
 // G539: the far tier's bands: the proxy hands over to the impostor across the fade, never at a hard line.
 test('the band hands the proxy to the impostor across its fade', () => {

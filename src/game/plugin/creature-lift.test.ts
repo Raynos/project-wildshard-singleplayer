@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { stepCreatureLift } from '../src/game/plugin/animation';
+import { stepCreatureLift } from './animation';
 
 test('lift retains flag order, floor response and saved continuation, refusing invalid frames quietly', () => {
   const actor = { mem: { init: 1, rise: .9, rising: 1, sinking: 1, floor: 3, floorS: 1 }, yOffset: -4 };

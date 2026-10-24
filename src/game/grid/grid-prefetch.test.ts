@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { gridPrefetchOrder, readGridPrefetch } from '../src/game/grid/prefetch';
+import { gridPrefetchOrder, readGridPrefetch } from './prefetch';
 
 test('G554: the whole set is read nearest cell first, each product once', () => {
   const cell = (slug: string, x: number, z: number) => ({ instance: `${slug}@${x},${z}`, slug, cell: [x, z] as const, origin: { x: x * 555, y: 0, z: z * 555 } });

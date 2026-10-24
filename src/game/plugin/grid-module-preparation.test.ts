@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
-import { ShardPlugin, prepareTrustedRuntime } from '../src/game/plugin/context';
-import { readGridEdges } from '../src/game/grid/edgeSources';
+import { ShardPlugin, prepareTrustedRuntime } from './context';
+import { readGridEdges } from '../grid/edgeSources';
 
 function fixture() {
   const construct = vi.fn(), hook = vi.fn();

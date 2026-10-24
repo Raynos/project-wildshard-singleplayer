@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { cellLoadingStep, type CellLoadingInput } from '../src/game/grid/cellLoading';
-import { loadingPath } from '../src/game/boot/loadingPaths';
+import { cellLoadingStep, type CellLoadingInput } from './cellLoading';
+import { loadingPath } from '../boot/loadingPaths';
 
 const base: CellLoadingInput = { instance: 'pine-hollow', slug: 'pine-hollow', name: 'Pine Hollow', refusal: null, product: false,
   claimedMB: 0, requested: true, runtime: false, colliders: false, sim: false, hooks: new Set(), hook: null, hybrid: true,

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { declaredForestQueries, declaredPondClip } from '../src/game/shard/manifest';
+import { declaredForestQueries, declaredPondClip } from './manifest';
 
 const forest = { forest: [
   { x: 1.25, z: -3.5, density: .6, scale: 1.2, species: { spruce: .75, birch: .25 } },

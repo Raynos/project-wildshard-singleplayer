@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { CellLoading, type CellLoadingInput } from '../src/game/grid/cellLoading';
-import type { CellScreenView } from '../src/game/grid/cellScreens';
+import { CellLoading, type CellLoadingInput } from './cellLoading';
+import type { CellScreenView } from './cellScreens';
 
 test('an actual hook corrects an inferred row and warm-up names its own work', () => {
   const shown: CellScreenView[] = [];

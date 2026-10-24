@@ -1,6 +1,6 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { BufferAttribute, Group, Mesh, MeshStandardMaterial, PlaneGeometry } from 'three';
-import { createModelLibrary, type ModelGeometryPool } from '../src/game/plugin/geometry';
+import { createModelLibrary, type ModelGeometryPool } from './geometry';
 
 afterEach(() => { vi.restoreAllMocks(); });
 const empty = {meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 1};

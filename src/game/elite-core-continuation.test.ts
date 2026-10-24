@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { EliteCore, memoryElitePersistence, type EliteCoreScript } from '../src/game/eliteSystem';
+import { EliteCore, memoryElitePersistence, type EliteCoreScript } from './eliteSystem';
 
 function fixture(): { core: EliteCore<EliteCoreScript>; effects: string[] } {
   const effects: string[] = [];

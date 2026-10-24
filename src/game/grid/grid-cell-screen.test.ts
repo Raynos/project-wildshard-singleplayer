@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
-import { CellLoading, type CellLoadingInput, type CellScreenPlace } from '../src/game/grid/cellLoading';
-import { facingEdge, type CellScreenView } from '../src/game/grid/cellScreens';
-import { loadingPath } from '../src/game/boot/loadingPaths';
+import { CellLoading, type CellLoadingInput, type CellScreenPlace } from './cellLoading';
+import { facingEdge, type CellScreenView } from './cellScreens';
+import { loadingPath } from '../boot/loadingPaths';
 
 // G578: a waiting grid cell's loading steps show on its in-world screen, never the full-screen loader
 const base: CellLoadingInput = { instance: 'sky-1', slug: 'far-reach', name: 'Sky Reach', refusal: null, product: true, claimedMB: 120,

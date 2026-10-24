@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { AchievementCounterBook } from '../src/game/achievements';
+import { AchievementCounterBook } from './achievements';
 
 const rows = { feats: [{ id: 'shells', kind: 'crab', count: 3 }, { id: 'beacon', event: 'light', count: 1 }],
   prefix: 'island.', floorTotals: true, validateTotals: true, write: 'each' as const };

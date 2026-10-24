@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { useOwnedGridHome } from '../src/game/grid/pageShell';
+import { useOwnedGridHome } from './pageShell';
 
 test('a compiled grid home needs its declared product; admitted data keeps its existing path', () => {
   const compiled = { slug: 'pine-hollow' as const, clientPlanRuntime: true as const, gridShardfile: 'fixture/shard.json' };

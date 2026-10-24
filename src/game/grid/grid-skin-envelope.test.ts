@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { Bone, Box3, BoxGeometry, Float32BufferAttribute, Group, MeshBasicMaterial, Skeleton, SkinnedMesh, Uint16BufferAttribute } from 'three';
-import { skinEnvelope, uploadedSkinBounds } from '../src/game/grid/skinEnvelope';
+import { skinEnvelope, uploadedSkinBounds } from './skinEnvelope';
 
 test('bone envelopes contain exact vertices through poses, rebasing and unequal weight sums', () => {
   const geometry = new BoxGeometry(2, 4, 3), material = new MeshBasicMaterial(), mesh = new SkinnedMesh(geometry, material);

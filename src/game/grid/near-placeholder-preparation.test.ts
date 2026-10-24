@@ -1,8 +1,8 @@
 import { expect, test, vi } from 'vitest';
 import { BoxGeometry, BufferAttribute, BufferGeometry, Group } from 'three';
-import { installFarProxy, type FarProxyView } from '../src/game/grid/farView';
-import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { bakedNearFiles, NearPlaceholders, type NearPlaceholderHost } from '../src/game/grid/nearPlaceholderView';
+import { installFarProxy, type FarProxyView } from './farView';
+import { ResidencyAllocator } from './allocator';
+import { bakedNearFiles, NearPlaceholders, type NearPlaceholderHost } from './nearPlaceholderView';
 
 function fixture() {
   const root = new Group(), geometry = new BoxGeometry(), allocator = new ResidencyAllocator();

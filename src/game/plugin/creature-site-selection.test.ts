@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { selectCreatureSites } from '../src/game/plugin/brain';
+import { selectCreatureSites } from './brain';
 
 test('site selection lends stable ranked sites and scores only admitted points in source order', () => {
   const sites = [{ x: 1, z: 0 }, { x: 2, z: 0 }, { x: 5, z: 0 }, { x: 7, z: 0 }], seen: number[] = [];

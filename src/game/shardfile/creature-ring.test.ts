@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { followRing } from '../src/game/shardfile/tileDriver';
+import { followRing } from './tileDriver';
 
 // Tile streaming T6: the creature ring follows the viewer's tile; an animal outside it sleeps.
 test('the creature ring keeps the 5 x 5 around the viewer and follows a jump', () => {

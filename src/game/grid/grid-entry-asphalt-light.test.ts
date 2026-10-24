@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { CanvasTexture, MeshLambertMaterial } from 'three';
-import { ROAD_SKY } from '../src/game/grid/frameModel';
-import { ROAD_OVERLAY_LIGHT, RoadOverlayLight } from '../src/game/grid/roadLook';
+import { ROAD_SKY } from './frameModel';
+import { ROAD_OVERLAY_LIGHT, RoadOverlayLight } from './roadLook';
 
 // W1 grid-ready check (2026-10-14): Signal's dusk light and grade turned the 15 m of road asphalt forced into each entry
 // (G103) into a black quad. The overlay keeps the road's light where a cell's own light owns the frame.

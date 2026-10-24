@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { sha256 } from '../src/game/plugin/moduleHash';
+import { sha256 } from './moduleHash';
 
 const independent = async (bytes: Uint8Array<ArrayBuffer>): Promise<string> =>
   [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(word => word.toString(16).padStart(2, '0')).join('');
