@@ -147,3 +147,8 @@ export type ClientFeatureRow = ClientPlan['features'][number];
 export type ClientFeatureKind = ClientFeatureRow['kind'];
 /** Strict admission rejects unknown kinds and executable/reflected settings before installing any feature. */
 export function parseClientPlan(input: unknown): ClientPlan { return v.parse(ClientPlanSchema, input); }
+
+/** Optional code selected by defining rows; debug borrows dressing only when named. */
+export function clientPlanModuleGroups(plan: { readonly features: readonly ClientFeatureRow[] }): string[] {
+  return plan.features.filter(row => row.kind !== 'debug.expose' || row.source?.kind === 'dressing').map(row => row.kind);
+}

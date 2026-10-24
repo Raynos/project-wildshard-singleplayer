@@ -6,7 +6,7 @@ import { startPageServices } from './pageServices';
 import { persistHomeScreen } from '@wildshard/engine/saves/runtime';
 import { waitFor } from '@wildshard/engine/boot/waits';
 import { preloadModuleFiles } from '@wildshard/engine/boot/download';
-import { reserveHomeDownload, prepareHomeExtras } from './bootDownloads';
+import { reserveHomeDownload, prepareHomeExtras, prepareHomeModules } from './bootDownloads';
 /**
  * The page's module entry. Everything the game imports statically is evaluated in ONE task when a module graph
  * runs: three.js plus the ~150 game modules at once was a 115–157 ms long task at 4× CPU before the first boot step
@@ -126,7 +126,6 @@ async function startSelected(): Promise<void> {
     if (typeof moduleRows !== 'object' || moduleRows === null || !Object.hasOwn(moduleRows, kind)) throw new Error('Missing boot module rows');
     preloadModuleFiles(Reflect.get(moduleRows, kind));
   };
-  modules('common');
   const { gridPrefetchStatus } = await retried(() => import('./game/grid/prefetch'));
   loading.setPrefetchSource(gridPrefetchStatus);
   loading.waiting('Preparing application services');
@@ -155,6 +154,8 @@ async function startSelected(): Promise<void> {
     const extras = source === null && path === 'shardfile' ? prepareHomeExtras(
       typeof moduleRows === 'object' && moduleRows !== null && 'extras' in moduleRows ? moduleRows.extras : undefined,
       game.shard.shardfile, document.baseURI, entryScope) : null;
+    if (source === null && path === 'shardfile') prepareHomeModules(game.shard.shardfile, document.baseURI);
+    modules('common');
     if (path === 'shardfile') modules('client');
     if (path === 'grid') modules('grid');
     if (extras !== null) { loading.waiting('Reading selected download inventory'); await waitFor('Read selected download inventory', extras.read(), 'file'); }

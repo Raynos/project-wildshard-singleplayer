@@ -4,6 +4,8 @@ import { build } from 'vite';
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve that compiler fixture without changing process cwd.
 import { resolve } from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- Pin the miniature product's actual metadata bytes.
+import { createHash } from 'node:crypto';
 import { readModuleFiles } from '../src/engine/boot/download';
 import { bootModuleFiles, bootModuleGroups, clientFeatureImports, bootModulesPlugin, startupImports } from '../vite/bootModules';
 
@@ -78,12 +80,19 @@ test('the actual Vite plugin emits exact module body sizes into the existing doc
     writeFileSync(resolve(root, 'src/main.css'), 'body { color: red; }');
     writeFileSync(resolve(root, 'src/title.ts'), 'export const title = "optional title";');
     writeFileSync(resolve(root, 'src/game/shardfile/client.ts'), 'import {CLIENT_FEATURES} from "./clientPlan"; export const client = CLIENT_FEATURES;');
-    writeFileSync(resolve(root, 'src/game/shardfile/clientPlan.ts'), 'export const CLIENT_FEATURES = {"world.first":{install:()=>import("./optional-first")},"world.second":{install:()=>import("./optional-second")}};');
+    writeFileSync(resolve(root, 'src/game/shardfile/clientPlan.ts'), 'export const CLIENT_FEATURES = {"world.scenes":{install:()=>import("./optional-first")},"world.first":{install:()=>import("./optional-first")},"world.second":{install:()=>import("./optional-second")}};');
     writeFileSync(resolve(root, 'src/game/shardfile/optional-first.ts'), 'export const first = "first world";');
     writeFileSync(resolve(root, 'src/game/shardfile/optional-second.ts'), 'export const second = "second world";');
     writeFileSync(resolve(root, 'src/game/grid/session.ts'), 'export const grid = () => import("./reveal");');
     writeFileSync(resolve(root, 'src/game/grid/reveal.ts'), 'export const reveal = "grid reveal";');
     writeFileSync(resolve(root, 'src/game/session/play.ts'), 'export const play = () => import("../grid/reveal");');
+    const product = resolve(root,'out/example'); mkdirSync(product,{recursive:true});
+    const sections = Object.entries({'client/plan':{version:1,features:[{kind:'world.scenes'}]},
+      'look/materials':{rows:{looks:[{recipe:'platform.skin'}]}},'explore/catalogue':{version:1,entries:[]}}).map(([name,value]) => {
+      const text=JSON.stringify(value),path=`${name.replaceAll('/','-')}.json`;writeFileSync(resolve(product,path),text);
+      return {name,path,bytes:Buffer.byteLength(text),hash:createHash('sha256').update(text).digest('hex')};
+    });
+    writeFileSync(resolve(product,'shard.json'),JSON.stringify({format:'wildshard.shardfile',formatVersion:2,sections,schemas:[],files:[],runtime:null}));
     const result = await build({ root, configFile: false, logLevel: 'silent', plugins: [bootModulesPlugin()],
       build: { write: false, minify: false, cssCodeSplit: false } });
     if (Array.isArray(result) || !('output' in result)) throw new Error('Expected one generated bundle');
@@ -97,7 +106,7 @@ test('the actual Vite plugin emits exact module body sizes into the existing doc
       const bytes = file.type === 'chunk' ? file.code : file.source;
       return [`/${file.fileName}`, typeof bytes === 'string' ? new TextEncoder().encode(bytes).byteLength : bytes.byteLength];
     }).sort(([left], [right]) => left.localeCompare(right));
-    expect(rows.products).toEqual({});
+    expect(rows.products).toEqual({'/shardfiles/example/':[expect.any(Number),expect.any(Number)]});
     expect(rows.common).toEqual(expected(['/first-', '/index-']));
     expect(rows.client).toEqual(expected(['/client-', '/index-']));
     expect(rows.grid).toEqual(expected(['/session-', '/reveal-', '/index-']));
@@ -108,6 +117,9 @@ test('the actual Vite plugin emits exact module body sizes into the existing doc
     const indices: unknown = Reflect.get(groups, 'world.first');
     if (!Array.isArray(indices)) throw new Error('Missing first group');
     expect(indices.map(index => { if (typeof index !== 'number') throw new Error('Invalid group index'); return files[index]; })).toEqual(expected(['/optional-first-']));
+    const home: unknown = Reflect.get(groups,'home:/shardfiles/example/');
+    if(!Array.isArray(home))throw new Error('Missing selected home graph');
+    expect(home.map(index => {if(typeof index!=='number')throw new Error('Invalid home index');return files[index];})).toEqual(expected(['/optional-first-','/rigParser-','/explorerCatalogue-']));
     expect(rows.common).not.toEqual(expect.arrayContaining(expected(['/optional-first-'])));
     const practice: unknown = Reflect.get(groups, 'practice.models');
     if (!Array.isArray(practice)) throw new Error('Missing practice group');

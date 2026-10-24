@@ -1,4 +1,13 @@
-import { declareDownloadFile, reserveDownloadGroup, reserveDownloadBank } from '@wildshard/engine/boot/download';
+import { declareDownloadFile, reserveDownloadGroup, reserveDownloadBank, preloadModuleGroups } from '@wildshard/engine/boot/download';
+
+/** Declare the compiler's selected home code union before common code finishes. */
+export function prepareHomeModules(descriptor: string | undefined, base: string): void {
+  if (descriptor === undefined) return;
+  const url = new URL(descriptor, base);
+  if (url.origin !== new URL(base).origin || !/^\/shardfiles\/[a-zA-Z0-9_-]+\/shard\.json$/u.test(url.pathname)
+    || url.search !== '' || url.hash !== '') return;
+  preloadModuleGroups([`home:${new URL('.', url).pathname}`]);
+}
 
 /** Use only the selected first-party home's compact compiler facts. External
  * descriptors and legacy-only cards retain their existing admission path. */

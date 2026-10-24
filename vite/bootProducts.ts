@@ -2,6 +2,9 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import * as v from 'valibot';
+import { createHash } from 'node:crypto';
+import { parseClientPlan, clientPlanModuleGroups } from '../src/format/clientPlan';
+import { SKIN_LOOK_RECIPE } from '../src/format/skins';
 
 interface Measured { readonly path: string; readonly hash: string; readonly bytes: number }
 export interface ProductDownloadIndex {
@@ -52,4 +55,24 @@ export function bootProductTotals(root: string): Readonly<Record<string, readonl
     rows[`/shardfiles/${entry.name}/`] = productDownloadTotal(input, bytes.byteLength);
   }
   return rows;
+}
+
+/** Compact code selection from measured output metadata, without copying products. */
+export function homeClientModuleGroups(root: string, directory: string): readonly string[] {
+  const product = resolve(root, 'out', directory);
+  const index = readProductDownloadIndex(JSON.parse(readFileSync(resolve(product, 'shard.json'), 'utf8')));
+  const section = (name: string): unknown => {
+    const row = index.sections.find(candidate => candidate.name === name);
+    if (row === undefined) return undefined;
+    const bytes = readFileSync(resolve(product, row.path));
+    if (bytes.length !== row.bytes || createHash('sha256').update(bytes).digest('hex') !== row.hash) throw new Error('Boot code section differs from its index');
+    return JSON.parse(bytes.toString('utf8'));
+  };
+  const plan = section('client/plan'), groups = plan === undefined ? [] : clientPlanModuleGroups(parseClientPlan(plan));
+  if (index.sections.some(row => row.name === 'explore/catalogue')) groups.push('explorer.catalogue');
+  const looks = section('look/materials'), items = section('combat/items');
+  const lookRows = looks === undefined ? [] : v.parse(v.object({rows:v.object({looks:v.array(v.object({recipe:v.string()}))})}), looks).rows.looks;
+  const itemRows = items === undefined ? [] : v.parse(v.object({items:v.object({rows:v.array(v.object({view:v.object({asset:v.exactOptional(v.unknown())})}))})}), items).items.rows;
+  if (lookRows.some(row => row.recipe === SKIN_LOOK_RECIPE) || itemRows.some(row => row.view.asset !== undefined)) groups.push('models.gltf');
+  return [...new Set(groups)];
 }

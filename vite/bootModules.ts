@@ -3,7 +3,7 @@ import ts from '@typescript/typescript6';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { readModuleFiles } from '../src/engine/boot/download';
-import { bootProductTotals } from './bootProducts';
+import { bootProductTotals, homeClientModuleGroups } from './bootProducts';
 import { homeExtraFiles } from './bootExtras';
 import { createHash } from 'node:crypto';
 import { selectionModules } from '../scripts/title-catalogue.mjs';
@@ -207,6 +207,11 @@ export function bootModulesPlugin(): Plugin {
       for (const prefix of Object.keys(products)) {
         const directory = prefix.split('/')[2];
         if (directory === undefined) throw new Error('Missing boot home directory');
+        featureRoots[`home:${prefix}`] = homeClientModuleGroups(root, directory).flatMap(kind => {
+          const roots = featureRoots[kind];
+          if (roots === undefined) throw new Error(`Missing selected home code group: ${kind}`);
+          return roots;
+        });
         const files = homeExtraFiles(root, directory, bundle, inlineLimit);
         if (files === null) continue;
         const source = JSON.stringify(files), hash = createHash('sha256').update(source).digest('hex');
