@@ -3,9 +3,8 @@ import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Committed native checkpoints are compressed proof data.
 import { gzipSync, gunzipSync } from 'node:zlib';
 import { readWitnessManifest } from '../../../scripts/witness-checkpoints.mjs';
-import { generateHeadlessModuleMap } from '../../../scripts/check-headless-assemblies.mjs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native proof maps are generated beside the local product.
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import * as v from 'valibot';
 import { outputDescriptor } from '../../../src/game/shardfile/outputDescriptor';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify native blobs against the admitted output inventory.
@@ -44,7 +43,7 @@ const { aim: GRAPPLE_AIM, lock: GRAPPLE_LOCK, step: GRAPPLE_STEP } = grappleProf
  * crossing settles over the Well) go through the platform Ledger under their declared rules: each achievement granted
  * once, durably, and a session restored from the end re-emits nothing.
  */
-export const ENTRY = 'tmp/headless-modules/nine-dragon-stack/modules.mjs';
+export const ENTRY = 'test/fixtures/nine-headless.ts';
 /** Outcomes are renderer-free. Nine declares no creature, so none is an unproven gameplay system. */
 export const SCOPE = {
   transitional: false,
@@ -73,7 +72,7 @@ const assets = new Map(descriptor.index.files.map(file => {
   if(bytes.length!==file.compressed||createHash('sha256').update(bytes).digest('hex')!==file.hash)throw new Error('Native blob differs from output inventory');
   return [file.commons===true?`commons:${file.hash}`:file.hash,Uint8Array.from(bytes)] as const;
 }));
-const MODULE = pathToFileURL(generateHeadlessModuleMap(fileURLToPath(ROOT), 'nine-dragon-stack')).href;
+const MODULE = new URL('../../fixtures/nine-headless.ts', import.meta.url).href;
 /** The walk's speed per tick (the host's 5 m/s at 60 Hz) and the north deck the square's ring sends a fresh spawn to. */
 const STEP = 5 / 60, NORTH = portalPlan.decks[0];
 if (NORTH === undefined) throw new Error('Nine Dragon declares its north deck portal');

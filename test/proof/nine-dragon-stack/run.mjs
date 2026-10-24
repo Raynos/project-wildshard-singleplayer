@@ -9,8 +9,6 @@ import { registerHooks } from 'node:module';
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The checkpoint input fence is a SHA256 over source and asset bytes.
 import { createHash } from 'node:crypto';
-// oxlint-disable-next-line import/no-nodejs-modules -- The generated proof map is a checked local file module.
-import { fileURLToPath, pathToFileURL } from 'node:url';
 
 assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefined');
 const ROOT = new URL('../../../', import.meta.url), loaded = new Set([import.meta.url]);
@@ -19,8 +17,7 @@ const { installAppIdentity } = await import('../../../src/engine/app/identity.ts
 const { WILDSHARD_IDENTITY } = await import('../../../src/game/identity.ts');
 const witness = await import('./witness.ts');
 // Admission loads this exact entry in every mode, so fresh/checkpoints/replay hash the same runtime closure.
-const { generateHeadlessModuleMap } = await import('../../../scripts/check-headless-assemblies.mjs');
-await import(pathToFileURL(generateHeadlessModuleMap(fileURLToPath(ROOT), 'nine-dragon-stack')).href);
+await import('../../fixtures/nine-headless.ts');
 const { loadHeadlessProduct } = await import('../../../src/sdk/headlessProduct.ts');
 const product = await loadHeadlessProduct('out/nine-dragon-stack');
 const assemblyFiles = ['sim/headless-assembly.json', 'sim/headless-constants.json'].map(name => product.url(name));
