@@ -10,6 +10,15 @@ function eventMethod(resource: object, method: 'addEventListener' | 'removeEvent
   if (typeof fn === 'function') Reflect.apply(fn, resource, ['dispose', listener]);
 }
 
+const postSamplers = new WeakSet<Texture>();
+/** A generated backdrop sampler retires with its layer. Unowned full-screen
+ * post passes borrow it; explicitly owned scene consumers can still share it.
+ * Cached inputs keep the asset service as their sole disposal authority.
+ */
+export function ownPostSampler(texture: Texture, owner: Scope): void {
+  ownSceneResource(texture, owner); postSamplers.add(texture);
+}
+
 type Resource = BufferGeometry | Material | Texture | WebGLRenderTarget | InstancedMesh | BatchedMesh;
 const isResource = (value: unknown): value is Resource => value instanceof BufferGeometry || value instanceof Material ||
   value instanceof Texture || value instanceof WebGLRenderTarget || value instanceof InstancedMesh || value instanceof BatchedMesh;
@@ -113,7 +122,10 @@ export class UploadOwnership {
     // Uniform samplers and lazily allocated targets need not be reachable from the material's public properties.
     // Their actual draw still identifies the subtree owner, even if an asynchronous build uploaded them earlier.
     if (!acquired) {
-      const using = this.drawOwner ?? (this.drawDepth > 0 && resource instanceof Texture ? this.level : null);
+      // A full-screen post draw has no delegated scene owner. It samples a region's LUT
+      // without becoming another lifetime owner of that explicitly owned texture.
+      const existing = sceneResourceOwner(resource);
+      const using = this.drawOwner ?? (this.drawDepth > 0 && resource instanceof Texture && (!postSamplers.has(resource) || existing === null || existing.disposed) ? this.level : null);
       if (using !== null && !using.disposed) ownSceneResource(resource, using);
       else if (sceneResourceOwner(resource)?.disposed === true) {
         // SF57: three's own dispose handlers look the resource up (deallocateMaterial / deallocateTexture call
@@ -205,7 +217,7 @@ export class UploadOwnership {
     root.traverse((node) => {
       const material: unknown = Reflect.get(node, 'material');
       if (material === undefined || material === null) return;
-      const owner = sceneObjectOwner(node) ?? this.level;
+      const delegated = sceneObjectOwner(node), owner = delegated ?? this.level;
       if (owner.disposed) return;
       const prior = this.drawOwner; this.drawOwner = owner;
       try {
@@ -216,7 +228,10 @@ export class UploadOwnership {
           // three's compile builds the material's program now: that upload is this object's
           this.observe(m);
           for (const r of materialUploads(m)) if (r !== m) {
-            if (r instanceof Texture && !this.assets.isAcquired(r)) ownSceneResource(r, owner);
+            if (r instanceof Texture && !this.assets.isAcquired(r)) {
+              const existing = sceneResourceOwner(r);
+              if (delegated !== null || !postSamplers.has(r) || existing === null || existing.disposed) ownSceneResource(r, owner);
+            }
             this.retainAsset(r, owner);
             if (sceneResourceOwner(r) === null) this.hints.set(r, new WeakRef(owner));
           }

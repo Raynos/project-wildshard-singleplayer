@@ -68,7 +68,8 @@ import { frameNodeMaterial } from '../render/nodeLayerFrame';
 import type { Scope } from '../app/scope';
 import { resourceScope } from '../app/resources';
 import { noteEnvironment } from '../render/drawnEnvironment';
-import { ownSceneResource, ownSceneTree } from '../app/sceneOwnership';
+import { ownSceneTree } from '../app/sceneOwnership';
+import { ownPostSampler } from '../render/uploadOwnership';
 import type { AssetService } from '../app/assets';
 import type { SkyBackdrop, SkyBackdropTargets } from '../render/look';
 import type { Renderer } from '../render/renderer';
@@ -314,7 +315,7 @@ export class BackdropLayer {
     if (this.backdrop !== null) throw new Error('Backdrop layer already has a backdrop');
     this.backdrop = backdrop;
     // The grade pass draws this sampler outside the dome subtree; it still belongs to the resident layer.
-    if (backdrop.lut !== null && !this.assets.isAcquired(backdrop.lut)) ownSceneResource(backdrop.lut, this.scope);
+    if (backdrop.lut !== null && !this.assets.isAcquired(backdrop.lut)) ownPostSampler(backdrop.lut, this.scope);
     // G321: its own sky layer, handed over as `clouds` (standalone `SkyRig.build` attaches it), is drawn like its holder's dome
     const own = backdrop.clouds;
     if (own !== undefined) {
