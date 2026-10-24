@@ -1,9 +1,12 @@
-import SURFACES from '../../assets/surfaces.generated.json' with { type: 'json' };
-import playback from '../../data/heldPlayback.generated.json' with {type:'json'};
+import * as SURFACES from './surfaces';
+import { heldPlayback } from '../heldPlayback';
+
 import lash from '../../data/lash.json' with {type:'json'};
 import { WHIP_ROW } from './equipment';
 import { WHIP_PHASE } from './meleePhase';
 import { WHIP_SCENE, WHIP_WRAP_SCENE, HD_GLOVE_SIZE } from './whip';
+
+const playback = heldPlayback();
 
 /** One held/Explorer assembly and caught-wrap recipe. */
 export const WHIP_HELD_RECIPE = {equipment:WHIP_ROW,phases:WHIP_PHASE,playback,scene:WHIP_SCENE,

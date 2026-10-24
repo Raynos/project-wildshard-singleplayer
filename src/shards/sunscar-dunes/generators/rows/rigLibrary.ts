@@ -1,4 +1,4 @@
-import MODELS from '../../assets/models.generated.json' with { type: 'json' };
+import * as MODELS from './files';
 import STRIDER_BODY from '../../assets/striderRig.generated.json' with { type: 'json' };
 import { RAY_BODY, SKITTERER_BODY } from './species/bodies';
 import { SIGNAL_CREATURE_LOOK_ROWS } from './creatureLooks';

@@ -2,7 +2,7 @@ import { parseWorldScene } from '@wildshard/format/clientChannels';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import scenes from '../data/restScenes.generated.json' with { type: 'json' };
-import pieces from '../assets/pieces.generated.json' with { type: 'json' };
+import { SIGNAL_PIECES as pieces } from './rows/pieces';
 import world from '../data/worldBakes.generated.json' with { type: 'json' };
 import { SIGNAL_SOURCE_LIBRARIES, SIGNAL_SOURCE_BLOBS } from './sceneSources';
 import { SIGNAL_SKIRT_BLOBS, SIGNAL_SKIRT_LIBRARY, SIGNAL_SKIRT_STEPS } from './skirtScenes';

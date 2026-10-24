@@ -6,11 +6,11 @@ import restScenes from '../data/restScenes.generated.json' with { type: 'json' }
 import { QUEST_NPC } from './questNpc';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import type { SceneModelSource, SceneBakeSource } from '@wildshard/game/shardfile/sceneSources';
-import models from '../assets/models.generated.json' with { type: 'json' };
+import * as models from './rows/files';
 import rest from '../data/restPools.generated.json' with { type: 'json' };
-import pieces from '../assets/pieces.generated.json' with { type: 'json' };
+import { SIGNAL_PIECES as pieces } from './rows/pieces';
 import world from '../data/worldBakes.generated.json' with { type: 'json' };
-import surfaces from '../assets/surfaces.generated.json' with { type: 'json' };
+import * as surfaces from './rows/surfaces';
 import { SIGNAL_RIG_LIBRARY, SIGNAL_MODEL_SPECIMENS } from './rows/rigLibrary';
 import { GEAR_SCENE_ROWS } from './rows/gearModels';
 import { WHIP_HELD_RECIPE } from './rows/heldWeapon';
