@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Refusals must occur before launching a memory browser.
 import { execFileSync } from 'node:child_process';
 import { expect, test } from 'vitest';
-import { coreMemorySummary, coreMemoryTargets, scriptResourceURLs, simulatorCoreFootprint } from '../scripts/shard-phone-memory.mjs';
+import { coreMemorySummary, coreMemoryTargets, selectedCoreMemoryTargets, scriptResourceURLs, simulatorCoreFootprint } from '../scripts/shard-phone-memory.mjs';
 
 const MiB = 1048576;
 test('script inventory keeps distinct complete JavaScript URLs only', () => {
@@ -19,6 +19,18 @@ test('four independent floors use the picked combined process limits', () => {
     ['menu', 50], ['select', 50], ['_template', 100], ['blender-template', 100],
   ]);
   expect(coreMemorySummary(rows()).every(row => row.passed && row.totalBytes === row.limitBytes)).toBe(true);
+});
+
+test('single-floor cohorts retain the original target and refuse unknown selections', () => {
+  expect(selectedCoreMemoryTargets('all')).toBe(coreMemoryTargets);
+  for (const target of coreMemoryTargets) {
+    const selected = selectedCoreMemoryTargets(target.shard);
+    expect(selected).toHaveLength(1);
+    expect(selected[0]).toBe(target);
+  }
+  for (const selection of ['', 'template', '_template,menu', 'unknown']) {
+    expect(() => selectedCoreMemoryTargets(selection)).toThrow('Expected --core-memory');
+  }
 });
 
 test('uses original 120s values, counts GPU, and never substitutes a cache-clear improvement', () => {

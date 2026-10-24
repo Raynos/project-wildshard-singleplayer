@@ -5,7 +5,7 @@
 //     [--runs=3] [--modes=cold,warm] [--out=tmp/sim-grid-entry/<label>] [--keep-video]
 //     [--shard=sunscar-dunes] selects the explicit compiled card, never legacy.
 //     [--upgrade-from=<old-origin>] installs the old worker, switches this same origin to the new build, then taps grid.
-//     [--core-memory=menu|all] reads independent Developer-on floors at 10/60/120s, no Network capture or GC.
+//     [--core-memory=menu|select|_template|blender-template|all] reads independent Developer-on floors at 10/60/120s, no Network capture or GC.
 // --base drives a served build or live; --rev serves that commit (scripts/serve-build.sh --rev) and stops it after.
 // Each run: Safari terminated; a cold run clears the worker, every cache and the prefetch markers (a warm run keeps
 // them); the title; Developer on; six seconds on the menu (its prefetch starts 4 s in); tap INFINITE WILDSHARD; record
@@ -25,7 +25,7 @@ import { accuracyRecorder } from './loading-benchmark/accuracy-data.mjs';
 import { requireCompiledEntry, downloadEvidence, transportEvidence, waitForWaitingWorker, recoveredGridControls } from './loading-benchmark/sim-shard.mjs';
 import { cachedBodyEvidence } from './loading-benchmark/cache-bodies.mjs';
 import { saveFixtureCode } from './debug-settings.mjs';
-import { readSimulatorCoreFootprint, coreMemoryTargets, coreMemorySummary, compiledFloorSave, scriptResourceURLs } from './shard-phone-memory.mjs';
+import { readSimulatorCoreFootprint, selectedCoreMemoryTargets, coreMemorySummary, compiledFloorSave, scriptResourceURLs } from './shard-phone-memory.mjs';
 import { pageMemoryAttributionExpression } from './memory-report-snapshot.mjs';
 
 const REPO = resolvePath(import.meta.dirname, '..');
@@ -45,7 +45,8 @@ const upgradeFrom = args['upgrade-from'];
 const secondTapDiagnostic = args['upgrade-second-tap'] === '1';
 if (args['upgrade-second-tap'] !== undefined && (args['upgrade-second-tap'] !== '1' || upgradeFrom === undefined)) throw new Error('Second tap diagnostic requires --upgrade-from and value 1');
 if (upgradeFrom !== undefined && (coreMemory !== undefined || shard !== undefined || args.runs !== '1' || args.modes !== 'warm' || !['http:', 'https:'].includes(new URL(upgradeFrom).protocol))) throw new Error('Upgrade observation requires one warm grid run and an HTTP origin');
-if (coreMemory !== undefined && (!['menu', 'all'].includes(coreMemory) || shard !== undefined)) throw new Error('Expected --core-memory=menu|all without --shard');
+if (coreMemory !== undefined && shard !== undefined) throw new Error('Expected --core-memory without --shard');
+const memoryTargets = coreMemory === undefined ? [] : selectedCoreMemoryTargets(coreMemory);
 if (coreMemory !== undefined && ((args.runs !== undefined && args.runs !== '1') || (args.modes !== undefined && args.modes !== 'cold'))) throw new Error('Core floors require exactly one cold reading per target');
 if (shard !== undefined) loadingShardName(shard);
 if (shard !== undefined && args.base !== undefined && new URL(args.base).protocol !== 'http:') throw new Error('Compiled byte observation requires a local HTTP served build');
@@ -388,7 +389,7 @@ const results = [];
 try {
   const visits = coreMemory === undefined
     ? modes.flatMap(visit => Array.from({ length: runs }, (_, at) => ({mode: visit, index: at + 1, target: undefined})))
-    : (coreMemory === 'all' ? coreMemoryTargets : coreMemoryTargets.filter(row => row.shard === 'menu')).map(row => ({mode: 'cold', index: 1, target: row.shard}));
+    : memoryTargets.map(row => ({mode: 'cold', index: 1, target: row.shard}));
   for (const { mode, index, target } of visits) {
     quiet('take');
     try { results.push(await run(mode, index, target)); }

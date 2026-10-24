@@ -24,6 +24,14 @@ export const coreMemoryTargets = Object.freeze([
   Object.freeze({shard: '_template', name: 'Template 1', limitBytes: 100 * 1048576}),
   Object.freeze({shard: 'blender-template', name: 'Template 2', limitBytes: 100 * 1048576}),
 ]);
+/** Select only an existing floor; preserve its original target object and order.
+ * @param {string} selection */
+export function selectedCoreMemoryTargets(selection) {
+  if (selection === 'all') return coreMemoryTargets;
+  const target = coreMemoryTargets.find(row => row.shard === selection);
+  if (target === undefined) throw new Error('Expected --core-memory=all or an existing core floor');
+  return [target];
+}
 /** Existing Developer-tools fixture: expose the explicit compiled button, never fall back to LEGACY. */
 export const compiledFloorSave = Object.freeze({scope: 'device', key: 'debug.global.legacyShardButtons', data: 'on'});
 /** Scalar inventory only: no response bodies or Network-domain changes.
