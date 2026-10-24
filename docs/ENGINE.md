@@ -12843,6 +12843,9 @@ prepared RNG or retained columns are published, including ephemeral channels.
 and up to eight ordered candidate frames at the caller's existing decision slot.
 Missing numeric fields refuse only when read. It installs no scheduler or native
 body, contact, target, persistence or query owner.
+Its at most nine actor-count shapes retain fixed observation-bank templates;
+each call still copies fresh numeric frames and writes every present/value slot.
+The templates retain no bodies, decisions, RNG state or continuation.
 
 `prepare` returns detached channels and a single-use acceptance operation. A
 borrowed RNG remains unchanged until the complete envelope, channels and caller's

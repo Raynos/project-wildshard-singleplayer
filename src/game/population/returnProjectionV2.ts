@@ -40,16 +40,21 @@ function freezeGroups(value:unknown):void {
   for(const child of Object.values(value))freezeGroups(child);
   Object.freeze(value);
 }
-interface FieldColumn { readonly actor: number; readonly field: string; readonly name: string; readonly id: number; value: number | undefined }
+interface FieldColumn { readonly actor: number; readonly field: string; readonly name: string; readonly id: number; readonly value: undefined }
+interface ObservationShape {
+  readonly fields: readonly FieldColumn[];
+  readonly input: ReturnType<typeof prepareV2Observations>;
+  readonly signalAt: number;
+  readonly fieldsAt: number;
+}
 export class ReturnProjectionV2 {
   private readonly row;
   private readonly layout;
   private readonly module: ScriptModuleV2;
   private busy = false;
   private readonly groups:GroupStepV2|null=null;
-  /** per actor count: every actor's declared field columns (`actor/name`) in the observation writer's name order, made
-   *  once, so the writer takes them without a sort; each call refills their values (the writer copies them at once) */
-  private readonly columns: FieldColumn[][] = [];
+  /** Only fixed ABI bytes are retained. Every call still captures its own numeric values. */
+  private readonly columns: (ObservationShape | undefined)[] = [];
   constructor(input: unknown,private readonly owner?: Scope,raw?:Uint8Array) {
     this.live();
     this.row = parseReturnProjectionV2(input);this.layout = returnProjectionV2Layout(this.row.fields.length,this.row.artifact.pages,this.row.outputCapacity,this.row.groups);
@@ -67,6 +72,20 @@ export class ReturnProjectionV2 {
   /** Original admitted group rows; reading adds no module or continuation. */
   get groupBindings():GroupGuestBindingsV2|undefined { this.live();return this.row.groups; }
   private live(): void { if (this.owner?.disposed === true || this.owner?.disposing === true) throw new Error('Return owner disposed'); }
+  private observationShape(count: number): ObservationShape {
+    const prior = this.columns[count];
+    if (prior !== undefined) return prior;
+    const fields = Array.from({ length: count+1 },(_,actor) => this.row.fields.map((field,index): FieldColumn =>
+      ({actor,field,name:`${String(actor)}/${field}`,id:actor*this.row.fields.length+index+1,value:undefined})))
+      .flat().sort((a,b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
+    const input = prepareV2Observations(this.layout,0,{bindings:[{identity:'projection',handle:1,self:1,player:0,observed:new Set([1]),enabled:true,due:true,
+      divisor:6,fuel:400000,previousTick:0,currentTick:0,state:[],parameters:[{name:'signal',value:0}],fields,sample:{atTick:0,target:0}}],
+    players:[],edges:[],events:[],actions:new Set(),eventKinds:new Set()});
+    const parameters = this.layout.regions[3], columns = this.layout.regions[5];
+    if (parameters === undefined || columns === undefined) throw new Error('Missing projection input banks');
+    const shape = {fields,input,signalAt:this.layout.io+parameters.offset,fieldsAt:this.layout.io+columns.offset};
+    this.columns[count] = shape;return shape;
+  }
   /** Capture once. No RNG is changed until the caller has validated its retained
    * state as well as every channel. Traps and rejected candidates consume none. */
   prepare(signal: string,observations: Readonly<Record<string,number>>,random?: Rng,candidates: readonly Readonly<Record<string,number>>[] = [],bindings:ReadonlyMap<number,V2ActionBinding>=new Map()): PreparedProjectionV2 {
@@ -79,19 +98,19 @@ export class ReturnProjectionV2 {
     this.live();
     const rng = prepareV2Rng(layout,before === undefined ? [] : [{ binding: 1,stream: 1,algorithm: 1,
       state: [before.state,before.initial,Number(before.scrambledFork),0,0,0] }]);
-    const fields = this.columns[candidates.length] ??= Array.from({ length: candidates.length+1 },(_,actor) => this.row.fields.map((field,index): FieldColumn =>
-      ({ actor,field,name: `${String(actor)}/${field}`,id: actor*this.row.fields.length+index+1,value: undefined })))
-      .flat().sort((a,b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
-    for (const column of fields) column.value = frames[column.actor]?.[column.field];
-    const input = prepareV2Observations(layout,0,{ bindings: [{ identity: 'projection',handle: 1,self: 1,player: 0,observed: new Set([1]),enabled: true,due: true,
-      divisor: 6,fuel: 400000,previousTick: 0,currentTick: 0,state: [],parameters: [{ name: 'signal',value: signalId }],fields,sample: { atTick: 0,target: 0 } }],
-    players: [],edges: [],events: [],actions: new Set(),eventKinds: new Set() });
+    const shape = this.observationShape(candidates.length), input = shape.input;
     const counts = new Map(input.counts);counts.set(21,rng.count);
     let authority: V2FrameAuthority | undefined;
     this.busy = true;
     try {
       const answer = this.module.project(400000,view => {
         authority = writeV2Frame(view,layout,{ lane: 2,module: 1,sequence: 0,tick: 0,due: 1 },counts);input.write(view);
+        view.setFloat64(shape.signalAt,signalId,true);
+        for (let index=0;index<shape.fields.length;index++) {
+          const column=shape.fields[index];if(column===undefined)throw new Error('Missing projection column');
+          const value=frames[column.actor]?.[column.field],at=shape.fieldsAt+index*16;
+          view.setUint32(at+4,Number(value!==undefined),true);view.setFloat64(at+8,value??0,true);
+        }
         const bank = layout.regions[20];if (bank === undefined) throw new Error('Missing projection RNG bank');
         new Uint8Array(view.buffer,layout.io+bank.offset,rng.bytes.length).set(rng.bytes);
       },view => {
