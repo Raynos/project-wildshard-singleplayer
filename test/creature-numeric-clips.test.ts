@@ -134,6 +134,26 @@ test('typed creature inputs keep node order and snapshot all reads before output
   expect(transforms(c)).toEqual(retained);
 });
 
+test('pose vectors join reordered reads and optional-rig subsets without publishing refused input',()=>{
+ const programs=[...numericChannelPrograms('pose.vector.body','creature.pose',[
+  {target:'joint.body',path:['position','x'],expr:(b,read)=>b.binary('add',read('frame',['mem','a']),read('frame',['mem','b']))},
+ ]),...numericChannelPrograms('pose.vector.head','creature.pose',[
+  {target:'joint.head',path:['position','y'],expr:(b,read)=>b.binary('sub',read('frame',['mem','b']),read('frame',['mem','a']))},
+  {target:'joint.head',path:['rotation','x'],expr:(_b,read)=>read('frame',['mem','a'])},
+ ])];
+ const animate=numericCreaturePose(creaturePoseRows({group:'creature.pose',programs}));
+ for(const names of [['body','head'],['head'],['body']]){
+  const c=context(names);
+  for(const value of [2,-0,7]){
+   c.mem['a']=value;c.mem['b']=13;animate(c);
+   if(c.bones['body']!==undefined)expect(c.bones['body'].position.x).toBe(value+13);
+   if(c.bones['head']!==undefined){expect(c.bones['head'].position.y).toBe(13-value);expect(Object.is(c.bones['head'].rotation.x,value)).toBe(true);}
+  }
+  const before=transforms(c);c.mem['b']=Number.POSITIVE_INFINITY;
+  expect(()=>animate(c)).toThrow('Invalid numeric input');expect(transforms(c)).toEqual(before);
+ }
+});
+
 test('creature admission refuses legacy owner paths and nonnumeric frame fields', () => {
   const first = CRAB_CLIPS.programs[0];
   if (first === undefined) throw new Error('Missing pose');

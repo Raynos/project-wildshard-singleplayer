@@ -31,7 +31,9 @@ export function admittedChannelTable(input:unknown):readonly ClientChannelProgra
 /** One bounded group of the existing visual DAG owner; supplied owners expose only explicitly declared numeric fields. */
 export function installChannelPrograms(input:unknown,group:string,owners:ReadonlyMap<string,unknown>):{
  evaluate:(observation:ChannelProgramObservation)=>void;capture:()=>()=>void;readonly ids:readonly string[]
-}{
+}{return buildChannelPrograms(input,group,owners);}
+// Only this module's detached pose observations use prebound vector indices.
+function buildChannelPrograms(input:unknown,group:string,owners:ReadonlyMap<string,unknown>,copiedNames?:readonly string[]):ReturnType<typeof installChannelPrograms>{
  const selected=admittedChannelTable(input).filter(row=>row.numeric?.group===group);
  if(selected.length===0)throw new Error(`Missing numeric channel group: ${group}`);
  const lanes=selected.map(row=>{
@@ -40,14 +42,20 @@ export function installChannelPrograms(input:unknown,group:string,owners:Readonl
   const ports=lane.bindNumeric(binding.outputs,owners),restoreOnly=lane.bindNumeric(binding.restoreOnly.map(({property,target,path,nullable})=>({property,target,path,restore:true,nullable:nullable??false})),owners),values:number[]=Array.from({length:lane.reads.length},()=>0);
   // each read's bound input (undefined: it comes from the observation), looked up once
   const readers=lane.reads.map(id=>inputs.get(id));
-  return {lane,inputs,readers,ports,restoreOnly,values,observation:{time:0,delta:0,values}};
+  const indices=copiedNames===undefined?undefined:lane.reads.map(name=>copiedNames.indexOf(name));
+  if(indices?.some(index=>index<0)||copiedNames!==undefined&&inputs.size>0)throw new Error('Invalid copied pose reads');
+  return {lane,inputs,readers,ports,restoreOnly,values,indices,observation:{time:0,delta:0,values}};
  });
  const ids=Object.freeze(selected.map(row=>row.id));
  return Object.freeze({ids,
   evaluate:(observation:ChannelProgramObservation):void=>{
    const external=observation.values,isVector=vector(external);
    // Snapshot every borrowed read before any field is published, including cross-program dependencies.
-   for(const {lane,inputs,readers,values} of lanes){
+   if(copiedNames!==undefined){
+    if(!isVector||external.length!==copiedNames.length)throw new Error('Invalid copied pose vector');
+    for(let index=0;index<external.length;index++){const value=external[index];if(value===undefined||!Number.isFinite(value)||Math.abs(value)>1e12)throw new Error('Invalid copied pose value');}
+    for(const {indices,values}of lanes){if(indices===undefined)throw new Error('Missing copied pose indices');for(let index=0;index<indices.length;index++)values[index]=external[indices[index]??-1]??Number.NaN;}
+   }else for(const {lane,inputs,readers,values} of lanes){
     if(isVector&&(inputs.size>0||external.length!==values.length))throw new Error('Numeric channel vector differs from its declared reads');
     const reads=lane.reads;
     for(let index=0;index<reads.length;index++){
@@ -122,7 +130,7 @@ function compileNumericCreaturePose(row: poseSchema.InferOutput<typeof NumericPo
     look: { yaw: number; pitch: number }; scalars: Record<string, number>;
     inputs: readonly poseSchema.InferOutput<typeof NumericPoseInputSchema>[]; joints: ReadonlyMap<string, AnimalRigJoint>;
     memory: Record<string, number | undefined>;
-    observation: { time: number; delta: number; values: Record<string, number> };
+    observation: { time: number; delta: number; values: number[] };
     lane: ReturnType<typeof installChannelPrograms> | null; turns: readonly Turn[];
   }>();
   // Value-only scratch is lent to one synchronous invocation, including during getter reentry.
@@ -188,8 +196,8 @@ function compileNumericCreaturePose(row: poseSchema.InferOutput<typeof NumericPo
         return [...targets].every(target => owners.has(target));
       });
       const detached = detach(programs);
-      rig = { look, scalars, joints, memory: {}, inputs: detached.inputs, observation: { time: c.t, delta: c.dt, values: {} },
-        lane: programs.length === 0 ? null : installChannelPrograms(detached.table, row.group, owners), turns };
+      rig = { look, scalars, joints, memory: {}, inputs: detached.inputs, observation: { time: c.t, delta: c.dt, values: Array.from({length:detached.inputs.length},()=>0) },
+        lane: programs.length === 0 ? null : buildChannelPrograms(detached.table, row.group, owners,detached.inputs.map(input=>input.input)), turns };
       rigs.set(c.bones, rig);
     }
     for (let i = 0; i < row.scalars.length; i++) {
@@ -213,7 +221,7 @@ function compileNumericCreaturePose(row: poseSchema.InferOutput<typeof NumericPo
         ? record !== undefined && Object.hasOwn(record, input.name) ? record[input.name] : undefined : input.kind === 'look' ? rig.look[input.axis]
         : joint?.[input.transform][input.axis];
       if (value === undefined || !Number.isFinite(value) || Math.abs(value) > 1e12) throw new Error(`Invalid numeric input ${input.input}`);
-      rig.observation.values[input.input] = value;
+      rig.observation.values[index] = value;
     }
     rig.observation.time = c.t; rig.observation.delta = c.dt;
     rig.lane?.evaluate(rig.observation);
