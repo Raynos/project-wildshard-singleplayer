@@ -112,3 +112,30 @@ test('output declarations refuse unknown policy fields, escapes, changed hashes 
   expect(() => projectMirrors([{ name: 'constructor.x', value: 1 }])).toThrow();
   expect(() => projectMirrors([{ name: 'x', value: () => 1 }])).toThrow('JSON');
 });
+
+
+test('author config and output sidecars inline reachable lazy helpers into their one-module execution', async () => {
+  const path = directory(); mkdirSync(resolve(path, 'generators'));
+  writeFileSync(resolve(path, 'rows.ts'), `export default ${JSON.stringify(source())};`);
+  writeFileSync(resolve(path, 'shard.config.ts'), 'export default async () => (await import("./rows")).default;');
+  writeFileSync(resolve(path, 'generators/strings.ts'), 'export const messages = { lazy: "original helper" };');
+  writeFileSync(resolve(path, 'generators/output.ts'), `
+import { emitPlatformSections } from '@wildshard/sdk/platformSections';
+const {messages} = await import('./strings');
+export const output = {platform:emitPlatformSections(new Map([['ui/strings',messages]]))};
+`);
+  const loaded = await readProjectAssets(path);
+  expect(loaded.shard.identity).toEqual(source().identity);
+  expect(loaded.output.platform?.sections.map(row => row.name)).toEqual(['ui/strings']);
+  const bytes = loaded.output.platform?.files.get('sections/ui/strings.json');
+  expect(bytes).toBeDefined();
+  expect(JSON.parse(new TextDecoder().decode(bytes))).toEqual({lazy:'original helper'});
+});
+
+test('inlining lazy author helpers retains the executable filesystem dependency refusal', async () => {
+  const path = directory();
+  writeFileSync(resolve(path, 'shard.config.ts'), `export default async () => {
+    await import('node:fs/promises'); return ${JSON.stringify(source())};
+  };`);
+  await expect(readProjectAssets(path)).rejects.toThrow('must use injected build capabilities for file access');
+});
