@@ -1,9 +1,7 @@
-// Transport the existing public byte lanes into bounded project-local blob sources; never rebake geometry here.
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
-import { byteWriter } from '../../../../scripts/bake-output.mjs';
-
-const root=resolve(import.meta.dirname,'../../../..'),writer=byteWriter(process.argv.includes('--check'),'nalati-dressing-bakes');
-for(const name of ['crags','dressing','places'])writer.put(resolve(root,`src/shards/nalati-grasslands/data/${name}.generated.bin`),
-  readFileSync(resolve(root,`public/assets/nalati/baked/${name}.bin`)));
-writer.finish();
+// The SDK byte driver owns confined file I/O; these recipes only select the original shipping bytes.
+/** @param {(url:string)=>Uint8Array} readAsset */
+export function cragBytes(readAsset){return readAsset('/assets/nalati/baked/crags.bin');}
+/** @param {(url:string)=>Uint8Array} readAsset */
+export function dressingBytes(readAsset){return readAsset('/assets/nalati/baked/dressing.bin');}
+/** @param {(url:string)=>Uint8Array} readAsset */
+export function placeBytes(readAsset){return readAsset('/assets/nalati/baked/places.bin');}

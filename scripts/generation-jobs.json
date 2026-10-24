@@ -21959,27 +21959,75 @@
       ]
     },
     {
-      "id": "nalati-dressing-bakes",
+      "id": "nalati-crags-blob",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-dressing-bakes.mjs",
       "command": [
-        "src/shards/nalati-grasslands/generators/bake-dressing-bakes.mjs"
+        "src/sdk/bake/json.mjs",
+        "src/shards/nalati-grasslands/generators/bake-dressing-bakes.mjs",
+        "cragBytes",
+        "src/shards/nalati-grasslands/data/crags.generated.bin",
+        "--bytes"
       ],
       "inputRoots": [
         "src/shards/nalati-grasslands/generators/bake-dressing-bakes.mjs",
-        "scripts/bake-output.mjs",
-        "public/assets/nalati/baked/crags.bin",
-        "public/assets/nalati/baked/dressing.bin",
+        "src/sdk/bake/json.mjs",
+        "public/assets/nalati/baked/crags.bin"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/data/crags.generated.bin"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/nalati-grasslands/data/crags.generated.bin"
+      ],
+      "platform": "portable",
+      "seedOutputs": []
+    },
+    {
+      "id": "nalati-dressing-blob",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-dressing-bakes.mjs",
+      "command": [
+        "src/sdk/bake/json.mjs",
+        "src/shards/nalati-grasslands/generators/bake-dressing-bakes.mjs",
+        "dressingBytes",
+        "src/shards/nalati-grasslands/data/dressing.generated.bin",
+        "--bytes"
+      ],
+      "inputRoots": [
+        "src/shards/nalati-grasslands/generators/bake-dressing-bakes.mjs",
+        "src/sdk/bake/json.mjs",
+        "public/assets/nalati/baked/dressing.bin"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/data/dressing.generated.bin"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/nalati-grasslands/data/dressing.generated.bin"
+      ],
+      "platform": "portable",
+      "seedOutputs": []
+    },
+    {
+      "id": "nalati-places-blob",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-dressing-bakes.mjs",
+      "command": [
+        "src/sdk/bake/json.mjs",
+        "src/shards/nalati-grasslands/generators/bake-dressing-bakes.mjs",
+        "placeBytes",
+        "src/shards/nalati-grasslands/data/places.generated.bin",
+        "--bytes"
+      ],
+      "inputRoots": [
+        "src/shards/nalati-grasslands/generators/bake-dressing-bakes.mjs",
+        "src/sdk/bake/json.mjs",
         "public/assets/nalati/baked/places.bin"
       ],
       "outputs": [
-        "src/shards/nalati-grasslands/data/crags.generated.bin",
-        "src/shards/nalati-grasslands/data/dressing.generated.bin",
         "src/shards/nalati-grasslands/data/places.generated.bin"
       ],
       "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/data/crags.generated.bin",
-        "src/shards/nalati-grasslands/data/dressing.generated.bin",
         "src/shards/nalati-grasslands/data/places.generated.bin"
       ],
       "platform": "portable",
