@@ -1,4 +1,4 @@
-import {beforeAll,expect,expectTypeOf,test} from 'vitest';
+import {beforeAll,expect,expectTypeOf,test,vi} from 'vitest';
 import {Vector3} from 'three';
 import {Scope} from '../src/engine/app/scope';
 import {AnimalSim} from '../src/engine/entities/AnimalSim';
@@ -48,7 +48,7 @@ beforeAll(async()=>{bytes=await compileScriptV2(`import * as core from './sdk/as
  {lane:'project',ioBytes:groupStepLayoutV2(rows).bytes,sources:{'sdk/as/wsV2.ts':v2CoreSource(0)}});},30_000);
 function actor(id='body'):AnimalSim{return new AnimalSim({kind:'sample',label:'Sample',variant:'leader',rarity:'common',hp:20,aggressive:false,
  dims:{bodyY:.6,bodyHalfLen:.5,bodyRadius:.3,headRadius:.2,legLen:.5,feet:[],halfWidth:.3},mods:{speed:1,chargeDist:1,damageTaken:1,chargeDamage:5,relentless:false}},1,1,id,{heightAt:()=>0,random:()=>.5});}
-function fixture(id='body'){
+function fixture(id='body',declarations=rows){
  const parent=new Scope('group-native-parent'),scope=parent.child('entered'),body=actor(id),random=new Rng(31),player=new Vector3(1,2,3),log:unknown[]=[],hooks:{contact?:()=>void}={};
  const director=new AggressionDirector<AnimalSim>(1),tokens=new WeakMap<AnimalSim,AggressionDirector<AnimalSim>>();
  const packContext:CirclingPackContext<AnimalSim>={dt:.1,t:2,player,playerSpeed:0,calm:false,rng:random,
@@ -69,7 +69,7 @@ function fixture(id='body'){
  flightMinDistance:20,flightMaxDistance:40,stallionVariant:'leader',foalPrefix:'young',snortCue:'snort',neighCue:'neigh',squealCue:'squeal'},ports:herdPorts});
  const selected:{context:CirclingPackContext<AnimalSim>|GuardedHerdContext<AnimalSim>}={context:packContext};
  const member:V2ColumnOwners={scope,self:{group:'sample',slot:0,identity:body.entityId,actor:body},player:{position:player},observed:new Map(),t:2,dt:.1,get context(){return selected.context;}};
- const members=[member],state=Float64Array.of(0),runner=new GroupStepV2(bytes,rows,scope),input={group:'sample',handle:1,signal:'pack',tick:1,state,members,references:[],random};
+ const members=[member],state=Float64Array.of(0),runner=new GroupStepV2(bytes,declarations,scope),input={group:'sample',handle:1,signal:'pack',tick:1,state,members,references:[],random};
  const native:GroupStepNativeOwnersV2={scope,members,contexts:[packContext],group:{kind:'pack',owner:pack},aggression:{kind:'tokens',owners:tokens,director}};
  const enterHerd=()=>{selected.context=herdContext;return{...native,group:{kind:'herd',owner:herd} as const,contexts:[herdContext]};};
  return{parent,scope,body,random,log,hooks,director,tokens,pack,packPorts,packContext,herd,herdPorts,herdContext,member,members,state,runner,input,native,enterHerd};
@@ -234,4 +234,22 @@ test('token loans preserve the legacy minimal-member group and exact original pe
  }
  a.alive=false;left.borrowGroupDirector(2,[a]);right.direct(2,[a]);expect(left.snapshot()).toBe(right.snapshot());
  const before=left.snapshot();expect(()=>left.borrowGroupDirector(2,[{alive:true,id:'foreign'}])).toThrow('token loan');expect(()=>left.borrowGroupDirector(2,[b,b])).toThrow('token loan');expect(left.snapshot()).toBe(before);
+});
+
+test('compiled native declarations stay detached and frozen without per-operation cloning',()=>{
+ const declarations=structuredClone(rows),f=fixture('body',declarations);
+ const source=declarations.actions.find(row=>row.id===19)?.native;
+ if(source?.kind!=='hearing')throw new Error('Missing original hearing declaration');
+ Object.defineProperty(source.radii,'0',{value:99});
+ const clone=vi.spyOn(globalThis,'structuredClone');
+ try{
+  const random=f.random.snapshot();
+  for(let frame=0;frame<2;frame++){
+   const prepared=f.runner.prepare({...f.input,signal:'senses'}),native=prepared.operations.find(row=>row.id===19)?.native;
+   if(native?.kind!=='hearing')throw new Error('Missing compiled hearing declaration');
+   expect(native.radii).toStrictEqual([1,2,3,4]);expect(Object.isFrozen(native)).toBe(true);expect(Object.isFrozen(native.radii)).toBe(true);
+   expect(Reflect.set(native.radii,'0',88)).toBe(false);prepared.accept();
+  }
+  expect(f.state[0]).toBe(2);expect(f.random.snapshot()).toEqual(random);expect(clone).not.toHaveBeenCalled();
+ }finally{clone.mockRestore();f.parent.dispose();}
 });

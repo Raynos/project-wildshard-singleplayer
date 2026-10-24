@@ -63,6 +63,7 @@ export class GroupStepV2 {
     this.profiles = [this.rows, ...(this.rows.profiles ?? [])].map((rows, index) => ({
       id: index === 0 ? 'main' : this.rows.profiles?.[index - 1]?.id,
       rows, bank: new GroupBankV2(rows.bank), columns: new ObservationColumnsV2(rows.columns, scope),
+      actions: new Map(rows.actions.map(row=>{if(row.native!==undefined)freezeNative(row.native);return [row.id,row];})),
       order: rows.columns.map((row,column)=>({name:row.name,index:column})).sort((a,b)=>a.name<b.name?-1:a.name>b.name?1:0).map(row=>row.index),
     }));
     const source = Uint8Array.from(bytes), admitted = admitScriptV2(source, { lane: 'project', ioBytes: this.layout.bytes });
@@ -194,7 +195,7 @@ export class GroupStepV2 {
         const operations: GroupStepOperationV2[] = [];
         for (let index = 0; index < (actual[9] ?? 0); index++) {
           const at = this.layout.io + actions.offset + index * 64, id = view.getUint32(at + 8, true);
-          const action = profile.rows.actions.find(row => row.id === id);
+          const action = profile.actions.get(id);
           if (action === undefined || view.getUint32(at, true) !== input.handle || view.getUint32(at + 4, true) !== 25
             || view.getUint32(at + 12, true) !== 0) throw new Error('Undeclared group operation');
           const values = Array.from({ length: 6 }, (_, word) => view.getFloat64(at + 16 + word * 8, true));
@@ -210,7 +211,7 @@ export class GroupStepV2 {
             || reference !== undefined && action.reference.own === true && reference.group !== input.group)) throw new Error('Unknown group operation reference');
           operations.push(Object.freeze({ id, values: Object.freeze(values.slice(0, action.words)),
             ...(member === undefined ? {} : { member }), ...(reference === undefined ? {} : { reference }),
-            ...(action.native === undefined ? {} : { native: freezeNative(action.native) }) }));
+            ...(action.native === undefined ? {} : { native: action.native }) }));
         }
         const queries = actual[10] ?? 0;
         if (queries !== 0 && input.queries === undefined) throw new Error('Missing group query authority');
@@ -268,8 +269,8 @@ export class GroupStepV2 {
   }
 }
 
-function freezeNative(input: GroupStepNativeV2): Readonly<GroupStepNativeV2> {
-  const row = structuredClone(input);
+// The constructor has already detached these declarations from their author.
+function freezeNative(row: GroupStepNativeV2): Readonly<GroupStepNativeV2> {
   if (row.kind === 'hearing') Object.freeze(row.radii);
   if (row.kind === 'state' || row.kind === 'notify-state') Object.freeze(row.states);
   if (row.kind === 'sound') Object.freeze(row.cues);
