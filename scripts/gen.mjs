@@ -1,4 +1,5 @@
 // Node's TypeScript/asset hooks let the CLI and Vite share the same table writers.
+import { resolve } from 'node:path';
 import { genShards, refreshDiscovery } from './gen-shards.mjs';
 import { genBudgetDerivations } from './gen-budget-derivations.mjs';
 import { genAskIds } from './gen-ask-ids.mjs';
@@ -16,7 +17,7 @@ import { beginPushInputs } from './push-post-inputs.mjs';
 import { checkGeneratedSourceTree } from './generated-source.mjs';
 
 quietCli('gen');
-const root = `${import.meta.dirname}/..`;
+const root = resolve(import.meta.dirname, '..');
 const requests = process.argv.filter(arg => arg.startsWith('--shard='));
 if (requests.length > 1) throw new Error('Generation accepts one --shard= request');
 const shard = requests.at(0)?.slice(8);

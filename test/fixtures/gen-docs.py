@@ -22,7 +22,7 @@ with tempfile.TemporaryDirectory(dir=repo/'tmp', prefix='gen-docs-test-') as fol
     module('generation-tail-cache', 'export async function generationTailCached(root,step,run){return run()}')
     module('generated-source', 'export function checkGeneratedSourceTree(){return []}')
     module('heavy-lane-lease', 'export function assertHeavyLease(){}')
-    module('gen-programs', 'export function generationPlan(){return {products:["fixture"],folders:["fixture"],legacy:["fixture"],scoped:false}}export function prepareProgramInputs(){'+record('prepareGeneration')+'}export function buildPrograms(){'+record('programs')+'}')
+    module('gen-programs', 'import {resolve} from "node:path";export function generationPlan(){return {products:["fixture"],folders:["fixture"],legacy:["fixture"],scoped:false}}export function prepareProgramInputs(){'+record('prepareGeneration')+'}export function buildPrograms(root){if(root!==resolve(root))throw Error("product receipt root is not canonical");'+record('programs')+'}')
     module('bake-loader', record('loader'))
     module('gen-shards', 'export function refreshDiscovery(){'+record('discovery')+'}export function genShards(){'+record('shards')+'}')
     for file, function in [('gen-budget-derivations','genBudgetDerivations'),('gen-ask-ids','genAskIds'),('generate','prepareGeneration'),('gen-starter-arm-clips','genStarterArmClips'),('gen-starter-weapons','genStarterWeapons'),('gen-starter-bag','genStarterBag'),('gen-starter-effects','genStarterEffects'),('gen-decision-policy','genDecisionPolicies'),('gen-format-schema','writeFormatJsonSchemas')]:
