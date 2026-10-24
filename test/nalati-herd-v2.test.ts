@@ -283,13 +283,13 @@ test('one native call reuses member capture rows while resampling every barrier'
  try{
   execute(f,0,false,'addTrust',{argument:0});
   const arrays=new Set<readonly V2ColumnOwners[]>(),rows=new Set<V2ColumnOwners>();
-  const selves=new Set(),players=new Set(),observed=new Set(),references=new Set();const playerX=new Set<number>();let captures=0,changed=false;
+  const selves=new Set(),players=new Set(),observed=new Set(),references=new Set(),results=new Set();const playerX=new Set<number>();let captures=0,changed=false;
   f.ports.visibility=()=>{if(!changed){changed=true;f.ctx.player.set(43,1,27);}return .8;};
   f.herd.observeCapture=frame=>{
    captures++;arrays.add(frame.input.members);playerX.add(f.ctx.player.x);
    expect(frame.native.members).toBe(frame.input.members);
    frame.input.members.forEach((row,slot)=>{
-    rows.add(row);selves.add(row.self);players.add(row.player);observed.add(row.observed);references.add(row.references);
+    rows.add(row);selves.add(row.self);players.add(row.player);observed.add(row.observed);references.add(row.references);results.add(row.results);
     expect(row.self.actor).toBe(f.roster[slot]);expect(row.self.identity).toBe(f.roster[slot]?.entityId);
     expect(row.player.position).toBe(f.ctx.player);expect(row.t).toBe(f.ctx.t);expect(row.dt).toBe(f.ctx.dt);
     expect(row.references?.get('self')?.body).toBe(f.roster[slot]);
@@ -297,7 +297,7 @@ test('one native call reuses member capture rows while resampling every barrier'
    });
   };
   execute(f,0,false,'tick');expect(changed).toBe(true);expect(captures).toBeGreaterThan(2);expect([...playerX]).toEqual([12,43]);
-  expect(arrays.size).toBe(1);for(const bank of [rows,selves,players,observed,references])expect(bank.size).toBe(16);
+  expect(arrays.size).toBe(1);for(const bank of [rows,selves,players,observed,references,results])expect(bank.size).toBe(16);
   const first=[...arrays][0];arrays.clear();f.ctx.t+=1;execute(f,0,false,'tick');
   expect(arrays.size).toBe(1);expect([...arrays][0]).not.toBe(first);
  }finally{f.scope.dispose();}
@@ -350,6 +350,7 @@ test('nested taming capture scratch is separate and the outer call resumes its o
   const arrays:(readonly V2ColumnOwners[])[]=[];for(const call of calls)for(const rows of call)arrays.push(rows);expect(new Set(arrays).size).toBe(3);
   expect(new Set(arrays.map(array=>array[0]?.references)).size).toBe(3);
   expect(new Set(arrays.map(array=>array[0]?.self)).size).toBe(3);
+  expect(new Set(arrays.map(array=>array[0]?.results)).size).toBe(3);
  }finally{f.scope.dispose();}
 });
 test('sixteen newly hurt members keep original alarm and flight order within the bounded same-slot transaction',()=>{

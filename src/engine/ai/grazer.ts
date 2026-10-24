@@ -19,7 +19,7 @@ interface HerdGuestColumns<A extends AnimalSim> {
   scope: Scope; self: {group:string;slot:number;identity:string;actor:A};
   player: {position:Vector3}; observed: Map<number,AnimalSim>;
   references: Map<string,(GroupBankReferenceV2 & {readonly body:A}) | null>;
-  results: Readonly<Record<string,number>>;
+  results: {foal:number;mother:number;reply:number};
   t:number;dt:number;context?:GuardedHerdContext<A>;
 }
 
@@ -387,6 +387,7 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     readonly random: Rng;
     readonly arguments: Readonly<Record<string,number>>;
     parameters?: Record<string,number>;
+    changes?: Record<string,GroupBankValueV2>;
     reply: number;
     fresh: boolean;
     values: Readonly<Record<string,GroupBankValueV2>>;
@@ -468,7 +469,8 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     if (binding.scope.disposed || binding.scope.disposing || binding.program.prepareGroup !== binding.prepare
       || binding.program.groupBindings !== binding.bindings) throw new Error('Replaced herd guest binding');
     for (const reply of replies) { if (reply.channel !== 'reply') throw new Error('Unknown herd guest result');call.reply = reply.value; }
-    for (const [slot,actor] of this.members.entries()) {
+    for (let slot=0;slot<this.members.length;slot++) {
+      const actor=this.members[slot];
       const reference = references.find(row => row.body === actor);
       if (reference === undefined) throw new Error('Unknown appended herd member');
       reference.group = binding.group;reference.slot = slot;
@@ -493,8 +495,9 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     parameters['context.calm']=Number(context?.calm ?? false); parameters['context.playerSpeed']=context?.playerSpeed ?? 0;
     parameters['context.px']=player.x; parameters['context.py']=player.y;
     parameters['context.pz']=player.z;
-    const changes:Record<string,GroupBankValueV2>={};
-    for(const[name,value]of Object.entries(current))if(!Object.is(retained[name],value))changes[name]=value;
+    const changes=call.changes??={};
+    for(const name of Object.keys(changes))delete changes[name];
+    for(const name of Object.keys(current)){const value=current[name];if(!Object.is(retained[name],value)){if(value===undefined)throw new Error('Missing herd guest capture value');changes[name]=value;}}
     for(const name of binding.contextFields){
       const value=parameters[name]??0;if(!Object.is(retained[name],value))changes[name]=value;
     }
@@ -503,13 +506,13 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     for(let slot=0;slot<count;slot++){
       const actor=roster[slot];if(actor===undefined)throw new Error('Missing herd member capture');
       const member=members[slot]??={scope:binding.scope,self:{group:'',slot:0,identity:'',actor},player:{position:player},
-        observed:new Map(),references:new Map(),results:{},t:0,dt:0};
+        observed:new Map(),references:new Map(),results:{foal:0,mother:0,reply:0},t:0,dt:0};
       member.self.group=binding.group;member.self.slot=slot;member.self.identity=actor.entityId;member.self.actor=actor;
       member.player.position=player;member.observed.clear();member.t=context?.t??0;member.dt=context?.dt??0;
       if(context===undefined)delete member.context;else member.context=context;
       member.references.clear();for(const[name,reference]of named)member.references.set(name,reference);
       member.references.set('self',references.find(row=>row.body===actor)??null);member.references.set('target',target);member.references.set('threat',threat);
-      member.results={...this.captureHerdGuestRoles(actor),reply:call.reply};
+      Object.assign(member.results,this.captureHerdGuestRoles(actor,member.results));member.results.reply=call.reply;
     }
     const selection=binding.rows.capture,slots=new Set<number>([0,call.slot]);
     if(call.signal==='tick'&&(retained[binding.rows.resume.field]===170||retained[binding.rows.resume.field]===171))for(let index=0;index<members.length;index++)slots.add(index);
@@ -575,10 +578,10 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
       groupTimePresent: this.groupTime !== -Infinity, groupTime: this.groupTime === -Infinity ? 0 : this.groupTime };
   }
   /** The existing foal/mother identity map at this member's current slot. */
-  protected captureHerdGuestRoles(actor: A): { readonly foal: number; readonly mother: number } {
+  protected captureHerdGuestRoles(actor: A, output?: {foal:number;mother:number}): { readonly foal: number; readonly mother: number } {
     this.requireHerd();
-    const mother = this.mothers.get(actor);
-    return { foal: Number(this.foals.includes(actor)), mother: mother === undefined ? -1 : this.members.indexOf(mother) };
+    const mother = this.mothers.get(actor), foal = Number(this.foals.includes(actor)), slot = mother === undefined ? -1 : this.members.indexOf(mother);
+    const result=output??{foal:0,mother:0};result.foal=foal;result.mother=slot;return result;
   }
   /** Validate the complete guest scalar/role candidate before RNG acceptance.
    * Commit performs assignments only; notifications and body effects retain
