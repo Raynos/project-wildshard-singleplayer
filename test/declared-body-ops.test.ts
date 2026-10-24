@@ -4,7 +4,7 @@ import { expect, test, vi } from 'vitest';
 import * as v from 'valibot';
 import { Scene } from 'three';
 import { DeclaredBodyOpsSchema } from '../src/format/bodySlots';
-import { DeclaredBodyOps, installDeclaredBodyOps } from '../src/game/quest/bodyOps';
+import { DeclaredBodyOps } from '../src/game/quest/bodyOps';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { createSimHost } from '../src/engine/sim';
 import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
@@ -26,7 +26,7 @@ test('declared transactions allocate only at commit, retain exact physics and re
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
   const host = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier });
   try {
-    const ops = await installDeclaredBodyOps(host, rows), baseline = host.physics.world.bodies.len();
+    const ops = await DeclaredBodyOps.install(host, rows), baseline = host.physics.world.bodies.len();
     const staged = ops.prepare([[17, 0, 1, 0, 0], [18, 1, 4, 5, 6], [19, 0, 1, 0, 0], [21, 1, 0, 0, 0]]);
     expect(host.physics.world.bodies.len()).toBe(baseline); expect(ops.body('crate')).toBeNull();
     expect(() => ops.prepare([[17, 0, 1, 0, 0], [19, 0, 999, 0, 0]])).toThrow('collider');
@@ -55,7 +55,7 @@ test('caller-owned old save handles rebind without allocating or replaying scrip
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
   const host = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier });
   try {
-    const ops = await installDeclaredBodyOps(host, rows);
+    const ops = await DeclaredBodyOps.install(host, rows);
     ops.prepare([[17, 0, 1, 0, 0]]).commit();
     const handle = ops.body('crate')?.rb.handle;
     if (handle === undefined) throw new Error('Missing original handle');
@@ -80,7 +80,7 @@ test('rows are plain data and absent targets refuse before publishing any body',
   const host = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier });
   try {
     const baseline = host.physics.world.bodies.len();
-    await expect(installDeclaredBodyOps(host, { bodies: [], colliders: [{ id: 'missing', target: { kind: 'box', box: { x: 20, z: 20, hw: 1, hd: 1, yTop: 2, yBottom: 0 } } }] })).rejects.toThrow('baked box');
+    await expect(DeclaredBodyOps.install(host, { bodies: [], colliders: [{ id: 'missing', target: { kind: 'box', box: { x: 20, z: 20, hw: 1, hd: 1, yTop: 2, yBottom: 0 } } }] })).rejects.toThrow('baked box');
     expect(() => DeclaredBodyOps.native(host, { bodies: [{ id: 'guide', kind: 'actor', species: 'deer', variant: 'ghost', at: { x: 0, y: 0, z: 0 }, yaw: 0 }], colliders: [] })).toThrow('client-only');
     expect(host.physics.world.bodies.len()).toBe(baseline);
   } finally { host.dispose(); }
@@ -97,7 +97,7 @@ test('page actors are real native rigs, excluded from target lists and retired e
   const ctx = { scope: owner, app, game: { runtime: { play: { animals: manager } } } } as ShardContext;
   const retire = vi.spyOn(manager, 'retire');
   try {
-    const ops = await installDeclaredBodyOps(ctx, { bodies: [{ id: 'guide', kind: 'actor', species: 'bear', variant: 'brown', at: { x: 1, y: 2, z: 3 }, yaw: .5 }], colliders: [] });
+    const ops = await DeclaredBodyOps.install(ctx, { bodies: [{ id: 'guide', kind: 'actor', species: 'bear', variant: 'brown', at: { x: 1, y: 2, z: 3 }, yaw: .5 }], colliders: [] });
     expect(manager.animals).toHaveLength(0); expect(ops.actor('guide')).toBeNull();
     ops.prepare([[17, 0, 1, 0, 0], [20, 1, 4, 5, .8]]).commit();
     const actor = ops.actor('guide'); if (actor === null) throw new Error('Missing guide');
@@ -117,7 +117,7 @@ test.each([true, false])('compiled AS body queries require granted floor capabil
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
   const host = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier });
   try {
-    const ops = await installDeclaredBodyOps(host, { ...rows, floors: [{ x: 2, z: 3, step: 1, width: 1, height: 1, values: [6] }] });
+    const ops = await DeclaredBodyOps.install(host, { ...rows, floors: [{ x: 2, z: 3, step: 1, width: 1, height: 1, values: [6] }] });
     ops.setPlayerIntent({ x: 5, z: 7 });
     const input = { id: 'test.native-body', abi: '1.0', side: 'sim', module: `blobs/wasm/${'0'.repeat(64)}.wasm`, source: 'behaviour/body.as',
       binding: { shard: true }, onFail: 'hold', on: ['start'], reads: ['bodyAlive', 'playerIntent', 'declaredFloor'], commands: ['body.spawn', 'body.teleport'],
@@ -141,7 +141,7 @@ test('intent samples remain requested motion and floors preserve captured null/b
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
   const host = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier });
   try {
-    const ops = await installDeclaredBodyOps(host, { ...rows, floors: [
+    const ops = await DeclaredBodyOps.install(host, { ...rows, floors: [
       { x: 0, z: 0, step: 2, width: 2, height: 2, values: [3, null, -2, 7] },
       { x: 0, z: 0, step: 2, width: 1, height: 1, values: [5] },
     ] });

@@ -319,7 +319,7 @@ test('native herd service keeps both id namespaces and retires with its real gro
 
 
 test('v2 thrown dismount uses the original mounted capsule once, without a second ejection', async () => {
-  const { applyV2WorldActions } = await import('../src/game/shardfile/worldActionsV2');
+  const { applyV2WorldActions } = await import('./fixtures/applyWorldActionsV2');
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
   const level = { ...SIM_LEVEL, quests: [] }, host = createSimHost(level, { rapier }), direct = createSimHost(level, { rapier });
   try {

@@ -6,7 +6,7 @@ import { BufferGeometry, Color, DirectionalLight, Group, HemisphereLight, Mesh, 
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { CONTENT_CAPS as C } from '../../../../src/engine/core/config';
 import { ResidencyAllocator } from '../../../../src/game/grid/allocator';
-import { FAR_RING, farRingCatalogue, type FarLookRuntime } from '../../../../src/game/grid/farProxy';
+import { FAR_RING, type FarLookRuntime } from '../../../../src/game/grid/farProxy';
 import { farRingPorts, type FarPrepared } from '../../../../src/game/grid/farView';
 import { TileStreamer, type RingCell } from '../../../../src/engine/world/tileStreamer';
 import templateGlb from '../../../../public/assets/baked/_template/far.glb?url';
@@ -67,8 +67,8 @@ async function load(instance: string): Promise<FarPrepared> {
   const [geometry] = found; if (geometry === undefined || found.length !== 1) throw new Error(`${instance}: expected one far mesh`);
   return { geometry, look: look(shard.json) };
 }
-const allocator = new ResidencyAllocator(), farBytes = farRingCatalogue(bytes);
-const rings = new TileStreamer<FarPrepared>(cells, allocator, (instance, level) => farBytes(instance, level), farRingPorts({ root: (i) => roots.get(i) ?? scene, load }), { farCount: FAR_RING.count, viewDistance: FAR_RING.viewDistance, farPrefetch: FAR_RING.farPrefetch, residentCaps: { far: FAR_RING.count } });
+const allocator = new ResidencyAllocator();
+const rings = new TileStreamer<FarPrepared>(cells, allocator, (instance, level) => level === 'far' ? bytes.get(instance) ?? null : null, farRingPorts({ root: (i) => roots.get(i) ?? scene, load }), { farCount: FAR_RING.count, viewDistance: FAR_RING.viewDistance, farPrefetch: FAR_RING.farPrefetch, residentCaps: { far: FAR_RING.count } });
 
 const hud = document.getElementById('hud');
 const views: Record<string, { label: string; yaw: number }> = {};

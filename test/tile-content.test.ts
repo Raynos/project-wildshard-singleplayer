@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest';
-import { bucketByTile, compactResident, followTile, keyTile, ring, tileKey, tileRanges } from '../src/game/shardfile/tileContent';
+import { bucketByTile, compactResident, followTile, ring, tileKey, tileRanges } from '../src/game/shardfile/tileContent';
+import { keyTile } from './fixtures/tileKey';
 
 test('T3: copies bucket by the tile of their pose, in input order', () => {
   const poses = [{ x: -249, z: -249 }, { x: 10, z: 10 }, { x: -240, z: -200 }, { x: 249, z: 249 }, { x: 300, z: 0 }];

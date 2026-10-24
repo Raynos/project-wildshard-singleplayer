@@ -9,8 +9,7 @@
  * across midnight. The sun's direction is the clock's; a key sets its colour and intensity only.
  */
 import * as THREE from 'three';
-import * as v from 'valibot';
-import { PaintedNumbersSchema, type PaintedNumbers } from '@wildshard/format/paintedLook';
+import type { PaintedNumbers } from '@wildshard/format/paintedLook';
 import { BlendFunction, Effect, LookupTexture, ToneMappingMode } from 'postprocessing';
 import { DEFAULT_NORMALIZED_DAY, normalizedDayClock, DayCycle } from '../world/dayCycle';
 import type { LookStrategy, SkyBackdropTargets, TerrainPainter } from './look';
@@ -482,8 +481,6 @@ export interface PaintedLookSpec {
 
 /** Admitted static painted-look numbers. */
 export type DuskLookRow = PaintedNumbers;
-/** Admit generated look JSON before it reaches clocks, light uniforms or sky shaders. */
-export function parsePaintedLookRow(input: unknown): DuskLookRow { return v.parse(PaintedNumbersSchema, input); }
 /** Bind an admitted painted look to image, graph, live dusk and optional terrain/dressing owners. */
 export function paintedLookFromRow(row: DuskLookRow, ports: Pick<PaintedLookSpec, 'textures' | 'dressing' | 'lut' | 'terrain'> & {
   readonly load: PaintedLoad; readonly state?: PaintedState['value']; readonly graph?: Extract<PaintedSkySpec, { haze: HeadingHazeRow }>['graph'];

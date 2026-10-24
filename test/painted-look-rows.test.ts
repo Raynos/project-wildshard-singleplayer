@@ -1,3 +1,4 @@
+import { parse } from 'valibot';
 import { expect, test } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import { Terrain } from '../src/engine/world/Terrain';
@@ -12,25 +13,25 @@ import rocColour from '../src/shards/far-reach/data/rocSlate.json' with { type: 
 import oliveColour from '../src/shards/nalati-grasslands/data/oliveColour.json' with { type: 'json' };
 import { InstancedBufferAttribute, MeshStandardMaterial, PlaneGeometry, ShaderChunk, Texture } from 'three';
 import { instancedQuad } from '../src/engine/render/instancedGeometry';
-import { parsePaintedLook } from '../src/format/paintedLook';
+import { PaintedNumbersSchema, parsePaintedLook } from '../src/format/paintedLook';
 import { skyPaintedPresentation, SKY_PAINTED_GRAPHS } from '../src/shards/far-reach/generators/paintedLook';
 import { signalPaintedPresentation } from '../src/shards/sunscar-dunes/generators/paintedLook';
-import { paintedLookFromRow, painterLightGlsl, painterLightPatch, parsePaintedLookRow } from '../src/engine/render/dataLook';
+import { paintedLookFromRow, painterLightGlsl, painterLightPatch } from '../src/engine/render/dataLook';
 import signal from '../src/shards/sunscar-dunes/data/paintedLook.generated.json' with { type: 'json' };
 import sky from '../src/shards/far-reach/data/paintedLook.generated.json' with { type: 'json' };
 
 test('both generated looks admit their clock, sky and light without changing values', () => {
   for (const rows of [signal.look, sky.look]) {
-    const admitted = parsePaintedLookRow(rows);
+    const admitted = parse(PaintedNumbersSchema, rows);
     expect(admitted).toEqual(rows);
-    expect(() => parsePaintedLookRow({ ...rows, sun: { ...rows.sun, intensity: Number.NaN } })).toThrow();
-    expect(() => parsePaintedLookRow({ ...rows, clock: { ...rows.clock, units: 'seconds' } })).toThrow();
+    expect(() => parse(PaintedNumbersSchema, { ...rows, sun: { ...rows.sun, intensity: Number.NaN } })).toThrow();
+    expect(() => parse(PaintedNumbersSchema, { ...rows, clock: { ...rows.clock, units: 'seconds' } })).toThrow();
   }
-  expect(() => parsePaintedLookRow({ ...signal.look, light: { ...signal.look.light, rim: [1, 2] } })).toThrow();
+  expect(() => parse(PaintedNumbersSchema, { ...signal.look, light: { ...signal.look.light, rim: [1, 2] } })).toThrow();
 });
 
 test('a stateful look refuses missing dusk and binds the real live state', () => {
-  const row = parsePaintedLookRow(signal.look), load = (): Promise<null> => Promise.resolve(null);
+  const row = parse(PaintedNumbersSchema, signal.look), load = (): Promise<null> => Promise.resolve(null);
   expect(() => paintedLookFromRow(row, { load })).toThrow('live state');
   const state = { value: 0.86 }, look = paintedLookFromRow(row, { load, state });
   expect(look.backdrop).toBeTypeOf('function');
@@ -39,7 +40,7 @@ test('a stateful look refuses missing dusk and binds the real live state', () =>
 });
 
 test('page lighting installs the identical painter shader used by scoped materials', () => {
-  const light = parsePaintedLookRow(sky.look).light, before = ShaderChunk.lights_fragment_end;
+  const light = parse(PaintedNumbersSchema, sky.look).light, before = ShaderChunk.lights_fragment_end;
   try {
     painterLightPatch(null, light, sky.look.sun.dir);
     expect(ShaderChunk.lights_fragment_end).toBe(before + painterLightGlsl(light, sky.look.sun.dir));

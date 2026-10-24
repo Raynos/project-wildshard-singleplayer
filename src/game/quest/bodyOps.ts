@@ -251,5 +251,3 @@ export class DeclaredBodyOps {
     this.disposed = true;
   }
 }
-/** Prepare the declared native body host in its existing entered/session scope. */
-export function installDeclaredBodyOps(owner: Owner, input: unknown): Promise<DeclaredBodyOps> { return DeclaredBodyOps.install(owner, input); }

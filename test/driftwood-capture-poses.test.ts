@@ -1,17 +1,18 @@
+import { terrainFieldFor } from '../src/engine/world/groundField';
 import { expect, test } from 'vitest';
 import { parseCapturePoses } from '../src/format/minimap';
 import { installDeclaredBakedTerrain } from '../src/engine/world/bakedTerrainField';
 import { readNativeTerrain } from '../src/sdk/bake/terrain';
 import { driftwoodGroundBytes } from '../src/shards/driftwood-isle/generators/groundRows';
 import { driftwoodCapturePoses } from '../src/shards/driftwood-isle/generators/capturePoses';
-import { declaredGround, terrainFor } from '../src/game/shard/manifest';
+import { declaredGround } from '../src/game/shard/manifest';
 import groundRows from '../src/shards/driftwood-isle/boot/ground.generated.json' with { type: 'json' };
 import source from '../src/shards/driftwood-isle/manifest.json' with { type: 'json' };
 import poses from '../src/shards/driftwood-isle/data/boot-poses.generated.json' with { type: 'json' };
 import manifest from '../src/shards/driftwood-isle/discovery.generated';
 
 test('offline capture poses preserve all original terrain-bound eyes and angles exactly', () => {
-  const terrain = readNativeTerrain(driftwoodGroundBytes()), ground = terrainFor({ slug: 'driftwood-isle', ground: declaredGround(groundRows) });
+  const terrain = readNativeTerrain(driftwoodGroundBytes()), ground = terrainFieldFor(declaredGround(groundRows), 'driftwood-isle');
   installDeclaredBakedTerrain(ground, { seed: terrain.grid.seed, ...terrain });
   const expected = Object.fromEntries(source.captureProbes.map(probe => [probe.name, {
     probe, eye: [probe.x, ground.heightAt(probe.x, probe.z) + 1.68, probe.z],

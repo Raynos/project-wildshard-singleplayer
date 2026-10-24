@@ -677,7 +677,7 @@ This does not change `bounds` / soft respawn or the creature death plane `world.
 | `load` | `() => import('./plugin')`: the lazy plugin chunk |
 
 **Structures-only ground:** `ground: { structures: true }` needs no `terrain`. The engine draws no terrain mesh
-and creates no terrain collider. Analytic placement readers (`heightAt`, `terrainFor`) return the fixed floor
+and creates no terrain collider. Analytic placement readers (`heightAt`, `terrainFieldFor`) return the fixed floor
 **y = −1,000 m** everywhere; this floor is not walkable geometry. `terrainFieldFor(ground, id)` (`@wildshard/engine/world/groundField`)
 returns the authored field when present, otherwise this fallback for structures; missing both is an error.
 
@@ -1493,8 +1493,8 @@ rate fingerprints stay unchanged. Decision clocks and RNG order are unchanged.
 
 ### 13.1 LookStrategy
 
-`render/dataLook` admits generated painted-look JSON with
-`parsePaintedLookRow`, then binds it with `paintedLookFromRow`. The row holds
+The format's `PaintedNumbersSchema` admits generated painted-look JSON;
+`render/dataLook` binds it with `paintedLookFromRow`. The row holds
 the clock, key, fog, painter light and its page/material scope, dusk curves, and two
 painted strips or a heading haze. Image loading, graph compilation, dressing,
 LUTs, terrain ownership and live dusk stay explicit ports; a stateful row
@@ -10153,7 +10153,7 @@ with the entered scope. No independent save, listener or clock is introduced.
 original parentless baked box at the native continuation's existing tolerance
 and first-match order, without changing its enabled state.
 
-`await installDeclaredBodyOps(ctxOrSimHost, rows)` prepares declared body
+`await DeclaredBodyOps.install(ctxOrSimHost, rows)` prepares declared body
 mechanics in the existing scope. `rows.bodies` declares immutable `actor`
 (species, variant, at:{x,y,z}, yaw) or `prop` (shape, material, owner:{kind,id},
 at, yaw, optional existing BodySpec coefficients/group) identities;
@@ -10179,7 +10179,7 @@ owner/material and unique handles are verified before rebinding.
 `DeclaredBodyOps.native(simHost, rows)` installs prop-only mechanics
 synchronously for `bindShardfileSim` and `restoreSimHost` callbacks.
 It validates the declaration and refuses actor rows before allocation.
-`await installDeclaredBodyOps(ctx, rows)` retains page species-model
+`await DeclaredBodyOps.install(ctx, rows)` retains page species-model
 prewarming before entering the same body host.
 
 `DecisionWorld.player` may lend the trusted numeric player identity.
@@ -12534,8 +12534,9 @@ and target handles, operation permissions, per-binding quotas and coordinate /
 velocity bounds. Reserved words must be zero. Invalid suffixes publish no
 commands; view lanes cannot issue them. ABI-v0/v1 declarations are unchanged.
 
-applyV2WorldActions borrows explicit scoped native mount, cell-field and
-native/page player owners at the caller's original synchronous apply slot.
+prepareV2WorldActions borrows explicit scoped native mount, cell-field and
+native/page player owners. The caller validates the prepared bank, then runs
+its ordered operations at the original synchronous apply slot.
 Dismount rechecks the same mount before each effect and adds no extra impulse;
 ignite calls the same CellField.activate. Player impulses use the existing
 SimHost.impulsePlayer or Player.impulse law; embedded hosts cannot claim owned

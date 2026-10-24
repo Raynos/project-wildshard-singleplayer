@@ -301,7 +301,3 @@ function addPart(part: FarPart, regionSize: number, out: { positions: number[]; 
   for (const i of idx) out.index.push(base + i);
 }
 
-/** The far level of a ring catalogue: an instance's proxy resident bytes (decoded + GPU), null when it has none. */
-export function farRingCatalogue(resident: ReadonlyMap<string, number>): (instance: string, level: 'far' | 'l1' | 'l0') => number | null {
-  return (instance, level) => level === 'far' ? resident.get(instance) ?? null : null;
-}

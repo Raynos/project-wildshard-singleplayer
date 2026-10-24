@@ -41,11 +41,6 @@ const HALF = (TILES_PER_SIDE * TILE_SIZE) / 2;
 
 /** A tile's key (0 ... 63). */
 export function tileKey(tile: CellTile): number { return tile.j * TILES_PER_SIDE + tile.i; }
-/** The tile of a key. */
-export function keyTile(key: number): CellTile {
-  if (!Number.isInteger(key) || key < 0 || key >= TILES) throw new RangeError('Not a tile key');
-  return { i: key % TILES_PER_SIDE, j: Math.floor(key / TILES_PER_SIDE) };
-}
 
 /** Bucket items by the tile of their cell-local position: tile key to the items' indices, in input order. */
 export function bucketByTile<T>(items: readonly T[], at: (item: T) => { readonly x: number; readonly z: number }): Map<number, number[]> {

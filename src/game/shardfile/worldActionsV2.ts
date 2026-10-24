@@ -78,12 +78,6 @@ export function prepareV2WorldActions<A extends TamingHorse=TamingHorse,H extend
     for (const row of prepared) row.validate();
   },operations: Object.freeze(prepared.map(row => row.apply)) };
 }
-/** Existing direct application remains a whole-bank prepare/validate/apply.
- * Dismount reads mounted at each application and never adds an impulse. */
-export function applyV2WorldActions(actions: readonly V2WorldAction[],loans: readonly V2WorldActionLoan[]): void {
-  const prepared = prepareV2WorldActions(actions,loans);prepared.validate();
-  for (const operation of prepared.operations) operation();
-}
 
 function prepareTamingAction<A extends TamingHorse,H extends TamingHerd<A>>(action:V2WorldAction,loan:V2WorldActionLoan<A,H>):{validate:()=>void;apply:()=>TamingActionResult<A>|undefined}|null {
   if(action.kind!=='taming'&&!(action.kind==='dismount'&&loan.kind==='taming'))return null;

@@ -22,7 +22,7 @@ import type { SpeciesWeights, TreeSpeciesTraits, TreeSetVariant } from '@wildsha
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { TreeFactory } from '@wildshard/engine/world/TreeFactory';
-import { flatTerrainField, terrainFieldFor } from '@wildshard/engine/world/groundField';
+import { flatTerrainField } from '@wildshard/engine/world/groundField';
 import { createBakedTerrainField } from '@wildshard/engine/world/bakedTerrainField';
 import { buildTerrainMetadata } from '@wildshard/engine/world/terrainField';
 import { declaredWaterBody } from '@wildshard/engine/world/water/declared';
@@ -800,10 +800,6 @@ export function declaredPondClip(input: unknown): (x: number, z: number) => bool
     return i >= 0 && j >= 0 && i < rows.segs && j < rows.segs && cells.has(j * rows.segs + i); };
 }
 
-/** Authored terrain, or the analytic placement floor for a structures-only manifest (y = -1000 m). */
-export function terrainFor(manifest: Pick<ShardManifest, 'ground' | 'slug'>): ChunkTerrain {
-  return terrainFieldFor(manifest.ground, manifest.slug);
-}
 
 /** The generated discovery root lends only native/generated fields. */
 export type AuthoredShardBindings = Omit<ShardManifestRows, keyof ManifestMetadata | 'trees' | 'poses'> & {

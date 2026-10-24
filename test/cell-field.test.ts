@@ -10,7 +10,7 @@ import { Scope } from '../src/engine/app/scope';
 import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';
 import { parseDecisionScripts } from '../src/format/decisionScripts';
 import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
-import { applyV2WorldActions } from '../src/game/shardfile/worldActionsV2';
+import { applyV2WorldActions } from './fixtures/applyWorldActionsV2';
 import { TITAN_FIRE_FIELD } from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 import {titanPrograms as program} from './fixtures/titanInlineWitness';
 

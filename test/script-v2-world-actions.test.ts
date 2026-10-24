@@ -8,7 +8,8 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import { compileSimV2 } from './fixtures/compileSimV2';
 import { readV2WorldActions,V2_ACTION_OPS,type V2ActionBinding,type V2WorldAction } from '../src/format/scriptActionsV2';
 import { layoutV2,writeV2Frame,validateV2Frame,type V2FrameAuthority } from '../src/format/scriptWireV2';
-import { prepareV2WorldActions,applyV2WorldActions,type V2WorldActionLoan } from '../src/game/shardfile/worldActionsV2';
+import { prepareV2WorldActions, type V2WorldActionLoan } from '../src/game/shardfile/worldActionsV2';
+import { applyV2WorldActions } from './fixtures/applyWorldActionsV2';
 import { fixtureBytes } from './fixtures/nativeBytes';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
