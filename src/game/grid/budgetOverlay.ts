@@ -179,7 +179,7 @@ export function installBudgetOverlay(host: BudgetOverlayHost): BudgetOverlay {
   };
 
   function refresh(): void {
-    if (root === null || scope.disposed) return;
+    if (root === null || root.hidden !== false || scope.disposed) return;
     const cost = host.allocator.cost(), entries = host.allocator.entries(), memory = snapshot(cost.accounted), over = host.overLimit?.() ?? [];
     // repaint only when the table, the observed totals, the over-limit lines or the view changed: the timer is otherwise a cheap read
     const shown = expanded ? JSON.stringify(memory) : `${memory.totals.gpu}|${memory.totals.ram}|${memory.measured?.sampledAt ?? ''}`;

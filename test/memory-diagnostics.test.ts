@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { afterEach, expect, test } from 'vitest';
+import { afterEach, expect, test, vi } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import { withOwner } from '../src/engine/app/ownership';
 import { setDev } from '../src/engine/core/devMode';
@@ -40,6 +40,30 @@ test('G628 M1/M5: the headline is the larger of model and measured; amber at 1.5
   expect(memoryHeadline(1_800_000_000, observed(100, 0), 300_000_000)).toMatchObject({ bytes: 1_800_000_000, source: 'model', tone: 'red' });
   const native = { ...observed(0, 0), measured: { webContentBytes: 1_200_000_000, labelledGpuBytes: 400_000_000, sampledAt: 0, source: 'test' } };
   expect(memoryHeadline(1_000_000_000, native, 300_000_000)).toMatchObject({ bytes: 1_600_000_000, source: 'native' });
+});
+
+test('hidden Developer strip skips snapshots while entry trends keep their original cost', () => {
+  vi.useFakeTimers();
+  try {
+    setDev(true);
+    const scope = owner(), hud = document.createElement('div');
+    const input: ContentCostInput = { l0: 0, l1: 0, far: 0, libraries: 0, sims: 100, commons: 0, overlap: 80_000_000 };
+    const cost = vi.fn(() => ({ ...contentCost(input), input })), entries = vi.fn(() => [sim('nine', input.sims)]);
+    const memory = vi.fn(() => observed(0, 0));
+    const overlay = withOwner(scope, () => installBudgetOverlay({ scope, hudRoot: hud, name: () => 'Nine', memory, allocator: { cost, entries } }));
+    expect(memory).toHaveBeenCalledTimes(1);
+    setDev(false);
+    cost.mockClear(); entries.mockClear(); memory.mockClear();
+    overlay.refresh(); overlay.crossed(); vi.advanceTimersByTime(3000);
+    expect(cost).toHaveBeenCalledTimes(1);
+    expect(entries).not.toHaveBeenCalled(); expect(memory).not.toHaveBeenCalled();
+    expect(overlay.trend()).toEqual([contentCost(input).playing]);
+    setDev(true);
+    expect(memory).toHaveBeenCalledTimes(1); expect(entries).toHaveBeenCalledTimes(1);
+    vi.advanceTimersByTime(1000);
+    expect(memory).toHaveBeenCalledTimes(2); expect(entries).toHaveBeenCalledTimes(2);
+    scope.dispose();
+  } finally { vi.useRealTimers(); }
 });
 
 test('G628 M4/M7: a red line per shard over its limit; the trend keeps the first entry and the last six', async () => {
