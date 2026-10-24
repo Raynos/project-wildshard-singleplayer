@@ -247,3 +247,27 @@ test('unused operand suffixes refuse the whole bank while declared state keeps s
   ready.accept();expect(Object.is(f.state[3],-0)).toBe(true);
  }finally{f.root.dispose();}
 });
+
+
+test('reused numeric staging keeps outstanding candidates and their publications detached', () => {
+  const f = fixture();
+  try {
+    const before = f.state.slice(), first = f.runner.prepare(f.input);
+    expect(first.values['sum']).toBe(120);
+    const body = f.bodies[0];if (body === undefined) throw new Error('Missing body');
+    body.position.x = 25;
+    const second = f.runner.prepare(f.input);
+    expect(second.values['sum']).toBe(145);
+    expect(second.values).not.toBe(first.values);
+    expect(first.values['sum']).toBe(120);
+    expect(Object.isFrozen(first.values)).toBe(true);
+    expect(f.state).toStrictEqual(before);
+    first.validate();second.validate();
+    expect(() => f.runner.prepare({ ...f.input, signal: 'badState' })).toThrow();
+    expect(first.values['sum']).toBe(120);expect(second.values['sum']).toBe(145);
+    first.validate();second.validate();first.accept();
+    expect(f.state[1]).toBe(120);
+    expect(() => second.accept()).toThrow('superseded');
+    f.runner.prepare(f.input).accept();expect(f.state[1]).toBe(145);
+  } finally { f.root.dispose(); }
+});

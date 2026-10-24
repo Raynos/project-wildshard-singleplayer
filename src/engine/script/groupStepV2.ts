@@ -61,12 +61,15 @@ export class GroupStepV2 {
     if(shared!==undefined&&(this.layout.bytes!==shared.layout.bytes||this.layout.io!==shared.layout.io||this.layout.pages!==shared.layout.pages
       ||minimum.regions.some(row=>(this.layout.regions[row.kind-1]?.capacity??-1)<row.capacity)
       ||!shared.module.owns(bytes,this.layout.io,this.layout.bytes)))throw new Error('Foreign shared group executable');
-    this.profiles = [this.rows, ...(this.rows.profiles ?? [])].map((rows, index) => ({
+    this.profiles = [this.rows, ...(this.rows.profiles ?? [])].map((rows, index) => {
+      const bank=new GroupBankV2(rows.bank);
+      return {
       id: index === 0 ? 'main' : this.rows.profiles?.[index - 1]?.id,
-      rows, bank: new GroupBankV2(rows.bank), columns: new ObservationColumnsV2(rows.columns, scope),
+      rows, bank, output: new Float64Array(bank.width),
+      counts: new Map([[1,1],[2,0],[4,0],[5,1],[6,0],[21,0]]), columns: new ObservationColumnsV2(rows.columns, scope),
       actions: new Map(rows.actions.map(row=>{if(row.native!==undefined)freezeNative(row.native);return [row.id,row];})),
       order: rows.columns.map((row,column)=>({name:row.name,index:column})).sort((a,b)=>a.name<b.name?-1:a.name>b.name?1:0).map(row=>row.index),
-    }));
+    };});
     const source = Uint8Array.from(bytes), admitted = admitScriptV2(source, { lane: 'project', ioBytes: this.layout.bytes });
     if (admitted.io !== 0 || admitted.initialPages !== this.rows.pages) throw new Error('Group step module layout mismatch');
     this.module = shared?.module ?? new ScriptModuleV2(source, { seed: [0, 0], initFuel: this.rows.fuel, ioBytes: this.layout.bytes, output: [] });
@@ -152,8 +155,11 @@ export class GroupStepV2 {
       const delivery = input.queries?.ring.delivery(input.tick, new Map([[input.group, binding ?? { identity: input.group,
         handle: input.handle, observed: new Map(), operations: new Set() }]]), new Set([input.group]));
       const parameters=this.rows.profiles===undefined?2:3, fieldCount=members.length*profile.order.length;
-      const counts=new Map([[1,1],[2,originalState.length],[4,parameters],[5,1],[6,fieldCount]]);
+      // Only numeric staging is reused; the writer detaches header/count authority.
       const extra = delivery?.banks ?? [];
+      const counts=extra.length===0?profile.counts:new Map(profile.counts);
+      counts.set(2,originalState.length);counts.set(4,parameters);counts.set(6,fieldCount);
+      if(extra.length>0)counts.delete(21);
       for (const bank of extra) counts.set(bank.kind, bank.count);
       counts.set(21, rng.count);
       let authority: V2FrameAuthority | undefined;
@@ -193,7 +199,7 @@ export class GroupStepV2 {
         if (authority === undefined) throw new Error('Missing group frame authority');
         const actual = validateV2Frame(view, this.layout, authority), state = this.layout.regions[2], actions = this.layout.regions[9];
         if (state === undefined || actions === undefined || actual[2] !== profile.bank.width || (actual[9] ?? 0) > this.rows.outputs) throw new Error('Incomplete group candidate');
-        const bank = new Float64Array(profile.bank.width);
+        const bank = profile.output;
         for (let index = 0; index < bank.length; index++) bank[index] = view.getFloat64(this.layout.io + state.offset + index * 8, true);
         const prepared = profile.bank.prepare(input.state, bank, input.group, input.references, this.scope);
         const operations: GroupStepOperationV2[] = [];
