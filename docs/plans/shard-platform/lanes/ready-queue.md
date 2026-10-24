@@ -29,6 +29,7 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 | T8/U1 | Uniform 64 L0 output contract: audit callers, refusal and empty-tile rules before producer edits; preserve T3 ownership | tile-streaming-mini-plan.md:T8/U1 | sp-x2 (in flight): 64-L0 emitter/catalogue `6fc5b91533` + Sky `9e0aee064b`; product census remains |
 | GR0 | Generators redesign: finish the generated-source ban and shrinking burn-down; preserve the existing generated-import rule | tooling-perf/generators-spike-mini-plan.md:GR0 | done (2026-10-24, sp-x1): exact output ratchet + staged/push/post-gen guards; 138 focused cases |
 | GR2 | Generators redesign: app tables then per-shard build programs; converted projects bypass the legacy generator scheduler, with scoped `--shard=` support | tooling-perf/generators-spike-mini-plan.md:GR2 | sp-x1 15:50 (in flight) |
+| GR-PATHS | Make check-paths green: remove stale deleted-file references and fix real fixture/layout misses; no widened allow lists; Vitest glob-cache CI repair stays with sp-x2 | generators redesign; sp-x1 181-failure census | in flight (2026-10-24, sp-x8) |
 
 **G683 Codex order (Jake, 13:20):** finish extras in this order, taking the top open Codex row of the first plan that has one:
 (1) tile streaming (shard-platform/tile-streaming-mini-plan.md), (2) loading (loading-mini-plan.md), (3) core memory
