@@ -35,7 +35,7 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 
 | TS-T2 | TypeScript: check src once through layers tsc -b; preserve test, script and composition-root coverage; coordinate Typecheck command with sp-x7 | tooling-perf/typescript-mini-plan.md:T2 | done (2026-10-24, sp-x8): `96fe07d0eb` + `5025374ca2`; full cold local check 24.968 s, CI timing pending |
 
-| T1-POST | Lifecycle only: dispose/reuse composer depth and Backdrop LUTs on retirement/re-entry; GPU-ledger regression, identical pixels; siteCatalogue geometry stays with sp-x9 | T1 retained794 diagnostic; coordinator 2026-10-24 | in flight (2026-10-24, sp-x8) |
+| T1-POST | Lifecycle only: dispose/reuse composer depth and Backdrop LUTs on retirement/re-entry; GPU-ledger regression, identical pixels; siteCatalogue geometry stays with sp-x9 | T1 retained794 diagnostic; coordinator 2026-10-24 | done (2026-10-24; LUT `67b5ab6f2d`, depth `acda59debf`; 28 focused + 198 ready-related cases, layers/root/lint green; joint T1 GPU measurement remains with sp-x9) |
 
 **G683 Codex order (Jake, 13:20):** finish extras in this order, taking the top open Codex row of the first plan that has one:
 (1) tile streaming (shard-platform/tile-streaming-mini-plan.md), (2) loading (loading-mini-plan.md), (3) core memory
