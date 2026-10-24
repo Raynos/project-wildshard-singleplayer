@@ -34,6 +34,7 @@
     "./rows": "./rows.ts",
     "./plumbing": "./plumbing.ts",
     "./bake/props": "./bake/props.ts",
+    "./bake/tileGrid": "./bake/tileGrid.ts",
     "./bake/glb": "./bake/glb.ts",
     "./bake/glbCompression": "./bake/glbCompression.ts",
     "./bake/nearPlaceholder": "./bake/nearPlaceholder.ts",
@@ -267,6 +268,10 @@
       "./plumbing": {
         "types": "./dist/types/sdk/plumbing.d.ts",
         "default": "./dist/plumbing.js"
+      },
+      "./bake/tileGrid": {
+        "types": "./dist/types/sdk/bake/tileGrid.d.ts",
+        "default": "./dist/bake/tileGrid.js"
       },
       "./bake/props": {
         "types": "./dist/types/sdk/bake/props.d.ts",

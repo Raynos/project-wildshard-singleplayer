@@ -4191,6 +4191,8 @@ and `nativeAttributes`, as `props.whole` does.
 
 Full-world `bake` and authored-GLB builds declare all 64 L0 squares. Vacant
 squares have no files and zero costs; render/terrain payload rows stay sparse.
+`@wildshard/sdk/bake/tileGrid` exposes `completeL0Tiles` for full-world
+metadata emitters; it validates existing addresses/bounds before filling gaps.
 Library-only packers retain their sparse inventories. The runtime treats explicit
 zero-cost, no-file squares as empty readiness without allocating or fetching.
 
