@@ -25,9 +25,12 @@ const text = new TextEncoder();
 /** An immutable step returns named byte files, including JSON metadata when needed. */
 export interface ProjectGenerationStep {
   readonly id: string;
+  /** Project-relative paths, or URLs beneath roots explicitly supplied by the author CLI. */
   readonly inputs?: readonly string[];
   readonly native?: boolean;
 }
+/** Explicit filesystem capability for authored public assets; never inferred from a shard name or parent path. */
+export interface ProjectGenerationInputRoot { readonly prefix: string; readonly directory: string }
 /** A build may return output metadata alongside the declaration it describes. Neither is written into source. */
 export interface GeneratedProject {
   readonly shard: Shardfile;
@@ -56,9 +59,14 @@ function detached(files: ReadonlyMap<string, Uint8Array>): Map<string, Uint8Arra
 }
 /** The complete bundled program is a conservative import-closure key. Source edits invalidate every step in that program.
  * Explicit input bytes are read on hits too, so the normal product receipt captures their current identity. */
-export function createProjectGeneration(project: string, programHash: string, assets: Map<string, Uint8Array>, cacheRoot = resolve(homedir(), '.cache/wildshard/gen')): ProjectGenerationContext {
+export function createProjectGeneration(project: string, programHash: string, assets: Map<string, Uint8Array>, cacheRoot = resolve(homedir(), '.cache/wildshard/gen'), inputRoots: readonly ProjectGenerationInputRoot[] = []): ProjectGenerationContext {
   v.parse(hash, programHash);
   const root = realpathSync(project), pending = new Map<string, Promise<ReadonlyMap<string, Uint8Array>>>();
+  if (inputRoots.length > 32) throw new Error('Too many generation input roots');
+  const roots = inputRoots.map(source => {
+    if (!/^\/(?:[a-zA-Z0-9_-]+\/)+$/u.test(source.prefix)) throw new Error('Generation input root needs a bounded absolute URL prefix');
+    return { prefix: source.prefix, directory: realpathSync(source.directory) };
+  });
   return {
     compileScript, compileDecisionScripts: compileDeclaredDecisionScripts,
     asset(bytes) {
@@ -67,12 +75,20 @@ export function createProjectGeneration(project: string, programHash: string, as
     },
     async cached(step, generate) {
       if (!/^[a-z0-9][a-z0-9-]{0,79}$/u.test(step.id)) throw new Error('Invalid generation step id');
+      if ((step.inputs?.length ?? 0) > 4096) throw new Error('Too many generation inputs');
       const inputs = new Map<string, Uint8Array>();
       for (const file of step.inputs ?? []) {
-        name(file);
         if (inputs.has(file)) throw new Error('Duplicate generation input');
-        const path = realpathSync(resolve(root, file));
-        if (!path.startsWith(root + sep)) throw new Error('Generation input escaped the project');
+        let base = root, relative = file;
+        if (file.startsWith('/')) {
+          const matches = roots.filter(source => file.startsWith(source.prefix)), source = matches[0];
+          if (matches.length !== 1 || source === undefined) throw new Error('Generation input needs exactly one declared root');
+          base = source.directory; relative = file.slice(source.prefix.length);
+          if (/[%?#]/u.test(relative)) throw new Error('Generation input URL escapes its root');
+        }
+        name(relative);
+        const path = realpathSync(resolve(base, relative));
+        if (!path.startsWith(base + sep)) throw new Error('Generation input escaped its declared root');
         inputs.set(file, readBoundedFile(path, 256_000_000));
       }
       const key = hashImmutableBytes(text.encode(encodeCanonicalJson({ version: 2, programHash, compiler: await projectCompilerIdentity(), id: step.id, node: process.version,
@@ -96,7 +112,10 @@ export function createProjectGeneration(project: string, programHash: string, as
             }
             return files;
           }
-          const files = detached(await generate(detached(inputs))), parent = resolve(directory, '..');
+          // Input URL keys have already crossed the explicit-root checks above;
+          // output names still cross the stricter cache-file path contract.
+          const copy = new Map([...inputs].map(([file, bytes]) => [file, new Uint8Array(bytes)]));
+          const files = detached(await generate(copy)), parent = resolve(directory, '..');
           mkdirSync(parent, { recursive: true });
           const temporary = mkdtempSync(resolve(parent, '.writing-'));
           try {

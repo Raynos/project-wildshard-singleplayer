@@ -1,7 +1,7 @@
 import { mergeProjectSections } from './projectSections';
 import { writeNewProject } from './newProject';
 import { assertConfigBoundary } from './configBoundary';
-import { createProjectGeneration, isProjectGenerator } from './projectGeneration';
+import { createProjectGeneration, isProjectGenerator, type ProjectGenerationInputRoot } from './projectGeneration';
 // oxlint-disable-next-line import/no-nodejs-modules -- The author CLI verifies and writes local build products.
 import { cpSync, existsSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve source assets inside the author project.
@@ -72,7 +72,7 @@ function outputDeclaration(loaded: Record<string, unknown>, output: string): unk
   return Reflect.get(outputs, output);
 }
 
-async function projectModule(project: string, decisionLegacyLines?: number, selected?: string, mapSourceHash?: string): Promise<{ map: Awaited<ReturnType<typeof generatedProjectMap>> | undefined; shard: Shardfile; commons: unknown; baked: ReadonlyMap<string, Uint8Array>; output: PreparedProjectOutput; mirrors: readonly RuntimeMirror[] }> {
+async function projectModule(project: string, decisionLegacyLines?: number, selected?: string, mapSourceHash?: string, inputRoots: readonly ProjectGenerationInputRoot[] = []): Promise<{ map: Awaited<ReturnType<typeof generatedProjectMap>> | undefined; shard: Shardfile; commons: unknown; baked: ReadonlyMap<string, Uint8Array>; output: PreparedProjectOutput; mirrors: readonly RuntimeMirror[] }> {
   const program = await authorModule(project, 'shard.config.ts'), loaded = program.exports;
   if (!('default' in loaded)) throw new Error('config has no default export');
   if ('generate' in loaded && typeof loaded['generate'] !== 'function') throw new Error('config generate export must be a build function');
@@ -82,7 +82,7 @@ async function projectModule(project: string, decisionLegacyLines?: number, sele
   let generatedOutput: unknown, map: Awaited<ReturnType<typeof generatedProjectMap>> | undefined;
   if (isProjectGenerator(declaration)) {
     declaration = await declaration(createProjectGeneration(project,
-      contentHash(new TextEncoder().encode(canonicalJson({ program: program.hash, output: selected ?? null }))), baked));
+      contentHash(new TextEncoder().encode(canonicalJson({ program: program.hash, output: selected ?? null }))), baked, undefined, inputRoots));
     if (typeof declaration === 'object' && declaration !== null && 'shard' in declaration) {
       if (!('output' in declaration) || Object.keys(declaration).some(key => key !== 'shard' && key !== 'output' && key !== 'map')) throw new Error('Generated project requires shard, output and optional map');
       if ('map' in declaration) map = await generatedProjectMap(declaration.map, mapSourceHash ?? program.hash);
@@ -121,7 +121,7 @@ async function projectModule(project: string, decisionLegacyLines?: number, sele
 
 /** Compile authored geometry and read its remaining immutable inputs without writing hashes into the author folder. */
 export async function readProjectAssets(project: string, map?: ProjectMap, manifestSource?: ProjectManifestSource, options: { decisionLegacyLines?: number; output?: string; mapSourceHash?: string } = {}): Promise<{ shard: Shardfile; assets: Map<string, Uint8Array>; output: Omit<OutputProductOptions, 'runtime'>; mirrors: readonly RuntimeMirror[] }> {
-  const loaded = await projectModule(project, options.decisionLegacyLines, options.output, options.mapSourceHash), pinned = new Map(pinnedCommons(loaded.commons, loaded.shard, project));
+  const loaded = await projectModule(project, options.decisionLegacyLines, options.output, options.mapSourceHash, manifestSource?.imageRoots), pinned = new Map(pinnedCommons(loaded.commons, loaded.shard, project));
   for (const [hash, bytes] of loaded.baked) pinned.set(hash, bytes);
   for (const [hash, bytes] of loaded.output.assets) {
     const previous = pinned.get(hash);

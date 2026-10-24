@@ -61,6 +61,52 @@ test('escaping/duplicate inputs and corrupt cached bytes refuse before generatin
   expect(calls).toBe(1);
 });
 
+test('declared public inputs stay bounded, detached and content-keyed on cache hits', async () => {
+  const { root, cache, assets } = fixture(), publicRoot = fixture(), outside = fixture();
+  writeFileSync(resolve(publicRoot.root, 'model.bin'), new Uint8Array([11]));
+  writeFileSync(resolve(outside.root, 'secret'), 'outside');
+  symlinkSync(resolve(outside.root, 'secret'), resolve(publicRoot.root, 'escape'));
+  const roots = [{ prefix: '/assets/', directory: publicRoot.root }]; let calls = 0;
+  const ctx = createProjectGeneration(root, program, assets, cache, roots);
+  const step = { id: 'public-model', inputs: ['/assets/model.bin'] };
+  const generate = (inputs: ReadonlyMap<string, Uint8Array>) => {
+    calls++; const bytes = inputs.get('/assets/model.bin'); if (bytes === undefined) throw new Error('Missing public input');
+    return new Map([['body.bin', bytes]]);
+  };
+  const first = await ctx.cached(step, generate); first.get('body.bin')?.fill(0);
+  const hit = createProjectGeneration(root, program, assets, cache, roots);
+  expect((await hit.cached(step, generate)).get('body.bin')).toEqual(new Uint8Array([11]));
+  expect(calls).toBe(1);
+  writeFileSync(resolve(publicRoot.root, 'model.bin'), new Uint8Array([12]));
+  expect((await hit.cached(step, generate)).get('body.bin')).toEqual(new Uint8Array([12])); expect(calls).toBe(2);
+  for (const path of ['/assets/../secret', '/assets/%2e%2e/secret', '/assets/escape', '/unknown/model.bin']) {
+    await expect(ctx.cached({ id: 'refused', inputs: [path] }, generate)).rejects.toThrow();
+  }
+  await expect(createProjectGeneration(root, program, assets, cache).cached(step, generate)).rejects.toThrow('exactly one');
+  await expect(createProjectGeneration(root, program, assets, cache, [...roots, ...roots]).cached(step, generate)).rejects.toThrow('exactly one');
+  await expect(ctx.cached({ ...step, id: 'bad-output' }, inputs => inputs)).rejects.toThrow('file name');
+  expect(() => createProjectGeneration(root, program, assets, cache, [{ prefix: '/', directory: publicRoot.root }])).toThrow('bounded');
+  expect(calls).toBe(2);
+});
+
+test('the author entry receives only the public roots supplied by its caller', async () => {
+  const { root } = fixture(), publicRoot = fixture(), source = emptyShardfile({ slug: 'rooted-input', name: 'Rooted input', author: 'Test', revision: 1, seed: 3 });
+  writeFileSync(resolve(publicRoot.root, 'model.bin'), new Uint8Array([11]));
+  writeFileSync(resolve(root, 'shard.config.ts'), `export default async function generate(ctx) {
+    const files=await ctx.cached({id:'public',inputs:['/assets/model.bin']},inputs=>{
+      const bytes=inputs.get('/assets/model.bin');if(bytes===undefined)throw new Error('Missing input');return new Map([['body.bin',bytes]]);
+    });
+    const bytes=files.get('body.bin');if(bytes===undefined)throw new Error('Missing cached body');
+    const source=${JSON.stringify(source)};source.identity.revision=bytes[0];return source;
+  }`);
+  await expect(readProjectAssets(root)).rejects.toThrow('exactly one');
+  const roots = { folder: 'rooted-input', imageRoots: [{ prefix: '/assets/', directory: publicRoot.root }] };
+  expect((await readProjectAssets(root, undefined, roots)).shard.identity.revision).toBe(11);
+  writeFileSync(resolve(publicRoot.root, 'model.bin'), new Uint8Array([12]));
+  expect((await readProjectAssets(root, undefined, roots)).shard.identity.revision).toBe(12);
+  expect(readdirSync(root)).toEqual(['shard.config.ts']);
+});
+
 test('the project loader executes a build entry and admits its generated asset without source output files', async () => {
   const { root } = fixture(), bytes = new Uint8Array([1, 2, 3]), source = emptyShardfile({ slug: 'generated-fixture', name: 'Generated', author: 'Test', revision: 1, seed: 3 });
   writeFileSync(resolve(root, 'shard.config.ts'), `export default ${JSON.stringify(source)};

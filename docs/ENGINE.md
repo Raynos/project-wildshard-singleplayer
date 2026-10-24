@@ -13642,3 +13642,9 @@ map jobs and stamps; legacy images still require their original pixel check.
 The authored minimap packs those same in-memory bytes before publication;
 the builder then publishes its existing public URL from the verified product
 image and receipt. Neither step creates map metadata under shard source.
+
+A cached step may also name a public asset URL beneath an input root explicitly
+supplied by the CLI's manifest intake. Each URL must select exactly one root;
+traversal, encoded separators, ambiguous roots and symlink escapes refuse.
+The bounded bytes are detached and hashed on every hit, like project-relative
+inputs. No repository layout, shard name or ambient parent path grants access.
