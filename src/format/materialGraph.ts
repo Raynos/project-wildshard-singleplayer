@@ -277,17 +277,20 @@ export function graphAdmissionErrors(input: unknown, nodeLimit = DEFAULT_GRAPH_B
       bytes += JSON.stringify(value).length;
     } else if (typeof value === 'object') {
       if (active.has(value)) return ['graph: JSON cycle refused'];
-      const prototype: unknown = Object.getPrototypeOf(value);
-      if ((Array.isArray(value) ? prototype !== Array.prototype : prototype !== Object.prototype && prototype !== null) || Object.getOwnPropertySymbols(value).length > 0) return ['graph: plain JSON data required'];
-      const descriptors = Object.getOwnPropertyDescriptors(value), keys = Object.keys(descriptors).filter(key => !(Array.isArray(value) && key === 'length'));
-      if (entry.nodes) { nodes += keys.length; if (nodes > nodeLimit) return [`budget: ${nodes} nodes (at most ${nodeLimit}); all nested nodes counted`]; }
-      bytes += 2 + Math.max(0, keys.length - 1);
-      if (Array.isArray(value) && value.length !== keys.length) return ['graph: sparse JSON arrays refused'];
+      const prototype: unknown = Object.getPrototypeOf(value), array = Array.isArray(value);
+      if ((array ? prototype !== Array.prototype : prototype !== Object.prototype && prototype !== null) || Object.getOwnPropertySymbols(value).length > 0) return ['graph: plain JSON data required'];
+      const descriptors = Object.getOwnPropertyDescriptors(value), keys = Object.keys(descriptors);
+      // Array length is bookkeeping, never an entry in its JSON representation.
+      const count = keys.length - Number(array);
+      if (entry.nodes) { nodes += count; if (nodes > nodeLimit) return [`budget: ${nodes} nodes (at most ${nodeLimit}); all nested nodes counted`]; }
+      bytes += 2 + Math.max(0, count - 1);
+      if (array && value.length !== count) return ['graph: sparse JSON arrays refused'];
       active.add(value); pending.push({ leave: value });
       for (const key of keys) {
+        if (array && key === 'length') continue;
         const descriptor = descriptors[key];
         if (descriptor === undefined || descriptor.get !== undefined || descriptor.set !== undefined || !descriptor.enumerable) return ['graph: JSON accessors and hidden properties refused'];
-        if (!Array.isArray(value)) bytes += stringBytes(key) + 1;
+        if (!array) bytes += stringBytes(key) + 1;
         const child: unknown = descriptor.value;
         pending.push({ value: child, depth: depth + 1, nodes: key === 'nodes' });
       }
