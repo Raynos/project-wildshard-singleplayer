@@ -20,7 +20,7 @@ import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import type { GrappleRows } from '../data/grappleTypes';
 import aim from '../data/grapple.json' with { type: 'json' };
 import { layoutBlobs } from './layoutBlobs';
-import { nameBlob, emitNamedBlobs } from '@wildshard/sdk/blobs';
+import { nameBlob, emitNamedBlobs, type BlobOptions } from '@wildshard/sdk/blobs';
 import { buildHalo } from './jianHalo';
 import { buildViewmodelParts } from './viewmodelParts';
 import { headlessConstants } from './headless';
@@ -42,9 +42,11 @@ export interface NineOutput extends ProjectOutput {
   readonly platform: ReturnType<typeof emitPlatformSections>;
 }
 
+type ViewContract = Extract<NonNullable<BlobOptions['script']>, { abi: 2 }>;
+
 /** Remaining file adapters supply these rows; the factory never imports their outputs. */
 export interface NineOutputInputs {
-  readonly scriptRevisions: { readonly compiler: number; readonly admission: number };
+  readonly scriptRevisions: { readonly compiler: ViewContract['compilerRevision']; readonly admission: ViewContract['admissionRevision'] };
   readonly graphArmsSchema: ReturnType<typeof namedJsonSchema>;
   readonly bursts: GrappleRows['bursts'];
   readonly entryProof: { readonly lanes: number; readonly steps: number; readonly portalTransfers: number };
