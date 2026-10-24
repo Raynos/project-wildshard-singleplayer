@@ -1,7 +1,22 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, test } from 'vitest';
-import { bootTemplateCheckpoint, bootTemplateRoadPlans, verifyBootTemplateRoad } from '../scripts/parity/boot-smoke.mjs';
+import { bootSignalRoadPlan, bootTemplateCheckpoint, bootTemplateRoadPlans, verifyBootTemplateRoad } from '../scripts/parity/boot-smoke.mjs';
 import type { FloorGridState, FloorGridWitness, FloorGridPlan } from '../scripts/frame-floor-grid.mjs';
+
+test('smoke road entries follow the observed lattice without changing local entry points', () => {
+  const state = { pitch: 562.5, cells: [
+    { instance: 'template', slug: '_template', cell: [-1, -1] },
+    { instance: 'signal', slug: 'sunscar-dunes', cell: [-1, 0] },
+  ] };
+  const plans = bootTemplateRoadPlans(state);
+  expect(plans.entry.start).toEqual({ x: -843.75, z: -562.5 });
+  expect(plans.entry.waypoints).toEqual([{ x: -792.5, z: -562.5 }]);
+  expect(plans.exit.waypoints).toEqual([plans.entry.start]);
+  expect(bootSignalRoadPlan(state)).toMatchObject({ start: { x: -562.5, z: 281.25 },
+    waypoints: [{ x: -562.5, z: 245 }] });
+  expect(() => bootTemplateRoadPlans({ ...state, pitch: 500 })).toThrow('Invalid grid pitch');
+  expect(() => bootSignalRoadPlan({ ...state, pitch: Infinity })).toThrow('Invalid grid pitch');
+});
 
 const cells = [{ instance: 'home', slug: 'driftwood-isle', cell: [0, 0] as const },
   { instance: 'template-2', slug: '_template', cell: [1, 1] as const }];

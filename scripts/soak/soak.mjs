@@ -209,7 +209,7 @@ async function worker() {
         result.stage = plan.name;
         writeFileSync(join(out, `${name}.json`), `${JSON.stringify(result, null, 2)}\n`);
         console.log(JSON.stringify({ layout, cycle, route: plan.name, seconds: (Date.now() - driveStart) / 1000 }));
-        const legStart = Date.now() / 1000, witness = await runFloorGridRoute(page, soakPortalPlan(plan, result.metadata.state.cells, entryways), result.documentOrigin);
+        const legStart = Date.now() / 1000, witness = await runFloorGridRoute(page, soakPortalPlan(plan, result.metadata.state.cells, entryways, result.metadata.state.pitch ?? 555), result.documentOrigin);
         const failures = soakWitnessFailures(witness);
         result.routes.push({ cycle, ...witness, wall: { start: legStart, end: Date.now() / 1000 }, failures });
         if (plan.crossroads) result.crossroads.push(plan.crossroads);

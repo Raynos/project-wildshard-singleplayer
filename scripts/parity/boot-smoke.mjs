@@ -134,10 +134,12 @@ export function bootSignalRoadPlan(state) {
     !('cell' in target) || !Array.isArray(target.cell) || target.cell.length !== 2) throw new Error('Signal grid cell is missing or ambiguous');
   const x = /** @type {unknown} */ (target.cell[0]), z = /** @type {unknown} */ (target.cell[1]);
   if (typeof x !== 'number' || typeof z !== 'number' || !Number.isSafeInteger(x) || !Number.isSafeInteger(z)) throw new Error('Invalid Signal grid address');
+  const pitch = 'pitch' in state && state.pitch !== undefined ? state.pitch : 555;
+  if (typeof pitch !== 'number' || !Number.isFinite(pitch) || pitch <= 500) throw new Error('Invalid grid pitch');
   // Let the owned home checkpoint and leave commit on the neutral road midpoint
   // before approaching Signal. The nearby border can already select Signal.
   return { name: 'boot-signal-road-entry', from: null, to: target.instance, movement: 'road-hover',
-    start: { x: x * 555, z: z * 555 + 277.5 }, waypoints: [{ x: x * 555, z: z * 555 + 245 }],
+    start: { x: x * pitch, z: z * pitch + pitch / 2 }, waypoints: [{ x: x * pitch, z: z * pitch + 245 }],
     requiredResidents: [target.instance], finishOnArrival: true };
 }
 
@@ -162,7 +164,9 @@ export function bootTemplateRoadPlans(state) {
     !('cell' in target) || !Array.isArray(target.cell) || target.cell.length !== 2) throw new Error('Template grid cell is missing or invalid');
   const x = /** @type {unknown} */ (target.cell[0]), z = /** @type {unknown} */ (target.cell[1]);
   if (typeof x !== 'number' || typeof z !== 'number' || !Number.isSafeInteger(x) || !Number.isSafeInteger(z)) throw new Error('Invalid Template grid address');
-  const road = { x: x * 555 - 277.5, z: z * 555 }, inside = { x: x * 555 - 230, z: z * 555 };
+  const pitch = 'pitch' in state && state.pitch !== undefined ? state.pitch : 555;
+  if (typeof pitch !== 'number' || !Number.isFinite(pitch) || pitch <= 500) throw new Error('Invalid grid pitch');
+  const road = { x: x * pitch - pitch / 2, z: z * pitch }, inside = { x: x * pitch - 230, z: z * pitch };
   return { entry: { name: 'boot-template-entry', from: null, to: target.instance, movement: 'road-hover', start: road,
     waypoints: [inside], requiredResidents: [target.instance], finishOnArrival: true },
   exit: { name: 'boot-template-return', from: target.instance, to: null, movement: 'road-hover', waypoints: [road], requiredResidents: [], finishOnArrival: true } };

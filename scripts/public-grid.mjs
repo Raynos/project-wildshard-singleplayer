@@ -8,7 +8,7 @@ export function publicGridIntentCode(home) {
 }
 
 /** A single initial home approach, followed by real-input road and template-centre legs.
- * @param {Pick<import('./frame-floor-grid.mjs').FloorGridState,'home'|'cells'>} state */
+ * @param {Pick<import('./frame-floor-grid.mjs').FloorGridState,'home'|'cells'|'pitch'>} state */
 export function publicGridPlans(state) {
   const entry = gridFloorPlans(state, 'template').at(0);
   if (!entry?.start) throw new Error('Public grid needs its home approach');
@@ -16,7 +16,7 @@ export function publicGridPlans(state) {
   if (!cell || !end) throw new Error('Public grid needs a template destination');
   const road = entry.waypoints.length > 2 ? entry.waypoints.slice(0, 2)
     : [{x:(entry.start.x+end.x)/2,z:(entry.start.z+end.z)/2}];
-  const centre = {x:cell.cell[0]*555,z:cell.cell[1]*555};
+  const centre = {x:cell.cell[0]*(state.pitch ?? 555),z:cell.cell[1]*(state.pitch ?? 555)};
   // The southern approach to the template centre meets the grey hut's back wall
   // at local z=-15. Walk around its west side; keep every segment real input.
   const interior = end.x === centre.x && end.z < centre.z

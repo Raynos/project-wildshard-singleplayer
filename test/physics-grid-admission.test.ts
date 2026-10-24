@@ -48,3 +48,15 @@ test('diagonal peers use midpoint entries and stay on the road between cells', (
     { x: 555, z: 277.5 }, { x: 0, z: 277.5 }, { x: 0, z: 230 }]);
   expect(route.turnaround).toBe(2);
 });
+
+test('native seam routes follow the served one-tile gap at both speeds', () => {
+  const state = { pitch: 562.5, home: 'home', cells: [{ instance: 'home', slug: 'home', cell: [0, 0] as const },
+    { instance: 'peer', slug: '_template', cell: [1, 1] as const }] };
+  for (const speed of [15, 30] as const) {
+    const route = gridSeamRoute(state, speed);
+    expect(route.start).toEqual({ x: 0, z: 230 });
+    expect(route.waypoints).toEqual([{ x: 0, z: 281.25 }, { x: 562.5, z: 281.25 }, { x: 562.5, z: 332.5 },
+      { x: 562.5, z: 281.25 }, { x: 0, z: 281.25 }, { x: 0, z: 230 }]);
+  }
+  expect(() => gridSeamRoute({ ...state, pitch: Number.NaN }, 15)).toThrow('Invalid grid pitch');
+});

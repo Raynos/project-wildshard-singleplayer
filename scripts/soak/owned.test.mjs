@@ -9,6 +9,17 @@ import { circuitPlans } from './boundary.mjs';
 
 const catalogue = JSON.parse(readFileSync('src/game/grid/singleplayer.json', 'utf8')).grid;
 
+void test('T9 soak plans follow the served pitch and retain the historical fallback', () => {
+  const cells = soakCatalogue(catalogue, 'shipped'), state = { cells, home: 'driftwood-isle' };
+  const historical = ownedSoakPlans(state, 'road');
+  assert.deepEqual(ownedSoakPlans({ ...state, pitch: 555 }, 'road'), historical);
+  const wider = ownedSoakPlans({ ...state, pitch: 562.5 }, 'road');
+  assert.equal(wider.reference.x, 281.25);
+  assert.equal(new Set(wider.plans.map(plan => plan.crossroads).filter(Boolean)).size, 36);
+  assert.equal(Math.max(...wider.plans.flatMap(plan => plan.waypoints.map(point => Math.abs(point.x)))), 1406.25);
+  assert.throws(() => ownedSoakPlans({ ...state, pitch: Number.NaN }), /Invalid grid pitch/u);
+});
+
 void test('public soak reuses the floor intent without enabling Developer or the public menu gate', () => {
   const entry = soakGridEntry('shipped');
   const values = new Map([['wildshard.save.v2.device', JSON.stringify({ keys: { devMode: { v: 1, data: false } } })]]);

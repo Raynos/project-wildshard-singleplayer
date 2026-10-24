@@ -22,7 +22,7 @@ export function soakGridEntry(layout) {
  * A borrowed home (the public page level) is a source and destination, never a regional resident: it is retained
  * for the page lifetime, so legs neither require it as a resident nor demand its retirement. soakWitnessFailures
  * proves the same positive page claim instead.
- * @param {Pick<import('../frame-floor-grid.mjs').FloorGridState, 'home' | 'cells'>} state
+ * @param {Pick<import('../frame-floor-grid.mjs').FloorGridState, 'home' | 'cells' | 'pitch'>} state
  * @param {'cells' | 'road'} leg
  * @param {'catalogue' | 'prepared'} routeScope
  * @param {string} homeMode 'owned' (Developer grid) or 'borrowed' (public page level)
@@ -84,10 +84,12 @@ export function soakRoadTour(pitch) {
   return points;
 }
 
-/** @param {Pick<import('../frame-floor-grid.mjs').FloorGridState, 'home' | 'cells'>} state
+/** @param {Pick<import('../frame-floor-grid.mjs').FloorGridState, 'home' | 'cells' | 'pitch'>} state
  * @param {'cells' | 'road'} leg @param {'catalogue' | 'prepared'} routeScope */
 function ownedHomeSoakPlans(state, leg, routeScope) {
-  const pitch = 555, half = pitch / 2, inset = 230;
+  const { pitch = 555 } = state;
+  if (!Number.isFinite(pitch) || pitch <= 500) throw new RangeError('Invalid grid pitch');
+  const half = pitch / 2, inset = 230;
   const home = state.cells.find(cell => cell.instance === state.home);
   if (home?.slug !== 'driftwood-isle') throw new Error('Soak requires the Driftwood owned home');
   const origin = cell => ({ x: cell.cell[0] * pitch, z: cell.cell[1] * pitch });
@@ -156,7 +158,7 @@ export function soakReentryDiagnostic(value, mode) {
 }
 
 /** Keep ordinary socket roads and retirement witnesses, but explicitly report the unvisited catalogue.
- * @param {Pick<import('../frame-floor-grid.mjs').FloorGridState, 'home' | 'cells'>} state
+ * @param {Pick<import('../frame-floor-grid.mjs').FloorGridState, 'home' | 'cells' | 'pitch'>} state
  * @param {string} instance
  * @param {string} homeMode */
 export function reentrySoakPlans(state, instance, homeMode = 'owned') {
@@ -346,14 +348,15 @@ export function soakLapMemory(samples, circuits) {
 /** O12 (SF88f): a cell-to-cell leg through each end's declared portal (Nine's stack is entered and left only by its
  * portalLink, a flat inset waypoint never reaches its square), the floor's own floorGridPortalPlan on each end.
  * @param {SoakPlan} plan @param {readonly {instance:string,slug:string,cell:readonly number[]}[]} cells
- * @param {ReadonlyMap<string, unknown>} entryways each slug's declared world/edge entryways */
-export function soakPortalPlan(plan, cells, entryways) {
+ * @param {ReadonlyMap<string, unknown>} entryways each slug's declared world/edge entryways
+ * @param {number} pitch served lattice, or the historical protocol when absent */
+export function soakPortalPlan(plan, cells, entryways, pitch = 555) {
   if (plan.from === plan.to) return plan;
   const source = cells.find(cell => cell.instance === plan.from), target = cells.find(cell => cell.instance === plan.to);
   let routed = plan;
-  if (source !== undefined) routed = { ...floorGridPortalPlan({ ...routed, to: null }, source, entryways.get(source.slug)), to: plan.to };
+  if (source !== undefined) routed = { ...floorGridPortalPlan({ ...routed, to: null }, source, entryways.get(source.slug), pitch), to: plan.to };
   if (target !== undefined) {
-    const entered = floorGridPortalPlan({ ...routed, from: null, start: routed.waypoints[0], observePreparation: true }, target, entryways.get(target.slug));
+    const entered = floorGridPortalPlan({ ...routed, from: null, start: routed.waypoints[0], observePreparation: true }, target, entryways.get(target.slug), pitch);
     if (routed.portal !== undefined && entered.portal !== routed.portal) throw new Error(`${plan.name}: a leg leaves and enters by portals`);
     const { start: _start, observePreparation: _observe, ...rest } = entered;
     routed = { ...rest, from: plan.from, ...(plan.observePreparation === undefined ? {} : { observePreparation: plan.observePreparation }) };

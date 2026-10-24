@@ -6,6 +6,6 @@ export interface PublicGridWitness {
   refusals: Record<string,string>; homeResidency: {instance:string;bytes:number}|undefined; runtimeLevel: string;
 }
 export function publicGridIntentCode(home: {instance:string;slug:string}): string;
-export function publicGridPlans(state: Pick<FloorGridState,'home'|'cells'>): FloorGridPlan[];
+export function publicGridPlans(state: Pick<FloorGridState,'home'|'cells'|'pitch'>): FloorGridPlan[];
 export function readPublicGridWitness(): PublicGridWitness;
 export function publicGridWitnessFailures(witness: PublicGridWitness, requireTemplate: boolean): string[];

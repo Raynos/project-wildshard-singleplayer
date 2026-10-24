@@ -56,13 +56,22 @@ async function run(browser, base, mode, out) {
       return api?.world?.game.app.state === 'play' && !document.querySelector('#hud.intro,.ws-reveal');
     }, undefined, { timeout: 150000 });
     if (mode !== 'template') {
-      await page.evaluate(async () => { await window.__wildshard.pose({ x: 277.5, y: 0.55, z: 277.5, yaw: 0, pitch: -0.08 }); });
+      const pitch = await page.evaluate(() => {
+        const exposed = window.__wildshard.shard.grid;
+        const grid = /** @type {import('../frame-floor-grid.mjs').FloorGridState | undefined} */ (typeof exposed === 'object' && exposed !== null && 'state' in exposed && typeof exposed.state === 'function' ? exposed.state() : undefined);
+        if (grid === undefined) throw new Error('Missing grid state');
+        const { pitch: servedPitch = 555 } = grid;
+        return servedPitch;
+      });
+      if (!Number.isFinite(pitch) || pitch <= 500) throw new Error('Invalid grid pitch');
+      const half = pitch / 2;
+      await page.evaluate(async at => { await window.__wildshard.pose({ x: at, y: 0.55, z: at, yaw: 0, pitch: -0.08 }); }, half);
       await page.waitForFunction(() => {
         const exposed = window.__wildshard.shard.grid;
         const grid = /** @type {import('../frame-floor-grid.mjs').FloorGridState | undefined} */ (typeof exposed === 'object' && exposed !== null && 'state' in exposed && typeof exposed.state === 'function' ? exposed.state() : undefined);
         return grid?.live.live.current === null && grid.live.live.gameplayReady;
       }, undefined, { timeout: 120000 });
-      const plan = { name: 'hover-touch-road', from: null, to: null, start: { x: 277.5, z: 277.5 }, waypoints: [] };
+      const plan = { name: 'hover-touch-road', from: null, to: null, start: { x: half, z: half }, waypoints: [] };
       const documentOrigin = await page.evaluate(gridFloorDocumentIdentity);
       await page.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify(plan)},${JSON.stringify(documentOrigin)})`);
     } else if (await page.evaluate(() => window.__wildshard.shard.slug) !== '_template') throw new Error('Template test booted another shard');

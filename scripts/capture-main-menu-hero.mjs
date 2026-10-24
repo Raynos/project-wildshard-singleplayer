@@ -213,14 +213,16 @@ async function capture(base) {
         if (mode === 'grid') {
           const home = initial.grid.cells.find(cell => cell.instance === initial.grid.home);
           if (!home) throw new Error('Grid home is not declared');
-          const x = home.cell[0] * 555, z = home.cell[1] * 555;
+          const pitch = initial.grid.pitch === undefined ? 555 : initial.grid.pitch;
+          if (!Number.isFinite(pitch) || pitch <= 500) throw new Error('Invalid grid pitch');
+          const half = pitch / 2, x = home.cell[0] * pitch, z = home.cell[1] * pitch;
           shots = [
-            { id: 'A', name: 'Road spoke', world: true, x: x + 277.5, y: 1.8, z: z + 277.5, heading: 0 },
-            { id: 'B', name: 'Crossroads: second spoke', world: true, x: x + 277.5, y: 1.8, z: z + 277.5, heading: -Math.PI / 2 },
-            { id: 'C', name: 'Crossroads: east boulevard', world: true, x: x + 277.5, y: 1.8, z: z + 277.5, heading: Math.PI / 2 },
-            { id: 'D', name: 'Raised template corner', world: true, x: x + 277.5, y: 35, z: z + 277.5, heading: -Math.PI * 0.75, pitch: -0.25 },
+            { id: 'A', name: 'Road spoke', world: true, x: x + half, y: 1.8, z: z + half, heading: 0 },
+            { id: 'B', name: 'Crossroads: second spoke', world: true, x: x + half, y: 1.8, z: z + half, heading: -Math.PI / 2 },
+            { id: 'C', name: 'Crossroads: east boulevard', world: true, x: x + half, y: 1.8, z: z + half, heading: Math.PI / 2 },
+            { id: 'D', name: 'Raised template corner', world: true, x: x + half, y: 35, z: z + half, heading: -Math.PI * 0.75, pitch: -0.25 },
             { id: 'E', name: 'Elevated template block', world: true, x: x + 350, y: 160, z: z + 350, heading: -Math.PI * 0.75, pitch: -0.42 },
-            { id: 'F', name: 'Island above the junction', world: true, x: 277.5, y: 80, z: 277.5, heading: -Math.PI * 0.75, pitch: -0.3 },
+            { id: 'F', name: 'Island above the junction', world: true, x: half, y: 80, z: half, heading: -Math.PI * 0.75, pitch: -0.3 },
           ];
         } else shots = [{ id: mode === 'driftwood-isle' ? 'G' : 'H', name: mode === 'driftwood-isle' ? 'Driftwood pier at spawn' : 'Pine forest road at spawn', ...initial.pose }];
         for (const shot of shots) {
@@ -397,7 +399,7 @@ async function captureAerial(base) {
               const live = grid.live.live, dx = live.worldFeet.x - w.player.position.x - grid.live.renderOrigin.x, dz = live.worldFeet.z - w.player.position.z - grid.live.renderOrigin.z;
               const p = w.game.camera.position, direction = w.game.camera.getWorldDirection(p.clone());
               return { cameraWorld: [p.x + dx, p.y, p.z + dz], direction: direction.toArray(), playerWorld: live.worldFeet,
-                freeCamera: w.freeCamera, viewmodelVisible: w.game.viewmodel.visible, cells: grid.cells, near: grid.near,
+                freeCamera: w.freeCamera, viewmodelVisible: w.game.viewmodel.visible, cells: grid.cells, gridPitch: grid.pitch ?? 555, near: grid.near,
                 renderScale: w.game.renderer.getPixelRatio(), frameCount: w.game.frameCount, fov: w.game.camera.fov, aspect: w.game.camera.aspect,
                 dayClock: w.sky.dayNight?.snapshot() ?? null, clock: w.game.app.clock.mode };
             });
@@ -406,7 +408,7 @@ async function captureAerial(base) {
             if (Math.hypot(...row.frame.cameraWorld.map((v, i) => v - [shot.eye.x, shot.eye.y, shot.eye.z][i])) > 0.01) throw new Error('Actual aerial camera differs from requested pose');
             if (typeof shot.fovDegrees === 'number' && Math.abs(row.frame.fov - shot.fovDegrees) > 0.01) throw new Error(`Camera FOV ${row.frame.fov} is not the requested ${shot.fovDegrees}`);
             // a road view is named for the shard it looks at (Jake: every neighbour obvious, e.g. A-road-nalati-iphone)
-            const facing = shot.id.startsWith('road-') ? row.frame.cells.find(cell => Math.abs(cell.cell[0] * 555 - shot.target.x) < 277.5 && Math.abs(cell.cell[1] * 555 - shot.target.z) < 277.5) : undefined;
+            const facing = shot.id.startsWith('road-') ? row.frame.cells.find(cell => Math.abs(cell.cell[0] * row.frame.gridPitch - shot.target.x) < row.frame.gridPitch / 2 && Math.abs(cell.cell[1] * row.frame.gridPitch - shot.target.z) < row.frame.gridPitch / 2) : undefined;
             const name = facing === undefined ? shot.id : `road-${facing.slug.replace(/^_/u, '').split('-')[0]}`;
             row.file = far ? `${variant}-${shot.id}-${session.key.slice(2)}.png` : near ? `${session.key.slice(0, 1)}-${name}-${session.key.slice(2)}.png` : landscape ? `${shot.id}-${session.key}.png` : `${shot.id}.png`;
             if (far) row.metrics = { variant, ...(await farMetrics(browser, page)) };

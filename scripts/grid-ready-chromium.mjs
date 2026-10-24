@@ -86,6 +86,8 @@ try {
    if(meta.tier!=='phone'||meta.clock!=='live'||meta.renderScale!==2)throw new Error(`Invalid phone configuration: ${JSON.stringify(meta)}`);
    run.observedProfile=meta;
    const state=await page.evaluate(()=>window.__wildshard.shard.grid.state());
+   const pitch=state.pitch===undefined?555:state.pitch;
+   if(!Number.isFinite(pitch)||pitch<=500)throw new Error('Invalid grid pitch');
    const cell=state.cells.find(row=>row.instance===instance);if(!cell)throw new Error(`No grid cell: ${slug}`);
    const identity=await page.evaluate(gridFloorDocumentIdentity);
    await page.evaluate(`(${installReadinessProbe.toString()})(${JSON.stringify(cell.instance)},${JSON.stringify(slug)},(${ownedResidencyBytes.toString()}))`);
@@ -132,10 +134,10 @@ try {
    await page.screenshot({path:resolvePath(out,`${caseName}.jpg`),type:'jpeg',quality:70,scale:'css'});
    let road=entry.waypoints[0],along=null;
    if(route.setup.length>0) {
-    const last=entry.waypoints.at(-1),x=cell.cell[0]*555,z=cell.cell[1]*555;
+    const last=entry.waypoints.at(-1),x=cell.cell[0]*pitch,z=cell.cell[1]*pitch;
     if(last===undefined)throw new Error('Home entry lacks its final waypoint');
     const dx=last.x-x,dz=last.z-z;
-    road=Math.abs(dz)>=Math.abs(dx)?{x:last.x,z:z+Math.sign(dz)*277.5}:{x:x+Math.sign(dx)*277.5,z:last.z};
+    road=Math.abs(dz)>=Math.abs(dx)?{x:last.x,z:z+Math.sign(dz)*pitch/2}:{x:x+Math.sign(dx)*pitch/2,z:last.z};
     // then 40 m along the edge road: a leave that stops pointed at the next cell's mouth makes the road approach start that
     // cell as its destination, and the next case's arrival waits behind its build (sp-o1, G580 T4; Nine -> Template)
     along=Math.abs(dz)>=Math.abs(dx)?{x:road.x+40,z:road.z}:{x:road.x,z:road.z+40};

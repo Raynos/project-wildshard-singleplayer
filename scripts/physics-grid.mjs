@@ -1,16 +1,19 @@
 /** Build a continuous home → deck → neighbour → deck → home route from the actual grid readout. */
 export function gridSeamRoute(state, speed) {
   if (speed !== 15 && speed !== 30) throw new RangeError('Grid drive speed must be 15 or 30');
+  const pitch = state.pitch === undefined ? 555 : state.pitch;
+  if (!Number.isFinite(pitch) || pitch <= 500) throw new RangeError('Invalid grid pitch');
+  const half = pitch / 2;
   const home = state.cells.find((cell) => cell.instance === state.home);
   if (home === undefined) throw new Error('Grid readout has no home cell');
   const peer = state.cells.filter((cell) => cell.slug === '_template' && cell.instance !== home.instance && Math.abs(cell.cell[0] - home.cell[0]) <= 1 && Math.abs(cell.cell[1] - home.cell[1]) <= 1)
     .sort((a, b) => (a.cell[0] === home.cell[0] - 1 && a.cell[1] === home.cell[1] - 1 ? -1 : 0) - (b.cell[0] === home.cell[0] - 1 && b.cell[1] === home.cell[1] - 1 ? -1 : 0) || a.instance.localeCompare(b.instance))[0];
   if (peer === undefined) throw new Error('Grid drive requires a neighbouring template cell');
   const dx = peer.cell[0] - home.cell[0], dz = peer.cell[1] - home.cell[1];
-  const hx = home.cell[0] * 555, hz = home.cell[1] * 555, px = peer.cell[0] * 555, pz = peer.cell[1] * 555;
+  const hx = home.cell[0] * pitch, hz = home.cell[1] * pitch, px = peer.cell[0] * pitch, pz = peer.cell[1] * pitch;
   const start = dz !== 0 ? { x: hx, z: hz + dz * 230 } : { x: hx + dx * 230, z: hz };
-  const road = dz !== 0 ? { x: hx, z: hz + dz * 277.5 } : { x: hx + dx * 277.5, z: hz };
-  const socket = dz !== 0 ? { x: px, z: pz - dz * 277.5 } : { x: px - dx * 277.5, z: pz };
+  const road = dz !== 0 ? { x: hx, z: hz + dz * half } : { x: hx + dx * half, z: hz };
+  const socket = dz !== 0 ? { x: px, z: pz - dz * half } : { x: px - dx * half, z: pz };
   const entry = dz !== 0 ? { x: px, z: pz - dz * 230 } : { x: px - dx * 230, z: pz };
   // Even diagonal neighbours are entered through their declared midpoint socket.
   const outbound = [start, road, ...(road.x === socket.x && road.z === socket.z ? [] : [socket]), entry];
