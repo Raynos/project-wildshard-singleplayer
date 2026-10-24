@@ -7,6 +7,7 @@
  */
 import { Texture, Material, Vector2 } from 'three';
 import type { Scope } from '../app/scope';
+import { graphNodeOwner, ownGraphNodes } from './nodes/nodeBuildReuse';
 import type { attachOutline, compileGraph, GraphNormalPrepass, GraphPostPass } from './graph/compile';
 import type { EngineNodesHandler } from './nodes/engineNodesHandler';
 import type { Renderer } from './renderer';
@@ -67,7 +68,7 @@ export function bindGraphMeshMap(material: Material, map: Texture | Material | n
     let sources = owners.get(material);
     if (sources === undefined) { sources = new WeakMap(); owners.set(material, sources); }
     const known = sources.get(map); if (known !== undefined) return known;
-    const variant = scope.own(material.clone());
+    const variant = graphClone(material, scope);
     for (const slot of ['map', 'bumpMap', 'normalMap', 'roughnessMap', 'aoMap'] as const) {
       const value: unknown = Reflect.get(map, slot);
       if (value instanceof Texture && !Reflect.set(variant, slot, value)) throw new Error(`Graph cannot borrow ${slot}`);
@@ -86,11 +87,25 @@ export function bindGraphMeshMap(material: Material, map: Texture | Material | n
   let textures = graphs.get(material);
   if (textures === undefined) { textures = new WeakMap(); graphs.set(material, textures); }
   const known = textures.get(map); if (known !== undefined) return known;
-  const variant = scope.own(material.clone());
+  const variant = graphClone(material, scope);
   if (!Reflect.set(variant, 'map', map)) throw new Error('Graph colour map could not be bound');
   meshMapBases.set(variant, material);
   textures.set(map, variant);
   return variant;
+}
+
+/** A scope-owned clone of a compiled graph material that shares its nodes, and so its compile's node owner: a clone with
+ *  no owner was a full node build per mesh map (nodeBuildReuse rebinds an equal graph's build, and refuses what it cannot) */
+function graphClone(material: Material, scope: Scope): Material {
+  const variant = scope.own(material.clone());
+  shareGraphOwner(variant, material);
+  return variant;
+}
+/** `variant`, a clone of `source` sharing its nodes (a cell's clip variant), builds as `source`'s compile would: an equal
+ *  earlier build is rebound to it instead of a full node build (no-op for a material no graph compile made) */
+export function shareGraphOwner(variant: Material, source: Material): void {
+  const owner = graphNodeOwner(source);
+  if (owner !== undefined) ownGraphNodes(variant, owner);
 }
 
 /** Resolve the compiled graph that owns a borrowed-map variant, including its outline and live parameter feeds. */
