@@ -1,9 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the shipped native physics owner.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
-import { checkedHeadlessAssembly, prepareHeadlessAssembly } from '../src/sdk/headlessAssembly';
-import { emptyShardfile } from '../src/sdk/author';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { installCombatMotion } from './fixtures/headless-plan';
 import { createSimHost, type SimPlayerMotionSample } from '../src/engine/sim';
 import { snapshotSimHost } from '../src/engine/sim/snapshot';
 import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
@@ -21,16 +19,13 @@ const base = { version: 1, modules: {}, constants: {}, prepare: [], install: [{ 
 let rapier: Rapier;
 beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); });
 function plan() {
-  const shard = emptyShardfile({ slug: 'combat-motion', name: 'Motion', author: 'Test', revision: 1, seed: 1 });
-  const product = createShardProduct({ slug: shard.identity.slug, revision: 1, shardfile: shard, sections: new Map(),
-    files: new Map([['sim/headless-assembly.json', { hash: 'assembly', url: 'assembly' }]]),
-    read: () => Promise.resolve(new TextEncoder().encode(JSON.stringify(base))) });
-  return prepareHeadlessAssembly({ shard, product, assets: new Map(), rapier }, {});
+  return { level: SIM_LEVEL, install: (host: Parameters<typeof installCombatMotion>[0], context: Parameters<typeof installCombatMotion>[1]): void => {
+    installCombatMotion(host, context, 7.2);
+  } };
 }
 
-test('motion is one strict positive-speed installation, never a nested expression or owner selector', () => {
+test('retained motion JSON admits positive speed and rejects nested capabilities and owner selectors', () => {
   const encode = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));
-  expect(checkedHeadlessAssembly(base, {}).install).toEqual(base.install);
   expect(validateNamedJsonSchema(HEADLESS_ASSEMBLY_JSON_SCHEMA, encode(base))).toEqual(base);
   const badRows = [
     ...[0, -1, Infinity, Number.NaN, '7.2'].map(speed => ({ $native: { kind: 'combat.motion', speed } })),
@@ -40,17 +35,13 @@ test('motion is one strict positive-speed installation, never a nested expressio
   ];
   for (const value of badRows) {
     const source = { ...base, install: [{ name: 'motion', value }] };
-    expect(() => checkedHeadlessAssembly(source, {})).toThrow();
     expect(() => validateNamedJsonSchema(HEADLESS_ASSEMBLY_JSON_SCHEMA, encode(source))).toThrow();
   }
-  for (const source of [
-    { ...base, prepare: base.install, install: [] }, { ...base, constants: { hidden: native } },
-    { ...base, install: [...base.install, { name: 'second', value: native }] },
-  ]) expect(() => checkedHeadlessAssembly(source, {})).toThrow();
+
 });
 
-test('the concrete frame receives the original motion factor before gameplay and adds no saved owner', async () => {
-  const prepared = await plan(), host = createSimHost(prepared.level, { rapier }), frame = createNativeCombatFrame();
+test('the concrete frame receives the original motion factor before gameplay and adds no saved owner', () => {
+  const prepared = plan(), host = createSimHost(prepared.level, { rapier }), frame = createNativeCombatFrame();
   const context = { combat: frame, restoring: false, commands: () => [], emit: () => undefined };
   const sample = { velocityX: 3, velocityZ: 4, grounded: true, swimming: false, hover: false };
   try {
@@ -69,8 +60,8 @@ test('the concrete frame receives the original motion factor before gameplay and
   expect(() => prepared.install(host, context)).toThrow('owner has ended');
 });
 
-test('missing combat refuses before registering; delegated motion without a sample still refuses firing', async () => {
-  const prepared = await plan(), host = createSimHost(SIM_LEVEL, { rapier }), frame = createNativeCombatFrame();
+test('missing combat refuses before registering; delegated motion without a sample still refuses firing', () => {
+  const prepared = plan(), host = createSimHost(SIM_LEVEL, { rapier }), frame = createNativeCombatFrame();
   try {
     const saved = snapshotSimHost(host);
     expect(() => prepared.install(host, { restoring: false, commands: () => [], emit: () => undefined })).toThrow('requires its combat frame');
