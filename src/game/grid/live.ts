@@ -166,6 +166,7 @@ export class LiveGridHost {
   private crossings = 0;
   private fixedTick = 0;
   private previousFeet: GridPoint | undefined;
+  private readonly candidateDistances = new Map<GridCell,number>();
   /** A refused speculative retirement remains charged until an explicit durability retry. */
   private readonly roadRetirementRefused = new Set<string>();
   private initialHomePending: boolean;
@@ -413,8 +414,10 @@ export class LiveGridHost {
     if (previous === undefined || travelled) this.previousFeet = feet;
     // Prefetch the closest cells' products (never their worlds: G663). Unsupported far proxies do not consume the count
     // before enterable cells inside the cold readiness bound.
-    const candidates = this.assembly.cells.filter((cell) => cell.instance !== this.active && (this.ports.prefetchable?.(cell) ?? true))
-      .sort((a, b) => this.distance(a, feet) - this.distance(b, feet) || a.instance.localeCompare(b.instance));
+    const candidates = this.assembly.cells.filter((cell) => cell.instance !== this.active && (this.ports.prefetchable?.(cell) ?? true));
+    // Fixed cell poses and this tick's captured feet: avoid repeating hypot inside every sort comparison.
+    for (const cell of candidates) this.candidateDistances.set(cell,this.distance(cell,feet));
+    candidates.sort((a,b) => (this.candidateDistances.get(a) ?? Infinity) - (this.candidateDistances.get(b) ?? Infinity) || a.instance.localeCompare(b.instance));
     const nearby = candidates.slice(0, NEARBY_PRODUCTS);
     // Active/prepared frames and recently nearby worlds remain protected without changing motor bands.
     this.retireColdRegions();
