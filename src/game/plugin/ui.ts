@@ -117,7 +117,7 @@ export class QuestViews {
     if (scope === undefined) throw new Error('Quest timer left its home');
     return scope.timeout(ms, run);
   }
-  cancelTimer(timer: ReturnType<typeof setTimeout> | 0): void { this.entered?.cancelTimer(timer); }
+  cancelTimer(timer: ReturnType<Scope['timeout']>): void { this.entered?.cancelTimer(timer); }
   /** Share modal input release while borrowing each world's stow, resume and pause policies. */
   panelHold(ports: {
     readonly hud: { holdPause: boolean; readonly entered: boolean; onResume?: () => void; setPaused: (on: boolean) => void };
@@ -128,7 +128,7 @@ export class QuestViews {
     readonly panels?: readonly (() => { readonly isOpen: boolean; onOpen?: () => void; onClose?: () => void })[];
     readonly closeMenu?: boolean; readonly resetOnLeave?: boolean; readonly restartOnClose?: boolean;
   }): (on: boolean) => void {
-    let timer: ReturnType<typeof setTimeout> | 0 = 0;
+    let timer: ReturnType<Scope['timeout']> = 0;
     const hold = (on: boolean): void => {
       if (on || ports.restartOnClose === true) this.cancelTimer(timer);
       ports.stow?.(on);

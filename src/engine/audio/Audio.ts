@@ -160,7 +160,7 @@ export class Audio extends PlayerVoices {
   private bedNodes: AudioNode[] = [];
   private hum:LoopEmitterVoice|undefined;
   private humOn = false;
-  private underwater = false; private underGain?: GainNode; private bubbleTimer: ReturnType<typeof setTimeout> | 0 = 0;
+  private underwater = false; private underGain?: GainNode; private bubbleTimer: ReturnType<Scope['timeout']> = 0;
   /** the synth hum's sources under water (swapped for the underwater bed when one decodes) */
   private underFeed: AudioScheduledSourceNode[] = []; private underSample = false;
   // ── samples (sfx.json) ──

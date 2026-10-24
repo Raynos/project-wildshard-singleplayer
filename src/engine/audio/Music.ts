@@ -500,10 +500,10 @@ export class Music {
   private rig: { ctx: AudioContext; out: GainNode; duckGain: GainNode; engine: Engine; stemBus: GainNode } | undefined;
   /** The installed source owns the level's slot; the title is the common menu slot. */
   private pending: MusicState = { mode: 'menu', intensity: 0, underwater: false };
-  private timer: ReturnType<typeof setTimeout> | 0 = 0;
+  private timer: ReturnType<Scope['timeout']> = 0;
   private _volume: number;
   private playing: ArrangementName | undefined;
-  private combatTimer: ReturnType<typeof setTimeout> | 0 = 0;
+  private combatTimer: ReturnType<Scope['timeout']> = 0;
   // ── v3: the stems ──
   private _genre: MusicGenre = getMusicStyle();
   /** the resident genre: decoded at the loading bar (useBank), or from the offline cache after a menu switch */

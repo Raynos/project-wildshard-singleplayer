@@ -61,7 +61,7 @@ const LIFE = 2600, OUT = 400;
 export class ItemCardPop {
   readonly scope: Scope;
   readonly root: HTMLElement;
-  private timer: ReturnType<typeof setTimeout> | 0 = 0;
+  private timer: ReturnType<Scope['timeout']> = 0;
   constructor(parent?: HTMLElement, owner?: Scope) {
     this.scope = owner === undefined ? uiScope('ItemCardPop') : uiScope('ItemCardPop', owner);
     this.root = el('div', 'ws-icard-pop');

@@ -1,3 +1,4 @@
+import type { Scope } from '../app/scope';
 import { uiScope } from './ownership';
 
 
@@ -10,7 +11,7 @@ const OBSTACLES = [
   '.ws-quest-obj.show', '.ws-minimap', '.ws-game-feed',
 ].join(', ');
 
-interface Toast { el: HTMLElement; timer: ReturnType<typeof setTimeout> | 0; text: string }
+interface Toast { el: HTMLElement; timer: ReturnType<Scope['timeout']>; text: string }
 /** `warn`: the amber notice with a warning glyph (G168, a shard's script stopped); `plain`: every other toast. */
 export type ToastTone = 'plain' | 'warn';
 

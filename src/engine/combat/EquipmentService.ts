@@ -1,6 +1,6 @@
 import type { Vector3 } from 'three';
 import { Scope } from '../app/scope';
-import type { WeaponId, ToolId } from './Equipment';
+import type { Equipment, WeaponId } from './Equipment';
 import type { Weapon, WeaponHooks, WeaponState, AimInfo } from './Weapon';
 import { Tool } from './Tool';
 import type { EquipmentInput } from '../input/equipmentInput';
@@ -16,8 +16,8 @@ export class EquipmentService implements WeaponHooks {
   /** a swap started (play the sling rustle) */
   onSwap?: ((to: WeaponId) => void) | undefined;
   /** a weapon was unlocked (the touch layer shows its SWAP pill) */
-  onUnlock?: ((id: WeaponId | ToolId) => void) | undefined;
-  private unlocked = new Set<WeaponId | ToolId>();
+  onUnlock?: ((id: Equipment['id']) => void) | undefined;
+  private unlocked = new Set<Equipment['id']>();
   private _enabled = true;
   private _adsHeld = false;
   private _altHeld = false;
@@ -107,7 +107,7 @@ export class EquipmentService implements WeaponHooks {
     w.install({ scope: this.scope.child(w.row.id), ...(this.events === undefined ? {} : { events: this.events }) });
     if (w instanceof Tool) this.tools.push(w);
     else {
-      this.input?.bind(`swap.weapon.${w.id}`, () => { this.select(w.id); }, this.scope, () => this.enabled);
+      this.input?.bind(`swap.weapon.${String(w.id)}`, () => { this.select(w.id); }, this.scope, () => this.enabled);
       this.wire(w);
       if (opts.order === undefined) this.list.push(w); else this.list.splice(opts.order, 0, w);
       w.setActive(w === this.current); this.apply();
@@ -117,7 +117,7 @@ export class EquipmentService implements WeaponHooks {
   }
   replace(id: WeaponId, next: Weapon): void {
     const previous = this.get(id), index = this.list.indexOf(previous);
-    if (next.id !== id) throw new Error(`Replacement must preserve legacy slot ${id}`);
+    if (next.id !== id) throw new Error(`Replacement must preserve legacy slot ${String(id)}`);
     next.state.ammo = previous.state.ammo;
     next.state.reserve = previous.state.reserve;
     next.state.loaded = previous.state.loaded;
@@ -166,11 +166,11 @@ export class EquipmentService implements WeaponHooks {
 
   get(id: WeaponId): Weapon {
     const w = this.list.find((k) => k.id === id);
-    if (w === undefined) throw new Error(`EquipmentService: no weapon '${id}' in the kit`);
+    if (w === undefined) throw new Error(`EquipmentService: no weapon '${String(id)}' in the kit`);
     return w;
   }
   /** Is this slot owned? */
-  has(id: WeaponId | ToolId): boolean { return this.unlocked.has(id); }
+  has(id: Equipment['id']): boolean { return this.unlocked.has(id); }
   /** the unlocked weapons, in kit order */
   get available(): Weapon[] {
     const list = this.list.filter((w) => this.unlocked.has(w.id));
@@ -179,7 +179,7 @@ export class EquipmentService implements WeaponHooks {
     const rank = (id: WeaponId) => { const i = order.indexOf(id); return i === -1 ? order.length : i; };
     return list.sort((a, b) => rank(a.id) - rank(b.id));
   }
-  unlock(id: WeaponId | ToolId): void {
+  unlock(id: Equipment['id']): void {
     if (this.unlocked.has(id) || !([...this.list, ...this.tools].some((w) => w.id === id))) return; // absent slots remain absent
     this.unlocked.add(id);
     this.apply();
@@ -188,7 +188,7 @@ export class EquipmentService implements WeaponHooks {
     this.onUnlock?.(id);
   }
   /** what the player owned before the practice room lent the whole kit (null = no loan running) */
-  private loaned: Set<WeaponId | ToolId> | null = null;
+  private loaned: Set<Equipment['id']> | null = null;
   /** the practice room lends every weapon of the kit (E298 A, the weapon explorer); `endLoan` puts back what was owned */
   lendAll(): void {
     if (this.loaned !== null) return;

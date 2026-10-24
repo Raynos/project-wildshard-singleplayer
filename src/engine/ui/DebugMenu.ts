@@ -58,7 +58,7 @@ function renderAction(r: DebugRow, a: DebugActionSpec, row: HTMLElement, label: 
   const b = make('ws-gmenu-segbtn ws-dbg-action', a.text, 'button') as HTMLButtonElement; b.type = 'button';
   const status = make('ws-gmenu-note ws-dbg-status');
   const say = (text: string, line: string): void => { b.textContent = text; status.textContent = line; status.hidden = line === ''; };
-  let armed = false; let disarm: ReturnType<typeof setTimeout> | 0 = 0;
+  let armed = false; let disarm: ReturnType<Scope['timeout']> = 0;
   const rest = (): void => { armed = false; b.classList.remove('armed'); say(a.text, a.status?.() ?? ''); };
   const run = (): void => {
     b.disabled = true;

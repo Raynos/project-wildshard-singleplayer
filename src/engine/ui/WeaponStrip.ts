@@ -1,3 +1,4 @@
+import type { Scope } from '../app/scope';
 import { uiScope, mountUi } from './ownership';
 import { engineString } from '../strings';
 import type { EquipmentService } from '../combat/EquipmentService';
@@ -36,6 +37,8 @@ const PIE_HUB = 28, PIE_R = 128;
 /** a release within this distance of the centre picks nothing (the hub); beyond it, the wedge in that direction */
 const PICK_MIN = 30;
 
+type Selection<Id> = Id | null;
+
 interface Slot { id: WeaponId; el: HTMLElement; ammo: HTMLElement; shownAmmo: number | undefined | null; on: boolean }
 interface Wedge { id: WeaponId; el: SVGPathElement; label: HTMLElement }
 
@@ -56,8 +59,8 @@ export class WeaponStrip {
   private pie: HTMLElement | null = null;
   private wedges: Wedge[] = [];
   private pieCentre = { x: 0, y: 0 };
-  private pick: WeaponId | null = null;
-  private press: { id: number; timer: ReturnType<typeof setTimeout> | 0; open: boolean } | null = null;
+  private pick: Selection<WeaponId> = null;
+  private press: { id: number; timer: ReturnType<Scope['timeout']>; open: boolean } | null = null;
 
   private weapons: EquipmentService;
   constructor(weapons: EquipmentService) {
@@ -129,7 +132,7 @@ export class WeaponStrip {
       b.append(keyLabel, glyph, name, ammo);
       this.scope.listen(b, 'pointerdown', (e) => {
         e.stopPropagation(); e.preventDefault();
-        if (this.weapons.enabled) app.input.press(`swap.weapon.${k.id}`);
+        if (this.weapons.enabled) app.input.press(`swap.weapon.${String(k.id)}`);
       });
       this.el.append(b);
       this.slots.push({ id: k.id, el: b, ammo, shownAmmo: null, on: false });
@@ -151,7 +154,7 @@ export class WeaponStrip {
       if (this.press !== null || !this.weapons.enabled) return;
       ring.setPointerCapture(e.pointerId);
       ring.classList.add('down');
-      const press = { id: e.pointerId, timer: 0 as ReturnType<typeof setTimeout> | 0, open: false };
+      const press = { id: e.pointerId, timer: 0, open: false };
       press.timer = this.scope.timeout(HOLD_MS, () => { press.open = true; this.openPie(); });
       this.press = press;
     });
@@ -174,7 +177,7 @@ export class WeaponStrip {
       if (!cancelled) this.hover(e.clientX, e.clientY);
       const pick = cancelled ? null : this.pick;
       this.closePie();
-      if (pick !== null && pick !== this.weapons.current.id) app.input.press(`swap.weapon.${pick}`);
+      if (pick !== null && pick !== this.weapons.current.id) app.input.press(`swap.weapon.${String(pick)}`);
     };
     this.scope.listen(ring, 'pointerup', (e) => { end(e, false); });
     this.scope.listen(ring, 'pointercancel', (e) => { end(e, true); });
@@ -234,7 +237,7 @@ export class WeaponStrip {
   /** the wedge in the finger's direction from the centre (past the hub) is the one a release would take */
   private hover(fx: number, fy: number): void {
     const dx = fx - this.pieCentre.x, dy = fy - this.pieCentre.y;
-    let best: WeaponId | null = null;
+    let best: Selection<WeaponId> = null;
     const n = this.wedges.length;
     if (n > 0 && dx * dx + dy * dy > PICK_MIN * PICK_MIN) {
       // −90° (up) … +90° (down) across the right half; a slide back left clamps to the nearest end wedge

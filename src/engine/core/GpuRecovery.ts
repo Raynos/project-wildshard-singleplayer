@@ -108,7 +108,7 @@ export function installGpuRecovery(host: RecoveryHost): void {
   let hiddenAt = hidden ? Date.now() : 0; // wall clock: performance.now() does not run while iOS suspends the page
   let epoch = 0; // a newer loss abandons an in-flight restore / reveal
   let visibleMs = 0; // visible time spent in the current lost / restoring phase
-  let timer: ReturnType<typeof setTimeout> | 0 = 0;
+  let timer: ReturnType<Scope['timeout']> = 0;
   let shot: string | null = null;
   try { shot = savedStorage.getItem(SHOT_KEY); } catch { /* no still: the dark glass alone */ }
 

@@ -52,7 +52,7 @@ export class ContentCache {
   private clock = 0;
   private dirty = false;
   private readonly scope = new Scope('content-cache');
-  private flushTimer: ReturnType<typeof setTimeout> | 0 | undefined;
+  private flushTimer: ReturnType<Scope['timeout']> | undefined;
   private readonly onPagehide = (): void => { void this.flush(); };
   private removePagehide: (() => void) | undefined;
   private pendingFlush: Promise<void> | undefined;
