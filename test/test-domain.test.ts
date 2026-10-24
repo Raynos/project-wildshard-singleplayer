@@ -4,6 +4,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the installed CLI and fixture paths explicitly.
 import { dirname, resolve } from 'node:path';
+import * as v from 'valibot';
 import { expect, test } from 'vitest';
 import { TEST_DOMAIN_RUNTIME_RULES } from '../lint/wildshard-plugin.js';
 
@@ -14,32 +15,28 @@ test('colocated fixtures keep product guards in production and architecture guar
     ...Object.fromEntries(TEST_DOMAIN_RUNTIME_RULES.map(name => [`wildshard/${name}`, 'error'])),
     'wildshard/layer': 'error', 'wildshard/no-module-mock': 'error', 'wildshard/no-production-test-import': 'error',
   } }));
-  const run = (file: string): ReturnType<typeof spawnSync> => spawnSync(resolve('node_modules/.bin/oxlint'), ['--no-ignore', '-c', config, file], { encoding: 'utf8', timeout: 10_000 });
+  const run = (files: readonly string[]): ReturnType<typeof spawnSync> => spawnSync(resolve('node_modules/.bin/oxlint'),
+    ['--threads=1', '--no-ignore', '-c', config, '-f', 'json', ...files], { encoding: 'utf8', timeout: 10_000 });
   const code = 'const label = "Pine loot"; const node = document.createElement("div"); node.textContent = "Play now"; node.innerHTML = document.title; document.body.appendChild(node); export { label };';
+  const rejected: { file: string; rules: readonly string[] }[] = [];
+  const refuses = (path: string, source: string, rules: readonly string[]): void => { rejected.push({ file: put(path, source), rules }); };
   try {
-    const fixture = put('src/engine/core/fixture.test.ts', code), production = put('src/engine/core/fixture.ts', code);
-    const allowed = run(fixture); expect(allowed.status, String(allowed.stdout) + String(allowed.stderr)).toBe(0);
-    const refused = run(production), output = String(refused.stdout) + String(refused.stderr);
-    expect(refused.status).not.toBe(0);
-    for (const name of ['engine-words', 'no-inline-ui-string', 'no-authored-html', 'no-global-listener-patch', 'no-raw-hud']) expect(output).toContain(name);
-    const helper = run(put('src/engine/test/helper.ts', code));
-    expect(helper.status, String(helper.stdout) + String(helper.stderr)).toBe(0);
-    const forbidden = put('src/engine/core/boundary.test.ts', 'import {value} from "../../game/value"; import {vi} from "vitest"; vi.mock("./value"); export {value};');
-    const boundary = run(forbidden), messages = String(boundary.stdout) + String(boundary.stderr);
-    expect(boundary.status).not.toBe(0); expect(messages).toContain('wildshard(layer)'); expect(messages).toContain('no-module-mock');
     const builder = 'import binaryen from "binaryen"; export const wasm = binaryen;';
-    const formatFixture = run(put('src/format/binary.test.ts', builder));
-    expect(formatFixture.status, String(formatFixture.stdout) + String(formatFixture.stderr)).toBe(0);
-    const formatProduction = run(put('src/format/binary.ts', builder));
-    expect(formatProduction.status).not.toBe(0);
-    expect(String(formatProduction.stdout) + String(formatProduction.stderr)).toContain('wildshard(layer)');
-    const formatUpward = run(put('src/format/upward.test.ts', 'import {value} from "../engine/value"; export {value};'));
-    expect(formatUpward.status).not.toBe(0);
-    expect(String(formatUpward.stdout) + String(formatUpward.stderr)).toContain('wildshard(layer)');
-    for (const statement of ['import "./fixture.test";', 'export * from "./fixture.test.ts";', 'void import("./fixture.test.js");', 'export type Value = typeof import("./fixture.test");',
-      'import "../test/helper";', 'export * from "../test/helper";', 'void import("../test/helper");', 'export type Helper = typeof import("../test/helper");']) {
-      const imports = run(put('src/engine/core/importer.ts', statement));
-      expect(imports.status).not.toBe(0); expect(String(imports.stdout) + String(imports.stderr)).toContain('no-production-test-import');
+    const allowed = run([put('src/engine/core/fixture.test.ts', code), put('src/engine/test/helper.ts', code), put('src/format/binary.test.ts', builder)]);
+    expect(allowed.status, String(allowed.error ?? '') + String(allowed.stdout) + String(allowed.stderr)).toBe(0);
+    refuses('src/engine/core/fixture.ts', code, ['engine-words', 'no-inline-ui-string', 'no-authored-html', 'no-global-listener-patch', 'no-raw-hud']);
+    refuses('src/engine/core/boundary.test.ts', 'import {value} from "../../game/value"; import {vi} from "vitest"; vi.mock("./value"); export {value};', ['layer', 'no-module-mock']);
+    refuses('src/format/binary.ts', builder, ['layer']);
+    refuses('src/format/upward.test.ts', 'import {value} from "../engine/value"; export {value};', ['layer']);
+    const statements = ['import "./fixture.test";', 'export * from "./fixture.test.ts";', 'void import("./fixture.test.js");', 'export type Value = typeof import("./fixture.test");',
+      'import "../test/helper";', 'export * from "../test/helper";', 'void import("../test/helper");', 'export type Helper = typeof import("../test/helper");'];
+    statements.forEach((source, index) => { refuses(`src/engine/core/importer-${index}.ts`, source, ['no-production-test-import']); });
+    const result = run(rejected.map(row => row.file));
+    expect(result.status, String(result.error ?? '') + String(result.stdout) + String(result.stderr)).toBe(1);
+    const output = v.parse(v.object({ diagnostics: v.array(v.object({ filename: v.string(), code: v.string() })) }), JSON.parse(String(result.stdout)));
+    for (const row of rejected) {
+      const codes = output.diagnostics.filter(diagnostic => resolve(diagnostic.filename) === row.file).map(diagnostic => diagnostic.code);
+      for (const rule of row.rules) expect(codes, row.file).toContain(`wildshard(${rule})`);
     }
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
