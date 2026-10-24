@@ -29,7 +29,7 @@ test('legacy shade remains finite and nonnegative while the default stays one', 
 });
 
 
-test('legacy terrain patches borrow the original declared sun direction uniform', () => {
+test('legacy terrain and creature patches borrow the original declared live uniforms', () => {
   const material = painterlyMaterial(null);
   const shader: object = { vertexShader: ShaderLib.lambert.vertexShader, fragmentShader: ShaderLib.lambert.fragmentShader, uniforms: {} };
   const renderer: unknown = Object.create(WebGLRenderer.prototype);
@@ -39,5 +39,7 @@ test('legacy terrain patches borrow the original declared sun direction uniform'
     material.onBeforeCompile(shader, renderer);
     expect(shader.fragmentShader.match(/uniform vec3 uPSunDir;/gu)).toHaveLength(1);
     expect(shader.uniforms['uPSunDir']).toBe(painterlyUniforms.uPSunDir);
+    expect(shader.vertexShader.match(/uniform float uPTime;/gu)).toHaveLength(1);
+    expect(shader.uniforms['uPTime']).toBe(painterlyUniforms.uPTime);
   } finally { material.dispose(); }
 });

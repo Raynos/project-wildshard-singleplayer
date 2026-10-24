@@ -99,6 +99,9 @@ export function painterlyMaterial(sky: Sky | null, opts: PainterlyOpts = {}): TH
     // Frozen terrain decorations read this original world-space sun handle.
     shader.uniforms['uPSunDir'] = painterlyUniforms.uPSunDir;
     shader.fragmentShader = `uniform vec3 uPSunDir;\n${shader.fragmentShader}`;
+    // Frozen creature deformation reads the same live clock as the family.
+    shader.uniforms['uPTime'] = painterlyUniforms.uPTime;
+    shader.vertexShader = `uniform float uPTime;\n${shader.vertexShader}`;
     attachFogUniforms(shader);
   });
   sky?.setupMaterial(mat);
