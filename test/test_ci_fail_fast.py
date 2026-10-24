@@ -35,6 +35,16 @@ class FailFastTests(unittest.TestCase):
         self.assertEqual(API['failure_files'](encoded),['test/space, [case].test.ts'])
         self.assertEqual(API['failure_files']('Error: missing "test/space, [case].test.ts"'),['test/space, [case].test.ts'])
 
+    def test_absolute_runner_annotations_resolve_only_inside_exact_checkout(self):
+        workspace='/home/runner/work/project/project'
+        output='::error file='+workspace+'/test/elite-entry-producer.test.ts::Error: actual input\nFAIL test/elite-entry-producer.test.ts > actual'
+        with patch.dict(os.environ,{'GITHUB_WORKSPACE':workspace}):
+            self.assertEqual(API['failure_files'](output),['test/elite-entry-producer.test.ts'])
+            self.assertEqual(API['failure_files']('::error file=/other/test/foreign.test.ts::Error: unrelated'),[])
+            self.assertEqual(API['failure_files']('::error file='+workspace+'/../test/escape.test.ts::Error: unrelated'),[])
+        with patch.dict(os.environ,{'GITHUB_WORKSPACE':''}):
+            self.assertEqual(API['failure_files']('::error file='+str(Path.cwd()/'test/local.test.ts')+'::Error: local'),['test/local.test.ts'])
+
     def test_culprit_paths_are_one_json_argument_without_shell_interpretation(self):
         report=API['print_culprits'];files=['test/space, [case].test.ts']
         row={'base':'a'*40,'candidates':[],'missingImports':[]}

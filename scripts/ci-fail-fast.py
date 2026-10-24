@@ -21,6 +21,12 @@ QUOTED_FILE = r'[\'\"]('+ROOT+r'[^\'\"\r\n]+?'+EXTENSION+r')[\'\"]'
 ANNOTATION = re.compile(r'::error(?: ([^\r\n]*?))?::')
 
 
+def repository_file(file):
+    """Vitest annotations may name an absolute path in this exact checkout."""
+    relative=os.path.relpath(file,os.environ.get('GITHUB_WORKSPACE') or os.getcwd()) if os.path.isabs(file) else file
+    return relative if '..' not in relative.split('/') and re.match(ROOT,relative) else None
+
+
 def failure_files(output):
     plain = ANSI.sub('', output)
     annotated, lines = [], []
@@ -39,7 +45,8 @@ def failure_files(output):
     def extract(text):
         return re.findall(QUOTED_FILE, text) + re.findall(FILE, text)
     found = sorted(set(annotated + extract('\n'.join(primary))))
-    return (found or sorted(set(extract('\n'.join(lines)))))[:16]
+    paths=(repository_file(file) for file in (found or extract('\n'.join(lines))))
+    return sorted({file for file in paths if file is not None})[:16]
 
 
 def failed_job(jobs):
