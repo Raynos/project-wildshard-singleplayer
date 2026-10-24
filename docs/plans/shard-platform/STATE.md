@@ -25,10 +25,10 @@ not retained data; cuts left are < 1 MiB each, so the budgets need a structural 
 **Tooling:** DW tiles: wire 12.3 → 10.8 MB look-identical;
 pick for Jake: art/driftwood-isle/round-19-tile-lod (3af5687a53) A landed / B / C; only C gets 6,4 + 2,5 under 4 MB.
 
-**For wildshard-v:** G694 wave 1: F1-F5, D2, D4-D6, D1 source (17dddf9b3e, 12 modern boot cases PASS), D3 first slice 7c73ab50dd.
-LEGACY smoke found two PRE-EXISTING breaks from 7719bbb5c4 (10-18, painterly adapter): Nalati bow shade 2.4 (fixed 205c46fdd7) and
-uPSunDir (fixing, sp-x6); live LEGACY Nalati has been broken since 10-18. T1: ghosts fixed (7941053755); per-return growth owners:
-composer depth +4.4 MB, DW site geometry, LUTs (sp-x9 / sp-x8). Your grep PID 45432 still ~99 % CPU.
+**For wildshard-v:** G694 WAVE 1 COMPLETE: F1-F5, D1 (17dddf9b3e..97532bcbe0), D2, D3 (3c488ee9ab), D4-D6; nothing legacy deleted.
+Wave 2 READY for Jake: all 6 LEGACY buttons enter their real frozen copies (c34c7ec0a2 proof, 12 modern boots PASS). Legacy Nalati/Pine
+were broken on live since 10-14/10-18 (fixed 205c46fdd7, 5a9829d545, e636720cc9, 6e04eccd4a, 32120d2ac7, 97532bcbe0); ships next release.
+T1: ghosts fixed, memory still +20-65 MB/return (sp-x9). Your grep PID 45432 still ~99 % CPU.
 
 **Lanes:** Claude weekly 90 %: 0 Opus (sp-o3 stopped, G605); 5 Codex + sp-x7.
 
