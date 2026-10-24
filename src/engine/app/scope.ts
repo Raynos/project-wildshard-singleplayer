@@ -32,6 +32,8 @@ export interface NativeCensus {
   timers: { timeouts: number; intervals: number; raf: number };
 }
 interface Registration { scope: Scope; target?: EventTarget; timer?: ReturnType<typeof setTimeout>; kind: 'listeners' | 'timeouts' | 'intervals' | 'raf' }
+// Declaration consumers can have Node timer overloads; zero remains the closed-scope sentinel there too.
+type ScopedTimer<T> = T | 0;
 const registrations = new Set<Registration>();
 const nodeOwners = new WeakMap<Element, Scope>();
 export function nodeOwner(node: Element): Scope | null { return nodeOwners.get(node) ?? null; }
@@ -262,7 +264,7 @@ export class Scope {
   }
 
   private timerCancels: Map<ReturnType<typeof setTimeout>, () => void> | undefined;
-  cancelTimer(id: ReturnType<typeof setTimeout> | undefined): void { if (id !== 0 && id !== undefined) this.timerCancels?.get(id)?.(); }
+  cancelTimer(id: ScopedTimer<ReturnType<typeof setTimeout>> | undefined): void { if (id !== 0 && id !== undefined) this.timerCancels?.get(id)?.(); }
 
   /** THREE-style subscription, released by its owner or the returned unsubscribe. */
   listenEmitter<K extends string, E>(target: {
@@ -288,7 +290,7 @@ export class Scope {
     forget = this.track('listeners', () => { target.removeEventListener(type, listener); forget(); });
   }
 
-  timeout(ms: number, fn: () => void): ReturnType<typeof setTimeout> {
+  timeout(ms: number, fn: () => void): ScopedTimer<ReturnType<typeof setTimeout>> {
     if (this.closed) return 0;
     let forget = () => { /* Filled before the timer can fire. */ };
     const id = setTimeout(() => { forget(); this.timerCancels?.delete(id); if (!this.closed) withOwner(this, fn); }, ms);
@@ -296,7 +298,7 @@ export class Scope {
     forget = this.registration({ kind: 'timeouts', timer: id }, 'timers', cancel); (this.timerCancels ??= new Map()).set(id, cancel);
     return id;
   }
-  interval(ms: number, fn: () => void): ReturnType<typeof setInterval> {
+  interval(ms: number, fn: () => void): ScopedTimer<ReturnType<typeof setInterval>> {
     if (this.closed) return 0;
     const id = setInterval(() => { if (!this.closed) withOwner(this, fn); }, ms);
     let forget = () => { /* Assigned after registration. */ };
