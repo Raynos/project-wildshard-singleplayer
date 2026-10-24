@@ -1,0 +1,244 @@
+{
+  "source": "7941053755bc5e717575a896a73112010a175368",
+  "complete": true,
+  "acceptanceEligible": false,
+  "errors": [],
+  "routeLegs": 12,
+  "rawReceiptSha256": "9b07c228c3d9d98130cc6179672e141a8704e997b0bdd24f4a9f1a6450e41043",
+  "protocol": {
+    "device": "iPhone 16 Pro",
+    "tier": "phone",
+    "cpu": 4,
+    "renderScale": 2,
+    "developer": true,
+    "roundTrips": 5,
+    "warmupRoundTrips": 1,
+    "settleSeconds": 45,
+    "forcedGC": false,
+    "inspectorBodyBytes": 0,
+    "toolHashes": {
+      "tile-retirement-chromium.mjs": "992f1f14f819666c016d7d286205fc7aaf8660146c874dc5f10c8658512ca6d9",
+      "tile-retirement-proof.mjs": "e555b0cf0dc9b20cae8c0135dbb648add1edc865139fbb84fe9d486a6d4b7951",
+      "frame-floor-grid.mjs": "68f0b11e9a7757c2e159062807f76c4b93d8ecca105ed740e354d11dd13fea86",
+      "soak/owned.mjs": "15d98943b6a62606f236ca71bfc4b8630819e09626ba476d9c30b6c2a2ca912b",
+      "grid-ready-memory.mjs": "39c5917796a0bab687a536218d76609a372bb12224c9cec45937d118608361f2",
+      "chromium-memory-browser.mjs": "41ed23eb5306466f155cebfe405ea3097686caf3761de56a7d266ea40bc66d01"
+    },
+    "memory": "One dedicated Chromium: renderer + GPU private footprint. Browser overhead separate. Endpoint dumps, no FPS claim.",
+    "diagnostic": "resources",
+    "backingStorage": "CDP backingStorageSize includes ArrayBuffers and external strings; ledger RAM allocations are tracked identities only. No forced GC.",
+    "cycles": "Observed render claim acquisition/removal lifetimes at 1 Hz; missed lifetimes undercount, never interpolate."
+  },
+  "boundaries": [
+    {
+      "label": "baseline",
+      "renderer": {
+        "geometries": 371,
+        "textures": 489,
+        "programs": 446
+      },
+      "heap": {
+        "usedSize": 346585672,
+        "totalSize": 669384704,
+        "embedderHeapUsedSize": 13759264,
+        "backingStorageSize": 457988186
+      },
+      "process": {
+        "browser": 657819648,
+        "renderer": 1369020416,
+        "gpu": 1273055232
+      },
+      "totals": {
+        "gpu": 342834898,
+        "ram": 329290015
+      },
+      "ghosts": {
+        "tile": 0,
+        "region": 0
+      },
+      "growingOwnerBytes": {
+        "siteBuffers": 5775576,
+        "composerDepth": 4380192,
+        "backdropLuts": 431244
+      }
+    },
+    {
+      "label": "return-1",
+      "renderer": {
+        "geometries": 379,
+        "textures": 492,
+        "programs": 523
+      },
+      "heap": {
+        "usedSize": 429228224,
+        "totalSize": 600670208,
+        "embedderHeapUsedSize": 30460272,
+        "backingStorageSize": 464710605
+      },
+      "process": {
+        "browser": 661374976,
+        "renderer": 1362434048,
+        "gpu": 1301465088
+      },
+      "totals": {
+        "gpu": 350391814,
+        "ram": 334724519
+      },
+      "ghosts": {
+        "tile": 0,
+        "region": 0
+      },
+      "growingOwnerBytes": {
+        "siteBuffers": 8676324,
+        "composerDepth": 8760384,
+        "backdropLuts": 718740
+      }
+    },
+    {
+      "label": "return-2",
+      "renderer": {
+        "geometries": 381,
+        "textures": 495,
+        "programs": 578
+      },
+      "heap": {
+        "usedSize": 408931500,
+        "totalSize": 549404672,
+        "embedderHeapUsedSize": 20565456,
+        "backingStorageSize": 530376196
+      },
+      "process": {
+        "browser": 662308864,
+        "renderer": 1389516800,
+        "gpu": 1330841600
+      },
+      "totals": {
+        "gpu": 357801538,
+        "ram": 398958640
+      },
+      "ghosts": {
+        "tile": 0,
+        "region": 0
+      },
+      "growingOwnerBytes": {
+        "siteBuffers": 11551152,
+        "composerDepth": 13140576,
+        "backdropLuts": 1006236
+      }
+    },
+    {
+      "label": "return-3",
+      "renderer": {
+        "geometries": 391,
+        "textures": 498,
+        "programs": 583
+      },
+      "heap": {
+        "usedSize": 413131808,
+        "totalSize": 570146816,
+        "embedderHeapUsedSize": 17160448,
+        "backingStorageSize": 469789424
+      },
+      "process": {
+        "browser": 660113408,
+        "renderer": 1372657664,
+        "gpu": 1342326784
+      },
+      "totals": {
+        "gpu": 365502766,
+        "ram": 337241743
+      },
+      "ghosts": {
+        "tile": 0,
+        "region": 0
+      },
+      "growingOwnerBytes": {
+        "siteBuffers": 14451900,
+        "composerDepth": 17520768,
+        "backdropLuts": 1293732
+      }
+    },
+    {
+      "label": "return-4",
+      "renderer": {
+        "geometries": 397,
+        "textures": 501,
+        "programs": 585
+      },
+      "heap": {
+        "usedSize": 440161312,
+        "totalSize": 586743808,
+        "embedderHeapUsedSize": 26345376,
+        "backingStorageSize": 468701893
+      },
+      "process": {
+        "browser": 660146176,
+        "renderer": 1382111232,
+        "gpu": 1346734080
+      },
+      "totals": {
+        "gpu": 373058242,
+        "ram": 338292699
+      },
+      "ghosts": {
+        "tile": 0,
+        "region": 0
+      },
+      "growingOwnerBytes": {
+        "siteBuffers": 17339688,
+        "composerDepth": 21900960,
+        "backdropLuts": 1581228
+      }
+    },
+    {
+      "label": "return-5",
+      "renderer": {
+        "geometries": 399,
+        "textures": 482,
+        "programs": 589
+      },
+      "heap": {
+        "usedSize": 497399124,
+        "totalSize": 600621056,
+        "embedderHeapUsedSize": 34938120,
+        "backingStorageSize": 489304820
+      },
+      "process": {
+        "browser": 660932608,
+        "renderer": 1426331648,
+        "gpu": 1329629184
+      },
+      "totals": {
+        "gpu": 356000606,
+        "ram": 349640120
+      },
+      "ghosts": {
+        "tile": 0,
+        "region": 1
+      },
+      "growingOwnerBytes": {
+        "siteBuffers": 20214516,
+        "composerDepth": 26281152,
+        "backdropLuts": 1868724
+      }
+    }
+  ],
+  "ownerFinalDeltaBytes": {
+    "siteBuffers": 14438940,
+    "composerDepth": 21900960,
+    "backdropLuts": 1437480
+  },
+  "limits": [
+    "Diagnostic only; no acceptance, FPS, Simulator or physical-device claim.",
+    "No forced GC: JS heap used does not establish retained heap.",
+    "CDP backingStorageSize includes ArrayBuffers and external strings, not ArrayBuffer bytes alone.",
+    "Ledger covers tracked identities/capacities, not all native resident GPU memory. Owner deltas do not explain the whole process delta.",
+    "Same exact 794 source was rebuilt with a new build stamp; this is not the preceding acceptance visit."
+  ],
+  "siteFix": {
+    "sha": "0e3432322b9f178293417665a9603d72f0d6058e",
+    "cause": "Awaited WorldAssembly site factories lost the ambient resource owner and fell back to permanent pageScope.",
+    "proof": "Mandatory real-GC regression and allocation ledger return to baseline through five retired construction scopes."
+  },
+  "next": "One plain T1 acceptance cohort after site, composer-depth and backdrop-LUT lifecycle fixes land."
+}

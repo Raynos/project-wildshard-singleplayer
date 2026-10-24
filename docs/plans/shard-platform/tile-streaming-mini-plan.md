@@ -254,8 +254,13 @@ errors. Baseline and returns 1/3/4/5 have zero tile/region ghosts; return 2 has
 seven Template tile ghosts and one Driftwood region ghost, gone by return 3.
 Renderer + GPU private footprint remains +36.0/+77.7/+57.0/+65.9/+102.5 MB above
 the warm baseline. The strict zero-ghost and ±20 MB acceptance remains open;
-the next authorized diagnostic records resource/owner/heap counters on the same
-source. No Simulator, physical-device or persistent-holder claim from these
+the [same-source resource diagnostic](../../../progress/shard-platform/tile-streaming/t1-resources-794.json)
+completed and is not acceptance evidence. Across five returns, tracked site
+buffers grew 14.44 MB, composer depth 21.90 MB and backdrop LUTs 1.44 MB.
+`0e3432322b` restores the construction owner around awaited site factories,
+with mandatory real-GC and ledger coverage. Composer depth/LUT lifecycle fixes
+are sp-x8's; one joint fresh-preview T1 rerun follows both landings. No
+Simulator, physical-device or full native-memory attribution claim from these
 Chromium counters.
 
 Order: T0 + T1 + T2 at once → T3 (DW) + T4 + T5 = **the first playable slice on Driftwood (SHARD SELECT, then the grid
