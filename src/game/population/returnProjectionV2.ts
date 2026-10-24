@@ -45,6 +45,7 @@ interface FieldBatch { readonly actor: number; readonly fields: readonly string[
 interface ObservationShape {
   readonly batches: readonly FieldBatch[];
   readonly input: ReturnType<typeof prepareV2Observations>;
+  readonly counts: readonly [ReadonlyMap<number,number>,ReadonlyMap<number,number>];
   readonly signalAt: number;
   readonly fieldsAt: number;
 }
@@ -106,7 +107,10 @@ export class ReturnProjectionV2 {
       if(lastBatch!==undefined&&lastBatch.actor===column.actor)lastBatch.fields.push(column.field);
       else batches.push({actor:column.actor,fields:[column.field]});
     }
-    const shape = {batches,input,signalAt:this.layout.io+parameters.offset,fieldsAt:this.layout.io+columns.offset};
+    // Private admitted shapes only; frame authority and RNG state remain per-call.
+    const withoutRng = new Map(input.counts);withoutRng.set(21,0);
+    const withRng = new Map(withoutRng);withRng.set(21,1);
+    const shape: ObservationShape = {batches,input,counts:[withoutRng,withRng],signalAt:this.layout.io+parameters.offset,fieldsAt:this.layout.io+columns.offset};
     this.columns[count] = shape;return shape;
   }
   /** Capture once. No RNG is changed until the caller has validated its retained
@@ -122,7 +126,7 @@ export class ReturnProjectionV2 {
     const rng = prepareV2Rng(layout,before === undefined ? [] : [{ binding: 1,stream: 1,algorithm: 1,
       state: [before.state,before.initial,Number(before.scrambledFork),0,0,0] }]);
     const shape = this.observationShape(candidates.length), input = shape.input;
-    const counts = new Map(input.counts);counts.set(21,rng.count);
+    const counts = rng.count === 0 ? shape.counts[0] : shape.counts[1];
     let authority: V2FrameAuthority | undefined;
     this.busy = true;
     try {

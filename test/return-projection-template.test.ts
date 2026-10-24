@@ -28,13 +28,13 @@ beforeAll(async()=>{
     bytes:btoa(Array.from(bytes,byte=>String.fromCodePoint(byte)).join(''))});
 },30000);
 
-function genericFrame(signal:number,frames:readonly Readonly<Record<string,number>>[],random:Rng,count=frames.length):Uint8Array {
+function genericFrame(signal:number,frames:readonly Readonly<Record<string,number>>[],random:Rng|undefined,count=frames.length):Uint8Array {
   const layout=returnProjectionV2Layout(row.fields.length),view=new DataView(new ArrayBuffer(layout.pages*65536));
   const fields=Array.from({length:count},(_,actor)=>row.fields.map((field,index)=>({name:`${actor}/${field}`,id:actor*row.fields.length+index+1,value:frames[actor]?.[field]}))).flat();
   const input=observations.prepareV2Observations(layout,0,{bindings:[{identity:'projection',handle:1,self:1,player:0,observed:new Set([1]),enabled:true,due:true,
     divisor:6,fuel:400000,previousTick:0,currentTick:0,state:[],parameters:[{name:'signal',value:signal}],fields,sample:{atTick:0,target:0}}],
     players:[],edges:[],events:[],actions:new Set(),eventKinds:new Set()});
-  const before=random.snapshot(),rng=prepareV2Rng(layout,[{binding:1,stream:1,algorithm:1,state:[before.state,before.initial,Number(before.scrambledFork),0,0,0]}]);
+  const before=random?.snapshot(),rng=prepareV2Rng(layout,before===undefined?[]:[{binding:1,stream:1,algorithm:1,state:[before.state,before.initial,Number(before.scrambledFork),0,0,0]}]);
   const counts=new Map(input.counts);counts.set(21,rng.count);
   writeV2Frame(view,layout,{lane:2,module:1,sequence:0,tick:0,due:1},counts);input.write(view);
   const bank=layout.regions[20];if(bank===undefined)throw new Error('Missing RNG bank');
@@ -94,5 +94,27 @@ test('declared candidate slots retain absent bytes when the candidate iterator y
     const write=project.mock.calls[0]?.[1];if(write===undefined)throw new Error('Missing captured writer');
     const actual=new DataView(new ArrayBuffer(65536));write(actual);
     expect(new Uint8Array(actual.buffer)).toEqual(genericFrame(1,[first,{a:7,z:-0}],random,3));
+  }finally{project.mockRestore();}
+});
+
+test('alternating RNG presence and shapes keeps every retained input writer detached and exact',()=>{
+  const project=vi.spyOn(ScriptModuleV2.prototype,'project'),program=new ReturnProjectionV2(row),random=new Rng(817);
+  const cases=[
+    {frames:[{a:1,z:-0}],random:undefined},{frames:[{a:2,z:3}],random},
+    {frames:[{a:4,z:5},{a:6,z:7}],random},{frames:[{a:-0},{a:8}],random:undefined},
+    {frames:[{a:9}],random:undefined},{frames:[{a:10,z:11}],random},
+  ];
+  try {
+    for(const sample of cases){
+      const first=sample.frames[0];if(first===undefined)throw new Error('Missing first frame');
+      const prepared=program.prepare('first',first,sample.random,sample.frames.slice(1));prepared.accept();
+    }
+    // Replay after the opposite RNG mode and another shape have both run.
+    for(let index=0;index<cases.length;index++){
+      const sample=cases[index],write=project.mock.calls[index]?.[1];
+      if(sample===undefined||write===undefined)throw new Error('Missing retained writer');
+      const actual=new DataView(new ArrayBuffer(65536));write(actual);
+      expect(new Uint8Array(actual.buffer)).toEqual(genericFrame(1,sample.frames,sample.random));
+    }
   }finally{project.mockRestore();}
 });
