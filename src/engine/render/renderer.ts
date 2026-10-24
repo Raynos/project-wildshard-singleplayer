@@ -9,6 +9,7 @@ import { installGpuLabels, labelledCreation } from './gpuLabels';
 import { installFrameCounter } from './frameCounter';
 import { installDiagnosticJournal } from './diagnosticJournal';
 import { installDoubleElements } from './doubleElements';
+import { installCompileShadowSkip } from './compileShadows';
 import { installShadowMaterialOwnership } from './shadowMaterialOwnership';
 import type { AssetService } from '../app/assets';
 import type { Scope } from '../app/scope';
@@ -30,6 +31,7 @@ export function createRenderer(canvas: HTMLCanvasElement, context: WebGL2Renderi
   const renderer = labelledCreation('engine/renderer', 'builtin/renderer-initialization', () => new THREE.WebGLRenderer({ canvas, context, antialias: false, stencil: false, depth: true }));
   ownership.uploads.attach(renderer);
   installShadowMaterialOwnership(renderer, ownership.assets, ownership.scope);
+  installCompileShadowSkip(renderer);
   installGpuLabels(renderer);
   const dispose = renderer.dispose.bind(renderer);
   renderer.dispose = () => { try { dispose(); } finally { stopJournal(); } };
