@@ -51,13 +51,24 @@ export function worldSceneModelGraphs(entry: WorldSceneModels['models'][number][
 }
 /** Resource declarations include frozen specimens, without allocating their owner-local materials. */
 export function worldSceneModelResources(rows: WorldSceneModels, admitted: readonly WorldSceneWeld[] = []): { readonly geometry: readonly { readonly library: string; readonly model: string }[]; readonly materials: readonly string[] } {
-  const choices = rows.models.flatMap(entry => entry.choices), graphs = choices.flatMap(worldSceneModelGraphs).flatMap(entry => 'file' in entry ? [] : [entry]).concat(admitted);
-  const draws = choices.flatMap(entry => entry.draws.concat(entry.lods.flatMap(level => level.draws)));
-  const donors = choices.flatMap(entry => entry.lods.flatMap(level => level.draws.flatMap(part => part.attributes === undefined ? [] : [part.attributes])));
-  return { geometry: [...draws, ...donors, ...graphs.flatMap(graph => graph.nodes.flatMap(node => 'geometry' in node ? [node.geometry] : []))],
-    materials: [...draws.map(entry => entry.material), ...graphs.flatMap(graph => {
-      const local = new Set(graph.materials.map(row => row.id));
-      return graph.nodes.flatMap(node => 'material' in node && node.material !== '$shadow' && !local.has(node.material) ? [node.material] : [])
-        .concat(graph.materials.flatMap(row => row.source === undefined || local.has(row.source.material) ? [] : [row.source.material]));
-    })] };
+  const geometry: { readonly library: string; readonly model: string }[] = [], materials: string[] = [];
+  for (const entry of rows.models) for (const variant of entry.choices) {
+    for (const part of variant.draws) { geometry.push(part); materials.push(part.material); }
+    for (const level of variant.lods) for (const part of level.draws) { geometry.push(part); materials.push(part.material); }
+  }
+  // Keep donors after every part, then inline graphs followed by admitted files.
+  for (const entry of rows.models) for (const variant of entry.choices) for (const level of variant.lods)
+    for (const part of level.draws) if (part.attributes !== undefined) geometry.push(part.attributes);
+  const graph = (row: WorldSceneWeld): void => {
+    const local = new Set(row.materials.map(material => material.id));
+    for (const node of row.nodes) {
+      if ('geometry' in node) geometry.push(node.geometry);
+      if ('material' in node && node.material !== '$shadow' && !local.has(node.material)) materials.push(node.material);
+    }
+    for (const material of row.materials) if (material.source !== undefined && !local.has(material.source.material)) materials.push(material.source.material);
+  };
+  for (const entry of rows.models) for (const variant of entry.choices)
+    for (const row of worldSceneModelGraphs(variant)) if ('nodes' in row) graph(row);
+  for (const row of admitted) graph(row);
+  return { geometry, materials };
 }
