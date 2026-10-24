@@ -36,7 +36,7 @@ export class ReadinessWalls {
   /** Run before the fixed-step capsule move, including after a failed or unloaded residency attempt. */
   sync(readiness: TraversalReadiness): void {
     if (this.closed) return;
-    for (const { edge, collider } of this.walls) collider.setEnabled(!readiness.status(edge.instance).ready);
+    for (const { edge, collider } of this.walls) collider.setEnabled(!readiness.isReady(edge.instance));
   }
 
   /** Removes only soft walls; highway, strip and proxy floors survive this scope. */

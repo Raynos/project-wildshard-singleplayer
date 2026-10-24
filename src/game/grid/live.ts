@@ -232,7 +232,7 @@ export class LiveGridHost {
   }
   /** Admission includes colliders, initialized sim and parsed runtime module; entered hooks are a separate gameplay fence. */
   ready(instance: string | null): boolean {
-    return !this.disposed && (instance === null || (this.residents.has(instance) && !this.residents.get(instance)?.evicting && !this.residents.get(instance)?.disposalFailed && this.readiness.status(instance).ready));
+    return !this.disposed && (instance === null || (this.residents.has(instance) && !this.residents.get(instance)?.evicting && !this.residents.get(instance)?.disposalFailed && this.readiness.isReady(instance)));
   }
   /** Submit whole-shard requests in stable order. Failed attempts remain closed until an explicit retry. */
   prefetch(instances: readonly string[]): Promise<void> { return Promise.all([...new Set(instances)].sort().map((id) => this.residents.has(id) ? Promise.resolve() : this.prefetchProduct(id))).then(() => undefined); }

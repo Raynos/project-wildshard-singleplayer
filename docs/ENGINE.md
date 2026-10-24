@@ -3744,6 +3744,11 @@ These one-user implementations and their SDK facades returned to Signal under DS
 
 ### Traversal readiness (SHARD-PLATFORM SF18d)
 
+`TraversalReadiness.isReady(instance)` reads the current collider, sim and runtime
+fences without constructing a status record. Movement callers query it at each
+original step; `status(instance)` still returns detached detail for UI readers.
+Both keep unknown instances, proxy edges and invalidated generations closed.
+
 `LiveGridPorts.prioritize(cell)` optionally holds product read priority until actual
 world preparation settles. The grid page supplies `prioritizeGridProduct` for its
 allocator: speculative network and cache reads wait at their next IO boundary,

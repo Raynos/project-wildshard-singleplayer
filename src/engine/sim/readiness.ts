@@ -62,6 +62,12 @@ export class TraversalReadiness {
   /** Unload or admission failure closes the edge before the next movement call. */
   invalidate(instance: string): void { this.entries.delete(instance); }
 
+  /** Current movement gate without allocating a diagnostic status record. */
+  isReady(instance: string | null): boolean {
+    const entry = instance === null ? undefined : this.entries.get(instance);
+    return entry?.colliders === true && entry.sim && entry.runtime;
+  }
+
   /** Bound proxies have no sim to request; their closed edge still rests on the platform's permanent deck. */
   status(instance: string | null): ReadinessStatus {
     const entry = instance === null ? undefined : this.entries.get(instance);

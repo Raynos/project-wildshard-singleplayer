@@ -1,9 +1,34 @@
 import { expect, test } from 'vitest';
-import { readinessModel, type ReadinessBundle, type ReadinessLink } from './readiness';
+import { TraversalReadiness, readinessModel, type ReadinessBundle, type ReadinessLink } from './readiness';
 import { CONTENT_CAPS } from '../core/config';
 
 const bundle = (): ReadinessBundle => ({ criticalWireBytes: 125000, hybridWireBytes: 62500, decodeSeconds: 0.5, runtimeParseSeconds: 0.25 });
 const link = (): ReadinessLink => ({ speed: 2, linkBitsPerSecond: 1000000, requestLatencySeconds: 0.25, maxStallSeconds: 1 });
+
+test('scalar readiness retains every fence combination and stale-generation refusal', () => {
+  const readiness = new TraversalReadiness(), estimate = readinessModel(bundle(), link());
+  expect(readiness.isReady(null)).toBe(false); expect(readiness.isReady('missing')).toBe(false);
+  for (let mask = 0; mask < 8; mask++) {
+    const instance = `cell-${mask}`, ticket = readiness.request(instance, 0, estimate, true);
+    if (ticket === null) throw new Error('Missing readiness ticket');
+    if (mask & 1) readiness.complete(ticket, 'colliders');
+    if (mask & 2) readiness.complete(ticket, 'sim');
+    if (mask & 4) readiness.complete(ticket, 'runtime');
+    expect(readiness.isReady(instance)).toBe(mask === 7);
+    expect(readiness.isReady(instance)).toBe(readiness.status(instance).ready);
+    readiness.invalidate(instance);
+    expect(readiness.isReady(instance)).toBe(false);
+    const next = readiness.request(instance, 0, estimate, false);
+    if (next === null) throw new Error('Missing replacement readiness ticket');
+    expect(readiness.complete(ticket, 'colliders')).toBe(false);
+    expect(readiness.isReady(instance)).toBe(false);
+    readiness.complete(next, 'colliders'); readiness.complete(next, 'sim');
+    expect(readiness.isReady(instance)).toBe(true);
+    const status = readiness.status(instance); status.ready = false; status.runtime = false;
+    expect(readiness.isReady(instance)).toBe(true);
+    expect(readiness.status(instance).runtime).toBe(true);
+  }
+});
 
 test('cold travel retains critical work, the second request and zero-byte runtime parsing', () => {
   expect(readinessModel(bundle(), link())).toEqual({ criticalTransferSeconds: 1, hybridTransferSeconds: 0.5,
