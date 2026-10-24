@@ -256,3 +256,83 @@ Raw receipt: `.git/proofs/20261024T142309-sp-x1-current-webkit-core-39772.json`.
 Native/category/ledger data, load records and offline rollup remain in
 `tmp/core-memory-g682/current/`. The fixed hello-world calibration and budgets
 remain unchanged. No repeated cohort or gain claim is implied.
+
+## 8. Menu / Template heap-holder census (2026-10-24)
+
+One current-origin Chromium snapshot per target on `71b4a96c17`: fresh muted
+iPhone 16 Pro contexts, same real menu / compiled Template entry, Developer on,
+120-second settle, service workers blocked, CDP response-body capacity zero.
+Exactly one streamed main-page heap each; both complete/errors0, exit0/246s.
+Browser and preview cleanup preceded all offline graph work. No app change.
+
+| Saved main-page graph | Menu MiB | Template MiB |
+|---|---:|---:|
+| Strong-root JS node shallow bytes | 8.099 | 29.723 |
+| External string backing, separate | 1.966 | 9.153 |
+| Unique ArrayBuffer backing | 0.013 | 16.898 |
+| Of JS: code / bytecode / metadata | 1.899 | 14.431 |
+
+These V8 snapshot units do not directly reconcile to WebKit's §7 JavaScript
+category (which includes GC-owned/extra memory), nor to physical footprint.
+Snapshots can collect garbage. Worker heaps, opaque image pixels and GPU storage
+remain outside the main-page graph. Views do not duplicate backing bytes.
+
+Paths prove keepers, not exclusive dominance or guaranteed savings. These
+compact tables retain the main findings; full paths/heap IDs stay in the local
+JSON rollups, not a new proof file under `progress/` (G506).
+
+| JS category, MiB | Menu | Template |
+|---|---:|---:|
+| Code/metadata | 1.899 | 14.431 |
+| Objects | 1.811 | 3.890 |
+| Strings | 1.900 | 3.643 |
+| Array/Map/Set storage | 0.551 | 2.990 |
+| Object shapes | 0.831 | 2.422 |
+| Closures | 0.963 | 1.975 |
+
+Template backing owners: product source 5.591 MiB; script Wasm 2.688; remaining
+Wasm 2.000 (including 1.750 Rapier); named engine-scene geometry 0.490;
+practice geometry 0.229; texture CPU data 0.391; remaining buffers include
+heightfields, lattice tables and ring geometry. Menu has only three backing
+stores (12,262 / 1,024 / 20 bytes), reached through decoder imports.
+
+Top 15 individual payload paths (MiB, **not** exclusive subtree savings): `W`
+means window, `API` the existing public probe, `M` a module import chain.
+External source strings are separate from JS cells. Inspector source is tool
+overhead. Repeated parent chains are omitted; full paths remain in local JSON.
+
+| # | Menu: MiB / keeper → payload | Template: MiB / keeper → payload |
+|---|---|---|
+| 1 | .731 W.app-identity → pageServices source | 1.901 API.combat getter → session source |
+| 2 | .507 W.gridPrefetch → shardSchema source | 1.750 M.rapier → DataView → Wasm buffer |
+| 3 | .306 Inspector.asLocator source | .731 W.app-identity → pageServices source |
+| 4 | .187 gridPrefetch → M.outputIndex bytecode | .705 scene rotation callback → Three source |
+| 5 | .162 W.sw → Scope constructor → unlock source | .545 level cleanup → assets Map → product bytes |
+| 6 | .130 gridPrefetch → M.shardSchema bytecode | .507 API → M.shardSchema source |
+| 7 | .113 gridPrefetch → outputIndex source | .484 module lattice → Float32Array buffer |
+| 8 | .078 gridPrefetch.current.hashes Set table | .464 crossbow owner → assets.wire Map → bytes |
+| 9 | .064 gridPrefetch → M.materialGraph source | .369 API → graphBackend source |
+| 10 | .063 V8 small-integer string cache | .333 crossbow owner → assets.wire Map → bytes |
+| 11 | .048 module resolver → bytecode | .306 Inspector.asLocator source |
+| 12 | .048 W.sw.adopt → main source | .259 API.saves.memory Map → saved JSON string |
+| 13 | .047 W.asset-tables.versions properties | .252 crossbow owner → assets.wire Map → bytes |
+| 14 | .047 W.asset-tables.bytes properties | .252 player motor → collider heightfield buffer |
+| 15 | .033 gridPrefetch → questSteps source | .252 interaction callback → heightfield buffer |
+
+No large closed-scope leak appears: menu has zero closed Scopes; Template has
+one closed `ui.Loading` scope. Its graph-cut-dependent storage is 344 JS bytes
+and zero backing bytes. Menu has no geometry/texture objects or named resource
+allocations in the saved graph; other-shard catalogue/placement/size metadata
+is present, with no demonstrated foreign world payload.
+
+The actionable lifetime candidate is the completed menu prefetch's hash-dedupe
+Set (0.388 MiB selected subtree). Broader menu schema imports and the save/default
+registry are import/read-audit candidates, not established dead caches.
+Template's largest JS category is code/metadata, led by Three (2.689 MiB) and
+session (2.101 MiB); its named product source backing is 5.591 MiB / 169 stores,
+whose lazy/retry readers must be checked before removal. The 40.44 MiB GPU
+render-target allocation remains parked for Jake/Opus as a look decision.
+
+Raw captures, streamed graphs, owner rows and full root paths remain locally in
+`tmp/core-memory-heaps/71b4/`; capture receipt
+`.git/proofs/20261024T143537-sp-x1-menu-template-heap-capture-93416.json`.
