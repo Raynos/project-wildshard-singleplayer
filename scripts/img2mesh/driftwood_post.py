@@ -69,6 +69,8 @@ ap.add_argument("--keep-texture", action="store_true",
                 help="PBR mode (photoreal shards): keep the texture, no facet colours / grade / quant, smooth shading")
 ap.add_argument("--normal-map", type=int, default=-1, help="--keep-texture: N² normal map baked from the high mesh (default the atlas size, 0 = none)")
 ap.add_argument("--roughness", type=float, default=0.9, help="--keep-texture: the material's roughness")
+ap.add_argument("--metal-off", action="store_true",
+                help="bake colour as if the generation had no metallic map (a TRELLIS creature's fur reads black)")
 ap.add_argument("--recalc-normals", action="store_true",
                 help="after decimating, turn every face outward (a generation's patches of inside-out faces show as holes under back-face culling)")
 ap.add_argument("--smooth-angle", type=float, default=40.0, help="--keep-texture: edges sharper than this (degrees) stay hard")
@@ -269,6 +271,14 @@ def bake_atlas(ob):
     ob.data.materials.append(mat)
     hi.hide_render = False
     hi.select_set(True)
+    for slot in hi.material_slots:  # Hunyuan3D-2 GLBs omit metallicFactor (glTF default 1): a DIFFUSE bake reads black
+        if slot.material and slot.material.use_nodes:
+            for n in slot.material.node_tree.nodes:
+                if n.type == "BSDF_PRINCIPLED" and a.metal_off:
+                    for link in list(n.inputs["Metallic"].links):
+                        slot.material.node_tree.links.remove(link)
+                if n.type == "BSDF_PRINCIPLED" and not n.inputs["Metallic"].links:
+                    n.inputs["Metallic"].default_value = 0.0
     size = max(ob.dimensions)
     bk = scene.render.bake
     bk.use_selected_to_active = True
