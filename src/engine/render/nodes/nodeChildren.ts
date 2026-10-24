@@ -1,7 +1,12 @@
 import { Node } from 'three/webgpu';
 
+// Plain property reads, not Reflect.get: JavaScriptCore runs Reflect.get as a native call per property, where a read is
+// an inline cache (the snapshot was 160 self samples of a Nalati drive Simulator profile on edd48d2f4c: node builds)
+/** an object read as its fields (a node's own properties, a plain sub-object's) */
+function fields(value: object): value is Record<string, unknown> { return value !== null; }
+
 function node(value: unknown): value is Node {
-  return value !== null && (typeof value === 'object' || typeof value === 'function') && Reflect.get(value, 'isNode') === true;
+  return value !== null && (typeof value === 'object' || typeof value === 'function') && fields(value) && value['isNode'] === true;
 }
 
 /** Snapshot the same immediate children as Node._getChildren, without its
@@ -9,8 +14,9 @@ function node(value: unknown): value is Node {
  * child setup may mutate its parent's properties while the iterator runs. */
 function snapshot(parent: Node): Node[] {
   const children: Node[] = [];
+  if (!fields(parent)) return children;
   for (const property of Object.getOwnPropertyNames(parent)) {
-    const value: unknown = Reflect.get(parent, property);
+    const value: unknown = parent[property];
     if (property.startsWith('_') || value === parent) continue;
     if (Array.isArray(value)) {
       for (let index = 0; index < value.length; index++) {
@@ -19,9 +25,10 @@ function snapshot(parent: Node): Node[] {
       }
     } else if (node(value)) children.push(value);
     else if (value !== null && typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype) {
+      if (!fields(value)) continue;
       for (const key in value) {
         if (key.startsWith('_')) continue;
-        const child: unknown = Reflect.get(value, key);
+        const child: unknown = value[key];
         if (node(child)) children.push(child);
       }
     }
