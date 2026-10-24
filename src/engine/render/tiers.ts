@@ -9,11 +9,10 @@ export const TIER_TABLE = {
     // animal draws (Animal.setDrawLod): fur / hard / eye within animalEyeDist, eyes in the hard material to animalOneDrawDist,
     // then the whole body in the fur material — 3 → 2 → 1 draws per animal
     animalEyeDist: 45, animalOneDrawDist: 100,
-    // the far herd (farHerd.ts): past this, a rig is drawn in one draw per model with every other far animal (same pixels:
-    // the batch skins each slot with the rig's own bones). The phone hides its animals at 150 m and draws a rig whole in
-    // one draw past animalOneDrawDist, so the band 100–150 m: Nalati's steady Simulator frame drew each far animal of its
-    // herd as its own skinned draw (uniform uploads 126 of 4940 samples, d587cf1c08)
-    animalFarBatchDist: 100,
+    // the far herd (farHerd.ts): past this, a rig is drawn in one draw per model with every other far animal; 0 = off (the
+    // phone hides its animals at 150 m). Tried at 100 (cd9034c1d8): Nalati's rigs never batch (no vertex colours) and
+    // only one stood in 100–150 m, while every coloured rig spawned would reserve GPU pages (Pine: 25 on the desktop)
+    animalFarBatchDist: 0,
     // the far herd takes the generated hulls at every distance (one draw per model); off here: the batch keeps a
     // copy of the hull per animal on the GPU
     animalHullBatch: false,
