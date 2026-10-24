@@ -1,6 +1,6 @@
 # Legacy folders: what depends on them, and the deletion rows (G604)
 
-**2026-10-24 (E496):** LD5–LD8 are built through [custom-code-freeze](custom-code-freeze-mini-plan.md), which folds them in with the concrete loader and module lists; Jake's E496 message is the deletion word.
+**2026-10-24 (E496):** [custom-code-freeze](custom-code-freeze-mini-plan.md) lists the concrete loader and module lists for LD5–LD8, but **they are not approved**: Jake, ~15:00, *"there's no go ahead to delete the 6 legacy shards and the legacy button … I haven't done the QA yet."* G606 stands.
 
 Jake, 2026-10-22: *"Explore world … is that still built on top of the legacy shards, or is that built on top of the shard
 files? … What other things in the game are going to break when we delete all the legacy shards?"* Then (G604): legacy

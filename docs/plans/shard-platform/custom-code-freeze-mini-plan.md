@@ -1,9 +1,9 @@
 # Custom code freeze and loader deletion (E496)
 
-**State:** `active` 2026-10-24 — Jake asked to build it. Audit by the plan agent's subagent, read only, at HEAD
+**State:** `active` 2026-10-24 — Jake asked to build it. **Legacy rows LD5–LD8 are NOT approved** (Jake ~15:00: *"there's no go ahead to delete the 6 legacy shards and the legacy button … I haven't done the QA yet"*; G606 stands); they wait for his QA and word. The legacy section below lists what becomes deletable then. Audit by the plan agent's subagent, read only, at HEAD
 a80ea662b5 (~14:40 Cancun): static import graph and export scan over `src/`, `scripts/`, `lint/`, `test/` (git-tracked
 plus generated discovery files), no builds. Builds on [legacy-deletion](legacy-deletion-mini-plan.md) (LD5–LD8 are
-built through this plan) and G693 (the ruler deletion is its own row there; this plan keeps and widens the zero lock
+listed here but wait for Jake's QA and word, G606) and G693 (the ruler deletion is its own row there; this plan keeps and widens the zero lock
 G693 keeps). HOST-AUDIT stays parked (G679): no host folds here.
 
 Jake, 2026-10-24 (E496):
@@ -114,10 +114,10 @@ through `scripts/commit.sh` (G689: related tests), green on types / lint / relat
 | **D4** | Delete the other test-only leftovers (Script V2 pieces, SDK leftovers, `regionalState`, `grid/state`) and their tests | ~500 | Codex | S | the graph's test-only list holds only the kept tools | — |
 | **D5** | Delete unused and test-only exports in live files (34 + 25, ~670 lines) | ~670 | Codex | S | each removed with root `tsc` green | — |
 | **D6** | Delete the 3 true orphans (`outputRuntimeRegistry` is in D2; `sdk/looks/shaderFamily.ts`, `commons/scripts.ts`) after a string grep | ~50 | Codex | XS | — | — |
-| **LD5** | ([legacy-deletion](legacy-deletion-mini-plan.md)) Remove the LEGACY entry: the loader list in §2 row "Legacy entry", the Developer ▸ Legacy shard buttons row, `shard-select-entries` legacy cases | ~350 | Codex | S | SHARD SELECT shows one ENTER WORLD; `git grep "legacyButtons\|shard/legacy'"` empty | F1–F5 |
-| **LD6** | Delete the folders in pairs, one commit each, each regenerating `shards.generated.ts` / `slugs.generated.json` and pruning lint rows: **Sky + Signal** (305 files, 17,742 code lines), **Driftwood + Pine** (431, 51,101), **Nalati + Nine** (407, 63,479) | 132,322 (25.4 MB) | Codex | M | gates green per pair; boot smoke after the last | LD5 |
-| **LD7** | With each LD6 pair, delete what only that pair imported: the 34 legacy-only modules (1,426 lines) and 26 legacy-only exports (~350), `lint/host-reviews.json` frozen exceptions, `check-models.mjs` and `runtime-performance.json` legacy entries | ~1,780 | Codex | M | regraph shows no legacy-only module | LD6 pair |
-| **LD8** | Retire the legacy tooling: `legacy-shards.{json,mjs,d.mts}`, `legacy-line-basis.json` (if G693 left it), `decision-legacy-lines.mjs`, `legacySourcePath`, `legacy-npc-imports` + `legacyNpcImport`, `LEGACY_SHARDS`, `legacy-seal.test.ts` and synthetic legacy tests | ~2,750 | Codex | S | `git grep -E "legacy-shards|LEGACY_SHARDS|legacySourcePath"` empty | LD6 |
+| **LD5** (waits for Jake's QA, G606) | ([legacy-deletion](legacy-deletion-mini-plan.md)) Remove the LEGACY entry: the loader list in §2 row "Legacy entry", the Developer ▸ Legacy shard buttons row, `shard-select-entries` legacy cases | ~350 | Codex | S | SHARD SELECT shows one ENTER WORLD; `git grep "legacyButtons\|shard/legacy'"` empty | F1–F5 |
+| **LD6** (waits for Jake's QA, G606) | Delete the folders in pairs, one commit each, each regenerating `shards.generated.ts` / `slugs.generated.json` and pruning lint rows: **Sky + Signal** (305 files, 17,742 code lines), **Driftwood + Pine** (431, 51,101), **Nalati + Nine** (407, 63,479) | 132,322 (25.4 MB) | Codex | M | gates green per pair; boot smoke after the last | LD5 |
+| **LD7** (waits for Jake's QA, G606) | With each LD6 pair, delete what only that pair imported: the 34 legacy-only modules (1,426 lines) and 26 legacy-only exports (~350), `lint/host-reviews.json` frozen exceptions, `check-models.mjs` and `runtime-performance.json` legacy entries | ~1,780 | Codex | M | regraph shows no legacy-only module | LD6 pair |
+| **LD8** (waits for Jake's QA, G606) | Retire the legacy tooling: `legacy-shards.{json,mjs,d.mts}`, `legacy-line-basis.json` (if G693 left it), `decision-legacy-lines.mjs`, `legacySourcePath`, `legacy-npc-imports` + `legacyNpcImport`, `LEGACY_SHARDS`, `legacy-seal.test.ts` and synthetic legacy tests | ~2,750 | Codex | S | `git grep -E "legacy-shards|LEGACY_SHARDS|legacySourcePath"` empty | LD6 |
 | **A1** | Collapse the internal plugin plumbing to one client-plan boot: generated `load` thunk → a platform constant, `declaredClientPlanEntry` + empty `ShardPlugin` + `standaloneHybridEntry` + `prepareStandaloneHybrid` → one path; `retainHomeRuntime` / `stagesOwner` policy flags settled per shard as data or removed; `game/shard/plugin.ts`, `scopedRuntime.ts`, the hybrid-only parts of `hybrid.ts` (539) | ~700 | Codex | L | no `ShardPlugin` subclass outside the game; boot smoke + one Chromium walk per shard | LD8 |
 | **A2** | Regraph and sweep the second wave: modules whose only importers were LD7 or A1 deletions, `sdk/runtime/**` and the `sdk-no-facade` ratchet, `ShardContext` methods with no caller (export- and member-level), stale ENGINE.md sections | ~500 (measured then) | Codex | M | the graph lists no orphan or test-only module except the kept tools | A1 |
 
@@ -126,9 +126,7 @@ lines plus LD6's 132.3k.
 
 ## Decisions
 
-1. **Legacy deletion goes ahead now, superseding G606's phone-QA gate (and G604's "only on Jake's word after his
-   QA")?** Recommended **yes**, per Jake's message 2 (*"after deleting legacy shards"*): LD4 parity is not re-run, LD5
-   starts once F1–F5 land, and G673's Developer ▸ Legacy shard buttons row goes with LD5 (Clear downloads stays).
+1. **Legacy deletion: NOT now.** Jake, ~15:00: *"there's no go ahead to delete the 6 legacy shards and the legacy button … Keep [them]. I haven't done the QA yet."* G606 stands: LD5–LD8 wait for his QA and word; the Developer ▸ Legacy shard buttons row stays.
 2. **The freeze is a structural zero, not per-component policy?** Recommended **yes**: F1's "0 countable lines in
    every non-legacy shard folder" plus F3's hard lint rule, with no ratchet or raise path; the CI census of platform
    chargebacks stays as G693 keeps it.
