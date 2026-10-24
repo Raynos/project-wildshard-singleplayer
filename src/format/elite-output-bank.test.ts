@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { ELITE_OUTPUT_OPERATION, parseEliteOutputActions, parseEliteOutputBank, readEliteOutputV2 } from '../src/format/eliteFeature';
+import { ELITE_OUTPUT_OPERATION, parseEliteOutputActions, parseEliteOutputBank, readEliteOutputV2 } from './eliteFeature';
 
 const actions = [
   { id: 1, controller: 0, kind: 'contact', amount: 14 },

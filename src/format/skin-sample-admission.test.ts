@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { SkinPoseLayerSchema } from '../src/format/skinLayers';
-import { parseSkinBindings, parseSkinRows } from '../src/format/skinData';
+import { SkinPoseLayerSchema } from './skinLayers';
+import { parseSkinBindings, parseSkinRows } from './skinData';
 
 const layer = () => ({ id: 'breath', period: 1, times: [0, 1], phasePeriod: 1, phaseSteps: 0,
   tracks: [{ bone: 'body', property: 'position', axis: 'x', order: 'XYZ', values: [0, 0] }] });

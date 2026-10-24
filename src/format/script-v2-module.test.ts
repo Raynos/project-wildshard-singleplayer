@@ -1,6 +1,6 @@
 import { expect,test } from 'vitest';
 import binaryen from 'binaryen';
-import { readV2Module } from '../src/format/scriptModuleV2';
+import { readV2Module } from './scriptModuleV2';
 
 function wasm(body: string, memory = '(import "env" "memory" (memory 1 1))'): Uint8Array {
   const module = binaryen.parseText(`(module ${memory} ${body})`);
