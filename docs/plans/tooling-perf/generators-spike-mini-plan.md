@@ -2,7 +2,7 @@
 
 **State:** `in progress` 2026-10-24 — G654/G656 decided; GR0–GR2 complete (sp-x1), including Template/Pastel's
 zero-catalogue, source-only product build acceptance on `ea96805666`;
-GR3–GR12 and GS1–GS5 remain open. Separate from the [gen speed plan](gen-mini-plan.md)
+GR3 is in flight (sp-x1); GR4–GR12 and GS1–GS5 remain open. Separate from the [gen speed plan](gen-mini-plan.md)
 (caching and timing), the [TypeScript plan](typescript-mini-plan.md) and [no binaries in JSON](no-binaries-in-json-mini-plan.md).
 
 Jake, 2026-10-23: *"It sounds completely fucked that the generators are reading the generated output of other generators.
@@ -120,7 +120,7 @@ in `public/assets/<slug>/` as real `.glb` / `.png` / `.ktx2` / `.bin`. App-wide 
 | GR0 | done (2026-10-24, sp-x1): existing import ban `7d9ada1bbb` plus generated-source guard; exact-path output debt only shrinks, G656 app sources remain separately reviewed | S | staged/push Git checks and pre/post-gen + CI tree checks refuse new source outputs; 138 focused cases pass |
 | GR1 | done (2026-10-24, sp-x1): SDK `ctx.cached` / `ctx.asset`, in-memory boss metadata and Template/Pastel map/world programs; `de4c2ed072` + `89dc5c0c07` + `ea96805666` | M | Exact `ea96805666` full preview passes all 24 products in 165.42 s; both folders have zero job rows and no new file under `src/` after generation/build |
 | GR2 | done (2026-10-24, sp-x1): `326950c025` + `78681f7cf5`; app tables then the existing per-product build pool, heavy-lane, scoped `--shard=`; preparation-only CI preserved | S | fresh Node refuses any scheduler import for a fully converted folder; 29 focused + 410 ready-related cases pass; exact `78681` generation builds all 24 products |
-| GR3 | **Nine** (27 jobs): calls replace imports; `castHook` / `lightSpill` / `paintArray` become cached `.glb` / `.bin` (closes B4); atlases per D2; its tests call functions | L | 0 Nine rows in the catalogue, 0 `*.generated.*` under its folder, product validates, boot smoke green |
+| GR3 | in flight (2026-10-24, sp-x1): **Nine** (28 current jobs): calls replace imports; `castHook` / `lightSpill` / `paintArray` become cached `.glb` / `.bin` (closes B4); atlases per D2; its tests call functions | L | 0 Nine rows in the catalogue, 0 `*.generated.*` under its folder, product validates, boot smoke green |
 | GR4 | **Sunscar** (23 jobs) | M | same bar |
 | GR5 | **Far Reach** (47) | L | same bar |
 | GR6 | **Nalati** (47; 69 product imports, `poiPaint` / `grass` / `geography`) | L | same bar |
