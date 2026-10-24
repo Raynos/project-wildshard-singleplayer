@@ -1,0 +1,42 @@
+{
+  "revision": "a80ea662b5f4f054d5940b6654209b89ef8f91ea",
+  "build": "a80ea66-mvmssanv",
+  "device": "iPhone 16 Pro",
+  "source": "agent-browser, real title grid click and G332 harness pose; captions added in DOM before screenshot",
+  "road": {
+    "contextLost": false,
+    "current": null,
+    "draws": 28,
+    "feet": {
+      "x": 281.2500038395738,
+      "y": 0.01999768589739688,
+      "z": 0
+    },
+    "pitch": 562.5,
+    "scale": 2,
+    "viewport": [
+      402,
+      874,
+      2
+    ]
+  },
+  "junction": {
+    "contextLost": false,
+    "current": null,
+    "draws": 28,
+    "feet": {
+      "x": 281.24999219145803,
+      "y": 0.02005033068126068,
+      "z": 281.24998579008127
+    },
+    "pitch": 562.5,
+    "scale": 2,
+    "viewport": [
+      402,
+      874,
+      2
+    ]
+  },
+  "errors": "",
+  "limits": "Phone portrait Chromium functional/pixel witness; not Safari/Simulator, not performance or physical-device proof. Source pitch 562.5; both observed scenes have live GL and 2x renderer scale."
+}

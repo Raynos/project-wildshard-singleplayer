@@ -1,0 +1,165 @@
+{
+  "revision": "a80ea662b5f4f054d5940b6654209b89ef8f91ea",
+  "build": "a80ea66-mvmssanv",
+  "tier": "phone",
+  "gapMetres": 62.5,
+  "pitchMetres": 562.5,
+  "raw": "tmp/sp-x6-tile-lattice/native-grid/t9-native-a80ea66-mvmssanv.json",
+  "rawSha256": "01dfeeb975feffe1ad895c51198365af3e2d3dc7c948ba0b084edd2099ffad44",
+  "command": "scripts/browser-lane.sh node scripts/physics-baseline.mjs --no-build --mode=grid --url=http://127.0.0.1:4400 --label=t9-native --out=tmp/sp-x6-tile-lattice/native-grid",
+  "limits": "Functional native controller and collider proof only. Foreign grep CPU load was present; no timing or frame-floor claim. Raw traces remain in ignored scratch.",
+  "grid": [
+    {
+      "home": "driftwood-isle",
+      "peer": "template-2",
+      "speed": 15,
+      "start": {
+        "x": 0,
+        "z": 230
+      },
+      "waypoints": [
+        {
+          "x": 0,
+          "z": 281.25
+        },
+        {
+          "x": 562.5,
+          "z": 281.25
+        },
+        {
+          "x": 562.5,
+          "z": 332.5
+        },
+        {
+          "x": 562.5,
+          "z": 281.25
+        },
+        {
+          "x": 0,
+          "z": 281.25
+        },
+        {
+          "x": 0,
+          "z": 230
+        }
+      ],
+      "turnaround": 2,
+      "timeout": 119,
+      "stuck": [],
+      "complete": true,
+      "timedOut": false,
+      "crossingDelta": 4,
+      "transitions": [
+        {
+          "from": "driftwood-isle",
+          "to": null
+        },
+        {
+          "from": null,
+          "to": "template-2"
+        },
+        {
+          "from": "template-2",
+          "to": null
+        },
+        {
+          "from": null,
+          "to": "driftwood-isle"
+        }
+      ],
+      "samples": 2873,
+      "minFeetY": 0.01576388888888889,
+      "maxFeetY": 1.2015283281330464,
+      "allControllersEnabled": true,
+      "allGameplayReady": false,
+      "end": {
+        "time": 95.97390000009553,
+        "x": -0.0029534982531913556,
+        "y": 0.9066375516687079,
+        "z": 230.08548693574994,
+        "current": "driftwood-isle",
+        "enabled": true,
+        "gameplayReady": true
+      },
+      "issues": {},
+      "backgroundIssues": {}
+    },
+    {
+      "home": "driftwood-isle",
+      "peer": "template-2",
+      "speed": 30,
+      "start": {
+        "x": 0,
+        "z": 230
+      },
+      "waypoints": [
+        {
+          "x": 0,
+          "z": 281.25
+        },
+        {
+          "x": 562.5,
+          "z": 281.25
+        },
+        {
+          "x": 562.5,
+          "z": 332.5
+        },
+        {
+          "x": 562.5,
+          "z": 281.25
+        },
+        {
+          "x": 0,
+          "z": 281.25
+        },
+        {
+          "x": 0,
+          "z": 230
+        }
+      ],
+      "turnaround": 2,
+      "timeout": 75,
+      "stuck": [],
+      "complete": true,
+      "timedOut": false,
+      "crossingDelta": 4,
+      "transitions": [
+        {
+          "from": "driftwood-isle",
+          "to": null
+        },
+        {
+          "from": null,
+          "to": "template-2"
+        },
+        {
+          "from": "template-2",
+          "to": null
+        },
+        {
+          "from": null,
+          "to": "driftwood-isle"
+        }
+      ],
+      "samples": 1801,
+      "minFeetY": 0.39002459701728814,
+      "maxFeetY": 1.2132956121041218,
+      "allControllersEnabled": true,
+      "allGameplayReady": false,
+      "end": {
+        "time": 60.048000000000286,
+        "x": -0.031236777338676802,
+        "y": 0.8423843930396107,
+        "z": 230.47890863016255,
+        "current": "driftwood-isle",
+        "enabled": true,
+        "gameplayReady": true
+      },
+      "issues": {},
+      "backgroundIssues": {}
+    }
+  ],
+  "gridFailures": [],
+  "gridErrors": []
+}

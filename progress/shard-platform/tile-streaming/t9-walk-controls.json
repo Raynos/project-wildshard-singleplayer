@@ -1,0 +1,101 @@
+{
+  "purpose": "Pre-T9 and affected-build first-east controls for the diagnostic fallback gate trap; functional proof only, no timing comparison.",
+  "controls": [
+    {
+      "build": "f42d192-mvmunikb",
+      "raw": "tmp/sp-x6-tile-lattice/pre-lattice-walk/t9-pre-lattice-f42d192-mvmunikb.json",
+      "rawSha256": "324aa11a2962cfa59582ec92029065fb3700d573604ddb722cee7aa24b76fd8d",
+      "name": "t9-east-seam-roundtrip",
+      "frames": 575,
+      "seconds": 19.2,
+      "end": {
+        "x": 240.72,
+        "y": 0.011,
+        "z": 0
+      },
+      "stuck": [],
+      "complete": true,
+      "timedOut": false,
+      "frameGate": true,
+      "gameplayReady": true,
+      "transitions": [
+        {
+          "from": null,
+          "to": "driftwood-isle"
+        },
+        {
+          "from": "driftwood-isle",
+          "to": null
+        },
+        {
+          "from": null,
+          "to": "driftwood-isle"
+        }
+      ],
+      "activation": [
+        {
+          "instance": "driftwood-isle",
+          "hook": "activate",
+          "start": 3424.399999976158,
+          "end": 3447,
+          "outcome": "done"
+        },
+        {
+          "instance": "driftwood-isle",
+          "hook": "activate",
+          "start": 26774.399999976158,
+          "end": 26793.700000047684,
+          "outcome": "done"
+        }
+      ]
+    },
+    {
+      "build": "a80ea66-mvmssanv",
+      "raw": "tmp/sp-x6-tile-lattice/a80-bounded-walk/t9-a80-bounded-a80ea66-mvmssanv.json",
+      "rawSha256": "0e77dca4a7c0f52a424e828a9398718e63823c7ff87efc49cbac4228752bdbfa",
+      "name": "t9-east-seam-roundtrip",
+      "frames": 620,
+      "seconds": 20.7,
+      "end": {
+        "x": 240.648,
+        "y": 0.015,
+        "z": 0
+      },
+      "stuck": [],
+      "complete": true,
+      "timedOut": false,
+      "frameGate": true,
+      "gameplayReady": true,
+      "transitions": [
+        {
+          "from": null,
+          "to": "driftwood-isle"
+        },
+        {
+          "from": "driftwood-isle",
+          "to": null
+        },
+        {
+          "from": null,
+          "to": "driftwood-isle"
+        }
+      ],
+      "activation": [
+        {
+          "instance": "driftwood-isle",
+          "hook": "activate",
+          "start": 3625.5,
+          "end": 3647,
+          "outcome": "done"
+        },
+        {
+          "instance": "driftwood-isle",
+          "hook": "activate",
+          "start": 28441.899999976158,
+          "end": 28460.099999904633,
+          "outcome": "done"
+        }
+      ]
+    }
+  ]
+}

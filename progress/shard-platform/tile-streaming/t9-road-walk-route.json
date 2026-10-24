@@ -1,0 +1,97 @@
+{
+  "$doc": "G638/T9: walk each Driftwood native entry apron (240 m, inside ENTRY_ASPHALT 235..250) across the cell edge, both 6/10 m re-frame lines and the 562.5 m lattice road midpoint, then back. Start outside the unchanged streamed jetty at north 230 m. Use physics-baseline.mjs --mode=walk --entry=grid-only --shard=driftwood-isle with this route. Only each initial pose is placed; both seam directions use real held walking input. The 15/30 m/s peer crossing proof is separate.",
+  "driftwood-isle": [
+    {
+      "name": "t9-east-seam-roundtrip",
+      "start": {
+        "x": 240,
+        "y": 0.55,
+        "z": 0,
+        "yaw": -1.5707963267948966
+      },
+      "waypoints": [
+        {
+          "x": 281.25,
+          "z": 0
+        },
+        {
+          "x": 240,
+          "z": 0
+        }
+      ],
+      "expect": {
+        "y": 0
+      },
+      "timeout": 45
+    },
+    {
+      "name": "t9-west-seam-roundtrip",
+      "start": {
+        "x": -240,
+        "y": 0.55,
+        "z": 0,
+        "yaw": 1.5707963267948966
+      },
+      "waypoints": [
+        {
+          "x": -281.25,
+          "z": 0
+        },
+        {
+          "x": -240,
+          "z": 0
+        }
+      ],
+      "expect": {
+        "y": 0
+      },
+      "timeout": 45
+    },
+    {
+      "name": "t9-north-seam-roundtrip",
+      "start": {
+        "x": 0,
+        "y": 0.55,
+        "z": 240,
+        "yaw": 3.141592653589793
+      },
+      "waypoints": [
+        {
+          "x": 0,
+          "z": 281.25
+        },
+        {
+          "x": 0,
+          "z": 240
+        }
+      ],
+      "expect": {
+        "y": 0
+      },
+      "timeout": 45
+    },
+    {
+      "name": "t9-south-seam-roundtrip",
+      "start": {
+        "x": 0,
+        "y": 0.55,
+        "z": -240,
+        "yaw": 0
+      },
+      "waypoints": [
+        {
+          "x": 0,
+          "z": -281.25
+        },
+        {
+          "x": 0,
+          "z": -240
+        }
+      ],
+      "expect": {
+        "y": 0
+      },
+      "timeout": 45
+    }
+  ]
+}
