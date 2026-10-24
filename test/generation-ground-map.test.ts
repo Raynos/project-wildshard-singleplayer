@@ -1,12 +1,9 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Compare large actual pixel banks without a per-byte assertion report.
-import { Buffer } from 'node:buffer';
 // oxlint-disable-next-line import/no-nodejs-modules -- Only resolve the actual author module for its one-chunk boundary proof.
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
-import { MapRaster, stylizeMap } from '../scripts/map-painter.mjs';
 import { rasterGroundMap } from '../src/sdk/bake/groundMap';
-import { decodeTerrainTile } from '../src/format/terrainTileBytes';
+import { hashImmutableBytes } from '../src/sdk/immutable';
 import { templateTerrain } from '../src/shards/_template/generators/terrain';
 import { templatePropRows } from '../src/shards/_template/generators/props';
 import { pastelTerrain } from '../src/shards/pastel-plain/generators/terrain';
@@ -16,27 +13,19 @@ import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import templateSettings from '../src/shards/_template/data/map.json' with { type: 'json' };
 import pastelSettings from '../src/shards/pastel-plain/data/map.json' with { type: 'json' };
 
-function bytes(assets: ReadonlyMap<string, Uint8Array>, hash: string): Uint8Array {
-  const value = assets.get(hash); if (value === undefined) throw new Error('Missing map source geometry'); return value;
-}
-async function compare(terrain: ReturnType<typeof templateTerrain>, props: BakedProps, settings: { style: { kind: string } & Record<string, unknown> }): Promise<void> {
-  const tiles = terrain.terrain.tiles.filter(row => row.lod === 0).map(row => bytes(terrain.assets, row.file));
-  const refs: string[] = [];
-  for (const row of props.props.tiles) if (row.lod === 0) refs.push(row.file, ...row.additionalFiles ?? []);
-  for (const row of props.props.panels) if (row.visible) refs.push(row.file);
-  const glbs = refs.map(hash => bytes(props.assets, hash));
-  const old = new MapRaster(1000);
-  for (const tile of tiles) old.terrain(decodeTerrainTile(tile));
-  for (const glb of glbs) await old.glb(glb);
+// Captured with the unchanged legacy MapRaster + stylizeMap, not rasterGroundMap.
+// Each digest covers all 4,000,000 RGBA bytes; no pixel sampling or second reference repaint.
+async function compare(terrain: ReturnType<typeof templateTerrain>, props: BakedProps, settings: { style: { kind: string } & Record<string, unknown> }, original: string): Promise<void> {
   const actual = await rasterGroundMap(terrain, props, settings.style);
-  expect(actual.triangles).toBe(old.triangles);
-  expect(Buffer.compare(actual.pixels, stylizeMap(old, settings.style))).toBe(0);
+  expect(actual.triangles).toBe(143742);
+  expect(actual.pixels.byteLength).toBe(4_000_000);
+  expect(hashImmutableBytes(actual.pixels)).toBe(original);
 }
 
 test('source-only Template and Pastel ground maps preserve every original RGBA pixel and triangle', async () => {
-  await compare(templateTerrain(), templatePropRows(), templateSettings);
+  await compare(templateTerrain(), templatePropRows(), templateSettings, '4a68dc808e545f44774647e865ed518dca767a9b5bb05e5c1bc6789eede9f19d');
   const fixture = pastelProps(20);
-  try { await compare(pastelTerrain(), bakeProps(fixture.source), pastelSettings); }
+  try { await compare(pastelTerrain(), bakeProps(fixture.source), pastelSettings, '337e2ebb91e28ebd9b3c6edff18009ee844c7496a88005af0cbdb718ef9fc798'); }
   finally { fixture.dispose(); }
 });
 
