@@ -48,10 +48,6 @@ import { dropShadowColour } from '../world/shadowVariants';
 import { recordGpuCheckpoint, traceBootPasses } from '../boot/gpuTrace';
 import { exploreEntryPending, recordExploreFrame, recordBootCheckpoint, bootTraceActive } from '../boot/bootTrace';
 import { cullPlaced } from '../models/place';
-/** a pre-warm slice waits while the last frame took longer than this (a long task already spent it) */
-const PREWARM_LONG_FRAME_MS = 40;
-/** drawn frames between a pre-warm's passes over its growing root */
-const PREWARM_PASS_FRAMES = 60;
 
 /** the world's pace during a hit-stop (not 0: nothing downstream has to cope with a zero dt) */
 const HIT_STOP_SCALE = 0.04;
@@ -857,47 +853,6 @@ export class Game {
       enter('shaders-and-composer');
       await this.warmEnteredStages(owner, composer, trace, current, futureRoot, enter);
     });
-  }
-
-  /**
-   * A parked root's programs built while its world is still being made, ahead of its entry warm-up (`warmEnteredFrame`):
-   * the same compile (page lights, the root's future lights, the bound frame's environment, live slices) in passes over
-   * the growing root, at most one slice every `every` drawn frames and never right after a long frame. A graph program is
-   * one unsliceable build (~20 ms at phone 4x), so the entry warm's builds filled the last seconds before entry with
-   * long frames (Nine's drive: 56 builds in 4.6 s; Pine: 44 of 56 at entry). The entry warm still runs whole and
-   * builds whatever this did not, so entry never waits on it. Nothing compiles before `kick` (the world complete, its
-   * content and lights in); `stop` ends it at its next slice and resolves when it has.
-   */
-  prewarmEnteredRoot(owner: Scope, root: THREE.Object3D, every = 2): { readonly kick: () => void; readonly stop: () => Promise<void> } {
-    let stopped = false, kicked = false;
-    const current = (): boolean => !stopped && !owner.disposed;
-    const passes = async (): Promise<void> => {
-      const { precompileLevel, waitForDrawnFrame, LIVE_PRECOMPILE_SLICE_MS } = await import('../render/precompile');
-      const drawn = (): Promise<void> => waitForDrawnFrame(owner, () => this.frameCount, current);
-      const lastFrameMs = (): number => this.frameMs[(this.frameI + this.frameMs.length - 1) % this.frameMs.length] ?? 0;
-      // a slice after `every` drawn frames, later while the last frame was long (up to 4 x `every` frames)
-      const spaced = async (): Promise<void> => {
-        for (let i = 0; i < every || (lastFrameMs() > PREWARM_LONG_FRAME_MS && i < every * 4); i++) await drawn();
-      };
-      // A graph program keys each light by its id (LightsNode): compiled while a world still adds its lights (Pine's
-      // cabins and lookout), every pass keyed a light set the entry never draws with (50 desktop builds, 6 saved). The
-      // passes start once the world is complete (`kick`) and a pass is run again only for a changed light set.
-      const lightSet = (): string => { const ids: number[] = []; this.rootScene.traverse(object => { if (object instanceof THREE.Light) ids.push(object.id); }); return ids.join(','); };
-      while (current()) { if (kicked) break; await drawn(); }
-      while (current()) {
-        kicked = false;
-        const lights = lightSet(), environment = this.scene.environment, leaving = this.viewmodel.staged(owner);
-        await precompileLevel(this, undefined, { chunkCasters: false, current, owner, futureLighting: root, sliceMs: LIVE_PRECOMPILE_SLICE_MS,
-          pause: spaced, ...(environment === null ? {} : { futureEnvironment: environment }), ...(leaving === undefined ? {} : { leaving: [leaving] }) });
-        // a light added meanwhile keyed this pass for nothing: run it again at once; else pick up new content later
-        if (lightSet() !== lights) continue;
-        for (let i = 0; i < PREWARM_PASS_FRAMES && current(); i++) { if (kicked) break; await drawn(); }
-      }
-    };
-    const run = (async (): Promise<void> => {
-      try { await passes(); } catch (error: unknown) { if (current()) console.warn('[warm] pre-warm stopped', error); }
-    })();
-    return { kick: () => { kicked = true; }, stop: async () => { stopped = true; await run; } };
   }
 
   private async warmEnteredStages(owner: Scope, composer: EffectComposer, trace: EntryPreparation,

@@ -255,8 +255,6 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
           } } };
           const prepareFrame = foundation.prepare;
           let preparedModels: Object3D | null = null;
-          // its programs build while its world is made, ahead of the entry warm-up (Game.prewarmEnteredRoot)
-          let prewarm: { readonly kick: () => void; readonly stop: () => Promise<void> } | null = null;
           return { ...installation, context,
             ...(prepareFrame === undefined ? {} : { prepareConstruction: () => {
               preparing = true;
@@ -274,8 +272,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
               const forget = owner.capture('disposers', leave);
               return () => { try { forget(); leave(); } finally { preparing = false; } };
             } }),
-            beforeWorld: entered => { enteredContext = entered; prewarm ??= request.page.world.game.prewarmEnteredRoot(owner, view.root);
-              installEnteredRuntimeService(entered, entry => {
+            beforeWorld: entered => { enteredContext = entered; installEnteredRuntimeService(entered, entry => {
               foundation.enter(entry); app.bindPlayerServices(pageScope, entry); view.enter(entry);
               if (preparedModels !== null) {
                 const models = preparedModels; models.visible = true;
@@ -283,7 +280,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
               }
               app.addContentSystem({ id: `grid.runtime.${request.cell.instance}.pieces`, phase: 'fixed.pre', run: () => { view.sync(); } }, entry);
             }); },
-            afterWorld: entered => { prewarm?.kick(); return foundation.afterWorld?.(entered, world); }, // the world's content is in now
+            afterWorld: entered => foundation.afterWorld?.(entered, world),
             afterKit: async entered => {
               const left = (): boolean => owner.disposed;
               const regional = await foundation.afterKit(entered, world);
@@ -362,7 +359,6 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
               // Authored ctx.root is a sibling of the native scene under this view; its lights draw on entry too.
               // The region's own last preparation (its sky build, beforeWarm) runs inside the warm-up's time bound:
               // a stall there or in the warm-up is this admission's reported issue, never a silent hang (OP).
-              await prewarm?.stop(); prewarm = null;
               await request.page.world.game.warmEnteredFrame(owner, view.root, async () => {
                 await foundation.beforeWarm?.();
               });
