@@ -171,7 +171,10 @@ export function patchShader(mat: THREE.Material, id: string, order: number, fn: 
 /** per patched material: its patch suffix and keys, and the finished keys by renderer key (a node material is asked for
  *  its key on every draw, and each answer concatenated anew: ~345 MiB in a 20 s steady Nalati window), kept only when every
  *  patch key is a string or declared `pureKey` */
-const nodePatchKeys = new WeakMap<State, { readonly entries: readonly Entry[]; readonly suffix: string; readonly keys: readonly ShaderPatchKey[]; readonly results: Map<string, string> | null }>();
+const nodePatchKeys = new WeakMap<State, { readonly entries: readonly Entry[]; readonly suffix: string; readonly keys: readonly ShaderPatchKey[]; readonly results: Map<string, string> | null;
+  /** the last renderer key asked and its result: a node key runs to hundreds of KB, and the warm draw passes the same kept
+   *  string each time (`===` is a pointer test then; a Map lookup by it hashed or compared it whole on JavaScriptCore) */
+  lastIn: string | null; lastOut: string }>();
 /** finished keys a material keeps at once (its key contexts: the screen and the targets a frame draws it into) */
 const PATCH_KEY_RESULTS = 16;
 /** Retain registered source patches when a node renderer supplies its own context/program key. */
@@ -181,16 +184,18 @@ export function shaderPatchProgramKey(material: THREE.Material, rendererKey: str
   let memo = nodePatchKeys.get(state);
   if (memo === undefined || memo.entries !== state.entries) {
     const own = state.entries.filter(entry => entry.id !== 'inherited');
-    memo = { entries: state.entries, suffix: own.length === 0 ? '' : `|${defaultKey(state.entries)}|${own.map(entry => entry.id).join('|')}`,
+    memo = { entries: state.entries, suffix: own.length === 0 ? '' : `|${defaultKey(state.entries)}|${own.map(entry => entry.id).join('|')}`, lastIn: null, lastOut: '',
       keys: [...own].sort((a, b) => a.seq - b.seq).flatMap(entry => entry.key === undefined ? [] : [entry.key]),
       results: own.every(entry => entry.key === undefined || typeof entry.key === 'string' || entry.pureKey === true) ? new Map() : null };
     nodePatchKeys.set(state, memo);
   }
-  const results = memo.results, known = results?.get(rendererKey);
-  if (known !== undefined) return known;
+  const results = memo.results;
+  if (results !== null && memo.lastIn === rendererKey) return memo.lastOut;
+  const known = results?.get(rendererKey);
+  if (known !== undefined) { memo.lastIn = rendererKey; memo.lastOut = known; return known; }
   let key = rendererKey + memo.suffix;
   for (const operation of memo.keys) key = typeof operation === 'string' ? `${key}|${operation}` : operation(key);
-  if (results !== null) { if (results.size >= PATCH_KEY_RESULTS) results.clear(); results.set(rendererKey, key); }
+  if (results !== null) { if (results.size >= PATCH_KEY_RESULTS) results.clear(); results.set(rendererKey, key); memo.lastIn = rendererKey; memo.lastOut = key; }
   return key;
 }
 

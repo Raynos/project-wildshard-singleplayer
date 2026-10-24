@@ -356,7 +356,14 @@ interface StockKeyMemo {
   rawOutput: boolean;
   /** each object shape's whole key: [plain, receive] */
   readonly keys: Map<string, [string | undefined, string | undefined]>;
+  /** each object shape's final key (patches folded in) and its token: [plain, receive] (`keyToken`) */
+  readonly tokens: Map<string, [KeyToken | undefined, KeyToken | undefined]>;
 }
+/** a final program key and the token that stands for it in `NodeProgramVariants` */
+interface KeyToken { readonly final: string; readonly token: object }
+/** distinct final program keys holding a token at once (more: the table starts over, and each key's next draw takes a
+ *  new token: one cold variant lookup, never a wrong one) */
+const KEY_TOKEN_CAP = 1024;
 
 /** WebGLUniforms.setValue(gl, name, value, textures), as `hookPlainUniforms` wraps it */
 type UniformSetter = (this: unknown, gl: unknown, name: unknown, value: unknown, textures: unknown) => void;
@@ -383,6 +390,10 @@ export class EngineNodesHandler extends WebGLNodesHandler {
    *  memo miss): a diagnostic, as the build log; a warm frame should build next to none */
   keyAsks = 0;
   keyBuilds = 0;
+  /** the token of the program key the last customProgramCacheKey ask returned (null: a key no memo kept) */
+  private lastKeyToken: object | null = null;
+  /** one token per distinct final program key (`KeyToken`) */
+  private readonly keyTokens = new Map<string, object>();
   private readonly textureUpdates: TextureUpdates;
   private readonly frame: NodeFrame;
   /** The material's active program view, including its validated block list. */
@@ -495,7 +506,20 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     // It is computed once per material, receive-shadow flag and key context (scene hash, bound target, output transform:
     // `keyContextNow`), and again whenever the material's version moves.
     const stockKeys = this.stockKeys, keyContext = (): number => this.keyContextNow();
-    const asked = (): void => { this.keyAsks++; }, built = (): void => { this.keyBuilds++; };
+    const asked = (): void => { this.keyAsks++; this.lastKeyToken = null; }, built = (): void => { this.keyBuilds++; };
+    // the final key's token: the slot's own while its key holds (`===`: a pointer test for the kept string), else the
+    // table's for that key text (one whole-key lookup a new slot), so equal keys share a token across memos
+    const tokens = this.keyTokens;
+    const tokened = (memo: StockKeyMemo, objectKey: string, slot: 0 | 1, final: string): string => {
+      let row = memo.tokens.get(objectKey);
+      if (row === undefined) { row = [undefined, undefined]; memo.tokens.set(objectKey, row); }
+      const held = row[slot];
+      if (held !== undefined && held.final === final) { this.lastKeyToken = held.token; return final; }
+      let token = tokens.get(final);
+      if (token === undefined) { if (tokens.size >= KEY_TOKEN_CAP) tokens.clear(); token = {}; tokens.set(final, token); }
+      row[slot] = { final, token }; this.lastKeyToken = token;
+      return final;
+    };
     // The stock key with its leading material hash (the hash of its node ids) replaced by its graph's shape (G669 DR8).
     // three's key is materialHash + sceneHash + rendererHash + objectHash, and its material hash is the class's own
     // customProgramCacheKey: the tail is read through a stand-in whose class hash is empty, so a shared graph's key walks no
@@ -525,22 +549,22 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       let memo: (typeof memos)[number] | undefined; // a loop, not find(): no closure made on every draw
       for (let i = 0; i < memos.length; i++) if (memos[i]?.stamp === stamp) { memo = memos[i]; break; }
       if (memo === undefined) {
-        memo = { stamp, version: this.version, receive: undefined, plain: undefined, fog, layer, toneMapped: this.toneMapped, rawOutput, keys: new Map() };
+        memo = { stamp, version: this.version, receive: undefined, plain: undefined, fog, layer, toneMapped: this.toneMapped, rawOutput, keys: new Map(), tokens: new Map() };
         // a few key contexts a frame (the screen and its targets); a context that moved on drops out first
         if (memos.length >= MEMO_CONTEXTS) memos.shift();
         memos.push(memo);
       } else if (memo.fog !== fog || memo.layer !== layer || memo.toneMapped !== this.toneMapped || memo.rawOutput !== rawOutput) {
-        memo.fog = fog; memo.layer = layer; memo.toneMapped = this.toneMapped; memo.rawOutput = rawOutput; memo.keys.clear();
+        memo.fog = fog; memo.layer = layer; memo.toneMapped = this.toneMapped; memo.rawOutput = rawOutput; memo.keys.clear(); memo.tokens.clear();
       }
       // the whole key, kept per object shape and receive flag while its other parts hold (warm draws ask on every draw)
       let shape = memo.keys.get(objectKey);
       if (shape === undefined) { shape = [undefined, undefined]; memo.keys.set(objectKey, shape); }
       const slot = receive ? 1 : 0, kept = shape[slot];
-      if (kept !== undefined) return shaderPatchProgramKey(this, kept);
+      if (kept !== undefined) return tokened(memo, objectKey, slot, shaderPatchProgramKey(this, kept));
       let stock = receive ? memo.receive : memo.plain;
       if (stock === undefined) { stock = depth ? depthStockKey(this, receive) : sharedStock(this); if (receive) memo.receive = stock; else memo.plain = stock; }
       const key = wholeKey(stock, this.toneMapped, rawOutput, objectKey, fog, layer); shape[slot] = key; built();
-      return shaderPatchProgramKey(this, key);
+      return tokened(memo, objectKey, slot, shaderPatchProgramKey(this, key));
     };
     this.epilogue.push((out, ctx) => {
       const bound = materialNodeFogOf(ctx.material);
@@ -919,7 +943,10 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     if (internals(this).programCache.get(material)?.has(program) === true) Reflect.deleteProperty(material, '_latestBuilder');
     // Precompile pairing has no renderer version yet and must not claim the
     // last build's program for the current object's variant.
-    if (Reflect.get(materialProperties, '__version') === material.version) this.objectVariants.record(material, material.customProgramCacheKey(), materialProperties);
+    if (Reflect.get(materialProperties, '__version') === material.version) {
+      material.customProgramCacheKey(); const token = this.lastKeyToken;
+      if (token !== null) this.objectVariants.record(material, token, materialProperties);
+    }
     this.bindBlocks(material, program);
     const frame: unknown = Reflect.get(this, 'nodeFrame');
     this.bindAttributeDefaults(material, typeof frame === 'object' && frame !== null ? Reflect.get(frame, 'object') : undefined, program);
@@ -1021,7 +1048,9 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     if (real.properties.has(material)) {
       const properties: unknown = real.properties.get(material);
       if (!isMaterialProperties(properties)) throw new Error('Missing node material properties');
-      if (!this.objectVariants.select(material, material.customProgramCacheKey(), properties)) {
+      // the variants are keyed by the key's token (`tokened`), not the key text
+      material.customProgramCacheKey(); const token = this.lastKeyToken;
+      if (token === null || !this.objectVariants.select(material, token, properties)) {
         // A cold variant needs one normal lookup, without invalidating every
         // other warm variant by incrementing the material's version.
         properties.__version = -1;

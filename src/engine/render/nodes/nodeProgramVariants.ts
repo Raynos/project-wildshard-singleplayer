@@ -8,7 +8,11 @@ const FIELDS = ['currentProgram', '__version', 'uniforms', 'uniformsList', 'need
   'morphTargets', 'morphNormals', 'morphColors', 'morphTargetsCount', 'numClippingPlanes', 'numIntersection',
   'vertexAlphas', 'vertexTangents', 'toneMapping', 'environment', 'fog', 'envMap', 'envMapRotation', 'lightProbeGrid'] as const;
 type Snapshot = Record<(typeof FIELDS)[number], unknown>;
-interface Variants { version: number; active: string; entries: Map<string, Snapshot> }
+/** a variant's key: the handler's token for one whole program key (a pointer lookup; a node program key can run to
+ *  hundreds of KB, and a Map lookup by such a string hashed and compared it whole: the top render frame of a steady Nalati
+ *  Simulator profile, 241 of 5229 samples on one `entries.get`), or the key itself */
+export type VariantKey = object | string;
+interface Variants { version: number; active: VariantKey; entries: Map<VariantKey, Snapshot> }
 /** One fixed-shape copy of the fields (a literal, so every snapshot shares one hidden class and Object.assign copies it
  *  on V8's fast path: restoring them by name, one keyed store a field, was the top self frame of the Sim's Pine interior) */
 const snapshot = (p: object): Snapshot => ({
@@ -46,7 +50,7 @@ const snapshot = (p: object): Snapshot => ({
 export class NodeProgramVariants {
   private readonly materials = new WeakMap<Material, Variants>();
   /** Called only after WebGLRenderer selected a program for this exact key. */
-  record(material: Material, key: string, properties: object): void {
+  record(material: Material, key: VariantKey, properties: object): void {
     if (Reflect.get(properties, '__version') !== material.version) return;
     let variants = this.materials.get(material);
     if (variants === undefined || variants.version !== material.version) {
@@ -56,7 +60,7 @@ export class NodeProgramVariants {
   }
   /** Restore a warm selection; false forces just one ordinary renderer lookup.
    * A material edit invalidates every entry without changing material.version. */
-  select(material: Material, key: string, properties: object): boolean {
+  select(material: Material, key: VariantKey, properties: object): boolean {
     const variants = this.materials.get(material), entry = variants?.version === material.version ? variants.entries.get(key) : undefined;
     if (entry === undefined) return false;
     if (variants?.active !== key || Reflect.get(properties, 'currentProgram') !== entry.currentProgram) {
