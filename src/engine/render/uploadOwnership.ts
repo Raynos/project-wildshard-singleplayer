@@ -70,7 +70,10 @@ export class UploadOwnership {
    *  and texture's properties several times a draw, and a shared material or texture is drawn many times a render. */
   private drawGen = 0;
   private drawGens = 0;
-  private readonly observedIn = new WeakMap<object, { render: number; owner: Scope | null }>();
+  // A long-lived sampler must not keep its last resident Scope/world alive.
+  // Tokens preserve identity; neither a token nor a weak key retains its Scope.
+  private readonly ownerIds = new WeakMap<Scope, symbol>();
+  private readonly observedIn = new WeakMap<object, { render: number; owner: symbol | null }>();
   constructor(level: Scope, assets: AssetService) { this.level = level; this.assets = assets; }
   /** A snapshot of the live uploads (owned, and the unowned ones not yet collected). */
   resources(): ReadonlySet<object> {
@@ -94,10 +97,15 @@ export class UploadOwnership {
     if (this.level.disposed || !isResource(value)) return;
     const resource = value;
     if (this.drawDepth > 0) {
+      let owner: symbol | null = null;
+      if (this.drawOwner !== null) {
+        owner = this.ownerIds.get(this.drawOwner) ?? null;
+        if (owner === null) { owner = Symbol('upload owner'); this.ownerIds.set(this.drawOwner, owner); }
+      }
       const seen = this.observedIn.get(resource);
-      if (seen === undefined) this.observedIn.set(resource, { render: this.drawGen, owner: this.drawOwner });
-      else if (seen.render === this.drawGen && seen.owner === this.drawOwner) return;
-      else { seen.render = this.drawGen; seen.owner = this.drawOwner; }
+      if (seen === undefined) this.observedIn.set(resource, { render: this.drawGen, owner });
+      else if (seen.render === this.drawGen && seen.owner === owner) return;
+      else { seen.render = this.drawGen; seen.owner = owner; }
     }
     const acquired = this.assets.isAcquired(resource);
     const consumer = this.drawOwner ?? (this.drawDepth > 0 ? this.level : this.hints.get(resource)?.deref() ?? null);
