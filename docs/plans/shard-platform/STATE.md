@@ -14,8 +14,8 @@ Jake approves each), legacy deletion (G606).
 
 **(3) Frame floor.** Desktop (466c98bac7): ALL 24 shipped shards PASS standing (59.9 fps, max 16.8 ms); grid drives
 p95 16.8 but Pine max 1,117 ms (one 1.5 s gl.bufferData after pine-hollow:activate, sp-o3) and Nalati max 167 FAIL.
-Quiet iOS Sim p95 (889 → fb72f24ad3): Pine drive 71 → 42 (max 95), interior 60 → 35 PASS; Nalati drive 53 → 46
-(max 440), interior 59 → 47 (FAIL, bar 33); DW/template 35/37. Cuts: shader-build churn (variants 566 → 20 MiB), variant token keys (select 241 → 2), page
+Quiet iOS Sim p95 (889 → 16fc6da351): Pine drive 71 → 35 (max 85), interior 60 → 34; Nalati drive 53 → 53
+(max 448 between hooks), interior 59 → 50 (FAIL, bar 33); DW/template drives 35, settled 34. Cuts: shader-build churn (variants 566 → 20 MiB), variant token keys (select 241 → 2), page
 light budget 79fd45d18c, herd/Valibot/hash allocation. Nalati drive long frames: each WebAssembly.Memory costs 62-117 ms on JSC
 (11 = 906 ms); all 11 now prepared before their consumer binds (01a399a3c8,
 62fc95fcfb; wildlife/arena/timed still inside admission hooks); 440 ms frame being attributed (sp-x1). JSON parse 160 → 6 ms (393a1c007f).
@@ -31,6 +31,6 @@ pick for Jake: art/driftwood-isle/round-19-tile-lod (3af5687a53) A landed / B / 
 (2) M1 re-base (above); (3) Explorer: pause the blurred background orbit while thumbnails build (~1/3 less GPU per card,
 CI margin; recommended only if CI still misses after serialised cases).
 
-**Lanes:** Claude weekly 86 %: 1 Opus (sp-o3); 5 Codex + sp-x7.
+**Lanes:** Claude weekly 87 %: 1 Opus (sp-o3); 5 Codex + sp-x7.
 
 **Rules:** G605. Fix forward, no reverts (G674). No new Debug rows (G669). G670. Never herdr wildshard-v.
