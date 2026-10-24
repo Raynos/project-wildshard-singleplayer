@@ -1,10 +1,10 @@
 {
   "$doc": "What production and the native OTA channel serve (E357 decision 32). Moved only by scripts/deploy-pin.mjs set (at a milestone; decision 103: the lead moves it when the gate is green) or rollback. mode: pinned (during GAME-NORMALIZATION) | newest-green (gpu-gate-green main) | newest-ci-green (the newest main whose push CI passed; Jake 2026-10-02).",
-  "mode": "pinned",
+  "mode": "newest-ci-green",
   "sha": "ff45b6a24dbd7ec3e65d5251ea1e505b3b182ed2",
   "milestone": "post-Z4 hotfix-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback",
   "gate": "grandfathered",
-  "go": "Release HOLD from wildshard-new: keep the current live build until sp-x1 confirms warm second-visit reload safety. No deployment or rollback requested; CI and exact smoke continue.",
-  "set": "2026-10-23T20:30:33.126Z",
+  "go": "wildshard-new: release first full-floor build after green CI and all six exact smoke legs. 68ac787e6bdc687fff4fb661cea6c236bedfbd94: CI https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/40066552156; exact smoke https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/40067978626. Safari boot-race hold lifted after 8198659879 proof; required worker and Titan repairs included.",
+  "set": "2026-10-24T06:17:28.328Z",
   "by": "E357 lead"
 }
