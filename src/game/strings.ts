@@ -49,7 +49,6 @@ export const GAME_STRINGS = {
     legacyRow: { label: 'Legacy shard buttons', off: 'Off', on: 'On',
       note: 'G531: SHARD SELECT shows only each shard\'s shardfile entry; On brings back the LEGACY / SHARDFILE buttons; live' },
     /** G238: the SF6 public share, e.g. "3% PORTED"; a share under one percent reads "<1% PORTED" */
-    ported: (share: number): string => `${share > 0 && share < 0.005 ? '<1' : String(Math.round(share * 100))}% PORTED`,
   },
   /** G167 (art/grid/round-18-refused-cell): a shard that can't load. Its cell in the grid (B: the frozen grey far view under a
    *  static dome; A: the void and the holo sign) and its SHARD SELECT card (dimmed, an amber UNAVAILABLE badge and the reason) */

@@ -30,7 +30,6 @@ import type { ShardSlug } from './shard/slugs.generated';
 import type { ShardEntries, ShardEntryMode } from './shard/manifest';
 import { chooseShardEntry, defaultEntry, hasEntry, shardEntries } from './shard/entryMode';
 import { installLegacyButtonsRow, legacyButtons, onLegacyButtons } from './shard/legacyButtons';
-import { PORT_SHARES } from './shard/portShares';
 import { DRAFT_TITLES, type DraftTitle } from './draftTitles';
 import { readSummary, summaryView } from './summary';
 import { GAME_STRINGS } from './strings';
@@ -58,8 +57,6 @@ export interface TitleCard {
   unavailable?: ShardRefusal;
   /** SF65 (G237 / G241): the shard's LEGACY / SHARDFILE entries, the legacy buttons' enabled state (G531) */
   entries?: ShardEntries;
-  /** SF65 (G238): the ported share (0..1, from the last committed plan ruler run, E486), the Developer card's "N% PORTED" badge */
-  ported?: number;
 }
 
 /** Which shards need an upgrade before this client can enter them (G86): the shardfile version each was built for. Every
@@ -84,8 +81,6 @@ export function titleCards(showHidden = isDev(), upgradeNeeded: UpgradeNeeded = 
     thumbnail: m.card.thumb, heroPortrait: m.card.portrait, heroLandscape: m.card.landscape,
     entries: { ...entries, legacy: entries.legacy || legacyShardFor(registered, m.slug) !== undefined },
     };
-    const ported = PORT_SHARES[m.slug];
-    if (ported !== undefined) card.ported = ported;
     if (m.status === 'earlyAccess') card.badge = 'Early access';
     if (m.status === 'experimental') card.badge = 'Experimental';
     if (hidden(m)) card.badge = 'Developer only';
@@ -107,7 +102,6 @@ interface DeckEntry {
   readonly upgrade?: { readonly built: number } | undefined;
   readonly unavailable?: ShardRefusal | undefined;
   readonly entries?: ShardEntries | undefined;
-  readonly ported?: number | undefined;
   readonly thumbnail: string;
   readonly heroPortrait: string;
   readonly heroLandscape: string;
@@ -232,7 +226,6 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     else if (card.unavailable !== undefined) image.append(words('i', 'ws-menu-card-tag ws-menu-card-needs', GAME_STRINGS.unavailable.badge));
     if (canEnter(card, mode())) image.append(words('i', `ws-menu-card-tag${active ? ' ok' : ''}`, active ? 'Loaded' : 'Load'));
     // G238: the port badge, Developer on only (the public card is unchanged)
-    if (mode().developer && card.ported !== undefined && card.shard !== null) image.append(words('i', 'ws-menu-card-port', GAME_STRINGS.entry.ported(card.ported)));
     const ribbon = ribbonFor(card, mode());
     if (ribbon !== '') image.append(words('i', `ws-menu-card-exp${card.badge === 'Early access' && canEnter(card, mode()) ? ' ws-menu-card-ea' : ''}`, ribbon));
     const sub = card.upgrade !== undefined ? GAME_STRINGS.upgrade.built(card.upgrade.built) : card.unavailable !== undefined ? refusalReason(card.unavailable) : card.label;

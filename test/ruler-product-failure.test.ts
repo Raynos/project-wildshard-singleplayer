@@ -61,7 +61,6 @@ it('writes every ruler row and exits zero after one fixture product fails', () =
     import {basename,resolve} from 'node:path';
     import {outputReport} from './scripts/shard-output-report.mjs';
     import {nextRuler,readRuler} from './scripts/admin-data/ruler.mjs';
-    import {portSharesText} from './scripts/gen-port-shares.mjs';
     const emit=console.log;console.log=console.error;console.info=console.error;
     const root=${JSON.stringify(root)},calls=[];
     const report=await outputReport(root,{reportOnly:true,sourceProgress:true,buildProduct:async args=>{
@@ -73,7 +72,7 @@ it('writes every ruler row and exits zero after one fixture product fails', () =
       measurementError:report.measurementError,productFailures:report.productFailures}};
     const ruler=readRuler(nextRuler(raw,null,{revision:'b'.repeat(40),committedAt:'2026-10-20T12:00:00Z',now:'2026-10-20T12:01:00Z'}));
     writeFileSync(resolve(root,'ruler.json'),JSON.stringify(ruler));
-    emit(JSON.stringify({ruler,calls,shares:JSON.parse(portSharesText(JSON.stringify(ruler)))}));
+    emit(JSON.stringify({ruler,calls}));
   `;
   const result = spawnSync(process.execPath, ['--input-type=module', '--eval', program], {
     cwd: resolve('.'), encoding: 'utf8', timeout: 60_000, env: { ...process.env, WILDSHARD_SHARDFILE_CACHE: resolve(root, 'cache') },
@@ -99,7 +98,6 @@ it('writes every ruler row and exits zero after one fixture product fails', () =
   expect(existsSync(resolve(root, 'out/driftwood-isle/shard.json'))).toBe(false);
   const receipt = JSON.parse(result.stdout) as { calls: string[]; shares: { shares: Record<string, number> } };
   expect(receipt.calls.sort()).toEqual([...MILESTONE_SHARDS].sort());
-  expect(receipt.shares.shares).toEqual({});
 });
 
 it('keeps ordinary, strict and catalogue builds hard on failure', async () => {

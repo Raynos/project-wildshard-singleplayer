@@ -55,7 +55,5 @@ await step('boot-tables', () => generationTailCached(`${import.meta.dirname}/..`
 await step('budgets', () => genBudgetDerivations(undefined, process.argv.includes('--check-budgets'), shard));
 // Boot tables add static imports; derive the closure from the completed graph.
 await step('shards', () => generationTailCached(`${import.meta.dirname}/..`, 'shards-after', () => genShards(undefined, false, false, shard)));
-// E486: SHARD SELECT's PORTED badges read the committed src/game/shard/portShares.json, which the plan ruler writes with
-// ruler.json (scripts/gen-port-shares.mjs) and pre-commit keeps in step; gen has no port-shares step.
 try { publishPushInputs(); }
 catch (error) { console.warn(`push-inputs: completed cache unavailable: ${error instanceof Error ? error.message : String(error)}`); }
