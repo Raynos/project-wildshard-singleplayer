@@ -71,6 +71,8 @@ export class ReturnProjectionV2 {
   private emptyRng: ReturnType<typeof prepareV2Rng> | undefined;
   private readonly emptyBindings: ReadonlyMap<number,V2ActionBinding> = new Map();
   private busy = false;
+  private readonly worldIndices:number[]=[];
+  private readonly rngDue:ReadonlySet<number>=new Set([1]);
   private readonly groups:GroupStepV2|null=null;
   /** Only fixed ABI bytes are retained. Every call still captures its own numeric values. */
   private readonly columns: (ObservationShape | undefined)[] = [];
@@ -158,7 +160,7 @@ export class ReturnProjectionV2 {
         if (bank === undefined) throw new Error('Missing projection output bank');
         if(actual[2]!==0||(actual[10]??0)!==0)throw new Error('Unexpected numeric projection state or queries');
         if((actual[9]??0)>(this.row.outputCapacity??32))throw new Error('Return projection output quota');
-        const world:number[]=[];
+        const world=this.worldIndices;world.length=0;
         for (let index = 0; index < (actual[9] ?? 0); index++) {
           const at = layout.io+bank.offset+index*64,name = this.row.channels[view.getUint32(at+8,true)-1],value = view.getFloat64(at+16,true);
           if(view.getUint32(at+4,true)!==25){world.push(index);continue;}
@@ -168,7 +170,7 @@ export class ReturnProjectionV2 {
           values[name] = value;
         }
         const actions=readV2WorldActions(view,layout,actual[9]??0,bindings,world);
-        const next = rng.readCandidate(view,actual[21] ?? 0,new Set([1]))[0];
+        const next = rng.readCandidate(view,actual[21] ?? 0,this.rngDue)[0];
         return { values,next,actions };
       }).value;
       this.live();
@@ -183,7 +185,7 @@ export class ReturnProjectionV2 {
         }
         accepted = true;
       } };
-    } finally { this.busy = false; }
+    } finally { this.worldIndices.length=0;this.busy = false; }
   }
   /** Borrow the SAME selected instance. Group bodies, bank, RNG and operation
    * application remain with the original native owner at its original slot. */
