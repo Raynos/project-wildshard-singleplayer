@@ -6,6 +6,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { relative, resolve } from 'node:path';
 import { BaseSequencer, type TestSpecification } from 'vitest/node';
+import * as v from 'valibot';
 
 export const DURATIONS_FILE = 'test/durations.json';
 const FILE_OVERHEAD_S = 0.3;
@@ -37,6 +38,20 @@ export function packShards(paths: readonly string[], durations: ReadonlyMap<stri
 }
 
 export class DurationSequencer extends BaseSequencer {
+  override async sort(files: TestSpecification[]): Promise<TestSpecification[]> {
+    const { root } = this.ctx.config;
+    const registry = resolve(root, 'scripts/test-products.json');
+    if (existsSync(registry)) {
+      const selected = files.map(spec => relative(root, spec.moduleId).replaceAll('\\', '/'));
+      const products = v.parse(v.record(v.string(), v.array(v.string())), JSON.parse(readFileSync(registry, 'utf8')));
+      // Pure suites must not load the product reader's native image dependencies.
+      if (selected.some(file => (products[file]?.length ?? 0) > 0)) {
+        const { assertBuiltTestProducts } = await import('./built-product.mjs');
+        assertBuiltTestProducts(root, selected);
+      }
+    }
+    return super.sort(files);
+  }
   override shard(files: TestSpecification[]): Promise<TestSpecification[]> {
     const { root, shard } = this.ctx.config;
     const durations = shard === undefined ? null : readDurations(root);

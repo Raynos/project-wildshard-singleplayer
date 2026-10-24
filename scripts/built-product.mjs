@@ -2,6 +2,7 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
+import * as v from 'valibot';
 import { shardfileBoundaryViolations } from '../lint/shardfile-boundaries.mjs';
 import { mapStampPath } from './map-hash.mjs';
 import { borrowShardfileEntry, readBuildKey, shardfileCacheRoot } from './shardfile-cache.mjs';
@@ -79,3 +80,27 @@ export function readBuiltShardfile(sourceRoot, name, { cacheRoot = shardfileCach
   throw new Error(`Missing current product ${name}; run: node scripts/build-shardfiles.mjs --reuse --shard=${name}`);
 }
 
+/** Refuse selected product suites once, before workers load setup or tests.
+ * Uses the same exact-SHA/current-input admission as each suite's reader.
+ * Never builds, restores source outputs or accepts an older cached product.
+ * @param {string} root @param {readonly string[]} files
+ * @param {{cacheRoot?:string,env?:NodeJS.ProcessEnv}} [options] */
+export function assertBuiltTestProducts(root, files, options = {}) {
+  const registry = resolve(root, 'scripts/test-products.json');
+  if (!existsSync(registry)) return;
+  const products = v.parse(v.record(v.string(), v.array(v.string())), JSON.parse(readFileSync(registry, 'utf8')));
+  const selected = files.filter(file => (products[file]?.length ?? 0) > 0);
+  /** @type {Set<string>} */
+  const missing = new Set();
+  for (const name of new Set(selected.flatMap(file => products[file] ?? []))) {
+    try { readBuiltShardfile(root, name, options); }
+    catch (error) {
+      if (!(error instanceof Error) || !error.message.startsWith(`Missing current product ${name};`)) throw error;
+      missing.add(name);
+    }
+  }
+  if (missing.size === 0) return;
+  const names = [...missing].sort();
+  const suites = selected.filter(file => products[file]?.some(name => missing.has(name))).sort();
+  throw new Error(`Missing current products ${names.join(', ')} (no verified product matches current inputs), required by ${suites.join(', ')}; run: node scripts/build-shardfiles.mjs --reuse --shard=${names.join(',')}`);
+}

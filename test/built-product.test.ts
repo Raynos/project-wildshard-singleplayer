@@ -4,8 +4,10 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, wri
 import { dirname, resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Reproduce the builder's exact recipe namespace.
 import { createHash } from 'node:crypto';
+// oxlint-disable-next-line import/no-nodejs-modules -- Prove refusal precedes worker setup in a tiny real Vitest run.
+import { execFileSync } from 'node:child_process';
 import { afterEach, expect, test } from 'vitest';
-import { readBuiltShardfile } from '../scripts/built-product.mjs';
+import { assertBuiltTestProducts, readBuiltShardfile } from '../scripts/built-product.mjs';
 import { captureProductInputs, productInputKey, productToolchainKey, publishProductInputs, recordBundle } from '../scripts/shardfile-inputs.mjs';
 import { InputHashMemo } from '../scripts/bake-input-hashes.mjs';
 import { shardfileValidationRevision } from '../scripts/shardfile-validation-revision.mjs';
@@ -91,4 +93,39 @@ test('partial cache entries and corrupt sealed input receipts refuse without bui
   expect(corrupt).not.toBe(receipt); writeFileSync(f.receipt, corrupt);
   expect(() => readBuiltShardfile(f.root, f.name, f.options)).toThrow(message);
   expect(existsSync(resolve(f.root, 'out'))).toBe(false);
+});
+
+test('selected suites reuse only current products and aggregate missing prerequisites once', async () => {
+  const f = await fixture();
+  write(f.root, 'scripts/test-products.json', JSON.stringify({
+    'test/current.test.ts': [f.name], 'test/other.test.ts': ['other', f.name], 'test/pure.test.ts': [],
+  }));
+  expect(() => assertBuiltTestProducts(f.root, ['test/current.test.ts', 'test/pure.test.ts'], f.options)).not.toThrow();
+  write(f.root, f.source, 'export default {changed:true};');
+  expect(() => assertBuiltTestProducts(f.root, ['test/pure.test.ts'], f.options)).not.toThrow();
+  expect(() => assertBuiltTestProducts(f.root, ['test/current.test.ts', 'test/other.test.ts'], f.options)).toThrow(
+    'Missing current products author, other (no verified product matches current inputs), required by test/current.test.ts, test/other.test.ts; run: node scripts/build-shardfiles.mjs --reuse --shard=author,other',
+  );
+  expect(existsSync(resolve(f.root, 'out'))).toBe(false);
+});
+
+test('product-suite preflight retains exact-SHA CI admission', async () => {
+  const f = await fixture(), sha = 'a'.repeat(40);
+  write(f.root, 'scripts/test-products.json', JSON.stringify({ 'test/current.test.ts': [f.name] }));
+  write(f.root, f.source, 'changed'); write(f.root, `out/${f.name}/shard.json`, '{}');
+  expect(() => assertBuiltTestProducts(f.root, ['test/current.test.ts'], { cacheRoot: f.cacheRoot, env: { WS_TEST_PRODUCTS_SHA: sha, VERCEL_GIT_COMMIT_SHA: sha } })).not.toThrow();
+  expect(() => assertBuiltTestProducts(f.root, ['test/current.test.ts'], { cacheRoot: f.cacheRoot, env: { WS_TEST_PRODUCTS_SHA: sha, VERCEL_GIT_COMMIT_SHA: 'b'.repeat(40) } })).toThrow('Missing current products');
+});
+
+test('real Vitest refuses missing products before loading worker setup or suite code', async () => {
+  const f = await fixture();
+  write(f.root, 'scripts/test-products.json', JSON.stringify({ 'test/product.test.ts': [f.name] }));
+  write(f.root, f.source, 'changed');
+  write(f.root, 'test/product.test.ts', "throw new Error('suite must not load');");
+  write(f.root, 'test/setup.mjs', "import fs from 'node:fs';fs.writeFileSync('worker-started','yes');");
+  write(f.root, 'vitest.config.mts', `import {DurationSequencer} from ${JSON.stringify(resolve('scripts/vitest-shard.ts'))};export default {root:${JSON.stringify(f.root)},test:{include:['test/product.test.ts'],setupFiles:['test/setup.mjs'],sequence:{sequencer:DurationSequencer}}};`);
+  expect(() => execFileSync(process.execPath, [resolve('node_modules/vitest/vitest.mjs'), 'run', '--config', resolve(f.root, 'vitest.config.mts')], {
+    cwd: f.root, env: { ...process.env, WILDSHARD_SHARDFILE_CACHE: f.cacheRoot, WS_TEST_PRODUCTS_SHA: '', VERCEL_GIT_COMMIT_SHA: '' }, stdio: 'pipe', timeout: 10_000, maxBuffer: 1_048_576,
+  })).toThrow('Missing current products author');
+  expect(existsSync(resolve(f.root, 'worker-started'))).toBe(false);
 });
