@@ -411,8 +411,16 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
         if (!verifiedCached.has(hash) || await cache.putAsset(base, hash, bytes) === false || !await present(hash, bytes.length)) complete = false;
       });
       await cacheRows(sectionFiles, options.cacheBatch === true, async section => { if (!await present(section.hash, section.bytes)) complete = false; });
-      if (complete && descriptor !== undefined) await cache.putProduct(base, { source: descriptor.index, firstParty: options.firstParty,
-        ...(revisionKey === null ? {} : { validation: { revision: revisionKey, sourceHash, indexHash: descriptor.indexHash, worst } }) });
+      if (complete && descriptor !== undefined) {
+        try {
+          await cache.putProduct(base, { source: descriptor.index, firstParty: options.firstParty,
+            ...(revisionKey === null ? {} : { validation: { revision: revisionKey, sourceHash, indexHash: descriptor.indexHash, worst } }) });
+        } catch (error: unknown) {
+          // A full disk cannot reject admitted online bytes. No visited index
+          // was published; a later offline entry must still prove its cache.
+          if (typeof error !== 'object' || error === null || !('name' in error) || error.name !== 'QuotaExceededError') throw error;
+        }
+      }
     } finally { release?.(); }
   }
   progress('complete', 'Product admitted');

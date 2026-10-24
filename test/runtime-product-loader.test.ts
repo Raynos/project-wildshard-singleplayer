@@ -732,6 +732,30 @@ test('one missing durable asset prevents a batched offline product while the onl
   expect(admitted.assets.size).toBe(8); expect(published).not.toHaveBeenCalled();
 });
 
+test('a full visited-product cache cannot refuse verified online admission or claim an offline visit', async () => {
+  const f = fixture(); trust(f.receipt);
+  let pinned = false;
+  const publication = vi.fn(() => Promise.reject(new DOMException('Quota exceeded.', 'QuotaExceededError')));
+  const cache: ProductCache = {
+    product: () => Promise.resolve(null), asset: () => Promise.resolve(null),
+    putAsset: () => Promise.resolve(true), verifiedPresent: () => Promise.resolve(true),
+    putProduct: publication, pin: () => { pinned = true; return () => { pinned = false; }; },
+  };
+  const options = { ...f.options, cache };
+  const admitted = await admitProduct(f.index, options);
+  expect(admitted.assets.get(f.ref)).toEqual(f.blob);
+  expect(publication).toHaveBeenCalledOnce(); expect(pinned).toBe(false);
+  await expect(readProductDescriptor({ ...options, offline: true })).rejects.toThrow('not been visited offline');
+
+  publication.mockImplementation(() => Promise.reject(new Error('Publication invariant failed')));
+  await expect(admitProduct(f.index, options)).rejects.toThrow('Publication invariant failed');
+  expect(pinned).toBe(false);
+  publication.mockClear();
+  f.wires.set(`blobs/bin/${f.ref}.bin`, new Uint8Array([9, 9, 9]));
+  await expect(admitProduct(f.index, options)).rejects.toThrow('hash mismatch');
+  expect(publication).not.toHaveBeenCalled();
+});
+
 test('the original manifest product loader prepares named scalar blocks before returning',async()=>{
   const block=zlibSync(new Uint8Array(Float32Array.from([0,.25,.75,1]).buffer)),hash=hashImmutableBytes(block);
   const f=fixture(false,source=>{
