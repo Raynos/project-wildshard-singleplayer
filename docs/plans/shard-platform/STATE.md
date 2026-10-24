@@ -3,12 +3,12 @@
 **Order (G639):** (1) live reds → (2) NALATI TO ZERO → (3) grid / frame floor. Extras: loading, core memory, TOOLING-PERF,
 Night Market, tile streaming, no-binaries.
 
-**(1) LIVE 34aa9d8137 (16:06Z; fc9593f186 15:04Z, ab381d04b9 14:04Z), each after full CI + all six exact smoke
+**(1) LIVE a4cb1fc8f2 (18:40Z; after the TB1 hold; 9625ae97ec 16:58Z), each after full CI + all six exact smoke
 legs; ff45 pin removed (692f9bd22e), hourly newest-CI-green deploys running (sp-x7). Six smoke reds + boot race fixed on the way.
 
 **(2) NALATI 0: every shard at zero, C1-C9 closed, M3 100 %, M2 10/10 (ruler 27dd969127).** R27 done (168a974f29).
-Next: HOST-AUDIT page READY docs/reviews/host-audit-inventory.md (6ec361162e: 114 groups, 95 keep / 18 fold / 1 retire;
-Jake approves each), legacy deletion (G606).
+HOST-AUDIT: 114 recommendations accepted as its starting
+point (G679, 3cb15f3b32, review archived); the plan is parked until every mini plan finishes. Legacy deletion (G606).
 
 **(3) Frame floor.** Desktop (466c98bac7): ALL 24 shipped shards PASS standing (59.9 fps, max 16.8 ms); grid drives
 p95 16.8, max Pine 1,117 → 66.7, Nalati 167 → 50.1 ms (f7e74f576e).
@@ -26,7 +26,7 @@ M1 on menu → T1 growth. Lanes are off memory floors; render targets (49 MiB) p
 **Tooling:** DW tiles: wire 12.3 → 10.8 MB look-identical;
 pick for Jake: art/driftwood-isle/round-19-tile-lod (3af5687a53) A landed / B / C; only C gets 6,4 + 2,5 under 4 MB.
 
-**For wildshard-v:** G679 -> sp-x6, G680 -> sp-x2, G681 -> sp-x8 (if pure data), G682 -> sp-x1; rows in lanes/ready-queue.md
+**For wildshard-v:** G679 -> sp-x6, G680 done 678e13894d + be5de70171, G681 needs Opus (softWallLook.ts, not data; Tue), G682 -> sp-x1; rows in lanes/ready-queue.md
 (e542ed6c63, SW10). TS6307 was fixed 576b27c9df (17:06Z); TB1 hold lifted 3bea488858. PLEASE stop your grep PID 45432 (35+ min, ~65 % CPU over session
 jsonl files): it overlapped sp-x1's quiet e664 floor (4/15) and its repeat; nobody else may kill it. DR19 and L10 code were already landed.
 
