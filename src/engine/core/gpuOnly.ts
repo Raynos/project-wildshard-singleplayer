@@ -82,11 +82,7 @@ function releaseSource(t: Texture): void {
   if (typeof ImageBitmap !== 'undefined' && im instanceof ImageBitmap) im.close();
   else if (typeof HTMLCanvasElement !== 'undefined' && im instanceof HTMLCanvasElement) { im.width = 1; im.height = 1; }
   else if (typeof HTMLImageElement !== 'undefined' && im instanceof HTMLImageElement) t.image = { width: im.width, height: im.height };
-  else if (t instanceof DataTexture || t instanceof DataArrayTexture || t instanceof Data3DTexture) {
-    // any element type (a raw half-float or 5551 file too); an empty copy, since a subarray would keep the buffer
-    if (ArrayBuffer.isView(t.image.data)) t.image.data = t.image.data.slice(0, 0);
-    if (t.mipmaps !== undefined && t.mipmaps.length > 0) t.mipmaps = [];
-  }
+  else if ((t instanceof DataTexture || t instanceof DataArrayTexture || t instanceof Data3DTexture) && t.image.data instanceof Uint8Array) t.image.data = new Uint8Array(0);
 }
 
 /**

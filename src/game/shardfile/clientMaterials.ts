@@ -8,7 +8,7 @@ import { sceneVectors, sceneScalarValue } from './sceneInputs';
 import { MeshStandardMaterial, ClampToEdgeWrapping, CompressedTexture, DataTexture, LinearFilter, LinearMipmapLinearFilter, MirroredRepeatWrapping, NearestFilter, NearestMipmapNearestFilter, RepeatWrapping, SRGBColorSpace, NoColorSpace, type Texture, type Material } from 'three';
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
 import { BASIS_PATH, releaseAfterUpload, detectKtx2Support } from '@wildshard/engine/core/ktx2';
-import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
+import { markGpuOnly } from '@wildshard/engine/core/gpuOnly';
 import { ToonLook } from '@wildshard/engine/render/families/toon';
 import { PainterlyLook } from '@wildshard/engine/render/families/painterly';
 import { EmissiveLook } from '@wildshard/engine/render/families/emissive';
@@ -94,6 +94,17 @@ function carriesGraph(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>)
   });
 }
 
+/** A raw-texel file's DataTexture: three's KTX2 loader hands it its level list (`image.data` is level 0) and no update hook.
+ *  Both go once it is on the GPU; a lost context reloads the page (gpuOnly.ts). */
+function releaseRawAfterUpload(texture: DataTexture): void {
+  texture.onUpdate = (): void => {
+    texture.onUpdate = null;
+    texture.mipmaps = [];
+    if (ArrayBuffer.isView(texture.image.data)) texture.image.data = texture.image.data.slice(0, 0);
+  };
+  markGpuOnly('shardfile raw textures');
+}
+
 /**
  * Compile a shardfile's admitted material data on the game's renderer; `compile` adds one more entry (family or graph);
  * `bindMeshMap(id, map)` borrows a mesh map for one already compiled catalogue entry, without recompiling its graph.
@@ -149,7 +160,7 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
       const sampler = shard.look.samplers?.[ref]; if (sampler !== undefined) applyTextureSampler(texture, sampler);
       if (texture instanceof CompressedTexture && !splatRefs.has(ref)) releaseAfterUpload(texture);
       // a raw-texel file (uncompressed KTX2) arrives as a DataTexture: its decoded texels go once it is on the GPU too
-      else if (texture instanceof DataTexture) gpuOnlyTexture(texture, 'shardfile raw textures');
+      else if (texture instanceof DataTexture) releaseRawAfterUpload(texture);
       scope.own(texture); textures.set(ref, texture);
     }
     } finally {
