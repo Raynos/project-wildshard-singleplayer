@@ -99,7 +99,7 @@ function versionedFetch(net: typeof window.fetch): typeof window.fetch {
 
 /** the running boot's counter (one per shard build — E155 builds several in one page; the fetch layer is installed once) */
 interface Counting { sourceOf: Map<string, ByteKey>; reader: (k: ByteKey) => ByteProgress; seen: Set<string>; finished: Set<string>; plan: Plan<BootStep>;
-  resourceBatches: (readonly PerformanceResourceTiming[])[]; drainingResources: boolean }
+  resourceBatches: PerformanceObserverEntryList[]; drainingResources: boolean }
 let counting: Counting | null = null;
 let counterInstalled = false;
 
@@ -123,27 +123,38 @@ export function installByteCounter(plan: Plan<BootStep>, files: ChunkFiles): voi
 /** the boot is done: later fetches are nobody's bar (and the plan — with everything its steps closed over — can go) */
 export function releaseByteCounter(): void { counting = null; }
 
-function creditResource(c: Counting, entry: PerformanceResourceTiming): void {
+function creditResource(c: Counting, entry: PerformanceResourceTiming): ByteKey | undefined {
   const path = pathOf(entry.name), key = c.sourceOf.get(path);
-  if (!key || c.seen.has(path) || c.finished.has(path)) return;
+  if (!key || c.seen.has(path) || c.finished.has(path)) return undefined;
   c.finished.add(path);
   c.reader(key).add(entry.encodedBodySize || entry.transferSize || (sizeOf(path) ?? 0) || 0);
-  c.plan.fileDone(key);
+  return key;
 }
 
 /** Keep the batch's original counter, including across a later boot/counter release.
- * Only live phone drawing needs cooperative turns; desktop and loading remain synchronous. */
-function creditResources(c: Counting, entries: readonly PerformanceResourceTiming[]): void {
-  if (!c.drainingResources && (TIER !== 'phone' || !presenting())) { for (const entry of entries) creditResource(c, entry);return; }
-  c.resourceBatches.push(entries);
+ * Live phone observers only enqueue: native list extraction and progress painting start in a paced task.
+ * Desktop and loading remain synchronous. One extraction or sink publication is still atomic. */
+function creditResources(c: Counting, list: PerformanceObserverEntryList): void {
+  if (!c.drainingResources && (TIER !== 'phone' || !presenting())) {
+    for (const entry of list.getEntries() as PerformanceResourceTiming[]) {
+      const key = creditResource(c, entry);if (key !== undefined) c.plan.fileDone(key);
+    }
+    return;
+  }
+  c.resourceBatches.push(list);
   if (c.drainingResources) return;
   c.drainingResources = true;
   const slice = workSlice(undefined, pageScope);
   const drain = async (): Promise<void> => {
     try {
-      for (let batch = c.resourceBatches.shift(); batch !== undefined; batch = c.resourceBatches.shift()) for (const entry of batch) {
+      await slice.yield();
+      for (let batch = c.resourceBatches.shift(); batch !== undefined; batch = c.resourceBatches.shift()) for (const entry of batch.getEntries() as PerformanceResourceTiming[]) {
         const pause = slice.check();if (pause !== undefined) await pause;
-        creditResource(c, entry);
+        const key = creditResource(c, entry);
+        if (key !== undefined) {
+          const beforeFile = slice.check();if (beforeFile !== undefined) await beforeFile;
+          c.plan.fileDone(key);
+        }
       }
     } finally { c.drainingResources = false; }
   };
@@ -181,7 +192,7 @@ function installCounter(): void {
     const po = new PerformanceObserver((list) => {
       const c = counting;
       if (!c) return;
-      creditResources(c, list.getEntries() as PerformanceResourceTiming[]);
+      creditResources(c, list);
     });
     po.observe({ type: 'resource', buffered: true });
   }

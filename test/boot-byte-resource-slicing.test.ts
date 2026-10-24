@@ -13,20 +13,20 @@ const originalTier = TIER, environment = scopeEnvironment(), nativeFetch = windo
 const tables = { bytes: publicBytes(), versions: assetVersions(), music: musicManifests(), sfx: sfxManifests(), packs: bootPacks() };
 const files: ChunkFiles = { sky: [], baked: [], terrain: [], trees: [], cabins: [], props: Array.from({ length: 12 }, (_, i) => `/assets/byte-slice-${String(i)}.png`), physics: [], art: [], music: [], sfx: [] };
 const frames: ((time: number) => void)[] = [];
-let now = 1000, cost = 0;
+let now = 1000, cost = 0, extractionCost = 0, extractions = 0;
 let deliver: (entries: PerformanceResourceTiming[]) => void = () => { throw new Error('Observer is not installed'); };
 
 beforeAll(() => {
   vi.stubGlobal('PerformanceObserver', class {
     constructor(receive: PerformanceObserverCallback) {
-      deliver = entries => { receive(legacyDouble<PerformanceObserverEntryList>({ getEntries: () => entries }), legacyDouble<PerformanceObserver>({})); };
+      deliver = entries => { receive(legacyDouble<PerformanceObserverEntryList>({ getEntries: () => { extractions++;now += extractionCost;return entries; } }), legacyDouble<PerformanceObserver>({})); };
     }
     observe(): void { /* The fixture supplies exact native resource batches. */ }
   });
   window.fetch = () => Promise.resolve(new Response(new Uint8Array([1, 2, 3])));
 });
 beforeEach(() => {
-  vi.useFakeTimers();now = 1000;cost = 0;frames.length = 0;
+  vi.useFakeTimers();now = 1000;cost = 0;extractionCost = 0;extractions = 0;frames.length = 0;
   vi.spyOn(performance, 'now').mockImplementation(() => now);
   initializeTier('phone');setBuildHeld(false);noteFrameDrawn(Number.NEGATIVE_INFINITY);
   Reflect.set(globalThis, 'MessageChannel', undefined);
@@ -47,11 +47,11 @@ function counter(): { plan: Plan<BootStep>; views: ProgressView[] } {
   installByteCounter(plan, files);return { plan, views };
 }
 async function finish(): Promise<number> {
-  let peak = 0;
+  const start = now;await vi.advanceTimersByTimeAsync(0);let peak = now - start;
   for (let turn = 0; turn < 20 && frames.length > 0; turn++) {
-    now += 34;noteFrameDrawn(now, now, 30);const start = now;
+    now += 34;noteFrameDrawn(now, now, 30);const frameStart = now;
     for (const frame of frames.splice(0)) frame(now);
-    await vi.advanceTimersByTimeAsync(0);peak = Math.max(peak, now - start);
+    await vi.advanceTimersByTimeAsync(0);peak = Math.max(peak, now - frameStart);
   }
   expect(frames).toHaveLength(0);return peak;
 }
@@ -60,10 +60,29 @@ test('live phone resource progress uses existing shared slices, retaining order 
   const { plan, views } = counter();cost = 1;noteFrameDrawn(now, now, 30);const start = now;
   deliver(files.props.map(name => entry(name)));
   // Twelve files issue 24 progress publications; one synchronous batch used 24ms in this controlled-work kernel.
-  expect(now - start).toBe(8);expect(plan.view.filesDone).toBe(4);expect(plan.view.bytesRead).toBe(40);
+  expect(now - start).toBe(0);expect(extractions).toBe(0);expect(plan.view.filesDone).toBe(0);expect(plan.view.bytesRead).toBe(0);
   expect(await finish()).toBeLessThanOrEqual(8);
   expect(plan.view).toMatchObject({ filesDone: 12, bytesRead: 120, download: 1 });
   expect(views.filter(view => view.filesDone > 0).map(view => view.filesDone)).toEqual(Array.from({ length: 23 }, (_, index) => Math.floor(index / 2) + 1));
+});
+
+test('native resource list extraction stays outside the live observer callback and spends its shared slice', async () => {
+  const { plan } = counter();noteFrameDrawn(now, now, 30);extractionCost = 13.6;const start = now;
+  deliver(files.props.map(name => entry(name)));
+  expect(now - start).toBe(0);expect(extractions).toBe(0);
+  await vi.advanceTimersByTimeAsync(0);
+  expect(extractions).toBe(1);expect(now - start).toBeCloseTo(13.6);expect(plan.view.filesDone).toBe(0);
+  expect(frames).toHaveLength(1); // the extraction was atomic; do not add progress work to its spent frame
+  await finish();expect(plan.view).toMatchObject({ filesDone: 12, bytesRead: 120 });expect(extractions).toBe(1);
+});
+
+test('a busy phone frame yields between byte and file publications without losing or duplicating either', async () => {
+  const { plan, views } = counter();cost = 4;noteFrameDrawn(now - 4, now - 4, 30);
+  deliver(files.props.slice(0, 1).map(name => entry(name)));
+  await vi.advanceTimersByTimeAsync(0);
+  expect(plan.view).toMatchObject({ bytesRead: 10, filesDone: 0 });expect(frames).toHaveLength(1);
+  await finish();expect(plan.view).toMatchObject({ bytesRead: 10, filesDone: 1 });
+  expect(views.slice(1).map(view => [view.bytesRead, view.filesDone])).toEqual([[10, 0], [10, 1]]);
 });
 
 test.each(['desktop', 'loading'] as const)('%s resource progress retains its original synchronous batch', mode => {
