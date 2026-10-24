@@ -1,5 +1,5 @@
 import { expect,test } from 'vitest';
-import { compileSimV2 } from '../src/sdk/bake/compileSimV2';
+import { compileSimV2 } from './fixtures/compileSimV2';
 import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
 import { ScriptModuleV2 } from '../src/engine/script/moduleV2';
 import { prepareV2Observations,type V2BindingInput } from '../src/engine/script/observationsV2';

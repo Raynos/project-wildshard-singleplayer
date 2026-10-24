@@ -1,6 +1,6 @@
 import { expect,test } from 'vitest';
 import { readV2QueryRequests,prepareV2QueryReplies,type V2QueryBinding,type V2QueryRequest,type V2QueryOperation } from '../src/format/scriptQueriesV2';
-import { compileSimV2 } from '../src/sdk/bake/compileSimV2';
+import { compileSimV2 } from './fixtures/compileSimV2';
 import { ScriptModuleV2 } from '../src/engine/script/moduleV2';
 import { prepareV2Observations } from '../src/engine/script/observationsV2';
 import { layoutV2,writeV2Frame,validateV2Frame,type V2FrameAuthority } from '../src/format/scriptWireV2';

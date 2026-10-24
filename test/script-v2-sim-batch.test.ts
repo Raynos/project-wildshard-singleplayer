@@ -1,6 +1,6 @@
 import { expect,test } from 'vitest';
 import { SimBatchV2,type V2BatchCapture,type V2BatchCandidate,type V2PreparedTransaction } from '../src/engine/script/simBatchV2';
-import { compileSimV2 } from '../src/sdk/bake/compileSimV2';
+import { compileSimV2 } from './fixtures/compileSimV2';
 import { layoutV2 } from '../src/format/scriptWireV2';
 
 const layout = layoutV2(1024,1,new Map([[1,2],[2,2],[3,2],[4,2],[5,2]]));

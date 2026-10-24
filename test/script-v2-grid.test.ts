@@ -1,6 +1,6 @@
 import { expect,test } from 'vitest';
 import { layoutV2,writeV2Frame,validateV2Frame,type V2FrameAuthority } from '../src/format/scriptWireV2';
-import { prepareV2HeightGrid,type V2HeightGrid } from '../src/format/scriptGridV2';
+import { prepareV2HeightGrid,type V2HeightGrid } from './fixtures/heightGridV2';
 import { bakedSamplers } from '../src/format/bakedTerrainSampling';
 import { v2CoreSource } from '../src/sdk/as/wsV2';
 import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';

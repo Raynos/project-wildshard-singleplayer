@@ -74,10 +74,7 @@ positions, indices and colours. Adjacent edge/corner samples must agree before g
 an invisible collider mismatch.
 
 Collider metadata remains a `WeakMap` keyed by Rapier's canonical world-local collider wrappers. `Physics.dispose`
-untags only that world. `clearTags` is a global test reset, never a shard unload operation. `regionalState` combines the
-logical continuation and canonical authored collision/motion state. It excludes opaque Rapier allocation details,
-traveller/profile state and platform seams/borders/readiness walls. Hashing this string gives placement-independent
-authored state; full checkpoints still contain the complete physics continuation.
+untags only that world. `clearTags` is a global test reset, never a shard unload operation.
 
 Verification: `src/engine/sim/seamGeometry.test.ts` checks native edge continuity,
 aprons, the unchanged road/buffer and cliff caps, and ten-metre corner returns.

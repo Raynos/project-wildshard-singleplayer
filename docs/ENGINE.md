@@ -119,8 +119,7 @@ for an entire strip to finish; partial strips remain private. `sim/seamGeometry`
 expose the ordered step generators for this scheduling. Vertex/index/colour bytes, features,
 regional placement and the certification tolerances are identical to synchronous construction.
 `@wildshard/engine/physics/frame` prepares rider/mount
-motor transfers. `@wildshard/game/grid/state` fingerprints authored continuation without global placement or
-platform colliders. See [GRID-SIMULATION.md](GRID-SIMULATION.md) for readiness, snapshot and client integration ports.
+motor transfers. See [GRID-SIMULATION.md](GRID-SIMULATION.md) for readiness, snapshot and client integration ports.
 
 `@wildshard/engine/sim/snapshot.decodeSimSnapshotBytes` validates the same exact continuation
 as `decodeSimSnapshot`, returning detached `Uint8Array` physics instead of a boxed byte array.
@@ -12625,13 +12624,6 @@ channel bindings before allocation. Parsed rows are detached and frozen.
 activate(x,z) is the same concrete operation borrowed by H4 ignite commands;
 deactivate returns active cells in original order. Native arena/riding refusal
 stays in its existing owner, independently of this storage host.
-
-captureNativeV2Observations(host,rows,navigation) in
-engine/script/liveObservationsV2 reads standard pose/health and explicitly
-requested ground, point sight and walkable samples from that native host.
-All actor identities preflight before queries; detached poses are sampled at
-the original decision slot. Later slots see earlier effects. Native contact
-still uses its original reach/contact authority, never delayed point sight.
 
 InputInboxV2 in engine/script/inputInboxV2 records authoritative 60 Hz edge
 and event stamps. Authenticated remote claimed ticks may lag receipt by at

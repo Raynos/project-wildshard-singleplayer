@@ -162,7 +162,6 @@
     "./scriptWireV2": "./scriptWireV2.ts",
     "./scriptObservationColumnsV2": "./scriptObservationColumnsV2.ts",
     "./scriptActionsV2": "./scriptActionsV2.ts",
-    "./scriptGridV2": "./scriptGridV2.ts",
     "./scriptRngV2": "./scriptRngV2.ts",
     "./scriptQueriesV2": "./scriptQueriesV2.ts",
     "./scriptQueryStateV2": "./scriptQueryStateV2.ts",

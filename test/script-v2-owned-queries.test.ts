@@ -6,7 +6,7 @@ import { answerV2QueryBatch } from '../src/engine/script/queriesV2';
 import { layoutV2 } from '../src/format/scriptWireV2';
 import type { V2QueryOperation,V2QueryAnswer } from '../src/format/scriptQueriesV2';
 import { compileScript } from '../src/sdk/bake/compileScript';
-import { compileSimV2 } from '../src/sdk/bake/compileSimV2';
+import { compileSimV2 } from './fixtures/compileSimV2';
 
 const layout = layoutV2(2048,1,new Map([[1,1],[2,2],[3,2],[5,1],[6,1],[7,1],[9,32],[10,32],[11,2],[12,2],[13,4],[21,1],[22,1]]));
 let modules: Promise<readonly [Uint8Array,Uint8Array]> | undefined;

@@ -1,5 +1,5 @@
 import { expect,test } from 'vitest';
-import { compileDualScriptV2 } from '../src/sdk/bake/compileDualScriptV2';
+import { compileDualScriptV2 } from './fixtures/compileDualScriptV2';
 import { compileScript } from '../src/sdk/bake/compileScript';
 import { admitScriptContract } from '../src/format/scriptContract';
 import { admitScriptV2 } from '../src/format/scriptAdmissionV2';

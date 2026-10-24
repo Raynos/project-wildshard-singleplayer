@@ -39,7 +39,7 @@ import { mockCanvas } from './fake/weaponParity';
 
 import { SpawnScript } from '../src/game/population/spawnScript';
 import { compileScript } from '../src/sdk/bake/compileScript';
-import { compileSimV2 } from '../src/sdk/bake/compileSimV2';
+import { compileSimV2 } from './fixtures/compileSimV2';
 import { layoutV2 } from '../src/format/scriptWireV2';
 import { SCRIPT_V2_REVISIONS } from '../src/format/scriptAdmissionV2';
 import { sha256 } from '../src/game/plugin/moduleHash';

@@ -1,6 +1,7 @@
+// Test-only setup for the retained real ABI2 protocol contracts.
 /** ABI-v2 height-grid transport. Sim/projection callers supply the native world
  * owner's lattice; there is no renderer or implicit active-terrain fallback. */
-import type { V2Layout } from './scriptWireV2';
+import type { V2Layout } from '../../src/format/scriptWireV2';
 
 export interface V2HeightGrid {
   readonly originX: number; readonly originZ: number; readonly cellX: number; readonly cellZ: number;

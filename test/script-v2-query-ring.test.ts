@@ -1,7 +1,7 @@
 import { expect,test } from 'vitest';
 import { QueryRingV2,answerV2QueryBatch } from '../src/engine/script/queriesV2';
 import { SimBatchV2 } from '../src/engine/script/simBatchV2';
-import { compileSimV2 } from '../src/sdk/bake/compileSimV2';
+import { compileSimV2 } from './fixtures/compileSimV2';
 import { prepareV2Observations } from '../src/engine/script/observationsV2';
 import { layoutV2,writeV2Frame,validateV2Frame,type V2FrameAuthority } from '../src/format/scriptWireV2';
 import type { V2QueryBinding,V2QueryOperation,V2QueryAnswer } from '../src/format/scriptQueriesV2';

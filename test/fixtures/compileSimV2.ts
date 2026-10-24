@@ -1,7 +1,8 @@
+// Test-only setup for the retained real ABI2 protocol contracts.
 /** Generate the module-sized sim loop. A binding program exports onBinding;
  * it uses the same memory SDK and cannot import a JS callback or refill fuel. */
-import { compileScriptV2 } from './compileScriptV2';
-import { v2CoreSource } from '../as/wsV2';
+import { compileScriptV2 } from '../../src/sdk/bake/compileScriptV2';
+import { v2CoreSource } from '../../src/sdk/as/wsV2';
 
 export function compileSimV2(program: string,options: {
   readonly io: number; readonly ioBytes: number; readonly maximumPages?: number;
