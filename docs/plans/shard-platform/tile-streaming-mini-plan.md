@@ -308,6 +308,15 @@ allowances (DW 47, Nine 30, Sky 42); L1 debt and cost caps are unchanged. Curren
 source metadata is 64 L0 for all six primary shards; the verified per-product
 census and remaining T8 streaming work stay open.
 
+Isolated-stage repair `3a98cba178` adds the defining tileGrid input to all 13
+full-emitter recipes. All cold stages pass (38 outputs, 6.86 s); 37 match the
+checkout. The one difference was stale Signal sand R8 GPU metadata, not texture
+bytes. `fcffbf03db` regenerates that file through registered `signal-sand`: only
+shadow/trail GPU costs change (3,211,264 → 802,816 each), following the R8
+calculation introduced by `ff8b90f6125`. All texture hashes and six other job
+outputs remain exact. This corrects 3a98cba178’s overbroad all-output parity
+sentence; no full CI generation result was claimed.
+
 ## One streamer, Pine and Nalati on it (2026-10-23, replaces T2's text and U3)
 
 Traced at HEAD f81d5aade9 (full write-up below). **Correction:** Pine has **no terrain tiles** — its ground is the engine's whole `Terrain` (one 257² mesh, 4 splat layers), all 2,600 trees, ground cover, buildings and props are built whole on entry and stay loaded; its 26 L0 tiles are timber props only the grid draws. Nalati's painted ground is one mesh; its 64 L0 ground tiles sit behind an off-by-default Debug row. The four streaming modules: `grid/rings.ts` (full scheduler, neighbours only), `shardfile/clientRings.ts`, `shardfile/clientWorld.ts` + `residency.ts` (entered shard; copy-paste of reads, masks, distance; dead `rings` branch); `clientResidency.ts` is the home budget claim, not streaming. Terrain + Forest are also built twice (`bootstrap.ts:81-97`, `regionalWorld.ts:278-293`).
