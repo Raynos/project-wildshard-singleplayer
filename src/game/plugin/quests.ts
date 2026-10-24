@@ -131,8 +131,6 @@ export type NpcMotion = npcs.NpcMotion;
 export const NpcRowSchema = npcs.NpcRowSchema;
 /** A validated quest-giver NPC row. */
 export type NpcRow = npcs.NpcRow;
-/** Compile an authored NPC row; an unknown field or an empty dialogue refuses. */
-export function parseNpcRow(input: unknown): NpcRow { return v.parse(NpcRowSchema, input); }
 
 /** The engine's NpcDef for the row's talk: its dialogue entries in order (the first whose condition holds is said). */
 export function npcDef(row: NpcRow): NpcDef {

@@ -128,7 +128,7 @@ through `scripts/commit.sh` (G689: related tests), green on types / lint / relat
 | **D2** | Delete the unused copied-runtime catalogue: `src/outputRuntimeRegistry.ts`, `catalogBoot.ts`, `format/shardCatalog.ts`, `sdk/outputCatalog.ts`, `outputCatalogScan.ts`, `format/level.ts`, optional-glob allowance and catalogue-only tests/CLI/build publication. All six are unreachable from frozen legacy and LEGACY entry roots. Shared `runtime.ts` / `outputIndex.ts` / `sdk/outputRuntime.ts` transport remains **held for LD (wave 3), under F2**, not removed with this catalogue | ~375 | Codex | S | **done** `67cd40190e` + `dcc0abf878` (sp-x8): 940 legacy/entry roots, 2663-module closure, no unresolved code imports and no D2 reach; 15 focused + 44 guard cases / root / layers / scripts types / named lint green; exact deleted-path checks pass. CF1 broader related hit 60 s and deferred (unrelated physics-walk declaration prerequisite named) | — |
 | **D3** | Delete the headless trusted-module loader (hole 7), `sdk/headlessAssembly.ts`, `check-headless-assemblies.mjs` and its fixtures; then the native hosts only it reaches (1,362 lines above, with their ~720 test lines) once the regraph shows no product or client reads them. Each shard's `data/headlessAssembly.json` goes only if no shipped section reads `sim/headless-assembly.json` | ~470 (up to ~2,550) | Codex | M | **in flight (2026-10-24, sp-x2):** legacy/entry runtime closure excludes the loader; shared legacy type contracts and four JSONs stay. Boot/re-entry migration `158ba5b338`; Nine direct native proof calls `57e623ab13` (360 complete native wires exact). Remaining shipped-behaviour recorders migrate before interpreter removal; native hosts wait for the regraph | — |
 | **D4** | Delete the other test-only leftovers (Script V2 pieces, SDK leftovers, `regionalState`, `grid/state`); preserve compiler/height-grid scenario contracts as test fixtures, and retarget facade tests to their defining owners | ~500 | Codex | S | **done** `2cfb0ffc52` + `9021dc3cf1` + `6d46eeb66a` (sp-x8): all 12 modules unreachable from 940 legacy/entry roots; 31 + 21 focused cases / root / layers / named lint green; exact committed deleted-path checks pass. Real AS, replay, RNG, retry and height-grid assertions stay. CF1 broader related hit its 60 s cap and explicitly deferred to CI | — |
-| **D5** | Delete unused and test-only exports in live files (34 + 25, ~670 lines) | ~670 | Codex | S | each removed with root `tsc` green | — |
+| **D5** | Fresh AST + tool/data-string audit of function exports in live modules; remove uncalled wrappers and move test-only implementations to fixtures without losing contract assertions. Native proof composition stays with D3; frozen-legacy readers stay held for LD | 37 function exports + 3 unused types | Codex (sp-x8) | S | **wave 1 done** `ce04b62aef` + `faf463cece` + `9ccb9373c0` + `91cbe2dcde`, plus this row's final NPC alias removal: 26 unused + 11 test-only functions (actual list below); per-removal root checks and final layers / named lint green, 16 + 29 focused cases pass. CF1 related ran until its 60 s cap with no executed red, explicitly deferred to CI. Author/build tools and live contract probes remain; D3 must regraph before native exports can go | — |
 | **D6** | Delete the 3 true orphans (`outputRuntimeRegistry` is in D2; `sdk/looks/shaderFamily.ts`, `commons/scripts.ts`) after a string grep | ~50 | Codex | XS | — | — |
 | **LD5** (waits for Jake's QA, G606) | ([legacy-deletion](legacy-deletion-mini-plan.md)) Remove the LEGACY entry: the loader list in §2 row "Legacy entry", the Developer ▸ Legacy shard buttons row, `shard-select-entries` legacy cases | ~350 | Codex | S | SHARD SELECT shows one ENTER WORLD; `git grep "legacyButtons\|shard/legacy'"` empty | F1–F5 |
 | **LD6** (waits for Jake's QA, G606) | Delete the folders in pairs, one commit each, each regenerating `shards.generated.ts` / `slugs.generated.json` and pruning lint rows: **Sky + Signal** (305 files, 17,742 code lines), **Driftwood + Pine** (431, 51,101), **Nalati + Nine** (407, 63,479) | 132,322 (25.4 MB) | Codex | M | gates green per pair; boot smoke after the last | LD5 |
@@ -139,6 +139,28 @@ through `scripts/commit.sh` (G689: related tests), green on types / lint / relat
 
 Totals: **now** F1–F5 + D1–D6 ≈ 5.0k lines (≈ 7.1k with D3's hosts); **after legacy** LD5, LD7, LD8, A1, A2 ≈ 6.1k
 lines plus LD6's 132.3k.
+
+## D5 export audit (2026-10-24, sp-x8)
+
+The original 34 + 25 names were not retained by the audit author. The fresh
+AST scan resolves named, namespace and dynamic imports, then checks literal
+JSON/AS/tool references and frozen legacy roots before each removal. This
+wave removes **37 function exports**, rather than treating every SDK author
+API or test probe as dead.
+
+| Disposition | Exact function names |
+|---|---|
+| 26 unused functions removed | `paintGeometry`, `frameTime`, `registerGlobalDebugAction`, `mapPois`, `brainInspection`, `playgroundCard`, `createDirectorLane`, `tileOrigin`, `activeBodies`, `activeNavmesh`, `getAimTargets`, `drawnEnvironment`, `cullBin`, `parseNpcDialogueRow` (game wrapper), `developerToolsEnabled`, `scriptBrain`, `diver`, `sceneColourAt`, `opt`, `impulse`, `withPreparedScriptMemories`, `stalker`, `director`, `grazer`, `movers`, `parseNpcRow` (game wrapper) |
+| 7 test-only implementations moved unchanged to fixtures | `validateQuest`, `bakedHuntGround`, `placedGeometryCollider`, `sampleCreatureSwing`, `poseCreatureStride`, `applyV2WorldActions`, `keyTile` |
+| 4 test-only delegations removed; tests use the defining API | `parsePaintedLookRow`, `terrainFor`, `farRingCatalogue`, `installDeclaredBodyOps` |
+| Kept author/build and contract APIs | `defineSection`, `worldPhysicsSection`, `gerstnerNormal`, `speciesBrains`; synchronous reference validators `widenRgbEtc2`, `runtimeOnlyProductFiles`, `neighbourProductFiles`, `tierLibrarySource`, `urlImageLibrarySource`, `validateNamedJsonSchema`; live lifetime/accounting test probes `decodedImageCount`, `currentDownloadAccounting`, `activeRegistry` |
+| Held for D3 regraph | Every export selected by the four retained `headlessAssembly.json` files, including `installMountedPlayer`, and `productHeadlessSections`. Shipped gameplay proofs must migrate to direct typed native calls before another export sweep |
+
+Raw string matches also protect the geometry/voxel bake codecs and counters,
+placeholder builders, `solveArm`, `landscapeHash`, `blenderAreaFor`,
+`speciesKinds`, `activePhysics` and material graph operations. These have
+real tool/data consumers despite no ordinary source import. Shared frozen
+legacy modules and all LEGACY entry/buttons remain unchanged.
 
 ## Decisions
 

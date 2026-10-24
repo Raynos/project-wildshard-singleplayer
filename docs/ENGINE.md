@@ -3704,7 +3704,7 @@ Live native prompt rows may be supplied as `QuestGraphPorts.prompts` (at most 1,
 `bindHeadlessPrompts` retains each registration id, moving position, reach and sight;
 external QuestHost routes use the same nearest visible selection, including unhosted
 competitors. This borrows data only and adds no callbacks, clock or continuation.
-A skinned NPC can use `parseNpcDialogueRow` (SDK `questGraph`) to validate its unchanged dialogue without inventing pivot-body data. A quest-giver is an NPC row (`@wildshard/game/plugin/quests` `parseNpcRow`, `npcDef`, `npcSpot`): id, name, talk spot,
+A skinned NPC can use `parseNpcDialogueRow` (SDK `questGraph`) to validate its unchanged dialogue without inventing pivot-body data. A quest-giver is an NPC row (the format's `parseNpcRow`, then `@wildshard/game/plugin/quests` `npcDef`, `npcSpot`): id, name, talk spot,
 place, home facing, met flag, talk height and reach, face and wave ranges, its solid column, its pivot figure (model,
 height, neck, shoulder, arm cut, material) and its dialogue. The shared pivot NPC host
 (`@wildshard/game/plugin/geometry`) `installPivotNpc(ctx, row, { source, groundAt, player, met, file, dress })` stands it
