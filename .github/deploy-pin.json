@@ -1,10 +1,10 @@
 {
   "$doc": "What production and the native OTA channel serve (E357 decision 32). Moved only by scripts/deploy-pin.mjs set (at a milestone; decision 103: the lead moves it when the gate is green) or rollback. mode: pinned (during GAME-NORMALIZATION) | newest-green (gpu-gate-green main) | newest-ci-green (the newest main whose push CI passed; Jake 2026-10-02).",
-  "mode": "newest-ci-green",
-  "sha": "9625ae97ecf2343bfec49c516dd17604388edf20",
-  "milestone": "post-Z4 hotfix-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback",
+  "mode": "pinned",
+  "sha": "f42d192560dead1a4e508f1642f57c9ea46baa51",
+  "milestone": "post-Z4 hotfix-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback",
   "gate": "grandfathered",
-  "go": "wildshard-new: TB1 hold lifted after 3974a26c13 crossing repair, sp-x2 desktop 436fca0bcb all nine rows PASS, and a4cb1fc8f23e8431b46d916a0506ab50789da39e full push CI 40117333551 plus exact six-leg smoke 40118538745 PASS. Grid receipt proves Template entry, durable exact checkpoint revision 2, held-input return and Signal, with zero faults and all five pixel gates green. Resume normal hourly proven-main releases.",
-  "set": "2026-10-24T18:22:37.077Z",
+  "go": "wildshard-new precautionary hold: do not ship ae2dca27dc T9 lattice or descendants until sp-x6 explains the Driftwood activation freeze. Retain the verified live f42d192560; 911a9fe570 also predates the suspect change. Resume newest-ci-green only after coordinator clearance.",
+  "set": "2026-10-24T20:25:59.635Z",
   "by": "E357 lead"
 }
