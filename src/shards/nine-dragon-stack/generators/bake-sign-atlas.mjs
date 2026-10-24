@@ -6,6 +6,7 @@ import { build } from 'vite';
 import { webkit, devices } from 'playwright';
 import { byteWriter, outputHash } from '../../../../scripts/bake-output.mjs';
 import { readImagePixels } from '../../../../src/sdk/bake/image.ts';
+import { parseSignView } from './sections.ts';
 
 const root = resolve(import.meta.dirname, '../../../..');
 const writer = byteWriter(process.argv.includes('--check'), 'nine-sign-atlas');
@@ -20,6 +21,7 @@ const revive = (_key, value) => value === '-0' ? -0 : value;
 const layout = JSON.parse(readFileSync(resolve(root, 'src/shards/nine-dragon-stack/data/layout.generated.json'), 'utf8'), revive);
 const fixed = JSON.parse(readFileSync(resolve(root, 'src/shards/nine-dragon-stack/data/fixedKits.generated.json'), 'utf8'), revive);
 const calls = [...layout.rows.signs, ...fixed.signs];
+const signRows = parseSignView(JSON.parse(readFileSync(resolve(root, 'src/shards/nine-dragon-stack/data/signView.json'), 'utf8')));
 
 // Single-level lossless R8/RGBA8 KTX2. Both retain the old bottom-up raster and GPU mip law.
 async function ktx(png, mono, file) {
@@ -45,7 +47,7 @@ try {
   await page.setContent('<!doctype html><meta charset="utf-8"><title>Nine sign bake</title>');
   await page.addScriptTag({ content: code });
   for (const tier of ['phone', 'desktop']) {
-    const { mono, colour, ...row } = await page.evaluate(input => window.bakeNineSigns(input.tier, input.calls), { tier, calls });
+    const { mono, colour, ...row } = await page.evaluate(input => window.bakeNineSigns(input.tier, input.calls, input.signRows), { tier, calls, signRows });
     const chunks = []; let byteOffset = 0;
     const pack = encoded => { const bytes = Buffer.from(encoded, 'base64'), range = { byteOffset, byteLength: bytes.length }; chunks.push(bytes); byteOffset += bytes.length; return range; };
     for (const geometry of Object.values(row.geometries)) {

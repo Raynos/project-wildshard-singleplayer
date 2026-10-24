@@ -16239,7 +16239,8 @@
         "src/shards/nine-dragon-stack/data/fixedKits.generated.json",
         "src/shards/nine-dragon-stack/generators/signs.ts",
         "src/shards/nine-dragon-stack/data/signTypes.d.ts",
-        "src/shards/nine-dragon-stack/data/signView.json"
+        "src/shards/nine-dragon-stack/data/signView.json",
+        "src/shards/nine-dragon-stack/generators/sections.ts"
       ],
       "outputs": [
         "src/shards/nine-dragon-stack/data/signAtlas.generated.json",

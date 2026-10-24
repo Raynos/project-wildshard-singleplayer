@@ -2,12 +2,10 @@ import { BufferAttribute, Vector3 } from 'three';
 import { SignAtlas, SignBuilder, type SignPlace } from './signAtlas';
 import type { SignModelParams, SignStyle } from '../data/signTypes';
 import { SIGN_COLOUR, SIGN_LAYOUT, SIGN_STYLES } from './signs';
-import rawSignRows from '../data/signView.json' with { type: 'json' };
-import { parseSignView } from './sections';
+import type { parseSignView } from './sections';
 import { neonSize } from './signMath';
 import type { SignCallRow } from './contracts/signPlacement';
 
-const signRows = parseSignView(rawSignRows);
 
 interface PackedGeometry { readonly attributes: Record<string, { width: number; data: string }>; readonly index: string; readonly sphere: number[] | null }
 interface BakedSignAtlas extends ReturnType<SignAtlas['snapshot']> {
@@ -17,12 +15,12 @@ interface BakedSignAtlas extends ReturnType<SignAtlas['snapshot']> {
 }
 
 /** Same cache key the Explorer has always used, now resolving a prepared primitive. */
-export function specimenKey(p: SignModelParams): string {
-  return `${signRows.model.key}:${p.style}:${p.text}:${p.color}:${p.ink ?? ''}:${String(p.vertical)}:${p.size}:${String(p.blade)}`;
+export function specimenKey(p: SignModelParams, modelKey: string): string {
+  return `${modelKey}:${p.style}:${p.text}:${p.color}:${p.ink ?? ''}:${String(p.vertical)}:${p.size}:${String(p.blade)}`;
 }
 
 /** Original call order: layout, then the seeded facade slots. No extra cells are allocated for specimens. */
-export function bakeSignAtlasPage(tier: 'phone' | 'desktop', calls: readonly SignCallRow[]): BakedSignAtlas {
+export function bakeSignAtlasPage(tier: 'phone' | 'desktop', calls: readonly SignCallRow[], signRows: ReturnType<typeof parseSignView>): BakedSignAtlas {
   const atlas = new SignAtlas<SignStyle>(SIGN_STYLES, { ...SIGN_LAYOUT[tier], ...SIGN_COLOUR[tier] });
   const builder = new SignBuilder(atlas);
   builder.calligraphy = { gain: signRows.model.tubeGain, add: p => neonSize(p.text, p.em, p.vertical) };
@@ -55,7 +53,7 @@ export function bakeSignAtlasPage(tier: 'phone' | 'desktop', calls: readonly Sig
   }
   const keys: Record<string, string> = {};
   for (const p of params) {
-    const key = specimenKey(p);
+    const key = specimenKey(p, signRows.model.key);
     if (keys[key] !== undefined) continue;
     const b = new SignBuilder(atlas), name = `specimen-${Object.keys(keys).length}`;
     b.place({ at: new Vector3(), normal: new Vector3(0, 0, 1), size: p.size, spec: p, blade: p.blade,
