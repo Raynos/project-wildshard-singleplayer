@@ -230,10 +230,12 @@ export class ObservationColumnsV2 {
       live();values[column]=finite(read(owners));
     }
     live();
-    if(owners.references!==owner||refs.some(pin=>{
+    if(owners.references!==owner)throw new Error('Retired observation owner');
+    for(let pinIndex=0;pinIndex<refs.length;pinIndex++){
+      const pin=refs[pinIndex];if(pin===undefined)throw new Error('Missing observation reference pin');
       const loan=owner?.get(pin.name);
-      return loan!==pin.loan||loan?.body!==pin.body||loan?.identity!==pin.identity||loan?.handle!==pin.handle;
-    }))throw new Error('Retired observation owner');
+      if(loan!==pin.loan||loan?.body!==pin.body||loan?.identity!==pin.identity||loan?.handle!==pin.handle)throw new Error('Retired observation owner');
+    }
     return values;
     } finally {
       for(let index=0;index<refs.length;index++){

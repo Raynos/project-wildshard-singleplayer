@@ -5,7 +5,7 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import { fixtureBytes } from './fixtures/nativeBytes';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { PageWildEnvironment } from '../src/game/population/pageGroups';
-import { ObservationColumnsV2,type V2ColumnOwners } from '../src/engine/script/observationColumnsV2';
+import { ObservationColumnsV2,type V2ColumnOwners,type V2ReferenceColumn } from '../src/engine/script/observationColumnsV2';
 import { parseObservationColumnsV2,ObservationColumnsV2Schema } from '../src/format/scriptObservationColumnsV2';
 import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
 
@@ -245,6 +245,32 @@ test('numeric reference pins isolate nested queries, retain detached values and 
  }finally{f.host.dispose();}
 });
 
+
+test('numeric final pins recheck stable loans and null entries after the last scalar read',async()=>{
+ const f=await fixture(),reader=new ObservationColumnsV2([
+  {id:1,name:'first',source:{kind:'reference',binding:'first',field:'present'}},
+  {id:2,name:'late',source:{kind:'reference',binding:'late',field:'present'}},
+  {id:3,name:'tail',source:{kind:'memory',key:'tail',default:{value:0}}},
+ ],f.host.scope);
+ const loan={identity:f.actor.entityId,handle:10,body:f.actor},references=new Map<string,V2ReferenceColumn|null>([['first',loan],['late',null]]);
+ const owners={...f.owners,references},trace:string[]=[],get=references.get.bind(references);
+ const lookup=vi.spyOn(references,'get').mockImplementation(name=>{trace.push(name);return get(name);});
+ let edit:'none'|'late'|'handle'='none';
+ Object.defineProperty(f.actor.mem,'tail',{get:()=>{
+  trace.push('tail');if(edit==='late')references.set('late',loan);if(edit==='handle')loan.handle=12;return -0;
+ }});
+ try{
+  const retained=reader.captureNumeric(owners);expect(retained).toStrictEqual(new Float64Array([1,0,-0]));
+  expect(trace).toEqual(['first','late','first','late','tail','first','late']);
+  trace.length=0;edit='late';expect(()=>reader.captureNumeric(owners)).toThrow('Retired observation owner');
+  expect(trace).toEqual(['first','late','first','late','tail','first','late']);
+  references.set('late',null);trace.length=0;edit='handle';
+  expect(()=>reader.captureNumeric(owners)).toThrow('Retired observation owner');
+  expect(trace).toEqual(['first','late','first','late','tail','first']);
+  loan.handle=10;edit='none';expect(reader.captureNumeric(owners)).toStrictEqual(retained);
+  expect(retained).toStrictEqual(new Float64Array([1,0,-0]));
+ }finally{lookup.mockRestore();f.host.dispose();}
+});
 
 test('caller-owned numeric destinations overwrite omissions without changing detached captures',async()=>{
  const f=await fixture(),reader=new ObservationColumnsV2([
