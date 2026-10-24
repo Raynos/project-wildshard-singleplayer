@@ -358,6 +358,10 @@ interface StockKeyMemo {
   readonly keys: Map<string, [string | undefined, string | undefined]>;
 }
 
+/** WebGLUniforms.setValue(gl, name, value, textures), as `hookPlainUniforms` wraps it */
+type UniformSetter = (this: unknown, gl: unknown, name: unknown, value: unknown, textures: unknown) => void;
+const isUniformSetter = (value: unknown): value is UniformSetter => typeof value === 'function';
+
 /** builds kept in `EngineNodesHandler.buildLog` */
 const BUILD_LOG_CAP = 1024;
 
@@ -972,12 +976,14 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const getUniforms: unknown = Reflect.get(program, 'getUniforms');
     const uniforms: unknown = typeof getUniforms === 'function' ? Reflect.apply(getUniforms, program, []) : undefined;
     const stock: unknown = typeof uniforms === 'object' && uniforms !== null ? Reflect.get(uniforms, 'setValue') : undefined;
-    if (typeof uniforms !== 'object' || uniforms === null || typeof stock !== 'function') throw new Error('Node program keeps no uniform setter');
+    if (typeof uniforms !== 'object' || uniforms === null || !isUniformSetter(stock)) throw new Error('Node program keeps no uniform setter');
     this.plainHooked.add(program);
     const flush = (): void => { this.flushPlainUniforms(program); };
-    Reflect.set(uniforms, 'setValue', function setValue(this: unknown, ...args: unknown[]): void {
-      Reflect.apply(stock, this, args);
-      if (args[1] === 'modelMatrix') flush();
+    // three's own four arguments, passed on as they are: a rest array and Reflect.apply on each of a draw's uniform sets
+    // were a native call per set on JavaScriptCore (60 of 5980 samples of a steady Nalati Simulator profile)
+    Reflect.set(uniforms, 'setValue', function setValue(this: unknown, gl: unknown, name: unknown, value: unknown, textures: unknown): void {
+      stock.call(this, gl, name, value, textures);
+      if (name === 'modelMatrix') flush();
     });
   }
 
