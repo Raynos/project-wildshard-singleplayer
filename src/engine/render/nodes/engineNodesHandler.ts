@@ -50,7 +50,7 @@
  */
 import * as THREE from 'three';
 import { WebGLNodesHandler } from 'three/examples/jsm/tsl/WebGLNodesHandler.js';
-import { ConvertNode, MeshBasicNodeMaterial, NodeFrame, NodeMaterial, PMREMNode, TextureNode, type Node, type NodeBuilder } from 'three/webgpu';
+import { ConvertNode, MaterialReferenceNode, MeshBasicNodeMaterial, NodeFrame, NodeMaterial, PMREMNode, TextureNode, type Node, type NodeBuilder } from 'three/webgpu';
 import { Fn, and, cameraPosition, context, mix, modelWorldMatrix, nodeObject, normalLocal, positionWorld, reference, step, uniform, vec2, vec3, vec4, workingToColorSpace } from 'three/tsl';
 import { shaderPatchProgramKey, shaderPatchSet } from '../shaderPatches';
 import { fogPatches, materialNodeFogOf } from '../fogPatches';
@@ -188,6 +188,13 @@ function fogOf(builder: NodeBuilder): THREE.Fog | THREE.FogExp2 | null {
   return fog instanceof THREE.Fog || fog instanceof THREE.FogExp2 ? fog : null;
 }
 function isNode(value: object): value is Node<'vec4'> { return Reflect.get(value, 'isNode') === true; }
+
+/** Three's module-cached material readers must not keep their last retired target. */
+function releaseMaterialReferences(nodes: unknown, material: THREE.Material): void {
+  if (!Array.isArray(nodes)) return;
+  for (const node of nodes) if (node instanceof MaterialReferenceNode && Reflect.get(node, 'material') === null
+    && Reflect.get(node, 'reference') === material) Reflect.set(node, 'reference', null);
+}
 
 /** what the stock handler keeps for one (material, program) pair: the uniforms, groups and update nodes of the program's build */
 interface ProgramEntry {
@@ -1106,11 +1113,15 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       Reflect.defineProperty(material, 'isShaderMaterial', { value: true, configurable: true });
       queueMicrotask(() => { Reflect.deleteProperty(material, 'isShaderMaterial'); });
     }
+    for (const pending of this.pendingBuilds.get(material) ?? []) releaseMaterialReferences(pending.updateNodes, material);
+    const builder: unknown = Reflect.get(material, '_latestBuilder');
+    if (typeof builder === 'object' && builder !== null) releaseMaterialReferences(Reflect.get(builder, 'updateNodes'), material);
     this.pendingBuilds.delete(material); this.objectVariants.forget(material); this.drawEntries.delete(material); this.reusableBuilds.delete(material);
     Reflect.deleteProperty(material, '_latestBuilder');
     const self = internals(this), programs = self.programCache.get(material), blocks = this.blocks;
     if (programs !== undefined) {
       for (const entry of programs.values()) {
+        releaseMaterialReferences(entry.updateNodes, material);
         for (const group of entry.uniformsGroups) {
           if (typeof group !== 'object' || group === null) continue;
           blocks?.release(group);
