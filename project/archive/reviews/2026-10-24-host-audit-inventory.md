@@ -1,10 +1,12 @@
 # Host audit inventory
 
-**Status:** unread · 2026-10-23 · HOST-AUDIT preparation
+**Status:** read · 2026-10-24 · Jake accepted all 114 recommendations as HOST-AUDIT's starting point (G679)
 
 At `419cf542cd`: **114 groups, 310 selectors, 180 modules**. Jake approves each host individually. Recommended: **95 keep, 18 fold, 1 retire after legacy deletion**. This page changes no code, credit or zero lock.
 
-**Evidence column:** HOST-BAR line · unique code lines in that group · documented adopters · recorded tests 2–6. Code lines exclude blanks/comments; overlapping groups cannot be summed. Their combined footprint is **18,721 lines**, not a chargeback or deletion estimate. Exact selectors are at the cited [HOST-BAR](../HOST-BAR.md) line; regenerate the list using this page’s commit body.
+**G679 acceptance (2026-10-24):** all 114 recommendations are accepted as HOST-AUDIT's starting point, exactly as written (95 keep / 18 fold / 1 retire after legacy deletion). Jake's correction keeps HOST-AUDIT as its own parked plan, starting only after all SHARD-PLATFORM mini plans finish. No listings, folds, chargebacks or credit changes are applied now.
+
+**Evidence column:** HOST-BAR line · unique code lines in that group · documented adopters · recorded tests 2–6. Code lines exclude blanks/comments; overlapping groups cannot be summed. Their combined footprint is **18,721 lines**, not a chargeback or deletion estimate. Exact selectors are at the cited [HOST-BAR](../../../docs/HOST-BAR.md) line at the inventory pin; regenerate the list using commit `6ec361162e`’s body.
 
 **Adopters:** P = Pine, DW = Driftwood, N = Nalati, 9 = Nine, Sky = Far Reach, Signal = Sunscar, T = Template. `—` means not recorded, not zero users. These are listing/R16 claims, not new live-user certification; fixtures and planned users never count as second users.
 
@@ -129,4 +131,4 @@ At `419cf542cd`: **114 groups, 310 selectors, 180 modules**. Jake approves each 
 | H113 G667 case 2: native driver | L313 · 161 · N · pending | **keep** — one native roster and field authority |
 | H114 G677 entered adapters | L315 · 118 · N · pending | **fold into a general host** — one-world entry adapter composition |
 
-Scope: listed HOST-BAR groups. The wider pending-user/section-host registers remain HA1 discovery inputs, not certified users or passing scores. [HOST-AUDIT plan](../plans/HOST-AUDIT.md).
+Scope: listed HOST-BAR groups. The wider pending-user/section-host registers remain HA1 discovery inputs, not certified users or passing scores. [HOST-AUDIT plan](../../../docs/plans/HOST-AUDIT.md).
