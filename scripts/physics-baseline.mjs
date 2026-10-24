@@ -347,6 +347,7 @@ if (MODE.includes('walk')) {
           groundSpeedP50: Math.round((speeds[Math.floor(speeds.length / 2)] ?? 0) * 100) / 100,
           airFrames: r.trace.filter((s) => s[5] === 0).length, swimFrames: r.trace.filter((s) => s[7] === 1).length, slideFrames: r.trace.filter((s) => s[8] === 1).length,
           stuck: r.stuck, trace: r.trace, ...(leg.inside ? { out: r.out, minY: Math.round(Math.min(...ys) * 100) / 100 } : {}),
+          complete: r.complete, timedOut: r.timedOut,
         };
         result.walk.push(summary);
         console.error(`  ${leg.name}: ${summary.seconds}s end y ${summary.end.y} (expect ${summary.expectY ?? '?'}) stuck ${summary.stuck.length}${leg.inside ? ` · out ${r.out} frames, min y ${summary.minY}` : ''}`);
@@ -395,4 +396,4 @@ if (MODE.includes('grid')) {
   for (const failure of result.gridFailures) console.error(`grid FAIL: ${failure}`);
 }
 cleanup();
-process.exit(result.gridFailures.length > 0 || result.walk.some(leg => leg.stuck.length > 0) || (result.walkErrors?.length ?? 0) > 0 ? 1 : 0); // the preview child would keep the event loop alive
+process.exit(result.gridFailures.length > 0 || MODE.includes('walk') && result.walk.some(leg => leg.stuck.length > 0 || !leg.complete || leg.timedOut) || (result.walkErrors?.length ?? 0) > 0 ? 1 : 0); // the preview child would keep the event loop alive

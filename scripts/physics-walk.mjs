@@ -19,13 +19,13 @@ export async function walkPhysicsLeg(legIn) {
   if (w.animals.__frozen !== true) { w.animals.update = () => undefined; w.animals.__frozen = true; } // no creature in the way of the route (they are the poses' job)
   await new Promise((resolve) => { setTimeout(resolve, 600); }); // land, settle the camera
   const trace = [], stuck = [];
-  let wi = 0, t = 0, jumpT = 0, jump2 = false, lastProg = { t: 0, d: Infinity }, out = 0;
+  let wi = 0, t = 0, jumpT = 0, jump2 = false, lastProg = { t: 0, d: Infinity }, out = 0, complete = false, timedOut = false;
   const box = legIn.inside ?? null;
   const t0 = performance.now();
   await new Promise((resolve) => {
     let stop = () => { /* assigned before the first simulation frame */ };
     stop = w.game.watchFrames((dt) => {
-      if (wi >= legIn.waypoints.length || t > (legIn.timeout ?? 60)) { if (wi !== -1) { w.game.app.input.clear(); if (legIn.start.hover === true) p.setHover(false); wi = -1; stop(); resolve(undefined); } return; }
+      if (wi >= legIn.waypoints.length || t > (legIn.timeout ?? 60)) { if (wi !== -1) { complete = wi >= legIn.waypoints.length; timedOut = !complete; w.game.app.input.clear(); if (legIn.start.hover === true) p.setHover(false); wi = -1; stop(); resolve(undefined); } return; }
       if (wi < 0) return;
       t += dt;
       const wp = legIn.waypoints[wi];
@@ -37,11 +37,17 @@ export async function walkPhysicsLeg(legIn) {
       if (d < lastProg.d - 0.3) lastProg = { t, d };
       else if (box !== null && t - lastProg.t > 1.2) { wi++; lastProg = { t, d: Infinity }; w.game.app.input.setHeld('jump', false); jumpT = 0; jump2 = false; return; } // an escape leg: the edge held
       else if (t - lastProg.t > 2) { // no progress for 2 s: log it and skip on to the next waypoint
+        const grid = window.__wildshard?.shard?.grid?.state().live;
+        // A closed incoming readiness fence is not a physical snag. The same
+        // leg deadline still bounds admission; failed/ready crossings do not wait.
+        if (grid?.crossing.phase === 'preparing' && grid.crossing.issue === null && grid.live.current === null
+          && typeof grid.crossing.target === 'string' && grid.live.pending.includes(grid.crossing.target)
+          && !grid.live.residents.includes(grid.crossing.target)) { lastProg = { t, d }; return; }
         const ground = p.motor.result.groundCollider, owner = ground === null ? null : w.physics.colliderTag(ground)?.owner;
         stuck.push({ wp: wi, x: Number(p.position.x.toFixed(2)), y: Number(p.position.y.toFixed(2)), z: Number(p.position.z.toFixed(2)),
           motor: p.motor.snapshot(), water: p.waterSurfaceAt(p.position.x, p.position.z),
           // Read only on refusal, before the diagnostic fallback moves the player.
-          grid: window.__wildshard?.shard?.grid?.state().live,
+          grid,
           ground: owner !== null && typeof owner === 'object' && typeof owner.id === 'string' ? owner.id : null });
         p.spawn(wp.x, wp.z, p.yaw); land(); wi++; lastProg = { t, d: Infinity }; return;
       }
@@ -55,5 +61,5 @@ export async function walkPhysicsLeg(legIn) {
       if (jumps === 0) jumpT = 0;
     });
   });
-  return { trace, stuck, out, wall: Math.round(performance.now() - t0) };
+  return { trace, stuck, out, complete, timedOut, wall: Math.round(performance.now() - t0) };
 }
