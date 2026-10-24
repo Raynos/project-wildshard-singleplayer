@@ -63,8 +63,13 @@ export class Events {
     this.subscribe(this.answerers, name, (value) => fn(value as AskInput<K>), scope, opts);
   }
   ask<K extends keyof AskMap>(name: K, value: AskInput<K>): AskOutput<K> {
+    const registered = this.answerers.get(name);
+    if (registered === undefined && name !== 'player.crouch') return value as AskOutput<K>;
+    // One captured listener is already a complete snapshot, even if its callback changes the registry.
+    const single = registered?.length === 1 ? registered[0] : undefined;
+    if (single !== undefined) return (single.active ? single.run(value) : value) as AskOutput<K>;
     let result: unknown = value;
-    const answerers = [...(this.answerers.get(name) ?? [])];
+    const answerers = [...(registered ?? [])];
     for (const listener of answerers) {
       if (listener.active) result = listener.run(result);
     }
