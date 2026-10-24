@@ -79,6 +79,16 @@ export function readRetirementBoundary(identity, documentIdentity) {
       && row.id.startsWith('render:')).map(row => row.id) };
 }
 
+/** Opt-in diagnostic only: existing scalar ledger and renderer counters, never
+ * resource objects or renderer property lookups that can register uploads. */
+export function readRetirementResources() {
+  const api = window.__wildshard, renderer = api.world.game.renderer;
+  const memory = Object.getOwnPropertyDescriptor(api, 'memory')?.value;
+  if (typeof memory !== 'function') throw new Error('Scalar memory ledger unavailable');
+  return { renderer: { geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures,
+    programs: renderer.info.programs?.length ?? null }, ledger: memory.call(api) };
+}
+
 /** Initial staging only, before warm-up or measured input. A new position can
  * publish streamed colliders after pose's first ground lookup; resolve again
  * only after that position's normal streaming and crossing have settled. */

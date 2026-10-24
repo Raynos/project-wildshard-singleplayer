@@ -2,7 +2,7 @@ import { test, expect } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- execute the real serialized reader without a browser or app fixture
 import { runInNewContext } from 'node:vm';
 import type { FloorGridState } from '../scripts/frame-floor-grid.mjs';
-import { gradeTileRetirement, tileRetirementRoute, tileRetirementTracker, readRetirementBoundary, seedTileRetirementHome, type RetirementBoundary } from '../scripts/tile-retirement-proof.mjs';
+import { gradeTileRetirement, tileRetirementRoute, tileRetirementTracker, readRetirementBoundary, seedTileRetirementHome, readRetirementResources, type RetirementBoundary } from '../scripts/tile-retirement-proof.mjs';
 
 const state: Pick<FloorGridState, 'home' | 'pitch' | 'cells'> = { home: 'dw', pitch: 562.5, cells: [
   { instance: 'dw', slug: 'driftwood-isle', cell: [0, 0] },
@@ -66,6 +66,18 @@ test('T1 refuses missing trips, ghosts, unfinished work, navigation and incomple
 });
 
 function mutableBoundary() { return { ...boundary() }; }
+
+test('T1 resource diagnostic reads scalar counters and the explicit ledger without upload lookups', () => {
+  const ledger = { totals: { gpu: 8, ram: 16 }, allocations: [{ owner: 'resident', domain: 'gpu', bytes: 8 }] };
+  const api = { memory: () => ledger, world: { game: { renderer: {
+    info: { memory: { geometries: 3, textures: 4 }, programs: [{}, {}] },
+    properties: { get: () => { throw new Error('Diagnostic must not register an upload'); } },
+  } } } };
+  const read = (): unknown => runInNewContext(`(${readRetirementResources.toString()})()`, { window: { __wildshard: api } });
+  expect(read()).toEqual({ renderer: { geometries: 3, textures: 4, programs: 2 }, ledger });
+  Object.defineProperty(api, 'memory', { get: () => { throw new Error('Do not invoke an arbitrary getter'); } });
+  expect(read).toThrow(/ledger unavailable/u);
+});
 
 test('T1 serialized reader keeps normal crossing pauses separate from settled acceptance', () => {
   const hud = { entered: true, paused: false };

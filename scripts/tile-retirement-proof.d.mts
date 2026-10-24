@@ -1,4 +1,5 @@
 import type { FloorGridDocumentIdentity, FloorGridPlan, FloorGridState } from './frame-floor-grid.mjs';
+import type { MemorySnapshot } from '../src/engine/core/memoryAttribution';
 
 export interface RetirementBoundary {
   readonly document: string;
@@ -32,3 +33,7 @@ export function readRetirementBoundary(identity: FloorGridDocumentIdentity, docu
   } };
 export function seedTileRetirementHome(reference: { x: number; z: number }, identity: FloorGridDocumentIdentity,
   documentIdentity: () => FloorGridDocumentIdentity): Promise<void>;
+export function readRetirementResources(): {
+  renderer: { geometries: number; textures: number; programs: number | null };
+  ledger: MemorySnapshot;
+};

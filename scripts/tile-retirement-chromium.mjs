@@ -14,27 +14,32 @@ import { floorGridBenchmarkUrl, FLOOR_GRID_ENTER } from './frame-floor-navigatio
 import { gridFloorDocumentIdentity, runFloorGridRoute, gridFloorWitnessFailures,
   readFloorGridEntryways } from './frame-floor-grid.mjs';
 import { soakPortalPlan } from './soak/owned.mjs';
-import { tileRetirementRoute, tileRetirementTracker, gradeTileRetirement, readRetirementBoundary, seedTileRetirementHome } from './tile-retirement-proof.mjs';
+import { tileRetirementRoute, tileRetirementTracker, gradeTileRetirement, readRetirementBoundary, seedTileRetirementHome, readRetirementResources } from './tile-retirement-proof.mjs';
 
 const arg = key => process.argv.find(value => value.startsWith(`--${key}=`))?.slice(key.length + 3);
 if (process.argv.includes('--help')) {
   console.info('scripts/browser-lane.sh --max 35 node scripts/tile-retirement-chromium.mjs --base=URL --pin=FULL_SHA --out=FRESH_DIR');
   console.info('T1 only: warm DW/Sky once, then five held-input round trips; >=20 observed tile lifetimes, zero ghosts, each return within 20 MB. No FPS/Simulator/soak clearance.');
+  console.info('--diagnostic=resources adds renderer/ledger/heap reads; diagnostic receipts cannot claim acceptance.');
   process.exit(0);
 }
 const base = arg('base'), pin = arg('pin'), out = arg('out');
+const diagnostic = arg('diagnostic');
+if (diagnostic !== undefined && diagnostic !== 'resources') throw new Error('Unknown retirement diagnostic');
 if (!base || !pin || !/^[a-f0-9]{40}$/u.test(pin) || !out) throw new Error('Requires --base, --pin and --out');
 if (existsSync(resolvePath(out, 'receipt.json'))) throw new Error('Retirement evidence already exists; use a fresh directory');
 const version = await (await fetch(new URL('/version.json', base))).json();
 if (!version.build?.startsWith(pin.slice(0, 7))) throw new Error('Served source differs from requested pin');
 mkdirSync(out, { recursive: true });
-const receipt = { source: pin, complete: false, errors: [], routes: [], boundaries: [],
+const receipt = { source: pin, complete: false, acceptanceEligible: diagnostic === undefined, errors: [], routes: [], boundaries: [],
   protocol: { device: 'iPhone 16 Pro', tier: 'phone', cpu: 4, renderScale: 2, developer: true,
     roundTrips: 5, warmupRoundTrips: 1, settleSeconds: 45, forcedGC: false, inspectorBodyBytes: 0,
     toolHashes: Object.fromEntries(['tile-retirement-chromium.mjs', 'tile-retirement-proof.mjs', 'frame-floor-grid.mjs',
       'soak/owned.mjs', 'grid-ready-memory.mjs', 'chromium-memory-browser.mjs'].map(path =>
       [path, createHash('sha256').update(readFileSync(new URL(path, import.meta.url))).digest('hex')])),
     memory: 'One dedicated Chromium: renderer + GPU private footprint. Browser overhead separate. Endpoint dumps, no FPS claim.',
+    diagnostic: diagnostic ?? null,
+    backingStorage: diagnostic === undefined ? null : 'CDP backingStorageSize includes ArrayBuffers and external strings; ledger RAM allocations are tracked identities only. No forced GC.',
     cycles: 'Observed render claim acquisition/removal lifetimes at 1 Hz; missed lifetimes undercount, never interpolate.' } };
 const write = () => writeFileSync(resolvePath(out, 'receipt.json'), JSON.stringify(receipt, null, 2));
 const memoryBrowser = await launchMemoryBrowser(['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist']);
@@ -104,9 +109,15 @@ try {
     while ((!row.ready || !row.controls || row.pending !== 0 || row.retiring !== 0 || row.inFlight !== 0 || row.queued !== 0) && Date.now() < deadline) {
       await sleep(1000); row = await read();
     }
-    const result = { ...row, process: await dump(label) };
+    let resources;
+    if (diagnostic !== undefined) {
+      const heap = await cdp.send('Runtime.getHeapUsage');
+      resources = { ...await page.evaluate(readRetirementResources), heap };
+      writeFileSync(resolvePath(out, `${label}-resources.json`), JSON.stringify(resources, null, 2));
+    }
+    const result = { ...row, process: await dump(label), ...(resources === undefined ? {} : { resources }) };
     receipt.boundaries.push({ label, ...result }); write();
-    console.info(JSON.stringify({ boundary: label, ...result, keys: undefined }));
+    console.info(JSON.stringify({ boundary: label, ...result, keys: undefined, resources: undefined }));
     return result;
   };
   const roundTrip = async round => {
