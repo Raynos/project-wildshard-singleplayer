@@ -6,6 +6,7 @@
 //     [--shard=sunscar-dunes] selects the explicit compiled card, never legacy.
 //     [--upgrade-from=<old-origin>] installs the old worker, switches this same origin to the new build, then taps grid.
 //     [--core-memory=menu|select|_template|blender-template|all] reads independent Developer-on floors at 10/60/120s, no Network capture or GC.
+//     --core-memory=hello serves its own plain hello-world fixture (no --base/--rev), using the same native floor sampler.
 // --base drives a served build or live; --rev serves that commit (scripts/serve-build.sh --rev) and stops it after.
 // Each run: Safari terminated; a cold run clears the worker, every cache and the prefetch markers (a warm run keeps
 // them); the title; Developer on; six seconds on the menu (its prefetch starts 4 s in); tap INFINITE WILDSHARD; record
@@ -25,7 +26,8 @@ import { accuracyRecorder } from './loading-benchmark/accuracy-data.mjs';
 import { requireCompiledEntry, downloadEvidence, transportEvidence, waitForWaitingWorker, recoveredGridControls } from './loading-benchmark/sim-shard.mjs';
 import { cachedBodyEvidence } from './loading-benchmark/cache-bodies.mjs';
 import { saveFixtureCode } from './debug-settings.mjs';
-import { readSimulatorCoreFootprint, selectedCoreMemoryTargets, coreMemorySummary, compiledFloorSave, scriptResourceURLs } from './shard-phone-memory.mjs';
+import { readSimulatorCoreFootprint, selectedCoreMemoryTargets, coreMemorySummary, compiledFloorSave, scriptResourceURLs,
+  serveHelloWorldMemory, helloWorldMemoryFloor } from './shard-phone-memory.mjs';
 import { pageMemoryAttributionExpression } from './memory-report-snapshot.mjs';
 
 const REPO = resolvePath(import.meta.dirname, '..');
@@ -33,14 +35,16 @@ const REPO = resolvePath(import.meta.dirname, '..');
 const args = Object.fromEntries(process.argv.slice(2).map(arg => /^--([^=]+)(?:=(.*))?$/u.exec(arg)).filter(match => match !== null).map(match => [match[1], match.at(2) ?? '1']));
 const udid = process.env.SIM_UDID;
 if (udid === undefined || udid === '') throw new Error('Run under scripts/sim-lane.sh run (it sets SIM_UDID)');
-if ((args.base === undefined) === (args.rev === undefined)) throw new Error('Pass exactly one of --base=<url> or --rev=<sha>');
+const coreMemory = args['core-memory'];
+if (coreMemory === 'hello') {
+  if (args.base !== undefined || args.rev !== undefined) throw new Error('Hello-world calibration serves its own fixture; omit --base/--rev');
+} else if ((args.base === undefined) === (args.rev === undefined)) throw new Error('Pass exactly one of --base=<url> or --rev=<sha>');
 /** The official reader is the only quiet owner; builds happen before take. */
 function quiet(action) {
   const result = spawnSync('python3', [resolvePath(REPO, 'scripts/sim-quiet.py'), action, String(process.pid)], { cwd: REPO, encoding: 'utf8' });
   if (result.status !== 0) { const message=result.stderr.trim();throw new Error(message.length===0?'Simulator quiet refused':message); }
 }
 const shard = args.shard;
-const coreMemory = args['core-memory'];
 const upgradeFrom = args['upgrade-from'];
 const secondTapDiagnostic = args['upgrade-second-tap'] === '1';
 if (args['upgrade-second-tap'] !== undefined && (args['upgrade-second-tap'] !== '1' || upgradeFrom === undefined)) throw new Error('Second tap diagnostic requires --upgrade-from and value 1');
@@ -67,7 +71,8 @@ function serve(rev) {
 }
 
 const served = args.rev === undefined ? null : serve(args.rev);
-const upstream = served?.url ?? (args.base ?? '').replace(/\/$/u, '');
+const helloFixture = coreMemory === 'hello' ? await serveHelloWorldMemory() : null;
+const upstream = helloFixture?.url ?? served?.url ?? (args.base ?? '').replace(/\/$/u, '');
 // The existing independent HTTP observer injects a first-HTML recorder only.
 // Asset and worker bytes pass through unchanged. Grid recordings keep their URL.
 let oldDeployment = upgradeFrom !== undefined;
@@ -174,7 +179,7 @@ function log(file, row) { appendFileSync(file, `${JSON.stringify({ t: Date.now()
 
 async function runCoreMemory(mode, index, target) {
   if (mode !== 'cold') throw new Error('Core floor reading requires a cold Safari process');
-  const template = target !== 'menu' && target !== 'select';
+  const hello = target === 'hello', template = !hello && target !== 'menu' && target !== 'select';
   try { execFileSync('xcrun', ['simctl', 'terminate', udid, 'com.apple.mobilesafari'], {stdio: 'ignore'}); } catch { /* Not running. */ }
   await sleep(2000);
   execFileSync('xcrun', ['simctl', 'openurl', udid, `${BASE}/version.json`]);
@@ -188,27 +193,31 @@ async function runCoreMemory(mode, index, target) {
     return {serviceWorkers:regs.length,caches:keys.length,markers,http};
   }`);
   if (reset === null || typeof reset !== 'object') throw new Error(`Core floor reset failed: ${String(reset)}`);
-  const setup = [saveFixtureCode({scope: 'device', key: 'devMode', data: true}),
+  const setup = hello ? '' : [saveFixtureCode({scope: 'device', key: 'devMode', data: true}),
     saveFixtureCode({...compiledFloorSave, data: template ? 'on' : 'off'}),
     saveFixtureCode({scope: 'global', key: 'settings', merge: true, data: {tier: 'phone', volume: 0}}),
     saveFixtureCode({scope: 'global', key: 'gfx', data: {dpr: '2', aa: 'auto'}})].join(';');
-  await page.evaluate(`${setup};setTimeout(() => location.replace('/?sw=0'), 50);true`);
+  await page.evaluate(`${setup};setTimeout(() => location.replace(${JSON.stringify(hello ? '/' : '/?sw=0')}), 50);true`);
   await sleep(800); await connect(`${BASE}/`);
-  if (!await until(`!!document.querySelector('.ws-main')?.getClientRects().length && !!document.querySelector('.ws-main-grid') && !!document.querySelector('.ws-main-select')`, 180000)) throw new Error('Developer menu never became ready');
-  if (target !== 'menu') {
-    await gesture(`document.querySelector('.ws-main-select').click(); true`);
-    if (!await until(`!!document.querySelector('.ws-title-stack[data-screen="select"]')?.getClientRects().length`, 30000)) throw new Error('SHARD SELECT never became ready');
-    if (template) {
-      const titles = JSON.parse(await page.evaluate(`JSON.stringify([...document.querySelectorAll('.ws-menu-card b')].map(row => row.textContent ?? ''))`));
-      const selected = loadingCardIndex(titles, target);
-      await gesture(`document.querySelector('.ws-menu-dots i[data-i="${selected}"]').click(); true`);
-      if (!await until(`document.querySelector('.ws-menu-card.selected')?.dataset.i === '${selected}'`, 30000)) throw new Error('Requested core template not selected');
-      if (!await until(`(() => { const b=document.querySelector('.ws-menu-shardfile');return !!b && !b.disabled && b.getClientRects().length>0; })()`, 30000)) throw new Error('Missing compiled core template entry');
-      await gesture(`setTimeout(() => document.querySelector('.ws-menu-shardfile').click(), 0);true`);
-      await sleep(800); await connect(`${BASE}/`);
-      if (!await until(`(() => {const w=window.__wildshard?.world;const failure=document.querySelector('#wserr .msg')?.textContent;return !!failure || (new URL(location.href).searchParams.get('chunk')===${JSON.stringify(target)} && !!w?.hud.entered && !w.hud.paused && w.game.frameGate() && !document.querySelector('.ws-load'));})()`, 240000)) throw new Error('Compiled core template never reached controls');
-      const failure=await page.evaluate(`document.querySelector('#wserr .msg')?.textContent ?? null`);
-      if (failure) throw new Error(`Compiled core template failed: ${failure}`);
+  if (hello) {
+    if (!await until(`document.title === 'Hello, world' && document.body.textContent.trim() === 'Hello, world.' && document.scripts.length === 0 && document.querySelector('canvas') === null`, 30000)) throw new Error('Hello-world fixture never became ready');
+  } else {
+    if (!await until(`!!document.querySelector('.ws-main')?.getClientRects().length && !!document.querySelector('.ws-main-grid') && !!document.querySelector('.ws-main-select')`, 180000)) throw new Error('Developer menu never became ready');
+    if (target !== 'menu') {
+      await gesture(`document.querySelector('.ws-main-select').click(); true`);
+      if (!await until(`!!document.querySelector('.ws-title-stack[data-screen="select"]')?.getClientRects().length`, 30000)) throw new Error('SHARD SELECT never became ready');
+      if (template) {
+        const titles = JSON.parse(await page.evaluate(`JSON.stringify([...document.querySelectorAll('.ws-menu-card b')].map(row => row.textContent ?? ''))`));
+        const selected = loadingCardIndex(titles, target);
+        await gesture(`document.querySelector('.ws-menu-dots i[data-i="${selected}"]').click(); true`);
+        if (!await until(`document.querySelector('.ws-menu-card.selected')?.dataset.i === '${selected}'`, 30000)) throw new Error('Requested core template not selected');
+        if (!await until(`(() => { const b=document.querySelector('.ws-menu-shardfile');return !!b && !b.disabled && b.getClientRects().length>0; })()`, 30000)) throw new Error('Missing compiled core template entry');
+        await gesture(`setTimeout(() => document.querySelector('.ws-menu-shardfile').click(), 0);true`);
+        await sleep(800); await connect(`${BASE}/`);
+        if (!await until(`(() => {const w=window.__wildshard?.world;const failure=document.querySelector('#wserr .msg')?.textContent;return !!failure || (new URL(location.href).searchParams.get('chunk')===${JSON.stringify(target)} && !!w?.hud.entered && !w.hud.paused && w.game.frameGate() && !document.querySelector('.ws-load'));})()`, 240000)) throw new Error('Compiled core template never reached controls');
+        const failure=await page.evaluate(`document.querySelector('#wserr .msg')?.textContent ?? null`);
+        if (failure) throw new Error(`Compiled core template failed: ${failure}`);
+      }
     }
   }
   const started = Date.now(), samples = [];
@@ -218,8 +227,9 @@ async function runCoreMemory(mode, index, target) {
     samples.push({phase: `${second}s`, elapsedMs: Date.now() - started, ...readSimulatorCoreFootprint(udid),
       page: JSON.parse(await page.evaluate(`JSON.stringify({href:location.href,prefetch:window.__ws_gridPrefetch?.()??null,resources:performance.getEntriesByType('resource').length})`))});
   }
-  const attribution = await page.evaluate(`(() => {const api=window.__wildshard;return ${pageMemoryAttributionExpression};})()`);
-  const result = {mode, run: index, shard: target, protocol: 'webkit-core-floor/1', version, reset, samples, attribution, errors: [], compiledEntryRequired: template,
+  const attribution = hello ? null : await page.evaluate(`(() => {const api=window.__wildshard;return ${pageMemoryAttributionExpression};})()`);
+  const calibrationDocument = hello ? JSON.parse(await page.evaluate(`JSON.stringify({title:document.title,text:document.body.textContent.trim(),scripts:document.scripts.length,canvases:document.querySelectorAll('canvas').length})`)) : null;
+  const result = {mode, run: index, shard: target, protocol: 'webkit-core-floor/1', version, reset, samples, attribution, errors: [], compiledEntryRequired: template, calibrationDocument,
     scriptURLs: JSON.parse(await page.evaluate(`JSON.stringify((${scriptResourceURLs.toString()})())`)),
     inspectorResponseBodyBytes: 0, forcedGC: false, scope: 'all WebContent and GPU processes under the owned Simulator launchd; not phone GPU evidence'};
   writeFileSync(resolvePath(out, `${target}-${mode}-${index}.json`), `${JSON.stringify(result, null, 1)}\n`);
@@ -403,11 +413,13 @@ try {
   await transport?.close();
   if (upgradeFrom !== undefined) writeFileSync(resolvePath(out, 'upgrade-transport.json'), `${JSON.stringify({receipts: transport?.receipts ?? [], htmlFixtures: transport?.htmlFixtures ?? []}, null, 1)}\n`);
   served?.stop();
+  await helloFixture?.close();
 }
 
 if (coreMemory !== undefined) {
   const summary = {coreMemory, base: BASE, rev: args.rev ?? null, at: new Date().toISOString(), results,
-    ...(coreMemory === 'all' ? {floors: coreMemorySummary(results.filter(row => row.error === undefined))} : {})};
+    ...(coreMemory === 'all' ? {floors: coreMemorySummary(results.filter(row => row.error === undefined))} : {}),
+    ...(coreMemory === 'hello' && results.length === 1 && results[0].error === undefined ? {calibration: helloWorldMemoryFloor(results[0])} : {})};
   writeFileSync(resolvePath(out, 'summary.json'), `${JSON.stringify(summary, null, 1)}\n`);
   for (const row of results) for (const sample of row.samples ?? []) console.info(`WebKit ${row.shard} ${sample.phase}: WebContent ${(sample.rendererBytes / 1048576).toFixed(1)} MiB, GPU ${(sample.gpuBytes / 1048576).toFixed(1)} MiB`);
   if (summary.floors !== undefined) {

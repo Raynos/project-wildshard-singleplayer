@@ -1,7 +1,8 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Refusals must occur before launching a memory browser.
 import { execFileSync } from 'node:child_process';
 import { expect, test } from 'vitest';
-import { coreMemorySummary, coreMemoryTargets, selectedCoreMemoryTargets, scriptResourceURLs, simulatorCoreFootprint } from '../scripts/shard-phone-memory.mjs';
+import { coreMemorySummary, coreMemoryTargets, selectedCoreMemoryTargets, scriptResourceURLs, simulatorCoreFootprint,
+  serveHelloWorldMemory, helloWorldMemoryHTML, helloWorldMemoryFloor } from '../scripts/shard-phone-memory.mjs';
 
 const MiB = 1048576;
 test('script inventory keeps distinct complete JavaScript URLs only', () => {
@@ -109,4 +110,48 @@ test('Simulator missing, duplicate or corrupt native process readings refuse', (
   for (const input of [{webContent: [], gpu: []}, {webContent: [process]},
     {webContent: [process], gpu: [process]}, {webContent: [{...process, physicalFootprintBytes: -1}], gpu: []},
     {webContent: [{...process, startAbstime: 0}], gpu: []}]) expect(() => simulatorCoreFootprint(input)).toThrow();
+});
+
+
+test('hello-world is a calibration target and never part of the app cohort', () => {
+  const target = selectedCoreMemoryTargets('hello');
+  expect(target).toEqual([{shard: 'hello', name: 'Hello, world', limitBytes: null}]);
+  expect(selectedCoreMemoryTargets('all').some(row => row.shard === 'hello')).toBe(false);
+});
+
+test('hello-world fixture serves only plain HTML and reset metadata', async () => {
+  const fixture = await serveHelloWorldMemory();
+  try {
+    const page = await fetch(fixture.url);
+    expect(page.headers.get('cache-control')).toBe('no-store');
+    expect(await page.text()).toBe(helloWorldMemoryHTML);
+    expect(helloWorldMemoryHTML).toContain('<body>Hello, world.</body>');
+    expect(helloWorldMemoryHTML).not.toMatch(/<(?:script|style|link|img|canvas)\b/iu);
+    expect((await fetch(`${fixture.url}/version.json`)).status).toBe(200);
+    expect((await fetch(`${fixture.url}/clear-cache.json?sw=0`)).status).toBe(200);
+    expect((await fetch(`${fixture.url}/assets/main.js`)).status).toBe(404);
+  } finally { await fixture.close(); }
+});
+
+const helloCalibration = () => ({shard: 'hello', protocol: 'webkit-core-floor/1', mode: 'cold', forcedGC: false,
+  inspectorResponseBodyBytes: 0, scriptURLs: [], errors: [],
+  calibrationDocument: {title: 'Hello, world', text: 'Hello, world.', scripts: 0, canvases: 0},
+  samples: [10, 60, 120].map(second => ({phase: `${second}s`, rendererBytes: (90 - second / 2) * MiB, gpuBytes: 7 * MiB}))});
+
+test('hello-world budget base is exactly the unforced 120s combined native sample', () => {
+  expect(helloWorldMemoryFloor(helloCalibration())).toEqual({phase: '120s', rendererBytes: 30 * MiB,
+    gpuBytes: 7 * MiB, totalBytes: 37 * MiB, menuLimitBytes: 87 * MiB, templateLimitBytes: 137 * MiB});
+  for (const patch of [{forcedGC: true}, {mode: 'warm'}, {inspectorResponseBodyBytes: 1}, {scriptURLs: ['app.js']},
+    {errors: ['page failed']}, {samples: []}, {samples: helloCalibration().samples.slice(1)},
+    {samples: [...helloCalibration().samples, ...helloCalibration().samples]},
+    {calibrationDocument: {...helloCalibration().calibrationDocument, canvases: 1}}]) {
+    expect(() => helloWorldMemoryFloor({...helloCalibration(), ...patch})).toThrow();
+  }
+});
+
+test('hello-world refuses app origins or revisions before touching a Simulator', () => {
+  for (const flag of ['--base=http://127.0.0.1:1', '--rev=abc']) {
+    expect(() => execFileSync('node', ['scripts/sim-grid-entry.mjs', '--core-memory=hello', flag],
+      {encoding: 'utf8', stdio: 'pipe', env: {...process.env, SIM_UDID: 'no-device-opened'}})).toThrow('serves its own fixture');
+  }
 });

@@ -7,6 +7,8 @@
 // Use core --floor --pin=<sha> for all four independent milestone floors.
 // A single --floor --compiled --pin=<sha> target uses the same explicit compiled-entry contract.
 import { spawnSync } from 'node:child_process';
+import { createServer } from 'node:http';
+import { promisify } from 'node:util';
 import { writeFileSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
 import { devices } from 'playwright';
@@ -24,10 +26,31 @@ export const coreMemoryTargets = Object.freeze([
   Object.freeze({shard: '_template', name: 'Template 1', limitBytes: 100 * 1048576}),
   Object.freeze({shard: 'blender-template', name: 'Template 2', limitBytes: 100 * 1048576}),
 ]);
+/** G682 calibration is a separate visit, never a fifth app floor or a budget gate. */
+export const helloWorldMemoryTarget = Object.freeze({shard: 'hello', name: 'Hello, world', limitBytes: null});
+/** No app, script, canvas, font, style or external asset is loaded by the calibration page. */
+export const helloWorldMemoryHTML = '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Hello, world</title><body>Hello, world.</body></html>';
+/** One loopback fixture owned by the official reader; no app preview/build is needed.
+ * @returns {Promise<{url: string, close: () => Promise<void>}>} */
+export async function serveHelloWorldMemory() {
+  const server = createServer((request, response) => {
+    const path = new URL(request.url ?? '/', 'http://localhost').pathname;
+    response.setHeader('Cache-Control', 'no-store');
+    if (path === '/') { response.setHeader('Content-Type', 'text/html; charset=utf-8'); response.end(helloWorldMemoryHTML); }
+    else if (path === '/version.json' || path === '/clear-cache.json') {
+      response.setHeader('Content-Type', 'application/json'); response.end(JSON.stringify({build: 'webkit-hello-world-v1'}));
+    } else { response.statusCode = 404; response.end(); }
+  });
+  await new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', () => { resolve(); }); });
+  const address = server.address();
+  if (address === null || typeof address === 'string') { server.close(); throw new Error('Missing hello-world fixture address'); }
+  return {url: `http://127.0.0.1:${address.port}`, close: async () => { await promisify(server.close.bind(server))(); }};
+}
 /** Select only an existing floor; preserve its original target object and order.
  * @param {string} selection */
 export function selectedCoreMemoryTargets(selection) {
   if (selection === 'all') return coreMemoryTargets;
+  if (selection === 'hello') return [helloWorldMemoryTarget];
   const target = coreMemoryTargets.find(row => row.shard === selection);
   if (target === undefined) throw new Error('Expected --core-memory=all or an existing core floor');
   return [target];
@@ -42,6 +65,23 @@ export function scriptResourceURLs(entries = performance.getEntriesByType('resou
 const footprintBytes = v.pipe(v.number(), v.safeInteger(), v.minValue(0));
 const floorRows = v.array(v.object({shard: v.string(), errors: v.array(v.string()),
   samples: v.array(v.object({phase: v.string(), rendererBytes: footprintBytes, gpuBytes: footprintBytes}))}));
+
+/** Admit only the complete original cold, unforced 10/60/120s calibration.
+ * The selected 120s total is pinned by G682, never automatically re-based on growth.
+ * @param {unknown} input */
+export function helloWorldMemoryFloor(input) {
+  const row = v.parse(v.object({shard: v.literal('hello'), protocol: v.literal('webkit-core-floor/1'),
+    mode: v.literal('cold'), forcedGC: v.literal(false), inspectorResponseBodyBytes: v.literal(0),
+    scriptURLs: v.pipe(v.array(v.string()), v.maxLength(0)),
+    calibrationDocument: v.object({title: v.literal('Hello, world'), text: v.literal('Hello, world.'), scripts: v.literal(0), canvases: v.literal(0)}),
+    errors: v.array(v.string()), samples: v.array(v.object({phase: v.string(), rendererBytes: footprintBytes, gpuBytes: footprintBytes}))}), input);
+  if (row.errors.length > 0 || row.samples.map(sample => sample.phase).join(',') !== '10s,60s,120s') throw new Error('Incomplete hello-world calibration');
+  const sample = row.samples.at(2);
+  if (sample === undefined) throw new Error('Missing hello-world 120s sample');
+  const totalBytes = v.parse(footprintBytes, sample.rendererBytes + sample.gpuBytes);
+  return {phase: '120s', rendererBytes: sample.rendererBytes, gpuBytes: sample.gpuBytes, totalBytes,
+    menuLimitBytes: totalBytes + 50 * 1048576, templateLimitBytes: totalBytes + 100 * 1048576};
+}
 
 /** Compare only the unmodified 120-second floor, never the cache-clear diagnostic.
  * Missing/failed readings stay unknown and fail; Chromium is not phone RAM.
