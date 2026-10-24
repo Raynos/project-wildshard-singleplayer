@@ -6,7 +6,7 @@ import { expect, test } from 'vitest';
 import { liveTests, sourceInputs } from '../scripts/push-inputs.mjs';
 
 test('related tests, prefix uploads and refusal retries', () => {
-  execFileSync('python3', ['scripts/test_push_loop.py'], { encoding: 'utf8', timeout: 30_000 });
+  execFileSync('python3', ['test/test_push_loop.py'], { encoding: 'utf8', timeout: 30_000 });
   execFileSync('python3', ['scripts/test_sp_tools.py'], { encoding: 'utf8', timeout: 30_000 });
 });
 

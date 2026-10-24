@@ -12,7 +12,7 @@ import time
 import unittest
 from unittest.mock import patch
 
-API=runpy.run_path(str(Path(__file__).with_name('ci-fail-fast.py')))
+API=runpy.run_path(str(Path(__file__).resolve().parents[1] / 'scripts' / 'ci-fail-fast.py'))
 
 
 class FailFastTests(unittest.TestCase):
