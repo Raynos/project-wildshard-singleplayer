@@ -67,13 +67,10 @@ export function frameDue(now: number = diagnosticNow()): boolean {
  * Whether a presenting page's build work since its last drawn frame has used `budgetMs`, at most a quarter of the game frame and half a 60 Hz display slot: the budget is the
  * frame's, shared by every sliced build running at once. Each slice's own clock alone let several builds (a herd's coats,
  * the ground's arrays, the terrain) each run their stretch back to back, so no frame was drawn for 100-130 ms.
- * A busy draw also caps construction at half the remaining deadline (at least 1 ms for progress): a 28 ms draw at
- * 30 Hz cannot afford the same 8 ms of construction as a cheap frame. Cheap 60 Hz frames retain their quarter-frame cap.
  */
 export function frameBudgetSpent(budgetMs: number, now: number = diagnosticNow()): boolean {
   if (held) return presenting(now) && now - lastDrawn >= heldBudget(budgetMs);
-  const remaining = interval - Math.max(0, lastDrawn - lastFrameAt) - DUE_SLACK_MS;
-  return presenting(now) && (now - lastDrawn >= Math.min(budgetMs, interval / 4, BUILD_FRAME_MS / 2, Math.max(1, remaining / 2)) || frameDue(now));
+  return presenting(now) && (now - lastDrawn >= Math.min(budgetMs, interval / 4, BUILD_FRAME_MS / 2) || frameDue(now));
 }
 
 

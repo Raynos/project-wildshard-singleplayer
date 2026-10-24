@@ -161,7 +161,7 @@ test.each([[false, true], [true, true], [true, false]] as const)(
   });
 
 test.each([
-  { cap: 30, draw: 28, compile: 2, resolve: 3, isolate: true, pauses: 4, expected: [0, 1, 2, 3] },
+  { cap: 30, draw: 28, compile: 2, resolve: 3, isolate: true, pauses: 2, expected: [0, 0, 1, 1] },
   { cap: 60, draw: 4, compile: 1, resolve: 1, isolate: true, pauses: 2, expected: [0, 0, 1, 1] },
   { cap: 60, draw: 4, compile: 1, resolve: 1, isolate: false, pauses: 1, expected: [0, 0, 1, 1] },
   { cap: 30, draw: 28, compile: 23, resolve: 7, isolate: true, pauses: 4, expected: [0, 1, 2, 3] },
