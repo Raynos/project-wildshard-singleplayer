@@ -72,12 +72,13 @@ if (args.join(' ') === 'exec oxlint --debug files') {
 
 test('CI runs all five typed partitions beside one types and fast job', () => {
   const workflow = readFileSync('.github/workflows/deploy.yml', 'utf8');
-  const job = workflow.split('\n  typecheck-lint:')[1]?.split('\n  generated-inputs:')[0] ?? '';
+  const job = workflow.split('\n  typecheck-lint:')[1]?.split('\n  derived-docs:')[0] ?? '';
   expect(job).toContain('shard: [types, fast, 1, 2, 3, 4, 5]');
   expect(job).toContain("if: matrix.shard != 'types' && matrix.shard != 'fast'");
   expect(job).toMatch(/\/usr\/bin\/time -v pnpm run lint:typed --shard=\$\{\{ matrix.shard \}\}\/5/u);
   expect(job).toContain('run: python3 scripts/ci-fail-fast.py -- pnpm run lint:fast');
-  expect(job).toContain('fail-fast: true');
+  expect(job).toContain('fail-fast: false');
+  expect(job).not.toContain('fail-fast: true');
   expect(job.match(/pnpm exec tsc --noEmit\n/gu)).toHaveLength(1);
   expect(job).toContain('python3 scripts/ci-products.py unpack-generated');
 });
