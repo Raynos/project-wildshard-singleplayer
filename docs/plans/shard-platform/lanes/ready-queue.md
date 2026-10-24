@@ -34,6 +34,7 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 | GR-PATHS | Make check-paths green: remove stale deleted-file references and fix real fixture/layout misses; no widened allow lists; Vitest glob-cache CI repair stays with sp-x2 | generators redesign; sp-x1 181-failure census | done (2026-10-24, sp-x8): `0228d34c52` + `ac7db8225b` + `b7f3e18243`; 181 → 0, no new allowances |
 
 | TS-T2 | TypeScript: check src once through layers tsc -b; preserve test, script and composition-root coverage; coordinate Typecheck command with sp-x7 | tooling-perf/typescript-mini-plan.md:T2 | done (2026-10-24, sp-x8): `96fe07d0eb` + `5025374ca2`; full cold local check 24.968 s, CI timing pending |
+| TS-T3 | Move unit/integration tests into their owning layer projects; retain root regression/E2E/scenarios; preserve test counts and CF1/CI selection after each small layer batch | tooling-perf/typescript-mini-plan.md:T3 (G645) | in flight (2026-10-24, sp-x8) |
 
 | T1-POST | Lifecycle only: dispose/reuse composer depth and Backdrop LUTs on retirement/re-entry; GPU-ledger regression, identical pixels; siteCatalogue geometry stays with sp-x9 | T1 retained794 diagnostic; coordinator 2026-10-24 | done (2026-10-24; LUT `67b5ab6f2d`, depth `acda59debf`; 28 focused + 198 ready-related cases, layers/root/lint green; joint T1 GPU measurement remains with sp-x9) |
 
