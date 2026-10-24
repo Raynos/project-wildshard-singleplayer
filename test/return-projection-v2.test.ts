@@ -31,6 +31,8 @@ beforeAll(async()=>{
       if(mode==3)store<u32>(16,2);
       if(mode==4)store<f64>(core.row(10,0)+24,1);
       if(mode==5)store<u32>(core.row(22,0),2);
+      if(mode>=7&&mode<12)store<f64>(core.row(10,0)+24+(mode-7)*8,1);
+      if(mode>=12&&mode<17)store<f64>(core.row(10,0)+24+(mode-12)*8,Math.sqrt(-1));
       core.endBinding();return fuel;
     }`,{lane:'project',ioBytes:layout.bytes,sources:{'core.ts':v2CoreSource(0)}});
   hostile=parseReturnProjectionV2({artifact:{abi:2,minor:0,compilerRevision:SCRIPT_V2_REVISIONS.compiler,admissionRevision:SCRIPT_V2_REVISIONS.admission,
@@ -50,7 +52,7 @@ test('Titan dual port retains exact public ABI1 bytes and admits a project-only 
 
 test('the full hostile output bank refuses atomically and rewinds for the next call',()=>{
   const program=new ReturnProjectionV2(hostile),random=new Rng(91),before=random.snapshot();
-  for(const mode of [0,1,2,3,4,5]){
+  for(const mode of [0,1,2,3,4,5,7,8,9,10,11,12,13,14,15,16]){
     expect(()=>program.project('run',{mode},random)).toThrow();expect(random.snapshot()).toStrictEqual(before);
   }
   const expected=new Rng(91);expect(program.project('run',{mode:6},random)).toStrictEqual({value:expected.next()});

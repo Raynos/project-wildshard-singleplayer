@@ -126,7 +126,8 @@ export class ReturnProjectionV2 {
           const at = layout.io+bank.offset+index*64,name = this.row.channels[view.getUint32(at+8,true)-1],value = view.getFloat64(at+16,true);
           if(view.getUint32(at+4,true)!==25){world.push(index);continue;}
           if (view.getUint32(at,true) !== 1 || view.getUint32(at+4,true) !== 25 || view.getUint32(at+12,true) !== 0 || name === undefined || Object.hasOwn(values,name)
-            || !Number.isFinite(value) || [24,32,40,48,56].some(offset => view.getFloat64(at+offset,true) !== 0)) throw new Error('Invalid return output');
+            || !Number.isFinite(value) || view.getFloat64(at+24,true) !== 0 || view.getFloat64(at+32,true) !== 0
+            || view.getFloat64(at+40,true) !== 0 || view.getFloat64(at+48,true) !== 0 || view.getFloat64(at+56,true) !== 0) throw new Error('Invalid return output');
           values[name] = value;
         }
         const actions=readV2WorldActions(view,layout,actual[9]??0,bindings,world);
