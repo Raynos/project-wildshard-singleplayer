@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { BufferAttribute, BufferGeometry } from 'three';
-import { Rng } from '../src/engine/core/rng';
-import { addGeometryBake, bakedGeometry, encodeGeometryBake, recordGeometryBake } from '../src/engine/world/geometryBake';
+import { Rng } from '../core/rng';
+import { addGeometryBake, bakedGeometry, encodeGeometryBake, recordGeometryBake } from './geometryBake';
 
 test('an authored recorder replaces a retired builder and releases its borrowed table', () => {
   const rng = new Rng(7), recorder = recordGeometryBake((id, _inputs, stream) => {

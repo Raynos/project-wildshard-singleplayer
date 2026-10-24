@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { Bone, BufferAttribute, BufferGeometry, Color, Float32BufferAttribute, MeshBasicMaterial, Skeleton, SkinnedMesh, Vector3, type Object3D } from 'three';
-import { FarHerd } from '../src/engine/entities/farHerd';
-import { noteFrameDrawn } from '../src/engine/core/framePacing';
+import { FarHerd } from './farHerd';
+import { noteFrameDrawn } from '../core/framePacing';
 
 function isSkinnedMesh(object: Object3D | undefined): object is SkinnedMesh { return object instanceof SkinnedMesh; }
 

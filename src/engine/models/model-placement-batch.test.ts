@@ -1,16 +1,16 @@
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
 import { BoxGeometry, Group, Matrix4, MeshStandardMaterial } from 'three';
-import { defineModel, modelContext } from '../src/engine/models/model';
-import { ModelPlacementBatch, modelPoseMatrix } from '../src/engine/models/placementBatch';
-import { WorldRegistry, type ColliderDesc } from '../src/engine/world/registry';
+import { defineModel, modelContext } from './model';
+import { ModelPlacementBatch, modelPoseMatrix } from './placementBatch';
+import { WorldRegistry, type ColliderDesc } from '../world/registry';
 
 test('heterogeneous ordered placements retain params, frames, colliders, floors and unregistered parents', async () => {
   const material = new MeshStandardMaterial(), order: string[] = [], root = new Group(), colliders: ColliderDesc[] = [];
-  const first = defineModel({ id: 'shared/batch-first-fixture', name: 'First', file: 'test/model-placement-batch.test.ts', category: 'props', pipeline: 'code', defaults: { width: 2 },
+  const first = defineModel({ id: 'shared/batch-first-fixture', name: 'First', file: 'src/engine/models/model-placement-batch.test.ts', category: 'props', pipeline: 'code', defaults: { width: 2 },
     build: (_ctx, p) => { order.push('first'); return [{ geometry: new BoxGeometry(p.width, 1, 1), material }]; },
     colliders: p => [{ kind: 'box', x: 0, y: 0, z: 0, hx: p.width / 2, hy: 0.5, hz: 0.5 }] });
-  const second = defineModel({ id: 'shared/batch-second-fixture', name: 'Second', file: 'test/model-placement-batch.test.ts', category: 'props', pipeline: 'code', defaults: { enabled: true },
+  const second = defineModel({ id: 'shared/batch-second-fixture', name: 'Second', file: 'src/engine/models/model-placement-batch.test.ts', category: 'props', pipeline: 'code', defaults: { enabled: true },
     build: (_ctx, p) => { order.push(p.enabled ? 'second' : 'disabled'); return [{ geometry: new BoxGeometry(), material }]; } });
   const context = modelContext(null), batch = new ModelPlacementBatch({ ctx: context, registry: null, fallbackParent: root, colliders });
   const frame = new Matrix4().makeRotationY(0.7).setPosition(10, 4, -8), before = frame.clone();

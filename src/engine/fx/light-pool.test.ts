@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
-import { LightPool } from '../src/engine/fx/LightPool';
-import { Scope } from '../src/engine/app/scope';
+import { LightPool } from './LightPool';
+import { Scope } from '../app/scope';
 
 /** the scene's render-start hook, as WebGLRenderer.render calls it (the pool reads none of its arguments) */
 const render = (scene: THREE.Scene): void => { const hook: unknown = Reflect.get(scene, 'onBeforeRender'); if (typeof hook === 'function') Reflect.apply(hook, scene, []); };

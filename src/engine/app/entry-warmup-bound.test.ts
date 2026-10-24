@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { installScopeEnvironment, scopeEnvironment, type ScopeEnvironment } from '../src/engine/app/scopeEnvironment';
-import { boundEntryWarmup, EntryWarmupStallError } from '../src/engine/render/entryWarmupBound';
-import { waitForDrawnFrame } from '../src/engine/render/precompile';
+import { Scope } from './scope';
+import { installScopeEnvironment, scopeEnvironment, type ScopeEnvironment } from './scopeEnvironment';
+import { boundEntryWarmup, EntryWarmupStallError } from '../render/entryWarmupBound';
+import { waitForDrawnFrame } from '../render/precompile';
 
 /** A hand-driven rAF: `frame(ms)` advances the clock and runs every queued callback once. */
 function manualFrames(): { frame: (ms: number) => void } {

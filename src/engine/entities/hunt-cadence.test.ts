@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { AnimalSim } from '../src/engine/entities/AnimalSim';
-import { StalkerBrain, type StalkerObservation } from '../src/engine/ai/stalker';
+import { AnimalSim } from './AnimalSim';
+import { StalkerBrain, type StalkerObservation } from '../ai/stalker';
 
 class ObservedBrain extends StalkerBrain<AnimalSim> {
   readonly events: string[] = [];

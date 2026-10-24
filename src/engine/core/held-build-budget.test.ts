@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from 'vitest';
-import { frameBudgetSpent, heldBudget, HELD_BUILD_MS, noteFrameDrawn, setBuildHeld } from '../src/engine/core/framePacing';
+import { frameBudgetSpent, heldBudget, HELD_BUILD_MS, noteFrameDrawn, setBuildHeld } from './framePacing';
 
 afterEach(() => { setBuildHeld(false); noteFrameDrawn(Number.NEGATIVE_INFINITY); });
 

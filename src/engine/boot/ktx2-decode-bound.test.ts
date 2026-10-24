@@ -1,10 +1,10 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
-import * as gpuFiles from '../src/engine/boot/gpuFiles';
-import { initializeTier, TIER } from '../src/engine/core/tier';
-import type { Renderer } from '../src/engine/render/renderer';
-import { initKtx2 } from '../src/engine/core/ktx2';
+import * as gpuFiles from './gpuFiles';
+import { initializeTier, TIER } from '../core/tier';
+import type { Renderer } from '../render/renderer';
+import { initKtx2 } from '../core/ktx2';
 
 class Transcoder extends EventTarget implements Worker {
   onerror: Worker['onerror'] = null;

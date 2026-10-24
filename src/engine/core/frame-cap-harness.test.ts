@@ -1,5 +1,5 @@
 import { afterEach, expect, test, vi } from 'vitest';
-import { TIER, initializeTier, frameCapFps, practiceFps, frameProbe } from '../src/engine/core/tier';
+import { TIER, initializeTier, frameCapFps, practiceFps, frameProbe } from './tier';
 
 const initialTier = TIER, initialLocation = globalThis.location;
 

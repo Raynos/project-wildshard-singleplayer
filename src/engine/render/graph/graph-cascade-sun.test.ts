@@ -3,9 +3,9 @@ import * as THREE from 'three';
 import { CSM } from 'three/examples/jsm/csm/CSM.js';
 import { ConditionalNode, ConstNode, ConvertNode, MathNode, JoinNode, MeshStandardNodeMaterial, Node, NodeBuilder, NodeFrame, OperatorNode, SplitNode, UniformNode, VarNode } from 'three/webgpu';
 import { positionView, vec3 } from 'three/tsl';
-import { compileGraph } from '../src/engine/render/graph/compile';
-import { EngineDirectionalLightNode } from '../src/engine/render/nodes/cascadeLightNode';
-import { registerCascades } from '../src/engine/world/cascadeLights';
+import { compileGraph } from './compile';
+import { EngineDirectionalLightNode } from '../nodes/cascadeLightNode';
+import { registerCascades } from '../../world/cascadeLights';
 
 /** Evaluate the actual light result's small arithmetic tree at a view depth. */
 function values(node: unknown, depth: number): number[] {

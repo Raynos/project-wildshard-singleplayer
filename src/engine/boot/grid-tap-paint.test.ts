@@ -2,9 +2,9 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Assert actual first-document CSS/module order.
 import { readFileSync } from 'node:fs';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { installScopeEnvironment, scopeEnvironment } from '../src/engine/app/scopeEnvironment';
-import { loadShellTemplate, beginNavigationShell } from '../src/engine/boot/shell';
+import { Scope } from '../app/scope';
+import { installScopeEnvironment, scopeEnvironment } from '../app/scopeEnvironment';
+import { loadShellTemplate, beginNavigationShell } from './shell';
 
 const native = scopeEnvironment();
 let owner = new Scope('tap-test'), next = 1;

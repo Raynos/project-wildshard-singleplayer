@@ -1,6 +1,6 @@
 import { afterEach, expect, test, vi } from 'vitest';
-import * as bytes from '../src/engine/boot/bytes';
-import { decodedImageCount, loadImage } from '../src/engine/core/assets';
+import * as bytes from '../boot/bytes';
+import { decodedImageCount, loadImage } from './assets';
 
 const globals = ['WeakRef', 'Worker', 'ImageBitmap', 'createImageBitmap'].map(key => ({ key, descriptor: Object.getOwnPropertyDescriptor(globalThis, key) }));
 afterEach(() => {
@@ -61,7 +61,7 @@ test('transfers bitmap ownership, preserves options and releases pending request
   vi.stubGlobal('Worker', DecoderWorker); vi.stubGlobal('ImageBitmap', DecodedBitmap);
   const fallbackImage = new DecodedBitmap(), fallback = vi.fn((_blob: Blob, _options: ImageBitmapOptions) => Promise.resolve(fallbackImage));
   vi.stubGlobal('createImageBitmap', fallback);
-  const { decodeImageBitmap } = await import('../src/engine/boot/imageDecode');
+  const { decodeImageBitmap } = await import('../boot/imageDecode');
   const blob = new Blob(['pixels']), options: ImageBitmapOptions = { imageOrientation: 'flipY', premultiplyAlpha: 'none', colorSpaceConversion: 'none', resizeWidth: 2, resizeHeight: 2, resizeQuality: 'medium' };
   const first = decodeImageBitmap(blob, options), second = decodeImageBitmap(blob, options);
   const worker = DecoderWorker.instances[0]; if (worker === undefined) throw new Error('Decoder did not start');
@@ -84,7 +84,7 @@ test('bounds page fallback decodes and releases the slot after a failure', async
   const jobs: { resolve: (bitmap: DecodedBitmap) => void; reject: (error: Error) => void }[] = [];
   const fallback = vi.fn((_blob: Blob, _options: ImageBitmapOptions) => new Promise<DecodedBitmap>((resolve, reject) => { jobs.push({ resolve, reject }); }));
   vi.stubGlobal('createImageBitmap', fallback);
-  const { decodeImageBitmap } = await import('../src/engine/boot/imageDecode');
+  const { decodeImageBitmap } = await import('../boot/imageDecode');
   const blob = new Blob(['pixels']), options: ImageBitmapOptions = { imageOrientation: 'flipY', resizeWidth: 2, resizeHeight: 3 };
   const first = decodeImageBitmap(blob, options), failed = expect(first).rejects.toThrow('decode refused');
   const second = decodeImageBitmap(blob, options);

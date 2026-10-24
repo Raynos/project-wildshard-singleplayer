@@ -13,7 +13,7 @@
   "test/follow-trail.test.ts": [],
   "test/pine-stag-walk.test.ts": [],
   "test/boot-smoke-partition.test.ts": [],
-  "test/far-herd-upload.test.ts": [],
+  "src/engine/entities/far-herd-upload.test.ts": [],
   "test/hybrid-entry-preparation.test.ts": [],
   "test/memory-warning.test.ts": [],
   "test/sdk-rigged-hull-files.test.ts": [],
@@ -38,7 +38,7 @@
   "test/quadruped-rig-platform.test.ts": [],
   "test/ambient-flock-host.test.ts": [],
   "src/engine/entities/animal-model-preparation.test.ts": [],
-  "test/ktx2-widen-etc2.test.ts": [],
+  "src/engine/core/ktx2-widen-etc2.test.ts": [],
   "test/client-plan-boundary.test.ts": [],
   "test/client-plan-platform.test.ts": [],
   "test/pine-night-emits.test.ts": [

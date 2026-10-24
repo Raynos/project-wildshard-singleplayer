@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { installScopeEnvironment, scopeEnvironment } from '../src/engine/app/scopeEnvironment';
-import { frameBudgetSpent, noteFrameDrawn, paceYield, setBuildHeld } from '../src/engine/core/framePacing';
+import { Scope } from './scope';
+import { installScopeEnvironment, scopeEnvironment } from './scopeEnvironment';
+import { frameBudgetSpent, noteFrameDrawn, paceYield, setBuildHeld } from '../core/framePacing';
 
 const environment = scopeEnvironment();
 const messageChannel = globalThis.MessageChannel, animationFrame = globalThis.requestAnimationFrame;

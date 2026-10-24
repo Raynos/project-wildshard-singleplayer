@@ -1,9 +1,9 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { Bone, BufferGeometry, Camera, Mesh, MeshBasicMaterial, Scene, Skeleton, Texture, WebGLRenderTarget } from 'three';
-import type { Renderer } from '../src/engine/render/renderer';
-import { installGpuLabels, labelAsset } from '../src/engine/render/gpuLabels';
-import { memoryAttribution } from '../src/engine/core/memoryAttribution';
-import { isDev, setDev } from '../src/engine/core/devMode';
+import type { Renderer } from './renderer';
+import { installGpuLabels, labelAsset } from './gpuLabels';
+import { memoryAttribution } from '../core/memoryAttribution';
+import { isDev, setDev } from '../core/devMode';
 
 const initialDev = isDev(), initialWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
 afterEach(() => {

@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Node's zstd writes the fixture as the SDK bake does, and decodes it.
 import { constants, zstdCompressSync, zstdDecompressSync } from 'node:zlib';
-import { plainKtx2, unsupercompressKtx2, zstdLevels } from '../src/engine/core/ktx2Zstd';
+import { plainKtx2, unsupercompressKtx2, zstdLevels } from './ktx2Zstd';
 
 /** A raw RGBA8 KTX2 with one zstd level, laid out as sdk/bake/texture.ts `bakeRawColourTexture` writes it. */
 function rawZstdKtx2(pixels: Uint8Array, width: number, height: number, vkFormat = 43): Uint8Array {

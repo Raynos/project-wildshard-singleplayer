@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
-import { FrameCamera } from '../src/engine/world/frameCamera';
+import { FrameCamera } from './frameCamera';
 
 // pose() reads the camera's own world matrix: the page camera's children (the viewmodel) are left to the scene's walk
 test('a frame camera poses from the camera alone, at its current transform', () => {
