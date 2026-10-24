@@ -112,6 +112,61 @@ test('pool slots sample their actors and address each actor\'s object, re-claime
   expect(() => parse(ViewProgramSchema, { ...watch, transforms: [{ kind: 'object', object: { pool: 'watch', slot: 2 } }] })).toThrow();
 });
 
+test('pool observations keep borrowed read order and exact previous/current columns through slot changes', async () => {
+  const capture = `
+const IO:i32=1024;
+function entry(kind:i32):i32{return IO+128+(kind-1)*24;}
+function region(kind:i32):i32{return IO+load<i32>(entry(kind)+4);}
+export function ws_abi():i32{return 2;}
+export function ws_io():i32{return IO;}
+export function ws_init(lo:i32,hi:i32,fuel:i32):i32{return fuel;}
+export function ws_view(dt:f64,alpha:f64,fuel:i32):i32{
+  const stamp=region(15), columns=IO+load<i32>(stamp+16), count=2*load<i32>(stamp+24), out=region(18);
+  for(let i=0;i<count;i++)store<f64>(out+i*8,load<f64>(columns+i*8));
+  store<i32>(entry(18)+16,count);store<i32>(IO+76,count);return fuel;
+}`;
+  const module = await compileScriptV2(capture, { lane: 'view', ioBytes: 4096 }), scope = new Scope('pool.capture');
+  const table = parse(ViewProgramSchema, { ...rows, pools: [{ id: 'watch', group: 'watch', count: 2, fields: ['weight'] }],
+    samples: [{ kind: 'pool', pool: 'watch' }], transforms: [],
+    channels: Array.from({ length: 32 }, (_, i) => ({ kind: 'look', look: 'capture', param: `c${i}` })) });
+  const events: string[] = [], landed: number[] = [];
+  let x = -0, identity = 'first', fail = false;
+  const actor: ViewSlotActor = { object: new Object3D(),
+    get identity() { events.push('identity'); return identity; },
+    get x() { events.push('x'); return x; }, get y() { events.push('y'); return -2; },
+    get z() { events.push('z'); if (fail) throw new Error('Borrowed z refused'); return 3.5; },
+    get yaw() { events.push('yaw'); return -.25; }, get alive() { events.push('alive'); return false; },
+    get ground() { events.push('ground'); return 17; },
+    field: name => { events.push(`field:${name}`); return -.75; }, set: () => undefined };
+  let occupied = true;
+  const program = viewProgram(module, table, { scope, player: { position: new Vector3(), velocity: new Vector3(), yaw: 0 }, camera: new PerspectiveCamera(),
+    slots: () => ({ refresh: () => { events.push('refresh'); }, actor: slot => { events.push(`slot:${slot}`); return slot === 0 && occupied ? actor : null; } }),
+    values: () => null, floor: () => null, object: () => new Object3D(),
+    look: (_look, param, value) => { landed[Number(param.slice(1))] = value; } });
+  if (program === null) throw new Error('Missing pool capture program');
+  const expectedReads = ['refresh', 'slot:0', 'identity', 'x', 'y', 'z', 'yaw', 'alive', 'ground', 'field:weight', 'slot:1'];
+  const frame = (value: number): number[] => [1, value, -2, 3.5, -.25, 0, 17, -.75, ...Array.from({ length: 8 }, () => 0)];
+  try {
+    program.frame(1 / 60, 0);
+    expect(events).toEqual(expectedReads); expect(landed).toEqual([...frame(-0), ...frame(-0)]);
+    events.length = 0; x = 4;
+    program.frame(1 / 60, 1 / 60);
+    expect(events).toEqual(expectedReads); expect(landed).toEqual([...frame(-0), ...frame(4)]);
+    events.length = 0; x = 6; fail = true;
+    expect(() => program.frame(1 / 60, 2 / 60)).toThrow('Borrowed z refused');
+    expect(events).toEqual(expectedReads.slice(0, 6)); expect(landed).toEqual([...frame(-0), ...frame(4)]);
+    events.length = 0; fail = false; x = 7;
+    program.frame(1 / 60, 3 / 60);
+    expect(events).toEqual(expectedReads); expect(landed).toEqual([...frame(4), ...frame(7)]);
+    events.length = 0; x = 9; identity = 'replacement';
+    program.frame(1 / 60, 4 / 60);
+    expect(events).toEqual(expectedReads); expect(landed).toEqual([...frame(9), ...frame(9)]);
+    events.length = 0; occupied = false;
+    program.frame(1 / 60, 5 / 60);
+    expect(events).toEqual(['refresh', 'slot:0', 'slot:1']); expect(landed).toEqual(Array.from({ length: 32 }, () => 0));
+  } finally { scope.dispose(); }
+});
+
 test('lent values and the player yaw are sample columns; a missing source installs nothing', async () => {
   const module = await compileScriptV2(LANTERN, { lane: 'view', ioBytes: 4096 });
   const scope = new Scope('marsh.carry'), lantern = new Object3D(), law: Record<string, number> = { goal: 3 };

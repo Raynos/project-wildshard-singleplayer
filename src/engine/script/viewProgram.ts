@@ -266,7 +266,11 @@ export function viewProgram(bytes: Uint8Array, rows: ViewProgramRows, ports: Vie
           // a new identity in a slot starts without interpolation: its previous columns are its current ones
           const actor = pool.slots.actor(slot), identity = actor?.identity ?? null, fresh = identity !== last[slot]; last[slot] = identity;
           put(Number(actor !== null), fresh);
-          for (const value of [actor?.x ?? 0, actor?.y ?? 0, actor?.z ?? 0, actor?.yaw ?? 0, Number(actor?.alive === true), actor?.ground ?? 0]) put(value, fresh);
+          // Read the complete borrowed batch before writing any of its columns.
+          const x = actor?.x ?? 0, y = actor?.y ?? 0, z = actor?.z ?? 0, yaw = actor?.yaw ?? 0;
+          const alive = Number(actor?.alive === true), ground = actor?.ground ?? 0;
+          put(x, fresh); put(y, fresh); put(z, fresh);
+          put(yaw, fresh); put(alive, fresh); put(ground, fresh);
           for (const field of pool.row.fields) put(actor === null ? 0 : actor.field(field), fresh);
         }
         continue;
