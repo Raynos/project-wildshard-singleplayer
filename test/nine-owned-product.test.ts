@@ -5,6 +5,7 @@ import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import product, { nineProduct } from '../src/shards/nine-dragon-stack/generators/product';
 import { nineOutput, output } from '../src/shards/nine-dragon-stack/generators/output';
+import { SCRIPT_V2_REVISIONS } from '../src/format/scriptAdmissionV2';
 import { nineOutput as emitNineOutput } from '../src/shards/nine-dragon-stack/generators/productOutput';
 
 test('the product uses the supplied view memory while retaining every other declaration field', () => {
@@ -31,7 +32,9 @@ test('owned movers bytes replace only the file handoff and preserve all other em
     assets: physical(actual.assets), platform: { ...actual.platform, files: physical(actual.platform.files) } }))
     .toEqual({ bytes: 140949, hash: 'c8ac0b097ca25d1af5317693b4f1966a1122f1e1357eb0fd443aa92219d3d181' });
   // Supply distinct proof and decal rows directly, without a file-reader fallback.
-  const supplied = emitNineOutput({ hash, bytes }, { entryProof: { lanes: 1, steps: 2, portalTransfers: 3 },
+  const burst = { name: 'fixture', shape: 'flake' as const, count: 1, life: .5 };
+  const supplied = emitNineOutput({ hash, bytes }, { scriptRevisions: SCRIPT_V2_REVISIONS, graphArmsSchema: { type: 'object' },
+    bursts: { muzzle: burst, bite: burst, dock: burst, sparks: burst }, entryProof: { lanes: 1, steps: 2, portalTransfers: 3 },
     heldDecals: { phone: { width: 1, height: 1, png: 'phone.png' }, desktop: { width: 2, height: 2, png: 'desktop.png' } } });
   expect(supplied.blobs.filter(row => row.name.startsWith('looks/jian-decal-')).map(row => row.source)).toEqual(['phone.png', 'desktop.png']);
   const constants = supplied.namedFiles.find(row => row.name === 'sim/headless-constants.json');

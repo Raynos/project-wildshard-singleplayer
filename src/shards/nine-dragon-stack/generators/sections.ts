@@ -167,6 +167,11 @@ export const SignAtlasSchema = v.strictObject({
 /** Named practice files retain the defining bounded scene contract. */
 export const FixedPracticeFileSchema=v.strictObject({practice:v.strictObject({...FixedRowsSchema.entries.practice.entries,presentation:PracticeSceneSchema})});
 
+/** Admit only the named practice payload through the same complete defining contract. */
+export function parseFixedPractice(value: unknown): v.InferOutput<typeof FixedPracticeFileSchema> {
+  return v.parse(FixedPracticeFileSchema, value);
+}
+
 /** Validate the course with its defining public schema before serializing it. */
 export function parseFixedRows(value: unknown): Omit<v.InferOutput<typeof FixedRowsSchema>, 'practice'> & { practice: Omit<v.InferOutput<typeof FixedRowsSchema>['practice'], 'presentation'> & { presentation: v.InferOutput<typeof PracticeSceneSchema> } } {
   const row = v.parse(FixedRowsSchema, JSON.parse(JSON.stringify(value), (_key, entry: unknown) => entry === '-0' ? -0 : entry));
