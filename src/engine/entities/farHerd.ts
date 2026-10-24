@@ -105,9 +105,11 @@ class FarBatch {
     this.grow(cap);
   }
 
-  /** Shown with an empty draw range until its first flush: the next render that reaches it (the entry warm-up's parked
-   *  draws) uploads its buffers and draws nothing; `flush` hides it again while it has no members. */
-  uploadEmpty(): void { this.mesh.geometry.setDrawRange(0, 0); this.mesh.visible = true; }
+  /** Shown with a one-index draw range until its first flush: the next render that reaches it (the entry warm-up's parked
+   *  draws) uploads its buffers and draws nothing (one index is no triangle, and an empty page's bones are a zero-scale
+   *  point); an empty range would skip the draw before three binds, and so uploads, the index (~10 MB of Pine's pages
+   *  then went up 325 ms after activate). `flush` hides it again while it has no members. */
+  uploadEmpty(): void { this.mesh.geometry.setDrawRange(0, 1); this.mesh.visible = true; }
 
   /** Whether `m` holds a slot (from an earlier frame). */
   has(m: FarMember): boolean { return this.slotOf.has(m); }

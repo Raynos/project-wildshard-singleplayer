@@ -39,7 +39,7 @@ test('reserved members open their pages ahead and take them later', () => {
     const again = rigs[0]; if (again !== undefined) herd.reserve(again); // counted once
     expect(herd.pageCount()).toBe(2);
     const first = herd.group.children[0]; if (!isSkinnedMesh(first)) throw new Error('Missing page');
-    expect(first.visible).toBe(true); expect(first.geometry.drawRange.count).toBe(0);
+    expect(first.visible).toBe(true); expect(first.geometry.drawRange.count).toBe(1);
     herd.begin(null);
     for (const rig of rigs) expect(herd.take(rig, new Vector3(), 1)).toBe(true);
     herd.end();
