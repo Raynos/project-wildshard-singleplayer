@@ -7,7 +7,10 @@ import { WORK_SLICE_MS, workSlice } from './workSlice';
 export async function fetchDeflatedBytes(url: string): Promise<Uint8Array> {
   const response = await fetch(url);
   if (!response.ok || response.body === null) throw new Error(`${String(response.status)} ${url}`);
-  const reader = response.body.getReader(), slice = workSlice(WORK_SLICE_MS, pageScope);
+  return inflateStream(response.body);
+}
+async function inflateStream(body: ReadableStream<Uint8Array<ArrayBuffer>>): Promise<Uint8Array> {
+  const reader = body.getReader(), slice = workSlice(WORK_SLICE_MS, pageScope);
   let chunk: Uint8Array<ArrayBuffer> | undefined, offset = 0;
   const input = new ReadableStream<BufferSource>({
     async pull(controller) {
@@ -52,7 +55,16 @@ export function unshuffleLanes(lanes: Uint8Array, out = new Uint8Array(lanes.len
 
 /** Inflate and restore byte lanes in page-lived slices; cached reads survive a retired construction owner. */
 export async function fetchLaneBytes(url: string): Promise<Uint8Array> {
-  const lanes = await fetchDeflatedBytes(url), out = new Uint8Array(lanes.length), slice = workSlice(WORK_SLICE_MS, pageScope), words = lanes.length / 4;
+  return restoreLaneBytes(await fetchDeflatedBytes(url));
+}
+/** Decode already-admitted compressed file bytes with the same paced native inflate and lane restoration as a URL bake. */
+export async function decodeLaneBytes(bytes: Uint8Array): Promise<Uint8Array> {
+  const body = new Response(bytes.slice()).body;
+  if (body === null) throw new Error('Lane bake requires a byte stream');
+  return restoreLaneBytes(await inflateStream(body));
+}
+async function restoreLaneBytes(lanes: Uint8Array): Promise<Uint8Array> {
+  const out = new Uint8Array(lanes.length), slice = workSlice(WORK_SLICE_MS, pageScope), words = lanes.length / 4;
   for (let start = 0; start < words; start += 16_384) {
     await slice.check();
     unshuffleLanes(lanes, out, start, Math.min(words, start + 16_384));

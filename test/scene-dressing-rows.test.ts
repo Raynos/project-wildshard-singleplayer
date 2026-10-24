@@ -3,7 +3,9 @@ import { readFileSync } from 'node:fs';
 import { PrivateSceneSchema } from '../src/format/clientChannels';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
-import { encodeCanonicalJson } from '../src/sdk/immutable';
+import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
+import { readNamedBlob } from '../src/sdk/blobs';
+import { decodeLaneBytes } from '../src/engine/core/deflate';
 import { expect, test, vi } from 'vitest';
 import type { ShardContext } from '../src/game/plugin/context';
 import * as THREE from 'three';
@@ -14,7 +16,7 @@ import { zlibSync, unzlibSync } from 'fflate';
 import { writeGeometry, join } from '../src/shards/nalati-grasslands/generators/geometryWriter';
 import * as v from 'valibot';
 import { SceneDressingSchema } from '../src/format/sceneDressing';
-import { dressingScene } from '../src/shards/nalati-grasslands/generators/dressingScene';
+import { DRESSING_BAKE_SOURCES, dressingScene } from '../src/shards/nalati-grasslands/generators/dressingScene';
 import { isJsonData } from '../src/format/json';
 import { readBakedGeometry } from '../src/game/plugin/geometry';
 import {legacyDouble} from './fake/FakeGame';
@@ -155,8 +157,19 @@ test('geometry source addresses remain binary while the JSON address word stays 
   const bytes=new Uint8Array(8),view=new DataView(bytes.buffer);view.setUint32(0,17000000,true);view.setUint32(4,10000000,true);
   expect(readSceneGeometryAddress(bytes,0)).toBe(17000000);expect(readSceneGeometryAddress(bytes,1)).toBe(10000000);
   expect(()=>readSceneGeometryAddress(bytes,2)).toThrow();expect(()=>readSceneGeometryAddress(bytes,-1)).toThrow();
-  for(const tier of ['phone','desktop']as const)for(const row of Object.values(dressingScene(tier).geometry))if(row.kind==='baked'){
+  for(const tier of ['phone','desktop']as const)for(const row of Object.values(dressingScene(tier).geometry))if(row.kind==='baked-file'){
     expect(row.address.word).toBeLessThan(1000000);expect(row.address.file).toBe(`world/dressing-addresses-${tier}.bin`);
+    expect(['world/crags.bin','world/dressing.bin','world/places.bin']).toContain(row.file);expect(row).not.toHaveProperty('url');
+  }
+  for(const tier of ['phone','desktop']as const)expect(Object.values(dressingScene(tier).geometry).some(row=>row.kind==='baked')).toBe(false);
+});
+
+test('Nalati logical bakes admit the exact shipping compressed bytes and decoded costs',async()=>{
+  for(const source of DRESSING_BAKE_SOURCES){
+    const name=source.name.slice('world/'.length),original=readFileSync(`public/assets/nalati/baked/${name}`);
+    const admitted=await readNamedBlob('src/shards/nalati-grasslands',source.name,source.source,source.kind,source.options);
+    expect(admitted.file.hash).toBe(hashImmutableBytes(original));expect(admitted.bytes).toEqual(new Uint8Array(original));
+    expect((await decodeLaneBytes(admitted.bytes)).byteLength).toBe(source.options.decoded);
   }
 });
 

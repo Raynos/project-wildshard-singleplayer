@@ -24,6 +24,7 @@ test('pre-admission Nalati rows retain ordered boot and late reads for every tie
 
 test('offline presence preserves coat order, phone fallback and late-read timing', () => {
   const inventory = {
+    '/assets/nalati/baked/crags.bin': 1,
     '/assets/nalati/models/coats/z.coat.webp': true,
     '/assets/nalati/models/coats/a.coat.webp': true,
     '/assets/nalati/baked/painted-models/eagle.phone.glb': true,

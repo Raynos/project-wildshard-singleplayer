@@ -21957,6 +21957,33 @@
       "buildTimeOutputs": [
         "src/shards/nine-dragon-stack/data/entryProof.generated.json"
       ]
+    },
+    {
+      "id": "nalati-dressing-bakes",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/bake-dressing-bakes.mjs",
+      "command": [
+        "src/shards/nalati-grasslands/generators/bake-dressing-bakes.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/nalati-grasslands/generators/bake-dressing-bakes.mjs",
+        "scripts/bake-output.mjs",
+        "public/assets/nalati/baked/crags.bin",
+        "public/assets/nalati/baked/dressing.bin",
+        "public/assets/nalati/baked/places.bin"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/data/crags.generated.bin",
+        "src/shards/nalati-grasslands/data/dressing.generated.bin",
+        "src/shards/nalati-grasslands/data/places.generated.bin"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/nalati-grasslands/data/crags.generated.bin",
+        "src/shards/nalati-grasslands/data/dressing.generated.bin",
+        "src/shards/nalati-grasslands/data/places.generated.bin"
+      ],
+      "platform": "portable",
+      "seedOutputs": []
     }
   ]
 }

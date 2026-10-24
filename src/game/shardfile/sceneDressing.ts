@@ -1,5 +1,5 @@
 import {prepareBinarySources,binarySourceBytes} from '../models/binarySource';
-import { base64Bytes } from '@wildshard/engine/core/deflate';
+import { base64Bytes, decodeLaneBytes } from '@wildshard/engine/core/deflate';
 import { floorAtRects } from '@wildshard/engine/physics/box';
 import { timeClientPreparation } from './preparationTiming';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
@@ -167,7 +167,10 @@ export class SceneDressing {
   private async build(rows:SceneDressingRows,files:ReadonlyMap<string,Uint8Array>): Promise<void> {
     const {ctx}=this,world=ctx.game.runtime?.world;
     if(world===undefined||world===null)throw new Error('Scene dressing needs a world');
-    for(const source of Object.values(rows.geometry))if(source.kind==='baked'&&!ctx.product.hasFile(source.address.file))throw new Error('Missing scene geometry address file');
+    for(const source of Object.values(rows.geometry))if(source.kind==='baked'||source.kind==='baked-file'){
+      if(!ctx.product.hasFile(source.address.file))throw new Error('Missing scene geometry address file');
+      if(source.kind==='baked-file'&&!ctx.product.hasFile(source.file))throw new Error('Missing scene geometry bake file');
+    }
     for(const row of rows.layers)if(!ctx.product.hasFile(row.file))throw new Error('Missing scene scatter file');
     const looks=[...Object.values(rows.materials).flatMap(row=>row.kind==='look'||row.kind==='mapped'?[row.look]:[]),...(rows.motes===undefined?[]:[rows.motes.look])];
     const missing=looks.filter(id=>!hasLentLook(id));if(missing.length>0)lendLooks(ctx.scope,await runtimeLookMaterials({scope:ctx.scope,game:ctx.game},ctx.product.shardfile,true,missing));
@@ -192,8 +195,9 @@ export class SceneDressing {
         let raw:Uint8Array;
         if(source.kind==='file')raw=binarySourceBytes({file:source.file},files);
         else if(source.kind==='inline')raw=unzlibSync(base64Bytes(source.data));
+        else if(source.kind==='baked-file'){let pending=bytes.get(source.file);if(pending===undefined){pending=ctx.product.file(source.file).then(decodeLaneBytes);bytes.set(source.file,pending);}raw=await pending;}
         else{let pending=bytes.get(source.url);if(pending===undefined){pending=fetchLaneBake(source.url);bytes.set(source.url,pending);}raw=await pending;}
-        let offset=0;if(source.kind==='baked'){let pending=addresses.get(source.address.file);if(pending===undefined){pending=ctx.product.file(source.address.file);addresses.set(source.address.file,pending);}offset=readSceneGeometryAddress(await pending,source.address.word);}
+        let offset=0;if(source.kind==='baked'||source.kind==='baked-file'){let pending=addresses.get(source.address.file);if(pending===undefined){pending=ctx.product.file(source.address.file);addresses.set(source.address.file,pending);}offset=readSceneGeometryAddress(await pending,source.address.word);}
         if(offset+bakedGeometryBytes(source.row)>raw.byteLength)throw new Error('Scene geometry address exceeds its source');
         const decoded=readBakedGeometry(raw,offset,source.row);
         shape=source.row.expand?await expandBakedGeometrySliced(decoded,workSlice(undefined,ctx.scope)):decoded;

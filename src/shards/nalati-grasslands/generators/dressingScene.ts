@@ -52,6 +52,17 @@ export const DRESSING_FLOOR_SOURCES=v.parse(v.array(v.object({name:text,kind:v.l
 export const DRESSING_SPECIMEN_SOURCES=v.parse(v.array(v.object({name:text,kind:v.literal('bin'),source:text})),balbal.sources);
 /** Both exact sign rasters enter through the same named binary source path; two base planes bound the rectangular mip chain. */
 export const DRESSING_ATLAS_SOURCES=v.parse(v.array(v.object({name:text,kind:v.literal('bin'),source:text,options:v.object({gpu:number})})),Object.values(atlases).map(row=>({name:row.file,kind:'bin',source:row.source,options:{gpu:row.width*row.height*8}})));
+/** Exact existing compressed byte lanes, admitted under logical product names before client decoding. */
+const cragDecoded=Math.max(...Object.values(cragRows).flatMap(tier=>tier.meshes.map(part=>{
+  const row=v.parse(SceneBakedGeometrySchema,part.row);
+  if(row.attrs.some(attribute=>attribute[1]!=='f32'))throw new Error('Crag writer requires float32 attributes');
+  return part.offset+row.attrs.reduce((bytes,attribute)=>bytes+row.count*attribute[2]*4,0)+(row.index===null?0:row.indexCount*4);
+})));
+export const DRESSING_BAKE_SOURCES=[
+  {name:'world/crags.bin',kind:'bin' as const,source:'data/crags.generated.bin',options:{decoded:cragDecoded}},
+  {name:'world/dressing.bin',kind:'bin' as const,source:'data/dressing.generated.bin',options:{decoded:preparedInput.dressing.bytes}},
+  {name:'world/places.bin',kind:'bin' as const,source:'data/places.generated.bin',options:{decoded:preparedInput.places.bytes}},
+];
 const cover=v.parse(coverSchema,coverInput);
 // the places' anchors and the camp smoke's baked puffs (bake-place-runtime.mjs)
 const spot=v.object({x:number,y:number,z:number}),placed=v.parse(v.object({places:v.object({rows:v.array(v.object({name:text,
@@ -74,8 +85,8 @@ const preparedContacts=(inputs:readonly unknown[])=>{
 function compileDressingScene(tier:'phone'|'desktop') {
   const phone=tier==='phone',profile=cover[tier];
   const geometry:Record<string,unknown>={},materials:Record<string,unknown>={},addresses:number[]=[];
-  const baked=(url:string,offset:number,row:v.InferOutput<typeof SceneBakedGeometrySchema>)=>({kind:'baked',url,address:{file:`world/dressing-addresses-${tier}.bin`,word:addresses.push(offset)-1},row});
-  const shape=(key:string)=>{const row=prepared.dressing.rows.find(candidate=>candidate.key===key);if(row===undefined)throw new Error(`Missing dressing shape ${key}`);return baked('/assets/nalati/baked/dressing.bin',row.offset,row.geometry);};
+  const baked=(file:string,offset:number,row:v.InferOutput<typeof SceneBakedGeometrySchema>)=>({kind:'baked-file',file,address:{file:`world/dressing-addresses-${tier}.bin`,word:addresses.push(offset)-1},row});
+  const shape=(key:string)=>{const row=prepared.dressing.rows.find(candidate=>candidate.key===key);if(row===undefined)throw new Error(`Missing dressing shape ${key}`);return baked('world/dressing.bin',row.offset,row.geometry);};
   const actor=(key:string)=>{const row=paint.rows.find(candidate=>candidate.key===key);if(row===undefined)throw new Error(`Missing dressing actor ${key}`);return{kind:'file',file:row.name,row:row.geometry};};
   for(const key of ['boulder','boulder-tall','slab'])geometry[key]=actor(`dressing:${tier}:${key}`);
   for(const [name,key]of [['stone','stone'],['juniper','juniper'],['rose',phone?'rose:lite':'rose'],['willow','willow'],['lupin',phone?'lupin:lite':'lupin'],['daisy','daisy'],['reed','reed']])if(name!==undefined&&key!==undefined)geometry[name]=shape(key);
@@ -95,7 +106,7 @@ function compileDressingScene(tier:'phone'|'desktop') {
     const row=prepared.places.rows.find(candidate=>candidate.name===name),recipe=Object.entries(scenes).find(([key])=>key===name)?.[1];if(row===undefined||recipe===undefined)throw new Error('Missing dressing scene');
     const geo:Record<string,string>={},mats:Record<string,string>={};
     for(const [i,mesh]of row.meshes.entries()){
-      const key=`${name}.${i}`;geometry[key]=baked('/assets/nalati/baked/places.bin',mesh.offset,mesh.geometry);geo[`mesh-${i}`]=key;mats[mesh.material]=mesh.material;
+      const key=`${name}.${i}`;geometry[key]=baked('world/places.bin',mesh.offset,mesh.geometry);geo[`mesh-${i}`]=key;mats[mesh.material]=mesh.material;
       if(mesh.material==='yard'){const path=specimens.materials['path'];if(path===undefined)throw new Error('Missing yard tile');materials['yard']={kind:'specimen',row:{...path,id:'nalati-yard',rim:0,bands:.6,transparent:true,depthWrite:false,polygonOffset:[-2,-2],textureFallback:[200,160,120,255]}};continue;}
       const material=Object.entries(specimens.materials).find(([materialKey])=>materialKey===mesh.material)?.[1];if(material===undefined)throw new Error('Missing dressing static paint');materials[mesh.material]={kind:'specimen',row:material};
     }
@@ -120,7 +131,7 @@ function compileDressingScene(tier:'phone'|'desktop') {
   materials['butterfly']={kind:'painterly',rim:.3,bands:.5,shade:.6,emissive:0x101010};materials['raptor']={kind:'painterly',rim:.6,bands:.6};
   const bowl=bowlScene(tier,geometry,materials);statics.push(...bowl.statics);
   const crags=cragRows[tier],cragGeometry:Record<string,string>={};
-  for(const part of crags.meshes){geometry[part.key]=baked('/assets/nalati/baked/crags.bin',part.offset,v.parse(SceneBakedGeometrySchema,part.row));cragGeometry[part.key]=part.key;}
+  for(const part of crags.meshes){geometry[part.key]=baked('world/crags.bin',part.offset,v.parse(SceneBakedGeometrySchema,part.row));cragGeometry[part.key]=part.key;}
   const rockTexture=specimens.materials['rock']?.texture,snowTexture=specimens.materials['snow']?.texture;
   if(rockTexture===undefined||snowTexture===undefined)throw new Error('Missing prepared crag tiles');
   materials['crag']={kind:'look',look:phone?'nalati-crag-phone':'nalati-crag',params:{rockMean:paintedTextures.mean.rock,scale:[1/paintedTextures.metres.rock,1/paintedTextures.metres.snow],snowBand:[layout.SNOW_LINE-14,layout.SNOW_LINE-2]},textures:{rock:rockTexture,snow:snowTexture}};

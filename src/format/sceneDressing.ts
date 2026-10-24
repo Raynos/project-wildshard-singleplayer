@@ -15,6 +15,7 @@ export const SceneBakedGeometrySchema = v.strictObject({ attrs: list(v.tuple([id
 const geometry = v.variant('kind',[
   v.strictObject({kind:v.literal('asset'),row:SpecimenAssetSchema}),
   v.strictObject({kind:v.literal('baked'),url:id,address:v.strictObject({file:id,word:count}),row:SceneBakedGeometrySchema}),
+  v.strictObject({kind:v.literal('baked-file'),...BinaryFileSchema.entries,address:v.strictObject({file:id,word:count}),row:SceneBakedGeometrySchema}),
   v.strictObject({kind:v.literal('inline'),data:v.pipe(v.string(),v.maxLength(1048576)),row:SceneBakedGeometrySchema,sphere:v.exactOptional(v.tuple([finite,finite,finite,finite]))}),
   v.strictObject({kind:v.literal('file'),...BinaryFileSchema.entries,row:SceneBakedGeometrySchema,sphere:v.exactOptional(v.tuple([finite,finite,finite,finite]))}),
   v.strictObject({kind:v.literal('packed'),source:id,key:id}),

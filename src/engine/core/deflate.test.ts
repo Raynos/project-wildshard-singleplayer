@@ -1,5 +1,19 @@
-import { expect, test } from 'vitest';
-import { unshuffleLanes } from './deflate';
+import { expect, test, vi } from 'vitest';
+import { zlibSync } from 'fflate';
+import { decodeLaneBytes, unshuffleLanes } from './deflate';
+
+test('verified lane files decode offset bytes without a fetch or input mutation', async () => {
+  const words=32769,lanes=Uint8Array.from({length:words*4},(_,index)=>(index*79+31)&255),compressed=zlibSync(lanes);
+  const backing=new Uint8Array(compressed.length+13);backing.set(compressed,7);
+  const original=backing.slice(),fetch=vi.spyOn(globalThis,'fetch').mockRejectedValue(new Error('Unexpected private URL'));
+  const clock=vi.spyOn(performance,'now').mockReturnValue(0);
+  try {
+    expect(await decodeLaneBytes(backing.subarray(7,7+compressed.length))).toEqual(unshuffleLanes(lanes));
+    expect(backing).toEqual(original);expect(fetch).not.toHaveBeenCalled();
+    await expect(decodeLaneBytes(zlibSync(new Uint8Array(3)))).rejects.toThrow('not whole words');
+    await expect(decodeLaneBytes(new Uint8Array([1,2,3]))).rejects.toThrow();
+  } finally {fetch.mockRestore();clock.mockRestore();}
+});
 
 test.each([0, 1, 7, 32, 16385])('restores every byte of %i words from an offset source', words => {
   const backing = Uint8Array.from({ length: words * 4 + 19 }, (_, index) => (index * 79 + 31) & 255);
