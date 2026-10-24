@@ -27,7 +27,7 @@ import { frameFloorShards } from './frame-floor-inventory.mjs';
 import { handoffFloorGridNavigation, FLOOR_GRID_TAP } from './frame-floor-navigation.mjs';
 import { selectFloorGridPlans, gridFloorPlans, floorGridPortalPlan, readFloorGridEntryways, stageFloorGrid, driveFloorGrid, gridFloorWitnessFailures, installFloorGridProgress, gridFloorRuntimeFailure, gridFloorDocumentIdentity } from './frame-floor-grid.mjs';
 import { GL_INIT } from './parity/glbytes.mjs';
-import { PROGRAM_NAMES_SCRIPT } from './frame-floor-programs.mjs';
+import { GL_TIMING_SCRIPT } from './frame-floor-gl-time.mjs';
 import { TASK_CLOCK_SCRIPT } from './frame-floor-task-clock.mjs';
 import { startScriptProfile, startPrefixScriptProfile, startDriveWindowScriptProfile, STEADY_SCRIPT_WINDOW, STEADY_TIMELINE_WINDOW } from './frame-floor-script-profile.mjs';
 import { startWebKitTimeline, timelineLongFrames } from './frame-floor-webkit-timeline.mjs';
@@ -143,8 +143,7 @@ const taskClock = args.includes('--task-clock');
 if (taskClock && gridScenario === 'baseline') throw new Error('--task-clock attributes grid drives only');
 const TASK_CLOCK = taskClock ? TASK_CLOCK_SCRIPT : '';
 if (glTime && gridScenario === 'baseline') throw new Error('--gl-time attributes grid drive long frames only');
-const GL_TIMED = ['texImage2D', 'texSubImage2D', 'texImage3D', 'texSubImage3D', 'compressedTexImage2D', 'compressedTexSubImage2D', 'compressedTexImage3D', 'compressedTexSubImage3D', 'texStorage2D', 'texStorage3D', 'copyTexSubImage3D', 'generateMipmap', 'compileShader', 'linkProgram', 'getProgramParameter', 'getShaderParameter', 'getProgramInfoLog', 'getShaderInfoLog', 'getUniformLocation', 'getUniformBlockIndex', 'uniformBlockBinding', 'bindBufferBase', 'getActiveUniform', 'getActiveAttrib', 'bufferData', 'bufferSubData', 'readPixels', 'getBufferSubData', 'getError', 'getParameter', 'checkFramebufferStatus', 'finish', 'clientWaitSync', 'drawElements', 'drawArrays', 'drawElementsInstanced', 'drawArraysInstanced', 'clear', 'blitFramebuffer', 'invalidateFramebuffer'];
-const GL_TIME_SCRIPT = !glTime ? '' : `${PROGRAM_NAMES_SCRIPT}(()=>{const W=window;if(typeof W.__frameFloorGlTake==='function')return;const acc=new Map();W.__frameFloorGlTake=()=>{if(acc.size===0)return null;const o={};for(const[k,v]of acc)o[k]=[Math.round(v[0]*10)/10,v[1]];acc.clear();return o;};for(const C of[W.WebGLRenderingContext,W.WebGL2RenderingContext]){if(!C)continue;const p=C.prototype;for(const n of ${JSON.stringify(GL_TIMED)}){const f=p[n];if(typeof f!=='function'||f.__ffTimed)continue;const up=/^tex(Sub)?Image[23]D$/.test(n);const w=function(...a){const t=performance.now();try{return f.apply(this,a);}finally{const d=performance.now()-t,e=acc.get(n);if(e){e[0]+=d;e[1]++;}else acc.set(n,[d,1]);if(d>=3&&/^(?:getProgram|getUniformBlockIndex)/.test(n)){const k='slow '+n+' '+W.__frameFloorProgramName(a[0]),g=acc.get(k);if(g){g[0]+=d;g[1]++;}else acc.set(k,[d,1]);}if(up&&d>=3){const s=a[a.length-1],x=s&&typeof s==='object'?(s.naturalWidth||s.width||s.byteLength||0)+'x'+(s.naturalHeight||s.height||0):'null',k='slow '+n+' '+(s&&s.constructor?s.constructor.name:'?')+' '+x,g=acc.get(k);if(g){g[0]+=d;g[1]++;}else acc.set(k,[d,1]);}}};w.__ffTimed=true;p[n]=w;}}})();`;
+const GL_TIME_SCRIPT = glTime ? GL_TIMING_SCRIPT : '';
 // op-hitch47: opt-in desktop Chrome trace of each grid drive (`--gpu-trace=<existing scratch dir>`): the GPU process's
 // own events (command buffer, shader compile / link, texture uploads, swap), so a long frame with an idle main thread says
 // what the GPU process was doing. Writes <plan>-<time>.json (Chrome trace) and <plan>-<time>.frames.json (the drive's long
@@ -262,7 +261,7 @@ function sample(n, timeline = false) {
   if (!meter) return Promise.reject(new Error('Content CPU meter unavailable; use an SF62-capable pin'));
   meter.enabled = true;
   return new Promise((resolve, reject) => {
-    const interval = [], longAt = [], slowAt = [], glAt = [], callbackInterval = [], ring = [], work = [], calls = [], triangles = [], cpuOwners = new Map();
+    const interval = [], longAt = [], slowAt = [], glAt = [], glUploadAt = [], callbackInterval = [], ring = [], work = [], calls = [], triangles = [], cpuOwners = new Map();
     const timelineFrames = [], timelineLimit = 8000;
     let idleChecks = 0, checkedAt = -1, glPrevious = null;
     const finished = () => {
@@ -285,6 +284,8 @@ function sample(n, timeline = false) {
         // GL is taken at the END of each interval; a long interval's own cause is usually the frame drawn at its START
         // (its render ran before the next vsync could come), so a long frame also keeps that start frame's take.
         const glStart = glPrevious; glPrevious = glFrame;
+        const uploads = whole ? window.__frameFloorGlUploadsTake?.() ?? null : null;
+        if (uploads !== null && !first && glUploadAt.length < 8000) glUploadAt.push([Math.round(last), uploads]);
         if (glFrame !== null && !first && glAt.length < 8000) glAt.push([Math.round(last), glFrame]);
         if (!first) {
           // rAF's shared vsync timestamp grades drawn cadence; callback time also includes preceding game work.
@@ -320,6 +321,7 @@ function sample(n, timeline = false) {
         callbackP95Ms: round(pct(callbackInterval, 0.95)), callbackP99Ms: round(pct(callbackInterval, 0.99)), callbackMaxMs: round(pct(callbackInterval, 1)),
         // a freeze is one frame of thousands: p95 / p99 never see it, so a long window also counts its long frames
         longFrames: { over50Ms: interval.filter((ms) => ms > 50).length, over100Ms: interval.filter((ms) => ms > 100).length, at: longAt }, ...(whole ? { slowFrames: slowAt } : {}), ...(glAt.length === 0 ? {} : { glFrames: glAt }),
+        ...(glUploadAt.length === 0 ? {} : { glUploadFrames: glUploadAt }),
         gameP95Ms: round(pct(ring, 0.95)), workP95Ms: round(pct(work, 0.95)), calls: pct(calls, 0.5), triangles: pct(triangles, 0.5),
         position: { x: window.__wildshard.world.player.position.x, y: window.__wildshard.world.player.position.y, z: window.__wildshard.world.player.position.z },
         cpu: { enabled: meter.snapshot().enabled, frames: cpuFrames, owners: [...cpuOwners].map(([id, row]) => ({ id, samples: row.ms.length, p95Ms: pct(row.ms, 0.95), maxMs: pct(row.ms, 1), calls: row.calls })) },
