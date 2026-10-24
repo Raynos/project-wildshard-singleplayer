@@ -184,3 +184,50 @@ test('copied pose memory refuses accessors without invoking them', () => {
   expect(calls).toBe(0); expect(transforms(c)).toEqual(before);
   expect(() => animate(context([]))).not.toThrow();
 });
+
+test('reentrant pose observations keep separate scalar and frame snapshots', () => {
+  const programs = numericChannelPrograms('scratch.reentry', 'creature.pose', [
+    { target: 'joint.body', path: ['position', 'x'], expr: (_b, read) => read('scalars', ['height']) },
+    { target: 'joint.body', path: ['position', 'y'], expr: (_b, read) => read('frame', ['t']) },
+    { target: 'joint.body', path: ['position', 'z'], expr: (_b, read) => read('scalars', ['offset']) },
+  ]);
+  const animate = numericCreaturePose(creaturePoseRows({ group: 'creature.pose', programs, scalars: [
+    { name: 'height', path: ['dims', 'bodyY'], fallback: 0 }, { name: 'offset', path: ['mem', 'offset'], fallback: 0 },
+  ] }));
+  const outer = context(['body']), inner = context(['body']);
+  outer.t = 3; outer.mem['offset'] = 4; inner.t = 9; inner.dims.bodyY = 8; inner.mem['offset'] = 7;
+  let dimensionReads = 0, nested = 0;
+  Object.defineProperty(outer.dims, 'bodyY', { get: () => {
+    // The first scalar has already been captured when the second scalar copies dimensions.
+    if (++dimensionReads === 2) { nested++; animate(inner); }
+    return 2;
+  } });
+  Object.defineProperty(outer, 'phase', { get: () => { nested++; animate(inner); return .3; } });
+  animate(outer);
+  expect(nested).toBe(2);
+  expect(outer.bones['body']?.position.toArray()).toEqual([2, 3, 4]);
+  expect(inner.bones['body']?.position.toArray()).toEqual([8, 9, 7]);
+  outer.mem['offset'] = Number.NaN;
+  const retained = transforms(outer);
+  expect(() => animate(outer)).toThrow('scalar observation');
+  expect(transforms(outer)).toEqual(retained);
+  outer.mem['offset'] = -0; outer.t = 5; animate(outer);
+  expect(outer.bones['body']?.position.toArray()).toEqual([2, 5, -0]);
+});
+
+test('reused pose observations preserve dimension and clock sampling order', () => {
+  const programs = numericChannelPrograms('scratch.order', 'creature.pose', [
+    { target: 'joint.body', path: ['position', 'x'], expr: (_b, read) => read('scalars', ['height']) },
+    { target: 'joint.body', path: ['position', 'y'], expr: (_b, read) => read('frame', ['t']) },
+  ]);
+  const animate = numericCreaturePose(creaturePoseRows({ group: 'creature.pose', programs, scalars: [
+    { name: 'height', path: ['dims', 'bodyY'], fallback: 0 }, { name: 'offset', path: ['mem', 'offset'], fallback: 0 },
+  ] }));
+  const c = context(['body']); animate(c);
+  const order: string[] = [], dimensions = ['bodyY', 'bodyHalfLen', 'bodyRadius', 'headRadius', 'legLen', 'halfWidth', 'bodyPitch'];
+  for (const key of dimensions) Object.defineProperty(c.dims, key, { get: () => { order.push(key); return .25; } });
+  Object.defineProperty(c, 't', { get: () => { order.push('t'); return 2; } });
+  animate(c);
+  expect(order).toEqual([...dimensions, ...dimensions, 't', ...dimensions, 't']);
+  expect(c.bones['body']?.position.x).toBe(.25); expect(c.bones['body']?.position.y).toBe(2);
+});

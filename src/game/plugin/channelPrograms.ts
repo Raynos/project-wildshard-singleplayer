@@ -125,20 +125,36 @@ function compileNumericCreaturePose(row: poseSchema.InferOutput<typeof NumericPo
     observation: { time: number; delta: number; values: Record<string, number> };
     lane: ReturnType<typeof installChannelPrograms> | null; turns: readonly Turn[];
   }>();
+  // Value-only scratch is lent to one synchronous invocation, including during getter reentry.
+  // It retains no context, joint, actor or owner when the invocation returns or refuses.
+  type FrameField = Extract<PoseInput, { kind: 'frame' }>['field'];
+  const makeObservation = (): { scalarValues: Float64Array; dimensions: Record<string, number | undefined>; frame: Record<FrameField, number> } => ({
+    scalarValues: new Float64Array(row.scalars.length), dimensions: {}, frame: { t: 0, dt: 0, seed: 0, scale: 0, speed: 0, strafe: 0,
+      phase: 0, attack: 0, brace: 0, flinch: 0, deathT: 0, stateIndex: 0, yaw: 0, lookWeight: 0 },
+  });
+  const copyDimensions = (dimensions: Record<string, number | undefined>, c: AnimalRigContext): void => {
+    dimensions['bodyY'] = c.dims.bodyY; dimensions['bodyHalfLen'] = c.dims.bodyHalfLen;
+    dimensions['bodyRadius'] = c.dims.bodyRadius; dimensions['headRadius'] = c.dims.headRadius;
+    dimensions['legLen'] = c.dims.legLen; dimensions['halfWidth'] = c.dims.halfWidth; dimensions['bodyPitch'] = c.dims.bodyPitch;
+  };
+  let available: ReturnType<typeof makeObservation> | undefined;
   return c => {
     if ((row.alive !== undefined && row.alive !== c.alive)
       || (row.variant !== undefined && (!('variant' in c.animal) || c.animal.variant !== row.variant))) return;
     // Detached observations only: missing old-save memory can supply an authored default without a write.
-    const scalarValues = row.scalars.map(scalar => {
+    const observation = available ?? makeObservation(); available = undefined;
+    try {
+    const { scalarValues, dimensions, frame } = observation;
+    for (let i = 0; i < row.scalars.length; i++) {
+      const scalar = row.scalars[i]; if (scalar === undefined) throw new Error('Missing creature pose scalar');
       const [key, field] = scalar.path;
-      const dimensions: Readonly<Record<string, number | undefined>> = { bodyY: c.dims.bodyY, bodyHalfLen: c.dims.bodyHalfLen,
-        bodyRadius: c.dims.bodyRadius, headRadius: c.dims.headRadius, legLen: c.dims.legLen, halfWidth: c.dims.halfWidth, bodyPitch: c.dims.bodyPitch };
+      copyDimensions(dimensions, c);
       const value = key === 'mem' ? poseMemory(c.mem, field)
         : key === 'dims' ? !Object.hasOwn(dimensions, field) ? undefined : dimensions[field] : c[key];
       const number = value ?? scalar.fallback;
       if (typeof number !== 'number' || !Number.isFinite(number)) throw new Error('Invalid creature pose scalar observation');
-      return number;
-    });
+      scalarValues[i] = number;
+    }
     let rig = rigs.get(c.bones);
     if (rig === undefined) {
       const fields = (source: { x: number; y: number; z: number }) => ({
@@ -173,13 +189,15 @@ function compileNumericCreaturePose(row: poseSchema.InferOutput<typeof NumericPo
         lane: programs.length === 0 ? null : installChannelPrograms(detached.table, row.group, owners), turns };
       rigs.set(c.bones, rig);
     }
-    row.scalars.forEach((scalar, i) => { rig.scalars[scalar.name] = scalarValues[i] ?? Number.NaN; });
+    for (let i = 0; i < row.scalars.length; i++) {
+      const scalar = row.scalars[i]; if (scalar === undefined) throw new Error('Missing creature pose scalar');
+      rig.scalars[scalar.name] = scalarValues[i] ?? Number.NaN;
+    }
     if (row.look !== undefined) Object.assign(rig.look, lookAngles(c, ...row.look));
-    const frame = { t: c.t, dt: c.dt, seed: c.seed, scale: c.scale, speed: c.speed, strafe: c.strafe,
-      phase: c.phase, attack: c.attack, brace: c.brace, flinch: c.flinch, deathT: c.deathT,
-      stateIndex: row.states.indexOf(c.state), yaw: c.yaw, lookWeight: c.lookWeight };
-    const dimensions: Readonly<Record<string, number | undefined>> = { bodyY: c.dims.bodyY, bodyHalfLen: c.dims.bodyHalfLen,
-      bodyRadius: c.dims.bodyRadius, headRadius: c.dims.headRadius, legLen: c.dims.legLen, halfWidth: c.dims.halfWidth, bodyPitch: c.dims.bodyPitch };
+    frame.t = c.t; frame.dt = c.dt; frame.seed = c.seed; frame.scale = c.scale; frame.speed = c.speed; frame.strafe = c.strafe;
+    frame.phase = c.phase; frame.attack = c.attack; frame.brace = c.brace; frame.flinch = c.flinch; frame.deathT = c.deathT;
+    frame.stateIndex = row.states.indexOf(c.state); frame.yaw = c.yaw; frame.lookWeight = c.lookWeight;
+    copyDimensions(dimensions, c);
     for (const input of rig.inputs) if (input.kind === 'scalar' && input.record === 'memory')
       rig.memory[input.name] = poseMemory(c.mem, input.name);
     for (const input of rig.inputs) {
@@ -196,5 +214,6 @@ function compileNumericCreaturePose(row: poseSchema.InferOutput<typeof NumericPo
     for (const turn of rig.turns) if (turn.dirty) { turn.dirty = false; turn.euler.set(turn.x, turn.y, turn.z); }
     const body = row.squash === undefined ? undefined : c.bones[row.squash];
     if (body !== undefined) squashBody(body, c.flinch);
+    } finally { available = observation; }
   };
 }
