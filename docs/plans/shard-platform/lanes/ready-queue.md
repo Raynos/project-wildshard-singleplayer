@@ -9,11 +9,17 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 
 | # | Task | Refs | Taken |
 |---|---|---|---|
-| G679 | HOST-AUDIT: accept all 114 groups as written (95 keep / 18 fold / 1 retire after legacy deletion) in ONE commit of listings + chargebacks; mark docs/reviews/host-audit-inventory.md read | docs/reviews/host-audit-inventory.md, scripts/platform-chargebacks.mjs | sp-x6 (brief) |
+| G679 | (Jake correction 13:20) RECORD ONLY: the 114 recommendations are HOST-AUDIT's accepted starting point; HOST-AUDIT is a parked plan that starts after all SHARD-PLATFORM mini plans. No listings / folds / chargebacks now | docs/reviews/host-audit-inventory.md -> archive | sp-x6 (record only) |
 | G680 | Driftwood tile LOD option B: apply variant-B.patch; tile 6,4 at 4.67 MB gets an exact storage pin | art/driftwood-isle/round-19-tile-lod | sp-x2 (brief) |
-| G681 | Night Market road option B: lower / see-through barrier at open-plot edges, as an open-plot layout row (Codex only if pure data, else waits for Opus) | art/grid/round-60-night-market-road-a, open-plots-mini-plan.md | |
+| G681 | (G684: then Jake plays it in game; no board) Night Market road option B: lower / see-through barrier at open-plot edges, as an open-plot layout row (Codex only if pure data, else waits for Opus) | art/grid/round-60-night-market-road-a, open-plots-mini-plan.md | |
 | G682 | Core memory: measure a hello-world WebKit floor (same Sim, same method) and set budgets menu <= floor + 50 MB, Template <= floor + 100 MB | core-memory-mini-plan.md | |
 | L11 | Loading: section/schema reads use the trusted worker-verified transport (no second page hash), drop runtimeProduct Uint8Array.from | loading-mini-plan.md:675 | sp-x9 |
+
+**G683 Codex order (Jake, 13:20):** finish extras in this order, taking the top open Codex row of the first plan that has one:
+(1) tile streaming (shard-platform/tile-streaming-mini-plan.md), (2) loading (loading-mini-plan.md), (3) core memory
+(core-memory-mini-plan.md), no-binaries, oxlint leftovers; then (4) generators redesign GR1-GR12 / GS1-GS5
+(tooling-perf/generators-spike-mini-plan.md); then (5) TypeScript plan T1-T6 (tooling-perf/typescript-mini-plan.md).
+Claim here with `<lane> <HH:MM> <plan row>` before starting.
 
 ## RED-LIVE and loading (Jake's phone, live 64d85dac0, 2026-10-21 07:46)
 
