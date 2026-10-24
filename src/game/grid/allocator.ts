@@ -159,14 +159,8 @@ export class ResidencyAllocator {
     return this.lease(entry);
   }
 
-  /** Each owner's accounted bytes, shared page components excluded (they are in every owner's {@link shardCost}). */
-  private ownerBytes(): Map<string, number> {
-    const bytes = new Map<string, number>();
-    for (const entry of this.entries_.values()) if (entry.category !== 'page') bytes.set(entry.owner, (bytes.get(entry.owner) ?? 0) + this.effectiveBytes(entry));
-    return bytes;
-  }
-  /** One owner's accounted bytes ({@link ownerBytes} for a single owner): its running total. Re-scanning every claim here
-   *  made an entry's over-budget registrations quadratic (Nine's grid entry: 300-480 ms frames at 4x CPU). */
+  /** One owner's accounted bytes, page components excluded and covered claims at zero: its running total.
+   *  Re-scanning every claim here made over-budget registrations quadratic (Nine's grid entry: 300-480 ms frames at 4x CPU). */
   private ownerTotal(owner: string): number { return this.owners.get(owner) ?? 0; }
   private ownerAdd(owner: string, bytes: number): void {
     const total = (this.owners.get(owner) ?? 0) + bytes;
@@ -176,8 +170,7 @@ export class ResidencyAllocator {
   private syncResidents(): void {
     const input = this.input(); // validates the page calibration even with no warning to re-judge
     if (!this.memory.hasResidentWarnings) return;
-    const owners = this.ownerBytes();
-    this.memory.syncResidents(new Set(this.entries_.keys()), owner => ({ ...shardCost(owners.get(owner) ?? 0, input), input }));
+    this.memory.syncResidents(this.entries_, owner => ({ ...shardCost(this.ownerTotal(owner), input), input }));
   }
 
   /** The cost model over everything held now, decode / refinement overlap counted once. */

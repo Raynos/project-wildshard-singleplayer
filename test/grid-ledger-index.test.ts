@@ -46,6 +46,64 @@ test('diagnostic snapshots stay detached across lease and coverage changes', () 
   expect(ledger.entries()).toEqual([]);
 });
 
+test('warning refresh preserves coverage totals, membership and notification reentry', () => {
+  const runs = pair(CONTENT_CAPS.engineBase + CONTENT_CAPS.overlap + 1000).map(ledger => {
+    const claim = { category: 'sim' as const, owner: 'a', distance: 0, needed: true };
+    const parent = ledger.reserve({ ...claim, id: 'parent', bytes: 1200 });
+    ledger.markMeasuredPage('parent');
+    const child = ledger.reserve({ ...claim, category: 'commons', id: 'child', bytes: 900, coveredBy: 'parent' });
+    const page = ledger.reservePageComponent('renderer', 60, 10, 'parent');
+    const warned = ledger.reserve({ ...claim, category: 'library', id: 'warned', bytes: 1600 });
+    const peer = ledger.reserve({ ...claim, owner: 'b', id: 'peer', bytes: 2400 });
+    if (parent === null || child === null || page === null || warned === null || peer === null) throw new Error('Fixture admission failed');
+    expect(ledger.memory.reports().map(row => row.owner)).toEqual(['a', 'b']);
+    const trace: { reports: ReturnType<MemoryAdmission['reports']>; cost: ReturnType<Ledger['cost']>; entries: ReturnType<Ledger['entries']> }[] = [];
+    const observe = () => { trace.push({ reports: ledger.memory.reports(), cost: ledger.cost(), entries: ledger.entries() }); };
+    let reenter = false, reentries = 0;
+    const unsubscribe = ledger.memory.subscribe(() => {
+      observe();
+      if (reenter) {
+        reenter = false; reentries++;
+        // Notifications run after the complete warning refresh. Their releases may synchronously refresh again.
+        peer.release(); child.release();
+      }
+    });
+    reenter = true;
+    parent.release(); observe();
+    expect(reentries).toBe(1);
+    expect(ledger.memory.reports().map(row => [row.owner, row.accountedBytes])).toEqual([['a', 1660]]);
+    const nextParent = ledger.reserve({ ...claim, id: 'parent', bytes: 600 });
+    observe();
+    warned.release(); observe();
+    expect(ledger.memory.reports()).toEqual([]);
+    nextParent?.release(); child.release(); page.release(); warned.release(); observe();
+    unsubscribe();
+    expect(ledger.entries()).toEqual([]);
+    return trace;
+  });
+  expect(runs[1]).toEqual(runs[0]);
+});
+
+test('warning refresh uses shrunken claims before and after coverage retirement', () => {
+  const memory = new MemoryAdmission(() => true);
+  const ledger = new ResidencyAllocator({ playing: CONTENT_CAPS.engineBase + CONTENT_CAPS.overlap + 1000, memory });
+  const claim = { category: 'sim' as const, owner: 'a', distance: 0, needed: true };
+  const parent = ledger.reserve({ ...claim, id: 'parent', bytes: 1200 });
+  const child = ledger.reserve({ ...claim, category: 'commons', id: 'child', bytes: 900, coveredBy: 'parent' });
+  const warned = ledger.reserve({ ...claim, category: 'library', id: 'warned', bytes: 1600 });
+  if (parent === null || child === null || warned === null) throw new Error('Fixture admission failed');
+  warned.shrink(1400);
+  expect(memory.reports()[0]?.accountedBytes).toBe(2600);
+  parent.release();
+  expect(memory.reports()[0]?.accountedBytes).toBe(2300);
+  child.update({ coveredBy: null }); child.shrink(400);
+  expect(memory.reports()[0]?.accountedBytes).toBe(1800);
+  warned.shrink(100);
+  expect(memory.reports()).toEqual([]);
+  child.release(); warned.release();
+  expect(ledger.entries()).toEqual([]);
+});
+
 test('recorded Pine retained allocations keep every admission and total identical', () => {
   const ledgers = pair(), parent = v.parse(Claim, recorded.parent), claims = v.parse(v.array(Claim), recorded.claims);
   const held = ledgers.map(ledger => {

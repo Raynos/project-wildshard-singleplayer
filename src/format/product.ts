@@ -663,7 +663,7 @@ export class MemoryAdmission {
     return false;
   }
   /** Released claims stop warning; retained claims report their owner's current cost (G556: per shard, never the page). */
-  syncResidents(ids: ReadonlySet<string>, costOf: (owner: string) => { accounted: number; playing: number; loading: number; input: ContentCostInput }): void {
+  syncResidents(ids: Pick<ReadonlySet<string>, 'has'>, costOf: (owner: string) => { accounted: number; playing: number; loading: number; input: ContentCostInput }): void {
     let changed = false;
     for (const [key, row] of this.warnings) {
       if (row.stage !== 'resident') continue;
