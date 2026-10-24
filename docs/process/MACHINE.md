@@ -145,8 +145,12 @@ without fetching or opening caches. `cachedBodies` reports decoded body sizes,
 missing copies and explicit failures, never inferred boot cache hits. It bounds
 the URL bank to 1024 and cache count to 16, stops after 8 MiB per body or 64 MiB
 total (the last stream chunk may cross the bound), and has a five-second read
-deadline. Only metadata survives; no payload is retained. Missing IndexedDB or
-browser HTTP-cache bodies remain unknown. This adds no separate Simulator run.
+deadline. The selected first-party product's existing visited record is bounded
+to 1 MiB and validated before adding original file URLs and content-addressed
+`/__ws_content__/v0/<hash>` keys. Expected sizes and measured stored sizes remain
+separate; aliases never become extra downloaded bytes. Only metadata survives;
+no payload is retained. Missing stores or browser HTTP-cache bodies remain
+unknown. This adds no separate Simulator run.
 
 Any failed run stops the cohort and returns failure, with no automatic retry.
 The reader closes Safari, its proxy and any preview it opened in `finally`.

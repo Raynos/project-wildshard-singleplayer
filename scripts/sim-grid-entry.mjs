@@ -366,7 +366,7 @@ async function run(mode, index, target) {
     const observedUrls = [...new Set(compiled.accuracy.resources.map(row => row.name).filter(name => {
       try { return new URL(name).origin === new URL(compiled.href).origin; } catch { return false; }
     }))];
-    const cachedBodies = await settle(`async () => (${cachedBodyEvidence.toString()})(${JSON.stringify(observedUrls)})`, 10000);
+    const cachedBodies = await settle(`async () => (${cachedBodyEvidence.toString()})(${JSON.stringify(observedUrls)}, ${JSON.stringify(`/shardfiles/${shard}/shard.json`)})`, 10000);
     const receipts = transport.receipts.filter(row => row.endedAt >= compiled.origin && row.endedAt <= compiled.origin + compiled.accuracy.readyAt);
     const result = { mode, run: index, shard, href: compiled.href, accuracy: compiled.accuracy, measures: compiled.measures,
       download: downloadEvidence(compiled.accuracy.samples), transportUnits: transportEvidence(receipts), cachedBodies, transportReceipts: receipts, htmlFixtures: transport.htmlFixtures,

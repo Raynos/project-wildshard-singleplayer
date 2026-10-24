@@ -7,6 +7,8 @@ export interface CachedBodyEvidence {
   failures: { url: string; reason: string }[];
   readBytes: number;
   limited: string | null;
-  limits: { urls: number; caches: number; bodyBytes: number; totalBytes: number; milliseconds: number };
+  product: null | { descriptor: string; record: string; recordBytes: number;
+    files: { url: string; contentURL: string; expectedBytes: number }[] };
+  limits: { urls: number; caches: number; bodyBytes: number; metadataBytes: number; totalBytes: number; milliseconds: number };
 }
-export function cachedBodyEvidence(input: readonly string[]): Promise<CachedBodyEvidence>;
+export function cachedBodyEvidence(input: readonly string[], descriptor?: string): Promise<CachedBodyEvidence>;

@@ -64,3 +64,62 @@ test('reports a stalled cache read within its deadline instead of holding the of
   expect(result.failures[0]?.reason).toContain('time limit');
   expect(fetch).not.toHaveBeenCalled();
 });
+
+test('reads the selected stored product through its original and content-addressed URLs', async () => {
+  const hash = 'a'.repeat(64), body = 'cached café', actualBytes = new TextEncoder().encode(body).byteLength, expectedBytes = actualBytes + 100;
+  const record = JSON.stringify({ firstParty: true, source: { format: 'wildshard.shardfile', formatVersion: 2,
+    identity: { slug: 'home' }, sections: [{ path: 'sections/world.json', hash, bytes: expectedBytes }],
+    schemas: [], files: [{ path: 'blobs/a.bin', hash, compressed: expectedBytes }] } });
+  const match = vi.fn((url: string) => Promise.resolve(url.endsWith('/__visited_shardfile__')
+    ? new Response(record) : url.endsWith(`/__ws_content__/v0/${hash}`) ? new Response(body) : undefined));
+  const { fetch } = environment(match);
+  const result = await cachedBodyEvidence([], '/shardfiles/home/shard.json');
+  const contentURL = `http://localhost/__ws_content__/v0/${hash}`;
+  expect(result.product).toEqual({ descriptor: 'http://localhost/shardfiles/home/shard.json',
+    record: 'http://localhost/shardfiles/home/__visited_shardfile__', recordBytes: new TextEncoder().encode(record).byteLength,
+    files: [{ url: 'http://localhost/shardfiles/home/sections/world.json', contentURL, expectedBytes },
+      { url: 'http://localhost/shardfiles/home/blobs/a.bin', contentURL, expectedBytes }] });
+  expect(result.files).toEqual([{ url: contentURL, bytes: actualBytes }]);
+  expect(result.missing).toEqual(['http://localhost/shardfiles/home/shard.json',
+    'http://localhost/shardfiles/home/sections/world.json', 'http://localhost/shardfiles/home/blobs/a.bin']);
+  expect(match.mock.calls.filter(([url]) => url === contentURL)).toHaveLength(1);
+  expect(result.source).toContain('not cache-hit evidence');
+  expect(result.limited).toBeNull(); expect(fetch).not.toHaveBeenCalled();
+});
+
+test('refuses a foreign descriptor or malformed selected inventory before reading its body prefix', async () => {
+  const source = { format: 'wildshard.shardfile', formatVersion: 2, identity: { slug: 'home' },
+    sections: [{ path: 'sections/valid.json', hash: 'a'.repeat(64), bytes: 3 },
+      { path: '../escape.json', hash: 'b'.repeat(64), bytes: 4 }], schemas: [], files: [] };
+  const match = vi.fn(() => Promise.resolve(Response.json({ source, firstParty: true })));
+  const { keys } = environment(match);
+  await expect(cachedBodyEvidence([], 'https://foreign.test/shardfiles/home/shard.json')).rejects.toThrow('descriptor');
+  expect(keys).not.toHaveBeenCalled();
+  const result = await cachedBodyEvidence([], '/shardfiles/home/shard.json');
+  expect(result.product).toBeNull(); expect(result.files).toEqual([]);
+  expect(result.limited).toBe('selected product metadata'); expect(match).toHaveBeenCalledTimes(1);
+});
+
+test('bounds stored product metadata without publishing partial inventory', async () => {
+  const match = vi.fn(() => Promise.resolve(new Response(' '.repeat(1048577))));
+  environment(match);
+  const result = await cachedBodyEvidence([], '/shardfiles/home/shard.json');
+  expect(result.product).toBeNull(); expect(result.files).toEqual([]);
+  expect(result.limited).toBe('selected product metadata');
+  expect(result.failures[0]?.reason).toContain('metadata bytes');
+  expect(match).toHaveBeenCalledTimes(1);
+});
+
+test('reports missing or stalled selected metadata without creating a cache or fetching', async () => {
+  const { fetch } = environment(() => Promise.resolve(undefined));
+  const missing = await cachedBodyEvidence([], '/shardfiles/home/shard.json');
+  expect(missing.product).toBeNull(); expect(missing.limited).toBe('selected product metadata');
+  expect(fetch).not.toHaveBeenCalled();
+  vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'performance'] });
+  environment(() => new Promise<Response>(() => { /* Stalled metadata lookup. */ }));
+  const reading = cachedBodyEvidence([], '/shardfiles/home/shard.json');
+  await vi.advanceTimersByTimeAsync(5001);
+  const stalled = await reading;
+  expect(stalled.product).toBeNull(); expect(stalled.limited).toBe('selected product metadata');
+  expect(stalled.failures[0]?.reason).toContain('time limit');
+});
