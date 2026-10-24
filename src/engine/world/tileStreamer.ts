@@ -175,7 +175,7 @@ const SIZE = { far: CHUNK_HALF * 2, l1: C.l1.size, l0: C.l0.size } as const;
 const L0_RADIUS = C.nearRadius, L1_RADIUS = 400, LOOKAHEAD_SLOTS = C.l0Count - 32;
 type State = 'fetching' | 'queued' | 'uploaded';
 /** sp-o105: `parent` is `parentOf(tile)`, kept on the slot: the step's scans compared a freshly built key per slot pair. */
-interface Slot<D> { tile: RingTile; readonly parent: string | null; state: State; lease: TileStreamLease; unholdParent: () => void; view: RingView | null; data: D | null; bytes: number; distance: number; masked: string; shadow: boolean }
+interface Slot<D> { tile: RingTile; readonly parent: string | null; state: State; lease: TileStreamLease; unholdParent: () => void; view: RingView | null; data: D | null; bytes: number; distance: number; masked: number; shadow: boolean }
 
 interface ReleaseRow<D> { slot: Slot<D> | undefined; distance: number }
 interface TileDistance { tile: RingTile; d: number }
@@ -580,7 +580,7 @@ export class TileStreamer<D> {
       const tile = { ...plan };
       const lease = this.budget.reserve({ id: `render:${tile.key}`, category: tile.level, bytes, owner: tile.instance, distance, needed: true, evictSync: () => { this.evicted(tile.key); } });
       if (lease === null) { this.refused++; this.retryAt.set(tile.key, this.frame + 15); continue; }
-      const slot: Slot<D> = { tile, parent: parentKey, state: 'fetching', lease, unholdParent: parent?.lease.hold() ?? ((): void => undefined), view: null, data: null, bytes, distance, masked: '', shadow: false };
+      const slot: Slot<D> = { tile, parent: parentKey, state: 'fetching', lease, unholdParent: parent?.lease.hold() ?? ((): void => undefined), view: null, data: null, bytes, distance, masked: 0, shadow: false };
       this.slots.set(tile.key, slot); inFlight++;
       try {
         this.ports.fetch(tile, (result) => {
@@ -640,13 +640,21 @@ export class TileStreamer<D> {
   /** A parent hides exactly the regions whose child is uploaded. */
   private remask(parentKey: string, uploaded?: ReadonlyMap<string, readonly Slot<D>[]>): void {
     const parent = this.slots.get(parentKey); if (parent?.view === null || parent?.view === undefined) return;
+    // Rectangles bound far masks to 16 regions and L1 masks to four. Changed masks still publish a fresh Set in slot order.
+    const children = uploaded === undefined ? this.slots.values() : uploaded.get(parentKey) ?? [];
+    let signature = 0;
+    for (const slot of children) {
+      if (slot.state !== 'uploaded' || slot.parent !== parentKey) continue;
+      const region = parent.tile.level === 'far' ? slot.tile.x + slot.tile.z * 4 : slot.tile.x % 2 + (slot.tile.z % 2) * 2;
+      signature |= 1 << region;
+    }
+    if (signature === parent.masked) return;
     const excluded = new Set<number>();
     for (const slot of uploaded === undefined ? this.slots.values() : uploaded.get(parentKey) ?? []) {
       if (slot.state !== 'uploaded' || slot.parent !== parentKey) continue;
       excluded.add(parent.tile.level === 'far' ? slot.tile.x + slot.tile.z * 4 : slot.tile.x % 2 + (slot.tile.z % 2) * 2);
     }
-    const signature = [...excluded].sort((a, b) => a - b).join(',');
-    if (signature !== parent.masked) { parent.masked = signature; parent.view.mask(excluded); }
+    parent.masked = signature; parent.view.mask(excluded);
   }
 
   private remaskAll(camera: RingCamera): void {

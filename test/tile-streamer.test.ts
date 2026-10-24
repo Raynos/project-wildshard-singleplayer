@@ -80,6 +80,34 @@ function timedUploads(cost: number, options: RingOptions = {}) {
 }
 const camera = { x: 0, z: 0, vx: 0, vz: 0 };
 
+test('unchanged parent masks stay quiet and old exclusion sets survive child retirement', async () => {
+  const allocator = new ResidencyAllocator(), masks: ReadonlySet<number>[] = [], evictions = new Map<string, () => void>();
+  const budget: TileStreamBudget = { reserve: claim => { evictions.set(claim.id, claim.evictSync); return allocator.reserve(claim); } };
+  const ports: RingPorts<string> = {
+    fetch: (tile, done) => { done(tile.key); },
+    upload: tile => ({ mask: excluded => { if (tile.level === 'far') masks.push(excluded); }, shadow: () => undefined, dispose: () => undefined }),
+  };
+  const streamer = new TileStreamer([{ instance: 'mask-cell', origin: { x: 0, z: 0 } }], budget,
+    (_instance, level) => level === 'l0' ? null : 1, ports, { uploadsPerFrame: 32, maxInFlight: 32, uploadMsPerFrame: 1000 });
+  try {
+    const required = streamer.require('mask-cell', Array.from({ length: 16 }, (_, index) => index), 'l1');
+    for (let i = 0; i < 8; i++) streamer.step(camera);
+    await required.ready;
+    const full = masks.at(-1), original = masks.map(mask => [...mask]);
+    expect(full?.size).toBe(16); expect(full?.has(15)).toBe(true);
+    for (let i = 0; i < 8; i++) streamer.step(camera);
+    expect(masks.map(mask => [...mask])).toEqual(original);
+    required.release();
+    const retire = evictions.get('render:mask-cell:l1/3/3');
+    if (retire === undefined) throw new Error('Missing child eviction');
+    retire();
+    expect(masks.at(-1)?.size).toBe(15); expect(masks.at(-1)?.has(15)).toBe(false);
+    expect(masks.at(-1)).not.toBe(full); expect(full?.size).toBe(16); expect(full?.has(15)).toBe(true);
+    expect(masks.slice(0, original.length).map(mask => Array.from(mask))).toEqual(original);
+  } finally { streamer.dispose(); }
+  expect(allocator.entries()).toEqual([]);
+});
+
 test('elapsed uploads pause refinement without dropping its scopes or claims', () => {
   const f = timedUploads(12);
   try {
