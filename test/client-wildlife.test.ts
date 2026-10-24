@@ -77,11 +77,20 @@ test('declared wildlife waits for animals, owns one frame and retires its hook',
     scope.dispose();expect(disposed).toHaveBeenCalledOnce();application.events.ask('combat.targets.ray',request);expect(hits).toEqual([]); expect(hooks.animalsBuilt).toBeUndefined(); expect(() => clientWildlife(ctx)).toThrow('disposed');
     const entered=new Scope('orchard.reentry');lendNalatiPasture(entered);
     try{
-      const next=legacyDouble<ShardContext>({...ctx,scope:entered,answer:(name,handler)=>{application.events.answer(name,handler,entered);}});
+      const stale=legacyDouble<ShardContext>({...ctx,scope:entered});
+      await expect(installClientWildlife(stale,feature)).rejects.toThrow('Return owner disposed');
+      expect(hooks.animalsBuilt).toBeUndefined();expect(application.events.census().answerers).toBe(baseline);
+      const world=runtime.world;if(world===null)throw new Error('Missing original wildlife world');
+      const nextRuntime=legacyDouble<ShardRuntime>({...runtime,world:{...world,
+        game:legacyDouble<typeof world.game>({scene:world.game.scene,levelScope:entered})}});
+      const next=legacyDouble<ShardContext>({...ctx,scope:entered,game:legacyDouble<ShardContext['game']>({runtime:nextRuntime}),
+        answer:(name,handler)=>{application.events.answer(name,handler,entered);}});
       await installClientWildlife(next,feature);
       application.events.answer('combat.targets.ray',value=>{hits.push('reentered');return value;},entered);
       application.events.ask('combat.targets.ray',request);expect(hits).toEqual(['reentered']);
       expect(application.events.census().answerers).toBe(baseline+2);
+      const rebuilt=nextRuntime.hooks.animalsBuilt;if(rebuilt===undefined)throw new Error('Missing reentered animal stage');
+      await rebuilt(animals);expect(clientWildlife(next)).toBeInstanceOf(PageWildlife);
     }finally{entered.dispose();}
     expect(application.events.census().answerers).toBe(baseline);
   } finally { scope.dispose(); vi.restoreAllMocks(); }
@@ -106,7 +115,8 @@ test('wildlife retains joint/bound guards and refuses retired fixed-draw intake'
       files:new Map([[feature.file,{hash:'population',url:'/population'}],[feature.crowd.json,{hash:'crowd',url:'/crowd'}],[feature.crowd.binary,{hash:'body',url:'/body'}]]),
       read:hash=>hash==='population'?Promise.resolve(encode(headlessAssembly.constants.pageWildlife)):hash==='crowd'?Promise.resolve(encode(body)):readBody()});
     return legacyDouble<ShardContext>({scope:owner,app:new App(),product,
-      game:legacyDouble<ShardContext['game']>({runtime:legacyDouble<ShardRuntime>({hooks:{},world:legacyDouble<NonNullable<ShardRuntime['world']>>({})})})});
+      game:legacyDouble<ShardContext['game']>({runtime:legacyDouble<ShardRuntime>({hooks:{},world:legacyDouble<NonNullable<ShardRuntime['world']>>({
+        game:legacyDouble<NonNullable<ShardRuntime['world']>['game']>({levelScope:owner})})})})});
   };
   for(const bad of [{...metadata,parts:[]},{...metadata,parts:['one']},{...metadata,radius:0},{...metadata,radius:-1},{...metadata,draws:[]}]){
     const scope=new Scope('orchard.invalid'),read=vi.fn(()=>Promise.resolve(original.bytes));
