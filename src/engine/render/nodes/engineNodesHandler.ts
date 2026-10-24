@@ -52,7 +52,7 @@ import * as THREE from 'three';
 import { WebGLNodesHandler } from 'three/examples/jsm/tsl/WebGLNodesHandler.js';
 import { ConvertNode, MeshBasicNodeMaterial, NodeFrame, NodeMaterial, PMREMNode, TextureNode, type Node, type NodeBuilder } from 'three/webgpu';
 import { Fn, and, cameraPosition, context, mix, modelWorldMatrix, nodeObject, normalLocal, positionWorld, reference, step, uniform, vec2, vec3, vec4, workingToColorSpace } from 'three/tsl';
-import { shaderPatchProgramKey } from '../shaderPatches';
+import { shaderPatchProgramKey, shaderPatchSet } from '../shaderPatches';
 import { fogPatches, materialNodeFogOf } from '../fogPatches';
 import { planeBiasShadowFilterOn, tentShadowFilterOn } from '../../world/shadowFilter';
 import { colourRampFog, engineFog } from './engineFog';
@@ -360,7 +360,7 @@ interface StockKeyMemo {
   readonly tokens: Map<string, [KeyToken | undefined, KeyToken | undefined]>;
 }
 /** a final program key and the token that stands for it in `NodeProgramVariants` */
-interface KeyToken { readonly final: string; readonly token: object }
+interface KeyToken { readonly final: string; readonly token: object; readonly kept: string; readonly patches: object | null }
 /** distinct final program keys holding a token at once (more: the table starts over, and each key's next draw takes a
  *  new token: one cold variant lookup, never a wrong one) */
 const KEY_TOKEN_CAP = 1024;
@@ -509,15 +509,15 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const asked = (): void => { this.keyAsks++; this.lastKeyToken = null; }, built = (): void => { this.keyBuilds++; };
     // the final key's token: the slot's own while its key holds (`===`: a pointer test for the kept string), else the
     // table's for that key text (one whole-key lookup a new slot), so equal keys share a token across memos
-    const tokens = this.keyTokens;
-    const tokened = (memo: StockKeyMemo, objectKey: string, slot: 0 | 1, final: string): string => {
+    const tokens = this.keyTokens, reuse = (token: object): void => { this.lastKeyToken = token; };
+    const tokened = (memo: StockKeyMemo, objectKey: string, slot: 0 | 1, final: string, kept: string, patches: object | null): string => {
       let row = memo.tokens.get(objectKey);
       if (row === undefined) { row = [undefined, undefined]; memo.tokens.set(objectKey, row); }
       const held = row[slot];
       if (held !== undefined && held.final === final) { this.lastKeyToken = held.token; return final; }
       let token = tokens.get(final);
       if (token === undefined) { if (tokens.size >= KEY_TOKEN_CAP) tokens.clear(); token = {}; tokens.set(final, token); }
-      row[slot] = { final, token }; this.lastKeyToken = token;
+      row[slot] = { final, token, kept, patches }; this.lastKeyToken = token;
       return final;
     };
     // The stock key with its leading material hash (the hash of its node ids) replaced by its graph's shape (G669 DR8).
@@ -560,11 +560,17 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       let shape = memo.keys.get(objectKey);
       if (shape === undefined) { shape = [undefined, undefined]; memo.keys.set(objectKey, shape); }
       const slot = receive ? 1 : 0, kept = shape[slot];
-      if (kept !== undefined) return tokened(memo, objectKey, slot, shaderPatchProgramKey(this, kept));
+      if (kept !== undefined) {
+        // the slot's final key while its kept key and the material's patch set are the same objects: no key text compared
+        // (a node key runs to hundreds of KB: 43 of 4270 samples of a steady Nalati Simulator profile compared it)
+        const patches = shaderPatchSet(this), held = memo.tokens.get(objectKey)?.[slot];
+        if (held !== undefined && held.kept === kept && held.patches === patches) { reuse(held.token); return held.final; }
+        return tokened(memo, objectKey, slot, shaderPatchProgramKey(this, kept), kept, patches);
+      }
       let stock = receive ? memo.receive : memo.plain;
       if (stock === undefined) { stock = depth ? depthStockKey(this, receive) : sharedStock(this); if (receive) memo.receive = stock; else memo.plain = stock; }
       const key = wholeKey(stock, this.toneMapped, rawOutput, objectKey, fog, layer); shape[slot] = key; built();
-      return tokened(memo, objectKey, slot, shaderPatchProgramKey(this, key));
+      return tokened(memo, objectKey, slot, shaderPatchProgramKey(this, key), key, shaderPatchSet(this));
     };
     this.epilogue.push((out, ctx) => {
       const bound = materialNodeFogOf(ctx.material);

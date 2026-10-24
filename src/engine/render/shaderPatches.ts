@@ -205,6 +205,18 @@ export function shaderPatchProgramKey(material: THREE.Material, rendererKey: str
  * same closures, so uniforms a patch hands the shader stay shared. A snapshot: patches added to either material later
  * stay its own. No-op when `from` has no registry patches.
  */
+/** `mat`'s patch set as `shaderPatchProgramKey` folds it in: an identity that changes with any patch added, removed or
+ *  replaced (the entry list is never edited in place), null while none runs, a fresh object while a key is not pure. A
+ *  caller that kept a final key may reuse it while this and its renderer key stay the same objects, with no compare of the
+ *  key text. */
+export function shaderPatchSet(mat: THREE.Material): object | null {
+  const state = states.get(mat);
+  if (state === undefined || mat.onBeforeCompile !== state.runner) return null;
+  // a key function not marked pure may answer differently each ask: a fresh object, never matched, so it is asked again
+  const memo = nodePatchKeys.get(state);
+  return memo !== undefined && memo.entries === state.entries && memo.results !== null ? state.entries : {};
+}
+
 /** Whether `mat` carries a patch entry `id` (its own, or copied in by `copyShaderPatches`). */
 export function hasShaderPatch(mat: THREE.Material, id: string): boolean { return states.get(mat)?.entries.some((e) => e.id === id) ?? false; }
 
