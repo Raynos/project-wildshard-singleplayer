@@ -232,6 +232,14 @@ for each grid drive. It uses no GL timer wrappers or CPU profiler; its timings
 have no frame-floor acceptance credit. Unknown gaps remain unproven when the
 existing timeline coverage or clock checks fail.
 
+For one steady function-sampling diagnostic, add `--safari-profile=<existing
+scratch dir> --safari-steady=grid-nalati-interior` to a Simulator grid travel
+run. Original drives and standing measurements finish first; only the selected
+entered interior is then sampled for twenty seconds. Other sampling windows
+are suppressed. Replaced or paused controls refuse, and the frame watcher and
+deadline are released on completion or failure. Self/inclusive sample counts
+are attribution, not function milliseconds or frame-floor acceptance.
+
 Before CPU work, `python3 scripts/sim-quiet.py status` reports the active official
 reading. During it, **read and edit only**: no tests, typechecks, lint, builds,
 bakes, generators, browsers, captures or hook-running commits. The marker expires

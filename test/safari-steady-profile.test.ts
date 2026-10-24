@@ -1,0 +1,71 @@
+import {expect, test} from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- exercise the actual serialized Inspector command without opening Safari
+import {runInNewContext} from 'node:vm';
+import {STEADY_SCRIPT_WINDOW} from '../scripts/frame-floor-script-profile.mjs';
+import {validateFrameFloorArgs} from '../scripts/frame-floor-args.mjs';
+
+function fixture() {
+  let now = 100, stops = 0;
+  let tick: () => void = () => {throw new Error('Frame watcher not installed');};
+  const timers = new Map<number, () => void>();
+  // oxlint-disable-next-line promise/prefer-await-to-callbacks -- model the original synchronous frame subscription API
+  const game = {frameCount: 50, frameGate: () => true, watchFrames(callback: () => void) {
+    expect(this).toBe(game);
+    tick = callback;
+    return () => {stops++;};
+  }};
+  const world = {game, hud: {entered: true, paused: false}};
+  const context = {window: {__wildshard: {world}}, performance: {now: () => now},
+    setTimeout(callback: () => void, delay: number) {expect(delay).toBe(30000); timers.set(1, callback); return 1;},
+    clearTimeout(id: number) {timers.delete(id);}};
+  return {world, context, timers, get stops() {return stops;},
+    frame(at: number) {now = at; game.frameCount++; tick();},
+    start(): Promise<unknown> {
+      const result: unknown = runInNewContext(STEADY_SCRIPT_WINDOW, context);
+      return Promise.resolve(result);
+    }};
+}
+
+test('steady sampling lasts twenty seconds on the same entered world and releases its watcher', async () => {
+  const f = fixture(), result = f.start();
+  f.frame(20099);
+  expect(f.stops).toBe(0);
+  f.frame(20100);
+  await expect(result).resolves.toEqual({startMs: 100, endMs: 20100, elapsedMs: 20000, frames: 2});
+  expect(f.stops).toBe(1);
+  expect(f.timers.size).toBe(0);
+  f.frame(21000);
+  expect(f.stops).toBe(1);
+});
+
+test.each(['pause', 'replacement', 'deadline'] as const)('steady sampling refuses %s and cleans up', async kind => {
+  const f = fixture(), result = f.start();
+  if (kind === 'pause') f.world.hud.paused = true;
+  if (kind === 'replacement') f.context.window.__wildshard = {world: {...f.world}};
+  // oxlint-disable-next-line promise/prefer-await-to-callbacks -- trigger the stored deadline synchronously, without a thirty-second test sleep
+  if (kind === 'deadline') for (const callback of f.timers.values()) callback();
+  else f.frame(20100);
+  await expect(result).rejects.toThrow(kind === 'deadline' ? 'no completion frame' : 'world or controls changed');
+  expect(f.stops).toBe(1);
+  expect(f.timers.size).toBe(0);
+});
+
+test('steady sampling refuses a non-entered world before subscribing', () => {
+  const f = fixture();
+  f.world.hud.entered = false;
+  expect(() => f.start()).toThrow('entered, unpaused controls');
+  expect(f.stops).toBe(0);
+  expect(f.timers.size).toBe(0);
+});
+
+const args = ['--surface=sim', '--shards=grid', '--grid-scenario=runtime-travel', '--safari-profile=tmp/profile'];
+test('steady selection requires one safe pose and a Simulator grid profile', () => {
+  expect(() => validateFrameFloorArgs([...args, '--safari-steady=grid-nalati-interior'])).not.toThrow();
+  for (const invalid of [
+    [...args, '--safari-steady='], [...args, '--safari-steady=../escape'],
+    [...args, '--safari-steady=one', '--safari-steady=two'],
+    [...args.filter(arg => !arg.startsWith('--safari-profile=')), '--safari-steady=one'],
+    [...args.filter(arg => !arg.startsWith('--surface=')), '--surface=desktop', '--safari-steady=one'],
+    [...args.filter(arg => !arg.startsWith('--grid-scenario=')), '--grid-scenario=baseline', '--safari-steady=one'],
+  ]) expect(() => validateFrameFloorArgs(invalid)).toThrow('requires one pose');
+});

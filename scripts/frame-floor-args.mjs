@@ -1,6 +1,6 @@
 const switches = new Set(['help', 'worker', 'quiet', 'devserver', 'gl-time', 'gpu-bisect', 'frame-timeline', 'task-clock', 'road-approach', 'entry-socket']);
 const values = new Set(['base', 'cpu-profile', 'deadline', 'developer', 'device', 'frames', 'gl-observer', 'gpu-trace',
-  'grid-cell', 'grid-cell-pose', 'grid-routes', 'grid-scenario', 'regrade', 'rev', 'rising-islet', 'safari-profile',
+  'grid-cell', 'grid-cell-pose', 'grid-routes', 'grid-scenario', 'regrade', 'rev', 'rising-islet', 'safari-profile', 'safari-steady',
   'settle', 'shards', 'surface', 'scratch-dir', 'worker-out', 'device-save', 'expect-system', 'setting', 'output-dir',
   'textures', 'ktx2-probe', 'serve-shard', 'serve-base', 'standing-poses', 'native-memory', 'webkit-timeline']);
 
@@ -19,4 +19,11 @@ export function validateFrameFloorArgs(args) {
     throw new Error('Quiet frame floors require --surface=sim');
   if (args.some(arg => arg.startsWith('--webkit-timeline=')) && !args.includes('--surface=sim'))
     throw new Error('WebKit timelines require --surface=sim');
+  const steady = args.filter(arg => arg.startsWith('--safari-steady='));
+  const selection = steady[0];
+  if (steady.length > 0 && (steady.length !== 1 || selection === undefined || !/^[a-zA-Z0-9_.-]{1,128}$/u.test(selection.slice('--safari-steady='.length))
+    || !args.includes('--surface=sim') || !args.includes('--shards=grid')
+    || !args.some(arg => arg.startsWith('--safari-profile=') && arg.length > '--safari-profile='.length)
+    || !args.some(arg => arg.startsWith('--grid-scenario=') && arg !== '--grid-scenario=baseline')))
+    throw new Error('--safari-steady requires one pose, Simulator grid travel and --safari-profile');
 }

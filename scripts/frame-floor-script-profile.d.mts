@@ -5,3 +5,5 @@ export interface ScriptProfilePort {
 }
 /** Sample only the caller-delimited window, then release the protocol listener on every completion/failure path. */
 export function startScriptProfile(inspector: ScriptProfilePort, waitMs?: number): Promise<() => Promise<unknown>>;
+/** Clock-bounded 20-second steady window, refusing replaced or paused controls. */
+export const STEADY_SCRIPT_WINDOW: string;
