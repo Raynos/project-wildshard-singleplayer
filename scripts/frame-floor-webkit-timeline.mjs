@@ -1,11 +1,10 @@
 // WebKit Timeline attribution of Safari long frames (sp-o3, SF63 Simulator frame floor; diagnostic, no timing credit).
 // On Cocoa, WebKit wraps every busy main-thread run-loop iteration in a `RenderingFrame` record whose children say what ran
 // (FireAnimationFrame = rAF callbacks, TimerFire, EventDispatch such as MessageChannel `message`, Composite, Layout...).
-// The gaps between them are an idle main thread. So each long frame splits into: idle (the display link / UI-process
-// commit did not deliver the next rendering update: compositor / GPU side), the rendering update after the rAF callbacks
-// (canvas present, layer flush, a WebGL display buffer the GPU process has not released: GPU side), and task time
-// outside rAF (build-pacing tasks, worker and fetch handlers, GC: CPU side). `--gl-time` wraps only the WebGL calls, which
-// enqueue to the GPU process and return, so their small total never excluded GPU backpressure.
+// With a valid clock and sufficient coverage, gaps mean no recorded main-thread work. They cannot distinguish display
+// scheduling from compositor/GPU waits. The rendering update after rAF includes browser work such as layout, canvas
+// present and layer flush; it is not proof of a GPU stall. Task time outside rAF includes build-pacing, worker/fetch
+// handlers and GC. `--gl-time` wraps only WebGL calls that enqueue work, so a small total cannot exclude backpressure.
 
 /** Records kept per window; past it the partition is refused (`dropped`). */
 const RECORD_CAP = 200000;
@@ -13,6 +12,10 @@ const RECORD_CAP = 200000;
 const DRIFT_LIMIT_MS = 5;
 /** The share of the window's vsyncs that must show up as a RenderingFrame with rAF callbacks before uncovered time may be called idle. */
 const COVERAGE_FLOOR = 0.8;
+// Page.enable starts WebKit's execution stopwatch. Re-enabling would reset
+// that clock, so initialize it once per concrete Inspector connection.
+const pageClocks = new WeakSet();
+const heapObservers = new WeakSet();
 
 const RENDER = new Set(['Composite', 'Paint', 'Layout', 'RecalculateStyles', 'InvalidateLayout', 'ScheduleStyleRecalculation', 'Screenshot']);
 
@@ -38,21 +41,70 @@ export async function startWebKitTimeline(inspector, evaluate) {
   /** @type {unknown[]} */
   const records = [];
   let dropped = 0;
+  /** @type {unknown[]} */
+  const collections = [];
+  let collectionsDropped = 0;
+  let heapAvailable = false;
+  // Heap.enable observes real collections; it neither forces GC nor snapshots.
+  const offHeap = inspector.on('Heap.garbageCollected', (params) => {
+    if (collections.length < RECORD_CAP) collections.push(params); else collectionsDropped++;
+  });
+  /** @type {((anchor: [number, number]) => void) | undefined} */
+  let receiveAnchor;
+  let started = false;
   const off = inspector.on('Timeline.eventRecorded', (params) => {
     if (params === null || typeof params !== 'object' || !('record' in params)) return;
     if (records.length < RECORD_CAP) records.push(params.record); else dropped++;
+    if (receiveAnchor !== undefined) {
+      const anchor = timelineAnchors([params.record])[0];
+      if (anchor !== undefined) receiveAnchor(anchor);
+    }
   });
+  const stamp = async () => {
+    /** @type {ReturnType<typeof setTimeout> | undefined} */
+    let timer;
+    /** @type {Promise<[number, number]>} */
+    const recorded = new Promise((resolve, reject) => {
+      receiveAnchor = resolve;
+      timer = setTimeout(() => reject(new Error('WebKit Timeline clock anchor timed out')), 5000);
+    });
+    try {
+      // Listen before evaluation and await both replies: the event can arrive
+      // after Runtime.evaluate resolves. Both promises are observed at once.
+      const [, anchor] = await Promise.all([
+        evaluate("(console.timeStamp('ff-anchor:' + performance.now()), true)"), recorded,
+      ]);
+      if (!Number.isFinite(anchor[0]) || anchor[0] <= 0 || !Number.isFinite(anchor[1]))
+        throw new Error('WebKit Timeline clock has a zero or invalid anchor');
+    } finally { clearTimeout(timer); receiveAnchor = undefined; }
+  };
   try {
+    if (!pageClocks.has(inspector)) {
+      await inspector.send('Page.enable');
+      pageClocks.add(inspector);
+    }
+    try {
+      if (!heapObservers.has(inspector)) {
+        await inspector.send('Heap.enable');
+        heapObservers.add(inspector);
+      }
+      heapAvailable = true;
+    } catch { /* Unsupported Heap domain stays explicitly unavailable. */ }
     await inspector.send('Timeline.enable').catch(() => undefined); // older WebKit has no enable; start alone records
     await inspector.send('Timeline.start', { maxCallStackDepth: 0 });
-    await evaluate("(console.timeStamp('ff-anchor:' + performance.now()), true)");
-  } catch (error) { off(); throw error; }
+    started = true;
+    await stamp(); // Refuse a zero Inspector clock before the drive starts.
+  } catch (error) {
+    try { if (started) await inspector.send('Timeline.stop'); }
+    catch { /* Cleanup must preserve the original admission refusal. */ }
+    off(); offHeap();
+    throw error;
+  }
   return async () => {
-    try {
-      await evaluate("(console.timeStamp('ff-anchor:' + performance.now()), true)");
-      await inspector.send('Timeline.stop');
-    } finally { off(); }
-    return { records, anchors: timelineAnchors(records), dropped };
+    try { await stamp(); }
+    finally { try { await inspector.send('Timeline.stop'); } finally { off(); offHeap(); } }
+    return { records, anchors: timelineAnchors(records), dropped,
+      garbageCollection: { available: heapAvailable, events: collections, dropped: collectionsDropped } };
   };
 }
 
@@ -118,7 +170,7 @@ export function timelineLongFrames(timeline, frames) {
   /** @type {string[]} */
   const invalid = [];
   if (Math.abs(driftMs) > DRIFT_LIMIT_MS) invalid.push(`anchor drift ${driftMs} ms > ${DRIFT_LIMIT_MS} ms`);
-  if (anchorSec <= 0 || last[0] <= 0) invalid.push('zero timeline timestamps (the proxy zero-clock fault)');
+  if (anchorSec <= 0 || last[0] <= 0) invalid.push('zero timeline timestamps (Inspector Page clock not running)');
   if ((timeline.dropped ?? 0) > 0) invalid.push(`${timeline.dropped} records past the ${RECORD_CAP} cap`);
   if (badSpans > 0) invalid.push(`${badSpans} records without a finite positive span`);
   if (renderingFrames === 0) invalid.push('no RenderingFrame records: run-loop coverage not established on this Inspector');

@@ -485,7 +485,10 @@ async function measureShard(driver, shard, deadline) {
         let stopTimeline, timelineFailure;
         if (driver.timeline) {
           try { stopTimeline = await driver.timeline.start(); }
-          catch (error) { timelineFailure = { valid: false, invalid: [errorText(error)], frames: [] }; }
+          catch (error) {
+            timelineFailure = { valid: false, invalid: [errorText(error)], frames: [] };
+            if (webkitTimelineDir !== '') throw error;
+          }
         }
         await driver.evaluate('(window.__frameFloorDriveDone = false, window.__frameFloorBuildsFrom = performance.now(), true)');
         if (taskClock) await driver.evaluate('(window.__frameFloorTaskTake?.(), true)');
