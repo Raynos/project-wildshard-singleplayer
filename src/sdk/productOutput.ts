@@ -4,7 +4,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { ScriptAdmissionRows } from '@wildshard/format/scriptContract';
 import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
-import { offlineMemoryAdmission, validationRevision, validationSourceBytes } from '@wildshard/format/product';
+import { offlineMemoryAdmission, validationRevision, validationSourceBytes, prepareAssetDecoders } from '@wildshard/format/product';
 import { preflightDeclaredCosts, validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
 import { performanceTargetIssues } from './reportCard';
@@ -12,6 +12,8 @@ import { packProjectMap } from './projectMap';
 import { readBoundedFile } from './sourceReader';
 import { STILL_IMAGE_LIMITS } from '@wildshard/format/stillImage';
 
+// Author-only facade: direct synchronous writers need the same readiness as the CLI.
+await prepareAssetDecoders();
 
 /** Refuse the same target overages as the author CLI; warning policy belongs only to trusted checkout callers. */
 export function assertProductTargets(source: Shardfile, policy: 'warn' | 'refuse'): void {
