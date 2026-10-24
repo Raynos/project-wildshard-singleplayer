@@ -10,7 +10,7 @@ import { createSimHost } from '../src/engine/sim';
 import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { installCableModes, cableModes } from '../src/engine/player/modes';
-import { installMixedPopulation } from '../src/game/population/mixedRoster';
+import { installMixedPopulation } from './fixtures/native-hosts/population/mixedRoster';
 import { installNativeQuestComposition, readNativeQuestSpots } from './fixtures/native-hosts/quest/nativeComposition';
 import { installNativeQuestChannels, registerNativeQuestInputs } from '../src/game/quest/nativeInputs';
 import { installNativeItems, createNativeCombatFrame } from '../src/game/plugin/nativeItems';

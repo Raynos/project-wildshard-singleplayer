@@ -2,7 +2,7 @@
  * placement values; the body is resolved by the row's declared kind. */
 import * as v from 'valibot';
 import type { SimHost } from '@wildshard/engine/sim';
-import { WakeBossEncounter, type WakeBossObservation } from './wake';
+import { WakeBossEncounter, type WakeBossObservation } from '../../../../src/game/boss/wake';
 import { parseWakeEncounter } from '@wildshard/format/bossEncounter';
 
 const finite = v.pipe(v.number(), v.finite());

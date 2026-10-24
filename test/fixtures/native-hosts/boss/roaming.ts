@@ -1,15 +1,15 @@
 /** Native roaming boss binding: rows supply identity, streams and strike names;
  * the existing AS guest owns choices and the platform owns native effects. */
 import type { SpeciesProgramData } from '@wildshard/format/speciesPrograms';
-import type { SpeciesDecisionAuthority } from '@wildshard/game/plugin/brain';
+import type { SpeciesDecisionAuthority } from '../../../../src/game/plugin/brain';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { BossBrain } from '@wildshard/engine/ai/BossBrain';
 import { fnv1a32, Rng, type RngState } from '@wildshard/engine/core/rng';
 import type { RoamingEncounterRow } from '@wildshard/format/bossEncounter';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { StrikeRunner } from '@wildshard/engine/ai/strikes';
-import type { LaneState } from './lane';
-import { bossFight, type RoamingBossFight, type RoamingBossPorts } from '../plugin/bossPhase';
+import type { LaneState } from '../../../../src/game/boss/lane';
+import { bossFight, type RoamingBossFight, type RoamingBossPorts } from '../../../../src/game/plugin/bossPhase';
 
 const contact = new StrikeRunner();
 

@@ -5,8 +5,8 @@ import { isJsonData } from '@wildshard/format/json';
 import { ChapterDirectorSchema, parseChapterDirector } from '@wildshard/format/chapterDirector';
 import { WakeEncounterSchema } from '@wildshard/format/bossEncounter';
 import type { DirectorScriptStageLane, readDirectorProduct } from '../../../../src/game/plugin/director';
-import { mixedPopulation } from '../../../../src/game/population/mixedRoster';
-import { installWakeBoss } from '../../../../src/game/boss/nativeWake';
+import { mixedPopulation } from '../population/mixedRoster';
+import { installWakeBoss } from '../boss/nativeWake';
 import { installNativeQuestChannels } from '../../../../src/game/quest/nativeInputs';
 import { ChapterClock } from '../../../../src/game/quest/chapterClock';
 

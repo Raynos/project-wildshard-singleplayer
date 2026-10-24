@@ -11,7 +11,7 @@ import { readFileSync } from 'node:fs';
 import { loadRapier } from '@wildshard/engine/physics/rapier';
 import { createSimHost, type SimHost } from '@wildshard/engine/sim';
 import { snapshotSimHost, restoreSimHost } from '@wildshard/engine/sim/snapshot';
-import { installWakeBoss } from '@wildshard/game/boss/nativeWake';
+import { installWakeBoss } from './fixtures/native-hosts/boss/nativeWake';
 import { NativeInventory, grantNativeInventory } from '@wildshard/game/inventoryLaw';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
