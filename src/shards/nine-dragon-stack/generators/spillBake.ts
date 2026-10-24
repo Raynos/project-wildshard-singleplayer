@@ -10,6 +10,21 @@ import lantern from '../data/lantern.json' with { type: 'json' };
 import atlas from '../data/signAtlas.generated.json' with { type: 'json' };
 import { portalPlanRows } from './portalEntries';
 
+/** Only the native atlas fields the original spill law consumes. */
+export interface NineSpillAtlas {
+  readonly phone: NineSpillTier;
+  readonly desktop: NineSpillTier;
+}
+interface NineSpillTier {
+  readonly placed: readonly { readonly neon: boolean; readonly p: {
+    readonly at: readonly (string | number)[]; readonly normal: readonly (string | number)[];
+    readonly size: number; readonly gain?: number | undefined;
+    readonly spec: { readonly text: string; readonly color: string | number; readonly vertical: boolean };
+  } }[];
+  readonly lights: readonly { readonly at: readonly (string | number)[]; readonly color: readonly (string | number)[];
+    readonly w: number; readonly h: number; readonly power: number; readonly spill: number }[];
+}
+
 /** JSON's signed-zero/non-finite words follow the live layout reviver. */
 function vector(words: readonly (number | string)[]): Vector3 {
   const [x, y, z] = words;
@@ -19,7 +34,7 @@ function vector(words: readonly (number | string)[]): Vector3 {
 
 /** Final vertex streams, after the same named solid/swept merges as native boot.
  * Both deck choices retain their own entry geometry and ordered light list. */
-export function spillInputs(caps: boolean, tier: 'phone' | 'desktop'): { geometry: Map<string, BufferGeometry>; emitters: Emitter[] } {
+export function spillInputs(caps: boolean, tier: 'phone' | 'desktop', input: NineSpillAtlas = atlas): { geometry: Map<string, BufferGeometry>; emitters: Emitter[] } {
   return withPortableMath(() => {
     const layout = nineLayoutSource(), fixed = bakeFixedKits(readFixedSlots({ rows: layout.rows }));
     const take = (index: number): BufferGeometry => {
@@ -42,7 +57,7 @@ export function spillInputs(caps: boolean, tier: 'phone' | 'desktop'): { geometr
     for (const [name, extra] of swept) geometry.set(name, extra);
     const crown = canopyGeometries(layout.rows.banyan?.lumps.map(({ c, r, up, seed, wash }) => ({ c: vector(c), r: vector(r), up, seed, wash })) ?? []);
     geometry.set('canopy-cards', crown.cards); geometry.set('canopy-core', crown.core);
-    const row = atlas[tier];
+    const row = input[tier];
     const emitters: Emitter[] = row.placed.filter(sign => sign.neon).map(({ p }) => {
       const count = Array.from(p.spec.text).length, em = p.size;
       const w = p.spec.vertical ? em * 1.42 : em * (count + 0.62), h = p.spec.vertical ? em * (count + 0.58) : em * 1.42;
@@ -76,17 +91,17 @@ export function spillInputs(caps: boolean, tier: 'phone' | 'desktop'): { geometr
 }
 
 /** The old grid acceleration retains exactly the original per-vertex light order. */
-export function bakedSpill(caps: boolean, tier: 'phone' | 'desktop'): ReturnType<typeof spillInputs> {
-  const input = spillInputs(caps, tier);
+export function bakedSpill(caps: boolean, tier: 'phone' | 'desktop', atlasRows: NineSpillAtlas = atlas): ReturnType<typeof spillInputs> {
+  const input = spillInputs(caps, tier, atlasRows);
   bakeSpill([...input.geometry.values()], input.emitters);
   return input;
 }
 
 /** Each draw's spill, baked into its geometry: every tier and deck ending lights a shared draw identically (refused
  *  otherwise), and each ending's own entry decks are their own draw. */
-export function drawSpill(): ReadonlyMap<string, BufferAttribute> {
+export function drawSpill(atlasRows: NineSpillAtlas = atlas): ReadonlyMap<string, BufferAttribute> {
   const spill = new Map<string, BufferAttribute>();
-  for (const tier of ['phone', 'desktop'] as const) for (const caps of [false, true]) for (const [name, geometry] of bakedSpill(caps, tier).geometry) {
+  for (const tier of ['phone', 'desktop'] as const) for (const caps of [false, true]) for (const [name, geometry] of bakedSpill(caps, tier, atlasRows).geometry) {
     const key = name === 'entries' ? (caps ? 'entries-capped' : 'entries-open') : name, value = geometry.getAttribute('aSpill');
     if (!(value instanceof BufferAttribute)) throw new Error(`Nine spill ${key} is not a buffer`);
     const known = spill.get(key);

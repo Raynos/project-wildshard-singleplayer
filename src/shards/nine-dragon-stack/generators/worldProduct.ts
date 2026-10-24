@@ -2,6 +2,7 @@ import { parseGlb } from '@wildshard/sdk/assets';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { nineScene } from './scene';
 import type { BakedScene } from '@wildshard/sdk/bake';
+import type { NineSpillAtlas } from './spillBake';
 
 export interface NineWorldProduct {
   readonly metadata: {
@@ -28,8 +29,8 @@ export function nineLayoutWord(_key: string, value: unknown): unknown {
 
 /** Original world bake as owned data and bytes, with no file writes or scene publication.
  * The retained file adapter and the source product call this same function. */
-export function nineWorldProduct(): NineWorldProduct {
-  const product = nineScene(), { baked } = product;
+export function nineWorldProduct(atlas?: NineSpillAtlas): NineWorldProduct {
+  const product = nineScene(undefined, atlas), { baked } = product;
   const libraries: Record<'layout' | 'boot' | 'explorer', string[]> = { layout: [], boot: [], explorer: [] };
   const assets = new Map(baked.assets), files = [...baked.shardfile.files];
   for (const part of baked.pieces) {

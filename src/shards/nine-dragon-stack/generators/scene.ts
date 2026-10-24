@@ -1,6 +1,6 @@
 import { withPortableMath } from '@wildshard/commons/bake/portableMath';
 import { InstancedMesh, Mesh, MeshStandardMaterial, Scene, Vector3, type BufferGeometry } from 'three';
-import { drawSpill, withSpill } from './spillBake';
+import { drawSpill, withSpill, type NineSpillAtlas } from './spillBake';
 import { bake, BakedPiece, WholeShape, type BakedScene } from '@wildshard/sdk/bake';
 import { partitionWholeGeometry, wholePartitionRuns } from '@wildshard/sdk/bake/props';
 import { nineLayoutSource } from './layout';
@@ -20,11 +20,11 @@ export function nineChannels(geometry: BufferGeometry): Record<string, string> {
 }
 
 /** Static fabric is drawn from whole L0 nodes; local specimens are standard instanced-kind library GLBs. */
-function buildNineScene(project?: string): { baked: BakedScene; layout: ReturnType<typeof nineLayoutSource>; keys: { boot: string[]; explorer: string[] }; boxes: Record<string, boolean> } {
+function buildNineScene(project?: string, atlas?: NineSpillAtlas): { baked: BakedScene; layout: ReturnType<typeof nineLayoutSource>; keys: { boot: string[]; explorer: string[] }; boxes: Record<string, boolean> } {
   const layout = nineLayoutSource(), scene = new Scene(); scene.name = 'nine-dragon-stack';
   const material = new MeshStandardMaterial({ vertexColors: true });
   // each kit's neon spill rides in its tiles as the aSpill channel (generators/spillBake.ts `drawSpill`)
-  const spill = drawSpill();
+  const spill = drawSpill(atlas);
   for (const { name, geo } of layout.rows.kits) {
     const geometry = geo === null ? null : layout.geometries[geo];
     if (geometry === undefined) throw new Error(`Nine scene: missing kit geometry ${name}`);
@@ -73,4 +73,4 @@ function buildNineScene(project?: string): { baked: BakedScene; layout: ReturnTy
 }
 
 /** Portable author math keeps the exact scene reproducible across arm64 Mac and Linux x64. */
-export function nineScene(project?: string): ReturnType<typeof buildNineScene> { return withPortableMath(() => buildNineScene(project)); }
+export function nineScene(project?: string, atlas?: NineSpillAtlas): ReturnType<typeof buildNineScene> { return withPortableMath(() => buildNineScene(project, atlas)); }
