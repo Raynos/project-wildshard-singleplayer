@@ -4,13 +4,15 @@ export const CONTENT_CACHE_WIRE_CAP = 25_000_000;
 const integer = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER));
 const hash = v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u));
 const id = { id: integer };
+/** The page keeps this checked, detached pin snapshot until its request is posted. */
+export const CachePinCommandSchema = v.strictObject({ ...id, op: v.literal('pin'), lease: integer, hashes: v.pipe(v.array(hash), v.maxLength(10_000)) });
 /** Only existing cache operations cross the private worker channel. */
 export const CacheCommandSchema = v.variant('op', [
   v.strictObject({ ...id, op: v.literal('get'), hash }),
   v.strictObject({ ...id, op: v.literal('has'), hash, bytes: v.pipe(integer, v.maxValue(CONTENT_CACHE_WIRE_CAP)) }),
   v.strictObject({ ...id, op: v.literal('holds'), hash, bytes: v.pipe(integer, v.maxValue(CONTENT_CACHE_WIRE_CAP)) }),
   v.strictObject({ ...id, op: v.literal('put'), hash, bytes: v.pipe(v.instance(Uint8Array), v.check(bytes => bytes.length <= CONTENT_CACHE_WIRE_CAP)), keep: v.optional(v.boolean()) }),
-  v.strictObject({ ...id, op: v.literal('pin'), lease: integer, hashes: v.pipe(v.array(hash), v.maxLength(10_000)) }),
+  CachePinCommandSchema,
   v.strictObject({ ...id, op: v.literal('release'), lease: integer }),
   v.strictObject({ ...id, op: v.literal('flush') }),
   v.strictObject({ ...id, op: v.literal('stats') }),

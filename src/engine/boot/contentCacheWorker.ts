@@ -5,7 +5,7 @@ import type { ContentCache } from './contentCache';
 import { ContentCacheQueue, isCacheRead } from './contentCacheQueue';
 import { waitFor } from './waits';
 import { receiveWorkerDownloads } from './download';
-import { CONTENT_CACHE_WIRE_CAP, CacheCommandSchema, CacheReplySchema, CacheReplyEnvelopeSchema, CacheValueSchemas, type CacheCommand, type CacheOperation, type CacheValue, type FetchedContent } from './contentCacheProtocol';
+import { CONTENT_CACHE_WIRE_CAP, CacheCommandSchema, CachePinCommandSchema, CacheReplySchema, CacheReplyEnvelopeSchema, CacheValueSchemas, type CacheCommand, type CacheOperation, type CacheValue, type FetchedContent } from './contentCacheProtocol';
 
 export interface CacheWorkerPort extends EventTarget {
   postMessage: (message: unknown) => void;
@@ -172,6 +172,10 @@ export class ContentCacheWorker {
   }
   private requestWork(operation: CacheOperation): Promise<CacheValue> {
     const id = ++this.sequence, command = v.parse(CacheCommandSchema, { id, ...operation });
+    return this.requestChecked(command);
+  }
+  /** Only private commands that already passed the defining schema enter here. */
+  private requestChecked(command: CacheCommand): Promise<CacheValue> {
     // Writes wait for a closing worker's drain, then go to its successor (or, after a failure, the page).
     if (this.closing !== undefined && !isCacheRead(command.op)) return this.closing.then(() => this.failed ? this.queueFallback(command) : this.post(command));
     return this.post(command);
@@ -249,9 +253,12 @@ export class ContentCacheWorker {
   }
   pin(hashes: Iterable<string>): () => void {
     const rows = [...new Set(hashes)], lease = ++this.sequence;
-    v.parse(CacheCommandSchema, { id: lease, op: 'pin', lease, hashes: rows });
-    const owned: Lease = { hashes: rows }; this.leases.set(lease, owned);
-    void this.request({ op: 'pin', lease, hashes: rows }).catch(() => { this.failover('pin refused'); });
+    const checked = v.parse(CachePinCommandSchema, { id: lease, op: 'pin', lease, hashes: rows });
+    const owned: Lease = { hashes: checked.hashes }; this.leases.set(lease, owned);
+    // Keep the original separate request ID and its exact defining bound. The
+    // detached hashes just passed admission; do not copy/validate them again.
+    const command = { ...checked, id: v.parse(CachePinCommandSchema.entries.id, ++this.sequence) };
+    void waitFor('Content cache pin', this.requestChecked(command), 'worker').catch(() => { this.failover('pin refused'); });
     let released = false;
     return () => {
       if (released) return;

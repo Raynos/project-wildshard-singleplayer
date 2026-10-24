@@ -5751,6 +5751,9 @@ Failed workers terminate before posted and queued requests replay in order
 through one shared checked fallback; live leases are installed before any
 replayed write. Checked refusals reject one request without retiring the
 worker. Importing the module starts no worker.
+`pin` retains its defining schema's detached hash snapshot until posting,
+checking the separate request ID without parsing the hashes again. The
+worker still admits every incoming command and operation-specific reply.
 
 `ContentCache` recovers durable access order once, then maintains byte and
 entry totals with its LRU order. Reads still verify immutable hashes;

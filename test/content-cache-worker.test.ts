@@ -287,6 +287,27 @@ test('failover installs queued live leases before writes and replays their relea
   expect(order).toEqual([...order].sort((left, right) => left - right));
 });
 
+test('a checked pin retains detached hashes and distinct request identity', async () => {
+  const { worker, client, fallback } = fixture(), hash = 'a'.repeat(64), hashes = [hash, hash];
+  const release = client.pin(hashes);
+  hashes[0] = 'invalid'; hashes.push('other');
+  expect(worker.sent[0]).toEqual({ op: 'pin', id: 2, lease: 1, hashes: [hash] });
+  worker.reply(0);
+  release(); release();
+  expect(worker.sent[1]).toEqual({ op: 'release', id: 3, lease: 1 });
+  worker.reply(1);
+  const flushed = client.flush(); worker.reply(2); await flushed;
+  expect(fallback.pin).not.toHaveBeenCalled();
+});
+
+test('invalid pin inputs refuse synchronously before starting or publishing a lease', () => {
+  const { worker, client, fallback } = fixture();
+  expect(() => client.pin(['invalid'])).toThrow();
+  expect(() => client.pin(Array.from({ length: 10_001 }, (_, at) => at.toString(16).padStart(64, '0')))).toThrow();
+  expect(worker.sent).toEqual([]);
+  expect(fallback.pin).not.toHaveBeenCalled();
+});
+
 test('a worker read transfers its verified body, credits its download and is no boot wait', async () => {
   const { worker, client } = fixture();
   const accounting = new DownloadAccounting('https://example.test/'), restore = installDownloadAccounting(accounting);
