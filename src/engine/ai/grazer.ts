@@ -378,6 +378,8 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
   private readonly guestPlans=new Map<A,{readonly values:readonly number[];applied:boolean}>();
   private readonly guestBanks: {bank:Float64Array;values:Readonly<Record<string,GroupBankValueV2>>;bodies:readonly A[]}[]=[];
   private guestDepth=0;
+  private guestCandidateDepth=0;
+  private readonly guestCandidates:({readonly names:readonly string[];readonly input:Record<string,unknown>}|undefined)[]=[];
   private guestCall: {
     readonly binding: NonNullable<GrazerBrain<A>['guest']>;
     readonly context: GuardedHerdContext<A> | undefined;
@@ -583,6 +585,28 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     const mother = this.mothers.get(actor), foal = Number(this.foals.includes(actor)), slot = mother === undefined ? -1 : this.members.indexOf(mother);
     const result=output??{foal:0,mother:0};result.foal=foal;result.mother=slot;return result;
   }
+  /** Only parser input is reusable: the schema returns a detached scalar record.
+   * Clear successful input; discard failures whose error may expose the record. */
+  private readHerdGuestCandidate(entries:readonly [string,unknown][],values:Readonly<Record<string,GroupBankValueV2>>):v.InferOutput<typeof herdContinuation.entries.state>{
+    const depth=this.guestCandidateDepth++;
+    let slot=this.guestCandidates[depth],same=slot!==undefined&&slot.names.length===entries.length;
+    if(slot!==undefined)for(let index=0;same&&index<entries.length;index++)same=slot.names[index]===entries[index]?.[0];
+    if(!same||slot===undefined)this.guestCandidates[depth]=slot={names:entries.map(entry=>entry[0]),input:Object.fromEntries(entries)};
+    const candidate=slot.input;let parsed=false;
+    try{
+      for(let index=0;index<entries.length;index++){
+        const name=entries[index]?.[0];if(name===undefined)throw new Error('Missing herd scalar name');
+        const value=values[name];
+        if(name==='__proto__')Object.defineProperty(candidate,name,{value,writable:true,configurable:true,enumerable:true});
+        else candidate[name]=value;
+      }
+      const next=v.parse(herdContinuation.entries.state,candidate);parsed=true;return next;
+    }finally{
+      if(parsed)for(let index=0;index<entries.length;index++){const name=entries[index]?.[0];if(name!==undefined)candidate[name]=undefined;}
+      else this.guestCandidates[depth]=undefined; // A schema error may expose its input record; never recycle it.
+      this.guestCandidateDepth=depth;
+    }
+  }
   /** Validate the complete guest scalar/role candidate before RNG acceptance.
    * Commit performs assignments only; notifications and body effects retain
    * their original native drain positions. Per-call scratch never enters save. */
@@ -590,14 +614,16 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     references: readonly (GroupBankReferenceV2 & { readonly body: A })[], scope: Scope): GroupGuestPublicationV2 {
     this.requireHerd();
     if (scope.disposed || scope.disposing) throw new Error('Retired herd guest owner');
-    const storage = herdGuestStorage.map(name => ({name,descriptor:Object.getOwnPropertyDescriptor(this,name)}));
-    if (storage.some(({descriptor}) => descriptor === undefined || !Object.hasOwn(descriptor,'value') || descriptor.writable !== true)) throw new Error('Invalid herd guest storage');
-    const entries: [string,unknown][] = Object.entries(this.herdGuestScalars()), roster = this.members, members = roster.slice();
+    const storage = herdGuestStorage.map(name => Object.getOwnPropertyDescriptor(this,name));
+    for(let index=0;index<storage.length;index++){
+      const descriptor=storage[index];
+      if(descriptor===undefined||!Object.hasOwn(descriptor,'value')||descriptor.writable!==true)throw new Error('Invalid herd guest storage');
+    }
+    const entries: [string,unknown][] = Object.entries(this.herdGuestScalars()),roster=this.members,members=roster.slice();
     const beforeRoles = [this.lead,this.stallion,this.ridden,this.chargeTarget], beforeTime = this.groupTime;
     const source = references.map(row => ({ row, body: row.body, group: row.group, slot: row.slot,
       identity: row.identity, wire: row.wire, handle: row.handle }));
-    for(let index=0;index<entries.length;index++){const entry=entries[index];if(entry!==undefined)entry[1]=values[entry[0]];}
-    const next = v.parse(herdContinuation.entries.state,Object.fromEntries(entries));
+    const next=this.readHerdGuestCandidate(entries,values);
     const role = (name: string, own: boolean): A | null => {
       const wire = values[name];
       if (wire === null) return null;
@@ -613,10 +639,11 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     let accepted = false;
     const validate = (): void => {
       // These pins cover every scalar as well as roles/time; no second snapshot is needed.
-      if (storage.some(({name,descriptor}) => {
-        const current = Object.getOwnPropertyDescriptor(this,name);
-        return current === undefined || descriptor === undefined || !Object.hasOwn(current,'value') || current.writable !== true || !Object.is(current.value,descriptor.value);
-      })) throw new Error('Changed herd guest storage');
+      for(let index=0;index<storage.length;index++){
+        const name=herdGuestStorage[index],descriptor=storage[index];
+        const current=name===undefined?undefined:Object.getOwnPropertyDescriptor(this,name);
+        if(current===undefined||descriptor===undefined||!Object.hasOwn(current,'value')||current.writable!==true||!Object.is(current.value,descriptor.value))throw new Error('Changed herd guest storage');
+      }
       if (accepted || scope.disposed || scope.disposing || this.members !== roster || members.length !== roster.length
         || members.some((body,index) => roster[index] !== body)
         || !Object.is(this.groupTime,beforeTime) || [this.lead,this.stallion,this.ridden,this.chargeTarget].some((body,index) => body !== beforeRoles[index])

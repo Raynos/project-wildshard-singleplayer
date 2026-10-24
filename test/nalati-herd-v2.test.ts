@@ -668,3 +668,94 @@ test('a sense cannot change the player scalar pinned by its pending native opera
   expect(hearing).toBe(0);
  }finally{f.scope.dispose();}
 });
+
+test.each(['accessor','readonly','nonconfigurable-readonly','deleted'] as const)('publication still refuses %s storage replacement at the barrier',kind=>{
+ const f=fixture('graze','warn');
+ try{
+  const refs=f.roster.map((body,slot)=>({group:'herd',slot,identity:body.entityId,wire:body.entityId,handle:slot+1,body}));
+  if(kind==='nonconfigurable-readonly')Object.defineProperty(f.herd,'trust',{configurable:false,writable:true,value:f.herd.trust});
+  const publication=f.herd.prepareValues({...f.herd.captureValues(),trust:41},refs,f.scope),original=Object.getOwnPropertyDescriptor(f.herd,'trust');
+  if(original===undefined)throw new Error('Missing storage');let reads=0;const originalValue:unknown=original.value;
+  if(kind==='accessor')Object.defineProperty(f.herd,'trust',{configurable:true,get:()=>{reads++;return originalValue;}});
+  else if(kind==='deleted')Reflect.deleteProperty(f.herd,'trust');
+  else Object.defineProperty(f.herd,'trust',{writable:false});
+  expect(()=>publication.commit()).toThrow('Changed herd guest storage');expect(reads).toBe(0);
+ }finally{f.scope.dispose();}
+});
+
+test('candidate scalar getters are all captured once before schema refusal or publication',()=>{
+ for(const invalid of [false,true]){
+  const f=fixture('graze','warn');
+  try{
+   const refs=f.roster.map((body,slot)=>({group:'herd',slot,identity:body.entityId,wire:body.entityId,handle:slot+1,body}));
+   const names=Object.keys(saved(f.herd).state),values={...f.herd.captureValues(),trust:41,cx:-0,mode:invalid?'invalid':'graze'},reads:string[]=[];
+   for(const name of names){const value:unknown=Reflect.get(values,name);Object.defineProperty(values,name,{enumerable:true,get:()=>{reads.push(name);return value;}});}
+   if(invalid)expect(()=>f.herd.prepareValues(values,refs,f.scope)).toThrow();
+   else{const publication=f.herd.prepareValues(values,refs,f.scope);publication.validate();publication.commit();expect(f.herd.trust).toBe(41);expect(Object.is(f.herd.cx,-0)).toBe(true);}
+   expect(reads).toEqual(names);
+  }finally{f.scope.dispose();}
+ }
+});
+
+test('candidate parser scratch isolates getter reentry and leaves publications detached',()=>{
+ const f=fixture('graze','warn');
+ try{
+  const refs=f.roster.map((body,slot)=>({group:'herd',slot,identity:body.entityId,wire:body.entityId,handle:slot+1,body}));
+  const before={trust:f.herd.trust,mode:f.herd.mode},values={...f.herd.captureValues(),mode:'alert'};
+  let inner:ReturnType<NativeHerd['prepareValues']>|undefined;
+  Object.defineProperty(values,'trust',{enumerable:true,get:()=>{inner=f.herd.prepareValues({...f.herd.captureValues(),trust:17},refs,f.scope);return 41;}});
+  const outer=f.herd.prepareValues(values,refs,f.scope);
+  outer.commit();expect(f.herd.trust).toBe(41);expect(f.herd.mode).toBe('alert');
+  f.herd.trust=before.trust;f.herd.mode=before.mode;
+  if(inner===undefined)throw new Error('Missing nested publication');
+  inner.commit();expect(f.herd.trust).toBe(17);expect(f.herd.mode).toBe(before.mode);
+ }finally{f.scope.dispose();}
+});
+
+test('candidate schema errors retain their original input after later parser reuse',()=>{
+ const f=fixture('graze','warn');
+ try{
+  const refs=f.roster.map((body,slot)=>({group:'herd',slot,identity:body.entityId,wire:body.entityId,handle:slot+1,body}));
+  let failure:unknown;
+  try{f.herd.prepareValues({...f.herd.captureValues(),mode:'invalid'},refs,f.scope);}catch(error){failure=error;}
+  if(!v.isValiError(failure))throw new Error('Missing original schema error');
+  const input=failure.issues[0]?.path?.[0]?.input;
+  if(typeof input!=='object'||input===null)throw new Error('Missing schema input');
+  expect(Reflect.get(input,'mode')).toBe('invalid');const before=JSON.stringify(failure.issues);
+  f.herd.prepareValues({...f.herd.captureValues(),trust:41},refs,f.scope).commit();
+  expect(f.herd.trust).toBe(41);expect(JSON.stringify(failure.issues)).toBe(before);
+  const values={...f.herd.captureValues()};Object.defineProperty(values,'trust',{enumerable:true,get:()=>{throw new Error('candidate getter refusal');}});
+  expect(()=>f.herd.prepareValues(values,refs,f.scope)).toThrow('candidate getter refusal');
+  f.herd.prepareValues({...f.herd.captureValues(),trust:53},refs,f.scope).commit();expect(f.herd.trust).toBe(53);
+ }finally{f.scope.dispose();}
+});
+
+test('parser scratch preserves a changed scalar key order and missing error input fields',()=>{
+ const f=fixture('graze','warn');
+ try{
+  const refs=f.roster.map((body,slot)=>({group:'herd',slot,identity:body.entityId,wire:body.entityId,handle:slot+1,body}));
+  f.herd.prepareValues(f.herd.captureValues(),refs,f.scope).validate();
+  const state=Object.fromEntries(Object.entries(saved(f.herd).state).reverse());delete state['trust'];state['mode']='invalid';
+  Object.defineProperty(f.herd,'herdGuestScalars',{value:()=>state});
+  let failure:unknown;try{f.herd.prepareValues(f.herd.captureValues(),refs,f.scope);}catch(error){failure=error;}
+  if(!v.isValiError(failure))throw new Error('Missing original schema error');
+  const input=failure.issues[0]?.path?.[0]?.input;
+  if(typeof input!=='object'||input===null)throw new Error('Missing schema input');
+  expect(Object.keys(input)).toEqual(Object.keys(state));expect(Object.hasOwn(input,'trust')).toBe(false);
+ }finally{f.scope.dispose();}
+});
+
+test('publication reads the scalar snapshot getters before candidate getters',()=>{
+ const f=fixture('graze','warn');
+ try{
+  const refs=f.roster.map((body,slot)=>({group:'herd',slot,identity:body.entityId,wire:body.entityId,handle:slot+1,body}));
+  const state=saved(f.herd).state,values=f.herd.captureValues(),names=Object.keys(state),reads:string[]=[];
+  for(const name of names){const scalar:unknown=state[name],value=values[name];
+   Object.defineProperty(state,name,{enumerable:true,get:()=>{reads.push(`scalar:${name}`);return scalar;}});
+   Object.defineProperty(values,name,{enumerable:true,get:()=>{reads.push(`candidate:${name}`);return value;}});
+  }
+  Object.defineProperty(f.herd,'herdGuestScalars',{value:()=>state});
+  f.herd.prepareValues(values,refs,f.scope).validate();
+  expect(reads).toEqual([...names.map(name=>`scalar:${name}`),...names.map(name=>`candidate:${name}`)]);
+ }finally{f.scope.dispose();}
+});
