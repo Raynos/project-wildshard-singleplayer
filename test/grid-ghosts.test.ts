@@ -1,5 +1,37 @@
 import { expect, test } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Collection must execute in an isolated real-GC test child.
+import { execFileSync } from 'node:child_process';
+// oxlint-disable-next-line import/no-nodejs-modules -- Own and remove only this fixture's repository scratch configuration.
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Resolve the installed runner and exact fixture without a shell.
+import { resolve as resolvePath } from 'node:path';
+import { Group } from 'three';
 import { GHOST_AFTER_MS, GhostWorlds } from '../src/game/grid/ghosts';
+import { Scope } from '../src/engine/app/scope';
+import { TileStreamer, scopedTilePorts } from '../src/engine/world/tileStreamer';
+import { ResidencyAllocator } from '../src/game/grid/allocator';
+
+let childProved = false;
+function collectionRuntime(): (() => void) | null {
+  const gc: unknown = Reflect.get(globalThis, 'gc');
+  if (typeof gc === 'function') return () => { Reflect.apply(gc, globalThis, []); };
+  if (!childProved) {
+    const { WS_GRID_GHOST_GC: child } = process.env;
+    if (child === '1') throw new Error('Collection requires --expose-gc');
+    mkdirSync('tmp', { recursive: true });
+    const directory = mkdtempSync(resolvePath('tmp/grid-ghost-gc-'));
+    try {
+      const config = resolvePath(directory, 'vitest.config.mjs');
+      writeFileSync(config, `export default {root:${JSON.stringify(resolvePath('.'))},test:{include:['test/grid-ghosts.test.ts'],setupFiles:[],pool:'forks',maxWorkers:1,execArgv:['--expose-gc']}};`);
+      const output = execFileSync(process.execPath, ['--expose-gc', resolvePath('node_modules/vitest/vitest.mjs'), 'run', '--config', config], {
+        env: { ...process.env, WS_GRID_GHOST_GC: '1', NO_COLOR: '1' }, encoding: 'utf8', stdio: 'pipe', timeout: 30_000,
+      });
+      expect(output).toContain('3 passed'); childProved = true;
+    } finally { rmSync(directory, { recursive: true, force: true }); }
+  }
+  expect(childProved).toBe(true);
+  return null;
+}
 
 // M6 (G628): a retired region whose roots stay alive 30 s after its retirement is a ghost world (O18's leak after unload)
 test('a retired region counts as a ghost once it is still alive 30 s after retiring', () => {
@@ -13,11 +45,46 @@ test('a retired region counts as a ghost once it is still alive 30 s after retir
 });
 
 test('a region whose roots are all collected leaves the count', async () => {
-  const gc: unknown = Reflect.get(globalThis, 'gc');
-  if (typeof gc !== 'function') return; // collection needs node --expose-gc
+  const gc = collectionRuntime();
+  if (gc === null) return; // The real-GC child above ran both collection contracts.
   const ghosts = new GhostWorlds();
   ((): void => { ghosts.retired('driftwood-isle', [{ world: Array.from({ length: 1000 }, () => 0) }], 0); })();
-  for (let i = 0; i < 20 && ghosts.regions(1).length > 0; i++) { Reflect.apply(gc, globalThis, []); await new Promise<void>(resolve => { setTimeout(resolve, 10); }); }
+  for (let i = 0; i < 20 && ghosts.regions(1).length > 0; i++) { gc(); await new Promise<void>(resolve => { setTimeout(resolve, 10); }); }
   expect(ghosts.regions(GHOST_AFTER_MS)).toEqual([]);
   expect(ghosts.count(GHOST_AFTER_MS)).toBe(0);
+});
+
+test('twenty tile load/evict cycles collect roots while their page and ports stay live', async () => {
+  const gc = collectionRuntime(); if (gc === null) return;
+  const page = new Scope('live tile page'), allocator = new ResidencyAllocator(), ghosts = new GhostWorlds();
+  const refs: WeakRef<object>[] = []; let live = 0, prepared = 0;
+  const ports = scopedTilePorts(page, async (tile, scope) => {
+    const root = new Group(); prepared++; live++;
+    refs.push(new WeakRef(scope), new WeakRef(root));
+    scope.onDispose(() => { live--; ghosts.retired(tile.key, [scope, root], 0); root.removeFromParent(); });
+    await Promise.resolve(); return { scope, root };
+  }, (_tile, data) => ({ mask: () => { data.root.visible = true; }, shadow: () => undefined, dispose: () => { data.scope.dispose(); } }));
+  const streamer = new TileStreamer([{ instance: 'retirement', origin: { x: 0, z: 0 } }],
+    { reserve: claim => allocator.reserve(claim), now: () => 0 }, (_instance, level) => level === 'far' ? 256 : null, ports,
+    { viewDistance: 500, farRadius: 1000 });
+  const near = { x: 0, z: 0, vx: 0, vz: 0 }, away = { ...near, x: 10_000 };
+  try {
+    for (let cycle = 0; cycle < 20; cycle++) {
+      for (let step = 0; step < 6; step++) { streamer.step(near); await Promise.resolve(); }
+      expect(streamer.stats().resident.far).toBe(1); expect(live).toBe(1);
+      streamer.step(away); await Promise.resolve();
+      expect(streamer.stats().resident.far).toBe(0); expect(live).toBe(0);
+      expect(allocator.entries()).toHaveLength(0);
+    }
+    expect(prepared).toBe(20); expect(refs).toHaveLength(40);
+    for (let turn = 0; turn < 40; turn++) {
+      await new Promise<void>(resolve => { setTimeout(resolve, 0); }); gc();
+      if (refs.every(ref => ref.deref() === undefined) && ghosts.count(GHOST_AFTER_MS) === 0) break;
+    }
+    expect(refs.every(ref => ref.deref() === undefined)).toBe(true);
+    expect(ghosts.regions(GHOST_AFTER_MS)).toEqual([]);
+    expect(page.disposed).toBe(false);
+    for (let step = 0; step < 6; step++) { streamer.step(near); await Promise.resolve(); }
+    expect(streamer.stats().resident.far).toBe(1); expect(live).toBe(1); expect(prepared).toBe(21);
+  } finally { streamer.dispose(); page.dispose(); }
 });
