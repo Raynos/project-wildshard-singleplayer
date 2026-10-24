@@ -14,6 +14,7 @@ import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
 import { ViewProgramSchema } from '../src/format/viewProgram';
 import { ViewLane, prepareViewMemory, type ViewLaneRows } from '../src/engine/script/viewLane';
 import { scriptMemoryCensus } from '../src/engine/script/moduleV2';
+import { FixedMemory } from '../src/engine/script/fixedMemory';
 
 // G600 L7: an owner's inline frame slot. The program samples one lent value and writes it to one lent cell.
 const COPY = `
@@ -112,4 +113,26 @@ test('prepared view memories admit once for their exact live owner, bytes and fi
     expect(() => construct(abandoned)).toThrow('reservation');
     expect(() => prepareViewMemory(module, 1, scope)).toThrow('ended');
   } finally { scope.dispose(); foreign.dispose(); }
+});
+
+test('three scoped views cannot borrow live source memories but recycle all three after retirement', async () => {
+  const module = await compileScriptV2(COPY, { lane: 'view', ioBytes: 4096 });
+  const source = new Scope('view-source'), destination = new Scope('view-destination'), next = new Scope('view-next');
+  // This file's other fixtures only retain one-page storage. Keep it occupied
+  // so this case distinguishes live-source isolation from unused boot stock.
+  const held = Array.from({ length: scriptMemoryCensus().available }, () => new FixedMemory(1, true));
+  const laneRows: ViewLaneRows = { bindings: [{ handle: 1, columns: 1 }], transforms: [], channels: 1,
+    bounds: rows.bounds, targetMs: 5, fuel: 100_000 };
+  const make = (scope: Scope): ViewLane => new ViewLane(module, 1, laneRows,
+    { write: () => undefined, channels: () => undefined, upload: () => undefined }, [0, 0], undefined, scope);
+  try {
+    const live = Array.from({ length: 3 }, () => make(source)), before = scriptMemoryCensus();
+    Array.from({ length: 3 }, () => make(destination));
+    expect(scriptMemoryCensus()).toMatchObject({ hits: before.hits, misses: before.misses + 3, returned: before.returned, available: 0 });
+    source.dispose(); expect(live.every(lane => lane.isFrozen)).toBe(true);
+    const retired = scriptMemoryCensus();
+    expect(retired).toMatchObject({ returned: before.returned + 3, available: 3 });
+    Array.from({ length: 3 }, () => make(next));
+    expect(scriptMemoryCensus()).toMatchObject({ hits: retired.hits + 3, recycledHits: retired.recycledHits + 3, misses: retired.misses, available: 0 });
+  } finally { source.dispose(); destination.dispose(); next.dispose(); for (const storage of held) storage.retire(); }
 });

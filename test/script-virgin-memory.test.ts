@@ -79,7 +79,8 @@ test('all virgin descriptors and combined bounds refuse before the first allocat
     for (const demand of [
       [{ initial: 1, maximum: 2, count: 1 }, { initial: 1, maximum: 0, count: 1 }],
       [{ initial: 1, maximum: 2, count: 1 }, { initial: 1, maximum: 2, count: 1 }],
-      [{ initial: 1, maximum: 64, count: 40 }],
+      [{ initial: 1, maximum: 64, count: 45 }],
+      [{ initial: 4, maximum: 64, count: 40 }],
     ]) await expect(prewarmFixedMemories([1, 0, 0, 0], () => Promise.resolve(), demand)).rejects.toThrow('Invalid virgin');
     const sparse: { initial: number; maximum: number; count: number }[] = []; sparse.length = 1;
     await expect(prewarmFixedMemories([1, 0, 0, 0], () => Promise.resolve(), sparse)).rejects.toThrow();
@@ -87,16 +88,16 @@ test('all virgin descriptors and combined bounds refuse before the first allocat
   } finally { memory.mockRestore(); }
 });
 
-test('the conservative boot plan fits the unchanged 40-memory and 10 MiB bounds', async () => {
-  await prewarmFixedMemories([32, 0, 1, 0], () => Promise.resolve(), [
-    { initial: 1, maximum: 2, count: 4 }, { initial: 1, maximum: 64, count: 3 },
+test('the full-route reserve fits the approved 45-memory and unchanged 10 MiB bounds', async () => {
+  await prewarmFixedMemories([35, 0, 1, 0], () => Promise.resolve(), [
+    { initial: 1, maximum: 2, count: 5 }, { initial: 1, maximum: 64, count: 4 },
   ]);
-  expect(fixedMemoryCensus()).toMatchObject({ available: 40, bytes: 42 * 65536 });
+  expect(fixedMemoryCensus()).toMatchObject({ available: 45, bytes: 47 * 65536 });
   const before = fixedMemoryCensus(), memory = vi.spyOn(WebAssembly, 'Memory');
   try {
-    for (let i = 0; i < 4; i++) freshScriptMemory(1, 2);
-    for (let i = 0; i < 3; i++) freshScriptMemory(1, 64);
+    for (let i = 0; i < 5; i++) freshScriptMemory(1, 2);
+    for (let i = 0; i < 4; i++) freshScriptMemory(1, 64);
     expect(memory).not.toHaveBeenCalled();
-    expect(fixedMemoryCensus()).toMatchObject({ hits: before.hits + 7, virginHits: before.virginHits + 7, misses: before.misses, available: 33 });
+    expect(fixedMemoryCensus()).toMatchObject({ hits: before.hits + 9, virginHits: before.virginHits + 9, misses: before.misses, available: 36 });
   } finally { memory.mockRestore(); }
 });

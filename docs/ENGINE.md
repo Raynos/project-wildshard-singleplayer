@@ -3347,7 +3347,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 
 `prepareScriptMemoryBank(counts, yieldTask, virgin?)` warms fixed page sizes
 1–4 and optional exact `{ initial, maximum, count }` growable rows behind
-loading. The bounded idle bank holds at most 40 memories / 10 MiB; boot
+loading. The bounded idle bank holds at most 45 memories / 10 MiB; boot
 counts are composition data. Only audited native V2 adapters recycle:
 retirement clears instances, globals and views, finishes busy calls and scope
 teardown, and zeroes every byte. Public memory access excludes reuse. Legacy

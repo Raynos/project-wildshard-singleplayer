@@ -3,7 +3,7 @@
 import { observeWasmMemory } from '../core/memoryResources';
 import type { Scope } from '../app/scope';
 
-const PAGE = 65536, LIMIT = 40, BYTE_LIMIT = LIMIT * 4 * PAGE;
+const PAGE = 65536, LIMIT = 45, BYTE_LIMIT = 10 * 1024 * 1024;
 const bank: { readonly pages: number; readonly maximum: number; readonly memory: WebAssembly.Memory; readonly fence: WeakRef<Scope> | undefined; readonly virgin: boolean }[] = [];
 let hits = 0, misses = 0, returned = 0, bytes = 0, virginHits = 0, recycledHits = 0;
 function ready(row: typeof bank[number]): boolean {
@@ -32,21 +32,24 @@ function take(pages: number, maximum: number, freshOnly: boolean): WebAssembly.M
 export async function prewarmFixedMemories(counts: readonly number[], yieldTask: () => Promise<void>,
   virgin: readonly { readonly initial: number; readonly maximum: number; readonly count: number }[] = []): Promise<void> {
   if (counts.length !== 4 || Array.from(counts).some(n => !Number.isInteger(n) || n < 0) || counts.reduce((n, x) => n + x, 0) > LIMIT) throw new Error('Invalid fixed memory warmup');
+  const fixedBytes = counts.reduce((n, count, index) => n + count * (index + 1) * PAGE, 0);
+  if (fixedBytes > BYTE_LIMIT) throw new Error('Invalid fixed memory warmup');
   const demands = Array.from(virgin, ({ initial, maximum, count }) => ({ initial, maximum, count }));
   if (demands.some(row => !Number.isInteger(row.initial) || row.initial < 1 || row.initial > 4 || !Number.isInteger(row.maximum)
     || row.maximum <= row.initial || row.maximum > 65536 || !Number.isInteger(row.count) || row.count < 0)
     || new Set(demands.map(row => `${row.initial}/${row.maximum}`)).size !== demands.length
-    || counts.reduce((n, x) => n + x, 0) + demands.reduce((n, row) => n + row.count, 0) > LIMIT) throw new Error('Invalid virgin memory warmup');
+    || counts.reduce((n, x) => n + x, 0) + demands.reduce((n, row) => n + row.count, 0) > LIMIT
+    || fixedBytes + demands.reduce((n, row) => n + row.initial * row.count * PAGE, 0) > BYTE_LIMIT) throw new Error('Invalid virgin memory warmup');
   for (const [index, count] of counts.entries()) {
     const pages = index + 1, missing = count - bank.filter(row => row.pages === pages && row.maximum === pages && ready(row)).length;
-    for (let n = 0; n < missing && bank.length < LIMIT; n++) {
+    for (let n = 0; n < missing && bank.length < LIMIT && bytes + pages * PAGE <= BYTE_LIMIT; n++) {
       const memory = new WebAssembly.Memory({ initial: pages, maximum: pages });
       retain(memory, pages, undefined, true); await yieldTask();
     }
   }
   for (const { initial, maximum, count } of demands) {
     const missing = count - bank.filter(row => row.virgin && row.pages === initial && row.maximum === maximum && ready(row)).length;
-    for (let n = 0; n < missing && bank.length < LIMIT; n++) {
+    for (let n = 0; n < missing && bank.length < LIMIT && bytes + initial * PAGE <= BYTE_LIMIT; n++) {
       retain(new WebAssembly.Memory({ initial, maximum }), initial, undefined, true, maximum); await yieldTask();
     }
   }

@@ -117,11 +117,12 @@ test('a retired return wrapper and detached candidate cannot read or affect its 
 test('the idle bank is bounded and invalid warmup does not allocate', async () => {
   const memory = vi.spyOn(WebAssembly, 'Memory');
   try {
-    await expect(prewarmFixedMemories([41, 0, 0, 0], () => Promise.resolve())).rejects.toThrow('Invalid');
+    await expect(prewarmFixedMemories([46, 0, 0, 0], () => Promise.resolve())).rejects.toThrow('Invalid');
+    await expect(prewarmFixedMemories([0, 0, 0, 45], () => Promise.resolve())).rejects.toThrow('Invalid');
     expect(memory).not.toHaveBeenCalled();
     const held = Array.from({ length: 48 }, () => new FixedMemory(4, true));
     for (const value of held) value.retire();
-    expect(fixedMemoryCensus().available).toBeLessThanOrEqual(40);
+    expect(fixedMemoryCensus().available).toBeLessThanOrEqual(45);
     expect(fixedMemoryCensus().bytes).toBeLessThanOrEqual(10 * 1024 * 1024);
   } finally { memory.mockRestore(); }
 });

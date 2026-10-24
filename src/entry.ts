@@ -130,9 +130,9 @@ async function startSelected(): Promise<void> {
     preloadModuleFiles(Reflect.get(moduleRows, kind));
   };
   loading.waiting('Preparing application services');
-  // Fixed demand plus conservative virgin growable stock; never recycle growables.
+  // Cover the full-ALL route's five observed misses; never recycle growables.
   const { prepareScriptMemoryBank } = await retried(() => import('./engine/script/moduleV2'));
-  await prepareScriptMemoryBank([32, 0, 1, 0], task, [{ initial: 1, maximum: 2, count: 4 }, { initial: 1, maximum: 64, count: 3 }]);
+  await prepareScriptMemoryBank([35, 0, 1, 0], task, [{ initial: 1, maximum: 2, count: 5 }, { initial: 1, maximum: 64, count: 4 }]);
   // Start every original import together; only admission's prerequisites block
   // its preparation. The full import barrier still precedes publication.
   const [speciesModule, iconsModule, pickupsModule, pickupRowsModule, propsModule, starterModule, hoverboardModule,
