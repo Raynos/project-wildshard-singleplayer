@@ -1,5 +1,7 @@
 import { expect, test } from 'vitest';
-import assembly from '../src/shards/nalati-grasslands/data/headlessAssembly.json' with { type: 'json' };
+import * as v from 'valibot';
+import { nalatiEliteRows } from './fixtures/nalati-headless';
+import { headlessAssembly } from '../src/shards/nalati-grasslands/generators/nativeGroups';
 import { readPouncerSpec, readHowlerSpec } from '../src/engine/ai/stalker';
 import { buildEliteEntryRows, buildEliteEntryPageRows } from '../src/shards/nalati-grasslands/generators/eliteEntryRows';
 import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
@@ -42,30 +44,18 @@ test('declared page rows retain original profiles, external laws, reward present
 });
 
 
-test('native keeper references resolve the original specs from the declared page profile envelope', () => {
-  const rows = buildEliteEntryPageRows(), refs: readonly (string | number)[][] = references(assembly);
-  const specs = refs.filter(ref => ref[0] === 'constants' && ref[1] === 'pageElites' && ref.at(-1) === 'spec');
-  expect(specs).toEqual([['constants', 'pageElites', 'profiles', 0, 'value', 'spec'], ['constants', 'pageElites', 'profiles', 1, 'value', 'spec']]);
-  const resolve = (path: readonly (string | number)[]): unknown => {
-    let value: unknown = { constants: { pageElites: rows } };
-    for (const key of path) {
-      if (value === null || typeof value !== 'object') throw new Error('Missing keeper reference');
-      value = Reflect.get(value, key);
-    }
-    return value;
-  };
-  expect(readPouncerSpec(resolve(specs[0] ?? []))).toEqual(ecology.profiles.aqbars.spec);
-  expect(readHowlerSpec(resolve(specs[1] ?? []))).toEqual(ecology.profiles.kokbori.spec);
+test('native keeper bindings resolve the original specs from the declared page profile envelope', () => {
+  const rows = buildEliteEntryPageRows();
+  const profiles = v.parse(v.array(v.object({ id: v.string(), value: v.object({
+    def: v.object({ id: v.string(), lair: v.object({ x: v.number(), z: v.number() }), awareR: v.number() }), spec: v.unknown(),
+  }) })), rows.profiles);
+  const roster = nalatiEliteRows({ ...headlessAssembly.constants, eliteDefs: ecology.elites, pageElites: { ...rows, profiles } },
+    { swipe: { id: 'swipe' }, pounce: { id: 'pounce' }, bite: { id: 'bite' } });
+  const kernels = v.parse(v.object({ kernels: v.array(v.object({ id: v.string(),
+    profile: v.object({ pattern: v.string(), spec: v.unknown() }) })) }), roster).kernels;
+  expect(kernels.map(row => [row.id, row.profile.pattern])).toEqual([['aqbars', 'pouncer'], ['kokbori', 'howler']]);
+  expect(kernels[0]?.profile.spec).toBe(profiles[0]?.value.spec);
+  expect(kernels[1]?.profile.spec).toBe(profiles[1]?.value.spec);
+  expect(readPouncerSpec(kernels[0]?.profile.spec)).toEqual(ecology.profiles.aqbars.spec);
+  expect(readHowlerSpec(kernels[1]?.profile.spec)).toEqual(ecology.profiles.kokbori.spec);
 });
-
-function references(input: unknown): (string | number)[][] {
-  if (input === null || typeof input !== 'object') return [];
-  if (Array.isArray(input)) return input.flatMap(references);
-  const ref: unknown = Reflect.get(input, '$ref');
-  const own: (string | number)[][] = [];
-  if (Array.isArray(ref)) {
-    const keys: unknown[] = ref;
-    if (keys.every((key): key is string | number => typeof key === 'string' || typeof key === 'number')) own.push(keys);
-  }
-  return [...own, ...Object.values(input).flatMap(references)];
-}

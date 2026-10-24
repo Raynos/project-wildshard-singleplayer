@@ -1,4 +1,9 @@
-import { expect,test } from 'vitest';
+import { expect,test,vi } from 'vitest';
+import { prepareNalatiPopulation } from './fixtures/nalati-headless';
+import * as population from '../src/game/population/environment';
+import * as riding from '../src/game/riding/native';
+import type { SimHost } from '../src/engine/sim';
+import { legacyDouble } from './fake/FakeGame';
 import { unzlibSync,zlibSync } from 'fflate';
 import { NativePopulationField } from '../src/game/population/environment';
 import { bakedSamplers } from '../src/format/bakedTerrainSampling';
@@ -69,14 +74,26 @@ test('raw population pond admission refuses missing, malformed and wrongly shape
   expect(()=>new NativePopulationField(terrain,{...shipped,world:{...shipped.world,pond:{type:'f64',count:65536,data:{file:pondBlock.file}}}},[],[],pondBlock)).toThrow();
 });
 
-test('native preparation lends the original named pond to both existing owners',()=>{
-  const entrySchema=v.object({name:v.string(),value:v.unknown()}),plan=v.parse(v.object({prepare:v.array(entrySchema),install:v.array(entrySchema)}),
-    JSON.parse(readFileSync('src/shards/nalati-grasslands/data/headlessAssembly.json','utf8')));
-  const read=plan.prepare.findIndex(row=>row.name==='populationPond'),field=plan.prepare.find(row=>row.name==='populationField'),mounted=plan.install.find(row=>row.name==='mounted');
-  if(field===undefined||mounted===undefined)throw new Error('Missing native owners');
-  expect(plan.prepare[read]?.value).toEqual({$call:[{$ref:['product','file']},pondBlock.file]});
-  expect(read).toBeLessThan(plan.prepare.indexOf(field));expect(read).toBeGreaterThanOrEqual(0);
-  const loan={file:pondBlock.file,bytes:{$ref:['populationPond']}};
-  expect(v.parse(v.object({$new:v.array(v.unknown())}),field.value).$new.at(-1)).toEqual(loan);
-  expect(v.parse(v.object({$call:v.array(v.unknown())}),mounted.value).$call.at(-1)).toEqual(loan);
+test('native preparation lends the original named pond to both existing owners',async()=>{
+  const order: string[] = [], OriginalField = population.NativePopulationField;
+  const field = vi.spyOn(population,'NativePopulationField').mockImplementation(class extends OriginalField {
+    constructor(...args: ConstructorParameters<typeof OriginalField>) { order.push('field');super(...args); }
+  });
+  const stop = new Error('mounted owner boundary');
+  const mounted = vi.spyOn(riding,'installMountedPlayer').mockImplementation(()=>{order.push('mounted');throw stop;});
+  try {
+    const binding = await prepareNalatiPopulation({file: name=>{order.push(name);return Promise.resolve(pondBlock.bytes);}},
+      {...grid,size:shipped.world.size,seed:shipped.seed},
+      {get nativeField(){order.push('rows');return shipped;}},
+      {get trees(){order.push('trees');return [];},get tops(){order.push('tops');return [];}});
+    const host = legacyDouble<SimHost>({}), profile = {world:shipped.world};
+    expect(()=>binding.installMounted(host,profile)).toThrow(stop);
+    expect(order).toEqual([pondBlock.file,'rows','trees','tops','field','mounted']);
+    const loan = field.mock.calls[0]?.[4];
+    expect(loan?.file).toBe(pondBlock.file);expect(loan?.bytes).toBe(pondBlock.bytes);
+    expect(binding.field).toBeInstanceOf(OriginalField);
+    expect(mounted.mock.calls).toHaveLength(1);
+    expect(mounted.mock.calls[0]?.[0]).toBe(host);expect(mounted.mock.calls[0]?.[1]).toBe(profile);
+    expect(mounted.mock.calls[0]?.[2]).toBe(loan);
+  } finally { field.mockRestore();mounted.mockRestore(); }
 });

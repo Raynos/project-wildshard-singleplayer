@@ -1,4 +1,5 @@
 import type {BakedGrid} from '../../src/format/bakedTerrainBytes';
+import type { ShardProduct } from '../../src/game/shardfile/shardProduct';
 import type { SimHost } from '../../src/engine/sim';
 import type { NativeEliteKernelLoans } from '../../src/engine/ai/eliteKernels';
 import type ecology from '../../src/shards/nalati-grasslands/data/ecology.generated.json';
@@ -84,8 +85,8 @@ export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHead
     const grid = await ((decodeNativeTerrain)(((need(shard.terrain, "Missing terrain")["sampling"] === undefined) ? undefined : (assets["get"])(need(need(shard.terrain, "Missing terrain").sampling, "Missing sampling").file)), { "resolution": 256, "size": 500, "seed": shard["identity"]["seed"] }));
     const samplers = await ((bakedSamplers)(grid));
     const heightAt = await (samplers["heightAt"]);
-    const populationPond = await ((product["file"])("data/geography-pond.bin"));
-    const populationField = await (new (NativePopulationField)(grid, constants["nativeField"], bake["trees"], bake["tops"], { "file": "data/geography-pond.bin", "bytes": populationPond }));
+    const population = await prepareNalatiPopulation(product,grid,constants,bake);
+    const populationField = population.field;
     const queries = await (populationField["queries"]);
     const nav = await ((readNavmesh)(((shard["navigation"] === null) ? undefined : (assets["get"])(need(shard.navigation, "Missing navigation").file)), "Nalati headless needs its admitted navigation asset", () => (0)));
     const heightAtEntry = heightAt;
@@ -112,7 +113,7 @@ export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHead
             (elites["bindProjected"])(2, (ReturnProgram["native"])(host, boot["admission"]), eliteCore);
             (elites["install"])();
             const creatures = (installNativePopulationHunt)(host, Object.assign({}, { "boot": boot, "elites": bindings, "bodies": bodies, "herds": roster["herds"], "nav": nav, "stream": roster["stream"], "wildStream": roster["wildStream"], "bake": bake, "spawnY": shard["spawn"]["y"], "config": constants["nativePopulation"], "field": populationField }, ((context["snapshot"] === undefined) ? {} : { "snapshot": context["snapshot"] })));
-            (installMountedPlayer)(host, Object.assign({}, constants["nativeRide"], { "world": constants["nativeField"]["world"], "mountable": (boot["mountable"]["concat"])((creatures["bondedHorseIds"])()), "program": boot["riding"]["riding"] }), { "file": "data/geography-pond.bin", "bytes": populationPond });
+            population.installMounted(host, Object.assign({}, constants["nativeRide"], { "world": constants["nativeField"]["world"], "mountable": (boot["mountable"]["concat"])((creatures["bondedHorseIds"])()), "program": boot["riding"]["riding"] }));
             const taming = (installNativeTaming)(host, { commands: () => context.commands().map(command => command.kind === "script" ? command : command.kind === "player" ? { kind: "player", ...(command.steer === undefined ? {} : { steer: command.steer }) } : { kind: "action" }) }, Object.assign({}, constants["nativeTaming"], { "programs": boot["riding"], "rest": boot["rest"], "poses": tamingPoses["poses"], "poseProgram": tamingPoses["horse"] }));
             initializeNalatiElites(elites,creatures,taming,context);
         } };
@@ -159,4 +160,12 @@ export function initializeNalatiElites(elites: Pick<NativeEliteRoster,'bindPopul
     creatures: Parameters<NativeEliteRoster['bindPopulation']>[0],taming: Parameters<NativeEliteRoster['bindBond']>[0],
     context: {readonly restoring:boolean}): void {
     elites.bindPopulation(creatures);elites.bindBond(taming);if(!context.restoring)elites.initialize();
+}
+
+/** Read the original pond once, before either direct native owner consumes it. */
+export async function prepareNalatiPopulation(product: Pick<ShardProduct, 'file'>, grid: BakedGrid,
+    constants: {readonly nativeField: unknown}, bake: {readonly trees: readonly (readonly [number,number,number])[]; readonly tops: readonly number[]}) {
+    const pond = {file: 'data/geography-pond.bin', bytes: await product.file('data/geography-pond.bin')};
+    const field = new NativePopulationField(grid,constants.nativeField,bake.trees,bake.tops,pond);
+    return {field, installMounted: (host: SimHost, profile: unknown) => installMountedPlayer(host,profile,pond)};
 }
