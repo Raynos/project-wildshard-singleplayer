@@ -18,7 +18,7 @@ const rows = parseGroupStepV2({ bank: [
   { name: 'random', kind: 'number' }, { name: 'reply', kind: 'number' },
 ], columns: [{ name: 'z.position', id: 7, source: { kind: 'actor', field: 'x' } },
   { name: 'a.alive', id: 900, source: { kind: 'actor', field: 'alive' } }],
-  members: 16, signals: ['step', 'query', 'badAction', 'badState', 'random', 'badRef', 'badMember', 'rawActor', 'badReserved'],
+  members: 16, signals: ['step', 'query', 'badAction', 'badState', 'random', 'badRef', 'badMember', 'rawActor', 'badReserved', 'unusedZero', 'unusedFinite', 'unusedNaN', 'unusedInfinity'],
   actions: [{ id: 1, words: 3, member: 0 }, { id: 2, words: 1, reference: { word: 0 } }],
   outputs: 4, pages: 1, fuel: 400000, queries: { pending: 4, scalars: 0 } });
 let bytes: Uint8Array;
@@ -38,7 +38,11 @@ beforeAll(async () => {
       else if(signal==7)core.pageOutput(1,16,2,0);
       else if(signal==8)core.actorCommand(1,0,1,2,3);
       else {core.pageOutput(1,15,core.field(31),-0.0);core.pageOutput(signal==3?3:2,99);
-        if(signal==9)store<u32>(core.row(10,1)+12,1);}
+        if(signal==9)store<u32>(core.row(10,1)+12,1);
+        if(signal==10)store<u64>(core.row(10,1)+56,0x8000000000000000);
+        if(signal==11)store<f64>(core.row(10,1)+56,1);
+        if(signal==12)store<u64>(core.row(10,1)+56,0x7ff8000000000000);
+        if(signal==13)store<u64>(core.row(10,1)+56,0x7ff0000000000000);}
       core.endBinding();return fuel;}`, { lane: 'project', ioBytes: groupStepLayoutV2(rows).bytes,
     sources: { 'sdk/as/wsV2.ts': v2CoreSource(0), 'sdk/as/groupBankV2.ts': groupBankSourceV2(0, 5), 'sdk/as/groupStepV2.ts': groupStepSourceV2(2,16) } });
 });
@@ -207,4 +211,19 @@ test('a real group step decodes only its published candidate and rejects bad inp
   expect(()=>f.runner.prepare(f.input)).toThrow('outside bound');
   expect(decode).not.toHaveBeenCalled();expect(capture).not.toHaveBeenCalled();
  }finally{decode.mockRestore();capture.mockRestore();f.root.dispose();}
+});
+
+test('unused operand suffixes refuse the whole bank while declared state keeps signed zero',()=>{
+ const f=fixture();
+ try{
+  f.state[3]=-0;const state=f.state.slice(),random=f.random.snapshot(),bodies=JSON.stringify(f.bodies.map(body=>body.snapshot()));
+  for(const signal of ['unusedZero','unusedFinite','unusedNaN','unusedInfinity']){
+   expect(()=>f.runner.prepare({...f.input,signal})).toThrow('Invalid group operation operands');
+   expect(f.state).toStrictEqual(state);expect(f.random.snapshot()).toEqual(random);
+   expect(JSON.stringify(f.bodies.map(body=>body.snapshot()))).toBe(bodies);
+  }
+  const ready=f.runner.prepare(f.input);
+  expect(Object.is(ready.values['random'],-0)).toBe(true);expect(Object.is(ready.operations[0]?.values[2],-0)).toBe(true);
+  ready.accept();expect(Object.is(f.state[3],-0)).toBe(true);
+ }finally{f.root.dispose();}
 });

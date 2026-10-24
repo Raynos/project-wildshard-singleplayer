@@ -190,7 +190,8 @@ export class GroupStepV2 {
         if (authority === undefined) throw new Error('Missing group frame authority');
         const actual = validateV2Frame(view, this.layout, authority), state = this.layout.regions[2], actions = this.layout.regions[9];
         if (state === undefined || actions === undefined || actual[2] !== profile.bank.width || (actual[9] ?? 0) > this.rows.outputs) throw new Error('Incomplete group candidate');
-        const bank = Float64Array.from({ length: profile.bank.width }, (_, index) => view.getFloat64(this.layout.io + state.offset + index * 8, true));
+        const bank = new Float64Array(profile.bank.width);
+        for (let index = 0; index < bank.length; index++) bank[index] = view.getFloat64(this.layout.io + state.offset + index * 8, true);
         const prepared = profile.bank.prepare(input.state, bank, input.group, input.references, this.scope);
         const operations: GroupStepOperationV2[] = [];
         for (let index = 0; index < (actual[9] ?? 0); index++) {
@@ -198,8 +199,12 @@ export class GroupStepV2 {
           const action = profile.actions.get(id);
           if (action === undefined || view.getUint32(at, true) !== input.handle || view.getUint32(at + 4, true) !== 25
             || view.getUint32(at + 12, true) !== 0) throw new Error('Undeclared group operation');
-          const values = Array.from({ length: 6 }, (_, word) => view.getFloat64(at + 16 + word * 8, true));
-          if (values.some((value, word) => !Number.isFinite(value) || word >= action.words && !Object.is(value, 0))) throw new Error('Invalid group operation operands');
+          const values: number[] = [];
+          for (let word = 0; word < 6; word++) {
+            const value = view.getFloat64(at + 16 + word * 8, true);
+            if (!Number.isFinite(value) || word >= action.words && !Object.is(value, 0)) throw new Error('Invalid group operation operands');
+            if (word < action.words) values.push(value);
+          }
           const slot = action.member === undefined ? undefined : values[action.member];
           const member = slot === undefined ? undefined : members[slot]?.self;
           const body = member?.actor;
@@ -209,7 +214,7 @@ export class GroupStepV2 {
           if (action.reference !== undefined && (handle === undefined || !Number.isInteger(handle)
             || (handle === 0 ? action.reference.nullable !== true : reference === undefined)
             || reference !== undefined && action.reference.own === true && reference.group !== input.group)) throw new Error('Unknown group operation reference');
-          operations.push(Object.freeze({ id, values: Object.freeze(values.slice(0, action.words)),
+          operations.push(Object.freeze({ id, values: Object.freeze(values),
             ...(member === undefined ? {} : { member }), ...(reference === undefined ? {} : { reference }),
             ...(action.native === undefined ? {} : { native: action.native }) }));
         }
@@ -807,7 +812,7 @@ export function prepareGroupNativeV2<A extends AnimalSim = AnimalSim>(operations
     pins.push(()=>owner.prepareDrivePlan===prepare);
     for(const[body,plan]of plans){
       if(plan.parts.size!==8)throw new Error('Incomplete locomotion plan');
-      const values:number[]=[];
+      const values: number[] = [];
       for(let part=0;part<8;part++){const row=plan.parts.get(part);if(row?.length!==3)throw new Error('Incomplete locomotion plan');values.push(...row);}
       plan.publication=owner.prepareDrivePlan(body,values);const publication=plan.publication;
       before.push(()=>{publication.validate();return true;});
