@@ -131,6 +131,7 @@ const HEIGHT_STEP = 2;            // metres between height samples for the groun
 const COVER_PPM = 0.5;            // fog coverage px per metre (1 px per 2 m)
 const REVEAL_RADIUS = 45;         // metres a visited position reveals
 const STAMP_EVERY = 4;            // metres moved between coverage stamps
+const FONT_ASK_PAINTS = 30;       // paints between two asks whether the label font has loaded (until it has)
 const FOG_BRIGHTNESS = 0.3;       // unexplored ground brightness
 const DESKTOP_SIZE = 144;         // css px, the fallback before layout (the stylesheet sets it: 144 px desktop, 27.2vw phone — E51, 80 % of 180 / 34vw)
 
@@ -196,6 +197,9 @@ export class Minimap {
   private dpr = 1;
   /** each extra label's outlined text, rasterized once at the screen's density and font (re-made when either changes) */
   private readonly labelSprites = new Map<string, { readonly canvas: HTMLCanvasElement; readonly half: number }>();
+  /** the label font once document.fonts has it, and the paints left before it is asked again while it has not */
+  private readyFont = '';
+  private fontAskIn = 0;
   private visible = true;
   /** a practice room's own map while one is up (the arena, a playground: src/engine/ui/roomMap.ts, E321) — the shard's is not drawn */
   private roomMap: RoomMap | null = null;
@@ -481,7 +485,7 @@ export class Minimap {
    *  rim turns to run along it (so a long name never crosses the arrow) */
   private paintExtraLabels(labels: readonly MapExtraLabel[], pos: { x: number; z: number }, c: number, k: number): void {
     const ctx = this.ctx, s = this.dpr, inner = VIEW_RADIUS - 9;
-    const font = `700 ${Math.round(7.5 * s)}px Rajdhani, 'Bahnschrift', 'DIN Alternate', sans-serif`, loaded = document.fonts.check(font);
+    const font = `700 ${Math.round(7.5 * s)}px Rajdhani, 'Bahnschrift', 'DIN Alternate', sans-serif`, loaded = this.fontLoaded(font);
     for (const l of labels) {
       let dx = l.x - pos.x, dz = l.z - pos.z;
       const d = Math.hypot(dx, dz);
@@ -500,6 +504,16 @@ export class Minimap {
       ctx.drawImage(sprite.canvas, -sprite.canvas.width / 2, -sprite.canvas.height / 2);
       ctx.restore();
     }
+  }
+  /**
+   * Whether the label font has loaded: remembered once it has, and until then asked every FONT_ASK_PAINTS paints, not on
+   * each (WebKit matches the whole font list on every `check`: 160 of 5980 samples of a steady Nalati Simulator profile).
+   */
+  private fontLoaded(font: string): boolean {
+    if (font === this.readyFont) return true;
+    if (this.fontAskIn > 0) { this.fontAskIn--; return false; }
+    if (document.fonts.check(font)) { this.readyFont = font; return true; }
+    this.fontAskIn = FONT_ASK_PAINTS; return false;
   }
   /** one label's dark-outlined text as drawn on the disc (centred), its half width for the rim placement */
   private labelSprite(text: string, color: string, font: string, loaded: boolean): { readonly canvas: HTMLCanvasElement; readonly half: number } {
