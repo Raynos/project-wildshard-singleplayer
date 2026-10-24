@@ -1,13 +1,16 @@
 import * as v from 'valibot';
 import worldRows from '../data/worldRows.generated.json' with { type: 'json' };
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
-import wireSchema from './layoutSchema.generated.json' with { type: 'json' };
+import { formatJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import world from '../data/world.generated.json' with { type: 'json' };
 import { GeometryBootSchema } from './sections';
 import { bakedLayout } from './layoutProjection';
 import { SET_TILES } from './worldScenes';
 
 const json = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));
+
+/** The defining schema is projected directly, without a generated schema file. */
+export function layoutWireSchema(): ReturnType<typeof formatJsonSchema> { return formatJsonSchema(GeometryBootSchema, 'draft-07'); }
 
 /** Separate small author rows from raw float64 records; no megabyte JSON parse runs at native boot. */
 export function layoutBlobs(): NamedBlob[] {
@@ -22,5 +25,5 @@ export function layoutBlobs(): NamedBlob[] {
   };
   locate(rows, []);
   const boot = v.parse(GeometryBootSchema, { rows, library, negativeZeros, world: worldRows.rows });
-  return [nameBlob('geometry/layout.json', 'json', json(boot), { jsonSchema: wireSchema })];
+  return [nameBlob('geometry/layout.json', 'json', json(boot), { jsonSchema: layoutWireSchema() })];
 }
