@@ -4,7 +4,7 @@ import type { ContentCache } from './contentCache';
 import { ContentCacheQueue, isCacheRead } from './contentCacheQueue';
 import { waitFor } from './waits';
 import { receiveWorkerDownloads } from './download';
-import { CONTENT_CACHE_WIRE_CAP, CacheCommandSchema, CacheReplySchema, validCacheValue, type CacheCommand, type CacheOperation, type CacheValue, type FetchedContent } from './contentCacheProtocol';
+import { CONTENT_CACHE_WIRE_CAP, CacheCommandSchema, CacheReplySchema, CacheReplyEnvelopeSchema, CacheValueSchemas, type CacheCommand, type CacheOperation, type CacheValue, type FetchedContent } from './contentCacheProtocol';
 
 export interface CacheWorkerPort extends EventTarget {
   postMessage: (message: unknown) => void;
@@ -124,17 +124,20 @@ export class ContentCacheWorker {
   }
   private receive(event: Event): void {
     if (!(event instanceof MessageEvent)) { this.failover('not a message'); return; }
-    const reply = v.safeParse(CacheReplySchema, event.data);
+    const reply = v.safeParse(CacheReplyEnvelopeSchema, event.data);
     if (!reply.success) { this.failover('invalid reply'); return; }
     const row = this.pending.get(reply.output.id);
-    if (row === undefined) { this.failover('unknown reply'); return; }
-    if (reply.output.ok && !validCacheValue(row.command.op, reply.output.value)) { this.failover(`invalid ${row.command.op} value`); return; }
-    this.life.cancelTimer(row.timer); this.pending.delete(reply.output.id);
-    if (reply.output.ok) {
-      if (row.command.op === 'release') { this.leases.delete(row.command.lease); this.pinned.delete(row.command.lease); }
-      row.resolve(reply.output.value);
+    if (row === undefined) { this.failover(v.safeParse(CacheReplySchema, event.data).success ? 'unknown reply' : 'invalid reply'); return; }
+    const value = reply.output.ok ? v.safeParse(CacheValueSchemas[row.command.op], reply.output.value) : undefined;
+    if (value !== undefined && !value.success) {
+      this.failover(v.safeParse(CacheReplySchema, event.data).success ? `invalid ${row.command.op} value` : 'invalid reply'); return;
     }
-    else row.reject(new Error(reply.output.error)); // A verified refusal is not an infrastructure failure.
+    this.life.cancelTimer(row.timer); this.pending.delete(reply.output.id);
+    if (value?.success === true) {
+      if (row.command.op === 'release') { this.leases.delete(row.command.lease); this.pinned.delete(row.command.lease); }
+      row.resolve(value.output);
+    }
+    else if (!reply.output.ok) row.reject(new Error(reply.output.error)); // A verified refusal is not an infrastructure failure.
     this.pump();
     if (this.pending.size === 0 && this.deferred.size === 0 && this.closing === undefined) {
       this.life.cancelTimer(this.idle);

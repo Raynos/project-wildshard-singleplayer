@@ -27,18 +27,21 @@ const FetchedSchema = v.strictObject({ fetched: v.nullable(v.pipe(v.instance(Uin
 /** `cached`: the bytes came from the URL cache, not the network; `stored`: the content cache now holds them. */
 export type FetchedContent = v.InferOutput<typeof FetchedSchema>;
 export type CacheValue = Uint8Array | null | boolean | { bytes: number; entries: number } | FetchedContent;
+const BytesSchema = v.pipe(v.instance(Uint8Array), v.check(bytes => bytes.length <= CONTENT_CACHE_WIRE_CAP));
+const StatsSchema = v.strictObject({ bytes: integer, entries: integer });
+const RefusalSchema = v.strictObject({ ...id, ok: v.literal(false), error: v.pipe(v.string(), v.maxLength(2048)) });
+/** The pending command selects its value schema after this strict envelope is admitted. */
+export const CacheReplyEnvelopeSchema = v.variant('ok', [
+  v.strictObject({ ...id, ok: v.literal(true), value: v.unknown() }), RefusalSchema,
+]);
+/** One exact result shape per operation; byte limits and nested receipt checks remain mandatory. */
+export const CacheValueSchemas = {
+  get: v.nullable(BytesSchema), has: v.boolean(), holds: v.boolean(), put: v.boolean(), stats: StatsSchema,
+  fetch: FetchedSchema, flush: v.null(), pin: v.null(), release: v.null(),
+} satisfies Record<CacheCommand['op'], v.GenericSchema<CacheValue>>;
 export const CacheReplySchema = v.variant('ok', [
   v.strictObject({ ...id, ok: v.literal(true), value: v.union([
-    v.null(), v.boolean(), v.pipe(v.instance(Uint8Array), v.check(bytes => bytes.length <= CONTENT_CACHE_WIRE_CAP)),
-    v.strictObject({ bytes: integer, entries: integer }), FetchedSchema,
+    v.null(), v.boolean(), BytesSchema, StatsSchema, FetchedSchema,
   ]) }),
-  v.strictObject({ ...id, ok: v.literal(false), error: v.pipe(v.string(), v.maxLength(2048)) }),
+  RefusalSchema,
 ]);
-/** Check operation-specific results before callers receive bytes or success. */
-export function validCacheValue(op: CacheCommand['op'], value: CacheValue): boolean {
-  if (op === 'get') return value === null || value instanceof Uint8Array;
-  if (op === 'put' || op === 'has' || op === 'holds') return typeof value === 'boolean';
-  if (op === 'stats') return typeof value === 'object' && value !== null && !(value instanceof Uint8Array) && !('fetched' in value);
-  if (op === 'fetch') return typeof value === 'object' && value !== null && 'fetched' in value;
-  return value === null;
-}
