@@ -376,6 +376,9 @@ export class EngineNodesHandler extends WebGLNodesHandler {
    *  'no reuse key', a pairing refusal; '+ kept' when a full build was kept for reuse). The frame floor attributes them
    *  to runtime hooks: a build after an entry's warm-up is a missed warm program. */
   readonly buildLog: { at: number; material: string; object: string; how: string }[] = [];
+  /** each `buildLog` row's program parameters (`reuseKey`: the object class, the custom key's tail, the parameters and
+   *  defines), at the same index; '' where none could be read. Two builds of one material diff here (what moved its key). */
+  readonly buildKeys: string[] = [];
   private readonly textureUpdates: TextureUpdates;
   private readonly frame: NodeFrame;
   /** The material's active program view, including its validated block list. */
@@ -799,8 +802,9 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     }
     this.buildMs += diagnosticNow() - t0;
     this.builds++;
-    if (this.buildLog.length >= BUILD_LOG_CAP) this.buildLog.shift();
+    if (this.buildLog.length >= BUILD_LOG_CAP) { this.buildLog.shift(); this.buildKeys.shift(); }
     this.buildLog.push({ at: t0, material: material.name || material.type, object: object.name || object.type, how });
+    this.buildKeys.push(program ?? reuseKey(parameters, object, material, this.shareKeyOf(material)) ?? '');
     // WebGLRenderer.getProgram calls build only for a key its material has no program for, then files the acquired
     // program under that key: the program lands at the map's current size
     const builder: unknown = Reflect.get(material, '_latestBuilder');
