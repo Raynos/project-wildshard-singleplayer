@@ -15,8 +15,8 @@ p95 16.8, max Pine 1,117 → 66.7, Nalati 167 → 50.1 ms (f7e74f576e).
 iOS Sim: road spike 448 → 67 ms (Wasm pool, DB1). Settled spikes were FULL GCs every 0.6 s because JSC's heap
 (incl. external memory) was large vs RAM (Mac WebKit forced to 3 GiB reproduced it). RETAINED memory was the lever: snapshot 601 -> 457 MiB on 6f0c0dbd15 (closed shard scopes 121 -> 0: observedIn, Pine
 residency, scope/audio/material keepers, raw+splat textures). Quiet Sim settled on f527: 36 FULL -> 1 full + 17 partial
-GCs, p95 48 -> 34. OFFICIAL quiet Sim floor (bar p95 <= 35, max <= 200, median 30): a3fe576d34 13/15 PASS (b68f 12, 34aa 12/11, 9625 13),
-every median 30.3; misses: Template short travel 36, Nalati short travel 38 (precompile fences; TB1 sp-x8).
+GCs, p95 48 -> 34. OFFICIAL quiet Sim floor (bar p95 <= 35, max <= 200, median 30): a3fe576d34 13/15 PASS (b68f 12, 34aa 12/11, 9625 13; 436fca0bcb 11),
+every median 30.3; short-travel rows swing 35-43 run to run; TB1 crossing red fixed 3974a26c13; releases pinned 9625 until CI green.
 Desktop floor PASS: d6c530539b all 9 rows; interior-stop owner 4.0 ms on c2db00b25e (limit 4.17); frames 16.7 p95.
 
 **Memory:** WebKit Sim floors menu ~166, T1 ~310-330 MiB vs M1's 50/100 (FAIL). Same source drifts ~10 MiB between
