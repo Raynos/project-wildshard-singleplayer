@@ -353,7 +353,7 @@ export function applyPaintedTerrain(m: THREE.Material, params: PaintedTerrainPar
         .replaceAll('getDirectionalLightInfo( directionalLight, directLight );', 'getDirectionalLightInfo( directionalLight, directLight );\n\t\t\tdirectLight.color *= famTBakedShadow( vFamTWorld );')
         .replaceAll('getDirectionalLightInfo( directionalLights[0], directLight );', 'getDirectionalLightInfo( directionalLights[0], directLight );\n\t\tdirectLight.color *= famTBakedShadow( vFamTWorld );'));
     }
-  }, { key: (prior) => `${prior}${suffix}` });
+  }, { key: (prior) => `${prior}${suffix}`, pureKey: true });
   const before = m.onBeforeRender.bind(m);
   m.onBeforeRender = (renderer, scene, camera, geometry, object, group) => {
     if (!filled.has(geometry)) { filled.add(geometry); fillPaintedTerrainAttributes(geometry); }

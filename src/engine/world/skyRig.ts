@@ -408,7 +408,7 @@ export class SkyRig {
     const csmHook = takeForeignHook(mat, () => { this.csm.setupMaterial(mat); });
     const fade = this.shadowFade !== null;
     if (this.shadowFade) mat.defines = { ...mat.defines, CSM_GHOSTS: this.shadowFade.ghosts.length }; // E147: the cascades mix in the fade's ghost shadows
-    patchShader(mat, 'engine.csm', PATCH_ORDER.shadows, (shader, renderer) => { csmHook(shader, renderer); if (fade) shader.uniforms['uSunFade'] = sunFadeUniform; }, { key: (k) => `${k}|csm` });
+    patchShader(mat, 'engine.csm', PATCH_ORDER.shadows, (shader, renderer) => { csmHook(shader, renderer); if (fade) shader.uniforms['uSunFade'] = sunFadeUniform; }, { key: (k) => `${k}|csm`, pureKey: true });
     mat.needsUpdate = true;
   }
 

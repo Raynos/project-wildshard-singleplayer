@@ -68,7 +68,7 @@ void main() {
   if (wsCellWorld.x < wsCellClip.x || wsCellWorld.z < wsCellClip.y || wsCellWorld.x > wsCellClip.z || wsCellWorld.z > wsCellClip.w) discard;
   wsCellFragment();
 }`;
-  }, { key: prior => `${prior}|grid-cell-clip`, scope });
+  }, { key: prior => `${prior}|grid-cell-clip`, pureKey: true, scope });
   material.needsUpdate = true;
 }
 

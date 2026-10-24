@@ -47,7 +47,8 @@ export function instanceColourNode(): Node<'vec3'> {
 /** Shader features only: neither object identity nor instance count adds a program. */
 export function nodeInstanceKey(object: unknown): string {
   if (object instanceof BatchedMesh) return batchHasColour(object) ? 'batch:colour' : 'batch:plain';
-  return object instanceof InstancedMesh ? `instances:${object.instanceColor === null ? 'plain' : 'colour'}` : 'mesh';
+  // constant strings: asked on every draw (the program key), a template made a new string each time
+  return object instanceof InstancedMesh ? object.instanceColor === null ? 'instances:plain' : 'instances:colour' : 'mesh';
 }
 
 /** Replace stock instance/batch placement while retaining morph, skin, displacement and

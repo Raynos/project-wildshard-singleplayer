@@ -158,7 +158,7 @@ export function coverageMaterial(map: Texture, colours: CoverageColours, id: str
     diffuseColor.rgb *= mix( ${vec3(linearRgb(colours.from))}, ${vec3(linearRgb(colours.to))}, vec3( coverage, mix( coverage.y, coverage.x, ${colours.blueFromRed.toFixed(3)} ) ) );
   }
 #endif`);
-  }, { key: (before) => `${before}|${id}` });
+  }, { key: (before) => `${before}|${id}`, pureKey: true });
   return material;
 }
 

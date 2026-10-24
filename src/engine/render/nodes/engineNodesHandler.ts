@@ -509,7 +509,8 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       if (stamp < 0) return shaderPatchProgramKey(this, wholeKey(depth ? depthStockKey(this, receive) : sharedStock(this), this.toneMapped, rawOutput, objectKey, fog, layer));
       let memos = stockKeys.get(this);
       if (memos === undefined || memos[0]?.version !== this.version) { memos = []; stockKeys.set(this, memos); }
-      let memo = memos.find(m => m.stamp === stamp);
+      let memo: (typeof memos)[number] | undefined; // a loop, not find(): no closure made on every draw
+      for (let i = 0; i < memos.length; i++) if (memos[i]?.stamp === stamp) { memo = memos[i]; break; }
       if (memo === undefined) {
         memo = { stamp, version: this.version, receive: undefined, plain: undefined, fog, layer, toneMapped: this.toneMapped, rawOutput, keys: new Map() };
         // a few key contexts a frame (the screen and its targets); a context that moved on drops out first
