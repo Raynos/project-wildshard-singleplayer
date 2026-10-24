@@ -9,7 +9,17 @@ export interface ReadinessEstimate { criticalTransferSeconds: number; hybridTran
 
 /** Compute the cold-cache bound. A hybrid runtime's second request and parse cannot disappear into the sim budget. */
 export function readinessModel(bundle: ReadinessBundle, link: ReadinessLink): ReadinessEstimate {
-  for (const value of [bundle.criticalWireBytes, bundle.hybridWireBytes, bundle.decodeSeconds, bundle.runtimeParseSeconds, link.speed, link.linkBitsPerSecond, link.requestLatencySeconds, link.maxStallSeconds]) if (!Number.isFinite(value) || value < 0) throw new RangeError('Invalid readiness envelope');
+  // Preserve the initial read batch before the first refusal, without a transient validation array.
+  const criticalBytes = bundle.criticalWireBytes, hybridBytes = bundle.hybridWireBytes, decode = bundle.decodeSeconds, runtimeParse = bundle.runtimeParseSeconds;
+  const speed = link.speed, bits = link.linkBitsPerSecond, latency = link.requestLatencySeconds, stall = link.maxStallSeconds;
+  if (!Number.isFinite(criticalBytes) || criticalBytes < 0
+    || !Number.isFinite(hybridBytes) || hybridBytes < 0
+    || !Number.isFinite(decode) || decode < 0
+    || !Number.isFinite(runtimeParse) || runtimeParse < 0
+    || !Number.isFinite(speed) || speed < 0
+    || !Number.isFinite(bits) || bits < 0
+    || !Number.isFinite(latency) || latency < 0
+    || !Number.isFinite(stall) || stall < 0) throw new RangeError('Invalid readiness envelope');
   if (!Number.isSafeInteger(bundle.criticalWireBytes) || !Number.isSafeInteger(bundle.hybridWireBytes) || bundle.criticalWireBytes > CONTENT_CAPS.sim.compressed || link.linkBitsPerSecond === 0) throw new RangeError('Critical wire cap or invalid link rate');
   const criticalTransferSeconds = bundle.criticalWireBytes * 8 / link.linkBitsPerSecond;
   const hybridTransferSeconds = bundle.hybridWireBytes * 8 / link.linkBitsPerSecond;
