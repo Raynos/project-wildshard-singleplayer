@@ -50,24 +50,36 @@ function boundedJsonData(value: unknown, separateSchemas: boolean, diagnostic?:{
   const valid=visit(value, 0, 'index');if(diagnostic!==undefined)diagnostic.nodes=nodes;return valid;
 }
 
-/**
- * Any number token that may decode to -0 (a negative zero, or a negative number underflowing through a 3-digit negative
- * exponent) or to ±Infinity (a 2-digit positive exponent, or a run of 100 digits): conservative, so a match only means the
- * reviver checks the parse. A number token always follows `:`, `[`, `,` or whitespace, so text inside a string matches
- * only after one of those (G639: base64 such as `e12` sent every file carrying it through the reviver, ~50 ms of a Nalati
- * entry frame).
- */
-const MAYBE_NOT_CANONICAL = /(?<=[:[,\s])(?:-0(?:\.0*)?(?:[eE][+-]?\d+)?(?![\d.])|-?\d+(?:\.\d+)?[eE]\+?\d{2}|-?\d+(?:\.\d+)?[eE]-\d{3}|-?\d{100})/u;
 /** Decode an already byte-bounded named payload. JSON.parse supplies only plain
  * data; reject the numeric values JSON can decode but cannot preserve. The
  * defining schema owns the payload's shape and bounds, without a new node cap. */
 export function parseNamedJson(bytes: Uint8Array): unknown {
-  const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
-  // G639: a reviver puts every value through a script call (Nalati's grid entry spent ~70 ms of one frame on one file);
-  // text with no token that can decode to -0 or overflow parses without one
-  if (!MAYBE_NOT_CANONICAL.test(text)) return JSON.parse(text);
-  return JSON.parse(text, (_key: string, value: unknown): unknown => {
-    if (typeof value === 'number' && (!Number.isFinite(value) || Object.is(value, -0))) throw new Error('Named JSON requires finite canonical numbers');
-    return value;
-  });
+  const result: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+  // Inspect decoded numbers, not every character of large strings. A reviver
+  // invokes script for every value; a text prefilter can also miss root -0 and
+  // decimal underflow. The worklist is iterative and retains only containers.
+  const pending: unknown[] = [result];
+  while (pending.length > 0) {
+    const value = pending.pop();
+    if (typeof value === 'number') {
+      if (!Number.isFinite(value) || Object.is(value, -0)) throw new Error('Named JSON requires finite canonical numbers');
+    } else if (value !== null && typeof value === 'object') {
+      if (Array.isArray(value)) {
+        for (let index = 0; index < value.length; index++) {
+          const child: unknown = value[index];
+          if (typeof child === 'number') {
+            if (!Number.isFinite(child) || Object.is(child, -0)) throw new Error('Named JSON requires finite canonical numbers');
+          } else if (child !== null && typeof child === 'object') pending.push(child);
+        }
+      } else {
+        for (const key of Object.keys(value)) {
+          const child: unknown = Reflect.get(value, key);
+          if (typeof child === 'number') {
+            if (!Number.isFinite(child) || Object.is(child, -0)) throw new Error('Named JSON requires finite canonical numbers');
+          } else if (child !== null && typeof child === 'object') pending.push(child);
+        }
+      }
+    }
+  }
+  return result;
 }
