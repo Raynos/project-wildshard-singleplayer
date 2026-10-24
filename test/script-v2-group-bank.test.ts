@@ -223,3 +223,22 @@ test('repeated publication guards retain signed-zero and final-row metadata fenc
     expect(() => ready.validate()).toThrow('Retired group bank preparation');
   } finally { scope.dispose(); }
 });
+
+test('numeric read plans retain finite and bounded checks around variable-width reference columns',()=>{
+ const codec=new GroupBankV2([{name:'free',kind:'number'},{name:'bounded',kind:'number',integer:true,min:1,max:3},
+  {name:'list',kind:'references',capacity:2,own:true},{name:'tail',kind:'number'}]);
+ const input={free:-0,bounded:2,list:['body:0'],tail:5},bank=codec.encode(input,'first',roster);
+ expect(codec.decode(bank,'first',roster)).toStrictEqual(input);
+ for(const value of [Number.NaN,Infinity,-Infinity])for(const slot of [0,bank.length-1]){
+  const bad=bank.slice();bad[slot]=value;
+  expect(()=>codec.validate(bad,'first',roster)).toThrow('Non-finite');
+  expect(()=>codec.decode(bad,'first',roster)).toThrow('Non-finite');
+ }
+ for(const value of [.5,0,4]){
+  const bad=bank.slice();bad[1]=value;
+  expect(()=>codec.validate(bad,'first',roster)).toThrow('outside bound');
+  expect(()=>codec.decode(bad,'first',roster)).toThrow('outside bound');
+ }
+ const bad=bank.slice();bad[4]=1;expect(()=>codec.decode(bad,'first',roster)).toThrow('Nonzero unused');
+ expect(Object.is(codec.decode(bank,'first',roster)['free'],-0)).toBe(true);
+});

@@ -55,12 +55,14 @@ export class GroupBankV2 {
   readonly width: number;
   private referenceLoan: {readonly group:string;
     readonly rows:readonly GroupBankReferenceV2[];readonly byHandle:ReadonlyMap<number,GroupBankReferenceV2>;readonly byWire:ReadonlyMap<string,GroupBankReferenceV2>} | undefined;
-  private readonly offsets = new Map<string, {readonly row: GroupBankFieldV2; readonly offset: number}>();
+  private readonly offsets = new Map<string, {readonly row: GroupBankFieldV2; readonly offset: number;readonly plainNumber:boolean}>();
+  /** Admitted offsets in field order; plain numbers still validate finite values. */
+  private readonly ordered: readonly {readonly row:GroupBankFieldV2;readonly offset:number;readonly plainNumber:boolean}[];
   constructor(input: unknown) {
     this.fields = structuredClone(parseGroupBankV2(input));
     let width=0;
-    for(const row of this.fields){this.offsets.set(row.name,{row,offset:width});width+=groupBankWidthV2(row);}
-    this.width=width;
+    for(const row of this.fields){this.offsets.set(row.name,{row,offset:width,plainNumber:row.kind==='number'&&row.integer!==true&&row.min===undefined&&row.max===undefined});width+=groupBankWidthV2(row);}
+    this.width=width;this.ordered=Array.from(this.offsets.values());
   }
   private loan(input: readonly GroupBankReferenceV2[], group: string): {
     readonly byHandle: ReadonlyMap<number, GroupBankReferenceV2>;
@@ -178,11 +180,11 @@ export class GroupBankV2 {
     result?: Record<string,GroupBankValueV2>): void {
     if (bank.length !== this.width) throw new Error('Group bank width mismatch');
     const { byHandle } = this.loan(roster, group);
-    let offset = 0;
-    for (const row of this.fields) {
+    for (const {row,offset,plainNumber} of this.ordered) {
       const value = bank[offset];
       if (value === undefined) throw new Error('Missing group bank value');
       finite(value);
+      if(plainNumber){if(result!==undefined)result[row.name]=value;continue;}
       switch (row.kind) {
         case 'number':
           if (row.integer === true && !Number.isInteger(value) || row.min !== undefined && value < row.min
@@ -225,7 +227,6 @@ export class GroupBankV2 {
         }
         default: throw new Error('Unknown group bank field');
       }
-      offset += groupBankWidthV2(row);
     }
   }
 
