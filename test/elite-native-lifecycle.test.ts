@@ -12,7 +12,8 @@ import type { SimHost } from '../src/engine/sim';
 import { eliteBindings, installEliteEncounters } from './fixtures/nativeEliteEncounters';
 import { legacyDouble } from './fake/FakeGame';
 import type { AnimalSim } from '../src/engine/entities/AnimalSim';
-import assembly from '../src/shards/nalati-grasslands/data/headlessAssembly.json' with { type: 'json' };
+import {initializeNalatiElites} from './fixtures/nalati-headless';
+import type {NativeEliteRoster} from '../src/engine/ai/eliteRoster';
 
 function fixture(scope?: Scope) {
   const f = nativeKernelOwners(scope), bindings = eliteBindings();
@@ -109,10 +110,16 @@ test('foreign, duplicate, replaced and retiring population owners refuse before 
   }
 });
 
-test('native metadata binds the concrete population immediately before the original restoring initialization branch', () => {
-  const last = assembly.install.at(-1);
-  expect(last).toEqual({ name: 'initialize', value: { $sequence: [{ $call: [{ $ref: ['elites', 'bindPopulation'] }, { $ref: ['creatures'] }] }, { $call: [{ $ref: ['elites', 'bindBond'] }, { $ref: ['taming'] }] },
-    { $if: [{ $not: { $ref: ['context', 'restoring'] } }, { $call: [{ $ref: ['elites', 'initialize'] }] }, { $ref: ['absent'] }] }] } });
+test('direct native factory binds concrete population before reading the original restoring branch', () => {
+  const creatures=legacyDouble<Parameters<NativeEliteRoster['bindPopulation']>[0]>({});
+  const taming=legacyDouble<Parameters<NativeEliteRoster['bindBond']>[0]>({});
+  for(const restoring of [false,true]){
+    const order:string[]=[];
+    initializeNalatiElites({bindPopulation:body=>{expect(body).toBe(creatures);order.push('population');},
+      bindBond:bond=>{expect(bond).toBe(taming);order.push('bond');},initialize:()=>{order.push('initialize');}},
+      creatures,taming,{get restoring(){order.push('restoring');return restoring;}});
+    expect(order).toEqual(restoring?['population','bond','restoring']:['population','bond','restoring','initialize']);
+  }
 });
 
 function method<O extends object, K extends keyof O>(owner: O, key: K): O[K] { return owner[key]; }

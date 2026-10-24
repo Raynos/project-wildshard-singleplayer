@@ -31,7 +31,9 @@ beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/ph
 test('the shipped assembly passes its wire fence without admitting native expressions elsewhere', () => {
   const encode = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));
   expect(validateNamedJsonSchema(HEADLESS_ASSEMBLY_JSON_SCHEMA, encode(driftwoodAssembly))).toEqual(driftwoodAssembly);
-  expect(driftwoodAssembly.install.find(row => row.name === 'bodyScripts')?.value).toEqual({ $native: 'native.body-scripts' });
+  expect(driftwoodAssembly.modules).toEqual({});
+  expect(driftwoodAssembly.prepare).toEqual([]);
+  expect(driftwoodAssembly.install).toEqual([]);
   const native = { $native: 'native.body-scripts' }, install = [{ name: 'bodyScripts', value: native }];
   for (const declaration of [
     { ...base, constants: { hidden: native } }, { ...base, prepare: install },

@@ -48,7 +48,7 @@ test('native chapter admission receives the exact original encounter without rea
   const wire:unknown=JSON.parse(new TextDecoder().decode(bytes));
   expect(wire).toMatchObject({constants:{nativeEncounter:WAKE_ENCOUNTER.encounter}});expect(WAKE_ENCOUNTER.encounter).toEqual(NATIVE_VIEW.BOSS_ENCOUNTER);
   expect(JSON.stringify(headless)).not.toContain('bossView');expect(JSON.stringify(headless)).not.toContain('custom/fixedLayouts');
-  expect(JSON.stringify(headless)).toContain('nativeEncounter');
+  expect(JSON.stringify(wire)).toContain('nativeEncounter');
 });
 
 test('both real pages publish ordered product Explorer rows and Driftwood borrows its original book', () => {

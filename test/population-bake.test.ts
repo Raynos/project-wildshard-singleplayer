@@ -7,7 +7,6 @@ import { createSimHost } from '../src/engine/sim';
 import { loadRapier } from '../src/engine/physics/rapier';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the original native assembly over real physics.
 import { readFileSync } from 'node:fs';
-import assembly from '../src/shards/nalati-grasslands/data/headlessAssembly.json' with {type:'json'};
 import * as v from 'valibot';
 import { createNativeBakeReader } from '../src/game/population/nativeBake';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
@@ -61,21 +60,12 @@ test('Product.json refuses canopy count, nonnumeric, unknown and forager metadat
 test('the actual population assembly reads the stock profile at its original prepare slot across restore', async () => {
   type Bake = ReturnType<ReturnType<typeof createNativeBakeReader>['read']>;
   const captured: Bake[] = [], capture = (bake: Bake): void => { captured.push(bake); };
-  const declaration = { ...assembly, modules: {
-    '@wildshard/game/population/nativeBake': ['createNativeBakeReader'],
-    'src/shards/nalati-grasslands/data/physics.generated.json': ['default'],
-    'src/game/populationFixture': ['capture'],
-  }, constants: { nativeBake: rows }, prepare: assembly.prepare.filter(row => row.name.startsWith('physics') || row.name === 'bakeReader' || row.name === 'bakeMetadata' || row.name === 'bake'),
-  install: [{ name: 'capture', value: { $call: [{ $ref: ['src/game/populationFixture', 'capture'] }, { $ref: ['bake'] }] } }],
-  level: { speed: 5, lift: .1, ground: { size: 32, height: 0 } }, ports: { ground: false, heightAt: { $fn: 0 } },
-  entries: { $fn: { lanes: 0, steps: 0 } } };
-  expect(declaration.prepare.map(row => row.name)).toEqual(['physicsGround', 'physicsColliders0', 'physicsColliders1', 'bakeReader', 'bakeMetadata', 'bake']);
-  const bytes = new TextEncoder().encode(JSON.stringify(declaration)),schema=metadataBlob.file.jsonSchema;
+  const schema=metadataBlob.file.jsonSchema;
   if(schema===undefined)throw new Error('Missing named metadata schema');
   const shard = emptyShardfile({ slug: 'population-fixture', name: 'Population fixture', author: 'Test', revision: 1, seed: 73 });
   const product = createShardProduct({ slug: shard.identity.slug, revision: 1, shardfile: shard, sections: new Map(),
-    files: new Map([['sim/headless-assembly.json', { hash: 'assembly', url: 'assembly' }],['data/physics-ground.bin',{hash:'ground',url:'ground'}],['data/physics-colliders-0.bin',{hash:'colliders',url:'colliders-0'}],['data/physics-colliders-1.bin',{hash:'colliders',url:'colliders-1'}],['sim/population-metadata.json',{hash:metadataBlob.file.hash,url:metadataBlob.file.path,jsonSchema:schema}]]),
-    read: hash => Promise.resolve(hash==='assembly'?bytes:hash==='ground'?new Uint8Array(new Float32Array([0,1,2,3]).buffer):hash==='colliders'?new Uint8Array():metadataBlob.bytes) });
+    files: new Map([['data/physics-ground.bin',{hash:'ground',url:'ground'}],['data/physics-colliders-0.bin',{hash:'colliders',url:'colliders-0'}],['data/physics-colliders-1.bin',{hash:'colliders',url:'colliders-1'}],['sim/population-metadata.json',{hash:metadataBlob.file.hash,url:metadataBlob.file.path,jsonSchema:schema}]]),
+    read: hash => Promise.resolve(hash==='ground'?new Uint8Array(new Float32Array([0,1,2,3]).buffer):hash==='colliders'?new Uint8Array():metadataBlob.bytes) });
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   const source=input();
   const prepare=async():Promise<HeadlessRuntimePlan>=>{

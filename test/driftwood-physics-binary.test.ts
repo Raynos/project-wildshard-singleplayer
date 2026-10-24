@@ -6,7 +6,6 @@ import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { readNamedBlob } from '../src/sdk/blobs';
 import { driftwoodPhysics, driftwoodPhysicsFiles, driftwoodPhysicsSources } from '../src/shards/driftwood-isle/generators/physics';
 import { driftwoodNativeRows } from '../src/shards/driftwood-isle/generators/nativeBake';
-import assembly from '../src/shards/driftwood-isle/data/headlessAssembly.json' with { type: 'json' };
 import { trustedLevel } from '../src/game/plugin/simulation';
 import type { HeadlessRuntimePlan } from '../src/sdk/headlessRuntime';
 import { emptyShardfile } from '../src/sdk/author';
@@ -63,12 +62,7 @@ test('one pure producer emits the original native floor and standard named binar
 
 test('the shipped assembly reads the raw files and retains native collision, save and restore order', async () => {
   const rapier = await loadRapier(Uint8Array.from(fixtureBytes(new URL('../public/assets/physics/rapier.wasm', import.meta.url))));
-  const module = { createNativeBakeReader, nativeBakeGround, installNativeCollision };
-  const prepareNames = ['physicsGround', 'physicsColliders', 'bakeReader', 'ground', 'bake'];
-  const declaration = { version: 1, modules: { '@wildshard/game/population/nativeBake': Object.keys(module) }, constants: { physics: source },
-    prepare: assembly.prepare.filter(row => prepareNames.includes(row.name)), install: assembly.install.filter(row => row.name === 'world'),
-    level: { speed: 5, lift: .1, ground: { size: 500, height: 0 } }, ports: { ground: false, heightAt: { $fn: 0 } }, entries: { $fn: { lanes: 2, steps: 3 } } };
-  expect(declaration.prepare.map(row => row.name)).toEqual(prepareNames);
+  const declaration = { constants: { physics: source } };
   const shard = emptyShardfile({ slug: 'raw-native', name: 'Raw Native', author: 'Test', revision: 1, seed: 1 });
   const data = new Map([['sim/headless-assembly.json', new TextEncoder().encode(JSON.stringify(declaration))], [floorFile, ground], [hullFile, hulls]]);
   const reads: string[] = [];

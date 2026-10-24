@@ -11,7 +11,6 @@ import { createSimHost } from '../src/engine/sim';
 import { loadRapier } from '../src/engine/physics/rapier';
 // oxlint-disable-next-line import/no-nodejs-modules -- The native fixture uses the shipped physics module.
 import { readFileSync } from 'node:fs';
-import assembly from '../src/shards/pine-hollow/data/headlessAssembly.json' with { type: 'json' };
 import terrain from '../src/shards/pine-hollow/data/terrainBindings.json' with { type: 'json' };
 import { PinePhysicsSchema } from '../src/shards/pine-hollow/generators/sections';
 import { readNamedBlob } from '../src/sdk/blobs';
@@ -45,15 +44,7 @@ test('the Pine assembly retains memoized buffers and privately owned native meta
   type Bake = NativePhysicsBake & Pick<typeof baked, 'kingHit' | 'shelterTrees'>;
   const captured: { value: Bake; reader: NativeBakeReader<object> }[] = [];
   const capture = (value: Bake, reader: NativeBakeReader<object>): void => { captured.push({ value, reader }); };
-  const ref = (...path: string[]) => ({ $ref: path });
-  const declaration = { ...assembly, modules: {
-    '@wildshard/game/population/nativeBake': ['createNativeBakeReader'], 'src/game/bakeFixture': ['capture'],
-  }, constants: { terrain },
-  prepare: assembly.prepare.filter(row => ['physicsRows', 'physicsGround', 'physicsColliders', 'bakeReader', 'bake'].includes(row.name)),
-  install: [{ name: 'capture', value: { $call: [ref('src/game/bakeFixture', 'capture'), ref('bake'), ref('bakeReader')] } }],
-  level: { speed: 5, lift: .1, ground: { size: 500, height: 0 } }, ports: { ground: false, heightAt: { $fn: 0 } },
-  entries: { $fn: { lanes: 0, steps: 0 } } };
-  const bytes = new Map([['sim/headless-assembly.json', new TextEncoder().encode(JSON.stringify(declaration))],
+  const bytes = new Map([
     ['data/physics.generated.json', new TextEncoder().encode(JSON.stringify(baked))],
     ['data/physics-ground.bin', new Uint8Array(readFileSync('src/shards/pine-hollow/data/physics-ground.bin'))],
     ['data/physics-colliders.bin', new Uint8Array(readFileSync('src/shards/pine-hollow/data/physics-colliders.bin'))]]);
