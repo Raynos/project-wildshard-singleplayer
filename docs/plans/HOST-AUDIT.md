@@ -1,6 +1,6 @@
 # Plan: HOST-AUDIT — score every engine and game host, fix the ruler, put shard code back in the shard
 
-**State:** `parked` 2026-10-24 — an off-shoot of [SHARD-PLATFORM](SHARD-PLATFORM.md), like template-free and KITCHEN-SINK: it starts only after every SHARD-PLATFORM mini plan is finished and Jake says go (G679). Its starting point is accepted: all 114 recommendations in [the inventory](../reviews/host-audit-inventory.md) (95 keep, 18 fold, 1 retire). It owns G594's ruler fix and G595's host-by-host approvals.
+**State:** `parked` 2026-10-24 — an off-shoot of [SHARD-PLATFORM](SHARD-PLATFORM.md), like template-free and KITCHEN-SINK: it starts only after every SHARD-PLATFORM mini plan is finished and Jake says go (G679). Its starting point is accepted: all 114 recommendations in [the inventory](../../project/archive/reviews/2026-10-24-host-audit-inventory.md) (95 keep, 18 fold, 1 retire). It owns G594's ruler fix and G595's host-by-host approvals.
 It overlaps [SHARD-PLATFORM-NEXT](SHARD-PLATFORM-NEXT.md) N4; both plans stay as they are (Jake, 2026-10-22: *"leave them alone"*). Decisions
 stay in [shard-platform/decisions.md](shard-platform/decisions.md); the bar is [docs/HOST-BAR.md](../HOST-BAR.md).
 
