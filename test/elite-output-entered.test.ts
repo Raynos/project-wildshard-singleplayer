@@ -178,6 +178,46 @@ test('same-object service replacement and a real sliced ancestor retirement fenc
   finally { for (const step of retirement) void step; }
 });
 
+test('method identity refusal still reads the complete ordered controller suffix before rejecting', () => {
+  const f = fixture(), restore: (() => void)[] = [], reads: string[] = [];
+  try {
+    const borrowed = external(f, 'script');
+    f.bind(); const prepared = f.elites.prepareV2Outputs([], []);
+    const replacement = () => undefined;
+    Object.defineProperty(f.environment, 'onKnockdown', { configurable: true, get: () => { reads.push('knock'); return replacement; } });
+    const observe = (owner: object, key: string, label: string): void => {
+      const descriptor = Object.getOwnPropertyDescriptor(owner, key), value: unknown = Reflect.get(owner, key);
+      Object.defineProperty(owner, key, { configurable: true, get: () => { reads.push(label); return value; } });
+      restore.push(() => { if (descriptor === undefined) Reflect.deleteProperty(owner, key); else Object.defineProperty(owner, key, descriptor); });
+    };
+    observe(f.loans.hud, 'killFeed', 'feed');
+    observe(f.keeper, 'row', 'keeper.row'); observe(f.keeper, 'def', 'keeper.def');
+    observe(borrowed, 'row', 'external.row'); observe(borrowed, 'def', 'external.def');
+    observe(borrowed, 'adopt', 'external.adopt'); observe(borrowed, 'support', 'external.support');
+    expect(() => prepared.validate()).toThrow('Retired or replaced elite output owner');
+    expect(reads).toEqual(['knock', 'feed', 'keeper.row', 'keeper.def', 'external.row', 'external.def', 'external.adopt', 'external.support']);
+    expect(f.trace).toEqual([]);
+  } finally { for (const reset of restore.reverse()) reset(); f.root.dispose(); }
+});
+
+test('getter reentry cannot overwrite an outer method replacement snapshot', () => {
+  const f = fixture();
+  try {
+    f.bind(); const prepared = f.elites.prepareV2Outputs([], []);
+    const knock: unknown = Reflect.get(f.environment, 'onKnockdown'), feed: unknown = Reflect.get(f.loans.hud, 'killFeed');
+    const replacement = () => undefined;
+    let changed = true, reenter = true, nested = false;
+    Object.defineProperty(f.environment, 'onKnockdown', { configurable: true, get: () => changed ? replacement : knock });
+    Object.defineProperty(f.loans.hud, 'killFeed', { configurable: true, get: () => {
+      if (reenter) { reenter = false; changed = false; prepared.validate(); nested = true; }
+      return feed;
+    } });
+    expect(() => prepared.validate()).toThrow('Retired or replaced elite output owner');
+    expect(nested).toBe(true); expect(() => prepared.validate()).not.toThrow();
+    expect(f.trace).toEqual([]);
+  } finally { f.root.dispose(); }
+});
+
 function external(f: ReturnType<typeof fixture>, mode: 'script' | 'herd'): BorrowedElite {
   return withOwner(f.entered, () => {
     const def = { ...f.keeper.def, id: 'reed.rider' };

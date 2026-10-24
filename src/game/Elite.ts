@@ -514,11 +514,14 @@ function prepareElitePageOutputs<T extends CrowdTargets>(actions: readonly Elite
   const controls = [...controllers], tags = controls.map(loan => loan.kind), controllerOwners = controls.map(loan => loan.owner), bodies = [...actors], level = game.levelScope, health = app.player, physics = app.physics, combat = app.combat;
   // Identities are compared only; all calls retain the concrete native receiver.
   const method = <O extends object>(owner: O | null, key: keyof O): unknown => owner === null ? undefined : owner[key];
-  const nativeMethods = (): readonly unknown[] => [method(loans.patrol, 'spawnRider'), method(loans.patrol, 'spawnLine'), method(loans.patrol, 'dissolve'),
-    method(loans.wildlife, 'spawnPack'), method(loans.wildlife, 'spawnHerd'), method(loans.animals, 'spawn'), method(loans.environment, 'onKnockdown'),
-    method(loans.hud, 'killFeed'), method(loans.audio, 'animal'), method(loans.persistence, 'kill'), method(loans.persistence, 'feat'), method(loans.contacts, 'contact'), method(combat, 'hit'),
-    ...controllers.flatMap(loan => [method(loan.owner, 'row'), method(loan.owner, 'def'),
-      loan.kind === 'external' ? method(loan.owner, 'adopt') : undefined, loan.kind === 'external' ? method(loan.owner, 'support') : undefined])];
+  const nativeMethods = (): readonly unknown[] => {
+    const values = [method(loans.patrol, 'spawnRider'), method(loans.patrol, 'spawnLine'), method(loans.patrol, 'dissolve'),
+      method(loans.wildlife, 'spawnPack'), method(loans.wildlife, 'spawnHerd'), method(loans.animals, 'spawn'), method(loans.environment, 'onKnockdown'),
+      method(loans.hud, 'killFeed'), method(loans.audio, 'animal'), method(loans.persistence, 'kill'), method(loans.persistence, 'feat'), method(loans.contacts, 'contact'), method(combat, 'hit')];
+    controllers.forEach(loan => { values.push(method(loan.owner, 'row'), method(loan.owner, 'def'),
+      loan.kind === 'external' ? method(loan.owner, 'adopt') : undefined, loan.kind === 'external' ? method(loan.owner, 'support') : undefined); });
+    return values;
+  };
   const methods = nativeMethods();
   const liveOwners = (): void => {
     if (!(construction instanceof Scope) || !(entered instanceof Scope) || construction.disposed || construction.disposing || entered.disposed || entered.disposing
