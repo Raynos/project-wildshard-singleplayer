@@ -54,6 +54,21 @@ test('Developer reuses the property proxy and retains authored handle labels', (
   expect(labels[0]?.[1]).toEqual({ owner: 'fixture-owner', asset: 'same.ktx2/Texture', priority: 3 });
 });
 
+// only a texture's or a render target's properties ever hold a GL handle: a material's, a geometry's and an object's are
+// three's own objects in Developer too (a proxy there ran every draw's property reads off JavaScriptCore's inline caches)
+test('Developer proxies only the properties that hold GL handles', () => {
+  setDev(true);
+  const { renderer, raw } = fixture(), material = new MeshBasicMaterial(), geometry = new BufferGeometry(), mesh = new Mesh(geometry, material);
+  installGpuLabels(renderer);
+  expect(renderer.properties.get(material)).toBe(raw(material));
+  expect(renderer.properties.get(geometry)).toBe(raw(geometry));
+  expect(renderer.properties.get(mesh)).toBe(raw(mesh));
+  const texture = new Texture(), target = new WebGLRenderTarget(2, 2);
+  expect(renderer.properties.get(texture)).not.toBe(raw(texture));
+  expect(renderer.properties.get(target)).not.toBe(raw(target));
+  material.dispose(); geometry.dispose(); texture.dispose(); target.dispose();
+});
+
 test('Developer can be switched off and on without stale labels or changing raw properties', () => {
   setDev(false);
   const { renderer, raw } = fixture(), texture = new Texture(), handle = {};

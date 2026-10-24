@@ -1,4 +1,4 @@
-import { Bone, BufferAttribute, BufferGeometry, InterleavedBufferAttribute, Material, Object3D, Skeleton, Texture, WebGLRenderTarget } from 'three';
+import { Bone, BufferAttribute, BufferGeometry, InterleavedBufferAttribute, Material, Object3D, RenderTarget, Skeleton, Texture, WebGLRenderTarget } from 'three';
 import type { Renderer } from './renderer';
 import { arrayReleased } from './releasedArrays';
 import { isDev } from '../core/devMode';
@@ -371,6 +371,11 @@ export function installGpuLabels(renderer: LabelRenderer, developer: () => boole
     }
     const properties = get(resource);
     if (properties === null || typeof properties !== 'object') return properties;
+    // three keeps the GL handles (GL_HANDLES) only in a texture's or a render target's properties: a material's, a
+    // geometry's or an object's stay the plain object. Proxied, every field three reads of them on every draw (setProgram's
+    // dozens) went through the proxy, which JavaScriptCore runs off its inline caches: the top render frame of a steady
+    // Nalati Simulator profile with Developer on (sp-x1, b17146eb2f: NodeProgramVariants.select 217 of 5980 samples).
+    if (!isTexture(resource) && !(resource instanceof RenderTarget)) return properties;
     // Assets initialized before joining a scene acquire their authored identity later; update the existing GL tag.
     for (let index = 0; index < GL_HANDLES.length; index++) {
       const key = GL_HANDLES[index], role = GL_ROLES[index];
