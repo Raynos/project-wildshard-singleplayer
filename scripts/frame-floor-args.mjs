@@ -19,11 +19,15 @@ export function validateFrameFloorArgs(args) {
     throw new Error('Quiet frame floors require --surface=sim');
   if (args.some(arg => arg.startsWith('--webkit-timeline=')) && !args.includes('--surface=sim'))
     throw new Error('WebKit timelines require --surface=sim');
-  const selected = args.filter(arg => arg.startsWith('--safari-steady=') || arg.startsWith('--safari-drive='));
-  const selection = selected[0];
-  if (selected.length > 0 && (selected.length !== 1 || selection === undefined || !/^[a-zA-Z0-9_.-]{1,128}$/u.test(selection.slice(selection.indexOf('=') + 1))
+  const steady = args.filter(arg => arg.startsWith('--safari-steady='));
+  const drive = args.filter(arg => arg.startsWith('--safari-drive='));
+  const selected = [...steady, ...drive];
+  const paired = steady.length === 1 && drive.length === 1 && drive[0] !== undefined
+    && steady[0] === `--safari-steady=grid-${drive[0].slice('--safari-drive='.length)}`;
+  if (selected.length > 0 && (steady.length > 1 || drive.length > 1 || selected.length > 1 && !paired
+    || selected.some(selection => !/^[a-zA-Z0-9_.-]{1,128}$/u.test(selection.slice(selection.indexOf('=') + 1)))
     || !args.includes('--surface=sim') || !args.includes('--shards=grid')
     || !args.some(arg => arg.startsWith('--safari-profile=') && arg.length > '--safari-profile='.length)
     || !args.some(arg => arg.startsWith('--grid-scenario=') && arg !== '--grid-scenario=baseline')))
-    throw new Error('Selected Safari sampling requires one pose or drive, Simulator grid travel and --safari-profile');
+    throw new Error('Selected Safari sampling requires one pose or drive (or a matching pair), Simulator grid travel and --safari-profile');
 }

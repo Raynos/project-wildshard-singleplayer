@@ -242,7 +242,11 @@ are attribution, not function milliseconds or frame-floor acceptance.
 Alternatively, `--safari-drive=pine-interior` selects only that original drive
 and extends its profile through twenty subsequent entered-play seconds. Its
 raw record retains separate drive and early-play page ranges; standing and
-other drive profiles are suppressed. The two selection flags are exclusive.
+other drive profiles are suppressed. Combining both selection flags is allowed
+only for a matching route and `grid-<route>` pose: this records the original
+drive and a separate twenty-second steady profile after its standing sample.
+The gap remains unprofiled; no zero Inspector timestamps are used to partition
+the two workloads.
 
 Before CPU work, `python3 scripts/sim-quiet.py status` reports the active official
 reading. During it, **read and edit only**: no tests, typechecks, lint, builds,

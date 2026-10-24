@@ -80,3 +80,8 @@ test('drive selection profiles one route plus early play and excludes a second s
     [...args.filter(arg => !arg.startsWith('--safari-profile=')), '--safari-drive=pine-interior'],
   ]) expect(() => validateFrameFloorArgs(invalid)).toThrow('requires one pose or drive');
 });
+
+test('a matching drive and steady pose select two separate windows in one run', () => {
+  expect(() => validateFrameFloorArgs([...args, '--safari-drive=nalati-interior', '--safari-steady=grid-nalati-interior'])).not.toThrow();
+  expect(() => validateFrameFloorArgs([...args, '--safari-drive=pine-interior', '--safari-steady=grid-nalati-interior'])).toThrow('matching pair');
+});
