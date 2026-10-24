@@ -1,7 +1,7 @@
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 
-export interface NineMoversProgram { readonly hash: string; readonly compressed: number }
+export interface NineMoversProgram { readonly hash: string; readonly compressed: number; readonly bytes: Uint8Array }
 
 /** The original fixed-page view compiler and IO bounds, with source bytes supplied by the caller. */
 export async function compileNineMovers(compiler: Pick<ProjectGenerationContext, 'compileScriptV2'>,
@@ -19,5 +19,5 @@ export async function nineMoversProgram(ctx: ProjectGenerationContext): Promise<
   if (bytes === undefined) throw new Error('Missing compiled Nine movers');
   const hash = hashImmutableBytes(bytes);
   if (ctx.asset(bytes) !== hash) throw new Error('Nine movers byte identity differs');
-  return { hash, compressed: bytes.length };
+  return { hash, compressed: bytes.length, bytes };
 }

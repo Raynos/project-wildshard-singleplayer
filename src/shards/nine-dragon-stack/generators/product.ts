@@ -1,5 +1,4 @@
 import courseProgram from '../behaviour/practice.generated.json' with { type: 'json' };
-import moversModule from '../behaviour/movers.generated.json' with { type: 'json' };
 import { heldGraphFiles } from './heldGraphFiles';
 import { filamentGraph } from './filamentGraph';
 import { haloGraph } from './haloGraph';
@@ -33,8 +32,10 @@ const portalEntries = portalEntryRows(), portalFloors = portalFloorRows();
 // road portal on its deck, the square's arrival, the square's exit bound back to that road, and the walked route between
 // (world/portalPlan.ts `portalLinks`). The floors they bind are this file's `props.colliders` (the generated portal-floor rows: each whole deck, `deck.<edge>`, and the square's slab, `square`), the very boxes the trusted runtime
 // installs under those ids (world/install.ts), so its ride (world/portalRide.ts) is the format's checked transfer.
+const DEFAULT_MOVERS = { pages: 1 };
+
 /** Assemble the declaration from this build's fixed-page view contract. */
-export function nineProduct(movers: { readonly pages: number } = moversModule): Shardfile {
+export function nineProduct(movers: { readonly pages: number } = DEFAULT_MOVERS): Shardfile {
 const base = emptyShardfile({ slug: 'nine-dragon-stack', name: 'Nine Dragon Stack', author: 'Wildshard', revision: 1, seed: 0x9d2a });
 const library = new Set([...world.shardfile.library, ...heldGraphFiles.library]), charged = [...world.shardfile.files.filter(file => library.has(file.hash)), ...heldGraphFiles.files];
 const courseBytes=courseProgram.compiled.bytes, courseMemory=courseBytes+courseProgram.script.pages*65536*2;

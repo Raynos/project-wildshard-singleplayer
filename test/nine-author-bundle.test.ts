@@ -11,9 +11,9 @@ test('Nine authored streaks retain the original blend state without importing a 
   expect(row).toMatchObject({ state: { transparent: true, ...BLEND_ADD_KEEP_ALPHA } });
 });
 
-test('the actual Nine output sidecar bundles as one build-only module', async () => {
+test('the actual Nine output factory bundles as one build-only module', async () => {
   const result = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: false,
-    lib: { entry: resolve('src/shards/nine-dragon-stack/generators/output.ts'), formats: ['es'], fileName: 'config' }, rolldownOptions: { external: [/^node:/u, 'assemblyscript/dist/asc.js'] } } });
+    lib: { entry: resolve('src/shards/nine-dragon-stack/generators/productOutput.ts'), formats: ['es'], fileName: 'config' }, rolldownOptions: { external: [/^node:/u, 'assemblyscript/dist/asc.js'] } } });
   const built = Array.isArray(result) ? result[0] : result;
   if (built === undefined || !('output' in built)) throw new Error('Missing Nine output bundle');
   const chunks = built.output.filter(row => row.type === 'chunk'); expect(chunks).toHaveLength(1);
