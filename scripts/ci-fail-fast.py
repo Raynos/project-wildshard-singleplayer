@@ -48,6 +48,32 @@ def escape(value):
     return str(value).replace('%','%25').replace('\r','%0D').replace('\n','%0A').replace(',','%2C').replace(':','%3A')
 
 
+def print_culprits(files):
+    """Advisory exact-history attribution, bounded independently of the red check."""
+    try:
+        result=subprocess.run(['node',str(Path(__file__).with_name('ci-culprits.mjs')),
+            '--sha='+os.environ.get('GITHUB_SHA',''),'--files='+json.dumps(files[:16])],
+            text=True,capture_output=True,timeout=35)
+        if result.returncode:
+            raise RuntimeError('helper exited '+str(result.returncode))
+        row=json.loads(result.stdout)
+        if not re.fullmatch(r'[0-9a-f]{40}',row['base']) or len(row['candidates'])>3:
+            raise ValueError('invalid culprit report')
+        print('::group::CF4 likely culprit commits',flush=True)
+        print('Last green main push: '+row['base'],flush=True)
+        for candidate in row['candidates']:
+            print('Candidate '+escape(candidate['sha'])+' ['+escape(candidate['match'])+'] '+
+                escape(candidate['subject'])+' | Assisted-by: '+escape(candidate['assistedBy']),flush=True)
+        if not row['candidates']:
+            print('No commit in this range touches the failing files or their literal imports.',flush=True)
+        if row['missingImports']:
+            print('Unresolved/absent committed inputs: '+escape(', '.join(row['missingImports'][:10])),flush=True)
+        print('::endgroup::',flush=True)
+    except (OSError,ValueError,KeyError,TypeError,RuntimeError,subprocess.SubprocessError) as error:
+        print('::warning::CI culprit report unavailable: '+escape(type(error).__name__)+
+            '; original check remains red; no retry',flush=True)
+
+
 def diagnose(output, code, peer=None, record=True):
     files = [] if peer is not None else failure_files(output)
     label = ('Peer job '+peer['name']+' failed; stopped this owned command') if peer else 'Check exited '+str(code)
@@ -61,6 +87,8 @@ def diagnose(output, code, peer=None, record=True):
         # One runner owns this file. Failure metadata has no credentials/log text.
         (directory/'failure.json').write_text(json.dumps({'at':time.time(),'sha':os.environ.get('GITHUB_SHA'),
             'run':os.environ.get('GITHUB_RUN_ID'),'job':job,'files':files,'peer':peer.get('html_url') if peer else None})+'\n')
+        if peer is None and files and os.environ.get('GITHUB_EVENT_NAME')=='push' and os.environ.get('GITHUB_RUN_ID'):
+            print_culprits(files)
     return files
 
 

@@ -100,11 +100,37 @@ class FailFastTests(unittest.TestCase):
         function=API['diagnose']
         with tempfile.TemporaryDirectory(dir='tmp') as directory:
             root=Path(directory)
-            with patch.dict(function.__globals__,{'Path':lambda value:root/value}),contextlib.redirect_stdout(io.StringIO()):
+            with patch.dict(function.__globals__,{'Path':lambda value:root/value,'print_culprits':lambda files:None}),contextlib.redirect_stdout(io.StringIO()):
                 function('FAIL test/actual.test.ts > private diagnostic',1)
             row=json.loads((root/'tmp/ci-failures/failure.json').read_text())
             self.assertEqual(row['files'],['test/actual.test.ts'])
             self.assertNotIn('private diagnostic',json.dumps(row))
+
+    def test_culprit_output_is_bounded_and_observation_failure_does_not_hide_red(self):
+        report=API['print_culprits']
+        row={'base':'a'*40,'candidates':[{'sha':'b'*40,'match':'literal import','subject':'fix fixture',
+            'assistedBy':'fixture:recorded'}],'missingImports':[]}
+        with patch.object(subprocess,'run',return_value=subprocess.CompletedProcess([],0,json.dumps(row),'')), \
+                contextlib.redirect_stdout(io.StringIO()) as out:
+            report(['test/actual.test.ts'])
+        self.assertIn('Last green main push: '+'a'*40,out.getvalue())
+        self.assertIn('Candidate '+'b'*40,out.getvalue())
+        self.assertIn('Assisted-by: fixture%3Arecorded',out.getvalue())
+        with patch.object(subprocess,'run',side_effect=subprocess.TimeoutExpired('node',35)), \
+                contextlib.redirect_stdout(io.StringIO()) as out:
+            report(['test/actual.test.ts'])
+        self.assertIn('original check remains red; no retry',out.getvalue())
+
+    def test_only_own_push_failure_reports_its_culprits(self):
+        function=API['diagnose'];calls=[]
+        with tempfile.TemporaryDirectory(dir='tmp') as directory:
+            root=Path(directory)
+            with patch.dict(function.__globals__,{'Path':lambda value:root/value,'print_culprits':lambda files:calls.append(files)}), \
+                    patch.dict(os.environ,{'GITHUB_EVENT_NAME':'push','GITHUB_RUN_ID':'42'}), \
+                    contextlib.redirect_stdout(io.StringIO()):
+                function('FAIL test/actual.test.ts > failure',7)
+                function('FAIL test/other.test.ts > peer',1,{'name':'peer','html_url':'https://example.invalid'})
+            self.assertEqual(calls,[['test/actual.test.ts']])
 
 
 if __name__=='__main__':

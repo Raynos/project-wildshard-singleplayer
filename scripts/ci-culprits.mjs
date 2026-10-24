@@ -1,0 +1,101 @@
+// CF4: likely source commits from exact Git bytes; never execute the failing imports.
+import { execFileSync } from 'node:child_process';
+import { dirname, posix, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import ts from '@typescript/typescript6';
+import * as v from 'valibot';
+import { gitSourceView } from './git-source-view.mjs';
+
+const SHA=/^[0-9a-f]{40}$/u;
+/** @param {string} path */
+const safePath=path=>/^(?:src|scripts|test|admin|api|drafts|lint|vite)\/[\w./-]+$/u.test(path)&&!path.split('/').some(part=>part==='..'||part==='.');
+/** @param {string} path */
+const repositoryPath=path=>/^[\w./-]+$/u.test(path)&&!path.startsWith('/')&&!path.split('/').some(part=>part==='..'||part==='.');
+const packageSchema=v.object({exports:v.optional(v.record(v.string(),v.string()))});
+
+/** @param {string} root @param {string[]} args */
+function git(root,args){return execFileSync('git',args,{cwd:root,encoding:'utf8',timeout:10000,maxBuffer:8*1024*1024}).trim();}
+
+/** Resolve only literal relative imports and the committed workspace exports.
+ * @param {ReturnType<typeof gitSourceView>} view @param {string[]} roots */
+function closure(view,roots){
+  const seen=new Set(roots);
+  /** @type {Set<string>} */ const missing=new Set();
+  let pending=[...roots];
+  while(pending.length>0){
+    if(seen.size>3000)throw new Error('dependency inventory exceeds 3000 files');
+    for(const file of pending)if(!view.files.has(file))missing.add(file);
+    const batch=pending.filter(file=>view.files.has(file));pending=[];view.prime(batch);
+    for(const file of batch){
+      if(!/\.[cm]?[jt]sx?$/u.test(file))continue;
+      for(const row of ts.preProcessFile(view.read(file).toString('utf8'),true,true).importedFiles){
+        const source=row.fileName.split('?')[0]??row.fileName;
+        let target=source.startsWith('.')?posix.normalize(posix.join(dirname(file),source)):null;
+        const workspace=/^@wildshard\/([^/]+)(?:\/(.+))?$/u.exec(source);
+        if(workspace!==null){
+          const manifest=`src/${workspace[1]}/package.json`;seen.add(manifest);
+          if(!view.files.has(manifest)){missing.add(manifest);continue;}
+          const entry=v.parse(packageSchema,JSON.parse(view.read(manifest).toString('utf8'))).exports?.[workspace[2]===undefined?'.':`./${workspace[2]}`];
+          if(entry===undefined||!entry.startsWith('./')){missing.add(source);continue;}
+          target=posix.normalize(`src/${workspace[1]}/${entry.slice(2)}`);
+        }
+        if(target===null)continue;
+        if(!repositoryPath(target))throw new Error(`dependency escapes repository source: ${target}`);
+        const candidates=[target,`${target}.ts`,`${target}.tsx`,`${target}.mts`,`${target}.mjs`,`${target}.js`,`${target}.json`,`${target}/index.ts`,
+          ...(target.endsWith('.js')?[`${target.slice(0,-3)}.ts`]:[]),...(target.endsWith('.mjs')?[`${target.slice(0,-4)}.mts`]:[])];
+        const found=candidates.find(path=>view.files.has(path));
+        if(found===undefined){missing.add(target);continue;}
+        if(!seen.has(found)){seen.add(found);pending.push(found);}
+      }
+    }
+  }
+  return {paths:[...seen],missing:[...missing]};
+}
+
+/** Never confuse a release-only workflow success with a green push.
+ * @param {string} sha @param {(path:string)=>unknown} [query] */
+export function priorGreen(sha,query){
+  const repo=process.env.GITHUB_REPOSITORY??'',run=process.env.GITHUB_RUN_ID??'';
+  if(!/^[\w.-]+\/[\w.-]+$/u.test(repo)||!/^\d+$/u.test(run)||!SHA.test(sha))throw new Error('missing exact push run identity');
+  const api=query??((/** @type {string} */ path)=>JSON.parse(execFileSync('gh',['api',path],{encoding:'utf8',timeout:10000,maxBuffer:2*1024*1024})));
+  const current=v.parse(v.object({event:v.string(),head_branch:v.string(),head_sha:v.string(),created_at:v.string(),path:v.string()}),api(`repos/${repo}/actions/runs/${run}`));
+  if(current.event!=='push'||current.head_branch!=='main'||current.head_sha!==sha||current.path!=='.github/workflows/deploy.yml')throw new Error('not the exact main push run');
+  const runs=v.parse(v.object({workflow_runs:v.array(v.object({event:v.string(),head_branch:v.string(),head_sha:v.string(),status:v.string(),conclusion:v.nullable(v.string()),created_at:v.string(),path:v.string()}))}),
+    api(`repos/${repo}/actions/workflows/deploy.yml/runs?branch=main&event=push&status=success&per_page=100`)).workflow_runs;
+  const green=runs.filter(row=>row.event==='push'&&row.head_branch==='main'&&row.status==='completed'&&row.conclusion==='success'
+    &&row.path==='.github/workflows/deploy.yml'&&row.created_at<current.created_at&&SHA.test(row.head_sha))
+    .sort((a,b)=>b.created_at.localeCompare(a.created_at))[0];
+  if(green===undefined)throw new Error('no prior successful main push in the bounded inventory');
+  return green.head_sha;
+}
+
+/** At most three candidates, prioritizing the failing file over its imports.
+ * Missing generated imports stay visible; no checkout, producer or build runs.
+ * @param {string} root @param {string} base @param {string} sha @param {string[]} files */
+export function culpritReport(root,base,sha,files){
+  if(!SHA.test(base)||!SHA.test(sha)||files.length===0||files.length>16||files.some(file=>!safePath(file)))throw new Error('invalid culprit report inputs');
+  git(root,['merge-base','--is-ancestor',base,sha]);
+  const current=closure(gitSourceView(root,sha),files),previous=closure(gitSourceView(root,base),files);
+  const paths=[...new Set([...current.paths,...previous.paths])].sort((a,b)=>a.localeCompare(b));
+  const commits=(/** @type {string[]} */ selected)=>git(root,['log','-n','3','--format=%H',`${base}..${sha}`,'--',...selected]).split('\n').filter(Boolean);
+  const direct=commits(files),related=commits(paths);
+  const candidates=[...new Set([...direct,...related])].slice(0,3).map(commit=>{
+    const [subject='',assistedBy='']=git(root,['show','-s','--format=%s%x00%(trailers:key=Assisted-by,valueonly)',commit]).split('\0');
+    const attribution=assistedBy.trim();
+    return {sha:commit,subject,assistedBy:attribution.length===0?'no Assisted-by trailer':attribution,match:direct.includes(commit)?'failing file':'literal import'};
+  });
+  return {base,sha,files,candidates,missingImports:[...new Set([...current.missing,...previous.missing])].sort((a,b)=>a.localeCompare(b))};
+}
+
+function main(){
+  const option=(/** @type {string} */ key)=>process.argv.find(value=>value.startsWith(`--${key}=`))?.slice(key.length+3);
+  const root=resolve(option('root')??'.'),sha=option('sha')??process.env.GITHUB_SHA??'',base=option('base')??priorGreen(sha);
+  const files=v.parse(v.array(v.string()),JSON.parse(option('files')??'[]'));
+  // checkout@v4 normally has one commit. Fetch objects only, with a bounded
+  // history; a missing ancestor remains unavailable rather than a guessed range.
+  if(git(root,['rev-parse','--is-shallow-repository'])==='true')git(root,['fetch','--no-tags','--filter=blob:none','--depth=200','origin',sha]);
+  console.log(JSON.stringify(culpritReport(root,base,sha,files)));
+}
+if(process.argv[1]!==undefined&&pathToFileURL(resolve(process.argv[1])).href===import.meta.url){
+  try{main();}catch(error){console.error(`CI culprit report unavailable: ${error instanceof Error?error.message:'invalid diagnostic input'}`);process.exitCode=1;}
+}
