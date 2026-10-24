@@ -113,3 +113,27 @@ test('a deadline preserves this worker red without mistaking nested fixture outp
   expect(relatedTestFailed(timedOut, 'outer-token')).toBe(false);
   expect(relatedTestFailed({ ...timedOut, name: 'types' }, 'own-token')).toBe(false);
 });
+
+
+test('real commit excludes a loose peer regression but refuses it when staged', () => {
+  const {root,git,put}=fixture();
+  try {
+    put('.githooks/pre-commit', `#!/bin/sh\nexec '${execPath}' '${resolve(root,'hook.mjs')}'\n`);
+    chmodSync(resolve(root,'.githooks/pre-commit'),0o755);
+    put('hook.mjs',`import {execFileSync} from 'node:child_process';import {commitRelated} from '${resolve('scripts/precommit-related.mjs')}';await commitRelated(process.cwd(),execFileSync('git',['diff','--cached','--name-only','-z'],{encoding:'utf8'}).split('\\0').filter(Boolean));`);
+    git('config','core.hooksPath','.githooks');
+    put('src/value.ts','export const value = 2;\n');
+    put('test/value.test.ts','import {test,expect} from "vitest";import {value} from "../src/value";test("value",()=>expect(value).toBe(2));');
+    const peer='import {test,expect} from "vitest";import {value} from "../src/value";test("peer regression",()=>expect(value).toBe(99));';
+    put('test/peer.test.ts',peer);
+    const commit=(paths:string[])=>spawnSync('bash',[resolve(repository,'scripts/commit.sh'),'test(cf1): candidate test boundary','--',...paths],{cwd:root,env:fixtureEnv,encoding:'utf8',timeout:20_000});
+    const green=commit(['src/value.ts','test/value.test.ts']);
+    expect(green.status,green.stdout+green.stderr).toBe(0);
+    expect(green.stdout+green.stderr).toContain('absent from the candidate index');
+    expect(readFileSync(resolve(root,'test/peer.test.ts'),'utf8')).toBe(peer);
+    const parent=git('rev-parse','HEAD'),red=commit(['test/peer.test.ts']);
+    expect(red.status,red.stdout+red.stderr).not.toBe(0);
+    expect(red.stdout+red.stderr).toContain('CF1 TEST FAILURE:');
+    expect(git('rev-parse','HEAD')).toBe(parent);
+  }finally{rmSync(root,{recursive:true,force:true});}
+},30_000);

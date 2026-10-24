@@ -48,6 +48,7 @@ export async function relatedWorker(root, files) {
   const { createVitest } = await import('vitest/node');
   const { WS_COMMIT_RELATED_TOKEN: token } = process.env;
   const staged = stagedFiles(root);
+  const loose = execFileSync('git', ['ls-files', '--others', '--exclude-standard', '-z'], { cwd: root, encoding: 'utf8' }).split('\0').filter(file => TEXT.test(file));
   const override = stagedInputOverride(root, staged);
   // Keep the hook's index only long enough to seal overrides. Fixture Git
   // commands must never inherit and rewrite the enclosing commit's index.
@@ -72,6 +73,10 @@ export async function relatedWorker(root, files) {
     }],
   }, { plugins: [override] });
   try {
+    // A peer's new tests are not part of this candidate. Newly staged tests
+    // are absent from --others and keep the ordinary executed-red refusal.
+    for (const project of vitest.projects) project.config.exclude.push(...loose);
+    if (loose.length > 0) console.warn(`CF1: exclude ${loose.length} loose text paths absent from the candidate index`);
     await vitest.start();
     if (process.exitCode !== undefined && process.exitCode !== 0 && failures === 0)
       console.warn('CF1 DEFERRED TO CI: collection/runner failed without an executed failing test');
