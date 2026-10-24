@@ -2,6 +2,7 @@
 import contextlib
 import io
 import json
+import os
 from pathlib import Path
 import runpy
 import subprocess
@@ -53,6 +54,38 @@ class FailFastTests(unittest.TestCase):
                 self.assertIn('behaviour (3)',out.getvalue())
             finally:
                 foreign.terminate();foreign.wait(timeout=3)
+
+    def test_behaviour_finishes_its_own_failure_while_other_jobs_keep_peer_stop(self):
+        main=API['main'];run=API['run']
+        command=[sys.executable,'-c','import time;time.sleep(.2);print("FAIL test/own.test.ts > actual");raise SystemExit(7)']
+        for job, expected in [('behaviour',7),('products',1)]:
+            with self.subTest(job=job):
+                observations=[]
+                def peer():
+                    observations.append(1)
+                    return dict(name='behaviour (3)',html_url='https://github.example/jobs/3',conclusion='failure')
+                with patch.dict(os.environ,{'GITHUB_EVENT_NAME':'push','GITHUB_JOB':job}), \
+                        patch.object(sys,'argv',['ci-fail-fast.py','--',*command]), \
+                        patch.dict(main.__globals__,{'peer_failure':peer,'run':lambda args,reader:run(args,reader,record=False)}), \
+                        contextlib.redirect_stdout(io.StringIO()) as out, \
+                        self.assertRaises(SystemExit) as stopped:
+                    main()
+                self.assertEqual(stopped.exception.code,expected)
+                if job=='behaviour':
+                    self.assertEqual(observations,[])
+                    self.assertIn('::error file=test/own.test.ts',out.getvalue())
+                    self.assertNotIn('Peer job',out.getvalue())
+                else:
+                    self.assertEqual(observations,[1])
+                    self.assertIn('Peer job behaviour (3)',out.getvalue())
+                    self.assertNotIn('FAIL test/own.test.ts',out.getvalue())
+
+    def test_behaviour_matrix_keeps_independent_jobs_and_per_shard_bail(self):
+        source=Path('.github/workflows/deploy.yml').read_text()
+        behaviour=source.split('\n  behaviour:\n',1)[1].split('\n  dispatch-boot-smoke:\n',1)[0]
+        self.assertIn('fail-fast: false',behaviour)
+        self.assertNotIn('fail-fast: true',behaviour)
+        self.assertIn('python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py check -- pnpm exec vitest run --shard=${{ matrix.shard }}/16 --bail=1',behaviour)
 
     def test_monitor_failure_is_named_once_without_retry_or_masking_check(self):
         calls=[]

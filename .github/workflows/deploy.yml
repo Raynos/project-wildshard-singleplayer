@@ -506,7 +506,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
-      fail-fast: true
+      # G678/SW9: every shard reports its own first failure in this run.
+      fail-fast: false
       matrix:
         shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
     steps:
