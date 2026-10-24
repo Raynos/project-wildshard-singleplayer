@@ -183,11 +183,16 @@ export class SharedTileBuilds<T> {
     }
     const held = entry;
     held.holds++;
-    scope.onDispose(() => {
+    let forgetBuild = (): void => undefined;
+    const forgetHolder = scope.capture('disposers', () => {
+      forgetBuild();
       held.holds--;
       if (held.holds > 0 || this.builds.get(tile) !== held) return;
       this.builds.delete(tile); held.scope.dispose();
     });
+    // Either owner can end first. A retired build must not remain reachable
+    // through a live ring's callback, nor may it keep a departed holder alive.
+    forgetBuild = held.scope.capture('disposers', forgetHolder);
     return held.built;
   }
   private async complete(pending:Promise<T>,scope:Scope):Promise<T>{
