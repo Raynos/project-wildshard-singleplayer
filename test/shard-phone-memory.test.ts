@@ -87,6 +87,8 @@ test('official WebKit core floors refuse mixed entry modes or duplicate readings
   expect(() => run(['--core-memory=unknown'])).toThrow('Expected --core-memory');
   expect(() => run(['--core-memory=all', '--runs=2'])).toThrow('exactly one cold reading');
   expect(() => run(['--core-memory=all', '--modes=cold,warm'])).toThrow('exactly one cold reading');
+  expect(() => run(['--core-attribution=1'])).toThrow('Core attribution requires');
+  expect(() => run(['--core-memory=all', '--core-attribution=2'])).toThrow('Core attribution requires');
 });
 
 test('upgrade observation refuses unrelated or repeated Simulator scenarios before device access', () => {

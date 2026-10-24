@@ -7,6 +7,7 @@
 //     [--upgrade-from=<old-origin>] installs the old worker, switches this same origin to the new build, then taps grid.
 //     [--core-memory=menu|select|_template|blender-template|all] reads independent Developer-on floors at 10/60/120s, no Network capture or GC.
 //     --core-memory=hello serves its own plain hello-world fixture (no --base/--rev), using the same native floor sampler.
+//     --core-attribution=1 adds passive WebKit categories only AFTER the last native sample; no heap snapshot or GC.
 // --base drives a served build or live; --rev serves that commit (scripts/serve-build.sh --rev) and stops it after.
 // Each run: Safari terminated; a cold run clears the worker, every cache and the prefetch markers (a warm run keeps
 // them); the title; Developer on; six seconds on the menu (its prefetch starts 4 s in); tap INFINITE WILDSHARD; record
@@ -29,6 +30,7 @@ import { saveFixtureCode } from './debug-settings.mjs';
 import { readSimulatorCoreFootprint, selectedCoreMemoryTargets, coreMemorySummary, compiledFloorSave, scriptResourceURLs,
   serveHelloWorldMemory, helloWorldMemoryFloor } from './shard-phone-memory.mjs';
 import { pageMemoryAttributionExpression } from './memory-report-snapshot.mjs';
+import { memoryCategories } from './soak/memory-categories.mjs';
 
 const REPO = resolvePath(import.meta.dirname, '..');
 /** @type {Partial<Record<string, string>>} */
@@ -50,6 +52,7 @@ const secondTapDiagnostic = args['upgrade-second-tap'] === '1';
 if (args['upgrade-second-tap'] !== undefined && (args['upgrade-second-tap'] !== '1' || upgradeFrom === undefined)) throw new Error('Second tap diagnostic requires --upgrade-from and value 1');
 if (upgradeFrom !== undefined && (coreMemory !== undefined || shard !== undefined || args.runs !== '1' || args.modes !== 'warm' || !['http:', 'https:'].includes(new URL(upgradeFrom).protocol))) throw new Error('Upgrade observation requires one warm grid run and an HTTP origin');
 if (coreMemory !== undefined && shard !== undefined) throw new Error('Expected --core-memory without --shard');
+if (args['core-attribution'] !== undefined && (args['core-attribution'] !== '1' || coreMemory === undefined || coreMemory === 'hello')) throw new Error('Core attribution requires an app core-memory floor and value 1');
 const memoryTargets = coreMemory === undefined ? [] : selectedCoreMemoryTargets(coreMemory);
 if (coreMemory !== undefined && ((args.runs !== undefined && args.runs !== '1') || (args.modes !== undefined && args.modes !== 'cold'))) throw new Error('Core floors require exactly one cold reading per target');
 if (shard !== undefined) loadingShardName(shard);
@@ -228,8 +231,11 @@ async function runCoreMemory(mode, index, target) {
       page: JSON.parse(await page.evaluate(`JSON.stringify({href:location.href,prefetch:window.__ws_gridPrefetch?.()??null,resources:performance.getEntriesByType('resource').length})`))});
   }
   const attribution = hello ? null : await page.evaluate(`(() => {const api=window.__wildshard;return ${pageMemoryAttributionExpression};})()`);
+  // Acceptance samples are already sealed. Reuse the passive diagnostic, which
+  // never collects or enables Network; unsupported categories stay unknown.
+  const postSampleCategories = args['core-attribution'] === '1' ? await memoryCategories(page) : null;
   const calibrationDocument = hello ? JSON.parse(await page.evaluate(`JSON.stringify({title:document.title,text:document.body.textContent.trim(),scripts:document.scripts.length,canvases:document.querySelectorAll('canvas').length})`)) : null;
-  const result = {mode, run: index, shard: target, protocol: 'webkit-core-floor/1', version, reset, samples, attribution, errors: [], compiledEntryRequired: template, calibrationDocument,
+  const result = {mode, run: index, shard: target, protocol: 'webkit-core-floor/1', version, reset, samples, attribution, postSampleCategories, errors: [], compiledEntryRequired: template, calibrationDocument,
     scriptURLs: JSON.parse(await page.evaluate(`JSON.stringify((${scriptResourceURLs.toString()})())`)),
     inspectorResponseBodyBytes: 0, forcedGC: false, scope: 'all WebContent and GPU processes under the owned Simulator launchd; not phone GPU evidence'};
   writeFileSync(resolvePath(out, `${target}-${mode}-${index}.json`), `${JSON.stringify(result, null, 1)}\n`);
