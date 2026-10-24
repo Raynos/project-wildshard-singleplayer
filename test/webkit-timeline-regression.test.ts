@@ -95,3 +95,23 @@ test('retains passive GC events without requesting GC or snapshots', async () =>
   const unavailable = await (await startWebKitTimeline(noHeap, f.evaluate))();
   expect(unavailable.garbageCollection).toEqual({available: false, events: [], dropped: 0});
 });
+
+
+test('admits known instantaneous events without counting them as busy coverage', () => {
+  const duration = {type: 'RenderingFrame', startTime: 1, endTime: 1.01,
+    children: [{type: 'FireAnimationFrame', startTime: 1.001, endTime: 1.005}]};
+  const points = ['ScheduleStyleRecalculation', 'TimerInstall', 'TimerRemove', 'RequestAnimationFrame']
+    .map(type => ({type, startTime: 1.005}));
+  const anchors: [number, number][] = [[1, 1000], [1.016, 1016]];
+  const base = timelineLongFrames({records: [duration], anchors}, [[1000, 16]]);
+  const withPoints = timelineLongFrames({records: [duration, ...points], anchors}, [[1000, 16]]);
+  expect(base.valid).toBe(true);
+  expect(withPoints.frames).toEqual(base.frames);
+  expect(withPoints.valid).toBe(true);
+  const unknown = timelineLongFrames({records: [duration, {type: 'Unknown', startTime: 1.005}], anchors}, [[1000, 16]]);
+  expect(unknown.valid).toBe(false);
+  expect(unknown.invalid).toContain('1 records without a finite positive span');
+  const sparse = timelineLongFrames({records: [duration, ...points], anchors: [[1, 1000], [2, 2000]]}, [[1000, 16]]);
+  expect(sparse.valid).toBe(false);
+  expect(sparse.invalid.some(reason => reason.includes('coverage'))).toBe(true);
+});

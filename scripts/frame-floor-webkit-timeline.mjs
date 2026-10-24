@@ -17,6 +17,10 @@ const COVERAGE_FLOOR = 0.8;
 const pageClocks = new WeakSet();
 const heapObservers = new WeakSet();
 
+// WebKit appendRecord events have a timestamp and deliberately no endTime.
+// They cannot establish busy coverage; unknown missing spans still refuse.
+const POINT_RECORDS = new Set(['ScheduleStyleRecalculation', 'TimerInstall', 'TimerRemove', 'RequestAnimationFrame']);
+
 const RENDER = new Set(['Composite', 'Paint', 'Layout', 'RecalculateStyles', 'InvalidateLayout', 'ScheduleStyleRecalculation', 'Screenshot']);
 
 /** @param {{ type?: string }} record */
@@ -151,6 +155,8 @@ export function timelineLongFrames(timeline, frames) {
     if (record === null || typeof record !== 'object') continue;
     const r = /** @type {{ type?: string, startTime?: number, endTime?: number, children?: unknown[] }} */ (record);
     if (r.type === 'TimeStamp') continue;
+    if (POINT_RECORDS.has(r.type ?? '') && r.endTime === undefined && typeof r.startTime === 'number'
+      && Number.isFinite(r.startTime) && r.startTime > 0) continue;
     if (typeof r.startTime !== 'number' || typeof r.endTime !== 'number' || !Number.isFinite(r.startTime) || !Number.isFinite(r.endTime) || r.startTime <= 0 || r.endTime < r.startTime) { badSpans++; continue; }
     if (r.type === 'RenderingFrame') renderingFrames++;
     const kids = (r.type === 'RenderingFrame' ? r.children ?? [] : [record]).flatMap((child) => {
