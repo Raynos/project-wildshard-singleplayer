@@ -83,3 +83,38 @@ test.each(['live', 'disposed', 'retiring-ancestor'] as const)('scene placement r
     if (retirement !== null) Array.from(retirement);
   } finally { release(); owner.dispose(); registry.retire(); geometry.dispose(); material.dispose(); }
 });
+
+test.each(['render', 'colliders'] as const)('a cached placement does not publish %s into a retiring ring', async layer => {
+  const owner = new Scope('resident'), ancestor = new Scope('ring'), holder = ancestor.child('tile'), keeper = owner.child('other ring');
+  const registry = new WorldRegistry(), sky: unknown = Object.create(SkyRig.prototype), game = {};
+  if (!(sky instanceof SkyRig)) throw new Error('Missing sky');
+  const context = { scope: owner, app: { registry }, game } as ShardContext;
+  Object.assign(game, { runtime: { world: { sky, game, registry } } });
+  const geometry = new BoxGeometry(), material = new MeshStandardMaterial();
+  const build = vi.fn(() => [{ geometry, material }]);
+  const model = defineModel<Record<string, unknown>>({ id: 'fixture/cached', name: 'Cached', category: 'props', pipeline: 'code', file: 'fixture.json', defaults: {},
+    build, colliders: () => [{ kind: 'ball', x: 0, y: 0, z: 0, radius: 1 }] });
+  const row = parseWorldScenePlacement({ id: 'cached', model: 'fixture', draw: 'instanced', piece: { id: 'cached' },
+    poses: [{ x: 3, y: 0, z: 4, yxz: { yaw: 0, scale: 1 } }] });
+  const handle = new WorldScenePlacement(context, row, { model: () => model }, owner, new Map(), []), container = new Group();
+  let steps: ReturnType<Scope['disposeSteps']> | null = null;
+  try {
+    // The other ring keeps the cached build live while this holder retires.
+    await (layer === 'render' ? handle.attachColliders(36, keeper) : handle.attach(36, keeper, container));
+    const pending = layer === 'render' ? handle.attach(36, holder, container) : handle.attachColliders(36, holder);
+    ancestor.onDisposeSteps(function* barrier() { yield; });
+    steps = ancestor.disposeSteps(); steps.next();
+    expect(holder.disposed).toBe(false); expect(holder.disposing).toBe(true);
+    await pending;
+    if (layer === 'render') expect(container.children).toHaveLength(0);
+    else expect(registry.get('cached.c36')).toBeUndefined();
+    Array.from(steps);
+    const returned = owner.child('returned ring');
+    if (layer === 'render') { await handle.attach(36, returned, container); expect(container.children).toHaveLength(1); }
+    else { await handle.attachColliders(36, returned); expect(registry.get('cached.c36')?.colliders).toHaveLength(1); }
+    expect(build).toHaveBeenCalledOnce(); expect(keeper.disposed).toBe(false);
+  } finally {
+    if (steps === null) ancestor.dispose(); else Array.from(steps);
+    keeper.dispose(); owner.dispose(); registry.retire(); geometry.dispose(); material.dispose();
+  }
+});

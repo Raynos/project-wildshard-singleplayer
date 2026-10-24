@@ -76,7 +76,8 @@ export class WorldScenePlacement {
     if (!this.bucketed().has(tile)) return null;
     if (this.pending !== undefined) throw new Error('Scene placement is built whole');
     const placed = await this.tileBuilds().hold(tile, scope);
-    if (scope.disposed || this.row.drawnInto !== undefined) return placed;
+    // Another ring can keep the shared build live while this holder retires.
+    if (scope.disposed || scope.disposing || this.row.drawnInto !== undefined) return placed;
     if (container === null) throw new Error('Scene placement by tile needs its container');
     // the container stands where the registry parents a placed object (the world), so its tiles draw where a whole one would
     if (container.parent === null && placed.object.parent !== null) placed.object.parent.add(container);
@@ -93,7 +94,7 @@ export class WorldScenePlacement {
     if (world === undefined || world === null) throw new Error('Scene placement needs its resident world');
     const own = this.bucketed().has(tile) ? (await this.tileBuilds().hold(tile, scope)).colliders : [];
     const authored = this.authoredByTile().get(tile) ?? [];
-    if (scope.disposed || own.length + authored.length === 0) return;
+    if (scope.disposed || scope.disposing || own.length + authored.length === 0) return;
     const definition = this.catalogue.model(row.model), id = `${row.piece?.id ?? definition.id}.c${String(tile)}`;
     withOwner(scope, () => world.registry.add({ id, name: row.piece?.name ?? definition.name, category: definition.category, file: definition.file,
       anchor: anchorOf([...own, ...authored]), colliders: [...own, ...authored],
