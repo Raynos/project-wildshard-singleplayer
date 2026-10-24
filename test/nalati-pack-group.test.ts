@@ -332,3 +332,38 @@ test('periodic full-pack ticks encode once and skip every duplicate member tick 
   expect(pack.resultOwners.size).toBe(16);expect(pack.resultMismatches).toBe(0);expect(pack.resultReplies).toBeGreaterThan(0);expect(pack.unsharedFrames).toBe(0);
  }finally{encode.mockRestore();scope.dispose();}
 });
+
+test('pack capture reserves distinct scratch before scalar getter reentry', {timeout:120_000},async()=>{
+ const bytes=await program(),scope=new Scope('pack-scalar-reentry'),f=side('scratch',[]);
+ const spec=nativeGroupBrain({...brains.pack,id:'pack',home:[60,40],members:['wolf']});if(spec.kind!=='pack')throw new Error('Missing spec');
+ const step=new GroupStepV2(bytes,PACK_ROWS,scope),guest=new ScriptedPack(step,scope,'pack',100,f.wolves,{x:60,z:40},spec,f.ports);
+ try{
+  guest.initialize();guest.phase='shadow';guest.awareness=.8;
+  const prepare=step.prepare.bind(step),codec=new GroupBankV2(PACK_ROWS.bank),phases:{signal:string;phase:unknown}[]=[];
+  vi.spyOn(step,'prepare').mockImplementation(input=>{phases.push({signal:input.signal,phase:codec.decode(input.state,input.group,input.references)['phase']});return prepare(input);});
+  let nested=false,value=guest.awareness;
+  Object.defineProperty(guest,'awareness',{configurable:true,get:()=>{if(!nested){nested=true;guest.tick(f.context0(.2,new Vector3(150,0,40)));guest.phase='regroup';}return value;},set:(next:number)=>{value=next;}});
+  const actor=f.wolves[0];if(actor===undefined)throw new Error('Missing wolf');
+  guest.drive(actor,f.context0(.1,new Vector3(150,0,40)));
+  expect(nested).toBe(true);expect(guest.banks.size).toBe(2);
+  expect(phases.find(row=>row.signal==='drive.0')?.phase).toBe('regroup');
+  expect(phases.some(row=>row.signal==='tick')).toBe(true);
+ }finally{scope.dispose();}
+});
+
+test('a refused pack scalar getter releases preparation depth before the next call', {timeout:120_000},async()=>{
+ const bytes=await program(),scope=new Scope('pack-scalar-refusal'),f=side('scratch',[]);
+ const spec=nativeGroupBrain({...brains.pack,id:'pack',home:[60,40],members:['wolf']});if(spec.kind!=='pack')throw new Error('Missing spec');
+ const guest=new ScriptedPack(new GroupStepV2(bytes,PACK_ROWS,scope),scope,'pack',100,f.wolves,{x:60,z:40},spec,f.ports);
+ try{
+  guest.initialize();let refused=false,value=guest.awareness;
+  const before=guest.snapshot(),random=f.contextRng.snapshot();
+  Object.defineProperty(guest,'awareness',{configurable:true,get:()=>{if(!refused){refused=true;throw new Error('scalar refusal');}return value;},set:(next:number)=>{value=next;}});
+  const actor=f.wolves[0];if(actor===undefined)throw new Error('Missing wolf');
+  const context=f.context0(.1,new Vector3(150,0,40));
+  expect(()=>guest.drive(actor,context)).toThrow('scalar refusal');
+  expect(guest.snapshot()).toBe(before);expect(f.contextRng.snapshot()).toEqual(random);
+  guest.drive(actor,context);expect(guest.banks.size).toBe(1);
+  expect(f.wolves.every(wolf=>Number.isFinite(wolf.desiredSpeed))).toBe(true);
+ }finally{scope.dispose();}
+});

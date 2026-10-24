@@ -15,6 +15,9 @@ import type { GroupBankValueV2 } from '@wildshard/format/scriptGroupBankV2';
 import { GroupGuestBindingSchema, type GroupGuestBindingRows } from '@wildshard/format/groupBrains';
 
 
+const packGuestReset=Object.freeze({pc:0,ret:0,try:0,candX:0,candZ:0,hit:0,spotX:0,spotZ:0,claim:0});
+const packGuestResetFields=Object.freeze(Object.keys(packGuestReset));
+
 /** The real pack controller is owned and snapshotted by its group host, not copied into the elite. */
 export type HowlerPack<A extends AnimalSim> = Pick<StalkerBrain<A>, 'homeX' | 'homeZ' | 'phase' | 'awareness' | 'scare'>;
 /** Native pack, shared AI stream, path and environment authority; presentation only answers named events. */
@@ -724,10 +727,10 @@ export class StalkerBrain<A extends AnimalSim> extends HuntingStalkerCore<A> {
     readonly program: GroupGuestProjectionV2; readonly prepare: GroupGuestProjectionV2['prepareGroup']; readonly bindings: GroupGuestBindingsV2;
     readonly scope: Scope; readonly group: string; readonly handle: number; readonly rows: GroupGuestBindingRows; readonly codec: GroupBankV2;
     readonly results: readonly string[]; readonly roster: () => readonly A[];
-    readonly buffers:{readonly bank:Float64Array;readonly captured:Record<string,GroupBankValueV2>;readonly results:Record<string,number>[]}[];
+    readonly buffers:{readonly bank:Float64Array;readonly captured:Record<string,GroupBankValueV2>;readonly values:Record<string,GroupBankValueV2>;readonly changes:Record<string,GroupBankValueV2>;readonly results:Record<string,number>[]}[];
   } | undefined;
   private packCall: { readonly signal: string; readonly context: CirclingPackContext<A>; readonly bank: Float64Array;
-    readonly references: GroupStepReferenceV2<A>[]; readonly random: Rng;readonly captured:Record<string,GroupBankValueV2>;readonly results:Record<string,number>[];readonly slot:number|undefined } | undefined;
+    readonly references: GroupStepReferenceV2<A>[]; readonly random: Rng;readonly captured:Record<string,GroupBankValueV2>;readonly values:Record<string,GroupBankValueV2>;readonly changes:Record<string,GroupBankValueV2>;readonly results:Record<string,number>[];readonly slot:number|undefined } | undefined;
   private packDepth=0;
   /** Select the pack profile (the binding rows: profile, resume) on the SAME admitted programme; `roster` lends the bodies
    *  findPrey picks from (the nearest request's roster). Scope, bodies and random streams stay the original owners'. */
@@ -746,8 +749,8 @@ export class StalkerBrain<A extends AnimalSim> extends HuntingStalkerCore<A> {
     const results = shape.columns.flatMap(row => row.source.kind === 'result' ? [row.source.channel] : []);
     const guest:NonNullable<StalkerBrain<A>['packGuest']> = { program, prepare: program.prepareGroup, bindings, scope: loans.scope, group: loans.group, handle: loans.handle,
       rows, codec: new GroupBankV2(shape.bank), results, roster: loans.roster, buffers:[] };
-    const references=this.packReferences(guest),values={...this.packValues(guest,references),pc:0,ret:0,try:0,candX:0,candZ:0,hit:0,spotX:0,spotZ:0,claim:0};
-    guest.buffers.push({bank:guest.codec.encode(values,guest.group,references),captured:values,results:this.members.map(()=>Object.fromEntries(results.map(channel=>[channel,0])))});this.packGuest=guest;
+    const references=this.packReferences(guest),native=this.packValues(guest,references),values={...native,...packGuestReset};
+    guest.buffers.push({bank:guest.codec.encode(values,guest.group,references),captured:values,values:native,changes:{},results:this.members.map(()=>Object.fromEntries(results.map(channel=>[channel,0])))});this.packGuest=guest;
   }
   private siblings=0;
   protected bindSibling(next:StalkerBrain<A>):void{
@@ -756,35 +759,48 @@ export class StalkerBrain<A extends AnimalSim> extends HuntingStalkerCore<A> {
     next.bindGuest(guest.program,guest.rows,{scope:guest.scope,group:`${guest.group}.${this.siblings}`,handle:guest.handle*100+this.siblings,roster:guest.roster});
   }
   /** Run one original call on the bound program; false when unbound (the TS law runs). */
-  private packValues(guest:NonNullable<StalkerBrain<A>['packGuest']>,references:readonly GroupStepReferenceV2<A>[]):Record<string,GroupBankValueV2>{
+  private packValues(guest:NonNullable<StalkerBrain<A>['packGuest']>,references:readonly GroupStepReferenceV2<A>[],output?:Record<string,GroupBankValueV2>):Record<string,GroupBankValueV2>{
     const wire = (prey: CirclingPackPrey | null): string | null => prey === null ? null : references.find(row => row.body === prey)?.wire ?? null;
-    return { ...guest.rows.parameters, initialized: this.initialized, time: this.groupTime === -Infinity ? null : this.groupTime,
-      phase: this.phase, awareness: this.awareness, homeX: this.homeX, homeZ: this.homeZ, phaseT: this.phaseT, roamX: this.roamX, roamZ: this.roamZ,
-      roamT: this.roamT, nextTokenT: this.nextTokenT, boldT: this.boldT, calmT: this.calmT, hpStart: this.hpStart, halfDone: this.halfDone,
-      deadSeen: this.deadSeen, shadowDur: this.shadowDur, howled: this.howled, bites: this.bites, scared: this.scared,
-      alpha: this.alpha === null ? 0 : this.members.indexOf(this.alpha) + 1, prey: wire(this.prey), pendingPrey: wire(this.pendingPrey),
- };
+    const values=output??{};
+    Object.assign(values,guest.rows.parameters);
+    values['initialized']=this.initialized;values['time']=this.groupTime===-Infinity?null:this.groupTime;
+    values['phase']=this.phase;values['awareness']=this.awareness;values['homeX']=this.homeX;values['homeZ']=this.homeZ;
+    values['phaseT']=this.phaseT;values['roamX']=this.roamX;values['roamZ']=this.roamZ;values['roamT']=this.roamT;
+    values['nextTokenT']=this.nextTokenT;values['boldT']=this.boldT;values['calmT']=this.calmT;values['hpStart']=this.hpStart;
+    values['halfDone']=this.halfDone;values['deadSeen']=this.deadSeen;values['shadowDur']=this.shadowDur;
+    values['howled']=this.howled;values['bites']=this.bites;values['scared']=this.scared;
+    values['alpha']=this.alpha===null?0:this.members.indexOf(this.alpha)+1;
+    values['prey']=wire(this.prey);values['pendingPrey']=wire(this.pendingPrey);return values;
   }
   private syncPackCall(call:NonNullable<StalkerBrain<A>['packCall']>,guest:NonNullable<StalkerBrain<A>['packGuest']>):void{
     const references=this.packReferences(guest);call.references.splice(0,call.references.length,...references);
-    const values=this.packValues(guest,references),changed:Record<string,GroupBankValueV2>={};
-    for(const[key,value]of Object.entries(values))if(key==='prey'||key==='pendingPrey'||!Object.is(value,call.captured[key]))changed[key]=value;
+    const values=this.packValues(guest,references,call.values),changed=call.changes;
+    for(const key of Object.keys(changed))delete changed[key];
+    for(const key of Object.keys(values)){const value=values[key];if(value===undefined)throw new Error('Missing pack capture value');if(key==='prey'||key==='pendingPrey'||!Object.is(value,call.captured[key]))changed[key]=value;}
     guest.codec.update(call.bank,changed,guest.group,references);Object.assign(call.captured,values);
   }
   private runPack(signal:string,context:CirclingPackContext<A>,random:Rng,slot?:number):boolean{
     const guest=this.packGuest;if(guest===undefined)return false;
     if(guest.scope.disposed||guest.scope.disposing||guest.program.prepareGroup!==guest.prepare||guest.program.groupBindings!==guest.bindings)throw new Error('Replaced pack guest binding');
-    const references=this.packReferences(guest),values={...this.packValues(guest,references),pc:0,ret:0,try:0,candX:0,candZ:0,hit:0,spotX:0,spotZ:0,claim:0};
-    let buffer=guest.buffers[this.packDepth];
-    if(buffer===undefined){buffer={bank:guest.codec.encode(values,guest.group,references),captured:{...values},results:this.members.map(()=>Object.fromEntries(guest.results.map(channel=>[channel,0])))};guest.buffers[this.packDepth]=buffer;}
-    else{
-      const changed:Record<string,GroupBankValueV2>={};
-      for(const[key,value]of Object.entries(values))if(key==='prey'||key==='pendingPrey'||!Object.is(value,buffer.captured[key]))changed[key]=value;
-      guest.codec.update(buffer.bank,changed,guest.group,references);Object.assign(buffer.captured,values);
-    }
-    const previous=this.packCall;
-    this.packCall={signal,context,bank:buffer.bank,captured:buffer.captured,results:buffer.results,references,random,slot};this.packDepth++;
-    try{this.runGuest(guest.program);}finally{this.packDepth--;this.packCall=previous;}
+    // Reserve the depth before roster/scalar getters can reenter, including preparation failures.
+    const previous=this.packCall,depth=this.packDepth++;
+    try{
+      const references=this.packReferences(guest);
+      let buffer=guest.buffers[depth];
+      const values=this.packValues(guest,references,buffer?.values);
+      if(buffer===undefined){const initial={...values,...packGuestReset};buffer={bank:guest.codec.encode(initial,guest.group,references),captured:initial,values,changes:{},results:this.members.map(()=>Object.fromEntries(guest.results.map(channel=>[channel,0])))};guest.buffers[depth]=buffer;}
+      else{
+        const changed=buffer.changes;for(const key of Object.keys(changed))delete changed[key];
+        for(const key of Object.keys(values)){const value=values[key];if(value===undefined)throw new Error('Missing pack capture value');if(key==='prey'||key==='pendingPrey'||!Object.is(value,buffer.captured[key]))changed[key]=value;}
+        for(let index=0;index<packGuestResetFields.length;index++){
+          const name=packGuestResetFields[index];if(name===undefined)throw new Error('Missing pack reset field');
+          if(!Object.is(buffer.captured[name],0))changed[name]=0;
+        }
+        guest.codec.update(buffer.bank,changed,guest.group,references);Object.assign(buffer.captured,values,packGuestReset);
+      }
+      this.packCall={signal,context,bank:buffer.bank,captured:buffer.captured,values:buffer.values,changes:buffer.changes,results:buffer.results,references,random,slot};
+      this.runGuest(guest.program);
+    }finally{this.packDepth=depth;this.packCall=previous;}
     return true;
   }
   /** members 1..n, then the roster's bodies, then the prey and pending prey when outside it (crowd prey by pose) */
