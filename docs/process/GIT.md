@@ -204,6 +204,8 @@ rewrite still needs Jake's approval.
   Production and test projects emit disjoint declarations into the same layer
   output directory, with separate build metadata, so private relative types
   exported by test helpers still resolve. Node globals remain test-only.
+  The shared renderer-free fixture is defined at
+  `@wildshard/engine/test/FakeGame`; only tests may import that package path.
 - **Disk-reading tests declare their products** in `scripts/test-products.json`.
   The related-test walk retains their author-source edges; CI
   verifies/rebuilds selected products with `--reuse --shard=…`. The scheduled local

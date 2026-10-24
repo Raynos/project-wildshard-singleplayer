@@ -6,7 +6,7 @@ import {CLIENT_FEATURES,installClientPhase} from '../src/game/shardfile/clientPl
 import {publishEntryOwner} from '../src/game/shardfile/entryOwners';
 import type {ShardContext} from '../src/game/plugin/context';
 import type {ForestWeatherRig} from '../src/game/weather/forest';
-import {legacyDouble} from './fake/FakeGame';
+import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 
 test('weather diagnostics wait for the original play-phase weather publication',async()=>{
  const scope=new Scope('late-weather-debug'),expose=vi.fn<ShardContext['debug']['expose']>();

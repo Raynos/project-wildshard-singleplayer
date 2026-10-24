@@ -15,7 +15,7 @@ import { BorrowedElite } from '../src/engine/ai/view/eliteEntry';
 import type { StallionState } from '../src/engine/ai/herd';
 import { eliteDamageMul } from '../src/engine/entities/eliteBrain';
 import { Scope } from '../src/engine/app/scope';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import pouncer from '../src/shards/nalati-grasslands/data/aqbarsProfile.json' with { type: 'json' };
 
 beforeEach(() => { setTerrainHeight(() => 0); });

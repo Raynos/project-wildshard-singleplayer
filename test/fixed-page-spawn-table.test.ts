@@ -5,7 +5,7 @@ import { EncounterRegistry, declaredSpawnTables } from '../src/engine/ai/encount
 import type { Animal } from '../src/engine/entities/AnimalView';
 import type { AnimalManager } from '../src/engine/entities/AnimalManager';
 import { FixedPageSpawnTable } from '../src/game/population/pageGroups';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 test('another encounter uses real table identities and retires only its own bodies', () => {
   const scope = new Scope('marsh.fixed'), registry = new EncounterRegistry(() => scope), made: Animal[] = [], retired: Animal[] = [];

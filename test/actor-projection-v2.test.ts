@@ -9,7 +9,7 @@ import {fixtureBytes} from './fixtures/nativeBytes';
 import {SIM_LEVEL} from './fixtures/sim-level/level';
 import {namedJsonSchema} from '../src/sdk/formatJsonSchema';
 import {validateNamedJsonSchema} from '../src/game/shardfile/customSchema';
-import {legacyDouble} from './fake/FakeGame';
+import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import {titanPrograms as programme} from './fixtures/titanInlineWitness';
 
 function rows(){return {program:programme.attack,step:{signal:'bossClamp',clock:'sampleAt',every:.2,

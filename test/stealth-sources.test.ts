@@ -13,7 +13,7 @@ import type { HeldSlotKit } from '../src/game/loadout/claims';
 import type { PageRidingView } from '../src/game/riding/client';
 import { StealthSourcesSchema } from '../src/format/stealth';
 import { sampleStealthSources, StealthController, type StealthSourcesOwners, type StealthThreat } from '../src/game/stealth/controller';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import authored from '../src/shards/nalati-grasslands/data/stealth.json' with { type: 'json' };
 import generated from '../src/shards/nalati-grasslands/data/stealth.generated.json' with { type: 'json' };
 

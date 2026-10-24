@@ -27,7 +27,7 @@ import { emptyShardfile } from '../src/sdk/author';
 import { driftwoodWorldUpdates } from '../src/shards/driftwood-isle/generators/worldUpdates';
 import shrineRows from '../src/shards/driftwood-isle/data/buildingLife.json' with {type:'json'};
 import { islandSystems } from './fixtures/driftwood-world-updates';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import type { PainterlyWorld } from '../src/game/looks/postGraphLook';
 import type { ForestWeatherRig } from '../src/game/weather/forest';
 import type { PaintedSky } from '../src/game/looks/keyedSky';

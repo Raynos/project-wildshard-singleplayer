@@ -1888,7 +1888,7 @@
     "test/explore-view-point.test.ts",
     "test/explore.test.ts",
     "test/facade-no-multidraw.test.ts",
-    "test/fake/FakeGame.ts",
+    "src/engine/test/FakeGame.ts",
     "test/fake/world.ts",
     "test/faults.test.ts",
     "test/fight-rules.test.ts",

@@ -7,7 +7,7 @@ import type { OwnedGeometry } from '../src/engine/models/ownedGeometry';
 import { WorldAssembly } from '../src/game/shardfile/worldAssembly';
 import { entryOwner } from '../src/game/shardfile/entryOwners';
 import type { FixedDraws } from '../src/game/models/fixedDraws';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 // G603: a drawn-models stage on a made-up orchard: its two signs drawn from the loaded fixed draws in one painterly look.
 const tri = (x: number): BufferGeometry => new BufferGeometry().setAttribute('position', new BufferAttribute(new Float32Array([x, 0, 0, 1, 0, 0, 0, 1, 0]), 3));

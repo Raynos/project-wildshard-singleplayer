@@ -3,7 +3,7 @@ import { expect, test, vi } from 'vitest';
 import type { BrowserContext, Page } from 'playwright';
 import { captureBootFrame, frameFailure, screenshotPixels, type BootFrameSample } from '../scripts/parity/black-frame.mjs';
 import { registerCaptureTrace } from '../scripts/parity/capture-trace.mjs';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 // oxlint-disable-next-line import/no-nodejs-modules -- Match Playwright's PNG Buffer without launching a browser.
 import { Buffer } from 'node:buffer';
 

@@ -7,7 +7,7 @@ import source from '../src/shards/driftwood-isle/shard.config';
 import { lentGraphLook } from '../src/game/population/productCreatures';
 import * as THREE from 'three';
 import type { Animal } from '../src/engine/entities/AnimalView';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { CRAB_LOOK } from './fake/driftwoodLooks';
 
 const CREATURE_GRAPHS = authoredGraphs(lookGraphs.looks);

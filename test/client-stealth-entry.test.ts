@@ -21,7 +21,7 @@ import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { lendNalatiAdmission } from './fixtures/nalati-return-modules';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const row: Extract<ClientFeatureRow, {kind: 'stealth.entry'}> = {
   kind: 'stealth.entry', owner: 'orchard.stealth', claims: 'orchard.claims', riding: 'orchard.mount', night: 'orchard.night',

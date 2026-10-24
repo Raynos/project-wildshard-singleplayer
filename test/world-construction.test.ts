@@ -30,7 +30,7 @@ import { WORLD_STAGES } from '../src/shards/driftwood-isle/generators/worldAssem
 import manifest from '../src/shards/driftwood-isle/discovery.generated';
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 import { buildDriftwoodWorld } from './fixtures/driftwoodWorldConstruction';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const ISLAND=assets.ISLAND;
 const stageRows=v.parse(WorldAssemblySchema,WORLD_STAGES).stages;

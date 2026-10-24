@@ -12,7 +12,7 @@ import rows from '../src/shards/nalati-grasslands/data/voicePatches.json' with {
 import audio from '../src/shards/nalati-grasslands/data/audio.generated.json' with { type:'json' };
 import { VoicePatchesSchema } from '../src/format/voicePatches';
 import { parse } from 'valibot';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { AudioSceneDirector, audioPathProbe } from '../src/game/audio/sceneDirector';
 import { Vector3 } from 'three';
 import type { Player } from '../src/engine/player/Player';

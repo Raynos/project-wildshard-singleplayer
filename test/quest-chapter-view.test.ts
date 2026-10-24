@@ -38,7 +38,7 @@ import * as bindings from '../src/game/quest/chapterBindings';
 import type { PageTamingOwner } from '../src/game/riding/client';
 import { ChapterViewSchema, type ChapterViewRows } from '../src/format/questPageComposition';
 import { installQuestPageComposition } from '../src/game/quest/pageComposition';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 import { installEntryChapterView } from '../src/game/shardfile/clientQuestComposition';

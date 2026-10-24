@@ -16,7 +16,7 @@ import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { createPageCrowds, thinkCrowdGuard } from '../src/game/ambient/crowdPage';
 import type { SkyRig } from '../src/engine/world/skyRig';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { admittedSheepBody } from './fake/admittedSheep';
 import view from '../src/shards/nalati-grasslands/data/crowdView.json' with { type: 'json' };
 import { setTerrainHeight, setTerrainPlacement } from '../src/engine/world/terrainHeight';

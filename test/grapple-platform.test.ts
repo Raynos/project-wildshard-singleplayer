@@ -24,7 +24,7 @@ import { installGrapple } from './fixtures/native-hosts/grapple/headless';
 import { lendLooks } from '@wildshard/game/shardfile/lentLooks';
 import { Filament, Rope } from '../src/game/grapple/ribbon';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { filamentGeometry } from '../src/shards/nine-dragon-stack/generators/filamentGeometry';
 import source from '../src/shards/nine-dragon-stack/data/grappleProfile.json' with { type: 'json' };
 import filament from '../src/shards/nine-dragon-stack/data/filament.json' with { type: 'json' };

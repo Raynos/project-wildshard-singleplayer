@@ -2,7 +2,7 @@
 import { createHash } from 'node:crypto';
 import * as THREE from 'three';
 import { vi } from 'vitest';
-import { legacyDouble } from './FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 /** SHARD-PLATFORM SF36 parity traces: rounding, digests and per-object rows shared by the weapon family traces. */
 export const round = (n: number): number => Math.round(n * 1e9) / 1e9;

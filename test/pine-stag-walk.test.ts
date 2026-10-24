@@ -6,7 +6,7 @@ import { publishBoundQuest } from '../src/game/quest/boundState';
 import { Scope } from '../src/engine/app/scope';
 import { Flags } from '../src/engine/world/interact/flags';
 import { QuestState } from '../src/engine/quest/core';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import type { Animal } from '../src/engine/entities/AnimalView';
 import type { AnimalManager } from '../src/engine/entities/AnimalManager';
 import type { ShardContext } from '../src/game/plugin/context';

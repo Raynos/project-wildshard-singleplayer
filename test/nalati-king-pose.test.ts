@@ -14,7 +14,7 @@ import type { AnimalRigContext } from '../src/engine/entities/animalRig';
 import { Rng } from '../src/engine/core/rng';
 import { nalatiSpeciesCatalogue } from './fake/nalatiSpecies';
 import { animateKing } from './fixtures/nalati-king-pose';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import type { Animal } from '../src/engine/entities/AnimalView';
 import type { RigAnimCtx } from '../src/engine/entities/species/registry';
 

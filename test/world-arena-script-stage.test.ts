@@ -24,7 +24,7 @@ import { ArenaScriptFightFileSchema, ArenaScriptGeometrySchema } from '../src/fo
 import { emptyShardfile } from '../src/sdk/author';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { fakeWorld } from './fake/world';
 import { overrideTerrain } from './fake/terrain';
 import { mockCanvas, geometrySum } from './fake/weaponParity';

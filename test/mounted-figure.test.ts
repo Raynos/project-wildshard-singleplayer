@@ -6,7 +6,7 @@ import { Bone, Skeleton } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { SeatedFigure } from '../src/game/riding/seatedFigure';
 import type { Animal } from '../src/engine/entities/AnimalView';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { MOUNTED_FIGURE as rows } from '../src/shards/nalati-grasslands/generators/mountedFigure';
 
 test('a marsh ferryman binds different joints and cue clocks without another channel program', () => {

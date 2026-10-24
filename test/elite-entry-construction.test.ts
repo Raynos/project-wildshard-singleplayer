@@ -39,7 +39,7 @@ import type { ThinkCtx } from '../src/engine/entities/species/registry';
 import { eliteThink, eliteDamageMul, setEliteBrain, setEliteDamage } from '../src/engine/entities/eliteBrain';
 import { setTerrainHeight } from '../src/engine/world/terrainHeight';
 import pouncer from '../src/shards/nalati-grasslands/data/aqbarsProfile.json' with { type: 'json' };
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { eliteEntryProbeFrame } from './fixtures/eliteEntryProbe';
 import { buildEliteEntryPageRows } from '../src/shards/nalati-grasslands/generators/eliteEntryRows';
 

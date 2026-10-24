@@ -7,7 +7,7 @@ import { installAssetTables, publicBytes, assetVersions, musicManifests, sfxMani
 import { initializeTier, TIER } from '../src/engine/core/tier';
 import { noteFrameDrawn, setBuildHeld } from '../src/engine/core/framePacing';
 import { installScopeEnvironment, scopeEnvironment } from '../src/engine/app/scopeEnvironment';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const originalTier = TIER, environment = scopeEnvironment(), nativeFetch = window.fetch, nativeChannel = globalThis.MessageChannel;
 const tables = { bytes: publicBytes(), versions: assetVersions(), music: musicManifests(), sfx: sfxManifests(), packs: bootPacks() };

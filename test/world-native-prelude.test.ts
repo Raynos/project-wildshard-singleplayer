@@ -15,7 +15,7 @@ import type { ShardProduct } from '../src/game/shardfile/shardProduct';
 import { WorldAssembly } from '../src/game/shardfile/worldAssembly';
 import { entryOwner } from '../src/game/shardfile/entryOwners';
 import { productFixedDraws } from '../src/game/models/fixedDraws';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const rows = { construction: { prelude: { draws: 'models/ornaments.json' }, seed: 0,
   progress: { kind: 'checkpoints', total: 1, finish: 'Ready', budgetMs: 0 }, checkpoints: [] },

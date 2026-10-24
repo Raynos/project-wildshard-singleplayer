@@ -6,7 +6,7 @@ import { CueDirector } from '../src/game/audio/cueDirector';
 import { clientNativeBook } from '../src/game/shardfile/clientNativeBook';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 test('entered cue identities stay isolated by product and entered lifetime',()=>{
   const scope=new Scope('cue-entry'),other=new Scope('other-cue-entry');

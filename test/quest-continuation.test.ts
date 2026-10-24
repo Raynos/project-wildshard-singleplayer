@@ -22,7 +22,7 @@ import { parseRows } from '../src/format/rows';
 import { Owned } from '../src/game/loot/Owned';
 import { collectionRows } from '../src/shards/driftwood-isle/generators/collections';
 import loot from '../src/shards/driftwood-isle/data/loot.generated.json';
-import { FakeGame, legacyDouble } from './fake/FakeGame';
+import { FakeGame, legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const rows = { quest: 'orchard.chapter', collection: 'orchard.collection', collections: 'keepsakes',
   cosmetics: { file: 'cosmetics.json', models: {} }, loot: { id: 'orchard.loot', shop: 'shop.json', minimap: true, before: ['main.world'] } };

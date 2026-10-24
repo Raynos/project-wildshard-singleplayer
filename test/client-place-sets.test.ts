@@ -5,7 +5,7 @@ import { WorldRegistry } from '../src/engine/world/registry';
 import { Scope } from '../src/engine/app/scope';
 import { parseClientPlan } from '../src/format/clientPlan';
 import type { ShardContext } from '../src/game/plugin/context';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { bindClientPlaceSets,installClientPlaceSets } from '../src/game/shardfile/clientPlaceSets';
 
 const placement=(model:string,xs:number[]):Placed=>({model,object:new Group(),colliders:[],copies:xs.length,drawnAs:'instanced',cull:()=>undefined,registered:Promise.resolve(),nearest:()=>-1,

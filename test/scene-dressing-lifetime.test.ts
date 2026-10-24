@@ -12,7 +12,7 @@ import { withOwner } from '../src/engine/app/ownership';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { SceneDressing } from '../src/game/shardfile/sceneDressing';
 import type { ShardContext } from '../src/game/plugin/context';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const geometry = { attrs: [['position', 'f32', 3, false], ['normal', 'f32', 3, false]], count: 3, index: null, indexCount: 0, box: true, expand: false };
 function isGeometry(value: unknown): value is BufferGeometry { return value instanceof BufferGeometry; }

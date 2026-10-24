@@ -9,7 +9,7 @@ import { parseClientPlan } from '../src/format/clientPlan';
 import * as claims from '../src/game/shardfile/heldClaimsEntry';
 import * as creatures from '../src/game/population/productCreatures';
 import * as decisions from '../src/game/shardfile/borrowedDecisions';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 function fixture(namedFile = true, omitLegacy?: 'economy/loot' | 'look/hull-book') {
   const source = emptyShardfile({ slug: 'kit-orchard', name: 'Orchard', author: 'Fixture', revision: 1, seed: 7 });

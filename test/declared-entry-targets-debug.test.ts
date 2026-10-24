@@ -14,7 +14,7 @@ import type {ArenaRoomEncounter} from '../src/game/boss/arenaRoom';
 import type {ForestWeatherRig} from '../src/game/weather/forest';
 import {SceneDressing} from '../src/game/shardfile/sceneDressing';
 import * as population from '../src/game/population/wildlife';
-import {legacyDouble} from './fake/FakeGame';
+import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import {emptyShardfile} from '../src/sdk/author';
 import {createShardProduct} from '../src/game/shardfile/shardProduct';
 

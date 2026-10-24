@@ -3,7 +3,7 @@ import { expect, test, vi } from 'vitest';
 import * as v from 'valibot';
 import { Group, Scene, Mesh, MeshBasicMaterial, BufferGeometry } from 'three';
 import { Scope } from '../src/engine/app/scope';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import type { ShardContext } from '../src/game/plugin/context';
 import type { ForestWeatherRig } from '../src/game/weather/forest';
 import { installClientForestWeather } from '../src/game/shardfile/clientForestPage';

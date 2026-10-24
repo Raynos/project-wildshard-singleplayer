@@ -11,7 +11,7 @@ import {emptyShardfile} from '../src/sdk/author';
 import {parseItems} from '../src/format/items';
 import {parseHeldSlots} from '../src/format/heldArms';
 import * as geometry from '../src/game/plugin/geometry';
-import {legacyDouble} from './fake/FakeGame';
+import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import items from '../src/shards/nalati-grasslands/data/items.json' with {type:'json'};
 
 const declaration={version:1,id:'metadata-kit',slots:[

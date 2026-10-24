@@ -5,7 +5,7 @@ import { placesWithDiscovery } from '../src/engine/quest/view';
 import { LastPlace } from '../src/game/LastPlace';
 import type { QuestPageComposition } from '../src/game/quest/pageComposition';
 import { QuestPageReference } from '../src/game/quest/pageReference';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 function quest(): QuestPageComposition {
   const flags = new Flags('reference-fixture', false);

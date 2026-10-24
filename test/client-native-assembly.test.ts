@@ -16,7 +16,7 @@ import {WorldAssembly} from '../src/game/shardfile/worldAssembly';
 import {entryOwner} from '../src/game/shardfile/entryOwners';
 import type {FixedDraws} from '../src/game/models/fixedDraws';
 import {emptyShardfile} from '../src/sdk/author';
-import {legacyDouble} from './fake/FakeGame';
+import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 
 const rows={construction:{prelude:{draws:'models/book.json'},seed:1,progress:{kind:'checkpoints',total:1,finish:'Assembly',budgetMs:0},checkpoints:[]},stages:[{kind:'fixed-draws',id:'shapes'}]};
 function fixture(){

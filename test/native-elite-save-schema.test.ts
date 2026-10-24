@@ -3,7 +3,7 @@ import {expect,test} from 'vitest';
 import * as v from 'valibot';
 import {installEliteEncounters,eliteBindings,type EliteEncounterPorts,type EliteEncounterRow} from './fixtures/nativeEliteEncounters';
 import type {SimHost,SimValue} from '../src/engine/sim';
-import {legacyDouble} from './fake/FakeGame';
+import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';
 import { installEliteEncounters as originalInstall, type EliteEncounterPorts as OriginalPorts, type EliteEncounterRow as OriginalRow } from './fixtures/originalEliteEncounters';
 import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with {type:'json'};

@@ -6,7 +6,7 @@ import { SceneDressing } from '../src/game/shardfile/sceneDressing';
 import type { ShardContext } from '../src/game/plugin/context';
 import { SceneDressingSchema } from '../src/format/sceneDressing';
 import { writeGeometry, join } from '../src/shards/nalati-grasslands/generators/geometryWriter';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import * as v from 'valibot';
 
 test.each(['valid','missing','truncated','corrupt','address'] as const)('logical lane bakes preserve geometry and refuse invalid input before publication (%s)',async failure=>{

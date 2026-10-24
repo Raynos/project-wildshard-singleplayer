@@ -3,7 +3,7 @@ import { afterAll, expect, test, vi } from 'vitest';
 import { Rng } from '../src/engine/core/rng';
 import { HullLookBook } from '../src/game/looks/speciesBook';
 import { Bone, BufferGeometry, MeshBasicMaterial, Skeleton, SkinnedMesh, Vector3 } from 'three';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import type { Animal } from '../src/engine/entities/AnimalView';
 import type { AnimalDims } from '../src/engine/entities/species/registry';
 import { creaturePoseRows, numericChannelPrograms } from '../src/sdk/clientChannels';

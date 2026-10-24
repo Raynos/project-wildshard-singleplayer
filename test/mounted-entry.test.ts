@@ -17,7 +17,7 @@ import { parseItems } from '../src/format/items';
 import { emptyShardfile } from '../src/sdk/author';
 import items from '../src/shards/nalati-grasslands/data/items.json' with { type: 'json' };
 import loadout from '../src/shards/nalati-grasslands/data/loadout.json' with { type: 'json' };
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 afterEach(()=>{vi.restoreAllMocks();});
 const mounted = { kind: 'held.claims.install', claims: 'fixture.arsenal',preparation:'world' } as const;

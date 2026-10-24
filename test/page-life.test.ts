@@ -15,7 +15,7 @@ import type { Game } from '../src/engine/core/Game';
 import type { Player } from '../src/engine/player/Player';
 import type { SkyRig } from '../src/engine/world/skyRig';
 import type { SystemSpec } from '../src/engine/app/systems';
-import { legacyDouble, FakeGame } from './fake/FakeGame';
+import { legacyDouble, FakeGame } from '@wildshard/engine/test/FakeGame';
 import { HeldEquipment } from '../src/game/plugin/heldEquipment';
 import type { HeldTool } from '../src/game/plugin/heldTool';
 import type { Animal } from '../src/engine/entities/AnimalView';

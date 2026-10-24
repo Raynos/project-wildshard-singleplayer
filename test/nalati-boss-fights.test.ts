@@ -46,7 +46,7 @@ import king from '../src/shards/nalati-grasslands/data/goldenKing.generated.json
 import layout from '../src/shards/nalati-grasslands/data/kurganLayout.generated.json' with { type: 'json' };
 import world from '../src/shards/nalati-grasslands/boot/layout.generated.json' with { type: 'json' };
 import { manager } from './fake/manager';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import {titanPrograms as programs} from './fixtures/titanInlineWitness';
 import { mockCanvas } from './fake/weaponParity';
 import { App } from '../src/engine/app/app';

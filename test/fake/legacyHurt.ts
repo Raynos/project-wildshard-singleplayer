@@ -6,7 +6,7 @@ import { Scope } from '../../src/engine/app/scope';
 import { CombatPipeline, type DeathCause } from '../../src/engine/combat/pipeline';
 import { PlayerHealth } from '../../src/engine/combat/health';
 import { PlayerHurt } from '../../src/engine/ui/playerHurt';
-import { FakeGame } from './FakeGame';
+import { FakeGame } from '@wildshard/engine/test/FakeGame';
 
 interface Attacker { kind: string; label: string; position: THREE.Vector3 }
 export interface LegacyHurt {

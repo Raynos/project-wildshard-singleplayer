@@ -18,7 +18,7 @@ import { createBuildingCloud } from '../src/game/shardfile/buildingCloud';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
 import type { FixedDraws } from '../src/game/models/fixedDraws';
 import type { ShardProduct } from '../src/game/shardfile/shardProduct';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import shrineRows from '../src/shards/driftwood-isle/data/buildingLife.json' with { type: 'json' };
 import shrineBake from '../src/shards/driftwood-isle/data/shrineBake.json' with { type: 'json' };
 import { WORLD_STAGES } from '../src/shards/driftwood-isle/generators/worldAssembly';

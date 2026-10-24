@@ -10,7 +10,7 @@ import type { Renderer } from '../src/engine/render/renderer';
 import { emptyShardfile } from '../src/sdk/author';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { clientMaterials } from '../src/game/shardfile/clientMaterials';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 async function fixture() {
   const source = emptyShardfile({ slug: 'material-inputs', name: 'Inputs', author: 'Test', revision: 1, seed: 1 });

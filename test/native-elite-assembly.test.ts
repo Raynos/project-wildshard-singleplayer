@@ -10,7 +10,7 @@ import { ReturnProgram } from '../src/game/population/returnProgram';
 import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';
 import { nativeEliteCore } from './fixtures/nativeEliteCore';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 function method<O extends object, K extends keyof O>(owner: O, key: K): O[K] { return owner[key]; }
 test('actual native elite declarations construct, bind and install the same engine owners in order', () => {

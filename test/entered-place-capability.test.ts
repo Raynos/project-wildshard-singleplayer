@@ -7,7 +7,7 @@ import { installClientPhase, admitClientPlan } from '../src/game/shardfile/clien
 import * as places from '../src/game/shardfile/clientPlaceSets';
 import * as continuation from '../src/game/quest/continuation';
 import { emptyShardfile } from '../src/sdk/author';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const binding = { kind: 'world.bind-sets', placed: ['orchard.pier'], groups: [{ id: 'shore', placed: ['orchard.pier'] }] };
 function fixture() {

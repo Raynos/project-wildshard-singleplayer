@@ -18,7 +18,7 @@ import type { FixedDraws } from '../src/game/models/fixedDraws';
 import type { ShardProduct } from '../src/game/shardfile/shardProduct';
 import { createStreamedCover } from '../src/game/looks/streamedCover';
 import { toonLighting } from '../src/game/looks/toonLighting';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { WORLD_STAGES } from '../src/shards/driftwood-isle/generators/worldAssembly';
 import authored from '../src/shards/driftwood-isle/data/groundCover.json' with { type: 'json' };
 import compositionSource from '../src/shards/driftwood-isle/data/coverComposition.json' with { type: 'json' };

@@ -19,7 +19,7 @@ import { SceneDressingSchema } from '../src/format/sceneDressing';
 import { DRESSING_BAKE_SOURCES, dressingScene } from '../src/shards/nalati-grasslands/generators/dressingScene';
 import { isJsonData } from '../src/format/json';
 import { readBakedGeometry } from '../src/game/plugin/geometry';
-import {legacyDouble} from './fake/FakeGame';
+import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 
 const finite=v.pipe(v.number(),v.finite());
 const cragTier=v.object({recipe:PrivateSceneSchema,placements:v.array(v.unknown()),boxes:v.array(finite),

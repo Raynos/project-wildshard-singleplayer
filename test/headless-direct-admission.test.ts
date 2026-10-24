@@ -4,7 +4,7 @@ import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { prepareHeadlessRuntime } from './fixtures/nine-headless';
 import { prepareHeadlessRuntime as prepareNalati } from './fixtures/nalati-headless';
 import type { Rapier } from '../src/engine/physics/rapier';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import assembly from '../src/shards/nine-dragon-stack/data/headlessAssembly.json' with { type: 'json' };
 
 test.each([prepareHeadlessRuntime, prepareNalati])('direct native proof refuses malformed return admission before payload or host preparation (%#)', async prepare => {

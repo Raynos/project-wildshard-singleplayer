@@ -7,7 +7,7 @@ import type {Flags} from '../../src/engine/world/interact/flags';
 import type {Owned} from '../../src/game/loot/Owned';
 import type {Audio} from '../../src/engine/audio/Audio';
 import {publishBoundQuest} from '../../src/game/quest/boundState';
-import {legacyDouble} from '../fake/FakeGame';
+import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import type {ShardContext} from '../../src/game/plugin/context';
 import type {ShardRuntime} from '../../src/game/shard/runtime';
 import {createShardProduct} from '../../src/game/shardfile/shardProduct';

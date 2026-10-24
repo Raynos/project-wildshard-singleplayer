@@ -5,7 +5,7 @@ import { Scope } from '../src/engine/app/scope';
 import { createLevelInstallation } from '../src/engine/level/installation';
 import { shardContext, type BagVerbs } from '../src/game/plugin/context';
 import { installEnteredRuntimeService, RetainedRuntimeHooks } from '../src/game/shard/retainedHooks';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { MeshBasicMaterial } from 'three';
 import { withOwner } from '../src/engine/app/ownership';
 import { lendLooks, setLentParam, type LentLooks } from '../src/game/shardfile/lentLooks';

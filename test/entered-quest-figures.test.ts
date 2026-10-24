@@ -22,7 +22,7 @@ import { castawayFigure } from './fixtures/driftwoodCastawayOracle';
 import { enteredTrader, traderOf } from './fixtures/driftwoodTraderOracle';
 import { loadFixedGeometry } from './fixtures/driftwoodLegacyAssets';
 import { driftwoodFixedProduct } from './fixtures/driftwoodFixedProduct';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 type Runtime = NonNullable<ShardContext['game']['runtime']>;
 type World = NonNullable<Runtime['world']>;

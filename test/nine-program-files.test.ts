@@ -15,7 +15,7 @@ import * as descriptors from '../src/game/shardfile/outputDescriptor';
 import type { OutputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import type { ShardContext } from '../src/game/plugin/context';
 import { emptyShardfile } from '../src/sdk/author';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { ninePracticeRows,ninePracticeBytes } from './fixtures/nine-practice-modules';
 
 const hash=v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u)),count=v.pipe(v.number(),v.safeInteger(),v.minValue(1));

@@ -26,7 +26,7 @@ import { installClientTimedEncounters } from '../src/game/shardfile/clientTimedE
 import { lendLooks } from '../src/game/shardfile/lentLooks';
 import { sha256 } from '../src/game/plugin/moduleHash';
 import { emptyShardfile } from '../src/sdk/author';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { withWeatherWitness } from './fixtures/weatherInlineWitness';
 
 const input = {kind: 'timed.encounters', owner: 'quarry.watch', file: 'combat/watch.json', draws: 'quarry.draws', species: 'quarry.species', guest: 'guardian', weather: 'quarry.weather',

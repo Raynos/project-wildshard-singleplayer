@@ -22,7 +22,7 @@ import { parseMovers } from '../src/format/movers';
 import { validateGraph } from '../src/format/materialGraph';
 import { lendLooks, type LentLooks } from '../src/game/shardfile/lentLooks';
 import island from '../src/shards/driftwood-isle/data/movers.generated.json' with {type:'json'};
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const admitted=parseMovers(island),boat=admitted.find(row=>row.kind==='platform');
 if(boat===undefined)throw new Error('Missing admitted platform fixture');

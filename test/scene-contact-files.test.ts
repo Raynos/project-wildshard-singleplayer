@@ -5,7 +5,7 @@ import type {ShardContext} from '../src/game/plugin/context';
 import type {ShardProduct} from '../src/game/shardfile/shardProduct';
 import type {ShardRuntime} from '../src/game/shard/runtime';
 import type {ShardWorld} from '../src/game/shard/world';
-import {legacyDouble} from './fake/FakeGame';
+import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 
 const rows={name:'pending-contacts',catalogues:[],packs:{},layers:[],animations:[],
   geometry:{shape:{kind:'inline',data:'unread',row:{attrs:[],count:0,index:null,indexCount:0,box:false,expand:false}}},

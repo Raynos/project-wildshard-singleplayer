@@ -26,7 +26,7 @@ import type { ModelSite, Placed } from '../src/engine/models/place';
 import { WorldAssembly, type WorldAssemblyPorts } from '../src/game/shardfile/worldAssembly';
 import { entryOwner } from '../src/game/shardfile/entryOwners';
 import type { SceneHandles } from '../src/game/shardfile/sceneHandles';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { modelContext, type ModelContext } from '../src/engine/models/model';
 
 // G571: a world build's typed stages run in their declared order and publish concrete entry loans under their ids.

@@ -20,7 +20,7 @@ import * as spawn from '../src/game/population/spawnScript';
 import { sha256 } from '../src/game/plugin/moduleHash';
 import { emptyShardfile } from '../src/sdk/author';
 import { admission, lendNalatiAdmission } from './fixtures/nalati-return-modules';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const row = {kind: 'elite.construct', owner: 'quarry.elites', file: 'sim/assembly.json', admission: 'sim/admission.json', fight: 'quarry.charge',
   models: 'quarry.models', program: 'elite.rules', weather: 'quarry.weather', night: 'quarry.watch', ledges: {part: 'cliffs', anchor: 'ledges'}};

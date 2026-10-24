@@ -6,7 +6,7 @@ import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { installQuestHintFile } from '../src/game/quest/hints';
 import { requireQuestPageOwners } from '../src/game/quest/pageComposition';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import hintsRows from '../src/shards/driftwood-isle/data/questHints.json' with { type: 'json' };
 
 type Runtime = NonNullable<ShardContext['game']['runtime']>;

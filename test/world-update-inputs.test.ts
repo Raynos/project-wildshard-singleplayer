@@ -19,7 +19,7 @@ import type { AdventurePersistence } from '../src/game/quest/persistence';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import rows from '../src/shards/nalati-grasslands/data/worldUpdates.json' with { type:'json' };
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const frameRows=v.parse(WorldUpdatesSchema,rows.filter(row=>row.kind==='cosmetic-finishes'||row.kind==='audio-scene'));
 type World=NonNullable<NonNullable<ShardContext['game']['runtime']>['world']>;

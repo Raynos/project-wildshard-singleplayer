@@ -10,7 +10,7 @@ import { installEliteEncounters, eliteBindings, type EliteEncounterPorts, type E
 import { installEliteEncounters as originalInstall, type EliteEncounterPorts as OriginalPorts, type EliteEncounterRow as OriginalRow } from './fixtures/originalEliteEncounters';
 import type { AnimalSim } from '../src/engine/entities/AnimalSim';
 import type { SimHost } from '../src/engine/sim';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';
 import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
 

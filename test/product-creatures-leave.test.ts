@@ -4,7 +4,7 @@ import { installProductCreatures } from '../src/game/population/productCreatures
 import type { ShardContext } from '../src/game/plugin/context';
 import type { SpeciesDecisionAuthority } from '../src/game/plugin/brain';
 import { CREATURE_INSTALL } from '../src/shards/driftwood-isle/generators/creatureLook';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 /** A page whose scope is disposed while its `leaveAt`-th product read is awaited. */
 function leavingPage(leaveAt: number): { ctx: ShardContext; bound: string[] } {

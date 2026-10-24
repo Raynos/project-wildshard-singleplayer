@@ -19,7 +19,7 @@ import { parseItems } from '../src/format/items';
 import { HeldArmsSchema } from '../src/format/heldArms';
 import { MeleeWeaponProfileSchema } from '../src/format/weaponProfiles';
 import items from '../src/shards/nine-dragon-stack/data/items.json' with { type: 'json' };
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const rows = { kind: 'declared-primary', primary: { item: 'weapon.jian', blade: 'wood', file: 'weapons/presentation.json' }, tools: ['tool.fei-zhua'] };
 const defaultPresentation = { portraitFov: 78, aim: {}, view: {} };

@@ -13,7 +13,7 @@ import strikes from '../src/shards/nalati-grasslands/data/strikeProfiles.generat
 import { Rng } from '../src/engine/core/rng';
 import type { Animal } from '../src/engine/entities/AnimalView';
 import type { AnimalManager } from '../src/engine/entities/AnimalManager';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 afterEach(() => { setTerrainHeight(() => 0); setTerrainPlacement(() => [0, 1, 0], () => -1000); });
 

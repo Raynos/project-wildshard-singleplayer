@@ -14,7 +14,7 @@ import { createSimHost } from '../src/engine/sim';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { fixtureBytes } from './fixtures/nativeBytes';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { parseSpawnScript,spawnScriptRegistries } from '../src/format/spawnScripts';
 import { SCRIPT_V2_REVISIONS } from '../src/format/scriptAdmissionV2';
 import { scriptAdmissionRows,decisionModuleContracts } from '../src/format/scriptContract';

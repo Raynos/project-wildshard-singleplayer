@@ -18,7 +18,7 @@ import {parseArenaScriptData} from '../src/format/arenaScriptRows';
 import type {ModelDef} from '../src/engine/models/model';
 import type {BossBar} from '../src/engine/ui/BossBar';
 import {manager} from './fake/manager';
-import {legacyDouble} from './fake/FakeGame';
+import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import {overrideTerrain} from './fake/terrain';
 import {mockCanvas} from './fake/weaponParity';
 import fireView from '../src/shards/nalati-grasslands/data/arenaFire.json' with {type:'json'};

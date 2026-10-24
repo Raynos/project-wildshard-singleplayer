@@ -7,7 +7,7 @@ import { parseGrappleProfile, type GrappleRows } from '../src/format/grapple';
 import { ItemCatalogue } from '../src/game/loadout/itemCatalogue';
 import items from '../src/shards/nine-dragon-stack/data/items.json' with { type: 'json' };
 import profile from '../src/shards/nine-dragon-stack/data/grappleProfile.json' with { type: 'json' };
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 function tool(scope: Scope): GrappleTool {
   return new GrappleTool(legacyDouble<ShardContext>({ scope }), {

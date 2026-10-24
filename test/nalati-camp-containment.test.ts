@@ -11,7 +11,7 @@ import * as v from 'valibot';
 import { installQuestFigures } from '../src/game/quest/figures';
 import type { ShardContext } from '../src/game/plugin/context';
 import type { ShardRuntime } from '../src/game/shard/runtime';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { ClientChannelsSchema } from '../src/format/clientChannels';
 import * as skins from '../src/game/systems/npc/figureSkins';
 import channels from '../src/shards/nalati-grasslands/data/peopleChannels.generated.json' with { type: 'json' };

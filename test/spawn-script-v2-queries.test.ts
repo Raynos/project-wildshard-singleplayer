@@ -19,7 +19,7 @@ import { layoutV2 } from '../src/format/scriptWireV2';
 import { compileScript } from '../src/sdk/bake/compileScript';
 import { compileSimV2 } from './fixtures/compileSimV2';
 import { sha256 } from '../src/game/plugin/moduleHash';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import type { Animal } from '../src/engine/entities/AnimalView';
 import type { AnimalManager } from '../src/engine/entities/AnimalManager';
 import type { V2QueryWorld } from '../src/engine/physics/queryBatchV2';

@@ -27,7 +27,7 @@ import {ReturnModulesSchema} from '../src/format/scriptContract';
 import * as room from '../src/game/boss/arenaRoom';
 import { readProjectAssets } from '../src/sdk/project';
 import { fakeWorld } from './fake/world';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 // Run the shipped world feature and its real King stage. Unrelated prefix
 // resources retain their separate native/product construction oracles.

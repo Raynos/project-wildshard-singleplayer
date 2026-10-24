@@ -14,7 +14,7 @@ import { installDeclaredQuestSpawns, type QuestSpawnCapability } from '../src/ga
 import * as spawn from '../src/game/population/spawnScript';
 import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';
 import { parseSpawnScript, spawnScriptRegistries, type SpawnScriptRows } from '../src/format/spawnScripts';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 let program: SpawnScriptRows | undefined;
 beforeAll(async () => {

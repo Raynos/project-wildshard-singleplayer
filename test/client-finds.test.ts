@@ -12,7 +12,7 @@ import type { ShardContext } from '../src/game/plugin/context';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 test('orchard finds render the native quest flags without authored view/read hooks',async()=>{
   const scope=new Scope('orchard.finds'),flags=new Flags('orchard.finds'),fragment=vi.fn<ShardContext['bag']['fragment']>();

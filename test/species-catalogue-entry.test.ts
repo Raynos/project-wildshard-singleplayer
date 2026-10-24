@@ -14,7 +14,7 @@ import { installClientSpeciesProgram, prepareClientSpeciesCatalogue } from '../s
 import type { ShardContext } from '../src/game/plugin/context';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import type { ShardWorld } from '../src/game/shard/world';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const source = parse(object({hullBook: HullLookBookSchema, looks: PackedCreatureLooksSchema, presentation: SpeciesPresentationSchema}),
   JSON.parse(readFileSync('src/shards/nalati-grasslands/data/species.generated.json', 'utf8')));

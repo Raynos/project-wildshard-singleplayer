@@ -12,7 +12,7 @@ import {SIM_LEVEL} from './fixtures/sim-level/level';
 import page from '../src/shards/nalati-grasslands/data/crowdProjection.json' with {type:'json'};
 import native from '../src/shards/nalati-grasslands/data/crowdNativeProjection.json' with {type:'json'};
 import {OriginalNativeGuard} from './fixtures/originalNativeGuard';
-import {legacyDouble} from './fake/FakeGame';
+import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 
 function fixture(step:unknown=page){
   const scope=new Scope('crowd-test'),first=SIM_LEVEL.entities[0];if(first===undefined)throw new Error('Missing guard');

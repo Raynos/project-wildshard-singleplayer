@@ -13,7 +13,7 @@ import { ItemCatalogue } from '../src/game/loadout/itemCatalogue';
 import {createShardProduct} from '../src/game/shardfile/shardProduct';
 import {emptyShardfile} from '../src/sdk/author';
 import {parseItems} from '../src/format/items';
-import {legacyDouble} from './fake/FakeGame';
+import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import type {ShardContext} from '../src/game/plugin/context';
 import type {ShardRuntime} from '../src/game/shard/runtime';
 import type {Targets} from '../src/engine/combat/types';

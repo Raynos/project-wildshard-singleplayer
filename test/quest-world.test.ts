@@ -20,7 +20,7 @@ import lookout from '../src/shards/driftwood-isle/data/lookoutBake.json' with { 
 import shrine from '../src/shards/driftwood-isle/data/shrineBake.json' with { type: 'json' };
 import wreck from '../src/shards/driftwood-isle/data/wreckBake.json' with { type: 'json' };
 import cove from '../src/shards/driftwood-isle/data/coveBake.json' with { type: 'json' };
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 test('authored quest anchors equal actual fixed site placement, with no second rotation', () => {
   const data = v.parse(QuestWorldSchema, driftwoodQuestWorld());

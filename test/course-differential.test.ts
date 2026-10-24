@@ -12,7 +12,7 @@ import { horseCourseRows } from '../src/shards/nalati-grasslands/generators/cour
 import {ninePracticeRows as hookProgram,ninePracticeBytes,lendNinePractice} from './fixtures/nine-practice-modules';
 import hookRows from '../src/shards/nine-dragon-stack/data/grappleCourse.json' with { type:'json' };
 import { practiceFrame } from '../src/shards/nine-dragon-stack/generators/practiceFrame';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const initial={lap:0,started:0,running:0,half:0,best:-1,last:-1,prevX:0,phase:0,elapsed:0,checkpoint:0,visited:0};
 const horse=horseCourseRows();

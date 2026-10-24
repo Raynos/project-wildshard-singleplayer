@@ -5,7 +5,7 @@ import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { CLIENT_FEATURES, admitClientPlan, installClientPhase } from '../src/game/shardfile/clientPlan';
 import * as continuation from '../src/game/quest/continuation';
 import { emptyShardfile } from '../src/sdk/author';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 function fixture(named = true) {
   const shardfile = emptyShardfile({ slug: 'continuation-fixture', name: 'Continuation', author: 'Fixture', revision: 1, seed: 1 });

@@ -15,7 +15,7 @@ import { parseWorldSceneModels } from '../src/format/worldSceneModels';
 import { WorldAssembly } from '../src/game/shardfile/worldAssembly';
 import { entryOwner } from '../src/game/shardfile/entryOwners';
 import type { SceneHandles } from '../src/game/shardfile/sceneHandles';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import * as v from 'valibot';
 
 const keys = ['hut', 'lookout', 'shrine'];

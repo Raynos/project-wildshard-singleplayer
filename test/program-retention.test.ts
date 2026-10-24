@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import type { Material } from 'three';
 import { createProgramKeeper, pinProgramReferences, RETAINED_PROGRAM_LIMIT, type ProgramReference, type ProgramRenderer } from '../src/engine/render/programRetention';
 import { Scope } from '../src/engine/app/scope';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { selectedBootCell } from '../src/game/grid/bootProgramSelection';
 
 test('one program hold survives source retirement, is idempotent and releases through its material owner', () => {

@@ -20,7 +20,7 @@ import * as headless from '../src/game/plugin/headless';
 import * as ownership from '../src/engine/ui/ownership';
 import source from '../src/shards/nine-dragon-stack/shard.config';
 import portalRows from '../src/shards/nine-dragon-stack/data/portals.json' with { type: 'json' };
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 afterEach(() => { vi.restoreAllMocks(); });
 

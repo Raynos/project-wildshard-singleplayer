@@ -4,7 +4,7 @@ import { WorldRegistry } from '../src/engine/world/registry';
 import type { ShardContext } from '../src/game/plugin/context';
 import { bindClientPlaceSets, installClientPlaceSets, requireClientPlaceSetsBound } from '../src/game/shardfile/clientPlaceSets';
 import * as workSlice from '../src/engine/core/workSlice';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 function fixture() {
   const scope = new Scope('place-bind'), ctx = legacyDouble<ShardContext>({ scope, game: legacyDouble<ShardContext['game']>({ runtime: legacyDouble<NonNullable<ShardContext['game']['runtime']>>({ world: null }) }), product: legacyDouble<ShardContext['product']>({}), app: legacyDouble<ShardContext['app']>({ registry: new WorldRegistry() }) });

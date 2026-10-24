@@ -5,7 +5,7 @@ import { HeldClaims, type HeldSlotKit } from '../src/game/loadout/claims';
 import type { ShardContext } from '../src/game/plugin/context';
 import type { ModelDef } from '../src/engine/models/model';
 import { currentOwner } from '../src/engine/app/ownership';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import { Color, MeshBasicMaterial, Scene, Vector3, BoxGeometry, BufferGeometry, PlaneGeometry, Float32BufferAttribute, PerspectiveCamera, Group, InstancedMesh } from 'three';

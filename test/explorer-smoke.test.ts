@@ -2,7 +2,7 @@
 import { expect, test, vi } from 'vitest';
 import { explorerCards, explorerCases, explorerFailures, explorerState, sweepExplorer } from '../scripts/parity/explorer-smoke.mjs';
 import type { Browser, BrowserContext, Page } from 'playwright';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the actual required workflow leg, without dispatching it.
 import { readFileSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 

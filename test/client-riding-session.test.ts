@@ -6,7 +6,7 @@ import { HeldClaims } from '../src/game/loadout/claims';
 import { installClientRiding } from '../src/game/riding/client';
 import { entryOwner } from '../src/game/shardfile/entryOwners';
 import type { ShardContext } from '../src/game/plugin/context';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { lendNalatiRiding } from './fixtures/nalati-return-modules';

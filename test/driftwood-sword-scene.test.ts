@@ -13,7 +13,7 @@ import * as compiler from '../src/game/shardfile/runtimeProduct';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import type { ShardContext } from '../src/game/plugin/context';
 import type { ShardRuntime } from '../src/game/shard/runtime';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { emptyShardfile } from '../src/sdk/author';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { HELD_ARMS } from '../src/shards/driftwood-isle/generators/heldArms';

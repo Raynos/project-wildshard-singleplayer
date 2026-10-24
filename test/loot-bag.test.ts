@@ -18,7 +18,7 @@ import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 import { LootBagSchema, LootFindsSchema, LootProgressionSchema, LootPresentationSchema, LootMarksSchema } from '../src/format/lootBag';
 import { LootEconomySchema, parseLootEconomy } from '../src/format/lootEconomy';
 import { driftwoodLootBag, driftwoodQuestContinuation } from '../src/shards/driftwood-isle/generators/lootBag';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import LOOT from '../src/shards/driftwood-isle/data/loot.generated.json' with { type: 'json' };
 
 function fixture(parent?: Scope, bind = true) {

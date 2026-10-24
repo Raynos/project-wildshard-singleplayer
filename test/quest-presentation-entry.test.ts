@@ -7,7 +7,7 @@ import type { ShardContext } from '../src/game/plugin/context';
 import type { QuestChapter } from '../src/game/quest/chapter';
 import { publishBoundChapter, publishChapterFlags } from '../src/game/quest/chapterBindings';
 import { installQuestHints } from '../src/game/quest/hints';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import hintsRows from '../src/shards/driftwood-isle/data/questHints.json' with { type: 'json' };
 import compositionRows from '../src/shards/driftwood-isle/data/questPageComposition.json' with { type: 'json' };
 import { QuestPageCompositionSchema } from '../src/format/questPageComposition';

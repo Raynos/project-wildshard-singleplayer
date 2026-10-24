@@ -19,7 +19,7 @@ import type {ShardContext} from '../src/game/plugin/context';
 import {createShardProduct} from '../src/game/shardfile/shardProduct';
 import {emptyShardfile} from '../src/sdk/author';
 
-import {legacyDouble} from './fake/FakeGame';
+import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 
 const audio=v.parse(v.object({audio:AudioDataSchema}),JSON.parse(readFileSync('src/shards/nalati-grasslands/data/audio.generated.json','utf8')));
 const originals = [

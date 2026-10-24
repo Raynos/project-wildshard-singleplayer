@@ -18,7 +18,7 @@ import foliage from '../src/shards/driftwood-isle/data/foliagePlacements.generat
 import island from '../src/shards/driftwood-isle/data/islandFacts.generated.json' with {type:'json'};
 import wreck from '../src/shards/driftwood-isle/data/wreckBake.json' with {type:'json'};
 import cove from '../src/shards/driftwood-isle/data/coveComposition.json' with {type:'json'};
-import {legacyDouble} from './fake/FakeGame';
+import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 
 it('emits the completed world facts in their original tier order, with the four floor gaps',()=>{
  const rows=driftwoodGameplayAudioEnvironment();

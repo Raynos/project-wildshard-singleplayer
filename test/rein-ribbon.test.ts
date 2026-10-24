@@ -1,5 +1,5 @@
 import type { Animal } from '../src/engine/entities/AnimalView';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { expect, test } from 'vitest';
 import { Mesh, PerspectiveCamera, Vector3,Bone,BufferAttribute,InterleavedBufferAttribute,BufferGeometry,Float32BufferAttribute,Uint16BufferAttribute,SkinnedMesh,MeshBasicMaterial,Skeleton } from 'three';
 import { Scope } from '@wildshard/engine/app/scope';

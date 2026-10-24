@@ -8,7 +8,7 @@ import type { QuestPageComposition } from '../src/game/quest/pageComposition';
 import { bindEnteredClientPlaceSets,installClientPlaceSets,requireClientPlaceSetsBound } from '../src/game/shardfile/clientPlaceSets';
 import { lendEntryOwner,publishEntryOwner } from '../src/game/shardfile/entryOwners';
 import * as workSlice from '../src/engine/core/workSlice';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const placed=(model:string):Placed=>({model,object:new Group(),colliders:[],copies:1,drawnAs:'single',cull:()=>undefined,registered:Promise.resolve(),nearest:()=>-1,
   copyBox:(_index,target)=>target.set(new Vector3(-.5,0,-.5),new Vector3(.5,1,.5))});

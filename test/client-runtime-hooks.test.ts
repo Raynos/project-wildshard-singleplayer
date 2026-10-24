@@ -6,7 +6,7 @@ import type { ShardContext } from '../src/game/plugin/context';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import { installClientRuntimeHooks, runtimeLevelBounds } from '../src/game/shardfile/clientRuntimeHooks';
 import { lendEntryOwner,publishEntryOwner } from '../src/game/shardfile/entryOwners';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 function runtime():ShardRuntime{return {world:null,play:null,step:null,interactables:[],overhead:[],hooks:{},objects:{},viewer:()=>new Vector3(),horizonVeil:null};}
 function context(scope:Scope,shell:ShardRuntime):ShardContext{return legacyDouble<ShardContext>({scope,game:legacyDouble<ShardContext['game']>({runtime:shell})});}

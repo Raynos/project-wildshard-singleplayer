@@ -10,7 +10,7 @@ import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';
 import { nativeEliteCore } from './fixtures/nativeEliteCore';
 import type { SimHost } from '../src/engine/sim';
 import { eliteBindings, installEliteEncounters } from './fixtures/nativeEliteEncounters';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import type { AnimalSim } from '../src/engine/entities/AnimalSim';
 import {initializeNalatiElites} from './fixtures/nalati-headless';
 import type {NativeEliteRoster} from '../src/engine/ai/eliteRoster';

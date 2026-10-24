@@ -12,7 +12,7 @@ import type { EliteContinuationRows } from '../src/format/eliteContinuation';
 
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';
 import { nativeEliteCore } from './fixtures/nativeEliteCore';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 
 function fixture(withPack = false) {

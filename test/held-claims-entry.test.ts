@@ -16,7 +16,7 @@ import { emptyShardfile } from '../src/sdk/author';
 import { parseItems } from '../src/format/items';
 import { HELD_ARMS } from '../src/shards/driftwood-isle/generators/heldArms';
 import { DRIFTWOOD_SWORDS } from '../src/shards/driftwood-isle/generators/items';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 type Looks = Awaited<ReturnType<typeof compiler.runtimeLookMaterials>>;
 function fixture() {

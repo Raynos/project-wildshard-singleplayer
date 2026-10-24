@@ -14,7 +14,7 @@ import { nineWorldEntry } from '../src/shards/nine-dragon-stack/generators/world
 import { nineWorldInstallRows } from '../src/shards/nine-dragon-stack/generators/physicsPlacements';
 import items from '../src/shards/nine-dragon-stack/data/items.json' with { type: 'json' };
 import profile from '../src/shards/nine-dragon-stack/data/grappleProfile.json' with { type: 'json' };
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const piece = { kind: 'piece', id: 'gate', name: 'Gate', file: 'gate.json', category: 'buildings', surface: 'stone',
   colliders: [], floors: [], floorPolicy: 'first', solidFloor: false, object: null };

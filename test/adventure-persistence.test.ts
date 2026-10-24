@@ -4,7 +4,7 @@ import { enteredAdventurePersistence } from '../src/game/quest/chapterBindings';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import type { ShardContext } from '../src/game/plugin/context';
 import type { ShardRuntime } from '../src/game/shard/runtime';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { Scope } from '../src/engine/app/scope';
 import { app } from '../src/engine/app/runtime';
 import { bossesSave, elitesSave, progressSave } from '../src/game/saves';

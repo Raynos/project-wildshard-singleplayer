@@ -17,7 +17,7 @@ import * as enteredFigures from '../src/game/quest/figures';
 import * as worldScenes from '../src/game/shardfile/worldScenes';
 import { bindResidentWorldScope } from '../src/game/shardfile/hybridPresentation';
 import { emptyShardfile } from '../src/sdk/author';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const row: Extract<ClientFeatureRow, { kind: 'quest.composition' }> = { kind: 'quest.composition', id: 'orchard.quest',
   file: 'quest.json', reference: 'orchard.reference', figures: { file: 'figures.json', draws: 'orchard.draws' } };

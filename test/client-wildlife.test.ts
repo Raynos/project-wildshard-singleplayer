@@ -17,7 +17,7 @@ import { clientWildlife, installClientWildlife, PageWildlife } from '../src/game
 import { parseClientPlan } from '../src/format/clientPlan';
 import { headlessAssembly } from '../src/shards/nalati-grasslands/generators/nativeGroups';
 import { admittedSheepProduct } from './fake/admittedSheep';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const feature = parseClientPlan({ version: 1, features: [{ kind: 'population.wildlife', file: 'actors/orchard.json',
   crowd: { json: 'actors/birds.json', binary: 'actors/birds.bin' }, navSteer: true,

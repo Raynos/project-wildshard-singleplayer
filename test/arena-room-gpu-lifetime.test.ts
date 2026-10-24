@@ -12,7 +12,7 @@ import { withOwner } from '../src/engine/app/ownership';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { buildArenaRoomEncounter } from '../src/game/boss/arenaRoom';
 import type { ShardContext } from '../src/game/plugin/context';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { SHAPES } from './fixtures/nalatiShapes';
 import { titanPrograms } from './fixtures/titanInlineWitness';
 import room from '../src/shards/nalati-grasslands/data/bossArenaRoom.json' with { type: 'json' };

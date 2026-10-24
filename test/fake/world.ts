@@ -5,7 +5,7 @@ import type { Forest } from '../../src/engine/world/forest/Forest';
 import type { CharacterMotor } from '../../src/engine/physics/CharacterMotor';
 import type { Collider } from '@dimforge/rapier3d-simd';
 import { WorldRegistry } from '../../src/engine/world/registry';
-import { FakeGame, legacyDouble } from './FakeGame';
+import { FakeGame, legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 /** Query-only test double; THREE.Ray supplies box intersections, never a production collision path. */
 export class FakePhysics {

@@ -6,7 +6,7 @@ import { Scope } from '../src/engine/app/scope';
 import { enterOwner, ownerTask } from '../src/engine/app/ownership';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { writeGeometry, join } from '../src/shards/nalati-grasslands/generators/geometryWriter';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 test('sliced dressing expansion keeps its declared owner after await instead of borrowing the ambient owner', async () => {
   const scope = new Scope('dressing.owner'), foreign = new Scope('dressing.foreign'), root = new Group();

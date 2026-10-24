@@ -3,7 +3,7 @@ import { Vector3 } from 'three';
 import type { Animal } from '../src/engine/entities/AnimalView';
 import type { ThinkCtx } from '../src/engine/entities/species/registry';
 import { groupSpecies } from '../src/game/population/groupSpecies';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 test('marsh herd rows own held memory, damage and bounded group cadence', () => {
   const control = { kind: 'herd', clock: 'marsh.groupClock', every: .2, confine: false, observeDamage: false, held: ['tethered'], damage: 'marsh.armour' };

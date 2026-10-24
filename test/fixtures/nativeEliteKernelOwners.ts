@@ -7,7 +7,7 @@ import { RngService } from '../../src/engine/core/rng';
 import { StrikeRunner } from '../../src/engine/ai/strikes';
 import type { NativeEliteKernelLoans, NativeEliteKernelRow } from '../../src/engine/ai/eliteKernels';
 import type { AnimalSim } from '../../src/engine/entities/AnimalSim';
-import { legacyDouble } from '../fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { NALATI_STRIKES } from './nalati-strikes';
 import ecology from '../../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
 

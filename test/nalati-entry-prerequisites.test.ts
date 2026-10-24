@@ -7,7 +7,7 @@ import type { ShardRuntime } from '../src/game/shard/runtime';
 import { CLIENT_FEATURES } from '../src/game/shardfile/clientPlan';
 import * as population from '../src/game/population/wildlife';
 import { parseClientPlan } from '../src/format/clientPlan';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const row = parseClientPlan({version:1,features:[{kind:'population.wildlife',publish:'wildlife',file:'actors/wildlife.json',
   crowd:{json:'actors/crowd.json',binary:'actors/crowd.bin'},navSteer:true,frame:{id:'orchard.wildlife',after:[],before:[]}}]}).features[0];

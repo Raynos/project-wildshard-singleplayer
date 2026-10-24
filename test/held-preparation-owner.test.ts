@@ -7,7 +7,7 @@ import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { parseItems } from '../src/format/items';
 import items from '../src/shards/nine-dragon-stack/data/items.json' with { type: 'json' };
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const rows = { kind: 'declared-primary', primary: { item: 'weapon.jian', blade: 'wood', file: 'weapons/presentation.json' }, tools: ['tool.fei-zhua'] };
 const presentation = new TextEncoder().encode(JSON.stringify({ portraitFov: 78, aim: {}, view: {} }));

@@ -6,7 +6,7 @@ import { bindRuntimeState } from '../src/game/plugin/headless';
 import { installShards, legacyContentIdentity, shards } from '../src/game/shard/list';
 import { sourceManifest, type ShardContext } from '../src/game/plugin/context';
 import source from '../src/shards/pine-hollow-legacy/shard.config';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { KING_FIELDS } from '../src/shards/pine-hollow/generators/kingDecision';
 
 const modern = { ...source, identity: { ...source.identity, slug: 'pine-hollow' },

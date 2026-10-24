@@ -18,7 +18,7 @@ import loot from '../src/shards/driftwood-isle/data/loot.generated.json' with { 
 import { driftwoodCatalogueEconomy } from '../src/shards/driftwood-isle/generators/catalogueEconomy';
 import { parseRows } from '../src/format/rows';
 import { declaredLootEconomy } from '../src/game/shard/declaredRows';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const input = { kind: 'content.catalogue', quests: false, finishes: false,
   weapons: ['weapon.crossbow'], ammunition: ['weapon.crossbow'], effects: ['starter'], compendiums: [],

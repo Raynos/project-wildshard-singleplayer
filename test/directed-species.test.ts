@@ -6,7 +6,7 @@ import { Vector3 } from 'three';
 import type { Animal } from '../src/engine/entities/AnimalView';
 import type { ThinkCtx } from '../src/engine/entities/species/registry';
 import { DirectedSpecies } from '../src/game/population/directedSpecies';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { riderGeometry } from '../src/shards/nalati-grasslands/generators/ghostFigure';
 import { SHAPES } from './fixtures/nalatiShapes';
 

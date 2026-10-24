@@ -18,7 +18,7 @@ import { SceneDressing } from '../src/game/shardfile/sceneDressing';
 import * as arena from '../src/game/boss/arenaRoom';
 import { emptyShardfile } from '../src/sdk/author';
 import { WorldAssembly, type WorldConstructionPorts } from '../src/game/shardfile/worldAssembly';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const stages = { stages: ['orchard.sign', 'orchard.lamp'].map((id, index) => ({ kind: 'drawn-models', id,
   look: { painterly: { rim: 0.4 } }, models: [{ id: 'model', draw: `draw:${index}` }] })) };

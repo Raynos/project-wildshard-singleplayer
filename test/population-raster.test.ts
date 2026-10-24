@@ -3,7 +3,7 @@ import { prepareNalatiPopulation } from './fixtures/nalati-headless';
 import * as population from '../src/game/population/environment';
 import * as riding from '../src/game/riding/native';
 import type { SimHost } from '../src/engine/sim';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { unzlibSync,zlibSync } from 'fflate';
 import { NativePopulationField } from '../src/game/population/environment';
 import { bakedSamplers } from '../src/format/bakedTerrainSampling';

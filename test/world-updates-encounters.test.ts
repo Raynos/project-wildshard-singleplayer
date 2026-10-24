@@ -16,7 +16,7 @@ import {emptyShardfile} from '../src/sdk/author';
 import {installWorldUpdates} from '../src/game/shardfile/worldUpdates';
 import {publishEntryOwner,type EliteEntryConstruction} from '../src/game/shardfile/entryOwners';
 import * as population from '../src/game/population/wildlife';
-import {legacyDouble} from './fake/FakeGame';
+import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 
 const rows=[
  {kind:'arena-room',system:'fixture.titan',owner:'titan',riders:'night',before:[]},

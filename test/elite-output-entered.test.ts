@@ -34,7 +34,7 @@ import { PageWildEnvironment } from '../src/game/population/pageGroups';
 import type { AdventurePersistence } from '../src/game/quest/persistence';
 import { parseEliteOutputActions, parseEliteOutputBank, type EliteOutputAction } from '../src/format/eliteFeature';
 import pouncer from '../src/shards/nalati-grasslands/data/aqbarsProfile.json' with { type: 'json' };
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { mockCanvas } from './fake/weaponParity';
 
 import { SpawnScript } from '../src/game/population/spawnScript';

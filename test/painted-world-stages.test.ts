@@ -14,7 +14,7 @@ import { SkyRig } from '../src/engine/world/skyRig';
 import { paintedWorld, PainterlyWorld, type PaintedWorldParts } from '../src/game/looks/postGraphLook';
 import type { PaintedSky } from '../src/game/looks/keyedSky';
 import type { ForestWeatherRig } from '../src/game/weather/forest';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import paintedTextures from '../src/shards/nalati-grasslands/data/paintedTextures.generated.json' with { type: 'json' };
 import specimenData from '../src/shards/nalati-grasslands/data/specimens.generated.json' with { type: 'json' };
 import { GrassPresentationSchema } from '../src/format/fieldPresentation';

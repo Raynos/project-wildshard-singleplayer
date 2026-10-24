@@ -12,7 +12,7 @@ import { SceneHandles } from '../src/game/shardfile/sceneHandles';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
 import { createAmbientFlock } from '../src/game/ambient/ambientFlock';
 import type { FixedDraws } from '../src/game/models/fixedDraws';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { GULL_FLOCK } from '../src/shards/driftwood-isle/generators/gullsLook';
 import { WORLD_GULL_PERCHES } from '../src/shards/driftwood-isle/generators/staticWorld';
 import { GULL_GRAPH_LOOK } from '../src/shards/driftwood-isle/generators/gullGraphLook';

@@ -16,7 +16,7 @@ import { emptyShardfile } from '../src/sdk/author';
 import { parseItems } from '../src/format/items';
 import { parseHeldSlots } from '../src/format/heldArms';
 import { ItemCatalogue } from '../src/game/loadout/itemCatalogue';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import * as native from '../src/game/plugin/headless';
 import * as bowBinding from '../src/game/weapons/Bow';
 import * as firearmBinding from '../src/game/plugin/heldFirearm';

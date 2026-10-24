@@ -10,7 +10,7 @@ import { parsePageLife } from '../src/format/pageLife';
 import { emptyShardfile } from '../src/sdk/author';
 import { FISH_DRAW } from '../src/shards/driftwood-isle/generators/fishDraw';
 import { PAGE_LIFE } from '../src/shards/driftwood-isle/generators/pageLife';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const lifeRows = parsePageLife({ ...PAGE_LIFE, flocks: PAGE_LIFE.flocks.filter(row => row.borrowed) });
 const bindings = { file: 'actors/page-life.json', flocks: [{ id: 'gulls', owner: 'original.gulls' }] };

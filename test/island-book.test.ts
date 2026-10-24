@@ -11,7 +11,7 @@ import { entryOwner,publishEntryOwner } from '../src/game/shardfile/entryOwners'
 import * as runtimeProduct from '../src/game/shardfile/runtimeProduct';
 import * as sceneHost from '../src/game/shardfile/worldScenes';
 import * as bakedHost from '../src/game/shardfile/bakedTiles';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { expect,test,vi } from 'vitest';
 import * as v from 'valibot';
 import { Scope } from '../src/engine/app/scope';

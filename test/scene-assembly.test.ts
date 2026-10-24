@@ -20,7 +20,7 @@ import * as runtimeProduct from '../src/game/shardfile/runtimeProduct';
 import * as sceneHost from '../src/game/shardfile/worldScenes';
 import * as bakedHost from '../src/game/shardfile/bakedTiles';
 import { emptyShardfile } from '../src/sdk/author';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const rows = {
   construction: { root: { id: 'world.root', name: 'Fixture world' }, looks: { unbound: [], bound: [] },

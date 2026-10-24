@@ -7,7 +7,7 @@ import { MONKEY_CLIPS } from '../../src/shards/driftwood-isle/generators/monkeyC
 import type { SpeciesRow } from '../../src/engine/ai/species';
 import { app } from '../../src/engine/app/runtime';
 import type { ShardContext } from '../../src/game/plugin/context';
-import { legacyDouble } from './FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { DRIFTWOOD_ENEMY_PROGRAM } from '../../src/shards/driftwood-isle/generators/speciesPrograms';
 
 /** Test-only authored intake; shipping consumers bind the verified product section. */

@@ -8,7 +8,7 @@ import type {ShardContext} from '../src/game/plugin/context';
 import type {ShardRuntime} from '../src/game/shard/runtime';
 import {createShardProduct} from '../src/game/shardfile/shardProduct';
 import {emptyShardfile} from '../src/sdk/author';
-import {legacyDouble} from './fake/FakeGame';
+import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import inkRows from '../src/shards/ink-cel-valley/data/rows.json' with {type:'json'};
 import {parseRows} from '../src/format/rows';
 import {parseLootEconomy} from '../src/format/lootEconomy';

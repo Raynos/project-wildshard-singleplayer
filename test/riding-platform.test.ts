@@ -30,7 +30,7 @@ import { createPageRiding, respawnPageMounted, RidingActions, type PageTamingOwn
 import fixturePrograms from '../src/shards/nalati-grasslands/behaviour/riding.generated.json' with { type: 'json' };
 import { Mount } from '@wildshard/game/riding/mount';
 import { RideHUD } from '@wildshard/game/riding/hud';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 function fixture(kind: string, speeds: MountProfile['speeds'], registerMode = true): { player: Player; animals: AnimalManager; mount: Mount; actor: Animal; scope: Scope; ctx: LevelContext; camera: PerspectiveCamera; slots: DiscOpts[]; widgets: string[] } {
   const scope = new Scope('riding-fixture'), app = new App(), camera = new PerspectiveCamera(), slots: DiscOpts[] = [], widgets: string[] = [];

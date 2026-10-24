@@ -9,7 +9,7 @@ import { nativeEliteBindings as eliteBindings, NativeEliteRoster, type NativeEli
 import { installEliteEncounters as originalInstall, type EliteEncounterPorts as OriginalPorts } from './fixtures/originalEliteEncounters';
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';
 import { nativeEliteCore } from './fixtures/nativeEliteCore';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const profile = { signal: 'argymaqTick', states: { display: 1, charge: 2, beaten: 3 }, bondedState: 'bonded', brokenState: 'beaten', adoption: { variant: 'reward', scale: 1.3 } };
 function fixture(original = false) {

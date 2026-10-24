@@ -10,7 +10,7 @@ import { BALBAL_SPECIES } from './fixtures/projectedCreature';
 import type { Animal } from '../src/engine/entities/AnimalView';
 import type { ThinkCtx } from '../src/engine/entities/species/registry';
 import type { DamageRequest } from '../src/engine/combat/pipeline';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { wireProgram } from '../src/shards/nalati-grasslands/generators/returnProgramRows';
 import {titanPrograms as titan} from './fixtures/titanInlineWitness';
 import { parseDecisionScripts } from '../src/format/decisionScripts';

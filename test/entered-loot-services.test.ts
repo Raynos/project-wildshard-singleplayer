@@ -9,7 +9,7 @@ import { RetainedRuntimeHooks } from '../src/game/shard/retainedHooks';
 import { BagMenu, type BagMenuOptions } from '../src/game/bag/tabs';
 import { installLoot, type LootPresentation } from '../src/game/loot/runtime';
 import { Owned } from '../src/game/loot/Owned';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 
 const none = (): void => undefined;

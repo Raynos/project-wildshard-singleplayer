@@ -4,7 +4,7 @@ import { paintedGroundMerge } from '../src/game/looks/paintedGroundMerge';
 import { GroundMerge } from '../src/game/shardfile/groundMerge';
 import { Scope } from '../src/engine/app/scope';
 import { realGc } from './fake/realGc';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 function installed() {
   const parent = new Group(), original = new Mesh(new BoxGeometry(), new MeshBasicMaterial());

@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { preparationAdmission } from '../src/game/grid/preparationAdmission';
 import type { LiveGridAdmission, LiveGridRegion } from '../src/game/grid/live';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import type { SimHost } from '@wildshard/engine/sim';
 import { GridCrossing } from '../src/game/grid/crossing';
 

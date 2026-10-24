@@ -13,7 +13,7 @@ import type { Renderer } from '../src/engine/render/renderer';
 import { emptyShardfile } from '../src/sdk/author';
 import { parseFamilyMaterial } from '../src/format/materialFamilies';
 import { clientMaterials } from '../src/game/shardfile/clientMaterials';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 function fixture(mode: 'success' | 'decode' | 'pending' | 'missing' = 'success') {
   const scope = new Scope('material-loader'), source = emptyShardfile({ slug: 'loader-fixture', name: 'Loader', author: 'Test', seed: 1, revision: 1 });

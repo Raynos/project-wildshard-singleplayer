@@ -22,7 +22,7 @@ import { knockdownVelocity } from '../src/game/population/relations';
 import type { Animal } from '../src/engine/entities/AnimalView';
 import type { AnimalManager } from '../src/engine/entities/AnimalManager';
 import { setTerrainHeight, setTerrainPlacement } from '../src/engine/world/terrainHeight';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { headlessAssembly } from '../src/shards/nalati-grasslands/generators/nativeGroups';
 
 test('orchard population emits crowd work between native groups and mount placement', () => {

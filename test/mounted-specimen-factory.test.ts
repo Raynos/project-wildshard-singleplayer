@@ -4,7 +4,7 @@ import { Bone, BufferGeometry, Group, Object3D } from 'three';
 import { mountedSpecimens, type MountedSpecimenPorts } from '../src/game/models/mountedSpecimen';
 import { Scope } from '../src/engine/app/scope';
 import { MOUNTED_FIGURE } from '../src/shards/nalati-grasslands/generators/mountedFigure';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import type { ModelContext } from '../src/engine/models/model';
 import type { Rng } from '../src/engine/core/rng';
 

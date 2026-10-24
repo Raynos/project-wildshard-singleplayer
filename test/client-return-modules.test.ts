@@ -11,7 +11,7 @@ import type {OutputDescriptor} from '../src/game/shardfile/outputDescriptor';
 import {createShardProduct} from '../src/game/shardfile/shardProduct';
 import {emptyShardfile} from '../src/sdk/author';
 import type {ShardContext} from '../src/game/plugin/context';
-import {legacyDouble} from './fake/FakeGame';
+import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import {titanPrograms as programs} from './fixtures/titanInlineWitness';
 
 test('page preparation lends the same verified book to sibling construction and actual level scopes',async()=>{

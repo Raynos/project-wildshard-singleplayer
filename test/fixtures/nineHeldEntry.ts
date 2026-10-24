@@ -16,7 +16,7 @@ import manifest from '../../src/shards/nine-dragon-stack/discovery.generated';
 import aim from '../../src/shards/nine-dragon-stack/data/grapple.json' with { type: 'json' };
 import bursts from '../../src/shards/nine-dragon-stack/data/burstFields.json' with { type: 'json' };
 import { headlessConstants } from '../../src/shards/nine-dragon-stack/generators/headless';
-import { legacyDouble } from '../fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 export const enteredRows = { grapple: { item: 'tool.fei-zhua', source: 'sim/headless-constants.json', presentation: 'weapons/jian-row.json' } };
 export async function heldEntry(prepare = true) {

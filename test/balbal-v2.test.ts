@@ -13,7 +13,7 @@ import type { DamageRequest } from '../src/engine/combat/pipeline';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { BALBAL_SPECIES } from './fixtures/projectedCreature';
 import { BALBAL_SPECIES as ORIGINAL } from './fixtures/originalBalbal';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { CreatureGuestSchema } from '../src/format/speciesBookRows';
 import { ReturnProgramSchema } from '../src/format/namedJsonContracts';
 import held from '../src/shards/nalati-grasslands/data/heldWeapons.generated.json' with { type: 'json' };

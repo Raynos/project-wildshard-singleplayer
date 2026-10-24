@@ -10,7 +10,7 @@ import type { Animal } from '../src/engine/entities/AnimalView';
 import { setTerrainHeight } from '../src/engine/world/terrainHeight';
 import { Elites, type EliteScript, type EliteEnteredOwners } from '../src/game/Elite';
 import { EliteEnteredPresentationSchema } from '../src/format/eliteFeature';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { mockCanvas, portraitHeldFrame } from './fake/weaponParity';
 
 const def = { id: 'reed.guard', name: 'Reed Guardian', epithet: 'Nest watcher', lair: { x: 0, z: 0, r: 4 },

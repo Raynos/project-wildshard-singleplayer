@@ -3,7 +3,7 @@ import { Weapon } from '../../src/engine/combat/Weapon';
 import type { Player } from '../../src/engine/player/Player';
 import { Animal } from '../../src/engine/entities/AnimalView';
 import type { TargetAnimal } from '../../src/engine/combat/types';
-import { legacyDouble } from './FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 /** Run real legacy methods without constructing their WebGL viewmodel. Missing fields remain loud errors. */
 export function legacyActor<T extends object>(prototype: T, surface: Record<string, unknown>): T {

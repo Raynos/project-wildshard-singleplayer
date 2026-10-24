@@ -6,7 +6,7 @@ import { installEntryQuestViews } from '../src/game/shardfile/clientQuestComposi
 import { admitClientPlan, CLIENT_FEATURES } from '../src/game/shardfile/clientPlan';
 import { QuestPageViews } from '../src/game/quest/questPageViews';
 import type { ShardContext } from '../src/game/plugin/context';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const row={kind:'quest.views',file:'quests/story.json'} as const;
 afterEach(()=>vi.restoreAllMocks());

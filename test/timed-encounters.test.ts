@@ -14,7 +14,7 @@ import type { Player } from '../src/engine/player/Player';
 import type { DayCycleClock } from '../src/engine/world/dayCycle';
 import { TimedEncounters } from '../src/game/boss/timedEncounters';
 import { setTerrainHeight, setTerrainPlacement } from '../src/engine/world/terrainHeight';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
 import nightInput from '../src/shards/nalati-grasslands/data/night.generated.json' with {type:'json'};
 import {withWeatherWitness} from './fixtures/weatherInlineWitness';

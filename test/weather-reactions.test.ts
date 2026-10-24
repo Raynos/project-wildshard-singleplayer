@@ -6,7 +6,7 @@ import { parseWeatherProgram, parseWeatherReactions } from '../src/format/weathe
 import { App } from '../src/engine/app/app';
 import { PlayerHealth } from '../src/engine/combat/health';
 import { fakeWorld } from './fake/world';
-import { legacyDouble } from './fake/FakeGame';
+import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import type { ShardContext } from '../src/game/plugin/context';
 import { bindPageWeatherHit,installWeatherReactions } from '../src/game/weather/reactions';
 import pine from '../src/shards/pine-hollow/data/weather.json' with { type: 'json' };
