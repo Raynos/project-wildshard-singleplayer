@@ -126,14 +126,12 @@ async function startSelected(): Promise<void> {
     if (typeof moduleRows !== 'object' || moduleRows === null || !Object.hasOwn(moduleRows, kind)) throw new Error('Missing boot module rows');
     preloadModuleFiles(Reflect.get(moduleRows, kind));
   };
-  const { gridPrefetchStatus } = await retried(() => import('./game/grid/prefetch'));
-  loading.setPrefetchSource(gridPrefetchStatus);
   loading.waiting('Preparing application services');
   // each module the boot needs, by name (E434: no barrels); they load in parallel, as the indexes did
   const [{ installKitSpecies }, { installKitIcons, BAG_ICONS }, { installPickupCatalogue, preparePickupCatalogue }, { default: PICKUP_CATALOGUE }, { installKitProps }, { STARTER_BAG_ITEMS }, { HOVERBOARD_TOOL },
     { sharedWeaponVoices, declaredWeaponVoices }, { sharedCombatCues }, { BOAR_LOOK }, { declaredKitItemFamilies },
     { configuredShardfile, installShardfileProduct, installManifestShardfile, preparePageResidency }, { browserShardfileOptions },
-    { pageGridRecovery }, { loadingPath }, { shardEntry }, { default: calibration }] = await Promise.all([
+    { pageGridRecovery }, { loadingPath }, { shardEntry }, { default: calibration }, { gridPrefetchStatus }] = await Promise.all([
     retried(() => import('./game/systems/species/install')), retried(() => import('./game/icons')),
     retried(() => import('./game/models/specimenCatalogue')), retried(() => import('./game/data/pickupCatalogue.json')),
     retried(() => import('./game/models/interact')), retried(() => import('./game/bag/starter.generated')),
@@ -142,7 +140,9 @@ async function startSelected(): Promise<void> {
     retried(() => import('@wildshard/game/shardfile/clientSource')), retried(() => import('@wildshard/game/shardfile/runtimeProduct')),
     retried(() => import('@wildshard/game/grid/pageEntry')), retried(() => import('./game/boot/loadingPaths')),
     retried(() => import('./game/shard/entryMode')), retried(() => import('./loadingCalibration.json')),
+    retried(() => import('./game/grid/prefetch')),
   ]);
+  loading.setPrefetchSource(gridPrefetchStatus);
   const source = pageGridRecovery() === null ? await configuredShardfile(document, browserShardfileOptions(document.baseURI)) : null;
   let page: ReturnType<typeof preparePageResidency> | undefined;
   try {
