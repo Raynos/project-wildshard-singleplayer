@@ -36,6 +36,7 @@ import { installViewport, viewportHeight } from './viewport';
 import { FIXED_STEP } from './fixedStep';
 import { SHADOW_LAYER } from './shadowLayer';
 import { WorldRenderPass } from './worldDepth';
+import { ownComposerDepth } from '../render/composerDepth';
 import { noteDrawnEnvironment } from '../render/drawnEnvironment';
 import { makeSystem, setLoopState, systemFault, type GameSystem } from './faults';
 import { frameCost } from './frameCost';
@@ -519,6 +520,7 @@ export class Game {
   private replaceComposer(R: ReplaceLook): EffectComposer {
     const msaa = TIER_CONFIG.smaa === 'off' ? 0 : this.renderKnobs().msaa ?? 0;
     const composer = new EffectComposer(this.renderer, { frameBufferType: THREE.HalfFloatType, multisampling: Math.min(msaa, this.renderer.capabilities.maxSamples) });
+    ownComposerDepth(composer);
     const scope = this.levelScope.child('look');
     const { chain } = R.compose({ app: this.app, scope, debug: { expose: (name, value) => { scope.onDispose(this.app.debug.scopedExpose(name, value)); } }, renderer: this.renderer, scene: this.rootScene, camera: this.camera, composer, tier: TIER });
     for (const p of chain) composer.addPass(p);
@@ -530,6 +532,7 @@ export class Game {
     const { atmosphere: A } = this.level;
     const { grade: G, look } = this.app.gradeFor({ grade: this.level.grade, ...(this.level.lookLayer === undefined ? {} : { look: this.level.lookLayer }) }); // + the look loop's layer (PH-L1 / L4)
     const composer = new EffectComposer(this.renderer, { frameBufferType: THREE.HalfFloatType, multisampling: 0 });
+    ownComposerDepth(composer);
     // the scene pass keeps the world's depth for the depth readers below (AO, the volumetric march, the god rays' sun mask):
     // the viewmodels' depth clear used to leave them the weapon alone (worldDepth.ts)
     // E142: on Pine Hollow's phone tier the viewmodels draw into near depth slices instead of clearing, so the world's
