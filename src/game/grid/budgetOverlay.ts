@@ -102,7 +102,7 @@ function section(title: string, ...rows: HTMLElement[]): HTMLElement {
 export function installBudgetOverlay(host: BudgetOverlayHost): BudgetOverlay {
   const { scope } = host;
   let root: HTMLElement | null = null, bar: HTMLElement | null = null, detail: HTMLElement | null = null;
-  let timer: ReturnType<typeof setInterval> | 0 = 0, expanded = false, last: BudgetPoints | null = null, head: MemoryHeadline | null = null, signature = '';
+  let timer: ReturnType<typeof setInterval> = 0, expanded = false, last: BudgetPoints | null = null, head: MemoryHeadline | null = null, signature = '';
   let group: MemoryGrouping = 'owner', sort: MemorySort = 'total';
   let allocationScope: Scope | null = null;
   const trend: number[] = [];

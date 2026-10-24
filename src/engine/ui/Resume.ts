@@ -37,7 +37,7 @@ class ResumeScreen {
   private readonly btn: HTMLButtonElement | null;
   private heroImg: HTMLImageElement | null = null; // keeps the title art decoded: a hidden page loads nothing
   private onButton: (() => void) | null = null;
-  private outTimer: ReturnType<typeof setTimeout> | 0 = 0;
+  private outTimer: ReturnType<typeof setTimeout> = 0;
 
   constructor() {
     let root = document.querySelector<HTMLElement>('.ws-resume');
