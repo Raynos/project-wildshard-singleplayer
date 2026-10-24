@@ -1056,6 +1056,9 @@ crediting completion. Client features and asynchronous practice preparation use
 the same reader. An arena arrival declares practice code before loading starts;
 a later room entry declares it before model preparation. The room and its
 procedural stand-ins stay synchronous.
+The private parsed bank is reused only for the same script element and exact
+text. Changed text or replacement elements repeat full file-table admission;
+warm requests still declare the selected bytes to the current loading ledger.
 
 `preloadModuleFiles(files)` and `preloadModuleGroups(names)` validate the same
 complete compiler bank, declare its actual byte facts and add deduplicated

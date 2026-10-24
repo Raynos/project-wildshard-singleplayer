@@ -229,17 +229,32 @@ export function recordCachedDownload(key: string, bytes: number, url?: string): 
 /** Actual body reads reset the stall timer without mislabelling decoded bytes as network transport. */
 export function noteDownloadRead(bytes: number): void { accountingTargets(accounting => { accounting.noteRead(bytes); }); }
 
+interface ModuleBank {
+  readonly text: string;
+  readonly files: readonly (readonly [string, number])[];
+  readonly groups: object;
+}
+const moduleBanks = new WeakMap<Element, ModuleBank>();
+
 /** Resolve the complete selected bank before publishing any prefix. */
 function selectedModuleFiles(kinds: readonly string[]): readonly (readonly [string, number])[] {
   if (typeof document === 'undefined' || kinds.length === 0) return [];
-  const text = document.getElementById('boot-module-files')?.textContent;
-  if (text === undefined) return []; // Source and isolated fixtures have no compiler inventory.
-  const input: unknown = JSON.parse(text);
-  if (typeof input !== 'object' || input === null) throw new Error('Missing client module inventory');
-  const bank: unknown = Reflect.get(input, 'optional');
-  if (typeof bank !== 'object' || bank === null) throw new Error('Missing optional client module inventory');
-  const files = readModuleFiles(Reflect.get(bank, 'files')), groups: unknown = Reflect.get(bank, 'groups');
-  if (typeof groups !== 'object' || groups === null) throw new Error('Missing client module groups');
+  const element = document.getElementById('boot-module-files');
+  if (element === null) return []; // Source and isolated fixtures have no compiler inventory.
+  const text = element.textContent;
+  let admitted = moduleBanks.get(element);
+  if (admitted === undefined || admitted.text !== text) {
+    const input: unknown = JSON.parse(text);
+    if (typeof input !== 'object' || input === null) throw new Error('Missing client module inventory');
+    const bank: unknown = Reflect.get(input, 'optional');
+    if (typeof bank !== 'object' || bank === null) throw new Error('Missing optional client module inventory');
+    const files = readModuleFiles(Reflect.get(bank, 'files')), groups: unknown = Reflect.get(bank, 'groups');
+    if (typeof groups !== 'object' || groups === null) throw new Error('Missing client module groups');
+    // Privately parsed rows never escape. Changed text or a replacement element
+    // must pass the complete bank admission again, including unselected files.
+    admitted = { text, files, groups }; moduleBanks.set(element, admitted);
+  }
+  const { files, groups } = admitted;
   const selected = new Map<number, readonly [string, number]>();
   for (const kind of new Set(kinds)) {
     const rows: unknown = Reflect.get(groups, kind);

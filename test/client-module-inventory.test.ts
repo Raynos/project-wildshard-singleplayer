@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { afterEach, expect, test } from 'vitest';
+import { afterEach, expect, test, vi } from 'vitest';
 import { DownloadAccounting, installDownloadAccounting, declareModuleGroups, preloadModuleFiles, preloadModuleGroups } from '../src/engine/boot/download';
 import { declareProductClientModules, prepareClientModuleGroups } from '../src/game/shardfile/clientModules';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
@@ -10,6 +10,51 @@ function bank(input: unknown): void {
   const element = document.createElement('script'); element.id = 'boot-module-files';
   element.textContent = JSON.stringify({optional:input}); document.body.append(element);
 }
+test('warm module groups reuse private parsing but publish to each loading ledger', () => {
+  bank({files:[['/assets/parser.js',8]],groups:{'models.gltf':[0]}});
+  const parse = vi.spyOn(JSON, 'parse');
+  try {
+    for (let i = 0; i < 2; i++) {
+      const accounting = new DownloadAccounting(document.baseURI), dispose = installDownloadAccounting(accounting);
+      try {
+        declareModuleGroups(['models.gltf']); declareModuleGroups(['models.gltf']);
+        expect(accounting.snapshot()).toMatchObject({declaredBytes:8,declaredFiles:1,networkBytes:0,cachedBytes:0});
+      } finally { dispose(); }
+    }
+    expect(parse).toHaveBeenCalledTimes(1);
+  } finally { parse.mockRestore(); }
+});
+
+test('changed module text revalidates unselected files before publishing anything', () => {
+  bank({files:[['/assets/parser.js',8]],groups:{'models.gltf':[0]}});
+  declareModuleGroups(['models.gltf']);
+  const element = document.getElementById('boot-module-files');
+  if (element === null) throw new Error('Missing test module bank');
+  const accounting = new DownloadAccounting(document.baseURI), dispose = installDownloadAccounting(accounting);
+  try {
+    element.textContent = JSON.stringify({optional:{files:[['/assets/parser.js',8],['https://foreign.invalid/a.js',9]],groups:{'models.gltf':[0]}}});
+    expect(() => declareModuleGroups(['models.gltf'])).toThrow('Invalid boot module file');
+    expect(accounting.snapshot()).toMatchObject({declaredBytes:0,declaredFiles:0});
+    element.textContent = JSON.stringify({optional:{files:[['/assets/new.js',12]],groups:{'models.gltf':[0],bad:[1]}}});
+    expect(() => declareModuleGroups(['models.gltf','bad'])).toThrow('Missing selected client module file');
+    expect(accounting.snapshot()).toMatchObject({declaredBytes:0,declaredFiles:0});
+    declareModuleGroups(['models.gltf']);
+    expect(accounting.snapshot()).toMatchObject({declaredBytes:12,declaredFiles:1});
+  } finally { dispose(); }
+});
+
+test('replacement module elements get their own complete admission', () => {
+  const input = {files:[['/assets/parser.js',8]],groups:{'models.gltf':[0]}};
+  bank(input);
+  const parse = vi.spyOn(JSON, 'parse');
+  try {
+    declareModuleGroups(['models.gltf']);
+    document.body.replaceChildren(); bank(input);
+    declareModuleGroups(['models.gltf']);
+    expect(parse).toHaveBeenCalledTimes(2);
+  } finally { parse.mockRestore(); }
+});
+
 test('selected plan graphs reserve exact module bytes before imports without crediting transport', () => {
   bank({files:[['/assets/shared.js',4],['/assets/scenes.js',6],['/assets/meadow.js',8]],groups:{'world.scenes':[0,1],'world.meadow':[0,2]}});
   const source = emptyShardfile({slug:'module-fixture',name:'Modules',author:'Fixture',revision:1,seed:7});
