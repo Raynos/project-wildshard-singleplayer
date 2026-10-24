@@ -25,6 +25,25 @@ export class ProductInputs {
   }
   /** A decoder's release cannot uncharge a wire still borrowed by another preparation. */
   retains(ref: string): boolean { return this.assets.has(ref) || this.reader.retained.has(ref); }
+  /** Metadata needs no input borrow; retire unused cold bytes through the same release authority. */
+  releaseUnused(): Promise<void> {
+    return this.run(async () => {
+      if (this.users !== 0) return;
+      const refs = this.refs.filter(ref => this.assets.has(ref) && !this.keep.has(ref));
+      if (refs.length === 0) return;
+      const released = await this.admitted.releasePreparedTransport?.(refs, 'cache-or-fetch') ?? [];
+      for (const ref of released) this.assets.delete(ref);
+      this.reader.releaseTransport(released);
+      for (const claim of this.claims) {
+        for (const ref of released) claim.refs.delete(ref);
+        const remaining = [...claim.refs].reduce((sum, ref) => sum + (this.assets.get(ref)?.byteLength ?? 0), 0);
+        if (remaining === 0) claim.lease.release();
+        else if (remaining < claim.bytes) claim.lease.shrink(remaining);
+        claim.bytes = remaining;
+      }
+      for (let i = this.claims.length - 1; i >= 0; i--) if (this.claims[i]?.bytes === 0) this.claims.splice(i, 1);
+    });
+  }
   async acquire(): Promise<ProductInputLease> {
     this.users++;
     try {
@@ -44,20 +63,7 @@ export class ProductInputs {
     let live = true, closing: Promise<void> | undefined;
     return { assets: this.assets, release: () => {
       if (!live) return closing ?? Promise.resolve(); live = false; this.users--;
-      closing = this.users === 0 ? this.run(async () => {
-        if (this.users !== 0) return;
-        const released = await this.admitted.releasePreparedTransport?.(this.refs.filter(ref => !this.keep.has(ref)), 'cache-or-fetch') ?? [];
-        for (const ref of released) this.assets.delete(ref);
-        this.reader.releaseTransport(released);
-        for (const claim of this.claims) {
-          for (const ref of released) claim.refs.delete(ref);
-          const remaining = [...claim.refs].reduce((sum, ref) => sum + (this.assets.get(ref)?.byteLength ?? 0), 0);
-          if (remaining === 0) claim.lease.release();
-          else if (remaining < claim.bytes) claim.lease.shrink(remaining);
-          claim.bytes = remaining;
-        }
-        for (let i = this.claims.length - 1; i >= 0; i--) if (this.claims[i]?.bytes === 0) this.claims.splice(i, 1);
-      }) : Promise.resolve();
+      closing = this.users === 0 ? this.releaseUnused() : Promise.resolve();
       return closing;
     } };
   }

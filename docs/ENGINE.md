@@ -5218,9 +5218,14 @@ borrows inputs through `gridShardfileProduct` before its scripts and panels
 install. Material closures project declared JSON files only, so deferred graph
 compiles keep their synchronous contract without retaining mesh/texture/Wasm
 inputs. That JSON subset and commons remain resident and charged.
-`preparationAdmission` keeps cached regional metadata page-owned; prefetch ends
-its input borrow, and every world creation (including re-entry) reacquires
-verified inputs before synchronous consumers. Metadata preparation never creates,
+`gridShardfileProduct(slug, owner, 'metadata')` returns a `GridProductMetadata`
+lease over the cached source and retained JSON, without acquiring or refilling
+binary preparation inputs. `ProductInputs.releaseUnused()` retires cold unused
+mirrors through the same declared-reference/offline authority, but never clears
+a live borrow. This keeps speculative metadata from rereading every input only
+to release it before world construction. `preparationAdmission` keeps the original
+regional metadata claim page-owned; every actual world creation (including re-entry)
+acquires verified inputs before synchronous consumers. Metadata preparation never creates,
 replaces or cancels a regional durability owner: same-cell prefetch can overlap
 a world construction, and only that world registers and retires its save ports. A cancelled in-flight build
 keeps its inputs until it settles, disposes any unpublished world, then releases

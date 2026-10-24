@@ -176,11 +176,15 @@ export function gridShardfileEdges(slug: string, owner: GridProductOwner): Promi
   return pending;
 }
 
+/** Cached source and retained JSON for metadata policy; this lease does not borrow or refill binary inputs. */
+export interface GridProductMetadata {
+  readonly admitted: AdmittedProduct; readonly options: ProductOptions; release: () => void;
+}
 /** One admitted product and the options its assets resolve against (ClientAssets reads further tiles through them). */
-export interface GridProduct {
-  readonly admitted: AdmittedProduct; readonly options: ProductOptions; readonly reader: ClientAssets;
+export interface GridProduct extends GridProductMetadata {
+  readonly reader: ClientAssets;
   /** End synchronous preparation while retaining the page's source/decoded-view owner. */
-  releaseInputs: () => Promise<void>; release: () => void;
+  releaseInputs: () => Promise<void>;
 }
 interface CachedGridProduct { readonly admitted: AdmittedProduct; readonly options: ProductOptions; readonly inputs: ProductInputs }
 /** One page allocator owns its product cache; consumers release only after their source/transport references are gone. */
@@ -227,7 +231,9 @@ export function gridPostCosts(allocator: ResidencyAllocator): GridPostCosts {
   return costs;
 }
 /** The slug's admitted data or trusted hybrid declaration; runtime entry still requires a separate regional factory. */
-export function gridShardfileProduct(slug: string, owner: GridProductOwner): Promise<GridProduct> | null {
+export function gridShardfileProduct(slug: string, owner: GridProductOwner): Promise<GridProduct> | null;
+export function gridShardfileProduct(slug: string, owner: GridProductOwner, mode: 'metadata'): Promise<GridProductMetadata> | null;
+export function gridShardfileProduct(slug: string, owner: GridProductOwner, mode?: 'metadata'): Promise<GridProduct | GridProductMetadata> | null {
   const manifest = findShard(slug), descriptor = manifest?.shardfile ?? manifest?.gridShardfile;
   if (descriptor === undefined) return null;
   if (owner.scope.disposed) return Promise.reject(new Error('Grid product page disposed'));
@@ -274,7 +280,13 @@ export function gridShardfileProduct(slug: string, owner: GridProductOwner): Pro
     return { admitted, options, inputs };
   }).then(async lease => {
     try {
-      const { admitted, options, inputs } = lease.value, input = await inputs.acquire();
+      const { admitted, options, inputs } = lease.value;
+      if (mode === 'metadata') {
+        await inputs.releaseUnused();
+        if (owner.scope.disposed) throw new Error('Grid product page disposed during metadata');
+        return { admitted, options, release: lease.release };
+      }
+      const input = await inputs.acquire();
       if (owner.scope.disposed) { await input.release(); throw new Error('Grid product page disposed during preparation'); }
       let live = true;
       const close = async (): Promise<void> => {

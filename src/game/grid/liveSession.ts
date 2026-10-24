@@ -56,7 +56,7 @@ import type { LedgerCatalogueItem } from '../ledger';
 import { installGridHoverSpeed, installGridTravellerCombat } from './rules';
 import { gridHomeSim, gridCells, type GridHomeSimulation, prepareTrustedRuntime, manifestRuntimeEntry, type TrustedRuntimeEntry } from '../plugin/context';
 import { findShard } from '../shard/registry';
-import { gridPostCosts, gridShardfileProduct, prioritizeGridProduct } from './products';
+import { gridPostCosts, gridShardfileProduct, prioritizeGridProduct, type GridProductMetadata } from './products';
 import { preparationAdmission, type GridAdmissionMetadata } from './preparationAdmission';
 import { gridPostPairRefusal } from './postPairs';
 import { postStackCost } from '@wildshard/format/postStack';
@@ -600,17 +600,14 @@ export class LiveGridSession {
   private prepareAdmission(cell: GridCell, metadata: true): Promise<GridAdmissionMetadata>;
   private prepareAdmission(cell: GridCell, metadata: false): Promise<LiveGridAdmission>;
   private async prepareAdmission(cell: GridCell, metadata: boolean): Promise<GridAdmissionMetadata | LiveGridAdmission> {
-    const pending = gridShardfileProduct(cell.slug, { allocator: this.ports.allocator, scope: this.ports.scope });
+    const productOwner = { allocator: this.ports.allocator, scope: this.ports.scope };
+    const pending = metadata ? gridShardfileProduct(cell.slug, productOwner, 'metadata') : gridShardfileProduct(cell.slug, productOwner);
     if (pending === null) throw new GridCellWaitingError(`${cell.slug} is not a shardfile shard (it stays a far proxy until M3)`);
     const product = await pending;
-    const releaseInputs = async (): Promise<void> => {
-      try { await product.releaseInputs(); }
-      catch (error) { console.warn('[grid] metadata input release:', error); }
-    };
-    const retained = metadata ? { ...product, release: () => { void releaseInputs(); } } : product;
+    const retained = metadata ? { ...product, release: () => undefined } : product;
     const finish = <T extends GridAdmissionMetadata>(admission: T): T => {
-      // The cached admission still holds source/JSON metadata; only its input
-      // borrow ends at prefetch. Keep that metadata's original charge page-owned.
+      // Keep the original source/JSON metadata claim page-owned. Metadata has
+      // no binary input borrow to cancel when speculative prefetch finishes.
       if (metadata) this.ports.scope.onDispose(product.release);
       return admission;
     };
@@ -722,9 +719,9 @@ export class LiveGridSession {
     } catch (error) { try { releaseProduct(); } finally { product.release(); } throw error; }
   }
 
-  private admitRuntime(cell: GridCell, retained: Awaited<NonNullable<ReturnType<typeof gridShardfileProduct>>>, metadata: true): Promise<GridAdmissionMetadata>;
-  private admitRuntime(cell: GridCell, retained: Awaited<NonNullable<ReturnType<typeof gridShardfileProduct>>>, metadata: false): Promise<LiveGridAdmission>;
-  private async admitRuntime(cell: GridCell, retained: Awaited<NonNullable<ReturnType<typeof gridShardfileProduct>>>, metadata: boolean): Promise<GridAdmissionMetadata | LiveGridAdmission> {
+  private admitRuntime(cell: GridCell, retained: GridProductMetadata, metadata: true): Promise<GridAdmissionMetadata>;
+  private admitRuntime(cell: GridCell, retained: GridProductMetadata, metadata: false): Promise<LiveGridAdmission>;
+  private async admitRuntime(cell: GridCell, retained: GridProductMetadata, metadata: boolean): Promise<GridAdmissionMetadata | LiveGridAdmission> {
     const manifest = findShard(cell.slug), declaration = retained.admitted.source.runtime;
     const dataPage = hasDeclaredClientPage(retained.admitted.source);
     if (manifest === undefined || !dataPage && (declaration === null || 'entry' in declaration && manifest.trustedRuntime === undefined)) throw new GridCellWaitingError('Missing declared regional page owner');
