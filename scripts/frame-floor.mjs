@@ -32,7 +32,7 @@ import { TASK_CLOCK_SCRIPT } from './frame-floor-task-clock.mjs';
 import { startScriptProfile, startPrefixScriptProfile, startDriveWindowScriptProfile, STEADY_SCRIPT_WINDOW, STEADY_TIMELINE_WINDOW } from './frame-floor-script-profile.mjs';
 import { startWebKitTimeline, timelineLongFrames } from './frame-floor-webkit-timeline.mjs';
 import { BUFFER_PRESSURE_SCRIPT } from './frame-floor-buffer-pressure.mjs';
-import { ABLATION_NORMAL, ABLATION_PAUSED, ABLATION_BUFFERS, OPEN_PAUSE_MENU, CLOSE_PAUSE_MENU } from './frame-floor-pause-ablation.mjs';
+import { ABLATION_NORMAL, ABLATION_PAUSED, ABLATION_BUFFERS, OPEN_PAUSE_MENU, CLOSE_PAUSE_MENU, refreshAblationInspector } from './frame-floor-pause-ablation.mjs';
 import { NATIVE_PRESSURE_SCRIPT } from './frame-floor-native-pressure.mjs';
 import { WASM_CONSTRUCTORS_SCRIPT, SCRIPT_MEMORY_POOL } from './frame-floor-wasm-constructors.mjs';
 import { runWasmMemoryProbe } from './frame-floor-wasm-probe.mjs';
@@ -594,6 +594,7 @@ async function measureShard(driver, shard, deadline) {
         }
         if (webkitSteadyPoses.includes(`grid-${plan.name}`)) {
           if (!driver.timeline || rows.some(row => row.pose.name === `grid-${plan.name}` && row.steadyTimeline)) throw new Error('Steady Timeline requires distinct selected windows');
+          if (pauseAblation) await refreshAblationInspector(driver.refreshInspector, documentOrigin);
           const stop = await driver.timeline.start();
           let window, steadyTimeline;
           try { window = await driver.evaluate(pauseAblation ? ABLATION_NORMAL : STEADY_TIMELINE_WINDOW, 35000); }
@@ -907,6 +908,7 @@ async function worker() {
           xcrun(['openurl', udid, gameUrl]);
           await connect(gameUrl);
         },
+        refreshInspector: async () => { await connect(currentUrl); return inspector.raw('performance.timeOrigin'); },
         tapGrid: () => inspector.raw(FLOOR_GRID_TAP),
         evaluate: retryEvaluate, errors: () => retryEvaluate('window.__frameFloorErrors ?? []'), progress: () => lastRoute, unload: async () => {
           if (stopNative !== undefined) { nativeMemory = await stopNative(); stopNative = undefined; }

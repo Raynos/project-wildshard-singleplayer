@@ -1,7 +1,7 @@
 import {expect, test} from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- execute actual serialized diagnostic without Safari
 import {runInNewContext} from 'node:vm';
-import {ABLATION_NORMAL, ABLATION_PAUSED, ABLATION_BUFFERS} from '../scripts/frame-floor-pause-ablation.mjs';
+import {ABLATION_NORMAL, ABLATION_PAUSED, ABLATION_BUFFERS, refreshAblationInspector} from '../scripts/frame-floor-pause-ablation.mjs';
 import {validateFrameFloorArgs} from '../scripts/frame-floor-args.mjs';
 
 function fixture(paused = false) {
@@ -60,4 +60,13 @@ test('ablation requires exactly the Nalati settled Timeline and excludes native 
   expect(() => validateFrameFloorArgs(args)).not.toThrow();
   expect(() => validateFrameFloorArgs(args.filter(a => !a.startsWith('--webkit-steady')))).toThrow('Pause ablation');
   expect(() => validateFrameFloorArgs([...args,'--native-pressure=tmp/probe'])).toThrow('Pause ablation');
+});
+
+test('one pre-A Inspector refresh preserves the same document and never retries replacement', async () => {
+  for (const origin of [123, 124, undefined]) {
+    let calls = 0;
+    const result = refreshAblationInspector(() => {calls++; return Promise.resolve(origin);}, 123);
+    await (origin === 123 ? expect(result).resolves.toBeUndefined() : expect(result).rejects.toThrow('changed the document'));
+    expect(calls).toBe(1);
+  }
 });

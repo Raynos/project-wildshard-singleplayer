@@ -7,3 +7,5 @@ export const OPEN_PAUSE_MENU: string;
 export const CLOSE_PAUSE_MENU: string;
 export function ablationWindow(mode: 'normal' | 'paused' | 'buffers'): Promise<unknown>;
 export function pauseMenuAction(open: boolean): void;
+/** One pre-window connection refresh; document replacement refuses without starting A. */
+export function refreshAblationInspector(reconnect: () => Promise<unknown>, expectedOrigin: number): Promise<void>;

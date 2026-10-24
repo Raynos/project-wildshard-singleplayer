@@ -64,3 +64,13 @@ export const ABLATION_PAUSED = `(${ablationWindow.toString()})('paused')`;
 export const ABLATION_BUFFERS = `(${ablationWindow.toString()})('buffers')`;
 export const OPEN_PAUSE_MENU = `(${pauseMenuAction.toString()})(true)`;
 export const CLOSE_PAUSE_MENU = `(${pauseMenuAction.toString()})(false)`;
+
+/** Refresh only before A, never replaying an evaluation or a begun window.
+ * @param {() => Promise<unknown>} reconnect
+ * @param {number} expectedOrigin
+ */
+export async function refreshAblationInspector(reconnect, expectedOrigin) {
+  const origin = await reconnect();
+  if (typeof origin !== 'number' || !Number.isFinite(origin) || origin !== expectedOrigin)
+    throw new Error('Ablation Inspector reattach changed the document');
+}
