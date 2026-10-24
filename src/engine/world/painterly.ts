@@ -81,14 +81,17 @@ export function painterlyKnobs(mat: THREE.Material): PainterlyKnobs | undefined 
 /** Compatibility constructor on the data-driven painterly family, including its single shared program. */
 export function painterlyMaterial(sky: Sky | null, opts: PainterlyOpts = {}): THREE.MeshLambertMaterial {
   if (sky) syncPainterlySun(sky);
+  const shade = v.parse(v.pipe(v.number(), v.finite(), v.minValue(0)), opts.shade ?? 1);
   const mat = compilePainterly(v.parse(PainterlyMaterialSchema, { family: 'painterly', vertexColours: true,
-    rim: opts.rim ?? 0.35, bands: opts.bands ?? 0.8, shade: opts.shade ?? 1, sway: opts.sway ?? 0,
+    rim: opts.rim ?? 0.35, bands: opts.bands ?? 0.8, shade: Math.min(1, shade), sway: opts.sway ?? 0,
     map: opts.map ? 'surface' : null, doubleSided: opts.side === THREE.DoubleSide, alphaCutoff: opts.alphaTest ?? 0,
   }), worldLook, () => { if (!opts.map) throw new Error('Painterly surface map is missing'); return opts.map; });
   mat.color.set(opts.color ?? 0xffffff); mat.emissive.set(opts.emissive ?? 0x000000);
   mat.side = opts.side ?? THREE.FrontSide; mat.transparent = opts.transparent ?? false;
   mat.opacity = opts.opacity ?? 1; mat.depthWrite = opts.depthWrite ?? true;
   const family = mat.userData['familyUniforms'] as PainterlyMaterialUniforms;
+  // Legacy viewmodels add shade-side fill above one; authored rows stay bounded.
+  family.famPaintShadeAmt.value = shade;
   const own = { uPRim: family.famPaintRim, uPBands: family.famPaintBands, uPShadeAmt: family.famPaintShadeAmt,
     uPSway: family.famPaintSway, uPFloorAmt: family.famPaintFloorAmt };
   mat.userData['painterly'] = own; knobs.set(mat, own);
