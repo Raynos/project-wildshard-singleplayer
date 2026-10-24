@@ -10584,7 +10584,8 @@
         "src/format",
         "src/sdk",
         "src/shards/nine-dragon-stack/behaviour/movers.as",
-        "src/shards/nine-dragon-stack/generators/bake-movers-view.mjs"
+        "src/shards/nine-dragon-stack/generators/bake-movers-view.mjs",
+        "src/shards/nine-dragon-stack/generators/moversProgram.ts"
       ],
       "outputs": [
         "src/shards/nine-dragon-stack/behaviour/movers.generated.json",
