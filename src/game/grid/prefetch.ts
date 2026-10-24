@@ -102,16 +102,22 @@ class GridPrefetch {
     if (this.status.reason === null) { this.status.reason = reason; this.status.phase = phase; }
   }
   async run(): Promise<void> {
-    if (saveData()) { this.stop('save-data'); return; }
-    const quota = await PrefetchQuota.open({ persist: () => navigator.storage.persist(), estimate: () => navigator.storage.estimate() }, HEADROOM);
-    if (quota === null) { this.stop('no storage estimate'); return; }
-    for (let next = this.queue.shift(); next !== undefined && this.status.reason === null; next = this.queue.shift()) {
-      if (!navigator.onLine) { this.stop('offline'); return; }
-      try { await this.product(next, quota); }
-      catch (error: unknown) { console.warn(`[grid prefetch] ${next} skipped`, error); } // one product's failure skips only it
-      this.status.productsRead++;
+    try {
+      if (saveData()) { this.stop('save-data'); return; }
+      const quota = await PrefetchQuota.open({ persist: () => navigator.storage.persist(), estimate: () => navigator.storage.estimate() }, HEADROOM);
+      if (quota === null) { this.stop('no storage estimate'); return; }
+      for (let next = this.queue.shift(); next !== undefined && this.status.reason === null; next = this.queue.shift()) {
+        if (!navigator.onLine) { this.stop('offline'); return; }
+        try { await this.product(next, quota); }
+        catch (error: unknown) { console.warn(`[grid prefetch] ${next} skipped`, error); } // one product's failure skips only it
+        this.status.productsRead++;
+      }
+      if (this.status.reason === null) this.status.phase = 'done';
+    } finally {
+      // Only product() reads the hash history. This page's one run is over;
+      // later prioritization/status reads retain scalar counts, not file hashes.
+      this.hashes.clear();
     }
-    if (this.status.reason === null) this.status.phase = 'done';
   }
   private async product(id: string, quota: PrefetchQuota): Promise<void> {
     const manifest = findTitleManifest(id), descriptor = manifest?.shardfile ?? manifest?.gridShardfile;

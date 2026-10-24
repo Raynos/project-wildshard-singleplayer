@@ -333,6 +333,17 @@ session (2.101 MiB); its named product source backing is 5.591 MiB / 169 stores,
 whose lazy/retry readers must be checked before removal. The 40.44 MiB GPU
 render-target allocation remains parked for Jake/Opus as a look decision.
 
+The first bounded cut clears that dedupe Set in `GridPrefetch.run()`'s `finally`,
+after the last `product()` reader, including stopped/failed runs. Status counts,
+known-product history and in-flight dedupe remain unchanged. The real-validator,
+SHA and content-cache regression holds a file open, reprioritizes the queue,
+proves cross-product single fetches, then checks empty history and stable status
+reads. It fails without the cleanup. Offline removal of only this Set's table
+edge in the saved graph makes **406,612 JS bytes (0.387775 MiB), zero backing
+bytes and zero external-string bytes** unreachable; this is a counterfactual
+storage budget, not a new post-cut heap or a WebKit footprint gain. No schema or
+saved/default registry deletion was justified; no cut to either is claimed.
+
 Raw captures, streamed graphs, owner rows and full root paths remain locally in
 `tmp/core-memory-heaps/71b4/`; capture receipt
 `.git/proofs/20261024T143537-sp-x1-menu-template-heap-capture-93416.json`.
