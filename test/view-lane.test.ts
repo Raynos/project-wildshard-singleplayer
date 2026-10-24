@@ -15,14 +15,17 @@ const f32 = (x: number): number[] => [0x43, ...new Uint8Array(Float32Array.of(x)
 const f64 = (x: number): number[] => [0x44, ...new Uint8Array(Float64Array.of(x).buffer)];
 const store32 = (addr: number[], value: number[]): number[] => [...addr, ...value, 0x36, 0x02, 0x00];
 const storeF = (addr: number[], value: number[]): number[] => [...addr, ...value, 0x38, 0x02, 0x00];
-function viewModule(): Uint8Array {
+function viewModule(channel = false): Uint8Array {
   const base = [0x20, 3], at = (k: number): number[] => [...base, ...i32(k), 0x6a];
   const view = [
     0x20, 0, ...f64(1), 0x64, 0x04, 0x40, 0x00, 0x0b, // dt > 1: trap
     ...i32(T17 + 4), 0x28, 0x02, 0x00, ...i32(IO), 0x6a, 0x21, 3, // base = directory[17].offset + io
     ...store32(i32(T17 + 16), i32(1)), ...store32(at(12), i32(1)),
     ...[0, 5, 10, 15].flatMap(k => storeF(at(16 + k * 4), f32(1))), ...storeF(at(16 + 12 * 4), [0x20, 1, 0xb6]),
-    ...store32(i32(IO + 72), i32(1)), 0x20, 2, ...i32(1), 0x6b, 0x0b];
+    ...store32(i32(IO + 72), i32(1)),
+    ...(channel ? [...i32(DIR + 17 * 24 + 4), 0x28, 0x02, 0x00, ...i32(IO), 0x6a, 0x20, 1, 0x39, 0x03, 0x00,
+      ...store32(i32(DIR + 17 * 24 + 16), i32(1)), ...store32(i32(IO + 76), i32(1))] : []),
+    0x20, 2, ...i32(1), 0x6b, 0x0b];
   const types = [[0x60, 0, 1, 0x7f], [0x60, 3, 0x7f, 0x7f, 0x7f, 1, 0x7f], [0x60, 3, 0x7c, 0x7c, 0x7f, 1, 0x7f]];
   const funcs: [number, number[][], number[], string][] = [[0, [], [...i32(2), 0x0b], 'ws_abi'], [0, [], [...i32(IO), 0x0b], 'ws_io'],
     [1, [], [0x20, 2, 0x0b], 'ws_init'], [2, [[1, 0x7f]], view, 'ws_view']];
@@ -48,6 +51,30 @@ test('a scheduled frame lands its validated transform and uploads once', () => {
   expect(written).toHaveLength(1);
   expect(written[0]?.[0]).toBe(0); expect(written[0]?.[13]).toBeCloseTo(0.25); expect(written[0]?.[1]).toBe(1);
   expect(uploads).toEqual([1]);
+});
+
+test('private view banks survive host buffer replacement without changing frame or refusal effects', () => {
+  const delivered: Float64Array[] = [], values: number[] = [], transforms: number[][] = [];
+  const view = new ViewLane(viewModule(true), 1, { ...rows, channels: 1 }, {
+    write: (_position, matrix) => { transforms.push([...matrix]); },
+    channels: bank => { delivered.push(bank); values.push(bank[0] ?? Number.NaN); }, upload: () => undefined,
+  });
+  const other = lane();
+  for (const alpha of [-0, .25]) {
+    expect(view.frame(1 / 60, alpha, 20, [sample], 60, clock(.1))).toBe(true);
+    other.lane.frame(1 / 60, alpha, 20, [sample], 60, clock(.1));
+  }
+  expect(values).toEqual([-0, .25]); expect(delivered[0]).toBe(delivered[1]);
+  expect(transforms).toEqual(other.written.map(row => row.slice(1)));
+  const detached = view.memory.buffer; view.memory.grow(0);
+  expect(detached.byteLength).toBe(0);
+  expect(view.frame(1 / 60, .5, 21, [{ ...sample, values: [4, 5, 6, 7] }], 60, clock(.1))).toBe(true);
+  expect(values).toEqual([-0, .25, .5]); expect(delivered[2] === delivered[1]).toBe(false);
+  const wire = new DataView(view.memory.buffer), samples = IO + wire.getUint32(DIR + 15 * 24 + 4, true);
+  expect(Array.from({ length: 4 }, (_, i) => wire.getFloat64(samples + i * 8, true))).toEqual([4, 5, 6, 7]);
+  expect(view.frame(2, 1, 22, [sample], 60, clock(.1))).toBe(true);
+  expect(values).toHaveLength(3); expect(transforms).toHaveLength(3); expect(view.isFrozen).toBe(true);
+  expect(other.lane.isFrozen).toBe(false);
 });
 
 test('three overruns halve the rate down to the 15 Hz floor; healthy calls recover one level', () => {

@@ -62,7 +62,9 @@ export interface ViewSample { readonly previousTick: number; readonly currentTic
 export class ViewLane {
   readonly memory: WebAssembly.Memory;
   private readonly instance: WebAssembly.Instance;
-  private readonly view: DataView;
+  private view: DataView;
+  private columns: Float64Array;
+  private channels: Float64Array;
   private readonly io: number;
   private readonly offsets = new Map<number, number>();
   private readonly frozen = new Set<number>();
@@ -92,6 +94,7 @@ export class ViewLane {
     if (this.call('ws_abi') !== 2) throw new Error('View module ABI major mismatch');
     this.io = this.call('ws_io');
     this.view = new DataView(this.memory.buffer);
+    this.columns = new Float64Array(this.view.buffer);
     const capacity = new Map([[BINDINGS, rows.bindings.length], [SAMPLE_DIRECTORY, rows.bindings.length],
       [SAMPLE_COLUMNS, rows.bindings.reduce((n, row) => n + 2 * row.columns, 0)], [TRANSFORMS, rows.transforms.length], [CHANNELS, rows.channels],
       [ARRAYS, (rows.arrays ?? []).reduce((n, length) => n + length, 0)], [BATCHES, (rows.batches ?? []).reduce((n, row) => n + batchWords(row), 0)]]);
@@ -108,6 +111,7 @@ export class ViewLane {
       end += stride * count;
     }
     if (this.io + end > this.memory.buffer.byteLength) throw new Error('View layout does not fit its fixed memory');
+    this.channels = new Float64Array(this.view.buffer, this.region(CHANNELS), rows.channels);
     // minor 1: the view lane's kinds 23 (arrays) and 24 (batches)
     this.view.setUint32(this.io, MAGIC, true); this.view.setUint16(this.io + 4, 2, true); this.view.setUint16(this.io + 6, 1, true);
     this.view.setUint32(this.io + 8, HEADER, true); this.view.setUint32(this.io + 12, end, true); this.view.setUint32(this.io + 20, LANE_VIEW, true);
@@ -141,6 +145,13 @@ export class ViewLane {
   }
 
   private run(dt: number, alpha: number, tick: number, samples: readonly ViewSample[], arrays: readonly ArrayLike<number>[]): boolean {
+    // Guest growth is forbidden; an explicit host grow(0) can still replace
+    // the buffer. Keep borrowed views per instance until that identity changes.
+    const buffer = this.memory.buffer;
+    if (this.view.buffer !== buffer) {
+      this.view = new DataView(buffer); this.columns = new Float64Array(buffer);
+      this.channels = new Float64Array(buffer, this.region(CHANNELS), this.rows.channels);
+    }
     const v = this.view, io = this.io, origin = Math.floor(tick / 2 ** 30) * 2 ** 30;
     v.setUint32(io + 24, ++this.sequence, true); v.setInt32(io + 28, tick - origin, true); v.setFloat64(io + 104, origin, true);
     v.setUint32(io + 32, this.rows.bindings.length - this.frozen.size, true); v.setUint32(io + 64, 0, true);
@@ -161,7 +172,7 @@ export class ViewLane {
       word += batchWords(row);
     }
     let column = this.region(SAMPLE_COLUMNS) / 8;
-    const columns = new Float64Array(this.memory.buffer), stamps = this.region(SAMPLE_DIRECTORY);
+    const columns = this.columns, stamps = this.region(SAMPLE_DIRECTORY);
     for (const [i, row] of this.rows.bindings.entries()) {
       const sample = samples[i], at = stamps + i * 32, n = row.columns;
       const binding = this.region(BINDINGS) + i * 64;
@@ -231,7 +242,7 @@ export class ViewLane {
       for (let k = 0; k < 16; k++) this.matrix[k] = v.getFloat32(at + 16 + k * 4, true);
       this.targets.write(i, this.matrix);
     }
-    if (v.getUint32(this.io + HEADER + (CHANNELS - 1) * ENTRY + 16, true) !== 0) this.targets.channels(new Float64Array(this.memory.buffer, this.region(CHANNELS), this.rows.channels));
+    if (v.getUint32(this.io + HEADER + (CHANNELS - 1) * ENTRY + 16, true) !== 0) this.targets.channels(this.channels);
     let word = 0;
     for (const [i, row] of (this.rows.batches ?? []).entries()) {
       const at = this.region(BATCHES) + word * 4, total = v.getUint32(at, true), first = v.getUint32(at + 4, true), n = v.getUint32(at + 8, true);
