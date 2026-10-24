@@ -251,17 +251,34 @@ export function scopeLookChunks(root: THREE.Object3D, look: LookChunks, scope: S
     patchShader(material, 'region.look', PATCH_ORDER.view + 40, (shader) => { applyLookChunks(shader, look, origin); }, { scope, key: (before) => `${before}|look:${look.id}`, pureKey: true });
     material.needsUpdate = true; count++;
   };
+  const visitValue = (material: unknown): void => {
+    if (isMaterial(material)) visit(material);
+    else if (Array.isArray(material)) { const list: readonly unknown[] = material; for (const m of list) if (isMaterial(m)) visit(m); }
+  };
+  // The region's nodes that carry a material, and the value each had at the last sweep. A frame's sweep reads only those
+  // (a swap shows as a new value; an array is read whole, in case it was edited in place), not the whole region: the
+  // walk was 272 ms of a 6 s Nalati interior at phone 4x, most of it nodes with nothing to draw. Anything attached to or
+  // detached from the region (three's childadded / childremoved, watched on every node of it) rebuilds the list first.
+  const nodes: THREE.Object3D[] = [], seen: unknown[] = [], watched = new WeakSet<THREE.Object3D>();
+  let changed = true;
+  const onChange = (): void => { changed = true; };
+  const collect = (node: THREE.Object3D): void => {
+    if (!watched.has(node)) { watched.add(node); scope.listenEmitter(node, 'childadded', onChange); scope.listenEmitter(node, 'childremoved', onChange); }
+    const material: unknown = Reflect.get(node, 'material');
+    if (material !== undefined) { nodes.push(node); seen.push(material); visitValue(material); }
+    for (const child of node.children) collect(child);
+  };
   const sweep = (): number => {
     if (scope.disposed) return count;
     root.updateWorldMatrix(true, false);
     origin.value.setFromMatrixPosition(root.matrixWorld);
     const before = count;
-    // every frame over the whole region: no array made per node (G639: ~0.9 ms a Signal Dunes drive frame at phone 4x)
-    root.traverse((node) => {
+    if (changed) { changed = false; nodes.length = 0; seen.length = 0; collect(root); return count - before; }
+    for (let i = 0; i < nodes.length; i++) {
+      const node = nodes[i]; if (node === undefined) break;
       const material: unknown = Reflect.get(node, 'material');
-      if (isMaterial(material)) visit(material);
-      else if (Array.isArray(material)) { const list: readonly unknown[] = material; for (const m of list) if (isMaterial(m)) visit(m); }
-    });
+      if (material !== seen[i] || Array.isArray(material)) { seen[i] = material; visitValue(material); }
+    }
     return count - before;
   };
   const frame = (dt: number, t: number): void => {
