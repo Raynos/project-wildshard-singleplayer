@@ -137,7 +137,7 @@ export async function committedFastChecks(root,base,tip,phase,paths) {
       const {comparePlatformList,PLATFORM_LISTS}=/** @type {typeof import('./check-platform-ratchets.mjs')} */(await module('scripts/check-platform-ratchets.mjs'));
       const {ratchetApprovalFailures}=/** @type {typeof import('./ratchet-approval.mjs')} */(await module('scripts/ratchet-approval.mjs'));
       const policy=json(view,'lint/ratchet.json');
-      failures.push(...closedComponentSources(root,policy.closedComponents,policy.closingComponents));
+      failures.push(...closedComponentSources(root,policy.closedComponents));
       const commits=execFileSync('git',['rev-list','--reverse',`${base}..${tip}`],{cwd:root,encoding:'utf8'}).trim().split('\n').filter(Boolean);
       for(const commit of commits) {
         const before=gitSourceView(root,`${commit}^`),after=gitSourceView(root,commit);

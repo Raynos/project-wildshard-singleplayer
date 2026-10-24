@@ -2866,25 +2866,59 @@
     "src/shards/nalati-grasslands/quest/kokpar.ts": 8
   },
   "closedComponents": {
-    "pine-hollow": [
-      "C3",
-      "C8",
-      "C7"
-    ],
-    "driftwood-isle": [
-      "C3",
-      "C8",
-      "C7"
-    ],
-    "nalati-grasslands": [
-      "C3",
-      "C8",
-      "C7",
-      "C5",
+    "far-reach": [
       "C1",
       "C2",
-      "C6",
+      "C3",
       "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9"
+    ],
+    "sunscar-dunes": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9"
+    ],
+    "pine-hollow": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9"
+    ],
+    "driftwood-isle": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9"
+    ],
+    "nalati-grasslands": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
       "C9"
     ],
     "nine-dragon-stack": [
@@ -2898,20 +2932,6 @@
       "C8",
       "C9"
     ]
-  },
-  "closingComponents": {
-    "pine-hollow": {
-      "C7": 0
-    },
-    "driftwood-isle": {
-      "C7": 0
-    },
-    "nalati-grasslands": {
-      "C7": 0
-    },
-    "nine-dragon-stack": {
-      "C7": 0
-    }
   },
   "wildshard/explicit-schema-types": {
     "src/format/actorMoves.ts": 1,

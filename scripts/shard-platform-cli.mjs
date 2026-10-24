@@ -40,13 +40,12 @@ export async function runShardPlatformCli() {
     // transitional shards whose standalone output has not closed yet.
     const componentMeasures=report.measurementError!==null?{}:sourceProgress?report.inventory:measures;
     const policy=JSON.parse(readFileSync(resolve(ROOT,'lint/ratchet.json'),'utf8'));
-    const closingIds=[...new Set(Object.values(policy.closingComponents??{}).flatMap(row=>Object.keys(row)))];
-    const lockedShards=[...new Set([...Object.keys(policy.closedComponents??{}),...Object.keys(policy.closingComponents??{})])];
+    const lockedShards=Object.keys(policy.closedComponents??{});
     // G514: custom-section budgets never stop the ruler; --check keeps them hard.
     const failures=process.argv.includes('--check')?[...sectionFailures]:[];
     if (failures.length===0) for (const failure of sectionFailures) console.error(`shard-platform: FAIL (report-only) ${failure}`);
     if (process.argv.includes('--write')&&report.measurementError===null) refreshOutputReports(ROOT,measures);
-    if (process.argv.includes('--json')) console.log(JSON.stringify({...rows,_summary:{metric:sourceProgress?'source-progress':'built-output',revision:process.env.VERCEL_GIT_COMMIT_SHA??null,closed:Object.keys(measures).length,total:Object.keys(rows).length,progress,netLines,dailyLines,customSectionFailures:sectionFailures,productFailures:report.productFailures,measurementError:report.measurementError,componentBasis:sourceProgress?'source':'built-output',sourceSpans:componentSpanReports(ROOT,report.inventory,Object.keys(rows),report.measurementError),components:componentStates(componentMeasures,lockedShards,closingIds),waves:SHARD_WAVES.map(wave=>componentWave(componentMeasures,wave.id,closingIds))}},null,2));
+    if (process.argv.includes('--json')) console.log(JSON.stringify({...rows,_summary:{metric:sourceProgress?'source-progress':'built-output',revision:process.env.VERCEL_GIT_COMMIT_SHA??null,closed:Object.keys(measures).length,total:Object.keys(rows).length,progress,netLines,dailyLines,customSectionFailures:sectionFailures,productFailures:report.productFailures,measurementError:report.measurementError,componentBasis:sourceProgress?'source':'built-output',sourceSpans:componentSpanReports(ROOT,report.inventory,Object.keys(rows),report.measurementError),components:componentStates(componentMeasures,lockedShards),waves:SHARD_WAVES.map(wave=>componentWave(componentMeasures,wave.id))}},null,2));
     else {
       console.log('shard                  closure    custom / frozen   escapes  M3 / basis       grid-ready  private JSON / bytes  AS / 10% legacy  private bin bytes  one-user build lines');
       for (const [slug,row] of Object.entries(rows)) {
@@ -86,7 +85,7 @@ export async function runShardPlatformCli() {
     if (process.argv.includes('--check')) {
       const recorded=JSON.parse(readFileSync(resolve(ROOT,LIST),'utf8'));
       failures.push(...checkShares(recorded,measures));
-      if(lockedShards.length>0)failures.push(...closedComponentFailures(report.inventory,policy.closedComponents,policy.closingComponents));
+      if(lockedShards.length>0)failures.push(...closedComponentFailures(report.inventory,policy.closedComponents));
     }
     for (const failure of failures) console.error(`shard-platform: ${failure}`);
     if (failures.length>0) process.exitCode=1;

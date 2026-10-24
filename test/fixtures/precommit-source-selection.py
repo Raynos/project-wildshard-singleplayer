@@ -33,13 +33,15 @@ with tempfile.TemporaryDirectory(dir=base/'tmp',prefix='staged-inputs-test-') as
  # Deletions require all active reader inputs, including unchanged readers.
  git('rm','--cached','src/gone.ts');tree=root/'deleted';staged_source(root,tree,time.time()+5,specification={**spec,'deleted':True})
  assert (tree/'src/reader.ts').read_text()=='import "./gone";\n';assert not (tree/'src/gone.ts').exists()
- # Closed-source inventories retain every actual locked runtime and producer entry.
+ # Structural zero retains every non-legacy source folder, even without a policy row.
  put('lint/ratchet.json',json.dumps({'closedComponents':{'example':['C9']}}))
  put('src/shards/example/runtime/run.ts','export const row = 1;\n');put('src/shards/other/runtime/run.ts','export const row = 2;\n')
+ put('src/shards/other-legacy/runtime/run.ts','export const row = 3;\n')
  put('src/shards/example/generators/bake-one.mjs','export const producer = 1;\n')
  put('scripts/generation-jobs.json',json.dumps({'jobs':[{'entry':'src/shards/example/generators/bake-one.mjs'}]}))
  git('add','lint/ratchet.json','src/shards','scripts/generation-jobs.json');tree=root/'closed';staged_source(root,tree,time.time()+5,specification={**spec,'closed':True})
- assert (tree/'src/shards/example/runtime/run.ts').is_file();assert not (tree/'src/shards/other/runtime/run.ts').exists()
+ assert (tree/'src/shards/example/runtime/run.ts').is_file();assert (tree/'src/shards/other/runtime/run.ts').is_file()
+ assert not (tree/'src/shards/other-legacy/runtime/run.ts').exists()
  assert (tree/'src/shards/example/generators/bake-one.mjs').is_file()
  # Missing authored imports refuse from index metadata even when loose bytes exist.
  put('src/loose.ts','export const hidden = 1;\n')

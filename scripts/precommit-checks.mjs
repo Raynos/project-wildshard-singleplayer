@@ -117,7 +117,7 @@ if (import.meta.main) {
       if (!existsSync('lint/ratchet.json')) throw new Error('Missing staged closed-component policy');
       const policy = JSON.parse(readFileSync('lint/ratchet.json', 'utf8'));
       const { closedComponentSources } = await import('./check-closed-components.mjs');
-      const errors = closedComponentSources(process.cwd(), policy.closedComponents, policy.closingComponents);
+      const errors = closedComponentSources(process.cwd(), policy.closedComponents);
       if (errors.length > 0) throw new Error(errors.join('\n'));
     } else throw new Error('Unknown pre-commit guard');
   } catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exitCode = 1; }

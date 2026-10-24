@@ -9,7 +9,7 @@ import { closedComponents, closedComponentSources, closedComponentFailures, comp
 import { componentInventory } from '../scripts/shard-components.mjs';
 import ratchetPolicy from '../lint/ratchet.json' with { type: 'json' };
 
-test('a line in each closed component fails; other components remain available', () => {
+test('every countable source is frozen even beyond a partial component policy', () => {
   const root = mkdtempSync(join(tmpdir(), 'closed-components-'));
   const policy = { 'pine-hollow': ['C3', 'C7', 'C8'], 'nine-dragon-stack': ['C5'] };
   const put = (path: string, source: string): void => { mkdirSync(dirname(join(root, path)), { recursive: true }); writeFileSync(join(root, path), source); };
@@ -18,7 +18,8 @@ test('a line in each closed component fails; other components remain available',
     put('scripts/source-generation-outputs.json', JSON.stringify({ schema: 'source-generation-outputs/1',
       producers: { 'scripts/gen-shards.mjs': ['src/shards/pine-hollow/discovery.generated.ts'] } }));
     put('src/shards/pine-hollow/discovery.generated.ts', 'export const audio = 1;\n');
-    expect(closedComponentSources(root, policy)).toEqual([]);
+    expect(closedComponentSources(root, policy)).toEqual([expect.stringContaining('CLOSED C1')]);
+    rmSync(join(root, 'src/shards/pine-hollow/runtime/index.ts'));
     for (const [id, name] of [['C3', 'windFx'], ['C7', 'mover'], ['C8', 'audio']]) {
       const path = `src/shards/pine-hollow/runtime/${name}.ts`;
       put(path, `export const ${name} = 1;\n`);
@@ -29,7 +30,7 @@ test('a line in each closed component fails; other components remain available',
     expect(closedComponentSources(root, policy)).toEqual([expect.stringContaining('nine-dragon-stack: CLOSED C5')]);
     rmSync(join(root, 'src/shards/nine-dragon-stack/quest/story.ts'));
     put('src/shards/pine-hollow/runtime/weapons/item.ts', 'export const weapon = 1;\n');
-    expect(closedComponentSources(root, policy)).toEqual([]);
+    expect(closedComponentSources(root, policy)).toEqual([expect.stringContaining('CLOSED C6')]);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
@@ -70,19 +71,6 @@ test('locks cannot be removed or changed into adjustable budgets', () => {
   expect(() => closedComponents({ 'pine-hollow': ['C8', 'C8'] })).toThrow('Invalid closedComponents');
 });
 
-test('closing counts shrink, require the lock to follow cuts, and close at zero', () => {
-  const policy = { 'nalati-grasslands': { C7: 93 } };
-  const row = (lines: number) => ({ 'nalati-grasslands': { components: componentInventory('', 'nalati-grasslands',
-    [{ path: 'src/shards/nalati-grasslands/ride/charged.ts', kind: 'sole-export', lines }], lines) } });
-  expect(closedComponentFailures(row(93), {}, policy)).toEqual([]);
-  expect(closedComponentFailures(row(94), {}, policy)).toEqual([expect.stringContaining('SHRINK-ONLY C7')]);
-  expect(closedComponentFailures(row(92), {}, policy)).toEqual([expect.stringContaining('lower shrink-only C7 lock')]);
-  expect(closedComponentFailures(row(0), {}, { 'nalati-grasslands': { C7: 0 } })).toEqual([]);
-  expect(compareClosedComponents({}, {}, policy, { 'nalati-grasslands': { C7: 92 } })).toEqual([]);
-  expect(compareClosedComponents({}, {}, policy, { 'nalati-grasslands': { C7: 94 } })).toEqual([expect.stringContaining('raised or removed')]);
-});
-
-
 test('Nine rejects regrowth in all nine zero components after G614', () => {
   const locked = ratchetPolicy.closedComponents['nine-dragon-stack'];
   expect(locked).toEqual(['C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9']);
@@ -111,4 +99,30 @@ test('CI enforces the complete closed-component guard after products and before 
   expect(publish).toBeGreaterThan(guard);
   expect(products.match(/node scripts\/check-closed-components\.mjs/gu)).toHaveLength(1);
   expect(products).not.toContain('check-closed-components.mjs --source-only');
+});
+
+test('new, native and Sky shard folders are structurally frozen without policy rows',()=>{
+  mkdirSync('tmp',{recursive:true});
+  const root=mkdtempSync(join('tmp','all-shard-freeze-'));
+  const put=(path:string,source:string):void=>{mkdirSync(dirname(join(root,path)),{recursive:true});writeFileSync(join(root,path),source);};
+  try {
+    for(const shard of ['pastel-plain','far-reach','new-shard']) {
+      const path=`src/shards/${shard}/runtime/extra.ts`;
+      put(path,'export const extra = 1;\n');
+      expect(closedComponentSources(root,{})).toEqual([expect.stringContaining(`${shard}: CLOSED`)]);
+      rmSync(join(root,path));
+    }
+    put('src/shards/new-shard/generators/build.ts','export const generate = 1;\n');
+    put('src/shards/new-shard/rows.d.json.ts','declare const rows: unknown; export default rows;\n');
+    put('src/shards/new-shard/shard.config.ts','export default { slug: "new-shard" };\n');
+    put('src/shards/frozen-legacy/runtime/extra.ts','export const legacy = 1;\n');
+    expect(closedComponentSources(root,{})).toEqual([]);
+  } finally {rmSync(root,{recursive:true,force:true});}
+});
+
+test('all six shards permanently lock every component',()=>{
+  for(const shard of ['far-reach','sunscar-dunes','pine-hollow','driftwood-isle','nalati-grasslands','nine-dragon-stack']) {
+    expect(Reflect.get(ratchetPolicy.closedComponents,shard)).toEqual(['C1','C2','C3','C4','C5','C6','C7','C8','C9']);
+  }
+  expect(Object.hasOwn(ratchetPolicy,'closingComponents')).toBe(false);
 });

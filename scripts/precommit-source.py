@@ -161,11 +161,9 @@ def required_sources(blobs, specification, tree=None, executable=None, staged_pa
         # Every active tracked reader is an input to the deleted-path grep.
         selected.update(name for name in blobs if name.split('/')[0] in ROOTS)
     if specification.get('closed'):
-        policy = json.loads(blobs.get('lint/ratchet.json', b'{}'))
-        shards = set(policy.get('closedComponents', {})) | set(policy.get('closingComponents', {}))
         for name in blobs:
             path = PurePosixPath(name)
-            if len(path.parts) > 3 and path.parts[:2] == ('src', 'shards') and path.parts[2] in shards:
+            if len(path.parts) > 3 and path.parts[:2] == ('src', 'shards') and not path.parts[2].endswith('-legacy'):
                 if path.suffix in {'.ts', '.tsx', '.glsl'} and '/generators/' not in name and not re.search(r'\.d\.ts$|\.(?:test|spec)\.tsx?$|/test/', name):
                     selected.add(name)
         catalogue = json.loads(blobs.get('scripts/generation-jobs.json', b'{"jobs":[]}'))
