@@ -95,6 +95,22 @@ waterSurface` 252, `game/systems/items/lash` 211, `systems/npc/figureRig` 211, `
 Graph caveats: workers, `*.merge.d.ts`, the service worker and `src/sdk/bin` show as orphans and are not
 candidates; string-built imports are missed, so every delete row ends with root `tsc`, lint and `vitest related`.
 
+## Three waves (Jake, 2026-10-24 ~15:05)
+
+*"The whole point of the freeze and delete plan is to go in two waves … Wave one, shit that we can delete right now.
+And then shit that needs to be frozen right now. Wave two, I do the fucking QA. I use the legacy ones for the A-B
+testing whilst I'm doing the fucking QA on my physical phone. Wave three, we delete the rest of the shit. Once the
+legacy shards are ready to be deleted, we delete the legacy shards and the rest of the shit in the engine and in the
+game that is depending on the legacy shards."*
+
+| Wave | Rows | Gate |
+|---|---|---|
+| **1 · Now** | Freeze F1–F5 (F1 done dd52fc84ea); delete D1–D6 (only code no legacy shard uses) | none: Codex builds now |
+| **2 · Jake's QA** | Jake plays every shard on his iPhone, A/B against its LEGACY version; the six `-legacy` folders, the LEGACY entry and the Developer ▸ Legacy shard buttons row must keep working | Jake's QA (G606) |
+| **3 · After QA** | LD5 LEGACY entry, LD6 the six folders, LD7 legacy-only engine/game modules, LD8 legacy tooling, A1 one client-plan boot (ShardPlugin is legacy's authoring API), A2 sweep, Z1 delete the zero lock and census | Jake's word after his QA |
+
+Wave 1 must not break the legacy path: any D-row that touches code a `-legacy` folder imports moves to wave 3.
+
 ## Rows
 
 Owner is Codex for all (none is graphical); D1 and A1 also need the boot smoke. Every row lands in small commits
