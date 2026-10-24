@@ -27,3 +27,5 @@ export function gradeTileRetirement(proof: {
 }): { pass: boolean; failures: string[]; baselineBytes: number; deltaBytes: number[] };
 export function readRetirementBoundary(identity: FloorGridDocumentIdentity, documentIdentity: () => FloorGridDocumentIdentity):
   Omit<RetirementBoundary, 'process'> & { keys: string[] };
+export function seedTileRetirementHome(reference: { x: number; z: number }, identity: FloorGridDocumentIdentity,
+  documentIdentity: () => FloorGridDocumentIdentity): Promise<void>;

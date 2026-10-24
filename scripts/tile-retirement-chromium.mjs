@@ -11,10 +11,10 @@ import { chromiumProcessPeaks } from './grid-ready-memory.mjs';
 import { saveFixture, harnessPins } from './debug-settings.mjs';
 import { frameFloorSettingsCode } from './frame-floor-settings.mjs';
 import { floorGridBenchmarkUrl, FLOOR_GRID_ENTER } from './frame-floor-navigation.mjs';
-import { gridFloorDocumentIdentity, stageFloorGrid, driveFloorGrid, runFloorGridRoute, gridFloorWitnessFailures,
+import { gridFloorDocumentIdentity, runFloorGridRoute, gridFloorWitnessFailures,
   readFloorGridEntryways } from './frame-floor-grid.mjs';
 import { soakPortalPlan } from './soak/owned.mjs';
-import { tileRetirementRoute, tileRetirementTracker, gradeTileRetirement, readRetirementBoundary } from './tile-retirement-proof.mjs';
+import { tileRetirementRoute, tileRetirementTracker, gradeTileRetirement, readRetirementBoundary, seedTileRetirementHome } from './tile-retirement-proof.mjs';
 
 const arg = key => process.argv.find(value => value.startsWith(`--${key}=`))?.slice(key.length + 3);
 if (process.argv.includes('--help')) {
@@ -68,9 +68,8 @@ try {
   for (const cell of cells) entryways.set(cell.slug,
     await page.evaluate(`(${readFloorGridEntryways.toString()})(${JSON.stringify(`/shardfiles/${cell.slug}/shard.json`)})`));
   const plans = route.plans.map(plan => soakPortalPlan(plan, state.cells, entryways, state.pitch));
-  await page.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify({ name: 'retirement-home-start',
-    from: state.home, to: state.home, start: route.reference, waypoints: [route.reference], requiredResidents: [state.home] })},
-    ${JSON.stringify(identity)},(${driveFloorGrid.toString()}))`);
+  await page.evaluate(`(${seedTileRetirementHome.toString()})(${JSON.stringify(route.reference)},
+    ${JSON.stringify(identity)},(${gridFloorDocumentIdentity.toString()}))`);
 
   const read = () => page.evaluate(`(${readRetirementBoundary.toString()})(${JSON.stringify(identity)},
     (${gridFloorDocumentIdentity.toString()}))`);

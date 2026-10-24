@@ -77,3 +77,15 @@ export function readRetirementBoundary(identity, documentIdentity) {
     keys: grid.residency().claims.filter(row => ['far', 'l0', 'l1'].includes(row.category)
       && row.id.startsWith('render:')).map(row => row.id) };
 }
+
+/** The only seed is before warm-up. Let Player.spawn resolve its original
+ * ground; the floor driver's explicit 0.55 m road height is not a home floor. */
+export async function seedTileRetirementHome(reference, identity, documentIdentity) {
+  if (documentIdentity().token !== identity.token || performance.timeOrigin !== identity.timeOrigin)
+    throw new Error('Retirement proof navigated before its home seed');
+  const api = window.__wildshard, state = api.shard.grid.state(), live = state.live?.live;
+  if (!live || live.current !== state.home || state.inside !== state.home || !live.gameplayReady)
+    throw new Error('Retirement seed requires its original ready home');
+  const player = api.world.player, ox = live.worldFeet.x - player.position.x, oz = live.worldFeet.z - player.position.z;
+  await api.pose({ x: reference.x - ox, z: reference.z - oz, yaw: 0, pitch: -0.08 });
+}

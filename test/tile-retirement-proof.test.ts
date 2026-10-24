@@ -2,7 +2,7 @@ import { test, expect } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- execute the real serialized reader without a browser or app fixture
 import { runInNewContext } from 'node:vm';
 import type { FloorGridState } from '../scripts/frame-floor-grid.mjs';
-import { gradeTileRetirement, tileRetirementRoute, tileRetirementTracker, readRetirementBoundary, type RetirementBoundary } from '../scripts/tile-retirement-proof.mjs';
+import { gradeTileRetirement, tileRetirementRoute, tileRetirementTracker, readRetirementBoundary, seedTileRetirementHome, type RetirementBoundary } from '../scripts/tile-retirement-proof.mjs';
 
 const state: Pick<FloorGridState, 'home' | 'pitch' | 'cells'> = { home: 'dw', pitch: 562.5, cells: [
   { instance: 'dw', slug: 'driftwood-isle', cell: [0, 0] },
@@ -92,3 +92,18 @@ function readRetirementBoundaryResult(value: unknown): { keys: unknown; controls
     throw new Error('Missing serialized boundary');
   return { keys: value.keys, controls: value.controls };
 }
+
+test('T1 home seed preserves original ground resolution and applies the existing world origin', async () => {
+  const poses: { x: number; z: number; y?: number; yaw: number; pitch: number }[] = [];
+  const live = { current: 'dw', gameplayReady: true, worldFeet: { x: 100, z: 500 } };
+  const context = { performance: { timeOrigin: 1 }, window: { __wildshard: {
+    shard: { grid: { state: () => ({ home: 'dw', inside: 'dw', live: { live } }) } },
+    world: { player: { position: { x: 10, z: 20 } } },
+    pose: (value: (typeof poses)[number]) => { poses.push(value); return Promise.resolve(); },
+  } } };
+  const expression = `(${seedTileRetirementHome.toString()})({x:120,z:710},{token:'original',timeOrigin:1},()=>({token:'original',timeOrigin:1}))`;
+  await runInNewContext(expression, context);
+  expect(poses).toEqual([{ x: 30, z: 230, yaw: 0, pitch: -0.08 }]);
+  expect(poses.every(pose => !Object.hasOwn(pose, 'y'))).toBe(true);
+  live.current = 'other'; await expect(runInNewContext(expression, context)).rejects.toThrow(/original ready home/u);
+});
