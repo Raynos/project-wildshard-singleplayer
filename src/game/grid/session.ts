@@ -20,10 +20,11 @@
  * - **legacy bounds yield** (SF17a): the session asks the level to leave out its chunk-edge walls and hide the edge
  *   veil (`gridLevel`), the bounds' horizontal check reads `grid`; fall recovery stays.
  */
+import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { platformInputs } from './platformInputs';
 import { gridLevel as levelForGrid } from './pageMode';
 import { cellClip } from './cellClip';
-import { BufferGeometry, Group, Mesh, Vector3, type Material, type Object3D } from 'three';
+import { BufferGeometry, Group, Mesh, Scene, Vector3, type Material, type Object3D } from 'three';
 import { prepareRigLoader } from '@wildshard/engine/anim/rig';
 import * as v from 'valibot';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
@@ -94,6 +95,12 @@ import { GridCellWaitingError, classifyRefusal, pageShardRefusals, refusalReason
 import { TILE_RING } from '../shardfile/tileDriver';
 import { CellLoading, type CellLoadingInput } from './cellLoading';
 import { CellScreen, facingEdge } from './cellScreens';
+
+/** The page lights kept for the grid's region lights (LightPool.reserve): the most one region shows at once, Pine Hollow's
+ *  five cabin lights. A point light costs every lit fragment a loop step, so this is the grid's real maximum, not more;
+ *  a region that shows more warns once and leaves the rest dark. */
+export const GRID_REGION_POINT_LIGHTS = 5;
+const isScene = (node: Object3D): node is Scene => node instanceof Scene;
 
 declare const __GRID_SEAM_PLANS__: readonly (readonly [string, readonly number[][]])[];
 /** Each slug's declared edge source, baked by the build with the seam plans (scripts/bake-grid-seams.mjs, the same reader) */
@@ -363,6 +370,8 @@ export class GridSession {
 
   constructor(host: GridSessionHost, edges?: readonly PlatformCell[], allocator?: ResidencyAllocator, prebuilt?: readonly GeneratedStrip[], preparedRoad?: { readonly road: PlatformRoad | Promise<PlatformRoad>; readonly plans: Map<Mesh, CullPlan> }) {
     this.host = host;
+    // before the page's first render: the lights a region's own pool shows through (regionalWorld `mirrorInto`)
+    if (isScene(host.scene)) LightPool.for(host.scene).reserve(GRID_REGION_POINT_LIGHTS);
     this.mapImages = new CellMinimaps(host.scope, async slug => {
       const pending = gridShardfileProduct(slug, { allocator: this.allocator, scope: host.scope });
       if (pending === null) return undefined;

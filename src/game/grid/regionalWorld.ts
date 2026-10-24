@@ -1,3 +1,4 @@
+import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { clientPageGround } from '../shardfile/clientGround';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { bindSceneSourceLooks } from '../shardfile/sceneSources';
@@ -249,6 +250,9 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
     // setup, then restore the page on the road. Entered frame scopes reinstall this same resolved policy for hooks.
     const leaveTextures = textures.enter(); resident.onDispose(leaveTextures);
     const scene = new Scene(); scene.name = `region-scene:${cell.instance}`;
+    // the region's own lights (its content asks this scene's pool) show through the page's reserved lights: the page's
+    // light count stays put as the region shows and hides (LightPool, GRID_REGION_POINT_LIGHTS)
+    LightPool.for(scene).mirrorInto(LightPool.for(game.rootScene), resident);
     let bound = 0;
     ownSceneTree(scene, resident, app.assets);
     try {
