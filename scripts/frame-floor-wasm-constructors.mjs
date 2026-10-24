@@ -32,3 +32,6 @@ export function observeConstructors() {
 
 /** Page initializer, injected before application modules only when requested. */
 export const WASM_CONSTRUCTORS_SCRIPT = `(${observeConstructors.toString()})();`;
+
+/** Detached pool counters at existing drive checkpoints; older app pins report null. */
+export const SCRIPT_MEMORY_POOL = 'window.__wildshard?.scriptMemory?.() ?? null';

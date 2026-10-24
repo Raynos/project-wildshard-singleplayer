@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Isolate the injected page observer from the test process's constructors.
 import { createContext, runInContext } from 'node:vm';
-import { WASM_CONSTRUCTORS_SCRIPT } from '../scripts/frame-floor-wasm-constructors.mjs';
+import { WASM_CONSTRUCTORS_SCRIPT, SCRIPT_MEMORY_POOL } from '../scripts/frame-floor-wasm-constructors.mjs';
 import { validateFrameFloorArgs } from '../scripts/frame-floor-args.mjs';
 
 test('admits the diagnostic flag for the original Sim worker and refuses other surfaces', () => {
@@ -9,6 +9,18 @@ test('admits the diagnostic flag for the original Sim worker and refuses other s
   expect(() => validateFrameFloorArgs(args)).not.toThrow();
   expect(() => validateFrameFloorArgs(['--worker', ...args])).not.toThrow();
   expect(() => validateFrameFloorArgs(['--surface=desktop', '--wasm-constructors=tmp/observe'])).toThrow('require --surface=sim');
+});
+
+test('reads pool counters once with the original receiver and accepts older app pins', () => {
+  let reads = 0;
+  const probe = { scriptMemory() { expect(this).toBe(probe); reads++; return { hits: reads, misses: 0 }; } };
+  const context = createContext({ window: { __wildshard: probe } });
+  const before: unknown = runInContext(SCRIPT_MEMORY_POOL, context);
+  const after: unknown = runInContext(SCRIPT_MEMORY_POOL, context);
+  expect(before).toEqual({ hits: 1, misses: 0 });
+  expect(after).toEqual({ hits: 2, misses: 0 });
+  expect(reads).toBe(2);
+  expect(runInContext(SCRIPT_MEMORY_POOL, createContext({ window: {} }))).toBeNull();
 });
 
 function page(): { evaluate: (source: string) => unknown } {

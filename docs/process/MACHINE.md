@@ -234,6 +234,8 @@ existing timeline coverage or clock checks fail. Add `--wasm-constructors=<exist
 to retain bounded native Memory/Module/Instance durations and original frame-clock
 reads. It injects before app modules, collects stacks outside each native timed
 segment, and saves on existing Inspector evaluations; no extra watcher or rAF.
+The same flag retains detached `scriptMemory()` pool counters at the original
+before/after drive checkpoints; older app pins report null. No per-frame read.
 Constructor and timeline observations are diagnostic, with no floor timing credit.
 For the controlled blank-page experiment, add `--wasm-memory-probe` with those
 two output directories and `--surface=sim` (no quiet). The same official worker

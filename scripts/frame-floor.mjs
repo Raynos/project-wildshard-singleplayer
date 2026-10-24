@@ -31,7 +31,7 @@ import { PROGRAM_NAMES_SCRIPT } from './frame-floor-programs.mjs';
 import { TASK_CLOCK_SCRIPT } from './frame-floor-task-clock.mjs';
 import { startScriptProfile, startPrefixScriptProfile, STEADY_SCRIPT_WINDOW } from './frame-floor-script-profile.mjs';
 import { startWebKitTimeline, timelineLongFrames } from './frame-floor-webkit-timeline.mjs';
-import { WASM_CONSTRUCTORS_SCRIPT } from './frame-floor-wasm-constructors.mjs';
+import { WASM_CONSTRUCTORS_SCRIPT, SCRIPT_MEMORY_POOL } from './frame-floor-wasm-constructors.mjs';
 import { runWasmMemoryProbe } from './frame-floor-wasm-probe.mjs';
 import { gpuBisect, settleTrace } from './frame-floor-gpu-bisect.mjs';
 import { publicGridIntentCode, publicGridPlans, readPublicGridWitness, publicGridWitnessFailures } from './public-grid.mjs';
@@ -502,7 +502,7 @@ async function measureShard(driver, shard, deadline) {
         }
         const prefixFile = join(safariProfileDir, `${plan.name}-prefix20s-${Date.now()}.scriptprofile.json`);
         const stopPrefix = driver.scriptProfile && safariPrefix === plan.name ? await driver.scriptProfile.prefix(capture => writeFileSync(prefixFile, JSON.stringify(capture))) : undefined;
-        await driver.evaluate('(window.__frameFloorDriveDone = false, window.__frameFloorBuildsFrom = performance.now(), true)');
+        const scriptMemoryBefore = await driver.evaluate(`(window.__frameFloorDriveDone = false, window.__frameFloorBuildsFrom = performance.now(), ${wasmConstructorsDir === '' ? 'true' : SCRIPT_MEMORY_POOL})`);
         if (taskClock) await driver.evaluate('(window.__frameFloorTaskTake?.(), true)');
         // the whole drive, and every runtime hook still building once it has arrived (the 120-frame travel row ends early)
         const wholeDrive = (async () => {
@@ -514,11 +514,11 @@ async function measureShard(driver, shard, deadline) {
           catch (error) { return { error: error instanceof Error ? error : new Error('Grid floor drive failed', { cause: error }) }; }
         })();
         await sleep(1000);
-        let motion, driven, whole, profile, timeline, earlyPlay, prefixRange;
+        let motion, driven, whole, profile, timeline, earlyPlay, prefixRange, scriptMemoryAfter;
         try {
           motion = await driver.evaluate(`(${sample.toString()})(${frames},${frameTimeline})`);
           driven = await moving; if (driven.error) throw driven.error;
-          await driver.evaluate('(window.__frameFloorDriveDone = true, true)');
+          scriptMemoryAfter = await driver.evaluate(`(window.__frameFloorDriveDone = true, ${wasmConstructorsDir === '' ? 'true' : SCRIPT_MEMORY_POOL})`);
           whole = await wholeDrive; if (whole.error) throw whole.error;
           // A drive-only selection extends through twenty entered-play seconds.
           // A matching steady selection instead starts its own later profile.
@@ -551,6 +551,7 @@ async function measureShard(driver, shard, deadline) {
         const { glFrames, ...wholeValue } = whole.value;
         const builds = nodeBuildsByHook(await driver.evaluate('(window.__wildshard.world.game.nodeBuilds?.log ?? []).filter(row => row.at >= window.__frameFloorBuildsFrom)'), hookTimes);
         const driveRow = { pose: { name: `grid-${plan.name}-drive` }, window: 'whole-drive', ...wholeValue, longFrameHooks: longFrameHooks(whole.value.longFrames.at, hookTimes), nodeBuilds: builds,
+          ...(wasmConstructorsDir === '' ? {} : { scriptMemoryPool: { before: scriptMemoryBefore, after: scriptMemoryAfter } }),
           over35Hooks: longFrameHooks(whole.value.slowFrames, hookTimes).map((row) => ({ hook: row.hook, frames: row.frames, maxMs: row.maxMs, totalMs: row.totalMs })),
           hookTimes: hookTimes.map((t) => ({ hook: `${t.instance}:${t.hook}`, start: Math.round(t.start), end: Math.round(t.end) })),
           ...(glFrames === undefined ? {} : { glByHook: glByHook(glFrames, hookTimes) }), ...(cpuProfile === null ? {} : { cpuProfile }), ...(scriptProfile === undefined ? {} : { scriptProfile }),

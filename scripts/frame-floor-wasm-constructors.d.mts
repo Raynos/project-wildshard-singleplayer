@@ -2,3 +2,5 @@
 export function observeConstructors(): void;
 /** Same corrected observer used by the official Simulator helper page. */
 export const WASM_CONSTRUCTORS_SCRIPT: string;
+/** Read the app's detached pool census, or null on older pins. */
+export const SCRIPT_MEMORY_POOL: string;
