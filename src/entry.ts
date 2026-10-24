@@ -188,10 +188,11 @@ async function startSelected(): Promise<void> {
     const manifest = source === null
       ? await installManifestShardfile(game.shard, { ...browserShardfileOptions(document.baseURI, true), memory: page.memory, progress: (progress) => { loading.paintAdmission(progress); } }, bindings, imports.ready)
       : await installShardfileProduct(source, { ...browserShardfileOptions(document.baseURI), memory: page.memory, progress: (progress) => { loading.paintAdmission(progress); } }, bindings, imports.ready);
-    const [{ installKitSpecies }, { installKitIcons, BAG_ICONS }, { installPickupCatalogue, preparePickupCatalogue },
+    const [{ installKitSpecies, installLegacyKitSpecies }, { installKitIcons, BAG_ICONS }, { installPickupCatalogue, preparePickupCatalogue },
       { default: PICKUP_CATALOGUE }, { installKitProps }, { STARTER_BAG_ITEMS }, { HOVERBOARD_TOOL }, , { sharedCombatCues }] = await imports.ready();
     if (source !== null || manifest.shardfile !== undefined) document.documentElement.classList.remove('title-first');
-    installKitSpecies();
+    if (manifest.legacy === true) await installLegacyKitSpecies();
+    else installKitSpecies();
     installKitIcons();
     const [{boundedResponse,browserContentHash},{publicBytes}] = await Promise.all([retried(()=>import('./game/shardfile/product')),retried(()=>import('./engine/boot/tables'))]);
     const pickupAssets=publicBytes(), pickupPath=/^\/assets\/baked\/common\/pickups\/([a-f0-9]{64})\.bin$/u;

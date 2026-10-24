@@ -5,10 +5,21 @@ import { BEAR } from './bear';
 import { BOAR_LOOK } from './view/boar';
 import { BEAR_LOOK } from './view/bear';
 
-/** Composition root defaults for legacy shards and standalone model tools. Plugins add scoped child rows. */
-export function installKitSpecies(): void {
-  // the calls a species with no `sounds` falls back on: a charger grunts like a boar, a grazer calls like a deer
+function installSoundDefaults(): void {
+  // A charger grunts like a boar, a grazer calls like a deer.
   setCreatureSoundDefaults({ charger: { call: 'boar_grunt', hurt: 'boar_squeal' }, grazer: { call: 'deer_call', hurt: 'deer_call' } });
-  registerSpecies(speciesWithLook(BOAR, BOAR_LOOK));
-  registerSpecies(speciesWithLook(BEAR, BEAR_LOOK));
+}
+
+/** Modern composition roots and model tools register only shared species. */
+export function installKitSpecies(register: typeof registerSpecies = registerSpecies): void {
+  installSoundDefaults();
+  register(speciesWithLook(BOAR, BOAR_LOOK));
+  register(speciesWithLook(BEAR, BEAR_LOOK));
+}
+
+/** Held for LD: only a frozen legacy boot requests the original procedural catalogue. */
+export async function installLegacyKitSpecies(register: typeof registerSpecies = registerSpecies): Promise<void> {
+  installSoundDefaults();
+  const legacy = await import('./legacy/install');
+  legacy.installLegacyKitSpecies(register);
 }
