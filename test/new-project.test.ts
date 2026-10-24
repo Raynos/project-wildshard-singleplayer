@@ -19,7 +19,7 @@ test('new projects build v2 from build-only data without a custom runtime', asyn
     expect(readdirSync(project).sort()).toEqual(['README.md', 'assets', 'behaviour', 'data', 'generators', 'shard.config.ts']);
     expect(readdirSync(resolve(project, 'generators')).sort()).toEqual(['output.ts', 'product.ts']);
     expect(() => writeNewProject(project, 'new-world')).toThrow('fresh directory');
-    expect(checkShardLayout({ 'new-world': ['README.md', 'assets/', 'behaviour/', 'data/', 'generators/', 'shard.config.ts'] }, { ...layout, legacy: {} })).toEqual([]);
+    expect(checkShardLayout({ 'new-world': ['README.md', 'assets/', 'behaviour/', 'data/', 'generators/', 'shard.config.ts'] }, layout)).toEqual([]);
     // Add a real platform row through the generated sidecar, as an author would.
     writeFileSync(resolve(project, 'generators/output.ts'), `import { emitPlatformSections } from '@wildshard/sdk/platformSections';
 export const output = { platform: emitPlatformSections(new Map([['actors/moves', [
@@ -40,7 +40,7 @@ export const output = { platform: emitPlatformSections(new Map([['actors/moves',
         above: 0, standOff: 0, ready: { kind: 'range' } },
     ]);
     expect(existsSync(resolve(output, 'runtime'))).toBe(false);
-    expect(readFileSync(resolve(project, 'README.md'), 'utf8')).toContain('runtime/sections.ts');
+    expect(readFileSync(resolve(project, 'README.md'), 'utf8')).toContain('no runtime TypeScript');
     expect(readFileSync(resolve(project, 'README.md'), 'utf8')).toContain('test/scripts/_template-boss.test.ts');
   } finally { rmSync(scratch, { recursive: true, force: true }); }
 });

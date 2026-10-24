@@ -34,39 +34,30 @@ test('ownership declaration suffixes preserve the module existence check', () =>
 });
 
 test('frozen layout accepts only explicitly inventoried legacy entries', () => {
-  const config = { requiredFiles: [], allowedFiles: [], folders: [], legacy: {} };
+  const config = { sourceLayout: { requiredFiles: [], allowedFiles: [], folders: [] } };
   const frozen = { shards: { 'sample-legacy': { primary: 'sample', files: { 'retired.ts': 'hash' } } } };
-  expect(checkShardLayout({ 'sample-legacy': ['retired.ts'] }, config, undefined, {}, frozen)).toEqual([]);
-  expect(checkShardLayout({ 'sample-legacy': ['unlisted.ts'] }, config, undefined, {}, frozen)).toEqual(['sample-legacy/unlisted.ts: outside the canonical shard layout']);
+  expect(checkShardLayout({ 'sample-legacy': ['retired.ts'] }, config, frozen)).toEqual([]);
+  expect(checkShardLayout({ 'sample-legacy': ['unlisted.ts'] }, config, frozen)).toEqual(['sample-legacy/unlisted.ts: outside the registered legacy inventory']);
+  expect(checkShardLayout({ 'fake-legacy': ['retired.ts'] }, config, frozen)).toEqual(['fake-legacy/retired.ts: outside the standalone source layout']);
 });
 
-test('partial legacy declarations still report undeclared layout debt', () => {
-  const config = { requiredFiles: ['manifest.ts'], allowedFiles: [], folders: [],
-    legacy: { example: { entries: ['retired.ts'] } } };
-  expect(checkShardLayout({ example: ['retired.ts'] }, config)).toEqual(['example: missing required manifest.ts']);
-  expect(checkShardLayout({ example: ['unlisted.ts'] }, { ...config, legacy: { example: { missing: ['manifest.ts'] } } }))
-    .toEqual(['example/unlisted.ts: outside the canonical shard layout']);
+test('primary layout refuses runtime and stale root modules even beside a manifest bridge', () => {
+  const config = { sourceLayout: { requiredFiles: ['shard.config.ts'], allowedFiles: ['manifest.json'], folders: ['data', 'generators'] } };
+  expect(checkShardLayout({ example: ['manifest.json', 'runtime/', 'plugin.ts'] }, config)).toEqual([
+    'example/runtime/: outside the standalone source layout', 'example/plugin.ts: outside the standalone source layout',
+    'example: missing required shard.config.ts',
+  ]);
+  expect(checkShardLayout({ example: ['shard.config.ts', 'manifest.json', 'row.d.json.ts'] }, config)).toEqual([]);
 });
 
 test('declared output catalogues admit only their own generated discovery files', () => {
-  const config = { requiredFiles: [], allowedFiles: ['manifest.json'], folders: [], legacy: {} };
+  const config = { sourceLayout: { requiredFiles: [], allowedFiles: ['manifest.json'], folders: [] } };
   const files = ['manifest.json', 'outputs.json', 'discovery.plot-one.generated.ts'];
   const outputs = { plots: ['plot-one'] };
-  expect(checkShardLayout({ plots: files }, config, undefined, {}, undefined, outputs)).toEqual([]);
-  expect(checkShardLayout({ plots: [...files, 'discovery.rogue.generated.ts'] }, config, undefined, {}, undefined, outputs))
-    .toEqual(['plots/discovery.rogue.generated.ts: outside the canonical shard layout']);
+  expect(checkShardLayout({ plots: files }, config, undefined, outputs)).toEqual([]);
+  expect(checkShardLayout({ plots: [...files, 'discovery.rogue.generated.ts'] }, config, undefined, outputs))
+    .toEqual(['plots/discovery.rogue.generated.ts: outside the standalone source layout']);
   expect(checkShardLayout({ plots: files }, config)).toHaveLength(2);
-});
-
-test('TypeScript and JSON budget homes each satisfy the contract but cannot coexist', () => {
-  const config = { requiredFiles: ['budgets.ts'], allowedFiles: [], folders: ['data'], legacy: {},
-    dataHomes: { 'budgets.ts': ['data/budgets.ts', 'data/budgets.json'] } };
-  for (const home of config.dataHomes['budgets.ts']) {
-    expect(checkShardLayout({ example: ['data/', home] }, config)).toEqual([]);
-  }
-  expect(checkShardLayout({ example: ['data/'] }, config)).toEqual(['example: missing required budgets.ts']);
-  expect(checkShardLayout({ example: ['data/', ...config.dataHomes['budgets.ts']] }, config))
-    .toEqual(['example: data/budgets.ts and data/budgets.json hold the same thing']);
 });
 
 test('source layout admits complete generated products but refuses unlisted files and symlinks', () => {
@@ -81,8 +72,7 @@ test('source layout admits complete generated products but refuses unlisted file
   const job = { shard: 'example', entry, command: [entry], platform: 'portable', outputs: [blob], buildTimeOutputs: [blob] };
   const catalog = (): void => put('scripts/generation-jobs.json', JSON.stringify({ schema: 'generation-jobs/1', jobs: [job] }));
   try {
-    put('lint/shard-layout.json', JSON.stringify({ requiredFiles: [], allowedFiles: [], folders: [], legacy: {},
-      sourceLayout: { requiredFiles: ['shard.config.ts', 'README.md'], allowedFiles: [], folders: ['generators'], bridges: {} } }));
+    put('lint/shard-layout.json', JSON.stringify({ sourceLayout: { requiredFiles: ['shard.config.ts', 'README.md'], allowedFiles: [], folders: ['generators'] } }));
     put('lint/shard-platform.json', '{"baseline":{}}');
     put(`${base}/shard.config.ts`, 'export default {};'); put(`${base}/README.md`, '# Example');
     put(entry, '// Complete product producer'); put(blob, 'generated bytes'); catalog();

@@ -66,42 +66,19 @@ may allocate freely; shipped data and scripts use the admitted platform systems.
 Shared build-time packs use the [commons catalogue](COMMONS.md); runtime imports cannot reach commons code.
 
 SDK projects use `shard.config.ts` plus `generators/`, `data/`, `behaviour/`,
-`assets/` and optional trusted transition `runtime/`. A pure shardfile project requires
-`shard.config.ts` and `README.md`; it does not require `plugin.ts`. The template is a complete declaration-only SDK project. Its manifest supplies picker
+`assets/`. Primary shards have no runtime TypeScript: they require
+`shard.config.ts` and `README.md`, with admitted data and WASM for play. The template is a complete declaration-only SDK project. Its manifest supplies picker
 metadata and points at its built shardfile; there is no template runtime chunk.
 Build output goes in git-ignored `out/<slug>/`: a v2 index, JSON sections and named hash blobs. Placement is platform data in
 `src/game/grid/singleplayer.json`, attached by `scripts/gen-shards.mjs`; source manifests
 and shardfiles carry no placement. SF17a changes the catalogue to the 3 × 3 grid.
 
-**Hybrid shards bind declared behaviour rows (SHARD-PLATFORM M3, the runtime-owner binding).** A hybrid shard (a
-shardfile plus its trusted `runtime/` chunk) keeps its runtime as the owner of the world and the play scope, and still
-moves behaviour into `shard.config.ts` as data. `runtime.binds` declares which sections the runtime binds
-(`src/game/shardfile/runtimeBinds.ts`: `quests`, `ledger`, `items`, `spawns`, `state`). A bound section is validated like every row; its
-rows do not make the shardfile "non-empty", so the hybrid stays on its own runtime instead of the full shardfile loader,
-and the data client never installs it (`withoutRuntimeRows`). An unbound behaviour row still sends the shard down the
-full loader. The runtime calls the platform installers from `@wildshard/game/shardfile/hybridRows`, which put the rows
-into its play scope (the entered `runtime:<instance>` scope in a grid cell, disposed or parked on leaving; the level scope
-standalone), through the template's own installers:
-
-| Section | Installer | The runtime lends |
-|---|---|---|
-| `state` | `bindRuntimeState(ctx, source, key, legacyRead, instance = source.identity.slug)` → `read()` / `write(value): boolean` | a declared host-owned shared field; scalar values or JSON strings up to 4096 characters; a read-only legacy adapter invoked once per field, after successful durable initialization |
-| `ledger` | `bindRuntimeLedger(ctx, source, instance)` → `(fact, entity) => receipt` (the platform `Ledger`; tick 0, told apart by entity, granted once) | the first-party placement id |
-| `quests` | `bindRuntimeQuest(ctx, source, id, { flags, facts, place, chip })` → `QuestState` over its flags; emits the `onComplete` fact | its `Flags`, each world-piece marker's built spot, a chip the format cannot carry |
-| `items` | `bindRuntimeItems(ctx, source, { families, icon })` in `buildEquipment` → `installDeclaredItems`; `bindRuntimeItemContexts(ctx, source)` in play | its own families, named `<slug>.<name>` (never shadowing `kit.*`); contexts register entered-only for a retained home |
-| `spawns` | rows in `runtime.spawns` (`runtimeSpawns.ts`: `homes` with a respawn delay, boss `bosses`, each `id` the creature's stable identity); `bindRuntimeHomes(ctx, source, { system, spawned })` keeps one creature per home (refill, retained identity, cold-restore respawn); `bindRuntimeBoss(ctx, source, id)` → `spawn(retired?)` / `retire` for its encounter script | its registered species and variants (`kind`, `look`), each fresh body's dressing |
-
-Coins a runtime pays (a quest's `onComplete.coins`, a boss reward) go through `bindRuntimeCoins(ctx, lootPurse)`: the
-level's loot purse, else the platform `Purse` for the shard (headless), never a direct coin-save write.
-
-Runtime state uses the template's `state` declarations and stable-id migrations. Pass the placement id for repeated
-instances; the slug default serves a shard with one placement. Bound state supports only host-owned shared fields,
-and keeps each field's initialization fence separate so binding one does not skip another's legacy migration.
-Disposed owners cannot read or write, blocked storage retains the platform’s in-memory fallback, and newer platform saves are preserved.
-
-A runtime-bound item carries no script hook (no simulation lane runs there). Signal Dunes is the first: its quest, its
-two ledger facts and the bullwhip row live in `shard.config.ts`; the runtime resolves `sunscar-dunes.whip` to its
-`Bullwhip`, which reads its crack numbers from the row.
+**G694 source freeze.** Primary shards contain executable TypeScript only in
+`generators/`; JSON contracts and declaration files erase completely. The
+`shard.config.ts` entry is declaration-only. `wildshard/no-shard-runtime` is a
+hard rule with no ratchet allowance. Exact registered legacy files keep their
+existing import/layout paths (**held for LD**); a `-legacy` suffix grants no
+exemption. The LEGACY entry and Developer buttons remain available for QA.
 
 To start a shard, run `pnpm gen` in this repository before copying
 `src/shards/_template` to a fresh project folder. This restores its pinned CPU
@@ -112,8 +89,7 @@ author-only declaration when the entry is thin). Run `wildshard build
 content-addressed assets are already included. Build-time generators may use author
 tools, while shipped behaviour is admitted AssemblyScript and callback-free data.
 The platform owns placement, cache, residency, physics, input, HUD and the normal
-Game boot. Follow [SHARDFILE.md](SHARDFILE.md) for the data contract; the legacy
-plugin guide below remains for first-party shards undergoing conversion.
+Game boot. Follow [SHARDFILE.md](SHARDFILE.md) for the data contract; the history below describes earlier APIs and is not a primary-shard authoring path.
 
 Ledger declarations use `@wildshard/sdk/ledger`: validate fact-to-reward mappings with
 `parseLedgerRules`. Authors emit a named outcome; the host assigns its stable instance,
@@ -159,8 +135,8 @@ recordable command path, gates bindings by active instance, and registers knobs/
 rows through session-owned scoped ports. The template keeps its lantern label, prop count
 and oil Debug choices; the legacy installer switches at SF16.
 
-A legacy shard is one Wildshard level with a manifest and a plugin. The remaining sections
-document that transition API; new shards follow the SDK flow above.
+Frozen legacy code is preserved for Jake's A/B playtests. New and primary shards
+follow the SDK flow above; do not add a manifest/plugin runtime.
 
 - **The template** is [`src/shards/_template/`](../src/shards/_template/). It is the complete grey teaching level
   authored as shardfile data and admitted behaviour. Copy it; don't start from a real shard.
@@ -177,27 +153,14 @@ document that transition API; new shards follow the SDK flow above.
 
 ## 0. Before you start
 
-- **Your lane.** While GAME-NORMALIZATION's lock is on, you may commit only inside your shard's allowlist: your
-  `src/shards/<slug>/`, `test/shards/<slug>/`, `art/<slug>/`, `public/assets/<slug>/` and the asset folders in your
-  manifest's `assetGlobs`, `scripts/blender/<slug>/`, and `docs/tasks/asks/`. The lead adds your slug to
-  `.github/lock.json` first. `scripts/check-lock.mjs` (the `commit-msg` hook) refuses any other path.
-- **Zero engine edits.** You never change `src/engine`, `src/game`, `src/sdk`, `src/commons`, `lint`, `scripts` or `.github`. When
-  you need something outside your folder, **stop and file an API gap** in your ask file: what you needed, where, and
-  why the public API can't do it. The lead fixes the API. Don't work around it with a deep import or a global.
-- **Generated files outside your lane.** Three committed files under `lint/` change when a shard is added, and only
-  the lead commits them. Name them in your ask file as soon as they change, so the lead lands them:
-  - `lint/shard-words.generated.json`: `pnpm gen --shard=<slug>` adds or updates only your slug's name, species/weapon ids,
-    settings and asset ownership, preserving every other committed entry even while its source is unfinished.
-    It rebuilds aggregate words from those preserved entries. The ignored runtime registry/closure tables still regenerate globally.
-    A scoped run requires an existing inventory (already present in this repository); use unscoped `pnpm gen` for a full refresh or removal.
-    The pre-commit hook checks it (`gen-shards --check`) whenever a commit touches your `manifest.ts`.
-  - `lint/ratchet.json` `debugRows`: every new `ctx.debugRow` raises the Debug-row cap.
-  - `lint/ask-ids.json`: `pnpm gen` adds an ask id that a new Debug row names.
-- **Your own look.** Every shard keeps its own style (PH-U1). Shards share the engine and the pipelines, never each
-  other's shading. Pick the look with a mockup board first (`art/<slug>/round-<n>-<label>/`); Jake picks.
-- **The HUD is shared.** Use the baseline HUD and map your verbs onto existing controls. A HUD change needs Jake's pick
-  (E332).
-- **No URL switches.** A variant is a Debug row (`ctx.debugRow`, §13), never a `?param`.
+Read [AGENTS.md](../AGENTS.md) for the shared checkout, layer and testing rules.
+Keep shard-specific content inside its own folder. Use the SDK authoring exports
+and [commons catalogue](COMMONS.md); never import trusted SDK runtime facades.
+If a needed behaviour has no admitted platform contract, record that API gap in
+its live plan instead of adding runtime TypeScript.
+
+Keep each shard's own picked style. HUD changes and visual variants follow
+Jake's Debug/pick process; no URL switches. Use the existing portrait controls.
 
 ## 1. Copy the template
 
@@ -216,8 +179,8 @@ Then, in the copy:
 3. Keep only the platform rows and admitted behaviors your world uses; quest graphs live in `data/`.
    `shard.config.ts` assembles the declaration and its `output` block names source blobs and emitted sections.
    Build to `out/<slug>/`, then validate it.
-4. New projects have no custom runtime. If needed, add client-only `runtime/index.ts`, `runtime/sections.ts`
-   and `runtime/const.ts`; runtime imports never reach shard source data or assets.
+4. Keep executable TypeScript in `generators/`, erased contracts in `*.d.json.ts`
+   or `*.d.ts`, and shipped behaviour in admitted AssemblyScript. No primary runtime folder.
 5. Build, run focused tests and boot standalone before publishing. The catalog/registry build owns app discovery;
    build-time data never enters it as executable imports.
 
@@ -237,348 +200,63 @@ The layout check (`scripts/check-shards.mjs`, from `lint/shard-layout.json`) run
 `src/shards/**`. A file or folder outside this list fails it.
 
 <!-- generated:shard-layout (node scripts/gen-shard-layout-doc.mjs, from lint/shard-layout.json) -->
-**Reference source layout (new projects and Template)**
+**Primary shard source layout**
 
-Everything outside optional `runtime/` is build-time. The product is `out/<slug>/`, outside the source folder.
+All source is build-time or erased declarations. Shipped behaviour is admitted WASM and data; primary shards have no runtime TypeScript.
 
 | Required file | What it holds |
 |---|---|
 | `shard.config.ts` | build entry: serialisable declaration plus output blobs/custom/platform sections; builds out/<slug>/ |
 | `README.md` | what the shard declares, its custom code and why, budgets, look, open work (its plan rows) |
 
-| Folder | What goes in it |
+| Allowed file | What it holds |
 |---|---|
-| `data/` | build-time TypeScript authoring rows, layouts, schemas and card metadata; evaluated by the SDK into output JSON, never imported by runtime/ |
-| `generators/` | build-time code that makes assets (models, terrain, scatter): run by the bake, never imported by the shard's runtime and never shipped (SHARD-PLATFORM SP5; optional) |
-| `behaviour/` | AssemblyScript entity and director scripts |
-| `assets/` | source assets consumed by the build |
-| `blender/` | the shard's retained Blender build sources and offline rig checks (build-time only; optional) |
-| `runtime/` | optional client-only trusted TS: index.ts, const.ts and sections.ts; imports only its own runtime/ or public platform modules and reads the admitted output |
-| `test/` | optional source tests; never copied into the shipped product |
-
-`runtime/sections.ts` defines custom-section schemas; `runtime/const.ts` holds local constants. Pure-output projects, including Template, have no runtime folder.
-
-Template temporarily retains only root `manifest.json` for discovery; P3 catalog activation removes that bridge.
-
-**Transition layout (existing shards only)**
-
-**Required files**
-
-| File | What it holds |
-|---|---|
-| `manifest.ts` | the `ShardManifest`, default-exported. Node-safe: data and lazy thunks only |
-| `plugin.ts` | the `ShardPlugin` subclass, default-exported |
-| `README.md` | what the shard declares, its custom code and why, budgets, look, open work (its plan rows) |
-| `roster.ts` | the Model Explorer roster (`live(model)` entries) |
-| `budgets.ts` | the budget inputs (§9); or exactly one of `data/budgets.ts` / `data/budgets.json` as pure data (`dataHomes`) |
-
-**Allowed files**
-
-| File | What it holds |
-|---|---|
+| `manifest.json` | authored discovery metadata; contains no runtime module |
 | `ktx2.generated.ts` | your KTX2 table, written by `bake-ktx2` once you bake KTX2 art. The one generated file you commit |
-| `budgetCeilings.ts` | recorded F2 ceilings (the four existing shards only); `data/budgetCeilings.ts` beside `data/budgets.ts` |
-| `strings.ts` | every player-facing string (§11) |
-| `layout.ts` | every coordinate: sites, trails, spawn points |
-| `debug.ts` | your Debug rows |
-| `shard.config.ts` | build entry: serialisable declaration plus output blobs/custom/platform sections; builds out/<slug>/ |
-| `manifest.json` | temporary authored discovery metadata for transition shards; catalog activation replaces it with emitted ui/level |
 | `discovery.generated.ts` | temporary generated discovery bridge; never hand-edit or commit it |
-| `outputs.json` | optional validated product catalogue; only its declared slugs may have `discovery.<slug>.generated.ts` bridges |
-
-**Folders**
 
 | Folder | What goes in it |
 |---|---|
-| `audio/` | the cue map, ambience, score wiring |
-| `boot/` | the boot file plan |
-| `explore/` | Explore art |
-| `look/` | the `LookStrategy` and its shaders |
-| `models/` | model definitions (`defineModel`) only |
-| `thumbs/` | the title card images |
-| `weapons/` | equipment rows and classes |
-| `world/` | world building: pieces, terrain dressing, water, climate |
-| `combat/` | encounters: bosses, elites, spawns (optional) |
-| `creatures/` | creature wiring (optional) |
-| `quest/` | quests; `quest/Places.ts` lists named places (optional) |
-| `species/` | species rows, looks and brains (optional) |
-| `npc/` | NPCs (optional) |
-| `loadout/` | loadout wiring, finishes, ammo (optional) |
-| `playground/` | playgrounds (optional) |
-| `design/` | the shard's design pack: `design.md` and `spec.json` (optional; E406) |
-| `generators/` | build-time code that makes assets (models, terrain, scatter): run by the bake, never imported by the shard's runtime and never shipped (SHARD-PLATFORM SP5; optional) |
-| `data/` | build-time TypeScript authoring rows, layouts, schemas and card metadata; evaluated by the SDK into output JSON, never imported by runtime/ |
-| `runtime/` | optional client-only trusted TS: index.ts, const.ts and sections.ts; imports only its own runtime/ or public platform modules and reads the admitted output |
+| `data/` | build-time authoring inputs and erased JSON type contracts; executable build logic belongs in generators/ |
+| `generators/` | build-time source that emits admitted JSON, WASM and named assets; never shipped as runtime TypeScript |
 | `behaviour/` | AssemblyScript entity and director scripts |
-| `quests/` | serialisable quest graphs and dialogue trees |
 | `assets/` | source assets consumed by the build |
 | `blender/` | the shard's retained Blender build sources and offline rig checks (build-time only; optional) |
+| `test/` | optional source tests; never copied into the shipped product |
+| `look/` | authored data, source assets and generated outputs; executable TypeScript belongs in generators/ |
+| `quests/` | authored data, source assets and generated outputs; executable TypeScript belongs in generators/ |
+| `thumbs/` | authored data, source assets and generated outputs; executable TypeScript belongs in generators/ |
+| `explore/` | authored data, source assets and generated outputs; executable TypeScript belongs in generators/ |
+| `boot/` | authored data, source assets and generated outputs; executable TypeScript belongs in generators/ |
+| `creatures/` | authored data, source assets and generated outputs; executable TypeScript belongs in generators/ |
+| `species/` | authored data, source assets and generated outputs; executable TypeScript belongs in generators/ |
+| `quest/` | authored data, source assets and generated outputs; executable TypeScript belongs in generators/ |
+| `world/` | authored data, source assets and generated outputs; executable TypeScript belongs in generators/ |
+
+Root erased `*.d.ts` / `*.d.json.ts` contracts and explicitly declared product discovery outputs are also admitted.
+
+Frozen legacy files keep their exact registered layout (**held for LD**). A `-legacy` suffix is not an exemption; the LEGACY entry and Developer buttons stay unchanged.
 <!-- /generated:shard-layout -->
 
-One name per concept: `quest/` or `quest.ts`, never both.
+## 3. Author the product
 
-## 3. Fill the manifest
+`generators/product.ts` builds the declaration from authored data and the
+`generators/output.ts` blob/section declarations. The thin `shard.config.ts`
+imports that result; it does not run gameplay code. Write layouts and source
+assets in the source folders above. Historical asset folders remain data-only;
+they do not authorize executable TypeScript outside `generators/`.
 
-The manifest is data. Fill it top to bottom ([ENGINE.md §6](ENGINE.md#6-the-shard-manifest-game) has every field).
+Follow [SHARDFILE.md](SHARDFILE.md) for the admitted data contract and
+[ENGINE.md](ENGINE.md) for platform hosts. Compile behaviour as AssemblyScript
+using the existing entity/director contracts. Use named content-addressed files
+for large payloads and declare their input identities in the producer registry.
+Build and validate the real product; never ship a TypeScript plugin or an
+`@wildshard/sdk/runtime/*` import from a primary shard.
 
-1. **Identity:** `api: 1`, `slug`, `name`, `blurb`, `biome`, `label`, `order`, `status`, `seed`, `placement`.
-2. **Card art:** `card: { thumb, portrait, landscape }` from `thumbs/`. A portrait first: the game is an iPhone PWA.
-3. **Ground:** `ground.terrain = buildTerrain(seed, { landscape, trails, cabinSites })` from `@wildshard/engine/world/terrainField`, or
-   `ground.structures: true` for a built world, or both. With structures only, there is no terrain mesh/collider:
-   `heightAt` / `terrainFor` return an analytic floor at **y = −1,000 m**, not a walkable surface (dry water sentinel
-   −1,001 m). Set `spawn.y` to your built floor and register its colliders with `ctx.piece`. Set `bounds.floor` /
-   `world.killY` above that fallback for void falls. `ground.water` lists `WaterBody` rows. `spawn`, `bounds`.
-4. **Look data:** `sky`, `atmosphere`, `grade`, `style`, `kitLook`, `hands` (`'toon'` for faceted swimming hands; default `'pbr'`), and `render: async () => (await import('./look/render')).myLook()`.
-5. **Mechanisms:** `uses` lists only what you run, from the 15: engine `weather dayCycle bosses elites spawns quests
-   swim hover explore practice`, game `coins loot compendium feats bag.pack`. Anything not listed isn't built.
-6. **Content:** `loadout`, `weapon: 'custom'`, `species`, `encounters`, `spawns`, `fight`, `bag`, `loot`, `creatures`.
-7. **Captures:** declare `dev.poses: () => Promise.resolve({ spawn: { eye: [0, 2, 0], feet: [0, 0.32, 0],
-   yaw: 0, pitch: 0, mockup: '', frame: 'Spawn view' } })`. Eye/feet are world coordinates; camera angles are degrees
-   (0 faces −Z, +90 faces +X). Standing poses are sampled by parity; eye-only poses are free budget views.
-   Without standing poses parity samples spawn as `current`. Install `__wildshardHarness` before loading for board
-   captures; see [ENGINE §6.1](ENGINE.md#61-authored-diagnostic-cameras) for pins, units and exact legacy probe overrides.
-8. **Audio:** `audio: { ambience, score, cues, preload? }` (§8).
-8. **Tiers and budgets:** `tiers`, `budgets` (§9).
-9. **Boot:** `boot: { files, sources, audio, precache, … }` (§14).
-10. **Assets:** `assetGlobs` (the folders your lane commits), `ktx2` once you have a table, `explore`, `roster`.
-11. **Plugin:** `load: () => import('./plugin')`.
-
-Keep every coordinate in `layout.ts` and import it. The manifest must import in bare node
-(`test/manifests-node-safe.test.ts`): no three.js objects, no DOM, only node-safe engine modules (`world/terrainField`, `core/config`, `core/noise` …; `lint/manifest-closure-budget.json` caps the files a manifest pulls).
-
-The engine draws nothing past your chunk by default (G552). For a skyline, set `horizon` in the manifest (its rings,
-and `cloudSea: true` for the cloud floor below the slab) or `horizonStrips` for a painted strip;
-[ENGINE §6](ENGINE.md#6-the-shard-manifest-game) lists every ring and compass-band field. `boundary: { visible: false }` removes only the drawn edge dressing; player containment remains active.
-
-Creature navigation normally excludes submerged terrain. For an authored exclusion beyond swimming water (for example a herd avoids a whole river corridor), declare `navmesh.excludeGroundAt(x, z, y)` in the node-safe manifest. It excludes only the terrain soup; registered decks still carry creatures over it. Re-bake with `pnpm gen && node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/bake-navmesh.mjs <slug>` and commit both navmesh files.
-
-## 4. The plugin verbs
-
-The plugin has three hooks, each awaited in its boot stage ([ENGINE.md §5a, §7](ENGINE.md#7-the-shard-plugin-and-the-registry)).
-Every verb is bound to your scope: what you register goes away when the level unloads.
-
-| Hook | Stage | Put here |
-|---|---|---|
-| `world(ctx)` | `level.world` | `ctx.strings`, `ctx.tiers.knobs`, world building with `ctx.piece`, interactables, `ctx.playground` |
-| `kit(ctx)` | `level.kit` | every row: `ctx.rows.weapon / tool / ammo / effect / damageRule / species / speciesLook / encounter / spawnTable / item / lootTable / skin / feat / shop / compendium / places`; set `ctx.game.runtime.buildEquipment` |
-| `play(ctx)` | `level.play` | systems (`ctx.system`), events (`ctx.on`, `ctx.answer`), input contexts, HUD, Bag tabs, quests, encounters, Debug rows, `ctx.debug.expose` |
-
-**Rows only in `kit`.** A row verb called in `world` or `play` throws. The loadout is built from the rows when `kit`
-returns, so `play` can't add a weapon.
-
-Mount a custom weapon's finished camera-space model in `play` with `ctx.app.equipmentHost?.viewmodel.add(model)`;
-remove it with `ctx.scope.onDispose`. The engine owns the camera and shared depth-clear pass ([ENGINE §18](ENGINE.md#18-combat-equipment-weapon-tool-gas-lite)).
-The template mounts its whip and lantern this way. No camera insertion or local depth-clear mesh is needed.
-
-**`ctx.game.runtime`** is the shell's handoff while the API grows: the built world (`runtime.world`), the player kit
-and UI (`runtime.play`), `buildEquipment`, `hooks`, `interactables`. It is `undefined` in the headless contract test,
-so read it with `?.`.
-
-**Never** add a DOM input listener, write to `window`, append to `#hud` or `document.body`, read `localStorage`, call
-`Math.random` for gameplay, or patch a shader with `onBeforeCompile`. Each has a verb (§15 lists the rules).
-
-## 5. Weapons and Tools
-
-Pick the lowest rung of the ladder that works ([ENGINE.md §18](ENGINE.md#18-combat-equipment-weapon-tool-gas-lite)):
-
-| Rung | When | Example |
-|---|---|---|
-| **Profile** | a kit family does it; you change numbers | `new Sword(world, targets, { row: IRON_SWORD, profile: SWORD_IRON })`; `new Bow(world, targets, { row: LONGBOW, profile: LONGBOW_PROFILE })` |
-| **Extend** | a kit family almost does it | `class LeverRifle extends Firearm` (Pine Hollow) |
-| **Custom** | nothing in the kit is close | `class TemplateWhip extends Weapon` built from `blocks.viewmodel` + `blocks.melee` |
-
-The trusted runtime families are defined by `@wildshard/sdk/runtime/weapons/{Melee,Thrown,Firearm,SweptMelee,Bow}`.
-The existing starter recipes use `@wildshard/sdk/runtime/weapons/Sword` and `.../starterBow`; their defining
-`starterMoves`, `starterMeleeProfile`, `starterBowProfile`, `starterEquipment` and `starterGlyphs` modules preserve
-shared recipe identities. These are transitional trusted runtime ports, not uploaded TypeScript author hooks.
-A Sword always receives an explicit shard-owned `rig`; the family supplies contact and view execution, not a model.
-A Bow profile supplies its own model and arrow strategies. Models stay in the owning shard's lane.
-
-For each weapon:
-
-1. **A row** (`EquipmentRow`, in `weapons/rows.ts`): `id: 'weapon.<name>'`, `ui` (name, icon, touch mode, lock-on,
-   its `inputContext`), `meta` (name, icon, blurb, category), `cues`.
-2. **Register it** in `kit`: `ctx.rows.weapon(ROW)`, and list its id in `manifest.loadout`.
-3. **Build it** in `ctx.game.runtime.buildEquipment`: return `{ primary, secondary, rifle, install }`. `install` adds
-   tools and unlocks.
-4. **Its input context:** `ctx.inputContext({ id, actions: ['attack', 'heavy', 'lock'], keysFrom: 'weapon.melee',
-   touch: { mode: 'melee', lockable: true, relabel: {} } })`. The baseline keys are Attack = Mouse0 / F,
-   Heavy = Mouse2; `keysFrom` follows the player's rebinds. Add only your extra `keys`, or override a baseline action
-   explicitly (`[]` unbinds it). The shell pushes the held weapon's context (named in `row.ui.inputContext`).
-   Bind both actions in your weapon's `install`: `app.input.bind('attack', () => this.tryFire(), scope)` and
-   `app.input.bind('heavy', () => this.swing(true), scope)`, gated by `this.enabled`. On touch, a still ATTACK hold
-   raises `adsHeld`, fills your `charge` readout, and its true → false transition releases the heavy. A light tap
-   already fires on touch-down; do not read `altHeld` for melee heavy (that field serves a bow's draw).
-   The template's `TemplateWhip.install/update` shows both paths and cancels a pending charge when holstered.
-5. **Its slot type:** merge the legacy slot into `EquipmentSlotMap` (`declare module '@wildshard/engine/combat/Equipment' { interface EquipmentSlotMap { … } }`: augment the module that declares the interface).
-6. **Damage** goes through the pipeline (`blocks.melee(app.combat).hit(req)` or a family's own path). An effect on a
-   hit is `app.effects.apply(actor, 'effect.poison')`.
-
-**A Tool** (`extends Tool`) runs beside the weapon: `slot: 'offhand'` or `'tool'`, its own `actions`. Register it with
-`ctx.rows.tool(ROW)`, add it in `install` (`equipment.add(tool, { locked: false })`), give it an input context and push
-it yourself: `ctx.app.input.push('<slug>.lantern', ctx.scope)`. The template's lantern and Nine Dragon's Fei Zhua are
-the examples. The kit's hoverboard (`tool.hoverboard`) is on every shard.
-
-After changing `manifest.budgets`, run `pnpm gen --shard=<slug>` and commit your slug’s generated
-`derived` entry in `budgets/ceiling-sources.json`. This command preserves every other slug and all measured
-GL ceilings and approval evidence. The gate checks freshness before generation. Measured GL re-records still
-require the lead’s approval and `scripts/budget-ceilings.mjs --accept=<approval>`.
-
-## 6. Creatures
-
-A creature is two rows plus, usually, a brain ([ENGINE.md §19](ENGINE.md#19-creatures-and-ai)).
-
-1. **A `SpeciesRow`** (`species/<name>.ts`): `id`, `kind`, `label`, `variants`, `aggressive`, and `think` / `act`
-   that call your brain. Simulation only: no three.js beyond math.
-2. **A `SpeciesLook`**: `species`, `kind`, `rig`, `rigContract` (skeleton, sockets, clips), `build()`, `animate()`.
-   Every creature needs `body` and `head` in `build().bones`, with `body` first, and both in
-   `rigContract.sockets`. This includes flying / custom rigs: the bones anchor their hit capsule and head sphere.
-   A ray can use a small head bone under `body` without a separate head mesh. Registration rejects missing socket
-   declarations by species and bone name; the factory checks the built bones too. Use `rig: 'custom'` and your own
-   `animate` when you do not use the default quadruped skeleton.
-3. **A brain**: `class MyBrain extends CreatureBrain<'idle' | 'fight'>` with `think` (decisions) and `act` (the body).
-4. **Strikes as data**: `StrikeSpec` rows with a shape (`arc`, `lane`, `ring`, `wedge`, `point`, `sphere`), timings, damage,
-   tags and a utility `weight`. A `StrikeRunner` picks and runs them on the body clock.
-5. **Register** in `kit`: `ctx.rows.species([...])`, `ctx.rows.speciesLook([...])`. List the kind in
-   `manifest.species`.
-
-**A flying creature** adds `flight: { altitude: 17, above: 'ground', climbRate: 7, diveRate: 28 }` to its species.
-Its `act` calls `ctx.flight.steer(animal, yaw, speed, altitude, turnRate?)`; the engine owns position and samples
-the ground at about 5 Hz. `above: 'world'` uses absolute altitude over islands or a void; ground-relative flight
-also falls back to world altitude without a floor within 200 metres. Use `sphere` for actual 3-D strike contact,
-and animate bones rather than writing `position`, `driven` or `yOffset`.
-
-Model your creature facing **+Z**, with +Y up. `BoneDef.pos` uses **absolute bind-space coordinates**, not a
-parent-relative offset: the factory subtracts the parent position. A child head at `[0, 1.2, 2]` under a body at
-`[0, 1, 0]` is 0.2 metres above and two metres in front of the body.
-
-A kit species (`BOAR`, `BEAR` and their looks) needs no code: register the rows. Spread a row to add a variant:
-`{ ...BOAR, variants: [...BOAR.variants, { id: 'greyback', … }] }`.
-
-**Encounters.** Register the ids in `kit` (`ctx.rows.encounter`, `ctx.rows.spawnTable`), then in `play`:
-
-| What | How |
-|---|---|
-| an elite | `class MyElite extends EliteBrain<Animal>`; `ctx.app.encounters.elite(id, brain, ctx.scope).spawn()` |
-| a boss | `class MyBoss extends BossBrain` with a `BossScript` and HP-threshold phases; `encounters.boss(id, brain, scope).arm()`; answer `death.checkpoint` |
-| a spawn table | `ctx.rows.spawnTable({ id, table: { mode: 'each' \| 'weighted', rows } })`; `encounters.spawn(id, scope, { create, retire })` |
-
-Creature tags are `creature.<kind>`. Quests and loot listen for `actor.died` and read the tags.
-
-Push creatures with `animal.impulse(worldVelocity)` (metres per second), rather than writing their positions.
-For worlds with a void, declare `world: { killY: 6 }` in the manifest; the engine kills creatures below it with an
-`out-of-world` cause. Read `actor.died.req.cause` for the result. Omit `world` on normal ground worlds.
-
-## 7. The look
-
-Your look is a `LookStrategy` in `look/render.ts`, loaded through `manifest.render`
-([ENGINE.md §13.1](ENGINE.md#131-lookstrategy)). It may declare its own `manifest.style` string.
-`style` is a label; use `kitLook`, `creatures` and your
-`LookStrategy` to declare rendering behavior, as Sky Reach does with `style: 'skyReach'` and `kitLook: 'toon'`.
-
-- **`extend`** (most shards): add passes around the engine's chain; `c.engineChain('clean' \| 'cinematic')` is the
-  engine's. Driftwood, Pine Hollow, Nine Dragon and the template extend.
-- **`replace`**: build the whole chain (`{ chain: Pass[] }`). Nalati does, for its painterly composer.
-- The parts: `backdrop` (sky and day clock), `sky` (`{ clouds, planet }`), `lighting`, `shadows`, `fog` (slot 300),
-  `fogControl`, `terrainPainter`, `grass`, `frame`, `dispose`.
-- Every shader edit goes through `patchShader(material, id, PATCH_ORDER.decorate, fn, { scope })`.
-- Tier differences (FXAA on phone, no god rays) are tier knobs in the manifest, not code in the look.
-- **No facade multi-draw** anywhere (E271): instance repeated geometry.
-- Work the look in the mockup loop: a live capture, a mockup board, Jake's pick, then build to match. Driftwood stays
-  low-poly; each shard's look is its own.
-
-A custom `terrainPainter.build(terrain, field, scope)` receives the live owning level scope. Use
-`scope.own` for resources you create and `patchShader(..., { scope })` for its shader edits; add your meshes to
-`terrain.group`. The scope releases them on failed boot or level unload. Shared asset leases retain their own
-ownership; do not also own those resources. See [ENGINE §13.1](ENGINE.md#131-lookstrategy).
-
-## 8. Audio
-
-- **Cues.** Weapons and the engine emit `cue.*` ids. Your cue map (`audio/cues.ts`) plays a sound for each:
-  `runtime.play.cues.use((id, opts) => { … return true; }, ctx.scope)`. Return `false` for a cue you don't handle.
-- **Ambience and score.** `manifest.audio.ambience` and `.score` name them; `preload` builds the audio profile. The
-  kit has a forest ambience (`installForestAmbience`) and a silent score (`installSilentScore`).
-  For **no ambience**, use `audio: { ambience: 'none', score: '<your score id>' }`, omit `bed`, and do not install
-  forest ambience, sampled beds or ambient zones in your plugin. The label declares your choice; playback comes
-  from the installed content. SFX cues, music and their `preload` can still be supplied independently.
-- **New sound is made locally.** Music: MiniMax Music 3. SFX: MOSS-SoundEffect v2 and Stable Audio 3 Medium, the
-  better take per sound. Both run under the shared model lock (AGENTS.md "Local models"). Put the files in
-  `public/assets/music/<slug>/` and `public/assets/sfx/<slug>/`.
-- The credits "Music: MiniMax-Music3" and "Powered by Stability AI" stay.
-
-## 9. Budgets and tiers
-
-- **Targets:** 30 fps on the phone tier, 60 on desktop. Memory: 1.8 GB while loading, 1.0 GB in the world, hard.
-- **`budgets.ts`** holds inputs only: per tier `fps`, `variability`, `cpuMs`, `gcMs`, `systems`, `vertexShare`, `lanes`,
-  `linkMs`, plus `load`. The engine derives draws, triangles, programs and GPU MB. The gate fails a shard over them.
-  Copy the template's numbers and adjust the system split to what your shard runs.
-- **Tier knobs** in `manifest.tiers.phone` / `.desktop` override engine defaults (`aa`, `ao`, `godRays`, `msaa`,
-  `shadowFar` …). Declare your own with `ctx.tiers.knobs({ id, defaults })` and merge the key into `TierKnobMap`.
-- Never cut render resolution to make a number. Optimise until it holds.
-
-## 10. Saves
-
-- Define a key with `ctx.app.saves.define({ key, scope, version, schema, initial })`. Keys are dot-case and prefixed
-  with your shard: `<slug>.notes`.
-- Shard state is `scope: 'shard'`; read and write with your slug: `slot.read(ctx.manifest.slug)`.
-- The shared game keys (purse, progress, bosses, elites, compendium, owned) come from `@wildshard/game/saves`; bind them with
-  `shardSave(purseSave, ctx.manifest.slug)`.
-- Change a shape → bump `version`, add a `migrate` step. Never touch `localStorage`.
-
-## 11. Strings
-
-Every line a player reads lives in `strings.ts`, one `as const` object. Register it in `world` with
-`ctx.strings(STRINGS)` and use `STRINGS.<key>` everywhere: card text, HUD labels, toasts, quest steps, Debug rows.
-English only.
-
-## 12. Quests, Bag, coins, compendium, feats
-
-These are game mechanisms: list them in `uses`, then wire them in `play`.
-
-| Mechanism | How |
-|---|---|
-| quests | `new QuestState({ id, title, completeFlag, steps }, new Flags(slug), ctx.app.events, ctx.scope)`; set flags from systems and events |
-| coins, loot | `installLoot({ ctx, manifest, … })`; `CoinBurst` for a reward; rows `ctx.rows.lootTable`, `ctx.rows.shop` |
-| compendium | `ctx.rows.compendium(row)` in `kit`, `installCompendium({ … })` in `play` |
-| feats | `ctx.rows.feat({ id, name, goal, count, event, … })`; `progress.recordEvent(event, 1)` counts it |
-| Bag | `manifest.bag.tabs`; `ctx.bag.tab(spec)`, `ctx.bag.fragment(tab, fragment)` |
-| items | `ctx.rows.item(row)`; set `travels: true` only for an item that crosses shards |
-
-For Wendell's quest presentation, use one call in `play(ctx)`:
-
-```ts
-import { installQuestPresentation } from '@wildshard/game/quest/presentation';
-import { Vector3 } from 'three';
-
-const view = installQuestPresentation(ctx, {
-  id: 'template.quest', title: STRINGS.quest, completeFlag: 'template.quest.done',
-  steps: [{ id: 'bell', title: STRINGS.findBell, done: { all: ['template.bell.rung'] },
-    target: { position: new Vector3(12, 4, -20), label: STRINGS.bell } }],
-});
-// In the bell's authored interaction:
-view.quest.flags.set('template.bell.rung');
-```
-
-This installs the objective chip, active minimap diamonds, styled world pins, MAP card, saved discovery at targets,
-step toasts and a seven-second reward caption. A target can supply an `npc` (definition, head position, talk label,
-speaker); `options.npc` is a persistent giver. Existing `QuestState` / `QuestDef` quests work too: retain
-`startWhen` / `intro` and markers, with `options.place` for POI-local positions. Supply `flags` to share the
-interaction store, `places` for authored discovery radii and `reward` for a held camera / clock view and award
-in `finish()`; use `reward: false` when your finale owns that moment. Models, gestures, conditions and prizes
-stay in the shard. The scope removes the presentation; map overlays coexist with loot charts.
-See [ENGINE.md §20](ENGINE.md#20-the-game-layer-game) for options and the completion-card handoff.
-
-## 13. Debug rows, playgrounds, Explore
-
-- **Debug rows:** `ctx.debugRow({ id, group, label, choices, initial, change, note, ask: 'E<n>', reviewBy })` in an
-  existing group. The row shows only on your shard and its value is saved per device. Every new row raises the
-  Debug-row count in `lint/ratchet.json` (`debugRows.max`), which is outside your lane: ask the lead (an API gap) when
-  you add one. When Jake picks a winner, delete the row and the losing code in one commit.
-- **Debug handles:** `ctx.debug.expose('<name>', value)` puts a handle on `window.__wildshard.shard[name]` for
-  captures and tests.
-- **Playgrounds:** `ctx.playground({ id, title, blurb, icon, load })`; the class implements `Playground`. Its pieces
-  are registry pieces with `active: () => this.entered`.
-- **Explore:** `manifest.explore.art` and `manifest.roster`. Every model a player can see belongs in the roster.
+Keep strings, spawn, bounds, equipment, quests, audio and look choices as data
+in the admitted schemas. A new host still needs the [host bar](HOST-BAR.md).
+Only exact registered frozen legacy files retain the earlier runtime APIs until
+LD is authorized; the historical guide below is not an exception for new files.
 
 ## 14. Assets
 
@@ -594,33 +272,24 @@ See [ENGINE.md §20](ENGINE.md#20-the-game-layer-game) for options and the compl
 
 ## 15. The guards it must pass
 
-| Guard | Runs | Run it yourself |
-|---|---|---|
-| `wildshard/layer`, `wildshard/public-index` | pre-commit, `pnpm test` | `node lint/ratchet.mjs`. Imports: the modules `@wildshard/engine`, `@wildshard/game` and `@wildshard/sdk` export (each name from the module that defines it, `docs/api/`), and `./` inside your folder. No other shard; no re-exports (`wildshard/no-reexport`) |
-| `wildshard/shard-sandbox` | pre-commit, `pnpm test` | same. No `window` / `globalThis`, no window or document input listeners, only your own settings and asset folders |
-| `wildshard/engine-words`, `wildshard/shard-names` | pre-commit, lint (hard) | what is particular to your shard (its creatures' labels and tuning, its places, its tree set, its pickups' and icons' ids, its strings) lives in your folder; reusable content goes to `@wildshard/game` (SF54 dissolved the kit). The engine names no content and the game names no shard (E405 LAYER-PURITY): when you need the engine to know something, hand it in as data (a species row field, `registerPickupLook`, `ctx.strings`, the manifest's `blender.area` / `forest.speciesTraits`) — ask the lead for a new hook rather than writing your slug into shared code |
-| `wildshard/shard-services` | pre-commit, `pnpm test` (ratchet) | take the engine's services from `ctx` (`ctx.app`, `ctx.hud`, `ctx.game` …); importing `app`, `saves`, `hudSlots`, `practiceRoom` or `lockOn` from an engine module fails a new file |
-| `wildshard/engine-internal` | lint (hard) | the game's own engine exports (`lint/engine-internal.json`: session, boot, title, installers) are not yours to import; what you need from the engine arrives through `ctx` |
-| `wildshard/no-level-identity`, `no-shard-branch` | pre-commit, lint | they guard the engine and game against branching on your slug; in your folder, keep identity checks out of shared helpers |
-| the hard rules (`no-raw-save`, `no-raw-input`, `no-raw-hud`, `no-raw-shader-patch`, `no-raw-animation-mixer`, `no-url-switch`) | lint, pre-commit | `pnpm exec oxlint src/shards/<slug>` |
-| the ratchet | pre-commit, `pnpm test` | `node lint/ratchet.mjs`: a new shard's files start at 0 on every ratcheted rule |
-| the layout check (AG9) | pre-commit when `src/shards/**` changes | `node scripts/check-shards.mjs` |
-| the manifest contract (AG10): `load: () => import('./plugin')`, the cold-boot closure within its budget (`lint/manifest-closure-budget.json`; one limit for every shard, 50 files) | push gate, `pnpm test` | `node scripts/gen-shards.mjs --check` |
-| the layer graph (AG7): no new layer pair or rising count, nothing outside your folder imports your files | pre-commit, `pnpm test` | `node scripts/check-graph.mjs` |
-| `gen-shards --check` | pre-commit when a manifest changes, the gate | `node scripts/gen-shards.mjs --check` |
-| node-safe manifest | `pnpm test` | `pnpm exec vitest run test/manifests-node-safe.test.ts` |
-| the world contract (SHARD-PLATFORM SP4) | `pnpm test` | `pnpm exec vitest run test/world/world-contract.test.ts`: your ground stays inside the 500 m cell (250 m below and above the highway level) and is level with the highway across the 15 m road at each edge midpoint, 50 m in. A level that can't (open sea, floating islands) is listed in `lint/edge-exemptions.json` with the row that fixes it; the list may only shrink |
-| your contract test | `pnpm test` | `pnpm exec vitest run test/shards/<slug>` |
-| the lock | every commit (`commit-msg`) | commit only inside your allowlist |
-| the pre-push gate | every push | `scripts/vercel-tree-gate.sh` runs check-css, gen, tsc, oxlint, the ratchet, vitest and `vite build` on a clean export |
-| the gate | every push to main | one `macos-15` job per shard: boot, walk, combat, the leak test, budgets. A new shard's first run records its baselines |
+| Guard | Check |
+|---|---|
+| Primary source freeze; exact legacy carve-out | `pnpm exec oxlint src/shards/<slug>` (`wildshard/no-shard-runtime`, hard, no ratchet) |
+| Source layout; registered generated transport only | `node scripts/check-shards.mjs` |
+| Layer/public SDK imports and no cross-shard imports | scoped typed lint and the closed-component check |
+| Real product contract and admitted WASM/data | `wildshard build` then `wildshard validate` |
+| Behaviour and existing admission/lifetime fences | focused tests plus `pnpm exec vitest related --run <sources>` |
+| Type contracts | `pnpm typecheck:root` and the touched warm layer projects |
+| Committed source/storage/ratchet policy | `scripts/commit.sh`; request one normal `scripts/push-main.sh` tick |
 
-Strictness holds: no `any`, `!`, `as unknown as`, ts-ignore, and no blanket `oxlint-disable`.
+Hard rules cannot gain a debt allowance. Strictness holds: no `any`, non-null
+assertions, `as unknown as`, ts-ignore or blanket lint disable. Follow
+[GIT.md](process/GIT.md) for bounded local checks and explicit CI deferrals.
 
 ## 16. The checklist: template → playable → live
 
 ### Template copied
-- [ ] Folder copied, slug = folder name, `status: 'experimental'`, ids renamed, unused verbs deleted.
+- [ ] Folder copied, slug = folder name, `status: 'experimental'`, ids renamed, unused declarations deleted.
 - [ ] `pnpm gen`, `tsc`, your contract test and `node scripts/check-shards.mjs` pass.
 - [ ] `README.md` says what the shard is (it grows with the shard).
 
@@ -639,7 +308,7 @@ Strictness holds: no `any`, `!`, `as unknown as`, ts-ignore, and no blanket `oxl
 - [ ] Jake has played it and picked the board items.
 - [ ] Open leftovers are rows of the shard's plan (never ask files, docs/process/ASKS.md), linked from your README.
 - [ ] `status` moves `experimental` → `earlyAccess` → `live` on Jake's word, one commit each. `hidden` is for the template only.
-- [ ] The README lists what the shard declares, its custom code and why, budgets, look and open work.
+- [ ] The README lists what the shard declares, its admitted behaviour, budgets, look and open work.
 
 ---
 

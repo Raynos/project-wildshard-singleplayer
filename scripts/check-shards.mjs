@@ -1,71 +1,31 @@
-// E362 AG9: one data-defined layout, with exact grandfathered entries for existing shards.
+// G694 F3: source-only primary layout; exact legacy inventory is held for LD.
 import { existsSync, readFileSync, readdirSync, realpathSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { parseSync } from 'vite';
-import { shardfileDescriptor } from './gen-shards.mjs';
 import { legacyInventory } from './legacy-shards.mjs';
 import { shardOutputs } from './shard-outputs.mjs';
 
 const EMPTY_FROZEN = { shards: {} };
 
-/** entries: slug -> top-level names (directories carry a trailing slash), plus any `dataHomes` path the shard holds.
- * outputs contains only product slugs admitted by shardOutputs, never wildcard discovery names. */
-export function checkShardLayout(entries, config, readManifest, runtimeBaseline = {}, frozen = EMPTY_FROZEN, outputs = {}) {
-  const failures = [];
-  const files = new Set(config.requiredFiles.concat(config.allowedFiles));
-  const folders = new Set(config.folders.map((name) => `${name}/`));
-  const homes = new Map(Object.entries(config.dataHomes ?? {}).map(([name, home]) => [name, Array.isArray(home) ? home : [home]]));
-  const dataHomes = new Set([...homes.values()].flat());
+/** Primary folders have one source layout. Frozen legacy paths are inventoried
+ * individually and keep their historical layout until LD; a suffix grants nothing. */
+export function checkShardLayout(entries, config, frozen = EMPTY_FROZEN, outputs = {}) {
+  const failures = [], source = config.sourceLayout;
   for (const [slug, names] of Object.entries(entries)) {
-    const primary = frozen.shards[slug]?.primary ?? slug;
-    const productFiles = new Set((outputs[slug] ?? []).map(output => `discovery.${output}.generated.ts`));
-    if (productFiles.size > 0) productFiles.add('outputs.json');
-    if (names.includes('runtime/') && !Object.hasOwn(runtimeBaseline, primary)) failures.push(`${slug}/runtime/: custom runtime is reserved for transition shards in lint/shard-platform.json`);
-    const sourceLayout = config.sourceLayout;
-    if (sourceLayout && names.includes('shard.config.ts') && (slug === '_template' || !names.some(name => ['manifest.ts', 'manifest.json'].includes(name)))) {
-      const allowed = new Set([...sourceLayout.requiredFiles, ...sourceLayout.allowedFiles, ...sourceLayout.folders.map(name => `${name}/`), ...(sourceLayout.bridges[slug] ?? [])]);
-      // dataHomes are synthetic nested entries, not extra source-root files.
-      // Discovery is generated only while the explicit manifest bridge exists.
-      for (const name of names) if (!allowed.has(name) && !dataHomes.has(name) && !productFiles.has(name) && !(name === 'discovery.generated.ts' && allowed.has('manifest.json'))) failures.push(`${slug}/${name}: outside the standalone source layout`);
-      for (const name of sourceLayout.requiredFiles) if (!names.includes(name)) failures.push(`${slug}: missing required ${name}`);
+    const legacy = frozen.shards[slug];
+    if (legacy !== undefined) {
+      const files = Object.keys(legacy.files ?? {});
+      for (const name of names) if (!files.some(file => file === name || name.endsWith('/') && file.startsWith(name)))
+        failures.push(`${slug}/${name}: outside the registered legacy inventory`);
       continue;
     }
-    if (slug.startsWith('_')) continue;
-    if (!/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/u.test(slug)) failures.push(`${slug}: folder name must be a kebab-case slug`);
-    const legacy = { entries: [], missing: [], ...config.legacy[primary] };
-    for (const name of names) if (!Object.keys(frozen.shards[slug]?.files ?? {}).some(file => file === name || file.startsWith(name)) && !files.has(name) && !folders.has(name) && !dataHomes.has(name) && !productFiles.has(name) && !legacy.entries.includes(name)) failures.push(`${slug}/${name}: outside the canonical shard layout`);
-    const manifest = names.includes('manifest.ts') && readManifest ? readManifest(`src/shards/${slug}/manifest.ts`) : null;
-    const descriptor = manifest === null ? null : shardfileDescriptor(manifest);
-    const dataManifest = descriptor?.path === `/shardfiles/${slug}/shard.json` && !descriptor.load;
-    const required = names.includes('shard.config.ts') && (!names.includes('manifest.ts') || dataManifest) ? (config.shardfileRequiredFiles ?? ['shard.config.ts', 'README.md']) : config.requiredFiles;
-    // dataHomes: a root file a shard may keep as data instead (`budgets.ts` → `data/budgets.ts`); either satisfies it.
-    for (const name of required) if (!names.includes(name) && !(homes.get(name) ?? []).some(home => names.includes(home)) && !legacy.missing.includes(name)) failures.push(`${slug}: missing required ${name}`);
-    for (const [name, alternatives] of homes) {
-      const present = [name, ...alternatives].filter(home => names.includes(home));
-      if (present.length > 1) failures.push(`${slug}: ${present.join(' and ')} hold the same thing`);
-    }
-    for (const folder of config.folders) if (names.includes(`${folder}.ts`) && names.includes(`${folder}/`)) failures.push(`${slug}: ${folder}.ts and ${folder}/ name the same concept`);
-    if (manifest !== null) {
-      const file = `src/shards/${slug}/manifest.ts`;
-      const parsed = parseSync(file, manifest);
-      if (parsed.errors.length > 0) { failures.push(`${slug}: manifest does not parse`); continue; }
-      const found = [];
-      const visit = (node) => {
-        if (!node || typeof node !== 'object') return;
-        if (node.type === 'Property' && (node.key?.name ?? node.key?.value) === 'slug') {
-          let value = node.value;
-          while (value?.expression && ['TSAsExpression', 'TSSatisfiesExpression', 'ParenthesizedExpression'].includes(value.type)) value = value.expression;
-          if (typeof value?.value === 'string') found.push(value.value);
-        }
-        for (const [key, value] of Object.entries(node)) if (key !== 'parent') {
-          if (Array.isArray(value)) { for (const child of value) visit(child); }
-          else if (value && typeof value === 'object') visit(value);
-        }
-      };
-      visit(parsed.program);
-      if (found.length !== 1 || found[0] !== slug) failures.push(`${slug}: manifest slug must equal its folder name`);
-    }
+    if (slug !== '_template' && !/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/u.test(slug)) failures.push(`${slug}: folder name must be a kebab-case slug`);
+    const allowed = new Set([...source.requiredFiles, ...source.allowedFiles, ...source.folders.map(name => `${name}/`)]);
+    const productFiles = new Set((outputs[slug] ?? []).map(output => `discovery.${output}.generated.ts`));
+    if (productFiles.size > 0) productFiles.add('outputs.json');
+    for (const name of names) if (!allowed.has(name) && !productFiles.has(name) && !/\.d(?:\.json)?\.ts$/u.test(name))
+      failures.push(`${slug}/${name}: outside the standalone source layout`);
+    for (const name of source.requiredFiles) if (!names.includes(name)) failures.push(`${slug}: missing required ${name}`);
   }
   return failures;
 }
@@ -88,6 +48,16 @@ export function shardEntries(paths, selected, homes = []) {
 // still participate in layout validation.
 function hasFiles(folder) {
   return readdirSync(folder, { withFileTypes: true }).some(entry => !entry.isDirectory() || hasFiles(resolve(folder, entry.name)));
+}
+
+// Generated declarations can remain under historical output directories. This
+// does not admit source runtime files or a folder by name: every leaf must be
+// an exact output of the existing registered producer catalogue.
+function generatedOnly(root, path, outputs) {
+  return readdirSync(resolve(root, path), { withFileTypes: true }).every(entry => {
+    const file = `${path}/${entry.name}`;
+    return entry.isDirectory() ? generatedOnly(root, file, outputs) : entry.isFile() && outputs.has(file);
+  });
 }
 
 // Only the registered, flat content-addressed product transport is generated
@@ -141,6 +111,9 @@ function generatedProduct(root, slug) {
 /** @param {string} root @param {Set<string>} [selected] */
 export function checkShards(root, selected) {
   const config = JSON.parse(readFileSync(resolve(root, 'lint/shard-layout.json'), 'utf8'));
+  const jobsFile = resolve(root, 'scripts/generation-jobs.json');
+  const generated = new Set(existsSync(jobsFile)
+    ? JSON.parse(readFileSync(jobsFile, 'utf8')).jobs.flatMap(job => job.outputs) : []);
   const entries = {};
   const outputs = {};
   for (const dir of readdirSync(resolve(root, 'src/shards'), { withFileTypes: true })) {
@@ -150,10 +123,12 @@ export function checkShards(root, selected) {
     entries[dir.name] = readdirSync(resolve(root, 'src/shards', dir.name), { withFileTypes: true })
       .filter(entry => !entry.isDirectory() || hasFiles(resolve(root, 'src/shards', dir.name, entry.name)))
       .filter(entry => entry.name !== '.wildshard' || !entry.isDirectory() || !generatedProduct(root, dir.name))
+      .filter(entry => entry.name === '.wildshard' || (entry.isDirectory()
+        ? !generatedOnly(root, `src/shards/${dir.name}/${entry.name}`, generated)
+        : !entry.isFile() || !generated.has(`src/shards/${dir.name}/${entry.name}`)))
       .map(entry => entry.name + (entry.isDirectory() ? '/' : ''));
-    for (const home of Object.values(config.dataHomes ?? {}).flat()) if (existsSync(resolve(root, 'src/shards', dir.name, home))) entries[dir.name].push(home);
   }
-  return checkShardLayout(entries, config, (file) => readFileSync(resolve(root, file), 'utf8'), JSON.parse(readFileSync(resolve(root, 'lint/shard-platform.json'), 'utf8')).baseline, legacyInventory(root), outputs);
+  return checkShardLayout(entries, config, legacyInventory(root), outputs);
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
   const root = resolve(import.meta.dirname, '..');

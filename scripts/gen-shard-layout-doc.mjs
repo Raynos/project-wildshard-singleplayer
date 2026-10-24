@@ -21,18 +21,13 @@ export function layoutBlock(layout) {
     return `| \`${name}\` | ${text} |`;
   };
   const source = layout.sourceLayout;
-  const reference = source === undefined ? [] : [
-    '**Reference source layout (new projects and Template)**', '',
-    'Everything outside optional `runtime/` is build-time. The product is `out/<slug>/`, outside the source folder.', '',
+  return [OPEN, '**Primary shard source layout**', '',
+    'All source is build-time or erased declarations. Shipped behaviour is admitted WASM and data; primary shards have no runtime TypeScript.', '',
     '| Required file | What it holds |', '|---|---|', ...source.requiredFiles.map(row), '',
+    '| Allowed file | What it holds |', '|---|---|', ...source.allowedFiles.map(row), '',
     '| Folder | What goes in it |', '|---|---|', ...source.folders.map(folder => row(`${folder}/`)), '',
-    '`runtime/sections.ts` defines custom-section schemas; `runtime/const.ts` holds local constants. Pure-output projects, including Template, have no runtime folder.', '',
-    'Template temporarily retains only root `manifest.json` for discovery; P3 catalog activation removes that bridge.', '',
-    '**Transition layout (existing shards only)**', '',
-  ];
-  return [OPEN, ...reference, '**Required files**', '', '| File | What it holds |', '|---|---|', ...layout.requiredFiles.map(row), '',
-    '**Allowed files**', '', '| File | What it holds |', '|---|---|', ...layout.allowedFiles.map(row), '',
-    '**Folders**', '', '| Folder | What goes in it |', '|---|---|', ...layout.folders.map((f) => row(`${f}/`)), CLOSE].join('\n');
+    'Root erased `*.d.ts` / `*.d.json.ts` contracts and explicitly declared product discovery outputs are also admitted.', '',
+    'Frozen legacy files keep their exact registered layout (**held for LD**). A `-legacy` suffix is not an exemption; the LEGACY entry and Developer buttons stay unchanged.', CLOSE].join('\n');
 }
 
 /** the doc with its block regenerated */

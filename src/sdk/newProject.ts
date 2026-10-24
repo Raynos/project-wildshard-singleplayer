@@ -29,13 +29,10 @@ sections and hash-named blobs. In this repository use \`out/<slug>/\`.
   sections. The CLI reads its \`output\` export automatically.
 - \`behaviour/\` holds AssemblyScript sources; \`assets/\` holds source assets.
 
-This project needs no custom runtime. Prefer the existing platform hosts and
-rows. If a trusted runtime is necessary, put its client-only entry in
-\`runtime/index.ts\`, its local constants in \`runtime/const.ts\` and custom
-section schemas in \`runtime/sections.ts\`. It may import its own runtime TS
-and public SDK/game/engine modules; never \`data/\`, generators, JSON or assets.
-Read content through the admitted product's \`section()\` and \`asset()\` APIs.
-The build copies runtime TS verbatim; do not import runtime code into the build.
+This project has no runtime TypeScript. Use admitted platform rows and WASM
+behaviour; executable build logic belongs in \`generators/\`. Keep the
+\`shard.config.ts\` entry declaration-only and JSON contracts erased as
+\`*.d.json.ts\`. Read the shipped data contract in SHARDFILE.md.
 
 For a complete playable reference, see \`src/shards/_template/\` in the
 Wildshard repository: terrain and props are generated from data, its map is

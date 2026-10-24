@@ -1,2 +1,4 @@
-export function layoutBlock(layout: { requiredFiles: string[]; allowedFiles: string[]; folders: string[]; describe?: Record<string, string>; sourceLayout?: { requiredFiles: string[]; folders: string[] } }): string;
-export function withLayout(doc: string, layout: { requiredFiles: string[]; allowedFiles: string[]; folders: string[]; describe?: Record<string, string>; sourceLayout?: { requiredFiles: string[]; folders: string[] } }): string;
+import type { ShardLayout } from './check-shards.mjs';
+
+export function layoutBlock(layout: ShardLayout & { describe?: Record<string, string> }): string;
+export function withLayout(doc: string, layout: ShardLayout & { describe?: Record<string, string> }): string;
