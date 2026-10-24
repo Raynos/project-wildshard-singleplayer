@@ -166,11 +166,20 @@ export class SharedTileBuilds<T> {
   /** The tiles built now (tests read them). */
   get tiles(): ReadonlySet<number> { return new Set(this.builds.keys()); }
   hold(tile: number, scope: Scope): Promise<T> {
+    if(this.owner.disposed||this.owner.disposing||scope.disposed||scope.disposing)
+      return Promise.reject(new Error('Tile preparation owner is retired'));
     let entry = this.builds.get(tile);
     if (entry === undefined) {
       const child = this.owner.child(`tile.build.${String(tile)}`);
-      entry = { scope: child, built: this.build(tile, child), holds: 0 };
+      let prepared:Promise<T>;
+      try{prepared=this.build(tile,child);}
+      catch(error){child.dispose();return Promise.reject(error instanceof Error?error:new Error('Tile preparation failed',{cause:error}));}
+      entry = { scope: child, built: this.complete(prepared,child), holds: 0 };
       this.builds.set(tile, entry);
+      const generation=entry;
+      // Resident retirement and failed preparation must release the cache even
+      // when a ring still holds its own independent scope.
+      child.onDispose(()=>{if(this.builds.get(tile)===generation)this.builds.delete(tile);});
     }
     const held = entry;
     held.holds++;
@@ -180,6 +189,13 @@ export class SharedTileBuilds<T> {
       this.builds.delete(tile); held.scope.dispose();
     });
     return held.built;
+  }
+  private async complete(pending:Promise<T>,scope:Scope):Promise<T>{
+    try{
+      const value=await pending;
+      if(scope.disposed||scope.disposing)throw new Error('Tile preparation owner is retired');
+      return value;
+    }catch(error){scope.dispose();throw error;}
   }
 }
 

@@ -28,6 +28,51 @@ test('a tile builds once for every hold on it, and goes with the last', async ()
   owner.dispose();
 });
 
+test('shared tile preparation cannot outlive its resident or start for a retired holder', async () => {
+  const owner=new Scope('resident'), holder=new Scope('independent-ring'), retired=new Scope('retired-ring');
+  let calls=0;
+  const builds=new SharedTileBuilds(owner,()=>{calls++;return Promise.resolve(50);});
+  retired.dispose();
+  try{
+    await expect(builds.hold(5,retired)).rejects.toThrow('retired');
+    expect(calls).toBe(0);
+    expect(await builds.hold(5,holder)).toBe(50);
+    owner.dispose();
+    expect([...builds.tiles]).toEqual([]);
+    await expect(builds.hold(5,holder)).rejects.toThrow('retired');
+    expect(calls).toBe(1);
+  }finally{owner.dispose();holder.dispose();}
+});
+
+test.each(['synchronous','asynchronous'] as const)('failed %s tile preparation releases its child before a fresh hold',async mode=>{
+  const owner=new Scope('resident'), failed=new Scope('failed-ring'), retry=new Scope('retry-ring');
+  let attempts=0, ended=0;
+  const builds=new SharedTileBuilds(owner,(_tile,scope)=>{
+    attempts++;scope.onDispose(()=>{ended++;});
+    if(attempts>1)return Promise.resolve(50);
+    if(mode==='synchronous')throw new Error('prepare failed');
+    return Promise.reject(new Error('prepare failed'));
+  });
+  try{
+    await expect(Promise.resolve().then(()=>builds.hold(5,failed))).rejects.toThrow('prepare failed');
+    expect(ended).toBe(1);expect([...builds.tiles]).toEqual([]);
+    expect(await builds.hold(5,retry)).toBe(50);expect(attempts).toBe(2);
+    // The failed generation's later holder cleanup must not evict its replacement.
+    failed.dispose();expect([...builds.tiles]).toEqual([5]);
+    retry.dispose();expect(ended).toBe(2);expect([...builds.tiles]).toEqual([]);
+  }finally{failed.dispose();retry.dispose();owner.dispose();}
+});
+
+test('resident retirement during preparation refuses its late result',async()=>{
+  const owner=new Scope('resident'), holder=new Scope('independent-ring');
+  let finish:(value:number)=>void=()=>{throw new Error('Preparation not started');};
+  const builds=new SharedTileBuilds(owner,()=>new Promise<number>(resolve=>{finish=resolve;}));
+  const pending=builds.hold(5,holder);
+  owner.dispose();finish(50);
+  try{await expect(pending).rejects.toThrow('retired');expect([...builds.tiles]).toEqual([]);}
+  finally{holder.dispose();}
+});
+
 test('each ring step registers exactly the colliders reaching the 3 x 3, with none missing at its edges', async () => {
   // a box at every tile corner and every tile centre: each corner box reaches four tiles, each centre box one
   const rows = Array.from({ length: 9 * 9 }, (_, k) => box(-250 + (k % 9) * 62.5, -250 + Math.floor(k / 9) * 62.5, 3))
