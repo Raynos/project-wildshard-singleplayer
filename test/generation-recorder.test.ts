@@ -34,6 +34,12 @@ it('records hidden loader data and negative probes inside the load callback',()=
   const {child,read}=fixture(source,false);expect(child.status,child.stderr).toBe(0);
   const trace=read();expect(trace.files).toContain('unread.ts');expect(trace.inventory).toContain('P missing.ts');
 });
+it.each([true,false])('uses a proven installed store root for external probes: linked=%s',linked=>{
+  const source=`import fs from'node:fs';import{resolve}from'node:path';const stage=resolve('stage'),store=resolve('installed');fs.mkdirSync(store+'/dep@1/node_modules/dep',{recursive:true});fs.mkdirSync(stage+'/node_modules',{recursive:true});${linked?"fs.symlinkSync(store,stage+'/node_modules/.pnpm','dir');":''}const{startGenerationInputTrace}=await import(${JSON.stringify(resolve('scripts/shardfile-inputs.mjs'))});startGenerationInputTrace(stage,process.env.WS_GENERATION_READ_RECEIPT);fs.existsSync(store+'/dep@1/node_modules/dep/missing.js');fs.existsSync(resolve(stage,'../unrelated.txt'));`;
+  const {child,read}=fixture(source,false);expect(child.status,child.stderr).toBe(0);
+  expect(read().inventory).toContain(linked?'P node_modules/.pnpm/dep@1/node_modules/dep/missing.js':'P ../installed/dep@1/node_modules/dep/missing.js');
+  expect(read().inventory).toContain('P ../unrelated.txt');
+});
 it.each([
   "import fs from 'node:fs';fs.existsSync('missing.ts');",
   "import fs from 'node:fs';fs.readdirSync('.');",

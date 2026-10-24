@@ -81,6 +81,24 @@ it('models verified third-party probes without unrelated source filename fences'
   put(f.root,'src/sdk/new-unread.ts','export const unused=1;');
   expect(await f.upstream({'unread.bin':'new'})).toEqual({...first,hit:true});
 });
+it('models verified third-party relative imports independently of the staging depth',async()=>{
+  const f=thirdPartyFixture();
+  put(f.root,`${f.target('1.0.0')}/module.mjs`,"import {value} from './other.mjs';export {value};");
+  put(f.root,`${f.target('1.0.0')}/other.mjs`,'export const value=7;');
+  const first=await f.upstream({'unread.bin':'old'});expect(first.text).toBe('7');
+  put(f.root,'src/sdk/new-unread.ts','export const unused=1;');
+  expect(await f.upstream({'unread.bin':'new'})).toEqual({...first,hit:true});
+  put(f.root,`${f.target('1.0.0')}/other.mjs`,'export const value=11;');
+  expect(await f.upstream({'unread.bin':'new'})).toMatchObject({hit:false,text:'11'});
+});
+it('models only physical store roots already verified by an installed package alias',()=>{
+  const f=thirdPartyFixture(),lock=createHash('sha256').update(readFileSync(resolve(f.root,'pnpm-lock.yaml'))).digest('hex');
+  const dependencies=generationDependencies(f.root,lock);
+  expect(dependencies.probe(`${f.target('1.0.0')}/module.mjs`)).toBeDefined();
+  expect(dependencies.probe(`${f.target('2.0.0')}/module.mjs`)).toBeUndefined();
+  const physical=resolve(f.root,f.target('1.0.0'));rmSync(physical,{recursive:true});symlinkSync(resolve(f.root,f.target('2.0.0')),physical,'dir');
+  expect(generationDependencies(f.root,lock).probe(`${f.target('1.0.0')}/module.mjs`)).toBeUndefined();
+});
 it('models a verified dependency installed under a workspace package',async()=>{
   const f=thirdPartyFixture();
   put(f.root,f.entry,`import {value} from '../../../sdk/used.mjs';import fs from 'node:fs';fs.writeFileSync('${f.output}',String(value));`);
@@ -99,6 +117,9 @@ it('verifies scoped package names and store paths without a scope-wide exemption
   const dependencies=generationDependencies(f.root,createHash('sha256').update(lock).digest('hex'));
   expect(dependencies.probe('node_modules/@fixture/dep/module.mjs')).toContain('"name":"@fixture/dep"');
   expect(dependencies.probe('node_modules/@fixture/unregistered/module.mjs')).toBeUndefined();
+  mkdirSync(resolve(f.root,'installed-scope'));symlinkSync(resolve(f.root,pkg),resolve(f.root,'installed-scope/dep'),'dir');
+  rmSync(resolve(f.root,'node_modules/@fixture'),{recursive:true});symlinkSync(resolve(f.root,'installed-scope'),resolve(f.root,'node_modules/@fixture'),'dir');
+  expect(generationDependencies(f.root,createHash('sha256').update(lock).digest('hex')).probe('node_modules/@fixture/dep/module.mjs')).toContain('"name":"@fixture/dep"');
 });
 it('invalidates a retargeted third-party alias before returning full cache bytes',async()=>{
   const f=thirdPartyFixture();expect(await f.upstream({'unread.bin':'old'})).toMatchObject({hit:false,text:'7'});

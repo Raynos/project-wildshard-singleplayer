@@ -90,7 +90,8 @@ function captureInstallation(base,stamps) {
     if(!existsSync(directory))continue;
     const aliases=readdirSync(directory).filter(name=>!name.startsWith('.')&&name!=='@wildshard').flatMap(name=>{
       const at=touch(resolve(directory,name));
-      return name.startsWith('@')&&lstatSync(at).isDirectory()?readdirSync(at).map(child=>`${name}/${child}`):[name];
+      if(name.startsWith('@'))try{return readdirSync(at).map(child=>`${name}/${child}`);}catch { /* Missing or non-directory scopes remain unverified aliases. */ }
+      return [name];
     });
     for(const name of aliases.sort()) {
       const alias=`${space}/${name}`,at=touch(resolve(base,alias));
@@ -139,11 +140,20 @@ export function generationDependencies(root,expectedLock) {
    * @param {string} file */
   const probe=file=>{
     if(!bounded(file))return undefined;
-    const match=/^(node_modules|src\/[^/]+\/node_modules)\/((?:@[^/]+\/)?[^/]+)(?:\/(.*))?$/u.exec(file);
+    const match=/^(node_modules(?:\/\.pnpm\/[^/]+\/node_modules)?|src\/[^/]+\/node_modules)\/((?:@[^/]+\/)?[^/]+)(?:\/(.*))?$/u.exec(file);
     if(match?.[1]===undefined||match[2]===undefined)return undefined;
     observed.set(file,rawProbe(file));
     if(sourceDigest===undefined||expectedLock!==sourceDigest)return undefined;
-    const alias=`${match[1]}/${match[2]}`,pkg=packages.get(alias);
+    const alias=`${match[1]}/${match[2]}`;
+    let pkg=packages.get(alias);
+    if(pkg===undefined&&store!==undefined&&alias.startsWith('node_modules/.pnpm/')) {
+      // Only physical package roots already admitted through installed public
+      // aliases qualify. Peer links, unknown private packages and store escapes
+      // retain the conservative fence; no stage-depth reconstruction is used.
+      const target=resolve(store,alias.slice('node_modules/.pnpm/'.length));
+      try {if(realpathSync(target)===target)pkg=[...packages.values()].find(row=>row.target===target&&row.name===match[2]);}
+      catch { /* Absent or linked package roots grant no narrower identity. */ }
+    }
     if(pkg===undefined)return undefined;
     /** @type {unknown[]} */
     const chain=[];

@@ -25,7 +25,7 @@ const digest = (/** @type {string|Uint8Array} */ bytes) => createHash('sha256').
 const schema = 'shardfile-inputs/5', modules = new Set([import.meta.filename,resolve(import.meta.dirname,'bake-input-hashes.mjs'),resolve(import.meta.dirname,'compiler-code.mjs'),resolve(import.meta.dirname,'function-source.mjs')]);
 const code=/\.[cm]?[jt]sx?$/u;
 const Receipt = v.strictObject({schema:v.literal(schema),node:v.string(),inputs:v.pipe(v.array(v.pipe(v.string(),v.regex(/^(?:[FDMP] .+|G [a-f0-9]{64})$/u))),v.minLength(1)),values:v.record(v.string(),v.string()),seal:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))});
-/** @type {AsyncLocalStorage<{root:string,reads:Map<string,string>,writes:Set<string>,bundles:number,invalid:string[],observing:boolean,loading?:string|undefined,traceOnly?:boolean,inventory?:Set<string>,opaque?:Set<string>,packageExports?:Map<string,Set<string>>}>} */
+/** @type {AsyncLocalStorage<{root:string,reads:Map<string,string>,writes:Set<string>,bundles:number,invalid:string[],observing:boolean,loading?:string|undefined,traceOnly?:boolean,inventory?:Set<string>,opaque?:Set<string>,packageExports?:Map<string,Set<string>>,installedRoot?:string|undefined}>} */
 const scopes = new AsyncLocalStorage();
 /** @type {ReturnType<typeof scopes.getStore>} */
 let generationScope;
@@ -81,7 +81,11 @@ function note(kind, target) {
   if(scope===undefined)return;
   const path=localPath(target);
   if(scope.traceOnly&&(kind==='P'||kind==='D'||kind==='L'||kind==='I')) {
-    const bounded=path===undefined?'unknown':relative(scope.root,path).split(sep).join('/');
+    let bounded=path===undefined?'unknown':relative(scope.root,path).split(sep).join('/');
+    if(kind==='P'&&path!==undefined&&scope.installedRoot!==undefined) {
+      const dependency=relative(scope.installedRoot,path).split(sep).join('/');
+      if(dependency!==''&&dependency!=='..'&&!dependency.startsWith('../')&&!isAbsolute(dependency))bounded=`node_modules/.pnpm/${dependency}`;
+    }
     scope.inventory?.add(`${kind} ${bounded===''?'.':bounded}`);
   }
   // Only the exact module being loaded is a semantic execution read. Other
@@ -407,7 +411,10 @@ export function startGenerationInputTrace(root,receipt) {
   const packageExports=new Map();
   /** @type {Set<string>} */
   const inventory=new Set();
-  const scope={root:raw.real(root),reads:new Map(),writes:new Set(),bundles:0,invalid:[],observing:false,traceOnly:true,inventory,opaque:new Set(),packageExports};
+  /** @type {string|undefined} */
+  let installedRoot;
+  try {installedRoot=raw.real(resolve(root,'node_modules/.pnpm'));}catch { /* Uninstalled roots keep their original probe addresses. */ }
+  const scope={root:raw.real(root),reads:new Map(),writes:new Set(),bundles:0,invalid:[],observing:false,traceOnly:true,inventory,opaque:new Set(),packageExports,installedRoot};
   generationScope=scope;scopes.enterWith(scope);
   for(const file of modules)if(inside(scope.root,file)!==undefined)note(code.test(file)?'M':'F',file);
   process.on('exit',status=>{
