@@ -1057,6 +1057,14 @@ the same reader. An arena arrival declares practice code before loading starts;
 a later room entry declares it before model preparation. The room and its
 procedural stand-ins stay synchronous.
 
+`preloadModuleFiles(files)` and `preloadModuleGroups(names)` validate the same
+complete compiler bank, declare its actual byte facts and add deduplicated
+JavaScript module-preload links. They prepare code without evaluating modules
+or crediting completion; original import sites retain installation order and
+retry handling. Bootstrap services prepare in parallel. Verified selected
+client-plan, Explorer and required model graphs start while asset admission
+runs; unrelated feature graphs remain cold.
+
 `installGltfKtx2(GLTFLoader)` in `@wildshard/engine/core/ktx2` installs
 the original concrete constructor's parse bridge once, without replacing it.
 The bounded factory calls it at construction; the frozen-shard hook bridge calls

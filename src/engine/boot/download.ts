@@ -229,12 +229,11 @@ export function recordCachedDownload(key: string, bytes: number, url?: string): 
 /** Actual body reads reset the stall timer without mislabelling decoded bytes as network transport. */
 export function noteDownloadRead(bytes: number): void { accountingTargets(accounting => { accounting.noteRead(bytes); }); }
 
-/** Reserve only selected compiler-owned graphs before their original imports.
- * This publishes byte facts into the existing ledger and fetches nothing. */
-export function declareModuleGroups(kinds: readonly string[]): void {
-  if (typeof document === 'undefined' || kinds.length === 0) return;
+/** Resolve the complete selected bank before publishing any prefix. */
+function selectedModuleFiles(kinds: readonly string[]): readonly (readonly [string, number])[] {
+  if (typeof document === 'undefined' || kinds.length === 0) return [];
   const text = document.getElementById('boot-module-files')?.textContent;
-  if (text === undefined) return; // Source and isolated fixtures have no compiler inventory.
+  if (text === undefined) return []; // Source and isolated fixtures have no compiler inventory.
   const input: unknown = JSON.parse(text);
   if (typeof input !== 'object' || input === null) throw new Error('Missing client module inventory');
   const bank: unknown = Reflect.get(input, 'optional');
@@ -251,5 +250,27 @@ export function declareModuleGroups(kinds: readonly string[]): void {
       selected.set(index, file);
     }
   }
-  declareModuleFiles([...selected.values()]);
+  return [...selected.values()];
 }
+
+/** Declare selected graphs without starting their reads. */
+export function declareModuleGroups(kinds: readonly string[]): void { declareModuleFiles(selectedModuleFiles(kinds)); }
+
+/** Prepare only compiler-selected code in parallel, without executing modules.
+ * Original import sites still install in order and own their retry/failure policy. */
+export function preloadModuleFiles(input: unknown): void {
+  const files = readModuleFiles(input);
+  for (const [url, bytes] of files) declareDownloadFile(url, bytes);
+  if (typeof document === 'undefined') return;
+  const present = new Set([...document.querySelectorAll<HTMLLinkElement>('link[rel="modulepreload"]')].map(link => link.href));
+  for (const [url] of files) {
+    if (!url.endsWith('.js')) continue;
+    const href = new URL(url, document.baseURI).href;
+    if (present.has(href)) continue;
+    present.add(href);
+    const link = document.createElement('link'); link.rel = 'modulepreload'; link.crossOrigin = 'anonymous'; link.href = href;
+    document.head.append(link);
+  }
+}
+/** Admission of every selected row precedes every preload and declaration. */
+export function preloadModuleGroups(kinds: readonly string[]): void { preloadModuleFiles(selectedModuleFiles(kinds)); }

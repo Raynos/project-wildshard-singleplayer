@@ -1,3 +1,5 @@
+import { prepareClientModuleGroups } from './clientModules';
+import { outputDescriptor } from './outputDescriptor';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { runtimeAccountedBytes } from '@wildshard/format/runtimeCost';
 import { MemoryAdmission } from '@wildshard/format/product';
@@ -91,6 +93,8 @@ function clientSource(admitted: AdmittedProduct, options: ProductOptions, bindin
   if (bindings.audioOwner === 'runtime' && (!options.firstParty || source.runtime === null)) throw new Error('Runtime audio ownership requires a trusted first-party runtime declaration');
   if (bindings.worldOwner === 'runtime' && (!options.firstParty || source.runtime === null)) throw new Error('Runtime world ownership requires a trusted first-party runtime declaration');
   if (!options.firstParty && admitted.instance === undefined) throw new Error('Outside shardfile is missing its admitted save identity');
+  const sections = outputDescriptor(source)?.sections;
+  if (sections !== undefined) prepareClientModuleGroups(source, sections);
   const ownedBindings = { ...bindings,
     ...(bindings.allocator === undefined && bindings.residency === undefined && options.memory !== undefined ? { allocator: new ResidencyAllocator({ memory: options.memory }) } : {}),
     ...(options.firstParty ? {} : { instance: admitted.instance ?? '' }) };
@@ -158,6 +162,8 @@ export async function installManifestShardfile(manifest: ShardManifest, provided
   const { slug: authoredIdentity } = source.identity, expectedIdentity = manifest.slug.replace(/^_/u, '');
   if (authoredIdentity !== expectedIdentity) throw new Error('Manifest and shardfile identities differ');
   if (source.runtime !== null) throw new Error('Custom runtime requires trusted hybrid composition');
+  const sections = outputDescriptor(source)?.sections;
+  if (sections !== undefined) prepareClientModuleGroups(source, sections);
   const admitted = await admitProduct(source, productOptions);
   const client = clientSource(admitted, productOptions, { ...bindings, instance: bindings.residency === undefined ? firstPartyInstance(manifest.slug) : bindings.instance });
   const { image: _unadmittedImage, ...mapLook } = manifest.minimap ?? {};

@@ -5,7 +5,7 @@ import { installTitleManifests } from '@wildshard/game/shard/titleList';
 import { startPageServices } from './pageServices';
 import { persistHomeScreen } from '@wildshard/engine/saves/runtime';
 import { waitFor } from '@wildshard/engine/boot/waits';
-import { declareModuleFiles } from '@wildshard/engine/boot/download';
+import { preloadModuleFiles } from '@wildshard/engine/boot/download';
 import { reserveHomeDownload, prepareHomeExtras } from './bootDownloads';
 /**
  * The page's module entry. Everything the game imports statically is evaluated in ONE task when a module graph
@@ -124,39 +124,37 @@ async function startSelected(): Promise<void> {
   const modules = (kind: 'common' | 'client' | 'grid'): void => {
     if (moduleRows === undefined) return; // Source/dev documents have no emitted chunk inventory.
     if (typeof moduleRows !== 'object' || moduleRows === null || !Object.hasOwn(moduleRows, kind)) throw new Error('Missing boot module rows');
-    declareModuleFiles(Reflect.get(moduleRows, kind));
+    preloadModuleFiles(Reflect.get(moduleRows, kind));
   };
+  modules('common');
   const { gridPrefetchStatus } = await retried(() => import('./game/grid/prefetch'));
   loading.setPrefetchSource(gridPrefetchStatus);
   loading.waiting('Preparing application services');
   // each module the boot needs, by name (E434: no barrels); they load in parallel, as the indexes did
   const [{ installKitSpecies }, { installKitIcons, BAG_ICONS }, { installPickupCatalogue, preparePickupCatalogue }, { default: PICKUP_CATALOGUE }, { installKitProps }, { STARTER_BAG_ITEMS }, { HOVERBOARD_TOOL },
-    { sharedWeaponVoices, declaredWeaponVoices }, { sharedCombatCues }, { BOAR_LOOK }, { declaredKitItemFamilies }] = await Promise.all([
+    { sharedWeaponVoices, declaredWeaponVoices }, { sharedCombatCues }, { BOAR_LOOK }, { declaredKitItemFamilies },
+    { configuredShardfile, installShardfileProduct, installManifestShardfile, preparePageResidency }, { browserShardfileOptions },
+    { pageGridRecovery }, { loadingPath }, { shardEntry }, { default: calibration }] = await Promise.all([
     retried(() => import('./game/systems/species/install')), retried(() => import('./game/icons')),
     retried(() => import('./game/models/specimenCatalogue')), retried(() => import('./game/data/pickupCatalogue.json')),
     retried(() => import('./game/models/interact')), retried(() => import('./game/bag/starter.generated')),
     retried(() => import('./game/systems/tools/hoverboard')), retried(() => import('@wildshard/sdk/runtime/audio/weaponVoices')), retried(() => import('@wildshard/sdk/runtime/audio/combatCues')),
     retried(() => import('@wildshard/game/systems/species/view/boar')), retried(() => import('@wildshard/game/plugin/weaponFamily')),
+    retried(() => import('@wildshard/game/shardfile/clientSource')), retried(() => import('@wildshard/game/shardfile/runtimeProduct')),
+    retried(() => import('@wildshard/game/grid/pageEntry')), retried(() => import('./game/boot/loadingPaths')),
+    retried(() => import('./game/shard/entryMode')), retried(() => import('./loadingCalibration.json')),
   ]);
-  const { configuredShardfile, installShardfileProduct, installManifestShardfile } = await retried(() => import('@wildshard/game/shardfile/clientSource'));
-  const { browserShardfileOptions } = await retried(() => import('@wildshard/game/shardfile/runtimeProduct'));
-  const { pageGridRecovery } = await retried(() => import('@wildshard/game/grid/pageEntry'));
   const source = pageGridRecovery() === null ? await configuredShardfile(document, browserShardfileOptions(document.baseURI)) : null;
-  const { preparePageResidency } = await retried(() => import('@wildshard/game/shardfile/clientSource'));
   let page: ReturnType<typeof preparePageResidency> | undefined;
   try {
     page = preparePageResidency(game.shard, source?.identity.slug);
     await completePageCatalogue(page.mode);
-    const { loadingPath } = await retried(() => import('./game/boot/loadingPaths'));
-    const { shardEntry } = await retried(() => import('./game/shard/entryMode'));
-    const { default: calibration } = await retried(() => import('./loadingCalibration.json'));
     const path = page.mode === 'grid' ? 'grid' : source !== null || shardEntry(game.shard) === 'shardfile' ? 'shardfile' : 'legacy';
     // Publish every selected bank together before reading the descriptor.
     if (source === null) reserveHomeDownload(typeof moduleRows === 'object' && moduleRows !== null && 'products' in moduleRows ? moduleRows.products : undefined, game.shard.shardfile, document.baseURI);
     const extras = source === null && path === 'shardfile' ? prepareHomeExtras(
       typeof moduleRows === 'object' && moduleRows !== null && 'extras' in moduleRows ? moduleRows.extras : undefined,
       game.shard.shardfile, document.baseURI, entryScope) : null;
-    modules('common');
     if (path === 'shardfile') modules('client');
     if (path === 'grid') modules('grid');
     if (extras !== null) { loading.waiting('Reading selected download inventory'); await waitFor('Read selected download inventory', extras.read(), 'file'); }

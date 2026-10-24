@@ -196,6 +196,13 @@ export function bootModulesPlugin(): Plugin {
         }
         featureRoots[kind] = paths;
       }
+      const loadout = resolve(root, 'src/game/session/loadout.ts');
+      featureRoots['explorer.catalogue'] = [];
+      for (const request of sourceImports(loadout).filter(name => name === '../models/explorerCatalogue')) {
+        const dependency = await this.resolve(request, loadout);
+        if (dependency === null || dependency.external !== false) throw new Error('Missing selected Explorer module');
+        featureRoots['explorer.catalogue'].push(dependency.id);
+      }
       const products = bootProductTotals(root), extras: Record<string, readonly [string, number, number, string]> = {};
       for (const prefix of Object.keys(products)) {
         const directory = prefix.split('/')[2];

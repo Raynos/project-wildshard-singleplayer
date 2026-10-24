@@ -1,11 +1,11 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, test } from 'vitest';
-import { DownloadAccounting, installDownloadAccounting, declareModuleGroups } from '../src/engine/boot/download';
-import { declareProductClientModules } from '../src/game/shardfile/clientModules';
+import { DownloadAccounting, installDownloadAccounting, declareModuleGroups, preloadModuleFiles, preloadModuleGroups } from '../src/engine/boot/download';
+import { declareProductClientModules, prepareClientModuleGroups } from '../src/game/shardfile/clientModules';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 
-afterEach(() => { document.body.replaceChildren(); });
+afterEach(() => { document.body.replaceChildren(); for (const link of document.querySelectorAll('link[rel="modulepreload"]')) link.remove(); });
 function bank(input: unknown): void {
   const element = document.createElement('script'); element.id = 'boot-module-files';
   element.textContent = JSON.stringify({optional:input}); document.body.append(element);
@@ -45,4 +45,43 @@ test('overlapping selected graphs publish their bounded file union once', () => 
     declareModuleGroups(kinds);
     expect(accounting.snapshot()).toMatchObject({declaredFiles:1024,declaredBytes:524800,networkBytes:0,cachedBytes:0});
   } finally { dispose(); }
+});
+
+
+test('selected preloads start together without importing code or inventing completion', () => {
+  bank({files:[['/assets/shared.js',4],['/assets/scenes.js',6],['/assets/unused.js',8],['/assets/styles.css',2]],
+    groups:{'world.scenes':[0,1,3],unused:[2]}});
+  const accounting = new DownloadAccounting(document.baseURI), dispose = installDownloadAccounting(accounting);
+  try {
+    preloadModuleGroups(['world.scenes']); preloadModuleGroups(['world.scenes']);
+    expect([...document.querySelectorAll<HTMLLinkElement>('link[rel="modulepreload"]')].map(link => new URL(link.href).pathname)).toEqual(['/assets/shared.js','/assets/scenes.js']);
+    expect(accounting.snapshot()).toMatchObject({declaredFiles:3,declaredBytes:12,networkBytes:0,cachedBytes:0});
+    expect(document.querySelectorAll('script[src]')).toHaveLength(0);
+    preloadModuleFiles([['/assets/direct.js',5]]);
+    expect(document.querySelector('link[href$="/assets/direct.js"]')?.getAttribute('crossorigin')).toBe('anonymous');
+  } finally { dispose(); }
+});
+
+test('invalid selected suffixes create no preload or declaration prefix', () => {
+  bank({files:[['/assets/first.js',4]],groups:{good:[0],bad:[1]}});
+  const accounting = new DownloadAccounting(document.baseURI), dispose = installDownloadAccounting(accounting);
+  try {
+    expect(() => preloadModuleGroups(['good','bad'])).toThrow('Missing selected client module file');
+    expect(() => preloadModuleFiles([['/assets/first.js',4],['https://foreign.invalid/second.js',4]])).toThrow('Invalid boot module file');
+    expect(document.querySelectorAll('link[rel="modulepreload"]')).toHaveLength(0);
+    expect(accounting.snapshot()).toMatchObject({declaredFiles:0,declaredBytes:0,networkBytes:0});
+  } finally { dispose(); }
+});
+
+test('verified plan metadata prepares only its selected feature and actual loadout graphs', () => {
+  bank({files:[['/assets/scenes.js',4],['/assets/explorer.js',6],['/assets/parser.js',8],['/assets/meadow.js',10]],
+    groups:{'world.scenes':[0],'explorer.catalogue':[1],'models.gltf':[2],'world.meadow':[3]}});
+  const source = emptyShardfile({slug:'module-fixture',name:'Modules',author:'Fixture',revision:1,seed:7});
+  const sections = new Map<string,unknown>([['client/plan',{version:1,features:[{kind:'world.scenes'}]}],['explore/catalogue',{version:1,entries:[]}]]);
+  prepareClientModuleGroups(source,sections);
+  expect([...document.querySelectorAll<HTMLLinkElement>('link[rel="modulepreload"]')].map(link => new URL(link.href).pathname)).toEqual(['/assets/scenes.js','/assets/explorer.js']);
+  source.rows.looks.push({id:'look.test',species:'species.test',recipe:'platform.skin',material:null,parameters:{skin:'a'.repeat(64)},animation:{recipe:'platform.clips',parameters:{}}});
+  prepareClientModuleGroups(source,sections);
+  expect([...document.querySelectorAll<HTMLLinkElement>('link[rel="modulepreload"]')].map(link => new URL(link.href).pathname)).toEqual(['/assets/scenes.js','/assets/explorer.js','/assets/parser.js']);
+  expect(document.querySelector('link[href$="meadow.js"]')).toBeNull();
 });

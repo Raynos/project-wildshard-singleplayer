@@ -54,10 +54,12 @@ test('the actual Vite plugin emits exact module body sizes into the existing doc
     mkdirSync(resolve(root, 'src/engine/models'), { recursive: true });
     mkdirSync(resolve(root, 'src/engine/anim'), { recursive: true });
     mkdirSync(resolve(root, 'src/game/shard'), { recursive: true });
+    mkdirSync(resolve(root, 'src/game/models'), { recursive: true });
     writeFileSync(resolve(root, 'index.html'), '<html><head></head><body><script type="module" src="/src/entry.ts"></script></body></html>');
     writeFileSync(resolve(root, 'src/entry.ts'), `
       window.optionalClient = () => import('./game/shardfile/client');
       window.optionalGrid = () => import('./game/grid/session');
+      window.optionalLoadout = () => import('./game/session/loadout');
       window.title = () => import('./title');
       async function startSelected() { return (await import('./first')).value; }
       void startSelected().then(value => { window.value = value; });
@@ -69,6 +71,8 @@ test('the actual Vite plugin emits exact module body sizes into the existing doc
     writeFileSync(resolve(root, 'src/engine/anim/rigParser.ts'), 'export const createRigLoader=()=>({kind:"bounded"});');
     writeFileSync(resolve(root, 'src/game/shard/load.ts'), 'export const legacy=()=>import("./legacyParser");');
     writeFileSync(resolve(root, 'src/game/shard/legacyParser.ts'), 'export const loader="raw";');
+    writeFileSync(resolve(root, 'src/game/session/loadout.ts'), 'export const roster=()=>import("../models/explorerCatalogue");');
+    writeFileSync(resolve(root, 'src/game/models/explorerCatalogue.ts'), 'export const explorerRoster=()=>[];');
     writeFileSync(resolve(root, 'src/engine/models/trainingDummy.ts'), 'export const dummyFigure=()=>import("../practice/TrainingDummyAssets");');
     writeFileSync(resolve(root, 'src/engine/practice/TrainingDummyAssets.ts'), 'export const model = 1;');
     writeFileSync(resolve(root, 'src/main.css'), 'body { color: red; }');
@@ -110,7 +114,7 @@ test('the actual Vite plugin emits exact module body sizes into the existing doc
     const practiceFiles = practice.map(index => { if (typeof index !== 'number') throw new Error('Invalid practice index'); const file = files[index]; if (file === undefined) throw new Error('Missing practice file'); return file; });
     expect(practiceFiles.sort(([left], [right]) => left.localeCompare(right))).toEqual(expected(['/DummyClips-', '/TrainingDummyAssets-']));
     expect(rows.common).not.toEqual(expect.arrayContaining(practiceFiles));
-    for (const [kind, stem] of [['models.gltf', '/rigParser-'], ['legacy.gltf', '/legacyParser-']] as const) {
+    for (const [kind, stem] of [['models.gltf', '/rigParser-'], ['legacy.gltf', '/legacyParser-'], ['explorer.catalogue', '/explorerCatalogue-']] as const) {
       const parserIndices: unknown = Reflect.get(groups, kind);
       if (!Array.isArray(parserIndices)) throw new Error('Missing parser module facts');
       const selected = parserIndices.map(index => {
