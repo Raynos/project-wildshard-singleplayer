@@ -241,7 +241,7 @@ export function viewProgram(bytes: Uint8Array, rows: ViewProgramRows, ports: Vie
     write: (index, matrix) => { const staging = staged[index]; if (staging === undefined) throw new Error('Unknown view transform'); if (live()) { staging.fromArray(matrix); dirty.add(index); } },
     channels: values => {
       landed.set(values.subarray(0, landed.length));
-      if (live()) { for (const [i, write] of writers.entries()) write?.(landed[i] ?? 0); draw(); }
+      if (live()) { for(let i=0;i<writers.length;i++)writers[i]?.(landed[i]??0); draw(); }
     },
     upload: () => {
       if (live()) for (const index of dirty) { const matrix = staged[index]; if (matrix !== undefined) setters[index]?.(matrix); }
@@ -288,7 +288,8 @@ export function viewProgram(bytes: Uint8Array, rows: ViewProgramRows, ports: Vie
     tick++;
     const ran = lane.frame(dt, 0, tick, [{ previousTick: tick - 1, currentTick: tick, values: columns }], 60, diagnosticNow, arrays.map(read => read()));
     if (lane.isFrozen) return ran;
-    for (const [i, row] of rows.channels.entries()) {
+    for(let i=0;i<rows.channels.length;i++){
+      const row=rows.channels[i];if(row===undefined)throw new Error('Missing view channel');
       if (row.kind !== 'camera') continue;
       const value = landed[i] ?? 0;
       if (row.field === 'roll') camera.rotation.z += value; else if (row.field === 'pitch') camera.rotation.x += value;
