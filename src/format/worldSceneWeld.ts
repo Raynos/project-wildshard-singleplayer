@@ -72,4 +72,19 @@ export type WorldSceneWeldNode = v.InferOutput<typeof WorldSceneWeldNodeSchema>;
 const file = v.union([id, v.strictObject({ phone: id, desktop: id })]);
 /** Geometry topology can follow an independent Debug quality override. */
 export const WorldSceneWeldSourceSchema = v.strictObject({ id, file: v.union([file, v.strictObject({ knob, false: file, true: file })]) });
-export function parseWorldSceneWeld(input: unknown): WorldSceneWeld { return v.parse(WorldSceneWeldSchema, input); }
+const parsedWelds = new WeakMap<object, WorldSceneWeld>();
+function freezeWeldRows(value: unknown): void {
+  if (typeof value !== 'object' || value === null) return;
+  for (const child of Object.values(value)) freezeWeldRows(child);
+  Object.freeze(value);
+}
+/** Only this parser's detached immutable result can skip repeated admission when
+ * the prepared graph reaches hydration. Frozen author input is still untrusted. */
+export function parseWorldSceneWeld(input: unknown): WorldSceneWeld {
+  const known = typeof input === 'object' && input !== null ? parsedWelds.get(input) : undefined;
+  if (known !== undefined) return known;
+  const row = v.parse(WorldSceneWeldSchema, input);
+  freezeWeldRows(row);
+  parsedWelds.set(row, row);
+  return row;
+}

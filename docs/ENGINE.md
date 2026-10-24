@@ -2915,6 +2915,8 @@ this product section without installing another body cache.
 `parsePackedCreatureLooks` checks unknown input and owns a detached, deeply frozen
 book. Only that private parsed output can be reused by the hull and packed-body
 readers; raw inputs and copies always run the complete schema again.
+`numericCreaturePoseFromBook(book, id)` selects a checked nested pose before
+compilation; direct `numericCreaturePose` still checks unknown pose rows.
 
 `productSpeciesCatalogue(product, data, lookRows)` constructs the admitted behaviour
 and packed look rows in their original order. A species may declare
@@ -10825,7 +10827,10 @@ allocation; inactive profiles allocate no scene resources.
 
 `@wildshard/format/worldSceneWeld` admits bounded ordered groups, plain anchors, ordinary
 meshes, instances, weld batches, shared-buffer selection views, seed clouds and
-point lights. Native Float32 instances and Float64 matrices/TRS use uint32 words
+point lights. `parseWorldSceneWeld` owns a detached, deeply frozen result;
+hydration can reuse only that private result without parsing it again. Raw
+input, mutable copies and frozen lookalikes retain full admission.
+Native Float32 instances and Float64 matrices/TRS use uint32 words
 to preserve signed zero. Views restore attribute subarrays over a non-indexed
 batch; they never load another geometry. No geometry merge, weld or depth-proxy
 builder runs during hydration. The existing engine WeldCull owns distance and
