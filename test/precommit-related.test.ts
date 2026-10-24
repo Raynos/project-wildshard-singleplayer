@@ -8,7 +8,7 @@ import { dirname, resolve } from 'node:path';
 import { env, execPath } from 'node:process';
 import { expect, test } from 'vitest';
 import { linkNodeModules } from '../scripts/link-node-modules.mjs';
-import { commitRelated, relatedTestFailed, warmTypeJobs } from '../scripts/precommit-related.mjs';
+import { commitRelated, relatedDeadline, relatedTestFailed, warmTypeJobs } from '../scripts/precommit-related.mjs';
 
 const repository = resolve('.');
 const fixtureEnv = Object.fromEntries(Object.entries(env).filter(([key]) => !key.startsWith('GIT_')));
@@ -137,3 +137,57 @@ test('real commit excludes a loose peer regression but refuses it when staged', 
     expect(git('rev-parse','HEAD')).toBe(parent);
   }finally{rmSync(root,{recursive:true,force:true});}
 },30_000);
+
+test('real commits run twenty related suites but defer twenty-one before executing tests', () => {
+  const {root,git,put}=fixture();
+  try {
+    for(let index=0;index<19;index++)put(`test/extra-${index}.test.ts`,
+      'import {test,expect} from "vitest";import {value} from "../src/value";test("related",()=>expect(value).toBeGreaterThan(0));');
+    git('add','.');git('commit','-qm','twenty related suites');
+    put('.githooks/pre-commit',`#!/bin/sh\nexec '${execPath}' '${resolve(root,'hook.mjs')}'\n`);
+    chmodSync(resolve(root,'.githooks/pre-commit'),0o755);
+    put('hook.mjs',`import {execFileSync} from 'node:child_process';import {commitRelated} from '${resolve('scripts/precommit-related.mjs')}';await commitRelated(process.cwd(),execFileSync('git',['diff','--cached','--name-only','-z'],{encoding:'utf8'}).split('\\0').filter(Boolean));`);
+    git('config','core.hooksPath','.githooks');
+    put('src/value.ts','export const value = 2;\n');
+    const commit=(paths:string[])=>spawnSync('bash',[resolve(repository,'scripts/commit.sh'),'test(cf1): bounded selection','--',...paths],{cwd:root,env:fixtureEnv,encoding:'utf8',timeout:20_000});
+    const parent=git('rev-parse','HEAD'),red=commit(['src/value.ts']);
+    expect(red.status,red.stdout+red.stderr).not.toBe(0);
+    expect(red.stdout+red.stderr).toContain('selected 20 related suites');
+    expect(red.stdout+red.stderr).toContain('CF1 TEST FAILURE:');
+    expect(git('rev-parse','HEAD')).toBe(parent);
+    put('test/extra-19.test.ts','throw new Error("large selection must not execute");');
+    const deferred=commit(['src/value.ts','test/extra-19.test.ts']);
+    expect(deferred.status,deferred.stdout+deferred.stderr).toBe(0);
+    expect(deferred.stdout+deferred.stderr).toContain('selected 21 related suites exceed');
+    expect(deferred.stdout+deferred.stderr).toContain('no tests executed');
+    expect(deferred.stdout+deferred.stderr).not.toContain('CF1 TEST FAILURE:');
+    expect(deferred.stdout+deferred.stderr).toContain('total wall (lock wait included)');
+    const staged=Array.from({length:20},(_,index)=>`test/extra-${index}.test.ts`).concat('test/value.test.ts');
+    for(const file of staged)put(file,`${readFileSync(resolve(root,file),'utf8')}\n// staged batch\n`);
+    const batch=commit(staged);
+    expect(batch.status,batch.stdout+batch.stderr).toBe(0);
+    expect(batch.stdout+batch.stderr).toContain('21 staged test files exceed');
+    expect(batch.stdout+batch.stderr).toContain('selection and execution skipped');
+    expect(batch.stdout+batch.stderr).not.toContain(' RUN ');
+  } finally {rmSync(root,{recursive:true,force:true});}
+},30_000);
+
+test('one invocation deadline includes earlier lock/guard time and never renews an exhausted budget', () => {
+  expect(relatedDeadline('1000',44_000,500)).toBe(17_500);
+  expect(relatedDeadline('1000',61_001,500)).toBe(500);
+  expect(relatedDeadline('invalid',1000,500)).toBe(500);
+});
+
+test('the static project guard still refuses a large selection after the invocation deadline', async () => {
+  const {root,git,put}=fixture();
+  try {
+    put('tsconfig.json','{"compilerOptions":{"moduleResolution":"bundler","module":"esnext"},"include":["test"]}');
+    put('tsconfig.engine.json','{"extends":"./tsconfig.json","include":["src/engine"]}');
+    put('src/engine/value.ts','import "../../test/outside";');
+    put('test/outside.ts','export const outside=1;');
+    const files=['src/engine/value.ts'];
+    for(let index=0;index<21;index++){const file=`test/staged-${index}.test.ts`;put(file,'export const value=1;');files.push(file);}
+    git('add','.');
+    await expect(commitRelated(root,files,performance.now()-1)).rejects.toThrow('TS6307');
+  }finally{rmSync(root,{recursive:true,force:true});}
+});

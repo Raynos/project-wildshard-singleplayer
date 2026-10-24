@@ -113,15 +113,23 @@ PYALIGN
 }
 export -f align_shared_index
 exec python3 -c '
-import fcntl, signal, subprocess, sys
+import fcntl, os, signal, subprocess, sys, time
+started = time.monotonic()
+os.environ["WS_COMMIT_STARTED_AT"] = str(int(time.time() * 1000))
 def timeout(*_):
     raise SystemExit("commit.sh: commit lock timed out")
 signal.signal(signal.SIGALRM, timeout)
 signal.alarm(120)
-with open(sys.argv[1], "a") as lease:
-    fcntl.flock(lease, fcntl.LOCK_EX)
-    signal.alarm(0)
-    raise SystemExit(subprocess.run(sys.argv[2:]).returncode)
+try:
+    with open(sys.argv[1], "a") as lease:
+        fcntl.flock(lease, fcntl.LOCK_EX)
+        signal.alarm(0)
+        raise SystemExit(subprocess.run(sys.argv[2:]).returncode)
+finally:
+    elapsed = (time.monotonic() - started) * 1000
+    print(f"commit.sh: {elapsed:.0f} ms total wall (lock wait included)", flush=True)
+    if elapsed > 60000:
+        print("commit.sh: invocation exceeded 60 s; CF1 cannot renew its budget (serialized Git completion remains mandatory)", file=sys.stderr)
 ' "$common/commit.lock" bash -c '
   set -euo pipefail
   message=$1; patch=$2; common=$3; shift 3

@@ -8,6 +8,18 @@ import { stagedFiles, stagedProjectFailures, stagedProjects } from './precommit-
 
 const SOURCE = /^(?:src|test|scripts)\//u;
 const TEXT = /\.(?:[cm]?[jt]sx?|json|glsl|wgsl|css)$/u;
+const TEST = /\.(?:test|spec)\.[cm]?[jt]sx?$/u;
+const SUITE_LIMIT = 20;
+
+/** Consume one invocation budget, including time already spent waiting for the
+ * commit lock and running mandatory guards. Direct callers get the same cap.
+ * @param {string} [started] @param {number} [wall] @param {number} [clock] */
+export function relatedDeadline(started = process.env.WS_COMMIT_STARTED_AT, wall = Date.now(), clock = performance.now()) {
+  if (started === undefined) return clock + 60_000;
+  const timestamp = Number(started);
+  return clock + (Number.isFinite(timestamp) && timestamp >= 0
+    ? Math.max(0, 60_000 - Math.max(0, wall - timestamp)) : 0);
+}
 
 /** Only this named error refuses; loading/runner infrastructure may defer. */
 class CommitRelatedRefusalError extends Error {
@@ -77,7 +89,15 @@ export async function relatedWorker(root, files) {
     // are absent from --others and keep the ordinary executed-red refusal.
     for (const project of vitest.projects) project.config.exclude.push(...loose);
     if (loose.length > 0) console.warn(`CF1: exclude ${loose.length} loose text paths absent from the candidate index`);
-    await vitest.start();
+    const specifications = await vitest.getRelevantTestSpecifications();
+    count = specifications.length;
+    if (count > SUITE_LIMIT) {
+      console.warn(`CF1 DEFERRED TO CI: selected ${count} related suites exceed the ${SUITE_LIMIT}-suite local ceiling; no tests executed`);
+    } else if (count > 0) {
+      // Keep Vitest's ordinary initialization, hooks and reporter lifecycle.
+      // The exact selected paths prevent a second, broader related selection.
+      await vitest.start(specifications.map(specification => specification.moduleId));
+    }
     if (process.exitCode !== undefined && process.exitCode !== 0 && failures === 0)
       console.warn('CF1 DEFERRED TO CI: collection/runner failed without an executed failing test');
     console.info(`CF1: ${count} suites, ${failures} failing tests, ${(performance.now() - started).toFixed(0)} ms`);
@@ -106,7 +126,7 @@ export function warmTypeJobs(root, files) {
 /** The injected deadline is for deterministic cap regressions; hooks use 60s.
  * Tooling fails open, observed test reds and staged TS6307 edges refuse.
  * @param {string} root @param {string[]} changed @param {number} [deadline] */
-export async function commitRelated(root, changed, deadline = performance.now() + 60_000) {
+export async function commitRelated(root, changed, deadline = relatedDeadline()) {
   const started = performance.now(), files = changed.filter(file => SOURCE.test(file));
   if (files.length === 0) { console.info('CF1: 0 staged source paths, 0 suites, 0 ms'); return; }
   console.info(`CF1: ${files.length} staged paths; related suite count follows collection`);
@@ -119,10 +139,13 @@ export async function commitRelated(root, changed, deadline = performance.now() 
     throw new CommitRelatedRefusalError(failures);
   }
   try {
-    if (performance.now() >= deadline) throw new Error('60-second deadline reached before selection');
+    if (performance.now() >= deadline) throw new Error('60-second commit deadline reached before selection');
     if (!existsSync(resolve(root, 'node_modules/vitest/vitest.mjs'))) throw new Error('Vitest is not installed');
     const jobs = warmTypeJobs(root, files);
-    jobs.unshift({ name: 'related tests', command: [process.execPath, import.meta.filename, '--worker', JSON.stringify(files)] });
+    const selectedTests = files.filter(file => TEST.test(file)).length;
+    if (selectedTests > SUITE_LIMIT)
+      console.warn(`CF1 DEFERRED TO CI: ${selectedTests} staged test files exceed the ${SUITE_LIMIT}-suite local ceiling; selection and execution skipped`);
+    else jobs.unshift({ name: 'related tests', command: [process.execPath, import.meta.filename, '--worker', JSON.stringify(files)] });
     mkdirSync(resolve(root, 'tmp'), { recursive: true });
     const temporary = mkdtempSync(resolve(root, 'tmp/commit-related-'));
     const env = resolve(root) === process.cwd() ? process.env
