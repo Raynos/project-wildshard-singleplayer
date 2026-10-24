@@ -152,6 +152,8 @@ export type GridCellShows = 'playing' | 'frozen' | 'near' | 'far proxy' | 'tiles
 export interface GridCellDrawn { readonly far: boolean; readonly near: boolean; readonly l1: number; readonly l0: number }
 /** The session's readout (tests, harness, the board). */
 export interface GridSessionState {
+  /** Actual world-space placement pitch; diagnostic routes must use the served build's lattice. */
+  readonly pitch: number;
   readonly home: string; readonly inside: string | null; readonly feet: { x: number; z: number };
   readonly cells: readonly { readonly instance: string; readonly slug: string; readonly cell: readonly [number, number]; readonly shows: GridCellShows; readonly drawn: GridCellDrawn }[];
   readonly strips: number; readonly ringsReady: boolean;
@@ -800,6 +802,7 @@ export class GridSession {
     const shows = (instance: string, d: GridCellDrawn): GridCellShows => instance === playing ? 'playing'
       : d.near ? 'near' : d.far ? 'far proxy' : d.l1 + d.l0 > 0 ? 'tiles' : instance === this.home.instance ? 'frozen' : resident.has(instance) ? 'far proxy' : 'loading';
     return {
+      pitch: this.assembly.pitch,
       home: this.home.instance, inside: gridCells.cell?.instance ?? null, feet: { x: Math.round(at.x * 100) / 100, z: Math.round(at.z * 100) / 100 },
       cells: this.assembly.cells.map((cell) => { const d = drawn(cell.instance); return { instance: cell.instance, slug: cell.slug, cell: cell.cell, shows: shows(cell.instance, d), drawn: d }; }),
       strips: this.strips.length, road: this.road, seams: this.seams, softWalls: this.softWalls.state(), shimmer: this.shimmer.state(), cellLoading: this.cellLoading.open, ringsReady: this.rings.ready(), ringsWait: { cells: this.rings.waiting(), far: this.rings.farPlan() },

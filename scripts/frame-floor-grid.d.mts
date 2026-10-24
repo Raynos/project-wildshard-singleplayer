@@ -1,6 +1,8 @@
 export interface FloorGridLive { current: string | null; worldFeet: { x: number; y: number; z: number }; crossings: number;
   transitions: { from: string | null; to: string | null }[]; residents: string[]; gameplayReady: boolean; pending?: string[] }
 export interface FloorGridState { home: string; inside: string | null;
+  /** Actual served lattice; pre-T9 builds omit it and retain the historical 555 m protocol. */
+  pitch?: number;
   cells: { instance: string; slug: string; cell: readonly [number, number] }[];
   borrowedHome?: { instance: string; level: string; bytes: number };
   claims?: readonly { id: string; owner: string; category: string; bytes?: number }[];
@@ -43,13 +45,15 @@ export interface FloorGridFailure { kind: string; stop: FloorGridProgress['stop'
 export function installFloorGridProgress(): void;
 export function gridFloorRuntimeFailure(last: FloorGridProgress | null, diagnostic: { documentOrigin: number; lastEnd?: { reason: string; at: number }; lastUnload?: { reason: string; t: number } } | null): FloorGridFailure | null;
 /** 'cell' enters the cell whose instance or slug is `options.cell` from the road at its home-side edge (op-frame22). */
-export function gridFloorPlans(state: Pick<FloorGridState, 'home' | 'cells'>, scenario: 'baseline' | 'template' | 'runtime-travel' | 'sun-entry' | 'cell' | 'all' | 'milestone' | 'reentry', options?: { cell?: string; roadApproach?: boolean; entrySocket?: boolean; risingIslet?: 'north' | 'east' | 'south' | 'west' }): FloorGridPlan[];
+export function gridFloorPlans(state: Pick<FloorGridState, 'home' | 'cells' | 'pitch'>, scenario: 'baseline' | 'template' | 'runtime-travel' | 'sun-entry' | 'cell' | 'all' | 'milestone' | 'reentry', options?: { cell?: string; roadApproach?: boolean; entrySocket?: boolean; risingIslet?: 'north' | 'east' | 'south' | 'west' }): FloorGridPlan[];
+/** Original standing poses translated only by the served lattice's half-pitch delta. */
+export function gridFloorPoses(pitch?: number): { name: string; x: number; y: number; z: number; yaw: number; pitch: number }[];
 /** Resolve declared portal nodes or the socket-lift approach from the pinned shardfile. */
-export function floorGridPortalPlan(plan: FloorGridPlan, cell: FloorGridState['cells'][number], entryways: unknown): FloorGridPlan;
+export function floorGridPortalPlan(plan: FloorGridPlan, cell: FloorGridState['cells'][number], entryways: unknown, pitch?: number): FloorGridPlan;
 /** Read v1 rows or the hash/size-verified format-2 world/edge section in the browser. */
 export function readFloorGridEntryways(path: string): Promise<unknown>;
 /** Fetch the destination cell's served shardfile entryways in the page and resolve a road entry through floorGridPortalPlan. */
-export function gridFloorDeclaredPlan(page: { evaluate: (expression: string) => Promise<unknown> }, state: Pick<FloorGridState, 'cells'>, plan: FloorGridPlan): Promise<FloorGridPlan>;
+export function gridFloorDeclaredPlan(page: { evaluate: (expression: string) => Promise<unknown> }, state: Pick<FloorGridState, 'cells' | 'pitch'>, plan: FloorGridPlan): Promise<FloorGridPlan>;
 export interface FloorGridDocumentIdentity { readonly timeOrigin: number; readonly token: string }
 export function gridFloorDocumentIdentity(): FloorGridDocumentIdentity;
 export function driveFloorGrid(plan: FloorGridPlan, documentOrigin: number | FloorGridDocumentIdentity): Promise<FloorGridWitness>;

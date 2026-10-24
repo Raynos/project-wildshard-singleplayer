@@ -29,10 +29,11 @@ export async function readFloorGridEntryways(path) {
 }
 
 /** Follow the declared portal landing or socket-lift approach instead of guessing a flat entry waypoint. */
-export function floorGridPortalPlan(plan, cell, entryways) {
+export function floorGridPortalPlan(plan, cell, entryways, pitch = 555) {
+  if (!Number.isFinite(pitch) || pitch <= 500) throw new Error('Invalid grid floor pitch');
   const leaving = plan.from !== null && plan.to === null;
   if ((!leaving && (plan.from !== null || plan.start === undefined)) || !Array.isArray(entryways)) return plan;
-  const origin = { x: cell.cell[0] * 555, z: cell.cell[1] * 555 };
+  const origin = { x: cell.cell[0] * pitch, z: cell.cell[1] * pitch };
   const entry = leaving ? plan.waypoints[0] : plan.waypoints.at(-1) ?? plan.start;
   if (entry === undefined) throw new Error('Missing floor edge waypoint');
   const dx = entry.x - origin.x, dz = entry.z - origin.z;
@@ -73,14 +74,25 @@ export async function gridFloorDeclaredPlan(page, state, plan) {
   if (!cell) throw new Error('Floor entry cell missing');
   const path = `/shardfiles/${encodeURIComponent(cell.slug)}/shard.json`;
   const entries = await page.evaluate(`(${readFloorGridEntryways.toString()})(${JSON.stringify(path)})`);
-  return floorGridPortalPlan(plan, cell, entries);
+  return floorGridPortalPlan(plan, cell, entries, state.pitch === undefined ? 555 : state.pitch);
+}
+
+/** Preserve historical cameras when old pinned builds omit the lattice scalar. */
+export function gridFloorPoses(pitch = 555) {
+  if (!Number.isFinite(pitch) || pitch <= 500) throw new Error('Invalid grid floor pitch');
+  const half = pitch / 2;
+  return [{ name: 'grid-deck-east', x: half, y: 1.7, z: -40, yaw: 0, pitch: -0.08 },
+    { name: 'grid-crossroads', x: half, y: 1.7, z: half, yaw: -Math.PI * 0.75, pitch: -0.12 },
+    { name: 'grid-deck-north', x: 0, y: 3, z: 262 + (pitch - 555) / 2, yaw: Math.PI, pitch: -0.05 }];
 }
 
 /** Actual-frame floor routes; only the first home pose is seeded, every seam afterwards is driven by held input. */
 export function gridFloorPlans(state, scenario, options = {}) {
+  const pitch = state.pitch === undefined ? 555 : state.pitch, half = pitch / 2;
+  if (!Number.isFinite(pitch) || pitch <= 500) throw new Error('Invalid grid floor pitch');
   const home = state.cells.find(cell => cell.instance === state.home);
   if (!home) throw new Error('Grid floor has no assembled home');
-  const origin = cell => ({ x: cell.cell[0] * 555, z: cell.cell[1] * 555 });
+  const origin = cell => ({ x: cell.cell[0] * pitch, z: cell.cell[1] * pitch });
   const h = origin(home), plans = [];
   if (scenario === 'milestone') {
     // Each road entry is an independent approach after the continuous template out/back drive.
@@ -91,7 +103,7 @@ export function gridFloorPlans(state, scenario, options = {}) {
       if (!target) throw new Error(`Milestone floor requires ${slug} (Nine requires --devserver)`);
       const t = origin(target), dx = Math.sign(h.x - t.x), dz = Math.sign(h.z - t.z);
       const vertical = dz !== 0 || dx === 0, direction = vertical ? (dz === 0 ? 1 : dz) : dx;
-      const road = vertical ? { x: t.x, z: t.z + direction * 277.5 } : { x: t.x + direction * 277.5, z: t.z };
+      const road = vertical ? { x: t.x, z: t.z + direction * half } : { x: t.x + direction * half, z: t.z };
       const entry = vertical ? { x: t.x, z: t.z + direction * 210 } : { x: t.x + direction * 210, z: t.z };
       plans.push({ name: `${slug}-road-entry`, from: null, to: target.instance, movement: 'road-hover', start: road,
         waypoints: [entry], requiredResidents: [target.instance], finishOnArrival: false });
@@ -101,12 +113,12 @@ export function gridFloorPlans(state, scenario, options = {}) {
   if (scenario === 'outer-road') {
     // SF88c (G526): a quarter lap of the 5 × 5's outer road round its south-east corner (2.8 km, inside the drive's
     // 160 s), the whole platform's far layer in view
-    const e = 2.5 * 555;
+    const e = 2.5 * pitch;
     // O11: the east road's inner lane past Nalati and Nine (ring 1, a cell column away): neither admits on the way
     const lane = e - 18;
     return [{ name: 'outer-road-corner', from: null, to: null, movement: 'road-hover', hoverMaxSpeed: 30, start: { x: 0, z: e },
       waypoints: [{ x: e, z: e }, { x: e, z: 0 }], requiredResidents: [], finishOnArrival: false },
-    { name: 'outer-road-east', from: null, to: null, movement: 'road-hover', hoverMaxSpeed: 30, start: { x: lane, z: 555 },
+    { name: 'outer-road-east', from: null, to: null, movement: 'road-hover', hoverMaxSpeed: 30, start: { x: lane, z: pitch },
       waypoints: [{ x: lane, z: -e + 30 }], requiredResidents: [], finishOnArrival: false }];
   }
   if (scenario === 'reentry') {
@@ -124,7 +136,7 @@ export function gridFloorPlans(state, scenario, options = {}) {
     if (!nine) throw new Error('Nine return requires the Developer Nine cell');
     const [entry] = gridFloorPlans(state, 'cell', { cell: nine.instance, roadApproach: true });
     if (!entry) throw new Error('Missing Nine road entry');
-    const n = origin(nine), road = { x: n.x, z: n.z + 277.5 }, homeRoad = { x: h.x, z: road.z };
+    const n = origin(nine), road = { x: n.x, z: n.z + half }, homeRoad = { x: h.x, z: road.z };
     const leave = { name: 'nine-leave', from: nine.instance, to: null, movement: 'road-hover', hoverMaxSpeed: 30, waypoints: [road], requiredResidents: [], finishOnArrival: false };
     const back = { name: 'home-return', from: null, to: home.instance, movement: 'road-hover', hoverMaxSpeed: 30,
       waypoints: [homeRoad, { x: h.x, z: h.z - 210 }], requiredResidents: [home.instance], finishOnArrival: false };
@@ -148,7 +160,7 @@ export function gridFloorPlans(state, scenario, options = {}) {
     }
     const t = origin(target), dx = options.risingIslet === 'west' ? -1 : options.risingIslet === 'east' ? 1 : options.risingIslet ? 0 : Math.sign(h.x - t.x),
       dz = options.risingIslet === 'north' ? 1 : options.risingIslet === 'south' ? -1 : options.risingIslet ? 0 : Math.sign(h.z - t.z);
-    const road = dz !== 0 ? { x: t.x, z: t.z + dz * 277.5 } : { x: t.x + dx * 277.5, z: t.z };
+    const road = dz !== 0 ? { x: t.x, z: t.z + dz * half } : { x: t.x + dx * half, z: t.z };
     // A separately named socket measurement stays on the permanent platform deck,
     // before content-specific gates or lifts; the lift-ride probe is retired.
     const entryOffset = options.entrySocket === true || options.risingIslet ? CHUNK_HALF - ENTRY_ASPHALT / 2 : 210;
@@ -156,7 +168,7 @@ export function gridFloorPlans(state, scenario, options = {}) {
     // Drive into the geometric interior: a motor transfer outside the cell must not omit
     // the first visible regional frame from the measured drive.
     const approach = options.roadApproach === true;
-    const start = approach ? (dz !== 0 ? { x: road.x + 277.5, z: road.z } : { x: road.x, z: road.z + 277.5 }) : road;
+    const start = approach ? (dz !== 0 ? { x: road.x + half, z: road.z } : { x: road.x, z: road.z + half }) : road;
     plans.push({ name: `${target.slug}-${options.entrySocket === true || options.risingIslet ? 'socket-entry' : 'road-entry'}`, from: null, to: target.instance, movement: 'road-hover', start,
       waypoints: approach ? [road, entry] : [entry], requiredResidents: [target.instance], finishOnArrival: false,
       ...(approach ? { observePreparation: true, hoverMaxSpeed: 30 } : {}) });
@@ -165,7 +177,7 @@ export function gridFloorPlans(state, scenario, options = {}) {
   if (scenario === 'sun-entry') {
     const sun = state.cells.find(cell => cell.slug === 'sunscar-dunes');
     if (!sun) throw new Error('Developer grid floor requires Signal Dunes');
-    const s = origin(sun), road = { x: s.x, z: s.z + 277.5 }, entry = { x: s.x, z: s.z + 210 };
+    const s = origin(sun), road = { x: s.x, z: s.z + half }, entry = { x: s.x, z: s.z + 210 };
     // Match the cold native ruler: seed the road once, then walk inside on the real terrain.
     plans.push({ name: 'sun-road-entry', from: null, to: sun.instance, movement: 'road-hover', start: road,
       waypoints: [entry], requiredResidents: [sun.instance] },
@@ -307,6 +319,8 @@ export async function stageFloorGrid(plan, documentOrigin, drive) {
   const ready = (state, instance) => state.live.live.current === instance && state.inside === instance
     && state.live.live.gameplayReady && (instance === null || state.live.live.residents.includes(instance) === true || borrowed(state));
   const initial = read(), live = initial.live.live;
+  const pitch = initial.pitch === undefined ? 555 : initial.pitch, half = pitch / 2;
+  if (!Number.isFinite(pitch) || pitch <= 500) throw new Error('Invalid grid floor pitch');
   if (initial.live.crossing.phase === 'blocked' || initial.live.crossing.phase === 'save-failed') throw new Error(`Grid floor source blocked: ${initial.live.crossing.issue}`);
   const approach = plan.start && plan.from !== null && !ready(initial, plan.from);
   let seed = plan.start;
@@ -314,10 +328,10 @@ export async function stageFloorGrid(plan, documentOrigin, drive) {
     if (typeof drive !== 'function') throw new Error('Grid floor cold source needs the real road driver');
     const cell = initial.cells.find(row => row.instance === plan.from);
     if (!cell) throw new Error('Grid floor source cell missing');
-    const x = cell.cell[0] * 555, z = cell.cell[1] * 555;
+    const x = cell.cell[0] * pitch, z = cell.cell[1] * pitch;
     const dx = plan.start.x - x, dz = plan.start.z - z;
-    seed = Math.abs(dz) >= Math.abs(dx) ? { x, z: z + (dz < 0 ? -277.5 : 277.5) }
-      : { x: x + (dx < 0 ? -277.5 : 277.5), z };
+    seed = Math.abs(dz) >= Math.abs(dx) ? { x, z: z + (dz < 0 ? -half : half) }
+      : { x: x + (dx < 0 ? -half : half), z };
   }
   // Standing probes can leave home entered. Only the first road seed may change that source;
   // its normal checkpoint / leave must still commit before the readiness loop below succeeds.
@@ -369,7 +383,8 @@ export async function driveFloorGrid(plan, documentOrigin) {
   const borrowed = state => plan.borrowedHome === state.home && plan.from === state.home
     && state.borrowedHome?.instance === state.home && state.borrowedHome.level === state.cells.find(row => row.instance === state.home)?.slug
     && Number.isSafeInteger(state.borrowedHome.bytes) && state.borrowedHome.bytes > 0;
-  const source = read(), live = source.live.live;
+  const source = read(), live = source.live.live, pitch = source.pitch === undefined ? 555 : source.pitch;
+  if (!Number.isFinite(pitch) || pitch <= 500) throw new Error('Invalid grid floor pitch');
   if (live.current !== plan.from || source.inside !== plan.from || !live.gameplayReady || (plan.from !== null && !live.residents.includes(plan.from) && !borrowed(source))) throw new Error(`Grid floor source ${plan.from} is not an entered ready resident`);
   const waypoints = plan.waypoints;
   const portal = plan.portal === undefined ? null : { roadSeen: false, landed: false };
@@ -422,8 +437,8 @@ export async function driveFloorGrid(plan, documentOrigin) {
           }
           if (arrival !== undefined && destination !== undefined) {
             const ready = active.residents.includes(plan.to) && !(active.pending ?? []).includes(plan.to);
-            const edgeDistance = Math.hypot(Math.max(0, Math.abs(feet.x - destination.cell[0] * 555) - 250),
-              Math.max(0, Math.abs(feet.z - destination.cell[1] * 555) - 250));
+            const edgeDistance = Math.hypot(Math.max(0, Math.abs(feet.x - destination.cell[0] * pitch) - 250),
+              Math.max(0, Math.abs(feet.z - destination.cell[1] * pitch) - 250));
             if (!ready && active.current === null && edgeDistance <= 10 && distance > 1.5 && player.motor.result.horizontalFreedom < 0.1) {
               arrival.blockedFrames++; arrival.blockedMs += now - previousFrameAt;
             }
@@ -475,6 +490,8 @@ export async function driveFloorGrid(plan, documentOrigin) {
 /** A visible destination without real frame commits or complete runtime residency never counts as this scenario. */
 export function gridFloorWitnessFailures(result) {
   const { plan, before, after } = result, previous = before.live.live, active = after.live.live, failures = [];
+  const pitch = after.pitch === undefined ? 555 : after.pitch;
+  if (!Number.isFinite(pitch) || pitch <= 500 || (before.pitch === undefined ? 555 : before.pitch) !== pitch) failures.push('Grid lattice changed during the route');
   const borrowed = state => plan.borrowedHome === state.home && plan.from === state.home
     && state.borrowedHome?.instance === state.home && state.borrowedHome.level === state.cells.find(row => row.instance === state.home)?.slug
     && Number.isSafeInteger(state.borrowedHome.bytes) && state.borrowedHome.bytes > 0;
@@ -495,8 +512,8 @@ export function gridFloorWitnessFailures(result) {
     return after.claims.some(claim => claim.owner === id && claim.category === 'sim');
   })) failures.push('Source runtime or its sim/basis claim was not retired');
   const cell = after.cells.find(row => row.instance === plan.to);
-  if (plan.to !== null && (!cell || Math.abs(active.worldFeet.x - cell.cell[0] * 555) >= 250 || Math.abs(active.worldFeet.z - cell.cell[1] * 555) >= 250)) failures.push('Destination feet are outside its interior');
-  if (plan.to === null && after.cells.some(row => Math.abs(active.worldFeet.x - row.cell[0] * 555) < 250 && Math.abs(active.worldFeet.z - row.cell[1] * 555) < 250)) failures.push('Road destination lies inside a shard');
+  if (plan.to !== null && (!cell || Math.abs(active.worldFeet.x - cell.cell[0] * pitch) >= 250 || Math.abs(active.worldFeet.z - cell.cell[1] * pitch) >= 250)) failures.push('Destination feet are outside its interior');
+  if (plan.to === null && after.cells.some(row => Math.abs(active.worldFeet.x - row.cell[0] * pitch) < 250 && Math.abs(active.worldFeet.z - row.cell[1] * pitch) < 250)) failures.push('Road destination lies inside a shard');
   if (![active.worldFeet.x, active.worldFeet.y, active.worldFeet.z, result.elapsedSeconds].every(Number.isFinite)
     || result.elapsedSeconds <= 0 || result.trace.length === 0
     || result.trace.some((row, index) => {

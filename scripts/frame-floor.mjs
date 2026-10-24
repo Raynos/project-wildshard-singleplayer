@@ -25,7 +25,7 @@ import { startFloorNative } from './frame-floor-native.mjs';
 import { validateFrameFloorArgs, parseSafariWindow } from './frame-floor-args.mjs';
 import { frameFloorShards } from './frame-floor-inventory.mjs';
 import { handoffFloorGridNavigation, FLOOR_GRID_TAP } from './frame-floor-navigation.mjs';
-import { selectFloorGridPlans, gridFloorPlans, floorGridPortalPlan, readFloorGridEntryways, stageFloorGrid, driveFloorGrid, gridFloorWitnessFailures, installFloorGridProgress, gridFloorRuntimeFailure, gridFloorDocumentIdentity } from './frame-floor-grid.mjs';
+import { selectFloorGridPlans, gridFloorPoses, gridFloorPlans, floorGridPortalPlan, readFloorGridEntryways, stageFloorGrid, driveFloorGrid, gridFloorWitnessFailures, installFloorGridProgress, gridFloorRuntimeFailure, gridFloorDocumentIdentity } from './frame-floor-grid.mjs';
 import { GL_INIT } from './parity/glbytes.mjs';
 import { GL_TIMING_SCRIPT } from './frame-floor-gl-time.mjs';
 import { TASK_CLOCK_SCRIPT } from './frame-floor-task-clock.mjs';
@@ -190,8 +190,6 @@ const fixture = (tier) => [
   ...(publicGrid ? [publicGridIntentCode({instance:'driftwood-isle',slug:'driftwood-isle'})] : []),
 ].join(';');
 const query = (shard) => (shard === 'grid' && !publicGrid ? '?mute=1&nolock=1&sw=0' : `?chunk=${encodeURIComponent(shard === 'grid' ? 'driftwood-isle' : shard)}&mute=1&skipintro=1&nolock=1&sw=0`); // the public pre-release probe seeds only the existing intent
-/** Highway-deck views around the grid's home cell (home-frame metres): a neighbour's far proxy across the deck, a crossroads, the north gap. */
-const GRID_POSES = [{ name: 'grid-deck-east', x: 277.5, y: 1.7, z: -40, yaw: 0, pitch: -0.08 }, { name: 'grid-crossroads', x: 277.5, y: 1.7, z: 277.5, yaw: -Math.PI * 0.75, pitch: -0.12 }, { name: 'grid-deck-north', x: 0, y: 3, z: 262, yaw: Math.PI, pitch: -0.05 }];
 const errorText = (e) => e instanceof Error ? e.message : String(e);
 
 // Jake's SF0 clarification (2026-10-04): allow vsync quantization, retain the original strict verdict.
@@ -456,7 +454,9 @@ async function measureShard(driver, shard, deadline) {
     console.log(`${surface} ${shard} spawn: ${spawnRow.medianFps} fps, p95 ${spawnRow.p95Ms} ms, p99 ${spawnRow.p99Ms} ms — ${spawnRow.pass ? 'PASS' : 'FAIL'}`);
     // O11: the outer road starts with no inner cell admitted; deck-east stands on Nine's boulevard and admits it. O17: a
     // cold entry likewise approaches its cell with no standing pose beside it first
-    const declared = [...await driver.evaluate(`(${cameras.toString()})()`), ...(shard === 'grid' && !['outer-road', 'cold', 'nine-return'].includes(gridScenario) ? GRID_POSES : [])];
+    const gridPoses = shard === 'grid' && !['outer-road', 'cold', 'nine-return'].includes(gridScenario)
+      ? gridFloorPoses(await driver.evaluate('(() => { const pitch = window.__wildshard.shard.grid.state().pitch; return pitch === undefined ? 555 : pitch; })()')) : [];
+    const declared = [...await driver.evaluate(`(${cameras.toString()})()`), ...gridPoses];
     const candidates = declared.length > 0 ? declared : [{ ...meta.spawn, name: 'spawn-reverse', yaw: meta.spawn.yaw + Math.PI }];
     const scan = [];
     for (const pose of candidates) {
@@ -503,7 +503,7 @@ async function measureShard(driver, shard, deadline) {
           if (!cell) throw new Error('Floor entry cell missing');
           const path = `/shardfiles/${encodeURIComponent(cell.slug)}/shard.json`;
           const entries = await driver.evaluate(`(${readFloorGridEntryways.toString()})(${JSON.stringify(path)})`);
-          plan = floorGridPortalPlan(plan, cell, entries);
+          plan = floorGridPortalPlan(plan, cell, entries, state.pitch === undefined ? 555 : state.pitch);
         }
         // Camera probes can leave the owned shell on the road. Finish source admission before measuring motion.
         await driver.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify(plan)},${JSON.stringify(documentOrigin)},(${driveFloorGrid.toString()}))`, 130000);

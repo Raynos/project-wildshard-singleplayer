@@ -22,6 +22,13 @@ home before freeing owned worlds. `state` supplies crossing transitions, global 
 failures to the production grid readout. Native live/template and hybrid fixtures prove these contracts; the render
 composition and real browser crossing remain separate acceptance work.
 
+The session's grid readout includes its actual `pitch` in world metres.
+Diagnostic routes and standing cameras use this served lattice, rather than
+the tooling checkout's current constants. Historical builds without the
+field retain the original 555 m measurement protocol; a changed or invalid
+pitch refuses a route witness. This scalar does not change the traveller's
+local simulation, saved coordinates, cadence or the frame-floor criteria.
+
 `@wildshard/game/grid/simulation` defines `GridSimulation`. A session supplies its highway host, an admitted whole-shard
 loader, stable-instance snapshot storage and the one allocator's `reserve(instance, bytes)` adapter. `residentBytes`
 reads the admitted sim budget before construction. A refused reservation defers admission through the crossing/readiness
