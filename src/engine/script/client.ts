@@ -59,8 +59,10 @@ class ClientWorld extends ScriptWorld {
   }
   outputs(): readonly ClientScriptFrame[] { return [...this.frames.values()].sort((a, b) => a.entity - b.entity).map(copy); }
   private pose(frame: ClientScriptFrame, binding: ClientScriptBinding): boolean {
-    return frame.offset.every((n) => Math.abs(n) <= binding.maxOffset) && frame.rotation.every((n) => Math.abs(n) <= Math.PI)
-      && frame.scale.every((n) => n >= binding.minScale && n <= binding.maxScale);
+    for (const value of frame.offset) if (!(Math.abs(value) <= binding.maxOffset)) return false;
+    for (const value of frame.rotation) if (!(Math.abs(value) <= Math.PI)) return false;
+    for (const value of frame.scale) if (!(value >= binding.minScale && value <= binding.maxScale)) return false;
+    return true;
   }
   override prepare(effects: readonly ScriptEffect[], self: number, _spawns: number, _events: number): EffectTransaction {
     const binding = this.bindings.get(self), current = this.frames.get(self), before = this.frames;
@@ -69,7 +71,7 @@ class ClientWorld extends ScriptWorld {
     const live = [...this.live], seen = new Set<number>();
     for (const effect of effects) {
       const { op, a, b, c, d } = effect;
-      if (![op, a, b, c, d].every(Number.isFinite)) throw new Error('Non-finite client effect');
+      if (!Number.isFinite(op) || !Number.isFinite(a) || !Number.isFinite(b) || !Number.isFinite(c) || !Number.isFinite(d)) throw new Error('Non-finite client effect');
       if (op === CLIENT_SCRIPT_OP.particle) {
         const emitter = binding.emitters.find((row) => row.id === a);
         if (emitter === undefined || !Number.isSafeInteger(b) || b < 1 || c !== 0 || d !== 0) throw new Error('Undeclared client particle request');
@@ -132,17 +134,20 @@ export class ClientScriptLane {
     const host = this.host; if (host === undefined) throw new Error('Disposed client script lane');
     if (!Number.isSafeInteger(tick) || tick < 0) throw new Error('Invalid client script tick');
     if (tick % this.divisor !== 0) return [];
-    const checked = new Map<number, ClientScriptObservation>();
-    for (const [entity, binding] of this.world.bindings) {
-      const observation = v.parse(observationSchema, observations.get(entity));
+    const checked: ClientScriptObservation[] = [];
+    for (const binding of this.world.bindings.values()) {
+      const observation = v.parse(observationSchema, observations.get(binding.entity));
       if (observation.values.length !== binding.readCount) throw new Error('Invalid read-only client observation');
-      checked.set(entity, observation);
+      checked.push(observation);
     }
     host.beginTick(tick); this.world.beginTick(tick);
-    const calls: ScriptCall[] = [];
-    for (const [entity, binding] of this.world.bindings) {
-      const o = checked.get(entity); if (!o) throw new Error('Missing client observation');
-      calls.push(host.call(binding.module, entity, [tick, this.divisor / 60, Number(o.frozen), entity, ...o.position, binding.readCount, ...o.values]));
+    const calls: ScriptCall[] = []; let index = 0;
+    for (const binding of this.world.bindings.values()) {
+      const o = checked[index++]; if (o === undefined) throw new Error('Missing client observation');
+      const input = [tick, this.divisor / 60, Number(o.frozen), binding.entity, o.position[0], o.position[1], o.position[2], binding.readCount];
+      input.length += o.values.length;
+      for (let field = 0; field < o.values.length; field++) input[8 + field] = o.values[field] ?? Number.NaN;
+      calls.push(host.call(binding.module, binding.entity, input));
     }
     return calls;
   }
