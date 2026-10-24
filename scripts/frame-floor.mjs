@@ -33,6 +33,7 @@ import { startScriptProfile, startPrefixScriptProfile, startDriveWindowScriptPro
 import { startWebKitTimeline, timelineLongFrames } from './frame-floor-webkit-timeline.mjs';
 import { BUFFER_PRESSURE_SCRIPT } from './frame-floor-buffer-pressure.mjs';
 import { ABLATION_NORMAL, ablationPhases, refreshAblationInspector } from './frame-floor-pause-ablation.mjs';
+import { startJscGcLog, jscGcProcessIds } from './frame-floor-jsc-gc.mjs';
 import { NATIVE_PRESSURE_SCRIPT } from './frame-floor-native-pressure.mjs';
 import { WASM_CONSTRUCTORS_SCRIPT, SCRIPT_MEMORY_POOL } from './frame-floor-wasm-constructors.mjs';
 import { runWasmMemoryProbe } from './frame-floor-wasm-probe.mjs';
@@ -94,6 +95,8 @@ const safariDrive = flag('safari-drive', '');
 const safariPrefix = flag('safari-prefix', '');
 const safariWindow = parseSafariWindow(flag('safari-window', ''));
 if (safariProfileDir !== '' && (surface !== 'sim' || (gridScenario === 'baseline' && shards.includes('grid')) || !existsSync(safariProfileDir))) throw new Error('--safari-profile=<existing dir> samples Simulator standing and whole-drive windows (diagnostic, no timing credit)');
+const jscGcDirectory = flag('jsc-gc-log', '');
+if (jscGcDirectory !== '' && !existsSync(jscGcDirectory)) throw new Error('--jsc-gc-log requires an existing directory');
 const webkitTimelineDir = flag('webkit-timeline', '');
 const webkitSteadyPose = flag('webkit-steady', '');
 const webkitSteadyPoses = webkitSteadyPose === '' ? [] : webkitSteadyPose.split(',');
@@ -632,6 +635,17 @@ async function measureShard(driver, shard, deadline) {
             rows.at(-1)[pauseAblation ? 'pauseAblation' : 'bufferAblation'] = windows;
           }
         }
+        if (jscGcDirectory !== '' && plan.name === 'nalati-interior') {
+          const pidsBefore = jscGcProcessIds(process.env.SIM_UDID);
+          const window = await driver.evaluate(STEADY_TIMELINE_WINDOW, 35000);
+          const pidsAfter = jscGcProcessIds(process.env.SIM_UDID);
+          const file = join(jscGcDirectory, 'settled20s.json');
+          writeFileSync(file, JSON.stringify({diagnostic: true, plan, window, pidsBefore, pidsAfter,
+            pageTimeOrigin: documentOrigin.timeOrigin, wallStartMs: documentOrigin.timeOrigin + window.startMs,
+            wallEndMs: documentOrigin.timeOrigin + window.endMs, inspectorHeapEnabled: false}));
+          if (window.dropped !== 0) throw new Error('Native GC window intervals truncated');
+          rows.at(-1).nativeGcLog = {file, window, pidsBefore, pidsAfter};
+        }
         if (gpuBisectOn) rows.at(-1).gpuBisect = await driver.evaluate(`(${gpuBisect.toString()})(60)`, 240000);
         console.log(`${surface} grid ${plan.name}: travel ${motion.medianFps} fps / ${motion.p95Ms} ms; whole drive + builds ${whole.value.frames} frames, ${whole.value.medianFps} fps / p95 ${whole.value.p95Ms} / p99 ${whole.value.p99Ms} / max ${whole.value.maxMs} ms, ${whole.value.longFrames.over50Ms} frames > 50 ms (${driveRow.longFrameHooks.map((h) => `${h.hook} ${h.frames}×, max ${h.maxMs}`).join('; ')}); interior ${standing.medianFps} fps / ${standing.p95Ms} ms; node builds ${builds.total} (${builds.afterPlay} from afterPlay on); residents=${witness.after.live.live.residents.join(',')}`);
       }
@@ -650,6 +664,7 @@ async function measureShard(driver, shard, deadline) {
       const failures = publicGridWitnessFailures(meta.publicGridFinal, true);
       if (failures.length > 0) throw new Error(failures.join('; '));
     }
+    if (jscGcDirectory !== '' && !rows.some(row => row.nativeGcLog)) throw new Error('Native JSC GC settled Nalati window was not reached');
     if (webkitSteadyPoses.some(pose => !rows.some(row => row.pose.name === pose && row.steadyTimeline))) throw new Error(`Selected steady Timeline pose was not reached: ${webkitSteadyPose}`);
     if (safariSteadyPose !== '' && !rows.some(row => row.steadyScriptProfile)) throw new Error(`Selected steady profile pose was not reached: ${safariSteadyPose}`);
     if (safariDrive !== '' && !rows.some(row => row.pose.name === `grid-${safariDrive}-drive` && row.scriptProfile)) throw new Error(`Selected profile drive was not reached: ${safariDrive}`);
@@ -819,7 +834,7 @@ async function worker() {
   let browser, context, page, proxy, inspector, nativeMemory, wasmProbeResult;
   /** @type {ReturnType<typeof startFloorNative> | undefined} */
   let stopNative;
-  let quietHeld = false;
+  let quietHeld = false, stopJscGc;
   const quiet = action => {
     const result = spawnSync('python3', [join(ROOT, 'scripts/sim-quiet.py'), action, String(process.pid), 'scripts/frame-floor.mjs'], { cwd: ROOT, encoding: 'utf8' });
     if (result.status !== 0) {
@@ -872,6 +887,7 @@ async function worker() {
     } else {
       const udid = process.env.SIM_UDID;
       if (!udid) throw new Error('Safari worker must run inside scripts/sim-lane.sh run');
+      if (jscGcDirectory !== '') stopJscGc = await startJscGcLog(jscGcDirectory, udid);
       const xcrun = (tail) => execFileSync('xcrun', ['simctl', ...tail], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
       // An owned fresh tab prevents accumulated worlds across shards. Safari is terminated between loads.
       const socket = xcrun(['getenv', udid, 'RWI_LISTEN_SOCKET']).trim();
@@ -951,7 +967,7 @@ async function worker() {
       catch (error) { nativeMemory = { error: errorText(error) }; }
     }
     try { inspector?.close(); proxy?.kill('SIGTERM'); await context?.close(); await browser?.close(); }
-    finally { if (quietHeld) quiet('release'); }
+    finally { try { if (stopJscGc !== undefined) await stopJscGc(); } finally { if (quietHeld) quiet('release'); } }
   }
   writeFileSync(flag('worker-out', ''), JSON.stringify({ surface, rows, memoryJourney: [...memoryJourney.values()], ...(nativeMemory === undefined ? {} : { nativeMemory }), ...(wasmProbeResult === undefined ? {} : { wasmMemoryProbe: wasmProbeResult }) }));
 }
@@ -1017,6 +1033,7 @@ async function main() {
     for (const s of surface === 'both' ? ['desktop', 'sim'] : [surface]) {
       const out = join(scratch, `frame-floor-${s}-${sha.slice(0, 9)}.json`); temporary.push(out);
       const workerArgs = [SCRIPT, '--worker', ...(devserverBuild ? ['--devserver'] : []), `--surface=${s}`, `--developer=${developer}`, `--standing-poses=${standingPoses.join(',')}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--grid-scenario=${gridScenario}`, ...(gridRoutes.length === 0 ? [] : [`--grid-routes=${gridRoutes.join(',')}`]), ...(gridCell === '' ? [] : [`--grid-cell=${gridCell}`]), ...(roadApproach ? ['--road-approach'] : []), ...(entrySocket ? ['--entry-socket'] : []), ...(risingIslet === '' ? [] : [`--rising-islet=${risingIslet}`]), ...(gridCellPoseArg === '' ? [] : [`--grid-cell-pose=${gridCellPoseArg}`]), `--gl-observer=${glObserver}`, ...(texturesPin === '' ? [] : [`--textures=${texturesPin}`]), ...(ktx2ProbePin === '' ? [] : [`--ktx2-probe=${ktx2ProbePin}`]), ...(glTime ? ['--gl-time'] : []), ...(gpuBisectOn ? ['--gpu-bisect'] : []), ...(frameTimeline ? ['--frame-timeline'] : []), ...(taskClock ? ['--task-clock'] : []), ...(cpuProfileDir === '' ? [] : [`--cpu-profile=${cpuProfileDir}`]), ...(safariProfileDir === '' ? [] : [`--safari-profile=${safariProfileDir}`]), ...(gpuTraceDir === '' ? [] : [`--gpu-trace=${gpuTraceDir}`]), `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`, ...settingArgs, ...deviceSaveArgs, ...systemArgs];
+      if (jscGcDirectory !== '') workerArgs.push(`--jsc-gc-log=${jscGcDirectory}`);
       if (nativeDirectory !== '') workerArgs.push(`--native-memory=${nativeDirectory}`);
       if (webkitTimelineDir !== '') workerArgs.push(`--webkit-timeline=${webkitTimelineDir}`);
       if (webkitSteadyPose !== '') workerArgs.push(`--webkit-steady=${webkitSteadyPose}`);
@@ -1048,7 +1065,7 @@ async function main() {
     const complete = results.every((r) => r.rows.every((row) => row.complete));
     const pass = complete && elapsedSeconds < 600 && results.every((r) => r.rows.every((row) => row.pass));
     const record = grade({ schema: 2, sha, runId, device, when: new Date().toISOString(), elapsedSeconds, underTenMinutes: elapsedSeconds < 600,
-      frames, settleMs, standingPoses, shards, surface, developer, quiet: quietSample, ...(publicGrid ? {publicGrid:'public grid as it would ship once GRID_GATES_PASSED flips'} : {}), settings, deviceSaves, expectedSystems, gridScenario, gridRoutes, ...(gridCell === '' ? {} : { gridCell, gridCellPose }), build: devserverBuild ? 'devserver' : 'production', glObserver, travelGlCensus: travelGl !== '', glTime, frameTimeline, gpuBisect: gpuBisectOn, safariProfile: safariProfileDir !== '', ...(safariSteadyPose === '' ? {} : {safariSteady: {pose: safariSteadyPose, seconds: 20}}), ...(safariDrive === '' ? {} : {safariDrive: {route: safariDrive, ...(safariSteadyPose === '' ? {earlyPlaySeconds: 20} : {separateSteady: true})}}), ...(safariPrefix === '' ? {} : {safariPrefix: {route: safariPrefix, seconds: 20}}), ...(safariWindow === null ? {} : {safariWindow}), webkitTimeline: webkitTimelineDir !== '', ...(webkitSteadyPose === '' ? {} : {webkitSteady: {poses: webkitSteadyPoses, seconds: 20}}), pauseAblation, bufferAblation, wasmConstructors: wasmConstructorsDir !== '', nativePressure: nativePressureDir !== '', harnessRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(), complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
+      frames, settleMs, standingPoses, shards, surface, developer, quiet: quietSample, ...(publicGrid ? {publicGrid:'public grid as it would ship once GRID_GATES_PASSED flips'} : {}), settings, deviceSaves, expectedSystems, gridScenario, gridRoutes, ...(gridCell === '' ? {} : { gridCell, gridCellPose }), build: devserverBuild ? 'devserver' : 'production', glObserver, travelGlCensus: travelGl !== '', glTime, frameTimeline, gpuBisect: gpuBisectOn, safariProfile: safariProfileDir !== '', ...(safariSteadyPose === '' ? {} : {safariSteady: {pose: safariSteadyPose, seconds: 20}}), ...(safariDrive === '' ? {} : {safariDrive: {route: safariDrive, ...(safariSteadyPose === '' ? {earlyPlaySeconds: 20} : {separateSteady: true})}}), ...(safariPrefix === '' ? {} : {safariPrefix: {route: safariPrefix, seconds: 20}}), ...(safariWindow === null ? {} : {safariWindow}), webkitTimeline: webkitTimelineDir !== '', ...(webkitSteadyPose === '' ? {} : {webkitSteady: {poses: webkitSteadyPoses, seconds: 20}}), pauseAblation, bufferAblation, nativeJscGcLog: jscGcDirectory !== '', wasmConstructors: wasmConstructorsDir !== '', nativePressure: nativePressureDir !== '', harnessRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(), complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
       simulatorCap: `Shipped phone-tier 30 fps cap; Simulator Safari on ${device}`,
       measurement: 'Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.',
       limitations: [standingPoses.length === 0 ? 'Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.' : 'Stationary spawn and explicitly pinned authored standing cameras; this is a baseline, not proof of every gameplay moment.', 'Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.', 'Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim.'], results });

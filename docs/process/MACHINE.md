@@ -268,6 +268,17 @@ remain outside this page-realm probe. `--buffer-ablation` selects only A then C
 with the same samplers/probe; it never opens or closes the menu. The two ablation
 selectors are mutually exclusive.
 
+`--jsc-gc-log=<existing empty scratch dir>` captures native JSC diagnostics
+on one Simulator visit, with a settled Nalati twenty-second window. It sets only
+launchd `JSC_logGC=2` and `JSC_useOSLog=default` before relaunching owned Safari,
+collects bounded unified logs, records actual Simulator WebContent PIDs and window
+wall timestamps, terminates owned Safari and unsets/verifies both settings in
+cleanup. Existing foreign settings refuse before mutation. It enables no
+Inspector Heap/Timeline/profiler, allocation wrapper, snapshot or forced GC;
+other recorders cannot be combined. Missing native messages mean logging was not
+honored or observable with that setup, never invented heap/trigger fields. The
+same app and frame thresholds remain unchanged; no automatic retry is made.
+
 Add `--wasm-constructors=<existing scratch dir>`
 to retain bounded native Memory/Module/Instance durations and original frame-clock
 reads. It injects before app modules, collects stacks outside each native timed

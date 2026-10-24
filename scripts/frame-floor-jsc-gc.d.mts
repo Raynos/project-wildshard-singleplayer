@@ -1,0 +1,13 @@
+export interface EnvironmentPort {
+  readonly get: (name: string) => Promise<string>;
+  readonly set: (name: string, value: string) => Promise<void>;
+  readonly unset: (name: string) => Promise<void>;
+}
+/** Verbose GC diagnostics routed through unified logging, not a collector policy change. */
+export const JSC_GC_SETTINGS: Readonly<{JSC_logGC: '2'; JSC_useOSLog: 'default'}>;
+/** Restore on partial setup, refuse foreign settings and verify both settings absent after cleanup. */
+export function prepareJscGcEnvironment(port: EnvironmentPort): Promise<() => Promise<void>>;
+/** Start before Safari; returned stop closes streams, terminates owned Safari and unsets settings. */
+export function startJscGcLog(directory: string, device: string): Promise<() => Promise<unknown>>;
+/** Read actual WebContent descendants of this Simulator launchd. */
+export function jscGcProcessIds(device: string): readonly number[];

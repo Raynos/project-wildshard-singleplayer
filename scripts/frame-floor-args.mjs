@@ -2,7 +2,7 @@ const switches = new Set(['help', 'worker', 'quiet', 'devserver', 'gl-time', 'gp
 const values = new Set(['base', 'cpu-profile', 'deadline', 'developer', 'device', 'frames', 'gl-observer', 'gpu-trace',
   'grid-cell', 'grid-cell-pose', 'grid-routes', 'grid-scenario', 'regrade', 'rev', 'rising-islet', 'safari-profile', 'safari-steady', 'safari-drive', 'safari-prefix', 'safari-window',
   'settle', 'shards', 'surface', 'scratch-dir', 'worker-out', 'device-save', 'expect-system', 'setting', 'output-dir',
-  'textures', 'ktx2-probe', 'serve-shard', 'serve-base', 'standing-poses', 'native-memory', 'webkit-timeline', 'webkit-steady', 'native-pressure', 'wasm-constructors']);
+  'textures', 'ktx2-probe', 'serve-shard', 'serve-base', 'standing-poses', 'native-memory', 'webkit-timeline', 'webkit-steady', 'native-pressure', 'wasm-constructors', 'jsc-gc-log']);
 
 /** Refuse misspelled or incomplete floor commands before a build, browser or Simulator lease is acquired.
  * @param {readonly string[]} args
@@ -25,6 +25,13 @@ export function validateFrameFloorArgs(args) {
     || !args.some(arg => arg.startsWith('--wasm-constructors=') && arg.length > '--wasm-constructors='.length)
     || !args.some(arg => arg.startsWith('--webkit-timeline=') && arg.length > '--webkit-timeline='.length)))
     throw new Error('Blank memory probe requires no-quiet Simulator, native constructors and Timeline');
+  const nativeGc = args.filter(arg => arg.startsWith('--jsc-gc-log='));
+  if (nativeGc.length > 0 && (nativeGc.length !== 1 || nativeGc[0] === '--jsc-gc-log='
+    || !args.includes('--surface=sim') || !args.includes('--shards=grid')
+    || !args.some(arg => arg.startsWith('--grid-scenario=') && arg !== '--grid-scenario=baseline')
+    || args.some(arg => /^--(?:webkit-|safari-|native-pressure=|wasm-constructors=|native-memory=|cpu-profile=|gpu-trace=)/u.test(arg))
+    || ['--pause-ablation','--buffer-ablation','--wasm-memory-probe','--gl-time','--gpu-bisect','--frame-timeline','--task-clock'].some(arg => args.includes(arg))))
+    throw new Error('Native JSC GC log requires one Simulator grid visit without other recorders');
   const timelineSteady = args.filter(arg => arg.startsWith('--webkit-steady='));
   if (timelineSteady.length > 0 && (timelineSteady.length !== 1
     || !/^--webkit-steady=grid-[a-zA-Z0-9_.-]{1,128}(?:,grid-[a-zA-Z0-9_.-]{1,128})?$/u.test(timelineSteady[0] ?? '')
