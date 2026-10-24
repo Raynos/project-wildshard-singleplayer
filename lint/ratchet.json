@@ -957,7 +957,6 @@
     "src/sdk/runtime/audio/silentScore.ts": 1,
     "src/sdk/runtime/audio/weaponVoices.ts": 3,
     "src/sdk/runtime/effects.ts": 3,
-    "src/sdk/runtime/prompts.ts": 3,
     "src/sdk/runtime/weapons/Firearm.ts": 1,
     "src/sdk/runtime/weapons/Melee.ts": 2,
     "src/sdk/runtime/weapons/starterBow.ts": 4,

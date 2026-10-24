@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { BufferGeometry, Float32BufferAttribute, MeshBasicMaterial, Texture } from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { PosedAssetSet } from '@wildshard/game/plugin/geometry';
-import { PosedDraw, PosedInstances } from '@wildshard/sdk/looks/posedInstances';
+import { PosedDraw, PosedInstances } from '@wildshard/game/looks/posedInstances';
 import { lendLooks } from '@wildshard/game/shardfile/lentLooks';
 import { parseAmbientFlock } from '@wildshard/format/ambientLife';
 import { GULL_FLOCK } from '../src/shards/driftwood-isle/generators/gullsLook';

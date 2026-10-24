@@ -4,7 +4,7 @@ import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import type { ShardProduct } from '../src/game/shardfile/shardProduct';
 import * as runtimeProduct from '../src/game/shardfile/runtimeProduct';
 import { NPC_FIGURE } from '../src/shards/pine-hollow/generators/peopleLook';
-import { FigureCatalogue } from '../src/sdk/npc/figures';
+import { ProductFigureCatalogue as FigureCatalogue } from '@wildshard/game/models/figureCatalogue';
 import * as packs from '../src/engine/core/deflate';
 import { FigureRows } from '../src/game/systems/npc/figureRows';
 import packed from '../src/shards/pine-hollow/data/codeParts.json' with { type: 'json' };

@@ -24,7 +24,7 @@ import { WHIP_ITEM, WHIP_PROFILE } from '../../../src/shards/sunscar-dunes/gener
 import signalFlags from '../../../src/shards/sunscar-dunes/data/flags.generated.json' with { type: 'json' };
 import { BASIN } from "../../../src/shards/sunscar-dunes/generators/layout";
 import baked from '../../../src/shards/sunscar-dunes/data/physics.generated.json' with { type: 'json' };
-import { bindHeadlessPrompts, createHeadlessPromptPicker, parsePromptRegistrations, type HeadlessPrompt } from '../../../src/sdk/runtime/prompts';
+import { bindHeadlessPrompts, createHeadlessPromptPicker, parsePromptRegistrations, type HeadlessPrompt } from '../../../src/game/quest/interactionRows';
 import * as v from 'valibot';
 
 const { SCOUT_AT, COMPLETE_FLAG, MATRIARCH_FLAG } = signalFlags;

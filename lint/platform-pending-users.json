@@ -312,7 +312,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/sdk/looks/riggedHulls.ts",
+      "module": "src/game/looks/riggedHulls.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/shard-platform/rows.md",
@@ -490,7 +490,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/sdk/looks/posedInstances.ts",
+      "module": "src/game/looks/posedInstances.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/shard-platform/open-x-queue.md",

@@ -3,8 +3,6 @@
   "version": "0.0.0",
   "type": "module",
   "exports": {
-    "./npc/figures": "./npc/figures.ts",
-    "./kit/specimenSchemas": "./kit/specimenSchemas.ts",
     "./headlessAssembly": "./headlessAssembly.ts",
     "./bake/species": "./bake/species.ts",
     "./decisionBindingMap": "./decisionBindingMap.ts",
@@ -84,14 +82,12 @@
     "./looks/shaderFamily": "./looks/shaderFamily.ts",
     "./kit/geometryPack": "./kit/geometryPack.ts",
     "./looks/tileField": "./looks/tileField.ts",
-    "./looks/riggedHulls": "./looks/riggedHulls.ts",
     "./kit/bakedGeometry": "./kit/bakedGeometry.ts",
     "./species/clips": "./species/clips.ts",
     "./compileScript": "./bake/compileScript.ts",
     "./compileScriptV2": "./bake/compileScriptV2.ts",
     "./compileDualScriptV2": "./bake/compileDualScriptV2.ts",
     "./compileSimV2": "./bake/compileSimV2.ts",
-    "./runtime/prompts": "./runtime/prompts.ts",
     "./buildBehaviour": "./buildBehaviour.ts",
     "./scene": "./scene.ts",
     "./physics": "./physics.ts",
@@ -118,7 +114,6 @@
     "./productOutput": "./productOutput.ts",
     "./projectMap": "./projectMap.ts",
     "./random": "./random.ts",
-    "./looks/posedInstances": "./looks/posedInstances.ts",
     "./sections": "./sections.ts",
     "./platformSections": "./platformSections.ts",
     "./blobs": "./blobs.ts",
@@ -171,10 +166,6 @@
   },
   "publishConfig": {
     "exports": {
-      "./kit/specimenSchemas": {
-        "types": "./dist/types/sdk/kit/specimenSchemas.d.ts",
-        "default": "./dist/kit/specimenSchemas.js"
-      },
       "./bake/species": {
         "types": "./dist/types/sdk/bake/species.d.ts",
         "default": "./dist/bake/species.js"
@@ -467,10 +458,6 @@
         "types": "./dist/types/sdk/looks/tileField.d.ts",
         "default": "./dist/looks/tileField.js"
       },
-      "./looks/riggedHulls": {
-        "types": "./dist/types/sdk/looks/riggedHulls.d.ts",
-        "default": "./dist/looks/riggedHulls.js"
-      },
       "./kit/bakedGeometry": {
         "types": "./dist/types/sdk/kit/bakedGeometry.d.ts",
         "default": "./dist/kit/bakedGeometry.js"
@@ -494,10 +481,6 @@
       "./compileSimV2": {
         "types": "./dist/types/sdk/bake/compileSimV2.d.ts",
         "default": "./dist/compileSimV2.js"
-      },
-      "./runtime/prompts": {
-        "types": "./dist/types/sdk/runtime/prompts.d.ts",
-        "default": "./dist/runtime/prompts.js"
       },
       "./buildBehaviour": {
         "types": "./dist/types/sdk/buildBehaviour.d.ts",

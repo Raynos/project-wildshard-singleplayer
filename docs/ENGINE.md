@@ -2759,7 +2759,7 @@ including the inside-surface refusal. `ITEM_PICKUP_HOVER` defines its 0.78 m hov
 reach, first-row equal-distance ties and strong-before-weak priority. Visibility queries the actual native world;
 a first hit on the target's exact registered or reconstructed owner also counts as visible. The owner association
 is weakly held by the prompt. A null boot world retains distance-only picking; admitted native hosts supply physics.
-`@wildshard/game/quest/interactionRows` and `@wildshard/sdk/runtime/prompts` define
+`@wildshard/game/quest/interactionRows` define
 `parsePromptRegistrations`, `bindHeadlessPrompts` and `createHeadlessPromptPicker`. Signal Dunes and Driftwood
 use this one client prompt law in their native hosts: eye = authoritative feet + 1.68 m, strict reach,
 stable page registration order, strong-before-weak priority and actual-world LOS. Captures retain native sight
@@ -2909,7 +2909,7 @@ when the ground is, the sand maps, the `TintedTileGround` and the held `CubeSkir
 fault)` uploads the dune-shadow, trail and grain maps with the grain tile's means. Signal Dunes' `look/render.ts` is its
 binding (row `data/renderLook.ts` SIGNAL_DUSK_LOOK).
 
-**Rigged creature hulls (SHARD-PLATFORM W2 C2).** `@wildshard/sdk/looks/riggedHulls` (`src/sdk/looks/riggedHulls.ts`)
+**Rigged creature hulls (SHARD-PLATFORM W2 C2).** `@wildshard/game/looks/riggedHulls` (`src/game/looks/riggedHulls.ts`)
 `riggedHulls(row, resources)` is a shard's family of generated creature hulls pre-skinned offline to the procedural species'
 skeletons, from one `RiggedHullFamilyRow` (pure data: the log label, the rigs to preload, `kind:variant` → hull, each
 hull's generator flap `RiggedHullFlap` and each coat's fur sheen and rim `RiggedHullFur`) and its data-only `RiggedHullUrls`:
@@ -5786,7 +5786,7 @@ does not fetch or build a specimen, and there are no shard callbacks.
 The authored catalogues produce generated boot JSON and parameter declarations,
 so pre-admission Explorer registration does not import authoring modules.
 Driftwood uses owned GLBs; Nalati uses packed parts and prepared assets.
-The renderer-free `@wildshard/sdk/kit/specimenSchemas` module exports
+The renderer-free `@wildshard/format/specimenCatalogue` module exports
 `SpecimenCatalogueSchema`, `PackedSpecimenSchema` and
 `SpecimenMaterialSchema` for Node/schema discovery. The render binder
 imports these pure declarations; constructors also refuse non-JSON values, accessors,
@@ -7614,7 +7614,7 @@ This pending allowance is rechecked at the end of W3.
 
 ### Shader-posed instance owner
 
-`src/sdk/looks/posedInstances.ts` defines `PosedInstances`: one bounded
+`src/game/looks/posedInstances.ts` defines `PosedInstances`: one bounded
 (1–4096) instanced draw with one or two named dynamic vec4 channels.
 `begin/add/commit` packs the current visible roster; `wrap` lends the same
 channel buffers to replacement geometry without copying its source arrays.
@@ -11341,7 +11341,7 @@ late adoption and removes only identity-equal publications; it does not
 dispose borrowed scene geometry or materials.
 
 `game/models/figureCatalogue.FigureCatalogue` owns the model definitions.
-`sdk/npc/figures.FigureCatalogue` reads a named product catalogue containing
+`game/models/figureCatalogue.ProductFigureCatalogue` reads a named product catalogue containing
 the same live and Explorer rows, packed fallback geometry, tier-specific
 skin files and card identities. Pivot-only rows use their published scene
 parts without a geometry pack. Preparation is explicit and atomic. It

@@ -36,7 +36,6 @@ const creatureOwners=new Set([
   'src/shards/pine-hollow/runtime/models/antlerKing.ts',
 ]);
 const questOwners=new Set([
-  'src/sdk/runtime/prompts.ts',
   'src/shards/driftwood-isle/runtime/models/people.ts',
   'src/shards/driftwood-isle/runtime/models/trader.ts',
   'src/game/systems/npc/npcRig.ts',

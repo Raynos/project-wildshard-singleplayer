@@ -15,7 +15,7 @@ test('the firearm view reference covers open objects and their declared nested f
 test('public specimen schemas load through the renderer-free reference reader', async () => {
   const { referenceData } = await import('../scripts/docs/gen-shardfile-reference.mjs');
   const reference = referenceData(cwd());
-  expect(reference.fields.some(row => typeof row === 'object' && row !== null && 'path' in row && typeof row.path === 'string' && row.path.startsWith('$sdk["./kit/specimenSchemas"].SpecimenCatalogueSchema'))).toBe(true);
+  expect(reference.fields.some(row => typeof row === 'object' && row !== null && 'path' in row && typeof row.path === 'string' && row.path.startsWith('$format["./specimenCatalogue"].SpecimenCatalogueSchema'))).toBe(true);
 });
 
 

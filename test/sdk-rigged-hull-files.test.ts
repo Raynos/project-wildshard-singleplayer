@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { afterEach, expect, it, vi } from 'vitest';
-import { riggedHullMap, riggedHulls } from '@wildshard/sdk/looks/riggedHulls';
+import { riggedHullMap, riggedHulls } from '@wildshard/game/looks/riggedHulls';
 import { parseRiggedHullBook, type RiggedHullFamilyRow } from '@wildshard/format/riggedHulls';
 import { parsePlatformDataSection } from '@wildshard/format/platformDataSections';
 import coatPages from '../src/shards/pine-hollow/data/coatPages.generated.json' with { type: 'json' };

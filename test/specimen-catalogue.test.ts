@@ -11,7 +11,7 @@ import { SkyRig } from '../src/engine/world/skyRig';
 import { painterlyKnobs } from '../src/engine/world/painterly';
 import { unshuffleLanes, readBakedGeometry, bakedGeometryBytes } from '../src/game/plugin/geometry';
 import { createPackedSpecimens, defineSpecimenCatalogue, specimenMaterial } from '../src/game/models/specimenCatalogue';
-import { PackedSpecimenSchema } from '../src/sdk/kit/specimenSchemas';
+import { PackedSpecimenSchema } from '@wildshard/format/specimenCatalogue';
 import packedRows from '../src/shards/nalati-grasslands/data/placeSpecimens.json' with { type: 'json' };
 import campMaterialRows from '../src/shards/nalati-grasslands/data/campMaterials.json' with { type: 'json' };
 import type { CatalogueParams } from '../src/shards/nalati-grasslands/boot/specimenParams.generated';
