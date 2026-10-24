@@ -77,7 +77,7 @@ export class ReturnProjectionV2 {
     const { row, layout, bytes } = projectionSource(input, owner, raw);
     this.row = row; this.layout = layout;
     if (prepared !== undefined && owner === undefined) throw new Error('Prepared return memory requires its original owner');
-    this.module = new ScriptModuleV2(bytes,{ seed: [0,0],initFuel: 400000,output: [],ioBytes: this.layout.bytes, ...(prepared === undefined || owner === undefined ? {} : {prepared: {memory: prepared, scope: owner}}) });
+    this.module = new ScriptModuleV2(bytes,{ seed: [0,0],initFuel: 400000,output: [],ioBytes: this.layout.bytes, ...(owner === undefined ? {} : {owner}), ...(prepared === undefined || owner === undefined ? {} : {prepared: {memory: prepared, scope: owner}}) });
     if (this.module.io !== this.layout.io) throw new Error('Return projection IO mismatch');
     if(this.row.groups!==undefined&&owner!==undefined)this.groups=new GroupStepV2(bytes,this.row.groups,owner,{module:this.module,layout:this.layout});
     this.writeFrame = createV2FrameWriter(this.layout);

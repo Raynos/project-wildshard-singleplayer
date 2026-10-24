@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
 import * as v from 'valibot';
 import { Scope } from '../src/engine/app/scope';
-import { ScriptModuleV2, prepareScriptMemory } from '../src/engine/script/moduleV2';
+import { ScriptModuleV2, prepareScriptMemory, scriptMemoryCensus } from '../src/engine/script/moduleV2';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { ReturnProgramSchema } from '../src/format/namedJsonContracts';
 import { Rng } from '../src/engine/core/rng';
@@ -46,8 +46,11 @@ test('the seven real return consumers reserve seven isolated memories and initia
     memory.mockRestore(); instance.mockRestore();
     for (const [index, [row]] of consumers.entries()) {
       const direct = new Scope(`direct.${String(index)}`), images: WebAssembly.Memory[] = [];
-      const capture = vi.spyOn(WebAssembly, 'Memory').mockImplementation(class extends NativeMemory {
-        constructor(descriptor: WebAssembly.MemoryDescriptor) { super(descriptor); images.push(this); }
+      const capture = vi.spyOn(WebAssembly, 'Instance').mockImplementation(class extends NativeInstance {
+        constructor(module: WebAssembly.Module, imports?: WebAssembly.Imports) {
+          super(module, imports); const importedMemory = imports?.['env']?.['memory'];
+          if (!(importedMemory instanceof NativeMemory)) throw new Error('Missing direct memory'); images.push(importedMemory);
+        }
       });
       try {
         lendNalatiTitan(direct); ReturnProgram.page(row, direct);
@@ -65,7 +68,9 @@ test('the seven real return consumers reserve seven isolated memories and initia
 });
 
 test('preparation keeps full raw loan, descriptor, witness and retirement refusals before allocation', () => {
-  const owner = new Scope('prepare.refusal'), foreign = new Scope('prepare.foreign'), memory = vi.spyOn(WebAssembly, 'Memory');
+  const owner = new Scope('prepare.refusal'), foreign = new Scope('prepare.foreign'), NativeMemory = WebAssembly.Memory, memory = vi.spyOn(WebAssembly, 'Memory');
+  // The observer must recognize pre-existing native identities returned by the bank.
+  Object.defineProperty(memory, Symbol.hasInstance, { configurable: true, value: (value: unknown) => value instanceof NativeMemory });
   try {
     expect(() => ReturnProgram.prepareMemory(titanRawPrograms.attack, owner)).toThrow('raw return module loan'); expect(memory).not.toHaveBeenCalled();
     lendNalatiTitan(owner);
@@ -75,15 +80,18 @@ test('preparation keeps full raw loan, descriptor, witness and retirement refusa
     let reads = 0;
     expect(() => ReturnProgram.prepareMemory({...titanRawPrograms.attack, get v2() { reads++; return titanRawPrograms.attack.v2; }}, owner)).toThrow('JSON data');
     expect(reads).toBe(0); expect(memory).not.toHaveBeenCalled();
-    expect(ReturnProgram.prepareMemory(titanRawPrograms.attack, owner)).toBe(true); expect(memory).toHaveBeenCalledTimes(1);
+    const before = scriptMemoryCensus();
+    expect(ReturnProgram.prepareMemory(titanRawPrograms.attack, owner)).toBe(true);
+    const allocated = memory.mock.calls.length, after = scriptMemoryCensus();
+    expect(after.hits + after.misses - before.hits - before.misses).toBe(1); expect(allocated).toBeLessThanOrEqual(1);
     const different = structuredClone(titanRawPrograms.attack); different.script.id = 'fixture.changed';
     expect(() => ReturnProgram.prepareMemory(different, owner)).toThrow('declaration changed');
     expect(() => ReturnProgram.page(different, owner)).toThrow('declaration changed');
-    expect(() => ReturnProgram.page(titanRawPrograms.attack, foreign)).toThrow('raw return module loan'); expect(memory).toHaveBeenCalledTimes(1);
+    expect(() => ReturnProgram.page(titanRawPrograms.attack, foreign)).toThrow('raw return module loan'); expect(memory).toHaveBeenCalledTimes(allocated);
     expect(ReturnProgram.prepareMemory({script: titanPrograms.attack.script, bytes: titanPrograms.attack.bytes}, owner)).toBe(false);
     owner.dispose();
     expect(() => ReturnProgram.prepareMemory(titanRawPrograms.attack, owner)).toThrow('owner disposed');
-    expect(() => ReturnProgram.page(titanRawPrograms.attack, owner)).toThrow('owner disposed'); expect(memory).toHaveBeenCalledTimes(1);
+    expect(() => ReturnProgram.page(titanRawPrograms.attack, owner)).toThrow('owner disposed'); expect(memory).toHaveBeenCalledTimes(allocated);
   } finally { owner.dispose(); foreign.dispose(); memory.mockRestore(); }
 });
 

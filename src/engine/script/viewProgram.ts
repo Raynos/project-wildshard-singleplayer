@@ -247,10 +247,11 @@ export function viewProgram(bytes: Uint8Array, rows: ViewProgramRows, ports: Vie
       if (live()) for (const index of dirty) { const matrix = staged[index]; if (matrix !== undefined) setters[index]?.(matrix); }
       dirty.clear();
     },
-  }, [0, 0], ports.preparedMemory === undefined ? undefined : { memory: ports.preparedMemory, scope });
+  }, [0, 0], ports.preparedMemory === undefined ? undefined : { memory: ports.preparedMemory, scope }, scope);
   const camera = ports.camera, player = ports.player;
   let tick = 0;
   return { get frozen() { return lane.isFrozen; }, frame: (dt, time): boolean => {
+    if (!live()) return false;
     const p = player.position;
     for (const pool of pools.values()) pool.slots.refresh?.();
     // previous columns are last frame's current ones; a fresh value (a scalar, a new identity in a slot) has no previous

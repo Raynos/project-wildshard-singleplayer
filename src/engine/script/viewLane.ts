@@ -12,7 +12,8 @@
 import { readV2Module } from '@wildshard/format/scriptModuleV2';
 import { admitScriptV2 } from '@wildshard/format/scriptAdmissionV2';
 import type { Scope } from '../app/scope';
-import { prepareScriptMemory, consumeScriptMemory } from './moduleV2';
+import { FixedMemory } from './fixedMemory';
+import { prepareScriptMemory, consumeScriptStorage } from './moduleV2';
 
 /** A native reservation kept opaque until its original view slot binds. */
 export interface PreparedViewMemory { readonly pages: number }
@@ -72,8 +73,23 @@ export interface ViewTargets {
 export interface ViewSample { readonly previousTick: number; readonly currentTick: number; readonly values: ArrayLike<number> }
 
 export class ViewLane {
-  readonly memory: WebAssembly.Memory;
-  private readonly instance: WebAssembly.Instance;
+  private readonly storage: FixedMemory;
+  get memory(): WebAssembly.Memory { if (this.closed) throw new Error('View memory owner has ended'); return this.storage.expose(); }
+  private instance: WebAssembly.Instance | undefined;
+  private busy = 0;
+  private ended = false;
+  private get closed(): boolean {
+    const owner = this.retirement?.deref(); return this.ended || owner?.disposed === true || owner?.disposing === true;
+  }
+  private readonly retirement: WeakRef<Scope> | undefined;
+  private retire(): void {
+    this.ended = true;
+    if (this.busy !== 0) return;
+    this.instance = undefined;
+    const empty = new ArrayBuffer(0);
+    this.view = new DataView(empty); this.columns = new Float64Array(empty); this.channels = new Float64Array(empty);
+    this.storage.retire(this.retirement);
+  }
   private view: DataView;
   private columns: Float64Array;
   private channels: Float64Array;
@@ -94,53 +110,61 @@ export class ViewLane {
   private readonly targets: ViewTargets;
 
   constructor(bytes: Uint8Array, pages: number, rows: ViewLaneRows, targets: ViewTargets, seed: readonly [number, number] = [0, 0],
-    prepared?: { readonly memory: PreparedViewMemory; readonly scope: Scope }) {
+    prepared?: { readonly memory: PreparedViewMemory; readonly scope: Scope },
+    /** Only native adapters whose target callbacks copy ALL borrowed views. */
+    owner?: Scope) {
     this.rows = rows; this.targets = targets;
+    this.retirement = owner === undefined ? undefined : new WeakRef(owner);
+    if (owner?.disposed === true || owner?.disposing === true || (owner !== undefined && prepared !== undefined && owner !== prepared.scope)) throw new Error('View memory owner has ended or differs');
     // the v2 structural reader (memory the only import, fixed pages, no start / table / SIMD); H2's fuel and entry
     // admission joins it before any shipped module runs here
     const read = readV2Module(bytes);
     for (const name of ['ws_abi', 'ws_io', 'ws_init', 'ws_view']) if (read.exports.get(name)?.kind !== 0) throw new Error(`View module lacks ${name}`);
     if (read.pages !== pages || pages < 1 || pages > 4) throw new Error('View memory is its declared 1-4 fixed pages');
     const module = new WebAssembly.Module(Uint8Array.from(bytes));
-    this.memory = prepared === undefined ? new WebAssembly.Memory({ initial: pages, maximum: pages })
-      : consumeScriptMemory(prepared.memory, bytes, pages, prepared.scope);
-    this.instance = new WebAssembly.Instance(module, { env: { memory: this.memory } });
-    if (this.call('ws_abi') !== 2) throw new Error('View module ABI major mismatch');
-    this.io = this.call('ws_io');
-    this.view = new DataView(this.memory.buffer);
-    this.columns = new Float64Array(this.view.buffer);
-    const capacity = new Map([[BINDINGS, rows.bindings.length], [SAMPLE_DIRECTORY, rows.bindings.length],
-      [SAMPLE_COLUMNS, rows.bindings.reduce((n, row) => n + 2 * row.columns, 0)], [TRANSFORMS, rows.transforms.length], [CHANNELS, rows.channels],
-      [ARRAYS, (rows.arrays ?? []).reduce((n, length) => n + length, 0)], [BATCHES, (rows.batches ?? []).reduce((n, row) => n + batchWords(row), 0)]]);
-    // a batch's capacity may exceed its draw's instances (one row, several tiers' draws): its total never may
-    for (const row of rows.batches ?? []) if (![row.instances, row.capacity, row.itemSize].every(Number.isInteger) || row.instances < 0 || row.capacity < 1 || row.itemSize < 0 || row.itemSize > 4) throw new Error('Invalid view batch');
-    let end = align16(HEADER + STRIDES.length * ENTRY);
-    if (!Number.isInteger(this.io) || this.io < 0 || this.io % 16 !== 0) throw new Error('View IO base is not aligned');
-    const directory = this.io + HEADER;
-    for (const [index, stride] of STRIDES.entries()) {
-      const kind = index + 1, count = capacity.get(kind) ?? 0, at = directory + index * ENTRY;
-      end = align16(end); this.offsets.set(kind, end);
-      this.view.setUint32(at, kind, true); this.view.setUint32(at + 4, end, true); this.view.setUint32(at + 8, stride, true);
-      this.view.setUint32(at + 12, count, true); this.view.setUint32(at + 16, 0, true); this.view.setUint32(at + 20, 0, true);
-      end += stride * count;
-    }
-    if (this.io + end > this.memory.buffer.byteLength) throw new Error('View layout does not fit its fixed memory');
-    this.channels = new Float64Array(this.view.buffer, this.region(CHANNELS), rows.channels);
-    // minor 1: the view lane's kinds 23 (arrays) and 24 (batches)
-    this.view.setUint32(this.io, MAGIC, true); this.view.setUint16(this.io + 4, 2, true); this.view.setUint16(this.io + 6, 1, true);
-    this.view.setUint32(this.io + 8, HEADER, true); this.view.setUint32(this.io + 12, end, true); this.view.setUint32(this.io + 20, LANE_VIEW, true);
-    this.view.setUint32(this.io + 96, STRIDES.length, true); this.view.setUint32(this.io + 100, HEADER, true);
-    for (const [i, row] of rows.bindings.entries()) {
-      const at = this.region(BINDINGS) + i * 64;
-      this.view.setUint32(at, row.handle, true); this.view.setUint32(at + 12, 3, true); this.view.setUint32(at + 44, 1, true); // enabled | due, divisor 1
-    }
-    const left = this.call('ws_init', seed[0], seed[1], rows.fuel);
-    if (!Number.isInteger(left) || left < 0 || left > rows.fuel) throw new Error('View init fuel refused');
+    this.storage = prepared === undefined ? new FixedMemory(pages, owner !== undefined)
+      : consumeScriptStorage(prepared.memory, bytes, pages, prepared.scope);
+    if (owner === undefined) this.storage.expose();
+    try {
+      this.instance = new WebAssembly.Instance(module, { env: { memory: this.storage.value } });
+      if (this.call('ws_abi') !== 2) throw new Error('View module ABI major mismatch');
+      this.io = this.call('ws_io');
+      this.view = new DataView(this.storage.value.buffer);
+      this.columns = new Float64Array(this.view.buffer);
+      const capacity = new Map([[BINDINGS, rows.bindings.length], [SAMPLE_DIRECTORY, rows.bindings.length],
+        [SAMPLE_COLUMNS, rows.bindings.reduce((n, row) => n + 2 * row.columns, 0)], [TRANSFORMS, rows.transforms.length], [CHANNELS, rows.channels],
+        [ARRAYS, (rows.arrays ?? []).reduce((n, length) => n + length, 0)], [BATCHES, (rows.batches ?? []).reduce((n, row) => n + batchWords(row), 0)]]);
+      // a batch's capacity may exceed its draw's instances (one row, several tiers' draws): its total never may
+      for (const row of rows.batches ?? []) if (![row.instances, row.capacity, row.itemSize].every(Number.isInteger) || row.instances < 0 || row.capacity < 1 || row.itemSize < 0 || row.itemSize > 4) throw new Error('Invalid view batch');
+      let end = align16(HEADER + STRIDES.length * ENTRY);
+      if (!Number.isInteger(this.io) || this.io < 0 || this.io % 16 !== 0) throw new Error('View IO base is not aligned');
+      const directory = this.io + HEADER;
+      for (const [index, stride] of STRIDES.entries()) {
+        const kind = index + 1, count = capacity.get(kind) ?? 0, at = directory + index * ENTRY;
+        end = align16(end); this.offsets.set(kind, end);
+        this.view.setUint32(at, kind, true); this.view.setUint32(at + 4, end, true); this.view.setUint32(at + 8, stride, true);
+        this.view.setUint32(at + 12, count, true); this.view.setUint32(at + 16, 0, true); this.view.setUint32(at + 20, 0, true);
+        end += stride * count;
+      }
+      if (this.io + end > this.storage.value.buffer.byteLength) throw new Error('View layout does not fit its fixed memory');
+      this.channels = new Float64Array(this.view.buffer, this.region(CHANNELS), rows.channels);
+      // minor 1: the view lane's kinds 23 (arrays) and 24 (batches)
+      this.view.setUint32(this.io, MAGIC, true); this.view.setUint16(this.io + 4, 2, true); this.view.setUint16(this.io + 6, 1, true);
+      this.view.setUint32(this.io + 8, HEADER, true); this.view.setUint32(this.io + 12, end, true); this.view.setUint32(this.io + 20, LANE_VIEW, true);
+      this.view.setUint32(this.io + 96, STRIDES.length, true); this.view.setUint32(this.io + 100, HEADER, true);
+      for (const [i, row] of rows.bindings.entries()) {
+        const at = this.region(BINDINGS) + i * 64;
+        this.view.setUint32(at, row.handle, true); this.view.setUint32(at + 12, 3, true); this.view.setUint32(at + 44, 1, true); // enabled | due, divisor 1
+      }
+      const left = this.call('ws_init', seed[0], seed[1], rows.fuel);
+      if (!Number.isInteger(left) || left < 0 || left > rows.fuel) throw new Error('View init fuel refused');
+    } catch (error) { this.retire(); throw error; }
+    owner?.onDispose(() => { this.retire(); });
   }
 
   /** frames between scheduled calls at the current level */
   get interval(): number { return 2 ** this.level; }
-  get isFrozen(): boolean { return this.disabled; }
+  get isFrozen(): boolean { return this.disabled || this.closed; }
   frozenBindings(): ReadonlySet<number> { return this.frozen; }
 
   /**
@@ -149,19 +173,22 @@ export class ViewLane {
    * reads the clock for the rate policy (the caller's `performance.now`). Returns whether the guest ran.
    */
   frame(dt: number, alpha: number, tick: number, samples: readonly ViewSample[], displayHz: number, now: () => number, arrays: readonly ArrayLike<number>[] = []): boolean {
-    if (this.disabled) return false;
-    this.pendingDt += dt;
-    if (++this.frames % this.interval !== 0) return false;
-    const start = now(), ok = this.run(this.pendingDt, alpha, tick, samples, arrays);
-    this.pendingDt = 0;
-    this.rate(now() - start, ok, displayHz);
-    return true;
+    if (this.disabled || this.closed) return false;
+    this.busy++;
+    try {
+      this.pendingDt += dt;
+      if (++this.frames % this.interval !== 0) return false;
+      const start = now(), ok = this.run(this.pendingDt, alpha, tick, samples, arrays);
+      this.pendingDt = 0;
+      this.rate(now() - start, ok, displayHz);
+      return true;
+    } finally { this.busy--; if (this.ended) this.retire(); }
   }
 
   private run(dt: number, alpha: number, tick: number, samples: readonly ViewSample[], arrays: readonly ArrayLike<number>[]): boolean {
     // Guest growth is forbidden; an explicit host grow(0) can still replace
     // the buffer. Keep borrowed views per instance until that identity changes.
-    const buffer = this.memory.buffer;
+    const buffer = this.storage.value.buffer;
     if (this.view.buffer !== buffer) {
       this.view = new DataView(buffer); this.columns = new Float64Array(buffer);
       this.channels = new Float64Array(buffer, this.region(CHANNELS), this.rows.channels);
@@ -262,7 +289,7 @@ export class ViewLane {
       const at = this.region(BATCHES) + word * 4, total = v.getUint32(at, true), first = v.getUint32(at + 4, true), n = v.getUint32(at + 8, true);
       const matrices = at + BATCH_HEADER * 4;
       this.totals[i] = total;
-      this.targets.batch?.(i, total, first, n, new Float32Array(this.memory.buffer, matrices, n * 16), new Float32Array(this.memory.buffer, matrices + row.capacity * 64, n * row.itemSize));
+      this.targets.batch?.(i, total, first, n, new Float32Array(this.storage.value.buffer, matrices, n * 16), new Float32Array(this.storage.value.buffer, matrices + row.capacity * 64, n * row.itemSize));
       word += batchWords(row);
     }
     this.targets.upload();
@@ -290,7 +317,7 @@ export class ViewLane {
 
   private region(kind: number): number { const at = this.offsets.get(kind); if (at === undefined) throw new Error(`View region ${String(kind)} missing`); return this.io + at; }
   private call(name: string, ...args: number[]): number {
-    const value = this.instance.exports[name]; if (typeof value !== 'function') throw new Error(`View module lacks ${name}`);
+    const value = this.instance?.exports[name]; if (typeof value !== 'function') throw new Error(`View module lacks ${name}`);
     const result: unknown = (value as (...a: number[]) => unknown)(...args);
     if (typeof result !== 'number' || !Number.isFinite(result)) throw new Error(`View ${name} returned no number`);
     return result;

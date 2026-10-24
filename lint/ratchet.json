@@ -1303,7 +1303,7 @@
     "src/shards/sunscar-dunes/data/familyLook.ts": 1
   },
   "wildshard/public-index": {
-    "src/entry.ts": 20,
+    "src/entry.ts": 21,
     "src/identity.ts": 7,
     "src/native.ts": 1,
     "src/pageServices.ts": 5,

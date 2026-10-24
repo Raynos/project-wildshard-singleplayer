@@ -1,4 +1,6 @@
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
+import { Scope } from '../src/engine/app/scope';
+import { fixedMemoryCensus } from '../src/engine/script/fixedMemory';
 import { ViewLane, type ViewLaneRows } from '../src/engine/script/viewLane';
 
 // A hand-built SCRIPT-ABI v2 view module (no v2 compiler yet): IO at 1024; ws_view writes one changed transform (the
@@ -106,4 +108,44 @@ test('a module importing anything but memory is refused', () => {
   const at = bad.findIndex((_, i) => bad[i] === 6 && bad[i + 1] === 0x6d && bad[i + 2] === 0x65); // "memory" → "memorx"
   bad[at + 6] = 0x78;
   expect(() => new ViewLane(bad, 1, rows, { write: () => undefined, channels: () => undefined, upload: () => undefined })).toThrow();
+});
+
+test('owned view retirement clears cached banks and starts a reused memory with the exact fresh frame', () => {
+  const firstScope = new Scope('view.first'), nextScope = new Scope('view.next');
+  const NativeInstance = WebAssembly.Instance, memories: WebAssembly.Memory[] = [];
+  const capture = vi.spyOn(WebAssembly, 'Instance').mockImplementation(class extends NativeInstance {
+    constructor(module: WebAssembly.Module, imports?: WebAssembly.Imports) {
+      super(module, imports); const memory = imports?.['env']?.['memory'];
+      if (!(memory instanceof WebAssembly.Memory)) throw new Error('Missing view memory'); memories.push(memory);
+    }
+  });
+  const writes: number[][] = [], targets = { write: (_index: number, matrix: Float32Array): void => { writes.push([...matrix]); }, channels: () => undefined, upload: () => undefined };
+  try {
+    const first = new ViewLane(viewModule(), 1, rows, targets, [0, 0], undefined, firstScope);
+    first.frame(1 / 60, .75, 20, [sample], 60, clock(.1));
+    const original = memories[0]; if (original === undefined) throw new Error('Missing original view memory');
+    new Uint8Array(original.buffer)[65535] = 83;
+    firstScope.dispose(); expect(first.isFrozen).toBe(true);
+    expect(first.frame(1 / 60, .5, 21, [sample], 60, clock(.1))).toBe(false);
+    const next = new ViewLane(viewModule(), 1, rows, targets, [0, 0], undefined, nextScope);
+    expect(memories[1]).toBe(original); expect(new Uint8Array(original.buffer)[65535]).toBe(0);
+    next.frame(1 / 60, .25, 20, [sample], 60, clock(.1));
+    expect(writes[1]?.[12]).toBe(.25);
+    const direct = lane(); direct.lane.frame(1 / 60, .25, 20, [sample], 60, clock(.1));
+    expect(writes[1]).toEqual(direct.written[0]?.slice(1));
+    expect(first.frame(1 / 60, 1, 22, [sample], 60, clock(.1))).toBe(false);
+  } finally { capture.mockRestore(); firstScope.dispose(); nextScope.dispose(); }
+});
+
+test('view disposal in a target cannot recycle while that frame still borrows its banks', () => {
+  const owner = new Scope('view.busy'); let before = fixedMemoryCensus().returned;
+  const view = new ViewLane(viewModule(), 1, rows, {
+    write: () => {
+      before = fixedMemoryCensus().returned; owner.dispose();
+      expect(fixedMemoryCensus().returned).toBe(before);
+      expect(() => view.frame(1 / 60, 0, 20, [sample], 60, clock(.1))).not.toThrow();
+    }, channels: () => undefined, upload: () => { expect(fixedMemoryCensus().returned).toBe(before); },
+  }, [0, 0], undefined, owner);
+  expect(view.frame(1 / 60, .25, 20, [sample], 60, clock(.1))).toBe(true);
+  expect(fixedMemoryCensus().returned).toBe(before + 1); expect(view.isFrozen).toBe(true);
 });

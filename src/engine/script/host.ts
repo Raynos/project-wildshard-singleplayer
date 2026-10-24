@@ -4,6 +4,7 @@ import { admitScript, type ScriptAdmission } from '@wildshard/format/scriptAdmis
 import { SCRIPT_OP, type ScriptEffect, type ScriptEvent, type ScriptWorld } from './effects';
 import { scriptFailure } from './strings';
 import { observeWasmMemory } from '../core/memoryResources';
+import { freshScriptMemory } from './fixedMemory';
 import { constructionOwner, currentOwner, ownerOr } from '../app/ownership';
 import type { Scope } from '../app/scope';
 import { nextDrawnFrame, presenting } from '../core/framePacing';
@@ -89,7 +90,7 @@ async function preparedMemoryLease(modules: readonly Uint8Array[], owner: Scope,
       await preparationWait(owner, wait);
       requirePreparationOwner(owner);
       const memory = owner.run(() => {
-        const allocated = new WebAssembly.Memory(plan);
+        const allocated = freshScriptMemory(plan.initial, plan.maximum);
         observeWasmMemory(allocated, { owner: owner.name, asset: 'script/prepared' });
         return allocated;
       });
@@ -163,7 +164,7 @@ export class ScriptHost {
   private instantiate(state: ModuleState, saved?: ScriptSnapshot): Running {
     const initial = saved ? saved.memory.length / 65536 : state.admission.initialPages;
     const memory = (saved === undefined ? takePreparedMemory(initial, state.maximumPages) : undefined)
-      ?? new WebAssembly.Memory({ initial, maximum: state.maximumPages });
+      ?? (saved === undefined ? freshScriptMemory(initial, state.maximumPages) : new WebAssembly.Memory({ initial, maximum: state.maximumPages }));
     observeWasmMemory(memory, { owner: scriptOwner()?.name ?? 'engine/script', asset: `script/entity:${state.entity}` });
     const instance = new WebAssembly.Instance(new WebAssembly.Module(new Uint8Array(state.bytes)), { env: {
       memory,

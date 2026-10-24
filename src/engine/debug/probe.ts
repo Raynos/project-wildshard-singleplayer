@@ -21,6 +21,7 @@ import { ExternalTimerBaseline } from './timerBaseline';
 import { poseBudgets } from '../render/budgetReport';
 import { scopeRegistrations, registrationTimerIds, disposalErrorMessages, type ScopeCensus, type Scope } from '../app/scope';
 import type { AppState, Phase } from '../app/systems';
+import { fixedMemoryCensus } from '../script/fixedMemory';
 import { memoryAttribution, type MemorySnapshot } from '../core/memoryAttribution';
 import { placementCensus, type PlacementCensus } from '../models/place';
 import { ownerCensus } from '../app/ownership';
@@ -137,6 +138,8 @@ export interface EngineProbe<W extends ProbeWorld = ProbeWorld> {
   debugSettings?: () => readonly { id: string; value: string }[];
   /** Scalar allocation storage and native-ruler provenance; available independently of a retired level. */
   memory?: () => MemorySnapshot;
+  /** Fixed V2 storage hits/misses only; never exposes a memory or instance. */
+  scriptMemory?: () => ReturnType<typeof fixedMemoryCensus>;
   /** What the page's textures load as (KTX2 / images), why, and the KTX2 capability probe's verdict (render/ktx2Probe.ts). */
   textures?: () => ReturnType<typeof textureReport>;
   version: 1; world: W | undefined; shard: { slug: string } & Record<string, unknown>;
@@ -391,7 +394,7 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): E
       get owners() { return ownerCensus(); },
     }),
     debugSettings: () => levelDebugRows().filter(row => row.choices().length > 0).map(row => ({ id: row.id, value: row.get() })),
-    version: 1, world, requireWorld: () => world, memory: () => memoryAttribution.snapshot(), textures: textureReport, get shard() { return { ...handles, ...app.debug.scopedSnapshot(), slug: world.game.level.id }; },
+    version: 1, world, requireWorld: () => world, memory: () => memoryAttribution.snapshot(), scriptMemory: fixedMemoryCensus, textures: textureReport, get shard() { return { ...handles, ...app.debug.scopedSnapshot(), slug: world.game.level.id }; },
     colliderTag: (handle) => world.physics.world.colliders.contains(handle) ? tagOf(world.physics.world.getCollider(handle)) : undefined,
     get boot() { boot ??= fingerprint(world, deps, saves); return boot; }, fingerprint: () => fingerprint(world, deps, saves), pose, nav,
     budgets: (poses = []) => poseBudgets(world.game.level.id, TIER, world.game.level.budgets, poses),
@@ -482,7 +485,7 @@ function scopedProbe<W extends ProbeWorld>(source: EngineProbe<W>, scope: Scope)
     return live;
   };
   return {
-    version: 1, get boot() { boot ??= structuredClone(read().boot); return boot; }, memory: () => memoryAttribution.snapshot(), textures: textureReport,
+    version: 1, get boot() { boot ??= structuredClone(read().boot); return boot; }, memory: () => memoryAttribution.snapshot(), scriptMemory: fixedMemoryCensus, textures: textureReport,
     get world() { return live?.world; },
     requireWorld: () => read().requireWorld(),
     colliderTag: (handle) => read().colliderTag(handle),

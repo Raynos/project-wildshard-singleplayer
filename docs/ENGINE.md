@@ -3345,6 +3345,16 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 `withPreparedScriptMemories(modules, scope, pause, install)` allocates fresh AS memories across caller-supplied frame yields before an owned installer consumes them; asynchronous installers explicitly carry that owner across awaits. Every module is admitted before any allocation, and each request describes a separate default-limit host. Matching descriptors are consumed once by that owner or its child, including its admitted construction binding after an await; explicit foreign or unowned callbacks, lower custom ceilings and restores allocate normally. Seeds, initialization, quota accounting and snapshots remain in `ScriptHost.install`. Owner retirement rejects cancelled frame waits and pending installers. Cancellation, failure and return clear unused references; every prepared allocation remains in the CPU inventory. The caller keeps input/readiness fenced until installation finishes. This schedules allocation work; it is no memory discount or proven frame-rate saving.
 `@wildshard/engine/script/queries` adapts read-only collision/navigation queries with stable numeric handles.
 
+`prepareScriptMemoryBank(counts, yieldTask)` explicitly warms fixed page sizes
+1–4 behind loading. The bounded idle bank holds at most 40 memories / 10 MiB;
+boot counts are composition data. Only audited native V2 adapters recycle:
+retirement clears instances, globals and views, finishes busy calls and scope
+teardown, and zeroes every byte. Public memory access excludes reuse. Legacy
+ABI0/1 constructors take only never-instantiated stock once; growable memories
+and saved ABI0 instances stay fresh. Guest initialization and owner admission
+remain at their original slots. `EngineProbe.scriptMemory()` returns detached
+hit/miss and virgin/recycled counters; it exposes no memory or instance.
+
 
 ### Baked terrain (SHARD-PLATFORM SF9a)
 

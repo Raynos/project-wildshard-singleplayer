@@ -130,6 +130,9 @@ async function startSelected(): Promise<void> {
     preloadModuleFiles(Reflect.get(moduleRows, kind));
   };
   loading.waiting('Preparing application services');
+  // Warm the measured fixed script demand before any product activates.
+  const { prepareScriptMemoryBank } = await retried(() => import('./engine/script/moduleV2'));
+  await prepareScriptMemoryBank([32, 0, 1, 0], task);
   // Start every original import together; only admission's prerequisites block
   // its preparation. The full import barrier still precedes publication.
   const [speciesModule, iconsModule, pickupsModule, pickupRowsModule, propsModule, starterModule, hoverboardModule,

@@ -8,6 +8,7 @@ import { pageScope } from '../app/resources';
 import type { Scope } from '../app/scope';
 import { nextDrawnFrame, presenting } from '../core/framePacing';
 import { yieldTask } from '../core/workSlice';
+import { freshScriptMemory } from './fixedMemory';
 
 interface PreparedMemories { pages: readonly number[]; available: WebAssembly.Memory[]; ready: Promise<void> }
 const prepared = new Map<Scope, PreparedMemories>();
@@ -36,7 +37,7 @@ export function prepareDecisionMemories(pages: readonly number[], owner: Scope):
     for (const initial of plan) {
       await pause();
       available.push(owner.run(() => {
-        const memory = new WebAssembly.Memory({ initial, maximum: initial });
+        const memory = freshScriptMemory(initial, initial);
         observeWasmMemory(memory, { owner: owner.name, asset: 'decision/prepared' });
         return memory;
       }));
@@ -69,7 +70,7 @@ const sharedMemories = new Map<number, WebAssembly.Memory>();
 function sharedMemory(pages: number): WebAssembly.Memory {
   let memory = sharedMemories.get(pages);
   if (memory === undefined) {
-    const created = pageScope.run(() => new WebAssembly.Memory({ initial: pages, maximum: pages }));
+    const created = pageScope.run(() => freshScriptMemory(pages, pages));
     observeWasmMemory(created, { owner: 'engine/script', asset: 'decision/shared' });
     sharedMemories.set(pages, created); memory = created;
   }
@@ -100,7 +101,7 @@ export class DecisionModule {
     if (stateless && admission.initialPages === admission.maximumPages) this.memory = sharedMemory(admission.initialPages);
     else {
       this.memory = preparedMemory(admission.initialPages, admission.maximumPages)
-        ?? new WebAssembly.Memory({ initial: admission.initialPages, maximum: admission.maximumPages });
+        ?? freshScriptMemory(admission.initialPages, admission.maximumPages);
       observeWasmMemory(this.memory, { owner: 'engine/script', asset: 'decision/module' });
     }
     this.begin(2_000_000);
