@@ -5,7 +5,6 @@ import { GroupBrain, type GroupGuestPublicationV2, type GroupGuestProjectionV2, 
 import type { GroupBankValueV2, GroupBankReferenceV2 } from '@wildshard/format/scriptGroupBankV2';
 import type { Scope } from '../app/scope';
 import { GroupBankV2 } from '../script/groupBankV2';
-import type { V2ColumnOwners } from '../script/observationColumnsV2';
 import type { GroupStepNativeResultV2 } from '../script/groupStepV2';
 import { isJsonData } from '@wildshard/format/json';
 import type { AnimalSim } from '../entities/AnimalSim';
@@ -14,6 +13,15 @@ import type { SimValue } from '../sim';
 import { inspectBrain } from './inspect';
 import { StrikeRunner, type StrikeSpec, type StrikeContext } from './strikes';
 import { readStrikeState } from './strikeState';
+
+/** One native call owns this scratch; nested calls receive independent rows. */
+interface HerdGuestColumns<A extends AnimalSim> {
+  scope: Scope; self: {group:string;slot:number;identity:string;actor:A};
+  player: {position:Vector3}; observed: Map<number,AnimalSim>;
+  references: Map<string,(GroupBankReferenceV2 & {readonly body:A}) | null>;
+  results: Readonly<Record<string,number>>;
+  t:number;dt:number;context?:GuardedHerdContext<A>;
+}
 
 /** Rim, fall and random grazing parameters for a committed ram. */
 export interface WanderGrazerSpec {
@@ -375,6 +383,7 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     readonly context: GuardedHerdContext<A> | undefined;
     readonly signal: string; readonly bank: Float64Array; readonly slot:number;
     readonly references: (GroupBankReferenceV2 & {group:string;slot:number;body:A})[];
+    readonly members: HerdGuestColumns<A>[];
     readonly random: Rng;
     readonly arguments: Readonly<Record<string,number>>;
     reply: number;
@@ -446,7 +455,7 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     const random=this.herdPorts.sharedRng();
     this.guestDepth=depth+1;
     this.guestCall={binding,context,signal,slot:Math.max(0,slot),bank:buffer.bank,values:buffer.values,references,
-      random,arguments:{...arguments_,'context.argHandle':argumentHandle},reply:0,fresh:true};
+      random,arguments:{...arguments_,'context.argHandle':argumentHandle},reply:0,fresh:true,members:[]};
     try{this.runGuest(binding.program);}
     finally{buffer.values=this.guestCall.values;this.guestCall=previous;this.guestDepth=depth;}
     return true;
@@ -483,10 +492,18 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
       const value=parameters[name]??0;if(!Object.is(retained[name],value))changes[name]=value;
     }
     binding.codec.update(call.bank,changes,binding.group,references);
-    const members: V2ColumnOwners<A>[] = this.members.map((actor,slot) => ({scope:binding.scope,self:{group:binding.group,slot,identity:actor.entityId,actor},
-      player:{position:player},observed:new Map(),t:context?.t ?? 0,dt:context?.dt ?? 0,...(context === undefined ? {} : {context}),
-      references:new Map([...named,['self',references.find(row => row.body === actor) ?? null],['target',target],['threat',threat]]),
-      results:{...this.captureHerdGuestRoles(actor),reply:call.reply}}));
+    const members=call.members,roster=this.members,count=roster.length;members.length=count;
+    for(let slot=0;slot<count;slot++){
+      const actor=roster[slot];if(actor===undefined)throw new Error('Missing herd member capture');
+      const member=members[slot]??={scope:binding.scope,self:{group:'',slot:0,identity:'',actor},player:{position:player},
+        observed:new Map(),references:new Map(),results:{},t:0,dt:0};
+      member.self.group=binding.group;member.self.slot=slot;member.self.identity=actor.entityId;member.self.actor=actor;
+      member.player.position=player;member.observed.clear();member.t=context?.t??0;member.dt=context?.dt??0;
+      if(context===undefined)delete member.context;else member.context=context;
+      member.references.clear();for(const[name,reference]of named)member.references.set(name,reference);
+      member.references.set('self',references.find(row=>row.body===actor)??null);member.references.set('target',target);member.references.set('threat',threat);
+      member.results={...this.captureHerdGuestRoles(actor),reply:call.reply};
+    }
     const selection=binding.rows.capture,slots=new Set<number>([0,call.slot]);
     if(call.signal==='tick'&&(retained[binding.rows.resume.field]===170||retained[binding.rows.resume.field]===171))for(let index=0;index<members.length;index++)slots.add(index);
     if(selection!==undefined){

@@ -14,6 +14,7 @@ import {Scope} from '../src/engine/app/scope';
 import {Rng} from '../src/engine/core/rng';
 import {GroupBankV2} from '../src/engine/script/groupBankV2';
 import type {GroupBankValueV2} from '../src/format/scriptGroupBankV2';
+import type {GroupGuestFrameV2} from '../src/engine/ai/GroupBrain';
 import {ReturnProgram} from '../src/game/population/returnProgram';
 import binding from '../src/shards/nalati-grasslands/data/herdGuest.json' with {type:'json'};
 import pasture from '../src/shards/nalati-grasslands/behaviour/pasture.generated.json' with {type:'json'};
@@ -30,8 +31,9 @@ function makeBody(id:string,variant:string,x:number,z:number,scale=1):AnimalSim{
 class NativeHerd extends HerdBrain<AnimalSim>{
  captures=0;
  scalarReads=0;
+ observeCapture:((frame:GroupGuestFrameV2)=>void)|undefined;
  protected override herdGuestScalars(){this.scalarReads++;return super.herdGuestScalars();}
- protected override captureGuest(replies:readonly GroupStepNativeResultV2[]){this.captures++;return super.captureGuest(replies);}
+ protected override captureGuest(replies:readonly GroupStepNativeResultV2[]){this.captures++;const frame=super.captureGuest(replies);this.observeCapture?.(frame);return frame;}
  captureValues(){return this.captureHerdGuestState();}
  captureRoles(actor:AnimalSim){return this.captureHerdGuestRoles(actor);}
  prepareValues(values:Readonly<Record<string,GroupBankValueV2>>,references:readonly (GroupStepReferenceV2&{body:AnimalSim})[],scope:Scope){return this.prepareHerdGuestState(values,references,scope);}
@@ -275,6 +277,51 @@ test('nested public taming calls reuse the same executable and return before the
   }
   old.herd.tick(old.ctx);execute(next,0,false,'tick');numbers(next.log,old.log);expect(next.herd.snapshot()).toBe(old.herd.snapshot());expect(next.random.snapshot()).toEqual(old.random.snapshot());expect(next.contextRandom.snapshot()).toEqual(old.contextRandom.snapshot());
  }finally{old.scope.dispose();next.scope.dispose();}
+});
+test('one native call reuses member capture rows while resampling every barrier',()=>{
+ const f=fixture('graze','watch',false,16);
+ try{
+  execute(f,0,false,'addTrust',{argument:0});
+  const arrays=new Set<readonly V2ColumnOwners[]>(),rows=new Set<V2ColumnOwners>();
+  const selves=new Set(),players=new Set(),observed=new Set(),references=new Set();const playerX=new Set<number>();let captures=0,changed=false;
+  f.ports.visibility=()=>{if(!changed){changed=true;f.ctx.player.set(43,1,27);}return .8;};
+  f.herd.observeCapture=frame=>{
+   captures++;arrays.add(frame.input.members);playerX.add(f.ctx.player.x);
+   expect(frame.native.members).toBe(frame.input.members);
+   frame.input.members.forEach((row,slot)=>{
+    rows.add(row);selves.add(row.self);players.add(row.player);observed.add(row.observed);references.add(row.references);
+    expect(row.self.actor).toBe(f.roster[slot]);expect(row.self.identity).toBe(f.roster[slot]?.entityId);
+    expect(row.player.position).toBe(f.ctx.player);expect(row.t).toBe(f.ctx.t);expect(row.dt).toBe(f.ctx.dt);
+    expect(row.references?.get('self')?.body).toBe(f.roster[slot]);
+    expect(row.results?.['reply']).toBeTypeOf('number');
+   });
+  };
+  execute(f,0,false,'tick');expect(changed).toBe(true);expect(captures).toBeGreaterThan(2);expect([...playerX]).toEqual([12,43]);
+  expect(arrays.size).toBe(1);for(const bank of [rows,selves,players,observed,references])expect(bank.size).toBe(16);
+  const first=[...arrays][0];arrays.clear();f.ctx.t+=1;execute(f,0,false,'tick');
+  expect(arrays.size).toBe(1);expect([...arrays][0]).not.toBe(first);
+ }finally{f.scope.dispose();}
+});
+test('nested taming capture scratch is separate and the outer call resumes its own rows',()=>{
+ const f=fixture('alert','display');
+ try{
+  execute(f,0,false,'addTrust',{argument:0});
+  const guard=f.roster[2];if(guard===undefined)throw new Error('Missing guard');guard.hp=20;
+  const bySignal=new Map<string,Set<readonly V2ColumnOwners[]>>();let nested=false,resumed=false;
+  f.herd.observeCapture=frame=>{
+   let arrays=bySignal.get(frame.input.signal);if(arrays===undefined){arrays=new Set();bySignal.set(frame.input.signal,arrays);}arrays.add(frame.input.members);
+   if(nested&&frame.input.signal==='tick')resumed=true;
+  };
+  f.herd.onStallionState=state=>{if(state==='beaten'){
+   f.herd.addTrust(17);f.herd.setRidden(guard);nested=true;
+  }};
+  execute(f,0,false,'tick');expect(nested).toBe(true);expect(resumed).toBe(true);
+  expect([...bySignal.keys()]).toEqual(['tick','addTrust','setRidden']);
+  const calls=[...bySignal.values()];for(const arrays of calls)expect(arrays.size).toBe(1);
+  const arrays:(readonly V2ColumnOwners[])[]=[];for(const call of calls)for(const rows of call)arrays.push(rows);expect(new Set(arrays).size).toBe(3);
+  expect(new Set(arrays.map(array=>array[0]?.references)).size).toBe(3);
+  expect(new Set(arrays.map(array=>array[0]?.self)).size).toBe(3);
+ }finally{f.scope.dispose();}
 });
 test('sixteen newly hurt members keep original alarm and flight order within the bounded same-slot transaction',()=>{
  const old=oracleFixture('graze','watch',false,16),next=fixture('graze','watch',false,16);
