@@ -8,7 +8,6 @@
 // A single --floor --compiled --pin=<sha> target uses the same explicit compiled-entry contract.
 import { spawnSync } from 'node:child_process';
 import { createServer } from 'node:http';
-import { promisify } from 'node:util';
 import { writeFileSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
 import { devices } from 'playwright';
@@ -48,7 +47,13 @@ export async function serveHelloWorldMemory() {
   await new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', () => { resolve(); }); });
   const address = server.address();
   if (address === null || typeof address === 'string') { server.close(); throw new Error('Missing hello-world fixture address'); }
-  return {url: `http://127.0.0.1:${address.port}`, close: async () => { await promisify(server.close.bind(server))(); }};
+  return {url: `http://127.0.0.1:${address.port}`, close: async () => {
+    await new Promise((resolve, reject) => {
+      /** @param {Error} [error] */
+      const done = error => { if (error === undefined) resolve(); else reject(error); };
+      server.close(done);
+    });
+  }};
 }
 /** Select only an existing floor; preserve its original target object and order.
  * @param {string} selection */
