@@ -3,7 +3,7 @@
 **Order (G639):** (1) live reds → (2) NALATI TO ZERO → (3) grid / frame floor. Extras: loading, core memory, TOOLING-PERF,
 Night Market, tile streaming, no-binaries.
 
-**(1) LIVE f42d192560 (19:36Z; a4cb1fc8f2 18:40Z), each after full CI + all six exact smoke
+**(1) LIVE e6627ba522 (20:51Z, first with the T9 lattice; f42d192560 19:36Z), each after full CI + all six exact smoke
 legs; ff45 pin removed (692f9bd22e), hourly newest-CI-green deploys running (sp-x7). Six smoke reds + boot race fixed on the way.
 
 **(2) NALATI 0: every shard at zero, C1-C9 closed, M3 100 %, M2 10/10 (ruler 27dd969127).** R27 done (168a974f29).
@@ -25,10 +25,10 @@ not retained data; cuts left are < 1 MiB each, so the budgets need a structural 
 **Tooling:** DW tiles: wire 12.3 → 10.8 MB look-identical;
 pick for Jake: art/driftwood-isle/round-19-tile-lod (3af5687a53) A landed / B / C; only C gets 6,4 + 2,5 under 4 MB.
 
-**For wildshard-v:** G694 wave 1: F1 dd52fc84ea, F2 e5eb16f9f5 (legacy schema held for LD), F3 2f6210f1b0 + c7445018a4 (+8ad32dd979
-Blender fix), F4 b984db9194, F5 194a455e2f + b1b5c7a613, D2 67cd40190e, D4 2cfb0ffc52..6d46eeb66a; D3 (sp-x2) and D5-D6 (sp-x8) active,
-D1 after T9. Nothing legacy touched. GR0 c904b7a0ef; GR2 sp-x1. T9 four-leg PASS (freeze was a harness teleport); confirming on HEAD.
-Your grep PID 45432 still ~99 % CPU (2 h 53 m).
+**For wildshard-v:** G694 wave 1: F1-F5, D2, D4-D6, D1 source (17dddf9b3e, 12 modern boot cases PASS), D3 first slice 7c73ab50dd.
+LEGACY smoke found two PRE-EXISTING breaks from 7719bbb5c4 (10-18, painterly adapter): Nalati bow shade 2.4 (fixed 205c46fdd7) and
+uPSunDir (fixing, sp-x6); live LEGACY Nalati has been broken since 10-18. T1: ghosts fixed (7941053755); per-return growth owners:
+composer depth +4.4 MB, DW site geometry, LUTs (sp-x9 / sp-x8). Your grep PID 45432 still ~99 % CPU.
 
 **Lanes:** Claude weekly 90 %: 0 Opus (sp-o3 stopped, G605); 5 Codex + sp-x7.
 
