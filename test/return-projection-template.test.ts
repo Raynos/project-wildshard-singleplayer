@@ -28,9 +28,9 @@ beforeAll(async()=>{
     bytes:btoa(Array.from(bytes,byte=>String.fromCodePoint(byte)).join(''))});
 },30000);
 
-function genericFrame(signal:number,frames:readonly Readonly<Record<string,number>>[],random:Rng):Uint8Array {
+function genericFrame(signal:number,frames:readonly Readonly<Record<string,number>>[],random:Rng,count=frames.length):Uint8Array {
   const layout=returnProjectionV2Layout(row.fields.length),view=new DataView(new ArrayBuffer(layout.pages*65536));
-  const fields=frames.flatMap((frame,actor)=>row.fields.map((field,index)=>({name:`${actor}/${field}`,id:actor*row.fields.length+index+1,value:frame[field]})));
+  const fields=Array.from({length:count},(_,actor)=>row.fields.map((field,index)=>({name:`${actor}/${field}`,id:actor*row.fields.length+index+1,value:frames[actor]?.[field]}))).flat();
   const input=observations.prepareV2Observations(layout,0,{bindings:[{identity:'projection',handle:1,self:1,player:0,observed:new Set([1]),enabled:true,due:true,
     divisor:6,fuel:400000,previousTick:0,currentTick:0,state:[],parameters:[{name:'signal',value:signal}],fields,sample:{atTick:0,target:0}}],
     players:[],edges:[],events:[],actions:new Set(),eventKinds:new Set()});
@@ -81,4 +81,18 @@ test('later calls cannot alter detached captures or leak values through a refuse
     expect(()=>program.prepare('first',accessor,random)).toThrow('Invalid return observation frame');expect(reads).toBe(0);
     scope.dispose();expect(()=>program.prepare('first',{a:7},random)).toThrow('disposed');expect(()=>first.accept()).toThrow('disposed');
   } finally {scope.dispose();project.mockRestore();}
+});
+
+test('declared candidate slots retain absent bytes when the candidate iterator yields fewer frames',()=>{
+  class ShortCandidates extends Array<Readonly<Record<string,number>>> {
+    override [Symbol.iterator]():ArrayIterator<Readonly<Record<string,number>>>{return [{a:7,z:-0}].values();}
+  }
+  const project=vi.spyOn(ScriptModuleV2.prototype,'project'),program=new ReturnProjectionV2(row),random=new Rng(39);
+  const candidates=new ShortCandidates({a:100},{a:200}),first={a:3,z:4};
+  try {
+    expect(program.prepare('first',first,random,candidates).values).toStrictEqual({value:3,signal:1});
+    const write=project.mock.calls[0]?.[1];if(write===undefined)throw new Error('Missing captured writer');
+    const actual=new DataView(new ArrayBuffer(65536));write(actual);
+    expect(new Uint8Array(actual.buffer)).toEqual(genericFrame(1,[first,{a:7,z:-0}],random,3));
+  }finally{project.mockRestore();}
 });

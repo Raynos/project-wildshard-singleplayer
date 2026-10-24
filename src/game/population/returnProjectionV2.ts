@@ -41,8 +41,9 @@ function freezeGroups(value:unknown):void {
   Object.freeze(value);
 }
 interface FieldColumn { readonly actor: number; readonly field: string; readonly name: string; readonly id: number; readonly value: undefined }
+interface FieldBatch { readonly actor: number; readonly fields: readonly string[] }
 interface ObservationShape {
-  readonly fields: readonly FieldColumn[];
+  readonly batches: readonly FieldBatch[];
   readonly input: ReturnType<typeof prepareV2Observations>;
   readonly signalAt: number;
   readonly fieldsAt: number;
@@ -97,7 +98,15 @@ export class ReturnProjectionV2 {
     players:[],edges:[],events:[],actions:new Set(),eventKinds:new Set()});
     const parameters = this.layout.regions[3], columns = this.layout.regions[5];
     if (parameters === undefined || columns === undefined) throw new Error('Missing projection input banks');
-    const shape = {fields,input,signalAt:this.layout.io+parameters.offset,fieldsAt:this.layout.io+columns.offset};
+    // Retain sorted column order; only fixed actor/name runs are shared.
+    const batches: {actor:number;fields:string[]}[] = [];
+    for(let index=0;index<fields.length;index++){
+      const column=fields[index];if(column===undefined)throw new Error('Missing projection column');
+      const lastBatch=batches[batches.length-1];
+      if(lastBatch!==undefined&&lastBatch.actor===column.actor)lastBatch.fields.push(column.field);
+      else batches.push({actor:column.actor,fields:[column.field]});
+    }
+    const shape = {batches,input,signalAt:this.layout.io+parameters.offset,fieldsAt:this.layout.io+columns.offset};
     this.columns[count] = shape;return shape;
   }
   /** Capture once. No RNG is changed until the caller has validated its retained
@@ -120,10 +129,15 @@ export class ReturnProjectionV2 {
       const answer = this.module.project(400000,view => {
         authority = this.writeFrame(view,{ lane: 2,module: 1,sequence: 0,tick: 0,due: 1 },counts);input.write(view);
         view.setFloat64(shape.signalAt,signalId,true);
-        for (let index=0;index<shape.fields.length;index++) {
-          const column=shape.fields[index];if(column===undefined)throw new Error('Missing projection column');
-          const value=frames[column.actor]?.[column.field],at=shape.fieldsAt+index*16;
-          view.setUint32(at+4,Number(value!==undefined),true);view.setFloat64(at+8,value??0,true);
+        let at=shape.fieldsAt;
+        for(let actor=0;actor<shape.batches.length;actor++){
+          const batch=shape.batches[actor];if(batch===undefined)throw new Error('Missing projection column');
+          const frame=frames[batch.actor];
+          for(let index=0;index<batch.fields.length;index++){
+            const field=batch.fields[index];if(field===undefined)throw new Error('Missing projection column');
+            const value=frame?.[field];
+            view.setUint32(at+4,Number(value!==undefined),true);view.setFloat64(at+8,value??0,true);at+=16;
+          }
         }
         const bank = layout.regions[20];if (bank === undefined) throw new Error('Missing projection RNG bank');
         new Uint8Array(view.buffer,layout.io+bank.offset,rng.bytes.length).set(rng.bytes);
