@@ -120,7 +120,7 @@ function releaseRawAfterUpload(texture: DataTexture): void {
  * the field's declared default.
  * `trustedGraphs` is supplied only by the admitted runtime host to authorize declared graph ceilings.
  */
-export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, renderer: Renderer, scope: Scope, options: { graphs?: boolean; sources?: GraphSources; trustedGraphs?: boolean } = {}): Promise<{
+export async function clientMaterials(shard: Shardfile, input: ReadonlyMap<string, Uint8Array>, renderer: Renderer, scope: Scope, options: { graphs?: boolean; sources?: GraphSources; trustedGraphs?: boolean } = {}): Promise<{
   /** Live toon family shared by classic and graph materials; a day clock may update it in place. */
   readonly toon: ToonLook;
   /** Set a named graph uniform through its declared type/range; no shader rebuild. */
@@ -137,6 +137,7 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
   /** the splat ground's material while its tiles draw (Debug ▸ Ground tiles), which the tile views merge (`groundMerge`) */
   ground?: Material | null;
 }> {
+  let assets = input;
   // every shard draws its declared graphs on every path: standalone, regional and grid near (G669 DR12)
   const graphsOn = options.graphs ?? true;
   const sampledMaterials = graphsOn ? shard.look.materials : Object.fromEntries(Object.entries(shard.look.materials).filter(([, entry]) => entry.family !== 'graph' || 'preset' in entry));
@@ -184,7 +185,13 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
   // graph entries: the lazy compiler loads only when the row is on and the shard carries one (a shard without pays nothing)
   const compiler = graphsOn && carriesGraph(shard, assets) ? await loadGraphCompiler(renderer) : null;
   if (scope.disposed) throw new Error('Material scope unloaded during the graph compiler load');
-  const graphs = clientGraphs(shard, { compiler, toon, trustedGraphs: options.trustedGraphs === true, fallback: (entry) => familyMaterial(entry, context), textures: (ref, role = 'colour') => resolveTexture(ref, role), file: (hash) => assets.get(hash) });
+  // Lazy catalogue/skin graph compiles need JSON, never the preparation's GLB,
+  // texture or Wasm Map. Grid input leases retain and charge this same subset.
+  const graphFiles = new Map(shard.files.filter(file => file.kind === 'json').flatMap(file => {
+    const bytes = assets.get(file.hash); return bytes === undefined ? [] : [[file.hash, bytes] as const];
+  }));
+  assets = graphFiles; // Escaping closures must not keep an outer-context slot containing the full input Map.
+  const graphs = clientGraphs(shard, { compiler, toon, trustedGraphs: options.trustedGraphs === true, fallback: (entry) => familyMaterial(entry, context), textures: (ref, role = 'colour') => resolveTexture(ref, role), file: (hash) => graphFiles.get(hash) });
   if (options.sources !== undefined) graphs.bind(options.sources);
   const compile = (entry: unknown, meshMap?: Texture): Material => {
     if (!isGraphEntry(entry)) return ownMaterial(familyMaterial(entry, context));
