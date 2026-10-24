@@ -11,6 +11,12 @@ the page components take 300, then that should show in template 1 and template 2
 
 ## Answer
 
+**Current G682 result (2026-10-24): all four floors miss the fixed budgets.**
+On `f4465ac4ab`, the 120-second combined WebContent + GPU readings are menu
+165.0 MiB, selection 169.5 MiB, Template 1 317.1 MiB and Template 2 304.6 MiB.
+The respective limits remain 148.5383 / 198.5383 MiB; see §7 for attribution
+and the complete cold cohort. The measurements below in §§1–3 are historical.
+
 **It doesn't show.** A template entered from SHARD SELECT uses **~290–300 MB in the Simulator** (WebContent + GPU process),
 and its own content is included in that. The ~620 MB is estimator constants: the 300 MB engine base, the ~321 MB of grid
 page components and an 80 MB overlap, 701 MB before any content (memory-strip-mini-plan.md §1). Grid page components
@@ -149,3 +155,104 @@ Raw native identities/samples and load records are retained locally at
 `tmp/core-memory-g682/`. Safari, Inspector, proxy, loopback server and Simulator
 were closed; zero booted devices verified. G687 separately accepts the existing
 13/15 Simulator frame milestone and cancels the unstarted e664 repeat.
+
+## 7. Current four-floor G682 cohort (2026-10-24)
+
+One exact preview of origin/main at task start, `f4465ac4ab`, build
+`f4465ac-mvms81hg`. One cold Safari visit per floor through the existing
+`sim-lane.sh` / `sim-grid-entry.mjs --core-memory=all --runs=1 --modes=cold`
+reader: Developer on, phone tier, 2× render scale, muted, real selection and
+template entry. Each visit resets service workers/caches and uses `sw=0`.
+The menu/selection prefetch reached done for all 24 products, with zero bytes
+in flight at 120 seconds; recorded peak in flight was 23.62 MiB.
+
+All four visits completed with empty runtime-error lists and three valid native
+samples. **Exit 1 is the budget verdict: 0/4 pass**, not an incomplete capture.
+Each sample sums both WebContent processes plus the GPU process under the owned
+Simulator launchd, exactly as the hello-world calibration does.
+
+| Floor | 10 s combined MiB | 60 s combined MiB | 120 s WC MiB | 120 s GPU MiB | 120 s combined MiB | Limit MiB | Excess MiB |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Menu | 174.35 | 164.82 | 148.32 | 16.64 | **164.96** | 148.54 | **16.42** |
+| SHARD SELECT | 181.93 | 169.46 | 151.68 | 17.80 | **169.48** | 148.54 | **20.94** |
+| Template 1 | 334.77 | 319.37 | 276.13 | 40.97 | **317.10** | 198.54 | **118.56** |
+| Template 2 | 322.59 | 305.98 | 265.19 | 39.38 | **304.57** | 198.54 | **106.03** |
+
+### Five largest measured buckets per floor
+
+The optional `--core-attribution=1` tool addition (`f37d6cd9b6`) starts passive
+WebKit `Memory.trackingUpdate` sampling **after** the original 120-second native
+sample and scalar allocation readout. Five events arrived per visit with no
+category errors. Values below use the last arriving event. Their proxy
+timestamps are zero, so these events support byte accounting only, not timing.
+There was no forced GC, heap snapshot, Network-domain capture or response-body
+capture; this extension does not change the floor sample or budget.
+
+| Rank | Menu bucket / MiB | Selection bucket / MiB | Template 1 bucket / MiB | Template 2 bucket / MiB |
+|---|---|---|---|---|
+| 1 | Other native 50.58 | Other native 63.08 | Page allocator 114.07 | Page allocator 114.41 |
+| 2 | JavaScript + GC-owned 48.61 | Page allocator 49.42 | JavaScript + GC-owned 107.97 | JavaScript + GC-owned 100.48 |
+| 3 | Page allocator 38.39 | JavaScript + GC-owned 18.78 | Other native 49.67 | Other native 53.70 |
+| 4 | GPU process 16.64 | GPU process 17.80 | GPU process 40.97 | GPU process 39.38 |
+| 5 | JIT 2.27 | JIT 2.06 | JIT 17.25 | JIT 15.59 |
+
+These are ranked investigation buckets, not a disjoint decomposition of the
+budget excess or five proven removable holders. GPU values are the earlier
+native process samples; engine categories use a different accounting basis.
+They include framework overhead already present in the hello-world floor.
+Do not add them or subtract the ledger below from physical footprint.
+
+WebKit's category implementation assigns GC heap plus GC-owned/extra memory to
+JavaScript; it does not report JS cells alone. Page is residual bmalloc and
+libcmalloc accounting, not a DOM-only measurement. Other remains unnamed native
+storage. The installed Simulator's exact WebKit revision was not established;
+the current [InspectorMemoryAgent implementation](https://github.com/WebKit/WebKit/blob/main/Source/WebCore/inspector/agents/InspectorMemoryAgent.cpp)
+and [Cocoa resource-usage sampler](https://github.com/WebKit/WebKit/blob/main/Source/WebCore/page/cocoa/ResourceUsageThreadCocoa.mm)
+explain the category contract, not an exact installed-binary attribution.
+
+### Concrete template allocation owners
+
+The existing app ledger gives narrower cut candidates, but records allocation
+capacity rather than physical residency. Menu and selection have no bound ledger.
+Template 1's largest five **named owners** are:
+
+| Owner | Storage | MiB |
+|---|---|---:|
+| Engine render targets | GPU textures | **40.44** |
+| Engine scene | GPU textures/buffers, including stable depth and SMAA weights | **12.18** |
+| Template product | CPU backing | **5.59** |
+| Engine scripts | CPU backing/Wasm | **2.75** |
+| Engine physics | Wasm | **1.75** |
+
+Another 2.16 MiB GPU and 0.77 MiB RAM have no named owner. The texture total is
+52.08 MiB; CPU ArrayBuffers total 8.63 MiB; Wasm total 4.69 MiB. Render-target
+rows explicitly include the two composer colour buffers, depth, SMAA edges,
+luminance/downsampling and a 1024² depth target. Any visual composer change still
+belongs to C5 and Jake's variant pick.
+
+Template 2 has the same 40.44 MiB render-target owner, 13.02 MiB engine-scene GPU,
+10.68 MiB baked-ground GPU, 8.00 MiB estimated baked-ground decoded images and
+3.34 MiB product CPU backing. Across its whole ledger: textures 64.08 MiB,
+estimated decoded images 8.35 MiB, Wasm 5.19 MiB and CPU ArrayBuffers 4.17 MiB.
+The passive Images and Layers categories report zero on all four visits; this
+does **not** erase the separately observed texture/image allocations.
+
+Worker-specific heap and resident bytes are **unknown**. Menu/selection loaded
+the content-cache and content-hash worker script URLs, but resource entries do
+not establish live-worker count, lifetime or retained bodies. No worker script
+URL was observed on the template document; this also cannot prove zero workers.
+There are 61 script resource URLs on menu/selection and 241 on each template.
+The broad Page/Other and JS buckets need a holder census before assigning their
+bytes to content cache, workers, DOM or individual modules.
+
+Load averages (1/5/15 min) before/after the cohort were
+**7.046 / 8.302 / 9.178 → 4.329 / 5.587 / 7.468**. Foreign grep PID 45432 remained
+active throughout (100.0% → 99.1% CPU), untouched. This is a memory reading with
+no frame-timing credit. No app source changed. Safari, Inspector/proxy,
+Simulator and owned preview were closed; zero booted devices and no quiet
+marker were verified before explicit BOTH release.
+
+Raw receipt: `.git/proofs/20261024T142309-sp-x1-current-webkit-core-39772.json`.
+Native/category/ledger data, load records and offline rollup remain in
+`tmp/core-memory-g682/current/`. The fixed hello-world calibration and budgets
+remain unchanged. No repeated cohort or gain claim is implied.
