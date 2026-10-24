@@ -3,7 +3,7 @@
 **Order (G639):** (1) live reds → (2) NALATI TO ZERO → (3) grid / frame floor. Extras: loading, core memory, TOOLING-PERF,
 Night Market, tile streaming, no-binaries.
 
-**(1) LIVE ca07388a9c (13:12Z; df1469ceb4 12:57Z, b742cfc4ed 11:52Z), each after full CI + all six exact smoke
+**(1) LIVE ab381d04b9 (14:04Z; ca07388a9c 13:12Z, df1469ceb4 12:57Z), each after full CI + all six exact smoke
 legs; ff45 pin removed (692f9bd22e), hourly newest-CI-green deploys running (sp-x7). Six smoke reds + boot race fixed on the way.
 
 **(2) NALATI 0: every shard at zero, C1-C9 closed, M3 100 %, M2 10/10 (ruler 27dd969127).** R27 done (168a974f29).
@@ -12,13 +12,11 @@ Jake approves each), legacy deletion (G606).
 
 **(3) Frame floor.** Desktop (466c98bac7): ALL 24 shipped shards PASS standing (59.9 fps, max 16.8 ms); grid drives
 p95 16.8, max Pine 1,117 → 66.7, Nalati 167 → 50.1 ms (f7e74f576e).
-Quiet iOS Sim p95 (889 → 2e86e67846): Pine drive 71 → 35, interior 60 → 34; Nalati drive 53 → 43 (road spike 448 → 67
-ms: Wasm memory pool + virgin stock + single-build restore DB1, zero Memory on the drive), settled 59 → 46 FAIL: spikes
-overlap FULL GCs every 0.6 s (DW 1.25 s, p95 34); nothing requests them, allocation cuts
-didn't move them. JSC's own log (Mac WebKit, __XPC_ env):
-page heap ~2-3 GB incl. external memory; forcing 3 GiB RAM flips Nalati to a full GC every 211 ms (66 ms cycles), so
-RETAINED memory is the lever: snapshot 601 MiB buffer backing + 410 MB JS; 121 closed shard scopes kept alive via
-uploadOwnership observedIn (54.6 MiB, fixed 973d826200); Pine residency 14 MiB (9a643188b6); off-scene geometry 229, texture CPU 97 MiB next.
+iOS Sim: road spike 448 → 67 ms (Wasm pool, DB1). Settled spikes were FULL GCs every 0.6 s because JSC's heap
+(incl. external memory) was large vs RAM (Mac WebKit forced to 3 GiB reproduced it). RETAINED memory was the lever: snapshot 601 -> 457 MiB on 6f0c0dbd15 (closed shard scopes 121 -> 0: observedIn, Pine
+residency, scope/audio/material keepers, raw+splat textures). Quiet Sim settled on f527: 36 FULL -> 1 full + 17 partial
+GCs, p95 48 -> 34. OFFICIAL quiet Sim floor b68f6cf88a: 12/15 PASS (bar p95 <= 35, max <= 200): Nalati settled 34/48,
+all Pine; misses are travel: Nalati short-travel 42 / whole-drive 36, Template short-travel 36 (sp-x1 diagnosing).
 Desktop floor PASS: d6c530539b all 9 rows; interior-stop owner 4.0 ms on c2db00b25e (limit 4.17); frames 16.7 p95.
 
 **Memory:** WebKit Sim floors menu ~166, T1 ~310-330 MiB vs M1's 50/100 (FAIL). Same source drifts ~10 MiB between
