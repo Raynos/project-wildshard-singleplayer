@@ -85,15 +85,16 @@ for (const slug of shards) test(`${slug}: evict and re-enter with kit, held item
 // DB1 exercises the actual generic grid data owner even when a product also has a headless-only plan.
 test('generic grid data destinations restore exact modules with one installation',async()=>{
   const rapier=await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));let dataCells=0;
+  const questPorts={fact:()=>undefined,coins:()=>undefined};
   for(const slug of shards){
     const directory=builtProduct(slug),product=await loadHeadlessProduct(directory),shard=product.shardfile;
     if(shard.runtime!==null||hasDeclaredClientPage(shard))continue;
     const descriptor=outputDescriptor(shard);if(descriptor===undefined)throw new Error('Missing admitted product inventory');
     const assets=new Map(descriptor.index.files.map(file=>[file.commons===true?`commons:${file.hash}`:file.hash,Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
     const sections=productHeadlessSections(product),install=vi.spyOn(ScriptHost.prototype,'install');
-    const first=createShardfileSim(shard,assets,{rapier,sections});
+    const first=createShardfileSim(shard,assets,{rapier,sections,quest:questPorts});
     const installs=install.mock.calls.length;first.host.step();const saved=snapshotSimHost(first.host);first.dispose();install.mockClear();
-    const prepared=prepareShardfileSimRestore(shard,assets,{rapier,sections,playerBody:false});
+    const prepared=prepareShardfileSimRestore(shard,assets,{rapier,sections,quest:questPorts,playerBody:false});
     try{
       expect(install).toHaveBeenCalledTimes(installs);prepared.restore(saved);expect(install).toHaveBeenCalledTimes(installs);
       expect(snapshotSimHost(prepared.host)).toEqual(saved);prepared.host.step();expect(prepared.host.state.tick).toBe(saved.state.tick+1);
