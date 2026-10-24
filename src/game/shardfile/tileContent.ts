@@ -193,7 +193,9 @@ export class SharedTileBuilds<T> {
   private async complete(pending:Promise<T>,scope:Scope):Promise<T>{
     try{
       const value=await pending;
-      if(scope.disposed||scope.disposing)throw new Error('Tile preparation owner is retired');
+      // Ring cancellation is a successful late result that its retired holder
+      // ignores. Only retirement of the whole resident makes it a refusal.
+      if(this.owner.disposed||this.owner.disposing)throw new Error('Tile preparation owner is retired');
       return value;
     }catch(error){scope.dispose();throw error;}
   }

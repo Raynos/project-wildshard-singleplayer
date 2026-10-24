@@ -73,6 +73,26 @@ test('resident retirement during preparation refuses its late result',async()=>{
   finally{holder.dispose();}
 });
 
+test('ring cancellation preserves late completion without retiring its replacement',async()=>{
+  const owner=new Scope('resident'), first=owner.child('first-ring'), retry=owner.child('retry-ring');
+  let finish:(value:number)=>void=()=>{throw new Error('Preparation not started');};
+  let attempts=0;
+  const builds=new SharedTileBuilds(owner,()=>{
+    attempts++;
+    return attempts===1?new Promise<number>(resolve=>{finish=resolve;}):Promise.resolve(60);
+  });
+  try{
+    const cancelled=builds.hold(5,first);first.dispose();
+    expect(await builds.hold(5,retry)).toBe(60);
+    finish(50);
+    // TileDriver checks the retired holder after this await; cancellation must
+    // not enter its failure branch and permanently blacklist the tile.
+    await expect(cancelled).resolves.toBe(50);
+    expect([...builds.tiles]).toEqual([5]);
+    retry.dispose();expect([...builds.tiles]).toEqual([]);
+  }finally{first.dispose();retry.dispose();owner.dispose();}
+});
+
 test('each ring step registers exactly the colliders reaching the 3 x 3, with none missing at its edges', async () => {
   // a box at every tile corner and every tile centre: each corner box reaches four tiles, each centre box one
   const rows = Array.from({ length: 9 * 9 }, (_, k) => box(-250 + (k % 9) * 62.5, -250 + Math.floor(k / 9) * 62.5, 3))
