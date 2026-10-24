@@ -25,6 +25,15 @@ test('colocated fixtures keep product guards in production and architecture guar
     const forbidden = put('src/engine/core/boundary.test.ts', 'import {value} from "../../game/value"; import {vi} from "vitest"; vi.mock("./value"); export {value};');
     const boundary = run(forbidden), messages = String(boundary.stdout) + String(boundary.stderr);
     expect(boundary.status).not.toBe(0); expect(messages).toContain('wildshard(layer)'); expect(messages).toContain('no-module-mock');
+    const builder = 'import binaryen from "binaryen"; export const wasm = binaryen;';
+    const formatFixture = run(put('src/format/binary.test.ts', builder));
+    expect(formatFixture.status, String(formatFixture.stdout) + String(formatFixture.stderr)).toBe(0);
+    const formatProduction = run(put('src/format/binary.ts', builder));
+    expect(formatProduction.status).not.toBe(0);
+    expect(String(formatProduction.stdout) + String(formatProduction.stderr)).toContain('wildshard(layer)');
+    const formatUpward = run(put('src/format/upward.test.ts', 'import {value} from "../engine/value"; export {value};'));
+    expect(formatUpward.status).not.toBe(0);
+    expect(String(formatUpward.stdout) + String(formatUpward.stderr)).toContain('wildshard(layer)');
     for (const statement of ['import "./fixture.test";', 'export * from "./fixture.test.ts";', 'void import("./fixture.test.js");', 'export type Value = typeof import("./fixture.test");']) {
       const imports = run(put('src/engine/core/importer.ts', statement));
       expect(imports.status).not.toBe(0); expect(String(imports.stdout) + String(imports.stderr)).toContain('no-production-test-import');
