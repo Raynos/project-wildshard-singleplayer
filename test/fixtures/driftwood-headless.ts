@@ -1,22 +1,109 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Native proof capabilities are generated outside source and play products.
-import { resolve } from 'node:path';
-// oxlint-disable-next-line import/no-nodejs-modules -- Only the checked local proof module is a trusted entry.
-import { pathToFileURL } from 'node:url';
-import { generateHeadlessModuleMap } from '../../scripts/check-headless-assemblies.mjs';
-import { prepareHeadlessAssembly, type HeadlessAssemblyModules } from '../../src/sdk/headlessAssembly';
+import type { TOON_LOOK } from '../../src/shards/driftwood-isle/generators/toonPresentation';
+import type { driftwoodNativeRows } from '../../src/shards/driftwood-isle/generators/nativeBake';
+import type { NativeQuestCompositionInput } from '../../src/game/quest/nativeComposition';
+import type { MixedPopulationInput } from '../../src/game/population/mixedRoster';
+import { installMixedPopulation } from '@wildshard/game/population/mixedRoster';
+import { installNativeChapterDirector } from '@wildshard/game/quest/nativeChapter';
+import { installQuestKillSteps } from '@wildshard/game/quest/killSteps';
+import { readNativeQuestSpots } from '@wildshard/game/quest/nativeComposition';
+import { installNativeQuestComposition } from '@wildshard/game/quest/nativeComposition';
+import { declaredWaterBody } from '@wildshard/engine/world/water/declared';
+import { dayClock } from '@wildshard/game/looks/dayClock';
+import { TOON_DAY_PRESET } from '@wildshard/format/toonLook';
+import { parseAchievementCounterData } from '@wildshard/format/achievementCounters';
+import { readNavmesh } from '@wildshard/engine/physics/navmesh';
+import { readDirectorProduct } from '@wildshard/game/plugin/director';
+import { DayCycle } from '@wildshard/engine/world/dayCycle';
+import { waveHeight } from '@wildshard/engine/world/waves';
+import { bindHeadlessCommands } from '@wildshard/sdk/headlessRuntime';
+import { installNativeCollision } from '@wildshard/game/population/nativeBake';
+import { nativeBakeGround } from '@wildshard/game/population/nativeBake';
+import { createNativeBakeReader } from '@wildshard/game/population/nativeBake';
+import { nativeDecisionAuthority } from '@wildshard/game/shardfile/borrowedDecisions';
+import { installNativeItems } from '@wildshard/game/plugin/nativeItems';
+import { proveTerrainEntries } from '@wildshard/game/plugin/mover';
+import { terrainTileHeight } from '@wildshard/format/terrainTileBytes';
+import { trustedLevel } from '../../src/game/plugin/simulation';
 import type { PrepareHeadlessRuntime } from '../../src/sdk/headlessRuntime';
-
-const entry = pathToFileURL(generateHeadlessModuleMap(resolve(import.meta.dirname, '../..'), 'driftwood-isle')).href;
-// Load the checked capabilities before the witness fingerprints its complete module graph.
-const loaded: unknown = await import(/* @vite-ignore */ entry);
-function hasCapabilities(value: unknown): value is { readonly headlessModules: HeadlessAssemblyModules } {
-  if (value === null || typeof value !== 'object' || !('headlessModules' in value)) return false;
-  const modules: unknown = value.headlessModules;
-  return modules !== null && typeof modules === 'object' && !Array.isArray(modules)
-    && Object.values(modules).every((module: unknown) => module !== null && typeof module === 'object' && !Array.isArray(module));
-}
-if (!hasCapabilities(loaded)) throw new Error('Missing checked Driftwood proof capabilities');
-const modules = loaded.headlessModules;
-
-/** The existing checked proof-map loader supplies the same declared static capabilities. */
-export const prepareHeadlessRuntime: PrepareHeadlessRuntime = context => prepareHeadlessAssembly(context, modules);
+import { need, readJson, installBodyScripts, prepareReturns } from './headless-plan';
+/** Direct native calls retain every Driftwood gameplay recorder and continuation. */
+export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async (preparation) => {
+    const { product, assets } = preparation, shard = product.shardfile;
+    const { constants } = await product.json<{
+        constants: ReturnType<typeof driftwoodNativeRows> & {
+            sea: Parameters<typeof declaredWaterBody>[0];
+            dayStyle: typeof TOON_LOOK.sky.day;
+            nativeQuest: NativeQuestCompositionInput['rows'] & {
+                reward: {
+                    director: string;
+                    channels: string;
+                };
+                acquisition: {
+                    population: string;
+                };
+            };
+            nativeQuestSpots: unknown;
+            mixedPopulation: unknown;
+            chapterDirector: unknown;
+            nativeEncounter: unknown;
+            nativeChapterCues: unknown;
+            questProps: unknown;
+            questKillSteps: unknown;
+            swords: unknown;
+            entries: Parameters<typeof proveTerrainEntries>[3];
+            interactSpots: NativeQuestCompositionInput['spots']['rows'];
+            interact: NativeQuestCompositionInput["table"];
+            nativeCounters: NativeQuestCompositionInput["counters"];
+        };
+    }>('sim/headless-assembly.json');
+    const lendReturns = await prepareReturns(preparation);
+    const countersJson = await (readJson(product, "quests/achievements.json"));
+    const counters = await ((parseAchievementCounterData)(countersJson));
+    const species = await ((product["section"])("actors/species-programs"));
+    await ((need)(species["program"], "Driftwood requires its admitted species program"));
+    const fauna = await new Map(species.native.map(row => [row.kind, row] as const));
+    const placementJson = await (readJson<MixedPopulationInput["placement"]>(product, "sim/enemy-placement.json", false));
+    const placement = await (placementJson);
+    const monkeyJson = await (readJson<{
+        program: unknown;
+    }>(product, "poses/monkey.json", true));
+    const keeperJson = await (readJson(product, "sim/keeper.json", false));
+    const keeper = await (keeperJson);
+    const launch = await ((need)(need(shard.items.launches, "Missing launch rows")["coconut"], "Driftwood requires its admitted coconut launch"));
+    const navigation = await ((need)((assets["get"])(need(shard.navigation, "Missing navigation").file), "Driftwood requires its admitted navigation asset"));
+    const director = await ((readDirectorProduct)(product));
+    const physicsGround = await ((product["file"])("data/physics-ground.generated.bin"));
+    const physicsColliders = await ((product["file"])("data/physics-colliders.bin"));
+    const bakeReader = await ((createNativeBakeReader)(constants["physics"], { "label": "Driftwood", "resolution": 256, "size": 500, "parked": false, "rig": "axis", "shapes": [1, 2, 9], "provenance": "tagged" }, { "file": "data/physics-ground.generated.bin", "bytes": physicsGround }, [{ "file": "data/physics-colliders.bin", "bytes": physicsColliders }]));
+    const ground = await ((nativeBakeGround)(constants["physics"]["ground"], 256, 500, "Driftwood", { "file": "data/physics-ground.generated.bin", "bytes": physicsGround }));
+    const bake = await ({ "actors": constants["physics"]["actors"], "herds": constants["physics"]["herds"], "habitat": constants["physics"]["habitat"], "captain": constants["physics"]["captain"], "ground": ground, "solids": (constants["physics"]["solids"]["map"])((arg1_0) => ((bakeReader["solid"])(arg1_0))) });
+    const specs = await (new (Map)(constants["nativeSpecs"]));
+    const heightAt = await ((arg1_0: number, arg1_1: number) => ((terrainTileHeight)({ "resolution": 256, "x": -250, "z": -250, "size": 500, "heights": ground["heights"] }, arg1_0, arg1_1, { "layout": "column-major", "boundary": "clamp" })));
+    const nav = await ((readNavmesh)(navigation, "Driftwood declared navigation does not parse", () => (0)));
+    const spots = await ((readNativeQuestSpots)(constants["nativeQuestSpots"]));
+    const heightAtEntry = heightAt;
+    const level = trustedLevel(shard, { at: { x: shard.spawn.x, y: Math.max(shard.spawn.y, heightAtEntry(shard.spawn.x, shard.spawn.z) + 0.1), z: shard.spawn.z }, yaw: shard.spawn.yaw, speed: 5 }, { "size": 500, "height": 0 });
+    const ports = { ground: false as const, heightAt: heightAtEntry };
+    return { level, ports, proveEntries: (arg1_0) => ((proveTerrainEntries)(arg1_0["physics"], shard["entryways"], heightAt, constants["entries"])), install: (host, context) => {
+            lendReturns(host);
+            const dayLook = (dayClock)(TOON_DAY_PRESET, constants["dayStyle"], { "dusk": "dusk" });
+            const clock = new (DayCycle)(Object.assign({}, dayLook["spec"], { "start": 0.16666666666666669 }));
+            (clock["cycle"] = 2880);
+            (host["useDayClock"])(clock);
+            const sea = (declaredWaterBody)(constants["sea"]);
+            (host["useWater"])({ "surfaceAt": sea["restAt"], "bob": (arg1_0: number, arg1_1: number) => ((waveHeight)(arg1_0, arg1_1, host["clock"]["now"])) });
+            ((!context["restoring"]) ? (installNativeCollision)(host, bake, { "resolution": 256 }) : undefined);
+            (nativeDecisionAuthority)(shard, assets, host);
+            const island = (installMixedPopulation)(host, { "perchProgram": monkeyJson["program"], "rows": constants["mixedPopulation"], "reserved": bake["captain"], "placement": placement, "keeper": keeper, "fauna": fauna, "launch": launch, "population": species, "bake": { "ground": bake["ground"], "actors": bake["actors"], "herds": bake["herds"], "habitat": bake["habitat"] }, "specs": specs, "seed": shard["identity"]["seed"], "waterLevel": sea["level"], "spawnY": shard["spawn"]["y"], "nav": nav }, context["snapshot"]);
+            (installNativeChapterDirector)(host, director, { "id": constants["nativeQuest"]["reward"]["director"], "rows": constants["chapterDirector"], "reward": constants["nativeQuest"]["reward"]["channels"], "wake": { "population": constants["nativeQuest"]["acquisition"]["population"], "encounter": constants["nativeEncounter"], "placement": { "pool": { "x": bake["captain"]["pool"]["x"], "z": bake["captain"]["pool"]["z"] }, "arena": bake["captain"]["arena"] }, "cues": constants["nativeChapterCues"] } }, context["restoring"]);
+            const input = (bindHeadlessCommands)(context, host);
+            const combat = (need)(context["combat"], "Driftwood requires its native combat frame");
+            (host["events"]["answer"])("item.reaction", (arg1_0) => ((((arg1_0["kind"] === "alarm") ? (island["alarm"])() : (island["staggered"])(arg1_0["actor"], arg1_0["strength"], arg1_0["running"])), arg1_0)), host["scope"]);
+            (installNativeItems)(host, combat, { "kind": "swept", "items": shard["items"]["rows"], "policy": constants["swords"] });
+            (installQuestKillSteps)(host, constants["questKillSteps"], counters["feats"], island["bodies"], input["ledger"]["fact"]);
+            installBodyScripts(host, context, preparation);
+            (installNativeQuestComposition)(host, { "source": shard, "table": constants["interact"], "spots": spots, "counters": constants["nativeCounters"], "props": constants["questProps"], "restoring": context["restoring"], "rows": constants["nativeQuest"] });
+            (island["settle"])();
+            (host["onStep"])("driftwood.poses", island["publishPoses"], undefined, "afterBodies");
+        } };
+};

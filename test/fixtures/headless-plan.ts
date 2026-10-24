@@ -6,6 +6,9 @@ import { parse } from 'valibot';
 import { createSimHost, type SimHost } from '../../src/engine/sim';
 import type { Rapier } from '../../src/engine/physics/rapier';
 import { combatSpeedFactor } from '../../src/engine/player/combatMotion';
+import { installNativeBodyScripts } from '../../src/game/quest/nativeBodyScripts';
+import { hasStaticGround } from '../../src/engine/physics/query';
+import { onSimHostRestored } from '../../src/engine/sim/snapshot';
 
 export function need<T>(value: T, message: string): NonNullable<T> {
   if (value === null || value === undefined) throw new Error(message);
@@ -36,4 +39,14 @@ export function installCombatMotion(host: SimHost, context: HeadlessRuntimeInsta
   if (frame === undefined) throw new Error('Native combat motion requires its combat frame');
   host.observePlayerMotion(sample => { frame.speedFactor = sample === null ? null : combatSpeedFactor(
     Math.sqrt(sample.velocityX * sample.velocityX + sample.velocityZ * sample.velocityZ), sample.grounded, sample.swimming, sample.hover, speed); });
+}
+/** The original direct body-script admission and deferred restored-ground fence. */
+export function installBodyScripts(host: SimHost, context: HeadlessRuntimeInstallation, preparation: HeadlessRuntimePreparation): void {
+  if (host.scope.disposed || host.scope.disposing) throw new Error('Native capability owner has ended');
+  const requireGround = (): void => { if (!hasStaticGround(host.physics)) throw new Error('Native body scripts require admitted ground'); };
+  if (context.restoring) onSimHostRestored(host, requireGround); else requireGround();
+  const sections = new Map<string, unknown>();
+  for (const name of ['sim/scripts', 'sim/bodies', 'actors/moves', 'actors/strikes', 'world/targets', 'sim/runtime-plan'] as const)
+    if (preparation.product.has(name)) sections.set(name, preparation.product.section(name));
+  installNativeBodyScripts(host, preparation.product.shardfile, preparation.assets, context.restoring, sections);
 }

@@ -4,7 +4,7 @@ import barrelSource from '../src/shards/driftwood-isle/behaviour/barrels.as?raw'
 import { beforeAll, expect, test } from 'vitest';
 import * as v from 'valibot';
 import { emptyShardfile } from '../src/sdk/author';
-import { prepareHeadlessAssembly } from '../src/sdk/headlessAssembly';
+import { installBodyScripts } from './fixtures/headless-plan';
 import type { HeadlessRuntimePlan } from '../src/sdk/headlessRuntime';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';
@@ -43,14 +43,10 @@ beforeAll(async () => {
     // exact legacy decision contract carried by the barrel's save envelope.
     ['world/targets', { targets: [], spots: [{ id: 'fixture.unchanged', at: [3, 4, 5], yaw: .25 }] }]]);
   assets = new Map([[row.module.slice('blobs/wasm/'.length, -'.wasm'.length), blob.bytes]]);
-  const declaration = { version: 1, modules: {}, constants: {}, prepare: [],
-    install: [{ name: 'bodyScripts', value: { $native: 'native.body-scripts' } }],
-    level: { speed: 5, lift: .1, ground: { size: 32, height: 0 } },
-    ports: { ground: false, heightAt: { $fn: 0 } }, entries: { $fn: { lanes: 0, steps: 0 } } };
   const product = createShardProduct({ slug: source.identity.slug, revision: 1, shardfile: source, sections,
-    files: new Map([['sim/headless-assembly.json', { hash: 'assembly', url: 'assembly' }]]),
-    read: () => Promise.resolve(new TextEncoder().encode(JSON.stringify(declaration))) });
-  nativePlan = await prepareHeadlessAssembly({ shard: source, product, assets, rapier: await rapier }, {});
+    files: new Map(), read: () => Promise.reject(new Error('Body-script proof reads admitted sections only')) });
+  const preparation = { shard: source, product, assets, rapier: await rapier };
+  nativePlan = { level, install: (host, context) => { installBodyScripts(host, context, preparation); } };
 });
 const envelope = v.strictObject({ barrel: v.unknown() });
 /** The quest composition's barrel envelope over today's props and body scripts. */
