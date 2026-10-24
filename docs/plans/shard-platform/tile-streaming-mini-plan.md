@@ -4,7 +4,54 @@ Jake, 2026-10-22 ~23:45 Cancun: *"the tiling and the streaming and the 62.5 mete
 memory problem … generically implemented in the engine … 62.5 meters plus the neighbors, so 3x3 … Can we make the road
 62.5 meters? … keep just tiles of shards in memory and evict everything else … it's also going to fix the loading problem"*.
 
-Code read only. Nothing built or run.
+The opening trace below is historical (2026-10-22); later decisions and source rows follow it.
+
+## T0 census baseline (2026-10-24, sp-x8)
+
+T0 is **in flight**. The five original entered-world receipts from
+`7434c9f366` were rechecked offline; no new browser, build or measurement was run.
+They all name app `ffa26b824a94cd9af8fbfd94b1968ec0b087bf1e`, Chromium iPhone 16 Pro,
+phone tier, 4x CPU and 2x render scale. These are historical capacities, **not current main**.
+The [exact-byte rollup](../../../progress/shard-platform/tile-streaming/t0-ffa26-baseline.json)
+records each receipt's SHA-256, build stamp, node coverage and classification limits.
+
+Observed GPU MiB, identity-deduplicated and reconciled to every observed context:
+
+| Shard | Total | Engine | Known global | Single-node buffers | Shared | Unknown |
+|---|---:|---:|---:|---:|---:|---:|
+| Driftwood | 181.05 | 78.98 | 24.70 | 27.60 | 24.16 | 25.60 |
+| Nalati | 230.02 | 73.46 | 0.00 | 48.52 | 87.99 | 20.04 |
+| Pine | 281.90 | 78.72 | 0.00 | 35.66 | 129.57 | 37.95 |
+| Nine | 278.78 | 67.73 | 0.00 | 122.29 | 66.93 | 21.83 |
+| Sky | 161.83 | 67.94 | 0.00 | 12.86 | 54.15 | 26.88 |
+
+Known global preserves the original Driftwood ocean/seabed and horizon policy. A zero
+means no owner was classified there; it does not establish that a shard has no global
+resources. Driftwood/Nalati still have 65/57 unlabelled GL resources. Shared includes
+textures and buffers referenced by multiple scene nodes. A single scene node may span
+the whole shard, and caches may retain its source after its tile retires.
+
+Tracked RAM capacities, **separate from GPU and allocator claims**, in MiB:
+
+| Shard | Total RAM | ArrayBuffers | Audio | Wasm | Images / bitmaps / canvases | Allocator claims |
+|---|---:|---:|---:|---:|---:|---:|
+| Driftwood | 162.08 | 51.62 | 83.15 | 5.38 | 21.95 | 318.44 |
+| Nalati | 301.23 | 71.32 | 140.08 | 27.75 | 62.08 | 244.29 |
+| Pine | 318.68 | 186.87 | 108.32 | 13.13 | 10.35 | 226.43 |
+| Nine | 161.20 | 46.77 | 87.14 | 1.69 | 25.60 | 402.66 |
+| Sky | 99.21 | 67.57 | 0.00 | 2.44 | 29.20 | unavailable |
+
+All ledger identities and per-domain totals reconcile; all scene buffer references
+resolve to an observed GL allocation. The receipts contain no join from RAM backing
+identities to scene nodes, no geometry tile footprints and no last-consumer/cache
+retirement proof. Empty node buffer lists are not evidence of zero geometry: they
+include never-uploaded or otherwise unlinked attributes.
+
+**Remaining T0 work:** capture those identity/footprint links before claiming tile-local
+RAM or an expected saving. No positive retirement saving is established by this table;
+neither the 39/64 area fraction nor a GPU capacity can be substituted for one. The plan's
+whole-shard terrain, simulation, audio and shared-library policies still constrain what
+can retire. Keep the unknown column until the missing links are observed.
 
 ## 1. What exists today
 

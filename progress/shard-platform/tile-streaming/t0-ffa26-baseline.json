@@ -1,0 +1,231 @@
+{
+  "pin": "ffa26b824a94cd9af8fbfd94b1968ec0b087bf1e",
+  "definingCensus": "7434c9f3663f545bce339cd9e149369d6dc9e7d1",
+  "rows": [
+    {
+      "name": "driftwood",
+      "shard": "driftwood-isle",
+      "source": "tmp/sp-x2/tile-census/driftwood.json",
+      "sha256": "d92c0ca5a74cce8e60790cca606756c418ad9721add4e594d004cacbfd0d10ff",
+      "build": "ffa26b8-mvkjxbit",
+      "versionTime": "2026-10-23T05:51:14.959Z",
+      "poses": 4,
+      "gpu": {
+        "engine": 82816520,
+        "shardGlobal": 25904076,
+        "tileCandidate": 28938250,
+        "shared": 25338152,
+        "unknown": 26843903
+      },
+      "gpuTotal": 189840901,
+      "gpuResources": 1122,
+      "unlabelledResources": 65,
+      "ramCapacity": 169957019,
+      "ramCapacityByKind": {
+        "audio-buffer": 87185296,
+        "image": 22020096,
+        "wasm": 5636096,
+        "array-buffer": 54124299,
+        "image-bitmap": 524288,
+        "canvas": 466944
+      },
+      "allocatorClaims": 333913296,
+      "sceneNodeCount": 547,
+      "unlinkedSceneNodes": 55,
+      "ramSceneIdentityJoinAvailable": false,
+      "tileFootprintsAvailable": false,
+      "provedTileLocalBytes": null,
+      "provedRetirableBytes": null,
+      "globalOwners": [
+        "scene:seabed",
+        "scene:driftwood-ocean"
+      ],
+      "labelLimitations": {
+        "singleNodeIsNotSingleTile": true,
+        "sharedLibrariesCanKeepBuffersAlive": true,
+        "ledgerCapacityIsNotPhysicalFootprint": true
+      }
+    },
+    {
+      "name": "nalati",
+      "shard": "nalati-grasslands",
+      "source": "tmp/sp-x2/tile-census/nalati.json",
+      "sha256": "50323faf1aa61551d813eb894148e5b01308cc0961e0c2d25bc06b8d291ba3d5",
+      "build": "ffa26b8-mvkjxbit",
+      "versionTime": "2026-10-23T05:51:14.959Z",
+      "poses": 4,
+      "gpu": {
+        "engine": 77032492,
+        "shardGlobal": 0,
+        "tileCandidate": 50872782,
+        "shared": 92265436,
+        "unknown": 21017964
+      },
+      "gpuTotal": 241188674,
+      "gpuResources": 714,
+      "unlabelledResources": 57,
+      "ramCapacity": 315859570,
+      "ramCapacityByKind": {
+        "wasm": 29097984,
+        "audio-buffer": 146881792,
+        "image-bitmap": 61799168,
+        "array-buffer": 74779250,
+        "canvas": 3301376
+      },
+      "allocatorClaims": 256151582,
+      "sceneNodeCount": 333,
+      "unlinkedSceneNodes": 170,
+      "ramSceneIdentityJoinAvailable": false,
+      "tileFootprintsAvailable": false,
+      "provedTileLocalBytes": null,
+      "provedRetirableBytes": null,
+      "globalOwners": [],
+      "labelLimitations": {
+        "singleNodeIsNotSingleTile": true,
+        "sharedLibrariesCanKeepBuffersAlive": true,
+        "ledgerCapacityIsNotPhysicalFootprint": true
+      }
+    },
+    {
+      "name": "pine",
+      "shard": "pine-hollow",
+      "source": "tmp/sp-x2/tile-census/pine.json",
+      "sha256": "3b685f98f8190ac617da4fcddd5e1c0d594259b0f7cdb8baa4a28b46af6bcd15",
+      "build": "ffa26b8-mvkjxbit",
+      "versionTime": "2026-10-23T05:51:14.959Z",
+      "poses": 4,
+      "gpu": {
+        "engine": 82548996,
+        "shardGlobal": 0,
+        "tileCandidate": 37390126,
+        "shared": 135865054,
+        "unknown": 39792992
+      },
+      "gpuTotal": 295597168,
+      "gpuResources": 2183,
+      "unlabelledResources": 0,
+      "ramCapacity": 334155016,
+      "ramCapacityByKind": {
+        "audio-buffer": 113584460,
+        "wasm": 13762560,
+        "array-buffer": 195951548,
+        "image-bitmap": 7602176,
+        "canvas": 2891776,
+        "image": 362496
+      },
+      "allocatorClaims": 237434137,
+      "sceneNodeCount": 827,
+      "unlinkedSceneNodes": 261,
+      "ramSceneIdentityJoinAvailable": false,
+      "tileFootprintsAvailable": false,
+      "provedTileLocalBytes": null,
+      "provedRetirableBytes": null,
+      "globalOwners": [],
+      "labelLimitations": {
+        "singleNodeIsNotSingleTile": true,
+        "sharedLibrariesCanKeepBuffersAlive": true,
+        "ledgerCapacityIsNotPhysicalFootprint": true
+      }
+    },
+    {
+      "name": "nine",
+      "shard": "nine-dragon-stack",
+      "source": "tmp/sp-x2/tile-census/nine.json",
+      "sha256": "36f602e1aa2201ab1c50ea5de6764fc4bca0e0dc01b3ee928ce364bb16a7fc3d",
+      "build": "ffa26b8-mvkjxbit",
+      "versionTime": "2026-10-23T05:51:14.959Z",
+      "poses": 4,
+      "gpu": {
+        "engine": 71022664,
+        "shardGlobal": 0,
+        "tileCandidate": 128230804,
+        "shared": 70179120,
+        "unknown": 22887168
+      },
+      "gpuTotal": 292319756,
+      "gpuResources": 1171,
+      "unlabelledResources": 0,
+      "ramCapacity": 169027718,
+      "ramCapacityByKind": {
+        "audio-buffer": 91372936,
+        "image-bitmap": 24399872,
+        "canvas": 2445312,
+        "array-buffer": 49040126,
+        "wasm": 1769472
+      },
+      "allocatorClaims": 422216861,
+      "sceneNodeCount": 244,
+      "unlinkedSceneNodes": 77,
+      "ramSceneIdentityJoinAvailable": false,
+      "tileFootprintsAvailable": false,
+      "provedTileLocalBytes": null,
+      "provedRetirableBytes": null,
+      "globalOwners": [],
+      "labelLimitations": {
+        "singleNodeIsNotSingleTile": true,
+        "sharedLibrariesCanKeepBuffersAlive": true,
+        "ledgerCapacityIsNotPhysicalFootprint": true
+      }
+    },
+    {
+      "name": "sky",
+      "shard": "far-reach",
+      "source": "tmp/sp-x2/tile-census/sky.json",
+      "sha256": "cebac410ee6be4e256210310d1a33b89ad9b502243447ded9e99427935af1135",
+      "build": "ffa26b8-mvkjxbit",
+      "versionTime": "2026-10-23T05:51:14.959Z",
+      "poses": 3,
+      "gpu": {
+        "engine": 71241324,
+        "shardGlobal": 0,
+        "tileCandidate": 13481902,
+        "shared": 56781922,
+        "unknown": 28188384
+      },
+      "gpuTotal": 169693532,
+      "gpuResources": 989,
+      "unlabelledResources": 0,
+      "ramCapacity": 104032988,
+      "ramCapacityByKind": {
+        "image-bitmap": 29993728,
+        "wasm": 2555904,
+        "array-buffer": 70854620,
+        "image": 362496,
+        "canvas": 266240
+      },
+      "allocatorClaims": null,
+      "sceneNodeCount": 544,
+      "unlinkedSceneNodes": 175,
+      "ramSceneIdentityJoinAvailable": false,
+      "tileFootprintsAvailable": false,
+      "provedTileLocalBytes": null,
+      "provedRetirableBytes": null,
+      "globalOwners": [],
+      "labelLimitations": {
+        "singleNodeIsNotSingleTile": true,
+        "sharedLibrariesCanKeepBuffersAlive": true,
+        "ledgerCapacityIsNotPhysicalFootprint": true
+      }
+    }
+  ],
+  "status": "historical-baseline-reconciled; tile-local-RAM-and-retirement-unproven",
+  "method": {
+    "sourceReceipts": "Retained original scalar census; no fresh browser capture",
+    "phone": "iPhone 16 Pro",
+    "cpuThrottle": 4,
+    "renderScale": 2,
+    "gpuIdentity": "Per observed GL allocation; duplicate identities refuse",
+    "ramIdentity": "Existing per-domain weak ledger identity; not joined to scene buffers",
+    "globalOwnerPolicy": "Original Driftwood sea and seabed plus horizon texture paths; zero in other rows means no classified global owner, not absence of global resources",
+    "refusalChecks": [
+      "same full source pin and build prefix",
+      "phone tier / CPU4 / renderScale2",
+      "no page errors",
+      "reconciled GL totals",
+      "unique GL identities",
+      "unique memory ledger identities",
+      "ledger per-domain totals",
+      "all scene buffer references exist"
+    ]
+  }
+}
