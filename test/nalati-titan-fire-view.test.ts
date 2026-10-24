@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { BoxGeometry, InstancedBufferAttribute, InstancedMesh, Matrix4, MeshBasicMaterial, PerspectiveCamera, Quaternion, Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { viewProgram } from '../src/engine/script/viewProgram';
@@ -39,6 +39,9 @@ test('the fire module draws the original flames, rolls smoke, appends scorch and
   // three burning cells in a row along x (wind +x): the last one's downwind neighbour is idle, the others' are burning
   const row = 10, burning = [row * field.width + 5, row * field.width + 6, row * field.width + 7];
   for (const [k, c] of burning.entries()) { modes[c] = field.states.active; lifetimes[c] = [6.5, 4, 1.5][k] ?? 0; }
+  // This is a drawing oracle; rate-policy tests supply their own overrun clock.
+  let elapsed = 0;
+  const clock = vi.spyOn(performance, 'now').mockImplementation(() => { elapsed += .05; return elapsed; });
   try {
     for (let frame = 0; frame < 30; frame++) expect(program.frame(1 / 30, frame / 30)).toBe(true);
     expect(flames.count).toBe(burning.length);
@@ -68,5 +71,5 @@ test('the fire module draws the original flames, rolls smoke, appends scorch and
     expect(flames.count).toBe(0); expect(scorch.count).toBe(3);
     values['clear'] = 1; program.frame(1 / 30, 2 + 1 / 30);
     expect(smoke.count).toBe(0); expect(scorch.count).toBe(0); expect(program.frozen).toBe(false);
-  } finally { scope.dispose(); }
+  } finally { clock.mockRestore(); scope.dispose(); }
 });
