@@ -192,7 +192,9 @@ const ring = v.strictObject({ r: number, base: number, color: rgb, top: rgb, sno
   bands: v.pipe(v.array(band), v.maxLength(128)), floor: number });
 /** JSON metadata shared by discovery and the shardfile schema. Native loaders,
  * generated inventories and terrain/model owners are explicit typed bindings. */
-const bindingModule = v.pipe(text, v.regex(/^\.\/[a-zA-Z0-9_-]+(?:[./][a-zA-Z0-9_-]+)*$/u));
+const localModule = v.pipe(text, v.regex(/^\.\/[a-zA-Z0-9_-]+(?:[./][a-zA-Z0-9_-]+)*$/u));
+/** Authored discovery selects data or declared generated modules, never source loaders. */
+const bindingModule = v.pipe(localModule, v.regex(/\.(?:json|generated)$/u));
 const bindingName = v.pipe(text, v.regex(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/u));
 const binding = v.strictObject({module: bindingModule, export: bindingName});
 const moduleBinding = v.strictObject({module: bindingModule});
@@ -203,11 +205,6 @@ const pageBoot = v.strictObject({ platform: v.literal('page-mode'), rows: v.stri
 }) });
 /** A constant density field; no executable forest recipe or species policy. */
 export const FixedForestQueriesSchema = v.strictObject({ platform: v.literal('fixed'), density: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(1)) });
-const transitionPlan = v.exactOptional(v.union([v.boolean(), v.strictObject({
-  features: v.exactOptional(v.pipe(v.array(v.picklist(['combat.targets', 'world.updates', 'world.assembly', 'state.adventure', 'species.program', 'weather.forest', 'held.claims.prepare','held.claims.install','debug.expose', 'taming.entry', 'arena-room.entry', 'elite.entry', 'quest.chapter-view', 'stealth.entry', 'elite.construct', 'timed.encounters'])), v.minLength(1), v.maxLength(64), v.check(rows => new Set(rows).size === rows.length, 'Unique native client features'))),
-  phases: v.pipe(v.array(v.picklist(['world', 'world-bindings', 'kit', 'prepare-play', 'play'])), v.maxLength(5),
-    v.check(rows => new Set(rows).size === rows.length, 'Unique native plan phases')),
-})]));
 const bindings = v.strictObject({
   accent: text, budgets: binding, runtimeCost: v.exactOptional(binding), navigation: v.exactOptional(binding),
   // Finite sample declarations hydrate through defineShard in its original decode order.
@@ -218,17 +215,9 @@ const bindings = v.strictObject({
   forestQueries: v.exactOptional(v.union([binding, declared, FixedForestQueriesSchema])),
   pondClip: v.exactOptional(v.union([binding, declared])), sword: v.exactOptional(v.union([binding, v.strictObject({ rows: bindingModule }), v.strictObject({ platform: v.literal('graph'), file: text })])), audioPreload: v.exactOptional(binding),
   posesLoader: v.exactOptional(binding), spawns: v.exactOptional(binding),
-  entry: v.exactOptional(v.union([
-    v.strictObject({ legacy: bindingModule, retainHomeRuntime: v.boolean(), stagesOwner: v.picklist(['declared', 'runtime']), nativePlan: transitionPlan,
-        styles: v.exactOptional(v.pipe(v.array(v.pipe(bindingModule, v.regex(/\.css$/u))), v.maxLength(8),
-      v.check(rows => new Set(rows).size === rows.length, 'Unique entry styles'))) }),
-    v.strictObject({ native: binding, retainHomeRuntime: v.boolean(), stagesOwner: v.picklist(['declared', 'runtime']), nativePlan: transitionPlan,
-      styles: v.exactOptional(v.pipe(v.array(v.pipe(bindingModule, v.regex(/\.css$/u))), v.maxLength(8),
-        v.check(rows => new Set(rows).size === rows.length, 'Unique entry styles'))) }),
-    v.strictObject({ platform: v.literal('client-plan'), retainHomeRuntime: v.boolean(), stagesOwner: v.picklist(['declared', 'runtime']),
-        styles: v.exactOptional(v.pipe(v.array(v.pipe(bindingModule, v.regex(/\.css$/u))), v.maxLength(8),
-      v.check(rows => new Set(rows).size === rows.length, 'Unique entry styles'))) }),
-  ])),
+  entry: v.exactOptional(v.strictObject({ platform: v.literal('client-plan'), retainHomeRuntime: v.boolean(), stagesOwner: v.picklist(['declared', 'runtime']),
+    styles: v.exactOptional(v.pipe(v.array(v.pipe(localModule, v.regex(/\.css$/u))), v.maxLength(8),
+      v.check(rows => new Set(rows).size === rows.length, 'Unique entry styles'))) })),
   ground: v.exactOptional(v.union([binding, declared])), render: v.exactOptional(v.union([binding, v.strictObject({ platform: v.picklist(['painted', 'toon']) }),
     // G571: a keyed day / night sky look from rows (game looks/keyedSky `keyedSkyRender`): its channel set, dome / env
     // looks and the page-mode trim row (packed keys and the small environment) of a page policy file
@@ -250,7 +239,7 @@ export const ManifestMetadataSchema = v.strictObject({
     phone: v.exactOptional(v.strictObject({ deferExtras: v.exactOptional(v.boolean()), fragile: v.exactOptional(v.boolean()), trace: v.exactOptional(v.boolean()) })), viewmodelSets: v.exactOptional(v.pipe(v.array(v.picklist(['walnut', 'brushed-steel', 'leather', 'cord', 'bolt', 'anodised', 'polymer', 'gunmetal'])), v.maxLength(8))), shaders: v.exactOptional(v.strictObject({background: v.boolean()})), audio: v.exactOptional(strings), precache: strings, stagedWorld: v.exactOptional(v.boolean()),
     steps: v.exactOptional(v.record(text, v.strictObject({label: text, weight: number}))), bytes: v.exactOptional(v.strictObject({sky: v.exactOptional(text), trees: v.exactOptional(text), cabins: v.exactOptional(text), props: v.exactOptional(text), music: v.exactOptional(text), sfx: v.exactOptional(text)}))})),
   entries: v.exactOptional(v.strictObject({legacy: v.boolean(), shardfile: v.boolean()})),
-  gridShardfile: v.exactOptional(text), shardfile: v.exactOptional(text), runtimeEntry: v.exactOptional(v.picklist(['runtime/index.ts', 'runtime/hybrid.ts'])),
+  gridShardfile: v.exactOptional(text), shardfile: v.exactOptional(text),
   ground: v.exactOptional(v.strictObject({structures: v.literal(true), paths: v.exactOptional(v.literal('plugin'))})),
   groundColour: v.exactOptional(rgb), world: v.exactOptional(v.strictObject({killY: number})),
   boundary: v.exactOptional(v.strictObject({visible: v.boolean()})),

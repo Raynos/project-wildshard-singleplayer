@@ -65,8 +65,8 @@ test('authored declared entry keeps its exact platform and refuses unknown field
   expect(data.loadout).toEqual(original.loadout);expect(data.hud).toEqual(original.hud);expect(data.bag).toEqual(original.bag);
   const nativeEntry={native:{module:'./runtime/index',export:'NalatiPlugin'},retainHomeRuntime:true,stagesOwner:'declared'};
   const withEntry=(value:unknown)=>({...metadata,bindings:{...metadata.bindings,entry:value}});
-  // Native transitions remain strict even though this shard now selects all declared features.
-  expect(parseManifestMetadata(withEntry(nativeEntry)).bindings.entry).toEqual(nativeEntry);
+  // Authored metadata cannot reintroduce a native entry; frozen runtime schemas stay separate.
+  expect(()=>parseManifestMetadata(withEntry(nativeEntry))).toThrow();
   for(const nativePlan of [{phases:['play'],features:['unknown']},{phases:['play'],features:['weather.forest','weather.forest']},{phases:['play','play']}])
     expect(()=>parseManifestMetadata(withEntry({...nativeEntry,nativePlan}))).toThrow();
   for(const invalid of [{...entry,platform:'unknown'},{...entry,nativePlan:true},{...entry,execute:true}])

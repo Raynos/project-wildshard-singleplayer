@@ -11,33 +11,36 @@ import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
 const root = resolve(import.meta.dirname, '..');
 const fixture = parseManifestMetadata(JSON.parse(readFileSync(resolve(root, 'src/shards/_template/manifest.json'), 'utf8')));
 const { load: _load, entry: _entry, ...bindings } = fixture.bindings;
-const entry = { native: { module: './plugin', export: 'FixturePlugin' }, retainHomeRuntime: true,
-  stagesOwner: 'declared', nativePlan: { phases: ['kit'] } };
-const metadata = (patch: object): unknown => ({ ...fixture, runtimeEntry: 'runtime/index.ts', ...patch });
+const entry = { platform: 'client-plan', retainHomeRuntime: true, stagesOwner: 'declared' };
+const metadata = (patch: object): unknown => ({ ...fixture, ...patch });
 
-test('a named native transition preserves only the selected kit phase', () => {
-  const data = parseManifestMetadata(metadata({ bindings: { ...bindings, entry } }));
-  const source = authoredManifestSource(root, fixture.slug, { metadataOnly: true, composed: data });
-  expect(source).toContain('const runtimeModule = await import("./runtime/index")');
-  expect(source).toContain('const nativeModule = await import("./plugin")');
-  expect(source).toContain('nativeModule["FixturePlugin"]');
-  expect(source).toContain('"nativePlan":{"phases":["kit"]}');
-  expect(source).toContain('runtimeModule.default');
-  for (const bad of [{ ...entry, ignored: true }, { ...entry, nativePlan: { phases: ['kit', 'kit'] } },
-    { ...entry, nativePlan: { phases: ['tick'] } }, { ...entry, nativePlan: { phases: ['kit'], callback: 'run' } }]) {
-    expect(() => parseManifestMetadata(metadata({ bindings: { ...bindings, entry: bad } }))).toThrow();
+test('authored metadata and emitter refuse both trusted entry forms and runtime selection', () => {
+  for (const rejected of [
+    { legacy: './runtime/legacy', retainHomeRuntime: true, stagesOwner: 'declared' },
+    { native: { module: './plugin', export: 'FixturePlugin' }, retainHomeRuntime: true, stagesOwner: 'declared' },
+    { ...entry, nativePlan: true }, { ...entry, nativePlan: { phases: ['kit'] } },
+  ]) {
+    const data={ ...fixture, bindings: { ...bindings, entry: rejected } };
+    expect(() => parseManifestMetadata(data)).toThrow();
+    expect(() => authoredManifestSource(root, fixture.slug, {metadataOnly:true, composed:data})).toThrow();
   }
-  expect(() => parseManifestMetadata({ ...fixture, bindings: { ...bindings,
-    entry: { platform: 'client-plan', retainHomeRuntime: true, stagesOwner: 'declared', nativePlan: true } } })).toThrow();
+  for (const runtimeEntry of ['runtime/index.ts','runtime/hybrid.ts']) {
+    const data={ ...fixture, runtimeEntry, bindings: { ...bindings, entry } };
+    expect(() => parseManifestMetadata(data)).toThrow();
+    expect(() => authoredManifestSource(root,fixture.slug,{metadataOnly:true,composed:data})).toThrow();
+  }
 });
 
-test('the legacy transition keeps its linked default constructor and policy', () => {
-  const legacy = { legacy: './runtime/legacy', retainHomeRuntime: true, stagesOwner: 'declared' };
-  const data = parseManifestMetadata(metadata({ bindings: { ...bindings, entry: legacy } }));
-  const source = authoredManifestSource(root, fixture.slug, { metadataOnly: true, composed: data });
-  expect(source).toContain('nativeModule.default');
-  expect(source).toContain('"entry":"runtime/index.ts","retainHomeRuntime":true,"stagesOwner":"declared"');
-  expect(source).not.toContain('nativePlan');
+test('authored bindings admit only canonical JSON or generated modules', () => {
+  for (const module of ['./data/budgets.json','./data/budgets.generated','./data/budgets.generated.json']) {
+    expect(() => parseManifestMetadata({...fixture,bindings:{...bindings,budgets:{module,export:'default'}}})).not.toThrow();
+  }
+  for (const module of ['./runtime/index','./runtime/index.ts','./data/budgets.ts','./data/../budgets.json','./data//budgets.json']) {
+    const data={...fixture,bindings:{...bindings,budgets:{module,export:'default'}}};
+    expect(() => parseManifestMetadata(data)).toThrow();
+    expect(() => authoredManifestSource(root,fixture.slug,{metadataOnly:true,composed:data})).toThrow();
+    for (const key of ['load','ktx2']) expect(() => parseManifestMetadata({...fixture,bindings:{...bindings,[key]:{module}}})).toThrow();
+  }
 });
 
 test('fixed boot and art bindings stay independent of page mode and lazy graph loading', () => {

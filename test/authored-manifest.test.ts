@@ -86,17 +86,18 @@ test('declared entries compile literal runtime links without shard plugin wrappe
     const source = authoredManifestSource(root, slug);
     expect(source).toContain("import('@wildshard/game/shard/declaredEntry')");
     const policy = parseManifestMetadata(metadata(slug)).bindings.entry;
-    expect(source).toContain(policy !== undefined && 'platform' in policy ? '.declaredClientPlanEntry(' : 'entryModule.declaredRuntimeEntry(runtimeModule.default, nativeModule.default,');
+    expect(policy?.platform).toBe('client-plan');
+    expect(source).toContain('.declaredClientPlanEntry(');
     expect(source).not.toMatch(/Promise\.all\(\[import\("\.\/runtime\/(?:hybrid|index)"/u);
     expect(source).not.toContain('import("./plugin")');
     const row = parseManifestMetadata(metadata(slug));
-    if (policy !== undefined && 'platform' in policy) { expect(row.runtimeEntry).toBeUndefined(); expect(source).not.toContain('runtimeModule'); }
-    else { if (row.runtimeEntry === undefined) throw new Error('Missing declared runtime entry'); expect(source).toContain(`import(${JSON.stringify(`./${row.runtimeEntry.slice(0, -3)}`)})`); }
+    expect(row).not.toHaveProperty('runtimeEntry');
+    expect(source).not.toContain('runtimeModule');
   }
 });
 
 
-test('linked entry modules finish before the next namespace can observe their constructors', async () => {
+test('authored platform entry waits for styles and its defining constructor module', async () => {
   for (const slug of ['driftwood-isle', 'pine-hollow', 'nine-dragon-stack']) {
     const source = authoredManifestSource(root, slug), file = ts.createSourceFile('manifest.ts', source, ts.ScriptTarget.Latest, true);
     let expression: ts.Expression | undefined;
@@ -106,45 +107,19 @@ test('linked entry modules finish before the next namespace can observe their co
     };
     find(file);
     if (expression === undefined) throw new Error('Missing compiled runtime loader');
-    let initialized = false;
-    class Runtime { readonly kind = 'runtime'; }
-    class Native { readonly kind = 'native'; }
-    const authored = parseManifestMetadata(metadata(slug)), policy = authored.bindings.entry;
+    const policy = parseManifestMetadata(metadata(slug)).bindings.entry;
     if (policy === undefined) throw new Error('Missing entry policy');
-    if ('platform' in policy) {
-      const imports:string[]=[];
-      const loadModule=async(specifier:string):Promise<object>=>{await Promise.resolve();imports.push(specifier);if(policy.styles?.includes(specifier))return {};if(specifier==='@wildshard/game/shard/declaredEntry')return {declaredClientPlanEntry:(input:object)=>({compiled:input})};throw new Error('Unexpected source constructor');};
-      const loader:unknown=runInNewContext(`(${expression.getText(file).replaceAll('import(', 'loadModule(')})`,{loadModule},{timeout:1000});
-      if(typeof loader!=='function')throw new Error('Invalid built-in loader');
-      expect(await Reflect.apply(loader,undefined,[])).toEqual({compiled:{retainHomeRuntime:policy.retainHomeRuntime,stagesOwner:policy.stagesOwner}});
-      expect(imports).toEqual([...(policy.styles??[]),'@wildshard/game/shard/declaredEntry']);continue;
-    }
-    if(authored.runtimeEntry===undefined)throw new Error('Missing legacy runtime entry');
-    const runtimePath = `./${authored.runtimeEntry.slice(0, -3)}`;
-    const nativePath = 'legacy' in policy ? policy.legacy : policy.native.module;
-    const nativeName = 'legacy' in policy ? 'default' : policy.native.export;
-    const loadModule = async (specifier: string): Promise<object> => {
-      if (policy.styles?.includes(specifier)) return {};
-      if (specifier === runtimePath) {
-        await Promise.resolve(); await Promise.resolve(); initialized = true;
-        return { default: Runtime };
-      }
-      if (specifier === nativePath) {
-        if (!initialized) throw new Error('Native entry observed an unfinished linked runtime');
-        return { [nativeName]: Native };
-      }
-      if (specifier === '@wildshard/game/shard/declaredEntry') {
-        if (!initialized) throw new Error('Adapter observed an unfinished linked runtime');
-        return { declaredRuntimeEntry: (runtime: object, native: object): object => ({ runtime, native }) };
-      }
-      throw new Error('Unexpected compiled import');
+    const imports:string[]=[];
+    const loadModule=async(specifier:string):Promise<object>=>{
+      await Promise.resolve();imports.push(specifier);
+      if(policy.styles?.includes(specifier))return {};
+      if(specifier==='@wildshard/game/shard/declaredEntry')return {declaredClientPlanEntry:(input:object)=>({compiled:input})};
+      throw new Error('Unexpected source constructor');
     };
-    const concurrent = [loadModule(runtimePath), loadModule(nativePath), loadModule('@wildshard/game/shard/declaredEntry')];
-    await expect(Promise.all(concurrent)).rejects.toThrow('unfinished linked runtime');
-    await Promise.allSettled(concurrent); initialized = false;
-    const loader: unknown = runInNewContext(`(${expression.getText(file).replaceAll('import(', 'loadModule(')})`, { loadModule }, { timeout: 1000 });
-    if (typeof loader !== 'function') throw new Error('Compiled entry is not a loader');
-    expect(await Reflect.apply(loader, undefined, [])).toEqual({ runtime: Runtime, native: runtimePath === nativePath && nativeName === 'default' ? Runtime : Native });
+    const loader:unknown=runInNewContext(`(${expression.getText(file).replaceAll('import(', 'loadModule(')})`,{loadModule},{timeout:1000});
+    if(typeof loader!=='function')throw new Error('Invalid built-in loader');
+    expect(await Reflect.apply(loader,undefined,[])).toEqual({compiled:{retainHomeRuntime:policy.retainHomeRuntime,stagesOwner:policy.stagesOwner}});
+    expect(imports).toEqual([...(policy.styles??[]),'@wildshard/game/shard/declaredEntry']);
   }
 });
 
