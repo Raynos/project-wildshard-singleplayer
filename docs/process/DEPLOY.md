@@ -62,7 +62,10 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   Smoke verifies that provenance and the version stamp before sharing the same bytes with all six browser legs;
   it never regenerates products. Missing or expired artifacts refuse the proof: push a head containing the artifact
   publisher and prove that head; an older run without the artifact cannot supply this proof.
-  Cases come from that build's actual title catalogue, excluding hidden levels and frozen copies. Experimental
+  Cases come from that build's actual title catalogue, excluding frozen copies and
+  explicit `shardSelect: false` rows, which have no standalone picker card. Selectable
+  hidden shards remain Developer cases. Explorer retains grid-only catalogue rows.
+  Experimental
   primaries (including Signal) use their real Developer entry. While Nine is experimental, its public leg is an
   explicit PUBLIC-POLICY ADMISSION proof (call44): the existing `?chunk=` document fully hydrates Nine to the title
   with Developer off (`data-dev` absent), zero fatal reports, a locked COMING SOON card and the actual initial draw. The title then gates its frame loop.

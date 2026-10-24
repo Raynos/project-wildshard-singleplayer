@@ -80,8 +80,10 @@ export function bootCatalogue() {
   if (!Array.isArray(installed) || installed.length === 0) throw new Error('Missing built title shard catalogue');
   return installed.map((/** @type {unknown} */ row) => {
     if (typeof row !== 'object' || row === null || !('slug' in row) || typeof row.slug !== 'string' ||
-      !('status' in row) || typeof row.status !== 'string') throw new Error('Invalid built title shard catalogue row');
-    return { slug: row.slug, status: row.status, legacy: 'legacy' in row && row.legacy === true };
+      !('status' in row) || typeof row.status !== 'string' ||
+      ('shardSelect' in row && typeof row.shardSelect !== 'boolean')) throw new Error('Invalid built title shard catalogue row');
+    return { slug: row.slug, status: row.status, legacy: 'legacy' in row && row.legacy === true,
+      shardSelect: !('shardSelect' in row) || row.shardSelect !== false };
   });
 }
 
@@ -94,7 +96,7 @@ export async function bootCaseBrowser(pool, mode) {
 }
 
 /** Every public primary enters through its real public button; experimental primaries enter with Developer on.
- * @param {readonly {slug:string,status:string,legacy:boolean}[]} catalogue
+ * @param {readonly {slug:string,status:string,legacy:boolean,shardSelect?:boolean}[]} catalogue
  * @param {'all'|'public'|'developer'|'grid'} [group]
  * @returns {readonly (readonly ['standalone'|'grid'|'public-policy',string,boolean])[]} */
 export function bootCases(catalogue, group = 'all') {
@@ -104,7 +106,9 @@ export function bootCases(catalogue, group = 'all') {
     if (!/^[a-z0-9_-]+$/u.test(row.slug) || seen.has(row.slug) || !['live', 'earlyAccess', 'experimental', 'hidden'].includes(row.status)) throw new Error('Invalid or duplicate built title shard');
     seen.add(row.slug);
   }
-  const primary = catalogue.filter(row => !row.legacy);
+  // Match titleCards: a grid-only plot has no picker card to tap. Its catalogue
+  // remains available to Explorer, independent of standalone entry coverage.
+  const primary = catalogue.filter(row => !row.legacy && row.shardSelect !== false);
   if (!primary.some(row => row.slug === 'sunscar-dunes')) throw new Error('Signal page-ready case is missing from the built catalogue');
   const publicRows = primary.filter(row => row.status !== 'experimental' && row.status !== 'hidden');
   const home = publicRows.at(0)?.slug;

@@ -27,9 +27,10 @@ export function explorerCards() {
   });
 }
 
-/** @param {readonly {slug:string,status:string,legacy:boolean}[]} catalogue */
+/** @param {readonly {slug:string,status:string,legacy:boolean,shardSelect?:boolean}[]} catalogue */
 export function explorerCases(catalogue) {
-  return [...new Set(bootCases(catalogue).filter(row=>row[0]!=='grid').map(row=>row[1]))];
+  return [...new Set([...bootCases(catalogue).filter(row=>row[0]!=='grid').map(row=>row[1]),
+    ...catalogue.filter(row=>!row.legacy && row.shardSelect===false).map(row=>row.slug)])];
 }
 
 /** @param {readonly {id:string,ready:boolean,pixels:number,darkShare:number}[]} cards */

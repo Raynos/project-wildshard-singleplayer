@@ -27,12 +27,13 @@ test('cold title installation supplies every smoke case without preparing any wo
     { ...metadata, slug: 'nine-dragon-stack', status: 'experimental' },
     { ...metadata, slug: 'sunscar-dunes', status: 'experimental' },
     { ...metadata, slug: '_template', status: 'hidden' },
+    { ...metadata, slug: 'open-plot-alien-plain', status: 'hidden', shardSelect: false },
     { ...metadata, slug: 'driftwood-isle-legacy', status: 'live', legacy: true },
   ];
   Object.defineProperty(globalThis, worldSlot, { configurable: true, get() { throw new Error('Prepared worlds must not be read'); } });
   installTitleManifests(rows);
   expect(Reflect.get(globalThis, titleSlot)).toBe(rows);
-  expect(bootCatalogue()).toEqual(rows.map(({ slug, status, legacy }) => ({ slug, status, legacy: legacy === true })));
+  expect(bootCatalogue()).toEqual(rows.map(({ slug, status, legacy, shardSelect }) => ({ slug, status, legacy: legacy === true, shardSelect: shardSelect !== false })));
   expect(bootCases(bootCatalogue()).map(row => row[1])).toEqual([
     'driftwood-isle', 'nine-dragon-stack', 'nine-dragon-stack', 'sunscar-dunes', '_template', 'driftwood-isle',
   ]);
@@ -40,8 +41,8 @@ test('cold title installation supplies every smoke case without preparing any wo
 
 test('historical full discovery remains readable, but invalid current metadata refuses', () => {
   Reflect.set(globalThis, worldSlot, [{ slug: 'original', status: 'live' }]);
-  expect(bootCatalogue()).toEqual([{ slug: 'original', status: 'live', legacy: false }]);
-  for (const invalid of [null, [], [{ slug: 'broken' }]]) {
+  expect(bootCatalogue()).toEqual([{ slug: 'original', status: 'live', legacy: false, shardSelect: true }]);
+  for (const invalid of [null, [], [{ slug: 'broken' }], [{ slug: 'broken', status: 'live', shardSelect: 'false' }]]) {
     Reflect.set(globalThis, titleSlot, invalid);
     expect(() => bootCatalogue()).toThrow(/Missing built title shard catalogue|Invalid built title shard catalogue row/u);
   }

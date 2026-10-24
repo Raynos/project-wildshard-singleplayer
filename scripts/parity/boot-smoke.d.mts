@@ -6,11 +6,11 @@ export function bootErrorReport(url: string, method: string, body: string | null
 /** Only nonfatal boot-after-hide/nav-navigate diagnostics following observed grid navigation are acknowledged. */
 export function bootLifecycleDiagnostic(report: unknown, observedGridNavigation: boolean): boolean;
 /** Read the installed catalogue in the actual built title document. */
-export function bootCatalogue(): { slug: string; status: string; legacy: boolean }[];
+export function bootCatalogue(): { slug: string; status: string; legacy: boolean; shardSelect: boolean }[];
 /** Public-policy admission observes a hydrated title, an unwaived public mode and a locked experimental card. */
 export function publicPolicyAdmission(observation: { shard:string; appState:string; entered?:boolean; playerValid:boolean; fatal:string[]; frame:number; renderFrame:number }): { admitted:boolean; developer:boolean; locked:boolean; frame:number; renderFrame:number };
-/** Complete public, Developer and grid cases; frozen copies are excluded. */
-export function bootCases(catalogue: readonly { slug: string; status: string; legacy: boolean }[], group?: 'all' | 'public' | 'developer' | 'grid'): readonly (readonly ['standalone' | 'grid' | 'public-policy', string, boolean])[];
+/** Complete selectable public, Developer and grid cases; frozen copies and explicit grid-only rows are excluded. */
+export function bootCases(catalogue: readonly { slug: string; status: string; legacy: boolean; shardSelect?: boolean }[], group?: 'all' | 'public' | 'developer' | 'grid'): readonly (readonly ['standalone' | 'grid' | 'public-policy', string, boolean])[];
 
 /** Plan the required real Signal road crossing from the running grid catalogue. */
 export function bootSignalRoadPlan(state: unknown): FloorGridPlan;
@@ -21,4 +21,4 @@ export function verifyBootSignalRoad(witness: FloorGridWitness): void;
 export function bootCaseBrowser<T>(pool: {browser:(slot:number)=>Promise<T>;release:(slot:number)=>Promise<void>}, mode:'standalone'|'grid'|'public-policy'):Promise<T>;
 
 /** Discover actual built-title rows through its normal document. */
-export function discoverCatalogue(browser: Browser, base: string): Promise<{slug:string;status:string;legacy:boolean}[]>;
+export function discoverCatalogue(browser: Browser, base: string): Promise<{slug:string;status:string;legacy:boolean;shardSelect:boolean}[]>;

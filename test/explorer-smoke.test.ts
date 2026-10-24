@@ -10,11 +10,12 @@ const catalogue = [
   {slug:'sunscar-dunes',status:'experimental',legacy:false},
   {slug:'nine-dragon-stack',status:'experimental',legacy:false},
   {slug:'_template',status:'hidden',legacy:false},
+  {slug:'open-plot-alien-plain',status:'hidden',legacy:false,shardSelect:false},
   {slug:'driftwood-isle-legacy',status:'live',legacy:true},
 ];
 
 test('the Explorer leg retains every primary, including Signal and Developer-only rows, once', () => {
-  expect(explorerCases(catalogue)).toEqual(['driftwood-isle','nine-dragon-stack','sunscar-dunes','_template']);
+  expect(explorerCases(catalogue)).toEqual(['driftwood-isle','nine-dragon-stack','sunscar-dunes','_template','open-plot-alien-plain']);
   const workflow = readFileSync('.github/workflows/boot-smoke.yml','utf8');
   expect(workflow).toContain('part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer]');
   expect(workflow).toContain("if: matrix.part == 'explorer'");
