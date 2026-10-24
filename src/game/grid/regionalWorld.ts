@@ -378,7 +378,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
                 if (layered === null) return null;
                 // op-hitch47: attaching binds its clock, which draws its environment pass at once: link that pass first
                 const pass = layered.backdrop.environmentPass;
-                if (pass !== undefined) await compileOffscreenPass(game.renderer, pass);
+                if (pass !== undefined) await compileOffscreenPass(game.renderer, pass, () => !left());
                 made.backdrop = layered.backdrop;
                 // R12: its clock is the day cycle while its runtime is entered (session/clockSettings.ts)
                 publishSkyClock(resident, layered.backdrop.clock);

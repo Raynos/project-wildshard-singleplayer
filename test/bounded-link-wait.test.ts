@@ -14,3 +14,9 @@ test('a link that never reports gives up at its bound, for the caller\'s synchro
   expect(waits).toBeGreaterThan(0);
   expect(waits).toBeLessThan(20);
 });
+
+test('a sliced readiness scan is awaited before choosing to poll again', async () => {
+  let asks = 0, waits = 0;
+  expect(await boundedLinkWait(async () => { await Promise.resolve(); return ++asks === 3; }, () => { waits++; return Promise.resolve(); })).toBe(true);
+  expect(asks).toBe(3); expect(waits).toBe(2);
+});

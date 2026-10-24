@@ -1218,6 +1218,14 @@ This bounds combined upload work; it cannot split or guarantee the duration of o
 
 Live WebKit shader preparation separates drawable compile jobs and settles one program per drawn frame.
 Incomplete links yield before retrying completion; ready links resolve in the same slice only while its shared frame budget remains, then yield. Compile, resolve and upload units check that budget before starting. A compile that spent its slice defers first-use preparation to a later painted slice; one atomic compile or native query can still overshoot.
+Completion queries also spend that budget: a slow `isReady()` yields before `getUniforms()`,
+and a slow first-use query yields before pending node-block preparation. These fences follow
+measured work and the shared frame deadline; cheap desktop queries retain their batches.
+`compileOffscreenPass(renderer, pass, current?)` uses the same measured slices for completion
+scans and every timeout-fallback resolve, with the prior render target/face/mip restored before
+any yield. The optional current-owner callback is checked around those waits. `boundedLinkWait`
+accepts synchronous or sliced asynchronous readiness scans and retains its 10 s fallback bound.
+One whole-pass compile, driver query or node build remains atomic; slicing cannot preempt it.
 Ready programs are not polled again; weak resolved identities avoid repeating work for borrowed variants.
 KHR completion is checked before uniforms are resolved, and shader-error diagnostics remain enabled.
 Paced herd pages retain their original 16-slot capacity; loading-screen construction starts at eight slots.

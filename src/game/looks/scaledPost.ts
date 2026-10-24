@@ -26,9 +26,9 @@ function compilePost(compiler: GraphCompiler, pass: string, name: string, p: Sca
 /** A throwaway pass: its own draw (the full-screen triangle) links a program as a scaled post pass will draw it. */
 class LinkPass extends Pass {
   constructor() { super('scaled-post-link'); }
-  link(renderer: Renderer, material: Material, target: WebGLRenderTarget): Promise<void> {
+  link(renderer: Renderer, material: Material, target: WebGLRenderTarget, scope: Scope): Promise<void> {
     this.fullscreenMaterial = material;
-    return compileOffscreenPass(renderer, { scene: this.scene, camera: this.camera, target });
+    return compileOffscreenPass(renderer, { scene: this.scene, camera: this.camera, target }, () => !scope.disposed);
   }
 }
 /** Compile `rows`' programs ahead, one build step each, during async world loading: a later pass of the same row takes
@@ -54,7 +54,7 @@ export async function precompileScaledPost(renderer: Renderer, rows: readonly Sc
       const graph = compilePost(compiler, row.name, name, p); made.push(graph);
       pool.set(p.graph, [...(pool.get(p.graph) ?? []), graph]);
       await buildYield(scope);
-      await link.link(renderer, graph.material, target);
+      await link.link(renderer, graph.material, target, scope);
     }
   } finally { target.dispose(); }
 }

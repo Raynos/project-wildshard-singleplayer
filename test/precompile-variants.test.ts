@@ -197,3 +197,42 @@ test.each([
     expect(acquired).toHaveLength(2);
   } finally { clock.mockRestore(); noteFrameDrawn(Number.NEGATIVE_INFINITY); geometry.dispose(); a.dispose(); b.dispose(); }
 });
+
+test.each([
+  { query: 20, resolve: 7, cancel: false },
+  { query: 0, resolve: 20, cancel: false },
+  { query: 20, resolve: 7, cancel: true },
+])('slow native queries separate resolve/block preparation (query $query, resolve $resolve, cancel $cancel)', async ({ query, resolve, cancel }) => {
+  const renderer: unknown = Object.create(WebGLRenderer.prototype);
+  if (!(renderer instanceof WebGLRenderer)) throw new Error('Missing renderer');
+  const geometry = new BoxGeometry(), material = new MeshStandardMaterial(), scene = new Scene();
+  Reflect.set(material, 'isNodeMaterial', true); scene.add(new Mesh(geometry, material));
+  let now = 1000, frame = 0, current = true;
+  const events: { kind: string; frame: number }[] = [];
+  const program: ProgramLike = { name: 'slow-driver', type: 'node', cacheKey: 'slow-driver', id: 1, usedTimes: 1, program: {},
+    isReady: () => { events.push({ kind: 'query', frame }); now += query; return true; },
+    getUniforms: () => { events.push({ kind: 'resolve', frame }); now += resolve; } };
+  const programs = new Map<string, ProgramLike>();
+  const fields: Record<string, unknown> = {
+    info: { programs: [program], render: { frame: 0 } }, extensions: { has: () => true },
+    properties: { get: () => ({ programs }), has: () => true }, getRenderTarget: () => null, setRenderTarget: () => undefined,
+    getContext: () => ({}), setNodesHandler: (handler: { setRenderer: (value: WebGLRenderer) => void }) => { handler.setRenderer(renderer); },
+    compile: () => { programs.set('slow-driver', program); },
+  };
+  for (const [key, value] of Object.entries(fields)) Reflect.set(renderer, key, value);
+  const handler = await loadGraphBackend(renderer);
+  const blocks = vi.spyOn(handler, 'prepareProgram').mockImplementation(() => { events.push({ kind: 'blocks', frame }); now += 2; });
+  const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
+  noteFrameDrawn(now, now, 60);
+  try {
+    const warm = runPrecompile(renderer, new PerspectiveCamera(), sceneJobs(scene, null, 1).jobs, 1, undefined, [], () => current, true,
+      () => { frame++; now += 16; noteFrameDrawn(now, now, 60); if (cancel) current = false; return Promise.resolve(); });
+    if (cancel) { await expect(warm).rejects.toThrow('Shader warm-up owner left'); expect(events.map(event => event.kind)).toEqual(['query']); }
+    else {
+      await warm;
+      expect(events.map(event => event.kind)).toEqual(['query', 'resolve', 'blocks']);
+      if (query > 0) expect(events[1]?.frame).toBeGreaterThan(events[0]?.frame ?? -1);
+      expect(events[2]?.frame).toBeGreaterThan(events[1]?.frame ?? -1);
+    }
+  } finally { clock.mockRestore(); blocks.mockRestore(); noteFrameDrawn(Number.NEGATIVE_INFINITY); geometry.dispose(); material.dispose(); }
+});
