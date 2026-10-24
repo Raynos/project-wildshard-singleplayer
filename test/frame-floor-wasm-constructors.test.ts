@@ -2,6 +2,14 @@ import { expect, test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Isolate the injected page observer from the test process's constructors.
 import { createContext, runInContext } from 'node:vm';
 import { WASM_CONSTRUCTORS_SCRIPT } from '../scripts/frame-floor-wasm-constructors.mjs';
+import { validateFrameFloorArgs } from '../scripts/frame-floor-args.mjs';
+
+test('admits the diagnostic flag for the original Sim worker and refuses other surfaces', () => {
+  const args = ['--surface=sim', '--shards=grid', '--grid-scenario=runtime-travel', '--wasm-constructors=tmp/observe'];
+  expect(() => validateFrameFloorArgs(args)).not.toThrow();
+  expect(() => validateFrameFloorArgs(['--worker', ...args])).not.toThrow();
+  expect(() => validateFrameFloorArgs(['--surface=desktop', '--wasm-constructors=tmp/observe'])).toThrow('require --surface=sim');
+});
 
 function page(): { evaluate: (source: string) => unknown } {
   let clock = 0;
