@@ -7,7 +7,7 @@ const FIELDS = ['currentProgram', '__version', 'uniforms', 'uniformsList', 'need
   'outputColorSpace', 'batching', 'batchingColor', 'instancing', 'instancingColor', 'instancingMorph', 'skinning',
   'morphTargets', 'morphNormals', 'morphColors', 'morphTargetsCount', 'numClippingPlanes', 'numIntersection',
   'vertexAlphas', 'vertexTangents', 'toneMapping', 'environment', 'fog', 'envMap', 'envMapRotation', 'lightProbeGrid'] as const;
-interface Variants { version: number; active: string; entries: Map<string, readonly unknown[]> }
+interface Variants { version: number; active: string; entries: Map<string, unknown[]> }
 
 /** Warm object-layout variants of one node material, with the renderer retaining
  * program ownership and invalidation. No material clones or object IDs are keys. */
@@ -20,7 +20,11 @@ export class NodeProgramVariants {
     if (variants === undefined || variants.version !== material.version) {
       variants = { version: material.version, active: key, entries: new Map() }; this.materials.set(material, variants);
     }
-    variants.entries.set(key, FIELDS.map((field): unknown => Reflect.get(properties, field))); variants.active = key;
+    // refilled in place: a warm variant is recorded again at every program selection
+    let entry = variants.entries.get(key);
+    if (entry === undefined) { entry = Array.from<unknown>({ length: FIELDS.length }); variants.entries.set(key, entry); }
+    for (let i = 0; i < FIELDS.length; i++) entry[i] = Reflect.get(properties, FIELDS[i] ?? '');
+    variants.active = key;
   }
   /** Restore a warm selection; false forces just one ordinary renderer lookup.
    * A material edit invalidates every entry without changing material.version. */
@@ -28,7 +32,8 @@ export class NodeProgramVariants {
     const variants = this.materials.get(material), entry = variants?.version === material.version ? variants.entries.get(key) : undefined;
     if (entry === undefined) return false;
     if (variants?.active !== key || Reflect.get(properties, 'currentProgram') !== entry[0]) {
-      for (const [i, field] of FIELDS.entries()) Reflect.set(properties, field, entry[i]);
+      // indexed: an entries() iterator made a pair per field on every switching draw (570 MiB in one 23 s Pine drive)
+      for (let i = 0; i < FIELDS.length; i++) Reflect.set(properties, FIELDS[i] ?? '', entry[i]);
       if (variants !== undefined) variants.active = key;
     }
     return true;
