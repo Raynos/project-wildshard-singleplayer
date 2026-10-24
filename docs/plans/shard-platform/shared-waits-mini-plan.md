@@ -1,8 +1,8 @@
 # Shared waits: mini plan (G666)
 
-**State:** `open` 2026-10-23 — third reading 17:20 Cancun. SW1, SW2, SW5, SW6, SW8 done; SW7's guards held two
-readings running, but the card is still not in every brief; SW3 open (main red 11 h, live 10 h behind); SW4's fseventsd
-bar not met; SW9 new, with D6 for Jake.
+**State:** `open` 2026-10-24 — fourth reading 13:00 Cancun (the 10-24 morning one was missed). SW1, SW2, SW5, SW6,
+SW8 done; SW9 landed 81095e9a06 at 12:50 (proof on the next red run); SW3 open (the 06:14 red ended at 19:01 10-23
+after 767 min; nine windows over 30 min since, one open at 12:50); SW4's fseventsd bar not met; SW10 new (idle lanes).
 Refreshed twice a day by the plan agent (G666); new rows go to the coordinator through STATE, never herdr.
 
 Jake, 2026-10-23 ~08:10 Cancun: *"we keep having the shared waits problem. We keep having to improve and fix it …
@@ -13,58 +13,57 @@ checks), G620 (red main 30-minute cap, shared previews, third build lease), G662
 [BUILD-SPEED](../BUILD-SPEED.md) (Wave 1 landed; 3.4/3.5 quiet-vs-not not asked), [TOOLING-PERF](../TOOLING-PERF.md)
 (G671 quick wins un-parked: H1 H3 H4 C4 C5 C6 P1 P3 K4 L4 V1 V3 S3; P4 and M1–M3 still parked).
 
-## Latest reading (2026-10-23 17:20 Cancun: 11:20–17:20, 6 h; 12 h numbers 05:20–17:20 where the source has them)
+## Latest reading (2026-10-24 13:00 Cancun: 10-23 17:20 → 10-24 12:50, 19.5 h; rates per hour to compare with 17:20)
 
-Read with `python3 scripts/agent-time.py --hours 12` and `--hours 6`, `gh run list` plus the job conclusions of every red
-run, `.git/push.log`, the lanes' transcripts (read only) and `openusage`. Lanes active: Opus sp-o3, sp-o4 (sp-o1 done at
-16:27, sp-o2 and sp-o5 idle; G605's two at 70 %); Codex sp-x1, x2, x6, x8, x9 and sp-x7. 282 commits in 6 h (533 in
-12 h); by lane: sp-o3 49, sp-x8 46, sp-x1 40, sp-x9 33, sp-x6 29, sp-x2 28, sp-o4 22, sp-x7 12, sp-o1 7.
+Read with `python3 scripts/agent-time.py --hours 20`, `gh run list` (push runs with every check only) plus the jobs of
+the first green and the open red, `.git/push.log`, `.git/commit-lanes.jsonl`, the lanes' transcripts (read only),
+`herdr agent list` and `openusage`. Lanes active: Codex sp-x1, x2, x6, x8, x9 and sp-x7; Opus sp-o3 until 09:03 and
+sp-o4 until 18:28 (G605: none at 91 %). 338 ledger commits (17/h; 47/h at 17:20); by lane: sp-x6 55, sp-x2 53, sp-x8
+50, sp-x9 48, sp-o3 48, sp-x1 35, wildshard-new 24, sp-x7 16, sp-o4 4.
 
-| Shared resource | Held or waited, 6 h (12 h) | Who was blocked | Worst wait | Change vs 11:20 |
+| Shared resource | Held or waited, 19.5 h | Who was blocked | Worst wait | Change vs 17:20 (per hour) |
 |---|---|---|---|---|
-| Push gate (one push loop) | 176 pushes. **SW8 landed at 12:45**: gate median 65 s → 11 s (p90 108 → 35 s, max 63 s); `ci-budget` 41 of 44 pushes before, 2 of 190 after. The 55 red ticks after 12:45 are 7 streaks of the steps SW8 kept: `ratchet` 5, `deleted-paths` 2 (15:04–15:15, 16:58–17:09), 42 min blocked, 6 `chore(ratchet)` follow-ups (12 h: 411 ticks, 61 red, median 43 s) | every push: commit → origin median 53 s, p90 3.9 min (12 h: 76 s / 3.2 min) | 12 min to origin, in a `deleted-paths` streak | gate 6× faster; origin median 1.5 → 0.9 min, p90 2.8 → 3.9 min (red streaks and quiet) |
-| CI and red main | **red the whole window, and the red window is 11 h, not 3**: the last fully green push run is 2281da69f3 (started 06:09, green 06:28); red since 06:14, still open at 17:20 = **666 min**. 6 h: 47 red, 0 green, 129 cancelled. Causes in order: `gen.mjs` in generated-inputs 06:12–08:29; typed lint + behaviour 3/12 08:28–09:29; `build-shardfiles` "Shard build exited 1" with no cause 09:27–16:58 (Nalati's JSON node cap, then gen import breaks; CI printed the stderr only after 628d618205 at 14:14); from 13:09 one behaviour shard per run (16, 3, 6, 14, 8, 2, 6, 2, 14, 11, 1, 13, 13), every other shard cancelled by C4. G676 (97f3db9d72, 14:41): sp-x7 landed 11 fixes 15:17–17:20, still red. 0 reverts (12 h: 2 red windows, 11.7 of 12 h red, longest 669 min) | release: live on ff45b6a24 since 07:29 (9 h 50 min), and a release HOLD since 15:30 (6d1b8ba1cc) until sp-x1's warm-reload check; sp-x7; owners | 666 min, still open | 157 → 666 min (start corrected from 08:42 to 06:14); worse |
-| Build mirror (check..check5, ruler) | Opus 0.24 h, all previews of landed SHAs (`serve-build --rev`/`--head`: sp-o3 31, sp-o4 25, sp-o1 7); **the guard refused both `build-mirror.mjs run` attempts** (sp-o3 11:26, sp-o1 11:33, landed SHAs); 0 runs went through (12 h: Opus 1.75 h, mostly before 09:40) | — | 0 real pool timeouts | 0.3 h in 2 h → 0.24 h in 6 h |
-| Heavy-lane builds (3 leases) | 135 builds, 0 s queued, build median 60 s, p90 159 s, max 215 s; 0 real 5-minute timeouts (every script hit is a source read) (12 h: 150 builds, 0 queued) | — | 0 | same; median build 213 → 60 s |
+| Push gate (one push loop) | 1,380 ticks: 288 pushed, 18 red, 215 quiet, 859 idle; gate median 7.5 s, p90 10.5 s, max 17 s. Red: 4 streaks (`guards` 1 at 17:21, `ratchet` 9 at 19:25–19:38, 4 at 01:59, 4 at 09:00), ~30 min blocked | every push: commit → origin median 21 s, p90 66 s | 12.8 min to origin | gate 11 → 7.5 s; origin median 53 → 21 s, p90 3.9 → 1.1 min; blocked 7 → 1.5 min/h |
+| CI and red main | **The 06:14 red ended at 19:01 10-23**: 05437036a8 (started 18:44) was the first push run green on every job; **767 min (12 h 47 min) in all**. Then 10 more windows: 19:38 55, 21:11 29, 23:15 59, 01:07 35, 01:42 39, 02:14 66, 03:38 44, 06:57 32, 09:17 25 min, and **11:53 still open at 12:50 (57 min)**: `types` TS6307 (`test/fake/FakeGame.ts` not in the project list), `products`, `derived-docs` (612f449baa, dd79651974). In the window 542 of 1,170 min red (46 %), 9 windows over 30 min (G620); push runs 46 green, 20 red, 194 cancelled; 0 reverts | release: live stayed on ff45b6a24 until ~01:32 10-24 (18 h; hold 15:30 → 692f9bd22e 01:18), then hourly; 9625ae97ec live since ~11:59, pinned by dd79651974 (TB1 crossing hold) | 101 min of the old red; 66 min new | red share 100 → 46 %; one 12.8 h window → median ~45 min, every one fixed forward |
+| Build mirror (check..check5, ruler) | 0 `build-mirror.mjs run`, 0 `tmp/*/check.sh` in any lane; Opus 1.79 command-h, all `serve-build --rev` previews of landed SHAs (sp-o3 ~60 for its O27 census); 0 pool timeouts | — | 0 | 0.04 → 0.09 h/h, still landed SHAs only |
+| Heavy-lane builds (3 leases) | 186 builds, 0 s queued, median 56 s, p90 139 s, max 463 s; 0 transcript queues over 60 s | — | 0 | 22 → 10 builds/h; same 0 queue |
 | Full-test lane | CI only (SF74 W1) | — | — | same |
-| Simulator | official `sim-grid-entry` readings by sp-o3 (12:27), sp-o4 (15:16), sp-x1 (16:00–16:57), sp-x8 (loading); 0 reaps; 2 open sim-queue rows | sp-x1 and sp-x8 slept 0.77 h on their own readings | — | 1 lease → 4 readers |
-| Browsers (4 slots) | 0 admission timeouts, 1 preview reap (17:06, expired) (12 h: 1) | — | — | same |
-| Quiet window | **54 quiet ticks, ~44 min of the push loop paused** (12:11–12:30, 13:16, 15:18–16:57), all through `sim-quiet.py` for official Simulator readings (D1); sp-x2 disclosed one overlap at 16:19 (12 h: 92 ticks) | the push loop only | 6 min | 0 → 54 ticks, now legitimate |
+| Simulator | official floors by sp-x1 (b68f, 34aa ×2, 9625, a3fe, 436f, a4cb); 0 reaps; sim-queue S8 and S9 still open (since 10-21/22) | sp-x1 slept 3.1 h on its own floors and on "CPU release" handshakes | — | 4 readers → 1 (sp-x1) |
+| Browsers (4 slots) | 0 admission timeouts, 2 expired preview reaps (19:37, 00:39) | — | — | same |
+| Quiet window | 215 quiet ticks, ~226 min of the push loop paused in 41 spans, all through `sim-quiet.py` (D1) | the push loop; origin median still 21 s | 12 min | 7 → 12 min/h, legitimate |
 | Commit lock (commit.sh) | 0 lock timeouts | — | — | same |
-| One index / tree | 66 changed paths | — | — | 58 → 66 |
-| Generated inputs | `ci-budget` gone after SW8 (41 → 2); the gen import breaks were fixed by sp-x8 (721a3fcec0 … 941c2278f3, 13:28–14:03) | CI | — | budget share 99 % → 1 % |
-| Machine | load 8–14 on 18 cores, 62–83 % idle; **swap 56.8 of 58.4 GB used, 1.5 GB free**; fseventsd 100 % CPU, 20.9 GB; Logitech updater 56 %; /private/tmp 91k files, $TMPDIR 95k; 1.7 TB free | everyone, a little | — | idle 70 → 80 %; swap free 0.5 → 1.5 GB; fseventsd 19.7 → 20.9 GB; $TMPDIR 245k → 95k |
-| Budgets | **Claude weekly 79 %** (~2 points an hour): G605's two Opus since ~13:00, one at 80 % (~17:45), none at 90 % (~23:00) until Tue 10-27 13:00 Cancun. Codex weekly 15 % (a reset was applied; now resets 10-30), 51.9k credits; Codex poll share 35 % (sleep 0.94 h in 6 h: sp-x1 0.51, sp-x8 0.26) | Opus capacity; Codex waiting on its own readings | — | Claude 67 → 79 %; Codex 54 → 15 %; Codex polling 8 → 35 % |
+| One index / tree | 120 changed paths (ruler `spans-*.json`, Driftwood baked plans and assets untracked) | — | — | 66 → 120 |
+| Generated inputs | every push typed `ci`; no `ci-budget` | — | — | same |
+| Machine | load 7–9 on 18 cores, 61 % idle; **swap 74.0 of 74.8 GB, 0.8 GB free**, 478 MB RAM unused, 54 GB compressed; **fseventsd 187 % CPU, 25.2 GB**; Logitech updater 63 %; /private/tmp 82k, $TMPDIR 115k; 1.7 TB free; up 9 days | everyone, a little | — | swap free 1.5 → 0.8 GB; fseventsd 100 → 187 %, 20.9 → 25.2 GB |
+| Budgets | **Claude weekly 91 %**: G605 0 Opus until Tue 10-27 13:00 Cancun. **Codex weekly 58 %** (15 % at 17:20, ~2.2 points an hour: 100 % ~08:00 Sun 10-25, then 51.9k credits; resets 10-30). Codex poll share 72 %: sleep 7.0 h (sp-x1 3.1, sp-x7 1.6, sp-x6 1.0, sp-x9 0.7, sp-x8 0.5, sp-x2 0.1) | Opus capacity; Codex on its own readings and CI | — | Claude 79 → 91 %; Codex sleep 0.16 → 0.36 h/h |
+| Lane idle (new) | 5 Codex building lanes idle 13 lane-h (task end → next prompt over 5 min): sp-x2 3.2, sp-x8 2.6, sp-x6 2.6, sp-x1 2.5, sp-x9 2.2; ~120 "no actionable unclaimed row" replies and many ack-only turns ("acknowledged … on origin and CPU release"). sp-x7 (pusher) idle 10.3 h. At 12:50 sp-x1, x2, x7 idle | the plan | — | not measured at 17:20 |
 
-**Rules broken in the window (SW7 (4)):** none went through. The guard refused 2 `build-mirror.mjs run` attempts of landed
-SHAs (sp-o3 11:26, `heavy-lane build -- build-mirror.mjs run 07b38cc8d4 -- gen.mjs --proof`; sp-o1 11:33,
-`build-mirror.mjs run 3d1de4c40d -- build-shardfiles`): rule 3 tried, not broken. Quiet was taken only by `sim-quiet.py`.
-No red was fixed within 30 minutes while products failed silently (09:27–14:14); since G676 each red is fixed in
-~15–40 min, but there is always another. The coordinator's prompts carried the card text in 7 of 209 since 11:20.
+**Rules broken in the window (SW7 (4)):** none. No mirror run or `tmp/*/check.sh` probe, quiet only through
+`sim-quiet.py`, 0 reverts (G674). G620 broken nine times (red over 30 min), the current red open at 57 min. The card
+count in the coordinator's prompts was not re-measured.
 
-Measurement notes: the 11:20 reading's "red since 08:42" counted deploy-only runs (`schedule` / `workflow_dispatch`,
-every check skipped, the pinned ff45 redeployed) as green; `agent-time.py` already skips them (669 min). Its
-five-minute-wait and admission counts are still all source reads (SW5's left-over). Red-main lane-hours are estimated
-from the fix commits and sp-x7's transcript, not measured.
+Measurement notes: a red window starts at the first red push run's creation and ends at the next all-green push run's
+completion; deploy-only runs are ignored; 01:07 and 01:42 touch (f62917679d green between). `agent-time.py`'s 61
+five-minute waits are source and log reads; a scan of tool outputs found 0. Red-main lane-hours are estimated from
+sp-x7's busy time; idle is measured from Codex transcripts only (Opus lanes stopped by G605).
 
-## Top 5 losses (lane-hours, 6 h, with the 24 h pace)
+## Top 5 losses (lane-hours, 19.5 h, with the 24 h pace)
 
-1. **Red main: ~9.5 lane-h (~38 a day); live 9 h 50 min behind.** sp-x7 ~5.5 h (all of it after G676), sp-x9 ~1.5 h
-   on the silent Nalati build (node cap, stderr tail 628d618205, 4724b9b77c), sp-x8 ~1.2 h on gen import breaks
-   (13:28–14:20), sp-x2 and sp-x8 ~0.5 h on the docs step (23e671d1fc, cf27a3f9a7), test and ratchet follow-ups by
-   sp-x1, sp-x6, sp-x9 ~0.8 h. Products failed with no cause printed for ~5 h; then C4 showed one red per run.
-2. **C4 hides every red but the first: part of 1, ~2–4 lane-h a day.** Since 13:09 thirteen runs each named one
-   behaviour shard; shard 2 failed at 15:03 and again at 15:40, shard 14 at 14:15 and 15:55, with other reds shown in
-   between: concurrent reds are found one 12–15-minute CI cycle at a time (SW9, D6).
-3. **The push gate's kept steps go red: ~0.6 lane-h, 42 min of the push loop blocked.** 7 `ratchet` / `deleted-paths`
-   streaks after SW8, 6 `chore(ratchet)` commits; worst commit → origin 12 min.
-4. **Codex sleeping on its own readings: ~0.9 lane-h** (poll share 8 → 35 %); BUILD-SPEED 1.4 A1 owns it. Quiet paused
-   the push loop ~44 min for legitimate Simulator readings (~0 lane-h).
-5. **Machine swap at 97 %: unmeasured.** fseventsd at 100 % CPU and 20.9 GB; 1.5 GB swap free (0.5 at 11:20). Nothing
-   has failed yet.
+1. **Idle Codex lanes: ~13 lane-h (~16 a day), new.** The queue ran dry, not a lock: ~120 "no actionable unclaimed
+   row" replies, and turns spent acknowledging other lanes' "on origin / CPU release" pings while Codex is at 58 %
+   (SW10).
+2. **Red main: ~6 lane-h (~7 a day), estimated.** The 06:14 red closed at 19:01 (767 min in all); then 10 windows, 9
+   over 30 min, each fixed forward in 25–66 min by sp-x7 and the owners; one open at 12:50 (TB1 types). SW9 landed at
+   12:50, so concurrent reds should now show in one run.
+3. **Codex sleeping: ~5.4 lane-h outside sp-x7 (~6.6 a day).** sp-x1 3.1 h on its seven Simulator floors and on
+   waiting for "CPU release"; sp-x6 1.0, sp-x9 0.7; BUILD-SPEED 1.4 A1 owns it.
+4. **Push loop: ~0.3 lane-h.** 30 min blocked in 4 `ratchet` / `guards` streaks; 226 min quiet for official readings;
+   origin median 21 s, worst 12.8 min.
+5. **Machine swap at 99 %: unmeasured, worsening.** 0.8 GB swap free (1.5 at 17:20), fseventsd 187 % CPU and 25.2 GB
+   (SW4). Nothing has failed yet.
 
-Total: ~11.5 lane-h in 6 h (~1.9 an hour) against ~1.8 in 2 h at 11:20 (~0.9 an hour): 2× worse per hour, all of it red
-main; without red main ~1.5 lane-h in 6 h (0.25 an hour against 0.15).
+Total: ~24.7 lane-h in 19.5 h (~1.3 an hour). On 17:20's basis (no idle row): ~11.7 lane-h (0.6 an hour against 1.9),
+3× better; without red main 0.29 an hour against 0.25.
 
 ## Rows (ranked by lane-hours saved)
 
@@ -72,12 +71,13 @@ main; without red main ~1.5 lane-h in 6 h (0.25 an hour against 0.15).
 |---|---|---|---|---|---|
 | **SW1** | **The mirror builds only landed commits, for previews and the ruler.** `build-mirror.mjs` and `serve-build.sh --rev` refuse a revision that is not on main; `build-mirror.mjs run` keeps only serve-build's re-exec; the doc lines that taught mirror runs are gone. **Done** f92c7e94fa, d9b7bff33b, 280a9392a3, 0251d46d01; Opus mirror time 22.9 lane-h a day → 0.3 h in 2 h → 0.24 h in 6 h; the 17:20 reading saw the guard refuse both `run` attempts. | Codex (+ coordinator brief) | S | ~15–18 lane-h a day, most build-lease timeouts | done 2026-10-23; second clean reading 17:20 |
 | **SW2** | **Quiet only for official Simulator readings (D1).** **Done** f92c7e94fa (only the Simulator reader can take quiet); sp-o3 and sp-o4 deleted their wrappers at 09:47; 0 quiet ticks since 08:32. BUILD-SPEED 3.4/3.5 can now measure quiet vs not once. | Codex (docs) + sp-o4/sp-o5 | XS | ~6–8 lane-h a day | done 2026-10-23 |
-| **SW3** | **Fix-forward speed (D4).** The owner fixes forward within 30 minutes; C4 81559b512a and P1 0181f41dd4 landed, S3 in progress; G676 (97f3db9d72, 14:41) makes sp-x7 reproduce and fix every red itself, and CI now prints a dead shard build's stderr (628d618205). Open: the 17:20 reading found one 666-minute red (06:14, still open), products silent for ~5 h, then one red revealed per run (SW9). | owners; sp-x7 | XS | ~3–5 lane-h a day at 11:20, ~38 at 17:20; live within the hour | no red window over 45 min in a reading |
-| **SW4** | **Stop the file churn (D2).** H1 landed 29d7c2079b (pre-commit 3.2 s → 1.0–2.3 s, no source snapshot for docs). At 17:20 fseventsd is still at 100 % CPU and 20.9 GB, and swap has 1.5 GB free. Jake, optional, one click: quit the Logitech Options+ updater (56 % CPU for 8 days). | Codex; Jake | S | ~2–3 cores back, swap headroom | fseventsd under 50 % CPU in a reading |
+| **SW3** | **Fix-forward speed (D4).** The owner fixes forward within 30 minutes; C4 81559b512a and P1 0181f41dd4 landed, S3 in progress; G676 (97f3db9d72, 14:41) makes sp-x7 reproduce and fix every red itself, and CI now prints a dead shard build's stderr (628d618205). Open: the 17:20 reading found one 666-minute red (06:14, still open), products silent for ~5 h, then one red revealed per run (SW9). 10-24 13:00: that red ended at 19:01 10-23 (767 min); 10 windows since, median ~45 min, longest 66, one open at 12:50 (57 min). | owners; sp-x7 | XS | ~3–5 lane-h a day at 11:20, ~38 at 17:20; live within the hour | no red window over 45 min in a reading |
+| **SW4** | **Stop the file churn (D2).** H1 landed 29d7c2079b (pre-commit 3.2 s → 1.0–2.3 s, no source snapshot for docs). At 10-24 13:00 fseventsd is at 187 % CPU and 25.2 GB, and swap has 0.8 GB free of 74.8 GB. Jake, optional, one click: quit the Logitech Options+ updater (56 % CPU for 8 days). | Codex; Jake | S | ~2–3 cores back, swap headroom | fseventsd under 50 % CPU in a reading |
 | **SW5** | **The reading is one command.** **Done** 7d9bf159d9: `python3 scripts/agent-time.py --hours N` prints the table. Left: its five-minute-wait count over-counts (matches source and fixtures). | Codex | S | ~0.5 h per reading | done 2026-10-23 |
 | **SW6** | **Delete the dead locks and logs.** **Done** 34b62ababc: 233 dead files (44 git locks/logs, 97 browser markers, 92 drive locks), plus H4 5fc27d4e6e (the retired E357 lock). | Codex | XS | 0 h; no false holders | done 2026-10-23 |
 | **SW8** | **The push gate stops preparing a tree it never checks (D5, G675).** **Done** 97e8dcaeb8 (12:45, source preparation dropped; typed lint and related tests left to CI) and aa1994c3a6: gate median 65 s → 11 s, p90 35 s, `ci-budget` 41 of 44 → 2 of 190. Left: its kept `ratchet` and `deleted-paths` steps blocked the loop 42 min in 7 streaks (top 5, 3). | Codex (sp-x9) | XS | ~16 core-h a day; ≥2 lane-h a day | done 2026-10-23 (gate median 11 s) |
-| **SW9** | **CI shows every red in one run (new, D6).** C4's `ci-fail-fast.py` stops every other job on a same-run red, so since 13:09 each run named one behaviour shard and concurrent reds surface one 12–15-minute cycle at a time. Delete C4's cross-job stop for the behaviour matrix (keep `--bail=1` per shard and the cause printing): one red run then lists every failing file. Costs CI minutes only. | sp-x7 (G676) | XS | ~2–4 lane-h a day; hours of live | a red run reports every failing behaviour shard |
+| **SW9** | **CI shows every red in one run (D6, G678).** **Landed** 81095e9a06 (12:50 10-24, sp-x7): the behaviour matrix no longer cancels siblings or watches peers; each shard keeps its bail, diagnostics and red exit. C4's `ci-fail-fast.py` stops every other job on a same-run red, so since 13:09 each run named one behaviour shard and concurrent reds surface one 12–15-minute cycle at a time. Delete C4's cross-job stop for the behaviour matrix (keep `--bail=1` per shard and the cause printing): one red run then lists every failing file. Costs CI minutes only. | sp-x7 (G676) | XS | ~2–4 lane-h a day; hours of live | a red run reports every failing behaviour shard |
+| **SW10** | **Idle lanes take the next row (new).** The 10-24 reading found 5 Codex building lanes idle 13 lane-h in 19.5 h, ~120 "no actionable unclaimed row" replies and turns spent acking "on origin / CPU release" pings. Delete first: lanes stop waiting on and sending those acks (the Simulator's quiet is the only CPU lock, D1; origin is in `git log`), and the coordinator keeps one claimable row per live lane in the queue, or stops the lane. | coordinator | XS | ~10–16 lane-h a day | building lanes idle under 1 lane-h in a reading |
 
 After SW1 the build leases show 0 timeouts in 8 h (135 builds in 6 h, 0 s queued), so TOOLING-PERF M1 is not needed.
 
@@ -94,7 +94,7 @@ After SW1 the build leases show 0 timeouts in 8 h (135 builds in 6 h, 0 s queued
 
 | Row | What | Owner | Size | Done when |
 |---|---|---|---|---|
-| **SW7** | **Guardrails (D3).** (1) **Done** f92c7e94fa: the mirror refuses unlanded commits and callers under `tmp/`; only the Simulator reader takes quiet. (2) **Done** 280a9392a3, 0251d46d01: no doc teaches a banned move. (3) **Done** 280a9392a3: the 5-rule card is in `lanes/common.md`, but the coordinator's prompts carried it 7 of 88 times by 11:20 and 7 of 209 since. (4) 17:20 reading: 0 breaks; the guard refused sp-o3's and sp-o1's `build-mirror run` attempts (11:26, 11:33); quiet only through `sim-quiet.py`. | Codex (1, 2) + coordinator (3) + plan agent (4) | S | two readings in a row with no mirror probe, no non-Simulator quiet, and the card in every brief (2 of 2 for the guards; the card is still not in every brief) |
+| **SW7** | **Guardrails (D3).** (1) **Done** f92c7e94fa: the mirror refuses unlanded commits and callers under `tmp/`; only the Simulator reader takes quiet. (2) **Done** 280a9392a3, 0251d46d01: no doc teaches a banned move. (3) **Done** 280a9392a3: the 5-rule card is in `lanes/common.md`, but the coordinator's prompts carried it 7 of 88 times by 11:20 and 7 of 209 since. (4) 17:20 reading: 0 breaks; the guard refused sp-o3's and sp-o1's `build-mirror run` attempts (11:26, 11:33); quiet only through `sim-quiet.py`. 10-24 13:00: 0 breaks, no mirror run or probe attempted; quiet only through `sim-quiet.py` (third clean reading for the guards). | Codex (1, 2) + coordinator (3) + plan agent (4) | S | two readings in a row with no mirror probe, no non-Simulator quiet, and the card in every brief (3 of 3 for the guards; the card not re-counted) |
 
 ## Twice-daily review (~10:45 and ~16:45 Cancun, 15 minutes, one subagent)
 
@@ -115,3 +115,5 @@ and the top 5, and add a row only for a new loss over 2 lane-hours a day. SW5 ha
 5. **Machine:** `uptime`; `top -l 2 -n 0 | grep 'CPU usage'`; `sysctl vm.swapusage`; `ps -Ao pcpu,rss,etime,comm -r | head`;
    file counts of `/private/tmp` and `$TMPDIR`; `df -h /`; `git status --porcelain | wc -l`.
 6. **Budgets:** `openusage` (Claude and Codex weekly) against G605's steps.
+7. **Lane idle:** gaps over 5 minutes between a Codex `task_complete` and the next prompt, per lane, and the count of
+   "no actionable row" replies; `herdr agent list` for who is idle now.
