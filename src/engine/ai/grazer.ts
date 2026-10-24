@@ -386,6 +386,7 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     readonly members: HerdGuestColumns<A>[];
     readonly random: Rng;
     readonly arguments: Readonly<Record<string,number>>;
+    parameters?: Record<string,number>;
     reply: number;
     fresh: boolean;
     values: Readonly<Record<string,GroupBankValueV2>>;
@@ -480,12 +481,18 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
       if(reference===undefined)throw new Error('Unresolved herd guest capture reference');return[name,reference];
     });
     const threat = references.find(row => row.handle === call.reply) ?? null, spec = this.herdSpec;
-    const parameters: Record<string,number> = {...binding.rows.parameters,...call.arguments,
-      'context.walk':spec.walkSpeed,'context.trot':spec.trotSpeed,'context.gallop':spec.gallopSpeed,'context.charge':spec.chargeSpeed,
-      'context.sight':spec.sightRadius,'context.grazingSight':spec.grazingSightRadius,'context.cone':spec.coneAngle,
-      'context.alertThreshold':spec.alertThreshold,'context.flightMin':spec.flightMinDistance,'context.flightMax':spec.flightMaxDistance,
-      'context.dt':context?.dt ?? 0,'context.time':context?.t ?? 0,'context.calm':Number(context?.calm ?? false),
-      'context.playerSpeed':context?.playerSpeed ?? 0,'context.px':player.x,'context.py':player.y,'context.pz':player.z};
+    // Numeric marshalling belongs to this call only; every native read stays
+    // fresh and ordered at its original continuation slot, including reentry.
+    const parameters=call.parameters??={...binding.rows.parameters,...call.arguments};
+    parameters['context.walk']=spec.walkSpeed; parameters['context.trot']=spec.trotSpeed;
+    parameters['context.gallop']=spec.gallopSpeed; parameters['context.charge']=spec.chargeSpeed;
+    parameters['context.sight']=spec.sightRadius; parameters['context.grazingSight']=spec.grazingSightRadius;
+    parameters['context.cone']=spec.coneAngle; parameters['context.alertThreshold']=spec.alertThreshold;
+    parameters['context.flightMin']=spec.flightMinDistance; parameters['context.flightMax']=spec.flightMaxDistance;
+    parameters['context.dt']=context?.dt ?? 0; parameters['context.time']=context?.t ?? 0;
+    parameters['context.calm']=Number(context?.calm ?? false); parameters['context.playerSpeed']=context?.playerSpeed ?? 0;
+    parameters['context.px']=player.x; parameters['context.py']=player.y;
+    parameters['context.pz']=player.z;
     const changes:Record<string,GroupBankValueV2>={};
     for(const[name,value]of Object.entries(current))if(!Object.is(retained[name],value))changes[name]=value;
     for(const name of binding.contextFields){

@@ -302,6 +302,35 @@ test('one native call reuses member capture rows while resampling every barrier'
   expect(arrays.size).toBe(1);expect([...arrays][0]).not.toBe(first);
  }finally{f.scope.dispose();}
 });
+test('numeric parameter scratch refreshes at barriers and remains private through getter reentry',()=>{
+ const f=fixture('graze','watch',false,16);
+ try{
+  execute(f,0,false,'addTrust',{argument:0});
+  const author=ReturnProgram.page(pasture,f.scope),bindings=author.groupBindings;
+  const shape=binding.profile==='main'?bindings:bindings?.profiles?.find(row=>row.id===binding.profile);
+  if(shape===undefined)throw new Error('Missing herd parameter shape');
+  const codec=new GroupBankV2(shape.bank),observed:number[][]=[];let nested=false,changed=false;
+  Object.defineProperty(f.ctx,'calm',{get:()=>{if(!nested){nested=true;f.herd.addTrust(7);}return false;}});
+  f.ports.visibility=()=>{if(!changed){changed=true;f.ctx.player.set(43,1,27);}return .8;};
+  f.herd.observeCapture=frame=>{
+   const values=codec.decode(frame.input.state,frame.input.group,frame.input.references);
+   expect(values['context.minX']).toBe(-250);expect(values['context.maxZ']).toBe(250);
+   expect(values['context.walk']).toBe(2);expect(values['context.flightMax']).toBe(120);
+   if(frame.input.signal==='tick'){
+    expect(values['context.dt']).toBe(f.ctx.dt);expect(values['context.time']).toBe(f.ctx.t);
+    expect(values['context.px']).toBe(f.ctx.player.x);expect(values['context.py']).toBe(f.ctx.player.y);
+    expect(values['context.pz']).toBe(f.ctx.player.z);expect(values['context.playerSpeed']).toBe(f.ctx.playerSpeed);
+    expect(values['context.calm']).toBe(0);
+    observed.push([Number(values['context.px']),Number(values['context.playerSpeed'])]);
+   }else if(frame.input.signal==='addTrust'){
+    expect(values['context.dt']).toBe(0);expect(values['context.time']).toBe(0);
+   }
+  };
+  execute(f,0,false,'tick');expect(nested).toBe(true);expect(changed).toBe(true);
+  expect(observed.length).toBeGreaterThan(2);expect(observed[0]).toEqual([12,.4]);
+  expect(observed.at(-1)).toEqual([43,.4]);
+ }finally{f.scope.dispose();}
+});
 test('nested taming capture scratch is separate and the outer call resumes its own rows',()=>{
  const f=fixture('alert','display');
  try{
