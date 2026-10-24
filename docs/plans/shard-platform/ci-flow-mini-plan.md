@@ -1,6 +1,6 @@
 # CI flow: commit, push, CI, release (E495)
 
-**State:** `proposed` 2026-10-24, for Jake (Decisions below). Audit by the plan agent's subagent, read only, window
+**State:** `active` 2026-10-24 — Jake ruled D1–D4 (G689–G692): CF1, CF3, CF4, CF5 go; CF2 fixes flaky tests, never deletes. Audit by the plan agent's subagent, read only, window
 10-23 18:00 → 10-24 13:30 Cancun (19.5 h). Builds on [shared-waits](shared-waits-mini-plan.md) (SW1–SW10, its 13:00
 reading) and never repeats its rows; CF rows go to the coordinator through STATE.
 
@@ -58,7 +58,7 @@ window; Codex sleeping on CI / origin / acks ~1.5 lane-h a day. Idle lanes (SW10
 |---|---|---|---|---|---|
 | → SW10 | **Idle lanes take the next row** (already a shared-waits row, not repeated): one claimable row per live lane, no "on origin / CPU release" acks. Fold in: a lane never sleeps on a CI verdict or on origin (Done = pushed, E428), so its ~1 h of CI sleeps and ~0.2 h of origin sleeps go too | 10–16 (SW10) + ~1.5 | coordinator | XS | SW10's bar; 0 Codex sleeps whose reason is CI or origin in a reading |
 | **CF1** | **`commit.sh` refuses a commit whose related tests fail.** It runs `vitest related --run` on the staged `src/`, `test/` and `scripts/` files (and the touched layer's `tsc -p` if warm), capped at 60 s; over the cap it lands and says so (CI decides). Delete the doc lines that ask lanes to remember it (D3: guardrails, not reminders). Plus a static guard: a file under a layer imports nothing outside that layer's `tsconfig` include list (the `TS6307` class). Not a mirror check (G612): it runs on the files being committed | ~3 (40 % of red minutes: 145 + 64 of 527) | Codex | S | a reading where no red window's failing test is `related` to its culprit and no `TS6307` reaches CI |
-| **CF2** | **Flaky tests are deleted or made deterministic the hour they flake (G416).** A red the next run passes without a fix is a flake: sp-x7 (G676) deletes the test or pins its clock / tolerance in the same hour, never adds a retry. Now: `heavy-lane.test` "two checks waiting on a mirror" (3.7 s wall-clock), `nalati-creature-views` balbal (5e-10 tolerance on timed arithmetic), `scene-dressing-rows` Nalati bake (69 s against a 30 s timeout: delete or move to products). A V8 `SIGILL` gets one manual "re-run failed jobs", no code | ~2 (26 % of red minutes) | sp-x7 | XS | no red window in a reading that the next run clears without a fix |
+| **CF2** | **Flaky tests are made deterministic, never deleted, never retried (G690; Jake overrode delete-by-default).** A red the next run passes without a fix is a flake: sp-x7 (G676) deletes the test or pins its clock / tolerance in the same hour, never adds a retry. Now: `heavy-lane.test` "two checks waiting on a mirror" (3.7 s wall-clock), `nalati-creature-views` balbal (5e-10 tolerance on timed arithmetic), `scene-dressing-rows` Nalati bake (69 s against a 30 s timeout: delete or move to products). A V8 `SIGILL` gets one manual "re-run failed jobs", no code | ~2 (26 % of red minutes) | sp-x7 | XS | no red window in a reading that the next run clears without a fix |
 | **CF3** | **CI verdict in ≤ 13 min: product-free tests stop waiting for products.** The 16 behaviour shards wait for products (5.7 min) though most test files never read a product. Split them: files that read `WS_TEST_PRODUCTS_SHA` products stay after products; the rest run right after generated-inputs (or after checkout). Delete what the split makes dead. Two cycles per red window → ~12 min off each window and more verdicts per hour (fewer cancelled tips). Costs CI minutes only | ~1.5, and every lane gets verdicts ~6 min sooner | sp-x7 or Codex | M | median green run ≤ 13 min from push to last job over a reading |
 | **CF4** | **The red run names its likely culprit.** `ci-fail-fast.py`'s cause printing (C4) adds the last green SHA and the commits in that range that touch the failing file or its imports (`git log <green>..<sha> -- <files>`), with their `Assisted-by` lane. No bot, no message: the owner reads it in the run, sp-x7 forwards it as today | ~0.5 (fix phase median 9 → ~4 min) | sp-x7 | XS | every red run in a reading lists ≤ 3 candidate commits with lanes |
 | **CF5** | **Boot smoke stops failing on a runner deadline.** The `explorer` leg's "catalogue/thumbnail deadline" failed 10 SHAs in a row on CI runners while the game was fine (G415: no glitches + same look, not timing exactness): loosen it to a hang guard or delete that check. A red smoke blocks the release, not the lanes | ~0; hours of live (11 of 19.5 h held) | sp-x7 | XS | 0 smoke reds in a reading that the next SHA clears without a fix |
@@ -71,9 +71,9 @@ critical path, not capacity, sets the 19 min).
 
 - **D1** Should `commit.sh` run `vitest related` (and the touched layer's types) on every commit, capped at 60 s,
   and refuse a red? **Recommended: yes** (CF1). It is what G612 already asks for, made a guardrail; 40 % of red main
-  in this window would not have landed.
-- **D2** Flaky tests: delete or fix the same hour, never retry? **Recommended: yes, delete by default** (CF2, G416).
+  in this window would not have landed. **Jake: yes, refuse reds (G689).**
+- **D2** Flaky tests: delete or fix the same hour, never retry? **Recommended: yes, delete by default** (CF2, G416). **Jake: fix, never delete (G690).**
 - **D3** Split the behaviour shards so product-free tests start before products (more CI minutes, ~6 min faster
-  verdicts)? **Recommended: yes** (CF3).
+  verdicts)? **Recommended: yes** (CF3). **Jake: yes (G691).**
 - **D4** G620's 30-minute red cap is below two CI cycles (~34 min). **Recommended: measure red windows against 45
-  minutes until CF3 lands, then back to 30** (SW3 already uses 45).
+  minutes until CF3 lands, then back to 30** (SW3 already uses 45). **Jake: yes, 45 min until CF3 lands, then 30 (G692).**
