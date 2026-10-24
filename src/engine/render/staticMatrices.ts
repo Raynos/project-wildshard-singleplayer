@@ -10,6 +10,13 @@ import type { Scope } from '../app/scope';
  * visits them. A node that does move after all (code that sets its pose without being a registered mover) is caught by a
  * check every step for its first `EAGER_STEPS`, then every `CHECK_FRAMES`: its matrix is brought up to date, its auto update comes back for good, and it is
  * reported once.
+ *
+ * A held subtree also leaves the walk itself: three still visited and multiplied every node of it each frame (the parent's
+ * own update forces its children), the region's share of the largest render frame left of a steady Nalati Simulator
+ * profile (Three.updateMatrixWorld 192 of 4940 samples). Its root skips the walk while the matrices it would compute are
+ * the ones it holds: walked again (whole, as three would) once the parent's world matrix differs from the one it was
+ * walked under, or anything marks the root's world stale; and for good once a held node moves (the check above) or
+ * anything is attached to or detached from any node of it (three's childadded / childremoved: a new node is not held).
  */
 const CHECK_FRAMES = 30;
 /** steps after the hold checked every time: a node that animates from the start (a mill's hub) lags one step, not 30 */
@@ -23,6 +30,11 @@ const pose = (node: Object3D, out: Float64Array): Float64Array => {
 const scratch = new Float64Array(10);
 const moved = (held: Held): boolean => { pose(held.node, scratch); for (let i = 0; i < 10; i++) if (scratch[i] !== held.pose[i]) return true; return false; };
 const reported = new WeakSet<Object3D>();
+const IDENTITY: readonly number[] = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+function same(a: ArrayLike<number>, b: Float64Array): boolean {
+  for (let i = 0; i < 16; i++) if (a[i] !== b[i]) return false;
+  return true;
+}
 function report(node: Object3D): void {
   if (reported.has(node)) return;
   reported.add(node);
@@ -40,6 +52,21 @@ export function holdStaticMatrices(root: Object3D, scope: Scope, frame: (check: 
   if (options.subtree === false) hold(root); else root.traverse(hold);
   for (const row of held) row.node.matrixAutoUpdate = false;
   scope.onDispose(() => { for (const row of held) row.node.matrixAutoUpdate = true; held.length = 0; });
+  // the walk skip (module comment): a whole held subtree only
+  let skippable = options.subtree !== false;
+  if (skippable) {
+    const walk = root.updateMatrixWorld.bind(root), seen = new Float64Array(16);
+    let walked = false;
+    const stop = (): void => { skippable = false; };
+    root.traverse((node) => { scope.listenEmitter(node, 'childadded', stop); scope.listenEmitter(node, 'childremoved', stop); });
+    const skip = (force?: boolean): void => {
+      const parent = root.parent === null ? IDENTITY : root.parent.matrixWorld.elements;
+      if (skippable && walked && !root.matrixWorldNeedsUpdate && same(parent, seen)) return;
+      walk(force); seen.set(parent); walked = true;
+    };
+    root.updateMatrixWorld = skip;
+    scope.onDispose(() => { if (root.updateMatrixWorld === skip) Reflect.deleteProperty(root, 'updateMatrixWorld'); });
+  }
   let frames = 0, steps = 0;
   frame(() => {
     if (++steps > EAGER_STEPS && ++frames < CHECK_FRAMES) return;
@@ -49,7 +76,7 @@ export function holdStaticMatrices(root: Object3D, scope: Scope, frame: (check: 
       report(row.node);
       const node = row.node;
       node.matrixAutoUpdate = true; node.updateMatrix(); node.matrixWorldNeedsUpdate = true;
-      held.splice(i, 1);
+      held.splice(i, 1); skippable = false;
     }
   });
 }
