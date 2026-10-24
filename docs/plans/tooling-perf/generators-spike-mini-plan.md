@@ -1,7 +1,8 @@
 # Generators spike and redesign: mini plan (TOOLING-PERF, G648/G650)
 
-**State:** `in progress` 2026-10-24 — G654/G656 decided; GR0 source-output enforcement complete (sp-x1). GR1 has cached
-SDK primitives and Template source conversions, but its two-project acceptance remains open; GR2–GR12 and GS1–GS5 remain open. Separate from the [gen speed plan](gen-mini-plan.md)
+**State:** `in progress` 2026-10-24 — G654/G656 decided; GR0 and GR2 driver complete (sp-x1). GR1 has cached
+SDK primitives and Template source conversions, but its two-project acceptance remains open (Template still has map/boss jobs);
+GR3–GR12 and GS1–GS5 remain open. Separate from the [gen speed plan](gen-mini-plan.md)
 (caching and timing), the [TypeScript plan](typescript-mini-plan.md) and [no binaries in JSON](no-binaries-in-json-mini-plan.md).
 
 Jake, 2026-10-23: *"It sounds completely fucked that the generators are reading the generated output of other generators.
@@ -118,7 +119,7 @@ in `public/assets/<slug>/` as real `.glb` / `.png` / `.ktx2` / `.bin`. App-wide 
 |---|---|---|---|
 | GR0 | done (2026-10-24, sp-x1): existing import ban `7d9ada1bbb` plus generated-source guard; exact-path output debt only shrinks, G656 app sources remain separately reviewed | S | staged/push Git checks and pre/post-gen + CI tree checks refuse new source outputs; 138 focused cases pass |
 | GR1 | SDK `ctx.cached` / `ctx.asset` (§4 A key), cache in `~/.cache/wildshard/gen`, product receipt keys on cached keys; `_template` rebuilt in the new form | M | `_template` and `pastel-plain` build with no job rows and no generated file under `src/` |
-| GR2 | in flight (2026-10-24, sp-x1): `pnpm gen` becomes: app tables, then one `wildshard build` per shard in parallel (heavy-lane); `--shard=` | S | `pnpm gen` runs without `generate.mjs` for converted shards |
+| GR2 | done (2026-10-24, sp-x1): `326950c025` + `78681f7cf5`; app tables then the existing per-product build pool, heavy-lane, scoped `--shard=`; preparation-only CI preserved | S | fresh Node refuses any scheduler import for a fully converted folder; 29 focused + 410 ready-related cases pass; exact `78681` generation builds all 24 products |
 | GR3 | **Nine** (27 jobs): calls replace imports; `castHook` / `lightSpill` / `paintArray` become cached `.glb` / `.bin` (closes B4); atlases per D2; its tests call functions | L | 0 Nine rows in the catalogue, 0 `*.generated.*` under its folder, product validates, boot smoke green |
 | GR4 | **Sunscar** (23 jobs) | M | same bar |
 | GR5 | **Far Reach** (47) | L | same bar |
@@ -142,6 +143,19 @@ its regression now refuses. Immutable push fixtures prove dirty guard/policy/out
 offender. Ordinary authored JSON/TS stays allowed; G656's app-source exemptions keep their existing separate ratchet.
 Current-tree source-output check passes. The broader `check-paths` command remains red on stale/frozen-layout and fixture
 path diagnostics, separate from the generated-source check; no broad path-check pass is claimed.
+
+GR2's ordinary `pnpm gen` now runs app inputs then the product pool. `--shard=<slug>[,<slug>]` resolves composed product
+slugs to their source folders and bounds product/map work even in strict mode. A named value-level `generate` export
+with zero remaining catalogue rows bypasses `generate.mjs`; partial conversions retain it. Scoped legacy preparation
+keeps shared producers and all transitive declared input writers, in catalogue order. Map preparation imports the
+scheduler only when a selected painter needs it. CI's `--inputs-only` retains the generated-inputs → products split;
+historical `--proof` / `--build-inputs` stay preparation-only. Types, lint, native and admin source preparation do not
+start products, and unprepared CI checks no longer build products twice. Strict receipts/maps/admission remain intact.
+The first scoped build exposed a noncanonical root argument (entry regression RED then GREEN in `78681`); its corrected
+working-tree run refused concurrent source movement during boot-table generation. The exact-commit milestone instead
+completed the new generation command with 24 products in 160 s, without borrowing the moving working tree.
+Its full preview also passed (227.87 s total) and was stopped. Full-preview and parity wrappers now explicitly prepare
+inputs before their own product phase; a real shell fixture reproduced duplicate product work before that correction.
 
 | Follow-up | What | Done when |
 |---|---|---|

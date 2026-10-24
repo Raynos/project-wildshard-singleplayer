@@ -283,7 +283,9 @@ JS
 # the generated files first, as CI's `pnpm build` does: without them a new asset (round 13: Sky Reach's LUT) had no
 # bytes.generated entry, the build skipped it, and every capture scored a game the deploy doesn't ship (E399)
 GEN_ARGS="--proof"; SHARDFILE_ARGS="--reuse"
-[ $FULL -eq 1 ] && { GEN_ARGS=""; SHARDFILE_ARGS=""; }
+# This pipeline owns the explicit product phase below; ordinary pnpm gen now
+# includes products itself. Keep full previews from compiling them twice.
+[ $FULL -eq 1 ] && { GEN_ARGS="--inputs-only"; SHARDFILE_ARGS=""; }
 [ -n "$SHARDS" ] && SHARDFILE_ARGS="$SHARDFILE_ARGS --shard=$SHARDS"
 ( cd "$SRC" && python3 "$REPO/scripts/heavy-lane.py" build -- bash -c \
   'step() { local s=$SECONDS; "$@" || return; echo "serve-build step $1 $2: $((SECONDS - s))s"; }

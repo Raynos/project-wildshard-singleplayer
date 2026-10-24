@@ -119,6 +119,8 @@ os.execv({sys.executable!r}, [{sys.executable!r}, *sys.argv[1:]])
         self.command('node', f'''#!{sys.executable}
 import os,sys
 if sys.argv[1] in ('scripts/gen.mjs','scripts/build-shardfiles.mjs'):
+    if os.environ.get('FIXTURE_SOURCE_ONLY') and sys.argv[1]=='scripts/gen.mjs':
+        assert '--inputs-only' in sys.argv or '--proof' in sys.argv, 'duplicate product phase: '+str(sys.argv)
     if os.environ.get('SERVE_SHARED_SHA') and sys.argv[1]=='scripts/build-shardfiles.mjs':
         assert not any(arg.startswith('--shard') for arg in sys.argv), sys.argv
     sys.exit(0)
@@ -265,6 +267,10 @@ else:
         self.assertEqual(len(list((self.root / 'registry').glob('[0-9]*'))), 1)
         self.assertEqual(list((self.root / 'registry').glob('.port-lease-*')), [])
         self.assertNotIn('(building)', row[-1])
+
+    def test_full_preview_prepares_inputs_before_its_single_explicit_product_phase(self):
+        self.env['FIXTURE_SOURCE_ONLY'] = '1'
+        self.finish(self.launch(self.port(), '--full'))
 
     def test_mirror_timeout_fails_once_and_releases_preview_reservation(self):
         self.env['FIXTURE_MIRROR_FAIL'] = '1'
