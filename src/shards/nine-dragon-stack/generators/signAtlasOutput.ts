@@ -4,15 +4,38 @@ import { SignAtlasSchema } from './sections';
 import { zstdCompressSync } from 'node:zlib';
 import { unzlibSync } from 'fflate';
 import { NeonText } from './neonGeometry';
-import glyphs from '../data/glyphs.generated.json' with { type: 'json' };
+import type { GlyphFieldLayout, GlyphRect } from './glyphField';
+import legacyGlyphs from '../data/glyphs.generated.json' with { type: 'json' };
 import signRows from '../data/signView.json' with { type: 'json' };
-import { signCopies } from './signCopies';
+import { signCopies, type PlacedSign } from './signCopies';
 import type { SignModelParams } from '../data/signTypes';
 import { BufferAttribute, BufferGeometry, Float32BufferAttribute, MeshStandardMaterial, Vector3 } from 'three';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
-import rows from '../data/signAtlas.generated.json' with { type: 'json' };
+import legacyAtlas from '../data/signAtlas.generated.json' with { type: 'json' };
+
+/** Retained native raster metadata, supplied by the product's declared input reader. */
+export interface NineNativeSignInputs {
+  readonly glyphs: Readonly<Record<'phone' | 'desktop', {
+    readonly size: number; readonly packed: readonly string[];
+    readonly layout: GlyphFieldLayout;
+    readonly rects: Readonly<Record<string, GlyphRect>>;
+  }>>;
+  readonly atlas: Readonly<Record<'phone' | 'desktop', {
+    readonly buffer: string;
+    readonly keys: Readonly<Record<string, string>>;
+    readonly placed: readonly (Omit<PlacedSign, 'p'> & { readonly p: Omit<PlacedSign['p'], 'at' | 'normal'> & {
+      readonly at: readonly (number | string)[]; readonly normal: readonly (number | string)[];
+    } })[];
+    readonly lights: readonly { readonly at: readonly number[]; readonly color: readonly number[];
+      readonly w: number; readonly h: number; readonly power: number; readonly spill: number }[];
+    readonly geometries: Readonly<Record<string, { readonly sphere: number[] | null;
+      readonly attributes: Readonly<Record<string, { readonly width: number; readonly data: { byteOffset: number; byteLength: number } }>>;
+      readonly index: { byteOffset: number; byteLength: number } }>>;
+    readonly mono: { packed: string; bytes: number }; readonly colour: { packed: string; bytes: number };
+  }>>;
+}
 
 const specimenKey = (p: SignModelParams): string => `${signRows.model.key}:${p.style}:${p.text}:${p.color}:${p.ink ?? ''}:${String(p.vertical)}:${p.size}:${String(p.blade)}`;
 const vector = (values: readonly (string | number)[]): Vector3 => new Vector3(Number(values[0]), Number(values[1]), Number(values[2]));
@@ -50,8 +73,11 @@ function glyphTexture(tier: string, field: { size: number; packed: readonly stri
 }
 
 /** Standard exact rest pools and lossless KTX2 textures, admitted by the existing named-file writer. */
-export function signAtlasBlobs(read: ReadSignBytes): NamedBlob[] {
-  const blobs = Object.entries(rows).flatMap(([tier, row]) => {
+export function signAtlasBlobs(read: ReadSignBytes, input?: NineNativeSignInputs): NamedBlob[] {
+  const supplied: NineNativeSignInputs = input ?? { glyphs: legacyGlyphs, atlas: legacyAtlas };
+  const { glyphs, atlas: rows } = supplied;
+  const blobs = (['phone', 'desktop'] as const).flatMap(tier => {
+    const row = rows[tier];
     const material = new MeshStandardMaterial(), buffer = read(row.buffer);
     const field = tier === 'phone' ? glyphs.phone : glyphs.desktop;
     const atlas = { layout: field.layout, rect: (ch: string) => {

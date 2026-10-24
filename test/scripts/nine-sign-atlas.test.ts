@@ -18,13 +18,29 @@ import reference from '../fixtures/nine-sign-atlas.json' with { type: 'json' };
 
 const finite=v.pipe(v.number(),v.finite());
 const range=v.object({byteOffset:finite,byteLength:finite});
-const atlasTier=v.object({buffer:v.string(),cells:v.record(v.string(),v.unknown()),placed:v.array(v.unknown()),lights:v.array(v.unknown()),
+const signPlacement = v.object({ w: finite, h: finite, neon: v.boolean(), p: v.object({
+  at: v.array(v.union([finite, v.string()])), normal: v.array(v.union([finite, v.string()])), size: finite,
+  spec: v.object({ text: v.string(), color: v.string(), vertical: v.boolean(), style: v.string(), ink: v.exactOptional(v.string()) }),
+  gain: v.exactOptional(finite), flicker: v.exactOptional(finite), blade: v.exactOptional(v.boolean()),
+  board: v.exactOptional(finite), fogK: v.exactOptional(finite), clear: v.exactOptional(finite),
+}) });
+const atlasTier=v.object({buffer:v.string(),cells:v.record(v.string(),v.unknown()),placed:v.array(signPlacement),
+  lights:v.array(v.object({at:v.array(finite),color:v.array(finite),w:finite,h:finite,power:finite,spill:finite})),
   keys:v.record(v.string(),v.string()),mono:v.object({packed:v.string(),bytes:finite}),colour:v.object({packed:v.string(),bytes:finite}),
   geometries:v.record(v.string(),v.object({attributes:v.record(v.string(),v.object({width:finite,data:range})),
     index:range,sphere:v.nullable(v.array(finite))}))});
 const atlas=(()=>{
   const value:unknown=JSON.parse(readFileSync('src/shards/nine-dragon-stack/data/signAtlas.generated.json','utf8'));
   v.assert(v.object({phone:atlasTier,desktop:atlasTier}),value);return value;
+})();
+
+const glyphTier = v.object({ size: finite, packed: v.array(v.string()),
+  layout: v.object({ cell: finite, fontPx: finite, spread: finite, skeletonSpread: finite }),
+  rects: v.record(v.string(), v.object({ u0: finite, v0: finite, u1: finite, v1: finite })),
+});
+const glyphs = (() => {
+  const value: unknown = JSON.parse(readFileSync('src/shards/nine-dragon-stack/data/glyphs.generated.json', 'utf8'));
+  return v.parse(v.object({ phone: glyphTier, desktop: glyphTier }), value);
 })();
 
 const hash = (bytes: Uint8Array | string): string => createHash('sha256').update(bytes).digest('hex');
@@ -36,6 +52,21 @@ const slice = (bytes: Uint8Array, row: { byteOffset: number; byteLength: number 
 test('portable sign assembly retains every original named byte and cost', () => {
   expect(blobs.map(row => row.file)).toStrictEqual(binaryReference.files);
   expect(signAtlasBlobs(read).map(row => row.file)).toStrictEqual(binaryReference.files);
+});
+
+test('portable sign assembly reads every supplied native input and keeps the original product', () => {
+  const alias = (file: string): string => `provided/${file}`;
+  const tier = (key: 'phone' | 'desktop') => ({ ...atlas[key], buffer: alias(atlas[key].buffer),
+    mono: { ...atlas[key].mono, packed: alias(atlas[key].mono.packed) },
+    colour: { ...atlas[key].colour, packed: alias(atlas[key].colour.packed) } });
+  const field = (key: 'phone' | 'desktop') => ({ ...glyphs[key], packed: glyphs[key].packed.map(alias) });
+  const reads: string[] = [];
+  const supplied = signAtlasBlobs(file => {
+    expect(file.startsWith('provided/')).toBe(true); reads.push(file);
+    return read(file.slice('provided/'.length));
+  }, { atlas: { phone: tier('phone'), desktop: tier('desktop') }, glyphs: { phone: field('phone'), desktop: field('desktop') } });
+  expect(new Set(reads).size).toBe(11);
+  expect(supplied.map(row => row.file)).toStrictEqual(binaryReference.files);
 });
 
 test.each(['phone', 'desktop'] as const)('%s retains original WebKit pixels, cells, placements and spill', tier => {
