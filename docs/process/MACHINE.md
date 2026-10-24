@@ -279,9 +279,10 @@ selectors are mutually exclusive.
 
 `--jsc-gc-log=<existing empty scratch dir>` captures native JSC diagnostics
 on one Simulator visit, with a settled Nalati twenty-second window. It sets only
-launchd `JSC_logGC=2` and `JSC_useOSLog=default` before relaunching owned Safari,
+launchd `__XPC_JSC_logGC=2`, `__XPC_JSC_useOSLog=1` and
+`__XPC_JSC_dumpOptions=1` before relaunching owned Safari,
 collects bounded unified logs, records actual Simulator WebContent PIDs and window
-wall timestamps, terminates owned Safari and unsets/verifies both settings in
+wall timestamps, terminates owned Safari and unsets/verifies every setting in
 cleanup. Existing foreign settings refuse before mutation. It enables no
 Inspector Heap/Timeline/profiler, allocation wrapper, snapshot or forced GC;
 other recorders cannot be combined. Missing native messages mean logging was not

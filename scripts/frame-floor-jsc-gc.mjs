@@ -5,7 +5,9 @@ import {openSync, closeSync, writeSync, existsSync, writeFileSync} from 'node:fs
 import {join} from 'node:path';
 import {setTimeout as sleep} from 'node:timers/promises';
 
-export const JSC_GC_SETTINGS = Object.freeze({JSC_logGC: '2', JSC_useOSLog: 'default'});
+export const JSC_GC_SETTINGS = Object.freeze({
+  __XPC_JSC_logGC: '2', __XPC_JSC_useOSLog: '1', __XPC_JSC_dumpOptions: '1',
+});
 
 /** Refuse foreign settings; clean every successful set on partial setup/failure.
  * @param {import('./frame-floor-jsc-gc.mjs').EnvironmentPort} port
