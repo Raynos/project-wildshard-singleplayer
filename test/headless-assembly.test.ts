@@ -10,6 +10,9 @@ import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
 import { checkedHeadlessAssembly, prepareHeadlessAssembly } from '../src/sdk/headlessAssembly';
 import { emptyShardfile } from '../src/sdk/author';
+import { trustedLevel } from '../src/game/plugin/simulation';
+import type { HeadlessRuntimePlan } from '../src/sdk/headlessRuntime';
+import { installBodyScripts, prepareReturns } from './fixtures/headless-plan';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { createSimHost, type SimHost } from '../src/engine/sim';
 import { snapshotSimHost, restoreSimHost, onSimHostRestored } from '../src/engine/sim/snapshot';
@@ -97,13 +100,19 @@ test('the shipped assembly passes its wire fence without admitting native expres
   ]) expect(() => validateNamedJsonSchema(HEADLESS_ASSEMBLY_JSON_SCHEMA, encode(declaration))).toThrow();
 });
 
-test('refuses native body scripts before real ground admission or after its host ends', async () => {
+/** Typed fixture composition retains native contracts independently of the retiring DSL. */
+function directPlan(shard: ReturnType<typeof emptyShardfile>, install: HeadlessRuntimePlan['install']): HeadlessRuntimePlan {
+  return { level: trustedLevel(shard, {at:{x:shard.spawn.x,y:Math.max(shard.spawn.y,.1),z:shard.spawn.z},yaw:shard.spawn.yaw,speed:5}, {size:500,height:0}),
+    ports:{ground:false,heightAt:()=>0},install };
+}
+
+test('refuses native body scripts before real ground admission or after its host ends', () => {
   const shard = emptyShardfile({ slug: 'native-ground', name: 'Native Ground', author: 'Test', revision: 1, seed: 1 });
   const declaration = { ...base, install: [{ name: 'bodies', value: { $native: 'native.body-scripts' } }] };
   const product = createShardProduct({ slug: 'native-ground', revision: 1, shardfile: shard, sections: new Map(),
     files: new Map([['sim/headless-assembly.json', { hash: 'assembly', url: 'assembly' }]]),
     read: () => Promise.resolve(new TextEncoder().encode(JSON.stringify(declaration))) });
-  const plan = await prepareHeadlessAssembly({ shard, product, assets: new Map(), rapier }, {});
+  const plan = directPlan(shard, (host, context) => installBodyScripts(host, context, {shard,product,assets:new Map(),rapier}));
   const host = createSimHost(plan.level, { ...plan.ports, rapier });
   const context = { restoring: false, commands: () => [], emit: () => undefined };
   try {
@@ -127,14 +136,14 @@ test('refuses native body scripts before real ground admission or after its host
   expect(() => plan.install(host, context)).toThrow('owner has ended');
 });
 
-test('native restore checks the restored ground before releasing the host', async () => {
+test('native restore checks the restored ground before releasing the host', () => {
   const shard = emptyShardfile({ slug: 'native-restore-ground', name: 'Restore Ground', author: 'Test', revision: 1, seed: 1 });
   const declaration = { ...base, install: [{ name: 'bodies', value: { $native: 'native.body-scripts' } }] };
   const product = createShardProduct({ slug: shard.identity.slug, revision: 1, shardfile: shard,
     sections: new Map<string, unknown>([['sim/scripts', []], ['sim/bodies', {}]]),
     files: new Map([['sim/headless-assembly.json', { hash: 'assembly', url: 'assembly' }]]),
     read: () => Promise.resolve(new TextEncoder().encode(JSON.stringify(declaration))) });
-  const plan = await prepareHeadlessAssembly({ shard, product, assets: new Map(), rapier }, {});
+  const plan = directPlan(shard, (host, context) => installBodyScripts(host, context, {shard,product,assets:new Map(),rapier}));
   const source = createSimHost(plan.level, { rapier }), empty = createSimHost(plan.level, { ...plan.ports, rapier });
   const ports = { ...plan.ports, rapier };
   const context = { restoring: true, commands: () => [], emit: () => undefined };
@@ -169,7 +178,8 @@ test('ABI1-only raw returns borrow the original asset map on fresh and restored 
   const product=createShardProduct({slug:shard.identity.slug,revision:1,shardfile:shard,sections:new Map([['actors/return-scripts',returns]]),
     files:new Map([['sim/headless-assembly.json',{hash:'assembly',url:'assembly'}]]),
     read:()=>Promise.resolve(new TextEncoder().encode(JSON.stringify(declaration)))});
-  const plan=await prepareHeadlessAssembly({shard,product,assets,rapier},{'src/game/rawAssemblyFixture':{install}});
+  const lend=await prepareReturns({shard,product,assets,rapier});
+  const plan=directPlan(shard,host=>{lend(host);install(host);});
   const fresh=createSimHost(plan.level,{...plan.ports,rapier}),foreign=createSimHost(plan.level,{...plan.ports,rapier});
   let restored:SimHost|undefined;
   try{
@@ -229,7 +239,8 @@ test('raw return modules are lent before original native assembly owners on fres
       if(hash===witnessHash){witnessReads++;return Promise.resolve(witness);}
       return Promise.resolve(new TextEncoder().encode(JSON.stringify(declaration)));
     }});
-  const plan=await prepareHeadlessAssembly({shard,product,assets,rapier},{'src/game/rawAssemblyFixture':{install}});
+  const lend=await prepareReturns({shard,product,assets,rapier});
+  const plan=directPlan(shard,host=>{lend(host);install(host);});
   expect(assets.get(artifact.hash)).toBe(bytes);expect(moduleReads).toBe(1);
   expect(assets.get(witnessHash)).toBe(witness);expect(witnessReads).toBe(1);
   const fresh=createSimHost(plan.level,{...plan.ports,rapier});
@@ -241,7 +252,8 @@ test('raw return modules are lent before original native assembly owners on fres
     });
     expect(captured).toHaveLength(2);expect(captured[0]).not.toBe(captured[1]);
     assets.set(artifact.hash,new Uint8Array([0]));
-    const corrupt=await prepareHeadlessAssembly({shard,product,assets,rapier},{'src/game/rawAssemblyFixture':{install}});
+    const corruptLend=await prepareReturns({shard,product,assets,rapier});
+    const corrupt=directPlan(shard,host=>{corruptLend(host);install(host);});
     expect(moduleReads).toBe(1);
     expect(()=>corrupt.install(fresh,{restoring:false,commands:()=>[],emit:()=>undefined})).toThrow('hash mismatch');
     expect(()=>ReturnProgram.native(fresh,program)).toThrow('hash mismatch');
