@@ -40,6 +40,8 @@ export async function walkPhysicsLeg(legIn) {
         const ground = p.motor.result.groundCollider, owner = ground === null ? null : w.physics.colliderTag(ground)?.owner;
         stuck.push({ wp: wi, x: Number(p.position.x.toFixed(2)), y: Number(p.position.y.toFixed(2)), z: Number(p.position.z.toFixed(2)),
           motor: p.motor.snapshot(), water: p.waterSurfaceAt(p.position.x, p.position.z),
+          // Read only on refusal, before the diagnostic fallback moves the player.
+          grid: window.__wildshard?.shard?.grid?.state().live,
           ground: owner !== null && typeof owner === 'object' && typeof owner.id === 'string' ? owner.id : null });
         p.spawn(wp.x, wp.z, p.yaw); land(); wi++; lastProg = { t, d: Infinity }; return;
       }
