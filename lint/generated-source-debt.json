@@ -2319,7 +2319,6 @@
     "src/shards/nine-dragon-stack/data/paint.d.json.ts",
     "src/shards/nine-dragon-stack/data/paintArray.generated.bin",
     "src/shards/nine-dragon-stack/data/paintArray.generated.json",
-    "src/shards/nine-dragon-stack/data/physics.generated.json",
     "src/shards/nine-dragon-stack/data/signAtlas-desktop-colour.ktx2",
     "src/shards/nine-dragon-stack/data/signAtlas-desktop-mono.ktx2",
     "src/shards/nine-dragon-stack/data/signAtlas-desktop.bin",

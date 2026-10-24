@@ -7,7 +7,9 @@ import { bakedColliderDesc, bakedColliderSchemas } from './bakedColliders';
 import { deckCapRows } from './portalFloors';
 import portals from '../data/portals.json' with { type: 'json' };
 import plan from '../data/layoutPlan.json' with { type: 'json' };
-import baked from '../data/physics.generated.json' with { type: 'json' };
+import { ninePhysics } from './physics';
+
+const baked = ninePhysics();
 
 const finite = v.pipe(v.number(), v.finite());
 const capRows = deckCapRows();

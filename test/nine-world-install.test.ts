@@ -3,7 +3,7 @@
 import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
-import baked from '../src/shards/nine-dragon-stack/data/physics.generated.json' with { type: 'json' };
+import { ninePhysics } from '../src/shards/nine-dragon-stack/generators/physics';
 import { nineWorldInstallRows } from '../src/shards/nine-dragon-stack/generators/physicsPlacements';
 import { deckCapRows } from '../src/shards/nine-dragon-stack/generators/portalFloors';
 import { fragmentFloor as authoredFloor } from '../src/shards/nine-dragon-stack/generators/fragmentFloor';
@@ -18,6 +18,7 @@ import { compileGraph } from '../src/engine/render/graph/compile';
 import lookGraphs from '../src/shards/nine-dragon-stack/data/lookGraphs.json' with { type: 'json' };
 
 const rows = nineWorldInstallRows(), caps = deckCapRows(), stair = stairPlanData();
+const pieces = v.parse(v.array(v.looseObject({ id: v.string() })), ninePhysics().pieces);
 
 const worldRows=v.parse(v.object({rows:WorldRowsSchema}),JSON.parse(readFileSync('src/shards/nine-dragon-stack/data/worldRows.generated.json','utf8')));
 const fragmentFloor = (x: number, z: number): number | undefined => floorAtRects(worldRows.rows.floors, x, z, 'first');
@@ -26,7 +27,7 @@ const fragmentFloor = (x: number, z: number): number | undefined => floorAtRects
 // static payload, including stable portal floor owners and the followed guard.
 test('page install rows preserve the existing collider payload and order', () => {
   const ids = new Set(rows.standalone.map(row => row.id));
-  expect(rows.standalone).toEqual(baked.pieces.filter(row => ids.has(row.id)));
+  expect(rows.standalone).toEqual(pieces.filter(row => ids.has(row.id)));
   const floors = rows.standalone.find(row => row.id === 'nds-floors');
   const openFloors = rows.cell.find(row => row.id === 'nds-floors');
   if (floors === undefined || openFloors === undefined) throw new Error('Missing floor registration');

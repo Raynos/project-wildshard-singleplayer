@@ -41,7 +41,7 @@ are unchanged. The extracted proof definitions match the parent byte for
 byte; this refactor adds no entry coverage.
 
 **Runs headless (proven):**
-- the native colliders of the grid cell (`data/physics.generated.json`, made from authored rows by `generators/physics.ts`, G350-ND):
+- the native colliders of the grid cell (`generators/physics.ts`, called directly from authored rows, G350-ND / GR3):
   the fragment at +125 m, the four landing decks open to the road (the standalone end caps removed), the square's slab,
   the Well's crossings and safety cap, every placed model's colliders;
 - the player capsule walking them from the declared spawn, by tick commands;
@@ -143,12 +143,12 @@ map inputs and needs a browser-equivalence proof and map rebake.
 
 ## G350-ND: authored physics (was DS1.5 Node canonical)
 
-`generators/physics.ts` composes the physics product `data/physics.generated.json` from authoring inputs only (G320):
+`generators/physics.ts` composes the physics product directly from authoring inputs only (G320 / GR3):
 the floor, front, portal and guard recipes (`generators/physicsPlacements.ts`) and `data/physicsRows.json` for what no
 recipe computes yet (the placed models' colliders, the Well's crossings, the practice arena, the registry order of every
 piece and the Fei Zhua's 31 dragon hooks). It runs under the authoring loader; no world, model, registry or runtime code
 runs. The retired DS1.5 bake built the world in Node; its last output matched this product in every piece and hook, byte
-for byte. Regenerate and compare with `node scripts/generate.mjs --job=nine-physics --compare`.
+for byte. The source-row regression checks its complete original payload hash; the file-only job is retired.
 
 The DS1.5 history below is kept as the record of how those bytes were first proven.
 
