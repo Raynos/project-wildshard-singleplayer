@@ -10959,6 +10959,9 @@ A made-up second building tests different door motion, prompts and lights.
 duplicates, executable values, reflected owners and caller-selected order.
 `admitClientPlan(input, product)` refuses any missing required section with
 `ProductError` before any feature runs. Headless simulation ignores this plan.
+`parseClientPlan` owns a detached, deeply frozen result. Cross-section ownership
+checks reuse only that private result; raw sections and copies still pass the
+complete schema, and every required-section and product reference check runs.
 
 The compiled registry in `src/game/shardfile/clientPlan.ts` owns the order:
 

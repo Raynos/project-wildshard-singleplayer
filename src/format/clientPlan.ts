@@ -145,8 +145,23 @@ export const ClientPlanSchema = v.pipe(v.unknown(), v.check(isJsonData, 'Client 
 export type ClientPlan = v.InferOutput<typeof ClientPlanSchema>;
 export type ClientFeatureRow = ClientPlan['features'][number];
 export type ClientFeatureKind = ClientFeatureRow['kind'];
-/** Strict admission rejects unknown kinds and executable/reflected settings before installing any feature. */
-export function parseClientPlan(input: unknown): ClientPlan { return v.parse(ClientPlanSchema, input); }
+const parsedPlans = new WeakMap<object, ClientPlan>();
+function freezePlanRows(value: unknown): void {
+  if (typeof value !== 'object' || value === null) return;
+  for (const child of Object.values(value)) freezePlanRows(child);
+  Object.freeze(value);
+}
+/** Strict admission rejects unknown kinds and executable/reflected settings before
+ * installation. Ownership checks can reuse only this parser's immutable output;
+ * raw product sections and author copies always pass the complete schema. */
+export function parseClientPlan(input: unknown): ClientPlan {
+  const known = typeof input === 'object' && input !== null ? parsedPlans.get(input) : undefined;
+  if (known !== undefined) return known;
+  const plan = v.parse(ClientPlanSchema, input);
+  freezePlanRows(plan);
+  parsedPlans.set(plan, plan);
+  return plan;
+}
 
 /** Optional code selected by defining rows; debug borrows dressing only when named. */
 export function clientPlanModuleGroups(plan: { readonly features: readonly ClientFeatureRow[] }): string[] {
