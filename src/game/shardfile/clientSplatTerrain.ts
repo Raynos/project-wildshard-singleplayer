@@ -9,7 +9,7 @@
  * The source layer textures are never uploaded: their mips are copied into the arrays, then released.
  */
 import { CompressedArrayTexture, CompressedTexture, LinearFilter, LinearMipmapLinearFilter, NoColorSpace, RepeatWrapping, SRGBColorSpace, type Material, type Texture } from 'three';
-import { layerArrayMips } from '@wildshard/engine/core/ktx2';
+import { layerArrayMips, releaseAfterUpload } from '@wildshard/engine/core/ktx2';
 import { splatTerrainMaterial, type SplatLayers } from '@wildshard/engine/world/Terrain';
 import type { PropSurfaceBinding } from '@wildshard/engine/world/declaredProps';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -34,7 +34,8 @@ export function splatArray(role: SplatRole, layers: readonly Texture[], anisotro
   t.colorSpace = SPLAT_ROLES[role] === 'colour' ? SRGBColorSpace : NoColorSpace;
   t.name = `shardfile:splat/${role}`;
   t.needsUpdate = true;
-  return t;
+  // the concatenated mips are on the GPU after its first draw: retire the CPU chain as every loaded KTX2 texture does
+  return releaseAfterUpload(t);
 }
 
 /**

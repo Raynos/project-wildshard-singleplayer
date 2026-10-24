@@ -5,9 +5,10 @@ import { sceneVectors, sceneScalarValue } from './sceneInputs';
  * transcoded once (its mips dropped from JS after upload). A family named by the look, the terrain or the props without
  * its own entry gets the family's plain default, vertex-coloured (PBR's dielectric). No URL, no shader source and no callback comes from the shard.
  */
-import { MeshStandardMaterial, ClampToEdgeWrapping, CompressedTexture, LinearFilter, LinearMipmapLinearFilter, MirroredRepeatWrapping, NearestFilter, NearestMipmapNearestFilter, RepeatWrapping, SRGBColorSpace, NoColorSpace, type Texture, type Material } from 'three';
+import { MeshStandardMaterial, ClampToEdgeWrapping, CompressedTexture, DataTexture, LinearFilter, LinearMipmapLinearFilter, MirroredRepeatWrapping, NearestFilter, NearestMipmapNearestFilter, RepeatWrapping, SRGBColorSpace, NoColorSpace, type Texture, type Material } from 'three';
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
 import { BASIS_PATH, releaseAfterUpload, detectKtx2Support } from '@wildshard/engine/core/ktx2';
+import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
 import { ToonLook } from '@wildshard/engine/render/families/toon';
 import { PainterlyLook } from '@wildshard/engine/render/families/painterly';
 import { EmissiveLook } from '@wildshard/engine/render/families/emissive';
@@ -144,6 +145,8 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
       texture.flipY = false; texture.name = `shardfile:${ref}`;
       const sampler = shard.look.samplers?.[ref]; if (sampler !== undefined) applyTextureSampler(texture, sampler);
       if (texture instanceof CompressedTexture && !splatRefs.has(ref)) releaseAfterUpload(texture);
+      // a raw-texel file (uncompressed KTX2) arrives as a DataTexture: its decoded texels go once it is on the GPU too
+      else if (texture instanceof DataTexture) gpuOnlyTexture(texture, 'shardfile raw textures');
       scope.own(texture); textures.set(ref, texture);
     }
   }
