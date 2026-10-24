@@ -256,7 +256,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
           const prepareFrame = foundation.prepare;
           let preparedModels: Object3D | null = null;
           // its programs build while its world is made, ahead of the entry warm-up (Game.prewarmEnteredRoot)
-          let prewarm: { readonly stop: () => Promise<void> } | null = null;
+          let prewarm: { readonly kick: () => void; readonly stop: () => Promise<void> } | null = null;
           return { ...installation, context,
             ...(prepareFrame === undefined ? {} : { prepareConstruction: () => {
               preparing = true;
@@ -283,7 +283,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
               }
               app.addContentSystem({ id: `grid.runtime.${request.cell.instance}.pieces`, phase: 'fixed.pre', run: () => { view.sync(); } }, entry);
             }); },
-            afterWorld: entered => foundation.afterWorld?.(entered, world),
+            afterWorld: entered => { prewarm?.kick(); return foundation.afterWorld?.(entered, world); }, // the world's content is in now
             afterKit: async entered => {
               const left = (): boolean => owner.disposed;
               const regional = await foundation.afterKit(entered, world);
