@@ -19,14 +19,14 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 | G694 F2 | Schema refusals (LegacyRuntimeSchema, entry.legacy/native, nativePlan, runtimeEntry) | same | wave 1 done `e5eb16f9f5` (sp-x8); RuntimeSchema / copied-runtime removal held for LD (wave 3) |
 | G694 D1 | Delete the trusted/native runtime entry (after F2; boot smoke) | same | sp-x6 (after T9 proof) |
 | G694 F3 | shard-layout loses runtime/legacy; hard rule wildshard/no-shard-runtime | same | sp-x9 (after T1 acceptance) |
-| G694 F4-F5 | Prune 1,824 stale ratchet allowances + refuse missing paths; custom sections shrink-only | same | done `b984db9194` + `194a455e2f` (sp-x2); G606 preserved |
+| G694 F4-F5 | Prune 1,824 stale ratchet allowances + refuse missing paths; custom sections shrink-only | same | done `b984db9194` + `194a455e2f` + gate repair `b1b5c7a613` (sp-x2); G606 preserved |
 | G694 D2-D6, A1-A2 | Then in row order: delete-now D2-D6 (non-legacy), A1 one client-plan boot only if it doesn't touch the legacy path (boot smoke + Chromium walk per shard), A2 sweep. LD5-LD8 NOT built (Jake ~15:00: G606 stands, keep -legacy folders, LEGACY entry and Legacy shard buttons) | same | D2 in flight (2026-10-24, sp-x8); D3-D6 follow in order |
 | L11 | Loading: section/schema reads use the trusted worker-verified transport (no second page hash), drop runtimeProduct Uint8Array.from | loading-mini-plan.md:675 | sp-x9 |
 | T0 | Tile streaming: entered-world tile-local / shard-global census for Driftwood, Nalati, Pine, Nine and Sky; reconcile observed GL and allocator claims, keep shared/unknown separate | tile-streaming-mini-plan.md:123 | done (2026-10-24, sp-x8): pre-implementation CPU/bounds census in tile plan; retirement proof T1/T3 |
 | T9 | G638 approved lattice: 62.5 m gap / 562.5 m pitch, same road look apart from the gap; update strips, seams, layout and road proofs in small commits, no Debug row | tile-streaming-mini-plan.md:T9; T2 landed 30dcc15182 | sp-x6 13:36 (in flight) |
 | T1 | Tile streaming: complete leak-free tile / region retirement and ghost collection proofs; preserve existing disposal ownership and audit the current counters before changes | tile-streaming-mini-plan.md:124 | sp-x9 13:41 T1 |
 | T3 | Per-tile content: non-graphical placement buckets and retirement ownership; graphical ranges/render parity stay with Opus | tile-streaming-mini-plan.md:T3 | sp-x1 14:05 (in flight) |
-| T8/U1 | Uniform 64 L0 output contract: audit callers, refusal and empty-tile rules before producer edits; preserve T3 ownership | tile-streaming-mini-plan.md:T8/U1 | sp-x2 (in flight): first 64-L0 emitter/catalogue slice `6fc5b91533`; per-shard inventory next |
+| T8/U1 | Uniform 64 L0 output contract: audit callers, refusal and empty-tile rules before producer edits; preserve T3 ownership | tile-streaming-mini-plan.md:T8/U1 | sp-x2 (in flight): 64-L0 emitter/catalogue `6fc5b91533` + Sky `9e0aee064b`; product census remains |
 
 **G683 Codex order (Jake, 13:20):** finish extras in this order, taking the top open Codex row of the first plan that has one:
 (1) tile streaming (shard-platform/tile-streaming-mini-plan.md), (2) loading (loading-mini-plan.md), (3) core memory

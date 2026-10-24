@@ -300,6 +300,14 @@ baked L1, and Pine/Nalati draw their terrain tiles with their own code. Rows add
 | U2 | Every shard bakes all 16 L1 squares (Driftwood and Sky first) | 16 L1 per shard |
 | U3 | Pine and Nalati terrain tiles go through the one shared streamer (T2), not shard code | no shard-owned tile drawing left |
 
+U1 source slices (sp-x2, 2026-10-24): `6fc5b91533` completes the two full-world
+SDK emitters and treats explicit zero-cost/no-file rows as empty readiness;
+`9e0aee064b` completes Sky root metadata while its island payload list stays sparse.
+Registered producers preserve every declared binary byte. Retired 119 missing-L0
+allowances (DW 47, Nine 30, Sky 42); L1 debt and cost caps are unchanged. Current
+source metadata is 64 L0 for all six primary shards; the verified per-product
+census and remaining T8 streaming work stay open.
+
 ## One streamer, Pine and Nalati on it (2026-10-23, replaces T2's text and U3)
 
 Traced at HEAD f81d5aade9 (full write-up below). **Correction:** Pine has **no terrain tiles** — its ground is the engine's whole `Terrain` (one 257² mesh, 4 splat layers), all 2,600 trees, ground cover, buildings and props are built whole on entry and stay loaded; its 26 L0 tiles are timber props only the grid draws. Nalati's painted ground is one mesh; its 64 L0 ground tiles sit behind an off-by-default Debug row. The four streaming modules: `grid/rings.ts` (full scheduler, neighbours only), `shardfile/clientRings.ts`, `shardfile/clientWorld.ts` + `residency.ts` (entered shard; copy-paste of reads, masks, distance; dead `rings` branch); `clientResidency.ts` is the home budget claim, not streaming. Terrain + Forest are also built twice (`bootstrap.ts:81-97`, `regionalWorld.ts:278-293`).
