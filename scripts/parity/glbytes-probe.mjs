@@ -7,6 +7,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { chromium, devices } from 'playwright';
 import { GL_INIT, GL_FULL_INIT } from './glbytes.mjs';
+import { captureTileScene } from './tile-census-scene.mjs';
 import { saveFixtureCode } from '../debug-settings.mjs';
 
 // Full SHA comes from the serve-build lease; HTTP confirms its build stamp.
@@ -75,19 +76,10 @@ try {
   let tileData = {};
   if (tileCensus) {
     const allocation = await page.evaluate('window.__wildshard.memory()');
-    const nodes = await page.evaluate(`(() => {
-      const rows = [];
-      window.__wildshard.requireWorld().game.scene.traverse(node => {
-        const geometry = node.geometry;
-        if (!geometry?.isBufferGeometry) return;
-        const attributes = [...Object.values(geometry.attributes), geometry.index, node.instanceMatrix, node.instanceColor].filter(Boolean);
-        const buffers = [...new Set(attributes.flatMap(value => window.__sc_gl_source_ids?.(value.isInterleavedBufferAttribute ? value.data : value) ?? []))];
-        const parents = []; for (let at = node; at !== null; at = at.parent) parents.unshift(at.name || at.type);
-        rows.push({ path: parents.join('/'), type: node.type, buffers });
-      });
-      return rows;
-    })()`);
-    tileData = { pinned: pin, cpuRate: tier === 'phone' ? 4 : 1, allocation, nodes };
+    const scene = /** @type {import('./tile-census-scene.mjs').CensusSceneSnapshot} */ (await page.evaluate(
+      `(${captureTileScene.toString()})(window.__wildshard.requireWorld().game.scene, source => window.__sc_gl_source_ids?.(source) ?? [])`));
+    tileData = { pinned: pin, cpuRate: tier === 'phone' ? 4 : 1, allocation,
+      nodes: scene.nodes, cpuBuffers: scene.cpuBuffers, sceneCpuVersion: 1 };
   }
   const record = { ...tileData, version, shard, tier, labelMode, poses: ['spawn', ...poses.map((pose) => pose.name)], observed, errors };
   mkdirSync(dirname(output), { recursive: true });

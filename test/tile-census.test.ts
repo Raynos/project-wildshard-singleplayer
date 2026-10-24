@@ -18,6 +18,7 @@ test('one GPU buffer remains one allocation across attributes and consumers', ()
   expect(shared.total).toBe(10);
   expect(shared.ramCapacity).toBe(700);
   expect(shared.allocatorClaims).toBe(900);
+  expect(shared.sceneCpu).toBeNull();
   const missingClaim = { ...sample([row], []), allocation: { accountedBytes: null, totals: { gpu: 10, ram: 20 } } };
   expect(summarizeTileCensus(missingClaim).allocatorClaims).toBeNull();
 });
@@ -33,4 +34,30 @@ test('unreconciled and ambiguous observations refuse instead of inventing saving
   expect(() => summarizeTileCensus({ ...data, observed: { ...data.observed, reconciled: false } })).toThrow('Unreconciled');
   expect(() => summarizeTileCensus({ ...data, observed: { ...data.observed, totalBytes: 100 } })).toThrow('sizes do not reconcile');
   expect(() => summarizeTileCensus(sample([buffer('b'), buffer('b')], []))).toThrow('Ambiguous');
+});
+
+const cpuNode = (path: string, ids: string[]) => ({ ...node(path, []), cpuBuffers: ids.map(id => ({ id, role: 'position' })),
+  missingCpuRoles: [], worldBounds: null });
+const cpuSample = (nodes: ReturnType<typeof cpuNode>[]) => ({ ...sample([], nodes), nodes, sceneCpuVersion: 1,
+  cpuBuffers: [{ id: 'shared', bytes: 48 }, { id: 'single', bytes: 16 }, { id: 'unlinked', bytes: 8 }] });
+
+test('scene CPU capacity is deduplicated across roles and identically named nodes', () => {
+  const result = summarizeTileCensus(cpuSample([
+    cpuNode('Scene/Mesh', ['shared', 'shared', 'single']), cpuNode('Scene/Mesh', ['shared']),
+  ]));
+  expect(result.sceneCpu).toEqual({ totalBytes: 72, singleNodeBytes: 16, sharedNodeBytes: 48, unlinkedBytes: 8,
+    nodes: 2, boundedNodes: 0, missingCpuRoles: 0 });
+  expect(result.ramCapacity).toBe(700);
+  expect(result.total).toBe(0);
+});
+
+test('partial, dangling and duplicate CPU identities refuse without zero-capacity claims', () => {
+  const data = cpuSample([cpuNode('Scene/Mesh', ['shared'])]);
+  expect(() => summarizeTileCensus({ ...data, sceneCpuVersion: undefined })).toThrow('Incomplete scene CPU census');
+  expect(() => summarizeTileCensus({ ...data, nodes: [node('Scene/Mesh', [])] })).toThrow('Incomplete scene CPU node');
+  expect(() => summarizeTileCensus({ ...data, nodes: [cpuNode('Scene/Mesh', ['missing'])] })).toThrow('Unknown scene CPU identity');
+  expect(() => summarizeTileCensus({ ...data, cpuBuffers: [...data.cpuBuffers, data.cpuBuffers[0]] })).toThrow();
+  expect(() => summarizeTileCensus({ ...data, cpuBuffers: [{ id: 'shared', bytes: Number.MAX_SAFE_INTEGER + 1 }] })).toThrow('Unsafe scene CPU capacity');
+  expect(() => summarizeTileCensus({ ...data, nodes: [{ ...cpuNode('Scene/Mesh', []),
+    worldBounds: { min: { x: 0, y: 0, z: 0 }, max: { x: Infinity, y: 1, z: 1 } } }] })).toThrow('Invalid scene bounds');
 });
