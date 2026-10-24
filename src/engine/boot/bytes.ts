@@ -14,10 +14,13 @@ import type { Plan, ByteProgress } from './plan';
 import type { BootStep, ByteKey } from './steps';
 import { assetVersions, publicBytes } from './tables';
 import { DefaultLoadingManager } from 'three';
-import { TIER_CONFIG } from '../core/tier';
+import { TIER, TIER_CONFIG } from '../core/tier';
 import { standIn, texMode, type TexMode } from './gpuFiles';
 import { decodeImageBitmap } from './imageDecode';
 import { declareDownloadFile } from './download';
+import { pageScope } from '../app/resources';
+import { presenting } from '../core/framePacing';
+import { workSlice } from '../core/workSlice';
 
 export type ChunkFiles = Readonly<Record<ByteKey, readonly string[]>>;
 type Bytes = Record<string, number>;
@@ -95,7 +98,8 @@ function versionedFetch(net: typeof window.fetch): typeof window.fetch {
 }
 
 /** the running boot's counter (one per shard build — E155 builds several in one page; the fetch layer is installed once) */
-interface Counting { sourceOf: Map<string, ByteKey>; reader: (k: ByteKey) => ByteProgress; seen: Set<string>; finished: Set<string>; plan: Plan<BootStep> }
+interface Counting { sourceOf: Map<string, ByteKey>; reader: (k: ByteKey) => ByteProgress; seen: Set<string>; finished: Set<string>; plan: Plan<BootStep>;
+  resourceBatches: (readonly PerformanceResourceTiming[])[]; drainingResources: boolean }
 let counting: Counting | null = null;
 let counterInstalled = false;
 
@@ -112,12 +116,39 @@ export function installByteCounter(plan: Plan<BootStep>, files: ChunkFiles): voi
   const readers = new Map<ByteKey, ByteProgress>();
   const reader = (k: ByteKey): ByteProgress => { let r = readers.get(k); if (!r) { r = plan.reader(k); readers.set(k, r); } return r; };
   // files whose bytes were counted by the tee / credited at all — per build: a later shard's bar counts its own
-  counting = { sourceOf, reader, seen: new Set<string>(), finished: new Set<string>(), plan };
+  counting = { sourceOf, reader, seen: new Set<string>(), finished: new Set<string>(), plan, resourceBatches: [], drainingResources: false };
   installCounter();
 }
 
 /** the boot is done: later fetches are nobody's bar (and the plan — with everything its steps closed over — can go) */
 export function releaseByteCounter(): void { counting = null; }
+
+function creditResource(c: Counting, entry: PerformanceResourceTiming): void {
+  const path = pathOf(entry.name), key = c.sourceOf.get(path);
+  if (!key || c.seen.has(path) || c.finished.has(path)) return;
+  c.finished.add(path);
+  c.reader(key).add(entry.encodedBodySize || entry.transferSize || (sizeOf(path) ?? 0) || 0);
+  c.plan.fileDone(key);
+}
+
+/** Keep the batch's original counter, including across a later boot/counter release.
+ * Only live phone drawing needs cooperative turns; desktop and loading remain synchronous. */
+function creditResources(c: Counting, entries: readonly PerformanceResourceTiming[]): void {
+  if (!c.drainingResources && (TIER !== 'phone' || !presenting())) { for (const entry of entries) creditResource(c, entry);return; }
+  c.resourceBatches.push(entries);
+  if (c.drainingResources) return;
+  c.drainingResources = true;
+  const slice = workSlice(undefined, pageScope);
+  const drain = async (): Promise<void> => {
+    try {
+      for (let batch = c.resourceBatches.shift(); batch !== undefined; batch = c.resourceBatches.shift()) for (const entry of batch) {
+        const pause = slice.check();if (pause !== undefined) await pause;
+        creditResource(c, entry);
+      }
+    } finally { c.drainingResources = false; }
+  };
+  void drain();
+}
 
 /** the fetch layer + the resource-timing watch, once per page; they read the running boot's `counting` */
 function installCounter(): void {
@@ -150,14 +181,7 @@ function installCounter(): void {
     const po = new PerformanceObserver((list) => {
       const c = counting;
       if (!c) return;
-      for (const e of list.getEntries() as PerformanceResourceTiming[]) {
-        const p = pathOf(e.name);
-        const key = c.sourceOf.get(p);
-        if (!key || c.seen.has(p) || c.finished.has(p)) continue;
-        c.finished.add(p);
-        c.reader(key).add(e.encodedBodySize || e.transferSize || (sizeOf(p) ?? 0) || 0);
-        c.plan.fileDone(key);
-      }
+      creditResources(c, list.getEntries() as PerformanceResourceTiming[]);
     });
     po.observe({ type: 'resource', buffered: true });
   }
