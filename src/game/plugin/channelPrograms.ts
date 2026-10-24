@@ -147,10 +147,13 @@ function compileNumericCreaturePose(row: poseSchema.InferOutput<typeof NumericPo
     const { scalarValues, dimensions, frame } = observation;
     for (let i = 0; i < row.scalars.length; i++) {
       const scalar = row.scalars[i]; if (scalar === undefined) throw new Error('Missing creature pose scalar');
-      const [key, field] = scalar.path;
+      const key=scalar.path[0],field=scalar.path[1];
       copyDimensions(dimensions, c);
-      const value = key === 'mem' ? poseMemory(c.mem, field)
-        : key === 'dims' ? !Object.hasOwn(dimensions, field) ? undefined : dimensions[field] : c[key];
+      let value:number|undefined;
+      if(key==='mem'||key==='dims'){
+        if(field===undefined)throw new Error('Missing creature pose field');
+        value=key==='mem'?poseMemory(c.mem,field):!Object.hasOwn(dimensions,field)?undefined:dimensions[field];
+      }else value=c[key];
       const number = value ?? scalar.fallback;
       if (typeof number !== 'number' || !Number.isFinite(number)) throw new Error('Invalid creature pose scalar observation');
       scalarValues[i] = number;
@@ -198,9 +201,12 @@ function compileNumericCreaturePose(row: poseSchema.InferOutput<typeof NumericPo
     frame.phase = c.phase; frame.attack = c.attack; frame.brace = c.brace; frame.flinch = c.flinch; frame.deathT = c.deathT;
     frame.stateIndex = row.states.indexOf(c.state); frame.yaw = c.yaw; frame.lookWeight = c.lookWeight;
     copyDimensions(dimensions, c);
-    for (const input of rig.inputs) if (input.kind === 'scalar' && input.record === 'memory')
-      rig.memory[input.name] = poseMemory(c.mem, input.name);
-    for (const input of rig.inputs) {
+    for(let index=0;index<rig.inputs.length;index++){
+      const input=rig.inputs[index];if(input===undefined)throw new Error('Missing creature pose input');
+      if(input.kind==='scalar'&&input.record==='memory')rig.memory[input.name]=poseMemory(c.mem,input.name);
+    }
+    for(let index=0;index<rig.inputs.length;index++){
+      const input=rig.inputs[index];if(input===undefined)throw new Error('Missing creature pose input');
       const joint = input.kind === 'joint' ? rig.joints.get(input.joint) : undefined;
       const record = input.kind === 'scalar' ? input.record === 'declared' ? rig.scalars : input.record === 'memory' ? rig.memory : dimensions : undefined;
       const value = input.kind === 'frame' ? frame[input.field] : input.kind === 'scalar'
@@ -211,7 +217,10 @@ function compileNumericCreaturePose(row: poseSchema.InferOutput<typeof NumericPo
     }
     rig.observation.time = c.t; rig.observation.delta = c.dt;
     rig.lane?.evaluate(rig.observation);
-    for (const turn of rig.turns) if (turn.dirty) { turn.dirty = false; turn.euler.set(turn.x, turn.y, turn.z); }
+    for(let index=0;index<rig.turns.length;index++){
+      const turn=rig.turns[index];if(turn===undefined)throw new Error('Missing creature pose rotation');
+      if(turn.dirty){turn.dirty=false;turn.euler.set(turn.x,turn.y,turn.z);}
+    }
     const body = row.squash === undefined ? undefined : c.bones[row.squash];
     if (body !== undefined) squashBody(body, c.flinch);
     } finally { available = observation; }
