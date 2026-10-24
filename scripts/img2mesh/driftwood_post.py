@@ -23,6 +23,10 @@ Then scripts/img2mesh/build_props.py (build_driftwood.sh) meshopt-compresses the
 --smooth-angle), the generated texture baked UNGRADED onto the low mesh's own UVs (--atlas, default 1024) plus a
 tangent-space normal map from the high mesh (--normal-map N², default the atlas size; 0 = none); no vertex colour, no AO
 bake. Step 7 exports <asset>.glb with that PBR material (WebP base colour + normal, --roughness), no .tex.glb.
+
+--geo <mesh.obj> (HI3D-REFINE, E494): a Hi3D-refined mesh from scripts/img2mesh/hi3d_refine.py, already in the --in
+GLB's frame. Its geometry is decimated in place of the generated mesh's and is the normal map's high mesh; the colour
+(facets, atlas) still comes from the generated texture of --in.
 """
 import argparse
 import json
@@ -39,6 +43,7 @@ from mathutils.bvhtree import BVHTree
 argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 ap = argparse.ArgumentParser()
 ap.add_argument("--in", dest="src", required=True)
+ap.add_argument("--geo", default="", help="a Hi3D-refined mesh in --in's frame: its geometry, --in's colour")
 ap.add_argument("--name", required=True)
 ap.add_argument("--out", required=True)
 ap.add_argument("--tris", default="1500", help="triangle budget per asset; a comma list gives one per --split asset")
@@ -89,6 +94,17 @@ if a.up:
     hi.rotation_mode = "XYZ"  # the glTF importer leaves objects in QUATERNION mode: euler edits would be ignored
     hi.rotation_euler["XYZ".index(ax)] = math.radians(deg)
     bpy.ops.object.transform_apply(rotation=True)
+geo = None
+if a.geo:  # the OBJ importer's Y-up → Z-up matches the glTF importer's, so --geo lands on hi
+    bpy.ops.object.select_all(action="DESELECT")
+    bpy.ops.wm.obj_import(filepath=os.path.expanduser(a.geo), forward_axis="NEGATIVE_Z", up_axis="Y")
+    geo = bpy.context.selected_objects[0]
+    bpy.context.view_layer.objects.active = geo
+    if a.up:
+        geo.rotation_mode = "XYZ"
+        geo.rotation_euler["XYZ".index(ax)] = math.radians(deg)
+    bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+    geo.select_set(False)
 
 # --- the generated texture as a numpy array (sRGB-encoded values, as stored) ---
 def base_image(obj):
@@ -152,8 +168,9 @@ def sample(points):
 
 # --- split into loose parts, drop crumbs, cluster touching parts into assets ---
 bpy.ops.object.select_all(action="DESELECT")
-hi.select_set(True)
-bpy.context.view_layer.objects.active = hi
+src = geo or hi
+src.select_set(True)
+bpy.context.view_layer.objects.active = src
 bpy.ops.object.duplicate()
 work = bpy.context.view_layer.objects.active
 # the baked glb is split along its UV seams: weld it first, or the seams read as loose parts and decimation stalls
@@ -269,7 +286,13 @@ def bake_atlas(ob):
         nn.image = imn
         mat.node_tree.nodes.active = nn
         bk.normal_space = "TANGENT"
+        if geo:  # --geo: the refined mesh's detail, not the generated one's
+            hi.select_set(False)
+            geo.select_set(True)
         bpy.ops.object.bake(type="NORMAL")
+        if geo:
+            geo.select_set(False)
+            hi.select_set(True)
         ob["normal"] = imn.name
     bk.use_selected_to_active = False
     hi.select_set(False)

@@ -10,6 +10,10 @@ every prop, e.g. "--keep-texture" for a photoreal shard], "props": [{"ref", "arg
 the staging folder; step 2 meshopt-compresses every staged asset (only the named refs' when refs are given) into
 <out dir>/<asset>/ with gltf-transform (EXT_meshopt_compression + quantization: the loader needs setMeshoptDecoder),
 plus its <asset>.json. build_driftwood.sh is this with Driftwood's list; its outputs are byte-for-byte as before.
+
+Hi3D (HI3D-REFINE, E494): a list key "refine": {"dir", "res"} (or env REFINE / REFINE_RES) passes driftwood_post.py
+--geo <dir>/<ref>.hi3d<res>.obj, made by scripts/img2mesh/hi3d_refine.py; a prop with "refine": false keeps its own
+geometry. A prop whose refined mesh is missing is skipped, never built unrefined.
 """
 import glob
 import json
@@ -32,6 +36,8 @@ GEN = os.environ.get('GEN') or os.path.expanduser(spec['gen'])
 STAGE = os.environ.get('STAGE') or os.path.expanduser(spec['stage'])
 BLENDER = os.environ.get('BLENDER') or '/opt/homebrew/bin/blender'
 common = [str(x) for x in spec.get('args', [])]
+REFINE = os.environ.get('REFINE') or os.path.expanduser(spec.get('refine', {}).get('dir', ''))
+REFINE_RES = os.environ.get('REFINE_RES') or str(spec.get('refine', {}).get('res', 1024))
 os.makedirs(STAGE, exist_ok=True)
 os.makedirs(DEST, exist_ok=True)
 
@@ -44,7 +50,14 @@ for prop in spec['props']:
     if not os.path.isfile(src):
         print(f'skip {ref}: no {src}')
         continue
-    run = subprocess.run([BLENDER, '-b', '-P', POST, '--', '--in', src, '--out', STAGE, *common, *shlex.split(prop['args'])],
+    geo = []
+    if REFINE and prop.get('refine', True) is not False:
+        obj = os.path.join(REFINE, f'{ref}.hi3d{REFINE_RES}.obj')
+        if not os.path.isfile(obj):
+            print(f'skip {ref}: no {obj} (run hi3d_refine.py)')
+            continue
+        geo = ['--geo', obj]
+    run = subprocess.run([BLENDER, '-b', '-P', POST, '--', '--in', src, '--out', STAGE, *common, *geo, *shlex.split(prop['args'])],
                          stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, errors='replace', check=False)
     for line in run.stdout.splitlines():
         if SHOW.search(line):
