@@ -24,6 +24,12 @@ export interface StealthSourcesOwners {
  readonly kit: HeldSlotKit | null;
  readonly grass: Pick<PageWildEnvironment, 'grassStandingAt'>;
 }
+/** Read each live exclusion once, in the original short-circuit order. */
+function excludedThreat(actor:{readonly mem:Readonly<Record<string,number>>},fields:readonly string[]):boolean{
+ const length=fields.length;
+ for(let index=0;index<length;index++)if(index in fields&&(actor.mem[fields[index]??'undefined']??0)===1)return true;
+ return false;
+}
 /** Gather in row/group/member order, then select the nearest threats stably.
  * Positions remain native doubles, independent of render projections. */
 export function sampleStealthSources(rows:StealthSources,player:Pick<Player,'position'>,owners:StealthSourcesOwners):StealthObservation {
@@ -34,7 +40,7 @@ export function sampleStealthSources(rows:StealthSources,player:Pick<Player,'pos
     for(let j=0;j<row.members;j++){const actor=pack.members[j];if(actor===undefined)break;if(actor.alive)threats.push({x:actor.position.x,z:actor.position.z,awareness:pack.awareness,alert:row.alert,hunting:Number(row.hunting.includes(pack.phase))});}}
   }else{
    for(let i=0;i<row.groups;i++){const herd=owners.population?.herds[i];if(herd===undefined)break;
-    for(let j=0;j<row.members;j++){const actor=herd.members[j];if(actor===undefined)break;if(actor.alive&&!row.exclude.some(field=>(actor.mem[field]??0)===1))threats.push({x:actor.position.x,z:actor.position.z,awareness:actor.mem['aw']??0,alert:row.alert,hunting:0});}}
+    for(let j=0;j<row.members;j++){const actor=herd.members[j];if(actor===undefined)break;if(actor.alive&&!excludedThreat(actor,row.exclude))threats.push({x:actor.position.x,z:actor.position.z,awareness:actor.mem['aw']??0,alert:row.alert,hunting:0});}}
   }
  }
  return {grass:owners.grass.grassStandingAt(player.position.x,player.position.z),mounted:owners.riding?.mounted??false,

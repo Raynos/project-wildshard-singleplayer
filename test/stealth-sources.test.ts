@@ -88,3 +88,18 @@ test('a render callback that retires the owner cannot publish a weapon scale',()
  expect(()=>f.controller.updateSources(.1,4,f.owners)).toThrow('owner has ended');
  expect(f.events).toEqual([]);
 });
+
+test('herd exclusion reads stop at the first flag and snapshots stay detached',()=>{
+ const f=fixture(),actor=f.actors[1];if(actor===undefined)throw new Error('Missing actor');
+ const calls:string[]=[];
+ actor.mem={get ridden(){calls.push('ridden');return 1;},get owned(){calls.push('owned');return 0;}};
+ const input=v.parse(StealthSourcesSchema,{take:2,sources:[{kind:'herds',groups:1,members:2,alert:.9,exclude:['ridden','owned']}]});
+ expect(sampleStealthSources(input,f.player,f.owners).threats).toEqual([]);
+ expect(calls).toEqual(['ridden']);
+ actor.mem={ridden:0,owned:0,aw:.4};
+ const first=sampleStealthSources(input,f.player,f.owners);
+ actor.position.x+=10;actor.mem['aw']=.8;
+ const second=sampleStealthSources(input,f.player,f.owners);
+ expect(first.threats[0]?.awareness).toBe(.4);expect(second.threats[0]?.awareness).toBe(.8);
+ expect(first.threats[0]).not.toBe(second.threats[0]);
+});
