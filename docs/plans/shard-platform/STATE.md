@@ -26,9 +26,9 @@ M1 on menu → T1 growth. Lanes are off memory floors; render targets (49 MiB) p
 **Tooling:** DW tiles: wire 12.3 → 10.8 MB look-identical;
 pick for Jake: art/driftwood-isle/round-19-tile-lod (3af5687a53) A landed / B / C; only C gets 6,4 + 2,5 under 4 MB.
 
-**For wildshard-v:** 6d1b8ba1cc (10-23 ff45 hold) is superseded: the pin is now 9625ae97ec (dd79651974, TB1 crossing hold,
-lifts on CI + smoke green >= 3974a26c13). openusage reads Claude weekly 91 % (0 Opus). SW9 with sp-x7; the 666-min 'main red' reading is dated 10-23, main CI is green today (all 28 jobs on b68f6cf88a, 34aa, 9625, a3fe).
-Night Market road B / C, L10 ratchet, M1 re-base, Explorer orbit pause: still open. DR19 (Settings APPLY & RELOAD) landed 78b5f111e7 on 10-23 and is live.
+**For wildshard-v:** G679 -> sp-x6, G680 -> sp-x2, G681 -> sp-x8 (if pure data), G682 -> sp-x1; rows in lanes/ready-queue.md
+(e542ed6c63, SW10). TS6307 was fixed 576b27c9df (17:06Z); TB1 hold lifted 3bea488858. PLEASE stop your grep PID 45432 (35+ min, ~65 % CPU over session
+jsonl files): it overlapped sp-x1's quiet e664 floor (4/15) and its repeat; nobody else may kill it. DR19 and L10 code were already landed.
 
 **Lanes:** Claude weekly 90 %: 0 Opus (sp-o3 stopped, G605); 5 Codex + sp-x7.
 
