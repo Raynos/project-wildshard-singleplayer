@@ -41,5 +41,13 @@ test('staged project membership keeps includes, excludes, type imports and refer
     expect(stagedProjectFailures(root, ['src/entry.ts'])).toHaveLength(1);
     put('src/entry.ts', 'import type {Valid} from "./format/valid";'); git('add', 'src/entry.ts');
     expect(stagedProjectFailures(root, ['src/entry.ts'])).toEqual([]);
+    put('src/engine/tsconfig.test.json', '{"extends":"../../tsconfig.json","include":["**/*.test.ts"],"references":[{"path":"../../tsconfig.engine.json"}]}');
+    put('tsconfig.engine.json', '{"extends":"./tsconfig.json","include":["src/engine"],"exclude":["**/*.test.ts","src/engine/excluded.ts"],"references":[{"path":"./tsconfig.format.json"}]}');
+    put(file, 'import type {Own} from "./own";'); git('add', '.');
+    expect(stagedProjectFailures(root, [file])).toEqual([]);
+    put(file, 'import type {Fake} from "../../test/fake";'); git('add', file);
+    expect(stagedProjectFailures(root, [file])).toHaveLength(1);
+    put('src/engine/own.ts', 'import type {Subject} from "./subject.test";'); git('add', 'src/engine/own.ts');
+    expect(stagedProjectFailures(root, ['src/engine/own.ts'])).toHaveLength(1);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });

@@ -36,7 +36,7 @@ test('every source file has a layer owner, while the root covers all tests and a
   expect(root.fileNames.filter(file => file.includes('/src/') && !/\.d\.(?:[cm]?ts|[^/]+\.ts)$/u.test(file))).toEqual([]);
   expect(root.options.disableSourceOfProjectReferenceRedirect).not.toBe(true);
   expect(new Set(root.projectReferences?.map(reference => ts.resolveProjectReferencePath(reference)))).toEqual(
-    new Set([...seen].filter(file => file !== resolve('tsconfig.layers.json'))),
+    new Set([...seen].filter(file => /^tsconfig\.(?:engine|format|game|sdk|commons|shards|app)\.json$/u.test(relative('.', file)))),
   );
   for (const file of ['api/tsconfig.json', 'scripts/tsconfig.json']) {
     const references = project(file).projectReferences ?? [];
@@ -127,4 +127,56 @@ test('CI and local checks build source before tests and retain every tool/site p
     expect(tests).toBeGreaterThan(layers);
     for (const path of ['api', 'scripts', 'drafts', 'drafts/tools', 'admin', 'admin/tools']) expect(command).toContain(`tsc --noEmit -p ${path}`);
   }
+});
+
+test('workspace Node tests consume declarations without giving production Node globals', () => {
+  mkdirSync('tmp', { recursive: true });
+  const root = mkdtempSync(resolve('tmp/typecheck-workspace-'));
+  const put = (file: string, contents: string): void => {
+    mkdirSync(dirname(resolve(root, file)), { recursive: true });
+    writeFileSync(resolve(root, file), contents);
+  };
+  const compiler = resolve('node_modules/typescript/bin/tsc');
+  const run = (...args: string[]): ReturnType<typeof spawnSync> => spawnSync(execPath, [compiler, ...args], {
+    cwd: root, encoding: 'utf8', timeout: 10_000,
+  });
+  try {
+    put('tsconfig.engine.json', JSON.stringify({ compilerOptions: { strict: true, composite: true, declaration: true,
+      module: 'ESNext', moduleResolution: 'bundler', target: 'ES2022', types: [], skipLibCheck: true,
+      emitDeclarationOnly: true, outDir: 'out' }, include: ['src/engine'], exclude: ['**/*.test.ts'] }));
+    put('src/engine/tsconfig.test.json', JSON.stringify({ compilerOptions: { strict: true, composite: true,
+      declaration: true, emitDeclarationOnly: true, outDir: '../../test-out', types: ['node'], skipLibCheck: true,
+      module: 'ESNext', moduleResolution: 'bundler', target: 'ES2022' }, include: ['**/*.test.ts'],
+      references: [{ path: '../../tsconfig.engine.json' }] }));
+    put('src/engine/tsconfig.json', JSON.stringify({ files: [], references: [
+      { path: '../../tsconfig.engine.json' }, { path: './tsconfig.test.json' },
+    ] }));
+    put('src/engine/value.ts', 'export const value: number = 1;\n');
+    put('src/engine/value.test.ts', '// oxlint-disable-next-line import/no-nodejs-modules -- Read the real Node executable in this compiler fixture.\nimport {readFileSync} from "node:fs";\nimport {value} from "./value";\n\nexport const size: number = readFileSync(process.execPath).length + value;\n');
+    const lint = (): ReturnType<typeof spawnSync> => spawnSync(resolve('node_modules/.bin/oxlint'),
+      ['--type-aware', '--no-ignore', '--config', resolve('.oxlintrc.json'), resolve(root, 'src/engine/value.test.ts')],
+      { cwd: resolve('.'), encoding: 'utf8', timeout: 10_000 });
+    const cold = lint();
+    expect(cold.status, String(cold.stdout) + String(cold.stderr)).toBe(0);
+    const built = run('-b', 'src/engine/tsconfig.json');
+    expect(built.status, String(built.stdout) + String(built.stderr)).toBe(0);
+    const checked = run('-p', 'src/engine/tsconfig.test.json', '--listFilesOnly');
+    expect(checked.status, String(checked.stdout) + String(checked.stderr)).toBe(0);
+    const files = String(checked.stdout).replaceAll('\\', '/').split('\n');
+    expect(files).toContain(`${root}/out/src/engine/value.d.ts`);
+    expect(files).not.toContain(`${root}/src/engine/value.ts`);
+    put('src/engine/value.ts', 'export const value: number = process.pid;\n');
+    const badProduction = run('-b', 'src/engine/tsconfig.json');
+    expect(badProduction.status).not.toBe(0);
+    expect(String(badProduction.stdout) + String(badProduction.stderr)).toContain('Cannot find name');
+    put('src/engine/value.ts', 'export const value: number = 1;\n');
+    put('src/engine/value.test.ts', 'import {value} from "./value";export const result: string = value;\n');
+    const badTest = run('-b', 'src/engine/tsconfig.json');
+    expect(badTest.status).not.toBe(0);
+    expect(String(badTest.stdout) + String(badTest.stderr)).toContain('TS2322');
+    put('src/engine/value.test.ts', 'export const result = JSON.parse("1");\n');
+    const unsafe = lint();
+    expect(unsafe.status).not.toBe(0);
+    expect(String(unsafe.stdout) + String(unsafe.stderr)).toContain('no-unsafe-assignment');
+  } finally { rmSync(root, { recursive: true, force: true }); }
 });

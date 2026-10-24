@@ -73,7 +73,8 @@ export function stagedProjects(root, staged) {
     if (parsed === undefined || parsed.errors.some(error => error.code !== 18003)) throw new Error(`Cannot read staged project ${config}`);
     projects.set(config, parsed); return parsed;
   };
-  for (const config of staged.paths.filter(file => /^tsconfig\.(?:engine|format|game|sdk|commons|shards|app)\.json$/u.test(file))) project(config);
+  for (const config of staged.paths.filter(file => /^tsconfig\.(?:engine|format|game|sdk|commons|shards|app)\.json$/u.test(file)
+    || /^src\/(?:engine|format|game|sdk|commons|shards)\/tsconfig\.test\.json$/u.test(file))) project(config);
   return { projects, project, name, host };
 }
 
@@ -83,9 +84,11 @@ export function stagedProjects(root, staged) {
 export function stagedProjectFailures(root, files) {
   const staged = stagedFiles(root), { projects, project, name, host } = stagedProjects(root, staged), failures = [];
   for (const [config, parsed] of projects) {
-    const prefix = `src/${config.slice('tsconfig.'.length, -'.json'.length)}/`;
+    const testWorkspace = /^src\/([^/]+)\/tsconfig\.test\.json$/u.exec(config)?.[1];
+    const prefix = `src/${testWorkspace ?? config.slice('tsconfig.'.length, -'.json'.length)}/`;
     const selected = files.filter(file => (config === 'tsconfig.app.json' ? /^src\/[^/]+$/u.test(file) : file.startsWith(prefix))
-      && /\.[cm]?tsx?$/u.test(file) && staged.read(file) !== undefined);
+      && /\.[cm]?tsx?$/u.test(file) && staged.read(file) !== undefined
+      && (testWorkspace === undefined ? !file.endsWith('.test.ts') || !projects.has(`${prefix}tsconfig.test.json`) : file.endsWith('.test.ts')));
     if (selected.length === 0) continue;
     const allowed = new Set(parsed.fileNames.map(name)), visited = new Set([config]);
     const references = [...(parsed.projectReferences ?? [])];

@@ -118,7 +118,7 @@ export function warmTypeJobs(root, files) {
     }
     mkdirSync(resolve(root, 'node_modules/.cache'), { recursive: true });
     jobs.push({ name: `types ${config}`, command: [resolve(root, 'node_modules/.bin/tsc'), '-p', config, '--noEmit',
-      '--incremental', '--tsBuildInfoFile', config === 'tsconfig.json' ? cache : `node_modules/.cache/commit-${config}.tsbuildinfo`] });
+      '--incremental', '--tsBuildInfoFile', config === 'tsconfig.json' ? cache : `node_modules/.cache/commit-${config.replaceAll('/', '-')}.tsbuildinfo`] });
   }
   return jobs;
 }
