@@ -1,6 +1,6 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- compile the shipped module source as its bake does
 import { readFileSync } from 'node:fs';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { Object3D, PerspectiveCamera, Quaternion, Vector3 } from 'three';
 import { parse } from 'valibot';
 import { Scope } from '../src/engine/app/scope';
@@ -40,10 +40,13 @@ test('Nine\'s movers view module poses the train, the gondola and the drones on 
     }
   };
   let t = 1234.5;
+  // This pose oracle schedules every frame; view-lane tests own overrun policy.
+  let elapsed = 0;
+  const clock = vi.spyOn(performance, 'now').mockImplementation(() => { elapsed += .05; return elapsed; });
   try {
     program.frame(dt, t); check(t);
     for (let frame = 1; frame <= 300; frame++) { t += dt; program.frame(dt, t); if (frame % 100 === 0) check(t); }
     t += 600; program.frame(dt, t); check(t);
-  } finally { scope.dispose(); }
+  } finally { clock.mockRestore(); scope.dispose(); }
   for (const [i, pose] of original(0).entries()) expect(MOVER_REST[i]).toMatchObject({ x: expect.closeTo(pose.x, 4) as number, y: expect.closeTo(pose.y, 4) as number, z: expect.closeTo(pose.z, 4) as number, yaw: expect.closeTo(pose.yaw, 6) as number });
 });
