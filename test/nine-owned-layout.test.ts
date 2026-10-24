@@ -1,7 +1,9 @@
 import { expect, test } from 'vitest';
 import { prepareAssetDecoders } from '../src/format/product';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { nineWorldProduct } from '../src/shards/nine-dragon-stack/generators/worldProduct';
+import { nineWorldLayout } from '../src/shards/nine-dragon-stack/generators/worldProduct';
+import { nineLayoutSource } from '../src/shards/nine-dragon-stack/generators/layout';
+import { withPortableMath } from '../src/commons/bake/portableMath';
 import { bakedLayout, bakedLayoutProjection } from '../src/shards/nine-dragon-stack/generators/layoutProjection';
 import { facadeWindowBlobs, type NineWindowLayout } from '../src/shards/nine-dragon-stack/generators/facadeWindows';
 import { facadeWindowPackets } from '../src/shards/nine-dragon-stack/generators/facadeWindowPackets';
@@ -10,7 +12,7 @@ import { parseWorldScene } from '../src/format/clientChannels';
 
 test('owned layout rows preserve every original projection and facade packet byte', async () => {
   await prepareAssetDecoders();
-  const { layout } = nineWorldProduct();
+  const layout = withPortableMath(() => nineWorldLayout(nineLayoutSource()));
   expect(bakedLayout(layout)).toEqual(bakedLayout());
   expect(bakedLayoutProjection(layout)).toEqual(bakedLayoutProjection());
   const packets = (source?: NineWindowLayout) => facadeWindowBlobs(source).map(row => ({

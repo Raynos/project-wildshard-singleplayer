@@ -27,6 +27,17 @@ export function nineLayoutWord(_key: string, value: unknown): unknown {
     : value === Infinity ? 'Infinity' : value === -Infinity ? '-Infinity' : value;
 }
 
+/** Project the source layout without also baking unrelated world GLBs and spill channels. */
+export function nineWorldLayout(layout: ReturnType<typeof nineScene>['layout']): NineWorldProduct['layout'] {
+  const bounds = layout.geometries.map(geometry => {
+    geometry.computeBoundingSphere(); geometry.computeBoundingBox();
+    const { boundingSphere: sphere, boundingBox: box } = geometry;
+    if (sphere === null || box === null) throw new Error('Nine layout geometry has no bounds');
+    return { sphere: [...sphere.center, sphere.radius], box: [...box.min, ...box.max] };
+  });
+  return { version: 1, count: layout.records.length, records: layout.records, rows: layout.rows, bounds };
+}
+
 /** Original world bake as owned data and bytes, with no file writes or scene publication.
  * The retained file adapter and the source product call this same function. */
 export function nineWorldProduct(atlas?: NineSpillAtlas): NineWorldProduct {
@@ -39,13 +50,7 @@ export function nineWorldProduct(atlas?: NineSpillAtlas): NineWorldProduct {
     const section = part.name.startsWith('layout_sets_') ? 'layout' : part.name.startsWith('specimens_boot_') ? 'boot' : 'explorer';
     libraries[section].push(hash);
   }
-  const bounds = product.layout.geometries.map(geometry => {
-    geometry.computeBoundingSphere(); geometry.computeBoundingBox();
-    const { boundingSphere: sphere, boundingBox: box } = geometry;
-    if (sphere === null || box === null) throw new Error('Nine layout geometry has no bounds');
-    return { sphere: [...sphere.center, sphere.radius], box: [...box.min, ...box.max] };
-  });
-  const layout: NineWorldProduct['layout'] = { version: 1, count: product.layout.records.length, records: product.layout.records, rows: product.layout.rows, bounds };
+  const layout = nineWorldLayout(product.layout);
   files.sort((a, b) => a.hash.localeCompare(b.hash));
   const metadata: NineWorldProduct['metadata'] = { version: 1, notice: 'DO NOT EDIT: generators/bake-nine-layout.mjs through bake(scene, identity).',
     libraries, specimenBoxes: product.boxes,

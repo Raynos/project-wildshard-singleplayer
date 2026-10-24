@@ -38,17 +38,25 @@ function vector(words: readonly (number | string)[]): Vector3 {
 
 /** Final vertex streams, after the same named solid/swept merges as native boot.
  * Both deck choices retain their own entry geometry and ordered light list. */
-export function spillInputs(caps: boolean, tier: 'phone' | 'desktop', input: NineSpillAtlas = atlas): { geometry: Map<string, BufferGeometry>; emitters: Emitter[] } {
+function prepareSpillGeometry() {
+  const layout = nineLayoutSource(), fixed = bakeFixedKits(readFixedSlots({ rows: layout.rows }));
+  const crown = canopyGeometries(layout.rows.banyan?.lumps.map(({ c, r, up, seed, wash }) => ({ c: vector(c), r: vector(r), up, seed, wash })) ?? []);
+  return { layout, fixed, crown };
+}
+
+/** A draw shares only its unshaded source inputs; each tier/deck receives detached geometry. */
+function spillInputsPrepared(caps: boolean, tier: 'phone' | 'desktop', input: NineSpillAtlas,
+  prepared: ReturnType<typeof prepareSpillGeometry>): { geometry: Map<string, BufferGeometry>; emitters: Emitter[] } {
   return withPortableMath(() => {
-    const layout = nineLayoutSource(), fixed = bakeFixedKits(readFixedSlots({ rows: layout.rows }));
+    const { layout, fixed, crown } = prepared;
     const take = (index: number): BufferGeometry => {
       const geometry = layout.geometries[index];
       if (geometry === undefined) throw new Error('Missing spill layout geometry');
-      return geometry;
+      return geometry.clone();
     };
     const solid = new Map(layout.rows.kits.map(row => [row.name, row.geo === null ? null : take(row.geo)]));
     const swept = new Map(layout.rows.kitxs.map(row => [row.name, take(row.geo)]));
-    const entries = fixed.geometries.get(caps ? 'entries-capped' : 'entries-open'), boards = fixed.geometries.get('facade-signs');
+    const entries = fixed.geometries.get(caps ? 'entries-capped' : 'entries-open')?.clone(), boards = fixed.geometries.get('facade-signs')?.clone();
     if (entries === undefined || boards === undefined) throw new Error('Missing spill fixed geometry');
     solid.set('entries', entries); solid.set('facade-signs', boards);
     const geometry = new Map<string, BufferGeometry>();
@@ -59,8 +67,7 @@ export function spillInputs(caps: boolean, tier: 'phone' | 'desktop', input: Nin
       swept.delete(name);
     }
     for (const [name, extra] of swept) geometry.set(name, extra);
-    const crown = canopyGeometries(layout.rows.banyan?.lumps.map(({ c, r, up, seed, wash }) => ({ c: vector(c), r: vector(r), up, seed, wash })) ?? []);
-    geometry.set('canopy-cards', crown.cards); geometry.set('canopy-core', crown.core);
+    geometry.set('canopy-cards', crown.cards.clone()); geometry.set('canopy-core', crown.core.clone());
     const row = input[tier];
     const emitters: Emitter[] = row.placed.filter(sign => sign.neon).map(({ p }) => {
       const count = Array.from(p.spec.text).length, em = p.size;
@@ -94,6 +101,11 @@ export function spillInputs(caps: boolean, tier: 'phone' | 'desktop', input: Nin
   });
 }
 
+/** Prepare a standalone tier/deck with the same source and per-vertex input order. */
+export function spillInputs(caps: boolean, tier: 'phone' | 'desktop', input: NineSpillAtlas = atlas): { geometry: Map<string, BufferGeometry>; emitters: Emitter[] } {
+  return withPortableMath(() => spillInputsPrepared(caps, tier, input, prepareSpillGeometry()));
+}
+
 /** The old grid acceleration retains exactly the original per-vertex light order. */
 export function bakedSpill(caps: boolean, tier: 'phone' | 'desktop', atlasRows: NineSpillAtlas = atlas): ReturnType<typeof spillInputs> {
   const input = spillInputs(caps, tier, atlasRows);
@@ -106,8 +118,9 @@ export function bakedSpill(caps: boolean, tier: 'phone' | 'desktop', atlasRows: 
 export function drawSpill(atlasRows: NineSpillAtlas = atlas): ReadonlyMap<string, BufferAttribute> {
   const spill = new Map<string, BufferAttribute>();
   const shaded = new Map<string, ReadonlyMap<string, BufferAttribute>>();
+  const prepared = withPortableMath(prepareSpillGeometry);
   for (const tier of ['phone', 'desktop'] as const) for (const caps of [false, true]) {
-    const input = spillInputs(caps, tier, atlasRows), identity = spillInputIdentity(input), cached = shaded.get(identity);
+    const input = spillInputsPrepared(caps, tier, atlasRows, prepared), identity = spillInputIdentity(input), cached = shaded.get(identity);
     if (cached === undefined) {
       bakeSpill([...input.geometry.values()], input.emitters);
       shaded.set(identity, new Map([...input.geometry].map(([name, geometry]) => {
