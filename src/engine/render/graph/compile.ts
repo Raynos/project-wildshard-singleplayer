@@ -534,7 +534,7 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
     if (p.type === 'float') {
       const u = uniform(typeof p.value === 'number' ? p.value : 0);
       uniforms.set(name, { t: 'float', n: u });
-      setters.set(name, (v) => { u.value = arr(v)[0] ?? 0; });
+      setters.set(name, (v) => { u.value = typeof v === 'number' ? v : v[0] ?? 0; });
     } else if (p.type === 'colour') {
       const c = new THREE.Color(), set = (v: GraphLiteral): void => { const [r = 0, g = 0, b = 0] = arr(v); c.setRGB(r, g, b, THREE.SRGBColorSpace); };
       set(p.value);
@@ -1219,8 +1219,10 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
       const length = param?.type === 'vec2' ? 2 : param?.type === 'vec4' ? 4 : 3;
       if (param === undefined || (param.type === 'float' ? typeof value !== 'number'
         : typeof value === 'number' || value.length !== length)) throw new Error(`material graph: param ${name} type mismatch`);
-      const values = typeof value === 'number' ? [value] : value;
-      for (const number of values) {
+      if (typeof value === 'number') {
+        if (!Number.isFinite(value)) throw new Error(`material graph: param ${name} must be finite`);
+        if ((param.min !== undefined && value < param.min) || (param.max !== undefined && value > param.max)) throw new Error(`material graph: param ${name} outside declared range`);
+      } else for (const number of value) {
         if (!Number.isFinite(number)) throw new Error(`material graph: param ${name} must be finite`);
         if ((param.min !== undefined && number < param.min) || (param.max !== undefined && number > param.max)) throw new Error(`material graph: param ${name} outside declared range`);
       }

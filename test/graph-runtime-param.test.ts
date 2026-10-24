@@ -4,6 +4,7 @@ import { MeshBasicNodeMaterial, UniformNode } from 'three/webgpu';
 import { compileGraph, attachOutline } from '../src/engine/render/graph/compile';
 import { clientGraphs } from '../src/game/shardfile/clientGraphs';
 import { emptyShardfile } from '../src/sdk/author';
+import { validateGraph } from '../src/format/materialGraph';
 
 test('runtime graph uniforms move in place and refuse invalid writes atomically', () => {
   const source = emptyShardfile({ slug: 'param-fixture', name: 'Param', author: 'Test', seed: 1, revision: 1 });
@@ -29,4 +30,43 @@ test('runtime graph uniforms move in place and refuse invalid writes atomically'
     expect(() => graphs.setParam(material, 'absent', 1)).toThrow('no param');
     expect(() => graphs.setParam(foreign, 'tint', [0, 0, 0])).toThrow('no compiled graph');
   } finally { material.dispose(); foreign.dispose(); }
+});
+
+
+test('scalar uniforms preserve signed zero and refuse invalid writes before changing the value', () => {
+  const checked = validateGraph({ version: 1, kind: 'material', model: 'unlit',
+    params: { amount: { type: 'float', value: 0.5, min: 0, max: 1 } },
+    nodes: { amount: { op: 'param', param: 'amount' } },
+    stages: { surface: { colour: [1, 1, 1], alpha: 'amount' } } });
+  if (!checked.ok) throw new Error(checked.errors.join('; '));
+  const compiled = compileGraph(checked.graph, { validated: checked });
+  try {
+    const material = compiled.material;
+    if (!(material instanceof MeshBasicNodeMaterial) || material.opacityNode === null) throw new Error('Missing scalar material');
+    const uniform: unknown = Reflect.get(material.opacityNode, 'node');
+    if (!(uniform instanceof UniformNode)) throw new Error('Missing scalar uniform');
+    const version = material.version;
+    for (const value of [-0, 1, 0.5]) {
+      compiled.setParam('amount', value);
+      expect(Object.is(uniform.value, value)).toBe(true);
+    }
+    for (const [value, message] of [[Number.NaN, 'must be finite'], [Infinity, 'must be finite'],
+      [-Infinity, 'must be finite'], [-1, 'outside declared range'], [2, 'outside declared range']] as const) {
+      expect(() => compiled.setParam('amount', value)).toThrow(message);
+      expect(uniform.value).toBe(0.5);
+    }
+    for (const value of [[], [0.5]]) {
+      expect(() => compiled.setParam('amount', value)).toThrow('type mismatch');
+      expect(uniform.value).toBe(0.5);
+    }
+    // A caller-supplied validation still exposes its graph: constraints are read live.
+    const param = checked.graph.params?.['amount'];
+    if (param === undefined) throw new Error('Missing scalar definition');
+    Reflect.set(param, 'max', 0.25);
+    expect(() => compiled.setParam('amount', 0.5)).toThrow('outside declared range');
+    expect(uniform.value).toBe(0.5);
+    compiled.setParam('amount', 0.25);
+    expect(uniform.value).toBe(0.25);
+    expect(material.version).toBe(version);
+  } finally { compiled.material.dispose(); }
 });
