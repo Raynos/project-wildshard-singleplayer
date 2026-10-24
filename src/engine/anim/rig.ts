@@ -1,10 +1,9 @@
-import { installGltfKtx2 } from '../core/ktx2';
+import { declareModuleGroups } from '../boot/download';
+import { retried } from '../boot/retry';
 import { type AnimationClip, type Object3D, BufferGeometry, DefaultLoadingManager, InstancedBufferAttribute, InstancedMesh, LoadingManager, SkinnedMesh } from 'three';
-import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
+import type * as RigParser from './rigParser';
+import type { GLTFLoader, GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { labelObjectTree } from '../render/gpuLabels';
-import { pageScope } from '../app/resources';
-import { workSlice, type WorkSlice } from '../core/workSlice';
 
 export type ClipName = `${'idle' | 'walk' | 'run' | 'attack' | 'hit' | 'die' | 'turn' | 'swim' | 'fly'}${'' | `.${string}`}`;
 export type SocketName = string;
@@ -27,54 +26,28 @@ export interface RigInstance {
 }
 export interface RigRef { url: string; contract: RigContract; bake: RigBake }
 
-// FileLoader starts every network read immediately. Only the parser's temporary
-// meshopt/image/geometry allocations share this page-wide decode slot.
-let decodeTail: Promise<void> = Promise.resolve();
-let decodeSlice: WorkSlice | undefined;
-/** The shared loader defers immutable bytes until its decode slot. Complete GLBs
- * lend their wire buffer: Three copies the BIN chunk before decoding geometry. */
-export interface RigLoader extends GLTFLoader {
-  parseBytesAsync: (bytes: Uint8Array, path: string) => Promise<GLTF>;
+let preparing: Promise<typeof RigParser> | undefined;
+/** Prepare code only for an actual asynchronous model read; publish compiler bytes first.
+ * Each request publishes to the current loading ledger, including warm code.
+ * Parsed files and loader instances remain with their original owners. */
+export function prepareRigLoader(): Promise<typeof RigParser> {
+  declareModuleGroups(['models.gltf']);
+  if (preparing === undefined) {
+    const pending = retried(() => import('./rigParser'));
+    preparing = pending;
+    void pending.catch(() => { if (preparing === pending) preparing = undefined; });
+  }
+  return preparing;
 }
-class BoundedRigLoader extends GLTFLoader implements RigLoader {
-  override parse(...[data, path, onLoad, onError]: Parameters<GLTFLoader['parse']>): void {
-    this.parseSource(() => data, path, onLoad, onError);
-  }
-  parseBytesAsync(bytes: Uint8Array, path: string): Promise<GLTF> {
-    return new Promise((resolve, reject) => { this.parseSource(() => {
-      const buffer = bytes.buffer;
-      if (buffer instanceof ArrayBuffer && bytes.byteOffset === 0 && bytes.byteLength === buffer.byteLength && bytes.byteLength >= 12) {
-        const header = new DataView(buffer);
-        if (header.getUint32(0, true) === 0x46546c67 && header.getUint32(4, true) === 2 && header.getUint32(8, true) === bytes.byteLength) return buffer;
-      }
-      return Uint8Array.from(bytes).buffer;
-    }, path, resolve, reject); });
-  }
-  private parseSource(read: () => Parameters<GLTFLoader['parse']>[0], path: string, onLoad: (file: GLTF) => void, onError?: Parameters<GLTFLoader['parse']>[3]): void {
-    const parsed = decodeTail.then(async () => {
-      // Cached CPU-only models otherwise chain every parse in microtasks. Let
-      // uploads/frames and temporary-buffer retirement run between spent slices.
-      if (typeof window !== 'undefined') await (decodeSlice ??= workSlice(undefined, pageScope)).check();
-      return new Promise<GLTF>((resolve, reject) => { super.parse(read(), path, resolve, reject); });
-    });
-    // A failed file must release the slot as well as a successful one. Keep no
-    // decoded scene in the tail after handing it to its existing resource owner.
-    decodeTail = parsed.then(() => undefined, () => undefined);
-    void parsed.then(onLoad, onError ?? ((error: unknown) => { console.error(error); }));
-  }
-}
-
-/** One native parser policy for rigs, model pools and owned geometry. Reads stay
- * parallel; a page decodes one GLTF at a time, including direct parseAsync calls. */
-export function createRigLoader(): RigLoader { installGltfKtx2(GLTFLoader); return new BoundedRigLoader().setMeshoptDecoder(MeshoptDecoder); }
 
 let loader: GLTFLoader | undefined;
 /** Cache/clone policy stays with the owning asset scope. All rig GLBs use this parser.
  * Optional resource aliases match the resolved URL pathname; both aliases and
  * ordinary dependencies retain the default manager's tier/pack resolution. */
 export async function loadRigFile(url: string, aliases: Readonly<Record<string, string>> = {}): Promise<GLTF> {
+  const { createRigLoader } = await prepareRigLoader();
   loader ??= createRigLoader();
-  const read = Object.keys(aliases).length === 0 ? loader : new BoundedRigLoader(new LoadingManager()).setMeshoptDecoder(MeshoptDecoder);
+  const read = Object.keys(aliases).length === 0 ? loader : createRigLoader(new LoadingManager());
   if (read !== loader) {
     const page = new URL(location.href), original = new URL(url, page);
     // Aliased glTFs can declare root-relative images. Three needs an absolute

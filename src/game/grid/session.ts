@@ -24,7 +24,7 @@ import { platformInputs } from './platformInputs';
 import { gridLevel as levelForGrid } from './pageMode';
 import { cellClip } from './cellClip';
 import { BufferGeometry, Group, Mesh, Vector3, type Material, type Object3D } from 'three';
-import { createRigLoader } from '@wildshard/engine/anim/rig';
+import { prepareRigLoader } from '@wildshard/engine/anim/rig';
 import * as v from 'valibot';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { onPageEnvironment } from '@wildshard/engine/render/drawnEnvironment';
@@ -198,7 +198,7 @@ async function loadFar(slug: string): Promise<{ prepared: FarPrepared; bytes: nu
     if (!image.ok) throw new Error(`far-impostor.png ${slug}: ${String(image.status)}`);
     return decodeFarImpostor(impostorRow, new Uint8Array(await image.arrayBuffer()));
   })();
-  const gltf = await createRigLoader().loadAsync(versionedUrl(`/assets/baked/${slug}/far.glb`));
+  const gltf = await (await prepareRigLoader()).createRigLoader().loadAsync(versionedUrl(`/assets/baked/${slug}/far.glb`));
   const meshes: BufferGeometry[] = [];
   gltf.scene.traverse((node) => { if (!(node instanceof Mesh)) return; const found: unknown = node.geometry; if (found instanceof BufferGeometry) meshes.push(found as BufferGeometry); });
   const geometry = meshes[0];
@@ -233,7 +233,7 @@ async function loadNear(slug: string, owner: Parameters<typeof gridShardfileProd
   const response = await fetch(versionedUrl(baked.row));
   if (!response.ok) throw new Error(`near.json ${slug}: ${String(response.status)}`);
   const row = v.parse(NearRow, await response.json());
-  const gltf = await createRigLoader().loadAsync(versionedUrl(baked.mesh));
+  const gltf = await (await prepareRigLoader()).createRigLoader().loadAsync(versionedUrl(baked.mesh));
   let geometry: BufferGeometry | undefined;
   gltf.scene.traverse((node) => { if (geometry === undefined && node instanceof Mesh) { const found: unknown = node.geometry; if (found instanceof BufferGeometry) geometry = found as BufferGeometry; } });
   if (geometry === undefined) throw new Error(`near.glb ${slug}: no mesh`);

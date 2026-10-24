@@ -187,6 +187,15 @@ export function bootModulesPlugin(): Plugin {
         }
       }
       featureRoots['practice.models'] = practice;
+      for (const [kind, file] of [['models.gltf', 'src/engine/anim/rig.ts'], ['legacy.gltf', 'src/game/shard/load.ts']] as const) {
+        const importer = resolve(root, file), paths: string[] = [];
+        for (const request of sourceImports(importer)) {
+          const dependency = await this.resolve(request, importer);
+          if (dependency === null || dependency.external !== false) throw new Error('Missing optional GLTF module');
+          paths.push(dependency.id);
+        }
+        featureRoots[kind] = paths;
+      }
       const products = bootProductTotals(root), extras: Record<string, readonly [string, number, number, string]> = {};
       for (const prefix of Object.keys(products)) {
         const directory = prefix.split('/')[2];

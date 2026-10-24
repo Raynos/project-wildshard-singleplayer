@@ -1,5 +1,5 @@
 import { Group, InstancedMesh, Mesh, MeshBasicMaterial, MeshLambertMaterial, MeshStandardMaterial, type BufferGeometry, type Color, type Material, type Object3D, Texture } from 'three';
-import { createRigLoader } from '../anim/rig';
+import { prepareRigLoader } from '../anim/rig';
 import { Scope } from '../app/scope';
 import { bindGraphMeshMap } from '../render/graphBackend';
 import { familyVariant } from '../render/families/registry';
@@ -144,7 +144,7 @@ export async function installDeclaredProps(props: DeclaredProps, ports: {
   ports.scope.onDispose(() => { disposed = true; roots.removeFromParent(); releaseAll(); });
   const parse = async (hash: string): Promise<Object3D> => {
     const bytes = ports.assets.get(hash); if (bytes === undefined) throw new Error('Missing admitted props GLB');
-    const gltf = await createRigLoader().parseBytesAsync(bytes, '');
+    const gltf = await (await prepareRigLoader()).createRigLoader().parseBytesAsync(bytes, '');
     const textureRef = props.textures.find((t) => t.model === hash)?.colour, texture = textureRef === undefined ? undefined : ports.textures?.get(textureRef);
     if (textureRef !== undefined && texture === undefined) throw new Error('Missing admitted props texture');
     gltf.scene.traverse((o) => {

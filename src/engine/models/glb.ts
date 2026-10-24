@@ -1,3 +1,4 @@
+import type { RigLoader } from '../anim/rigParser';
 /**
  * Loading a generated prop's GLB for a model (E315 M2): the TRELLIS / Hunyuan3D props ship as `<id>.glb` (LOD0; the
  * boot maps it to the phone's `<id>.phone.glb`) and `<id>-lod1.glb` (a quarter of the triangles), meshopt-compressed.
@@ -5,13 +6,13 @@
  * hand the parts back. Moved from src/shards/pine-hollow/world/landmarks.ts (Pine Hollow's hero props).
  */
 import * as THREE from 'three';
-import { createRigLoader } from '../anim/rig';
+import { prepareRigLoader } from '../anim/rig';
 import { labelAsset, labelObjectTree } from '../render/gpuLabels';
 
 /** one mesh of a GLB in the file's own space, and its bounds */
 export interface GlbPart { geometry: THREE.BufferGeometry; material: THREE.Material; box: THREE.Box3 }
 
-const gltf = createRigLoader();
+let gltf: RigLoader | undefined;
 
 /** the meshopt build quantizes (normalized int16 positions under a scaled node): back to float before a matrix is baked in,
  *  or `applyMatrix4` clamps every position to the unit box */
@@ -32,7 +33,8 @@ function dequantize(g: THREE.BufferGeometry): THREE.BufferGeometry {
  */
 export async function loadGlbPart(url: string, prepare: (m: THREE.Material) => void): Promise<GlbPart | null> {
   try {
-    const g = await gltf.loadAsync(url);
+    const { createRigLoader } = await prepareRigLoader();
+    const g = await (gltf ??= createRigLoader()).loadAsync(url);
     labelObjectTree(g.scene, 'engine/loadGlbPart', url);
     let found: GlbPart | null = null;
     g.scene.updateMatrixWorld(true);

@@ -1,7 +1,7 @@
 import { BoxGeometry, BufferGeometry, FileLoader, Material, Mesh, MeshStandardMaterial, type Object3D } from 'three';
 import { staticGlb } from '../src/sdk/bake/glb';
 import { afterEach, expect, it, vi } from 'vitest';
-import { createRigLoader } from '@wildshard/engine/anim/rig';
+import { createRigLoader } from '@wildshard/engine/anim/rigParser';
 import * as clock from '../src/engine/core/clock';
 
 function isMesh(node: Object3D): node is Mesh {

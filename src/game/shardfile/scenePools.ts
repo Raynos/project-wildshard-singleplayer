@@ -34,7 +34,7 @@ export function worldScenePool(product: Pick<ShardProduct, 'file' | 'url'>, row:
     async url => {
       const file = [...files.map(entry => tierFile(entry.file)), ...painted.map(entry => entry.file)].find(name => product.url(name) === url);
       if (file === undefined) throw new Error('Missing scene library file');
-      const { createRigLoader } = await import('@wildshard/engine/anim/rig');
-      return createRigLoader().parseBytesAsync(await product.file(file), '');
+      const { prepareRigLoader } = await import('@wildshard/engine/anim/rig');
+      return (await prepareRigLoader()).createRigLoader().parseBytesAsync(await product.file(file), '');
     });
 }

@@ -10,7 +10,7 @@ import * as wholeV from 'valibot';
 import type { Scope as ResourceScope } from '@wildshard/engine/app/scope';
 import { resourceScope } from '@wildshard/engine/app/resources';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import { createRigLoader, loadRigFile, type ClipName, type SocketName } from "@wildshard/engine/anim/rig";
+import { prepareRigLoader, loadRigFile, type ClipName, type SocketName } from "@wildshard/engine/anim/rig";
 import { cacheUntilDisposed, retainCachedResources } from "@wildshard/engine/app/cachedAssets";
 import { releaseOnUpload } from "@wildshard/engine/render/memorySaver";
 import { ktx2File, prepareCompressedTexture } from "@wildshard/engine/core/ktx2";
@@ -540,7 +540,7 @@ export function skinnedModel(url: string): SkinnedModel {
     }
     await MeshoptDecoder.ready;
     const weights = rawWeights(input, MeshoptDecoder);
-    const gltf = await createRigLoader().parseBytesAsync(input, '');
+    const gltf = await (await prepareRigLoader()).createRigLoader().parseBytesAsync(input, '');
     const meshes: SkinnedMesh[] = [];
     gltf.scene.traverse((node: Object3D) => { if (isSkinnedMesh(node)) meshes.push(node); });
     const first = meshes[0];
@@ -1898,7 +1898,7 @@ export async function readWholeGeometry(scope: ResourceScope, source: Shardfile 
       for (let ahead = index; ahead < index + WHOLE_READ_AHEAD; ahead++) void readAt(ahead);
       const pending = readAt(index); if (pending === undefined) throw new Error('Whole geometry read missing');
       const bytes = await pending; reads.delete(index);
-      const gltf = await createRigLoader().parseBytesAsync(bytes, ''), cleanup: (() => void)[] = [];
+      const gltf = await (await prepareRigLoader()).createRigLoader().parseBytesAsync(bytes, ''), cleanup: (() => void)[] = [];
       try {
         const meshes: Mesh[] = [];
         gltf.scene.traverse(object => {

@@ -52,6 +52,8 @@ test('the actual Vite plugin emits exact module body sizes into the existing doc
     mkdirSync(resolve(root, 'src/game/session'), { recursive: true });
     mkdirSync(resolve(root, 'src/engine/practice'), { recursive: true });
     mkdirSync(resolve(root, 'src/engine/models'), { recursive: true });
+    mkdirSync(resolve(root, 'src/engine/anim'), { recursive: true });
+    mkdirSync(resolve(root, 'src/game/shard'), { recursive: true });
     writeFileSync(resolve(root, 'index.html'), '<html><head></head><body><script type="module" src="/src/entry.ts"></script></body></html>');
     writeFileSync(resolve(root, 'src/entry.ts'), `
       window.optionalClient = () => import('./game/shardfile/client');
@@ -60,9 +62,13 @@ test('the actual Vite plugin emits exact module body sizes into the existing doc
       async function startSelected() { return (await import('./first')).value; }
       void startSelected().then(value => { window.value = value; });
     `);
-    writeFileSync(resolve(root, 'src/first.ts'), 'import "./main.css"; import {practice} from "./engine/practice/TrainingArena"; window.practice = practice; export const value = "π";');
+    writeFileSync(resolve(root, 'src/first.ts'), 'import "./main.css"; import {practice} from "./engine/practice/TrainingArena"; import {prepare} from "./engine/anim/rig"; import {legacy} from "./game/shard/load"; window.parsers=[prepare,legacy]; window.practice = practice; export const value = "π";');
     writeFileSync(resolve(root, 'src/engine/practice/TrainingArena.ts'), 'import {dummyFigure} from "../models/trainingDummy"; export const practice=()=>Promise.all([import("./DummyClips"),dummyFigure()]);');
     writeFileSync(resolve(root, 'src/engine/practice/DummyClips.ts'), 'export const clips = 1;');
+    writeFileSync(resolve(root, 'src/engine/anim/rig.ts'), 'export const prepare=()=>import("./rigParser");');
+    writeFileSync(resolve(root, 'src/engine/anim/rigParser.ts'), 'export const createRigLoader=()=>({kind:"bounded"});');
+    writeFileSync(resolve(root, 'src/game/shard/load.ts'), 'export const legacy=()=>import("./legacyParser");');
+    writeFileSync(resolve(root, 'src/game/shard/legacyParser.ts'), 'export const loader="raw";');
     writeFileSync(resolve(root, 'src/engine/models/trainingDummy.ts'), 'export const dummyFigure=()=>import("../practice/TrainingDummyAssets");');
     writeFileSync(resolve(root, 'src/engine/practice/TrainingDummyAssets.ts'), 'export const model = 1;');
     writeFileSync(resolve(root, 'src/main.css'), 'body { color: red; }');
@@ -104,6 +110,16 @@ test('the actual Vite plugin emits exact module body sizes into the existing doc
     const practiceFiles = practice.map(index => { if (typeof index !== 'number') throw new Error('Invalid practice index'); const file = files[index]; if (file === undefined) throw new Error('Missing practice file'); return file; });
     expect(practiceFiles.sort(([left], [right]) => left.localeCompare(right))).toEqual(expected(['/DummyClips-', '/TrainingDummyAssets-']));
     expect(rows.common).not.toEqual(expect.arrayContaining(practiceFiles));
+    for (const [kind, stem] of [['models.gltf', '/rigParser-'], ['legacy.gltf', '/legacyParser-']] as const) {
+      const parserIndices: unknown = Reflect.get(groups, kind);
+      if (!Array.isArray(parserIndices)) throw new Error('Missing parser module facts');
+      const selected = parserIndices.map(index => {
+        if (typeof index !== 'number' || files[index] === undefined) throw new Error('Invalid parser module index');
+        return files[index];
+      });
+      expect(selected).toEqual(expected([stem]));
+      for (const file of expected([stem]).filter(([url]) => !url.endsWith('.css'))) expect(rows.common).not.toContainEqual(file);
+    }
     expect(JSON.stringify(rows)).not.toContain('/title-');
     expect(readFileSync(resolve(root, 'index.html'), 'utf8')).not.toContain('boot-module-files');
   } finally { rmSync(root, { recursive: true, force: true }); }

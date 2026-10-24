@@ -12,7 +12,7 @@
  */
 import type * as THREE from 'three';
 import type { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { createRigLoader } from '@wildshard/engine/anim/rig';
+import { prepareRigLoader } from '@wildshard/engine/anim/rig';
 
 export interface FaceHead { readonly pos: Float32Array; readonly nrm: Float32Array; readonly col: Float32Array; readonly count: number }
 
@@ -41,8 +41,7 @@ function toHead(g0: THREE.BufferGeometry): FaceHead {
 export function loadFaceHead(url: string): Promise<FaceHead | null> {
   let p = loading.get(url);
   if (!p) {
-    loader ??= createRigLoader();
-    p = loader.loadAsync(url).then((gltf) => {
+    p = prepareRigLoader().then(({ createRigLoader }) => (loader ??= createRigLoader()).loadAsync(url)).then((gltf) => {
       gltf.scene.updateMatrixWorld(true);
       const meshes: THREE.Mesh[] = [];
       gltf.scene.traverse((o) => { if (isMesh(o)) meshes.push(o); });

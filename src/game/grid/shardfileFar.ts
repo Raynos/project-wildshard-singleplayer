@@ -1,5 +1,5 @@
 import { Mesh, type BufferGeometry, type Object3D } from 'three';
-import { createRigLoader } from '@wildshard/engine/anim/rig';
+import { prepareRigLoader } from '@wildshard/engine/anim/rig';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { NEAR_LIGHT, nearPlaceholderCost, type NearPlaceholder } from '@wildshard/format/nearPlaceholder';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -26,7 +26,7 @@ export interface ShardfileNearRows {
 export async function loadShardfileFar(rows: ShardfileFarRows, read: (ref: string) => Promise<Uint8Array>): Promise<{ prepared: FarPrepared; bytes: number }> {
   const { far, farRef: ref } = rows;
   if (far === null || ref === null || !far.files.includes(ref)) throw new Error('Authored world has no declared far GLB');
-  const gltf = await createRigLoader().parseAsync((await read(ref)).slice().buffer, '');
+  const gltf = await (await prepareRigLoader()).createRigLoader().parseAsync((await read(ref)).slice().buffer, '');
   gltf.scene.updateMatrixWorld(true);
   const meshes: Mesh[] = [];
   gltf.scene.traverse(node => {
@@ -62,7 +62,7 @@ function shardfileHaze(fog: ShardfileFarRows['fog']): FarPrepared['look'] {
 export async function loadShardfileNear(rows: ShardfileNearRows, read: (ref: string) => Promise<Uint8Array>): Promise<{ prepared: FarPrepared; bytes: number; owns: boolean }> {
   const near = rows.near;
   if (near.content.length === 0) throw new Error('Shardfile declares no near content');
-  const cost = nearPlaceholderCost(near, rows.inventory), loader = createRigLoader(), parts: BufferGeometry[] = [], lights: BufferGeometry[] = [];
+  const cost = nearPlaceholderCost(near, rows.inventory), loader = (await prepareRigLoader()).createRigLoader(), parts: BufferGeometry[] = [], lights: BufferGeometry[] = [];
   try {
     for (const ref of near.content) {
       const gltf = await loader.parseAsync((await read(ref)).slice().buffer, '');

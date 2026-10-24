@@ -11,7 +11,7 @@
  */
 import * as THREE from 'three';
 import * as v from 'valibot';
-import { createRigLoader } from '@wildshard/engine/anim/rig';
+import { prepareRigLoader } from '@wildshard/engine/anim/rig';
 import { slicer } from '@wildshard/engine/boot/plan';
 import { ktx2File, ktx2Texture } from '@wildshard/engine/core/ktx2';
 import { TIER } from '@wildshard/engine/core/tier';
@@ -51,7 +51,7 @@ async function bytesOf(product: ShardProduct, source: BakedSource): Promise<Uint
 }
 // the page's bounded parser: one decode slot, a product file's wire copy taken only once its slot opens
 async function sceneOf(product: ShardProduct, source: BakedSource): Promise<THREE.Group> {
-  return 'url' in source ? (await createRigLoader().loadAsync(source.url)).scene : (await createRigLoader().parseBytesAsync(await product.file(source.file), '')).scene;
+  return 'url' in source ? (await (await prepareRigLoader()).createRigLoader().loadAsync(source.url)).scene : (await (await prepareRigLoader()).createRigLoader().parseBytesAsync(await product.file(source.file), '')).scene;
 }
 async function textureOf(product: ShardProduct, source: BakedSource): Promise<THREE.Texture> {
   // a product's KTX2 file transcodes; any other image file decodes as one

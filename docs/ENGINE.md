@@ -1984,8 +1984,21 @@ The credits "Music: MiniMax-Music3" and "Powered by Stability AI" are licence co
 Alias and ordinary dependency URLs still pass through the default loading manager's tier and pack routing;
 the aliases use a private manager and never replace the session's resolver.
 
-`createRigLoader()` lends the same Meshopt-capable parser policy to model pools,
-specimens and owned geometry. File reads remain parallel; all returned loaders
+`prepareRigLoader()` in `@wildshard/engine/anim/rig` publishes the selected
+`models.gltf` compiler file group before awaiting parser code. It uses the existing
+module retry policy and one shared code-preparation promise; failures release
+that promise for a later request. Every request still declares module facts to
+the current loading ledger, including after warm-up. No parsed files or loader
+instances are cached there. Rig contracts, `bindRig` and `rigRoot` remain eager; actual model reads await preparation.
+The frozen-shard hook bridge separately declares `legacy.gltf` before its raw
+parser import. Both groups use the original shared module file table and count
+only actual body reads as completed bytes.
+
+The prepared module defines `createRigLoader(manager?)` in
+`@wildshard/engine/anim/rigParser`. It lends the same Meshopt-capable parser policy
+to model pools, specimens and owned geometry. Original file-loader singletons
+remain with their existing owners, including concurrent first reads. Optional
+alias managers remain isolated. File reads remain parallel; all returned loaders
 share one page-wide decode slot, including direct `parseAsync` calls. Completion
 or failure releases the slot without retaining the decoded scene.
 The browser pauses between spent construction slices so cached decodes leave

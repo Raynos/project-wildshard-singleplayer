@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./anim/rigParser": "./anim/rigParser.ts",
     "./ai/eliteRoster": "./ai/eliteRoster.ts",
     "./ai/eliteLifecycle": "./ai/eliteLifecycle.ts",
     "./ai/eliteContinuation": "./ai/eliteContinuation.ts",

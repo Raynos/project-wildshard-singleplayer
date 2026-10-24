@@ -88,3 +88,8 @@ test('texture preparation does not import the GLTF parser', () => {
   const files = titleGraph(['src/engine/core/ktx2.ts']);
   expect(files.filter(file => /^three\/examples\/jsm\/(?:loaders\/GLTFLoader|libs\/meshopt_decoder)/u.test(file))).toEqual([]);
 });
+
+test('session and eager rig contracts leave the bounded parser and decoder cold', () => {
+  const files = titleGraph(['src/game/session/session.ts', 'src/game/shardfile/client.ts', 'src/engine/anim/rig.ts']);
+  expect(files.filter(file => /src\/engine\/anim\/rigParser\.ts$|^three\/examples\/jsm\/(?:loaders\/GLTFLoader|libs\/meshopt_decoder)/u.test(file))).toEqual([]);
+});

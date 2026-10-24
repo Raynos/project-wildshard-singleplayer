@@ -4,7 +4,7 @@ import { SpecimenCatalogueSchema, PackedSpecimenSchema, SpecimenMaterialSchema, 
 import * as THREE from 'three';
 import * as v from 'valibot';
 import type { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { createRigLoader } from '@wildshard/engine/anim/rig';
+import { prepareRigLoader } from '@wildshard/engine/anim/rig';
 import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 import { loadTexture } from '@wildshard/engine/core/assets';
 import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
@@ -142,8 +142,7 @@ export function loadSpecimenAsset(row: Pick<SpecimenAssetRow, 'url' | 'phoneUrl'
   const url = assetUrl(row), key = `${url}|${row.geometrySlot ?? 0}|${row.materialSlot ?? 0}|${row.retainedAttribute ?? ''}`;
   let pending = raw.get(key);
   if (pending === undefined) {
-    loader ??= createRigLoader();
-    pending = loader.loadAsync(url).then(({ scene }) => {
+    pending = prepareRigLoader().then(({ createRigLoader }) => (loader ??= createRigLoader()).loadAsync(url)).then(({ scene }) => {
       const found = scene.children.filter((child): child is THREE.Mesh => child instanceof THREE.Mesh)[row.geometrySlot ?? 0];
       if (found === undefined) throw new Error(`Prepared specimen has no mesh: ${url}`);
       const geometry = found.geometry, retained = row.retainedAttribute === undefined ? undefined : geometry.getAttribute(row.retainedAttribute);

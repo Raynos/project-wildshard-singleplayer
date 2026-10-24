@@ -65,14 +65,14 @@ export interface OwnedGeometry {
 export function createOwnedGeometry(url: string, channels: Readonly<Record<string, string>> = {}): OwnedGeometry {
   let template: BufferGeometry | undefined, pending: Promise<void> | undefined;
   const load = async (bytes?: Uint8Array): Promise<void> => {
-    const { createRigLoader } = await import('../anim/rig');
+    const { prepareRigLoader } = await import('../anim/rig');
     let input = bytes;
     if (input === undefined) {
       const response = await fetch(url);
       if (!response.ok) throw new Error(`Baked model load failed: ${url} (${response.status})`);
       input = new Uint8Array(await response.arrayBuffer());
     }
-    const gltf = await createRigLoader().parseBytesAsync(input, '');
+    const gltf = await (await prepareRigLoader()).createRigLoader().parseBytesAsync(input, '');
     const meshes: Mesh[] = [];
     gltf.scene.traverse(node => { if (isGeometryMesh(node)) meshes.push(node); });
     try {

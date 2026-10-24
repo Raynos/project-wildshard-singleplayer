@@ -1,7 +1,8 @@
+import type { RigLoader } from '../anim/rigParser';
 import { publicBytes } from '../boot/tables';
 import * as THREE from 'three';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { createRigLoader } from '../anim/rig';
+import { prepareRigLoader } from '../anim/rig';
 import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js';
 import { fetchImage, tierUrl } from '../boot/bytes';
 import { initKtx2, ktx2Layers, ktx2Texture, linearKtx2Texture, prepareCompressedTexture, releaseAfterUpload } from './ktx2';
@@ -11,7 +12,7 @@ import type { Renderer } from '../render/renderer';
 import { labelAsset, labelObjectTree } from '../render/gpuLabels';
 import { releaseOnUpload } from '../render/memorySaver';
 
-const gltfLoader = createRigLoader();
+let gltfLoader: RigLoader | undefined;
 const hdrLoader = new HDRLoader();
 
 export interface PBRSet { map: THREE.Texture; normalMap: THREE.Texture; armMap: THREE.Texture }
@@ -170,9 +171,11 @@ export function pbrMaterial(set: PBRSet, extra: THREE.MeshStandardMaterialParame
   });
 }
 
-export function loadGLTF(id: string): Promise<GLTF> {
+export async function loadGLTF(id: string): Promise<GLTF> {
+  const { createRigLoader } = await prepareRigLoader();
+  const read = gltfLoader ??= createRigLoader();
   const url = `/assets/models/${id}/${id}.gltf`;
-  return new Promise((resolve, reject) => { gltfLoader.load(url, (gltf) => { labelObjectTree(gltf.scene, 'engine/loadGLTF', url); resolve(gltf); }, undefined, reject); });
+  return new Promise((resolve, reject) => { read.load(url, (gltf) => { labelObjectTree(gltf.scene, 'engine/loadGLTF', url); resolve(gltf); }, undefined, reject); });
 }
 
 export function loadHDR(url: string): Promise<THREE.DataTexture> {
