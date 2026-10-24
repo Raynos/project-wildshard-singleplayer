@@ -42,30 +42,52 @@ export function onCellField(target: object, key: string, changed: () => void): (
   };
 }
 
-interface MethodSlot { readonly key: string; readonly prior: PropertyDescriptor | undefined; readonly call: (...args: unknown[]) => unknown; readonly listeners: Set<(...args: readonly unknown[]) => void> }
+type MethodListener = (...args: readonly unknown[]) => void;
+interface MethodListeners { readonly values: Set<MethodListener>; slots: number }
+interface MethodSlot { readonly key: string; readonly prior: PropertyDescriptor | undefined; readonly call: (...args: unknown[]) => unknown; listeners: MethodListeners }
+// Retained wrappers must release their callbacks even while untouched siblings share them.
+const emptyMethodListeners: MethodListeners = { values: new Set(), slots: 0 };
 const methods = new WeakMap<object, Map<string, MethodSlot>>();
+// Detach before live iteration or an independent edit. Reentrant subscriptions
+// then mutate the exact Set being delivered, including removals and re-additions.
+function ownMethodListeners(slot: MethodSlot): Set<MethodListener> {
+  const listeners = slot.listeners;
+  if (listeners.slots <= 1) return listeners.values;
+  listeners.slots--;
+  const values = new Set(listeners.values);
+  slot.listeners = { values, slots: 1 };
+  return values;
+}
 /** Explicit matrix/collection mutations emit once after their native operation completes.
  * One cleanup restores the registered slots in order, without a closure per method. */
 export function onCellMethods(target: object, keys: readonly string[], changed: (...args: readonly unknown[]) => void): () => void {
   let entries = methods.get(target);
   if (entries === undefined) { entries = new Map(); methods.set(target, entries); }
   const held: MethodSlot[] = [];
+  // Share only until a method runs or its subscriber membership diverges.
+  let initial: MethodListeners | undefined;
   for (const key of keys) {
     let slot = entries.get(key);
     if (slot === undefined) {
       const original: unknown = Reflect.get(target, key);
       if (typeof original !== 'function') continue;
-      const listeners = new Set<(...args: readonly unknown[]) => void>();
-      slot = { key, prior: Object.getOwnPropertyDescriptor(target, key), listeners,
-        call: (...args: unknown[]): unknown => { const value: unknown = Reflect.apply(original, target, args); for (const notify of listeners) notify(...args); return value; } };
-      Object.defineProperty(target, key, { configurable: true, writable: true, value: slot.call });
-      entries.set(key, slot);
+      const made: MethodSlot = { key, prior: Object.getOwnPropertyDescriptor(target, key), listeners: emptyMethodListeners,
+        call: (...args: unknown[]): unknown => { const value: unknown = Reflect.apply(original, target, args); for (const notify of ownMethodListeners(made)) notify(...args); return value; } };
+      Object.defineProperty(target, key, { configurable: true, writable: true, value: made.call });
+      initial ??= { values: new Set<MethodListener>().add(changed), slots: 0 };
+      initial.slots++; made.listeners = initial;
+      entries.set(key, made); slot = made;
     }
-    slot.listeners.add(changed); held.push(slot);
+    if (!slot.listeners.values.has(changed)) ownMethodListeners(slot).add(changed);
+    held.push(slot);
   }
   return () => {
     for (const slot of held) {
-      if (!slot.listeners.delete(changed) || slot.listeners.size > 0) continue;
+      const listeners = slot.listeners;
+      if (!listeners.values.has(changed)) continue;
+      if (listeners.values.size > 1) { ownMethodListeners(slot).delete(changed); continue; }
+      if (listeners.slots === 1) listeners.values.delete(changed);
+      listeners.slots--; slot.listeners = emptyMethodListeners;
       if (Reflect.get(target, slot.key) === slot.call) { if (slot.prior === undefined) Reflect.deleteProperty(target, slot.key); else Object.defineProperty(target, slot.key, slot.prior); }
       entries.delete(slot.key); if (entries.size === 0) methods.delete(target);
     }

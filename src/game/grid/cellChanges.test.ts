@@ -68,3 +68,62 @@ test('native method failures propagate without publishing a change', () => {
   expect(() => target.run()).toThrow(failure); expect(notifications).toBe(0);
   stop(); expect(Object.getOwnPropertyDescriptor(target, 'run')).toEqual(prior);
 });
+
+test('uninvoked shared methods stop notifying even through retained wrappers', () => {
+  let notifications = 0, native = 0;
+  const target = { first(): void { native++; }, second(): void { native++; } };
+  const stop = onCellMethods(target, ['first', 'second'], () => { notifications++; });
+  const first: unknown = Reflect.get(target, 'first'), second: unknown = Reflect.get(target, 'second');
+  if (typeof first !== 'function' || typeof second !== 'function') throw new Error('Missing observed methods');
+  stop(); stop();
+  Reflect.apply(first, target, []); Reflect.apply(second, target, []);
+  expect(native).toBe(2); expect(notifications).toBe(0);
+});
+
+test('reentrant subscription changes stay local to the selected method', () => {
+  const calls: string[] = [];
+  const target = { first(): void { calls.push('first'); }, second(): void { calls.push('second'); } };
+  let add = true, stopExtra = (): void => undefined;
+  const stop = onCellMethods(target, ['first', 'second'], () => {
+    calls.push('base');
+    if (add) { add = false; stopExtra = onCellMethods(target, ['second'], () => { calls.push('extra'); }); }
+  });
+  target.first(); target.first(); target.second();
+  expect(calls).toEqual(['first', 'base', 'first', 'base', 'second', 'base', 'extra']);
+  stop(); stopExtra();
+});
+
+test('removing and readding the current listener retains live Set order', () => {
+  const calls: string[] = [];
+  const target = { run(): void { calls.push('native'); }, untouched(): number { return 0; } };
+  const prior = Object.getOwnPropertyDescriptor(target, 'untouched');
+  let first = true, stop = (): void => undefined, stopExtra = (): void => undefined;
+  const changed = (): void => {
+    calls.push('base');
+    if (first) {
+      first = false;
+      stopExtra = onCellMethods(target, ['run'], () => { calls.push('extra'); });
+      stop(); stop = onCellMethods(target, ['run'], changed);
+    }
+  };
+  stop = onCellMethods(target, ['run', 'untouched'], changed);
+  target.run();
+  expect(calls).toEqual(['native', 'base', 'extra', 'base']);
+  stopExtra(); stop();
+  expect(Object.getOwnPropertyDescriptor(target, 'untouched')).toEqual(prior);
+});
+
+test('method installation publishes no callback before defining the wrapper', () => {
+  let notifications = 0, native = 0;
+  const target: { run: () => void } = new Proxy({ run: (): void => { native++; } }, {
+    defineProperty(object, key, descriptor): boolean {
+      const value: unknown = descriptor.value;
+      if (typeof value === 'function') Reflect.apply(value, object, []);
+      return Reflect.defineProperty(object, key, descriptor);
+    },
+  });
+  const stop = onCellMethods(target, ['run'], () => { notifications++; });
+  expect(native).toBe(1); expect(notifications).toBe(0);
+  target.run(); expect(native).toBe(2); expect(notifications).toBe(1);
+  stop(); expect(notifications).toBe(1);
+});
