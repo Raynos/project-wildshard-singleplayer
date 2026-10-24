@@ -6,10 +6,10 @@ import { observeWasmMemory } from '../core/memoryResources';
 import type { Scope } from '../app/scope';
 import { FixedMemory, prewarmFixedMemories, fixedMemoryCensus } from './fixedMemory';
 
-/** Explicit loading-screen preparation: counts for fixed page sizes 1..4.
- * Each reserved memory remains isolated until an admitted consumer borrows it. */
-export async function prepareScriptMemoryBank(counts: readonly number[], yieldTask: () => Promise<void>): Promise<void> {
-  await prewarmFixedMemories(counts, yieldTask);
+/** Explicit loading-screen preparation: fixed sizes 1..4 and optional virgin
+ * growable descriptors. Each memory stays isolated; growables are never reused. */
+export async function prepareScriptMemoryBank(counts: readonly number[], yieldTask: () => Promise<void>, virgin?: Parameters<typeof prewarmFixedMemories>[2]): Promise<void> {
+  await prewarmFixedMemories(counts, yieldTask, virgin);
 }
 /** Detached scalar hit/miss counters for the constructor diagnostic. */
 export function scriptMemoryCensus(): ReturnType<typeof fixedMemoryCensus> { return fixedMemoryCensus(); }

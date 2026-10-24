@@ -164,7 +164,7 @@ export class ScriptHost {
   private instantiate(state: ModuleState, saved?: ScriptSnapshot): Running {
     const initial = saved ? saved.memory.length / 65536 : state.admission.initialPages;
     const memory = (saved === undefined ? takePreparedMemory(initial, state.maximumPages) : undefined)
-      ?? (saved === undefined ? freshScriptMemory(initial, state.maximumPages) : new WebAssembly.Memory({ initial, maximum: state.maximumPages }));
+      ?? freshScriptMemory(initial, state.maximumPages);
     observeWasmMemory(memory, { owner: scriptOwner()?.name ?? 'engine/script', asset: `script/entity:${state.entity}` });
     const instance = new WebAssembly.Instance(new WebAssembly.Module(new Uint8Array(state.bytes)), { env: {
       memory,

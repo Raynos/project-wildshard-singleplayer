@@ -126,11 +126,11 @@ test('the idle bank is bounded and invalid warmup does not allocate', async () =
   } finally { memory.mockRestore(); }
 });
 
-test('legacy fixed consumers never reuse returned V2 storage and growable memories never consume stock', () => {
+test('legacy consumers never reuse returned V2 storage and growables cannot consume fixed stock', () => {
   const before = fixedMemoryCensus(), legacy = freshScriptMemory(1, 1);
   expect(fixedMemoryCensus()).toMatchObject({ hits: before.hits, misses: before.misses + 1 });
   const current = fixedMemoryCensus(), growable = freshScriptMemory(1, 2);
-  expect(fixedMemoryCensus()).toEqual(current);
+  expect(fixedMemoryCensus()).toEqual({ ...current, misses: current.misses + 1 });
   expect(growable).not.toBe(legacy); expect(growable.grow(1)).toBe(1);
   expect(() => legacy.grow(1)).toThrow();
 });
