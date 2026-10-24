@@ -8,12 +8,16 @@ import { provideHybridDeclaration, runtimeProduct } from '../src/game/shardfile/
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import { outputBlobUrl, outputDescriptor, resolveOutputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { DownloadAccounting, installDownloadAccounting } from '../src/engine/boot/download';
+import { installManifestShardfile } from '../src/game/shardfile/clientSource';
+import { sourceManifest } from '../src/game/plugin/context';
+import { installShards, shards } from '../src/game/shard/list';
+import { game, setActiveChunk } from '../src/game/shard/registry';
 
 const encodeCanonicalJson = (value: unknown): Uint8Array => new TextEncoder().encode(canonicalJson(value));
 const base = 'https://example.test/shardfiles/loader-fixture/';
 const hash = (bytes: Uint8Array): Promise<string> => Promise.resolve(hashImmutableBytes(bytes));
-function fixture(blob = false, spawnX = 0, revision = 1): { source: Shardfile; index: OutputIndex; wires: Map<string, Uint8Array> } {
-  const source = emptyShardfile({ slug: 'loader-fixture', name: 'Loader', author: 'Test', revision, seed: 1 });
+function fixture(blob = false, spawnX = 0, revision = 1, slug = 'loader-fixture'): { source: Shardfile; index: OutputIndex; wires: Map<string, Uint8Array> } {
+  const source = emptyShardfile({ slug, name: 'Loader', author: 'Test', revision, seed: 1 });
   source.spawn.x = spawnX;
   const wires = new Map<string, Uint8Array>();
   if (blob) {
@@ -50,6 +54,26 @@ function cacheStore(): { cache: ProductCache; bytes: Map<string, Uint8Array>; pr
     putProduct: (_base, value) => { product = structuredClone(value); return Promise.resolve(); },
   } };
 }
+
+test.each([true, false])('first-party data admission retains Explore=%s without restoring the native loader', async (withExplore) => {
+  const { source, wires } = fixture(false, 0, 1, 'template');
+  const explore = { art: { world: '/assets/world.webp', models: '/assets/models.webp', sets: '/assets/sets.webp', practice: '/assets/practice.webp' } };
+  const legacyLoad = () => Promise.reject(new Error('Native loader must not run'));
+  const manifest = { ...sourceManifest(source), ...(withExplore ? { explore } : {}), load: legacyLoad, shardfile: `${base}shard.json` };
+  const previous = shards(), active = game.shard;
+  try {
+    installShards([manifest]);
+    const installed = await installManifestShardfile(manifest, options(wires), {
+      instance: 'template-solo', recipes: new Map(), items: new Map(), catalogue: [],
+      voices: () => new Map(), icon: () => { throw new Error('No fixture item'); },
+    });
+    expect(installed.explore).toBe(withExplore ? explore : undefined);
+    expect(game.shard).toBe(installed);
+    expect(installed.load).not.toBe(legacyLoad);
+    expect(installed.ground).not.toBe(manifest.ground);
+    expect(installed.ground.terrain?.heightAt(0, 0)).toBe(0);
+  } finally { installShards(previous); setActiveChunk(active.slug); }
+});
 
 test('v2 sections reconstruct host values and refuse the old monolithic transport', async () => {
   const { source, wires } = fixture(true), opts = options(wires);

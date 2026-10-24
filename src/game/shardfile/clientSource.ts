@@ -181,6 +181,8 @@ export async function installManifestShardfile(manifest: ShardManifest, provided
     ...(source.presentation === undefined ? { biome: manifest.biome, blurb: manifest.blurb, card: manifest.card } : {}),
     // SF65 (G241): the picker's ways in survive admission (the admitted manifest's client `load` is not legacy TypeScript)
     entries: shardEntries(manifest),
+    // The first-party viewer is authored presentation, independent of native page stages.
+    ...(manifest.explore === undefined ? {} : { explore: manifest.explore }),
     // Keep the authored map look; image bytes come exclusively from the admitted product (SF66).
     minimap: { ...mapLook, ...client.minimap },
     // and its listed places, the full map's pins (SF66): the admitted source has none
