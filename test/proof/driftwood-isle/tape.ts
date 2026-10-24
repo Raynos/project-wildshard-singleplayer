@@ -1,6 +1,6 @@
 import type { SimHost } from '../../../src/engine/sim';
 import type { HeadlessCommand } from '../../../src/sdk/tickProtocol';
-import { readNativeQuestSpots } from '../../../src/game/quest/nativeComposition';
+import { readNativeQuestSpots } from '../../fixtures/native-hosts/quest/nativeComposition';
 import nativeQuestSpots from '../../../src/shards/driftwood-isle/data/spots.generated.json' with { type: 'json' };
 import policy from '../../../src/shards/driftwood-isle/data/nativeQuest.json' with { type: 'json' };
 import * as v from 'valibot';

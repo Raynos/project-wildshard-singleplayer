@@ -1,12 +1,12 @@
 import type { TOON_LOOK } from '../../src/shards/driftwood-isle/generators/toonPresentation';
 import type { driftwoodNativeRows } from '../../src/shards/driftwood-isle/generators/nativeBake';
-import type { NativeQuestCompositionInput } from '../../src/game/quest/nativeComposition';
+import type { NativeQuestCompositionInput } from './native-hosts/quest/nativeComposition';
 import type { MixedPopulationInput } from '../../src/game/population/mixedRoster';
 import { installMixedPopulation } from '@wildshard/game/population/mixedRoster';
 import { installNativeChapterDirector } from '@wildshard/game/quest/nativeChapter';
 import { installQuestKillSteps } from '@wildshard/game/quest/killSteps';
-import { readNativeQuestSpots } from '@wildshard/game/quest/nativeComposition';
-import { installNativeQuestComposition } from '@wildshard/game/quest/nativeComposition';
+import { readNativeQuestSpots } from './native-hosts/quest/nativeComposition';
+import { installNativeQuestComposition } from './native-hosts/quest/nativeComposition';
 import { declaredWaterBody } from '@wildshard/engine/world/water/declared';
 import { dayClock } from '@wildshard/game/looks/dayClock';
 import { TOON_DAY_PRESET } from '@wildshard/format/toonLook';
