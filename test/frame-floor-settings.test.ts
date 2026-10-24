@@ -2,6 +2,17 @@ import { expect, test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- execute the serialized Safari init in isolated storage contexts
 import { runInNewContext } from 'node:vm';
 import { frameFloorSettingsCode, resetFrameFloorDebug } from '../scripts/frame-floor-settings.mjs';
+import { validateFrameFloorArgs } from '../scripts/frame-floor-args.mjs';
+
+test('quiet requires one explicit Simulator surface before any build', () => {
+  expect(() => validateFrameFloorArgs(['--surface=sim', '--quiet'])).not.toThrow();
+  for (const flags of [[], ['--surface=both'], ['--surface=desktop'],
+    ['--surface=sim', '--surface=desktop'], ['--surface=sim', '--surface=sim']]) {
+    expect(() => validateFrameFloorArgs([...flags, '--quiet'])).toThrow('require --surface=sim');
+  }
+  expect(() => validateFrameFloorArgs(['--surface=both'])).not.toThrow();
+  expect(() => validateFrameFloorArgs(['--quiet=1', '--surface=sim'])).toThrow('Unknown');
+});
 
 function storage(): Pick<Storage, 'getItem' | 'setItem'> {
   const data = new Map<string, string>();

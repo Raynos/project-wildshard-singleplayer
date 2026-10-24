@@ -46,9 +46,44 @@ class SimQuietTests(unittest.TestCase):
         with patch.dict(function.__globals__, {'process_info': info}):
             self.assertFalse(function(10, self.repo))
 
+    def test_floor_quiet_requires_the_explicit_simulator_worker(self):
+        function = API['official_simulator']
+        flags = ['--worker', '--surface=sim', '--quiet']
+        def info(selected):
+            row = self.info(script=self.repo / API['FLOOR_READER'])
+            row['args'].extend(selected)
+            return row
+        with patch.dict(function.__globals__, {'process_info': lambda pid: info(flags)}):
+            self.assertTrue(function(10, self.repo, API['FLOOR_READER']))
+            self.assertFalse(function(10, self.repo))
+        for selected in [flags[:i] + flags[i+1:] for i in range(len(flags))] + [
+                ['--worker', '--surface=desktop', '--quiet'], flags + ['--surface=desktop']]:
+            with patch.dict(function.__globals__, {'process_info': lambda pid: info(selected)}):
+                self.assertFalse(function(10, self.repo, API['FLOOR_READER']))
+
+    def test_real_floor_worker_marker_uses_its_own_identity_and_expires(self):
+        script = self.repo / API['FLOOR_READER']
+        script.parent.mkdir(parents=True)
+        script.write_text("setInterval(()=>{},1000);\n")
+        with subprocess.Popen(['node', str(script), '--worker', '--surface=sim', '--quiet'], cwd=self.repo) as owner:
+            try:
+                API['take'](self.common, owner.pid, reader=API['FLOOR_READER'])
+                marker = self.common / 'quiet'
+                self.assertEqual(json.loads(marker.read_text())['script'], API['FLOOR_READER'])
+                started = marker.stat().st_mtime
+                self.assertTrue(API['quiet_marker_active'](marker, started + 599))
+                self.assertFalse(API['quiet_marker_active'](marker, started + 600))
+                API['release'](self.common, owner.pid + 1)
+                self.assertTrue(marker.exists())
+                API['release'](self.common, owner.pid)
+                self.assertFalse(marker.exists())
+            finally:
+                owner.terminate()
+                owner.wait(timeout=3)
     def test_forged_and_legacy_markers_never_hold_pushes(self):
         path = self.common / 'quiet'
-        for marker in [{'owner':'fixture'}, {'pid':os.getpid()}, {'schema':1,'kind':'simulator-reading','script':API['READER'],'pid':os.getpid()}]:
+        for marker in [{'owner':'fixture'}, {'pid':os.getpid()}, {'schema':1,'kind':'simulator-reading','script':API['READER'],'pid':os.getpid()},
+                       {'schema':1,'kind':'simulator-reading','script':[API['FLOOR_READER']],'pid':os.getpid()}]:
             text = json.dumps(marker)
             path.write_text(text)
             self.assertFalse(API['quiet_marker_active'](path))

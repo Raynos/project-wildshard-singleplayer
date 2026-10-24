@@ -8,11 +8,12 @@
 // builds the pinned preview in DEVSERVER mode, whose grid holds the DEVSERVER-only cells (op-frame22).
 // Owns a clean, pinned HEAD preview, browser/simulator lanes and their cleanup. Exit 2 = floor misses;
 // exit 3 = incomplete measurement. --regrade=<baseline> reapplies current floor policy without rerendering.
+// --surface=sim --quiet: the official worker holds bounded quiet only while reading, after the build.
 // Long-frame gate (Jake: 60-120 fps desktop / 30-60 fps Simulator "at all moments"): every row FAILS
 // when a frame exceeds 100 ms desktop / 200 ms Simulator. Whole drives include every build still running
 // after arrival, so a freeze that p95 never sees cannot pass.
 // Results: --output-dir=<scratch dir> (default progress/frame-floor)/<measured-short-sha>-<run-id>.json.
-import { spawn, execFileSync } from 'node:child_process';
+import { spawn, spawnSync, execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { join, resolve as resolvePath } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
@@ -38,6 +39,7 @@ validateFrameFloorArgs(args);
 const flag = (name, fallback) => args.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
 const shards = flag('shards', ALL.join(',')).split(',');
 const surface = flag('surface', 'both');
+const quietSample = args.includes('--quiet');
 const nativeDirectory = flag('native-memory', '');
 if (nativeDirectory !== '' && (surface !== 'sim' || !existsSync(nativeDirectory))) throw new Error('--native-memory requires Simulator and an existing scratch directory');
 const frames = Number(flag('frames', '120'));
@@ -702,6 +704,14 @@ async function worker() {
   let browser, context, page, proxy, inspector, nativeMemory;
   /** @type {ReturnType<typeof startFloorNative> | undefined} */
   let stopNative;
+  let quietHeld = false;
+  const quiet = action => {
+    const result = spawnSync('python3', [join(ROOT, 'scripts/sim-quiet.py'), action, String(process.pid), 'scripts/frame-floor.mjs'], { cwd: ROOT, encoding: 'utf8' });
+    if (result.status !== 0) {
+      const message = result.stderr.trim();
+      throw new Error(message.length === 0 ? 'Simulator frame-floor quiet refused' : message);
+    }
+  };
   let lastRoute = null;
   // Retain the existing once-a-second route ledger's memory envelope, including loading between standing witnesses.
   // This records already-read model costs; it adds no browser sampling or timing instrumentation.
@@ -721,6 +731,7 @@ async function worker() {
     lastRoute = progress;
   };
   try {
+    if (quietSample) { quiet('take'); quietHeld = true; }
     let driver;
     if (surface === 'desktop') {
       const { chromium } = await import('playwright');
@@ -804,7 +815,8 @@ async function worker() {
       try { nativeMemory = await stopNative(); }
       catch (error) { nativeMemory = { error: errorText(error) }; }
     }
-    inspector?.close(); proxy?.kill('SIGTERM'); await context?.close(); await browser?.close();
+    try { inspector?.close(); proxy?.kill('SIGTERM'); await context?.close(); await browser?.close(); }
+    finally { if (quietHeld) quiet('release'); }
   }
   writeFileSync(flag('worker-out', ''), JSON.stringify({ surface, rows, memoryJourney: [...memoryJourney.values()], ...(nativeMemory === undefined ? {} : { nativeMemory }) }));
 }
@@ -855,15 +867,16 @@ async function main() {
       const out = join(scratch, `frame-floor-${s}-${sha.slice(0, 9)}.json`); temporary.push(out);
       const workerArgs = [SCRIPT, '--worker', ...(devserverBuild ? ['--devserver'] : []), `--surface=${s}`, `--developer=${developer}`, `--standing-poses=${standingPoses.join(',')}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--grid-scenario=${gridScenario}`, ...(gridRoutes.length === 0 ? [] : [`--grid-routes=${gridRoutes.join(',')}`]), ...(gridCell === '' ? [] : [`--grid-cell=${gridCell}`]), ...(roadApproach ? ['--road-approach'] : []), ...(entrySocket ? ['--entry-socket'] : []), ...(risingIslet === '' ? [] : [`--rising-islet=${risingIslet}`]), ...(gridCellPoseArg === '' ? [] : [`--grid-cell-pose=${gridCellPoseArg}`]), `--gl-observer=${glObserver}`, ...(texturesPin === '' ? [] : [`--textures=${texturesPin}`]), ...(ktx2ProbePin === '' ? [] : [`--ktx2-probe=${ktx2ProbePin}`]), ...(glTime ? ['--gl-time'] : []), ...(gpuBisectOn ? ['--gpu-bisect'] : []), ...(frameTimeline ? ['--frame-timeline'] : []), ...(taskClock ? ['--task-clock'] : []), ...(cpuProfileDir === '' ? [] : [`--cpu-profile=${cpuProfileDir}`]), ...(safariProfileDir === '' ? [] : [`--safari-profile=${safariProfileDir}`]), ...(gpuTraceDir === '' ? [] : [`--gpu-trace=${gpuTraceDir}`]), `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`, ...settingArgs, ...deviceSaveArgs, ...systemArgs];
       if (nativeDirectory !== '') workerArgs.push(`--native-memory=${nativeDirectory}`);
+      if (quietSample) workerArgs.push('--quiet');
       const lane = s === 'desktop' ? ['--max', '10', process.execPath, ...workerArgs] : ['run', '--max', '10', device, process.execPath, ...workerArgs];
-      await run(join(ROOT, `scripts/${s === 'desktop' ? 'browser' : 'sim'}-lane.sh`), lane, { cwd: scratch, echo: true });
+      await run(join(ROOT, `scripts/${s === 'desktop' ? 'browser' : 'sim'}-lane.sh`), lane, { cwd: quietSample ? ROOT : scratch, echo: true });
       results.push(JSON.parse(readFileSync(out, 'utf8')));
     }
     const elapsedSeconds = (Date.now() - start) / 1000;
     const complete = results.every((r) => r.rows.every((row) => row.complete));
     const pass = complete && elapsedSeconds < 600 && results.every((r) => r.rows.every((row) => row.pass));
     const record = grade({ schema: 2, sha, runId, device, when: new Date().toISOString(), elapsedSeconds, underTenMinutes: elapsedSeconds < 600,
-      frames, settleMs, standingPoses, shards, surface, developer, ...(publicGrid ? {publicGrid:'public grid as it would ship once GRID_GATES_PASSED flips'} : {}), settings, deviceSaves, expectedSystems, gridScenario, gridRoutes, ...(gridCell === '' ? {} : { gridCell, gridCellPose }), build: devserverBuild ? 'devserver' : 'production', glObserver, travelGlCensus: travelGl !== '', glTime, frameTimeline, gpuBisect: gpuBisectOn, safariProfile: safariProfileDir !== '', harnessRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(), complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
+      frames, settleMs, standingPoses, shards, surface, developer, quiet: quietSample, ...(publicGrid ? {publicGrid:'public grid as it would ship once GRID_GATES_PASSED flips'} : {}), settings, deviceSaves, expectedSystems, gridScenario, gridRoutes, ...(gridCell === '' ? {} : { gridCell, gridCellPose }), build: devserverBuild ? 'devserver' : 'production', glObserver, travelGlCensus: travelGl !== '', glTime, frameTimeline, gpuBisect: gpuBisectOn, safariProfile: safariProfileDir !== '', harnessRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(), complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
       simulatorCap: `Shipped phone-tier 30 fps cap; Simulator Safari on ${device}`,
       measurement: 'Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.',
       limitations: [standingPoses.length === 0 ? 'Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.' : 'Stationary spawn and explicitly pinned authored standing cameras; this is a baseline, not proof of every gameplay moment.', 'Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.', 'Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim.'], results });

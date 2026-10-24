@@ -1,4 +1,4 @@
-const switches = new Set(['help', 'worker', 'devserver', 'gl-time', 'gpu-bisect', 'frame-timeline', 'task-clock', 'road-approach', 'entry-socket']);
+const switches = new Set(['help', 'worker', 'quiet', 'devserver', 'gl-time', 'gpu-bisect', 'frame-timeline', 'task-clock', 'road-approach', 'entry-socket']);
 const values = new Set(['base', 'cpu-profile', 'deadline', 'developer', 'device', 'frames', 'gl-observer', 'gpu-trace',
   'grid-cell', 'grid-cell-pose', 'grid-routes', 'grid-scenario', 'regrade', 'rev', 'rising-islet', 'safari-profile',
   'settle', 'shards', 'surface', 'scratch-dir', 'worker-out', 'device-save', 'expect-system', 'setting', 'output-dir',
@@ -15,4 +15,6 @@ export function validateFrameFloorArgs(args) {
   }
   if (args.includes('--grid-scenario=milestone') && !args.includes('--devserver'))
     throw new Error('Milestone floor requires --devserver (the complete Developer catalogue includes Nine)');
+  if (args.includes('--quiet') && (args.filter(arg => arg.startsWith('--surface=')).length !== 1 || !args.includes('--surface=sim')))
+    throw new Error('Quiet frame floors require --surface=sim');
 }

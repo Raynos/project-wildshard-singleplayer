@@ -217,6 +217,11 @@ the actual inflation depends on captured responses. Do not subtract 200 MB
 from historical results or label those changes as game memory savings.
 WebKit and Simulator readings are unaffected by this Chromium correction.
 
+The existing frame-floor reader can also take quiet with `--surface=sim --quiet`.
+Only its exact official Sim worker may hold it, after the preview builds; desktop,
+parent orchestration and scratch callers refuse. It releases in worker cleanup,
+with the same ten-minute cap and no measurement or threshold changes.
+
 Before CPU work, `python3 scripts/sim-quiet.py status` reports the active official
 reading. During it, **read and edit only**: no tests, typechecks, lint, builds,
 bakes, generators, browsers, captures or hook-running commits. The marker expires

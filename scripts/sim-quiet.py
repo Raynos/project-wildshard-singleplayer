@@ -11,6 +11,8 @@ import time
 
 ROOT = Path(__file__).resolve().parents[1]
 READER = 'scripts/sim-grid-entry.mjs'
+FLOOR_READER = 'scripts/frame-floor.mjs'
+READERS = {READER, FLOOR_READER}
 
 
 def scratch(path, repo):
@@ -35,7 +37,9 @@ def process_info(pid):
         return None
 
 
-def official_simulator(pid, repo):
+def official_simulator(pid, repo, reader=READER):
+    if not isinstance(reader, str) or reader not in READERS:
+        return False
     if not isinstance(pid, int) or isinstance(pid, bool) or pid <= 0:
         return False
     info = process_info(pid)
@@ -44,7 +48,10 @@ def official_simulator(pid, repo):
     args = info['args']
     if len(args) < 2 or Path(args[0]).name != 'node' or args[1].startswith('-'):
         return False
-    if (info['cwd'] / args[1]).resolve() != (repo / READER).resolve():
+    if (info['cwd'] / args[1]).resolve() != (repo / reader).resolve():
+        return False
+    if reader == FLOOR_READER and (not {'--worker', '--surface=sim', '--quiet'}.issubset(args[2:])
+                                   or [arg for arg in args[2:] if arg.startswith('--surface=')] != ['--surface=sim']):
         return False
     for _ in range(12):
         if info['cwd'] is not None and scratch(info['cwd'], repo):
@@ -69,15 +76,19 @@ def quiet_marker_active(path, now=None):
         if age < 0 or age >= 600:
             return False
         marker = json.loads(path.read_text())
-        if marker.get('schema') != 1 or marker.get('kind') != 'simulator-reading' or marker.get('script') != READER:
+        reader = marker.get('script')
+        if marker.get('schema') != 1 or marker.get('kind') != 'simulator-reading' or not isinstance(reader, str) or reader not in READERS:
             return False
-        return official_simulator(marker.get('pid'), path.parent.parent.resolve())
+        repo = path.parent.parent.resolve()
+        return official_simulator(marker.get('pid'), repo) if reader == READER else official_simulator(marker.get('pid'), repo, reader)
     except (OSError, ValueError, AttributeError):
         return False
 
 
-def take(common, pid, timeout=300):
+def take(common, pid, timeout=300, reader=READER):
     """Drain one push tick before publication; a timeout fails without retry."""
+    if not isinstance(reader, str) or reader not in READERS:
+        raise RuntimeError('Unknown official Simulator reader')
     deadline = time.monotonic() + timeout
     with (common / 'push-loop.lock').open('a') as lock:
         while True:
@@ -104,8 +115,8 @@ def take(common, pid, timeout=300):
                     path.unlink()
             else:
                 raise RuntimeError('G670: another live owner already holds quiet')
-        marker = {'schema': 1, 'kind': 'simulator-reading', 'script': READER,
-                  'owner': 'sim-grid-entry', 'pid': pid}
+        marker = {'schema': 1, 'kind': 'simulator-reading', 'script': reader,
+                  'owner': Path(reader).stem, 'pid': pid}
         with path.open('x') as output:
             json.dump(marker, output)
 
@@ -115,7 +126,8 @@ def release(common, pid):
     try:
         text = path.read_text()
         marker = json.loads(text)
-        if marker.get('pid') == pid and marker.get('kind') == 'simulator-reading' and marker.get('script') == READER:
+        reader = marker.get('script')
+        if marker.get('pid') == pid and marker.get('kind') == 'simulator-reading' and isinstance(reader, str) and reader in READERS:
             if path.read_text() == text:
                 path.unlink()
     except FileNotFoundError:
@@ -127,14 +139,15 @@ def main():
         common = Path(subprocess.check_output(['git', '-C', str(ROOT), 'rev-parse', '--path-format=absolute', '--git-common-dir'], text=True).strip())
         print(json.dumps({'active': quiet_marker_active(common / 'quiet')}))
         return
-    if len(sys.argv) != 3 or sys.argv[1] not in {'verify', 'take', 'release'}:
-        raise RuntimeError('usage: sim-quiet.py status | verify|take|release <official reader pid>')
+    if len(sys.argv) not in {3, 4} or sys.argv[1] not in {'verify', 'take', 'release'}:
+        raise RuntimeError('usage: sim-quiet.py status | verify|take|release <official reader pid> [reader]')
     pid = int(sys.argv[2])
-    if pid != os.getppid() or not os.environ.get('SIM_UDID') or not official_simulator(pid, ROOT):
+    reader = sys.argv[3] if len(sys.argv) == 4 else READER
+    if pid != os.getppid() or not os.environ.get('SIM_UDID') or not official_simulator(pid, ROOT, reader):
         raise RuntimeError('G670: quiet is reserved for the official Simulator reader; tmp/ callers refuse')
     common = Path(subprocess.check_output(['git', '-C', str(ROOT), 'rev-parse', '--path-format=absolute', '--git-common-dir'], text=True).strip())
     if sys.argv[1] == 'take':
-        take(common, pid)
+        take(common, pid, reader=reader)
     elif sys.argv[1] == 'release':
         release(common, pid)
 
