@@ -4,7 +4,7 @@ import type {GroupGuestBindingsV2} from '@wildshard/engine/ai/GroupBrain';
 import { parseReturnProjectionV2,returnProjectionV2Layout } from '@wildshard/format/returnProjectionV2';
 import { prepareV2Rng } from '@wildshard/format/scriptRngV2';
 import { admitScriptV2 } from '@wildshard/format/scriptAdmissionV2';
-import { writeV2Frame,validateV2Frame,type V2FrameAuthority } from '@wildshard/format/scriptWireV2';
+import { createV2FrameWriter,validateV2Frame,type V2FrameAuthority } from '@wildshard/format/scriptWireV2';
 import type { Rng,RngState } from '@wildshard/engine/core/rng';
 import { sha256 } from '../plugin/moduleHash';
 import { GroupStepV2 } from '@wildshard/engine/script/groupStepV2';
@@ -51,6 +51,7 @@ export class ReturnProjectionV2 {
   private readonly row;
   private readonly layout;
   private readonly module: ScriptModuleV2;
+  private readonly writeFrame: ReturnType<typeof createV2FrameWriter>;
   private busy = false;
   private readonly groups:GroupStepV2|null=null;
   /** Only fixed ABI bytes are retained. Every call still captures its own numeric values. */
@@ -67,6 +68,7 @@ export class ReturnProjectionV2 {
     this.module = new ScriptModuleV2(bytes,{ seed: [0,0],initFuel: 400000,output: [],ioBytes: this.layout.bytes });
     if (this.module.io !== this.layout.io) throw new Error('Return projection IO mismatch');
     if(this.row.groups!==undefined&&owner!==undefined)this.groups=new GroupStepV2(bytes,this.row.groups,owner,{module:this.module,layout:this.layout});
+    this.writeFrame = createV2FrameWriter(this.layout);
     freezeGroups(this.row.groups);this.live();
   }
   /** Original admitted group rows; reading adds no module or continuation. */
@@ -104,7 +106,7 @@ export class ReturnProjectionV2 {
     this.busy = true;
     try {
       const answer = this.module.project(400000,view => {
-        authority = writeV2Frame(view,layout,{ lane: 2,module: 1,sequence: 0,tick: 0,due: 1 },counts);input.write(view);
+        authority = this.writeFrame(view,{ lane: 2,module: 1,sequence: 0,tick: 0,due: 1 },counts);input.write(view);
         view.setFloat64(shape.signalAt,signalId,true);
         for (let index=0;index<shape.fields.length;index++) {
           const column=shape.fields[index];if(column===undefined)throw new Error('Missing projection column');

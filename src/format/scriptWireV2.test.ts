@@ -1,5 +1,5 @@
 import { expect,test } from 'vitest';
-import { layoutV2,writeV2Frame,validateV2Frame,relativeTickV2,V2_REGION_STRIDES } from './scriptWireV2';
+import { layoutV2,writeV2Frame,createV2FrameWriter,validateV2Frame,relativeTickV2,V2_REGION_STRIDES,type V2Frame } from './scriptWireV2';
 
 test('v2 layouts retain all 22 kinds and check absolute alignment, inactive regions and overflow', () => {
   const layout = layoutV2(8,1,new Map([[1,2],[2,4],[10,2]]));
@@ -73,4 +73,50 @@ test('input counts remain immutable in a subview and call authorities stay detac
   expect(authority.header).toEqual(header);expect(Object.isFrozen(authority.counts)).toBe(true);
   expect(() => validateV2Frame(view,layout,authority)).toThrow('call envelope');
   expect(bytes.subarray(0,32)).toEqual(new Uint8Array(32).fill(0xab));
+});
+
+
+test('owner-local writers freeze equal count shapes once while every header stays detached',()=>{
+  const layout=layoutV2(1024,1,new Map([[1,2],[6,2],[21,2]])),write=createV2FrameWriter(layout);
+  const view=new DataView(new ArrayBuffer(65536)),counts=new Map([[1,1],[6,-0]]);
+  const frame:V2Frame={lane:2,module:1,sequence:1,tick:0,due:1};
+  const first=write(view,frame,counts),saved=first.header.slice(),frozen=first.counts;
+  expect(Object.isFrozen(frozen)).toBe(true);expect(Object.is(frozen[5],-0)).toBe(true);
+  expect(Reflect.set(frozen,0,0)).toBe(false);
+  for(let index=2;index<8;index++){
+    const next=write(view,{...frame,sequence:index,tick:index},new Map(counts));
+    expect(next.counts).toBe(frozen);expect(next.header).not.toBe(first.header);
+    expect(first.header).toEqual(saved);expect(()=>validateV2Frame(view,layout,next)).not.toThrow();
+  }
+  counts.set(6,0);const changed=write(view,frame,counts);
+  expect(changed.counts).not.toBe(frozen);expect(Object.is(changed.counts[5],0)).toBe(true);expect(Object.isFrozen(changed.counts)).toBe(true);
+  expect(createV2FrameWriter(layout)(view,frame,counts).counts).not.toBe(changed.counts);
+});
+test('caller authority mutation and refused frames cannot poison a writer count template',()=>{
+  const layout=layoutV2(1024,1,new Map([[1,2],[6,2]])),write=createV2FrameWriter(layout);
+  const view=new DataView(new ArrayBuffer(65536)),counts=new Map([[1,1]]);
+  const frame:V2Frame={lane:3,module:1,sequence:1,tick:4,due:1,dt:-0,alpha:-0,frame:1};
+  const first=write(view,frame,counts),frozen=first.counts;
+  first.header.fill(0xff);Reflect.set(first,'counts',Object.freeze(Array.from({length:22},()=>99)));
+  expect(()=>write(view,{...frame,alpha:2},new Map([[1,2],[6,1]]))).toThrow('view clock');
+  expect(()=>write(view,frame,new Map([[1,3]]))).toThrow('count');
+  const next=write(view,frame,counts);expect(next.counts).toBe(frozen);
+  expect(()=>validateV2Frame(view,layout,next)).not.toThrow();expect(Object.isFrozen(next.counts)).toBe(true);
+});
+test('retained-count writers preserve all frame bytes, subviews and partial refusal writes',()=>{
+  const layout=layoutV2(1024,1,new Map(V2_REGION_STRIDES.map((_,index)=>[index+1,2]))),write=createV2FrameWriter(layout);
+  const frames:V2Frame[]=[{lane:1,module:1,sequence:0,tick:0,due:1},{lane:2,module:2,sequence:3,tick:2**30+3,due:1},
+    {lane:3,module:1,sequence:4,tick:2**31+7,due:1,dt:-0,alpha:-0,frame:5}];
+  const counts=new Map([[1,1],[2,2],[6,1],[7,1],[21,1]]);
+  for(const frame of frames){
+    const left=new Uint8Array(65536+32).fill(0x7b),right=left.slice();
+    const a=new DataView(left.buffer,32,65536),b=new DataView(right.buffer,32,65536);
+    const old=writeV2Frame(a,layout,frame,counts),next=write(b,frame,counts);
+    expect(right).toEqual(left);expect(next.header).toEqual(old.header);expect(next.counts).toEqual(old.counts);
+    expect(Object.isFrozen(next.counts)).toBe(true);expect(validateV2Frame(b,layout,next)).toEqual(validateV2Frame(a,layout,old));
+    if(frame.lane===3){
+      expect(()=>writeV2Frame(a,layout,{...frame,dt:-1},counts)).toThrow('view clock');
+      expect(()=>write(b,{...frame,dt:-1},counts)).toThrow('view clock');expect(right).toEqual(left);
+    }
+  }
 });

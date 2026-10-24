@@ -13099,6 +13099,12 @@ cadence or explicitly permits that delay (the pack spot/roam refresh). They
 must not replace a same-call herd terrain/RNG barrier: that original native
 slot uses a segmented group projection and explicit transient result columns.
 
+`createV2FrameWriter(layout)` reuses the last frozen count vector within
+an existing executable owner. Every call validates current counts and writes
+a fresh detached header; mutable caller authorities are never templates.
+`writeV2Frame` retains its stateless behaviour. Numeric projections and group
+steps use the owner-local writer without changing acceptance or RNG order.
+
 ### Shared group projection profiles (H4, G621 R10a)
 
 A group-step declaration may add up to seven named profiles. The base bank,

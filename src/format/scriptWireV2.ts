@@ -32,6 +32,19 @@ export interface V2FrameAuthority { readonly header: Uint8Array; readonly counts
 /** Write only header/directory, retaining view scratch between frames. Capture
  * the host envelope for output validation; sim has no view clock/tier fields. */
 export function writeV2Frame(view: DataView,layout: V2Layout,frame: V2Frame,counts: ReadonlyMap<number,number>): V2FrameAuthority {
+  return writeFrame(view,layout,frame,counts);
+}
+/** Reuse the last immutable count shape within one existing owner. Every call
+ * validates current counts and captures a fresh detached header; no caller
+ * authority or mutable input is retained as a trusted template. */
+export function createV2FrameWriter(layout: V2Layout): (view: DataView,frame: V2Frame,counts: ReadonlyMap<number,number>) => V2FrameAuthority {
+  let previous: readonly number[] | undefined;
+  return (view,frame,counts) => {
+    const authority = writeFrame(view,layout,frame,counts,previous);
+    previous = authority.counts;return authority;
+  };
+}
+function writeFrame(view: DataView,layout: V2Layout,frame: V2Frame,counts: ReadonlyMap<number,number>,previous?: readonly number[]): V2FrameAuthority {
   if (view.byteLength !== layout.pages*65536 || !handle(frame.module) || !unsigned(frame.sequence) || !natural(frame.tick) || !natural(frame.due)) throw new Error('Invalid v2 call envelope');
   if (frame.lane !== 1 && frame.lane !== 2 && frame.lane !== 3) throw new Error('Unknown v2 lane');
   for (const [kind,count] of counts) if (!Number.isInteger(kind) || kind < 1 || kind > 22 || !natural(count)) throw new Error('Unknown v2 input count');
@@ -58,7 +71,9 @@ export function writeV2Frame(view: DataView,layout: V2Layout,frame: V2Frame,coun
     view.setUint32(entry+12,region.capacity,true);view.setUint32(entry+16,actual[index] ?? 0,true);
     if (region.kind === 17) for (let i = 0; i < region.capacity; i++) view.setUint32(at+region.offset+i*80+12,0,true);
   }
-  return { header: new Uint8Array(view.buffer,view.byteOffset+at,128).slice(),counts: Object.freeze(actual) };
+  let same = previous !== undefined && previous.length === actual.length;
+  for (let index = 0; same && index < actual.length; index++) if (!Object.is(previous?.[index],actual[index])) same = false;
+  return { header: new Uint8Array(view.buffer,view.byteOffset+at,128).slice(),counts: same && previous !== undefined ? previous : Object.freeze(actual) };
 }
 /** Validate the entire envelope before trusting a single output count. Domain
  * IDs, numeric columns, RNG and command authority are checked by their owners. */

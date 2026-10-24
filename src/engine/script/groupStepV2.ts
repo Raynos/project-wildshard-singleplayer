@@ -6,7 +6,7 @@ import { Vector3 } from 'three';
 import type { GroupBankReferenceV2, GroupBankValueV2 } from '@wildshard/format/scriptGroupBankV2';
 import { admitScriptV2 } from '@wildshard/format/scriptAdmissionV2';
 import { prepareV2Rng } from '@wildshard/format/scriptRngV2';
-import { writeV2Frame, validateV2Frame, layoutV2, relativeTickV2, type V2FrameAuthority, type V2Layout } from '@wildshard/format/scriptWireV2';
+import { createV2FrameWriter, validateV2Frame, layoutV2, relativeTickV2, type V2FrameAuthority, type V2Layout } from '@wildshard/format/scriptWireV2';
 import type { V2QueryBinding } from '@wildshard/format/scriptQueriesV2';
 import { GroupBankV2 } from './groupBankV2';
 import { ObservationColumnsV2, type V2ColumnOwners, type V2ActorColumnSlot } from './observationColumnsV2';
@@ -48,6 +48,7 @@ export class GroupStepV2 {
   readonly layout;
   private readonly profiles;
   private readonly module: ScriptModuleV2;
+  private readonly writeFrame: ReturnType<typeof createV2FrameWriter>;
   private busy = false;
   private revision = 0;
   private readonly scope: Scope;
@@ -69,6 +70,7 @@ export class GroupStepV2 {
     const source = Uint8Array.from(bytes), admitted = admitScriptV2(source, { lane: 'project', ioBytes: this.layout.bytes });
     if (admitted.io !== 0 || admitted.initialPages !== this.rows.pages) throw new Error('Group step module layout mismatch');
     this.module = shared?.module ?? new ScriptModuleV2(source, { seed: [0, 0], initFuel: this.rows.fuel, ioBytes: this.layout.bytes, output: [] });
+    this.writeFrame = createV2FrameWriter(this.layout);
     this.live();
   }
   private live(): void {
@@ -156,7 +158,7 @@ export class GroupStepV2 {
       counts.set(21, rng.count);
       let authority: V2FrameAuthority | undefined;
       const candidate = this.module.project(this.rows.fuel, view => {
-        authority = writeV2Frame(view, this.layout, { lane: 2, module: 1, sequence: 0, tick: input.tick, due: 1 }, counts);
+        authority = this.writeFrame(view, { lane: 2, module: 1, sequence: 0, tick: input.tick, due: 1 }, counts);
         // The group layout is fixed at admission. Write detached numeric
         // columns directly; no per-member names, sorting or generic batch.
         const at=(kind:number):number=>{
