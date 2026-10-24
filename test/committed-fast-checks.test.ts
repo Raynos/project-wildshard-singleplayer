@@ -4,6 +4,8 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- All fixture paths remain beneath tmp/.
 import { resolve } from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- The fixture invokes the real platform policy comparator.
+import { pathToFileURL } from 'node:url';
 import { expect, test } from 'vitest';
 import { linkNodeModules } from '../scripts/link-node-modules.mjs';
 
@@ -101,5 +103,35 @@ test('ratchet retains old unrecorded counts but refuses new counts and cannot bo
     const hard=f.commit();const refused=f.run('ratchet',hard,['src/main.ts'],bad);expect(refused.status).toBe(1);expect(refused.stderr).toContain('was 0, now 1');
     f.put('lint/ratchet.json',JSON.stringify({'wildshard/marker':{'src/main.ts':1}}));const allowed=f.commit();
     expect(f.run('ratchet',allowed).status).toBe(0);
+  }finally{f.close();}
+});
+
+test('guards compare custom policies through immutable Git readers without a checkout',()=>{
+  const f=fixture();try {
+    f.put('scripts/check-closed-components.mjs','export function closedComponentSources(){return [];}');
+    f.put('scripts/ratchet-approval.mjs','export function ratchetApprovalFailures(){return [];}');
+    f.put('scripts/check-platform-ratchets.mjs',`export {comparePlatformList} from '${pathToFileURL(resolve('scripts/check-platform-ratchets.mjs')).href}';
+export const PLATFORM_LISTS=['lint/ratchet.json','lint/custom-sections.json'];`);
+    const policy={version:1,baselineAt:'a'.repeat(40),baseline:{demo:{count:2,bytes:100}}};
+    const budgets=(count:number,bytes:number)=>({budgets:{'custom-sections/demo/count':count,'custom-sections/demo/bytes':bytes}});
+    f.put('lint/ratchet.json',JSON.stringify(budgets(2,100)));
+    f.put('lint/custom-sections.json',JSON.stringify({...policy,raises:[],risesCloseAt:'W1 spike end'}));
+    const base=f.commit();
+    f.put('lint/custom-sections.json',JSON.stringify(policy));const sealed=f.commit();
+    // Loose policy bytes cannot rescue a committed rise or poison a valid seal.
+    f.put('lint/ratchet.json',JSON.stringify(budgets(99,999)));f.put('lint/custom-sections.json','foreign invalid policy');
+    const good=f.run('guards',sealed,[],base);
+    expect(good.status,good.stdout+good.stderr).toBe(0);
+    expect(good.stdout).toContain('guards: exact committed inputs passed');
+    f.put('lint/ratchet.json',JSON.stringify(budgets(3,100)));f.put('lint/custom-sections.json',JSON.stringify(policy));
+    const raised=f.commit();
+    f.put('lint/ratchet.json',JSON.stringify(budgets(1,90)));
+    const bad=f.run('guards',raised,[],sealed);
+    expect(bad.status).toBe(1);expect(bad.stderr).toContain('demo: custom-section ceilings are shrink-only');
+    f.put('lint/ratchet.json',JSON.stringify(budgets(2,100)));f.put('lint/custom-sections.json',JSON.stringify({...policy,raises:[]}));
+    const malformed=f.commit();
+    f.put('lint/custom-sections.json',JSON.stringify(policy));
+    const refused=f.run('guards',malformed,[],sealed);
+    expect(refused.status).toBe(1);expect(refused.stderr).toContain('custom-section policy is malformed');
   }finally{f.close();}
 });

@@ -235,7 +235,15 @@ export function comparePlatformList(list, baselineFile, candidateFile, trees, se
     const locks = list === 'lint/ratchet.json' ? compareClosedComponents(read(baselineFile)?.closedComponents, read(candidateFile)?.closedComponents) : [];
     if(trees!==undefined)return compareCustomSections(read(resolve(trees.baselineRoot,'lint/ratchet.json'))?.budgets??{},
       read(resolve(trees.candidateRoot,'lint/ratchet.json'))?.budgets??{},read(resolve(trees.baselineRoot,CUSTOM_SECTION_POLICY)),read(resolve(trees.candidateRoot,CUSTOM_SECTION_POLICY))).concat(locks);
-    if(list===CUSTOM_SECTION_POLICY)return ['custom-section policy comparison requires immutable trees'];
+    if(list===CUSTOM_SECTION_POLICY) {
+      if(sources===undefined)return ['custom-section policy comparison requires immutable trees'];
+      // The committed gate supplies immutable Git readers instead of materialized
+      // trees. Read both ceilings and policies from those same revision views.
+      const readSource=(reader,file)=>{const text=reader(file);return text===undefined?undefined:JSON.parse(text);};
+      return compareCustomSections(readSource(sources.before,'lint/ratchet.json')?.budgets??{},
+        readSource(sources.after,'lint/ratchet.json')?.budgets??{},
+        readSource(sources.before,CUSTOM_SECTION_POLICY),readSource(sources.after,CUSTOM_SECTION_POLICY));
+    }
     return compareCustomSections(read(baselineFile)?.budgets??{},read(candidateFile)?.budgets??{},sections?.before,sections?.after).concat(locks);
   }
   if (list === CLASS_MOVE_LIST) {
