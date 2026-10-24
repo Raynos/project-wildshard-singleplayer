@@ -155,30 +155,37 @@ export class Scope {
   captureScope(child: Scope): () => void { return this.track('disposers', () => { child.dispose(); }, child); }
 
   private ownHandle(resource: object, kind: Kind, dispose: () => void): (() => void) | undefined {
+    if (this.owned?.has(resource)) return undefined;
+    if (this.closed) { dispose(); return undefined; }
     const owned = this.owned ??= new Set();
-    if (owned.has(resource)) return undefined;
     owned.add(resource);
     return this.track(kind, dispose);
   }
   /** True while this scope still owns `resource` (a resource disposed by anyone else is forgotten, see `own`). */
   owns(resource: object): boolean { return this.owned?.has(resource) ?? false; }
   own<T extends Disposable3>(resource: T): T {
-    const forget = this.ownHandle(resource, resourceKind(resource), () => resource.dispose());
-    if (forget !== undefined) this.forgetOnDispose(resource, forget);
+    let releaseListener: (() => void) | undefined;
+    const forget = this.ownHandle(resource, resourceKind(resource), () => { try { releaseListener?.(); } finally { resource.dispose(); } });
+    if (forget !== undefined) releaseListener = this.forgetOnDispose(resource, forget);
     return resource;
   }
   /** O18: a resource disposed by anyone (its own view, three, a cache) leaves this scope at once. A long-lived owner (the
    *  page level) kept every adopted resource it ever saw, disposed or not, with its CPU arrays and uniforms: ~100 MB of
    *  geometry and ~600 materials after six grid cells. A binding-only rebind (`dispatchRebind`) is not a retirement. */
-  private forgetOnDispose(resource: Disposable3, forget: () => void): void {
+  private forgetOnDispose(resource: Disposable3, forget: () => void): (() => void) | undefined {
     const add: unknown = Reflect.get(resource, 'addEventListener'), remove: unknown = Reflect.get(resource, 'removeEventListener');
-    if (typeof add !== 'function' || typeof remove !== 'function') return;
+    if (typeof add !== 'function' || typeof remove !== 'function') return undefined;
     const released = (): void => {
       if (rebinding.has(resource)) return;
       Reflect.apply(remove, resource, ['dispose', released]);
       this.owned?.delete(resource); forget();
     };
     Reflect.apply(add, resource, ['dispose', released]);
+    // Owner retirement must detach even inside a binding-only dispose event.
+    return () => {
+      Reflect.apply(remove, resource, ['dispose', released]);
+      this.owned?.delete(resource); forget();
+    };
   }
   /** Own a code-built tree's buffers/materials and detach it on disposal. Instanced meshes are optional; textures and delegated scene ownership stay separate. */
   ownPrimitives(root: Object3D, options: { readonly instances?: boolean } = {}): void {
