@@ -149,7 +149,12 @@ export class SceneDressing {
     live();for(const [name,bytes] of raw)files.set(name,bytes);
     const specimens=await prepareSpecimenCatalogue(product,rows.catalogues.flatMap(source=>source.rows),scope);live();for(const [name,bytes]of specimens)files.set(name,bytes);
     const owner=new SceneDressing(ctx,rows);
-    await owner.build(rows,files);products.set(ctx.product,owner);const installed=products;
+    await owner.build(rows,files);
+    // Floor/picking closures can retain the build context. Decoded contacts and
+    // geometry own their copies; only catalogue rebuilds still read this map.
+    // Floor/atlas views retain their required backing independently of the map.
+    for(const name of files.keys())if(!specimens.has(name))files.delete(name);
+    products.set(ctx.product,owner);const installed=products;
     // N2: the tiled colliders follow the player by tile (spawn and entries before controls), as an assembled world's do
     if(owner.colliderGroups.length>0){
       const tiles=ctx.scope.child('scene.dressing.tiles'),shard=ctx.product.shardfile,world=ctx.game.runtime?.world;
