@@ -7,7 +7,33 @@ import { dirname, resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Supply the explicit GitHub identity to the pure API selection fixture.
 import { env } from 'node:process';
 import { expect, test } from 'vitest';
-import { culpritReport, priorGreen } from '../scripts/ci-culprits.mjs';
+import { culpritReport, prepareHistory, priorGreen } from '../scripts/ci-culprits.mjs';
+
+test('a red window beyond 200 commits still reaches the exact previous green from a shallow checkout', () => {
+  mkdirSync('tmp',{recursive:true});const root=mkdtempSync(resolve('tmp/ci-culprits-shallow-'));
+  const source=resolve(root,'source'),reader=resolve(root,'reader');mkdirSync(source);mkdirSync(reader);
+  const git=(cwd:string,...args:string[]):string=>execFileSync('git',args,{cwd,encoding:'utf8',stdio:['pipe','pipe','pipe']}).trim();
+  try {
+    git(source,'init','-q','-b','main');mkdirSync(resolve(source,'test'));
+    writeFileSync(resolve(source,'test/failure.test.ts'),'export const value=0;');git(source,'add','.');
+    git(source,'-c','core.hooksPath=/dev/null','-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit','-qm','base');
+    const base=git(source,'rev-parse','HEAD');
+    // Fast-import constructs only this tiny fixture's history, not a repo copy.
+    let history='';
+    for(let index=1;index<=202;index++){
+      const message=`change ${index}`,bytes=`export const value=${index};`;
+      history+=`commit refs/heads/main\nmark :${index}\ncommitter Fixture <fixture@example.invalid> ${1700000000+index} +0000\ndata ${message.length}\n${message}\nfrom ${index===1?base:`:${index-1}`}\nM 100644 inline test/failure.test.ts\ndata ${bytes.length}\n${bytes}\n\n`;
+    }
+    execFileSync('git',['fast-import','--quiet'],{cwd:source,input:history});const sha=git(source,'rev-parse','main');
+    git(reader,'init','-q');git(reader,'remote','add','origin',source);
+    git(reader,'fetch','--quiet','--depth=200','origin',sha);
+    expect(()=>culpritReport(reader,base,sha,['test/failure.test.ts'])).toThrow();
+    prepareHistory(reader,sha);
+    const report=culpritReport(reader,base,sha,['test/failure.test.ts']);
+    expect(report.base).toBe(base);expect(report.candidates).toHaveLength(3);
+    expect(report.candidates[0]?.sha).toBe(sha);expect(report.missingImports).toEqual([]);
+  } finally {rmSync(root,{recursive:true,force:true});}
+});
 
 test('culprits follow committed imports and exports, prioritize the failing file and cap the report', () => {
   mkdirSync('tmp', { recursive: true });
