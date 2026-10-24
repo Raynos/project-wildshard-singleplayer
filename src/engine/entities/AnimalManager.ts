@@ -466,7 +466,7 @@ export class AnimalManager {
     a.hidden = true; a.mesh.visible = false;
     if (!a.simulationBound) { a.alive = false; a.position.y = -9999; }
     const i = this.animals.indexOf(a); if (i !== -1) this.animals.splice(i, 1);
-    this.hunt.forget(a); this.farRigs.delete(a); this.casters.delete(a); this.tokens.release(a); this.scheduler.forget(a);
+    this.hunt.forget(a); const far = this.farRigs.get(a); if (far !== undefined) this.farHerd.unreserve(far); this.farRigs.delete(a); this.casters.delete(a); this.tokens.release(a); this.scheduler.forget(a);
     this.bodies?.remove(a);
     a.retireBody();
     a.mesh.removeFromParent();
@@ -519,7 +519,12 @@ export class AnimalManager {
     const caster = attachShadowCaster(a.mesh);
     if (caster !== null) this.casters.set(a, caster);
     const fur = rig.materials[0];
-    if (fur !== undefined) this.farRigs.set(a, { mesh: a.mesh, tint: fur.color, model, mask: null });
+    if (fur !== undefined) {
+      const far: FarRig = { mesh: a.mesh, tint: fur.color, model, mask: null };
+      this.farRigs.set(a, far);
+      // its far-herd page, opened now so the entry warm-up uploads it (farHerd.ts reserve)
+      if (TIER_CONFIG.animalFarBatchDist > 0) this.farHerd.reserve(far);
+    }
     this.group.add(a.mesh); this.group.own(a);
     this.animals.push(a);
     this.spawnedActors.add(a);

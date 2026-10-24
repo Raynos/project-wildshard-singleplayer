@@ -105,6 +105,10 @@ class FarBatch {
     this.grow(cap);
   }
 
+  /** Shown with an empty draw range until its first flush: the next render that reaches it (the entry warm-up's parked
+   *  draws) uploads its buffers and draws nothing; `flush` hides it again while it has no members. */
+  uploadEmpty(): void { this.mesh.geometry.setDrawRange(0, 0); this.mesh.visible = true; }
+
   /** Whether `m` holds a slot (from an earlier frame). */
   has(m: FarMember): boolean { return this.slotOf.has(m); }
 
@@ -309,19 +313,36 @@ export class FarHerd<M extends FarMember = FarMember> {
     this.cull = true;
   }
 
+  /**
+   * `m` joined the herd's world (its rig spawned): make sure its batch key has a page slot for every member reserved so
+   * far, opened now rather than when the member first goes far. A page opened in play uploads ~9 MB in its first frame;
+   * Pine Hollow's entry opened one a frame right after `activate` (~75 MB in 3 s on the desktop), and a busy GPU process
+   * (that entry's own pipeline builds) blocked one of those uploads for 1.1-1.8 s (sp-x1's desktop floor 466c98bac7, mine
+   * on 450c424db8). A page opened here is drawn once with an empty range, so the entry warm-up's parked draws upload it
+   * before the region shows; its first members only write their colours.
+   */
+  reserve(m: M): void {
+    const b = this.pagesOf(m);
+    if (b === null || b.reserved.has(m)) return;
+    b.reserved.add(m); b.reservedCount++;
+    const wanted = Math.ceil(b.reservedCount / PAGE_SLOTS);
+    while (b.pages.length < wanted) {
+      const page = new FarBatch(b.src, b.material, b.bones, this.opts.shadow === true, PAGE_SLOTS);
+      page.uploadEmpty();
+      b.pages.push(page); this.group.add(page.mesh);
+    }
+  }
+
+  /** `m` left the herd's world: its reservation goes (the pages stay, for the members reserved after it) */
+  unreserve(m: M): void {
+    const b = this.pagesOf(m);
+    if (b === null || !b.reserved.has(m)) return;
+    b.reserved.delete(m); b.reservedCount--;
+  }
+
   /** true = `m` is drawn by (or culled with) the far herd this frame: hide its rig. false = draw the rig itself */
   take(m: M, position: THREE.Vector3, radius: number): boolean {
-    const mesh = m.mesh;
-    if (mesh.bindMode !== THREE.AttachedBindMode || !mesh.bindMatrix.equals(_ident)) return false;
-    const key = this.opts.keyOf?.(m) ?? mesh.geometry;
-    let b = this.batches.get(key);
-    if (b === undefined) {
-      const shadow = this.opts.shadow === true;
-      const mat = shadow || mesh.geometry.hasAttribute('color') ? this.materialFor(m) : null;
-      b = mat === null ? null : { src: mesh.geometry, material: mat, bones: mesh.skeleton.bones.length, pages: [], pageOf: new WeakMap() };
-      if (b !== null && !shadow) markGpuOnly('the far herd');
-      this.batches.set(key, b);
-    }
+    const b = this.pagesOf(m);
     if (b === null) return false;
     if (this.cull) {
       const dx = position.x - this.eye.x, dz = position.z - this.eye.z;
@@ -334,6 +355,22 @@ export class FarHerd<M extends FarMember = FarMember> {
     if (page === null) return false;
     page.add(m, position, radius);
     return true;
+  }
+
+  /** `m`'s batch key's pages (made on first use); null = it cannot be batched (a bound rig, no material or colours) */
+  private pagesOf(m: M): FarPages | null {
+    const mesh = m.mesh;
+    if (mesh.bindMode !== THREE.AttachedBindMode || !mesh.bindMatrix.equals(_ident)) return null;
+    const key = this.opts.keyOf?.(m) ?? mesh.geometry;
+    let b = this.batches.get(key);
+    if (b === undefined) {
+      const shadow = this.opts.shadow === true;
+      const mat = shadow || mesh.geometry.hasAttribute('color') ? this.materialFor(m) : null;
+      b = mat === null ? null : { src: mesh.geometry, material: mat, bones: mesh.skeleton.bones.length, pages: [], pageOf: new WeakMap(), reserved: new WeakSet(), reservedCount: 0 };
+      if (b !== null && !shadow) markGpuOnly('the far herd');
+      this.batches.set(key, b);
+    }
+    return b;
   }
 
   /** The page `m` draws in this frame: its own, else one with room, else a new one; null = no room this frame (paced). */
@@ -376,4 +413,7 @@ interface FarPages {
   readonly bones: number;
   readonly pages: FarBatch[];
   readonly pageOf: WeakMap<FarMember, FarBatch>;
+  /** the members `reserve` counted (each once) */
+  readonly reserved: WeakSet<FarMember>;
+  reservedCount: number;
 }

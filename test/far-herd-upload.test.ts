@@ -27,3 +27,25 @@ test.each([[true, 5000, 16], [false, 5000, 8]] as const)(
       expect(page.geometry.getAttribute('position').count).toBe(verts * slots);
     } finally { herd.dispose(); mesh.skeleton.dispose(); source.dispose(); material.dispose(); noteFrameDrawn(Number.NEGATIVE_INFINITY); }
   });
+
+// pages a herd will need open when its animals spawn (shown with an empty range, so the entry warm-up's draws upload
+// them), not one a frame after the region activates; a member then takes a reserved page
+test('reserved members open their pages ahead and take them later', () => {
+  noteFrameDrawn(performance.now());
+  const source = geometry(64, true), material = new MeshBasicMaterial(), herd = new FarHerd(() => material);
+  const rigs = Array.from({ length: 17 }, () => { const mesh = new SkinnedMesh(source, material); mesh.bind(new Skeleton([new Bone()])); return { mesh, tint: new Color() }; });
+  try {
+    for (const rig of rigs) herd.reserve(rig);
+    const again = rigs[0]; if (again !== undefined) herd.reserve(again); // counted once
+    expect(herd.pageCount()).toBe(2);
+    const first = herd.group.children[0]; if (!isSkinnedMesh(first)) throw new Error('Missing page');
+    expect(first.visible).toBe(true); expect(first.geometry.drawRange.count).toBe(0);
+    herd.begin(null);
+    for (const rig of rigs) expect(herd.take(rig, new Vector3(), 1)).toBe(true);
+    herd.end();
+    expect(herd.pageCount()).toBe(2);
+    for (const rig of rigs) herd.unreserve(rig);
+    herd.begin(null); herd.end();
+    expect(herd.pageCount()).toBe(2); expect(first.visible).toBe(false);
+  } finally { herd.dispose(); for (const rig of rigs) rig.mesh.skeleton.dispose(); source.dispose(); material.dispose(); noteFrameDrawn(Number.NEGATIVE_INFINITY); }
+});
