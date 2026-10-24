@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { Node } from 'three/webgpu';
-import { withNodeChildSnapshots } from '../src/engine/render/nodes/nodeChildren';
+import { withNodeChildSnapshots } from './nodeChildren';
 
 function reader(): unknown {
   const prototype: unknown = Node.prototype;

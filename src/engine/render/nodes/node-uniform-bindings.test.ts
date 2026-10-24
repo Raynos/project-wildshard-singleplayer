@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
 import { Matrix4 } from 'three';
 import { modelWorldMatrix } from 'three/tsl';
-import type { BlockGroup } from '../src/engine/render/nodes/nodePlainUniforms';
-import { classicModelUniform } from '../src/engine/render/nodes/nodeObjectUniforms';
+import type { BlockGroup } from './nodePlainUniforms';
+import { classicModelUniform } from './nodeObjectUniforms';
 
 test('keeps extensions first, removes only the stock matrix and preserves custom and buffer layouts', () => {
   const stock: unknown = Reflect.get(modelWorldMatrix, 'uniformNode');

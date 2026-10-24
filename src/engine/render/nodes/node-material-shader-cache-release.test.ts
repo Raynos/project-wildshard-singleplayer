@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
 import { MeshStandardNodeMaterial } from 'three/webgpu';
-import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandler';
+import { EngineNodesHandler } from './engineNodesHandler';
 
 // O18: three's renderer releases a material's custom shader cache entry on dispose only for a ShaderMaterial, and its own
 // dispose listener is filed before the node handler's. The handler's callback goes first and marks a node material a

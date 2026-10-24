@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { MeshBasicMaterial, PerspectiveCamera, Scene, WebGLRenderer, WebGLRenderTarget } from 'three';
-import { installScopeEnvironment, scopeEnvironment } from '../src/engine/app/scopeEnvironment';
-import { noteFrameDrawn } from '../src/engine/core/framePacing';
-import { compileOffscreenPass } from '../src/engine/render/precompile';
+import { installScopeEnvironment, scopeEnvironment } from './scopeEnvironment';
+import { noteFrameDrawn } from '../core/framePacing';
+import { compileOffscreenPass } from '../render/precompile';
 
 const environment = scopeEnvironment(), animationFrame = globalThis.requestAnimationFrame, messageChannel = globalThis.MessageChannel;
 let cpuMs = 0, epoch = 0, frame = 0;

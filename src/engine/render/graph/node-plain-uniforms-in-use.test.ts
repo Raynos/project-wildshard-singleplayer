@@ -1,7 +1,7 @@
 import { afterAll, expect, test, vi } from 'vitest';
 import * as THREE from 'three';
-import { compileGraph } from '../src/engine/render/graph/compile';
-import { loadGraphBackend } from '../src/engine/render/graphBackend';
+import { compileGraph } from './compile';
+import { loadGraphBackend } from '../graphBackend';
 
 // Plain uniforms are program state: gl.uniform* writes the CURRENT program. The handler's onBeforeRender and
 // onUpdateProgram run before setProgram's useProgram, so a draw's plain uniforms wait for setProgram's closing

@@ -1,7 +1,7 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { Bone } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { dummyFigure, dummyStandIn } from '../src/engine/models/trainingDummy';
+import { dummyFigure, dummyStandIn } from './trainingDummy';
 
 afterEach(() => { vi.restoreAllMocks(); });
 

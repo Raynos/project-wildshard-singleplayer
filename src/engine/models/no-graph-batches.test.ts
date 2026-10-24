@@ -7,9 +7,9 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test } from 'vitest';
 import { BatchedMesh, BoxGeometry, Color, InstancedMesh, Matrix4, MeshStandardMaterial, type Object3D } from 'three';
-import { defineModel, modelContext } from '../src/engine/models/model';
-import { place } from '../src/engine/models/place';
-import { graphLook, InstancedBatch } from '../src/engine/models/instancedBatch';
+import { defineModel, modelContext } from './model';
+import { place } from './place';
+import { graphLook, InstancedBatch } from './instancedBatch';
 
 const nodeMaterial = (): MeshStandardMaterial => { const m = new MeshStandardMaterial(); Object.defineProperty(m, 'isNodeMaterial', { value: true }); return m; };
 const kinds = (root: Object3D): string[] => { const out: string[] = []; root.traverse(o => { if (o instanceof BatchedMesh) out.push('batched'); else if (o instanceof InstancedMesh) out.push('instanced'); }); return out; };
@@ -18,7 +18,7 @@ test('a batched model draw with a graph look draws instanced, a classic one stil
   const ctx = modelContext(null);
   Object.assign(ctx, { renderer: { extensions: { has: (name: string) => name === 'WEBGL_multi_draw' } } });
   const drawn = (material: MeshStandardMaterial): string[] => {
-    const model = defineModel({ id: 'shared/graph-batch-fixture', name: 'Graph batch fixture', category: 'props', pipeline: 'code', file: 'test/no-graph-batches.test.ts', defaults: {},
+    const model = defineModel({ id: 'shared/graph-batch-fixture', name: 'Graph batch fixture', category: 'props', pipeline: 'code', file: 'src/engine/models/no-graph-batches.test.ts', defaults: {},
       build: () => [{ geometry: new BoxGeometry(1, 1, 1), material }] });
     const placements = Array.from({ length: 6 }, (_, i) => ({ x: i * 3, y: 0, z: 0, matrix: new Matrix4().makeTranslation(i * 3, 0, 0) }));
     return kinds(place(model, placements, { ctx, draw: 'batched' }).object);

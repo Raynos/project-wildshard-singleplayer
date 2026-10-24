@@ -1,10 +1,10 @@
 import { afterAll, beforeAll, expect, test, vi } from 'vitest';
 import * as THREE from 'three';
-import { compileGraph } from '../src/engine/render/graph/compile';
-import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandler';
-import { isDev, setDev } from '../src/engine/core/devMode';
-import { loadGraphBackend } from '../src/engine/render/graphBackend';
-import { collectTextures, sceneJobs } from '../src/engine/render/precompile';
+import { compileGraph } from './compile';
+import { EngineNodesHandler } from '../nodes/engineNodesHandler';
+import { isDev, setDev } from '../../core/devMode';
+import { loadGraphBackend } from '../graphBackend';
+import { collectTextures, sceneJobs } from '../precompile';
 
 class LinkedProgram { readonly label = 'linked'; }
 class Buffers {

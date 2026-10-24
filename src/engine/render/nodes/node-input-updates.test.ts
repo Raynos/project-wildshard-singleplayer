@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { Mesh, MeshBasicMaterial, PerspectiveCamera } from 'three';
 import { NodeFrame, ReferenceNode, MaterialReferenceNode } from 'three/webgpu';
 import { modelWorldMatrix, objectGroup, uniform } from 'three/tsl';
-import { TextureUpdates } from '../src/engine/render/nodes/textureUpdates';
+import { TextureUpdates } from './textureUpdates';
 
 test('render nodes run once per pass while custom object callbacks, shadow cameras and nested renders stay live', () => {
   const frame = new NodeFrame(), updates = new TextureUpdates(frame), camera = new PerspectiveCamera(), shadow = new PerspectiveCamera();

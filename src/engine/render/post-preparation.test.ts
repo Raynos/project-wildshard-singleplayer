@@ -1,9 +1,9 @@
 import { expect, test, vi } from 'vitest';
 import { Effect, EffectMaterial, EffectPass } from 'postprocessing';
 import { Mesh, MeshBasicMaterial, PerspectiveCamera, BufferAttribute, BufferGeometry, Texture, Uniform } from 'three';
-import { postTriangle, prepareEffectPass } from '../src/engine/render/postPreparation';
-import { readbackPreparation } from '../src/engine/render/readbackPreparation';
-import { Scope } from '../src/engine/app/scope';
+import { postTriangle, prepareEffectPass } from './postPreparation';
+import { readbackPreparation } from './readbackPreparation';
+import { Scope } from '../app/scope';
 
 const fragment = 'void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) { outputColor = inputColor; }';
 function revised() {

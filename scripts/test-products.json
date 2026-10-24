@@ -54,7 +54,7 @@
   "test/nalati-generation-order.test.ts": [],
   "test/platform-json-code.test.ts": [],
   "test/boss-fight-platform.test.ts": [],
-  "test/parked-viewmodels.test.ts": [],
+  "src/engine/app/parked-viewmodels.test.ts": [],
   "test/whole-geometry-pacing.test.ts": [],
   "test/hybrid-product-rows.test.ts": [
     "far-reach",

@@ -1,14 +1,14 @@
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
 import { BoxGeometry, InstancedMesh, Matrix4, MeshStandardMaterial, PerspectiveCamera, Vector3, type Object3D } from 'three';
-import { defineModel, modelContext, type ModelPart } from '../src/engine/models/model';
-import { place } from '../src/engine/models/place';
+import { defineModel, modelContext, type ModelPart } from './model';
+import { place } from './place';
 
 /** Two variants, their own near shapes, one shared far shape; variant b draws it at half size (G639 distant trees). */
 function fixture(scaleB?: number) {
   const material = new MeshStandardMaterial(), far = new BoxGeometry(1, 2, 1);
   const near = [new BoxGeometry(1, 1, 1), new BoxGeometry(2, 2, 2)];
-  const def = defineModel<{ v: number }>({ id: 'test/shared-levels', name: 'Shared levels', file: 'test/place-shared-levels.test.ts', category: 'nature', pipeline: 'code',
+  const def = defineModel<{ v: number }>({ id: 'test/shared-levels', name: 'Shared levels', file: 'src/engine/models/place-shared-levels.test.ts', category: 'nature', pipeline: 'code',
     defaults: { v: 0 }, variants: [{ id: 'a', label: 'A', params: { v: 0 } }, { id: 'b', label: 'B', params: { v: 1 } }],
     build: (_ctx, p) => [{ geometry: near[p.v] ?? far, material }],
     lods: [{ from: 10, build: (_ctx, p): ModelPart[] => [{ geometry: far, material, ...(p.v === 1 && scaleB !== undefined ? { scale: scaleB } : {}) }] }] });

@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { MeshStandardMaterial, Texture } from 'three';
 import { MeshStandardNodeMaterial } from 'three/webgpu';
-import { SkyRig } from '../src/engine/world/skyRig';
+import { SkyRig } from './skyRig';
 
 test('sky setup preserves graph-owned maps while classic materials retain their filler slots', () => {
   const sky: unknown = Object.create(SkyRig.prototype);

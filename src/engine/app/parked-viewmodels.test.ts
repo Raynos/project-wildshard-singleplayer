@@ -1,10 +1,10 @@
 import { expect, test, vi } from 'vitest';
 import { BoxGeometry, Group, Mesh, MeshBasicMaterial, PCFShadowMap, PerspectiveCamera, PointLight, Scene, Vector4, WebGLRenderer, WebGLRenderTarget, type Camera, type Object3D } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { bindConstructionEnvironment, withOwner } from '../src/engine/app/ownership';
-import { ViewmodelRoot } from '../src/engine/render/viewmodel';
-import { warmParkedDraws, type ParkedDrawRenderer } from '../src/engine/render/parkedDraws';
-import { prepareSceneRoots } from '../src/engine/render/precompile';
+import { Scope } from './scope';
+import { bindConstructionEnvironment, withOwner } from './ownership';
+import { ViewmodelRoot } from '../render/viewmodel';
+import { warmParkedDraws, type ParkedDrawRenderer } from '../render/parkedDraws';
+import { prepareSceneRoots } from '../render/precompile';
 
 const isMesh = (object: Object3D): object is Mesh => object instanceof Mesh;
 

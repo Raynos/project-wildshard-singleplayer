@@ -2,7 +2,7 @@ import { afterAll, expect, test, vi } from 'vitest';
 import * as THREE from 'three';
 import { NodeFrame, NodeUpdateType, TextureNode } from 'three/webgpu';
 import { uniform } from 'three/tsl';
-import { TextureUpdates } from '../src/engine/render/nodes/textureUpdates';
+import { TextureUpdates } from './textureUpdates';
 
 class Bitmap { readonly width = 0; }
 vi.stubGlobal('ImageBitmap', Bitmap);

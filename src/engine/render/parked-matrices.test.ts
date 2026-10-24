@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { Group, Object3D } from 'three';
-import { freezeParkedMatrices } from '../src/engine/render/precompile';
+import { freezeParkedMatrices } from './precompile';
 
 // G580 T2: a parked (invisible) destination's subtree is brought up to date once, then skipped while it stays hidden.
 test('a frozen parked root updates once, skips while hidden, updates when shown and refreshes on thaw', () => {

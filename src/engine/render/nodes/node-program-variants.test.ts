@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { MeshBasicMaterial } from 'three';
-import { NodeProgramVariants } from '../src/engine/render/nodes/nodeProgramVariants';
+import { NodeProgramVariants } from './nodeProgramVariants';
 
 test('warm variants retain their program facts while edits and disposal invalidate them', () => {
   const variants = new NodeProgramVariants(), material = new MeshBasicMaterial(), programs = new Map<string, object>();

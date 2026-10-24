@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { BufferAttribute, BufferGeometry, DynamicDrawUsage, Float32BufferAttribute, Group, Mesh, MeshBasicMaterial, SkinnedMesh } from 'three';
-import { gpuOnlyAttributes, gpuOnlyTrees } from '../src/engine/core/gpuOnly';
-import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandler';
+import { gpuOnlyAttributes, gpuOnlyTrees } from './gpuOnly';
+import { EngineNodesHandler } from '../render/nodes/engineNodesHandler';
 
 test('node recompiles retain uploaded-only buffers and refresh only changed bindings', async () => {
   const geometry = new BufferGeometry();

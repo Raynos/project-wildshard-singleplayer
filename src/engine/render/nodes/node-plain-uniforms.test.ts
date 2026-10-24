@@ -1,13 +1,14 @@
 import { expect, test } from 'vitest';
 import { Matrix3, Vector3, Vector4 } from 'three';
-import { NodePlainUniforms, plainUniformShader, type PlainUniformGl } from '../src/engine/render/nodes/nodePlainUniforms';
+import { NodePlainUniforms, plainUniformShader, type PlainUniformGl } from './nodePlainUniforms';
 
 const FLOAT = 0x1406, VEC3 = 0x8b51, VEC4 = 0x8b52, MAT3 = 0x8b5b, UINT = 0x1405;
 /** a linked program's active uniforms and every upload made to it */
 class Gl implements PlainUniformGl {
   readonly ACTIVE_UNIFORMS = 0x8b86;
   readonly sent: [string, number[]][] = [];
-  constructor(private readonly active: readonly { name: string; type: number; size: number }[]) {}
+  private readonly active: readonly { name: string; type: number; size: number }[];
+  constructor(active: readonly { name: string; type: number; size: number }[]) { this.active = active; }
   getProgramParameter(): number { return this.active.length; }
   getActiveUniform(_p: WebGLProgram, i: number): WebGLActiveInfo | null { const a = this.active[i]; return a === undefined ? null : { ...a }; }
   getUniformLocation(_p: WebGLProgram, name: string): WebGLUniformLocation { return { name }; }
