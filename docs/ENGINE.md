@@ -12234,8 +12234,8 @@ spawns and measured cost without naming a TypeScript entry. Its matching
 manifest entry policy has platform `client-plan`, retainHomeRuntime and
 stagesOwner, plus the existing optional CSS styles. The generated loader
 calls declaredClientPlanEntry in game/shard/declaredEntry; it imports no
-shard constructor and exposes no trusted-module resolver. Legacy entry
-metadata and declaredRuntimeEntry keep their existing wire and lifecycle.
+shard constructor and exposes no trusted-module resolver. Frozen legacy entry metadata, explicit trusted loaders and the shared
+prepareHybridShard composite keep their existing wire and lifecycle until LD.
 
 The compiled constructor admits the product's client/plan before entering
 the same standalone or regional world, world-bindings, kit, prepare-play
