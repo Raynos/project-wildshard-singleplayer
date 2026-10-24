@@ -129,6 +129,9 @@ export function cellClip(root: Object3D, half: number, scope: Scope, options: Ce
   const dirty = new Map<Object3D, boolean>(), forced = new Set<Object3D>(), dependents = new Map<Object3D, Set<Draw>>();
   const descendants = new Map<Object3D, Set<Draw>>(), samePose = new Map<Object3D, () => boolean>();
   const gates = new Map<Draw, () => void>(), pending = new Set<Draw>();
+  interface DirtyRow {node:Object3D|undefined;tree:boolean}
+  interface FlushWork {rows:DirtyRow[];changed:DirtyRow[];draws:Set<Draw>;trees:Set<Object3D>;order:Draw[]}
+  const flushWork:FlushWork[]=[];
   const skinVersions = new WeakMap<SkinnedMesh, number>();
   const skinBounds = new WeakMap<SkinnedMesh, (() => Box3) | null>();
   // An instanced draw's bounds walk every copy: keep them while its copies, count and geometry are the ones last walked
@@ -371,35 +374,47 @@ export function cellClip(root: Object3D, half: number, scope: Scope, options: Ce
   };
   flush = (): void => {
     if (dirty.size === 0 || checking) return;
-    const changed = [...dirty].filter(([node, tree]) => {
-      const unchanged = samePose.get(node)?.() ?? false;
-      if (!forced.has(node) && tree && unchanged) {
-        for (const draw of descendants.get(node) ?? []) {
-          if (!pending.has(draw) && !clipped.has(draw) && !refused.has(draw) && !customDraw(draw) && !isSkin(draw) && !boneOwned(draw)) { gates.get(draw)?.(); gates.delete(draw); }
+    const work:FlushWork=flushWork.pop()??{rows:[],changed:[],draws:new Set<Draw>(),trees:new Set<Object3D>(),order:[]};
+    const {rows,changed,draws,trees,order}=work;let count=0;
+    try{
+      // Snapshot every dirty entry before any samePose callback can reenter.
+      dirty.forEach((tree,node)=>{
+        let row=rows[count++];if(row===undefined){row={node,tree};rows.push(row);}else{row.node=node;row.tree=tree;}
+      });
+      for(let i=0;i<count;i++){
+        const row=rows[i],node=row?.node;if(row===undefined||node===undefined)throw new Error('Missing dirty draw');
+        const tree=row.tree,unchanged=samePose.get(node)?.()??false;
+        if(!forced.has(node)&&tree&&unchanged){
+          for(const draw of descendants.get(node)??[]){
+            if(!pending.has(draw)&&!clipped.has(draw)&&!refused.has(draw)&&!customDraw(draw)&&!isSkin(draw)&&!boneOwned(draw)){gates.get(draw)?.();gates.delete(draw);}
+          }
         }
+        if(forced.has(node)||!tree||!unchanged)changed.push(row);
       }
-      return forced.has(node) || !tree || !unchanged;
-    }); dirty.clear(); forced.clear();
-    const draws = new Set<Draw>();
-    const collect = (node: Object3D): void => {
-      if (isDraw(node) && watched.has(node)) draws.add(node);
-      for (const skin of dependents.get(node) ?? []) draws.add(skin);
-    };
-    const trees = new Set(changed.filter(([, tree]) => tree).map(([node]) => node));
-    for (const [node, tree] of changed) {
-      let covered = false;
-      for (let parent = node.parent; parent !== null && !covered; parent = parent.parent) covered = trees.has(parent);
-      if (covered) continue;
-      if (tree) for (const draw of descendants.get(node) ?? []) collect(draw);
-      collect(node);
-    }
-    for (const draw of draws) {
-      if (!shown(draw)) continue;
-      pending.add(draw);
-      // Bone animation can invalidate many offscreen skins. Their final draw
-      // gate checks the current pose only if the renderer submits that skin.
-      if (submitting || (isSkin(draw) && !refused.has(draw))) gate(draw);
-      else validate(draw, false);
+      dirty.clear();forced.clear();
+      const collect=(node:Object3D):void=>{
+        if(isDraw(node)&&watched.has(node))draws.add(node);
+        for(const skin of dependents.get(node)??[])draws.add(skin);
+      };
+      for(let i=0;i<changed.length;i++){const row=changed[i];if(row?.tree===true&&row.node!==undefined)trees.add(row.node);}
+      for(let i=0;i<changed.length;i++){
+        const row=changed[i],node=row?.node;if(row===undefined||node===undefined)throw new Error('Missing changed draw');
+        let covered=false;for(let parent=node.parent;parent!==null&&!covered;parent=parent.parent)covered=trees.has(parent);
+        if(covered)continue;
+        if(row.tree)for(const draw of descendants.get(node)??[])collect(draw);
+        collect(node);
+      }
+      draws.forEach(draw=>{order.push(draw);});
+      for(let i=0;i<order.length;i++){
+        const draw=order[i];if(draw===undefined)throw new Error('Missing clip draw');
+        if(!shown(draw))continue;pending.add(draw);
+        // Preserve lazy final-pose checks for submitted or offscreen skins.
+        if(submitting||(isSkin(draw)&&!refused.has(draw)))gate(draw);else validate(draw,false);
+      }
+    }finally{
+      for(let i=0;i<count;i++){const row=rows[i];if(row!==undefined)row.node=undefined;}
+      changed.length=0;order.length=0;draws.clear();trees.clear();
+      if(!scope.disposed&&!scope.disposing)flushWork.push(work);
     }
   };
   const unwatchNode = (node: Object3D): void => {
