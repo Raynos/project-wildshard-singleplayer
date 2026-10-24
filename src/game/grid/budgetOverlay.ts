@@ -107,7 +107,8 @@ export function installBudgetOverlay(host: BudgetOverlayHost): BudgetOverlay {
   let allocationScope: Scope | null = null;
   const trend: number[] = [];
   const label = (owner: string): string => (owner === PLATFORM_OWNER ? 'ROAD' : host.name(owner));
-  const snapshot = (accounted: number): MemorySnapshot => host.memory?.() ?? memoryAttribution.snapshot(accounted);
+  const snapshot = (accounted: number, details = expanded): MemorySnapshot => host.memory?.()
+    ?? (details ? memoryAttribution.snapshot(accounted) : { ...memoryAttribution.summary(accounted), allocations: [] });
   const read = (cost: ReturnType<BudgetOverlayHost['allocator']['cost']>, memory: MemorySnapshot | null): MemoryHeadline =>
     memoryHeadline(cost.playing, memory, cost.input.engineBase ?? CONTENT_CAPS.engineBase);
 
@@ -202,7 +203,7 @@ export function installBudgetOverlay(host: BudgetOverlayHost): BudgetOverlay {
     // at phone 4x). Entries queue in order, so the trend is the same.
     const cost = host.allocator.cost();
     scope.timeout(0, () => {
-      trend.push(read(cost, isDev() ? snapshot(cost.accounted) : null).bytes);
+      trend.push(read(cost, isDev() ? snapshot(cost.accounted, false) : null).bytes);
       if (trend.length > TREND_KEPT + 1) trend.splice(1, 1);
       refresh();
     });

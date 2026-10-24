@@ -3850,6 +3850,8 @@ particular retaining owner. Developer off adds no transport observations.
 
 The live probe's `memory()` returns only scalars, even after level retirement. `snapshot()` keeps allocation totals,
 allocator `accountedBytes`, and optional provenance-bearing native `measured` (WebContent plus labelled GPU) SEPARATE.
+`summary()` reads the same live allocation identities and returns those totals and provenance without allocating or
+sorting detail rows. The collapsed memory strip and entry trend use it; expanding the strip takes a full snapshot.
 Capacity is not dirty resident RAM: never add the RAM census to WebContent or call its difference physical attribution.
 `measurement()` accepts a native ruler receipt; absent readings stay null. `bindAccounting()` borrows the existing
 allocator reader and returns an exact detach; it creates no admission claims.

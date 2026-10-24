@@ -12,14 +12,15 @@ export interface MemoryMeasurement {
   readonly webContentBytes: number; readonly labelledGpuBytes: number;
   readonly sampledAt: number; readonly source: string;
 }
-export interface MemorySnapshot {
-  readonly version: 1; readonly allocations: readonly MemoryAllocation[];
+export interface MemorySummary {
+  readonly version: 1;
   readonly totals: Readonly<Record<MemoryDomain, number>>;
   /** Unlabeled allocation bytes WITHIN totals, not a subtraction from the physical WebContent footprint. */
   readonly unattributed: Readonly<Record<MemoryDomain, number>>;
   readonly measured: MemoryMeasurement | null;
   readonly accountedBytes: number | null;
 }
+export interface MemorySnapshot extends MemorySummary { readonly allocations: readonly MemoryAllocation[] }
 interface Entry {
   readonly id: string; readonly resource: WeakRef<object>; readonly domain: MemoryDomain;
   readonly kind: string; readonly precision: MemoryPrecision;
@@ -98,20 +99,29 @@ export class MemoryAttribution {
     return () => { if (this.readAccounted === read) this.readAccounted = null; };
   }
   snapshot(accountedBytes: number | null = this.readAccounted?.() ?? null): MemorySnapshot {
+    const allocations: MemoryAllocation[] = [], summary = this.read(accountedBytes, allocations);
+    allocations.sort((a, b) => b.bytes - a.bytes || a.id.localeCompare(b.id));
+    return { version: 1, allocations, totals: summary.totals, unattributed: summary.unattributed,
+      measured: summary.measured, accountedBytes: summary.accountedBytes };
+  }
+  /** Current totals from the same live weak identities, without allocating or sorting detail rows. */
+  summary(accountedBytes: number | null = this.readAccounted?.() ?? null): MemorySummary {
+    return this.read(accountedBytes);
+  }
+  private read(accountedBytes: number | null, allocations?: MemoryAllocation[]): MemorySummary {
     if (accountedBytes !== null) validBytes(accountedBytes);
-    const allocations: MemoryAllocation[] = [], totals = { gpu: 0, ram: 0 }, unattributed = { gpu: 0, ram: 0 };
+    const totals = { gpu: 0, ram: 0 }, unattributed = { gpu: 0, ram: 0 };
     for (const [id, entry] of this.entries) {
       const resource = entry.resource.deref();
       if (resource === undefined) { this.entries.delete(id); continue; }
       const bytes = validBytes(entry.readBytes(resource));
       const source = this.sources.get(resource)?.deref();
       const label = this.labels.get(resource) ?? (source === undefined ? undefined : this.labels.get(source)) ?? UNATTRIBUTED;
-      allocations.push({ id, domain: entry.domain, kind: entry.kind, bytes, precision: entry.precision, ...label });
+      allocations?.push({ id, domain: entry.domain, kind: entry.kind, bytes, precision: entry.precision, ...label });
       totals[entry.domain] += bytes;
       if (label.owner === UNATTRIBUTED.owner) unattributed[entry.domain] += bytes;
     }
-    allocations.sort((a, b) => b.bytes - a.bytes || a.id.localeCompare(b.id));
-    return { version: 1, allocations, totals, unattributed, measured: this.measured === null ? null : { ...this.measured }, accountedBytes };
+    return { version: 1, totals, unattributed, measured: this.measured === null ? null : { ...this.measured }, accountedBytes };
   }
 }
 

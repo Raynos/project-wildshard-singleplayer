@@ -5,7 +5,7 @@ import { withOwner } from '../src/engine/app/ownership';
 import { setDev } from '../src/engine/core/devMode';
 import { contentCost, type ContentCostInput } from '../src/format/contentCost';
 import { MemoryAdmission } from '../src/format/product';
-import type { MemorySnapshot } from '../src/engine/core/memoryAttribution';
+import { memoryAttribution, type MemorySnapshot } from '../src/engine/core/memoryAttribution';
 import { installBudgetOverlay, memoryHeadline } from '../src/game/grid/budgetOverlay';
 import { installMemoryWarning } from '../src/game/grid/memoryWarning';
 
@@ -62,6 +62,31 @@ test('hidden Developer strip skips snapshots while entry trends keep their origi
     expect(memory).toHaveBeenCalledTimes(1); expect(entries).toHaveBeenCalledTimes(1);
     vi.advanceTimersByTime(1000);
     expect(memory).toHaveBeenCalledTimes(2); expect(entries).toHaveBeenCalledTimes(2);
+    scope.dispose();
+  } finally { vi.useRealTimers(); }
+});
+
+test('collapsed strip reads current totals and expands with full allocation details', () => {
+  vi.useFakeTimers();
+  try {
+    setDev(true);
+    const scope = owner(), hud = document.createElement('div');
+    const input: ContentCostInput = { l0: 0, l1: 0, far: 0, libraries: 0, sims: 100, commons: 0, overlap: 80_000_000 };
+    const summary = vi.spyOn(memoryAttribution, 'summary'), snapshot = vi.spyOn(memoryAttribution, 'snapshot');
+    const overlay = withOwner(scope, () => installBudgetOverlay({ scope, hudRoot: hud, name: () => 'Nine',
+      allocator: { entries: () => [sim('nine', input.sims)], cost: () => ({ ...contentCost(input), input }) } }));
+    expect(summary).toHaveBeenCalledTimes(1); expect(snapshot).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1000);
+    expect(summary).toHaveBeenCalledTimes(2); expect(snapshot).not.toHaveBeenCalled();
+    overlay.toggle();
+    expect(snapshot).toHaveBeenCalledTimes(1);
+    expect(hud.querySelector('[data-memory="observed"]')).not.toBeNull();
+    const head = overlay.headline();
+    overlay.crossed(); vi.advanceTimersByTime(0);
+    expect(summary).toHaveBeenCalledTimes(3); expect(snapshot).toHaveBeenCalledTimes(2);
+    expect(overlay.headline()).toEqual(head);
+    overlay.toggle(); vi.advanceTimersByTime(1000);
+    expect(summary).toHaveBeenCalledTimes(5); expect(snapshot).toHaveBeenCalledTimes(2);
     scope.dispose();
   } finally { vi.useRealTimers(); }
 });
