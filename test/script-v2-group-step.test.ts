@@ -304,3 +304,22 @@ test('discard retires one group candidate without mutating another candidate or 
     expect(f.state[1]).toBe(120);expect(third.values['sum']).toBe(120);
   } finally { f.root.dispose(); }
 });
+
+
+test('member capture destinations stay private per slot while outstanding results remain detached',()=>{
+ const f=fixture(),capture=vi.spyOn(ObservationColumnsV2.prototype,'captureNumeric');
+ try{
+  const first=f.runner.prepare(f.input),destinations=capture.mock.calls.map(args=>args[2]);
+  expect(destinations).toHaveLength(16);expect(new Set(destinations).size).toBe(16);
+  expect(destinations.every(value=>value instanceof Float64Array&&value.length===rows.columns.length)).toBe(true);
+  capture.mockClear();const body=f.bodies[0];if(body===undefined)throw new Error('Missing member');body.position.x=25;
+  const second=f.runner.prepare(f.input);
+  for(let slot=0;slot<16;slot++)expect(capture.mock.calls[slot]?.[2]).toBe(destinations[slot]);
+  expect(first.values['sum']).toBe(120);expect(second.values['sum']).toBe(145);
+  first.validate();second.validate();first.accept();expect(f.state[1]).toBe(120);
+  expect(()=>second.accept()).toThrow('superseded');
+  capture.mockClear();expect(()=>f.runner.prepare({...f.input,signal:'badState'})).toThrow();
+  f.runner.prepare(f.input).accept();expect(f.state[1]).toBe(145);
+  for(let slot=0;slot<16;slot++)expect(capture.mock.calls[slot]?.[2]).toBe(destinations[slot]);
+ }finally{capture.mockRestore();f.root.dispose();}
+});

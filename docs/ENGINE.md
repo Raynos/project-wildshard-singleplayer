@@ -12738,8 +12738,14 @@ SpawnScript.observe fields retain original IDs and unset validity.
 ObservationColumnsV2.declaredColumns returns the same deeply frozen admitted
 rows for pure name/id/source preflight. It does not capture a frame or sample
 grass, and does not lend live owner authority; capture retains its original
-slot and lifetime checks. Default ABI1 contracts and snapshots are
-unchanged. ABI2 adds optional v2Input to that same snapshot envelope; old pending events use saved native tick
+slot and lifetime checks. `captureNumeric(owners, selected?, destination?)`
+returns a fresh detached Float64Array by default. A trusted synchronous caller
+may supply an exact-width private destination, kept exclusive through capture
+and consumption; omitted columns are reset to NaN on every selected capture.
+GroupStepV2 keeps separate destinations for each admitted profile/member slot
+behind its non-reentrant prepare fence. The Wasm input writer consumes them
+synchronously; prepared outputs and later candidate validation stay detached.
+Default ABI1 contracts and snapshots are unchanged. ABI2 adds optional v2Input to that same snapshot envelope; old pending events use saved native tick
 as migration fallback, and v2 input/quarantine round-trips without module instantiation. Slot
 authority:'observe' borrows an existing actor but refuses body-changing commands and lifecycle allocation;
 interrupt, restore and scope retirement leave its native motion/brain/herd untouched. The initial executor

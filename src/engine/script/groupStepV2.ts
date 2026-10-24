@@ -68,6 +68,7 @@ export class GroupStepV2 {
       id: index === 0 ? 'main' : this.rows.profiles?.[index - 1]?.id,
       rows, bank, input: new Float64Array(bank.width), output: new Float64Array(bank.width),
       counts: new Map([[1,1],[2,0],[4,0],[5,1],[6,0],[21,0]]), columns: new ObservationColumnsV2(rows.columns, scope),
+      observations: Array.from({length:rows.members},()=>new Float64Array(rows.columns.length)),
       actions: new Map(rows.actions.map(row=>{if(row.native!==undefined)freezeNative(row.native);return [row.id,row];})),
       order: rows.columns.map((row,column)=>({name:row.name,index:column})).sort((a,b)=>a.name<b.name?-1:a.name>b.name?1:0).map(row=>row.index),
     };});
@@ -145,7 +146,11 @@ export class GroupStepV2 {
             throw new Error('Foreign observed group reference');
           return { name, loan, body: loan?.body, identity: loan?.identity, handle: loan?.handle };
         });
-        return { source: owners, self: Object.freeze({ ...owners.self }), referenceOwner, references, values: profile.columns.captureNumeric(owners,selection?.slots.includes(slot)===true?undefined:selected) };
+        // The busy fence makes these per-profile/member buffers exclusive until
+        // the synchronous input writer finishes. Candidate validation reads
+        // only body pins; it never rereads these numeric inputs.
+        const destination=profile.observations[slot];if(destination===undefined)throw new Error('Missing group observation destination');
+        return { source: owners, self: Object.freeze({ ...owners.self }), referenceOwner, references, values: profile.columns.captureNumeric(owners,selection?.slots.includes(slot)===true?undefined:selected,destination) };
       });
       if (originalState.some((value, index) => !Object.is(value, input.state[index]))
         || input.references.length !== refs.length || refs.some((row, index) => !sameReference(input.references[index], row))) throw new Error('Group state or reference changed during capture');

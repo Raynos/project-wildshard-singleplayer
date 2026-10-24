@@ -171,12 +171,21 @@ export class ObservationColumnsV2 {
   get declaredColumns(): readonly Immutable<ObservationColumnV2>[] { return this.rows; }
   /** Detached numeric columns in declaration order. Scalar readers are
    * compiled once; no per-column records, selector walk or sorting on a group
-   * segment. Query-bearing declarations retain the full ordered capture path. */
-  captureNumeric(owners: V2ColumnOwners, selected?:readonly boolean[]): Float64Array {
+   * segment. Query-bearing declarations retain the full ordered capture path.
+   * An optional caller-owned destination is overwritten in place. Its caller
+   * must keep it exclusive through capture and synchronous consumption; omit
+   * it for a detached result that can be retained across later captures. */
+  captureNumeric(owners: V2ColumnOwners, selected?:readonly boolean[], destination?:Float64Array): Float64Array {
     if(selected!==undefined&&selected.length!==this.rows.length)throw new Error('Invalid observation selection');
+    if(destination!==undefined&&destination.length!==this.rows.length)throw new Error('Invalid observation destination');
     if(this.scalars===undefined){
       if(selected!==undefined)throw new Error('Selected capture requires scalar columns');
-      return Float64Array.from(this.capture(owners),row=>row.value);
+      const captured=this.capture(owners);
+      if(destination===undefined)return Float64Array.from(captured,row=>row.value);
+      for(let index=0;index<captured.length;index++){
+        const row=captured[index];if(row===undefined)throw new Error('Missing observation column');destination[index]=row.value;
+      }
+      return destination;
     }
     const self=owners.self,actor=self.actor;
     const environment=owners.environment,grass=environment?.grassHeightAt,queries:{at:'self'|'player';point:Readonly<{x:number;z:number}>|undefined}[]=[];
@@ -213,7 +222,7 @@ export class ObservationColumnsV2 {
         ||typeof loan.body.alive!=='boolean'))throw new Error('Invalid observation reference loan');
       pin.loan=loan;pin.body=loan?.body;pin.identity=loan?.identity;pin.handle=loan?.handle;
     }
-    const values=new Float64Array(this.scalars.length);
+    const values=destination??new Float64Array(this.scalars.length);
     if(selected!==undefined)values.fill(Number.NaN);
     let index=0;
     for(const read of this.scalars){

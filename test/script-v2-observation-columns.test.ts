@@ -244,3 +244,54 @@ test('numeric reference pins isolate nested queries, retain detached values and 
   f.host.scope.dispose();expect(()=>reader.captureNumeric(outer)).toThrow('Retired');
  }finally{f.host.dispose();}
 });
+
+
+test('caller-owned numeric destinations overwrite omissions without changing detached captures',async()=>{
+ const f=await fixture(),reader=new ObservationColumnsV2([
+  {id:1,name:'x',source:{kind:'actor',field:'x'}},{id:2,name:'grass',source:{kind:'grass',at:'self'}},
+ ],f.host.scope),destination=new Float64Array(2);
+ try{
+  const detached=reader.captureNumeric(f.owners);f.actor.position.x=-0;
+  expect(reader.captureNumeric(f.owners,[true,false],destination)).toBe(destination);
+  expect(Object.is(destination[0],-0)).toBe(true);expect(Number.isNaN(destination[1])).toBe(true);
+  expect(detached).toEqual(new Float64Array([4,11]));
+  f.actor.position.x=12;expect(reader.captureNumeric(f.owners,undefined,destination)).toBe(destination);
+  expect(destination).toEqual(new Float64Array([12,19]));expect(detached).toEqual(new Float64Array([4,11]));
+  const queries=f.query.mock.calls.length;
+  expect(()=>reader.captureNumeric(f.owners,undefined,new Float64Array(1))).toThrow('destination');
+  expect(f.query).toHaveBeenCalledTimes(queries);
+  f.query.mockImplementationOnce(()=>{f.environment.grassHeightAt=()=>7;return 1;});
+  expect(()=>reader.captureNumeric(f.owners,undefined,destination)).toThrow('grass owner');
+  expect(reader.captureNumeric(f.owners,undefined,destination)).toEqual(new Float64Array([12,7]));
+  f.host.scope.dispose();expect(()=>reader.captureNumeric(f.owners,undefined,destination)).toThrow('Retired');
+ }finally{f.host.dispose();}
+});
+
+test('nested numeric captures keep caller-owned outer and inner destinations independent',async()=>{
+ const f=await fixture(),reader=new ObservationColumnsV2([
+  {id:1,name:'targetX',source:{kind:'reference',binding:'target',field:'x'}},
+  {id:2,name:'grass',source:{kind:'grass',at:'self'}},
+ ],f.host.scope),outerValues=new Float64Array(2),innerValues=new Float64Array(2);
+ const outerLoan={identity:f.actor.entityId,handle:10,body:f.actor},innerLoan={identity:f.other.entityId,handle:11,body:f.other};
+ const outer={...f.owners,references:new Map([['target',outerLoan]])},inner={...f.owners,references:new Map([['target',innerLoan]])};
+ let depth=0;f.other.position.x=9;
+ f.query.mockImplementation((x,z)=>{if(depth===0){depth++;try{reader.captureNumeric(inner,undefined,innerValues);}finally{depth--;}}return x+z;});
+ try{
+  expect(reader.captureNumeric(outer,undefined,outerValues)).toBe(outerValues);
+  expect(outerValues).toEqual(new Float64Array([4,11]));expect(innerValues).toEqual(new Float64Array([9,11]));
+  f.query.mockImplementationOnce(()=>{outerLoan.handle=12;return 1;});
+  expect(()=>reader.captureNumeric(outer,undefined,outerValues)).toThrow('Retired observation owner');
+  outerLoan.handle=10;expect(reader.captureNumeric(outer,undefined,outerValues)).toEqual(new Float64Array([4,11]));
+ }finally{f.host.dispose();}
+});
+
+test('query-bearing numeric destinations retain the complete generic capture and selection refusal',async()=>{
+ const f=await fixture(),reader=new ObservationColumnsV2([
+  {id:1,name:'bearing',source:{kind:'bearing',target:{kind:'player'}}},
+ ],f.host.scope),destination=new Float64Array(1);
+ try{
+  expect(reader.captureNumeric(f.owners,undefined,destination)).toBe(destination);
+  expect(destination).toEqual(reader.captureNumeric(f.owners));
+  expect(()=>reader.captureNumeric(f.owners,[true],destination)).toThrow('Selected capture');
+ }finally{f.host.dispose();}
+});
