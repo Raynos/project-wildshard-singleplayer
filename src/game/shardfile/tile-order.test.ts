@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { tileOf, tileOrder, TILES_PER_SIDE } from '../src/game/shardfile/tileOrder';
+import { tileOf, tileOrder, TILES_PER_SIDE } from './tileOrder';
 
 const ENTRIES = [{ at: [0, 0, 250], width: 8 }, { at: [250, 0, 0], width: 8 }, { at: [0, 0, -250], width: 8 }, { at: [-250, 0, 0], width: 8 }] as const;
 

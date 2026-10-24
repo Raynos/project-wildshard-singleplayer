@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
-import { resolveTravelEntry } from '../src/game/travel/entry';
-import { shardEntry } from '../src/game/shard/entryMode';
-import type { ShardEntryMode } from '../src/game/shard/manifest';
+import { resolveTravelEntry } from './entry';
+import { shardEntry } from '../shard/entryMode';
+import type { ShardEntryMode } from '../shard/manifest';
 
 const selected = (choice: ShardEntryMode) => (manifest: Parameters<typeof shardEntry>[0]) =>
   shardEntry(manifest, true, () => ({ read: () => choice, choose: () => undefined }));

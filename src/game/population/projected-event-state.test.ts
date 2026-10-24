@@ -1,5 +1,5 @@
 import { expect,test } from 'vitest';
-import { ProjectedState,type NumericProjection } from '../src/game/population/returnProgram';
+import { ProjectedState,type NumericProjection } from './returnProgram';
 
 const rows={initial:{value:0,step:0,tell:-0},retain:{value:'value'},signals:{step:'advance',tell:'draw',other:'other'},retainEvents:{step:{mask:'step'},tell:{mask:'tell'}}};
 const declared={script:{signals:{a:'advance',b:'draw',c:'other'},channels:{a:'value',b:'mask'}}};

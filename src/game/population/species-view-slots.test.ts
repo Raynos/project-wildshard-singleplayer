@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { Object3D } from 'three';
-import { speciesViewSlots, type SpeciesViewActor } from '../src/game/population/speciesViewSlots';
+import { speciesViewSlots, type SpeciesViewActor } from './speciesViewSlots';
 
 // G600 L7 / L8: every live actor of a kind as a view pool, slots stable per identity
 const actor = (id: string, kind = 'balbal'): SpeciesViewActor => ({ entityId: id, kind, mesh: new Object3D(), position: { x: 1, y: 2, z: 3 },

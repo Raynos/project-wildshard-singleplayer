@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { Mesh, MeshStandardMaterial, PlaneGeometry } from 'three';
-import { bakedMeshWorld, type LoadedMeshBake } from '../src/game/shardfile/bakedKinds';
+import { bakedMeshWorld, type LoadedMeshBake } from './bakedKinds';
 
 it('draws declared selected kinds from an explicit snapshot and refuses unknown resources', () => {
   const geometry = new PlaneGeometry(), material = new MeshStandardMaterial(), node = new Mesh(geometry, material);

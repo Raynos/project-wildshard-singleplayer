@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
 import { Group, Object3D } from 'three';
-import { SceneHandles } from '../src/game/shardfile/sceneHandles';
-import { WorldEntry } from '../src/game/shardfile/worldEntry';
-import { WorldSceneWeldAssembly } from '../src/game/shardfile/worldSceneWeld';
+import { SceneHandles } from './sceneHandles';
+import { WorldEntry } from './worldEntry';
+import { WorldSceneWeldAssembly } from './worldSceneWeld';
 
 /** A frozen graph that counts its restores; its root already hangs where it was frozen. */
 function frozenGraph(restored: { count: number }): WorldSceneWeldAssembly {

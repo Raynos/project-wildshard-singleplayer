@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { InstancedMesh, Matrix4, MeshStandardMaterial, PlaneGeometry } from 'three';
-import { createClientScene } from '../src/game/plugin/scene';
+import { createClientScene } from './scene';
 
 it('draws authored instance poses and rejects crossed matrix counts before allocation', () => {
   const geometry = new PlaneGeometry(), material = new MeshStandardMaterial();

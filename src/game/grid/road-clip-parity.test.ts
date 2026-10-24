@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { BufferAttribute, BufferGeometry } from 'three';
-import { clipToBinsSteps, cullCountsSteps, cullPlanSteps, finishRoadSteps, ROAD_LOD } from '../src/game/grid/roadCull';
+import { clipToBinsSteps, cullCountsSteps, cullPlanSteps, finishRoadSteps, ROAD_LOD } from './roadCull';
 
 test('road clipping preserves edge vertices, interpolated UVs and exact LOD byte plans', async () => {
   const geometry = new BufferGeometry();

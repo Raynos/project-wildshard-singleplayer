@@ -1,6 +1,6 @@
 import { expect, it, vi } from 'vitest';
 import { Group, Mesh, MeshStandardMaterial, PlaneGeometry, Texture } from 'three';
-import { createModelLibrary } from '../src/game/plugin/geometry';
+import { createModelLibrary } from './geometry';
 
 it('shares an original atlas while cloning prepared geometry and explicit NPC slots', async () => {
   const geometry = new PlaneGeometry(2, 3); geometry.computeBoundingBox(); geometry.computeBoundingSphere();

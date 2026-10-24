@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from 'vitest';
-import { pageModeBoot, pageModeKtx2, type PageBootRows, type PageKtx2Rows } from '../src/game/shard/pageBoot';
-import { currentPageMode, setPageMode } from '../src/game/grid/pageMode';
+import { pageModeBoot, pageModeKtx2, type PageBootRows, type PageKtx2Rows } from './pageBoot';
+import { currentPageMode, setPageMode } from '../grid/pageMode';
 
 const before = currentPageMode();
 afterEach(() => setPageMode(before));
