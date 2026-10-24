@@ -9,7 +9,7 @@ import { createHash } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import type { Shardfile } from './shardfile';
-import { offlineMemoryAdmission } from '@wildshard/format/product';
+import { offlineMemoryAdmission, prepareAssetDecoders } from '@wildshard/format/product';
 import { TickWorkerHost } from './tickWorkerHost';
 import { AuthorProofPlanSchema, TickCommandSchema, type HeadlessCommand, type AuthorProofPlan, type AuthorProofReport, type HeadlessCommandSource, type HeadlessTickCommit } from './tickProtocol';
 import * as v from 'valibot';
@@ -28,6 +28,7 @@ export class HeadlessSimulation {
     const trustedRuntime = options.trustedRuntime === undefined ? undefined : { module: trustedHeadlessModule(options.trustedRuntime.module) };
     const sections = headlessSections(options.sections ?? outputDescriptor(shard)?.sections);
     const memory = offlineMemoryAdmission('refuse');
+    await prepareAssetDecoders();
     validateShardfileAssets(shard, assets, bytes => createHash('sha256').update(bytes).digest('hex'), memory, undefined, scriptAdmissionRows(sections));
     for (const report of memory?.reports() ?? []) console.warn(`Headless memory report-only (G433): ${report.id}: ${report.playingBytes} playing bytes`);
     const binary = [resolve(import.meta.dirname, 'client/assets/physics/rapier.wasm'), resolve(import.meta.dirname, 'dist/client/assets/physics/rapier.wasm'), resolve(import.meta.dirname, '../../public/assets/physics/rapier.wasm')].find(existsSync);

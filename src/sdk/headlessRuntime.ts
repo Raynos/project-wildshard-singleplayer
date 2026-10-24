@@ -1,5 +1,6 @@
 import { registerNativeQuestInputs } from '@wildshard/game/quest/nativeInputs';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
+import { prepareAssetDecoders } from '@wildshard/format/product';
 import { parseNativeRuntimePlan } from '@wildshard/format/nativeRuntimePlan';
 import { MoverScriptDriver, type MoverRuntime } from '@wildshard/game/plugin/mover';
 import { installCableModes } from '@wildshard/engine/player/modes';
@@ -133,6 +134,7 @@ export interface TrustedHeadlessResident {
  * fall back to a shard source path. Both paths verify product/level identity. */
 export async function prepareNativeRuntime(provided: HeadlessRuntimeInput, entry?: TrustedHeadlessRuntime): Promise<HeadlessRuntimePlan> {
   if (!/^[a-z0-9][a-z0-9-]*$/u.test(provided.shard.identity.slug)) throw new Error('Invalid native product identity');
+  await prepareAssetDecoders();
   let plan: HeadlessRuntimePlan, source = provided.shard;
   if (entry === undefined && provided.sections !== undefined) {
     const declaration = parseNativeRuntimePlan(provided.sections.get('sim/runtime-plan'));

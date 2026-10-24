@@ -15,13 +15,14 @@ import { simPlayerCommand, type HeadlessEffect } from '../tickProtocol';
 import { headlessSections } from '../headlessSections';
 import { scriptAdmissionRows } from '@wildshard/format/scriptContract';
 import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
-import { offlineMemoryAdmission } from '@wildshard/format/product';
+import { offlineMemoryAdmission, prepareAssetDecoders } from '@wildshard/format/product';
 import { hashImmutableBytes } from '../immutable';
 
 await runTickWorker(async raw => {
   const payload = v.parse(v.strictObject({ shard: v.unknown(), assets: v.map(v.string(), v.instance(Uint8Array)), binary: v.string(), snapshot: v.optional(v.string()), trustedRuntime: v.exactOptional(v.strictObject({ module: v.string() })), sections: v.exactOptional(v.map(v.string(), v.unknown())) }), raw);
   const shard = parseShardfile(payload.shard), rapier = await loadRapier(readFileSync(payload.binary));
   const sections = headlessSections(payload.sections);
+  await prepareAssetDecoders();
   validateShardfileAssets(shard, payload.assets, hashImmutableBytes, offlineMemoryAdmission('refuse'), undefined, scriptAdmissionRows(sections));
   if (payload.trustedRuntime !== undefined) return createTrustedHeadlessAdapter({ shard, assets: payload.assets, rapier }, payload.trustedRuntime, payload.snapshot);
   if (sections.has('sim/runtime-plan')) return createTrustedHeadlessAdapter({ shard, assets: payload.assets, rapier, sections }, undefined, payload.snapshot);
