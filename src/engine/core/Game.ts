@@ -865,8 +865,8 @@ export class Game {
    * the growing root, at most one slice every `every` drawn frames and never right after a long frame. A graph program is
    * one unsliceable build (~20 ms at phone 4x), so the entry warm's builds filled the last seconds before entry with
    * long frames (Nine's drive: 56 builds in 4.6 s; Pine: 44 of 56 at entry). The entry warm still runs whole and
-   * builds whatever this did not, so entry never waits on it. `kick` starts the next pass now (a world that attaches its
-   * content when it completes); `stop` ends it at its next slice and resolves when it has.
+   * builds whatever this did not, so entry never waits on it. Nothing compiles before `kick` (the world complete, its
+   * content and lights in); `stop` ends it at its next slice and resolves when it has.
    */
   prewarmEnteredRoot(owner: Scope, root: THREE.Object3D, every = 2): { readonly kick: () => void; readonly stop: () => Promise<void> } {
     let stopped = false, kicked = false;
@@ -879,13 +879,19 @@ export class Game {
       const spaced = async (): Promise<void> => {
         for (let i = 0; i < every || (lastFrameMs() > PREWARM_LONG_FRAME_MS && i < every * 4); i++) await drawn();
       };
+      // A graph program keys each light by its id (LightsNode): compiled while a world still adds its lights (Pine's
+      // cabins and lookout), every pass keyed a light set the entry never draws with (50 desktop builds, 6 saved). The
+      // passes start once the world is complete (`kick`) and a pass is run again only for a changed light set.
+      const lightSet = (): string => { const ids: number[] = []; this.rootScene.traverse(object => { if (object instanceof THREE.Light) ids.push(object.id); }); return ids.join(','); };
+      while (current()) { if (kicked) break; await drawn(); }
       while (current()) {
-        const environment = this.scene.environment;
-        await precompileLevel(this, undefined, { chunkCasters: false, current, owner, futureLighting: root, sliceMs: LIVE_PRECOMPILE_SLICE_MS,
-          pause: spaced, ...(environment === null ? {} : { futureEnvironment: environment }) });
-        // the next pass picks up what the world made meanwhile
-        for (let i = 0; i < PREWARM_PASS_FRAMES && current(); i++) { if (kicked) break; await drawn(); }
         kicked = false;
+        const lights = lightSet(), environment = this.scene.environment, leaving = this.viewmodel.staged(owner);
+        await precompileLevel(this, undefined, { chunkCasters: false, current, owner, futureLighting: root, sliceMs: LIVE_PRECOMPILE_SLICE_MS,
+          pause: spaced, ...(environment === null ? {} : { futureEnvironment: environment }), ...(leaving === undefined ? {} : { leaving: [leaving] }) });
+        // a light added meanwhile keyed this pass for nothing: run it again at once; else pick up new content later
+        if (lightSet() !== lights) continue;
+        for (let i = 0; i < PREWARM_PASS_FRAMES && current(); i++) { if (kicked) break; await drawn(); }
       }
     };
     const run = (async (): Promise<void> => {
