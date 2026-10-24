@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { ShardPlugin, manifestRuntimeEntry, prepareTrustedRuntime } from '../src/game/plugin/context';
+import { ShardPlugin, prepareTrustedRuntime } from '../src/game/plugin/context';
 import { readGridEdges } from '../src/game/grid/edgeSources';
 
 function fixture() {
@@ -8,16 +8,15 @@ function fixture() {
     constructor() { super(); construct(); }
     override world(): void { hook(); }
   }
-  const resolve = vi.fn((_entry: string) => Native);
-  const load = vi.fn(async () => { await Promise.resolve(); return { default: Native, resolveTrustedRuntime: resolve }; });
-  const entry = manifestRuntimeEntry({ trustedRuntime: { slug: 'content', entry: 'runtime/index.ts' }, load });
-  return { Native, construct, hook, resolve, load, entry };
+  const load = vi.fn(async () => { await Promise.resolve(); return { default: Native }; });
+  const entry = { slug: 'content', entry: 'runtime/index.ts', load };
+  return { Native, construct, hook, load, entry };
 }
 
-test('preparation resolves only the registered runtime without constructing or entering it', async () => {
+test('held legacy preparation resolves only its explicit loader without constructing or entering it', async () => {
   const f = fixture();
   expect(await prepareTrustedRuntime({ entry: 'runtime/index.ts' }, 'content', true, [f.entry])).toBe(f.Native);
-  expect(f.resolve).toHaveBeenCalledExactlyOnceWith('runtime/index.ts');
+  expect(f.load).toHaveBeenCalledOnce();
   expect(f.construct).not.toHaveBeenCalled(); expect(f.hook).not.toHaveBeenCalled();
 });
 
@@ -28,10 +27,11 @@ test.each(['third-party', 'identity', 'path'] as const)('preparation keeps autho
   expect(f.load).not.toHaveBeenCalled(); expect(f.construct).not.toHaveBeenCalled();
 });
 
-test('an unresolved registered module remains a refusal', async () => {
-  class Native extends ShardPlugin {}
-  const entry = manifestRuntimeEntry({ trustedRuntime: { slug: 'content', entry: 'runtime/index.ts' }, load: () => Promise.resolve({ default: Native }) });
-  await expect(prepareTrustedRuntime({ entry: 'runtime/index.ts' }, 'content', true, [entry])).rejects.toThrow('does not resolve');
+test('a refused held legacy loader never constructs or enters its plugin', async () => {
+  const f = fixture(), failure = new Error('Module import refused');
+  f.load.mockRejectedValue(failure);
+  await expect(prepareTrustedRuntime({ entry: 'runtime/index.ts' }, 'content', true, [f.entry])).rejects.toBe(failure);
+  expect(f.construct).not.toHaveBeenCalled(); expect(f.hook).not.toHaveBeenCalled();
 });
 
 test.each([false, true])('edge readiness holds the admitted lease until preparation settles (failure %s)', async fail => {

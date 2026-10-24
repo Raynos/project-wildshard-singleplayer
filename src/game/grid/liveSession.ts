@@ -54,7 +54,7 @@ import { GridWallet, stowGridMount } from './wallet';
 import { GridRegionDurability } from './durability';
 import type { LedgerCatalogueItem } from '../ledger';
 import { installGridHoverSpeed, installGridTravellerCombat } from './rules';
-import { gridHomeSim, gridCells, type GridHomeSimulation, prepareTrustedRuntime, manifestRuntimeEntry, type TrustedRuntimeEntry } from '../plugin/context';
+import { gridHomeSim, gridCells, type GridHomeSimulation } from '../plugin/context';
 import { findShard } from '../shard/registry';
 import { gridPostCosts, gridShardfileProduct, prioritizeGridProduct, type GridProductMetadata } from './products';
 import { preparationAdmission, type GridAdmissionMetadata } from './preparationAdmission';
@@ -203,7 +203,6 @@ export class LiveGridSession {
   private readonly runtimeRegions = new Map<string, PreparedRegionalRuntime>();
   private readonly leaveTiming: { instance: string; leaveMs: number }[] = [];
   private readonly runtimeResidents = new Map<string, HybridResident>();
-  private readonly runtimeEntries: TrustedRuntimeEntry[] = [];
   private readonly hybrid: HybridRuntimeSession;
   private readonly startedRuntimes = new Set<string>();
   private activation: Promise<boolean> | undefined;
@@ -228,12 +227,12 @@ export class LiveGridSession {
     const { assembly, home, scope } = ports;
     this.bootProgramCell = installBootProgramChoice(scope, assembly.cells.flatMap(cell => {
       const manifest = findShard(cell.slug);
-      return manifest === undefined || manifest.trustedRuntime === undefined && manifest.clientPlanRuntime !== true ? [] : [{ instance: cell.instance, label: manifest.name }];
+      return manifest === undefined || manifest.clientPlanRuntime !== true ? [] : [{ instance: cell.instance, label: manifest.name }];
     }));
     const traveller = page.traveller;
     // Register the resident parent before the live host disposer: the traveller returns before native children free.
     this.runtimeScope = scope.child('grid.runtime.residents');
-    this.hybrid = new HybridRuntimeSession(this.runtimeResidents, this.runtimeEntries, scope, { pause: yieldGridConstruction });
+    this.hybrid = new HybridRuntimeSession(this.runtimeResidents, [], scope, { pause: yieldGridConstruction });
     scope.onDispose(gridCells.onLeave(() => { this.hybrid.leave(); }));
     scope.onDispose(gridCells.onEnter(cell => {
       if (!this.runtimeResidents.has(cell.instance)) { ports.lightingSettled?.(); return; }
@@ -588,7 +587,7 @@ export class LiveGridSession {
 
   private bundle(cell: GridCell): ReadinessBundle {
     const manifest = findShard(cell.slug);
-    if (manifest?.gridShardfile !== undefined && (manifest.trustedRuntime !== undefined || manifest.clientPlanRuntime === true)) return { criticalWireBytes: 2_000_000, hybridWireBytes: 2_000_000, decodeSeconds: 1, runtimeParseSeconds: 1 };
+    if (manifest?.gridShardfile !== undefined && manifest.clientPlanRuntime === true) return { criticalWireBytes: 2_000_000, hybridWireBytes: 2_000_000, decodeSeconds: 1, runtimeParseSeconds: 1 };
     return { criticalWireBytes: findShard(cell.slug)?.shardfile === undefined ? 0 : 2_000_000, hybridWireBytes: 0, decodeSeconds: 1, runtimeParseSeconds: 0 };
   }
 
@@ -724,23 +723,17 @@ export class LiveGridSession {
   private async admitRuntime(cell: GridCell, retained: GridProductMetadata, metadata: boolean): Promise<GridAdmissionMetadata | LiveGridAdmission> {
     const manifest = findShard(cell.slug), declaration = retained.admitted.source.runtime;
     const dataPage = hasDeclaredClientPage(retained.admitted.source);
-    if (manifest === undefined || !dataPage && (declaration === null || 'entry' in declaration && manifest.trustedRuntime === undefined)) throw new GridCellWaitingError('Missing declared regional page owner');
+    if (manifest === undefined || !dataPage && (declaration === null || 'entry' in declaration)) throw new GridCellWaitingError('Missing declared regional page owner');
     const page = this.page.runtimePage?.();
     if (page === undefined || page === null) throw new GridCellWaitingError('Regional page services are not ready');
     const textures = resolveRegionalRuntimeTextures(manifest, this.ports.allocator.cost().input), bytes = regionalRuntimeAccountedBytes(retained.admitted, manifest, textures.mode);
     const prepareEntry = async (): Promise<void> => {
       if (declaration === null) return;
-      if (manifest.load === undefined) throw new GridCellWaitingError('Missing trusted first-party loader');
-      if (!('entry' in declaration)) {
-        if (manifest.trustedRuntime !== undefined || manifest.clientPlanRuntime !== true) throw new GridCellWaitingError('Client-plan runtime requires its built-in manifest policy');
-        // The built-in loader still owns its literal CSS imports. Prepare them
-        // before entered features; importing it constructs no world or plugin.
-        await manifest.load(); return;
-      }
-      const entry = manifestRuntimeEntry(manifest);
-      await prepareTrustedRuntime(declaration, cell.slug, true, [entry]);
-      const { slug: identity } = entry;
-      if (!this.runtimeEntries.some(row => { const { slug: registeredIdentity } = row; return registeredIdentity === identity && row.entry === entry.entry; })) this.runtimeEntries.push(entry);
+      if (manifest.clientPlanRuntime !== true) throw new GridCellWaitingError('Client-plan runtime requires its built-in manifest policy');
+      if (manifest.load === undefined) throw new GridCellWaitingError('Missing compiled first-party loader');
+      // The built-in loader still owns its literal CSS imports. Prepare them
+      // before entered features; importing it constructs no world or plugin.
+      await manifest.load();
     };
     await prepareEntry();
     if (metadata) return { bytes, exclusiveRuntime: true, reloadsCheckpoint: true, cancel: retained.release, prepareRuntime: prepareEntry };
