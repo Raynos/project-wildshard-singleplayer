@@ -582,11 +582,12 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     if (scope.disposed || scope.disposing) throw new Error('Retired herd guest owner');
     const storage = herdGuestStorage.map(name => ({name,descriptor:Object.getOwnPropertyDescriptor(this,name)}));
     if (storage.some(({descriptor}) => descriptor === undefined || !Object.hasOwn(descriptor,'value') || descriptor.writable !== true)) throw new Error('Invalid herd guest storage');
-    const before = Object.entries(this.herdGuestScalars()), roster = this.members, members = roster.slice();
+    const entries: [string,unknown][] = Object.entries(this.herdGuestScalars()), roster = this.members, members = roster.slice();
     const beforeRoles = [this.lead,this.stallion,this.ridden,this.chargeTarget], beforeTime = this.groupTime;
     const source = references.map(row => ({ row, body: row.body, group: row.group, slot: row.slot,
       identity: row.identity, wire: row.wire, handle: row.handle }));
-    const next = v.parse(herdContinuation.entries.state,Object.fromEntries(before.map(([name]) => [name,values[name]])));
+    for(let index=0;index<entries.length;index++){const entry=entries[index];if(entry!==undefined)entry[1]=values[entry[0]];}
+    const next = v.parse(herdContinuation.entries.state,Object.fromEntries(entries));
     const role = (name: string, own: boolean): A | null => {
       const wire = values[name];
       if (wire === null) return null;
