@@ -1,7 +1,7 @@
 import {expect, test} from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- exercise the actual serialized Inspector command without opening Safari
 import {runInNewContext} from 'node:vm';
-import {STEADY_SCRIPT_WINDOW} from '../scripts/frame-floor-script-profile.mjs';
+import {STEADY_SCRIPT_WINDOW, STEADY_TIMELINE_WINDOW} from '../scripts/frame-floor-script-profile.mjs';
 import {validateFrameFloorArgs} from '../scripts/frame-floor-args.mjs';
 
 function fixture() {
@@ -9,7 +9,7 @@ function fixture() {
   let tick: () => void = () => {throw new Error('Frame watcher not installed');};
   const timers = new Map<number, () => void>();
   // oxlint-disable-next-line promise/prefer-await-to-callbacks -- model the original synchronous frame subscription API
-  const game = {frameCount: 50, frameGate: () => true, watchFrames(callback: () => void) {
+  const game = {frameCount: 50, frameRafTime: 90, frameGate: () => true, watchFrames(callback: () => void) {
     expect(this).toBe(game);
     tick = callback;
     return () => {stops++;};
@@ -19,9 +19,9 @@ function fixture() {
     setTimeout(callback: () => void, delay: number) {expect(delay).toBe(30000); timers.set(1, callback); return 1;},
     clearTimeout(id: number) {timers.delete(id);}};
   return {world, context, timers, get stops() {return stops;},
-    frame(at: number) {now = at; game.frameCount++; tick();},
-    start(): Promise<unknown> {
-      const result: unknown = runInNewContext(STEADY_SCRIPT_WINDOW, context);
+    frame(at: number) {now = at; game.frameRafTime = at; game.frameCount++; tick();},
+    start(timeline = false): Promise<unknown> {
+      const result: unknown = runInNewContext(timeline ? STEADY_TIMELINE_WINDOW : STEADY_SCRIPT_WINDOW, context);
       return Promise.resolve(result);
     }};
 }
@@ -84,4 +84,41 @@ test('drive selection profiles one route plus early play and excludes a second s
 test('a matching drive and steady pose select two separate windows in one run', () => {
   expect(() => validateFrameFloorArgs([...args, '--safari-drive=nalati-interior', '--safari-steady=grid-nalati-interior'])).not.toThrow();
   expect(() => validateFrameFloorArgs([...args, '--safari-drive=pine-interior', '--safari-steady=grid-nalati-interior'])).toThrow('matching pair');
+});
+
+
+test('steady Timeline retains actual frame intervals for exactly one entered twenty-second window', async () => {
+  const f = fixture(), result = f.start(true);
+  f.frame(100); f.frame(133); f.frame(183); f.frame(20100);
+  await expect(result).resolves.toEqual({startMs: 100, endMs: 20100, elapsedMs: 20000, frames: 4,
+    intervals: [[100, 33], [133, 50], [183, 19917]], dropped: 0});
+  expect(f.stops).toBe(1); expect(f.timers.size).toBe(0);
+});
+
+test('steady Timeline bounds retained intervals and explicitly reports overflow', async () => {
+  const f = fixture(), result = f.start(true);
+  for (let i = 0; i < 2051; i++) f.frame(100 + i);
+  f.frame(20100);
+  await expect(result).resolves.toMatchObject({dropped: 3});
+  const value = await result;
+  if (value === null || typeof value !== 'object' || !('intervals' in value) || !Array.isArray(value.intervals)) throw new Error('Missing interval bank');
+  expect(value.intervals).toHaveLength(2048);
+  expect(f.stops).toBe(1);
+});
+
+test('steady Timeline refuses a missing frame clock and retires its watcher', async () => {
+  const f = fixture(), result = f.start(true);
+  f.frame(Number.NaN);
+  await expect(result).rejects.toThrow('drawn-frame clock');
+  expect(f.stops).toBe(1); expect(f.timers.size).toBe(0);
+});
+
+test('steady Timeline accepts only one no-quiet grid target without other recorders', () => {
+  const command = ['--surface=sim', '--shards=grid', '--grid-scenario=all', '--webkit-timeline=tmp/timeline', '--webkit-steady=grid-nalati-interior'];
+  expect(() => validateFrameFloorArgs(command)).not.toThrow();
+  for (const extra of ['--quiet', '--safari-profile=tmp/profile', '--wasm-constructors=tmp/native', '--gl-time', '--webkit-steady=grid-pine-interior'])
+    expect(() => validateFrameFloorArgs([...command, extra])).toThrow('Steady Timeline');
+  for (const replacement of ['--webkit-steady=', '--webkit-steady=../escape'])
+    expect(() => validateFrameFloorArgs([...command.slice(0, -1), replacement])).toThrow('Steady Timeline');
+  expect(() => validateFrameFloorArgs(command.filter(arg => !arg.startsWith('--webkit-timeline=')))).toThrow('Steady Timeline');
 });

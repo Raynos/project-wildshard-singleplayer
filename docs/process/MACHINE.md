@@ -230,7 +230,13 @@ For a no-quiet attribution diagnostic, `--webkit-timeline=<existing scratch dir>
 keeps the bounded raw Inspector timeline, page-clock anchors and hook/frame times
 for each grid drive. It uses no GL timer wrappers or CPU profiler; its timings
 have no frame-floor acceptance credit. Unknown gaps remain unproven when the
-existing timeline coverage or clock checks fail. Add `--wasm-constructors=<existing scratch dir>`
+existing timeline coverage or clock checks fail. Add
+`--webkit-steady=grid-nalati-interior` for only one settled 20-second Timeline
+window after the original standing sample. It keeps bounded drawn-frame intervals
+and passively observes full/partial GC; no drive recorder, ScriptProfiler, forced
+GC, snapshot or GL timers run. Every interval over 40 ms is attributed off-line;
+coverage/clock/drop refusals remain strict and it has no floor acceptance credit.
+Add `--wasm-constructors=<existing scratch dir>`
 to retain bounded native Memory/Module/Instance durations and original frame-clock
 reads. It injects before app modules, collects stacks outside each native timed
 segment, and saves on existing Inspector evaluations; no extra watcher or rAF.

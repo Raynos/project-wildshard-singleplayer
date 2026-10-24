@@ -1,12 +1,19 @@
 import { ensureWebKitPageClock } from './frame-floor-webkit-timeline.mjs';
 
 /** Browser-serialized, clock-bounded steady window. No per-frame grid readout,
- * pose change, input injection, GC request or timing acceptance is involved. */
-function steadyScriptWindow() {
+ * pose change, input injection, GC request or timing acceptance is involved.
+ * @param {boolean} [timeline]
+ */
+function steadyScriptWindow(timeline = false) {
   const api = window.__wildshard, world = api?.world, game = world?.game;
   if (!game || !world.hud.entered || world.hud.paused || !game.frameGate())
     throw new Error('Steady profile requires entered, unpaused controls');
   const startMs = performance.now(), firstFrame = game.frameCount;
+  /** @type {number[][]} */
+  const intervals = [];
+  /** @type {number | null} */
+  let lastRaf = null;
+  let dropped = 0;
   return new Promise((resolve, reject) => {
     let finished = false;
     /** @type {(() => void) | undefined} */
@@ -20,13 +27,24 @@ function steadyScriptWindow() {
       finished = true; stop?.(); clearTimeout(timer);
       if (error) { reject(error); return; }
       const endMs = performance.now();
-      resolve({ startMs, endMs, elapsedMs: endMs - startMs, frames: game.frameCount - firstFrame });
+      resolve({ startMs, endMs, elapsedMs: endMs - startMs, frames: game.frameCount - firstFrame,
+        ...(timeline ? { intervals, dropped } : {}) });
     };
     timer = setTimeout(() => finish(new Error('Steady profile received no completion frame within 30 seconds')), 30000);
     try {
       stop = game.watchFrames(() => {
         if (window.__wildshard !== api || api.world !== world || world.game !== game || !world.hud.entered || world.hud.paused) {
           finish(new Error('Steady profile world or controls changed')); return;
+        }
+        if (timeline) {
+          const at = game.frameRafTime;
+          if (typeof at !== 'number' || !Number.isFinite(at)) { finish(new Error('Steady Timeline has no drawn-frame clock')); return; }
+          if (at >= startMs) {
+            if (lastRaf !== null) {
+              if (intervals.length < 2048) intervals.push([lastRaf, at - lastRaf]); else dropped++;
+            }
+            lastRaf = at;
+          }
         }
         if (performance.now() - startMs >= 20000) finish();
       });
@@ -37,6 +55,8 @@ function steadyScriptWindow() {
 
 /** Exactly one steady 20-second page window on the already-entered world. */
 export const STEADY_SCRIPT_WINDOW = `(${steadyScriptWindow.toString()})()`;
+/** Same steady lifecycle, retaining each drawn interval for passive Timeline attribution. */
+export const STEADY_TIMELINE_WINDOW = `(${steadyScriptWindow.toString()})(true)`;
 
 /** Start Safari's existing sampling protocol on the driving Inspector, returning a bounded stop operation.
  * Proxy timestamps can be zero, so callers delimit the page window explicitly and never give this timing credit.

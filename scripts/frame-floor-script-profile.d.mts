@@ -15,3 +15,6 @@ export function startPrefixScriptProfile(inspector: ScriptProfilePort, evaluate:
 export function startDriveWindowScriptProfile(inspector: ScriptProfilePort, evaluate: (expression: string) => Promise<unknown>, driveMs: number, fromMs: number, toMs: number, persist?: (capture: ScriptCapture) => void): Promise<() => Promise<ScriptCapture | undefined>>;
 /** Clock-bounded 20-second steady window, refusing replaced or paused controls. */
 export const STEADY_SCRIPT_WINDOW: string;
+
+/** Same twenty-second steady lifecycle with bounded drawn-interval retention. */
+export const STEADY_TIMELINE_WINDOW: string;
