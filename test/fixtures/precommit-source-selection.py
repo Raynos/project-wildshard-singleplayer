@@ -13,6 +13,8 @@ with tempfile.TemporaryDirectory(dir=base/'tmp',prefix='staged-inputs-test-') as
  put('scripts/precommit-source.py','pass\n');put('scripts/push_input_cache.py','pass\n');
  put('scripts/precommit-checks.mjs','import "./helper.mjs";\n');put('scripts/helper.mjs','export const helper = 1;\n')
  put('scripts/unrelated.mjs','export const untouched = 1;\n');put('lint/ratchet.json','{}');put('.oxlintrc.json','{}')
+ put('src/engine/tsconfig.json','{"files":[],"references":[{"path":"./tsconfig.test.json"}]}')
+ put('src/engine/tsconfig.test.json','{"include":["**/*.test.ts"]}')
  git('add','.');git('commit','-qm','fixture');put('src/unit.ts','import {dependency} from "./dependency"; import asset from "./asset.bin"; export const value = dependency + 1;\n');git('add','src/unit.ts')
  # Loose bytes cannot enter the snapshot or its import helpers.
  put('src/unit.ts','export const value = "foreign";\n');put('scripts/helper.mjs','throw Error("foreign");\n')
@@ -26,6 +28,8 @@ with tempfile.TemporaryDirectory(dir=base/'tmp',prefix='staged-inputs-test-') as
  assert not (tree/'src/reader.ts').exists()
  assert (tree/'scripts/precommit-source.py').read_text()=='pass\n'
  assert (tree/'scripts/push_input_cache.py').read_text()=='pass\n'
+ assert (tree/'src/engine/tsconfig.json').read_text()=='{"files":[],"references":[{"path":"./tsconfig.test.json"}]}'
+ assert (tree/'src/engine/tsconfig.test.json').read_text()=='{"include":["**/*.test.ts"]}'
  # HEAD comparison reads only the named predecessor, never an index edit.
  tree=root/'head';staged_source(root,tree,time.time()+5,'HEAD',spec)
  assert (tree/'src/unit.ts').read_text()=='export const value = 1;\n'

@@ -152,7 +152,7 @@ def required_sources(blobs, specification, tree=None, executable=None, staged_pa
     for name in blobs:
         if '/' not in name and (name.endswith(('.json', '.jsonc', '.yaml', '.yml')) or name.startswith('vitest.config.')):
             selected.add(name)
-        if name.startswith('lint/') or re.fullmatch(r'src/[^/]+/package.json', name):
+        if name.startswith('lint/') or re.fullmatch(r'src/[^/]+/(?:package|tsconfig(?:\.test)?)\.json', name):
             selected.add(name)
     roots = ['scripts/precommit-checks.mjs', 'scripts/precommit-source.py', 'scripts/push_input_cache.py', *specification.get('files', []), *specification.get('guards', [])]
     if specification.get('guards'):
