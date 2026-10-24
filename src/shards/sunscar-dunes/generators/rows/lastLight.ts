@@ -39,8 +39,8 @@ export interface DuskLookRow {
  *  the lit sand against the H1–H4 targets: the game's was too pale and grey-blue); E399 (R2B-1): measured against the
  *  mockups' ground patches, not eyeballed; loop 5 targets: saturated lit faces, deep shade. */
 export const KEY_LIGHT = { color: [1, 0.68, 0.34], intensity: 1.85 } as const;
-/** The key's colour at the blue hour (look/dusk.ts): a low red ember of the set sun. */
-export const DEEP_KEY = [0.78, 0.42, 0.4] as const;
+/** G686: quest-end dusk keeps the existing warm sunset key colour. */
+export const DEEP_KEY = [1, 0.68, 0.34] as const;
 /** Violet aerial perspective (R9): far dune rows cool and lift into layers, never pink. round 22 (the lead after round
  *  21: the light band's 0x5e5288 turned A's mid dunes and D's far land milky lilac): the horizon's darker violet near the
  *  ground. */

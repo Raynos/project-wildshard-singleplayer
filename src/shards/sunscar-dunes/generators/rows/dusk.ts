@@ -6,9 +6,8 @@
  */
 
 /** The key light's dimming (E407: a slower fall through the middle steps, still monotonic; the sun drops fast once the quest starts).
- *  Pick 2 (Jake, 2026-10-23 09:38: 'everything feels dark and washed out'): the quest-end deep dusk keeps 30 % of the key
- *  (was 5 %), the same falling shape, so the late dunes keep their light and contrast at the same dusk mood. */
-export const KEY_DIM = { base: 1, terms: [{ gain: -0.7, pow: 0.7 }] } as const;
+ *  G686 (Jake, 2026-10-24): quest-end dusk keeps 60 % of the warm key, with the same falling shape. */
+export const KEY_DIM = { base: 1, terms: [{ gain: -0.4, pow: 0.7 }] } as const;
 /**
  * The sky fill (round 24: it falls after the logbook's step, a global dusk term, by a fifth since pick 2 (was a third);
  * round 12: no bump at dusk 0.5, B's sand is lifted in the sand material instead; a floor: the late views keep warm brown sand).
