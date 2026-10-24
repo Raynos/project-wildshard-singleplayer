@@ -37,9 +37,6 @@ export function playgroundsFor(levelId: string): PlaygroundCard[] {
   return cards().filter((c) => c.levelId === levelId);
 }
 
-export function playgroundCard(id: PlaygroundId): PlaygroundCard | undefined {
-  return cards().find((c) => c.id === id);
-}
 
 /** a card's `data-pg` read back as an id (anything else: null) */
 export function asPlaygroundId(s: string | undefined): PlaygroundId | null {

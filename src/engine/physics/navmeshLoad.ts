@@ -44,8 +44,6 @@ async function declaredBytes(key: string, file: string, url: string): Promise<Ui
   return new Uint8Array(await response.arrayBuffer());
 }
 
-/** The loaded shard's navmesh — null before the `physics` step, for a shard the build has none for, or in node tests. */
-export function activeNavmesh(): Navmesh | null { return app.navmesh; }
 
 /** Set (or clear) the active navmesh — node tests, or a shard switch. */
 export function setActiveNavmesh(levelId: string, navmesh: Navmesh | null): void { app.navmesh = navmesh; app.navmeshId = navmesh ? levelId : null; }

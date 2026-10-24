@@ -14,4 +14,3 @@ export function activePhysics(): Physics | null { return app.physics; }
  *  that and in node tests. */
 export function setActiveBodies(b: Bodies | null): Bodies | null { app.bodies = b; return b; }
 
-export function activeBodies(): Bodies | null { return app.bodies; }

@@ -1835,7 +1835,7 @@ export const BUDGETS: LevelSpec['budgets'] = { phone: tier(30), desktop: tier(60
 | `WorldRegistry`, `activeRegistry` | the registry (`app.registry`); `activeRegistry` is a port |
 | `boxDesc`, `ColliderDesc` | collider descriptions: `box`, `capsule`, `ball`, `hull`, `treads` (stairs), `trimesh` (walk-inside only) |
 | `pathRampDescs` | a graded walkway over steep ground |
-| `activeBodies`, `Body`, `BodySpec` | dynamic bodies, with the per-tier caps (phone: 40 awake, 2 ragdolls) |
+| `Body`, `BodySpec` | dynamic bodies, with the per-tier caps (phone: 40 awake, 2 ragdolls) |
 | `groups`, `GroupName` | collision groups |
 | `RopeChain`, `RopeChainSpec`, `boxInFrame`, `BoxSpec` | rope chains; a box in a frame |
 
@@ -2182,7 +2182,7 @@ build a `DamageRequest` → occlusion (`lineOfSight`, unless `throughWalls`) →
 | `sourceMultiplier`, `SourceMulDef` | per-source multipliers inside a source's base formula |
 | `AggressionDirector`, `AggressionService` | attack tokens: `manifest.fight.attackers` (2 on Driftwood, unlimited elsewhere) |
 | `resolveHitStop`, `HitStopProfile` | hit-stop |
-| `Targets`, `TargetAnimal`, `TargetHit`, `authoredTargets`, `RayTargets`, `getAimTargets`, `lockOn`, `meleeLock`, `targetRadius`, `AimTarget`, `bladeBlocked`, `bladeContact`, `Clang` | what a weapon can hit, aim assist and lock-on, blade occlusion |
+| `Targets`, `TargetAnimal`, `TargetHit`, `authoredTargets`, `RayTargets`, `lockOn`, `meleeLock`, `targetRadius`, `AimTarget`, `bladeBlocked`, `bladeContact`, `Clang` | what a weapon can hit, aim assist and lock-on, blade occlusion |
 | `CameraFX`, `Impacts`, `BladeGlow`, `dodgeFx`, `dodgeEnv`, `fxMaterial`, `annulus`, `FX`, `FxMaterial`, `FxMode`, `LightPool`, `SiteLights`, `LightSite`, `SiteLightAnchor`, `SiteLightKind`, `SiteFlicker`, `SiteRoom`, `SiteWave`, `SiteLightsLook`, `ParticlePool`, `ParticlePoolSpec`, `ParticleAttr`, `pointScale` | feel and FX (`SiteLights`: shared point lights that visit the nearest lit site's anchors and flicker by intensity) |
 
 **Site light state ports.** `engine/fx/SiteLights` borrows a
@@ -2510,7 +2510,7 @@ once with that cause. A shard may call it for an authored pit instead of supplyi
 | `Hfsm`, `StateDef`, `StateChange` | the hierarchical state machine under the brains |
 | `GroupBrain`, `GroupMember` | herds (Pine Hollow's night spawns moved into its folder: src/shards/pine-hollow/quest/nightBrain.ts, E405) |
 | `WeightedTable`, `WeightedRow`, `TableDrop`, `TableSpec` | spawn and loot tables (`mode: 'weighted' \| 'each'`) |
-| `inspectBrain`, `pinBrain`, `brainInspection`, `BrainInspection`, `installAiDebug`, `AiDebugHost`, `AiDebugView` | the AI debug overlay |
+| `inspectBrain`, `pinBrain`, `BrainInspection`, `installAiDebug`, `AiDebugHost`, `AiDebugView` | the AI debug overlay |
 
 
 
@@ -3052,7 +3052,6 @@ A playground's pieces are registry pieces with `active: () => this.entered`, so 
 | `tap`, `ambientTick` | harness taps (the sound log, ambient ticks) |
 | `ctx.debug.expose(name, value)` | puts a handle on `window.__wildshard.shard[name]` for captures and tests. A shard never writes to `window` itself (`wildshard/shard-sandbox`) |
 | `ctx.debugRow(row)` (`DebugRowSpec`) | a Debug menu row owned by the level, shown only on it |
-| `registerGlobalDebugAction`, `GlobalDebugActionSpec` | a one-shot app-wide Debug action (the template's entry, B82) |
 | `setting`, `getSetting`, `getNumber`, `onNumber`, `onSettingChange`, `OptionValue`, `MusicStyle` | the engine's saved options. A shard reads only keys it owns (`shard-sandbox`) |
 | `ENGINE_STRINGS`, `engineString`, `installEngineStrings`, `EngineStringKey` | the engine's string table |
 | `publicBytes`, `assetVersions`, `musicManifests`, `sfxManifests`, `bootPacks`, `installAssetTables`, `AssetTables`, `PackDef`, `PackPart`, `PackFile` | the app's asset tables (E405 E415): every shipped file's size and `?v=` hash, the music / sound-effect manifests and each level's boot pack. They list the game's files, so they are the game's (`src/game/boot/*.generated.ts`, written by `vite/gen.ts` and `scripts/bake-packs.mjs`); `src/identity.ts` installs them with the identity, `scripts/bake-loader.mjs` for Node tools (a table not generated yet installs empty). The engine reads them only through these accessors, at call time |
@@ -4264,7 +4263,7 @@ shader code (G306).
   `screenUV` and `uv()` are graph inputs as they are. `param(name, def)` declares
   a typed param (the format's `GraphParam`, with its range and optional day /
   state binding); `sample(param, uv)` reads a texture param; `noise`,
-  `viewToWorld`, `worldToLocal`, `sceneColourAt`, `sceneDepth`, `sceneNormal` and
+  `viewToWorld`, `worldToLocal`, `sceneDepth`, `sceneNormal` and
   `graphInputs` (`sunDirection`, `sunColour`, `sunShadow`, `albedo`,
   `irradiance`, `litColour`, `instanceHash`, `objectOrigin`, `vertexColour`,
   `vertexColourAlpha` (1 where colour is RGB or absent), `materialColour` and
@@ -4593,7 +4592,7 @@ changes no body or collider.
 
 `@wildshard/format/flyers#DiverSchema` admits `kind: 'diver'` with a strict
 `orbit`, `patrol` or `burst` pattern and the historical row's bounded flat tuning.
-SDK `flyers.diver(data)` validates author data only. `diverPreset` canonicalizes
+The format's `parseDiver(data)` validates author data only. `diverPreset` canonicalizes
 to the original contract before full-shard reference checks and native recipe
 installation; missing sphere strikes, flight motors or cell-bounded homes refuse.
 

@@ -35,8 +35,6 @@ export const ROAD_LOD: readonly CullLod[] = [{ distance: 150, cell: 4 }, { dista
 const BIN_DIVISOR = 2;
 /** A cell edge's distance from its cell centre (the seam's outer row meets the shard's own ground there). */
 const CELL_EDGE = CHUNK_HALF;
-/** The bin a point falls in: squares of `pitch / BIN_DIVISOR` (half a pitch), centred on multiples of it (junctions, segment middles, cell middles). */
-export function cullBin(x: number, z: number, pitch: number): string { const s = pitch / BIN_DIVISOR; return `${String(Math.round(x / s))},${String(Math.round(z / s))}`; }
 
 
 /** The same attribute interpolation and index order, yielding between bounded triangle/copy batches. */

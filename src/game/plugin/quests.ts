@@ -123,8 +123,6 @@ export class QuestRewardController {
 export const NpcDialogueRowSchema = npcs.NpcDialogueRowSchema;
 /** Ordered authored dialogue independent of the runtime figure. */
 export type NpcDialogueRow = npcs.NpcDialogueRow;
-/** Validate the dialogue without inventing pivot-figure fields for a skinned NPC. */
-export function parseNpcDialogueRow(input: unknown): NpcDialogueRow { return v.parse(NpcDialogueRowSchema, input); }
 /** The defining format motion schema; runtime easing and pose laws stay unchanged. */
 export const NpcMotionSchema = npcs.NpcMotionSchema;
 /** A validated pivot NPC motion row. */

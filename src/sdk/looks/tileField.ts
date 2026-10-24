@@ -1,4 +1,4 @@
-import { BufferAttribute, InstancedBufferAttribute, InstancedBufferGeometry, type Vector2, type Vector3 } from 'three';
+import { BufferAttribute, InstancedBufferAttribute, InstancedBufferGeometry } from 'three';
 
 /**
  * A camera-tiled card field as a declared row (SHARD-PLATFORM M3, look-family rows; G395 paired it): a near meadow, a carpet
@@ -7,7 +7,7 @@ import { BufferAttribute, InstancedBufferAttribute, InstancedBufferGeometry, typ
  * then the inner 3 × 3 again `layers` more times (instance attribute `aTile` = tile x, tile z, layer), so the near field is
  * denser with no more cards in the buffer. The vertex program places each card: its `aRoot` is (x, z, r) in [0, 1) — where
  * in the tile and a per-card random — and `aShape` the card's outline vertex (across, up and, when the outline gives one,
- * a part index); `tileOrigin` snaps the grid to the tile lattice under the camera. Nothing here knows a shard: the
+ * a part index); the camera snaps the grid to its tile lattice. Nothing here knows a shard: the
  * outline, the lattice and the seed are data, the program is the shard's.
  */
 
@@ -66,7 +66,3 @@ export function tileFieldGeometry(row: TileFieldRow, cards: number): InstancedBu
   return g;
 }
 
-/** The tile corner under the camera (x, z snapped down to the `tile`-metre lattice) into `out`. */
-export function tileOrigin(out: Vector2, camera: Vector3, tile: number): Vector2 {
-  return out.set(Math.floor(camera.x / tile) * tile, Math.floor(camera.z / tile) * tile);
-}

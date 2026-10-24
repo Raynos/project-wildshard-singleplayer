@@ -97,17 +97,3 @@ export function painterlyMaterial(sky: Sky | null, opts: PainterlyOpts = {}): TH
   return mat;
 }
 
-/** The colour setter shared by the painterly modules: paint a whole geometry one colour (× jitter per vertex, seeded). */
-export function paintGeometry(geo: THREE.BufferGeometry, color: THREE.ColorRepresentation, jitter = 0, seed = 1): THREE.BufferGeometry {
-  const c = new THREE.Color(color);
-  const n = geo.getAttribute('position').count;
-  const out = new Float32Array(n * 3);
-  let s = seed >>> 0 || 1;
-  for (let i = 0; i < n; i++) {
-    s = (s * 1664525 + 1013904223) >>> 0;
-    const k = 1 - jitter + (s / 4294967296) * jitter * 2;
-    out[i * 3] = c.r * k; out[i * 3 + 1] = c.g * k; out[i * 3 + 2] = c.b * k;
-  }
-  geo.setAttribute('color', new THREE.BufferAttribute(out, 3));
-  return geo;
-}

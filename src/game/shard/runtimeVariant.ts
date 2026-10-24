@@ -1,5 +1,4 @@
 import type { prepareHybridShard as PrepareHybrid } from '../shardfile/hybrid';
-import { isDev } from '@wildshard/engine/core/devMode';
 import type { ShardContext, ShardPlugin, TrustedRuntimeEntry } from '../plugin/context';
 import { currentPageMode } from '../grid/pageMode';
 import { shardEntry } from './entryMode';
@@ -9,8 +8,6 @@ import { shardEntry } from './entryMode';
  *  Hollow's memory trim is on by default in the grid). Read at build time, after the boot consumed the page's intent. */
 export function gridPage(): boolean { return currentPageMode() === 'grid'; }
 
-/** Unfinished systems and diagnostics run only in the page's Developer build (E451). */
-export function developerToolsEnabled(): boolean { return isDev(); }
 
 /** SF65 (G237–G241): whether this boot enters the shard as SHARDFILE (its current port state) rather than LEGACY (the
  *  original TypeScript): SHARD SELECT's choice with Developer on, else the shard's public entry (`ShardManifest.entries`). */

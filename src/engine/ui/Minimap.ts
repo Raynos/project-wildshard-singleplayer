@@ -116,14 +116,6 @@ export interface MinimapPalette {
   pois?: () => MapPoi[];
 }
 
-/** the active shard's named places: its palette's (ChunkMapDef.palette), else the cabins + the pond */
-export function mapPois(): MapPoi[] {
-  const own = activeLevel().minimap.palette?.pois;
-  if (own) return own();
-  const out: MapPoi[] = CABIN_SITES.map((c, i) => ({ x: c.x, z: c.z, label: engineString('s_a5912d0f68ef', [i + 1]), color: '#8fe3ff' }));
-  if (hasPond()) out.push({ x: POND.x, z: POND.z, label: engineString('s_5dddbb894d63'), color: '#6fb8e8' });
-  return out;
-}
 
 const VIEW_RADIUS = 110;          // metres from the player to the rim
 export const LAYER_PPM = 2;       // terrain layer px per metre (1000 × 1000 for the 500 m chunk)

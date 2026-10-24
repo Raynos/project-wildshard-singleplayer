@@ -98,8 +98,6 @@ export function gerstnerNormal(at: GraphValue, clock: GraphValue, damping: Graph
   return op('gerstnerNormal', 'vec3', [at, clock, damping]);
 }
 
-/** The scene colour at a uv (a post tap, `sceneColourAt`). */
-export function sceneColourAt(at: GraphValue): Node<'vec4'> { return op('sceneColourAt', 'vec4', [at]); }
 /** The scene depth (linear metres) at a uv, or at the pixel (a post tap, `sceneDepth`). */
 export function sceneDepth(at?: GraphValue): Node<'float'> { return op('sceneDepth', 'float', at === undefined ? [] : [at]); }
 /** The scene's view-space normal at a uv, or at the pixel (a post tap, `sceneNormal`). */

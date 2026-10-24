@@ -32,7 +32,6 @@ export interface AimTarget {
 }
 
 export function setAimTargets(list: readonly AimTarget[]): void { app.aimTargets = list; }
-export function getAimTargets(): readonly AimTarget[] { return app.aimTargets; }
 
 /**
  * The sword's melee lock (Sword.ts writes it every frame it is held): `target` = the animal a swing would lunge onto right

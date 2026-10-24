@@ -31,7 +31,5 @@ export function pageEnvironments(): Texture[] {
   for (const [height, ref] of byHeight) { const texture = ref.deref(); if (texture === undefined) byHeight.delete(height); else out.push(texture); }
   return out;
 }
-/** The last-recorded environment per height, kept for older readers: any one of them. */
-export function drawnEnvironment(): Texture | null { return pageEnvironments()[0] ?? null; }
 /** Hear when an environment of a height not seen before is recorded; returns the unsubscribe. */
 export function onPageEnvironment(listener: () => void): () => void { listeners.add(listener); return () => { listeners.delete(listener); }; }

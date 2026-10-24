@@ -151,10 +151,6 @@ export async function readDirectorProduct(product: { file: (name: string) => Pro
   return { create, bytes: embeddedDirectorBytes(data.declaration, module), stages: data.stages };
 }
 
-/** Verify immutable module bytes before allocating an admitted director; each installation receives its own copied author memory. */
-export async function createDirectorLane(data: DirectorData, bytes: Uint8Array, seed: number, query?: ScriptQuery): Promise<DirectorLane> {
-  return (await prepareDirectorModule(data, bytes))(seed, query);
-}
 
 const stageState = v.strictObject({ tick: v.pipe(v.number(), v.integer(), v.minValue(-1), v.maxValue(Number.MAX_SAFE_INTEGER)), stage: v.pipe(v.number(), v.integer(), v.minValue(-1), v.maxValue(63)) });
 

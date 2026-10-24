@@ -90,17 +90,6 @@ export function dominantOwner(weights: RegionWeights): string | null {
   return best;
 }
 
-/** The frame's time of day (0–1): the world clock, pulled toward each weighted owner's declared fixed time. */
-export function frameTime(world: number, weights: RegionWeights, overrides: ReadonlyMap<string, number | null>): number {
-  let shift = 0;
-  for (const [instance, w] of weights.cells) {
-    const fixed = overrides.get(instance);
-    if (fixed === undefined || fixed === null) continue;
-    const delta = ((fixed - world) % 1 + 1.5) % 1 - 0.5; // the shortest way round the day
-    shift += w * delta;
-  }
-  return ((world + shift) % 1 + 1) % 1;
-}
 
 type Rgb = readonly [number, number, number];
 /**
