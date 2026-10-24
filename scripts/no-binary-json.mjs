@@ -3,6 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, lstatSync, readFileSync, readdirSync } from 'node:fs';
 import { isAbsolute, posix, resolve } from 'node:path';
 import process from 'node:process';
+import { checkGeneratedSourceRevision, checkGeneratedSourceTree } from './generated-source.mjs';
 
 export const BINARY_JSON_POLICY = 'lint/no-binary-json.json';
 const ROOTS = ['src', 'public', 'scripts', 'test', 'lint'];
@@ -174,6 +175,7 @@ export function checkBinaryRevision(root, revision, previous, changed) {
   const base64 = [
     ...sourceDebtChanges(root,tree,parent,'lint/base64-debt.json','no-base64/1',/^(?:src|scripts)\//u),
     ...sourceDebtChanges(root,tree,parent,'lint/generated-import-debt.json','no-generated-import/1',/^(?:src|test)\//u),
+    ...checkGeneratedSourceRevision(root, revision, previous, changed),
   ];
   if (!tree.has(BINARY_JSON_POLICY)) return [...base64, ...(parent.has(BINARY_JSON_POLICY) ? [`BINARY-JSON ${BINARY_JSON_POLICY}: policy deleted`] : [])];
   const policy = binaryJsonPolicy(JSON.parse(blobs(root, tree, [BINARY_JSON_POLICY]).get(BINARY_JSON_POLICY) ?? 'null'));
@@ -202,7 +204,7 @@ export function binaryJsonFiles(root) {
 /** @param {string} directory @param {BinaryPolicy} [baseline] @returns {string[]} */
 export function checkBinaryTree(directory, baseline) {
   const root = resolve(directory);
-  const policy = baseline ?? binaryJsonPolicy(JSON.parse(readFileSync(resolve(root, BINARY_JSON_POLICY), 'utf8'))), failures = [];
+  const policy = baseline ?? binaryJsonPolicy(JSON.parse(readFileSync(resolve(root, BINARY_JSON_POLICY), 'utf8'))), failures = checkGeneratedSourceTree(root);
   for (const path of binaryJsonFiles(root)) {
     const target = resolve(root, path); if (!existsSync(target)) continue;
     if (!safePath(path)) throw new Error(`BINARY-JSON escaping path ${path}`);

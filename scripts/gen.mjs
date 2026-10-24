@@ -12,9 +12,15 @@ import { genStarterEffects } from './gen-starter-effects.mjs';
 import { genDecisionPolicies } from './gen-decision-policy.mjs';
 import { quietCli } from './quiet-cli.mjs';
 import { beginPushInputs } from './push-post-inputs.mjs';
+import { checkGeneratedSourceTree } from './generated-source.mjs';
 
 quietCli('gen');
 const publishPushInputs = beginPushInputs(`${import.meta.dirname}/..`);
+function requireSourceOutputs() {
+  const failures = checkGeneratedSourceTree(`${import.meta.dirname}/..`);
+  if (failures.length > 0) throw new Error(failures.join('\n'));
+}
+requireSourceOutputs();
 
 const buildInputs = process.argv.includes('--build-inputs');
 // --proof remains a build-input alias. All modes share the CPU-based default.
@@ -55,5 +61,6 @@ await step('boot-tables', () => generationTailCached(`${import.meta.dirname}/..`
 await step('budgets', () => genBudgetDerivations(undefined, process.argv.includes('--check-budgets'), shard));
 // Boot tables add static imports; derive the closure from the completed graph.
 await step('shards', () => generationTailCached(`${import.meta.dirname}/..`, 'shards-after', () => genShards(undefined, false, false, shard)));
+requireSourceOutputs();
 try { publishPushInputs(); }
 catch (error) { console.warn(`push-inputs: completed cache unavailable: ${error instanceof Error ? error.message : String(error)}`); }

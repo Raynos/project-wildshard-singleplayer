@@ -58,11 +58,17 @@ def check_binary_json(root, base, tip, deadline):
     with tempfile.TemporaryDirectory(dir=root / 'tmp', prefix='push-binary-') as owned:
         checker = Path(owned) / 'no-binary-json.mjs'
         checker.write_text(script.stdout)
+        # The generated-source guard shares this immutable policy phase. Old
+        # prefixes without its import keep their original checker contract.
+        source_guard = subprocess.run(['git', 'show', tip + ':scripts/generated-source.mjs'], cwd=root,
+                                      capture_output=True, text=True, timeout=10)
+        if source_guard.returncode == 0:
+            (Path(owned) / 'generated-source.mjs').write_text(source_guard.stdout)
         rc, output = LIVE['run'](['node', str(checker), '--range', base, tip], root, deadline)
-    if rc == 124 and 'BINARY-JSON ' not in output:
+    if rc == 124 and not re.search(r'(?:BINARY-JSON |GENERATED-SOURCE )', output):
         return {'ok': True, 'budget': True, 'files': [], 'output': output + '\nDEFERRED TO CI binary-json: local budget exhausted.\n'}
     if rc != 0:
-        paths = sorted(set(re.findall(r'^BINARY-JSON ([^\n:]+):', output, re.M)))
+        paths = sorted(set(re.findall(r'^(?:BINARY-JSON|GENERATED-SOURCE) ([^\n:]+):', output, re.M)))
         return {'ok': False, 'phase': 'binary-json', 'files': paths, 'output': output}
     return {'ok': True, 'output': output}
 

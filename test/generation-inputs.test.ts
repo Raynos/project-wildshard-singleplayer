@@ -222,8 +222,8 @@ it('preserves stale optional table fallback and refuses unrelated evaluation err
 it('keeps JSON driver path confinement off unrelated source and upstream keys',async()=>{
   const f=upstreamFixture('export function render(){return {value:1};}');
   put(f.root,'lint/no-binary-json.json',JSON.stringify({schema:'no-binary-json/1',source:'a'.repeat(40),files:{}}));
-  for(const file of ['src/sdk/bake/source-loader.mjs','src/sdk/bake/json.mjs','scripts/json-output-guard.mjs','scripts/no-binary-json.mjs'])put(f.root,file,readFileSync(file,'utf8'));
-  f.job.inputRoots.push('scripts/json-output-guard.mjs','scripts/no-binary-json.mjs');
+  for(const file of ['src/sdk/bake/source-loader.mjs','src/sdk/bake/json.mjs','scripts/json-output-guard.mjs','scripts/no-binary-json.mjs','scripts/generated-source.mjs'])put(f.root,file,readFileSync(file,'utf8'));
+  f.job.inputRoots.push('scripts/json-output-guard.mjs','scripts/no-binary-json.mjs','scripts/generated-source.mjs');
   f.job.command=['--import','./src/sdk/bake/source-loader.mjs','src/sdk/bake/json.mjs',f.entry,'render',f.output];
   const first=await f.upstream({'unread.bin':'old'});expect(first).toMatchObject({hit:false,text:'{"value":1}\n'});
   expect(await f.upstream({'unread.bin':'new'})).toEqual({...first,hit:true});

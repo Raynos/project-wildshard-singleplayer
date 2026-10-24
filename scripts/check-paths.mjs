@@ -5,9 +5,11 @@ import { existsSync, globSync, readFileSync, statSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { checkShards } from './check-shards.mjs';
 import { discoverGeneration } from './generate.mjs';
+import { checkGeneratedSourceTree } from './generated-source.mjs';
 
 const ROOT = process.cwd();
 const failures = new Set();
+for (const failure of checkGeneratedSourceTree(ROOT)) failures.add(failure);
 const allowFile = 'scripts/check-paths.allow.json';
 const allow = existsSync(resolve(ROOT, allowFile)) ? JSON.parse(readFileSync(resolve(ROOT, allowFile), 'utf8')) : [];
 const allowed = new Set();

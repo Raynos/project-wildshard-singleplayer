@@ -325,6 +325,7 @@ readFileSync('../public/assets/native/untracked.bin');
 
     def test_binary_json_git_guard_precedes_source_preparation(self):
         self.put('scripts/no-binary-json.mjs', (TOOL_ROOT / 'no-binary-json.mjs').read_text())
+        self.put('scripts/generated-source.mjs', (TOOL_ROOT / 'generated-source.mjs').read_text())
         self.put('lint/no-binary-json.json', json.dumps({'schema': 'no-binary-json/1', 'source': self.base, 'files': {}}))
         baseline = self.commit('src/policy.ts')
         path = 'public/assets/example/rows.json'
@@ -343,11 +344,35 @@ readFileSync('../public/assets/native/untracked.bin');
         clean = self.commit('src/clean.ts')
         self.assertFalse(PUSH['check_binary_json'](self.root, baseline, clean, time.monotonic() + 45)['ok'])
 
+    def test_generated_source_guard_uses_committed_helper_and_debt_before_preparation(self):
+        source_directory = 'src'
+        self.put('scripts/no-binary-json.mjs', (TOOL_ROOT / 'no-binary-json.mjs').read_text())
+        self.put('scripts/generated-source.mjs', (TOOL_ROOT / 'generated-source.mjs').read_text())
+        self.put('lint/no-binary-json.json', json.dumps({'schema': 'no-binary-json/1', 'source': self.base, 'files': {}}))
+        policy = 'lint/generated-source-debt.json'
+        self.put(policy, json.dumps({'schema': 'generated-source/1', 'source': self.base, 'files': []}))
+        baseline = self.commit(f'{source_directory}/policy.ts')
+        path = f'{source_directory}/new.generated.ts'
+        bad = self.commit(path)
+        self.put(path, '')
+        self.put(policy, json.dumps({'schema': 'generated-source/1', 'source': self.base, 'files': [path]}))
+        self.put('scripts/generated-source.mjs', 'throw Error("foreign working guard");')
+        with patch.dict(PUSH, fast_tools=lambda *_: self.fail('tools read before generated-source refusal')):
+            result = PUSH['check_committed'](self.root, baseline, bad, time.monotonic() + 45)
+        self.assertFalse(result['ok'])
+        self.assertEqual(result['files'], [path])
+        self.assertIn('GENERATED-SOURCE', result['output'])
+        self.assertNotIn('foreign working guard', result['output'])
+        self.assertEqual((self.root / path).read_text(), '')
+
     def test_binary_json_budget_defers_but_preserves_observed_refusal(self):
         self.put('scripts/no-binary-json.mjs', (TOOL_ROOT / 'no-binary-json.mjs').read_text())
+        self.put('scripts/generated-source.mjs', (TOOL_ROOT / 'generated-source.mjs').read_text())
         self.put('lint/no-binary-json.json', json.dumps({'schema': 'no-binary-json/1', 'source': self.base, 'files': {}}))
         tip = self.commit('src/policy.ts')
-        for output, accepted in [('still running', True), ('BINARY-JSON public/new.json: binary', False)]:
+        generated_path = '/'.join(('src', 'new.generated.ts'))
+        for output, accepted in [('still running', True), ('BINARY-JSON public/new.json: binary', False),
+                                 (f'GENERATED-SOURCE {generated_path}: new output', False)]:
             with patch.dict(LIVE, run=lambda *_: (124, output)):
                 result = PUSH['check_binary_json'](self.root, self.base, tip, time.monotonic() + 45)
             self.assertEqual(result['ok'], accepted)

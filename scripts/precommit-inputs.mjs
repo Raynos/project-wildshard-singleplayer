@@ -74,14 +74,17 @@ export async function precommitInputs(root = resolve(import.meta.dirname, '..'),
   if (existsSync(resolve(root, 'scripts/repo-size.mjs'))) early.push({ name: 'storage', command: [process.execPath, 'scripts/repo-size.mjs', '--index'] });
   if (same) early.push({ name: 'typed lint', command: [executable, '--type-aware', '-c', '.oxlintrc.json', ...files] });
   else if (files.length > 0) { defer(); console.warn('pre-commit: staged patch differs from working files; exact typed checks deferred to push'); }
-  // Inspect exact staged JSON in Git, including assets outside the source snapshot.
+  // Inspect exact staged JSON and generated-source declarations, including
+  // ignored generated TS that ordinary lint intentionally never selects.
   /** @type {string | undefined} */
   let binaryTree;
-  if (changed.some(path => path.endsWith('.json')) && (initial.includes('\tlint/no-binary-json.json\0') || changed.includes('lint/no-binary-json.json'))) {
+  if (changed.some(path => path.endsWith('.json') || path.startsWith('src/') || path === 'scripts/generated-source.mjs')
+    && (initial.includes('\tlint/no-binary-json.json\0') || changed.includes('lint/no-binary-json.json'))) {
     mkdirSync(resolve(root, 'tmp'), { recursive: true });
     binaryTree = mkdtempSync(resolve(root, 'tmp/commit-binary-'));
     const checker = resolve(binaryTree, 'no-binary-json.mjs');
     writeFileSync(checker, git(['show', ':scripts/no-binary-json.mjs']));
+    if (initial.includes('\tscripts/generated-source.mjs\0')) writeFileSync(resolve(binaryTree, 'generated-source.mjs'), git(['show', ':scripts/generated-source.mjs']));
     early.push({ name: 'binary JSON', command: [process.execPath, checker, '--staged'] });
   }
   const running = runCommitJobs(root, early, deadline);

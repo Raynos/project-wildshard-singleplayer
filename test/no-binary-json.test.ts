@@ -108,6 +108,7 @@ test('the parallel pre-commit job uses the staged checker and JSON, preserving f
     put('.oxlintrc.json', '{}');
     put('lint/no-binary-json.json', JSON.stringify(policy()));
     put('scripts/no-binary-json.mjs', readFileSync(new URL('../scripts/no-binary-json.mjs', import.meta.url), 'utf8'));
+    put('scripts/generated-source.mjs', readFileSync(new URL('../scripts/generated-source.mjs', import.meta.url), 'utf8'));
     git('add', '.'); git('commit', '-qm', 'fixture');
     put(path, JSON.stringify({ text: payload })); git('add', path);
     put(path, '{}'); put('scripts/no-binary-json.mjs', 'throw Error("foreign uncommitted checker");');
