@@ -114,10 +114,13 @@ export async function start(): Promise<void> {
 }
 
 async function startSelected(): Promise<void> {
-  const {prepareSelectedShard,completePageCatalogue}=await retried(()=>import('./shardSelection'));
-  await prepareSelectedShard();
-  const { game } = await retried(() => import('./game/shard/registry'));
-  const { beginLoading } = await retried(() => import('@wildshard/engine/ui/Loading'));
+  const selected = retried(() => import('./shardSelection')).then(async selection => {
+    await selection.prepareSelectedShard();
+    return selection;
+  });
+  const [{ completePageCatalogue }, { game }, { beginLoading }] = await Promise.all([
+    selected, retried(() => import('./game/shard/registry')), retried(() => import('@wildshard/engine/ui/Loading')),
+  ]);
   const loading = beginLoading({ id: game.shard.slug, name: game.shard.name, trace: game.shard.boot?.phone?.trace === true });
   const moduleText = document.getElementById('boot-module-files')?.textContent;
   const moduleRows: unknown = moduleText === undefined ? undefined : JSON.parse(moduleText);
