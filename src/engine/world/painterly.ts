@@ -95,7 +95,12 @@ export function painterlyMaterial(sky: Sky | null, opts: PainterlyOpts = {}): TH
   const own = { uPRim: family.famPaintRim, uPBands: family.famPaintBands, uPShadeAmt: family.famPaintShadeAmt,
     uPSway: family.famPaintSway, uPFloorAmt: family.famPaintFloorAmt };
   mat.userData['painterly'] = own; knobs.set(mat, own);
-  patchShader(mat, 'engine.painterly.air', PATCH_ORDER.decorate, shader => { attachFogUniforms(shader); });
+  patchShader(mat, 'engine.painterly.air', PATCH_ORDER.decorate, shader => {
+    // Frozen terrain decorations read this original world-space sun handle.
+    shader.uniforms['uPSunDir'] = painterlyUniforms.uPSunDir;
+    shader.fragmentShader = `uniform vec3 uPSunDir;\n${shader.fragmentShader}`;
+    attachFogUniforms(shader);
+  });
   sky?.setupMaterial(mat);
   return mat;
 }

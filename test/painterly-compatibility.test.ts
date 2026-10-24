@@ -1,7 +1,8 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
+import { ShaderLib, WebGLRenderer, type WebGLProgramParametersWithUniforms } from 'three';
 import { PainterlyMaterialSchema } from '../src/format/materialFamilies';
-import { painterlyKnobs, painterlyMaterial } from '../src/engine/world/painterly';
+import { painterlyKnobs, painterlyMaterial, painterlyUniforms } from '../src/engine/world/painterly';
 
 test('the legacy bow retains its exact additive shade fill through the shared family', () => {
   // Frozen recurve viewmodels use 2.4 to add cool fill on the shade side.
@@ -25,4 +26,18 @@ test('legacy shade remains finite and nonnegative while the default stays one', 
     try { expect(painterlyKnobs(material)?.uPShadeAmt.value).toBe(shade ?? 1); }
     finally { material.dispose(); }
   }
+});
+
+
+test('legacy terrain patches borrow the original declared sun direction uniform', () => {
+  const material = painterlyMaterial(null);
+  const shader: object = { vertexShader: ShaderLib.lambert.vertexShader, fragmentShader: ShaderLib.lambert.fragmentShader, uniforms: {} };
+  const renderer: unknown = Object.create(WebGLRenderer.prototype);
+  const isProgram = (value: object): value is WebGLProgramParametersWithUniforms => 'vertexShader' in value && 'fragmentShader' in value && 'uniforms' in value;
+  if (!isProgram(shader) || !(renderer instanceof WebGLRenderer)) throw new Error('Missing compile fixture');
+  try {
+    material.onBeforeCompile(shader, renderer);
+    expect(shader.fragmentShader.match(/uniform vec3 uPSunDir;/gu)).toHaveLength(1);
+    expect(shader.uniforms['uPSunDir']).toBe(painterlyUniforms.uPSunDir);
+  } finally { material.dispose(); }
 });
