@@ -165,3 +165,10 @@ it.each([
   expect(defining()).toEqual([]);
  }finally{rmSync(root,{recursive:true,force:true});}
 });
+
+
+it('attributes held loadout only to the shipping installer',()=>{
+ const rows=sectionHostImports([{name:'held/loadout'}]);
+ expect(rows).toBe("import { installHeldLoadout as host0 } from '../../src/game/loadout/held'; void host0;");
+ expect(rows).not.toContain('NativeHeldAmmunition');
+});

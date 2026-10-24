@@ -1,9 +1,9 @@
 import * as v from 'valibot';
 import { LoadoutSchema, type LoadoutRows } from '@wildshard/format/loadout';
-import { readNativeRangedItem, type NativeCombatFrame, type NativeBoltItem, type NativeCycleItem, type NativeBowItem } from '../plugin/nativeItems';
+import { readNativeRangedItem, type NativeCombatFrame, type NativeBoltItem, type NativeCycleItem, type NativeBowItem } from '../../../../src/game/plugin/nativeItems';
 import type { SimHost } from '@wildshard/engine/sim';
 import { parseItems } from '@wildshard/format/items';
-import { AmmoPouch } from './pouch';
+import { AmmoPouch } from '../../../../src/game/loadout/pouch';
 
 const stack = v.pipe(v.number(), v.finite(), v.integer(), v.minValue(0));
 /** The outer continuation admits a named selection and integer stacks; the owner's rows enforce exact keys/caps. */

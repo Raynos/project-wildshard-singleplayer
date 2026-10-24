@@ -9,7 +9,7 @@ import itemRows from '../src/shards/pine-hollow/data/items.generated.json' with 
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { AmmoPouch } from '../src/game/loadout/pouch';
-import { NativeHeldAmmunition, installNativeHeldAmmunition, nativeHeldAmmunition } from '../src/game/loadout/nativeAmmunition';
+import { NativeHeldAmmunition, installNativeHeldAmmunition, nativeHeldAmmunition } from './fixtures/native-hosts/loadout/nativeAmmunition';
 import { loadoutLegacySlot } from '../src/game/loadout/persistence';
 import { restoreHeldOwnership } from '../src/game/loadout/held';
 import { SaveStore } from '../src/engine/saves/store';

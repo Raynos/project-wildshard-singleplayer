@@ -1,18 +1,18 @@
 /** Native boss shell: roster lifetime, ordered presence/brain/room steps,
  * damage ownership, reward flags and save continuation are shared platform law. */
-import { nativeDecisions } from '../shardfile/borrowedDecisions';
-import { populationRoster, type NativePopulationActor } from '../population/roster';
-import { grantNativeInventory } from '../inventoryLaw';
+import { nativeDecisions } from '../../../../src/game/shardfile/borrowedDecisions';
+import { populationRoster, type NativePopulationActor } from '../../../../src/game/population/roster';
+import { grantNativeInventory } from '../../../../src/game/inventoryLaw';
 import type { SpeciesProgramData } from '@wildshard/format/speciesPrograms';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import { canReach } from '@wildshard/engine/ai/reach';
 import type { SimHost } from '@wildshard/engine/sim';
-import { bossFlagRecord, installBossRow } from '@wildshard/game/shardfile/bossRow';
+import { bossFlagRecord, installBossRow } from '../../../../src/game/shardfile/bossRow';
 import { parseRoamingEncounter, NativeBossBindingSchema, type NativeBossBinding, type RoamingEncounterRow } from '@wildshard/format/bossEncounter';
-import { groundBossDormant, createGroundBossFight, groundBossPresence, type GroundBossEnv, type GroundBossFight } from './roaming';
-import { roamingFightState, restoreRoamingFight } from './continuation';
-import { Lane } from './lane';
+import { groundBossDormant, createGroundBossFight, groundBossPresence, type GroundBossEnv, type GroundBossFight } from '../../../../src/game/boss/roaming';
+import { roamingFightState, restoreRoamingFight } from '../../../../src/game/boss/continuation';
+import { Lane } from '../../../../src/game/boss/lane';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { itemPickupFloor, ITEM_PICKUP_HOVER } from '@wildshard/engine/world/interact/pickup';
 import { pickPrompt } from '@wildshard/engine/world/interact/prompts';

@@ -3,7 +3,7 @@ import type { driftwoodNativeRows } from '../../src/shards/driftwood-isle/genera
 import type { NativeQuestCompositionInput } from './native-hosts/quest/nativeComposition';
 import type { MixedPopulationInput } from '../../src/game/population/mixedRoster';
 import { installMixedPopulation } from '@wildshard/game/population/mixedRoster';
-import { installNativeChapterDirector } from '@wildshard/game/quest/nativeChapter';
+import { installNativeChapterDirector } from './native-hosts/quest/nativeChapter';
 import { installQuestKillSteps } from './native-hosts/quest/killSteps';
 import { readNativeQuestSpots } from './native-hosts/quest/nativeComposition';
 import { installNativeQuestComposition } from './native-hosts/quest/nativeComposition';

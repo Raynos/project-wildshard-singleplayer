@@ -4,11 +4,11 @@ import type { SimHost } from '@wildshard/engine/sim';
 import { isJsonData } from '@wildshard/format/json';
 import { ChapterDirectorSchema, parseChapterDirector } from '@wildshard/format/chapterDirector';
 import { WakeEncounterSchema } from '@wildshard/format/bossEncounter';
-import type { DirectorScriptStageLane, readDirectorProduct } from '../plugin/director';
-import { mixedPopulation } from '../population/mixedRoster';
-import { installWakeBoss } from '../boss/nativeWake';
-import { installNativeQuestChannels } from './nativeInputs';
-import { ChapterClock } from './chapterClock';
+import type { DirectorScriptStageLane, readDirectorProduct } from '../../../../src/game/plugin/director';
+import { mixedPopulation } from '../../../../src/game/population/mixedRoster';
+import { installWakeBoss } from '../../../../src/game/boss/nativeWake';
+import { installNativeQuestChannels } from '../../../../src/game/quest/nativeInputs';
+import { ChapterClock } from '../../../../src/game/quest/chapterClock';
 
 const finite = v.pipe(v.number(), v.finite());
 const chapterName = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
