@@ -1,4 +1,10 @@
 import {expect, test} from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Reproduce the worker cwd in a fresh Node process.
+import {execFileSync} from 'node:child_process';
+// oxlint-disable-next-line import/no-nodejs-modules -- Exercise the actual Python loader in an isolated scratch fixture.
+import {mkdtempSync, mkdirSync, writeFileSync, rmSync} from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Keep the owned filesystem fixture under repository scratch.
+import {join} from 'node:path';
 import {JSC_GC_SETTINGS, prepareJscGcEnvironment} from '../scripts/frame-floor-jsc-gc.mjs';
 import {validateFrameFloorArgs} from '../scripts/frame-floor-args.mjs';
 
@@ -69,4 +75,30 @@ test('failed XPC option dump setup clears all three attempted settings', async (
   }})).rejects.toBe(failure);
   expect(f.values.size).toBe(0);
   expect(f.calls.slice(-3)).toEqual(['unset __XPC_JSC_dumpOptions','unset __XPC_JSC_useOSLog','unset __XPC_JSC_logGC']);
+});
+
+test('WebContent identity loads the real watchdog from a worker scratch cwd', () => {
+  const root=join(import.meta.dirname,'..');
+  const scratch=mkdtempSync(join(root,'tmp','jsc-path-'));
+  try {
+    const bin=join(scratch,'bin');mkdirSync(bin);
+    // Run the real Python loader, replacing only native process queries.
+    writeFileSync(join(bin,'python3'),`#!/usr/bin/python3
+import sys,runpy
+original=runpy.run_path
+def load(path):
+    module=original(path)
+    assert callable(module['simulator_processes'])
+    return {'command':lambda args:'123','simulator_processes':lambda *args:{456:{}}}
+runpy.run_path=load
+code=sys.argv[2]
+sys.argv=['-c',*sys.argv[3:]]
+exec(code)
+`,{mode:0o755});
+    const module=new URL('../scripts/frame-floor-jsc-gc.mjs',import.meta.url).href;
+    const code=`const m=await import(${JSON.stringify(module)});console.log(JSON.stringify(m.jscGcProcessIds('fixture')));`;
+    expect(execFileSync(process.execPath,['--input-type=module','-e',code],{
+      cwd:scratch,encoding:'utf8',env:{...process.env,PATH:`${bin}:${process.env['PATH'] ?? ''}`},
+    })).toBe('[456]\n');
+  } finally { rmSync(scratch,{recursive:true,force:true}); }
 });

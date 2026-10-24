@@ -3,6 +3,7 @@
 import {spawn, spawnSync} from 'node:child_process';
 import {openSync, closeSync, writeSync, existsSync, writeFileSync} from 'node:fs';
 import {join} from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {setTimeout as sleep} from 'node:timers/promises';
 
 export const JSC_GC_SETTINGS = Object.freeze({
@@ -99,10 +100,11 @@ export async function startJscGcLog(directory, device) {
  */
 export function jscGcProcessIds(device) {
   const code = String.raw`import json,runpy,sys
-m=runpy.run_path('scripts/ios-memory-watchdog.py')
+m=runpy.run_path(sys.argv[2])
 manager=int(m['command'](['xcrun','simctl','spawn',sys.argv[1],'launchctl','managerpid']))
 print(json.dumps(sorted(m['simulator_processes'](manager,'com.apple.WebKit.WebContent'))))`;
-  const result = spawnSync('python3', ['-c', code, device], {encoding: 'utf8'});
+  const watchdog = fileURLToPath(new URL('ios-memory-watchdog.py', import.meta.url));
+  const result = spawnSync('python3', ['-c', code, device, watchdog], {encoding: 'utf8'});
   if (result.status !== 0) throw new Error(`Simulator WebContent identities failed: ${result.stderr}`);
   const pids = JSON.parse(result.stdout);
   if (!Array.isArray(pids) || pids.length === 0 || pids.some(pid => !Number.isSafeInteger(pid) || pid < 1)) throw new Error('No readable Simulator WebContent identity');
