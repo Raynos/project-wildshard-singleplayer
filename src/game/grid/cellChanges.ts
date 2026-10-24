@@ -42,30 +42,32 @@ export function onCellField(target: object, key: string, changed: () => void): (
   };
 }
 
-interface MethodSlot { readonly prior: PropertyDescriptor | undefined; readonly call: (...args: unknown[]) => unknown; readonly listeners: Set<(...args: readonly unknown[]) => void> }
+interface MethodSlot { readonly key: string; readonly prior: PropertyDescriptor | undefined; readonly call: (...args: unknown[]) => unknown; readonly listeners: Set<(...args: readonly unknown[]) => void> }
 const methods = new WeakMap<object, Map<string, MethodSlot>>();
-/** Explicit matrix/collection mutations emit once after their native operation completes. */
+/** Explicit matrix/collection mutations emit once after their native operation completes.
+ * One cleanup restores the registered slots in order, without a closure per method. */
 export function onCellMethods(target: object, keys: readonly string[], changed: (...args: readonly unknown[]) => void): () => void {
   let entries = methods.get(target);
   if (entries === undefined) { entries = new Map(); methods.set(target, entries); }
-  const undo: (() => void)[] = [];
+  const held: MethodSlot[] = [];
   for (const key of keys) {
     let slot = entries.get(key);
     if (slot === undefined) {
       const original: unknown = Reflect.get(target, key);
       if (typeof original !== 'function') continue;
       const listeners = new Set<(...args: readonly unknown[]) => void>();
-      slot = { prior: Object.getOwnPropertyDescriptor(target, key), listeners,
+      slot = { key, prior: Object.getOwnPropertyDescriptor(target, key), listeners,
         call: (...args: unknown[]): unknown => { const value: unknown = Reflect.apply(original, target, args); for (const notify of listeners) notify(...args); return value; } };
       Object.defineProperty(target, key, { configurable: true, writable: true, value: slot.call });
       entries.set(key, slot);
     }
-    const held = slot; held.listeners.add(changed);
-    undo.push(() => {
-      if (!held.listeners.delete(changed) || held.listeners.size > 0) return;
-      if (Reflect.get(target, key) === held.call) { if (held.prior === undefined) Reflect.deleteProperty(target, key); else Object.defineProperty(target, key, held.prior); }
-      entries.delete(key); if (entries.size === 0) methods.delete(target);
-    });
+    slot.listeners.add(changed); held.push(slot);
   }
-  return () => { for (const restore of undo) restore(); };
+  return () => {
+    for (const slot of held) {
+      if (!slot.listeners.delete(changed) || slot.listeners.size > 0) continue;
+      if (Reflect.get(target, slot.key) === slot.call) { if (slot.prior === undefined) Reflect.deleteProperty(target, slot.key); else Object.defineProperty(target, slot.key, slot.prior); }
+      entries.delete(slot.key); if (entries.size === 0) methods.delete(target);
+    }
+  };
 }
