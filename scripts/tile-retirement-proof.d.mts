@@ -1,0 +1,29 @@
+import type { FloorGridDocumentIdentity, FloorGridPlan, FloorGridState } from './frame-floor-grid.mjs';
+
+export interface RetirementBoundary {
+  readonly document: string;
+  readonly current: string | null;
+  readonly ready: boolean;
+  readonly controls: boolean;
+  readonly pending: number;
+  readonly retiring: number;
+  readonly tileGhosts: number;
+  readonly regionGhosts: number;
+  readonly inFlight: number;
+  readonly queued: number;
+  readonly x: number;
+  readonly z: number;
+  readonly process: { renderer: number; gpu: number; browser: number };
+}
+export function tileRetirementRoute(state: Pick<FloorGridState, 'home' | 'cells' | 'pitch'>): {
+  reference: { x: number; z: number }; plans: FloorGridPlan[];
+};
+export function tileRetirementTracker(): {
+  observe: (keys: readonly string[]) => void;
+  result: () => { cycles: number; byKey: Record<string, number> };
+};
+export function gradeTileRetirement(proof: {
+  baseline: RetirementBoundary; returns: readonly RetirementBoundary[]; cycles: number; errors: readonly string[];
+}): { pass: boolean; failures: string[]; baselineBytes: number; deltaBytes: number[] };
+export function readRetirementBoundary(identity: FloorGridDocumentIdentity, documentIdentity: () => FloorGridDocumentIdentity):
+  Omit<RetirementBoundary, 'process'> & { keys: string[] };
