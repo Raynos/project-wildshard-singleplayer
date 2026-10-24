@@ -67,10 +67,14 @@ export const CLOSE_PAUSE_MENU = `(${pauseMenuAction.toString()})(false)`;
 
 /** Refresh only before A, never replaying an evaluation or a begun window.
  * @param {() => Promise<unknown>} reconnect
- * @param {number} expectedOrigin
+ * @param {import('./frame-floor-pause-ablation.mjs').AblationDocument} expected
  */
-export async function refreshAblationInspector(reconnect, expectedOrigin) {
-  const origin = await reconnect();
-  if (typeof origin !== 'number' || !Number.isFinite(origin) || origin !== expectedOrigin)
+export async function refreshAblationInspector(reconnect, expected) {
+  const identity = await reconnect();
+  if (identity === null || typeof identity !== 'object' || !('token' in identity) || !('timeOrigin' in identity)
+    || identity.token !== expected.token || typeof identity.timeOrigin !== 'number' || !Number.isFinite(identity.timeOrigin))
     throw new Error('Ablation Inspector reattach changed the document');
+  // Use the existing token identity rule. Safari time-origin rounding drift is
+  // recorded rather than mistaken for navigation, as in the original driver.
+  return { token: identity.token, timeOrigin: identity.timeOrigin, originDriftMs: identity.timeOrigin - expected.timeOrigin };
 }

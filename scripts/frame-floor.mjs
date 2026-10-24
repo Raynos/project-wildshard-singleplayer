@@ -594,10 +594,10 @@ async function measureShard(driver, shard, deadline) {
         }
         if (webkitSteadyPoses.includes(`grid-${plan.name}`)) {
           if (!driver.timeline || rows.some(row => row.pose.name === `grid-${plan.name}` && row.steadyTimeline)) throw new Error('Steady Timeline requires distinct selected windows');
-          if (pauseAblation) await refreshAblationInspector(driver.refreshInspector, documentOrigin);
+          const reattach = pauseAblation ? await refreshAblationInspector(driver.refreshInspector, documentOrigin) : undefined;
           const stop = await driver.timeline.start();
           let window, steadyTimeline;
-          try { window = await driver.evaluate(pauseAblation ? ABLATION_NORMAL : STEADY_TIMELINE_WINDOW, 35000); }
+          try { window = await driver.evaluate(pauseAblation ? ABLATION_NORMAL : STEADY_TIMELINE_WINDOW, 35000); if (reattach !== undefined) window.inspectorReattach = reattach; }
           finally { steadyTimeline = await stop(); }
           const longIntervals = window.intervals.filter(([, ms]) => ms > 40);
           const file = join(webkitTimelineDir, `${encodeURIComponent(plan.name)}-steady20s.json`);
@@ -908,7 +908,7 @@ async function worker() {
           xcrun(['openurl', udid, gameUrl]);
           await connect(gameUrl);
         },
-        refreshInspector: async () => { await connect(currentUrl); return inspector.raw('performance.timeOrigin'); },
+        refreshInspector: async () => { await connect(currentUrl); return JSON.parse(await inspector.raw(`JSON.stringify((${gridFloorDocumentIdentity.toString()})())`)); },
         tapGrid: () => inspector.raw(FLOOR_GRID_TAP),
         evaluate: retryEvaluate, errors: () => retryEvaluate('window.__frameFloorErrors ?? []'), progress: () => lastRoute, unload: async () => {
           if (stopNative !== undefined) { nativeMemory = await stopNative(); stopNative = undefined; }

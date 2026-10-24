@@ -62,11 +62,22 @@ test('ablation requires exactly the Nalati settled Timeline and excludes native 
   expect(() => validateFrameFloorArgs([...args,'--native-pressure=tmp/probe'])).toThrow('Pause ablation');
 });
 
-test('one pre-A Inspector refresh preserves the same document and never retries replacement', async () => {
-  for (const origin of [123, 124, undefined]) {
+test('pre-A Inspector refresh accepts the actual route token contract and records clock drift', async () => {
+  const expected = {timeOrigin: 123, token: 'original-document'};
+  for (const delta of [0, 1, -1]) {
     let calls = 0;
-    const result = refreshAblationInspector(() => {calls++; return Promise.resolve(origin);}, 123);
-    await (origin === 123 ? expect(result).resolves.toBeUndefined() : expect(result).rejects.toThrow('changed the document'));
+    const actual = {...expected, timeOrigin: expected.timeOrigin + delta};
+    await expect(refreshAblationInspector(() => {calls++; return Promise.resolve(actual);}, expected))
+      .resolves.toEqual({...actual, originDriftMs: delta});
+    expect(calls).toBe(1);
+  }
+});
+
+test('pre-A Inspector refresh rejects a replaced or malformed identity once, without replay', async () => {
+  const expected = {timeOrigin: 123, token: 'original-document'};
+  for (const actual of [123, undefined, null, {timeOrigin: 123, token: 'new-document'}, {timeOrigin: Number.NaN, token: expected.token}]) {
+    let calls = 0;
+    await expect(refreshAblationInspector(() => {calls++; return Promise.resolve(actual);}, expected)).rejects.toThrow('changed the document');
     expect(calls).toBe(1);
   }
 });
