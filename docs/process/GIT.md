@@ -50,7 +50,9 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   refuse as TS6307, including type imports. Collection/runner failures, missing
   prerequisites, cold types and deadline exhaustion print **DEFERRED TO CI**
   and land; warm working-tree type diagnostics also defer because they may
-  include peer WIP. Tool failure never becomes a passing proof. Each attempt
+  include peer WIP. Loose tests absent from the candidate index are excluded
+  from local related discovery; newly staged failing tests still refuse.
+  Tool failure never becomes a passing proof. Each attempt
   prints staged path count, collected suite count when available, and wall time.
   No mirror, generator, build or full suite runs at commit.
   Fix a refusal and retry. Message conventions and the existing lock/legacy policies remain.

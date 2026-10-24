@@ -2387,8 +2387,8 @@ stack capacity, ownership identities, save fields, input, cues and presentation.
 `AmmoPouch` in `@wildshard/game/loadout/pouch` stashes the selected live stack,
 skips empty special stacks and preserves the fallback refill rule. Native weapon
 families retain their fire/reload clocks and live ammunition.
-`NativeHeldAmmunition` in `@wildshard/game/loadout/nativeAmmunition` adapts the
-same pouch to native continuations. Its constructor takes the native `SimHost`,
+`NativeHeldAmmunition` in `test/fixtures/native-hosts/loadout/nativeAmmunition` adapts the
+same pouch to native proof continuations. Its constructor takes the native `SimHost`,
 loadout rows and item rows. `readNativeRangedItem` in `game/plugin/nativeItems`
 resolves platform-installed owners by declared slot. Bow capacity and the combat
 frame come from those native declarations. The held host resolves its declared
@@ -3834,7 +3834,7 @@ aliases. `bossEncounterPresentation` admits the reward card and music rows.
 `NativeBossBindingSchema` admits concrete population/inventory service ids and
 a weak-point joint/offset. Unknown keys and callback bags are rejected.
 
-`@wildshard/game/boss/native` takes the existing `SimHost`, encounter/profile
+`test/fixtures/native-hosts/boss/native` takes the existing `SimHost`, encounter/profile
 rows, a species program and native binding rows. It resolves the population by
 its installed step id, the existing admitted decision authority and the retained
 actor's `NativeCreaturePose`. No shard callback, subclass or reflection binding
@@ -3852,7 +3852,7 @@ and an arena center. `update` observes plain player/body/flag data;
 `onPlayerDeath` take observations/positions, never hooks. Restoration is silent.
 `@wildshard/game/boss/presentation` is client-only: `presentWakeBoss` applies
 effect rows to the existing `BossBar` and `Events`, without renderer hooks.
-`@wildshard/game/boss/nativeWake` resolves the existing body's declared kind on
+`test/fixtures/native-hosts/boss/nativeWake` resolves the existing body's declared kind on
 its actual `SimHost`; materialization stays with the existing AS director and
 roster command. It binds death flags, attempts and the exact save envelope.
 
@@ -3863,7 +3863,7 @@ API remains callback scaffolding (HOST-BAR 5/6), without new platform credit.
 `snapshot`/`restore` retain the strike clock and authored tell duration; a client
 adapter owns its decal and preserves the pre-transition drawing frame.
 
-Private `game/boss/roaming` and `game/boss/continuation` keep the seeded streams
+Private `test/fixtures/native-hosts/boss/roaming` and `test/fixtures/native-hosts/boss/continuation` keep the seeded streams
 and ordered wire aliases. They are not shard extension APIs. The older callback-driven
 `game/shardfile/phasedBossRoaming` and `game/plugin/bossPhase` remain migration
 scaffolding and receive no new approved-feature credit in this slice. The
@@ -7238,8 +7238,8 @@ prompt; the entry resolves its feet and counter height through its own
 placement and floor policy. Inventory, panel creation, opening, camera,
 walk-away closure and save ownership stay with the existing trader host.
 
-`game/quest/nativeComposition.installNativeQuestComposition(host, ports)`
-runs Pine and Driftwood through one native frame, command graph and saved
+`test/fixtures/native-hosts/quest/nativeComposition.installNativeQuestComposition(host, ports)`
+runs direct Pine and Driftwood proofs through one native frame, command graph and saved
 adapter. Admitted facets select their existing chapter, services, acquisition,
 reward and physical-prop owners. Ports lend the product, table, captured
 placements and prepared mechanics; author rows supply no callbacks or shard
@@ -7261,7 +7261,7 @@ at the restored tick; migrated saves restore its clocks and staged commands.
 The authored G566 barrel watch runs at 10 Hz. Its transient watch clocks start
 fresh when migrating an old envelope; the body's identity is preserved.
 
-The renderer-free `game/quest/nativeEntry.prepareNativeQuestEntry` prepares
+The renderer-free `test/fixtures/native-hosts/quest/nativeEntry.prepareNativeQuestEntry` prepares
 the admitted table and pack for that native composition. It borrows
 the worker's existing command and ledger adapter; `install(owners)` binds the
 same declared graph once at the composition's original phase. The owners are
@@ -9233,8 +9233,10 @@ legacy/proof contracts. Native gameplay proofs call their existing typed hosts
 directly in test fixtures; their fixed test worker accepts no code URL. Borrowed
 bodies, quests, save/re-entry and complete checkpoint assertions keep running.
 The four existing `sim/headless-assembly.json` named files remain for admitted
-constants and page construction; their module strings grant no runtime loader
-or source-census credit. Native hosts remain until their separate regraph.
+constants and page construction; their executable declaration subtrees are empty and grant no runtime loader
+or source-census credit. The twelve test-only native implementations live unchanged under
+`test/fixtures/native-hosts`; their gameplay assertions remain. Shipping data
+hosts, shared legacy contracts and the four JSON constant sources stay.
 
 `@wildshard/game/proof/entryways` defines `proveEntryways`, `proveSocketLift`,
 `proveShardfileEntries` and their proof port/result types. Only native proof
@@ -10114,7 +10116,7 @@ native quest keepers retain their charge. NPC rig updates, death drops,
 model, pool, door, traversal and reward-camera assembly stay in their
 existing native owners; chapter presentation does not construct them.
 
-`game/quest/killSteps.installQuestKillSteps` runs ordered kill flags before
+`test/fixtures/native-hosts/quest/killSteps.installQuestKillSteps` runs ordered kill flags before
 existing achievement counts and retains the legacy flat save envelope.
 `game/quest/hints.installQuestHints` feeds the existing FirstHints owner.
 Both still have legacy owner callbacks and therefore score 5/6, failing
@@ -11287,8 +11289,8 @@ three figure runtime modules. The legacy snapshots still use the old wrapper.
 
 ### Chapter director publications
 
-`game/quest/nativeChapter.installNativeChapterDirector(host, director, rows)`
-is the renderer-free binding used by Pine and Driftwood. It borrows the shared
+`test/fixtures/native-hosts/quest/nativeChapter.installNativeChapterDirector(host, director, rows)`
+is the renderer-free binding retained by direct Pine and Driftwood proofs. It borrows the shared
 `ChapterClock` and native population/reward owners; the caller retains its
 original update phase and save envelope. It imports no page or board module.
 
@@ -11481,7 +11483,7 @@ world-matrix writes keep their original view phase.
 - `game/looks/forestWeather`: Client weather observations read the actual native page and quest owners.
 - `game/looks/forestGround`: Client ground cover reads admitted geometry and placement rows.
 - `game/quest/nativeInputs`: Native quest commands and typed channels share the worker-owned input service.
-- `game/quest/nativeComposition`: Native quest composition joins declared spots, stages, flags and inventory owners.
+- `test/fixtures/native-hosts/quest/nativeComposition`: Native quest composition joins declared spots, stages, flags and inventory owners.
 - `game/combat/roamingSession`: Client roaming encounter composition binds admitted combat rows to entered services.
 - `game/boss/roamingProjection`: Client boss projection binds declared fight rows to the actual native actor and damage owner.
 - `game/boss/socketRig`: Client attachment rows bind actual actor joints, native weak-point queries and specimen cards.
@@ -11490,7 +11492,7 @@ world-matrix writes keep their original view phase.
 - `game/shardfile/clientPopulationProjection`: Client population rows bind the entered animal manager to native actor projections.
 - `game/population/projection`: Client population projection reads admitted body, pose and effect identities from native owners.
 - `game/population/perchBody`: Perch body rows bind existing decision guests, numeric poses and root motion to actual actors.
-- `game/population/mixedRoster`: Native mixed roster rows own policy selection, reserved slots, return gates, poses and volley continuation.
+- `test/fixtures/native-hosts/population/mixedRoster`: Native mixed roster rows own policy selection, reserved slots, return gates, poses and volley continuation.
 
 - `game/population/nativeBake`: Strict readers bind admitted actor and physics bake rows to native population owners.
 - `game/boss/arenaRoom`: One row-selected open/closed encounter lifecycle binds native boss, reward, input and saved owners. Open-arena decisions remain in the selected AS projection; capture, native effects and inline views retain their original slots.
