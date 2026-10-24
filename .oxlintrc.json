@@ -199,6 +199,7 @@
         "wildshard/legacy-npc-imports": "error",
         "wildshard/no-level-identity": "error",
         // G143 / SF54: runtime/ reaches neither the kit nor build-time commons; paid down to 0 when the kit emptied (2026-10-08)
+        "wildshard/no-shard-runtime": "error",
         "wildshard/runtime-commons": "error",
         // G450/Z1: closed boundaries are hard errors; other paths remain shrink-only.
         "wildshard/runtime-standalone": ["error", { "closedShards": ["_template", "blender-template", "ink-cel-valley", "open-plots", "pastel-plain"] }],

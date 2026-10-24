@@ -12,6 +12,7 @@ import * as v from 'valibot';
 import { resolveSpecifier } from './check-graph.mjs';
 import { g571HostApprovals, approvedG571Host } from './g571-hosts.mjs';
 import { legacyInventory } from './legacy-shards.mjs';
+import { declarationConfigProgram } from '../lint/declaration-config.mjs';
 import { shardLineBaselines } from './decision-legacy-lines.mjs';
 import { discoverGeneration } from './generate.mjs';
 import { componentInventory, COMPONENT_SHARDS, SHARD_WAVES } from './shard-components.mjs';
@@ -177,23 +178,7 @@ export function jsonTypeContract(source, path) {
 }
 /** G392 call 36: a thin declaration entry is not custom; executable logic is. */
 export function declarationOnlyConfig(source, path = 'shard.config.ts') {
-  const program = parseSync(path, source).program;
-  const wrappers = new Set(program.body.filter(row => row.type === 'ImportDeclaration')
-    .flatMap(row => row.specifiers.filter(spec => spec.type === 'ImportSpecifier'
-      && ['parseShardfile', 'emptyShardfile'].includes(spec.imported.name ?? spec.imported.value))
-      .map(spec => spec.local.name)));
-  const declaration = node => {
-    if (node === null || typeof node !== 'object') return true;
-    if (['FunctionDeclaration', 'FunctionExpression', 'ArrowFunctionExpression', 'ClassDeclaration', 'ClassExpression',
-      'NewExpression', 'AssignmentExpression', 'UpdateExpression', 'BinaryExpression', 'LogicalExpression',
-      'ConditionalExpression', 'AwaitExpression', 'TaggedTemplateExpression', 'ImportExpression'].includes(node.type)) return false;
-    if (node.type === 'CallExpression' && !(node.callee.type === 'Identifier' && wrappers.has(node.callee.name))) return false;
-    if (node.type === 'UnaryExpression' && !(['-', '+'].includes(node.operator) && node.argument.type === 'Literal')) return false;
-    return Object.entries(node).every(([name, child]) => name === 'typeAnnotation' || name === 'typeParameters'
-      || (Array.isArray(child) ? child.every(declaration) : declaration(child)));
-  };
-  return program.body.every(row => ['ImportDeclaration', 'ExportDefaultDeclaration', 'ExportNamedDeclaration',
-    'VariableDeclaration', 'TSTypeAliasDeclaration', 'TSInterfaceDeclaration', 'EmptyStatement'].includes(row.type) && declaration(row));
+  return declarationConfigProgram(parseSync(path, source).program);
 }
 
 /** G423 extends call 36 to root manifest.ts only. Literal rows, const aliases, imported

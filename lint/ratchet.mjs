@@ -156,6 +156,8 @@ function main() {
   // X8 initializes debugRows. --init records rules and seeds the measurement allowlist only.
   const baseline = mode === 'init' ? { allow: { 'wildshard/no-raw-random-time': TIME_ALLOW }, budgets: {} } : readJSON(baselineFile);
   validate(baseline, root);
+  if ((mode === 'add' || mode === 'rebaseline') && hardRules(resolve(REPO, '.oxlintrc.json')).has(addRule))
+    throw new Error(`Refusing ${addRule}: hard rules cannot be ratcheted`);
   if (scopedPaths !== null && mode !== 'update') throw new Error('--files-from is a shrink-only update mode');
   if (guardRequirement!==undefined && (mode!=='update' || scopedPaths===null)) throw new Error('Required guard is commit-only');
   const measured = counts(root, baselineFile, scopedPaths,{guardRequirement});

@@ -57,30 +57,20 @@ test('build bridges into runtime and legacy play code are measured, including ty
   expect(violations(file, "import '../data/a'; import './other'; import '../shard.config';", 'no-runtime-in-build')).toEqual([]);
 });
 
-test('ordinary oxlint honors the recorded ceiling and refuses growth; count mode emits all sites', () => {
+test('primary runtime refuses despite stale transition ceilings', () => {
   mkdirSync(resolve(root, 'tmp'), { recursive: true });
   const scratch = mkdtempSync(resolve(root, 'tmp/shardfile-lint-test-'));
   const file = resolve(scratch, runtime), baseline = resolve(scratch, 'ratchet.json'), config = resolve(scratch, 'lint.json');
   mkdirSync(resolve(file, '..'), { recursive: true });
-  writeFileSync(baseline, JSON.stringify({ 'wildshard/runtime-standalone': { [runtime]: 1 } }));
-  const run = (source: string, count: boolean, closedShards: readonly string[] = []) => {
-    writeFileSync(file, source);
-    writeFileSync(config, JSON.stringify({ jsPlugins: [resolve(root, 'lint/wildshard-plugin.js')], categories: { correctness: 'off' }, rules: { 'wildshard/runtime-standalone': ['error', { count, closedShards }] } }));
-    return spawnSync(execPath, [resolve(root, 'node_modules/oxlint/bin/oxlint'), '-c', config, '-f', 'json', '--no-ignore', file], { cwd: root, env: { ...env, WILDSHARD_RATCHET_FILE: baseline }, encoding: 'utf8' });
-  };
+  writeFileSync(baseline, JSON.stringify({ 'wildshard/runtime-standalone': { [runtime]: 100 },
+    'wildshard/no-shard-runtime': { [runtime]: 100 } }));
+  writeFileSync(file, "import './local';");
+  writeFileSync(config, JSON.stringify({ jsPlugins: [resolve(root, 'lint/wildshard-plugin.js')],
+    categories: { correctness: 'off' }, rules: { 'wildshard/no-shard-runtime': 'error' } }));
   try {
-    const old = "import '../data/a';", grown = `${old} import '../world/b';`;
-    expect(run(old, false).status).toBe(0);
-    // A completed migration cannot regain an escape through a stale ceiling.
-    expect(run(old, false, ['sample']).status).toBe(1);
-    expect(run("import './local';", false, ['sample']).status).toBe(0);
-    const raised = run(grown, false);
-    expect(raised.status).toBe(1);
-    expect(raised.stdout).toContain('runtime-standalone');
-    const measured = run(old, true);
-    expect(measured.status).toBe(1);
-    expect(measured.stdout).toContain('runtime-standalone');
-    writeFileSync(baseline, '{}');
-    expect(run(old, false).status).toBe(1);
+    const result = spawnSync(execPath, [resolve(root, 'node_modules/oxlint/bin/oxlint'), '-c', config, '-f', 'json', '--no-ignore', file],
+      { cwd: root, env: { ...env, WILDSHARD_RATCHET_FILE: baseline }, encoding: 'utf8' });
+    expect(result.status).toBe(1);
+    expect(result.stdout).toContain('no-shard-runtime');
   } finally { rmSync(scratch, { recursive: true, force: true }); }
 });

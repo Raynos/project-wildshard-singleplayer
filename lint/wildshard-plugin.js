@@ -2,6 +2,7 @@ import { noGeneratedImportRule } from './no-generated-import.mjs';
 import { BASE64_POLICY, noBase64Rule } from './no-base64.mjs';
 import { clientPlanSchemaViolations } from './client-plan-boundary.mjs';
 import { explicitSchemaTypes } from './schema-types.mjs';
+import { declarationConfigProgram } from './declaration-config.mjs';
 // Wildshard's own oxlint rules (loaded by `jsPlugins` in .oxlintrc.json; oxlint's ESLint-compatible JS plugin API).
 //
 // wildshard/no-url-switch — Jake, 2026-09-25: "NO URL SWITCHES EVER, ALL VARIANTS IN THE DEBUG MENUS".
@@ -24,7 +25,7 @@ import { simClosure, simRoot } from './sim-closure.mjs';
 import { authoredHtmlSites } from './authored-html.mjs';
 import { runtimeCommonsClosure } from './commons-closure.mjs';
 import { runtimePerformanceViolations, frozenRuntimePerformanceViolations } from './runtime-performance.mjs';
-import { shardGameImport, shardEngineImport, generatorImportViolation, legacyNpcImport, gamePluginImportViolation } from './shard-imports.mjs';
+import { shardGameImport, shardEngineImport, generatorImportViolation, legacyNpcImport } from './shard-imports.mjs';
 import { shardfileBoundaryVisitors } from './shardfile-boundaries.mjs';
 import { hostCallbackViolations, hostPlayFile } from './host-callbacks.mjs';
 
@@ -382,12 +383,12 @@ const layerWalk = (kind) => (context) => {
     if (kind === 'layer' && own.name === 'commons' && targetPath.startsWith('src/sdk/runtime/')) report(context, node, `Commons author tools cannot import trusted runtime code: ${source}`);
     const shardLocal = /^src\/shards\/[^/]+\/(.+)$/u.exec(pathOf(context))?.[1];
     if (kind === 'layer' && shardLocal !== undefined) {
-      const runtime = shardLocal.startsWith('runtime/');
+      const runtime = legacySourcePath(pathOf(context)) !== null && shardLocal.startsWith('runtime/');
       if (runtime) {
         const commons = runtimeCommonsClosure(context.filename, source);
         if (commons !== null) report(context, node, `Runtime import closure reaches build-time commons: ${commons}`);
       }
-      if (!runtime && (/^@wildshard\/sdk\/runtime(?:\/|$)/u.test(source) || targetPath.startsWith('src/sdk/runtime/'))) report(context, node, `Trusted SDK imports belong in runtime/: ${source}`);
+      if (!runtime && (/^@wildshard\/sdk\/runtime(?:\/|$)/u.test(source) || targetPath.startsWith('src/sdk/runtime/'))) report(context, node, `Primary shards cannot import trusted SDK runtime: ${source}`);
       if (target?.name === 'commons' && !/^(?:generators|data|quests)\//u.test(shardLocal) && shardLocal !== 'shard.config.ts' && !runtime) report(context, node, `Commons packs are build-time imports: ${source}`);
     }
     if (!target) {
@@ -417,7 +418,7 @@ const layerWalk = (kind) => (context) => {
 };
 // G143: runtime/ never reaches build-time commons (SF54 retired every kit site and dissolved the kit; a hard rule since).
 const runtimeCommons = rule('Runtime cannot import build-time commons code (G143 / SF54)', (context) => {
-  if (!/^src\/shards\/[^/]+\/runtime\//u.test(pathOf(context))) return {};
+  if (legacySourcePath(pathOf(context)) === null || !/^src\/shards\/[^/]+\/runtime\//u.test(pathOf(context))) return {};
   return importsVisitor((node) => {
     const source = importPrefix(node.source);
     if (typeof source !== 'string') return;
@@ -897,13 +898,13 @@ const shardNames = rule('The game names no particular shard (E405 LAYER-PURITY)'
 // is its package.json `exports`. A re-export of a third-party module (a bundler shim) is not a barrel and passes.
 const ownModule = (source) => typeof source === 'string' && (source.startsWith('.') || source.startsWith('@wildshard/'));
 // SF54/G136: the author boundary is the SDK; existing direct game imports are shrink-only transition debt.
-const shardGameImports = rule('Shard code outside runtime imports the SDK, not the game', (context) => {
+const shardGameImports = rule('Primary shards import the authoring SDK, not the game', (context) => {
   const filename = pathOf(context);
   if (legacySourcePath(filename) !== null) return {};
   const local = /^src\/shards\/[^/]+\/(.+)$/u.exec(filename)?.[1];
-  if (local === undefined || local.startsWith('runtime/')) return {};
+  if (local === undefined) return {};
   const check = (node, source) => {
-    if (shardGameImport(context.filename, source)) report(context, node, `Author imports use @wildshard/sdk; game imports belong in runtime/: ${source}`);
+    if (shardGameImport(context.filename, source)) report(context, node, `Primary shards use SDK authoring imports, not game code: ${source}`);
   };
   return {
     ...importsVisitor(node => { check(node, importPrefix(node.source)); }),
@@ -919,7 +920,7 @@ const shardGamePlugins = rule('Trusted runtime imports only defining game plugin
     // Load the same package surface used by public-index; no second list to drift.
     exported('@wildshard/game/shard/context');
     const reason = computed && shardGameImport(context.filename, source) ? 'game plugin module must be a literal exported path'
-      : gamePluginImportViolation(context.filename, source, packageExports.get('game') ?? {});
+      : shardGameImport(context.filename, source) ? 'primary shards cannot import game plugins' : null;
     if (reason !== null) report(context, node, `G307: ${reason}: ${source}`);
   };
   return {
@@ -966,7 +967,7 @@ const shardfileBoundaryRule = name => ({
     schema: [{ type: 'object', properties: { count: { type: 'boolean' }, closedShards: { type: 'array', items: { type: 'string' }, uniqueItems: true } }, additionalProperties: false }] },
   create(context) {
     const file = pathOf(context);
-    if (legacySourcePath(file) !== null) return {};
+    if (legacySourcePath(file) !== null || name === 'runtime-standalone') return {};
     const index = context.filename.replaceAll('\\', '/').lastIndexOf('/src/');
     const root = index === -1 ? REPO : context.filename.slice(0, index);
     const slug = /^src\/shards\/([^/]+)\//u.exec(file)?.[1];
@@ -978,6 +979,24 @@ const shardfileBoundaryRule = name => ({
       if (count > limit) report(context, node, message);
     });
   },
+});
+
+// F3: hard structural boundary. No count option or debt allowance exists.
+const noShardRuntime = rule('Primary shards contain authoring and declarations only (G694 F3)', context => {
+  const file = pathOf(context), local = /^src\/shards\/[^/]+\/(.+)$/u.exec(file)?.[1];
+  if (local === undefined || legacySourcePath(file) !== null) return {};
+  const allowed = local.startsWith('generators/') || /(?:\.d|\.d\.json|\.generated)\.ts$/u.test(local);
+  return {
+    Program(node) {
+      if (local === 'shard.config.ts' ? !declarationConfigProgram(node) : !allowed)
+        report(context, node, 'Primary shard TypeScript belongs in generators/, declarations or generated output; shard.config.ts must be declaration-only');
+    },
+    ...boundaryVisitors((node, source) => {
+      if (typeof source === 'string' && (/^@wildshard\/sdk\/runtime(?:\/|$)/u.test(source)
+        || modulePath(context.filename, source).startsWith('src/sdk/runtime/')))
+        report(context, node, 'Primary shards cannot import trusted SDK runtime; emit admitted data or WASM instead');
+    }),
+  };
 });
 
 const generatorImports = rule('Generator and data imports stay on the authoring surface (DS0.3)', context => {
@@ -1100,6 +1119,7 @@ const plugin = {
     'shard-game-imports': shardGameImports,
     'shard-game-plugins': shardGamePlugins,
     'generator-imports': generatorImports,
+    'no-shard-runtime': noShardRuntime,
     'shard-engine-imports': shardEngineImports,
     'sdk-no-facade': sdkNoFacade,
     'legacy-npc-imports': legacyNpcImports,
