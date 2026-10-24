@@ -15,8 +15,9 @@ for (let i = 0; i < ALPHABET.length; i++) BASE64[ALPHABET.codePointAt(i) ?? 0] =
 function base64Bytes(text: string): Uint8Array {
   const pad = text.endsWith('==') ? 2 : text.endsWith('=') ? 1 : 0, out = new Uint8Array(text.length / 4 * 3 - pad);
   for (let i = 0, o = 0; i < text.length; i += 4) {
-    const at = (k: number): number => BASE64[text.codePointAt(i + k) ?? 0] ?? 0;
-    const word = (at(0) << 18) | (at(1) << 12) | (at(2) << 6) | at(3);
+    const a = BASE64[text.codePointAt(i) ?? 0] ?? 0, b = BASE64[text.codePointAt(i + 1) ?? 0] ?? 0;
+    const c = BASE64[text.codePointAt(i + 2) ?? 0] ?? 0, d = BASE64[text.codePointAt(i + 3) ?? 0] ?? 0;
+    const word = (a << 18) | (b << 12) | (c << 6) | d;
     out[o++] = word >> 16;
     if (o < out.length) out[o++] = (word >> 8) & 255;
     if (o < out.length) out[o++] = word & 255;

@@ -33,6 +33,48 @@ const mesh3 = (node: Object3D): node is Mesh => node instanceof Mesh;
 const points3 = (node: Object3D | undefined): node is Points => node instanceof Points;
 const drawMeshes = (root: Object3D): Mesh[] => { const result: Mesh[] = []; root.traverse(node => { if (mesh3(node)) result.push(node); }); return result; };
 
+function byteFixture(bytes: string, storage = 'u8') {
+  return { version: 1, buffers: [{ id: 'positions', storage: 'f32', bytes: 'AAAAAAAAAAAAAAAA' }, { id: 'samples', storage, bytes }],
+    attributes: [{ id: 'position', buffer: 'positions', size: 3 }, { id: 'sample', buffer: 'samples', size: 1 }],
+    geometries: [{ id: 'g', attributes: { position: 'position', sample: 'sample' } }],
+    draws: [{ id: 'd', draw: { kind: 'points', geometry: 'g' } }] };
+}
+
+test('scene decoding retains every byte, padding length and typed storage bit', () => {
+  const all = 'AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0+P0BBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWltcXV5fYGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fn+AgYKDhIWGh4iJiouMjY6PkJGSk5SVlpeYmZqbnJ2en6ChoqOkpaanqKmqq6ytrq+wsbKztLW2t7i5uru8vb6/wMHCw8TFxsfIycrLzM3Oz9DR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/w==';
+  const cases = [
+    { storage: 'u8', text: '', bytes: new Uint8Array() },
+    { storage: 'u8', text: 'AA==', bytes: new Uint8Array([0]) },
+    { storage: 'u8', text: 'AAE=', bytes: new Uint8Array([0, 1]) },
+    { storage: 'u8', text: 'AAEC', bytes: new Uint8Array([0, 1, 2]) },
+    { storage: 'u8', text: all, bytes: Uint8Array.from({ length: 256 }, (_, i) => i) },
+    { storage: 'u8', text: all.slice(0, -4).repeat(64), bytes: Uint8Array.from({ length: 255 * 64 }, (_, i) => i % 255) },
+    { storage: 'u16', text: 'AAABAP8AAAH//zQS', bytes: new Uint8Array(new Uint16Array([0, 1, 255, 256, 65535, 0x1234]).buffer) },
+    { storage: 'f32', text: 'AAAAAAAAAIAAAIA/AACAvwEAAAA=', bytes: new Uint8Array(new Float32Array([0, -0, 1, -1, 2 ** -149]).buffer) },
+  ];
+  const material = new MeshBasicMaterial();
+  try {
+    for (const row of cases) {
+      const scope = new Scope('scene-byte-parity');
+      try {
+        const input = byteFixture(row.text, row.storage);
+        expect(() => admitSceneBuffers(input)).not.toThrow();
+        const group = createSceneBuffers(input, material, scope), points = group.children[0];
+        if (!points3(points)) throw new Error('Missing decoded Points');
+        expect(Buffer.compare(raw(points.geometry.getAttribute('sample')), row.bytes)).toBe(0);
+      } finally { scope.dispose(); }
+    }
+  } finally { material.dispose(); }
+});
+
+test('scene decode keeps malformed, misaligned and nonfinite storage refused', () => {
+  for (const text of ['AAA', 'AA?=', 'AAé=', 'A=AA', 'AA\n=']) {
+    expect(() => admitSceneBuffers(byteFixture(text))).toThrow('Malformed scene buffer encoding');
+  }
+  for (const storage of ['u16', 'f32']) expect(() => admitSceneBuffers(byteFixture('AA==', storage))).toThrow('Misaligned scene buffer storage');
+  expect(() => admitSceneBuffers(byteFixture('AACAfw==', 'f32'))).toThrow('Nonfinite scene buffer');
+});
+
 test('Sky native meadow retains every byte, shared attribute, count, LOD and transform', () => {
   const row = skyMeadowScene(), bytes = unzlibSync(bakeMeadowBlades()), material = new MeshBasicMaterial();
   for (const blades of [1600, 3199, 3200, 4000]) {
