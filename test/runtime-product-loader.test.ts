@@ -138,6 +138,32 @@ test('admission hashes an asset off the page where it can, on the page when that
   await expect(admitProduct(f.index, { ...f.options, hashOwned: wrong })).rejects.toThrow('hash mismatch');
 });
 
+test('worker-verified custom sections retain schema validation and named pending reads', async () => {
+  const f = fixture(), started: string[] = [];
+  let release = (): void => { throw new Error('Missing section gate'); };
+  const blocked = new Promise<void>(resolve => { release = resolve; });
+  const options: ProductOptions = { ...f.options, transport: async (url, address, cap) => {
+    const path = url.slice(f.options.base.length), wire = f.wires.get(path);
+    if (wire === undefined) throw new Error('Missing section transport');
+    started.push(path); await blocked;
+    if (wire.length !== cap || hashImmutableBytes(wire) !== address) throw new Error('Section integrity');
+    return { bytes: new Uint8Array(wire), cached: false, stored: true };
+  } };
+  const pending = readProductDescriptor(options);
+  try {
+    await vi.waitFor(() => { expect(started).toHaveLength(f.index.sections.length + f.index.schemas.length); });
+    expect(bootWaits().some(row => row.label === 'Read sections/custom/facts.json' && row.kind === 'file')).toBe(true);
+  } finally { release(); }
+  await expect(pending).resolves.toBeDefined();
+  expect(bootWaits()).toHaveLength(0);
+  const sections = f.index.sections.map(row => {
+    if (row.name !== 'custom/facts') return row;
+    const wire = bytes({ count: 'invalid' }); f.wires.set(row.path, wire);
+    return { ...row, bytes: wire.length, hash: hashImmutableBytes(wire) };
+  });
+  await expect(admitProduct({ ...f.index, sections }, options)).rejects.toThrow('Custom section value refuses its schema');
+});
+
 test.each(['content', 'url'])('trusted %s bytes are hashed once and retain exact size refusal for admission and rereads', async kind => {
   const f = fixture(); trust(f.receipt);
   const source = await readProductDescriptor(f.options), held = new Uint8Array(f.blob);

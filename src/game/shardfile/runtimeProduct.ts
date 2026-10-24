@@ -74,14 +74,15 @@ export function browserShardfileOptions(base: string, firstParty = false): Produ
   // blobs into the content cache; the cache's worker does all of it and hands the page the verified body.
   const content = typeof caches === 'undefined' ? undefined : browserContentStore(caches);
   const transport = content instanceof ContentCacheWorker ? async (url: string, hash: string, bytes: number) => {
-    const sent = await content.fetchVerified(new URL(url, base).href, hash, bytes, { reply: 'bytes', urlCache: indexed !== undefined });
+    const path = new URL(url, base);
+    const sent = await waitFor(`Verify ${path.pathname}`, content.fetchVerified(path.href, hash, bytes, { reply: 'bytes', urlCache: indexed !== undefined }), 'worker');
     return sent === null || sent.fetched === null ? null : { bytes: sent.fetched, cached: sent.cached, stored: sent.stored };
   } : undefined;
   return { base, firstParty, tier: TIER, quality, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: browserContentHash, hashOwned: hashOwnedBytes,
     fetch: url => waitFor(`Read ${new URL(url, base).pathname}`, (async () => {
       if (indexed !== undefined && new URL(url, base).pathname.endsWith('/shard.json')) {
         const held = await cachedTransport(caches, url, limits.sourceBytes, browserContentHash, hash => indexed.has(hash));
-        if (held !== null) { recordCachedDownload(held.hash, held.bytes.length, url); return new Response(Uint8Array.from(held.bytes)); }
+        if (held !== null) { recordCachedDownload(held.hash, held.bytes.length, url); return new Response(new Uint8Array(held.bytes)); }
       }
       return fetch(url);
     })(), 'file'),

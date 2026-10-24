@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { encodeCanonicalJson as canonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { OUTPUT_SECTIONS, outputSectionPayloads, parseOutputIndex, type OutputIndex } from '../src/format/outputIndex';
@@ -299,6 +299,47 @@ test('every section request starts before a slow first response completes', asyn
   try { await Promise.resolve(); expect(started).toHaveLength(index.sections.length); }
   finally { gate.release?.(); }
   await expect(pending).resolves.toBeDefined();
+});
+
+test.each(['network', 'cache', 'quota'] as const)('verified %s sections avoid page hashing and duplicate writes', async mode => {
+  const f = fixture(), store = cacheStore(), pageHash = vi.fn(hash), fetch = vi.fn(options(f.wires).fetch);
+  const checked = vi.fn(async (url: string, expected: string, maximum: number) => {
+    const wire = f.wires.get(url.slice(base.length));
+    if (wire === undefined) throw new Error('Missing verified section');
+    expect(wire.length).toBe(maximum); expect(hashImmutableBytes(wire)).toBe(expected);
+    await Promise.resolve();
+    if (mode !== 'quota') store.bytes.set(expected, new Uint8Array(wire));
+    return { bytes: new Uint8Array(wire), cached: false, stored: mode !== 'quota' };
+  });
+  if (mode === 'cache') for (const section of f.index.sections) {
+    const wire = f.wires.get(section.path); if (wire === undefined) throw new Error('Missing cache section');
+    store.bytes.set(section.hash, wire);
+  }
+  const raw = vi.fn(store.cache.asset), put = vi.fn(store.cache.putAsset);
+  const opts: ProductOptions = { ...options(f.wires), hash: pageHash, fetch, transport: checked,
+    cache: { ...store.cache, asset: raw, putAsset: put,
+      verifiedAsset: address => Promise.resolve(store.bytes.get(address) ?? null) } };
+  const source = await readProductDescriptor(opts);
+  expect(source).toEqual(f.source);
+  const sectionHashes = new Set(f.index.sections.map(section => section.hash));
+  expect(pageHash.mock.calls.filter(([wire]) => sectionHashes.has(hashImmutableBytes(wire)))).toHaveLength(0);
+  expect(fetch.mock.calls.map(([url]) => url.slice(base.length))).toEqual(['shard.json']);
+  expect(checked).toHaveBeenCalledTimes(mode === 'cache' ? 0 : f.index.sections.length);
+  expect(raw).not.toHaveBeenCalled(); expect(put).not.toHaveBeenCalled();
+  expect(outputDescriptor(source)?.cached).toBe(mode !== 'quota');
+  await admitProduct(source, opts);
+  expect(store.product() === null).toBe(mode === 'quota');
+});
+
+test('verified section transport retains size refusals, failure and ordinary hash fallback', async () => {
+  const f = fixture(), opts = options(f.wires);
+  await expect(readProductDescriptor({ ...opts, transport: () => Promise.resolve({ bytes: new Uint8Array(), cached: false, stored: true }) }))
+    .rejects.toThrow('section hash or size mismatch');
+  await expect(readProductDescriptor({ ...opts, transport: () => Promise.reject(new Error('Worker hash mismatch')) }))
+    .rejects.toThrow('Worker hash mismatch');
+  const first = f.index.sections[0]; if (first === undefined) throw new Error('Missing section');
+  f.wires.set(first.path, new Uint8Array(first.bytes));
+  await expect(readProductDescriptor({ ...opts, transport: () => Promise.resolve(null) })).rejects.toThrow('section hash or size mismatch');
 });
 
 test('cold sections build before disk writes while offline publication waits for durability', async () => {

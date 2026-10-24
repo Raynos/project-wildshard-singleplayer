@@ -188,6 +188,16 @@ function resolveDescriptor(input: unknown, options: ProductOptions, lineage = fa
     declare: (path, bytes) => { declareDownloadFile(new URL(path, base).href, bytes); },
     cacheHit: (path, hash, bytes) => { recordCachedDownload(hash, bytes, new URL(path, base).href); },
     read: async (path, cap) => boundedResponse(await options.fetch(new URL(path, base).href), cap),
+    ...(cache?.verifiedAsset === undefined && options.transport === undefined ? {} : {
+      verified: (hash: string, path: string, cap: number) => waitFor(`Read ${path}`, (async () => {
+        const bytes = await cache?.verifiedAsset?.(hash);
+        if (bytes !== null && bytes !== undefined) return { bytes, cached: true, stored: true };
+        if (options.offline) return null;
+        const sent = await options.transport?.(new URL(path, base).href, hash, cap) ?? null;
+        if (sent !== null && !sent.cached) noteDownloadRead(sent.bytes.length);
+        return sent;
+      })(), 'file'),
+    }),
     ...(cache === undefined && options.cachedResponse === undefined ? {} : {
       cached: async (hash: string, path: string, maximum: number) => await cache?.asset(base, hash)
         ?? await options.cachedResponse?.(new URL(path, base).href, hash, maximum) ?? null,

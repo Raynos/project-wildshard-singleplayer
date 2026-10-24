@@ -10,6 +10,9 @@ export interface OutputDescriptorReader {
   declare?: (path: string, bytes: number) => void;
   read: (path: string, maximum: number) => Promise<Uint8Array>;
   hash: (bytes: Uint8Array) => Promise<string>;
+  /** Trusted transport returns owned bytes already checked against this exact hash and size.
+   * `stored` proves durable content-cache persistence, not merely a scheduled write. */
+  verified?: (hash: string, path: string, maximum: number) => Promise<{ bytes: Uint8Array; cached: boolean; stored: boolean } | null>;
   cached?: (hash: string, path: string, maximum: number) => Promise<Uint8Array | null>;
   /** A verified cache hit also completes its named section/schema path. */
   cacheHit?: (path: string, hash: string, bytes: number) => void;
@@ -96,12 +99,18 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
   // the much larger blob stage starts. A historical lineage never reads blobs.
   if (reader.lineage !== true) for (const file of index.files) reader.declare?.(outputBlobPath(file), file.compressed);
   const sections = new Map<string, unknown>();
-  let cached = reader.cached !== undefined;
+  let cached = reader.cached !== undefined || reader.verified !== undefined;
   const stores: Promise<void>[] = [];
   let pendingStores = 0;
   const load = async (section: OutputIndex['sections'][number]): Promise<readonly [string, unknown]> => {
-    let bytes = await reader.cached?.(section.hash, section.path, section.bytes);
-    if (bytes === null || bytes === undefined) {
+    const verified = reader.verified === undefined ? null : await reader.verified(section.hash, section.path, section.bytes);
+    let bytes = verified?.bytes ?? await reader.cached?.(section.hash, section.path, section.bytes);
+    if (verified !== null && verified !== undefined) {
+      bytes = verified.bytes;
+      if (bytes.length !== section.bytes) throw new Error('Shardfile section hash or size mismatch');
+      if (!verified.stored) cached = false;
+      if (verified.cached) reader.cacheHit?.(section.path, section.hash, verified.bytes.length);
+    } else if (bytes === null || bytes === undefined) {
       if (reader.offline) throw new IncompleteOutputCacheError();
       bytes = await reader.read(section.path, section.bytes);
       if (bytes.length !== section.bytes || await reader.hash(bytes) !== section.hash) throw new Error('Shardfile section hash or size mismatch');

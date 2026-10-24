@@ -5185,6 +5185,13 @@ transport, with the existing idle retirement and unsupported-worker fallback.
 It installs nothing on module import.
 `OutputDescriptorReader.cached(hash, path, maximum)` receives the declared
 path and bound so the same checks cover split custom schemas and sections.
+`OutputDescriptorReader.verified(hash, path, maximum)` is a trusted host
+transport for owned bytes already checked against that hash and size. It
+also reports cache origin and completed durable persistence. Sections and
+schemas use the same worker verification as blobs, without a second page
+digest or cache write; the page still checks exact size, decodes JSON and
+validates custom schemas. An unavailable worker retains ordinary verified
+reads. Unstored online bytes never prove an offline product is complete.
 Verified cache bytes are reported separately from network transport; this
 does not change update freshness, identity checks or complete admission.
 
