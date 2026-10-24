@@ -199,6 +199,7 @@ export class CatalogueScore implements ScoreSource {
   protected readonly music: Pick<Music,'genre'|'state'|'refreshScore'|'combat'|'sting'>;
   protected profile: AudioMusicProfile;
   protected scope: Scope | undefined;
+  private retired = false;
   readonly stings = new Map<StemSting,AudioBuffer>();
   readonly failures = new Set<string>();
   sceneName = 'day';
@@ -211,7 +212,8 @@ export class CatalogueScore implements ScoreSource {
   private genre: MusicStyle | undefined;
   constructor(music:Pick<Music,'genre'|'state'|'refreshScore'|'combat'|'sting'>,profile:AudioMusicProfile,scope?:Scope) {
     if (profile.catalogue === undefined) throw new Error('Missing declared score catalogue');
-    this.music=music; this.profile=profile; this.scope=scope;
+    this.music=music; this.profile=profile;
+    if(scope!==undefined)this.attach(scope);
   }
   get base():string { return this.profile.base; }
   get slots():readonly string[] { return this.profile.slots; }
@@ -234,6 +236,7 @@ export class CatalogueScore implements ScoreSource {
     this.useBank(bank);
   }
   want(_playing:string|undefined):SlotAudio|undefined {
+    if(this.retired)return undefined;
     const genre=this.music.genre;
     if(this.profile.catalogue?.mode==='bank') {
       if(genre==='synth'||this.scope?.disposed)return undefined;
@@ -252,13 +255,13 @@ export class CatalogueScore implements ScoreSource {
     try {
       const [{decodeStyle},{cachedBytes,decodeBytes}]=await Promise.all([import('./Stems'),import('./preload')]);
       const bank=await decodeStyle(genre,this.profile.bootSlots,cachedBytes,decodeBytes);
-      if(!this.scope?.disposed&&this.music.genre===genre)this.useStyleBank(bank);
+      if(!this.retired&&!this.scope?.disposed&&this.music.genre===genre)this.useStyleBank(bank);
     } catch { this.failures.add(genre); }
-    finally {if(this.bankDecoding===genre)this.bankDecoding=undefined;if(!this.scope?.disposed)this.music.refreshScore();}
+    finally {if(this.bankDecoding===genre)this.bankDecoding=undefined;if(!this.retired&&!this.scope?.disposed)this.music.refreshScore();}
   }
   private prepare(genre:MusicStyle,slot:string):void {
     const key=`${genre}/${slot}`;
-    if(this.decoding.has(key)||this.failures.has(key)||this.scope?.disposed)return;
+    if(this.retired||this.decoding.has(key)||this.failures.has(key)||this.scope?.disposed)return;
     const owner=this.scope,profile=this.profile;this.decoding.add(key);
     void(async()=>{
       let bank:StyleBank|undefined;
@@ -280,6 +283,7 @@ export class CatalogueScore implements ScoreSource {
     })();
   }
   async sting(name:StemSting):Promise<AudioBuffer|undefined> {
+    if(this.retired)return undefined;
     const set=this.profile.catalogue?.stingSets[name];if(set===undefined)return this.stings.get(name);
     const genre=this.music.genre,owner=this.scope,profile=this.profile;
     const have=this.extra?.genre===genre?this.extra.stings.get(name):undefined;if(have!==undefined)return have;
@@ -292,6 +296,13 @@ export class CatalogueScore implements ScoreSource {
       return buffer;
     } catch {return undefined;}
   }
-  attach(scope:Scope):void {this.scope=scope;scope.onDispose(()=>{this.theme=undefined;this.extra=undefined;this.stings.clear();});}
+  attach(scope:Scope):void {
+    this.scope=scope;this.retired=false;
+    scope.onDispose(()=>{
+      if(this.scope!==scope)return;
+      this.scope=undefined;this.retired=true;
+      this.theme=undefined;this.extra=undefined;this.stings.clear();
+    });
+  }
   dispose():void {this.bank=undefined;this.stings.clear();this.failures.clear();}
 }
