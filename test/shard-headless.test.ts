@@ -10,6 +10,7 @@ import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
 import { productHeadlessSections } from '../src/sdk/headlessSections';
+import { createNativeProofWorker } from './fixtures/headless-worker';
 import { TEMPLATE_SOURCE as template } from './fixtures/templateSource';
 import { PASTEL_SOURCE as pastel } from './fixtures/pastelSource';
 import driftwood from '../src/shards/driftwood-isle/shard.config';
@@ -38,8 +39,12 @@ for (const [slug, _input] of cases) it.concurrent(`${slug}: boots and advances a
   const descriptor = outputDescriptor(source); if (descriptor === undefined) throw new Error('Missing admitted headless inventory');
   const assets = new Map(descriptor.index.files.map(file => [file.commons === true ? `commons:${file.hash}` : file.hash,
     Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
-  const sim = await HeadlessSimulation.create(source, assets, undefined, { deadline: 'advisory',
-    sections: productHeadlessSections(product) });
+  const nativeKinds = { 'driftwood-isle': 'driftwood', 'pine-hollow': 'pine', 'nine-dragon-stack': 'nine' } as const;
+  const sections = productHeadlessSections(product);
+  const nativeKind = !sections.has('sim/runtime-plan') && (slug === 'driftwood-isle' || slug === 'pine-hollow' || slug === 'nine-dragon-stack') ? nativeKinds[slug] : undefined;
+  const sim = nativeKind === undefined
+    ? await HeadlessSimulation.create(source, assets, undefined, { deadline: 'advisory', sections })
+    : await createNativeProofWorker(source, assets, nativeKind, undefined, sections, directory);
   try {
     const first = decodeSimSnapshot((await sim.step()).snapshot);
     for (let tick = 0; tick < 24; tick++) await sim.step([{ source: 'player', commands: [{ kind: 'player', moveX: 0.2, moveZ: 0.2, yaw: 0 }] }]);

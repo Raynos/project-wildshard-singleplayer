@@ -7,13 +7,18 @@ import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
 import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { createShardfileSim, bindShardfileSim, prepareShardfileSimRestore } from '../src/game/plugin/simulation';
-import { createTrustedHeadlessResident } from '../src/sdk/headlessRuntime';
+import { createTrustedHeadlessResident, type PrepareHeadlessRuntime } from '../src/sdk/headlessRuntime';
 import { hasDeclaredClientPage } from '../src/format/runtimeBinds';
 import { ScriptHost } from '../src/engine/script/host';
 import { productHeadlessSections } from '../src/sdk/headlessSections';
+import { createNativeProofResident } from './fixtures/headless-native';
+import { prepareHeadlessRuntime as driftwoodPlan } from './fixtures/driftwood-headless';
+import { prepareHeadlessRuntime as pinePlan, pineHeadlessAssets } from './fixtures/pine-headless';
+import { prepareHeadlessRuntime as ninePlan } from './fixtures/nine-headless';
 
 const shards = ['_template', 'blender-template', 'ink-cel-valley', 'pastel-plain', 'driftwood-isle', 'pine-hollow', 'nalati-grasslands',
   'nine-dragon-stack', 'sunscar-dunes', 'far-reach'] as const;
+const directPlans = new Map<string, PrepareHeadlessRuntime>([['driftwood-isle', driftwoodPlan], ['pine-hollow', pinePlan], ['nine-dragon-stack', ninePlan]]);
 
 // G498: eviction, then return through the actual native installer/restore path.
 // All ten live products are tested; sealed legacy products are never grid destinations.
@@ -26,10 +31,11 @@ for (const slug of shards) test(`${slug}: evict and re-enter with kit, held item
     Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   const trusted = product.has('sim/runtime-plan');
-  const preparation = { shard, assets, rapier, product };
+  const preparation = { shard, assets: slug === 'pine-hollow' ? pineHeadlessAssets(assets) : assets, rapier, product };
+  const direct = trusted ? undefined : directPlans.get(slug);
   const sections = productHeadlessSections(product);
   const questPorts = { fact: () => undefined, coins: () => undefined };
-  const first = trusted ? await createTrustedHeadlessResident(preparation)
+  const first = direct !== undefined ? await createNativeProofResident(preparation, direct) : trusted ? await createTrustedHeadlessResident(preparation)
     : createShardfileSim(shard, assets, { rapier, sections, quest: questPorts });
   let saved;
   try {
@@ -55,7 +61,7 @@ for (const slug of shards) test(`${slug}: evict and re-enter with kit, held item
   } finally { first.dispose(); }
   // Nothing from the old native world survives; a fresh installer must recreate
   // its full adapter kit before strict restore accepts the held/quest state.
-  const again = trusted ? await createTrustedHeadlessResident(preparation, saved)
+  const again = direct !== undefined ? await createNativeProofResident(preparation, direct, saved) : trusted ? await createTrustedHeadlessResident(preparation, saved)
     : { host: restoreSimHost(first.host.level, { rapier }, saved,
       host => { bindShardfileSim(host, shard, assets, { rapier, sections, quest: questPorts, restoring: true }); }), dispose() { this.host.dispose(); } };
   try {

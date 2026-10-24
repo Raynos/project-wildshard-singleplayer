@@ -1,4 +1,6 @@
 import type { InferOutput } from 'valibot';
+// oxlint-disable-next-line import/no-nodejs-modules -- The direct native proof lends the original committed terrain/nav inputs, as its recorder does.
+import { readFileSync } from 'node:fs';
 import TERRAIN from '../../src/shards/pine-hollow/data/terrainBindings.json' with {type:'json'};
 import ENTRIES from '../../src/shards/pine-hollow/data/entryWalk.json' with {type:'json'};
 import type {PinePhysicsSchema} from '../../src/shards/pine-hollow/generators/sections';
@@ -36,6 +38,12 @@ import { readEliteFeature } from '@wildshard/game/quest/eliteFeature';
 import { trustedLevel } from '../../src/game/plugin/simulation';
 import type { PrepareHeadlessRuntime } from '../../src/sdk/headlessRuntime';
 import { need, readJson, fresh, installCombatMotion, coalesce, prepareReturns } from './headless-plan';
+/** Explicit proof-only inputs outside the product's hashed runtime inventory. */
+export function pineHeadlessAssets(assets: ReadonlyMap<string, Uint8Array>): Map<string, Uint8Array> {
+  const supplied = new Map(assets);
+  for (const file of [TERRAIN.terrain, TERRAIN.navmesh]) supplied.set(file, Uint8Array.from(readFileSync(file)));
+  return supplied;
+}
 /** Direct calls preserve the Pine gameplay recorder without executable JSON selectors. */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async preparation => {
 const { product, assets, rapier } = preparation, shard = product.shardfile;
