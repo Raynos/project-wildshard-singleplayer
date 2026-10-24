@@ -981,15 +981,23 @@ const shardfileBoundaryRule = name => ({
   },
 });
 
+// Blender target sources are offline authoring, never app runtime. Keep the
+// same exact script/source/post identities as check-model-sources; a folder
+// named blender or an unregistered sibling grants no exemption.
+const blenderTargets = JSON.parse(readFileSync(new URL('../scripts/blender/targets.json', import.meta.url), 'utf8')).targets;
+const blenderSources = new Set();
+for (const target of Object.values(blenderTargets)) for (const file of [target.script, target.post, ...(target.sources ?? [])])
+  if (typeof file === 'string' && /^src\/shards\/[^/]+\/blender\/.+\.[cm]?[jt]sx?$/u.test(file)) blenderSources.add(file);
+
 // F3: hard structural boundary. No count option or debt allowance exists.
 const noShardRuntime = rule('Primary shards contain authoring and declarations only (G694 F3)', context => {
   const file = pathOf(context), local = /^src\/shards\/[^/]+\/(.+)$/u.exec(file)?.[1];
   if (local === undefined || legacySourcePath(file) !== null) return {};
-  const allowed = local.startsWith('generators/') || /(?:\.d|\.d\.json|\.generated)\.ts$/u.test(local);
+  const allowed = local.startsWith('generators/') || blenderSources.has(file) || /(?:\.d|\.d\.json|\.generated)\.ts$/u.test(local);
   return {
     Program(node) {
       if (local === 'shard.config.ts' ? !declarationConfigProgram(node) : !allowed)
-        report(context, node, 'Primary shard TypeScript belongs in generators/, declarations or generated output; shard.config.ts must be declaration-only');
+        report(context, node, 'Primary shard runtime source is forbidden; use generators/, registered Blender sources or erased declarations; shard.config.ts must be declaration-only');
     },
     ...boundaryVisitors((node, source) => {
       if (typeof source === 'string' && (/^@wildshard\/sdk\/runtime(?:\/|$)/u.test(source)

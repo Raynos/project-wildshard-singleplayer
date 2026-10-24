@@ -20,6 +20,8 @@ test('primary authoring law refuses runtime, executable configs and runtime impo
     'sample/generators/late.ts': "export const run = () => import('@wildshard/sdk/runtime/sim');",
     'sample-legacy/runtime/index.ts': 'export default {};',
     'pine-hollow-legacy/unregistered.ts': 'export default {};',
+    'sample/blender/unregistered.mjs': 'export const author = () => 1;',
+    'sample/runtime/index.mjs': 'export const run = () => 1;',
     // Exact inventoried legacy identity keeps its original import/layout path.
     'pine-hollow-legacy/runtime/index.ts': "import { run } from '@wildshard/sdk/runtime/sim'; export default run;",
     'sample/generators/output.ts': 'export const build = () => 1;',
@@ -27,6 +29,8 @@ test('primary authoring law refuses runtime, executable configs and runtime impo
     'sample/data/row.d.ts': 'export interface Row { readonly x: number }',
     'sample/discovery.generated.ts': 'export default {};',
     'other/shard.config.ts': "import { parseShardfile as parse } from '@wildshard/sdk/shardfile'; export default parse({x:-1});",
+    'nine-dragon-stack/blender/viewmodel/rig/check-clips.mjs': 'export const author = () => 1;',
+    'driftwood-isle/blender/fp-arms/gate.mjs': 'export const author = () => 1;',
   };
   try {
     for (const [file, source] of Object.entries(files)) {
@@ -40,8 +44,14 @@ test('primary authoring law refuses runtime, executable configs and runtime impo
     const output = v.parse(v.object({ diagnostics: v.array(v.object({ filename: v.string(), code: v.string() })) }), JSON.parse(result.stdout));
     expect(result.status, result.stdout + result.stderr).toBe(1);
     expect(output.diagnostics.every(row => row.code === 'wildshard(no-shard-runtime)')).toBe(true);
-    expect(output.diagnostics.map(row => resolve(row.filename)).sort()).toEqual(Object.keys(files).slice(0, 8)
+    expect(output.diagnostics.map(row => resolve(row.filename)).sort()).toEqual(Object.keys(files).slice(0, 10)
       .map(file => resolve(root, 'src/shards', file)).sort());
+    const registered = resolve(root, 'src/shards/driftwood-isle/blender/fp-arms/gate.mjs');
+    writeFileSync(registered, "import '@wildshard/sdk/runtime/sim';");
+    const runtimeImport = spawnSync(process.execPath, [resolve('node_modules/oxlint/bin/oxlint'), '-c', config,
+      '--no-ignore', registered], { encoding: 'utf8' });
+    expect(runtimeImport.status, runtimeImport.stdout + runtimeImport.stderr).toBe(1);
+    expect(runtimeImport.stdout).toContain('cannot import trusted SDK runtime');
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
