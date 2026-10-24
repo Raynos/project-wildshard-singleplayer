@@ -163,7 +163,7 @@ export class ContentCacheWorker {
     });
   }
   private pump(): void {
-    if (this.pumping || this.failed || this.worker === undefined) return;
+    if (this.pumping || this.failed || this.worker === undefined || this.deferred.size === 0) return;
     const send = this.worker.postMessage.bind(this.worker);
     this.pumping = true;
     // Reserve one posted slot for reads so a full prefetch backlog cannot hide the worker's read bypass. Counted once a
