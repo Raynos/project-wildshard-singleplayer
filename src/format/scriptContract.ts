@@ -86,3 +86,19 @@ export function scriptAdmissionRows(sections?: ReadonlyMap<string, unknown>): Sc
   const owned = spawn.flatMap(row => row.v2 === undefined ? [] : [{ abi: 2 as const,id: `${row.step}:v2`,side: 'sim' as const,lane: 'sim' as const,module: `blobs/wasm/${row.v2.artifact.hash}.wasm`,pages: row.v2.artifact.pages,ioBytes: row.v2.artifact.ioBytes,compilerRevision: row.v2.artifact.compilerRevision,admissionRevision: row.v2.artifact.admissionRevision }]);
   return [...decisions, ...v.parse(ViewModulesSchema, sections?.get('view/modules') ?? []),...owned,...returns.filter(row=>row.abi===2)];
 }
+
+/** Fresh v1 memory is consumed only by stateful sim decisions, once per module.
+ * Validate the complete inventory first; stateless returns/spawns and v2/view
+ * modules retain their existing admission and separate memory ownership. */
+export function decisionMemoryPreparationPages(sections?: ReadonlyMap<string, unknown>): readonly number[] {
+  const inventory = scriptAdmissionRows(sections);
+  const decisions = new Set(decisionScriptsFromSections(sections).map(row => row.id));
+  const modules = new Map<string, number>();
+  for (const row of inventory) {
+    if (row.abi === 2 || !decisions.has(row.id)) continue;
+    const previous = modules.get(row.module);
+    if (previous !== undefined && previous !== row.pages) throw new Error('Conflicting decision memory pages');
+    modules.set(row.module, row.pages);
+  }
+  return [...modules.values()];
+}

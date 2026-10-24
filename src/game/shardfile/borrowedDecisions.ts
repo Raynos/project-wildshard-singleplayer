@@ -17,7 +17,7 @@ import { floorBelow } from '@wildshard/engine/physics/query';
 import { canReach } from '@wildshard/engine/ai/reach';
 import { prepareDecisionMemories } from '@wildshard/engine/script/decisionModule';
 import { waitFor } from '@wildshard/engine/boot/waits';
-import { scriptAdmissionRows } from '@wildshard/format/scriptContract';
+import { decisionMemoryPreparationPages } from '@wildshard/format/scriptContract';
 import type { BorrowedSpeciesControl, SpeciesDecisionAuthority, SpeciesDecisionObservation } from '../plugin/brain';
 
 /** Existing world services and fixed-step registration, lent by the page/native owner.
@@ -47,13 +47,13 @@ export function nativeDecisionAuthority(source: Shardfile, assets: ReadonlyMap<s
   });
   nativeAuthorities.set(host, authority); return authority;
 }
-/** The product's fixed-size sim guest memories, prepared under the shard's scope one per drawn frame. Repeated calls
- *  share one preparation, so a page that builds guests before its decision authority awaits this first: each Memory it
- *  would allocate cold is an iOS JSC full GC inside a hook, and the later preparation's copies then go unused. */
+/** Prepare the product's unique stateful v1 sim module memories under its scope,
+ * one per drawn frame. Repeated calls share one owner plan. Stateless return/spawn
+ * guests use their existing reset paths and cannot consume this fresh-v1 pool. */
 export function prepareProductDecisionMemories(ctx: ShardContext): Promise<void> {
   const descriptor = outputDescriptor(ctx.product.shardfile);
   if (descriptor === undefined) return Promise.reject(new Error('Decision memories require a verified product'));
-  return waitFor('Prepare decision Wasm memories', prepareDecisionMemories(scriptAdmissionRows(descriptor.sections).map(row => row.pages), ctx.scope), 'wasm');
+  return waitFor('Prepare decision Wasm memories', prepareDecisionMemories(decisionMemoryPreparationPages(descriptor.sections), ctx.scope), 'wasm');
 }
 
 /** Prepare flag-free species guests before the page builds its bodies. All physics, contacts and fixed ticks

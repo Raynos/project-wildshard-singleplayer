@@ -8845,9 +8845,12 @@ completed game draw; loading and Node use ordinary tasks. It runs no guest
 code. Only the owner and its descendants consume a matching allocation, once;
 unused memories leave with the owner. Invalid/changed plans and cancellation
 refuse. Constructors still admit the actual bytes and initialize their own
-module/global image at the original point. The page decision authority derives
-this inventory from `sim/scripts` and `actors/spawn-scripts` for both creature
-and encounter consumers; the v0 preparation path remains separate.
+module/global image at the original point. The page decision authority uses
+`format/scriptContract.decisionMemoryPreparationPages(sections)` to validate
+all inventory rows and prepare only unique stateful `sim/scripts` modules.
+Stateless return/spawn and v2/view guests retain their existing memory owners
+without unused fresh-v1 allocations. Repeated declarations of one module must
+agree on pages. Full byte/inventory admission and the v0 path remain separate.
 
 `fetchImage` keeps counted network reads and header-based size selection on the
 page, then decodes its Blob in one page-owned image worker with the same bitmap
