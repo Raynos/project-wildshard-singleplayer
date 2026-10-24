@@ -415,7 +415,7 @@ export class WorldAssembly {
       publishEntryOwner(scope, 'floor', stage.id, (x, z) => scenes.floorAt(stage.id, x, z));
     } else if (stage.kind === 'site') {
       const sites = this.ports.sites; if (sites === undefined) throw new Error('World assembly site needs its catalogue');
-      const site = sites.site(stage.model, stage.choice, this.ports.context, this.ports.registry);
+      const site = scope.run(() => sites.site(stage.model, stage.choice, this.ports.context, this.ports.registry));
       publishEntryOwner(scope, 'object', stage.id, site.group); publishEntryOwner(scope, 'placed', stage.id, [site.placed]);
       publishEntryOwner(scope, 'site', stage.id, site.anchors); publishEntryOwner(scope, 'floor', stage.id, site.floorHeightAt);
     } else if (stage.kind === 'entry') {
