@@ -334,7 +334,7 @@ export function prepareGroupNativeV2<A extends AnimalSim = AnimalSim>(operations
   live();
   if (operations.length > 512 || sources.length > 16) throw new Error('Native group result capacity');
   let used = false;
-  const channels = new Set<string>();
+  const channels = operations.length > 1 ? new Set<string>() : undefined;
   const group = owners.group;
   if (group !== undefined) {
     const owner = group.owner, kind = group.kind, roster = owner.members, original = roster.slice(), ports = owner.groupPorts;
@@ -342,7 +342,7 @@ export function prepareGroupNativeV2<A extends AnimalSim = AnimalSim>(operations
     before.push(() => roster.length === original.length && original.every((body,index) => roster[index] === body)
       && sources.every((source,index) => source.self.actor === null || source.self.actor === original[index]));
   }
-  const plans=new Map<A,{readonly parts:Map<number,readonly number[]>;publication?:{validate:()=>void;accept:()=>void}}>();
+  let plans:Map<A,{readonly parts:Map<number,readonly number[]>;publication?:{validate:()=>void;accept:()=>void}}>|undefined;
   const prepared = operations.map(operation => {
     const request = operation.native;
     if (request === undefined || 'channel' in request && (request.channel.length === 0 || request.channel.length > 128)
@@ -352,7 +352,7 @@ export function prepareGroupNativeV2<A extends AnimalSim = AnimalSim>(operations
     if (operation.values.length !== groupNativeWordsV2(request)) throw new Error('Native group result arity');
     const member = operation.member;
     const resultChannel = 'channel' in request ? request.channel : undefined;
-    if (resultChannel !== undefined) {
+    if (resultChannel !== undefined && channels !== undefined) {
       const channel = JSON.stringify([member?.slot ?? null, resultChannel]);
       if (channels.has(channel)) throw new Error('Duplicate native group result channel');
       channels.add(channel);
@@ -409,6 +409,7 @@ export function prepareGroupNativeV2<A extends AnimalSim = AnimalSim>(operations
       case 'locomotion-plan': {
         const body=nativeActor();
         if(group?.kind!=='herd'||!Number.isInteger(request.part)||request.part<0||request.part>7)throw new Error('Invalid native locomotion owner');
+        plans ??= new Map();
         let plan=plans.get(body);if(plan===undefined){plan={parts:new Map()};plans.set(body,plan);}
         if(plan.parts.has(request.part))throw new Error('Duplicate locomotion plan part');
         plan.parts.set(request.part,operation.values.slice(1));
@@ -805,7 +806,7 @@ export function prepareGroupNativeV2<A extends AnimalSim = AnimalSim>(operations
     }
     return { channel: resultChannel, member, invoke };
   });
-  if(plans.size>0){
+  if(plans!==undefined){
     if(group?.kind!=='herd')throw new Error('Missing locomotion group');
     const owner=group.owner,prepare:unknown=Reflect.get(owner,'prepareDrivePlan');
     if(typeof prepare!=='function')throw new Error('Missing locomotion plan owner');
@@ -826,12 +827,13 @@ export function prepareGroupNativeV2<A extends AnimalSim = AnimalSim>(operations
   validate();
   return { validate, run: () => {
     validate();used = true;
-    const result = prepared.flatMap(operation => {
+    const result: GroupStepNativeResultV2[] = [];
+    prepared.forEach(operation => {
       live();
       const value = operation.invoke();
-      if (value === undefined) return [];
+      if (value === undefined) return;
       if (!Number.isFinite(value) || operation.channel === undefined) throw new Error('Non-finite native group result');
-      return [Object.freeze({ channel: operation.channel, value, ...(operation.member === undefined ? {} : { member: operation.member }) })];
+      result.push(Object.freeze({ channel: operation.channel, value, ...(operation.member === undefined ? {} : { member: operation.member }) }));
     });
     live();return Object.freeze(result);
   } };

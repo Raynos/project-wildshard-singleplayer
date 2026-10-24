@@ -5,7 +5,7 @@ import { Scope } from '../src/engine/app/scope';
 import { Events } from '../src/engine/events/events';
 import { AggressionDirector, AggressionService } from '../src/engine/ai/director';
 import { Rng } from '../src/engine/core/rng';
-import { GroupStepV2, type GroupStepNativeOwnersV2 } from '../src/engine/script/groupStepV2';
+import { GroupStepV2, prepareGroupNativeV2, type GroupStepNativeOwnersV2, type GroupStepOperationV2 } from '../src/engine/script/groupStepV2';
 import type { V2ColumnOwners } from '../src/engine/script/observationColumnsV2';
 import { parseGroupStepV2, GroupStepV2Schema, groupStepLayoutV2 } from '../src/format/scriptGroupStepV2';
 import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
@@ -149,6 +149,28 @@ test('strict named rows reject malformed result arity, member selectors, radii a
     {id:1,words:1,member:0,native:{kind:'hearing',channel:'reply',radii:[1,2,-3,4]}},
     {id:1,words:1,member:0,native:{kind:'unknown',channel:'reply'}},
   ]) expect(() => parseGroupStepV2({...rows,actions:[action]})).toThrow();
+});
+
+test('a single native result retains full operand and channel preflight and frozen publication', () => {
+  const f = fixture();
+  const operation: GroupStepOperationV2 = { id: 1, values: [3,4], native: { kind: 'normal', channel: 'reply' } };
+  const invalid: GroupStepOperationV2[] = [
+    { ...operation, values: [3] }, { ...operation, values: [3,Number.NaN] },
+    { ...operation, native: { kind: 'normal', channel: '' } },
+    { ...operation, native: { kind: 'normal', channel: 'x'.repeat(129) } },
+  ];
+  try {
+    for (const row of invalid) expect(() => prepareGroupNativeV2([row], f.native)).toThrow();
+    expect(() => prepareGroupNativeV2([operation, { ...operation, id: 2 }], f.native)).toThrow('Duplicate native group result channel');
+    expect(f.calls).toStrictEqual([]);
+    const ready = prepareGroupNativeV2([operation], f.native);
+    ready.validate(); expect(f.calls).toStrictEqual([]);
+    const result = ready.run();
+    expect(result).toStrictEqual([{ channel: 'reply', value: .75 }]);
+    expect(Object.isFrozen(result)).toBe(true); expect(Object.isFrozen(result[0])).toBe(true);
+    expect(f.calls).toStrictEqual([['normal',3,4]]);
+    expect(() => ready.run()).toThrow('consumed');
+  } finally { f.parent.dispose(); }
 });
 
 test('retirement during a native query prevents result publication and the consumed segment cannot run twice', () => {
