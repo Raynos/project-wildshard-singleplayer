@@ -30,7 +30,7 @@ Every row is decided work (Jake's G-rows); the refs are the brief.
 | GR0 | Generators redesign: finish the generated-source ban and shrinking burn-down; preserve the existing generated-import rule | tooling-perf/generators-spike-mini-plan.md:GR0 | done (2026-10-24, sp-x1): exact output ratchet + staged/push/post-gen guards; 138 focused cases |
 | GR1 | Finish Template/Pastel source-only programs: map/boss and remaining producer calls, no job rows or generated shard-source files; preserve byte/admission parity | tooling-perf/generators-spike-mini-plan.md:GR1 | sp-x1 16:12 (in flight) |
 | GR2 | Generators redesign: app tables then per-shard build programs; converted projects bypass the legacy generator scheduler, with scoped `--shard=` support | tooling-perf/generators-spike-mini-plan.md:GR2 | done (2026-10-24, sp-x1): `326950c025` + `78681f7cf5`; 410 ready-related cases; exact generation 24 products |
-| GR-PATHS | Make check-paths green: remove stale deleted-file references and fix real fixture/layout misses; no widened allow lists; Vitest glob-cache CI repair stays with sp-x2 | generators redesign; sp-x1 181-failure census | in flight (2026-10-24, sp-x8) |
+| GR-PATHS | Make check-paths green: remove stale deleted-file references and fix real fixture/layout misses; no widened allow lists; Vitest glob-cache CI repair stays with sp-x2 | generators redesign; sp-x1 181-failure census | done (2026-10-24, sp-x8): `0228d34c52` + `ac7db8225b` + `b7f3e18243`; 181 → 0, no new allowances |
 
 **G683 Codex order (Jake, 13:20):** finish extras in this order, taking the top open Codex row of the first plan that has one:
 (1) tile streaming (shard-platform/tile-streaming-mini-plan.md), (2) loading (loading-mini-plan.md), (3) core memory
