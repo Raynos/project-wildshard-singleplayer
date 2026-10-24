@@ -1,6 +1,6 @@
 // Real mirror/lease fixture. Kept outside tmp so the G670 caller guard stays enabled.
 import {openMirror} from '../../scripts/build-mirror.mjs';
-import {existsSync,writeFileSync} from 'node:fs';
+import {existsSync,writeFileSync,renameSync} from 'node:fs';
 import {join} from 'node:path';
 import {spawnSync} from 'node:child_process';
 const args=process.argv.slice(2),root=process.env.FIXTURE_ROOT;
@@ -9,7 +9,9 @@ const mirror=openMirror(args[1],{repo:join(root,'repo'),slot:process.env.FIXTURE
 try{
   const role=process.env.ROLE;
   if(role==='preview'||role==='pool'){
-    writeFileSync(join(root,role==='preview'?'preview.locked':`pool-${process.pid}.locked`),mirror.dir);
+    // The parent treats existence as readiness; publish only the complete path.
+    const marker=join(root,role==='preview'?'preview.locked':`pool-${process.pid}.locked`),pending=`${marker}.pending`;
+    writeFileSync(pending,mirror.dir);renameSync(pending,marker);
     const until=Date.now()+12000;
     while(!existsSync(join(root,role==='preview'?'preview.go':'pool.go'))){
       if(Date.now()>until)throw new Error(`${role} timed out`);
