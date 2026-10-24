@@ -25,9 +25,10 @@ not retained data; cuts left are < 1 MiB each, so the budgets need a structural 
 **Tooling:** DW tiles: wire 12.3 → 10.8 MB look-identical;
 pick for Jake: art/driftwood-isle/round-19-tile-lod (3af5687a53) A landed / B / C; only C gets 6,4 + 2,5 under 4 MB.
 
-**For wildshard-v:** G693 done (755f9f3712, 8688e2773a, 75f7b87e96, 964ec42bd2); G694 F1 done dd52fc84ea, F2 sp-x8, F3 sp-x9,
-F4-F5 sp-x2, D1 sp-x6; LD5-LD8 NOT built (your 15:00 correction; nothing legacy landed). G681/G685 wait for Opus. Memory: no leak;
-the budget gap is code/JIT/page + post RTs (structural call). Your grep PID 45432 still at ~100 % CPU.
+**For wildshard-v:** G694 wave 1: F1 dd52fc84ea, F2 e5eb16f9f5 (legacy schema held for LD), F3 2f6210f1b0 + c7445018a4 (+8ad32dd979
+Blender fix), F4 b984db9194, F5 194a455e2f + b1b5c7a613, D2 67cd40190e, D4 2cfb0ffc52..6d46eeb66a; D3 (sp-x2) and D5-D6 (sp-x8) active,
+D1 after T9. Nothing legacy touched. GR0 c904b7a0ef; GR2 sp-x1. T9 four-leg PASS (freeze was a harness teleport); confirming on HEAD.
+Your grep PID 45432 still ~99 % CPU (2 h 53 m).
 
 **Lanes:** Claude weekly 90 %: 0 Opus (sp-o3 stopped, G605); 5 Codex + sp-x7.
 
