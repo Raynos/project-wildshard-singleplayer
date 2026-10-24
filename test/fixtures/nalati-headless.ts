@@ -1,3 +1,4 @@
+import type { SimHost } from '../../src/engine/sim';
 import type { NativeEliteKernelLoans } from '../../src/engine/ai/eliteKernels';
 import type ecology from '../../src/shards/nalati-grasslands/data/ecology.generated.json';
 import type { headlessAssembly } from '../../src/shards/nalati-grasslands/generators/nativeGroups';
@@ -105,15 +106,8 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async (preparation
             const strikeContacts = new (StrikeRunner)();
             const nativeEliteStrikes = { "swipe": (strikeFromData)(need(constants.pageElites.strikes[0], "Missing elite strikes")["strike"]), "pounce": (strikeFromData)(need(constants.pageElites.strikes[1], "Missing elite strikes")["strike"]), "bite": (strikeFromData)(need(constants.pageElites.strikes[2], "Missing elite strikes")["strike"]) };
             const eliteRuleProgram = (ReturnProgram["native"])(host, boot["admission"]);
-            const eliteRuleCodes = new (Map)([["always", { "rule": 0, "phase": false, "storm": false }], ["storm", { "rule": 1, "phase": true, "storm": true }], ["night", { "rule": 2, "phase": true, "storm": false }], ["dusk", { "rule": 3, "phase": true, "storm": false }]]);
-            const elitePhaseCodes = new (Map)([["dawn", 0], ["day", 0], ["golden", 0], ["dusk", 1], ["night", 2]]);
-            const eliteStormCodes = new (Map)([[false, 0], [true, 1]]);
-            const eliteCore = new EliteCore({ player: host.player, condition: (rule: EliteCoreRule) => {
-                    const code = need(eliteRuleCodes.get(rule), 'Missing elite rule');
-                    const result = eliteRuleProgram.project('eliteRule', { rule: code.rule, phase: code.phase ? (elitePhaseCodes.get(clock.dayPhase) ?? 0) : 0, storm: code.storm ? need(eliteStormCodes.get(env.storm), 'Missing storm code') : 0 });
-                    return result['accept'] === 1;
-                } }, {}, host.level.id, memoryElitePersistence());
-            const elites = new (NativeEliteRoster)({ "step": "nalati.elites", "version": 1, "wire": { "detached": "argDetached" }, "rows": [{ "def": constants["eliteDefs"]["aqbars"], "snapshot": "aqbars", "member": { "kind": "leopard", "variant": "aqbars", "source": "boot", "yaw": 0, "memory": { "low": 0.3 } } }, { "def": constants["eliteDefs"]["kokbori"], "snapshot": "kokbori", "member": { "kind": "kokbori", "variant": "kokbori", "source": "spawn", "yaw": 3.141592653589793 }, "pack": { "offset": [-6, 4], "variants": ["grey", "tawny", "grey", "dark", "scout"], "kind": "wolf", "idPrefix": "creature:" } }, { "def": constants["eliteDefs"]["argymaq"], "snapshot": "argymaq", "member": { "kind": "argymaq", "variant": "stallion", "source": "herd", "yaw": 0 }, "continuation": { "borrowed": { "group": 1, "role": "guard" }, "detachable": true } }], "roles": ["native", "native", "borrowed"], "kernels": [{ "id": need(constants.pageElites.profiles[0], "Missing elite profiles")["value"]["def"]["id"], "profile": { "pattern": "pouncer", "spec": need(constants.pageElites.profiles[0], "Missing elite profiles")["value"]["spec"] }, "lair": { "x": need(constants.pageElites.profiles[0], "Missing elite profiles")["value"]["def"]["lair"]["x"], "z": need(constants.pageElites.profiles[0], "Missing elite profiles")["value"]["def"]["lair"]["z"] }, "awareRadius": need(constants.pageElites.profiles[0], "Missing elite profiles")["value"]["def"]["awareR"], "contacts": [{ "amount": 14, "strike": nativeEliteStrikes["swipe"]["id"] }], "fallbackStrike": nativeEliteStrikes["pounce"]["id"], "knockdown": constants["nativeKnockdown"] }, { "id": need(constants.pageElites.profiles[1], "Missing elite profiles")["value"]["def"]["id"], "profile": { "pattern": "howler", "spec": need(constants.pageElites.profiles[1], "Missing elite profiles")["value"]["spec"] }, "lair": { "x": need(constants.pageElites.profiles[1], "Missing elite profiles")["value"]["def"]["lair"]["x"], "z": need(constants.pageElites.profiles[1], "Missing elite profiles")["value"]["def"]["lair"]["z"] }, "awareRadius": need(constants.pageElites.profiles[1], "Missing elite profiles")["value"]["def"]["awareR"], "contacts": [], "fallbackStrike": nativeEliteStrikes["bite"]["id"], "knockdown": constants["nativeKnockdown"] }], "projections": { "argymaq": { "signal": "argymaqTick", "states": { "display": 1, "charge": 2, "beaten": 3 }, "bondedState": "bonded", "brokenState": "beaten", "adoption": { "variant": "tulpar", "scale": 1.3 } } } }, { "host": host, "core": eliteCore, "bindings": bindings, "kernel": { "contacts": strikeContacts, "strikes": [nativeEliteStrikes["swipe"], nativeEliteStrikes["pounce"], nativeEliteStrikes["bite"]], "terrain": samplers, "environment": env, "ledges": bake["ledges"] }, "groups": groups });
+            const eliteCore = nalatiEliteCore(host, clock, env, eliteRuleProgram);
+            const elites = new (NativeEliteRoster)(nalatiEliteRows(constants, nativeEliteStrikes), { "host": host, "core": eliteCore, "bindings": bindings, "kernel": { "contacts": strikeContacts, "strikes": [nativeEliteStrikes["swipe"], nativeEliteStrikes["pounce"], nativeEliteStrikes["bite"]], "terrain": samplers, "environment": env, "ledges": bake["ledges"] }, "groups": groups });
             (elites["bindProjected"])(2, (ReturnProgram["native"])(host, boot["admission"]), eliteCore);
             (elites["install"])();
             const creatures = (installNativePopulationHunt)(host, Object.assign({}, { "boot": boot, "elites": bindings, "bodies": bodies, "herds": roster["herds"], "nav": nav, "stream": roster["stream"], "wildStream": roster["wildStream"], "bake": bake, "spawnY": shard["spawn"]["y"], "config": constants["nativePopulation"], "field": populationField }, ((context["snapshot"] === undefined) ? {} : { "snapshot": context["snapshot"] })));
@@ -122,3 +116,39 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async (preparation
             ((elites["bindPopulation"])(creatures), (elites["bindBond"])(taming), ((!context["restoring"]) ? (elites["initialize"])() : undefined));
         } };
 };
+/** The original native condition composition, shared with its direct contract proof. */
+export function nalatiEliteCore(host: Pick<SimHost, 'player' | 'level'>, clock: {readonly dayPhase:string}, env: Pick<NativeWildEnvironment, 'storm'>, eliteRuleProgram: Pick<ReturnProgram, 'project'>) {
+    const eliteRuleCodes = new (Map)([["always", { "rule": 0, "phase": false, "storm": false }], ["storm", { "rule": 1, "phase": true, "storm": true }], ["night", { "rule": 2, "phase": true, "storm": false }], ["dusk", { "rule": 3, "phase": true, "storm": false }]]);
+    const elitePhaseCodes = new (Map)([["dawn", 0], ["day", 0], ["golden", 0], ["dusk", 1], ["night", 2]]);
+    const eliteStormCodes = new (Map)([[false, 0], [true, 1]]);
+    const eliteCore = new EliteCore({ player: host.player, condition: (rule: EliteCoreRule) => {
+            const code = need(eliteRuleCodes.get(rule), 'Missing elite rule');
+            const result = eliteRuleProgram.project('eliteRule', { rule: code.rule, phase: code.phase ? (elitePhaseCodes.get(clock.dayPhase) ?? 0) : 0, storm: code.storm ? need(eliteStormCodes.get(env.storm), 'Missing storm code') : 0 });
+            return result['accept'] === 1;
+        } }, {}, host.level.id, memoryElitePersistence());
+    return eliteCore;
+}
+/** Fixed native roster input retained after the trusted declaration interpreter retires. */
+export function nalatiEliteRows(constants: {
+    eliteDefs: Readonly<Record<string, unknown>>;
+    pageElites: {
+        profiles: readonly {
+            value: {
+                def: {
+                    id: string;
+                    lair: {
+                        x: number;
+                        z: number;
+                    };
+                    awareR: number;
+                };
+                spec: unknown;
+            };
+        }[];
+    };
+    nativeKnockdown: unknown;
+}, nativeEliteStrikes: Readonly<Record<'swipe' | 'pounce' | 'bite', {
+    readonly id: string;
+}>>): unknown {
+    return { "step": "nalati.elites", "version": 1, "wire": { "detached": "argDetached" }, "rows": [{ "def": constants["eliteDefs"]["aqbars"], "snapshot": "aqbars", "member": { "kind": "leopard", "variant": "aqbars", "source": "boot", "yaw": 0, "memory": { "low": 0.3 } } }, { "def": constants["eliteDefs"]["kokbori"], "snapshot": "kokbori", "member": { "kind": "kokbori", "variant": "kokbori", "source": "spawn", "yaw": 3.141592653589793 }, "pack": { "offset": [-6, 4], "variants": ["grey", "tawny", "grey", "dark", "scout"], "kind": "wolf", "idPrefix": "creature:" } }, { "def": constants["eliteDefs"]["argymaq"], "snapshot": "argymaq", "member": { "kind": "argymaq", "variant": "stallion", "source": "herd", "yaw": 0 }, "continuation": { "borrowed": { "group": 1, "role": "guard" }, "detachable": true } }], "roles": ["native", "native", "borrowed"], "kernels": [{ "id": need(constants.pageElites.profiles[0], "Missing elite profiles")["value"]["def"]["id"], "profile": { "pattern": "pouncer", "spec": need(constants.pageElites.profiles[0], "Missing elite profiles")["value"]["spec"] }, "lair": { "x": need(constants.pageElites.profiles[0], "Missing elite profiles")["value"]["def"]["lair"]["x"], "z": need(constants.pageElites.profiles[0], "Missing elite profiles")["value"]["def"]["lair"]["z"] }, "awareRadius": need(constants.pageElites.profiles[0], "Missing elite profiles")["value"]["def"]["awareR"], "contacts": [{ "amount": 14, "strike": nativeEliteStrikes["swipe"]["id"] }], "fallbackStrike": nativeEliteStrikes["pounce"]["id"], "knockdown": constants["nativeKnockdown"] }, { "id": need(constants.pageElites.profiles[1], "Missing elite profiles")["value"]["def"]["id"], "profile": { "pattern": "howler", "spec": need(constants.pageElites.profiles[1], "Missing elite profiles")["value"]["spec"] }, "lair": { "x": need(constants.pageElites.profiles[1], "Missing elite profiles")["value"]["def"]["lair"]["x"], "z": need(constants.pageElites.profiles[1], "Missing elite profiles")["value"]["def"]["lair"]["z"] }, "awareRadius": need(constants.pageElites.profiles[1], "Missing elite profiles")["value"]["def"]["awareR"], "contacts": [], "fallbackStrike": nativeEliteStrikes["bite"]["id"], "knockdown": constants["nativeKnockdown"] }], "projections": { "argymaq": { "signal": "argymaqTick", "states": { "display": 1, "charge": 2, "beaten": 3 }, "bondedState": "bonded", "brokenState": "beaten", "adoption": { "variant": "tulpar", "scale": 1.3 } } } };
+}

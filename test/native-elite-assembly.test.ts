@@ -1,23 +1,19 @@
+import { nalatiEliteRows } from './fixtures/nalati-headless';
+import { need } from './fixtures/headless-plan';
 import {admissionNative,admission} from './fixtures/nalati-return-modules';
 import { expect, test, vi } from 'vitest';
-import { checkedHeadlessAssembly, prepareHeadlessAssembly } from '../src/sdk/headlessAssembly';
-import { emptyShardfile } from '../src/sdk/author';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { NativeEliteRoster, nativeEliteBindings } from '../src/engine/ai/eliteRoster';
 import { NativeEliteLifecycle } from '../src/engine/ai/eliteLifecycle';
 import { HerdBrain, type HerdPorts } from '../src/engine/ai/herd';
 import type { AnimalSim } from '../src/engine/entities/AnimalSim';
-import type { Rapier } from '../src/engine/physics/rapier';
 import { ReturnProgram } from '../src/game/population/returnProgram';
-import assembly from '../src/shards/nalati-grasslands/data/headlessAssembly.json' with { type: 'json' };
 import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';
 import { nativeEliteCore } from './fixtures/nativeEliteCore';
 import { legacyDouble } from './fake/FakeGame';
 
 function method<O extends object, K extends keyof O>(owner: O, key: K): O[K] { return owner[key]; }
-const ref = (...path: readonly (string | number)[]) => ({ $ref: path });
-test('actual native elite declarations construct, bind and install the same engine owners in order', async () => {
+test('actual native elite declarations construct, bind and install the same engine owners in order', () => {
   const f = nativeKernelOwners(), core = nativeEliteCore(f.host), order: string[] = [];
   const group = new HerdBrain([f.actor], { walkSpeed: 1, trotSpeed: 2, gallopSpeed: 3, chargeSpeed: 3, sightRadius: 10, grazingSightRadius: 5,
     coneAngle: 1, hearing: [1,2,3,4], alertThreshold: .5, flightMinDistance: 1, flightMaxDistance: 10,
@@ -34,20 +30,13 @@ test('actual native elite declarations construct, bind and install the same engi
     nativeEliteStrikes: { swipe: f.loans.strikes[0], pounce: f.loans.strikes[1], bite: f.loans.strikes[2] },
     samplers: f.loans.terrain, env: f.loans.environment, bake: { ledges: f.loans.ledges }, groups: { packs: [], herds: [group, group] },
     creatures: population, taming: { scope: f.scope, phase: 'wild', companion: null } };
-  const selected = new Set(['elites','bindElite.argymaq','installElites','initialize']);
-  const declaration = { version: 1, modules: { '@wildshard/engine/ai/eliteRoster': ['NativeEliteRoster'],
-    '@wildshard/game/population/returnProgram': ['ReturnProgram'], 'src/game/eliteAssemblyFixture': Object.keys(values) },
-    constants: { eliteDefs: ecology.elites, pageElites: { profiles: ecology.keeperElites.map(value => ({ value })) }, nativeKnockdown: f.rows[0]?.knockdown },
-    prepare: [], install: [...Object.keys(values).map(name => ({ name, value: ref('src/game/eliteAssemblyFixture', name) })), ...assembly.install.filter(row => selected.has(row.name))],
-    level: { speed: 5, lift: .1, ground: { size: 500, height: 0 } }, ports: { ground: false, heightAt: { $fn: 0 } }, entries: { $fn: { lanes: 0, steps: 0 } } };
-  const modules = { '@wildshard/engine/ai/eliteRoster': { NativeEliteRoster }, '@wildshard/game/population/returnProgram': { ReturnProgram }, 'src/game/eliteAssemblyFixture': values };
   try {
-    checkedHeadlessAssembly(declaration, modules);
-    const shard = emptyShardfile({ slug: 'quarry', name: 'Quarry', author: 'Test', revision: 1, seed: 1 });
-    const product = createShardProduct({ slug: 'quarry', revision: 1, shardfile: shard, sections: new Map(), files: new Map([['sim/headless-assembly.json', { hash: 'rows', url: 'rows' }]]), read: () => Promise.resolve(new TextEncoder().encode(JSON.stringify(declaration))) });
-    const plan = await prepareHeadlessAssembly({ shard, product, assets: new Map(), rapier: legacyDouble<Rapier>({}) }, modules);
     const before = f.host.rng.snapshot(), program = admissionNative(f.host);
-    plan.install(f.host, { restoring: true, commands: () => [], emit: () => undefined });
+    const elites=new NativeEliteRoster(nalatiEliteRows({eliteDefs:ecology.elites,pageElites:{profiles:ecology.keeperElites.map(value=>({value}))},nativeKnockdown:f.rows[0]?.knockdown},
+      {swipe:need(values.nativeEliteStrikes.swipe,'Missing swipe'),pounce:need(values.nativeEliteStrikes.pounce,'Missing pounce'),bite:need(values.nativeEliteStrikes.bite,'Missing bite')}),
+      {host:f.host,core,bindings,kernel:{contacts:values.strikeContacts,strikes:f.loans.strikes,terrain:values.samplers,environment:values.env,ledges:values.bake.ledges},groups:values.groups});
+    elites.bindProjected(2,ReturnProgram.native(f.host,values.boot.admission),core);elites.install();
+    elites.bindPopulation(values.creatures);elites.bindBond(values.taming);
     expect(order).toEqual(['native:aqbars','native:kokbori','projected:2','add:aqbars','add:kokbori','add:argymaq','step']);
     expect(projected).toHaveBeenCalledExactlyOnceWith(2, program, core); expect(init).not.toHaveBeenCalled();
     expect(admissionNative(f.host)).toBe(program); expect(f.host.rng.snapshot()).toEqual(before);
