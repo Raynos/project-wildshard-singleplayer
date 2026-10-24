@@ -170,11 +170,16 @@ export function cellClip(root: Object3D, half: number, scope: Scope, options: Ce
   };
   const boneOwned = (node: Object3D): boolean => { for (let parent = node.parent; parent !== null && parent !== root; parent = parent.parent) if (parent instanceof Bone) return true; return false; };
   const customDraw = (node: Draw): boolean => node.onBeforeRender !== Object3D.prototype.onBeforeRender;
+  const wireframe = (material: Material): boolean => Reflect.get(material, 'wireframe') === true;
   const gate = (node: Draw): void => {
     if (gates.has(node)) return;
     const attached = boneOwned(node) || borrowedSkins.has(node);
     const admitCellDraw: DrawGuard = (view, _scene, geometry, material) => {
       if (geometry !== node.geometry) return false;
+      // a triangle draw of at most one index puts no pixel anywhere: admitted unchecked, so three binds (uploads) its index
+      // ahead of its first real draw (a reserved far-herd page: farHerd.ts uploadEmpty; refused, its ~1.5 MB index went up
+      // with its first members, eight pages at once 1.3 s after Pine's activate)
+      if (geometry.drawRange.count <= 1 && node instanceof Mesh && !(Array.isArray(node.material) ? node.material.some(m => wireframe(m)) : wireframe(node.material))) return true;
       const moved = dirty.size > 0 || attached;
       submitting = true;
       try { flush(); } finally { submitting = false; }
