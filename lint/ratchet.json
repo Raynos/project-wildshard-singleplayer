@@ -1127,6 +1127,9 @@
     "src/shards/driftwood-isle/runtime/world/Waterfall.ts": 1,
     "src/shards/driftwood-isle/runtime/world/Shrine.ts": 2
   },
+  "wildshard/no-hook-chain": {
+    "src/engine/render/memorySaver.ts": 1
+  },
   "wildshard/no-raw-random-time": {
     "src/engine/audio/audioLog.ts": 1,
     "src/engine/audio/Music.ts": 2,
