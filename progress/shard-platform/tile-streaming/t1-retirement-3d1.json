@@ -1,0 +1,334 @@
+{
+  "source": "3d1d45f0876cb1fd0faaddf8f8cfec3a8874a8c3",
+  "complete": true,
+  "acceptanceEligible": true,
+  "errors": [],
+  "protocol": {
+    "device": "iPhone 16 Pro",
+    "tier": "phone",
+    "cpu": 4,
+    "renderScale": 2,
+    "developer": true,
+    "roundTrips": 5,
+    "warmupRoundTrips": 1,
+    "settleSeconds": 45,
+    "forcedGC": false,
+    "inspectorBodyBytes": 0,
+    "toolHashes": {
+      "tile-retirement-chromium.mjs": "992f1f14f819666c016d7d286205fc7aaf8660146c874dc5f10c8658512ca6d9",
+      "tile-retirement-proof.mjs": "e555b0cf0dc9b20cae8c0135dbb648add1edc865139fbb84fe9d486a6d4b7951",
+      "frame-floor-grid.mjs": "68f0b11e9a7757c2e159062807f76c4b93d8ecca105ed740e354d11dd13fea86",
+      "soak/owned.mjs": "15d98943b6a62606f236ca71bfc4b8630819e09626ba476d9c30b6c2a2ca912b",
+      "grid-ready-memory.mjs": "39c5917796a0bab687a536218d76609a372bb12224c9cec45937d118608361f2",
+      "chromium-memory-browser.mjs": "41ed23eb5306466f155cebfe405ea3097686caf3761de56a7d266ea40bc66d01"
+    },
+    "memory": "One dedicated Chromium: renderer + GPU private footprint. Browser overhead separate. Endpoint dumps, no FPS claim.",
+    "diagnostic": null,
+    "backingStorage": null,
+    "cycles": "Observed render claim acquisition/removal lifetimes at 1 Hz; missed lifetimes undercount, never interpolate."
+  },
+  "grade": {
+    "pass": false,
+    "failures": [
+      "Round trip 1 differs from baseline by more than 20 MB",
+      "Round trip 2 differs from baseline by more than 20 MB",
+      "Round trip 3 differs from baseline by more than 20 MB",
+      "Round trip 4 differs from baseline by more than 20 MB",
+      "Round trip 5 differs from baseline by more than 20 MB"
+    ],
+    "baselineBytes": 2587942912,
+    "deltaBytes": [
+      74776576,
+      70516736,
+      45170688,
+      67059712,
+      89325568
+    ]
+  },
+  "cycles": {
+    "cycles": 199,
+    "byKey": {
+      "render:driftwood-isle:l0/2/5": 6,
+      "render:driftwood-isle:l0/2/6": 6,
+      "render:driftwood-isle:l0/4/5": 6,
+      "render:driftwood-isle:l0/5/5": 6,
+      "render:open-plot-nw:l1/3/0": 6,
+      "render:open-plot-nw:l1/3/1": 6,
+      "render:sunscar-dunes:l1/3/2": 6,
+      "render:sunscar-dunes:l1/3/3": 6,
+      "render:template-2:l0/0/1": 12,
+      "render:template-2:l1/1/2": 12,
+      "render:template-2:l0/1/0": 12,
+      "render:template-2:l1/0/2": 6,
+      "render:template-2:l1/2/1": 12,
+      "render:template-2:l0/0/0": 12,
+      "render:template-2:l1/1/1": 6,
+      "render:template-2:l1/2/0": 12,
+      "render:template-2:l1/1/0": 6,
+      "render:pine-hollow:l1/2/0": 1,
+      "render:pine-hollow:l1/3/0": 1,
+      "render:template-2:l1/0/1": 6,
+      "render:template-2:l1/0/0": 6,
+      "render:driftwood-isle:l0/3/1": 6,
+      "render:driftwood-isle:l0/4/1": 6,
+      "render:blender-template-1:l1/3/2": 6,
+      "render:sunscar-dunes:l1/3/1": 6,
+      "render:nalati-grasslands:l0/0/0": 1,
+      "render:nalati-grasslands:l0/0/1": 1,
+      "render:sunscar-dunes:l1/3/0": 6,
+      "render:template-2:l0/1/1": 11,
+      "render:far-reach:l0/3/7": 2,
+      "render:far-reach:l0/4/7": 2
+    }
+  },
+  "routes": [
+    {
+      "round": "warmup",
+      "name": "driftwood-isle-to-far-reach",
+      "from": "driftwood-isle",
+      "to": "far-reach",
+      "failures": []
+    },
+    {
+      "round": "warmup",
+      "name": "far-reach-to-driftwood-isle",
+      "from": "far-reach",
+      "to": "driftwood-isle",
+      "failures": []
+    },
+    {
+      "round": 1,
+      "name": "driftwood-isle-to-far-reach",
+      "from": "driftwood-isle",
+      "to": "far-reach",
+      "failures": []
+    },
+    {
+      "round": 1,
+      "name": "far-reach-to-driftwood-isle",
+      "from": "far-reach",
+      "to": "driftwood-isle",
+      "failures": []
+    },
+    {
+      "round": 2,
+      "name": "driftwood-isle-to-far-reach",
+      "from": "driftwood-isle",
+      "to": "far-reach",
+      "failures": []
+    },
+    {
+      "round": 2,
+      "name": "far-reach-to-driftwood-isle",
+      "from": "far-reach",
+      "to": "driftwood-isle",
+      "failures": []
+    },
+    {
+      "round": 3,
+      "name": "driftwood-isle-to-far-reach",
+      "from": "driftwood-isle",
+      "to": "far-reach",
+      "failures": []
+    },
+    {
+      "round": 3,
+      "name": "far-reach-to-driftwood-isle",
+      "from": "far-reach",
+      "to": "driftwood-isle",
+      "failures": []
+    },
+    {
+      "round": 4,
+      "name": "driftwood-isle-to-far-reach",
+      "from": "driftwood-isle",
+      "to": "far-reach",
+      "failures": []
+    },
+    {
+      "round": 4,
+      "name": "far-reach-to-driftwood-isle",
+      "from": "far-reach",
+      "to": "driftwood-isle",
+      "failures": []
+    },
+    {
+      "round": 5,
+      "name": "driftwood-isle-to-far-reach",
+      "from": "driftwood-isle",
+      "to": "far-reach",
+      "failures": []
+    },
+    {
+      "round": 5,
+      "name": "far-reach-to-driftwood-isle",
+      "from": "far-reach",
+      "to": "driftwood-isle",
+      "failures": []
+    }
+  ],
+  "boundaries": [
+    {
+      "label": "baseline",
+      "document": "7eb1b5b6-7c52-4c4b-ba10-2bfe68196839",
+      "current": "driftwood-isle",
+      "ready": true,
+      "controls": true,
+      "pending": 0,
+      "retiring": 0,
+      "tileGhosts": 0,
+      "regionGhosts": 0,
+      "ghostOwners": {
+        "tiles": [],
+        "regions": []
+      },
+      "inFlight": 0,
+      "queued": 0,
+      "x": 0.012886145364307988,
+      "z": 231.19327917412556,
+      "process": {
+        "browser": 655542272,
+        "renderer": 1327863808,
+        "gpu": 1260079104
+      }
+    },
+    {
+      "label": "return-1",
+      "document": "7eb1b5b6-7c52-4c4b-ba10-2bfe68196839",
+      "current": "driftwood-isle",
+      "ready": true,
+      "controls": true,
+      "pending": 0,
+      "retiring": 0,
+      "tileGhosts": 0,
+      "regionGhosts": 0,
+      "ghostOwners": {
+        "tiles": [],
+        "regions": []
+      },
+      "inFlight": 0,
+      "queued": 0,
+      "x": 0.013608238844946115,
+      "z": 231.23226120118034,
+      "process": {
+        "browser": 658196480,
+        "renderer": 1376524288,
+        "gpu": 1286195200
+      }
+    },
+    {
+      "label": "return-2",
+      "document": "7eb1b5b6-7c52-4c4b-ba10-2bfe68196839",
+      "current": "driftwood-isle",
+      "ready": true,
+      "controls": true,
+      "pending": 0,
+      "retiring": 0,
+      "tileGhosts": 0,
+      "regionGhosts": 0,
+      "ghostOwners": {
+        "tiles": [],
+        "regions": []
+      },
+      "inFlight": 0,
+      "queued": 0,
+      "x": 0.013873873616513962,
+      "z": 231.30170255192843,
+      "process": {
+        "browser": 658737152,
+        "renderer": 1351243776,
+        "gpu": 1307215872
+      }
+    },
+    {
+      "label": "return-3",
+      "document": "7eb1b5b6-7c52-4c4b-ba10-2bfe68196839",
+      "current": "driftwood-isle",
+      "ready": true,
+      "controls": true,
+      "pending": 0,
+      "retiring": 0,
+      "tileGhosts": 0,
+      "regionGhosts": 0,
+      "ghostOwners": {
+        "tiles": [],
+        "regions": []
+      },
+      "inFlight": 0,
+      "queued": 0,
+      "x": 0.01397240066459329,
+      "z": 231.3027201471814,
+      "process": {
+        "browser": 656492544,
+        "renderer": 1327634432,
+        "gpu": 1305479168
+      }
+    },
+    {
+      "label": "return-4",
+      "document": "7eb1b5b6-7c52-4c4b-ba10-2bfe68196839",
+      "current": "driftwood-isle",
+      "ready": true,
+      "controls": true,
+      "pending": 0,
+      "retiring": 0,
+      "tileGhosts": 0,
+      "regionGhosts": 0,
+      "ghostOwners": {
+        "tiles": [],
+        "regions": []
+      },
+      "inFlight": 0,
+      "queued": 0,
+      "x": 0.012950108591477957,
+      "z": 231.22621169844933,
+      "process": {
+        "browser": 657426432,
+        "renderer": 1349130240,
+        "gpu": 1305872384
+      }
+    },
+    {
+      "label": "return-5",
+      "document": "7eb1b5b6-7c52-4c4b-ba10-2bfe68196839",
+      "current": "driftwood-isle",
+      "ready": true,
+      "controls": true,
+      "pending": 0,
+      "retiring": 0,
+      "tileGhosts": 0,
+      "regionGhosts": 0,
+      "ghostOwners": {
+        "tiles": [],
+        "regions": []
+      },
+      "inFlight": 0,
+      "queued": 0,
+      "x": 0.013023318019450269,
+      "z": 231.2210050713802,
+      "process": {
+        "browser": 657819648,
+        "renderer": 1371232256,
+        "gpu": 1306036224
+      }
+    }
+  ],
+  "provenance": {
+    "rawReceiptSha256": "8e25786620c8bb681440040fc4d9a653a32e8c70e4ecb9052a6bfa9e5b7dca79",
+    "depthFix": "75d81fca9bd7b60ea64977b712e13becbb4ba4b0",
+    "sourceIncludes": [
+      "0e3432322b",
+      "67b5ab6f2d",
+      "acda59debf",
+      "129779573f"
+    ],
+    "overlap": "Coordinator approved bounded Node witness proofs and commit hooks during this nonquiet memory-only cohort."
+  },
+  "limits": [
+    "Single plain Chromium phone-tier cohort; no Simulator/physical-device, CPU timing, FPS or per-cut causal claim.",
+    "No forced GC, heap snapshot, Network body bank or resource-ledger diagnostic.",
+    "The plain native footprint does not name the remaining resource owner or prove composer-depth growth is flat.",
+    "Observed tile lifetimes at 1 Hz undercount short lifetimes; 199 is not a complete acquisition census.",
+    "All owned browser and preview resources closed after completion."
+  ]
+}

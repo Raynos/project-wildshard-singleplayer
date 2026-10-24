@@ -271,28 +271,32 @@ producer/metadata/policy candidates were removed and original registered
 outputs restored. Jake's B, the exact 6/4 exception, all eight wire debts,
 the grid and caps remain unchanged. U2 parent/decoder audit proceeds next.
 
-**T1 in flight (2026-10-24, sp-x9):** the [joint lifecycle cohort](../../../progress/shard-platform/tile-streaming/t1-retirement-fbb.json)
-on `fbb51b9602` completed 12 clean route legs / 205 observed tile lifetimes,
-errors 0, but **FAILS** strict zero-ghost and ±20 MB acceptance. Baseline ghosts
-are 0/0; returns are 11/1, 1/1, 0/0, 0/0, 0/0 (tile/region). Renderer + GPU
-private-footprint deltas are +186.253/+44.089/+20.267/+27.902/+65.044 MB.
-The early spike falls again; this does not establish a monotonic leak or a
-per-fix causal result. The [same-source diagnostic](../../../progress/shard-platform/tile-streaming/t1-resources-fbb.json)
-completed with zero ghosts at every boundary. Sites and LUTs do not accumulate;
-composer depth still adds exactly 4,380,192 bytes / one texture per return
-(+21,900,960 bytes after five), despite `acda59debf`. The +186 MB early spike
-did not reproduce; its cause remains unknown. **Open follow-up (sp-x9):** trace
-the missed input/output depth lifecycle, add a GPU-ledger regression, then
-rerun T1 once. This diagnostic is not acceptance evidence.
+**T1 in flight (2026-10-24, sp-x9):** the latest [plain retirement cohort](../../../progress/shard-platform/tile-streaming/t1-retirement-3d1.json)
+on `3d1d45f087` (includes `75d81fca9b`) completed 12 clean route legs / 199
+observed tile lifetimes, errors 0. All six boundaries have **zero tile/region
+ghosts**. It still **FAILS** the unchanged ±20 MB native gate: renderer + GPU
+private-footprint deltas are +74.777/+70.517/+45.171/+67.060/+89.326 MB above
+the 2,587,942,912-byte warm baseline. Coordinator-approved finite Node proofs
+and hooks overlapped this memory-only visit; no CPU/FPS or causal claim.
 
-The earlier [794 acceptance](../../../progress/shard-platform/tile-streaming/t1-retirement-794.json)
-and [resource diagnostic](../../../progress/shard-platform/tile-streaming/t1-resources-794.json)
-remain separate. `7941053755` releases hidden touch-verb callbacks;
-`0e3432322b` restores site-factory construction ownership, `67b5ab6f2d`
-retires borrowed backdrop LUTs, and `acda59debf` releases sampled composer
-depth. Mandatory real-GC / ledger tests cover those lifecycle changes. The
-joint cohort includes all three resource fixes. No Simulator, physical-device
-or full native-memory attribution claim from these Chromium counters.
+The prior [joint cohort](../../../progress/shard-platform/tile-streaming/t1-retirement-fbb.json)
+and [same-source diagnostic](../../../progress/shard-platform/tile-streaming/t1-resources-fbb.json)
+stay separate: sites and LUTs did not accumulate, but composer depth added
+4,380,192 bytes per return despite `acda59debf`. `75d81fca9b` now excludes
+generated depth from eager content-image preparation, which can revive a
+retired uniform after its target releases it. The [real-Three/Metal kernel](../../../progress/shard-platform/tile-streaming/t1-depth-preparation-kernel.json)
+leaves 32,000 bytes after five 40×40 retired preparations before the fix and
+zero afterward; ordinary/sliced controls stay unchanged. That is not a live
+memory clearance. **Next authorized diagnostic (sp-x9, after L9):** one
+opt-in resource cohort on the same `3d1d45f087` source to confirm depth is flat
+and separate tracked app allocations from unattributed native growth. Any
+proposal to rebase the native gate is a plan decision; the guard stays intact.
+
+Earlier [794 acceptance](../../../progress/shard-platform/tile-streaming/t1-retirement-794.json)
+and [resource evidence](../../../progress/shard-platform/tile-streaming/t1-resources-794.json)
+remain retained. Lifecycle landings: hidden touch callbacks `7941053755`, site
+construction ownership `0e3432322b`, borrowed backdrop LUTs `67b5ab6f2d`, stable
+composer depth `acda59debf`. No Simulator or physical-device clearance here.
 
 Order: T0 + T1 + T2 at once → T3 (DW) + T4 + T5 = **the first playable slice on Driftwood (SHARD SELECT, then the grid
 home)** → T6, T7 (the memory fix on crossings) → T8 → T9 → T10.
