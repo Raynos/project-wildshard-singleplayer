@@ -6,6 +6,14 @@ import type { V2Layout } from './scriptWireV2';
 export const V2_ACTION_OPS = Object.freeze({ impulse: SCRIPT_V1_COMMANDS.impulse,dismount: 23,ignite: 24,trust:26,ownership:27,lead:28,mount:29,hurt:30,pose:31,adopt:32,bond:33,release:34,hide:35,retire:36,breaking:37,notice:38,playerPose:39 });
 export type V2ActionOperation = typeof V2_ACTION_OPS[keyof typeof V2_ACTION_OPS];
 export type V2ActionTargetKind = 'player' | 'mount' | 'cell-field' | 'taming' | 'taming-herd' | 'taming-actor';
+const operations:ReadonlySet<number>=new Set(Object.values(V2_ACTION_OPS));
+const targetKinds:ReadonlySet<string>=new Set(['player','mount','cell-field','taming','taming-herd','taming-actor']);
+function declaredOperations(input:ReadonlySet<V2ActionOperation>):boolean {
+  // Consume the complete borrowed iterator before testing its private copy.
+  const values=[...input];
+  for(let index=0;index<values.length;index++){const value=values[index];if(value===undefined||!operations.has(value))return false;}
+  return true;
+}
 export interface V2ActionTarget { readonly identity: string; readonly kind: V2ActionTargetKind }
 export interface V2ActionBinding {
   readonly identity: string; readonly handle: number;
@@ -29,31 +37,32 @@ function positive(value: number): boolean { return Number.isInteger(value) && va
 export function readV2WorldActions(view: DataView,layout: V2Layout,count: number,bindings: ReadonlyMap<number,V2ActionBinding>,selection?:readonly number[]): readonly V2WorldAction[] {
   const region = layout.regions[9];
   if (region === undefined || view.byteLength !== layout.pages*65536 || !Number.isInteger(count) || count < 0 || count > region.capacity || count > 128) throw new Error('Invalid v2 world action bank');
-  const identities = new Set<string>();
+  let identities:Set<string>|undefined;
   if (bindings.size > 64) throw new Error('V2 action binding capacity');
   for (const [handle,binding] of bindings) {
-    if (binding.handle !== handle || !positive(handle) || binding.identity.length === 0 || identities.has(binding.identity)
+    if (binding.handle !== handle || !positive(handle) || binding.identity.length === 0 || identities?.has(binding.identity)===true
       || !positive(binding.maxCommands) || binding.maxCommands > 32 || binding.targets.size > 256
       || !Number.isFinite(binding.bounds.coordinate) || binding.bounds.coordinate <= 0 || !Number.isFinite(binding.bounds.velocity) || binding.bounds.velocity < 0
-      || [...binding.operations].some(op => !Object.values(V2_ACTION_OPS).includes(op))) throw new Error('Invalid v2 action binding');
-    identities.add(binding.identity);
+      || !declaredOperations(binding.operations)) throw new Error('Invalid v2 action binding');
+    (identities??=new Set()).add(binding.identity);
     const targets = new Set<string>();
     for (const [target,owner] of binding.targets) {
-      if (!positive(target) || owner.identity.length === 0 || targets.has(owner.identity) || !['player','mount','cell-field','taming','taming-herd','taming-actor'].includes(owner.kind)) throw new Error('Invalid v2 action target');
+      if (!positive(target) || owner.identity.length === 0 || targets.has(owner.identity) || !targetKinds.has(owner.kind)) throw new Error('Invalid v2 action target');
       targets.add(owner.identity);
     }
   }
-  const rows: V2WorldAction[] = [], used = new Map<number,number>();
+  const rows: V2WorldAction[] = [];let used:Map<number,number>|undefined;
   const indices=selection??Array.from({length:count},(_,index)=>index);
   if(indices.length>count||new Set(indices).size!==indices.length||indices.some(index=>!Number.isInteger(index)||index<0||index>=count))throw new Error('Invalid world action selection');
   for (const index of indices) {
     const at = layout.io+region.offset+index*64, handle = view.getUint32(at,true), binding = bindings.get(handle);
     const action = readV2WorldAction(view,at,binding);
     if (binding === undefined) throw new Error('Undeclared v2 world action');
-    const n = (used.get(handle) ?? 0)+1;if (n > binding.maxCommands) throw new Error('V2 world action quota');used.set(handle,n);
+    const n = (used?.get(handle) ?? 0)+1;if (n > binding.maxCommands) throw new Error('V2 world action quota');(used??=new Map()).set(handle,n);
     rows.push(action);
   }
-  return Object.freeze(rows.map(row => Object.freeze(row)));
+  for(let index=0;index<rows.length;index++)Object.freeze(rows[index]);
+  return Object.freeze(rows);
 }
 
 /** Exact single record decoder for a combined bank. The combined authority

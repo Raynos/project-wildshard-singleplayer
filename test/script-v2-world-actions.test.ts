@@ -34,6 +34,19 @@ function bank(): DataView {
   command(view,0,23,12,[1]);command(view,1,24,13,[-0,2**40+.125]);command(view,2,14,11,[3,4,-0]);return view;
 }
 const expected: readonly V2WorldAction[] = [{ binding: 'orchard',target: 'mount',kind: 'dismount',thrown: true },{ binding: 'orchard',target: 'cells',kind: 'ignite',x: -0,z: 2**40+.125 },{ binding: 'orchard',target: 'player',kind: 'impulse',x: 3,y: 4,z: -0 }];
+
+test('empty actions retain full binding validation and distinct frozen results',()=>{
+  const view=new DataView(new ArrayBuffer(65536));
+  const first=readV2WorldActions(view,layout,0,new Map()),second=readV2WorldActions(view,layout,0,new Map());
+  expect(first).toEqual([]);expect(first).not.toBe(second);expect(Object.isFrozen(first)).toBe(true);
+  expect(()=>readV2WorldActions(view,layout,0,bindings({...binding(),maxCommands:0}))).toThrow('binding');
+  expect(()=>readV2WorldActions(view,layout,0,new Map([[7,binding()],[8,{...binding(),handle:8}]]))).toThrow('binding');
+  let consumed=0;
+  const declared=new Set([V2_ACTION_OPS.impulse]);
+  Object.defineProperty(declared,Symbol.iterator,{*value(){consumed++;yield V2_ACTION_OPS.impulse;consumed++;yield 999;consumed++;}});
+  expect(()=>readV2WorldActions(view,layout,0,bindings({...binding(),operations:declared}))).toThrow('binding');
+  expect(consumed).toBe(3);
+});
 let compiled: Promise<Uint8Array> | undefined;
 function bytes(): Promise<Uint8Array> {
   compiled ??= compileSimV2(`import * as ws from './sdk/as/wsV2';
