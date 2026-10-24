@@ -45,3 +45,39 @@ test('an original codec refusal rejects both RNGs and the entire native prefix',
 test('retirement during native drain retains the original accepted prefix and stops later effects',()=>{
  const group=new NativeGroup();try{group.retire=true;const random=group.random.snapshot();expect(()=>group.step()).toThrow(/Retired|owner/);expect(group.seen).toEqual([group.value]);expect(group.value).toBeGreaterThan(7);expect(group.random.snapshot()).not.toEqual(random);expect(group.members[0]?.mem['aw']).toBeUndefined();}finally{group.scope.dispose();}
 });
+
+test('frozen continuation metadata keeps exact repeated results and both streams',()=>{
+ const plain=new NativeGroup(),fixed=new NativeGroup();
+ Object.freeze(fixed.resume.values);Object.freeze(fixed.resume);
+ try{
+  for(let tick=0;tick<30;tick++){
+   plain.step();fixed.step();
+   expect(fixed.value).toBe(plain.value);expect([...fixed.bank]).toEqual([...plain.bank]);
+   expect(fixed.members[0]?.mem).toEqual(plain.members[0]?.mem);
+   expect(fixed.random.snapshot()).toEqual(plain.random.snapshot());expect(fixed.contextRandom.snapshot()).toEqual(plain.contextRandom.snapshot());
+  }
+ }finally{plain.scope.dispose();fixed.scope.dispose();}
+});
+test('frozen accessor metadata retains mutable-table refusal after native effects',()=>{
+ const group=new NativeGroup(),values=[0,1];
+ Object.defineProperty(group.resume,'values',{enumerable:true,get:()=>values});Object.freeze(group.resume);
+ group.ground.normalY=()=>{values[1]=2;return .5;};
+ try{expect(()=>group.step()).toThrow('Replaced group guest owner');expect(group.members[0]?.mem['aw']).toBeUndefined();}
+ finally{group.scope.dispose();}
+});
+test('an invalid frozen continuation refuses before either stream or native effects',()=>{
+ const group=new NativeGroup();group.resume.values.push(1);Object.freeze(group.resume.values);Object.freeze(group.resume);
+ try{
+  const random=group.random.snapshot(),context=group.contextRandom.snapshot();
+  expect(()=>group.step()).toThrow('Invalid group guest continuation');
+  expect(group.random.snapshot()).toEqual(random);expect(group.contextRandom.snapshot()).toEqual(context);expect(group.seen).toEqual([]);
+ }finally{group.scope.dispose();}
+});
+
+test('frozen accessor metadata cannot cache a replaceable frozen value table',()=>{
+ const group=new NativeGroup();let values:readonly number[]=Object.freeze([0,1]);
+ Object.defineProperty(group.resume,'values',{enumerable:true,get:()=>values});Object.freeze(group.resume);
+ group.ground.normalY=()=>{values=Object.freeze([0,2]);return .5;};
+ try{expect(()=>group.step()).toThrow('Replaced group guest owner');expect(group.members[0]?.mem['aw']).toBeUndefined();}
+ finally{group.scope.dispose();}
+});

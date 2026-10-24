@@ -30,11 +30,13 @@ export interface GroupGuestPublicationV2 {
 }
 
 export interface GroupMember { readonly alive: boolean }
+interface FixedGuestResume {readonly states:readonly number[];readonly allowed:ReadonlySet<number>}
 /** Shared roster, blackboard and decision clock. Authored goals remain in the owning content. */
 export class GroupBrain<A extends GroupMember> {
   readonly tickClass = 'ai';
   readonly members: A[];
   readonly blackboard = new Map<string, unknown>();
+  private readonly guestResumes=new WeakMap<object,FixedGuestResume>();
   protected groupTime = -Infinity;
   private directors: Map<number, AggressionDirector<A>> | undefined;
   constructor(members: A[]) { this.members = members; }
@@ -84,6 +86,22 @@ export class GroupBrain<A extends GroupMember> {
   protected captureGuest(_replies:readonly GroupStepNativeResultV2[]):GroupGuestFrameV2<A & AnimalSim> { throw new Error('Missing native group guest capture'); }
   /** Validate the original codec before RNG acceptance; commit performs only scalar/role publication. */
   protected prepareGuestCommit(_frame:GroupGuestFrameV2<A & AnimalSim>,_values:Readonly<Record<string,GroupBankValueV2>>):GroupGuestPublicationV2 { throw new Error('Missing native group guest publication'); }
+ /** Only fully frozen data rows can omit repeated continuation-table scans. */
+ private fixedGuestResume(resume:GroupGuestFrameV2['resume'],states:readonly number[]):FixedGuestResume|undefined{
+  if(!Object.isFrozen(resume))return undefined;
+  const fields=Object.getOwnPropertyDescriptors(resume),field=fields.field,segments=fields.segments,values=fields.values;
+  if(field===undefined||segments===undefined||values===undefined||!Object.hasOwn(field,'value')
+   ||!Object.hasOwn(segments,'value')||!Object.hasOwn(values,'value'))return undefined;
+  const source:unknown=values.value;
+  if(!Array.isArray(source)||!Object.isFrozen(source)||source.length!==states.length)return undefined;
+  const copy:number[]=[];
+  for(let i=0;i<states.length;i++){
+   const value=Object.getOwnPropertyDescriptor(source,i),number:unknown=value?.value;
+   if(value===undefined||!Object.hasOwn(value,'value')||typeof number!=='number'||!Object.is(number,states[i]))return undefined;
+   copy.push(number);
+  }
+  const fixed:FixedGuestResume={states:copy,allowed:new Set(copy)};this.guestResumes.set(resume,fixed);return fixed;
+ }
  /** Run one original method across synchronous native barriers. Every segment
    * captures fresh original owners. State and RNG accept before ordered native
    * effects, so a native exception retains the original accepted prefix; no
@@ -92,14 +110,16 @@ export class GroupBrain<A extends GroupMember> {
   const prepare=program.prepareGroup;
   let frame=this.captureGuest([]);
   const resume=frame.resume,scope=frame.input.members[0]?.scope;
-  const field=resume.field,segments=resume.segments,states=resume.values.slice();
+  let fixed=this.guestResumes.get(resume);
+  const field=resume.field,segments=resume.segments,states=fixed?.states??resume.values.slice();
   const original=frame.input,{group,handle,profile,signal,tick,random,contextRandom,state}=original;
   if(scope===undefined||scope!==frame.native.scope||!Number.isInteger(resume.segments)||resume.segments<1||resume.segments>512
-   ||resume.values.length===0||resume.values.length>512||!resume.values.includes(0)
-   ||new Set(resume.values).size!==resume.values.length||resume.values.some(value=>!Number.isSafeInteger(value)||value<0))throw new Error('Invalid group guest continuation');
+   ||fixed===undefined&&(resume.values.length===0||resume.values.length>512||!resume.values.includes(0)
+   ||new Set(resume.values).size!==resume.values.length||resume.values.some(value=>!Number.isSafeInteger(value)||value<0)))throw new Error('Invalid group guest continuation');
+  fixed??=this.fixedGuestResume(resume,states);
   for(let segment=0;segment<segments;segment++){
    if(scope.disposed||scope.disposing||program.prepareGroup!==prepare||frame.resume!==resume||frame.native.scope!==scope
-    ||resume.field!==field||resume.segments!==segments||resume.values.length!==states.length||resume.values.some((value,index)=>value!==states[index])
+    ||resume.field!==field||resume.segments!==segments||fixed===undefined&&(resume.values.length!==states.length||resume.values.some((value,index)=>value!==states[index]))
     ||frame.input.group!==group||frame.input.handle!==handle||frame.input.profile!==profile||frame.input.signal!==signal||frame.input.tick!==tick
     ||frame.input.random!==random||frame.input.contextRandom!==contextRandom||frame.input.state!==state
     ||frame.input.members.some(member=>member.scope!==scope))throw new Error('Replaced group guest owner');
@@ -109,7 +129,7 @@ export class GroupBrain<A extends GroupMember> {
    // either borrowed RNG accepts its next state.
    const values=prepared.values;
    const pc=values[field];
-   if(typeof pc!=='number'||!states.includes(pc))throw new Error('Undeclared group guest continuation');
+   if(typeof pc!=='number'||!(fixed===undefined?states.includes(pc):fixed.allowed.has(pc)))throw new Error('Undeclared group guest continuation');
    const publication=this.prepareGuestCommit(frame,values),native=prepareGroupNativeV2(prepared.operations,frame.native);
    publication.validate();native.validate();prepared.validate();
    prepared.accept();publication.commit();

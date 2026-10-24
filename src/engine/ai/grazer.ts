@@ -417,6 +417,7 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
         ||rows.capture.references.some(name=>!shape.bank.some(row=>row.name===name&&(row.kind==='number'||row.kind==='reference'))))
       || Object.keys(rows.parameters).some(name => !name.startsWith('context.') || !shape.bank.some(row => row.name === name && row.kind === 'number')))
       throw new Error('Incompatible herd guest profile');
+    Object.freeze(rows.resume.values);Object.freeze(rows.resume);
     this.guest = {program,prepare:program.prepareGroup,bindings,shape,rows,scope:loans.scope,group:loans.group,handle:loans.handle,
       player:loans.player,actors:loans.actors,codec:new GroupBankV2(shape.bank),
       contextFields:shape.bank.filter(row=>row.name.startsWith('context.')).map(row=>row.name),referenceFields:Object.entries(rows.references??{})};

@@ -747,6 +747,7 @@ export class StalkerBrain<A extends AnimalSim> extends HuntingStalkerCore<A> {
       || !shape.bank.some(row => row.name === rows.resume.field && row.kind === 'number')) throw new Error('Incompatible pack guest profile');
     if(rows.capture!==undefined&&(rows.capture.slots.length>0||rows.capture.references.length>0||new Set(rows.capture.common).size!==rows.capture.common.length||rows.capture.common.some(name=>!shape.columns.some(column=>column.name===name))))throw new Error('Invalid pack capture declaration');
     const results = shape.columns.flatMap(row => row.source.kind === 'result' ? [row.source.channel] : []);
+    Object.freeze(rows.resume.values);Object.freeze(rows.resume);
     const guest:NonNullable<StalkerBrain<A>['packGuest']> = { program, prepare: program.prepareGroup, bindings, scope: loans.scope, group: loans.group, handle: loans.handle,
       rows, codec: new GroupBankV2(shape.bank), results, roster: loans.roster, buffers:[] };
     const references=this.packReferences(guest),native=this.packValues(guest,references),values={...native,...packGuestReset};
