@@ -65,6 +65,9 @@ test('balbal glow and height and eagle height match the original animate arithme
   const systems: Parameters<typeof ctx.system>[0][] = [];
   const install = vi.spyOn(ctx, 'system').mockImplementation(row => { systems.push(row); });
   setTerrainHeight(ground);
+  // This arithmetic oracle runs every frame; separate ViewLane tests own adaptive overrun cadence.
+  let elapsed = 0;
+  const clock = vi.spyOn(performance, 'now').mockImplementation(() => { elapsed += .05; return elapsed; });
   try {
     installViewProgram(ctx, feature, module);
     const system = systems[0]; if (system === undefined) throw new Error('Missing creature views');
@@ -93,5 +96,5 @@ test('balbal glow and height and eagle height match the original animate arithme
       }
     }
     expect(dying.yOffset).toBeLessThan(0); expect(horse.yOffset).toBe(0);
-  } finally { install.mockRestore(); scope.dispose(); setTerrainHeight(() => 0); }
+  } finally { clock.mockRestore(); install.mockRestore(); scope.dispose(); setTerrainHeight(() => 0); }
 });
