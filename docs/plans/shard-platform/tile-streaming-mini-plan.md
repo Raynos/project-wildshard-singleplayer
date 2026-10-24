@@ -47,13 +47,79 @@ identities to scene nodes, no geometry tile footprints and no last-consumer/cach
 retirement proof. Empty node buffer lists are not evidence of zero geometry: they
 include never-uploaded or otherwise unlinked attributes.
 
-**Remaining T0 work:** capture those identity/footprint links before claiming tile-local
-RAM or an expected saving. No positive retirement saving is established by this table;
+**Historical baseline gap (closed by the current census below):** capture those
+identity/footprint links before claiming tile-local RAM or an expected saving. No positive retirement saving is established by this table;
 neither the 39/64 area fraction nor a GPU capacity can be substituted for one. The plan's
 whole-shard terrain, simulation, audio and shared-library policies still constrain what
 can retire. Keep the unknown column until the missing links are observed.
 
 ## 1. What exists today
+
+### T0 fixed-source census on `5137a05e63` (2026-10-24)
+
+One pinned preview and five sequential standalone entered-world censuses, Chromium
+iPhone 16 Pro, phone / 4x CPU / 2x render scale, visiting every authored standing pose.
+All pages reported zero errors. All GPU totals, RAM-ledger totals and scene backing
+identities reconcile. The tables below are the pre-implementation cost model; raw
+receipts remain in `tmp/sp-x8-t0/current/`. This is a source pin, not a claim about
+a later main tip. No new proof artifact is committed under `progress/`.
+
+| Shard | Observed GPU MiB | RAM ledger capacity MiB | Scene geometry backing MiB | Single-node / shared backing MiB | Nodes with existing bounds / all nodes |
+|---|---:|---:|---:|---:|---:|
+| Driftwood | 166.21 | 213.17 | 41.74 | 36.38 / 5.36 | 111 / 353 |
+| Nalati | 213.39 | 480.88 | 40.84 | 39.53 / 1.31 | 68 / 329 |
+| Pine | 249.19 | 286.81 | 78.57 | 68.89 / 9.67 | 217 / 859 |
+| Nine | 268.48 | 164.76 | 44.41 | 34.03 / 10.38 | 42 / 598 |
+| Sky | 147.51 | 87.25 | 20.22 | 14.68 / 5.53 | 16 / 544 |
+
+These columns **must not be added**. Scene backing may overlap the RAM ledger;
+ledger capacity includes weak targets not yet collected. Neither is native resident
+RAM. GPU unknown bytes remain 15.37 / 33.88 / 45.40 / 20.71 / 27.03 MiB respectively;
+unlabelled resources are 52 / 104 / 212 / 0 / 0. The GL attribution gate remains red
+for the first three shards. No historical-to-current gain is attributed to a slice.
+
+The first reader used separate browser evaluations. Pine exposed four scene GL ids
+absent from its earlier GL sample. That receipt is refused, retained at
+`tmp/sp-x8-t0/current/pine.json`, and excluded from this report. Reader `9574d3ab83`
+captures GL, scene and ledger in one synchronous job; its queued-frame regression
+and six related cases pass, as do root/scripts types and typed lint. Only Pine was
+replaced, on the same app source pin (a separate build stamp). The other four
+receipts have complete identity links but are not claimed to be atomic frame reads.
+No performance cohort or retry of a frame-floor measurement was run.
+
+Footprints use **only existing** non-instanced, non-skinned, non-morph affine bounds.
+No box, pose or geometry is computed or mutated by the reader. A backing shared by
+several nodes uses the union of all their footprints; offset views count their full
+backing once. Unknown bounds stay unknown. Capacities in MiB:
+
+| Shard | Bounded inside the cell | Unknown bounds | Camera / outside cell | Current bounded backing outside a 5x5 window, min–max |
+|---|---:|---:|---:|---:|
+| Driftwood | 19.51 | 20.26 | 1.96 | 0.01–2.69 |
+| Nalati | 12.42 | 17.54 | 10.88 | 1.93–6.77 |
+| Pine | 13.56 | 61.25 | 3.76 | 0.87–7.19 |
+| Nine | 23.11 | 13.23 | 8.07 | 0.00–0.00 |
+| Sky | 2.37 | 17.08 | 0.77 | 0.00–0.62 |
+
+The last column enumerates all 16 interior 5x5 windows of the 8x8 cell, counting
+only whole backings whose every known scene use lies outside that window. It is
+**scene exclusion, not a RAM saving**: off-scene caches and other consumers may keep
+the allocation alive. Nine's bounded whole backings intersect every such window,
+despite 120.70 MiB of single-node GPU buffers. Repartitioning is necessary there;
+neither a single node nor the uniform 39/64 area fraction proves a removable buffer.
+
+The lifetime gap is real policy, not just a missing number: `AssetService.release`
+keeps retained entries at zero refs (`engine/app/assets.ts`); the residency bridge
+maps observed consumers to a covering runtime and automatic unused eviction waits
+for retirement with no remaining users (`grid/assetResidency.ts`). Idle reusable
+caches have a separate pressure-eviction path. A scene-only footprint cannot prove
+which path owns its final reference.
+
+**T0 done (pre-implementation census / cost model):** the current tables establish
+per-shard CPU/GPU capacity, known bounded outside-5x5 ranges and explicit unknowns,
+including Pine's 61.25 MiB and instanced/skinned/morph geometry. Expected retired
+RAM/GPU bytes are not measured savings. T1/T3 own the actual tile-last-consumer
+retirement proof, including cache consumers and unknown footprints. All census
+browsers and the owned preview are closed; no Sim was used.
 
 **The tile lattice already exists, but only for drawing, and mostly only for neighbours.**
 
@@ -167,7 +233,7 @@ can retire. Keep the unknown column until the missing links are observed.
 
 | Row | What | Code | Lane | Size | Done when (measured) | Deps |
 |---|---|---|---|---|---|---|
-| T0 | Census: each shard's entered world split into tile-local and shard-global MB (DW, Nalati, Pine, Nine, Sky) | glbytes census + allocator claims | Codex | 0.5 d | table in the commit message; sets the expected saving | — |
+| T0 | Census: each shard's entered world split into tile-local and shard-global MB (DW, Nalati, Pine, Nine, Sky) | glbytes census + allocator claims | Codex | 0.5 d | done (2026-10-24, sp-x8): pre-implementation cost model above; CPU backing DW/N/P/Nine/Sky 41.74/40.84/78.57/44.41/20.22 MiB; bounded outside-5x5 0.01–2.69/1.93–6.77/0.87–7.19/0–0/0–0.62 MiB; unknowns retained; retirement proof T1/T3 | — |
 | T1 | Leak-free disposal: finish O18 (sp-o3); ghost counter per tile and region scope | `grid/live.ts`, new `grid/ghosts.ts` | Codex | 1 d (+ sp-o3) | 20 tile load/evict cycles and 5 DW→Sky→DW round trips each return to baseline ±20 MB; ghosts 0 | sp-o3 |
 | T2 | Engine tile residency host (`engine/world/tileResidency`): rect tiles of any size, N×N full ring + coarse ring, parent-first, no holes, hysteresis, per-frame bytes and ms budget, scope + lease per tile. `rings.ts` and `clientWorld.ts` become users (net deletion); road and junction tile types | `game/grid/rings.ts`, `shardfile/clientWorld.ts`, `residency.ts` | Codex | 2 d | host-bar six tests; Node 1 km drive: resident ≤ 25 + ring, 0 hole frames; same trace as today at 150 m | — |
 | T3 | Per-tile content: placements bucketed by pose (no rebake) into per-model instance ranges; welds / merged / baked sets by triangle centroid; registry colliders per tile scope | `worldScenes.ts`, `worldScenePlacement.ts`, `bakedTiles.ts`, `sdk/bake/worldGlb.ts` | Codex + Opus | 3 d | DW draw count ±10 % of today at the same pose; no visual diff in the 5 × 5 | T2 |
