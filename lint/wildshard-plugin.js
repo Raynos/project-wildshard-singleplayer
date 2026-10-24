@@ -866,7 +866,9 @@ const engineInternalRule = rule('Game-only engine exports stay out of the shards
 // never by importing the singletons; types, classes, pure helpers and constants stay importable.
 const SHARD_SERVICES = new Set(['app', 'saves', 'hudSlots', 'practiceRoom', 'lockOn']);
 const shardServices = rule('Shards get engine services through ShardContext (E362 AG12)', (context) => {
-  if (!pathOf(context).startsWith('src/shards/')) return {};
+  const filename = pathOf(context);
+  // G606: keep the exact registered predecessor files outside this primary rule.
+  if (!filename.startsWith('src/shards/') || legacySourcePath(filename) !== null) return {};
   return { ImportDeclaration(node) {
     if (!(stringOf(node.source) ?? '').startsWith('@wildshard/engine/') || node.importKind === 'type') return; // any engine module (E434)
     for (const s of node.specifiers ?? []) {

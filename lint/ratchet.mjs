@@ -2,7 +2,7 @@
 // E357 F4: the linter measures file counts; budget measurements belong to the parity harness.
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, globSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, globSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { debugFlags } from './debug-flags.mjs';
 import { relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -24,11 +24,17 @@ const sorted = (value) => object(value) ? Object.fromEntries(Object.entries(valu
 const readJSON = (file) => JSON.parse(readFileSync(file, 'utf8'));
 const save = (file, value) => { writeFileSync(file, `${JSON.stringify(sorted(value), null, 2)}\n`); };
 
-function validate(baseline) {
+function validate(baseline, root) {
+  const requireFile = (rule, file) => {
+    if (!statSync(resolve(root, file), { throwIfNoEntry: false })?.isFile())
+      throw new Error(`Stale ratchet allowance: ${rule} ${file} names no existing file`);
+  };
   if (!object(baseline)) throw new Error('Ratchet must be an object');
   for (const [key, value] of Object.entries(baseline)) {
     if (key === 'allow') {
       if (!object(value) || Object.values(value).some((entries) => !object(entries) || Object.values(entries).some((reason) => typeof reason !== 'string' || !reason.trim()))) throw new Error('Invalid allow section: every file needs a reason');
+      for (const [rule, entries] of Object.entries(value)) for (const identity of Object.keys(entries))
+        if (identity.startsWith('src/')) requireFile(rule, identity.split('#')[0]);
     } else if (key === 'budgets') {
       if (!object(value) || Object.values(value).some((n) => !number(n))) throw new Error('Invalid budgets section');
     } else if (key === 'closedComponents') {
@@ -36,6 +42,7 @@ function validate(baseline) {
     } else if (key === 'debugRows') {
       if (!object(value) || !number(value.max) || !Number.isInteger(value.max) || !Array.isArray(value.raisedBy)) throw new Error('Invalid debugRows section');
     } else if (!ruleNames.has(key) || !object(value) || Object.values(value).some((n) => !number(n) || !Number.isInteger(n))) throw new Error(`Invalid or unconfigured rule section: ${key}`);
+    else for (const file of Object.keys(value)) requireFile(key, file);
   }
 }
 
@@ -148,7 +155,7 @@ function main() {
   if (mode !== 'init' && !existsSync(baselineFile)) throw new Error(`Missing ratchet: ${baselineFile}; use --init once`);
   // X8 initializes debugRows. --init records rules and seeds the measurement allowlist only.
   const baseline = mode === 'init' ? { allow: { 'wildshard/no-raw-random-time': TIME_ALLOW }, budgets: {} } : readJSON(baselineFile);
-  validate(baseline);
+  validate(baseline, root);
   if (scopedPaths !== null && mode !== 'update') throw new Error('--files-from is a shrink-only update mode');
   if (guardRequirement!==undefined && (mode!=='update' || scopedPaths===null)) throw new Error('Required guard is commit-only');
   const measured = counts(root, baselineFile, scopedPaths,{guardRequirement});

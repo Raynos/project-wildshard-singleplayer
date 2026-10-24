@@ -203,6 +203,7 @@
         // G450/Z1: closed boundaries are hard errors; other paths remain shrink-only.
         "wildshard/runtime-standalone": ["error", { "closedShards": ["_template", "blender-template", "ink-cel-valley", "open-plots", "pastel-plain"] }],
         "wildshard/no-shard-host-callback": "error",
+        "wildshard/shard-services": "error",
         "wildshard/no-client-plan-reflection": "error",
         "wildshard/no-build-time-import": ["error", { "closedShards": ["_template"] }],
         "wildshard/no-runtime-in-build": ["error", { "closedShards": ["_template"] }],
