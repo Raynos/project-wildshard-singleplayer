@@ -1,10 +1,10 @@
 {
   "$doc": "What production and the native OTA channel serve (E357 decision 32). Moved only by scripts/deploy-pin.mjs set (at a milestone; decision 103: the lead moves it when the gate is green) or rollback. mode: pinned (during GAME-NORMALIZATION) | newest-green (gpu-gate-green main) | newest-ci-green (the newest main whose push CI passed; Jake 2026-10-02).",
-  "mode": "newest-ci-green",
-  "sha": "ff45b6a24dbd7ec3e65d5251ea1e505b3b182ed2",
-  "milestone": "post-Z4 hotfix-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback",
+  "mode": "pinned",
+  "sha": "9625ae97ecf2343bfec49c516dd17604388edf20",
+  "milestone": "post-Z4 hotfix-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback-rollback",
   "gate": "grandfathered",
-  "go": "wildshard-new: release first full-floor build after green CI and all six exact smoke legs. 68ac787e6bdc687fff4fb661cea6c236bedfbd94: CI https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/40066552156; exact smoke https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/40067978626. Safari boot-race hold lifted after 8198659879 proof; required worker and Titan repairs included.",
-  "set": "2026-10-24T06:17:28.328Z",
+  "go": "wildshard-new: hold 3023c554d1 and later until the Template-return durable-checkpoint crossing is fixed and proven. Retain the currently live pre-TB1 build; CI plus six-leg smoke alone do not clear this hold.",
+  "set": "2026-10-24T17:00:10.012Z",
   "by": "E357 lead"
 }
