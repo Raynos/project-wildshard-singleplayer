@@ -73,6 +73,7 @@ export function readRetirementBoundary(identity, documentIdentity) {
   return { document: identity.token, current: live.current, ready: live.gameplayReady && state.inside === live.current,
     controls: !document.hidden && api.world.hud.entered && !api.world.hud.paused && api.world.game.frameGate(),
     pending: live.pending.length, retiring: live.retiring.length, tileGhosts: state.rings.ghosts.count, regionGhosts: live.ghosts.count,
+    ghostOwners: { tiles: state.rings.ghosts.tiles, regions: live.ghosts.regions },
     inFlight: state.rings.inFlight, queued: state.rings.queued, x: live.worldFeet.x, z: live.worldFeet.z,
     keys: grid.residency().claims.filter(row => ['far', 'l0', 'l1'].includes(row.category)
       && row.id.startsWith('render:')).map(row => row.id) };

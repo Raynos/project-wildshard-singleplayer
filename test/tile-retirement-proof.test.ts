@@ -69,9 +69,10 @@ function mutableBoundary() { return { ...boundary() }; }
 
 test('T1 serialized reader keeps normal crossing pauses separate from settled acceptance', () => {
   const hud = { entered: true, paused: false };
-  const live = { current: 'dw', gameplayReady: true, pending: [], retiring: [], ghosts: { count: 0 }, worldFeet: { x: 0, z: 230 } };
+  const live = { current: 'dw', gameplayReady: true, pending: [], retiring: [],
+    ghosts: { count: 1, regions: [{ instance: 'sky', ageS: 42 }] }, worldFeet: { x: 0, z: 230 } };
   const gridState = { inside: 'dw', live: { live, crossing: { phase: 'idle', issue: null } },
-    rings: { ghosts: { count: 0 }, inFlight: 0, queued: 0 } };
+    rings: { ghosts: { count: 1, tiles: [{ instance: 'sky:l0/0/0', ageS: 41 }] }, inFlight: 0, queued: 0 } };
   const grid = { state: () => gridState, residency: () => ({ claims: [
     { id: 'render:dw:l0/0/0', category: 'l0' }, { id: 'sim:dw', category: 'sim' },
     { id: 'near:dw', category: 'near' },
@@ -83,14 +84,16 @@ test('T1 serialized reader keeps normal crossing pauses separate from settled ac
   const expression = `(${readRetirementBoundary.toString()})({token:'original',timeOrigin:1},()=>({token:'original',timeOrigin:1}))`;
   const read = () => readRetirementBoundaryResult(runInNewContext(expression, context));
   expect(read().keys).toEqual(['render:dw:l0/0/0']); expect(read().controls).toBe(true);
+  expect(read().ghostOwners).toEqual({ tiles: [{ instance: 'sky:l0/0/0', ageS: 41 }],
+    regions: [{ instance: 'sky', ageS: 42 }] });
   hud.paused = true; expect(read().controls).toBe(false);
   context.performance.timeOrigin = 2; expect(read).toThrow(/navigated/u);
 });
 
-function readRetirementBoundaryResult(value: unknown): { keys: unknown; controls: unknown } {
-  if (value === null || typeof value !== 'object' || !('keys' in value) || !('controls' in value))
+function readRetirementBoundaryResult(value: unknown): { keys: unknown; controls: unknown; ghostOwners: unknown } {
+  if (value === null || typeof value !== 'object' || !('keys' in value) || !('controls' in value) || !('ghostOwners' in value))
     throw new Error('Missing serialized boundary');
-  return { keys: value.keys, controls: value.controls };
+  return { keys: value.keys, controls: value.controls, ghostOwners: value.ghostOwners };
 }
 
 test('T1 home seed preserves original ground resolution and applies the existing world origin', async () => {
