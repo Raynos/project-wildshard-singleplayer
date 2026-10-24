@@ -1,3 +1,4 @@
+import { installGltfKtx2 } from '../core/ktx2';
 import { type AnimationClip, type Object3D, BufferGeometry, DefaultLoadingManager, InstancedBufferAttribute, InstancedMesh, LoadingManager, SkinnedMesh } from 'three';
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
@@ -65,7 +66,7 @@ class BoundedRigLoader extends GLTFLoader implements RigLoader {
 
 /** One native parser policy for rigs, model pools and owned geometry. Reads stay
  * parallel; a page decodes one GLTF at a time, including direct parseAsync calls. */
-export function createRigLoader(): RigLoader { return new BoundedRigLoader().setMeshoptDecoder(MeshoptDecoder); }
+export function createRigLoader(): RigLoader { installGltfKtx2(GLTFLoader); return new BoundedRigLoader().setMeshoptDecoder(MeshoptDecoder); }
 
 let loader: GLTFLoader | undefined;
 /** Cache/clone policy stays with the owning asset scope. All rig GLBs use this parser.

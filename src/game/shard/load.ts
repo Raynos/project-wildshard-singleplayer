@@ -1,3 +1,4 @@
+import { installGltfKtx2 } from '@wildshard/engine/core/ktx2';
 import { SHARD_API } from './api';
 import type { ShardManifest } from './manifest';
 import type { Ktx2Table } from '@wildshard/engine/boot/gpuFiles';
@@ -65,7 +66,12 @@ export async function runShardLoad<T>(manifest: { readonly api: number; readonly
 }
 
 /** Legacy hook bridge until S1–S4 move these hooks into plugins. Restore authored functions after boot. */
-export async function withShardHooks<T>(manifest: ShardManifest, stage: LoadStage, work: () => Promise<T>): Promise<T> {
+export async function withShardHooks<T>(manifest: Pick<ShardManifest, 'legacy' | 'render' | 'sword' | 'roster' | 'fieldModels' | 'ground'>, stage: LoadStage, work: () => Promise<T>): Promise<T> {
+  // Frozen raw loaders retain the page-wide bridge before any original plugin runs.
+  if (manifest.legacy === true) {
+    const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
+    installGltfKtx2(GLTFLoader);
+  }
   const prefetched: LoadStage = (name, job) => {
     const pending = stage(name, job);
     void pending.catch(() => undefined);

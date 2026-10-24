@@ -21,7 +21,7 @@ import { pageScope } from '../app/resources';
  */
 import * as THREE from 'three';
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import type { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { texMode, gpuFile, standIn } from '../boot/gpuFiles';
 import { markGpuOnly } from './gpuOnly';
 import { type Renderer, probeRenderer } from '../render/renderer';
@@ -201,11 +201,15 @@ export function releaseAfterUpload<T extends THREE.CompressedTexture>(t: T): T {
 
 // every GLTFLoader the game makes (a dozen modules each own one): hand it the KTX2 loader when it parses, so the
 // KHR_texture_basisu models tierUrl swaps in load wherever they are asked for; their textures drop their mips once uploaded.
-// Installed on every page; it acts only on a page that loads KTX2 (texMode() is asked at parse time, after the boot resolved it)
-{
-  const parse: unknown = Object.getOwnPropertyDescriptor(GLTFLoader.prototype, 'parse')?.value;
+// Install at the original loader construction; mode is sampled only at parse time.
+const configuredGltfLoaders = new WeakSet<typeof GLTFLoader>();
+/** Configure the original concrete constructor once, without replacing it.
+ * The texture owner need not import the parser on pages that never load a GLTF. */
+export function installGltfKtx2(type: typeof GLTFLoader): void {
+  if (configuredGltfLoaders.has(type)) return;
+  const parse: unknown = Object.getOwnPropertyDescriptor(type.prototype, 'parse')?.value;
   if (typeof parse === 'function') {
-    Object.defineProperty(GLTFLoader.prototype, 'parse', {
+    Object.defineProperty(type.prototype, 'parse', {
       configurable: true, writable: true,
       value(this: GLTFLoader, ...args: Parameters<GLTFLoader['parse']>): void {
         if (texMode() !== 'ktx2') { Reflect.apply(parse, this, args); return; }
@@ -233,6 +237,7 @@ export function releaseAfterUpload<T extends THREE.CompressedTexture>(t: T): T {
         Reflect.apply(parse, this, [data, path, release, onError]);
       },
     });
+    configuredGltfLoaders.add(type);
   }
 }
 

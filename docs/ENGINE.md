@@ -1057,6 +1057,13 @@ the same reader. An arena arrival declares practice code before loading starts;
 a later room entry declares it before model preparation. The room and its
 procedural stand-ins stay synchronous.
 
+`installGltfKtx2(GLTFLoader)` in `@wildshard/engine/core/ktx2` installs
+the original concrete constructor's parse bridge once, without replacing it.
+The bounded factory calls it at construction; the frozen-shard hook bridge calls
+it before original plugin/world hooks. Frozen source files stay
+unchanged. Texture mode stays a parse-time observation; compressed mip retirement and the final upload fence remain with
+the existing texture owner. The texture module imports only the parser's type.
+
 The loader flags ten seconds without reported work progress in amber, naming
 the open dependency. Body-read activity (`noteDownloadRead(bytes)` in
 `@wildshard/engine/boot/download`) resets that timer without crediting decoded or

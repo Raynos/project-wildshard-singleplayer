@@ -82,3 +82,9 @@ test('the synchronous practice room leaves async model and motion preparation co
   const files = titleGraph(['src/engine/practice/TrainingArena.ts']);
   expect(files.filter(file => /src\/engine\/practice\/(?:TrainingDummyAssets|DummyClips)\.ts$/u.test(file))).toEqual([]);
 });
+
+
+test('texture preparation does not import the GLTF parser', () => {
+  const files = titleGraph(['src/engine/core/ktx2.ts']);
+  expect(files.filter(file => /^three\/examples\/jsm\/(?:loaders\/GLTFLoader|libs\/meshopt_decoder)/u.test(file))).toEqual([]);
+});
