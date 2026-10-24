@@ -20,12 +20,17 @@ export function shardSlugFromUrl(search?: string): string {
 
 /** O15: each installed list's slug table, built once (a Map of every manifest per call was ~500 Simulator samples of
  *  Driftwood's road-entry drive: the grid's per-frame readers look shards up by slug) */
-const bySlug = new WeakMap<readonly ShardManifest[], ReadonlyMap<string, ShardManifest>>();
+const bySlug = new WeakMap<readonly ShardManifest[], Record<string, ShardManifest | undefined>>();
 export function findShard(slug: string): ShardManifest | undefined {
   const list = shards();
   let table = bySlug.get(list);
-  if (table === undefined) { table = new Map(list.map((manifest) => [manifest.slug, manifest])); bySlug.set(list, table); }
-  return table.get(slug);
+  if (table === undefined) {
+    const entries = list.map((manifest) => [manifest.slug, manifest] as const);
+    table = {}; Object.setPrototypeOf(table, null);
+    for (const [key, manifest] of entries) table[key] = manifest;
+    bySlug.set(list, table);
+  }
+  return table[slug];
 }
 
 function initialShard(): ShardManifest {
