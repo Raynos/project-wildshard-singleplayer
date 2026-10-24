@@ -315,6 +315,8 @@ function sample(n, timeline = false) {
       const round = (v) => Math.round(v * 1000) / 1000;
       resolve({ sampleRange: { startMs: round(firstTimestamp), endMs: round(last) }, frames: interval.length, skipped, medianFps: round(1000 / pct(interval, 0.5)), p50Ms: round(pct(interval, 0.5)),
         p95Ms: round(pct(interval, 0.95)), p99Ms: round(pct(interval, 0.99)), maxMs: round(pct(interval, 1)),
+        // Retain the tail only after the sample ends; no additional frame observer or metric is needed.
+        worstFrameMs: [...interval].sort((a, b) => b - a).slice(0, 6).map(round),
         callbackP95Ms: round(pct(callbackInterval, 0.95)), callbackP99Ms: round(pct(callbackInterval, 0.99)), callbackMaxMs: round(pct(callbackInterval, 1)),
         // a freeze is one frame of thousands: p95 / p99 never see it, so a long window also counts its long frames
         longFrames: { over50Ms: interval.filter((ms) => ms > 50).length, over100Ms: interval.filter((ms) => ms > 100).length, at: longAt }, ...(whole ? { slowFrames: slowAt } : {}), ...(glAt.length === 0 ? {} : { glFrames: glAt }),
