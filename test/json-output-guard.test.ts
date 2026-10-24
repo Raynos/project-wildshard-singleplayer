@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Drive the real JSON producer in tiny owned fixtures.
 import { execFileSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own fixture inputs and assert failed writers publish nothing.
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture paths remain under ignored tmp.
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the real SDK driver executable.
@@ -102,6 +102,26 @@ test('SDK JSON recipes refuse encoded and raw bytes before creating an output', 
   put(root, entry, 'export function make(){return {rows:[1,2,3]}}');
   execFileSync(execPath, [driver, entry, 'make', output], { cwd: root, stdio: 'pipe' });
   expect(JSON.parse(readFileSync(resolve(root, output), 'utf8'))).toEqual({ rows: [1, 2, 3] });
+}));
+
+test.each(['directory', 'dangling', 'loop', 'source'])('SDK JSON path admission refuses %s links', kind => fixture(root => {
+  const source = 'export function make(){return {rows:[1,2,3]}}';
+  if (kind === 'source') {
+    put(root, 'src/shards/example/generators/real.mjs', source);
+    symlinkSync('real.mjs', resolve(root, entry));
+  } else {
+    put(root, entry, source);
+    mkdirSync(resolve(root, 'src/shards/example/data'), { recursive: true });
+    if (kind === 'directory') {
+      mkdirSync(resolve(root, 'real-data'));
+      symlinkSync(resolve(root, 'real-data'), resolve(root, 'src/shards/example/data/linked'), 'dir');
+    } else symlinkSync(kind === 'loop' ? 'output.json' : resolve(root, 'absent.json'), resolve(root, output));
+  }
+  const target = kind === 'directory' ? 'src/shards/example/data/linked/output.json' : output;
+  expect(() => execFileSync(execPath, [driver, entry, 'make', target], { cwd: root, stdio: 'pipe' })).toThrow('generate-json: symlink refused');
+  expect(existsSync(resolve(root, 'real-data/output.json'))).toBe(false);
+  expect(existsSync(resolve(root, 'absent.json'))).toBe(false);
+  expect(existsSync(resolve(root, target))).toBe(false);
 }));
 
 test('SDK multi-file admission checks all JSON before writing any binary sibling', () => fixture(root => {

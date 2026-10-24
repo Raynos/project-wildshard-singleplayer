@@ -99,6 +99,19 @@ it('preserves stale optional table fallback and refuses unrelated evaluation err
   put(f.root,'src/game/boot/bytes.generated.ts',"throw new Error('fixture evaluation refused');export const PUBLIC_BYTES={asset:12};");
   await expect(f.upstream({'unread.bin':'old'})).rejects.toThrow('Generator exited 1');
 });
+it('keeps JSON driver path confinement off unrelated source and upstream keys',async()=>{
+  const f=upstreamFixture('export function render(){return {value:1};}');
+  put(f.root,'lint/no-binary-json.json',JSON.stringify({schema:'no-binary-json/1',source:'a'.repeat(40),files:{}}));
+  for(const file of ['src/sdk/bake/source-loader.mjs','src/sdk/bake/json.mjs','scripts/json-output-guard.mjs','scripts/no-binary-json.mjs'])put(f.root,file,readFileSync(file,'utf8'));
+  f.job.inputRoots.push('scripts/json-output-guard.mjs','scripts/no-binary-json.mjs');
+  f.job.command=['--import','./src/sdk/bake/source-loader.mjs','src/sdk/bake/json.mjs',f.entry,'render',f.output];
+  const first=await f.upstream({'unread.bin':'old'});expect(first).toMatchObject({hit:false,text:'{"value":1}\n'});
+  expect(await f.upstream({'unread.bin':'new'})).toEqual({...first,hit:true});
+  put(f.root,'src/sdk/new-unread.test.ts','export const unused=1;');
+  expect(await f.upstream({'unread.bin':'new'})).toEqual({...first,hit:true});
+  put(f.root,f.entry,'export function render(){return {value:2};}');
+  expect(await f.upstream({'unread.bin':'new'})).toMatchObject({hit:false,text:'{"value":2}\n'});
+});
 it('reuses unread upstream bytes behind authoring dependency probes',async()=>{
   const f=upstreamFixture(undefined,true);
   put(f.root,'src/sdk/bake/source-loader.mjs',readFileSync('src/sdk/bake/source-loader.mjs','utf8'));
