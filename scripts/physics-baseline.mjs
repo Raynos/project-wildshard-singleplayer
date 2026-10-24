@@ -34,7 +34,7 @@ import { resolve as resolvePath, join } from 'node:path';
 import { debugSettings, saveFixture } from './debug-settings.mjs';
 import { walkPhysicsLeg } from './physics-walk.mjs';
 import { driveGridSeam, gridSeamRoute, gridDriveFailures } from './physics-grid.mjs';
-import { enterPhysicsGrid, physicsEntryInventory, physicsEntryFailures, waitForPhysicsBoot } from './physics-grid-entry.mjs';
+import { enterPhysicsGrid, physicsEntryInventory, physicsEntryPierReady, physicsEntryFailures, waitForPhysicsBoot } from './physics-grid-entry.mjs';
 
 const { chromium, devices } = await import('playwright');
 
@@ -184,7 +184,7 @@ async function openGame(shard, q, { cpu, video }) {
     await enterPhysicsGrid(page, BASE, TIER, TIMEOUT_MS);
     const grid = await page.evaluate(physicsEntryInventory);
     if (grid.grid !== shard) throw new Error(`Grid starts in ${grid.grid}, expected ${shard}`);
-    if (grid.pier?.owner !== 'pier' || grid.native.pier !== grid.registered.pier) throw new Error('Pier deck has no matching registered/native floor');
+    if (!physicsEntryPierReady(grid)) throw new Error('Pier deck has no matching registered/native floor');
     result.entry = { grid, parity: 'not-sampled' };
     console.error(JSON.stringify(result.entry));
   } else {

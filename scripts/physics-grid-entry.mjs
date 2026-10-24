@@ -38,6 +38,17 @@ export function physicsEntryInventory() {
     grid: api.shard.grid?.state().live?.live?.current ?? null };
 }
 
+/** A streamed pier keeps its authored piece id with its 8 × 8 tile suffix. */
+function pierOwner(owner) { return typeof owner === 'string' && /^pier(?:\.c(?:[0-9]|[1-5][0-9]|6[0-3]))?$/u.test(owner); }
+
+/** The sampled pier floor must belong to a positively registered, matching native piece. */
+export function physicsEntryPierReady(inventory) {
+  const owner = inventory.pier?.owner;
+  if (typeof owner !== 'string' || !pierOwner(owner)) return false;
+  const count = inventory.registered[owner];
+  return typeof count === 'number' && Number.isSafeInteger(count) && count > 0 && inventory.native[owner] === count;
+}
+
 /** Grid platform walls/strips add native shapes; every standalone authored piece must still have the same shapes. */
 export function physicsEntryFailures(standalone, grid) {
   const failures = [];
@@ -45,6 +56,7 @@ export function physicsEntryFailures(standalone, grid) {
     if (grid.registered[id] !== count) failures.push(`${id}: registered ${grid.registered[id] ?? 0}, standalone ${count}`);
     if ((grid.native[id] ?? 0) !== (standalone.native[id] ?? 0)) failures.push(`${id}: native ${grid.native[id] ?? 0}, standalone ${standalone.native[id] ?? 0}`);
   }
-  if (standalone.pier?.owner !== 'pier' || grid.pier?.owner !== 'pier' || Math.abs(grid.pier.y - standalone.pier.y) > 0.001) failures.push('Pier deck is not the same solid native floor');
+  if (standalone.pier === null || grid.pier === null || !pierOwner(standalone.pier.owner) || !pierOwner(grid.pier.owner)
+    || Math.abs(grid.pier.y - standalone.pier.y) > 0.001) failures.push('Pier deck is not the same solid native floor');
   return failures;
 }
