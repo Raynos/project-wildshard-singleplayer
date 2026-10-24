@@ -141,11 +141,16 @@ export function standInTarget(real: THREE.RenderTarget, width: number, height: n
   return target;
 }
 
+/** the game renderer's stand-ins, kept across warms per light shadow: each new one was a framebuffer to set up and
+ *  validate (checkFramebufferStatus, 168 ms in one desktop Pine drive frame) at every warm-up that drew it */
+const keptStandIns = new WeakMap<THREE.LightShadow, { readonly real: THREE.RenderTarget; readonly target: THREE.WebGLRenderTarget }>();
+
 /**
  * Stand-in shadow maps for the slices' depth draws (op-hitch33): one per shadow-casting light, with the light's own
  * map's attachment formats (so the depth pipelines equal the entry frame's) but one texel per cascade viewport. The
  * light's real map is never written, so a cascade that is not redrawn on the next frame (the far cascade every other
- * frame, a settled fade ghost) shows exactly what it showed. Created on first use, disposed when the warm ends.
+ * frame, a settled fade ghost) shows exactly what it showed. Created on first use; the game renderer's are kept for the
+ * next warm (made again when the real map or its extents change), a test's are disposed when the warm ends.
  */
 export class ShadowStandIns {
   private readonly targets = new Map<THREE.LightShadow, THREE.WebGLRenderTarget>();
@@ -157,14 +162,17 @@ export class ShadowStandIns {
     const real = shadow.map;
     if (vsm || real === null || (real as THREE.WebGLRenderTarget & { isWebGLCubeRenderTarget?: boolean }).isWebGLCubeRenderTarget === true) return null;
     const extents = shadow.getFrameExtents();
-    let target = this.targets.get(shadow);
+    const kept = this.renderer === null ? undefined : keptStandIns.get(shadow);
+    let target = this.targets.get(shadow) ?? (kept !== undefined && kept.real === real ? kept.target : undefined);
     if (target === undefined || target.width !== extents.x || target.height !== extents.y) {
       target?.dispose(); target?.depthTexture?.dispose();
+      if (kept !== undefined && kept.target !== target) { kept.target.dispose(); kept.target.depthTexture?.dispose(); }
       target = standInTarget(real, extents.x, extents.y);
       // a depth-only real map (E174 / the Memory saver) has no colour attachment: neither may its stand-in
       if (this.renderer !== null && shadowColourDropped(real)) { this.renderer.initRenderTarget(target); dropShadowColour(this.renderer, target); }
-      this.targets.set(shadow, target);
     }
+    if (this.renderer === null) this.targets.set(shadow, target);
+    else keptStandIns.set(shadow, { real, target });
     return target;
   }
   /** Dispose every stand-in. */
