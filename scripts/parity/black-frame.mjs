@@ -1,3 +1,5 @@
+import { beginCaptureTrace } from './capture-trace.mjs';
+
 /** Read a composited Playwright screenshot without requesting another game draw.
  * The detached analysis canvas never enters the document or changes the renderer.
  * @param {number[]} bytes */
@@ -32,7 +34,19 @@ export function frameFailure(sample) {
 export async function captureBootFrame(page, label, deadline, frames) {
   const remaining = deadline - Date.now();
   if (remaining <= 0) throw new Error(`Boot deadline: ${label} screenshot`);
-  const bytes = await page.screenshot({ type: 'png', timeout: Math.min(10000, remaining) });
+  const stopTrace = await beginCaptureTrace(page, label);
+  const started = performance.now();
+  console.log(`boot-capture ${JSON.stringify({ label, stage: 'screenshot-roundtrip', state: 'start', ms: 0 })}`);
+  let state = 'refused';
+  const bytes = await (async () => { try {
+    const available = deadline - Date.now();
+    if (available <= 0) throw new Error(`Boot deadline: ${label} screenshot`);
+    const captured = await page.screenshot({ type: 'png', timeout: Math.min(10000, available) });
+    state = 'complete'; return captured;
+  } finally {
+    console.log(`boot-capture ${JSON.stringify({ label, stage: 'screenshot-roundtrip', state, ms: performance.now() - started })}`);
+    await stopTrace();
+  } })();
   const sample = { label, ...await page.evaluate(screenshotPixels, Array.from(bytes)) };
   frames.push(sample);
   const failure = frameFailure(sample);

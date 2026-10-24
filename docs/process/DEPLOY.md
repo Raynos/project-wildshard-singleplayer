@@ -88,6 +88,11 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   bound through visible home residency. The following 90-second home proof still
   requires every visible ring and ten gameplay frames before the Signal road leg.
   Smoke receipts distinguish drawn frames, fixed ring steps and clock/pause state.
+  Screenshot diagnostics retain a stable Playwright trace only while a boot frame is captured, with trace
+  screenshots, snapshots and sources disabled. Logs retain the screenshot API duration and its font milestones;
+  native layout/capture/PNG encoding/cleanup RPC durations are explicitly unavailable in this trace API.
+  The composited image, pixel checks and 10-second screenshot timeout remain unchanged; a missing diagnostic
+  trace is reported without substituting a successful frame or retrying the capture.
   Six required macOS legs separate public cases, Developer standalones, the grid/Signal road proof,
   Chromium HOVER and WebKit HOVER/rendering (`boot-public`, `boot-developer`, `boot-grid`,
   `hover-chromium`, `hover-webkit`, `explorer`). Each keeps its 20-minute outer deadline. The 2026-10-18

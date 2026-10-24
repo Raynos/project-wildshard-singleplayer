@@ -1,7 +1,8 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
-import type { Page } from 'playwright';
+import type { BrowserContext, Page } from 'playwright';
 import { captureBootFrame, frameFailure, screenshotPixels, type BootFrameSample } from '../scripts/parity/black-frame.mjs';
+import { registerCaptureTrace } from '../scripts/parity/capture-trace.mjs';
 import { legacyDouble } from './fake/FakeGame';
 // oxlint-disable-next-line import/no-nodejs-modules -- Match Playwright's PNG Buffer without launching a browser.
 import { Buffer } from 'node:buffer';
@@ -41,7 +42,8 @@ test('composited screenshot pixels are read on a detached canvas and the bitmap 
 test('a black boot frame fails with its checkpoint and retained observation', async () => {
   const screenshot=vi.fn(() => Promise.resolve(Buffer.from([1,2,3])));
   const evaluate=vi.fn(() => Promise.resolve({width:780,height:1688,pixels:100,darkShare:.95}));
-  const page=legacyDouble<Page>({screenshot,evaluate}), frames:BootFrameSample[]=[];
+  const context=legacyDouble<BrowserContext>({browser:()=>null});
+  const page=legacyDouble<Page>({screenshot,evaluate,context:()=>context}), frames:BootFrameSample[]=[];
   await expect(captureBootFrame(page,'SHARD SELECT',Date.now()+30000,frames)).rejects.toThrow('SHARD SELECT: frame is at least 90% near-black');
   expect(frames).toEqual([{label:'SHARD SELECT',width:780,height:1688,pixels:100,darkShare:.95}]);
   expect(screenshot).toHaveBeenCalledExactlyOnceWith({type:'png',timeout:10000});
@@ -52,4 +54,20 @@ test('an exhausted original deadline refuses before requesting a screenshot', as
   const screenshot=vi.fn(), page=legacyDouble<Page>({screenshot});
   await expect(captureBootFrame(page,'grid HOME',Date.now()-1,[])).rejects.toThrow('Boot deadline: grid HOME screenshot');
   expect(screenshot).not.toHaveBeenCalled();
+});
+
+test('a screenshot timeout stays red after diagnostic cleanup with no second capture', async () => {
+  const original=new Error('page.screenshot: Timeout 10000ms exceeded.');
+  const screenshot=vi.fn<() => Promise<Buffer>>().mockRejectedValue(original);
+  const start=vi.fn().mockResolvedValue(undefined), stop=vi.fn().mockRejectedValue(new Error('trace lost'));
+  const tracing=legacyDouble<BrowserContext['tracing']>({start,stop});
+  const context=legacyDouble<BrowserContext>({tracing});
+  const page=legacyDouble<Page>({context:()=>context,screenshot});
+  registerCaptureTrace(page,'unused','nine');
+  const frames:BootFrameSample[]=[];
+  await expect(captureBootFrame(page,'Nine title',Date.now()+30000,frames)).rejects.toBe(original);
+  expect(screenshot).toHaveBeenCalledExactlyOnceWith({type:'png',timeout:10000});
+  expect(start).toHaveBeenCalledExactlyOnceWith({screenshots:false,snapshots:false,sources:false});
+  expect(stop).toHaveBeenCalledExactlyOnceWith({path:'unused/nine-capture-1.zip'});
+  expect(frames).toEqual([]);
 });

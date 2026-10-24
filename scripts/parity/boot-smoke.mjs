@@ -5,6 +5,7 @@ import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve as resolvePath, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { browserPool } from './pool.mjs';
+import { registerCaptureTrace } from './capture-trace.mjs';
 import { serve } from './serve.mjs';
 import { saveFixture } from '../debug-settings.mjs';
 import { captureBootFrame } from './black-frame.mjs';
@@ -293,6 +294,7 @@ export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle
     await route.continue();
   });
   const page = await context.newPage();
+  registerCaptureTrace(page, out, receipt);
   page.on('framenavigated', frame => {
     if (gridNavigationIntent && frame === page.mainFrame()) gridNavigationObserved = true;
   });
