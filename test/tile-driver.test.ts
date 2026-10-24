@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import { TileDriver, tileKeys } from '../src/game/shardfile/tileDriver';
 import type { TileContent } from '../src/game/shardfile/tileContent';
@@ -47,4 +47,36 @@ test('a tile that fails to attach stays out and is not retried', async () => {
     expect(driver.resident('render').has(28)).toBe(false); expect(driver.resident('render').size).toBe(8);
     expect(warned).toBe(1);
   } finally { console.warn = warn; scope.dispose(); }
+});
+
+test.each(['render', 'colliders'] as const)('a cancelled %s preparation can attach when the player returns', async layer => {
+  const scope = new Scope('tiles'), made = content(), key = 28;
+  let refuse = (_error: Error): void => { throw new Error('Preparation not started'); };
+  let started = (): void => { throw new Error('Missing start witness'); };
+  const waiting = new Promise<void>(resolve => { started = resolve; });
+  let attempts = 0;
+  const attach = layer === 'render' ? made.attach : made.attachColliders;
+  if (attach === undefined) throw new Error('Missing fixture attachment');
+  const prepare = (tile: number, owner: Scope): Promise<void> => {
+    if (tile !== key || ++attempts > 1) return attach(tile, owner);
+    started();
+    return new Promise<void>((_resolve, reject) => { refuse = reject; });
+  };
+  const driver = new TileDriver(scope, [{ ...made, ...(layer === 'render' ? { attach: prepare } : { attachColliders: prepare }) }],
+    () => 1, () => Promise.resolve());
+  const warning = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+  try {
+    const pending = driver.require([key]);
+    await waiting;
+    // A sliced placer checks its tile owner after yielding and rejects when
+    // movement has already retired it. That is cancellation, not bad content.
+    driver.step(200, 200);
+    refuse(new Error('Scene placement owner is disposed'));
+    await pending;
+    await settle(driver, -40, -40, 80);
+    expect(driver.resident(layer).has(key)).toBe(true);
+    expect(attempts).toBe(2);
+    expect(made.attached.has(`${layer === 'render' ? 'r' : 'c'}${key}`)).toBe(true);
+    expect(warning).not.toHaveBeenCalled();
+  } finally { warning.mockRestore(); scope.dispose(); }
 });

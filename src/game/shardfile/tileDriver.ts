@@ -82,7 +82,12 @@ export class TileDriver {
       }
     } catch (error: unknown) {
       if (this.attached[layer].get(key) === tile) this.attached[layer].delete(key);
-      tile.dispose(); this.failed.add(`${layer}:${String(key)}`);
+      // A sliced preparation may reject after movement has already retired its
+      // tile. Only a live owner's failure blacklists content, not cancellation.
+      const cancelled = tile.disposed || tile.disposing || this.scope.disposed || this.scope.disposing;
+      tile.dispose();
+      if (cancelled) return;
+      this.failed.add(`${layer}:${String(key)}`);
       if (!this.scope.disposed) console.warn(`[tiles] ${layer} tile ${String(key)} failed to attach; it stays out`, error);
     }
   }
