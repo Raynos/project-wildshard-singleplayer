@@ -27,24 +27,26 @@ export function resolveBorrowedOwner(owners: ReadonlyMap<string, unknown>, row: 
 /** `resolveBorrowedOwner`'s value alone (undefined where it is null), with no result object: a numeric input read every
  *  frame (G639: a sky's and every posed animal's channel inputs) */
 export function resolveBorrowedValue(owners: ReadonlyMap<string, unknown>, row: BorrowedOwnerPath): unknown {
-  const receiver = borrowedReceiver(owners, row);
-  return receiver === null ? undefined : receiver[String(row.path.at(-1))];
+  return borrowedReceiver(owners, row, true);
 }
-/** The object holding the path's last field (null where an optional path meets a null owner or intermediate). */
-function borrowedReceiver(owners: ReadonlyMap<string, unknown>, row: BorrowedOwnerPath): Record<string, unknown> | null {
+/** Resolve live owners and intermediates; value-only reads consume the checked leaf key in the same walk.
+ * Receiver reads return null for an optional null path; value reads retain their undefined result. */
+function borrowedReceiver(owners: ReadonlyMap<string, unknown>, row: BorrowedOwnerPath, valueOnly: true): unknown;
+function borrowedReceiver(owners: ReadonlyMap<string, unknown>, row: BorrowedOwnerPath): Record<string, unknown> | null;
+function borrowedReceiver(owners: ReadonlyMap<string, unknown>, row: BorrowedOwnerPath, valueOnly = false): unknown {
   if (!owners.has(row.owner)) throw new Error(`Missing borrowed owner ${row.owner}`);
   let receiver = owners.get(row.owner);
   for (let index = 0; index < row.path.length; index++) {
     if (receiver === null || receiver === undefined) {
-      if (row.optional === true) return null;
+      if (row.optional === true) return valueOnly ? undefined : null;
       throw new Error(`Missing borrowed field ${row.owner}`);
     }
     if (!borrowedRecord(receiver)) throw new Error('Borrowed path must traverse objects');
     const key = String(row.path[index]), last = index === row.path.length - 1;
-    // A class method may be inherited; fields and intermediate objects must belong to the supplied instance. The last
-    // field is read by the caller alone (an own getter runs once a read)
+    // A class method may be inherited; fields and intermediate objects must belong to the supplied instance.
+    // An own final getter runs once per read, after its ownership check.
     if (!Object.hasOwn(receiver, key) && !(last && typeof receiver[key] === 'function')) throw new Error(`Missing borrowed field ${key}`);
-    if (last) return receiver;
+    if (last) return valueOnly ? receiver[key] : receiver;
     receiver = receiver[key];
   }
   throw new Error('Invalid borrowed owner path');
