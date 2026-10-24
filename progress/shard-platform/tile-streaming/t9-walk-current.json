@@ -1,0 +1,87 @@
+{
+  "revision": "57d1344dc1d2c55fe18b4fb72dd5aca4213ea7c8",
+  "build": "57d1344-mvmvdjsy",
+  "readerRefusalFix": "1cc1a3bcde",
+  "raw": "tmp/sp-x6-tile-lattice/current-four-leg/t9-current-four-leg-57d1344-mvmvdjsy.json",
+  "rawSha256": "aac77f04bfd747c1af219b224b9c87ea9cfef5e586239ee8658a760b027ed825",
+  "limits": "Functional four-way native walk only. Initial apron poses only, held walking thereafter, no refusal teleport; no FPS, Simulator, ghost or memory acceptance claim. Same preview handed to T1 under its independent lease.",
+  "errors": [],
+  "walk": [
+    {
+      "name": "t9-east-seam-roundtrip",
+      "frames": 615,
+      "seconds": 20.7,
+      "end": {
+        "x": 240.792,
+        "y": 0.016,
+        "z": 0
+      },
+      "maxY": 0.03,
+      "airFrames": 0,
+      "stuck": [],
+      "complete": true,
+      "timedOut": false,
+      "frameGate": true,
+      "gameplayReady": true,
+      "crossings": 3,
+      "issues": {}
+    },
+    {
+      "name": "t9-west-seam-roundtrip",
+      "frames": 570,
+      "seconds": 19,
+      "end": {
+        "x": -240.792,
+        "y": 0.015,
+        "z": 0
+      },
+      "maxY": 0.02,
+      "airFrames": 0,
+      "stuck": [],
+      "complete": true,
+      "timedOut": false,
+      "frameGate": true,
+      "gameplayReady": true,
+      "crossings": 5,
+      "issues": {}
+    },
+    {
+      "name": "t9-north-seam-roundtrip",
+      "frames": 629,
+      "seconds": 21,
+      "end": {
+        "x": 0,
+        "y": 0.015,
+        "z": 240.791
+      },
+      "maxY": 0.03,
+      "airFrames": 0,
+      "stuck": [],
+      "complete": true,
+      "timedOut": false,
+      "frameGate": true,
+      "gameplayReady": true,
+      "crossings": 7,
+      "issues": {}
+    },
+    {
+      "name": "t9-south-seam-roundtrip",
+      "frames": 569,
+      "seconds": 19.1,
+      "end": {
+        "x": 0,
+        "y": 0.015,
+        "z": -240.792
+      },
+      "maxY": 0.02,
+      "airFrames": 0,
+      "stuck": [],
+      "complete": true,
+      "timedOut": false,
+      "frameGate": true,
+      "gameplayReady": true,
+      "crossings": 9,
+      "issues": {}
+    }
+  ]
+}

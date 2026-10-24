@@ -24,8 +24,17 @@ Each leg starts on the unchanged static entry apron at 240 m, crosses the
 then returns by held walking input. The original 230 m north point is
 inside a streamed jetty; it is not an appropriate static-seam seed.
 
-Final four-leg result: still open. The corrected proof will run after the
-already-active T1 browser milestone releases its shared preview.
+The corrected [a80 four-leg walk](t9-walk-a80.json) passed all four
+round trips with zero stuck events, no timeout and both gates open at every
+finish. The requested [current-origin confirmation](t9-walk-current.json)
+also passed on `57d1344dc1d2c55fe18b4fb72dd5aca4213ea7c8`, build
+`57d1344-mvmvdjsy`: east/west/north/south complete, zero stuck events,
+no timeouts or errors, final frameGate/gameplayReady true in every leg.
+This includes the later ghost-holder repairs `19073d6914` / `772cf4412f`.
+One new preview served the confirmation and was handed to T1 under its own
+lease; T1 retirement acceptance is separate. The old run had already started
+when the current-origin instruction arrived, so it finished naturally.
+T9 lattice and seam proof is complete; T10 retains the broader milestone.
 
 The intermediate north return held at z=255.985 while the actual crossing
 was preparing Driftwood, pending with no issue, in `afterPlay`. That is a

@@ -1,0 +1,86 @@
+{
+  "revision": "a80ea662b5f4f054d5940b6654209b89ef8f91ea",
+  "build": "a80ea66-mvmssanv",
+  "readerRefusalFix": "1cc1a3bcde",
+  "raw": "tmp/sp-x6-tile-lattice/four-leg-final/t9-four-leg-a80ea66-mvmssanv.json",
+  "rawSha256": "b83ed7417f6c8ac5e32d152c3f09241cd2214fed851e8e43fa95885b7a0a179f",
+  "limits": "Crossed start completed naturally before coordinator-requested current-origin confirmation. Functional walk only, no timing comparison. Initial apron poses only; grid refusal never teleports.",
+  "walk": [
+    {
+      "name": "t9-east-seam-roundtrip",
+      "frames": 623,
+      "seconds": 21,
+      "end": {
+        "x": 240.72,
+        "y": 0.015,
+        "z": 0
+      },
+      "maxY": 0.03,
+      "airFrames": 0,
+      "stuck": [],
+      "complete": true,
+      "timedOut": false,
+      "frameGate": true,
+      "gameplayReady": true,
+      "crossings": 3,
+      "issues": {}
+    },
+    {
+      "name": "t9-west-seam-roundtrip",
+      "frames": 570,
+      "seconds": 19,
+      "end": {
+        "x": -240.792,
+        "y": 0.011,
+        "z": 0
+      },
+      "maxY": 0.02,
+      "airFrames": 0,
+      "stuck": [],
+      "complete": true,
+      "timedOut": false,
+      "frameGate": true,
+      "gameplayReady": true,
+      "crossings": 5,
+      "issues": {}
+    },
+    {
+      "name": "t9-north-seam-roundtrip",
+      "frames": 633,
+      "seconds": 21.1,
+      "end": {
+        "x": 0,
+        "y": 0.01,
+        "z": 240.792
+      },
+      "maxY": 0.03,
+      "airFrames": 0,
+      "stuck": [],
+      "complete": true,
+      "timedOut": false,
+      "frameGate": true,
+      "gameplayReady": true,
+      "crossings": 7,
+      "issues": {}
+    },
+    {
+      "name": "t9-south-seam-roundtrip",
+      "frames": 568,
+      "seconds": 19.2,
+      "end": {
+        "x": 0,
+        "y": 0.015,
+        "z": -240.792
+      },
+      "maxY": 0.02,
+      "airFrames": 0,
+      "stuck": [],
+      "complete": true,
+      "timedOut": false,
+      "frameGate": true,
+      "gameplayReady": true,
+      "crossings": 9,
+      "issues": {}
+    }
+  ]
+}
