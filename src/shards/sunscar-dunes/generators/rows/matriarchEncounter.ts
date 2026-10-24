@@ -1,4 +1,4 @@
-import LAYOUT from '../../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from '../layout';
 import { MATRIARCH_BOSS_PROFILE } from './matriarchBoss';
 import STRINGS from '../../data/strings.json' with { type: 'json' };
 import { MATRIARCH_DEFEATED_FLAG, MATRIARCH_PAID_FLAG } from './signalQuest';

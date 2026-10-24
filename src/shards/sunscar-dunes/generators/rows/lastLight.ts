@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import DUNES from '../../data/duneRows.generated.json' with { type: 'json' };
+import * as DUNES from '../duneRows';
 import type { DayClockRow } from '@wildshard/format/dayCycle';
 import { DUSK_CURVES } from './dusk';
 import { KEY_DIR, SKIRT_GRID, SKIRT_SWELL, type SkirtGridRow, type SwellSkirtRow } from './sand';

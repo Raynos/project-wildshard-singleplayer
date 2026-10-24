@@ -1,4 +1,4 @@
-import DUNES from '../../data/duneRows.generated.json' with { type: 'json' };
+import * as DUNES from '../duneRows';
 import { MATRIARCH_ARENA } from './matriarchEncounter';
 import STRINGS from '../../data/strings.json' with { type: 'json' };
 

@@ -1,6 +1,6 @@
 import type { BrainedSpecies } from '@wildshard/sdk/speciesBrains';
 import type { StrikeData } from '@wildshard/sdk/species';
-import LAYOUT from '../../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from '../layout';
 import { DUNE_RAY, SWOOP_DATA } from './species/duneRay';
 import { DUNE_STRIDER, CHARGE_DATA, HORNS_DATA } from './species/strider';
 import { SKITTERER_DATA, BITE_DATA } from './species/skitterer';

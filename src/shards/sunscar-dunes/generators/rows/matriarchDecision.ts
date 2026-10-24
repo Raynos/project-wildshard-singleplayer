@@ -1,4 +1,4 @@
-import LAYOUT from '../../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from '../layout';
 import { MATRIARCH as M, MAW_DATA, TAIL_SWEEP_DATA, BUFFET_DATA } from './species/matriarch';
 
 /** Motion borrows the same flight motor and above-ground altitudes as the original body. */

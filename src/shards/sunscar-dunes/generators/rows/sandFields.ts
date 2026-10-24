@@ -1,5 +1,5 @@
-import DUNES from '../../data/duneRows.generated.json' with { type: 'json' };
-import LAYOUT from '../../data/layout.generated.json' with { type: 'json' };
+import * as DUNES from '../duneRows';
+import * as LAYOUT from '../layout';
 import { SHADOW_HALF } from './sand';
 import { SKY_SUN } from './sky';
 import sandMeans from '../../data/sand.json' with { type: 'json' };

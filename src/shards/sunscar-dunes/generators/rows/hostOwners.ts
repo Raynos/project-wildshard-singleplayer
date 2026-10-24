@@ -1,4 +1,4 @@
-import LAYOUT from '../../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from '../layout';
 import { SIGNAL_SPAWNS } from './spawns';
 import { WHIP_ITEM, WHIP_PROFILE } from './items';
 import { SCOUT_FLAG } from './flags';

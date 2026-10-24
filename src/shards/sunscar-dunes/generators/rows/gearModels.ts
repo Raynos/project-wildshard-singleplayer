@@ -1,5 +1,5 @@
 import { WHIP_HELD_RECIPE } from './heldWeapon';
-import LAYOUT from '../../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from '../layout';
 import caravan from '../../data/caravan.json' with {type:'json'};
 import well from '../../data/well.json' with {type:'json'};
 import braziers from '../../data/braziers.json' with {type:'json'};

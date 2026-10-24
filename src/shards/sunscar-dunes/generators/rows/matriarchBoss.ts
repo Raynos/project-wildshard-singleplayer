@@ -1,4 +1,4 @@
-import LAYOUT from '../../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from '../layout';
 
 /** The Matriarch's complete authored fresh-body boss policy; both native hosts admit this same row. */
 export const MATRIARCH_BOSS_PROFILE = { kind: 'boss', pattern: 'spawned', fight: {

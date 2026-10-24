@@ -8,9 +8,15 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 import { fixedLayoutFiles as skyFiles } from '../src/shards/far-reach/generators/fixedLayouts';
 import { fixedLayoutFiles as signalFiles } from '../src/shards/sunscar-dunes/generators/fixedLayouts';
 import sky from '../src/shards/far-reach/data/layout.generated.json' with { type: 'json' };
-import signal from '../src/shards/sunscar-dunes/data/layout.generated.json' with { type: 'json' };
+import * as signalSource from '../src/shards/sunscar-dunes/generators/layout';
 import crown from '../src/shards/far-reach/data/crownLayout.generated.json' with { type: 'json' };
-import dunes from '../src/shards/sunscar-dunes/data/duneRows.generated.json' with { type: 'json' };
+import * as duneSource from '../src/shards/sunscar-dunes/generators/duneRows';
+
+// The old transport sorts top-level export names; Vite namespaces retain
+// declaration order, so keep the original wire ordering in these byte oracles.
+const ordered = (rows: Readonly<Record<string, unknown>>) => Object.fromEntries(
+  Object.entries(rows).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0));
+const signal = ordered(signalSource), dunes = ordered(duneSource);
 
 // Captured from 68807c271 before moving the coordinate recipes: every derived
 // bridge endpoint, pad, trail, island, map mark and crown stone is included.
