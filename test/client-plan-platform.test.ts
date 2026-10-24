@@ -32,8 +32,8 @@ import * as clientPhases from '../src/game/shardfile/clientPlan';
 import { admitClientPlan, installClientPhase } from '../src/game/shardfile/clientPlan';
 import { ShardfileClient } from '../src/game/shardfile/client';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
-import { declaredRuntimeEntry, declaredClientPlanEntry } from '../src/game/shard/declaredEntry';
-import { ShardPlugin, type ShardContext } from '../src/game/plugin/context';
+import { declaredClientPlanEntry } from '../src/game/shard/declaredEntry';
+import { ShardPlugin, standaloneHybridEntry, type ShardContext } from '../src/game/plugin/context';
 import { parseClientPlan, RuntimeBoundsSchema } from '../src/format/clientPlan';
 import { browserShardfileOptions } from '../src/game/shardfile/runtimeProduct';
 import { RetainedRuntimeHooks } from '../src/game/shard/retainedHooks';
@@ -134,14 +134,7 @@ test('runtime-owned stages still execute the data client plan without installing
   expect(f.strings).toHaveBeenCalledOnce(); expect(f.expose).toHaveBeenCalledWith('fixtureHarbour', f.runtime); f.ctx.scope.dispose();
 });
 
-test('compiled first-party runtime entry resolves only its declared constructor and runs no hooks on import', () => {
-  const world = vi.fn();
-  class Runtime extends ShardPlugin { override world(): void { world(); } }
-  const entry = declaredRuntimeEntry(Runtime, Runtime, { entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'runtime' });
-  expect(entry.resolveTrustedRuntime('runtime/index.ts')).toBe(Runtime);
-  expect(() => entry.resolveTrustedRuntime('runtime/other.ts')).toThrow('Unknown compiled');
-  const Entry = entry.default; new Entry(); expect(world).not.toHaveBeenCalled();
-});
+
 
 test('Nalati lazy admission selects the compiled plan without a trusted TS resolver or eager effects', async () => {
   const { default: manifest } = await import('../src/shards/nalati-grasslands/discovery.generated');
@@ -155,47 +148,27 @@ test('Nalati lazy admission selects the compiled plan without a trusted TS resol
   } finally { install.mockRestore(); }
 });
 
-test.each([true, false])('standalone native plan policy preserves hooks and their scope: %s', async nativePlan => {
-  const f = context(), order: string[] = [], release = vi.fn();
-  f.strings.mockImplementation(() => { order.push('strings'); }); f.expose.mockImplementation(() => { order.push('debug'); });
-  class Native extends ShardPlugin {
-    constructor() { super(); order.push('construct'); }
-    override world(ctx: ShardContext): void { order.push('world'); ctx.scope.onDispose(() => { release(); }); }
-    override kit(): void { order.push('kit'); }
-    override play(): void { order.push('play'); }
-  }
-  const Entry = declaredRuntimeEntry(Native, Native, {
-    entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'declared', ...(nativePlan ? {} : { nativePlan }),
-  }).default;
-  const plugin = new Entry(undefined, undefined, () => false);
-  try {
-    expect(order).toEqual([]); await expect(plugin.kit(f.ctx)).rejects.toThrow('not admitted');
-    await plugin.world(f.ctx); await plugin.kit(f.ctx); await plugin.play(f.ctx);
-    expect(order).toEqual(nativePlan ? ['construct', 'strings', 'world', 'kit', 'play', 'debug'] : ['construct', 'world', 'kit', 'play']);
-    expect(release).not.toHaveBeenCalled();
-  } finally { f.ctx.scope.dispose(); }
-  expect(release).toHaveBeenCalledOnce();
-});
+
 
 test.each([false, true])('standalone entry preserves constructor and admission injection: %s', async shardfile => {
-  const f = context(), order: string[] = [];
+  const f = context(), order: string[] = [], release = vi.fn();
   class Native extends ShardPlugin { constructor() { super(); throw new Error('Unexpected default constructor'); } }
   class Injected extends ShardPlugin {
-    override world(): void { order.push('world'); }
+    override world(ctx: ShardContext): void { order.push('world'); ctx.scope.onDispose(() => { release(); }); }
     override kit(): void { order.push('kit'); }
     override play(): void { order.push('play'); }
   }
   const admit = vi.fn((ctx: ShardContext) => { expect(ctx).toBe(f.ctx); order.push('admit'); return Promise.resolve(new Injected()); });
   const select = vi.fn(() => shardfile);
-  const Entry = declaredRuntimeEntry(Native, Native, {
-    entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'declared', nativePlan: false,
-  }).default;
+  const Entry = standaloneHybridEntry(Native, admit, select, 'Held legacy fixture');
   const plugin = new Entry(Injected, admit, select);
   try {
     await plugin.world(f.ctx); await plugin.kit(f.ctx); await plugin.play(f.ctx);
     expect(order).toEqual(shardfile ? ['admit', 'world', 'kit', 'play'] : ['world', 'kit', 'play']);
     expect(select).toHaveBeenCalledOnce(); expect(admit).toHaveBeenCalledTimes(shardfile ? 1 : 0);
+    expect(release).not.toHaveBeenCalled();
   } finally { f.ctx.scope.dispose(); }
+  expect(release).toHaveBeenCalledOnce();
 });
 
 test('retained client strings unpublish on leave and replay on re-entry', async () => {
@@ -316,16 +289,13 @@ test.each(['native', 'regional', 'data'] as const)('finite preparation precedes 
   const result: QuestSpawnResult = { puffs: { color: [1, 1, 1], count: 2, height: 1, burst: [1, 2, 3, 4] }, count: 0,
     force: () => undefined, update: () => undefined, takePuffs: () => [] };
   const spawns = vi.spyOn(spawnPreparation, 'installDeclaredQuestSpawns').mockImplementation(() => { order.push('spawns'); return Promise.resolve(result); });
-  class Runtime extends ShardPlugin {
-    override play(ctx: ShardContext): void {
-      expect(entryOwner(ctx.scope, 'quest-spawns', 'orchard.spawns')).toBe(result); order.push('view');
-    }
-  }
+
   try {
     if (surface === 'native') {
-      const Entry = declaredRuntimeEntry(Runtime, Runtime, { entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'runtime' }).default;
+      const Entry = declaredClientPlanEntry({ retainHomeRuntime: true, stagesOwner: 'runtime' }).default;
       const plugin = new Entry(undefined, undefined, () => false);
       await plugin.world(f.ctx); await plugin.kit(f.ctx); await plugin.play(f.ctx);
+      expect(entryOwner(f.ctx.scope, 'quest-spawns', 'orchard.spawns')).toBe(result); order.push('view');
     } else if (surface === 'regional') {
       const runtime: ShardRuntime = { world: null, step: null, play: null, interactables: [], overhead: [], hooks: {}, objects: {}, viewer: () => new Vector3(), horizonVeil: null };
       const resident: HybridResident = { instance: 'orchard', slug: f.source.identity.slug, declaration: null, product: f.ctx.product,
@@ -374,15 +344,13 @@ test.each(['native', 'regional', 'data'] as const)('world bindings follow constr
   const bound = vi.spyOn(runtimeHookBindings, 'installClientRuntimeHooks').mockImplementation((entered, row) => {
     expect(order).toEqual(['constructed']); install(entered, row); order.push('bound');
   });
-  class Runtime extends ShardPlugin {
-    override world(entered: ShardContext): void { publishEntryOwner(entered.scope, 'floor', 'orchard.floor', floor); order.push('constructed'); }
-    override kit(entered: ShardContext): void { expect(entered.game.runtime?.hooks.spawnFloor).toBe(floor); order.push('kit'); }
-  }
+
   try {
     if (surface === 'native') {
-      const Entry = declaredRuntimeEntry(Runtime, Runtime, { entry: 'runtime/index.ts', retainHomeRuntime: false, stagesOwner: 'runtime' }).default;
+      publishEntryOwner(ctx.scope, 'floor', 'orchard.floor', floor); order.push('constructed');
+      const Entry = declaredClientPlanEntry({ retainHomeRuntime: false, stagesOwner: 'runtime' }).default;
       const plugin = new Entry(undefined, undefined, () => false);
-      await plugin.world(ctx); await plugin.kit(ctx);
+      await plugin.world(ctx); expect(runtime.hooks.spawnFloor).toBe(floor); await plugin.kit(ctx); order.push('kit');
     } else if (surface === 'regional') {
       const resident: HybridResident = { instance: 'orchard', slug: f.source.identity.slug, declaration: null, product: f.ctx.product, firstParty: true, scope: ctx.scope, runtime,
         context: (scope, localRuntime) => ({ context: { ...ctx, scope, game: { ...ctx.game, runtime: localRuntime } },
@@ -459,44 +427,19 @@ test('the compiled standalone native entry installs finite phases with no TS con
 });
 
 
-test('a finite native kit selection retains its world and play owners without replaying their plan phases', async () => {
-  const f = context(), order: string[] = [], phases: string[] = [], release = vi.fn();
-  class Native extends ShardPlugin {
-    override world(ctx: ShardContext): void { order.push('world'); ctx.scope.onDispose(() => { release(); }); }
-    override kit(): void { order.push('native-kit'); }
-    override play(): void { order.push('play'); }
-  }
-  const install = vi.spyOn(clientPhases, 'installClientPhase').mockImplementation((_ctx, _plan, phase) => {
-    phases.push(phase); order.push('declared-kit'); return Promise.resolve();
-  });
-  const policy = { entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'declared', nativePlan: { phases: ['kit'] } } as const;
-  const Entry = declaredRuntimeEntry(Native, Native, policy).default, plugin = new Entry(undefined, undefined, () => false);
-  try {
-    await plugin.world(f.ctx); expect(phases).toEqual([]);
-    await plugin.kit(f.ctx); await plugin.play(f.ctx);
-    expect(phases).toEqual(['kit']); expect(order).toEqual(['world', 'native-kit', 'declared-kit', 'play']);
-    expect(f.strings).not.toHaveBeenCalled(); expect(f.expose).not.toHaveBeenCalled();
-    expect(release).not.toHaveBeenCalled();
-    expect(() => declaredRuntimeEntry(Native, Native, { ...policy, nativePlan: { phases: ['kit', 'kit'] } })).toThrow('Duplicate native client phase');
-  } finally { install.mockRestore(); f.ctx.scope.dispose(); }
-  expect(release).toHaveBeenCalledOnce();
-});
 
 
-test('native metadata registration leaves the original world as the only look constructor', async () => {
+
+test('compiled metadata registration allocates no second look constructor', async () => {
   const f = context(), order: string[] = [];
   f.source.look.materials['orchard-leaves'] = parseFamilyMaterial({ family: 'pbr' });
   f.sections.set('client/plan', { version: 1, features: [{ kind: 'strings.register' }] });
   f.strings.mockImplementation(() => { order.push('strings'); });
   const compile = vi.spyOn(lookCompiler, 'runtimeLookMaterials').mockRejectedValue(new Error('Metadata cannot prepare visual looks'));
-  class Native extends ShardPlugin {
-    override world(): void { order.push('native-world'); expect(compile).not.toHaveBeenCalled(); }
-  }
-  const Entry = declaredRuntimeEntry(Native, Native, { entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'declared',
-    nativePlan: { phases: ['world'], features: ['strings.register'] } }).default;
+  const Entry = declaredClientPlanEntry({ retainHomeRuntime: true, stagesOwner: 'declared' }).default;
   try {
     await new Entry(undefined, undefined, () => false).world(f.ctx);
-    expect(order).toEqual(['strings', 'native-world']); expect(compile).not.toHaveBeenCalled();
+    expect(order).toEqual(['strings']); expect(compile).not.toHaveBeenCalled();
   } finally { compile.mockRestore(); f.ctx.scope.dispose(); }
 });
 
@@ -516,39 +459,42 @@ test('runtime bounds use their finite defining grammar and actual platform emiss
     expect(() => parseClientPlan({ version: 1, features: [{ ...row, bounds: bad }] })).toThrow();
 });
 
-test('runtime bound rows dispatch after the original native build and before its gameplay capture', async () => {
+test('compiled bound rows dispatch after host construction and before gameplay capture', async () => {
   const f = context(), order: string[] = [], bounds = { x: [-250, 250], z: [-250, 250], outer: { maxAbsXZ: 200, floor: -20 } };
   f.sections.set('client/plan', { version: 1, features: [{ kind: 'world.runtime-hooks', bounds, overhead: [] }] });
   const install = vi.spyOn(runtimeHookBindings, 'installClientRuntimeHooks').mockImplementation((_ctx, rows) => {
     expect(rows.bounds).toEqual(bounds); order.push('bounds');
   });
-  class Native extends ShardPlugin {
-    override world(): void { order.push('build'); }
-    override play(): void { order.push('capture'); }
-  }
-  const Entry = declaredRuntimeEntry(Native, Native, { entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'declared',
-    nativePlan: { phases: ['world-bindings'], features: ['world.runtime-hooks'] } }).default;
-  const plugin = new Entry(undefined, undefined, () => false);
+  const runtime: ShardRuntime = { world: null, step: null, play: null, interactables: [], overhead: [], hooks: {}, objects: {}, viewer: () => new Vector3(), horizonVeil: null };
+  const resident: HybridResident = { instance: 'bounds', slug: f.source.identity.slug, declaration: null, product: f.ctx.product,
+    firstParty: true, scope: f.ctx.scope, runtime, context: (scope, localRuntime) => ({
+      context: { ...f.ctx, scope, game: { ...f.ctx.game, runtime: localRuntime } },
+      beforeWorld: () => { order.push('build'); }, openKit: () => undefined, closeKit: () => undefined,
+      afterPlay: () => { order.push('capture'); },
+    }) };
+  const session = new HybridRuntimeSession(new Map([['bounds', resident]]), f.ctx.scope);
   try {
-    await plugin.world(f.ctx); await plugin.play(f.ctx);
+    await session.enter({ instance: 'bounds', slug: resident.slug });
     expect(order).toEqual(['build', 'bounds', 'capture']); expect(install).toHaveBeenCalledOnce();
   } finally { install.mockRestore(); f.ctx.scope.dispose(); }
 });
 
 
-test('native chapter view runs after all six original play yields and adds the standard post-feature yield', async () => {
+test('compiled chapter view follows all six host preparation yields and adds its standard yield', async () => {
   const f = context(), order: string[] = [];
   f.sections.set('client/plan', { version: 1, features: [{ kind: 'quest.chapter-view', chapterView: 'quests/content.json', story: 'quests/chapters.json', arena: 'chapter.arena', fight: 'chapter.fight' }] });
   for (const file of ['quests/content.json', 'quests/chapters.json']) f.files.set(file, { hash: 'a'.repeat(64), url: `/fixture/${file}` });
   const yieldStep = vi.spyOn(workSlices, 'buildYield').mockImplementation(() => { order.push('yield'); return Promise.resolve(); });
   const install = vi.spyOn(questPreparation, 'installEntryChapterView').mockImplementation(() => { order.push('chapter'); return Promise.resolve(); });
-  class Native extends ShardPlugin {
-    override async play(): Promise<void> { for (let n = 1; n <= 6; n++) { await Promise.resolve(); order.push(`part${n}`); } }
-  }
-  const Entry = declaredRuntimeEntry(Native, Native, { entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'declared', nativePlan: { phases: ['play'], features: ['quest.chapter-view'] } }).default;
+  const runtime: ShardRuntime = { world: null, step: null, play: null, interactables: [], overhead: [], hooks: {}, objects: {}, viewer: () => new Vector3(), horizonVeil: null };
+  const resident: HybridResident = { instance: 'chapter', slug: f.source.identity.slug, declaration: null, product: f.ctx.product,
+    firstParty: true, scope: f.ctx.scope, runtime, context: (scope, localRuntime) => ({
+      context: { ...f.ctx, scope, game: { ...f.ctx.game, runtime: localRuntime } }, openKit: () => undefined, closeKit: () => undefined,
+      afterKit: async () => { for (let n = 1; n <= 6; n++) { await Promise.resolve(); order.push(`part${n}`); } },
+    }) };
+  const session = new HybridRuntimeSession(new Map([['chapter', resident]]), f.ctx.scope);
   try {
-    const plugin = new Entry(undefined, undefined, () => false);
-    await plugin.world(f.ctx); await plugin.kit(f.ctx); await plugin.play(f.ctx);
+    await session.enter({ instance: 'chapter', slug: resident.slug });
     expect(order).toEqual(['part1', 'part2', 'part3', 'part4', 'part5', 'part6', 'chapter', 'yield']);
     expect(install).toHaveBeenCalledOnce();
     expect(clientPhases.CLIENT_FEATURES['quest.chapter-view']).toMatchObject({ phase: 'play', rank: 110, lifetime: 'entered', sections: [] });

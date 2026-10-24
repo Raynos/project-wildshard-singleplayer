@@ -1,5 +1,5 @@
 import type { prepareHybridShard as PrepareHybrid } from '../shardfile/hybrid';
-import type { ShardContext, ShardPlugin, TrustedRuntimeEntry } from '../plugin/context';
+import type { ShardContext, ShardPlugin } from '../plugin/context';
 import { currentPageMode } from '../grid/pageMode';
 import { shardEntry } from './entryMode';
 
@@ -20,7 +20,7 @@ interface StandaloneHybridPolicy {
   readonly retainHomeRuntime?:boolean;
   readonly stagesOwner?:'declared'|'runtime';
 }
-export type StandaloneHybridRows = StandaloneHybridPolicy & ({ readonly runtime: Pick<TrustedRuntimeEntry, 'entry' | 'load'> } | { readonly platform: 'client-plan' });
+export type StandaloneHybridRows = StandaloneHybridPolicy & { readonly platform: 'client-plan' };
 /** Admit the same native/data composite used by standalone constructors. An
  * injected preparation port preserves trusted fixture/host admission checks. */
 export async function prepareStandaloneHybrid(ctx:ShardContext,rows:StandaloneHybridRows,
@@ -31,5 +31,5 @@ export async function prepareStandaloneHybrid(ctx:ShardContext,rows:StandaloneHy
     ...(rows.stagesOwner===undefined?{}:{stagesOwner:rows.stagesOwner}),
     catalogue:[],items:new Map(),recipes:new Map(),voices:()=>new Map(),
     icon:()=>{throw new Error(`Transitional ${rows.name} has no declared item icon`);},
-  },'runtime' in rows ? [{slug:ctx.product.slug,...rows.runtime}] : []);
+  },[]);
 }

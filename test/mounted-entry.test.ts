@@ -5,9 +5,9 @@ import { HeldClaims } from '../src/game/loadout/claims';
 import * as geometry from '../src/game/plugin/geometry';
 import { heldSlotRows } from '../src/shards/nalati-grasslands/generators/heldSlots';
 import power from '../src/shards/nalati-grasslands/boot/bowVariant.generated.json' with {type:'json'};
-import { ShardPlugin, type ShardContext } from '../src/game/plugin/context';
+import type { ShardContext } from '../src/game/plugin/context';
 import type { ShardRuntime } from '../src/game/shard/runtime';
-import { declaredRuntimeEntry } from '../src/game/shard/declaredEntry';
+import { declaredClientPlanEntry } from '../src/game/shard/declaredEntry';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { HybridRuntimeSession, type HybridResident } from '../src/game/shardfile/hybrid';
 import { CLIENT_FEATURES, admitClientPlan, installClientPhase } from '../src/game/shardfile/clientPlan';
@@ -104,37 +104,23 @@ test('the same arsenal can register a fresh entered kit after the old borrower l
   } finally { path.mockRestore(); f.parent.dispose(); }
 });
 
-test('native feature selection preserves world, species and play without replaying unrelated kit rows', async () => {
+test('the compiled entry installs its full kit plan against the original prepared mounted owner', async () => {
   const f = await fixture(), order: string[] = [];
-  class Native extends ShardPlugin {
-    override world(ctx: ShardContext): void { order.push('world'); publishEntryOwner(ctx.scope, 'claims', mounted.claims, f.arsenal); }
-    override kit(): void { order.push('species'); }
-    override play(ctx: ShardContext): void { expect(entryOwner(ctx.scope, 'claims', mounted.claims) === f.arsenal).toBe(true); order.push('play'); }
-  }
+  publishEntryOwner(f.ctx.scope, 'claims', mounted.claims, f.arsenal);
   f.weapon.mockImplementation(() => { order.push('mounted'); });
-  const path = vi.spyOn(CLIENT_FEATURES['world.paths'], 'install');
-  const policy = { entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'declared', nativePlan: { phases: ['kit'], features: ['held.claims.install'] } } as const;
-  const Entry = declaredRuntimeEntry(Native, Native, policy).default, plugin = new Entry(undefined, undefined, () => false);
+  const path = vi.spyOn(CLIENT_FEATURES['world.paths'], 'install').mockImplementation(() => { order.push('paths'); });
+  const Entry = declaredClientPlanEntry({ retainHomeRuntime: true, stagesOwner: 'declared' }).default;
+  const plugin = new Entry(undefined, undefined, () => false);
   try {
-    await plugin.world(f.ctx); await plugin.kit(f.ctx); await plugin.play(f.ctx);
-    expect(order).toEqual(['world', 'species', 'mounted', 'play']);
-    expect(path).not.toHaveBeenCalled(); expect(f.weapon).toHaveBeenCalledOnce(); expect(f.read).not.toHaveBeenCalled();
-    expect(() => declaredRuntimeEntry(Native, Native, { ...policy, nativePlan: { phases: ['kit'], features: ['held.claims.install', 'held.claims.install'] } })).toThrow('feature selection');
+    await plugin.world(f.ctx); expect(f.weapon).not.toHaveBeenCalled();
+    await plugin.kit(f.ctx); await plugin.play(f.ctx);
+    expect(order).toEqual(['mounted', 'paths']);
+    expect(entryOwner(f.ctx.scope, 'claims', mounted.claims)).toBe(f.arsenal);
+    expect(path).toHaveBeenCalledOnce(); expect(f.weapon).toHaveBeenCalledOnce(); expect(f.read).not.toHaveBeenCalled();
   } finally { path.mockRestore(); f.parent.dispose(); }
 });
 
-test('a selected native kind must exist in the admitted plan before its kit effects', async () => {
-  const f = await fixture();
-  class Native extends ShardPlugin { override kit(): void { /* The selected feature owns this phase's effects. */ } }
-  const Entry = declaredRuntimeEntry(Native, Native, { entry: 'runtime/index.ts', retainHomeRuntime: true, stagesOwner: 'declared',
-    nativePlan: { phases: ['kit'], features: ['held.claims.prepare'] } }).default;
-  try {
-    const plugin = new Entry(undefined, undefined, () => false);
-    await plugin.world(f.ctx);
-    await expect(plugin.kit(f.ctx)).rejects.toThrow('Missing selected native client feature');
-    expect(f.weapon).not.toHaveBeenCalled();
-  } finally { f.parent.dispose(); }
-});
+
 
 test('compiled regional entry registers the same mounted owner once after kit opens and before play', async () => {
   const f = await fixture(), order: string[] = [];

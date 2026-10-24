@@ -11063,21 +11063,19 @@ that same plan; an explicit trusted runtime keeps its existing identity check.
 empty. Templates without a plan keep their existing data path. Pine and
 Driftwood declare strings; Driftwood declares its existing debug alias. Their
 scene calls keep their current construction order for this entry landing.
-Regional trusted entry runs the same phases around its raw runtime hooks;
-retained strings and debug exposure unpublish on leave and replay on entry.
+Current regional entries run finite phases inside their host lifecycle
+ports. Frozen legacy composites retain their raw hooks until LD. Retained
+strings and debug exposure unpublish on leave and replay on entry.
 
-First-party `bindings.entry` declares `legacy`, `retainHomeRuntime` and
-`stagesOwner`. The discovery generator verifies `runtimeEntry` and emits
-literal lazy imports for those exact constructors. `declaredRuntimeEntry`
-composes the existing standalone/hybrid entry, running the plan on the native
-path by default. `nativePlan: false` preserves native-owned legacy phases; the
-admitted path still runs the plan with the declared home/stage policy. The
-constructor keeps the standalone owner's native/admission/selection injection.
-These constructor links remain trusted migration scaffolding,
-separate from the data-only feature API. Runtime saves keep their owners.
-Deleting outer `plugin.ts` glue does not close remaining runtime dependency
-escapes or remove the runtime block. Sky and Signal retire in a later lockstep
-landing. No module path in a client plan selects JavaScript.
+First-party `bindings.entry` names the built-in client-plan entry and its
+`retainHomeRuntime` / `stagesOwner` ownership policy. Discovery emits the
+compiled entry and literal CSS imports. `declaredClientPlanEntry` runs the
+complete finite phase sequence without a source constructor registry or
+`nativePlan` phase/feature selection. No client-plan module path selects
+JavaScript. Frozen legacy composition roots retain their explicit loaders,
+standalone constructor injection and trusted composite until LD; those
+helpers are not current-manifest entry options. Runtime saves keep their
+existing owners.
 
 `currentPageMode()` (`@wildshard/game/grid/pageMode`) reads the existing leaf
 page mode for cold tier rows without a constructor callback. Only page boot
@@ -12477,13 +12475,12 @@ rows on its own concrete scope; cold readers borrow a live construction
 admission. Resolved figures must be unpacked rows. Legacy catalogue admission
 keeps packed geometry support and its original source lifetime.
 
-Authored manifest bindings can retain an existing native transition with
-`entry.native: {module, export}` and the literal `runtimeEntry`,
-`retainHomeRuntime` and `stagesOwner` policy. Discovery emits imports for those
-exact constructors. The optional `nativePlan: {phases}` selects unique world,
-world-bindings, kit, prepare-play or play phases on the native route; the
-admitted route keeps its existing phase sequence. The built-in client-plan
-entry does not accept a native constructor or native-plan selection.
+Authored manifest bindings select the built-in compiled client-plan entry,
+with finite home/stage ownership and own-folder CSS. `entry.native`,
+`entry.legacy`, `runtimeEntry` and `nativePlan` refuse at authored intake.
+The compiled entry has no source-constructor lookup or partial phase/kind
+selection. Frozen legacy plugins and their explicit trusted composition
+loaders remain held for LD and are unchanged by the modern-entry removal.
 
 The strict sword binding `{platform: 'graph', file}` uses graphSword with the
 manifest's own slug. The fixed forest binding `{platform: 'fixed', density}`
