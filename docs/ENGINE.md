@@ -5727,7 +5727,9 @@ an explicit bounded worker owner over the original `ContentCache`.
 `has(hash, bytes)` verifies durable SHA and length without returning an
 unneeded byte array. At most 64 commands are posted; validated excess
 requests wait FIFO for a slot instead of forcing main-thread fallback.
-Each request deadline starts when posted. `close()` drains, flushes and
+Each request deadline starts when posted. One scoped wakeup watches the
+earliest deadline in the existing pending map; completed replies leave
+that map without churning native timers. `close()` drains, flushes and
 terminates within its existing shutdown deadline, including queued work.
 Failed workers terminate before posted and queued requests replay in order
 through one shared checked fallback; live leases are installed before any

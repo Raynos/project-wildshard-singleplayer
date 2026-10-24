@@ -116,6 +116,55 @@ test('a queued request starts its deadline only when posted', async () => {
   expect(fallback.stats).not.toHaveBeenCalled();
 });
 
+test('posted requests share a wakeup without changing their individual deadlines', async () => {
+  vi.useFakeTimers();
+  const { worker, fallback, client } = fixture();
+  const requests = Array.from({ length: 64 }, () => client.stats());
+  expect(vi.getTimerCount()).toBe(2); // Worker lifetime and the earliest posted deadline.
+  await vi.advanceTimersByTimeAsync(10_000);
+  for (let at = 0; at < 64; at++) worker.reply(at);
+  await Promise.all(requests);
+  const later = client.stats();
+  await vi.advanceTimersByTimeAsync(5_001); // The completed batch's old deadline must do nothing.
+  expect(worker.terminated).toBe(false);
+  await vi.advanceTimersByTimeAsync(9_998);
+  expect(worker.terminated).toBe(false);
+  await vi.advanceTimersByTimeAsync(1);
+  expect(worker.terminated).toBe(true);
+  expect(await later).toEqual({ bytes: 0, entries: 0 });
+  expect(fallback.stats).toHaveBeenCalledTimes(1);
+});
+
+test('a shorter read deadline advances the wakeup ahead of an older network fetch', async () => {
+  vi.useFakeTimers();
+  const { worker, fallback, client } = fixture();
+  const fetch = client.fetchVerified('https://example.test/slow', 'a'.repeat(64), 1, { reply: 'bytes' });
+  await vi.advanceTimersByTimeAsync(1000);
+  const read = client.stats();
+  await vi.advanceTimersByTimeAsync(14_999);
+  expect(worker.terminated).toBe(false);
+  await vi.advanceTimersByTimeAsync(1);
+  expect(worker.terminated).toBe(true);
+  expect(await fetch).toBeNull();
+  expect(await read).toEqual({ bytes: 0, entries: 0 });
+  expect(fallback.stats).toHaveBeenCalledTimes(1);
+});
+
+test('a delayed wakeup attributes failure to the earliest deadline rather than insertion order', async () => {
+  vi.useFakeTimers();
+  const { worker, client } = fixture();
+  const fetch = client.fetchVerified('https://example.test/slow', 'a'.repeat(64), 1, { reply: 'bytes' });
+  await vi.advanceTimersByTimeAsync(1000);
+  const read = client.stats(), warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+  const clock = vi.spyOn(performance, 'now').mockReturnValue(200_000);
+  try {
+    await vi.advanceTimersByTimeAsync(15_000);
+    expect(worker.terminated).toBe(true);
+    expect(warn).toHaveBeenCalledWith('[content cache] worker failed over to the page thread: stats took over 15000 ms');
+    await fetch; await read;
+  } finally { clock.mockRestore(); warn.mockRestore(); }
+});
+
 test('worker failure replays posted and deferred reads in FIFO order', async () => {
   const { worker, fallback, client } = fixture();
   const hashes = Array.from({ length: 70 }, (_, at) => at.toString(16).padStart(64, '0'));

@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { Scope } from '../app/scope';
+import { diagnosticNow } from '../core/clock';
 import type { ContentCache } from './contentCache';
 import { ContentCacheQueue, isCacheRead } from './contentCacheQueue';
 import { waitFor } from './waits';
@@ -13,7 +14,7 @@ export interface CacheWorkerPort extends EventTarget {
 type Store = Pick<ContentCache, 'get' | 'holds' | 'put' | 'pin' | 'flush' | 'stats'>;
 type Timer = ReturnType<Scope['timeout']>;
 interface Queued { command: CacheCommand; resolve: (value: CacheValue) => void; reject: (error: Error) => void }
-interface Pending extends Queued { timer: Timer }
+interface Pending extends Queued { deadline: number }
 interface Lease { hashes: string[]; release?: () => void }
 interface WorkerOptions { worker?: () => CacheWorkerPort; pagehide?: EventTarget; requestMs?: number; idleMs?: number; lifeMs?: number }
 /** One bounded worker owns disk IO while alive. Failure terminates it before
@@ -30,6 +31,8 @@ export class ContentCacheWorker {
   private readonly pending = new Map<number, Pending>();
   private readonly deferred = new Map<number, Queued>();
   private pumping = false;
+  private deadline: Timer | undefined;
+  private wakeAt = Infinity;
   private readonly leases = new Map<number, Lease>();
   /** Leases whose pin the current worker was sent. */
   private readonly pinned = new Set<number>();
@@ -65,6 +68,7 @@ export class ContentCacheWorker {
     if (this.failed) return;
     this.worker?.terminate(); this.worker = undefined;
     this.life.dispose(); this.life = new Scope('content-cache-worker-life'); this.idle = undefined;
+    this.deadline = undefined; this.wakeAt = Infinity;
     const queued: [number, Queued][] = [...this.pending].map(([id, { command, resolve, reject }]) => [id, { command, resolve, reject }]);
     queued.push(...this.deferred); this.pending.clear(); this.deferred.clear();
     // The successor holds every lease the old worker held before any queued write can evict its bytes.
@@ -111,7 +115,7 @@ export class ContentCacheWorker {
     if (this.failed) return;
     console.warn(`[content cache] worker failed over to the page thread: ${reason}`);
     this.failed = true; this.worker?.terminate(); this.worker = undefined;
-    this.life.dispose(); this.scope.dispose();
+    this.life.dispose(); this.scope.dispose(); this.deadline = undefined; this.wakeAt = Infinity;
     // Install every still-live lease before any replay can evict disk bytes.
     for (const lease of this.leases.values()) lease.release = this.fallback.pin(lease.hashes);
     const pending = [...this.pending.values(), ...this.deferred.values()];
@@ -132,17 +136,34 @@ export class ContentCacheWorker {
     if (value !== undefined && !value.success) {
       this.failover(v.safeParse(CacheReplySchema, event.data).success ? `invalid ${row.command.op} value` : 'invalid reply'); return;
     }
-    this.life.cancelTimer(row.timer); this.pending.delete(reply.output.id);
+    this.pending.delete(reply.output.id);
     if (value?.success === true) {
       if (row.command.op === 'release') { this.leases.delete(row.command.lease); this.pinned.delete(row.command.lease); }
       row.resolve(value.output);
     }
     else if (!reply.output.ok) row.reject(new Error(reply.output.error)); // A verified refusal is not an infrastructure failure.
     this.pump();
+    if (this.pending.size === 0) { this.life.cancelTimer(this.deadline); this.deadline = undefined; this.wakeAt = Infinity; }
     if (this.pending.size === 0 && this.deferred.size === 0 && this.closing === undefined) {
       this.life.cancelTimer(this.idle);
       this.idle = this.life.timeout(this.idleMs, () => { void this.close(); });
     }
+  }
+  /** One wakeup watches posted deadlines. Completed rows leave the map; later deadlines need no fresh timer until it wakes. */
+  private watchDeadline(at: number): void {
+    if (at >= this.wakeAt) return;
+    this.life.cancelTimer(this.deadline); this.wakeAt = at;
+    this.deadline = this.life.timeout(Math.max(0, at - diagnosticNow()), () => {
+      this.deadline = undefined; this.wakeAt = Infinity;
+      // A native timer may round its delay down; its scheduled boundary is due when it fires.
+      const now = Math.max(at, diagnosticNow()); let next: Pending | undefined;
+      for (const row of this.pending.values()) if (next === undefined || row.deadline < next.deadline) next = row;
+      if (next === undefined) return;
+      if (next.deadline <= now) {
+        const ms = next.command.op === 'fetch' ? this.requestMs * 8 : this.requestMs;
+        this.failover(`${next.command.op} took over ${String(ms)} ms`);
+      } else this.watchDeadline(next.deadline);
+    });
   }
   /** `background` work (a prefetch, G554) is not a boot wait: the loading screen's "now waiting for" never names it. */
   private request(operation: CacheOperation, background = false): Promise<CacheValue> {
@@ -182,8 +203,8 @@ export class ContentCacheWorker {
         if (!read) writes++;
         // Queue time consumes no request deadline; only posted worker work does. A network read gets longer.
         const ms = row.command.op === 'fetch' ? this.requestMs * 8 : this.requestMs;
-        const timer = this.life.timeout(ms, () => { this.failover(`${row.command.op} took over ${String(ms)} ms`); });
-        this.pending.set(id, { ...row, timer });
+        const deadline = diagnosticNow() + ms;
+        this.pending.set(id, { ...row, deadline }); this.watchDeadline(deadline);
         if (row.command.op === 'pin') this.pinned.add(row.command.lease);
         try { send(row.command); } catch { this.failover('post failed'); }
       }
