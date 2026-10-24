@@ -20,7 +20,10 @@ export type NavigationContent = { row: unknown; bytes: Uint8Array } | { row: unk
 export function parseNavigation(input: unknown): Navigation { return v.parse(NavigationSchema, input); }
 /** Build the declaration from original bytes without resampling, re-encoding or sorting tiles/layers. */
 export function describeNavigation(file: string, bytes: Uint8Array): Navigation {
-  const layers = decodeNavigation(bytes), bounds: [number, number, number, number, number, number] = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
+  return describeLayers(file, decodeNavigation(bytes));
+}
+function describeLayers(file: string, layers: readonly NavigationLayerData[]): Navigation {
+  const bounds: [number, number, number, number, number, number] = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
   for (const layer of layers) for (const tile of layer.tiles) for (let axis = 0; axis < 3; axis++) {
     bounds[axis] = Math.min(bounds[axis] ?? Infinity, tile.bounds[axis] ?? Infinity);
     bounds[axis + 3] = Math.max(bounds[axis + 3] ?? -Infinity, tile.bounds[axis + 3] ?? -Infinity);
@@ -30,9 +33,9 @@ export function describeNavigation(file: string, bytes: Uint8Array): Navigation 
 }
 /** Admission compares every declared bound and grid value with the bounded original stream. */
 export function readNavigation(row: Navigation, bytes: Uint8Array): NavigationLayerData[] {
-  const declared = v.parse(NavigationSchema, row), actual = describeNavigation(declared.file, bytes);
+  const declared = v.parse(NavigationSchema, row), layers = decodeNavigation(bytes), actual = describeLayers(declared.file, layers);
   if (JSON.stringify(declared) !== JSON.stringify(actual)) throw new Error('Navigation declaration differs from immutable bytes');
-  return decodeNavigation(bytes);
+  return layers;
 }
 /** Navigation is an independent critical binary root, charged before creature pathing starts. */
 export function navigationRules(source: { navigation: Navigation | null; files: readonly { hash: string; kind: string; dependencies: readonly string[] }[]; critical: readonly string[] }): string[] {
