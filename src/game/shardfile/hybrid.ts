@@ -359,7 +359,6 @@ export async function prepareHybridShard(input: ShardProduct | Pick<Shardfile, '
 /** Only the entered cell owns gameplay callbacks. Module prefetch stays inert; claimed road preparation is explicit. */
 export class HybridRuntimeSession {
   private readonly residents: ReadonlyMap<string, HybridResident>;
-  private readonly entries: readonly TrustedRuntimeEntry[];
   private readonly prepared = new Map<string, Promise<new () => ShardPlugin>>();
   private readonly retained = new Map<string, ActiveRuntime>();
   private readonly installations = new Map<string, Promise<boolean>>();
@@ -371,8 +370,8 @@ export class HybridRuntimeSession {
   private disposed = false;
   private currentHook: Readonly<Pick<HybridHookTiming, 'instance' | 'hook' | 'start'>> | null = null;
   private readonly completedHooks: HybridHookTiming[] = [];
-  constructor(residents: ReadonlyMap<string, HybridResident>, entries: readonly TrustedRuntimeEntry[], scope: Scope, private readonly options: HybridRuntimeOptions = {}) {
-    this.residents = residents; this.entries = entries;
+  constructor(residents: ReadonlyMap<string, HybridResident>, scope: Scope, private readonly options: HybridRuntimeOptions = {}) {
+    this.residents = residents;
     scope.onDispose(() => {
       this.disposed = true; this.leave();
       for (const active of this.retained.values()) active.scope.dispose();
@@ -385,7 +384,13 @@ export class HybridRuntimeSession {
     const resident = this.residents.get(instance);
     if (resident === undefined) return Promise.reject(new Error('Missing hybrid resident'));
     const prior = this.prepared.get(instance); if (prior !== undefined) return prior;
-    const prepared = preparePageRuntime(resident.declaration, resident.product, resident.slug, resident.firstParty, this.entries);
+    // Current regions never resolve source modules. The shared legacy composite
+    // above retains its explicit loaders until LD.
+    if (resident.declaration !== null && 'entry' in resident.declaration) return Promise.reject(new Error('Regional runtime requires a compiled client page'));
+    const product = resident.product;
+    if (!resident.firstParty || product === undefined || !product.has('client/plan')) return Promise.reject(new Error('Data resident requires its admitted client plan'));
+    admitClientPlan(product.section('client/plan'), product);
+    const prepared = Promise.resolve(ClientPlanRuntime);
     this.prepared.set(instance, prepared);
     void prepared.catch(() => { if (this.prepared.get(instance) === prepared) this.prepared.delete(instance); });
     return prepared;

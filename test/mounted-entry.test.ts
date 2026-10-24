@@ -136,21 +136,19 @@ test('a selected native kind must exist in the admitted plan before its kit effe
   } finally { f.parent.dispose(); }
 });
 
-test('regional entry registers the same mounted owner once after native species and before play', async () => {
+test('compiled regional entry registers the same mounted owner once after kit opens and before play', async () => {
   const f = await fixture(), order: string[] = [];
-  class Native extends ShardPlugin {
-    override world(ctx: ShardContext): void { order.push('world'); publishEntryOwner(ctx.scope, 'claims', mounted.claims, f.arsenal); }
-    override kit(): void { order.push('species'); }
-    override play(ctx: ShardContext): void { expect(entryOwner(ctx.scope, 'claims', mounted.claims) === f.arsenal).toBe(true); order.push('play'); }
-  }
   f.weapon.mockImplementation(() => { order.push('mounted'); });
   const path = vi.spyOn(CLIENT_FEATURES['world.paths'], 'install').mockImplementation(() => { order.push('paths'); });
-  const resident: HybridResident = { instance: 'mounted', slug: f.product.slug, declaration: { entry: 'runtime/index.ts', binds: [] }, firstParty: true,
-    scope: f.scope, runtime: f.runtime, context: (scope, runtime) => ({ context: { ...f.ctx, scope, game: { ...f.ctx.game, runtime } }, openKit: () => undefined, closeKit: () => undefined }) };
-  const session = new HybridRuntimeSession(new Map([['mounted', resident]]), [{ slug: f.product.slug, entry: 'runtime/index.ts', load: () => Promise.resolve({ default: Native }) }], f.parent);
+  const resident: HybridResident = { instance: 'mounted', slug: f.product.slug, declaration: null, product: f.product, firstParty: true,
+    scope: f.scope, runtime: f.runtime, context: (scope, runtime) => ({ context: { ...f.ctx, scope, game: { ...f.ctx.game, runtime } },
+      beforeWorld: entered => { order.push('world'); publishEntryOwner(entered.scope, 'claims', mounted.claims, f.arsenal); },
+      openKit: () => { order.push('kit-open'); }, closeKit: () => undefined,
+      afterPlay: entered => { expect(entryOwner(entered.scope, 'claims', mounted.claims) === f.arsenal).toBe(true); order.push('play'); } }) };
+  const session = new HybridRuntimeSession(new Map([['mounted', resident]]), f.parent);
   try {
     await session.prepare('mounted'); await session.enter({ instance: 'mounted', slug: f.product.slug }); session.leave();
-    expect(order).toEqual(['world', 'species', 'mounted', 'paths', 'play']); expect(f.weapon).toHaveBeenCalledOnce();
+    expect(order).toEqual(['world', 'kit-open', 'mounted', 'paths', 'play']); expect(f.weapon).toHaveBeenCalledOnce();
   } finally { path.mockRestore(); f.parent.dispose(); }
 });
 

@@ -6,7 +6,7 @@ import { Scope } from '../src/engine/app/scope';
 import { bindConstructionEnvironment, constructionOwner, ownedFacade, withOwner } from '../src/engine/app/ownership';
 import { createLevelInstallation } from '../src/engine/level/installation';
 import { parseShardSlug } from '../src/game/shard/slug';
-import { ShardPlugin, shardContext, type ShardContext } from '../src/game/plugin/context';
+import { shardContext } from '../src/game/plugin/context';
 import { installEnteredRuntimeService } from '../src/game/shard/retainedHooks';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import { HybridRuntimeSession, type HybridResident } from '../src/game/shardfile/hybrid';
@@ -49,24 +49,21 @@ test('entered services retain the ordinary activation order', async () => {
     const runtime: ShardRuntime = { world: null, step: null, play: null, interactables: [], overhead: [], objects: {}, hooks: {},
       viewer: () => new Vector3(), horizonVeil: null };
     const source = emptyShardfile({ slug: manifest.slug, name: 'Preparation fixture', author: 'Fixture', revision: 1, seed: 7 });
-    const product = createShardProduct({ slug: source.identity.slug, revision: 1, shardfile: source, sections: new Map(), files: new Map(),
+    const product = createShardProduct({ slug: source.identity.slug, revision: 1, shardfile: source, sections: new Map([['client/plan', { version: 1, features: [] }]]), files: new Map(),
       read: () => Promise.reject(new Error('No fixture file')) });
     let release: (() => void) | undefined, started: (() => void) | undefined, visible = false;
     const warm = new Promise<void>(resolve => { release = resolve; }), warming = new Promise<void>(resolve => { started = resolve; });
-    class Runtime extends ShardPlugin {
-      override world(ctx: ShardContext): void { events.push('world'); if (ctx.game.runtime === undefined) throw new Error('Missing runtime'); ctx.game.runtime.objects['built'] = true; }
-    }
-    const resident: HybridResident = { instance: 'fixture', slug: manifest.slug, declaration: { entry: 'runtime/index.ts', binds: [] },
+    const resident: HybridResident = { instance: 'fixture', slug: manifest.slug, declaration: null, product,
       firstParty: true, retainRuntime: true, scope, runtime, context: (owner, local) => {
         const level = createLevelInstallation(app, owner, {}, () => ({ set: () => undefined, detail: () => undefined }));
         const context = shardContext(level.context, manifest, { shard: manifest, runtime: local, rows: new Map(),
           bag: { tab: () => () => undefined, fragment: () => () => undefined } }, product);
         return { ...level, context, prepareConstruction: () => { events.push('construct'); return () => { events.push('restore'); }; },
           beforeWorld: entered => { installEnteredRuntimeService(entered, entry => { visible = true; events.push('publish'); entry.onDispose(() => { visible = false; }); }); },
+          afterWorld: entered => { events.push('world'); if (entered.game.runtime === undefined) throw new Error('Missing runtime'); entered.game.runtime.objects['built'] = true; },
           afterPlay: async () => { events.push('warm'); started?.(); await warm; if (outcome === 'fail') throw new Error('Preparation failed'); } };
       } };
-    const session = new HybridRuntimeSession(new Map([['fixture', resident]]), [{ slug: manifest.slug, entry: 'runtime/index.ts',
-      load: () => Promise.resolve({ default: Runtime }) }], scope);
+    const session = new HybridRuntimeSession(new Map([['fixture', resident]]), scope);
     try {
       const entering = session.enter({ instance: 'fixture', slug: manifest.slug });
       // Observe a rejection immediately while the controlled warm is still pending.
@@ -104,8 +101,13 @@ test('a compiled data owner parks and restores its actual finite hooks without a
     const context=shardContext(level.context,manifest,{shard:manifest,runtime:local,rows:new Map(),bag:{tab:()=>()=>undefined,fragment:()=>()=>undefined}},product);
     return {...level,context,prepareConstruction:()=>()=>undefined,afterPlay:()=>{warm++;}};
   }};
-  const session=new HybridRuntimeSession(new Map([['compiled',resident]]),[],scope);
+  const session=new HybridRuntimeSession(new Map([['compiled',resident]]),scope);
   try{
+    const sourceEntry = { ...resident, declaration: { entry: 'runtime/index.ts' } };
+    const sourceSession = new HybridRuntimeSession(new Map([['compiled', sourceEntry]]), scope);
+    await expect(sourceSession.prepare('compiled')).rejects.toThrow('requires a compiled client page');
+    const untrusted = new HybridRuntimeSession(new Map([['compiled', { ...resident, firstParty: false }]]), scope);
+    await expect(untrusted.prepare('compiled')).rejects.toThrow('requires its admitted client plan');
     await session.prepare('compiled');expect(runtime.hooks.meleeSilent).toBeUndefined();
     expect(await session.enter({instance:'compiled',slug:manifest.slug})).toBe(true);expect(runtime.hooks.meleeSilent).toBe(true);
     const first=entered;session.leave();expect(runtime.hooks.meleeSilent).toBeUndefined();expect(first?.disposed).toBe(false);

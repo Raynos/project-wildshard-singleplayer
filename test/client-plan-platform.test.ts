@@ -213,22 +213,18 @@ test('retained client strings unpublish on leave and replay on re-entry', async 
   f.ctx.scope.dispose(); expect(owners.size).toBe(0);
 });
 
-test('regional trusted entry runs the declared plan around raw runtime hooks', async () => {
+test('regional compiled entry runs the finite plan around its host lifecycle ports', async () => {
   const f = context(), order: string[] = [];
   f.strings.mockImplementation(() => { order.push('strings'); }); f.expose.mockImplementation(() => { order.push('debug'); });
   const runtime: ShardRuntime = { world: null, step: null, play: null, interactables: [], overhead: [], hooks: {}, objects: {}, viewer: () => new Vector3(), horizonVeil: null };
-  class Runtime extends ShardPlugin {
-    override world(): void { order.push('world'); }
-    override kit(): void { order.push('kit'); }
-    override play(): void { order.push('play'); }
-  }
-  const resident: HybridResident = { instance: 'harbour', slug: f.source.identity.slug, declaration: { entry: 'runtime/index.ts', binds: [] },
+  const resident: HybridResident = { instance: 'harbour', slug: f.source.identity.slug, declaration: null, product: f.ctx.product,
     firstParty: true, scope: f.ctx.scope, runtime, context: (scope, localRuntime) => ({ context: { ...f.ctx, scope, game: { ...f.ctx.game, runtime: localRuntime } },
-      openKit: () => undefined, closeKit: () => undefined }) };
-  const session = new HybridRuntimeSession(new Map([['harbour', resident]]), [{ slug: resident.slug, entry: 'runtime/index.ts', load: () => Promise.resolve({ default: Runtime }) }], f.ctx.scope);
+      afterWorld: () => { order.push('world-finished'); }, openKit: () => { order.push('kit-open'); }, closeKit: () => undefined,
+      afterKit: () => { order.push('kit-finished'); }, afterPlay: () => { order.push('play-finished'); } }) };
+  const session = new HybridRuntimeSession(new Map([['harbour', resident]]), f.ctx.scope);
   await session.prepare('harbour'); expect(order).toEqual([]);
   expect(await session.enter({ instance: 'harbour', slug: resident.slug })).toBe(true);
-  expect(order).toEqual(['strings', 'world', 'kit', 'play', 'debug']);
+  expect(order).toEqual(['strings', 'world-finished', 'kit-open', 'kit-finished', 'debug', 'play-finished']);
   session.leave(); expect(session.state().ready).toBe(false); f.ctx.scope.dispose();
 });
 
@@ -332,9 +328,10 @@ test.each(['native', 'regional', 'data'] as const)('finite preparation precedes 
       await plugin.world(f.ctx); await plugin.kit(f.ctx); await plugin.play(f.ctx);
     } else if (surface === 'regional') {
       const runtime: ShardRuntime = { world: null, step: null, play: null, interactables: [], overhead: [], hooks: {}, objects: {}, viewer: () => new Vector3(), horizonVeil: null };
-      const resident: HybridResident = { instance: 'orchard', slug: f.source.identity.slug, declaration: { entry: 'runtime/index.ts', binds: [] },
-        firstParty: true, scope: f.ctx.scope, runtime, context: (scope, localRuntime) => ({ context: { ...f.ctx, scope, game: { ...f.ctx.game, runtime: localRuntime } }, openKit: () => undefined, closeKit: () => undefined }) };
-      const session = new HybridRuntimeSession(new Map([['orchard', resident]]), [{ slug: resident.slug, entry: 'runtime/index.ts', load: () => Promise.resolve({ default: Runtime }) }], f.ctx.scope);
+      const resident: HybridResident = { instance: 'orchard', slug: f.source.identity.slug, declaration: null, product: f.ctx.product,
+        firstParty: true, scope: f.ctx.scope, runtime, context: (scope, localRuntime) => ({ context: { ...f.ctx, scope, game: { ...f.ctx.game, runtime: localRuntime } }, openKit: () => undefined, closeKit: () => undefined,
+          afterPlay: entered => { expect(entryOwner(entered.scope, 'quest-spawns', 'orchard.spawns')).toBe(result); order.push('view'); } }) };
+      const session = new HybridRuntimeSession(new Map([['orchard', resident]]), f.ctx.scope);
       await session.prepare('orchard');
       await session.enter({ instance: 'orchard', slug: f.source.identity.slug });
       session.leave();
@@ -387,10 +384,12 @@ test.each(['native', 'regional', 'data'] as const)('world bindings follow constr
       const plugin = new Entry(undefined, undefined, () => false);
       await plugin.world(ctx); await plugin.kit(ctx);
     } else if (surface === 'regional') {
-      const resident: HybridResident = { instance: 'orchard', slug: f.source.identity.slug, declaration: { entry: 'runtime/index.ts', binds: [] }, firstParty: true, scope: ctx.scope, runtime,
-        context: (scope, localRuntime) => ({ context: { ...ctx, scope, game: { ...ctx.game, runtime: localRuntime } }, openKit: () => undefined, closeKit: () => undefined,
+      const resident: HybridResident = { instance: 'orchard', slug: f.source.identity.slug, declaration: null, product: f.ctx.product, firstParty: true, scope: ctx.scope, runtime,
+        context: (scope, localRuntime) => ({ context: { ...ctx, scope, game: { ...ctx.game, runtime: localRuntime } },
+          beforeWorld: entered => { publishEntryOwner(entered.scope, 'floor', 'orchard.floor', floor); order.push('constructed'); },
+          openKit: () => { expect(runtime.hooks.spawnFloor).toBe(floor); order.push('kit'); }, closeKit: () => undefined,
           afterWorld: entered => { expect(entered.game.runtime?.hooks.spawnFloor).toBe(floor); order.push('captured'); } }) };
-      const session = new HybridRuntimeSession(new Map([['orchard', resident]]), [{ slug: resident.slug, entry: 'runtime/index.ts', load: () => Promise.resolve({ default: Runtime }) }], ctx.scope);
+      const session = new HybridRuntimeSession(new Map([['orchard', resident]]), ctx.scope);
       await session.enter({ instance: 'orchard', slug: f.source.identity.slug }); session.leave();
     } else {
       const assets = new ClientAssets(f.source, new Map(), browserShardfileOptions('https://example.invalid/'));

@@ -4,7 +4,6 @@ import { Scope } from '../src/engine/app/scope';
 import type { ShardContext } from '../src/game/plugin/context';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import { HeldClaims } from '../src/game/loadout/claims';
-import { ShardPlugin } from '../src/game/shard/plugin';
 import { declaredClientPlanEntry } from '../src/game/shard/declaredEntry';
 import { HybridRuntimeSession, type HybridResident } from '../src/game/shardfile/hybrid';
 import { Vector3 } from 'three';
@@ -127,15 +126,13 @@ test('the regional hybrid borrows one declared primary through its original kit 
   if (item?.kind !== 'weapon') throw new Error('Missing fixture weapon');
   const expected=v.parse(MeleeWeaponProfileSchema,item.profile);
   const install=f.weapon;install.mockImplementation(()=>{order.push('kit');});
-  class Native extends ShardPlugin {
-    override world(): void { order.push('world'); }
-    override play(ctx: ShardContext): void { expect(entryOwner(ctx.scope, 'claims', 'primary.claims').melee().profile).toEqual(expected); order.push('play'); }
-  }
-  const resident: HybridResident = { instance: 'primary', slug: f.slug, declaration: { entry: 'runtime/index.ts', binds: [] },
+  const resident: HybridResident = { instance: 'primary', slug: f.slug, declaration: null, product: f.ctx.product,
     firstParty: true, scope: f.scope, runtime: f.runtime, context: (scope, runtime) => ({
       context: { ...f.ctx, scope, game: { ...f.ctx.game, runtime } }, openKit: () => undefined, closeKit: () => undefined,
+      beforeWorld: () => { order.push('world'); },
+      afterPlay: entered => { expect(entryOwner(entered.scope, 'claims', 'primary.claims').melee().profile).toEqual(expected); order.push('play'); },
     }) };
-  const session = new HybridRuntimeSession(new Map([['primary', resident]]), [{ slug: f.slug, entry: 'runtime/index.ts', load: () => Promise.resolve({ default: Native }) }], f.parent);
+  const session = new HybridRuntimeSession(new Map([['primary', resident]]), f.parent);
   try {
     await session.prepare('primary'); await session.enter({ instance: 'primary', slug: f.slug }); session.leave();
     expect(order).toEqual(['world', 'kit', 'play']); expect(install).toHaveBeenCalledOnce(); expect(f.tool).toHaveBeenCalledOnce();
