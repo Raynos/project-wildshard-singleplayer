@@ -277,3 +277,80 @@ test('a descriptor trap reentering update borrows independent staging and preser
     expect(codec.decode(inner, 'first', loans)).toStrictEqual({ ...record(), held: ['body:1'], strength: 4 + visit });
   }
 });
+
+test('snapshot pairs stay exclusive until accept or discard while public values stay detached', () => {
+  const codec = new GroupBankV2([{ name: 'value', kind: 'number' }]), scope = new Scope('snapshot-pairs'), bank = Float64Array.of(0);
+  try {
+    const first = codec.prepare(bank, Float64Array.of(11), 'herd', [], scope);
+    const second = codec.prepare(bank, Float64Array.of(22), 'herd', [], scope);
+    first.discard();
+    const third = codec.prepare(bank, Float64Array.of(33), 'herd', [], scope);
+    expect(second.values['value']).toBe(22);expect(third.values['value']).toBe(33);
+    expect(first.values['value']).toBe(11);expect(Object.isFrozen(first.values)).toBe(true);
+    expect(() => first.accept()).toThrow('Retired');second.validate();third.validate();
+    second.accept();expect(bank[0]).toBe(22);
+    expect(() => third.accept()).toThrow('Changed');third.discard();
+    const source = Float64Array.of(-0), final = codec.prepare(bank, source, 'herd', [], scope);
+    source[0] = 99;final.accept();expect(Object.is(bank[0], -0)).toBe(true);
+    expect(second.values['value']).toBe(22);expect(third.values['value']).toBe(33);
+    for (let i = 0; i < 5; i++) {
+      const dropped = codec.prepare(bank, Float64Array.of(i), 'herd', [], scope);dropped.discard();dropped.discard();
+      expect(() => dropped.validate()).toThrow('Retired');
+    }
+    expect(Object.is(bank[0], -0)).toBe(true);
+  } finally { scope.dispose(); }
+});
+
+test('a refused pooled candidate returns its lease without publishing or retaining a stale numeric suffix', () => {
+  const codec = new GroupBankV2([{ name: 'value', kind: 'number' }]), scope = new Scope('refused-pair'), bank = Float64Array.of(1);
+  try {
+    codec.prepare(bank, Float64Array.of(2), 'herd', [], scope).accept();
+    expect(() => codec.prepare(bank, Float64Array.of(Number.NaN), 'herd', [], scope)).toThrow('Non-finite');
+    expect(bank[0]).toBe(2);
+    const ready = codec.prepare(bank, Float64Array.of(-0), 'herd', [], scope);ready.accept();
+    expect(Object.is(bank[0], -0)).toBe(true);
+    const short = new Float64Array(0);Object.defineProperty(short, 'length', { value: 1 });
+    expect(() => codec.prepare(bank, short, 'herd', [], scope)).toThrow('width');
+  } finally { scope.dispose(); }
+});
+
+test('custom slice and iterable snapshots preserve their original copy semantics', () => {
+  const codec = new GroupBankV2([{ name: 'value', kind: 'number' }]), scope = new Scope('custom-snapshots'), bank = Float64Array.of(1);
+  try {
+    let slices = 0;
+    Object.defineProperty(bank, 'slice', { value(this: Float64Array) { slices++;return Float64Array.prototype.slice.call(this); } });
+    const source = Float64Array.of(4);
+    Object.defineProperty(source, Symbol.iterator, { *value() { yield -0; } });
+    const ready = codec.prepare(bank, source, 'herd', [], scope);
+    expect(slices).toBe(1);expect(Object.is(ready.values['value'], -0)).toBe(true);
+    ready.accept();expect(Object.is(bank[0], -0)).toBe(true);
+  } finally { scope.dispose(); }
+});
+
+test('an overridden setter may retain a candidate even after throwing without later pool reuse changing it', () => {
+  const codec = new GroupBankV2([{ name: 'value', kind: 'number' }]), scope = new Scope('exposed-candidate'), bank = Float64Array.of(0);
+  let captured: ArrayLike<number> | undefined;
+  try {
+    const ready = codec.prepare(bank, Float64Array.of(8), 'herd', [], scope);
+    Object.defineProperty(bank, 'set', { configurable: true, value(source: ArrayLike<number>) { captured = source;throw new Error('setter failure'); } });
+    expect(() => ready.accept()).toThrow('setter failure');ready.discard();
+    expect(Reflect.deleteProperty(bank, 'set')).toBe(true);
+    for (let value = 9; value < 14; value++) codec.prepare(bank, Float64Array.of(value), 'herd', [], scope).accept();
+    if (captured === undefined) throw new Error('Missing captured candidate');
+    expect(captured[0]).toBe(8);expect(bank[0]).toBe(13);
+  } finally { scope.dispose(); }
+});
+
+test('discard during a setter getter cannot lend the in-progress acceptance pair to a nested preparation', () => {
+  const codec = new GroupBankV2([{ name: 'value', kind: 'number' }]), scope = new Scope('nested-acceptance');
+  const bank = Float64Array.of(0), other = Float64Array.of(0);
+  try {
+    const ready = codec.prepare(bank, Float64Array.of(11), 'herd', [], scope);let nested = false;
+    Object.defineProperty(bank, 'set', { get() {
+      if (!nested) { nested = true;ready.discard();codec.prepare(other, Float64Array.of(77), 'herd', [], scope).accept(); }
+      return Reflect.get(Float64Array.prototype, 'set');
+    } });
+    ready.accept();expect(nested).toBe(true);expect(other[0]).toBe(77);expect(bank[0]).toBe(11);
+    expect(ready.values['value']).toBe(11);expect(() => ready.accept()).toThrow('Retired');
+  } finally { scope.dispose(); }
+});

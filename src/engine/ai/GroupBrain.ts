@@ -104,6 +104,7 @@ export class GroupBrain<A extends GroupMember> {
     ||frame.input.random!==random||frame.input.contextRandom!==contextRandom||frame.input.state!==state
     ||frame.input.members.some(member=>member.scope!==scope))throw new Error('Replaced group guest owner');
    const prepared=prepare.call(program,frame.input);
+   try {
    // The original codec validates the already-decoded candidate before
    // either borrowed RNG accepts its next state.
    const values=prepared.values;
@@ -115,6 +116,7 @@ export class GroupBrain<A extends GroupMember> {
    const replies=native.run();
    if(pc===0)return;
    frame=this.captureGuest(replies);
+   }finally{prepared.discard();}
   }
   throw new Error('Group guest continuation exceeded its declared bound');
  }

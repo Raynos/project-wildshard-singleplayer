@@ -96,6 +96,8 @@ export class GroupStepV2 {
     readonly values: Readonly<Record<string,GroupBankValueV2>>;
     readonly validate: () => void;
     readonly accept: () => void;
+    /** Drop an unaccepted candidate; consumed candidates remain retired. */
+    readonly discard: () => void;
     readonly prepareNative: <A extends AnimalSim>(owners: GroupStepNativeOwnersV2<A>) => {
       readonly validate: () => void;
       readonly accept: () => readonly GroupStepNativeResultV2[];
@@ -104,6 +106,7 @@ export class GroupStepV2 {
     this.live();
     if (this.busy) throw new Error('Reentrant group step');
     this.busy = true;
+    let bankPreparation:ReturnType<GroupBankV2['prepare']>|undefined,handedOff=false;
     try {
       const revision = this.revision, stateOwner = input.state;
       const envelope = { group: input.group, handle: input.handle, signal: input.signal, tick: input.tick, profile: input.profile };
@@ -117,8 +120,8 @@ export class GroupStepV2 {
       let originalState:Float64Array;
       // This snapshot is used only inside the non-reentrant synchronous call.
       // Public/custom slice semantics stay on the original detached-copy path.
-      if(Object.getPrototypeOf(stateInput)===Float64Array.prototype&&!Object.hasOwn(stateInput,'slice')
-        &&!Object.hasOwn(stateInput,'constructor')&&stateInput.slice===stateSlice){
+      if(ArrayBuffer.isView(stateInput)&&Object.getPrototypeOf(stateInput)===Float64Array.prototype&&!Object.hasOwn(stateInput,'slice')
+        &&!Object.hasOwn(stateInput,'constructor')&&!Object.hasOwn(stateInput,'length')&&stateInput.slice===stateSlice){
         if(stateInput.length!==profile.bank.width)throw new Error('Group bank width mismatch');
         originalState=profile.input;originalState.set(stateInput);
       }else originalState=stateInput.slice();
@@ -211,6 +214,7 @@ export class GroupStepV2 {
         const bank = profile.output;
         for (let index = 0; index < bank.length; index++) bank[index] = view.getFloat64(this.layout.io + state.offset + index * 8, true);
         const prepared = profile.bank.prepare(input.state, bank, input.group, input.references, this.scope);
+        bankPreparation=prepared;
         const operations: GroupStepOperationV2[] = [];
         for (let index = 0; index < (actual[9] ?? 0); index++) {
           const at = this.layout.io + actions.offset + index * 64, id = view.getUint32(at + 8, true);
@@ -279,7 +283,9 @@ export class GroupStepV2 {
         }
         accepted = true; this.revision++;
       };
-      return { operations: candidate.operations, values: candidate.prepared.values, validate, accept, prepareNative: owners => {
+      const discard=():void=>{if(!accepted){accepted=true;candidate.prepared.discard();}};
+      handedOff=true;
+      return { operations: candidate.operations, values: candidate.prepared.values, validate, accept, discard, prepareNative: owners => {
         if (owners.scope !== this.scope || owners.members !== input.members
           || owners.references !== undefined && owners.references !== input.references) throw new Error('Foreign native group result scope');
         const native = prepareGroupNativeV2(candidate.operations, owners);
@@ -288,7 +294,7 @@ export class GroupStepV2 {
           validateNative();accept();return native.run();
         } };
       } };
-    } finally { this.busy = false; }
+    } finally { if(!handedOff)bankPreparation?.discard();this.busy = false; }
   }
 }
 

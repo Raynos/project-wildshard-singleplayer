@@ -290,3 +290,17 @@ test('input staging refuses shorter and longer banks without stale tails and pre
     f.runner.prepare(f.input).accept();expect(f.state[1]).toBe(120);
   } finally { f.root.dispose(); }
 });
+
+
+test('discard retires one group candidate without mutating another candidate or its original bank', () => {
+  const f = fixture();
+  try {
+    const before = f.state.slice(), first = f.runner.prepare(f.input), second = f.runner.prepare(f.input);
+    first.discard();first.discard();
+    expect(() => first.validate()).toThrow('accepted');expect(() => first.accept()).toThrow('accepted');
+    expect(first.values['sum']).toBe(120);expect(f.state).toStrictEqual(before);
+    const third = f.runner.prepare(f.input);expect(second.values).not.toBe(third.values);
+    second.validate();third.validate();second.accept();third.discard();
+    expect(f.state[1]).toBe(120);expect(third.values['sum']).toBe(120);
+  } finally { f.root.dispose(); }
+});

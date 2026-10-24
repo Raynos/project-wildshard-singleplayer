@@ -13067,7 +13067,12 @@ without constructing a decoded record. The group runner uses this for its
 original input; only the candidate produces the detached values record.
 
 prepare(originalBank, candidate, group, referenceLoans, scope) validates the
-whole candidate before publication and returns values, validate and accept.
+whole candidate before publication and returns values, validate, accept and
+explicit discard. Each pending publication exclusively leases its snapshots;
+accept/discard retires it before a private pair can be reused. Public frozen
+values remain detached. The codec retains at most two inactive numeric pairs;
+custom copy paths and buffers exposed to overridden setters are not recycled.
+Unconsumed candidates that are simply abandoned use ordinary garbage collection.
 Compose validate with the original owner's native operations and RNG preflight;
 accept updates only that same bank once. Changed banks, reordered/replaced
 reference slots and ancestor retirement refuse. No scheduler, body, RNG stream,

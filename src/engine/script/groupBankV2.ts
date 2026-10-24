@@ -48,10 +48,21 @@ function referenceWire(handle: number, row: GroupBankFieldV2, group: string,
     || row.own === true && found.group !== group) throw new Error('Unresolved group reference');
   return found.wire;
 }
+const snapshotSlice:unknown=Reflect.get(Float64Array.prototype,'slice');
+const snapshotIterator:unknown=Reflect.get(Float64Array.prototype,Symbol.iterator);
+const snapshotSet:unknown=Reflect.get(Float64Array.prototype,'set');
+interface SnapshotPair { readonly before:Float64Array; readonly next:Float64Array }
+function ordinarySnapshot(value:ArrayLike<number>,method:'slice'|typeof Symbol.iterator):boolean {
+  return ArrayBuffer.isView(value)&&Object.getPrototypeOf(value)===Float64Array.prototype
+    &&!Object.hasOwn(value,'constructor')&&!Object.hasOwn(value,'length')&&!Object.hasOwn(value,method)
+    &&Reflect.get(value,method)===(method==='slice'?snapshotSlice:snapshotIterator);
+}
 /** A stateless codec; fields retain their declared order. The returned record
  * fits the original owner's snapshot assembly, rather than a new envelope. */
 export class GroupBankV2 {
   private readonly fields: readonly GroupBankFieldV2[];
+  /** At most two inactive numeric pairs; pending publications own their pair. */
+  private readonly snapshots:SnapshotPair[]=[];
   readonly width: number;
   /** Numeric-only staging is lent to one synchronous update, never a candidate. */
   private updates: {offset:number;width:number;values:number[]}[] | undefined;
@@ -262,28 +273,52 @@ export class GroupBankV2 {
       readonly values: Readonly<Record<string, GroupBankValueV2>>;
       readonly validate: () => void;
       readonly accept: () => void;
+      /** Retire an unconsumed publication without writing its original bank. */
+      readonly discard: () => void;
     } {
     if (candidate.length !== this.width || bank.length !== this.width || scope.disposed || scope.disposing) throw new Error('Retired group bank owner');
     this.validate(bank, group, roster);
-    const before = bank.slice(), next = Float64Array.from(candidate);
-    const values = this.decode(next, group, roster);
-    const pins = roster.map(row => ({ source: row, group: row.group, slot: row.slot,
-      identity: row.identity, wire: row.wire, handle: row.handle }));
-    let accepted = false;
-    const validate = (): void => {
-      if (accepted || scope.disposed || scope.disposing) throw new Error('Retired group bank preparation');
-      if (bank.length !== before.length) throw new Error('Changed group bank owner');
-      for (let index = 0; index < before.length; index++) {
-        if (!Object.is(before[index], bank[index])) throw new Error('Changed group bank owner');
-      }
-      if (roster.length !== pins.length) throw new Error('Changed group reference loan');
-      for (let index = 0; index < pins.length; index++) {
-        const pin = pins[index], row = roster[index];
-        if (pin === undefined || row !== pin.source || row.group !== pin.group || row.slot !== pin.slot
-          || row.identity !== pin.identity || row.wire !== pin.wire || row.handle !== pin.handle)
-          throw new Error('Changed group reference loan');
-      }
+    const pair=ordinarySnapshot(bank,'slice')&&ordinarySnapshot(candidate,Symbol.iterator)
+      ? this.snapshots.pop()??{before:new Float64Array(this.width),next:new Float64Array(this.width)}:undefined;
+    let released=false,exposed=false,active=0;
+    const release=():void=>{
+      if(pair===undefined||released||exposed||active!==0)return;
+      released=true;if(this.snapshots.length<2)this.snapshots.push(pair);
     };
-    return { values, validate, accept: () => { validate(); bank.set(next); accepted = true; } };
+    try {
+      const before=pair?.before??bank.slice(),next=pair?.next??Float64Array.from(candidate);
+      if(pair!==undefined){before.set(bank);next.set(candidate);}
+      const values = this.decode(next, group, roster);
+      const pins = roster.map(row => ({ source: row, group: row.group, slot: row.slot,
+        identity: row.identity, wire: row.wire, handle: row.handle }));
+      let accepted = false;
+      const validate = (): void => {
+        active++;
+        try {
+        if (accepted || scope.disposed || scope.disposing) throw new Error('Retired group bank preparation');
+        if (bank.length !== before.length) throw new Error('Changed group bank owner');
+        for (let index = 0; index < before.length; index++) {
+          if (!Object.is(before[index], bank[index])) throw new Error('Changed group bank owner');
+        }
+        if (roster.length !== pins.length) throw new Error('Changed group reference loan');
+        for (let index = 0; index < pins.length; index++) {
+          const pin = pins[index], row = roster[index];
+          if (pin === undefined || row !== pin.source || row.group !== pin.group || row.slot !== pin.slot
+            || row.identity !== pin.identity || row.wire !== pin.wire || row.handle !== pin.handle)
+            throw new Error('Changed group reference loan');
+        }
+        } finally {active--;if(accepted)release();}
+      };
+      return { values, validate, discard:()=>{if(!accepted){accepted=true;release();}}, accept: () => {
+        active++;
+        try {
+        validate();
+        const write:unknown=Reflect.get(bank,'set');
+        if(typeof write!=='function')throw new TypeError('Group bank setter is not callable');
+        // An overridden setter may retain its argument, even when it throws.
+        exposed||=write!==snapshotSet;Reflect.apply(write,bank,[next]);accepted=true;
+        } finally {active--;if(accepted)release();}
+      } };
+    } catch(error) { release();throw error; }
   }
 }
