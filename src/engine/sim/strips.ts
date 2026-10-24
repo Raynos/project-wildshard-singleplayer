@@ -1,4 +1,4 @@
-import { GRID_RADIUS, GRID_CELL_COUNT } from '@wildshard/format/contentBounds';
+import { CONTENT_CAPS, GRID_RADIUS, GRID_CELL_COUNT } from '@wildshard/format/contentBounds';
 import { diagnosticNow } from '../core/clock';
 import { validateEdgeProfile } from './edgeProfiles';
 import { SHORE_DEPTH } from './shore';
@@ -61,7 +61,7 @@ function* platformSteps(cells: readonly PlatformCell[], empty: StripProfile, pla
   validateEdgeProfile(empty);
   if (cells.length === 0 || cells.length > GRID_CELL_COUNT || new Set(cells.map((c) => c.instance)).size !== cells.length
     || new Set(cells.map((c) => c.cell.join(','))).size !== cells.length
-    || cells.some((c) => c.cell.some((n) => !Number.isInteger(n) || Math.abs(n) > GRID_RADIUS) || c.origin.x !== c.cell[0] * 555 || c.origin.z !== c.cell[1] * 555)) throw new RangeError('Invalid platform cells');
+    || cells.some((c) => c.cell.some((n) => !Number.isInteger(n) || Math.abs(n) > GRID_RADIUS) || c.origin.x !== c.cell[0] * CONTENT_CAPS.pitch || c.origin.z !== c.cell[1] * CONTENT_CAPS.pitch)) throw new RangeError('Invalid platform cells');
   for (const cell of cells) Object.values(cell.edges).forEach(validateEdgeProfile);
   const byCell = new Map(cells.map((c) => [c.cell.join(','), c]));
   const xs = cells.map((c) => c.cell[0]), zs = cells.map((c) => c.cell[1]), minX = Math.min(...xs), maxX = Math.max(...xs), minZ = Math.min(...zs), maxZ = Math.max(...zs);
@@ -102,12 +102,12 @@ function* platformSteps(cells: readonly PlatformCell[], empty: StripProfile, pla
   }
   for (let x = minX - 1; x <= maxX; x++) for (let z = minZ; z <= maxZ; z++) {
     const low = get(x, z), high = get(x + 1, z);
-    result.push(yield* strip({ id: `gap.x.${x}.${z}`, axis: 'x', origin: { x: x * 555 + 277.5, z: z * 555 }, profiles: [low?.edges.east ?? empty, high?.edges.west ?? empty], adjacent: present([low, high]), observations: [low?.observations?.east ?? { entryWidth: 0 }, high?.observations?.west ?? { entryWidth: 0 }] }));
+    result.push(yield* strip({ id: `gap.x.${x}.${z}`, axis: 'x', origin: { x: (x + 0.5) * CONTENT_CAPS.pitch, z: z * CONTENT_CAPS.pitch }, profiles: [low?.edges.east ?? empty, high?.edges.west ?? empty], adjacent: present([low, high]), observations: [low?.observations?.east ?? { entryWidth: 0 }, high?.observations?.west ?? { entryWidth: 0 }] }));
     yield;
   }
   for (let z = minZ - 1; z <= maxZ; z++) for (let x = minX; x <= maxX; x++) {
     const low = get(x, z), high = get(x, z + 1);
-    result.push(yield* strip({ id: `gap.z.${x}.${z}`, axis: 'z', origin: { x: x * 555, z: z * 555 + 277.5 }, profiles: [low?.edges.north ?? empty, high?.edges.south ?? empty], adjacent: present([low, high]), observations: [low?.observations?.north ?? { entryWidth: 0 }, high?.observations?.south ?? { entryWidth: 0 }] }));
+    result.push(yield* strip({ id: `gap.z.${x}.${z}`, axis: 'z', origin: { x: x * CONTENT_CAPS.pitch, z: (z + 0.5) * CONTENT_CAPS.pitch }, profiles: [low?.edges.north ?? empty, high?.edges.south ?? empty], adjacent: present([low, high]), observations: [low?.observations?.north ?? { entryWidth: 0 }, high?.observations?.south ?? { entryWidth: 0 }] }));
     yield;
   }
   const corner = (cell: PlatformCell | undefined, horizontal: 'north' | 'south', vertical: 'east' | 'west'): StripCorner => {
@@ -120,7 +120,7 @@ function* platformSteps(cells: readonly PlatformCell[], empty: StripProfile, pla
   };
   for (let x = minX - 1; x <= maxX; x++) for (let z = minZ - 1; z <= maxZ; z++) {
     const sw = get(x, z), se = get(x + 1, z), nw = get(x, z + 1), ne = get(x + 1, z + 1);
-    result.push(yield* cross({ id: `cross.${x}.${z}`, origin: { x: x * 555 + 277.5, z: z * 555 + 277.5 }, corners: [corner(sw, 'north', 'east'), corner(se, 'north', 'west'), corner(nw, 'south', 'east'), corner(ne, 'south', 'west')], adjacent: present([sw, se, nw, ne]) }));
+    result.push(yield* cross({ id: `cross.${x}.${z}`, origin: { x: (x + 0.5) * CONTENT_CAPS.pitch, z: (z + 0.5) * CONTENT_CAPS.pitch }, corners: [corner(sw, 'north', 'east'), corner(se, 'north', 'west'), corner(nw, 'south', 'east'), corner(ne, 'south', 'west')], adjacent: present([sw, se, nw, ne]) }));
     yield;
   }
   return result;

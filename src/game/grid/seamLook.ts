@@ -18,6 +18,7 @@
  * - **rail** (its top bar): the thin glowing cyan rail, unlit, past tone mapping like the void's rail (G89).
  */
 import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, DoubleSide, ShaderMaterial } from 'three';
+import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { GAP_HALF } from './roadLayout';
 import { linear, splitByKey, tintedPart, uniformPart, type GrainLayer, type SolidPart } from './roadSolid';
 
@@ -53,7 +54,7 @@ const fromRoad = (v: number, pitch: number): number => Math.abs(v - (Math.round(
  * Merge every strip into one home-frame geometry whose index buffer is grouped by material. Pure (no GPU): the vertices are
  * the generator's own, translated; `uv` is world-planar (top faces xz, walls along × height) so textures tile across strips.
  */
-export function seamLookGeometry(pieces: readonly SeamPiece[], home: { readonly origin: { readonly x: number; readonly z: number } }, surfaces?: SeamSurfaces, pitch = 555): { geometry: BufferGeometry; state: SeamLookState } {
+export function seamLookGeometry(pieces: readonly SeamPiece[], home: { readonly origin: { readonly x: number; readonly z: number } }, surfaces?: SeamSurfaces, pitch: number = CONTENT_CAPS.pitch): { geometry: BufferGeometry; state: SeamLookState } {
   let vertices = 0;
   for (const { mesh } of pieces) vertices += mesh.positions.length / 3;
   const position = new Float32Array(vertices * 3), colour = new Float32Array(vertices * 3), bucketOf = new Int8Array(vertices).fill(-1);
@@ -215,7 +216,7 @@ const STONE = 0xc9c4b8, DIKE = 0xe0dcd2;
 const LAYER_OF: Readonly<Record<Exclude<SeamBucket, 'curtain'>, GrainLayer>> = { ground: 'gravel', stone: 'stone', rock: 'strata', dike: 'riprap', rail: 'white' };
 
 /** `seamSolid` with the curtain still as arrays, so its geometry is built (and admitted, G144) by `roadLookPlatform.ts`. */
-export function seamSolidSource(pieces: readonly SeamPiece[], home: { readonly origin: { readonly x: number; readonly z: number } }, surfaces?: SeamSurfaces, pitch = 555): { parts: SolidPart[]; curtain: SeamCurtain; state: SeamLookState } {
+export function seamSolidSource(pieces: readonly SeamPiece[], home: { readonly origin: { readonly x: number; readonly z: number } }, surfaces?: SeamSurfaces, pitch: number = CONTENT_CAPS.pitch): { parts: SolidPart[]; curtain: SeamCurtain; state: SeamLookState } {
   const { geometry, state } = seamLookGeometry(pieces, home, surfaces, pitch), bucketOfTriangle = new Int8Array((geometry.getIndex()?.count ?? 0) / 3).fill(-1);
   for (const g of geometry.groups) bucketOfTriangle.fill(g.materialIndex ?? 0, g.start / 3, (g.start + g.count) / 3);
   const split = splitByKey(geometry, (t) => bucketOfTriangle[t] ?? 0, SEAM_BUCKETS.length), parts: SolidPart[] = [];

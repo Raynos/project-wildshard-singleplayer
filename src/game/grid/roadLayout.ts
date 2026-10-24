@@ -13,12 +13,12 @@
  */
 import type { GridAssembly, GridCell } from './assembly';
 // oxlint-disable-next-line unicorn/prefer-export-from -- E434 forbids internal re-exports; retain this existing defining-module compatibility value.
-import { ENTRY_WIDTH, ENTRY_ASPHALT as entryAsphalt } from '@wildshard/engine/core/config';
+import { CHUNK_SIZE, CONTENT_CAPS, ENTRY_WIDTH, ENTRY_ASPHALT as entryAsphalt } from '@wildshard/engine/core/config';
 
 /** The road's half width (the generator's flat road band, `STRIP_OFFSETS` ±7.5). */
 export const ROAD_HALF = 7.5;
 /** Half the 55 m gap between two cells (road plus both strips). */
-export const GAP_HALF = 27.5;
+export const GAP_HALF = (CONTENT_CAPS.pitch - CHUNK_SIZE) / 2;
 /** A road segment's half length (a cell side, from junction to junction). */
 export const SEGMENT_HALF = 250;
 /** The rail's distance from the outer road's centre line: the road edge plus a 1.5 m gravel shoulder (G89). */
