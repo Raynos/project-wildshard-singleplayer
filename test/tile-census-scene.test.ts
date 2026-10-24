@@ -2,7 +2,7 @@
 import { runInNewContext } from 'node:vm';
 import { BufferAttribute, BufferGeometry, InstancedMesh, InterleavedBuffer, InterleavedBufferAttribute, Mesh, MeshBasicMaterial, Scene } from 'three';
 import { expect, test } from 'vitest';
-import { captureTileScene } from '../scripts/parity/tile-census-scene.mjs';
+import { captureTileScene, censusReadSource } from '../scripts/parity/tile-census-scene.mjs';
 
 function fixture() {
   const backing = new ArrayBuffer(48), position = new BufferAttribute(new Float32Array(backing, 0, 6), 3);
@@ -80,4 +80,39 @@ test('missing CPU arrays stay unknown while zero-byte backing remains explicit',
   expect(result.cpuBuffers).toEqual([{ id: 'scene-cpu:1', bytes: 0 }]);
   expect(result.nodes.map(row => row.missingCpuRoles)).toEqual([['position'], ['position']]);
   expect(result.nodes[0]?.buffers).toEqual(['gpu:position', 'gpu:color']);
+});
+
+test('GL, scene and ledger are captured before a queued frame can add buffers', async () => {
+  const f = fixture(), changes: string[] = [];
+  const latePosition = new BufferAttribute(new Float32Array(3), 3);
+  const late = new Mesh(new BufferGeometry().setAttribute('position', latePosition), f.material);
+  const resources = ['gpu:position', 'gpu:color'].map(id => ({ id, kind: 'buffer', bytes: 24,
+    owner: 'scene:fixture', asset: id, labelled: true }));
+  const sourceIds = (source: object) => source === latePosition ? ['gpu:late'] : f.sourceIds(source);
+  const window = {
+    __wildshard: {
+      requireWorld: () => ({ game: { scene: f.scene, renderer: {
+        getPixelRatio: () => 2, getContext: () => ({ RENDERER: 1, getParameter: () => 'fixture' }),
+      }, canvas: { width: 804, height: 1748 } } }),
+      memory: () => ({ resourceCount: resources.length }),
+    },
+    __sc_gl: () => {
+      queueMicrotask(() => {
+        f.scene.add(late); changes.push('frame');
+        resources.push({ id: 'gpu:late', kind: 'buffer', bytes: 12, owner: 'scene:fixture', asset: 'late', labelled: true });
+      });
+      return [{ gl: {}, resources: [...resources], totalBytes: 48, listedBytes: 48, unlabelled: 0, reconciled: true }];
+    },
+    __sc_gl_source_ids: sourceIds,
+  };
+  const expectedNodes = captureTileScene(f.scene, sourceIds).nodes;
+  const result: unknown = runInNewContext(censusReadSource(true), { window, innerWidth: 402, innerHeight: 874 }, { timeout: 1000 });
+  expect(result).toMatchObject({ observed: { totalBytes: 48 }, tile: {
+    nodes: expectedNodes, allocation: { resourceCount: 2 }, cpuBuffers: [{ id: 'scene-cpu:1', bytes: 48 }],
+  } });
+  expect(changes).toEqual([]);
+  await Promise.resolve();
+  expect(changes).toEqual(['frame']);
+  // A second evaluation after an await would see an identity absent from GL.
+  expect(captureTileScene(f.scene, sourceIds).nodes.flatMap(row => row.buffers)).toContain('gpu:late');
 });

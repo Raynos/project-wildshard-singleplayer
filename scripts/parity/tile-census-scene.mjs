@@ -82,3 +82,31 @@ export function captureTileScene(scene, sourceIds) {
   });
   return { nodes, cpuBuffers };
 }
+
+/** GL, ledger and scene must be read in one synchronous browser job. Awaiting
+ * separate evaluations permits streaming/rendering to change their identities.
+ * @param {boolean} includeScene @returns {string} */
+export function censusReadSource(includeScene) {
+  return `(() => {
+    const g = window.__wildshard.requireWorld().game;
+    const contexts = window.__sc_gl().map(({gl,...record}) => record);
+    const groups = new Map();
+    for (const context of contexts) for (const row of context.resources) {
+      const key = row.owner + '\\0' + row.asset;
+      const group = groups.get(key) ?? {owner:row.owner,asset:row.asset,bytes:0,resources:0};
+      group.bytes += row.bytes; group.resources++; groups.set(key,group);
+    }
+    const observed = {contexts, assets:[...groups.values()].sort((a,b)=>b.bytes-a.bytes || a.asset.localeCompare(b.asset)),
+      totalBytes:contexts.reduce((sum,c)=>sum+c.totalBytes,0),
+      listedBytes:contexts.reduce((sum,c)=>sum+c.listedBytes,0),
+      unlabelled:contexts.reduce((sum,c)=>sum+c.unlabelled,0),
+      reconciled:contexts.every(c=>c.reconciled),
+      renderScale:g.renderer.getPixelRatio(),canvas:[g.canvas.width,g.canvas.height],viewport:[innerWidth,innerHeight],
+      renderer:g.renderer.getContext().getParameter(g.renderer.getContext().RENDERER)};
+    const tile = ${includeScene ? `{
+      ...(${captureTileScene.toString()})(g.scene, source => window.__sc_gl_source_ids?.(source) ?? []),
+      allocation: window.__wildshard.memory(), sceneCpuVersion: 1
+    }` : 'null'};
+    return { observed, tile };
+  })()`;
+}

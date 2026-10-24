@@ -7,7 +7,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { chromium, devices } from 'playwright';
 import { GL_INIT, GL_FULL_INIT } from './glbytes.mjs';
-import { captureTileScene } from './tile-census-scene.mjs';
+import { censusReadSource } from './tile-census-scene.mjs';
 import { saveFixtureCode } from '../debug-settings.mjs';
 
 // Full SHA comes from the serve-build lease; HTTP confirms its build stamp.
@@ -56,30 +56,12 @@ try {
       await new Promise((resolve) => { const tick = () => { if (window.__wildshard.requireWorld().game.frameCount >= end) resolve(undefined); else requestAnimationFrame(tick); }; requestAnimationFrame(tick); });
     });
   }
-  const observed = /** @type {import('./glbytes.mjs').CensusObservation} */ (await page.evaluate(`(() => {
-    const g = window.__wildshard.requireWorld().game;
-    const contexts = window.__sc_gl().map(({gl,...record}) => record);
-    const groups = new Map();
-    for (const context of contexts) for (const row of context.resources) {
-      const key = row.owner + '\\0' + row.asset;
-      const group = groups.get(key) ?? {owner:row.owner,asset:row.asset,bytes:0,resources:0};
-      group.bytes += row.bytes; group.resources++; groups.set(key,group);
-    }
-    return {contexts, assets:[...groups.values()].sort((a,b)=>b.bytes-a.bytes || a.asset.localeCompare(b.asset)),
-      totalBytes:contexts.reduce((sum,c)=>sum+c.totalBytes,0),
-      listedBytes:contexts.reduce((sum,c)=>sum+c.listedBytes,0),
-      unlabelled:contexts.reduce((sum,c)=>sum+c.unlabelled,0),
-      reconciled:contexts.every(c=>c.reconciled),
-      renderScale:g.renderer.getPixelRatio(),canvas:[g.canvas.width,g.canvas.height],viewport:[innerWidth,innerHeight],
-      renderer:g.renderer.getContext().getParameter(g.renderer.getContext().RENDERER)};
-  })()`));
+  const sample = /** @type {import('./tile-census-scene.mjs').CensusPageSample} */ (await page.evaluate(censusReadSource(tileCensus)));
+  const observed = sample.observed;
   let tileData = {};
   if (tileCensus) {
-    const allocation = await page.evaluate('window.__wildshard.memory()');
-    const scene = /** @type {import('./tile-census-scene.mjs').CensusSceneSnapshot} */ (await page.evaluate(
-      `(${captureTileScene.toString()})(window.__wildshard.requireWorld().game.scene, source => window.__sc_gl_source_ids?.(source) ?? [])`));
-    tileData = { pinned: pin, cpuRate: tier === 'phone' ? 4 : 1, allocation,
-      nodes: scene.nodes, cpuBuffers: scene.cpuBuffers, sceneCpuVersion: 1 };
+    if (sample.tile === null) throw new Error('Missing scene census');
+    tileData = { pinned: pin, cpuRate: tier === 'phone' ? 4 : 1, ...sample.tile, samplingMode: 'single-job' };
   }
   const record = { ...tileData, version, shard, tier, labelMode, poses: ['spawn', ...poses.map((pose) => pose.name)], observed, errors };
   mkdirSync(dirname(output), { recursive: true });
