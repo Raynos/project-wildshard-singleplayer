@@ -4189,6 +4189,11 @@ the mesh is emitted once through the whole-prop path and is never also
 merged or decimated. Its optional third argument accepts `customAttributes`
 and `nativeAttributes`, as `props.whole` does.
 
+Full-world `bake` and authored-GLB builds declare all 64 L0 squares. Vacant
+squares have no files and zero costs; render/terrain payload rows stay sparse.
+Library-only packers retain their sparse inventories. The runtime treats explicit
+zero-cost, no-file squares as empty readiness without allocating or fetching.
+
 The SDK authors ordinary three.js objects in Node. `@wildshard/sdk/scene` defines
 `readScene(root)` and its JSON-only `SceneDescription`: local graph matrices,
 geometry channels/index/groups/draw ranges, shared material references, instance

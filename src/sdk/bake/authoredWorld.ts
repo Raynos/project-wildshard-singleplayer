@@ -14,6 +14,7 @@ import { simplifyWorldPrimitive } from './worldLod';
 import { bakeWorldCollision } from './worldCollision';
 import { WorldBakeRows } from './worldRows';
 import { coarseNearView } from './placeholders';
+import { completeL0Tiles } from './tileGrid';
 
 /** In-memory authored-world result; the project loader reads source bytes and the build writes only the product. */
 export interface AuthoredWorldProduct { shard: Shardfile; assets: Map<string, Uint8Array> }
@@ -54,7 +55,9 @@ export function farSources(world: Pick<NormalizedWorld, 'static' | 'undrawn' | '
 
 /** Build a static authored GLB through the pinned texture/LOD tools and the normal render/collision row packers.
  * The default config is a compiled declaration plus `world`; this build-only key is removed before format parsing.
- * Existing compiled world sections refuse rather than being silently replaced. No repository bake script is needed. */
+ * Existing compiled world sections refuse rather than being silently replaced.
+ * Vacant L0 squares have zero-cost metadata without fabricated GLBs or model rows.
+ * No repository bake script is needed. */
 export async function bakeAuthoredWorld(input: unknown, bytes: Uint8Array): Promise<AuthoredWorldProduct> {
   const source = record(input), { world: declaration, ...data } = source, authored = parseWorldSource(declaration);
   for (const key of ['terrain', 'meshCollision', 'props', 'far', 'runtime']) if (data[key] !== undefined && data[key] !== null) throw new Error(`Authored world cannot replace compiled ${key}`);
@@ -145,7 +148,7 @@ export async function bakeAuthoredWorld(input: unknown, bytes: Uint8Array): Prom
     }
     const criticalFiles = baked.files.filter(row => row.critical), criticalResident = criticalFiles.reduce((sum, row) => sum + row.decoded + row.gpu, 0);
     const server = record(data['serverBudget']);
-    const shard = parseShardfile({ ...data, look: { ...look, materials }, files: [...oldFiles, ...baked.files], tiles: baked.tiles,
+    const shard = parseShardfile({ ...data, look: { ...look, materials }, files: [...oldFiles, ...baked.files], tiles: completeL0Tiles(baked.tiles),
       budgets: { ...budgets, library: { resident: v.parse(v.number(), previous['resident']) + resident, compressed: v.parse(v.number(), previous['compressed']) + compressed },
         sim: { resident: v.parse(v.number(), simBudget['resident']) + criticalResident,
           compressed: v.parse(v.number(), simBudget['compressed']) + criticalFiles.reduce((sum, row) => sum + row.compressed, 0) } },

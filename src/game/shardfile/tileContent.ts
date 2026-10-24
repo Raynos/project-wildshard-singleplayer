@@ -243,12 +243,16 @@ function lodKey(tile: { level: RingTile['level']; x: number; z: number }): strin
 export function clientRingCatalogue(instances: ReadonlyMap<string, { readonly source: Shardfile }>): RingCatalogue {
   // sp-o105: the rings ask this many times every fixed step; each source's rows are indexed once by their lod key (the first
   // row of a key wins, as the linear search did) instead of formatting every row's key on every question
-  const indexes = new WeakMap<Shardfile['tiles'], ReadonlyMap<string, number>>();
-  const index = (tiles: Shardfile['tiles']): ReadonlyMap<string, number> => {
+  const indexes = new WeakMap<Shardfile['tiles'], ReadonlyMap<string, number | null>>();
+  const index = (tiles: Shardfile['tiles']): ReadonlyMap<string, number | null> => {
     let found = indexes.get(tiles);
     if (found === undefined) {
-      const made = new Map<string, number>();
-      for (const tile of tiles) { const key = `${tile.lod}/${tile.x}/${tile.z}`; if (!made.has(key)) made.set(key, tile.decoded + tile.gpu); }
+      const made = new Map<string, number | null>();
+      for (const tile of tiles) {
+        const key = `${tile.lod}/${tile.x}/${tile.z}`;
+        const empty = tile.files.length === 0 && tile.compressed === 0 && tile.decoded === 0 && tile.gpu === 0 && tile.triangles === 0 && tile.draws === 0;
+        if (!made.has(key)) made.set(key, empty ? null : tile.decoded + tile.gpu);
+      }
       indexes.set(tiles, made); found = made;
     }
     return found;

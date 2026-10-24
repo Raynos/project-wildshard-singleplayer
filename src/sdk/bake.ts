@@ -10,6 +10,7 @@ import { declareNavigation } from './bake/navigationAsset';
 import { bakeTerrain, type BakedTerrain, type TerrainBakeSource } from './bake/terrain';
 import { bakeProps, type BakedProps, type PropScatter, type PropsBakeSource, type PropWhole } from './bake/props';
 import { bakeKinds, type KindBakeOptions, type KindCollider, type PieceBake } from './bake/kinds';
+import { completeL0Tiles } from './bake/tileGrid';
 
 /**
  * SHARD-PLATFORM SF80 (design-system.md §3, "the design's central call"): `bake(scene, identity)`. A generator builds an
@@ -23,6 +24,9 @@ import { bakeKinds, type KindBakeOptions, type KindCollider, type PieceBake } fr
  * - **pieces**: every `BakedPiece`, its named `InstancedMesh` kinds folded into one instanced GLB (`bake/kinds`; one draw
  *   per kind, never multi-draw) with the collider rows it declares;
  * - **colliders**: the SDK `Collider` nodes (`@wildshard/sdk/physics`), the props' collider rows and each piece's rows.
+ *
+ * The full-world tile inventory includes every L0 square. Vacant squares have
+ * zero costs and no files; the sparse render/terrain payload sections stay sparse.
  *
  * It runs only at build time and never installs a service. Generic: it knows no shard, only the scene it is handed.
  */
@@ -188,7 +192,7 @@ export function bake(scene: Object3D, identity: BakeIdentity, inputs: BakeInputs
   const baked = pieces.map((piece): BakedSceneParts => Object.assign(bakeKinds(piece.name, piece.kinds(), piece.colliders, piece.options), { name: piece.name, rows: piece.rows }));
 
   const assets = new Map([...terrain?.assets ?? [], ...props?.assets ?? [], ...navigation?.assets ?? []]);
-  const tiles = (props?.tiles ?? terrain?.tiles ?? []).slice().sort((a, b) => a.lod - b.lod || a.x - b.x || a.z - b.z);
+  const tiles = completeL0Tiles((props?.tiles ?? terrain?.tiles ?? []).slice().sort((a, b) => a.lod - b.lod || a.x - b.x || a.z - b.z));
   const files = [...terrain?.files ?? [], ...props?.files ?? [], ...navigation?.files ?? []].sort((a, b) => a.hash.localeCompare(b.hash));
   const shardfile: BakedScene['shardfile'] = { tiles, files, critical: [...terrain?.critical ?? [], ...navigation?.critical ?? []],
     ...(navigation === null ? {} : { navigation: navigation.navigation }),
