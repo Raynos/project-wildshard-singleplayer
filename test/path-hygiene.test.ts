@@ -33,6 +33,34 @@ test('ownership declaration suffixes preserve the module existence check', () =>
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
+test('Python dynamic/regex strings are not bare tokens while real Python and shell literals stay strict', () => {
+  mkdirSync('tmp', { recursive: true });
+  const root = mkdtempSync(resolve('tmp', 'path-lexing-'));
+  const put = (path: string, content: string): void => {
+    mkdirSync(dirname(resolve(root, path)), { recursive: true });
+    writeFileSync(resolve(root, path), content);
+  };
+  const run = (): ReturnType<typeof spawnSync> => spawnSync(execPath, [resolve('scripts/check-paths.mjs')], { cwd: root, encoding: 'utf8' });
+  try {
+    put('src/live.ts', 'export const live = 1;');
+    put('scripts/paths.py', `layer = "game"
+pattern = r"^src/shards/[a-z0-9_-]+/assets/"
+source = f"src/{layer}/package.json"
+upper = F"src/{layer}/value.ts"
+literal = "src/live.ts"
+`);
+    put('scripts/paths.sh', 'cat src/live.ts\n');
+    expect(run().status).toBe(0);
+    put('scripts/paths.py', "literal = r'src/missing.ts'\n");
+    expect(run().status).toBe(1);
+    put('scripts/paths.py', '');
+    put('scripts/paths.sh', 'cat src/missing.ts\n');
+    expect(run().status).toBe(1);
+    put('scripts/paths.sh', "cat 'src/missing.ts'\n");
+    expect(run().status).toBe(1);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
 test('frozen layout accepts only explicitly inventoried legacy entries', () => {
   const config = { sourceLayout: { requiredFiles: [], allowedFiles: [], folders: [] } };
   const frozen = { shards: { 'sample-legacy': { primary: 'sample', files: { 'retired.ts': 'hash' } } } };

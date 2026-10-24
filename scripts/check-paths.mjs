@@ -72,13 +72,14 @@ for (const file of tooling) {
   const code = codeOnly(source, shell);
   for (const match of strings(code)) {
     const prefix = code.slice(Math.max(0, match.index - 2), match.index);
-    if (file.endsWith('.py') && /\bf$/.test(prefix)) continue;
+    if (file.endsWith('.py') && /\b(?:f|fr|rf)$/iu.test(prefix)) continue;
     const path = match[0].slice(1, -1);
     if (file.endsWith('.py') && /\br$/.test(prefix) && /[\\^$]/.test(path)) continue;
     if (PATH.test(path)) check(file, text, path, match.index);
   }
   // Match standalone tokens, never a suffix of /tmp/.../src or weapons-src/...; punctuation may follow prose paths.
-  if (shell) for (const match of code.matchAll(/(?<![\w/.-])(?:\.\/)?src\/[\w./*{}?[\],$-]+/g)) check(file, text, match[0].replace(/[.,]$/, ''), match.index);
+  const unquoted = code.replaceAll(STRINGS, token => token.replaceAll(/[^\n]/gu, ' '));
+  if (shell) for (const match of unquoted.matchAll(/(?<![\w/.-])(?:\.\/)?src\/[\w./*{}?[\],$-]+/g)) check(file, text, match[0].replace(/[.,]$/, ''), match.index);
 }
 
 for (const file of globSync(['src/**/*.ts', 'test/**/*.ts'], { cwd: ROOT })) {
