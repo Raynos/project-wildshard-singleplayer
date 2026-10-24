@@ -1,18 +1,17 @@
 import assert from 'node:assert/strict';
-import { HeadlessSimulation } from '../../../src/sdk/headless.ts';
+import { createNativeProofWorker } from '../headless-worker.ts';
 import { emptyShardfile } from '../../../src/sdk/author.ts';
 import { decodeSimSnapshot } from '../../../src/engine/sim/snapshot.ts';
 const source = emptyShardfile({slug:'deferred-fixture',name:'Deferred fixture',author:'Test',revision:1,seed:435});
-const options = {deadline:'advisory',trustedRuntime:{module:new URL('./deferredRuntime.ts',import.meta.url).href}};
 for(const checkpoint of [6,18]) {
-  const original = await HeadlessSimulation.create(source,new Map(),undefined,options);
+  const original = await createNativeProofWorker(source,new Map(),'deferred');
   try {
     let result;
     for(let tick=0;tick<checkpoint;tick++) result=await original.step([]);
     assert.ok(result);
     const actors=decodeSimSnapshot(result.snapshot).entities.map(actor=>actor.id);
     assert.deepEqual(actors,checkpoint===6?['deferred:1']:[]);
-    const restored=await HeadlessSimulation.create(source,new Map(),result.snapshot,options);
+    const restored=await createNativeProofWorker(source,new Map(),'deferred',result.snapshot);
     try {
       for(let tick=checkpoint;tick<60;tick++) {
         const a=await original.step([]),b=await restored.step([]);
