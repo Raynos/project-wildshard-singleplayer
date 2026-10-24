@@ -89,8 +89,8 @@ After SW1 the build leases show 0 timeouts in 8 h (135 builds in 6 h, 0 s queued
 - **D4** (G674): no reverts, fix forward only (Jake: *"reverts sound like a mess"*). SW3 becomes fix-forward speed: the
   owner fixes, and G671's C4, P1 and S3 shorten red windows.
 - **D5** resolved by G675 (Jake ~11:40): delete the gate's source preparation; SW8 done.
-- **D6** (open, for Jake): C4's cross-job stop turns concurrent reds into serial CI cycles. Recommended: SW9, delete the
-  stop for the behaviour shards (G585; saving CI minutes is not a shared wait). Alternative: keep C4 as it is.
+- **D6** (G678, Jake 2026-10-23 ~17:45): **delete the cancel.** C4's cross-job stop goes for the behaviour shards (SW9),
+  so one red run lists every failing test; extra CI minutes are accepted.
 
 | Row | What | Owner | Size | Done when |
 |---|---|---|---|---|
